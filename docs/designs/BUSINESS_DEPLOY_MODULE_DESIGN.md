@@ -167,31 +167,122 @@ pending -> skipped
 
 前端目录：`frontend/src/modules/business/deploy`。
 
-页面继续使用平台现有组件：
+### 8.1 复用平台现有组件
 
-- `PageContainer`
-- `PageHeader`
-- `FilterPanel`
-- `AppTable`
-- `ListHeaderActions`
-- `FormSection`
-- `SubmitBar`
-- `AppModal`
+| 组件 | 用途 |
+| :--- | :--- |
+| `PageContainer` | 整页骨架 |
+| `PageHeader` | hero 区，含标题、面包屑、主操作 |
+| `FilterPanel` | 列表页筛选区 |
+| `AppTable` | 标准表格 |
+| `ListHeaderActions` | 列表操作条（批量、新建） |
+| `FormSection` | 表单分区 |
+| `SubmitBar` | 表单底部提交栏 |
+| `AppModal` | 弹窗 |
+| `PageState` | 空 / 加载 / 错误 / 无权限统一容器 |
 
-视觉规则：
+### 8.2 通用视觉与状态约束
 
-- 不新增 UI 库。
-- 不新增独立视觉体系。
-- 表格、筛选、按钮、详情页卡片沿用 CMDB 和系统管理节奏。
-- 状态统一用 `Tag`，颜色保持克制。
-- 操作类按钮使用图标 + 文案，危险动作使用二次确认。
+- **不新增 UI 库**。所有组件取自 Arco Design + base 平台组件。
+- **不新增独立视觉体系**。配色走 base 的 `THEME_TOKENS_REFERENCE.md`；暗色模式自动适配。
+- 表格、筛选、按钮、详情页卡片沿用 CMDB 和系统管理节奏（参考 `BUSINESS_CMDB_MODULE_DESIGN.md` §9）。
+- 状态统一用 `Tag`，颜色映射 `THEME_TOKENS_REFERENCE.md` §4 状态色 token：
+  - `success` → 任务/明细 success
+  - `warning` → running
+  - `error` → failed
+  - `info` → pending / draft
+  - 中性灰 → canceled / skipped
+- 操作类按钮使用图标 + 文案，危险动作（删除、取消任务、标记失败）使用 base 的二次确认 Modal。
+- 状态变体（加载/空/错/无权限）遵循 base 的 `EMPTY_LOADING_ERROR_STATES.md`。
 
-通知规则：
+### 8.3 通知与提示规则
 
-- 成功使用 `Message.success`。
-- 失败走 request interceptor 和 i18n 错误 key。
-- 启动、取消、标记结果使用二次确认。
-- 第一版不做站内通知中心和 WebSocket，只做页面内状态刷新。
+- 成功使用 `Message.success`，i18n key 走 `business.deploy.*.success`
+- 失败走 request interceptor 与 i18n 错误 key，**不**硬编码英文 fallback
+- 启动、取消、标记结果使用二次确认
+- 第一版不做站内通知中心和 WebSocket，只做页面内状态轮询或手动刷新
+
+---
+
+### 8.4 软件组件列表 `DeployPackageList`
+
+- **骨架类型**：标准列表页（hero + 筛选 + 表格 + 分页）
+- **筛选区**：关键词（搜索 name / version / description）、状态（enabled / disabled）
+- **表格列**：组件名、版本、状态 (Tag)、说明、更新时间、操作
+- **操作按钮**：编辑、删除、停用/启用切换
+- **新建入口**：列表头部右上「新建组件」按钮，权限 `business:deploy:package:create`
+- **页面状态**：empty-initial（引导新建第一个组件）、empty-filtered、loading、error、forbidden
+
+### 8.5 软件组件表单 `DeployPackageForm`（Modal 内）
+
+- **骨架类型**：标准 Modal 表单
+- **字段**：组件名（必填，唯一）、版本（必填）、说明、安装命令（多行）、卸载命令（多行）、状态
+- **表单校验**：组件名 + 版本组合唯一（前端预校验 + 后端 4xx 兜底）；命令字段限制长度 ≤ 8192
+- **提交反馈**：成功关闭 Modal + 列表刷新；失败保留表单数据并显示 banner
+
+### 8.6 部署任务列表 `DeployTaskList`
+
+- **骨架类型**：标准列表页
+- **筛选区**：关键词（任务名）、状态（draft/pending/running/success/failed/canceled）、组件下拉（关联 `DeployPackage`）、目标类型（host/group）、执行方式（manual/simulated/agent/ssh）、时间范围
+- **表格列**：任务名、关联组件 (name@version)、目标类型、状态 (Tag)、执行进度（X/Y 成功 + 进度条）、创建时间、执行时间、操作
+- **操作按钮**：详情、启动（draft/pending 状态）、取消（pending/running 状态）、编辑（draft 状态）、删除
+- **批量动作**：第一版**不**做批量启动；列表头操作仅"新建任务"
+- **轮询刷新**：列表中存在 `pending/running` 状态任务时，每 5 秒自动 `GET /tasks` 刷新
+
+### 8.7 部署任务表单 `DeployTaskForm`（Modal 内）
+
+- **骨架类型**：分步 Modal 表单
+  - 步骤 1：基础信息（任务名、关联组件、执行方式、备注）
+  - 步骤 2：目标选择（target_type = host → CMDB 主机多选；target_type = group → CMDB 分组多选）
+  - 步骤 3：确认与提交
+- **目标选择交互**：
+  - host 模式：弹出主机选择 Drawer，左侧分组树（来自 CMDB），右侧主机表格，支持多选
+  - group 模式：分组下拉，可多选；选择后显示分组当前成员数量预览
+- **校验**：组件状态必须为 `enabled`；目标至少 1 个；执行方式必须为 `manual` 或 `simulated`（第一版）
+
+### 8.8 部署任务详情 `DeployTaskDetail`
+
+- **骨架类型**：详情页（hero + 多 section）
+- **hero 区**：任务名、状态 Badge、关联组件、目标类型与数量、执行人、时间
+- **section 1 任务摘要**：执行方式、目标类型、命令快照（折叠展开）、备注、`external_task_id`（如有）
+- **section 2 状态流转可视化**：以 §5 状态机为模板，渲染当前所处状态 + 已经走过的路径
+- **section 3 主机执行明细表**：
+  - 列：主机名、IP、OS、状态 Tag、执行时间、退出码、stderr 摘要、操作（查看完整输出 / 标记结果）
+  - 状态分布统计条放在表格上方（success X 个，failed Y 个，pending Z 个）
+  - 单行操作：「标记成功」「标记失败」按钮根据当前状态条件渲染
+  - 完整 stdout/stderr 通过 Drawer 展示，monospace 字体，可复制
+- **section 4 任务级操作区**：启动、取消、编辑、删除按钮根据状态条件渲染
+- **section 5 审计时间线**（可选，第一版可省）：列出 §10 §11 章节定义的审计记录
+- **页面状态**：loading（hero + section skeleton）、not-found（资源不存在）、error-server、forbidden
+
+### 8.9 标记结果交互
+
+- 入口：详情页主机明细表的「标记成功」「标记失败」按钮
+- 弹窗：标记成功无需输入；标记失败需填写错误描述（必填，i18n key `business.deploy.taskHost.markFailed.reasonRequired`）
+- 提交后该行状态切换，任务状态可能自动汇总；列表无需手动刷新（局部更新）
+
+### 8.10 i18n key 前缀
+
+- `business.deploy.package.*` 软件组件
+- `business.deploy.task.*` 任务
+- `business.deploy.taskHost.*` 主机明细
+- `business.deploy.state.*` 状态名称（success / pending / running / failed / canceled / skipped）
+
+### 8.11 响应式
+
+- 表格列按 `MOBILE_RESPONSIVE_BREAKPOINTS.md` §4 的列优先级声明
+- 任务详情在 `md` 以下：section 单列堆叠，主机明细表切换为卡片视图（每行一卡）
+
+### 8.12 引用规范（位于 base）
+
+- `../../../pantheon-base/docs/designs/FRONTEND_UI_SPEC.md`
+- `../../../pantheon-base/docs/designs/FRONTEND_PAGE_TEMPLATES.md`
+- `../../../pantheon-base/docs/designs/BACKOFFICE_STYLE_CONSTRAINTS.md`
+- `../../../pantheon-base/docs/designs/ACCESSIBILITY.md`
+- `../../../pantheon-base/docs/designs/THEME_TOKENS_REFERENCE.md`
+- `../../../pantheon-base/docs/designs/DARK_MODE_DESIGN.md`
+- `../../../pantheon-base/docs/designs/EMPTY_LOADING_ERROR_STATES.md`
+- `../../../pantheon-base/docs/designs/MOBILE_RESPONSIVE_BREAKPOINTS.md`
 
 ## 9. 权限与审计
 
