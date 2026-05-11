@@ -1,0 +1,77 @@
+package dynamicmodule
+
+import (
+	"pantheon-ops/backend/internal/middleware"
+	"pantheon-ops/backend/pkg/common"
+	"pantheon-ops/backend/pkg/contracts"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+)
+
+func dynamicModuleEnabled() bool {
+	value := strings.ToLower(strings.TrimSpace(common.ResolveSecret("PANTHEON_ENABLE_DYNAMIC_MODULES", "")))
+	switch value {
+	case "1", "true", "yes", "on":
+		return true
+	case "0", "false", "no", "off":
+		return false
+	}
+	return !common.IsProductionEnv()
+}
+
+func DynamicModuleEnvGuard() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if dynamicModuleEnabled() {
+			c.Next()
+			return
+		}
+		common.FailWithCode(c, common.CodeForbidden, "module.dynamic.disabled")
+		c.Abort()
+	}
+}
+
+// InitDynamicModule 初始化动态模块管理
+func InitDynamicModule(r *gin.RouterGroup, db *gorm.DB) {
+	// 自动创建模块注册表
+	db.AutoMigrate(&ModuleRegistration{})
+
+	service := NewDynamicModuleService(db)
+	handler := NewDynamicModuleHandler(service)
+
+	modules := []contracts.BackendModule{
+		contracts.FuncModule{
+			ModuleName: "dynamic-module",
+			MigrateFunc: func(db *gorm.DB) error {
+				return db.AutoMigrate(&ModuleRegistration{})
+			},
+			Register: func(r *gin.RouterGroup) {
+				readAPI := r.Group("/system/dynamic-modules").
+					Use(middleware.JWTAuthMiddleware()).
+					Use(middleware.CasbinMiddleware()).
+					Use(DynamicModuleEnvGuard())
+				{
+					readAPI.GET("", handler.ListModules)
+					readAPI.GET("/:name", handler.GetModuleStatus)
+				}
+
+				writeAPI := r.Group("/system/dynamic-modules").
+					Use(middleware.JWTAuthMiddleware()).
+					Use(middleware.CasbinMiddleware()).
+					Use(DynamicModuleEnvGuard()).
+					Use(middleware.SecureActionMiddleware())
+				{
+					writeAPI.POST("/generate", handler.GenerateAndRegisterModule)
+					writeAPI.POST("/repair", handler.RepairRegistries)
+					writeAPI.POST("", handler.RegisterModule)
+					writeAPI.DELETE("/:name", handler.UnregisterModule)
+					writeAPI.DELETE("/:name/record", handler.DeleteModuleRecord)
+					writeAPI.DELETE("/:name/purge", handler.PurgeModule)
+				}
+			},
+		},
+	}
+
+	contracts.RegisterBackendModules(r, db, modules...)
+}

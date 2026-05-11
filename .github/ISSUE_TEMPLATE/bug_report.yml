@@ -1,0 +1,72 @@
+name: Bug Report
+description: 报告平台层、系统域或业务域中的缺陷
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: dropdown
+    id: layer
+    attributes:
+      label: 所属层级
+      description: 先判断问题归属，避免把所有问题都归到“大 system”
+      options:
+        - platform
+        - system/auth
+        - system/iam
+        - system/org
+        - system/config
+        - business/*
+    validations:
+      required: true
+  - type: input
+    id: module
+    attributes:
+      label: 影响模块
+      placeholder: 例如 role、menu、dept、post、dashboard
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: 问题描述
+      description: 简明描述现象与预期差异
+      placeholder: 例如：角色管理页的页面授权未按菜单层级展示
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 打开页面
+        2. 点击某操作
+        3. 观察结果
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望结果
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 日志 / 截图 / 接口证据
+      description: 建议附上 gstack 或 smoke 测试证据
+  - type: checkboxes
+    id: scope_checks
+    attributes:
+      label: 边界确认
+      options:
+        - label: 我已确认问题归属层级，而不是泛化为“大 system 问题”
+          required: true
+        - label: 如果涉及权限，我已区分导航、页面、操作、接口四类授权
+          required: false
+

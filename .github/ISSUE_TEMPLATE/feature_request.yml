@@ -1,0 +1,63 @@
+name: Feature Request
+description: 提出平台层、系统域或业务域的新需求
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: dropdown
+    id: layer
+    attributes:
+      label: 目标层级
+      options:
+        - platform
+        - system/auth
+        - system/iam
+        - system/org
+        - system/config
+        - business/*
+    validations:
+      required: true
+  - type: input
+    id: module
+    attributes:
+      label: 目标模块
+      placeholder: 例如 user、role、dept、setting、cmdb
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: 现状问题
+      description: 说明当前方案为什么不够用
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望方案
+      description: 说明预期交互、接口、权限或数据模型变化
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: 边界与依赖
+      description: 如果需求跨层，请说明各层职责和依赖关系
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 验收标准
+      placeholder: |
+        - 页面/接口行为
+        - 权限影响
+        - 文档与测试要求
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已考虑菜单、权限、i18n、审计与文档影响
+          required: true
+

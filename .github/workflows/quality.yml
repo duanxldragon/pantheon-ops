@@ -1,0 +1,65 @@
+name: Quality Gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  frontend-contract:
+    name: Frontend menu contract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Check menu contract
+        working-directory: frontend
+        run: npm run check:menu-contract
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Audit i18n locales
+        working-directory: frontend
+        run: npm run audit:i18n-locales
+
+      - name: Audit production dependencies
+        working-directory: frontend
+        run: npm audit --registry=https://registry.npmjs.org --audit-level=high --omit=dev
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+  backend-tests:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Test backend
+        run: go test ./...
+
+      - name: Scan backend vulnerabilities
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...

@@ -1,0 +1,37 @@
+#!/bin/sh
+set -eu
+
+commit_msg_file="${1:-}"
+if [ -z "$commit_msg_file" ] || [ ! -f "$commit_msg_file" ]; then
+  echo "commit-msg hook: missing commit message file" >&2
+  exit 1
+fi
+
+subject="$(sed -n '1p' "$commit_msg_file")"
+
+case "$subject" in
+  Merge\ *|Revert\ *|fixup!\ *|squash!\ *)
+    exit 0
+    ;;
+esac
+
+pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._/-]+\))?!?: .{1,72}$'
+
+if ! printf '%s\n' "$subject" | grep -Eq "$pattern"; then
+  cat >&2 <<'EOF'
+Invalid commit message.
+
+Expected:
+  type(scope): subject
+
+Examples:
+  feat(system-iam): unify role authorization trees
+  fix(system-org): validate post department ownership
+  docs(platform): improve repository README
+  test(system-iam): add role authorization smoke coverage
+
+Allowed types:
+  feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+EOF
+  exit 1
+fi

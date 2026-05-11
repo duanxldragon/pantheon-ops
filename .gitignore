@@ -1,0 +1,61 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+*.out.log
+*.err.log
+
+# Local caches and temp files
+.tmp/
+tmp/
+.gocache/
+.gstack/
+coverage/
+
+# Go
+bin/
+*.exe
+*.test
+*.prof
+vendor/
+
+# Local databases
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+
+# Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/coverage/
+frontend/.vite/
+
+# Test artifacts
+playwright-report/
+test-results/
+
+# Local Pantheon artifacts
+.claude/
+.smoke.token
+.tmp-visual/
+.trace-debug/
+.codex_i18n_schema.go
+frontend/tmp-icon-audit.cjs
+frontend/tmp-icon-audit.js
+backend/cmd/server/uploads/
+backend/uploads/
+uploads/

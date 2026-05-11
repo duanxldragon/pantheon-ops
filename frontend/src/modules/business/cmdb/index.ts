@@ -1,0 +1,78 @@
+import { defineModule } from '../../../core/router/types';
+
+export const CmdbModule = defineModule({
+  name: 'cmdb',
+  scope: 'business',
+  routes: [
+    {
+      path: '/operations/cmdb/host',
+      routeName: 'cmdb-host-list',
+      titleKey: 'operations.cmdb.host.menu',
+      componentKey: 'business/cmdb/host/CmdbHostList',
+      pagePermission: 'business:cmdb:host:list',
+    },
+    {
+      path: '/operations/cmdb/host/:id',
+      routeName: 'cmdb-host-detail',
+      titleKey: 'operations.cmdb.host.detail',
+      componentKey: 'business/cmdb/host/CmdbHostDetail',
+      pagePermission: 'business:cmdb:host:detail',
+    },
+    {
+      path: '/operations/cmdb/group',
+      routeName: 'cmdb-group-list',
+      titleKey: 'operations.cmdb.group.menu',
+      componentKey: 'business/cmdb/group/CmdbGroupList',
+      pagePermission: 'business:cmdb:group:list',
+    },
+    {
+      path: '/operations/cmdb/label',
+      routeName: 'cmdb-label-list',
+      titleKey: 'operations.cmdb.label.menu',
+      componentKey: 'business/cmdb/label/CmdbLabelSchemaList',
+      pagePermission: 'business:cmdb:label:list',
+    },
+  ],
+  menus: [
+    {
+      path: '/operations/cmdb/host',
+      titleKey: 'operations.cmdb.host.menu',
+      icon: 'apps',
+      routeName: 'cmdb-host-list',
+      module: 'business.cmdb',
+    },
+    {
+      path: '/operations/cmdb/group',
+      titleKey: 'operations.cmdb.group.menu',
+      icon: 'branch',
+      routeName: 'cmdb-group-list',
+      module: 'business.cmdb',
+    },
+    {
+      path: '/operations/cmdb/label',
+      titleKey: 'operations.cmdb.label.menu',
+      icon: 'tags',
+      routeName: 'cmdb-label-list',
+      module: 'business.cmdb',
+    },
+  ],
+  permissions: [
+    'business:cmdb:host:list',
+    'business:cmdb:host:detail',
+    'business:cmdb:host:create',
+    'business:cmdb:host:update',
+    'business:cmdb:host:delete',
+    'business:cmdb:host:collect',
+    'business:cmdb:host:status',
+    'business:cmdb:group:list',
+    'business:cmdb:group:detail',
+    'business:cmdb:group:create',
+    'business:cmdb:group:update',
+    'business:cmdb:group:delete',
+    'business:cmdb:label:list',
+    'business:cmdb:label:create',
+    'business:cmdb:label:update',
+    'business:cmdb:label:delete',
+  ],
+  i18nNamespaces: ['business.cmdb'],
+});

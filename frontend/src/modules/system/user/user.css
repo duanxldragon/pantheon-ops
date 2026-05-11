@@ -1,0 +1,22 @@
+.system-user-list__role-text {
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.system-user-list__hero .arco-card-body {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.system-user-list__hero .system-page-kpi-grid {
+  gap: 10px;
+}
+
+.system-user-list__hero .system-page-kpi {
+  padding: 12px 14px;
+}
+
+.system-user-list__hero .system-page-kpi__value {
+  font-size: 22px;
+}

@@ -1,0 +1,16 @@
+<type>(<scope>): <subject>
+
+# Conventional Commits:
+#   feat(system-iam): unify role authorization trees
+#   fix(system-org): validate post department ownership
+#   docs(platform): improve repository README
+#   test(system-iam): add role authorization smoke coverage
+#
+# Allowed types:
+#   feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+#
+# Suggested scopes:
+#   platform, system-auth, system-iam, system-org, system-config,
+#   system-audit, business-cmdb, frontend, backend, docs, ci, tests
+#
+# Keep the first line <= 72 characters.

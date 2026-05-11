@@ -1,0 +1,7 @@
+node_modules
+dist
+.gstack
+coverage
+public
+*.min.js
+*.min.css

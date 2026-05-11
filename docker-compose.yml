@@ -1,0 +1,32 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: pantheon-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: DHCCroot@2025
+      MYSQL_DATABASE: pantheon
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+    volumes:
+      - pantheon_mysql_data:/var/lib/mysql
+      - ./database/system_init.sql:/docker-entrypoint-initdb.d/01-system_init.sql:ro
+
+  redis:
+    image: redis:7-alpine
+    container_name: pantheon-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "DHCCdhcc2025"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - pantheon_redis_data:/data
+
+volumes:
+  pantheon_mysql_data:
+  pantheon_redis_data:

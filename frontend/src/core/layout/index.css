@@ -1,0 +1,1836 @@
+.app-shell {
+  min-height: 100dvh;
+  background: transparent;
+}
+
+.app-shell--horizontal {
+  flex-direction: column;
+}
+
+.app-shell__sider {
+  background: color-mix(in srgb, var(--panel-bg-solid) 94%, var(--brand-primary) 6%);
+  border-right: 1px solid var(--panel-border);
+  box-shadow: none;
+}
+
+.app-shell__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  margin: 16px 16px 14px;
+  padding: 14px 14px 14px 12px;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 6%, var(--panel-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--panel-bg-solid) 96%, var(--brand-primary) 4%);
+}
+
+.app-shell__brand--collapsed {
+  justify-content: center;
+  padding: 14px 0;
+}
+
+.app-shell__brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 12%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 6%, #ffffff);
+  color: var(--brand-primary);
+  font-size: 18px;
+  font-weight: 700;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.app-shell__brand-mark img,
+.app-shell__header-brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.app-shell__brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app-shell__brand-title {
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.app-shell__brand-subtitle {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.app-shell__menu-loading {
+  display: block;
+  width: 100%;
+}
+
+.app-shell__menu {
+  padding: 0 10px 16px;
+  background: transparent;
+  border-inline-end: none !important;
+}
+
+.app-shell__menu .arco-menu-inner {
+  padding: 0;
+}
+
+.app-shell__menu-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.app-shell__menu-entry-copy {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+}
+
+.app-shell__menu-entry-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-shell__menu-entry-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-align: center;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.app-shell__menu-entry-icon .arco-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 16px;
+  line-height: 1;
+  margin-right: 0 !important;
+}
+
+.app-shell__menu-entry--level-0 {
+  gap: 10px;
+}
+
+.app-shell__menu-entry--level-1,
+.app-shell__menu-entry--level-2 {
+  gap: 10px;
+}
+
+.app-shell__menu-entry-icon--level-0 {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: color-mix(in srgb, var(--brand-primary) 56%, var(--text-secondary));
+  box-shadow: none;
+}
+
+.app-shell__menu-entry-icon--level-1,
+.app-shell__menu-entry-icon--level-2 {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: color-mix(in srgb, var(--brand-primary) 44%, var(--text-tertiary));
+  box-shadow: none;
+}
+
+.app-shell__menu-entry-icon--level-0 .arco-icon {
+  font-size: 15px;
+}
+
+.app-shell__menu-entry-icon--level-1 .arco-icon,
+.app-shell__menu-entry-icon--level-2 .arco-icon {
+  font-size: 13px;
+}
+
+.app-shell__menu .arco-menu-inline-header,
+.app-shell__menu .arco-menu-item {
+  position: relative;
+  min-height: 42px;
+  border-radius: 10px;
+  margin-bottom: 2px;
+  overflow: hidden;
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease;
+}
+
+.app-shell__menu .arco-menu-inline-header {
+  display: flex;
+  align-items: center;
+}
+
+.app-shell__menu .arco-menu-inline-header > span:not(.arco-menu-icon-suffix) {
+  flex: 0 0 auto;
+}
+
+.app-shell__menu .arco-menu-inline-header > span:nth-last-child(2) {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.app-shell__menu > .arco-menu-inner > .arco-menu-item,
+.app-shell__menu > .arco-menu-inner > .arco-menu-sub > .arco-menu-inline-header {
+  padding: 0 12px 0 14px !important;
+}
+
+.app-shell__menu .arco-menu-inline-header::before,
+.app-shell__menu .arco-menu-item::before {
+  content: '';
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 6px;
+  width: 3px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  opacity: 0;
+  transform: scaleY(0.55);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.app-shell__menu .arco-menu-item,
+.app-shell__menu .arco-menu-inline-header,
+.app-shell__menu .arco-menu-icon {
+  color: var(--text-secondary);
+}
+
+.app-shell__menu .arco-menu-item-inner,
+.app-shell__menu .arco-menu-inline-header .arco-menu-item-inner,
+.app-shell__menu .arco-menu-inline-header-title {
+  letter-spacing: 0.01em;
+  font-weight: 500;
+}
+
+.app-shell__menu .arco-menu-inline-header-title {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.app-shell__menu .arco-menu-item,
+.app-shell__menu .arco-menu-inline-header {
+  background: transparent;
+}
+
+.app-shell__menu > .arco-menu-inner > .arco-menu-sub > .arco-menu-inline-content {
+  margin: 0 0 8px;
+}
+
+.app-shell__menu
+  > .arco-menu-inner
+  > .arco-menu-sub
+  > .arco-menu-inline-content
+  > .arco-menu-inner {
+  margin-left: 16px;
+  padding: 6px 0 6px 14px;
+  border-left: 1px solid color-mix(in srgb, var(--brand-primary) 12%, var(--panel-border));
+  background: transparent;
+}
+
+.app-shell__menu .arco-menu-inline-content .arco-menu-item {
+  min-height: 38px;
+  margin-bottom: 2px;
+  padding: 0 12px 0 14px !important;
+  background: transparent;
+}
+
+.app-shell__menu .arco-menu-inline-content .arco-menu-item .arco-menu-item-inner {
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+}
+
+.app-shell__menu .arco-menu-inline-content .arco-menu-item::before {
+  left: 12px;
+  width: 2px;
+}
+
+.app-shell__menu .arco-menu-inline-content .app-shell__menu-entry {
+  align-items: center;
+}
+
+.app-shell__menu .arco-menu-inline-content .app-shell__menu-entry-copy {
+  min-height: 30px;
+  align-items: center;
+}
+
+.app-shell__menu .arco-menu-open > .arco-menu-inline-header {
+  background: color-mix(in srgb, var(--brand-primary) 4%, rgba(255, 255, 255, 0.92)) !important;
+  color: var(--text-primary);
+}
+
+.app-shell__menu .arco-menu-open > .arco-menu-inline-header .arco-menu-item-inner,
+.app-shell__menu .arco-menu-open > .arco-menu-inline-header .arco-menu-inline-header-title {
+  font-weight: 600;
+}
+
+.app-shell__menu .arco-menu-open > .arco-menu-inline-header .arco-menu-icon,
+.app-shell__menu .arco-menu-open > .arco-menu-inline-header .arco-menu-icon-suffix .arco-icon {
+  color: var(--brand-primary) !important;
+}
+
+.app-shell__menu .arco-menu-open > .arco-menu-inline-header .app-shell__menu-entry-icon--level-0 {
+  background: color-mix(in srgb, var(--brand-primary) 10%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__menu .arco-menu-item:hover,
+.app-shell__menu .arco-menu-inline-header:hover {
+  background: color-mix(in srgb, var(--brand-primary) 3%, rgba(255, 255, 255, 0.92)) !important;
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+.app-shell__menu .arco-menu-item:hover .app-shell__menu-entry-icon--level-0,
+.app-shell__menu .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-0 {
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__menu .arco-menu-item:hover .app-shell__menu-entry-icon--level-1,
+.app-shell__menu .arco-menu-item:hover .app-shell__menu-entry-icon--level-2,
+.app-shell__menu .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-1,
+.app-shell__menu .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-2 {
+  background: color-mix(in srgb, var(--brand-primary) 6%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__menu .arco-menu-selected,
+.app-shell__menu .arco-menu-inline-header.arco-menu-selected {
+  background: color-mix(in srgb, var(--brand-primary) 8%, rgba(255, 255, 255, 0.96)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 8%, transparent);
+}
+
+.app-shell__menu .arco-menu-selected,
+.app-shell__menu .arco-menu-selected .arco-menu-icon {
+  color: var(--brand-primary) !important;
+}
+
+.app-shell__menu .arco-menu-selected::before,
+.app-shell__menu .arco-menu-inline-header.arco-menu-selected::before {
+  opacity: 1;
+  transform: scaleY(1);
+  background: var(--brand-primary);
+}
+
+.app-shell__menu .arco-menu-selected .arco-menu-icon,
+.app-shell__menu .arco-menu-inline-header.arco-menu-selected .arco-menu-icon {
+  color: var(--brand-primary) !important;
+}
+
+.app-shell__menu .arco-menu-selected .app-shell__menu-entry-icon--level-0,
+.app-shell__menu .arco-menu-inline-header.arco-menu-selected .app-shell__menu-entry-icon--level-0 {
+  background: color-mix(in srgb, var(--brand-primary) 12%, #ffffff);
+  color: var(--brand-primary);
+  transform: none;
+}
+
+.app-shell__menu .arco-menu-selected .app-shell__menu-entry-icon--level-1,
+.app-shell__menu .arco-menu-selected .app-shell__menu-entry-icon--level-2,
+.app-shell__menu .arco-menu-inline-header.arco-menu-selected .app-shell__menu-entry-icon--level-1,
+.app-shell__menu .arco-menu-inline-header.arco-menu-selected .app-shell__menu-entry-icon--level-2 {
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__menu .arco-menu-selected .arco-menu-item-inner,
+.app-shell__menu .arco-menu-inline-header.arco-menu-selected .arco-menu-item-inner,
+.app-shell__menu .arco-menu-inline-header.arco-menu-selected .arco-menu-inline-header-title {
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.app-shell__menu > .arco-menu-inner > .arco-menu-item > .arco-menu-item-inner,
+.app-shell__menu
+  > .arco-menu-inner
+  > .arco-menu-sub
+  > .arco-menu-inline-header
+  .arco-menu-item-inner,
+.app-shell__menu > .arco-menu-inner > .arco-menu-sub > .arco-menu-inline-header-title {
+  font-size: 14px;
+}
+
+.app-shell__menu
+  > .arco-menu-inner
+  > .arco-menu-sub
+  > .arco-menu-inline-header
+  .app-shell__menu-entry-label,
+.app-shell__menu
+  > .arco-menu-inner
+  > .arco-menu-item
+  > .arco-menu-item-inner
+  .app-shell__menu-entry-label {
+  font-size: 14px;
+}
+
+.app-shell__menu .arco-menu-inline-content .app-shell__menu-entry-label {
+  font-size: 14px;
+}
+
+.app-shell__menu .arco-menu-icon {
+  margin-right: 0 !important;
+}
+
+.app-shell__menu .arco-menu-icon-suffix {
+  color: var(--text-tertiary);
+}
+
+.app-shell__sider.arco-layout-sider-collapsed .app-shell__menu {
+  padding-inline: 10px;
+}
+
+.app-shell__sider.arco-layout-sider-collapsed .app-shell__menu-entry {
+  justify-content: center;
+}
+
+.app-shell__sider.arco-layout-sider-collapsed .app-shell__menu-entry-copy {
+  display: none;
+}
+
+.app-shell__sider.arco-layout-sider-collapsed .app-shell__menu-entry-icon--level-0,
+.app-shell__sider.arco-layout-sider-collapsed .app-shell__menu-entry-icon--level-1,
+.app-shell__sider.arco-layout-sider-collapsed .app-shell__menu-entry-icon--level-2 {
+  width: 28px;
+  height: 28px;
+}
+
+.app-shell__main {
+  min-width: 0;
+  background: transparent;
+}
+
+.app-shell--horizontal .app-shell__main {
+  width: 100%;
+}
+
+.app-shell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  height: auto;
+  min-height: 64px;
+  padding: 12px 24px 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid var(--panel-border);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
+  line-height: normal;
+}
+
+.app-shell__header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 420px;
+  min-width: 0;
+}
+
+.app-shell__header-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 12px 0 6px;
+  border: 1px solid rgba(229, 230, 235, 0.82);
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg-solid);
+  box-shadow: none;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.app-shell__header-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 18%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  color: var(--brand-primary);
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.app-shell__header-brand-text {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.app-shell__collapse-btn,
+.app-shell__icon-btn,
+.app-shell__user-trigger {
+  border-radius: var(--radius-sm) !important;
+}
+
+.app-shell__header-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-height: 36px;
+  min-width: 0;
+  overflow: visible;
+}
+
+.app-shell__header-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.app-shell__collapse-btn,
+.app-shell__header-brand {
+  align-self: center;
+}
+
+.app-shell__search-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 1 280px;
+  min-width: 220px;
+  max-width: 320px;
+  height: 36px;
+  padding: 0 10px 0 10px;
+  border: 1px solid rgba(229, 230, 235, 0.82);
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg-solid);
+  color: var(--text-secondary);
+  box-shadow: none;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease;
+}
+
+.app-shell__search-trigger .arco-icon {
+  font-size: 14px;
+}
+
+.app-shell__search-trigger:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 16%, var(--panel-border));
+  background: var(--panel-bg-solid);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+.app-shell__search-placeholder {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-shell__search-shortcut {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 22px;
+  padding-inline: 8px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--brand-primary) 6%, #ffffff);
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-family: inherit;
+}
+
+.app-shell__icon-btn {
+  min-width: 36px;
+  height: 36px;
+  padding-inline: 8px !important;
+  border: 1px solid rgba(229, 230, 235, 0.82);
+  background: var(--panel-bg-solid);
+  color: var(--text-secondary);
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.app-shell__icon-btn .arco-icon {
+  font-size: 14px;
+}
+
+.app-shell__icon-btn:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 18%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  color: var(--brand-primary);
+  box-shadow: none;
+}
+
+.app-shell__icon-btn--attention {
+  border-color: color-mix(in srgb, var(--danger-color, #f53f3f) 18%, var(--panel-border));
+  background: color-mix(in srgb, var(--danger-color, #f53f3f) 5%, #ffffff);
+  color: var(--danger-color, #f53f3f);
+}
+
+.app-shell__icon-btn--attention:hover {
+  border-color: color-mix(in srgb, var(--danger-color, #f53f3f) 28%, var(--panel-border));
+  background: color-mix(in srgb, var(--danger-color, #f53f3f) 7%, #ffffff);
+  color: var(--danger-color, #f53f3f);
+}
+
+.app-shell__top-nav {
+  padding: 10px 28px 12px;
+  border-bottom: 1px solid var(--panel-border);
+  background: color-mix(in srgb, var(--panel-bg-solid) 96%, var(--brand-primary) 4%);
+  overflow-x: auto;
+}
+
+.app-shell__top-nav .app-shell__menu-loading {
+  width: 100%;
+}
+
+.app-shell__top-nav .arco-spin,
+.app-shell__top-nav .arco-spin-children {
+  display: block;
+  width: 100%;
+}
+
+.app-shell__top-menu {
+  min-height: 52px;
+  padding: 6px 8px;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 6%, var(--panel-border));
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-bottom: none !important;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.app-shell__top-menu .arco-menu-inner {
+  min-width: max-content;
+  gap: 6px;
+  padding: 0;
+}
+
+.app-shell__top-menu.arco-menu-horizontal .arco-menu-item:not(:first-child),
+.app-shell__top-menu.arco-menu-horizontal .arco-menu-pop:not(:first-child) {
+  margin-left: 0;
+}
+
+.app-shell__top-menu .arco-menu-item,
+.app-shell__top-menu .arco-menu-pop-header,
+.app-shell__top-menu .arco-menu-inline-header {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  height: 42px;
+  padding: 0 14px 0 16px !important;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  line-height: 42px;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.app-shell__top-menu .arco-menu-item::before,
+.app-shell__top-menu .arco-menu-pop-header::before,
+.app-shell__top-menu .arco-menu-inline-header::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 8px;
+  width: 3px;
+  border-radius: 999px;
+  background: transparent;
+  opacity: 0;
+  transform: scaleY(0.55);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.app-shell__top-menu .app-shell__menu-entry {
+  gap: 10px;
+}
+
+.app-shell__top-menu .app-shell__menu-entry-copy {
+  min-width: 0;
+}
+
+.app-shell__top-menu .app-shell__menu-entry-icon--level-0 {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: transparent;
+  color: color-mix(in srgb, var(--brand-primary) 56%, var(--text-secondary));
+}
+
+.app-shell__top-menu .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu .app-shell__menu-entry-icon--level-2 {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: transparent;
+  color: color-mix(in srgb, var(--brand-primary) 44%, var(--text-tertiary));
+}
+
+.app-shell__top-menu .arco-menu-item:hover,
+.app-shell__top-menu .arco-menu-pop-header:hover,
+.app-shell__top-menu .arco-menu-inline-header:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 16%, var(--panel-border));
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--brand-primary) 3%, rgba(255, 255, 255, 0.94)) !important;
+}
+
+.app-shell__top-menu .arco-menu-item:hover::before,
+.app-shell__top-menu .arco-menu-pop-header:hover::before,
+.app-shell__top-menu .arco-menu-inline-header:hover::before {
+  opacity: 0.5;
+  transform: scaleY(0.78);
+  background: color-mix(in srgb, var(--brand-primary) 42%, transparent);
+}
+
+.app-shell__top-menu .arco-menu-item:hover .app-shell__menu-entry-icon--level-0,
+.app-shell__top-menu .arco-menu-pop-header:hover .app-shell__menu-entry-icon--level-0,
+.app-shell__top-menu .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-0 {
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__top-menu .arco-menu-item:hover .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu .arco-menu-item:hover .app-shell__menu-entry-icon--level-2,
+.app-shell__top-menu .arco-menu-pop-header:hover .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu .arco-menu-pop-header:hover .app-shell__menu-entry-icon--level-2,
+.app-shell__top-menu .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-2 {
+  background: color-mix(in srgb, var(--brand-primary) 6%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__top-menu .arco-menu-selected,
+.app-shell__top-menu .arco-menu-pop-header.arco-menu-selected,
+.app-shell__top-menu .arco-menu-inline-header.arco-menu-selected {
+  border-color: color-mix(in srgb, var(--brand-primary) 18%, var(--panel-border));
+  color: var(--brand-primary) !important;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--brand-primary) 10%, rgba(255, 255, 255, 0.92)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 6%, transparent);
+}
+
+.app-shell__top-menu .arco-menu-selected::before,
+.app-shell__top-menu .arco-menu-pop-header.arco-menu-selected::before,
+.app-shell__top-menu .arco-menu-inline-header.arco-menu-selected::before {
+  opacity: 1;
+  transform: scaleY(1);
+  background: var(--brand-primary);
+}
+
+.app-shell__top-menu .arco-menu-selected .app-shell__menu-entry-icon--level-0,
+.app-shell__top-menu .arco-menu-pop-header.arco-menu-selected .app-shell__menu-entry-icon--level-0,
+.app-shell__top-menu
+  .arco-menu-inline-header.arco-menu-selected
+  .app-shell__menu-entry-icon--level-0 {
+  background: color-mix(in srgb, var(--brand-primary) 12%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__top-menu .arco-menu-selected .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu .arco-menu-selected .app-shell__menu-entry-icon--level-2,
+.app-shell__top-menu .arco-menu-pop-header.arco-menu-selected .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu .arco-menu-pop-header.arco-menu-selected .app-shell__menu-entry-icon--level-2,
+.app-shell__top-menu
+  .arco-menu-inline-header.arco-menu-selected
+  .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu
+  .arco-menu-inline-header.arco-menu-selected
+  .app-shell__menu-entry-icon--level-2 {
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__top-menu .arco-menu-icon {
+  color: inherit;
+}
+
+.app-shell__top-menu .arco-menu-pop {
+  margin-left: 0 !important;
+}
+
+.app-shell__top-menu-popup {
+  padding-top: 10px;
+}
+
+.app-shell__top-menu-popup .arco-menu {
+  min-width: 220px;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 10%, var(--panel-border));
+  border-radius: 16px;
+  background: var(--panel-bg-solid);
+  box-shadow: var(--panel-shadow-soft);
+}
+
+.app-shell__top-menu-popup .arco-menu-item,
+.app-shell__top-menu-popup .arco-menu-pop-header,
+.app-shell__top-menu-popup .arco-menu-inline-header {
+  position: relative;
+  min-height: 42px;
+  margin-bottom: 2px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.app-shell__top-menu-popup .app-shell__menu-entry {
+  gap: 10px;
+}
+
+.app-shell__top-menu-popup .app-shell__menu-entry-icon--level-0 {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: transparent;
+  color: color-mix(in srgb, var(--brand-primary) 56%, var(--text-secondary));
+}
+
+.app-shell__top-menu-popup .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu-popup .app-shell__menu-entry-icon--level-2 {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: transparent;
+  color: color-mix(in srgb, var(--brand-primary) 44%, var(--text-tertiary));
+}
+
+.app-shell__top-menu-popup .arco-menu-item:last-child,
+.app-shell__top-menu-popup .arco-menu-pop:last-child > .arco-menu-pop-header,
+.app-shell__top-menu-popup .arco-menu-sub:last-child > .arco-menu-inline-header {
+  margin-bottom: 0;
+}
+
+.app-shell__top-menu-popup .arco-menu-item:hover,
+.app-shell__top-menu-popup .arco-menu-pop-header:hover,
+.app-shell__top-menu-popup .arco-menu-inline-header:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 14%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 4%, rgba(255, 255, 255, 0.84));
+  color: var(--text-primary);
+}
+
+.app-shell__top-menu-popup .arco-menu-item:hover .app-shell__menu-entry-icon--level-0,
+.app-shell__top-menu-popup .arco-menu-pop-header:hover .app-shell__menu-entry-icon--level-0,
+.app-shell__top-menu-popup .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-0 {
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__top-menu-popup .arco-menu-item:hover .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu-popup .arco-menu-item:hover .app-shell__menu-entry-icon--level-2,
+.app-shell__top-menu-popup .arco-menu-pop-header:hover .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu-popup .arco-menu-pop-header:hover .app-shell__menu-entry-icon--level-2,
+.app-shell__top-menu-popup .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu-popup .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-2 {
+  background: color-mix(in srgb, var(--brand-primary) 6%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__top-menu-popup .arco-menu-selected,
+.app-shell__top-menu-popup .arco-menu-pop-header.arco-menu-selected,
+.app-shell__top-menu-popup .arco-menu-inline-header.arco-menu-selected {
+  border-color: color-mix(in srgb, var(--brand-primary) 16%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 10%, rgba(255, 255, 255, 0.92));
+  color: var(--brand-primary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 6%, transparent);
+}
+
+.app-shell__top-menu-popup .arco-menu-item::before,
+.app-shell__top-menu-popup .arco-menu-pop-header::before,
+.app-shell__top-menu-popup .arco-menu-inline-header::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 8px;
+  width: 3px;
+  border-radius: 999px;
+  background: transparent;
+  opacity: 0;
+  transform: scaleY(0.55);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.app-shell__top-menu-popup .arco-menu-selected::before,
+.app-shell__top-menu-popup .arco-menu-pop-header.arco-menu-selected::before,
+.app-shell__top-menu-popup .arco-menu-inline-header.arco-menu-selected::before {
+  opacity: 1;
+  transform: scaleY(1);
+  background: var(--brand-primary);
+}
+
+.app-shell__top-menu-popup .arco-menu-item .arco-icon,
+.app-shell__top-menu-popup .arco-menu-pop-header .arco-icon,
+.app-shell__top-menu-popup .arco-menu-inline-header .arco-icon {
+  color: inherit;
+}
+
+.app-shell__top-menu-popup .arco-menu-selected .app-shell__menu-entry-icon--level-0,
+.app-shell__top-menu-popup
+  .arco-menu-pop-header.arco-menu-selected
+  .app-shell__menu-entry-icon--level-0,
+.app-shell__top-menu-popup
+  .arco-menu-inline-header.arco-menu-selected
+  .app-shell__menu-entry-icon--level-0 {
+  background: color-mix(in srgb, var(--brand-primary) 12%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__top-menu-popup .arco-menu-selected .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu-popup .arco-menu-selected .app-shell__menu-entry-icon--level-2,
+.app-shell__top-menu-popup
+  .arco-menu-pop-header.arco-menu-selected
+  .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu-popup
+  .arco-menu-pop-header.arco-menu-selected
+  .app-shell__menu-entry-icon--level-2,
+.app-shell__top-menu-popup
+  .arco-menu-inline-header.arco-menu-selected
+  .app-shell__menu-entry-icon--level-1,
+.app-shell__top-menu-popup
+  .arco-menu-inline-header.arco-menu-selected
+  .app-shell__menu-entry-icon--level-2 {
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__top-menu-popup .arco-menu-item-inner,
+.app-shell__top-menu-popup .arco-menu-pop-header .arco-menu-item-inner,
+.app-shell__top-menu-popup .arco-menu-inline-header .arco-menu-item-inner {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.app-shell__top-menu-popup .arco-menu-icon-suffix {
+  color: var(--text-tertiary);
+}
+
+.app-shell__top-menu-popup .arco-trigger-arrow,
+.app-shell__top-menu-popup .arco-trigger-arrow::before {
+  background: var(--panel-bg-solid) !important;
+  border-color: color-mix(in srgb, var(--panel-border) 86%, transparent) !important;
+}
+
+.app-shell__user-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding-inline: 8px !important;
+  border: 1px solid rgba(229, 230, 235, 0.82);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: none;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.app-shell__user-trigger:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 16%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  box-shadow: none;
+}
+
+.app-shell__preference-panel {
+  width: 340px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
+  border-radius: 14px;
+  background: var(--panel-bg-solid);
+  box-shadow: var(--panel-shadow-soft);
+}
+
+.app-shell__preference-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.app-shell__preference-title {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.app-shell__preference-subtitle {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.app-shell__preference-section + .app-shell__preference-section {
+  margin-top: 14px;
+}
+
+.app-shell__preference-section-title {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.app-shell__preference-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.app-shell__preference-item:hover,
+.app-shell__preference-item--active {
+  border-color: color-mix(in srgb, var(--brand-primary) 14%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 5%, #ffffff);
+}
+
+.app-shell__preference-item + .app-shell__preference-item {
+  margin-top: 6px;
+}
+
+.app-shell__preference-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+.app-shell__preference-theme-swatch {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.app-shell__preference-item-copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-shell__preference-item-title {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.app-shell__preference-item-desc {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.app-shell__preference-check {
+  color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+.app-shell__preference-pills {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.app-shell__preference-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(229, 230, 235, 0.9);
+  border-radius: 10px;
+  background: var(--panel-bg-solid);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.app-shell__preference-pill span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-shell__preference-pill:hover,
+.app-shell__preference-pill--active {
+  border-color: color-mix(in srgb, var(--brand-primary) 18%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 7%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__user-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.app-shell__user-name {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.app-shell__user-subtitle {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.app-shell__header-breadcrumb,
+.app-shell__header .arco-breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  overflow: visible;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.app-shell__header .arco-breadcrumb-item,
+.app-shell__header .arco-breadcrumb-item a,
+.app-shell__header .arco-breadcrumb-item-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  overflow: visible;
+  color: var(--text-tertiary);
+  line-height: 24px;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+.app-shell__header .arco-breadcrumb-item-separator {
+  line-height: 24px;
+}
+
+.app-shell__header .arco-breadcrumb-item:last-child,
+.app-shell__header .arco-breadcrumb-item:last-child a {
+  color: var(--text-secondary);
+}
+
+.app-shell__tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 6px 24px 8px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--panel-border);
+  background: color-mix(in srgb, var(--brand-primary) 2%, var(--panel-bg-solid));
+}
+
+.app-shell__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  max-width: 176px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0 8px 0 10px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: var(--panel-bg-solid);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.app-shell__tab:hover {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  color: var(--text-primary);
+}
+
+.app-shell__tab--active {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  color: var(--brand-primary);
+  box-shadow: none;
+}
+
+.app-shell__tab--pinned {
+  border-style: solid;
+}
+
+.app-shell__tab--dragging {
+  opacity: 0.58;
+  box-shadow: none;
+}
+
+.app-shell__tab--drag-over {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--brand-primary) 12%, #ffffff);
+}
+
+.app-shell__tab-pin {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--brand-primary) 62%, var(--text-tertiary));
+  transform: rotate(35deg);
+}
+
+.app-shell__tab-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  line-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-shell__tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-right: -4px;
+  border-radius: 8px;
+  color: var(--text-tertiary);
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.app-shell__tab-close:hover {
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  color: var(--brand-primary);
+}
+
+.app-shell__tab-menu {
+  min-width: 144px;
+  padding: 6px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--panel-bg-solid);
+  box-shadow: var(--panel-shadow-soft);
+}
+
+.app-shell__tab-menu .arco-dropdown-menu-item {
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.app-shell__content {
+  padding: 24px 28px 0;
+  overflow: auto;
+  background: var(--app-bg);
+}
+
+.app-shell__content-inner {
+  min-height: calc(100dvh - 160px);
+}
+
+.app-shell--horizontal .app-shell__content-inner {
+  min-height: calc(100dvh - 220px);
+}
+
+.app-shell__footer {
+  padding: 16px 28px 24px;
+  background: transparent;
+  color: var(--text-tertiary);
+  text-align: left;
+}
+
+.app-shell__user-trigger .arco-avatar {
+  background: var(--brand-primary);
+}
+
+.app-shell__notice-panel {
+  width: 300px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
+  border-radius: 12px;
+  background: var(--panel-bg-solid);
+  box-shadow: var(--panel-shadow-soft);
+}
+
+.app-shell__notice-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.app-shell__notice-title {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.app-shell__notice-subtitle {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.app-shell__notice-empty {
+  padding: 10px 12px;
+  border: 1px dashed color-mix(in srgb, var(--brand-primary) 14%, var(--panel-border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.app-shell__notice-empty--compact {
+  margin-top: 0;
+}
+
+.app-shell__notice-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.app-shell__notice-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+}
+
+.app-shell__notice-stat--danger {
+  border-color: color-mix(in srgb, var(--danger-soft) 82%, var(--panel-border));
+  background: color-mix(in srgb, var(--danger-soft) 42%, #ffffff);
+}
+
+.app-shell__notice-stat-label {
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.app-shell__notice-stat-value {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.app-shell__notice-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+}
+
+.app-shell__notice-summary-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.app-shell__notice-summary-value {
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.app-shell__notice-risk {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  color: inherit;
+  text-align: left;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.app-shell__notice-risk + .app-shell__notice-risk {
+  margin-top: 6px;
+}
+
+.app-shell__notice-risk:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 12%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 6%, #ffffff);
+}
+
+.app-shell__notice-risk--danger {
+  border-color: color-mix(in srgb, var(--danger-soft) 88%, var(--panel-border));
+  background: color-mix(in srgb, var(--danger-soft) 42%, #ffffff);
+}
+
+.app-shell__notice-risk--warning {
+  border-color: color-mix(in srgb, var(--status-warning-soft) 88%, var(--panel-border));
+  background: color-mix(in srgb, var(--status-warning-soft) 42%, #ffffff);
+}
+
+.app-shell__notice-risk-copy {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.app-shell__notice-risk-title {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.app-shell__notice-risk-desc {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.app-shell__notice-risk-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding-inline: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.app-shell__notice-list {
+  margin-top: 10px;
+}
+
+.app-shell__notice-section {
+  margin-bottom: 8px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.app-shell__notice-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.app-shell__notice-item + .app-shell__notice-item {
+  margin-top: 4px;
+}
+
+.app-shell__notice-item:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 12%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+}
+
+.app-shell__notice-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+.app-shell__notice-item-copy {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.app-shell__notice-item-title {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.app-shell__notice-item-desc {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.app-shell__notice-log {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.app-shell__notice-log + .app-shell__notice-log {
+  border-top: 1px solid color-mix(in srgb, var(--panel-border) 82%, transparent);
+}
+
+.app-shell__notice-log-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--text-tertiary);
+}
+
+.app-shell__notice-log-dot--success {
+  background: #00b42a;
+}
+
+.app-shell__notice-log-dot--danger {
+  background: #f53f3f;
+}
+
+.app-shell__notice-log-copy {
+  display: inline-flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-shell__notice-log-title {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.app-shell__notice-log-desc {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.app-shell__notice-log-time {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.app-shell__notice-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding-inline: 4px;
+  border-radius: 999px;
+  background: #f53f3f;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.app-command__input {
+  margin-bottom: 12px;
+}
+
+.app-command__results {
+  max-height: 360px;
+  overflow: auto;
+}
+
+.app-command__section {
+  margin: 12px 0 6px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.app-command__section:first-child {
+  margin-top: 0;
+}
+
+.app-command__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.app-command__item:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 12%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+}
+
+.app-command__item + .app-command__item {
+  margin-top: 4px;
+}
+
+.app-command__item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+.app-command__item-copy {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.app-command__item-title {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.app-command__item-subtitle {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1200px) {
+  .app-shell__header {
+    padding-inline: 20px;
+  }
+
+  .app-shell__header-actions {
+    flex-basis: 360px;
+  }
+
+  .app-shell__search-trigger {
+    min-width: 220px;
+  }
+
+  .app-shell__top-nav {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 960px) {
+  .app-shell__header {
+    align-items: stretch;
+  }
+
+  .app-shell__header-left,
+  .app-shell__header-actions {
+    flex-basis: 100%;
+  }
+
+  .app-shell__header-left {
+    gap: 12px;
+  }
+
+  .app-shell__header-actions {
+    width: 100%;
+    justify-content: space-between;
+    margin-left: 0;
+  }
+
+  .app-shell__search-trigger {
+    max-width: none;
+  }
+
+  .app-shell__preference-panel {
+    width: min(340px, calc(100vw - 32px));
+  }
+}
+
+@media (max-width: 768px) {
+  .app-shell__header {
+    padding: 12px 16px 10px;
+  }
+
+  .app-shell__header-brand-text,
+  .app-shell__user-meta {
+    display: none;
+  }
+
+  .app-shell__top-nav {
+    padding: 6px 12px 8px;
+  }
+
+  .app-shell__top-menu {
+    border-radius: 14px;
+  }
+
+  .app-shell__search-shortcut {
+    display: none;
+  }
+
+  .app-shell__preference-pills {
+    flex-direction: column;
+  }
+
+  .app-shell__tabs,
+  .app-shell__content,
+  .app-shell__footer {
+    padding-inline: 16px;
+  }
+
+  .app-shell__tabs {
+    padding-top: 6px;
+    padding-bottom: 8px;
+  }
+}
