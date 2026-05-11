@@ -20,21 +20,23 @@
 
 1. [项目总体设计](../DESIGN.md)
 2. [AI Agent 行为准则](../AGENTS.md)
-3. [文档合同化治理方案](./contracts/DOCUMENT_GOVERNANCE_CONTRACT.md)
-4. [文档类型与状态说明](./contracts/DOCUMENT_METADATA_AND_STATUS.md)
+3. [项目继承说明](./PROJECT_INHERITANCE.md)
+4. [文档合同化治理方案](../../pantheon-base/docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md)
+5. [文档类型与状态说明](../../pantheon-base/docs/contracts/DOCUMENT_METADATA_AND_STATUS.md)
 
 ### 2.1 新人或 AI 首次进入项目
 
-1. [平台层合同文档](./contracts/PLATFORM_CONTRACT.md)
-2. [system/auth 合同文档](./contracts/SYSTEM_AUTH_CONTRACT.md)
-3. [system/iam 合同文档](./contracts/SYSTEM_IAM_CONTRACT.md)
-4. [system/org 合同文档](./contracts/SYSTEM_ORG_CONTRACT.md)
-5. [system/config 合同文档](./contracts/SYSTEM_CONFIG_CONTRACT.md)
-6. [总体架构与后端规范](./designs/BACKEND.md)
-7. [前端架构与模块接入](./designs/FRONTEND.md)
-8. [前端 UI 详细规范](./designs/FRONTEND_UI_SPEC.md)
-9. [设计与实现验收清单](./acceptances/ACCEPTANCE_CHECKLIST.md)
-10. [业务开发与 AI 协作](./designs/WORKFLOW.md)
+1. [项目继承说明](./PROJECT_INHERITANCE.md)
+2. [平台层合同文档](../../pantheon-base/docs/contracts/PLATFORM_CONTRACT.md)
+3. [system/auth 合同文档](../../pantheon-base/docs/contracts/SYSTEM_AUTH_CONTRACT.md)
+4. [system/iam 合同文档](../../pantheon-base/docs/contracts/SYSTEM_IAM_CONTRACT.md)
+5. [system/org 合同文档](../../pantheon-base/docs/contracts/SYSTEM_ORG_CONTRACT.md)
+6. [system/config 合同文档](../../pantheon-base/docs/contracts/SYSTEM_CONFIG_CONTRACT.md)
+7. [总体架构与后端规范](../../pantheon-base/docs/designs/BACKEND.md)
+8. [前端架构与模块接入](../../pantheon-base/docs/designs/FRONTEND.md)
+9. [前端 UI 详细规范](../../pantheon-base/docs/designs/FRONTEND_UI_SPEC.md)
+10. [设计与实现验收清单](../../pantheon-base/docs/acceptances/ACCEPTANCE_CHECKLIST.md)
+11. [业务开发与 AI 协作](../../pantheon-base/docs/designs/WORKFLOW.md)
 
 ### 2.2 做 `platform` 壳层、导航、工作台、浮层治理
 

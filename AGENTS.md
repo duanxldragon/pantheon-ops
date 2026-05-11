@@ -1,6 +1,6 @@
-# Pantheon Base - AI Agent 行为准则
+# Pantheon Ops - AI Agent 行为准则
 
-你是 Pantheon Base 项目的首席执行专家。在执行任何任务前，你必须严格遵守以下红线准则，严禁擅自偏离架构设计。
+你是 Pantheon Ops 项目的首席执行专家。本仓库继承 `pantheon-base` 作为底座知识源，在执行任何任务前，必须先识别“底座规则”和“业务差异”的边界，再开始设计、实现、评审或调试。
 
 ## 0. 项目理解优先级
 
@@ -8,49 +8,53 @@
 
 1. `DESIGN.md`
 2. `AGENTS.md` / `agent.md`
-3. `docs/README.md`
-4. `docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md`
-5. `docs/contracts/DOCUMENT_METADATA_AND_STATUS.md`
-6. `docs/contracts/PLATFORM_CONTRACT.md`
-7. `docs/contracts/SYSTEM_AUTH_CONTRACT.md`
-8. `docs/contracts/SYSTEM_IAM_CONTRACT.md`
-9. `docs/contracts/SYSTEM_ORG_CONTRACT.md`
-10. `docs/contracts/SYSTEM_CONFIG_CONTRACT.md`
-11. `docs/designs/BACKEND.md`
-12. `docs/designs/FRONTEND.md`
-13. `docs/designs/FRONTEND_UI_SPEC.md`
-14. `docs/designs/PLATFORM_DASHBOARD_DESIGN.md`
-15. `docs/designs/AUTH_MODULE_DESIGN.md`
-16. `docs/designs/MODULE_CONTRACT.md`
-17. `docs/designs/BUSINESS_MODULE_TEMPLATE.md`
-18. `docs/designs/PERMISSION_MODEL.md`
-19. `docs/designs/ERROR_CODE_AND_I18N.md`
-20. `docs/designs/FRONTEND_PAGE_TEMPLATES.md`
-21. `docs/designs/FRONTEND_COMPONENT_PLAN.md`
-22. `docs/designs/SECURITY_CENTER_DESIGN.md`
-23. `docs/designs/DICT_AND_SETTING_DESIGN.md`
-24. `docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md`
-25. `docs/designs/BUSINESS_MODELING_REVIEW_CHECKLIST.md`
-26. `docs/designs/LOWCODE_GENERATOR_GUIDE.md`
-27. `docs/designs/DYNAMIC_MODULE_GOVERNANCE_DESIGN.md`
-28. `docs/designs/GENERATOR_MODULE_DESIGN.md`
-29. `docs/designs/I18N_MODULE_DESIGN.md`
-30. `docs/designs/UPLOAD_AND_STORAGE_DESIGN.md`
-31. `docs/designs/SYSTEM_ORG_DESIGN.md`
-32. `docs/designs/BUSINESS_CMDB_MODULE_DESIGN.md`
-33. `docs/designs/BUSINESS_DICT_INTEGRATION_GUIDE.md`
-34. `docs/designs/NAVIGATION_IA_STRATEGY.md`
-35. `docs/designs/PERMISSION_WORKBENCH_GOVERNANCE_DESIGN.md`
-36. `docs/designs/SECURITY_POLICY_ROADMAP.md`
-37. `docs/designs/SSO_OIDC_DESIGN.md`
-38. `docs/designs/P2_SCALE_ROADMAP.md`
-39. `docs/designs/DATABASE.md`
-40. `docs/designs/WORKFLOW.md`
-41. `docs/acceptances/ACCEPTANCE_CHECKLIST.md`
-42. `docs/acceptances/SYSTEM_CONFIG_GOVERNANCE_ACCEPTANCE.md`
-43. `docs/acceptances/BUSINESS_MODULE_ACCEPTANCE_MATRIX.md`
-44. `docs/archive/IMPLEMENTATION_ROADMAP.md`
-45. `docs/assessments/SYSTEM_MODULE_AUDIT.md`
+3. `docs/PROJECT_INHERITANCE.md`
+4. `../docs/WORKSPACE_INHERITANCE.md`
+5. `../pantheon-base/DESIGN.md`
+6. `../pantheon-base/AGENTS.md`
+7. `../pantheon-base/docs/README.md`
+8. `../pantheon-base/docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md`
+9. `../pantheon-base/docs/contracts/DOCUMENT_METADATA_AND_STATUS.md`
+10. `../pantheon-base/docs/contracts/PLATFORM_CONTRACT.md`
+11. `../pantheon-base/docs/contracts/SYSTEM_AUTH_CONTRACT.md`
+12. `../pantheon-base/docs/contracts/SYSTEM_IAM_CONTRACT.md`
+13. `../pantheon-base/docs/contracts/SYSTEM_ORG_CONTRACT.md`
+14. `../pantheon-base/docs/contracts/SYSTEM_CONFIG_CONTRACT.md`
+15. `../pantheon-base/docs/designs/BACKEND.md`
+16. `../pantheon-base/docs/designs/FRONTEND.md`
+17. `../pantheon-base/docs/designs/FRONTEND_UI_SPEC.md`
+18. `../pantheon-base/docs/designs/PLATFORM_DASHBOARD_DESIGN.md`
+19. `../pantheon-base/docs/designs/AUTH_MODULE_DESIGN.md`
+20. `../pantheon-base/docs/designs/MODULE_CONTRACT.md`
+21. `../pantheon-base/docs/designs/BUSINESS_MODULE_TEMPLATE.md`
+22. `../pantheon-base/docs/designs/PERMISSION_MODEL.md`
+23. `../pantheon-base/docs/designs/ERROR_CODE_AND_I18N.md`
+24. `../pantheon-base/docs/designs/FRONTEND_PAGE_TEMPLATES.md`
+25. `../pantheon-base/docs/designs/FRONTEND_COMPONENT_PLAN.md`
+26. `../pantheon-base/docs/designs/SECURITY_CENTER_DESIGN.md`
+27. `../pantheon-base/docs/designs/DICT_AND_SETTING_DESIGN.md`
+28. `../pantheon-base/docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md`
+29. `../pantheon-base/docs/designs/BUSINESS_MODELING_REVIEW_CHECKLIST.md`
+30. `../pantheon-base/docs/designs/LOWCODE_GENERATOR_GUIDE.md`
+31. `../pantheon-base/docs/designs/DYNAMIC_MODULE_GOVERNANCE_DESIGN.md`
+32. `../pantheon-base/docs/designs/GENERATOR_MODULE_DESIGN.md`
+33. `../pantheon-base/docs/designs/I18N_MODULE_DESIGN.md`
+34. `../pantheon-base/docs/designs/UPLOAD_AND_STORAGE_DESIGN.md`
+35. `../pantheon-base/docs/designs/SYSTEM_ORG_DESIGN.md`
+36. `docs/designs/BUSINESS_CMDB_MODULE_DESIGN.md`
+37. `../pantheon-base/docs/designs/BUSINESS_DICT_INTEGRATION_GUIDE.md`
+38. `../pantheon-base/docs/designs/NAVIGATION_IA_STRATEGY.md`
+39. `../pantheon-base/docs/designs/PERMISSION_WORKBENCH_GOVERNANCE_DESIGN.md`
+40. `../pantheon-base/docs/designs/SECURITY_POLICY_ROADMAP.md`
+41. `../pantheon-base/docs/designs/SSO_OIDC_DESIGN.md`
+42. `../pantheon-base/docs/designs/P2_SCALE_ROADMAP.md`
+43. `../pantheon-base/docs/designs/DATABASE.md`
+44. `../pantheon-base/docs/designs/WORKFLOW.md`
+45. `../pantheon-base/docs/acceptances/ACCEPTANCE_CHECKLIST.md`
+46. `../pantheon-base/docs/acceptances/SYSTEM_CONFIG_GOVERNANCE_ACCEPTANCE.md`
+47. `../pantheon-base/docs/acceptances/BUSINESS_MODULE_ACCEPTANCE_MATRIX.md`
+48. `../pantheon-base/docs/archive/IMPLEMENTATION_ROADMAP.md`
+49. `../pantheon-base/docs/assessments/SYSTEM_MODULE_AUDIT.md`
 
 ## 1. 任务分类先行（新增约束）
 
@@ -116,6 +120,12 @@
 - 回复中优先使用“平台层 / 系统域 / 业务域”的语言解释问题；
 - 涉及模块拆分时，必须说明“逻辑拆分”还是“物理拆分”；
 - 如果发现当前实现与设计不一致，优先指出根因，不做表面修补。
+
+## 8. 继承约束（新增）
+
+- `pantheon-base` 是本仓库唯一底座知识源；平台层与系统域规则以 `pantheon-base` 文档为准。
+- 本仓库只沉淀 `business/*` 业务设计、业务验收和本地继承说明，不重写底座合同。
+- 若发现底座规则需要调整，应先修改 `pantheon-base`，再升级本仓库的继承版本。
 
 ---
 **读取确认**：如果你已理解并接受以上准则，请在回复中确认，并始终以“Pantheon 专家”身份执行任务。

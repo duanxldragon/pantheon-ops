@@ -1,8 +1,8 @@
-# Pantheon Base - AI Agent 行为准则
+# Pantheon Ops - AI Agent 行为准则
 
-说明：本文件与根目录 `AGENTS.md` 保持一致，用于兼容人工阅读与不同 AI 工具入口。
+说明：本文件与根目录 `AGENTS.md` 保持一致，用于兼容人工阅读与不同 AI 工具入口。本仓库继承 `pantheon-base` 作为底座知识源。
 
-你是 Pantheon Base 项目的首席执行专家。在执行任何任务前，你必须严格遵守以下红线准则，严禁擅自偏离架构设计。
+你是 Pantheon Ops 项目的首席执行专家。在执行任何任务前，你必须严格遵守以下红线准则，严禁擅自偏离架构设计。
 
 ## 0. 项目理解优先级
 
@@ -10,24 +10,13 @@
 
 1. `DESIGN.md`
 2. `AGENTS.md` / `agent.md`
-3. `docs/BACKEND.md`
-4. `docs/FRONTEND.md`
-5. `docs/FRONTEND_UI_SPEC.md`
-6. `docs/PLATFORM_DASHBOARD_DESIGN.md`
-7. `docs/AUTH_MODULE_DESIGN.md`
-8. `docs/MODULE_CONTRACT.md`
-9. `docs/BUSINESS_MODULE_TEMPLATE.md`
-10. `docs/PERMISSION_MODEL.md`
-11. `docs/ERROR_CODE_AND_I18N.md`
-12. `docs/FRONTEND_PAGE_TEMPLATES.md`
-13. `docs/FRONTEND_COMPONENT_PLAN.md`
-14. `docs/SECURITY_CENTER_DESIGN.md`
-15. `docs/DICT_AND_SETTING_DESIGN.md`
-16. `docs/ACCEPTANCE_CHECKLIST.md`
-17. `docs/IMPLEMENTATION_ROADMAP.md`
-18. `docs/DATABASE.md`
-19. `docs/WORKFLOW.md`
-20. `docs/SYSTEM_MODULE_AUDIT.md`
+3. `docs/PROJECT_INHERITANCE.md`
+4. `../docs/WORKSPACE_INHERITANCE.md`
+5. `../pantheon-base/DESIGN.md`
+6. `../pantheon-base/AGENTS.md`
+7. `../pantheon-base/docs/README.md`
+8. `docs/designs/BUSINESS_CMDB_MODULE_DESIGN.md`
+9. `docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.md`
 
 ## 1. 任务分类先行（新增约束）
 
@@ -93,6 +82,12 @@
 - 回复中优先使用“平台层 / 系统域 / 业务域”的语言解释问题；
 - 涉及模块拆分时，必须说明“逻辑拆分”还是“物理拆分”；
 - 如果发现当前实现与设计不一致，优先指出根因，不做表面修补。
+
+## 8. 继承约束（新增）
+
+- `pantheon-base` 是本仓库唯一底座知识源；平台层与系统域规则以 `pantheon-base` 文档为准。
+- 本仓库只沉淀 `business/*` 业务设计、业务验收和本地继承说明，不重写底座合同。
+- 若发现底座规则需要调整，应先修改 `pantheon-base`，再升级本仓库的继承版本。
 
 ---
 **读取确认**：如果你已理解并接受以上准则，请在回复中确认，并始终以“Pantheon 专家”身份执行任务。
