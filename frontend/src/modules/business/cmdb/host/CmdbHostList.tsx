@@ -24,7 +24,7 @@ import FilterPanel from '../../../../components/patterns/FilterPanel';
 import AppTable from '../../../../components/data-display/AppTable';
 import ListHeaderActions from '../../../../components/patterns/ListHeaderActions';
 import { createHost, deleteHost, getHostList, updateHost } from './api';
-import type { HostRow, HostListQuery } from './api';
+import type { CreateHostPayload, HostRow, HostListQuery } from './api';
 import { usePermission } from '../../../../hooks/usePermission';
 import CmdbHostForm from './CmdbHostForm';
 import '../../../../core/styles/list-page.css';
@@ -86,7 +86,9 @@ export default function CmdbHostList() {
   );
 
   useEffect(() => {
-    loadData();
+    queueMicrotask(() => {
+      void loadData();
+    });
   }, [loadData]);
 
   const handleSearch = () => {
@@ -135,10 +137,10 @@ export default function CmdbHostList() {
   const handleDelete = async (id: number) => {
     await deleteHost(id);
     Message.success(t('common.deleteSuccess'));
-    loadData(query);
+    void loadData(query);
   };
 
-  const handleFormSubmit = async (values: any) => {
+  const handleFormSubmit = async (values: CreateHostPayload) => {
     setSubmitting(true);
     try {
       if (editing) {
@@ -150,7 +152,7 @@ export default function CmdbHostList() {
       }
       setVisible(false);
       setEditing(null);
-      loadData(query);
+      void loadData(query);
     } finally {
       setSubmitting(false);
     }

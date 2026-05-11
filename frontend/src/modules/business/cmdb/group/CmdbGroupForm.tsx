@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Form, Input, Select, Button, Space, Radio } from '@arco-design/web-react';
 import { IconPlus, IconDelete } from '@arco-design/web-react/icon';
-import type { GroupRow, ConditionRule } from './api';
+import type { CreateGroupPayload, GroupRow, ConditionRule } from './api';
 import { getLabelSchemaList, type LabelSchemaRow } from '../label/api';
 import { isFreeValueLabel, labelValueOptions } from '../label/options';
 import SubmitBar from '../../../../components/patterns/SubmitBar';
@@ -11,10 +11,18 @@ interface Props {
   editing: GroupRow | null;
   initialParentId?: number | null;
   groupOptions: GroupRow[];
-  onSubmit: (values: any) => void;
+  onSubmit: (values: CreateGroupPayload) => void;
   onCancel: () => void;
   submitting: boolean;
 }
+
+type GroupFormValues = {
+  name: string;
+  parentId?: number;
+  description?: string;
+  operator: 'AND' | 'OR';
+  rules?: ConditionRule[];
+};
 
 function collectDescendantIds(group: GroupRow | null): Set<number> {
   const ids = new Set<number>();
@@ -64,7 +72,9 @@ export default function CmdbGroupForm({
   }, []);
 
   useEffect(() => {
-    void loadLabelSchemas();
+    queueMicrotask(() => {
+      void loadLabelSchemas();
+    });
   }, [loadLabelSchemas]);
   const disabledParentIds = useMemo(() => {
     const ids = collectDescendantIds(editing);
@@ -106,9 +116,9 @@ export default function CmdbGroupForm({
   }, [editing, form, initialParentId]);
 
   const handleFinish = async () => {
-    const values = await form.validate();
+    const values = (await form.validate()) as GroupFormValues;
     const rules: ConditionRule[] = (values.rules || []).filter(
-      (r: any) => r.key && r.val !== undefined && r.val !== '',
+      (rule) => rule.key && rule.val !== undefined && rule.val !== '',
     );
     onSubmit({
       name: values.name,

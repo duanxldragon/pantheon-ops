@@ -43,7 +43,14 @@ export interface UpdateGroupPayload {
 export interface GroupMemberResp {
   groupId: number;
   groupName: string;
-  members: Record<string, any>[];
+  members: GroupMemberRow[];
+}
+
+export interface GroupMemberRow {
+  id: number;
+  hostname: string;
+  ip: string;
+  status: string;
 }
 
 export function getGroupList() {

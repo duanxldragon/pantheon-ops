@@ -25,7 +25,7 @@ import PageHeader from '../../../../components/patterns/PageHeader';
 import ListHeaderActions from '../../../../components/patterns/ListHeaderActions';
 import AppTable from '../../../../components/data-display/AppTable';
 import { getGroupList, getGroupMembers, createGroup, updateGroup, deleteGroup } from './api';
-import type { GroupRow, GroupMemberResp } from './api';
+import type { CreateGroupPayload, GroupRow, GroupMemberResp, GroupMemberRow } from './api';
 import CmdbGroupForm from './CmdbGroupForm';
 import { usePermission } from '../../../../hooks/usePermission';
 import '../../../../core/styles/list-page.css';
@@ -86,26 +86,30 @@ export default function CmdbGroupList() {
   }, [t]);
 
   useEffect(() => {
-    const flat = flattenGroups(data);
-    if (!selectedGroupId && flat.length > 0) {
-      setSelectedGroupId(flat[0].id);
-    }
-    if (selectedGroupId && !flat.some((item) => item.id === selectedGroupId)) {
-      setSelectedGroupId(flat[0]?.id ?? null);
-    }
+    queueMicrotask(() => {
+      const flat = flattenGroups(data);
+      if (!selectedGroupId && flat.length > 0) {
+        setSelectedGroupId(flat[0].id);
+      }
+      if (selectedGroupId && !flat.some((item) => item.id === selectedGroupId)) {
+        setSelectedGroupId(flat[0]?.id ?? null);
+      }
+    });
   }, [data, selectedGroupId]);
 
   useEffect(() => {
-    loadData();
+    queueMicrotask(() => {
+      void loadData();
+    });
   }, [loadData]);
 
   const handleDelete = async (id: number) => {
     await deleteGroup(id);
     Message.success(t('common.deleteSuccess'));
-    loadData();
+    void loadData();
   };
 
-  const handleFormSubmit = async (values: any) => {
+  const handleFormSubmit = async (values: CreateGroupPayload) => {
     setSubmitting(true);
     try {
       if (editing) {
@@ -118,7 +122,7 @@ export default function CmdbGroupList() {
       setVisible(false);
       setEditing(null);
       setInitialParentId(null);
-      loadData();
+      void loadData();
     } finally {
       setSubmitting(false);
     }
@@ -480,7 +484,7 @@ export default function CmdbGroupList() {
               {
                 title: t('business.cmdb.host.status'),
                 dataIndex: 'status',
-                render: (_, row: any) => (
+                render: (_: unknown, row: GroupMemberRow) => (
                   <Tag color={row.status === 'online' ? 'green' : 'gray'}>
                     {t(`business.cmdb.host.status.${row.status}`)}
                   </Tag>

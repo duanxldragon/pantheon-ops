@@ -89,7 +89,9 @@ export interface MarkHostResultPayload {
   executorId?: string;
 }
 
-export function getDeployPackageList(params?: Record<string, any>) {
+type ListQuery = Record<string, string | number | undefined>;
+
+export function getDeployPackageList(params?: ListQuery) {
   return apiRequest<DeployPackageListResp>({
     url: '/business/deploy/packages',
     method: 'get',
@@ -120,7 +122,7 @@ export function deleteDeployPackage(id: number) {
   });
 }
 
-export function getDeployTaskList(params?: Record<string, any>) {
+export function getDeployTaskList(params?: ListQuery) {
   return apiRequest<DeployTaskListResp>({
     url: '/business/deploy/tasks',
     method: 'get',

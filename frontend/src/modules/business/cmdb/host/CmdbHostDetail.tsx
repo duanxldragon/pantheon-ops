@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -74,7 +74,7 @@ export default function CmdbHostDetail() {
     [host, t],
   );
 
-  const loadDetail = async () => {
+  const loadDetail = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     setError(null);
@@ -87,11 +87,13 @@ export default function CmdbHostDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
-    void loadDetail();
-  }, [id]);
+    queueMicrotask(() => {
+      void loadDetail();
+    });
+  }, [loadDetail]);
 
   const handleCollect = async () => {
     if (!id) return;

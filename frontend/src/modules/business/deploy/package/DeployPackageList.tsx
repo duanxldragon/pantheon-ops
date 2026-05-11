@@ -68,7 +68,9 @@ export default function DeployPackageList() {
   }, [keyword, page, pageSize, status, t]);
 
   useEffect(() => {
-    void loadData();
+    queueMicrotask(() => {
+      void loadData();
+    });
   }, [loadData]);
 
   const heroStats = useMemo(

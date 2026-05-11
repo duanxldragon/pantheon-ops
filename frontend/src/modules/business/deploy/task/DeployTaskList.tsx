@@ -97,7 +97,9 @@ export default function DeployTaskList() {
   }, []);
 
   useEffect(() => {
-    void loadData();
+    queueMicrotask(() => {
+      void loadData();
+    });
   }, [loadData]);
 
   const heroStats = useMemo(
@@ -107,6 +109,14 @@ export default function DeployTaskList() {
       { key: 'success', label: t('business.deploy.task.status.success'), value: data.filter((item) => item.status === 'success').length, hint: t('business.deploy.task.hero.successHint') },
     ],
     [data, t, total],
+  );
+
+  const targetOptions = useMemo(
+    () =>
+      targetType === 'host'
+        ? hosts.map((item) => ({ id: item.id, label: `${item.hostname} ${item.ip}` }))
+        : groups.map((item) => ({ id: item.id, label: item.name })),
+    [groups, hosts, targetType],
   );
 
   const openCreate = async () => {
@@ -279,9 +289,9 @@ export default function DeployTaskList() {
           </Form.Item>
           <Form.Item field="targetIds" label={t('business.deploy.task.targets')} rules={[{ required: true }]}>
             <Select mode="multiple">
-              {(targetType === 'host' ? hosts : groups).map((item: any) => (
+              {targetOptions.map((item) => (
                 <Select.Option key={item.id} value={item.id}>
-                  {targetType === 'host' ? `${item.hostname} ${item.ip}` : item.name}
+                  {item.label}
                 </Select.Option>
               ))}
             </Select>

@@ -70,7 +70,9 @@ export default function DeployTaskDetail() {
   }, [id]);
 
   useEffect(() => {
-    void loadData();
+    queueMicrotask(() => {
+      void loadData();
+    });
   }, [loadData]);
 
   const heroStats = useMemo(

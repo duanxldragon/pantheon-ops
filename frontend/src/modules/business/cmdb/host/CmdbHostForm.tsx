@@ -2,17 +2,21 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Form, Input, InputNumber, Select, Button, Space } from '@arco-design/web-react';
 import { IconPlus, IconDelete } from '@arco-design/web-react/icon';
-import type { HostRow } from './api';
+import type { CreateHostPayload, HostRow, LabelEntry } from './api';
 import { getLabelSchemaList, type LabelSchemaRow } from '../label/api';
 import { isFreeValueLabel, labelValueOptions } from '../label/options';
 import SubmitBar from '../../../../components/patterns/SubmitBar';
 
 interface Props {
   editing: HostRow | null;
-  onSubmit: (values: any) => void;
+  onSubmit: (values: CreateHostPayload) => void;
   onCancel: () => void;
   submitting: boolean;
 }
+
+type HostFormValues = Omit<CreateHostPayload, 'labels'> & {
+  labels?: LabelEntry[];
+};
 
 export default function CmdbHostForm({ editing, onSubmit, onCancel, submitting }: Props) {
   const { t } = useTranslation();
@@ -29,7 +33,9 @@ export default function CmdbHostForm({ editing, onSubmit, onCancel, submitting }
   }, []);
 
   useEffect(() => {
-    void loadLabelSchemas();
+    queueMicrotask(() => {
+      void loadLabelSchemas();
+    });
   }, [loadLabelSchemas]);
 
   useEffect(() => {
@@ -56,8 +62,8 @@ export default function CmdbHostForm({ editing, onSubmit, onCancel, submitting }
   }, [editing, form]);
 
   const handleFinish = async () => {
-    const values = await form.validate();
-    const labels = (values.labels || []).filter((l: any) => l.key && l.val);
+    const values = (await form.validate()) as HostFormValues;
+    const labels = (values.labels || []).filter((label) => label.key && label.val);
     onSubmit({ ...values, labels: labels.length ? labels : undefined });
   };
 

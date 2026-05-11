@@ -63,7 +63,9 @@ export default function CmdbLabelSchemaList() {
   }, [t]);
 
   useEffect(() => {
-    void loadData();
+    queueMicrotask(() => {
+      void loadData();
+    });
   }, [loadData]);
 
   useEffect(() => {
