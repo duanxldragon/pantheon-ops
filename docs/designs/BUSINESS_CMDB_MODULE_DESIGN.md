@@ -500,6 +500,9 @@ i18n key 前缀：`business.cmdb.*`。
 | `cmdb_host_status` | 主机状态枚举 | `pending`、`online`、`offline`、`maintenance` |
 | `cmdb_os_type` | 操作系统类型 | `linux`、`windows` |
 | `cmdb_label_key` | 预置标签 key | `env`、`biz`、`cluster`、`region`、`db_type` |
+| `cmdb_env` | 环境标签取值 | `dev`、`test`、`prod` |
+
+CMDB 的标签规范归 `business/cmdb` 所有。它可以通过 `dict_code` 引用系统字典项作为候选值，但字典模块不理解"哪些标签用于分组、哪些标签必填、哪些标签被主机引用"这些业务规则。
 
 ### 11.2 依赖配置
 
@@ -614,7 +617,29 @@ CMDB 模块需要以下 seed：
 - 新增/编辑/删除分组产生审计记录。
 - SSH 采集产生审计记录（含结果）。
 
-引用验收标准：
+### 15.7 数据范围与权限收口（Host）
 
-- `docs/acceptances/ACCEPTANCE_CHECKLIST.md`
-- `docs/acceptances/BUSINESS_MODULE_ACCEPTANCE_MATRIX.md`
+- 确认 `business/cmdb/host` 的菜单挂接在业务域入口下。
+- 确认主机列表、详情、表单都沿用系统页模板的 hero / card / modal 视觉节奏，而不是平台页的旧式散装样式。
+- 确认列表接口接入 `DataScopeReq + WithDataScope`。
+- 确认业务路由接入 `DataScopeMiddleware`，角色数据范围策略由 `/system/permission` 的"数据权限"页统一配置。
+- 确认 `biz_cmdb_host.dept_id` 作为数据范围字段参与 `dept / dept_and_children / custom` 过滤。
+- 自动化证据：`go test ./backend/modules/business/cmdb/host` 覆盖 `dept_and_children` 有权限/无权限数据集过滤。
+- 确认创建、编辑、删除有审计 action。
+- 确认按钮权限不复用列表权限。
+- 确认错误 key 使用 `cmdbhost.*`。
+
+### 15.8 数据范围与权限收口（Group）
+
+- 确认 `business/cmdb/group` 的成员列表和成员数量都基于当前请求的数据范围计算。
+- 确认分组详情与分组成员接口不会越权读取不可见主机。
+- 确认分组条件在创建/更新时做基础合法性校验，避免空规则和非法操作符。
+- 确认分组页左侧采用树形结构，右侧承载当前选中分组的表格视图或成员抽屉，不再只用单表平铺。
+- 自动化证据：`go test ./backend/modules/business/cmdb/group` 覆盖成员过滤和条件校验。
+- 确认创建、编辑、删除有审计 action。
+- 确认错误 key 使用 `cmdbgroup.*`。
+
+引用验收标准（位于 base）：
+
+- `../../../pantheon-base/docs/acceptances/ACCEPTANCE_CHECKLIST.md`
+- `../../../pantheon-base/docs/acceptances/BUSINESS_MODULE_ACCEPTANCE_MATRIX.md`

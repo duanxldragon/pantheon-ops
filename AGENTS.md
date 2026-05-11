@@ -127,5 +127,29 @@
 - 本仓库只沉淀 `business/*` 业务设计、业务验收和本地继承说明，不重写底座合同。
 - 若发现底座规则需要调整，应先修改 `pantheon-base`，再升级本仓库的继承版本。
 
+## 9. 文档所有权（2026-05-11）
+
+经过一次完整 drift 治理，本仓库 `docs/` 只允许保留 4 类文件：
+
+| 允许保留 | 范围 |
+|---|---|
+| `docs/README.md` | 文档索引；只列本仓库自有文档 + 指向 base 的链接 |
+| `docs/PROJECT_INHERITANCE.md` | 继承关系、base 版本锁定、本地业务范围 |
+| `docs/designs/BUSINESS_<MODULE>_DESIGN.md` | 业务模块完整设计文档（每个业务模块一份） |
+| `docs/acceptances/BUSINESS_<MODULE>_ACCEPTANCE.md` | 业务模块**专属**验收（如有） |
+
+**禁止在本仓库新增**：
+- 任何非 `BUSINESS_*` 命名的设计文档
+- 架构、契约、UI 规范、底座验收类文档（这些只能在 `pantheon-base/docs/` 修改）
+- ops 副本（如果发现 `pantheon-base/docs/` 有同名文档，必须删除 ops 的副本，从 base 读）
+
+**修改 base 文档的流程**：
+1. 在 `pantheon-base` 开新分支
+2. 修改 base 仓库的相应文档
+3. 提 PR 给 base 仓库 review
+4. base 合并后，本仓库 `PROJECT_INHERITANCE.md` 升级 base 版本号
+
+**漂移检查**：定期跑 `$docs-cutover` Skill 重新扫描，确保没有新增的 ops 副本。
+
 ---
 **读取确认**：如果你已理解并接受以上准则，请在回复中确认，并始终以“Pantheon 专家”身份执行任务。
