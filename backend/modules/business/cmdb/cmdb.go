@@ -1,7 +1,6 @@
 package cmdb
 
 import (
-	"pantheon-ops/backend/internal/middleware"
 	"pantheon-ops/backend/modules/business/cmdb/group"
 	"pantheon-ops/backend/modules/business/cmdb/host"
 	"pantheon-ops/backend/modules/business/cmdb/label"
@@ -28,10 +27,7 @@ func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB) {
 			SeedMenusFunc: seedHostMenus,
 			SeedI18nFunc:  seedHostI18n,
 			Register: func(r *gin.RouterGroup) {
-				cmdb := r.Group("/business/cmdb").
-					Use(middleware.JWTAuthMiddleware()).
-					Use(middleware.CasbinMiddleware()).
-					Use(middleware.DataScopeMiddleware(db))
+				cmdb := contracts.DataScopedGroup(r, "/business/cmdb", db)
 				hostHandler.RegisterRoutes(cmdb)
 			},
 		},
@@ -41,10 +37,7 @@ func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB) {
 			SeedMenusFunc: seedGroupMenus,
 			SeedI18nFunc:  seedGroupI18n,
 			Register: func(r *gin.RouterGroup) {
-				cmdb := r.Group("/business/cmdb").
-					Use(middleware.JWTAuthMiddleware()).
-					Use(middleware.CasbinMiddleware()).
-					Use(middleware.DataScopeMiddleware(db))
+				cmdb := contracts.DataScopedGroup(r, "/business/cmdb", db)
 				groupHandler.RegisterRoutes(cmdb)
 			},
 		},
@@ -54,9 +47,7 @@ func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB) {
 			SeedMenusFunc: seedLabelMenus,
 			SeedI18nFunc:  seedLabelI18n,
 			Register: func(r *gin.RouterGroup) {
-				cmdb := r.Group("/business/cmdb").
-					Use(middleware.JWTAuthMiddleware()).
-					Use(middleware.CasbinMiddleware())
+				cmdb := contracts.ProtectedGroup(r, "/business/cmdb")
 				labelHandler.RegisterRoutes(cmdb)
 			},
 		},

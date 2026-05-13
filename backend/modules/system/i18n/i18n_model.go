@@ -28,6 +28,36 @@ type SystemI18n struct {
 	UpdatedAt         time.Time  `json:"updatedAt"`
 }
 
+type I18nResp struct {
+	ID                uint64     `json:"id"`
+	Module            string     `json:"module"`
+	Group             string     `json:"group"`
+	Key               string     `json:"key"`
+	Locale            string     `json:"locale"`
+	Value             string     `json:"value"`
+	Remark            string     `json:"remark"`
+	LifecycleStatus   string     `json:"lifecycleStatus"`
+	LifecycleMarkedAt *time.Time `json:"lifecycleMarkedAt"`
+	CreatedAt         time.Time  `json:"createdAt"`
+	UpdatedAt         time.Time  `json:"updatedAt"`
+}
+
+func toI18nResp(item SystemI18n) I18nResp {
+	return I18nResp{
+		ID:                item.ID,
+		Module:            item.Module,
+		Group:             item.Group,
+		Key:               item.Key,
+		Locale:            item.Locale,
+		Value:             item.Value,
+		Remark:            item.Remark,
+		LifecycleStatus:   item.LifecycleStatus,
+		LifecycleMarkedAt: item.LifecycleMarkedAt,
+		CreatedAt:         item.CreatedAt,
+		UpdatedAt:         item.UpdatedAt,
+	}
+}
+
 func (SystemI18n) TableName() string {
 	return "system_i18n"
 }
@@ -46,10 +76,10 @@ type I18nQuery struct {
 
 // I18nPageResp 分页返回
 type I18nPageResp struct {
-	Items    []SystemI18n `json:"items"`
-	Total    int64        `json:"total"`
-	Page     int          `json:"page"`
-	PageSize int          `json:"pageSize"`
+	Items    []I18nResp `json:"items"`
+	Total    int64      `json:"total"`
+	Page     int        `json:"page"`
+	PageSize int        `json:"pageSize"`
 }
 
 // I18nUpdateReq 更新请求

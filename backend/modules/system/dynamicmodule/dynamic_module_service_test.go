@@ -564,7 +564,7 @@ func TestListRegisteredModulesDoesNotMarkBusinessStaticModuleAsBuiltIn(t *testin
 		t.Fatalf("list registered modules: %v", err)
 	}
 
-	byName := make(map[string]ModuleRegistration, len(modules))
+	byName := make(map[string]ModuleRegistrationResp, len(modules))
 	for _, module := range modules {
 		byName[module.Name] = module
 	}

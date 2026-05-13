@@ -20,6 +20,8 @@ func NewAuthHandler(s *AuthService) *AuthHandler {
 }
 
 func (h *AuthHandler) LoginHandler(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.login.title", common.BusinessOther)
+
 	var req LoginReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
@@ -95,6 +97,8 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 }
 
 func (h *AuthHandler) VerifyMFAHandler(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.mfa.verify.title", common.BusinessOther)
+
 	var req MFAVerifyReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
@@ -133,6 +137,8 @@ func (h *AuthHandler) VerifyMFAHandler(c *gin.Context) {
 }
 
 func (h *AuthHandler) RefreshTokenHandler(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.session.refresh.title", common.BusinessOther)
+
 	refreshToken := ""
 	if cookie, err := c.Cookie(common.CookieRefreshToken); err == nil && cookie != "" {
 		refreshToken = cookie
@@ -207,6 +213,8 @@ func (h *AuthHandler) UpdateCurrentUserPreferences(c *gin.Context) {
 }
 
 func (h *AuthHandler) UpdatePassword(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.password.update.title", common.BusinessUpdate)
+
 	var req PasswordUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
@@ -384,6 +392,8 @@ func (h *AuthHandler) GetSecurityOverview(c *gin.Context) {
 }
 
 func (h *AuthHandler) VerifyOperationPassword(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.operation.verify.title", common.BusinessOther)
+
 	var req struct {
 		Password string `json:"password" binding:"required"`
 	}
@@ -400,6 +410,8 @@ func (h *AuthHandler) VerifyOperationPassword(c *gin.Context) {
 }
 
 func (h *AuthHandler) TouchActivity(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.session.touch.title", common.BusinessUpdate)
+
 	if err := h.service.TouchSessionActivity(c.GetString("sessionId"), common.GetUserID(c), c.ClientIP(), c.GetHeader("User-Agent")); err != nil {
 		common.FailWithError(c, common.CodeError, err, "auth.session.touch.error")
 		return
@@ -408,6 +420,8 @@ func (h *AuthHandler) TouchActivity(c *gin.Context) {
 }
 
 func (h *AuthHandler) LogoutHandler(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.logout.title", common.BusinessForce)
+
 	if err := h.service.RevokeSession(c.GetString("sessionId")); err != nil {
 		common.FailWithError(c, common.CodeError, err, "auth.logout.error")
 		return
@@ -424,6 +438,8 @@ func (h *AuthHandler) GetSessions(c *gin.Context) {
 	common.Success(c, resp)
 }
 func (h *AuthHandler) RevokeSession(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.session.revoke_self.title", common.BusinessForce)
+
 	if err := h.service.RevokeSession(strings.TrimSpace(c.Param("id"))); err != nil {
 		common.FailWithError(c, common.CodeError, err, "auth.session.revoke_self.error")
 		return

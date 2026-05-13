@@ -52,6 +52,48 @@ type ModuleRegistration struct {
 	BuiltIn                bool   `gorm:"-" json:"builtIn"`
 }
 
+type ModuleRegistrationResp struct {
+	ID                     uint64 `json:"id"`
+	Name                   string `json:"name"`
+	DisplayName            string `json:"displayName"`
+	Scope                  string `json:"scope"`
+	Source                 string `json:"source"`
+	Owner                  string `json:"owner"`
+	BoundedContext         string `json:"boundedContext"`
+	Summary                string `json:"summary"`
+	SourceTable            string `json:"sourceTable"`
+	ModelTableName         string `json:"tableName"`
+	Status                 int    `json:"status"`
+	InstalledAt            string `json:"installedAt"`
+	UninstalledAt          string `json:"uninstalledAt,omitempty"`
+	LastVerifiedAt         string `json:"lastVerifiedAt,omitempty"`
+	LastError              string `json:"lastError,omitempty"`
+	LastVerificationResult string `json:"lastVerificationResult,omitempty"`
+	BuiltIn                bool   `json:"builtIn"`
+}
+
+func toModuleRegistrationResp(module ModuleRegistration) ModuleRegistrationResp {
+	return ModuleRegistrationResp{
+		ID:                     module.ID,
+		Name:                   module.Name,
+		DisplayName:            module.DisplayName,
+		Scope:                  module.Scope,
+		Source:                 module.Source,
+		Owner:                  module.Owner,
+		BoundedContext:         module.BoundedContext,
+		Summary:                module.Summary,
+		SourceTable:            module.SourceTable,
+		ModelTableName:         module.ModelTableName,
+		Status:                 module.Status,
+		InstalledAt:            module.InstalledAt,
+		UninstalledAt:          module.UninstalledAt,
+		LastVerifiedAt:         module.LastVerifiedAt,
+		LastError:              module.LastError,
+		LastVerificationResult: module.LastVerificationResult,
+		BuiltIn:                module.BuiltIn,
+	}
+}
+
 type GeneratedModuleVerification struct {
 	Code       string `json:"code"`
 	Status     string `json:"status"`

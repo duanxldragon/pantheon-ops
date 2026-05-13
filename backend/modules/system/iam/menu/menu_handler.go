@@ -46,6 +46,8 @@ func (h *MenuHandler) GetMenuTree(c *gin.Context) {
 
 // CreateMenu 创建菜单。
 func (h *MenuHandler) CreateMenu(c *gin.Context) {
+	common.SetAuditMetadata(c, "menu.create.title", common.BusinessInsert)
+
 	var req MenuCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
@@ -62,6 +64,8 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 
 // UpdateMenu 更新菜单。
 func (h *MenuHandler) UpdateMenu(c *gin.Context) {
+	common.SetAuditMetadata(c, "menu.update.title", common.BusinessUpdate)
+
 	var req MenuUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
@@ -84,6 +88,8 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 
 // DeleteMenu 删除菜单。
 func (h *MenuHandler) DeleteMenu(c *gin.Context) {
+	common.SetAuditMetadata(c, "menu.delete.title", common.BusinessDelete)
+
 	menuID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")

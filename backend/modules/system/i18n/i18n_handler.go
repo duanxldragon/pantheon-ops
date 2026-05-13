@@ -152,6 +152,8 @@ func writeI18nLifecycleAuditJSON(writer func(*gin.Context, string), c *gin.Conte
 }
 
 func (h *I18nHandler) PreviewRenameKey(c *gin.Context) {
+	common.SetAuditMetadata(c, "i18n.rename.preview.title", common.BusinessOther)
+
 	var req I18nRenamePreviewReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
@@ -393,6 +395,8 @@ func (h *I18nHandler) Import(c *gin.Context) {
 
 // SyncMissingKeys 一键同步缺失的错误码 Key
 func (h *I18nHandler) SyncMissingKeys(c *gin.Context) {
+	common.SetAuditMetadata(c, "i18n.sync_missing_keys.title", common.BusinessInsert)
+
 	resp, err := h.service.SyncMissingKeys()
 	if err != nil {
 		common.Fail(c, common.CodeError, "i18n.sync.error")
@@ -403,6 +407,8 @@ func (h *I18nHandler) SyncMissingKeys(c *gin.Context) {
 
 // ReloadCache 手动刷新缓存 (管理端)
 func (h *I18nHandler) ReloadCache(c *gin.Context) {
+	common.SetAuditMetadata(c, "i18n.cache.refresh.title", common.BusinessUpdate)
+
 	var req I18nCacheRefreshReq
 	if err := c.ShouldBindJSON(&req); err != nil && err.Error() != "EOF" {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")

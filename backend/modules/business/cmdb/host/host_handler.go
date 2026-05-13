@@ -108,6 +108,8 @@ func (h *HostHandler) Delete(c *gin.Context) {
 }
 
 func (h *HostHandler) Collect(c *gin.Context) {
+	common.SetAuditMetadata(c, "cmdb.host.collect.title", common.BusinessUpdate)
+
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
@@ -127,6 +129,8 @@ func (h *HostHandler) Collect(c *gin.Context) {
 }
 
 func (h *HostHandler) UpdateStatus(c *gin.Context) {
+	common.SetAuditMetadata(c, "cmdb.host.status.update.title", common.BusinessUpdate)
+
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")

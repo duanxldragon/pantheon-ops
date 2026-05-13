@@ -57,14 +57,14 @@ func (h *SettingHandler) GetSettingGroup(c *gin.Context) {
 }
 
 func (h *SettingHandler) UpdateSettingGroup(c *gin.Context) {
+	common.SetAuditMetadata(c, settingAuditTitle, settingAuditBusinessType)
+
 	var req SettingGroupUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
 		return
 	}
 	groupKey := c.Param("groupKey")
-	c.Set("operationLog.title", settingAuditTitle)
-	c.Set("operationLog.businessType", settingAuditBusinessType)
 	successPayload := ""
 	if payload, err := h.service.BuildAuditPayload(groupKey, &req, false); err == nil && payload != "" {
 		c.Set("operationLog.param", payload)
@@ -102,6 +102,8 @@ const (
 )
 
 func (h *SettingHandler) RefreshSettingCache(c *gin.Context) {
+	common.SetAuditMetadata(c, "setting.cache.refresh.title", common.BusinessUpdate)
+
 	var req SettingCacheRefreshReq
 	if err := c.ShouldBindJSON(&req); err != nil && c.Request.ContentLength > 0 {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
@@ -130,6 +132,8 @@ func (h *SettingHandler) GetSettingAuditList(c *gin.Context) {
 }
 
 func (h *SettingHandler) ExportSettingAudit(c *gin.Context) {
+	common.SetAuditMetadata(c, "setting.audit.export.title", common.BusinessExport)
+
 	var query SettingAuditQuery
 	if err := c.ShouldBindJSON(&query); err != nil && c.Request.ContentLength > 0 {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")

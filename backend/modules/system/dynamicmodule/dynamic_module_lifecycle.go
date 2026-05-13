@@ -178,7 +178,7 @@ func (s *DynamicModuleService) rewriteGeneratedRegistriesIfWorkspaceAvailable() 
 }
 
 // ListRegisteredModules 获取已注册模块列表
-func (s *DynamicModuleService) ListRegisteredModules() ([]ModuleRegistration, error) {
+func (s *DynamicModuleService) ListRegisteredModules() ([]ModuleRegistrationResp, error) {
 	if err := s.syncModuleRegistrationRecords(false); err != nil {
 		return nil, err
 	}
@@ -192,7 +192,11 @@ func (s *DynamicModuleService) ListRegisteredModules() ([]ModuleRegistration, er
 	for index := range modules {
 		modules[index].BuiltIn = isBuiltInModuleRegistration(modules[index])
 	}
-	return modules, nil
+	resp := make([]ModuleRegistrationResp, 0, len(modules))
+	for _, module := range modules {
+		resp = append(resp, toModuleRegistrationResp(module))
+	}
+	return resp, nil
 }
 
 func (s *DynamicModuleService) dropManagedModuleTable(scope string, tableName string) error {
@@ -203,7 +207,7 @@ func (s *DynamicModuleService) dropManagedModuleTable(scope string, tableName st
 }
 
 // GetModuleStatus 获取模块状态
-func (s *DynamicModuleService) GetModuleStatus(moduleName string) (*ModuleRegistration, error) {
+func (s *DynamicModuleService) GetModuleStatus(moduleName string) (*ModuleRegistrationResp, error) {
 	if err := s.syncModuleRegistrationRecords(false); err != nil {
 		return nil, err
 	}
@@ -214,7 +218,8 @@ func (s *DynamicModuleService) GetModuleStatus(moduleName string) (*ModuleRegist
 		return nil, err
 	}
 	module.BuiltIn = isBuiltInModuleRegistration(module)
-	return &module, nil
+	resp := toModuleRegistrationResp(module)
+	return &resp, nil
 }
 
 func isBuiltInModuleRegistration(module ModuleRegistration) bool {

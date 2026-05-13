@@ -35,6 +35,8 @@ func (h *RoleHandler) GetRoleList(c *gin.Context) {
 
 // CreateRole 创建角色。
 func (h *RoleHandler) CreateRole(c *gin.Context) {
+	common.SetAuditMetadata(c, "role.create.title", common.BusinessInsert)
+
 	var req RoleCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
@@ -70,6 +72,8 @@ func (h *RoleHandler) ExportRoles(c *gin.Context) {
 
 // UpdateRole 更新角色。
 func (h *RoleHandler) UpdateRole(c *gin.Context) {
+	common.SetAuditMetadata(c, "role.update.title", common.BusinessUpdate)
+
 	var req RoleUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
@@ -121,6 +125,8 @@ func (h *RoleHandler) BatchDeleteRoles(c *gin.Context) {
 
 // DeleteRole 删除角色。
 func (h *RoleHandler) DeleteRole(c *gin.Context) {
+	common.SetAuditMetadata(c, "role.delete.title", common.BusinessDelete)
+
 	roleID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")

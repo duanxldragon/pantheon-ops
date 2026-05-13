@@ -249,18 +249,23 @@ func (s *I18nService) List(query *I18nQuery) (*I18nPageResp, error) {
 		Offset((query.Page - 1) * query.PageSize).
 		Limit(query.PageSize).
 		Find(&items).Error
-	return &I18nPageResp{Items: items, Total: total, Page: query.Page, PageSize: query.PageSize}, err
+	respItems := make([]I18nResp, 0, len(items))
+	for _, item := range items {
+		respItems = append(respItems, toI18nResp(item))
+	}
+	return &I18nPageResp{Items: respItems, Total: total, Page: query.Page, PageSize: query.PageSize}, err
 }
 
-func (s *I18nService) Get(id uint64) (*SystemI18n, error) {
+func (s *I18nService) Get(id uint64) (*I18nResp, error) {
 	var item SystemI18n
 	if err := s.db.First(&item, id).Error; err != nil {
 		return nil, err
 	}
-	return &item, nil
+	resp := toI18nResp(item)
+	return &resp, nil
 }
 
-func (s *I18nService) Create(req *I18nCreateReq) (*SystemI18n, error) {
+func (s *I18nService) Create(req *I18nCreateReq) (*I18nResp, error) {
 	row := SystemI18n{
 		Module: strings.TrimSpace(req.Module),
 		Group:  strings.TrimSpace(req.Group),
@@ -293,7 +298,8 @@ func (s *I18nService) Create(req *I18nCreateReq) (*SystemI18n, error) {
 	if err := s.db.Where("locale = ? AND `key` = ?", row.Locale, row.Key).First(&created).Error; err != nil {
 		return nil, err
 	}
-	return &created, s.ReloadCache()
+	resp := toI18nResp(created)
+	return &resp, s.ReloadCache()
 }
 
 func (s *I18nService) Update(id uint64, req *I18nUpdateReq) error {

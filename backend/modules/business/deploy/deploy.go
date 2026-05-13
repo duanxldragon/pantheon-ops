@@ -1,7 +1,6 @@
 package deploy
 
 import (
-	"pantheon-ops/backend/internal/middleware"
 	"pantheon-ops/backend/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
@@ -19,10 +18,7 @@ func InitDeployModule(r *gin.RouterGroup, db *gorm.DB) {
 			SeedMenusFunc: seedDeployMenus,
 			SeedI18nFunc:  seedDeployI18n,
 			Register: func(r *gin.RouterGroup) {
-				deploy := r.Group("/business/deploy").
-					Use(middleware.JWTAuthMiddleware()).
-					Use(middleware.CasbinMiddleware()).
-					Use(middleware.DataScopeMiddleware(db))
+				deploy := contracts.DataScopedGroup(r, "/business/deploy", db)
 				handler.RegisterRoutes(deploy)
 			},
 		},
