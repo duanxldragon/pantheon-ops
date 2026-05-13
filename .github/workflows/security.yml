@@ -84,7 +84,7 @@ jobs:
 
       - name: Report leaked secrets
         continue-on-error: true
-        run: go run github.com/gitleaks/gitleaks/v8@latest detect --source . --redact --report-format json --report-path security-reports/gitleaks.json --exit-code 0
+        run: go run github.com/zricethezav/gitleaks/v8@latest detect --source . --redact --report-format json --report-path security-reports/gitleaks.json --exit-code 0
 
       - name: Upload secret reports
         if: always()
