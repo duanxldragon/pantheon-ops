@@ -2284,7 +2284,7 @@ const zhCNFallback = {
   'business.cmdb.host.collectAuthMode': '认证方式',
   'business.cmdb.host.collectPassword': '密码',
   'business.cmdb.host.collectPrivateKey': '私钥',
-  'business.cmdb.host.collectPrivateKeyPlaceholder': '-----BEGIN OPENSSH PRIVATE KEY-----',
+  'business.cmdb.host.collectPrivateKeyPlaceholder': '粘贴 SSH 私钥内容',
   'business.cmdb.host.collectSuccess': '配置采集成功',
   'business.cmdb.host.baseInfo': '基础信息',
   'business.cmdb.host.systemConfig': '系统配置',
