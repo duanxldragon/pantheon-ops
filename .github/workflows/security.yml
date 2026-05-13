@@ -1,0 +1,134 @@
+name: Security Reports
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "23 2 * * 1"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  dependency-vulnerabilities:
+    name: Dependency vulnerability reports
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Prepare report directory
+        run: mkdir -p security-reports
+
+      - name: Report Go vulnerabilities
+        continue-on-error: true
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest -json ./... > security-reports/govulncheck.json
+
+      - name: Report root npm vulnerabilities
+        continue-on-error: true
+        run: |
+          npm ci
+          npm audit --registry=https://registry.npmjs.org --json --audit-level=moderate > security-reports/npm-audit-root.json
+
+      - name: Report frontend npm vulnerabilities
+        continue-on-error: true
+        working-directory: frontend
+        run: |
+          npm ci
+          npm audit --registry=https://registry.npmjs.org --json --audit-level=moderate > ../security-reports/npm-audit-frontend.json
+
+      - name: Report OSV vulnerabilities
+        continue-on-error: true
+        run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@latest scan --recursive --format json --output security-reports/osv-scanner.json .
+
+      - name: Upload dependency reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-dependency-reports
+          path: security-reports/
+          if-no-files-found: warn
+
+  secret-scan:
+    name: Secret scan report
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Prepare report directory
+        run: mkdir -p security-reports
+
+      - name: Report leaked secrets
+        continue-on-error: true
+        run: go run github.com/gitleaks/gitleaks/v8@latest detect --source . --redact --report-format json --report-path security-reports/gitleaks.json --exit-code 0
+
+      - name: Upload secret reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-secret-reports
+          path: security-reports/
+          if-no-files-found: warn
+
+  workflow-posture:
+    name: GitHub Actions posture reports
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare report directory
+        run: mkdir -p security-reports
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Report workflow risks with zizmor
+        continue-on-error: true
+        run: |
+          python -m pip install --user zizmor
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          "$HOME/.local/bin/zizmor" --format json .github/workflows > security-reports/zizmor.json
+
+      - name: Report repository security scorecard
+        continue-on-error: true
+        uses: ossf/scorecard-action@v2.4.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          results_file: security-reports/scorecard.json
+          results_format: json
+          publish_results: false
+
+      - name: Upload workflow posture reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-workflow-posture-reports
+          path: security-reports/
+          if-no-files-found: warn
