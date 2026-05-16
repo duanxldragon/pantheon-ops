@@ -55,7 +55,7 @@ const generatedzhCNFallback = {
   "business.cmdb.host.collectAuthMode": "认证方式",
   "business.cmdb.host.collectPassword": "密码",
   "business.cmdb.host.collectPrivateKey": "私钥",
-  "business.cmdb.host.collectPrivateKeyPlaceholder": "-----BEGIN OPENSSH PRIVATE KEY-----",
+  "business.cmdb.host.collectPrivateKeyPlaceholder": "粘贴 SSH 私钥内容",
   "business.cmdb.host.collectSshUser": "SSH 用户",
   "business.cmdb.host.collectSshUserPlaceholder": "root",
   "business.cmdb.host.collectSuccess": "配置采集成功",

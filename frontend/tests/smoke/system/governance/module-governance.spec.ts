@@ -101,7 +101,8 @@ test.describe('module governance smoke', () => {
     });
 
     await page.goto('/system/modules', { waitUntil: 'networkidle' });
-    await expect(page.getByRole('heading', { name: '模块注册表' })).toBeVisible();
+    await expect(page.getByText('模块注册表', { exact: false }).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator('.module-manager-page, .system-list__table-card').first()).toBeVisible();
 
     const targetRow = page.getByRole('row', { name: /business\.asset/ }).first();
     await expect(targetRow).toBeVisible();
@@ -223,7 +224,9 @@ test.describe('module governance smoke', () => {
     });
 
     await page.goto('/system/generator', { waitUntil: 'networkidle' });
-    await expect(page.getByRole('heading', { name: '模块生成向导' })).toBeVisible();
+    await expect(page.getByText(/模块生成(?:器|向导)/).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator('.generator-wizard-card')).toBeVisible();
+    await expect(page.locator('.system-list__work-actions .arco-btn')).toBeVisible();
     await installOperationToken(page, accessToken);
 
     await openFormSelect(page, '建模来源');
@@ -283,7 +286,9 @@ test.describe('module governance smoke', () => {
     });
 
     await page.goto('/system/generator', { waitUntil: 'networkidle' });
-    await expect(page.getByRole('heading', { name: '模块生成向导' })).toBeVisible();
+    await expect(page.getByText(/模块生成(?:器|向导)/).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator('.generator-wizard-card')).toBeVisible();
+    await expect(page.locator('.system-list__work-actions .arco-btn')).toBeVisible();
 
     await formItem(page, '模块名').locator('input').first().fill('config/audit');
     await formItem(page, '显示名').locator('input').first().fill('审计配置');
@@ -316,7 +321,9 @@ test.describe('module governance smoke', () => {
     });
 
     await page.goto('/system/generator', { waitUntil: 'networkidle' });
-    await expect(page.getByRole('heading', { name: '模块生成向导' })).toBeVisible();
+    await expect(page.getByText(/模块生成(?:器|向导)/).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator('.generator-wizard-card')).toBeVisible();
+    await expect(page.locator('.system-list__work-actions .arco-btn')).toBeVisible();
 
     await formItem(page, '模块名').locator('input').first().fill('cmdb/workbench_probe');
     await formItem(page, '显示名').locator('input').first().fill('工作台探针');

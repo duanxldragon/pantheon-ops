@@ -43,3 +43,9 @@ Derived repository changes may add more `business/*` documents over time, but sh
 - Allowed: business-domain additions, business acceptance notes, and repository-local execution details
 - Not allowed: redefining base contracts, base layer ownership, key-first i18n rules, menu/permission split, or shared UI hard constraints
 - If a foundation rule must change, update `pantheon-base` first and then upgrade `pantheon-ops`
+
+## 7. Runtime Isolation
+
+- Runtime database is isolated from `pantheon-base`.
+- Recommended default DSN target for this repository is `pantheon_ops`.
+- Sharing a MySQL instance is allowed; sharing the same database schema with `pantheon-base` is not allowed.

@@ -61,19 +61,21 @@ docker compose up -d
 
 - MySQL: `127.0.0.1:3306`
 - Redis: `127.0.0.1:6379`
+- 默认数据库：`pantheon_ops`
 
 ### 2. 启动后端
 
 PowerShell 示例：
 
 ```powershell
-$env:PANTHEON_DSN='root:DHCCroot@2025@tcp(127.0.0.1:3306)/pantheon?charset=utf8mb4&parseTime=True&loc=Local'
+$env:PANTHEON_DSN='root:DHCCroot@2025@tcp(127.0.0.1:3306)/pantheon_ops?charset=utf8mb4&parseTime=True&loc=Local'
 $env:PANTHEON_REDIS_ADDR='127.0.0.1:6379'
 $env:PANTHEON_REDIS_PASSWORD='DHCCdhcc2025'
 go run ./backend/cmd/server
 ```
 
 后端默认监听 `http://127.0.0.1:8080`。
+`pantheon-ops` 作为独立业务仓库，应独占 `pantheon_ops` 数据库；即使与 `pantheon-base` 共用同一 MySQL 实例，也不能共用同一个库。
 
 ### 3. 启动前端
 

@@ -352,7 +352,13 @@ test.describe('system governance action matrix', () => {
         await confirmButton(popup).click({ noWaitAfter: true });
 
         await expectToast(casePage, actionCase.errorToast);
-        await expect(casePage.locator('.page-header')).toBeVisible();
+        await expect(
+          casePage
+            .locator(
+              '.governance-summary-bar, .system-list__table-card, .module-manager-page, .auth-security-page',
+            )
+            .first(),
+        ).toBeVisible();
         expectNoRuntimeErrors(runtimeErrors, [
           /Failed to load resource: the server responded with a status of 500/i,
           /^request\.failed$/,

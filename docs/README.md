@@ -6,13 +6,15 @@
 
 ---
 
-## 1. 本仓库自有文档（4 份）
+## 1. 本仓库自有文档（6 份）
 
 | 文档 | 用途 |
 |---|---|
 | [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) | 与 `pantheon-base` 的继承关系、版本锁定、本地化范围 |
 | [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) | CMDB 业务模块完整设计（含数据模型、API、UI、字典依赖、验收） |
 | [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) | 安装部署业务模块完整设计 |
+| [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md) | ops 业务模块 canonical 错误 key 语义附录 |
+| [designs/PLATFORM_SRE_EVOLUTION_PLAN.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.md) | SRE 演进路线图：从 Web 平台到 K8s-native 的五阶段计划 |
 | [README.md](./README.md) | 本文 |
 
 ---

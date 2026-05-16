@@ -9,6 +9,7 @@ interface ModuleRouteConfigBase {
   path: string;
   routeName?: string;
   titleKey: string;
+  resolveTitleKey?: (path: string) => string | undefined;
   icon?: MenuIconKey;
   isCache?: boolean;
   activeMenu?: string;

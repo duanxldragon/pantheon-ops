@@ -1905,6 +1905,7 @@ const zhCNFallback = {
   'system.user.hero.enabledHint': '当前结果集中仍可登录和分配能力的账号数。',
   'system.user.hero.selectedRows': '已选账号',
   'system.user.hero.selectedHint': '批量启用、禁用与导入导出均以当前选择集为准。',
+  'system.user.hero.unassignedRoles': '待分配角色',
   'system.user.hero.rolesReady': '可分配角色',
   'system.user.hero.rolesHint': '角色池已就绪后，用户授权不会绕开 `system/iam` 权限边界。',
   'system.user.hero.summaryTitle': '治理摘要',

@@ -3,8 +3,10 @@ import {
   adminCredentials,
   apiBaseUrl,
   authHeaders,
+  installClientSession,
+  loginByApi,
   signInAsAdmin,
-  verifiedHeaders,
+  verifiedApiHeaders,
 } from '../helpers/auth';
 
 
@@ -55,7 +57,9 @@ test.describe('enter submit smoke', () => {
   });
 
   test('dict, i18n, and permission dialogs submit with Enter key', async ({ page }) => {
-    const accessToken = await signInAsAdmin(page);
+    const adminLogin = await loginByApi(page.request, adminCredentials);
+    await installClientSession(page, adminLogin);
+    const accessToken = adminLogin.accessToken;
     const dictCode = `enter_dict_${Date.now()}`;
     const dictName = `回车测试字典_${Date.now()}`;
     const i18nKey = `i18n.enter.${Date.now()}`;
@@ -114,7 +118,7 @@ test.describe('enter submit smoke', () => {
       await page.getByRole('button', { name: '新增', exact: true }).click();
       const permissionDialog = await waitForDialog(page, '新增策略');
       await permissionDialog.locator('.arco-select-view').first().click();
-      await page.getByRole('option', { name: 'superadmin', exact: true }).click();
+      await page.getByRole('option', { name: /超级管理员|superadmin/i }).first().click();
       const pathInput = permissionDialog.getByPlaceholder('/api/v1/system/user/list');
       await pathInput.fill(permissionPath);
       await pathInput.press('Enter');
@@ -132,7 +136,7 @@ test.describe('enter submit smoke', () => {
         return createdPermissionId > 0;
       }).toBeTruthy();
     } finally {
-      const headers = await verifiedHeaders(page, accessToken);
+      const headers = await verifiedApiHeaders(page.request, adminLogin);
       if (createdPermissionId > 0) {
         await page.request.delete(`${apiBaseUrl}/system/permission/${createdPermissionId}`, {
           headers,

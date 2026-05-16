@@ -270,7 +270,7 @@ const matrixCases: FormMatrixCase[] = [
     },
     fillValid: async (form, page) => {
       await form.locator('.arco-select-view').first().click();
-      await page.getByRole('option', { name: 'superadmin', exact: true }).click();
+      await page.getByRole('option', { name: /超级管理员|superadmin/i }).first().click();
       await form.getByPlaceholder('/api/v1/system/user/list').fill('/api/v1/system/permission/matrix');
     },
     submitRoutePattern: /\/api\/v1\/system\/permission$/,
@@ -288,8 +288,7 @@ const matrixCases: FormMatrixCase[] = [
     formTitle: '安全策略',
     submitText: '保存',
     openForm: async (page) => {
-      await page.goto('/system/setting', { waitUntil: 'networkidle' });
-      await page.getByRole('tab', { name: '安全策略', exact: true }).click();
+      await page.goto('/system/setting/security', { waitUntil: 'networkidle' });
       const form = page.locator('.setting-page__config-card').first();
       await expect(form.getByText('安全策略', { exact: true }).first()).toBeVisible();
       return form;

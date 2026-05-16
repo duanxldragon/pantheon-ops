@@ -8,6 +8,13 @@
 
 本文定义运维平台第二个业务模块：安装部署（Deploy）。它与 `business/cmdb` 平级，放在“运维平台”菜单下，用 CMDB 主机和分组作为目标来源，为后续 Agent 执行、软件安装、任务编排、凭据托管和变更审计打基础。
 
+本文按 Pantheon Base 当前 canonical 收口：
+
+- 跨业务模块只允许通过显式 capability / facade 查询，不允许直读对方表
+- 业务权限统一使用 `business:<module>:<resource>:<action>`
+- 视觉 token 数值以 `pantheon-base/docs/designs/THEME_TOKENS_REFERENCE.md` 为准
+- 响应式断点与退化行为以 `pantheon-base/docs/designs/MOBILE_RESPONSIVE_BREAKPOINTS.md` 为准
+
 ## 1. 模块概述
 
 安装部署模块负责把“要装什么、装到哪里、执行到什么状态、结果如何”沉淀成可追踪任务。
@@ -36,9 +43,30 @@
 | system/auth | `gin.Context` 中登录主体 | 直接 import auth Service |
 | system/iam | 菜单、权限点、Casbin 策略结果 | 业务模块内写角色授权逻辑 |
 | system/org | 数据范围上下文 | 直接依赖 org repository |
-| business/cmdb | 通过数据库表读取可见主机基础信息，后续收敛为公共查询契约 | 修改 CMDB 内部状态机或标签逻辑 |
+| business/cmdb | 通过显式只读查询 capability 获取可见主机、分组和目标快照 | 直读 `biz_cmdb_*` 表、直接依赖 CMDB repository/service、修改 CMDB 内部状态机或标签逻辑 |
 
-第一版允许部署模块读取 `biz_cmdb_host` 和 `biz_cmdb_group` 的只读数据，用于目标选择和任务快照；部署模块不得更新 CMDB 主机配置。
+第一版边界结论：
+
+- Deploy 不得直接读取 `biz_cmdb_host`、`biz_cmdb_group` 表结构
+- Deploy 只能消费 `business/cmdb` 暴露的只读查询契约，用于目标选择、成员预览和任务快照
+- Deploy 不得更新 CMDB 主机配置、分组条件、标签规则或运维状态机
+
+### 2.1 CMDB 查询契约
+
+Deploy 允许消费的最小能力面建议固定为：
+
+| capability | 输入 | 输出 | 用途 |
+| :--- | :--- | :--- | :--- |
+| `ListSelectableHosts` | 关键字、状态、数据范围、分页 | Host 摘要列表 | 任务目标选择 |
+| `ListSelectableGroups` | 关键字、数据范围 | Group 摘要列表 | 分组目标选择 |
+| `PreviewGroupMembers` | `groupIds[]`、数据范围 | 分组成员数量 / 主机摘要 | 表单预览 |
+| `ResolveTaskTargets` | `targetType`、`targetIds[]`、数据范围 | 去重后的 Host 快照列表 | 启动任务时固化目标 |
+
+契约要求：
+
+- 所有结果都必须经过 `DataScopeReq` 或等价上下文过滤
+- Deploy 只拿“当前任务执行需要的快照字段”，不反向绑定 CMDB 的内部 JSON 结构
+- 该 capability 后续可以落到 `pkg/contracts`、模块 facade 或独立 query service，但不能只停留在口头约定
 
 ## 3. 菜单与命名
 
@@ -48,11 +76,17 @@
 
 菜单中文保持四字：
 
-| 菜单 | 路径 | 组件 |
-| :--- | :--- | :--- |
-| 软件组件 | `/operations/deploy/package` | `business/deploy/package/DeployPackageList` |
-| 部署任务 | `/operations/deploy/task` | `business/deploy/task/DeployTaskList` |
-| 任务详情 | `/operations/deploy/task/:id` | `business/deploy/task/DeployTaskDetail`，不进菜单 |
+| 菜单 key | 路径 | titleKey | routeName | module | component key | pagePermission | activeMenu | 类型 | 说明 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `business.deploy.package` | `/operations/deploy/package` | `business.deploy.package.menu.list` | `business-deploy-package-list` | `business.deploy` | `business/deploy/package/DeployPackageList` | `business:deploy:package:view` | — | `C` | 软件组件列表 |
+| `business.deploy.task` | `/operations/deploy/task` | `business.deploy.task.menu.list` | `business-deploy-task-list` | `business.deploy` | `business/deploy/task/DeployTaskList` | `business:deploy:task:view` | — | `C` | 部署任务列表 |
+| `business.deploy.task.detail` | `/operations/deploy/task/:id` | `business.deploy.task.menu.detail` | `business-deploy-task-detail` | `business.deploy` | `business/deploy/task/DeployTaskDetail` | `business:deploy:task:detail` | `/operations/deploy/task` | `C` | 任务详情页，不进侧边菜单 |
+
+约束：
+
+- `module` 固定为 `business.deploy`
+- 菜单只表达导航，不表达执行规则
+- 列表页和详情页的页面权限分离：列表页走 `view`，详情页走 `detail`
 
 ## 4. 核心对象
 
@@ -144,9 +178,31 @@ pending -> skipped
 | reported_at | datetime | Agent 回写时间 |
 | created_at / updated_at | datetime | 审计字段 |
 
+### 6.4 租户就绪判断
+
+- 当前按单租户运行，第一版不新增 `tenant_id`
+- `DeployPackage(name, version)` 当前按平台全局唯一理解；若未来出现多租户软件目录隔离，应调整为 `(tenant_id, name, version)` 或等价 scope 唯一
+- `DeployTask` 与 `DeployTaskHost` 的列表、导出、审计查询必须保留统一 scope 注入点，不能把“当前只有一个业务空间”写死在 handler 或 repo
+- 任务执行审计未来大概率需要按 tenant / business space 检索，因此启动、取消、结果回写的审计结构不能只保留纯全局流水语义
+
 ## 7. API 设计
 
 前缀：`/api/v1/business/deploy`
+
+### 7.1 通用契约
+
+- 返回统一走 `common.Success` / `common.Fail`
+- 列表接口统一返回：`items / total / page / pageSize`
+- 写接口统一返回：资源主键、核心状态字段、最近更新时间
+- 仓库级 canonical 清单以 `docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md` 为准；本节保留 Deploy 局部摘要
+- 错误 key 前缀统一为：
+  - `business.deploy.package.*`
+  - `business.deploy.task.*`
+  - `business.deploy.taskHost.*`
+- 所有接口都必须显式标注对应权限，不允许“页面能进就默认接口都能调”
+- 所有写接口都必须进入统一操作审计；启动、取消、结果回写属于高敏动作
+
+### 7.2 接口清单
 
 | 接口 | 方法 | 说明 | 权限 |
 | :--- | :--- | :--- | :--- |
@@ -162,6 +218,74 @@ pending -> skipped
 | `/tasks/:id/cancel` | POST | 取消任务 | `business:deploy:task:cancel` |
 | `/task-hosts/:id/result` | POST | 标记主机执行结果 | `business:deploy:task:mark-result` |
 | `/task-hosts/:id/report` | POST | Agent 结果回写预留 | 第一版不挂菜单 |
+
+### 7.3 请求 / 响应要点
+
+#### 7.3.1 `GET /packages`
+
+- query：`keyword`、`status`、`page`、`pageSize`
+- resp item 最少包含：`id`、`name`、`version`、`description`、`status`、`updatedAt`
+- 空列表与筛选空结果要能区分前端状态
+
+#### 7.3.2 `POST /packages` / `PUT /packages/:id`
+
+- body：`name`、`version`、`description`、`installCommand`、`uninstallCommand`、`status`
+- 关键错误：
+  - `business.deploy.package.nameRequired`
+  - `business.deploy.package.versionRequired`
+  - `business.deploy.package.nameVersionConflict`
+  - `business.deploy.package.commandTooLong`
+
+#### 7.3.3 `GET /tasks`
+
+- query：`keyword`、`status[]`、`packageId`、`targetType`、`executorType`、`startedFrom`、`startedTo`、`page`、`pageSize`
+- resp item 最少包含：`id`、`name`、`packageName`、`packageVersion`、`targetType`、`executorType`、`status`、`successCount`、`failedCount`、`totalCount`、`startedAt`、`finishedAt`
+
+#### 7.3.4 `POST /tasks`
+
+- body：
+  - `name`
+  - `packageId`
+  - `targetType` (`host | group`)
+  - `targetIds[]`
+  - `executorType` (`manual | simulated`)
+  - `remark`
+- 服务端必须通过 `ResolveTaskTargets` capability 固化主机快照后再落任务
+- 关键错误：
+  - `business.deploy.task.nameRequired`
+  - `business.deploy.task.packageRequired`
+  - `business.deploy.task.packageDisabled`
+  - `business.deploy.task.targetRequired`
+  - `business.deploy.task.invalidExecutorType`
+  - `business.deploy.task.targetOutOfScope`
+
+#### 7.3.5 `GET /tasks/:id`
+
+- 返回任务头信息 + 主机执行明细 + 汇总统计
+- 若资源不存在，返回 `business.deploy.task.notFound`
+- 若当前用户无详情权限或数据范围不覆盖，返回 `business.deploy.task.forbidden`
+
+#### 7.3.6 `POST /tasks/:id/start`
+
+- 只允许 `draft / pending` 状态启动
+- 启动时生成 `biz_deploy_task_host` 快照记录
+- 关键错误：
+  - `business.deploy.task.invalidStartState`
+  - `business.deploy.task.emptyResolvedTargets`
+
+#### 7.3.7 `POST /tasks/:id/cancel`
+
+- 只允许 `pending / running` 状态取消
+- 关键错误：`business.deploy.task.invalidCancelState`
+
+#### 7.3.8 `POST /task-hosts/:id/result`
+
+- body：`status` (`success | failed | skipped`)、`stdout`、`stderr`、`errorMessage`
+- `failed` 时 `errorMessage` 必填
+- 关键错误：
+  - `business.deploy.taskHost.notFound`
+  - `business.deploy.taskHost.invalidResultState`
+  - `business.deploy.taskHost.markFailed.reasonRequired`
 
 ## 8. 前端与 UI
 
@@ -268,6 +392,14 @@ pending -> skipped
 - `business.deploy.taskHost.*` 主机明细
 - `business.deploy.state.*` 状态名称（success / pending / running / failed / canceled / skipped）
 
+最低必补 key：
+
+- 菜单：`business.deploy.package.menu.list`、`business.deploy.task.menu.list`
+- 页头：`business.deploy.package.page.title`、`business.deploy.task.page.title`、`business.deploy.task.detail.title`
+- 状态：`business.deploy.state.draft`、`business.deploy.state.pending`、`business.deploy.state.running`、`business.deploy.state.success`、`business.deploy.state.failed`、`business.deploy.state.canceled`、`business.deploy.state.skipped`
+- 错误：见 §7.3 各接口关键错误
+- 成功反馈：`business.deploy.package.create.success`、`business.deploy.package.update.success`、`business.deploy.task.create.success`、`business.deploy.task.start.success`、`business.deploy.task.cancel.success`
+
 ### 8.11 响应式
 
 - 表格列按 `MOBILE_RESPONSIVE_BREAKPOINTS.md` §4 的列优先级声明
@@ -288,12 +420,20 @@ pending -> skipped
 
 权限按导航、页面、操作、接口四层理解。
 
+页面 / 导航权限：
+
+- `business:deploy:package:view`
+- `business:deploy:task:view`
+- `business:deploy:task:detail`
+
 权限点：
 
+- `business:deploy:package:view`
 - `business:deploy:package:list`
 - `business:deploy:package:create`
 - `business:deploy:package:update`
 - `business:deploy:package:delete`
+- `business:deploy:task:view`
 - `business:deploy:task:list`
 - `business:deploy:task:detail`
 - `business:deploy:task:create`
@@ -310,6 +450,12 @@ pending -> skipped
 - 取消部署任务
 - 标记主机执行结果
 
+高敏约束：
+
+- 启动、取消、结果回写必须记录操作者、任务 ID、目标数量、状态变更前后值
+- 若任务目标通过分组解析，审计中至少保留解析时的主机数量与快照时间
+- Agent 结果回写后续接入时，必须单独区分“人工标记”与“执行器上报”来源
+
 ## 10. 验收标准
 
 - 软件组件可增删改查。
@@ -319,3 +465,7 @@ pending -> skipped
 - 菜单、权限、i18n、构建检查通过。
 - CMDB 和系统域现有烟测不被破坏。
 - 业务模块不直接依赖 `modules/system/*` 内部实现。
+- Deploy 不直接读取 `biz_cmdb_*` 表，跨业务查询通过显式 capability / facade 完成。
+- 列表页 / 详情页 / 按钮 / 接口四层权限链路完整：页面 `view` 不等于列表 `list`、详情 `detail`、动作 `start/cancel/mark-result`
+- 所有错误反馈走 i18n key，不出现英文硬编码 fallback
+- 响应式表现符合 `MOBILE_RESPONSIVE_BREAKPOINTS.md`，至少覆盖 `xl / lg / md / sm`

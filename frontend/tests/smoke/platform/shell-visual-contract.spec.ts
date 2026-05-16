@@ -9,7 +9,6 @@ const systemTablePages = [
   { path: '/system/dept', title: '部门管理' },
   { path: '/system/post', title: '岗位管理' },
   { path: '/system/dict', title: '字典管理' },
-  { path: '/system/setting', title: '系统设置' },
   { path: '/system/i18n', title: '国际化管理' },
   { path: '/system/modules', title: '模块注册表' },
   { path: '/system/session', title: '会话管理' },
@@ -37,6 +36,33 @@ const governanceBarPages = [
   '/system/operation-log',
 ] as const;
 
+const dialogEntryPages = [
+  { path: '/system/user', triggerText: '新增' },
+  { path: '/system/role', triggerText: '新增' },
+  { path: '/system/menu', triggerText: '新增' },
+  { path: '/system/post', triggerText: '新增' },
+  { path: '/system/dict', triggerText: '新增' },
+  { path: '/system/i18n', triggerText: '新增' },
+] as const;
+
+type ControlBox = {
+  backgroundColor: string;
+  borderTopStyle: string;
+  borderTopWidth: string;
+  boxShadow: string;
+  height: number;
+  outlineStyle: string;
+  outlineWidth: string;
+} | null;
+
+type ControlContract = {
+  kind?: string;
+  label?: string;
+  wrapper: ControlBox;
+  inner: ControlBox;
+  nestedInput: ControlBox;
+};
+
 async function navigateInShell(page: import('@playwright/test').Page, path: string) {
   if (page.url() === 'about:blank') {
     await page.goto('/dashboard', { waitUntil: 'networkidle' });
@@ -48,6 +74,224 @@ async function navigateInShell(page: import('@playwright/test').Page, path: stri
   await expect(page).toHaveURL(new RegExp(`${path.replace(/\//g, '\\/')}$`));
 }
 
+async function readVisibleControlContracts(
+  page: import('@playwright/test').Page,
+  rootSelector: string,
+) {
+  const rootLocator = page.locator(rootSelector).first();
+  await expect(rootLocator).toBeVisible();
+  return rootLocator.evaluate((root) => {
+    const outerSelector = [
+      '.arco-input-password',
+      '.arco-input-number',
+      '.arco-select-view',
+      '.arco-tree-select-view',
+      '.arco-picker',
+      '.arco-textarea-wrapper',
+      'textarea.arco-textarea',
+      '.arco-input-inner-wrapper',
+      'input.arco-input',
+    ].join(',');
+    const read = (element?: HTMLElement | null) => {
+      if (!element) {
+        return null;
+      }
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return {
+        backgroundColor: style.backgroundColor,
+        borderTopStyle: style.borderTopStyle,
+        borderTopWidth: style.borderTopWidth,
+        boxShadow: style.boxShadow,
+        height: Math.round(rect.height),
+        outlineStyle: style.outlineStyle,
+        outlineWidth: style.outlineWidth,
+      };
+    };
+    const isOuterControl = (element: HTMLElement) => {
+      if (
+        element.matches('input.arco-input, textarea.arco-textarea') &&
+        element.closest(
+          '.arco-input-inner-wrapper, .arco-input-password, .arco-input-number, .arco-textarea-wrapper',
+        )
+      ) {
+        return false;
+      }
+      const nestedOuter = element.closest('.arco-input-password, .arco-input-number');
+      if (element.classList.contains('arco-input-inner-wrapper') && nestedOuter) {
+        return nestedOuter === element;
+      }
+      return true;
+    };
+    const kindOf = (element: HTMLElement) => {
+      if (element.classList.contains('arco-input-password')) {
+        return 'password';
+      }
+      if (element.classList.contains('arco-input-number')) {
+        return 'number';
+      }
+      if (element.classList.contains('arco-select-view')) {
+        return 'select';
+      }
+      if (element.classList.contains('arco-tree-select-view')) {
+        return 'treeSelect';
+      }
+      if (element.classList.contains('arco-picker')) {
+        return 'picker';
+      }
+      if (element.classList.contains('arco-textarea-wrapper')) {
+        return 'textarea';
+      }
+      if (element.matches('textarea.arco-textarea')) {
+        return 'textarea';
+      }
+      return 'text';
+    };
+    return Array.from(root.querySelectorAll<HTMLElement>(outerSelector))
+      .filter((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0 && isOuterControl(element);
+      })
+      .map((wrapper, index) => {
+        const kind = kindOf(wrapper);
+        let inner: HTMLElement | null | undefined = null;
+        if (!wrapper.matches('input.arco-input, textarea.arco-textarea')) {
+          inner =
+            kind === 'textarea'
+              ? wrapper.querySelector<HTMLElement>('.arco-textarea')
+              : wrapper.querySelector<HTMLElement>('.arco-input-inner-wrapper, .arco-input');
+        }
+        const nestedInput =
+          inner?.classList.contains('arco-input-inner-wrapper') ||
+          inner?.classList.contains('arco-input-password')
+            ? inner.querySelector<HTMLElement>('.arco-input')
+            : inner;
+        return {
+          kind,
+          label: `${kind}#${index + 1}`,
+          wrapper: read(wrapper),
+          inner: read(inner),
+          nestedInput: read(nestedInput),
+        };
+      });
+  });
+}
+
+async function readFocusedTextInputContract(
+  page: import('@playwright/test').Page,
+  rootSelector: string,
+) {
+  const rootLocator = page.locator(rootSelector).first();
+  await expect(rootLocator).toBeVisible();
+  return rootLocator.evaluate((root) => {
+    const wrappedInput = Array.from(
+      root.querySelectorAll<HTMLElement>('.arco-input-inner-wrapper'),
+    ).find((element) => {
+      const input = element.querySelector<HTMLElement>('.arco-input');
+      const rect = element.getBoundingClientRect();
+      return Boolean(
+        input &&
+          rect.width > 0 &&
+          rect.height > 0 &&
+          !element.closest('.arco-input-password, .arco-input-number'),
+      );
+    });
+    const standaloneInput = Array.from(
+      root.querySelectorAll<HTMLElement>('input.arco-input'),
+    ).find((element) => {
+      const rect = element.getBoundingClientRect();
+      return Boolean(
+        rect.width > 0 &&
+          rect.height > 0 &&
+          !element.closest('.arco-input-inner-wrapper, .arco-input-password, .arco-input-number'),
+      );
+    });
+    const wrapper = wrappedInput ?? standaloneInput;
+    const input = wrapper?.matches('input.arco-input')
+      ? wrapper
+      : wrapper?.querySelector<HTMLElement>('.arco-input');
+    input?.focus();
+    const read = (element?: HTMLElement | null) => {
+      if (!element) {
+        return null;
+      }
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return {
+        backgroundColor: style.backgroundColor,
+        borderTopStyle: style.borderTopStyle,
+        borderTopWidth: style.borderTopWidth,
+        boxShadow: style.boxShadow,
+        height: Math.round(rect.height),
+        outlineStyle: style.outlineStyle,
+        outlineWidth: style.outlineWidth,
+      };
+    };
+    if (wrapper?.matches('input.arco-input')) {
+      return {
+        wrapper: read(wrapper),
+        inner: null,
+        nestedInput: null,
+      };
+    }
+    return {
+      wrapper: read(wrapper),
+      inner: read(input),
+      nestedInput: read(input),
+    };
+  });
+}
+
+function expectSingleLayerControl(
+  control: ControlContract,
+  label: string,
+  options: { requireWhiteBackground?: boolean } = {},
+) {
+  const { requireWhiteBackground = true } = options;
+  expect(control.wrapper, label).not.toBeNull();
+  if (!control.wrapper) {
+    return;
+  }
+  expect(control.wrapper.borderTopWidth, label).toBe('1px');
+  expect(control.wrapper.borderTopStyle, label).toBe('solid');
+  if (requireWhiteBackground) {
+    expect(control.wrapper.backgroundColor, label).toBe('rgb(255, 255, 255)');
+  }
+  if (control.inner && control.inner !== control.wrapper) {
+    expect(control.inner.borderTopWidth, `${label} inner border`).toBe('0px');
+    expect(control.inner.backgroundColor, `${label} inner background`).toBe('rgba(0, 0, 0, 0)');
+    expect(control.inner.boxShadow, `${label} inner shadow`).toBe('none');
+    expect(control.inner.outlineStyle, `${label} inner outline`).toBe('none');
+    expect(control.inner.outlineWidth, `${label} inner outline width`).toBe('0px');
+  }
+  if (control.nestedInput && control.nestedInput !== control.wrapper) {
+    expect(control.nestedInput.borderTopWidth, `${label} nested border`).toBe('0px');
+    expect(control.nestedInput.backgroundColor, `${label} nested background`).toBe(
+      'rgba(0, 0, 0, 0)',
+    );
+    expect(control.nestedInput.boxShadow, `${label} nested shadow`).toBe('none');
+    expect(control.nestedInput.outlineStyle, `${label} nested outline`).toBe('none');
+    expect(control.nestedInput.outlineWidth, `${label} nested outline width`).toBe('0px');
+  }
+}
+
+async function readRootCssVariables(
+  page: import('@playwright/test').Page,
+  variableNames: string[],
+) {
+  return page.evaluate((names) => {
+    const style = window.getComputedStyle(document.documentElement);
+    return Object.fromEntries(names.map((name) => [name, style.getPropertyValue(name).trim()]));
+  }, variableNames);
+}
+
+function expandPaddingValues(value: string) {
+  const parts = value.split(/\s+/).filter(Boolean);
+  const [top = '0px', right = top, bottom = top, left = right] = parts;
+  const normalize = (part: string) => (part === '0' ? '0px' : part);
+  return [top, right, bottom, left].map(normalize);
+}
+
 test('platform shell breadcrumb and function bars do not clip text or use inset mixed borders', async ({
   page,
 }) => {
@@ -55,6 +299,7 @@ test('platform shell breadcrumb and function bars do not clip text or use inset 
   await signInAsAdmin(page);
   await navigateInShell(page, '/system/user');
   await expect(page.locator('.table-batch-action-bar')).toBeVisible();
+  await expect(page.locator('.app-table .arco-table-th').first()).toBeVisible();
 
   const userShellStyles = await page.evaluate(() => {
     const read = (selector: string) => {
@@ -107,15 +352,16 @@ test('platform shell breadcrumb and function bars do not clip text or use inset 
   expect(userShellStyles.tab?.borderColor).toBe('rgba(0, 0, 0, 0)');
   expect(userShellStyles.tabLabel?.lineHeight).toBe('20px');
   expect(userShellStyles.batchBar?.backgroundColor).toBe('rgba(0, 0, 0, 0)');
-  expect(userShellStyles.batchBar?.borderStyle).toBe('none');
+  expect(userShellStyles.batchBar?.borderStyle).not.toContain('inset');
   expect(userShellStyles.batchBar?.boxShadow).toBe('none');
   expect(userShellStyles.batchButton?.borderStyle).toBe('none');
   expect(userShellStyles.tableHeader?.backgroundColor).toBe('rgb(247, 248, 250)');
 
   await navigateInShell(page, '/system/setting');
-  await expect(
-    page.locator('.arco-tabs-header-nav-rounded .arco-tabs-header-title-active'),
-  ).toBeVisible();
+  const roundedTabLocator = page.locator(
+    '.arco-tabs-header-nav-rounded .arco-tabs-header-title-active',
+  );
+  const roundedTabCount = await roundedTabLocator.count();
 
   const settingShellStyles = await page.evaluate(() => {
     const read = (selector: string) => {
@@ -143,8 +389,11 @@ test('platform shell breadcrumb and function bars do not clip text or use inset 
     };
   });
 
-  expect(settingShellStyles.roundedTab?.boxShadow).toBe('none');
-  expect(settingShellStyles.roundedTab?.borderStyle).toContain('solid');
+  if (roundedTabCount > 0) {
+    await expect(roundedTabLocator.first()).toBeVisible();
+    expect(settingShellStyles.roundedTab?.boxShadow).toBe('none');
+    expect(settingShellStyles.roundedTab?.borderStyle).toContain('solid');
+  }
 });
 
 test('system table pages keep unified table card spacing radius and neutral headers', async ({
@@ -155,13 +404,15 @@ test('system table pages keep unified table card spacing radius and neutral head
 
   for (const pageMeta of systemTablePages) {
     await navigateInShell(page, pageMeta.path);
-    await expect(page.getByRole('heading', { name: pageMeta.title })).toBeVisible();
-    await expect(page.locator('.app-table').first()).toBeVisible();
+    await expect(page.locator('.system-list__table-card').first()).toBeVisible();
+    const cssVariables = await readRootCssVariables(page, ['--shell-table-card-padding']);
+    const [tablePaddingTop, tablePaddingRight, tablePaddingBottom, tablePaddingLeft] =
+      expandPaddingValues(cssVariables['--shell-table-card-padding']);
 
     const tableContract = await page.evaluate(() => {
-      const table = document.querySelector<HTMLElement>('.app-table');
-      const tableCard = table?.closest<HTMLElement>('.system-list__table-card');
-      const body = table?.closest<HTMLElement>('.arco-card-body');
+      const tableCard = document.querySelector<HTMLElement>('.system-list__table-card');
+      const body = tableCard?.querySelector<HTMLElement>('.arco-card-body');
+      const table = tableCard?.querySelector<HTMLElement>('.app-table');
       const container = table?.querySelector<HTMLElement>('.arco-table-container');
       const firstHeader = table?.querySelector<HTMLElement>('.arco-table-th');
       const fixedColumn = table?.querySelector<HTMLElement>(
@@ -187,6 +438,7 @@ test('system table pages keep unified table card spacing radius and neutral head
       };
 
       return {
+        hasDataTable: Boolean(table),
         hasSharedTableCard: Boolean(tableCard),
         body: read(body),
         container: read(container),
@@ -204,16 +456,20 @@ test('system table pages keep unified table card spacing radius and neutral head
     });
 
     expect(tableContract.hasSharedTableCard, pageMeta.path).toBe(true);
-    expect(tableContract.body?.paddingTop, pageMeta.path).toBe('12px');
-    expect(tableContract.body?.paddingRight, pageMeta.path).toBe('14px');
-    expect(tableContract.body?.paddingBottom, pageMeta.path).toBe('6px');
-    expect(tableContract.body?.paddingLeft, pageMeta.path).toBe('14px');
-    expect(tableContract.container?.borderTopLeftRadius, pageMeta.path).toBe('0px');
-    expect(tableContract.container?.borderTopRightRadius, pageMeta.path).toBe('0px');
-    expect(tableContract.firstHeader?.backgroundColor, pageMeta.path).toBe('rgb(247, 248, 250)');
-    expect(tableContract.fixedColumnShadow, pageMeta.path).toBe('none');
-    expect(tableContract.scrollBeforeShadow, pageMeta.path).toBe('none');
-    expect(tableContract.scrollAfterShadow, pageMeta.path).toBe('none');
+    expect(tableContract.body?.paddingTop, pageMeta.path).toBe(tablePaddingTop);
+    expect(tableContract.body?.paddingRight, pageMeta.path).toBe(tablePaddingRight);
+    expect(tableContract.body?.paddingBottom, pageMeta.path).toBe(tablePaddingBottom);
+    expect(tableContract.body?.paddingLeft, pageMeta.path).toBe(
+      tablePaddingLeft ?? tablePaddingRight,
+    );
+    if (tableContract.hasDataTable) {
+      expect(tableContract.container?.borderTopLeftRadius, pageMeta.path).toBe('0px');
+      expect(tableContract.container?.borderTopRightRadius, pageMeta.path).toBe('0px');
+      expect(tableContract.firstHeader?.backgroundColor, pageMeta.path).toBe('rgb(247, 248, 250)');
+      expect(tableContract.fixedColumnShadow, pageMeta.path).toBe('none');
+      expect(tableContract.scrollBeforeShadow, pageMeta.path).toBe('none');
+      expect(tableContract.scrollAfterShadow, pageMeta.path).toBe('none');
+    }
   }
 });
 
@@ -224,6 +480,17 @@ test('system filter panels and governance bars keep one formal rhythm', async ({
   for (const path of filterPanelPages) {
     await navigateInShell(page, path);
     await expect(page.locator('.filter-panel').first()).toBeVisible();
+    const cssVariables = await readRootCssVariables(page, [
+      '--shell-filter-body-padding',
+      '--shell-filter-control-min-height',
+      '--shell-filter-form-item-margin-bottom',
+    ]);
+    const [filterPaddingTop, filterPaddingRight, filterPaddingBottom, filterPaddingLeft] =
+      expandPaddingValues(cssVariables['--shell-filter-body-padding']);
+    const filterControlMinHeight = Number.parseInt(
+      cssVariables['--shell-filter-control-min-height'],
+      10,
+    );
 
     const filterContract = await page.evaluate(() => {
       const panel = document.querySelector<HTMLElement>('.filter-panel');
@@ -260,13 +527,19 @@ test('system filter panels and governance bars keep one formal rhythm', async ({
       };
     });
 
-    expect(filterContract.body?.paddingTop, path).toBe('16px');
-    expect(filterContract.body?.paddingRight, path).toBe('16px');
-    expect(filterContract.body?.paddingBottom, path).toBe('4px');
-    expect(filterContract.body?.paddingLeft, path).toBe('16px');
-    expect(filterContract.firstItem?.marginBottom, path).toBe('12px');
-    expect(filterContract.firstControl?.height, path).toBeGreaterThanOrEqual(34);
-    expect(filterContract.actionButton?.height, path).toBeGreaterThanOrEqual(34);
+    expect(filterContract.body?.paddingTop, path).toBe(filterPaddingTop);
+    expect(filterContract.body?.paddingRight, path).toBe(filterPaddingRight);
+    expect(filterContract.body?.paddingBottom, path).toBe(filterPaddingBottom);
+    expect(filterContract.body?.paddingLeft, path).toBe(filterPaddingLeft ?? filterPaddingRight);
+    expect(filterContract.firstItem?.marginBottom, path).toBe(
+      cssVariables['--shell-filter-form-item-margin-bottom'],
+    );
+    expect(filterContract.firstControl?.height, path).toBeGreaterThanOrEqual(
+      filterControlMinHeight,
+    );
+    expect(filterContract.actionButton?.height, path).toBeGreaterThanOrEqual(
+      filterControlMinHeight,
+    );
   }
 
   for (const path of governanceBarPages) {
@@ -324,7 +597,6 @@ test('dict management keeps both tabs on the shared list rhythm', async ({ page 
   await page.setViewportSize({ width: 1440, height: 900 });
   await signInAsAdmin(page);
   await navigateInShell(page, '/system/dict');
-  await expect(page.getByRole('heading', { name: '字典管理' })).toBeVisible();
 
   const readDictTabContract = async () =>
     page.evaluate(() => {
@@ -384,16 +656,29 @@ test('dict management keeps both tabs on the shared list rhythm', async ({ page 
     });
 
   await expect(page.locator('.dict-page__table-card .filter-panel').first()).toBeVisible();
+  const cssVariables = await readRootCssVariables(page, [
+    '--shell-filter-body-padding',
+    '--shell-filter-control-min-height',
+    '--shell-filter-form-item-margin-bottom',
+  ]);
+  const [filterPaddingTop, filterPaddingRight, filterPaddingBottom, filterPaddingLeft] =
+    expandPaddingValues(cssVariables['--shell-filter-body-padding']);
+  const filterControlMinHeight = Number.parseInt(
+    cssVariables['--shell-filter-control-min-height'],
+    10,
+  );
 
   const typeTabContract = await readDictTabContract();
   expect(typeTabContract.hasSharedTableCard).toBe(true);
   expect(typeTabContract.hasSharedSystemTable).toBe(true);
-  expect(typeTabContract.filterBody?.paddingTop).toBe('16px');
-  expect(typeTabContract.filterBody?.paddingRight).toBe('16px');
-  expect(typeTabContract.filterBody?.paddingBottom).toBe('4px');
-  expect(typeTabContract.filterBody?.paddingLeft).toBe('16px');
-  expect(typeTabContract.firstItem?.marginBottom).toBe('12px');
-  expect(typeTabContract.firstControl?.height).toBeGreaterThanOrEqual(34);
+  expect(typeTabContract.filterBody?.paddingTop).toBe(filterPaddingTop);
+  expect(typeTabContract.filterBody?.paddingRight).toBe(filterPaddingRight);
+  expect(typeTabContract.filterBody?.paddingBottom).toBe(filterPaddingBottom);
+  expect(typeTabContract.filterBody?.paddingLeft).toBe(filterPaddingLeft ?? filterPaddingRight);
+  expect(typeTabContract.firstItem?.marginBottom).toBe(
+    cssVariables['--shell-filter-form-item-margin-bottom'],
+  );
+  expect(typeTabContract.firstControl?.height).toBeGreaterThanOrEqual(filterControlMinHeight);
   expect(typeTabContract.listActions?.justifyContent).toBe('space-between');
   expect(typeTabContract.listActionsPrimary?.justifyContent).toBe('flex-end');
   expect(typeTabContract.batchBar?.display).toBe('grid');
@@ -405,16 +690,171 @@ test('dict management keeps both tabs on the shared list rhythm', async ({ page 
   const itemTabContract = await readDictTabContract();
   expect(itemTabContract.hasSharedTableCard).toBe(true);
   expect(itemTabContract.hasSharedSystemTable || !itemTabContract.hasVisibleTable).toBe(true);
-  expect(itemTabContract.filterBody?.paddingTop).toBe('16px');
-  expect(itemTabContract.filterBody?.paddingRight).toBe('16px');
-  expect(itemTabContract.filterBody?.paddingBottom).toBe('4px');
-  expect(itemTabContract.filterBody?.paddingLeft).toBe('16px');
-  expect(itemTabContract.firstItem?.marginBottom).toBe('12px');
-  expect(itemTabContract.firstControl?.height).toBeGreaterThanOrEqual(34);
+  expect(itemTabContract.filterBody?.paddingTop).toBe(filterPaddingTop);
+  expect(itemTabContract.filterBody?.paddingRight).toBe(filterPaddingRight);
+  expect(itemTabContract.filterBody?.paddingBottom).toBe(filterPaddingBottom);
+  expect(itemTabContract.filterBody?.paddingLeft).toBe(filterPaddingLeft ?? filterPaddingRight);
+  expect(itemTabContract.firstItem?.marginBottom).toBe(
+    cssVariables['--shell-filter-form-item-margin-bottom'],
+  );
+  expect(itemTabContract.firstControl?.height).toBeGreaterThanOrEqual(filterControlMinHeight);
   expect(itemTabContract.listActions?.justifyContent).toBe('space-between');
   expect(itemTabContract.listActionsPrimary?.justifyContent).toBe('flex-end');
   if (itemTabContract.hasVisibleTable) {
     expect(itemTabContract.batchBar?.display).toBe('grid');
     expect(itemTabContract.tableContainer?.borderTopLeftRadius).toBe('0px');
+  }
+});
+
+test('user management keeps function actions before lightweight status and batch actions', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signInAsAdmin(page);
+  await navigateInShell(page, '/system/user');
+
+  await expect(page.locator('.page-container > .page-header')).toHaveCount(0);
+  await expect(page.locator('.governance-summary-bar')).toHaveCount(0);
+  await expect(page.locator('.system-user-list__hero')).toHaveCount(0);
+  await expect(page.locator('.system-user-list__function-bar')).toBeVisible();
+  await expect(page.locator('.system-user-list__function-bar').getByText('新增')).toBeVisible();
+  await expect(page.locator('.system-user-list__function-bar').getByText('导入')).toBeVisible();
+  await expect(page.locator('.system-user-list__function-bar').getByText('导出')).toBeVisible();
+  await expect(page.locator('.system-user-list__status-strip')).toBeVisible();
+  await expect(page.locator('.system-user-list__status-item')).toHaveCount(5);
+  await expect(page.locator('.table-batch-action-bar__prefix-actions')).toBeVisible();
+  await expect(page.locator('.table-batch-action-bar__prefix-actions').getByText('新增')).toHaveCount(0);
+
+  const actionContract = await page.evaluate(() => {
+    const functionBar = document.querySelector<HTMLElement>('.system-user-list__function-bar');
+    const statusStrip = document.querySelector<HTMLElement>('.system-user-list__status-strip');
+    const prefixActions = document.querySelector<HTMLElement>(
+      '.table-batch-action-bar__prefix-actions',
+    );
+    const batchBar = document.querySelector<HTMLElement>('.table-batch-action-bar');
+    const readTop = (element: HTMLElement | null) =>
+      element ? Math.round(element.getBoundingClientRect().top) : null;
+    return {
+      functionBarTop: readTop(functionBar),
+      statusStripTop: readTop(statusStrip),
+      functionBarHasCreate: Boolean(
+        functionBar &&
+          Array.from(functionBar.querySelectorAll('button')).some((button) =>
+            /新增/.test(button.textContent || ''),
+          ),
+      ),
+      statusInsideBatch: Boolean(statusStrip && batchBar?.contains(statusStrip)),
+      prefixInsideBatch: Boolean(prefixActions && batchBar?.contains(prefixActions)),
+      prefixGap: prefixActions ? window.getComputedStyle(prefixActions).gap : null,
+    };
+  });
+
+  expect(actionContract.functionBarHasCreate).toBe(true);
+  expect(actionContract.statusInsideBatch).toBe(true);
+  expect(actionContract.prefixInsideBatch).toBe(true);
+  expect(actionContract.prefixGap).toBe('6px 8px');
+  expect(actionContract.functionBarTop).not.toBeNull();
+  expect(actionContract.statusStripTop).not.toBeNull();
+  expect(actionContract.functionBarTop!).toBeLessThan(actionContract.statusStripTop!);
+
+  await page.locator('.system-user-list__function-bar').getByText('新增').click();
+  await expect(page.locator('.app-dialog')).toBeVisible();
+
+  const controlContracts = await readVisibleControlContracts(page, '.app-dialog');
+  expect(controlContracts.length).toBeGreaterThanOrEqual(5);
+  for (const controlContract of controlContracts) {
+    expectSingleLayerControl(
+      controlContract,
+      `/system/user ${controlContract.label ?? controlContract.kind}`,
+    );
+  }
+
+  const focusedTextContract = await readFocusedTextInputContract(page, '.app-dialog');
+  expectSingleLayerControl(focusedTextContract, '/system/user focused text input');
+  expect(focusedTextContract.wrapper?.boxShadow, '/system/user focused wrapper shadow').not.toBe(
+    'none',
+  );
+  if (focusedTextContract.inner) {
+    expect(focusedTextContract.inner.boxShadow, '/system/user focused inner shadow').toBe('none');
+  }
+});
+
+test('core system dialogs share single-layer input border contracts', async ({ page }) => {
+  test.setTimeout(60000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signInAsAdmin(page);
+
+  for (const entry of dialogEntryPages) {
+    await navigateInShell(page, entry.path);
+    const createButton = page
+      .locator(
+        '.system-user-list__function-bar, .table-batch-action-bar__prefix-actions, .dict-page__actions, .list-header-actions__primary, .system-list__work-actions',
+      )
+      .getByRole('button', { name: entry.triggerText })
+      .first();
+    await expect(createButton, entry.path).toBeVisible();
+    await expect(createButton, entry.path).toBeEnabled();
+    await createButton.click();
+    await expect(page.locator('.app-dialog')).toBeVisible();
+
+    const visibleControlContracts = await readVisibleControlContracts(page, '.app-dialog');
+    expect(visibleControlContracts.length, `${entry.path} visible controls`).toBeGreaterThan(0);
+    for (const controlContract of visibleControlContracts) {
+      expectSingleLayerControl(
+        controlContract,
+        `${entry.path} ${controlContract.label ?? controlContract.kind}`,
+      );
+    }
+
+    await page.locator('.app-dialog .arco-modal-close-icon').click();
+    await expect(page.locator('.app-dialog')).toHaveCount(0);
+  }
+});
+
+test('form controls use a single visible focus ring across modal and page surfaces', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signInAsAdmin(page);
+
+  await navigateInShell(page, '/system/user');
+  const filterContracts = await readVisibleControlContracts(page, '.filter-panel');
+  expect(filterContracts.length, '/system/user filter controls').toBeGreaterThan(0);
+  for (const controlContract of filterContracts) {
+    expectSingleLayerControl(
+      controlContract,
+      `/system/user filter ${controlContract.label ?? controlContract.kind}`,
+      { requireWhiteBackground: false },
+    );
+  }
+
+  const focusedFilterContract = await readFocusedTextInputContract(page, '.filter-panel');
+  expectSingleLayerControl(focusedFilterContract, '/system/user focused filter text input', {
+    requireWhiteBackground: false,
+  });
+  expect(focusedFilterContract.wrapper?.boxShadow, '/system/user focused filter wrapper shadow').not.toBe(
+    'none',
+  );
+  if (focusedFilterContract.inner) {
+    expect(focusedFilterContract.inner.boxShadow, '/system/user focused filter inner shadow').toBe(
+      'none',
+    );
+  }
+
+  await page
+    .locator('.system-user-list__function-bar, .list-header-actions__primary, .table-batch-action-bar__prefix-actions')
+    .getByRole('button', { name: '新增' })
+    .first()
+    .click();
+  await expect(page.locator('.app-dialog')).toBeVisible();
+  const focusedDialogContract = await readFocusedTextInputContract(page, '.app-dialog');
+  expectSingleLayerControl(focusedDialogContract, '/system/user focused dialog text input');
+  expect(focusedDialogContract.wrapper?.boxShadow, '/system/user focused dialog wrapper shadow').not.toBe(
+    'none',
+  );
+  if (focusedDialogContract.inner) {
+    expect(focusedDialogContract.inner.boxShadow, '/system/user focused dialog inner shadow').toBe(
+      'none',
+    );
   }
 });

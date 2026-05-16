@@ -13,7 +13,7 @@ import (
 func main() {
 	dsn := os.Getenv("PANTHEON_DSN")
 	if dsn == "" {
-		dsn = "root:DHCCroot@2025@tcp(127.0.0.1:3306)/pantheon?charset=utf8mb4&parseTime=True&loc=Local"
+		dsn = "root:DHCCroot@2025@tcp(127.0.0.1:3306)/pantheon_ops?charset=utf8mb4&parseTime=True&loc=Local"
 	}
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Card, Space, Tabs, Typography } from '@arco-design/web-react';
 import { useTranslation } from 'react-i18next';
 import { usePermission } from '../../../hooks/usePermission';
@@ -51,6 +51,7 @@ const DictPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState<DictTypeRow | null>(null);
   const selectedTypeId = selectedType?.id;
   const governanceRail = useGovernanceRail();
+  const typeLoadRequestSeqRef = useRef(0);
 
   const selectType = useCallback((nextType: DictTypeRow | null) => {
     setSelectedType(nextType);
@@ -66,6 +67,8 @@ const DictPage: React.FC = () => {
 
   const loadTypes = useCallback(
     async (nextQuery: DictTypeQuery = typeQuery) => {
+      const requestSeq = typeLoadRequestSeqRef.current + 1;
+      typeLoadRequestSeqRef.current = requestSeq;
       setTypeLoading(true);
       setTypeError(null);
       try {
@@ -74,6 +77,9 @@ const DictPage: React.FC = () => {
               getDictTypeList(nextQuery),
             )
           : await getDictTypeList(nextQuery);
+        if (typeLoadRequestSeqRef.current !== requestSeq) {
+          return;
+        }
         setTypeRows(rows);
         if (rows.length === 0) {
           selectType(null);
@@ -87,9 +93,14 @@ const DictPage: React.FC = () => {
           rows[0];
         selectType(nextSelectedType);
       } catch (requestError) {
+        if (typeLoadRequestSeqRef.current !== requestSeq) {
+          return;
+        }
         setTypeError(requestError);
       } finally {
-        setTypeLoading(false);
+        if (typeLoadRequestSeqRef.current === requestSeq) {
+          setTypeLoading(false);
+        }
       }
     },
     [selectType, selectedTypeId, typeQuery],

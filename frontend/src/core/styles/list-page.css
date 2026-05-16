@@ -139,6 +139,7 @@
 }
 
 .table-batch-action-bar__meta,
+.table-batch-action-bar__prefix-actions,
 .table-batch-action-bar__actions {
   display: flex;
   align-items: center;
@@ -150,6 +151,10 @@
 
 .table-batch-action-bar__meta {
   flex: 1 1 260px;
+}
+
+.table-batch-action-bar__prefix-actions {
+  flex: 0 1 auto;
 }
 
 .table-batch-action-bar__actions {
@@ -1228,6 +1233,7 @@
 
   .table-batch-action-bar__main,
   .table-batch-action-bar__meta,
+  .table-batch-action-bar__prefix-actions,
   .table-batch-action-bar__actions {
     align-items: stretch;
   }
@@ -1237,17 +1243,21 @@
   }
 
   .table-batch-action-bar__meta,
+  .table-batch-action-bar__prefix-actions,
   .table-batch-action-bar__actions {
     width: 100%;
     flex-basis: auto;
   }
 
   .table-batch-action-bar__actions .arco-btn,
+  .table-batch-action-bar__prefix-actions .arco-btn,
   .table-batch-action-bar__meta .arco-btn,
   .table-batch-action-bar__select {
     width: 100%;
   }
 
+  .table-batch-action-bar__prefix-actions .arco-space-item,
+  .table-batch-action-bar__prefix-actions .arco-popconfirm-trigger,
   .table-batch-action-bar__actions .permission-action,
   .table-batch-action-bar__actions .permission-action > span,
   .table-batch-action-bar__actions .arco-popconfirm-trigger,

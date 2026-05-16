@@ -3,11 +3,11 @@
   color: #1f2329;
   background: #f4f7fb;
   font-family:
-    'Source Sans 3',
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
+    'Microsoft YaHei',
     sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -79,6 +79,7 @@
   --shell-table-card-padding: 12px 14px 6px;
   --shell-table-pagination-padding: 12px 14px 2px;
   --shell-table-action-min-height: 32px;
+  --shell-control-min-height: 32px;
   --shell-filter-body-padding: 16px 16px 4px;
   --shell-filter-control-min-height: 34px;
   --shell-filter-form-item-margin-bottom: 12px;
@@ -92,11 +93,11 @@
 
 body {
   font-family:
-    'Source Sans 3',
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
+    'Microsoft YaHei',
     sans-serif;
 }
 
@@ -188,6 +189,7 @@ body {
   --shell-table-card-padding: 10px 12px 2px;
   --shell-table-pagination-padding: 8px 12px 0;
   --shell-table-action-min-height: 28px;
+  --shell-control-min-height: 30px;
   --shell-filter-body-padding: 12px 14px 0;
   --shell-filter-control-min-height: 32px;
   --shell-filter-form-item-margin-bottom: 10px;
@@ -218,6 +220,52 @@ body {
 
 a {
   color: inherit;
+}
+
+:where(
+  a,
+  button,
+  [role='button'],
+  [tabindex]:not([tabindex='-1']),
+  input,
+  textarea,
+  select,
+  .arco-btn,
+  .arco-input-inner-wrapper,
+  .arco-input,
+  .arco-select-view,
+  .arco-tree-select-view,
+  .arco-picker,
+  .arco-checkbox,
+  .arco-radio,
+  .arco-switch
+):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--brand-primary) 58%, #ffffff);
+  outline-offset: 2px;
+}
+
+:where(
+  .arco-input-inner-wrapper,
+  .arco-input-password,
+  .arco-input-number,
+  .arco-select-view,
+  .arco-tree-select-view,
+  .arco-picker,
+  .arco-textarea-wrapper,
+  .arco-input-tag
+):focus-visible {
+  outline: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .page-container {
@@ -785,6 +833,47 @@ a {
   margin-bottom: 0;
 }
 
+.app-dialog .arco-input-inner-wrapper,
+.app-dialog .arco-input-password,
+.app-dialog .arco-input-number,
+.app-dialog input.arco-input,
+.app-dialog .arco-select-view,
+.app-dialog .arco-tree-select-view,
+.app-dialog .arco-picker,
+.app-dialog .arco-textarea-wrapper,
+.app-dialog textarea.arco-textarea,
+.app-dialog .arco-input-tag {
+  border: 1px solid var(--panel-border-strong);
+  background: #fff;
+  box-shadow: none;
+}
+
+.app-dialog .arco-input-inner-wrapper .arco-input,
+.app-dialog .arco-input-password .arco-input,
+.app-dialog .arco-input-password .arco-input-inner-wrapper,
+.app-dialog .arco-input-number .arco-input-inner-wrapper,
+.app-dialog .arco-input-number .arco-input,
+.app-dialog .arco-textarea-wrapper .arco-textarea {
+  min-height: auto;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+.app-dialog .arco-input-inner-wrapper.arco-input-focus,
+.app-dialog .arco-input-password.arco-input-focus,
+.app-dialog .arco-input-number.arco-input-focus,
+.app-dialog .arco-input-number:focus-within,
+.app-dialog .arco-select-view.arco-select-view-focus,
+.app-dialog .arco-tree-select.arco-tree-select-focused .arco-tree-select-view,
+.app-dialog .arco-picker-focused,
+.app-dialog .arco-textarea-wrapper-focus,
+.app-dialog .arco-input-tag.arco-input-tag-focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 14%, transparent);
+}
+
 .app-drawer .arco-drawer-header {
   min-height: 64px;
   padding-left: 24px;
@@ -824,6 +913,47 @@ a {
   border-radius: var(--radius-overlay);
   background: var(--panel-bg-solid);
   box-shadow: var(--panel-shadow-strong);
+}
+
+.app-drawer .arco-input-inner-wrapper,
+.app-drawer .arco-input-password,
+.app-drawer .arco-input-number,
+.app-drawer input.arco-input,
+.app-drawer .arco-select-view,
+.app-drawer .arco-tree-select-view,
+.app-drawer .arco-picker,
+.app-drawer .arco-textarea-wrapper,
+.app-drawer textarea.arco-textarea,
+.app-drawer .arco-input-tag {
+  border: 1px solid var(--panel-border-strong);
+  background: #fff;
+  box-shadow: none;
+}
+
+.app-drawer .arco-input-inner-wrapper .arco-input,
+.app-drawer .arco-input-password .arco-input,
+.app-drawer .arco-input-password .arco-input-inner-wrapper,
+.app-drawer .arco-input-number .arco-input-inner-wrapper,
+.app-drawer .arco-input-number .arco-input,
+.app-drawer .arco-textarea-wrapper .arco-textarea {
+  min-height: auto;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+.app-drawer .arco-input-inner-wrapper.arco-input-focus,
+.app-drawer .arco-input-password.arco-input-focus,
+.app-drawer .arco-input-number.arco-input-focus,
+.app-drawer .arco-input-number:focus-within,
+.app-drawer .arco-select-view.arco-select-view-focus,
+.app-drawer .arco-tree-select.arco-tree-select-focused .arco-tree-select-view,
+.app-drawer .arco-picker-focused,
+.app-drawer .arco-textarea-wrapper-focus,
+.app-drawer .arco-input-tag.arco-input-tag-focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 14%, transparent);
 }
 
 .dialog-form-stack,
@@ -953,8 +1083,8 @@ a {
 
 .filter-panel .arco-input-inner-wrapper,
 .filter-panel .arco-input-password,
-.filter-panel .arco-input,
 .filter-panel .arco-input-number,
+.filter-panel input.arco-input,
 .filter-panel .arco-select-view,
 .filter-panel .arco-tree-select-view,
 .filter-panel .arco-picker {
@@ -1013,14 +1143,23 @@ a {
 }
 
 .arco-btn {
+  min-height: var(--shell-control-min-height);
   border-radius: var(--radius-action);
+  line-height: 20px;
+}
+
+.arco-btn-icon-only {
+  min-width: var(--shell-control-min-height);
 }
 
 .arco-input-inner-wrapper,
 .arco-input-password,
+.arco-input-number,
+input.arco-input,
 .arco-select-view,
 .arco-picker,
 .arco-textarea-wrapper,
+textarea.arco-textarea,
 .arco-input-tag {
   border-radius: var(--radius-control);
 }
@@ -1061,7 +1200,7 @@ a {
 
 .arco-form-item-error .arco-input-inner-wrapper,
 .arco-form-item-error .arco-input-password,
-.arco-form-item-error .arco-input,
+.arco-form-item-error .arco-input-number,
 .arco-form-item-error .arco-select-view,
 .arco-form-item-error .arco-picker,
 .arco-form-item-error .arco-textarea-wrapper,
@@ -1071,13 +1210,12 @@ a {
 
 .arco-input-inner-wrapper,
 .arco-input-password,
-.arco-input,
 .arco-input-number,
-.arco-input-number .arco-input-inner-wrapper,
 .arco-select-view,
 .arco-picker,
 .arco-textarea-wrapper,
 .arco-input-tag {
+  min-height: var(--shell-control-min-height);
   border-color: var(--panel-border-strong);
   background: rgba(255, 255, 255, 0.94);
   transition:
@@ -1088,36 +1226,87 @@ a {
 
 .arco-input-inner-wrapper:hover,
 .arco-input-password:hover,
-.arco-input:hover,
-.arco-input-number:hover .arco-input-inner-wrapper,
+.arco-input-number:hover,
+input.arco-input:hover,
 .arco-select-view:hover,
 .arco-tree-select:hover .arco-tree-select-view,
 .arco-picker:hover,
 .arco-textarea-wrapper:hover,
+textarea.arco-textarea:hover,
 .arco-input-tag:hover {
   border-color: color-mix(in srgb, var(--brand-primary) 28%, var(--panel-border-strong));
 }
 
 .arco-input-inner-wrapper.arco-input-focus,
 .arco-input-password.arco-input-focus,
-.arco-input:focus,
-.arco-input-number .arco-input-inner-wrapper.arco-input-focus,
+.arco-input-number.arco-input-focus,
+.arco-input-number:focus-within,
+input.arco-input:focus,
 .arco-select-view.arco-select-view-focus,
 .arco-tree-select.arco-tree-select-focused .arco-tree-select-view,
 .arco-picker-focused,
 .arco-textarea-wrapper-focus,
+textarea.arco-textarea:focus,
 .arco-input-tag.arco-input-tag-focus {
   border-color: var(--brand-primary);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 14%, transparent);
   background: #fff;
 }
 
-.arco-input {
-  border-radius: var(--radius-control);
+.arco-input-inner-wrapper .arco-input,
+.arco-input-password .arco-input,
+.arco-input-password .arco-input-inner-wrapper,
+.arco-input-number .arco-input-inner-wrapper,
+.arco-input-number .arco-input-inner-wrapper .arco-input,
+.arco-textarea-wrapper .arco-textarea {
+  min-height: auto;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
 }
 
-.arco-input-inner-wrapper .arco-input {
-  border-radius: inherit;
+html .arco-input-inner-wrapper .arco-input,
+html .arco-input-password .arco-input,
+html .arco-input-password .arco-input-inner-wrapper,
+html .arco-input-number .arco-input-inner-wrapper,
+html .arco-input-number .arco-input-inner-wrapper .arco-input {
+  min-height: auto;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+.arco-input-inner-wrapper .arco-input:focus,
+.arco-input-inner-wrapper .arco-input:focus-visible,
+.arco-input-password .arco-input:focus,
+.arco-input-password .arco-input:focus-visible,
+.arco-input-password .arco-input-inner-wrapper:focus,
+.arco-input-password .arco-input-inner-wrapper:focus-visible,
+.arco-input-number .arco-input-inner-wrapper:focus,
+.arco-input-number .arco-input-inner-wrapper:focus-visible,
+.arco-input-number .arco-input-inner-wrapper .arco-input:focus,
+.arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible,
+.arco-textarea-wrapper .arco-textarea:focus,
+.arco-textarea-wrapper .arco-textarea:focus-visible {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+html .arco-input-inner-wrapper .arco-input:focus,
+html .arco-input-inner-wrapper .arco-input:focus-visible,
+html .arco-input-password .arco-input:focus,
+html .arco-input-password .arco-input:focus-visible,
+html .arco-input-number .arco-input-inner-wrapper .arco-input:focus,
+html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
 }
 
 .arco-input-password,

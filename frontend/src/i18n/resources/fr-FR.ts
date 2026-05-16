@@ -2283,6 +2283,7 @@ const frFRFallback = {
   'system.user.hero.selectedRows': 'Comptes sélectionnés',
   'system.user.hero.selectedHint':
     'Les activations, désactivations, imports et exports en lot s’appuient sur la sélection courante.',
+  'system.user.hero.unassignedRoles': 'Rôles à attribuer',
   'system.user.hero.rolesReady': 'Rôles attribuables',
   'system.user.hero.rolesHint':
     'Une fois le pool de rôles prêt, l’attribution utilisateur ne contourne pas les frontières de permission `system/iam`.',

@@ -198,7 +198,9 @@ test('real module governance flow can generate register and purge a temporary bu
   await installOperationToken(page, login.accessToken);
 
   await page.goto('/system/generator', { waitUntil: 'networkidle' });
-  await expect(page.getByRole('heading', { name: '模块生成向导' })).toBeVisible();
+  await expect(page.getByText(/模块生成(?:器|向导)/).filter({ visible: true }).first()).toBeVisible();
+  await expect(page.locator('.generator-wizard-card')).toBeVisible();
+  await expect(page.locator('.system-list__work-actions .arco-btn')).toBeVisible();
 
   await (await formItem(page, '模块名')).locator('input').first().fill(moduleName);
   await (await formItem(page, '显示名')).locator('input').first().fill('订单测试');

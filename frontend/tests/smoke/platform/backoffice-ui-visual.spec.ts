@@ -72,7 +72,7 @@ const authenticatedPages = [
   { path: '/system/menu', title: '菜单管理', screenshot: 'system-menu-desktop.png' },
   { path: '/system/dept', title: '部门管理', screenshot: 'system-dept-desktop.png' },
   { path: '/system/post', title: '岗位管理', screenshot: 'system-post-desktop.png' },
-  { path: '/system/setting', title: '系统设置', screenshot: 'system-setting-desktop.png' },
+  { path: '/system/setting', title: '基础信息', screenshot: 'system-setting-desktop.png' },
   { path: '/auth/security', title: '安全中心', screenshot: 'auth-security-desktop.png' },
 ] as const;
 
@@ -147,6 +147,45 @@ test.describe('backoffice UI visual acceptance', () => {
     await expect(page.getByText('记住我', { exact: false })).toHaveCount(0);
     await expect(page.getByText('忘记密码', { exact: false })).toHaveCount(0);
     await expect(page.getByText('AI', { exact: true })).toHaveCount(0);
+    await page.locator('.auth-login-card .arco-input-inner-wrapper .arco-input').first().focus();
+    const loginInputContract = await page.evaluate(() => {
+      const controls = Array.from(
+        document.querySelectorAll<HTMLElement>(
+          '.auth-login-card .arco-input-inner-wrapper, .auth-login-card .arco-input-password',
+        ),
+      ).filter((control) => {
+        const passwordControl = control.closest('.arco-input-password');
+        return !passwordControl || passwordControl === control;
+      });
+
+      return controls.slice(0, 2).map((wrapper) => {
+        const input = wrapper.querySelector<HTMLElement>('.arco-input');
+        const wrapperStyle = window.getComputedStyle(wrapper);
+        const inputStyle = input ? window.getComputedStyle(input) : null;
+
+        return {
+          wrapperBorderWidth: wrapperStyle.borderTopWidth,
+          wrapperBackground: wrapperStyle.backgroundColor,
+          wrapperBoxShadow: wrapperStyle.boxShadow,
+          inputBorderWidth: inputStyle?.borderTopWidth || null,
+          inputBackground: inputStyle?.backgroundColor || null,
+          inputBoxShadow: inputStyle?.boxShadow || null,
+          inputOutlineStyle: inputStyle?.outlineStyle || null,
+          inputOutlineWidth: inputStyle?.outlineWidth || null,
+        };
+      });
+    });
+    expect(loginInputContract.length).toBeGreaterThanOrEqual(2);
+    for (const control of loginInputContract) {
+      expect(control.wrapperBorderWidth).toBe('1px');
+      expect(control.wrapperBackground).toBe('rgb(255, 255, 255)');
+      expect(control.inputBorderWidth).toBe('0px');
+      expect(control.inputBackground).toBe('rgba(0, 0, 0, 0)');
+      expect(control.inputBoxShadow).toBe('none');
+      expect(control.inputOutlineStyle).toBe('none');
+      expect(control.inputOutlineWidth).toBe('0px');
+    }
+    expect(loginInputContract.some((control) => control.wrapperBoxShadow !== 'none')).toBe(true);
     await page.screenshot({ path: join(artifactDir, 'login-desktop.png'), fullPage: true });
 
     await page.setViewportSize({ width: 390, height: 844 });
@@ -166,7 +205,11 @@ test.describe('backoffice UI visual acceptance', () => {
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.goto(pageMeta.path, { waitUntil: 'networkidle' });
 
-      await expect(page).toHaveURL(new RegExp(`${pageMeta.path.replace(/\//g, '\\/')}$`));
+      const expectedUrlPattern =
+        pageMeta.path === '/system/setting'
+          ? /\/system\/setting(?:\/[a-z-]+)?$/
+          : new RegExp(`${pageMeta.path.replace(/\//g, '\\/')}$`);
+      await expect(page).toHaveURL(expectedUrlPattern);
       await expectPageIdentity(page, pageMeta.title);
       await expectNoPageError(page);
       await expectProfessionalBackofficeSurface(page);

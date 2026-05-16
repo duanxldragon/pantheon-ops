@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: DHCCroot@2025
-      MYSQL_DATABASE: pantheon
+      MYSQL_DATABASE: pantheon_ops
       TZ: Asia/Shanghai
     ports:
       - "3306:3306"

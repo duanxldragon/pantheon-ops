@@ -4,6 +4,8 @@
 -- 前缀：system_
 
 SET NAMES utf8mb4;
+CREATE DATABASE IF NOT EXISTS `pantheon_ops` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `pantheon_ops`;
 
 -- 1. 用户表
 CREATE TABLE `system_user` (
@@ -103,14 +105,22 @@ CREATE TABLE `system_post` (
 -- 6. 国际化翻译表
 CREATE TABLE `system_i18n` (
     `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-    `lang_key` varchar(128) NOT NULL COMMENT '翻译键名',
-    `lang_type` varchar(10) NOT NULL COMMENT '语言类型 (zh-CN, en-US)',
-    `lang_value` text COMMENT '翻译内容',
-    `module` varchar(64) DEFAULT 'system' COMMENT '所属模块',
+    `module` varchar(64) NOT NULL DEFAULT 'system' COMMENT '所属模块',
+    `group_name` varchar(64) NOT NULL DEFAULT 'messages' COMMENT '翻译分组',
+    `key` varchar(128) NOT NULL COMMENT '翻译键名',
+    `locale` varchar(10) NOT NULL COMMENT '语言类型 (zh-CN, en-US)',
+    `value` text NOT NULL COMMENT '翻译内容',
+    `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+    `lifecycle_status` varchar(16) NOT NULL DEFAULT 'active' COMMENT '生命周期状态',
+    `lifecycle_marked_at` datetime(3) DEFAULT NULL COMMENT '生命周期标记时间',
     `created_at` datetime(3) DEFAULT NULL,
     `updated_at` datetime(3) DEFAULT NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `idx_key_lang` (`lang_key`, `lang_type`)
+    UNIQUE KEY `uidx_system_i18n_locale_key` (`locale`, `key`),
+    KEY `idx_system_i18n_module_key` (`module`, `key`),
+    KEY `idx_system_i18n_module_group` (`module`, `group_name`),
+    KEY `idx_system_i18n_locale` (`locale`),
+    KEY `idx_system_i18n_lifecycle` (`lifecycle_status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='国际化翻译表';
 
 -- 6.1 系统设置表
@@ -214,9 +224,12 @@ CREATE TABLE `system_role_menu` (
 
 -- 11. 角色与页面/操作权限关联表 (多对多)
 CREATE TABLE `system_role_permission` (
+    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `role_id` bigint unsigned NOT NULL COMMENT '角色ID',
     `permission_key` varchar(128) NOT NULL COMMENT '权限标识',
-    PRIMARY KEY (`role_id`, `permission_key`)
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_role_permission_unique` (`role_id`, `permission_key`),
+    KEY `idx_role_permission_role_id` (`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色和权限点关联表';
 
 -- 12. 用户会话表 (refresh token 轮换)
@@ -345,43 +358,43 @@ INSERT INTO `casbin_rule` (`ptype`, `v0`, `v1`, `v2`) VALUES
 ('p', 'admin', '/api/v1/*', 'DELETE');
 
 -- 初始多语言资源
-INSERT INTO `system_i18n` (lang_key, lang_type, lang_value, module, created_at) VALUES
-('app.name', 'zh-CN', 'Pantheon Base', 'system', NOW()),
-('app.slogan', 'zh-CN', '赋能企业数字化', 'system', NOW()),
-('system.menu.dashboard', 'zh-CN', '仪表盘', 'system', NOW()),
-('system.menu.access', 'zh-CN', '访问控制', 'system', NOW()),
-('system.menu.org', 'zh-CN', '组织管理', 'system', NOW()),
-('system.menu.config', 'zh-CN', '平台配置', 'system', NOW()),
-('system.menu.security', 'zh-CN', '安全与审计', 'system', NOW()),
-('system.menu.user', 'zh-CN', '用户管理', 'system', NOW()),
-('system.menu.role', 'zh-CN', '角色管理', 'system', NOW()),
-('system.menu.dept', 'zh-CN', '部门管理', 'system', NOW()),
-('system.menu.post', 'zh-CN', '岗位管理', 'system', NOW()),
-('system.menu.permission', 'zh-CN', '权限管理', 'system', NOW()),
-('system.menu.menu', 'zh-CN', '菜单管理', 'system', NOW()),
-('system.menu.loginLog', 'zh-CN', '登录日志', 'system', NOW()),
-('system.menu.session', 'zh-CN', '会话管理', 'system', NOW()),
-('system.menu.setting', 'zh-CN', '系统设置', 'system', NOW()),
-('system.menu.dict', 'zh-CN', '字典管理', 'system', NOW()),
-('system.menu.operationLog', 'zh-CN', '操作日志', 'system', NOW()),
-('app.name', 'en-US', 'Pantheon Base', 'system', NOW()),
-('app.slogan', 'en-US', 'Empowering Enterprise Digitalization', 'system', NOW()),
-('system.menu.dashboard', 'en-US', 'Dashboard', 'system', NOW()),
-('system.menu.access', 'en-US', 'Access Control', 'system', NOW()),
-('system.menu.org', 'en-US', 'Organization', 'system', NOW()),
-('system.menu.config', 'en-US', 'Platform Config', 'system', NOW()),
-('system.menu.security', 'en-US', 'Security & Audit', 'system', NOW()),
-('system.menu.user', 'en-US', 'User Management', 'system', NOW()),
-('system.menu.role', 'en-US', 'Role Management', 'system', NOW()),
-('system.menu.dept', 'en-US', 'Department Management', 'system', NOW()),
-('system.menu.post', 'en-US', 'Post Management', 'system', NOW()),
-('system.menu.permission', 'en-US', 'Permission Management', 'system', NOW()),
-('system.menu.menu', 'en-US', 'Menu Management', 'system', NOW()),
-('system.menu.loginLog', 'en-US', 'Login Logs', 'system', NOW()),
-('system.menu.session', 'en-US', 'Session Management', 'system', NOW()),
-('system.menu.setting', 'en-US', 'System Settings', 'system', NOW()),
-('system.menu.dict', 'en-US', 'Dictionary Management', 'system', NOW()),
-('system.menu.operationLog', 'en-US', 'Operation Logs', 'system', NOW());
+INSERT INTO `system_i18n` (`module`, `group_name`, `key`, `locale`, `value`, `created_at`, `updated_at`) VALUES
+('system', 'messages', 'app.name', 'zh-CN', 'Pantheon Base', NOW(), NOW()),
+('system', 'messages', 'app.slogan', 'zh-CN', '赋能企业数字化', NOW(), NOW()),
+('system', 'messages', 'system.menu.dashboard', 'zh-CN', '仪表盘', NOW(), NOW()),
+('system', 'messages', 'system.menu.access', 'zh-CN', '访问控制', NOW(), NOW()),
+('system', 'messages', 'system.menu.org', 'zh-CN', '组织管理', NOW(), NOW()),
+('system', 'messages', 'system.menu.config', 'zh-CN', '平台配置', NOW(), NOW()),
+('system', 'messages', 'system.menu.security', 'zh-CN', '安全与审计', NOW(), NOW()),
+('system', 'messages', 'system.menu.user', 'zh-CN', '用户管理', NOW(), NOW()),
+('system', 'messages', 'system.menu.role', 'zh-CN', '角色管理', NOW(), NOW()),
+('system', 'messages', 'system.menu.dept', 'zh-CN', '部门管理', NOW(), NOW()),
+('system', 'messages', 'system.menu.post', 'zh-CN', '岗位管理', NOW(), NOW()),
+('system', 'messages', 'system.menu.permission', 'zh-CN', '权限管理', NOW(), NOW()),
+('system', 'messages', 'system.menu.menu', 'zh-CN', '菜单管理', NOW(), NOW()),
+('system', 'messages', 'system.menu.loginLog', 'zh-CN', '登录日志', NOW(), NOW()),
+('system', 'messages', 'system.menu.session', 'zh-CN', '会话管理', NOW(), NOW()),
+('system', 'messages', 'system.menu.setting', 'zh-CN', '系统设置', NOW(), NOW()),
+('system', 'messages', 'system.menu.dict', 'zh-CN', '字典管理', NOW(), NOW()),
+('system', 'messages', 'system.menu.operationLog', 'zh-CN', '操作日志', NOW(), NOW()),
+('system', 'messages', 'app.name', 'en-US', 'Pantheon Base', NOW(), NOW()),
+('system', 'messages', 'app.slogan', 'en-US', 'Empowering Enterprise Digitalization', NOW(), NOW()),
+('system', 'messages', 'system.menu.dashboard', 'en-US', 'Dashboard', NOW(), NOW()),
+('system', 'messages', 'system.menu.access', 'en-US', 'Access Control', NOW(), NOW()),
+('system', 'messages', 'system.menu.org', 'en-US', 'Organization', NOW(), NOW()),
+('system', 'messages', 'system.menu.config', 'en-US', 'Platform Config', NOW(), NOW()),
+('system', 'messages', 'system.menu.security', 'en-US', 'Security & Audit', NOW(), NOW()),
+('system', 'messages', 'system.menu.user', 'en-US', 'User Management', NOW(), NOW()),
+('system', 'messages', 'system.menu.role', 'en-US', 'Role Management', NOW(), NOW()),
+('system', 'messages', 'system.menu.dept', 'en-US', 'Department Management', NOW(), NOW()),
+('system', 'messages', 'system.menu.post', 'en-US', 'Post Management', NOW(), NOW()),
+('system', 'messages', 'system.menu.permission', 'en-US', 'Permission Management', NOW(), NOW()),
+('system', 'messages', 'system.menu.menu', 'en-US', 'Menu Management', NOW(), NOW()),
+('system', 'messages', 'system.menu.loginLog', 'en-US', 'Login Logs', NOW(), NOW()),
+('system', 'messages', 'system.menu.session', 'en-US', 'Session Management', NOW(), NOW()),
+('system', 'messages', 'system.menu.setting', 'en-US', 'System Settings', NOW(), NOW()),
+('system', 'messages', 'system.menu.dict', 'en-US', 'Dictionary Management', NOW(), NOW()),
+('system', 'messages', 'system.menu.operationLog', 'en-US', 'Operation Logs', NOW(), NOW());
 
 INSERT INTO `system_dept` (`parent_id`, `ancestors`, `is_root`, `dept_name`, `sort`, `status`, `created_at`, `updated_at`) VALUES
 (0, '', 1, 'Pantheon Base', 0, 1, NOW(), NOW());

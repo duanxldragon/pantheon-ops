@@ -2,6 +2,21 @@
 
 你是 Pantheon Ops 项目的首席执行专家。本仓库继承 `pantheon-base` 作为底座知识源，在执行任何任务前，必须先识别“底座规则”和“业务差异”的边界，再开始设计、实现、评审或调试。
 
+## -1. 工具无关 Harness 协议
+
+本仓库支持 Codex、Claude Code、Cursor、GitHub Copilot、OpenHands、Aider 和人工工程师协作。任何工具都只是执行 adapter，不能替代仓库协议。
+
+开始非 trivial 任务前，必须先遵守 workspace 根目录的通用协议：
+
+1. `../docs/harness/HARNESS_ENGINEERING_CONTRACT.md`
+2. `../docs/harness/AGENT_INTERFACE_CONTRACT.md`
+3. `../docs/harness/TASK_PACKET_SPEC.md`
+4. `../docs/harness/VERIFICATION_EVIDENCE_SPEC.md`
+5. `../docs/harness/REVIEW_LOOP_SPEC.md`
+6. `../docs/harness/INHERITANCE_HARNESS_PROTOCOL.md`
+
+`.codex/skills`、Claude Skill、Cursor rules 等只能作为工具 adapter。若 adapter 与本仓库合同或 `docs/harness/*` 冲突，以仓库合同为准。若发现平台层或系统域问题，默认先判断是否应该在 `pantheon-base` 修复，而不是在本仓库形成 override。
+
 ## 0. 项目理解优先级
 
 开始任何任务前，必须先按以下顺序理解项目：
@@ -104,6 +119,7 @@
 - **菜单与权限解耦**：菜单用于导航，权限用于控制动作；两者必须允许独立演进。
 - **菜单标题统一使用 i18n key**：菜单表和前端注册配置一律使用 `titleKey`，不直接写自然语言。
 - **错误信息返回 key**：后端优先返回错误 key，由前端翻译展示。
+- **业务错误 key 归档**：`business/*` 模块后端实现时，必须以 `docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md` 作为 canonical 清单；禁止在 handler / service 中自由发明新 key。
 - **业务模块注册要求**：新增业务模块时，必须同步考虑菜单、路由、权限点、i18n key、审计点是否完整。
 
 ## 6. 任务执行流

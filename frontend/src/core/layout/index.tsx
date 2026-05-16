@@ -261,7 +261,10 @@ const BaseLayout: React.FC = () => {
   const lastInteractionAtRef = useRef(0);
   const idleLogoutInFlightRef = useRef(false);
   const matchedRoute = useMemo(() => findRouteByPath(location.pathname), [location.pathname]);
-  const currentRouteTitleKey = matchedRoute?.titleKey || systemRouteTitleMap[location.pathname];
+  const currentRouteTitleKey =
+    matchedRoute?.resolveTitleKey?.(location.pathname) ||
+    matchedRoute?.titleKey ||
+    systemRouteTitleMap[location.pathname];
   const activeMenuPath = matchedRoute?.activeMenu || location.pathname;
   const visibleMenuTree = useMemo(
     () => filterMenuTreeByCapabilities(menuTree, publicSettings.orgEnabled),
@@ -282,13 +285,27 @@ const BaseLayout: React.FC = () => {
   const breadcrumbItems = useMemo(() => {
     const root = [{ path: '/', label: t('common.home') }];
     if (menuTrail.length > 0) {
-      return [
+      const trailItems = [
         ...root,
         ...menuTrail.map((item) => ({
           path: item.path,
           label: t(item.titleKey),
         })),
       ];
+      if (
+        matchedRoute?.activeMenu &&
+        currentRouteTitleKey &&
+        currentRouteTitleKey !== currentMenuTitleKey
+      ) {
+        return [
+          ...trailItems,
+          {
+            path: location.pathname,
+            label: t(currentRouteTitleKey),
+          },
+        ];
+      }
+      return trailItems;
     }
     return [
       ...root,
@@ -301,7 +318,15 @@ const BaseLayout: React.FC = () => {
             : location.pathname,
       },
     ];
-  }, [activeMenuPath, currentMenuTitleKey, currentRouteTitleKey, location.pathname, menuTrail, t]);
+  }, [
+    activeMenuPath,
+    currentMenuTitleKey,
+    currentRouteTitleKey,
+    location.pathname,
+    matchedRoute?.activeMenu,
+    menuTrail,
+    t,
+  ]);
   const menuOpenKeys = useMemo(
     () => menuTrail.slice(0, -1).map((item) => item.id.toString()),
     [menuTrail],

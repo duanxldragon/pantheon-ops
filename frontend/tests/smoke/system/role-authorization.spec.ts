@@ -34,8 +34,12 @@ function authorizationCard(page: Page, title: string) {
 
 async function openCreateRoleModal(page: Page) {
   await page.goto('/system/role', { waitUntil: 'networkidle' });
-  await expect(page.locator('.page-header').getByRole('heading', { name: '角色管理' })).toBeVisible();
-  await page.locator('.page-header').getByRole('button', { name: '新增' }).click();
+  await expect(page.getByText('角色管理', { exact: false }).filter({ visible: true }).first()).toBeVisible();
+  await expect(page.locator('.governance-summary-bar, .system-list__table-card').first()).toBeVisible();
+  await page
+    .locator('.table-batch-action-bar__prefix-actions')
+    .getByRole('button', { name: '新增', exact: true })
+    .click();
   await expect(modal(page)).toBeVisible();
 }
 

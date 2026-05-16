@@ -8,6 +8,7 @@ interface TableBatchActionBarProps {
   clearText: string;
   clearSuccessText?: string;
   onClear: () => void;
+  prefixActions?: React.ReactNode;
   actions?: React.ReactNode;
   hint?: React.ReactNode;
   className?: string;
@@ -19,6 +20,7 @@ const TableBatchActionBar: React.FC<TableBatchActionBarProps> = ({
   clearText,
   clearSuccessText,
   onClear,
+  prefixActions,
   actions,
   hint,
   className,
@@ -37,6 +39,9 @@ const TableBatchActionBar: React.FC<TableBatchActionBarProps> = ({
     <div className={className ? `table-batch-action-bar ${className}` : 'table-batch-action-bar'}>
       <div className="table-batch-action-bar__main">
         <div className="table-batch-action-bar__meta">
+          {prefixActions ? (
+            <div className="table-batch-action-bar__prefix-actions">{prefixActions}</div>
+          ) : null}
           <Typography.Text type="secondary" className="table-batch-action-bar__summary">
             {selectedText}
           </Typography.Text>

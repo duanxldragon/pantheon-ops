@@ -1,6 +1,26 @@
 import { expect, test, type Page } from '@playwright/test';
 import { signInAsAdmin } from '../../helpers/auth';
 
+const mainContentSelectors = [
+  '.system-page-template',
+  '.system-list__table-card',
+  '.filter-panel',
+  '.permission-workbench__tabs',
+  '.page-panel',
+].map((selector) => `main ${selector}`);
+
+const pageIdentitySelectors = [
+  '.governance-summary-bar',
+  '.system-list__table-card',
+  '.permission-workbench__tabs',
+  '.dict-workbench',
+  '.setting-group-page',
+  '.module-manager-page',
+  '.generator-wizard-card',
+  '.dashboard-hero-card',
+  '.auth-security-page',
+];
+
 async function navigateInShell(page: Page, path: string) {
   if (page.url() === 'about:blank') {
     await page.goto('/dashboard', { waitUntil: 'networkidle' });
@@ -10,6 +30,27 @@ async function navigateInShell(page: Page, path: string) {
     window.dispatchEvent(new PopStateEvent('popstate'));
   }, path);
   await expect(page).toHaveURL(new RegExp(`${path.replace(/\//g, '\\/')}$`));
+}
+
+async function measureMainContentWidth(page: Page) {
+  return page.evaluate((selectors) => {
+    const isVisible = (element: Element) => {
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+    };
+    const widths = selectors.flatMap((selector) =>
+      Array.from(document.querySelectorAll<HTMLElement>(selector))
+        .filter(isVisible)
+        .map((element) => Math.round(element.getBoundingClientRect().width)),
+    );
+    return widths.length ? Math.max(...widths) : 0;
+  }, mainContentSelectors);
+}
+
+async function expectPageIdentityReady(page: Page, title: string | RegExp) {
+  await expect(page.getByText(title, { exact: false }).filter({ visible: true }).first()).toBeVisible();
+  await expect(page.locator(pageIdentitySelectors.join(', ')).first()).toBeVisible();
 }
 
 const governancePages = [
@@ -33,14 +74,9 @@ test('governance insight opens as drawer without compressing main pages', async 
 
   for (const item of governancePages) {
     await navigateInShell(page, item.path);
-    await expect(page.getByRole('heading', { name: item.title })).toBeVisible();
+    await expectPageIdentityReady(page, item.title);
     await expect(page.locator('.page-split-layout')).toHaveCount(0);
-    const mainWidthBefore = await page.evaluate(() => {
-      const target = document.querySelector<HTMLElement>(
-        '.system-list__table-card, .filter-panel, .permission-workbench__tabs',
-      );
-      return Math.round(target?.getBoundingClientRect().width || 0);
-    });
+    const mainWidthBefore = await measureMainContentWidth(page);
     expect(mainWidthBefore, item.path).toBeGreaterThan(700);
 
     await page.getByRole('button', { name: item.button }).first().click();
@@ -49,12 +85,7 @@ test('governance insight opens as drawer without compressing main pages', async 
     await expect(drawer).toBeVisible();
     await expect(drawer.getByText(item.drawerTitle, { exact: true }).first()).toBeVisible();
     await expect(page.locator('.page-split-layout')).toHaveCount(0);
-    const mainWidthAfter = await page.evaluate(() => {
-      const target = document.querySelector<HTMLElement>(
-        '.system-list__table-card, .filter-panel, .permission-workbench__tabs',
-      );
-      return Math.round(target?.getBoundingClientRect().width || 0);
-    });
+    const mainWidthAfter = await measureMainContentWidth(page);
     expect(mainWidthAfter, item.path).toBeGreaterThanOrEqual(mainWidthBefore - 4);
   }
 });

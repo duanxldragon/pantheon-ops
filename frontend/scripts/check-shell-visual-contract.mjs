@@ -24,6 +24,7 @@ const dictItemTabSource = fs.readFileSync(
 
 const requiredGlobalTokens = [
   '--shell-table-card-padding',
+  '--shell-control-min-height',
   '--shell-filter-body-padding',
   '--shell-filter-control-min-height',
   '--shell-filter-form-item-margin-bottom',
@@ -79,6 +80,22 @@ function requireBlock(cssSource, selector, findings) {
   return block;
 }
 
+function getStandaloneBlock(cssSource, selector) {
+  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = cssSource.match(
+    new RegExp(`(?:^|\\n)${escapedSelector}\\s*\\{([\\s\\S]*?)\\n\\}`, 'i'),
+  );
+  return match?.[1] || '';
+}
+
+function requireStandaloneBlock(cssSource, selector, findings) {
+  const block = getStandaloneBlock(cssSource, selector);
+  if (!block) {
+    findings.push(`Missing CSS block: ${selector}`);
+  }
+  return block;
+}
+
 function hasDeclaration(block, property, expectedValue) {
   const pattern = new RegExp(`${property}\\s*:\\s*${expectedValue}\\s*;`, 'i');
   return pattern.test(block);
@@ -91,11 +108,127 @@ function collectBorderLines(block) {
     .filter((line) => /^(border|box-shadow)\b/i.test(line));
 }
 
+function splitSelectorList(selectorText) {
+  return selectorText
+    .split(',')
+    .map((selector) => selector.trim())
+    .filter(Boolean);
+}
+
+function extractCssRules(cssSource) {
+  const rules = [];
+  const rulePattern = /([^{}]+)\{([^{}]*)\}/g;
+  let match;
+  while ((match = rulePattern.exec(cssSource))) {
+    const selectorText = match[1].trim();
+    if (!selectorText || selectorText.startsWith('@')) {
+      continue;
+    }
+    rules.push({ selectorText, body: match[2] });
+  }
+  return rules;
+}
+
+function selectorTargetsBareArcoInput(selector) {
+  return /(?:^|[\s>+~,(])\.arco-input(?=$|[\s:,[{),>+~])/i.test(selector);
+}
+
+function selectorTargetsNestedArcoInput(selector) {
+  return /(?:\.arco-input-inner-wrapper|\.arco-input-password|\.arco-input-number)\s+\.arco-input(?=$|[\s:,[{),>+~])/i.test(
+    selector,
+  );
+}
+
+function selectorIsContentOnlyArcoInput(selector) {
+  return (
+    selectorTargetsBareArcoInput(selector) &&
+    (/::placeholder/i.test(selector) || selectorTargetsNestedArcoInput(selector))
+  );
+}
+
 const findings = [];
 
 for (const token of requiredGlobalTokens) {
   if (!globalSource.includes(token)) {
     findings.push(`Missing platform UI token: ${token}`);
+  }
+}
+
+if (!/:focus-visible\s*\{/i.test(globalSource)) {
+  findings.push('Global CSS must define a keyboard-visible :focus-visible outline.');
+}
+
+if (!/@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)/i.test(globalSource)) {
+  findings.push('Global CSS must respect prefers-reduced-motion: reduce.');
+}
+
+const globalButtonBlock = requireStandaloneBlock(globalSource, '.arco-btn', findings);
+if (globalButtonBlock) {
+  if (!hasDeclaration(globalButtonBlock, 'min-height', 'var\\(--shell-control-min-height\\)')) {
+    findings.push('.arco-btn must use --shell-control-min-height for stable controls.');
+  }
+  if (!hasDeclaration(globalButtonBlock, 'line-height', '20px')) {
+    findings.push('.arco-btn must keep a stable 20px line-height.');
+  }
+}
+
+const globalIconButtonBlock = requireStandaloneBlock(globalSource, '.arco-btn-icon-only', findings);
+if (
+  globalIconButtonBlock &&
+  !hasDeclaration(globalIconButtonBlock, 'min-width', 'var\\(--shell-control-min-height\\)')
+) {
+  findings.push('.arco-btn-icon-only must use --shell-control-min-height for stable icon buttons.');
+}
+
+const hasStableControlMinHeight =
+  /\.arco-input-inner-wrapper,[\s\S]*?\.arco-input-password,[\s\S]*?\.arco-input-number,[\s\S]*?\.arco-input-tag\s*\{[\s\S]*?min-height\s*:\s*var\(--shell-control-min-height\)\s*;/i.test(
+    globalSource,
+  );
+if (!hasStableControlMinHeight) {
+  findings.push('Global input/select/picker controls must use --shell-control-min-height.');
+}
+
+for (const { selectorText, body } of extractCssRules(globalSource)) {
+  const selectors = splitSelectorList(selectorText);
+  const hasControlFramingDeclaration =
+    /\b(?:border(?:-color)?|box-shadow|background|min-height)\s*:/i.test(body);
+  if (!hasControlFramingDeclaration) {
+    continue;
+  }
+  for (const selector of selectors) {
+    if (
+      selectorTargetsBareArcoInput(selector) &&
+      !selectorTargetsNestedArcoInput(selector) &&
+      !selectorIsContentOnlyArcoInput(selector)
+    ) {
+      findings.push(
+        `Bare .arco-input must not be part of outer control framing selectors: ${selector}`,
+      );
+      break;
+    }
+  }
+}
+
+const platformCssSources = [
+  ['global CSS', globalSource],
+  ['layout CSS', source],
+  ['system list-page CSS', listPageSource],
+];
+
+for (const [label, cssSource] of platformCssSources) {
+  if (/radial-gradient\s*\(/i.test(cssSource)) {
+    findings.push(`${label} must not use radial-gradient decoration in the backoffice shell.`);
+  }
+  if (/linear-gradient\s*\(/i.test(cssSource)) {
+    findings.push(
+      `${label} must not use broad linear-gradient decoration in the backoffice shell.`,
+    );
+  }
+  if (/font-weight\s*:\s*(?:620|650)\s*;/i.test(cssSource)) {
+    findings.push(`${label} must use standard font weights, not 620/650.`);
+  }
+  if (/var\(--(?:color|arcoblue|green|red|orange|gray)-[^)]+\)/i.test(cssSource)) {
+    findings.push(`${label} must route Arco color tokens through Pantheon semantic tokens.`);
   }
 }
 
@@ -304,6 +437,52 @@ if (batchMainBlock) {
   }
 }
 
+const appDialogControlBlock = requireBlock(
+  globalSource,
+  '.app-dialog .arco-input-inner-wrapper',
+  findings,
+);
+if (appDialogControlBlock) {
+  if (!hasDeclaration(appDialogControlBlock, 'border', '1px solid var\\(--panel-border-strong\\)')) {
+    findings.push('.app-dialog controls must render one shared outer border.');
+  }
+  if (!hasDeclaration(appDialogControlBlock, 'background', '#fff')) {
+    findings.push('.app-dialog controls must use a single white control background.');
+  }
+  if (!hasDeclaration(appDialogControlBlock, 'box-shadow', 'none')) {
+    findings.push('.app-dialog controls must not render a second idle shadow layer.');
+  }
+}
+
+const appDialogInputNumberControlBlock = requireBlock(
+  globalSource,
+  '.app-dialog .arco-input-number',
+  findings,
+);
+if (
+  appDialogInputNumberControlBlock &&
+  !hasDeclaration(appDialogInputNumberControlBlock, 'border', '1px solid var\\(--panel-border-strong\\)')
+) {
+  findings.push('.app-dialog InputNumber outer control must render one shared border.');
+}
+
+const appDrawerControlBlock = requireBlock(
+  globalSource,
+  '.app-drawer .arco-input-inner-wrapper',
+  findings,
+);
+if (appDrawerControlBlock) {
+  if (!hasDeclaration(appDrawerControlBlock, 'border', '1px solid var\\(--panel-border-strong\\)')) {
+    findings.push('.app-drawer controls must render one shared outer border.');
+  }
+  if (!hasDeclaration(appDrawerControlBlock, 'background', '#fff')) {
+    findings.push('.app-drawer controls must use a single white control background.');
+  }
+  if (!hasDeclaration(appDrawerControlBlock, 'box-shadow', 'none')) {
+    findings.push('.app-drawer controls must not render a second idle shadow layer.');
+  }
+}
+
 const governanceActionsBlock = requireBlock(
   listPageSource,
   '.table-batch-action-bar--governance .table-batch-action-bar__actions',
@@ -359,6 +538,79 @@ const pageSpecificBatchOverride =
   /\.(?:i18n-list-page|dept-list-page|post-list-page|setting-page)[^{]*\.table-batch-action-bar\s*\{[^}]*?gap\s*:/is;
 if (pageSpecificBatchOverride.test(listPageSource)) {
   findings.push('System pages must not override TableBatchActionBar gap.');
+}
+
+const nestedInputResetBlock = requireBlock(
+  globalSource,
+  '.arco-input-inner-wrapper .arco-input',
+  findings,
+);
+if (nestedInputResetBlock) {
+  for (const [property, expectedValue] of [
+    ['min-height', 'auto'],
+    ['border', '0'],
+    ['background', 'transparent'],
+    ['box-shadow', 'none'],
+    ['outline', '0'],
+  ]) {
+    if (!hasDeclaration(nestedInputResetBlock, property, expectedValue)) {
+      findings.push(`Nested Arco input controls must reset ${property}: ${expectedValue}.`);
+    }
+  }
+}
+
+const inputNumberInnerBlock = requireBlock(
+  globalSource,
+  '.arco-input-number .arco-input-inner-wrapper',
+  findings,
+);
+if (inputNumberInnerBlock) {
+  if (!hasDeclaration(inputNumberInnerBlock, 'border', '0')) {
+    findings.push(
+      'InputNumber inner wrapper must not draw a second border; the outer .arco-input-number owns it.',
+    );
+  }
+  if (!hasDeclaration(inputNumberInnerBlock, 'box-shadow', 'none')) {
+    findings.push('InputNumber inner wrapper must not draw a second focus ring.');
+  }
+}
+
+for (const selectorList of globalSource.match(/[^{}]*\.arco-input-number\s+\.arco-input-inner-wrapper[^{}]*\{[^{}]*\}/g) ?? []) {
+  const body = selectorList.slice(selectorList.indexOf('{') + 1, selectorList.lastIndexOf('}'));
+  const nonNoneBoxShadow = Array.from(body.matchAll(/\bbox-shadow\s*:\s*([^;]+);/gi)).some(
+    (match) => match[1].trim().toLowerCase() !== 'none',
+  );
+  if (
+    /\bborder-color\s*:/i.test(body) ||
+    nonNoneBoxShadow
+  ) {
+    findings.push(
+      'InputNumber inner wrapper must not be part of the bordered control group; the outer .arco-input-number owns the border.',
+    );
+  }
+}
+
+const nestedInputFocusBlock = requireBlock(
+  globalSource,
+  '.arco-input-inner-wrapper .arco-input:focus',
+  findings,
+);
+if (nestedInputFocusBlock) {
+  if (!hasDeclaration(nestedInputFocusBlock, 'border', '0')) {
+    findings.push('Nested Arco input focus must keep border: 0.');
+  }
+  if (!hasDeclaration(nestedInputFocusBlock, 'box-shadow', 'none')) {
+    findings.push('Nested Arco input focus must not draw a second focus ring.');
+  }
+  if (!hasDeclaration(nestedInputFocusBlock, 'outline', '0')) {
+    findings.push('Nested Arco input focus must not draw a second outline.');
+  }
+}
+
+if (/(?:^|\n)\s*\.arco-input:focus\s*,/i.test(globalSource)) {
+  findings.push(
+    'Bare .arco-input:focus must not own the global focus ring; the outer input wrapper owns it.',
+  );
 }
 
 if (!/system-list__table-card system-user-list__table-card/.test(userListSource)) {

@@ -2131,6 +2131,7 @@ const koKRFallback = {
   'system.user.hero.selectedRows': '선택된 계정',
   'system.user.hero.selectedHint':
     '일괄 활성화, 비활성화, 가져오기, 내보내기는 현재 선택 집합을 기준으로 합니다.',
+  'system.user.hero.unassignedRoles': '역할 미할당',
   'system.user.hero.rolesReady': '할당 가능 역할',
   'system.user.hero.rolesHint':
     '역할 풀이 준비되면 사용자 권한 부여는 `system/iam` 권한 경계를 우회하지 않습니다.',

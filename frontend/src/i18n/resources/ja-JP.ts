@@ -557,6 +557,7 @@ const jaJPFallback = {
   'system.user.hero.desc':
     'ユーザーページは標準管理テンプレートに従います。フィルタ、テーブル、一括操作はメイン領域に集約し、サイド領域は組織準備状況とガバナンス案内のみを担います。',
   'system.user.hero.selectedRows': '選択ユーザー',
+  'system.user.hero.unassignedRoles': 'ロール未割当',
   'system.user.hero.rolesReady': '割当可能ロール',
   'system.user.hero.summaryTitle': 'ガバナンス概要',
   'system.user.hero.orgReady': '組織準備状況',

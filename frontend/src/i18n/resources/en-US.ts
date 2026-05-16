@@ -2067,6 +2067,7 @@ const enUSFallback = {
   'system.user.hero.selectedRows': 'Selected Users',
   'system.user.hero.selectedHint':
     'Batch enable, disable, import, and export all operate on the current selection.',
+  'system.user.hero.unassignedRoles': 'Awaiting Roles',
   'system.user.hero.rolesReady': 'Assignable Roles',
   'system.user.hero.rolesHint':
     'A ready role pool keeps user authorization inside the `system/iam` boundary instead of ad-hoc edits.',

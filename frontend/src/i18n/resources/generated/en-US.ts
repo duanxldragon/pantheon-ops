@@ -55,7 +55,7 @@ const generatedenUSFallback = {
   "business.cmdb.host.collectAuthMode": "Auth Mode",
   "business.cmdb.host.collectPassword": "Password",
   "business.cmdb.host.collectPrivateKey": "Private Key",
-  "business.cmdb.host.collectPrivateKeyPlaceholder": "-----BEGIN OPENSSH PRIVATE KEY-----",
+  "business.cmdb.host.collectPrivateKeyPlaceholder": "Paste SSH private key content",
   "business.cmdb.host.collectSshUser": "SSH User",
   "business.cmdb.host.collectSshUserPlaceholder": "root",
   "business.cmdb.host.collectSuccess": "Configuration collected successfully",
