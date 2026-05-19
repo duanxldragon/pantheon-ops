@@ -1,5 +1,7 @@
 # Contributing
 
+English version: [CONTRIBUTING.en.md](./CONTRIBUTING.en.md)
+
 本文定义 Pantheon Platform 的基础协作规则、提交规范和验证要求。
 
 ## 分层边界

@@ -1,21 +1,40 @@
 # pantheon-ops 文档索引
 
+English version: [README.en.md](./README.en.md)
+
 `pantheon-ops` 是 Pantheon 平台的运维域业务仓库，从 `pantheon-base` 继承底座架构、契约和验收标准。
 
 本目录只承载本仓库**自有的业务文档**。架构、契约、UI 规范、通用验收等基座级文档全部由 `pantheon-base/docs/` 提供，不在 ops 复制副本。
 
 ---
 
-## 1. 本仓库自有文档（6 份）
+## 1. 本仓库自有文档（中文主入口 + 英文 companion）
 
 | 文档 | 用途 |
 |---|---|
-| [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) | 与 `pantheon-base` 的继承关系、版本锁定、本地化范围 |
-| [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) | CMDB 业务模块完整设计（含数据模型、API、UI、字典依赖、验收） |
-| [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) | 安装部署业务模块完整设计 |
-| [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md) | ops 业务模块 canonical 错误 key 语义附录 |
-| [designs/PLATFORM_SRE_EVOLUTION_PLAN.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.md) | SRE 演进路线图：从 Web 平台到 K8s-native 的五阶段计划 |
-| [README.md](./README.md) | 本文 |
+| [README.md](./README.md) / [README.en.md](./README.en.md) | 仓库入口与推荐阅读顺序 |
+| [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) / [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md) | 与 `pantheon-base` 的继承关系、版本锁定、本地业务范围与 override 边界 |
+| [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) / [designs/BUSINESS_CMDB_MODULE_DESIGN.en.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.en.md) | CMDB 业务模块完整设计（含数据模型、API、UI、字典依赖、验收） |
+| [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) / [designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md) | 安装部署业务模块完整设计 |
+| [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md) / [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md) | ops 业务模块 canonical 错误 key 语义附录 |
+| [designs/PLATFORM_SRE_EVOLUTION_PLAN.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.md) / [designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md) | SRE 演进路线图：从 Web 平台到 K8s-native 的五阶段计划 |
+| [../DESIGN.md](../DESIGN.md) / [../DESIGN.en.md](../DESIGN.en.md) | 仓库级总体设计与继承的基座设计立场 |
+| [../frontend/README.md](../frontend/README.md) / [../frontend/README.en.md](../frontend/README.en.md) | 前端工作区说明 |
+| [../frontend/tests/smoke/README.md](../frontend/tests/smoke/README.md) / [../frontend/tests/smoke/README.en.md](../frontend/tests/smoke/README.en.md) | smoke 测试布局与覆盖边界 |
+| [../CONTRIBUTING.md](../CONTRIBUTING.md) / [../CONTRIBUTING.en.md](../CONTRIBUTING.en.md) | 协作规范、提交格式与验证要求 |
+| [../SECURITY.md](../SECURITY.md) / [../SECURITY.en.md](../SECURITY.en.md) | 安全问题报告范围与披露规则 |
+
+说明：
+
+- 中文 `.md` 仍是本仓库主阅读面。
+- `.en.md` companion 用于国际协作、外部分享和后续扩展。
+- `PROJECT_INHERITANCE` 已切换到与其余文档一致的模式：`PROJECT_INHERITANCE.md` 为中文主入口，`PROJECT_INHERITANCE.en.md` 为英文 companion。
+
+建议实际阅读时先看：
+
+1. [README.md](../README.md)
+2. [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
+3. `designs/BUSINESS_*`
 
 ---
 

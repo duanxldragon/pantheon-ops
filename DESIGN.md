@@ -1,5 +1,7 @@
 # Pantheon Base - 企业级后台总体设计
 
+English version: [DESIGN.en.md](./DESIGN.en.md)
+
 Pantheon Base 的目标不是再做一个“只有登录 + 菜单 + CRUD”的后台壳，而是沉淀一个**多语言、通用、业务与底座解耦、支持动态菜单与标准权限模型的企业级管理平台底座**。
 
 项目核心原则是：

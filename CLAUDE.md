@@ -1,5 +1,7 @@
 # Pantheon Ops
 
+Chinese operational rules: [AGENTS.md](./AGENTS.md)
+
 pantheon-ops inherits pantheon-base as its foundation. Treat `pantheon-base` as the standard backoffice source of truth for platform, system domains, shared UI rules, backend contracts, permission, menu, i18n, audit, and acceptance standards.
 
 pantheon-ops exists to add operations-domain business modules. It must not become a forked copy of the foundation.

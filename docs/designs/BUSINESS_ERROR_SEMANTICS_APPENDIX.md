@@ -1,5 +1,7 @@
 # 运维域业务错误语义附录
 
+English version: [BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md)
+
 更新时间：2026-05-11
 
 类型：Design

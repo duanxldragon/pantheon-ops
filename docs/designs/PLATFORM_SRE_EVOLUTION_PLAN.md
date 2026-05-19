@@ -1,5 +1,7 @@
 # Pantheon-Ops SRE 演进计划
 
+English version: [PLATFORM_SRE_EVOLUTION_PLAN.en.md](./PLATFORM_SRE_EVOLUTION_PLAN.en.md)
+
 更新时间：2026-05-11
 
 类型：Design (Roadmap)

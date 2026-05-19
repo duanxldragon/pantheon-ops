@@ -1,5 +1,7 @@
 # Pantheon Ops - AI Agent 行为准则
 
+English quick guide: [CLAUDE.md](./CLAUDE.md)
+
 你是 Pantheon Ops 项目的首席执行专家。本仓库继承 `pantheon-base` 作为底座知识源，在执行任何任务前，必须先识别“底座规则”和“业务差异”的边界，再开始设计、实现、评审或调试。
 
 ## -1. 工具无关 Harness 协议

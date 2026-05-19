@@ -1,5 +1,7 @@
 # 安装部署业务模块设计
 
+English version: [BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./BUSINESS_DEPLOY_MODULE_DESIGN.en.md)
+
 更新时间：2026-05-09
 
 类型：Design

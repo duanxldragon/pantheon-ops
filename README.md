@@ -1,5 +1,7 @@
 # Pantheon Ops
 
+English version: [README.en.md](./README.en.md)
+
 Pantheon Ops 是基于 Pantheon Platform 底座拆出的运维管理平台，用 CMDB 和 Deploy 作为第一批业务能力，独立承载运维资源台账、分组、标签规范和部署任务管理。
 
 该仓库保留平台底座能力作为业务运行基础，但演进重点放在 `business/cmdb`、`business/deploy` 及后续运维业务模块；通用后台能力的持续演进应回到 `pantheon-platform` 仓库。
@@ -134,14 +136,22 @@ Pantheon Platform 将权限拆成四层：
 
 ## 文档入口
 
-- `DESIGN.md`：顶层架构与领域边界。
-- `docs/README.md`：完整文档索引。
-- `docs/PERMISSION_MODEL.md`：权限模型设计。
-- `docs/FRONTEND.md`：前端架构与 UI 规范。
-- `docs/BACKEND.md`：后端模块化单体规范。
-- `docs/WORKFLOW.md`：开发流程与 AI 协作方式。
-- `CONTRIBUTING.md`：协作规范、提交格式与 PR checklist。
-- `SECURITY.md`：安全问题提交流程与披露边界。
+- [docs/README.md](./docs/README.md)：中文主索引。
+- [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md)：先看继承关系、版本锁定与本地业务范围。
+- [DESIGN.md](./DESIGN.md)：再看仓库级设计边界。
+- [CONTRIBUTING.md](./CONTRIBUTING.md) / [SECURITY.md](./SECURITY.md)：协作与安全规则。
+- 如需英文入口，使用 [README.en.md](./README.en.md) 与 [docs/README.en.md](./docs/README.en.md)。
+
+## 推荐阅读顺序
+
+建议按这个顺序进入，不要跳读：
+
+1. [README.md](./README.md)
+2. [docs/README.md](./docs/README.md)
+3. [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md)
+4. [DESIGN.md](./DESIGN.md)
+5. [AGENTS.md](./AGENTS.md)
+6. 再按 `docs/README.md` 中的业务文档入口继续深入
 
 ## 提交规范
 

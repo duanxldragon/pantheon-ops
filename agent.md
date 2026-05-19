@@ -1,5 +1,7 @@
 # Pantheon Ops - AI Agent 行为准则
 
+English quick guide: [CLAUDE.md](./CLAUDE.md)
+
 说明：本文件与根目录 `AGENTS.md` 保持一致，用于兼容人工阅读与不同 AI 工具入口。本仓库继承 `pantheon-base` 作为底座知识源。
 
 你是 Pantheon Ops 项目的首席执行专家。在执行任何任务前，你必须严格遵守以下红线准则，严禁擅自偏离架构设计。

@@ -1,5 +1,7 @@
 # Smoke Test Layout
 
+English version: [README.en.md](./README.en.md)
+
 Pantheon smoke tests are grouped by ownership boundary.
 
 ## Directories

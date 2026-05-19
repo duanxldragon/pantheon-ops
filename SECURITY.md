@@ -1,5 +1,7 @@
 # Security Policy
 
+English version: [SECURITY.en.md](./SECURITY.en.md)
+
 ## Supported Scope
 
 Pantheon Platform 当前优先维护以下范围：
@@ -33,4 +35,3 @@ Pantheon Platform 当前优先维护以下范围：
 - 收到报告后，会先确认问题归属层级与影响边界；
 - 对高风险认证、授权、敏感配置泄露问题优先处理；
 - 修复后会同步更新相关测试与文档，避免回归。
-

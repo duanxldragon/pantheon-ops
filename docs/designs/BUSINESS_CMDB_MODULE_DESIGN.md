@@ -1,5 +1,7 @@
 # CMDB 业务模块设计
 
+English version: [BUSINESS_CMDB_MODULE_DESIGN.en.md](./BUSINESS_CMDB_MODULE_DESIGN.en.md)
+
 更新时间：2026-05-07
 
 类型：Design
