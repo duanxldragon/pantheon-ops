@@ -29,6 +29,7 @@ import {
 import {
   AppModal,
   AppTable,
+  buildStandardPagination,
   FilterPanel,
   PageEmpty,
   PageError,
@@ -53,6 +54,7 @@ const emptyWorkbenchQuery: PermissionWorkbenchQuery = {
 
 interface PermissionWorkbenchTabProps {
   roleOptions: Array<{ label: string; value: string }>;
+  utilityActions?: React.ReactNode;
   workbench: PermissionWorkbenchResp | null;
   workbenchLoading: boolean;
   workbenchError: unknown;
@@ -67,6 +69,7 @@ interface PermissionWorkbenchTabProps {
 
 export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
   roleOptions,
+  utilityActions,
   workbench,
   workbenchLoading,
   workbenchError,
@@ -83,6 +86,8 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
   const canCreate = isAdmin;
 
   const [workbenchForm] = Form.useForm<PermissionWorkbenchQuery>();
+  const [viewMode, setViewMode] = useState<'pending' | 'all'>('all');
+  const [tablePagination, setTablePagination] = useState({ current: 1, pageSize: 10 });
   const [remediationEvents, setRemediationEvents] = useState<PermissionWorkbenchRemediationEvent[]>(
     [],
   );
@@ -119,6 +124,7 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
 
   const searchWorkbench = () => {
     const values = workbenchForm.getFieldsValue();
+    setTablePagination((current) => ({ ...current, current: 1 }));
     onWorkbenchQueryChange({
       ...workbenchQuery,
       ...values,
@@ -127,6 +133,7 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
 
   const resetWorkbench = () => {
     workbenchForm.setFieldsValue(emptyWorkbenchQuery);
+    setTablePagination({ current: 1, pageSize: 10 });
     onWorkbenchQueryChange(emptyWorkbenchQuery);
   };
 
@@ -141,37 +148,67 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
     const overview = workbench?.overview;
     return [
       {
-        title: t('system.permission.workbench.roleCount'),
-        value: overview?.roleCount ?? 0,
+        title: t('system.permission.workbench.pendingRoles'),
+        value: overview?.pendingRemediationRoleCount ?? 0,
       },
       {
-        title: t('system.permission.workbench.navigationAssignments'),
-        value: overview?.navigationAssignmentCount ?? 0,
-      },
-      {
-        title: t('system.permission.workbench.permissionAssignments'),
-        value:
-          (overview?.pagePermissionAssignmentCount ?? 0) +
-          (overview?.actionPermissionAssignmentCount ?? 0),
-      },
-      {
-        title: t('system.permission.workbench.apiAssignments'),
-        value: overview?.apiActionCount ?? 0,
+        title: t('system.permission.workbench.remediatedRoles'),
+        value: overview?.remediatedRoleCount ?? 0,
       },
       {
         title: t('system.permission.workbench.unknownAssignments'),
         value: overview?.unknownPermissionAssignmentCount ?? 0,
       },
       {
-        title: t('system.permission.workbench.pageGapRoles'),
-        value: overview?.pageGapRoleCount ?? 0,
-      },
-      {
-        title: t('system.permission.workbench.apiGapRoles'),
-        value: overview?.apiGapRoleCount ?? 0,
+        title: t('system.permission.workbench.recentRemediations'),
+        value: overview?.recentRemediationCount ?? 0,
       },
     ];
   }, [t, workbench]);
+
+  const displayedRoles = useMemo(() => {
+    const roles = workbench?.roles ?? [];
+    if (viewMode === 'all') {
+      return roles;
+    }
+    return roles.filter((role) => role.governanceStatus === 'pending');
+  }, [viewMode, workbench?.roles]);
+
+  useEffect(() => {
+    setTablePagination((current) => {
+      const totalPages = Math.max(1, Math.ceil(displayedRoles.length / current.pageSize));
+      if (current.current <= totalPages) {
+        return current;
+      }
+      return {
+        ...current,
+        current: totalPages,
+      };
+    });
+  }, [displayedRoles]);
+
+  const renderGovernanceStatusTag = (role: PermissionWorkbenchRole) => {
+    if (role.governanceStatus === 'pending') {
+      return <Tag color="red">{t('system.permission.workbench.status.pending')}</Tag>;
+    }
+    if (role.governanceStatus === 'remediated') {
+      return <Tag color="green">{t('system.permission.workbench.status.remediated')}</Tag>;
+    }
+    return <Tag>{t('system.permission.workbench.status.clean')}</Tag>;
+  };
+
+  const remediationTimelineRows = useMemo(
+    () =>
+      remediationEvents.map((event) => ({
+        ...event,
+        actionLabel:
+          event.action === 'remediated'
+            ? t('system.permission.workbench.timeline.remediated')
+            : t('system.permission.workbench.timeline.noop'),
+        stateLabel: `${event.beforeState} -> ${event.afterState}`,
+      })),
+    [remediationEvents, t],
+  );
 
   const renderRequestErrorState = (requestError: unknown, onRetry: () => void) => {
     if (isNetworkRequestError(requestError)) {
@@ -202,6 +239,12 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
       },
       'medium',
     ),
+    {
+      title: t('system.permission.workbench.governanceStatus'),
+      dataIndex: 'governanceStatus',
+      width: TABLE_COLUMN_WIDTH.status,
+      render: (_: unknown, row: PermissionWorkbenchRole) => renderGovernanceStatusTag(row),
+    },
     withTableColumnPriority(
       {
         title: t('system.permission.workbench.navCount'),
@@ -276,7 +319,47 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
 
   return (
     <>
-      <Space direction="vertical" size={14} className="permission-workbench">
+      <Space direction="vertical" size={12} className="permission-workbench">
+        <div className="page-panel permission-workbench__context">
+          <div className="permission-workbench__context-copy">
+            <span className="permission-workbench__context-kicker">
+              {t('system.permission.workbench.positioningTitle')}
+            </span>
+            <Typography.Text type="secondary" className="permission-workbench__context-desc">
+              {t('system.permission.workbench.positioningHint')}
+            </Typography.Text>
+          </div>
+          <Space
+            size={8}
+            className="permission-workbench__context-tools system-list__work-actions"
+            wrap
+          >
+            {utilityActions}
+            <div className="permission-workbench__view-switch">
+              <Button
+                type={viewMode === 'pending' ? 'primary' : 'secondary'}
+                size="small"
+                onClick={() => {
+                  setViewMode('pending');
+                  setTablePagination((current) => ({ ...current, current: 1 }));
+                }}
+              >
+                {t('system.permission.workbench.view.pending')}
+              </Button>
+              <Button
+                type={viewMode === 'all' ? 'primary' : 'secondary'}
+                size="small"
+                onClick={() => {
+                  setViewMode('all');
+                  setTablePagination((current) => ({ ...current, current: 1 }));
+                }}
+              >
+                {t('system.permission.workbench.view.all')}
+              </Button>
+            </div>
+          </Space>
+        </div>
+
         {workbench ? (
           <Row gutter={[12, 12]} className="permission-workbench__overview">
             {overviewCards.map((item) => (
@@ -368,21 +451,30 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
           {workbenchError && !workbench
             ? renderRequestErrorState(workbenchError, onRetryLoadWorkbench)
             : null}
-          {!workbenchLoading && !workbenchError && (!workbench || workbench.roles.length === 0) ? (
+          {!workbenchLoading && !workbenchError && displayedRoles.length === 0 ? (
             <PageEmpty description={t('common.noData')} />
           ) : null}
           {!workbenchLoading &&
           !(workbenchError && !workbench) &&
-          workbench &&
-          workbench.roles.length > 0 ? (
+          displayedRoles.length > 0 ? (
             <AppTable<PermissionWorkbenchRole>
               className="system-list__table"
               rowKey="id"
-              data={workbench.roles}
+              data={displayedRoles}
               columns={workbenchColumns}
               loading={workbenchLoading}
               scroll={{ x: 'max-content' }}
-              pagination={false}
+              pagination={buildStandardPagination(t, {
+                current: tablePagination.current,
+                pageSize: tablePagination.pageSize,
+                total: displayedRoles.length,
+              })}
+              onChange={(pagination) => {
+                setTablePagination({
+                  current: pagination.current || 1,
+                  pageSize: pagination.pageSize || tablePagination.pageSize,
+                });
+              }}
               emptyText={t('common.noData')}
             />
           ) : null}
@@ -402,132 +494,110 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
       >
         {detailRole ? (
           <Space direction="vertical" size={16} className="detail-stack">
-            <Descriptions
-              column={4}
-              data={[
-                { label: t('system.permission.workbench.navCount'), value: detailRole.menuCount },
-                {
-                  label: t('system.permission.workbench.pageCount'),
-                  value: detailRole.pagePermissionCount,
-                },
-                {
-                  label: t('system.permission.workbench.actionCount'),
-                  value: detailRole.actionPermissionCount,
-                },
-                {
-                  label: t('system.permission.workbench.apiCount'),
-                  value: detailRole.apiPolicyCount,
-                },
-                {
-                  label: t('system.permission.workbench.apiRequiredCount'),
-                  value: detailRole.requiredApiPolicyCount,
-                },
-                {
-                  label: t('system.permission.workbench.apiMissingCount'),
-                  value: detailRole.missingApiPolicyCount,
-                },
-                {
-                  label: t('system.permission.workbench.coverage'),
-                  value:
-                    [
-                      detailRole.hasPageGap
-                        ? t('system.permission.workbench.coverage.pageGap')
-                        : '',
-                      detailRole.hasApiGap ? t('system.permission.workbench.coverage.apiGap') : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' / ') || t('system.permission.workbench.coverage.complete'),
-                },
-              ]}
-            />
-
-            <Card className="detail-panel-card" title={t('system.permission.workbench.navSection')}>
-              <Space wrap>
-                {detailRole.menus.length > 0 ? (
-                  detailRole.menus.map((item) => (
-                    <Tag key={`${item.id}-${item.path}`}>
-                      {translateTitleKey(item.titleKey, item.path)}
-                    </Tag>
-                  ))
-                ) : (
-                  <Typography.Text type="secondary">{t('common.noData')}</Typography.Text>
-                )}
-              </Space>
-            </Card>
-
             <Card
               className="detail-panel-card"
-              title={t('system.permission.workbench.pageSection')}
+              title={t('system.permission.workbench.currentStatusSection')}
             >
-              <Space wrap>
-                {detailRole.pagePermissions.length > 0 ? (
-                  detailRole.pagePermissions.map((item) => (
-                    <Tag key={item.key} color="arcoblue">
-                      {translateTitleKey(item.titleKey, item.key)}
-                    </Tag>
-                  ))
-                ) : (
-                  <Typography.Text type="secondary">{t('common.noData')}</Typography.Text>
-                )}
-              </Space>
-            </Card>
-
-            <Card
-              className="detail-panel-card"
-              title={t('system.permission.workbench.actionSection')}
-            >
-              <Space wrap>
-                {detailRole.actionPermissions.length > 0 ? (
-                  detailRole.actionPermissions.map((item) => (
-                    <Tag key={item.key} color="green">
-                      {translateTitleKey(item.titleKey, item.key)}
-                    </Tag>
-                  ))
-                ) : (
-                  <Typography.Text type="secondary">{t('common.noData')}</Typography.Text>
-                )}
-              </Space>
-            </Card>
-
-            <Card className="detail-panel-card" title={t('system.permission.workbench.apiSection')}>
-              <AppTable
-                rowKey="id"
-                data={detailRole.apiPolicies}
-                columns={[
+              <Descriptions
+                column={2}
+                data={[
                   {
-                    title: t('system.permission.method'),
-                    dataIndex: 'method',
-                    render: (value: string) => <Tag color="arcoblue">{value}</Tag>,
+                    label: t('system.permission.workbench.governanceStatus'),
+                    value: renderGovernanceStatusTag(detailRole),
                   },
                   {
-                    title: t('system.permission.path'),
-                    dataIndex: 'path',
+                    label: t('system.permission.workbench.remediationAction'),
+                    value:
+                      detailRole.lastRemediationAction === 'remediated'
+                        ? t('system.permission.workbench.timeline.remediated')
+                        : detailRole.lastRemediationAction === 'noop'
+                          ? t('system.permission.workbench.timeline.noop')
+                          : '-',
+                  },
+                  {
+                    label: t('system.permission.workbench.remediationTime'),
+                    value: detailRole.lastRemediationAt || '-',
+                  },
+                  {
+                    label: t('system.role.status'),
+                    value:
+                      detailRole.status === 1
+                        ? t('system.user.status.enabled')
+                        : t('system.user.status.disabled'),
                   },
                 ]}
-                pagination={false}
-                emptyText={t('common.noData')}
               />
             </Card>
 
-            {detailRole.missingApiPolicies.length > 0 ? (
-              <Card
-                className="detail-panel-card"
-                title={t('system.permission.workbench.missingApiSection')}
-                extra={
-                  canCreate ? (
-                    <Button
-                      type="primary"
-                      size="small"
-                      loading={remediatingRoleKey === detailRole.roleKey}
-                      onClick={() => {
-                        void remediateRolePolicies(detailRole);
-                      }}
-                    >
-                      {t('system.permission.workbench.remediateAction')}
-                    </Button>
-                  ) : null
-                }
-              >
+            <Card
+              className="detail-panel-card"
+              title={t('system.permission.workbench.currentGapSection')}
+            >
+              <Descriptions
+                column={4}
+                data={[
+                  { label: t('system.permission.workbench.navCount'), value: detailRole.menuCount },
+                  {
+                    label: t('system.permission.workbench.pageCount'),
+                    value: detailRole.pagePermissionCount,
+                  },
+                  {
+                    label: t('system.permission.workbench.actionCount'),
+                    value: detailRole.actionPermissionCount,
+                  },
+                  {
+                    label: t('system.permission.workbench.apiCount'),
+                    value: detailRole.apiPolicyCount,
+                  },
+                  {
+                    label: t('system.permission.workbench.apiRequiredCount'),
+                    value: detailRole.requiredApiPolicyCount,
+                  },
+                  {
+                    label: t('system.permission.workbench.apiMissingCount'),
+                    value: detailRole.missingApiPolicyCount,
+                  },
+                  {
+                    label: t('system.permission.workbench.unknownCount'),
+                    value: detailRole.unknownPermissionCount,
+                  },
+                  {
+                    label: t('system.permission.workbench.coverage'),
+                    value:
+                      [
+                        detailRole.hasPageGap
+                          ? t('system.permission.workbench.coverage.pageGap')
+                          : '',
+                        detailRole.hasApiGap
+                          ? t('system.permission.workbench.coverage.apiGap')
+                          : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' / ') || t('system.permission.workbench.coverage.complete'),
+                  },
+                ]}
+              />
+            </Card>
+
+            <Card
+              className="detail-panel-card"
+              title={t('system.permission.workbench.remediationActionSection')}
+              extra={
+                canCreate && detailRole.missingApiPolicies.length > 0 ? (
+                  <Button
+                    type="primary"
+                    size="small"
+                    loading={remediatingRoleKey === detailRole.roleKey}
+                    onClick={() => {
+                      void remediateRolePolicies(detailRole);
+                    }}
+                  >
+                    {t('system.permission.workbench.remediateAction')}
+                  </Button>
+                ) : null
+              }
+            >
+              {detailRole.missingApiPolicies.length > 0 ? (
                 <AppTable
                   rowKey={(record) => `${record.method}-${record.path}`}
                   data={detailRole.missingApiPolicies}
@@ -545,28 +615,31 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
                   pagination={false}
                   emptyText={t('common.noData')}
                 />
-              </Card>
-            ) : null}
+              ) : (
+                <Typography.Text type="secondary">
+                  {t('system.permission.workbench.noRemediationActions')}
+                </Typography.Text>
+              )}
+            </Card>
 
             <Card
               className="detail-panel-card"
-              title={t('system.permission.workbench.remediationSection')}
+              title={t('system.permission.workbench.remediationTimelineSection')}
             >
-              <AppTable<PermissionWorkbenchRemediationEvent>
+              <AppTable<(PermissionWorkbenchRemediationEvent & { actionLabel: string; stateLabel: string })>
                 rowKey="id"
-                data={remediationEvents}
+                data={remediationTimelineRows}
                 columns={[
                   {
                     title: t('system.permission.workbench.remediationAction'),
-                    dataIndex: 'action',
-                    render: (value: string) => (
-                      <Tag color={value === 'remediated' ? 'green' : 'arcoblue'}>{value}</Tag>
+                    dataIndex: 'actionLabel',
+                    render: (value: string, row) => (
+                      <Tag color={row.action === 'remediated' ? 'green' : 'arcoblue'}>{value}</Tag>
                     ),
                   },
                   {
                     title: t('system.permission.workbench.remediationState'),
-                    render: (_: unknown, row: PermissionWorkbenchRemediationEvent) =>
-                      `${row.beforeState} -> ${row.afterState}`,
+                    dataIndex: 'stateLabel',
                   },
                   {
                     title: t('system.permission.workbench.remediationCreated'),
@@ -586,20 +659,98 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
               />
             </Card>
 
-            {detailRole.unknownPermissions.length > 0 ? (
-              <Card
-                className="detail-panel-card"
-                title={t('system.permission.workbench.unknownSection')}
-              >
-                <Space wrap>
-                  {detailRole.unknownPermissions.map((item) => (
-                    <Tag key={item.key} color="orange">
-                      {item.key}
-                    </Tag>
-                  ))}
+            <Card className="detail-panel-card" title={t('system.permission.workbench.rawCoverageSection')}>
+              <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                  <Typography.Text bold>
+                    {t('system.permission.workbench.navSection')}
+                  </Typography.Text>
+                  <Space wrap>
+                    {detailRole.menus.length > 0 ? (
+                      detailRole.menus.map((item) => (
+                        <Tag key={`${item.id}-${item.path}`}>
+                          {translateTitleKey(item.titleKey, item.path)}
+                        </Tag>
+                      ))
+                    ) : (
+                      <Typography.Text type="secondary">{t('common.noData')}</Typography.Text>
+                    )}
+                  </Space>
                 </Space>
-              </Card>
-            ) : null}
+
+                <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                  <Typography.Text bold>
+                    {t('system.permission.workbench.pageSection')}
+                  </Typography.Text>
+                  <Space wrap>
+                    {detailRole.pagePermissions.length > 0 ? (
+                      detailRole.pagePermissions.map((item) => (
+                        <Tag key={item.key} color="arcoblue">
+                          {translateTitleKey(item.titleKey, item.key)}
+                        </Tag>
+                      ))
+                    ) : (
+                      <Typography.Text type="secondary">{t('common.noData')}</Typography.Text>
+                    )}
+                  </Space>
+                </Space>
+
+                <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                  <Typography.Text bold>
+                    {t('system.permission.workbench.actionSection')}
+                  </Typography.Text>
+                  <Space wrap>
+                    {detailRole.actionPermissions.length > 0 ? (
+                      detailRole.actionPermissions.map((item) => (
+                        <Tag key={item.key} color="green">
+                          {translateTitleKey(item.titleKey, item.key)}
+                        </Tag>
+                      ))
+                    ) : (
+                      <Typography.Text type="secondary">{t('common.noData')}</Typography.Text>
+                    )}
+                  </Space>
+                </Space>
+
+                <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                  <Typography.Text bold>
+                    {t('system.permission.workbench.apiSection')}
+                  </Typography.Text>
+                  <AppTable
+                    rowKey="id"
+                    data={detailRole.apiPolicies}
+                    columns={[
+                      {
+                        title: t('system.permission.method'),
+                        dataIndex: 'method',
+                        render: (value: string) => <Tag color="arcoblue">{value}</Tag>,
+                      },
+                      {
+                        title: t('system.permission.path'),
+                        dataIndex: 'path',
+                      },
+                    ]}
+                    pagination={false}
+                    emptyText={t('common.noData')}
+                  />
+                </Space>
+
+                {detailRole.unknownPermissions.length > 0 ? (
+                  <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                    <Typography.Text bold>
+                      {t('system.permission.workbench.unknownSection')}
+                    </Typography.Text>
+                    <Space wrap>
+                      {detailRole.unknownPermissions.map((item) => (
+                        <Tag key={item.key} color="orange">
+                          {item.key}
+                        </Tag>
+                      ))}
+                    </Space>
+                  </Space>
+                ) : null}
+              </Space>
+            </Card>
           </Space>
         ) : null}
       </AppModal>

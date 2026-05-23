@@ -37,17 +37,17 @@ import {
 } from './api';
 import {
   AppModal,
+  GovernanceSummaryBar,
   ListHeaderActions,
   PageContainer,
   PageError,
-  PageHeader,
   PageLoading,
   TABLE_ACTION_COLUMN_WIDTH,
   TABLE_COLUMN_WIDTH,
   withTableColumnPriority,
 } from '../../../components';
 import { SECONDARY_VERIFY_CANCELLED_ERROR } from '../../../components/feedback/secondaryVerifyController';
-import '../../../core/styles/list-page.css';
+import '../list-page.css';
 
 const moduleManagerWarmDataKeys = ['modules:registered'];
 
@@ -61,6 +61,10 @@ function isManagedRegistration(record: ModuleRegistration) {
 
 function isBusinessStaticRegistration(record: ModuleRegistration) {
   return !record.builtIn && record.scope === 'business' && !record.tableName;
+}
+
+function hasAutoRecycle(record: ModuleRegistration) {
+  return Boolean(record.autoRecycle && record.tableName);
 }
 
 function statusColor(status: number) {
@@ -82,7 +86,7 @@ const ModuleManager: React.FC = () => {
   const canPurge = isAdmin || hasPerm('system:module:purge');
   const canRepair = isAdmin || hasPerm('system:module:repair');
   const [modules, setModules] = useState<ModuleRegistration[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
   const [featureDisabled, setFeatureDisabled] = useState(false);
   const [purgeTarget, setPurgeTarget] = useState<ModuleRegistration | null>(null);
@@ -239,6 +243,7 @@ const ModuleManager: React.FC = () => {
       pending: modules.filter((item) => item.status === 3).length,
       uninstalled: modules.filter((item) => item.status === 2).length,
       failed: modules.filter((item) => item.status === 4).length,
+      autoRecycle: modules.filter((item) => hasAutoRecycle(item)).length,
     }),
     [modules],
   );
@@ -248,12 +253,27 @@ const ModuleManager: React.FC = () => {
       title: t('generator.moduleManager.name'),
       dataIndex: 'name',
       width: TABLE_COLUMN_WIDTH.identity,
-      render: (name: string) => <span>{name}</span>,
+      render: (name: string) => (
+        <Typography.Text
+          className="system-list__ellipsis-text"
+          ellipsis={{ showTooltip: true }}
+        >
+          {name}
+        </Typography.Text>
+      ),
     },
     {
       title: t('generator.moduleManager.displayName'),
       dataIndex: 'displayName',
       width: TABLE_COLUMN_WIDTH.name,
+      render: (displayName?: string) => (
+        <Typography.Text
+          className="system-list__ellipsis-text"
+          ellipsis={{ showTooltip: true }}
+        >
+          {displayName || '-'}
+        </Typography.Text>
+      ),
     },
     {
       title: t('generator.moduleManager.scope'),
@@ -304,9 +324,36 @@ const ModuleManager: React.FC = () => {
         title: t('generator.moduleManager.tableName'),
         dataIndex: 'tableName',
         width: TABLE_COLUMN_WIDTH.name,
-        render: (tableName: string) => (tableName ? <span>{tableName}</span> : <span>-</span>),
+        render: (tableName: string) => (
+          <Typography.Text
+            className="system-list__ellipsis-text"
+            ellipsis={{ showTooltip: true }}
+          >
+            {tableName || '-'}
+          </Typography.Text>
+        ),
       },
       'low',
+    ),
+    withTableColumnPriority(
+      {
+        title: t('generator.moduleManager.lifecycle'),
+        dataIndex: 'autoRecycle',
+        width: TABLE_COLUMN_WIDTH.status,
+        render: (_value: boolean | undefined, record: ModuleRegistration) => {
+          if (!record.tableName) {
+            return <Tag color="gray">{t('generator.moduleManager.lifecycle.noTable')}</Tag>;
+          }
+          return hasAutoRecycle(record) ? (
+            <Space size={6}>
+              <Tag color="orange">{t('generator.moduleManager.lifecycle.autoRecycle')}</Tag>
+            </Space>
+          ) : (
+            <Tag color="arcoblue">{t('generator.moduleManager.lifecycle.standard')}</Tag>
+          );
+        },
+      },
+      'medium',
     ),
     {
       title: t('generator.moduleManager.status'),
@@ -406,7 +453,13 @@ const ModuleManager: React.FC = () => {
             {record.status !== 2 && managedRegistration && canUnregister ? (
               <PermissionAction allowed={canUnregister} tooltip={t('common.noPermissionAction')}>
                 <Popconfirm
-                  title={t('generator.moduleManager.confirmUninstall')}
+                  title={
+                    hasAutoRecycle(record)
+                      ? t('generator.moduleManager.confirmUninstallAutoRecycle', {
+                          table: record.tableName,
+                        })
+                      : t('generator.moduleManager.confirmUninstall')
+                  }
                   disabled={featureDisabled || !canUnregister}
                   onOk={() => handleUnregister(record.name)}
                 >
@@ -450,108 +503,85 @@ const ModuleManager: React.FC = () => {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={t('generator.moduleManager.title')}
-        extra={
-          <ListHeaderActions
-            className="module-manager-page__header-actions"
-            utility={
-              <>
-                <Button size="small" onClick={() => void loadData({ force: true })}>
-                  <IconRefresh /> {t('common.refresh')}
-                </Button>
-                <PermissionAction allowed={canRepair} tooltip={t('common.noPermissionAction')}>
+      <Space direction="vertical" size={12} className="system-page-template module-manager-page">
+        <GovernanceSummaryBar
+          eyebrow={t('generator.moduleManager.header.eyebrow')}
+          title={t('generator.moduleManager.header.title')}
+          description={t('generator.moduleManager.header.description')}
+          metrics={[
+            {
+              key: 'total',
+              label: t('generator.moduleManager.stats.total'),
+              value: stats.total,
+            },
+            {
+              key: 'active',
+              label: t('generator.moduleManager.stats.active'),
+              value: stats.active,
+            },
+            {
+              key: 'pending',
+              label: t('generator.moduleManager.stats.pending'),
+              value: stats.pending,
+            },
+            {
+              key: 'failed',
+              label: t('generator.moduleManager.stats.failed'),
+              value: stats.failed,
+            },
+            {
+              key: 'autoRecycle',
+              label: t('generator.moduleManager.stats.autoRecycle'),
+              value: stats.autoRecycle,
+            },
+          ]}
+        />
+        <Card className="page-panel system-list__table-card module-manager-page__card">
+          <div className="system-list__work-actions">
+            <ListHeaderActions
+              className="module-manager-page__header-actions"
+              utility={
+                <>
+                  <Button size="small" onClick={() => void loadData({ force: true })}>
+                    <IconRefresh /> {t('common.refresh')}
+                  </Button>
+                  <PermissionAction allowed={canRepair} tooltip={t('common.noPermissionAction')}>
+                    <Button
+                      size="small"
+                      disabled={featureDisabled || repairing}
+                      loading={repairing}
+                      onClick={() => void handleRepair()}
+                    >
+                      <IconRefresh /> {t('generator.moduleManager.repair')}
+                    </Button>
+                  </PermissionAction>
+                </>
+              }
+              primary={
+                <PermissionAction allowed={canOpenGenerator} tooltip={t('common.noPermissionAction')}>
                   <Button
                     size="small"
-                    disabled={featureDisabled || repairing}
-                    loading={repairing}
-                    onClick={() => void handleRepair()}
+                    type="primary"
+                    disabled={featureDisabled}
+                    onClick={() => navigate('/system/generator')}
                   >
-                    <IconRefresh /> {t('generator.moduleManager.repair')}
+                    <IconPlus /> {t('generator.moduleManager.registerNew')}
                   </Button>
                 </PermissionAction>
-              </>
-            }
-            primary={
-              <PermissionAction allowed={canOpenGenerator} tooltip={t('common.noPermissionAction')}>
-                <Button
-                  size="small"
-                  type="primary"
-                  disabled={featureDisabled}
-                  onClick={() => navigate('/system/generator')}
-                >
-                  <IconPlus /> {t('generator.moduleManager.registerNew')}
-                </Button>
-              </PermissionAction>
-            }
-          />
-        }
-      />
-
-      <Space direction="vertical" size={12} className="system-page-template module-manager-page">
-        <Card className="page-panel system-list__table-card module-manager-page__card">
-          <div className="module-manager-page__intro">
-            <div className="module-manager-page__copy">
-              <span className="system-page-hero__eyebrow">
-                {t('generator.moduleManager.title')}
-              </span>
-              <Typography.Paragraph className="module-manager-page__desc">
-                {t('generator.moduleManager.description')}
-              </Typography.Paragraph>
-            </div>
-            <div className="module-manager-page__notice-stack">
-              {featureDisabled ? (
-                <Alert type="warning" content={t('generator.moduleManager.disabledHint')} />
-              ) : null}
-              {modules.some((item) => item.status === 3) ? (
-                <Alert type="warning" content={t('generator.moduleManager.pendingHint')} />
-              ) : null}
-              <Alert type="info" content={t('generator.moduleManager.repairHint')} />
-            </div>
+              }
+            />
           </div>
-          <div className="module-manager-page__stats">
-            <Card size="small" className="module-manager-page__stat-card">
-              <Typography.Text type="secondary">
-                {t('generator.moduleManager.stats.total')}
-              </Typography.Text>
-              <Typography.Title heading={6} style={{ margin: 0 }}>
-                {stats.total}
-              </Typography.Title>
-            </Card>
-            <Card size="small" className="module-manager-page__stat-card">
-              <Typography.Text type="secondary">
-                {t('generator.moduleManager.stats.active')}
-              </Typography.Text>
-              <Typography.Title heading={6} style={{ margin: 0 }}>
-                {stats.active}
-              </Typography.Title>
-            </Card>
-            <Card size="small" className="module-manager-page__stat-card">
-              <Typography.Text type="secondary">
-                {t('generator.moduleManager.stats.pending')}
-              </Typography.Text>
-              <Typography.Title heading={6} style={{ margin: 0 }}>
-                {stats.pending}
-              </Typography.Title>
-            </Card>
-            <Card size="small" className="module-manager-page__stat-card">
-              <Typography.Text type="secondary">
-                {t('generator.moduleManager.stats.uninstalled')}
-              </Typography.Text>
-              <Typography.Title heading={6} style={{ margin: 0 }}>
-                {stats.uninstalled}
-              </Typography.Title>
-            </Card>
-            <Card size="small" className="module-manager-page__stat-card">
-              <Typography.Text type="secondary">
-                {t('generator.moduleManager.stats.failed')}
-              </Typography.Text>
-              <Typography.Title heading={6} style={{ margin: 0 }}>
-                {stats.failed}
-              </Typography.Title>
-            </Card>
+          <div className="module-manager-page__notice-stack">
+            {featureDisabled ? (
+              <Alert type="warning" content={t('generator.moduleManager.disabledHint')} />
+            ) : modules.some((item) => item.status === 3) ? (
+              <Alert type="warning" content={t('generator.moduleManager.pendingHint')} />
+            ) : (
+              <Alert type="info" content={t('generator.moduleManager.repairHint')} />
+            )}
           </div>
           <AppTable
+            className="system-list__table"
             columns={columns}
             data={modules}
             rowKey="name"
@@ -600,14 +630,18 @@ const ModuleManager: React.FC = () => {
                 </Typography.Text>
               ) : null}
               <Typography.Text type="secondary">
-                {purgeTarget.tableName
+                {hasAutoRecycle(purgeTarget)
+                  ? t('generator.moduleManager.purgeModal.autoRecycleTable', {
+                      table: purgeTarget.tableName,
+                    })
+                  : purgeTarget.tableName
                   ? t('generator.moduleManager.purgeModal.keepTable', {
                       table: purgeTarget.tableName,
                     })
                   : t('generator.moduleManager.purgeModal.noTable')}
               </Typography.Text>
             </Space>
-            {purgeTarget.tableName ? (
+            {purgeTarget.tableName && !hasAutoRecycle(purgeTarget) ? (
               <Form.Item field="dropTable" triggerPropName="checked">
                 <Checkbox>
                   {t('generator.moduleManager.purgeModal.dropTable', {
@@ -615,6 +649,13 @@ const ModuleManager: React.FC = () => {
                   })}
                 </Checkbox>
               </Form.Item>
+            ) : null}
+            {hasAutoRecycle(purgeTarget) ? (
+              <Alert
+                type="warning"
+                style={{ marginBottom: 16 }}
+                content={t('generator.moduleManager.purgeModal.autoRecycleNotice')}
+              />
             ) : null}
             <Form.Item field="confirmed" triggerPropName="checked">
               <Checkbox onChange={(checked) => setPurgeConfirmed(Boolean(checked))}>

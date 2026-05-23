@@ -6,7 +6,18 @@ import (
 	"unicode"
 )
 
+func normalizeStaticModuleName(moduleName string) string {
+	normalized := strings.TrimSpace(moduleName)
+	switch normalized {
+	case "platform.lowcode":
+		return "system.lowcode"
+	default:
+		return normalized
+	}
+}
+
 func inferModuleScope(moduleName string) string {
+	moduleName = normalizeStaticModuleName(moduleName)
 	if strings.HasPrefix(moduleName, "business.") {
 		return "business"
 	}
@@ -91,6 +102,7 @@ func toGeneratedPascal(value string) string {
 }
 
 func inferStaticModuleSource(moduleName string) string {
+	moduleName = normalizeStaticModuleName(moduleName)
 	if strings.HasPrefix(moduleName, "platform") || moduleName == "system" || strings.HasPrefix(moduleName, "system.") {
 		return "core"
 	}

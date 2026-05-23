@@ -32,6 +32,7 @@ import {
 import {
   AppModal,
   AppTable,
+  buildStandardPagination,
   FilterPanel,
   PageEmpty,
   PageError,
@@ -69,6 +70,7 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
   const [dataScopeLoading, setDataScopeLoading] = useState(false);
   const [dataScopeError, setDataScopeError] = useState<unknown>(null);
   const [dataScopeQuery, setDataScopeQuery] = useState<PermissionDataScopeQuery>({});
+  const [tablePagination, setTablePagination] = useState({ current: 1, pageSize: 10 });
   const [dataScopeSubmittingRoleKey, setDataScopeSubmittingRoleKey] = useState('');
   const [dataScopeEditingRow, setDataScopeEditingRow] = useState<PermissionDataScopePolicy | null>(
     null,
@@ -103,6 +105,19 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
     return () => window.clearTimeout(timer);
   }, [loadDataScopePolicies, dataScopeQuery]);
 
+  useEffect(() => {
+    setTablePagination((current) => {
+      const totalPages = Math.max(1, Math.ceil(dataScopeRows.length / current.pageSize));
+      if (current.current <= totalPages) {
+        return current;
+      }
+      return {
+        ...current,
+        current: totalPages,
+      };
+    });
+  }, [dataScopeRows]);
+
   useRefreshSubscription(
     ['system:permission:changed', 'system:role:changed', 'system:menu:changed'],
     (payload) => {
@@ -115,6 +130,7 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
 
   const searchDataScope = () => {
     const values = dataScopeForm.getFieldsValue();
+    setTablePagination((current) => ({ ...current, current: 1 }));
     setDataScopeQuery({
       ...dataScopeQuery,
       ...values,
@@ -123,6 +139,7 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
 
   const resetDataScope = () => {
     dataScopeForm.setFieldsValue({});
+    setTablePagination({ current: 1, pageSize: 10 });
     setDataScopeQuery({});
   };
 
@@ -322,7 +339,17 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
               columns={dataScopeColumns}
               loading={dataScopeLoading}
               scroll={{ x: 'max-content' }}
-              pagination={false}
+              pagination={buildStandardPagination(t, {
+                current: tablePagination.current,
+                pageSize: tablePagination.pageSize,
+                total: dataScopeRows.length,
+              })}
+              onChange={(pagination) => {
+                setTablePagination({
+                  current: pagination.current || 1,
+                  pageSize: pagination.pageSize || tablePagination.pageSize,
+                });
+              }}
               emptyText={t('common.noData')}
             />
           ) : null}

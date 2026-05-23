@@ -12,16 +12,20 @@ import {
   Typography,
 } from '@arco-design/web-react';
 import { message } from '../../components/feedback/message';
-import type { PaginationProps } from '@arco-design/web-react/es/Pagination/interface';
 import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
 import { IconDelete, IconDownload, IconSearch } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { getSettingGroup } from '../system/setting/api';
+import {
+  getVisibleSelectedRowKeys,
+  mergeCrossPageSelection,
+} from '../../components/table/crossPageSelection';
 import { formatDateTime } from '../../core/format/dateTime';
 import {
   batchDeleteAdminLoginLogs,
   cleanupAdminLoginLogs,
   exportAdminLoginLogs,
+  exportSelectedAdminLoginLogs,
   getAdminLoginLogList,
   type LoginLogPageResp,
   type LoginLogQuery,
@@ -30,16 +34,17 @@ import {
 import { renderClientInfo } from './clientInfo';
 import {
   AppTable,
+  buildStandardPagination,
   FilterPanel,
+  type GovernanceCleanupMode,
   GovernanceCleanupBar,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
-  ListHeaderActions,
+  GovernanceSummaryBar,
   PageContainer,
   PageEmpty,
   PageError,
-  PageHeader,
   PageLoading,
   PermissionAction,
   TABLE_COLUMN_WIDTH,
@@ -47,7 +52,7 @@ import {
 } from '../../components';
 import { usePermission } from '../../hooks/usePermission';
 import './auth.css';
-import '../../core/styles/list-page.css';
+import '../system/list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -60,6 +65,33 @@ const emptyQuery: LoginLogQuery = {
   pageSize: 10,
 };
 const defaultRetentionOptions = [1, 7, 30];
+
+function toCleanupTimestamp(value: string) {
+  const normalized = String(value || '').trim();
+  const match = normalized.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/,
+  );
+  if (!match) {
+    return normalized ? undefined : undefined;
+  }
+  const [, year, month, day, hour, minute, second = '00'] = match;
+  const localDate = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second),
+  );
+  if (Number.isNaN(localDate.getTime())) {
+    return undefined;
+  }
+  const offsetMinutes = -localDate.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const offsetHours = `${Math.floor(Math.abs(offsetMinutes) / 60)}`.padStart(2, '0');
+  const offsetRemainMinutes = `${Math.abs(offsetMinutes) % 60}`.padStart(2, '0');
+  return `${year}-${month}-${day}T${hour}:${minute}:${second}${sign}${offsetHours}:${offsetRemainMinutes}`;
+}
 
 function normalizeRetentionOptions(rawValue: string | undefined) {
   if (!rawValue) {
@@ -96,6 +128,9 @@ const LoginLogList: React.FC = () => {
   const [queryForm] = Form.useForm<LoginLogQuery>();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
   const [retentionDays, setRetentionDays] = useState<number>(30);
+  const [cleanupMode, setCleanupMode] = useState<GovernanceCleanupMode>('retention');
+  const [cleanupRangeStart, setCleanupRangeStart] = useState('');
+  const [cleanupRangeEnd, setCleanupRangeEnd] = useState('');
   const [retentionOptions, setRetentionOptions] = useState<number[]>(() =>
     [...defaultRetentionOptions].sort((left, right) => right - left),
   );
@@ -108,7 +143,6 @@ const LoginLogList: React.FC = () => {
         const result: LoginLogPageResp = await getAdminLoginLogList(nextQuery);
         setData(result.items);
         setTotal(result.total);
-        setSelectedRowKeys([]);
       } catch {
         setLoadFailed(true);
         message.error(t('common.loadFailed'));
@@ -144,6 +178,7 @@ const LoginLogList: React.FC = () => {
 
   const search = () => {
     const values = queryForm.getFieldsValue();
+    setSelectedRowKeys([]);
     setQuery({
       ...query,
       ...values,
@@ -153,6 +188,7 @@ const LoginLogList: React.FC = () => {
 
   const reset = () => {
     queryForm.setFieldsValue(emptyQuery);
+    setSelectedRowKeys([]);
     setQuery(emptyQuery);
   };
 
@@ -165,9 +201,24 @@ const LoginLogList: React.FC = () => {
   };
 
   const handleCleanup = async () => {
-    const resp = await cleanupAdminLoginLogs({ retentionDays });
-    message.success(t('auth.loginLog.cleanupSuccess', { count: resp.clearedCount }));
-    void loadData();
+    if (cleanupMode === 'range' && (!cleanupRangeStart || !cleanupRangeEnd)) {
+      message.warning(t('common.cleanupRangeRequired'));
+      return;
+    }
+    try {
+      const resp = await cleanupAdminLoginLogs(
+        cleanupMode === 'range'
+          ? {
+              startedAt: toCleanupTimestamp(cleanupRangeStart),
+              endedAt: toCleanupTimestamp(cleanupRangeEnd),
+            }
+          : { retentionDays },
+      );
+      message.success(t('auth.loginLog.cleanupSuccess', { count: resp.clearedCount }));
+      void loadData();
+    } catch {
+      message.error(t('common.actionFailed'));
+    }
   };
 
   const handleBatchDelete = async () => {
@@ -175,10 +226,14 @@ const LoginLogList: React.FC = () => {
       message.warning(t('common.batchSelectionRequired'));
       return;
     }
-    const resp = await batchDeleteAdminLoginLogs({ ids: selectedRowKeys });
-    message.success(t('auth.loginLog.batchDeleteSuccess', { count: resp.deletedCount }));
-    setSelectedRowKeys([]);
-    void loadData();
+    try {
+      const resp = await batchDeleteAdminLoginLogs({ ids: selectedRowKeys });
+      message.success(t('auth.loginLog.batchDeleteSuccess', { count: resp.deletedCount }));
+      setSelectedRowKeys([]);
+      void loadData();
+    } catch {
+      message.error(t('common.actionFailed'));
+    }
   };
 
   const translateLogMessage = (value?: string | null) => {
@@ -190,6 +245,10 @@ const LoginLogList: React.FC = () => {
 
   const successCount = data.filter((item) => item.status === 1).length;
   const failedCount = data.filter((item) => item.status !== 1).length;
+  const visibleSelectedRowKeys = useMemo(
+    () => getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.id)),
+    [data, selectedRowKeys],
+  );
   const heroStats = useMemo(
     () => [
       {
@@ -259,6 +318,7 @@ const LoginLogList: React.FC = () => {
     {
       title: t('auth.loginLog.failureReason'),
       dataIndex: 'msg',
+      width: TABLE_COLUMN_WIDTH.diagnostics,
       ellipsis: true,
       render: (value: string) => translateLogMessage(value),
     },
@@ -271,67 +331,54 @@ const LoginLogList: React.FC = () => {
   ];
 
   const handleExport = async () => {
+    if (selectedRowKeys.length > 0) {
+      const selectedRows = data.filter((item) => selectedRowKeys.includes(item.id));
+      if (selectedRows.length !== selectedRowKeys.length) {
+        message.warning(
+          t('common.exportCurrentPageSelectionOnly', {
+            defaultValue: '已选记录包含跨页项，请切回对应页面后再导出。',
+          }),
+        );
+        return;
+      }
+      exportSelectedAdminLoginLogs(selectedRows);
+      return;
+    }
     await exportAdminLoginLogs(query);
   };
 
   return (
     <PageContainer>
-      <PageHeader
-        title={t('system.menu.loginLog')}
-        extra={
-          <ListHeaderActions
-            utility={
-              <>
-                <GovernanceRailToggleButton
-                  expanded={governanceRail.expanded}
-                  onToggle={governanceRail.toggle}
-                >
-                  {t('auth.loginLog.hero.summaryTitle')}
-                </GovernanceRailToggleButton>
-                <Button
-                  icon={<IconDownload />}
-                  onClick={() => {
-                    void handleExport();
-                  }}
-                  disabled={!canExport}
-                >
-                  {t('common.export')}
-                </Button>
-              </>
-            }
-          />
-        }
-      />
-      <Space direction="vertical" size={16} className="system-page-template">
-        <Card className="page-panel system-page-hero system-list__hero auth-log-list__hero">
-          <div className="system-page-hero__top">
-            <div className="system-page-hero__copy">
-              <span className="system-page-hero__eyebrow">{t('auth.loginLog.hero.eyebrow')}</span>
-              <Typography.Title heading={5} className="system-page-hero__title">
-                {t('auth.loginLog.hero.title')}
-              </Typography.Title>
-            </div>
-          </div>
-          <div className="system-page-kpi-grid">
-            {heroStats.map((item) => (
-              <div key={item.key} className="system-page-kpi">
-                <span className="system-page-kpi__label">{item.label}</span>
-                <span className="system-page-kpi__value">{item.value}</span>
-                <span className="system-page-kpi__hint">{item.hint}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
+      <Space direction="vertical" size={16} className="system-page-template auth-login-log-page">
+        <GovernanceSummaryBar
+          className="auth-login-log-page__hero"
+          eyebrow={t('auth.loginLog.hero.eyebrow')}
+          title={t('auth.loginLog.hero.title')}
+          description={t('auth.loginLog.hero.desc')}
+          metrics={heroStats.slice(0, 3).map((item) => ({
+            key: item.key,
+            label: item.label,
+            value: item.value,
+          }))}
+          action={
+            <GovernanceRailToggleButton
+              expanded={governanceRail.expanded}
+              onToggle={governanceRail.toggle}
+            >
+              {t('auth.loginLog.hero.summaryTitle')}
+            </GovernanceRailToggleButton>
+          }
+        />
         <>
           <FilterPanel>
             <Form form={queryForm} layout="vertical" onSubmit={() => search()}>
-              <Row gutter={16} className="auth-filter-grid">
-                <Col xs={24} md={12} lg={8}>
+              <Row gutter={16} className="auth-filter-grid auth-login-log-page__filter-grid">
+                <Col xs={24} md={12} lg={6}>
                   <FormItem label={t('system.user.username')} field="username">
                     <Input onPressEnter={() => queryForm.submit()} />
                   </FormItem>
                 </Col>
-                <Col xs={24} md={12} lg={6}>
+                <Col xs={24} md={12} lg={4}>
                   <FormItem label={t('auth.loginLog.status')} field="status">
                     <Select
                       allowClear
@@ -342,8 +389,8 @@ const LoginLogList: React.FC = () => {
                     />
                   </FormItem>
                 </Col>
-                <Col xs={24} md={24} lg={10}>
-                  <FormItem className="filter-panel__action-item">
+                <Col xs={24} md={24} lg={5}>
+                  <FormItem className="filter-panel__action-item auth-login-log-page__filter-actions">
                     <Space>
                       <Button type="primary" htmlType="submit" icon={<IconSearch />}>
                         {t('common.search')}
@@ -356,72 +403,93 @@ const LoginLogList: React.FC = () => {
             </Form>
           </FilterPanel>
 
-          <Card className="page-panel system-list__table-card">
-            {(canClear || canDelete) && (
-              <div>
-                <GovernanceCleanupBar
-                  showCleanup={canClear}
-                  retentionDays={retentionDays}
-                  retentionOptions={retentionOptions}
-                  onRetentionChange={setRetentionDays}
-                  retentionLabel={(option) => t('common.keepRecentDays', { count: option })}
-                  confirmTitle={t('auth.loginLog.cleanupConfirm', { count: retentionDays })}
-                  actionLabel={t('common.cleanupLogs')}
-                  onConfirm={() => {
-                    void handleCleanup();
+          <Card className="page-panel system-list__table-card auth-login-log-page__table-card">
+            <GovernanceCleanupBar
+              showCleanup={canClear}
+              retentionDays={retentionDays}
+              retentionOptions={retentionOptions}
+              onRetentionChange={setRetentionDays}
+              retentionLabel={(option) => t('common.keepRecentDays', { count: option })}
+              cleanupMode={cleanupMode}
+              onCleanupModeChange={setCleanupMode}
+              cleanupModeLabel={t('common.cleanupMode')}
+              cleanupModeOptions={[
+                { label: t('common.cleanupModeRetention'), value: 'retention' },
+                { label: t('common.cleanupModeRange'), value: 'range' },
+              ]}
+              rangeStart={cleanupRangeStart}
+              rangeEnd={cleanupRangeEnd}
+              onRangeStartChange={setCleanupRangeStart}
+              onRangeEndChange={setCleanupRangeEnd}
+              rangeStartLabel={t('common.cleanupRangeStart')}
+              rangeEndLabel={t('common.cleanupRangeEnd')}
+              confirmTitle={
+                cleanupMode === 'range'
+                  ? t('common.cleanupRangeConfirm')
+                  : t('auth.loginLog.cleanupConfirm', { count: retentionDays })
+              }
+              actionLabel={t('common.cleanupLogs')}
+              onConfirm={() => {
+                void handleCleanup();
+              }}
+              hint={t('auth.loginLog.hero.cleanupHint')}
+              trailing={
+                <Button
+                  icon={<IconDownload />}
+                  onClick={() => {
+                    void handleExport();
                   }}
-                  hint={t('auth.loginLog.hero.cleanupHint')}
-                  extraActions={
-                    <>
-                      <Typography.Text type="secondary">
-                        {t('common.selectedCount', { count: selectedRowKeys.length })}
-                      </Typography.Text>
-                      <Button
-                        type="text"
-                        size="small"
-                        disabled={selectedRowKeys.length === 0}
-                        onClick={() => {
-                          if (selectedRowKeys.length === 0) {
-                            return;
-                          }
-                          setSelectedRowKeys([]);
-                          message.success(t('common.clearSelectionSuccess'));
+                  disabled={!canExport}
+                >
+                  {t('common.export')}
+                </Button>
+              }
+              extraActions={
+                canDelete ? (
+                  <>
+                    <Typography.Text type="secondary">
+                      {t('common.selectedCount', { count: selectedRowKeys.length })}
+                    </Typography.Text>
+                    <Button
+                      type="text"
+                      size="small"
+                      disabled={selectedRowKeys.length === 0}
+                      onClick={() => {
+                        if (selectedRowKeys.length === 0) {
+                          return;
+                        }
+                        setSelectedRowKeys([]);
+                        message.success(t('common.clearSelectionSuccess'));
+                      }}
+                    >
+                      {t('common.clearSelection')}
+                    </Button>
+                    <PermissionAction
+                      allowed={canDelete}
+                      tooltip={t('common.noPermissionAction')}
+                    >
+                      <Popconfirm
+                        disabled={selectedRowKeys.length === 0 || !canDelete}
+                        title={t('auth.loginLog.batchDeleteConfirm', {
+                          count: selectedRowKeys.length,
+                        })}
+                        onOk={() => {
+                          void handleBatchDelete();
                         }}
                       >
-                        {t('common.clearSelection')}
-                      </Button>
-                      <PermissionAction
-                        allowed={canDelete}
-                        tooltip={t('common.noPermissionAction')}
-                      >
-                        <Popconfirm
+                        <Button
+                          status="danger"
+                          icon={<IconDelete />}
                           disabled={selectedRowKeys.length === 0 || !canDelete}
-                          title={t('auth.loginLog.batchDeleteConfirm', {
-                            count: selectedRowKeys.length,
-                          })}
-                          onOk={() => {
-                            void handleBatchDelete();
-                          }}
                         >
-                          <Button
-                            status="danger"
-                            icon={<IconDelete />}
-                            disabled={selectedRowKeys.length === 0 || !canDelete}
-                          >
-                            {t('common.deleteSelected')}
-                          </Button>
-                        </Popconfirm>
-                      </PermissionAction>
-                      {!canDelete ? (
-                        <Typography.Text type="secondary">
-                          {t('common.batchActionPermissionHint')}
-                        </Typography.Text>
-                      ) : null}
-                    </>
-                  }
-                />
-              </div>
-            )}
+                          {t('common.deleteSelected')}
+                        </Button>
+                      </Popconfirm>
+                    </PermissionAction>
+                  </>
+                ) : undefined
+              }
+            />
             {loading && data.length === 0 ? <PageLoading /> : null}
             {loadFailed && !loading ? (
               <PageError
@@ -438,31 +506,32 @@ const LoginLogList: React.FC = () => {
                 data={data}
                 columns={columns}
                 loading={loading}
-                scroll={{ x: 1120 }}
+                scroll={{ x: 'max-content' }}
                 onChange={handleTableChange}
                 emptyText={t('auth.loginLog.empty')}
                 rowSelection={
                   canDelete
                     ? {
                         type: 'checkbox',
-                        selectedRowKeys,
-                        onChange: (keys) => setSelectedRowKeys(keys as number[]),
+                        selectedRowKeys: visibleSelectedRowKeys,
+                        checkCrossPage: true,
+                        preserveSelectedRowKeys: true,
+                        onChange: (keys) =>
+                          setSelectedRowKeys((currentKeys) =>
+                            mergeCrossPageSelection(
+                              currentKeys,
+                              keys as number[],
+                              data.map((item) => item.id),
+                            ) as number[],
+                          ),
                       }
                     : undefined
                 }
-                pagination={
-                  {
-                    current: query.page || emptyQuery.page,
-                    pageSize: query.pageSize || emptyQuery.pageSize,
-                    total,
-                    showJumper: true,
-                    pageSizeChangeResetCurrent: false,
-                    sizeCanChange: true,
-                    sizeOptions: [10, 20, 50, 100],
-                    size: 'small',
-                    showTotal: (count: number) => t('common.total', { count }),
-                  } as PaginationProps
-                }
+                pagination={buildStandardPagination(t, {
+                  current: query.page || emptyQuery.page,
+                  pageSize: query.pageSize || emptyQuery.pageSize,
+                  total,
+                })}
               />
             )}
           </Card>

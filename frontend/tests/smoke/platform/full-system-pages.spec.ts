@@ -3,6 +3,7 @@ import {
   adminCredentials,
   installClientSession,
   loginByApi,
+  primeChineseLocale,
 } from '../helpers/auth';
 
 type ViewportCase = {
@@ -14,7 +15,13 @@ type ViewportCase = {
 type SmokePage = {
   path: string;
   title: string;
-  layer: 'platform' | 'system/auth' | 'system/iam' | 'system/org' | 'system/config';
+  layer:
+    | 'platform'
+    | 'system/lowcode'
+    | 'system/auth'
+    | 'system/iam'
+    | 'system/org'
+    | 'system/config';
 };
 
 const viewportCases: ViewportCase[] = [
@@ -40,8 +47,8 @@ const smokePages: SmokePage[] = [
   { layer: 'system/config', path: '/system/dict', title: '字典管理' },
   { layer: 'system/config', path: '/system/setting', title: '系统设置' },
   { layer: 'system/config', path: '/system/i18n', title: '国际化管理' },
-  { layer: 'system/config', path: '/system/modules', title: '模块注册表' },
-  { layer: 'system/config', path: '/system/generator', title: '模块生成器' },
+  { layer: 'system/lowcode', path: '/system/modules', title: '模块注册表' },
+  { layer: 'system/lowcode', path: '/system/generator', title: '模块生成器' },
 ];
 
 function collectRuntimeErrors(page: Page) {
@@ -100,8 +107,9 @@ test.describe('full system page smoke', () => {
 
       test(`login page renders on ${viewport.key}`, async ({ page }) => {
         const errors = collectRuntimeErrors(page);
+        await primeChineseLocale(page);
         await page.goto('/login', { waitUntil: 'domcontentloaded' });
-        await expect(page.getByRole('button', { name: /登录|Sign In/i })).toBeVisible();
+        await expect(page.getByRole('button', { name: '登录' })).toBeVisible();
         await expect(page.locator('input[type="password"]')).toBeVisible();
         expect(errors).toEqual([]);
       });
@@ -114,7 +122,9 @@ test.describe('full system page smoke', () => {
 
           await page.goto(smokePage.path, { waitUntil: 'domcontentloaded' });
 
-          await expect(page).toHaveURL(new RegExp(`${smokePage.path.replace(/\//g, '\\/')}$`));
+          await expect(page).toHaveURL(
+            new RegExp(`${smokePage.path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`),
+          );
           await expectVisiblePageTitle(page, smokePage.title);
           await expect(page.locator('#root')).not.toBeEmpty();
           await expectNoBrokenState(page);

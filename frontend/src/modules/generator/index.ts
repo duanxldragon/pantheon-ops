@@ -1,10 +1,6 @@
 /**
- * 模块生成器 - 入口文件
- *
- * 导出所有生成器类和工具函数
+ * 兼容旧导入路径的生成器工具导出。
  */
-
-import { defineModule } from '../../core/router/types';
 
 // Schema 定义
 export {
@@ -55,33 +51,3 @@ export { FrontendGenerator } from './frontend-generator';
 
 // 导出器
 export { ModuleExporter, type GeneratedFile } from './exporter';
-
-export const GeneratorModule = defineModule({
-  name: 'generator',
-  scope: 'system',
-  routes: [
-    {
-      path: 'system/generator',
-      routeName: 'system-generator',
-      titleKey: 'system.menu.generator',
-      icon: 'code',
-      pagePermission: 'system:generator:use',
-      componentKey: 'system/generator/ModuleWizard',
-    },
-  ],
-  menus: [
-    {
-      path: '/system/generator',
-      titleKey: 'system.menu.generator',
-      icon: 'code',
-      routeName: 'system-generator',
-      module: 'system.config',
-    },
-  ],
-  permissions: [
-    'system:generator:use',
-    'system:module:generate',
-    'system:generator:datasource:manage',
-  ],
-  i18nNamespaces: ['generator', 'system.menu'],
-});

@@ -107,14 +107,9 @@ func (s *PermissionService) CreatePolicy(req *PermissionPolicyCreateReq) (*Permi
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
 	}
-	roleKey, path, method, err := s.validatePolicyCreatePayload(req.RoleKey, req.Path, req.Method)
+	roleKey, path, method, err := s.validatePolicyPayload(0, req.RoleKey, req.Path, req.Method)
 	if err != nil {
 		return nil, err
-	}
-	if existing, ok, err := s.findExistingPolicy(roleKey, path, method); err != nil {
-		return nil, err
-	} else if ok {
-		return existing, nil
 	}
 
 	policy := database.CasbinRule{
@@ -607,39 +602,6 @@ func (s *PermissionService) validatePolicyPayload(policyID uint64, roleKey strin
 		return "", "", "", err
 	}
 	return roleKey, path, method, nil
-}
-
-func (s *PermissionService) validatePolicyCreatePayload(roleKey string, path string, method string) (string, string, string, error) {
-	roleKey = strings.TrimSpace(roleKey)
-	path = strings.TrimSpace(path)
-	method = normalizePolicyMethod(method)
-	if roleKey == "" || path == "" || method == "" {
-		return "", "", "", errors.New("param.invalid")
-	}
-	if err := s.ensureRoleKeyExists(roleKey); err != nil {
-		return "", "", "", err
-	}
-	return roleKey, path, method, nil
-}
-
-func (s *PermissionService) findExistingPolicy(roleKey string, path string, method string) (*PermissionPolicyResp, bool, error) {
-	var policy database.CasbinRule
-	err := s.db.Model(&database.CasbinRule{}).
-		Where("ptype = ? AND v0 = ? AND v1 = ? AND v2 = ?", "p", roleKey, path, method).
-		First(&policy).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, false, nil
-	}
-	if err != nil {
-		return nil, false, err
-	}
-	return &PermissionPolicyResp{
-		ID:      policy.ID,
-		PType:   policy.PType,
-		RoleKey: policy.V0,
-		Path:    policy.V1,
-		Method:  policy.V2,
-	}, true, nil
 }
 
 func (s *PermissionService) ensureRoleKeyExists(roleKey string) error {

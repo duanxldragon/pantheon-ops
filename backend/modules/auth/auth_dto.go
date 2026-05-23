@@ -124,25 +124,30 @@ type SecurityPolicyResp struct {
 }
 
 type SecurityEventQuery struct {
-	Username  string `form:"username" json:"username"`
-	EventType string `form:"eventType" json:"eventType"`
-	Severity  string `form:"severity" json:"severity"`
-	Page      int    `form:"page" json:"page"`
-	PageSize  int    `form:"pageSize" json:"pageSize"`
+	Username     string `form:"username" json:"username"`
+	EventType    string `form:"eventType" json:"eventType"`
+	Severity     string `form:"severity" json:"severity"`
+	Acknowledged *bool  `form:"acknowledged" json:"acknowledged"`
+	Page         int    `form:"page" json:"page"`
+	PageSize     int    `form:"pageSize" json:"pageSize"`
 }
 
 type SecurityEventResp struct {
-	ID         uint64 `json:"id"`
-	UserID     uint64 `json:"userId"`
-	Username   string `json:"username"`
-	EventType  string `json:"eventType"`
-	Severity   string `json:"severity"`
-	SourceKey  string `json:"sourceKey"`
-	IP         string `json:"ip"`
-	UserAgent  string `json:"userAgent"`
-	MessageKey string `json:"messageKey"`
-	Metadata   string `json:"metadata"`
-	CreatedAt  string `json:"createdAt"`
+	ID                  uint64  `json:"id"`
+	UserID              uint64  `json:"userId"`
+	Username            string  `json:"username"`
+	EventType           string  `json:"eventType"`
+	Severity            string  `json:"severity"`
+	SourceKey           string  `json:"sourceKey"`
+	IP                  string  `json:"ip"`
+	UserAgent           string  `json:"userAgent"`
+	MessageKey          string  `json:"messageKey"`
+	Metadata            string  `json:"metadata"`
+	AcknowledgedAt      *string `json:"acknowledgedAt"`
+	AcknowledgedBy      uint64  `json:"acknowledgedBy"`
+	AcknowledgedByUser  string  `json:"acknowledgedByUser"`
+	AcknowledgementNote string  `json:"acknowledgementNote"`
+	CreatedAt           string  `json:"createdAt"`
 }
 
 type SecurityEventPageResp struct {
@@ -161,7 +166,9 @@ type LoginLogQuery struct {
 }
 
 type LoginLogCleanupReq struct {
-	RetentionDays int `json:"retentionDays"`
+	RetentionDays int    `json:"retentionDays"`
+	StartedAt     string `json:"startedAt"`
+	EndedAt       string `json:"endedAt"`
 }
 
 type LoginLogBatchDeleteReq struct {
@@ -193,11 +200,21 @@ type LoginLogCleanupResp struct {
 }
 
 type SessionCleanupReq struct {
-	RetentionDays int `json:"retentionDays"`
+	RetentionDays int    `json:"retentionDays"`
+	StartedAt     string `json:"startedAt"`
+	EndedAt       string `json:"endedAt"`
+}
+
+type SessionBatchRevokeReq struct {
+	SessionIDs []string `json:"sessionIds"`
 }
 
 type SessionCleanupResp struct {
 	ClearedCount int64 `json:"clearedCount"`
+}
+
+type SecurityEventAcknowledgeReq struct {
+	AcknowledgementNote string `json:"acknowledgementNote"`
 }
 
 // AdminSessionQuery 管理员会话查询

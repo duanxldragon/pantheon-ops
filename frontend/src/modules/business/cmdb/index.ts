@@ -5,28 +5,28 @@ export const CmdbModule = defineModule({
   scope: 'business',
   routes: [
     {
-      path: '/operations/cmdb/host',
+      path: 'operations/cmdb/host',
       routeName: 'cmdb-host-list',
       titleKey: 'operations.cmdb.host.menu',
       componentKey: 'business/cmdb/host/CmdbHostList',
       pagePermission: 'business:cmdb:host:list',
     },
     {
-      path: '/operations/cmdb/host/:id',
+      path: 'operations/cmdb/host/:id',
       routeName: 'cmdb-host-detail',
       titleKey: 'operations.cmdb.host.detail',
       componentKey: 'business/cmdb/host/CmdbHostDetail',
       pagePermission: 'business:cmdb:host:detail',
     },
     {
-      path: '/operations/cmdb/group',
+      path: 'operations/cmdb/group',
       routeName: 'cmdb-group-list',
       titleKey: 'operations.cmdb.group.menu',
       componentKey: 'business/cmdb/group/CmdbGroupList',
       pagePermission: 'business:cmdb:group:list',
     },
     {
-      path: '/operations/cmdb/label',
+      path: 'operations/cmdb/label',
       routeName: 'cmdb-label-list',
       titleKey: 'operations.cmdb.label.menu',
       componentKey: 'business/cmdb/label/CmdbLabelSchemaList',

@@ -1004,7 +1004,7 @@
 }
 
 .app-shell__preference-panel {
-  width: 340px;
+  width: min(392px, calc(100vw - 32px));
   padding: 12px;
   border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
   border-radius: 14px;
@@ -1361,7 +1361,7 @@
 }
 
 .app-shell__notice-panel {
-  width: 300px;
+  width: min(392px, calc(100vw - 32px));
   padding: 10px;
   border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
   border-radius: 12px;
@@ -1793,7 +1793,7 @@
   }
 
   .app-shell__preference-panel {
-    width: min(340px, calc(100vw - 32px));
+    width: min(392px, calc(100vw - 32px));
   }
 }
 

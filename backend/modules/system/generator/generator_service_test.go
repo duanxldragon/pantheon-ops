@@ -1,6 +1,14 @@
 package generator
 
-import "testing"
+import (
+	"archive/zip"
+	"bytes"
+	"os"
+	"path/filepath"
+	"testing"
+
+	"pantheon-ops/backend/internal/scaffold"
+)
 
 func TestSuggestModuleNameMatchesScopeConventions(t *testing.T) {
 	tests := []struct {
@@ -97,20 +105,18 @@ func TestNormalizeDatasourceReqRejectsUnsafeHosts(t *testing.T) {
 	tests := []struct {
 		name      string
 		host      string
-		envValue  string
 		wantError string
 	}{
 		{name: "reject localhost", host: "localhost", wantError: "generator.datasource.host_invalid"},
 		{name: "reject loopback ip", host: "127.0.0.1", wantError: "generator.datasource.host_invalid"},
-		{name: "reject private ip by default", host: "10.10.10.10", wantError: "generator.datasource.host_private_disabled"},
+		{name: "allow private ip", host: "10.10.10.10"},
+		{name: "allow internal hostname", host: "db.internal"},
 		{name: "reject invalid host chars", host: "db/internal", wantError: "generator.datasource.host_invalid"},
-		{name: "allow private ip with env", host: "10.10.10.10", envValue: "true"},
 		{name: "allow public hostname", host: "db.example.com"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Setenv("PANTHEON_ALLOW_PRIVATE_GENERATOR_DATASOURCE", tt.envValue)
 			_, err := normalizeDatasourceReq(&UpsertGeneratorDatasourceReq{
 				Name:         "demo",
 				Driver:       "mysql",
@@ -130,5 +136,79 @@ func TestNormalizeDatasourceReqRejectsUnsafeHosts(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestBuildGeneratedModuleArchiveUsesServerSideFiles(t *testing.T) {
+	root := t.TempDir()
+	for _, dir := range []string{"backend", "frontend"} {
+		if err := os.MkdirAll(filepath.Join(root, dir), 0o755); err != nil {
+			t.Fatalf("mkdir %s: %v", dir, err)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module pantheon-ops\n"), 0o644); err != nil {
+		t.Fatalf("write go.mod: %v", err)
+	}
+
+	scriptDir := filepath.Join(root, "frontend", "scripts")
+	if err := os.MkdirAll(scriptDir, 0o755); err != nil {
+		t.Fatalf("mkdir script dir: %v", err)
+	}
+	script := `const files = [
+  {
+    path: 'backend/modules/business/cmdb/host/module.go',
+    content: 'package host\n',
+    language: 'go',
+  },
+  {
+    path: 'frontend/src/modules/business/cmdb/host/index.ts',
+    content: 'export const CmdbHostModule = {}\n',
+    language: 'typescript',
+  },
+];
+process.stdout.write(JSON.stringify(files));
+`
+	if err := os.WriteFile(filepath.Join(scriptDir, "export-generated-module.mjs"), []byte(script), 0o644); err != nil {
+		t.Fatalf("write exporter script: %v", err)
+	}
+
+	service := &GeneratorService{workspaceRoot: root}
+	archive, filename, err := service.BuildGeneratedModuleArchive(&scaffold.ModuleSchema{
+		Name:        "cmdb/host",
+		Scope:       "business",
+		DisplayName: "主机管理",
+		Model: struct {
+			TableName string                 `json:"tableName"`
+			ModelName string                 `json:"modelName"`
+			Fields    []scaffold.ModuleField `json:"fields"`
+		}{
+			TableName: "biz_cmdb_host",
+		},
+	})
+	if err != nil {
+		t.Fatalf("build generated archive: %v", err)
+	}
+	if filename != "cmdb-host-module.zip" {
+		t.Fatalf("unexpected filename: %s", filename)
+	}
+
+	reader, err := zip.NewReader(bytes.NewReader(archive), int64(len(archive)))
+	if err != nil {
+		t.Fatalf("open generated archive: %v", err)
+	}
+	if len(reader.File) != 2 {
+		t.Fatalf("expected 2 files in archive, got %d", len(reader.File))
+	}
+	paths := map[string]struct{}{}
+	for _, file := range reader.File {
+		paths[file.Name] = struct{}{}
+	}
+	for _, path := range []string{
+		"backend/modules/business/cmdb/host/module.go",
+		"frontend/src/modules/business/cmdb/host/index.ts",
+	} {
+		if _, ok := paths[path]; !ok {
+			t.Fatalf("expected archive to contain %s, got %#v", path, paths)
+		}
 	}
 }

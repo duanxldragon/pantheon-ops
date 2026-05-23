@@ -1,11 +1,16 @@
 package dynamicmodule
 
 import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"pantheon-ops/backend/pkg/testmysql"
 
@@ -25,6 +30,16 @@ func TestRegisterGeneratedModuleBusinessOnly(t *testing.T) {
 
 	if _, _, _, err := service.RegisterGeneratedModule(req); err == nil || err.Error() != "module.generate.business_only" {
 		t.Fatalf("expected business-only error, got %v", err)
+	}
+}
+
+func TestNewDynamicModuleServiceHonorsConfiguredWorkspaceRoot(t *testing.T) {
+	workspaceRoot := prepareDynamicModuleWorkspace(t)
+	t.Setenv("PANTHEON_WORKSPACE_ROOT", workspaceRoot)
+
+	service := NewDynamicModuleService(nil)
+	if service.workspaceRoot != workspaceRoot {
+		t.Fatalf("expected workspace root %s, got %s", workspaceRoot, service.workspaceRoot)
 	}
 }
 
@@ -50,7 +65,7 @@ func TestRegisterGeneratedModuleWritesRegistries(t *testing.T) {
 	if registration.Status != ModuleStatusPendingActivation {
 		t.Fatalf("unexpected module status: %d", registration.Status)
 	}
-	if len(writtenFiles) != 4 {
+	if len(writtenFiles) != 5 {
 		t.Fatalf("unexpected written file count: %d", len(writtenFiles))
 	}
 	if summary == nil {
@@ -76,6 +91,7 @@ func TestRegisterGeneratedModuleWritesRegistries(t *testing.T) {
 	assertFileContains(t, filepath.Join(workspaceRoot, "backend", "modules", "business", "generated_registry.go"), "ticket.InitTicketModule")
 	assertFileContains(t, filepath.Join(workspaceRoot, "frontend", "src", "modules", "generated", "business.ts"), "TicketModule")
 	assertFileContains(t, filepath.Join(workspaceRoot, "frontend", "src", "core", "router", "generatedComponentRegistry.ts"), "'business/ticket/TicketList'")
+	assertFileContains(t, filepath.Join(workspaceRoot, "frontend", "src", "core", "router", "generatedComponentRegistry.ts"), "'business/ticket/TicketDetail'")
 }
 
 func TestRegisterGeneratedModulePersistsActivationDiagnostics(t *testing.T) {
@@ -111,6 +127,204 @@ func TestRegisterGeneratedModulePersistsActivationDiagnostics(t *testing.T) {
 	}
 	if !strings.Contains(registration.LastVerificationResult, `"code":"backend_registry"`) {
 		t.Fatalf("expected backend registry verification result, got %s", registration.LastVerificationResult)
+	}
+}
+
+func TestRegisterGeneratedModulePersistsAutoRecycleFlag(t *testing.T) {
+	db := openDynamicModuleTestDB(t)
+	workspaceRoot := prepareDynamicModuleWorkspace(t)
+
+	service := &DynamicModuleService{
+		db:            db,
+		workspaceRoot: workspaceRoot,
+	}
+
+	req := newGeneratedModuleRequest("business", "qaticket", "QA 工单", "biz_qa_ticket")
+	req.Schema.Metadata.AutoRecycle = true
+
+	if _, _, _, err := service.RegisterGeneratedModule(req); err != nil {
+		t.Fatalf("register generated module: %v", err)
+	}
+
+	var registration ModuleRegistration
+	if err := db.Where("name = ?", "business.qaticket").First(&registration).Error; err != nil {
+		t.Fatalf("load registration: %v", err)
+	}
+	if !registration.AutoRecycle {
+		t.Fatal("expected auto recycle flag to be persisted")
+	}
+}
+
+func TestGenerateAndRegisterModuleHandlerPersistsAutoRecycleMetadata(t *testing.T) {
+	db := openDynamicModuleTestDB(t)
+	workspaceRoot := prepareDynamicModuleWorkspace(t)
+
+	service := &DynamicModuleService{
+		db:            db,
+		workspaceRoot: workspaceRoot,
+	}
+	handler := NewDynamicModuleHandler(service)
+
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	router.POST("/system/dynamic-modules/generate", handler.GenerateAndRegisterModule)
+
+	body := map[string]any{
+		"schema": map[string]any{
+			"name":        "autorecycletest",
+			"scope":       "business",
+			"displayName": "自动回收测试",
+			"metadata": map[string]any{
+				"owner":       "codex",
+				"autoRecycle": true,
+			},
+			"model": map[string]any{
+				"tableName": "biz_autorecycle_test",
+			},
+		},
+		"overwrite": true,
+	}
+	payload, err := json.Marshal(body)
+	if err != nil {
+		t.Fatalf("marshal request body: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/system/dynamic-modules/generate", bytes.NewReader(payload))
+	req.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200 response, got %d: %s", recorder.Code, recorder.Body.String())
+	}
+
+	var response struct {
+		Code int `json:"code"`
+		Data struct {
+			Module ModuleRegistration `json:"module"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if !response.Data.Module.AutoRecycle {
+		t.Fatal("expected handler response to preserve auto recycle flag")
+	}
+
+	var registration ModuleRegistration
+	if err := db.Where("name = ?", "business.autorecycletest").First(&registration).Error; err != nil {
+		t.Fatalf("load registration: %v", err)
+	}
+	if !registration.AutoRecycle {
+		t.Fatal("expected persisted registration to preserve auto recycle flag")
+	}
+
+	schema, err := service.GetManagedModuleSchema("business.autorecycletest")
+	if err != nil {
+		t.Fatalf("load generated schema: %v", err)
+	}
+	if !schema.Metadata.AutoRecycle {
+		t.Fatal("expected generated schema file to preserve auto recycle flag")
+	}
+}
+
+func TestListRegisteredModulesKeepsPendingGeneratedModulePendingBeforeActivationAudit(t *testing.T) {
+	db := openDynamicModuleTestDB(t)
+	workspaceRoot := prepareDynamicModuleWorkspace(t)
+
+	service := &DynamicModuleService{
+		db:            db,
+		workspaceRoot: workspaceRoot,
+	}
+
+	req := newGeneratedModuleRequest("business", "ticket", "工单管理", "biz_ticket")
+	if _, _, _, err := service.RegisterGeneratedModule(req); err != nil {
+		t.Fatalf("register generated module: %v", err)
+	}
+
+	modules, err := service.ListRegisteredModules()
+	if err != nil {
+		t.Fatalf("list registered modules: %v", err)
+	}
+
+	if len(modules) != 1 {
+		t.Fatalf("expected 1 module, got %d", len(modules))
+	}
+	if modules[0].Status != ModuleStatusPendingActivation {
+		t.Fatalf("expected module to stay pending before activation audit, got %d", modules[0].Status)
+	}
+}
+
+func TestAuditPendingGeneratedModuleActivationsPromotesModuleAfterRuntimeAndBundleSignals(t *testing.T) {
+	db := openDynamicModuleTestDB(t)
+	workspaceRoot := prepareDynamicModuleWorkspace(t)
+	mustCreateSystemMenuTable(t, db)
+
+	service := &DynamicModuleService{
+		db:            db,
+		workspaceRoot: workspaceRoot,
+	}
+
+	req := newGeneratedModuleRequest("business", "ticket", "工单管理", "biz_ticket")
+	if _, _, _, err := service.RegisterGeneratedModule(req); err != nil {
+		t.Fatalf("register generated module: %v", err)
+	}
+	mustInsertSystemMenuModule(t, db, "/business/ticket", "business.ticket")
+	mustWriteFile(t, filepath.Join(workspaceRoot, "frontend", "dist", "assets", "app.js"), "built")
+
+	summary, err := service.AuditPendingGeneratedModuleActivations()
+	if err != nil {
+		t.Fatalf("audit pending activations: %v", err)
+	}
+	if summary.ActivatedModules != 1 || summary.PendingModules != 0 {
+		t.Fatalf("unexpected activation summary: %+v", summary)
+	}
+
+	var registration ModuleRegistration
+	if err := db.Where("name = ?", "business.ticket").First(&registration).Error; err != nil {
+		t.Fatalf("load registration: %v", err)
+	}
+	if registration.Status != ModuleStatusActive {
+		t.Fatalf("expected module to be activated, got %d", registration.Status)
+	}
+	if !strings.Contains(registration.LastVerificationResult, `"code":"activation_ready"`) {
+		t.Fatalf("expected activation ready verification, got %s", registration.LastVerificationResult)
+	}
+}
+
+func TestAuditPendingGeneratedModuleActivationsKeepsModulePendingWhenFrontendBuildIsMissing(t *testing.T) {
+	db := openDynamicModuleTestDB(t)
+	workspaceRoot := prepareDynamicModuleWorkspace(t)
+	mustCreateSystemMenuTable(t, db)
+
+	service := &DynamicModuleService{
+		db:            db,
+		workspaceRoot: workspaceRoot,
+	}
+
+	req := newGeneratedModuleRequest("business", "ticket", "工单管理", "biz_ticket")
+	if _, _, _, err := service.RegisterGeneratedModule(req); err != nil {
+		t.Fatalf("register generated module: %v", err)
+	}
+	mustInsertSystemMenuModule(t, db, "/business/ticket", "business.ticket")
+
+	summary, err := service.AuditPendingGeneratedModuleActivations()
+	if err != nil {
+		t.Fatalf("audit pending activations: %v", err)
+	}
+	if summary.ActivatedModules != 0 || summary.PendingModules != 1 {
+		t.Fatalf("unexpected activation summary: %+v", summary)
+	}
+
+	var registration ModuleRegistration
+	if err := db.Where("name = ?", "business.ticket").First(&registration).Error; err != nil {
+		t.Fatalf("load registration: %v", err)
+	}
+	if registration.Status != ModuleStatusPendingActivation {
+		t.Fatalf("expected module to stay pending, got %d", registration.Status)
+	}
+	if !strings.Contains(registration.LastVerificationResult, `"code":"frontend_build_required"`) {
+		t.Fatalf("expected frontend build required verification, got %s", registration.LastVerificationResult)
 	}
 }
 
@@ -201,6 +415,46 @@ func TestRegisterGeneratedModuleBuildsGovernanceContractSummary(t *testing.T) {
 		t.Fatalf("unexpected contract relations: %+v", summary.Contract.Relations)
 	}
 	assertHasVerification(t, summary.Verifications, "contract_governance", "pass")
+}
+
+func TestGetManagedModuleSchemaLoadsGeneratedSchema(t *testing.T) {
+	db := openDynamicModuleTestDB(t)
+	workspaceRoot := prepareDynamicModuleWorkspace(t)
+
+	service := &DynamicModuleService{
+		db:            db,
+		workspaceRoot: workspaceRoot,
+	}
+
+	req := newGeneratedModuleRequest("business", "cmdb/change", "变更记录", "biz_cmdb_change")
+	req.Schema.Relations = []scaffold.ModuleRelation{{
+		Name:         "changeAsset",
+		Type:         "oneToMany",
+		TargetModule: "cmdb/asset",
+		LocalField:   "id",
+		TargetField:  "assetId",
+	}}
+
+	if _, _, _, err := service.RegisterGeneratedModule(req); err != nil {
+		t.Fatalf("register generated module: %v", err)
+	}
+
+	schema, err := service.GetManagedModuleSchema("business.cmdb.change")
+	if err != nil {
+		t.Fatalf("get managed module schema: %v", err)
+	}
+	if schema.Name != "cmdb/change" {
+		t.Fatalf("unexpected schema name: %s", schema.Name)
+	}
+	if schema.Scope != "business" {
+		t.Fatalf("unexpected schema scope: %s", schema.Scope)
+	}
+	if schema.Model.TableName != "biz_cmdb_change" {
+		t.Fatalf("unexpected schema table name: %s", schema.Model.TableName)
+	}
+	if len(schema.Relations) != 1 || schema.Relations[0].TargetField != "assetId" {
+		t.Fatalf("unexpected schema relations: %+v", schema.Relations)
+	}
 }
 
 func TestRegisterGeneratedModuleNormalizesExplicitParentMenu(t *testing.T) {
@@ -304,6 +558,7 @@ func TestSyncBuiltInModules_PromotesGeneratedSchemaToManagedModule(t *testing.T)
 	}
 	assertFileContains(t, filepath.Join(workspaceRoot, "backend", "modules", "business", "generated_registry.go"), "backend/modules/business/cmdb/host")
 	assertFileContains(t, filepath.Join(workspaceRoot, "frontend", "src", "core", "router", "generatedComponentRegistry.ts"), "business/cmdb/host/CmdbHostList")
+	assertFileContains(t, filepath.Join(workspaceRoot, "frontend", "src", "core", "router", "generatedComponentRegistry.ts"), "business/cmdb/host/CmdbHostDetail")
 }
 
 func TestSyncBuiltInModules_PreservesUninstalledManagedModuleAndRemovesRegistryRefs(t *testing.T) {
@@ -357,6 +612,71 @@ func TestSyncBuiltInModules_PreservesUninstalledManagedModuleAndRemovesRegistryR
 	}
 	assertFileNotContains(t, filepath.Join(workspaceRoot, "backend", "modules", "business", "generated_registry.go"), "business/asset")
 	assertFileNotContains(t, filepath.Join(workspaceRoot, "frontend", "src", "core", "router", "generatedComponentRegistry.ts"), "business/asset/AssetList")
+}
+
+func TestSyncBuiltInModules_NormalizesLegacyLowcodeAlias(t *testing.T) {
+	db := openDynamicModuleTestDB(t)
+	workspaceRoot := prepareDynamicModuleWorkspace(t)
+	mustWriteGeneratedRegistryStubs(t, workspaceRoot)
+	mustCreateSystemMenuTable(t, db)
+	mustCreateSystemI18nTable(t, db)
+	mustInsertSystemMenuModule(t, db, "/system/lowcode", "platform.lowcode")
+
+	legacy := ModuleRegistration{
+		Name:        "platform.lowcode",
+		DisplayName: "platform.lowcode",
+		Scope:       "platform",
+		Source:      "core",
+		Status:      ModuleStatusActive,
+		InstalledAt: "2026-05-20T00:00:00Z",
+	}
+	if err := db.Create(&legacy).Error; err != nil {
+		t.Fatalf("seed legacy registration: %v", err)
+	}
+	if err := db.Exec(`INSERT INTO system_i18n (module) VALUES ('platform.lowcode')`).Error; err != nil {
+		t.Fatalf("seed legacy i18n: %v", err)
+	}
+
+	service := &DynamicModuleService{
+		db:            db,
+		workspaceRoot: workspaceRoot,
+	}
+
+	if err := service.SyncBuiltInModules(); err != nil {
+		t.Fatalf("sync modules: %v", err)
+	}
+
+	var menuModule string
+	if err := db.Table("system_menu").Select("module").Where("path = ?", "/system/lowcode").Scan(&menuModule).Error; err != nil {
+		t.Fatalf("load repaired menu module: %v", err)
+	}
+	if menuModule != "system.lowcode" {
+		t.Fatalf("expected menu module to be normalized, got %s", menuModule)
+	}
+
+	var registration ModuleRegistration
+	if err := db.Where("name = ?", "system.lowcode").First(&registration).Error; err != nil {
+		t.Fatalf("load normalized registration: %v", err)
+	}
+	if registration.Scope != "system" {
+		t.Fatalf("expected normalized scope system, got %s", registration.Scope)
+	}
+
+	var legacyCount int64
+	if err := db.Model(&ModuleRegistration{}).Where("name = ?", "platform.lowcode").Count(&legacyCount).Error; err != nil {
+		t.Fatalf("count legacy registration: %v", err)
+	}
+	if legacyCount != 0 {
+		t.Fatalf("expected legacy registration removed, got %d", legacyCount)
+	}
+
+	var i18nCount int64
+	if err := db.Table("system_i18n").Where("module = ?", "system.lowcode").Count(&i18nCount).Error; err != nil {
+		t.Fatalf("count normalized i18n: %v", err)
+	}
+	if i18nCount != 1 {
+		t.Fatalf("expected normalized i18n row, got %d", i18nCount)
+	}
 }
 
 func TestRebuildGeneratedRegistries_SkipsMissingManagedSource(t *testing.T) {
@@ -631,6 +951,71 @@ func TestPurgeModuleAllowsBusinessStaticModuleWithoutTable(t *testing.T) {
 	}
 }
 
+func TestPurgeModuleAutoDropsTableForAutoRecycleManagedModule(t *testing.T) {
+	db := openDynamicModuleTestDB(t)
+	workspaceRoot := prepareDynamicModuleWorkspace(t)
+	mustWriteGeneratedRegistryStubs(t, workspaceRoot)
+	mustCreateManagedTable(t, db, "biz_tmp_asset")
+
+	registration := ModuleRegistration{
+		Name:           "business.tmpasset",
+		DisplayName:    "临时资产",
+		Scope:          "business",
+		Source:         "generated",
+		ModelTableName: "biz_tmp_asset",
+		Status:         ModuleStatusActive,
+		InstalledAt:    "2026-05-20T00:00:00Z",
+		AutoRecycle:    true,
+	}
+	if err := db.Create(&registration).Error; err != nil {
+		t.Fatalf("seed registration: %v", err)
+	}
+
+	service := &DynamicModuleService{
+		db:            db,
+		workspaceRoot: workspaceRoot,
+	}
+
+	if err := service.PurgeModule("business.tmpasset", false, false); err != nil {
+		t.Fatalf("purge managed module: %v", err)
+	}
+	if db.Migrator().HasTable("biz_tmp_asset") {
+		t.Fatal("expected managed table to be dropped automatically")
+	}
+}
+
+func TestPurgeModuleDoesNotDropTableForRegularManagedModuleWithoutExplicitDrop(t *testing.T) {
+	db := openDynamicModuleTestDB(t)
+	workspaceRoot := prepareDynamicModuleWorkspace(t)
+	mustWriteGeneratedRegistryStubs(t, workspaceRoot)
+	mustCreateManagedTable(t, db, "biz_keep_asset")
+
+	registration := ModuleRegistration{
+		Name:           "business.keepasset",
+		DisplayName:    "普通资产",
+		Scope:          "business",
+		Source:         "generated",
+		ModelTableName: "biz_keep_asset",
+		Status:         ModuleStatusActive,
+		InstalledAt:    "2026-05-20T00:00:00Z",
+	}
+	if err := db.Create(&registration).Error; err != nil {
+		t.Fatalf("seed registration: %v", err)
+	}
+
+	service := &DynamicModuleService{
+		db:            db,
+		workspaceRoot: workspaceRoot,
+	}
+
+	if err := service.PurgeModule("business.keepasset", false, false); err != nil {
+		t.Fatalf("purge managed module: %v", err)
+	}
+	if !db.Migrator().HasTable("biz_keep_asset") {
+		t.Fatal("expected managed table to be preserved without explicit drop")
+	}
+}
+
 func TestUnregisterModuleRejectsUnsafeManagedTableName(t *testing.T) {
 	db := openDynamicModuleTestDB(t)
 	workspaceRoot := prepareDynamicModuleWorkspace(t)
@@ -690,6 +1075,13 @@ func mustInsertSystemMenuPath(t *testing.T, db *gorm.DB, path string) {
 	}
 }
 
+func mustInsertSystemMenuModule(t *testing.T, db *gorm.DB, path string, module string) {
+	t.Helper()
+	if err := db.Exec(`INSERT INTO system_menu (path, type, module) VALUES (?, 'C', ?)`, path, module).Error; err != nil {
+		t.Fatalf("insert system_menu module %s: %v", module, err)
+	}
+}
+
 func mustCreateSystemRolePermissionTable(t *testing.T, db *gorm.DB) {
 	t.Helper()
 	if err := db.Exec(`CREATE TABLE system_role_permission (
@@ -711,6 +1103,13 @@ func mustCreateSystemI18nTable(t *testing.T, db *gorm.DB) {
 	}
 }
 
+func mustCreateManagedTable(t *testing.T, db *gorm.DB, tableName string) {
+	t.Helper()
+	if err := db.Exec("CREATE TABLE " + tableName + " (id BIGINT PRIMARY KEY AUTO_INCREMENT)").Error; err != nil {
+		t.Fatalf("create managed table %s: %v", tableName, err)
+	}
+}
+
 func prepareDynamicModuleWorkspace(t *testing.T) string {
 	t.Helper()
 
@@ -718,9 +1117,49 @@ func prepareDynamicModuleWorkspace(t *testing.T) string {
 	mustWriteFile(t, filepath.Join(root, "go.mod"), "module pantheon-ops\n\ngo 1.25.4\n")
 	mustMkdirAll(t, filepath.Join(root, "backend", "modules", "business"))
 	mustMkdirAll(t, filepath.Join(root, "backend", "modules", "system", "iam", "menu"))
+	mustMkdirAll(t, filepath.Join(root, "frontend", "scripts"))
 	mustMkdirAll(t, filepath.Join(root, "frontend", "src", "modules", "generated"))
 	mustMkdirAll(t, filepath.Join(root, "frontend", "src", "core", "router"))
 	mustMkdirAll(t, filepath.Join(root, "schema", "generated", "business"))
+	mustWriteFile(t, filepath.Join(root, "frontend", "scripts", "export-generated-module.mjs"), `import { readFileSync } from 'node:fs';
+
+function pascalCase(value) {
+  return String(value || '')
+    .split(/[_\-/\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join('');
+}
+
+const schema = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+const scope = schema.scope;
+const name = schema.name;
+const leafName = name.split('/').filter(Boolean).at(-1) || 'module';
+const modelName = pascalCase(name);
+const files = [
+  {
+    path: 'backend/modules/' + scope + '/' + name + '/module.go',
+    content: 'package ' + leafName + '\n',
+    language: 'go',
+  },
+  {
+    path: 'frontend/src/modules/' + scope + '/' + name + '/index.ts',
+    content: 'export const ' + modelName + 'Module = {}\n',
+    language: 'typescript',
+  },
+  {
+    path: 'frontend/src/modules/' + scope + '/' + name + '/' + modelName + 'List.tsx',
+    content: 'export default function ' + modelName + 'List() { return null; }\n',
+    language: 'tsx',
+  },
+  {
+    path: 'frontend/src/modules/' + scope + '/' + name + '/' + modelName + 'Detail.tsx',
+    content: 'export default function ' + modelName + 'Detail() { return null; }\n',
+    language: 'tsx',
+  },
+];
+process.stdout.write(JSON.stringify(files));
+`)
 	return root
 }
 
@@ -735,25 +1174,7 @@ func mustWriteGeneratedRegistryStubs(t *testing.T, root string) {
 }
 
 func newGeneratedModuleRequest(scope string, name string, displayName string, tableName string) *scaffold.RegisterGeneratedModuleRequest {
-	req := &scaffold.RegisterGeneratedModuleRequest{
-		Files: []scaffold.GeneratedFile{
-			{
-				Path:     filepath.ToSlash(filepath.Join("backend", "modules", scope, name, "module.go")),
-				Content:  "package " + name + "\n",
-				Language: "go",
-			},
-			{
-				Path:     filepath.ToSlash(filepath.Join("frontend", "src", "modules", scope, name, "index.ts")),
-				Content:  "export const TicketModule = {}\n",
-				Language: "typescript",
-			},
-			{
-				Path:     filepath.ToSlash(filepath.Join("frontend", "src", "modules", scope, name, "TicketList.tsx")),
-				Content:  "export default function TicketList() { return null; }\n",
-				Language: "tsx",
-			},
-		},
-	}
+	req := &scaffold.RegisterGeneratedModuleRequest{}
 	req.Schema.Name = name
 	req.Schema.Scope = scope
 	req.Schema.DisplayName = displayName

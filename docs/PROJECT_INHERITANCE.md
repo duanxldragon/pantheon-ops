@@ -8,7 +8,7 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
 - Base repository：当前继承源是 `../pantheon-base`
 - Base branch：当前跟随 `main`
-- Base version：当前锁定到 `d119872`（`d1198723d85c1cfc7e71a4144518560e81afdb06`）
+- Base version：当前锁定到 `0b06ee4`（`0b06ee40ae2a281bf2a0004343368599a326bc67`）
 - Inheritance mode：`foundation-only`，表示 ops 继承底座规则，本地只扩展业务域
 
 ## 2. 继承的底座规则

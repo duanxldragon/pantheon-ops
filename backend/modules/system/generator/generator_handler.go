@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"pantheon-ops/backend/internal/scaffold"
 	"pantheon-ops/backend/pkg/common"
 	"strings"
 
@@ -100,6 +101,42 @@ func (h *GeneratorHandler) PreviewTable(c *gin.Context) {
 	common.Success(c, preview)
 }
 
+func (h *GeneratorHandler) PreviewGeneratedFiles(c *gin.Context) {
+	var req struct {
+		Schema scaffold.ModuleSchema `json:"schema"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		return
+	}
+	files, err := h.service.PreviewGeneratedFiles(&req.Schema)
+	if err != nil {
+		common.FailWithError(c, mapGeneratorErrorCode(err), err, "generator.preview.files.error")
+		return
+	}
+	common.Success(c, gin.H{"files": files})
+}
+
+func (h *GeneratorHandler) DownloadGeneratedSource(c *gin.Context) {
+	var req struct {
+		Schema scaffold.ModuleSchema `json:"schema"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		return
+	}
+
+	archive, filename, err := h.service.BuildGeneratedModuleArchive(&req.Schema)
+	if err != nil {
+		common.FailWithError(c, mapGeneratorErrorCode(err), err, "generator.preview.files.error")
+		return
+	}
+
+	c.Header("Content-Type", "application/zip")
+	c.Header("Content-Disposition", `attachment; filename="`+filename+`"`)
+	c.Data(200, "application/zip", archive)
+}
+
 func mapGeneratorErrorCode(err error) int {
 	switch err.Error() {
 	case "generator.table.required",
@@ -112,7 +149,13 @@ func mapGeneratorErrorCode(err error) int {
 		"generator.datasource.port_invalid",
 		"generator.datasource.not_found",
 		"generator.datasource.disabled",
-		"generator.datasource.driver_unsupported":
+		"generator.datasource.driver_unsupported",
+		"module.generate.invalid_payload",
+		"module.generate.invalid_name",
+		"module.generate.invalid_scope",
+		"module.generate.display_name_required",
+		"module.generate.table_name_required",
+		"module.generate.invalid_table_name":
 		return common.CodeParamInvalid
 	default:
 		return common.CodeError

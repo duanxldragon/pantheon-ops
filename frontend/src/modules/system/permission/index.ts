@@ -22,6 +22,19 @@ export const PermissionModule = defineModule({
       module: 'system.iam',
     },
   ],
+  dashboardWidgets: [
+    {
+      key: 'platform.permission',
+      slot: 'quick-action',
+      sourceDomain: 'system/iam',
+      titleKey: 'system.menu.permission',
+      descriptionKey: 'dashboard.quickAction.permission',
+      path: '/system/permission',
+      permission: 'system:permission:list',
+      icon: 'lock',
+      cleanupPolicy: 'hide_when_forbidden',
+    },
+  ],
   permissions: [
     'system:permission:list',
     'system:permission:create',

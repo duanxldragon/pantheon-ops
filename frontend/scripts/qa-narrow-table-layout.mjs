@@ -2,8 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { chromium, request } from 'playwright';
 
-const frontendBaseUrl = 'http://127.0.0.1:5173';
-const apiBaseUrl = 'http://127.0.0.1:8080/api/v1';
+const frontendBaseUrl = process.env.PANTHEON_WEB_BASE_URL ?? 'http://127.0.0.1:5173';
+const apiOrigin = process.env.PANTHEON_API_PROXY_TARGET ?? 'http://127.0.0.1:8080';
+const apiBaseUrl = process.env.PANTHEON_API_BASE_URL ?? `${apiOrigin}/api/v1`;
 const artifactDir = path.join(process.cwd(), 'test-results', 'narrow-table-layout');
 
 const viewports = [

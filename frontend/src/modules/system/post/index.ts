@@ -22,6 +22,19 @@ export const PostModule = defineModule({
       module: 'system.org',
     },
   ],
+  dashboardWidgets: [
+    {
+      key: 'platform.post',
+      slot: 'quick-action',
+      sourceDomain: 'system/org',
+      titleKey: 'system.menu.post',
+      descriptionKey: 'dashboard.quickAction.post',
+      path: '/system/post',
+      permission: 'system:post:list',
+      icon: 'tags',
+      cleanupPolicy: 'hide_when_forbidden',
+    },
+  ],
   permissions: [
     'system:post:list',
     'system:post:create',

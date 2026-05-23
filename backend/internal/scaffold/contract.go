@@ -59,6 +59,15 @@ func isValidRelationContract(scope string, relation ModuleRelation) bool {
 		!moduleRelationFieldPattern.MatchString(strings.TrimSpace(relation.TargetField)) {
 		return false
 	}
+	if labelField := strings.TrimSpace(relation.TargetLabelField); labelField != "" && !moduleRelationFieldPattern.MatchString(labelField) {
+		return false
+	}
+	if valueField := strings.TrimSpace(relation.LookupValueField); valueField != "" && !moduleRelationFieldPattern.MatchString(valueField) {
+		return false
+	}
+	if lookupAPI := strings.TrimSpace(relation.LookupAPI); lookupAPI != "" && !strings.HasPrefix(lookupAPI, "/") {
+		return false
+	}
 
 	switch strings.TrimSpace(relation.Type) {
 	case "oneToMany", "lookup":

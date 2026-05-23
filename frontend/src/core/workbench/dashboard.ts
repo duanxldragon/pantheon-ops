@@ -6,6 +6,7 @@ export type DashboardWidgetSourceDomain =
   | 'system/iam'
   | 'system/org'
   | 'system/config'
+  | 'system/lowcode'
   | 'system/audit'
   | `business/${string}`;
 
@@ -24,6 +25,12 @@ export interface DashboardSummarySnapshot {
   totalPosts?: number;
   totalDictTypes?: number;
   totalSettings?: number;
+  totalI18nEntries?: number;
+  activeModuleCount?: number;
+  pendingSecurityEventCount?: number;
+  totalSecurityEventCount?: number;
+  todayOperationCount?: number;
+  loginFailureCount?: number;
 }
 
 interface DashboardWidgetBase {

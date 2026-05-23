@@ -3,17 +3,21 @@ package auth
 import "time"
 
 type SystemAuthSecurityEvent struct {
-	ID         uint64    `gorm:"primaryKey;autoIncrement"`
-	UserID     uint64    `gorm:"index"`
-	Username   string    `gorm:"size:64;index"`
-	EventType  string    `gorm:"size:64;not null;index"`
-	Severity   string    `gorm:"size:16;not null;index"`
-	SourceKey  string    `gorm:"size:191;index"`
-	IP         string    `gorm:"size:128"`
-	UserAgent  string    `gorm:"size:255"`
-	MessageKey string    `gorm:"size:128;not null"`
-	Metadata   string    `gorm:"type:text"`
-	CreatedAt  time.Time `gorm:"index"`
+	ID                  uint64     `gorm:"primaryKey;autoIncrement"`
+	UserID              uint64     `gorm:"index"`
+	Username            string     `gorm:"size:64;index"`
+	EventType           string     `gorm:"size:64;not null;index"`
+	Severity            string     `gorm:"size:16;not null;index"`
+	SourceKey           string     `gorm:"size:191;index"`
+	IP                  string     `gorm:"size:128"`
+	UserAgent           string     `gorm:"size:255"`
+	MessageKey          string     `gorm:"size:128;not null"`
+	Metadata            string     `gorm:"type:text"`
+	AcknowledgedAt      *time.Time `gorm:"index"`
+	AcknowledgedBy      uint64     `gorm:"index"`
+	AcknowledgedByUser  string     `gorm:"size:64"`
+	AcknowledgementNote string     `gorm:"size:1000"`
+	CreatedAt           time.Time  `gorm:"index"`
 }
 
 func (SystemAuthSecurityEvent) TableName() string {

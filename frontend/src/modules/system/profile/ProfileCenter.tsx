@@ -28,10 +28,10 @@ import { useAuthStore } from '../../../store/useAuthStore';
 import {
   FormSection,
   PageContainer,
-  PageHeader,
   PageLoading,
   SubmitBar,
 } from '../../../components';
+import './profile.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -137,12 +137,16 @@ const ProfileCenter: React.FC = () => {
   }
 
   return (
-    <PageContainer>
-      <PageHeader title={t('system.profile.title')} />
-      <Space direction="vertical" size={16} style={{ width: '100%' }}>
-        <Card className="page-panel page-panel--soft">
+    <PageContainer className="profile-center-page">
+      <Space
+        direction="vertical"
+        size={16}
+        style={{ width: '100%' }}
+        className="profile-center-page__stack"
+      >
+        <Card className="page-panel page-panel--soft profile-center-page__hero">
           <Row gutter={24} align="center">
-            <Col span={16}>
+            <Col xs={24} md={16}>
               <Space align="start" size={16}>
                 <Avatar size={56}>
                   {avatarPreview || profile?.avatar ? (
@@ -169,7 +173,7 @@ const ProfileCenter: React.FC = () => {
                 </Space>
               </Space>
             </Col>
-            <Col span={8}>
+            <Col xs={24} md={8}>
               <Descriptions
                 colon=" : "
                 column={1}
@@ -196,12 +200,12 @@ const ProfileCenter: React.FC = () => {
           >
             <FormSection title={t('common.basicInfo')}>
               <Row gutter={16}>
-                <Col span={12}>
+                <Col xs={24} md={12}>
                   <FormItem label={t('system.profile.username')}>
                     <Input value={profile?.username || ''} disabled prefix={<IconUser />} />
                   </FormItem>
                 </Col>
-                <Col span={12}>
+                <Col xs={24} md={12}>
                   <FormItem
                     label={t('system.profile.nickname')}
                     field="nickname"
@@ -210,7 +214,7 @@ const ProfileCenter: React.FC = () => {
                     <Input onPressEnter={() => profileForm.submit()} />
                   </FormItem>
                 </Col>
-                <Col span={12}>
+                <Col xs={24} md={12}>
                   <FormItem
                     label={t('system.profile.email')}
                     field="email"
@@ -219,7 +223,7 @@ const ProfileCenter: React.FC = () => {
                     <Input onPressEnter={() => profileForm.submit()} />
                   </FormItem>
                 </Col>
-                <Col span={12}>
+                <Col xs={24} md={12}>
                   <FormItem label={t('system.profile.phone')} field="phone">
                     <Input onPressEnter={() => profileForm.submit()} />
                   </FormItem>

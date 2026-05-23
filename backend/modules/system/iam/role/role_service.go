@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-ops/backend/pkg/contracts"
 	"pantheon-ops/backend/pkg/database"
 	"pantheon-ops/backend/pkg/impexp"
 
@@ -19,14 +18,6 @@ type RoleService struct {
 }
 
 const deletedRoleKeyPrefix = "__deleted_role_"
-
-type roleMenuAuthorizationRow struct {
-	ID       uint64 `gorm:"column:id"`
-	ParentID uint64 `gorm:"column:parent_id"`
-	PagePerm string `gorm:"column:page_perm"`
-	Perms    string `gorm:"column:perms"`
-	Type     string `gorm:"column:type"`
-}
 
 func NewRoleService(db *gorm.DB) *RoleService {
 	return &RoleService{db: db}
@@ -51,10 +42,7 @@ func (s *RoleService) Migrate() error {
 	if !s.db.Migrator().HasTable("system_menu") {
 		return nil
 	}
-	if err := s.backfillRolePermissions(); err != nil {
-		return err
-	}
-	return s.syncAllRoleManagedAPIPolicies()
+	return s.backfillRolePermissions()
 }
 
 func (s *RoleService) ensureAdminRoleSeed() error {
@@ -218,26 +206,16 @@ func (s *RoleService) CreateRole(req *RoleCreateReq) (*RoleListResp, error) {
 	}
 	menuIDs := normalizeUint64IDs(req.MenuIDs)
 	permissionKeys := normalizePermissionKeys(req.PermissionKeys)
-	expandedMenuIDs, expandedPermissionKeys, err := s.resolveRoleAuthorization(menuIDs, permissionKeys)
-	if err != nil {
-		return nil, err
-	}
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&role).Error; err != nil {
 			return err
 		}
-		if err := s.replaceRoleMenus(tx, role.ID, expandedMenuIDs); err != nil {
+		if err := s.replaceRoleMenus(tx, role.ID, menuIDs); err != nil {
 			return err
 		}
-		if err := s.replaceRolePermissions(tx, role.ID, expandedPermissionKeys); err != nil {
-			return err
-		}
-		return s.syncRoleManagedAPIPolicies(tx, role.RoleKey, expandedPermissionKeys)
+		return s.replaceRolePermissions(tx, role.ID, permissionKeys)
 	}); err != nil {
-		return nil, err
-	}
-	if err := reloadRolePolicies(); err != nil {
 		return nil, err
 	}
 
@@ -248,8 +226,8 @@ func (s *RoleService) CreateRole(req *RoleCreateReq) (*RoleListResp, error) {
 		Sort:           role.Sort,
 		Status:         role.Status,
 		CreatedAt:      role.CreatedAt.Format(time.RFC3339),
-		MenuIDs:        expandedMenuIDs,
-		PermissionKeys: expandedPermissionKeys,
+		MenuIDs:        menuIDs,
+		PermissionKeys: permissionKeys,
 	}, nil
 }
 
@@ -267,38 +245,22 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 		return nil, err
 	}
 
-	oldRoleKey := role.RoleKey
 	role.RoleName = strings.TrimSpace(req.RoleName)
 	role.RoleKey = strings.TrimSpace(req.RoleKey)
 	role.Sort = req.Sort
 	role.Status = normalizeRoleStatus(req.Status)
 	menuIDs := normalizeUint64IDs(req.MenuIDs)
 	permissionKeys := normalizePermissionKeys(req.PermissionKeys)
-	expandedMenuIDs, expandedPermissionKeys, err := s.resolveRoleAuthorization(menuIDs, permissionKeys)
-	if err != nil {
-		return nil, err
-	}
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		if oldRoleKey != role.RoleKey {
-			if err := s.deleteManagedAPIPolicies(tx, oldRoleKey); err != nil {
-				return err
-			}
-		}
 		if err := tx.Save(&role).Error; err != nil {
 			return err
 		}
-		if err := s.replaceRoleMenus(tx, role.ID, expandedMenuIDs); err != nil {
+		if err := s.replaceRoleMenus(tx, role.ID, menuIDs); err != nil {
 			return err
 		}
-		if err := s.replaceRolePermissions(tx, role.ID, expandedPermissionKeys); err != nil {
-			return err
-		}
-		return s.syncRoleManagedAPIPolicies(tx, role.RoleKey, expandedPermissionKeys)
+		return s.replaceRolePermissions(tx, role.ID, permissionKeys)
 	}); err != nil {
-		return nil, err
-	}
-	if err := reloadRolePolicies(); err != nil {
 		return nil, err
 	}
 
@@ -309,8 +271,8 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 		Sort:           role.Sort,
 		Status:         role.Status,
 		CreatedAt:      role.CreatedAt.Format(time.RFC3339),
-		MenuIDs:        expandedMenuIDs,
-		PermissionKeys: expandedPermissionKeys,
+		MenuIDs:        menuIDs,
+		PermissionKeys: permissionKeys,
 	}, nil
 }
 
@@ -632,171 +594,6 @@ func (s *RoleService) replaceRolePermissions(tx *gorm.DB, roleID uint64, permiss
 	return nil
 }
 
-func (s *RoleService) resolveRoleAuthorization(menuIDs []uint64, permissionKeys []string) ([]uint64, []string, error) {
-	normalizedMenuIDs := normalizeUint64IDs(menuIDs)
-	normalizedPermissionKeys := normalizePermissionKeys(permissionKeys)
-	if len(normalizedMenuIDs) == 0 || !s.db.Migrator().HasTable("system_menu") {
-		return normalizedMenuIDs, normalizedPermissionKeys, nil
-	}
-
-	rows, err := s.loadRoleAuthorizationMenuRows()
-	if err != nil {
-		return nil, nil, err
-	}
-	childrenByParentID := make(map[uint64][]roleMenuAuthorizationRow, len(rows))
-	for _, row := range rows {
-		childrenByParentID[row.ParentID] = append(childrenByParentID[row.ParentID], row)
-	}
-
-	selected := make(map[uint64]struct{}, len(normalizedMenuIDs))
-	var visit func(menuID uint64)
-	visit = func(menuID uint64) {
-		if _, ok := selected[menuID]; ok {
-			return
-		}
-		selected[menuID] = struct{}{}
-		for _, child := range childrenByParentID[menuID] {
-			visit(child.ID)
-		}
-	}
-	for _, menuID := range normalizedMenuIDs {
-		visit(menuID)
-	}
-
-	expandedMenuIDs := make([]uint64, 0, len(selected))
-	derivedPermissionKeys := make([]string, 0)
-	for _, row := range rows {
-		if _, ok := selected[row.ID]; !ok {
-			continue
-		}
-		if row.Type != "F" {
-			expandedMenuIDs = append(expandedMenuIDs, row.ID)
-			if strings.TrimSpace(row.PagePerm) != "" {
-				derivedPermissionKeys = append(derivedPermissionKeys, row.PagePerm)
-			}
-		}
-	}
-	return normalizeUint64IDs(expandedMenuIDs), normalizePermissionKeys(append(normalizedPermissionKeys, derivedPermissionKeys...)), nil
-}
-
-func (s *RoleService) loadRoleAuthorizationMenuRows() ([]roleMenuAuthorizationRow, error) {
-	var rows []roleMenuAuthorizationRow
-	if err := s.db.Table("system_menu").
-		Select("id, parent_id, page_perm, perms, type").
-		Order("sort asc, id asc").
-		Scan(&rows).Error; err != nil {
-		return nil, err
-	}
-	return rows, nil
-}
-
-func (s *RoleService) syncAllRoleManagedAPIPolicies() error {
-	var roles []SystemRole
-	if err := s.db.Find(&roles).Error; err != nil {
-		return err
-	}
-	roleIDs := make([]uint64, 0, len(roles))
-	for _, role := range roles {
-		roleIDs = append(roleIDs, role.ID)
-	}
-	rolePermissions, err := s.loadRolePermissions(roleIDs)
-	if err != nil {
-		return err
-	}
-	return s.db.Transaction(func(tx *gorm.DB) error {
-		for _, role := range roles {
-			if err := s.syncRoleManagedAPIPolicies(tx, role.RoleKey, rolePermissions[role.ID]); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
-
-func (s *RoleService) syncRoleManagedAPIPolicies(tx *gorm.DB, roleKey string, permissionKeys []string) error {
-	roleKey = strings.TrimSpace(roleKey)
-	if roleKey == "" || !tx.Migrator().HasTable("casbin_rule") {
-		return nil
-	}
-	if err := s.deleteManagedAPIPolicies(tx, roleKey); err != nil {
-		return err
-	}
-	for _, policy := range requiredAPIPoliciesForPermissionKeys(permissionKeys) {
-		if err := tx.Create(&database.CasbinRule{
-			PType: "p",
-			V0:    roleKey,
-			V1:    strings.TrimSpace(policy.Path),
-			V2:    normalizePolicyMethod(policy.Method),
-		}).Error; err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *RoleService) deleteManagedAPIPolicies(tx *gorm.DB, roleKey string) error {
-	roleKey = strings.TrimSpace(roleKey)
-	if roleKey == "" || !tx.Migrator().HasTable("casbin_rule") {
-		return nil
-	}
-	managedPolicies, err := s.loadManagedAPIPolicies()
-	if err != nil {
-		return err
-	}
-	for _, policy := range managedPolicies {
-		if err := tx.Model(&database.CasbinRule{}).
-			Where("ptype = ? AND v0 = ? AND v1 = ? AND v2 = ?", "p", roleKey, strings.TrimSpace(policy.Path), normalizePolicyMethod(policy.Method)).
-			Delete(&database.CasbinRule{}).Error; err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *RoleService) loadManagedAPIPolicies() ([]contracts.PermissionAPIPolicy, error) {
-	if !s.db.Migrator().HasTable("system_menu") {
-		return nil, nil
-	}
-	type permissionRow struct {
-		PagePerm string `gorm:"column:page_perm"`
-		Perms    string `gorm:"column:perms"`
-	}
-	var rows []permissionRow
-	if err := s.db.Table("system_menu").Select("page_perm, perms").Scan(&rows).Error; err != nil {
-		return nil, err
-	}
-	permissionKeys := make([]string, 0, len(rows)*2)
-	for _, row := range rows {
-		permissionKeys = append(permissionKeys, row.PagePerm, row.Perms)
-	}
-	return requiredAPIPoliciesForPermissionKeys(permissionKeys), nil
-}
-
-func requiredAPIPoliciesForPermissionKeys(permissionKeys []string) []contracts.PermissionAPIPolicy {
-	seen := make(map[string]struct{})
-	result := make([]contracts.PermissionAPIPolicy, 0)
-	for _, permissionKey := range normalizePermissionKeys(permissionKeys) {
-		for _, policy := range contracts.RequiredAPIPoliciesByPermissionKey(permissionKey) {
-			path := strings.TrimSpace(policy.Path)
-			method := normalizePolicyMethod(policy.Method)
-			if path == "" || method == "" {
-				continue
-			}
-			key := method + " " + path
-			if _, ok := seen[key]; ok {
-				continue
-			}
-			seen[key] = struct{}{}
-			result = append(result, contracts.PermissionAPIPolicy{Path: path, Method: method})
-		}
-	}
-	return result
-}
-
-func normalizePolicyMethod(method string) string {
-	return strings.ToUpper(strings.TrimSpace(method))
-}
-
 func normalizeRoleStatus(status int) int {
 	if status == 2 {
 		return 2
@@ -931,17 +728,16 @@ func reloadRolePolicies() error {
 }
 
 func (s *RoleService) backfillRolePermissions() error {
-	type roleMenuSeed struct {
-		RoleID uint64 `gorm:"column:role_id"`
-		MenuID uint64 `gorm:"column:menu_id"`
-		Perms  string `gorm:"column:perms"`
-		Type   string `gorm:"column:type"`
+	type rolePermissionSeed struct {
+		RoleID        uint64 `gorm:"column:role_id"`
+		PermissionKey string `gorm:"column:permission_key"`
 	}
 
-	var seeds []roleMenuSeed
+	var seeds []rolePermissionSeed
 	if err := s.db.Table("system_role_menu").
-		Select("system_role_menu.role_id AS role_id, system_role_menu.menu_id AS menu_id, system_menu.perms AS perms, system_menu.type AS type").
+		Select("system_role_menu.role_id AS role_id, COALESCE(NULLIF(system_menu.page_perm, ''), NULLIF(system_menu.perms, '')) AS permission_key").
 		Joins("JOIN system_menu ON system_menu.id = system_role_menu.menu_id").
+		Where("(system_menu.page_perm <> '' OR system_menu.perms <> '')").
 		Scan(&seeds).Error; err != nil {
 		return err
 	}
@@ -949,49 +745,18 @@ func (s *RoleService) backfillRolePermissions() error {
 	if len(seeds) == 0 {
 		return nil
 	}
-	menusByRoleID := make(map[uint64][]uint64)
-	legacyActionPermissionsByRoleID := make(map[uint64][]string)
-	for _, seed := range seeds {
-		if seed.Type == "F" {
-			legacyActionPermissionsByRoleID[seed.RoleID] = append(legacyActionPermissionsByRoleID[seed.RoleID], seed.Perms)
-			continue
-		}
-		menusByRoleID[seed.RoleID] = append(menusByRoleID[seed.RoleID], seed.MenuID)
-	}
 
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		for roleID, menuIDs := range menusByRoleID {
-			expandedMenuIDs, permissionKeys, err := s.resolveRoleAuthorization(menuIDs, nil)
-			if err != nil {
+		for _, seed := range seeds {
+			if strings.TrimSpace(seed.PermissionKey) == "" {
+				continue
+			}
+			if err := tx.Where("role_id = ? AND permission_key = ?", seed.RoleID, seed.PermissionKey).
+				FirstOrCreate(&SystemRolePermission{
+					RoleID:        seed.RoleID,
+					PermissionKey: strings.TrimSpace(seed.PermissionKey),
+				}).Error; err != nil {
 				return err
-			}
-			for _, menuID := range expandedMenuIDs {
-				if err := tx.Exec("INSERT INTO system_role_menu (role_id, menu_id) SELECT ?, ? WHERE NOT EXISTS (SELECT 1 FROM system_role_menu WHERE role_id = ? AND menu_id = ?)", roleID, menuID, roleID, menuID).Error; err != nil {
-					return err
-				}
-			}
-			for _, permissionKey := range permissionKeys {
-				if strings.TrimSpace(permissionKey) == "" {
-					continue
-				}
-				if err := tx.Where("role_id = ? AND permission_key = ?", roleID, permissionKey).
-					FirstOrCreate(&SystemRolePermission{
-						RoleID:        roleID,
-						PermissionKey: strings.TrimSpace(permissionKey),
-					}).Error; err != nil {
-					return err
-				}
-			}
-		}
-		for roleID, permissionKeys := range legacyActionPermissionsByRoleID {
-			for _, permissionKey := range normalizePermissionKeys(permissionKeys) {
-				if err := tx.Where("role_id = ? AND permission_key = ?", roleID, permissionKey).
-					FirstOrCreate(&SystemRolePermission{
-						RoleID:        roleID,
-						PermissionKey: permissionKey,
-					}).Error; err != nil {
-					return err
-				}
 			}
 		}
 		return nil

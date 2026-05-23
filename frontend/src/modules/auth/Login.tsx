@@ -76,11 +76,6 @@ function resolveLoginErrorKey(error: unknown, fallbackKey: string) {
   return fallbackKey;
 }
 
-function resolveSupportedLocale(locale: string | null | undefined): SupportedLocale {
-  const normalized = (locale || '').trim() as SupportedLocale;
-  return SUPPORTED_LOCALES.includes(normalized) ? normalized : 'zh-CN';
-}
-
 const LoginPage: React.FC = () => {
   const [form] = Form.useForm<LoginPayload & { mfaCode?: string }>();
   const [loading, setLoading] = useState(false);
@@ -106,26 +101,6 @@ const LoginPage: React.FC = () => {
     ],
     [t],
   );
-  const assuranceItems = useMemo(
-    () => [
-      {
-        key: 'boundary',
-        title: t('auth.login.assurance.boundary'),
-        desc: t('auth.login.assurance.boundaryDesc'),
-      },
-      {
-        key: 'session',
-        title: t('auth.login.assurance.session'),
-        desc: t('auth.login.assurance.sessionDesc'),
-      },
-      {
-        key: 'audit',
-        title: t('auth.login.assurance.audit'),
-        desc: t('auth.login.assurance.auditDesc'),
-      },
-    ],
-    [t],
-  );
 
   useEffect(() => {
     if (!loginNotice) {
@@ -138,17 +113,10 @@ const LoginPage: React.FC = () => {
     if (!res.accessToken || !res.refreshToken || !res.user) {
       throw new Error('auth.login.response_invalid');
     }
-    const loginLanguage = resolveSupportedLocale(
-      localStorage.getItem('pantheon_lang') || i18n.language,
-    );
     clearShellSessionState();
     resetMenuTree();
-    setExplicitLanguagePreference(loginLanguage);
     setTokens(res.accessToken, res.refreshToken);
     setUserInfo(res.user);
-    if (loginLanguage !== i18n.language) {
-      await switchI18nLanguage(loginLanguage);
-    }
     const menuTree = await fetchMenuTree();
     const fallbackMenuPath = findFirstNavigableMenuPath(menuTree);
     const nextPath = resolvePostLoginPath(
@@ -195,25 +163,13 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const resolveSelectedLanguage = (language: unknown) => {
-    if (typeof language === 'string' || typeof language === 'number') {
-      return String(language);
-    }
-    if (language && typeof language === 'object' && 'value' in language) {
-      return String((language as { value?: unknown }).value || '');
-    }
-    return '';
-  };
-
-  const selectLanguage = (language: unknown) => {
-    const nextLang = resolveSelectedLanguage(language) as SupportedLocale;
-    if (!SUPPORTED_LOCALES.includes(nextLang)) {
+  const changeLanguage = (language: string) => {
+    const nextLang = language as SupportedLocale;
+    if (!SUPPORTED_LOCALES.includes(nextLang) || nextLang === currentLang) {
       return;
     }
     setExplicitLanguagePreference(nextLang);
-    if (nextLang !== currentLang) {
-      void switchI18nLanguage(nextLang);
-    }
+    void switchI18nLanguage(nextLang);
   };
 
   const loginNoticeText = loginNotice
@@ -262,26 +218,6 @@ const LoginPage: React.FC = () => {
             ))}
           </Space>
 
-          <div className="auth-login-assurance">
-            <div className="auth-login-assurance__header">
-              <span>{t('auth.login.assurance.title')}</span>
-              <Tag bordered={false} color="green">
-                {t('auth.login.visualBadge')}
-              </Tag>
-            </div>
-            <div className="auth-login-assurance__list">
-              {assuranceItems.map((item) => (
-                <div className="auth-login-assurance__item" key={item.key}>
-                  <span className="auth-login-assurance__dot" />
-                  <span className="auth-login-assurance__copy">
-                    <span className="auth-login-assurance__title">{item.title}</span>
-                    <span className="auth-login-assurance__desc">{item.desc}</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div className="auth-login-page__footer">{t('app.footer')}</div>
         </div>
       </section>
@@ -315,13 +251,7 @@ const LoginPage: React.FC = () => {
               prefix={<IconLanguage />}
               bordered={false}
               triggerProps={{ autoAlignPopupMinWidth: true }}
-              onVisibleChange={(visible) => {
-                if (visible) {
-                  setExplicitLanguagePreference(currentLang);
-                }
-              }}
-              onChange={selectLanguage}
-              onSelect={selectLanguage}
+              onChange={changeLanguage}
             >
               {SUPPORTED_LOCALES.map((language) => (
                 <Select.Option key={language} value={language}>

@@ -3,7 +3,6 @@ import {
   Avatar,
   Button,
   Card,
-  Dropdown,
   Form,
   Grid,
   Input,
@@ -21,7 +20,6 @@ import {
   IconEdit,
   IconEye,
   IconLock,
-  IconMore,
   IconPlus,
   IconSearch,
   IconUpload,
@@ -43,7 +41,6 @@ import { usePermission } from '../../../hooks/usePermission';
 import { getDeptTree, type DeptNode } from '../dept/api';
 import { getPostList } from '../post/api';
 import { getRoleList } from '../role/api';
-import type { PaginationProps } from '@arco-design/web-react/es/Pagination/interface';
 import type {
   ColumnProps,
   SorterInfo,
@@ -53,7 +50,6 @@ import {
   batchDeleteUsers,
   batchUpdateUserStatus,
   createUser,
-  deleteUser,
   downloadUserImportTemplate,
   exportUsers,
   getUserDetail,
@@ -69,20 +65,23 @@ import {
 import {
   AppModal,
   AppTable,
+  buildStandardPagination,
   FilterPanel,
   FormSection,
-  GovernanceInsightDrawer,
-  GovernanceRailSummary,
-  GovernanceRailToggleButton,
   ImportCsvButton,
   ListHeaderActions,
   PageContainer,
   PageEmpty,
   PageError,
+  GovernanceInsightDrawer,
+  GovernanceRailSummary,
+  GovernanceRailToggleButton,
+  GovernanceSummaryBar,
   PageLoading,
   PageNetworkError,
   PageServerError,
   SubmitBar,
+  SystemRowActions,
   TableBatchActionBar,
   PermissionAction,
   TABLE_ACTION_COLUMN_WIDTH,
@@ -91,7 +90,7 @@ import {
   withTableColumnPriority,
 } from '../../../components';
 import UserDetailContent from './UserDetailContent';
-import '../../../core/styles/list-page.css';
+import '../list-page.css';
 import './user.css';
 
 const Row = Grid.Row;
@@ -178,16 +177,15 @@ const UserList: React.FC = () => {
   const orgEnabled = publicSettings.orgEnabled;
   const orgRequiredForUser = orgEnabled && publicSettings.orgRequiredForUser;
   const { isAdmin, hasPerm } = usePermission();
+  const governanceRail = useGovernanceRail();
   const canView = isAdmin || hasPerm('system:user:view');
   const canCreate = isAdmin || hasPerm('system:user:create');
   const canEdit = isAdmin || hasPerm('system:user:update');
-  const canDelete = isAdmin || hasPerm('system:user:delete');
   const canResetPassword = isAdmin || hasPerm('system:user:reset');
   const canExport = isAdmin || hasPerm('system:user:export');
   const canImport = isAdmin || hasPerm('system:user:import');
   const canBatchUpdate = isAdmin || hasPerm('system:user:batch-update');
   const canBatchDelete = isAdmin || hasPerm('system:user:batch-delete');
-  const governanceRail = useGovernanceRail();
   const invalidateUserCaches = useCallback(() => {
     invalidateRouteWarmDataMany([
       { path: '/system/user', resourceKeys: ['list:default'] },
@@ -376,7 +374,7 @@ const UserList: React.FC = () => {
       if (isArcoFormValidationError(error)) {
         return;
       }
-      throw error;
+      return;
     }
     setSubmitting(true);
     try {
@@ -405,6 +403,8 @@ const UserList: React.FC = () => {
       setVisible(false);
       setAvatarPreview('');
       await loadData(query, { silent: true });
+    } catch {
+      message.error(t('common.actionFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -441,7 +441,7 @@ const UserList: React.FC = () => {
       if (isArcoFormValidationError(error)) {
         return;
       }
-      throw error;
+      return;
     }
     setSubmitting(true);
     try {
@@ -449,21 +449,21 @@ const UserList: React.FC = () => {
       message.success(t('system.user.resetPasswordSuccess', { count: result.revokedSessionCount }));
       setResetTarget(null);
       resetPasswordForm.resetFields();
+    } catch {
+      message.error(t('common.actionFailed'));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const removeUser = async (id: number) => {
-    await deleteUser(id);
-    message.success(t('common.deleteSuccess'));
+  const handleRowStatus = async (row: UserListRow, status: 1 | 2) => {
+    await batchUpdateUserStatus({ userIds: [row.id], status });
+    message.success(
+      status === 1 ? t('system.user.enableSuccess') : t('system.user.disableSuccess'),
+    );
     invalidateUserCaches();
     publishRefresh('system:user:changed', 'system/user');
-    setSelectedRowKeys((keys) => keys.filter((key) => Number(key) !== id));
-    const nextPage =
-      data.length === 1 && (query.page || 1) > 1 ? (query.page || 1) - 1 : query.page || 1;
-    const nextQuery = { ...query, page: nextPage };
-    setQuery(nextQuery);
+    await loadData(query, { silent: true });
   };
 
   const search = () => {
@@ -510,6 +510,11 @@ const UserList: React.FC = () => {
     return text === '-' ? cell : <Tooltip content={text}>{cell}</Tooltip>;
   };
 
+  const roleLabelById = useMemo(
+    () => new Map(roleOptions.map((item) => [item.value, item.label])),
+    [roleOptions],
+  );
+
   const handleTableChange: TableProps<UserListRow>['onChange'] = (pagination, sorter) => {
     const currentSorter = Array.isArray(sorter) ? sorter[0] : (sorter as SorterInfo | undefined);
     const nextQuery: UserListQuery = {
@@ -524,7 +529,11 @@ const UserList: React.FC = () => {
             ? 'desc'
             : undefined,
     };
-    setSelectedRowKeys([]);
+    const sortChanged =
+      nextQuery.sortField !== query.sortField || nextQuery.sortOrder !== query.sortOrder;
+    if (sortChanged) {
+      setSelectedRowKeys([]);
+    }
     setQuery(nextQuery);
   };
 
@@ -543,58 +552,6 @@ const UserList: React.FC = () => {
       ...sortableColumn('nickname'),
       render: (value: string) => renderCellText(value),
     },
-    ...(orgEnabled
-      ? [
-          {
-            title: t('system.user.dept'),
-            dataIndex: 'deptName',
-            width: TABLE_COLUMN_WIDTH.sm,
-            render: (value: string) => renderCellText(value),
-          },
-          withTableColumnPriority(
-            {
-              title: t('system.user.post'),
-              dataIndex: 'postName',
-              width: TABLE_COLUMN_WIDTH.sm,
-              render: (value: string) => renderCellText(value),
-            },
-            'medium',
-          ),
-        ]
-      : []),
-    withTableColumnPriority(
-      {
-        title: t('system.user.roles'),
-        dataIndex: 'roleKeys',
-        width: TABLE_COLUMN_WIDTH.tagGroup,
-        render: (value: string[]) =>
-          renderCellText(
-            value?.length ? value.join(' / ') : undefined,
-            'system-user-list__role-text',
-          ),
-      },
-      'medium',
-    ),
-    withTableColumnPriority(
-      {
-        title: t('system.user.email'),
-        dataIndex: 'email',
-        width: TABLE_COLUMN_WIDTH.name,
-        ...sortableColumn('email'),
-        render: (value: string) => renderCellText(value),
-      },
-      'low',
-    ),
-    withTableColumnPriority(
-      {
-        title: t('system.user.phone'),
-        dataIndex: 'phone',
-        width: TABLE_COLUMN_WIDTH.identity,
-        ...sortableColumn('phone'),
-        render: (value: string) => renderCellText(value),
-      },
-      'low',
-    ),
     {
       title: t('system.user.status'),
       dataIndex: 'status',
@@ -606,6 +563,58 @@ const UserList: React.FC = () => {
         </Tag>
       ),
     },
+    ...(orgEnabled
+      ? [
+          {
+            title: t('system.user.dept'),
+            dataIndex: 'deptName',
+            width: TABLE_COLUMN_WIDTH.name,
+            render: (value: string) => renderCellText(value),
+          },
+          {
+            title: t('system.user.post'),
+            dataIndex: 'postName',
+            width: TABLE_COLUMN_WIDTH.name,
+            render: (value: string) => renderCellText(value),
+          },
+        ]
+      : []),
+    {
+      title: t('system.user.roles'),
+      dataIndex: 'roleNames',
+      width: TABLE_COLUMN_WIDTH.tagGroup,
+      render: (_: string[], row: UserListRow) => {
+        const roleNames = row.roleNames?.filter(Boolean);
+        const roleLabels = row.roleIds
+          ?.map((roleId) => roleLabelById.get(roleId))
+          .filter((value): value is string => Boolean(value));
+        const roleText = roleNames?.length
+          ? roleNames.join(' / ')
+          : roleLabels?.length
+          ? roleLabels.join(' / ')
+          : row.roleKeys?.length
+            ? row.roleKeys.join(' / ')
+            : undefined;
+        return renderCellText(roleText, 'system-user-list__role-text');
+      },
+    },
+    {
+      title: t('system.user.email'),
+      dataIndex: 'email',
+      width: TABLE_COLUMN_WIDTH.name,
+      ...sortableColumn('email'),
+      render: (value: string) => renderCellText(value),
+    },
+    withTableColumnPriority(
+      {
+        title: t('system.user.phone'),
+        dataIndex: 'phone',
+        width: TABLE_COLUMN_WIDTH.identity,
+        ...sortableColumn('phone'),
+        render: (value: string) => renderCellText(value),
+      },
+      'low',
+    ),
     withTableColumnPriority(
       {
         title: t('system.user.createdAt'),
@@ -618,74 +627,51 @@ const UserList: React.FC = () => {
     ),
     {
       title: t('common.action'),
-      width: TABLE_ACTION_COLUMN_WIDTH.medium,
+      width: TABLE_ACTION_COLUMN_WIDTH.wide,
       fixed: 'right',
       render: (_: unknown, row: UserListRow) => (
-        <Space size={4} className="system-list__actions system-user-list__row-actions">
-          {canView ? (
-            <Button type="text" size="small" icon={<IconEye />} onClick={() => openDetail(row)}>
-              {t('common.detail')}
-            </Button>
-          ) : null}
-          {canEdit ? (
-            <Button
-              type="text"
-              size="small"
-              icon={<IconEdit />}
-              onClick={() => {
+        <SystemRowActions
+          className="system-user-list__row-actions"
+          actions={[
+            {
+              key: 'detail',
+              text: t('common.detail'),
+              icon: <IconEye />,
+              onClick: () => openDetail(row),
+              hidden: !canView,
+            },
+            {
+              key: 'edit',
+              text: t('common.edit'),
+              icon: <IconEdit />,
+              onClick: () => {
                 void openEdit(row);
-              }}
-            >
-              {t('common.edit')}
-            </Button>
-          ) : null}
-          {canResetPassword || canDelete ? (
-            <Dropdown
-              trigger="click"
-              position="br"
-              droplist={
-                <div className="system-user-list__row-menu" role="menu">
-                  {canResetPassword ? (
-                    <Button
-                      type="text"
-                      icon={<IconLock />}
-                      onClick={() => openResetPassword(row)}
-                      role="menuitem"
-                    >
-                      {t('system.user.resetPassword')}
-                    </Button>
-                  ) : null}
-                  {canDelete ? (
-                    <Popconfirm
-                      title={t('common.deleteConfirm')}
-                      onOk={() => removeUser(row.id)}
-                      disabled={row.id === 1}
-                    >
-                      <Button
-                        type="text"
-                        status="danger"
-                        icon={<IconDelete />}
-                        disabled={row.id === 1}
-                        role="menuitem"
-                      >
-                        {t('common.delete')}
-                      </Button>
-                    </Popconfirm>
-                  ) : null}
-                </div>
-              }
-            >
-              <Tooltip content={t('common.action')}>
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<IconMore />}
-                  aria-label={t('common.action')}
-                />
-              </Tooltip>
-            </Dropdown>
-          ) : null}
-        </Space>
+              },
+              hidden: !canEdit,
+            },
+            {
+              key: 'reset-password',
+              text: t('system.user.resetPassword'),
+              icon: <IconLock />,
+              onClick: () => openResetPassword(row),
+              hidden: !canResetPassword,
+            },
+            {
+              key: 'status',
+              text: row.status === 1 ? t('system.user.disable') : t('system.user.enable'),
+              disabled: row.id === 1,
+              hidden: !canBatchUpdate,
+              status: row.status === 1 ? 'warning' : undefined,
+              confirm: {
+                title:
+                  row.status === 1
+                    ? t('system.user.disableConfirm')
+                    : t('system.user.enableConfirm'),
+                onOk: () => handleRowStatus(row, row.status === 1 ? 2 : 1),
+              },
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -781,24 +767,22 @@ const UserList: React.FC = () => {
       .filter((item) => formDeptId > 0 && item.deptId === formDeptId)
       .map(({ label, value }) => ({ label, value })),
   ];
-  const handleDeptChange = (value: unknown) => {
-    const nextDeptId = Number(value || 0);
-    setFormDeptId(nextDeptId);
-    const currentPostId = Number(form.getFieldValue('postId') || 0);
-    if (currentPostId > 0) {
-      const currentPost = postOptions.find((item) => item.value === currentPostId);
-      if (!currentPost || currentPost.deptId !== nextDeptId) {
-        form.setFieldsValue({ postId: 0 });
-      }
-    }
-  };
-
   const enabledUserCount = useMemo(() => data.filter((item) => item.status === 1).length, [data]);
   const disabledUserCount = useMemo(() => data.filter((item) => item.status !== 1).length, [data]);
   const unassignedRoleUserCount = useMemo(
     () => data.filter((item) => !item.roleKeys?.length).length,
     [data],
   );
+  const assignableRoleCount = useMemo(() => roleOptions.length, [roleOptions]);
+  const availableDeptCount = useMemo(
+    () => deptOptions.filter((item) => item.value > 0).length,
+    [deptOptions],
+  );
+  const availablePostCount = useMemo(
+    () => postOptions.filter((item) => item.value > 0).length,
+    [postOptions],
+  );
+  const batchActionReady = !batchActionDisabled || !batchDeleteDisabled;
   const statusMetrics = useMemo(
     () => [
       {
@@ -824,161 +808,62 @@ const UserList: React.FC = () => {
       {
         key: 'roles',
         label: t('system.user.hero.rolesReady'),
-        value: roleOptions.length,
+        value: assignableRoleCount,
       },
     ],
-    [disabledUserCount, enabledUserCount, roleOptions.length, t, total, unassignedRoleUserCount],
+    [assignableRoleCount, disabledUserCount, enabledUserCount, t, total, unassignedRoleUserCount],
   );
   const governanceSummaryItems = useMemo(
     () => [
-      ...(orgEnabled
-        ? [
-            {
-              label: t('system.user.hero.orgReady'),
-              value: `${Math.max(deptOptions.length - 1, 0)} / ${postOptions.length}`,
-              description: t('system.user.hero.orgHint'),
-            },
-          ]
-        : []),
       {
-        label: t('system.user.hero.disabledRows'),
-        value: disabledUserCount,
-        description: t('system.user.hero.disabledHint'),
+        label: t('system.user.hero.orgReady'),
+        value: orgEnabled ? `${availableDeptCount} / ${availablePostCount}` : t('common.disabled'),
+        description: t('system.user.hero.orgHint'),
+      },
+      {
+        label: t('system.user.hero.rolesReady'),
+        value: assignableRoleCount,
+        description: t('system.user.hero.rolesHint'),
       },
       {
         label: t('system.user.hero.batchActions'),
-        value: batchActionDisabled ? t('common.no') : t('common.yes'),
+        value: batchActionReady ? t('common.yes') : t('common.no'),
         description: t('system.user.hero.batchHint'),
       },
     ],
-    [batchActionDisabled, deptOptions.length, disabledUserCount, orgEnabled, postOptions.length, t],
+    [availableDeptCount, availablePostCount, assignableRoleCount, batchActionReady, orgEnabled, t],
   );
+  const handleDeptChange = (value: unknown) => {
+    const nextDeptId = Number(value || 0);
+    setFormDeptId(nextDeptId);
+    const currentPostId = Number(form.getFieldValue('postId') || 0);
+    if (currentPostId > 0) {
+      const currentPost = postOptions.find((item) => item.value === currentPostId);
+      if (!currentPost || currentPost.deptId !== nextDeptId) {
+        form.setFieldsValue({ postId: 0 });
+      }
+    }
+  };
 
   return (
     <PageContainer>
       <Space direction="vertical" size={16} className="system-page-template">
-        <div className="system-user-list__function-bar">
-          <div className="system-user-list__function-copy">
-            <span className="system-user-list__eyebrow">{t('system.user.hero.eyebrow')}</span>
-            <Typography.Title heading={5} className="system-user-list__title">
-              {t('system.menu.user')}
-            </Typography.Title>
-          </div>
-          <ListHeaderActions
-            utility={
-              <>
-                <Button
-                  icon={<IconDownload />}
-                  onClick={() => {
-                    void handleExport();
-                  }}
-                  disabled={!canExport}
-                >
-                  {t('common.export')}
-                </Button>
-                <Button
-                  onClick={() => {
-                    void handleDownloadTemplate();
-                  }}
-                  disabled={!canImport}
-                >
-                  {t('common.downloadTemplate')}
-                </Button>
-                <ImportCsvButton
-                  disabled={!canImport}
-                  onSelect={(file) => {
-                    void handleImport(file);
-                  }}
-                >
-                  {t('common.import')}
-                </ImportCsvButton>
-              </>
-            }
-            primary={
-              <Button type="primary" icon={<IconPlus />} onClick={openCreate} disabled={!canCreate}>
-                {t('common.add')}
-              </Button>
-            }
-          />
-        </div>
-        <TableBatchActionBar
-          className="system-user-list__ops-strip"
-          selectedCount={selectedRowKeys.length}
-          selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
-          clearText={t('common.clearSelection')}
-          clearSuccessText={t('common.clearSelectionSuccess')}
-          onClear={() => setSelectedRowKeys([])}
-          prefixActions={
-            <>
-              <div
-                className="system-user-list__status-strip"
-                aria-label={t('system.user.hero.summaryTitle')}
-              >
-                {statusMetrics.map((item) => (
-                  <span key={item.key} className="system-user-list__status-item">
-                    <span className="system-user-list__status-label">{item.label}</span>
-                    <strong className="system-user-list__status-value">{item.value}</strong>
-                  </span>
-                ))}
-              </div>
-              <GovernanceRailToggleButton
-                expanded={governanceRail.expanded}
-                onToggle={governanceRail.toggle}
-              >
-                {t('system.user.hero.summaryTitle')}
-              </GovernanceRailToggleButton>
-            </>
-          }
-          hint={
-            !canBatchUpdate || !canBatchDelete ? t('common.batchActionPermissionHint') : undefined
-          }
-          actions={
-            <>
-              <PermissionAction allowed={canBatchUpdate} tooltip={t('common.noPermissionAction')}>
-                <Popconfirm
-                  title={t('system.user.batchEnableConfirm')}
-                  onOk={() => {
-                    void handleBatchStatus(1);
-                  }}
-                  disabled={batchActionDisabled}
-                >
-                  <Button disabled={batchActionDisabled}>{t('system.user.batchEnable')}</Button>
-                </Popconfirm>
-              </PermissionAction>
-              <PermissionAction allowed={canBatchUpdate} tooltip={t('common.noPermissionAction')}>
-                <Popconfirm
-                  title={t('system.user.batchDisableConfirm')}
-                  onOk={() => {
-                    void handleBatchStatus(2);
-                  }}
-                  disabled={batchActionDisabled}
-                >
-                  <Button
-                    status={batchActionDisabled ? undefined : 'warning'}
-                    disabled={batchActionDisabled}
-                  >
-                    {t('system.user.batchDisable')}
-                  </Button>
-                </Popconfirm>
-              </PermissionAction>
-              <PermissionAction allowed={canBatchDelete} tooltip={t('common.noPermissionAction')}>
-                <Popconfirm
-                  title={t('system.user.batchDeleteConfirm')}
-                  onOk={() => {
-                    void handleBatchDelete();
-                  }}
-                  disabled={batchDeleteDisabled}
-                >
-                  <Button
-                    status={batchDeleteDisabled ? undefined : 'danger'}
-                    icon={<IconDelete />}
-                    disabled={batchDeleteDisabled}
-                  >
-                    {t('common.deleteSelected')}
-                  </Button>
-                </Popconfirm>
-              </PermissionAction>
-            </>
+        <GovernanceSummaryBar
+          eyebrow={t('system.user.hero.eyebrow')}
+          title={t('system.user.hero.title')}
+          description={t('system.user.hero.desc')}
+          metrics={statusMetrics.slice(0, 3).map((item) => ({
+            key: item.key,
+            label: item.label,
+            value: item.value,
+          }))}
+          action={
+            <GovernanceRailToggleButton
+              expanded={governanceRail.expanded}
+              onToggle={governanceRail.toggle}
+            >
+              {t('system.user.hero.summaryTitle')}
+            </GovernanceRailToggleButton>
           }
         />
         <>
@@ -1025,6 +910,109 @@ const UserList: React.FC = () => {
             </Form>
           </FilterPanel>
           <Card className="page-panel system-list__table-card system-user-list__table-card">
+            <TableBatchActionBar
+              selectedCount={selectedRowKeys.length}
+              selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
+              clearText={t('common.clearSelection')}
+              clearSuccessText={t('common.clearSelectionSuccess')}
+              onClear={() => setSelectedRowKeys([])}
+              prefixActions={
+                <ListHeaderActions
+                  utility={
+                    <>
+                      <Button
+                        icon={<IconDownload />}
+                        onClick={() => {
+                          void handleExport();
+                        }}
+                        disabled={!canExport}
+                      >
+                        {t('common.export')}
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          void handleDownloadTemplate();
+                        }}
+                        disabled={!canImport}
+                      >
+                        {t('common.downloadTemplate')}
+                      </Button>
+                      <ImportCsvButton
+                        disabled={!canImport}
+                        onSelect={(file) => {
+                          void handleImport(file);
+                        }}
+                      >
+                        {t('common.import')}
+                      </ImportCsvButton>
+                    </>
+                  }
+                  primary={
+                    <Button
+                      type="primary"
+                      icon={<IconPlus />}
+                      onClick={openCreate}
+                      disabled={!canCreate}
+                    >
+                      {t('common.add')}
+                    </Button>
+                  }
+                />
+              }
+              hint={
+                !canBatchUpdate || !canBatchDelete
+                  ? t('common.batchActionPermissionHint')
+                  : undefined
+              }
+              actions={
+                <>
+                  <PermissionAction allowed={canBatchUpdate} tooltip={t('common.noPermissionAction')}>
+                    <Popconfirm
+                      title={t('system.user.batchEnableConfirm')}
+                      onOk={() => {
+                        void handleBatchStatus(1);
+                      }}
+                      disabled={batchActionDisabled}
+                    >
+                      <Button disabled={batchActionDisabled}>{t('system.user.batchEnable')}</Button>
+                    </Popconfirm>
+                  </PermissionAction>
+                  <PermissionAction allowed={canBatchUpdate} tooltip={t('common.noPermissionAction')}>
+                    <Popconfirm
+                      title={t('system.user.batchDisableConfirm')}
+                      onOk={() => {
+                        void handleBatchStatus(2);
+                      }}
+                      disabled={batchActionDisabled}
+                    >
+                      <Button
+                        status={batchActionDisabled ? undefined : 'warning'}
+                        disabled={batchActionDisabled}
+                      >
+                        {t('system.user.batchDisable')}
+                      </Button>
+                    </Popconfirm>
+                  </PermissionAction>
+                  <PermissionAction allowed={canBatchDelete} tooltip={t('common.noPermissionAction')}>
+                    <Popconfirm
+                      title={t('system.user.batchDeleteConfirm')}
+                      onOk={() => {
+                        void handleBatchDelete();
+                      }}
+                      disabled={batchDeleteDisabled}
+                    >
+                      <Button
+                        status={batchDeleteDisabled ? undefined : 'danger'}
+                        icon={<IconDelete />}
+                        disabled={batchDeleteDisabled}
+                      >
+                        {t('common.deleteSelected')}
+                      </Button>
+                    </Popconfirm>
+                  </PermissionAction>
+                </>
+              }
+            />
             {loading && data.length === 0 ? <PageLoading /> : null}
             {error && data.length === 0 ? renderErrorState() : null}
             {!loading && !error && data.length === 0 ? (
@@ -1032,7 +1020,7 @@ const UserList: React.FC = () => {
             ) : null}
             {!loading && !(error && data.length === 0) && data.length > 0 ? (
               <AppTable<UserListRow>
-                className="system-user-list__table"
+                className="system-list__table system-user-list__table"
                 data={data}
                 columns={columns}
                 rowKey="id"
@@ -1041,25 +1029,19 @@ const UserList: React.FC = () => {
                 rowSelection={{
                   type: 'checkbox',
                   selectedRowKeys,
+                  checkCrossPage: true,
+                  preserveSelectedRowKeys: true,
                   fixed: true,
                   checkboxProps: (row) => ({ disabled: row.id === 1 }),
                   onChange: (rowKeys) => setSelectedRowKeys(rowKeys),
                 }}
                 onChange={handleTableChange}
                 emptyText={t('common.noData')}
-                pagination={
-                  {
-                    current: query.page || emptyQuery.page,
-                    pageSize: query.pageSize || emptyQuery.pageSize,
-                    total,
-                    showJumper: true,
-                    pageSizeChangeResetCurrent: false,
-                    sizeCanChange: true,
-                    sizeOptions: [10, 20, 50, 100],
-                    size: 'small',
-                    showTotal: (count: number) => t('common.total', { count }),
-                  } as PaginationProps
-                }
+                pagination={buildStandardPagination(t, {
+                  current: query.page || emptyQuery.page,
+                  pageSize: query.pageSize || emptyQuery.pageSize,
+                  total,
+                })}
               />
             ) : null}
           </Card>
@@ -1070,7 +1052,7 @@ const UserList: React.FC = () => {
         title={t('system.user.hero.summaryTitle')}
         visible={governanceRail.expanded}
         onClose={governanceRail.close}
-        noteTitle={t('system.user.hero.summaryTitle')}
+        noteTitle={t('system.user.hero.sideLead')}
         noteDescription={t('system.user.hero.sideDesc')}
       >
         <GovernanceRailSummary items={governanceSummaryItems} />
@@ -1211,6 +1193,7 @@ const UserList: React.FC = () => {
                 />
               </FormItem>
               <FormItem
+                className="system-user-list__role-field"
                 label={t('system.user.roles')}
                 field="roleIds"
                 rules={[
@@ -1222,7 +1205,11 @@ const UserList: React.FC = () => {
                   },
                 ]}
               >
-                <Select mode="multiple" options={roleOptions} />
+                <Select
+                  mode="multiple"
+                  options={roleOptions}
+                  placeholder={t('system.user.role.required')}
+                />
               </FormItem>
             </FormSection>
           </Space>

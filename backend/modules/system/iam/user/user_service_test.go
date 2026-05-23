@@ -18,16 +18,17 @@ func setupUserTestDB(t *testing.T) *gorm.DB {
 
 	// 迁移模型
 	_ = db.AutoMigrate(&SystemUser{}, &SystemUserProfileExt{})
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role (id BIGINT PRIMARY KEY, role_key VARCHAR(64), status INT, deleted_at DATETIME NULL)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role (id BIGINT PRIMARY KEY, role_key VARCHAR(64), role_name VARCHAR(128), status INT, deleted_at DATETIME NULL)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_role (user_id BIGINT, role_id BIGINT)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_session (session_id VARCHAR(128), user_id BIGINT, revoked_at DATETIME NULL)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_dept (id BIGINT PRIMARY KEY, parent_id BIGINT, dept_name VARCHAR(128))")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_post (id BIGINT PRIMARY KEY, post_code VARCHAR(64), post_name VARCHAR(128), dept_id BIGINT)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_log_login (id BIGINT PRIMARY KEY AUTO_INCREMENT, username VARCHAR(64), status INT, login_time DATETIME)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_setting (setting_key VARCHAR(128) PRIMARY KEY, setting_value TEXT)")
 
 	// 插入基础数据
-	_ = db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)")
-	_ = db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (2, 'test', 1)")
+	_ = db.Exec("INSERT INTO system_role (id, role_key, role_name, status) VALUES (1, 'admin', '管理员', 1)")
+	_ = db.Exec("INSERT INTO system_role (id, role_key, role_name, status) VALUES (2, 'test', '测试角色', 1)")
 
 	return db
 }
@@ -556,6 +557,15 @@ func TestUserService_GetUserDetail(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create user: %v", err)
 	}
+	loginTime := time.Date(2026, 5, 16, 17, 4, 9, 0, time.UTC)
+	if err := db.Exec(
+		"INSERT INTO system_log_login (username, status, login_time) VALUES (?, ?, ?)",
+		"detail_test",
+		1,
+		loginTime,
+	).Error; err != nil {
+		t.Fatalf("seed login log: %v", err)
+	}
 
 	detail, err := s.GetUserDetail(userResp.ID)
 	if err != nil {
@@ -573,11 +583,19 @@ func TestUserService_GetUserDetail(t *testing.T) {
 	if detail.PostName != "架构师" {
 		t.Fatalf("expected post name 架构师, got %s", detail.PostName)
 	}
-	if len(detail.RoleIDs) != 2 || len(detail.RoleKeys) != 2 {
-		t.Fatalf("expected role ids and keys to be loaded, got %v / %v", detail.RoleIDs, detail.RoleKeys)
+	if len(detail.RoleIDs) != 2 || len(detail.RoleKeys) != 2 || len(detail.RoleNames) != 2 {
+		t.Fatalf(
+			"expected role ids, keys, and names to be loaded, got %v / %v / %v",
+			detail.RoleIDs,
+			detail.RoleKeys,
+			detail.RoleNames,
+		)
 	}
 	if detail.UpdatedAt == "" {
 		t.Fatal("expected updatedAt to be populated")
+	}
+	if detail.LastLoginAt == nil || *detail.LastLoginAt != loginTime.Format(time.RFC3339) {
+		t.Fatalf("expected lastLoginAt to be populated, got %v", detail.LastLoginAt)
 	}
 
 	if _, err := s.GetUserDetail(999); err == nil {

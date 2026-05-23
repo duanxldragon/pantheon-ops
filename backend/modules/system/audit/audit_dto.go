@@ -41,7 +41,9 @@ type OperationLogQuery struct {
 }
 
 type OperationLogCleanupReq struct {
-	RetentionDays int `json:"retentionDays"`
+	RetentionDays int    `json:"retentionDays"`
+	StartedAt     string `json:"startedAt"`
+	EndedAt       string `json:"endedAt"`
 }
 
 type OperationLogBatchDeleteReq struct {

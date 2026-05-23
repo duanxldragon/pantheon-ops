@@ -1,4 +1,3 @@
-const generatedfrFRFallback = {
-};
+const generatedfrFRFallback = {};
 
 export default generatedfrFRFallback;

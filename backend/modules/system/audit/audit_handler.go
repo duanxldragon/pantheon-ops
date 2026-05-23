@@ -71,7 +71,7 @@ func (h *AuditHandler) CleanupOperationLogs(c *gin.Context) {
 		return
 	}
 
-	clearedCount, err := h.service.CleanupOperationLogs(req.RetentionDays)
+	clearedCount, err := h.service.CleanupOperationLogs(req.RetentionDays, req.StartedAt, req.EndedAt)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "request.failed")
 		return

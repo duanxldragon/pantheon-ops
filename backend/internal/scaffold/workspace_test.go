@@ -154,6 +154,22 @@ func TestValidateRegisterRequestRejectsInvalidGovernanceContract(t *testing.T) {
 			},
 			wantError: "module.generate.invalid_relation",
 		},
+		{
+			name: "lookup api must start with slash",
+			mutate: func(req *RegisterGeneratedModuleRequest) {
+				req.Schema.Relations = []ModuleRelation{{
+					Name:             "assetOwner",
+					Type:             "lookup",
+					TargetModule:     "cmdb/vendor",
+					LocalField:       "vendorId",
+					TargetField:      "id",
+					TargetLabelField: "name",
+					LookupAPI:        "system/lookup/vendors",
+					LookupValueField: "id",
+				}}
+			},
+			wantError: "module.generate.invalid_relation",
+		},
 	}
 
 	for _, tt := range tests {
@@ -177,11 +193,14 @@ func TestValidateRegisterRequestAcceptsP2GovernanceContract(t *testing.T) {
 	req.Schema.Dependencies = []ModuleDependency{{Module: "cmdb/vendor", Required: true, Reason: "asset needs vendor"}}
 	req.Schema.Relations = []ModuleRelation{
 		{
-			Name:         "assetVendor",
-			Type:         "lookup",
-			TargetModule: "cmdb/vendor",
-			LocalField:   "vendorId",
-			TargetField:  "id",
+			Name:             "assetVendor",
+			Type:             "lookup",
+			TargetModule:     "cmdb/vendor",
+			LocalField:       "vendorId",
+			TargetField:      "id",
+			TargetLabelField: "name",
+			LookupAPI:        "/business/cmdb/vendor/options",
+			LookupValueField: "id",
 		},
 		{
 			Name:          "assetGroups",
@@ -195,6 +214,54 @@ func TestValidateRegisterRequestAcceptsP2GovernanceContract(t *testing.T) {
 
 	if err := ValidateRegisterRequest(req); err != nil {
 		t.Fatalf("expected valid P2 governance contract, got %v", err)
+	}
+}
+
+func TestWriteGeneratedModuleSourceBuildsFilesServerSideWhenFilesOmitted(t *testing.T) {
+	root := prepareScaffoldWorkspaceRoot(t)
+	scriptDir := filepath.Join(root, "frontend", "scripts")
+	if err := os.MkdirAll(scriptDir, 0o755); err != nil {
+		t.Fatalf("mkdir script dir: %v", err)
+	}
+	script := `import { readFileSync } from 'node:fs';
+const schema = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+const files = [
+  {
+    path: 'backend/modules/business/asset/module.go',
+    content: 'package asset\n',
+    language: 'go',
+  },
+  {
+    path: 'frontend/src/modules/business/asset/index.ts',
+    content: 'export const AssetModule = {}\n',
+    language: 'typescript',
+  },
+];
+process.stdout.write(JSON.stringify(files));
+`
+	if err := os.WriteFile(filepath.Join(scriptDir, "export-generated-module.mjs"), []byte(script), 0o644); err != nil {
+		t.Fatalf("write script: %v", err)
+	}
+
+	req := newScaffoldTestRequest()
+	req.Files = nil
+
+	written, err := WriteGeneratedModuleSource(root, req)
+	if err != nil {
+		t.Fatalf("write generated source with server-side generation: %v", err)
+	}
+
+	if len(written) != 3 {
+		t.Fatalf("expected 3 written artifacts, got %d (%v)", len(written), written)
+	}
+	if !fileExists(filepath.Join(root, "backend", "modules", "business", "asset", "module.go")) {
+		t.Fatal("expected backend module file to be generated")
+	}
+	if !fileExists(filepath.Join(root, "frontend", "src", "modules", "business", "asset", "index.ts")) {
+		t.Fatal("expected frontend module file to be generated")
+	}
+	if !fileExists(filepath.Join(root, "schema", "generated", "business", "asset.json")) {
+		t.Fatal("expected schema file to be written")
 	}
 }
 
@@ -277,4 +344,50 @@ func newScaffoldTestRequest() *RegisterGeneratedModuleRequest {
 		Files: []GeneratedFile{{Path: "backend/modules/business/asset/module.go", Content: "package asset"}},
 	}
 	return req
+}
+
+func TestResolveWorkspaceRootHonorsConfiguredEnvWhenStartIsEmpty(t *testing.T) {
+	root := prepareScaffoldWorkspaceRoot(t)
+	t.Setenv(workspaceRootEnvKey, root)
+
+	resolved, err := ResolveWorkspaceRoot("")
+	if err != nil {
+		t.Fatalf("resolve workspace root from env: %v", err)
+	}
+	if resolved != root {
+		t.Fatalf("expected workspace root %s, got %s", root, resolved)
+	}
+}
+
+func TestResolveWorkspaceRootIgnoresEnvWhenExplicitStartProvided(t *testing.T) {
+	envRoot := prepareScaffoldWorkspaceRoot(t)
+	startRoot := prepareScaffoldWorkspaceRoot(t)
+	nestedStart := filepath.Join(startRoot, "backend", "modules")
+	if err := os.MkdirAll(nestedStart, 0o755); err != nil {
+		t.Fatalf("mkdir nested start: %v", err)
+	}
+	t.Setenv(workspaceRootEnvKey, envRoot)
+
+	resolved, err := ResolveWorkspaceRoot(nestedStart)
+	if err != nil {
+		t.Fatalf("resolve workspace root from explicit start: %v", err)
+	}
+	if resolved != startRoot {
+		t.Fatalf("expected explicit start root %s, got %s", startRoot, resolved)
+	}
+}
+
+func prepareScaffoldWorkspaceRoot(t *testing.T) string {
+	t.Helper()
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module pantheon-ops\n\ngo 1.25.4\n"), 0o644); err != nil {
+		t.Fatalf("write go.mod: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(root, "backend"), 0o755); err != nil {
+		t.Fatalf("mkdir backend: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(root, "frontend"), 0o755); err != nil {
+		t.Fatalf("mkdir frontend: %v", err)
+	}
+	return root
 }

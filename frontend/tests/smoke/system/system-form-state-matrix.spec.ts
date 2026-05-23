@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page, type Route } from '@playwright/test';
-import { installOperationToken, signInAsAdmin } from '../helpers/auth';
+import { apiBaseUrl, authHeaders, installOperationToken, signInAsAdmin } from '../helpers/auth';
 
 type Deferred<T = void> = {
   promise: Promise<T>;
@@ -12,7 +12,7 @@ type FormMatrixCase = {
   formTitle: string;
   submitText: string;
   openForm: (page: Page) => Promise<Locator>;
-  fillValid: (form: Locator, page: Page) => Promise<void>;
+  fillValid: (form: Locator, page: Page, accessToken: string) => Promise<void>;
   prepareRequired?: (form: Locator, page: Page) => Promise<void>;
   submitRoutePattern: RegExp;
   successBody: Record<string, unknown>;
@@ -87,6 +87,30 @@ async function fulfillJson(route: Route, status: number, body: Record<string, un
     contentType: 'application/json',
     body: JSON.stringify(body),
   });
+}
+
+async function selectAdminRoleInVirtualizedList(form: Locator, page: Page, accessToken: string) {
+  const response = await page.request.get(`${apiBaseUrl}/system/role/list`, {
+    headers: authHeaders(accessToken),
+    params: {
+      page: '1',
+      pageSize: '100',
+      sortField: 'sort',
+      sortOrder: 'asc',
+      status: '1',
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  const items = Array.isArray(payload.data?.items) ? payload.data.items : [];
+  const adminIndex = items.findIndex((item: { roleKey?: string }) => item.roleKey === 'admin');
+  expect(adminIndex).toBeGreaterThanOrEqual(0);
+
+  await form.locator('.arco-select-view').first().click();
+  for (let index = 0; index < adminIndex; index += 1) {
+    await page.keyboard.press('ArrowDown');
+  }
+  await page.keyboard.press('Enter');
 }
 
 const matrixCases: FormMatrixCase[] = [
@@ -268,9 +292,8 @@ const matrixCases: FormMatrixCase[] = [
       await page.getByRole('button', { name: '新增', exact: true }).click();
       return waitForDialog(page, '新增策略');
     },
-    fillValid: async (form, page) => {
-      await form.locator('.arco-select-view').first().click();
-      await page.getByRole('option', { name: /超级管理员|superadmin/i }).first().click();
+    fillValid: async (form, page, accessToken) => {
+      await selectAdminRoleInVirtualizedList(form, page, accessToken);
       await form.getByPlaceholder('/api/v1/system/user/list').fill('/api/v1/system/permission/matrix');
     },
     submitRoutePattern: /\/api\/v1\/system\/permission$/,
@@ -421,7 +444,7 @@ test.describe('system form state matrix', () => {
       if (matrixCase.key === 'setting-security-update') {
         await installOperationToken(page, accessToken);
       }
-      await matrixCase.fillValid(form, page);
+      await matrixCase.fillValid(form, page, accessToken);
 
       const submit = resolveSubmitButton(matrixCase, form, page);
       await submit.click({ noWaitAfter: true });

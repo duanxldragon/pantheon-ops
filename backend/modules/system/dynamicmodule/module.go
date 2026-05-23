@@ -53,6 +53,7 @@ func InitDynamicModule(r *gin.RouterGroup, db *gorm.DB) {
 					Use(DynamicModuleEnvGuard())
 				{
 					readAPI.GET("", handler.ListModules)
+					readAPI.GET("/schema", handler.GetModuleSchema)
 					readAPI.GET("/:name", handler.GetModuleStatus)
 				}
 
@@ -64,6 +65,7 @@ func InitDynamicModule(r *gin.RouterGroup, db *gorm.DB) {
 				{
 					writeAPI.POST("/generate", handler.GenerateAndRegisterModule)
 					writeAPI.POST("/repair", handler.RepairRegistries)
+					writeAPI.POST("/activation-audit", handler.AuditPendingActivations)
 					writeAPI.POST("", handler.RegisterModule)
 					writeAPI.DELETE("/:name", handler.UnregisterModule)
 					writeAPI.DELETE("/:name/record", handler.DeleteModuleRecord)

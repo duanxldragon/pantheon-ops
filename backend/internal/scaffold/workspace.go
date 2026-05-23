@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -15,9 +16,29 @@ import (
 
 var managedTableNamePattern = regexp.MustCompile(`^[a-z0-9_]+$`)
 
+const workspaceRootEnvKey = "PANTHEON_WORKSPACE_ROOT"
+const generatedModuleExporterScript = "frontend/scripts/export-generated-module.mjs"
+
+func isWorkspaceRoot(candidate string) bool {
+	return fileExists(filepath.Join(candidate, "go.mod")) &&
+		dirExists(filepath.Join(candidate, "backend")) &&
+		dirExists(filepath.Join(candidate, "frontend"))
+}
+
 func ResolveWorkspaceRoot(start string) (string, error) {
 	current := strings.TrimSpace(start)
 	if current == "" {
+		if configuredRoot := strings.TrimSpace(os.Getenv(workspaceRootEnvKey)); configuredRoot != "" {
+			resolved, err := filepath.Abs(configuredRoot)
+			if err != nil {
+				return "", err
+			}
+			if !isWorkspaceRoot(resolved) {
+				return "", errors.New("workspace.not_found")
+			}
+			return resolved, nil
+		}
+
 		var err error
 		current, err = os.Getwd()
 		if err != nil {
@@ -27,9 +48,7 @@ func ResolveWorkspaceRoot(start string) (string, error) {
 	current, _ = filepath.Abs(current)
 
 	for {
-		if fileExists(filepath.Join(current, "go.mod")) &&
-			dirExists(filepath.Join(current, "backend")) &&
-			dirExists(filepath.Join(current, "frontend")) {
+		if isWorkspaceRoot(current) {
 			return current, nil
 		}
 		parent := filepath.Dir(current)
@@ -64,9 +83,6 @@ func ValidateRegisterRequest(req *RegisterGeneratedModuleRequest) error {
 	}
 	if err := ValidateManagedTableName(scope, tableName); err != nil {
 		return errors.New("module.generate.invalid_table_name")
-	}
-	if len(req.Files) == 0 {
-		return errors.New("module.generate.empty_files")
 	}
 	if err := validateGovernanceContract(req); err != nil {
 		return err
@@ -110,11 +126,20 @@ func WriteGeneratedModuleSource(workspaceRoot string, req *RegisterGeneratedModu
 	scope := strings.TrimSpace(req.Schema.Scope)
 	backendPrefix := filepath.ToSlash(filepath.Join("backend", "modules", scope, name)) + "/"
 	frontendPrefix := filepath.ToSlash(filepath.Join("frontend", "src", "modules", scope, name)) + "/"
+	files := req.Files
+	if len(files) == 0 {
+		generatedFiles, err := GenerateModuleFilesFromSchema(workspaceRoot, req.Schema)
+		if err != nil {
+			return nil, err
+		}
+		files = generatedFiles
+		req.Files = generatedFiles
+	}
 
-	written := make([]string, 0, len(req.Files)+1)
-	seen := make(map[string]struct{}, len(req.Files))
+	written := make([]string, 0, len(files)+1)
+	seen := make(map[string]struct{}, len(files))
 
-	for _, file := range req.Files {
+	for _, file := range files {
 		relativePath := filepath.ToSlash(strings.TrimSpace(file.Path))
 		if relativePath == "" || strings.Contains(relativePath, "..") {
 			return nil, errors.New("module.generate.invalid_path")
@@ -157,6 +182,49 @@ func WriteGeneratedModuleSource(workspaceRoot string, req *RegisterGeneratedModu
 	}
 
 	return written, nil
+}
+
+func GenerateModuleFilesFromSchema(workspaceRoot string, schema ModuleSchema) ([]GeneratedFile, error) {
+	scriptPath := filepath.Join(workspaceRoot, filepath.FromSlash(generatedModuleExporterScript))
+	if !fileExists(scriptPath) {
+		return nil, errors.New("module.generate.server_export_failed")
+	}
+
+	schemaFile, err := os.CreateTemp("", "pantheon-module-schema-*.json")
+	if err != nil {
+		return nil, err
+	}
+	schemaPath := schemaFile.Name()
+	defer os.Remove(schemaPath)
+
+	schemaJSON, err := json.Marshal(schema)
+	if err != nil {
+		_ = schemaFile.Close()
+		return nil, err
+	}
+	if _, err := schemaFile.Write(schemaJSON); err != nil {
+		_ = schemaFile.Close()
+		return nil, err
+	}
+	if err := schemaFile.Close(); err != nil {
+		return nil, err
+	}
+
+	cmd := exec.Command("node", scriptPath, schemaPath)
+	cmd.Dir = workspaceRoot
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, errors.New("module.generate.server_export_failed")
+	}
+
+	var files []GeneratedFile
+	if err := json.Unmarshal(output, &files); err != nil {
+		return nil, errors.New("module.generate.server_export_failed")
+	}
+	if len(files) == 0 {
+		return nil, errors.New("module.generate.server_export_failed")
+	}
+	return files, nil
 }
 
 func RemoveGeneratedModuleSource(workspaceRoot string, scope string, name string) error {
@@ -305,11 +373,18 @@ func writeGeneratedFrontendComponentRegistry(workspaceRoot string, refs []Genera
 	}
 	entries := make([]entry, 0, len(refs))
 	for _, ref := range refs {
-		componentName := toPascal(ref.Name) + "List"
-		entries = append(entries, entry{
-			Key:        fmt.Sprintf("%s/%s/%s", ref.Scope, ref.Name, componentName),
-			ImportPath: fmt.Sprintf("../../modules/%s/%s/%s", ref.Scope, ref.Name, componentName),
-		})
+		listComponentName := toPascal(ref.Name) + "List"
+		detailComponentName := toPascal(ref.Name) + "Detail"
+		entries = append(entries,
+			entry{
+				Key:        fmt.Sprintf("%s/%s/%s", ref.Scope, ref.Name, listComponentName),
+				ImportPath: fmt.Sprintf("../../modules/%s/%s/%s", ref.Scope, ref.Name, listComponentName),
+			},
+			entry{
+				Key:        fmt.Sprintf("%s/%s/%s", ref.Scope, ref.Name, detailComponentName),
+				ImportPath: fmt.Sprintf("../../modules/%s/%s/%s", ref.Scope, ref.Name, detailComponentName),
+			},
+		)
 	}
 
 	data := struct {
@@ -329,9 +404,10 @@ func writeGeneratedBackendComponentRegistry(workspaceRoot string, refs []Generat
 	}
 	entries := make([]entry, 0, len(refs))
 	for _, ref := range refs {
-		entries = append(entries, entry{
-			Key: fmt.Sprintf("%s/%s/%sList", ref.Scope, ref.Name, toPascal(ref.Name)),
-		})
+		entries = append(entries,
+			entry{Key: fmt.Sprintf("%s/%s/%sList", ref.Scope, ref.Name, toPascal(ref.Name))},
+			entry{Key: fmt.Sprintf("%s/%s/%sDetail", ref.Scope, ref.Name, toPascal(ref.Name))},
+		)
 	}
 
 	data := struct {

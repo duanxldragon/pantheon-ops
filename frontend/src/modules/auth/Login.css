@@ -109,68 +109,6 @@
   background: var(--panel-bg-solid);
 }
 
-.auth-login-assurance {
-  margin-top: 34px;
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius-md);
-  background: var(--panel-bg-solid);
-  box-shadow: var(--panel-shadow-soft);
-}
-
-.auth-login-assurance__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 18px;
-  border-bottom: 1px solid var(--panel-border);
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.auth-login-assurance__list {
-  display: grid;
-  gap: 0;
-}
-
-.auth-login-assurance__item {
-  display: flex;
-  gap: 12px;
-  padding: 16px 18px;
-}
-
-.auth-login-assurance__item + .auth-login-assurance__item {
-  border-top: 1px solid var(--panel-border);
-}
-
-.auth-login-assurance__dot {
-  width: 8px;
-  height: 8px;
-  margin-top: 7px;
-  border-radius: 999px;
-  background: var(--brand-primary);
-  flex-shrink: 0;
-}
-
-.auth-login-assurance__copy {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.auth-login-assurance__title {
-  color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.auth-login-assurance__desc {
-  color: var(--text-secondary);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
 .auth-login-page__footer {
   margin-top: 28px;
   color: var(--text-tertiary);
@@ -304,7 +242,41 @@
 
 .auth-login-card .arco-input-inner-wrapper,
 .auth-login-card .arco-input-password {
+  min-height: 40px;
+  border: 1px solid var(--panel-border-strong);
   border-radius: var(--radius-control);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.auth-login-card .arco-input-inner-wrapper:hover,
+.auth-login-card .arco-input-password:hover {
+  border-color: var(--brand-primary);
+}
+
+.auth-login-card .arco-input-inner-wrapper.arco-input-focus,
+.auth-login-card .arco-input-inner-wrapper:focus-within,
+.auth-login-card .arco-input-password.arco-input-focus,
+.auth-login-card .arco-input-password:focus-within {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 12%, transparent);
+}
+
+.auth-login-card .arco-input-password .arco-input-group,
+.auth-login-card .arco-input-password .arco-input-inner-wrapper {
+  min-height: inherit;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: none;
+}
+
+.auth-login-card .arco-input-inner-wrapper .arco-input,
+.auth-login-card .arco-input-password .arco-input {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
 }
 
 .auth-login-card__submit {
@@ -384,7 +356,6 @@
   }
 
   .auth-login-page__features,
-  .auth-login-assurance,
   .auth-login-page__footer {
     display: none;
   }

@@ -38,6 +38,22 @@ function saveBlob(blob: Blob, filename: string) {
   window.URL.revokeObjectURL(url);
 }
 
+export function downloadCsvFile(filename: string, headers: string[], rows: string[][]) {
+  const escaped = (value: string) => {
+    const normalized = String(value ?? '');
+    if (/[",\r\n]/.test(normalized)) {
+      return `"${normalized.replace(/"/g, '""')}"`;
+    }
+    return normalized;
+  };
+  const csv = [
+    headers.map(escaped).join(','),
+    ...rows.map((row) => row.map(escaped).join(',')),
+  ].join('\r\n');
+  const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' });
+  saveBlob(blob, filename || 'export.csv');
+}
+
 export async function downloadFile(options: DownloadFileOptions) {
   const response = await axios.request<Blob>({
     baseURL: '/api/v1',

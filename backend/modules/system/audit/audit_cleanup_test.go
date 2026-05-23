@@ -26,7 +26,7 @@ func TestAuditService_CleanupOperationLogsUsesConfiguredRetentionOptions(t *test
 		t.Fatalf("seed operation logs: %v", err)
 	}
 
-	clearedCount, err := service.CleanupOperationLogs(15)
+	clearedCount, err := service.CleanupOperationLogs(15, "", "")
 	if err != nil {
 		t.Fatalf("cleanup operation logs with configured option: %v", err)
 	}
@@ -34,9 +34,32 @@ func TestAuditService_CleanupOperationLogsUsesConfiguredRetentionOptions(t *test
 		t.Fatalf("expected to clean 1 operation log, got %d", clearedCount)
 	}
 
-	_, err = service.CleanupOperationLogs(7)
+	_, err = service.CleanupOperationLogs(7, "", "")
 	if err == nil || err.Error() != "audit.operation_log.cleanup.days_invalid" {
 		t.Fatalf("expected invalid retention days error, got %v", err)
+	}
+}
+
+func TestAuditService_CleanupOperationLogsSupportsExplicitTimeRange(t *testing.T) {
+	db := setupAuditTestDB(t)
+	service := NewAuditService(db)
+	if err := service.Migrate(); err != nil {
+		t.Fatalf("migrate audit: %v", err)
+	}
+	now := time.Now().UTC()
+	if err := db.Create(&[]middleware.SystemLogOper{
+		{Title: "range-in", OperURL: "/api/v1/system/user/1", OperTime: now.Add(-3 * time.Hour)},
+		{Title: "range-out", OperURL: "/api/v1/system/user/2", OperTime: now.Add(-36 * time.Hour)},
+	}).Error; err != nil {
+		t.Fatalf("seed operation logs: %v", err)
+	}
+
+	clearedCount, err := service.CleanupOperationLogs(0, now.Add(-12*time.Hour).Format(time.RFC3339), now.Format(time.RFC3339))
+	if err != nil {
+		t.Fatalf("cleanup operation logs by explicit range: %v", err)
+	}
+	if clearedCount != 1 {
+		t.Fatalf("expected to clean 1 operation log in range, got %d", clearedCount)
 	}
 }
 

@@ -463,6 +463,8 @@ const jaJPFallback = {
   'auth.securityEvent.severity.high': '高',
   'auth.securityEvent.severity.medium': '中',
   'auth.securityEvent.severity.low': '低',
+  'auth.security.event.password_wrong':
+    'このアカウントで誤ったパスワードによるサインイン試行が検出されました。',
   'auth.security.event.source_blocked': '失敗回数が多すぎるため送信元を一時的にロックしました。',
   'auth.security.event.account_locked':
     '失敗回数が多すぎるためアカウントを一時的にロックしました。',
@@ -690,7 +692,8 @@ const jaJPFallback = {
   'system.menu.title': 'タイトル',
   'system.menu.titleKey': 'タイトルキー',
   'system.menu.path': 'パス',
-  'system.menu.parentId': '親 ID',
+  'system.menu.parentId': '親メニュー',
+  'system.menu.root': 'ルートメニュー',
   'system.menu.component': 'コンポーネントキー',
   'system.menu.routeName': 'ルート名',
   'system.menu.pagePerm': 'ページアクセス権限',
@@ -708,6 +711,7 @@ const jaJPFallback = {
   'system.menu.activeMenu': 'アクティブメニュー',
   'system.menu.metadata': 'メタデータ',
   'system.menu.create': 'メニューを作成',
+  'system.menu.createChild': '子メニューを追加',
   'system.menu.edit': 'メニューを編集',
   'system.menu.view.table': '表',
   'system.menu.view.list': '一覧',
@@ -854,6 +858,10 @@ const jaJPFallback = {
   'system.post.empty':
     '現在の範囲に一致する役職はありません。フィルタを調整するか先に役職を作成してください。',
   'system.post.hero.eyebrow': '役職ガバナンス',
+  'system.post.header.eyebrow': 'システムドメイン / 組織',
+  'system.post.header.title': '役職状態、使用中ブロッカー、改善アクションを 1 つのワークベンチで解決',
+  'system.post.header.description':
+    '役職ページは `system/org` の境界を維持しています。メイン作業レーンがフィルタ、保守、一括ガバナンスを担当し、サイドレールは使用中リスク、無効在庫、改善ガイダンスのみを要約します。',
   'system.post.hero.title': '役職状態、使用中ブロッカー、改善アクションを 1 つのワークベンチで解決',
   'system.post.hero.desc':
     '役職ページは `system/org` の境界を維持しています。メイン作業レーンがフィルタ、保守、一括ガバナンスを担当し、サイドレールは使用中リスク、無効在庫、改善ガイダンスのみを要約します。',
@@ -1031,6 +1039,12 @@ const jaJPFallback = {
   'system.user.role.required': '少なくとも 1 つのロールを選択してください',
   'system.user.dept.required': '部門を選択してください',
   'system.user.email.invalid': 'メールアドレスが不正です',
+  'system.user.enable': '有効化',
+  'system.user.disable': '無効化',
+  'system.user.enableConfirm': 'このユーザーを有効化しますか？',
+  'system.user.disableConfirm': 'このユーザーを無効化しますか？',
+  'system.user.enableSuccess': 'ユーザーを有効化しました',
+  'system.user.disableSuccess': 'ユーザーを無効化しました',
   'system.user.batchEnableConfirm': '選択したユーザーをすべて有効化しますか？',
   'system.user.batchDisableConfirm': '選択したユーザーをすべて無効化しますか？',
   'system.user.batchDeleteConfirm': '選択したユーザーをすべて削除しますか？',
@@ -1082,6 +1096,10 @@ const jaJPFallback = {
   'system.dict.itemEmpty': '辞書項目がありません',
   'system.dict.item.empty': '左側で辞書タイプを選択して項目を管理してください',
   'system.dict.hero.eyebrow': 'システムドメイン / 設定ガバナンス辞書',
+  'system.dict.header.eyebrow': 'システムドメイン / 設定',
+  'system.dict.header.title': '辞書タイプ、辞書項目、実行時キャッシュを 1 つのワークベンチで管理',
+  'system.dict.header.description':
+    '辞書ページは `system/config` の境界を維持しています。メインレーンがタイプと項目の保守を担当し、サマリーレールは無効在庫、キャッシュ更新準備状況、インポート準備状況のみを表示します。',
   'system.dict.hero.title': '辞書タイプ、辞書項目、実行時キャッシュを 1 つのワークベンチで管理',
   'system.dict.hero.summaryTitle': 'ガバナンス概要',
   'system.dict.hero.currentType': '現在の辞書',
@@ -1112,12 +1130,22 @@ const jaJPFallback = {
     'このモジュールは業務トップレベルメニューとして扱われ、親メニューは不要です',
   'module.generate.verify.pending_activation':
     'このモジュールはアクティベーション待ちとして登録されています',
+  'module.generate.verify.backend_runtime_ready':
+    'バックエンド実行系はこのモジュールのメニュー接続を読み込み済みです',
+  'module.generate.verify.backend_runtime_pending':
+    'バックエンド実行系はまだこのモジュールを読み込んでいません。再起動が必要です',
   'module.generate.verify.contract_governance':
     '生成前ガバナンス契約を検証し、サマリーへ書き込みました',
   'module.generate.verify.restart_required':
     '新しい Go モジュールと生成レジストリを読み込むにはバックエンドを再起動してください',
+  'module.generate.verify.frontend_bundle_ready':
+    'フロントエンドのビルド成果物は生成ソースより新しく、更新済みです',
+  'module.generate.verify.frontend_bundle_pending':
+    'フロントエンドのビルド成果物が欠落または古く、生成ソースを反映していません',
   'module.generate.verify.frontend_build_required':
     '新しいページコンポーネントをルートツリーへ反映するにはフロントエンドを再ビルドしてください',
+  'module.generate.verify.activation_ready':
+    '有効化シグナルが揃い、このモジュールは有効化済みに切り替わりました',
   'module.generate.verify.registry_check_failed':
     'レジストリ検証が不完全です。生成ファイルを確認してください',
   'module.generate.verify.artifacts_missing':
@@ -1419,24 +1447,25 @@ const jaJPFallback = {
   'session.idle_timeout':
     '操作がないためセッションが期限切れになりました。再度ログインしてください。',
   'system.menu.dashboard': 'ワークベンチ',
-  'system.menu.access': 'アクセス制御',
-  'system.menu.org': '組織構造',
-  'system.menu.config': 'プラットフォーム設定',
-  'system.menu.modules': 'モジュール管理',
+  'system.menu.access': 'アクセスと権限',
+  'system.menu.org': '組織',
+  'system.menu.config': 'システム設定',
+  'system.menu.lowcode': 'モジュール開発',
+  'system.menu.modules': 'モジュール登録',
   'system.menu.generator': 'モジュール生成',
-  'system.menu.security': 'セキュリティ監査',
-  'system.menu.user': 'ユーザー管理',
-  'system.menu.role': 'ロール管理',
-  'system.menu.dept': '部門管理',
-  'system.menu.post': '役職管理',
-  'system.menu.permission': '権限管理',
-  'system.menu.menu': 'メニュー管理',
+  'system.menu.security': 'セキュリティと監査',
+  'system.menu.user': 'ユーザー',
+  'system.menu.role': 'ロール',
+  'system.menu.dept': '部門',
+  'system.menu.post': '役職',
+  'system.menu.permission': '権限ポリシー',
+  'system.menu.menu': 'ナビゲーションメニュー',
   'system.menu.loginLog': 'ログインログ',
-  'system.menu.session': 'セッション管理',
+  'system.menu.session': 'セッション',
   'system.menu.securityEvent': 'セキュリティイベント',
   'system.permission.session.clear': '履歴セッション整理',
   'system.menu.setting': 'システム設定',
-  'system.menu.dict': '辞書管理',
+  'system.menu.dict': 'データ辞書',
   'system.menu.i18n': '国際化管理',
   'i18n.group.placeholder': 'グループを選択',
   'i18n.hero.eyebrow': 'システムドメイン / 設定ガバナンス国際化',
@@ -1508,6 +1537,10 @@ const jaJPFallback = {
   'i18n.audit.staleDays': '{{count}} 日未解消',
   'i18n.audit.stalePlaceholdersEmpty': '{{days}} 日以上未解消のプレースホルダーはありません。',
   'generator.moduleManager.title': 'モジュールレジストリ',
+  'generator.moduleManager.header.eyebrow': 'システム領域 / ローコード',
+  'generator.moduleManager.header.title': 'モジュールレジストリ',
+  'generator.moduleManager.header.description':
+    '導入済みの platform、system、business モジュールを確認します。組み込みモジュールはここでは読み取り専用で、このページからアンインストールできません。',
   'generator.moduleManager.description':
     '導入済みの platform、system、business モジュールを確認します。組み込みモジュールはここでは読み取り専用で、このページからアンインストールできません。',
   'generator.moduleManager.positioning':
@@ -1524,6 +1557,10 @@ const jaJPFallback = {
   'generator.moduleManager.owner': '責任者',
   'generator.moduleManager.boundedContext': '境界づけられたコンテキスト',
   'generator.moduleManager.tableName': 'テーブル',
+  'generator.moduleManager.lifecycle': 'ライフサイクル',
+  'generator.moduleManager.lifecycle.standard': '標準',
+  'generator.moduleManager.lifecycle.autoRecycle': '一時自動回収',
+  'generator.moduleManager.lifecycle.noTable': '管理テーブルなし',
   'generator.moduleManager.status': '状態',
   'generator.moduleManager.installedAt': '導入日時',
   'generator.moduleManager.diagnostics': '有効化診断',
@@ -1531,6 +1568,8 @@ const jaJPFallback = {
   'generator.moduleManager.diagnostics.failed': '異常',
   'generator.moduleManager.registerNew': 'ジェネレーターを開く',
   'generator.moduleManager.confirmUninstall': 'このモジュールをアンインストールしますか？',
+  'generator.moduleManager.confirmUninstallAutoRecycle':
+    'この一時モジュールをアンインストールしますか？管理テーブル {{table}} も自動回収されます。',
   'generator.moduleManager.register': '再登録',
   'generator.moduleManager.registerSuccess':
     'モジュールを再登録し、アクティベーション待ちにしました',
@@ -1544,7 +1583,15 @@ const jaJPFallback = {
   'generator.moduleManager.repairSuccess':
     'レジストリ修復が完了しました。有効登録 {{refs}} 件を保持し、ソース欠落 {{marked}} 件をアンインストール済みに補正しました',
   'generator.moduleManager.repairError': 'レジストリの自検・修復に失敗しました',
+  'generator.moduleManager.activationAudit': '有効化状態を確認',
+  'generator.moduleManager.activationAuditSuccess':
+    '有効化確認が完了しました。{{activated}} 件が有効化済みになり、{{pending}} 件はまだ保留です',
+  'generator.moduleManager.activationAuditError': 'モジュールの有効化確認に失敗しました',
   'generator.moduleManager.builtIn': '組み込み',
+  'generator.moduleManager.purgeModal.autoRecycleTable':
+    'このモジュールは一時モジュールとしてマークされているため、purge 時に業務テーブル {{table}} も自動回収されます。',
+  'generator.moduleManager.purgeModal.autoRecycleNotice':
+    '一時モジュールは purge と同時に管理テーブルも自動回収されます。追加チェックは不要です。',
   'generator.moduleManager.pendingHint':
     '保留中モジュールは有効化前にバックエンド再起動とフロントエンド再ビルドが必要です。',
   'generator.moduleManager.disabledHint':
@@ -1556,6 +1603,7 @@ const jaJPFallback = {
   'generator.moduleManager.stats.pending': '保留',
   'generator.moduleManager.stats.uninstalled': 'アンインストール済み',
   'generator.moduleManager.stats.failed': '異常',
+  'generator.moduleManager.stats.autoRecycle': '一時',
   'generator.moduleManager.status.active': '導入済み',
   'generator.moduleManager.status.pending': '有効化待ち',
   'generator.moduleManager.status.uninstalled': 'アンインストール済み',
@@ -1636,6 +1684,17 @@ const jaJPFallback = {
   'generator.wizard.includeDashboardWidget': 'プラットフォーム作業台入口',
   'generator.wizard.includeDashboardWidget.help':
     'platform 作業台へ接続できるのはナビゲーション可能な business/* モジュールのみです。relation テーブルでは常に無効になります。',
+  'generator.wizard.lifecycle.title': 'ライフサイクル方針',
+  'generator.wizard.lifecycle.desc':
+    'このモジュールを長期運用の業務モジュールにするか、QA・受入・結合検証向けの一時モジュールにするかを定義します。',
+  'generator.wizard.lifecycle.autoRecycle':
+    '一時モジュールとして扱い、purge 時に管理テーブルを自動回収する',
+  'generator.wizard.lifecycle.autoRecycleHint':
+    '主従表、多対多、受入検証など短命な生成モジュールに適しています。',
+  'generator.wizard.lifecycle.standardHint':
+    '標準モジュールは既定でテーブルを保持します。削除可否は別途ガバナンス判断が必要です。',
+  'generator.wizard.lifecycle.autoRecycleTag': '一時自動回収',
+  'generator.wizard.lifecycle.standardTag': '標準保持',
   'generator.wizard.dataScopeMode': 'データ権限モード',
   'generator.wizard.dataScopeMode.dept': '部門',
   'generator.wizard.dataScopeMode.owner': '本人',
@@ -1651,9 +1710,11 @@ const jaJPFallback = {
     '依存契約のみを記録し、他モジュールの Service を直接呼びません。',
   'generator.wizard.relations': '関連契約',
   'generator.wizard.relations.placeholder':
-    '形式: name|type|targetModule|localField|targetField|junctionTable',
+    '形式: name|type|targetModule|localField|targetField|targetLabelField|lookupApi|lookupValueField|junctionTable',
   'generator.wizard.relations.help':
     '主従/関連ガバナンスのプレビュー用です。複数テーブルのトランザクションは生成しません。',
+  'generator.wizard.relations.columns':
+    '列順: name | type | targetModule | localField | targetField | targetLabelField | lookupApi | lookupValueField | junctionTable',
   'generator.wizard.businessContext': '業務コンテキスト',
   'generator.wizard.businessContext.placeholder': '例: cmdb',
   'generator.wizard.businessContext.help':
@@ -1768,6 +1829,27 @@ const jaJPFallback = {
   'generator.wizard.result.relationCount': '{{count}} 件の関連',
   'generator.wizard.result.dependencies': 'モジュール依存',
   'generator.wizard.result.relations': '関連契約',
+  'generator.wizard.result.relatedModules': '関連モジュール導線',
+  'generator.wizard.result.relatedData': '関連データ',
+  'generator.wizard.result.relatedDataLoadFailed': '関連データの読み込みに失敗しました',
+  'generator.wizard.result.relatedDataUnsupported':
+    'この関連タイプは専用のランタイム契約が必要なため、生成テンプレートではまだ自動読み込みしません。',
+  'generator.wizard.result.openRelatedModule': '関連モジュールを開く',
+  'generator.wizard.result.childTableActions': '子テーブル操作',
+  'generator.wizard.result.childTableCreate': '子テーブル行を追加',
+  'generator.wizard.result.childTableEdit': '子テーブル行を編集',
+  'generator.wizard.result.childTableDialogCreate': '子テーブルレコードを作成',
+  'generator.wizard.result.childTableDialogEdit': '子テーブルレコードを編集',
+  'generator.wizard.result.childTableSchemaLoadFailed':
+    '子テーブルのスキーマ読み込みに失敗したため、追加・編集は利用できません。',
+  'generator.wizard.result.childTableNoEditableFields':
+    '編集可能な子テーブル項目が宣言されていないため、送信できません。',
+  'generator.wizard.result.relatedModuleHint':
+    '生成ページは主表/関連表の骨組みのみを提供します。実際の遷移と連携は接続後に補完してください。',
+  'generator.wizard.result.relatedModuleAction': '接続待ち',
+  'generator.wizard.result.primaryTableContext': '主テーブル文脈',
+  'generator.wizard.result.scaffoldOnly':
+    'これはスキャフォールド用の案内であり、実行時の関連オーケストレーションは含みません。',
   'generator.wizard.result.nextActions': '次の手順と再構築状況',
   'generator.wizard.result.restartStatus': 'バックエンド状態',
   'generator.wizard.result.restartRequired': 'バックエンド再起動が必要',
@@ -1778,6 +1860,10 @@ const jaJPFallback = {
   'generator.wizard.result.restartCommand': 'バックエンド検証コマンド',
   'generator.wizard.result.frontendBuildCommand': 'フロントエンド検証コマンド',
   'generator.wizard.result.verifications': '自動検証結果',
+  'generator.wizard.result.checkActivation': '有効化状態を確認',
+  'generator.wizard.result.activationAuditSuccess':
+    '有効化確認が完了しました。{{activated}} 件が有効化され、{{pending}} 件はまだ保留です',
+  'generator.wizard.result.activationAuditError': '有効化状態の確認に失敗しました',
   'generator.wizard.result.openModuleManager': 'モジュール管理を開く',
   'generator.wizard.result.generateAnother': 'もう 1 つ生成',
   'generator.wizard.result.verificationStatus.pass': '成功',

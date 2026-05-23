@@ -58,6 +58,9 @@ export interface PermissionWorkbenchOverview {
   unknownPermissionAssignmentCount: number;
   pageGapRoleCount: number;
   apiGapRoleCount: number;
+  pendingRemediationRoleCount: number;
+  remediatedRoleCount: number;
+  recentRemediationCount: number;
 }
 
 export interface PermissionWorkbenchMenu {
@@ -95,6 +98,9 @@ export interface PermissionWorkbenchRole {
   unknownPermissionCount: number;
   hasPageGap: boolean;
   hasApiGap: boolean;
+  governanceStatus: 'pending' | 'remediated' | 'clean';
+  lastRemediationAt?: string;
+  lastRemediationAction?: string;
   menus: PermissionWorkbenchMenu[];
   pagePermissions: PermissionWorkbenchPermission[];
   actionPermissions: PermissionWorkbenchPermission[];

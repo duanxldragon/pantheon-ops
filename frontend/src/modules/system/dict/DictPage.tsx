@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Card, Space, Tabs, Typography } from '@arco-design/web-react';
+import { Card, Space, Tabs } from '@arco-design/web-react';
 import { useTranslation } from 'react-i18next';
 import { usePermission } from '../../../hooks/usePermission';
 import { useRefreshSubscription } from '../../../core/refresh/refreshBus';
@@ -8,15 +8,14 @@ import {
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
+  GovernanceSummaryBar,
   PageContainer,
-  PageHeader,
-  PageActions,
   useGovernanceRail,
 } from '../../../components';
 import { getDictTypeList, type DictTypeQuery, type DictTypeRow } from './api';
 import DictTypeTab from './DictTypeTab';
 import DictItemTab from './DictItemTab';
-import '../../../core/styles/list-page.css';
+import '../list-page.css';
 
 const emptyTypeQuery: DictTypeQuery = {
   dictCode: '',
@@ -131,36 +130,6 @@ const DictPage: React.FC = () => {
     };
   }, [typeRows]);
 
-  const heroStats = useMemo(
-    () => [
-      {
-        key: 'types',
-        label: t('system.dict.type'),
-        value: typeSummary.total,
-        hint: t('system.dict.hero.typeHint'),
-      },
-      {
-        key: 'active',
-        label: t('system.user.status.enabled'),
-        value: typeSummary.active,
-        hint: t('system.dict.hero.activeHint'),
-      },
-      {
-        key: 'items',
-        label: t('system.dict.item'),
-        value: typeSummary.items,
-        hint: t('system.dict.hero.itemHint'),
-      },
-      {
-        key: 'selected',
-        label: t('system.dict.hero.currentType'),
-        value: selectedType?.dictCode || '-',
-        hint: t('system.dict.hero.currentHint'),
-      },
-    ],
-    [selectedType?.dictCode, t, typeSummary.active, typeSummary.items, typeSummary.total],
-  );
-
   const governanceSummaryItems = useMemo(
     () => [
       {
@@ -192,54 +161,59 @@ const DictPage: React.FC = () => {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={t('system.menu.dict')}
-        extra={
-          <PageActions>
+      <Space direction="vertical" size={12} className="system-page-template">
+        <GovernanceSummaryBar
+          className="dict-page__governance-bar"
+          eyebrow={t('system.dict.header.eyebrow')}
+          title={t('system.dict.header.title')}
+          description={t('system.dict.hero.desc')}
+          metrics={[
+            {
+              key: 'types',
+              label: t('system.dict.type'),
+              value: typeSummary.total,
+              description: t('system.dict.hero.disabledHint'),
+            },
+            {
+              key: 'active',
+              label: t('system.user.status.enabled'),
+              value: typeSummary.active,
+              description: t('system.dict.hero.refreshHint'),
+            },
+            {
+              key: 'items',
+              label: t('system.dict.item'),
+              value: typeSummary.items,
+              description: t('system.dict.hero.importHint'),
+            },
+          ]}
+          action={
             <GovernanceRailToggleButton
               expanded={governanceRail.expanded}
               onToggle={governanceRail.toggle}
             >
               {t('system.dict.hero.summaryTitle')}
             </GovernanceRailToggleButton>
-          </PageActions>
-        }
-      />
-      <Space direction="vertical" size={16} className="system-page-template">
-        <Card className="page-panel system-page-hero">
-          <div className="system-page-hero__top">
-            <div className="system-page-hero__copy">
-              <span className="system-page-hero__eyebrow">{t('system.dict.hero.eyebrow')}</span>
-              <Typography.Title heading={5} className="system-page-hero__title">
-                {t('system.dict.hero.title')}
-              </Typography.Title>
-            </div>
-          </div>
-          <div className="system-page-kpi-grid">
-            {heroStats.map((item) => (
-              <div key={item.key} className="system-page-kpi">
-                <span className="system-page-kpi__label">{item.label}</span>
-                <span className="system-page-kpi__value">{item.value}</span>
-                <span className="system-page-kpi__hint">{item.hint}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
+          }
+        />
         <Card className="page-panel system-list__table-card dict-page__table-card">
-          <Tabs activeTab={activeTab} onChange={(value) => setActiveTab(value as DictTabKey)}>
+          <Tabs
+            className="dict-page__tabs"
+            activeTab={activeTab}
+            onChange={(value) => setActiveTab(value as DictTabKey)}
+          >
             <Tabs.TabPane key="types" title={t('system.dict.type')}>
               <DictTypeTab
                 typeRows={typeRows}
                 typeLoading={typeLoading}
                 typeError={typeError}
                 typeQuery={typeQuery}
-                typeSummary={typeSummary}
-            canCreate={canCreate}
-            canEdit={canEdit}
-            canDelete={canDelete}
-            canBatchUpdate={canBatchUpdate}
-            canBatchDelete={canBatchDelete}
-            canExport={canExport}
+                canCreate={canCreate}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                canBatchUpdate={canBatchUpdate}
+                canBatchDelete={canBatchDelete}
+                canExport={canExport}
                 canImport={canImport}
                 onQueryChange={setTypeQuery}
                 onReload={() => {
@@ -254,12 +228,12 @@ const DictPage: React.FC = () => {
                 key={selectedType?.id ?? '__empty__'}
                 selectedType={selectedType}
                 typeRows={typeRows}
-            canCreate={canCreate}
-            canEdit={canEdit}
-            canDelete={canDelete}
-            canBatchUpdate={canBatchUpdate}
-            canBatchDelete={canBatchDelete}
-            canRefresh={canRefresh}
+                canCreate={canCreate}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                canBatchUpdate={canBatchUpdate}
+                canBatchDelete={canBatchDelete}
+                canRefresh={canRefresh}
                 canExport={canExport}
                 canImport={canImport}
                 onSelectType={selectType}

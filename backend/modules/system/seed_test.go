@@ -20,7 +20,9 @@ func TestEnsureMenuSeedsReparentsLegacyFlatMenus(t *testing.T) {
 INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu)
 VALUES
 (100, 0, 'system.menu.user', '/system/user', 'system/user/UserList', 'system:user:list', '', 'C', 'user', 'system-user', 'system', 2, 1, 0, 0, ''),
-(101, 0, 'system.menu.dict', '/system/dict', 'system/dict/DictPage', 'system:dict:list', '', 'C', 'list', 'system-dict', 'system', 11, 1, 1, 0, '')
+(101, 0, 'system.menu.dict', '/system/dict', 'system/dict/DictPage', 'system:dict:list', '', 'C', 'list', 'system-dict', 'system', 11, 1, 1, 0, ''),
+(102, 0, 'system.menu.modules', '/system/modules', 'system/dynamicmodule/ModuleManager', 'system:module:list', '', 'C', 'apps', 'system-modules', 'system', 12, 1, 0, 0, ''),
+(103, 0, 'system.menu.generator', '/system/generator', 'system/generator/ModuleWizard', 'system:generator:use', '', 'C', 'code', 'system-generator', 'system', 13, 1, 0, 0, '')
 `).Error; err != nil {
 		t.Fatalf("seed legacy menus: %v", err)
 	}
@@ -28,14 +30,18 @@ VALUES
 	seeds := append([]menuSeed{}, baseMenuGroupSeeds()...)
 	seeds = append(seeds, coreMenuSeeds()...)
 	seeds = append(seeds, dictMenuSeeds()...)
+	seeds = append(seeds, platformToolMenuSeeds()...)
 	if err := ensureMenuSeeds(db, seeds); err != nil {
 		t.Fatalf("ensure seeds: %v", err)
 	}
 
 	assertMenuParent(t, db, "/system/user", "/system/access", "system.iam")
 	assertMenuParent(t, db, "/system/dict", "/system/config", "system.config")
+	assertMenuParent(t, db, "/system/modules", "/system/lowcode", "system.lowcode")
+	assertMenuParent(t, db, "/system/generator", "/system/lowcode", "system.lowcode")
 	assertAdminMenuBound(t, db, "/system/access")
 	assertAdminMenuBound(t, db, "/system/user")
+	assertAdminMenuBound(t, db, "/system/lowcode")
 }
 
 func TestOrgAccessControlSeedContract(t *testing.T) {

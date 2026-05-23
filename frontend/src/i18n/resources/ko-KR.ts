@@ -456,6 +456,7 @@ const koKRFallback = {
   'auth.securityEvent.severity.high': '높음',
   'auth.securityEvent.severity.medium': '중간',
   'auth.securityEvent.severity.low': '낮음',
+  'auth.security.event.password_wrong': '이 계정에서 잘못된 비밀번호 로그인 시도가 감지되었습니다.',
   'auth.security.event.source_blocked': '실패 횟수가 너무 많아 소스가 일시적으로 잠겼습니다.',
   'auth.security.event.account_locked': '실패 횟수가 너무 많아 계정이 일시적으로 잠겼습니다.',
   'auth.login_log.cleanup.days_invalid':
@@ -647,7 +648,8 @@ const koKRFallback = {
   'system.menu.title': '제목',
   'system.menu.titleKey': '제목 키',
   'system.menu.path': '경로',
-  'system.menu.parentId': '상위 ID',
+  'system.menu.parentId': '상위 메뉴',
+  'system.menu.root': '루트 메뉴',
   'system.menu.component': '컴포넌트 키',
   'system.menu.routeName': '라우트 이름',
   'system.menu.pagePerm': '페이지 접근 권한',
@@ -665,6 +667,7 @@ const koKRFallback = {
   'system.menu.activeMenu': '활성 메뉴',
   'system.menu.metadata': '메타데이터',
   'system.menu.create': '메뉴 생성',
+  'system.menu.createChild': '하위 메뉴 추가',
   'system.menu.edit': '메뉴 수정',
   'system.menu.view.table': '표',
   'system.menu.view.list': '목록',
@@ -802,6 +805,10 @@ const koKRFallback = {
   'system.post.empty':
     '현재 범위에 일치하는 직책이 없습니다. 필터를 조정하거나 먼저 직책을 생성하세요.',
   'system.post.hero.eyebrow': '직책 거버넌스',
+  'system.post.header.eyebrow': '시스템 도메인 / 조직',
+  'system.post.header.title': '직책 상태, 사용 중 차단 요인, 개선 작업을 하나의 워크벤치에서 처리',
+  'system.post.header.description':
+    '직책 페이지는 `system/org` 경계를 유지합니다. 메인 작업 레인은 필터링, 유지보수, 일괄 거버넌스를 담당하고, 사이드 영역은 사용 중 리스크, 비활성 재고, 개선 가이드만 요약합니다.',
   'system.post.hero.title': '직책 상태, 사용 중 차단 요인, 개선 작업을 하나의 워크벤치에서 처리',
   'system.post.hero.desc':
     '직책 페이지는 `system/org` 경계를 유지합니다. 메인 작업 레인은 필터링, 유지보수, 일괄 거버넌스를 담당하고, 사이드 영역은 사용 중 리스크, 비활성 재고, 개선 가이드만 요약합니다.',
@@ -977,6 +984,12 @@ const koKRFallback = {
   'system.user.role.required': '최소 하나의 역할을 선택하세요',
   'system.user.dept.required': '부서를 선택하세요',
   'system.user.email.invalid': '유효하지 않은 이메일 주소입니다',
+  'system.user.enable': '활성화',
+  'system.user.disable': '비활성화',
+  'system.user.enableConfirm': '이 사용자를 활성화하시겠습니까?',
+  'system.user.disableConfirm': '이 사용자를 비활성화하시겠습니까?',
+  'system.user.enableSuccess': '사용자가 활성화되었습니다',
+  'system.user.disableSuccess': '사용자가 비활성화되었습니다',
   'system.user.batchEnableConfirm': '선택한 사용자를 모두 활성화하시겠습니까?',
   'system.user.batchDisableConfirm': '선택한 사용자를 모두 비활성화하시겠습니까?',
   'system.user.batchDeleteConfirm': '선택한 사용자를 모두 삭제하시겠습니까?',
@@ -1027,6 +1040,10 @@ const koKRFallback = {
   'system.dict.itemEmpty': '사전 항목이 없습니다',
   'system.dict.item.empty': '왼쪽에서 사전 유형을 선택해 항목을 관리하세요',
   'system.dict.hero.eyebrow': '시스템 도메인 / 설정 거버넌스 사전',
+  'system.dict.header.eyebrow': '시스템 도메인 / 설정',
+  'system.dict.header.title': '사전 유형, 사전 항목, 런타임 캐시를 하나의 워크벤치에서 관리',
+  'system.dict.header.description':
+    '사전 페이지는 `system/config` 경계를 유지합니다. 메인 레인은 유형과 항목 유지보수를 담당하고, 요약 레일은 비활성 재고, 캐시 새로고침 준비 상태, 가져오기 준비 상태만 보여줍니다.',
   'system.dict.hero.title': '사전 유형, 사전 항목, 런타임 캐시를 하나의 워크벤치에서 관리',
   'system.dict.hero.summaryTitle': '거버넌스 요약',
   'system.dict.hero.currentType': '현재 사전',
@@ -1056,12 +1073,22 @@ const koKRFallback = {
   'module.generate.verify.parent_menu_top_level':
     '이 모듈은 비즈니스 최상위 메뉴로 처리되므로 상위 메뉴가 필요하지 않습니다',
   'module.generate.verify.pending_activation': '이 모듈은 활성화 대기 상태로 등록되었습니다',
+  'module.generate.verify.backend_runtime_ready':
+    '백엔드 런타임이 이 모듈의 메뉴 연결 결과를 이미 로드했습니다',
+  'module.generate.verify.backend_runtime_pending':
+    '백엔드 런타임이 아직 이 모듈을 로드하지 않았습니다. 재시작이 필요합니다',
   'module.generate.verify.contract_governance':
     '생성 전 거버넌스 계약을 검증하고 요약에 기록했습니다',
   'module.generate.verify.restart_required':
     '새 Go 모듈과 생성 레지스트리를 로드하려면 백엔드를 재시작하세요',
+  'module.generate.verify.frontend_bundle_ready':
+    '프론트엔드 빌드 산출물이 생성 소스보다 최신이므로 반영이 완료되었습니다',
+  'module.generate.verify.frontend_bundle_pending':
+    '프론트엔드 빌드 산출물이 없거나 오래되어 현재 생성 소스를 반영하지 못했습니다',
   'module.generate.verify.frontend_build_required':
     '새 페이지 컴포넌트를 라우트 트리에 반영하려면 프론트엔드를 다시 빌드하세요',
+  'module.generate.verify.activation_ready':
+    '활성화 신호가 모두 충족되어 모듈 상태가 활성으로 전환되었습니다',
   'module.generate.verify.registry_check_failed':
     '레지스트리 검증이 완료되지 않았습니다. 생성된 파일을 확인하세요',
   'module.generate.verify.artifacts_missing':
@@ -1354,24 +1381,25 @@ const koKRFallback = {
   'network.timeout': '요청 시간이 초과되었습니다. 잠시 후 다시 시도하세요.',
   'session.idle_timeout': '오랫동안 활동이 없어 세션이 만료되었습니다. 다시 로그인하세요.',
   'system.menu.dashboard': '워크벤치',
-  'system.menu.access': '접근 제어',
-  'system.menu.org': '조직 구조',
-  'system.menu.config': '플랫폼 설정',
-  'system.menu.modules': '모듈 관리',
+  'system.menu.access': '접근 및 권한',
+  'system.menu.org': '조직',
+  'system.menu.config': '시스템 설정',
+  'system.menu.lowcode': '모듈 개발',
+  'system.menu.modules': '모듈 등록',
   'system.menu.generator': '모듈 생성기',
-  'system.menu.security': '보안 감사',
-  'system.menu.user': '사용자 관리',
-  'system.menu.role': '역할 관리',
-  'system.menu.dept': '부서 관리',
-  'system.menu.post': '직책 관리',
-  'system.menu.permission': '권한 관리',
-  'system.menu.menu': '메뉴 관리',
+  'system.menu.security': '보안 및 감사',
+  'system.menu.user': '사용자',
+  'system.menu.role': '역할',
+  'system.menu.dept': '부서',
+  'system.menu.post': '직책',
+  'system.menu.permission': '권한 정책',
+  'system.menu.menu': '탐색 메뉴',
   'system.menu.loginLog': '로그인 로그',
-  'system.menu.session': '세션 관리',
+  'system.menu.session': '세션',
   'system.menu.securityEvent': '보안 이벤트',
   'system.permission.session.clear': '이력 세션 정리',
   'system.menu.setting': '시스템 설정',
-  'system.menu.dict': '사전 관리',
+  'system.menu.dict': '데이터 사전',
   'system.menu.i18n': '국제화 관리',
   'i18n.group.placeholder': '그룹 선택',
   'i18n.hero.eyebrow': '시스템 도메인 / 설정 거버넌스 국제화',
@@ -1445,6 +1473,10 @@ const koKRFallback = {
   'i18n.audit.staleDays': '{{count}}일 미해결',
   'i18n.audit.stalePlaceholdersEmpty': '{{days}}일 이상 미해결된 플레이스홀더가 없습니다.',
   'generator.moduleManager.title': '모듈 레지스트리',
+  'generator.moduleManager.header.eyebrow': '시스템 도메인 / 로우코드',
+  'generator.moduleManager.header.title': '모듈 레지스트리',
+  'generator.moduleManager.header.description':
+    '설치된 platform, system, business 모듈을 검토합니다. 내장 모듈은 여기서 읽기 전용이며 이 페이지에서 제거할 수 없습니다.',
   'generator.moduleManager.description':
     '설치된 platform, system, business 모듈을 검토합니다. 내장 모듈은 여기서 읽기 전용이며 이 페이지에서 제거할 수 없습니다.',
   'generator.moduleManager.positioning':
@@ -1461,6 +1493,10 @@ const koKRFallback = {
   'generator.moduleManager.owner': '담당 조직',
   'generator.moduleManager.boundedContext': '경계 컨텍스트',
   'generator.moduleManager.tableName': '테이블',
+  'generator.moduleManager.lifecycle': '수명주기',
+  'generator.moduleManager.lifecycle.standard': '표준',
+  'generator.moduleManager.lifecycle.autoRecycle': '임시 자동 회수',
+  'generator.moduleManager.lifecycle.noTable': '관리 테이블 없음',
   'generator.moduleManager.status': '상태',
   'generator.moduleManager.installedAt': '설치 시각',
   'generator.moduleManager.diagnostics': '활성화 진단',
@@ -1468,6 +1504,8 @@ const koKRFallback = {
   'generator.moduleManager.diagnostics.failed': '이슈',
   'generator.moduleManager.registerNew': '생성기 열기',
   'generator.moduleManager.confirmUninstall': '이 모듈을 제거하시겠습니까?',
+  'generator.moduleManager.confirmUninstallAutoRecycle':
+    '이 임시 모듈을 제거하시겠습니까? 관리 테이블 {{table}} 도 자동 회수됩니다.',
   'generator.moduleManager.register': '재등록',
   'generator.moduleManager.registerSuccess': '모듈을 다시 등록했으며 활성화 대기 상태입니다',
   'generator.moduleManager.registerError': '모듈 재등록에 실패했습니다',
@@ -1480,7 +1518,15 @@ const koKRFallback = {
   'generator.moduleManager.repairSuccess':
     '레지스트리 복구 완료: 유효 등록 {{refs}}건 유지, 소스 누락 {{marked}}건을 제거됨으로 보정',
   'generator.moduleManager.repairError': '레지스트리 점검/복구에 실패했습니다',
+  'generator.moduleManager.activationAudit': '활성화 상태 점검',
+  'generator.moduleManager.activationAuditSuccess':
+    '활성화 점검 완료: {{activated}}개 모듈이 활성화되었고 {{pending}}개는 아직 대기 중입니다',
+  'generator.moduleManager.activationAuditError': '모듈 활성화 점검에 실패했습니다',
   'generator.moduleManager.builtIn': '내장',
+  'generator.moduleManager.purgeModal.autoRecycleTable':
+    '이 모듈은 임시 모듈로 표시되어 purge 시 비즈니스 테이블 {{table}} 도 자동 회수됩니다.',
+  'generator.moduleManager.purgeModal.autoRecycleNotice':
+    '임시 모듈은 purge 와 함께 관리 테이블도 자동 회수됩니다. 추가 체크는 필요하지 않습니다.',
   'generator.moduleManager.pendingHint':
     '대기 중인 모듈은 활성화되기 전에 백엔드 재시작과 프론트엔드 재빌드가 필요합니다.',
   'generator.moduleManager.disabledHint':
@@ -1493,6 +1539,7 @@ const koKRFallback = {
   'generator.moduleManager.stats.pending': '대기',
   'generator.moduleManager.stats.uninstalled': '제거됨',
   'generator.moduleManager.stats.failed': '이슈',
+  'generator.moduleManager.stats.autoRecycle': '임시',
   'generator.moduleManager.status.active': '설치됨',
   'generator.moduleManager.status.pending': '활성화 대기',
   'generator.moduleManager.status.uninstalled': '제거됨',
@@ -1571,6 +1618,17 @@ const koKRFallback = {
   'generator.wizard.includeDashboardWidget': '플랫폼 워크벤치 진입점',
   'generator.wizard.includeDashboardWidget.help':
     '탐색 가능한 business/* 모듈만 platform 워크벤치에 연결할 수 있습니다. relation 테이블은 항상 비활성화됩니다.',
+  'generator.wizard.lifecycle.title': '수명주기 정책',
+  'generator.wizard.lifecycle.desc':
+    '이 모듈을 장기 운영용으로 둘지, QA·인수·연동 검증용 임시 모듈로 둘지 정의합니다.',
+  'generator.wizard.lifecycle.autoRecycle':
+    '임시 모듈로 표시하고 purge 시 관리 테이블을 자동 회수',
+  'generator.wizard.lifecycle.autoRecycleHint':
+    '마스터-디테일, 다대다, 검증 데이터처럼 수명이 짧은 생성 모듈에 적합합니다.',
+  'generator.wizard.lifecycle.standardHint':
+    '표준 모듈은 기본적으로 테이블을 유지합니다. 테이블 삭제는 별도 거버넌스 판단이 필요합니다.',
+  'generator.wizard.lifecycle.autoRecycleTag': '임시 자동 회수',
+  'generator.wizard.lifecycle.standardTag': '표준 유지',
   'generator.wizard.dataScopeMode': '데이터 권한 모드',
   'generator.wizard.dataScopeMode.dept': '부서',
   'generator.wizard.dataScopeMode.owner': '본인',
@@ -1586,9 +1644,11 @@ const koKRFallback = {
     '의존성 계약만 기록하며 다른 모듈 Service 를 직접 호출하지 않습니다.',
   'generator.wizard.relations': '관계 계약',
   'generator.wizard.relations.placeholder':
-    '형식: name|type|targetModule|localField|targetField|junctionTable',
+    '형식: name|type|targetModule|localField|targetField|targetLabelField|lookupApi|lookupValueField|junctionTable',
   'generator.wizard.relations.help':
     '마스터-디테일/관계 거버넌스 미리보기에 사용합니다. 다중 테이블 트랜잭션은 생성하지 않습니다.',
+  'generator.wizard.relations.columns':
+    '열 순서: name | type | targetModule | localField | targetField | targetLabelField | lookupApi | lookupValueField | junctionTable',
   'generator.wizard.businessContext': '비즈니스 컨텍스트',
   'generator.wizard.businessContext.placeholder': '예: cmdb',
   'generator.wizard.businessContext.help':
@@ -1700,6 +1760,27 @@ const koKRFallback = {
   'generator.wizard.result.relationCount': '{{count}}개 관계',
   'generator.wizard.result.dependencies': '모듈 의존성',
   'generator.wizard.result.relations': '관계 계약',
+  'generator.wizard.result.relatedModules': '연관 모듈 진입점',
+  'generator.wizard.result.relatedData': '연관 데이터',
+  'generator.wizard.result.relatedDataLoadFailed': '연관 데이터 로드에 실패했습니다',
+  'generator.wizard.result.relatedDataUnsupported':
+    '현재 관계 유형은 전용 런타임 계약이 필요하여 생성 템플릿에서 아직 자동 로드하지 않습니다.',
+  'generator.wizard.result.openRelatedModule': '연관 모듈 열기',
+  'generator.wizard.result.childTableActions': '자식 테이블 작업',
+  'generator.wizard.result.childTableCreate': '자식 행 추가',
+  'generator.wizard.result.childTableEdit': '자식 행 편집',
+  'generator.wizard.result.childTableDialogCreate': '자식 레코드 생성',
+  'generator.wizard.result.childTableDialogEdit': '자식 레코드 편집',
+  'generator.wizard.result.childTableSchemaLoadFailed':
+    '자식 테이블 스키마를 불러오지 못해 추가/편집을 사용할 수 없습니다.',
+  'generator.wizard.result.childTableNoEditableFields':
+    '편집 가능한 자식 필드가 선언되지 않아 제출할 수 없습니다.',
+  'generator.wizard.result.relatedModuleHint':
+    '현재 생성 페이지는 주/관계 테이블 협업용 스캐폴드만 제공합니다. 실제 이동과 연동은 접입 후 보강해야 합니다.',
+  'generator.wizard.result.relatedModuleAction': '연동 대기',
+  'generator.wizard.result.primaryTableContext': '주 테이블 컨텍스트',
+  'generator.wizard.result.scaffoldOnly':
+    '현재는 스캐폴드 안내만 제공하며 런타임 관계 오케스트레이션은 포함하지 않습니다.',
   'generator.wizard.result.nextActions': '다음 단계 및 재빌드 상태',
   'generator.wizard.result.restartStatus': '백엔드 상태',
   'generator.wizard.result.restartRequired': '백엔드 재시작 필요',
@@ -1710,6 +1791,10 @@ const koKRFallback = {
   'generator.wizard.result.restartCommand': '백엔드 검증 명령',
   'generator.wizard.result.frontendBuildCommand': '프론트엔드 검증 명령',
   'generator.wizard.result.verifications': '자동 검증 결과',
+  'generator.wizard.result.checkActivation': '활성화 상태 점검',
+  'generator.wizard.result.activationAuditSuccess':
+    '활성화 점검 완료: {{activated}}개 모듈이 활성화되었고 {{pending}}개는 아직 대기 중입니다',
+  'generator.wizard.result.activationAuditError': '활성화 상태 점검에 실패했습니다',
   'generator.wizard.result.openModuleManager': '모듈 관리 열기',
   'generator.wizard.result.generateAnother': '다시 생성',
   'generator.wizard.result.verificationStatus.pass': '통과',

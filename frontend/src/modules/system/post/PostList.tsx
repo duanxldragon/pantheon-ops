@@ -13,7 +13,6 @@ import {
   Typography,
 } from '@arco-design/web-react';
 import { message } from '../../../components/feedback/message';
-import type { PaginationProps } from '@arco-design/web-react/es/Pagination/interface';
 import type {
   ColumnProps,
   SorterInfo,
@@ -38,6 +37,10 @@ import { formatDateTime } from '../../../core/format/dateTime';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
 import { invalidateRouteWarmDataMany, resolveRouteWarmData } from '../../../core/router/prefetch';
 import { usePermission } from '../../../hooks/usePermission';
+import {
+  getVisibleSelectedRowKeys,
+  mergeCrossPageSelection,
+} from '../../../components/table/crossPageSelection';
 import { getDeptTree, type DeptNode } from '../dept/api';
 import {
   batchDeletePosts,
@@ -56,29 +59,31 @@ import {
 import {
   AppModal,
   AppTable,
+  buildStandardPagination,
   FilterPanel,
   FormSection,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
+  GovernanceSummaryBar,
   ImportCsvButton,
   ListHeaderActions,
   PageContainer,
   PageEmpty,
   PageError,
-  PageHeader,
   PageLoading,
   PageNetworkError,
   PageServerError,
   PermissionAction,
   SubmitBar,
+  SystemRowActions,
   TABLE_ACTION_COLUMN_WIDTH,
   TABLE_COLUMN_WIDTH,
   TableBatchActionBar,
   useGovernanceRail,
   withTableColumnPriority,
 } from '../../../components';
-import '../../../core/styles/list-page.css';
+import '../list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -258,7 +263,7 @@ const PostList: React.FC = () => {
       if (isArcoFormValidationError(error)) {
         return;
       }
-      throw error;
+      return;
     }
     setSubmitting(true);
     try {
@@ -273,6 +278,8 @@ const PostList: React.FC = () => {
       publishRefresh('system:post:changed', 'system/post');
       setVisible(false);
       await loadData(query, { silent: true });
+    } catch {
+      message.error(t('common.actionFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -324,8 +331,7 @@ const PostList: React.FC = () => {
 
   const handleTableChange: TableProps<PostRow>['onChange'] = (pagination, sorter) => {
     const currentSorter = Array.isArray(sorter) ? sorter[0] : (sorter as SorterInfo | undefined);
-    setSelectedRowKeys([]);
-    setQuery({
+    const nextQuery: PostListQuery = {
       ...query,
       page: pagination.current || 1,
       pageSize: pagination.pageSize || query.pageSize || emptyQuery.pageSize,
@@ -334,9 +340,15 @@ const PostList: React.FC = () => {
         currentSorter?.direction === 'ascend'
           ? 'asc'
           : currentSorter?.direction === 'descend'
-            ? 'desc'
+          ? 'desc'
             : undefined,
-    });
+    };
+    const sortChanged =
+      nextQuery.sortField !== query.sortField || nextQuery.sortOrder !== query.sortOrder;
+    if (sortChanged) {
+      setSelectedRowKeys([]);
+    }
+    setQuery(nextQuery);
   };
 
   const renderErrorState = () => {
@@ -419,8 +431,7 @@ const PostList: React.FC = () => {
   };
 
   const visibleSelectedRowKeys = useMemo(() => {
-    const visibleKeys = new Set(data.map((item) => item.id));
-    return selectedRowKeys.filter((key) => visibleKeys.has(Number(key)));
+    return getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.id));
   }, [data, selectedRowKeys]);
 
   const heroStats = useMemo(() => {
@@ -587,20 +598,29 @@ const PostList: React.FC = () => {
       width: TABLE_ACTION_COLUMN_WIDTH.wide,
       fixed: 'right',
       render: (_: unknown, row: PostRow) => (
-        <Space size={4} className="system-list__actions post-list-page__row-actions">
-          {canEdit ? (
-            <Button type="text" size="small" icon={<IconEdit />} onClick={() => openEdit(row)}>
-              {t('common.edit')}
-            </Button>
-          ) : null}
-          {canDelete ? (
-            <Popconfirm title={t('system.post.deleteConfirm')} onOk={() => removePost(row.id)}>
-              <Button type="text" size="small" status="danger" icon={<IconDelete />}>
-                {t('common.delete')}
-              </Button>
-            </Popconfirm>
-          ) : null}
-        </Space>
+        <SystemRowActions
+          className="post-list-page__row-actions"
+          actions={[
+            {
+              key: 'edit',
+              text: t('common.edit'),
+              icon: <IconEdit />,
+              onClick: () => openEdit(row),
+              hidden: !canEdit,
+            },
+            {
+              key: 'delete',
+              text: t('common.delete'),
+              icon: <IconDelete />,
+              hidden: !canDelete,
+              status: 'danger',
+              confirm: {
+                title: t('system.post.deleteConfirm'),
+                onOk: () => removePost(row.id),
+              },
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -630,93 +650,45 @@ const PostList: React.FC = () => {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={t('system.menu.post')}
-        extra={
-          <ListHeaderActions
-            utility={
-              <>
-                <GovernanceRailToggleButton
-                  expanded={governanceRail.expanded}
-                  onToggle={governanceRail.toggle}
-                >
-                  {t('system.post.hero.summaryTitle')}
-                </GovernanceRailToggleButton>
-                <Button
-                  icon={<IconDownload />}
-                  onClick={() => {
-                    void handleExport();
-                  }}
-                  disabled={!canExport}
-                >
-                  {t('common.export')}
-                </Button>
-                <Button
-                  onClick={() => {
-                    void handleDownloadTemplate();
-                  }}
-                  disabled={!canImport}
-                >
-                  {t('common.downloadTemplate')}
-                </Button>
-                <ImportCsvButton
-                  disabled={!canImport}
-                  onSelect={(file) => {
-                    void handleImport(file);
-                  }}
-                >
-                  {t('common.import')}
-                </ImportCsvButton>
-              </>
-            }
-            primary={
-              <Button type="primary" icon={<IconPlus />} onClick={openCreate} disabled={!canCreate}>
-                {t('common.add')}
-              </Button>
-            }
-          />
-        }
-      />
       <Space direction="vertical" size={16} className="system-page-template post-list-page">
-        <Card className="page-panel system-page-hero system-list__hero">
-          <div className="system-page-hero__top">
-            <div className="system-page-hero__copy">
-              <span className="system-page-hero__eyebrow">{t('system.post.hero.eyebrow')}</span>
-              <Typography.Title heading={5} className="system-page-hero__title">
-                {t('system.post.hero.title')}
-              </Typography.Title>
-            </div>
-          </div>
-          <div className="system-page-kpi-grid">
-            {heroStats.map((item) => (
-              <div key={item.key} className="system-page-kpi">
-                <span className="system-page-kpi__label">{item.label}</span>
-                <span className="system-page-kpi__value">{item.value}</span>
-                <span className="system-page-kpi__hint">{item.hint}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
+        <GovernanceSummaryBar
+          eyebrow={t('system.post.header.eyebrow')}
+          title={t('system.post.header.title')}
+          description={t('system.post.hero.desc')}
+          metrics={heroStats.slice(0, 3).map((item) => ({
+            key: item.key,
+            label: item.label,
+            value: item.value,
+          }))}
+          action={
+            <GovernanceRailToggleButton
+              expanded={governanceRail.expanded}
+              onToggle={governanceRail.toggle}
+            >
+              {t('system.post.hero.summaryTitle')}
+            </GovernanceRailToggleButton>
+          }
+        />
         <>
           <FilterPanel>
             <Form form={queryForm} layout="vertical" onSubmit={() => search()}>
               <Row gutter={16}>
-                <Col xs={24} md={12} lg={6}>
+                <Col xs={24} md={12} lg={5}>
                   <FormItem label={t('system.post.postCode')} field="postCode">
                     <Input onPressEnter={() => queryForm.submit()} />
                   </FormItem>
                 </Col>
-                <Col xs={24} md={12} lg={6}>
+                <Col xs={24} md={12} lg={5}>
                   <FormItem label={t('system.post.postName')} field="postName">
                     <Input onPressEnter={() => queryForm.submit()} />
                   </FormItem>
                 </Col>
-                <Col xs={24} md={12} lg={6}>
+                <Col xs={24} md={12} lg={5}>
                   <FormItem label={t('system.post.dept')} field="deptId">
                     <Select allowClear options={deptOptions} />
                   </FormItem>
                 </Col>
-                <Col xs={24} md={12} lg={6}>
+                <Col xs={24} md={12} lg={5}>
                   <FormItem label={t('system.post.status')} field="status">
                     <Select
                       allowClear
@@ -727,7 +699,7 @@ const PostList: React.FC = () => {
                     />
                   </FormItem>
                 </Col>
-                <Col xs={24} md={24} lg={6}>
+                <Col xs={24} md={12} lg={4}>
                   <FormItem className="filter-panel__action-item">
                     <Space>
                       <Button type="primary" htmlType="submit" icon={<IconSearch />}>
@@ -747,6 +719,49 @@ const PostList: React.FC = () => {
               clearText={t('common.clearSelection')}
               clearSuccessText={t('common.clearSelectionSuccess')}
               onClear={() => setSelectedRowKeys([])}
+              prefixActions={
+                <ListHeaderActions
+                  utility={
+                    <>
+                      <Button
+                        icon={<IconDownload />}
+                        onClick={() => {
+                          void handleExport();
+                        }}
+                        disabled={!canExport}
+                      >
+                        {t('common.export')}
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          void handleDownloadTemplate();
+                        }}
+                        disabled={!canImport}
+                      >
+                        {t('common.downloadTemplate')}
+                      </Button>
+                      <ImportCsvButton
+                        disabled={!canImport}
+                        onSelect={(file) => {
+                          void handleImport(file);
+                        }}
+                      >
+                        {t('common.import')}
+                      </ImportCsvButton>
+                    </>
+                  }
+                  primary={
+                    <Button
+                      type="primary"
+                      icon={<IconPlus />}
+                      onClick={openCreate}
+                      disabled={!canCreate}
+                    >
+                      {t('common.add')}
+                    </Button>
+                  }
+                />
+              }
               hint={
                 !canBatchUpdate || !canBatchDelete
                   ? t('common.batchActionPermissionHint')
@@ -799,7 +814,7 @@ const PostList: React.FC = () => {
                       disabled={batchDeleteDisabled}
                     >
                       <Button
-                        status={batchDeleteDisabled ? undefined : 'danger'}
+                        status="danger"
                         icon={<IconDelete />}
                         disabled={batchDeleteDisabled}
                       >
@@ -826,24 +841,21 @@ const PostList: React.FC = () => {
                 rowSelection={{
                   type: 'checkbox',
                   selectedRowKeys: visibleSelectedRowKeys,
+                  checkCrossPage: true,
+                  preserveSelectedRowKeys: true,
                   fixed: true,
-                  onChange: (rowKeys) => setSelectedRowKeys(rowKeys),
+                  onChange: (rowKeys) =>
+                    setSelectedRowKeys((keys) =>
+                      mergeCrossPageSelection(keys, rowKeys, data.map((item) => item.id)),
+                    ),
                 }}
                 onChange={handleTableChange}
                 emptyText={t('system.post.empty')}
-                pagination={
-                  {
-                    current: query.page || emptyQuery.page,
-                    pageSize: query.pageSize || emptyQuery.pageSize,
-                    total,
-                    showJumper: true,
-                    pageSizeChangeResetCurrent: false,
-                    sizeCanChange: true,
-                    sizeOptions: [10, 20, 50, 100],
-                    size: 'small',
-                    showTotal: (count: number) => t('common.total', { count }),
-                  } as PaginationProps
-                }
+                pagination={buildStandardPagination(t, {
+                  current: query.page || emptyQuery.page,
+                  pageSize: query.pageSize || emptyQuery.pageSize,
+                  total,
+                })}
               />
             ) : null}
           </Card>

@@ -77,12 +77,15 @@ type ModuleDependency struct {
 }
 
 type ModuleRelation struct {
-	Name          string `json:"name"`
-	Type          string `json:"type"`
-	TargetModule  string `json:"targetModule"`
-	LocalField    string `json:"localField"`
-	TargetField   string `json:"targetField"`
-	JunctionTable string `json:"junctionTable,omitempty"`
+	Name             string `json:"name"`
+	Type             string `json:"type"`
+	TargetModule     string `json:"targetModule"`
+	LocalField       string `json:"localField"`
+	TargetField      string `json:"targetField"`
+	TargetLabelField string `json:"targetLabelField,omitempty"`
+	LookupAPI        string `json:"lookupApi,omitempty"`
+	LookupValueField string `json:"lookupValueField,omitempty"`
+	JunctionTable    string `json:"junctionTable,omitempty"`
 }
 
 type ModuleSchema struct {
@@ -114,6 +117,7 @@ type ModuleSchema struct {
 		SourceDatasourceID     string `json:"sourceDatasourceId"`
 		SourceDatasourceName   string `json:"sourceDatasourceName"`
 		SourceTable            string `json:"sourceTable"`
+		AutoRecycle            bool   `json:"autoRecycle,omitempty"`
 	} `json:"metadata"`
 	Model struct {
 		TableName string        `json:"tableName"`

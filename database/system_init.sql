@@ -4,8 +4,8 @@
 -- 前缀：system_
 
 SET NAMES utf8mb4;
-CREATE DATABASE IF NOT EXISTS `pantheon_ops` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `pantheon_ops`;
+CREATE DATABASE IF NOT EXISTS `pantheon_base` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `pantheon_base`;
 
 -- 1. 用户表
 CREATE TABLE `system_user` (
@@ -271,8 +271,9 @@ INSERT INTO `system_menu` (id, parent_id, title_key, path, component, page_perm,
 (1, 0, 'system.menu.dashboard', '/dashboard', 'dashboard', 'platform:dashboard:view', '', 'C', 'dashboard', 'dashboard', 'platform', 10, 1, 0, 0, '', NOW()),
 (2, 0, 'system.menu.access', '/system/access', '', '', '', 'M', 'apps', 'system-access', 'system.iam', 20, 1, 0, 0, '', NOW()),
 (3, 0, 'system.menu.org', '/system/org', '', '', '', 'M', 'storage', 'system-org', 'system.org', 30, 1, 0, 0, '', NOW()),
-(4, 0, 'system.menu.config', '/system/config', '', '', '', 'M', 'settings', 'system-config', 'system.config', 40, 1, 0, 0, '', NOW()),
-(5, 0, 'system.menu.security', '/system/security', '', '', '', 'M', 'safe', 'system-security', 'system.auth', 50, 1, 0, 0, '', NOW()),
+(4, 0, 'system.menu.config', '/system/config', '', '', '', 'M', 'settings', 'system-config', 'system.config', 50, 1, 0, 0, '', NOW()),
+(6, 0, 'system.menu.lowcode', '/system/lowcode', '', '', '', 'M', 'code', 'system-lowcode', 'system.lowcode', 45, 1, 0, 0, '', NOW()),
+(5, 0, 'system.menu.security', '/system/security', '', '', '', 'M', 'safe', 'system-security', 'system.auth', 40, 1, 0, 0, '', NOW()),
 (10, 2, 'system.menu.user', '/system/user', 'system/user/UserList', 'system:user:list', '', 'C', 'user', 'system-user', 'system.iam', 10, 1, 0, 0, '', NOW()),
 (11, 2, 'system.menu.role', '/system/role', 'system/role/RoleList', 'system:role:list', '', 'C', 'safe', 'system-role', 'system.iam', 20, 1, 0, 0, '', NOW()),
 (12, 2, 'system.menu.permission', '/system/permission', 'system/permission/PermissionList', 'system:permission:list', '', 'C', 'safe', 'system-permission', 'system.iam', 30, 1, 0, 0, '', NOW()),
@@ -281,6 +282,8 @@ INSERT INTO `system_menu` (id, parent_id, title_key, path, component, page_perm,
 (21, 3, 'system.menu.post', '/system/post', 'system/post/PostList', 'system:post:list', '', 'C', 'storage', 'system-post', 'system.org', 20, 1, 0, 0, '', NOW()),
 (30, 4, 'system.menu.dict', '/system/dict', 'system/dict/DictPage', 'system:dict:list', '', 'C', 'list', 'system-dict', 'system.config', 10, 1, 1, 0, '', NOW()),
 (31, 4, 'system.menu.setting', '/system/setting', 'system/setting/SettingPage', 'system:setting:list', '', 'C', 'settings', 'system-setting', 'system.config', 20, 1, 1, 0, '', NOW()),
+(32, 6, 'system.menu.modules', '/system/modules', 'system/dynamicmodule/ModuleManager', 'system:module:list', '', 'C', 'apps', 'system-modules', 'system.lowcode', 35, 1, 0, 0, '', NOW()),
+(33, 6, 'system.menu.generator', '/system/generator', 'system/generator/ModuleWizard', 'system:generator:use', '', 'C', 'code', 'system-generator', 'system.lowcode', 40, 1, 0, 0, '', NOW()),
 (40, 5, 'system.menu.loginLog', '/system/login-log', 'auth/LoginLogList', 'system:login-log:list', '', 'C', 'safe', 'system-login-log', 'system.auth', 10, 1, 0, 0, '', NOW()),
 (41, 5, 'system.menu.session', '/system/session', 'auth/SessionList', 'system:session:list', '', 'C', 'safe', 'system-session', 'system.auth', 20, 1, 0, 0, '', NOW()),
 (42, 5, 'system.menu.operationLog', '/system/operation-log', 'system/audit/OperationLogList', 'system:operation-log:list', '', 'C', 'safe', 'system-operation-log', 'system.audit', 30, 1, 0, 0, '', NOW()),
@@ -325,6 +328,13 @@ INSERT INTO `system_menu` (id, parent_id, title_key, path, component, page_perm,
 (165, 30, 'system.permission.dict.import', '', '', '', 'system:dict:import', 'F', '', '', 'system.config', 6, 1, 0, 0, '', NOW()),
 (170, 31, 'system.permission.setting.update', '', '', '', 'system:setting:update', 'F', '', '', 'system.config', 1, 1, 0, 0, '', NOW()),
 (171, 31, 'system.permission.setting.refresh', '', '', '', 'system:setting:refresh', 'F', '', '', 'system.config', 2, 1, 0, 0, '', NOW()),
+(172, 32, 'system.permission.module.register', '', '', '', 'system:module:register', 'F', '', '', 'system.lowcode', 1, 1, 0, 0, '', NOW()),
+(173, 32, 'system.permission.module.unregister', '', '', '', 'system:module:unregister', 'F', '', '', 'system.lowcode', 2, 1, 0, 0, '', NOW()),
+(174, 32, 'system.permission.module.deleteRecord', '', '', '', 'system:module:delete_record', 'F', '', '', 'system.lowcode', 3, 1, 0, 0, '', NOW()),
+(175, 32, 'system.permission.module.purge', '', '', '', 'system:module:purge', 'F', '', '', 'system.lowcode', 4, 1, 0, 0, '', NOW()),
+(176, 32, 'system.permission.module.repair', '', '', '', 'system:module:repair', 'F', '', '', 'system.lowcode', 5, 1, 0, 0, '', NOW()),
+(177, 33, 'system.permission.module.generate', '', '', '', 'system:module:generate', 'F', '', '', 'system.lowcode', 1, 1, 0, 0, '', NOW()),
+(178, 33, 'system.permission.generator.datasourceManage', '', '', '', 'system:generator:datasource:manage', 'F', '', '', 'system.lowcode', 2, 1, 0, 0, '', NOW()),
 (180, 40, 'system.permission.login_log.export', '', '', '', 'system:login-log:export', 'F', '', '', 'system.auth', 1, 1, 0, 0, '', NOW()),
 (181, 41, 'system.permission.session.delete', '', '', '', 'system:session:delete', 'F', '', '', 'system.auth', 1, 1, 0, 0, '', NOW()),
 (190, 42, 'system.permission.operation_log.delete', '', '', '', 'system:operation-log:delete', 'F', '', '', 'system.audit', 1, 1, 0, 0, '', NOW()),
@@ -332,8 +342,8 @@ INSERT INTO `system_menu` (id, parent_id, title_key, path, component, page_perm,
 (192, 42, 'system.permission.operation_log.export', '', '', '', 'system:operation-log:export', 'F', '', '', 'system.audit', 3, 1, 0, 0, '', NOW());
 
 INSERT INTO `system_role_menu` (role_id, menu_id) VALUES
-(1, 1), (1, 2), (1, 3), (1, 4), (1, 5),
-(1, 10), (1, 11), (1, 12), (1, 13), (1, 20), (1, 21), (1, 30), (1, 31), (1, 40), (1, 41), (1, 42);
+(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6),
+(1, 10), (1, 11), (1, 12), (1, 13), (1, 20), (1, 21), (1, 30), (1, 31), (1, 32), (1, 33), (1, 40), (1, 41), (1, 42);
 
 INSERT INTO `system_role_permission` (role_id, permission_key) VALUES
 (1, 'platform:dashboard:view'),
@@ -345,6 +355,8 @@ INSERT INTO `system_role_permission` (role_id, permission_key) VALUES
 (1, 'system:post:list'), (1, 'system:post:create'), (1, 'system:post:update'), (1, 'system:post:delete'), (1, 'system:post:export'), (1, 'system:post:import'), (1, 'system:post:batch-update'),
 (1, 'system:dict:list'), (1, 'system:dict:create'), (1, 'system:dict:update'), (1, 'system:dict:delete'), (1, 'system:dict:refresh'), (1, 'system:dict:export'), (1, 'system:dict:import'),
 (1, 'system:setting:list'), (1, 'system:setting:update'), (1, 'system:setting:refresh'),
+(1, 'system:module:list'), (1, 'system:module:register'), (1, 'system:module:unregister'), (1, 'system:module:delete_record'), (1, 'system:module:purge'), (1, 'system:module:repair'),
+(1, 'system:generator:use'), (1, 'system:module:generate'), (1, 'system:generator:datasource:manage'),
 (1, 'system:login-log:list'), (1, 'system:login-log:export'),
 (1, 'system:session:list'), (1, 'system:session:delete'),
 (1, 'system:operation-log:list'), (1, 'system:operation-log:delete'), (1, 'system:operation-log:clear'), (1, 'system:operation-log:export');
@@ -365,6 +377,7 @@ INSERT INTO `system_i18n` (`module`, `group_name`, `key`, `locale`, `value`, `cr
 ('system', 'messages', 'system.menu.access', 'zh-CN', '访问控制', NOW(), NOW()),
 ('system', 'messages', 'system.menu.org', 'zh-CN', '组织管理', NOW(), NOW()),
 ('system', 'messages', 'system.menu.config', 'zh-CN', '平台配置', NOW(), NOW()),
+('system', 'messages', 'system.menu.lowcode', 'zh-CN', '低代码工作台', NOW(), NOW()),
 ('system', 'messages', 'system.menu.security', 'zh-CN', '安全与审计', NOW(), NOW()),
 ('system', 'messages', 'system.menu.user', 'zh-CN', '用户管理', NOW(), NOW()),
 ('system', 'messages', 'system.menu.role', 'zh-CN', '角色管理', NOW(), NOW()),
@@ -376,24 +389,29 @@ INSERT INTO `system_i18n` (`module`, `group_name`, `key`, `locale`, `value`, `cr
 ('system', 'messages', 'system.menu.session', 'zh-CN', '会话管理', NOW(), NOW()),
 ('system', 'messages', 'system.menu.setting', 'zh-CN', '系统设置', NOW(), NOW()),
 ('system', 'messages', 'system.menu.dict', 'zh-CN', '字典管理', NOW(), NOW()),
+('system', 'messages', 'system.menu.modules', 'zh-CN', '模块管理', NOW(), NOW()),
+('system', 'messages', 'system.menu.generator', 'zh-CN', '模块生成器', NOW(), NOW()),
 ('system', 'messages', 'system.menu.operationLog', 'zh-CN', '操作日志', NOW(), NOW()),
 ('system', 'messages', 'app.name', 'en-US', 'Pantheon Base', NOW(), NOW()),
 ('system', 'messages', 'app.slogan', 'en-US', 'Empowering Enterprise Digitalization', NOW(), NOW()),
 ('system', 'messages', 'system.menu.dashboard', 'en-US', 'Dashboard', NOW(), NOW()),
-('system', 'messages', 'system.menu.access', 'en-US', 'Access Control', NOW(), NOW()),
-('system', 'messages', 'system.menu.org', 'en-US', 'Organization', NOW(), NOW()),
-('system', 'messages', 'system.menu.config', 'en-US', 'Platform Config', NOW(), NOW()),
+('system', 'messages', 'system.menu.access', 'en-US', 'Access & Permissions', NOW(), NOW()),
+('system', 'messages', 'system.menu.org', 'en-US', 'Organizations', NOW(), NOW()),
+('system', 'messages', 'system.menu.config', 'en-US', 'System Configuration', NOW(), NOW()),
+('system', 'messages', 'system.menu.lowcode', 'en-US', 'Low-Code', NOW(), NOW()),
 ('system', 'messages', 'system.menu.security', 'en-US', 'Security & Audit', NOW(), NOW()),
-('system', 'messages', 'system.menu.user', 'en-US', 'User Management', NOW(), NOW()),
-('system', 'messages', 'system.menu.role', 'en-US', 'Role Management', NOW(), NOW()),
-('system', 'messages', 'system.menu.dept', 'en-US', 'Department Management', NOW(), NOW()),
-('system', 'messages', 'system.menu.post', 'en-US', 'Post Management', NOW(), NOW()),
-('system', 'messages', 'system.menu.permission', 'en-US', 'Permission Management', NOW(), NOW()),
-('system', 'messages', 'system.menu.menu', 'en-US', 'Menu Management', NOW(), NOW()),
+('system', 'messages', 'system.menu.user', 'en-US', 'Users', NOW(), NOW()),
+('system', 'messages', 'system.menu.role', 'en-US', 'Roles', NOW(), NOW()),
+('system', 'messages', 'system.menu.dept', 'en-US', 'Departments', NOW(), NOW()),
+('system', 'messages', 'system.menu.post', 'en-US', 'Positions', NOW(), NOW()),
+('system', 'messages', 'system.menu.permission', 'en-US', 'Permissions', NOW(), NOW()),
+('system', 'messages', 'system.menu.menu', 'en-US', 'Menus', NOW(), NOW()),
 ('system', 'messages', 'system.menu.loginLog', 'en-US', 'Login Logs', NOW(), NOW()),
-('system', 'messages', 'system.menu.session', 'en-US', 'Session Management', NOW(), NOW()),
-('system', 'messages', 'system.menu.setting', 'en-US', 'System Settings', NOW(), NOW()),
-('system', 'messages', 'system.menu.dict', 'en-US', 'Dictionary Management', NOW(), NOW()),
+('system', 'messages', 'system.menu.session', 'en-US', 'Sessions', NOW(), NOW()),
+('system', 'messages', 'system.menu.setting', 'en-US', 'Settings', NOW(), NOW()),
+('system', 'messages', 'system.menu.dict', 'en-US', 'Dictionaries', NOW(), NOW()),
+('system', 'messages', 'system.menu.modules', 'en-US', 'Modules', NOW(), NOW()),
+('system', 'messages', 'system.menu.generator', 'en-US', 'Code Generator', NOW(), NOW()),
 ('system', 'messages', 'system.menu.operationLog', 'en-US', 'Operation Logs', NOW(), NOW());
 
 INSERT INTO `system_dept` (`parent_id`, `ancestors`, `is_root`, `dept_name`, `sort`, `status`, `created_at`, `updated_at`) VALUES

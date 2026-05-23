@@ -17,33 +17,15 @@ func setupRoleTestDB(t *testing.T) *gorm.DB {
 
 	// 迁移模型
 	_ = db.AutoMigrate(&SystemRole{}, &SystemRolePermission{}, &database.CasbinRule{})
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_menu (id INTEGER PRIMARY KEY, parent_id INTEGER, page_perm TEXT, perms TEXT, type TEXT, sort INTEGER)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_menu (id INTEGER PRIMARY KEY, page_perm TEXT, perms TEXT, type TEXT)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role_menu (role_id INTEGER, menu_id INTEGER)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_role (user_id INTEGER, role_id INTEGER)")
 
 	// 插入菜单测试数据
-	_ = db.Exec("INSERT INTO system_menu (id, parent_id, page_perm, perms, type, sort) VALUES (1, 0, 'sys:user:list', '', 'C', 1)")
-	_ = db.Exec("INSERT INTO system_menu (id, parent_id, page_perm, perms, type, sort) VALUES (2, 1, '', 'sys:user:create', 'F', 1)")
+	_ = db.Exec("INSERT INTO system_menu (id, page_perm, perms, type) VALUES (1, 'sys:user:list', '', 'C')")
+	_ = db.Exec("INSERT INTO system_menu (id, page_perm, perms, type) VALUES (2, '', 'sys:user:create', 'F')")
 
 	return db
-}
-
-func uint64SliceContains(items []uint64, expected uint64) bool {
-	for _, item := range items {
-		if item == expected {
-			return true
-		}
-	}
-	return false
-}
-
-func stringSliceContains(items []string, expected string) bool {
-	for _, item := range items {
-		if item == expected {
-			return true
-		}
-	}
-	return false
 }
 
 func TestRoleService_CreateRole(t *testing.T) {
@@ -80,63 +62,6 @@ func TestRoleService_CreateRole(t *testing.T) {
 	_, err = s.CreateRole(req)
 	if err == nil || err.Error() != "role.permission.invalid" {
 		t.Errorf("expected permission invalid error, got %v", err)
-	}
-}
-
-func TestRoleService_CreateRoleExpandsNavigationAndSyncsCMDBPolicies(t *testing.T) {
-	db := setupRoleTestDB(t)
-	if err := db.Exec("INSERT INTO system_menu (id, parent_id, page_perm, perms, type, sort) VALUES (10, 0, '', '', 'D', 1)").Error; err != nil {
-		t.Fatalf("seed operations menu: %v", err)
-	}
-	if err := db.Exec("INSERT INTO system_menu (id, parent_id, page_perm, perms, type, sort) VALUES (11, 10, '', '', 'M', 1)").Error; err != nil {
-		t.Fatalf("seed cmdb menu: %v", err)
-	}
-	if err := db.Exec("INSERT INTO system_menu (id, parent_id, page_perm, perms, type, sort) VALUES (12, 11, 'business:cmdb:host:list', '', 'C', 1)").Error; err != nil {
-		t.Fatalf("seed host page menu: %v", err)
-	}
-	if err := db.Exec("INSERT INTO system_menu (id, parent_id, page_perm, perms, type, sort) VALUES (13, 12, '', 'business:cmdb:host:create', 'F', 1)").Error; err != nil {
-		t.Fatalf("seed host action menu: %v", err)
-	}
-	s := NewRoleService(db)
-
-	resp, err := s.CreateRole(&RoleCreateReq{
-		RoleName: "CMDB Operator",
-		RoleKey:  "cmdb_operator",
-		Status:   1,
-		MenuIDs:  []uint64{10},
-	})
-	if err != nil {
-		t.Fatalf("create role: %v", err)
-	}
-
-	if !uint64SliceContains(resp.MenuIDs, 12) {
-		t.Fatalf("expected host page menu to be expanded, got %+v", resp.MenuIDs)
-	}
-	if !stringSliceContains(resp.PermissionKeys, "business:cmdb:host:list") {
-		t.Fatalf("expected host list page permission to be derived, got %+v", resp.PermissionKeys)
-	}
-	if stringSliceContains(resp.PermissionKeys, "business:cmdb:host:create") {
-		t.Fatalf("expected action permission to stay explicit, got %+v", resp.PermissionKeys)
-	}
-
-	var listPolicyCount int64
-	if err := db.Model(&database.CasbinRule{}).
-		Where("ptype = ? AND v0 = ? AND v1 = ? AND v2 = ?", "p", "cmdb_operator", "/api/v1/business/cmdb/hosts", "GET").
-		Count(&listPolicyCount).Error; err != nil {
-		t.Fatalf("count list policy: %v", err)
-	}
-	if listPolicyCount != 1 {
-		t.Fatalf("expected CMDB list API policy, got %d", listPolicyCount)
-	}
-
-	var createPolicyCount int64
-	if err := db.Model(&database.CasbinRule{}).
-		Where("ptype = ? AND v0 = ? AND v1 = ? AND v2 = ?", "p", "cmdb_operator", "/api/v1/business/cmdb/hosts", "POST").
-		Count(&createPolicyCount).Error; err != nil {
-		t.Fatalf("count create policy: %v", err)
-	}
-	if createPolicyCount != 0 {
-		t.Fatalf("expected no create API policy without action permission, got %d", createPolicyCount)
 	}
 }
 

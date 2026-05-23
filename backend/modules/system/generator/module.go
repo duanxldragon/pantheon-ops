@@ -23,6 +23,8 @@ func InitGeneratorModule(r *gin.RouterGroup, db *gorm.DB) {
 				readAPI.GET("/datasources", handler.ListDatasources)
 				readAPI.GET("/tables", handler.ListTables)
 				readAPI.GET("/table-schema", handler.PreviewTable)
+				readAPI.POST("/preview-files", handler.PreviewGeneratedFiles)
+				readAPI.POST("/download-source", handler.DownloadGeneratedSource)
 			}
 
 			writeAPI := r.Group("/system/generator").

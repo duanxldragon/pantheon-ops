@@ -32,6 +32,7 @@ type UserListResp struct {
 	CreatedAt string   `json:"createdAt"`
 	RoleIDs   []uint64 `json:"roleIds"`
 	RoleKeys  []string `json:"roleKeys"`
+	RoleNames []string `json:"roleNames"`
 }
 
 type UserListPageResp struct {
@@ -42,22 +43,24 @@ type UserListPageResp struct {
 }
 
 type UserDetailResp struct {
-	ID         uint64                 `json:"id"`
-	Username   string                 `json:"username"`
-	Nickname   string                 `json:"nickname"`
-	Avatar     string                 `json:"avatar"`
-	Email      string                 `json:"email"`
-	Phone      string                 `json:"phone"`
-	DeptID     uint64                 `json:"deptId"`
-	DeptName   string                 `json:"deptName"`
-	PostID     uint64                 `json:"postId"`
-	PostName   string                 `json:"postName"`
-	Status     int                    `json:"status"`
-	CreatedAt  string                 `json:"createdAt"`
-	UpdatedAt  string                 `json:"updatedAt"`
-	RoleIDs    []uint64               `json:"roleIds"`
-	RoleKeys   []string               `json:"roleKeys"`
-	ProfileExt map[string]interface{} `json:"profileExt,omitempty"`
+	ID          uint64                 `json:"id"`
+	Username    string                 `json:"username"`
+	Nickname    string                 `json:"nickname"`
+	Avatar      string                 `json:"avatar"`
+	Email       string                 `json:"email"`
+	Phone       string                 `json:"phone"`
+	DeptID      uint64                 `json:"deptId"`
+	DeptName    string                 `json:"deptName"`
+	PostID      uint64                 `json:"postId"`
+	PostName    string                 `json:"postName"`
+	Status      int                    `json:"status"`
+	CreatedAt   string                 `json:"createdAt"`
+	UpdatedAt   string                 `json:"updatedAt"`
+	LastLoginAt *string                `json:"lastLoginAt,omitempty"`
+	RoleIDs     []uint64               `json:"roleIds"`
+	RoleKeys    []string               `json:"roleKeys"`
+	RoleNames   []string               `json:"roleNames"`
+	ProfileExt  map[string]interface{} `json:"profileExt,omitempty"`
 }
 
 type UserListQuery struct {

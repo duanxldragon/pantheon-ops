@@ -1,13 +1,19 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
 import { signInAsAdmin } from '../../helpers/auth';
 
 const mainContentSelectors = [
-  '.system-page-template',
-  '.system-list__table-card',
-  '.filter-panel',
-  '.permission-workbench__tabs',
-  '.page-panel',
-].map((selector) => `main ${selector}`);
+  'main',
+  'main .app-shell__content-inner',
+  'main .system-page-template',
+  'main .system-list__table-card',
+  'main .filter-panel',
+  'main .permission-workbench__tabs',
+  'main .page-panel',
+  'main .i18n-list-page',
+];
 
 const pageIdentitySelectors = [
   '.governance-summary-bar',
@@ -32,6 +38,11 @@ async function navigateInShell(page: Page, path: string) {
   await expect(page).toHaveURL(new RegExp(`${path.replace(/\//g, '\\/')}$`));
 }
 
+async function expectPageIdentityReady(page: Page, title: string | RegExp) {
+  await expect(page.getByText(title, { exact: false }).filter({ visible: true }).first()).toBeVisible();
+  await expect(page.locator(pageIdentitySelectors.join(', ')).first()).toBeVisible();
+}
+
 async function measureMainContentWidth(page: Page) {
   return page.evaluate((selectors) => {
     const isVisible = (element: Element) => {
@@ -48,25 +59,26 @@ async function measureMainContentWidth(page: Page) {
   }, mainContentSelectors);
 }
 
-async function expectPageIdentityReady(page: Page, title: string | RegExp) {
-  await expect(page.getByText(title, { exact: false }).filter({ visible: true }).first()).toBeVisible();
-  await expect(page.locator(pageIdentitySelectors.join(', ')).first()).toBeVisible();
-}
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const admissionConfig = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../../../../config/system-page-admission.json'), 'utf8'),
+) as Array<{
+  path: string;
+  title: string;
+  governanceDrawer: 'allowed' | 'forbidden';
+  governanceButtonText?: string;
+  governanceDrawerTitle?: string;
+}>;
 
-const governancePages = [
-  { path: '/system/user', title: '用户管理', button: '治理摘要', drawerTitle: '治理摘要' },
-  { path: '/system/role', title: '角色管理', button: '授权摘要', drawerTitle: '授权摘要' },
-  { path: '/system/menu', title: '菜单管理', button: '元数据摘要', drawerTitle: '元数据摘要' },
-  { path: '/system/permission', title: '权限管理', button: '治理摘要', drawerTitle: '治理摘要' },
-  { path: '/system/dept', title: '部门管理', button: '治理视角', drawerTitle: '治理视角' },
-  { path: '/system/post', title: '岗位管理', button: '治理摘要', drawerTitle: '治理摘要' },
-  { path: '/system/setting', title: '系统设置', button: '治理摘要', drawerTitle: '治理摘要' },
-  { path: '/system/dict', title: '字典管理', button: '治理摘要', drawerTitle: '治理摘要' },
-  { path: '/system/i18n', title: '国际化管理', button: '治理摘要', drawerTitle: '治理摘要' },
-  { path: '/system/login-log', title: '登录日志', button: '审计摘要', drawerTitle: '审计摘要' },
-  { path: '/system/session', title: '会话管理', button: '会话摘要', drawerTitle: '会话摘要' },
-  { path: '/system/operation-log', title: '操作日志', button: '审计摘要', drawerTitle: '审计摘要' },
-] as const;
+const governancePages = admissionConfig
+  .filter((item) => item.governanceDrawer === 'allowed')
+  .map((item) => ({
+    path: item.path,
+    title: item.title,
+    button: item.governanceButtonText || '',
+    drawerTitle: item.governanceDrawerTitle || '',
+  }));
 
 test('governance insight opens as drawer without compressing main pages', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });

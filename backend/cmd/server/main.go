@@ -52,7 +52,11 @@ func main() {
 	business.InitBusinessModules(api, database.DB)
 
 	// 4. 启动服务器
-	if err := r.Run(":8080"); err != nil {
+	port := os.Getenv("PANTHEON_PORT")
+	if port == "" {
+		port = "8080"
+	}
+	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("failed to run server: %v", err)
 	}
 }

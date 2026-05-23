@@ -29,6 +29,10 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	return db
 }
 
+func boolPtr(value bool) *bool {
+	return &value
+}
+
 func TestAuthService_MFAChallengeSetupAndVerify(t *testing.T) {
 	db := setupTestDB(t)
 	s := NewAuthService(db)
@@ -388,6 +392,82 @@ func TestAuthService_LoginWithSourceRecordsSecurityEventWhenSourceBlocked(t *tes
 	}
 }
 
+func TestAuthService_LoginWithSourceRecordsSecurityEventWhenPasswordWrong(t *testing.T) {
+	db := setupTestDB(t)
+	s := NewAuthService(db)
+
+	hash, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
+	testUser := user.SystemUser{
+		Username: "wrong_password_user",
+		Password: string(hash),
+		Status:   1,
+	}
+	db.Create(&testUser)
+	_ = s.ReloadSettings()
+
+	_, err := s.LoginWithSource(&LoginReq{Username: "wrong_password_user", Password: "wrong"}, "ip:10.0.0.8")
+	if err == nil || err.Error() != "user.login.error.password_wrong" {
+		t.Fatalf("expected password wrong error, got %v", err)
+	}
+
+	events, err := s.ListSecurityEvents(&SecurityEventQuery{
+		Username:  "wrong_password_user",
+		EventType: "password_wrong",
+		Page:      1,
+		PageSize:  10,
+	})
+	if err != nil {
+		t.Fatalf("list security events: %v", err)
+	}
+	if events.Total != 1 || len(events.Items) != 1 {
+		t.Fatalf("expected one wrong-password security event, got %+v", events)
+	}
+	if events.Items[0].Severity != "medium" ||
+		events.Items[0].SourceKey != "ip:10.0.0.8" ||
+		events.Items[0].IP != "10.0.0.8" ||
+		events.Items[0].MessageKey != "auth.security.event.password_wrong" {
+		t.Fatalf("unexpected wrong-password security event: %+v", events.Items[0])
+	}
+}
+
+func TestAuthService_AcknowledgeSecurityEventPersistsAuditFields(t *testing.T) {
+	db := setupTestDB(t)
+	s := NewAuthService(db)
+
+	event := SystemAuthSecurityEvent{
+		UserID:     11,
+		Username:   "risk_user",
+		EventType:  "source_blocked",
+		Severity:   "high",
+		SourceKey:  "ip:10.0.0.9",
+		MessageKey: "auth.security.event.source_blocked",
+		CreatedAt:  time.Now().UTC(),
+	}
+	if err := db.Create(&event).Error; err != nil {
+		t.Fatalf("seed security event: %v", err)
+	}
+
+	if err := s.AcknowledgeSecurityEvent(event.ID, 9001, "auditor", "confirmed and user notified"); err != nil {
+		t.Fatalf("acknowledge security event: %v", err)
+	}
+
+	events, err := s.ListSecurityEvents(&SecurityEventQuery{
+		Username:     "risk_user",
+		Acknowledged: boolPtr(true),
+		Page:         1,
+		PageSize:     10,
+	})
+	if err != nil {
+		t.Fatalf("list acknowledged security events: %v", err)
+	}
+	if events.Total != 1 || len(events.Items) != 1 {
+		t.Fatalf("expected one acknowledged security event, got %+v", events)
+	}
+	if events.Items[0].AcknowledgedAt == nil || events.Items[0].AcknowledgedByUser != "auditor" || events.Items[0].AcknowledgementNote != "confirmed and user notified" {
+		t.Fatalf("unexpected acknowledged security event payload: %+v", events.Items[0])
+	}
+}
+
 func TestAuthService_UpdatePasswordUsesConfiguredMinLength(t *testing.T) {
 	db := setupTestDB(t)
 	s := NewAuthService(db)
@@ -527,7 +607,7 @@ func TestAuthService_CleanupLoginLogsUsesConfiguredRetentionOptions(t *testing.T
 		t.Fatalf("seed audit retention setting: %v", err)
 	}
 
-	clearedCount, err := s.CleanupLoginLogs(10)
+	clearedCount, err := s.CleanupLoginLogs(10, "", "")
 	if err != nil {
 		t.Fatalf("cleanup login logs with configured option: %v", err)
 	}
@@ -535,9 +615,32 @@ func TestAuthService_CleanupLoginLogsUsesConfiguredRetentionOptions(t *testing.T
 		t.Fatalf("expected to clean 1 login log, got %d", clearedCount)
 	}
 
-	_, err = s.CleanupLoginLogs(7)
+	_, err = s.CleanupLoginLogs(7, "", "")
 	if err == nil || err.Error() != "auth.login_log.cleanup.days_invalid" {
 		t.Fatalf("expected invalid retention days error, got %v", err)
+	}
+}
+
+func TestAuthService_CleanupLoginLogsSupportsExplicitTimeRange(t *testing.T) {
+	db := setupTestDB(t)
+	s := NewAuthService(db)
+
+	now := time.Now().UTC()
+	inRange := now.Add(-4 * time.Hour)
+	outOfRange := now.Add(-30 * time.Hour)
+	if err := db.Create(&[]SystemLogLogin{
+		{Username: "inside", Status: 1, LoginTime: inRange},
+		{Username: "outside", Status: 1, LoginTime: outOfRange},
+	}).Error; err != nil {
+		t.Fatalf("seed login logs: %v", err)
+	}
+
+	clearedCount, err := s.CleanupLoginLogs(0, now.Add(-12*time.Hour).Format(time.RFC3339), now.Format(time.RFC3339))
+	if err != nil {
+		t.Fatalf("cleanup login logs by explicit range: %v", err)
+	}
+	if clearedCount != 1 {
+		t.Fatalf("expected to clean 1 login log in range, got %d", clearedCount)
 	}
 }
 
@@ -605,7 +708,7 @@ func TestAuthService_CleanupHistoricSessionsUsesConfiguredRetentionOptions(t *te
 		t.Fatalf("seed session cleanup retention setting: %v", err)
 	}
 
-	clearedCount, err := s.CleanupHistoricSessions(10)
+	clearedCount, err := s.CleanupHistoricSessions(10, "", "")
 	if err != nil {
 		t.Fatalf("cleanup historic sessions with configured option: %v", err)
 	}
@@ -613,9 +716,101 @@ func TestAuthService_CleanupHistoricSessionsUsesConfiguredRetentionOptions(t *te
 		t.Fatalf("expected to clean 1 historic session, got %d", clearedCount)
 	}
 
-	_, err = s.CleanupHistoricSessions(7)
+	_, err = s.CleanupHistoricSessions(7, "", "")
 	if err == nil || err.Error() != "auth.session.cleanup.days_invalid" {
 		t.Fatalf("expected invalid historic-session retention days error, got %v", err)
+	}
+}
+
+func TestAuthService_CleanupHistoricSessionsSupportsExplicitTimeRange(t *testing.T) {
+	db := setupTestDB(t)
+	s := NewAuthService(db)
+	now := time.Now().UTC()
+	oldRevokedAt := now.Add(-48 * time.Hour)
+	recentRevokedAt := now.Add(-2 * time.Hour)
+
+	testUser := user.SystemUser{Username: "session-range-user", Status: 1}
+	if err := db.Create(&testUser).Error; err != nil {
+		t.Fatalf("seed user: %v", err)
+	}
+	if err := db.Create(&[]SystemUserSession{
+		{
+			SessionID:        "range-old",
+			UserID:           testUser.ID,
+			RefreshJTI:       "range-old-jti",
+			RefreshExpiresAt: now.AddDate(0, 0, -10),
+			RevokedAt:        &oldRevokedAt,
+			CreatedAt:        now.AddDate(0, 0, -10),
+		},
+		{
+			SessionID:        "range-recent",
+			UserID:           testUser.ID,
+			RefreshJTI:       "range-recent-jti",
+			RefreshExpiresAt: now.AddDate(0, 0, -1),
+			RevokedAt:        &recentRevokedAt,
+			CreatedAt:        now.AddDate(0, 0, -1),
+		},
+	}).Error; err != nil {
+		t.Fatalf("seed sessions: %v", err)
+	}
+
+	clearedCount, err := s.CleanupHistoricSessions(0, now.Add(-12*time.Hour).Format(time.RFC3339), now.Format(time.RFC3339))
+	if err != nil {
+		t.Fatalf("cleanup sessions by explicit range: %v", err)
+	}
+	if clearedCount != 1 {
+		t.Fatalf("expected to clean 1 revoked session in range, got %d", clearedCount)
+	}
+}
+
+func TestAuthService_BatchRevokeSessionsSkipsCurrentSessionBoundary(t *testing.T) {
+	db := setupTestDB(t)
+	s := NewAuthService(db)
+	now := time.Now().UTC()
+	testUser := user.SystemUser{Username: "batch-revoke-user", Status: 1}
+	if err := db.Create(&testUser).Error; err != nil {
+		t.Fatalf("seed user: %v", err)
+	}
+
+	sessions := []SystemUserSession{
+		{
+			SessionID:        "session-a",
+			UserID:           testUser.ID,
+			RefreshJTI:       "jti-a",
+			RefreshExpiresAt: now.Add(24 * time.Hour),
+			CreatedAt:        now.Add(-2 * time.Hour),
+		},
+		{
+			SessionID:        "session-b",
+			UserID:           testUser.ID,
+			RefreshJTI:       "jti-b",
+			RefreshExpiresAt: now.Add(24 * time.Hour),
+			CreatedAt:        now.Add(-time.Hour),
+		},
+	}
+	if err := db.Create(&sessions).Error; err != nil {
+		t.Fatalf("seed sessions: %v", err)
+	}
+
+	revokedCount, err := s.BatchRevokeSessions("current-session", []string{"session-a", "session-b", "session-a"})
+	if err != nil {
+		t.Fatalf("batch revoke sessions: %v", err)
+	}
+	if revokedCount != 2 {
+		t.Fatalf("expected to revoke 2 sessions, got %d", revokedCount)
+	}
+
+	var revokedTotal int64
+	if err := db.Model(&SystemUserSession{}).Where("revoked_at IS NOT NULL").Count(&revokedTotal).Error; err != nil {
+		t.Fatalf("count revoked sessions: %v", err)
+	}
+	if revokedTotal != 2 {
+		t.Fatalf("expected 2 revoked sessions, got %d", revokedTotal)
+	}
+
+	_, err = s.BatchRevokeSessions("session-a", []string{"session-a", "session-b"})
+	if err == nil || err.Error() != "auth.session.current_revoke_forbidden" {
+		t.Fatalf("expected current-session protection error, got %v", err)
 	}
 }
 
@@ -1069,7 +1264,7 @@ func TestAuthService_CleanupHistoricSessionsDeletesRevokedHistoryOnly(t *testing
 		t.Fatalf("seed sessions: %v", err)
 	}
 
-	clearedCount, err := s.CleanupHistoricSessions(1)
+	clearedCount, err := s.CleanupHistoricSessions(1, "", "")
 	if err != nil {
 		t.Fatalf("cleanup historic sessions: %v", err)
 	}

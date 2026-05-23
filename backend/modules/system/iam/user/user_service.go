@@ -289,7 +289,7 @@ func (s *UserService) ListUsers(query *UserListQuery, dataScope *common.DataScop
 		userIDs = append(userIDs, item.ID)
 	}
 
-	userRoleIDs, userRoleKeys, err := s.loadUserRoles(userIDs)
+	userRoleIDs, userRoleKeys, userRoleNames, err := s.loadUserRoles(userIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -318,6 +318,7 @@ func (s *UserService) ListUsers(query *UserListQuery, dataScope *common.DataScop
 			CreatedAt: formatUserTime(item.CreatedAt),
 			RoleIDs:   userRoleIDs[item.ID],
 			RoleKeys:  userRoleKeys[item.ID],
+			RoleNames: userRoleNames[item.ID],
 		})
 	}
 	return &UserListPageResp{
@@ -339,7 +340,7 @@ func (s *UserService) GetUserDetail(userID uint64) (*UserDetailResp, error) {
 		return nil, err
 	}
 
-	roleIDsMap, roleKeysMap, err := s.loadUserRoles([]uint64{user.ID})
+	roleIDsMap, roleKeysMap, roleNamesMap, err := s.loadUserRoles([]uint64{user.ID})
 	if err != nil {
 		return nil, err
 	}
@@ -355,24 +356,30 @@ func (s *UserService) GetUserDetail(userID uint64) (*UserDetailResp, error) {
 	if err != nil {
 		return nil, err
 	}
+	lastLoginAt, err := s.loadUserLastLoginAt(user.Username)
+	if err != nil {
+		return nil, err
+	}
 
 	return &UserDetailResp{
-		ID:         user.ID,
-		Username:   user.Username,
-		Nickname:   user.Nickname,
-		Avatar:     user.Avatar,
-		Email:      user.Email,
-		Phone:      user.Phone,
-		DeptID:     user.DeptID,
-		DeptName:   deptNames[user.DeptID],
-		PostID:     user.PostID,
-		PostName:   postNames[user.PostID],
-		Status:     user.Status,
-		CreatedAt:  formatUserTime(user.CreatedAt),
-		UpdatedAt:  formatUserTime(user.UpdatedAt),
-		RoleIDs:    roleIDsMap[user.ID],
-		RoleKeys:   roleKeysMap[user.ID],
-		ProfileExt: profileExt,
+		ID:          user.ID,
+		Username:    user.Username,
+		Nickname:    user.Nickname,
+		Avatar:      user.Avatar,
+		Email:       user.Email,
+		Phone:       user.Phone,
+		DeptID:      user.DeptID,
+		DeptName:    deptNames[user.DeptID],
+		PostID:      user.PostID,
+		PostName:    postNames[user.PostID],
+		Status:      user.Status,
+		CreatedAt:   formatUserTime(user.CreatedAt),
+		UpdatedAt:   formatUserTime(user.UpdatedAt),
+		LastLoginAt: lastLoginAt,
+		RoleIDs:     roleIDsMap[user.ID],
+		RoleKeys:    roleKeysMap[user.ID],
+		RoleNames:   roleNamesMap[user.ID],
+		ProfileExt:  profileExt,
 	}, nil
 }
 
@@ -486,7 +493,7 @@ func (s *UserService) UpdateUser(userID uint64, req *UserUpdateReq) (*UserListRe
 	if err := s.db.First(&user, userID).Error; err != nil {
 		return nil, err
 	}
-	roleKeyMap, roleKeysMap, err := s.loadUserRoles([]uint64{user.ID})
+	roleIDMap, roleKeysMap, roleNamesMap, err := s.loadUserRoles([]uint64{user.ID})
 	if err != nil {
 		return nil, err
 	}
@@ -511,8 +518,9 @@ func (s *UserService) UpdateUser(userID uint64, req *UserUpdateReq) (*UserListRe
 		PostName:  postNames[user.PostID],
 		Status:    user.Status,
 		CreatedAt: formatUserTime(user.CreatedAt),
-		RoleIDs:   roleKeyMap[user.ID],
+		RoleIDs:   roleIDMap[user.ID],
 		RoleKeys:  roleKeysMap[user.ID],
+		RoleNames: roleNamesMap[user.ID],
 	}, nil
 }
 
@@ -681,7 +689,7 @@ func (s *UserService) ExportUsers(query *UserListQuery) (*impexp.CSVFile, error)
 	for _, item := range users {
 		userIDs = append(userIDs, item.ID)
 	}
-	_, roleKeysMap, err := s.loadUserRoles(userIDs)
+	_, roleKeysMap, _, err := s.loadUserRoles(userIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -1176,34 +1184,67 @@ func (s *UserService) ensurePostForDept(deptID uint64, postID uint64) error {
 	return nil
 }
 
-func (s *UserService) loadUserRoles(userIDs []uint64) (map[uint64][]uint64, map[uint64][]string, error) {
+func (s *UserService) loadUserRoles(userIDs []uint64) (map[uint64][]uint64, map[uint64][]string, map[uint64][]string, error) {
 	roleIDMap := make(map[uint64][]uint64, len(userIDs))
 	roleKeyMap := make(map[uint64][]string, len(userIDs))
+	roleNameMap := make(map[uint64][]string, len(userIDs))
 	if len(userIDs) == 0 {
-		return roleIDMap, roleKeyMap, nil
+		return roleIDMap, roleKeyMap, roleNameMap, nil
 	}
 
 	type userRolePair struct {
-		UserID  uint64 `gorm:"column:user_id"`
-		RoleID  uint64 `gorm:"column:role_id"`
-		RoleKey string `gorm:"column:role_key"`
+		UserID   uint64 `gorm:"column:user_id"`
+		RoleID   uint64 `gorm:"column:role_id"`
+		RoleKey  string `gorm:"column:role_key"`
+		RoleName string `gorm:"column:role_name"`
 	}
 
 	var pairs []userRolePair
 	if err := s.db.Table("system_user_role").
-		Select("system_user_role.user_id, system_user_role.role_id, system_role.role_key").
+		Select("system_user_role.user_id, system_user_role.role_id, system_role.role_key, system_role.role_name").
 		Joins("JOIN system_role ON system_role.id = system_user_role.role_id").
 		Where("system_user_role.user_id IN ?", userIDs).
 		Order("system_user_role.role_id asc").
 		Scan(&pairs).Error; err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	for _, pair := range pairs {
 		roleIDMap[pair.UserID] = append(roleIDMap[pair.UserID], pair.RoleID)
 		roleKeyMap[pair.UserID] = append(roleKeyMap[pair.UserID], pair.RoleKey)
+		roleNameMap[pair.UserID] = append(roleNameMap[pair.UserID], pair.RoleName)
 	}
-	return roleIDMap, roleKeyMap, nil
+	return roleIDMap, roleKeyMap, roleNameMap, nil
+}
+
+func (s *UserService) loadUserLastLoginAt(username string) (*string, error) {
+	trimmedUsername := strings.TrimSpace(username)
+	if trimmedUsername == "" {
+		return nil, nil
+	}
+	if !s.db.Migrator().HasTable("system_log_login") {
+		return nil, nil
+	}
+
+	type loginRow struct {
+		LoginTime time.Time `gorm:"column:login_time"`
+	}
+
+	var lastLogin loginRow
+	err := s.db.Table("system_log_login").
+		Select("login_time").
+		Where("username = ? AND status = ?", trimmedUsername, 1).
+		Order("login_time desc, id desc").
+		Limit(1).
+		Scan(&lastLogin).Error
+	if err != nil {
+		return nil, err
+	}
+	if lastLogin.LoginTime.IsZero() {
+		return nil, nil
+	}
+	formatted := lastLogin.LoginTime.Format(time.RFC3339)
+	return &formatted, nil
 }
 
 func (s *UserService) loadDeptNames(users []SystemUser) (map[uint64]string, error) {

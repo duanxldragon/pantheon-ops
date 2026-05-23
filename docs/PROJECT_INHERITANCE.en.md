@@ -6,7 +6,7 @@ Chinese version: [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
 
 - Base repository: `../pantheon-base`
 - Base branch: `main`
-- Base version: `d119872` (`d1198723d85c1cfc7e71a4144518560e81afdb06`)
+- Base version: `0b06ee4` (`0b06ee40ae2a281bf2a0004343368599a326bc67`)
 - Inheritance mode: `foundation-only`
 
 ## 2. Inherited Base Rules

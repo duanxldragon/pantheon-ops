@@ -378,4 +378,3 @@ const DeptOrgTab: React.FC<DeptOrgTabProps> = ({
 
 export default DeptOrgTab;
 export { OrgDeptNode };
-export type { OrgDeptNodeProps };

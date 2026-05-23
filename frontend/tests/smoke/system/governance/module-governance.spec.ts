@@ -103,6 +103,11 @@ test.describe('module governance smoke', () => {
     await page.goto('/system/modules', { waitUntil: 'networkidle' });
     await expect(page.getByText('模块注册表', { exact: false }).filter({ visible: true }).first()).toBeVisible();
     await expect(page.locator('.module-manager-page, .system-list__table-card').first()).toBeVisible();
+    await expect(page.locator('.system-page-hero')).toHaveCount(0);
+    await expect(page.locator('.system-list__hero')).toHaveCount(0);
+    await expect(page.locator('.module-manager-page__intro')).toHaveCount(0);
+    await expect(page.locator('.module-manager-page__stats')).toHaveCount(0);
+    await expect(page.locator('.module-manager-page__header-actions .arco-btn-primary')).toBeVisible();
 
     const targetRow = page.getByRole('row', { name: /business\.asset/ }).first();
     await expect(targetRow).toBeVisible();
@@ -225,6 +230,8 @@ test.describe('module governance smoke', () => {
 
     await page.goto('/system/generator', { waitUntil: 'networkidle' });
     await expect(page.getByText(/模块生成(?:器|向导)/).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator('.system-page-hero')).toHaveCount(0);
+    await expect(page.locator('.system-list__hero')).toHaveCount(0);
     await expect(page.locator('.generator-wizard-card')).toBeVisible();
     await expect(page.locator('.system-list__work-actions .arco-btn')).toBeVisible();
     await installOperationToken(page, accessToken);

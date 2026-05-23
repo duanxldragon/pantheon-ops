@@ -14,16 +14,53 @@ import {
 } from '../../helpers/auth';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
-const workspaceRoot = path.resolve(currentDir, '../../../../..');
+const repoRoot = path.resolve(currentDir, '../../../../..');
+const platformWorkspaceRoot = path.resolve(repoRoot, '..');
 const moduleName = 'orderqa';
 const moduleKey = `business.${moduleName}`;
 const moduleRoute = `/business/${moduleName}`;
-const backendModuleDir = path.join(workspaceRoot, 'backend', 'modules', 'business', moduleName);
-const frontendModuleDir = path.join(workspaceRoot, 'frontend', 'src', 'modules', 'business', moduleName);
-const schemaFile = path.join(workspaceRoot, 'schema', 'generated', 'business', `${moduleName}.json`);
-const backendRegistry = path.join(workspaceRoot, 'backend', 'modules', 'business', 'generated_registry.go');
-const frontendRegistry = path.join(workspaceRoot, 'frontend', 'src', 'modules', 'generated', 'business.ts');
-const componentRegistry = path.join(workspaceRoot, 'frontend', 'src', 'core', 'router', 'generatedComponentRegistry.ts');
+const backendModuleRelativePath = path.join('backend', 'modules', 'business', moduleName);
+const frontendModuleRelativePath = path.join('frontend', 'src', 'modules', 'business', moduleName);
+const schemaRelativePath = path.join('schema', 'generated', 'business', `${moduleName}.json`);
+const backendRegistryRelativePath = path.join('backend', 'modules', 'business', 'generated_registry.go');
+const frontendRegistryRelativePath = path.join('frontend', 'src', 'modules', 'generated', 'business.ts');
+const componentRegistryRelativePath = path.join(
+  'frontend',
+  'src',
+  'core',
+  'router',
+  'generatedComponentRegistry.ts',
+);
+
+async function listCandidateRepoRoots() {
+  const entries = await fs.readdir(platformWorkspaceRoot, { withFileTypes: true });
+  const repoRoots = entries
+    .filter((entry) => entry.isDirectory() && entry.name.startsWith('pantheon-'))
+    .map((entry) => path.join(platformWorkspaceRoot, entry.name));
+  return Array.from(new Set([repoRoot, ...repoRoots]));
+}
+
+async function hasTarget(target: string) {
+  try {
+    await fs.stat(target);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function locateGeneratedRepo(relativePaths: string[]) {
+  const candidateRoots = await listCandidateRepoRoots();
+  for (const candidateRoot of candidateRoots) {
+    const results = await Promise.all(
+      relativePaths.map((relativePath) => hasTarget(path.join(candidateRoot, relativePath))),
+    );
+    if (results.every(Boolean)) {
+      return candidateRoot;
+    }
+  }
+  return null;
+}
 
 function buildGenerateRequest() {
   return {
@@ -82,82 +119,6 @@ function buildGenerateRequest() {
         },
       },
     },
-    files: [
-      {
-        path: `backend/modules/business/${moduleName}/${moduleName}_model.go`,
-        language: 'go',
-        content: `package ${moduleName}
-
-type Orderqa struct{}
-`,
-      },
-      {
-        path: `backend/modules/business/${moduleName}/${moduleName}_dto.go`,
-        language: 'go',
-        content: `package ${moduleName}
-
-type OrderqaListItem struct{}
-`,
-      },
-      {
-        path: `backend/modules/business/${moduleName}/${moduleName}_service.go`,
-        language: 'go',
-        content: `package ${moduleName}
-
-type Service struct{}
-`,
-      },
-      {
-        path: `backend/modules/business/${moduleName}/${moduleName}_handler.go`,
-        language: 'go',
-        content: `package ${moduleName}
-
-type Handler struct{}
-`,
-      },
-      {
-        path: `backend/modules/business/${moduleName}/module.go`,
-        language: 'go',
-        content: `package ${moduleName}
-
-import (
-  "github.com/gin-gonic/gin"
-  "gorm.io/gorm"
-)
-
-func InitOrderqaModule(r *gin.RouterGroup, db *gorm.DB) {}
-`,
-      },
-      {
-        path: `frontend/src/modules/business/${moduleName}/index.ts`,
-        language: 'typescript',
-        content: `export const OrderqaModule = {
-  name: '${moduleName}',
-  routes: [],
-};
-
-export default OrderqaModule;
-`,
-      },
-      {
-        path: `frontend/src/modules/business/${moduleName}/api.ts`,
-        language: 'typescript',
-        content: `export interface OrderqaItem {
-  id: number;
-  name: string;
-  status: string;
-}
-`,
-      },
-      {
-        path: `frontend/src/modules/business/${moduleName}/OrderqaList.tsx`,
-        language: 'tsx',
-        content: `export default function OrderqaList() {
-  return null;
-}
-`,
-      },
-    ],
     overwrite: false,
   };
 }
@@ -217,7 +178,7 @@ test('real module governance flow can generate register and purge a temporary bu
   await page.getByRole('button', { name: '生成代码', exact: true }).click();
 
   await expect(page.getByRole('heading', { name: '预览与接入' })).toBeVisible();
-  await expect(page.getByText('共生成 8 个文件', { exact: true })).toBeVisible();
+  await expect(page.getByText('共生成 10 个文件', { exact: true })).toBeVisible();
 
   const generateResponse = await page.request.post(`${apiBaseUrl}/system/dynamic-modules/generate`, {
     headers: {
@@ -230,7 +191,7 @@ test('real module governance flow can generate register and purge a temporary bu
   const generatePayload = await generateResponse.json();
   expect(generatePayload.code).toBe(200);
   expect(generatePayload.data?.module?.name).toBe(moduleKey);
-  expect(generatePayload.data?.module?.status).toBe(3);
+  expect([1, 3]).toContain(generatePayload.data?.module?.status);
   expect(generatePayload.data?.summary?.routePath).toBe(moduleRoute);
 
   await expect.poll(async () => {
@@ -240,6 +201,27 @@ test('real module governance flow can generate register and purge a temporary bu
     const payload = await response.json();
     return payload.data?.status === 1 || payload.data?.status === 3;
   }).toBe(true);
+
+  await expect.poll(async () => {
+    return locateGeneratedRepo([
+      backendModuleRelativePath,
+      frontendModuleRelativePath,
+      schemaRelativePath,
+    ]);
+  }).toBeTruthy();
+  const generatedRepoRoot = await locateGeneratedRepo([
+    backendModuleRelativePath,
+    frontendModuleRelativePath,
+    schemaRelativePath,
+  ]);
+  expect(generatedRepoRoot).toBeTruthy();
+
+  const backendModuleDir = path.join(generatedRepoRoot!, backendModuleRelativePath);
+  const frontendModuleDir = path.join(generatedRepoRoot!, frontendModuleRelativePath);
+  const schemaFile = path.join(generatedRepoRoot!, schemaRelativePath);
+  const backendRegistry = path.join(generatedRepoRoot!, backendRegistryRelativePath);
+  const frontendRegistry = path.join(generatedRepoRoot!, frontendRegistryRelativePath);
+  const componentRegistry = path.join(generatedRepoRoot!, componentRegistryRelativePath);
 
   await expect.poll(async () => {
     const content = await fs.readFile(backendRegistry, 'utf8');

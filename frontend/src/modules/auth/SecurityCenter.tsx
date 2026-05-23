@@ -31,6 +31,7 @@ import { formatClientSummary, renderClientInfo } from './clientInfo';
 import { useAuthStore } from '../../store/useAuthStore';
 import {
   AppTable,
+  buildStandardPagination,
   DateTimeMeta,
   FormSection,
   PageContainer,
@@ -44,7 +45,7 @@ import {
   TABLE_ACTION_COLUMN_WIDTH,
 } from '../../components';
 import SessionDetailModal from './SessionDetailModal';
-import '../../core/styles/list-page.css';
+import '../system/list-page.css';
 import './auth.css';
 
 const FormItem = Form.Item;
@@ -62,6 +63,7 @@ const SecurityCenter: React.FC = () => {
   const [sessions, setSessions] = useState<AuthSession[]>([]);
   const [loginLogs, setLoginLogs] = useState<LoginLogRow[]>([]);
   const [detailSession, setDetailSession] = useState<AuthSession | null>(null);
+  const [sessionPagination, setSessionPagination] = useState({ current: 1, pageSize: 5 });
   const [passwordForm] = Form.useForm<UserPasswordUpdatePayload & { confirmPassword: string }>();
 
   const loadSecurityContext = useCallback(async () => {
@@ -98,6 +100,17 @@ const SecurityCenter: React.FC = () => {
     () => overview?.currentSession ?? sessions.find((item) => item.isCurrent) ?? null,
     [overview, sessions],
   );
+  const pagedSessions = useMemo(() => {
+    const startIndex = (sessionPagination.current - 1) * sessionPagination.pageSize;
+    return sessions.slice(startIndex, startIndex + sessionPagination.pageSize);
+  }, [sessionPagination.current, sessionPagination.pageSize, sessions]);
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(sessions.length / sessionPagination.pageSize));
+    if (sessionPagination.current > totalPages) {
+      setSessionPagination((current) => ({ ...current, current: totalPages }));
+    }
+  }, [sessionPagination.current, sessionPagination.pageSize, sessions.length]);
 
   const translateLogMessage = useCallback(
     (value?: string | null) => {
@@ -568,9 +581,21 @@ const SecurityCenter: React.FC = () => {
                 <AppTable<AuthSession>
                   rowKey="sessionId"
                   columns={sessionColumns}
-                  data={sessions}
+                  data={pagedSessions}
                   loading={loading && Boolean(overview)}
-                  pagination={{ pageSize: 5, sizeCanChange: false }}
+                  pagination={buildStandardPagination(t, {
+                    current: sessionPagination.current,
+                    pageSize: sessionPagination.pageSize,
+                    total: sessions.length,
+                    sizeCanChange: false,
+                    sizeOptions: [5],
+                    onChange: (page, pageSize) => {
+                      setSessionPagination({
+                        current: page,
+                        pageSize: pageSize || sessionPagination.pageSize,
+                      });
+                    },
+                  })}
                   scroll={{ x: 1100 }}
                   emptyText={t('auth.session.empty')}
                 />

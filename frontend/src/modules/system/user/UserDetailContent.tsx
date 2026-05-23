@@ -14,6 +14,9 @@ interface UserDetailContentProps {
 
 const UserDetailContent: React.FC<UserDetailContentProps> = ({ detail, orgEnabled = true }) => {
   const { t } = useTranslation();
+  const roleNames = detail.roleNames?.filter(Boolean) || [];
+  const roleKeys = detail.roleKeys?.filter(Boolean) || [];
+  const displayRoles = roleNames.length > 0 ? roleNames : roleKeys;
   const summaryItems = [
     ...(orgEnabled
       ? [
@@ -23,9 +26,9 @@ const UserDetailContent: React.FC<UserDetailContentProps> = ({ detail, orgEnable
       : []),
     {
       label: t('system.user.roles'),
-      value: detail.roleKeys.length ? (
+      value: displayRoles.length ? (
         <Space wrap>
-          {detail.roleKeys.map((item) => (
+          {displayRoles.map((item) => (
             <Tag key={item}>{item}</Tag>
           ))}
         </Space>
@@ -33,6 +36,7 @@ const UserDetailContent: React.FC<UserDetailContentProps> = ({ detail, orgEnable
         '-'
       ),
     },
+    { label: t('auth.security.lastLoginAt'), value: formatDateTime(detail.lastLoginAt) },
     { label: t('system.user.createdAt'), value: formatDateTime(detail.createdAt) },
     { label: t('system.user.updatedAt'), value: formatDateTime(detail.updatedAt) },
   ];

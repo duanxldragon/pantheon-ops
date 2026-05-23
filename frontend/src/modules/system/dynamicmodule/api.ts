@@ -3,6 +3,7 @@
  */
 
 import { apiRequest } from '../../../api/request';
+import type { ModuleSchema } from '../generator/schema';
 
 export interface ModuleRegistration {
   id: number;
@@ -14,6 +15,7 @@ export interface ModuleRegistration {
   boundedContext?: string;
   summary?: string;
   sourceTable?: string;
+  autoRecycle?: boolean;
   tableName: string;
   status: number; // 1:已接入, 2:已卸载, 3:待激活, 4:失败
   installedAt: string;
@@ -30,6 +32,14 @@ export interface RegistryRepairSummary {
   markedUninstalledModules: number;
   artifactReadyModules: number;
   preservedUninstalledCount: number;
+}
+
+export interface ActivationAuditSummary {
+  checkedModules: number;
+  activatedModules: number;
+  pendingModules: number;
+  runtimeReadyModules: number;
+  frontendReadyModules: number;
 }
 
 export interface RegisterModulePayload {
@@ -93,6 +103,13 @@ export function repairRegistries() {
   });
 }
 
+export function auditPendingActivations() {
+  return apiRequest<{ audited: boolean; message: string; summary: ActivationAuditSummary }>({
+    url: '/system/dynamic-modules/activation-audit',
+    method: 'post',
+  });
+}
+
 /**
  * 获取模块状态
  */
@@ -100,5 +117,14 @@ export function getModuleStatus(name: string) {
   return apiRequest<ModuleRegistration>({
     url: `/system/dynamic-modules/${name}`,
     method: 'get',
+  });
+}
+
+export function getGeneratedModuleSchema(module: string) {
+  return apiRequest<ModuleSchema>({
+    url: '/system/dynamic-modules/schema',
+    method: 'get',
+    params: { module },
+    skipErrorMessage: true,
   });
 }

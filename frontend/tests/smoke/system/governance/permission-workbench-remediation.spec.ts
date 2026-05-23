@@ -13,6 +13,9 @@ function initialWorkbench(roleKey: string) {
       unknownPermissionAssignmentCount: 0,
       pageGapRoleCount: 0,
       apiGapRoleCount: 1,
+      pendingRemediationRoleCount: 1,
+      remediatedRoleCount: 0,
+      recentRemediationCount: 1,
     },
     roles: [
       {
@@ -29,13 +32,16 @@ function initialWorkbench(roleKey: string) {
         unknownPermissionCount: 0,
         hasPageGap: false,
         hasApiGap: true,
+        governanceStatus: 'pending',
+        lastRemediationAt: '2026-05-12T10:00:00Z',
+        lastRemediationAction: 'noop',
         menus: [],
         pagePermissions: [
           {
             key: 'system:generator:use',
             titleKey: 'system.menu.generator',
             path: '/system/generator',
-            module: 'system.config',
+            module: 'system.lowcode',
             kind: 'page',
           },
         ],
@@ -44,7 +50,7 @@ function initialWorkbench(roleKey: string) {
             key: 'system:module:generate',
             titleKey: 'system.permission.module.generate',
             path: '/system/generator',
-            module: 'system.config',
+            module: 'system.lowcode',
             kind: 'action',
           },
         ],
@@ -73,6 +79,9 @@ function remediatedWorkbench(roleKey: string) {
       unknownPermissionAssignmentCount: 0,
       pageGapRoleCount: 0,
       apiGapRoleCount: 0,
+      pendingRemediationRoleCount: 0,
+      remediatedRoleCount: 1,
+      recentRemediationCount: 2,
     },
     roles: [
       {
@@ -89,13 +98,16 @@ function remediatedWorkbench(roleKey: string) {
         unknownPermissionCount: 0,
         hasPageGap: false,
         hasApiGap: false,
+        governanceStatus: 'remediated',
+        lastRemediationAt: '2026-05-12T11:00:00Z',
+        lastRemediationAction: 'remediated',
         menus: [],
         pagePermissions: [
           {
             key: 'system:generator:use',
             titleKey: 'system.menu.generator',
             path: '/system/generator',
-            module: 'system.config',
+            module: 'system.lowcode',
             kind: 'page',
           },
         ],
@@ -104,7 +116,7 @@ function remediatedWorkbench(roleKey: string) {
             key: 'system:module:generate',
             titleKey: 'system.permission.module.generate',
             path: '/system/generator',
-            module: 'system.config',
+            module: 'system.lowcode',
             kind: 'action',
           },
         ],
@@ -129,6 +141,208 @@ async function fulfillJson(route: Route, status: number, body: Record<string, un
     body: JSON.stringify(body),
   });
 }
+
+test('permission workbench shows clean roles on first load for role-based browsing', async ({
+  page,
+}) => {
+  const roleKey = 'qa_perm_clean_visible';
+  const roleName = '权限工作台清洁角色';
+
+  await signInAsAdmin(page);
+
+  await page.addInitScript(() => {
+    localStorage.setItem('pantheon_lang', 'zh-CN');
+    localStorage.setItem('pantheon_lang_explicit', '1');
+  });
+
+  await page.route(/\/api\/v1\/auth\/me$/, async (route) => {
+    await fulfillJson(route, 200, {
+      code: 200,
+      data: {
+        id: 1,
+        username: 'admin',
+        nickname: '管理员',
+        roles: ['admin'],
+        perms: ['system:permission:list'],
+      },
+    });
+  });
+
+  await page.route(/\/api\/v1\/system\/refresh\/state(?:\?.*)?$/, async (route) => {
+    await fulfillJson(route, 200, {
+      code: 200,
+      data: {
+        topics: {},
+      },
+    });
+  });
+
+  await page.route(/\/api\/v1\/system\/menu\/tree(?:\?.*)?$/, async (route) => {
+    await fulfillJson(route, 200, {
+      code: 200,
+      data: [
+        {
+          id: 50,
+          parentId: 0,
+          titleKey: 'system.menu.access',
+          path: '/system/access',
+          component: '',
+          pagePerm: '',
+          perms: '',
+          type: 'M',
+          icon: 'idcard',
+          routeName: 'system-access',
+          module: 'system.iam',
+          sort: 20,
+          isVisible: 1,
+          isCache: 0,
+          isExternal: 0,
+          activeMenu: '',
+          children: [
+            {
+              id: 7,
+              parentId: 50,
+              titleKey: 'system.menu.permission',
+              path: '/system/permission',
+              component: 'system/permission/PermissionList',
+              pagePerm: 'system:permission:list',
+              perms: '',
+              type: 'C',
+              icon: 'lock',
+              routeName: 'system-permission',
+              module: 'system.iam',
+              sort: 30,
+              isVisible: 1,
+              isCache: 0,
+              isExternal: 0,
+              activeMenu: '',
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  await page.route(/\/api\/v1\/system\/role\/list(?:\?.*)?$/, async (route) => {
+    await fulfillJson(route, 200, {
+      code: 200,
+      data: {
+        items: [
+          {
+            id: 502,
+            roleName,
+            roleKey,
+          },
+        ],
+        total: 1,
+        page: 1,
+        pageSize: 100,
+      },
+    });
+  });
+
+  await page.route(/\/api\/v1\/system\/permission\/list(?:\?.*)?$/, async (route) => {
+    await fulfillJson(route, 200, {
+      code: 200,
+      data: {
+        items: [],
+        total: 0,
+        page: 1,
+        pageSize: 10,
+      },
+    });
+  });
+
+  await page.route(/\/api\/v1\/system\/permission\/workbench(?:\?.*)?$/, async (route) => {
+    await fulfillJson(route, 200, {
+      code: 200,
+      data: {
+        overview: {
+          roleCount: 1,
+          enabledRoleCount: 1,
+          navigationAssignmentCount: 1,
+          pagePermissionAssignmentCount: 1,
+          actionPermissionAssignmentCount: 1,
+          apiActionCount: 1,
+          unknownPermissionAssignmentCount: 0,
+          pageGapRoleCount: 0,
+          apiGapRoleCount: 0,
+          pendingRemediationRoleCount: 0,
+          remediatedRoleCount: 0,
+          recentRemediationCount: 0,
+        },
+        roles: [
+          {
+            id: 502,
+            roleName,
+            roleKey,
+            status: 1,
+            menuCount: 1,
+            pagePermissionCount: 1,
+            actionPermissionCount: 1,
+            apiPolicyCount: 1,
+            requiredApiPolicyCount: 1,
+            missingApiPolicyCount: 0,
+            unknownPermissionCount: 0,
+            hasPageGap: false,
+            hasApiGap: false,
+            governanceStatus: 'clean',
+            lastRemediationAt: '',
+            lastRemediationAction: '',
+            menus: [
+              {
+                id: 101,
+                titleKey: 'system.menu.permission',
+                path: '/system/permission',
+                module: 'system.iam',
+              },
+            ],
+            pagePermissions: [
+              {
+                key: 'system:permission:list',
+                titleKey: 'system.menu.permission',
+                path: '/system/permission',
+                module: 'system.iam',
+                kind: 'page',
+              },
+            ],
+            actionPermissions: [
+              {
+                key: 'system:permission:update',
+                titleKey: 'system.permission.policy.edit',
+                path: '/system/permission',
+                module: 'system.iam',
+                kind: 'action',
+              },
+            ],
+            unknownPermissions: [],
+            apiPolicies: [
+              {
+                id: 9100,
+                path: '/api/v1/system/permission/list',
+                method: 'GET',
+              },
+            ],
+            missingApiPolicies: [],
+          },
+        ],
+      },
+    });
+  });
+
+  await page.route(/\/api\/v1\/system\/permission\/workbench\/remediation(?:\?.*)?$/, async (route) => {
+    await fulfillJson(route, 200, {
+      code: 200,
+      data: [],
+    });
+  });
+
+  await page.goto('/system/permission', { waitUntil: 'networkidle' });
+
+  const roleRow = page.locator('.arco-table-tr').filter({ hasText: roleName }).first();
+  await expect(roleRow).toBeVisible();
+  await expect(roleRow.getByRole('button', { name: '详情', exact: true })).toBeVisible();
+});
 
 test('permission workbench remediation retries through secondary verify and closes api gap', async ({ page }) => {
   const roleKey = 'qa_perm_remediate_mock';
@@ -259,6 +473,53 @@ test('permission workbench remediation retries through secondary verify and clos
     });
   });
 
+  await page.route(/\/api\/v1\/system\/permission\/workbench\/remediation(?:\?.*)?$/, async (route) => {
+    await fulfillJson(route, 200, {
+      code: 200,
+      data: remediated
+        ? [
+            {
+              id: 2,
+              roleKey,
+              issueType: 'api-gap',
+              issueKey: 'POST /api/v1/system/dynamic-modules/generate',
+              beforeState: 'api-gap',
+              afterState: 'complete',
+              action: 'remediated',
+              createdCount: 1,
+              skippedCount: 0,
+              createdAt: '2026-05-12T11:00:00Z',
+            },
+            {
+              id: 1,
+              roleKey,
+              issueType: 'api-gap',
+              issueKey: 'POST /api/v1/system/dynamic-modules/generate',
+              beforeState: 'complete',
+              afterState: 'complete',
+              action: 'noop',
+              createdCount: 0,
+              skippedCount: 1,
+              createdAt: '2026-05-12T10:00:00Z',
+            },
+          ]
+        : [
+            {
+              id: 1,
+              roleKey,
+              issueType: 'api-gap',
+              issueKey: 'POST /api/v1/system/dynamic-modules/generate',
+              beforeState: 'complete',
+              afterState: 'complete',
+              action: 'noop',
+              createdCount: 0,
+              skippedCount: 1,
+              createdAt: '2026-05-12T10:00:00Z',
+            },
+          ],
+    });
+  });
+
   await page.route(/\/api\/v1\/system\/permission\/workbench\/remediate$/, async (route) => {
     const token = route.request().headers()['x-operation-token'];
     if (!token) {
@@ -290,13 +551,17 @@ test('permission workbench remediation retries through secondary verify and clos
 
   await page.goto('/system/permission', { waitUntil: 'networkidle' });
 
+  await expect(page.getByText('待整改角色', { exact: true })).toBeVisible();
+  await expect(page.getByText('整改任务台', { exact: false })).toBeVisible();
   const roleRow = page.locator('.arco-table-tr').filter({ hasText: roleName }).first();
   await expect(roleRow).toBeVisible();
+  await expect(roleRow.getByText('待整改', { exact: true })).toBeVisible();
   await expect(roleRow.getByText('缺接口策略', { exact: true })).toBeVisible();
   await roleRow.getByRole('button', { name: '详情', exact: true }).click();
 
   const detailDialog = page.getByRole('dialog').filter({ hasText: roleKey }).first();
   await expect(detailDialog).toBeVisible();
+  await expect(detailDialog.getByText('最近整改时间线', { exact: true })).toBeVisible();
   await expect(detailDialog.getByText('/api/v1/system/dynamic-modules/generate', { exact: true })).toBeVisible();
 
   await detailDialog.getByRole('button', { name: '一键补齐推荐策略', exact: true }).click();
@@ -312,4 +577,5 @@ test('permission workbench remediation retries through secondary verify and clos
   await expect(detailDialog.getByRole('button', { name: '一键补齐推荐策略', exact: true })).toHaveCount(0);
   await expect(detailDialog.getByText('缺接口策略', { exact: true })).toHaveCount(0);
   await expect(detailDialog.getByText('/api/v1/system/dynamic-modules/generate', { exact: true })).toHaveCount(1);
+  await expect(detailDialog.getByText('已整改', { exact: true })).toBeVisible();
 });

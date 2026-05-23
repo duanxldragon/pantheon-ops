@@ -19,7 +19,6 @@ import {
   PageContainer,
   PageEmpty,
   PageError,
-  PageHeader,
   PageLoading,
   PageNetworkError,
   PageServerError,
@@ -139,7 +138,6 @@ const DashboardPage: React.FC = () => {
         key: widget.key,
         path: widget.path,
         title: t(widget.titleKey),
-        description: t(widget.descriptionKey),
         icon: widget.icon,
       }));
   }, [hasPerm, isAdmin, menuTree, t]);
@@ -234,6 +232,14 @@ const DashboardPage: React.FC = () => {
         desc: t('dashboard.attention.successRateDesc'),
       },
       {
+        key: 'security-events',
+        tone: summary.pendingSecurityEventCount > 0 ? 'warning' : 'success',
+        icon: <IconExclamationCircle />,
+        label: t('app.notice.pendingSecurityEvents'),
+        value: summary.pendingSecurityEventCount,
+        desc: t('dashboard.domain.securityDesc'),
+      },
+      {
         key: 'org-tasks',
         tone: summary.orgGovernanceTaskCount > 0 ? 'warning' : 'success',
         icon: <IconExclamationCircle />,
@@ -287,11 +293,6 @@ const DashboardPage: React.FC = () => {
 
   return (
     <PageContainer className="dashboard-page">
-      <PageHeader
-        title={t('dashboard.title')}
-        subtitle={t('dashboard.subtitle')}
-        extra={<Tag color="arcoblue">{t('app.workspace')}</Tag>}
-      />
       {loading && !summary ? (
         <Card className="page-panel dashboard-panel-card">
           <PageLoading />
@@ -369,18 +370,14 @@ const DashboardPage: React.FC = () => {
                         key={item.key}
                         type="button"
                         className="dashboard-quick-action"
+                        title={item.title}
+                        aria-label={item.title}
                         onClick={() => navigate(item.path)}
                       >
                         <span className="dashboard-quick-action__icon">
                           {renderMenuIcon(item.icon)}
                         </span>
-                        <span className="dashboard-quick-action__main">
-                          <span>
-                            <span className="dashboard-quick-action__title">{item.title}</span>
-                            <span className="dashboard-quick-action__desc">{item.description}</span>
-                          </span>
-                          <IconArrowRight className="dashboard-quick-action__arrow" />
-                        </span>
+                        <span className="dashboard-quick-action__title">{item.title}</span>
                       </button>
                     ))}
                   </div>

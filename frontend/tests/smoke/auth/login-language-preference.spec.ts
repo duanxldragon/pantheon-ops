@@ -3,6 +3,7 @@ import {
   adminCredentials,
   apiBaseUrl,
   authHeaders,
+  installClientSession,
   loginByApi,
   requestHeaders,
 } from '../helpers/auth';
@@ -40,32 +41,7 @@ async function updateCurrentUserPreferences(
 
 test('login page explicit language wins over saved user preference', async ({ page }) => {
   const initialLogin = await loginByApi(page.request, adminCredentials);
-  await page.context().addCookies([
-    {
-      name: 'pantheon_access_token',
-      value: initialLogin.accessToken,
-      url: 'http://127.0.0.1:5173',
-      httpOnly: true,
-      secure: false,
-      sameSite: 'Strict',
-    },
-    {
-      name: 'pantheon_refresh_token',
-      value: initialLogin.refreshToken,
-      url: 'http://127.0.0.1:5173',
-      httpOnly: true,
-      secure: false,
-      sameSite: 'Strict',
-    },
-    {
-      name: 'pantheon_csrf_token',
-      value: initialLogin.csrfToken,
-      url: 'http://127.0.0.1:5173',
-      httpOnly: false,
-      secure: false,
-      sameSite: 'Strict',
-    },
-  ]);
+  await installClientSession(page, initialLogin);
 
   const originalPreferences = await getCurrentUserPreferences(page, initialLogin.accessToken);
 
@@ -103,32 +79,7 @@ test('login page explicit language wins over saved user preference', async ({ pa
     await expect(page.getByRole('heading', { name: 'Workbench' }).first()).toBeVisible();
   } finally {
     const restoreLogin = await loginByApi(page.request, adminCredentials);
-    await page.context().addCookies([
-      {
-        name: 'pantheon_access_token',
-        value: restoreLogin.accessToken,
-        url: 'http://127.0.0.1:5173',
-        httpOnly: true,
-        secure: false,
-        sameSite: 'Strict',
-      },
-      {
-        name: 'pantheon_refresh_token',
-        value: restoreLogin.refreshToken,
-        url: 'http://127.0.0.1:5173',
-        httpOnly: true,
-        secure: false,
-        sameSite: 'Strict',
-      },
-      {
-        name: 'pantheon_csrf_token',
-        value: restoreLogin.csrfToken,
-        url: 'http://127.0.0.1:5173',
-        httpOnly: false,
-        secure: false,
-        sameSite: 'Strict',
-      },
-    ]);
+    await installClientSession(page, restoreLogin);
     await updateCurrentUserPreferences(page, restoreLogin.accessToken, originalPreferences);
   }
 });

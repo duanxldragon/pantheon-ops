@@ -363,6 +363,7 @@ const BaseLayout: React.FC = () => {
     hasPerm('platform:dashboard:view') ||
     hasPerm('system:login-log:list') ||
     hasPerm('system:session:list') ||
+    hasPerm('system:security-event:list') ||
     hasPerm('system:operation-log:list');
 
   const syncShellActivity = useCallback((value: number) => {
@@ -816,6 +817,16 @@ const BaseLayout: React.FC = () => {
       });
     }
 
+    if (isAdmin || hasPerm('system:security-event:list')) {
+      entries.push({
+        key: 'notice-security-event',
+        title: t('system.menu.securityEvent'),
+        description: t('app.notice.securityEventDesc'),
+        icon: renderMenuIcon('safe'),
+        run: () => navigate('/system/security-event'),
+      });
+    }
+
     if (isAdmin || hasPerm('system:operation-log:list')) {
       entries.push({
         key: 'notice-operation-log',
@@ -833,7 +844,10 @@ const BaseLayout: React.FC = () => {
     if (!noticeSummary) {
       return 0;
     }
-    return Math.min(noticeSummary.loginFailureCount, 99);
+    return Math.min(
+      noticeSummary.loginFailureCount + noticeSummary.pendingSecurityEventCount,
+      99,
+    );
   }, [noticeSummary]);
 
   const noticeStatItems = useMemo(() => {
@@ -852,6 +866,12 @@ const BaseLayout: React.FC = () => {
         label: t('app.notice.activeSessions'),
         value: noticeSummary.activeSessionCount,
         tone: 'neutral',
+      },
+      {
+        key: 'security-events',
+        label: t('app.notice.pendingSecurityEvents'),
+        value: noticeSummary.pendingSecurityEventCount,
+        tone: noticeSummary.pendingSecurityEventCount > 0 ? 'warning' : 'neutral',
       },
       {
         key: 'operations',
@@ -889,6 +909,20 @@ const BaseLayout: React.FC = () => {
         value: noticeSummary.loginFailureCount,
         tone: 'danger',
         run: () => navigate('/system/login-log'),
+      });
+    }
+
+    if (
+      (isAdmin || hasPerm('system:security-event:list')) &&
+      noticeSummary.pendingSecurityEventCount > 0
+    ) {
+      groups.push({
+        key: 'risk-security-event',
+        title: t('app.notice.risk.securityEvent'),
+        description: t('app.notice.risk.securityEventDesc'),
+        value: noticeSummary.pendingSecurityEventCount,
+        tone: 'warning',
+        run: () => navigate('/system/security-event'),
       });
     }
 
@@ -1067,18 +1101,22 @@ const BaseLayout: React.FC = () => {
   ) as SupportedLocale;
 
   const persistPlatformPreferences = useCallback(
-    (nextPreferences: UserPlatformPreferences) => {
+    (nextPreferences: Partial<UserPlatformPreferences>) => {
       const currentUserInfo = useAuthStore.getState().userInfo;
       if (!currentUserInfo) {
         return;
       }
+      const mergedPreferences: UserPlatformPreferences = {
+        ...currentUserInfo.preferences,
+        ...nextPreferences,
+      };
 
       setUserInfo({
         ...currentUserInfo,
-        preferences: nextPreferences,
+        preferences: mergedPreferences,
       });
 
-      void updateCurrentUserPreferences(nextPreferences)
+      void updateCurrentUserPreferences(mergedPreferences)
         .then((nextUserInfo) => {
           if (useAuthStore.getState().token === token) {
             setUserInfo(nextUserInfo);
@@ -1112,9 +1150,9 @@ const BaseLayout: React.FC = () => {
         setTheme(preferences.theme);
       }
       if (
+        !hasExplicitLanguagePreference() &&
         preferences.language &&
-        preferences.language !== currentLanguage &&
-        !hasExplicitLanguagePreference()
+        preferences.language !== currentLanguage
       ) {
         setExplicitLanguagePreference(preferences.language);
         void switchI18nLanguage(preferences.language);
@@ -1129,12 +1167,6 @@ const BaseLayout: React.FC = () => {
     }
     setExplicitLanguagePreference(language);
     void switchI18nLanguage(language);
-    persistPlatformPreferences({
-      theme,
-      language,
-      layoutMode,
-      densityMode,
-    });
   };
 
   const toggleLayoutMode = () => {
@@ -1143,7 +1175,6 @@ const BaseLayout: React.FC = () => {
       persistShellLayoutMode(nextMode);
       persistPlatformPreferences({
         theme,
-        language: currentLanguage,
         layoutMode: nextMode,
         densityMode,
       });
@@ -1155,7 +1186,6 @@ const BaseLayout: React.FC = () => {
     setDensityMode(mode);
     persistPlatformPreferences({
       theme,
-      language: currentLanguage,
       layoutMode,
       densityMode: mode,
     });
@@ -1246,7 +1276,6 @@ const BaseLayout: React.FC = () => {
                 setTheme(item.key);
                 persistPlatformPreferences({
                   theme: item.key,
-                  language: currentLanguage,
                   layoutMode,
                   densityMode,
                 });
@@ -1329,6 +1358,170 @@ const BaseLayout: React.FC = () => {
         </Menu.Item>
       );
     });
+
+  const openedTabsContent = publicSettings.enableTabBar ? (
+    <div
+      className={[
+        'app-shell__tabs',
+        isHorizontalLayout ? 'app-shell__tabs--horizontal' : 'app-shell__tabs--vertical',
+      ].join(' ')}
+      role="tablist"
+      aria-label={t('app.openedTabs')}
+    >
+      {openedTabs.map((item) => {
+        const active = item.path === location.pathname;
+        const itemIndex = openedTabs.findIndex((tab) => tab.path === item.path);
+        const canCloseCurrent = item.closable && !item.pinned;
+        const canCloseOthers = openedTabs.some(
+          (tab) => tab.path !== item.path && tab.closable && !tab.pinned,
+        );
+        const canCloseRight = openedTabs
+          .slice(itemIndex + 1)
+          .some((tab) => tab.closable && !tab.pinned);
+        const canCloseAll = openedTabs.some((tab) => tab.closable && !tab.pinned);
+        return (
+          <Dropdown
+            key={item.path}
+            trigger="contextMenu"
+            position="bl"
+            droplist={
+              <Menu
+                onClickMenuItem={(key) => handleTabAction(item.path, key as TabActionKey)}
+                className="app-shell__tab-menu"
+              >
+                <Menu.Item key="togglePin" disabled={item.path === '/dashboard'}>
+                  {item.pinned ? t('app.tab.unpin') : t('app.tab.pin')}
+                </Menu.Item>
+                <Menu.Item key="close" disabled={!canCloseCurrent}>
+                  {t('common.close')}
+                </Menu.Item>
+                <Menu.Item key="closeOthers" disabled={!canCloseOthers}>
+                  {t('app.tab.closeOthers')}
+                </Menu.Item>
+                <Menu.Item key="closeRight" disabled={!canCloseRight}>
+                  {t('app.tab.closeRight')}
+                </Menu.Item>
+                <Menu.Item key="closeAll" disabled={!canCloseAll}>
+                  {t('app.tab.closeAll')}
+                </Menu.Item>
+              </Menu>
+            }
+          >
+            <div
+              role="tab"
+              tabIndex={0}
+              aria-selected={active}
+              className={[
+                'app-shell__tab',
+                active ? 'app-shell__tab--active' : '',
+                item.pinned ? 'app-shell__tab--pinned' : '',
+                draggingTabPath === item.path ? 'app-shell__tab--dragging' : '',
+                dragOverTabPath === item.path ? 'app-shell__tab--drag-over' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              draggable={item.path !== '/dashboard'}
+              onClick={() => navigate(item.path)}
+              onMouseEnter={() => {
+                void preloadRouteComponent(item.path);
+              }}
+              onFocus={() => {
+                void preloadRouteComponent(item.path);
+              }}
+              onDoubleClick={() => closeTab(item.path)}
+              onMouseDown={(event) => {
+                if (event.button === 1) {
+                  event.preventDefault();
+                }
+              }}
+              onAuxClick={(event) => {
+                if (event.button === 1) {
+                  event.preventDefault();
+                  closeTab(item.path);
+                }
+              }}
+              onDragStart={(event) => {
+                if (item.path === '/dashboard') {
+                  event.preventDefault();
+                  return;
+                }
+                setDraggingTabPath(item.path);
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', item.path);
+              }}
+              onDragOver={(event) => {
+                if (!draggingTabPath || draggingTabPath === item.path) {
+                  return;
+                }
+                const dragTab = openedTabs.find((tab) => tab.path === draggingTabPath);
+                if (
+                  !dragTab ||
+                  dragTab.path === '/dashboard' ||
+                  Boolean(dragTab.pinned) !== Boolean(item.pinned)
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+                if (dragOverTabPath !== item.path) {
+                  setDragOverTabPath(item.path);
+                }
+              }}
+              onDragLeave={() => {
+                if (dragOverTabPath === item.path) {
+                  setDragOverTabPath(null);
+                }
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                if (draggingTabPath) {
+                  moveTab(draggingTabPath, item.path);
+                }
+                setDraggingTabPath(null);
+                setDragOverTabPath(null);
+              }}
+              onDragEnd={() => {
+                setDraggingTabPath(null);
+                setDragOverTabPath(null);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  navigate(item.path);
+                }
+              }}
+            >
+              {item.pinned ? <IconPushpin className="app-shell__tab-pin" /> : null}
+              <span className="app-shell__tab-label">
+                {item.titleKey ? t(item.titleKey) : item.fallbackTitle}
+              </span>
+              {canCloseCurrent ? (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  aria-label={t('common.close')}
+                  className="app-shell__tab-close"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    closeTab(item.path);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      closeTab(item.path);
+                    }
+                  }}
+                >
+                  <IconClose />
+                </span>
+              ) : null}
+            </div>
+          </Dropdown>
+        );
+      })}
+    </div>
+  ) : null;
 
   return (
     <Layout
@@ -1640,162 +1833,8 @@ const BaseLayout: React.FC = () => {
             </Spin>
           </div>
         ) : null}
-        {publicSettings.enableTabBar ? (
-          <div className="app-shell__tabs" role="tablist" aria-label={t('app.openedTabs')}>
-            {openedTabs.map((item) => {
-              const active = item.path === location.pathname;
-              const itemIndex = openedTabs.findIndex((tab) => tab.path === item.path);
-              const canCloseCurrent = item.closable && !item.pinned;
-              const canCloseOthers = openedTabs.some(
-                (tab) => tab.path !== item.path && tab.closable && !tab.pinned,
-              );
-              const canCloseRight = openedTabs
-                .slice(itemIndex + 1)
-                .some((tab) => tab.closable && !tab.pinned);
-              const canCloseAll = openedTabs.some((tab) => tab.closable && !tab.pinned);
-              return (
-                <Dropdown
-                  key={item.path}
-                  trigger="contextMenu"
-                  position="bl"
-                  droplist={
-                    <Menu
-                      onClickMenuItem={(key) => handleTabAction(item.path, key as TabActionKey)}
-                      className="app-shell__tab-menu"
-                    >
-                      <Menu.Item key="togglePin" disabled={item.path === '/dashboard'}>
-                        {item.pinned ? t('app.tab.unpin') : t('app.tab.pin')}
-                      </Menu.Item>
-                      <Menu.Item key="close" disabled={!canCloseCurrent}>
-                        {t('common.close')}
-                      </Menu.Item>
-                      <Menu.Item key="closeOthers" disabled={!canCloseOthers}>
-                        {t('app.tab.closeOthers')}
-                      </Menu.Item>
-                      <Menu.Item key="closeRight" disabled={!canCloseRight}>
-                        {t('app.tab.closeRight')}
-                      </Menu.Item>
-                      <Menu.Item key="closeAll" disabled={!canCloseAll}>
-                        {t('app.tab.closeAll')}
-                      </Menu.Item>
-                    </Menu>
-                  }
-                >
-                  <div
-                    role="tab"
-                    tabIndex={0}
-                    aria-selected={active}
-                    className={[
-                      'app-shell__tab',
-                      active ? 'app-shell__tab--active' : '',
-                      item.pinned ? 'app-shell__tab--pinned' : '',
-                      draggingTabPath === item.path ? 'app-shell__tab--dragging' : '',
-                      dragOverTabPath === item.path ? 'app-shell__tab--drag-over' : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ')}
-                    draggable={item.path !== '/dashboard'}
-                    onClick={() => navigate(item.path)}
-                    onMouseEnter={() => {
-                      void preloadRouteComponent(item.path);
-                    }}
-                    onFocus={() => {
-                      void preloadRouteComponent(item.path);
-                    }}
-                    onDoubleClick={() => closeTab(item.path)}
-                    onMouseDown={(event) => {
-                      if (event.button === 1) {
-                        event.preventDefault();
-                      }
-                    }}
-                    onAuxClick={(event) => {
-                      if (event.button === 1) {
-                        event.preventDefault();
-                        closeTab(item.path);
-                      }
-                    }}
-                    onDragStart={(event) => {
-                      if (item.path === '/dashboard') {
-                        event.preventDefault();
-                        return;
-                      }
-                      setDraggingTabPath(item.path);
-                      event.dataTransfer.effectAllowed = 'move';
-                      event.dataTransfer.setData('text/plain', item.path);
-                    }}
-                    onDragOver={(event) => {
-                      if (!draggingTabPath || draggingTabPath === item.path) {
-                        return;
-                      }
-                      const dragTab = openedTabs.find((tab) => tab.path === draggingTabPath);
-                      if (
-                        !dragTab ||
-                        dragTab.path === '/dashboard' ||
-                        Boolean(dragTab.pinned) !== Boolean(item.pinned)
-                      ) {
-                        return;
-                      }
-                      event.preventDefault();
-                      event.dataTransfer.dropEffect = 'move';
-                      if (dragOverTabPath !== item.path) {
-                        setDragOverTabPath(item.path);
-                      }
-                    }}
-                    onDragLeave={() => {
-                      if (dragOverTabPath === item.path) {
-                        setDragOverTabPath(null);
-                      }
-                    }}
-                    onDrop={(event) => {
-                      event.preventDefault();
-                      if (draggingTabPath) {
-                        moveTab(draggingTabPath, item.path);
-                      }
-                      setDraggingTabPath(null);
-                      setDragOverTabPath(null);
-                    }}
-                    onDragEnd={() => {
-                      setDraggingTabPath(null);
-                      setDragOverTabPath(null);
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        navigate(item.path);
-                      }
-                    }}
-                  >
-                    {item.pinned ? <IconPushpin className="app-shell__tab-pin" /> : null}
-                    <span className="app-shell__tab-label">
-                      {item.titleKey ? t(item.titleKey) : item.fallbackTitle}
-                    </span>
-                    {canCloseCurrent ? (
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        aria-label={t('common.close')}
-                        className="app-shell__tab-close"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          closeTab(item.path);
-                        }}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            closeTab(item.path);
-                          }
-                        }}
-                      >
-                        <IconClose />
-                      </span>
-                    ) : null}
-                  </div>
-                </Dropdown>
-              );
-            })}
-          </div>
-        ) : null}
+        {isHorizontalLayout ? openedTabsContent : null}
+        {!isHorizontalLayout ? openedTabsContent : null}
         <Content className="app-shell__content">
           <div className="app-shell__content-inner">
             <Outlet />

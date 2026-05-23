@@ -35,8 +35,11 @@ const staticComponentRegistry = {
   ),
   'system/post/PostList': defineRegistryEntry(() => import('../../modules/system/post/PostList')),
   'system/role/RoleList': defineRegistryEntry(() => import('../../modules/system/role/RoleList')),
-  'system/setting/SettingPage': defineRegistryEntry(
-    () => import('../../modules/system/setting/SettingPage'),
+  'system/setting/SettingOverviewPage': defineRegistryEntry(
+    () => import('../../modules/system/setting/SettingOverviewPage'),
+  ),
+  'system/setting/SettingGroupPage': defineRegistryEntry(
+    () => import('../../modules/system/setting/SettingGroupPage'),
   ),
   'system/user/UserList': defineRegistryEntry(() => import('../../modules/system/user/UserList')),
   'system/user/UserDetail': defineRegistryEntry(
@@ -49,7 +52,7 @@ const staticComponentRegistry = {
     () => import('../../modules/system/dynamicmodule/ModuleManager'),
   ),
   'system/generator/ModuleWizard': defineRegistryEntry(
-    () => import('../../modules/generator/pages/ModuleWizard'),
+    () => import('../../modules/system/generator/pages/ModuleWizard'),
   ),
   'business/cmdb/host/CmdbHostList': defineRegistryEntry(
     () => import('../../modules/business/cmdb/host/CmdbHostList'),

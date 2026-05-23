@@ -270,6 +270,15 @@ func (s *AuthService) LoginWithSource(req *LoginReq, sourceKey string) (*user.Sy
 			})
 			return nil, errors.New("user.login.error.locked")
 		}
+		s.recordSecurityEvent(SystemAuthSecurityEvent{
+			UserID:     currentUser.ID,
+			Username:   currentUser.Username,
+			EventType:  "password_wrong",
+			Severity:   "medium",
+			SourceKey:  sourceKey,
+			IP:         loginSourceIP(sourceKey),
+			MessageKey: "auth.security.event.password_wrong",
+		})
 		return nil, errors.New("user.login.error.password_wrong")
 	}
 	if err := s.clearFailedLoginState(currentUser.ID); err != nil {
@@ -911,6 +920,13 @@ func (s *AuthService) ListSecurityEvents(query *SecurityEventQuery) (*SecurityEv
 		if strings.TrimSpace(query.Severity) != "" {
 			db = db.Where("severity = ?", strings.TrimSpace(query.Severity))
 		}
+		if query.Acknowledged != nil {
+			if *query.Acknowledged {
+				db = db.Where("acknowledged_at IS NOT NULL")
+			} else {
+				db = db.Where("acknowledged_at IS NULL")
+			}
+		}
 	}
 
 	var total int64
@@ -961,28 +977,38 @@ func (s *AuthService) ExportLoginLogs(query *LoginLogQuery) (*impexp.CSVFile, er
 	}, nil
 }
 
-func (s *AuthService) CleanupLoginLogs(retentionDays int) (int64, error) {
+func (s *AuthService) CleanupLoginLogs(retentionDays int, startedAt string, endedAt string) (int64, error) {
 	if s.db == nil {
 		return 0, errors.New("database.not_initialized")
 	}
-	if !s.isAllowedLoginLogRetentionDays(retentionDays) {
-		return 0, errors.New("auth.login_log.cleanup.days_invalid")
+	window, err := parseCleanupWindow(startedAt, endedAt, "auth.login_log.cleanup.range_invalid")
+	if err != nil {
+		return 0, err
 	}
-
-	cutoff := time.Now().AddDate(0, 0, -retentionDays)
-	result := s.db.Where("login_time < ?", cutoff).Delete(&SystemLogLogin{})
+	db := s.db.Model(&SystemLogLogin{})
+	if window != nil {
+		db = db.Where("login_time >= ? AND login_time <= ?", window.StartedAt, window.EndedAt)
+	} else {
+		if !s.isAllowedLoginLogRetentionDays(retentionDays) {
+			return 0, errors.New("auth.login_log.cleanup.days_invalid")
+		}
+		cutoff := time.Now().AddDate(0, 0, -retentionDays)
+		db = db.Where("login_time < ?", cutoff)
+	}
+	result := db.Delete(&SystemLogLogin{})
 	if result.Error != nil {
 		return 0, result.Error
 	}
 	return result.RowsAffected, nil
 }
 
-func (s *AuthService) CleanupHistoricSessions(retentionDays int) (int64, error) {
+func (s *AuthService) CleanupHistoricSessions(retentionDays int, startedAt string, endedAt string) (int64, error) {
 	if s.db == nil {
 		return 0, errors.New("database.not_initialized")
 	}
-	if !s.isAllowedSessionCleanupRetentionDays(retentionDays) {
-		return 0, errors.New("auth.session.cleanup.days_invalid")
+	window, err := parseCleanupWindow(startedAt, endedAt, "auth.session.cleanup.range_invalid")
+	if err != nil {
+		return 0, err
 	}
 
 	now := time.Now()
@@ -991,14 +1017,72 @@ func (s *AuthService) CleanupHistoricSessions(retentionDays int) (int64, error) 
 		return 0, err
 	}
 
-	cutoff := now.AddDate(0, 0, -retentionDays)
-	result := s.db.Table("system_user_session").
-		Where("revoked_at IS NOT NULL AND revoked_at < ?", cutoff).
-		Delete(nil)
+	db := s.db.Table("system_user_session").Where("revoked_at IS NOT NULL")
+	if window != nil {
+		db = db.Where("revoked_at >= ? AND revoked_at <= ?", window.StartedAt, window.EndedAt)
+	} else {
+		if !s.isAllowedSessionCleanupRetentionDays(retentionDays) {
+			return 0, errors.New("auth.session.cleanup.days_invalid")
+		}
+		cutoff := now.AddDate(0, 0, -retentionDays)
+		db = db.Where("revoked_at < ?", cutoff)
+	}
+	result := db.Delete(nil)
 	if result.Error != nil {
 		return 0, result.Error
 	}
 	return result.RowsAffected, nil
+}
+
+func (s *AuthService) BatchRevokeSessions(currentSessionID string, sessionIDs []string) (int64, error) {
+	if s.db == nil {
+		return 0, errors.New("database.not_initialized")
+	}
+
+	normalized := normalizeSessionIDs(sessionIDs)
+	if len(normalized) == 0 {
+		return 0, errors.New("session.invalid")
+	}
+	for _, sessionID := range normalized {
+		if sessionID == currentSessionID {
+			return 0, errors.New("auth.session.current_revoke_forbidden")
+		}
+	}
+
+	now := time.Now()
+	result := s.db.Model(&SystemUserSession{}).
+		Where("session_id IN ? AND revoked_at IS NULL", normalized).
+		Updates(map[string]interface{}{"revoked_at": &now})
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return result.RowsAffected, nil
+}
+
+func (s *AuthService) AcknowledgeSecurityEvent(eventID uint64, actorID uint64, actorUsername string, note string) error {
+	if s.db == nil {
+		return errors.New("database.not_initialized")
+	}
+	note = strings.TrimSpace(note)
+	if note == "" {
+		return errors.New("auth.security_event.acknowledge.note_required")
+	}
+
+	result := s.db.Model(&SystemAuthSecurityEvent{}).
+		Where("id = ?", eventID).
+		Updates(map[string]interface{}{
+			"acknowledged_at":      time.Now(),
+			"acknowledged_by":      actorID,
+			"acknowledged_by_user": strings.TrimSpace(actorUsername),
+			"acknowledgement_note": note,
+		})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
 
 func (s *AuthService) isAllowedLoginLogRetentionDays(retentionDays int) bool {
@@ -1472,6 +1556,42 @@ func (s *AuthService) recordSecurityEvent(event SystemAuthSecurityEvent) {
 	_ = s.db.Create(&event).Error
 }
 
+func loginSourceIP(sourceKey string) string {
+	trimmed := strings.TrimSpace(sourceKey)
+	if strings.HasPrefix(trimmed, "ip:") {
+		return strings.TrimSpace(strings.TrimPrefix(trimmed, "ip:"))
+	}
+	return ""
+}
+
+type cleanupWindow struct {
+	StartedAt time.Time
+	EndedAt   time.Time
+}
+
+func parseCleanupWindow(startedAt string, endedAt string, invalidErr string) (*cleanupWindow, error) {
+	startedAt = strings.TrimSpace(startedAt)
+	endedAt = strings.TrimSpace(endedAt)
+	if startedAt == "" && endedAt == "" {
+		return nil, nil
+	}
+	if startedAt == "" || endedAt == "" {
+		return nil, errors.New(invalidErr)
+	}
+	start, err := time.Parse(time.RFC3339, startedAt)
+	if err != nil {
+		return nil, errors.New(invalidErr)
+	}
+	end, err := time.Parse(time.RFC3339, endedAt)
+	if err != nil {
+		return nil, errors.New(invalidErr)
+	}
+	if end.Before(start) {
+		return nil, errors.New(invalidErr)
+	}
+	return &cleanupWindow{StartedAt: start, EndedAt: end}, nil
+}
+
 func (s *AuthService) listRecentSecurityEvents(userID uint64, limit int) []SecurityEventResp {
 	if s.db == nil || userID == 0 || limit <= 0 {
 		return []SecurityEventResp{}
@@ -1487,20 +1607,32 @@ func toSecurityEventRespList(events []SystemAuthSecurityEvent) []SecurityEventRe
 	result := make([]SecurityEventResp, 0, len(events))
 	for _, item := range events {
 		result = append(result, SecurityEventResp{
-			ID:         item.ID,
-			UserID:     item.UserID,
-			Username:   item.Username,
-			EventType:  item.EventType,
-			Severity:   item.Severity,
-			SourceKey:  item.SourceKey,
-			IP:         item.IP,
-			UserAgent:  item.UserAgent,
-			MessageKey: item.MessageKey,
-			Metadata:   item.Metadata,
-			CreatedAt:  item.CreatedAt.Format(time.RFC3339),
+			ID:                  item.ID,
+			UserID:              item.UserID,
+			Username:            item.Username,
+			EventType:           item.EventType,
+			Severity:            item.Severity,
+			SourceKey:           item.SourceKey,
+			IP:                  item.IP,
+			UserAgent:           item.UserAgent,
+			MessageKey:          item.MessageKey,
+			Metadata:            item.Metadata,
+			AcknowledgedAt:      formatOptionalTime(item.AcknowledgedAt),
+			AcknowledgedBy:      item.AcknowledgedBy,
+			AcknowledgedByUser:  item.AcknowledgedByUser,
+			AcknowledgementNote: item.AcknowledgementNote,
+			CreatedAt:           item.CreatedAt.Format(time.RFC3339),
 		})
 	}
 	return result
+}
+
+func formatOptionalTime(value *time.Time) *string {
+	if value == nil {
+		return nil
+	}
+	formatted := value.Format(time.RFC3339)
+	return &formatted
 }
 
 func (s *AuthService) passwordExpiresAt(userID uint64, policy authRuntimePolicy) *string {
@@ -1797,6 +1929,27 @@ func normalizeUint64IDs(ids []uint64) []uint64 {
 		}
 		seen[id] = struct{}{}
 		result = append(result, id)
+	}
+	return result
+}
+
+func normalizeSessionIDs(ids []string) []string {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	seen := make(map[string]struct{}, len(ids))
+	result := make([]string, 0, len(ids))
+	for _, id := range ids {
+		normalized := strings.TrimSpace(id)
+		if normalized == "" {
+			continue
+		}
+		if _, ok := seen[normalized]; ok {
+			continue
+		}
+		seen[normalized] = struct{}{}
+		result = append(result, normalized)
 	}
 	return result
 }

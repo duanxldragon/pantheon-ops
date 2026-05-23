@@ -72,7 +72,7 @@ const authenticatedPages = [
   { path: '/system/menu', title: '菜单管理', screenshot: 'system-menu-desktop.png' },
   { path: '/system/dept', title: '部门管理', screenshot: 'system-dept-desktop.png' },
   { path: '/system/post', title: '岗位管理', screenshot: 'system-post-desktop.png' },
-  { path: '/system/setting', title: '基础信息', screenshot: 'system-setting-desktop.png' },
+  { path: '/system/setting', title: '系统设置', screenshot: 'system-setting-desktop.png' },
   { path: '/auth/security', title: '安全中心', screenshot: 'auth-security-desktop.png' },
 ] as const;
 
@@ -205,11 +205,7 @@ test.describe('backoffice UI visual acceptance', () => {
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.goto(pageMeta.path, { waitUntil: 'networkidle' });
 
-      const expectedUrlPattern =
-        pageMeta.path === '/system/setting'
-          ? /\/system\/setting(?:\/[a-z-]+)?$/
-          : new RegExp(`${pageMeta.path.replace(/\//g, '\\/')}$`);
-      await expect(page).toHaveURL(expectedUrlPattern);
+      await expect(page).toHaveURL(new RegExp(`${pageMeta.path.replace(/\//g, '\\/')}$`));
       await expectPageIdentity(page, pageMeta.title);
       await expectNoPageError(page);
       await expectProfessionalBackofficeSurface(page);
@@ -295,7 +291,7 @@ test.describe('backoffice UI visual acceptance', () => {
     await signInAsAdmin(page);
 
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/system/setting', { waitUntil: 'networkidle' });
+    await page.goto('/system/setting/basic', { waitUntil: 'networkidle' });
     await page.locator('.submit-bar').getByRole('button', { name: '保存' }).click();
 
     const verifyDialog = page.getByRole('dialog').filter({ has: page.getByText('敏感操作验证', { exact: true }) });

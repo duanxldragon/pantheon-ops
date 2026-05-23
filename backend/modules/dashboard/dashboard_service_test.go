@@ -8,6 +8,8 @@ import (
 	auth "pantheon-ops/backend/modules/auth"
 	dict "pantheon-ops/backend/modules/system/config/dict"
 	setting "pantheon-ops/backend/modules/system/config/setting"
+	dynamicmodule "pantheon-ops/backend/modules/system/dynamicmodule"
+	systemi18n "pantheon-ops/backend/modules/system/i18n"
 	menu "pantheon-ops/backend/modules/system/iam/menu"
 	role "pantheon-ops/backend/modules/system/iam/role"
 	user "pantheon-ops/backend/modules/system/iam/user"
@@ -33,6 +35,9 @@ func setupDashboardTestDB(t *testing.T) *gorm.DB {
 		&menu.SystemMenu{},
 		&auth.SystemUserSession{},
 		&auth.SystemLogLogin{},
+		&auth.SystemAuthSecurityEvent{},
+		&dynamicmodule.ModuleRegistration{},
+		&systemi18n.SystemI18n{},
 		&middleware.SystemLogOper{},
 	); err != nil {
 		t.Fatalf("migrate dashboard fixtures: %v", err)
@@ -74,6 +79,25 @@ func TestDashboardService_GetSummary(t *testing.T) {
 	}
 	if err := db.Create(&menu.SystemMenu{TitleKey: "system.menu.dashboard", Path: "/dashboard", Type: "C", Module: "platform", IsVisible: 1}).Error; err != nil {
 		t.Fatalf("seed menu: %v", err)
+	}
+	if err := db.Create(&systemi18n.SystemI18n{
+		Module: "system.auth",
+		Group:  "messages",
+		Key:    "auth.security.event.password_wrong",
+		Locale: "zh-CN",
+		Value:  "账号发生了一次错误密码登录尝试",
+		Remark: "seed",
+	}).Error; err != nil {
+		t.Fatalf("seed i18n: %v", err)
+	}
+	if err := db.Create(&dynamicmodule.ModuleRegistration{
+		Name:        "business.cmdb",
+		DisplayName: "CMDB",
+		Scope:       "business",
+		Status:      dynamicmodule.ModuleStatusActive,
+		InstalledAt: now.Add(-6 * time.Hour).Format(time.RFC3339),
+	}).Error; err != nil {
+		t.Fatalf("seed module registration: %v", err)
 	}
 	if err := db.Create(&auth.SystemUserSession{
 		SessionID:        "session-1",
@@ -138,6 +162,18 @@ func TestDashboardService_GetSummary(t *testing.T) {
 	}).Error; err != nil {
 		t.Fatalf("seed failure login: %v", err)
 	}
+	if err := db.Create(&auth.SystemAuthSecurityEvent{
+		UserID:     1,
+		Username:   "admin",
+		EventType:  "password_wrong",
+		Severity:   "medium",
+		SourceKey:  "ip:127.0.0.2",
+		IP:         "127.0.0.2",
+		MessageKey: "auth.security.event.password_wrong",
+		CreatedAt:  now.Add(-45 * time.Minute),
+	}).Error; err != nil {
+		t.Fatalf("seed security event: %v", err)
+	}
 	if err := db.Create(&middleware.SystemLogOper{
 		Title:    "system.user.create",
 		OperName: "admin",
@@ -165,6 +201,9 @@ func TestDashboardService_GetSummary(t *testing.T) {
 	if summary.TotalDictTypes != 1 || summary.TotalSettings != 1 {
 		t.Fatalf("expected dict/settings counts to be 1, got dictTypes=%d settings=%d", summary.TotalDictTypes, summary.TotalSettings)
 	}
+	if summary.TotalI18nEntries != 1 || summary.ActiveModuleCount != 1 {
+		t.Fatalf("expected i18n/module counts to be 1, got i18n=%d modules=%d", summary.TotalI18nEntries, summary.ActiveModuleCount)
+	}
 	if summary.VisibleMenuCount != 1 {
 		t.Fatalf("expected 1 visible menu, got %d", summary.VisibleMenuCount)
 	}
@@ -173,6 +212,9 @@ func TestDashboardService_GetSummary(t *testing.T) {
 	}
 	if summary.LoginSuccessCount != 1 || summary.LoginFailureCount != 1 {
 		t.Fatalf("expected login success/failure counts to be 1, got success=%d failure=%d", summary.LoginSuccessCount, summary.LoginFailureCount)
+	}
+	if summary.TotalSecurityEventCount != 1 || summary.PendingSecurityEventCount != 1 {
+		t.Fatalf("expected security event counts to be 1, got total=%d pending=%d", summary.TotalSecurityEventCount, summary.PendingSecurityEventCount)
 	}
 	if summary.TodayOperationCount != 1 {
 		t.Fatalf("expected 1 operation today, got %d", summary.TodayOperationCount)

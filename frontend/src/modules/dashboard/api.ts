@@ -31,10 +31,14 @@ export interface DashboardSummary {
   totalPosts: number;
   totalDictTypes: number;
   totalSettings: number;
+  totalI18nEntries: number;
+  activeModuleCount: number;
   visibleMenuCount: number;
   activeSessionCount: number;
   loginSuccessCount: number;
   loginFailureCount: number;
+  totalSecurityEventCount: number;
+  pendingSecurityEventCount: number;
   todayOperationCount: number;
   lastSuccessfulLoginAt: string;
   periodDays: number;

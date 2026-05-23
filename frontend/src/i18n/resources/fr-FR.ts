@@ -493,6 +493,8 @@ const frFRFallback = {
   'auth.securityEvent.severity.high': 'Eleve',
   'auth.securityEvent.severity.medium': 'Moyen',
   'auth.securityEvent.severity.low': 'Faible',
+  'auth.security.event.password_wrong':
+    'Une tentative de connexion avec un mot de passe incorrect a ete detectee pour ce compte.',
   'auth.security.event.source_blocked':
     'La source a ete temporairement bloquee apres trop d echecs.',
   'auth.security.event.account_locked':
@@ -699,7 +701,8 @@ const frFRFallback = {
   'system.menu.title': 'Titre',
   'system.menu.titleKey': 'Clé de titre',
   'system.menu.path': 'Chemin',
-  'system.menu.parentId': 'ID parent',
+  'system.menu.parentId': 'Menu parent',
+  'system.menu.root': 'Menu racine',
   'system.menu.component': 'Clé de composant',
   'system.menu.routeName': 'Nom de route',
   'system.menu.pagePerm': "Permission d'accès à la page",
@@ -717,6 +720,7 @@ const frFRFallback = {
   'system.menu.activeMenu': 'Menu actif',
   'system.menu.metadata': 'Métadonnées',
   'system.menu.create': 'Créer un menu',
+  'system.menu.createChild': 'Créer un sous-menu',
   'system.menu.edit': 'Modifier un menu',
   'system.menu.view.table': 'Tableau',
   'system.menu.view.list': 'Liste',
@@ -865,6 +869,11 @@ const frFRFallback = {
   'system.post.empty':
     'Aucun poste ne correspond au périmètre courant. Ajustez les filtres ou créez d’abord un poste.',
   'system.post.hero.eyebrow': 'Gouvernance des postes',
+  'system.post.header.eyebrow': 'Domaine système / Organisation',
+  'system.post.header.title':
+    'Traiter état des postes, blocages d’usage et actions correctives dans un seul atelier',
+  'system.post.header.description':
+    'La page des postes conserve la frontière `system/org` : la voie principale gère les filtres, la maintenance et la gouvernance en lot, tandis que la colonne latérale ne résume que le risque d’usage, l’inventaire désactivé et les conseils de remédiation.',
   'system.post.hero.title':
     'Traiter état des postes, blocages d’usage et actions correctives dans un seul atelier',
   'system.post.hero.desc':
@@ -1057,6 +1066,12 @@ const frFRFallback = {
   'system.user.role.required': 'Veuillez sélectionner au moins un rôle',
   'system.user.dept.required': 'Veuillez sélectionner un département',
   'system.user.email.invalid': 'Adresse email invalide',
+  'system.user.enable': 'Activer',
+  'system.user.disable': 'Désactiver',
+  'system.user.enableConfirm': 'Activer cet utilisateur ?',
+  'system.user.disableConfirm': 'Désactiver cet utilisateur ?',
+  'system.user.enableSuccess': 'Utilisateur activé',
+  'system.user.disableSuccess': 'Utilisateur désactivé',
   'system.user.batchEnableConfirm': 'Activer tous les utilisateurs sélectionnés ?',
   'system.user.batchDisableConfirm': 'Désactiver tous les utilisateurs sélectionnés ?',
   'system.user.batchDeleteConfirm': 'Supprimer tous les utilisateurs sélectionnés ?',
@@ -1111,6 +1126,11 @@ const frFRFallback = {
   'system.dict.itemEmpty': 'Aucun élément de dictionnaire',
   'system.dict.item.empty': 'Sélectionnez un type de dictionnaire à gauche pour gérer les éléments',
   'system.dict.hero.eyebrow': 'Domaine système / Dictionnaire de gouvernance config',
+  'system.dict.header.eyebrow': 'Domaine système / Configuration',
+  'system.dict.header.title':
+    'Gouverner types de dictionnaire, éléments et cache runtime dans un seul atelier',
+  'system.dict.header.description':
+    'La page des dictionnaires conserve une frontière `system/config` : la voie principale gère les types et les éléments, tandis que le rail de synthèse ne remonte que les types désactivés, l’état du rafraîchissement de cache et la préparation des imports.',
   'system.dict.hero.title':
     'Gouverner types de dictionnaire, éléments et cache runtime dans un seul atelier',
   'system.dict.hero.summaryTitle': 'Résumé de gouvernance',
@@ -1144,12 +1164,22 @@ const frFRFallback = {
   'module.generate.verify.parent_menu_top_level':
     'Ce module est traité comme un menu métier de premier niveau et n’a pas besoin de parent',
   'module.generate.verify.pending_activation': 'Le module est enregistré en attente d’activation',
+  'module.generate.verify.backend_runtime_ready':
+    'Le runtime backend a déjà chargé les artefacts de navigation du module',
+  'module.generate.verify.backend_runtime_pending':
+    'Le runtime backend n’a pas encore chargé ce module ; un redémarrage reste nécessaire',
   'module.generate.verify.contract_governance':
     'Le contrat de gouvernance avant génération a été validé et ajouté au résumé',
   'module.generate.verify.restart_required':
     'Redémarrez le backend pour charger le nouveau module Go et le registre généré',
+  'module.generate.verify.frontend_bundle_ready':
+    'Le bundle frontend est plus récent que les sources générées du module',
+  'module.generate.verify.frontend_bundle_pending':
+    'Le bundle frontend est absent ou obsolète pour ce module généré',
   'module.generate.verify.frontend_build_required':
     'Recompilez le frontend pour intégrer le nouveau composant de page dans l’arbre des routes',
+  'module.generate.verify.activation_ready':
+    'Les signaux d’activation sont complets et le module est maintenant actif',
   'module.generate.verify.registry_check_failed':
     'La vérification du registre est incomplète. Inspectez les fichiers générés',
   'module.generate.verify.artifacts_missing':
@@ -1475,24 +1505,25 @@ const frFRFallback = {
   'network.timeout': 'La requête a expiré. Veuillez réessayer plus tard.',
   'session.idle_timeout': 'La session a expiré pour inactivité. Veuillez vous reconnecter.',
   'system.menu.dashboard': 'Espace de travail',
-  'system.menu.access': 'Contrôle d’accès',
-  'system.menu.org': 'Structure organisationnelle',
-  'system.menu.config': 'Configuration plateforme',
-  'system.menu.modules': 'Gestion des modules',
+  'system.menu.access': 'Accès et autorisations',
+  'system.menu.org': 'Organisation',
+  'system.menu.config': 'Configuration système',
+  'system.menu.lowcode': 'Développement de modules',
+  'system.menu.modules': 'Registre des modules',
   'system.menu.generator': 'Générateur de modules',
-  'system.menu.security': 'Audit de sécurité',
-  'system.menu.user': 'Gestion des utilisateurs',
-  'system.menu.role': 'Gestion des rôles',
-  'system.menu.dept': 'Gestion des départements',
-  'system.menu.post': 'Gestion des postes',
-  'system.menu.permission': 'Gestion des permissions',
-  'system.menu.menu': 'Gestion des menus',
+  'system.menu.security': 'Sécurité et audit',
+  'system.menu.user': 'Utilisateurs',
+  'system.menu.role': 'Rôles',
+  'system.menu.dept': 'Départements',
+  'system.menu.post': 'Postes',
+  'system.menu.permission': 'Politiques d’autorisation',
+  'system.menu.menu': 'Menus de navigation',
   'system.menu.loginLog': 'Journaux de connexion',
-  'system.menu.session': 'Gestion des sessions',
+  'system.menu.session': 'Sessions',
   'system.menu.securityEvent': 'Evenements de securite',
   'system.permission.session.clear': 'Nettoyer l’historique des sessions',
   'system.menu.setting': 'Paramètres système',
-  'system.menu.dict': 'Gestion des dictionnaires',
+  'system.menu.dict': 'Dictionnaires de données',
   'system.menu.i18n': 'Gestion i18n',
   'i18n.group.placeholder': 'Sélectionner un groupe',
   'i18n.hero.eyebrow': 'Domaine système / Gouvernance config i18n',
@@ -1570,6 +1601,10 @@ const frFRFallback = {
   'i18n.audit.stalePlaceholdersEmpty':
     'Aucun placeholder non résolu depuis plus de {{days}} jours.',
   'generator.moduleManager.title': 'Registre des modules',
+  'generator.moduleManager.header.eyebrow': 'Domaine système / Low-Code',
+  'generator.moduleManager.header.title': 'Registre des modules',
+  'generator.moduleManager.header.description':
+    'Consultez les modules platform, system et business installés. Les modules intégrés sont ici en lecture seule et ne peuvent pas être désinstallés depuis cette page.',
   'generator.moduleManager.description':
     'Consultez les modules platform, system et business installés. Les modules intégrés sont ici en lecture seule et ne peuvent pas être désinstallés depuis cette page.',
   'generator.moduleManager.positioning':
@@ -1586,6 +1621,10 @@ const frFRFallback = {
   'generator.moduleManager.owner': 'Responsable',
   'generator.moduleManager.boundedContext': 'Contexte borné',
   'generator.moduleManager.tableName': 'Table',
+  'generator.moduleManager.lifecycle': 'Cycle de vie',
+  'generator.moduleManager.lifecycle.standard': 'Standard',
+  'generator.moduleManager.lifecycle.autoRecycle': 'Temporaire auto-recyclé',
+  'generator.moduleManager.lifecycle.noTable': 'Aucune table gérée',
   'generator.moduleManager.status': 'Statut',
   'generator.moduleManager.installedAt': 'Installé le',
   'generator.moduleManager.diagnostics': 'Diagnostic d’activation',
@@ -1593,6 +1632,8 @@ const frFRFallback = {
   'generator.moduleManager.diagnostics.failed': 'Incident',
   'generator.moduleManager.registerNew': 'Ouvrir le générateur',
   'generator.moduleManager.confirmUninstall': 'Désinstaller ce module ?',
+  'generator.moduleManager.confirmUninstallAutoRecycle':
+    'Désinstaller ce module temporaire ? La table gérée {{table}} sera aussi recyclée automatiquement.',
   'generator.moduleManager.register': 'Réenregistrer',
   'generator.moduleManager.registerSuccess': 'Le module a été réenregistré et attend l’activation',
   'generator.moduleManager.registerError': 'Échec du réenregistrement du module',
@@ -1605,7 +1646,15 @@ const frFRFallback = {
   'generator.moduleManager.repairSuccess':
     'Réparation terminée : {{refs}} modules valides conservés et {{marked}} enregistrements sans source marqués comme désinstallés',
   'generator.moduleManager.repairError': 'Échec de l’audit et de la réparation des registres',
+  'generator.moduleManager.activationAudit': 'Vérifier l’activation',
+  'generator.moduleManager.activationAuditSuccess':
+    'Vérification terminée : {{activated}} modules sont maintenant actifs et {{pending}} restent en attente',
+  'generator.moduleManager.activationAuditError': 'Échec de la vérification de l’activation des modules',
   'generator.moduleManager.builtIn': 'Intégré',
+  'generator.moduleManager.purgeModal.autoRecycleTable':
+    'Ce module est marqué comme temporaire ; la table métier {{table}} sera recyclée automatiquement pendant le purge.',
+  'generator.moduleManager.purgeModal.autoRecycleNotice':
+    'Les modules temporaires recyclent automatiquement leur table gérée pendant le purge. Aucun opt-in supplémentaire n’est requis.',
   'generator.moduleManager.pendingHint':
     'Les modules en attente nécessitent un redémarrage du backend et une recompilation du frontend avant activation.',
   'generator.moduleManager.disabledHint':
@@ -1618,6 +1667,7 @@ const frFRFallback = {
   'generator.moduleManager.stats.pending': 'En attente',
   'generator.moduleManager.stats.uninstalled': 'Désinstallés',
   'generator.moduleManager.stats.failed': 'Incidents',
+  'generator.moduleManager.stats.autoRecycle': 'Temporaires',
   'generator.moduleManager.status.active': 'Installé',
   'generator.moduleManager.status.pending': 'Activation en attente',
   'generator.moduleManager.status.uninstalled': 'Désinstallé',
@@ -1700,6 +1750,17 @@ const frFRFallback = {
   'generator.wizard.includeDashboardWidget': 'Entrée workbench plateforme',
   'generator.wizard.includeDashboardWidget.help':
     'Seuls les modules business/* navigables peuvent être rattachés au workbench platform. Les tables de relation désactivent toujours cette entrée.',
+  'generator.wizard.lifecycle.title': 'Politique de cycle de vie',
+  'generator.wizard.lifecycle.desc':
+    'Définissez si ce module est durable ou s’il s’agit d’un module temporaire pour QA, recette ou répétition d’intégration.',
+  'generator.wizard.lifecycle.autoRecycle':
+    'Marquer comme module temporaire et recycler automatiquement la table gérée pendant le purge',
+  'generator.wizard.lifecycle.autoRecycleHint':
+    'Recommandé pour les modules générés de courte durée : QA, maître-détail, many-to-many, validation d’acceptation.',
+  'generator.wizard.lifecycle.standardHint':
+    'Les modules standards conservent leurs tables par défaut. La suppression de table reste une décision de gouvernance explicite.',
+  'generator.wizard.lifecycle.autoRecycleTag': 'Temporaire auto-recyclé',
+  'generator.wizard.lifecycle.standardTag': 'Rétention standard',
   'generator.wizard.dataScopeMode': 'Mode de périmètre de données',
   'generator.wizard.dataScopeMode.dept': 'Département',
   'generator.wizard.dataScopeMode.owner': 'Propriétaire',
@@ -1715,9 +1776,11 @@ const frFRFallback = {
     'Enregistre seulement le contrat de dépendance, sans appel direct aux services d’autres modules.',
   'generator.wizard.relations': 'Contrats de relation',
   'generator.wizard.relations.placeholder':
-    'Format : nom|type|moduleCible|champLocal|champCible|tableJointure',
+    'Format : nom|type|moduleCible|champLocal|champCible|champLibellé|lookupApi|champValeur|tableJointure',
   'generator.wizard.relations.help':
     'Utilisé pour la gouvernance maître-détail/relation. Les transactions multi-tables ne sont pas générées.',
+  'generator.wizard.relations.columns':
+    'Ordre des colonnes : name | type | targetModule | localField | targetField | targetLabelField | lookupApi | lookupValueField | junctionTable',
   'generator.wizard.businessContext': 'Contexte métier',
   'generator.wizard.businessContext.placeholder': 'Exemple : cmdb',
   'generator.wizard.businessContext.help':
@@ -1833,6 +1896,27 @@ const frFRFallback = {
   'generator.wizard.result.relationCount': '{{count}} relations',
   'generator.wizard.result.dependencies': 'Dépendances de module',
   'generator.wizard.result.relations': 'Contrats de relation',
+  'generator.wizard.result.relatedModules': 'Points d’entrée des modules liés',
+  'generator.wizard.result.relatedData': 'Données liées',
+  'generator.wizard.result.relatedDataLoadFailed': 'Échec du chargement des données liées',
+  'generator.wizard.result.relatedDataUnsupported':
+    'Ce type de relation nécessite un protocole runtime dédié et n’est pas encore chargé automatiquement par le modèle généré.',
+  'generator.wizard.result.openRelatedModule': 'Ouvrir le module lié',
+  'generator.wizard.result.childTableActions': 'Actions de sous-table',
+  'generator.wizard.result.childTableCreate': 'Ajouter une ligne enfant',
+  'generator.wizard.result.childTableEdit': 'Modifier la ligne enfant',
+  'generator.wizard.result.childTableDialogCreate': 'Créer un enregistrement enfant',
+  'generator.wizard.result.childTableDialogEdit': 'Modifier l’enregistrement enfant',
+  'generator.wizard.result.childTableSchemaLoadFailed':
+    'Impossible de charger le schéma de la sous-table, l’ajout et l’édition sont indisponibles.',
+  'generator.wizard.result.childTableNoEditableFields':
+    'Aucun champ enfant modifiable n’est déclaré, la soumission est donc indisponible.',
+  'generator.wizard.result.relatedModuleHint':
+    'Les pages générées exposent seulement un squelette de collaboration entre table principale et table relationnelle. Le vrai routage et l’orchestration restent à câbler après intégration.',
+  'generator.wizard.result.relatedModuleAction': 'À raccorder',
+  'generator.wizard.result.primaryTableContext': 'Contexte de table principale',
+  'generator.wizard.result.scaffoldOnly':
+    'Il s’agit d’un guidage de squelette, sans orchestration relationnelle à l’exécution.',
   'generator.wizard.result.nextActions': 'Étapes suivantes et état de reconstruction',
   'generator.wizard.result.restartStatus': 'Statut backend',
   'generator.wizard.result.restartRequired': 'Redémarrage backend requis',
@@ -1843,6 +1927,10 @@ const frFRFallback = {
   'generator.wizard.result.restartCommand': 'Commande de vérification backend',
   'generator.wizard.result.frontendBuildCommand': 'Commande de vérification frontend',
   'generator.wizard.result.verifications': 'Résultats de vérification automatisée',
+  'generator.wizard.result.checkActivation': 'Vérifier l’activation',
+  'generator.wizard.result.activationAuditSuccess':
+    'Vérification terminée : {{activated}} modules sont actifs et {{pending}} restent en attente',
+  'generator.wizard.result.activationAuditError': 'Échec de la vérification de l’état d’activation',
   'generator.wizard.result.openModuleManager': 'Ouvrir le gestionnaire de modules',
   'generator.wizard.result.generateAnother': 'Générer un autre module',
   'generator.wizard.result.verificationStatus.pass': 'Succès',

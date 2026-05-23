@@ -1,4 +1,3 @@
-const generatedkoKRFallback = {
-};
+const generatedkoKRFallback = {};
 
 export default generatedkoKRFallback;

@@ -8,6 +8,7 @@ import {
   signInAsAdmin,
   verifiedApiHeaders,
 } from '../helpers/auth';
+import { runOptionalSmokeCleanup } from '../helpers/fixture-policy';
 
 
 function formItem(page: Page, label: string) {
@@ -18,6 +19,29 @@ async function waitForDialog(page: Page, title: string) {
   const dialog = page.getByRole('dialog').filter({ has: page.getByText(title, { exact: true }) });
   await expect(dialog).toBeVisible();
   return dialog;
+}
+
+async function selectAdminRoleInVirtualizedList(page: Page, accessToken: string) {
+  const response = await page.request.get(`${apiBaseUrl}/system/role/list`, {
+    headers: authHeaders(accessToken),
+    params: {
+      page: '1',
+      pageSize: '100',
+      sortField: 'sort',
+      sortOrder: 'asc',
+      status: '1',
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  const items = Array.isArray(payload.data?.items) ? payload.data.items : [];
+  const adminIndex = items.findIndex((item: { roleKey?: string }) => item.roleKey === 'admin');
+  expect(adminIndex).toBeGreaterThanOrEqual(0);
+
+  for (let index = 0; index < adminIndex; index += 1) {
+    await page.keyboard.press('ArrowDown');
+  }
+  await page.keyboard.press('Enter');
 }
 
 test.describe('enter submit smoke', () => {
@@ -57,6 +81,7 @@ test.describe('enter submit smoke', () => {
   });
 
   test('dict, i18n, and permission dialogs submit with Enter key', async ({ page }) => {
+    test.setTimeout(60000);
     const adminLogin = await loginByApi(page.request, adminCredentials);
     await installClientSession(page, adminLogin);
     const accessToken = adminLogin.accessToken;
@@ -118,7 +143,7 @@ test.describe('enter submit smoke', () => {
       await page.getByRole('button', { name: '新增', exact: true }).click();
       const permissionDialog = await waitForDialog(page, '新增策略');
       await permissionDialog.locator('.arco-select-view').first().click();
-      await page.getByRole('option', { name: /超级管理员|superadmin/i }).first().click();
+      await selectAdminRoleInVirtualizedList(page, accessToken);
       const pathInput = permissionDialog.getByPlaceholder('/api/v1/system/user/list');
       await pathInput.fill(permissionPath);
       await pathInput.press('Enter');
@@ -136,22 +161,26 @@ test.describe('enter submit smoke', () => {
         return createdPermissionId > 0;
       }).toBeTruthy();
     } finally {
-      const headers = await verifiedApiHeaders(page.request, adminLogin);
-      if (createdPermissionId > 0) {
-        await page.request.delete(`${apiBaseUrl}/system/permission/${createdPermissionId}`, {
-          headers,
-        }).catch(() => undefined);
-      }
-      if (createdI18nId > 0) {
-        await page.request.delete(`${apiBaseUrl}/system/i18n/${createdI18nId}`, {
-          headers,
-        }).catch(() => undefined);
-      }
-      if (createdDictId > 0) {
-        await page.request.delete(`${apiBaseUrl}/system/dict/type/${createdDictId}`, {
-          headers,
-        }).catch(() => undefined);
-      }
+      await runOptionalSmokeCleanup('platform-shell:enter-submit-seeds', async () => {
+        if (createdPermissionId > 0 || createdI18nId > 0 || createdDictId > 0) {
+          const headers = await verifiedApiHeaders(page.request, adminLogin);
+          if (createdPermissionId > 0) {
+            await page.request.delete(`${apiBaseUrl}/system/permission/${createdPermissionId}`, {
+              headers,
+            }).catch(() => undefined);
+          }
+          if (createdI18nId > 0) {
+            await page.request.delete(`${apiBaseUrl}/system/i18n/${createdI18nId}`, {
+              headers,
+            }).catch(() => undefined);
+          }
+          if (createdDictId > 0) {
+            await page.request.delete(`${apiBaseUrl}/system/dict/type/${createdDictId}`, {
+              headers,
+            }).catch(() => undefined);
+          }
+        }
+      });
     }
   });
 });

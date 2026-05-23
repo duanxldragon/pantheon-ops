@@ -8,23 +8,42 @@ export { default as ListHeaderActions } from './patterns/ListHeaderActions';
 export {
   GovernanceRailPanel,
   GovernanceRailSummary,
-  GovernanceRailCloseButton,
   GovernanceRailToggleButton,
   GovernanceInsightDrawer,
 } from './patterns/GovernanceRail';
 export { useGovernanceRail } from './patterns/useGovernanceRail';
-export { default as GovernanceCleanupBar } from './patterns/GovernanceCleanupBar';
+export {
+  default as GovernanceCleanupBar,
+  type GovernanceCleanupMode,
+} from './patterns/GovernanceCleanupBar';
+export {
+  default as GovernanceSummaryBar,
+  type GovernanceSummaryBarProps,
+  type GovernanceSummaryMetric,
+} from './patterns/GovernanceSummaryBar';
 export { default as PermissionAction } from './patterns/PermissionAction';
+export { default as SystemRowActions, type SystemRowAction } from './patterns/SystemRowActions';
 export { default as TableBatchActionBar } from './patterns/TableBatchActionBar';
 export {
   TABLE_ACTION_COLUMN_WIDTH,
   type TableActionColumnWidthPreset,
 } from './patterns/TableAction';
-export {
-  TABLE_COLUMN_WIDTH,
-  type TableColumnWidthPreset,
-} from './patterns/TableColumnWidth';
+export { TABLE_COLUMN_WIDTH, type TableColumnWidthPreset } from './patterns/TableColumnWidth';
 export { withTableColumnPriority, type TableColumnPriority } from './patterns/TableColumnPriority';
+export {
+  getPaginationCurrentPage,
+  getPaginationPageSize,
+  getPaginationTotalPages,
+  getVisibleSelectedRowKeys,
+  isPaginationConfig,
+  mergeCrossPageSelection,
+  type CrossPageRowKey,
+  type SharedPaginationConfig,
+} from './table/crossPageSelection';
+export {
+  buildStandardPagination,
+  STANDARD_PAGINATION_SIZE_OPTIONS,
+} from './table/standardPagination';
 export { default as FormSection } from './patterns/FormSection';
 export { default as SubmitBar } from './patterns/SubmitBar';
 export { default as AppModal } from './patterns/AppModal';

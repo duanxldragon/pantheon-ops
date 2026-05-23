@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Button,
-  Card,
   Form,
   Grid,
   Input,
@@ -33,6 +32,7 @@ import { invalidateRouteWarmDataMany } from '../../../core/router/prefetch';
 import {
   AppModal,
   AppTable,
+  buildStandardPagination,
   FilterPanel,
   FormSection,
   ImportCsvButton,
@@ -62,7 +62,7 @@ import {
   type DictTypeQuery,
   type DictTypeRow,
 } from './api';
-import '../../../core/styles/list-page.css';
+import '../list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -90,12 +90,11 @@ export interface TypeSummary {
   items: number;
 }
 
-export interface DictTypeTabProps {
+interface DictTypeTabProps {
   typeRows: DictTypeRow[];
   typeLoading: boolean;
   typeError: unknown;
   typeQuery: DictTypeQuery;
-  typeSummary: TypeSummary;
   canCreate: boolean;
   canEdit: boolean;
   canDelete: boolean;
@@ -114,7 +113,6 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
   typeLoading,
   typeError,
   typeQuery,
-  typeSummary,
   canCreate,
   canEdit,
   canDelete,
@@ -130,6 +128,8 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
   const { t } = useTranslation();
 
   const [selectedTypeRowKeys, setSelectedTypeRowKeys] = useState<(string | number)[]>([]);
+  const [typeTablePage, setTypeTablePage] = useState(1);
+  const [typeTablePageSize, setTypeTablePageSize] = useState(10);
   const [typeVisible, setTypeVisible] = useState(false);
   const [editingType, setEditingType] = useState<DictTypeRow | null>(null);
   const [typeSubmitting, setTypeSubmitting] = useState(false);
@@ -148,6 +148,7 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
 
   const handleSearch = () => {
     const values = queryForm.getFieldsValue();
+    setTypeTablePage(1);
     onQueryChange({
       ...emptyTypeQuery,
       ...values,
@@ -156,8 +157,16 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
 
   const handleReset = () => {
     queryForm.setFieldsValue(emptyTypeQuery);
+    setTypeTablePage(1);
     onQueryChange(emptyTypeQuery);
   };
+
+  React.useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(typeRows.length / Math.max(1, typeTablePageSize)));
+    if (typeTablePage > totalPages) {
+      setTypeTablePage(totalPages);
+    }
+  }, [typeRows.length, typeTablePage, typeTablePageSize]);
 
   const openCreateType = () => {
     setEditingType(null);
@@ -188,7 +197,7 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
       if (isArcoFormValidationError(error)) {
         return;
       }
-      throw error;
+      return;
     }
     setTypeSubmitting(true);
     try {
@@ -203,6 +212,8 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
       publishRefresh('system:dict:changed', 'system/dict');
       setTypeVisible(false);
       onReload();
+    } catch {
+      message.error(t('common.actionFailed'));
     } finally {
       setTypeSubmitting(false);
     }
@@ -366,25 +377,6 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
   return (
     <>
       <Space direction="vertical" size={16} style={{ width: '100%' }}>
-        <div className="dict-workbench__summary">
-          <Card className="dict-workbench__summary-card dict-workbench__summary-card--active">
-            <span>{t('system.dict.type')}</span>
-            <strong>{typeSummary.total}</strong>
-          </Card>
-          <Card className="dict-workbench__summary-card">
-            <span>{t('system.user.status.enabled')}</span>
-            <strong>{typeSummary.active}</strong>
-          </Card>
-          <Card className="dict-workbench__summary-card">
-            <span>{t('system.user.status.disabled')}</span>
-            <strong>{typeSummary.disabled}</strong>
-          </Card>
-          <Card className="dict-workbench__summary-card">
-            <span>{t('system.dict.item')}</span>
-            <strong>{typeSummary.items}</strong>
-          </Card>
-        </div>
-
         <FilterPanel>
           <Form form={queryForm} layout="vertical" onSubmit={() => handleSearch()}>
             <Row gutter={16}>
@@ -422,55 +414,56 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
             </Row>
           </Form>
         </FilterPanel>
-
-        <ListHeaderActions
-          className="dict-page__actions"
-          utility={
-            <>
-              <Button
-                icon={<IconDownload />}
-                onClick={() => {
-                  void handleExportTypes();
-                }}
-                disabled={!canExport}
-              >
-                {t('common.export')}
-              </Button>
-              <Button
-                onClick={() => {
-                  void handleDownloadTypeTemplate();
-                }}
-                disabled={!canImport}
-              >
-                {t('common.downloadTemplate')}
-              </Button>
-              <ImportCsvButton
-                disabled={!canImport}
-                onSelect={(file) => {
-                  void handleImportTypes(file);
-                }}
-              >
-                {t('common.import')}
-              </ImportCsvButton>
-            </>
-          }
-          primary={
-            <Button
-              type="primary"
-              icon={<IconPlus />}
-              onClick={openCreateType}
-              disabled={!canCreate}
-            >
-              {t('common.add')}
-            </Button>
-          }
-        />
         <TableBatchActionBar
           selectedCount={selectedTypeRowKeys.length}
           selectedText={t('common.selectedCount', { count: selectedTypeRowKeys.length })}
           clearText={t('common.clearSelection')}
           clearSuccessText={t('common.clearSelectionSuccess')}
           onClear={() => setSelectedTypeRowKeys([])}
+          prefixActions={
+            <ListHeaderActions
+              className="dict-page__actions"
+              utility={
+                <>
+                  <Button
+                    icon={<IconDownload />}
+                    onClick={() => {
+                      void handleExportTypes();
+                    }}
+                    disabled={!canExport}
+                  >
+                    {t('common.export')}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      void handleDownloadTypeTemplate();
+                    }}
+                    disabled={!canImport}
+                  >
+                    {t('common.downloadTemplate')}
+                  </Button>
+                  <ImportCsvButton
+                    disabled={!canImport}
+                    onSelect={(file) => {
+                      void handleImportTypes(file);
+                    }}
+                  >
+                    {t('common.import')}
+                  </ImportCsvButton>
+                </>
+              }
+              primary={
+                <Button
+                  type="primary"
+                  icon={<IconPlus />}
+                  onClick={openCreateType}
+                  disabled={!canCreate}
+                >
+                  {t('common.add')}
+                </Button>
+              }
+            />
+          }
           hint={
             !canBatchUpdate || !canBatchDelete ? t('common.batchActionPermissionHint') : undefined
           }
@@ -512,7 +505,7 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
                   disabled={typeBatchDeleteDisabled}
                 >
                   <Button
-                    status={typeBatchDeleteDisabled ? undefined : 'danger'}
+                    status="danger"
                     icon={<IconDelete />}
                     disabled={typeBatchDeleteDisabled}
                   >
@@ -545,6 +538,15 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
               onChange: (keys) => setSelectedTypeRowKeys(keys),
             }}
             emptyText={t('system.dict.typeEmpty')}
+            pagination={buildStandardPagination(t, {
+              total: typeRows.length,
+              current: typeTablePage,
+              pageSize: typeTablePageSize,
+              onChange: (page, pageSize) => {
+                setTypeTablePage(page);
+                setTypeTablePageSize(pageSize);
+              },
+            })}
             scroll={{ x: 'max-content' }}
           />
         ) : null}

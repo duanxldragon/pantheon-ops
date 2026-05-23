@@ -35,8 +35,13 @@ import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
 import { invalidateRouteWarmDataMany, resolveRouteWarmData } from '../../../core/router/prefetch';
 import {
+  getVisibleSelectedRowKeys,
+  mergeCrossPageSelection,
+} from '../../../components/table/crossPageSelection';
+import {
   AppModal,
   AppTable,
+  buildStandardPagination,
   FilterPanel,
   FormSection,
   ImportCsvButton,
@@ -72,7 +77,7 @@ import {
   type DictTypeRow,
   type DictUsageAnalysisResp,
 } from './api';
-import '../../../core/styles/list-page.css';
+import '../list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -105,7 +110,7 @@ function isDefaultDictItemQuery(query: Omit<DictItemQuery, 'dictCode'>) {
   );
 }
 
-export interface DictItemTabProps {
+interface DictItemTabProps {
   selectedType: DictTypeRow | null;
   typeRows: DictTypeRow[];
   canCreate: boolean;
@@ -180,7 +185,6 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
           : await getDictItemList({ dictCode: currentCode, ...nextQuery });
         setItemRows(resp.items);
         setItemTotal(resp.total);
-        setSelectedItemRowKeys([]);
       } catch (requestError) {
         setItemError(requestError);
       } finally {
@@ -222,6 +226,7 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
 
   const handleItemSearch = () => {
     const values = itemQueryForm.getFieldsValue();
+    setSelectedItemRowKeys([]);
     setItemQuery({
       ...emptyItemQuery,
       ...values,
@@ -231,11 +236,13 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
 
   const handleItemReset = () => {
     itemQueryForm.setFieldsValue(emptyItemQuery);
+    setSelectedItemRowKeys([]);
     setItemQuery(emptyItemQuery);
   };
 
   const handleSelectedTypeChange = (value?: string | number) => {
     const nextType = typeRows.find((item) => item.id === Number(value)) || null;
+    setSelectedItemRowKeys([]);
     onSelectType(nextType);
   };
 
@@ -521,6 +528,10 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
 
   const itemBatchActionDisabled = !canBatchUpdate || selectedItemRowKeys.length === 0;
   const itemBatchDeleteDisabled = !canBatchDelete || selectedItemRowKeys.length === 0;
+  const visibleSelectedItemRowKeys = useMemo(
+    () => getVisibleSelectedRowKeys(selectedItemRowKeys, itemRows.map((item) => item.id)),
+    [itemRows, selectedItemRowKeys],
+  );
 
   return (
     <>
@@ -613,71 +624,73 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
           </Form>
         </FilterPanel>
 
-        <ListHeaderActions
-          className="dict-page__actions"
-          utility={
-            <>
-              <Button
-                icon={<IconRefresh />}
-                onClick={() => {
-                  void handleRefreshCache();
-                }}
-                disabled={!canRefresh || !selectedType}
-              >
-                {t('system.dict.refreshCache')}
-              </Button>
-              <Button
-                onClick={() => {
-                  void handleOpenUsageAnalysis();
-                }}
-                disabled={!selectedType}
-              >
-                {t('system.dict.usage.action')}
-              </Button>
-              <Button
-                icon={<IconDownload />}
-                onClick={() => {
-                  void handleExportItems();
-                }}
-                disabled={!canExport || !selectedType}
-              >
-                {t('common.export')}
-              </Button>
-              <Button
-                onClick={() => {
-                  void handleDownloadItemTemplate();
-                }}
-                disabled={!canImport}
-              >
-                {t('common.downloadTemplate')}
-              </Button>
-              <ImportCsvButton
-                disabled={!canImport}
-                onSelect={(file) => {
-                  void handleImportItems(file);
-                }}
-              >
-                {t('common.import')}
-              </ImportCsvButton>
-            </>
-          }
-          primary={
-            <Button
-              type="primary"
-              icon={<IconPlus />}
-              onClick={openCreateItem}
-              disabled={!canCreate || !selectedType}
-            >
-              {t('system.dict.itemAdd')}
-            </Button>
-          }
-        />
         <TableBatchActionBar
           selectedCount={selectedItemRowKeys.length}
           selectedText={t('common.selectedCount', { count: selectedItemRowKeys.length })}
           clearText={t('common.clearSelection')}
           clearSuccessText={t('common.clearSelectionSuccess')}
           onClear={() => setSelectedItemRowKeys([])}
+          prefixActions={
+            <ListHeaderActions
+              className="dict-page__actions"
+              utility={
+                <>
+                  <Button
+                    icon={<IconRefresh />}
+                    onClick={() => {
+                      void handleRefreshCache();
+                    }}
+                    disabled={!canRefresh || !selectedType}
+                  >
+                    {t('system.dict.refreshCache')}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      void handleOpenUsageAnalysis();
+                    }}
+                    disabled={!selectedType}
+                  >
+                    {t('system.dict.usage.action')}
+                  </Button>
+                  <Button
+                    icon={<IconDownload />}
+                    onClick={() => {
+                      void handleExportItems();
+                    }}
+                    disabled={!canExport || !selectedType}
+                  >
+                    {t('common.export')}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      void handleDownloadItemTemplate();
+                    }}
+                    disabled={!canImport}
+                  >
+                    {t('common.downloadTemplate')}
+                  </Button>
+                  <ImportCsvButton
+                    disabled={!canImport}
+                    onSelect={(file) => {
+                      void handleImportItems(file);
+                    }}
+                  >
+                    {t('common.import')}
+                  </ImportCsvButton>
+                </>
+              }
+              primary={
+                <Button
+                  type="primary"
+                  icon={<IconPlus />}
+                  onClick={openCreateItem}
+                  disabled={!canCreate || !selectedType}
+                >
+                  {t('system.dict.itemAdd')}
+                </Button>
+              }
+            />
+          }
           hint={
             !canBatchUpdate || !canBatchDelete ? t('common.batchActionPermissionHint') : undefined
           }
@@ -719,7 +732,7 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
                   disabled={itemBatchDeleteDisabled}
                 >
                   <Button
-                    status={itemBatchDeleteDisabled ? undefined : 'danger'}
+                    status="danger"
                     icon={<IconDelete />}
                     disabled={itemBatchDeleteDisabled}
                   >
@@ -752,20 +765,23 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
                 data={itemRows}
                 loading={itemLoading}
                 rowSelection={{
-                  selectedRowKeys: selectedItemRowKeys,
-                  onChange: (keys) => setSelectedItemRowKeys(keys),
+                  selectedRowKeys: visibleSelectedItemRowKeys,
+                  checkCrossPage: true,
+                  preserveSelectedRowKeys: true,
+                  onChange: (keys) =>
+                    setSelectedItemRowKeys((currentKeys) =>
+                      mergeCrossPageSelection(currentKeys, keys, itemRows.map((item) => item.id)),
+                    ),
                 }}
                 emptyText={t('system.dict.itemEmpty')}
                 onChange={handleItemTableChange}
-                pagination={{
+                pagination={buildStandardPagination(t, {
                   total: itemTotal,
                   current: itemQuery.page,
                   pageSize: itemQuery.pageSize,
-                  showTotal: (count: number) => t('common.total', { count }),
-                  pageSizeChangeResetCurrent: false,
                   onChange: (page, pageSize) =>
                     setItemQuery((prev) => ({ ...prev, page, pageSize })),
-                }}
+                })}
                 scroll={{ x: 'max-content' }}
               />
             ) : null}

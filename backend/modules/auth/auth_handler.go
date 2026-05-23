@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 
 	user "pantheon-ops/backend/modules/system/iam/user"
@@ -254,6 +255,33 @@ func (h *AuthHandler) GetSecurityEventList(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+func (h *AuthHandler) AcknowledgeSecurityEvent(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.security_event.acknowledge.title", common.BusinessUpdate)
+
+	eventID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		return
+	}
+
+	var req SecurityEventAcknowledgeReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		return
+	}
+
+	if err := h.service.AcknowledgeSecurityEvent(
+		eventID,
+		common.GetUserID(c),
+		c.GetString("username"),
+		req.AcknowledgementNote,
+	); err != nil {
+		common.FailWithError(c, common.CodeError, err, "auth.security_event.acknowledge.error")
+		return
+	}
+	common.Success(c, gin.H{"acknowledged": true})
+}
+
 func (h *AuthHandler) ExportLoginLogs(c *gin.Context) {
 	common.SetAuditMetadata(c, "audit.login_log.export.title", common.BusinessExport)
 
@@ -319,7 +347,7 @@ func (h *AuthHandler) CleanupLoginLogs(c *gin.Context) {
 		return
 	}
 
-	clearedCount, err := h.service.CleanupLoginLogs(req.RetentionDays)
+	clearedCount, err := h.service.CleanupLoginLogs(req.RetentionDays, req.StartedAt, req.EndedAt)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "auth.login_log.cleanup.error")
 		return
@@ -336,12 +364,29 @@ func (h *AuthHandler) CleanupHistoricSessions(c *gin.Context) {
 		return
 	}
 
-	clearedCount, err := h.service.CleanupHistoricSessions(req.RetentionDays)
+	clearedCount, err := h.service.CleanupHistoricSessions(req.RetentionDays, req.StartedAt, req.EndedAt)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "auth.session.cleanup.error")
 		return
 	}
 	common.Success(c, SessionCleanupResp{ClearedCount: clearedCount})
+}
+
+func (h *AuthHandler) BatchRevokeSessions(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.session.revoke.title", common.BusinessForce)
+
+	var req SessionBatchRevokeReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		return
+	}
+
+	revokedCount, err := h.service.BatchRevokeSessions(c.GetString("sessionId"), req.SessionIDs)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "auth.session.revoke.error")
+		return
+	}
+	common.Success(c, gin.H{"revokedCount": revokedCount})
 }
 
 func (h *AuthHandler) BatchDeleteLoginLogs(c *gin.Context) {

@@ -5,21 +5,21 @@ export const DeployModule = defineModule({
   scope: 'business',
   routes: [
     {
-      path: '/operations/deploy/package',
+      path: 'operations/deploy/package',
       routeName: 'deploy-package-list',
       titleKey: 'operations.deploy.package.menu',
       componentKey: 'business/deploy/package/DeployPackageList',
       pagePermission: 'business:deploy:package:list',
     },
     {
-      path: '/operations/deploy/task',
+      path: 'operations/deploy/task',
       routeName: 'deploy-task-list',
       titleKey: 'operations.deploy.task.menu',
       componentKey: 'business/deploy/task/DeployTaskList',
       pagePermission: 'business:deploy:task:list',
     },
     {
-      path: '/operations/deploy/task/:id',
+      path: 'operations/deploy/task/:id',
       routeName: 'deploy-task-detail',
       titleKey: 'operations.deploy.task.detail',
       componentKey: 'business/deploy/task/DeployTaskDetail',

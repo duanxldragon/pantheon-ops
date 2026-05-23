@@ -111,6 +111,30 @@
   align-items: flex-end;
 }
 
+.auth-login-log-page__filter-grid {
+  align-items: end;
+}
+
+.auth-login-log-page__filter-grid .arco-col {
+  flex-grow: 0;
+}
+
+.auth-login-log-page__filter-actions .arco-space {
+  gap: 8px !important;
+}
+
+.auth-login-log-page__filter-actions .arco-btn {
+  min-width: 84px;
+}
+
+.auth-login-log-page__table-card .table-batch-action-bar--governance .table-batch-action-bar__meta {
+  flex: 0 1 auto;
+}
+
+.auth-login-log-page__table-card .table-batch-action-bar__main {
+  align-items: center;
+}
+
 .auth-section-stack {
   width: 100%;
 }
@@ -121,6 +145,11 @@
 
 .auth-table-stack .page-empty {
   min-height: 180px;
+}
+
+.auth-security-event-page__table-card .page-empty,
+.auth-security-event-page__table-card .page-error {
+  min-height: 220px;
 }
 
 .auth-device-summary {
@@ -207,6 +236,7 @@
     border-top: 1px solid var(--panel-border);
     border-left: 0;
   }
+
 }
 
 @media (max-width: 768px) {

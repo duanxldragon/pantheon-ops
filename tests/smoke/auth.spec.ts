@@ -22,8 +22,8 @@ test.describe('Admin Smoke Test', () => {
     // 5. 检查侧边栏核心菜单是否存在
     const sidebar = page.locator('aside');
     await expect(sidebar).toBeVisible();
-    await expect(sidebar).toContainText(/Access Control/);
-    await expect(sidebar).toContainText(/Platform Config/);
+    await expect(sidebar).toContainText(/Access & Permissions/);
+    await expect(sidebar).toContainText(/System Configuration/);
   });
 
   test('Navigate to user management', async ({ page }) => {
@@ -34,8 +34,8 @@ test.describe('Admin Smoke Test', () => {
     await page.click('button[type="submit"]');
 
     // 点击访问控制 -> 用户管理
-    await page.click('text=Access Control');
-    await page.click('text=User');
+    await page.click('text=Access & Permissions');
+    await page.click('text=Users');
 
     // 验证进入用户列表页
     await expect(page).toHaveURL(/.*system\/user/);

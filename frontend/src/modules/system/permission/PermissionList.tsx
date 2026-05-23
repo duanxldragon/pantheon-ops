@@ -10,10 +10,8 @@ import {
   Space,
   Tabs,
   Tag,
-  Typography,
 } from '@arco-design/web-react';
 import { message } from '../../../components/feedback/message';
-import type { PaginationProps } from '@arco-design/web-react/es/Pagination/interface';
 import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
 import {
   IconDelete,
@@ -34,6 +32,10 @@ import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
 import { invalidateRouteWarmDataMany, resolveRouteWarmData } from '../../../core/router/prefetch';
 import { usePermission } from '../../../hooks/usePermission';
+import {
+  getVisibleSelectedRowKeys,
+  mergeCrossPageSelection,
+} from '../../../components/table/crossPageSelection';
 import { getRoleList } from '../role/api';
 import {
   batchDeletePermissionPolicies,
@@ -59,17 +61,18 @@ import { PermissionWorkbenchTab } from './PermissionWorkbenchTab';
 import {
   AppModal,
   AppTable,
+  buildStandardPagination,
   FilterPanel,
   FormSection,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
+  GovernanceSummaryBar,
   ImportCsvButton,
   ListHeaderActions,
   PageContainer,
   PageEmpty,
   PageError,
-  PageHeader,
   PageLoading,
   PageNetworkError,
   PageServerError,
@@ -80,7 +83,7 @@ import {
   TableBatchActionBar,
   useGovernanceRail,
 } from '../../../components';
-import '../../../core/styles/list-page.css';
+import '../list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -316,7 +319,7 @@ const PermissionList: React.FC = () => {
       if (isArcoFormValidationError(error)) {
         return;
       }
-      throw error;
+      return;
     }
     setSubmitting(true);
     try {
@@ -334,6 +337,8 @@ const PermissionList: React.FC = () => {
         loadData(query, { silent: true }),
         loadWorkbench(workbenchQuery, { silent: true }),
       ]);
+    } catch {
+      message.error(t('common.actionFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -374,6 +379,7 @@ const PermissionList: React.FC = () => {
 
   const search = () => {
     const values = queryForm.getFieldsValue();
+    setSelectedRowKeys([]);
     setQuery({
       ...query,
       ...values,
@@ -383,11 +389,11 @@ const PermissionList: React.FC = () => {
 
   const reset = () => {
     queryForm.setFieldsValue(emptyQuery);
+    setSelectedRowKeys([]);
     setQuery(emptyQuery);
   };
 
   const handleTableChange: TableProps<PermissionPolicyRow>['onChange'] = (pagination) => {
-    setSelectedRowKeys([]);
     setQuery({
       ...query,
       page: pagination.current || 1,
@@ -396,8 +402,7 @@ const PermissionList: React.FC = () => {
   };
 
   const visibleSelectedRowKeys = useMemo(() => {
-    const visibleKeys = new Set(data.map((item) => item.id));
-    return selectedRowKeys.filter((key) => visibleKeys.has(Number(key)));
+    return getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.id));
   }, [data, selectedRowKeys]);
 
   const batchDeleteDisabled = !canBatchDelete || selectedRowKeys.length === 0;
@@ -546,115 +551,25 @@ const PermissionList: React.FC = () => {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={t('system.menu.permission')}
-        extra={
-          <ListHeaderActions
-            utility={
-              <>
-                <GovernanceRailToggleButton
-                  expanded={governanceRail.expanded}
-                  onToggle={governanceRail.toggle}
-                >
-                  {t('system.permission.hero.summaryTitle')}
-                </GovernanceRailToggleButton>
-                <Button
-                  icon={<IconRefresh />}
-                  onClick={() => {
-                    if (activeTab === 'workbench') {
-                      void loadWorkbench(workbenchQuery);
-                      return;
-                    }
-                    if (activeTab === 'data-scope') {
-                      // Data-scope child manages its own refresh via subscription
-                      publishRefresh('system:permission:changed', 'system/permission');
-                      return;
-                    }
-                    void loadData(query);
-                  }}
-                >
-                  {t('common.refresh')}
-                </Button>
-                {activeTab === 'workbench' ? (
-                  <Button
-                    icon={<IconDownload />}
-                    onClick={() => {
-                      void exportPermissionWorkbench(workbenchQuery);
-                    }}
-                    disabled={!canExport}
-                  >
-                    {t('system.permission.workbench.export')}
-                  </Button>
-                ) : null}
-                {activeTab === 'api' ? (
-                  <>
-                    <Button
-                      icon={<IconDownload />}
-                      onClick={() => {
-                        void handleExport();
-                      }}
-                      disabled={!canExport}
-                    >
-                      {t('common.export')}
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        void handleDownloadTemplate();
-                      }}
-                      disabled={!canImport}
-                    >
-                      {t('common.downloadTemplate')}
-                    </Button>
-                    <ImportCsvButton
-                      disabled={!canImport}
-                      onSelect={(file) => {
-                        void handleImport(file);
-                      }}
-                    >
-                      {t('common.import')}
-                    </ImportCsvButton>
-                  </>
-                ) : null}
-              </>
-            }
-            primary={
-              activeTab === 'api' ? (
-                <Button
-                  type="primary"
-                  icon={<IconPlus />}
-                  onClick={openCreate}
-                  disabled={!canCreate}
-                >
-                  {t('common.add')}
-                </Button>
-              ) : null
-            }
-          />
-        }
-      />
-
       <Space direction="vertical" size={16} className="system-page-template">
-        <Card className="page-panel system-page-hero system-list__hero">
-          <div className="system-page-hero__top">
-            <div className="system-page-hero__copy">
-              <span className="system-page-hero__eyebrow">
-                {t('system.permission.hero.eyebrow')}
-              </span>
-              <Typography.Title heading={5} className="system-page-hero__title">
-                {t('system.permission.hero.title')}
-              </Typography.Title>
-            </div>
-          </div>
-          <div className="system-page-kpi-grid">
-            {heroStats.map((item) => (
-              <div key={item.key} className="system-page-kpi">
-                <span className="system-page-kpi__label">{item.label}</span>
-                <span className="system-page-kpi__value">{item.value}</span>
-                <span className="system-page-kpi__hint">{item.hint}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
+        <GovernanceSummaryBar
+          eyebrow={t('system.permission.hero.eyebrow')}
+          title={t('system.permission.hero.title')}
+          description={t('system.permission.hero.desc')}
+          metrics={heroStats.slice(0, 3).map((item) => ({
+            key: item.key,
+            label: item.label,
+            value: item.value,
+          }))}
+          action={
+            <GovernanceRailToggleButton
+              expanded={governanceRail.expanded}
+              onToggle={governanceRail.toggle}
+            >
+              {t('system.permission.hero.summaryTitle')}
+            </GovernanceRailToggleButton>
+          }
+        />
         <>
           <Card className="page-panel permission-workbench__tabs">
             <Tabs
@@ -668,23 +583,62 @@ const PermissionList: React.FC = () => {
           </Card>
 
           {activeTab === 'workbench' ? (
-            <PermissionWorkbenchTab
-              roleOptions={roleOptions}
-              workbench={workbench}
-              workbenchLoading={workbenchLoading}
-              workbenchError={workbenchError}
-              workbenchQuery={workbenchQuery}
-              onWorkbenchQueryChange={setWorkbenchQuery}
-              onRetryLoadWorkbench={() => {
-                void loadWorkbench(workbenchQuery);
-              }}
-              detailRole={detailRole}
-              onDetailRoleChange={setDetailRole}
-              remediateRolePolicies={remediateRolePolicies}
-              remediatingRoleKey={remediatingRoleKey}
-            />
+            <Space direction="vertical" size={16} style={{ width: '100%' }}>
+              <PermissionWorkbenchTab
+                roleOptions={roleOptions}
+                utilityActions={
+                  <>
+                    <Button
+                      icon={<IconRefresh />}
+                      onClick={() => {
+                        void loadWorkbench(workbenchQuery);
+                      }}
+                    >
+                      {t('common.refresh')}
+                    </Button>
+                    <Button
+                      icon={<IconDownload />}
+                      onClick={() => {
+                        void exportPermissionWorkbench(workbenchQuery);
+                      }}
+                      disabled={!canExport}
+                    >
+                      {t('system.permission.workbench.export')}
+                    </Button>
+                  </>
+                }
+                workbench={workbench}
+                workbenchLoading={workbenchLoading}
+                workbenchError={workbenchError}
+                workbenchQuery={workbenchQuery}
+                onWorkbenchQueryChange={setWorkbenchQuery}
+                onRetryLoadWorkbench={() => {
+                  void loadWorkbench(workbenchQuery);
+                }}
+                detailRole={detailRole}
+                onDetailRoleChange={setDetailRole}
+                remediateRolePolicies={remediateRolePolicies}
+                remediatingRoleKey={remediatingRoleKey}
+              />
+            </Space>
           ) : activeTab === 'data-scope' ? (
-            <PermissionDataScopeTab roleOptions={roleOptions} />
+            <Space direction="vertical" size={16} style={{ width: '100%' }}>
+              <div className="system-list__work-actions">
+                <ListHeaderActions
+                  utility={
+                    <Button
+                      icon={<IconRefresh />}
+                      onClick={() => {
+                        publishRefresh('system:permission:changed', 'system/permission');
+                      }}
+                    >
+                      {t('common.refresh')}
+                    </Button>
+                  }
+                />
+              </div>
+              <PermissionDataScopeTab roleOptions={roleOptions} />
+            </Space>
           ) : (
             <Space direction="vertical" size={16} style={{ width: '100%' }}>
               <FilterPanel>
@@ -728,6 +682,57 @@ const PermissionList: React.FC = () => {
                   clearText={t('common.clearSelection')}
                   clearSuccessText={t('common.clearSelectionSuccess')}
                   onClear={() => setSelectedRowKeys([])}
+                  prefixActions={
+                    <ListHeaderActions
+                      utility={
+                        <>
+                          <Button
+                            icon={<IconRefresh />}
+                            onClick={() => {
+                              void loadData(query);
+                            }}
+                          >
+                            {t('common.refresh')}
+                          </Button>
+                          <Button
+                            icon={<IconDownload />}
+                            onClick={() => {
+                              void handleExport();
+                            }}
+                            disabled={!canExport}
+                          >
+                            {t('common.export')}
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              void handleDownloadTemplate();
+                            }}
+                            disabled={!canImport}
+                          >
+                            {t('common.downloadTemplate')}
+                          </Button>
+                          <ImportCsvButton
+                            disabled={!canImport}
+                            onSelect={(file) => {
+                              void handleImport(file);
+                            }}
+                          >
+                            {t('common.import')}
+                          </ImportCsvButton>
+                        </>
+                      }
+                      primary={
+                        <Button
+                          type="primary"
+                          icon={<IconPlus />}
+                          onClick={openCreate}
+                          disabled={!canCreate}
+                        >
+                          {t('common.add')}
+                        </Button>
+                      }
+                    />
+                  }
                   hint={!canBatchDelete ? t('common.batchActionPermissionHint') : undefined}
                   actions={
                     <PermissionAction
@@ -742,7 +747,7 @@ const PermissionList: React.FC = () => {
                         disabled={batchDeleteDisabled}
                       >
                         <Button
-                          status={batchDeleteDisabled ? undefined : 'danger'}
+                          status="danger"
                           icon={<IconDelete />}
                           disabled={batchDeleteDisabled}
                         >
@@ -772,25 +777,22 @@ const PermissionList: React.FC = () => {
                     rowSelection={{
                       type: 'checkbox',
                       selectedRowKeys: visibleSelectedRowKeys,
+                      checkCrossPage: true,
+                      preserveSelectedRowKeys: true,
                       fixed: true,
                       checkboxProps: (row) => ({ disabled: row.roleKey === 'admin' }),
-                      onChange: (rowKeys) => setSelectedRowKeys(rowKeys),
+                      onChange: (rowKeys) =>
+                        setSelectedRowKeys((keys) =>
+                          mergeCrossPageSelection(keys, rowKeys, data.map((item) => item.id)),
+                        ),
                     }}
                     onChange={handleTableChange}
                     emptyText={t('common.noData')}
-                    pagination={
-                      {
-                        current: query.page || emptyQuery.page,
-                        pageSize: query.pageSize || emptyQuery.pageSize,
-                        total,
-                        showJumper: true,
-                        pageSizeChangeResetCurrent: false,
-                        sizeCanChange: true,
-                        sizeOptions: [10, 20, 50, 100],
-                        size: 'small',
-                        showTotal: (count: number) => t('common.total', { count }),
-                      } as PaginationProps
-                    }
+                    pagination={buildStandardPagination(t, {
+                      current: query.page || emptyQuery.page,
+                      pageSize: query.pageSize || emptyQuery.pageSize,
+                      total,
+                    })}
                   />
                 ) : null}
               </Card>

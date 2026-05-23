@@ -5,6 +5,41 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pantheon platform</title>
+    <script>
+      (() => {
+        const resizeObserverNoise = 'ResizeObserver loop completed with undelivered notifications.';
+        const isKnownNoise = (value) =>
+          value instanceof ErrorEvent
+            ? value.message === resizeObserverNoise
+            : value instanceof PromiseRejectionEvent
+              ? value.reason?.message === resizeObserverNoise || value.reason === resizeObserverNoise
+              : false;
+
+        window.addEventListener(
+          'error',
+          (event) => {
+            if (!isKnownNoise(event)) {
+              return;
+            }
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          },
+          true,
+        );
+
+        window.addEventListener(
+          'unhandledrejection',
+          (event) => {
+            if (!isKnownNoise(event)) {
+              return;
+            }
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          },
+          true,
+        );
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

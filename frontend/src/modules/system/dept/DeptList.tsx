@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Button,
   Card,
@@ -75,22 +75,23 @@ import UserDetailContent from '../user/UserDetailContent';
 import {
   AppModal,
   AppTable,
+  buildStandardPagination,
   FilterPanel,
   FormSection,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
+  GovernanceSummaryBar,
   ImportCsvButton,
   ListHeaderActions,
-  PageActions,
   PageContainer,
   PageEmpty,
   PageError,
-  PageHeader,
   PageLoading,
   PageNetworkError,
   PageServerError,
   SubmitBar,
+  SystemRowActions,
   TableBatchActionBar,
   PermissionAction,
   TABLE_ACTION_COLUMN_WIDTH,
@@ -98,7 +99,7 @@ import {
   useGovernanceRail,
   withTableColumnPriority,
 } from '../../../components';
-import '../../../core/styles/list-page.css';
+import '../list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -252,12 +253,14 @@ const DeptList: React.FC = () => {
   const [leaderCandidates, setLeaderCandidates] = useState<DeptLeaderCandidate[]>([]);
   const [leaderCandidateLoading, setLeaderCandidateLoading] = useState(false);
   const [batchLeaderTasks, setBatchLeaderTasks] = useState<BatchLeaderTask[]>([]);
+  const [tablePagination, setTablePagination] = useState({ current: 1, pageSize: 10 });
   const [query, setQuery] = useState<DeptListQuery>(emptyQuery);
   const [form] = Form.useForm<DeptFormValues>();
   const [leaderForm] = Form.useForm<DeptLeaderFormValues>();
   const [postForm] = Form.useForm<OrgPostFormValues>();
   const [queryForm] = Form.useForm<DeptListQuery>();
   const governanceRail = useGovernanceRail({ enabled: activeTab === 'manage' });
+  const loadDataRequestIdRef = useRef(0);
   const invalidateDeptCaches = useCallback(() => {
     invalidateRouteWarmDataMany([
       {
@@ -287,27 +290,47 @@ const DeptList: React.FC = () => {
   const loadData = useCallback(
     async (nextQuery: DeptListQuery = query, options?: LoadDataOptions) => {
       const silent = options?.silent === true;
+      const requestId = loadDataRequestIdRef.current + 1;
+      let rowsLoaded = false;
+      loadDataRequestIdRef.current = requestId;
       if (!silent) {
         setLoading(true);
         setError(null);
         setGovernanceLoading(true);
       }
       try {
-        const [rows, overviewResp, taskRows] = await Promise.all([
-          isDefaultDeptListQuery(nextQuery)
-            ? resolveRouteWarmData('/system/dept', 'tree:default', () => getDeptTree(nextQuery))
-            : getDeptTree(nextQuery),
+        const rows = await (isDefaultDeptListQuery(nextQuery)
+          ? resolveRouteWarmData('/system/dept', 'tree:default', () => getDeptTree(nextQuery))
+          : getDeptTree(nextQuery));
+        if (loadDataRequestIdRef.current !== requestId) {
+          return;
+        }
+        setData(rows);
+        rowsLoaded = true;
+        if (!silent) {
+          setLoading(false);
+        }
+        const [overviewResp, taskRows] = await Promise.all([
           resolveRouteWarmData('/system/dept', 'overview', () => getDeptOverview()),
           getDeptGovernanceTasks(buildGovernanceTaskQuery(nextQuery)),
         ]);
-        setData(rows);
+        if (loadDataRequestIdRef.current !== requestId) {
+          return;
+        }
         setOverview(overviewResp);
         setGovernanceTasks(taskRows);
       } catch (requestError) {
-        setError(requestError);
+        if (loadDataRequestIdRef.current !== requestId) {
+          return;
+        }
+        if (!rowsLoaded) {
+          setError(requestError);
+        } else {
+          setOverview(null);
+        }
         setGovernanceTasks([]);
       } finally {
-        if (!silent) {
+        if (!silent && loadDataRequestIdRef.current === requestId) {
           setLoading(false);
           setGovernanceLoading(false);
         }
@@ -413,6 +436,19 @@ const DeptList: React.FC = () => {
   );
 
   useEffect(() => {
+    setTablePagination((current) => {
+      const totalPages = Math.max(1, Math.ceil(data.length / current.pageSize));
+      if (current.current <= totalPages) {
+        return current;
+      }
+      return {
+        ...current,
+        current: totalPages,
+      };
+    });
+  }, [data]);
+
+  useEffect(() => {
     const state =
       window.history.state && typeof window.history.state === 'object'
         ? (window.history.state.usr as { deptId?: number; taskKey?: string } | null)
@@ -507,6 +543,7 @@ const DeptList: React.FC = () => {
         : [],
     [overview, t],
   );
+  const governanceTaskPreview = useMemo(() => governanceTasks.slice(0, 5), [governanceTasks]);
 
   const openCreate = () => {
     const rootDept = findRootDept(allDeptTree);
@@ -572,7 +609,7 @@ const DeptList: React.FC = () => {
       if (isArcoFormValidationError(error)) {
         return;
       }
-      throw error;
+      return;
     }
     const payload: DeptPayload = {
       ...values,
@@ -596,6 +633,8 @@ const DeptList: React.FC = () => {
       if (activeTab === 'org') {
         await loadOrgData({ silent: true });
       }
+    } catch {
+      message.error(t('common.actionFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -628,6 +667,7 @@ const DeptList: React.FC = () => {
   const search = () => {
     const values = queryForm.getFieldsValue();
     setSelectedRowKeys([]);
+    setTablePagination((current) => ({ ...current, current: 1 }));
     setQuery({
       ...query,
       ...values,
@@ -644,12 +684,14 @@ const DeptList: React.FC = () => {
       governance,
     });
     setSelectedRowKeys([]);
+    setTablePagination((current) => ({ ...current, current: 1 }));
     setQuery(nextQuery);
   };
 
   const reset = () => {
     queryForm.setFieldsValue(emptyQuery);
     setSelectedRowKeys([]);
+    setTablePagination({ current: 1, pageSize: 10 });
     setQuery(emptyQuery);
   };
 
@@ -670,8 +712,12 @@ const DeptList: React.FC = () => {
     sortOrder: query.sortField === field ? toArcoSortOrder(query.sortOrder) : undefined,
   });
 
-  const handleTableChange: TableProps<DeptNode>['onChange'] = (_pagination, sorter) => {
+  const handleTableChange: TableProps<DeptNode>['onChange'] = (pagination, sorter) => {
     const currentSorter = Array.isArray(sorter) ? sorter[0] : (sorter as SorterInfo | undefined);
+    setTablePagination({
+      current: pagination.current || 1,
+      pageSize: pagination.pageSize || tablePagination.pageSize,
+    });
     setSelectedRowKeys([]);
     setQuery({
       ...query,
@@ -778,47 +824,38 @@ const DeptList: React.FC = () => {
       width: TABLE_ACTION_COLUMN_WIDTH.medium,
       fixed: 'right',
       render: (_: unknown, row: DeptNode) => (
-        <Space size={4} className="system-list__actions">
-          {canCreatePost && !row.isRoot && row.isNoPost ? (
-            <Button
-              type="text"
-              size="small"
-              icon={<IconPlus />}
-              onClick={() => openCreatePostForDept(row)}
-            >
-              {t('system.dept.action.createPost')}
-            </Button>
-          ) : null}
-          {canEdit ? (
-            <Button
-              type="text"
-              size="small"
-              icon={<IconEdit />}
-              onClick={() => {
+        <SystemRowActions
+          actions={[
+            {
+              key: 'create-post',
+              text: t('system.dept.action.createPost'),
+              icon: <IconPlus />,
+              onClick: () => openCreatePostForDept(row),
+              hidden: !canCreatePost || row.isRoot || !row.isNoPost,
+            },
+            {
+              key: 'edit',
+              text: t('common.edit'),
+              icon: <IconEdit />,
+              onClick: () => {
                 void openEdit(row);
-              }}
-            >
-              {t('common.edit')}
-            </Button>
-          ) : null}
-          {canDelete ? (
-            <Popconfirm
-              title={t('system.dept.deleteConfirm')}
-              onOk={() => removeDept(row.id)}
-              disabled={row.isRoot}
-            >
-              <Button
-                type="text"
-                size="small"
-                status="danger"
-                icon={<IconDelete />}
-                disabled={row.isRoot}
-              >
-                {t('common.delete')}
-              </Button>
-            </Popconfirm>
-          ) : null}
-        </Space>
+              },
+              hidden: !canEdit,
+            },
+            {
+              key: 'delete',
+              text: t('common.delete'),
+              icon: <IconDelete />,
+              disabled: row.isRoot,
+              hidden: !canDelete,
+              status: 'danger',
+              confirm: {
+                title: t('system.dept.deleteConfirm'),
+                onOk: () => removeDept(row.id),
+              },
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -988,7 +1025,7 @@ const DeptList: React.FC = () => {
       if (isArcoFormValidationError(error)) {
         return;
       }
-      throw error;
+      return;
     }
     const items = batchLeaderTasks.map((task) => ({
       deptId: task.deptId,
@@ -1016,55 +1053,6 @@ const DeptList: React.FC = () => {
   const batchActionDisabled = !canBatchUpdate || selectedRowKeys.length === 0;
   const batchDeleteDisabled = !canBatchDelete || selectedRowKeys.length === 0;
   const batchLeaderDisabled = !canEdit || selectedRowKeys.length === 0;
-
-  const governanceTaskColumns: ColumnProps<DeptGovernanceTask>[] = [
-    { title: t('system.dept.task.scope'), dataIndex: 'governanceScopeLabel', width: 110 },
-    { title: t('system.dept.task.tag'), dataIndex: 'governanceTagLabel', width: 180 },
-    {
-      title: t('system.dept.task.resource'),
-      width: 220,
-      render: (_: unknown, row: DeptGovernanceTask) =>
-        row.governanceScope === 'post'
-          ? `${row.postName || '-'} / ${row.deptName || '-'}`
-          : row.deptName,
-    },
-    withTableColumnPriority(
-      { title: t('system.dept.task.blockedBy'), dataIndex: 'governanceBlockedByLabel', width: 170 },
-      'medium',
-    ),
-    withTableColumnPriority(
-      { title: t('system.dept.task.action'), dataIndex: 'governanceActionLabel', width: 220 },
-      'low',
-    ),
-    withTableColumnPriority(
-      { title: t('system.dept.task.deptPath'), dataIndex: 'deptPath', width: 240 },
-      'low',
-    ),
-    withTableColumnPriority(
-      {
-        title: t('system.dept.task.relatedUserCount'),
-        dataIndex: 'relatedUserCount',
-        width: 110,
-      },
-      'medium',
-    ),
-    {
-      title: t('common.action'),
-      width: TABLE_ACTION_COLUMN_WIDTH.compact,
-      render: (_: unknown, row: DeptGovernanceTask) => (
-        <Button
-          type="text"
-          size="small"
-          icon={<IconEye />}
-          onClick={() => {
-            void locateGovernanceTask(row);
-          }}
-        >
-          {t('system.dept.task.locate')}
-        </Button>
-      ),
-    },
-  ];
 
   const openCreatePostForDept = (dept: DeptNode | null) => {
     if (!dept || dept.isRoot) {
@@ -1094,7 +1082,7 @@ const DeptList: React.FC = () => {
       if (isArcoFormValidationError(error)) {
         return;
       }
-      throw error;
+      return;
     }
     setPostSubmitting(true);
     try {
@@ -1137,208 +1125,88 @@ const DeptList: React.FC = () => {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={t('system.menu.dept')}
-        extra={
-          activeTab === 'manage' ? (
-            <ListHeaderActions
-              className="dept-list-page__header-actions"
-              utility={
-                <>
-                  <GovernanceRailToggleButton
-                    expanded={governanceRail.expanded}
-                    onToggle={governanceRail.toggle}
-                  >
-                    {t('system.dept.governance')}
-                  </GovernanceRailToggleButton>
-                  <Button
-                    size="small"
-                    icon={<IconDownload />}
-                    onClick={() => {
-                      void handleExport();
-                    }}
-                    disabled={!canExport}
-                  >
-                    {t('common.export')}
-                  </Button>
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      void handleDownloadTemplate();
-                    }}
-                    disabled={!canImport}
-                  >
-                    {t('common.downloadTemplate')}
-                  </Button>
-                  <ImportCsvButton
-                    disabled={!canImport}
-                    onSelect={(file) => {
-                      void handleImport(file);
-                    }}
-                  >
-                    {t('common.import')}
-                  </ImportCsvButton>
-                </>
-              }
-              primary={
-                <Button
-                  size="small"
-                  type="primary"
-                  icon={<IconPlus />}
-                  onClick={openCreate}
-                  disabled={!canCreate}
-                >
-                  {t('common.add')}
-                </Button>
-              }
-            />
-          ) : (
-            <PageActions>
-              <Button
-                size="small"
-                onClick={() => {
-                  void loadOrgData();
-                }}
-                loading={orgLoading}
-              >
-                {t('common.refresh')}
-              </Button>
-            </PageActions>
-          )
-        }
-      />
       <Space
         direction="vertical"
         size={12}
         className="system-page-template governance-workbench dept-list-page"
       >
         {overview ? (
-          <Card className="page-panel system-page-hero system-list__hero">
-            <div className="system-page-hero__top">
-              <div className="system-page-hero__copy">
-                <span className="system-page-hero__eyebrow">{t('system.dept.hero.eyebrow')}</span>
-                <Typography.Title heading={5} className="system-page-hero__title">
-                  {t('system.dept.hero.title')}
-                </Typography.Title>
-              </div>
-            </div>
-            <div className="system-page-kpi-grid">
-              {heroStats.map((item) => (
-                <div
-                  key={item.key}
-                  className="system-page-kpi"
-                  role={
-                    item.key === 'leaderless' ||
-                    item.key === 'noPost' ||
-                    item.key === 'empty' ||
-                    item.key === 'issues'
-                      ? 'button'
-                      : undefined
-                  }
-                  tabIndex={
-                    item.key === 'leaderless' ||
-                    item.key === 'noPost' ||
-                    item.key === 'empty' ||
-                    item.key === 'issues'
-                      ? 0
-                      : undefined
-                  }
-                  onClick={
-                    item.key === 'leaderless'
-                      ? () => applyGovernanceFilter('leaderless')
-                      : item.key === 'noPost'
-                        ? () => applyGovernanceFilter('no-post')
-                        : item.key === 'empty'
-                          ? () => applyGovernanceFilter('empty')
-                          : item.key === 'issues'
-                            ? () => applyGovernanceFilter(undefined)
-                            : undefined
-                  }
-                  onKeyDown={
-                    item.key === 'leaderless' ||
-                    item.key === 'noPost' ||
-                    item.key === 'empty' ||
-                    item.key === 'issues'
-                      ? (event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            if (item.key === 'leaderless') {
-                              applyGovernanceFilter('leaderless');
-                            } else if (item.key === 'noPost') {
-                              applyGovernanceFilter('no-post');
-                            } else if (item.key === 'empty') {
-                              applyGovernanceFilter('empty');
-                            } else {
-                              applyGovernanceFilter(undefined);
-                            }
-                          }
+          <GovernanceSummaryBar
+            eyebrow={t('system.dept.hero.eyebrow')}
+            title={t('system.dept.hero.title')}
+            description={t('system.dept.hero.desc')}
+            metrics={heroStats.slice(0, 4).map((item) => ({
+              key: item.key,
+              label: item.label,
+              value: item.value,
+              description: item.hint,
+              role:
+                item.key === 'leaderless' ||
+                item.key === 'noPost' ||
+                item.key === 'empty' ||
+                item.key === 'issues'
+                  ? 'button'
+                  : undefined,
+              tabIndex:
+                item.key === 'leaderless' ||
+                item.key === 'noPost' ||
+                item.key === 'empty' ||
+                item.key === 'issues'
+                  ? 0
+                  : undefined,
+              onClick:
+                item.key === 'leaderless'
+                  ? () => applyGovernanceFilter('leaderless')
+                  : item.key === 'noPost'
+                    ? () => applyGovernanceFilter('no-post')
+                    : item.key === 'empty'
+                      ? () => applyGovernanceFilter('empty')
+                      : item.key === 'issues'
+                        ? () => applyGovernanceFilter(undefined)
+                        : undefined,
+              onKeyDown:
+                item.key === 'leaderless' ||
+                item.key === 'noPost' ||
+                item.key === 'empty' ||
+                item.key === 'issues'
+                  ? (event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        if (item.key === 'leaderless') {
+                          applyGovernanceFilter('leaderless');
+                        } else if (item.key === 'noPost') {
+                          applyGovernanceFilter('no-post');
+                        } else if (item.key === 'empty') {
+                          applyGovernanceFilter('empty');
+                        } else {
+                          applyGovernanceFilter(undefined);
                         }
-                      : undefined
-                  }
-                >
-                  <span className="system-page-kpi__label">{item.label}</span>
-                  <span className="system-page-kpi__value">{item.value}</span>
-                  <span className="system-page-kpi__hint">{item.hint}</span>
-                </div>
-              ))}
-            </div>
-          </Card>
+                      }
+                    }
+                  : undefined,
+            }))}
+            action={
+              <GovernanceRailToggleButton
+                expanded={governanceRail.expanded}
+                onToggle={governanceRail.toggle}
+              >
+                {t('system.dept.governance')}
+              </GovernanceRailToggleButton>
+            }
+          />
         ) : null}
         <Tabs activeTab={activeTab} onChange={setActiveTab} className="system-dept-tabs">
           <Tabs.TabPane key="manage" title={t('system.dept.manageTab')}>
             <div className="page-main-column dept-list-page__layout">
-              <Card
-                className="page-panel system-list__table-card dept-governance-task-card dept-list-page__task-card"
-                title={t('system.dept.task.title')}
-                extra={
-                  <Space>
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        void loadData(query);
-                      }}
-                      loading={governanceLoading}
-                    >
-                      {t('common.refresh')}
-                    </Button>
-                    <Button
-                      size="small"
-                      icon={<IconDownload />}
-                      onClick={() => {
-                        void handleExportGovernanceTasks();
-                      }}
-                      disabled={!canExport}
-                    >
-                      {t('system.dept.task.export')}
-                    </Button>
-                  </Space>
-                }
-              >
-                <div className="dept-governance-task-card__intro">
-                  <Typography.Text className="governance-workbench__task-desc">
-                    {t('system.dept.task.hint')}
-                  </Typography.Text>
-                </div>
-                <AppTable<DeptGovernanceTask>
-                  className="system-list__table"
-                  data={governanceTasks}
-                  columns={governanceTaskColumns}
-                  rowKey="taskKey"
-                  loading={governanceLoading}
-                  scroll={{ x: 'max-content' }}
-                  emptyText={t('common.noData')}
-                  pagination={false}
-                />
-              </Card>
               <FilterPanel>
                 <Form form={queryForm} layout="vertical" onSubmit={() => search()}>
                   <Row gutter={16}>
-                    <Col xs={24} md={12} lg={8}>
+                    <Col xs={24} md={12} lg={6}>
                       <FormItem label={t('system.dept.deptName')} field="deptName">
                         <Input onPressEnter={() => queryForm.submit()} />
                       </FormItem>
                     </Col>
-                    <Col xs={24} md={12} lg={8}>
+                    <Col xs={24} md={12} lg={6}>
                       <FormItem label={t('system.dept.status')} field="status">
                         <Select
                           allowClear
@@ -1349,7 +1217,7 @@ const DeptList: React.FC = () => {
                         />
                       </FormItem>
                     </Col>
-                    <Col xs={24} md={12} lg={8}>
+                    <Col xs={24} md={12} lg={6}>
                       <FormItem label={t('system.dept.governance')} field="governance">
                         <Select
                           allowClear
@@ -1361,7 +1229,7 @@ const DeptList: React.FC = () => {
                         />
                       </FormItem>
                     </Col>
-                    <Col xs={24} md={24} lg={8}>
+                    <Col xs={24} md={12} lg={6}>
                       <FormItem className="filter-panel__action-item">
                         <Space size={6}>
                           <Button
@@ -1388,6 +1256,53 @@ const DeptList: React.FC = () => {
                   clearText={t('common.clearSelection')}
                   clearSuccessText={t('common.clearSelectionSuccess')}
                   onClear={() => setSelectedRowKeys([])}
+                  prefixActions={
+                    <ListHeaderActions
+                      className="dept-list-page__header-actions"
+                      utility={
+                        <>
+                          <Button
+                            size="small"
+                            icon={<IconDownload />}
+                            onClick={() => {
+                              void handleExport();
+                            }}
+                            disabled={!canExport}
+                          >
+                            {t('common.export')}
+                          </Button>
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              void handleDownloadTemplate();
+                            }}
+                            disabled={!canImport}
+                          >
+                            {t('common.downloadTemplate')}
+                          </Button>
+                          <ImportCsvButton
+                            disabled={!canImport}
+                            onSelect={(file) => {
+                              void handleImport(file);
+                            }}
+                          >
+                            {t('common.import')}
+                          </ImportCsvButton>
+                        </>
+                      }
+                      primary={
+                        <Button
+                          size="small"
+                          type="primary"
+                          icon={<IconPlus />}
+                          onClick={openCreate}
+                          disabled={!canCreate}
+                        >
+                          {t('common.add')}
+                        </Button>
+                      }
+                    />
+                  }
                   hint={
                     !canBatchUpdate || !canBatchDelete || !canEdit
                       ? t('common.batchActionPermissionHint')
@@ -1444,7 +1359,7 @@ const DeptList: React.FC = () => {
                         >
                           <Button
                             size="small"
-                            status={batchDeleteDisabled ? undefined : 'danger'}
+                            status="danger"
                             icon={<IconDelete />}
                             disabled={batchDeleteDisabled}
                           >
@@ -1486,6 +1401,11 @@ const DeptList: React.FC = () => {
                     }}
                     onChange={handleTableChange}
                     emptyText={t('common.noData')}
+                    pagination={buildStandardPagination(t, {
+                      current: tablePagination.current,
+                      pageSize: tablePagination.pageSize,
+                      total: data.length,
+                    })}
                   />
                 ) : null}
               </Card>
@@ -1529,7 +1449,94 @@ const DeptList: React.FC = () => {
         noteTitle={t('system.dept.governance')}
         noteDescription={t('system.dept.governanceHint')}
       >
-        <GovernanceRailSummary items={governanceSummaryItems} />
+        <div className="dept-governance-rail">
+          <GovernanceRailSummary
+            items={[
+              ...governanceSummaryItems,
+              {
+                label: t('system.dept.task.title'),
+                value: governanceTasks.length,
+                description: t('system.dept.task.hint'),
+              },
+            ]}
+          />
+          <div className="dept-governance-rail__tasks">
+            <div className="dept-governance-rail__tasks-head">
+              <div className="dept-governance-rail__tasks-copy">
+                <Typography.Text className="dept-governance-rail__tasks-title">
+                  {t('system.dept.task.title')}
+                </Typography.Text>
+                <Typography.Text type="secondary" className="dept-governance-rail__tasks-hint">
+                  {t('system.dept.task.hint')}
+                </Typography.Text>
+              </div>
+              <Space wrap>
+                <Typography.Text type="secondary">
+                  {t('common.total', { count: governanceTasks.length })}
+                </Typography.Text>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    void loadData(query);
+                  }}
+                  loading={governanceLoading}
+                >
+                  {t('common.refresh')}
+                </Button>
+                <Button
+                  size="small"
+                  icon={<IconDownload />}
+                  onClick={() => {
+                    void handleExportGovernanceTasks();
+                  }}
+                  disabled={!canExport}
+                >
+                  {t('system.dept.task.export')}
+                </Button>
+              </Space>
+            </div>
+            {governanceTaskPreview.length > 0 ? (
+              <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                {governanceTaskPreview.map((task) => (
+                  <div key={task.taskKey} className="dept-governance-rail__task">
+                    <div className="dept-governance-rail__task-head">
+                      <Space wrap size={6}>
+                        <Tag color="arcoblue">{task.governanceScopeLabel}</Tag>
+                        <Tag color="orange">{task.governanceTagLabel}</Tag>
+                        {task.relatedUserCount > 0 ? (
+                          <Tag color="gold">
+                            {t('system.dept.task.relatedUserCount')}: {task.relatedUserCount}
+                          </Tag>
+                        ) : null}
+                      </Space>
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<IconEye />}
+                        onClick={() => {
+                          void locateGovernanceTask(task);
+                        }}
+                      >
+                        {t('system.dept.task.locate')}
+                      </Button>
+                    </div>
+                    <Typography.Text className="dept-governance-rail__task-resource">
+                      {task.governanceScope === 'post'
+                        ? `${task.postName || '-'} / ${task.deptName || '-'}`
+                        : task.deptName}
+                    </Typography.Text>
+                    <Typography.Text type="secondary" className="dept-governance-rail__task-meta">
+                      {task.governanceActionLabel}
+                      {task.governanceBlockedByLabel ? ` · ${task.governanceBlockedByLabel}` : ''}
+                    </Typography.Text>
+                  </div>
+                ))}
+              </Space>
+            ) : (
+              <Typography.Text type="secondary">{t('common.noData')}</Typography.Text>
+            )}
+          </div>
+        </div>
       </GovernanceInsightDrawer>
 
       <AppModal

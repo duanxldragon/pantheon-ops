@@ -428,7 +428,7 @@ func TestI18nService_FillMissingLocalesUsesBuiltinValue(t *testing.T) {
 	if err := db.Where("`key` = ? AND locale = ?", "system.menu.session", "en-US").First(&row).Error; err != nil {
 		t.Fatalf("load hydrated locale: %v", err)
 	}
-	if row.Value != "Session Management" {
+	if row.Value != "Sessions" {
 		t.Fatalf("expected builtin value, got %q", row.Value)
 	}
 }
@@ -485,7 +485,7 @@ func TestI18nService_HydrateBuiltinLocales(t *testing.T) {
 	if err := db.Where("`key` = ? AND locale = ?", "system.menu.session", "en-US").First(&enRow).Error; err != nil {
 		t.Fatalf("load en row: %v", err)
 	}
-	if enRow.Value != "Session Management" {
+	if enRow.Value != "Sessions" {
 		t.Fatalf("expected hydrated en value, got %q", enRow.Value)
 	}
 
@@ -493,7 +493,7 @@ func TestI18nService_HydrateBuiltinLocales(t *testing.T) {
 	if err := db.Where("`key` = ? AND locale = ?", "system.menu.session", "fr-FR").First(&frRow).Error; err != nil {
 		t.Fatalf("load fr row: %v", err)
 	}
-	if frRow.Value != "Gestion des sessions" {
+	if frRow.Value != "Sessions" {
 		t.Fatalf("expected created fr value, got %q", frRow.Value)
 	}
 }
@@ -584,7 +584,7 @@ func TestI18nService_MigrateNormalizesLocaleKeyDuplicates(t *testing.T) {
 	if len(deptRows) != 1 {
 		t.Fatalf("expected 1 dept row after normalization, got %d", len(deptRows))
 	}
-	if deptRows[0].Module != "system.org" || deptRows[0].Value != "Department Management" {
+	if deptRows[0].Module != "system.org" || deptRows[0].Value != "Departments" {
 		t.Fatalf("unexpected normalized dept row: %#v", deptRows[0])
 	}
 
@@ -595,7 +595,7 @@ func TestI18nService_MigrateNormalizesLocaleKeyDuplicates(t *testing.T) {
 	if len(deptJaRows) != 1 {
 		t.Fatalf("expected 1 ja-JP dept row after canonical ensure, got %d", len(deptJaRows))
 	}
-	if deptJaRows[0].Module != "system.org" || deptJaRows[0].Value != "部門管理" {
+	if deptJaRows[0].Module != "system.org" || deptJaRows[0].Value != "部門" {
 		t.Fatalf("unexpected ja-JP dept row: %#v", deptJaRows[0])
 	}
 
@@ -606,7 +606,7 @@ func TestI18nService_MigrateNormalizesLocaleKeyDuplicates(t *testing.T) {
 	if len(sessionRows) != 1 {
 		t.Fatalf("expected 1 session row after normalization, got %d", len(sessionRows))
 	}
-	if sessionRows[0].Module != "system.auth" || sessionRows[0].Value != "Session Management" {
+	if sessionRows[0].Module != "system.auth" || sessionRows[0].Value != "Sessions" {
 		t.Fatalf("unexpected normalized session row: %#v", sessionRows[0])
 	}
 }
@@ -619,7 +619,7 @@ func TestI18nService_CreateRejectsCrossModuleLocaleKeyDuplicate(t *testing.T) {
 	}
 
 	if err := service.BatchInsert([]SystemI18n{
-		{Module: "system.iam", Group: "menu", Key: "system.menu.access", Locale: "en-US", Value: "Access Control"},
+		{Module: "system.iam", Group: "menu", Key: "system.menu.access", Locale: "en-US", Value: "Access & Permissions"},
 	}); err != nil {
 		t.Fatalf("seed initial row: %v", err)
 	}
@@ -696,7 +696,7 @@ func TestI18nService_ImportBlocksCrossModuleOwnershipConflict(t *testing.T) {
 	}
 
 	if err := service.BatchInsert([]SystemI18n{
-		{Module: "system.iam", Group: "menu", Key: "system.menu.access", Locale: "en-US", Value: "Access Control"},
+		{Module: "system.iam", Group: "menu", Key: "system.menu.access", Locale: "en-US", Value: "Access & Permissions"},
 	}); err != nil {
 		t.Fatalf("seed initial row: %v", err)
 	}
@@ -722,7 +722,7 @@ func TestI18nService_ImportBlocksCrossModuleOwnershipConflict(t *testing.T) {
 	if err := db.Where("locale = ? AND `key` = ?", "en-US", "system.menu.access").First(&row).Error; err != nil {
 		t.Fatalf("load existing row: %v", err)
 	}
-	if row.Module != "system.iam" || row.Value != "Access Control" {
+	if row.Module != "system.iam" || row.Value != "Access & Permissions" {
 		t.Fatalf("expected existing row unchanged, got %#v", row)
 	}
 }

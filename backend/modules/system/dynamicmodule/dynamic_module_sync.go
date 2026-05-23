@@ -46,6 +46,9 @@ func (s *DynamicModuleService) syncMenuBackedModuleRegistrations() error {
 	if !s.db.Migrator().HasTable("system_menu") {
 		return nil
 	}
+	if err := s.normalizeStaticModuleAliases(); err != nil {
+		return err
+	}
 
 	type menuModuleRow struct {
 		Module string
@@ -62,7 +65,7 @@ func (s *DynamicModuleService) syncMenuBackedModuleRegistrations() error {
 
 	now := time.Now().Format(time.RFC3339)
 	for _, row := range rows {
-		moduleName := strings.TrimSpace(row.Module)
+		moduleName := normalizeStaticModuleName(row.Module)
 		if moduleName == "" {
 			continue
 		}
@@ -107,6 +110,48 @@ func (s *DynamicModuleService) syncMenuBackedModuleRegistrations() error {
 					return err
 				}
 			}
+		}
+	}
+
+	return nil
+}
+
+func (s *DynamicModuleService) normalizeStaticModuleAliases() error {
+	if s.db == nil {
+		return nil
+	}
+
+	for legacyName, canonicalName := range map[string]string{
+		"platform.lowcode": "system.lowcode",
+	} {
+		if err := s.db.Table("system_menu").Where("module = ?", legacyName).Update("module", canonicalName).Error; err != nil {
+			return err
+		}
+		if s.db.Migrator().HasTable("system_i18n") {
+			if err := s.db.Table("system_i18n").Where("module = ?", legacyName).Update("module", canonicalName).Error; err != nil {
+				return err
+			}
+		}
+
+		var canonicalCount int64
+		if err := s.db.Model(&ModuleRegistration{}).Where("name = ?", canonicalName).Count(&canonicalCount).Error; err != nil {
+			return err
+		}
+		if canonicalCount > 0 {
+			if err := s.db.Where("name = ? AND table_name = ''", legacyName).Delete(&ModuleRegistration{}).Error; err != nil {
+				return err
+			}
+			continue
+		}
+
+		if err := s.db.Model(&ModuleRegistration{}).
+			Where("name = ? AND table_name = ''", legacyName).
+			Updates(map[string]any{
+				"name":   canonicalName,
+				"scope":  inferModuleScope(canonicalName),
+				"source": inferStaticModuleSource(canonicalName),
+			}).Error; err != nil {
+			return err
 		}
 	}
 
@@ -186,6 +231,7 @@ func (s *DynamicModuleService) syncGeneratedModuleRegistrations() (int, error) {
 			Summary        string `json:"summary"`
 			SourceMode     string `json:"sourceMode"`
 			SourceTable    string `json:"sourceTable"`
+			AutoRecycle    bool   `json:"autoRecycle"`
 		} `json:"metadata"`
 		Model struct {
 			TableName string `json:"tableName"`
@@ -239,6 +285,7 @@ func (s *DynamicModuleService) syncGeneratedModuleRegistrations() (int, error) {
 			BoundedContext: strings.TrimSpace(schema.Metadata.BoundedContext),
 			Summary:        strings.TrimSpace(schema.Metadata.Summary),
 			SourceTable:    strings.TrimSpace(schema.Metadata.SourceTable),
+			AutoRecycle:    schema.Metadata.AutoRecycle,
 			ModelTableName: tableName,
 			Status:         ModuleStatusActive,
 			InstalledAt:    now,
@@ -260,6 +307,7 @@ func (s *DynamicModuleService) syncGeneratedModuleRegistrations() (int, error) {
 				"bounded_context": registration.BoundedContext,
 				"summary":         registration.Summary,
 				"source_table":    registration.SourceTable,
+				"auto_recycle":    registration.AutoRecycle,
 				"table_name":      tableName,
 			}
 			if existing.Status != ModuleStatusUninstalled {

@@ -42,6 +42,7 @@ type ModuleRegistration struct {
 	BoundedContext         string `gorm:"size:128;column:bounded_context" json:"boundedContext"`
 	Summary                string `gorm:"size:255" json:"summary"`
 	SourceTable            string `gorm:"size:128;column:source_table" json:"sourceTable"`
+	AutoRecycle            bool   `gorm:"column:auto_recycle;default:false" json:"autoRecycle"`
 	ModelTableName         string `gorm:"size:128;column:table_name" json:"tableName"`
 	Status                 int    `gorm:"default:1" json:"status"` // 1:已激活, 2:已卸载, 3:待激活, 4:失败
 	InstalledAt            string `json:"installedAt"`
@@ -62,6 +63,7 @@ type ModuleRegistrationResp struct {
 	BoundedContext         string `json:"boundedContext"`
 	Summary                string `json:"summary"`
 	SourceTable            string `json:"sourceTable"`
+	AutoRecycle            bool   `json:"autoRecycle"`
 	ModelTableName         string `json:"tableName"`
 	Status                 int    `json:"status"`
 	InstalledAt            string `json:"installedAt"`
@@ -83,6 +85,7 @@ func toModuleRegistrationResp(module ModuleRegistration) ModuleRegistrationResp 
 		BoundedContext:         module.BoundedContext,
 		Summary:                module.Summary,
 		SourceTable:            module.SourceTable,
+		AutoRecycle:            module.AutoRecycle,
 		ModelTableName:         module.ModelTableName,
 		Status:                 module.Status,
 		InstalledAt:            module.InstalledAt,
@@ -135,6 +138,14 @@ type RegistryRepairSummary struct {
 	MarkedUninstalledModules  int `json:"markedUninstalledModules"`
 	ArtifactReadyModules      int `json:"artifactReadyModules"`
 	PreservedUninstalledCount int `json:"preservedUninstalledCount"`
+}
+
+type ActivationAuditSummary struct {
+	CheckedModules       int `json:"checkedModules"`
+	ActivatedModules     int `json:"activatedModules"`
+	PendingModules       int `json:"pendingModules"`
+	RuntimeReadyModules  int `json:"runtimeReadyModules"`
+	FrontendReadyModules int `json:"frontendReadyModules"`
 }
 
 // TableName 指定表名
@@ -213,7 +224,10 @@ func (s *DynamicModuleService) RegisterGeneratedModule(req *scaffold.RegisterGen
 		return nil, nil, nil, err
 	}
 
-	writtenFiles, err := scaffold.WriteGeneratedModuleSource(s.workspaceRoot, req)
+	serverReq := *req
+	serverReq.Files = nil
+
+	writtenFiles, err := scaffold.WriteGeneratedModuleSource(s.workspaceRoot, &serverReq)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -227,6 +241,7 @@ func (s *DynamicModuleService) RegisterGeneratedModule(req *scaffold.RegisterGen
 	existing.BoundedContext = strings.TrimSpace(req.Schema.Metadata.BoundedContext)
 	existing.Summary = strings.TrimSpace(req.Schema.Metadata.Summary)
 	existing.SourceTable = strings.TrimSpace(req.Schema.Metadata.SourceTable)
+	existing.AutoRecycle = req.Schema.Metadata.AutoRecycle
 	existing.ModelTableName = req.Schema.Model.TableName
 	existing.Status = ModuleStatusPendingActivation
 	existing.InstalledAt = now
@@ -250,7 +265,7 @@ func (s *DynamicModuleService) RegisterGeneratedModule(req *scaffold.RegisterGen
 	}
 
 	existing.BuiltIn = false
-	summary := s.buildGeneratedModuleSummary(req, writtenFiles)
+	summary := s.buildGeneratedModuleSummary(&serverReq, writtenFiles)
 	if err := s.persistModuleDiagnostics(&existing, ModuleStatusPendingActivation, "", summary.Verifications); err != nil {
 		return nil, nil, nil, err
 	}
@@ -299,6 +314,7 @@ func (s *DynamicModuleService) RegisterManagedModule(moduleName string) (*Module
 	registration.BoundedContext = strings.TrimSpace(schema.Metadata.BoundedContext)
 	registration.Summary = strings.TrimSpace(schema.Metadata.Summary)
 	registration.SourceTable = strings.TrimSpace(schema.Metadata.SourceTable)
+	registration.AutoRecycle = schema.Metadata.AutoRecycle
 	registration.ModelTableName = strings.TrimSpace(schema.Model.TableName)
 	registration.Status = ModuleStatusPendingActivation
 	registration.InstalledAt = time.Now().Format(time.RFC3339)
@@ -317,4 +333,15 @@ func (s *DynamicModuleService) RegisterManagedModule(moduleName string) (*Module
 
 	registration.BuiltIn = false
 	return &registration, nil
+}
+
+func (s *DynamicModuleService) GetManagedModuleSchema(moduleName string) (*scaffold.ModuleSchema, error) {
+	if strings.TrimSpace(s.workspaceRoot) == "" {
+		return nil, errors.New("workspace.not_found")
+	}
+	scope, shortName, err := splitModuleKey(moduleName)
+	if err != nil {
+		return nil, err
+	}
+	return s.loadGeneratedModuleSchema(scope, shortName)
 }

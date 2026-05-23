@@ -15,7 +15,6 @@ import {
   Typography,
 } from '@arco-design/web-react';
 import { message } from '../../../components/feedback/message';
-import type { PaginationProps } from '@arco-design/web-react/es/Pagination/interface';
 import type {
   ColumnProps,
   SorterInfo,
@@ -40,6 +39,10 @@ import { formatDateTime } from '../../../core/format/dateTime';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
 import { invalidateRouteWarmDataMany, resolveRouteWarmData } from '../../../core/router/prefetch';
 import { usePermission } from '../../../hooks/usePermission';
+import {
+  getVisibleSelectedRowKeys,
+  mergeCrossPageSelection,
+} from '../../../components/table/crossPageSelection';
 import { getMenuTree, type MenuNode } from '../menu/api';
 import {
   batchDeleteRoles,
@@ -56,20 +59,22 @@ import {
 import {
   AppModal,
   AppTable,
+  buildStandardPagination,
   FilterPanel,
   FormSection,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
+  GovernanceSummaryBar,
   ListHeaderActions,
   PageContainer,
   PageEmpty,
   PageError,
-  PageHeader,
   PageLoading,
   PageNetworkError,
   PageServerError,
   SubmitBar,
+  SystemRowActions,
   TableBatchActionBar,
   PermissionAction,
   TABLE_ACTION_COLUMN_WIDTH,
@@ -77,7 +82,7 @@ import {
   useGovernanceRail,
   withTableColumnPriority,
 } from '../../../components';
-import '../../../core/styles/list-page.css';
+import '../list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -349,8 +354,7 @@ const RoleList: React.FC = () => {
   );
 
   const visibleSelectedRowKeys = useMemo(() => {
-    const visibleKeys = new Set(data.map((item) => item.id));
-    return selectedRowKeys.filter((key) => visibleKeys.has(Number(key)));
+    return getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.id));
   }, [data, selectedRowKeys]);
 
   const permissionCatalog = useMemo(() => {
@@ -418,10 +422,8 @@ const RoleList: React.FC = () => {
   };
 
   const authorizationTitle = (label: string, count: number, color: string) => (
-    <Space className="role-authorization-card-title" size={8}>
-      <Typography.Text className="role-authorization-card-title__label font-semibold">
-        {label}
-      </Typography.Text>
+    <Space size={8}>
+      <Typography.Text className="font-semibold">{label}</Typography.Text>
       <Tag color={color}>{t('system.role.selectedCount', { count })}</Tag>
     </Space>
   );
@@ -581,7 +583,7 @@ const RoleList: React.FC = () => {
       if (isArcoFormValidationError(error)) {
         return;
       }
-      throw error;
+      return;
     }
     const payload: RolePayload = {
       roleName: values.roleName,
@@ -608,6 +610,8 @@ const RoleList: React.FC = () => {
       publishRefresh('system:role:changed', 'system/role');
       setVisible(false);
       await loadData(query, { silent: true });
+    } catch {
+      message.error(t('common.actionFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -708,7 +712,11 @@ const RoleList: React.FC = () => {
             ? 'desc'
             : undefined,
     };
-    setSelectedRowKeys([]);
+    const sortChanged =
+      nextQuery.sortField !== query.sortField || nextQuery.sortOrder !== query.sortOrder;
+    if (sortChanged) {
+      setSelectedRowKeys([]);
+    }
     setQuery(nextQuery);
   };
 
@@ -763,30 +771,29 @@ const RoleList: React.FC = () => {
       width: TABLE_ACTION_COLUMN_WIDTH.compact,
       fixed: 'right',
       render: (_: unknown, row: RoleRow) => (
-        <Space size={4} className="system-list__actions">
-          {canEdit ? (
-            <Button type="text" size="small" icon={<IconEdit />} onClick={() => openEdit(row)}>
-              {t('common.edit')}
-            </Button>
-          ) : null}
-          {canDelete ? (
-            <Popconfirm
-              title={t('common.deleteConfirm')}
-              onOk={() => removeRole(row)}
-              disabled={row.roleKey === 'admin'}
-            >
-              <Button
-                type="text"
-                size="small"
-                status="danger"
-                icon={<IconDelete />}
-                disabled={row.roleKey === 'admin'}
-              >
-                {t('common.delete')}
-              </Button>
-            </Popconfirm>
-          ) : null}
-        </Space>
+        <SystemRowActions
+          actions={[
+            {
+              key: 'edit',
+              text: t('common.edit'),
+              icon: <IconEdit />,
+              onClick: () => openEdit(row),
+              hidden: !canEdit,
+            },
+            {
+              key: 'delete',
+              text: t('common.delete'),
+              icon: <IconDelete />,
+              disabled: row.roleKey === 'admin',
+              hidden: !canDelete,
+              status: 'danger',
+              confirm: {
+                title: t('common.deleteConfirm'),
+                onOk: () => removeRole(row),
+              },
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -884,57 +891,25 @@ const RoleList: React.FC = () => {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={t('system.menu.role')}
-        extra={
-          <ListHeaderActions
-            utility={
-              <>
-                <GovernanceRailToggleButton
-                  expanded={governanceRail.expanded}
-                  onToggle={governanceRail.toggle}
-                >
-                  {t('system.role.hero.summaryTitle')}
-                </GovernanceRailToggleButton>
-                <Button
-                  icon={<IconDownload />}
-                  onClick={() => {
-                    void handleExport();
-                  }}
-                  disabled={!canExport}
-                >
-                  {t('common.export')}
-                </Button>
-              </>
-            }
-            primary={
-              <Button type="primary" icon={<IconPlus />} onClick={openCreate} disabled={!canCreate}>
-                {t('common.add')}
-              </Button>
-            }
-          />
-        }
-      />
       <Space direction="vertical" size={16} className="system-page-template">
-        <Card className="page-panel system-page-hero system-list__hero">
-          <div className="system-page-hero__top">
-            <div className="system-page-hero__copy">
-              <span className="system-page-hero__eyebrow">{t('system.role.hero.eyebrow')}</span>
-              <Typography.Title heading={5} className="system-page-hero__title">
-                {t('system.role.hero.title')}
-              </Typography.Title>
-            </div>
-          </div>
-          <div className="system-page-kpi-grid">
-            {heroStats.map((item) => (
-              <div key={item.key} className="system-page-kpi">
-                <span className="system-page-kpi__label">{item.label}</span>
-                <span className="system-page-kpi__value">{item.value}</span>
-                <span className="system-page-kpi__hint">{item.hint}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
+        <GovernanceSummaryBar
+          eyebrow={t('system.role.hero.eyebrow')}
+          title={t('system.role.hero.title')}
+          description={t('system.role.hero.desc')}
+          metrics={heroStats.slice(0, 3).map((item) => ({
+            key: item.key,
+            label: item.label,
+            value: item.value,
+          }))}
+          action={
+            <GovernanceRailToggleButton
+              expanded={governanceRail.expanded}
+              onToggle={governanceRail.toggle}
+            >
+              {t('system.role.hero.summaryTitle')}
+            </GovernanceRailToggleButton>
+          }
+        />
         <>
           <FilterPanel>
             <Form form={queryForm} layout="vertical" onSubmit={() => search()}>
@@ -980,6 +955,31 @@ const RoleList: React.FC = () => {
               clearText={t('common.clearSelection')}
               clearSuccessText={t('common.clearSelectionSuccess')}
               onClear={() => setSelectedRowKeys([])}
+              prefixActions={
+                <ListHeaderActions
+                  utility={
+                    <Button
+                      icon={<IconDownload />}
+                      onClick={() => {
+                        void handleExport();
+                      }}
+                      disabled={!canExport}
+                    >
+                      {t('common.export')}
+                    </Button>
+                  }
+                  primary={
+                    <Button
+                      type="primary"
+                      icon={<IconPlus />}
+                      onClick={openCreate}
+                      disabled={!canCreate}
+                    >
+                      {t('common.add')}
+                    </Button>
+                  }
+                />
+              }
               hint={
                 !canBatchUpdate || !canBatchDelete
                   ? t('common.batchActionPermissionHint')
@@ -1032,7 +1032,7 @@ const RoleList: React.FC = () => {
                       disabled={batchDeleteDisabled}
                     >
                       <Button
-                        status={batchDeleteDisabled ? undefined : 'danger'}
+                        status="danger"
                         icon={<IconDelete />}
                         disabled={batchDeleteDisabled}
                       >
@@ -1056,28 +1056,25 @@ const RoleList: React.FC = () => {
                 rowKey="id"
                 loading={loading}
                 scroll={{ x: 'max-content' }}
-                rowSelection={{
-                  type: 'checkbox',
-                  selectedRowKeys: visibleSelectedRowKeys,
-                  fixed: true,
-                  checkboxProps: (row) => ({ disabled: row.roleKey === 'admin' }),
-                  onChange: (rowKeys) => setSelectedRowKeys(rowKeys),
-                }}
+                    rowSelection={{
+                      type: 'checkbox',
+                      selectedRowKeys: visibleSelectedRowKeys,
+                      checkCrossPage: true,
+                      preserveSelectedRowKeys: true,
+                      fixed: true,
+                      checkboxProps: (row) => ({ disabled: row.roleKey === 'admin' }),
+                      onChange: (rowKeys) =>
+                        setSelectedRowKeys((keys) =>
+                          mergeCrossPageSelection(keys, rowKeys, data.map((item) => item.id)),
+                        ),
+                    }}
                 onChange={handleTableChange}
                 emptyText={t('common.noData')}
-                pagination={
-                  {
-                    current: query.page || emptyQuery.page,
-                    pageSize: query.pageSize || emptyQuery.pageSize,
-                    total,
-                    showJumper: true,
-                    pageSizeChangeResetCurrent: false,
-                    sizeCanChange: true,
-                    sizeOptions: [10, 20, 50, 100],
-                    size: 'small',
-                    showTotal: (count: number) => t('common.total', { count }),
-                  } as PaginationProps
-                }
+                pagination={buildStandardPagination(t, {
+                  current: query.page || emptyQuery.page,
+                  pageSize: query.pageSize || emptyQuery.pageSize,
+                  total,
+                })}
               />
             ) : null}
           </Card>

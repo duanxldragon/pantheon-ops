@@ -11,6 +11,7 @@ import {
   Select,
   Space,
   Tag,
+  TreeSelect,
   Typography,
 } from '@arco-design/web-react';
 import { message } from '../../../components/feedback/message';
@@ -38,6 +39,7 @@ import type {
   SorterInfo,
   TableProps,
 } from '@arco-design/web-react/es/Table/interface';
+import type { TreeSelectDataType } from '@arco-design/web-react/es/TreeSelect/interface';
 import {
   createMenu,
   deleteMenu,
@@ -51,16 +53,17 @@ import { useMenuStore } from '../../../store/useMenuStore';
 import {
   AppModal,
   AppTable,
+  buildStandardPagination,
   FilterPanel,
   FormSection,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
+  GovernanceSummaryBar,
   PageActions,
   PageContainer,
   PageEmpty,
   PageError,
-  PageHeader,
   PageLoading,
   PageNetworkError,
   PageServerError,
@@ -75,7 +78,7 @@ import {
   isRegisteredComponentKey,
   listRegisteredComponentKeys,
 } from '../../../core/router/componentRegistry';
-import '../../../core/styles/list-page.css';
+import '../list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -89,8 +92,12 @@ interface FlatMenuNode {
   depth: number;
 }
 
-const emptyForm: MenuPayload = {
-  parentId: 0,
+type MenuFormValues = Omit<MenuPayload, 'parentId'> & {
+  parentId: string;
+};
+
+const emptyForm: MenuFormValues = {
+  parentId: '0',
   titleKey: '',
   path: '',
   component: '',
@@ -121,14 +128,16 @@ interface LoadDataOptions {
 
 const MenuList: React.FC = () => {
   const [data, setData] = useState<MenuNode[]>([]);
+  const [parentTree, setParentTree] = useState<MenuNode[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [submitting, setSubmitting] = useState(false);
   const [visible, setVisible] = useState(false);
   const [editing, setEditing] = useState<MenuNode | null>(null);
   const [viewMode, setViewMode] = useState<MenuViewMode>('table');
+  const [tablePagination, setTablePagination] = useState({ current: 1, pageSize: 10 });
   const [query, setQuery] = useState<MenuListQuery>(emptyQuery);
-  const [form] = Form.useForm<MenuPayload>();
+  const [form] = Form.useForm<MenuFormValues>();
   const [queryForm] = Form.useForm<MenuListQuery>();
   const { fetchMenuTree } = useMenuStore();
   const { t } = useTranslation();
@@ -180,6 +189,15 @@ const MenuList: React.FC = () => {
     [query],
   );
 
+  const loadParentTree = useCallback(async () => {
+    const rows = await getMenuTree({
+      scope: 'manage',
+      sortField: emptyQuery.sortField,
+      sortOrder: emptyQuery.sortOrder,
+    });
+    setParentTree(rows);
+  }, []);
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void loadData(query);
@@ -187,11 +205,26 @@ const MenuList: React.FC = () => {
     return () => window.clearTimeout(timer);
   }, [loadData, query]);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadParentTree().catch(() => undefined);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadParentTree]);
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(data.length / tablePagination.pageSize));
+    if (tablePagination.current > totalPages) {
+      setTablePagination((current) => ({ ...current, current: totalPages }));
+    }
+  }, [data.length, tablePagination.current, tablePagination.pageSize]);
+
   useRefreshSubscription('system:menu:changed', (payload) => {
     if (payload.source === 'system/menu') {
       return;
     }
     void loadData(query);
+    void loadParentTree().catch(() => undefined);
     void fetchMenuTree({ force: true });
   });
 
@@ -201,10 +234,21 @@ const MenuList: React.FC = () => {
     setVisible(true);
   };
 
+  const openCreateChild = (row: MenuNode) => {
+    setEditing(null);
+    form.setFieldsValue({
+      ...emptyForm,
+      parentId: String(row.id),
+      module: row.module || emptyForm.module,
+      isVisible: row.isVisible,
+    });
+    setVisible(true);
+  };
+
   const openEdit = (row: MenuNode) => {
     setEditing(row);
     form.setFieldsValue({
-      parentId: row.parentId,
+      parentId: String(row.parentId),
       titleKey: row.titleKey,
       path: row.path,
       component: row.component,
@@ -231,22 +275,31 @@ const MenuList: React.FC = () => {
       if (isArcoFormValidationError(error)) {
         return;
       }
-      throw error;
+      return;
     }
     setSubmitting(true);
     try {
+      const normalizedValues: MenuPayload = {
+        ...values,
+        parentId: Number(values.parentId || 0),
+      };
       if (editing) {
-        await updateMenu(editing.id, values);
+        await updateMenu(editing.id, normalizedValues);
         message.success(t('common.updateSuccess'));
       } else {
-        await createMenu(values);
+        await createMenu(normalizedValues);
         message.success(t('common.createSuccess'));
       }
       invalidateMenuCaches();
       publishRefresh('system:menu:changed', 'system/menu');
       setVisible(false);
-      await loadData(query, { silent: true });
-      await fetchMenuTree({ force: true });
+      await Promise.all([
+        loadData(query, { silent: true }),
+        loadParentTree().catch(() => undefined),
+        fetchMenuTree({ force: true }),
+      ]);
+    } catch {
+      message.error(t('common.actionFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -257,12 +310,16 @@ const MenuList: React.FC = () => {
     message.success(t('common.deleteSuccess'));
     invalidateMenuCaches();
     publishRefresh('system:menu:changed', 'system/menu');
-    await loadData(query, { silent: true });
-    await fetchMenuTree({ force: true });
+    await Promise.all([
+      loadData(query, { silent: true }),
+      loadParentTree().catch(() => undefined),
+      fetchMenuTree({ force: true }),
+    ]);
   };
 
   const search = () => {
     const values = queryForm.getFieldsValue();
+    setTablePagination((current) => ({ ...current, current: 1 }));
     setQuery({
       ...query,
       ...values,
@@ -271,6 +328,7 @@ const MenuList: React.FC = () => {
 
   const reset = () => {
     queryForm.setFieldsValue(emptyQuery);
+    setTablePagination((current) => ({ ...current, current: 1 }));
     setQuery(emptyQuery);
   };
 
@@ -291,8 +349,12 @@ const MenuList: React.FC = () => {
     sortOrder: query.sortField === field ? toArcoSortOrder(query.sortOrder) : undefined,
   });
 
-  const handleTableChange: TableProps<MenuNode>['onChange'] = (_pagination, sorter) => {
+  const handleTableChange: TableProps<MenuNode>['onChange'] = (pagination, sorter) => {
     const currentSorter = Array.isArray(sorter) ? sorter[0] : (sorter as SorterInfo | undefined);
+    setTablePagination({
+      current: pagination.current || 1,
+      pageSize: pagination.pageSize || tablePagination.pageSize,
+    });
     const nextQuery: MenuListQuery = {
       ...query,
       sortField: currentSorter?.direction ? String(currentSorter.field) : emptyQuery.sortField,
@@ -349,8 +411,58 @@ const MenuList: React.FC = () => {
     return '-';
   };
 
+  const excludedParentIDs = useMemo(() => {
+    if (!editing) {
+      return new Set<number>();
+    }
+    const blocked = new Set<number>([editing.id]);
+    const collect = (nodes: MenuNode[]) => {
+      nodes.forEach((node) => {
+        blocked.add(node.id);
+        if (node.children?.length) {
+          collect(node.children);
+        }
+      });
+    };
+    collect(editing.children || []);
+    return blocked;
+  }, [editing]);
+
+  const parentOptions = useMemo<TreeSelectDataType[]>(() => {
+    const build = (nodes: MenuNode[]): TreeSelectDataType[] =>
+      nodes
+        .filter((node) => !excludedParentIDs.has(node.id))
+        .map((node) => {
+          const translatedTitle = t(node.titleKey, { defaultValue: node.titleKey });
+          return {
+            title: node.path ? `${translatedTitle} · ${node.path}` : translatedTitle,
+            key: String(node.id),
+            value: String(node.id),
+            children: node.children?.length ? build(node.children) : undefined,
+          };
+        });
+    return [
+      {
+        title: t('system.menu.root'),
+        key: '0',
+        value: '0',
+      },
+      ...build(parentTree),
+    ];
+  }, [excludedParentIDs, parentTree, t]);
+
   const renderMenuActions = (row: MenuNode) => (
-    <Space size={4} className="system-list__actions">
+    <Space size={4} className="system-list__actions menu-list-page__row-actions">
+      {canCreate && row.type !== 'F' ? (
+        <Button
+          type="text"
+          size="small"
+          icon={<IconPlus />}
+          onClick={() => openCreateChild(row)}
+        >
+          {t('system.menu.createChild')}
+        </Button>
+      ) : null}
       {canEdit ? (
         <Button type="text" size="small" icon={<IconEdit />} onClick={() => openEdit(row)}>
           {t('common.edit')}
@@ -561,7 +673,7 @@ const MenuList: React.FC = () => {
     ),
     {
       title: t('common.action'),
-      width: TABLE_ACTION_COLUMN_WIDTH.compact,
+      width: TABLE_ACTION_COLUMN_WIDTH.wide,
       fixed: 'right',
       render: (_: unknown, row: MenuNode) => renderMenuActions(row),
     },
@@ -657,68 +769,25 @@ const MenuList: React.FC = () => {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={t('system.menu.menu')}
-        extra={
-          <PageActions>
+      <Space direction="vertical" size={16} className="system-page-template">
+        <GovernanceSummaryBar
+          eyebrow={t('system.menu.hero.eyebrow')}
+          title={t('system.menu.hero.title')}
+          description={t('system.menu.hero.desc')}
+          metrics={heroStats.slice(0, 3).map((item) => ({
+            key: item.key,
+            label: item.label,
+            value: item.value,
+          }))}
+          action={
             <GovernanceRailToggleButton
               expanded={governanceRail.expanded}
               onToggle={governanceRail.toggle}
             >
               {t('system.menu.hero.summaryTitle')}
             </GovernanceRailToggleButton>
-            <Space size={4} className="menu-view-switcher">
-              <Button
-                size="small"
-                type={viewMode === 'table' ? 'primary' : 'secondary'}
-                icon={<IconList />}
-                onClick={() => setViewMode('table')}
-              >
-                {t('system.menu.view.table')}
-              </Button>
-              <Button
-                size="small"
-                type={viewMode === 'list' ? 'primary' : 'secondary'}
-                icon={<IconUnorderedList />}
-                onClick={() => setViewMode('list')}
-              >
-                {t('system.menu.view.list')}
-              </Button>
-              <Button
-                size="small"
-                type={viewMode === 'card' ? 'primary' : 'secondary'}
-                icon={<IconApps />}
-                onClick={() => setViewMode('card')}
-              >
-                {t('system.menu.view.card')}
-              </Button>
-            </Space>
-            <Button type="primary" icon={<IconPlus />} onClick={openCreate} disabled={!canCreate}>
-              {t('common.add')}
-            </Button>
-          </PageActions>
-        }
-      />
-      <Space direction="vertical" size={16} className="system-page-template">
-        <Card className="page-panel system-page-hero system-list__hero">
-          <div className="system-page-hero__top">
-            <div className="system-page-hero__copy">
-              <span className="system-page-hero__eyebrow">{t('system.menu.hero.eyebrow')}</span>
-              <Typography.Title heading={5} className="system-page-hero__title">
-                {t('system.menu.hero.title')}
-              </Typography.Title>
-            </div>
-          </div>
-          <div className="system-page-kpi-grid">
-            {heroStats.map((item) => (
-              <div key={item.key} className="system-page-kpi">
-                <span className="system-page-kpi__label">{item.label}</span>
-                <span className="system-page-kpi__value">{item.value}</span>
-                <span className="system-page-kpi__hint">{item.hint}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
+          }
+        />
         <>
           <FilterPanel>
             <Form form={queryForm} layout="vertical" onSubmit={() => search()}>
@@ -758,6 +827,39 @@ const MenuList: React.FC = () => {
             </Form>
           </FilterPanel>
           <Card className="page-panel system-list__table-card">
+            <div className="system-list__work-actions">
+              <PageActions>
+                <Space size={4} className="menu-view-switcher">
+                  <Button
+                    size="small"
+                    type={viewMode === 'table' ? 'primary' : 'secondary'}
+                    icon={<IconList />}
+                    onClick={() => setViewMode('table')}
+                  >
+                    {t('system.menu.view.table')}
+                  </Button>
+                  <Button
+                    size="small"
+                    type={viewMode === 'list' ? 'primary' : 'secondary'}
+                    icon={<IconUnorderedList />}
+                    onClick={() => setViewMode('list')}
+                  >
+                    {t('system.menu.view.list')}
+                  </Button>
+                  <Button
+                    size="small"
+                    type={viewMode === 'card' ? 'primary' : 'secondary'}
+                    icon={<IconApps />}
+                    onClick={() => setViewMode('card')}
+                  >
+                    {t('system.menu.view.card')}
+                  </Button>
+                </Space>
+                <Button type="primary" icon={<IconPlus />} onClick={openCreate} disabled={!canCreate}>
+                  {t('common.add')}
+                </Button>
+              </PageActions>
+            </div>
             {loading && data.length === 0 ? <PageLoading /> : null}
             {error && data.length === 0 ? renderErrorState() : null}
             {!loading && !error && data.length === 0 ? (
@@ -776,6 +878,11 @@ const MenuList: React.FC = () => {
                 scroll={{ x: 'max-content' }}
                 onChange={handleTableChange}
                 emptyText={t('common.noData')}
+                pagination={buildStandardPagination(t, {
+                  current: tablePagination.current,
+                  pageSize: tablePagination.pageSize,
+                  total: data.length,
+                })}
               />
             ) : null}
             {!loading && !(error && data.length === 0) && data.length > 0 && viewMode === 'list'
@@ -825,7 +932,12 @@ const MenuList: React.FC = () => {
           <Space direction="vertical" size={20} className="dialog-form-stack">
             <FormSection title={t('common.basicInfo')}>
               <FormItem label={t('system.menu.parentId')} field="parentId">
-                <InputNumber min={0} />
+                <TreeSelect
+                  allowClear
+                  showSearch
+                  treeData={parentOptions}
+                  placeholder={t('system.menu.parentId')}
+                />
               </FormItem>
               <FormItem
                 label={t('system.menu.titleKey')}

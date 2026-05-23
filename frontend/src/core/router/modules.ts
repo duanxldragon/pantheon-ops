@@ -1,7 +1,7 @@
 import type { ModuleConfig } from './types';
 import { AuthModule } from '../../modules/auth';
 import { DashboardModule } from '../../modules/dashboard';
-import { GeneratorModule } from '../../modules/generator';
+import { GeneratorModule } from '../../modules/system/generator';
 import { DictModule } from '../../modules/system/dict';
 import { DeptModule } from '../../modules/system/dept';
 import { MenuModule } from '../../modules/system/menu';

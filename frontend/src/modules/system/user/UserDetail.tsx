@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@arco-design/web-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { PageContainer, PageEmpty, PageError, PageHeader, PageLoading } from '../../../components';
+import { PageContainer, PageEmpty, PageError, PageLoading } from '../../../components';
 import { getUserDetail, type UserDetail as UserDetailData } from './api';
 import UserDetailContent from './UserDetailContent';
 
@@ -69,11 +69,9 @@ const UserDetail: React.FC = () => {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={t('system.user.detail')}
-        subtitle={t('system.user.detailSubtitle')}
-        extra={<Button onClick={() => navigate('/system/user')}>{t('common.back')}</Button>}
-      />
+      <div className="system-list__work-actions">
+        <Button onClick={() => navigate('/system/user')}>{t('common.back')}</Button>
+      </div>
       <UserDetailContent detail={detail} />
     </PageContainer>
   );

@@ -154,20 +154,58 @@ func (s *AuditService) DeleteOperationLog(logID uint64) error {
 	return s.db.Delete(&middleware.SystemLogOper{}, logID).Error
 }
 
-func (s *AuditService) CleanupOperationLogs(retentionDays int) (int64, error) {
+func (s *AuditService) CleanupOperationLogs(retentionDays int, startedAt string, endedAt string) (int64, error) {
 	if s.db == nil {
 		return 0, errors.New("database.not_initialized")
 	}
-	if !s.isAllowedOperationLogRetentionDays(retentionDays) {
-		return 0, errors.New("audit.operation_log.cleanup.days_invalid")
+	window, err := parseOperationCleanupWindow(startedAt, endedAt)
+	if err != nil {
+		return 0, err
 	}
 
-	cutoff := time.Now().AddDate(0, 0, -retentionDays)
-	result := s.db.Where("oper_time < ?", cutoff).Delete(&middleware.SystemLogOper{})
+	db := s.db.Model(&middleware.SystemLogOper{})
+	if window != nil {
+		db = db.Where("oper_time >= ? AND oper_time <= ?", window.StartedAt, window.EndedAt)
+	} else {
+		if !s.isAllowedOperationLogRetentionDays(retentionDays) {
+			return 0, errors.New("audit.operation_log.cleanup.days_invalid")
+		}
+		cutoff := time.Now().AddDate(0, 0, -retentionDays)
+		db = db.Where("oper_time < ?", cutoff)
+	}
+	result := db.Delete(&middleware.SystemLogOper{})
 	if result.Error != nil {
 		return 0, result.Error
 	}
 	return result.RowsAffected, nil
+}
+
+type operationCleanupWindow struct {
+	StartedAt time.Time
+	EndedAt   time.Time
+}
+
+func parseOperationCleanupWindow(startedAt string, endedAt string) (*operationCleanupWindow, error) {
+	startedAt = strings.TrimSpace(startedAt)
+	endedAt = strings.TrimSpace(endedAt)
+	if startedAt == "" && endedAt == "" {
+		return nil, nil
+	}
+	if startedAt == "" || endedAt == "" {
+		return nil, errors.New("audit.operation_log.cleanup.range_invalid")
+	}
+	start, err := time.Parse(time.RFC3339, startedAt)
+	if err != nil {
+		return nil, errors.New("audit.operation_log.cleanup.range_invalid")
+	}
+	end, err := time.Parse(time.RFC3339, endedAt)
+	if err != nil {
+		return nil, errors.New("audit.operation_log.cleanup.range_invalid")
+	}
+	if end.Before(start) {
+		return nil, errors.New("audit.operation_log.cleanup.range_invalid")
+	}
+	return &operationCleanupWindow{StartedAt: start, EndedAt: end}, nil
 }
 
 func (s *AuditService) isAllowedOperationLogRetentionDays(retentionDays int) bool {

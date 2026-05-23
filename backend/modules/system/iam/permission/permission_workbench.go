@@ -4,8 +4,8 @@ import (
 	"errors"
 	"sort"
 	"strings"
+	"time"
 
-	"pantheon-ops/backend/pkg/contracts"
 	"pantheon-ops/backend/pkg/database"
 
 	"gorm.io/gorm/clause"
@@ -152,6 +152,10 @@ func (s *PermissionService) GetWorkbench(query *PermissionWorkbenchQuery) (*Perm
 	if err != nil {
 		return nil, err
 	}
+	latestRemediationEvents, err := s.loadLatestWorkbenchRemediationEvents(roleKeys)
+	if err != nil {
+		return nil, err
+	}
 	for index := range resp.Roles {
 		policies := rolePolicies[resp.Roles[index].RoleKey]
 		resp.Roles[index].APIPolicies = policies
@@ -162,6 +166,12 @@ func (s *PermissionService) GetWorkbench(query *PermissionWorkbenchQuery) (*Perm
 		resp.Roles[index].MissingAPIPolicies = diffMissingAPIPolicies(requiredPolicies, policies)
 		resp.Roles[index].MissingAPIPolicyCount = len(resp.Roles[index].MissingAPIPolicies)
 		resp.Roles[index].HasAPIGap = resp.Roles[index].MissingAPIPolicyCount > 0
+		latestEvent := latestRemediationEvents[resp.Roles[index].RoleKey]
+		resp.Roles[index].GovernanceStatus = resolveWorkbenchGovernanceStatus(resp.Roles[index], latestEvent)
+		if latestEvent != nil {
+			resp.Roles[index].LastRemediationAction = latestEvent.Action
+			resp.Roles[index].LastRemediationAt = latestEvent.CreatedAt.Format(time.RFC3339)
+		}
 		resp.Overview.APIActionCount += len(policies)
 		sort.Slice(resp.Roles[index].Menus, func(i, j int) bool {
 			if resp.Roles[index].Menus[i].Module == resp.Roles[index].Menus[j].Module {
@@ -243,6 +253,10 @@ func (s *PermissionService) GetWorkbench(query *PermissionWorkbenchQuery) (*Perm
 	}
 
 	resp.Overview = summarizeWorkbenchOverview(resp.Roles)
+	resp.Overview.RecentRemediationCount, err = s.countRecentWorkbenchRemediationEvents(extractWorkbenchRoleKeys(resp.Roles), 20)
+	if err != nil {
+		return nil, err
+	}
 	return resp, nil
 }
 
@@ -265,8 +279,35 @@ func summarizeWorkbenchOverview(roles []PermissionWorkbenchRoleResp) PermissionW
 		if role.HasAPIGap {
 			overview.APIGapRoleCount++
 		}
+		switch role.GovernanceStatus {
+		case "pending":
+			overview.PendingRemediationRoleCount++
+		case "remediated":
+			overview.RemediatedRoleCount++
+		}
 	}
 	return overview
+}
+
+func resolveWorkbenchGovernanceStatus(role PermissionWorkbenchRoleResp, latest *PermissionWorkbenchRemediationEvent) string {
+	if role.HasPageGap || role.HasAPIGap || role.UnknownPermissionCount > 0 {
+		return "pending"
+	}
+	if latest != nil {
+		return "remediated"
+	}
+	return "clean"
+}
+
+func extractWorkbenchRoleKeys(roles []PermissionWorkbenchRoleResp) []string {
+	result := make([]string, 0, len(roles))
+	for _, role := range roles {
+		if strings.TrimSpace(role.RoleKey) == "" {
+			continue
+		}
+		result = append(result, role.RoleKey)
+	}
+	return result
 }
 
 func (s *PermissionService) loadPermissionCatalog() (map[uint64]permissionMenuCatalogRow, map[string]PermissionWorkbenchPermissionResp, error) {
@@ -375,6 +416,50 @@ func (s *PermissionService) loadWorkbenchPolicies(roleKeys []string) (map[string
 	return result, nil
 }
 
+func (s *PermissionService) loadLatestWorkbenchRemediationEvents(roleKeys []string) (map[string]*PermissionWorkbenchRemediationEvent, error) {
+	result := make(map[string]*PermissionWorkbenchRemediationEvent, len(roleKeys))
+	if len(roleKeys) == 0 {
+		return result, nil
+	}
+	if !s.db.Migrator().HasTable(&PermissionWorkbenchRemediationEvent{}) {
+		return result, nil
+	}
+
+	var events []PermissionWorkbenchRemediationEvent
+	if err := s.db.Model(&PermissionWorkbenchRemediationEvent{}).
+		Where("role_key IN ?", roleKeys).
+		Order("created_at desc, id desc").
+		Find(&events).Error; err != nil {
+		return nil, err
+	}
+	for index := range events {
+		if _, ok := result[events[index].RoleKey]; ok {
+			continue
+		}
+		result[events[index].RoleKey] = &events[index]
+	}
+	return result, nil
+}
+
+func (s *PermissionService) countRecentWorkbenchRemediationEvents(roleKeys []string, limit int) (int, error) {
+	if len(roleKeys) == 0 || limit <= 0 {
+		return 0, nil
+	}
+	if !s.db.Migrator().HasTable(&PermissionWorkbenchRemediationEvent{}) {
+		return 0, nil
+	}
+
+	var events []PermissionWorkbenchRemediationEvent
+	if err := s.db.Model(&PermissionWorkbenchRemediationEvent{}).
+		Where("role_key IN ?", roleKeys).
+		Order("created_at desc, id desc").
+		Limit(limit).
+		Find(&events).Error; err != nil {
+		return 0, err
+	}
+	return len(events), nil
+}
+
 func collectRequiredAPIPolicies(pagePermissions []PermissionWorkbenchPermissionResp, actionPermissions []PermissionWorkbenchPermissionResp) []permissionRequiredAPIPolicy {
 	seen := make(map[string]struct{})
 	result := make([]permissionRequiredAPIPolicy, 0)
@@ -430,13 +515,43 @@ func diffMissingAPIPolicies(required []permissionRequiredAPIPolicy, actual []Per
 }
 
 func requiredAPIPoliciesByPermissionKey(permissionKey string) []permissionRequiredAPIPolicy {
-	policies := contracts.RequiredAPIPoliciesByPermissionKey(permissionKey)
-	result := make([]permissionRequiredAPIPolicy, 0, len(policies))
-	for _, policy := range policies {
-		result = append(result, permissionRequiredAPIPolicy{
-			Path:   policy.Path,
-			Method: policy.Method,
-		})
+	switch strings.TrimSpace(permissionKey) {
+	case "system:security-event:list":
+		return []permissionRequiredAPIPolicy{
+			{Path: "/api/v1/system/security-event/list", Method: "GET"},
+		}
+	case "system:module:list":
+		return []permissionRequiredAPIPolicy{
+			{Path: "/api/v1/system/dynamic-modules", Method: "GET"},
+		}
+	case "system:module:register":
+		return []permissionRequiredAPIPolicy{
+			{Path: "/api/v1/system/dynamic-modules", Method: "POST"},
+		}
+	case "system:module:unregister":
+		return []permissionRequiredAPIPolicy{
+			{Path: "/api/v1/system/dynamic-modules/:name", Method: "DELETE"},
+		}
+	case "system:module:delete_record":
+		return []permissionRequiredAPIPolicy{
+			{Path: "/api/v1/system/dynamic-modules/:name/record", Method: "DELETE"},
+		}
+	case "system:module:purge":
+		return []permissionRequiredAPIPolicy{
+			{Path: "/api/v1/system/dynamic-modules/:name/purge", Method: "DELETE"},
+		}
+	case "system:module:generate":
+		return []permissionRequiredAPIPolicy{
+			{Path: "/api/v1/system/dynamic-modules/generate", Method: "POST"},
+		}
+	case "system:generator:datasource:manage":
+		return []permissionRequiredAPIPolicy{
+			{Path: "/api/v1/system/generator/datasources", Method: "POST"},
+			{Path: "/api/v1/system/generator/datasources/:id", Method: "PUT"},
+			{Path: "/api/v1/system/generator/datasources/:id", Method: "DELETE"},
+			{Path: "/api/v1/system/generator/datasources/:id/test", Method: "POST"},
+		}
+	default:
+		return nil
 	}
-	return result
 }

@@ -77,6 +77,9 @@ type PermissionWorkbenchOverviewResp struct {
 	UnknownPermissionAssignmentCount int `json:"unknownPermissionAssignmentCount"`
 	PageGapRoleCount                 int `json:"pageGapRoleCount"`
 	APIGapRoleCount                  int `json:"apiGapRoleCount"`
+	PendingRemediationRoleCount      int `json:"pendingRemediationRoleCount"`
+	RemediatedRoleCount              int `json:"remediatedRoleCount"`
+	RecentRemediationCount           int `json:"recentRemediationCount"`
 }
 
 type PermissionWorkbenchMenuResp struct {
@@ -143,6 +146,9 @@ type PermissionWorkbenchRoleResp struct {
 	UnknownPermissionCount int                                 `json:"unknownPermissionCount"`
 	HasPageGap             bool                                `json:"hasPageGap"`
 	HasAPIGap              bool                                `json:"hasApiGap"`
+	GovernanceStatus       string                              `json:"governanceStatus"`
+	LastRemediationAt      string                              `json:"lastRemediationAt,omitempty"`
+	LastRemediationAction  string                              `json:"lastRemediationAction,omitempty"`
 	Menus                  []PermissionWorkbenchMenuResp       `json:"menus"`
 	PagePermissions        []PermissionWorkbenchPermissionResp `json:"pagePermissions"`
 	ActionPermissions      []PermissionWorkbenchPermissionResp `json:"actionPermissions"`

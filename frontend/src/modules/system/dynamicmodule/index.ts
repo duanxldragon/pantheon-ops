@@ -23,7 +23,35 @@ export const DynamicModuleModule = defineModule({
       titleKey: 'system.menu.modules',
       icon: 'apps',
       routeName: 'system-modules',
-      module: 'system.dynamic-module',
+      module: 'system.lowcode',
+    },
+  ],
+  dashboardWidgets: [
+    {
+      key: 'platform.module-manager',
+      slot: 'quick-action',
+      sourceDomain: 'system/lowcode',
+      titleKey: 'system.menu.modules',
+      descriptionKey: 'dashboard.quickAction.moduleManager',
+      path: '/system/modules',
+      permission: 'system:module:list',
+      icon: 'apps',
+      cleanupPolicy: 'hide_when_forbidden',
+    },
+    {
+      key: 'platform.domain.lowcode',
+      slot: 'domain-overview',
+      sourceDomain: 'system/lowcode',
+      titleKey: 'dashboard.domain.lowcode',
+      descriptionKey: 'dashboard.domain.lowcodeDesc',
+      path: '/system/modules',
+      permission: 'system:module:list',
+      cleanupPolicy: 'hide_when_forbidden',
+      summary: (summary, t) =>
+        t('dashboard.lowcodeSummary', {
+          modules: summary?.activeModuleCount ?? 0,
+          i18n: summary?.totalI18nEntries ?? 0,
+        }),
     },
   ],
   permissions: [

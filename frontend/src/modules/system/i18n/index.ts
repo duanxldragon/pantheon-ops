@@ -22,6 +22,19 @@ export const I18nModule = defineModule({
       module: 'system.config',
     },
   ],
+  dashboardWidgets: [
+    {
+      key: 'platform.i18n',
+      slot: 'quick-action',
+      sourceDomain: 'system/config',
+      titleKey: 'system.menu.i18n',
+      descriptionKey: 'dashboard.quickAction.i18n',
+      path: '/system/i18n',
+      permission: 'system:i18n:list',
+      icon: 'language',
+      cleanupPolicy: 'hide_when_forbidden',
+    },
+  ],
   permissions: [
     'system:i18n:list',
     'system:i18n:create',

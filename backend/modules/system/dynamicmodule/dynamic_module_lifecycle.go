@@ -47,19 +47,9 @@ func (s *DynamicModuleService) UnregisterModule(moduleName string, dropTable boo
 		}
 	}
 
-	if dropTable {
-		var tableName string
-		if err := s.db.Table("system_module_registration").
-			Select("table_name").
-			Where("name = ?", moduleName).
-			Pluck("table_name", &tableName).Error; err != nil {
+	if s.shouldDropManagedTable(registration, dropTable) {
+		if err := s.dropManagedModuleTable(scope, registration.ModelTableName); err != nil {
 			return err
-		}
-
-		if strings.TrimSpace(tableName) != "" {
-			if err := s.dropManagedModuleTable(scope, tableName); err != nil {
-				return err
-			}
 		}
 	}
 
@@ -137,7 +127,7 @@ func (s *DynamicModuleService) PurgeModule(moduleName string, dropTable bool, pu
 		if err := s.UnregisterModule(moduleName, dropTable, false); err != nil {
 			return err
 		}
-	} else if dropTable && strings.TrimSpace(registration.ModelTableName) != "" {
+	} else if s.shouldDropManagedTable(registration, dropTable) {
 		if err := s.dropManagedModuleTable(registration.Scope, registration.ModelTableName); err != nil {
 			return err
 		}
@@ -206,6 +196,13 @@ func (s *DynamicModuleService) dropManagedModuleTable(scope string, tableName st
 	return s.db.Migrator().DropTable(strings.TrimSpace(tableName))
 }
 
+func (s *DynamicModuleService) shouldDropManagedTable(registration ModuleRegistration, requested bool) bool {
+	if strings.TrimSpace(registration.ModelTableName) == "" {
+		return false
+	}
+	return requested || registration.AutoRecycle
+}
+
 // GetModuleStatus 获取模块状态
 func (s *DynamicModuleService) GetModuleStatus(moduleName string) (*ModuleRegistrationResp, error) {
 	if err := s.syncModuleRegistrationRecords(false); err != nil {
@@ -237,14 +234,17 @@ func (s *DynamicModuleService) FinalizeUnregister(moduleName string, purgeSource
 	if strings.TrimSpace(s.workspaceRoot) == "" {
 		return errors.New("workspace.not_found")
 	}
+	refs, err := s.listGeneratedModuleRefs()
+	if err != nil {
+		return err
+	}
+	if err := scaffold.WriteGeneratedRegistries(s.workspaceRoot, refs); err != nil {
+		return err
+	}
 	if purgeSource {
 		if err := scaffold.RemoveGeneratedModuleSource(s.workspaceRoot, scope, shortName); err != nil {
 			return err
 		}
 	}
-	refs, err := s.listGeneratedModuleRefs()
-	if err != nil {
-		return err
-	}
-	return scaffold.WriteGeneratedRegistries(s.workspaceRoot, refs)
+	return nil
 }

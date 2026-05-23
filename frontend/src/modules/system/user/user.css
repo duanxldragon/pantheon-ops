@@ -109,6 +109,59 @@
   white-space: nowrap;
 }
 
+.system-user-list__role-field .arco-select-view {
+  min-height: var(--shell-control-min-height);
+  align-items: flex-start;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.system-user-list__role-field .arco-select-suffix {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.system-user-list__role-field .arco-select-arrow-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  transform: translateY(1px);
+}
+
+.system-user-list__role-field .arco-input-tag {
+  min-height: auto;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.system-user-list__role-field .arco-input-tag.arco-input-tag-focus {
+  box-shadow: none !important;
+}
+
+.system-user-list__role-field .arco-input-tag-tag {
+  max-width: 100%;
+}
+
+.system-user-list__role-field .arco-input-tag .arco-input-inner-wrapper,
+.system-user-list__role-field .arco-input-tag .arco-input,
+.system-user-list__role-field .arco-input-tag input.arco-input,
+.system-user-list__role-field .arco-input-tag .arco-input-tag-input {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+.system-user-list__role-field .arco-input-tag .arco-input-tag-input:focus,
+.system-user-list__role-field .arco-input-tag .arco-input-tag-input:focus-visible {
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
 .system-user-list__row-menu {
   display: grid;
   min-width: 132px;

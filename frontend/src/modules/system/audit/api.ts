@@ -1,5 +1,5 @@
 import { apiRequest } from '../../../api/request';
-import { downloadFile } from '../../../api/file';
+import { downloadCsvFile, downloadFile } from '../../../api/file';
 
 export interface OperationLogQuery {
   title?: string;
@@ -40,7 +40,9 @@ export interface OperationLogPageResp {
 }
 
 export interface OperationLogCleanupPayload {
-  retentionDays: number;
+  retentionDays?: number;
+  startedAt?: string;
+  endedAt?: string;
 }
 
 export interface OperationLogBatchDeletePayload {
@@ -92,4 +94,42 @@ export function exportOperationLogs(data: Partial<OperationLogQuery>) {
     data,
     filename: 'system-operation-log-export.csv',
   });
+}
+
+export function exportSelectedOperationLogs(rows: OperationLogRow[]) {
+  downloadCsvFile(
+    'system-operation-log-export.csv',
+    [
+      'requestId',
+      'title',
+      'businessType',
+      'sourceDomain',
+      'sourcePage',
+      'method',
+      'operName',
+      'operUrl',
+      'operIp',
+      'status',
+      'failureCategory',
+      'errorMsg',
+      'operTime',
+      'costTime',
+    ],
+    rows.map((row) => [
+      '',
+      row.title || '',
+      String(row.businessType ?? ''),
+      row.sourceDomain || '',
+      row.sourcePage || '',
+      row.method || '',
+      row.operName || '',
+      row.operUrl || '',
+      row.operIp || '',
+      String(row.status ?? ''),
+      row.failureCategory || '',
+      row.errorMsg || '',
+      row.operTime || '',
+      String(row.costTime ?? ''),
+    ]),
+  );
 }

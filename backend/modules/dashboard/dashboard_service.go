@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	auth "pantheon-ops/backend/modules/auth"
+	dynamicmodule "pantheon-ops/backend/modules/system/dynamicmodule"
 	dept "pantheon-ops/backend/modules/system/org/dept"
 	"pantheon-ops/backend/pkg/authsession"
 
@@ -57,6 +59,18 @@ func (s *DashboardService) GetSummary() (*SummaryResp, error) {
 	if err := s.db.Table("system_setting").Count(&resp.TotalSettings).Error; err != nil {
 		return nil, err
 	}
+	if s.db.Migrator().HasTable("system_i18n") {
+		if err := s.db.Table("system_i18n").Count(&resp.TotalI18nEntries).Error; err != nil {
+			return nil, err
+		}
+	}
+	if s.db.Migrator().HasTable(dynamicmodule.ModuleRegistration{}.TableName()) {
+		if err := s.db.Table(dynamicmodule.ModuleRegistration{}.TableName()).
+			Where("status = ?", dynamicmodule.ModuleStatusActive).
+			Count(&resp.ActiveModuleCount).Error; err != nil {
+			return nil, err
+		}
+	}
 	if err := s.db.Table("system_menu").Where("is_visible = ? AND type <> ?", 1, "F").Count(&resp.VisibleMenuCount).Error; err != nil {
 		return nil, err
 	}
@@ -73,6 +87,18 @@ func (s *DashboardService) GetSummary() (*SummaryResp, error) {
 		Where("status = ? AND login_time >= ?", 0, since).
 		Count(&resp.LoginFailureCount).Error; err != nil {
 		return nil, err
+	}
+	if s.db.Migrator().HasTable(auth.SystemAuthSecurityEvent{}.TableName()) {
+		if err := s.db.Table(auth.SystemAuthSecurityEvent{}.TableName()).
+			Where("created_at >= ?", since).
+			Count(&resp.TotalSecurityEventCount).Error; err != nil {
+			return nil, err
+		}
+		if err := s.db.Table(auth.SystemAuthSecurityEvent{}.TableName()).
+			Where("acknowledged_at IS NULL AND created_at >= ?", since).
+			Count(&resp.PendingSecurityEventCount).Error; err != nil {
+			return nil, err
+		}
 	}
 	if err := s.db.Table("system_log_oper").
 		Where("oper_time >= ?", todayStart).

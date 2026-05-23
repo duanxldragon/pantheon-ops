@@ -1,6 +1,15 @@
 import { expect, type APIRequestContext, type Page } from '@playwright/test';
+import { createDecipheriv, createHmac } from 'node:crypto';
+import { spawn } from 'node:child_process';
 
-export const apiBaseUrl = process.env.PANTHEON_API_BASE_URL ?? 'http://127.0.0.1:8080/api/v1';
+const apiOrigin = process.env.PANTHEON_API_PROXY_TARGET ?? 'http://127.0.0.1:8080';
+export const apiBaseUrl = process.env.PANTHEON_API_BASE_URL ?? `${apiOrigin}/api/v1`;
+const defaultWebBaseUrl = process.env.PANTHEON_WEB_BASE_URL ?? 'http://127.0.0.1:5173';
+const totpPeriodSeconds = 30;
+const totpDigits = 6;
+const cachedTotpSecrets = new Map<string, string>();
+const defaultMfaSecret = 'pantheon-mfa-dev-secret-key!';
+const encryptedMfaSecretPrefix = 'mfa:v1:';
 
 export type BrowserLoginResult = {
   accessToken: string;
@@ -14,6 +23,36 @@ export type LoginCredentials = {
   username: string;
   password: string;
 };
+
+type ApiEnvelope<T> = {
+  code: number;
+  data: T;
+  message?: string;
+};
+
+type AuthPayload = {
+  accessToken?: string;
+  refreshToken?: string;
+  mfaRequired?: boolean;
+  challengeId?: string;
+  setupRequired?: boolean;
+  totpSecret?: string;
+  totpProvisionUri?: string;
+  user?: unknown;
+};
+
+function resolveCachedTotpSecret(username: string) {
+  const normalized = username.trim().toUpperCase();
+  if (!normalized) {
+    return null;
+  }
+  return (
+    cachedTotpSecrets.get(normalized) ??
+    (normalized === adminCredentials.username.trim().toUpperCase()
+      ? process.env.PANTHEON_SMOKE_ADMIN_TOTP_SECRET ?? null
+      : null)
+  );
+}
 
 export const adminCredentials: LoginCredentials = {
   username: process.env.PANTHEON_SMOKE_ADMIN_USERNAME ?? 'admin',
@@ -48,17 +87,241 @@ function extractCookieValue(setCookieHeader: string | undefined, name: string) {
   return match?.[1] ?? null;
 }
 
+type MysqlConfig = {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  database: string;
+  mysqlBin: string;
+};
+
+function parseDsn(dsn: string | undefined): MysqlConfig | null {
+  const trimmed = String(dsn || '').trim();
+  const marker = '@tcp(';
+  const markerIndex = trimmed.indexOf(marker);
+  if (markerIndex < 0) {
+    return null;
+  }
+  const credentials = trimmed.slice(0, markerIndex);
+  const separatorIndex = credentials.indexOf(':');
+  if (separatorIndex < 0) {
+    return null;
+  }
+  const username = credentials.slice(0, separatorIndex);
+  const password = credentials.slice(separatorIndex + 1);
+  const hostPortStart = markerIndex + marker.length;
+  const hostPortEnd = trimmed.indexOf(')', hostPortStart);
+  if (hostPortEnd < 0) {
+    return null;
+  }
+  const hostPort = trimmed.slice(hostPortStart, hostPortEnd);
+  const slashIndex = trimmed.indexOf('/', hostPortEnd);
+  if (slashIndex < 0) {
+    return null;
+  }
+  const queryIndex = trimmed.indexOf('?', slashIndex + 1);
+  const database = queryIndex >= 0 ? trimmed.slice(slashIndex + 1, queryIndex) : trimmed.slice(slashIndex + 1);
+  const [host, portText] = hostPort.split(':');
+  return {
+    host: process.env.PANTHEON_SMOKE_MYSQL_HOST || host || '127.0.0.1',
+    port: Number(process.env.PANTHEON_SMOKE_MYSQL_PORT || portText || 3306),
+    username: process.env.PANTHEON_SMOKE_MYSQL_USER || username || 'root',
+    password: process.env.PANTHEON_SMOKE_MYSQL_PASSWORD || password || '',
+    database: process.env.PANTHEON_SMOKE_MYSQL_DATABASE || database || '',
+    mysqlBin: process.env.PANTHEON_SMOKE_MYSQL_BIN || 'mysql',
+  };
+}
+
+function queryMysql(sql: string, config: MysqlConfig) {
+  return new Promise<string>((resolve, reject) => {
+    const child = spawn(
+      config.mysqlBin,
+      [
+        `--host=${config.host}`,
+        `--port=${String(config.port)}`,
+        `--user=${config.username}`,
+        '--default-character-set=utf8mb4',
+        '--protocol=TCP',
+        '--batch',
+        '--skip-column-names',
+        config.database,
+        '-e',
+        sql,
+      ],
+      {
+        stdio: ['ignore', 'pipe', 'pipe'],
+        shell: false,
+        env: {
+          ...process.env,
+          MYSQL_PWD: config.password,
+        },
+      },
+    );
+    let stdout = '';
+    let stderr = '';
+    child.stdout?.setEncoding('utf8');
+    child.stderr?.setEncoding('utf8');
+    child.stdout?.on('data', (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr?.on('data', (chunk) => {
+      stderr += chunk;
+    });
+    child.once('error', reject);
+    child.once('exit', (code) => {
+      if (code === 0) {
+        resolve(stdout.trim());
+        return;
+      }
+      reject(new Error(`mysql exited with code ${code ?? 'unknown'}: ${stderr.trim()}`));
+    });
+  });
+}
+
+function decryptMfaSecret(value: string, rawKey = process.env.PANTHEON_MFA_SECRET ?? defaultMfaSecret) {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) {
+    return '';
+  }
+  if (!trimmed.startsWith(encryptedMfaSecretPrefix)) {
+    return trimmed;
+  }
+  const cipherText = Buffer.from(trimmed.slice(encryptedMfaSecretPrefix.length), 'base64');
+  const key = Buffer.alloc(32);
+  Buffer.from(String(rawKey || defaultMfaSecret)).copy(key, 0, 0, 32);
+  const nonce = cipherText.subarray(0, 12);
+  const authTag = cipherText.subarray(cipherText.length - 16);
+  const encrypted = cipherText.subarray(12, cipherText.length - 16);
+  const decipher = createDecipheriv('aes-256-gcm', key, nonce);
+  decipher.setAuthTag(authTag);
+  return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8');
+}
+
+async function resolveTotpSecretForUser(username: string) {
+  const normalizedUsername = username.trim();
+  if (!normalizedUsername) {
+    return null;
+  }
+  const cachedSecret = resolveCachedTotpSecret(normalizedUsername);
+  if (cachedSecret) {
+    return cachedSecret;
+  }
+
+  const mysqlConfig = parseDsn(process.env.PANTHEON_DSN);
+  if (!mysqlConfig?.database) {
+    return null;
+  }
+
+  const escapedUsername = normalizedUsername.replace(/'/g, "''");
+  const encryptedSecret = await queryMysql(
+    `
+SELECT f.secret_encrypted
+FROM system_auth_factor f
+JOIN system_user u ON u.id = f.user_id
+WHERE u.username = '${escapedUsername}' AND f.factor_type = 'totp' AND f.enabled = 1
+ORDER BY f.id DESC
+LIMIT 1;
+`.trim(),
+    mysqlConfig,
+  ).catch(() => '');
+
+  if (!encryptedSecret) {
+    return null;
+  }
+
+  const secret = decryptMfaSecret(encryptedSecret);
+  if (!secret) {
+    return null;
+  }
+  cachedTotpSecrets.set(normalizedUsername.toUpperCase(), secret);
+  return secret;
+}
+
+function decodeBase32NoPadding(secret: string) {
+  const normalized = secret.trim().toUpperCase();
+  if (!normalized) {
+    throw new Error('auth.mfa.secret.required');
+  }
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = 0;
+  let value = 0;
+  const bytes: number[] = [];
+  for (const char of normalized) {
+    if (char === '=') {
+      break;
+    }
+    const index = alphabet.indexOf(char);
+    if (index < 0) {
+      throw new Error('auth.mfa.secret.invalid');
+    }
+    value = (value << 5) | index;
+    bits += 5;
+    if (bits >= 8) {
+      bits -= 8;
+      bytes.push((value >>> bits) & 0xff);
+    }
+  }
+  return Buffer.from(bytes);
+}
+
+function generateTotpCode(secret: string, unixSeconds: number) {
+  const key = decodeBase32NoPadding(secret);
+  const counter = Math.floor(unixSeconds / totpPeriodSeconds);
+  const payload = Buffer.alloc(8);
+  payload.writeBigUInt64BE(BigInt(counter));
+  const digest = createHmac('sha1', key).update(payload).digest();
+  const offset = digest[digest.length - 1] & 0x0f;
+  const binaryCode =
+    ((digest[offset] & 0x7f) << 24) |
+    ((digest[offset + 1] & 0xff) << 16) |
+    ((digest[offset + 2] & 0xff) << 8) |
+    (digest[offset + 3] & 0xff);
+  return String(binaryCode % 10 ** totpDigits).padStart(totpDigits, '0');
+}
+
+async function resolveLoginResponse(
+  request: APIRequestContext,
+  response: Awaited<ReturnType<APIRequestContext['post']>>,
+  credentials: LoginCredentials,
+) {
+  expect(response.ok()).toBeTruthy();
+  const payload = (await response.json()) as ApiEnvelope<AuthPayload>;
+  expect(payload.code).toBe(200);
+  if (payload.data?.accessToken && payload.data?.refreshToken) {
+    return { response, payload };
+  }
+  if (!payload.data?.mfaRequired || !payload.data.challengeId) {
+    throw new Error('auth.login.response_invalid');
+  }
+  const totpSecret = payload.data.totpSecret ?? (await resolveTotpSecretForUser(credentials.username));
+  if (!totpSecret) {
+    throw new Error('auth.mfa.secret.unavailable');
+  }
+  cachedTotpSecrets.set(credentials.username.trim().toUpperCase(), totpSecret);
+  const verifyResponse = await request.post(`${apiBaseUrl}/auth/mfa/verify`, {
+    data: {
+      challengeId: payload.data.challengeId,
+      code: generateTotpCode(totpSecret, Date.now() / 1000),
+    },
+  });
+  expect(verifyResponse.ok()).toBeTruthy();
+  const verifyPayload = (await verifyResponse.json()) as ApiEnvelope<AuthPayload>;
+  expect(verifyPayload.code).toBe(200);
+  expect(verifyPayload.data?.accessToken).toBeTruthy();
+  expect(verifyPayload.data?.refreshToken).toBeTruthy();
+  return { response: verifyResponse, payload: verifyPayload, password: credentials.password };
+}
+
 export async function loginByApi(
   requestLike: APIRequestContext | Page,
   credentials: LoginCredentials,
 ): Promise<BrowserLoginResult> {
   const request = resolveRequestContext(requestLike);
-  const response = await request.post(`${apiBaseUrl}/auth/login`, {
+  const initialResponse = await request.post(`${apiBaseUrl}/auth/login`, {
     data: credentials,
   });
-  expect(response.ok()).toBeTruthy();
-  const payload = await response.json();
-  expect(payload.code).toBe(200);
+  const { response, payload } = await resolveLoginResponse(request, initialResponse, credentials);
   const csrfToken =
     extractCookieValue(response.headers()['set-cookie'], 'pantheon_csrf_token') ??
     `pantheon-smoke-csrf-${Date.now()}`;
@@ -85,8 +348,27 @@ export async function signInWithUi(
   await page.getByRole('button', { name: /登录|Sign in|Sign In/ }).click();
   const response = await loginResponse;
   expect(response.ok()).toBeTruthy();
-  const payload = await response.json();
+  const payload = await response.json() as ApiEnvelope<AuthPayload>;
   expect(payload.code).toBe(200);
+  if (payload.data?.mfaRequired) {
+    const totpSecret = payload.data.totpSecret ?? (await resolveTotpSecretForUser(credentials.username));
+    expect(totpSecret).toBeTruthy();
+    cachedTotpSecrets.set(credentials.username.trim().toUpperCase(), totpSecret as string);
+    const mfaResponse = page.waitForResponse((nextResponse) =>
+      nextResponse.url().includes('/api/v1/auth/mfa/verify'),
+    );
+    await page
+      .getByPlaceholder(/6 位动态码|6-digit code|二次验证码/i)
+      .fill(generateTotpCode(totpSecret as string, Date.now() / 1000));
+    await page.getByRole('button', { name: /验证并登录|Verify and sign in/i }).click();
+    const verifyResponse = await mfaResponse;
+    expect(verifyResponse.ok()).toBeTruthy();
+    const verifyPayload = await verifyResponse.json() as ApiEnvelope<AuthPayload>;
+    expect(verifyPayload.code).toBe(200);
+    expect(verifyPayload.data?.accessToken).toBeTruthy();
+    await expect(page.locator('.app-shell__header')).toBeVisible();
+    return verifyPayload.data.accessToken as string;
+  }
   await expect(page.locator('.app-shell__header')).toBeVisible();
   return payload.data.accessToken as string;
 }
@@ -99,11 +381,16 @@ export async function signInAsAdmin(page: Page) {
 
 export async function installClientSession(page: Page, login: BrowserLoginResult) {
   await primeChineseLocale(page);
+  const appBaseUrl = new URL(
+    page.url() === 'about:blank' ? '/' : page.url(),
+    page.url() === 'about:blank' ? defaultWebBaseUrl : undefined,
+  );
+  const cookieUrl = appBaseUrl.origin;
   await page.context().addCookies([
     {
       name: 'pantheon_access_token',
       value: login.accessToken,
-      url: 'http://127.0.0.1:5173',
+      url: cookieUrl,
       httpOnly: true,
       secure: false,
       sameSite: 'Strict',
@@ -111,7 +398,7 @@ export async function installClientSession(page: Page, login: BrowserLoginResult
     {
       name: 'pantheon_refresh_token',
       value: login.refreshToken,
-      url: 'http://127.0.0.1:5173',
+      url: cookieUrl,
       httpOnly: true,
       secure: false,
       sameSite: 'Strict',
@@ -119,7 +406,7 @@ export async function installClientSession(page: Page, login: BrowserLoginResult
     {
       name: 'pantheon_csrf_token',
       value: login.csrfToken,
-      url: 'http://127.0.0.1:5173',
+      url: cookieUrl,
       httpOnly: false,
       secure: false,
       sameSite: 'Strict',

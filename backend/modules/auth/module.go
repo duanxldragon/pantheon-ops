@@ -48,8 +48,10 @@ func InitAuthModule(r *gin.RouterGroup, db *gorm.DB) {
 					systemProtected.POST("/login-log/cleanup", middleware.SecureActionMiddleware(), authHandler.CleanupLoginLogs)
 					systemProtected.POST("/login-log/batch-delete", middleware.SecureActionMiddleware(), authHandler.BatchDeleteLoginLogs)
 					systemProtected.GET("/security-event/list", authHandler.GetSecurityEventList)
+					systemProtected.POST("/security-event/:id/acknowledge", middleware.SecureActionMiddleware(), authHandler.AcknowledgeSecurityEvent)
 					systemProtected.GET("/session/list", authHandler.GetSessionList)
 					systemProtected.POST("/session/cleanup", middleware.SecureActionMiddleware(), authHandler.CleanupHistoricSessions)
+					systemProtected.POST("/session/batch-revoke", middleware.SecureActionMiddleware(), authHandler.BatchRevokeSessions)
 					systemProtected.DELETE("/session/:id", authHandler.RevokeAnySession)
 				}
 
@@ -141,6 +143,7 @@ func authMenuSeeds() []menuSeed {
 		{Key: "login-log-delete", ParentKey: "login-log", TitleKey: "system.permission.login_log.delete", Perms: "system:login-log:delete", Type: "F", Sort: 3},
 		{Key: "session-delete", ParentKey: "session", TitleKey: "system.permission.session.delete", Perms: "system:session:delete", Type: "F", Sort: 1},
 		{Key: "session-clear", ParentKey: "session", TitleKey: "system.permission.session.clear", Perms: "system:session:clear", Type: "F", Sort: 2},
+		{Key: "security-event-acknowledge", ParentKey: "security-event", TitleKey: "system.permission.security_event.acknowledge", Perms: "system:security-event:acknowledge", Type: "F", Sort: 1},
 	}
 }
 
