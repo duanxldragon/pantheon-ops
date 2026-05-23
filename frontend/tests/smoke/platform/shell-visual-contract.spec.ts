@@ -648,6 +648,10 @@ test('high-sensitivity config pages keep a single summary shell without hero wal
       '.module-manager-page .app-table, .module-manager-page .arco-table',
     );
     const empty = document.querySelector<HTMLElement>('.module-manager-page .page-empty');
+    const governanceBar = document.querySelector<HTMLElement>('.module-manager-page .governance-summary-bar');
+    const metrics = Array.from(
+      document.querySelectorAll<HTMLElement>('.module-manager-page .governance-summary-bar__metric'),
+    );
     const read = (element?: HTMLElement | null) => {
       if (!element) {
         return null;
@@ -668,6 +672,13 @@ test('high-sensitivity config pages keep a single summary shell without hero wal
       alertDisplay: alert ? window.getComputedStyle(alert).display : null,
       hasDataTable: Boolean(table),
       hasEmptyState: Boolean(empty),
+      governanceColumns: governanceBar
+        ? window.getComputedStyle(governanceBar).gridTemplateColumns
+            .split(' ')
+            .filter(Boolean).length
+        : 0,
+      metricCount: metrics.length,
+      metricTopOffsets: metrics.map((item) => Math.round(item.getBoundingClientRect().top)),
       tableBody: read(tableBody),
       tableContainer: read(
         table?.querySelector<HTMLElement>('.arco-table-container') ?? empty,
@@ -681,6 +692,9 @@ test('high-sensitivity config pages keep a single summary shell without hero wal
   expect(moduleShellContract.alertCount).toBe(1);
   expect(moduleShellContract.alertDisplay).toBeTruthy();
   expect(moduleShellContract.hasDataTable || moduleShellContract.hasEmptyState).toBeTruthy();
+  expect(moduleShellContract.governanceColumns).toBe(2);
+  expect(moduleShellContract.metricCount).toBe(5);
+  expect(new Set(moduleShellContract.metricTopOffsets).size).toBe(1);
   expect(moduleShellContract.tableBody?.paddingTop).toBe(modulePaddingTop);
   expect(moduleShellContract.tableBody?.paddingRight).toBe(modulePaddingRight);
   expect(moduleShellContract.tableBody?.paddingBottom).toBe(modulePaddingBottom);

@@ -505,6 +505,7 @@ const ModuleManager: React.FC = () => {
     <PageContainer>
       <Space direction="vertical" size={12} className="system-page-template module-manager-page">
         <GovernanceSummaryBar
+          className="module-manager-page__governance-bar"
           eyebrow={t('generator.moduleManager.header.eyebrow')}
           title={t('generator.moduleManager.header.title')}
           description={t('generator.moduleManager.header.description')}
