@@ -30,7 +30,7 @@ import {
   type LabelSchemaPayload,
   type LabelSchemaRow,
 } from './api';
-import '../../../../core/styles/list-page.css';
+import '../../../system/list-page.css';
 import '../cmdb.css';
 
 export default function CmdbLabelSchemaList() {

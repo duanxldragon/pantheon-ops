@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "npm run i18n:generate-module && npm run check:menu-contract && npm run check:i18n-missing-keys && npm run check:i18n-hardcode && npm run check:shell-visual-contract && npm run check:system-page-admission && npm run check:smoke-web-base && npm run check:smoke-coverage-contract",
+    "prebuild": "npm run check:base-sync && npm run i18n:generate-module && npm run check:menu-contract && npm run check:i18n-missing-keys && npm run check:i18n-hardcode && npm run check:shell-visual-contract && npm run check:system-page-admission && npm run check:smoke-web-base && npm run check:smoke-coverage-contract",
     "build": "tsc -b && vite build",
+    "sync:base-shared": "node ./scripts/sync-base-shared.mjs",
+    "check:base-sync": "node ./scripts/sync-base-shared.mjs --check",
     "i18n:generate-module": "node ./scripts/generate-module-i18n.mjs",
     "check:i18n-generated": "node ./scripts/generate-module-i18n.mjs --check",
     "check:menu-contract": "node ./scripts/check-menu-contract.mjs",

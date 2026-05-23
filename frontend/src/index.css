@@ -80,7 +80,7 @@
   --shell-table-pagination-padding: 12px 14px 2px;
   --shell-table-action-min-height: 32px;
   --shell-control-min-height: 32px;
-  --shell-filter-body-padding: 16px 16px 4px;
+  --shell-filter-body-padding: 14px 16px 6px;
   --shell-filter-control-min-height: 34px;
   --shell-filter-form-item-margin-bottom: 12px;
   --shell-filter-label-padding-bottom: 4px;
@@ -190,7 +190,7 @@ body {
   --shell-table-pagination-padding: 8px 12px 0;
   --shell-table-action-min-height: 28px;
   --shell-control-min-height: 30px;
-  --shell-filter-body-padding: 12px 14px 0;
+  --shell-filter-body-padding: 12px 14px 4px;
   --shell-filter-control-min-height: 32px;
   --shell-filter-form-item-margin-bottom: 10px;
   --shell-filter-label-padding-bottom: 2px;
@@ -689,14 +689,20 @@ a {
   color: var(--text-primary);
   font-weight: 600;
   line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .side-rail-note__desc {
   display: block;
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--text-secondary);
   font-size: 12px;
-  line-height: 1.7;
+  line-height: 1.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .governance-insight-drawer .arco-drawer-body {
@@ -1268,6 +1274,12 @@ a {
   padding: 0;
 }
 
+.filter-panel {
+  border-color: color-mix(in srgb, var(--panel-border) 92%, transparent);
+  background: color-mix(in srgb, var(--panel-muted) 82%, #fff);
+  box-shadow: none;
+}
+
 .filter-panel__header {
   display: none;
   align-items: center;
@@ -1318,7 +1330,9 @@ a {
 
 .filter-panel .arco-form-item-label-col > label {
   min-height: 20px;
+  color: var(--text-secondary);
   font-size: 12px;
+  font-weight: 500;
 }
 
 .filter-panel .arco-input-inner-wrapper,
@@ -1331,9 +1345,47 @@ a {
 .filter-panel .arco-textarea-wrapper {
   min-height: var(--shell-filter-control-min-height);
   width: 100%;
-  border: 1px solid var(--panel-border-strong);
-  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--panel-border-strong) 90%, #fff);
+  border-radius: var(--radius-control);
+  background: var(--panel-bg-solid);
   box-shadow: none;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.filter-panel .arco-input-inner-wrapper:hover,
+.filter-panel input.arco-input:hover,
+.filter-panel .arco-input-password:hover,
+.filter-panel .arco-input-number:hover,
+.filter-panel .arco-select-view:hover,
+.filter-panel .arco-tree-select-view:hover,
+.filter-panel .arco-picker:hover,
+.filter-panel .arco-textarea-wrapper:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 34%, var(--panel-border-strong));
+  background: #fff;
+}
+
+.filter-panel .arco-input-focus,
+.filter-panel .arco-input-inner-wrapper:focus-within,
+.filter-panel .arco-input-password:focus-within,
+.filter-panel .arco-input-number:focus-within,
+.filter-panel .arco-select-focused .arco-select-view,
+.filter-panel .arco-select-open .arco-select-view,
+.filter-panel .arco-tree-select.arco-tree-select-focused .arco-tree-select-view,
+.filter-panel .arco-picker-focused,
+.filter-panel .arco-textarea-wrapper-focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  background: #fff;
+}
+
+.filter-panel .arco-select-view input.arco-input,
+.filter-panel .arco-tree-select-view input.arco-input,
+.filter-panel .arco-picker input.arco-input {
+  width: 100%;
+  min-width: 100%;
 }
 
 .filter-panel .arco-space {
@@ -1350,11 +1402,43 @@ a {
   justify-content: flex-end;
   width: 100%;
   flex-wrap: nowrap;
+  gap: 10px !important;
 }
 
 .filter-panel__action-item .arco-btn {
   min-height: var(--shell-filter-control-min-height);
+  padding-inline: 16px;
+  border-radius: var(--radius-md);
   white-space: nowrap;
+}
+
+.filter-panel__action-item .arco-btn:not(.arco-btn-primary) {
+  border-color: color-mix(in srgb, var(--panel-border-strong) 92%, #fff);
+  background: var(--panel-bg-solid);
+}
+
+@media (min-width: 1280px) {
+  .filter-panel .arco-row > .arco-col {
+    flex: 1 1 168px !important;
+    min-width: 148px;
+    max-width: 184px !important;
+  }
+
+  .filter-panel .arco-row > .arco-col:last-child {
+    flex: 0 0 auto !important;
+    min-width: auto;
+    max-width: none !important;
+    margin-left: auto;
+  }
+
+  .filter-panel__action-item .arco-space {
+    width: auto;
+    flex-wrap: nowrap;
+  }
+
+  .filter-panel__action-item .arco-btn {
+    min-width: 84px;
+  }
 }
 
 .pantheon-theme-menu__item {
@@ -2113,6 +2197,8 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   width: 100%;
   align-items: center;
   justify-content: flex-end;
+  margin-top: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
   padding: var(--shell-table-pagination-padding);
   gap: 8px;
 }
@@ -2125,9 +2211,9 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
-  row-gap: 6px;
+  row-gap: 8px;
 }
 
 .app-table__pagination-native {
@@ -2161,6 +2247,18 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   align-items: center;
 }
 
+.app-table__pagination-step-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-table__pagination-step-origin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .app-table .arco-pagination {
   display: flex;
   align-items: center;
@@ -2190,7 +2288,9 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   justify-content: center;
   min-width: 30px;
   height: 30px;
-  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 82%, transparent);
+  border-radius: 9px;
+  background: var(--panel-bg-solid);
   font-size: 12px;
   line-height: 1;
 }
@@ -2204,8 +2304,7 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 
 .app-table__pagination-item-first,
 .app-table__pagination-item-last {
-  border: 1px solid transparent;
-  background: transparent;
+  background: var(--panel-bg-solid);
 }
 
 .app-table__pagination-item-first[disabled],
@@ -2308,10 +2407,13 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 .arco-pagination-item:hover,
 .arco-pagination-item-prev:hover,
 .arco-pagination-item-next:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 28%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 6%, #fff);
   color: var(--brand-primary);
 }
 
 .app-table .arco-pagination-item-active {
+  border-color: color-mix(in srgb, var(--brand-primary) 24%, transparent);
   background: color-mix(in srgb, var(--brand-primary) 12%, #fff);
   color: var(--brand-primary);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 16%, transparent);
@@ -2326,12 +2428,15 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   height: 30px;
   min-height: 30px;
   padding-inline: 8px;
+  border-radius: 9px;
   text-align: center;
 }
 
 .app-table .arco-pagination-option .arco-select-view,
 .app-table .arco-pagination-options .arco-select-view {
   padding-inline: 10px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 82%, transparent);
+  background: var(--panel-bg-solid);
 }
 
 .app-table .arco-pagination-option .arco-select-view-selector,

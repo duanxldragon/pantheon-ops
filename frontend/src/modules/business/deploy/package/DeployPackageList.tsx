@@ -29,7 +29,7 @@ import {
   updateDeployPackage,
   type DeployPackageRow,
 } from '../api';
-import '../../../../core/styles/list-page.css';
+import '../../../system/list-page.css';
 import '../deploy.css';
 
 export default function DeployPackageList() {

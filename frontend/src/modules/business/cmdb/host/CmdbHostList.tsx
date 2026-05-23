@@ -27,7 +27,7 @@ import { createHost, deleteHost, getHostList, updateHost } from './api';
 import type { CreateHostPayload, HostRow, HostListQuery } from './api';
 import { usePermission } from '../../../../hooks/usePermission';
 import CmdbHostForm from './CmdbHostForm';
-import '../../../../core/styles/list-page.css';
+import '../../../system/list-page.css';
 import '../cmdb.css';
 
 const Row = Grid.Row;

@@ -34,7 +34,7 @@ import {
   type DeployPackageRow,
   type DeployTaskRow,
 } from '../api';
-import '../../../../core/styles/list-page.css';
+import '../../../system/list-page.css';
 import '../deploy.css';
 
 const statusColorMap: Record<string, string> = {

@@ -28,7 +28,7 @@ import { getGroupList, getGroupMembers, createGroup, updateGroup, deleteGroup } 
 import type { CreateGroupPayload, GroupRow, GroupMemberResp, GroupMemberRow } from './api';
 import CmdbGroupForm from './CmdbGroupForm';
 import { usePermission } from '../../../../hooks/usePermission';
-import '../../../../core/styles/list-page.css';
+import '../../../system/list-page.css';
 import '../cmdb.css';
 
 function flattenGroups(groups: GroupRow[]): GroupRow[] {

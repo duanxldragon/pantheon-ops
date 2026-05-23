@@ -22,7 +22,7 @@ import SubmitBar from '../../../../components/patterns/SubmitBar';
 import { getHostDetail, collectHostConfig } from './api';
 import type { HostRow } from './api';
 import { usePermission } from '../../../../hooks/usePermission';
-import '../../../../core/styles/list-page.css';
+import '../../../system/list-page.css';
 import '../cmdb.css';
 
 export default function CmdbHostDetail() {
