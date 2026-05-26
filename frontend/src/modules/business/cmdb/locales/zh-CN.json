@@ -140,6 +140,8 @@
   "business.cmdb.collect.modalTitle": "SSH 配置采集",
   "business.cmdb.collect.authMode.password": "密码",
   "business.cmdb.collect.authMode.privateKey": "私钥",
+  "business.cmdb.collect.hostFingerprint": "主机指纹",
+  "business.cmdb.collect.hostFingerprintPlaceholder": "请输入 SSH 主机指纹，例如 SHA256:xxxx",
   "business.cmdb.collect.hint": "凭据仅用于本次采集，不会保存到服务器",
   "business.cmdb.collect.start": "开始采集",
   "business.cmdb.component.name": "组件名称",
