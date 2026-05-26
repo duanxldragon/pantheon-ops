@@ -5,6 +5,6 @@
     "check:base-sync:frontend": "npm --prefix frontend run check:base-sync"
   },
   "devDependencies": {
-    "playwright": "^1.59.1"
+    "playwright": "^1.60.0"
   }
 }
