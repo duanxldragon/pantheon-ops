@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -32,21 +33,78 @@ function readLocaleJson(filePath) {
   }
 }
 
-function loadModuleLocales() {
-  const resources = Object.fromEntries(locales.map((locale) => [locale, {}]));
-  const files = walkLocaleFiles(modulesRoot).sort((left, right) => left.localeCompare(right));
+function parseGeneratedResource(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return {};
+  }
+  const content = fs.readFileSync(filePath, 'utf8');
+  const match = content.match(/=\s*({[\s\S]*?})\s*;\s*export default /);
+  if (!match) {
+    throw new Error(`Invalid generated locale resource ${path.relative(frontendRoot, filePath)}`);
+  }
+  try {
+    return Function(`"use strict"; return (${match[1]});`)();
+  } catch (error) {
+    throw new Error(`Invalid generated locale object ${path.relative(frontendRoot, filePath)}: ${error.message}`);
+  }
+}
+
+function loadExistingGeneratedResources(rootDir = generatedResourcesRoot, activeLocales = locales) {
+  return Object.fromEntries(
+    activeLocales.map((locale) => [
+      locale,
+      parseGeneratedResource(path.join(rootDir, `${locale}.ts`)),
+    ]),
+  );
+}
+
+export function loadModuleLocales(options = {}) {
+  const activeLocales = options.locales ?? locales;
+  const activeModulesRoot = options.modulesRoot ?? modulesRoot;
+  const activeGeneratedRoot = options.generatedResourcesRoot ?? generatedResourcesRoot;
+  const resources = Object.fromEntries(activeLocales.map((locale) => [locale, {}]));
+  const existingResources = loadExistingGeneratedResources(activeGeneratedRoot, activeLocales);
+  const files = walkLocaleFiles(activeModulesRoot).sort((left, right) => left.localeCompare(right));
+  const allKeys = new Set();
 
   for (const filePath of files) {
     const locale = path.basename(filePath, '.json');
-    if (!locales.includes(locale)) {
+    if (!activeLocales.includes(locale)) {
       continue;
     }
     const payload = readLocaleJson(filePath);
     for (const [key, value] of Object.entries(payload)) {
       if (typeof value !== 'string') {
-        throw new Error(`Locale value must be string: ${path.relative(frontendRoot, filePath)} -> ${key}`);
+        throw new Error(
+          `Locale value must be string: ${path.relative(activeModulesRoot, filePath)} -> ${key}`,
+        );
       }
       resources[locale][key] = value;
+      allKeys.add(key);
+    }
+  }
+
+  const englishFallback = resources['en-US'];
+  const chineseFallback = resources['zh-CN'];
+  for (const key of allKeys) {
+    for (const locale of activeLocales) {
+      if (Object.prototype.hasOwnProperty.call(resources[locale], key)) {
+        continue;
+      }
+      const existingValue = existingResources[locale]?.[key];
+      if (typeof existingValue === 'string' && existingValue.trim() !== '') {
+        resources[locale][key] = existingValue;
+        continue;
+      }
+      const englishValue = englishFallback?.[key];
+      if (typeof englishValue === 'string') {
+        resources[locale][key] = englishValue;
+        continue;
+      }
+      const chineseValue = chineseFallback?.[key];
+      if (typeof chineseValue === 'string') {
+        resources[locale][key] = chineseValue;
+      }
     }
   }
 
@@ -68,25 +126,27 @@ function serializeResource(locale, resource) {
   return `const ${variableName} = {\n${body}${body ? '\n' : ''}};\n\nexport default ${variableName};\n`;
 }
 
-function main() {
-  const resources = loadModuleLocales();
-  fs.mkdirSync(generatedResourcesRoot, { recursive: true });
+export function generateModuleI18n(options = {}) {
+  const activeLocales = options.locales ?? locales;
+  const activeGeneratedRoot = options.generatedResourcesRoot ?? generatedResourcesRoot;
+  const resources = loadModuleLocales(options);
+  fs.mkdirSync(activeGeneratedRoot, { recursive: true });
   const changes = [];
 
-  for (const locale of locales) {
+  for (const locale of activeLocales) {
     const nextContent = serializeResource(locale, resources[locale]);
-    const outputPath = path.join(generatedResourcesRoot, `${locale}.ts`);
+    const outputPath = path.join(activeGeneratedRoot, `${locale}.ts`);
     const currentContent = fs.existsSync(outputPath) ? fs.readFileSync(outputPath, 'utf8') : '';
 
     if (currentContent !== nextContent) {
       changes.push(path.relative(frontendRoot, outputPath));
-      if (!checkOnly) {
+      if (!(options.checkOnly ?? checkOnly)) {
         fs.writeFileSync(outputPath, nextContent, 'utf8');
       }
     }
   }
 
-  if (checkOnly && changes.length > 0) {
+  if ((options.checkOnly ?? checkOnly) && changes.length > 0) {
     console.error('Generated i18n resources are out of date:');
     changes.forEach((item) => console.error(`  ${item}`));
     console.error('Run `npm run i18n:generate-module` from frontend.');
@@ -94,7 +154,14 @@ function main() {
   }
 
   const totalKeys = Object.values(resources).reduce((sum, item) => sum + Object.keys(item).length, 0);
-  console.log(`Generated module i18n resources for ${locales.length} locales, ${totalKeys} keys.`);
+  console.log(`Generated module i18n resources for ${activeLocales.length} locales, ${totalKeys} keys.`);
+  return { resources, changes, totalKeys };
 }
 
-main();
+function main() {
+  generateModuleI18n();
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
+  main();
+}

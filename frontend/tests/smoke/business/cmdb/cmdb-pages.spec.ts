@@ -41,6 +41,12 @@ type CmdbGroup = {
   };
 };
 
+async function expectNoVisibleCmdbI18nKeys(page: import('@playwright/test').Page) {
+  const bodyText = await page.locator('body').innerText();
+  expect(bodyText).not.toMatch(/\bbusiness\.cmdb\.[A-Za-z0-9_.-]+\b/);
+  expect(bodyText).not.toMatch(/\boperations\.cmdb\.[A-Za-z0-9_.-]+\b/);
+}
+
 async function expectBusinessSuccess<T>(response: APIResponse): Promise<T> {
   expect(response.ok()).toBeTruthy();
   const payload = (await response.json()) as ApiEnvelope<T>;
@@ -95,6 +101,7 @@ test.describe('CMDB Host Management', () => {
       .toBe(true);
     await expect(page.locator('.cmdb-page__hero')).toBeVisible();
     await expect(page.locator('.filter-panel')).toBeVisible();
+    await expectNoVisibleCmdbI18nKeys(page);
     await page.screenshot({ path: testInfo.outputPath('cmdb-host-list.png'), fullPage: true });
     expect(consoleErrors).toEqual([]);
   });
@@ -102,6 +109,7 @@ test.describe('CMDB Host Management', () => {
   test('host detail loads by ID', async ({ page }, testInfo) => {
     await page.goto('/operations/cmdb/host/1', { waitUntil: 'networkidle' });
     await expect(page.locator('.page-container')).toBeVisible();
+    await expectNoVisibleCmdbI18nKeys(page);
     await page.screenshot({ path: testInfo.outputPath('cmdb-host-detail.png'), fullPage: true });
   });
 
@@ -121,7 +129,23 @@ test.describe('CMDB Host Management', () => {
     } else {
       await expect(page.locator('.cmdb-page__side-panel')).toContainText('暂无分组');
     }
+    await expectNoVisibleCmdbI18nKeys(page);
     await page.screenshot({ path: testInfo.outputPath('cmdb-group-list.png'), fullPage: true });
+    expect(consoleErrors).toEqual([]);
+  });
+
+  test('label schema page loads without raw i18n keys', async ({ page }, testInfo) => {
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+    await page.goto('/operations/cmdb/label', { waitUntil: 'networkidle' });
+    await expect(page.locator('.page-container')).toBeVisible();
+    await expect(page.locator('.cmdb-page__hero')).toBeVisible();
+    await expectNoVisibleCmdbI18nKeys(page);
+    await page.screenshot({ path: testInfo.outputPath('cmdb-label-schema-list.png'), fullPage: true });
     expect(consoleErrors).toEqual([]);
   });
 });
