@@ -1,3 +1,5 @@
+import enUSRuntimeFixes from './runtime-fixes.en-US';
+
 const enUSFallback = {
   'app.name': 'Pantheon Base',
   'app.slogan': 'Empowering Enterprise Digitalization',
@@ -267,13 +269,13 @@ const enUSFallback = {
   'auth.loginLog.batchDeleteConfirm': 'Delete {{count}} selected login log record(s)?',
   'auth.loginLog.batchDeleteSuccess': '{{count}} selected login log record(s) deleted',
   'auth.securityEvent.subtitle':
-    'Review authentication risk events such as source locks and account locks.',
+      'Review authentication risk events such as source locks and account locks.',
   'auth.securityEvent.hero.eyebrow': 'System Domain / Auth Risk Events',
   'auth.securityEvent.hero.title':
-    'Complete unified governance around risk acknowledgement, source locks, and account disposition',
-  'auth.securityEvent.hero.desc':
-    'The security events page stays within `system/auth`: the main task area handles filtering, acknowledgement, and investigation, while the side summary keeps risk distribution, acknowledgement progress, and governance guidance in one place.',
+      'Govern risk-event acknowledgement, source lockouts, and account remediation in one place',
   'auth.securityEvent.hero.summaryTitle': 'Governance Summary',
+  'auth.securityEvent.hero.desc':
+      'The security events page stays within `system/auth`: the main task area handles filtering, acknowledgement, and investigation, while the side summary keeps risk distribution, acknowledgement progress, and governance guidance in one place.',
   'auth.securityEvent.createdAt': 'Occurred At',
   'auth.securityEvent.eventType': 'Event Type',
   'auth.securityEvent.severity': 'Severity',
@@ -337,8 +339,6 @@ const enUSFallback = {
   'common.close': 'Close',
   'common.home': 'Home',
   'common.user': 'User',
-  'common.username': 'Username',
-  'common.module': 'Module',
   'common.createSuccess': 'Created',
   'common.updateSuccess': 'Updated',
   'common.deleteSuccess': 'Deleted',
@@ -362,7 +362,6 @@ const enUSFallback = {
   'common.total': 'Total',
   'common.pagination.firstPage': 'First page',
   'common.pagination.lastPage': 'Last page',
-  'common.required': 'Required',
   'common.requiredField': 'Please input {{field}}',
   'common.actionFailed': 'Action failed. Please try again later.',
   'request.failed': 'Request failed. Please try again later.',
@@ -381,8 +380,6 @@ const enUSFallback = {
   'common.cleanupRangeRequired':
     'When using range cleanup, select both the start and end timestamps',
   'common.cleanupRangeConfirm': 'Clean up records inside the selected time range?',
-  'common.exportCurrentPageSelectionOnly':
-    'Only records selected on the current page can be exported. Return to the original page before exporting cross-page selections.',
   'common.deleteSelected': 'Delete Selected',
   'common.batchDeleteSuccess': 'Deleted {{deleted}} record(s)',
   'common.batchDeletePartialSuccess': 'Deleted {{deleted}} record(s), {{failed}} failed',
@@ -419,6 +416,7 @@ const enUSFallback = {
   'common.importErrorField': 'field',
   'common.importErrorMessageKey': 'messageKey',
   'common.importErrorMessage': 'message',
+  'common.username': 'Username',
   'common.forbidden': 'You do not have permission to access this page',
   'common.serverErrorTitle': 'Service Error',
   'common.serverError': 'The service is temporarily unavailable. Please try again later.',
@@ -488,8 +486,7 @@ const enUSFallback = {
   'dashboard.domain.accessDesc': 'Users, roles, and navigation authorization baseline',
   'dashboard.domain.orgDesc': 'Scale of departments and positions',
   'dashboard.domain.configDesc': 'Dictionaries, settings, and platform parameters',
-  'dashboard.domain.securityDesc':
-    'Current posture of sign-in risk, security events, and session governance',
+  'dashboard.domain.securityDesc': 'Current posture of sign-in risk, security events, and session governance',
   'dashboard.domain.lowcodeDesc': 'Current scale of module registrations and translation assets',
   'dashboard.domain.governanceDesc': 'Pressure from critical operations and pending security work',
   'dashboard.usersAndRoles': '{{users}} users / {{roles}} roles',
@@ -543,15 +540,18 @@ const enUSFallback = {
   'i18n.pageDescription': 'Manage dynamic translations and refresh cache after updates',
   'i18n.hero.eyebrow': 'System Domain / Config Governance I18n',
   'i18n.hero.title':
-    'Govern translation entries, missing locale slots, and i18n audit in one workflow',
+    'Govern translation records, unique keys, and i18n audit in one workflow',
   'i18n.hero.desc':
     'The i18n page keeps a strict `system/config` boundary: the main task area owns entry queries and governance actions, while the side rail only summarizes coverage and repair guidance.',
-  'i18n.hero.entriesHint': 'Total translation entries currently in the governance scope.',
+  'i18n.hero.recordsHint': 'Total translation rows in the current governance scope, stored per locale.',
+  'i18n.hero.entriesHint': 'Deduplicated translation key count for the real entry scale.',
+  'i18n.hero.records': 'Record Rows',
+  'i18n.hero.entries': 'Unique Keys',
   'i18n.hero.modules': 'Modules',
   'i18n.hero.modulesHint': 'Modules already onboarded into i18n governance.',
-  'i18n.hero.missingLocales': 'Missing Locale Slots',
+  'i18n.hero.missingLocales': 'Missing Locale Records',
   'i18n.hero.missingHint':
-    'Locale slots that still need completion and can be repaired through missing-locale governance.',
+    'Locale records that still need completion, not the number of locale types, and can be repaired through missing-locale governance.',
   'i18n.hero.selectedHint':
     'Batch refresh and batch delete both run against the current selection.',
   'i18n.hero.summaryTitle': 'Governance Summary',
@@ -602,9 +602,10 @@ const enUSFallback = {
   'i18n.create.invalid': 'Incomplete translation creation parameters',
   'i18n.stats.modules': '{{count}} modules',
   'i18n.stats.groups': '{{count}} groups',
-  'i18n.stats.entries': '{{count}} entries',
+  'i18n.stats.records': '{{count}} records',
+  'i18n.stats.entries': '{{count}} keys',
   'i18n.stats.missingValues': '{{count}} placeholder or missing values',
-  'i18n.stats.missingLocales': '{{count}} missing locale slots',
+  'i18n.stats.missingLocales': '{{count}} missing locale records',
   'i18n.stats.localeCoverage': '{{locale}}: {{entries}} entries, {{missing}} missing',
   'i18n.missingLocales.title': 'Missing Locale Details',
   'i18n.missingLocales.empty': 'There are no translations missing locales.',
@@ -700,17 +701,14 @@ const enUSFallback = {
     'Source code references still exist. Complete code migration before execution',
   'i18n.lifecycle.observe.all': 'Mark All for Observation',
   'i18n.lifecycle.observe.module': 'Start Observation',
-  'i18n.lifecycle.observe': 'Observe',
   'i18n.lifecycle.observe.success': 'Marked {{count}} unused keys for observation.',
   'i18n.lifecycle.observe.error': 'Failed to mark unused keys for observation',
   'i18n.lifecycle.archive.all': 'Archive Expired Observations',
   'i18n.lifecycle.archive.module': 'Archive Observations',
-  'i18n.lifecycle.archive': 'Archive',
   'i18n.lifecycle.archive.success': 'Archived {{count}} unused keys.',
   'i18n.lifecycle.archive.error': 'Failed to archive observed unused keys',
   'i18n.lifecycle.delete.all': 'Delete Archived Keys',
   'i18n.lifecycle.delete.module': 'Delete Archived',
-  'i18n.lifecycle.delete': 'Delete',
   'i18n.lifecycle.delete.confirm': 'Delete archived unused i18n keys now? This cannot be undone.',
   'i18n.lifecycle.delete.confirmModule':
     'Delete archived unused i18n keys in this module? This cannot be undone.',
@@ -764,6 +762,7 @@ const enUSFallback = {
   'generator.moduleManager.diagnostics': 'Activation Diagnostics',
   'generator.moduleManager.diagnostics.verified': 'Verified',
   'generator.moduleManager.diagnostics.failed': 'Issue',
+  'generator.moduleManager.verifiedAt': 'Verified At',
   'generator.moduleManager.registerNew': 'New Module Onboarding',
   'generator.moduleManager.confirmUninstall': 'Uninstall this module?',
   'generator.moduleManager.confirmUninstallAutoRecycle':
@@ -780,6 +779,15 @@ const enUSFallback = {
   'generator.moduleManager.purge': 'Purge',
   'generator.moduleManager.purgeSuccess': 'Module purged successfully',
   'generator.moduleManager.purgeError': 'Failed to purge the module',
+  'generator.moduleManager.i18nLifecycle.notice':
+    'I18n governance result: orphaned translations for {{module}} have been moved into lifecycle management.',
+  'generator.moduleManager.i18nLifecycle.observe': '{{count}} rows observing',
+  'generator.moduleManager.i18nLifecycle.archive': '{{count}} rows archived',
+  'generator.moduleManager.i18nLifecycle.delete': '{{count}} rows auto-deleted',
+  'generator.moduleManager.i18nLifecycle.retention':
+    'Archived rows auto-delete after {{days}} days',
+  'generator.moduleManager.i18nLifecycle.empty':
+    'No orphaned translations required governance in this run.',
   'generator.moduleManager.repair': 'Audit & Repair Registries',
   'generator.moduleManager.repairHint':
     'Use this when historical dirty data or manual file deletion causes generated registries to drift from the real source state. The platform rewrites generated registries from valid modules and marks records with missing source as uninstalled.',
@@ -1707,6 +1715,19 @@ const enUSFallback = {
   'system.role.sort': 'Sort',
   'system.role.status': 'Status',
   'system.role.createdAt': 'Created At',
+  'system.role.members': 'Role Members',
+  'system.role.members.subtitle': 'Maintain member bindings directly on the role',
+  'system.role.members.hint':
+    'Users can be created without a role first, then assigned or removed here in a single governance entry.',
+  'system.role.members.candidatePlaceholder':
+    'Search and select users to add into this role',
+  'system.role.members.candidateEmpty': 'No available users to add',
+  'system.role.members.searchPlaceholder': 'Search current members by username or nickname',
+  'system.role.members.filterStatus': 'Filter member status',
+  'system.role.members.addSuccess': 'Added {{count}} members',
+  'system.role.members.removeSuccess': 'Removed {{count}} members',
+  'system.role.members.removeConfirm': 'Remove this user from the current role?',
+  'system.role.members.empty': 'No members are currently bound to this role',
   'system.role.menuIds': 'Navigation Menus',
   'system.role.menuIds.placeholder': 'Select navigation menus visible to this role',
   'system.role.permissionKeys': 'Page / Action Permissions',
@@ -2729,12 +2750,7 @@ const enUSFallback = {
   'business.cmdb.collect.start': 'Start Collection',
   'business.cmdb.component.name': 'Component Name',
   'business.cmdb.component.version': 'Version',
-  'generator.codePreview.title': 'Code Preview',
-  'generator.codePreview.download': 'Download',
-  'generator.codePreview.files': 'Files',
-  'generator.codePreview.selectFile': 'Select a file to preview',
-  'system.permission.policy.batchDeleteConfirm':
-    'Delete the selected {{count}} permission policy record(s)?',
+  ...enUSRuntimeFixes,
 };
 
 export default enUSFallback;
