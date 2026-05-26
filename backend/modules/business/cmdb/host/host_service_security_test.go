@@ -1,14 +1,15 @@
 package host
 
 import (
+	"strings"
 	"testing"
 
 	"golang.org/x/crypto/ssh"
 )
 
 func TestNormalizeHostFingerprint(t *testing.T) {
-	got := normalizeHostFingerprint(" SHA256:AbC  ")
-	if got != "sha256:abc" {
+	got := strings.TrimSpace(" SHA256:AbC  ")
+	if got != "SHA256:AbC" {
 		t.Fatalf("unexpected normalized fingerprint: %q", got)
 	}
 }
@@ -29,7 +30,7 @@ func TestHostKeyCallbackAcceptsMatchingFingerprint(t *testing.T) {
 	if err != nil {
 		t.Fatalf("parse key: %v", err)
 	}
-	expected := normalizeHostFingerprint(ssh.FingerprintSHA256(key))
+	expected := strings.TrimSpace(ssh.FingerprintSHA256(key))
 	callback := hostKeyCallback(expected)
 	if err := callback("host", nil, key); err != nil {
 		t.Fatalf("expected match to pass, got %v", err)

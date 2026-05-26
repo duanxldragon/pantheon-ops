@@ -1,7 +1,5 @@
-export function escapeRegexLiteral(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+import { expect, type Page } from '@playwright/test';
 
-export function buildUrlSuffixPattern(pathname: string) {
-  return new RegExp(`${escapeRegexLiteral(pathname)}$`);
+export function expectPagePathname(page: Page, pathname: string) {
+  expect(new URL(page.url()).pathname).toBe(pathname);
 }

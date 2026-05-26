@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { signInAsAdmin } from '../helpers/auth';
-import { buildUrlSuffixPattern } from '../helpers/url-pattern';
+import { expectPagePathname } from '../helpers/url-pattern';
 
 const systemTablePages = [
   { path: '/system/user' },
@@ -69,7 +69,7 @@ async function navigateInShell(page: import('@playwright/test').Page, path: stri
     window.history.pushState({}, '', nextPath);
     window.dispatchEvent(new PopStateEvent('popstate'));
   }, path);
-  await expect(page).toHaveURL(buildUrlSuffixPattern(path));
+  expectPagePathname(page, path);
 }
 
 async function openSystemDialogPage(page: import('@playwright/test').Page, path: string) {

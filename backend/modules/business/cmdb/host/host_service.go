@@ -17,13 +17,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func normalizeHostFingerprint(raw string) string {
-	return strings.TrimSpace(strings.ToLower(strings.ReplaceAll(raw, " ", "")))
-}
-
 func hostKeyCallback(expectedFingerprint string) ssh.HostKeyCallback {
 	return func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-		if normalizeHostFingerprint(ssh.FingerprintSHA256(key)) != expectedFingerprint {
+		if strings.TrimSpace(ssh.FingerprintSHA256(key)) != strings.TrimSpace(expectedFingerprint) {
 			return errors.New("cmdbhost.ssh_host_key_mismatch")
 		}
 		return nil
@@ -239,7 +235,7 @@ func (s *HostService) Collect(id uint64, req CollectRequest, dataScope *common.D
 	}
 
 	addr := fmt.Sprintf("%s:%d", host.IP, host.SSHPort)
-	fingerprint := normalizeHostFingerprint(req.HostFingerprint)
+	fingerprint := strings.TrimSpace(req.HostFingerprint)
 	if fingerprint == "" {
 		return nil, errors.New("cmdbhost.ssh_host_key_required")
 	}
