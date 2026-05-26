@@ -1537,7 +1537,7 @@ func (h *${this.modelName}Handler) Unbind${relationName}Relation(c *gin.Context)
    * 辅助函数: 字段类型转 Go 类型
    */
   private goTypeFromField(fieldType: string): string {
-    return TYPE_MAPPING[fieldType as keyof typeof TYPE_MAPPING]?.go || 'string';
+    return TYPE_MAPPING[fieldType as keyof typeof TYPE_MAPPING].go || 'string';
   }
 
   private escapeGoString(value: string): string {
