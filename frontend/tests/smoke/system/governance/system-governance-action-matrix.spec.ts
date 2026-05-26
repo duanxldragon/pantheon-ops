@@ -1,5 +1,6 @@
 import { expect, test, type Locator, type Page, type Route } from '@playwright/test';
 import { installOperationToken, signInAsAdmin } from '../../helpers/auth';
+import { buildUrlSuffixPattern } from '../../helpers/url-pattern';
 
 type Deferred<T = void> = {
   promise: Promise<T>;
@@ -284,7 +285,7 @@ test.describe('system governance action matrix', () => {
         await installOperationToken(casePage, accessToken);
         const popup = await actionCase.prepare(casePage);
         await expect(popup.getByText(actionCase.confirmText, { exact: true })).toBeVisible();
-        await expect(casePage).toHaveURL(new RegExp(`${actionCase.path.replace(/\//g, '\\/')}$`));
+        await expect(casePage).toHaveURL(buildUrlSuffixPattern(actionCase.path));
         expectNoRuntimeErrors(runtimeErrors);
       } finally {
         await casePage.close();

@@ -81,6 +81,7 @@ export interface CollectPayload {
   sshUser: string;
   sshPassword?: string;
   sshPrivateKey?: string;
+  hostFingerprint: string;
   authMode: 'password' | 'private_key';
 }
 

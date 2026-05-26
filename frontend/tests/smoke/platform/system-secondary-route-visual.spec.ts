@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { signInAsAdmin } from '../helpers/auth';
+import { buildUrlSuffixPattern } from '../helpers/url-pattern';
 
 const artifactDir = join(process.cwd(), 'test-results', 'backoffice-ui');
 
@@ -218,7 +219,7 @@ test.describe('system secondary route visual acceptance', () => {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
         await page.goto(route.path, { waitUntil: 'networkidle' });
 
-        await expect(page).toHaveURL(new RegExp(`${route.path.replace(/\//g, '\\/')}$`));
+        await expect(page).toHaveURL(buildUrlSuffixPattern(route.path));
         await expectPageIdentity(page, route.title);
         await expectNoPageError(page);
         await expectProfessionalBackofficeSurface(page);
