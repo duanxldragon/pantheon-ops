@@ -882,6 +882,7 @@ func (s *I18nService) GetAudit() (*I18nAuditResp, error) {
 		Modules:                        make([]I18nModuleAuditItem, 0),
 		StalePlaceholderThresholdDays:  I18nStalePlaceholderThresholdDays,
 		UnusedObservationThresholdDays: I18nUnusedObservationThresholdDays,
+		ArchivedRetentionThresholdDays: I18nArchivedRetentionThresholdDays,
 	}
 	if s.db == nil {
 		return resp, nil
@@ -931,15 +932,16 @@ func (s *I18nService) GetAudit() (*I18nAuditResp, error) {
 		rows    int64
 	}
 	type moduleAudit struct {
-		entryCount        int64
-		keys              map[string]struct{}
-		unusedKeys        map[string]struct{}
-		duplicateKeys     map[string]struct{}
-		missingLocaleKeys map[string]struct{}
-		placeholderCount  int64
-		stalePlaceholders int64
-		observingKeys     map[string]struct{}
-		archivedKeys      map[string]struct{}
+		entryCount         int64
+		keys               map[string]struct{}
+		unusedKeys         map[string]struct{}
+		duplicateKeys      map[string]struct{}
+		missingLocaleKeys  map[string]struct{}
+		placeholderCount   int64
+		stalePlaceholders  int64
+		observingKeys      map[string]struct{}
+		archivedKeys       map[string]struct{}
+		deleteEligibleKeys map[string]struct{}
 	}
 
 	keyAudits := make(map[string]*keyAudit)
@@ -992,12 +994,13 @@ func (s *I18nService) GetAudit() (*I18nAuditResp, error) {
 		moduleMeta, ok := moduleAudits[module]
 		if !ok {
 			moduleMeta = &moduleAudit{
-				keys:              make(map[string]struct{}),
-				unusedKeys:        make(map[string]struct{}),
-				duplicateKeys:     make(map[string]struct{}),
-				missingLocaleKeys: make(map[string]struct{}),
-				observingKeys:     make(map[string]struct{}),
-				archivedKeys:      make(map[string]struct{}),
+				keys:               make(map[string]struct{}),
+				unusedKeys:         make(map[string]struct{}),
+				duplicateKeys:      make(map[string]struct{}),
+				missingLocaleKeys:  make(map[string]struct{}),
+				observingKeys:      make(map[string]struct{}),
+				archivedKeys:       make(map[string]struct{}),
+				deleteEligibleKeys: make(map[string]struct{}),
 			}
 			moduleAudits[module] = moduleMeta
 		}
@@ -1108,6 +1111,10 @@ func (s *I18nService) GetAudit() (*I18nAuditResp, error) {
 		if meta.lifecycleStatus == I18nLifecycleStatusArchived {
 			moduleMeta.archivedKeys[meta.key] = struct{}{}
 		}
+		eligibleForDelete := meta.lifecycleStatus == I18nLifecycleStatusArchived && observingDays >= I18nArchivedRetentionThresholdDays
+		if eligibleForDelete {
+			moduleMeta.deleteEligibleKeys[meta.key] = struct{}{}
+		}
 		resp.UnusedKeys = append(resp.UnusedKeys, I18nUnusedKeyItem{
 			Key:                meta.key,
 			Module:             meta.module,
@@ -1119,7 +1126,7 @@ func (s *I18nService) GetAudit() (*I18nAuditResp, error) {
 			LifecycleMarkedAt:  markedAt,
 			ObservingDays:      observingDays,
 			EligibleForArchive: meta.lifecycleStatus == I18nLifecycleStatusObserving && observingDays >= I18nUnusedObservationThresholdDays,
-			EligibleForDelete:  meta.lifecycleStatus == I18nLifecycleStatusArchived,
+			EligibleForDelete:  eligibleForDelete,
 		})
 	}
 
@@ -1131,16 +1138,17 @@ func (s *I18nService) GetAudit() (*I18nAuditResp, error) {
 	for _, module := range moduleNames {
 		item := moduleAudits[module]
 		resp.Modules = append(resp.Modules, I18nModuleAuditItem{
-			Module:                module,
-			EntryCount:            item.entryCount,
-			KeyCount:              int64(len(item.keys)),
-			UnusedKeyCount:        int64(len(item.unusedKeys)),
-			DuplicateKeyCount:     int64(len(item.duplicateKeys)),
-			MissingLocaleCount:    int64(len(item.missingLocaleKeys)),
-			PlaceholderCount:      item.placeholderCount,
-			StalePlaceholderCount: item.stalePlaceholders,
-			ObservingKeyCount:     int64(len(item.observingKeys)),
-			ArchivedKeyCount:      int64(len(item.archivedKeys)),
+			Module:                 module,
+			EntryCount:             item.entryCount,
+			KeyCount:               int64(len(item.keys)),
+			UnusedKeyCount:         int64(len(item.unusedKeys)),
+			DuplicateKeyCount:      int64(len(item.duplicateKeys)),
+			MissingLocaleCount:     int64(len(item.missingLocaleKeys)),
+			PlaceholderCount:       item.placeholderCount,
+			StalePlaceholderCount:  item.stalePlaceholders,
+			ObservingKeyCount:      int64(len(item.observingKeys)),
+			ArchivedKeyCount:       int64(len(item.archivedKeys)),
+			DeleteEligibleKeyCount: int64(len(item.deleteEligibleKeys)),
 		})
 	}
 
@@ -1259,6 +1267,14 @@ func (s *I18nService) DeleteArchivedUnusedKeys(module string, confirmArchived bo
 	if !confirmArchived {
 		return nil, errors.New("i18n.lifecycle.delete.confirm_required")
 	}
+	return s.deleteArchivedUnusedKeys(module, false)
+}
+
+func (s *I18nService) DeleteExpiredArchivedUnusedKeys(module string) (*I18nUnusedLifecycleResp, error) {
+	return s.deleteArchivedUnusedKeys(module, true)
+}
+
+func (s *I18nService) deleteArchivedUnusedKeys(module string, requireEligible bool) (*I18nUnusedLifecycleResp, error) {
 	audit, err := s.GetAudit()
 	if err != nil {
 		return nil, err
@@ -1279,7 +1295,10 @@ func (s *I18nService) DeleteArchivedUnusedKeys(module string, confirmArchived bo
 		if resp.Module != "" && item.Module != resp.Module {
 			continue
 		}
-		if item.EligibleForDelete {
+		if requireEligible && !item.EligibleForDelete {
+			continue
+		}
+		if item.LifecycleStatus == I18nLifecycleStatusArchived {
 			targets = append(targets, target{module: item.Module, key: item.Key})
 			resp.AffectedKeys = append(resp.AffectedKeys, item.Key)
 		}
@@ -1301,6 +1320,52 @@ func (s *I18nService) DeleteArchivedUnusedKeys(module string, confirmArchived bo
 	}
 	sort.Strings(resp.AffectedKeys)
 	return resp, s.ReloadCache()
+}
+
+func (s *I18nService) AdvanceUnusedLifecycle(module string) (*I18nUnusedLifecycleAdvanceResp, error) {
+	resp := &I18nUnusedLifecycleAdvanceResp{
+		Module:                         strings.TrimSpace(module),
+		ObservedKeys:                   make([]string, 0),
+		ArchivedKeys:                   make([]string, 0),
+		DeletedKeys:                    make([]string, 0),
+		ArchivedRetentionThresholdDays: I18nArchivedRetentionThresholdDays,
+	}
+	if s.db == nil {
+		return resp, nil
+	}
+
+	observeResp, err := s.StartUnusedObservation(resp.Module)
+	if err != nil {
+		return nil, err
+	}
+	if observeResp != nil {
+		resp.ObservedKeys = append(resp.ObservedKeys, observeResp.AffectedKeys...)
+		resp.ObservedRows = observeResp.AffectedRows
+	}
+
+	archiveResp, err := s.ArchiveObservedUnusedKeys(resp.Module)
+	if err != nil {
+		return nil, err
+	}
+	if archiveResp != nil {
+		resp.ArchivedKeys = append(resp.ArchivedKeys, archiveResp.AffectedKeys...)
+		resp.ArchivedRows = archiveResp.AffectedRows
+	}
+
+	deleteResp, err := s.DeleteExpiredArchivedUnusedKeys(resp.Module)
+	if err != nil {
+		return nil, err
+	}
+	if deleteResp != nil {
+		resp.DeletedKeys = append(resp.DeletedKeys, deleteResp.AffectedKeys...)
+		resp.DeletedRows = deleteResp.AffectedRows
+	}
+
+	resp.ObservationOnly = resp.ObservedRows > 0 && resp.ArchivedRows == 0 && resp.DeletedRows == 0
+	sort.Strings(resp.ObservedKeys)
+	sort.Strings(resp.ArchivedKeys)
+	sort.Strings(resp.DeletedKeys)
+	return resp, nil
 }
 
 func (s *I18nService) PreviewRenameKey(req *I18nRenamePreviewReq) (*I18nRenamePreviewResp, error) {
@@ -1776,6 +1841,16 @@ func resolveI18nScanRoots() []string {
 		roots = append(roots, normalized)
 	}
 
+	if configuredRoot := strings.TrimSpace(os.Getenv("PANTHEON_WORKSPACE_ROOT")); configuredRoot != "" {
+		backendRoot := filepath.Join(configuredRoot, "backend")
+		frontendRoot := filepath.Join(configuredRoot, "frontend")
+		if dirExists(backendRoot) && dirExists(frontendRoot) {
+			appendRoot(backendRoot)
+			appendRoot(frontendRoot)
+			return roots
+		}
+	}
+
 	base := ""
 	if cwd, err := os.Getwd(); err == nil {
 		base = cwd
@@ -1817,7 +1892,7 @@ func resolveI18nScanRoots() []string {
 }
 
 func scanI18nKeys(excludeCatalog bool) ([]string, error) {
-	re := regexp.MustCompile(`"([a-z0-9_]+\.[a-z0-9_\.]+)"`)
+	re := regexp.MustCompile("[\"'`]([A-Za-z0-9_]+\\.[A-Za-z0-9_\\.]+)[\"'`]")
 	keyMap := make(map[string]struct{})
 	for _, root := range resolveI18nScanRoots() {
 		if err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {

@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	systemi18n "pantheon-ops/backend/modules/system/i18n"
 	"pantheon-ops/backend/pkg/testmysql"
 
 	"pantheon-ops/backend/internal/scaffold"
@@ -503,7 +504,7 @@ func TestUnregisterAndRegisterManagedModule_RewritesRegistriesWithoutPurgingSour
 	}
 
 	moduleDir := filepath.Join(workspaceRoot, "backend", "modules", "business", "asset")
-	if err := service.UnregisterModule("business.asset", false, false); err != nil {
+	if _, err := service.UnregisterModule("business.asset", false, false); err != nil {
 		t.Fatalf("unregister generated module: %v", err)
 	}
 	if _, err := os.Stat(moduleDir); err != nil {
@@ -901,7 +902,8 @@ func TestPurgeModuleAllowsBusinessStaticModuleWithoutTable(t *testing.T) {
 	workspaceRoot := prepareDynamicModuleWorkspace(t)
 	mustWriteGeneratedRegistryStubs(t, workspaceRoot)
 	mustCreateSystemMenuTable(t, db)
-	mustCreateSystemI18nTable(t, db)
+	mustCreateSystemRolePermissionTable(t, db)
+	mustMigrateSystemI18n(t, db)
 
 	registration := ModuleRegistration{
 		Name:        "business.cmdb",
@@ -917,7 +919,11 @@ func TestPurgeModuleAllowsBusinessStaticModuleWithoutTable(t *testing.T) {
 	if err := db.Exec(`INSERT INTO system_menu (path, type, module) VALUES ('/business/cmdb', 'M', 'business.cmdb')`).Error; err != nil {
 		t.Fatalf("seed menu: %v", err)
 	}
-	if err := db.Exec(`INSERT INTO system_i18n (module) VALUES ('business.cmdb')`).Error; err != nil {
+	i18nService := systemi18n.NewI18nService(db)
+	if err := i18nService.BatchInsert([]systemi18n.SystemI18n{
+		{Module: "business.cmdb", Group: "messages", Key: "business.cmdb.title", Locale: "zh-CN", Value: "配置中心"},
+		{Module: "business.cmdb", Group: "messages", Key: "business.cmdb.title", Locale: "en-US", Value: "CMDB"},
+	}); err != nil {
 		t.Fatalf("seed i18n: %v", err)
 	}
 
@@ -926,8 +932,15 @@ func TestPurgeModuleAllowsBusinessStaticModuleWithoutTable(t *testing.T) {
 		workspaceRoot: workspaceRoot,
 	}
 
-	if err := service.PurgeModule("business.cmdb", false, true); err != nil {
+	summary, err := service.PurgeModule("business.cmdb", false, true)
+	if err != nil {
 		t.Fatalf("purge business static module: %v", err)
+	}
+	if !summary.Triggered {
+		t.Fatal("expected static module purge to trigger i18n lifecycle governance")
+	}
+	if summary.ObservedRows != 2 {
+		t.Fatalf("expected static module purge to observe 2 rows, got %d", summary.ObservedRows)
 	}
 
 	var count int64
@@ -943,11 +956,17 @@ func TestPurgeModuleAllowsBusinessStaticModuleWithoutTable(t *testing.T) {
 	if count != 0 {
 		t.Fatalf("expected menu rows to be deleted, got %d", count)
 	}
-	if err := db.Table("system_i18n").Where("module = ?", "business.cmdb").Count(&count).Error; err != nil {
-		t.Fatalf("count i18n: %v", err)
+	var rows []systemi18n.SystemI18n
+	if err := db.Where("module = ?", "business.cmdb").Find(&rows).Error; err != nil {
+		t.Fatalf("load i18n rows: %v", err)
 	}
-	if count != 0 {
-		t.Fatalf("expected i18n rows to be deleted, got %d", count)
+	if len(rows) != 2 {
+		t.Fatalf("expected i18n rows to remain for lifecycle handling, got %d", len(rows))
+	}
+	for _, row := range rows {
+		if row.LifecycleStatus != systemi18n.I18nLifecycleStatusObserving {
+			t.Fatalf("expected observing lifecycle status, got %s", row.LifecycleStatus)
+		}
 	}
 }
 
@@ -976,7 +995,7 @@ func TestPurgeModuleAutoDropsTableForAutoRecycleManagedModule(t *testing.T) {
 		workspaceRoot: workspaceRoot,
 	}
 
-	if err := service.PurgeModule("business.tmpasset", false, false); err != nil {
+	if _, err := service.PurgeModule("business.tmpasset", false, false); err != nil {
 		t.Fatalf("purge managed module: %v", err)
 	}
 	if db.Migrator().HasTable("biz_tmp_asset") {
@@ -1008,7 +1027,7 @@ func TestPurgeModuleDoesNotDropTableForRegularManagedModuleWithoutExplicitDrop(t
 		workspaceRoot: workspaceRoot,
 	}
 
-	if err := service.PurgeModule("business.keepasset", false, false); err != nil {
+	if _, err := service.PurgeModule("business.keepasset", false, false); err != nil {
 		t.Fatalf("purge managed module: %v", err)
 	}
 	if !db.Migrator().HasTable("biz_keep_asset") {
@@ -1040,9 +1059,17 @@ func TestUnregisterModuleRejectsUnsafeManagedTableName(t *testing.T) {
 		workspaceRoot: workspaceRoot,
 	}
 
-	err := service.UnregisterModule("business.asset", true, false)
+	_, err := service.UnregisterModule("business.asset", true, false)
 	if err == nil || err.Error() != "module.generate.invalid_table_name" {
 		t.Fatalf("expected invalid table name error, got %v", err)
+	}
+}
+
+func mustMigrateSystemI18n(t *testing.T, db *gorm.DB) {
+	t.Helper()
+	service := systemi18n.NewI18nService(db)
+	if err := service.Migrate(); err != nil {
+		t.Fatalf("migrate system_i18n: %v", err)
 	}
 }
 

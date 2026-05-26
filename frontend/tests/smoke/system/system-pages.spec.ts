@@ -716,6 +716,7 @@ test('config high-sensitivity pages keep one summary container and no hero wall'
   await expect(page.locator('.system-list__hero')).toHaveCount(0);
   await expect(page.locator('.system-list__work-actions .arco-btn')).toBeVisible();
   await expect(page.locator('.generator-wizard__steps')).toBeVisible();
+  await expect(page.locator('.generator-wizard__list-layout-card')).toBeVisible();
   await expect(page.locator('.generator-wizard__lifecycle-card')).toBeVisible();
 
   await page.goto('/system/i18n', { waitUntil: 'networkidle' });

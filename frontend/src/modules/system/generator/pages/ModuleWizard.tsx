@@ -89,6 +89,7 @@ import {
   type DataScopeMode,
   type GeneratorMenuPreviewNode,
   type ModuleField,
+  type ModuleListLayoutConfig,
   type ModuleRelationType,
   type ModuleSchema,
   type ModuleScope,
@@ -193,6 +194,13 @@ const ModuleWizard: React.FC = () => {
   const [relationContractsText, setRelationContractsText] = useState('');
   const [enableDataScope, setEnableDataScope] = useState(true);
   const [includeDashboardWidget, setIncludeDashboardWidget] = useState(true);
+  const [listLayout, setListLayout] = useState<ModuleListLayoutConfig>({
+    governance: true,
+    search: true,
+    headerActions: true,
+    batchActions: true,
+    rowActions: true,
+  });
   const [translationPreviewPagination, setTranslationPreviewPagination] = useState({
     current: 1,
     pageSize: 8,
@@ -384,6 +392,8 @@ const ModuleWizard: React.FC = () => {
       fields: [],
     };
     const normalizedFields = normalizeFields(fields);
+    const hasSearchableFields = normalizedFields.some((field) => field.searchable);
+    const hasVisibleListFields = normalizedFields.some((field) => field.visibleInList !== false);
     const titleKey = buildTitleKey(scope, name);
     const dashboardQuickActionDescriptionKey = buildDashboardQuickActionDescriptionKey(scope, name);
     const moduleSegments = name.split('/').filter(Boolean);
@@ -495,6 +505,22 @@ const ModuleWizard: React.FC = () => {
       dependencies: parseDependencyModules(),
       relations: parseRelationContracts(),
       dataScopeMode: enableDataScope ? dataScopeMode : 'none',
+      listLayout: {
+        governance:
+          tableRole !== 'relation' &&
+          Boolean(metadata.primaryTable || metadata.relationFromField || metadata.relationToField),
+        search: hasSearchableFields && listLayout.search !== false,
+        headerActions:
+          (enableExport || enableImport || pageActions.includes('create')) &&
+          listLayout.headerActions !== false,
+        batchActions:
+          pageActions.some((action) => ['update', 'delete'].includes(action)) &&
+          listLayout.batchActions !== false,
+        rowActions:
+          hasVisibleListFields &&
+          pageActions.some((action) => ['view', 'detail', 'update', 'delete'].includes(action)) &&
+          listLayout.rowActions !== false,
+      },
       metadata: {
         businessContext,
         businessContextTitle,
@@ -624,6 +650,7 @@ const ModuleWizard: React.FC = () => {
           tableName,
           fields: importedFields,
         },
+        listLayout,
       };
       form.setFieldsValue(schema);
       setRegisterResult(null);
@@ -1455,6 +1482,78 @@ const ModuleWizard: React.FC = () => {
                   </FormItem>
                 </Col>
               </Row>
+              <Card
+                size="small"
+                className="generator-wizard__list-layout-card"
+                title={t('generator.wizard.listLayout.title', 'List Layout')}
+              >
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <FormItem label={t('generator.wizard.listLayout.governance', 'Governance')}>
+                      <Select
+                        value={listLayout.governance ? 'enabled' : 'disabled'}
+                        onChange={(value) =>
+                          setListLayout((current) => ({
+                            ...current,
+                            governance: value === 'enabled',
+                          }))
+                        }
+                      >
+                        <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
+                        <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <FormItem label={t('generator.wizard.listLayout.search', 'Search')}>
+                      <Select
+                        value={listLayout.search ? 'enabled' : 'disabled'}
+                        onChange={(value) =>
+                          setListLayout((current) => ({
+                            ...current,
+                            search: value === 'enabled',
+                          }))
+                        }
+                      >
+                        <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
+                        <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <FormItem label={t('generator.wizard.listLayout.headerActions', 'Header Actions')}>
+                      <Select
+                        value={listLayout.headerActions ? 'enabled' : 'disabled'}
+                        onChange={(value) =>
+                          setListLayout((current) => ({
+                            ...current,
+                            headerActions: value === 'enabled',
+                          }))
+                        }
+                      >
+                        <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
+                        <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <FormItem label={t('generator.wizard.listLayout.batchActions', 'Batch Actions')}>
+                      <Select
+                        value={listLayout.batchActions ? 'enabled' : 'disabled'}
+                        onChange={(value) =>
+                          setListLayout((current) => ({
+                            ...current,
+                            batchActions: value === 'enabled',
+                          }))
+                        }
+                      >
+                        <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
+                        <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                </Row>
+              </Card>
               <Card
                 size="small"
                 className="generator-wizard__lifecycle-card"

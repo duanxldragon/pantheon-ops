@@ -42,6 +42,31 @@ export interface ActivationAuditSummary {
   frontendReadyModules: number;
 }
 
+export interface ModuleI18nLifecycleSummary {
+  module: string;
+  triggered: boolean;
+  observedKeys: string[];
+  observedRows: number;
+  archivedKeys: string[];
+  archivedRows: number;
+  deletedKeys: string[];
+  deletedRows: number;
+  observationOnly: boolean;
+  archivedRetentionThresholdDays: number;
+}
+
+export interface UnregisterModuleResp {
+  unregistered: boolean;
+  message: string;
+  i18nLifecycle: ModuleI18nLifecycleSummary;
+}
+
+export interface PurgeModuleResp {
+  deleted: boolean;
+  message: string;
+  i18nLifecycle: ModuleI18nLifecycleSummary;
+}
+
 export interface RegisterModulePayload {
   name: string;
 }
@@ -71,7 +96,7 @@ export function registerModule(data: RegisterModulePayload) {
  * 卸载模块
  */
 export function unregisterModule(name: string, dropTable = false) {
-  return apiRequest<{ unregistered: boolean; message: string }>({
+  return apiRequest<UnregisterModuleResp>({
     url: `/system/dynamic-modules/${name}?dropTable=${dropTable}`,
     method: 'delete',
   });
@@ -90,7 +115,7 @@ export function purgeModule(
 ) {
   const dropTable = options?.dropTable ? 'true' : 'false';
   const purgeSource = options?.purgeSource === false ? 'false' : 'true';
-  return apiRequest<{ deleted: boolean; message: string }>({
+  return apiRequest<PurgeModuleResp>({
     url: `/system/dynamic-modules/${name}/purge?dropTable=${dropTable}&purgeSource=${purgeSource}`,
     method: 'delete',
   });

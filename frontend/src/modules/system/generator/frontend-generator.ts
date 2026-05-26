@@ -327,31 +327,57 @@ ${extraApi ? `\n${extraApi}\n` : ''}
     const modelName = this.modelName;
     const toSrcRoot = this.relativeToSrcRoot();
     const titleKey = buildTitleKey(scope, name);
-    const governanceConstants = this.shouldRenderListGovernanceNotice()
+    const governanceEnabled = this.isListGovernanceEnabled();
+    const searchEnabled = this.isListSearchEnabled();
+    const headerActionsEnabled = this.isListHeaderActionsEnabled();
+    const batchActionsEnabled = this.isListBatchActionsEnabled();
+    const rowActionsEnabled = this.isListRowActionsEnabled();
+    const governanceConstants = governanceEnabled
       ? `${this.generateListGovernanceConstants()}\n`
       : '';
-    const listImports = ['Card', 'Typography'];
-    if (this.shouldRenderListGovernanceNotice()) {
-      listImports.unshift('Alert', 'Space', 'Tag');
+    const listImports = ['Card', 'Typography', 'Space'];
+    if (searchEnabled) {
+      listImports.unshift('Button', 'Form', 'Grid', 'Input', 'Select');
+    }
+    if (headerActionsEnabled || rowActionsEnabled) {
+      listImports.unshift('Popconfirm');
+    }
+    if (governanceEnabled) {
+      listImports.unshift('Alert', 'Tag');
     }
 
     return `import React, { useCallback, useEffect, useState } from 'react';
 import { ${listImports.join(', ')} } from '@arco-design/web-react';
+import { IconDelete, IconDownload, IconEye, IconPlus, IconSearch } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { message } from '${toSrcRoot}/components/feedback/message';
 import {
+  ${this.generateListActionImports()}
   get${modelName}List,
   type ${modelName}ListQuery,
   type ${modelName}ListRow,
 } from './api';
 import {
   AppTable,
+  FilterPanel,
+  ImportCsvButton,
+  ListHeaderActions,
   PageContainer,
+  PageEmpty,
   PageError,
   PageLoading,
+  SystemRowActions,
+  TableBatchActionBar,
+  TABLE_ACTION_COLUMN_WIDTH,
   buildStandardPagination,
 } from '${toSrcRoot}/components';
+import '${this.relativeToSystemListPageCss()}';
 
 ${governanceConstants}
+
+const FormItem = Form.Item;
+const { Row, Col } = Grid;
 
 const emptyQuery: ${modelName}ListQuery = {
 ${this.generateEmptyQueryFields()}
@@ -360,11 +386,15 @@ ${this.generateEmptyQueryFields()}
 };
 
 const ${modelName}List: React.FC = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState<${modelName}ListRow[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [query, setQuery] = useState<${modelName}ListQuery>(emptyQuery);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string | number>>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [queryForm] = Form.useForm<${modelName}ListQuery>();
   const { t } = useTranslation();
 
   const loadData = useCallback(async (nextQuery: ${modelName}ListQuery = query) => {
@@ -385,6 +415,50 @@ const ${modelName}List: React.FC = () => {
     void loadData();
   }, [loadData]);
 
+  const search = () => {
+    const values = queryForm.getFieldsValue();
+    setSelectedRowKeys([]);
+    const nextQuery = {
+      ...query,
+      ...values,
+      page: 1,
+    };
+    setQuery(nextQuery);
+    void loadData(nextQuery);
+  };
+
+  const reset = () => {
+    queryForm.setFieldsValue(emptyQuery);
+    setSelectedRowKeys([]);
+    setQuery(emptyQuery);
+    void loadData(emptyQuery);
+  };
+
+  const handleExport = async () => {
+    ${this.hasPageAction('export') ? `await export${modelName}s(query);` : 'message.info(t(\'common.comingSoon\'));'}
+  };
+
+  const handleImport = async (file: File) => {
+    ${this.hasPageAction('import') ? `await import${modelName}s(file);
+    message.success(t('common.importSuccess'));` : 'void file;'}
+    await loadData(query);
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedRowKeys.length === 0) {
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await Promise.all(selectedRowKeys.map((rowKey) => delete${modelName}(Number(rowKey))));
+      message.success(t('common.deleteSuccess'));
+      setSelectedRowKeys([]);
+      await loadData(query);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (loading && data.length === 0) {
     return <PageLoading />;
   }
@@ -395,28 +469,54 @@ const ${modelName}List: React.FC = () => {
 
   return (
     <PageContainer>
-${this.generateListGovernanceNotice()}
-      <Card bordered={false}>
-        <Typography.Title heading={5}>{t('${titleKey}')}</Typography.Title>
-        <AppTable
-          className="system-list__table"
-          data={data}
-          rowKey="id"
-          pagination={buildStandardPagination(t, {
-            current: query.page,
-            pageSize: query.pageSize,
-            total,
-            onChange: (page, pageSize) => {
-              const nextQuery = { ...query, page, pageSize };
-              setQuery(nextQuery);
-              void loadData(nextQuery);
-            },
-          })}
-          columns={[
-${this.generateSimpleTableColumns()}
-          ]}
-        />
-      </Card>
+      <Space direction="vertical" size={16} className="system-page-template">
+${this.generateWorkbenchGovernanceBlock()}
+${this.generateWorkbenchSearchBlock()}
+        <Card className="page-panel system-list__table-card">
+          ${this.generateWorkbenchSummaryHead(titleKey)}
+          ${this.generateWorkbenchHeaderActions(headerActionsEnabled, batchActionsEnabled)}
+          {loading && data.length === 0 ? <PageLoading /> : null}
+          {error && data.length === 0 ? (
+            <PageError
+              onRetry={() => {
+                void loadData(query);
+              }}
+            />
+          ) : null}
+          {!loading && !error && data.length === 0 ? (
+            <PageEmpty description={t('common.noData')} />
+          ) : null}
+          {!loading && !(error && data.length === 0) && data.length > 0 ? (
+            <AppTable
+              className="system-list__table"
+              data={data}
+              rowKey="id"
+              scroll={{ x: 'max-content' }}
+              ${batchActionsEnabled ? `rowSelection={{
+                type: 'checkbox',
+                selectedRowKeys,
+                checkCrossPage: true,
+                preserveSelectedRowKeys: true,
+                fixed: true,
+                onChange: (rowKeys) => setSelectedRowKeys(rowKeys),
+              }}` : ''}
+              pagination={buildStandardPagination(t, {
+                current: query.page,
+                pageSize: query.pageSize,
+                total,
+                onChange: (page, pageSize) => {
+                  const nextQuery = { ...query, page, pageSize };
+                  setQuery(nextQuery);
+                  void loadData(nextQuery);
+                },
+              })}
+              columns={[
+${this.generateWorkbenchTableColumns(rowActionsEnabled)}
+              ]}
+            />
+          ) : null}
+        </Card>
+      </Space>
     </PageContainer>
   );
 };
@@ -1271,57 +1371,6 @@ ${options}
     return `${scope}/${splitModuleSegments(name).join('/')}/${this.modelName}Detail`;
   }
 
-  /**
-   * 生成表格列
-   */
-  private generateSimpleTableColumns(): string {
-    const listFields = this.schema.model.fields.filter((f) => f.visibleInList !== false);
-
-    return listFields
-      .map(
-        (field) => `            {
-      title: t('${buildFieldLabelKey(this.schema.scope, this.schema.name, field.name)}'),
-      dataIndex: '${field.name}',
-    },`,
-      )
-      .join('\n');
-  }
-
-  private generateListGovernanceNotice(): string {
-    const tableRole = this.schema.metadata?.tableRole || 'main';
-    const primaryTable = this.schema.metadata?.primaryTable || '';
-    const relationFromField = this.schema.metadata?.relationFromField || '';
-    const relationToField = this.schema.metadata?.relationToField || '';
-    const shouldRender =
-      tableRole === 'detail' ||
-      tableRole === 'relation' ||
-      Boolean(primaryTable) ||
-      Boolean(relationFromField) ||
-      Boolean(relationToField);
-
-    if (!shouldRender) {
-      return '';
-    }
-
-    return `      <Card bordered={false}>
-        <Space direction="vertical" size={12} style={{ width: '100%' }}>
-          <Alert
-            type="info"
-            content={t('generator.wizard.relationFields.help')}
-          />
-          <Space wrap>
-            <Tag color="purple">{t(\`generator.wizard.tableRole.\${governanceTableRole}\`)}</Tag>
-            {governancePrimaryTable ? <Tag color="arcoblue">{governancePrimaryTable}</Tag> : null}
-            {governanceRelationFromField ? <Tag color="orange">{governanceRelationFromField}</Tag> : null}
-            {governanceRelationToField ? <Tag color="orange">{governanceRelationToField}</Tag> : null}
-          </Space>
-          <Typography.Text type="secondary">
-            {t('generator.wizard.relationFields')}
-          </Typography.Text>
-        </Space>
-        </Card>`;
-  }
-
   private generateListGovernanceConstants(): string {
     const tableRole = this.schema.metadata?.tableRole || 'main';
     const primaryTable = this.schema.metadata?.primaryTable || '';
@@ -1348,6 +1397,272 @@ const governanceRelationToField = '${relationToField}';
       Boolean(relationFromField) ||
       Boolean(relationToField)
     );
+  }
+
+  private generateWorkbenchTableColumns(includeRowActions: boolean): string {
+    const listFields = this.schema.model.fields.filter((field) => field.visibleInList !== false);
+    const columns = listFields.map((field) => {
+      const labelKey = buildFieldLabelKey(this.schema.scope, this.schema.name, field.name);
+      return `                {
+                  title: t('${labelKey}'),
+                  dataIndex: '${field.name}',
+                },`;
+    });
+
+    if (includeRowActions) {
+      columns.push(`                {
+                  title: t('common.action'),
+                  width: TABLE_ACTION_COLUMN_WIDTH.medium,
+                  fixed: 'right',
+                  render: (_: unknown, row: ${this.modelName}ListRow) => (
+                    <SystemRowActions
+                      actions={[
+${this.generateRowActionItems()}
+                      ]}
+                    />
+                  ),
+                },`);
+    }
+
+    return columns.join('\n');
+  }
+
+  private generateRowActionItems(): string {
+    const actions = getPageActions(this.schema);
+    const items: string[] = [];
+
+    if (actions.includes('view') || actions.includes('detail')) {
+      items.push(`                        {
+                          key: 'detail',
+                          text: t('common.detail'),
+                          icon: <IconEye />,
+                          onClick: () => navigate('${buildRoutePath(this.schema.scope, this.schema.name)}/' + row.id),
+                        },`);
+    }
+    if (actions.includes('delete')) {
+      items.push(`                        {
+                          key: 'delete',
+                          text: t('common.delete'),
+                          icon: <IconDelete />,
+                          status: 'danger',
+                          confirm: {
+                            title: t('common.deleteConfirm'),
+                            onOk: async () => {
+                              await delete${this.modelName}(row.id);
+                              message.success(t('common.deleteSuccess'));
+                              await loadData(query);
+                            },
+                          },
+                        },`);
+    }
+
+    return items.join('\n');
+  }
+
+  private generateListActionImports(): string {
+    const imports: string[] = [];
+    if (this.hasPageAction('delete')) {
+      imports.push(`delete${this.modelName}`);
+    }
+    if (this.hasPageAction('export')) {
+      imports.push(`export${this.modelName}s`);
+    }
+    if (this.hasPageAction('import')) {
+      imports.push(`import${this.modelName}s`);
+    }
+    return imports.length > 0 ? `${imports.join(', ')} ,` : '';
+  }
+
+  private hasPageAction(action: string): boolean {
+    return getPageActions(this.schema).includes(action as never);
+  }
+
+  private isListGovernanceEnabled(): boolean {
+    return this.schema.listLayout?.governance !== false && this.shouldRenderListGovernanceNotice();
+  }
+
+  private isListSearchEnabled(): boolean {
+    const hasSearchableFields = this.schema.model.fields.some((field) => field.searchable);
+    return hasSearchableFields && this.schema.listLayout?.search !== false;
+  }
+
+  private isListHeaderActionsEnabled(): boolean {
+    const actions = getPageActions(this.schema);
+    return (
+      this.schema.listLayout?.headerActions !== false &&
+      (actions.includes('create') || actions.includes('export') || actions.includes('import'))
+    );
+  }
+
+  private isListBatchActionsEnabled(): boolean {
+    const actions = getPageActions(this.schema);
+    return this.schema.listLayout?.batchActions !== false && actions.includes('delete');
+  }
+
+  private isListRowActionsEnabled(): boolean {
+    const actions = getPageActions(this.schema);
+    return (
+      this.schema.listLayout?.rowActions !== false &&
+      (actions.includes('view') ||
+        actions.includes('detail') ||
+        actions.includes('delete') ||
+        actions.includes('update'))
+    );
+  }
+
+  private generateWorkbenchGovernanceBlock(): string {
+    if (!this.isListGovernanceEnabled()) {
+      return '';
+    }
+    return `        <GovernanceSummaryBar
+          eyebrow={t('generator.wizard.listLayout.governance', 'Governance')}
+          title={t('${buildTitleKey(this.schema.scope, this.schema.name)}')}
+          description={t('generator.wizard.relationFields.help')}
+          metrics={[
+            {
+              key: 'tableRole',
+              label: t('generator.wizard.tableRole'),
+              value: t(\`generator.wizard.tableRole.\${governanceTableRole}\`),
+            },
+            {
+              key: 'primaryTable',
+              label: t('generator.wizard.primaryTable'),
+              value: governancePrimaryTable || '-',
+            },
+          ]}
+        />`;
+  }
+
+  private generateWorkbenchSearchBlock(): string {
+    if (!this.isListSearchEnabled()) {
+      return '';
+    }
+    const searchableFields = this.schema.model.fields.filter((field) => field.searchable);
+    return `        <FilterPanel>
+          <Form form={queryForm} layout="vertical" onSubmit={() => search()}>
+            <Row gutter={16}>
+${searchableFields
+  .map(
+    (field) => `              <Col xs={24} md={6}>
+                <FormItem label={t('${buildFieldLabelKey(this.schema.scope, this.schema.name, field.name)}')} field="${field.name}">
+                  ${this.renderSearchField(field)}
+                </FormItem>
+              </Col>`,
+  )
+  .join('\n')}
+              <Col xs={24} md={6}>
+                <FormItem className="filter-panel__action-item">
+                  <Space>
+                    <Button type="primary" htmlType="submit" icon={<IconSearch />}>
+                      {t('common.search')}
+                    </Button>
+                    <Button onClick={reset}>{t('common.reset')}</Button>
+                  </Space>
+                </FormItem>
+              </Col>
+            </Row>
+          </Form>
+        </FilterPanel>`;
+  }
+
+  private renderSearchField(field: ModuleSchema['model']['fields'][number]): string {
+    if (field.type === 'enum') {
+      const options = (field.enumOptions ?? [])
+        .map(
+          (option) =>
+            `{ label: t('${buildEnumOptionKey(this.schema.scope, this.schema.name, field.name, option.value)}'), value: '${option.value}' }`,
+        )
+        .join(', ');
+      return `<Select allowClear options={[${options}]} />`;
+    }
+    return `<Input onPressEnter={() => queryForm.submit()} />`;
+  }
+
+  private generateWorkbenchSummaryHead(titleKey: string): string {
+    return `<div className="system-list__table-head">
+            <div className="system-list__table-head-copy">
+              <Typography.Text className="system-list__table-head-title">
+                {t('${titleKey}')}
+              </Typography.Text>
+              <Typography.Text type="secondary" className="system-list__table-head-desc">
+                {t('common.total', { count: total })}
+              </Typography.Text>
+            </div>
+          </div>`;
+  }
+
+  private generateWorkbenchHeaderActions(
+    headerActionsEnabled: boolean,
+    batchActionsEnabled: boolean,
+  ): string {
+    if (!headerActionsEnabled && !batchActionsEnabled) {
+      return '';
+    }
+
+    const utilityActions: string[] = [];
+    const primaryActions: string[] = [];
+
+    if (this.hasPageAction('export')) {
+      utilityActions.push(`                  <Button icon={<IconDownload />} onClick={() => { void handleExport(); }}>
+                    {t('common.export')}
+                  </Button>`);
+    }
+    if (this.hasPageAction('import')) {
+      utilityActions.push(`                  <ImportCsvButton onSelect={(file) => { void handleImport(file); }}>
+                    {t('common.import')}
+                  </ImportCsvButton>`);
+    }
+    if (this.hasPageAction('create')) {
+      primaryActions.push(`                  <Button
+                    type="primary"
+                    icon={<IconPlus />}
+                    onClick={() => {
+                      message.info(t('common.comingSoon'));
+                    }}
+                  >
+                    {t('common.add')}
+                  </Button>`);
+    }
+
+    return `          <TableBatchActionBar
+            selectedCount={selectedRowKeys.length}
+            selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
+            clearText={t('common.clearSelection')}
+            clearSuccessText={t('common.clearSelectionSuccess')}
+            onClear={() => setSelectedRowKeys([])}
+            prefixActions={
+              <ListHeaderActions
+                utility={
+                  <>
+${utilityActions.join('\n')}
+                  </>
+                }
+                primary={
+                  <>
+${primaryActions.join('\n')}
+                  </>
+                }
+              />
+            }
+            ${batchActionsEnabled ? `actions={
+              <Popconfirm
+                title={t('common.deleteConfirm')}
+                onOk={() => {
+                  void handleBatchDelete();
+                }}
+                disabled={selectedRowKeys.length === 0 || submitting}
+              >
+                <Button
+                  status="danger"
+                  icon={<IconDelete />}
+                  disabled={selectedRowKeys.length === 0 || submitting}
+                  loading={submitting}
+                >
+                  {t('common.deleteSelected')}
+                </Button>
+              </Popconfirm>
+            }` : ''}
+          />`;
   }
 
   private generateGovernanceConstants(): string {
@@ -2095,6 +2410,10 @@ function buildRelationRuntimeColumns(
 
   private relativeToSrcRoot(): string {
     return '../'.repeat(splitModuleSegments(this.schema.name).length + 2).replace(/\/$/, '');
+  }
+
+  private relativeToSystemListPageCss(): string {
+    return `${this.relativeToSrcRoot()}/modules/system/list-page.css`;
   }
 
   private toPascalCase(value: string): string {

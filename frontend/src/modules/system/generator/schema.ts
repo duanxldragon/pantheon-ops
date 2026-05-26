@@ -138,6 +138,14 @@ export interface ModuleMetadata {
   autoRecycle?: boolean;
 }
 
+export interface ModuleListLayoutConfig {
+  governance?: boolean;
+  search?: boolean;
+  headerActions?: boolean;
+  batchActions?: boolean;
+  rowActions?: boolean;
+}
+
 export interface ModuleDependency {
   module: string;
   required?: boolean;
@@ -170,6 +178,7 @@ export interface ModuleSchema {
   dependencies?: ModuleDependency[];
   relations?: ModuleRelation[];
   dataScopeMode?: DataScopeMode;
+  listLayout?: ModuleListLayoutConfig;
   metadata?: ModuleMetadata;
   model: {
     tableName: string;

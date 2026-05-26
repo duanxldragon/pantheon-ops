@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"pantheon-ops/backend/internal/scaffold"
+	systemi18n "pantheon-ops/backend/modules/system/i18n"
 
 	"gorm.io/gorm"
 )
@@ -14,28 +15,28 @@ import (
 // 1. 删除菜单/权限
 // 2. 可选删除数据表
 // 3. 从注册表标记为卸载
-func (s *DynamicModuleService) UnregisterModule(moduleName string, dropTable bool, purgeSource bool) error {
+func (s *DynamicModuleService) UnregisterModule(moduleName string, dropTable bool, purgeSource bool) (*ModuleI18nLifecycleSummary, error) {
 	if s.db == nil {
-		return nil
+		return buildModuleI18nLifecycleSummary(moduleName, purgeSource, nil), nil
 	}
 
 	var registration ModuleRegistration
 	if err := s.db.Where("name = ?", moduleName).First(&registration).Error; err == nil {
 		if strings.TrimSpace(registration.ModelTableName) == "" {
-			return errors.New("module.unregister.builtin_forbidden")
+			return nil, errors.New("module.unregister.builtin_forbidden")
 		}
 	}
 
 	scope, shortName, err := splitModuleKey(moduleName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if s.db.Migrator().HasTable("system_menu") {
 		if err := s.db.Table("system_menu").
 			Where("module = ?", moduleName).
 			Delete(nil).Error; err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -43,13 +44,13 @@ func (s *DynamicModuleService) UnregisterModule(moduleName string, dropTable boo
 		if err := s.db.Table("system_role_permission").
 			Where("permission_key LIKE ?", scope+":"+shortName+":%").
 			Delete(nil).Error; err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	if s.shouldDropManagedTable(registration, dropTable) {
 		if err := s.dropManagedModuleTable(scope, registration.ModelTableName); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -59,7 +60,7 @@ func (s *DynamicModuleService) UnregisterModule(moduleName string, dropTable boo
 			"status":         ModuleStatusUninstalled,
 			"uninstalled_at": time.Now().Format(time.RFC3339),
 		}).Error; err != nil {
-		return err
+		return nil, err
 	}
 
 	return s.FinalizeUnregister(moduleName, purgeSource)
@@ -98,43 +99,43 @@ func (s *DynamicModuleService) DeleteModuleRecord(moduleName string) error {
 	return scaffold.WriteGeneratedRegistries(s.workspaceRoot, refs)
 }
 
-func (s *DynamicModuleService) PurgeModule(moduleName string, dropTable bool, purgeSource bool) error {
+func (s *DynamicModuleService) PurgeModule(moduleName string, dropTable bool, purgeSource bool) (*ModuleI18nLifecycleSummary, error) {
 	if s.db == nil {
-		return nil
+		return buildModuleI18nLifecycleSummary(moduleName, purgeSource, nil), nil
 	}
 
 	var registration ModuleRegistration
 	if err := s.db.Where("name = ?", moduleName).First(&registration).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("module.not_found")
+			return nil, errors.New("module.not_found")
 		}
-		return err
+		return nil, err
 	}
 	if isBuiltInModuleRegistration(registration) {
-		return errors.New("module.unregister.builtin_forbidden")
+		return nil, errors.New("module.unregister.builtin_forbidden")
 	}
 	if strings.TrimSpace(registration.ModelTableName) == "" {
 		if err := s.deleteModuleNavigationArtifacts(moduleName); err != nil {
-			return err
+			return nil, err
 		}
 		if err := s.db.Delete(&registration).Error; err != nil {
-			return err
+			return nil, err
 		}
-		return s.rewriteGeneratedRegistriesIfWorkspaceAvailable()
+		return s.FinalizeUnregister(moduleName, purgeSource)
 	}
 
 	if registration.Status != ModuleStatusUninstalled {
-		if err := s.UnregisterModule(moduleName, dropTable, false); err != nil {
-			return err
+		if _, err := s.UnregisterModule(moduleName, dropTable, false); err != nil {
+			return nil, err
 		}
 	} else if s.shouldDropManagedTable(registration, dropTable) {
 		if err := s.dropManagedModuleTable(registration.Scope, registration.ModelTableName); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	if err := s.db.Delete(&registration).Error; err != nil {
-		return err
+		return nil, err
 	}
 	return s.FinalizeUnregister(moduleName, purgeSource)
 }
@@ -143,13 +144,19 @@ func (s *DynamicModuleService) deleteModuleNavigationArtifacts(moduleName string
 	if s.db == nil {
 		return nil
 	}
+	scope, shortName, err := splitModuleKey(moduleName)
+	if err != nil {
+		return err
+	}
 	if s.db.Migrator().HasTable("system_menu") {
 		if err := s.db.Table("system_menu").Where("module = ?", moduleName).Delete(nil).Error; err != nil {
 			return err
 		}
 	}
-	if s.db.Migrator().HasTable("system_i18n") {
-		if err := s.db.Table("system_i18n").Where("module = ?", moduleName).Delete(nil).Error; err != nil {
+	if s.db.Migrator().HasTable("system_role_permission") {
+		if err := s.db.Table("system_role_permission").
+			Where("permission_key LIKE ?", scope+":"+shortName+":%").
+			Delete(nil).Error; err != nil {
 			return err
 		}
 	}
@@ -226,25 +233,47 @@ func isBuiltInModuleRegistration(module ModuleRegistration) bool {
 	return strings.TrimSpace(module.Scope) != "business"
 }
 
-func (s *DynamicModuleService) FinalizeUnregister(moduleName string, purgeSource bool) error {
+func (s *DynamicModuleService) FinalizeUnregister(moduleName string, purgeSource bool) (*ModuleI18nLifecycleSummary, error) {
 	scope, shortName, err := splitModuleKey(moduleName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if strings.TrimSpace(s.workspaceRoot) == "" {
-		return errors.New("workspace.not_found")
+		return nil, errors.New("workspace.not_found")
 	}
 	refs, err := s.listGeneratedModuleRefs()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := scaffold.WriteGeneratedRegistries(s.workspaceRoot, refs); err != nil {
-		return err
+		return nil, err
 	}
-	if purgeSource {
-		if err := scaffold.RemoveGeneratedModuleSource(s.workspaceRoot, scope, shortName); err != nil {
-			return err
-		}
+	if !purgeSource {
+		return buildModuleI18nLifecycleSummary(moduleName, false, nil), nil
 	}
-	return nil
+	if err := scaffold.RemoveGeneratedModuleSource(s.workspaceRoot, scope, shortName); err != nil {
+		return nil, err
+	}
+	return s.advanceModuleI18nLifecycle(moduleName)
+}
+
+func (s *DynamicModuleService) advanceModuleI18nLifecycle(moduleName string) (*ModuleI18nLifecycleSummary, error) {
+	if s.db == nil || !s.db.Migrator().HasTable("system_i18n") {
+		return buildModuleI18nLifecycleSummary(moduleName, true, nil), nil
+	}
+
+	var count int64
+	if err := s.db.Table("system_i18n").Where("module = ?", moduleName).Count(&count).Error; err != nil {
+		return nil, err
+	}
+	if count == 0 {
+		return buildModuleI18nLifecycleSummary(moduleName, true, nil), nil
+	}
+
+	i18nService := systemi18n.NewI18nService(s.db)
+	resp, err := i18nService.AdvanceUnusedLifecycle(moduleName)
+	if err != nil {
+		return nil, err
+	}
+	return buildModuleI18nLifecycleSummary(moduleName, true, resp), nil
 }
