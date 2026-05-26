@@ -50,10 +50,11 @@ type UpdateHostRequest struct {
 }
 
 type CollectRequest struct {
-	SSHUser       string `json:"sshUser" binding:"required"`
-	SSHPassword   string `json:"sshPassword"`
-	SSHPrivateKey string `json:"sshPrivateKey"`
-	AuthMode      string `json:"authMode" binding:"required"`
+	SSHUser         string `json:"sshUser" binding:"required"`
+	SSHPassword     string `json:"sshPassword"`
+	SSHPrivateKey   string `json:"sshPrivateKey"`
+	HostFingerprint string `json:"hostFingerprint" binding:"required"`
+	AuthMode        string `json:"authMode" binding:"required"`
 }
 
 type UpdateStatusRequest struct {

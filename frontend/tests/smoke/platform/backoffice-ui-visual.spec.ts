@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { apiBaseUrl, authHeaders, requestHeaders, signInAsAdmin } from '../helpers/auth';
+import { expectPagePathname } from '../helpers/url-pattern';
 const artifactDir = join(process.cwd(), 'test-results', 'backoffice-ui');
 
 const pageErrorTexts = ['加载失败', '网络异常', '请求超时', 'Load failed', 'Network error', 'Request timed out'];
@@ -205,7 +206,7 @@ test.describe('backoffice UI visual acceptance', () => {
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.goto(pageMeta.path, { waitUntil: 'networkidle' });
 
-      await expect(page).toHaveURL(new RegExp(`${pageMeta.path.replace(/\//g, '\\/')}$`));
+      expectPagePathname(page, pageMeta.path);
       await expectPageIdentity(page, pageMeta.title);
       await expectNoPageError(page);
       await expectProfessionalBackofficeSurface(page);

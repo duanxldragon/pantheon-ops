@@ -2,6 +2,8 @@ const generatedjaJPFallback = {
   "business.cmdb.collect.authMode.password": "Password",
   "business.cmdb.collect.authMode.privateKey": "Private Key",
   "business.cmdb.collect.hint": "Credentials are used only for this collection and will not be stored on the server.",
+  "business.cmdb.collect.hostFingerprint": "Host Fingerprint",
+  "business.cmdb.collect.hostFingerprintPlaceholder": "Enter the SSH host fingerprint, for example SHA256:xxxx",
   "business.cmdb.collect.modalTitle": "SSH Configuration Collection",
   "business.cmdb.collect.start": "Start Collection",
   "business.cmdb.component.name": "Component Name",

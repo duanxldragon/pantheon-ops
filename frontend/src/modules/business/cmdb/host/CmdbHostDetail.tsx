@@ -258,6 +258,13 @@ export default function CmdbHostDetail() {
               </Select.Option>
             </Select>
           </Form.Item>
+          <Form.Item
+            label={t('business.cmdb.collect.hostFingerprint')}
+            field="hostFingerprint"
+            rules={[{ required: true }]}
+          >
+            <Input placeholder={t('business.cmdb.collect.hostFingerprintPlaceholder')} />
+          </Form.Item>
           <Form.Item noStyle shouldUpdate={(prev, next) => prev.authMode !== next.authMode}>
             {(values) =>
               values.authMode === 'private_key' ? (

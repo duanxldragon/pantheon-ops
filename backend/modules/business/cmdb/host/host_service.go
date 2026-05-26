@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -15,6 +16,15 @@ import (
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
+
+func hostKeyCallback(expectedFingerprint string) ssh.HostKeyCallback {
+	return func(hostname string, remote net.Addr, key ssh.PublicKey) error {
+		if strings.TrimSpace(ssh.FingerprintSHA256(key)) != strings.TrimSpace(expectedFingerprint) {
+			return errors.New("cmdbhost.ssh_host_key_mismatch")
+		}
+		return nil
+	}
+}
 
 type HostService struct {
 	db *gorm.DB
@@ -225,9 +235,13 @@ func (s *HostService) Collect(id uint64, req CollectRequest, dataScope *common.D
 	}
 
 	addr := fmt.Sprintf("%s:%d", host.IP, host.SSHPort)
+	fingerprint := strings.TrimSpace(req.HostFingerprint)
+	if fingerprint == "" {
+		return nil, errors.New("cmdbhost.ssh_host_key_required")
+	}
 	config := &ssh.ClientConfig{
 		User:            req.SSHUser,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: hostKeyCallback(fingerprint),
 		Timeout:         10 * time.Second,
 	}
 	if req.AuthMode == "private_key" {

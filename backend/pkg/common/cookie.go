@@ -4,6 +4,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -13,37 +15,45 @@ const (
 	CookieCSRFToken    = "pantheon_csrf_token"
 )
 
-func setTokenCookie(w http.ResponseWriter, name, value string, maxAge int, httpOnly bool) {
+func shouldUseSecureCookies() bool {
+	value := strings.TrimSpace(strings.ToLower(os.Getenv("PANTHEON_COOKIE_SECURE")))
+	if value == "0" || value == "false" || value == "off" {
+		return false
+	}
+	return true
+}
+
+func setCookie(w http.ResponseWriter, name, value string, maxAge int, httpOnly bool, sameSite http.SameSite) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     name,
 		Value:    value,
 		Path:     "/",
 		MaxAge:   maxAge,
 		HttpOnly: httpOnly,
-		Secure:   false,
-		SameSite: http.SameSiteStrictMode,
+		Secure:   shouldUseSecureCookies(),
+		SameSite: sameSite,
 	})
 }
 
 func SetAccessTokenCookie(w http.ResponseWriter, token string) {
 	ttl := int((15 * time.Minute).Seconds())
-	setTokenCookie(w, CookieAccessToken, token, ttl, true)
+	setCookie(w, CookieAccessToken, token, ttl, true, http.SameSiteStrictMode)
 }
 
 func SetRefreshTokenCookie(w http.ResponseWriter, token string) {
 	ttl := int((7 * 24 * time.Hour).Seconds())
-	setTokenCookie(w, CookieRefreshToken, token, ttl, true)
+	setCookie(w, CookieRefreshToken, token, ttl, true, http.SameSiteStrictMode)
 }
 
 func ClearTokenCookies(w http.ResponseWriter) {
-	setTokenCookie(w, CookieAccessToken, "", -1, true)
-	setTokenCookie(w, CookieRefreshToken, "", -1, true)
-	setTokenCookie(w, CookieCSRFToken, "", -1, false)
+	setCookie(w, CookieAccessToken, "", -1, true, http.SameSiteStrictMode)
+	setCookie(w, CookieRefreshToken, "", -1, true, http.SameSiteStrictMode)
+	setCookie(w, CookieCSRFToken, "", -1, false, http.SameSiteStrictMode)
 }
 
 func SetCSRFCookie(w http.ResponseWriter) (string, error) {
 	token := generateCSRFToken()
-	setTokenCookie(w, CookieCSRFToken, token, int((24*time.Hour).Seconds()), false)
+	setCookie(w, CookieCSRFToken, token, int((24 * time.Hour).Seconds()), false, http.SameSiteStrictMode)
 	return token, nil
 }
 
