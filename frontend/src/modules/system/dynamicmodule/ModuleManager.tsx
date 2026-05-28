@@ -135,10 +135,10 @@ const ModuleManager: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadData();
+    const timer = globalThis.setTimeout(() => {
+      loadData();
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadData]);
 
   const handleUnregister = async (name: string) => {
@@ -456,7 +456,7 @@ const ModuleManager: React.FC = () => {
                     type="text"
                     disabled={featureDisabled}
                     onClick={() => {
-                      void handleRegister(record.name);
+                      handleRegister(record.name);
                     }}
                   >
                     <IconPlus /> {t('generator.moduleManager.register')}
@@ -527,7 +527,7 @@ const ModuleManager: React.FC = () => {
     return (
       <PageError
         onRetry={() => {
-          void loadData({ force: true });
+          loadData({ force: true });
         }}
       />
     );
@@ -575,7 +575,7 @@ const ModuleManager: React.FC = () => {
               className="module-manager-page__header-actions"
               utility={
                 <>
-                  <Button size="small" onClick={() => void loadData({ force: true })}>
+                  <Button size="small" onClick={() => loadData({ force: true })}>
                     <IconRefresh /> {t('common.refresh')}
                   </Button>
                   <PermissionAction allowed={canRepair} tooltip={t('common.noPermissionAction')}>
@@ -583,7 +583,7 @@ const ModuleManager: React.FC = () => {
                       size="small"
                       disabled={featureDisabled || repairing}
                       loading={repairing}
-                      onClick={() => void handleRepair()}
+                      onClick={() => handleRepair()}
                     >
                       <IconRefresh /> {t('generator.moduleManager.repair')}
                     </Button>
@@ -676,7 +676,7 @@ const ModuleManager: React.FC = () => {
         title={t('generator.moduleManager.purgeModal.title')}
         visible={Boolean(purgeTarget)}
         onCancel={closePurgeModal}
-        onOk={() => void handlePurge()}
+        onOk={() => handlePurge()}
         okButtonProps={{ status: 'danger', disabled: !purgeConfirmed, loading: purging }}
         okText={t('generator.moduleManager.purge')}
         cancelText={t('common.cancel')}

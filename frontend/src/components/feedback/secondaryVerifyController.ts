@@ -7,7 +7,7 @@ export const showSecondaryVerify = () =>
   new Promise<string>((resolve, reject) => {
     verifyResolver = resolve;
     verifyRejecter = reject;
-    window.dispatchEvent(new CustomEvent('pantheon:show-verify-modal'));
+    globalThis.dispatchEvent(new CustomEvent('pantheon:show-verify-modal'));
   });
 
 export const handleVerifySuccess = (token: string) => {

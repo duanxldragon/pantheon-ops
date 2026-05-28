@@ -45,8 +45,8 @@ export default function CmdbHostForm({ editing, onSubmit, onCancel, submitting }
 
   useEffect(() => {
     queueMicrotask(() => {
-      void loadLabelSchemas();
-      void loadScopeOptions();
+      loadLabelSchemas();
+      loadScopeOptions();
     });
   }, [loadLabelSchemas, loadScopeOptions]);
 

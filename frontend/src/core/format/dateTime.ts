@@ -10,13 +10,13 @@ const dateTimeFormatterCache = new Map<string, Intl.DateTimeFormat>();
 const relativeTimeFormatterCache = new Map<string, Intl.RelativeTimeFormat>();
 
 function resolveLocale() {
-  if (typeof window !== 'undefined') {
-    const preferred = window.localStorage.getItem('pantheon_lang');
+  if (typeof globalThis.document !== 'undefined') {
+    const preferred = globalThis.localStorage.getItem('pantheon_lang');
     if (preferred) {
       return preferred;
     }
-    if (window.navigator.language) {
-      return window.navigator.language;
+    if (globalThis.navigator.language) {
+      return globalThis.navigator.language;
     }
   }
   return 'zh-CN';

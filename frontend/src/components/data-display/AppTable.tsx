@@ -186,21 +186,21 @@ function AppTable<T>(props: AppTableProps<T>) {
   const { t } = useTranslation();
   const rows = Array.isArray(data) ? data : [];
   const [viewportWidth, setViewportWidth] = useState(() =>
-    typeof window === 'undefined' ? 1920 : window.innerWidth,
+    typeof globalThis.document === 'undefined' ? 1920 : globalThis.innerWidth,
   );
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (typeof globalThis.document === 'undefined') {
       return undefined;
     }
 
     const syncViewportWidth = () => {
-      setViewportWidth(window.innerWidth);
+      setViewportWidth(globalThis.innerWidth);
     };
 
     syncViewportWidth();
-    window.addEventListener('resize', syncViewportWidth);
-    return () => window.removeEventListener('resize', syncViewportWidth);
+    globalThis.addEventListener('resize', syncViewportWidth);
+    return () => globalThis.removeEventListener('resize', syncViewportWidth);
   }, []);
 
   const responsiveColumns = filterResponsiveColumns(columns, viewportWidth);

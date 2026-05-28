@@ -266,7 +266,7 @@ test.describe('CMDB Host Management', () => {
     await expect(page.getByRole('button', { name: '新增' })).toBeVisible();
     await expect
       .poll(async () =>
-        page.evaluate(() => document.body.scrollWidth <= window.innerWidth + 1),
+        page.evaluate(() => document.body.scrollWidth <= globalThis.innerWidth + 1),
       )
       .toBe(true);
     await page.screenshot({ path: testInfo.outputPath('cmdb-host-list-mobile.png'), fullPage: true });

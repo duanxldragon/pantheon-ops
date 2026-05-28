@@ -134,10 +134,10 @@ const SettingGroupPage: React.FC = () => {
       clearAudit();
       return;
     }
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadAudit(activeSettingGroup.groupKey, 1, defaultAuditPageSize);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [activeSettingGroup, clearAudit, loadAudit, shouldShowAuditCard]);
 
   const resetActiveGroupValues = () => {

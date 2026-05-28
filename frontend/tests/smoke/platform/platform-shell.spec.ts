@@ -195,7 +195,7 @@ test.describe('UI Structural Audit (Direct CSS/DOM Verification)', () => {
     await expect(loginCard).toBeVisible();
     
     const audit = await loginCard.evaluate((el) => {
-      const style = window.getComputedStyle(el);
+      const style = globalThis.getComputedStyle(el);
       return {
         borderRadius: style.borderRadius,
         backgroundImage: style.backgroundImage,
@@ -221,7 +221,7 @@ test.describe('UI Structural Audit (Direct CSS/DOM Verification)', () => {
       div.className = 'app-dialog';
       div.style.position = 'fixed'; // Required for z-index to matter
       document.body.appendChild(div);
-      const style = window.getComputedStyle(div);
+      const style = globalThis.getComputedStyle(div);
       const val = style.zIndex;
       document.body.removeChild(div);
       return val;
@@ -238,7 +238,7 @@ test.describe('UI Structural Audit (Direct CSS/DOM Verification)', () => {
       const div = document.createElement('div');
       div.className = 'page-main-column';
       document.body.appendChild(div);
-      const style = window.getComputedStyle(div);
+      const style = globalThis.getComputedStyle(div);
       const results = {
         overflow: style.overflow,
         minWidth: style.minWidth
@@ -259,7 +259,7 @@ test.describe('UI Structural Audit (Direct CSS/DOM Verification)', () => {
       const div = document.createElement('div');
       div.className = 'page-panel';
       document.body.appendChild(div);
-      const style = window.getComputedStyle(div);
+      const style = globalThis.getComputedStyle(div);
       const border = style.border;
       const borderColor = style.borderColor;
       document.body.removeChild(div);

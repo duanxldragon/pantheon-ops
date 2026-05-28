@@ -115,7 +115,7 @@ export default function CmdbHostList() {
 
   useEffect(() => {
     queueMicrotask(() => {
-      void loadData();
+      loadData();
     });
   }, [loadData]);
 
@@ -230,7 +230,7 @@ export default function CmdbHostList() {
   const handleDelete = async (id: number) => {
     await deleteHost(id);
     Message.success(t('common.deleteSuccess'));
-    void loadData(query);
+    loadData(query);
   };
 
   const handleFormSubmit = async (values: CreateHostPayload) => {
@@ -245,7 +245,7 @@ export default function CmdbHostList() {
       }
       setVisible(false);
       setEditing(null);
-      void loadData(query);
+      loadData(query);
       setSelectedRowKeys([]);
     } finally {
       setSubmitting(false);
@@ -261,7 +261,7 @@ export default function CmdbHostList() {
       await Promise.all(selectedRowKeys.map((rowKey) => deleteHost(Number(rowKey))));
       Message.success(t('common.deleteSuccess'));
       setSelectedRowKeys([]);
-      void loadData(query);
+      loadData(query);
     } finally {
       setSubmitting(false);
     }
@@ -406,7 +406,7 @@ export default function CmdbHostList() {
             size="small"
             icon={<IconEye />}
             onClick={() => {
-              void openDetail(row.id);
+              openDetail(row.id);
             }}
           >
             {t('common.detail')}
@@ -564,7 +564,7 @@ export default function CmdbHostList() {
               <Popconfirm
                 title={t('common.deleteConfirm')}
                 onOk={() => {
-                  void handleBatchDelete();
+                  handleBatchDelete();
                 }}
                 disabled={selectedRowKeys.length === 0 || submitting}
               >

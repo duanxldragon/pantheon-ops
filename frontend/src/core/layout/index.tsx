@@ -407,7 +407,7 @@ const BaseLayout: React.FC = () => {
       setLocked(false);
       setUnlockPassword('');
       navigate('/login', { replace: true });
-      window.setTimeout(() => {
+      globalThis.setTimeout(() => {
         endLogoutTransition();
         idleLogoutInFlightRef.current = false;
       }, 800);
@@ -527,8 +527,8 @@ const BaseLayout: React.FC = () => {
         setCommandVisible(true);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    globalThis.addEventListener('keydown', handleKeyDown);
+    return () => globalThis.removeEventListener('keydown', handleKeyDown);
   }, [locked]);
 
   useEffect(() => {
@@ -540,7 +540,7 @@ const BaseLayout: React.FC = () => {
       pinned: location.pathname === '/dashboard',
     };
 
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       setOpenedTabs((currentTabs) => {
         const existingIndex = currentTabs.findIndex((item) => item.path === nextTab.path);
         const mergedTabs =
@@ -574,19 +574,19 @@ const BaseLayout: React.FC = () => {
         return limitedTabs;
       });
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [currentPageTitle, currentTabTitleKey, location.pathname, t]);
 
   useEffect(() => {
     if (!token || sessionIdleMs <= 0) {
       return;
     }
-    const timer = window.setInterval(() => {
+    const timer = globalThis.setInterval(() => {
       if (Date.now() - lastActivityAtRef.current >= sessionIdleMs) {
         void performLogout(true, 'session.idle_timeout');
       }
     }, 15000);
-    return () => window.clearInterval(timer);
+    return () => globalThis.clearInterval(timer);
   }, [locked, performLogout, sessionIdleMs, token]);
 
   useEffect(() => {
@@ -603,16 +603,16 @@ const BaseLayout: React.FC = () => {
       }
     };
 
-    window.addEventListener('pointerdown', handleActivity);
-    window.addEventListener('keydown', handleActivity);
-    window.addEventListener('scroll', handleActivity, true);
-    window.addEventListener('touchstart', handleActivity, true);
+    globalThis.addEventListener('pointerdown', handleActivity);
+    globalThis.addEventListener('keydown', handleActivity);
+    globalThis.addEventListener('scroll', handleActivity, true);
+    globalThis.addEventListener('touchstart', handleActivity, true);
     document.addEventListener('visibilitychange', handleVisible);
     return () => {
-      window.removeEventListener('pointerdown', handleActivity);
-      window.removeEventListener('keydown', handleActivity);
-      window.removeEventListener('scroll', handleActivity, true);
-      window.removeEventListener('touchstart', handleActivity, true);
+      globalThis.removeEventListener('pointerdown', handleActivity);
+      globalThis.removeEventListener('keydown', handleActivity);
+      globalThis.removeEventListener('scroll', handleActivity, true);
+      globalThis.removeEventListener('touchstart', handleActivity, true);
       document.removeEventListener('visibilitychange', handleVisible);
     };
   }, [locked, recordActivity, token]);
@@ -758,7 +758,7 @@ const BaseLayout: React.FC = () => {
             icon: renderMenuIcon(item.icon),
             run: () => {
               if (item.isExternal === 1) {
-                window.open(item.path, '_blank', 'noopener,noreferrer');
+                globalThis.open(item.path, '_blank', 'noopener,noreferrer');
                 return;
               }
               navigate(item.path);
@@ -1150,7 +1150,7 @@ const BaseLayout: React.FC = () => {
       return;
     }
 
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       if (preferences.layoutMode && preferences.layoutMode !== layoutMode) {
         setLayoutMode(preferences.layoutMode);
         persistShellLayoutMode(preferences.layoutMode);
@@ -1170,7 +1170,7 @@ const BaseLayout: React.FC = () => {
         void switchI18nLanguage(preferences.language);
       }
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [currentLanguage, densityMode, layoutMode, setTheme, theme, userInfo?.preferences]);
 
   const changeLanguage = (language: SupportedLocale) => {
@@ -1314,7 +1314,7 @@ const BaseLayout: React.FC = () => {
   const handleMenuNavigation = (key: string) => {
     const selected = findMenuNodeByPath(visibleMenuTree, key);
     if (selected?.isExternal === 1) {
-      window.open(selected.path, '_blank', 'noopener,noreferrer');
+      globalThis.open(selected.path, '_blank', 'noopener,noreferrer');
       return;
     }
     navigate(key);

@@ -85,7 +85,7 @@ const DatasourceManagerModal: React.FC<DatasourceManagerModalProps> = ({
                   <Button size="mini" type="text" onClick={() => onEdit(record)}>
                     <IconEdit /> {t('common.edit')}
                   </Button>
-                  <Button size="mini" type="text" onClick={() => void onTest(record.id)}>
+                  <Button size="mini" type="text" onClick={() => onTest(record.id)}>
                     <IconCode /> {t('generator.datasource.test')}
                   </Button>
                   <Popconfirm
@@ -114,7 +114,7 @@ const DatasourceManagerModal: React.FC<DatasourceManagerModalProps> = ({
             form={datasourceForm}
             layout="vertical"
             onSubmit={() => {
-              void onSave();
+              onSave();
             }}
           >
             <Row gutter={16}>
@@ -220,7 +220,7 @@ const DatasourceManagerModal: React.FC<DatasourceManagerModalProps> = ({
             </Row>
             <Space>
               <Button onClick={onReset}>{t('common.reset')}</Button>
-              <Button type="primary" loading={datasourceSaving} onClick={() => void onSave()}>
+              <Button type="primary" loading={datasourceSaving} onClick={() => onSave()}>
                 {editingDatasourceId ? t('common.save') : t('common.create')}
               </Button>
             </Space>

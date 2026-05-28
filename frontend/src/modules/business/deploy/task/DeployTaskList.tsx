@@ -347,7 +347,7 @@ export default function DeployTaskList() {
 
   const openStart = (row: DeployTaskRow) => {
     if (row.executorType !== 'ssh') {
-      void handleStart(row);
+      handleStart(row);
       return;
     }
     setStartingTask(row);
@@ -476,7 +476,7 @@ export default function DeployTaskList() {
               size="small"
               icon={<IconEye />}
               onClick={() => {
-                void openDetail(row.id);
+                openDetail(row.id);
               }}
             >
               {t('common.detail')}
@@ -575,7 +575,7 @@ export default function DeployTaskList() {
             canCreate ? (
               <ListHeaderActions
                 primary={
-                  <Button type="primary" icon={<IconPlus />} onClick={() => void openCreate()}>
+                  <Button type="primary" icon={<IconPlus />} onClick={() => openCreate()}>
                     {t('common.add')}
                   </Button>
                 }
@@ -587,7 +587,7 @@ export default function DeployTaskList() {
               <Popconfirm
                 title={t('business.deploy.task.cancelConfirm')}
                 onOk={() => {
-                  void handleBatchCancel();
+                  handleBatchCancel();
                 }}
                 disabled={
                   selectedRowKeys.length === 0 ||
@@ -966,7 +966,7 @@ export default function DeployTaskList() {
                   const nextScopeId = value || undefined;
                   setSelectedBusinessScopeId(nextScopeId);
                   form.setFieldValue('targetIds', []);
-                  void loadScopedHosts(nextScopeId);
+                  loadScopedHosts(nextScopeId);
                 }}
               >
                 {scopeOptions.map((item) => (

@@ -404,21 +404,21 @@ const DeptList: React.FC = () => {
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void loadData(query), 0);
-    return () => window.clearTimeout(timer);
+    const timer = globalThis.setTimeout(() => loadData(query), 0);
+    return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void loadAllDepts(), 0);
-    return () => window.clearTimeout(timer);
+    const timer = globalThis.setTimeout(() => loadAllDepts(), 0);
+    return () => globalThis.clearTimeout(timer);
   }, [loadAllDepts]);
 
   useEffect(() => {
     if (activeTab !== 'org') {
       return undefined;
     }
-    const timer = window.setTimeout(() => void loadOrgData(), 0);
-    return () => window.clearTimeout(timer);
+    const timer = globalThis.setTimeout(() => loadOrgData(), 0);
+    return () => globalThis.clearTimeout(timer);
   }, [activeTab, loadOrgData]);
 
   useRefreshSubscription(
@@ -427,10 +427,10 @@ const DeptList: React.FC = () => {
       if (payload.source === 'system/dept') {
         return;
       }
-      void loadData(query);
-      void loadAllDepts();
+      loadData(query);
+      loadAllDepts();
       if (activeTab === 'org') {
-        void loadOrgData();
+        loadOrgData();
       }
     },
   );
@@ -450,18 +450,18 @@ const DeptList: React.FC = () => {
 
   useEffect(() => {
     const state =
-      window.history.state && typeof window.history.state === 'object'
-        ? (window.history.state.usr as { deptId?: number; taskKey?: string } | null)
+      globalThis.history.state && typeof globalThis.history.state === 'object'
+        ? (globalThis.history.state.usr as { deptId?: number; taskKey?: string } | null)
         : null;
     if (!state?.deptId) {
       return;
     }
     const deptId = state.deptId;
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       setSelectedOrgDeptId(deptId);
       setActiveTab('org');
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, []);
 
   const deptOptions = useMemo<TreeSelectDataType[]>(() => {
@@ -838,7 +838,7 @@ const DeptList: React.FC = () => {
               text: t('common.edit'),
               icon: <IconEdit />,
               onClick: () => {
-                void openEdit(row);
+                openEdit(row);
               },
               hidden: !canEdit,
             },
@@ -866,7 +866,7 @@ const DeptList: React.FC = () => {
         <PageNetworkError
           timeout={isTimeoutRequestError(error)}
           onRetry={() => {
-            void loadData(query);
+            loadData(query);
           }}
         />
       );
@@ -875,7 +875,7 @@ const DeptList: React.FC = () => {
       return (
         <PageServerError
           onRetry={() => {
-            void loadData(query);
+            loadData(query);
           }}
         />
       );
@@ -883,7 +883,7 @@ const DeptList: React.FC = () => {
     return (
       <PageError
         onRetry={() => {
-          void loadData(query);
+          loadData(query);
         }}
       />
     );
@@ -1265,7 +1265,7 @@ const DeptList: React.FC = () => {
                             size="small"
                             icon={<IconDownload />}
                             onClick={() => {
-                              void handleExport();
+                              handleExport();
                             }}
                             disabled={!canExport}
                           >
@@ -1274,7 +1274,7 @@ const DeptList: React.FC = () => {
                           <Button
                             size="small"
                             onClick={() => {
-                              void handleDownloadTemplate();
+                              handleDownloadTemplate();
                             }}
                             disabled={!canImport}
                           >
@@ -1283,7 +1283,7 @@ const DeptList: React.FC = () => {
                           <ImportCsvButton
                             disabled={!canImport}
                             onSelect={(file) => {
-                              void handleImport(file);
+                              handleImport(file);
                             }}
                           >
                             {t('common.import')}
@@ -1317,7 +1317,7 @@ const DeptList: React.FC = () => {
                         <Popconfirm
                           title={t('system.dept.batchEnableConfirm')}
                           onOk={() => {
-                            void handleBatchStatus(1);
+                            handleBatchStatus(1);
                           }}
                           disabled={batchActionDisabled}
                         >
@@ -1333,7 +1333,7 @@ const DeptList: React.FC = () => {
                         <Popconfirm
                           title={t('system.dept.batchDisableConfirm')}
                           onOk={() => {
-                            void handleBatchStatus(2);
+                            handleBatchStatus(2);
                           }}
                           disabled={batchActionDisabled}
                         >
@@ -1353,7 +1353,7 @@ const DeptList: React.FC = () => {
                         <Popconfirm
                           title={t('system.dept.batchDeleteConfirm')}
                           onOk={() => {
-                            void handleBatchDelete();
+                            handleBatchDelete();
                           }}
                           disabled={batchDeleteDisabled}
                         >
@@ -1431,11 +1431,11 @@ const DeptList: React.FC = () => {
               canCreatePost={canCreatePost}
               canViewUserDetail={canViewUserDetail}
               onRefresh={() => {
-                void loadOrgData();
+                loadOrgData();
               }}
               onCreatePost={openCreatePost}
               onViewUserDetail={(id) => {
-                void openUserDetail(id);
+                openUserDetail(id);
               }}
             />
           </Tabs.TabPane>
@@ -1477,7 +1477,7 @@ const DeptList: React.FC = () => {
                 <Button
                   size="small"
                   onClick={() => {
-                    void loadData(query);
+                    loadData(query);
                   }}
                   loading={governanceLoading}
                 >
@@ -1487,7 +1487,7 @@ const DeptList: React.FC = () => {
                   size="small"
                   icon={<IconDownload />}
                   onClick={() => {
-                    void handleExportGovernanceTasks();
+                    handleExportGovernanceTasks();
                   }}
                   disabled={!canExport}
                 >
@@ -1514,7 +1514,7 @@ const DeptList: React.FC = () => {
                         size="small"
                         icon={<IconEye />}
                         onClick={() => {
-                          void locateGovernanceTask(task);
+                          locateGovernanceTask(task);
                         }}
                       >
                         {t('system.dept.task.locate')}
@@ -1548,7 +1548,7 @@ const DeptList: React.FC = () => {
           <SubmitBar
             onCancel={() => setVisible(false)}
             onSubmit={() => {
-              void submitForm();
+              submitForm();
             }}
             loading={submitting}
             submitText={editing ? t('common.save') : t('common.add')}
@@ -1560,7 +1560,7 @@ const DeptList: React.FC = () => {
           form={form}
           layout="vertical"
           onSubmit={() => {
-            void submitForm();
+            submitForm();
           }}
         >
           <Space direction="vertical" size={20} className="dialog-form-stack">
@@ -1671,7 +1671,7 @@ const DeptList: React.FC = () => {
               leaderForm.resetFields();
             }}
             onSubmit={() => {
-              void submitBatchLeader();
+              submitBatchLeader();
             }}
             submitText={t('common.save')}
           />
@@ -1682,7 +1682,7 @@ const DeptList: React.FC = () => {
           form={leaderForm}
           layout="vertical"
           onSubmit={() => {
-            void submitBatchLeader();
+            submitBatchLeader();
           }}
         >
           <Space direction="vertical" size={16} style={{ width: '100%' }}>
@@ -1739,7 +1739,7 @@ const DeptList: React.FC = () => {
               setCreatingPostDept(null);
             }}
             onSubmit={() => {
-              void submitPostForm();
+              submitPostForm();
             }}
             loading={postSubmitting}
             submitText={t('common.add')}
@@ -1751,7 +1751,7 @@ const DeptList: React.FC = () => {
           form={postForm}
           layout="vertical"
           onSubmit={() => {
-            void submitPostForm();
+            submitPostForm();
           }}
         >
           <Space direction="vertical" size={20} className="dialog-form-stack">
@@ -1830,7 +1830,7 @@ const DeptList: React.FC = () => {
           <PageError
             onRetry={() => {
               if (userDetailId > 0) {
-                void openUserDetail(userDetailId);
+                openUserDetail(userDetailId);
               }
             }}
           />

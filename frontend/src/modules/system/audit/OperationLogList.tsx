@@ -552,14 +552,14 @@ const OperationLogList: React.FC = () => {
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadData(query);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
         .then((group) => {
           const setting = group.items.find(
@@ -571,7 +571,7 @@ const OperationLogList: React.FC = () => {
         })
         .catch(() => undefined);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -582,15 +582,15 @@ const OperationLogList: React.FC = () => {
 
     const matchedLog = data.find((item) => item.id === detailId);
     if (matchedLog) {
-      const timer = window.setTimeout(() => {
+      const timer = globalThis.setTimeout(() => {
         setCurrentLog(matchedLog);
         setDetailVisible(true);
         setDetailLoading(false);
       }, 0);
-      return () => window.clearTimeout(timer);
+      return () => globalThis.clearTimeout(timer);
     }
 
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       setDetailLoading(true);
       getOperationLog(detailId)
         .then((detail) => {
@@ -604,7 +604,7 @@ const OperationLogList: React.FC = () => {
           setDetailLoading(false);
         });
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [data, searchParams, t]);
 
   const search = () => {

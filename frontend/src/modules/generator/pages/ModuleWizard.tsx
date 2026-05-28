@@ -243,7 +243,7 @@ const ModuleWizard: React.FC = () => {
 
   useEffect(() => {
     let active = true;
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadDatasources()
         .then((items) => {
           if (!active) {
@@ -263,7 +263,7 @@ const ModuleWizard: React.FC = () => {
     }, 0);
     return () => {
       active = false;
-      window.clearTimeout(timer);
+      globalThis.clearTimeout(timer);
     };
   }, [loadDatasources, loadTables, selectedDatasourceId]);
 
@@ -271,7 +271,7 @@ const ModuleWizard: React.FC = () => {
     if (sourceMode !== 'database') {
       return;
     }
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       form.setFieldValue('metadata.sourceDatasourceId' as keyof ModuleSchema, selectedDatasourceId);
       form.setFieldValue(
         'metadata.sourceDatasourceName' as keyof ModuleSchema,
@@ -280,7 +280,7 @@ const ModuleWizard: React.FC = () => {
       form.setFieldValue('metadata.sourceTable' as keyof ModuleSchema, undefined);
       void loadTables(selectedDatasourceId);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [form, loadTables, selectedDatasource?.name, selectedDatasourceId, sourceMode]);
 
   const getAllFormValues = () => form.getFields() as Partial<ModuleSchema>;

@@ -244,18 +244,18 @@ const PermissionList: React.FC = () => {
   }, [t]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void loadData(query), 0);
-    return () => window.clearTimeout(timer);
+    const timer = globalThis.setTimeout(() => loadData(query), 0);
+    return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void loadWorkbench(workbenchQuery), 0);
-    return () => window.clearTimeout(timer);
+    const timer = globalThis.setTimeout(() => loadWorkbench(workbenchQuery), 0);
+    return () => globalThis.clearTimeout(timer);
   }, [loadWorkbench, workbenchQuery]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void loadRoles(), 0);
-    return () => window.clearTimeout(timer);
+    const timer = globalThis.setTimeout(() => loadRoles(), 0);
+    return () => globalThis.clearTimeout(timer);
   }, [loadRoles]);
 
   useRefreshSubscription(
@@ -264,12 +264,12 @@ const PermissionList: React.FC = () => {
       if (payload.source === 'system/permission') {
         return;
       }
-      void loadWorkbench(workbenchQuery);
+      loadWorkbench(workbenchQuery);
       if (payload.topic !== 'system:menu:changed') {
-        void loadData(query);
+        loadData(query);
       }
       if (payload.topic === 'system:role:changed') {
-        void loadRoles();
+        loadRoles();
       }
     },
   );
@@ -591,7 +591,7 @@ const PermissionList: React.FC = () => {
                     <Button
                       icon={<IconRefresh />}
                       onClick={() => {
-                        void loadWorkbench(workbenchQuery);
+                        loadWorkbench(workbenchQuery);
                       }}
                     >
                       {t('common.refresh')}
@@ -599,7 +599,7 @@ const PermissionList: React.FC = () => {
                     <Button
                       icon={<IconDownload />}
                       onClick={() => {
-                        void exportPermissionWorkbench(workbenchQuery);
+                        exportPermissionWorkbench(workbenchQuery);
                       }}
                       disabled={!canExport}
                     >
@@ -613,7 +613,7 @@ const PermissionList: React.FC = () => {
                 workbenchQuery={workbenchQuery}
                 onWorkbenchQueryChange={setWorkbenchQuery}
                 onRetryLoadWorkbench={() => {
-                  void loadWorkbench(workbenchQuery);
+                  loadWorkbench(workbenchQuery);
                 }}
                 detailRole={detailRole}
                 onDetailRoleChange={setDetailRole}
@@ -689,7 +689,7 @@ const PermissionList: React.FC = () => {
                           <Button
                             icon={<IconRefresh />}
                             onClick={() => {
-                              void loadData(query);
+                              loadData(query);
                             }}
                           >
                             {t('common.refresh')}
@@ -697,7 +697,7 @@ const PermissionList: React.FC = () => {
                           <Button
                             icon={<IconDownload />}
                             onClick={() => {
-                              void handleExport();
+                              handleExport();
                             }}
                             disabled={!canExport}
                           >
@@ -705,7 +705,7 @@ const PermissionList: React.FC = () => {
                           </Button>
                           <Button
                             onClick={() => {
-                              void handleDownloadTemplate();
+                              handleDownloadTemplate();
                             }}
                             disabled={!canImport}
                           >
@@ -714,7 +714,7 @@ const PermissionList: React.FC = () => {
                           <ImportCsvButton
                             disabled={!canImport}
                             onSelect={(file) => {
-                              void handleImport(file);
+                              handleImport(file);
                             }}
                           >
                             {t('common.import')}
@@ -742,7 +742,7 @@ const PermissionList: React.FC = () => {
                       <Popconfirm
                         title={t('system.permission.policy.batchDeleteConfirm')}
                         onOk={() => {
-                          void handleBatchDelete();
+                          handleBatchDelete();
                         }}
                         disabled={batchDeleteDisabled}
                       >
@@ -760,7 +760,7 @@ const PermissionList: React.FC = () => {
                 {loading && data.length === 0 ? <PageLoading /> : null}
                 {policyError && data.length === 0
                   ? renderRequestErrorState(policyError, () => {
-                      void loadData(query);
+                      loadData(query);
                     })
                   : null}
                 {!loading && !policyError && data.length === 0 ? (
@@ -820,7 +820,7 @@ const PermissionList: React.FC = () => {
           <SubmitBar
             onCancel={() => setVisible(false)}
             onSubmit={() => {
-              void submitForm();
+              submitForm();
             }}
             loading={submitting}
             submitText={editing ? t('common.save') : t('common.add')}
@@ -832,7 +832,7 @@ const PermissionList: React.FC = () => {
           form={form}
           layout="vertical"
           onSubmit={() => {
-            void submitForm();
+            submitForm();
           }}
         >
           <Space direction="vertical" size={20} className="dialog-form-stack">

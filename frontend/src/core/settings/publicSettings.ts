@@ -36,11 +36,11 @@ let publicSettingsState: PublicSettingsState = readStoredPublicSettings();
 const listeners = new Set<() => void>();
 
 function readStoredPublicSettings(): PublicSettingsState {
-  if (typeof window === 'undefined') {
+  if (typeof globalThis.document === 'undefined') {
     return buildPublicSettingsState({});
   }
   try {
-    const rawValue = window.localStorage.getItem(PUBLIC_SETTINGS_STORAGE_KEY);
+    const rawValue = globalThis.localStorage.getItem(PUBLIC_SETTINGS_STORAGE_KEY);
     if (!rawValue) {
       return buildPublicSettingsState({});
     }
@@ -75,10 +75,10 @@ function normalizeAppMode(value?: string): PublicSettingsState['appMode'] {
 }
 
 function persistPublicSettings(settings: Record<string, string>) {
-  if (typeof window === 'undefined') {
+  if (typeof globalThis.document === 'undefined') {
     return;
   }
-  window.localStorage.setItem(PUBLIC_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+  globalThis.localStorage.setItem(PUBLIC_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
 }
 
 function notifyPublicSettingsChanged() {

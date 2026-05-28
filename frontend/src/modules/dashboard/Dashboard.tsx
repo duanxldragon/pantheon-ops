@@ -61,10 +61,10 @@ const DashboardPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadSummary();
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadSummary]);
 
   const translateLogMessage = useCallback(

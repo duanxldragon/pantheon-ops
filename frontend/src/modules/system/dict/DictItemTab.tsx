@@ -195,10 +195,10 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadItems(itemQuery, selectedType?.dictCode);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [itemQuery, loadItems, selectedType?.dictCode]);
 
   useRefreshSubscription('system:dict:changed', (payload) => {
