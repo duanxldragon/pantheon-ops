@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import {
   Card,
   Button,
+  Form,
+  Input,
   Tag,
   Space,
   Popconfirm,
@@ -19,11 +21,24 @@ import {
 } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import type { TreeDataType } from '@arco-design/web-react/es/Tree/interface';
-import { AppDrawer, AppModal, PageEmpty, PageError, PageLoading } from '../../../../components';
-import PageContainer from '../../../../components/patterns/PageContainer';
-import PageHeader from '../../../../components/patterns/PageHeader';
-import ListHeaderActions from '../../../../components/patterns/ListHeaderActions';
-import AppTable from '../../../../components/data-display/AppTable';
+import {
+  AppDrawer,
+  AppModal,
+  AppTable,
+  FilterPanel,
+  GovernanceInsightDrawer,
+  GovernanceRailSummary,
+  GovernanceRailToggleButton,
+  GovernanceSummaryBar,
+  ListHeaderActions,
+  PageContainer,
+  PageEmpty,
+  PageError,
+  PageLoading,
+  TableBatchActionBar,
+  buildStandardPagination,
+  useGovernanceRail,
+} from '../../../../components';
 import { getGroupList, getGroupMembers, createGroup, updateGroup, deleteGroup } from './api';
 import type { CreateGroupPayload, GroupRow, GroupMemberResp, GroupMemberRow } from './api';
 import CmdbGroupForm from './CmdbGroupForm';
@@ -49,9 +64,44 @@ function findFirstGroup(groups: GroupRow[]): GroupRow | null {
   return groups[0] || null;
 }
 
+function matchesGroupKeyword(group: GroupRow, keyword: string): boolean {
+  if (!keyword) {
+    return true;
+  }
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  if (!normalizedKeyword) {
+    return true;
+  }
+  const haystacks = [
+    group.name,
+    group.description,
+    ...(group.conditions?.rules?.map((rule) => `${rule.key} ${rule.op} ${rule.val}`) || []),
+  ]
+    .filter(Boolean)
+    .map((value) => String(value).toLowerCase());
+  return haystacks.some((value) => value.includes(normalizedKeyword));
+}
+
+function filterGroupTree(groups: GroupRow[], keyword: string): GroupRow[] {
+  if (!keyword.trim()) {
+    return groups;
+  }
+  return groups.reduce<GroupRow[]>((acc, group) => {
+    const children = filterGroupTree(group.children || [], keyword);
+    if (matchesGroupKeyword(group, keyword) || children.length > 0) {
+      acc.push({
+        ...group,
+        children,
+      });
+    }
+    return acc;
+  }, []);
+}
+
 export default function CmdbGroupList() {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
+  const governanceRail = useGovernanceRail();
 
   const [data, setData] = useState<GroupRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,6 +113,11 @@ export default function CmdbGroupList() {
   const [error, setError] = useState<unknown>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [initialParentId, setInitialParentId] = useState<number | null>(null);
+  const [keyword, setKeyword] = useState('');
+  const [queryKeyword, setQueryKeyword] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string | number>>([]);
 
   const canCreate = hasPerm('business:cmdb:group:create');
   const canUpdate = hasPerm('business:cmdb:group:update');
@@ -85,9 +140,16 @@ export default function CmdbGroupList() {
     }
   }, [t]);
 
+  const filteredTreeData = useMemo(() => filterGroupTree(data, queryKeyword), [data, queryKeyword]);
+  const filteredFlatData = useMemo(() => flattenGroups(filteredTreeData), [filteredTreeData]);
+  const pagedFlatData = useMemo(
+    () => filteredFlatData.slice((page - 1) * pageSize, page * pageSize),
+    [filteredFlatData, page, pageSize],
+  );
+
   useEffect(() => {
     queueMicrotask(() => {
-      const flat = flattenGroups(data);
+      const flat = filteredFlatData;
       if (!selectedGroupId && flat.length > 0) {
         setSelectedGroupId(flat[0].id);
       }
@@ -95,7 +157,14 @@ export default function CmdbGroupList() {
         setSelectedGroupId(flat[0]?.id ?? null);
       }
     });
-  }, [data, selectedGroupId]);
+  }, [filteredFlatData, selectedGroupId]);
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredFlatData.length / pageSize));
+    if (page > maxPage) {
+      setPage(maxPage);
+    }
+  }, [filteredFlatData.length, page, pageSize]);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -107,6 +176,21 @@ export default function CmdbGroupList() {
     await deleteGroup(id);
     Message.success(t('common.deleteSuccess'));
     void loadData();
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedRowKeys.length === 0) {
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await Promise.all(selectedRowKeys.map((rowKey) => deleteGroup(Number(rowKey))));
+      setSelectedRowKeys([]);
+      Message.success(t('common.deleteSuccess'));
+      await loadData();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleFormSubmit = async (values: CreateGroupPayload) => {
@@ -136,8 +220,8 @@ export default function CmdbGroupList() {
   };
 
   const selectedGroup = useMemo(
-    () => findGroupById(data, selectedGroupId) || findFirstGroup(data) || null,
-    [data, selectedGroupId],
+    () => findGroupById(filteredTreeData, selectedGroupId) || findFirstGroup(filteredTreeData) || null,
+    [filteredTreeData, selectedGroupId],
   );
 
   const flatData = useMemo(() => flattenGroups(data), [data]);
@@ -169,12 +253,12 @@ export default function CmdbGroupList() {
         .join(' ')}`,
       children: group.children?.map(toNode),
     }) as TreeDataType;
-    return data.map(toNode);
-  }, [data, selectedGroupId, t]);
+    return filteredTreeData.map(toNode);
+  }, [filteredTreeData, selectedGroupId, t]);
 
   const defaultExpandedKeys = useMemo(
-    () => flatData.map((group) => String(group.id)),
-    [flatData],
+    () => filteredFlatData.map((group) => String(group.id)),
+    [filteredFlatData],
   );
 
   const heroStats = useMemo(
@@ -211,6 +295,37 @@ export default function CmdbGroupList() {
       },
     ],
     [flatData.length, selectedGroup, t],
+  );
+
+  const governanceSummaryItems = useMemo(
+    () => [
+      {
+        label: t('business.cmdb.group.hero.scope'),
+        value: t('business.cmdb.group.hero.scopeValue'),
+        description: t('business.cmdb.group.hero.scopeHint'),
+      },
+      {
+        label: t('business.cmdb.group.hero.members'),
+        value: selectedGroup?.memberCount ?? 0,
+        description: t('business.cmdb.group.hero.membersHint'),
+      },
+      {
+        label: t('business.cmdb.group.hero.aggregateMembers'),
+        value: selectedGroup?.aggregateMemberCount ?? selectedGroup?.memberCount ?? 0,
+        description: t('business.cmdb.group.hero.aggregateMembersHint'),
+      },
+      {
+        label: t('business.cmdb.group.hero.children'),
+        value: selectedGroup?.descendantGroupCount ?? selectedGroup?.childCount ?? 0,
+        description: t('business.cmdb.group.hero.childrenHint'),
+      },
+      {
+        label: t('business.cmdb.group.hero.rules'),
+        value: selectedGroup?.conditions?.rules?.length || 0,
+        description: t('business.cmdb.group.hero.rulesHint'),
+      },
+    ],
+    [selectedGroup, t],
   );
 
   const columns: ColumnProps<GroupRow>[] = [
@@ -343,57 +458,114 @@ export default function CmdbGroupList() {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={t('business.cmdb.group.title')}
-        extra={
-          <ListHeaderActions
-            primary={
-              canCreate ? (
-                <Button type="primary" icon={<IconPlus />} onClick={() => {
-                  setEditing(null);
-                  setInitialParentId(null);
-                  setVisible(true);
-                }}>
-                  {t('common.add')}
-                </Button>
-              ) : null
-            }
-          />
-        }
-      />
       <Space direction="vertical" size={16} className="system-page-template">
-        <Card className="page-panel system-page-hero cmdb-page__hero">
-          <div className="system-page-hero__top">
-            <div className="system-page-hero__copy">
-              <span className="system-page-hero__eyebrow">{t('business.cmdb.group.hero.eyebrow')}</span>
-              <Typography.Title heading={5} className="system-page-hero__title cmdb-page__hero-title">
-                {t('business.cmdb.group.hero.title')}
-              </Typography.Title>
-            </div>
-          </div>
-          <div className="cmdb-page__hero-grid">
-            {heroStats.map((item) => (
-              <div key={item.key} className="cmdb-page__hero-metric">
-                <span className="cmdb-page__hero-label">{item.label}</span>
-                <span className="cmdb-page__hero-value">{item.value}</span>
-                <span className="cmdb-page__hero-hint">{item.hint}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
+        <GovernanceSummaryBar
+          icon={<IconBranch />}
+          eyebrow={t('business.cmdb.group.hero.eyebrow')}
+          title={t('business.cmdb.group.title')}
+          description={t('business.cmdb.group.hero.title')}
+          metrics={heroStats.slice(0, 3).map((item) => ({
+            key: item.key,
+            label: item.label,
+            value: item.value,
+          }))}
+          action={
+            <GovernanceRailToggleButton
+              expanded={governanceRail.expanded}
+              onToggle={governanceRail.toggle}
+            >
+              {t('business.cmdb.group.hero.summaryTitle')}
+            </GovernanceRailToggleButton>
+          }
+        />
+        <FilterPanel>
+          <Form layout="inline">
+            <Form.Item label={t('common.keyword')}>
+              <Input value={keyword} onChange={setKeyword} allowClear />
+            </Form.Item>
+            <Form.Item>
+              <Space>
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    setQueryKeyword(keyword);
+                    setPage(1);
+                  }}
+                >
+                  {t('common.search')}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setKeyword('');
+                    setQueryKeyword('');
+                    setPage(1);
+                  }}
+                >
+                  {t('common.reset')}
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </FilterPanel>
+        <TableBatchActionBar
+          selectedCount={selectedRowKeys.length}
+          selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
+          clearText={t('common.clearSelection')}
+          clearSuccessText={t('common.clearSelectionSuccess')}
+          onClear={() => setSelectedRowKeys([])}
+          prefixActions={
+            canCreate ? (
+              <ListHeaderActions
+                primary={(
+                  <Button
+                    type="primary"
+                    icon={<IconPlus />}
+                    onClick={() => {
+                      setEditing(null);
+                      setInitialParentId(null);
+                      setVisible(true);
+                    }}
+                  >
+                    {t('common.add')}
+                  </Button>
+                )}
+              />
+            ) : undefined
+          }
+          actions={
+            canDelete ? (
+              <Popconfirm
+                title={t('common.deleteConfirm')}
+                onOk={() => {
+                  void handleBatchDelete();
+                }}
+                disabled={selectedRowKeys.length === 0 || submitting}
+              >
+                <Button
+                  status="danger"
+                  icon={<IconDelete />}
+                  disabled={selectedRowKeys.length === 0 || submitting}
+                  loading={submitting}
+                >
+                  {t('common.deleteSelected')}
+                </Button>
+              </Popconfirm>
+            ) : undefined
+          }
+        />
         <div className="cmdb-page__split">
           <Card className="page-panel cmdb-page__side-panel">
-            <Typography.Title heading={6} style={{ marginTop: 0 }}>
+            <Typography.Text className="cmdb-page__side-title">
               {t('business.cmdb.group.tree.title')}
-            </Typography.Title>
+            </Typography.Text>
             {loading && data.length === 0 ? <PageLoading /> : null}
             {!loading && error && data.length === 0 ? (
               <PageError description={t('common.loadFailedDesc')} onRetry={loadData} />
             ) : null}
-            {!loading && !error && data.length === 0 ? (
+            {!loading && !error && filteredTreeData.length === 0 ? (
               <PageEmpty description={t('business.cmdb.group.empty')} />
             ) : null}
-            {!loading && !(error && data.length === 0) && data.length > 0 ? (
+            {!loading && !(error && data.length === 0) && filteredTreeData.length > 0 ? (
               <Tree
                 blockNode
                 showLine
@@ -417,15 +589,34 @@ export default function CmdbGroupList() {
               {!loading && error && data.length === 0 ? (
                 <PageError description={t('common.loadFailedDesc')} onRetry={loadData} />
               ) : null}
-              {!loading && !error && data.length === 0 ? (
+              {!loading && !error && filteredFlatData.length === 0 ? (
                 <PageEmpty description={t('business.cmdb.group.empty')} />
               ) : null}
-              {!loading && !(error && data.length === 0) && data.length > 0 ? (
+              {!loading && !(error && data.length === 0) && filteredFlatData.length > 0 ? (
                 <AppTable
                   columns={columns}
-                  data={flatData}
+                  data={pagedFlatData}
                   loading={loading}
-                  pagination={false}
+                  rowSelection={{
+                    type: 'checkbox',
+                    selectedRowKeys,
+                    checkCrossPage: true,
+                    preserveSelectedRowKeys: true,
+                    onChange: (rowKeys) => setSelectedRowKeys(rowKeys),
+                  }}
+                  pagination={buildStandardPagination(t, {
+                    current: page,
+                    pageSize,
+                    total: filteredFlatData.length,
+                    onChange: (nextPage) => {
+                      setPage(nextPage || 1);
+                    },
+                    onPageSizeChange: (nextPageSize) => {
+                      setPageSize(nextPageSize || pageSize);
+                      setPage(1);
+                    },
+                    pageSizeChangeResetCurrent: true,
+                  })}
                   rowKey="id"
                   rowClassName={(record) =>
                     record.id === selectedGroupId ? 'cmdb-page__group-row--active' : ''
@@ -436,6 +627,15 @@ export default function CmdbGroupList() {
           </div>
         </div>
       </Space>
+      <GovernanceInsightDrawer
+        title={t('business.cmdb.group.hero.summaryTitle')}
+        visible={governanceRail.expanded}
+        onClose={governanceRail.close}
+        noteTitle={t('business.cmdb.group.hero.sideLead')}
+        noteDescription={t('business.cmdb.group.hero.sideDesc')}
+      >
+        <GovernanceRailSummary items={governanceSummaryItems} />
+      </GovernanceInsightDrawer>
       <AppModal
         visible={visible}
         onCancel={() => {

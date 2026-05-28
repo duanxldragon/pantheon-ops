@@ -81,6 +81,18 @@
   min-width: 0;
 }
 
+.governance-summary-bar__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 14%, transparent);
+  flex: 0 0 auto;
+}
+
 .governance-summary-bar__eyebrow {
   color: var(--brand-primary);
   font-size: 11px;
@@ -93,6 +105,13 @@
   font-size: 14px;
   font-weight: 600;
   line-height: 1.35;
+}
+
+.governance-summary-bar__title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .governance-summary-bar__desc {

@@ -101,7 +101,7 @@ function findEmptyKeys(resource) {
   return Object.entries(resource)
     .filter(([, value]) => typeof value !== 'string' || value.trim() === '')
     .map(([key]) => key)
-    .sort();
+    .sort((a, b) => a.localeCompare(b));
 }
 
 function findSameAsEnglishKeys(locale, resource, englishResource) {
@@ -119,7 +119,7 @@ function findSameAsEnglishKeys(locale, resource, englishResource) {
       return !shouldIgnoreSameAsEnglish(key, value);
     })
     .map(([key]) => key)
-    .sort();
+    .sort((a, b) => a.localeCompare(b));
 }
 
 async function main() {
@@ -134,8 +134,8 @@ async function main() {
   for (const locale of LOCALES) {
     const resource = resources[locale];
     const keys = new Set(Object.keys(resource));
-    const missingKeys = [...baseKeys].filter((key) => !keys.has(key)).sort();
-    const extraKeys = [...keys].filter((key) => !baseKeys.has(key)).sort();
+    const missingKeys = [...baseKeys].filter((key) => !keys.has(key)).sort((a, b) => a.localeCompare(b));
+    const extraKeys = [...keys].filter((key) => !baseKeys.has(key)).sort((a, b) => a.localeCompare(b));
     const emptyKeys = findEmptyKeys(resource);
     const sameAsEnglishKeys = findSameAsEnglishKeys(locale, resource, englishResource);
 

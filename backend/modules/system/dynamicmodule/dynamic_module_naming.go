@@ -37,8 +37,15 @@ func splitModuleKey(moduleName string) (string, string, error) {
 		return "", "", errors.New("module.invalid_name")
 	}
 	scope := strings.TrimSpace(parts[0])
-	name := strings.TrimSpace(strings.ReplaceAll(parts[1], ".", "/"))
+	rawName := strings.TrimSpace(parts[1])
+	if rawName == "" || strings.Contains(rawName, "..") || strings.ContainsAny(rawName, `\`) {
+		return "", "", errors.New("module.invalid_name")
+	}
+	name := strings.TrimSpace(strings.ReplaceAll(rawName, ".", "/"))
 	if (scope != "system" && scope != "business") || name == "" {
+		return "", "", errors.New("module.invalid_name")
+	}
+	if !isValidDynamicModulePath(name, scope == "business") {
 		return "", "", errors.New("module.invalid_name")
 	}
 	return scope, name, nil
@@ -56,7 +63,7 @@ func resolveGeneratedParentMenu(scope string, name string, explicitParent string
 	if scope == "business" {
 		segments := strings.Split(strings.Trim(name, "/"), "/")
 		if len(segments) > 1 {
-			return "/business/" + segments[0], "inferred"
+			return "/operations/" + segments[0], "inferred"
 		}
 	}
 	return "", "top_level"
@@ -118,4 +125,32 @@ func inferRegistrationSource(scope string, sourceMode string, name string, manag
 		return "generated"
 	}
 	return inferStaticModuleSource(buildModuleKey(scope, name))
+}
+
+func isValidDynamicModulePath(name string, allowNested bool) bool {
+	normalized := strings.TrimSpace(name)
+	if normalized == "" {
+		return false
+	}
+	segments := strings.Split(normalized, "/")
+	if !allowNested && len(segments) != 1 {
+		return false
+	}
+	for _, segment := range segments {
+		if segment == "" {
+			return false
+		}
+		for index, char := range segment {
+			if index == 0 {
+				if !unicode.IsLower(char) {
+					return false
+				}
+				continue
+			}
+			if !(unicode.IsLower(char) || unicode.IsDigit(char) || char == '_') {
+				return false
+			}
+		}
+	}
+	return true
 }

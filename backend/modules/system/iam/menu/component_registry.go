@@ -28,6 +28,7 @@ var staticRegisteredMenuComponentKeys = map[string]struct{}{
 	"business/cmdb/group/CmdbGroupList":         {},
 	"business/cmdb/label/CmdbLabelSchemaList":   {},
 	"business/deploy/package/DeployPackageList": {},
+	"business/deploy/template/DeployTemplateList": {},
 	"business/deploy/task/DeployTaskList":       {},
 	"business/deploy/task/DeployTaskDetail":     {},
 }

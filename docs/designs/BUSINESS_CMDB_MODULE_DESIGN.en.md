@@ -18,6 +18,10 @@ The module covers:
 - `business/cmdb/group`: host groups as persistent label-filter views
 - `business/cmdb/label`: label schema governance
 
+Related but separate module:
+
+- `business/bizscope`: business-scope management, used as the trust source for host assignment and downstream deployments
+
 The module does not own authentication, IAM, org, system config, realtime monitoring, or credential vaulting.
 
 ## Core Responsibilities
@@ -26,6 +30,7 @@ The module does not own authentication, IAM, org, system config, realtime monito
 - Support orthogonal label dimensions such as `env` and `biz`.
 - Provide reusable group views for downstream deployment and operations workflows.
 - Support manual entry and one-shot SSH collection.
+- Persist host-to-business-scope binding so the flow can move from `pending` to `assigned` to `online`.
 
 ## Boundary Rules
 
