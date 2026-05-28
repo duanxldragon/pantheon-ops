@@ -296,7 +296,7 @@ export function scheduleHighFrequencyRouteWarmup(
     });
   };
 
-  if (typeof globalThis.document !== 'undefined' && 'requestIdleCallback' in globalThis) {
+  if (globalThis.document !== undefined && 'requestIdleCallback' in globalThis) {
     const callback = (globalThis as typeof globalThis & {
       requestIdleCallback: (cb: () => void, options?: { timeout: number }) => number;
     }).requestIdleCallback;

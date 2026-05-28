@@ -31,7 +31,7 @@ const refreshEventTarget = new EventTarget();
 let refreshChannel: BroadcastChannel | null = null;
 
 function getRefreshChannel() {
-  if (typeof globalThis.document === 'undefined' || typeof BroadcastChannel === 'undefined') {
+  if (globalThis.document === undefined || BroadcastChannel === undefined) {
     return null;
   }
   if (!refreshChannel) {
@@ -122,7 +122,7 @@ export function useRefreshPolling(
   const versionsRef = useRef<Record<string, number>>({});
   const normalizedTopics = useMemo(() => normalizeTopics(topics).sort((a, b) => a.localeCompare(b)), [topics]);
   const topicKey = useMemo(() => normalizedTopics.join(','), [normalizedTopics]);
-  const authToken = token || (typeof globalThis.document !== 'undefined' && hasAuthCookie() ? '_cookie' : null);
+  const authToken = token || (globalThis.document !== undefined && hasAuthCookie() ? '_cookie' : null);
 
   useEffect(() => {
     versionsRef.current = {};
@@ -137,7 +137,7 @@ export function useRefreshPolling(
       if (isLogoutTransitionActive()) {
         return;
       }
-      if (typeof globalThis.document !== 'undefined' && !hasAuthCookie()) {
+      if (globalThis.document !== undefined && !hasAuthCookie()) {
         return;
       }
       try {

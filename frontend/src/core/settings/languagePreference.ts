@@ -4,7 +4,7 @@ export const LANGUAGE_EXPLICIT_STORAGE_KEY = 'pantheon_lang_explicit';
 const FALLBACK_LANGUAGE = 'zh-CN';
 
 function readStoredPublicSettings() {
-  if (typeof globalThis.document === 'undefined') {
+  if (globalThis.document === undefined) {
     return {} as Record<string, string>;
   }
   try {
@@ -23,14 +23,14 @@ export function getDefaultLanguagePreference() {
 }
 
 export function hasExplicitLanguagePreference() {
-  if (typeof globalThis.document === 'undefined') {
+  if (globalThis.document === undefined) {
     return false;
   }
   return globalThis.localStorage.getItem(LANGUAGE_EXPLICIT_STORAGE_KEY) === '1';
 }
 
 export function setExplicitLanguagePreference(language: string) {
-  if (typeof globalThis.document === 'undefined') {
+  if (globalThis.document === undefined) {
     return;
   }
   globalThis.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
@@ -38,7 +38,7 @@ export function setExplicitLanguagePreference(language: string) {
 }
 
 export function syncDefaultLanguagePreference(defaultLanguage = getDefaultLanguagePreference()) {
-  if (typeof globalThis.document === 'undefined') {
+  if (globalThis.document === undefined) {
     return defaultLanguage;
   }
   if (!hasExplicitLanguagePreference()) {
@@ -48,7 +48,7 @@ export function syncDefaultLanguagePreference(defaultLanguage = getDefaultLangua
 }
 
 export function clearExplicitLanguagePreference(defaultLanguage = getDefaultLanguagePreference()) {
-  if (typeof globalThis.document === 'undefined') {
+  if (globalThis.document === undefined) {
     return defaultLanguage;
   }
   globalThis.localStorage.removeItem(LANGUAGE_EXPLICIT_STORAGE_KEY);

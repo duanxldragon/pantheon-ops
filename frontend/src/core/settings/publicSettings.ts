@@ -36,7 +36,7 @@ let publicSettingsState: PublicSettingsState = readStoredPublicSettings();
 const listeners = new Set<() => void>();
 
 function readStoredPublicSettings(): PublicSettingsState {
-  if (typeof globalThis.document === 'undefined') {
+  if (globalThis.document === undefined) {
     return buildPublicSettingsState({});
   }
   try {
@@ -75,7 +75,7 @@ function normalizeAppMode(value?: string): PublicSettingsState['appMode'] {
 }
 
 function persistPublicSettings(settings: Record<string, string>) {
-  if (typeof globalThis.document === 'undefined') {
+  if (globalThis.document === undefined) {
     return;
   }
   globalThis.localStorage.setItem(PUBLIC_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
@@ -84,7 +84,7 @@ function persistPublicSettings(settings: Record<string, string>) {
 function notifyPublicSettingsChanged() {
   syncDefaultLanguagePreference();
   applyPantheonDefaultTheme(publicSettingsState.defaultTheme as PantheonThemeKey);
-  if (typeof document !== 'undefined') {
+  if (document !== undefined) {
     document.title = publicSettingsState.siteName;
   }
   listeners.forEach((listener) => listener());

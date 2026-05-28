@@ -48,7 +48,7 @@ function normalizeTheme(value?: string | null): PantheonThemeKey {
 }
 
 function readStoredTheme(storageKey: string): PantheonThemeKey | null {
-  if (typeof globalThis.document === 'undefined') {
+  if (globalThis.document === undefined) {
     return null;
   }
   const storedValue = globalThis.localStorage.getItem(storageKey);
@@ -66,7 +66,7 @@ export function getStoredPantheonTheme(): PantheonThemeKey {
 }
 
 export function applyPantheonTheme(theme: PantheonThemeKey) {
-  if (typeof globalThis.document === 'undefined') {
+  if (globalThis.document === undefined) {
     return;
   }
 
@@ -76,7 +76,7 @@ export function applyPantheonTheme(theme: PantheonThemeKey) {
 }
 
 export function applyPantheonDefaultTheme(theme: PantheonThemeKey) {
-  if (typeof globalThis.document === 'undefined') {
+  if (globalThis.document === undefined) {
     return;
   }
 
@@ -99,7 +99,7 @@ export async function initializePantheonTheme() {
   }
 
   const defaultTheme = readStoredTheme(PANTHEON_DEFAULT_THEME_KEY) || 'indigo';
-  if (typeof globalThis.document !== 'undefined') {
+  if (globalThis.document !== undefined) {
     document.documentElement.dataset.pantheonTheme = defaultTheme;
   }
 
@@ -115,7 +115,7 @@ export async function initializePantheonTheme() {
 }
 
 export function clearPantheonThemePreference() {
-  if (typeof globalThis.document === 'undefined') {
+  if (globalThis.document === undefined) {
     return;
   }
   globalThis.localStorage.removeItem(PANTHEON_THEME_STORAGE_KEY);
