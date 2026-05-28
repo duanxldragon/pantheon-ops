@@ -14,6 +14,7 @@ export interface GovernanceSummaryMetric {
 }
 
 export interface GovernanceSummaryBarProps {
+  icon?: React.ReactNode;
   eyebrow?: React.ReactNode;
   title?: React.ReactNode;
   description?: React.ReactNode;
@@ -23,6 +24,7 @@ export interface GovernanceSummaryBarProps {
 }
 
 const GovernanceSummaryBar: React.FC<GovernanceSummaryBarProps> = ({
+  icon,
   eyebrow,
   title,
   description,
@@ -30,7 +32,7 @@ const GovernanceSummaryBar: React.FC<GovernanceSummaryBarProps> = ({
   action,
   className,
 }) => {
-  const summaryLine = title || description;
+  const mainTitle = title || description;
 
   return (
     <section
@@ -38,10 +40,13 @@ const GovernanceSummaryBar: React.FC<GovernanceSummaryBarProps> = ({
     >
       <div className="governance-summary-bar__copy">
         {eyebrow ? <span className="governance-summary-bar__eyebrow">{eyebrow}</span> : null}
-        {summaryLine ? (
-          <Typography.Text className="governance-summary-bar__title">
-            {summaryLine}
-          </Typography.Text>
+        {mainTitle ? (
+          <div className="governance-summary-bar__title-row">
+            {icon ? <span className="governance-summary-bar__icon">{icon}</span> : null}
+            <Typography.Text className="governance-summary-bar__title">
+              {mainTitle}
+            </Typography.Text>
+          </div>
         ) : null}
       </div>
       <div className="governance-summary-bar__metrics">

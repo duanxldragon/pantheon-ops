@@ -1,10 +1,11 @@
 {
+  "license": "MIT",
   "scripts": {
     "check:base-sync": "node scripts/check-base-backend-sync.mjs && npm --prefix frontend run check:base-sync",
     "check:base-sync:backend": "node scripts/check-base-backend-sync.mjs",
     "check:base-sync:frontend": "npm --prefix frontend run check:base-sync"
   },
   "devDependencies": {
-    "playwright": "^1.59.1"
+    "playwright": "^1.60.0"
   }
 }

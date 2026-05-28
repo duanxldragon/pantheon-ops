@@ -18,7 +18,7 @@
     "check:system-page-admission": "node ./scripts/check-system-page-admission.mjs",
     "check:smoke-web-base": "node ./scripts/check-smoke-web-base.mjs",
     "check:smoke-coverage-contract": "node ./scripts/check-smoke-coverage-contract.mjs",
-    "test:smoke:scripts": "node --test ./scripts/run-smoke-suite.test.mjs",
+    "test:smoke:scripts": "node --test ./scripts/run-smoke-suite.test.mjs ./scripts/generate-module-i18n.test.mjs",
     "test:generator:dashboard-widget": "node ./scripts/run-generator-dashboard-widget-test.mjs",
     "test:generator:quality": "node ./scripts/run-generator-quality-contract-test.mjs",
     "test:generator:smoke": "npm run test:generator:dashboard-widget && npm run test:generator:quality && npm run check:menu-contract && npm run check:i18n-generated && npm run check:i18n-missing-keys && npm run check:i18n-hardcode",
