@@ -8,6 +8,7 @@ interface TableBatchActionBarProps {
   clearText: string;
   clearSuccessText?: string;
   onClear: () => void;
+  showSelectionSummary?: boolean;
   prefixActions?: React.ReactNode;
   actions?: React.ReactNode;
   hint?: React.ReactNode;
@@ -20,6 +21,7 @@ const TableBatchActionBar: React.FC<TableBatchActionBarProps> = ({
   clearText,
   clearSuccessText,
   onClear,
+  showSelectionSummary = true,
   prefixActions,
   actions,
   hint,
@@ -42,12 +44,16 @@ const TableBatchActionBar: React.FC<TableBatchActionBarProps> = ({
           {prefixActions ? (
             <div className="table-batch-action-bar__prefix-actions">{prefixActions}</div>
           ) : null}
-          <Typography.Text type="secondary" className="table-batch-action-bar__summary">
-            {selectedText}
-          </Typography.Text>
-          <Button type="text" size="small" disabled={selectedCount === 0} onClick={handleClear}>
-            {clearText}
-          </Button>
+          {showSelectionSummary ? (
+            <>
+              <Typography.Text type="secondary" className="table-batch-action-bar__summary">
+                {selectedText}
+              </Typography.Text>
+              <Button type="text" size="small" disabled={selectedCount === 0} onClick={handleClear}>
+                {clearText}
+              </Button>
+            </>
+          ) : null}
         </div>
         {actions ? <div className="table-batch-action-bar__actions">{actions}</div> : null}
       </div>

@@ -69,7 +69,7 @@ var defaultSettingSeeds = []defaultSettingSeed{
 	{SettingKey: "ui.enable_tab_bar", SettingValue: "true", ValueType: "boolean", GroupKey: "ui", Module: "system", IsPublic: 1, Remark: "system.setting.remark.ui.enable_tab_bar"},
 	{SettingKey: "upload.storage_driver", SettingValue: "local", ValueType: "string", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.storage_driver"},
 	{SettingKey: "upload.max_file_size", SettingValue: "20", ValueType: "number", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.max_file_size"},
-	{SettingKey: "upload.allowed_types", SettingValue: "[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\"]", ValueType: "json", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.allowed_types"},
+	{SettingKey: "upload.allowed_types", SettingValue: "[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\",\"zip\",\"gz\",\"tgz\",\"tar\"]", ValueType: "json", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.allowed_types"},
 	{SettingKey: "upload.local_path", SettingValue: "./uploads", ValueType: "string", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.local_path"},
 	{SettingKey: "upload.public_base_url", SettingValue: "", ValueType: "string", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.public_base_url"},
 	{SettingKey: "upload.s3_endpoint", SettingValue: "", ValueType: "string", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.s3_endpoint"},
@@ -157,6 +157,9 @@ func (s *SettingService) Migrate() error {
 		return err
 	}
 	if err := s.normalizeLegacySettingValue("upload.storage_driver"); err != nil {
+		return err
+	}
+	if err := s.migrateLegacySettingValue("upload.allowed_types", "[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\"]", "[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\",\"zip\",\"gz\",\"tgz\",\"tar\"]"); err != nil {
 		return err
 	}
 	if err := s.migrateLegacySettingValue("audit.session_cleanup_retention_options", "[7,30,90]", "[1,7,30]"); err != nil {

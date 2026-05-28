@@ -109,6 +109,27 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 		return []PermissionAPIPolicy{
 			{Path: "/api/v1/business/cmdb/labels/:id", Method: "DELETE"},
 		}
+	case "business:bizscope:list":
+		return []PermissionAPIPolicy{
+			{Path: "/api/v1/business/bizscope/list", Method: "GET"},
+			{Path: "/api/v1/business/bizscope/options", Method: "GET"},
+		}
+	case "business:bizscope:view":
+		return []PermissionAPIPolicy{
+			{Path: "/api/v1/business/bizscope/:id", Method: "GET"},
+		}
+	case "business:bizscope:create":
+		return []PermissionAPIPolicy{
+			{Path: "/api/v1/business/bizscope", Method: "POST"},
+		}
+	case "business:bizscope:update":
+		return []PermissionAPIPolicy{
+			{Path: "/api/v1/business/bizscope/:id", Method: "PUT"},
+		}
+	case "business:bizscope:delete":
+		return []PermissionAPIPolicy{
+			{Path: "/api/v1/business/bizscope/:id", Method: "DELETE"},
+		}
 	case "business:deploy:package:list":
 		return []PermissionAPIPolicy{
 			{Path: "/api/v1/business/deploy/packages", Method: "GET"},
@@ -124,6 +145,23 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 	case "business:deploy:package:delete":
 		return []PermissionAPIPolicy{
 			{Path: "/api/v1/business/deploy/packages/:id", Method: "DELETE"},
+		}
+	case "business:deploy:template:list":
+		return []PermissionAPIPolicy{
+			{Path: "/api/v1/business/deploy/templates", Method: "GET"},
+			{Path: "/api/v1/business/deploy/templates/:id", Method: "GET"},
+		}
+	case "business:deploy:template:create":
+		return []PermissionAPIPolicy{
+			{Path: "/api/v1/business/deploy/templates", Method: "POST"},
+		}
+	case "business:deploy:template:update":
+		return []PermissionAPIPolicy{
+			{Path: "/api/v1/business/deploy/templates/:id", Method: "PUT"},
+		}
+	case "business:deploy:template:delete":
+		return []PermissionAPIPolicy{
+			{Path: "/api/v1/business/deploy/templates/:id", Method: "DELETE"},
 		}
 	case "business:deploy:task:list":
 		return []PermissionAPIPolicy{

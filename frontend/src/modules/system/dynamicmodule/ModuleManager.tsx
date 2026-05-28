@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import { ensureOperationVerified, isRequestError } from '../../../api/request';
 import { message } from '../../../components/feedback/message';
 import PermissionAction from '../../../components/patterns/PermissionAction';
+import { formatDateTime } from '../../../core/format/dateTime';
 import { invalidateRouteWarmData, resolveRouteWarmData } from '../../../core/router/prefetch';
 import { usePermission } from '../../../hooks/usePermission';
 
@@ -33,6 +34,7 @@ import {
   repairRegistries,
   registerModule,
   unregisterModule,
+  type ModuleI18nLifecycleSummary,
   type ModuleRegistration,
 } from './api';
 import {
@@ -50,6 +52,8 @@ import { SECONDARY_VERIFY_CANCELLED_ERROR } from '../../../components/feedback/s
 import '../list-page.css';
 
 const moduleManagerWarmDataKeys = ['modules:registered'];
+const moduleManagerDiagnosticsColumnWidth = 112;
+const moduleManagerTimeColumnWidth = 128;
 
 function invalidateModuleManagerWarmData() {
   invalidateRouteWarmData('/system/modules', moduleManagerWarmDataKeys);
@@ -74,6 +78,13 @@ function statusColor(status: number) {
   return 'gray';
 }
 
+function hasLifecycleChanges(summary: ModuleI18nLifecycleSummary | null | undefined) {
+  if (!summary?.triggered) {
+    return false;
+  }
+  return summary.observedRows > 0 || summary.archivedRows > 0 || summary.deletedRows > 0;
+}
+
 const ModuleManager: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -93,6 +104,9 @@ const ModuleManager: React.FC = () => {
   const [purging, setPurging] = useState(false);
   const [purgeConfirmed, setPurgeConfirmed] = useState(false);
   const [repairing, setRepairing] = useState(false);
+  const [lastLifecycleSummary, setLastLifecycleSummary] = useState<ModuleI18nLifecycleSummary | null>(
+    null,
+  );
 
   const loadData = useCallback(async (options?: { force?: boolean }) => {
     if (options?.force) {
@@ -130,7 +144,8 @@ const ModuleManager: React.FC = () => {
   const handleUnregister = async (name: string) => {
     try {
       await ensureOperationVerified();
-      await unregisterModule(name, false);
+      const result = await unregisterModule(name, false);
+      setLastLifecycleSummary(result.i18nLifecycle);
       message.success(t('generator.moduleManager.unregisterSuccess'));
       invalidateModuleManagerWarmData();
       await loadData();
@@ -145,6 +160,7 @@ const ModuleManager: React.FC = () => {
   const handleRegister = async (name: string) => {
     try {
       await ensureOperationVerified();
+      setLastLifecycleSummary(null);
       await registerModule({ name });
       message.success(t('generator.moduleManager.registerSuccess'));
       invalidateModuleManagerWarmData();
@@ -160,6 +176,7 @@ const ModuleManager: React.FC = () => {
   const handleDeleteRecord = async (name: string) => {
     try {
       await ensureOperationVerified();
+      setLastLifecycleSummary(null);
       await deleteModuleRecord(name);
       message.success(t('generator.moduleManager.deleteRecordSuccess'));
       invalidateModuleManagerWarmData();
@@ -195,10 +212,11 @@ const ModuleManager: React.FC = () => {
       const values = await purgeForm.validate();
       await ensureOperationVerified();
       setPurging(true);
-      await purgeModule(purgeTarget.name, {
+      const result = await purgeModule(purgeTarget.name, {
         purgeSource: true,
         dropTable: Boolean(values.dropTable),
       });
+      setLastLifecycleSummary(result.i18nLifecycle);
       message.success(t('generator.moduleManager.purgeSuccess'));
       closePurgeModal();
       invalidateModuleManagerWarmData();
@@ -216,6 +234,7 @@ const ModuleManager: React.FC = () => {
   const handleRepair = async () => {
     try {
       await ensureOperationVerified();
+      setLastLifecycleSummary(null);
       setRepairing(true);
       const result = await repairRegistries();
       message.success(
@@ -375,14 +394,19 @@ const ModuleManager: React.FC = () => {
       {
         title: t('generator.moduleManager.installedAt'),
         dataIndex: 'installedAt',
-        width: TABLE_COLUMN_WIDTH.datetime,
+        width: moduleManagerTimeColumnWidth,
+        render: (value?: string) => (
+          <Typography.Text className="system-list__datetime-text">
+            {formatDateTime(value)}
+          </Typography.Text>
+        ),
       },
       'low',
     ),
     withTableColumnPriority(
       {
         title: t('generator.moduleManager.diagnostics'),
-        width: TABLE_COLUMN_WIDTH.diagnostics,
+        width: moduleManagerDiagnosticsColumnWidth,
         render: (_value: unknown, record: ModuleRegistration) => {
           if (record.lastError) {
             return (
@@ -393,15 +417,23 @@ const ModuleManager: React.FC = () => {
             );
           }
           if (record.lastVerifiedAt) {
-            return (
-              <Space direction="vertical" size={2}>
-                <Tag color="green">{t('generator.moduleManager.diagnostics.verified')}</Tag>
-                <Typography.Text type="secondary">{record.lastVerifiedAt}</Typography.Text>
-              </Space>
-            );
+            return <Tag color="green">{t('generator.moduleManager.diagnostics.verified')}</Tag>;
           }
           return <span>-</span>;
         },
+      },
+      'low',
+    ),
+    withTableColumnPriority(
+      {
+        title: t('generator.moduleManager.verifiedAt'),
+        dataIndex: 'lastVerifiedAt',
+        width: moduleManagerTimeColumnWidth,
+        render: (value?: string) => (
+          <Typography.Text className="system-list__datetime-text">
+            {formatDateTime(value)}
+          </Typography.Text>
+        ),
       },
       'low',
     ),
@@ -573,6 +605,51 @@ const ModuleManager: React.FC = () => {
             />
           </div>
           <div className="module-manager-page__notice-stack">
+            {lastLifecycleSummary?.triggered ? (
+              <Alert
+                type="info"
+                content={
+                  hasLifecycleChanges(lastLifecycleSummary) ? (
+                    <Space wrap size={8}>
+                      <Typography.Text>
+                        {t('generator.moduleManager.i18nLifecycle.notice', {
+                          defaultValue: 'Removed module {{module}} triggered i18n lifecycle governance.',
+                          module: lastLifecycleSummary.module,
+                        })}
+                      </Typography.Text>
+                      <Tag color={lastLifecycleSummary.observedRows > 0 ? 'gold' : 'gray'}>
+                        {t('generator.moduleManager.i18nLifecycle.observe', {
+                          defaultValue: 'Observe {{count}}',
+                          count: lastLifecycleSummary.observedRows,
+                        })}
+                      </Tag>
+                      <Tag color={lastLifecycleSummary.archivedRows > 0 ? 'orange' : 'gray'}>
+                        {t('generator.moduleManager.i18nLifecycle.archive', {
+                          defaultValue: 'Archive {{count}}',
+                          count: lastLifecycleSummary.archivedRows,
+                        })}
+                      </Tag>
+                      <Tag color={lastLifecycleSummary.deletedRows > 0 ? 'red' : 'gray'}>
+                        {t('generator.moduleManager.i18nLifecycle.delete', {
+                          defaultValue: 'Delete {{count}}',
+                          count: lastLifecycleSummary.deletedRows,
+                        })}
+                      </Tag>
+                      <Typography.Text type="secondary">
+                        {t('generator.moduleManager.i18nLifecycle.retention', {
+                          defaultValue: 'Archived keys are auto-deleted after {{days}} days.',
+                          days: lastLifecycleSummary.archivedRetentionThresholdDays,
+                        })}
+                      </Typography.Text>
+                    </Space>
+                  ) : (
+                    t('generator.moduleManager.i18nLifecycle.empty', {
+                      defaultValue: 'No i18n lifecycle changes were required for this module.',
+                    })
+                  )
+                }
+              />
+            ) : null}
             {featureDisabled ? (
               <Alert type="warning" content={t('generator.moduleManager.disabledHint')} />
             ) : modules.some((item) => item.status === 3) ? (

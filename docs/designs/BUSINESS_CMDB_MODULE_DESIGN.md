@@ -16,18 +16,25 @@ CMDB 是运维平台的第一个子系统，负责主机资源台账、标签体
 
 - `business/cmdb/host`：主机资源台账。
 - `business/cmdb/group`：主机分组（标签过滤条件的持久化视图）。
+- `business/cmdb/label`：标签规范治理。
+
+独立业务模块：
+
+- `business/bizscope`：业务域管理。业务域不属于 CMDB 子模块，但与 CMDB 主机关联，作为主机分配和后续部署的信任来源。
 
 ---
 
 ## 1. 模块概述
 
-CMDB 是业务域模块，属于运维平台能力域。它负责承载基础资源台账、标签体系与主机分组关系。
+CMDB 是业务模块，属于运维平台能力域。它负责承载基础资源台账、标签体系与主机分组关系。
+业务域（bizscope）单独成模块，与 CMDB 平级。
 
 **本模块解决什么问题：**
 
 - 统一管理混合环境（物理机、虚拟机、K8s 节点）的主机元数据。
 - 通过标签体系支持环境（env）与业务系统（biz）的二维正交分类。
 - 通过分组提供可复用的主机集合视图，作为下游部署、监控等运维子系统的输入。
+- 通过 `businessScopeId/businessScopeName` 记录主机所属业务域，支持“新增主机 -> 分配业务域 -> 部署上线”的闭环。
 - 支持手动录入与 SSH 一次性探测两种配置采集方式。
 
 **本模块不负责：**
@@ -54,12 +61,13 @@ CMDB 是业务域模块，属于运维平台能力域。它负责承载基础资
 
 - 下游子系统（部署管理、监控告警等）通过 API 读取 CMDB 主机信息，不允许直接访问 CMDB 数据库。
 - 主机状态（`status`）和已装组件（`installed_components`）由下游子系统通过 API 更新，CMDB 不主动探测。
+- `assigned` 表示主机已绑定业务域，处于部署前置态；`online` 表示部署完成后进入已上线态。
 
 ## 3. 核心业务对象
 
 | 对象 | 说明 | 关键属性 |
 | :--- | :--- | :--- |
-| **Host** | 主机、虚拟机或物理机资源 | hostname、IP、OS、SSH 端口、CPU/内存/磁盘、标签、已装组件、状态 |
+| **Host** | 主机、虚拟机或物理机资源 | hostname、IP、OS、SSH 端口、CPU/内存/磁盘、标签、业务域、已装组件、状态 |
 | **Group** | 主机分组，由标签过滤条件动态计算成员 | 名称、条件表达式 (AND/OR + key-op-value 规则)、说明 |
 | **Label** | 键值对标签，附属于 Host，分组过滤的数据源 | key (如 env/biz)、value (如 production/order) |
 | **LabelSchema** | 标签规范，治理可用标签 key 和取值来源 | key、name、value_mode、dict_code、options、required、status |
@@ -184,11 +192,14 @@ LabelSchema 可以维护 `options` 作为 CMDB 业务域内的常用值清单。
 ### 4.3 主机状态流转
 
 ```
-pending（待上线） → online（在线） ⇄ offline（离线）
+pending（待上线） → assigned（已分配） → online（已上线）
+                                         ↘ offline（已下线）
                                          ↘ maintenance（维护中）
 ```
 
 - 新录入主机默认 `pending`。
+- 绑定业务域后置为 `assigned`。
+- 部署完成后由部署模块回写为 `online`。
 - 状态由下游子系统（监控告警、部署管理）通过 API 更新。
 - CMDB 自身不做存活检测。
 
@@ -197,7 +208,8 @@ pending（待上线） → online（在线） ⇄ offline（离线）
 | status | 展示语义 | 运维含义 |
 | :--- | :--- | :--- |
 | `pending` | 待上线 | 已录入但尚未纳入正式运维目标 |
-| `online` | 可运维 | 可作为常规运维任务目标 |
+| `assigned` | 已分配 | 已绑定业务域，等待安装部署 |
+| `online` | 已上线 | 部署完成，可作为常规运维任务目标 |
 | `offline` | 已下线 | 不应作为常规运维任务目标 |
 | `maintenance` | 维护中 | 默认排除自动化批量任务，除非显式选择 |
 

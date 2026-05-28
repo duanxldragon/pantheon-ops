@@ -1063,6 +1063,11 @@ func TestI18nService_UnusedLifecycleFlow(t *testing.T) {
 	if _, err := service.DeleteArchivedUnusedKeys("system.config", false); err == nil || err.Error() != "i18n.lifecycle.delete.confirm_required" {
 		t.Fatalf("expected confirm required error, got %v", err)
 	}
+	if err := db.Model(&SystemI18n{}).
+		Where("module = ? AND `key` = ?", "system.config", "zz.lifecycle.key").
+		Update("lifecycle_marked_at", time.Now().AddDate(0, 0, -(I18nArchivedRetentionThresholdDays+1))).Error; err != nil {
+		t.Fatalf("age archived lifecycle rows: %v", err)
+	}
 
 	deleteResp, err := service.DeleteArchivedUnusedKeys("system.config", true)
 	if err != nil {
@@ -1078,5 +1083,62 @@ func TestI18nService_UnusedLifecycleFlow(t *testing.T) {
 	}
 	if count != 0 {
 		t.Fatalf("expected archived lifecycle rows deleted, got %d", count)
+	}
+}
+
+func TestI18nService_AdvanceUnusedLifecycleDeletesExpiredArchivedKeys(t *testing.T) {
+	db := newI18nTestDB(t)
+	service := NewI18nService(db)
+	if err := service.Migrate(); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+
+	if err := service.BatchInsert([]SystemI18n{
+		{Module: "system.config", Group: "messages", Key: "zz.advance.observe", Locale: "zh-CN", Value: "待观察"},
+		{Module: "system.config", Group: "messages", Key: "zz.advance.observe", Locale: "en-US", Value: "Observe"},
+		{Module: "system.config", Group: "messages", Key: "zz.advance.archive", Locale: "zh-CN", Value: "待归档", LifecycleStatus: I18nLifecycleStatusObserving},
+		{Module: "system.config", Group: "messages", Key: "zz.advance.archive", Locale: "en-US", Value: "Archive", LifecycleStatus: I18nLifecycleStatusObserving},
+		{Module: "system.config", Group: "messages", Key: "zz.advance.delete", Locale: "zh-CN", Value: "待删除", LifecycleStatus: I18nLifecycleStatusArchived},
+		{Module: "system.config", Group: "messages", Key: "zz.advance.delete", Locale: "en-US", Value: "Delete", LifecycleStatus: I18nLifecycleStatusArchived},
+	}); err != nil {
+		t.Fatalf("seed items: %v", err)
+	}
+
+	if err := db.Model(&SystemI18n{}).
+		Where("module = ? AND `key` = ?", "system.config", "zz.advance.archive").
+		Update("lifecycle_marked_at", time.Now().AddDate(0, 0, -(I18nUnusedObservationThresholdDays+1))).Error; err != nil {
+		t.Fatalf("age observing rows: %v", err)
+	}
+	if err := db.Model(&SystemI18n{}).
+		Where("module = ? AND `key` = ?", "system.config", "zz.advance.delete").
+		Update("lifecycle_marked_at", time.Now().AddDate(0, 0, -(I18nArchivedRetentionThresholdDays+1))).Error; err != nil {
+		t.Fatalf("age archived rows: %v", err)
+	}
+
+	resp, err := service.AdvanceUnusedLifecycle("system.config")
+	if err != nil {
+		t.Fatalf("advance lifecycle: %v", err)
+	}
+	if resp.ObservedRows != 2 {
+		t.Fatalf("expected 2 observed rows, got %d", resp.ObservedRows)
+	}
+	if resp.ArchivedRows != 2 {
+		t.Fatalf("expected 2 archived rows, got %d", resp.ArchivedRows)
+	}
+	if resp.DeletedRows != 2 {
+		t.Fatalf("expected 2 deleted rows, got %d", resp.DeletedRows)
+	}
+	if resp.ArchivedRetentionThresholdDays != I18nArchivedRetentionThresholdDays {
+		t.Fatalf("expected archived retention threshold %d, got %d", I18nArchivedRetentionThresholdDays, resp.ArchivedRetentionThresholdDays)
+	}
+
+	var deletedCount int64
+	if err := db.Model(&SystemI18n{}).
+		Where("module = ? AND `key` = ?", "system.config", "zz.advance.delete").
+		Count(&deletedCount).Error; err != nil {
+		t.Fatalf("count deleted rows: %v", err)
+	}
+	if deletedCount != 0 {
+		t.Fatalf("expected expired archived rows deleted, got %d", deletedCount)
 	}
 }

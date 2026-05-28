@@ -7,7 +7,19 @@ export interface DeployPackageRow {
   description: string;
   installCommand: string;
   uninstallCommand: string;
+  executionMode: 'fixed' | 'orchestrated';
+  templateCode?: string;
+  templateConfig?: Record<string, unknown>;
+  sourceObjectKey?: string;
+  sourceFileName?: string;
+  sourceUrl?: string;
   status: string;
+  latestDeployedAt?: string;
+  latestTaskId?: number;
+  latestTaskName?: string;
+  latestTaskStatus?: string;
+  latestHostCount?: number;
+  latestSuccessCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,7 +37,81 @@ export interface DeployPackagePayload {
   description?: string;
   installCommand?: string;
   uninstallCommand?: string;
+  executionMode?: 'fixed' | 'orchestrated';
+  templateCode?: string;
+  templateConfig?: Record<string, unknown>;
+  sourceObjectKey?: string;
+  sourceFileName?: string;
+  sourceUrl?: string;
   status?: string;
+}
+
+export interface DeployTemplateStepRow {
+  id: number;
+  templateId: number;
+  stepCode: string;
+  stepName: string;
+  stepType: 'package' | 'script';
+  action: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+  packageId: number;
+  packageName: string;
+  packageVersion: string;
+  templateCode?: string;
+  templateParams?: Record<string, unknown>;
+  stepConfig?: Record<string, unknown>;
+  sort: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DeployTemplateRow {
+  id: number;
+  name: string;
+  version: string;
+  description: string;
+  category: string;
+  executionMode: 'fixed' | 'orchestrated';
+  defaultAction: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+  packageId: number;
+  packageName: string;
+  packageVersion: string;
+  templateCode?: string;
+  templateConfig?: Record<string, unknown>;
+  parameterSchema?: Record<string, unknown>;
+  status: string;
+  stepCount: number;
+  steps: DeployTemplateStepRow[];
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  updatedBy: string;
+}
+
+export interface DeployTemplatePayload {
+  name: string;
+  version: string;
+  description?: string;
+  category?: string;
+  executionMode?: 'fixed' | 'orchestrated';
+  defaultAction?: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+  packageId?: number;
+  templateCode?: string;
+  templateConfig?: Record<string, unknown>;
+  parameterSchema?: Record<string, unknown>;
+  status?: string;
+  steps?: Array<{
+    stepCode: string;
+    stepName: string;
+    stepType: 'package' | 'script';
+    action: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+    packageId?: number;
+    packageName?: string;
+    packageVersion?: string;
+    templateCode?: string;
+    templateParams?: Record<string, unknown>;
+    stepConfig?: Record<string, unknown>;
+    sort: number;
+  }>;
 }
 
 export interface DeployTaskHostRow {
@@ -40,26 +126,51 @@ export interface DeployTaskHostRow {
   stderr: string;
   errorMessage: string;
   executorId: string;
+  traceSteps?: Array<{
+    at?: string;
+    phase?: string;
+    message?: string;
+    stepCode?: string;
+    stepName?: string;
+    stepType?: 'package' | 'script';
+    action?: string;
+    packageName?: string;
+  }>;
   startedAt?: string;
   finishedAt?: string;
   reportedAt?: string;
+  durationSeconds?: number;
   updatedAt: string;
 }
 
 export interface DeployTaskRow {
   id: number;
   name: string;
+  templateId: number;
+  templateName: string;
+  templateVersion: string;
   packageId: number;
   packageName: string;
   packageVersion: string;
+  businessScopeId: number;
+  businessScopeName: string;
+  action: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
   targetType: 'host' | 'group';
   targetIds: number[];
   executorType: 'manual' | 'simulated' | 'agent' | 'ssh';
+  executionMode: 'fixed' | 'orchestrated';
+  templateParams?: Record<string, unknown>;
   status: string;
   remark: string;
   externalTaskId: string;
   startedAt?: string;
   finishedAt?: string;
+  hostCount: number;
+  successCount: number;
+  failedCount: number;
+  runningCount: number;
+  skippedCount: number;
+  durationSeconds: number;
   createdAt: string;
   updatedAt: string;
   hosts: DeployTaskHostRow[];
@@ -74,11 +185,23 @@ export interface DeployTaskListResp {
 
 export interface DeployTaskPayload {
   name: string;
-  packageId: number;
+  templateId?: number;
+  packageId?: number;
+  businessScopeId?: number;
+  action?: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
   targetType: 'host' | 'group';
   targetIds: number[];
   executorType: 'manual' | 'simulated' | 'agent' | 'ssh';
+  templateParams?: Record<string, unknown>;
   remark?: string;
+}
+
+export interface StartDeployTaskPayload {
+  sshUser?: string;
+  sshPassword?: string;
+  sshPrivateKey?: string;
+  hostFingerprint?: string;
+  authMode?: 'password' | 'private_key';
 }
 
 export interface MarkHostResultPayload {
@@ -107,6 +230,13 @@ export function createDeployPackage(data: DeployPackagePayload) {
   });
 }
 
+export function getDeployPackageDetail(id: number) {
+  return apiRequest<DeployPackageRow>({
+    url: `/business/deploy/packages/${id}`,
+    method: 'get',
+  });
+}
+
 export function updateDeployPackage(id: number, data: Partial<DeployPackagePayload>) {
   return apiRequest<DeployPackageRow>({
     url: `/business/deploy/packages/${id}`,
@@ -118,6 +248,37 @@ export function updateDeployPackage(id: number, data: Partial<DeployPackagePaylo
 export function deleteDeployPackage(id: number) {
   return apiRequest<void>({
     url: `/business/deploy/packages/${id}`,
+    method: 'delete',
+  });
+}
+
+export function getDeployTemplateList(params?: ListQuery) {
+  return apiRequest<{ items: DeployTemplateRow[]; total: number; page: number; pageSize: number }>({
+    url: '/business/deploy/templates',
+    method: 'get',
+    params,
+  });
+}
+
+export function createDeployTemplate(data: DeployTemplatePayload) {
+  return apiRequest<DeployTemplateRow>({
+    url: '/business/deploy/templates',
+    method: 'post',
+    data,
+  });
+}
+
+export function updateDeployTemplate(id: number, data: Partial<DeployTemplatePayload>) {
+  return apiRequest<DeployTemplateRow>({
+    url: `/business/deploy/templates/${id}`,
+    method: 'put',
+    data,
+  });
+}
+
+export function deleteDeployTemplate(id: number) {
+  return apiRequest<void>({
+    url: `/business/deploy/templates/${id}`,
     method: 'delete',
   });
 }
@@ -145,10 +306,11 @@ export function createDeployTask(data: DeployTaskPayload) {
   });
 }
 
-export function startDeployTask(id: number) {
+export function startDeployTask(id: number, data?: StartDeployTaskPayload) {
   return apiRequest<DeployTaskRow>({
     url: `/business/deploy/tasks/${id}/start`,
     method: 'post',
+    data,
   });
 }
 

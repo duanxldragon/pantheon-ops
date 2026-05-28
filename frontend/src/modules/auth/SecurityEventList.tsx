@@ -28,6 +28,7 @@ import {
   PageEmpty,
   PageError,
   PageLoading,
+  TABLE_COLUMN_WIDTH,
   useGovernanceRail,
 } from '../../components';
 import { usePermission } from '../../hooks/usePermission';
@@ -110,26 +111,26 @@ const SecurityEventList: React.FC = () => {
     {
       title: t('auth.securityEvent.createdAt'),
       dataIndex: 'createdAt',
-      width: 180,
+      width: TABLE_COLUMN_WIDTH.datetime,
       render: (value) => formatDateTime(value as string),
     },
     {
       title: t('common.username'),
       dataIndex: 'username',
-      width: 140,
+      width: TABLE_COLUMN_WIDTH.identity,
       render: (value) => (value ? String(value) : '-'),
     },
     {
       title: t('auth.securityEvent.eventType'),
       dataIndex: 'eventType',
-      width: 180,
+      width: TABLE_COLUMN_WIDTH.tagGroup,
       render: (value) =>
         t(`auth.securityEvent.type.${value}`, { defaultValue: String(value || '-') }),
     },
     {
       title: t('auth.securityEvent.severity'),
       dataIndex: 'severity',
-      width: 120,
+      width: TABLE_COLUMN_WIDTH.status,
       render: (value) => {
         const severity = String(value || 'medium');
         const color = severity === 'high' ? 'red' : severity === 'low' ? 'green' : 'orange';
@@ -143,18 +144,20 @@ const SecurityEventList: React.FC = () => {
     {
       title: t('auth.securityEvent.sourceKey'),
       dataIndex: 'sourceKey',
-      width: 180,
+      width: TABLE_COLUMN_WIDTH.identity,
       render: (value) => (value ? String(value) : '-'),
     },
     {
       title: t('auth.securityEvent.messageKey'),
       dataIndex: 'messageKey',
+      width: TABLE_COLUMN_WIDTH.diagnostics,
+      ellipsis: true,
       render: (value) => t(String(value || ''), { defaultValue: String(value || '-') }),
     },
     {
       title: t('auth.securityEvent.acknowledgement'),
       dataIndex: 'acknowledgedAt',
-      width: 220,
+      width: TABLE_COLUMN_WIDTH.diagnostics,
       render: (_value, record) =>
         record.acknowledgedAt ? (
           <Space direction="vertical" size={2}>
@@ -267,7 +270,7 @@ const SecurityEventList: React.FC = () => {
         />
         <FilterPanel>
           <Form form={form} layout="vertical" initialValues={emptyFilterForm}>
-            <Row gutter={16} className="auth-filter-grid">
+            <Row gutter={16} className="auth-filter-grid auth-security-event-page__filter-grid">
               <Col xs={24} md={12} lg={5}>
                 <FormItem field="username" label={t('common.user')}>
                   <Input allowClear placeholder={t('auth.securityEvent.filter.usernamePlaceholder')} />
@@ -312,11 +315,11 @@ const SecurityEventList: React.FC = () => {
                   </Select>
                 </FormItem>
               </Col>
-              <Col xs={24} md={12} lg={4}>
-                <FormItem className="filter-panel__action-item">
-                  <Space>
-                    <Button type="primary" icon={<IconSearch />} onClick={handleSearch}>
-                      {t('common.search')}
+                <Col xs={24} md={12} lg={4}>
+                  <FormItem className="filter-panel__action-item auth-security-event-page__filter-actions">
+                    <Space>
+                      <Button type="primary" icon={<IconSearch />} onClick={handleSearch}>
+                        {t('common.search')}
                     </Button>
                     <Button onClick={handleReset}>{t('common.reset')}</Button>
                   </Space>
@@ -340,7 +343,7 @@ const SecurityEventList: React.FC = () => {
               data={data.items}
               loading={loading}
               pagination={pagination}
-              scroll={{ x: 1280 }}
+              scroll={{ x: 'max-content' }}
             />
           ) : null}
         </Card>

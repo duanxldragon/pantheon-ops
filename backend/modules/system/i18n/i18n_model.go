@@ -6,6 +6,7 @@ import (
 
 const I18nStalePlaceholderThresholdDays = 30
 const I18nUnusedObservationThresholdDays = 14
+const I18nArchivedRetentionThresholdDays = 30
 
 const (
 	I18nLifecycleStatusActive    = "active"
@@ -176,16 +177,17 @@ type I18nUnusedKeyItem struct {
 }
 
 type I18nModuleAuditItem struct {
-	Module                string `json:"module"`
-	EntryCount            int64  `json:"entryCount"`
-	KeyCount              int64  `json:"keyCount"`
-	UnusedKeyCount        int64  `json:"unusedKeyCount"`
-	DuplicateKeyCount     int64  `json:"duplicateKeyCount"`
-	MissingLocaleCount    int64  `json:"missingLocaleCount"`
-	PlaceholderCount      int64  `json:"placeholderCount"`
-	StalePlaceholderCount int64  `json:"stalePlaceholderCount"`
-	ObservingKeyCount     int64  `json:"observingKeyCount"`
-	ArchivedKeyCount      int64  `json:"archivedKeyCount"`
+	Module                 string `json:"module"`
+	EntryCount             int64  `json:"entryCount"`
+	KeyCount               int64  `json:"keyCount"`
+	UnusedKeyCount         int64  `json:"unusedKeyCount"`
+	DuplicateKeyCount      int64  `json:"duplicateKeyCount"`
+	MissingLocaleCount     int64  `json:"missingLocaleCount"`
+	PlaceholderCount       int64  `json:"placeholderCount"`
+	StalePlaceholderCount  int64  `json:"stalePlaceholderCount"`
+	ObservingKeyCount      int64  `json:"observingKeyCount"`
+	ArchivedKeyCount       int64  `json:"archivedKeyCount"`
+	DeleteEligibleKeyCount int64  `json:"deleteEligibleKeyCount"`
 }
 
 type I18nRenameSuggestion struct {
@@ -211,6 +213,7 @@ type I18nAuditResp struct {
 	Modules                        []I18nModuleAuditItem      `json:"modules"`
 	StalePlaceholderThresholdDays  int64                      `json:"stalePlaceholderThresholdDays"`
 	UnusedObservationThresholdDays int64                      `json:"unusedObservationThresholdDays"`
+	ArchivedRetentionThresholdDays int64                      `json:"archivedRetentionThresholdDays"`
 }
 
 type I18nCleanupUnusedResp struct {
@@ -276,4 +279,16 @@ type I18nUnusedLifecycleResp struct {
 	Module       string   `json:"module"`
 	AffectedKeys []string `json:"affectedKeys"`
 	AffectedRows int64    `json:"affectedRows"`
+}
+
+type I18nUnusedLifecycleAdvanceResp struct {
+	Module                         string   `json:"module"`
+	ObservedKeys                   []string `json:"observedKeys"`
+	ObservedRows                   int64    `json:"observedRows"`
+	ArchivedKeys                   []string `json:"archivedKeys"`
+	ArchivedRows                   int64    `json:"archivedRows"`
+	DeletedKeys                    []string `json:"deletedKeys"`
+	DeletedRows                    int64    `json:"deletedRows"`
+	ObservationOnly                bool     `json:"observationOnly"`
+	ArchivedRetentionThresholdDays int64    `json:"archivedRetentionThresholdDays"`
 }

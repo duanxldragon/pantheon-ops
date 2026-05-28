@@ -41,6 +41,18 @@ type CmdbGroup = {
   };
 };
 
+type BizScope = {
+  id: number;
+  code: string;
+  name: string;
+};
+
+async function expectNoVisibleCmdbI18nKeys(page: import('@playwright/test').Page) {
+  const bodyText = await page.locator('body').innerText();
+  expect(bodyText).not.toMatch(/\bbusiness\.cmdb\.[A-Za-z0-9_.-]+\b/);
+  expect(bodyText).not.toMatch(/\boperations\.cmdb\.[A-Za-z0-9_.-]+\b/);
+}
+
 async function expectBusinessSuccess<T>(response: APIResponse): Promise<T> {
   expect(response.ok()).toBeTruthy();
   const payload = (await response.json()) as ApiEnvelope<T>;
@@ -68,6 +80,18 @@ async function cleanupCmdbFixture(request: APIRequestContext, headers: Record<st
       }
     }
   }
+
+  const scopeListResp = await request.get(`${apiBaseUrl}/business/bizscope/list?keyword=${token}&page=1&pageSize=50`, {
+    headers,
+  });
+  if (scopeListResp.ok()) {
+    const payload = (await scopeListResp.json()) as ApiEnvelope<{ items: BizScope[] }>;
+    for (const scope of payload.data?.items ?? []) {
+      if (scope.code.includes(token) || scope.name.includes(token)) {
+        await request.delete(`${apiBaseUrl}/business/bizscope/${scope.id}`, { headers });
+      }
+    }
+  }
 }
 
 test.describe('CMDB Host Management', () => {
@@ -86,22 +110,91 @@ test.describe('CMDB Host Management', () => {
     });
     await page.goto('/operations/cmdb/host', { waitUntil: 'networkidle' });
     await expect(page.locator('.page-container')).toBeVisible();
-    const cmdbMenuLabel = page.locator('.app-shell__menu-entry-label', { hasText: 'CMDB' });
-    await expect(cmdbMenuLabel).toBeVisible();
-    await expect
-      .poll(async () =>
-        cmdbMenuLabel.evaluate((node) => node.clientWidth >= node.scrollWidth),
-      )
-      .toBe(true);
-    await expect(page.locator('.cmdb-page__hero')).toBeVisible();
+    const operationsMenuLabel = page.locator('.app-shell__menu-entry-label', {
+      hasText: '运维平台',
+    });
+    if (await operationsMenuLabel.count()) {
+      await expect(
+        operationsMenuLabel.filter({ has: page.locator(':visible') }),
+      ).toHaveCount(0);
+    }
+    await expect(page.locator('.governance-summary-bar__title-row')).toBeVisible();
+    await expect(page.locator('.governance-summary-bar__icon')).toBeVisible();
+    await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect(page.locator('.filter-panel')).toBeVisible();
+    await expect(page.locator('.table-batch-action-bar')).toBeVisible();
+    await expect(page.locator('.governance-summary-bar .arco-btn')).toBeVisible();
+    await page.locator('.governance-summary-bar .arco-btn').click();
+    await expect(page.locator('.governance-insight-drawer')).toBeVisible();
+    await expect(page.getByRole('button', { name: '新增' })).toBeVisible();
+    await expectNoVisibleCmdbI18nKeys(page);
     await page.screenshot({ path: testInfo.outputPath('cmdb-host-list.png'), fullPage: true });
     expect(consoleErrors).toEqual([]);
+  });
+
+  test('host detail action opens a modal without leaving the list page', async ({ page, request }, testInfo) => {
+    const login = await loginByApi(request, adminCredentials);
+    const headers = apiRequestHeaders(login);
+    const token = `cmdb-detail-modal-${Date.now()}`;
+
+    await cleanupCmdbFixture(request, headers, token);
+
+    try {
+      const host = await expectBusinessSuccess<CmdbHost>(
+        await request.post(`${apiBaseUrl}/business/cmdb/hosts`, {
+          headers,
+          data: {
+            hostname: token,
+            ip: `10.252.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}`,
+            sshPort: 22,
+            os: 'linux',
+            osVersion: 'Ubuntu 24.04',
+            cpuCores: 4,
+            memoryGb: 8,
+            diskGb: 100,
+            labels: [{ key: 'biz', val: token }],
+            owner: 'cmdb-smoke',
+            remark: token,
+          },
+        }),
+      );
+
+      await page.goto('/operations/cmdb/host', { waitUntil: 'networkidle' });
+      await expect(page).toHaveURL(/\/operations\/cmdb\/host$/);
+      await page.locator('.filter-panel input').first().fill(token);
+      await page.getByRole('button', { name: '搜索' }).click();
+
+      const row = page.getByRole('row').filter({ hasText: host.hostname }).first();
+      await expect(row).toBeVisible();
+      await row.getByRole('button', { name: '详情' }).click();
+
+      const modal = page.locator('.arco-modal:visible').last();
+      await expect(modal).toBeVisible();
+      await expect(modal).toContainText(host.hostname);
+      await expect(modal).toContainText(host.ip);
+      await expect(modal).toContainText('已装组件');
+      await expect(page).toHaveURL(/\/operations\/cmdb\/host$/);
+      await page.screenshot({ path: testInfo.outputPath('cmdb-host-detail-modal.png'), fullPage: true });
+    } finally {
+      await cleanupCmdbFixture(request, headers, token);
+    }
   });
 
   test('host detail loads by ID', async ({ page }, testInfo) => {
     await page.goto('/operations/cmdb/host/1', { waitUntil: 'networkidle' });
     await expect(page.locator('.page-container')).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /主机详情|加载失败/ }),
+    ).toBeVisible();
+    const collectButton = page.getByRole('button', { name: '采集配置' });
+    if (await collectButton.count()) {
+      await collectButton.click();
+      await expect(page.locator('.arco-modal')).toBeVisible();
+      await page.keyboard.press('Escape');
+    } else {
+      await expect(page.getByRole('button', { name: '重试' })).toBeVisible();
+    }
+    await expectNoVisibleCmdbI18nKeys(page);
     await page.screenshot({ path: testInfo.outputPath('cmdb-host-detail.png'), fullPage: true });
   });
 
@@ -114,15 +207,81 @@ test.describe('CMDB Host Management', () => {
     });
     await page.goto('/operations/cmdb/group', { waitUntil: 'networkidle' });
     await expect(page.locator('.page-container')).toBeVisible();
+    await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect(page.locator('.cmdb-page__side-panel')).toBeVisible();
+    await expect(page.locator('.table-batch-action-bar .arco-btn-primary')).toBeVisible();
     const hasGroups = await page.locator('.arco-tree').count();
     if (hasGroups > 0) {
       await expect(page.locator('.arco-tree')).toBeVisible();
     } else {
       await expect(page.locator('.cmdb-page__side-panel')).toContainText('暂无分组');
     }
+    await page.locator('.governance-summary-bar .arco-btn').click();
+    await expect(page.locator('.governance-insight-drawer')).toBeVisible();
+    await expectNoVisibleCmdbI18nKeys(page);
     await page.screenshot({ path: testInfo.outputPath('cmdb-group-list.png'), fullPage: true });
     expect(consoleErrors).toEqual([]);
+  });
+
+  test('business scope page loads as an independent module', async ({ page }, testInfo) => {
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+    await page.goto('/operations/business-scope', { waitUntil: 'networkidle' });
+    await expect(page.locator('.page-container')).toBeVisible();
+    await expect(page.locator('.governance-summary-bar')).toBeVisible();
+    await expect(page.locator('.governance-summary-bar')).toContainText('业务域');
+    await expect(page.locator('.filter-panel')).toBeVisible();
+    await expect(page.locator('.table-batch-action-bar')).toBeVisible();
+    await expect(page.locator('.system-list__table-card')).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath('bizscope-list.png'), fullPage: true });
+    expect(consoleErrors).toEqual([]);
+  });
+
+  test('label management page loads without raw i18n keys', async ({ page }, testInfo) => {
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        consoleErrors.push(msg.text());
+      }
+    });
+    await page.goto('/operations/cmdb/label', { waitUntil: 'networkidle' });
+    await expect(page.locator('.page-container')).toBeVisible();
+    await expect(page.locator('.governance-summary-bar')).toBeVisible();
+    await page.locator('.governance-summary-bar .arco-btn').click();
+    await expect(page.locator('.governance-insight-drawer')).toBeVisible();
+    await expect(page.locator('.table-batch-action-bar .arco-btn-primary')).toBeVisible();
+    await expectNoVisibleCmdbI18nKeys(page);
+    await page.screenshot({ path: testInfo.outputPath('cmdb-label-management-list.png'), fullPage: true });
+    expect(consoleErrors).toEqual([]);
+  });
+
+  test('cmdb pages stay within a phone viewport', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/operations/cmdb/host', { waitUntil: 'networkidle' });
+    await expect(page.locator('.governance-summary-bar')).toBeVisible();
+    await expect(page.getByRole('button', { name: '新增' })).toBeVisible();
+    await expect
+      .poll(async () =>
+        page.evaluate(() => document.body.scrollWidth <= window.innerWidth + 1),
+      )
+      .toBe(true);
+    await page.screenshot({ path: testInfo.outputPath('cmdb-host-list-mobile.png'), fullPage: true });
+
+    await page.goto('/operations/cmdb/group', { waitUntil: 'networkidle' });
+    await expect(page.locator('.governance-summary-bar')).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath('cmdb-group-list-mobile.png'), fullPage: true });
+
+    await page.goto('/operations/cmdb/label', { waitUntil: 'networkidle' });
+    await expect(page.locator('.governance-summary-bar')).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath('cmdb-label-management-list-mobile.png'), fullPage: true });
+
+    await page.goto('/operations/business-scope', { waitUntil: 'networkidle' });
+    await expect(page.locator('.governance-summary-bar')).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath('bizscope-list-mobile.png'), fullPage: true });
   });
 });
 

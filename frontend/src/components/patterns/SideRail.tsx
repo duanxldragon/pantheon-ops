@@ -78,15 +78,20 @@ export const SideRailNote: React.FC<SideRailNoteProps> = ({
   description,
   tone = 'neutral',
   className,
-}) => (
-  <div
-    className={
-      className
-        ? `side-rail-note side-rail-note--${tone} ${className}`
-        : `side-rail-note side-rail-note--${tone}`
-    }
-  >
-    {title ? <span className="side-rail-note__title">{title}</span> : null}
-    {description ? <span className="side-rail-note__desc">{description}</span> : null}
-  </div>
-);
+}) => {
+  const titleLine = title;
+  const descLine = description;
+
+  return (
+    <div
+      className={
+        className
+          ? `side-rail-note side-rail-note--${tone} ${className}`
+          : `side-rail-note side-rail-note--${tone}`
+      }
+    >
+      {titleLine ? <span className="side-rail-note__title">{titleLine}</span> : null}
+      {descLine ? <span className="side-rail-note__desc">{descLine}</span> : null}
+    </div>
+  );
+};

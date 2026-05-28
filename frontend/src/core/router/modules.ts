@@ -38,7 +38,7 @@ export const systemModules: ModuleConfig[] = [
   ...generatedSystemModules,
 ];
 
-export const businessModules: ModuleConfig[] = [CmdbModule, DeployModule, ...generatedBusinessModules];
+export const businessModules: ModuleConfig[] = [CmdbModule, ...generatedBusinessModules, DeployModule];
 
 export const registeredModules: ModuleConfig[] = [...systemModules, ...businessModules];
 

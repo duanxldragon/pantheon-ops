@@ -10,6 +10,19 @@ import (
 	"pantheon-ops/backend/internal/scaffold"
 )
 
+func generatedModulePath(root string, parts ...string) string {
+	cleaned := make([]string, 0, len(parts)+1)
+	cleaned = append(cleaned, filepath.Clean(root))
+	for _, part := range parts {
+		trimmed := strings.Trim(strings.ReplaceAll(strings.TrimSpace(part), "\\", "/"), "/")
+		if trimmed == "" || trimmed == "." || trimmed == ".." || strings.Contains(trimmed, "..") {
+			continue
+		}
+		cleaned = append(cleaned, trimmed)
+	}
+	return filepath.Join(cleaned...)
+}
+
 func (s *DynamicModuleService) RebuildGeneratedRegistries() error {
 	if strings.TrimSpace(s.workspaceRoot) == "" {
 		return errors.New("workspace.not_found")
@@ -47,13 +60,13 @@ func (s *DynamicModuleService) generatedModuleArtifactsExist(scope string, name 
 	if strings.TrimSpace(s.workspaceRoot) == "" {
 		return false
 	}
-	return generatedDirExists(filepath.Join(s.workspaceRoot, "backend", "modules", scope, name)) &&
-		generatedDirExists(filepath.Join(s.workspaceRoot, "frontend", "src", "modules", scope, name)) &&
-		generatedPathExists(filepath.Join(s.workspaceRoot, "schema", "generated", scope, name+".json"))
+	return generatedDirExists(generatedModulePath(s.workspaceRoot, "backend", "modules", scope, name)) &&
+		generatedDirExists(generatedModulePath(s.workspaceRoot, "frontend", "src", "modules", scope, name)) &&
+		generatedPathExists(generatedModulePath(s.workspaceRoot, "schema", "generated", scope, name+".json"))
 }
 
 func (s *DynamicModuleService) loadGeneratedModuleSchema(scope string, name string) (*scaffold.ModuleSchema, error) {
-	target := filepath.Join(s.workspaceRoot, "schema", "generated", scope, name+".json")
+	target := generatedModulePath(s.workspaceRoot, "schema", "generated", scope, name+".json")
 	content, err := os.ReadFile(target)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {

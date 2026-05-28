@@ -23,13 +23,13 @@ type deployMenuSeed struct {
 
 func seedDeployMenus(db *gorm.DB) error {
 	return ensureDeployMenuSeeds(db, []deployMenuSeed{
-		{Key: "operations", TitleKey: "operations.menu", Path: "/operations", Type: "D", Module: "business.deploy", Icon: "desktop", RouteName: "operations", Sort: 1},
-		{Key: "operations-deploy", ParentKey: "operations", TitleKey: "operations.deploy.menu", Path: "/operations/deploy", Type: "M", Module: "business.deploy", Icon: "tool", RouteName: "deploy", Sort: 2},
+		{Key: "operations-deploy", ParentKey: "operations", TitleKey: "operations.deploy.menu", Path: "/operations/deploy", Type: "M", Module: "business.deploy", Icon: "tool", RouteName: "deploy", Sort: 3},
 		{Key: "operations-deploy-package", ParentKey: "deploy", TitleKey: "operations.deploy.package.menu", Path: "/operations/deploy/package", Component: "business/deploy/package/DeployPackageList", PagePerm: "business:deploy:package:list", Type: "C", Module: "business.deploy", RouteName: "deploy-package-list", Sort: 1},
+		{Key: "operations-deploy-template", ParentKey: "deploy", TitleKey: "operations.deploy.template.menu", Path: "/operations/deploy/template", Component: "business/deploy/template/DeployTemplateList", PagePerm: "business:deploy:template:list", Type: "C", Module: "business.deploy", RouteName: "deploy-template-list", Sort: 2},
 		{Key: "operations-deploy-package-create", ParentKey: "deploy-package-list", TitleKey: "business.deploy.package.permission.create", Perms: "business:deploy:package:create", Type: "F", Module: "business.deploy", Sort: 1},
 		{Key: "operations-deploy-package-update", ParentKey: "deploy-package-list", TitleKey: "business.deploy.package.permission.update", Perms: "business:deploy:package:update", Type: "F", Module: "business.deploy", Sort: 2},
 		{Key: "operations-deploy-package-delete", ParentKey: "deploy-package-list", TitleKey: "business.deploy.package.permission.delete", Perms: "business:deploy:package:delete", Type: "F", Module: "business.deploy", Sort: 3},
-		{Key: "operations-deploy-task", ParentKey: "deploy", TitleKey: "operations.deploy.task.menu", Path: "/operations/deploy/task", Component: "business/deploy/task/DeployTaskList", PagePerm: "business:deploy:task:list", Type: "C", Module: "business.deploy", RouteName: "deploy-task-list", Sort: 2},
+		{Key: "operations-deploy-task", ParentKey: "deploy", TitleKey: "operations.deploy.task.menu", Path: "/operations/deploy/task", Component: "business/deploy/task/DeployTaskList", PagePerm: "business:deploy:task:list", Type: "C", Module: "business.deploy", RouteName: "deploy-task-list", Sort: 4},
 		{Key: "operations-deploy-task-detail", ParentKey: "deploy-task-list", TitleKey: "business.deploy.task.permission.detail", Perms: "business:deploy:task:detail", Type: "F", Module: "business.deploy", Sort: 1},
 		{Key: "operations-deploy-task-create", ParentKey: "deploy-task-list", TitleKey: "business.deploy.task.permission.create", Perms: "business:deploy:task:create", Type: "F", Module: "business.deploy", Sort: 2},
 		{Key: "operations-deploy-task-update", ParentKey: "deploy-task-list", TitleKey: "business.deploy.task.permission.update", Perms: "business:deploy:task:update", Type: "F", Module: "business.deploy", Sort: 3},
@@ -156,6 +156,8 @@ func seedDeployI18n(db *gorm.DB) error {
 		{"module": "business.deploy", "locale": "en-US", "group_name": "menu", "key": "operations.deploy.menu", "value": "Deployment", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.deploy", "locale": "zh-CN", "group_name": "menu", "key": "operations.deploy.package.menu", "value": "软件组件", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.deploy", "locale": "en-US", "group_name": "menu", "key": "operations.deploy.package.menu", "value": "Software", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.deploy", "locale": "zh-CN", "group_name": "menu", "key": "operations.deploy.template.menu", "value": "任务模板", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.deploy", "locale": "en-US", "group_name": "menu", "key": "operations.deploy.template.menu", "value": "Task Templates", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.deploy", "locale": "zh-CN", "group_name": "menu", "key": "operations.deploy.task.menu", "value": "部署任务", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.deploy", "locale": "en-US", "group_name": "menu", "key": "operations.deploy.task.menu", "value": "Tasks", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.deploy", "locale": "zh-CN", "group_name": "page", "key": "operations.deploy.task.detail", "value": "任务详情", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},

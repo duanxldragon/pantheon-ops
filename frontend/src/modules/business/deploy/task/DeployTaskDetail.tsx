@@ -13,6 +13,7 @@ import {
   Space,
   Tag,
   Typography,
+  Divider,
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { IconLeft } from '@arco-design/web-react/icon';
@@ -22,13 +23,14 @@ import PageContainer from '../../../../components/patterns/PageContainer';
 import PageHeader from '../../../../components/patterns/PageHeader';
 import SubmitBar from '../../../../components/patterns/SubmitBar';
 import { usePermission } from '../../../../hooks/usePermission';
+import { formatDateTime } from '../../../../core/format/dateTime';
 import {
   getDeployTaskDetail,
   markDeployHostResult,
   type DeployTaskHostRow,
   type DeployTaskRow,
 } from '../api';
-import '../../../../core/styles/list-page.css';
+import '../../../system/list-page.css';
 import '../deploy.css';
 
 const statusColorMap: Record<string, string> = {
@@ -38,6 +40,23 @@ const statusColorMap: Record<string, string> = {
   failed: 'red',
   skipped: 'orange',
   canceled: 'orange',
+};
+
+const phaseColorMap: Record<string, string> = {
+  connect: 'arcoblue',
+  step_start: 'purple',
+  precheck: 'gold',
+  script: 'cyan',
+  postcheck: 'green',
+  step_success: 'green',
+  step_failed: 'red',
+  writeback: 'arcoblue',
+  failed: 'red',
+};
+
+const stepTypeColorMap: Record<'package' | 'script', string> = {
+  package: 'arcoblue',
+  script: 'purple',
 };
 
 export default function DeployTaskDetail() {
@@ -84,6 +103,14 @@ export default function DeployTaskDetail() {
     [task, t],
   );
 
+  const templateParamItems = useMemo(
+    () => Object.entries(task?.templateParams || {}).map(([key, value]) => ({
+      label: key,
+      value: String(value),
+    })),
+    [task],
+  );
+
   const openResult = (row: DeployTaskHostRow, status: 'success' | 'failed') => {
     setSelectedHost(row);
     form.setFieldsValue({ status });
@@ -116,6 +143,24 @@ export default function DeployTaskDetail() {
         <Tag color={statusColorMap[row.status] || 'gray'}>{t(`business.deploy.task.hostStatus.${row.status}`)}</Tag>
       ),
     },
+    {
+      title: t('business.deploy.task.startedAt'),
+      dataIndex: 'startedAt',
+      width: 180,
+      render: (_: unknown, row) => row.startedAt ? formatDateTime(row.startedAt) : '-',
+    },
+    {
+      title: t('business.deploy.task.finishedAt'),
+      dataIndex: 'finishedAt',
+      width: 180,
+      render: (_: unknown, row) => row.finishedAt ? formatDateTime(row.finishedAt) : '-',
+    },
+    {
+      title: t('business.deploy.task.duration'),
+      dataIndex: 'durationSeconds',
+      width: 100,
+      render: (_: unknown, row) => row.durationSeconds ? `${row.durationSeconds}s` : '-',
+    },
     { title: t('business.deploy.task.errorMessage'), dataIndex: 'errorMessage', ellipsis: true },
     {
       title: t('common.action'),
@@ -138,6 +183,56 @@ export default function DeployTaskDetail() {
     },
   ];
 
+  const processColumns: ColumnProps<{
+    at?: string;
+    phase?: string;
+    message?: string;
+    stepName?: string;
+    stepType?: 'package' | 'script';
+    packageName?: string;
+    action?: string;
+  }>[] = [
+    {
+      title: t('business.deploy.task.step'),
+      width: 220,
+      render: (_: unknown, row: { stepName?: string; packageName?: string; action?: string }) => (
+        <Space direction="vertical" size={2}>
+          <span>{row.stepName || row.packageName || '-'}</span>
+          <Typography.Text type="secondary">
+            {row.action ? t(`business.deploy.task.action.${row.action}`) : '-'}
+          </Typography.Text>
+        </Space>
+      ),
+    },
+    {
+      title: t('business.deploy.template.stepTypeLabel'),
+      dataIndex: 'stepType',
+      width: 120,
+      render: (_: unknown, row) => row.stepType ? (
+        <Tag color={stepTypeColorMap[row.stepType] || 'gray'}>
+          {t(`business.deploy.template.stepType.${row.stepType}`)}
+        </Tag>
+      ) : '-',
+    },
+    {
+      title: t('business.deploy.task.phase'),
+      dataIndex: 'phase',
+      width: 120,
+      render: (_: unknown, row) => row.phase ? (
+        <Tag color={phaseColorMap[row.phase] || 'gray'}>
+          {t(`business.deploy.task.phase.${row.phase}`)}
+        </Tag>
+      ) : '-',
+    },
+    {
+      title: t('business.deploy.task.startedAt'),
+      dataIndex: 'at',
+      width: 180,
+      render: (_: unknown, row) => row.at ? formatDateTime(row.at) : '-',
+    },
+    { title: t('business.deploy.task.message'), dataIndex: 'message', ellipsis: true },
+  ];
+
   if (loading) {
     return <PageContainer><PageLoading /></PageContainer>;
   }
@@ -154,7 +249,6 @@ export default function DeployTaskDetail() {
       />
       <Space direction="vertical" size={16} className="system-page-template">
         <Card className="page-panel system-page-hero">
-          <Typography.Text className="system-page-hero__eyebrow">{t('business.deploy.task.hero.eyebrow')}</Typography.Text>
           <div className="deploy-page__hero-grid">
             {heroStats.map((item) => (
               <div key={item.key} className="deploy-page__metric">
@@ -168,14 +262,36 @@ export default function DeployTaskDetail() {
           <Descriptions
             column={2}
             data={[
+              { label: t('business.deploy.task.source'), value: task.templateName ? `${task.templateName} ${task.templateVersion}` : t('business.deploy.task.sourcePackage') },
               { label: t('business.deploy.task.package'), value: `${task.packageName} ${task.packageVersion}` },
+              { label: t('business.deploy.task.action'), value: t(`business.deploy.task.action.${task.action || 'install'}`) },
+              { label: t('business.deploy.package.executionMode'), value: t(`business.deploy.package.executionMode.${task.executionMode}`) },
+              { label: t('business.deploy.task.templateParams'), value: task.templateParams && Object.keys(task.templateParams).length > 0 ? t('business.deploy.task.templateParams.present') : '-' },
               { label: t('business.deploy.task.status'), value: t(`business.deploy.task.status.${task.status}`) },
               { label: t('business.deploy.task.targetType'), value: t(`business.deploy.task.targetType.${task.targetType}`) },
+              { label: t('business.deploy.task.businessScope'), value: task.businessScopeName || '-' },
               { label: t('business.deploy.task.executorType'), value: t(`business.deploy.task.executorType.${task.executorType}`) },
+              { label: t('business.deploy.task.startedAt'), value: task.startedAt ? formatDateTime(task.startedAt) : '-' },
+              { label: t('business.deploy.task.finishedAt'), value: task.finishedAt ? formatDateTime(task.finishedAt) : '-' },
+              { label: t('business.deploy.task.duration'), value: task.durationSeconds ? `${task.durationSeconds}s` : '-' },
+              { label: t('business.deploy.task.hostCount'), value: task.hostCount || 0 },
+              { label: t('business.deploy.task.successCount'), value: task.successCount || 0 },
+              { label: t('business.deploy.task.failedCount'), value: task.failedCount || 0 },
+              { label: t('business.deploy.task.runningCount'), value: task.runningCount || 0 },
+              { label: t('business.deploy.task.skippedCount'), value: task.skippedCount || 0 },
               { label: t('business.deploy.task.remark'), value: task.remark || '-' },
             ]}
           />
         </Card>
+        {templateParamItems.length > 0 ? (
+          <Card className="page-panel">
+            <Descriptions
+              column={2}
+              title={t('business.deploy.task.templateParams')}
+              data={templateParamItems}
+            />
+          </Card>
+        ) : null}
         <Card className="page-panel system-list__table-card">
           {task.hosts?.length ? (
             <AppTable rowKey="id" className="system-list__table" columns={columns} data={task.hosts} pagination={false} />
@@ -183,6 +299,58 @@ export default function DeployTaskDetail() {
             <PageEmpty description={t('business.deploy.task.hostEmpty')} />
           )}
         </Card>
+        {task.hosts?.length ? (
+          <Space direction="vertical" size={16} style={{ width: '100%' }}>
+            {task.hosts.map((host) => (
+              <Card key={host.id} className="page-panel">
+                <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, width: '100%' }}>
+                    <Space direction="vertical" size={2}>
+                      <Typography.Text style={{ fontWeight: 600 }}>{host.hostname}</Typography.Text>
+                      <Typography.Text type="secondary">
+                        {host.hostIp}
+                        {host.startedAt ? ` / ${formatDateTime(host.startedAt)}` : ''}
+                        {host.durationSeconds ? ` / ${host.durationSeconds}s` : ''}
+                      </Typography.Text>
+                    </Space>
+                    <Tag color={statusColorMap[host.status] || 'gray'}>
+                      {t(`business.deploy.task.hostStatus.${host.status}`)}
+                    </Tag>
+                  </div>
+                  <AppTable
+                    rowKey={(item) => `${host.id}-${item.phase || ''}-${item.at || ''}`}
+                    columns={processColumns}
+                    data={host.traceSteps || []}
+                    pagination={false}
+                    size="small"
+                  />
+                  <Divider style={{ margin: '12px 0' }} />
+                  <Descriptions
+                    column={1}
+                    data={[
+                      {
+                        label: t('business.deploy.task.stdout'),
+                        value: (
+                          <Typography.Paragraph className="deploy-page__log" copyable={Boolean(host.stdout)}>
+                            {host.stdout || '-'}
+                          </Typography.Paragraph>
+                        ),
+                      },
+                      {
+                        label: t('business.deploy.task.stderr'),
+                        value: (
+                          <Typography.Paragraph className="deploy-page__log" copyable={Boolean(host.stderr)}>
+                            {host.stderr || '-'}
+                          </Typography.Paragraph>
+                        ),
+                      },
+                    ]}
+                  />
+                </Space>
+              </Card>
+            ))}
+          </Space>
+        ) : null}
       </Space>
       <AppModal title={t('business.deploy.task.markResultTitle')} visible={visible} footer={null} onCancel={() => setVisible(false)}>
         <Form form={form} layout="vertical">
