@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"pantheon-ops/backend/modules/business/cmdb"
 	"pantheon-ops/backend/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
@@ -8,7 +9,7 @@ import (
 )
 
 func InitDeployModule(r *gin.RouterGroup, db *gorm.DB) {
-	svc := NewDeployService(db)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
 	handler := NewDeployHandler(svc)
 
 	modules := []contracts.BackendModule{

@@ -11,6 +11,7 @@ type LabelSchema struct {
 	ID          uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
 	Key         string         `gorm:"size:64;not null;uniqueIndex:uk_cmdb_label_schema_key" json:"key"`
 	Name        string         `gorm:"size:128;not null" json:"name"`
+	Category    string         `gorm:"size:32;not null;default:base;index" json:"category"`
 	ValueMode   string         `gorm:"size:16;not null;default:free" json:"valueMode"`
 	DictCode    string         `gorm:"size:64" json:"dictCode"`
 	Options     datatypes.JSON `gorm:"type:json" json:"options"`

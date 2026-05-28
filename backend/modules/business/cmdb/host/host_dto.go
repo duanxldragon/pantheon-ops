@@ -6,54 +6,69 @@ type LabelEntry struct {
 }
 
 type ComponentEntry struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
+	Name         string `json:"name"`
+	Version      string `json:"version"`
+	DeployedAt   string `json:"deployedAt,omitempty"`
+	DeployTaskID uint64 `json:"deployTaskId,omitempty"`
+	DeployTaskName string `json:"deployTaskName,omitempty"`
+	ExecutorType string `json:"executorType,omitempty"`
+}
+
+type MatchedGroupEntry struct {
+	ID       uint64 `json:"id"`
+	ParentID uint64 `json:"parentId"`
+	Name     string `json:"name"`
+	FullPath string `json:"fullPath"`
 }
 
 type HostListQuery struct {
-	Page     int    `form:"page" json:"page"`
-	PageSize int    `form:"pageSize" json:"pageSize"`
-	Keyword  string `form:"keyword" json:"keyword"`
-	Status   string `form:"status" json:"status"`
-	OS       string `form:"os" json:"os"`
-	DeptID   uint64 `form:"deptId" json:"deptId"`
+	Page            int    `form:"page" json:"page"`
+	PageSize        int    `form:"pageSize" json:"pageSize"`
+	Keyword         string `form:"keyword" json:"keyword"`
+	Status          string `form:"status" json:"status"`
+	OS              string `form:"os" json:"os"`
+	BusinessScopeID uint64 `form:"businessScopeId" json:"businessScopeId"`
+	DeptID          uint64 `form:"deptId" json:"deptId"`
 }
 
 type CreateHostRequest struct {
-	Hostname  string       `json:"hostname" binding:"required"`
-	IP        string       `json:"ip" binding:"required"`
-	SSHPort   int          `json:"sshPort"`
-	OS        string       `json:"os" binding:"required"`
-	OSVersion string       `json:"osVersion"`
-	CPUCores  int          `json:"cpuCores"`
-	MemoryGB  float64      `json:"memoryGb"`
-	DiskGB    float64      `json:"diskGb"`
-	Labels    []LabelEntry `json:"labels"`
-	DeptID    uint64       `json:"deptId"`
-	Owner     string       `json:"owner"`
-	Remark    string       `json:"remark"`
+	Hostname        string       `json:"hostname" binding:"required"`
+	IP              string       `json:"ip" binding:"required"`
+	SSHPort         int          `json:"sshPort"`
+	OS              string       `json:"os" binding:"required"`
+	OSVersion       string       `json:"osVersion"`
+	CPUCores        int          `json:"cpuCores"`
+	MemoryGB        float64      `json:"memoryGb"`
+	DiskGB          float64      `json:"diskGb"`
+	Labels          []LabelEntry `json:"labels"`
+	BusinessScopeID uint64       `json:"businessScopeId"`
+	DeptID          uint64       `json:"deptId"`
+	Owner           string       `json:"owner"`
+	Remark          string       `json:"remark"`
 }
 
 type UpdateHostRequest struct {
-	Hostname  *string       `json:"hostname"`
-	IP        *string       `json:"ip"`
-	SSHPort   *int          `json:"sshPort"`
-	OS        *string       `json:"os"`
-	OSVersion *string       `json:"osVersion"`
-	CPUCores  *int          `json:"cpuCores"`
-	MemoryGB  *float64      `json:"memoryGb"`
-	DiskGB    *float64      `json:"diskGb"`
-	Labels    *[]LabelEntry `json:"labels"`
-	DeptID    *uint64       `json:"deptId"`
-	Owner     *string       `json:"owner"`
-	Remark    *string       `json:"remark"`
+	Hostname        *string       `json:"hostname"`
+	IP              *string       `json:"ip"`
+	SSHPort         *int          `json:"sshPort"`
+	OS              *string       `json:"os"`
+	OSVersion       *string       `json:"osVersion"`
+	CPUCores        *int          `json:"cpuCores"`
+	MemoryGB        *float64      `json:"memoryGb"`
+	DiskGB          *float64      `json:"diskGb"`
+	Labels          *[]LabelEntry `json:"labels"`
+	BusinessScopeID *uint64       `json:"businessScopeId"`
+	DeptID          *uint64       `json:"deptId"`
+	Owner           *string       `json:"owner"`
+	Remark          *string       `json:"remark"`
 }
 
 type CollectRequest struct {
-	SSHUser       string `json:"sshUser" binding:"required"`
-	SSHPassword   string `json:"sshPassword"`
-	SSHPrivateKey string `json:"sshPrivateKey"`
-	AuthMode      string `json:"authMode" binding:"required"`
+	SSHUser         string `json:"sshUser" binding:"required"`
+	SSHPassword     string `json:"sshPassword"`
+	SSHPrivateKey   string `json:"sshPrivateKey"`
+	HostFingerprint string `json:"hostFingerprint" binding:"required"`
+	AuthMode        string `json:"authMode" binding:"required"`
 }
 
 type UpdateStatusRequest struct {
@@ -72,7 +87,12 @@ type HostResponse struct {
 	DiskGB              float64          `json:"diskGb"`
 	LabelValues         []LabelEntry     `json:"labelValues"`
 	InstalledComponents []ComponentEntry `json:"installedComponents"`
+	MatchedGroups       []MatchedGroupEntry `json:"matchedGroups"`
+	MatchedGroupCount   int              `json:"matchedGroupCount"`
 	Status              string           `json:"status"`
+	BusinessScopeID     uint64           `json:"businessScopeId"`
+	BusinessScopeCode   string           `json:"businessScopeCode"`
+	BusinessScopeName   string           `json:"businessScopeName"`
 	DeptID              uint64           `json:"deptId"`
 	Owner               string           `json:"owner"`
 	Remark              string           `json:"remark"`
