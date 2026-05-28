@@ -829,7 +829,7 @@ const ModuleWizard: React.FC = () => {
           ...Object.keys(previewSchema.i18n.translations.en),
         ]),
       )
-        .sort()
+        .sort((a, b) => a.localeCompare(b))
         .map((key) => ({
           key,
           zh: previewSchema.i18n.translations.zh[key] || '',

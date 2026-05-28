@@ -31,7 +31,13 @@ const SettingOverviewPage: React.FC = () => {
   const navigate = useNavigate();
   const { isAdmin, hasPerm } = usePermission();
   const canViewSettings = isAdmin || hasPerm('system:setting:list');
-  const { loading, error, settings, overview, groupedSettings } = useSettingCatalog();
+  const {
+    loading,
+    error,
+    settings,
+    overview,
+    groupedSettings,
+  } = useSettingCatalog();
 
   const heroStats = useMemo(() => {
     if (!overview) {
@@ -74,12 +80,7 @@ const SettingOverviewPage: React.FC = () => {
 
   const renderErrorState = () => {
     if (isNetworkRequestError(error)) {
-      return (
-        <PageNetworkError
-          timeout={isTimeoutRequestError(error)}
-          onRetry={() => window.location.reload()}
-        />
-      );
+      return <PageNetworkError timeout={isTimeoutRequestError(error)} onRetry={() => window.location.reload()} />;
     }
     if (isServerRequestError(error)) {
       return <PageServerError onRetry={() => window.location.reload()} />;
@@ -166,12 +167,12 @@ const SettingOverviewPage: React.FC = () => {
                   const group = groupedSettings.find((item) => item.groupKey === meta.key);
                   const issueCount = groupIssueCounts[meta.key] || 0;
                   return (
-                    <Card key={meta.key} className="page-panel setting-overview-page__group-card">
+                    <Card
+                      key={meta.key}
+                      className="page-panel setting-overview-page__group-card"
+                    >
                       <Space direction="vertical" size={10} style={{ width: '100%' }}>
-                        <Space
-                          align="center"
-                          style={{ justifyContent: 'space-between', width: '100%' }}
-                        >
+                        <Space align="center" style={{ justifyContent: 'space-between', width: '100%' }}>
                           <Typography.Text style={{ fontWeight: 600 }}>
                             {t(meta.titleKey)}
                           </Typography.Text>
@@ -222,7 +223,9 @@ const SettingOverviewPage: React.FC = () => {
                                 {t(`system.setting.item.${issue.settingKey}`, issue.settingKey)}
                               </Typography.Text>
                             </Space>
-                            <Typography.Text type="secondary">{t(issue.reasonKey)}</Typography.Text>
+                            <Typography.Text type="secondary">
+                              {t(issue.reasonKey)}
+                            </Typography.Text>
                           </Space>
                         </List.Item>
                       )}

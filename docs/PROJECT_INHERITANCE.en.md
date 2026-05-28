@@ -32,6 +32,7 @@ Before editing this repository, read:
 
 - `business/cmdb`
 - `business/deploy`
+- `business/bizscope`
 
 ## 5. Local Additions Only
 
@@ -45,6 +46,13 @@ Derived repository changes may add more `business/*` documents over time, but sh
 - Allowed: business-domain additions, business acceptance notes, and repository-local execution details
 - Not allowed: redefining base contracts, base layer ownership, key-first i18n rules, menu/permission split, or shared UI hard constraints
 - If a foundation rule must change, update `pantheon-base` first and then upgrade `pantheon-ops`
+
+Shared foundation changes such as upload behavior, pagination behavior, shared admin-shell layout, and common table patterns must follow a base-first flow:
+
+1. update `pantheon-base`
+2. validate in `pantheon-base`
+3. sync shared paths into `pantheon-ops`
+4. re-validate local business modules in `pantheon-ops`
 
 ## 7. Runtime Isolation
 

@@ -329,11 +329,7 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
               {t('system.permission.workbench.positioningHint')}
             </Typography.Text>
           </div>
-          <Space
-            size={8}
-            className="permission-workbench__context-tools system-list__work-actions"
-            wrap
-          >
+          <Space size={8} className="permission-workbench__context-tools system-list__work-actions" wrap>
             {utilityActions}
             <div className="permission-workbench__view-switch">
               <Button

@@ -32,23 +32,82 @@ func (s *LabelService) Migrate() error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
-	return s.db.AutoMigrate(&LabelSchema{})
+	if err := s.db.AutoMigrate(&LabelSchema{}); err != nil {
+		return err
+	}
+	return s.db.Model(&LabelSchema{}).
+		Where("category IS NULL OR TRIM(category) = ''").
+		Update("category", "base").Error
 }
 
-func (s *LabelService) List(query LabelSchemaQuery) ([]LabelSchemaResponse, error) {
+func (s *LabelService) List(query LabelSchemaQuery) (*LabelSchemaListResponse, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
 	}
 	db := s.db.Model(&LabelSchema{})
 	if strings.TrimSpace(query.Keyword) != "" {
 		like := "%" + strings.TrimSpace(query.Keyword) + "%"
-		db = db.Where("`key` LIKE ? OR name LIKE ?", like, like)
+		db = db.Where(
+			"`key` LIKE ? OR name LIKE ? OR category LIKE ? OR description LIKE ?",
+			like,
+			like,
+			like,
+			like,
+		)
 	}
 	if strings.TrimSpace(query.Status) != "" {
 		db = db.Where("status = ?", strings.TrimSpace(query.Status))
 	}
+	if strings.TrimSpace(query.Category) != "" {
+		db = db.Where("category = ?", strings.TrimSpace(query.Category))
+	}
+	page := query.Page
+	if page <= 0 {
+		page = 1
+	}
+	pageSize := query.PageSize
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+	if pageSize > 100 {
+		pageSize = 100
+	}
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return nil, err
+	}
 	var rows []LabelSchema
-	if err := db.Order("id DESC").Find(&rows).Error; err != nil {
+	if err := db.Order("category ASC, id DESC").
+		Offset((page - 1) * pageSize).
+		Limit(pageSize).
+		Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	resp := make([]LabelSchemaResponse, len(rows))
+	for i := range rows {
+		resp[i] = toResponse(&rows[i])
+	}
+	return &LabelSchemaListResponse{
+		Items:    resp,
+		Total:    total,
+		Page:     page,
+		PageSize: pageSize,
+	}, nil
+}
+
+func (s *LabelService) ListOptions(query LabelSchemaQuery) ([]LabelSchemaResponse, error) {
+	if s.db == nil {
+		return nil, errors.New("database.not_initialized")
+	}
+	db := s.db.Model(&LabelSchema{})
+	if strings.TrimSpace(query.Status) != "" {
+		db = db.Where("status = ?", strings.TrimSpace(query.Status))
+	}
+	if strings.TrimSpace(query.Category) != "" {
+		db = db.Where("category = ?", strings.TrimSpace(query.Category))
+	}
+	var rows []LabelSchema
+	if err := db.Order("category ASC, id DESC").Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	resp := make([]LabelSchemaResponse, len(rows))
@@ -80,6 +139,7 @@ func (s *LabelService) Create(req CreateLabelSchemaRequest) (*LabelSchemaRespons
 	row := LabelSchema{
 		Key:         key,
 		Name:        strings.TrimSpace(req.Name),
+		Category:    normalizeCategory(req.Category),
 		ValueMode:   normalizeValueMode(req.ValueMode),
 		DictCode:    strings.TrimSpace(req.DictCode),
 		Options:     marshalOptions(normalizeOptions(req.Options)),
@@ -122,6 +182,9 @@ func (s *LabelService) Update(id uint64, req UpdateLabelSchemaRequest) (*LabelSc
 	updates := map[string]any{"updated_at": time.Now()}
 	if req.Name != nil {
 		updates["name"] = strings.TrimSpace(*req.Name)
+	}
+	if req.Category != nil {
+		updates["category"] = normalizeCategory(*req.Category)
 	}
 	if req.ValueMode != nil {
 		updates["value_mode"] = normalizeValueMode(*req.ValueMode)
@@ -232,6 +295,14 @@ func normalizeValueMode(mode string) string {
 	return normalized
 }
 
+func normalizeCategory(category string) string {
+	normalized := strings.TrimSpace(category)
+	if normalized == "" {
+		return "base"
+	}
+	return normalized
+}
+
 func normalizeStatus(status string) string {
 	normalized := strings.TrimSpace(status)
 	if normalized == "" {
@@ -281,6 +352,7 @@ func toResponse(row *LabelSchema) LabelSchemaResponse {
 		ID:          row.ID,
 		Key:         row.Key,
 		Name:        row.Name,
+		Category:    normalizeCategory(row.Category),
 		ValueMode:   row.ValueMode,
 		DictCode:    row.DictCode,
 		Options:     unmarshalOptions(row.Options),

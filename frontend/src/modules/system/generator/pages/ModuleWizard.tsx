@@ -89,6 +89,7 @@ import {
   type DataScopeMode,
   type GeneratorMenuPreviewNode,
   type ModuleField,
+  type ModuleListLayoutConfig,
   type ModuleRelationType,
   type ModuleSchema,
   type ModuleScope,
@@ -193,6 +194,13 @@ const ModuleWizard: React.FC = () => {
   const [relationContractsText, setRelationContractsText] = useState('');
   const [enableDataScope, setEnableDataScope] = useState(true);
   const [includeDashboardWidget, setIncludeDashboardWidget] = useState(true);
+  const [listLayout, setListLayout] = useState<ModuleListLayoutConfig>({
+    governance: true,
+    search: true,
+    headerActions: true,
+    batchActions: true,
+    rowActions: true,
+  });
   const [translationPreviewPagination, setTranslationPreviewPagination] = useState({
     current: 1,
     pageSize: 8,
@@ -384,6 +392,8 @@ const ModuleWizard: React.FC = () => {
       fields: [],
     };
     const normalizedFields = normalizeFields(fields);
+    const hasSearchableFields = normalizedFields.some((field) => field.searchable);
+    const hasVisibleListFields = normalizedFields.some((field) => field.visibleInList !== false);
     const titleKey = buildTitleKey(scope, name);
     const dashboardQuickActionDescriptionKey = buildDashboardQuickActionDescriptionKey(scope, name);
     const moduleSegments = name.split('/').filter(Boolean);
@@ -495,6 +505,22 @@ const ModuleWizard: React.FC = () => {
       dependencies: parseDependencyModules(),
       relations: parseRelationContracts(),
       dataScopeMode: enableDataScope ? dataScopeMode : 'none',
+      listLayout: {
+        governance:
+          tableRole !== 'relation' &&
+          Boolean(metadata.primaryTable || metadata.relationFromField || metadata.relationToField),
+        search: hasSearchableFields && listLayout.search !== false,
+        headerActions:
+          (enableExport || enableImport || pageActions.includes('create')) &&
+          listLayout.headerActions !== false,
+        batchActions:
+          pageActions.some((action) => ['update', 'delete'].includes(action)) &&
+          listLayout.batchActions !== false,
+        rowActions:
+          hasVisibleListFields &&
+          pageActions.some((action) => ['view', 'detail', 'update', 'delete'].includes(action)) &&
+          listLayout.rowActions !== false,
+      },
       metadata: {
         businessContext,
         businessContextTitle,
@@ -624,6 +650,7 @@ const ModuleWizard: React.FC = () => {
           tableName,
           fields: importedFields,
         },
+        listLayout,
       };
       form.setFieldsValue(schema);
       setRegisterResult(null);
@@ -862,16 +889,25 @@ const ModuleWizard: React.FC = () => {
           ...Object.keys(previewSchema.i18n.translations.en),
         ]),
       )
-        .sort()
+        .sort((a, b) => a.localeCompare(b))
         .map((key) => ({
           key,
           zh: previewSchema.i18n.translations.zh[key] || '',
           en: previewSchema.i18n.translations.en[key] || '',
         }))
     : [];
+  const autoRecycleEnabled = Boolean(form.getFieldValue('metadata.autoRecycle' as keyof ModuleSchema));
+  const previewTranslationTotalPages = Math.max(
+    1,
+    Math.ceil(previewTranslationRows.length / translationPreviewPagination.pageSize),
+  );
+  const previewTranslationCurrentPage = Math.min(
+    translationPreviewPagination.current,
+    previewTranslationTotalPages,
+  );
   const pagedPreviewTranslationRows = previewTranslationRows.slice(
-    (translationPreviewPagination.current - 1) * translationPreviewPagination.pageSize,
-    translationPreviewPagination.current * translationPreviewPagination.pageSize,
+    (previewTranslationCurrentPage - 1) * translationPreviewPagination.pageSize,
+    previewTranslationCurrentPage * translationPreviewPagination.pageSize,
   );
   const activationStatusKey = registerResult
     ? registerResult.module.status === 1
@@ -880,20 +916,6 @@ const ModuleWizard: React.FC = () => {
         ? 'generator.moduleManager.status.uninstalled'
         : 'generator.moduleManager.status.pending'
     : '';
-
-  useEffect(() => {
-    const totalPages = Math.max(
-      1,
-      Math.ceil(previewTranslationRows.length / translationPreviewPagination.pageSize),
-    );
-    if (translationPreviewPagination.current > totalPages) {
-      setTranslationPreviewPagination((current) => ({ ...current, current: totalPages }));
-    }
-  }, [
-    previewTranslationRows.length,
-    translationPreviewPagination.current,
-    translationPreviewPagination.pageSize,
-  ]);
 
   const renderMenuPreview = (nodes: GeneratorMenuPreviewNode[]) => (
     <div className="generator-wizard__menu-tree">
@@ -1457,6 +1479,78 @@ const ModuleWizard: React.FC = () => {
               </Row>
               <Card
                 size="small"
+                className="generator-wizard__list-layout-card"
+                title={t('generator.wizard.listLayout.title', 'List Layout')}
+              >
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <FormItem label={t('generator.wizard.listLayout.governance', 'Governance')}>
+                      <Select
+                        value={listLayout.governance ? 'enabled' : 'disabled'}
+                        onChange={(value) =>
+                          setListLayout((current) => ({
+                            ...current,
+                            governance: value === 'enabled',
+                          }))
+                        }
+                      >
+                        <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
+                        <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <FormItem label={t('generator.wizard.listLayout.search', 'Search')}>
+                      <Select
+                        value={listLayout.search ? 'enabled' : 'disabled'}
+                        onChange={(value) =>
+                          setListLayout((current) => ({
+                            ...current,
+                            search: value === 'enabled',
+                          }))
+                        }
+                      >
+                        <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
+                        <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <FormItem label={t('generator.wizard.listLayout.headerActions', 'Header Actions')}>
+                      <Select
+                        value={listLayout.headerActions ? 'enabled' : 'disabled'}
+                        onChange={(value) =>
+                          setListLayout((current) => ({
+                            ...current,
+                            headerActions: value === 'enabled',
+                          }))
+                        }
+                      >
+                        <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
+                        <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <FormItem label={t('generator.wizard.listLayout.batchActions', 'Batch Actions')}>
+                      <Select
+                        value={listLayout.batchActions ? 'enabled' : 'disabled'}
+                        onChange={(value) =>
+                          setListLayout((current) => ({
+                            ...current,
+                            batchActions: value === 'enabled',
+                          }))
+                        }
+                      >
+                        <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
+                        <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                </Row>
+              </Card>
+              <Card
+                size="small"
                 className="generator-wizard__lifecycle-card"
                 title={t('generator.wizard.lifecycle.title')}
               >
@@ -1472,13 +1566,9 @@ const ModuleWizard: React.FC = () => {
                     <Checkbox>{t('generator.wizard.lifecycle.autoRecycle')}</Checkbox>
                   </FormItem>
                   <Alert
-                    type={
-                      Boolean(form.getFieldValue('metadata.autoRecycle' as keyof ModuleSchema))
-                        ? 'warning'
-                        : 'info'
-                    }
+                    type={autoRecycleEnabled ? 'warning' : 'info'}
                     content={t(
-                      Boolean(form.getFieldValue('metadata.autoRecycle' as keyof ModuleSchema))
+                      autoRecycleEnabled
                         ? 'generator.wizard.lifecycle.autoRecycleHint'
                         : 'generator.wizard.lifecycle.standardHint',
                     )}
@@ -1731,7 +1821,7 @@ const ModuleWizard: React.FC = () => {
                   rowKey="key"
                   data={pagedPreviewTranslationRows}
                   pagination={buildStandardPagination(t, {
-                    current: translationPreviewPagination.current,
+                    current: previewTranslationCurrentPage,
                     pageSize: translationPreviewPagination.pageSize,
                     total: previewTranslationRows.length,
                     sizeOptions: [8, 16, 32, 64],

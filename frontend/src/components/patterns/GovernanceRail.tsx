@@ -102,7 +102,6 @@ export const GovernanceRailSummary: React.FC<GovernanceRailSummaryProps> = ({
         key={index}
         label={item.label}
         value={item.value}
-        description={item.description}
         tone={item.tone}
         className={item.className}
       />

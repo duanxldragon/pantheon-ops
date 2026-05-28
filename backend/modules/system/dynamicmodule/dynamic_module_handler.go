@@ -102,14 +102,16 @@ func (h *DynamicModuleHandler) UnregisterModule(c *gin.Context) {
 	dropTable := c.Query("dropTable") == "true"
 	purgeSource := c.Query("purgeSource") == "true"
 
-	if err := h.service.UnregisterModule(moduleName, dropTable, purgeSource); err != nil {
+	lifecycle, err := h.service.UnregisterModule(moduleName, dropTable, purgeSource)
+	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "module.unregister.error")
 		return
 	}
 
 	common.Success(c, gin.H{
-		"unregistered": true,
-		"message":      "module.unregistered",
+		"unregistered":  true,
+		"message":       "module.unregistered",
+		"i18nLifecycle": lifecycle,
 	})
 }
 
@@ -133,13 +135,15 @@ func (h *DynamicModuleHandler) PurgeModule(c *gin.Context) {
 	dropTable := c.Query("dropTable") == "true"
 	purgeSource := c.Query("purgeSource") != "false"
 
-	if err := h.service.PurgeModule(moduleName, dropTable, purgeSource); err != nil {
+	lifecycle, err := h.service.PurgeModule(moduleName, dropTable, purgeSource)
+	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "module.purge.error")
 		return
 	}
 	common.Success(c, gin.H{
-		"deleted": true,
-		"message": "module.deleted",
+		"deleted":       true,
+		"message":       "module.deleted",
+		"i18nLifecycle": lifecycle,
 	})
 }
 
