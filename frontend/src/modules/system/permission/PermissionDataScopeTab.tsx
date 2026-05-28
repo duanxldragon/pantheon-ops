@@ -101,8 +101,8 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void loadDataScopePolicies(dataScopeQuery), 0);
-    return () => window.clearTimeout(timer);
+    const timer = globalThis.setTimeout(() => void loadDataScopePolicies(dataScopeQuery), 0);
+    return () => globalThis.clearTimeout(timer);
   }, [loadDataScopePolicies, dataScopeQuery]);
 
   useEffect(() => {

@@ -96,14 +96,14 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
   useEffect(() => {
     let cancelled = false;
     if (!detailRole) {
-      const timer = window.setTimeout(() => {
+      const timer = globalThis.setTimeout(() => {
         if (!cancelled) {
           setRemediationEvents([]);
         }
       }, 0);
       return () => {
         cancelled = true;
-        window.clearTimeout(timer);
+        globalThis.clearTimeout(timer);
       };
     }
     void getPermissionWorkbenchRemediationEvents({ roleKey: detailRole.roleKey, limit: 5 })

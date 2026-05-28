@@ -80,12 +80,12 @@ const SettingOverviewPage: React.FC = () => {
 
   const renderErrorState = () => {
     if (isNetworkRequestError(error)) {
-      return <PageNetworkError timeout={isTimeoutRequestError(error)} onRetry={() => window.location.reload()} />;
+      return <PageNetworkError timeout={isTimeoutRequestError(error)} onRetry={() => globalThis.location.reload()} />;
     }
     if (isServerRequestError(error)) {
-      return <PageServerError onRetry={() => window.location.reload()} />;
+      return <PageServerError onRetry={() => globalThis.location.reload()} />;
     }
-    return <PageError onRetry={() => window.location.reload()} />;
+    return <PageError onRetry={() => globalThis.location.reload()} />;
   };
 
   return (

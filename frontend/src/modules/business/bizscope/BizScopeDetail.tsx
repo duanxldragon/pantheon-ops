@@ -35,7 +35,7 @@ export default function BizScopeDetail() {
 
   useEffect(() => {
     queueMicrotask(() => {
-      void loadDetail();
+      loadDetail();
     });
   }, [loadDetail]);
 

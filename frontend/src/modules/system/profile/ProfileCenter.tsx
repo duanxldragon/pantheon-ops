@@ -79,10 +79,10 @@ const ProfileCenter: React.FC = () => {
   }, [profileForm, setUserInfo, t]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadProfile();
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadProfile]);
 
   const handleSaveProfile = async () => {

@@ -96,7 +96,7 @@ export default function BizScopeList() {
 
   useEffect(() => {
     queueMicrotask(() => {
-      void loadData();
+      loadData();
     });
   }, [loadData]);
 
@@ -151,14 +151,14 @@ export default function BizScopeList() {
     };
     setSelectedRowKeys([]);
     setQuery(nextQuery);
-    void loadData(nextQuery);
+    loadData(nextQuery);
   };
 
   const reset = () => {
     queryForm.setFieldsValue(emptyQuery);
     setSelectedRowKeys([]);
     setQuery(emptyQuery);
-    void loadData(emptyQuery);
+    loadData(emptyQuery);
   };
 
   const handleSubmit = async (values: BizScopePayload) => {
@@ -383,7 +383,7 @@ export default function BizScopeList() {
               <Popconfirm
                 title={t('common.deleteConfirm')}
                 onOk={() => {
-                  void handleBatchDelete();
+                  handleBatchDelete();
                 }}
                 disabled={selectedRowKeys.length === 0 || submitting}
               >
@@ -402,7 +402,7 @@ export default function BizScopeList() {
         <Card className="page-panel system-list__table-card">
           {loading && data.length === 0 ? <PageLoading /> : null}
           {error && data.length === 0 ? (
-            <PageError onRetry={() => void loadData(query)} />
+            <PageError onRetry={() => loadData(query)} />
           ) : null}
           {!loading && !error && data.length === 0 ? (
             <PageEmpty description={t('business.bizscope.empty')} />
@@ -429,7 +429,7 @@ export default function BizScopeList() {
                 onChange: (page, pageSize) => {
                   const nextQuery = { ...query, page, pageSize };
                   setQuery(nextQuery);
-                  void loadData(nextQuery);
+                  loadData(nextQuery);
                 },
               })}
             />

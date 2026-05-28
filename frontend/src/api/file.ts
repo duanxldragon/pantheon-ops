@@ -28,14 +28,14 @@ function parseFilename(contentDisposition?: string, fallbackName?: string) {
 const I18N_KEY_PATTERN = /^[a-z0-9_]+(?:\.[a-z0-9_]+)+$/i;
 
 function saveBlob(blob: Blob, filename: string) {
-  const url = window.URL.createObjectURL(blob);
+  const url = globalThis.URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
   anchor.download = filename;
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
-  window.URL.revokeObjectURL(url);
+  globalThis.URL.revokeObjectURL(url);
 }
 
 export function downloadCsvFile(filename: string, headers: string[], rows: string[][]) {

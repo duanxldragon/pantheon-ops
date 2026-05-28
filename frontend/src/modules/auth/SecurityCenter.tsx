@@ -90,10 +90,10 @@ const SecurityCenter: React.FC = () => {
   }, [setUserInfo, t]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadSecurityContext();
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadSecurityContext]);
 
   const currentSession = useMemo(

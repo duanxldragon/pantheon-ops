@@ -84,8 +84,8 @@ export const isLogoutTransitionActive = () => logoutTransition;
 
 const redirectToLogin = () => {
   clearClientSession();
-  if (window.location.pathname !== '/login') {
-    window.location.href = '/login';
+  if (globalThis.location.pathname !== '/login') {
+    globalThis.location.href = '/login';
   }
 };
 
@@ -248,7 +248,7 @@ const shouldSuppressAuthMessage = (messageKey: string | undefined, kind: Request
   if (!isAuthError) {
     return false;
   }
-  return logoutTransition || window.location.pathname === '/login';
+  return logoutTransition || globalThis.location.pathname === '/login';
 };
 
 export const isRequestError = (error: unknown): error is RequestError =>
@@ -275,7 +275,7 @@ const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
   try {
     const base64 = segments[1].replace(/-/g, '+').replace(/_/g, '/');
     const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
-    const json = window.atob(padded);
+    const json = globalThis.atob(padded);
     return JSON.parse(json) as Record<string, unknown>;
   } catch {
     return null;

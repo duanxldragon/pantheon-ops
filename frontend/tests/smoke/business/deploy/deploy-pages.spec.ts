@@ -742,7 +742,7 @@ test.describe('Deploy business module smoke', () => {
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect
       .poll(async () =>
-        page.evaluate(() => document.body.scrollWidth <= window.innerWidth + 1),
+        page.evaluate(() => document.body.scrollWidth <= globalThis.innerWidth + 1),
       )
       .toBe(true);
     await page.screenshot({ path: testInfo.outputPath('deploy-package-list-mobile.png'), fullPage: true });
@@ -751,7 +751,7 @@ test.describe('Deploy business module smoke', () => {
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect
       .poll(async () =>
-        page.evaluate(() => document.body.scrollWidth <= window.innerWidth + 1),
+        page.evaluate(() => document.body.scrollWidth <= globalThis.innerWidth + 1),
       )
       .toBe(true);
     await page.screenshot({ path: testInfo.outputPath('deploy-template-list-mobile.png'), fullPage: true });
@@ -760,7 +760,7 @@ test.describe('Deploy business module smoke', () => {
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect
       .poll(async () =>
-        page.evaluate(() => document.body.scrollWidth <= window.innerWidth + 1),
+        page.evaluate(() => document.body.scrollWidth <= globalThis.innerWidth + 1),
       )
       .toBe(true);
     await page.screenshot({ path: testInfo.outputPath('deploy-task-list-mobile.png'), fullPage: true });

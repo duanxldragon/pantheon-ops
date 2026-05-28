@@ -33,8 +33,8 @@ async function navigateInShell(page: Page, path: string) {
     await page.goto('/dashboard', { waitUntil: 'networkidle' });
   }
   await page.evaluate((nextPath) => {
-    window.history.pushState({}, '', nextPath);
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    globalThis.history.pushState({}, '', nextPath);
+    globalThis.dispatchEvent(new PopStateEvent('popstate'));
   }, path);
   expectPagePathname(page, path);
 }
@@ -47,7 +47,7 @@ async function expectPageIdentityReady(page: Page, title: string | RegExp) {
 async function measureMainContentWidth(page: Page) {
   return page.evaluate((selectors) => {
     const isVisible = (element: Element) => {
-      const style = window.getComputedStyle(element);
+      const style = globalThis.getComputedStyle(element);
       const rect = element.getBoundingClientRect();
       return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
     };

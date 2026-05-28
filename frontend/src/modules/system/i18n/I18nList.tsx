@@ -248,7 +248,7 @@ const I18nList: React.FC = () => {
         setTotal(resp.total);
         if (!secondaryBootstrapScheduledRef.current) {
           secondaryBootstrapScheduledRef.current = true;
-          window.setTimeout(() => {
+          globalThis.setTimeout(() => {
             setSecondaryReady(true);
           }, 0);
         }
@@ -264,10 +264,10 @@ const I18nList: React.FC = () => {
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadData(query);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
   useEffect(() => {
@@ -327,10 +327,10 @@ const I18nList: React.FC = () => {
     if (!secondaryReady) {
       return undefined;
     }
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadOverview();
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadOverview, secondaryReady]);
 
   useRefreshSubscription('system:i18n:changed', (payload) => {
@@ -351,10 +351,10 @@ const I18nList: React.FC = () => {
     if (!missingLocaleVisible) {
       return;
     }
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadMissingLocales(missingLocaleModuleFilter || undefined);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadMissingLocales, missingLocaleModuleFilter, missingLocaleVisible]);
 
   const moduleOptions = useMemo(
@@ -953,7 +953,7 @@ const I18nList: React.FC = () => {
     }
     const content = buildRenameMigrationReport(renamePreview, t);
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
-    const url = window.URL.createObjectURL(blob);
+    const url = globalThis.URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
     anchor.download =
@@ -964,7 +964,7 @@ const I18nList: React.FC = () => {
     document.body.appendChild(anchor);
     anchor.click();
     document.body.removeChild(anchor);
-    window.URL.revokeObjectURL(url);
+    globalThis.URL.revokeObjectURL(url);
     message.success(t('i18n.rename.report.downloadSuccess'));
   };
 

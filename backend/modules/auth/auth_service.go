@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/netip"
 	"sort"
 	"strconv"
 	"strings"
@@ -74,6 +75,18 @@ const (
 	defaultSessionRetentionDays    = authsession.DefaultSessionRetentionDays
 	autoCleanupMinInterval         = 15 * time.Minute
 )
+
+const (
+	sessionLastActivityColumn = "last_activity_at"
+	sessionLastIPColumn       = "last_ip"
+	sessionUserAgentColumn    = "user_agent"
+)
+
+type sessionActivityUpdate struct {
+	LastActivityAt *time.Time `gorm:"column:last_activity_at"`
+	LastIP         string     `gorm:"column:last_ip"`
+	UserAgent      string     `gorm:"column:user_agent"`
+}
 
 // NewAuthService 构造函数
 func NewAuthService(db *gorm.DB) *AuthService {
@@ -728,14 +741,15 @@ func (s *AuthService) TouchSessionActivity(sessionID string, userID uint64, ip s
 	}
 
 	now := time.Now()
-	updates := map[string]interface{}{
-		"last_activity_at": &now,
+	updates := sessionActivityUpdate{LastActivityAt: &now}
+	columns := []string{sessionLastActivityColumn}
+	if clientIP := normalizeSessionClientIP(ip); clientIP != "" {
+		updates.LastIP = clientIP
+		columns = append(columns, sessionLastIPColumn)
 	}
-	if strings.TrimSpace(ip) != "" {
-		updates["last_ip"] = ip
-	}
-	if strings.TrimSpace(userAgent) != "" {
-		updates["user_agent"] = truncateString(userAgent, 255)
+	if agent := normalizeSessionUserAgent(userAgent); agent != "" {
+		updates.UserAgent = agent
+		columns = append(columns, sessionUserAgentColumn)
 	}
 
 	return s.db.Model(&SystemUserSession{}).
@@ -743,6 +757,7 @@ func (s *AuthService) TouchSessionActivity(sessionID string, userID uint64, ip s
 		Where("user_id = ?", userID).
 		Where("revoked_at IS NULL").
 		Where("(last_activity_at IS NULL OR last_activity_at < ?)", now.Add(-1*time.Minute)).
+		Select(columns).
 		Updates(updates).Error
 }
 
@@ -1848,6 +1863,32 @@ func truncateString(value string, length int) string {
 		return value
 	}
 	return value[:length]
+}
+
+func normalizeSessionClientIP(ip string) string {
+	ip = strings.TrimSpace(ip)
+	if ip == "" {
+		return ""
+	}
+	addr, err := netip.ParseAddr(ip)
+	if err != nil {
+		return ""
+	}
+	return addr.String()
+}
+
+func normalizeSessionUserAgent(userAgent string) string {
+	userAgent = strings.TrimSpace(userAgent)
+	if userAgent == "" {
+		return ""
+	}
+	cleaned := strings.Map(func(r rune) rune {
+		if unicode.IsPrint(r) {
+			return r
+		}
+		return -1
+	}, userAgent)
+	return truncateString(cleaned, 255)
 }
 
 func mergePermissionKeys(groups ...[]string) []string {

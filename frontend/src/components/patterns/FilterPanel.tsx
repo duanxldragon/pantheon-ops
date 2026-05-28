@@ -22,11 +22,11 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
   useEffect(() => {
-    if (!mobileCollapsed || typeof window === 'undefined') {
+    if (!mobileCollapsed || typeof globalThis.document === 'undefined') {
       return undefined;
     }
 
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const mediaQuery = globalThis.matchMedia('(max-width: 768px)');
     const syncCollapsed = () => {
       if (mediaQuery.matches) {
         setCollapsed(true);

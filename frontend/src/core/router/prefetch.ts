@@ -296,12 +296,10 @@ export function scheduleHighFrequencyRouteWarmup(
     });
   };
 
-  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-    const callback = (
-      window as Window & {
-        requestIdleCallback: (cb: () => void, options?: { timeout: number }) => number;
-      }
-    ).requestIdleCallback;
+  if (typeof globalThis.document !== 'undefined' && 'requestIdleCallback' in globalThis) {
+    const callback = (globalThis as typeof globalThis & {
+      requestIdleCallback: (cb: () => void, options?: { timeout: number }) => number;
+    }).requestIdleCallback;
     callback(runWarmup, { timeout: 1200 });
     return;
   }

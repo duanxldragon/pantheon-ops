@@ -233,10 +233,10 @@ export function useSettingCatalog() {
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void reload();
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [reload]);
 
   useRefreshSubscription('system:setting:changed', () => {

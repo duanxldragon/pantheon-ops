@@ -161,8 +161,8 @@ test.describe('backoffice UI visual acceptance', () => {
 
       return controls.slice(0, 2).map((wrapper) => {
         const input = wrapper.querySelector<HTMLElement>('.arco-input');
-        const wrapperStyle = window.getComputedStyle(wrapper);
-        const inputStyle = input ? window.getComputedStyle(input) : null;
+        const wrapperStyle = globalThis.getComputedStyle(wrapper);
+        const inputStyle = input ? globalThis.getComputedStyle(input) : null;
 
         return {
           wrapperBorderWidth: wrapperStyle.borderTopWidth,

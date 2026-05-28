@@ -216,13 +216,13 @@ const PostList: React.FC = () => {
   }, [t]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void loadData(query), 0);
-    return () => window.clearTimeout(timer);
+    const timer = globalThis.setTimeout(() => loadData(query), 0);
+    return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => void loadDeptOptions(), 0);
-    return () => window.clearTimeout(timer);
+    const timer = globalThis.setTimeout(() => loadDeptOptions(), 0);
+    return () => globalThis.clearTimeout(timer);
   }, [loadDeptOptions]);
 
   useRefreshSubscription(
@@ -231,8 +231,8 @@ const PostList: React.FC = () => {
       if (payload.source === 'system/post') {
         return;
       }
-      void loadData(query);
-      void loadDeptOptions();
+      loadData(query);
+      loadDeptOptions();
     },
   );
 
@@ -357,7 +357,7 @@ const PostList: React.FC = () => {
         <PageNetworkError
           timeout={isTimeoutRequestError(error)}
           onRetry={() => {
-            void loadData(query);
+            loadData(query);
           }}
         />
       );
@@ -366,7 +366,7 @@ const PostList: React.FC = () => {
       return (
         <PageServerError
           onRetry={() => {
-            void loadData(query);
+            loadData(query);
           }}
         />
       );
@@ -374,7 +374,7 @@ const PostList: React.FC = () => {
     return (
       <PageError
         onRetry={() => {
-          void loadData(query);
+          loadData(query);
         }}
       />
     );
@@ -726,7 +726,7 @@ const PostList: React.FC = () => {
                       <Button
                         icon={<IconDownload />}
                         onClick={() => {
-                          void handleExport();
+                          handleExport();
                         }}
                         disabled={!canExport}
                       >
@@ -734,7 +734,7 @@ const PostList: React.FC = () => {
                       </Button>
                       <Button
                         onClick={() => {
-                          void handleDownloadTemplate();
+                          handleDownloadTemplate();
                         }}
                         disabled={!canImport}
                       >
@@ -743,7 +743,7 @@ const PostList: React.FC = () => {
                       <ImportCsvButton
                         disabled={!canImport}
                         onSelect={(file) => {
-                          void handleImport(file);
+                          handleImport(file);
                         }}
                       >
                         {t('common.import')}
@@ -776,7 +776,7 @@ const PostList: React.FC = () => {
                     <Popconfirm
                       title={t('system.post.batchEnableConfirm')}
                       onOk={() => {
-                        void handleBatchStatus(1);
+                        handleBatchStatus(1);
                       }}
                       disabled={batchActionDisabled}
                     >
@@ -790,7 +790,7 @@ const PostList: React.FC = () => {
                     <Popconfirm
                       title={t('system.post.batchDisableConfirm')}
                       onOk={() => {
-                        void handleBatchStatus(2);
+                        handleBatchStatus(2);
                       }}
                       disabled={batchActionDisabled}
                     >
@@ -809,7 +809,7 @@ const PostList: React.FC = () => {
                     <Popconfirm
                       title={t('system.post.batchDeleteConfirm')}
                       onOk={() => {
-                        void handleBatchDelete();
+                        handleBatchDelete();
                       }}
                       disabled={batchDeleteDisabled}
                     >
@@ -881,7 +881,7 @@ const PostList: React.FC = () => {
           <SubmitBar
             onCancel={() => setVisible(false)}
             onSubmit={() => {
-              void submitForm();
+              submitForm();
             }}
             loading={submitting}
             submitText={editing ? t('common.save') : t('common.add')}
@@ -893,7 +893,7 @@ const PostList: React.FC = () => {
           form={form}
           layout="vertical"
           onSubmit={() => {
-            void submitForm();
+            submitForm();
           }}
         >
           <Space direction="vertical" size={20} className="dialog-form-stack">
