@@ -845,6 +845,14 @@ export function buildRoutePath(scope: ModuleScope, name: string): string {
   return `/${scope}/${splitModuleSegments(name).join('/')}`;
 }
 
+export function buildPageRoutePath(scope: ModuleScope, name: string): string {
+  const segments = splitModuleSegments(name);
+  if (scope === 'business') {
+    return `/operations/${segments.join('/')}`;
+  }
+  return buildRoutePath(scope, name);
+}
+
 export function normalizeMenuPath(value?: string): string {
   const normalized = String(value || '')
     .trim()
@@ -1022,7 +1030,7 @@ export function generateDefaultMenus(schema: ModuleSchema): MenuSeedConfig[] {
   const segments = splitModuleSegments(name);
   const modelName = inferModelName(schema);
   const titleKey = buildTitleKey(scope, name);
-  const routePath = buildRoutePath(scope, name);
+  const routePath = buildPageRoutePath(scope, name);
   const routeName = buildRouteName(scope, name);
   const moduleNamespace = buildModuleNamespace(scope, name);
   const permissionPrefix = buildPermissionPrefix(scope, name);
@@ -1036,7 +1044,7 @@ export function generateDefaultMenus(schema: ModuleSchema): MenuSeedConfig[] {
       key: groupKey,
       parentKey: parentSegments.length > 0 ? parentSegments.join('-') : scope,
       titleKey: buildMenuGroupTitleKey(scope, groupSegments),
-      path: `/${scope}/${groupSegments.join('/')}`,
+      path: scope === 'business' ? `/operations/${groupSegments.join('/')}` : `/${scope}/${groupSegments.join('/')}`,
       type: 'M',
       icon: 'apps',
       routeName: `${scope}-${groupSegments.join('-')}`,

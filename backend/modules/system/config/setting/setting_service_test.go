@@ -255,6 +255,22 @@ func TestSettingService_MigrateSeedsS3Region(t *testing.T) {
 	}
 }
 
+func TestSettingService_MigrateSeedsUploadAllowedTypesForDeployArchives(t *testing.T) {
+	db := setupSettingTestDB(t)
+	service := NewSettingService(db)
+	if err := service.Migrate(); err != nil {
+		t.Fatalf("migrate setting: %v", err)
+	}
+
+	value, err := service.GetByKey("upload.allowed_types")
+	if err != nil {
+		t.Fatalf("get upload.allowed_types: %v", err)
+	}
+	if value != "[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\",\"zip\",\"gz\",\"tgz\",\"tar\"]" {
+		t.Fatalf("unexpected upload.allowed_types default: %s", value)
+	}
+}
+
 func TestSettingService_ListIncludesDefaultValueMetadata(t *testing.T) {
 	db := setupSettingTestDB(t)
 	service := NewSettingService(db)

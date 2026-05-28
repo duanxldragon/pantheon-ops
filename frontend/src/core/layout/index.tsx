@@ -33,7 +33,7 @@ import {
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { beginLogoutTransition, endLogoutTransition } from '../../api/request';
-import type { MenuNode } from '../../modules/system/menu/api';
+import { findFirstNavigableMenuPath, type MenuNode } from '../../modules/system/menu/api';
 import {
   logout as logoutApi,
   reportActivity,
@@ -81,6 +81,7 @@ import './index.css';
 
 const { Header, Footer, Sider, Content } = Layout;
 const MAX_OPENED_TABS = 8;
+const MENU_COLLAPSE_PREFERRED_ROUTE_NAMES = new Set(['operations']);
 
 interface OpenedPageTab {
   path: string;
@@ -223,6 +224,13 @@ function findMenuNodeByPath(nodes: MenuNode[], path: string): MenuNode | undefin
   return undefined;
 }
 
+function findMenuNavigationPath(item: MenuNode): string | undefined {
+  if (item.path && findRouteByPath(item.path)) {
+    return item.path;
+  }
+  return item.children?.length ? findFirstNavigableMenuPath(item.children) || undefined : undefined;
+}
+
 function filterMenuTreeByCapabilities(nodes: MenuNode[], orgEnabled: boolean): MenuNode[] {
   return nodes
     .filter((item) => orgEnabled || item.module !== 'system.org')
@@ -328,7 +336,11 @@ const BaseLayout: React.FC = () => {
     t,
   ]);
   const menuOpenKeys = useMemo(
-    () => menuTrail.slice(0, -1).map((item) => item.id.toString()),
+    () =>
+      menuTrail
+        .slice(0, -1)
+        .filter((item) => !MENU_COLLAPSE_PREFERRED_ROUTE_NAMES.has(item.routeName || ''))
+        .map((item) => item.id.toString()),
     [menuTrail],
   );
   const currentPageTitle = breadcrumbItems[breadcrumbItems.length - 1]?.label || t('app.workspace');
@@ -1323,11 +1335,27 @@ const BaseLayout: React.FC = () => {
       ].join(' ');
 
       if (item.children && item.children.length > 0) {
+        const navigationPath = findMenuNavigationPath(item);
         return (
           <Menu.SubMenu
             key={item.id.toString()}
             title={
-              <span className={entryClassName}>
+              <span
+                className={entryClassName}
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  if (navigationPath) {
+                    handleMenuNavigation(navigationPath);
+                  }
+                }}
+                onKeyDown={(event) => {
+                  if ((event.key === 'Enter' || event.key === ' ') && navigationPath) {
+                    event.preventDefault();
+                    handleMenuNavigation(navigationPath);
+                  }
+                }}
+              >
                 <span className={iconClassName}>{renderMenuIcon(item.icon)}</span>
                 <span className="app-shell__menu-entry-copy">
                   <span className="app-shell__menu-entry-label">{t(item.titleKey)}</span>
@@ -1557,7 +1585,6 @@ const BaseLayout: React.FC = () => {
             {!collapsed ? (
               <div className="app-shell__brand-text">
                 <span className="app-shell__brand-title">{appName}</span>
-                <span className="app-shell__brand-subtitle">{t('app.workspace')}</span>
               </div>
             ) : null}
           </div>
@@ -1810,9 +1837,9 @@ const BaseLayout: React.FC = () => {
                 </Avatar>
                 <div className="app-shell__user-meta">
                   <span className="app-shell__user-name">{userDisplayName}</span>
-                  <span className="app-shell__user-subtitle">
-                    {roleLabel || t('app.workspace')}
-                  </span>
+                  {roleLabel ? (
+                    <span className="app-shell__user-subtitle">{roleLabel}</span>
+                  ) : null}
                 </div>
               </Button>
             </Dropdown>
