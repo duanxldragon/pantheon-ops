@@ -31,7 +31,7 @@ const componentCatalog = {
       dataRoot: '/data/redis/data',
       serviceName: 'redis',
       port: '6379',
-      requirePassword: 'Redis_123',
+      requirePassword: process.env.PANTHEON_LIVE_REDIS_PASSWORD || '',
     },
   },
   minio: {
@@ -46,7 +46,7 @@ const componentCatalog = {
       apiPort: '9000',
       consolePort: '9001',
       rootUser: 'minioadmin',
-      rootPassword: 'Minio_123',
+      rootPassword: process.env.PANTHEON_LIVE_MINIO_ROOT_PASSWORD || '',
     },
   },
   mysql: {
@@ -60,7 +60,7 @@ const componentCatalog = {
       dataRoot: '/data/mysql/data',
       serviceName: 'mysqld',
       port: '3306',
-      rootPassword: 'Mysql_123',
+      rootPassword: process.env.PANTHEON_LIVE_MYSQL_ROOT_PASSWORD || '',
     },
   },
   harbor: {
@@ -74,7 +74,7 @@ const componentCatalog = {
       dataRoot: '/data/harbor/data',
       hostname: 'harbor.local',
       httpPort: '8088',
-      adminPassword: 'Harbor_123',
+      adminPassword: process.env.PANTHEON_LIVE_HARBOR_ADMIN_PASSWORD || '',
     },
   },
 };
