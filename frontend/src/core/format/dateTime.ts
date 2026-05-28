@@ -10,7 +10,7 @@ const dateTimeFormatterCache = new Map<string, Intl.DateTimeFormat>();
 const relativeTimeFormatterCache = new Map<string, Intl.RelativeTimeFormat>();
 
 function resolveLocale() {
-  if (typeof globalThis.document !== 'undefined') {
+  if (globalThis.document !== undefined) {
     const preferred = globalThis.localStorage.getItem('pantheon_lang');
     if (preferred) {
       return preferred;

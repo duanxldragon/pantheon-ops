@@ -22,7 +22,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
   useEffect(() => {
-    if (!mobileCollapsed || typeof globalThis.document === 'undefined') {
+    if (!mobileCollapsed || globalThis.document === undefined) {
       return undefined;
     }
 
