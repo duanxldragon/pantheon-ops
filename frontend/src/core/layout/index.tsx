@@ -540,9 +540,9 @@ const BaseLayout: React.FC = () => {
       pinned: location.pathname === '/dashboard',
     };
 
-    const timer = globalThis.setTimeout(() => {
-      setOpenedTabs((currentTabs) => {
-        const existingIndex = currentTabs.findIndex((item) => item.path === nextTab.path);
+    
+  const mergeTabsIntoState = (currentTabs, nextTab, dashboardTitle) => {
+    const existingIndex = currentTabs.findIndex((item) => item.path === nextTab.path);
         const mergedTabs =
           existingIndex >= 0
             ? currentTabs.map((item, index) =>
@@ -572,7 +572,10 @@ const BaseLayout: React.FC = () => {
         );
         localStorage.setItem(OPENED_TABS_STORAGE_KEY, JSON.stringify(limitedTabs));
         return limitedTabs;
-      });
+  };
+
+const timer = globalThis.setTimeout(() => {
+      (currentTabs) => mergeTabsIntoState(currentTabs, nextTab, t('dashboard.title')));
     }, 0);
     return () => globalThis.clearTimeout(timer);
   }, [currentPageTitle, currentTabTitleKey, location.pathname, t]);
@@ -682,6 +685,54 @@ const BaseLayout: React.FC = () => {
     }
   };
 
+  const walkMenuNodes = (
+    nodes: MenuNode[],
+    ancestors: MenuNode[],
+    items: CommandSearchItem[],
+    t: (key: string) => string,
+  ) => {
+    nodes.forEach((item) => {
+        const trail = [...ancestors, item];
+        if (item.path && item.type !== 'F') {
+          const title = t(item.titleKey);
+          const parentTrail = trail
+            .slice(0, -1)
+            .map((node) => t(node.titleKey))
+            .join(' / ');
+          items.push({
+            key: `menu-${item.id}`,
+            title,
+            subtitle: parentTrail || item.path,
+            section: t('app.command.section.menu'),
+            searchText: [
+              title,
+              parentTrail,
+              item.path,
+              item.routeName,
+              item.component,
+              item.pagePerm,
+              item.perms,
+              item.module,
+            ]
+              .filter(Boolean)
+              .join(' '),
+            icon: renderMenuIcon(item.icon),
+            run: () => {
+              if (item.isExternal === 1) {
+                globalThis.open(item.path, '_blank', 'noopener,noreferrer');
+                return;
+              }
+              navigate(item.path);
+            },
+          });
+        }
+        if (item.children?.length) {
+          walkMenuNodes(item.children, trail, items, t);
+        }
+      });
+    }
+  };
+
   const commandItems = useMemo<CommandSearchItem[]>(() => {
     const items: CommandSearchItem[] = [];
 
@@ -729,48 +780,7 @@ const BaseLayout: React.FC = () => {
       });
     });
 
-    const walk = (nodes: MenuNode[], ancestors: MenuNode[] = []) => {
-      nodes.forEach((item) => {
-        const trail = [...ancestors, item];
-        if (item.path && item.type !== 'F') {
-          const title = t(item.titleKey);
-          const parentTrail = trail
-            .slice(0, -1)
-            .map((node) => t(node.titleKey))
-            .join(' / ');
-          items.push({
-            key: `menu-${item.id}`,
-            title,
-            subtitle: parentTrail || item.path,
-            section: t('app.command.section.menu'),
-            searchText: [
-              title,
-              parentTrail,
-              item.path,
-              item.routeName,
-              item.component,
-              item.pagePerm,
-              item.perms,
-              item.module,
-            ]
-              .filter(Boolean)
-              .join(' '),
-            icon: renderMenuIcon(item.icon),
-            run: () => {
-              if (item.isExternal === 1) {
-                globalThis.open(item.path, '_blank', 'noopener,noreferrer');
-                return;
-              }
-              navigate(item.path);
-            },
-          });
-        }
-        if (item.children?.length) {
-          walk(item.children, trail);
-        }
-      });
-    };
-    walk(visibleMenuTree);
+    walkMenuNodes(visibleMenuTree, [], items, t);
     return items;
   }, [
     canAccessDashboard,

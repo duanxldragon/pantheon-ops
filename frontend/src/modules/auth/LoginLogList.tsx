@@ -160,12 +160,14 @@ const LoginLogList: React.FC = () => {
     return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
+  const isLoginLogRetentionSetting = (item) => item.settingKey === 'audit.login_log_retention_options';
+
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
         .then((group) => {
           const setting = group.items.find(
-            (item) => item.settingKey === 'audit.login_log_retention_options',
+            isLoginLogRetentionSetting,
           );
           const nextOptions = normalizeRetentionOptions(setting?.settingValue);
           setRetentionOptions(nextOptions);
