@@ -20,6 +20,9 @@ type Host struct {
 	LabelValues         datatypes.JSON `gorm:"type:json" json:"labelValues"`
 	InstalledComponents datatypes.JSON `gorm:"type:json" json:"installedComponents"`
 	Status              string         `gorm:"size:32;default:pending;index" json:"status"`
+	BusinessScopeID     uint64         `gorm:"column:business_scope_id;index" json:"businessScopeId"`
+	BusinessScopeCode   string         `gorm:"column:business_scope_code;size:64" json:"businessScopeCode"`
+	BusinessScopeName   string         `gorm:"column:business_scope_name;size:128" json:"businessScopeName"`
 	DeptID              uint64         `gorm:"column:dept_id;index" json:"deptId"`
 	Owner               string         `gorm:"size:64" json:"owner"`
 	Remark              string         `gorm:"type:text" json:"remark"`

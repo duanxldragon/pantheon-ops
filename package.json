@@ -1,4 +1,5 @@
 {
+  "license": "MIT",
   "scripts": {
     "check:base-sync": "node scripts/check-base-backend-sync.mjs && npm --prefix frontend run check:base-sync",
     "check:base-sync:backend": "node scripts/check-base-backend-sync.mjs",

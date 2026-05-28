@@ -16,6 +16,7 @@ import {
   verifiedHeaders,
 } from '../helpers/auth';
 import { runOptionalSmokeCleanup } from '../helpers/fixture-policy';
+import { expectPagePathname } from '../helpers/url-pattern';
 import { registerSystemWorkspaceTaskDepthSmokeTests } from './system-workspace-task-depth';
 const pageErrorTitles = ['加载失败', '网络异常', '请求超时'];
 const pageEmptyTexts = ['暂无数据', '当前筛选范围内没有可展示的数据', '当前筛选下暂无岗位', '暂无系统设置', '请选择左侧字典类型后维护字典项', '暂无字典类型', '暂无字典项', '暂无登录日志', '暂无会话数据'];
@@ -525,7 +526,7 @@ for (const pageMeta of systemPages) {
     });
 
     await page.goto(pageMeta.path, { waitUntil: 'networkidle' });
-    await expect(page).toHaveURL(new RegExp(`${pageMeta.path.replace(/\//g, '\\/')}$`));
+    expectPagePathname(page, pageMeta.path);
     await expectVisiblePageTitle(page, pageMeta.title);
     await expectNoPageError(page);
     await expectPageBodyReady(page);
@@ -536,7 +537,7 @@ for (const pageMeta of systemPages) {
 for (const pageMeta of workspacePages) {
   test(`workspace smoke: ${pageMeta.path} is reachable`, async ({ page }) => {
     await page.goto(pageMeta.path, { waitUntil: 'networkidle' });
-    await expect(page).toHaveURL(new RegExp(`${pageMeta.path.replace(/\//g, '\\/')}$`));
+    expectPagePathname(page, pageMeta.path);
     if ('title' in pageMeta && pageMeta.title) {
       await expectVisiblePageTitle(page, pageMeta.title);
     }

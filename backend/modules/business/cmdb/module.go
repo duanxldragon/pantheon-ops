@@ -80,16 +80,6 @@ func hostMenuSeeds() []cmdbMenuSeed {
 func topLevelMenuSeeds() []cmdbMenuSeed {
 	return []cmdbMenuSeed{
 		{
-			Key:       "operations",
-			TitleKey:  "operations.menu",
-			Path:      "/operations",
-			Type:      "D",
-			Module:    "business.cmdb",
-			Icon:      "desktop",
-			RouteName: "operations",
-			Sort:      1,
-		},
-		{
 			Key:       "operations-cmdb",
 			ParentKey: "operations",
 			TitleKey:  "operations.cmdb.menu",
@@ -265,8 +255,8 @@ func seedHostI18n(db *gorm.DB) error {
 		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "operations.cmdb.host.detail", "value": "Host Detail", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "menu", "key": "operations.cmdb.group.menu", "value": "主机分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "en-US", "group_name": "menu", "key": "operations.cmdb.group.menu", "value": "Host Groups", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "menu", "key": "operations.cmdb.label.menu", "value": "标签规范", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "menu", "key": "operations.cmdb.label.menu", "value": "Label Schema", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "menu", "key": "operations.cmdb.label.menu", "value": "标签管理", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "en-US", "group_name": "menu", "key": "operations.cmdb.label.menu", "value": "Label Management", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.title", "value": "主机管理", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.title", "value": "Host Management", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.eyebrow", "value": "运维平台 / 主机台账", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
@@ -375,26 +365,26 @@ func seedHostI18n(db *gorm.DB) error {
 		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.group.permission.update", "value": "Update host groups", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.group.permission.delete", "value": "删除主机分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.group.permission.delete", "value": "Delete host groups", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.label.schema.title", "value": "标签规范", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.label.schema.title", "value": "Label Schema", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.label.hero.eyebrow", "value": "运维平台 / 标签规范", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.label.hero.eyebrow", "value": "Operations / Label Schema", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.label.hero.title", "value": "治理主机标签键，确保分组和后续运维目标稳定", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.label.hero.title", "value": "Govern host label keys so groups and operations targets stay reliable", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.label.permission.create", "value": "新增标签规范", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.label.permission.create", "value": "Create label schemas", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.label.permission.update", "value": "编辑标签规范", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.label.permission.update", "value": "Update label schemas", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.label.permission.delete", "value": "删除标签规范", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.label.permission.delete", "value": "Delete label schemas", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.label.schema.title", "value": "标签管理", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.label.schema.title", "value": "Label Management", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.label.hero.eyebrow", "value": "运维平台 / 标签管理", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.label.hero.eyebrow", "value": "Operations / Label Management", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.label.hero.title", "value": "按分组治理主机标签键和值模板，确保分组和后续运维目标稳定", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.label.hero.title", "value": "Govern host labels by category and presets so groups and operations targets stay reliable", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.label.permission.create", "value": "新增标签", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.label.permission.create", "value": "Create labels", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.label.permission.update", "value": "编辑标签", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.label.permission.update", "value": "Update labels", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.label.permission.delete", "value": "删除标签", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.label.permission.delete", "value": "Delete labels", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdblabel.key_exists", "value": "标签键已存在", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdblabel.key_exists", "value": "Label key already exists", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdblabel.invalid", "value": "标签规范配置无效", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdblabel.invalid", "value": "Label schema configuration is invalid", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdblabel.invalid", "value": "标签配置无效", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdblabel.invalid", "value": "Label configuration is invalid", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdblabel.in_use", "value": "该标签已被主机或分组引用，不能删除", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdblabel.in_use", "value": "This label is used by hosts or groups and cannot be deleted.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdblabel.not_found", "value": "标签规范不存在", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdblabel.not_found", "value": "Label schema does not exist", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdblabel.not_found", "value": "标签不存在", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdblabel.not_found", "value": "Label does not exist", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdbgroup.has_children", "value": "该分组存在子分组，不能删除", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdbgroup.has_children", "value": "Delete subgroups before deleting this group.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
 		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdbgroup.parent_cycle", "value": "上级分组不能选择自身或下级分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
@@ -428,9 +418,10 @@ func seedCmdbDicts(db *gorm.DB) error {
 	}
 	dictItems := []map[string]interface{}{
 		{"dict_code": "cmdb_host_status", "item_label_key": "待上线", "item_value": "pending", "sort": 1, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
-		{"dict_code": "cmdb_host_status", "item_label_key": "可运维", "item_value": "online", "sort": 2, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
-		{"dict_code": "cmdb_host_status", "item_label_key": "已下线", "item_value": "offline", "sort": 3, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
-		{"dict_code": "cmdb_host_status", "item_label_key": "维护中", "item_value": "maintenance", "sort": 4, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
+		{"dict_code": "cmdb_host_status", "item_label_key": "已分配", "item_value": "assigned", "sort": 2, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
+		{"dict_code": "cmdb_host_status", "item_label_key": "可运维", "item_value": "online", "sort": 3, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
+		{"dict_code": "cmdb_host_status", "item_label_key": "已下线", "item_value": "offline", "sort": 4, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
+		{"dict_code": "cmdb_host_status", "item_label_key": "维护中", "item_value": "maintenance", "sort": 5, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
 		{"dict_code": "cmdb_os_type", "item_label_key": "Linux", "item_value": "linux", "sort": 1, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
 		{"dict_code": "cmdb_os_type", "item_label_key": "Windows", "item_value": "windows", "sort": 2, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
 		{"dict_code": "cmdb_label_key", "item_label_key": "环境", "item_value": "env", "sort": 1, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
@@ -438,6 +429,7 @@ func seedCmdbDicts(db *gorm.DB) error {
 		{"dict_code": "cmdb_label_key", "item_label_key": "集群", "item_value": "cluster", "sort": 3, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
 		{"dict_code": "cmdb_label_key", "item_label_key": "区域", "item_value": "region", "sort": 4, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
 		{"dict_code": "cmdb_label_key", "item_label_key": "数据库类型", "item_value": "db_type", "sort": 5, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
+		{"dict_code": "cmdb_label_key", "item_label_key": "中间件", "item_value": "middleware", "sort": 6, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
 		{"dict_code": "cmdb_env", "item_label_key": "开发", "item_value": "dev", "sort": 1, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
 		{"dict_code": "cmdb_env", "item_label_key": "测试", "item_value": "test", "sort": 2, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
 		{"dict_code": "cmdb_env", "item_label_key": "生产", "item_value": "prod", "sort": 3, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
@@ -465,12 +457,21 @@ func seedCmdbLabelSchemas(db *gorm.DB) error {
 	if db == nil || !db.Migrator().HasTable("biz_cmdb_label_schema") {
 		return nil
 	}
+	if err := db.Table("biz_cmdb_label_schema").
+		Where("category IS NULL OR TRIM(category) = ''").
+		Updates(map[string]interface{}{
+			"category":   "base",
+			"updated_at": time.Now(),
+		}).Error; err != nil {
+		return err
+	}
 	schemas := []map[string]interface{}{
-		{"key": "env", "name": "环境", "value_mode": "dict", "dict_code": "cmdb_env", "options": datatypes.JSON([]byte(`["dev","test","prod"]`)), "required": false, "status": "enabled", "description": "部署环境，如 dev/test/prod", "created_at": time.Now(), "updated_at": time.Now()},
-		{"key": "biz", "name": "业务系统", "value_mode": "enum", "dict_code": "", "options": datatypes.JSON([]byte(`["Prometheus","Nginx","MySQL"]`)), "required": false, "status": "enabled", "description": "业务系统或应用归属", "created_at": time.Now(), "updated_at": time.Now()},
-		{"key": "cluster", "name": "集群", "value_mode": "free", "dict_code": "", "options": datatypes.JSON([]byte(`[]`)), "required": false, "status": "enabled", "description": "集群或资源池归属", "created_at": time.Now(), "updated_at": time.Now()},
-		{"key": "region", "name": "区域", "value_mode": "enum", "dict_code": "", "options": datatypes.JSON([]byte(`["西安开发环境","西安测试环境"]`)), "required": false, "status": "enabled", "description": "区域、机房或可用区", "created_at": time.Now(), "updated_at": time.Now()},
-		{"key": "db_type", "name": "数据库类型", "value_mode": "enum", "dict_code": "", "options": datatypes.JSON([]byte(`["mysql","postgresql","redis"]`)), "required": false, "status": "enabled", "description": "主机承载的数据库类型", "created_at": time.Now(), "updated_at": time.Now()},
+		{"key": "env", "name": "环境", "category": "environment", "value_mode": "dict", "dict_code": "cmdb_env", "options": datatypes.JSON([]byte(`["dev","test","prod"]`)), "required": false, "status": "enabled", "description": "部署环境，如 dev/test/prod", "created_at": time.Now(), "updated_at": time.Now()},
+		{"key": "biz", "name": "业务系统", "category": "business", "value_mode": "enum", "dict_code": "", "options": datatypes.JSON([]byte(`["order-center","user-center","ops-platform"]`)), "required": false, "status": "enabled", "description": "业务系统或应用归属", "created_at": time.Now(), "updated_at": time.Now()},
+		{"key": "cluster", "name": "集群", "category": "topology", "value_mode": "free", "dict_code": "", "options": datatypes.JSON([]byte(`[]`)), "required": false, "status": "enabled", "description": "集群或资源池归属", "created_at": time.Now(), "updated_at": time.Now()},
+		{"key": "region", "name": "区域", "category": "topology", "value_mode": "enum", "dict_code": "", "options": datatypes.JSON([]byte(`["cn-east-1","cn-north-1","edge-idc-a"]`)), "required": false, "status": "enabled", "description": "区域、机房或可用区", "created_at": time.Now(), "updated_at": time.Now()},
+		{"key": "db_type", "name": "数据库类型", "category": "database", "value_mode": "enum", "dict_code": "", "options": datatypes.JSON([]byte(`["mysql","postgresql"]`)), "required": false, "status": "enabled", "description": "主机承载的数据库类型", "created_at": time.Now(), "updated_at": time.Now()},
+		{"key": "middleware", "name": "中间件", "category": "middleware", "value_mode": "enum", "dict_code": "", "options": datatypes.JSON([]byte(`["nginx","redis","minio","harbor"]`)), "required": false, "status": "enabled", "description": "主机承载的中间件类型", "created_at": time.Now(), "updated_at": time.Now()},
 	}
 	for _, schema := range schemas {
 		var existingID uint64
@@ -481,6 +482,7 @@ func seedCmdbLabelSchemas(db *gorm.DB) error {
 			}
 		} else if err := db.Table("biz_cmdb_label_schema").Where("id = ?", existingID).Updates(map[string]interface{}{
 			"name":        schema["name"],
+			"category":    schema["category"],
 			"value_mode":  schema["value_mode"],
 			"dict_code":   schema["dict_code"],
 			"options":     schema["options"],

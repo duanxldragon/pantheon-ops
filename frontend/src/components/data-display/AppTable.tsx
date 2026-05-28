@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table } from '@arco-design/web-react';
 import type { PaginationProps } from '@arco-design/web-react/es/Pagination/interface';
-import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
+import type { ColumnProps, SorterInfo, TableProps } from '@arco-design/web-react/es/Table/interface';
 import { useTranslation } from 'react-i18next';
 import PageEmpty from '../feedback/PageEmpty';
 import {
@@ -18,6 +18,17 @@ interface AppTableProps<T> extends TableProps<T> {
 type PaginationNodeProps = PaginationProps & {
   children?: React.ReactNode;
 };
+
+type TableChangeHandler<T> = (
+  pagination: PaginationProps,
+  sorter: SorterInfo | SorterInfo[],
+  filters: Partial<Record<keyof T, string[]>>,
+  extra: {
+    currentData: T[];
+    currentAllData: T[];
+    action: 'sort' | 'filter' | 'paginate';
+  },
+) => void;
 
 type TablePagePosition =
   | 'tl'
@@ -81,11 +92,11 @@ function filterResponsiveColumns<T>(
   }, []);
 }
 
-function createBoundaryPaginationItem(
+function createBoundaryPaginationItem<T>(
   type: 'first' | 'last',
   paginationProps: PaginationNodeProps,
   ariaLabel: string,
-  onTableChange?: (...args: any[]) => void,
+  onTableChange?: TableChangeHandler<T>,
 ) {
   const currentPage = getPaginationCurrentPage(paginationProps);
   const totalPages = getPaginationTotalPages(paginationProps);
@@ -109,7 +120,16 @@ function createBoundaryPaginationItem(
       paginationProps.onChange(targetPage, pageSize);
       return;
     }
-    onTableChange?.({ current: targetPage, pageSize }, undefined, undefined, undefined);
+    onTableChange?.(
+      { current: targetPage, pageSize },
+      [],
+      {},
+      {
+        currentData: [],
+        currentAllData: [],
+        action: 'paginate',
+      },
+    );
   };
 
   return (
@@ -224,7 +244,7 @@ function AppTable<T>(props: AppTableProps<T>) {
               if (type === 'prev') {
                 return (
                   <span className="app-table__pagination-step-group">
-                    {createBoundaryPaginationItem(
+                    {createBoundaryPaginationItem<T>(
                       'first',
                       paginationNode.props,
                       firstPageAriaLabel,
@@ -239,7 +259,7 @@ function AppTable<T>(props: AppTableProps<T>) {
                 return (
                   <span className="app-table__pagination-step-group">
                     <span className="app-table__pagination-step-origin">{renderedOrigin}</span>
-                    {createBoundaryPaginationItem(
+                    {createBoundaryPaginationItem<T>(
                       'last',
                       paginationNode.props,
                       lastPageAriaLabel,

@@ -889,16 +889,25 @@ const ModuleWizard: React.FC = () => {
           ...Object.keys(previewSchema.i18n.translations.en),
         ]),
       )
-        .sort()
+        .sort((a, b) => a.localeCompare(b))
         .map((key) => ({
           key,
           zh: previewSchema.i18n.translations.zh[key] || '',
           en: previewSchema.i18n.translations.en[key] || '',
         }))
     : [];
+  const autoRecycleEnabled = Boolean(form.getFieldValue('metadata.autoRecycle' as keyof ModuleSchema));
+  const previewTranslationTotalPages = Math.max(
+    1,
+    Math.ceil(previewTranslationRows.length / translationPreviewPagination.pageSize),
+  );
+  const previewTranslationCurrentPage = Math.min(
+    translationPreviewPagination.current,
+    previewTranslationTotalPages,
+  );
   const pagedPreviewTranslationRows = previewTranslationRows.slice(
-    (translationPreviewPagination.current - 1) * translationPreviewPagination.pageSize,
-    translationPreviewPagination.current * translationPreviewPagination.pageSize,
+    (previewTranslationCurrentPage - 1) * translationPreviewPagination.pageSize,
+    previewTranslationCurrentPage * translationPreviewPagination.pageSize,
   );
   const activationStatusKey = registerResult
     ? registerResult.module.status === 1
@@ -907,20 +916,6 @@ const ModuleWizard: React.FC = () => {
         ? 'generator.moduleManager.status.uninstalled'
         : 'generator.moduleManager.status.pending'
     : '';
-
-  useEffect(() => {
-    const totalPages = Math.max(
-      1,
-      Math.ceil(previewTranslationRows.length / translationPreviewPagination.pageSize),
-    );
-    if (translationPreviewPagination.current > totalPages) {
-      setTranslationPreviewPagination((current) => ({ ...current, current: totalPages }));
-    }
-  }, [
-    previewTranslationRows.length,
-    translationPreviewPagination.current,
-    translationPreviewPagination.pageSize,
-  ]);
 
   const renderMenuPreview = (nodes: GeneratorMenuPreviewNode[]) => (
     <div className="generator-wizard__menu-tree">
@@ -1571,13 +1566,9 @@ const ModuleWizard: React.FC = () => {
                     <Checkbox>{t('generator.wizard.lifecycle.autoRecycle')}</Checkbox>
                   </FormItem>
                   <Alert
-                    type={
-                      Boolean(form.getFieldValue('metadata.autoRecycle' as keyof ModuleSchema))
-                        ? 'warning'
-                        : 'info'
-                    }
+                    type={autoRecycleEnabled ? 'warning' : 'info'}
                     content={t(
-                      Boolean(form.getFieldValue('metadata.autoRecycle' as keyof ModuleSchema))
+                      autoRecycleEnabled
                         ? 'generator.wizard.lifecycle.autoRecycleHint'
                         : 'generator.wizard.lifecycle.standardHint',
                     )}
@@ -1830,7 +1821,7 @@ const ModuleWizard: React.FC = () => {
                   rowKey="key"
                   data={pagedPreviewTranslationRows}
                   pagination={buildStandardPagination(t, {
-                    current: translationPreviewPagination.current,
+                    current: previewTranslationCurrentPage,
                     pageSize: translationPreviewPagination.pageSize,
                     total: previewTranslationRows.length,
                     sizeOptions: [8, 16, 32, 64],
