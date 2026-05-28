@@ -21,6 +21,7 @@ Thumbs.db
 tmp/
 .gocache/
 .gstack/
+.codegraph/
 coverage/
 
 # Go

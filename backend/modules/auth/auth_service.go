@@ -739,7 +739,10 @@ func (s *AuthService) TouchSessionActivity(sessionID string, userID uint64, ip s
 	}
 
 	return s.db.Model(&SystemUserSession{}).
-		Where("session_id = ? AND user_id = ? AND revoked_at IS NULL AND (last_activity_at IS NULL OR last_activity_at < ?)", sessionID, userID, now.Add(-1*time.Minute)).
+		Where("session_id = ?", sessionID).
+		Where("user_id = ?", userID).
+		Where("revoked_at IS NULL").
+		Where("(last_activity_at IS NULL OR last_activity_at < ?)", now.Add(-1*time.Minute)).
 		Updates(updates).Error
 }
 

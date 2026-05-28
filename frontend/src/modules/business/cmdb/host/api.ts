@@ -8,6 +8,17 @@ export interface LabelEntry {
 export interface ComponentEntry {
   name: string;
   version: string;
+  deployedAt?: string;
+  deployTaskId?: number;
+  deployTaskName?: string;
+  executorType?: string;
+}
+
+export interface MatchedGroupEntry {
+  id: number;
+  parentId: number;
+  name: string;
+  fullPath: string;
 }
 
 export interface HostRow {
@@ -22,7 +33,12 @@ export interface HostRow {
   diskGb: number;
   labelValues: LabelEntry[];
   installedComponents: ComponentEntry[];
+  matchedGroups: MatchedGroupEntry[];
+  matchedGroupCount: number;
   status: string;
+  businessScopeId: number;
+  businessScopeCode: string;
+  businessScopeName: string;
   deptId: number;
   owner: string;
   remark: string;
@@ -38,6 +54,7 @@ export interface HostListQuery {
   keyword?: string;
   status?: string;
   os?: string;
+  businessScopeId?: number;
 }
 
 export interface HostListResp {
@@ -57,6 +74,7 @@ export interface CreateHostPayload {
   memoryGb?: number;
   diskGb?: number;
   labels?: LabelEntry[];
+  businessScopeId?: number;
   deptId?: number;
   owner?: string;
   remark?: string;
@@ -72,6 +90,7 @@ export interface UpdateHostPayload {
   memoryGb?: number;
   diskGb?: number;
   labels?: LabelEntry[];
+  businessScopeId?: number;
   deptId?: number;
   owner?: string;
   remark?: string;

@@ -21,6 +21,7 @@ import {
   buildFieldLabelKey,
   buildFieldPlaceholderKey,
   buildModuleNamespace,
+  buildPageRoutePath,
   buildPermissionPrefix,
   buildRouteName,
   buildRoutePath,
@@ -49,7 +50,7 @@ export class FrontendGenerator {
   generateModuleIndex(): string {
     const { scope, name } = this.schema;
     const modelName = this.modelName;
-    const routePath = buildRoutePath(scope, name).replace(/^\//, '');
+    const routePath = buildPageRoutePath(scope, name).replace(/^\//, '');
     const titleKey = buildTitleKey(scope, name);
     const permissionPrefix = buildPermissionPrefix(scope, name);
     const moduleNamespace = buildModuleNamespace(scope, name);
@@ -81,7 +82,7 @@ export class FrontendGenerator {
       sourceDomain: 'business/${businessContext}',
       titleKey: '${titleKey}',
       descriptionKey: '${quickActionDescriptionKey}',
-      path: '${buildRoutePath(scope, name)}',
+      path: '${buildPageRoutePath(scope, name)}',
       permission: '${permissionPrefix}:list',
       icon: 'apps',
       cleanupPolicy: 'remove_with_source_module',
@@ -113,7 +114,7 @@ export const ${modelName}Module = defineModule({
       routeName: '${routeName}-detail',
       titleKey: '${titleKey}',
       pagePermission: '${permissionPrefix}:view',
-      activeMenu: '${buildRoutePath(scope, name)}',
+      activeMenu: '${buildPageRoutePath(scope, name)}',
       componentKey: '${detailComponentKey}',
     },`
         : ''
@@ -124,7 +125,7 @@ export const ${modelName}Module = defineModule({
   menus: ${
     generateNavigation
       ? `[
-    { path: '${buildRoutePath(scope, name)}', titleKey: '${titleKey}', icon: 'apps', routeName: '${routeName}', module: '${moduleNamespace}' },
+    { path: '${buildPageRoutePath(scope, name)}', titleKey: '${titleKey}', icon: 'apps', routeName: '${routeName}', module: '${moduleNamespace}' },
   ]`
       : '[]'
   },${dashboardWidgets}
@@ -323,10 +324,8 @@ ${extraApi ? `\n${extraApi}\n` : ''}
    * 参考: system/user/UserList.tsx (726行完整实现)
    */
   generateListPage(): string {
-    const { scope, name } = this.schema;
     const modelName = this.modelName;
     const toSrcRoot = this.relativeToSrcRoot();
-    const titleKey = buildTitleKey(scope, name);
     const governanceEnabled = this.isListGovernanceEnabled();
     const searchEnabled = this.isListSearchEnabled();
     const headerActionsEnabled = this.isListHeaderActionsEnabled();
@@ -335,7 +334,7 @@ ${extraApi ? `\n${extraApi}\n` : ''}
     const governanceConstants = governanceEnabled
       ? `${this.generateListGovernanceConstants()}\n`
       : '';
-    const listImports = ['Card', 'Typography', 'Space'];
+    const listImports = ['Card', 'Space'];
     if (searchEnabled) {
       listImports.unshift('Button', 'Form', 'Grid', 'Input', 'Select');
     }
@@ -361,6 +360,7 @@ import {
 import {
   AppTable,
   FilterPanel,
+  GovernanceSummaryBar,
   ImportCsvButton,
   ListHeaderActions,
   PageContainer,
@@ -472,9 +472,8 @@ const ${modelName}List: React.FC = () => {
       <Space direction="vertical" size={16} className="system-page-template">
 ${this.generateWorkbenchGovernanceBlock()}
 ${this.generateWorkbenchSearchBlock()}
+${this.generateWorkbenchHeaderActions(headerActionsEnabled, batchActionsEnabled)}
         <Card className="page-panel system-list__table-card">
-          ${this.generateWorkbenchSummaryHead(titleKey)}
-          ${this.generateWorkbenchHeaderActions(headerActionsEnabled, batchActionsEnabled)}
           {loading && data.length === 0 ? <PageLoading /> : null}
           {error && data.length === 0 ? (
             <PageError
@@ -1371,34 +1370,6 @@ ${options}
     return `${scope}/${splitModuleSegments(name).join('/')}/${this.modelName}Detail`;
   }
 
-  private generateListGovernanceConstants(): string {
-    const tableRole = this.schema.metadata?.tableRole || 'main';
-    const primaryTable = this.schema.metadata?.primaryTable || '';
-    const relationFromField = this.schema.metadata?.relationFromField || '';
-    const relationToField = this.schema.metadata?.relationToField || '';
-
-    return `const governanceTableRole = '${tableRole}';
-const governancePrimaryTable = '${primaryTable}';
-const governanceRelationFromField = '${relationFromField}';
-const governanceRelationToField = '${relationToField}';
-`;
-  }
-
-  private shouldRenderListGovernanceNotice(): boolean {
-    const tableRole = this.schema.metadata?.tableRole || 'main';
-    const primaryTable = this.schema.metadata?.primaryTable || '';
-    const relationFromField = this.schema.metadata?.relationFromField || '';
-    const relationToField = this.schema.metadata?.relationToField || '';
-
-    return (
-      tableRole === 'detail' ||
-      tableRole === 'relation' ||
-      Boolean(primaryTable) ||
-      Boolean(relationFromField) ||
-      Boolean(relationToField)
-    );
-  }
-
   private generateWorkbenchTableColumns(includeRowActions: boolean): string {
     const listFields = this.schema.model.fields.filter((field) => field.visibleInList !== false);
     const columns = listFields.map((field) => {
@@ -1436,7 +1407,7 @@ ${this.generateRowActionItems()}
                           key: 'detail',
                           text: t('common.detail'),
                           icon: <IconEye />,
-                          onClick: () => navigate('${buildRoutePath(this.schema.scope, this.schema.name)}/' + row.id),
+                          onClick: () => navigate('${buildPageRoutePath(this.schema.scope, this.schema.name)}/' + row.id),
                         },`);
     }
     if (actions.includes('delete')) {
@@ -1578,19 +1549,6 @@ ${searchableFields
     return `<Input onPressEnter={() => queryForm.submit()} />`;
   }
 
-  private generateWorkbenchSummaryHead(titleKey: string): string {
-    return `<div className="system-list__table-head">
-            <div className="system-list__table-head-copy">
-              <Typography.Text className="system-list__table-head-title">
-                {t('${titleKey}')}
-              </Typography.Text>
-              <Typography.Text type="secondary" className="system-list__table-head-desc">
-                {t('common.total', { count: total })}
-              </Typography.Text>
-            </div>
-          </div>`;
-  }
-
   private generateWorkbenchHeaderActions(
     headerActionsEnabled: boolean,
     batchActionsEnabled: boolean,
@@ -1624,7 +1582,7 @@ ${searchableFields
                   </Button>`);
     }
 
-    return `          <TableBatchActionBar
+    return `        <TableBatchActionBar
             selectedCount={selectedRowKeys.length}
             selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
             clearText={t('common.clearSelection')}
@@ -1663,6 +1621,34 @@ ${primaryActions.join('\n')}
               </Popconfirm>
             }` : ''}
           />`;
+  }
+
+  private generateListGovernanceConstants(): string {
+    const tableRole = this.schema.metadata?.tableRole || 'main';
+    const primaryTable = this.schema.metadata?.primaryTable || '';
+    const relationFromField = this.schema.metadata?.relationFromField || '';
+    const relationToField = this.schema.metadata?.relationToField || '';
+
+    return `const governanceTableRole = '${tableRole}';
+const governancePrimaryTable = '${primaryTable}';
+const governanceRelationFromField = '${relationFromField}';
+const governanceRelationToField = '${relationToField}';
+`;
+  }
+
+  private shouldRenderListGovernanceNotice(): boolean {
+    const tableRole = this.schema.metadata?.tableRole || 'main';
+    const primaryTable = this.schema.metadata?.primaryTable || '';
+    const relationFromField = this.schema.metadata?.relationFromField || '';
+    const relationToField = this.schema.metadata?.relationToField || '';
+
+    return (
+      tableRole === 'detail' ||
+      tableRole === 'relation' ||
+      Boolean(primaryTable) ||
+      Boolean(relationFromField) ||
+      Boolean(relationToField)
+    );
   }
 
   private generateGovernanceConstants(): string {

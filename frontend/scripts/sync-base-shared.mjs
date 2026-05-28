@@ -65,7 +65,7 @@ function collectSharedBaseFiles() {
     }
     files.push(toRepoPath(entry));
   }
-  return files.sort();
+  return files.sort((a, b) => a.localeCompare(b));
 }
 
 function collectSharedOpsOnlyFiles() {
@@ -90,7 +90,7 @@ function collectSharedOpsOnlyFiles() {
       extraFiles.push(relativePath);
     }
   }
-  return extraFiles.sort();
+  return extraFiles.sort((a, b) => a.localeCompare(b));
 }
 
 function main() {

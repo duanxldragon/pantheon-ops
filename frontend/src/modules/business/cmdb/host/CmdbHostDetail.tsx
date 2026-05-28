@@ -22,6 +22,7 @@ import SubmitBar from '../../../../components/patterns/SubmitBar';
 import { getHostDetail, collectHostConfig } from './api';
 import type { HostRow } from './api';
 import { usePermission } from '../../../../hooks/usePermission';
+import { formatDateTime } from '../../../../core/format/dateTime';
 import '../../../system/list-page.css';
 import '../cmdb.css';
 
@@ -68,6 +69,12 @@ export default function CmdbHostDetail() {
               label: t('business.cmdb.host.installedComponents'),
               value: host.installedComponents?.length || 0,
               hint: t('business.cmdb.host.hero.componentsHint'),
+            },
+            {
+              key: 'groups',
+              label: t('business.cmdb.host.matchedGroups'),
+              value: host.matchedGroupCount || 0,
+              hint: t('business.cmdb.host.matchedGroupsHint'),
             },
           ]
         : [],
@@ -177,6 +184,7 @@ export default function CmdbHostDetail() {
                 { label: t('business.cmdb.host.sshPort'), value: host.sshPort || 22 },
                 { label: t('business.cmdb.host.os'), value: t(`business.cmdb.host.os.${host.os}`) },
                 { label: t('business.cmdb.host.status'), value: t(`business.cmdb.host.status.${host.status}`) },
+                { label: t('business.cmdb.host.businessScope'), value: host.businessScopeName || '-' },
                 { label: t('business.cmdb.host.owner'), value: host.owner || '-' },
                 { label: t('business.cmdb.host.remark'), value: host.remark || '-' },
               ]}
@@ -216,15 +224,43 @@ export default function CmdbHostDetail() {
         <Card className="page-panel">
           <FormSection title={t('business.cmdb.host.installedComponents')}>
             {host.installedComponents?.length ? (
-              <Space wrap>
+              <Space direction="vertical" size={8} style={{ width: '100%' }}>
                 {host.installedComponents.map((c, i) => (
-                  <Tag key={i} color="arcoblue">
-                    {c.name} {c.version}
-                  </Tag>
+                  <Card key={i} className="page-panel" style={{ padding: 12 }}>
+                    <Space direction="vertical" size={4}>
+                      <Space>
+                        <Tag color="arcoblue">
+                          {c.name} {c.version}
+                        </Tag>
+                        {c.executorType ? <Tag>{t(`business.deploy.task.executorType.${c.executorType}`)}</Tag> : null}
+                      </Space>
+                      <div style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
+                        {c.deployTaskName || '-'} · {c.deployedAt ? formatDateTime(c.deployedAt) : '-'}
+                      </div>
+                    </Space>
+                  </Card>
                 ))}
               </Space>
             ) : (
               <PageEmpty description={t('business.cmdb.host.componentsEmpty')} />
+            )}
+          </FormSection>
+        </Card>
+        <Card className="page-panel">
+          <FormSection title={t('business.cmdb.host.matchedGroups')}>
+            {host.matchedGroups?.length ? (
+              <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                {host.matchedGroups.map((group) => (
+                  <Card key={group.id} className="page-panel" style={{ padding: 12 }}>
+                    <Space direction="vertical" size={2}>
+                      <span>{group.name}</span>
+                      <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>{group.fullPath}</span>
+                    </Space>
+                  </Card>
+                ))}
+              </Space>
+            ) : (
+              <PageEmpty description={t('business.cmdb.host.matchedGroupsEmpty')} />
             )}
           </FormSection>
         </Card>

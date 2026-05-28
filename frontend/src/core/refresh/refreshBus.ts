@@ -49,7 +49,7 @@ function getRefreshChannel() {
 }
 
 function normalizeTopics(topics: PantheonRefreshTopic | PantheonRefreshTopic[]) {
-  return Array.isArray(topics) ? topics : [topics];
+  return Array.isArray(topics) ? [...topics] : [topics];
 }
 
 export function publishRefresh(
@@ -98,7 +98,8 @@ export function useRefreshSubscription(
   handler: RefreshHandler,
 ) {
   const handlerRef = useRef(handler);
-  const topicKey = useMemo(() => normalizeTopics(topics).join(','), [topics]);
+  const normalizedTopics = useMemo(() => normalizeTopics(topics), [topics]);
+  const topicKey = useMemo(() => normalizedTopics.join(','), [normalizedTopics]);
 
   useEffect(() => {
     handlerRef.current = handler;
@@ -106,10 +107,10 @@ export function useRefreshSubscription(
 
   useEffect(
     () =>
-      subscribeRefresh(topics, (payload) => {
+      subscribeRefresh(normalizedTopics, (payload) => {
         handlerRef.current(payload);
       }),
-    [topicKey, topics],
+    [normalizedTopics, topicKey],
   );
 }
 
@@ -119,7 +120,8 @@ export function useRefreshPolling(
   intervalMs = DEFAULT_REFRESH_POLL_INTERVAL_MS,
 ) {
   const versionsRef = useRef<Record<string, number>>({});
-  const topicKey = useMemo(() => normalizeTopics(topics).sort().join(','), [topics]);
+  const normalizedTopics = useMemo(() => normalizeTopics(topics).sort(), [topics]);
+  const topicKey = useMemo(() => normalizedTopics.join(','), [normalizedTopics]);
   const authToken = token || (typeof window !== 'undefined' && hasAuthCookie() ? '_cookie' : null);
 
   useEffect(() => {
@@ -130,7 +132,6 @@ export function useRefreshPolling(
 
     let active = true;
     let timer: number | null = null;
-    const normalizedTopics = normalizeTopics(topics).sort();
 
     const poll = async () => {
       if (isLogoutTransitionActive()) {
@@ -168,5 +169,5 @@ export function useRefreshPolling(
         window.clearInterval(timer);
       }
     };
-  }, [authToken, intervalMs, topicKey, topics]);
+  }, [authToken, intervalMs, normalizedTopics, topicKey]);
 }

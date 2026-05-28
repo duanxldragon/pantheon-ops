@@ -25,6 +25,7 @@ import {
   buildFieldPlaceholderKey,
   buildMenuGroupTitleKey,
   buildModuleNamespace,
+  buildPageRoutePath,
   buildPermissionTitleKey,
   buildPermissionPrefix,
   buildRouteName,
@@ -915,7 +916,7 @@ func seed${modelName}I18n(db *gorm.DB) error {
     }
     const moduleKey = buildModuleNamespace(this.schema.scope, this.schema.name);
     const permissionPrefix = buildPermissionPrefix(this.schema.scope, this.schema.name);
-    const routePath = buildRoutePath(this.schema.scope, this.schema.name);
+    const routePath = buildPageRoutePath(this.schema.scope, this.schema.name);
     const routeName = buildRouteName(this.schema.scope, this.schema.name);
     const segments = splitModuleSegments(this.schema.name);
     const menuKey = segments.join('-');
@@ -924,7 +925,7 @@ func seed${modelName}I18n(db *gorm.DB) error {
     const inferredParentPath = shouldGenerateAncestorMenus
       ? ''
       : segments.length > 1
-        ? `/${this.schema.scope}/${segments.slice(0, -1).join('/')}`
+        ? buildPageRoutePath(this.schema.scope, segments.slice(0, -1).join('/'))
         : '';
     const parentPath = normalizeMenuPath(explicitParentPath || inferredParentPath || '');
     const parentKey = shouldGenerateAncestorMenus ? segments.slice(0, -1).join('-') : '';
@@ -947,7 +948,7 @@ func seed${modelName}I18n(db *gorm.DB) error {
 \t\tKey:       "${groupKey}",
 \t\tParentKey: "${parentSegments.join('-')}",
 \t\tTitleKey:  "${groupTitleKey}",
-\t\tPath:      "/${this.schema.scope}/${groupSegments.join('/')}",
+\t\tPath:      "${this.schema.scope === 'business' ? `/operations/${groupSegments.join('/')}` : `/${this.schema.scope}/${groupSegments.join('/')}`}",
 \t\tType:      "M",
 \t\tIcon:      "apps",
 \t\tRouteName: "${this.schema.scope}-${groupSegments.join('-')}",
@@ -1537,7 +1538,7 @@ func (h *${this.modelName}Handler) Unbind${relationName}Relation(c *gin.Context)
    * 辅助函数: 字段类型转 Go 类型
    */
   private goTypeFromField(fieldType: string): string {
-    return TYPE_MAPPING[fieldType as keyof typeof TYPE_MAPPING].go || 'string';
+    return TYPE_MAPPING[fieldType as keyof typeof TYPE_MAPPING]?.go || 'string';
   }
 
   private escapeGoString(value: string): string {

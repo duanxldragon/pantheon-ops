@@ -13,6 +13,9 @@ func (s *DynamicModuleService) buildGeneratedModuleSummary(req *scaffold.Registe
 	moduleKey := buildModuleKey(scope, name)
 	modelName := inferGeneratedModelName(name, req.Schema.Model.ModelName)
 	routePath := "/" + scope + "/" + strings.ReplaceAll(name, "\\", "/")
+	if scope == "business" {
+		routePath = "/operations/" + strings.ReplaceAll(name, "\\", "/")
+	}
 	routeName := scope + "-" + strings.ReplaceAll(name, "/", "-")
 	componentKey := scope + "/" + name + "/" + modelName + "List"
 	permissionPrefix := scope + ":" + strings.ReplaceAll(name, "/", ":")

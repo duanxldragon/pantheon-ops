@@ -12,7 +12,7 @@ func InitBusinessModules(r *gin.RouterGroup, db *gorm.DB) {
 	if err := cleanupRetiredBusinessModules(db); err != nil {
 		panic(err)
 	}
-	InitGeneratedBusinessModules(r, db)
 	cmdb.InitCmdbModule(r, db)
+	InitGeneratedBusinessModules(r, db)
 	deploy.InitDeployModule(r, db)
 }
