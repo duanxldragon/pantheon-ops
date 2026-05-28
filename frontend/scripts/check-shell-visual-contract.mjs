@@ -124,7 +124,7 @@ function requireBlock(cssSource, selector, findings) {
 function getStandaloneBlock(cssSource, selector) {
   const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const match = cssSource.match(
-    new RegExp(`(?:^|\\n)${escapedSelector}\\s*\\{([\\s\\S]*?)\\n\\}`, 'i'),
+    new RegExp(String.raw`(?:^|\n)${escapedSelector}\s*\{([\s\S]*?)\n\}`, 'i'),
   );
   return match?.[1] || '';
 }
@@ -139,7 +139,7 @@ function requireStandaloneBlock(cssSource, selector, findings) {
 
 function hasDeclaration(block, property, expectedValue) {
   const pattern = new RegExp(
-    `${property}\\s*:\\s*${expectedValue}(?:\\s*!important)?\\s*;`,
+    String.raw`${property}\s*:\s*${expectedValue}(?:\s*!important)?\s*;`,
     'i',
   );
   return pattern.test(block);
@@ -656,7 +656,7 @@ if (!/maskClosable\s*=\s*false/.test(appDrawerSource)) {
 
 for (const actionName of ['Confirm', 'Success', 'Error']) {
   if (
-    !new RegExp(`showAppModal${actionName}[\\s\\S]*?mergeDialogClassName\\('app-dialog'`).test(
+    !new RegExp(String.raw`showAppModal${actionName}[\s\S]*?mergeDialogClassName\('app-dialog'`).test(
       appModalActionsSource,
     )
   ) {

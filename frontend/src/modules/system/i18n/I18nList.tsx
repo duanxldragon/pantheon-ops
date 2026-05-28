@@ -156,13 +156,15 @@ function buildRenameMigrationReport(preview: I18nRenamePreviewResp, t: TFunction
     });
   }
 
-  lines.push('');
-  lines.push(`## ${t('i18n.rename.report.checklistTitle')}`);
-  lines.push(`1. ${t('i18n.rename.report.checklist1')}`);
-  lines.push(`2. ${t('i18n.rename.report.checklist2')}`);
-  lines.push(`3. ${t('i18n.rename.report.checklist3')}`);
-  lines.push(`4. ${t('i18n.rename.report.checklist4')}`);
-  lines.push('');
+  lines.push(
+    '',
+    `## ${t('i18n.rename.report.checklistTitle')}`,
+    `1. ${t('i18n.rename.report.checklist1')}`,
+    `2. ${t('i18n.rename.report.checklist2')}`,
+    `3. ${t('i18n.rename.report.checklist3')}`,
+    `4. ${t('i18n.rename.report.checklist4')}`,
+    '',
+  );
   return lines.join('\n');
 }
 

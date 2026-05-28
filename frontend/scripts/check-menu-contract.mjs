@@ -141,9 +141,9 @@ function extractObjectBlocks(arrayBody) {
 
 function extractField(block, fieldName) {
   const patterns = [
-    new RegExp(`\\b${fieldName}\\b\\s*:\\s*'([^']*)'`),
-    new RegExp(`\\b${fieldName}\\b\\s*:\\s*"([^"]*)"`),
-    new RegExp(`\\b${fieldName}\\b\\s*:\\s*([0-9]+)`),
+    new RegExp(String.raw`\b${fieldName}\b\s*:\s*'([^']*)'`),
+    new RegExp(String.raw`\b${fieldName}\b\s*:\s*"([^"]*)"`),
+    new RegExp(String.raw`\b${fieldName}\b\s*:\s*([0-9]+)`),
   ];
   for (const pattern of patterns) {
     const match = block.match(pattern);
@@ -301,7 +301,7 @@ function parseFallbackTranslations() {
 }
 
 function extractMapField(block, fieldName) {
-  const pattern = new RegExp(`"${fieldName}"\\s*:\\s*"([^"]*)"`);
+  const pattern = new RegExp(String.raw`"${fieldName}"\s*:\s*"([^"]*)"`);
   const match = block.match(pattern);
   return match ? match[1] : '';
 }
@@ -311,7 +311,7 @@ function extractStructBlocksWithFields(source, fieldNames) {
   for (const match of source.matchAll(/\{([^{}]*)\}/gms)) {
     const block = match[1];
     if (
-      fieldNames.every((fieldName) => new RegExp(`\\b${fieldName}\\b\\s*:`).test(block)) &&
+      fieldNames.every((fieldName) => new RegExp(String.raw`\b${fieldName}\b\s*:`).test(block)) &&
       extractField(block, 'Locale') &&
       extractField(block, 'Group') &&
       extractField(block, 'Key')
@@ -327,7 +327,7 @@ function extractMapBlocksWithFields(source, fieldNames) {
   for (const match of source.matchAll(/\{([^{}]*)\}/gms)) {
     const block = match[1];
     if (
-      fieldNames.every((fieldName) => new RegExp(`"${fieldName}"\\s*:`).test(block)) &&
+      fieldNames.every((fieldName) => new RegExp(String.raw`"${fieldName}"\s*:`).test(block)) &&
       extractMapField(block, 'locale') &&
       extractMapField(block, 'group_name') &&
       extractMapField(block, 'key')
