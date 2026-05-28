@@ -40,55 +40,48 @@ export class ModuleExporter {
     const { scope, name } = this.schema;
     const leafName = getLeafModuleName(name);
 
-    // 后端文件
-    files.push({
-      path: `backend/modules/${scope}/${name}/${leafName}_model.go`,
-      content: this.backendGen.generateModel(),
-      language: 'go',
-    });
-
-    files.push({
-      path: `backend/modules/${scope}/${name}/${leafName}_dto.go`,
-      content: this.backendGen.generateDTO(),
-      language: 'go',
-    });
-
-    files.push({
-      path: `backend/modules/${scope}/${name}/${leafName}_service.go`,
-      content: this.backendGen.generateService(),
-      language: 'go',
-    });
-
-    files.push({
-      path: `backend/modules/${scope}/${name}/${leafName}_handler.go`,
-      content: this.backendGen.generateHandler(),
-      language: 'go',
-    });
-
-    files.push({
-      path: `backend/modules/${scope}/${name}/module.go`,
-      content: this.backendGen.generateModule(),
-      language: 'go',
-    });
-
-    // 前端文件
-    files.push({
-      path: `frontend/src/modules/${scope}/${name}/index.ts`,
-      content: this.frontendGen.generateModuleIndex(),
-      language: 'typescript',
-    });
-
-    files.push({
-      path: `frontend/src/modules/${scope}/${name}/api.ts`,
-      content: this.frontendGen.generateAPI(),
-      language: 'typescript',
-    });
-
-    files.push({
-      path: `frontend/src/modules/${scope}/${name}/${this.inferModelName()}List.tsx`,
-      content: this.frontendGen.generateListPage(),
-      language: 'tsx',
-    });
+    files.push(
+      {
+        path: `backend/modules/${scope}/${name}/${leafName}_model.go`,
+        content: this.backendGen.generateModel(),
+        language: 'go',
+      },
+      {
+        path: `backend/modules/${scope}/${name}/${leafName}_dto.go`,
+        content: this.backendGen.generateDTO(),
+        language: 'go',
+      },
+      {
+        path: `backend/modules/${scope}/${name}/${leafName}_service.go`,
+        content: this.backendGen.generateService(),
+        language: 'go',
+      },
+      {
+        path: `backend/modules/${scope}/${name}/${leafName}_handler.go`,
+        content: this.backendGen.generateHandler(),
+        language: 'go',
+      },
+      {
+        path: `backend/modules/${scope}/${name}/module.go`,
+        content: this.backendGen.generateModule(),
+        language: 'go',
+      },
+      {
+        path: `frontend/src/modules/${scope}/${name}/index.ts`,
+        content: this.frontendGen.generateModuleIndex(),
+        language: 'typescript',
+      },
+      {
+        path: `frontend/src/modules/${scope}/${name}/api.ts`,
+        content: this.frontendGen.generateAPI(),
+        language: 'typescript',
+      },
+      {
+        path: `frontend/src/modules/${scope}/${name}/${this.inferModelName()}List.tsx`,
+        content: this.frontendGen.generateListPage(),
+        language: 'tsx',
+      },
+    );
 
     return files;
   }

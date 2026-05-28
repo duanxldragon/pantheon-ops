@@ -11,7 +11,7 @@ export function extractCookieValue(setCookieHeader, name) {
   if (!setCookieHeader) {
     return null;
   }
-  const match = String(setCookieHeader).match(new RegExp(`(?:^|,\\s*)${name}=([^;]+)`));
+  const match = String(setCookieHeader).match(new RegExp(String.raw`(?:^|,\s*)${name}=([^;]+)`));
   return match?.[1] ?? null;
 }
 
