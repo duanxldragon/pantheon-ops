@@ -19,8 +19,14 @@ func NewDeployHandler(svc *DeployService) *DeployHandler {
 func (h *DeployHandler) RegisterRoutes(r gin.IRoutes) {
 	r.GET("/packages", h.ListPackages)
 	r.POST("/packages", h.CreatePackage)
+	r.GET("/packages/:id", h.GetPackage)
 	r.PUT("/packages/:id", h.UpdatePackage)
 	r.DELETE("/packages/:id", h.DeletePackage)
+	r.GET("/templates", h.ListTemplates)
+	r.POST("/templates", h.CreateTemplate)
+	r.GET("/templates/:id", h.GetTemplate)
+	r.PUT("/templates/:id", h.UpdateTemplate)
+	r.DELETE("/templates/:id", h.DeleteTemplate)
 	r.GET("/tasks", h.ListTasks)
 	r.POST("/tasks", h.CreateTask)
 	r.GET("/tasks/:id", h.GetTask)
@@ -29,6 +35,80 @@ func (h *DeployHandler) RegisterRoutes(r gin.IRoutes) {
 	r.POST("/tasks/:id/cancel", h.CancelTask)
 	r.POST("/task-hosts/:id/result", h.MarkHostResult)
 	r.POST("/task-hosts/:id/report", h.MarkHostResult)
+}
+
+func (h *DeployHandler) ListTemplates(c *gin.Context) {
+	var query TemplateQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		return
+	}
+	resp, err := h.svc.ListTemplates(query)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploytemplate.list_failed")
+		return
+	}
+	common.Success(c, resp)
+}
+
+func (h *DeployHandler) CreateTemplate(c *gin.Context) {
+	common.SetAuditMetadata(c, "新增任务模板", common.BusinessInsert)
+	var req CreateTemplateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		return
+	}
+	resp, err := h.svc.CreateTemplate(req, currentActor(c))
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploytemplate.create_failed")
+		return
+	}
+	common.Success(c, resp)
+}
+
+func (h *DeployHandler) GetTemplate(c *gin.Context) {
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	resp, err := h.svc.GetTemplate(id)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploytemplate.not_found")
+		return
+	}
+	common.Success(c, resp)
+}
+
+func (h *DeployHandler) UpdateTemplate(c *gin.Context) {
+	common.SetAuditMetadata(c, "编辑任务模板", common.BusinessUpdate)
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	var req UpdateTemplateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		return
+	}
+	resp, err := h.svc.UpdateTemplate(id, req, currentActor(c))
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploytemplate.update_failed")
+		return
+	}
+	common.Success(c, resp)
+}
+
+func (h *DeployHandler) DeleteTemplate(c *gin.Context) {
+	common.SetAuditMetadata(c, "删除任务模板", common.BusinessDelete)
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	if err := h.svc.DeleteTemplate(id); err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploytemplate.delete_failed")
+		return
+	}
+	common.Success(c, nil)
 }
 
 func (h *DeployHandler) ListPackages(c *gin.Context) {
@@ -55,6 +135,19 @@ func (h *DeployHandler) CreatePackage(c *gin.Context) {
 	resp, err := h.svc.CreatePackage(req, currentActor(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "deploypackage.create_failed")
+		return
+	}
+	common.Success(c, resp)
+}
+
+func (h *DeployHandler) GetPackage(c *gin.Context) {
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	resp, err := h.svc.GetPackage(id)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploypackage.not_found")
 		return
 	}
 	common.Success(c, resp)
@@ -113,7 +206,7 @@ func (h *DeployHandler) CreateTask(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
 		return
 	}
-	resp, err := h.svc.CreateTask(req, currentActor(c))
+	resp, err := h.svc.CreateTask(req, currentActor(c), common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "deploytask.create_failed")
 		return
@@ -159,7 +252,14 @@ func (h *DeployHandler) StartTask(c *gin.Context) {
 	if !ok {
 		return
 	}
-	resp, err := h.svc.StartTask(id, currentActor(c))
+	var req StartTaskRequest
+	if c.Request.ContentLength > 0 {
+		if err := c.ShouldBindJSON(&req); err != nil {
+			common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+			return
+		}
+	}
+	resp, err := h.svc.StartTask(id, req, currentActor(c), common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "deploytask.start_failed")
 		return

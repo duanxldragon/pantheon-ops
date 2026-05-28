@@ -127,6 +127,18 @@
   min-width: 84px;
 }
 
+.auth-security-event-page__filter-grid {
+  align-items: end;
+}
+
+.auth-security-event-page__filter-actions .arco-space {
+  gap: 8px !important;
+}
+
+.auth-security-event-page__filter-actions .arco-btn {
+  min-width: 84px;
+}
+
 .auth-login-log-page__table-card .table-batch-action-bar--governance .table-batch-action-bar__meta {
   flex: 0 1 auto;
 }

@@ -361,11 +361,11 @@ const I18nList: React.FC = () => {
     () =>
       Array.from(
         new Set([...registeredModuleOptions, ...rows.map((item) => item.module).filter(Boolean)]),
-      ).sort(),
+      ).sort((a, b) => a.localeCompare(b)),
     [registeredModuleOptions, rows],
   );
   const groupOptions = useMemo(
-    () => Array.from(new Set(rows.map((item) => item.group).filter(Boolean))).sort(),
+    () => Array.from(new Set(rows.map((item) => item.group).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
     [rows],
   );
 
@@ -445,16 +445,6 @@ const I18nList: React.FC = () => {
     [canRefresh, groupOptions.length, overview, t],
   );
 
-  const renderRequestErrorState = (requestError: unknown, onRetry: () => void) => {
-    if (isNetworkRequestError(requestError)) {
-      return <PageNetworkError timeout={isTimeoutRequestError(requestError)} onRetry={onRetry} />;
-    }
-    if (isServerRequestError(requestError)) {
-      return <PageServerError onRetry={onRetry} />;
-    }
-    return <PageError onRetry={onRetry} />;
-  };
-
   const handleSearch = () => {
     const values = queryForm.getFieldsValue();
     setSelectedRowKeys([]);
@@ -528,6 +518,10 @@ const I18nList: React.FC = () => {
       message.error(t('i18n.delete.error'));
     }
   };
+
+  const handleRetryLoadData = useCallback(() => {
+    void loadData(query);
+  }, [loadData, query]);
 
   const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) {
@@ -1111,9 +1105,15 @@ const I18nList: React.FC = () => {
   }
 
   if (error) {
-    return renderRequestErrorState(error, () => {
-      void loadData(query);
-    });
+    if (isNetworkRequestError(error)) {
+      return (
+        <PageNetworkError timeout={isTimeoutRequestError(error)} onRetry={handleRetryLoadData} />
+      );
+    }
+    if (isServerRequestError(error)) {
+      return <PageServerError onRetry={handleRetryLoadData} />;
+    }
+    return <PageError onRetry={handleRetryLoadData} />;
   }
 
   return (

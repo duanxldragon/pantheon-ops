@@ -18,6 +18,7 @@ func NewLabelHandler(svc *LabelService) *LabelHandler {
 
 func (h *LabelHandler) RegisterRoutes(r gin.IRoutes) {
 	r.GET("/labels", h.List)
+	r.GET("/labels/options", h.ListOptions)
 	r.POST("/labels", h.Create)
 	r.PUT("/labels/:id", h.Update)
 	r.DELETE("/labels/:id", h.Delete)
@@ -30,6 +31,20 @@ func (h *LabelHandler) List(c *gin.Context) {
 		return
 	}
 	items, err := h.svc.List(query)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "cmdblabel.list_failed")
+		return
+	}
+	common.Success(c, items)
+}
+
+func (h *LabelHandler) ListOptions(c *gin.Context) {
+	var query LabelSchemaQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		return
+	}
+	items, err := h.svc.ListOptions(query)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "cmdblabel.list_failed")
 		return

@@ -76,7 +76,7 @@ func (s *Service) LoadConfig() (*Config, error) {
 	cfg := &Config{
 		StorageDriver: "local",
 		MaxFileSizeMB: 20,
-		AllowedTypes:  []string{"jpg", "jpeg", "png", "pdf", "doc", "docx", "xls", "xlsx"},
+		AllowedTypes:  []string{"jpg", "jpeg", "png", "pdf", "doc", "docx", "xls", "xlsx", "zip", "gz", "tgz", "tar"},
 		LocalPath:     "./uploads",
 		S3Region:      "us-east-1",
 	}

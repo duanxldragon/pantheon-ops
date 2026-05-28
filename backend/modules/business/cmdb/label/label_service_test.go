@@ -36,7 +36,7 @@ func TestCreateLabelSchema(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create label schema: %v", err)
 	}
-	if resp.Key != "env" || resp.ValueMode != "enum" || resp.DictCode != "cmdb_env" || !resp.Required {
+	if resp.Key != "env" || resp.ValueMode != "enum" || resp.DictCode != "cmdb_env" || !resp.Required || resp.Category != "base" {
 		t.Fatalf("unexpected label schema response: %+v", resp)
 	}
 }
@@ -65,6 +65,37 @@ func TestLabelSchemaOptions(t *testing.T) {
 	}
 	if len(updated.Options) != 2 || updated.Options[0] != "Prometheus" || updated.Options[1] != "Node Exporter" {
 		t.Fatalf("unexpected updated options: %+v", updated.Options)
+	}
+
+	second, err := svc.Create(CreateLabelSchemaRequest{
+		Key:       "middleware",
+		Name:      "中间件",
+		Category:  "middleware",
+		ValueMode: "enum",
+		Options:   []string{"nginx", "redis"},
+		Status:    "enabled",
+	})
+	if err != nil {
+		t.Fatalf("create second label schema: %v", err)
+	}
+	if second.Category != "middleware" {
+		t.Fatalf("unexpected category: %+v", second)
+	}
+
+	pageResp, err := svc.List(LabelSchemaQuery{Page: 1, PageSize: 1})
+	if err != nil {
+		t.Fatalf("list label schema: %v", err)
+	}
+	if pageResp.Total != 2 || len(pageResp.Items) != 1 {
+		t.Fatalf("unexpected paged list response: %+v", pageResp)
+	}
+
+	optionResp, err := svc.ListOptions(LabelSchemaQuery{Category: "middleware", Status: "enabled"})
+	if err != nil {
+		t.Fatalf("list label schema options: %v", err)
+	}
+	if len(optionResp) != 1 || optionResp[0].Key != "middleware" {
+		t.Fatalf("unexpected filtered options: %+v", optionResp)
 	}
 }
 
