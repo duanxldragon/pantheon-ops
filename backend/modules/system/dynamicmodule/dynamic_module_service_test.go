@@ -522,6 +522,20 @@ func TestUnregisterAndRegisterManagedModule_RewritesRegistriesWithoutPurgingSour
 	assertFileContains(t, filepath.Join(workspaceRoot, "backend", "modules", "business", "generated_registry.go"), "business/asset")
 }
 
+func TestRegisterManagedModuleRejectsPathTraversalWorkspaceArtifacts(t *testing.T) {
+	db := openDynamicModuleTestDB(t)
+	workspaceRoot := prepareDynamicModuleWorkspace(t)
+
+	service := &DynamicModuleService{
+		db:            db,
+		workspaceRoot: workspaceRoot,
+	}
+
+	if _, err := service.RegisterManagedModule("business../safe"); err == nil || err.Error() != "module.invalid_name" {
+		t.Fatalf("expected invalid module name error, got %v", err)
+	}
+}
+
 func TestSyncBuiltInModules_PromotesGeneratedSchemaToManagedModule(t *testing.T) {
 	db := openDynamicModuleTestDB(t)
 	workspaceRoot := prepareDynamicModuleWorkspace(t)
