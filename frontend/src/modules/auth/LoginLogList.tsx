@@ -72,7 +72,7 @@ function toCleanupTimestamp(value: string) {
     /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/,
   );
   if (!match) {
-    return normalized ? undefined : undefined;
+    return undefined;
   }
   const [, year, month, day, hour, minute, second = '00'] = match;
   const localDate = new Date(

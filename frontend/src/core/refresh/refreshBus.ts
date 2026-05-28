@@ -120,7 +120,7 @@ export function useRefreshPolling(
   intervalMs = DEFAULT_REFRESH_POLL_INTERVAL_MS,
 ) {
   const versionsRef = useRef<Record<string, number>>({});
-  const normalizedTopics = useMemo(() => normalizeTopics(topics).sort(), [topics]);
+  const normalizedTopics = useMemo(() => normalizeTopics(topics).sort((a, b) => a.localeCompare(b)), [topics]);
   const topicKey = useMemo(() => normalizedTopics.join(','), [normalizedTopics]);
   const authToken = token || (typeof globalThis.document !== 'undefined' && hasAuthCookie() ? '_cookie' : null);
 

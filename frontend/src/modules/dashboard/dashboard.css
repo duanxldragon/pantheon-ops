@@ -297,7 +297,6 @@
 }
 
 .dashboard-quick-action__title {
-  display: block;
   min-width: 0;
   color: var(--text-primary);
   font-weight: 600;
