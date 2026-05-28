@@ -13,4 +13,6 @@ func GetLocationByIP(ip string) string {
 }
 
 // InitLocationService 初始化地理位置服务 (空实现)
-func InitLocationService() {}
+func InitLocationService() {
+	// 地理位置服务尚未实现，预留接口供后续集成第三方 IP 地理库
+}
