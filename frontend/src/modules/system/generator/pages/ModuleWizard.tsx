@@ -699,7 +699,7 @@ const ModuleWizard: React.FC = () => {
         ...Object.keys(schema.i18n.translations.zh),
         ...Object.keys(schema.i18n.translations.en),
       ]),
-    ).sort();
+    ).sort((a, b) => a.localeCompare(b));
     const csv = [
       ['key', 'zh-CN', 'en-US'].map(escapeCsvCell).join(','),
       ...keys.map((key) =>
@@ -731,7 +731,7 @@ const ModuleWizard: React.FC = () => {
         try {
           const rows = parseCsvRows(String(reader.result || ''));
           const nextOverrides: Record<string, TranslationOverride> = {};
-          rows.slice(1).forEach(applyTranslationRow);
+          rows.slice(1).forEach((row) => applyTranslationRow(row));
           setTranslationOverrides((current) => ({ ...current, ...nextOverrides }));
           message.success(t('generator.wizard.step3.translationPreview.importSuccess'));
         } catch {

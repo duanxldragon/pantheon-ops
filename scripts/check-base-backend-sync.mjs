@@ -62,7 +62,7 @@ function collectSharedBaseFiles() {
     }
     files.push(...collectFiles(baseBackendRoot, absolutePath));
   }
-  return files.sort();
+  return files.sort((a, b) => a.localeCompare(b));
 }
 
 function main() {

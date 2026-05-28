@@ -364,7 +364,7 @@ request.interceptors.response.use(
     // 处理二次验证请求
     if (code === 403 && shouldRetryOperationVerify(config, message)) {
       try {
-        return retryWithOperationVerify(config);
+        return await retryWithOperationVerify(config);
       } catch (err) {
         return Promise.reject(err);
       }
@@ -403,7 +403,7 @@ request.interceptors.response.use(
       shouldRetryOperationVerify(config, error.response?.data?.message)
     ) {
       try {
-        return retryWithOperationVerify(config);
+        return await retryWithOperationVerify(config);
       } catch (verifyError) {
         return Promise.reject(createTransportError(verifyError));
       }

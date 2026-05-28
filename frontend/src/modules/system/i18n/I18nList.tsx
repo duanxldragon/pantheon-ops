@@ -280,7 +280,7 @@ const I18nList: React.FC = () => {
           modules
             .map((item) => item.name)
             .filter(Boolean)
-            .sort(),
+            .sort((a, b) => a.localeCompare(b)),
         );
       })
       .catch(() => setRegisteredModuleOptions([]));
