@@ -1,0 +1,7 @@
+{
+  "operations.bizscope.menu": "Business Scope",
+  "business.bizscope.permission.view": "View business scope",
+  "business.bizscope.permission.create": "Create business scope",
+  "business.bizscope.permission.update": "Update business scope",
+  "business.bizscope.permission.delete": "Delete business scope"
+}

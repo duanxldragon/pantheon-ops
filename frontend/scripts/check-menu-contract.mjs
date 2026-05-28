@@ -288,7 +288,12 @@ function parseFallbackTranslations() {
     const base = loadResourceModule(filePath);
     const generatedPath = path.join(frontendGeneratedI18nRoot, `${locale}.ts`);
     const generated = fs.existsSync(generatedPath) ? loadResourceModule(generatedPath) : {};
-    const keys = new Set([...Object.keys(base), ...Object.keys(generated)]);
+    const moduleLocaleFiles = walkFiles(
+      frontendModulesRoot,
+      (modulePath) => modulePath.endsWith(`${path.sep}locales${path.sep}${locale}.json`),
+    );
+    const moduleLocaleKeys = moduleLocaleFiles.flatMap((modulePath) => Object.keys(JSON.parse(readFile(modulePath))));
+    const keys = new Set([...Object.keys(base), ...Object.keys(generated), ...moduleLocaleKeys]);
     translations.set(locale, keys);
   }
 
@@ -301,6 +306,38 @@ function extractMapField(block, fieldName) {
   return match ? match[1] : '';
 }
 
+function extractStructBlocksWithFields(source, fieldNames) {
+  const blocks = [];
+  for (const match of source.matchAll(/\{([^{}]*)\}/gms)) {
+    const block = match[1];
+    if (
+      fieldNames.every((fieldName) => new RegExp(`\\b${fieldName}\\b\\s*:`).test(block)) &&
+      extractField(block, 'Locale') &&
+      extractField(block, 'Group') &&
+      extractField(block, 'Key')
+    ) {
+      blocks.push(block);
+    }
+  }
+  return blocks;
+}
+
+function extractMapBlocksWithFields(source, fieldNames) {
+  const blocks = [];
+  for (const match of source.matchAll(/\{([^{}]*)\}/gms)) {
+    const block = match[1];
+    if (
+      fieldNames.every((fieldName) => new RegExp(`"${fieldName}"\\s*:`).test(block)) &&
+      extractMapField(block, 'locale') &&
+      extractMapField(block, 'group_name') &&
+      extractMapField(block, 'key')
+    ) {
+      blocks.push(block);
+    }
+  }
+  return blocks;
+}
+
 function parseBackendMenuI18nSeeds() {
   const files = walkFiles(backendModulesRoot, (filePath) => filePath.endsWith('.go'));
   const translations = new Map([
@@ -311,20 +348,20 @@ function parseBackendMenuI18nSeeds() {
   for (const filePath of files) {
     const source = readFile(filePath);
 
-    for (const match of source.matchAll(/\{([^{}]*\bLocale:\s*"[^"]+"[^{}]*\bGroup:\s*"menu"[^{}]*\bKey:\s*"[^"]+"[^{}]*)\}/gms)) {
-      const block = match[1];
+    for (const block of extractStructBlocksWithFields(source, ['Locale', 'Group', 'Key'])) {
       const locale = extractField(block, 'Locale');
+      const group = extractField(block, 'Group');
       const key = extractField(block, 'Key');
-      if (translations.has(locale) && key) {
+      if (translations.has(locale) && group === 'menu' && key) {
         translations.get(locale).add(key);
       }
     }
 
-    for (const match of source.matchAll(/\{([^{}]*"locale"\s*:\s*"[^"]+"[^{}]*"group_name"\s*:\s*"menu"[^{}]*"key"\s*:\s*"[^"]+"[^{}]*)\}/gms)) {
-      const block = match[1];
+    for (const block of extractMapBlocksWithFields(source, ['locale', 'group_name', 'key'])) {
       const locale = extractMapField(block, 'locale');
+      const group = extractMapField(block, 'group_name');
       const key = extractMapField(block, 'key');
-      if (translations.has(locale) && key) {
+      if (translations.has(locale) && group === 'menu' && key) {
         translations.get(locale).add(key);
       }
     }
@@ -344,8 +381,7 @@ function parseBackendScopedI18nSeeds(groupNames) {
   for (const filePath of files) {
     const source = readFile(filePath);
 
-    for (const match of source.matchAll(/\{([^{}]*\bLocale:\s*"[^"]+"[^{}]*\bGroup:\s*"[^"]+"[^{}]*\bKey:\s*"[^"]+"[^{}]*)\}/gms)) {
-      const block = match[1];
+    for (const block of extractStructBlocksWithFields(source, ['Locale', 'Group', 'Key'])) {
       const locale = extractField(block, 'Locale');
       const group = extractField(block, 'Group');
       const key = extractField(block, 'Key');
@@ -354,8 +390,7 @@ function parseBackendScopedI18nSeeds(groupNames) {
       }
     }
 
-    for (const match of source.matchAll(/\{([^{}]*"locale"\s*:\s*"[^"]+"[^{}]*"group_name"\s*:\s*"[^"]+"[^{}]*"key"\s*:\s*"[^"]+"[^{}]*)\}/gms)) {
-      const block = match[1];
+    for (const block of extractMapBlocksWithFields(source, ['locale', 'group_name', 'key'])) {
       const locale = extractMapField(block, 'locale');
       const group = extractMapField(block, 'group_name');
       const key = extractMapField(block, 'key');
