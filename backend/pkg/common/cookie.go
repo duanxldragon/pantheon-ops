@@ -4,8 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 )
 
@@ -15,14 +13,6 @@ const (
 	CookieCSRFToken    = "pantheon_csrf_token"
 )
 
-func shouldUseSecureCookies() bool {
-	value := strings.TrimSpace(strings.ToLower(os.Getenv("PANTHEON_COOKIE_SECURE")))
-	if value == "0" || value == "false" || value == "off" {
-		return false
-	}
-	return true
-}
-
 func setCookie(w http.ResponseWriter, name, value string, maxAge int, httpOnly bool, sameSite http.SameSite) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     name,
@@ -30,7 +20,7 @@ func setCookie(w http.ResponseWriter, name, value string, maxAge int, httpOnly b
 		Path:     "/",
 		MaxAge:   maxAge,
 		HttpOnly: httpOnly,
-		Secure:   shouldUseSecureCookies(),
+		Secure:   true,
 		SameSite: sameSite,
 	})
 }

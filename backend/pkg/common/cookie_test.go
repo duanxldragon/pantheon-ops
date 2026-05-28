@@ -6,15 +6,13 @@ import (
 	"testing"
 )
 
-func TestTokenCookiesRespectSecureEnv(t *testing.T) {
-	t.Setenv("PANTHEON_COOKIE_SECURE", "false")
-
+func TestTokenCookiesAlwaysSecure(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	SetAccessTokenCookie(recorder, "token")
 
 	cookie := recorder.Result().Cookies()[0]
-	if cookie.Secure {
-		t.Fatal("expected secure cookie to be disabled by env override")
+	if !cookie.Secure {
+		t.Fatal("expected secure cookie to always be enabled")
 	}
 }
 
