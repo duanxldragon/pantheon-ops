@@ -54,6 +54,26 @@ Shared foundation changes such as upload behavior, pagination behavior, shared a
 3. sync shared paths into `pantheon-ops`
 4. re-validate local business modules in `pantheon-ops`
 
+## 6.1 Landing-Side Decision Rules
+
+When a problem appears, decide the landing side before editing:
+
+- fix it in `pantheon-base` first if it belongs to `platform`, any `system/*` domain, shared admin-shell behavior, shared pagination, shared tables, shared upload, shared i18n, or shared smoke helpers
+- keep it local to `pantheon-ops` if it belongs to `business/cmdb`, `business/deploy`, or `business/bizscope`
+- if the visible symptom is in ops but the root cause is a shared shell or shared component, route the fix back to base
+- if unsure, read the base contracts and this inheritance file first instead of guessing from file paths alone
+
+## 6.2 Sync Closure Checklist
+
+A `base -> ops` sync should at least make these answers explicit:
+
+- which base commit introduced the shared change
+- which shared paths were synced and which were intentionally left out
+- whether local `business/*` paths remained untouched
+- whether menus, permissions, i18n, tests, smoke, and docs were aligned with the shared change
+- whether base and ops each received their minimum validation pass
+- whether remaining drift was recorded explicitly instead of left implicit
+
 ## 7. Runtime Isolation
 
 - Runtime database is isolated from `pantheon-base`.

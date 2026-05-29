@@ -80,6 +80,26 @@ Current business-domain overrides that stay local to `pantheon-ops`:
 
 不要清空 ops 后整体覆盖、不要用 `git reset --hard` 抹平业务差异、不要用整仓拷贝覆盖 `business/*`。更稳妥的方式是共享路径按文件同步，业务路径按模块回流，每次同步后补 `go test` / `tsc` / smoke。
 
+## 6.4 修复落点判定
+
+遇到问题时，先判断改动应落在哪里：
+
+- 属于 `platform`、`system/*`、共享后台壳层、共享分页、共享表格、共享上传、共享 i18n、共享 smoke helper 的，先改 `pantheon-base`
+- 属于 `business/cmdb`、`business/deploy`、`business/bizscope` 的，留在 `pantheon-ops`
+- 如果只是 ops 页面表现异常，但根因来自共享壳层或共享组件，也应回 base 修
+- 如果不确定，先读 base 合同和本文件，再决定，不要凭文件位置直觉下手
+
+## 6.5 同步收口清单
+
+一次 `base -> ops` 同步至少回答清楚下面几件事：
+
+- 这次共享改动对应的 base commit 是什么
+- 共享路径哪些已同步，哪些故意未同步
+- ops 本地 `business/*` 路径是否保持原样
+- 菜单、权限、i18n、测试、smoke、文档是否与共享改动保持一致
+- 是否分别验证了 base 和 ops 的最小启动、build 或 smoke
+- 是否把剩余漂移显式记录，而不是留给下次会话猜
+
 ## 7. 运行时隔离
 
 - 运行时数据库必须和 `pantheon-base` 隔离
