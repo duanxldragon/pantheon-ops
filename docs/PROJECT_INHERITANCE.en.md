@@ -84,14 +84,14 @@ Recommended order for one `base -> ops` sync pass:
 git -C D:\workspace\go\pantheon-platform\pantheon-base rev-parse --short HEAD
 ```
 
-2. run the local inheritance guard in `pantheon-ops`
+2. run the one-shot inheritance check in `pantheon-ops` so template linkage, inheritance markers, and shared backend alignment are validated together first
 
 ```powershell
 Set-Location D:\workspace\go\pantheon-platform\pantheon-ops
-npm run check:inheritance-contract
+npm run check:inheritance
 ```
 
-3. verify shared backend alignment against base
+3. if the previous step fails, inspect shared backend alignment separately and use the output to decide the sync scope
 
 ```powershell
 npm run check:base-sync:backend
@@ -128,6 +128,10 @@ At minimum, record:
 - which paths were intentionally left out
 - whether local `business/*` paths stayed intact
 - the minimum validation result for both base and ops
+
+Common local command:
+
+- `npm run check:inheritance`: one-shot check for task-packet template linkage, inheritance markers, and shared backend alignment
 
 ## 7. Runtime Isolation
 

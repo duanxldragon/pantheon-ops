@@ -110,14 +110,14 @@ Current business-domain overrides that stay local to `pantheon-ops`:
 git -C D:\workspace\go\pantheon-platform\pantheon-base rev-parse --short HEAD
 ```
 
-2. 在 `pantheon-ops` 先跑本地继承约束检查
+2. 在 `pantheon-ops` 先跑一键继承校验，先把模板、继承契约和共享 backend 对齐状态一次性过掉
 
 ```powershell
 Set-Location D:\workspace\go\pantheon-platform\pantheon-ops
-npm run check:inheritance-contract
+npm run check:inheritance
 ```
 
-3. 检查共享 backend 是否仍与 base 对齐
+3. 如果上一步失败，再单独检查共享 backend 是否仍与 base 对齐，并根据输出决定同步范围
 
 ```powershell
 npm run check:base-sync:backend
@@ -154,6 +154,10 @@ npm run build
 - 哪些路径故意未同步
 - `business/*` 是否保持原样
 - base/ops 的最小验证结果
+
+常用本地命令：
+
+- `npm run check:inheritance`：一键检查 task packet 模板、继承契约、共享 backend 对齐状态
 
 ## 7. 运行时隔离
 
