@@ -43,9 +43,7 @@ import { formatClientSummary } from './clientInfo';
 import SessionDetailModal from './SessionDetailModal';
 import '../system/list-page.css';
 import './auth.css';
-import { normalizeRetentionOptions } from '../system/audit/retentionSetting';
-import { loadRetentionSetting } from '../system/audit/retentionSetting';
-
+import { toCleanupTimestamp, normalizeRetentionOptions, loadRetentionSetting } from '../system/audit/retentionSetting';
 const Row = Grid.Row;
 const Col = Grid.Col;
 const FormItem = Form.Item;
@@ -61,33 +59,6 @@ const emptyQuery: AdminSessionQuery = {
   pageSize: 10,
 };
 const defaultRetentionOptions = [1, 7, 30];
-
-function toCleanupTimestamp(value: string) {
-  const normalized = String(value || '').trim();
-  const match = normalized.match(
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/,
-  );
-  if (!match) {
-    return undefined;
-  }
-  const [, year, month, day, hour, minute, second = '00'] = match;
-  const localDate = new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-    Number(minute),
-    Number(second),
-  );
-  if (Number.isNaN(localDate.getTime())) {
-    return undefined;
-  }
-  const offsetMinutes = -localDate.getTimezoneOffset();
-  const sign = offsetMinutes >= 0 ? '+' : '-';
-  const offsetHours = `${Math.floor(Math.abs(offsetMinutes) / 60)}`.padStart(2, '0');
-  const offsetRemainMinutes = `${Math.abs(offsetMinutes) % 60}`.padStart(2, '0');
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}${sign}${offsetHours}:${offsetRemainMinutes}`;
-}
 
 interface LoadDataOptions {
   silent?: boolean;
