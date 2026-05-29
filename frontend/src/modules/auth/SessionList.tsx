@@ -173,7 +173,7 @@ const SessionList: React.FC = () => {
       getSettingGroup('audit')
         .then((group) => {
           const setting = group.items.find(
-            isSessionRetentionSetting,
+            (item) => item.settingKey === 'audit.session_cleanup_retention_options',
           );
           const nextOptions = normalizeRetentionOptions(setting?.settingValue);
           setRetentionOptions(nextOptions);

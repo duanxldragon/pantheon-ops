@@ -165,7 +165,7 @@ const LoginLogList: React.FC = () => {
       getSettingGroup('audit')
         .then((group) => {
           const setting = group.items.find(
-            isLoginLogRetentionSetting,
+            (item) => item.settingKey === 'audit.login_log_retention_options',
           );
           const nextOptions = normalizeRetentionOptions(setting?.settingValue);
           setRetentionOptions(nextOptions);
