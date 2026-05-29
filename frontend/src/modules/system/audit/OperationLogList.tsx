@@ -558,8 +558,6 @@ const OperationLogList: React.FC = () => {
     return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
-  const isOperationLogRetentionSetting = (item) => item.settingKey === 'audit.operation_log_retention_options';
-
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
