@@ -522,7 +522,7 @@ function main() {
     if (route.pagePermission && !frontendPermissionKeys.has(route.pagePermission)) {
       errors.push(`路由 pagePermission 未声明到 permissions: ${route.pagePermission} (${route.filePath} -> ${routePath})`);
     }
-    const isManagedMenuRoute = menuMap.has(routePath);
+    const isManagedMenuRoute = menuMap.has(routePath) || (route.activeMenu && menuMap.has(route.activeMenu));
     for (const locale of ['zh-CN', 'en-US']) {
       if (!fallbackTranslations.get(locale)?.has(route.titleKey)) {
         errors.push(`fallback 语言包缺少页面 key: ${route.titleKey} (${locale}, ${routePath})`);

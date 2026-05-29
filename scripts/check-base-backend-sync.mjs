@@ -27,6 +27,10 @@ const excludedPaths = new Set([
   'modules/system/iam/menu/generated_component_registry.go',
 ]);
 
+const excludedDirPrefixes = [
+  'cmd/server/uploads/',
+];
+
 function toRepoPath(filePath) {
   return filePath.split(path.sep).join('/');
 }
@@ -112,6 +116,10 @@ function main() {
 
   for (const relativePath of collectSharedBaseFiles()) {
     if (excludedPaths.has(relativePath)) {
+      continue;
+    }
+
+    if (excludedDirPrefixes.some((prefix) => relativePath.startsWith(prefix))) {
       continue;
     }
 

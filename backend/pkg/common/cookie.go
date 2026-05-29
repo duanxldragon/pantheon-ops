@@ -13,13 +13,25 @@ const (
 	CookieCSRFToken    = "pantheon_csrf_token"
 )
 
-func setCookie(w http.ResponseWriter, name, value string, maxAge int, httpOnly bool, sameSite http.SameSite) {
+func setCookie(w http.ResponseWriter, name, value string, maxAge int, sameSite http.SameSite) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     name,
 		Value:    value,
 		Path:     "/",
 		MaxAge:   maxAge,
-		HttpOnly: httpOnly,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: sameSite,
+	})
+}
+
+func setReadableCookie(w http.ResponseWriter, name, value string, maxAge int, sameSite http.SameSite) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     name,
+		Value:    value,
+		Path:     "/",
+		MaxAge:   maxAge,
+		HttpOnly: false,
 		Secure:   true,
 		SameSite: sameSite,
 	})
@@ -27,18 +39,18 @@ func setCookie(w http.ResponseWriter, name, value string, maxAge int, httpOnly b
 
 func SetAccessTokenCookie(w http.ResponseWriter, token string) {
 	ttl := int((15 * time.Minute).Seconds())
-	setCookie(w, CookieAccessToken, token, ttl, true, http.SameSiteStrictMode)
+	setCookie(w, CookieAccessToken, token, ttl, http.SameSiteStrictMode)
 }
 
 func SetRefreshTokenCookie(w http.ResponseWriter, token string) {
 	ttl := int((7 * 24 * time.Hour).Seconds())
-	setCookie(w, CookieRefreshToken, token, ttl, true, http.SameSiteStrictMode)
+	setCookie(w, CookieRefreshToken, token, ttl, http.SameSiteStrictMode)
 }
 
 func ClearTokenCookies(w http.ResponseWriter) {
-	setCookie(w, CookieAccessToken, "", -1, true, http.SameSiteStrictMode)
-	setCookie(w, CookieRefreshToken, "", -1, true, http.SameSiteStrictMode)
-	setCookie(w, CookieCSRFToken, "", -1, false, http.SameSiteStrictMode)
+	setCookie(w, CookieAccessToken, "", -1, http.SameSiteStrictMode)
+	setCookie(w, CookieRefreshToken, "", -1, http.SameSiteStrictMode)
+	setReadableCookie(w, CookieCSRFToken, "", -1, http.SameSiteStrictMode)
 }
 
 func SetCSRFCookie(w http.ResponseWriter) (string, error) {
@@ -46,7 +58,7 @@ func SetCSRFCookie(w http.ResponseWriter) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	setCookie(w, CookieCSRFToken, token, int((24 * time.Hour).Seconds()), false, http.SameSiteStrictMode)
+	setReadableCookie(w, CookieCSRFToken, token, int((24 * time.Hour).Seconds()), http.SameSiteStrictMode)
 	return token, nil
 }
 
