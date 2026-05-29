@@ -53,6 +53,7 @@ import {
 import { usePermission } from '../../hooks/usePermission';
 import './auth.css';
 import '../system/list-page.css';
+import { normalizeRetentionOptions } from '../system/audit/retentionSetting';
 import { loadRetentionSetting } from '../system/audit/retentionSetting';
 
 const Row = Grid.Row;
@@ -92,26 +93,6 @@ function toCleanupTimestamp(value: string) {
   const offsetHours = `${Math.floor(Math.abs(offsetMinutes) / 60)}`.padStart(2, '0');
   const offsetRemainMinutes = `${Math.abs(offsetMinutes) % 60}`.padStart(2, '0');
   return `${year}-${month}-${day}T${hour}:${minute}:${second}${sign}${offsetHours}:${offsetRemainMinutes}`;
-}
-
-function normalizeRetentionOptions(rawValue: string | undefined) {
-  if (!rawValue) {
-    return defaultRetentionOptions;
-  }
-  try {
-    const parsed = JSON.parse(rawValue) as unknown;
-    if (!Array.isArray(parsed)) {
-      return defaultRetentionOptions;
-    }
-    const normalized = Array.from(
-      new Set(
-        parsed.map((item) => Number(item)).filter((item) => Number.isInteger(item) && item > 0),
-      ),
-    ).sort((left, right) => right - left);
-    return normalized.length > 0 ? normalized : defaultRetentionOptions;
-  } catch {
-    return defaultRetentionOptions;
-  }
 }
 
 const LoginLogList: React.FC = () => {
@@ -165,7 +146,7 @@ const LoginLogList: React.FC = () => {
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
-        .then((group: any) => loadRetentionSetting(group, 'audit.login_log_retention_options', defaultRetentionOptions, setRetentionOptions, setRetentionDays))
+        .then((group: any) => loadRetentionSetting(group, 'audit.login_log_retention_options', setRetentionOptions, setRetentionDays))
         .catch(() => undefined);
     }, 0);
     return () => globalThis.clearTimeout(timer);

@@ -1,18 +1,4 @@
-export function loadRetentionSetting(
-  group: { items: Array<{ settingKey: string; settingValue?: string }> },
-  settingKey: string,
-  defaultRetentionOptions: number[],
-  setRetentionOptions: (opts: number[]) => void,
-  setRetentionDays: (value: number | ((current: number) => number)) => void,
-) {
-  const setting = group.items.find((item) => item.settingKey === settingKey);
-  const nextOptions = normalizeRetentionOptions(setting?.settingValue);
-  setRetentionOptions(nextOptions);
-  setRetentionDays((current) => (nextOptions.includes(current as number) ? current : nextOptions[0]));
-}
-
-function normalizeRetentionOptions(rawValue: string | undefined): number[] {
-  const defaultOptions = [1, 7, 30];
+export function normalizeRetentionOptions(rawValue: string | undefined, defaultOptions: number[] = [1, 7, 30]): number[] {
   if (!rawValue) {
     return defaultOptions;
   }
@@ -30,4 +16,16 @@ function normalizeRetentionOptions(rawValue: string | undefined): number[] {
   } catch {
     return defaultOptions;
   }
+}
+
+export function loadRetentionSetting(
+  group: { items: Array<{ settingKey: string; settingValue?: string }> },
+  settingKey: string,
+  setRetentionOptions: (opts: number[]) => void,
+  setRetentionDays: (value: number | ((current: number) => number)) => void,
+) {
+  const setting = group.items.find((item) => item.settingKey === settingKey);
+  const nextOptions = normalizeRetentionOptions(setting?.settingValue);
+  setRetentionOptions(nextOptions);
+  setRetentionDays((current) => (nextOptions.includes(current as number) ? current : nextOptions[0]));
 }
