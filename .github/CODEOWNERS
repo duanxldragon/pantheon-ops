@@ -1,5 +1,16 @@
+# Route reviews to the repository owner.
+# Branch protection must still require an additional non-author approval.
 * @duanxldragon
 
+/.github/ @duanxldragon
 /backend/ @duanxldragon
+/backend/modules/business/ @duanxldragon
+/backend/modules/system/ @duanxldragon
 /frontend/ @duanxldragon
+/frontend/src/core/ @duanxldragon
+/frontend/src/modules/business/ @duanxldragon
+/frontend/src/modules/system/ @duanxldragon
 /docs/ @duanxldragon
+/scripts/ @duanxldragon
+/database/ @duanxldragon
+/sonar-project.properties @duanxldragon

@@ -9,7 +9,7 @@ export function normalizeRetentionOptions(rawValue: string | undefined, defaultO
     }
     const normalized = Array.from(
       new Set(
-        parsed.map((item) => Number(item)).filter((item) => Number.isInteger(item) && item > 0),
+        parsed.map(Number).filter((item) => Number.isInteger(item) && item > 0),
       ),
     ).sort((left, right) => right - left);
     return normalized.length > 0 ? normalized : defaultOptions;
@@ -20,7 +20,7 @@ export function normalizeRetentionOptions(rawValue: string | undefined, defaultO
 
 export function toCleanupTimestamp(value: string): string | undefined {
   const normalized = String(value || '').trim();
-  const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(normalized);
   if (!match) {
     return undefined;
   }
@@ -52,5 +52,5 @@ export function loadRetentionSetting(
   const setting = group.items.find((item) => item.settingKey === settingKey);
   const nextOptions = normalizeRetentionOptions(setting?.settingValue);
   setRetentionOptions(nextOptions);
-  setRetentionDays((current) => (nextOptions.includes(current as number) ? current : nextOptions[0]));
+  setRetentionDays((current) => (nextOptions.includes(current) ? current : nextOptions[0]));
 }

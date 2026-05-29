@@ -58,7 +58,7 @@ import {
 import { formatDateTime } from '../../../core/format/dateTime';
 import { usePermission } from '../../../hooks/usePermission';
 import '../list-page.css';
-import { toCleanupTimestamp, normalizeRetentionOptions, loadRetentionSetting } from './retentionSetting';
+import { toCleanupTimestamp, loadRetentionSetting } from './retentionSetting';
 const Row = Grid.Row;
 const Col = Grid.Col;
 const FormItem = Form.Item;
