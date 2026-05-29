@@ -2,6 +2,8 @@ package system
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -296,6 +298,9 @@ func TestI18nService_GetOverviewSummarizesCoverage(t *testing.T) {
 	if overview.TotalEntries != 4 {
 		t.Fatalf("expected total entries 4, got %d", overview.TotalEntries)
 	}
+	if overview.UniqueKeyCount != 3 {
+		t.Fatalf("expected unique key count 3, got %d", overview.UniqueKeyCount)
+	}
 	if overview.MissingValueCount != 1 {
 		t.Fatalf("expected missing value count 1, got %d", overview.MissingValueCount)
 	}
@@ -451,6 +456,9 @@ func TestI18nService_GetOverviewUsesBuiltinCoverage(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get overview: %v", err)
 	}
+	if overview.UniqueKeyCount != 1 {
+		t.Fatalf("expected unique key count 1, got %d", overview.UniqueKeyCount)
+	}
 	if overview.MissingValueCount != 0 {
 		t.Fatalf("expected builtin fallback to clear missing value count, got %d", overview.MissingValueCount)
 	}
@@ -517,6 +525,30 @@ func TestI18nService_SeedI18nModuleI18nHydratesBuiltinLocales(t *testing.T) {
 		if strings.TrimSpace(row.Value) == "" || row.Value == "[system.menu.session]" {
 			t.Fatalf("expected hydrated locale value for %s, got %q", locale, row.Value)
 		}
+	}
+}
+
+func TestI18nService_GetLangPackIncludesCommonUsernameFallback(t *testing.T) {
+	db := newI18nTestDB(t)
+	service := NewI18nService(db)
+	if err := service.Migrate(); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+
+	zhPack, err := service.GetLangPack("zh-CN")
+	if err != nil {
+		t.Fatalf("get zh lang pack: %v", err)
+	}
+	if zhPack["common.username"] != "用户名" {
+		t.Fatalf("expected zh common.username fallback, got %q", zhPack["common.username"])
+	}
+
+	enPack, err := service.GetLangPack("en-US")
+	if err != nil {
+		t.Fatalf("get en lang pack: %v", err)
+	}
+	if enPack["common.username"] != "Username" {
+		t.Fatalf("expected en common.username fallback, got %q", enPack["common.username"])
 	}
 }
 
@@ -805,6 +837,149 @@ func TestI18nService_GetAudit(t *testing.T) {
 	}
 	if !foundUnused {
 		t.Fatalf("expected zz.audit.unused.key in unused audit")
+	}
+}
+
+func TestScanI18nKeysDetectsSingleQuotedFrontendReferences(t *testing.T) {
+	workspaceRoot := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(workspaceRoot, "backend"), 0o755); err != nil {
+		t.Fatalf("mkdir backend root: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(workspaceRoot, "frontend", "src"), 0o755); err != nil {
+		t.Fatalf("mkdir frontend root: %v", err)
+	}
+	source := "export function Demo({ t }) { return t('i18n.batchDelete') + t('system.dept.task.title') }\n"
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "src", "demo.tsx"), []byte(source), 0o644); err != nil {
+		t.Fatalf("write demo source: %v", err)
+	}
+	t.Setenv("PANTHEON_WORKSPACE_ROOT", workspaceRoot)
+
+	keys, err := scanI18nKeys(true)
+	if err != nil {
+		t.Fatalf("scan i18n keys: %v", err)
+	}
+	if !containsString(keys, "i18n.batchDelete") {
+		t.Fatalf("expected single-quoted i18n key to be detected, got %#v", keys)
+	}
+	if !containsString(keys, "system.dept.task.title") {
+		t.Fatalf("expected single-quoted dept task key to be detected, got %#v", keys)
+	}
+}
+
+func TestScanI18nKeysExcludesSmokeAndCleanupSources(t *testing.T) {
+	workspaceRoot := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(workspaceRoot, "backend"), 0o755); err != nil {
+		t.Fatalf("mkdir backend root: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(workspaceRoot, "frontend", "src"), 0o755); err != nil {
+		t.Fatalf("mkdir frontend src: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(workspaceRoot, "frontend", "tests", "smoke", "system"), 0o755); err != nil {
+		t.Fatalf("mkdir frontend smoke: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(workspaceRoot, "frontend", "scripts"), 0o755); err != nil {
+		t.Fatalf("mkdir frontend scripts: %v", err)
+	}
+
+	productionSource := "export function Demo({ t }) { return t('system.user.detail') }\n"
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "src", "demo.tsx"), []byte(productionSource), 0o644); err != nil {
+		t.Fatalf("write demo source: %v", err)
+	}
+	smokeSource := "test('smoke', () => t('i18n.smoke.123') && t('dict.smoke_biz_status.enabled') && t('system.smoke'))\n"
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "tests", "smoke", "system", "demo.spec.ts"), []byte(smokeSource), 0o644); err != nil {
+		t.Fatalf("write smoke source: %v", err)
+	}
+	cleanupScript := "const prefixes = ['i18n.enter.', 'i18n.smoke.', 'i18n.import.', 'i18n.sync.', 'dict.smoke_biz_status.']\n"
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "scripts", "cleanup-smoke-fixtures.mjs"), []byte(cleanupScript), 0o644); err != nil {
+		t.Fatalf("write cleanup script: %v", err)
+	}
+	t.Setenv("PANTHEON_WORKSPACE_ROOT", workspaceRoot)
+
+	keys, err := scanI18nKeys(true)
+	if err != nil {
+		t.Fatalf("scan i18n keys: %v", err)
+	}
+	if !containsString(keys, "system.user.detail") {
+		t.Fatalf("expected production key to be detected, got %#v", keys)
+	}
+	for _, unwanted := range []string{"i18n.smoke.123", "dict.smoke_biz_status.enabled", "system.smoke"} {
+		if containsString(keys, unwanted) {
+			t.Fatalf("expected smoke or cleanup key %s to be excluded, got %#v", unwanted, keys)
+		}
+	}
+}
+
+func TestScanI18nKeysExcludesFrontendCatalogAndNodeModules(t *testing.T) {
+	workspaceRoot := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(workspaceRoot, "backend"), 0o755); err != nil {
+		t.Fatalf("mkdir backend root: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(workspaceRoot, "frontend", "src"), 0o755); err != nil {
+		t.Fatalf("mkdir frontend src: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(workspaceRoot, "frontend", "src", "i18n", "resources"), 0o755); err != nil {
+		t.Fatalf("mkdir frontend resources: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(workspaceRoot, "frontend", "node_modules", "demo"), 0o755); err != nil {
+		t.Fatalf("mkdir frontend node_modules: %v", err)
+	}
+
+	productionSource := "export function Demo({ t }) { return t('system.user.detail') }\n"
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "src", "demo.tsx"), []byte(productionSource), 0o644); err != nil {
+		t.Fatalf("write demo source: %v", err)
+	}
+	resourceSource := "const zhCNFallback = { 'system.menu.fake': 'fake' }\n"
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "src", "i18n", "resources", "zh-CN.ts"), []byte(resourceSource), 0o644); err != nil {
+		t.Fatalf("write resource source: %v", err)
+	}
+	nodeModuleSource := "export const CDP = 'Accessibility.getRootAXNode'\n"
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "node_modules", "demo", "index.ts"), []byte(nodeModuleSource), 0o644); err != nil {
+		t.Fatalf("write node module source: %v", err)
+	}
+	t.Setenv("PANTHEON_WORKSPACE_ROOT", workspaceRoot)
+
+	keys, err := scanI18nKeys(true)
+	if err != nil {
+		t.Fatalf("scan i18n keys: %v", err)
+	}
+	if !containsString(keys, "system.user.detail") {
+		t.Fatalf("expected production key to be detected, got %#v", keys)
+	}
+	for _, unwanted := range []string{"system.menu.fake", "Accessibility.getRootAXNode"} {
+		if containsString(keys, unwanted) {
+			t.Fatalf("expected ignored source key %s to be excluded, got %#v", unwanted, keys)
+		}
+	}
+}
+
+func TestIsLikelyI18nKeyRejectsPseudoKeysAndKeepsBusinessKeys(t *testing.T) {
+	rejected := []string{
+		"1.2.3",
+		"10.0.0.8",
+		"app.js",
+		"asset.json",
+		"db.example.com",
+		"_sip._udp.example.com",
+		"avatar.png",
+	}
+	for _, item := range rejected {
+		if isLikelyI18nKey(item) {
+			t.Fatalf("expected pseudo key %q to be rejected", item)
+		}
+	}
+
+	accepted := []string{
+		"auth.token.invalid",
+		"auth.login.failed",
+		"dict.service_status.pending",
+		"dict.deploy_status.pending",
+		"business.asset.title",
+		"custom.rule.rejected",
+	}
+	for _, item := range accepted {
+		if !isLikelyI18nKey(item) {
+			t.Fatalf("expected business key %q to be accepted", item)
+		}
 	}
 }
 

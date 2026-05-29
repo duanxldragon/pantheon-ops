@@ -100,6 +100,12 @@ Current business-domain overrides that stay local to `pantheon-ops`:
 - 是否分别验证了 base 和 ops 的最小启动、build 或 smoke
 - 是否把剩余漂移显式记录，而不是留给下次会话猜
 
+以下路径属于本地扩展点，不要求与 `pantheon-base` 字节级一致，但仍要保持语义清晰：
+
+- `backend/modules/business/generated_registry.go`：允许注册 ops 本地 `business/*` 模块
+- `backend/modules/system/iam/menu/generated_component_registry.go`：允许补充 ops 本地业务页面组件 key
+- `backend/modules/system/i18n/builtin_locale_resources.json` 中的 `business.*` 词条：允许保留 ops 本地业务文案
+
 ## 6.6 可执行同步命令清单
 
 推荐按下面顺序执行一次 `base -> ops` 同步：

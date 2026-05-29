@@ -74,6 +74,12 @@ A `base -> ops` sync should at least make these answers explicit:
 - whether base and ops each received their minimum validation pass
 - whether remaining drift was recorded explicitly instead of left implicit
 
+The following paths are local extension points and are not expected to stay byte-identical with `pantheon-base`, but their intent should stay explicit:
+
+- `backend/modules/business/generated_registry.go`: local ops `business/*` module registration is allowed
+- `backend/modules/system/iam/menu/generated_component_registry.go`: local ops business page component keys are allowed
+- `business.*` entries inside `backend/modules/system/i18n/builtin_locale_resources.json`: local ops business wording is allowed
+
 ## 6.3 Executable Sync Command List
 
 Recommended order for one `base -> ops` sync pass:

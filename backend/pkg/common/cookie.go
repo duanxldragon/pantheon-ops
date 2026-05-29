@@ -42,15 +42,18 @@ func ClearTokenCookies(w http.ResponseWriter) {
 }
 
 func SetCSRFCookie(w http.ResponseWriter) (string, error) {
-	token := generateCSRFToken()
+	token, err := generateCSRFToken()
+	if err != nil {
+		return "", err
+	}
 	setCookie(w, CookieCSRFToken, token, int((24 * time.Hour).Seconds()), false, http.SameSiteStrictMode)
 	return token, nil
 }
 
-func generateCSRFToken() string {
+func generateCSRFToken() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
-		return hex.EncodeToString([]byte("fallback-csrf-token-32bytes!!"))
+		return "", err
 	}
-	return hex.EncodeToString(b)
+	return hex.EncodeToString(b), nil
 }

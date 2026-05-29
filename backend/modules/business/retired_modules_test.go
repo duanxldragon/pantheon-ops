@@ -30,6 +30,8 @@ func TestCleanupRetiredBusinessModules_RemovesManagedRetiredModuleMetadataWithou
 	mustInsertRetiredPermission(t, db, "test:retired:other:view")
 	mustInsertRetiredI18n(t, db, "test.retired")
 	mustInsertRetiredI18n(t, db, "test.retired.sub")
+	mustInsertRetiredScopedI18n(t, db, "system.config", "test.retired.title")
+	mustInsertRetiredScopedI18n(t, db, "system.config", "test.retired.sub.detail")
 	mustInsertManagedRegistration(t, db, "test.retired", "", 1)
 	mustInsertManagedRegistration(t, db, "test.retired.sub", "biz_test_retired_sub", 1)
 
@@ -53,6 +55,7 @@ func TestCleanupRetiredBusinessModules_RemovesManagedRetiredModuleMetadataWithou
 	assertRecordCount(t, db, "system_role_menu", "1 = 1", 0)
 	assertRecordCount(t, db, "system_role_permission", "permission_key LIKE 'test:retired:%'", 0)
 	assertRecordCount(t, db, "system_i18n", "module IN ('test.retired', 'test.retired.sub')", 0)
+	assertRecordCount(t, db, "system_i18n", "module = 'system.config' AND (`key` = 'test.retired.title' OR `key` = 'test.retired.sub.detail')", 0)
 	assertRecordCount(t, db, "system_module_registration", "name IN ('test.retired', 'test.retired.sub')", 0)
 }
 
@@ -64,6 +67,7 @@ func TestCleanupRetiredBusinessModules_RemovesLegacyMetadataWithoutDroppingBusin
 	mustInsertRetiredMenuRow(t, db, "/test/retired/legacy", "test.retired.legacy", "test/retired/legacy/TestLegacyList", "test:retired:legacy:list", "test:retired:legacy:view")
 	mustInsertRetiredPermission(t, db, "test:retired:legacy:view")
 	mustInsertRetiredI18n(t, db, "test.retired.legacy")
+	mustInsertRetiredScopedI18n(t, db, "system.config", "test.retired.legacy.title")
 
 	original := retiredBusinessModules
 	retiredBusinessModules = []retiredModuleSpec{{
@@ -113,7 +117,8 @@ func mustCreateRetiredModuleGovernanceTables(t *testing.T, db *gorm.DB) {
 		)`,
 		`CREATE TABLE system_i18n (
 			id BIGINT PRIMARY KEY AUTO_INCREMENT,
-			module VARCHAR(64)
+			module VARCHAR(64),
+			` + "`key`" + ` VARCHAR(255)
 		)`,
 		`CREATE TABLE system_module_registration (
 			id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -173,6 +178,13 @@ func mustInsertRetiredI18n(t *testing.T, db *gorm.DB, module string) {
 	t.Helper()
 	if err := db.Exec(`INSERT INTO system_i18n (module) VALUES (?)`, module).Error; err != nil {
 		t.Fatalf("insert retired i18n: %v", err)
+	}
+}
+
+func mustInsertRetiredScopedI18n(t *testing.T, db *gorm.DB, module string, key string) {
+	t.Helper()
+	if err := db.Exec(`INSERT INTO system_i18n (module, `+"`key`"+`) VALUES (?, ?)`, module, key).Error; err != nil {
+		t.Fatalf("insert retired scoped i18n: %v", err)
 	}
 }
 

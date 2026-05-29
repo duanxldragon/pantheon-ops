@@ -18,11 +18,13 @@ const excludedPaths = new Set([
   'internal/scaffold/workspace.go',
   'internal/scaffold/workspace_test.go',
   'modules/business/business.go',
+  'modules/business/generated_registry.go',
   'modules/business/retired_modules.go',
   'modules/platform/health.go',
   'modules/system/dynamicmodule/dynamic_module_service_test.go',
   'modules/system/generator/generator_service_test.go',
   'modules/system/iam/menu/component_registry.go',
+  'modules/system/iam/menu/generated_component_registry.go',
 ]);
 
 function toRepoPath(filePath) {
@@ -41,6 +43,37 @@ function normalizeBackendSource(source) {
     .replaceAll('pantheon-ops/backend', '__BACKEND_MODULE__')
     .replaceAll('module pantheon-platform', 'module __ROOT_MODULE__')
     .replaceAll('module pantheon-ops', 'module __ROOT_MODULE__');
+}
+
+function compareBuiltinLocaleResources(baseSource, opsSource) {
+  const baseLocales = JSON.parse(baseSource);
+  const opsLocales = JSON.parse(opsSource);
+
+  for (const [locale, basePack] of Object.entries(baseLocales)) {
+    const opsPack = opsLocales[locale];
+    if (!opsPack || typeof opsPack !== 'object') {
+      return false;
+    }
+
+    for (const [key, value] of Object.entries(basePack)) {
+      if (key.startsWith('business.')) {
+        continue;
+      }
+      if (opsPack[key] !== value) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+function sourcesMatch(relativePath, baseSource, opsSource) {
+  if (relativePath === 'modules/system/i18n/builtin_locale_resources.json') {
+    return compareBuiltinLocaleResources(baseSource, opsSource);
+  }
+
+  return normalizeBackendSource(baseSource) === normalizeBackendSource(opsSource);
 }
 
 function collectFiles(rootPath, currentPath = rootPath, bucket = []) {
@@ -90,10 +123,10 @@ function main() {
       continue;
     }
 
-    const baseSource = normalizeBackendSource(readFile(baseFilePath));
-    const opsSource = normalizeBackendSource(readFile(opsFilePath));
+    const baseSource = readFile(baseFilePath);
+    const opsSource = readFile(opsFilePath);
 
-    if (baseSource !== opsSource) {
+    if (!sourcesMatch(relativePath, baseSource, opsSource)) {
       diffFiles.push(relativePath);
     }
   }

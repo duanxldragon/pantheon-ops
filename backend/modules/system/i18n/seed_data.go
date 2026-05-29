@@ -4,8 +4,6 @@ import (
 	"gorm.io/gorm"
 )
 
-const systemMenuSettingKey = "system.menu.setting"
-
 // SeedI18nModuleI18n 初始化 i18n 模块自身的翻译数据
 func (s *I18nService) SeedI18nModuleI18n(db *gorm.DB) error {
 	seeds := []SystemI18n{
@@ -36,10 +34,8 @@ func (s *I18nService) SeedI18nModuleI18n(db *gorm.DB) error {
 		{Module: "system.org", Locale: "en-US", Group: "menu", Key: "system.menu.post", Value: "Positions"},
 		{Module: "system.config", Locale: "zh-CN", Group: "menu", Key: "system.menu.dict", Value: "字典管理"},
 		{Module: "system.config", Locale: "en-US", Group: "menu", Key: "system.menu.dict", Value: "Dictionaries"},
-		{Module: "system.config", Locale: "zh-CN", Group: "menu", Key: systemMenuSettingKey, Value: "系统设置"},
-		{Module: "system.config", Locale: "en-US", Group: "menu", Key: systemMenuSettingKey, Value: "Settings"},
-		{Module: "system.config", Locale: "zh-CN", Group: "page", Key: systemMenuSettingKey, Value: "系统设置"},
-		{Module: "system.config", Locale: "en-US", Group: "page", Key: systemMenuSettingKey, Value: "Settings"},
+		{Module: "system.config", Locale: "zh-CN", Group: "menu", Key: "system.menu.setting", Value: "系统设置"},
+		{Module: "system.config", Locale: "en-US", Group: "menu", Key: "system.menu.setting", Value: "Settings"},
 		{Module: "system.config", Locale: "zh-CN", Group: "menu", Key: "system.menu.i18n", Value: "国际化管理"},
 		{Module: "system.config", Locale: "en-US", Group: "menu", Key: "system.menu.i18n", Value: "Internationalization"},
 		{Module: "system.lowcode", Locale: "zh-CN", Group: "menu", Key: "system.menu.modules", Value: "模块管理"},

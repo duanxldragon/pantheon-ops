@@ -783,7 +783,10 @@ func (s *AuthService) ListSessions(userID uint64, currentSessionID string) ([]Se
 		result = append(result, buildSessionResp(item, currentSessionID))
 	}
 	sort.SliceStable(result, func(i, j int) bool {
-		return result[i].IsCurrent && !result[j].IsCurrent
+		if result[i].IsCurrent != result[j].IsCurrent {
+			return result[i].IsCurrent
+		}
+		return result[i].CreatedAt > result[j].CreatedAt
 	})
 	return result, nil
 }
