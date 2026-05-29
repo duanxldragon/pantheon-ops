@@ -53,6 +53,7 @@ import {
 import { usePermission } from '../../hooks/usePermission';
 import './auth.css';
 import '../system/list-page.css';
+import { loadRetentionSetting } from '../system/audit/retentionSetting';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -112,20 +113,6 @@ function normalizeRetentionOptions(rawValue: string | undefined) {
     return defaultRetentionOptions;
   }
 }
-
-function loadRetentionSetting(
-  group: any,
-  settingKey: string,
-  defaultRetentionOptions: number[],
-  setRetentionOptions: (opts: number[]) => void,
-  setRetentionDays: (value: number | ((current: number) => number)) => void,
-) {
-  const setting = group.items.find((item: any) => item.settingKey === settingKey);
-  const nextOptions = normalizeRetentionOptions(setting?.settingValue);
-  setRetentionOptions(nextOptions);
-  setRetentionDays((current: any) => (nextOptions.includes(current) ? current : nextOptions[0]));
-}
-
 
 const LoginLogList: React.FC = () => {
   const { t } = useTranslation();
