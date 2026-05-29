@@ -16,21 +16,35 @@ jobs:
     name: SonarQube analysis
     runs-on: ubuntu-latest
     steps:
+      - name: Check Sonar configuration
+        id: sonar-config
+        shell: bash
+        run: |
+          if [ -n "${{ secrets.SONAR_TOKEN }}" ] && [ -n "${{ secrets.SONAR_HOST_URL }}" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout
+        if: steps.sonar-config.outputs.enabled == 'true'
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Setup Go
+        if: steps.sonar-config.outputs.enabled == 'true'
         uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
           cache: true
 
       - name: Generate Go coverage
+        if: steps.sonar-config.outputs.enabled == 'true'
         run: go test -coverprofile=coverage.out ./...
 
       - name: SonarQube scan
+        if: steps.sonar-config.outputs.enabled == 'true'
         uses: SonarSource/sonarqube-scan-action@v6.0.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -38,3 +52,7 @@ jobs:
         with:
           args: >
             "-Dsonar.qualitygate.wait=true"
+
+      - name: SonarQube skipped
+        if: steps.sonar-config.outputs.enabled != 'true'
+        run: echo "Sonar secrets are not configured; local scripts/run-sonar.ps1 is the active validation path."
