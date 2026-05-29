@@ -558,17 +558,19 @@ const OperationLogList: React.FC = () => {
     return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
+  const applyOperationLogRetentionOptions = (group: any) => {
+      const setting = group.items.find(
+        (item: any) => item.settingKey === 'audit.operation_log_retention_options',
+      );
+      const nextOptions = normalizeRetentionOptions(setting?.settingValue);
+      setRetentionOptions(nextOptions);
+      setRetentionDays((current: any) => (nextOptions.includes(current) ? current : nextOptions[0]));
+    };
+
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
-        .then((group) => {
-          const setting = group.items.find(
-            (item) => item.settingKey === 'audit.operation_log_retention_options',
-          );
-          const nextOptions = normalizeRetentionOptions(setting?.settingValue);
-          setRetentionOptions(nextOptions);
-          setRetentionDays((current) => (nextOptions.includes(current) ? current : nextOptions[0]));
-        })
+        .then(applyOperationLogRetentionOptions)
         .catch(() => undefined);
     }, 0);
     return () => globalThis.clearTimeout(timer);

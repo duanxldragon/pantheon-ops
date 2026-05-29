@@ -168,17 +168,19 @@ const SessionList: React.FC = () => {
     return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
+  const applySessionCleanupRetentionOptions = (group: any) => {
+      const setting = group.items.find(
+        (item: any) => item.settingKey === 'audit.session_cleanup_retention_options',
+      );
+      const nextOptions = normalizeRetentionOptions(setting?.settingValue);
+      setRetentionOptions(nextOptions);
+      setRetentionDays((current: any) => (nextOptions.includes(current) ? current : nextOptions[0]));
+    };
+
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
-        .then((group) => {
-          const setting = group.items.find(
-            (item) => item.settingKey === 'audit.session_cleanup_retention_options',
-          );
-          const nextOptions = normalizeRetentionOptions(setting?.settingValue);
-          setRetentionOptions(nextOptions);
-          setRetentionDays((current) => (nextOptions.includes(current) ? current : nextOptions[0]));
-        })
+        .then(applySessionCleanupRetentionOptions)
         .catch(() => undefined);
     }, 0);
     return () => globalThis.clearTimeout(timer);
