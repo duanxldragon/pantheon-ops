@@ -33,18 +33,11 @@ func CasbinMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		allowed := false
-		for _, roleKey := range roleKeys {
-			success, err := database.Enforcer.Enforce(roleKey, obj, act)
-			if err != nil {
-				common.Fail(c, common.CodeForbidden, "permission.denied")
-				c.Abort()
-				return
-			}
-			if success {
-				allowed = true
-				break
-			}
+		allowed, err := checkEnforcerAllow(roleKeys, obj, act)
+		if err != nil {
+			common.Fail(c, common.CodeForbidden, "permission.denied")
+			c.Abort()
+			return
 		}
 		if !allowed {
 			common.Fail(c, common.CodeForbidden, "permission.denied")
@@ -54,6 +47,19 @@ func CasbinMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func checkEnforcerAllow(roleKeys []string, obj string, act string) (bool, error) {
+	for _, roleKey := range roleKeys {
+		success, err := database.Enforcer.Enforce(roleKey, obj, act)
+		if err != nil {
+			return false, err
+		}
+		if success {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func isSelfServiceRoute(c *gin.Context) bool {
