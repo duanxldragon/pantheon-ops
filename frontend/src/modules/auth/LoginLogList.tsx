@@ -53,7 +53,7 @@ import {
 import { usePermission } from '../../hooks/usePermission';
 import './auth.css';
 import '../system/list-page.css';
-import { toCleanupTimestamp, normalizeRetentionOptions, loadRetentionSetting } from '../system/audit/retentionSetting';
+import { toCleanupTimestamp, loadRetentionSetting } from '../system/audit/retentionSetting';
 const Row = Grid.Row;
 const Col = Grid.Col;
 const FormItem = Form.Item;

@@ -1,0 +1,40 @@
+name: SonarQube Analysis
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - release/**
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  sonar-analysis:
+    name: SonarQube analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Generate Go coverage
+        run: go test -coverprofile=coverage.out ./...
+
+      - name: SonarQube scan
+        uses: SonarSource/sonarqube-scan-action@v6.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            "-Dsonar.qualitygate.wait=true"
