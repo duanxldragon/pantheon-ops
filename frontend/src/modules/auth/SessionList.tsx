@@ -168,8 +168,6 @@ const SessionList: React.FC = () => {
     return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
-  const isSessionRetentionSetting = (item) => item.settingKey === 'audit.session_cleanup_retention_options';
-
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
