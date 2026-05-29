@@ -21,6 +21,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Checkout pantheon-base foundation
+        uses: actions/checkout@v6
+        with:
+          repository: duanxldragon/pantheon-base
+          ref: main
+          path: pantheon-base-foundation
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
@@ -31,8 +38,16 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
+      - name: Check task packet template
+        run: npm run check:task-packet-template
+
+      - name: Check inheritance contract
+        run: npm run check:inheritance-contract
+
       - name: Check base sync
         run: npm run check:base-sync:backend
+        env:
+          PANTHEON_BASE_REPO_ROOT: ${{ github.workspace }}/pantheon-base-foundation
 
   frontend-contract:
     name: Frontend menu contract

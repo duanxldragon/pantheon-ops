@@ -74,6 +74,61 @@ A `base -> ops` sync should at least make these answers explicit:
 - whether base and ops each received their minimum validation pass
 - whether remaining drift was recorded explicitly instead of left implicit
 
+## 6.3 Executable Sync Command List
+
+Recommended order for one `base -> ops` sync pass:
+
+1. finish the shared foundation change in `pantheon-base` and record the base commit
+
+```powershell
+git -C D:\workspace\go\pantheon-platform\pantheon-base rev-parse --short HEAD
+```
+
+2. run the local inheritance guard in `pantheon-ops`
+
+```powershell
+Set-Location D:\workspace\go\pantheon-platform\pantheon-ops
+npm run check:inheritance-contract
+```
+
+3. verify shared backend alignment against base
+
+```powershell
+npm run check:base-sync:backend
+```
+
+4. if shared backend files must be synced, sync them file-by-file and do not overwrite `business/*`
+
+```powershell
+git diff --name-only -- D:\workspace\go\pantheon-platform\pantheon-base\backend
+```
+
+5. run the minimum validation in both repositories
+
+```powershell
+Set-Location D:\workspace\go\pantheon-platform\pantheon-base
+go test ./...
+
+Set-Location D:\workspace\go\pantheon-platform\pantheon-ops
+go test ./...
+npm run check:base-sync:backend
+```
+
+6. if the turn also touched shared frontend shell behavior, pagination, shared tables, or shared i18n, add minimum frontend validation or smoke
+
+```powershell
+Set-Location D:\workspace\go\pantheon-platform\pantheon-ops\frontend
+npm run build
+```
+
+At minimum, record:
+
+- the base commit
+- which shared paths were synced
+- which paths were intentionally left out
+- whether local `business/*` paths stayed intact
+- the minimum validation result for both base and ops
+
 ## 7. Runtime Isolation
 
 - Runtime database is isolated from `pantheon-base`.

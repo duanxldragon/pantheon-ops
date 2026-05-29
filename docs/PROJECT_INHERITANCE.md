@@ -100,6 +100,61 @@ Current business-domain overrides that stay local to `pantheon-ops`:
 - 是否分别验证了 base 和 ops 的最小启动、build 或 smoke
 - 是否把剩余漂移显式记录，而不是留给下次会话猜
 
+## 6.6 可执行同步命令清单
+
+推荐按下面顺序执行一次 `base -> ops` 同步：
+
+1. 在 `pantheon-base` 完成共享修改并记录 base commit
+
+```powershell
+git -C D:\workspace\go\pantheon-platform\pantheon-base rev-parse --short HEAD
+```
+
+2. 在 `pantheon-ops` 先跑本地继承约束检查
+
+```powershell
+Set-Location D:\workspace\go\pantheon-platform\pantheon-ops
+npm run check:inheritance-contract
+```
+
+3. 检查共享 backend 是否仍与 base 对齐
+
+```powershell
+npm run check:base-sync:backend
+```
+
+4. 如需同步共享后端路径，按文件级方式同步，不覆盖 `business/*`
+
+```powershell
+git diff --name-only -- D:\workspace\go\pantheon-platform\pantheon-base\backend
+```
+
+5. 完成同步后分别执行最小验证
+
+```powershell
+Set-Location D:\workspace\go\pantheon-platform\pantheon-base
+go test ./...
+
+Set-Location D:\workspace\go\pantheon-platform\pantheon-ops
+go test ./...
+npm run check:base-sync:backend
+```
+
+6. 如果本轮还涉及前端共享壳层、分页、共享表格或共享 i18n，再补最小前端验证或 smoke
+
+```powershell
+Set-Location D:\workspace\go\pantheon-platform\pantheon-ops\frontend
+npm run build
+```
+
+记录结果时至少写清：
+
+- base commit
+- 共享路径哪些已同步
+- 哪些路径故意未同步
+- `business/*` 是否保持原样
+- base/ops 的最小验证结果
+
 ## 7. 运行时隔离
 
 - 运行时数据库必须和 `pantheon-base` 隔离

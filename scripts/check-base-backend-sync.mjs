@@ -6,8 +6,11 @@ import { fileURLToPath } from 'node:url';
 const currentFilePath = fileURLToPath(import.meta.url);
 const opsRoot = path.resolve(path.dirname(currentFilePath), '..');
 const workspaceRoot = path.resolve(opsRoot, '..');
-const baseBackendRoot = path.join(workspaceRoot, 'pantheon-base', 'backend');
-const opsBackendRoot = path.join(workspaceRoot, 'pantheon-ops', 'backend');
+const baseRepoRoot = process.env.PANTHEON_BASE_REPO_ROOT
+  ? path.resolve(process.env.PANTHEON_BASE_REPO_ROOT)
+  : path.join(workspaceRoot, 'pantheon-base');
+const baseBackendRoot = path.join(baseRepoRoot, 'backend');
+const opsBackendRoot = path.join(opsRoot, 'backend');
 
 const sharedEntries = ['cmd', 'internal', 'modules', 'pkg'];
 
@@ -66,6 +69,11 @@ function collectSharedBaseFiles() {
 }
 
 function main() {
+  if (!fs.existsSync(baseBackendRoot)) {
+    console.error(`pantheon-base backend root not found: ${baseBackendRoot}`);
+    process.exit(1);
+  }
+
   const missingFiles = [];
   const diffFiles = [];
 
