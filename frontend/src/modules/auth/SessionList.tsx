@@ -107,6 +107,20 @@ function normalizeRetentionOptions(rawValue: string | undefined) {
   }
 }
 
+function loadRetentionSetting(
+  group: any,
+  settingKey: string,
+  defaultRetentionOptions: number[],
+  setRetentionOptions: (opts: number[]) => void,
+  setRetentionDays: (value: number | ((current: number) => number)) => void,
+) {
+  const setting = group.items.find((item: any) => item.settingKey === settingKey);
+  const nextOptions = normalizeRetentionOptions(setting?.settingValue);
+  setRetentionOptions(nextOptions);
+  setRetentionDays((current: any) => (nextOptions.includes(current) ? current : nextOptions[0]));
+}
+
+
 interface LoadDataOptions {
   silent?: boolean;
 }
@@ -168,19 +182,11 @@ const SessionList: React.FC = () => {
     return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
-  const applySessionCleanupRetentionOptions = (group: any) => {
-      const setting = group.items.find(
-        (item: any) => item.settingKey === 'audit.session_cleanup_retention_options',
-      );
-      const nextOptions = normalizeRetentionOptions(setting?.settingValue);
-      setRetentionOptions(nextOptions);
-      setRetentionDays((current: any) => (nextOptions.includes(current) ? current : nextOptions[0]));
-    };
 
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
-        .then(applySessionCleanupRetentionOptions)
+        .then((group: any) => loadRetentionSetting(group, 'audit.session_cleanup_retention_options', defaultRetentionOptions, setRetentionOptions, setRetentionDays))
         .catch(() => undefined);
     }, 0);
     return () => globalThis.clearTimeout(timer);
