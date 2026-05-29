@@ -436,15 +436,17 @@ const DeptList: React.FC = () => {
   );
 
   useEffect(() => {
-    setTablePagination((current) => {
-      const totalPages = Math.max(1, Math.ceil(data.length / current.pageSize));
-      if (current.current <= totalPages) {
-        return current;
-      }
-      return {
-        ...current,
-        current: totalPages,
-      };
+    queueMicrotask(() => {
+      setTablePagination((current) => {
+        const totalPages = Math.max(1, Math.ceil(data.length / current.pageSize));
+        if (current.current <= totalPages) {
+          return current;
+        }
+        return {
+          ...current,
+          current: totalPages,
+        };
+      });
     });
   }, [data]);
 

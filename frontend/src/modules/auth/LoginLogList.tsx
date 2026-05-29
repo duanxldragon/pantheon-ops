@@ -15,7 +15,7 @@ import { message } from '../../components/feedback/message';
 import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
 import { IconDelete, IconDownload, IconSearch } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
-import { getSettingGroup } from '../system/setting/api';
+import { getSettingGroup, type SettingGroup } from '../system/setting/api';
 import {
   getVisibleSelectedRowKeys,
   mergeCrossPageSelection,
@@ -117,7 +117,7 @@ const LoginLogList: React.FC = () => {
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
-        .then((group: any) => loadRetentionSetting(group, 'audit.login_log_retention_options', setRetentionOptions, setRetentionDays))
+        .then((group: SettingGroup) => loadRetentionSetting(group, 'audit.login_log_retention_options', setRetentionOptions, setRetentionDays))
         .catch(() => undefined);
     }, 0);
     return () => globalThis.clearTimeout(timer);
