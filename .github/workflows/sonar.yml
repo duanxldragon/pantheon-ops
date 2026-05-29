@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   sonar-analysis:
-    name: SonarQube analysis
+    name: SonarQube Analysis
     runs-on: ubuntu-latest
     steps:
       - name: Check Sonar configuration
