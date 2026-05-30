@@ -76,9 +76,10 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
+        env:
+          PANTHEON_CI: "true"
         run: |
           npm run i18n:generate-module
-          npx tsc -b
           npx vite build
 
   backend-tests:
