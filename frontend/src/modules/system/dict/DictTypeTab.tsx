@@ -161,11 +161,9 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
     onQueryChange(emptyTypeQuery);
   };
 
-  React.useEffect(() => {
+  const typeTableDisplayPage = React.useMemo(() => {
     const totalPages = Math.max(1, Math.ceil(typeRows.length / Math.max(1, typeTablePageSize)));
-    if (typeTablePage > totalPages) {
-      setTypeTablePage(totalPages);
-    }
+    return typeTablePage > totalPages ? totalPages : typeTablePage;
   }, [typeRows.length, typeTablePage, typeTablePageSize]);
 
   const openCreateType = () => {
@@ -540,7 +538,7 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
             emptyText={t('system.dict.typeEmpty')}
             pagination={buildStandardPagination(t, {
               total: typeRows.length,
-              current: typeTablePage,
+              current: typeTableDisplayPage,
               pageSize: typeTablePageSize,
               onChange: (page, pageSize) => {
                 setTypeTablePage(page);
