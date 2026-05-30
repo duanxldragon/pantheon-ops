@@ -1,5 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Card, Button, Form, Grid, Input, Popconfirm, Select, Space, Tag } from '@arco-design/web-react';
+import {
+  Card,
+  Button,
+  Form,
+  Grid,
+  Input,
+  Popconfirm,
+  Select,
+  Space,
+  Tag,
+} from '@arco-design/web-react';
 import { message } from '../../components/feedback/message';
 import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
 import { IconDelete, IconSearch } from '@arco-design/web-react/icon';
@@ -125,7 +135,14 @@ const SessionList: React.FC = () => {
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
-        .then((group: SettingGroup) => loadRetentionSetting(group, 'audit.session_cleanup_retention_options', setRetentionOptions, setRetentionDays))
+        .then((group: SettingGroup) =>
+          loadRetentionSetting(
+            group,
+            'audit.session_cleanup_retention_options',
+            setRetentionOptions,
+            setRetentionDays,
+          ),
+        )
         .catch(() => undefined);
     }, 0);
     return () => globalThis.clearTimeout(timer);
@@ -244,7 +261,11 @@ const SessionList: React.FC = () => {
     [activeCount, currentUsername, revokedCount, t, total],
   );
   const visibleSelectedRowKeys = useMemo(
-    () => getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.sessionId)),
+    () =>
+      getVisibleSelectedRowKeys(
+        selectedRowKeys,
+        data.map((item) => item.sessionId),
+      ),
     [data, selectedRowKeys],
   );
 
@@ -443,7 +464,7 @@ const SessionList: React.FC = () => {
           </FilterPanel>
 
           <Card className="page-panel system-list__table-card">
-            {(canClear || canDelete) ? (
+            {canClear || canDelete ? (
               <div>
                 <GovernanceCleanupBar
                   showCleanup={canClear}
@@ -542,15 +563,17 @@ const SessionList: React.FC = () => {
                         checkCrossPage: true,
                         preserveSelectedRowKeys: true,
                         onChange: (keys) =>
-                          setSelectedRowKeys((currentKeys) =>
-                            mergeCrossPageSelection(
-                              currentKeys,
-                              keys as string[],
-                              data.map((item) => item.sessionId),
-                            ) as string[],
+                          setSelectedRowKeys(
+                            (currentKeys) =>
+                              mergeCrossPageSelection(
+                                currentKeys,
+                                keys as string[],
+                                data.map((item) => item.sessionId),
+                              ) as string[],
                           ),
                         checkboxProps: (record: AdminSessionRow) => ({
-                          disabled: record.username === currentUsername || Boolean(record.revokedAt),
+                          disabled:
+                            record.username === currentUsername || Boolean(record.revokedAt),
                         }),
                       }
                     : undefined

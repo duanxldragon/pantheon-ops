@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import { Button, Card, List, Space, Tag, Typography } from '@arco-design/web-react';
+import { Button, Space, Tag, Typography } from '@arco-design/web-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import {
   isNetworkRequestError,
   isServerRequestError,
@@ -9,35 +9,41 @@ import {
 } from '../../../api/request';
 import {
   GovernanceSummaryBar,
+  PageSplitLayout,
   PageContainer,
   PageEmpty,
   PageError,
   PageLoading,
   PageNetworkError,
   PageServerError,
+  SideRailItem,
+  SideRailPanel,
+  SideRailStack,
 } from '../../../components';
 import { usePermission } from '../../../hooks/usePermission';
 import {
-  getSettingGroupPath,
   resolveSettingGroupMeta,
   settingGroups,
   type SettingGroupKey,
 } from './settingGroups';
+import SettingGroupWorkspace from './SettingGroupWorkspace';
 import { useSettingCatalog } from './useSettingCatalog';
 import '../list-page.css';
 
 const SettingOverviewPage: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isAdmin, hasPerm } = usePermission();
   const canViewSettings = isAdmin || hasPerm('system:setting:list');
-  const {
-    loading,
-    error,
-    settings,
-    overview,
-    groupedSettings,
-  } = useSettingCatalog();
+  const canUpdateSetting = isAdmin || hasPerm('system:setting:update');
+  const canRefreshCache = isAdmin || hasPerm('system:setting:refresh');
+  const canExportAudit = isAdmin || hasPerm('system:setting:export');
+  const canViewOperationLog = isAdmin || hasPerm('system:operation-log:list');
+  const { loading, error, settings, overview, groupedSettings, reload } = useSettingCatalog();
+  const visibleGroups = useMemo(
+    () => settingGroups.filter((meta) => groupedSettings.some((group) => group.groupKey === meta.key)),
+    [groupedSettings],
+  );
 
   const heroStats = useMemo(() => {
     if (!overview) {
@@ -78,6 +84,56 @@ const SettingOverviewPage: React.FC = () => {
     }, {});
   }, [overview]);
 
+  const activeGroupKey = useMemo(() => {
+    const requested = searchParams.get('group');
+    if (requested && visibleGroups.some((group) => group.key === requested)) {
+      return requested as SettingGroupKey;
+    }
+    return visibleGroups[0]?.key;
+  }, [searchParams, visibleGroups]);
+
+  const activeGroup = useMemo(
+    () => groupedSettings.find((group) => group.groupKey === activeGroupKey),
+    [activeGroupKey, groupedSettings],
+  );
+
+  const runtimeSummaryItems = useMemo(
+    () => [
+      {
+        key: 'storage',
+        label: t('system.setting.hero.storageHint'),
+        value: overview?.storageDriver || '-',
+      },
+      {
+        key: 'language',
+        label: t('system.setting.hero.languageHint'),
+        value: overview?.defaultLanguage || '-',
+      },
+      {
+        key: 'theme',
+        label: t('system.setting.hero.themeHint'),
+        value: overview?.defaultTheme || '-',
+      },
+      {
+        key: 'risk',
+        label: t('system.setting.overview.risks'),
+        value: overview?.riskCount ?? 0,
+        tone: (overview?.riskCount || 0) > 0 ? ('warning' as const) : ('neutral' as const),
+        description:
+          (overview?.riskCount || 0) > 0
+            ? t('system.setting.hero.riskHint')
+            : t('system.setting.overview.noRisks'),
+      },
+    ],
+    [overview?.defaultLanguage, overview?.defaultTheme, overview?.riskCount, overview?.storageDriver, t],
+  );
+
+  const switchGroup = (groupKey: SettingGroupKey) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('group', groupKey);
+    setSearchParams(nextParams, { replace: true });
+  };
+
   const renderErrorState = () => {
     if (isNetworkRequestError(error)) {
       return <PageNetworkError timeout={isTimeoutRequestError(error)} onRetry={() => globalThis.location.reload()} />;
@@ -102,142 +158,145 @@ const SettingOverviewPage: React.FC = () => {
         ) : null}
         {settings.length > 0 ? (
           <>
-            <div className="setting-page__governance-stack">
-              <GovernanceSummaryBar
-                className="setting-page__governance-bar"
-                eyebrow={t('system.setting.hero.eyebrow')}
-                title={t('system.setting.hero.title')}
-                description={t('system.setting.hero.desc')}
-                metrics={heroStats.map((item) => ({
-                  key: item.key,
-                  label: item.label,
-                  value: item.value,
-                  description: item.description,
-                }))}
-              />
-              <div className="setting-page__group-nav-grid">
-                {groupedSettings.map((group) => {
-                  const meta = resolveSettingGroupMeta(group.groupKey);
-                  const issueCount = groupIssueCounts[group.groupKey] || 0;
-                  return (
-                    <button
-                      key={group.groupKey}
-                      type="button"
-                      className="setting-page__group-nav-item"
-                      onClick={() => {
-                        navigate(getSettingGroupPath(group.groupKey as SettingGroupKey));
-                      }}
-                    >
-                      <span className="setting-page__group-nav-title-row">
-                        <span className="setting-page__group-nav-title">{t(meta.titleKey)}</span>
-                        {issueCount > 0 ? (
-                          <Tag color={meta.tone === 'danger' ? 'red' : 'orange'}>
-                            {t('common.total', { count: issueCount })}
-                          </Tag>
-                        ) : null}
-                      </span>
-                      <span className="setting-page__group-nav-desc">
-                        {t(meta.descriptionKey, '')}
-                      </span>
-                      <span className="setting-page__group-nav-meta">
-                        {t('common.total', { count: group.items.length })}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-              {overview ? (
-                <div className="setting-page__runtime-strip">
-                  <Typography.Text type="secondary">
-                    {t('system.setting.hero.storageHint')} {overview.storageDriver || '-'}
-                  </Typography.Text>
-                  <Typography.Text type="secondary">
-                    {t('system.setting.hero.languageHint')} {overview.defaultLanguage || '-'}
-                  </Typography.Text>
-                  <Typography.Text type="secondary">
-                    {t('system.setting.hero.themeHint')} {overview.defaultTheme || '-'}
-                  </Typography.Text>
-                </div>
-              ) : null}
-            </div>
-            <div className="setting-overview-page__group-grid">
-              {settingGroups
-                .filter((meta) => groupedSettings.some((group) => group.groupKey === meta.key))
-                .map((meta) => {
-                  const group = groupedSettings.find((item) => item.groupKey === meta.key);
-                  const issueCount = groupIssueCounts[meta.key] || 0;
-                  return (
-                    <Card
-                      key={meta.key}
-                      className="page-panel setting-overview-page__group-card"
-                    >
-                      <Space direction="vertical" size={10} style={{ width: '100%' }}>
-                        <Space align="center" style={{ justifyContent: 'space-between', width: '100%' }}>
-                          <Typography.Text style={{ fontWeight: 600 }}>
-                            {t(meta.titleKey)}
-                          </Typography.Text>
-                          {issueCount > 0 ? (
-                            <Tag color={meta.tone === 'danger' ? 'red' : 'orange'}>
-                              {t('system.setting.overview.risks')}
-                            </Tag>
-                          ) : null}
-                        </Space>
-                        <Typography.Paragraph type="secondary" style={{ margin: 0 }}>
-                          {t(meta.descriptionKey, '')}
-                        </Typography.Paragraph>
-                        <Typography.Text type="secondary">
-                          {t('common.total', { count: group?.items.length ?? 0 })}
-                        </Typography.Text>
-                        <Button
-                          type="outline"
-                          size="small"
-                          disabled={!canViewSettings}
-                          onClick={() => {
-                            navigate(getSettingGroupPath(meta.key));
-                          }}
-                        >
-                          {t('system.setting.overview.openGroup')}
-                        </Button>
-                      </Space>
-                    </Card>
-                  );
-                })}
-              <Card className="page-panel setting-overview-page__group-card">
-                <Space direction="vertical" size={10} style={{ width: '100%' }}>
-                  <Typography.Text style={{ fontWeight: 600 }}>
-                    {t('system.setting.overview.runtime')}
-                  </Typography.Text>
-                  {overview?.issues && overview.issues.length > 0 ? (
-                    <List
-                      size="small"
-                      split={false}
-                      dataSource={overview.issues}
-                      render={(issue) => (
-                        <List.Item>
-                          <Space direction="vertical" size={4}>
-                            <Space size={6}>
-                              <Tag color={issue.severity === 'critical' ? 'red' : 'orange'}>
-                                {t(`system.setting.overview.severity.${issue.severity}`)}
-                              </Tag>
-                              <Typography.Text style={{ fontWeight: 500 }}>
+            <PageSplitLayout
+              className="setting-overview-page__layout"
+              railClassName="setting-overview-page__rail"
+              rail={
+                <>
+                  {overview ? (
+                    <SideRailPanel title={t('system.setting.overview.runtime')}>
+                      <SideRailStack>
+                        {runtimeSummaryItems.map((item) => (
+                          <SideRailItem
+                            key={item.key}
+                            label={item.label}
+                            value={item.value}
+                            tone={item.tone}
+                            description={item.description}
+                          />
+                        ))}
+                      </SideRailStack>
+                    </SideRailPanel>
+                  ) : null}
+                  <SideRailPanel title={t('system.setting.overview.risks')}>
+                    {overview?.issues && overview.issues.length > 0 ? (
+                      <div className="setting-overview-page__risk-list">
+                        {overview.issues.map((issue) => {
+                          const meta = resolveSettingGroupMeta(issue.groupKey);
+                          return (
+                            <div
+                              key={`${issue.groupKey}-${issue.settingKey}-${issue.reasonKey}`}
+                              className={`setting-overview-page__risk-item setting-overview-page__risk-item--${issue.severity}`}
+                            >
+                              <div className="setting-overview-page__risk-header">
+                                <Space size={6} wrap>
+                                  <Tag color={issue.severity === 'critical' ? 'red' : 'orange'}>
+                                    {t(`system.setting.overview.severity.${issue.severity}`)}
+                                  </Tag>
+                                  <Tag>{t(meta.titleKey)}</Tag>
+                                </Space>
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  onClick={() => switchGroup(issue.groupKey as SettingGroupKey)}
+                                >
+                                  {t('common.detail')}
+                                </Button>
+                              </div>
+                              <Typography.Text className="setting-overview-page__risk-title">
                                 {t(`system.setting.item.${issue.settingKey}`, issue.settingKey)}
                               </Typography.Text>
-                            </Space>
-                            <Typography.Text type="secondary">
-                              {t(issue.reasonKey)}
-                            </Typography.Text>
-                          </Space>
-                        </List.Item>
-                      )}
-                    />
-                  ) : (
-                    <Typography.Text type="secondary">
-                      {t('system.setting.overview.noRisks')}
-                    </Typography.Text>
-                  )}
-                </Space>
-              </Card>
-            </div>
+                              <Typography.Text
+                                type="secondary"
+                                className="setting-overview-page__risk-desc"
+                              >
+                                {t(issue.reasonKey)}
+                              </Typography.Text>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <Typography.Text type="secondary">
+                        {t('system.setting.overview.noRisks')}
+                      </Typography.Text>
+                    )}
+                  </SideRailPanel>
+                </>
+              }
+            >
+              <div className="setting-page__governance-stack">
+                <GovernanceSummaryBar
+                  className="setting-page__governance-bar"
+                  eyebrow={t('system.setting.hero.eyebrow')}
+                  title={t('system.setting.hero.title')}
+                  description={t('system.setting.hero.desc')}
+                  metrics={heroStats.map((item) => ({
+                    key: item.key,
+                    label: item.label,
+                    value: item.value,
+                    description: item.description,
+                  }))}
+                />
+                <div className="setting-overview-page__anchor-strip" role="tablist" aria-label={t('system.setting.hero.title')}>
+                  {visibleGroups.map((meta) => {
+                      const group = groupedSettings.find((item) => item.groupKey === meta.key);
+                      const issueCount = groupIssueCounts[meta.key] || 0;
+                      const active = activeGroupKey === meta.key;
+                      const tabId = `setting-group-tab-${meta.key}`;
+                      const panelId = `setting-group-section-${meta.key}`;
+                      return (
+                        <button
+                          key={meta.key}
+                          type="button"
+                          id={tabId}
+                          role="tab"
+                          aria-selected={active}
+                          aria-controls={panelId}
+                          tabIndex={active ? 0 : -1}
+                          className={`setting-overview-page__anchor-item${active ? ' setting-overview-page__anchor-item--active' : ''}`}
+                          onClick={() => {
+                            switchGroup(meta.key);
+                          }}
+                        >
+                          <span className="setting-overview-page__anchor-title-row">
+                            <span className="setting-overview-page__anchor-title">
+                              {t(meta.titleKey)}
+                            </span>
+                            {issueCount > 0 ? (
+                              <Tag color={meta.tone === 'danger' ? 'red' : 'orange'}>
+                                {t('common.total', { count: issueCount })}
+                              </Tag>
+                            ) : null}
+                          </span>
+                          <span className="setting-overview-page__anchor-desc">
+                            {t(meta.descriptionKey, '')}
+                          </span>
+                          <span className="setting-overview-page__anchor-meta">
+                            {t('common.total', { count: group?.items.length ?? 0 })}
+                          </span>
+                        </button>
+                      );
+                    })}
+                </div>
+                {activeGroup ? (
+                  <SettingGroupWorkspace
+                    key={activeGroup.groupKey}
+                    sectionId={`setting-group-section-${activeGroup.groupKey}`}
+                    labelledById={`setting-group-tab-${activeGroup.groupKey}`}
+                    className="setting-overview-page__workspace"
+                    groupKey={activeGroup.groupKey}
+                    groupItems={activeGroup.items}
+                    canUpdateSetting={canViewSettings && canUpdateSetting}
+                    canRefreshCache={canViewSettings && canRefreshCache}
+                    canExportAudit={canViewSettings && canExportAudit}
+                    canViewOperationLog={canViewSettings && canViewOperationLog}
+                    showAuditCard
+                    onReload={reload}
+                  />
+                ) : null}
+              </div>
+            </PageSplitLayout>
           </>
         ) : null}
       </Space>

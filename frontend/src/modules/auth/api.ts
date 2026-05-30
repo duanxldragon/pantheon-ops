@@ -75,7 +75,7 @@ export interface AuthSession {
 }
 
 export interface SecurityOverview {
-  user: UserInfo;
+  user?: UserInfo;
   currentSession?: AuthSession;
   activeSessionCount: number;
   lastLoginAt?: string;
