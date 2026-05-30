@@ -1,29 +1,45 @@
-name: SonarQube Analysis
+name: SonarQube Full Analysis
 
 on:
-  pull_request:
+  workflow_dispatch:
   push:
     branches:
       - main
       - release/**
-  merge_group:
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "*.txt"
 
 permissions:
   contents: read
 
+env:
+  GO_VERSION_FILE: go.mod
+
 jobs:
+  # ============================================================
+  # Primary Quality Gate: SonarQube Full Analysis
+  # ============================================================
+
   sonar-analysis:
-    name: SonarQube analysis
+    name: SonarQube Full Analysis
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check Sonar configuration
         id: sonar-config
         shell: bash
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          if [ -n "${{ secrets.SONAR_TOKEN }}" ] && [ -n "${{ secrets.SONAR_HOST_URL }}" ]; then
+          if [ -n "$SONAR_TOKEN" ] && [ -n "$SONAR_HOST_URL" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "SonarQube secrets not configured. Skipping analysis."
           fi
 
       - name: Checkout
@@ -36,7 +52,7 @@ jobs:
         if: steps.sonar-config.outputs.enabled == 'true'
         uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: ${{ env.GO_VERSION_FILE }}
           cache: true
 
       - name: Generate Go coverage
@@ -49,10 +65,19 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        with:
-          args: >
-            "-Dsonar.qualitygate.wait=true"
 
-      - name: SonarQube skipped
+      - name: Report local analysis info
         if: steps.sonar-config.outputs.enabled != 'true'
-        run: echo "Sonar secrets are not configured; local scripts/run-sonar.ps1 is the active validation path."
+        run: |
+          echo "============================================"
+          echo "  SonarQube Analysis Skipped"
+          echo "============================================"
+          echo "Reason: SONAR_TOKEN or SONAR_HOST_URL not configured"
+          echo ""
+          echo "To enable SonarQube analysis:"
+          echo "  1. Set SONAR_TOKEN secret in repository settings"
+          echo "  2. Set SONAR_HOST_URL secret (e.g., https://sonarcloud.io)"
+          echo ""
+          echo "For local analysis, run:"
+          echo "  ./scripts/run-sonar.ps1"
+          echo "============================================"

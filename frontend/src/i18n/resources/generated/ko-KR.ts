@@ -224,6 +224,7 @@ const generatedkoKRFallback = {
   "business.deploy.package.templateSummary.nginx_systemd": "Install source-built Nginx, place it in the target directory, and register a systemd service.",
   "business.deploy.package.uninstallCommand": "Uninstall Command",
   "business.deploy.package.version": "Version",
+  "business.deploy.package.sourceUrl": "소스 URL",
   "business.deploy.template.createTitle": "Create Task Template",
   "business.deploy.template.deleteConfirm": "Delete this task template?",
   "business.deploy.template.editTitle": "Edit Task Template",

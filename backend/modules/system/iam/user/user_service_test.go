@@ -72,6 +72,34 @@ func TestUserService_CreateUser(t *testing.T) {
 	}
 }
 
+func TestUserService_CreateUserAllowsEmptyRoles(t *testing.T) {
+	db := setupUserTestDB(t)
+	s := NewUserService(db)
+
+	resp, err := s.CreateUser(&UserCreateReq{
+		Username: "role_optional_user",
+		Password: "password123",
+		Status:   1,
+		RoleIDs:  []uint64{},
+	})
+	if err != nil {
+		t.Fatalf("expected empty-role user creation to succeed, got %v", err)
+	}
+	if len(resp.RoleIDs) != 0 {
+		t.Fatalf("expected no bound roles, got %+v", resp.RoleIDs)
+	}
+	detail, err := s.GetUserDetail(resp.ID)
+	if err != nil {
+		t.Fatalf("expected detail lookup to succeed, got %v", err)
+	}
+	if detail.RoleIDs == nil || detail.RoleKeys == nil || detail.RoleNames == nil {
+		t.Fatalf("expected empty role collections, got %+v / %+v / %+v", detail.RoleIDs, detail.RoleKeys, detail.RoleNames)
+	}
+	if len(detail.RoleIDs) != 0 || len(detail.RoleKeys) != 0 || len(detail.RoleNames) != 0 {
+		t.Fatalf("expected no role bindings in detail, got %+v / %+v / %+v", detail.RoleIDs, detail.RoleKeys, detail.RoleNames)
+	}
+}
+
 func TestUserService_UpdateUser(t *testing.T) {
 	db := setupUserTestDB(t)
 	s := NewUserService(db)

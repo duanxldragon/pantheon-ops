@@ -39,12 +39,12 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-if (-not (Get-Command sonar-scanner -ErrorAction SilentlyContinue)) {
-    Write-Error "sonar-scanner is not installed. Install SonarScanner CLI locally, then rerun this script."
+if (-not (Get-Command Sonar-Scanner -ErrorAction SilentlyContinue)) {
+    Write-Error "Sonar-Scanner is not installed. Install SonarScanner CLI locally, then rerun this script."
     exit 1
 }
 
-sonar-scanner `
+Sonar-Scanner `
   "-Dsonar.host.url=$env:SONAR_HOST_URL" `
   "-Dsonar.token=$env:SONAR_TOKEN" `
   "-Dsonar.qualitygate.wait=true"

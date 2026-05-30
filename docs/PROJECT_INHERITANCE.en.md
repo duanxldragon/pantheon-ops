@@ -54,6 +54,91 @@ Shared foundation changes such as upload behavior, pagination behavior, shared a
 3. sync shared paths into `pantheon-ops`
 4. re-validate local business modules in `pantheon-ops`
 
+## 6.1 Landing-Side Decision Rules
+
+When a problem appears, decide the landing side before editing:
+
+- fix it in `pantheon-base` first if it belongs to `platform`, any `system/*` domain, shared admin-shell behavior, shared pagination, shared tables, shared upload, shared i18n, or shared smoke helpers
+- keep it local to `pantheon-ops` if it belongs to `business/cmdb`, `business/deploy`, or `business/bizscope`
+- if the visible symptom is in ops but the root cause is a shared shell or shared component, route the fix back to base
+- if unsure, read the base contracts and this inheritance file first instead of guessing from file paths alone
+
+## 6.2 Sync Closure Checklist
+
+A `base -> ops` sync should at least make these answers explicit:
+
+- which base commit introduced the shared change
+- which shared paths were synced and which were intentionally left out
+- whether local `business/*` paths remained untouched
+- whether menus, permissions, i18n, tests, smoke, and docs were aligned with the shared change
+- whether base and ops each received their minimum validation pass
+- whether remaining drift was recorded explicitly instead of left implicit
+
+The following paths are local extension points and are not expected to stay byte-identical with `pantheon-base`, but their intent should stay explicit:
+
+- `backend/modules/business/generated_registry.go`: local ops `business/*` module registration is allowed
+- `backend/modules/system/iam/menu/generated_component_registry.go`: local ops business page component keys are allowed
+- `business.*` entries inside `backend/modules/system/i18n/builtin_locale_resources.json`: local ops business wording is allowed
+
+## 6.3 Executable Sync Command List
+
+Recommended order for one `base -> ops` sync pass:
+
+1. finish the shared foundation change in `pantheon-base` and record the base commit
+
+```powershell
+git -C D:\workspace\go\pantheon-platform\pantheon-base rev-parse --short HEAD
+```
+
+2. run the one-shot inheritance check in `pantheon-ops` so template linkage, inheritance markers, and shared backend alignment are validated together first
+
+```powershell
+Set-Location D:\workspace\go\pantheon-platform\pantheon-ops
+npm run check:inheritance
+```
+
+3. if the previous step fails, inspect shared backend alignment separately and use the output to decide the sync scope
+
+```powershell
+npm run check:base-sync:backend
+```
+
+4. if shared backend files must be synced, sync them file-by-file and do not overwrite `business/*`
+
+```powershell
+git diff --name-only -- D:\workspace\go\pantheon-platform\pantheon-base\backend
+```
+
+5. run the minimum validation in both repositories
+
+```powershell
+Set-Location D:\workspace\go\pantheon-platform\pantheon-base
+go test ./...
+
+Set-Location D:\workspace\go\pantheon-platform\pantheon-ops
+go test ./...
+npm run check:base-sync:backend
+```
+
+6. if the turn also touched shared frontend shell behavior, pagination, shared tables, or shared i18n, add minimum frontend validation or smoke
+
+```powershell
+Set-Location D:\workspace\go\pantheon-platform\pantheon-ops\frontend
+npm run build
+```
+
+At minimum, record:
+
+- the base commit
+- which shared paths were synced
+- which paths were intentionally left out
+- whether local `business/*` paths stayed intact
+- the minimum validation result for both base and ops
+
+Common local command:
+
+- `npm run check:inheritance`: one-shot check for task-packet template linkage, inheritance markers, and shared backend alignment
+
 ## 7. Runtime Isolation
 
 - Runtime database is isolated from `pantheon-base`.

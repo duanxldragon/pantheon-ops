@@ -122,6 +122,7 @@ type I18nOverviewResp struct {
 	ModuleCount        int64                `json:"moduleCount"`
 	GroupCount         int64                `json:"groupCount"`
 	TotalEntries       int64                `json:"totalEntries"`
+	UniqueKeyCount     int64                `json:"uniqueKeyCount"`
 	MissingValueCount  int64                `json:"missingValueCount"`
 	MissingLocaleCount int64                `json:"missingLocaleCount"`
 	Coverage           []I18nLocaleCoverage `json:"coverage"`

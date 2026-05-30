@@ -20,6 +20,9 @@ func setupRoleTestDB(t *testing.T) *gorm.DB {
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_menu (id INTEGER PRIMARY KEY, page_perm TEXT, perms TEXT, type TEXT)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role_menu (role_id INTEGER, menu_id INTEGER)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_role (user_id INTEGER, role_id INTEGER)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user (id INTEGER PRIMARY KEY, username TEXT, nickname TEXT, dept_id INTEGER, post_id INTEGER, status INTEGER, created_at DATETIME, updated_at DATETIME, deleted_at DATETIME)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_dept (id INTEGER PRIMARY KEY, dept_name TEXT)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_post (id INTEGER PRIMARY KEY, post_name TEXT)")
 
 	// 插入菜单测试数据
 	_ = db.Exec("INSERT INTO system_menu (id, page_perm, perms, type) VALUES (1, 'sys:user:list', '', 'C')")
@@ -264,5 +267,95 @@ func TestRoleService_ExportAndBatchStatus(t *testing.T) {
 
 	if _, err := s.BatchUpdateRoleStatus([]uint64{adminRole.ID}, 2); err == nil || err.Error() != "role.update.error.protected" {
 		t.Fatalf("expected protected error for admin batch disable, got %v", err)
+	}
+}
+
+func TestRoleService_RoleMembersLifecycle(t *testing.T) {
+	db := setupRoleTestDB(t)
+	s := NewRoleService(db)
+
+	role, err := s.CreateRole(&RoleCreateReq{
+		RoleName: "Reviewer",
+		RoleKey:  "reviewer",
+		Status:   1,
+	})
+	if err != nil {
+		t.Fatalf("create role: %v", err)
+	}
+	if err := db.Exec(
+		"INSERT INTO system_user (id, username, nickname, status, created_at, updated_at) VALUES (11, 'alice', 'Alice', 1, NOW(), NOW()), (12, 'bob', 'Bob', 1, NOW(), NOW())",
+	).Error; err != nil {
+		t.Fatalf("seed users: %v", err)
+	}
+
+	addedCount, err := s.AddRoleMembers(role.ID, []uint64{11, 12})
+	if err != nil {
+		t.Fatalf("add role members: %v", err)
+	}
+	if addedCount != 2 {
+		t.Fatalf("expected 2 members added, got %d", addedCount)
+	}
+
+	members, err := s.ListRoleMembers(role.ID, &RoleMemberQuery{Page: 1, PageSize: 10})
+	if err != nil {
+		t.Fatalf("list role members: %v", err)
+	}
+	if members.Total != 2 || len(members.Items) != 2 {
+		t.Fatalf("expected 2 bound members, got %+v", members)
+	}
+
+	candidates, err := s.ListAssignableUsers(role.ID, &RoleMemberQuery{Page: 1, PageSize: 10})
+	if err != nil {
+		t.Fatalf("list role candidates: %v", err)
+	}
+	if candidates.Total != 0 {
+		t.Fatalf("expected no remaining candidates, got %+v", candidates.Items)
+	}
+
+	removedCount, err := s.RemoveRoleMembers(role.ID, []uint64{11})
+	if err != nil {
+		t.Fatalf("remove role member: %v", err)
+	}
+	if removedCount != 1 {
+		t.Fatalf("expected 1 member removed, got %d", removedCount)
+	}
+
+	members, err = s.ListRoleMembers(role.ID, &RoleMemberQuery{Page: 1, PageSize: 10})
+	if err != nil {
+		t.Fatalf("list role members after remove: %v", err)
+	}
+	if members.Total != 1 || len(members.Items) != 1 || members.Items[0].Username != "bob" {
+		t.Fatalf("expected only bob to remain bound, got %+v", members.Items)
+	}
+
+	candidates, err = s.ListAssignableUsers(role.ID, &RoleMemberQuery{Keyword: "alice", Page: 1, PageSize: 10})
+	if err != nil {
+		t.Fatalf("list candidates after remove: %v", err)
+	}
+	if candidates.Total != 1 || len(candidates.Items) != 1 || candidates.Items[0].Username != "alice" {
+		t.Fatalf("expected alice to return to candidates, got %+v", candidates.Items)
+	}
+}
+
+func TestRoleService_RemoveAdminMemberProtection(t *testing.T) {
+	db := setupRoleTestDB(t)
+	s := NewRoleService(db)
+
+	if err := db.Exec(
+		"INSERT INTO system_user (id, username, nickname, status, created_at, updated_at) VALUES (1, 'admin', 'Administrator', 1, NOW(), NOW())",
+	).Error; err != nil {
+		t.Fatalf("seed admin user: %v", err)
+	}
+
+	adminRole := SystemRole{ID: 1, RoleName: "Admin", RoleKey: "admin", Status: 1, Sort: 1}
+	if err := db.Create(&adminRole).Error; err != nil {
+		t.Fatalf("seed admin role: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_user_role (user_id, role_id) VALUES (1, 1)").Error; err != nil {
+		t.Fatalf("seed admin binding: %v", err)
+	}
+
+	if _, err := s.RemoveRoleMembers(adminRole.ID, []uint64{1}); err == nil || err.Error() != "user.update.error.protected" {
+		t.Fatalf("expected protected error when removing built-in admin, got %v", err)
 	}
 }

@@ -51,3 +51,34 @@ type RoleBatchStatusReq struct {
 	RoleIDs []uint64 `json:"roleIds" binding:"required"`
 	Status  int      `json:"status"`
 }
+
+type RoleMemberResp struct {
+	ID        uint64  `json:"id"`
+	Username  string  `json:"username"`
+	Nickname  string  `json:"nickname"`
+	DeptID    uint64  `json:"deptId"`
+	DeptName  string  `json:"deptName"`
+	PostID    uint64  `json:"postId"`
+	PostName  string  `json:"postName"`
+	Status    int     `json:"status"`
+	CreatedAt string  `json:"createdAt"`
+	LastLogin *string `json:"lastLoginAt,omitempty"`
+}
+
+type RoleMemberPageResp struct {
+	Items    []RoleMemberResp `json:"items"`
+	Total    int64            `json:"total"`
+	Page     int              `json:"page"`
+	PageSize int              `json:"pageSize"`
+}
+
+type RoleMemberQuery struct {
+	Keyword  string `form:"keyword" json:"keyword"`
+	Status   *int   `form:"status" json:"status"`
+	Page     int    `form:"page" json:"page"`
+	PageSize int    `form:"pageSize" json:"pageSize"`
+}
+
+type RoleMemberAssignReq struct {
+	UserIDs []uint64 `json:"userIds" binding:"required"`
+}

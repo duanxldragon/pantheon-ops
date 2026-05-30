@@ -162,7 +162,9 @@ export default function CmdbGroupList() {
   useEffect(() => {
     const maxPage = Math.max(1, Math.ceil(filteredFlatData.length / pageSize));
     if (page > maxPage) {
-      setPage(maxPage);
+      queueMicrotask(() => {
+        setPage(maxPage);
+      });
     }
   }, [filteredFlatData.length, page, pageSize]);
 
