@@ -180,7 +180,7 @@ func coreMenuSeeds() []menuSeed {
 			Icon:      "desktop",
 			RouteName: "operations",
 			Module:    "platform",
-			Sort:      15,
+			Sort:      20,
 		},
 		{
 			Key:       "user",

@@ -262,18 +262,60 @@ func (s *DynamicModuleService) advanceModuleI18nLifecycle(moduleName string) (*M
 		return buildModuleI18nLifecycleSummary(moduleName, true, nil), nil
 	}
 
-	var count int64
-	if err := s.db.Table("system_i18n").Where("module = ?", moduleName).Count(&count).Error; err != nil {
+	var directCount int64
+	if err := s.db.Table("system_i18n").Where("module = ?", moduleName).Count(&directCount).Error; err != nil {
 		return nil, err
 	}
-	if count == 0 {
+	var prefixedConfigCount int64
+	if err := s.db.Table("system_i18n").
+		Where("module = ? AND (`key` = ? OR `key` LIKE ?)", "system.config", moduleName, moduleName+".%").
+		Count(&prefixedConfigCount).Error; err != nil {
+		return nil, err
+	}
+	if directCount == 0 && prefixedConfigCount == 0 {
 		return buildModuleI18nLifecycleSummary(moduleName, true, nil), nil
 	}
 
 	i18nService := systemi18n.NewI18nService(s.db)
-	resp, err := i18nService.AdvanceUnusedLifecycle(moduleName)
-	if err != nil {
-		return nil, err
+	resp := &systemi18n.I18nUnusedLifecycleAdvanceResp{
+		Module:                         moduleName,
+		ObservedKeys:                   make([]string, 0),
+		ArchivedKeys:                   make([]string, 0),
+		DeletedKeys:                    make([]string, 0),
+		ArchivedRetentionThresholdDays: systemi18n.I18nArchivedRetentionThresholdDays,
 	}
+	if directCount > 0 {
+		moduleResp, err := i18nService.AdvanceUnusedLifecycle(moduleName)
+		if err != nil {
+			return nil, err
+		}
+		mergeI18nLifecycleAdvanceResp(resp, moduleResp)
+	}
+	if prefixedConfigCount > 0 {
+		prefixResp, err := i18nService.StartUnusedObservationByKeyPrefixes("system.config", []string{moduleName})
+		if err != nil {
+			return nil, err
+		}
+		if prefixResp != nil {
+			resp.ObservedKeys = append(resp.ObservedKeys, prefixResp.AffectedKeys...)
+			resp.ObservedRows += prefixResp.AffectedRows
+		}
+	}
+	resp.ObservationOnly = resp.ObservedRows > 0 && resp.ArchivedRows == 0 && resp.DeletedRows == 0
 	return buildModuleI18nLifecycleSummary(moduleName, true, resp), nil
+}
+
+func mergeI18nLifecycleAdvanceResp(target *systemi18n.I18nUnusedLifecycleAdvanceResp, source *systemi18n.I18nUnusedLifecycleAdvanceResp) {
+	if target == nil || source == nil {
+		return
+	}
+	target.ObservedKeys = append(target.ObservedKeys, source.ObservedKeys...)
+	target.ObservedRows += source.ObservedRows
+	target.ArchivedKeys = append(target.ArchivedKeys, source.ArchivedKeys...)
+	target.ArchivedRows += source.ArchivedRows
+	target.DeletedKeys = append(target.DeletedKeys, source.DeletedKeys...)
+	target.DeletedRows += source.DeletedRows
+	if source.ArchivedRetentionThresholdDays > 0 {
+		target.ArchivedRetentionThresholdDays = source.ArchivedRetentionThresholdDays
+	}
 }

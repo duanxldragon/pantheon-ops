@@ -225,6 +225,7 @@ const generatedenUSFallback = {
   "business.deploy.package.detailTitle": "Component Detail",
   "business.deploy.package.uninstallCommand": "Uninstall Command",
   "business.deploy.package.version": "Version",
+  "business.deploy.package.sourceUrl": "Source URL",
   "business.deploy.template.createTitle": "Create Task Template",
   "business.deploy.template.deleteConfirm": "Delete this task template?",
   "business.deploy.template.editTitle": "Edit Task Template",

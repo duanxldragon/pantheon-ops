@@ -212,12 +212,13 @@ const MenuList: React.FC = () => {
     return () => globalThis.clearTimeout(timer);
   }, [loadParentTree]);
 
-  useEffect(() => {
+  const displayPagination = useMemo(() => {
     const totalPages = Math.max(1, Math.ceil(data.length / tablePagination.pageSize));
     if (tablePagination.current > totalPages) {
-      setTablePagination((current) => ({ ...current, current: totalPages }));
+      return { ...tablePagination, current: totalPages };
     }
-  }, [data.length, tablePagination.current, tablePagination.pageSize]);
+    return tablePagination;
+  }, [data.length, tablePagination]);
 
   useRefreshSubscription('system:menu:changed', (payload) => {
     if (payload.source === 'system/menu') {
@@ -879,8 +880,8 @@ const MenuList: React.FC = () => {
                 onChange={handleTableChange}
                 emptyText={t('common.noData')}
                 pagination={buildStandardPagination(t, {
-                  current: tablePagination.current,
-                  pageSize: tablePagination.pageSize,
+                  current: displayPagination.current,
+                  pageSize: displayPagination.pageSize,
                   total: data.length,
                 })}
               />

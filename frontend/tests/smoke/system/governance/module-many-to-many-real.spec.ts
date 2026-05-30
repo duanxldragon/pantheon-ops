@@ -2,7 +2,6 @@ import { expect, test, type APIRequestContext, type Route } from '@playwright/te
 import {
   adminCredentials,
   apiBaseUrl,
-  apiRequestHeaders,
   getApiOperationToken,
   installClientSession,
   installOperationToken,

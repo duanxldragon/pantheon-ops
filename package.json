@@ -3,7 +3,12 @@
   "scripts": {
     "check:base-sync": "node scripts/check-base-backend-sync.mjs && npm --prefix frontend run check:base-sync",
     "check:base-sync:backend": "node scripts/check-base-backend-sync.mjs",
-    "check:base-sync:frontend": "npm --prefix frontend run check:base-sync"
+    "check:base-sync:frontend": "npm --prefix frontend run check:base-sync",
+    "check:inheritance": "npm run check:task-packet-template && npm run check:inheritance-contract && npm run check:base-sync:backend",
+    "check:inheritance-contract": "node scripts/check-inheritance-contract.mjs",
+    "check:docs-frontmatter": "node scripts/frontmatter-check.mjs",
+    "check:task-packet-template": "node scripts/check-task-packet-template.mjs",
+    "check:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs --check"
   },
   "devDependencies": {
     "playwright": "^1.60.0"

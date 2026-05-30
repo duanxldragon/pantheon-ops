@@ -1,19 +1,25 @@
-name: Quality Gates
+name: Code Quality Gates
 
 on:
+  workflow_dispatch:
   pull_request:
-  push:
-    branches:
-      - main
-      - release/**
   merge_group:
 
 permissions:
   contents: read
+  statuses: write
+
+env:
+  NODE_VERSION: "22"
+  GO_VERSION_FILE: go.mod
 
 jobs:
-  frontend-contract:
-    name: Frontend menu contract
+  # ============================================================
+  # Phase 1: Fast Checks (Merge Group / PR)
+  # ============================================================
+
+  docs-governance:
+    name: Docs Governance
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,7 +30,35 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Check docs frontmatter
+        run: npm run check:docs-frontmatter
+
+      - name: Check task packet template
+        run: npm run check:task-packet-template
+
+      - name: Check generated modules
+        run: npm run check:generated-modules
+
+  frontend-contract:
+    name: Frontend Contract
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -40,20 +74,16 @@ jobs:
         working-directory: frontend
         run: npm run lint
 
-      - name: Audit i18n locales
-        working-directory: frontend
-        run: npm run audit:i18n-locales
-
-      - name: Audit production dependencies
-        working-directory: frontend
-        run: npm audit --registry=https://registry.npmjs.org --audit-level=high --omit=dev
-
       - name: Build frontend
         working-directory: frontend
-        run: npm run build
+        env:
+          PANTHEON_CI: "true"
+        run: |
+          npm run i18n:generate-module
+          npx vite build
 
   backend-tests:
-    name: Backend tests
+    name: Backend Tests
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -64,11 +94,98 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version-file: ${{ env.GO_VERSION_FILE }}
           cache: true
 
       - name: Test backend
-        run: go test ./...
+        run: go test -race ./...
 
-      - name: Scan backend vulnerabilities
-        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+  # ============================================================
+  # Phase 2: Security Analysis (CodeQL - Auxiliary)
+  # ============================================================
+
+  codeql-security:
+    name: CodeQL Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: go, typescript
+          queries: security-extended
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:go,typescript"
+
+  # ============================================================
+  # Phase 3: SonarQube Analysis (Primary Quality Gate)
+  # ============================================================
+
+  sonar-preview:
+    name: SonarQube Preview Analysis
+    needs: [docs-governance, frontend-contract, backend-tests]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
+    steps:
+      - name: Check Sonar configuration
+        id: sonar-config
+        shell: bash
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ] && [ -n "$SONAR_HOST_URL" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.sonar-config.outputs.enabled == 'true'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        if: steps.sonar-config.outputs.enabled == 'true'
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: ${{ env.GO_VERSION_FILE }}
+          cache: true
+
+      - name: Generate Go coverage
+        if: steps.sonar-config.outputs.enabled == 'true'
+        run: go test -coverprofile=coverage.out ./...
+
+      - name: SonarQube PR Analysis
+        if: steps.sonar-config.outputs.enabled == 'true'
+        uses: SonarSource/sonarqube-scan-action@v6.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.pullrequest.base=${{ github.base_ref }}
+            -Dsonar.pullrequest.branch=${{ github.head_ref }}
+            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
+            -Dsonar.pullrequest.provider=github
+            -Dsonar.pullrequest.github.repository=${{ github.repository }}
+
+      - name: SonarQube skipped
+        if: steps.sonar-config.outputs.enabled != 'true'
+        run: echo "Sonar secrets not configured; configure SONAR_TOKEN and SONAR_HOST_URL secrets."

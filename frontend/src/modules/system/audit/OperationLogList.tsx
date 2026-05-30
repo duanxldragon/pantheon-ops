@@ -515,7 +515,7 @@ const OperationLogList: React.FC = () => {
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
-        .then((group: any) => loadRetentionSetting(group, 'audit.operation_log_retention_options', setRetentionOptions, setRetentionDays))
+        .then((group) => loadRetentionSetting(group, 'audit.operation_log_retention_options', setRetentionOptions, setRetentionDays))
         .catch(() => undefined);
     }, 0);
     return () => globalThis.clearTimeout(timer);

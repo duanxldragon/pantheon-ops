@@ -108,7 +108,9 @@ const SecurityCenter: React.FC = () => {
   useEffect(() => {
     const totalPages = Math.max(1, Math.ceil(sessions.length / sessionPagination.pageSize));
     if (sessionPagination.current > totalPages) {
-      setSessionPagination((current) => ({ ...current, current: totalPages }));
+      queueMicrotask(() => {
+        setSessionPagination((current) => ({ ...current, current: totalPages }));
+      });
     }
   }, [sessionPagination.current, sessionPagination.pageSize, sessions.length]);
 

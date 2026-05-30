@@ -225,6 +225,7 @@ const generatedzhCNFallback = {
   "business.deploy.package.detailTitle": "组件详情",
   "business.deploy.package.uninstallCommand": "卸载命令",
   "business.deploy.package.version": "版本",
+  "business.deploy.package.sourceUrl": "源码地址",
   "business.deploy.template.createTitle": "新增任务模板",
   "business.deploy.template.deleteConfirm": "确认删除该任务模板？",
   "business.deploy.template.editTitle": "编辑任务模板",

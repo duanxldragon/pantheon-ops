@@ -267,11 +267,6 @@ async function getDeptTree(page: Page, accessToken: string, params?: Record<stri
   return Array.isArray(payload.data) ? (payload.data as DeptListItem[]) : [];
 }
 
-async function findDeptByName(page: Page, accessToken: string, deptName: string) {
-  const rows = flattenDeptTreeNodes(await getDeptTree(page, accessToken, { sortField: 'sort', sortOrder: 'asc' }));
-  return rows.find((item) => item.deptName === deptName);
-}
-
 async function deleteDeptByName(page: Page, accessToken: string, deptName: string) {
   const rows = flattenDeptTreeNodes(await getDeptTree(page, accessToken, { sortField: 'sort', sortOrder: 'asc' }));
   const targets = rows.filter((item) => item.deptName === deptName && !item.isRoot);
@@ -378,13 +373,6 @@ async function createUserByApi(
   const payload = await response.json();
   expect(payload.code).toBe(200);
   return payload.data as { id: number };
-}
-
-async function selectArcoOption(page: Page, trigger: ReturnType<Page['locator']>, optionText: string | RegExp) {
-  await trigger.click();
-  const option = page.locator('.arco-select-option').filter({ hasText: optionText }).first();
-  await expect(option).toBeVisible();
-  await option.click();
 }
 
 async function fetchManageMenuTree(page: Page, accessToken: string): Promise<ManageMenuNode[]> {
@@ -2865,7 +2853,7 @@ test('post smoke: edit through UI and blocked delete through API are covered', a
 
     await formItem(page, '岗位编码').locator('input').fill(postCode);
     await page.getByRole('button', { name: '搜索' }).click();
-    let postRow = page.getByRole('row', { name: new RegExp(postCode) }).first();
+    const postRow = page.getByRole('row', { name: new RegExp(postCode) }).first();
     await expect(postRow).toBeVisible();
     await expect(postRow).toContainText(postName);
 

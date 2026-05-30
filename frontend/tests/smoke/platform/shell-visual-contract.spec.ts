@@ -401,9 +401,6 @@ function expandPaddingValues(value: string) {
   return [top, right, bottom, left].map(normalize);
 }
 
-function preferMeasuredBoxValue(...values: Array<string | null | undefined>) {
-  return values.find((value) => Boolean(value && value.trim().length > 0));
-}
 
 function expectSingleLayerDialogControl(
   control: DialogControlContract,

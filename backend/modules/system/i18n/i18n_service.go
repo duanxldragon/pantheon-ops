@@ -828,7 +828,7 @@ func (s *I18nService) ensureCanonicalMenuEntries() error {
 }
 
 func (s *I18nService) ScanErrorKeys() ([]string, error) {
-	return scanI18nKeys(false)
+	return scanI18nKeys(true)
 }
 
 func (s *I18nService) SyncMissingKeys() (*I18nSyncResp, error) {
@@ -1212,6 +1212,31 @@ func (s *I18nService) StartUnusedObservation(module string) (*I18nUnusedLifecycl
 	return s.transitionUnusedLifecycle(module, I18nLifecycleStatusActive, I18nLifecycleStatusObserving, false)
 }
 
+func (s *I18nService) StartUnusedObservationByKeyPrefixes(module string, prefixes []string) (*I18nUnusedLifecycleResp, error) {
+	normalizedPrefixes := make([]string, 0, len(prefixes))
+	for _, prefix := range prefixes {
+		trimmed := strings.TrimSpace(prefix)
+		if trimmed == "" {
+			continue
+		}
+		normalizedPrefixes = append(normalizedPrefixes, trimmed)
+	}
+	if len(normalizedPrefixes) == 0 {
+		return &I18nUnusedLifecycleResp{
+			Module:       strings.TrimSpace(module),
+			AffectedKeys: make([]string, 0),
+		}, nil
+	}
+	return s.transitionUnusedLifecycleWithFilter(module, I18nLifecycleStatusActive, I18nLifecycleStatusObserving, func(item I18nUnusedKeyItem) bool {
+		for _, prefix := range normalizedPrefixes {
+			if item.Key == prefix || strings.HasPrefix(item.Key, prefix+".") {
+				return true
+			}
+		}
+		return false
+	})
+}
+
 func (s *I18nService) ArchiveObservedUnusedKeys(module string) (*I18nUnusedLifecycleResp, error) {
 	audit, err := s.GetAudit()
 	if err != nil {
@@ -1547,6 +1572,7 @@ func (s *I18nService) GetOverview() (*I18nOverviewResp, error) {
 	}
 	resp.ModuleCount = int64(len(moduleSet))
 	resp.GroupCount = int64(len(groupSet))
+	resp.UniqueKeyCount = int64(len(keyLocaleSet))
 
 	entryCountByLocale := make(map[string]int64, len(locales))
 	missingByLocale := make(map[string]int64, len(locales))
@@ -1911,7 +1937,11 @@ func scanI18nKeys(excludeCatalog bool) ([]string, error) {
 				return nil
 			}
 			for _, m := range re.FindAllStringSubmatch(string(content), -1) {
-				keyMap[m[1]] = struct{}{}
+				key := strings.TrimSpace(m[1])
+				if !isLikelyI18nKey(key) {
+					continue
+				}
+				keyMap[key] = struct{}{}
 			}
 			return nil
 		}); err != nil {
@@ -1924,6 +1954,56 @@ func scanI18nKeys(excludeCatalog bool) ([]string, error) {
 	}
 	sort.Strings(keys)
 	return keys, nil
+}
+
+var (
+	i18nKeySegmentPattern = regexp.MustCompile("^[A-Za-z0-9_]+$")
+	i18nKeyLetterPattern  = regexp.MustCompile("[A-Za-z]")
+)
+
+func isLikelyI18nKey(key string) bool {
+	normalized := strings.TrimSpace(key)
+	if normalized == "" || !i18nKeyLetterPattern.MatchString(normalized) {
+		return false
+	}
+
+	segments := strings.Split(normalized, ".")
+	if len(segments) < 2 {
+		return false
+	}
+	first := strings.TrimSpace(segments[0])
+	if first == "" {
+		return false
+	}
+	firstRune := rune(first[0])
+	if !((firstRune >= 'a' && firstRune <= 'z') || (firstRune >= 'A' && firstRune <= 'Z')) {
+		return false
+	}
+
+	for _, segment := range segments {
+		trimmed := strings.TrimSpace(segment)
+		if trimmed == "" || !i18nKeySegmentPattern.MatchString(trimmed) {
+			return false
+		}
+	}
+
+	last := strings.ToLower(segments[len(segments)-1])
+	switch last {
+	case "go", "ts", "tsx", "js", "jsx", "json", "csv", "txt", "png", "gif", "jpg", "jpeg", "svg", "ico", "css", "scss", "less", "html", "map", "md", "yml", "yaml":
+		return false
+	}
+
+	if len(segments) <= 3 {
+		switch first {
+		case "db", "api", "www", "mail", "smtp", "cdn", "img", "static", "files", "localhost":
+			switch last {
+			case "com", "net", "org", "io", "cn", "dev", "app", "local", "internal", "lan":
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 func scanI18nKeyReferenceFiles(targetKey string, newKey string, excludeCatalog bool) ([]I18nKeyReferenceFile, error) {
@@ -2004,6 +2084,13 @@ func buildI18nKeyReferenceMatches(content string, oldKey string, newKey string) 
 
 func isIgnoredI18nUsageFile(path string) bool {
 	normalized := filepath.ToSlash(strings.TrimSpace(path))
+	if strings.Contains(normalized, "/frontend/node_modules/") ||
+		strings.Contains(normalized, "/frontend/dist/") ||
+		strings.Contains(normalized, "/frontend/test-results/") ||
+		strings.Contains(normalized, "/frontend/playwright-report/") ||
+		strings.Contains(normalized, "/frontend/artifacts/") {
+		return true
+	}
 	if strings.HasSuffix(normalized, "_test.go") ||
 		strings.HasSuffix(normalized, ".spec.ts") ||
 		strings.HasSuffix(normalized, ".spec.tsx") ||
@@ -2011,6 +2098,7 @@ func isIgnoredI18nUsageFile(path string) bool {
 		return true
 	}
 	return strings.HasSuffix(normalized, "/frontend/src/i18n/index.ts") ||
+		strings.Contains(normalized, "/frontend/src/i18n/resources/") ||
 		strings.HasSuffix(normalized, "/backend/modules/system/i18n/seed_data.go")
 }
 
@@ -2090,6 +2178,10 @@ func (s *I18nService) transitionUnusedLifecycle(module string, fromStatus string
 	if requireConfirm {
 		return nil, errors.New("i18n.lifecycle.transition.invalid")
 	}
+	return s.transitionUnusedLifecycleWithFilter(module, fromStatus, toStatus, nil)
+}
+
+func (s *I18nService) transitionUnusedLifecycleWithFilter(module string, fromStatus string, toStatus string, filter func(I18nUnusedKeyItem) bool) (*I18nUnusedLifecycleResp, error) {
 	audit, err := s.GetAudit()
 	if err != nil {
 		return nil, err
@@ -2108,6 +2200,9 @@ func (s *I18nService) transitionUnusedLifecycle(module string, fromStatus string
 	targets := make([]target, 0)
 	for _, item := range audit.UnusedKeys {
 		if resp.Module != "" && item.Module != resp.Module {
+			continue
+		}
+		if filter != nil && !filter(item) {
 			continue
 		}
 		if normalizeI18nLifecycleStatus(item.LifecycleStatus) == fromStatus {

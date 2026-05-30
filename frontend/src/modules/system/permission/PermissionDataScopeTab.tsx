@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Button,
   Card,
@@ -105,18 +105,13 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
     return () => globalThis.clearTimeout(timer);
   }, [loadDataScopePolicies, dataScopeQuery]);
 
-  useEffect(() => {
-    setTablePagination((current) => {
-      const totalPages = Math.max(1, Math.ceil(dataScopeRows.length / current.pageSize));
-      if (current.current <= totalPages) {
-        return current;
-      }
-      return {
-        ...current,
-        current: totalPages,
-      };
-    });
-  }, [dataScopeRows]);
+  const displayPagination = useMemo(() => {
+    const totalPages = Math.max(1, Math.ceil(dataScopeRows.length / tablePagination.pageSize));
+    if (tablePagination.current > totalPages) {
+      return { ...tablePagination, current: totalPages };
+    }
+    return tablePagination;
+  }, [dataScopeRows.length, tablePagination]);
 
   useRefreshSubscription(
     ['system:permission:changed', 'system:role:changed', 'system:menu:changed'],
@@ -340,8 +335,8 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
               loading={dataScopeLoading}
               scroll={{ x: 'max-content' }}
               pagination={buildStandardPagination(t, {
-                current: tablePagination.current,
-                pageSize: tablePagination.pageSize,
+                current: displayPagination.current,
+                pageSize: displayPagination.pageSize,
                 total: dataScopeRows.length,
               })}
               onChange={(pagination) => {

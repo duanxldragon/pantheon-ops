@@ -14,6 +14,7 @@ English version: [README.en.md](./README.en.md)
 |---|---|
 | [README.md](./README.md) / [README.en.md](./README.en.md) | 仓库入口与推荐阅读顺序 |
 | [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) / [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md) | 与 `pantheon-base` 的继承关系、版本锁定、本地业务范围与 override 边界 |
+| [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) / [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.md) | `pantheon-ops` 业务开发与 `base -> ops` 同步的最小任务包模板 |
 | [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) / [designs/BUSINESS_CMDB_MODULE_DESIGN.en.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.en.md) | CMDB 业务模块完整设计（含数据模型、API、UI、字典依赖、验收） |
 | [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) / [designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md) | 安装部署业务模块完整设计 |
 | [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md) / [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md) | ops 业务模块 canonical 错误 key 语义附录 |
@@ -34,7 +35,8 @@ English version: [README.en.md](./README.en.md)
 
 1. [README.md](../README.md)
 2. [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
-3. `designs/BUSINESS_*`
+3. [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md)
+4. `designs/BUSINESS_*`
 
 ---
 
@@ -117,3 +119,4 @@ English version: [README.en.md](./README.en.md)
 - 本仓库**只能新增** `designs/BUSINESS_*` 命名的业务模块设计文档
 - 本仓库**禁止**新增非业务文档；如需修改架构、契约、UI 规范，开 PR 到 `pantheon-base`
 - 本仓库可以维护 `PROJECT_INHERITANCE.md` 锁定的 base 版本和本地业务范围
+- 非 trivial 的业务实现或 `base -> ops` 同步，优先先写一份 `TASK_PACKET_OPS_TEMPLATE` 风格的最小任务包

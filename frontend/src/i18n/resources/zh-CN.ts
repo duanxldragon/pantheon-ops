@@ -283,6 +283,7 @@ const zhCNFallback = {
   'auth.login_log.delete.ids_required': '请先选择至少一条登录日志',
   'auth.usernameRequired': '请输入用户名',
   'auth.passwordRequired': '请输入密码',
+  'common.uploadSuccess': '上传成功',
   'common.action': '操作',
   'common.actions': '操作',
   'common.add': '新增',

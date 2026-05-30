@@ -321,6 +321,7 @@ const enUSFallback = {
   'auth.login_log.delete.ids_required': 'Select at least one login log record first',
   'auth.usernameRequired': 'Please input username',
   'auth.passwordRequired': 'Please input password',
+  'common.uploadSuccess': 'Upload successful',
   'common.action': 'Action',
   'common.actions': 'Actions',
   'common.add': 'Add',

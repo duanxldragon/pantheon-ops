@@ -540,42 +540,47 @@ const BaseLayout: React.FC = () => {
       pinned: location.pathname === '/dashboard',
     };
 
-    
-  const mergeTabsIntoState = (currentTabs, nextTab, dashboardTitle) => {
-    const existingIndex = currentTabs.findIndex((item) => item.path === nextTab.path);
-        const mergedTabs =
-          existingIndex >= 0
-            ? currentTabs.map((item, index) =>
-                index === existingIndex
-                  ? { ...item, ...nextTab, pinned: item.pinned || nextTab.pinned }
-                  : item,
-              )
-            : [...currentTabs, nextTab];
-        const normalizedTabs = mergedTabs.some((item) => item.path === '/dashboard')
-          ? mergedTabs
-          : [
-              {
-                path: '/dashboard',
-                titleKey: 'dashboard.title',
-                fallbackTitle: t('dashboard.title'),
-                closable: false,
-                pinned: true,
-              },
-              ...mergedTabs,
-            ];
-        const limitedTabs = limitOpenedTabs(
-          normalizedTabs.map((item) => ({
-            ...item,
-            closable: item.path !== '/dashboard' && item.closable !== false,
-            pinned: item.path === '/dashboard' || Boolean(item.pinned),
-          })),
-        );
-        localStorage.setItem(OPENED_TABS_STORAGE_KEY, JSON.stringify(limitedTabs));
-        return limitedTabs;
-  };
+    const mergeTabsIntoState = (
+      currentTabs: OpenedPageTab[],
+      currentNextTab: OpenedPageTab,
+      dashboardTitle: string,
+    ) => {
+      const existingIndex = currentTabs.findIndex((item) => item.path === currentNextTab.path);
+      const mergedTabs =
+        existingIndex >= 0
+          ? currentTabs.map((item, index) =>
+              index === existingIndex
+                ? { ...item, ...currentNextTab, pinned: item.pinned || currentNextTab.pinned }
+                : item,
+            )
+          : [...currentTabs, currentNextTab];
+      const normalizedTabs = mergedTabs.some((item) => item.path === '/dashboard')
+        ? mergedTabs
+        : [
+            {
+              path: '/dashboard',
+              titleKey: 'dashboard.title',
+              fallbackTitle: dashboardTitle,
+              closable: false,
+              pinned: true,
+            },
+            ...mergedTabs,
+          ];
+      const limitedTabs = limitOpenedTabs(
+        normalizedTabs.map((item) => ({
+          ...item,
+          closable: item.path !== '/dashboard' && item.closable !== false,
+          pinned: item.path === '/dashboard' || Boolean(item.pinned),
+        })),
+      );
+      localStorage.setItem(OPENED_TABS_STORAGE_KEY, JSON.stringify(limitedTabs));
+      return limitedTabs;
+    };
 
-const timer = globalThis.setTimeout(() => {
-      (currentTabs) => mergeTabsIntoState(currentTabs, nextTab, t('dashboard.title')));
+    const timer = globalThis.setTimeout(() => {
+      setOpenedTabs((currentTabs) =>
+        mergeTabsIntoState(currentTabs, nextTab, t('dashboard.title')),
+      );
     }, 0);
     return () => globalThis.clearTimeout(timer);
   }, [currentPageTitle, currentTabTitleKey, location.pathname, t]);
@@ -730,7 +735,6 @@ const timer = globalThis.setTimeout(() => {
           walkMenuNodes(item.children, trail, items, t);
         }
       });
-    }
   };
 
   const commandItems = useMemo<CommandSearchItem[]>(() => {

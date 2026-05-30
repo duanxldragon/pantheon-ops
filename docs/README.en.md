@@ -10,6 +10,7 @@ This directory contains only repository-owned business documents. Architecture, 
 
 - [README.md](./README.md) / [README.en.md](./README.en.md): repo entry and reading order
 - [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) / [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md): inheritance relationship, version pin, local business scope, and override boundaries
+- [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) / [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.md): minimum task-packet template for business work and `base -> ops` sync
 - [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) / [designs/BUSINESS_CMDB_MODULE_DESIGN.en.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.en.md): CMDB business-module design
 - [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) / [designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md): deploy business-module design
 - [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md) / [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md): canonical business error-key appendix
@@ -27,7 +28,8 @@ For actual onboarding, start with:
 
 1. [../README.md](../README.md)
 2. [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
-3. the `designs/BUSINESS_*` documents
+3. [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md)
+4. the `designs/BUSINESS_*` documents
 
 ## Recommended Reading Order
 
@@ -50,3 +52,4 @@ Then read foundation docs directly in `pantheon-base`:
 - ops may add only business-owned documents
 - base architecture, contract, UI, and shared acceptance docs must change in `pantheon-base`
 - if a generic rule needs to change, open the change in base first and then upgrade ops
+- for non-trivial business implementation or `base -> ops` sync work, prefer creating a minimal task packet first

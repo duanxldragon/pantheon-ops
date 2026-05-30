@@ -121,6 +121,7 @@ const frFRFallback = {
   'auth.mfa.disabled': 'La vérification du second facteur n’est pas activée.',
   'auth.usernameRequired': "Veuillez saisir le nom d'utilisateur",
   'auth.passwordRequired': 'Veuillez saisir le mot de passe',
+  'common.uploadSuccess': 'Téléchargement réussi',
   'common.action': 'Opération',
   'common.add': 'Ajouter',
   'common.edit': 'Modifier',

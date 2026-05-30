@@ -123,6 +123,94 @@ func (h *RoleHandler) BatchDeleteRoles(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+func (h *RoleHandler) GetRoleMembers(c *gin.Context) {
+	roleID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		return
+	}
+
+	var query RoleMemberQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		return
+	}
+
+	resp, err := h.service.ListRoleMembers(roleID, &query)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "request.failed")
+		return
+	}
+	common.Success(c, resp)
+}
+
+func (h *RoleHandler) GetRoleMemberCandidates(c *gin.Context) {
+	roleID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		return
+	}
+
+	var query RoleMemberQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		return
+	}
+
+	resp, err := h.service.ListAssignableUsers(roleID, &query)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "request.failed")
+		return
+	}
+	common.Success(c, resp)
+}
+
+func (h *RoleHandler) AddRoleMembers(c *gin.Context) {
+	common.SetAuditMetadata(c, "维护角色成员", common.BusinessUpdate)
+
+	roleID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		return
+	}
+
+	var req RoleMemberAssignReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		return
+	}
+
+	addedCount, err := h.service.AddRoleMembers(roleID, req.UserIDs)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "request.failed")
+		return
+	}
+	common.Success(c, gin.H{"addedCount": addedCount})
+}
+
+func (h *RoleHandler) RemoveRoleMembers(c *gin.Context) {
+	common.SetAuditMetadata(c, "移除角色成员", common.BusinessUpdate)
+
+	roleID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		return
+	}
+
+	var req RoleMemberAssignReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		return
+	}
+
+	removedCount, err := h.service.RemoveRoleMembers(roleID, req.UserIDs)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "request.failed")
+		return
+	}
+	common.Success(c, gin.H{"removedCount": removedCount})
+}
+
 // DeleteRole 删除角色。
 func (h *RoleHandler) DeleteRole(c *gin.Context) {
 	common.SetAuditMetadata(c, "role.delete.title", common.BusinessDelete)

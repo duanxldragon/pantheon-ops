@@ -8,6 +8,14 @@ const scriptsDir = path.dirname(currentFilePath);
 const opsFrontendRoot = path.resolve(scriptsDir, '..');
 const workspaceRoot = path.resolve(opsFrontendRoot, '..', '..');
 const baseSrcRoot = path.join(workspaceRoot, 'pantheon-base', 'frontend', 'src');
+
+// In CI, pantheon-base may not be checked out as a sibling directory.
+if (!fs.existsSync(baseSrcRoot)) {
+  console.warn('[sync-base-shared] pantheon-base not found at', baseSrcRoot);
+  console.warn('[sync-base-shared] skipping base sync check (running in CI without base repo)');
+  process.exit(0);
+}
+
 const opsSrcRoot = path.join(workspaceRoot, 'pantheon-ops', 'frontend', 'src');
 
 const sharedEntries = [
