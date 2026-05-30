@@ -735,7 +735,6 @@ const BaseLayout: React.FC = () => {
           walkMenuNodes(item.children, trail, items, t);
         }
       });
-    }
   };
 
   const commandItems = useMemo<CommandSearchItem[]>(() => {
