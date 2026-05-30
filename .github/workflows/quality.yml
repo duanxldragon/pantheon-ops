@@ -13,6 +13,9 @@ env:
   NODE_VERSION: "22"
   GO_VERSION_FILE: go.mod
 
+permissions:
+  contents: read
+
 jobs:
   # ============================================================
   # Phase 1: Fast Checks (Merge Group / PR)
