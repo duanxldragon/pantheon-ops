@@ -118,6 +118,7 @@ const jaJPFallback = {
   'auth.mfa.disabled': '二要素認証は有効化されていません',
   'auth.usernameRequired': 'ユーザー名を入力してください',
   'auth.passwordRequired': 'パスワードを入力してください',
+  'common.uploadSuccess': 'アップロード成功',
   'common.action': '操作',
   'common.add': '追加',
   'common.edit': '編集',

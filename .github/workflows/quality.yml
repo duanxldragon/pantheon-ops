@@ -76,7 +76,17 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
-        run: npm run build
+        run: |
+          npm run check:base-sync
+          npm run i18n:generate-module
+          npm run check:menu-contract
+          npm run check:i18n-hardcode
+          npm run check:shell-visual-contract
+          npm run check:system-page-admission
+          npm run check:smoke-web-base
+          npm run check:smoke-coverage-contract
+          npx tsc -b
+          npx vite build
 
   backend-tests:
     name: Backend Tests
