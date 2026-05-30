@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Form, Input, Select, Button, Space, Radio } from '@arco-design/web-react';
 import { IconPlus, IconDelete } from '@arco-design/web-react/icon';
 import type { CreateGroupPayload, GroupRow, ConditionRule } from './api';
-import { getLabelSchemaList, type LabelSchemaRow } from '../label/api';
+import { getLabelSchemaOptions, type LabelSchemaRow } from '../label/api';
 import { isFreeValueLabel, labelValueOptions } from '../label/options';
 import SubmitBar from '../../../../components/patterns/SubmitBar';
 
@@ -64,7 +64,7 @@ export default function CmdbGroupForm({
 
   const loadLabelSchemas = useCallback(async () => {
     try {
-      const result = await getLabelSchemaList({ status: 'enabled' });
+      const result = await getLabelSchemaOptions({ status: 'enabled' });
       setLabelSchemas(result);
     } catch {
       setLabelSchemas([]);

@@ -87,8 +87,8 @@ function App() {
 
   useEffect(() => {
     const showHandler = () => setVerifyVisible(true);
-    window.addEventListener('pantheon:show-verify-modal', showHandler);
-    return () => window.removeEventListener('pantheon:show-verify-modal', showHandler);
+    globalThis.addEventListener('pantheon:show-verify-modal', showHandler);
+    return () => globalThis.removeEventListener('pantheon:show-verify-modal', showHandler);
   }, []);
 
   useEffect(() => {
@@ -115,7 +115,7 @@ function App() {
           menuTree: resolvedMenuTree,
         },
         {
-          excludePaths: [window.location.pathname],
+          excludePaths: [globalThis.location.pathname],
         },
       );
     });

@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Form, Message, Space, Tag, Typography } from '@arco-design/web-react';
-import type { TableProps } from '@arco-design/web-react/es/Table/interface';
+import React, { useEffect, useMemo } from 'react';
+import { Space, Tag, Typography } from '@arco-design/web-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -8,7 +7,6 @@ import {
   isServerRequestError,
   isTimeoutRequestError,
 } from '../../../api/request';
-import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import {
   PageContainer,
   PageEmpty,
@@ -20,30 +18,14 @@ import {
 } from '../../../components';
 import { usePermission } from '../../../hooks/usePermission';
 import {
-  exportSettingAudit,
-  refreshSettingCache,
-  updateSettingGroup,
-  type SettingAuditRow,
-} from './api';
-import {
   getSettingGroupPath,
   isSettingGroupKey,
   resolveSettingGroupMeta,
   settingGroups,
   type SettingGroupKey,
 } from './settingGroups';
-import SettingAuditCard from './SettingAuditCard';
-import SettingGroupForm from './SettingGroupForm';
-import {
-  buildFormValues,
-  defaultAuditPageSize,
-  notifySettingChanged,
-  readFormFieldValue,
-  runSettingGroupPostSaveEffects,
-  serializeSettingValue,
-  useSettingCatalog,
-  type SettingFormValue,
-} from './useSettingCatalog';
+import SettingGroupWorkspace from './SettingGroupWorkspace';
+import { useSettingCatalog } from './useSettingCatalog';
 import '../list-page.css';
 
 const SettingGroupPage: React.FC = () => {
@@ -55,28 +37,11 @@ const SettingGroupPage: React.FC = () => {
   const canRefreshCache = isAdmin || hasPerm('system:setting:refresh');
   const canExportAudit = isAdmin || hasPerm('system:setting:export');
   const canViewOperationLog = isAdmin || hasPerm('system:operation-log:list');
-  const [submittingGroup, setSubmittingGroup] = useState<string | null>(null);
-  const [refreshingCache, setRefreshingCache] = useState(false);
-  const [form] = Form.useForm<Record<string, SettingFormValue>>();
-  const {
-    loading,
-    error,
-    settings,
-    overview,
-    groupedSettings,
-    auditRows,
-    auditTotal,
-    auditLoading,
-    auditQuery,
-    reload,
-    loadAudit,
-    clearAudit,
-  } = useSettingCatalog();
+  const { loading, error, settings, overview, groupedSettings, reload } = useSettingCatalog();
 
   const activeGroupMeta = resolveSettingGroupMeta(groupKey);
   const activeSettingGroup =
     groupedSettings.find((item) => item.groupKey === activeGroupMeta.key) || groupedSettings[0];
-  const shouldShowAuditCard = activeSettingGroup?.groupKey === 'audit' && canViewOperationLog;
   const groupIssueCounts = useMemo(() => {
     return (overview?.issues || []).reduce<Record<string, number>>((acc, issue) => {
       acc[issue.groupKey] = (acc[issue.groupKey] || 0) + 1;
@@ -122,31 +87,6 @@ const SettingGroupPage: React.FC = () => {
     navigate(getSettingGroupPath(settingGroups[0].key), { replace: true });
   }, [groupKey, navigate]);
 
-  useEffect(() => {
-    if (!activeSettingGroup) {
-      return;
-    }
-    form.setFieldsValue(buildFormValues(activeSettingGroup.items));
-  }, [activeSettingGroup, form]);
-
-  useEffect(() => {
-    if (!shouldShowAuditCard || !activeSettingGroup) {
-      clearAudit();
-      return;
-    }
-    const timer = window.setTimeout(() => {
-      void loadAudit(activeSettingGroup.groupKey, 1, defaultAuditPageSize);
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [activeSettingGroup, clearAudit, loadAudit, shouldShowAuditCard]);
-
-  const resetActiveGroupValues = () => {
-    if (!activeSettingGroup) {
-      return;
-    }
-    form.setFieldsValue(buildFormValues(activeSettingGroup.items));
-  };
-
   const renderErrorState = () => {
     if (isNetworkRequestError(error)) {
       return (
@@ -174,93 +114,6 @@ const SettingGroupPage: React.FC = () => {
         }}
       />
     );
-  };
-
-  const handleSubmit = async () => {
-    const group = activeSettingGroup;
-    if (!group || !canUpdateSetting) {
-      return;
-    }
-    const fieldNames = group.items.map((item) => item.settingKey);
-    let values;
-    try {
-      values = await form.validate(fieldNames);
-    } catch (submitError) {
-      if (isArcoFormValidationError(submitError)) {
-        return;
-      }
-      throw submitError;
-    }
-    try {
-      const items = group.items.map((item) => ({
-        settingKey: item.settingKey,
-        settingValue: serializeSettingValue(
-          item,
-          readFormFieldValue(values as Record<string, unknown>, item.settingKey, (name) =>
-            form.getFieldValue(name),
-          ),
-        ),
-      }));
-      setSubmittingGroup(group.groupKey);
-      await updateSettingGroup(group.groupKey, { items });
-      await runSettingGroupPostSaveEffects(
-        group.groupKey,
-        values as Record<string, SettingFormValue>,
-      );
-      Message.success(t('common.updateSuccess'));
-      notifySettingChanged();
-      await reload();
-      if (group.groupKey === 'audit' && canViewOperationLog) {
-        await loadAudit(group.groupKey, 1, auditQuery.pageSize);
-      }
-    } catch (submitError) {
-      if (submitError instanceof Error && submitError.message === 'setting.value.invalid_number') {
-        Message.error(t('setting.value.invalid_number'));
-      } else if (
-        submitError instanceof Error &&
-        submitError.message === 'setting.value.invalid_audit_retention'
-      ) {
-        Message.error(t('system.setting.audit.retentionRequired'));
-      }
-    } finally {
-      setSubmittingGroup(null);
-    }
-  };
-
-  const handleRefreshCache = async () => {
-    if (!activeSettingGroup) {
-      return;
-    }
-    setRefreshingCache(true);
-    try {
-      await refreshSettingCache({ groupKeys: [activeSettingGroup.groupKey] });
-      Message.success(t('system.setting.cache.refreshSuccess'));
-      notifySettingChanged();
-      await reload();
-      if (shouldShowAuditCard) {
-        await loadAudit(activeSettingGroup.groupKey, 1, auditQuery.pageSize);
-      }
-    } finally {
-      setRefreshingCache(false);
-    }
-  };
-
-  const handleAuditTableChange: TableProps<SettingAuditRow>['onChange'] = (pagination) => {
-    if (!activeSettingGroup) {
-      return;
-    }
-    void loadAudit(
-      activeSettingGroup.groupKey,
-      pagination.current || 1,
-      pagination.pageSize || auditQuery.pageSize,
-    );
-  };
-
-  const handleExportAudit = async () => {
-    if (!activeSettingGroup) {
-      return;
-    }
-    await exportSettingAudit({ groupKey: activeSettingGroup.groupKey });
   };
 
   return (
@@ -333,36 +186,15 @@ const SettingGroupPage: React.FC = () => {
               ) : null}
             </div>
             {activeSettingGroup ? (
-              <SettingGroupForm
-                form={form}
-                activeGroupKey={activeSettingGroup.groupKey}
-                activeGroupItems={activeSettingGroup.items}
+              <SettingGroupWorkspace
+                groupKey={activeSettingGroup.groupKey}
+                groupItems={activeSettingGroup.items}
                 canUpdateSetting={canUpdateSetting}
                 canRefreshCache={canRefreshCache}
-                refreshingCache={refreshingCache}
-                submittingGroup={submittingGroup}
-                onRefreshCache={() => {
-                  void handleRefreshCache();
-                }}
-                onSubmit={() => {
-                  void handleSubmit();
-                }}
-                onCancel={resetActiveGroupValues}
-              />
-            ) : null}
-            {shouldShowAuditCard ? (
-              <SettingAuditCard
-                rows={auditRows}
-                total={auditTotal}
-                loading={auditLoading}
-                page={auditQuery.page}
-                pageSize={auditQuery.pageSize}
                 canExportAudit={canExportAudit}
                 canViewOperationLog={canViewOperationLog}
-                onChange={handleAuditTableChange}
-                onExport={() => {
-                  void handleExportAudit();
-                }}
+                showAuditCard
+                onReload={reload}
                 onViewOperationLog={(id) => {
                   navigate(`/system/operation-log?detailId=${id}`);
                 }}

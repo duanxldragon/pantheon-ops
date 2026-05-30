@@ -273,24 +273,24 @@ const UserList: React.FC = () => {
   }, [orgEnabled, t]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadData(query);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadRoles();
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadRoles]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadDeptAndPostOptions();
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadDeptAndPostOptions]);
 
   useRefreshSubscription(
@@ -330,7 +330,7 @@ const UserList: React.FC = () => {
         deptId: orgEnabled ? detail.deptId : 0,
         postId: orgEnabled ? detail.postId : 0,
         status: detail.status,
-        roleIds: detail.roleIds,
+        roleIds: detail.roleIds || [],
       });
       setVisible(true);
     } catch {
@@ -387,12 +387,13 @@ const UserList: React.FC = () => {
           deptId: orgEnabled ? values.deptId : 0,
           postId: orgEnabled ? values.postId : 0,
           status: values.status,
-          roleIds: values.roleIds,
+          roleIds: values.roleIds || [],
         });
         message.success(t('common.updateSuccess'));
       } else {
         await createUser({
           ...values,
+          roleIds: values.roleIds || [],
           deptId: orgEnabled ? values.deptId : 0,
           postId: orgEnabled ? values.postId : 0,
         });
@@ -621,7 +622,11 @@ const UserList: React.FC = () => {
         dataIndex: 'createdAt',
         width: TABLE_COLUMN_WIDTH.datetime,
         ...sortableColumn('createdAt'),
-        render: (value: string) => formatDateTime(value),
+        render: (value: string) => (
+          <Typography.Text className="system-list__datetime-text">
+            {formatDateTime(value)}
+          </Typography.Text>
+        ),
       },
       'low',
     ),
@@ -1112,7 +1117,17 @@ const UserList: React.FC = () => {
               <FormItem
                 label={t('system.user.email')}
                 field="email"
-                rules={[{ match: /\S+@\S+\.\S+/, message: t('system.user.email.invalid') }]}
+                rules={[
+                  {
+                    validator: (value, callback) => {
+                      if (!value || /\S+@\S+\.\S+/.test(String(value))) {
+                        callback();
+                        return;
+                      }
+                      callback(t('system.user.email.invalid'));
+                    },
+                  },
+                ]}
               >
                 <Input onPressEnter={() => form.submit()} />
               </FormItem>
@@ -1196,20 +1211,8 @@ const UserList: React.FC = () => {
                 className="system-user-list__role-field"
                 label={t('system.user.roles')}
                 field="roleIds"
-                rules={[
-                  {
-                    required: true,
-                    type: 'array',
-                    minLength: 1,
-                    message: t('system.user.role.required'),
-                  },
-                ]}
               >
-                <Select
-                  mode="multiple"
-                  options={roleOptions}
-                  placeholder={t('system.user.role.required')}
-                />
+                <Select mode="multiple" allowClear options={roleOptions} />
               </FormItem>
             </FormSection>
           </Space>

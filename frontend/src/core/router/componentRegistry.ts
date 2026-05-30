@@ -69,6 +69,9 @@ const staticComponentRegistry = {
   'business/deploy/package/DeployPackageList': defineRegistryEntry(
     () => import('../../modules/business/deploy/package/DeployPackageList'),
   ),
+  'business/deploy/template/DeployTemplateList': defineRegistryEntry(
+    () => import('../../modules/business/deploy/template/DeployTemplateList'),
+  ),
   'business/deploy/task/DeployTaskList': defineRegistryEntry(
     () => import('../../modules/business/deploy/task/DeployTaskList'),
   ),

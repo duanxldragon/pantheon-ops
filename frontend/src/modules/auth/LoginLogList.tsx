@@ -15,7 +15,7 @@ import { message } from '../../components/feedback/message';
 import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
 import { IconDelete, IconDownload, IconSearch } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
-import { getSettingGroup } from '../system/setting/api';
+import { getSettingGroup, type SettingGroup } from '../system/setting/api';
 import {
   getVisibleSelectedRowKeys,
   mergeCrossPageSelection,
@@ -53,7 +53,7 @@ import {
 import { usePermission } from '../../hooks/usePermission';
 import './auth.css';
 import '../system/list-page.css';
-
+import { toCleanupTimestamp, loadRetentionSetting } from '../system/audit/retentionSetting';
 const Row = Grid.Row;
 const Col = Grid.Col;
 const FormItem = Form.Item;
@@ -65,53 +65,6 @@ const emptyQuery: LoginLogQuery = {
   pageSize: 10,
 };
 const defaultRetentionOptions = [1, 7, 30];
-
-function toCleanupTimestamp(value: string) {
-  const normalized = String(value || '').trim();
-  const match = normalized.match(
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/,
-  );
-  if (!match) {
-    return normalized ? undefined : undefined;
-  }
-  const [, year, month, day, hour, minute, second = '00'] = match;
-  const localDate = new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-    Number(minute),
-    Number(second),
-  );
-  if (Number.isNaN(localDate.getTime())) {
-    return undefined;
-  }
-  const offsetMinutes = -localDate.getTimezoneOffset();
-  const sign = offsetMinutes >= 0 ? '+' : '-';
-  const offsetHours = `${Math.floor(Math.abs(offsetMinutes) / 60)}`.padStart(2, '0');
-  const offsetRemainMinutes = `${Math.abs(offsetMinutes) % 60}`.padStart(2, '0');
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}${sign}${offsetHours}:${offsetRemainMinutes}`;
-}
-
-function normalizeRetentionOptions(rawValue: string | undefined) {
-  if (!rawValue) {
-    return defaultRetentionOptions;
-  }
-  try {
-    const parsed = JSON.parse(rawValue) as unknown;
-    if (!Array.isArray(parsed)) {
-      return defaultRetentionOptions;
-    }
-    const normalized = Array.from(
-      new Set(
-        parsed.map((item) => Number(item)).filter((item) => Number.isInteger(item) && item > 0),
-      ),
-    ).sort((left, right) => right - left);
-    return normalized.length > 0 ? normalized : defaultRetentionOptions;
-  } catch {
-    return defaultRetentionOptions;
-  }
-}
 
 const LoginLogList: React.FC = () => {
   const { t } = useTranslation();
@@ -154,26 +107,27 @@ const LoginLogList: React.FC = () => {
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadData(query);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
+
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
-        .then((group) => {
-          const setting = group.items.find(
-            (item) => item.settingKey === 'audit.login_log_retention_options',
-          );
-          const nextOptions = normalizeRetentionOptions(setting?.settingValue);
-          setRetentionOptions(nextOptions);
-          setRetentionDays((current) => (nextOptions.includes(current) ? current : nextOptions[0]));
-        })
+        .then((group: SettingGroup) =>
+          loadRetentionSetting(
+            group,
+            'audit.login_log_retention_options',
+            setRetentionOptions,
+            setRetentionDays,
+          ),
+        )
         .catch(() => undefined);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, []);
 
   const search = () => {
@@ -246,7 +200,11 @@ const LoginLogList: React.FC = () => {
   const successCount = data.filter((item) => item.status === 1).length;
   const failedCount = data.filter((item) => item.status !== 1).length;
   const visibleSelectedRowKeys = useMemo(
-    () => getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.id)),
+    () =>
+      getVisibleSelectedRowKeys(
+        selectedRowKeys,
+        data.map((item) => item.id),
+      ),
     [data, selectedRowKeys],
   );
   const heroStats = useMemo(
@@ -464,10 +422,7 @@ const LoginLogList: React.FC = () => {
                     >
                       {t('common.clearSelection')}
                     </Button>
-                    <PermissionAction
-                      allowed={canDelete}
-                      tooltip={t('common.noPermissionAction')}
-                    >
+                    <PermissionAction allowed={canDelete} tooltip={t('common.noPermissionAction')}>
                       <Popconfirm
                         disabled={selectedRowKeys.length === 0 || !canDelete}
                         title={t('auth.loginLog.batchDeleteConfirm', {
@@ -517,12 +472,13 @@ const LoginLogList: React.FC = () => {
                         checkCrossPage: true,
                         preserveSelectedRowKeys: true,
                         onChange: (keys) =>
-                          setSelectedRowKeys((currentKeys) =>
-                            mergeCrossPageSelection(
-                              currentKeys,
-                              keys as number[],
-                              data.map((item) => item.id),
-                            ) as number[],
+                          setSelectedRowKeys(
+                            (currentKeys) =>
+                              mergeCrossPageSelection(
+                                currentKeys,
+                                keys as number[],
+                                data.map((item) => item.id),
+                              ) as number[],
                           ),
                       }
                     : undefined

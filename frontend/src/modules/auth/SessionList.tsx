@@ -1,10 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Card, Button, Form, Grid, Input, Popconfirm, Select, Space, Tag } from '@arco-design/web-react';
+import {
+  Card,
+  Button,
+  Form,
+  Grid,
+  Input,
+  Popconfirm,
+  Select,
+  Space,
+  Tag,
+} from '@arco-design/web-react';
 import { message } from '../../components/feedback/message';
 import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
 import { IconDelete, IconSearch } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
-import { getSettingGroup } from '../system/setting/api';
+import { getSettingGroup, type SettingGroup } from '../system/setting/api';
 import {
   getVisibleSelectedRowKeys,
   mergeCrossPageSelection,
@@ -43,7 +53,7 @@ import { formatClientSummary } from './clientInfo';
 import SessionDetailModal from './SessionDetailModal';
 import '../system/list-page.css';
 import './auth.css';
-
+import { toCleanupTimestamp, loadRetentionSetting } from '../system/audit/retentionSetting';
 const Row = Grid.Row;
 const Col = Grid.Col;
 const FormItem = Form.Item;
@@ -59,53 +69,6 @@ const emptyQuery: AdminSessionQuery = {
   pageSize: 10,
 };
 const defaultRetentionOptions = [1, 7, 30];
-
-function toCleanupTimestamp(value: string) {
-  const normalized = String(value || '').trim();
-  const match = normalized.match(
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/,
-  );
-  if (!match) {
-    return normalized ? undefined : undefined;
-  }
-  const [, year, month, day, hour, minute, second = '00'] = match;
-  const localDate = new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-    Number(minute),
-    Number(second),
-  );
-  if (Number.isNaN(localDate.getTime())) {
-    return undefined;
-  }
-  const offsetMinutes = -localDate.getTimezoneOffset();
-  const sign = offsetMinutes >= 0 ? '+' : '-';
-  const offsetHours = `${Math.floor(Math.abs(offsetMinutes) / 60)}`.padStart(2, '0');
-  const offsetRemainMinutes = `${Math.abs(offsetMinutes) % 60}`.padStart(2, '0');
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}${sign}${offsetHours}:${offsetRemainMinutes}`;
-}
-
-function normalizeRetentionOptions(rawValue: string | undefined) {
-  if (!rawValue) {
-    return defaultRetentionOptions;
-  }
-  try {
-    const parsed = JSON.parse(rawValue) as unknown;
-    if (!Array.isArray(parsed)) {
-      return defaultRetentionOptions;
-    }
-    const normalized = Array.from(
-      new Set(
-        parsed.map((item) => Number(item)).filter((item) => Number.isInteger(item) && item > 0),
-      ),
-    ).sort((left, right) => right - left);
-    return normalized.length > 0 ? normalized : defaultRetentionOptions;
-  } catch {
-    return defaultRetentionOptions;
-  }
-}
 
 interface LoadDataOptions {
   silent?: boolean;
@@ -162,26 +125,27 @@ const SessionList: React.FC = () => {
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadData(query);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
+
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
-        .then((group) => {
-          const setting = group.items.find(
-            (item) => item.settingKey === 'audit.session_cleanup_retention_options',
-          );
-          const nextOptions = normalizeRetentionOptions(setting?.settingValue);
-          setRetentionOptions(nextOptions);
-          setRetentionDays((current) => (nextOptions.includes(current) ? current : nextOptions[0]));
-        })
+        .then((group: SettingGroup) =>
+          loadRetentionSetting(
+            group,
+            'audit.session_cleanup_retention_options',
+            setRetentionOptions,
+            setRetentionDays,
+          ),
+        )
         .catch(() => undefined);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, []);
 
   const search = () => {
@@ -297,7 +261,11 @@ const SessionList: React.FC = () => {
     [activeCount, currentUsername, revokedCount, t, total],
   );
   const visibleSelectedRowKeys = useMemo(
-    () => getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.sessionId)),
+    () =>
+      getVisibleSelectedRowKeys(
+        selectedRowKeys,
+        data.map((item) => item.sessionId),
+      ),
     [data, selectedRowKeys],
   );
 
@@ -496,7 +464,7 @@ const SessionList: React.FC = () => {
           </FilterPanel>
 
           <Card className="page-panel system-list__table-card">
-            {(canClear || canDelete) ? (
+            {canClear || canDelete ? (
               <div>
                 <GovernanceCleanupBar
                   showCleanup={canClear}
@@ -595,15 +563,17 @@ const SessionList: React.FC = () => {
                         checkCrossPage: true,
                         preserveSelectedRowKeys: true,
                         onChange: (keys) =>
-                          setSelectedRowKeys((currentKeys) =>
-                            mergeCrossPageSelection(
-                              currentKeys,
-                              keys as string[],
-                              data.map((item) => item.sessionId),
-                            ) as string[],
+                          setSelectedRowKeys(
+                            (currentKeys) =>
+                              mergeCrossPageSelection(
+                                currentKeys,
+                                keys as string[],
+                                data.map((item) => item.sessionId),
+                              ) as string[],
                           ),
                         checkboxProps: (record: AdminSessionRow) => ({
-                          disabled: record.username === currentUsername || Boolean(record.revokedAt),
+                          disabled:
+                            record.username === currentUsername || Boolean(record.revokedAt),
                         }),
                       }
                     : undefined

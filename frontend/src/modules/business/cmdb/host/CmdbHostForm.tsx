@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Form, Input, InputNumber, Select, Button, Space } from '@arco-design/web-react';
 import { IconPlus, IconDelete } from '@arco-design/web-react/icon';
 import type { CreateHostPayload, HostRow, LabelEntry } from './api';
-import { getLabelSchemaList, type LabelSchemaRow } from '../label/api';
+import { getLabelSchemaOptions, type LabelSchemaRow } from '../label/api';
+import { getBizScopeOptions, type BizScopeOptionItem } from '../../bizscope/api';
 import { isFreeValueLabel, labelValueOptions } from '../label/options';
 import SubmitBar from '../../../../components/patterns/SubmitBar';
 
@@ -22,21 +23,32 @@ export default function CmdbHostForm({ editing, onSubmit, onCancel, submitting }
   const { t } = useTranslation();
   const [form] = Form.useForm();
   const [labelSchemas, setLabelSchemas] = useState<LabelSchemaRow[]>([]);
+  const [scopeOptions, setScopeOptions] = useState<BizScopeOptionItem[]>([]);
 
   const loadLabelSchemas = useCallback(async () => {
     try {
-      const result = await getLabelSchemaList({ status: 'enabled' });
+      const result = await getLabelSchemaOptions({ status: 'enabled' });
       setLabelSchemas(result);
     } catch {
       setLabelSchemas([]);
     }
   }, []);
 
+  const loadScopeOptions = useCallback(async () => {
+    try {
+      const result = await getBizScopeOptions();
+      setScopeOptions(result);
+    } catch {
+      setScopeOptions([]);
+    }
+  }, []);
+
   useEffect(() => {
     queueMicrotask(() => {
-      void loadLabelSchemas();
+      loadLabelSchemas();
+      loadScopeOptions();
     });
-  }, [loadLabelSchemas]);
+  }, [loadLabelSchemas, loadScopeOptions]);
 
   useEffect(() => {
     if (editing) {
@@ -49,6 +61,7 @@ export default function CmdbHostForm({ editing, onSubmit, onCancel, submitting }
         cpuCores: editing.cpuCores,
         memoryGb: editing.memoryGb,
         diskGb: editing.diskGb,
+        businessScopeId: editing.businessScopeId || undefined,
         labels: editing.labelValues?.length
           ? editing.labelValues.map((l) => ({ key: l.key, val: l.val }))
           : [],
@@ -113,6 +126,15 @@ export default function CmdbHostForm({ editing, onSubmit, onCancel, submitting }
       </Form.Item>
       <Form.Item label={t('business.cmdb.host.diskGb')} field="diskGb">
         <InputNumber min={0} />
+      </Form.Item>
+      <Form.Item label={t('business.cmdb.host.businessScope')} field="businessScopeId">
+        <Select allowClear placeholder={t('business.cmdb.host.businessScopePlaceholder')}>
+          {scopeOptions.map((item) => (
+            <Select.Option key={item.id} value={item.id}>
+              {item.name}
+            </Select.Option>
+          ))}
+        </Select>
       </Form.Item>
       <Form.Item label={t('business.cmdb.host.labels')}>
         <Form.List field="labels">

@@ -189,6 +189,113 @@ func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error)
 	}, nil
 }
 
+func (s *RoleService) ListRoleMembers(roleID uint64, query *RoleMemberQuery) (*RoleMemberPageResp, error) {
+	if s.db == nil {
+		return nil, errors.New("database.not_initialized")
+	}
+	if _, err := s.getRole(roleID); err != nil {
+		return nil, err
+	}
+	return s.listUsersByRoleMembership(roleID, query, true)
+}
+
+func (s *RoleService) ListAssignableUsers(roleID uint64, query *RoleMemberQuery) (*RoleMemberPageResp, error) {
+	if s.db == nil {
+		return nil, errors.New("database.not_initialized")
+	}
+	if _, err := s.getRole(roleID); err != nil {
+		return nil, err
+	}
+	return s.listUsersByRoleMembership(roleID, query, false)
+}
+
+func (s *RoleService) AddRoleMembers(roleID uint64, userIDs []uint64) (int, error) {
+	if s.db == nil {
+		return 0, errors.New("database.not_initialized")
+	}
+	if _, err := s.getRole(roleID); err != nil {
+		return 0, err
+	}
+
+	normalizedUserIDs := normalizeUint64IDs(userIDs)
+	if len(normalizedUserIDs) == 0 {
+		return 0, errors.New("user.batch.empty")
+	}
+	if err := s.ensureUsersExist(normalizedUserIDs); err != nil {
+		return 0, err
+	}
+
+	var existingRows []struct {
+		UserID uint64 `gorm:"column:user_id"`
+	}
+	if err := s.db.Table("system_user_role").
+		Select("user_id").
+		Where("role_id = ? AND user_id IN ?", roleID, normalizedUserIDs).
+		Scan(&existingRows).Error; err != nil {
+		return 0, err
+	}
+
+	existing := make(map[uint64]struct{}, len(existingRows))
+	for _, row := range existingRows {
+		existing[row.UserID] = struct{}{}
+	}
+
+	addedCount := 0
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		for _, userID := range normalizedUserIDs {
+			if _, ok := existing[userID]; ok {
+				continue
+			}
+			if err := tx.Exec(
+				"INSERT INTO system_user_role (user_id, role_id) VALUES (?, ?)",
+				userID,
+				roleID,
+			).Error; err != nil {
+				return err
+			}
+			addedCount++
+		}
+		return nil
+	}); err != nil {
+		return 0, err
+	}
+
+	return addedCount, nil
+}
+
+func (s *RoleService) RemoveRoleMembers(roleID uint64, userIDs []uint64) (int, error) {
+	if s.db == nil {
+		return 0, errors.New("database.not_initialized")
+	}
+	role, err := s.getRole(roleID)
+	if err != nil {
+		return 0, err
+	}
+
+	normalizedUserIDs := normalizeUint64IDs(userIDs)
+	if len(normalizedUserIDs) == 0 {
+		return 0, errors.New("user.batch.empty")
+	}
+	if err := s.ensureUsersExist(normalizedUserIDs); err != nil {
+		return 0, err
+	}
+	if role.RoleKey == "admin" {
+		for _, userID := range normalizedUserIDs {
+			if userID == 1 {
+				return 0, errors.New("user.update.error.protected")
+			}
+		}
+	}
+
+	result := s.db.Table("system_user_role").
+		Where("role_id = ? AND user_id IN ?", roleID, normalizedUserIDs).
+		Delete(nil)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return int(result.RowsAffected), nil
+}
+
 // CreateRole 创建角色。
 func (s *RoleService) CreateRole(req *RoleCreateReq) (*RoleListResp, error) {
 	if s.db == nil {
@@ -471,6 +578,117 @@ func (s *RoleService) loadRolePermissions(roleIDs []uint64) (map[uint64][]string
 	return result, nil
 }
 
+func (s *RoleService) getRole(roleID uint64) (*SystemRole, error) {
+	var role SystemRole
+	if err := s.db.First(&role, roleID).Error; err != nil {
+		return nil, err
+	}
+	return &role, nil
+}
+
+func (s *RoleService) ensureUsersExist(userIDs []uint64) error {
+	var count int64
+	if err := s.db.Table("system_user").Where("id IN ?", userIDs).Count(&count).Error; err != nil {
+		return err
+	}
+	if count != int64(len(userIDs)) {
+		return errors.New("user.batch.not_found")
+	}
+	return nil
+}
+
+func (s *RoleService) listUsersByRoleMembership(roleID uint64, query *RoleMemberQuery, assigned bool) (*RoleMemberPageResp, error) {
+	type roleMemberRow struct {
+		ID        uint64    `gorm:"column:id"`
+		Username  string    `gorm:"column:username"`
+		Nickname  string    `gorm:"column:nickname"`
+		DeptID    uint64    `gorm:"column:dept_id"`
+		DeptName  string    `gorm:"column:dept_name"`
+		PostID    uint64    `gorm:"column:post_id"`
+		PostName  string    `gorm:"column:post_name"`
+		Status    int       `gorm:"column:status"`
+		CreatedAt time.Time `gorm:"column:created_at"`
+	}
+
+	page, pageSize := normalizeRoleMemberPageQuery(query)
+	db := s.db.Table("system_user").
+		Select(strings.Join([]string{
+			"system_user.id",
+			"system_user.username",
+			"system_user.nickname",
+			"system_user.dept_id",
+			"COALESCE(system_dept.dept_name, '') AS dept_name",
+			"system_user.post_id",
+			"COALESCE(system_post.post_name, '') AS post_name",
+			"system_user.status",
+			"system_user.created_at",
+		}, ", ")).
+		Joins("LEFT JOIN system_dept ON system_dept.id = system_user.dept_id").
+		Joins("LEFT JOIN system_post ON system_post.id = system_user.post_id")
+
+	if assigned {
+		db = db.Joins(
+			"JOIN system_user_role ON system_user_role.user_id = system_user.id AND system_user_role.role_id = ?",
+			roleID,
+		)
+	} else {
+		db = db.Where(
+			"NOT EXISTS (SELECT 1 FROM system_user_role WHERE system_user_role.user_id = system_user.id AND system_user_role.role_id = ?)",
+			roleID,
+		)
+	}
+
+	if query != nil {
+		keyword := strings.TrimSpace(query.Keyword)
+		if keyword != "" {
+			db = db.Where(
+				"(system_user.username LIKE ? OR system_user.nickname LIKE ?)",
+				fmt.Sprintf("%%%s%%", keyword),
+				fmt.Sprintf("%%%s%%", keyword),
+			)
+		}
+		if query.Status != nil && (*query.Status == 1 || *query.Status == 2) {
+			db = db.Where("system_user.status = ?", *query.Status)
+		}
+	}
+
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	var rows []roleMemberRow
+	if err := db.
+		Order("system_user.created_at desc, system_user.id desc").
+		Offset((page - 1) * pageSize).
+		Limit(pageSize).
+		Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	items := make([]RoleMemberResp, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, RoleMemberResp{
+			ID:        row.ID,
+			Username:  row.Username,
+			Nickname:  row.Nickname,
+			DeptID:    row.DeptID,
+			DeptName:  row.DeptName,
+			PostID:    row.PostID,
+			PostName:  row.PostName,
+			Status:    row.Status,
+			CreatedAt: row.CreatedAt.Format(time.RFC3339),
+		})
+	}
+
+	return &RoleMemberPageResp{
+		Items:    items,
+		Total:    total,
+		Page:     page,
+		PageSize: pageSize,
+	}, nil
+}
+
 func (s *RoleService) validateRoleCreate(req *RoleCreateReq) error {
 	if strings.TrimSpace(req.RoleName) == "" || strings.TrimSpace(req.RoleKey) == "" {
 		return errors.New("param.invalid")
@@ -602,6 +820,24 @@ func normalizeRoleStatus(status int) int {
 }
 
 func normalizeRolePageQuery(query *RoleListQuery) (int, int) {
+	page := 1
+	pageSize := 10
+	if query == nil {
+		return page, pageSize
+	}
+	if query.Page > 0 {
+		page = query.Page
+	}
+	if query.PageSize > 0 {
+		pageSize = query.PageSize
+	}
+	if pageSize > 100 {
+		pageSize = 100
+	}
+	return page, pageSize
+}
+
+func normalizeRoleMemberPageQuery(query *RoleMemberQuery) (int, int) {
 	page := 1
 	pageSize := 10
 	if query == nil {

@@ -123,10 +123,14 @@ func InitSystemModule(r *gin.RouterGroup, db *gorm.DB) {
 				systemProtected := r.Group("/system").Use(middleware.JWTAuthMiddleware()).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(refreshSyncSvc))
 				{
 					systemProtected.GET("/role/list", roleHandler.GetRoleList)
+					systemProtected.GET("/role/:id/users", roleHandler.GetRoleMembers)
+					systemProtected.GET("/role/:id/user-candidates", roleHandler.GetRoleMemberCandidates)
 					systemProtected.POST("/role", roleHandler.CreateRole)
 					systemProtected.POST("/role/export", roleHandler.ExportRoles)
 					systemProtected.POST("/role/batch-status", roleHandler.BatchUpdateRoleStatus)
 					systemProtected.POST("/role/batch-delete", middleware.SecureActionMiddleware(), roleHandler.BatchDeleteRoles)
+					systemProtected.POST("/role/:id/users", roleHandler.AddRoleMembers)
+					systemProtected.POST("/role/:id/users/remove", roleHandler.RemoveRoleMembers)
 					systemProtected.PUT("/role/:id", roleHandler.UpdateRole)
 					systemProtected.DELETE("/role/:id", roleHandler.DeleteRole)
 				}

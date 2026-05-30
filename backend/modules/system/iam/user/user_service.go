@@ -1096,7 +1096,7 @@ func (s *UserService) validateUserUpdate(user *SystemUser, req *UserUpdateReq) e
 func (s *UserService) ensureUserRoleIDs(roleIDs []uint64) error {
 	normalized := normalizeUint64IDs(roleIDs)
 	if len(normalized) == 0 {
-		return errors.New("user.role.required")
+		return nil
 	}
 
 	var count int64
@@ -1190,6 +1190,11 @@ func (s *UserService) loadUserRoles(userIDs []uint64) (map[uint64][]uint64, map[
 	roleNameMap := make(map[uint64][]string, len(userIDs))
 	if len(userIDs) == 0 {
 		return roleIDMap, roleKeyMap, roleNameMap, nil
+	}
+	for _, userID := range userIDs {
+		roleIDMap[userID] = []uint64{}
+		roleKeyMap[userID] = []string{}
+		roleNameMap[userID] = []string{}
 	}
 
 	type userRolePair struct {

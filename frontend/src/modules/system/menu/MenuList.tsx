@@ -199,33 +199,35 @@ const MenuList: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadData(query);
+    const timer = globalThis.setTimeout(() => {
+      loadData(query);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadParentTree().catch(() => undefined);
+    const timer = globalThis.setTimeout(() => {
+      loadParentTree().catch(() => undefined);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadParentTree]);
 
-  useEffect(() => {
-    const totalPages = Math.max(1, Math.ceil(data.length / tablePagination.pageSize));
-    if (tablePagination.current > totalPages) {
-      setTablePagination((current) => ({ ...current, current: totalPages }));
-    }
-  }, [data.length, tablePagination.current, tablePagination.pageSize]);
+  const tableTotalPages = useMemo(
+    () => Math.max(1, Math.ceil(data.length / tablePagination.pageSize)),
+    [data.length, tablePagination.pageSize],
+  );
+  const tableCurrentPage = useMemo(
+    () => Math.min(tablePagination.current, tableTotalPages),
+    [tablePagination.current, tableTotalPages],
+  );
 
   useRefreshSubscription('system:menu:changed', (payload) => {
     if (payload.source === 'system/menu') {
       return;
     }
-    void loadData(query);
-    void loadParentTree().catch(() => undefined);
-    void fetchMenuTree({ force: true });
+    loadData(query);
+    loadParentTree().catch(() => undefined);
+    fetchMenuTree({ force: true });
   });
 
   const openCreate = () => {
@@ -685,7 +687,7 @@ const MenuList: React.FC = () => {
         <PageNetworkError
           timeout={isTimeoutRequestError(error)}
           onRetry={() => {
-            void loadData(query);
+            loadData(query);
           }}
         />
       );
@@ -694,7 +696,7 @@ const MenuList: React.FC = () => {
       return (
         <PageServerError
           onRetry={() => {
-            void loadData(query);
+            loadData(query);
           }}
         />
       );
@@ -702,7 +704,7 @@ const MenuList: React.FC = () => {
     return (
       <PageError
         onRetry={() => {
-          void loadData(query);
+          loadData(query);
         }}
       />
     );
@@ -879,7 +881,7 @@ const MenuList: React.FC = () => {
                 onChange={handleTableChange}
                 emptyText={t('common.noData')}
                 pagination={buildStandardPagination(t, {
-                  current: tablePagination.current,
+                  current: tableCurrentPage,
                   pageSize: tablePagination.pageSize,
                   total: data.length,
                 })}
@@ -914,7 +916,7 @@ const MenuList: React.FC = () => {
           <SubmitBar
             onCancel={() => setVisible(false)}
             onSubmit={() => {
-              void submitForm();
+              submitForm();
             }}
             loading={submitting}
             submitText={editing ? t('common.save') : t('common.add')}
@@ -926,7 +928,7 @@ const MenuList: React.FC = () => {
           form={form}
           layout="vertical"
           onSubmit={() => {
-            void submitForm();
+            submitForm();
           }}
         >
           <Space direction="vertical" size={20} className="dialog-form-stack">

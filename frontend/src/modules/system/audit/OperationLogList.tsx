@@ -18,7 +18,7 @@ import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/in
 import { IconDelete, IconDownload, IconSearch, IconEye } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { getSettingGroup } from '../setting/api';
+import { getSettingGroup, type SettingGroup } from '../setting/api';
 import {
   getVisibleSelectedRowKeys,
   mergeCrossPageSelection,
@@ -58,7 +58,7 @@ import {
 import { formatDateTime } from '../../../core/format/dateTime';
 import { usePermission } from '../../../hooks/usePermission';
 import '../list-page.css';
-
+import { toCleanupTimestamp, loadRetentionSetting } from './retentionSetting';
 const Row = Grid.Row;
 const Col = Grid.Col;
 const FormItem = Form.Item;
@@ -118,53 +118,6 @@ const emptyQuery: OperationLogQuery = {
   pageSize: 10,
 };
 const defaultRetentionOptions = [1, 7, 30];
-
-function toCleanupTimestamp(value: string) {
-  const normalized = String(value || '').trim();
-  const match = normalized.match(
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/,
-  );
-  if (!match) {
-    return normalized ? undefined : undefined;
-  }
-  const [, year, month, day, hour, minute, second = '00'] = match;
-  const localDate = new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-    Number(minute),
-    Number(second),
-  );
-  if (Number.isNaN(localDate.getTime())) {
-    return undefined;
-  }
-  const offsetMinutes = -localDate.getTimezoneOffset();
-  const sign = offsetMinutes >= 0 ? '+' : '-';
-  const offsetHours = `${Math.floor(Math.abs(offsetMinutes) / 60)}`.padStart(2, '0');
-  const offsetRemainMinutes = `${Math.abs(offsetMinutes) % 60}`.padStart(2, '0');
-  return `${year}-${month}-${day}T${hour}:${minute}:${second}${sign}${offsetHours}:${offsetRemainMinutes}`;
-}
-
-function normalizeRetentionOptions(rawValue: string | undefined) {
-  if (!rawValue) {
-    return defaultRetentionOptions;
-  }
-  try {
-    const parsed = JSON.parse(rawValue) as unknown;
-    if (!Array.isArray(parsed)) {
-      return defaultRetentionOptions;
-    }
-    const normalized = Array.from(
-      new Set(
-        parsed.map((item) => Number(item)).filter((item) => Number.isInteger(item) && item > 0),
-      ),
-    ).sort((left, right) => right - left);
-    return normalized.length > 0 ? normalized : defaultRetentionOptions;
-  } catch {
-    return defaultRetentionOptions;
-  }
-}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -552,26 +505,27 @@ const OperationLogList: React.FC = () => {
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadData(query);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
+
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
-        .then((group) => {
-          const setting = group.items.find(
-            (item) => item.settingKey === 'audit.operation_log_retention_options',
-          );
-          const nextOptions = normalizeRetentionOptions(setting?.settingValue);
-          setRetentionOptions(nextOptions);
-          setRetentionDays((current) => (nextOptions.includes(current) ? current : nextOptions[0]));
-        })
+        .then((group: SettingGroup) =>
+          loadRetentionSetting(
+            group,
+            'audit.operation_log_retention_options',
+            setRetentionOptions,
+            setRetentionDays,
+          ),
+        )
         .catch(() => undefined);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -582,15 +536,15 @@ const OperationLogList: React.FC = () => {
 
     const matchedLog = data.find((item) => item.id === detailId);
     if (matchedLog) {
-      const timer = window.setTimeout(() => {
+      const timer = globalThis.setTimeout(() => {
         setCurrentLog(matchedLog);
         setDetailVisible(true);
         setDetailLoading(false);
       }, 0);
-      return () => window.clearTimeout(timer);
+      return () => globalThis.clearTimeout(timer);
     }
 
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       setDetailLoading(true);
       getOperationLog(detailId)
         .then((detail) => {
@@ -604,7 +558,7 @@ const OperationLogList: React.FC = () => {
           setDetailLoading(false);
         });
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [data, searchParams, t]);
 
   const search = () => {
@@ -693,7 +647,11 @@ const OperationLogList: React.FC = () => {
   };
 
   const visibleSelectedRowKeys = useMemo(
-    () => getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.id)),
+    () =>
+      getVisibleSelectedRowKeys(
+        selectedRowKeys,
+        data.map((item) => item.id),
+      ),
     [data, selectedRowKeys],
   );
 
@@ -1047,10 +1005,7 @@ const OperationLogList: React.FC = () => {
                     >
                       {t('common.clearSelection')}
                     </Button>
-                    <PermissionAction
-                      allowed={canDelete}
-                      tooltip={t('common.noPermissionAction')}
-                    >
+                    <PermissionAction allowed={canDelete} tooltip={t('common.noPermissionAction')}>
                       <Popconfirm
                         disabled={selectedRowKeys.length === 0 || !canDelete}
                         title={t('system.audit.batchDeleteConfirm', {
@@ -1100,12 +1055,13 @@ const OperationLogList: React.FC = () => {
                         checkCrossPage: true,
                         preserveSelectedRowKeys: true,
                         onChange: (keys) =>
-                          setSelectedRowKeys((currentKeys) =>
-                            mergeCrossPageSelection(
-                              currentKeys,
-                              keys as number[],
-                              data.map((item) => item.id),
-                            ) as number[],
+                          setSelectedRowKeys(
+                            (currentKeys) =>
+                              mergeCrossPageSelection(
+                                currentKeys,
+                                keys as number[],
+                                data.map((item) => item.id),
+                              ) as number[],
                           ),
                       }
                     : undefined

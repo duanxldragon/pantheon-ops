@@ -116,6 +116,7 @@ const koKRFallback = {
   'auth.mfa.disabled': '2차 인증이 활성화되어 있지 않습니다.',
   'auth.usernameRequired': '사용자명을 입력하세요',
   'auth.passwordRequired': '비밀번호를 입력하세요',
+  'common.uploadSuccess': '업로드 성공',
   'common.action': '작업',
   'common.add': '추가',
   'common.edit': '수정',

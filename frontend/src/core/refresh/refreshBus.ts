@@ -31,7 +31,7 @@ const refreshEventTarget = new EventTarget();
 let refreshChannel: BroadcastChannel | null = null;
 
 function getRefreshChannel() {
-  if (typeof window === 'undefined' || typeof BroadcastChannel === 'undefined') {
+  if (globalThis.document === undefined || BroadcastChannel === undefined) {
     return null;
   }
   if (!refreshChannel) {
@@ -119,8 +119,9 @@ export function useRefreshPolling(
   intervalMs = DEFAULT_REFRESH_POLL_INTERVAL_MS,
 ) {
   const versionsRef = useRef<Record<string, number>>({});
-  const topicKey = useMemo(() => normalizeTopics(topics).sort().join(','), [topics]);
-  const authToken = token || (typeof window !== 'undefined' && hasAuthCookie() ? '_cookie' : null);
+  const normalizedTopics = useMemo(() => normalizeTopics(topics).sort((a, b) => a.localeCompare(b)), [topics]);
+  const topicKey = useMemo(() => normalizedTopics.join(','), [normalizedTopics]);
+  const authToken = token || (globalThis.document !== undefined && hasAuthCookie() ? '_cookie' : null);
 
   useEffect(() => {
     versionsRef.current = {};
@@ -130,13 +131,12 @@ export function useRefreshPolling(
 
     let active = true;
     let timer: number | null = null;
-    const normalizedTopics = normalizeTopics(topics).sort();
 
     const poll = async () => {
       if (isLogoutTransitionActive()) {
         return;
       }
-      if (typeof window !== 'undefined' && !hasAuthCookie()) {
+      if (globalThis.document !== undefined && !hasAuthCookie()) {
         return;
       }
       try {
@@ -158,15 +158,15 @@ export function useRefreshPolling(
     };
 
     void poll();
-    timer = window.setInterval(() => {
+    timer = globalThis.setInterval(() => {
       void poll();
     }, intervalMs);
 
     return () => {
       active = false;
       if (timer) {
-        window.clearInterval(timer);
+        globalThis.clearInterval(timer);
       }
     };
-  }, [authToken, intervalMs, topicKey, topics]);
+  }, [authToken, intervalMs, topicKey, normalizedTopics]);
 }

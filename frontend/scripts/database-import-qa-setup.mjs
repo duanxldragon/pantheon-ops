@@ -55,7 +55,7 @@ function resolveMysqlConfig() {
     host: process.env.PANTHEON_SMOKE_MYSQL_HOST || parsedDsn?.host || '127.0.0.1',
     port: Number(process.env.PANTHEON_SMOKE_MYSQL_PORT || parsedDsn?.port || 3306),
     username: process.env.PANTHEON_SMOKE_MYSQL_USER || parsedDsn?.username || 'root',
-    password: process.env.PANTHEON_SMOKE_MYSQL_PASSWORD || parsedDsn?.password || 'DHCCroot@2025',
+    password: process.env.PANTHEON_SMOKE_MYSQL_PASSWORD || parsedDsn?.password || '',
     database: process.env.PANTHEON_SMOKE_MYSQL_DATABASE || parsedDsn?.database || 'pantheon_base',
     mysqlBin: process.env.PANTHEON_SMOKE_MYSQL_BIN || 'mysql',
   };

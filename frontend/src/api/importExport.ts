@@ -49,14 +49,14 @@ export function uploadImportFile(url: string, file: File) {
 
 function downloadTextFile(filename: string, content: string) {
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-  const url = window.URL.createObjectURL(blob);
+  const url = globalThis.URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
   anchor.download = filename;
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
-  window.URL.revokeObjectURL(url);
+  globalThis.URL.revokeObjectURL(url);
 }
 
 export function downloadImportErrors(

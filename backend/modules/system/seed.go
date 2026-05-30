@@ -149,7 +149,18 @@ func baseMenuGroupSeeds() []menuSeed {
 func coreMenuSeeds() []menuSeed {
 	return []menuSeed{
 		{
+			Key:       "workspace",
+			TitleKey:  "app.workspace",
+			Path:      "/workspace",
+			Type:      "D",
+			Icon:      "dashboard",
+			RouteName: "workspace",
+			Module:    "platform",
+			Sort:      10,
+		},
+		{
 			Key:       "dashboard",
+			ParentKey: "workspace",
 			TitleKey:  "system.menu.dashboard",
 			Path:      "/dashboard",
 			Component: "dashboard",
@@ -158,7 +169,18 @@ func coreMenuSeeds() []menuSeed {
 			Icon:      "dashboard",
 			RouteName: "dashboard",
 			Module:    "platform",
-			Sort:      10,
+			Sort:      1,
+		},
+		{
+			Key:       "operations",
+			ParentKey: "workspace",
+			TitleKey:  "operations.menu",
+			Path:      "/operations",
+			Type:      "M",
+			Icon:      "desktop",
+			RouteName: "operations",
+			Module:    "platform",
+			Sort:      20,
 		},
 		{
 			Key:       "user",

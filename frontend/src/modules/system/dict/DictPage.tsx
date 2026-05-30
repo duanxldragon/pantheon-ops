@@ -106,17 +106,17 @@ const DictPage: React.FC = () => {
   );
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadTypes(typeQuery);
+    const timer = globalThis.setTimeout(() => {
+      loadTypes(typeQuery);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadTypes, typeQuery]);
 
   useRefreshSubscription('system:dict:changed', (payload) => {
     if (payload.source === 'system/dict') {
       return;
     }
-    void loadTypes(typeQuery);
+    loadTypes(typeQuery);
   });
 
   const typeSummary = useMemo(() => {
@@ -217,7 +217,7 @@ const DictPage: React.FC = () => {
                 canImport={canImport}
                 onQueryChange={setTypeQuery}
                 onReload={() => {
-                  void loadTypes();
+                  loadTypes();
                 }}
                 onSelectType={selectType}
                 onSwitchToItemsTab={switchToItemsTab}
@@ -238,7 +238,7 @@ const DictPage: React.FC = () => {
                 canImport={canImport}
                 onSelectType={selectType}
                 onReloadTypes={() => {
-                  void loadTypes(typeQuery);
+                  loadTypes(typeQuery);
                 }}
               />
             </Tabs.TabPane>

@@ -1,0 +1,7 @@
+{
+  "operations.bizscope.menu": "业务域",
+  "business.bizscope.permission.view": "查看业务域",
+  "business.bizscope.permission.create": "新增业务域",
+  "business.bizscope.permission.update": "编辑业务域",
+  "business.bizscope.permission.delete": "删除业务域"
+}

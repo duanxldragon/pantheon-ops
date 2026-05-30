@@ -56,6 +56,7 @@ import {
   type RolePayload,
   type RoleRow,
 } from './api';
+import RoleMemberDrawer from './RoleMemberDrawer';
 import {
   AppModal,
   AppTable,
@@ -268,6 +269,7 @@ const RoleList: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [visible, setVisible] = useState(false);
   const [editing, setEditing] = useState<RoleRow | null>(null);
+  const [memberTarget, setMemberTarget] = useState<RoleRow | null>(null);
   const [query, setQuery] = useState<RoleListQuery>(emptyQuery);
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string | number>>([]);
   const [menuTree, setMenuTree] = useState<MenuNode[]>([]);
@@ -286,6 +288,7 @@ const RoleList: React.FC = () => {
   const invalidateRoleCaches = useCallback(() => {
     invalidateRouteWarmDataMany([
       { path: '/system/role', resourceKeys: ['list:default'] },
+      { path: '/system/user', resourceKeys: ['list:default'] },
       { path: '/system/user', resourceKeys: ['roles:active'] },
       { path: '/system/permission', resourceKeys: ['roles:default', 'workbench:default'] },
     ]);
@@ -327,17 +330,17 @@ const RoleList: React.FC = () => {
   }, [t]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadData(query);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadMenus();
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [loadMenus]);
 
   useRefreshSubscription(
@@ -575,6 +578,10 @@ const RoleList: React.FC = () => {
     setVisible(true);
   };
 
+  const openMembers = (row: RoleRow) => {
+    setMemberTarget(row);
+  };
+
   const submitForm = async () => {
     let values;
     try {
@@ -773,6 +780,11 @@ const RoleList: React.FC = () => {
       render: (_: unknown, row: RoleRow) => (
         <SystemRowActions
           actions={[
+            {
+              key: 'members',
+              text: t('system.role.members'),
+              onClick: () => openMembers(row),
+            },
             {
               key: 'edit',
               text: t('common.edit'),
@@ -1274,6 +1286,17 @@ const RoleList: React.FC = () => {
           </Space>
         </Form>
       </AppModal>
+
+      <RoleMemberDrawer
+        role={memberTarget}
+        visible={Boolean(memberTarget)}
+        canEdit={canEdit}
+        onClose={() => setMemberTarget(null)}
+        onMembershipChanged={() => {
+          invalidateRoleCaches();
+          publishRefresh('system:user:changed', 'system/role');
+        }}
+      />
     </PageContainer>
   );
 };

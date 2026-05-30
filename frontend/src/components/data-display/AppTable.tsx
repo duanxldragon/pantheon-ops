@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table } from '@arco-design/web-react';
 import type { PaginationProps } from '@arco-design/web-react/es/Pagination/interface';
-import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
+import type { ColumnProps, SorterInfo, TableProps } from '@arco-design/web-react/es/Table/interface';
 import { useTranslation } from 'react-i18next';
 import PageEmpty from '../feedback/PageEmpty';
 import {
@@ -19,6 +19,17 @@ type PaginationNodeProps = PaginationProps & {
   children?: React.ReactNode;
 };
 
+type TableChangeHandler<T> = (
+  pagination: PaginationProps,
+  sorter: SorterInfo | SorterInfo[],
+  filters: Partial<Record<keyof T, string[]>>,
+  extra: {
+    currentData: T[];
+    currentAllData: T[];
+    action: 'sort' | 'filter' | 'paginate';
+  },
+) => void;
+
 type TablePagePosition =
   | 'tl'
   | 'tr'
@@ -27,6 +38,8 @@ type TablePagePosition =
   | 'topCenter'
   | 'bottomCenter'
   | undefined;
+
+const DEFAULT_SELECTION_COLUMN_WIDTH = 44;
 
 function needsHorizontalScroll<T>(columns?: ColumnProps<T>[]): boolean {
   if (!Array.isArray(columns) || columns.length === 0) {
@@ -81,11 +94,11 @@ function filterResponsiveColumns<T>(
   }, []);
 }
 
-function createBoundaryPaginationItem(
+function createBoundaryPaginationItem<T>(
   type: 'first' | 'last',
   paginationProps: PaginationNodeProps,
   ariaLabel: string,
-  onTableChange?: (...args: any[]) => void,
+  onTableChange?: TableChangeHandler<T>,
 ) {
   const currentPage = getPaginationCurrentPage(paginationProps);
   const totalPages = getPaginationTotalPages(paginationProps);
@@ -109,7 +122,16 @@ function createBoundaryPaginationItem(
       paginationProps.onChange(targetPage, pageSize);
       return;
     }
-    onTableChange?.({ current: targetPage, pageSize }, undefined, undefined, undefined);
+    onTableChange?.(
+      { current: targetPage, pageSize },
+      [],
+      {},
+      {
+        currentData: [],
+        currentAllData: [],
+        action: 'paginate',
+      },
+    );
   };
 
   return (
@@ -166,21 +188,21 @@ function AppTable<T>(props: AppTableProps<T>) {
   const { t } = useTranslation();
   const rows = Array.isArray(data) ? data : [];
   const [viewportWidth, setViewportWidth] = useState(() =>
-    typeof window === 'undefined' ? 1920 : window.innerWidth,
+    globalThis.document === undefined ? 1920 : globalThis.innerWidth,
   );
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    if (globalThis.document === undefined) {
       return undefined;
     }
 
     const syncViewportWidth = () => {
-      setViewportWidth(window.innerWidth);
+      setViewportWidth(globalThis.innerWidth);
     };
 
     syncViewportWidth();
-    window.addEventListener('resize', syncViewportWidth);
-    return () => window.removeEventListener('resize', syncViewportWidth);
+    globalThis.addEventListener('resize', syncViewportWidth);
+    return () => globalThis.removeEventListener('resize', syncViewportWidth);
   }, []);
 
   const responsiveColumns = filterResponsiveColumns(columns, viewportWidth);
@@ -188,6 +210,13 @@ function AppTable<T>(props: AppTableProps<T>) {
     scroll?.x !== undefined || !needsHorizontalScroll(responsiveColumns)
       ? scroll
       : { ...scroll, x: 'max-content' as const };
+  const effectiveRowSelection =
+    rest.rowSelection && typeof rest.rowSelection === 'object'
+      ? {
+          columnWidth: DEFAULT_SELECTION_COLUMN_WIDTH,
+          ...rest.rowSelection,
+        }
+      : rest.rowSelection;
 
   if (!loading && rows.length === 0) {
     return <PageEmpty description={emptyText} />;
@@ -224,7 +253,7 @@ function AppTable<T>(props: AppTableProps<T>) {
               if (type === 'prev') {
                 return (
                   <span className="app-table__pagination-step-group">
-                    {createBoundaryPaginationItem(
+                    {createBoundaryPaginationItem<T>(
                       'first',
                       paginationNode.props,
                       firstPageAriaLabel,
@@ -239,7 +268,7 @@ function AppTable<T>(props: AppTableProps<T>) {
                 return (
                   <span className="app-table__pagination-step-group">
                     <span className="app-table__pagination-step-origin">{renderedOrigin}</span>
-                    {createBoundaryPaginationItem(
+                    {createBoundaryPaginationItem<T>(
                       'last',
                       paginationNode.props,
                       lastPageAriaLabel,
@@ -280,6 +309,7 @@ function AppTable<T>(props: AppTableProps<T>) {
         size={rest.size || 'small'}
         data={rows}
         loading={loading}
+        rowSelection={effectiveRowSelection}
         pagePosition={pagePosition}
         pagination={pagination}
         renderPagination={enhancedRenderPagination}

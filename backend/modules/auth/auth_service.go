@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/netip"
 	"sort"
 	"strconv"
 	"strings"
@@ -74,6 +75,19 @@ const (
 	defaultSessionRetentionDays    = authsession.DefaultSessionRetentionDays
 	autoCleanupMinInterval         = 15 * time.Minute
 )
+
+const (
+	sessionLastActivityColumn = "last_activity_at"
+	sessionLastIPColumn       = "last_ip"
+	sessionUserAgentColumn    = "user_agent"
+)
+
+
+type sessionActivityUpdate struct {
+	LastActivityAt *time.Time
+	LastIP         string
+	UserAgent      string
+}
 
 // NewAuthService 构造函数
 func NewAuthService(db *gorm.DB) *AuthService {
@@ -728,19 +742,20 @@ func (s *AuthService) TouchSessionActivity(sessionID string, userID uint64, ip s
 	}
 
 	now := time.Now()
-	updates := map[string]interface{}{
-		"last_activity_at": &now,
+	updates := sessionActivityUpdate{LastActivityAt: &now}
+	if clientIP := normalizeSessionClientIP(ip); clientIP != "" {
+		updates.LastIP = clientIP
 	}
-	if strings.TrimSpace(ip) != "" {
-		updates["last_ip"] = ip
-	}
-	if strings.TrimSpace(userAgent) != "" {
-		updates["user_agent"] = truncateString(userAgent, 255)
+	if agent := normalizeSessionUserAgent(userAgent); agent != "" {
+		updates.UserAgent = agent
 	}
 
 	return s.db.Model(&SystemUserSession{}).
-		Where("session_id = ? AND user_id = ? AND revoked_at IS NULL AND (last_activity_at IS NULL OR last_activity_at < ?)", sessionID, userID, now.Add(-1*time.Minute)).
-		Updates(updates).Error
+		Where("session_id = ?", sessionID).
+		Where("user_id = ?", userID).
+		Where("revoked_at IS NULL").
+		Where("(last_activity_at IS NULL OR last_activity_at < ?)", now.Add(-1*time.Minute)).
+		Updates(&updates).Error
 }
 
 // ListSessions 获取当前用户会话列表
@@ -768,7 +783,10 @@ func (s *AuthService) ListSessions(userID uint64, currentSessionID string) ([]Se
 		result = append(result, buildSessionResp(item, currentSessionID))
 	}
 	sort.SliceStable(result, func(i, j int) bool {
-		return result[i].IsCurrent && !result[j].IsCurrent
+		if result[i].IsCurrent != result[j].IsCurrent {
+			return result[i].IsCurrent
+		}
+		return result[i].CreatedAt > result[j].CreatedAt
 	})
 	return result, nil
 }
@@ -1845,6 +1863,32 @@ func truncateString(value string, length int) string {
 		return value
 	}
 	return value[:length]
+}
+
+func normalizeSessionClientIP(ip string) string {
+	ip = strings.TrimSpace(ip)
+	if ip == "" {
+		return ""
+	}
+	addr, err := netip.ParseAddr(ip)
+	if err != nil {
+		return ""
+	}
+	return addr.String()
+}
+
+func normalizeSessionUserAgent(userAgent string) string {
+	userAgent = strings.TrimSpace(userAgent)
+	if userAgent == "" {
+		return ""
+	}
+	cleaned := strings.Map(func(r rune) rune {
+		if unicode.IsPrint(r) {
+			return r
+		}
+		return -1
+	}, userAgent)
+	return truncateString(cleaned, 255)
 }
 
 func mergePermissionKeys(groups ...[]string) []string {

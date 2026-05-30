@@ -3,6 +3,7 @@
 - 改动层级：
 - 改动模块：
 - 目标问题：
+- 预期影响：
 
 ## 边界说明
 
@@ -18,8 +19,20 @@
 - [ ] 系统页 smoke：`cd frontend && npm run test:smoke:system`
 - [ ] 角色授权 smoke：`cd frontend && npm run test:smoke:role-auth`
 - [ ] 其他专项验证已补充
+- [ ] SonarQube Quality Gate 通过
+- [ ] GitHub required checks 通过
+- [ ] 独立 reviewer 已完成且非作者自审
 
 补充说明：
+
+## 审核留痕
+
+- 独立 reviewer：
+- CODEOWNERS 命中：
+- SonarQube 结果链接：
+- GitHub checks 结果：
+- 是否高风险改动：
+- 若高风险，第二审批人：
 
 ## 检查清单
 
@@ -29,4 +42,4 @@
 - [ ] 菜单、页面授权、操作授权、接口授权边界保持清晰
 - [ ] 涉及数据库/权限/菜单/接口变更时，文档已同步
 - [ ] 已确认不会泄露敏感配置、账号密码或 Token
-
+- [ ] 已确认不是作者自审替代第三方审核

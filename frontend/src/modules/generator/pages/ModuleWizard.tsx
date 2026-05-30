@@ -243,7 +243,7 @@ const ModuleWizard: React.FC = () => {
 
   useEffect(() => {
     let active = true;
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       void loadDatasources()
         .then((items) => {
           if (!active) {
@@ -263,7 +263,7 @@ const ModuleWizard: React.FC = () => {
     }, 0);
     return () => {
       active = false;
-      window.clearTimeout(timer);
+      globalThis.clearTimeout(timer);
     };
   }, [loadDatasources, loadTables, selectedDatasourceId]);
 
@@ -271,7 +271,7 @@ const ModuleWizard: React.FC = () => {
     if (sourceMode !== 'database') {
       return;
     }
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       form.setFieldValue('metadata.sourceDatasourceId' as keyof ModuleSchema, selectedDatasourceId);
       form.setFieldValue(
         'metadata.sourceDatasourceName' as keyof ModuleSchema,
@@ -280,7 +280,7 @@ const ModuleWizard: React.FC = () => {
       form.setFieldValue('metadata.sourceTable' as keyof ModuleSchema, undefined);
       void loadTables(selectedDatasourceId);
     }, 0);
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [form, loadTables, selectedDatasource?.name, selectedDatasourceId, sourceMode]);
 
   const getAllFormValues = () => form.getFields() as Partial<ModuleSchema>;
@@ -642,7 +642,7 @@ const ModuleWizard: React.FC = () => {
         ...Object.keys(schema.i18n.translations.zh),
         ...Object.keys(schema.i18n.translations.en),
       ]),
-    ).sort();
+    ).sort((a, b) => a.localeCompare(b));
     const csv = [
       ['key', 'zh-CN', 'en-US'].map(escapeCsvCell).join(','),
       ...keys.map((key) =>
@@ -674,16 +674,7 @@ const ModuleWizard: React.FC = () => {
         try {
           const rows = parseCsvRows(String(reader.result || ''));
           const nextOverrides: Record<string, TranslationOverride> = {};
-          rows.slice(1).forEach((row) => {
-            const key = String(row[0] || '').trim();
-            if (!key) {
-              return;
-            }
-            nextOverrides[key] = {
-              zh: row[1] ?? '',
-              en: row[2] ?? '',
-            };
-          });
+          rows.slice(1).forEach((row) => applyTranslationRow(row));
           setTranslationOverrides((current) => ({ ...current, ...nextOverrides }));
           message.success(t('generator.wizard.step3.translationPreview.importSuccess'));
         } catch {
@@ -829,7 +820,7 @@ const ModuleWizard: React.FC = () => {
           ...Object.keys(previewSchema.i18n.translations.en),
         ]),
       )
-        .sort()
+        .sort((a, b) => a.localeCompare(b))
         .map((key) => ({
           key,
           zh: previewSchema.i18n.translations.zh[key] || '',
