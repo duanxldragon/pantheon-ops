@@ -136,7 +136,7 @@ function checkDirty() {
     const importMatch = content.match(/import\s*\(([\s\S]*?)\)/);
     if (importMatch) {
       const imports = importMatch[1];
-      if (/mdqaorder|mdqaorderitem|"pantheon-platform\/backend\/modules\/business\//.test(imports)) {
+      if (/mdqaorder|mdqaorderitem|"pantheon-platform\/backend\/modules\/business\/mdqa/.test(imports)) {
         dirty.push('backend generated_registry.go: has generated module imports');
       }
     }
@@ -145,7 +145,7 @@ function checkDirty() {
   // Check frontend generated/business.ts — should have empty array
   if (fs.existsSync(REGISTRY_FILES.frontendBusinessRegistry)) {
     const content = fs.readFileSync(REGISTRY_FILES.frontendBusinessRegistry, 'utf8');
-    if (/Mdqaorder|Mdqaorderitem|from\s+['"]\.\.\/business\//.test(content)) {
+    if (/Mdqaorder|Mdqaorderitem|mdqa/i.test(content)) {
       dirty.push('frontend generated/business.ts: has generated module imports');
     }
   }
