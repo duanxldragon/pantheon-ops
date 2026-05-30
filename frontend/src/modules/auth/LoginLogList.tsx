@@ -117,7 +117,14 @@ const LoginLogList: React.FC = () => {
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
-        .then((group: SettingGroup) => loadRetentionSetting(group, 'audit.login_log_retention_options', setRetentionOptions, setRetentionDays))
+        .then((group: SettingGroup) =>
+          loadRetentionSetting(
+            group,
+            'audit.login_log_retention_options',
+            setRetentionOptions,
+            setRetentionDays,
+          ),
+        )
         .catch(() => undefined);
     }, 0);
     return () => globalThis.clearTimeout(timer);
@@ -193,7 +200,11 @@ const LoginLogList: React.FC = () => {
   const successCount = data.filter((item) => item.status === 1).length;
   const failedCount = data.filter((item) => item.status !== 1).length;
   const visibleSelectedRowKeys = useMemo(
-    () => getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.id)),
+    () =>
+      getVisibleSelectedRowKeys(
+        selectedRowKeys,
+        data.map((item) => item.id),
+      ),
     [data, selectedRowKeys],
   );
   const heroStats = useMemo(
@@ -411,10 +422,7 @@ const LoginLogList: React.FC = () => {
                     >
                       {t('common.clearSelection')}
                     </Button>
-                    <PermissionAction
-                      allowed={canDelete}
-                      tooltip={t('common.noPermissionAction')}
-                    >
+                    <PermissionAction allowed={canDelete} tooltip={t('common.noPermissionAction')}>
                       <Popconfirm
                         disabled={selectedRowKeys.length === 0 || !canDelete}
                         title={t('auth.loginLog.batchDeleteConfirm', {
@@ -464,12 +472,13 @@ const LoginLogList: React.FC = () => {
                         checkCrossPage: true,
                         preserveSelectedRowKeys: true,
                         onChange: (keys) =>
-                          setSelectedRowKeys((currentKeys) =>
-                            mergeCrossPageSelection(
-                              currentKeys,
-                              keys as number[],
-                              data.map((item) => item.id),
-                            ) as number[],
+                          setSelectedRowKeys(
+                            (currentKeys) =>
+                              mergeCrossPageSelection(
+                                currentKeys,
+                                keys as number[],
+                                data.map((item) => item.id),
+                              ) as number[],
                           ),
                       }
                     : undefined

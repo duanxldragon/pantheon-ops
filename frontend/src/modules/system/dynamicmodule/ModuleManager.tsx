@@ -417,7 +417,9 @@ const ModuleManager: React.FC = () => {
             );
           }
           if (record.lastVerifiedAt) {
-            return <Tag color="green">{t('generator.moduleManager.diagnostics.verified')}</Tag>;
+            return (
+              <Tag color="green">{t('generator.moduleManager.diagnostics.verified')}</Tag>
+            );
           }
           return <span>-</span>;
         },
@@ -613,39 +615,32 @@ const ModuleManager: React.FC = () => {
                     <Space wrap size={8}>
                       <Typography.Text>
                         {t('generator.moduleManager.i18nLifecycle.notice', {
-                          defaultValue: 'Removed module {{module}} triggered i18n lifecycle governance.',
                           module: lastLifecycleSummary.module,
                         })}
                       </Typography.Text>
                       <Tag color={lastLifecycleSummary.observedRows > 0 ? 'gold' : 'gray'}>
                         {t('generator.moduleManager.i18nLifecycle.observe', {
-                          defaultValue: 'Observe {{count}}',
                           count: lastLifecycleSummary.observedRows,
                         })}
                       </Tag>
                       <Tag color={lastLifecycleSummary.archivedRows > 0 ? 'orange' : 'gray'}>
                         {t('generator.moduleManager.i18nLifecycle.archive', {
-                          defaultValue: 'Archive {{count}}',
                           count: lastLifecycleSummary.archivedRows,
                         })}
                       </Tag>
                       <Tag color={lastLifecycleSummary.deletedRows > 0 ? 'red' : 'gray'}>
                         {t('generator.moduleManager.i18nLifecycle.delete', {
-                          defaultValue: 'Delete {{count}}',
                           count: lastLifecycleSummary.deletedRows,
                         })}
                       </Tag>
                       <Typography.Text type="secondary">
                         {t('generator.moduleManager.i18nLifecycle.retention', {
-                          defaultValue: 'Archived keys are auto-deleted after {{days}} days.',
                           days: lastLifecycleSummary.archivedRetentionThresholdDays,
                         })}
                       </Typography.Text>
                     </Space>
                   ) : (
-                    t('generator.moduleManager.i18nLifecycle.empty', {
-                      defaultValue: 'No i18n lifecycle changes were required for this module.',
-                    })
+                    t('generator.moduleManager.i18nLifecycle.empty')
                   )
                 }
               />

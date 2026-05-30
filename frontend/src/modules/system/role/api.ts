@@ -43,6 +43,33 @@ export interface RoleBatchStatusPayload {
   status: number;
 }
 
+export interface RoleMemberRow {
+  id: number;
+  username: string;
+  nickname: string;
+  deptId: number;
+  deptName: string;
+  postId: number;
+  postName: string;
+  status: number;
+  createdAt: string;
+  lastLoginAt?: string;
+}
+
+export interface RoleMemberQuery {
+  keyword?: string;
+  status?: number;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface RoleMemberPageResp {
+  items: RoleMemberRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface BatchDeletePayload {
   ids: number[];
 }
@@ -104,6 +131,38 @@ export function batchUpdateRoleStatus(data: RoleBatchStatusPayload) {
 export function batchDeleteRoles(data: BatchDeletePayload) {
   return apiRequest<BatchDeleteResp>({
     url: '/system/role/batch-delete',
+    method: 'post',
+    data,
+  });
+}
+
+export function getRoleMembers(id: number, params?: RoleMemberQuery) {
+  return apiRequest<RoleMemberPageResp>({
+    url: `/system/role/${id}/users`,
+    method: 'get',
+    params,
+  });
+}
+
+export function getRoleMemberCandidates(id: number, params?: RoleMemberQuery) {
+  return apiRequest<RoleMemberPageResp>({
+    url: `/system/role/${id}/user-candidates`,
+    method: 'get',
+    params,
+  });
+}
+
+export function addRoleMembers(id: number, data: { userIds: number[] }) {
+  return apiRequest<{ addedCount: number }>({
+    url: `/system/role/${id}/users`,
+    method: 'post',
+    data,
+  });
+}
+
+export function removeRoleMembers(id: number, data: { userIds: number[] }) {
+  return apiRequest<{ removedCount: number }>({
+    url: `/system/role/${id}/users/remove`,
     method: 'post',
     data,
   });

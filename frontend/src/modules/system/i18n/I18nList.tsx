@@ -33,6 +33,7 @@ import {
   isTimeoutRequestError,
 } from '../../../api/request';
 import { isArcoFormValidationError } from '../../../core/arco/formValidation';
+import { formatDateTime } from '../../../core/format/dateTime';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
 import {
   getVisibleSelectedRowKeys,
@@ -156,15 +157,13 @@ function buildRenameMigrationReport(preview: I18nRenamePreviewResp, t: TFunction
     });
   }
 
-  lines.push(
-    '',
-    `## ${t('i18n.rename.report.checklistTitle')}`,
-    `1. ${t('i18n.rename.report.checklist1')}`,
-    `2. ${t('i18n.rename.report.checklist2')}`,
-    `3. ${t('i18n.rename.report.checklist3')}`,
-    `4. ${t('i18n.rename.report.checklist4')}`,
-    '',
-  );
+  lines.push('');
+  lines.push(`## ${t('i18n.rename.report.checklistTitle')}`);
+  lines.push(`1. ${t('i18n.rename.report.checklist1')}`);
+  lines.push(`2. ${t('i18n.rename.report.checklist2')}`);
+  lines.push(`3. ${t('i18n.rename.report.checklist3')}`);
+  lines.push(`4. ${t('i18n.rename.report.checklist4')}`);
+  lines.push('');
   return lines.join('\n');
 }
 
@@ -325,6 +324,10 @@ const I18nList: React.FC = () => {
     );
   }, [loadMissingLocales, missingLocaleModuleFilter, missingLocaleVisible]);
 
+  const retryLoadData = useCallback(() => {
+    void loadData(query);
+  }, [loadData, query]);
+
   useEffect(() => {
     if (!secondaryReady) {
       return undefined;
@@ -367,7 +370,10 @@ const I18nList: React.FC = () => {
     [registeredModuleOptions, rows],
   );
   const groupOptions = useMemo(
-    () => Array.from(new Set(rows.map((item) => item.group).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+    () =>
+      Array.from(new Set(rows.map((item) => item.group).filter(Boolean))).sort((a, b) =>
+        a.localeCompare(b),
+      ),
     [rows],
   );
 
@@ -381,9 +387,15 @@ const I18nList: React.FC = () => {
   const heroStats = useMemo(
     () => [
       {
-        key: 'entries',
-        label: t('i18n.stats.entries', { count: overview?.totalEntries || total }),
+        key: 'records',
+        label: t('i18n.stats.records', { count: overview?.totalEntries || total }),
         value: overview?.totalEntries || total,
+        hint: t('i18n.hero.recordsHint'),
+      },
+      {
+        key: 'entries',
+        label: t('i18n.stats.entries', { count: overview?.uniqueKeyCount || 0 }),
+        value: overview?.uniqueKeyCount || 0,
         hint: t('i18n.hero.entriesHint'),
       },
       {
@@ -410,6 +422,7 @@ const I18nList: React.FC = () => {
       overview?.missingLocaleCount,
       overview?.moduleCount,
       overview?.totalEntries,
+      overview?.uniqueKeyCount,
       summary.selected,
       t,
       total,
@@ -418,6 +431,16 @@ const I18nList: React.FC = () => {
 
   const governanceSummaryItems = useMemo(
     () => [
+      {
+        label: t('i18n.hero.records'),
+        value: overview?.totalEntries || total,
+        description: t('i18n.hero.recordsHint'),
+      },
+      {
+        label: t('i18n.hero.entries'),
+        value: overview?.uniqueKeyCount || 0,
+        description: t('i18n.hero.entriesHint'),
+      },
       {
         label: t('i18n.hero.groups'),
         value: overview?.groupCount || groupOptions.length,
@@ -428,6 +451,12 @@ const I18nList: React.FC = () => {
         label: t('i18n.hero.missingValues'),
         value: overview?.missingValueCount || 0,
         description: t('i18n.hero.missingValuesHint'),
+      },
+      {
+        tone: 'warning' as const,
+        label: t('i18n.hero.missingLocales'),
+        value: overview?.missingLocaleCount || 0,
+        description: t('i18n.hero.missingHint'),
       },
       {
         label: t('i18n.hero.refreshReady'),
@@ -520,10 +549,6 @@ const I18nList: React.FC = () => {
       message.error(t('i18n.delete.error'));
     }
   };
-
-  const handleRetryLoadData = useCallback(() => {
-    void loadData(query);
-  }, [loadData, query]);
 
   const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) {
@@ -1034,6 +1059,7 @@ const I18nList: React.FC = () => {
         dataIndex: 'createdAt',
         width: TABLE_COLUMN_WIDTH.datetime,
         sorter: true,
+        render: (value: string) => formatDateTime(value),
       },
       'low',
     ),
@@ -1043,6 +1069,7 @@ const I18nList: React.FC = () => {
         dataIndex: 'updatedAt',
         width: TABLE_COLUMN_WIDTH.datetime,
         sorter: true,
+        render: (value: string) => formatDateTime(value),
       },
       'low',
     ),
@@ -1098,7 +1125,11 @@ const I18nList: React.FC = () => {
   };
 
   const visibleSelectedRowKeys = useMemo(
-    () => getVisibleSelectedRowKeys(selectedRowKeys, rows.map((row) => row.id)),
+    () =>
+      getVisibleSelectedRowKeys(
+        selectedRowKeys,
+        rows.map((row) => row.id),
+      ),
     [rows, selectedRowKeys],
   );
 
@@ -1108,14 +1139,12 @@ const I18nList: React.FC = () => {
 
   if (error) {
     if (isNetworkRequestError(error)) {
-      return (
-        <PageNetworkError timeout={isTimeoutRequestError(error)} onRetry={handleRetryLoadData} />
-      );
+      return <PageNetworkError timeout={isTimeoutRequestError(error)} onRetry={retryLoadData} />;
     }
     if (isServerRequestError(error)) {
-      return <PageServerError onRetry={handleRetryLoadData} />;
+      return <PageServerError onRetry={retryLoadData} />;
     }
-    return <PageError onRetry={handleRetryLoadData} />;
+    return <PageError onRetry={retryLoadData} />;
   }
 
   return (
@@ -1232,7 +1261,11 @@ const I18nList: React.FC = () => {
                         >
                           {t('common.refresh')}
                         </Button>
-                        <Button size="small" icon={<IconEye />} onClick={() => void handleOpenAudit()}>
+                        <Button
+                          size="small"
+                          icon={<IconEye />}
+                          onClick={() => void handleOpenAudit()}
+                        >
                           {t('i18n.audit.action')}
                         </Button>
                         {canHydrateBuiltin ? (
@@ -1240,7 +1273,9 @@ const I18nList: React.FC = () => {
                             size="small"
                             status="warning"
                             loading={hydratingBuiltinLocales}
-                            onClick={() => void handleHydrateBuiltinLocales(query.module || undefined)}
+                            onClick={() =>
+                              void handleHydrateBuiltinLocales(query.module || undefined)
+                            }
                           >
                             {t('i18n.hydrateBuiltin.action')}
                           </Button>
@@ -1619,8 +1654,8 @@ const I18nList: React.FC = () => {
                         </Text>
                         {item.lifecycleMarkedAt ? (
                           <Text type="secondary">
-                            {t('i18n.lifecycle.markedAt')}: {item.lifecycleMarkedAt} ·{' '}
-                            {t('i18n.lifecycle.observingDays', { count: item.observingDays })}
+                            {t('i18n.lifecycle.markedAt')}: {formatDateTime(item.lifecycleMarkedAt)}{' '}
+                            · {t('i18n.lifecycle.observingDays', { count: item.observingDays })}
                           </Text>
                         ) : null}
                       </Space>
@@ -2019,8 +2054,8 @@ const I18nList: React.FC = () => {
             { label: t('i18n.locale'), value: currentRow?.locale || '-' },
             { label: t('i18n.value'), value: currentRow?.value || '-' },
             { label: t('i18n.remark'), value: currentRow?.remark || '-' },
-            { label: t('i18n.createdAt'), value: currentRow?.createdAt || '-' },
-            { label: t('i18n.updatedAt'), value: currentRow?.updatedAt || '-' },
+            { label: t('i18n.createdAt'), value: formatDateTime(currentRow?.createdAt) },
+            { label: t('i18n.updatedAt'), value: formatDateTime(currentRow?.updatedAt) },
           ]}
         />
       </AppModal>

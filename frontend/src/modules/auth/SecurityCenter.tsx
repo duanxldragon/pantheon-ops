@@ -78,7 +78,9 @@ const SecurityCenter: React.FC = () => {
         ),
       ]);
       setOverview(overviewResp);
-      setUserInfo(overviewResp.user);
+      if (overviewResp.user) {
+        setUserInfo(overviewResp.user);
+      }
       setSessions(sessionsResp);
       setLoginLogs(loginLogsResp.items);
     } catch {
@@ -100,19 +102,18 @@ const SecurityCenter: React.FC = () => {
     () => overview?.currentSession ?? sessions.find((item) => item.isCurrent) ?? null,
     [overview, sessions],
   );
+  const sessionTotalPages = useMemo(
+    () => Math.max(1, Math.ceil(sessions.length / sessionPagination.pageSize)),
+    [sessionPagination.pageSize, sessions.length],
+  );
+  const sessionCurrentPage = useMemo(
+    () => Math.min(sessionPagination.current, sessionTotalPages),
+    [sessionPagination.current, sessionTotalPages],
+  );
   const pagedSessions = useMemo(() => {
-    const startIndex = (sessionPagination.current - 1) * sessionPagination.pageSize;
+    const startIndex = (sessionCurrentPage - 1) * sessionPagination.pageSize;
     return sessions.slice(startIndex, startIndex + sessionPagination.pageSize);
-  }, [sessionPagination.current, sessionPagination.pageSize, sessions]);
-
-  useEffect(() => {
-    const totalPages = Math.max(1, Math.ceil(sessions.length / sessionPagination.pageSize));
-    if (sessionPagination.current > totalPages) {
-      queueMicrotask(() => {
-        setSessionPagination((current) => ({ ...current, current: totalPages }));
-      });
-    }
-  }, [sessionPagination.current, sessionPagination.pageSize, sessions.length]);
+  }, [sessionCurrentPage, sessionPagination.pageSize, sessions]);
 
   const translateLogMessage = useCallback(
     (value?: string | null) => {
@@ -586,7 +587,7 @@ const SecurityCenter: React.FC = () => {
                   data={pagedSessions}
                   loading={loading && Boolean(overview)}
                   pagination={buildStandardPagination(t, {
-                    current: sessionPagination.current,
+                    current: sessionCurrentPage,
                     pageSize: sessionPagination.pageSize,
                     total: sessions.length,
                     sizeCanChange: false,

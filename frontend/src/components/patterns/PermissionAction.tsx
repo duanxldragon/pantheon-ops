@@ -4,7 +4,7 @@ import { Tooltip } from '@arco-design/web-react';
 interface PermissionActionProps {
   allowed: boolean;
   tooltip: string;
-  children: React.ReactElement;
+  children: React.ReactElement<{ disabled?: boolean }>;
 }
 
 const PermissionAction: React.FC<PermissionActionProps> = ({ allowed, tooltip, children }) => {

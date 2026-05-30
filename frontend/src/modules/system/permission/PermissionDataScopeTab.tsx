@@ -105,13 +105,14 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
     return () => globalThis.clearTimeout(timer);
   }, [loadDataScopePolicies, dataScopeQuery]);
 
-  const displayPagination = useMemo(() => {
-    const totalPages = Math.max(1, Math.ceil(dataScopeRows.length / tablePagination.pageSize));
-    if (tablePagination.current > totalPages) {
-      return { ...tablePagination, current: totalPages };
-    }
-    return tablePagination;
-  }, [dataScopeRows.length, tablePagination]);
+  const tableTotalPages = useMemo(
+    () => Math.max(1, Math.ceil(dataScopeRows.length / tablePagination.pageSize)),
+    [dataScopeRows.length, tablePagination.pageSize],
+  );
+  const tableCurrentPage = useMemo(
+    () => Math.min(tablePagination.current, tableTotalPages),
+    [tablePagination.current, tableTotalPages],
+  );
 
   useRefreshSubscription(
     ['system:permission:changed', 'system:role:changed', 'system:menu:changed'],
@@ -335,8 +336,8 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
               loading={dataScopeLoading}
               scroll={{ x: 'max-content' }}
               pagination={buildStandardPagination(t, {
-                current: displayPagination.current,
-                pageSize: displayPagination.pageSize,
+                current: tableCurrentPage,
+                pageSize: tablePagination.pageSize,
                 total: dataScopeRows.length,
               })}
               onChange={(pagination) => {

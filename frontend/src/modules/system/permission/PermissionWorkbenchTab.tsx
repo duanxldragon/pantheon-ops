@@ -18,6 +18,7 @@ import {
   isServerRequestError,
   isTimeoutRequestError,
 } from '../../../api/request';
+import { formatDateTime } from '../../../core/format/dateTime';
 import { usePermission } from '../../../hooks/usePermission';
 import {
   getPermissionWorkbenchRemediationEvents,
@@ -174,13 +175,14 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
     return roles.filter((role) => role.governanceStatus === 'pending');
   }, [viewMode, workbench?.roles]);
 
-  const displayPagination = useMemo(() => {
-    const totalPages = Math.max(1, Math.ceil(displayedRoles.length / tablePagination.pageSize));
-    if (tablePagination.current > totalPages) {
-      return { ...tablePagination, current: totalPages };
-    }
-    return tablePagination;
-  }, [displayedRoles.length, tablePagination]);
+  const tableTotalPages = useMemo(
+    () => Math.max(1, Math.ceil(displayedRoles.length / tablePagination.pageSize)),
+    [displayedRoles.length, tablePagination.pageSize],
+  );
+  const tableCurrentPage = useMemo(
+    () => Math.min(tablePagination.current, tableTotalPages),
+    [tablePagination.current, tableTotalPages],
+  );
 
   const renderGovernanceStatusTag = (role: PermissionWorkbenchRole) => {
     if (role.governanceStatus === 'pending') {
@@ -456,8 +458,8 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
               loading={workbenchLoading}
               scroll={{ x: 'max-content' }}
               pagination={buildStandardPagination(t, {
-                current: displayPagination.current,
-                pageSize: displayPagination.pageSize,
+                current: tableCurrentPage,
+                pageSize: tablePagination.pageSize,
                 total: displayedRoles.length,
               })}
               onChange={(pagination) => {
@@ -643,6 +645,7 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
                   {
                     title: t('system.permission.workbench.remediationTime'),
                     dataIndex: 'createdAt',
+                    render: (value: string) => formatDateTime(value),
                   },
                 ]}
                 pagination={false}

@@ -34,8 +34,8 @@ export interface UserListRow {
   postName: string;
   status: number;
   createdAt: string;
-  roleIds: number[];
-  roleKeys: string[];
+  roleIds?: number[];
+  roleKeys?: string[];
   roleNames?: string[];
   profileExt?: UserProfileExt;
 }
@@ -55,8 +55,8 @@ export interface UserDetail {
   createdAt: string;
   updatedAt: string;
   lastLoginAt?: string;
-  roleIds: number[];
-  roleKeys: string[];
+  roleIds?: number[];
+  roleKeys?: string[];
   roleNames?: string[];
 }
 

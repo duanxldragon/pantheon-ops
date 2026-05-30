@@ -62,6 +62,7 @@ export interface I18nOverviewResp {
   moduleCount: number;
   groupCount: number;
   totalEntries: number;
+  uniqueKeyCount: number;
   missingValueCount: number;
   missingLocaleCount: number;
   coverage: I18nLocaleCoverage[];

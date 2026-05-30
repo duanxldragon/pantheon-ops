@@ -81,7 +81,6 @@ import './index.css';
 
 const { Header, Footer, Sider, Content } = Layout;
 const MAX_OPENED_TABS = 8;
-const MENU_COLLAPSE_PREFERRED_ROUTE_NAMES = new Set(['operations']);
 
 interface OpenedPageTab {
   path: string;
@@ -336,11 +335,7 @@ const BaseLayout: React.FC = () => {
     t,
   ]);
   const menuOpenKeys = useMemo(
-    () =>
-      menuTrail
-        .slice(0, -1)
-        .filter((item) => !MENU_COLLAPSE_PREFERRED_ROUTE_NAMES.has(item.routeName || ''))
-        .map((item) => item.id.toString()),
+    () => menuTrail.slice(0, -1).map((item) => item.id.toString()),
     [menuTrail],
   );
   const currentPageTitle = breadcrumbItems[breadcrumbItems.length - 1]?.label || t('app.workspace');
@@ -443,9 +438,9 @@ const BaseLayout: React.FC = () => {
     }
     bootstrappedRef.current = true;
 
-    void fetchMenuTree();
+    fetchMenuTree().catch(() => undefined);
     if (!useAuthStore.getState().userInfo) {
-      void ensureAuthUserInfo().catch(() => undefined);
+      ensureAuthUserInfo().catch(() => undefined);
     }
     const initialActivityAt = readShellLastActivityAt();
     syncShellActivity(initialActivityAt && initialActivityAt > 0 ? initialActivityAt : Date.now());
@@ -468,9 +463,9 @@ const BaseLayout: React.FC = () => {
           .then((settings) => switchI18nLanguage(settings.defaultLanguage))
           .catch(() => undefined);
       } else {
-        void refreshPublicSettings().catch(() => undefined);
+        refreshPublicSettings().catch(() => undefined);
       }
-      void fetchMenuTree({ force: true });
+      fetchMenuTree({ force: true }).catch(() => undefined);
     },
   );
   useRefreshPolling(token, [
@@ -591,7 +586,7 @@ const BaseLayout: React.FC = () => {
     }
     const timer = globalThis.setInterval(() => {
       if (Date.now() - lastActivityAtRef.current >= sessionIdleMs) {
-        void performLogout(true, 'session.idle_timeout');
+        performLogout(true, 'session.idle_timeout').catch(() => undefined);
       }
     }, 15000);
     return () => globalThis.clearInterval(timer);
@@ -697,44 +692,44 @@ const BaseLayout: React.FC = () => {
     t: (key: string) => string,
   ) => {
     nodes.forEach((item) => {
-        const trail = [...ancestors, item];
-        if (item.path && item.type !== 'F') {
-          const title = t(item.titleKey);
-          const parentTrail = trail
-            .slice(0, -1)
-            .map((node) => t(node.titleKey))
-            .join(' / ');
-          items.push({
-            key: `menu-${item.id}`,
+      const trail = [...ancestors, item];
+      if (item.path && item.type !== 'F') {
+        const title = t(item.titleKey);
+        const parentTrail = trail
+          .slice(0, -1)
+          .map((node) => t(node.titleKey))
+          .join(' / ');
+        items.push({
+          key: `menu-${item.id}`,
+          title,
+          subtitle: parentTrail || item.path,
+          section: t('app.command.section.menu'),
+          searchText: [
             title,
-            subtitle: parentTrail || item.path,
-            section: t('app.command.section.menu'),
-            searchText: [
-              title,
-              parentTrail,
-              item.path,
-              item.routeName,
-              item.component,
-              item.pagePerm,
-              item.perms,
-              item.module,
-            ]
-              .filter(Boolean)
-              .join(' '),
-            icon: renderMenuIcon(item.icon),
-            run: () => {
-              if (item.isExternal === 1) {
-                globalThis.open(item.path, '_blank', 'noopener,noreferrer');
-                return;
-              }
-              navigate(item.path);
-            },
-          });
-        }
-        if (item.children?.length) {
-          walkMenuNodes(item.children, trail, items, t);
-        }
-      });
+            parentTrail,
+            item.path,
+            item.routeName,
+            item.component,
+            item.pagePerm,
+            item.perms,
+            item.module,
+          ]
+            .filter(Boolean)
+            .join(' '),
+          icon: renderMenuIcon(item.icon),
+          run: () => {
+            if (item.isExternal === 1) {
+              globalThis.open(item.path, '_blank', 'noopener,noreferrer');
+              return;
+            }
+            navigate(item.path);
+          },
+        });
+      }
+      if (item.children?.length) {
+        walkMenuNodes(item.children, trail, items, t);
+      }
+    });
   };
 
   const commandItems = useMemo<CommandSearchItem[]>(() => {
@@ -870,10 +865,7 @@ const BaseLayout: React.FC = () => {
     if (!noticeSummary) {
       return 0;
     }
-    return Math.min(
-      noticeSummary.loginFailureCount + noticeSummary.pendingSecurityEventCount,
-      99,
-    );
+    return Math.min(noticeSummary.loginFailureCount + noticeSummary.pendingSecurityEventCount, 99);
   }, [noticeSummary]);
 
   const noticeStatItems = useMemo(() => {
@@ -1851,9 +1843,7 @@ const BaseLayout: React.FC = () => {
                 </Avatar>
                 <div className="app-shell__user-meta">
                   <span className="app-shell__user-name">{userDisplayName}</span>
-                  {roleLabel ? (
-                    <span className="app-shell__user-subtitle">{roleLabel}</span>
-                  ) : null}
+                  {roleLabel ? <span className="app-shell__user-subtitle">{roleLabel}</span> : null}
                 </div>
               </Button>
             </Dropdown>
@@ -1902,7 +1892,7 @@ const BaseLayout: React.FC = () => {
             placeholder={t('app.lock.passwordPlaceholder')}
             onChange={setUnlockPassword}
             onPressEnter={() => {
-              void handleUnlock();
+              handleUnlock().catch(() => undefined);
             }}
           />
           <Space>
@@ -1910,7 +1900,7 @@ const BaseLayout: React.FC = () => {
               type="primary"
               loading={unlockLoading}
               onClick={() => {
-                void handleUnlock();
+                handleUnlock().catch(() => undefined);
               }}
             >
               {t('app.lock.unlock')}

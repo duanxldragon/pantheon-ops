@@ -97,6 +97,11 @@
   white-space: nowrap;
 }
 
+.system-list__datetime-text {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 .system-user-list__cell-text--strong {
   font-weight: 500;
 }

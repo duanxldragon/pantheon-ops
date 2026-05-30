@@ -6,7 +6,6 @@ interface FormatDateTimeOptions {
 
 type RelativeTimeUnit = Intl.RelativeTimeFormatUnit;
 
-const dateTimeFormatterCache = new Map<string, Intl.DateTimeFormat>();
 const relativeTimeFormatterCache = new Map<string, Intl.RelativeTimeFormat>();
 
 function resolveLocale() {
@@ -26,6 +25,26 @@ function parseDate(value: DateValue) {
   if (value === null || value === undefined || value === '') {
     return null;
   }
+  if (typeof value === 'string') {
+    const normalized = value.trim();
+    const localDateTimeMatch = normalized.match(
+      /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$/,
+    );
+    if (localDateTimeMatch) {
+      const [, year, month, day, hour = '00', minute = '00', second = '00'] = localDateTimeMatch;
+      const date = new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hour),
+        Number(minute),
+        Number(second),
+      );
+      if (!Number.isNaN(date.getTime())) {
+        return date;
+      }
+    }
+  }
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) {
     return null;
@@ -44,41 +63,20 @@ function getInvalidFallback(value: DateValue) {
   return String(value);
 }
 
-function getDateTimeFormatter(options?: FormatDateTimeOptions) {
-  const locale = resolveLocale();
-  const withSeconds = options?.withSeconds !== false;
-  const cacheKey = `${locale}:${withSeconds ? 'seconds' : 'minutes'}`;
-  const cached = dateTimeFormatterCache.get(cacheKey);
-  if (cached) {
-    return cached;
-  }
-  const formatter = new Intl.DateTimeFormat(locale, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: withSeconds ? '2-digit' : undefined,
-    hour12: false,
-  });
-  dateTimeFormatterCache.set(cacheKey, formatter);
-  return formatter;
+function padDatePart(value: number) {
+  return String(value).padStart(2, '0');
 }
 
-function getDateFormatter() {
-  const locale = resolveLocale();
-  const cacheKey = `${locale}:date`;
-  const cached = dateTimeFormatterCache.get(cacheKey);
-  if (cached) {
-    return cached;
+function formatDateParts(date: Date, withTime: boolean, withSeconds: boolean) {
+  const datePart = `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}`;
+  if (!withTime) {
+    return datePart;
   }
-  const formatter = new Intl.DateTimeFormat(locale, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-  dateTimeFormatterCache.set(cacheKey, formatter);
-  return formatter;
+  const timePart = `${padDatePart(date.getHours())}:${padDatePart(date.getMinutes())}`;
+  if (!withSeconds) {
+    return `${datePart} ${timePart}`;
+  }
+  return `${datePart} ${timePart}:${padDatePart(date.getSeconds())}`;
 }
 
 function getRelativeTimeFormatter() {
@@ -127,7 +125,7 @@ export function formatDate(value?: DateValue) {
   if (!date) {
     return getInvalidFallback(value);
   }
-  return getDateFormatter().format(date);
+  return formatDateParts(date, false, false);
 }
 
 export function formatDateTime(value?: DateValue, options?: FormatDateTimeOptions) {
@@ -135,7 +133,7 @@ export function formatDateTime(value?: DateValue, options?: FormatDateTimeOption
   if (!date) {
     return getInvalidFallback(value);
   }
-  return getDateTimeFormatter(options).format(date);
+  return formatDateParts(date, true, options?.withSeconds !== false);
 }
 
 export function formatRelativeTime(value?: DateValue, baseTime: DateValue = Date.now()) {

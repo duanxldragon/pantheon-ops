@@ -39,6 +39,8 @@ type TablePagePosition =
   | 'bottomCenter'
   | undefined;
 
+const DEFAULT_SELECTION_COLUMN_WIDTH = 44;
+
 function needsHorizontalScroll<T>(columns?: ColumnProps<T>[]): boolean {
   if (!Array.isArray(columns) || columns.length === 0) {
     return false;
@@ -208,6 +210,13 @@ function AppTable<T>(props: AppTableProps<T>) {
     scroll?.x !== undefined || !needsHorizontalScroll(responsiveColumns)
       ? scroll
       : { ...scroll, x: 'max-content' as const };
+  const effectiveRowSelection =
+    rest.rowSelection && typeof rest.rowSelection === 'object'
+      ? {
+          columnWidth: DEFAULT_SELECTION_COLUMN_WIDTH,
+          ...rest.rowSelection,
+        }
+      : rest.rowSelection;
 
   if (!loading && rows.length === 0) {
     return <PageEmpty description={emptyText} />;
@@ -300,6 +309,7 @@ function AppTable<T>(props: AppTableProps<T>) {
         size={rest.size || 'small'}
         data={rows}
         loading={loading}
+        rowSelection={effectiveRowSelection}
         pagePosition={pagePosition}
         pagination={pagination}
         renderPagination={enhancedRenderPagination}

@@ -49,7 +49,7 @@ function getRefreshChannel() {
 }
 
 function normalizeTopics(topics: PantheonRefreshTopic | PantheonRefreshTopic[]) {
-  return Array.isArray(topics) ? [...topics] : [topics];
+  return Array.isArray(topics) ? topics : [topics];
 }
 
 export function publishRefresh(
@@ -98,8 +98,7 @@ export function useRefreshSubscription(
   handler: RefreshHandler,
 ) {
   const handlerRef = useRef(handler);
-  const normalizedTopics = useMemo(() => normalizeTopics(topics), [topics]);
-  const topicKey = useMemo(() => normalizedTopics.join(','), [normalizedTopics]);
+  const topicKey = useMemo(() => normalizeTopics(topics).join(','), [topics]);
 
   useEffect(() => {
     handlerRef.current = handler;
@@ -107,10 +106,10 @@ export function useRefreshSubscription(
 
   useEffect(
     () =>
-      subscribeRefresh(normalizedTopics, (payload) => {
+      subscribeRefresh(topics, (payload) => {
         handlerRef.current(payload);
       }),
-    [normalizedTopics, topicKey],
+    [topicKey, topics],
   );
 }
 
@@ -169,5 +168,5 @@ export function useRefreshPolling(
         globalThis.clearInterval(timer);
       }
     };
-  }, [authToken, intervalMs, normalizedTopics, topicKey]);
+  }, [authToken, intervalMs, topicKey, normalizedTopics]);
 }

@@ -32,6 +32,7 @@ import {
   isTimeoutRequestError,
 } from '../../../api/request';
 import { isArcoFormValidationError } from '../../../core/arco/formValidation';
+import { formatDateTime } from '../../../core/format/dateTime';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
 import { invalidateRouteWarmDataMany, resolveRouteWarmData } from '../../../core/router/prefetch';
 import {
@@ -566,7 +567,7 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
                 {t('common.search')}: {itemTotal}
               </span>
               <span>
-                {t('i18n.updatedAt')}: {selectedType.lastItemUpdatedAt || '-'}
+                {t('i18n.updatedAt')}: {formatDateTime(selectedType.lastItemUpdatedAt)}
               </span>
             </div>
           </Card>
