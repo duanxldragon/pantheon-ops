@@ -18,7 +18,7 @@ import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/in
 import { IconDelete, IconDownload, IconSearch, IconEye } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { getSettingGroup } from '../setting/api';
+import { getSettingGroup, type SettingGroup } from '../setting/api';
 import {
   getVisibleSelectedRowKeys,
   mergeCrossPageSelection,
@@ -515,7 +515,14 @@ const OperationLogList: React.FC = () => {
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
       getSettingGroup('audit')
-        .then((group) => loadRetentionSetting(group, 'audit.operation_log_retention_options', setRetentionOptions, setRetentionDays))
+        .then((group: SettingGroup) =>
+          loadRetentionSetting(
+            group,
+            'audit.operation_log_retention_options',
+            setRetentionOptions,
+            setRetentionDays,
+          ),
+        )
         .catch(() => undefined);
     }, 0);
     return () => globalThis.clearTimeout(timer);
@@ -640,7 +647,11 @@ const OperationLogList: React.FC = () => {
   };
 
   const visibleSelectedRowKeys = useMemo(
-    () => getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.id)),
+    () =>
+      getVisibleSelectedRowKeys(
+        selectedRowKeys,
+        data.map((item) => item.id),
+      ),
     [data, selectedRowKeys],
   );
 
@@ -994,10 +1005,7 @@ const OperationLogList: React.FC = () => {
                     >
                       {t('common.clearSelection')}
                     </Button>
-                    <PermissionAction
-                      allowed={canDelete}
-                      tooltip={t('common.noPermissionAction')}
-                    >
+                    <PermissionAction allowed={canDelete} tooltip={t('common.noPermissionAction')}>
                       <Popconfirm
                         disabled={selectedRowKeys.length === 0 || !canDelete}
                         title={t('system.audit.batchDeleteConfirm', {
@@ -1047,12 +1055,13 @@ const OperationLogList: React.FC = () => {
                         checkCrossPage: true,
                         preserveSelectedRowKeys: true,
                         onChange: (keys) =>
-                          setSelectedRowKeys((currentKeys) =>
-                            mergeCrossPageSelection(
-                              currentKeys,
-                              keys as number[],
-                              data.map((item) => item.id),
-                            ) as number[],
+                          setSelectedRowKeys(
+                            (currentKeys) =>
+                              mergeCrossPageSelection(
+                                currentKeys,
+                                keys as number[],
+                                data.map((item) => item.id),
+                              ) as number[],
                           ),
                       }
                     : undefined

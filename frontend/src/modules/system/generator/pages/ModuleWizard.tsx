@@ -113,6 +113,40 @@ interface TranslationPreviewRow {
   en: string;
 }
 
+function resolvePreferredDatasourceId(
+  items: Array<Pick<GeneratorDatasource, 'id' | 'isCurrent'>>,
+  selectedDatasourceId: string,
+): string {
+  return (
+    items.find((item) => item.id === selectedDatasourceId)?.id ||
+    items.find((item) => item.isCurrent)?.id ||
+    items[0]?.id ||
+    'current'
+  );
+}
+
+function mergeTranslationOverrides(
+  current: Record<string, TranslationOverride>,
+  rows: string[][],
+): Record<string, TranslationOverride> {
+  return rows.reduce<Record<string, TranslationOverride>>(
+    (acc, row) => {
+      const [key = '', zh = '', en = ''] = row;
+      const normalizedKey = key.trim();
+      if (!normalizedKey) {
+        return acc;
+      }
+      acc[normalizedKey] = {
+        ...acc[normalizedKey],
+        zh,
+        en,
+      };
+      return acc;
+    },
+    { ...current },
+  );
+}
+
 function escapeCsvCell(value: string): string {
   const normalized = String(value ?? '');
   if (!/[",\n\r]/.test(normalized)) {
@@ -219,8 +253,9 @@ const ModuleWizard: React.FC = () => {
   const loadDatasources = useCallback(async () => {
     const items = await listGeneratorDatasources();
     setDatasources(items);
-    if (!items.some((item) => item.id === selectedDatasourceId)) {
-      setSelectedDatasourceId(items[0]?.id || 'current');
+    const nextSelectedDatasourceId = resolvePreferredDatasourceId(items, selectedDatasourceId);
+    if (nextSelectedDatasourceId !== selectedDatasourceId) {
+      setSelectedDatasourceId(nextSelectedDatasourceId);
     }
     return items;
   }, [selectedDatasourceId]);
@@ -269,10 +304,14 @@ const ModuleWizard: React.FC = () => {
           if (!active) {
             return;
           }
-          const firstID =
-            items.find((item) => item.id === selectedDatasourceId)?.id || items[0]?.id || 'current';
-          setSelectedDatasourceId(firstID);
-          return loadTables(firstID);
+          const nextSelectedDatasourceId = resolvePreferredDatasourceId(
+            items,
+            selectedDatasourceId,
+          );
+          if (nextSelectedDatasourceId !== selectedDatasourceId) {
+            setSelectedDatasourceId(nextSelectedDatasourceId);
+          }
+          return loadTables(nextSelectedDatasourceId);
         })
         .catch(() => {
           if (active) {
@@ -730,9 +769,7 @@ const ModuleWizard: React.FC = () => {
       reader.onload = () => {
         try {
           const rows = parseCsvRows(String(reader.result || ''));
-          const nextOverrides: Record<string, TranslationOverride> = {};
-          rows.slice(1).forEach((row) => applyTranslationRow(row));
-          setTranslationOverrides((current) => ({ ...current, ...nextOverrides }));
+          setTranslationOverrides((current) => mergeTranslationOverrides(current, rows.slice(1)));
           message.success(t('generator.wizard.step3.translationPreview.importSuccess'));
         } catch {
           message.error(t('generator.wizard.step3.translationPreview.importError'));
@@ -871,8 +908,7 @@ const ModuleWizard: React.FC = () => {
     ? validateGeneratorCompleteness(previewSchema)
     : [];
   const previewBlockingIssue = previewCompletenessIssues.some((issue) => issue.level === 'error');
-  const previewGeneratedFiles =
-    generatedSchemaKey === previewSchemaKey ? generatedFiles : [];
+  const previewGeneratedFiles = generatedSchemaKey === previewSchemaKey ? generatedFiles : [];
   const previewTranslationRows: TranslationPreviewRow[] = previewSchema
     ? Array.from(
         new Set([
@@ -887,18 +923,9 @@ const ModuleWizard: React.FC = () => {
           en: previewSchema.i18n.translations.en[key] || '',
         }))
     : [];
-  const autoRecycleEnabled = Boolean(form.getFieldValue('metadata.autoRecycle' as keyof ModuleSchema));
-  const previewTranslationTotalPages = Math.max(
-    1,
-    Math.ceil(previewTranslationRows.length / translationPreviewPagination.pageSize),
-  );
-  const previewTranslationCurrentPage = Math.min(
-    translationPreviewPagination.current,
-    previewTranslationTotalPages,
-  );
   const pagedPreviewTranslationRows = previewTranslationRows.slice(
-    (previewTranslationCurrentPage - 1) * translationPreviewPagination.pageSize,
-    previewTranslationCurrentPage * translationPreviewPagination.pageSize,
+    (translationPreviewPagination.current - 1) * translationPreviewPagination.pageSize,
+    translationPreviewPagination.current * translationPreviewPagination.pageSize,
   );
   const activationStatusKey = registerResult
     ? registerResult.module.status === 1
@@ -907,6 +934,24 @@ const ModuleWizard: React.FC = () => {
         ? 'generator.moduleManager.status.uninstalled'
         : 'generator.moduleManager.status.pending'
     : '';
+
+  useEffect(() => {
+    const totalPages = Math.max(
+      1,
+      Math.ceil(previewTranslationRows.length / translationPreviewPagination.pageSize),
+    );
+    if (translationPreviewPagination.current > totalPages) {
+      const timer = globalThis.setTimeout(() => {
+        setTranslationPreviewPagination((current) => ({ ...current, current: totalPages }));
+      }, 0);
+      return () => globalThis.clearTimeout(timer);
+    }
+    return undefined;
+  }, [
+    previewTranslationRows.length,
+    translationPreviewPagination.current,
+    translationPreviewPagination.pageSize,
+  ]);
 
   const renderMenuPreview = (nodes: GeneratorMenuPreviewNode[]) => (
     <div className="generator-wizard__menu-tree">
@@ -1098,1066 +1143,1084 @@ const ModuleWizard: React.FC = () => {
 
           <div className="generator-wizard__content-divider" />
 
-        {currentStep === 0 ? (
-          <Form form={form} layout="vertical">
-            <FormItem
-              label={t('generator.wizard.moduleName')}
-              field="name"
-              rules={[
-                { required: true, message: t('common.required') },
-                {
-                  validator: (value, callback) => {
-                    const normalized = normalizeModulePath(String(value || ''));
-                    const scope =
-                      (form.getFieldValue('scope') as ModuleScope | undefined) || 'business';
-                    if (!normalized || isValidScopedModulePath(scope, normalized)) {
-                      callback();
-                      return;
-                    }
-                    callback(t('module.generate.invalid_name'));
+          {currentStep === 0 ? (
+            <Form form={form} layout="vertical">
+              <FormItem
+                label={t('generator.wizard.moduleName')}
+                field="name"
+                rules={[
+                  { required: true, message: t('common.required') },
+                  {
+                    validator: (value, callback) => {
+                      const normalized = normalizeModulePath(String(value || ''));
+                      const scope =
+                        (form.getFieldValue('scope') as ModuleScope | undefined) || 'business';
+                      if (!normalized || isValidScopedModulePath(scope, normalized)) {
+                        callback();
+                        return;
+                      }
+                      callback(t('module.generate.invalid_name'));
+                    },
                   },
-                },
-              ]}
-              extra={t('generator.wizard.moduleName.help')}
-            >
-              <Input
-                placeholder="cmdb/host"
-                onBlur={(event) => {
-                  const normalizedName = normalizeModulePath(event.target.value);
-                  form.setFieldValue('name', normalizedName);
-                  if (!form.getFieldValue('metadata.businessContext' as keyof ModuleSchema)) {
-                    form.setFieldValue(
-                      'metadata.businessContext' as keyof ModuleSchema,
-                      inferBusinessContextFromName(normalizedName),
-                    );
-                  }
-                  syncModuleNameValidation();
-                }}
-              />
-            </FormItem>
-            <FormItem
-              label={t('generator.wizard.sourceMode')}
-              field="metadata.sourceMode"
-              initialValue="manual"
-            >
-              <Select
-                onChange={(value) => setSourceMode((value as 'manual' | 'database') || 'manual')}
+                ]}
+                extra={t('generator.wizard.moduleName.help')}
               >
-                <Select.Option value="manual">
-                  {t('generator.wizard.sourceMode.manual')}
-                </Select.Option>
-                <Select.Option value="database">
-                  {t('generator.wizard.sourceMode.database')}
-                </Select.Option>
-              </Select>
-            </FormItem>
-            {sourceMode === 'database' ? (
-              <>
-                <Card size="small" className="generator-wizard__section">
-                  <Space direction="vertical" className="generator-wizard__full" size={12}>
-                    <Space align="center" className="generator-wizard__toolbar">
-                      <Typography.Text>{t('generator.datasource.selector')}</Typography.Text>
-                      <Space>
-                        <Button size="small" onClick={() => loadTables(selectedDatasourceId)}>
-                          <IconRefresh /> {t('common.refresh')}
-                        </Button>
-                        <PermissionAction
-                          allowed={canManageDatasources}
-                          tooltip={t('common.noPermissionAction')}
-                        >
-                          <Button
-                            size="small"
-                            onClick={() => {
-                              resetDatasourceForm();
-                              setDatasourceModalVisible(true);
-                            }}
-                          >
-                            <IconPlus /> {t('generator.datasource.manage')}
+                <Input
+                  placeholder="cmdb/host"
+                  onBlur={(event) => {
+                    const normalizedName = normalizeModulePath(event.target.value);
+                    form.setFieldValue('name', normalizedName);
+                    if (!form.getFieldValue('metadata.businessContext' as keyof ModuleSchema)) {
+                      form.setFieldValue(
+                        'metadata.businessContext' as keyof ModuleSchema,
+                        inferBusinessContextFromName(normalizedName),
+                      );
+                    }
+                    syncModuleNameValidation();
+                  }}
+                />
+              </FormItem>
+              <FormItem
+                label={t('generator.wizard.sourceMode')}
+                field="metadata.sourceMode"
+                initialValue="manual"
+              >
+                <Select
+                  onChange={(value) => setSourceMode((value as 'manual' | 'database') || 'manual')}
+                >
+                  <Select.Option value="manual">
+                    {t('generator.wizard.sourceMode.manual')}
+                  </Select.Option>
+                  <Select.Option value="database">
+                    {t('generator.wizard.sourceMode.database')}
+                  </Select.Option>
+                </Select>
+              </FormItem>
+              {sourceMode === 'database' ? (
+                <>
+                  <Card size="small" className="generator-wizard__section">
+                    <Space direction="vertical" className="generator-wizard__full" size={12}>
+                      <Space align="center" className="generator-wizard__toolbar">
+                        <Typography.Text>{t('generator.datasource.selector')}</Typography.Text>
+                        <Space>
+                          <Button size="small" onClick={() => loadTables(selectedDatasourceId)}>
+                            <IconRefresh /> {t('common.refresh')}
                           </Button>
-                        </PermissionAction>
+                          <PermissionAction
+                            allowed={canManageDatasources}
+                            tooltip={t('common.noPermissionAction')}
+                          >
+                            <Button
+                              size="small"
+                              onClick={() => {
+                                resetDatasourceForm();
+                                setDatasourceModalVisible(true);
+                              }}
+                            >
+                              <IconPlus /> {t('generator.datasource.manage')}
+                            </Button>
+                          </PermissionAction>
+                        </Space>
                       </Space>
+                      <Select
+                        value={selectedDatasourceId}
+                        onChange={(value) => setSelectedDatasourceId(String(value))}
+                        placeholder={t('generator.datasource.selectorPlaceholder')}
+                      >
+                        {datasources.map((item) => (
+                          <Select.Option key={item.id} value={item.id}>
+                            {item.name} · {item.databaseName}
+                            {item.isCurrent ? ` · ${t('generator.datasource.currentTag')}` : ''}
+                          </Select.Option>
+                        ))}
+                      </Select>
+                      <Typography.Text type="secondary">
+                        {t('generator.datasource.readonlyHint')}
+                      </Typography.Text>
                     </Space>
+                  </Card>
+                  <FormItem
+                    label={t('generator.wizard.sourceTable')}
+                    field="metadata.sourceTable"
+                    extra={t('generator.wizard.sourceTable.help')}
+                  >
                     <Select
-                      value={selectedDatasourceId}
-                      onChange={(value) => setSelectedDatasourceId(String(value))}
-                      placeholder={t('generator.datasource.selectorPlaceholder')}
+                      allowClear
+                      showSearch
+                      loading={tableLoading}
+                      placeholder={t('generator.wizard.sourceTable.placeholder')}
+                      filterOption={(inputValue, option) =>
+                        String((option as React.ReactElement<{ value?: string | number }> | null)?.props
+                          ?.value || '')
+                          .toLowerCase()
+                          .includes(inputValue.toLowerCase())
+                      }
+                      onChange={(value) => {
+                        const tableName = String(value || '').trim();
+                        form.setFieldValue(
+                          'metadata.sourceTable' as keyof ModuleSchema,
+                          tableName || undefined,
+                        );
+                        if (!tableName) {
+                          return;
+                        }
+                        previewGeneratorTable(tableName, selectedDatasourceId)
+                          .then((preview) => {
+                            applyPreviewSuggestions(preview);
+                          })
+                          .catch(() => undefined);
+                      }}
                     >
-                      {datasources.map((item) => (
-                        <Select.Option key={item.id} value={item.id}>
-                          {item.name} · {item.databaseName}
-                          {item.isCurrent ? ` · ${t('generator.datasource.currentTag')}` : ''}
+                      {tableOptions.map((item) => (
+                        <Select.Option key={item.tableName} value={item.tableName}>
+                          {item.tableName}
+                          {item.comment ? ` · ${item.comment}` : ''}
                         </Select.Option>
                       ))}
                     </Select>
-                    <Typography.Text type="secondary">
-                      {t('generator.datasource.readonlyHint')}
-                    </Typography.Text>
-                  </Space>
-                </Card>
-                <FormItem
-                  label={t('generator.wizard.sourceTable')}
-                  field="metadata.sourceTable"
-                  extra={t('generator.wizard.sourceTable.help')}
-                >
-                  <Select
-                    allowClear
-                    showSearch
-                    loading={tableLoading}
-                    placeholder={t('generator.wizard.sourceTable.placeholder')}
-                    filterOption={(inputValue, option) =>
-                      String(option?.props?.value || '')
-                        .toLowerCase()
-                        .includes(inputValue.toLowerCase())
-                    }
-                    onChange={(value) => {
-                      const tableName = String(value || '').trim();
-                      form.setFieldValue(
-                        'metadata.sourceTable' as keyof ModuleSchema,
-                        tableName || undefined,
-                      );
-                      if (!tableName) {
-                        return;
-                      }
-                      previewGeneratorTable(tableName, selectedDatasourceId)
-                        .then((preview) => {
-                          applyPreviewSuggestions(preview);
-                        })
-                        .catch(() => undefined);
-                    }}
-                  >
-                    {tableOptions.map((item) => (
-                      <Select.Option key={item.tableName} value={item.tableName}>
-                        {item.tableName}
-                        {item.comment ? ` · ${item.comment}` : ''}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </FormItem>
-              </>
-            ) : null}
-            <FormItem
-              label={t('generator.wizard.displayName')}
-              field="displayName"
-              rules={[{ required: true, message: t('common.required') }]}
-            >
-              <Input placeholder={t('generator.wizard.displayName.placeholder')} />
-            </FormItem>
-            <FormItem
-              label={t('generator.wizard.displayNameEn')}
-              field="displayNameEn"
-              extra={t('generator.wizard.displayNameEn.help')}
-            >
-              <Input placeholder={t('generator.wizard.displayNameEn.placeholder')} />
-            </FormItem>
-            <FormItem
-              label={t('generator.wizard.scope')}
-              field="scope"
-              initialValue="business"
-              rules={[{ required: true, message: t('common.required') }]}
-            >
-              <Select
-                onChange={() => {
-                  syncModuleNameValidation();
-                }}
+                  </FormItem>
+                </>
+              ) : null}
+              <FormItem
+                label={t('generator.wizard.displayName')}
+                field="displayName"
+                rules={[{ required: true, message: t('common.required') }]}
               >
-                <Select.Option value="business">
-                  {t('generator.wizard.scope.business')}
-                </Select.Option>
-                <Select.Option value="system">{t('generator.wizard.scope.system')}</Select.Option>
-              </Select>
-            </FormItem>
-            <Row gutter={16}>
-              <Col xs={24} md={8}>
-                <FormItem
-                  label={t('generator.wizard.businessContext')}
-                  field="metadata.businessContext"
-                  extra={t('generator.wizard.businessContext.help')}
+                <Input placeholder={t('generator.wizard.displayName.placeholder')} />
+              </FormItem>
+              <FormItem
+                label={t('generator.wizard.displayNameEn')}
+                field="displayNameEn"
+                extra={t('generator.wizard.displayNameEn.help')}
+              >
+                <Input placeholder={t('generator.wizard.displayNameEn.placeholder')} />
+              </FormItem>
+              <FormItem
+                label={t('generator.wizard.scope')}
+                field="scope"
+                initialValue="business"
+                rules={[{ required: true, message: t('common.required') }]}
+              >
+                <Select
+                  onChange={() => {
+                    syncModuleNameValidation();
+                  }}
                 >
-                  <Input
-                    placeholder={t('generator.wizard.businessContext.placeholder')}
-                    onBlur={(event) => {
-                      form.setFieldValue(
-                        'metadata.businessContext' as keyof ModuleSchema,
-                        normalizeBusinessContext(event.target.value),
-                      );
-                    }}
-                  />
-                </FormItem>
-              </Col>
-              <Col xs={24} md={8}>
-                <FormItem
-                  label={t('generator.wizard.businessContextTitle')}
-                  field="metadata.businessContextTitle"
-                >
-                  <Input placeholder={t('generator.wizard.businessContextTitle.placeholder')} />
-                </FormItem>
-              </Col>
-              <Col xs={24} md={8}>
-                <FormItem
-                  label={t('generator.wizard.businessContextTitleEn')}
-                  field="metadata.businessContextTitleEn"
-                >
-                  <Input placeholder={t('generator.wizard.businessContextTitleEn.placeholder')} />
-                </FormItem>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col xs={24} md={8}>
-                <FormItem
-                  label={t('generator.wizard.tableRole')}
-                  field="metadata.tableRole"
-                  initialValue="main"
-                  extra={t('generator.wizard.tableRole.help')}
-                >
-                  <Select
-                    onChange={(value) =>
-                      setSelectedTableRole((value as BusinessTableRole) || 'main')
-                    }
-                  >
-                    <Select.Option value="main">
-                      {t('generator.wizard.tableRole.main')}
-                    </Select.Option>
-                    <Select.Option value="detail">
-                      {t('generator.wizard.tableRole.detail')}
-                    </Select.Option>
-                    <Select.Option value="relation">
-                      {t('generator.wizard.tableRole.relation')}
-                    </Select.Option>
-                    <Select.Option value="dictionary">
-                      {t('generator.wizard.tableRole.dictionary')}
-                    </Select.Option>
-                  </Select>
-                </FormItem>
-              </Col>
-              <Col xs={24} md={8}>
-                <FormItem
-                  label={t('generator.wizard.primaryTable')}
-                  field="metadata.primaryTable"
-                  extra={t('generator.wizard.primaryTable.help')}
-                >
-                  <Input placeholder={t('generator.wizard.primaryTable.placeholder')} />
-                </FormItem>
-              </Col>
-              <Col xs={24} md={8}>
-                <FormItem
-                  label={t('generator.wizard.relationFields')}
-                  extra={t('generator.wizard.relationFields.help')}
-                >
-                  <Space direction="vertical" className="generator-wizard__full">
-                    <FormItem field="metadata.relationFromField" noStyle>
-                      <Input
-                        disabled={selectedTableRole !== 'relation'}
-                        placeholder={t('generator.wizard.relationFromField.placeholder')}
-                      />
-                    </FormItem>
-                    <FormItem field="metadata.relationToField" noStyle>
-                      <Input
-                        disabled={selectedTableRole !== 'relation'}
-                        placeholder={t('generator.wizard.relationToField.placeholder')}
-                      />
-                    </FormItem>
-                  </Space>
-                </FormItem>
-              </Col>
-            </Row>
-            <FormItem
-              label={t('generator.wizard.templateLevel')}
-              field="templateLevel"
-              initialValue="enterprise"
-              rules={[{ required: true, message: t('common.required') }]}
-            >
-              <Select>
-                <Select.Option value="enterprise">
-                  {t('generator.wizard.templateLevel.enterprise')}
-                </Select.Option>
-                <Select.Option value="basic">
-                  {t('generator.wizard.templateLevel.basic')}
-                </Select.Option>
-              </Select>
-            </FormItem>
-            <FormItem
-              label={t('generator.wizard.pageActionTemplate')}
-              field="pageActionTemplate"
-              initialValue="standard"
-            >
-              <Select>
-                {PAGE_ACTION_TEMPLATE_DEFINITIONS.map((item) => (
-                  <Select.Option key={item.key} value={item.key}>
-                    {t(item.labelKey)}
+                  <Select.Option value="business">
+                    {t('generator.wizard.scope.business')}
                   </Select.Option>
-                ))}
-              </Select>
-            </FormItem>
-            <Card
-              size="small"
-              title={t('generator.wizard.p2plus.title')}
-              className="generator-wizard__section"
-            >
+                  <Select.Option value="system">{t('generator.wizard.scope.system')}</Select.Option>
+                </Select>
+              </FormItem>
               <Row gutter={16}>
                 <Col xs={24} md={8}>
-                  <FormItem label={t('generator.wizard.templateVersion')}>
-                    <Select
-                      value={templateVersion}
-                      onChange={(value) => setTemplateVersion((value as 'v1') || 'v1')}
-                    >
-                      <Select.Option value="v1">
-                        {t('generator.wizard.templateVersion.v1')}
-                      </Select.Option>
-                    </Select>
+                  <FormItem
+                    label={t('generator.wizard.businessContext')}
+                    field="metadata.businessContext"
+                    extra={t('generator.wizard.businessContext.help')}
+                  >
+                    <Input
+                      placeholder={t('generator.wizard.businessContext.placeholder')}
+                      onBlur={(event) => {
+                        form.setFieldValue(
+                          'metadata.businessContext' as keyof ModuleSchema,
+                          normalizeBusinessContext(event.target.value),
+                        );
+                      }}
+                    />
                   </FormItem>
                 </Col>
                 <Col xs={24} md={8}>
                   <FormItem
-                    label={t('generator.wizard.enableDataScope')}
-                    extra={t('generator.wizard.enableDataScope.help')}
+                    label={t('generator.wizard.businessContextTitle')}
+                    field="metadata.businessContextTitle"
                   >
-                    <Select
-                      value={enableDataScope ? 'enabled' : 'disabled'}
-                      onChange={(value) => setEnableDataScope(value === 'enabled')}
-                    >
-                      <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
-                      <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
-                    </Select>
+                    <Input placeholder={t('generator.wizard.businessContextTitle.placeholder')} />
                   </FormItem>
                 </Col>
                 <Col xs={24} md={8}>
                   <FormItem
-                    label={t('generator.wizard.includeDashboardWidget')}
-                    extra={t('generator.wizard.includeDashboardWidget.help')}
+                    label={t('generator.wizard.businessContextTitleEn')}
+                    field="metadata.businessContextTitleEn"
                   >
-                    <Select
-                      value={
-                        ((form.getFieldValue('scope') as ModuleScope | undefined) || 'business') ===
-                          'business' && selectedTableRole !== 'relation'
-                          ? includeDashboardWidget
-                            ? 'enabled'
-                            : 'disabled'
-                          : 'disabled'
-                      }
-                      disabled={
-                        ((form.getFieldValue('scope') as ModuleScope | undefined) || 'business') !==
-                          'business' || selectedTableRole === 'relation'
-                      }
-                      onChange={(value) => setIncludeDashboardWidget(value === 'enabled')}
-                    >
-                      <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
-                      <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
-                    </Select>
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={8}>
-                  <FormItem label={t('generator.wizard.dataScopeMode')}>
-                    <Select
-                      value={dataScopeMode}
-                      disabled={!enableDataScope}
-                      onChange={(value) => setDataScopeMode((value as DataScopeMode) || 'dept')}
-                    >
-                      <Select.Option value="dept">
-                        {t('generator.wizard.dataScopeMode.dept')}
-                      </Select.Option>
-                      <Select.Option value="owner">
-                        {t('generator.wizard.dataScopeMode.owner')}
-                      </Select.Option>
-                      <Select.Option value="tenant">
-                        {t('generator.wizard.dataScopeMode.tenant')}
-                      </Select.Option>
-                      <Select.Option value="custom">
-                        {t('generator.wizard.dataScopeMode.custom')}
-                      </Select.Option>
-                    </Select>
+                    <Input placeholder={t('generator.wizard.businessContextTitleEn.placeholder')} />
                   </FormItem>
                 </Col>
               </Row>
+              <Row gutter={16}>
+                <Col xs={24} md={8}>
+                  <FormItem
+                    label={t('generator.wizard.tableRole')}
+                    field="metadata.tableRole"
+                    initialValue="main"
+                    extra={t('generator.wizard.tableRole.help')}
+                  >
+                    <Select
+                      onChange={(value) =>
+                        setSelectedTableRole((value as BusinessTableRole) || 'main')
+                      }
+                    >
+                      <Select.Option value="main">
+                        {t('generator.wizard.tableRole.main')}
+                      </Select.Option>
+                      <Select.Option value="detail">
+                        {t('generator.wizard.tableRole.detail')}
+                      </Select.Option>
+                      <Select.Option value="relation">
+                        {t('generator.wizard.tableRole.relation')}
+                      </Select.Option>
+                      <Select.Option value="dictionary">
+                        {t('generator.wizard.tableRole.dictionary')}
+                      </Select.Option>
+                    </Select>
+                  </FormItem>
+                </Col>
+                <Col xs={24} md={8}>
+                  <FormItem
+                    label={t('generator.wizard.primaryTable')}
+                    field="metadata.primaryTable"
+                    extra={t('generator.wizard.primaryTable.help')}
+                  >
+                    <Input placeholder={t('generator.wizard.primaryTable.placeholder')} />
+                  </FormItem>
+                </Col>
+                <Col xs={24} md={8}>
+                  <FormItem
+                    label={t('generator.wizard.relationFields')}
+                    extra={t('generator.wizard.relationFields.help')}
+                  >
+                    <Space direction="vertical" className="generator-wizard__full">
+                      <FormItem field="metadata.relationFromField" noStyle>
+                        <Input
+                          disabled={selectedTableRole !== 'relation'}
+                          placeholder={t('generator.wizard.relationFromField.placeholder')}
+                        />
+                      </FormItem>
+                      <FormItem field="metadata.relationToField" noStyle>
+                        <Input
+                          disabled={selectedTableRole !== 'relation'}
+                          placeholder={t('generator.wizard.relationToField.placeholder')}
+                        />
+                      </FormItem>
+                    </Space>
+                  </FormItem>
+                </Col>
+              </Row>
+              <FormItem
+                label={t('generator.wizard.templateLevel')}
+                field="templateLevel"
+                initialValue="enterprise"
+                rules={[{ required: true, message: t('common.required') }]}
+              >
+                <Select>
+                  <Select.Option value="enterprise">
+                    {t('generator.wizard.templateLevel.enterprise')}
+                  </Select.Option>
+                  <Select.Option value="basic">
+                    {t('generator.wizard.templateLevel.basic')}
+                  </Select.Option>
+                </Select>
+              </FormItem>
+              <FormItem
+                label={t('generator.wizard.pageActionTemplate')}
+                field="pageActionTemplate"
+                initialValue="standard"
+              >
+                <Select>
+                  {PAGE_ACTION_TEMPLATE_DEFINITIONS.map((item) => (
+                    <Select.Option key={item.key} value={item.key}>
+                      {t(item.labelKey)}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </FormItem>
               <Card
                 size="small"
-                className="generator-wizard__list-layout-card"
-                title={t('generator.wizard.listLayout.title', 'List Layout')}
+                title={t('generator.wizard.p2plus.title')}
+                className="generator-wizard__section"
               >
                 <Row gutter={16}>
-                  <Col xs={24} md={12}>
-                    <FormItem label={t('generator.wizard.listLayout.governance', 'Governance')}>
+                  <Col xs={24} md={8}>
+                    <FormItem label={t('generator.wizard.templateVersion')}>
                       <Select
-                        value={listLayout.governance ? 'enabled' : 'disabled'}
-                        onChange={(value) =>
-                          setListLayout((current) => ({
-                            ...current,
-                            governance: value === 'enabled',
-                          }))
-                        }
+                        value={templateVersion}
+                        onChange={(value) => setTemplateVersion((value as 'v1') || 'v1')}
+                      >
+                        <Select.Option value="v1">
+                          {t('generator.wizard.templateVersion.v1')}
+                        </Select.Option>
+                      </Select>
+                    </FormItem>
+                  </Col>
+                  <Col xs={24} md={8}>
+                    <FormItem
+                      label={t('generator.wizard.enableDataScope')}
+                      extra={t('generator.wizard.enableDataScope.help')}
+                    >
+                      <Select
+                        value={enableDataScope ? 'enabled' : 'disabled'}
+                        onChange={(value) => setEnableDataScope(value === 'enabled')}
                       >
                         <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
                         <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
                       </Select>
                     </FormItem>
                   </Col>
-                  <Col xs={24} md={12}>
-                    <FormItem label={t('generator.wizard.listLayout.search', 'Search')}>
+                  <Col xs={24} md={8}>
+                    <FormItem
+                      label={t('generator.wizard.includeDashboardWidget')}
+                      extra={t('generator.wizard.includeDashboardWidget.help')}
+                    >
                       <Select
-                        value={listLayout.search ? 'enabled' : 'disabled'}
-                        onChange={(value) =>
-                          setListLayout((current) => ({
-                            ...current,
-                            search: value === 'enabled',
-                          }))
+                        value={
+                          ((form.getFieldValue('scope') as ModuleScope | undefined) ||
+                            'business') === 'business' && selectedTableRole !== 'relation'
+                            ? includeDashboardWidget
+                              ? 'enabled'
+                              : 'disabled'
+                            : 'disabled'
                         }
+                        disabled={
+                          ((form.getFieldValue('scope') as ModuleScope | undefined) ||
+                            'business') !== 'business' || selectedTableRole === 'relation'
+                        }
+                        onChange={(value) => setIncludeDashboardWidget(value === 'enabled')}
                       >
                         <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
                         <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
                       </Select>
                     </FormItem>
                   </Col>
-                  <Col xs={24} md={12}>
-                    <FormItem label={t('generator.wizard.listLayout.headerActions', 'Header Actions')}>
+                  <Col xs={24} md={8}>
+                    <FormItem label={t('generator.wizard.dataScopeMode')}>
                       <Select
-                        value={listLayout.headerActions ? 'enabled' : 'disabled'}
-                        onChange={(value) =>
-                          setListLayout((current) => ({
-                            ...current,
-                            headerActions: value === 'enabled',
-                          }))
-                        }
+                        value={dataScopeMode}
+                        disabled={!enableDataScope}
+                        onChange={(value) => setDataScopeMode((value as DataScopeMode) || 'dept')}
                       >
-                        <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
-                        <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
-                      </Select>
-                    </FormItem>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <FormItem label={t('generator.wizard.listLayout.batchActions', 'Batch Actions')}>
-                      <Select
-                        value={listLayout.batchActions ? 'enabled' : 'disabled'}
-                        onChange={(value) =>
-                          setListLayout((current) => ({
-                            ...current,
-                            batchActions: value === 'enabled',
-                          }))
-                        }
-                      >
-                        <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
-                        <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
+                        <Select.Option value="dept">
+                          {t('generator.wizard.dataScopeMode.dept')}
+                        </Select.Option>
+                        <Select.Option value="owner">
+                          {t('generator.wizard.dataScopeMode.owner')}
+                        </Select.Option>
+                        <Select.Option value="tenant">
+                          {t('generator.wizard.dataScopeMode.tenant')}
+                        </Select.Option>
+                        <Select.Option value="custom">
+                          {t('generator.wizard.dataScopeMode.custom')}
+                        </Select.Option>
                       </Select>
                     </FormItem>
                   </Col>
                 </Row>
-              </Card>
-              <Card
-                size="small"
-                className="generator-wizard__lifecycle-card"
-                title={t('generator.wizard.lifecycle.title')}
-              >
-                <Space direction="vertical" className="generator-wizard__full" size={10}>
-                  <Typography.Text type="secondary">
-                    {t('generator.wizard.lifecycle.desc')}
-                  </Typography.Text>
-                  <FormItem
-                    field="metadata.autoRecycle"
-                    triggerPropName="checked"
-                    initialValue={false}
-                  >
-                    <Checkbox>{t('generator.wizard.lifecycle.autoRecycle')}</Checkbox>
-                  </FormItem>
-                  <Alert
-                    type={autoRecycleEnabled ? 'warning' : 'info'}
-                    content={t(
-                      autoRecycleEnabled
-                        ? 'generator.wizard.lifecycle.autoRecycleHint'
-                        : 'generator.wizard.lifecycle.standardHint',
-                    )}
-                  />
-                </Space>
-              </Card>
-              <Row gutter={16}>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    label={t('generator.wizard.dependencies')}
-                    extra={t('generator.wizard.dependencies.help')}
-                  >
-                    <Input.TextArea
-                      value={dependencyModulesText}
-                      onChange={setDependencyModulesText}
-                      autoSize={{ minRows: 2, maxRows: 4 }}
-                      placeholder={t('generator.wizard.dependencies.placeholder')}
-                    />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    label={t('generator.wizard.relations')}
-                    extra={t('generator.wizard.relations.help')}
-                  >
-                    <Input.TextArea
-                      value={relationContractsText}
-                      onChange={setRelationContractsText}
-                      autoSize={{ minRows: 2, maxRows: 4 }}
-                      placeholder={t('generator.wizard.relations.placeholder')}
-                    />
+                <Card
+                  size="small"
+                  className="generator-wizard__list-layout-card"
+                  title={t('generator.wizard.listLayout.title', 'List Layout')}
+                >
+                  <Row gutter={16}>
+                    <Col xs={24} md={12}>
+                      <FormItem label={t('generator.wizard.listLayout.governance', 'Governance')}>
+                        <Select
+                          value={listLayout.governance ? 'enabled' : 'disabled'}
+                          onChange={(value) =>
+                            setListLayout((current) => ({
+                              ...current,
+                              governance: value === 'enabled',
+                            }))
+                          }
+                        >
+                          <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
+                          <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <FormItem label={t('generator.wizard.listLayout.search', 'Search')}>
+                        <Select
+                          value={listLayout.search ? 'enabled' : 'disabled'}
+                          onChange={(value) =>
+                            setListLayout((current) => ({
+                              ...current,
+                              search: value === 'enabled',
+                            }))
+                          }
+                        >
+                          <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
+                          <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <FormItem
+                        label={t('generator.wizard.listLayout.headerActions', 'Header Actions')}
+                      >
+                        <Select
+                          value={listLayout.headerActions ? 'enabled' : 'disabled'}
+                          onChange={(value) =>
+                            setListLayout((current) => ({
+                              ...current,
+                              headerActions: value === 'enabled',
+                            }))
+                          }
+                        >
+                          <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
+                          <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <FormItem
+                        label={t('generator.wizard.listLayout.batchActions', 'Batch Actions')}
+                      >
+                        <Select
+                          value={listLayout.batchActions ? 'enabled' : 'disabled'}
+                          onChange={(value) =>
+                            setListLayout((current) => ({
+                              ...current,
+                              batchActions: value === 'enabled',
+                            }))
+                          }
+                        >
+                          <Select.Option value="enabled">{t('common.enabled')}</Select.Option>
+                          <Select.Option value="disabled">{t('common.disabled')}</Select.Option>
+                        </Select>
+                      </FormItem>
+                    </Col>
+                  </Row>
+                </Card>
+                <Card
+                  size="small"
+                  className="generator-wizard__lifecycle-card"
+                  title={t('generator.wizard.lifecycle.title')}
+                >
+                  <Space direction="vertical" className="generator-wizard__full" size={10}>
                     <Typography.Text type="secondary">
-                      {t('generator.wizard.relations.columns')}
+                      {t('generator.wizard.lifecycle.desc')}
                     </Typography.Text>
-                  </FormItem>
-                </Col>
-              </Row>
-            </Card>
-            <FormItem
-              label={t('generator.wizard.parentMenu')}
-              field="parentMenu"
-              extra={t('generator.wizard.parentMenu.help')}
-            >
-              <Input
-                placeholder={t('generator.wizard.parentMenu.placeholder')}
-                onBlur={(event) => {
-                  form.setFieldValue('parentMenu', normalizeMenuPath(event.target.value));
-                }}
-              />
-            </FormItem>
-            <FormItem label={t('generator.wizard.owner')} field="metadata.owner">
-              <Input placeholder={t('generator.wizard.owner.placeholder')} />
-            </FormItem>
-            <FormItem label={t('generator.wizard.boundedContext')} field="metadata.boundedContext">
-              <Input placeholder={t('generator.wizard.boundedContext.placeholder')} />
-            </FormItem>
-            <FormItem label={t('generator.wizard.summary')} field="metadata.summary">
-              <Input.TextArea
-                autoSize={{ minRows: 2, maxRows: 4 }}
-                placeholder={t('generator.wizard.summary.placeholder')}
-              />
-            </FormItem>
-            <Button type="primary" onClick={handleBasicInfoSubmit}>
-              {t('common.next')}
-            </Button>
-          </Form>
-        ) : null}
-
-        {currentStep === 1 ? (
-          <div>
-            <Typography.Title heading={5}>{t('generator.wizard.step2.title')}</Typography.Title>
-            <Typography.Text type="secondary" className="generator-wizard__description">
-              {t('generator.wizard.step2.desc')}
-            </Typography.Text>
-            <FieldEditor fields={fields} onChange={setFields} />
-            <Space className="generator-wizard__actions">
-              <Button onClick={() => setCurrentStep(0)}>{t('common.previous')}</Button>
-              <Button
-                type="primary"
-                onClick={() => setCurrentStep(2)}
-                disabled={fields.length === 0}
+                    <FormItem
+                      field="metadata.autoRecycle"
+                      triggerPropName="checked"
+                      initialValue={false}
+                    >
+                      <Checkbox>{t('generator.wizard.lifecycle.autoRecycle')}</Checkbox>
+                    </FormItem>
+                    <Alert
+                      type={
+                        form.getFieldValue('metadata.autoRecycle' as keyof ModuleSchema)
+                          ? 'warning'
+                          : 'info'
+                      }
+                      content={t(
+                        form.getFieldValue('metadata.autoRecycle' as keyof ModuleSchema)
+                          ? 'generator.wizard.lifecycle.autoRecycleHint'
+                          : 'generator.wizard.lifecycle.standardHint',
+                      )}
+                    />
+                  </Space>
+                </Card>
+                <Row gutter={16}>
+                  <Col xs={24} md={12}>
+                    <FormItem
+                      label={t('generator.wizard.dependencies')}
+                      extra={t('generator.wizard.dependencies.help')}
+                    >
+                      <Input.TextArea
+                        value={dependencyModulesText}
+                        onChange={setDependencyModulesText}
+                        autoSize={{ minRows: 2, maxRows: 4 }}
+                        placeholder={t('generator.wizard.dependencies.placeholder')}
+                      />
+                    </FormItem>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <FormItem
+                      label={t('generator.wizard.relations')}
+                      extra={t('generator.wizard.relations.help')}
+                    >
+                      <Input.TextArea
+                        value={relationContractsText}
+                        onChange={setRelationContractsText}
+                        autoSize={{ minRows: 2, maxRows: 4 }}
+                        placeholder={t('generator.wizard.relations.placeholder')}
+                      />
+                      <Typography.Text type="secondary">
+                        {t('generator.wizard.relations.columns')}
+                      </Typography.Text>
+                    </FormItem>
+                  </Col>
+                </Row>
+              </Card>
+              <FormItem
+                label={t('generator.wizard.parentMenu')}
+                field="parentMenu"
+                extra={t('generator.wizard.parentMenu.help')}
               >
+                <Input
+                  placeholder={t('generator.wizard.parentMenu.placeholder')}
+                  onBlur={(event) => {
+                    form.setFieldValue('parentMenu', normalizeMenuPath(event.target.value));
+                  }}
+                />
+              </FormItem>
+              <FormItem label={t('generator.wizard.owner')} field="metadata.owner">
+                <Input placeholder={t('generator.wizard.owner.placeholder')} />
+              </FormItem>
+              <FormItem
+                label={t('generator.wizard.boundedContext')}
+                field="metadata.boundedContext"
+              >
+                <Input placeholder={t('generator.wizard.boundedContext.placeholder')} />
+              </FormItem>
+              <FormItem label={t('generator.wizard.summary')} field="metadata.summary">
+                <Input.TextArea
+                  autoSize={{ minRows: 2, maxRows: 4 }}
+                  placeholder={t('generator.wizard.summary.placeholder')}
+                />
+              </FormItem>
+              <Button type="primary" onClick={handleBasicInfoSubmit}>
                 {t('common.next')}
               </Button>
-            </Space>
-          </div>
-        ) : null}
+            </Form>
+          ) : null}
 
-        {currentStep === 2 && previewSchema ? (
-          <div>
-            <Typography.Title heading={5}>{t('generator.wizard.step3.title')}</Typography.Title>
-            <Typography.Text type="secondary" className="generator-wizard__description">
-              {t('generator.wizard.step3.desc')}
-            </Typography.Text>
-
-            <Row gutter={16}>
-              <Col xs={24} lg={12}>
-                <Card
-                  title={t('generator.wizard.step3.actions')}
-                  className="generator-wizard__section"
-                >
-                  <Typography.Text type="secondary" className="generator-wizard__subdescription">
-                    {t(
-                      PAGE_ACTION_TEMPLATE_DEFINITIONS.find(
-                        (item) => item.key === selectedActionTemplate,
-                      )?.descriptionKey || 'generator.actionTemplates.standard.desc',
-                    )}
-                  </Typography.Text>
-                  <Checkbox.Group
-                    value={
-                      (form.getFieldValue('pageActions' as keyof ModuleSchema) as
-                        | PageActionKey[]
-                        | undefined) ?? previewSchema.pageActions
-                    }
-                    disabled={previewSchema.metadata?.tableRole === 'relation'}
-                    options={[
-                      'view',
-                      'detail',
-                      'create',
-                      'update',
-                      'delete',
-                      'export',
-                      'import',
-                    ].map((item) => ({
-                      label: t(`generator.pageActions.${item}`),
-                      value: item,
-                    }))}
-                    onChange={(value) => {
-                      form.setFieldValue('pageActions', value as PageActionKey[]);
-                    }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} lg={12}>
-                <Card
-                  title={t('generator.wizard.step3.dataPolicies')}
-                  className="generator-wizard__section"
-                >
-                  <Space wrap>
-                    <Tag color="green">
-                      {t('generator.wizard.step3.fieldCount', {
-                        count: previewSchema.model.fields.length,
-                      })}
-                    </Tag>
-                    <Tag color="arcoblue">
-                      {t('generator.wizard.step3.uniqueCount', {
-                        count: previewSchema.model.fields.filter(
-                          (field) => field.validation?.unique,
-                        ).length,
-                      })}
-                    </Tag>
-                    <Tag color="purple">
-                      {t('generator.wizard.step3.enumCount', {
-                        count: previewSchema.model.fields.filter((field) => field.type === 'enum')
-                          .length,
-                      })}
-                    </Tag>
-                  </Space>
-                  <div className="generator-wizard__enum-list">
-                    {previewSchema.model.fields
-                      .filter((field) => field.type === 'enum')
-                      .map((field) => (
-                        <div key={field.name} className="generator-wizard__enum-item">
-                          <Typography.Text>{field.label}</Typography.Text>
-                          <Typography.Text type="secondary">
-                            {' '}
-                            · {field.dictCode || t('generator.fieldEditor.enumInline')}
-                          </Typography.Text>
-                        </div>
-                      ))}
-                  </div>
-                </Card>
-              </Col>
-            </Row>
-
-            <Card
-              title={t('generator.wizard.step3.permissions')}
-              className="generator-wizard__section"
-            >
-              <Space wrap>
-                {previewSchema.permissions.length === 0 ? (
-                  <Typography.Text type="secondary">
-                    {t('generator.wizard.step3.permissions.empty')}
-                  </Typography.Text>
-                ) : (
-                  previewSchema.permissions.map((permission) => (
-                    <Tag key={permission.key}>{permission.key}</Tag>
-                  ))
-                )}
-              </Space>
-            </Card>
-
-            <Row gutter={16}>
-              <Col xs={24} lg={12}>
-                <Card
-                  title={t('generator.wizard.step3.menuPreview')}
-                  className="generator-wizard__section"
-                >
-                  <Typography.Text type="secondary" className="generator-wizard__subdescription">
-                    {t('generator.wizard.step3.menuPreview.desc')}
-                  </Typography.Text>
-                  {renderMenuPreview(previewMenuTree)}
-                </Card>
-              </Col>
-              <Col xs={24} lg={12}>
-                <Card
-                  title={t('generator.wizard.step3.i18nCompleteness')}
-                  className="generator-wizard__section"
-                >
-                  <Typography.Text type="secondary" className="generator-wizard__subdescription">
-                    {t('generator.wizard.step3.i18nCompleteness.desc')}
-                  </Typography.Text>
-                  <Space direction="vertical" className="generator-wizard__full">
-                    {previewCompletenessIssues.length === 0 ? (
-                      <Alert type="success" content={t('generator.validation.passed')} />
-                    ) : (
-                      previewCompletenessIssues.map((issue) => (
-                        <Alert
-                          key={`${issue.code}-${issue.detail || ''}`}
-                          type={issue.level === 'error' ? 'error' : 'warning'}
-                          content={`${t(issue.messageKey)}${issue.detail ? `: ${issue.detail}` : ''}`}
-                        />
-                      ))
-                    )}
-                  </Space>
-                </Card>
-              </Col>
-            </Row>
-
-            <Card
-              title={t('generator.wizard.step3.translationPreview')}
-              className="generator-wizard__section"
-            >
-              <Space direction="vertical" className="generator-wizard__full" size={12}>
-                <Space align="center" className="generator-wizard__toolbar">
-                  <Typography.Text type="secondary">
-                    {t('generator.wizard.step3.translationPreview.desc')}
-                  </Typography.Text>
-                  <Space wrap>
-                    <Button size="small" onClick={handleExportTranslations}>
-                      {t('generator.wizard.step3.translationPreview.export')}
-                    </Button>
-                    <Button size="small" onClick={handleImportTranslations}>
-                      {t('generator.wizard.step3.translationPreview.import')}
-                    </Button>
-                  </Space>
-                </Space>
-                <AppTable<TranslationPreviewRow>
-                  className="system-list__table"
-                  rowKey="key"
-                  data={pagedPreviewTranslationRows}
-                  pagination={buildStandardPagination(t, {
-                    current: previewTranslationCurrentPage,
-                    pageSize: translationPreviewPagination.pageSize,
-                    total: previewTranslationRows.length,
-                    sizeOptions: [8, 16, 32, 64],
-                    onChange: (page, pageSize) => {
-                      setTranslationPreviewPagination({
-                        current: page,
-                        pageSize: pageSize || translationPreviewPagination.pageSize,
-                      });
-                    },
-                  })}
-                  columns={[
-                    {
-                      title: t('generator.wizard.step3.translationPreview.key'),
-                      dataIndex: 'key',
-                      width: 320,
-                      render: (value: string) => <Typography.Text code>{value}</Typography.Text>,
-                    },
-                    {
-                      title: t('generator.wizard.step3.translationPreview.zh'),
-                      dataIndex: 'zh',
-                      render: (value: string, record: TranslationPreviewRow) => (
-                        <Input
-                          value={value}
-                          className="generator-wizard__translation-input"
-                          onChange={(nextValue) =>
-                            updateTranslationOverride(record.key, 'zh', nextValue)
-                          }
-                        />
-                      ),
-                    },
-                    {
-                      title: t('generator.wizard.step3.translationPreview.en'),
-                      dataIndex: 'en',
-                      render: (value: string, record: TranslationPreviewRow) => (
-                        <Input
-                          value={value}
-                          className="generator-wizard__translation-input"
-                          onChange={(nextValue) =>
-                            updateTranslationOverride(record.key, 'en', nextValue)
-                          }
-                        />
-                      ),
-                    },
-                  ]}
-                />
-              </Space>
-            </Card>
-
-            <Card
-              title={t('generator.wizard.step3.generationImpact')}
-              className="generator-wizard__section"
-            >
-              <Space wrap className="generator-wizard__section">
-                <Tag color="arcoblue">
-                  {t('generator.wizard.step3.impact.files', {
-                    count: previewGeneratedFiles.length,
-                  })}
-                </Tag>
-                <Tag color="green">{previewSchema.model.tableName}</Tag>
-                <Tag color={previewSchema.metadata?.tableRole === 'relation' ? 'orange' : 'purple'}>
-                  {t(`generator.wizard.tableRole.${previewSchema.metadata?.tableRole || 'main'}`)}
-                </Tag>
-                <Tag color={previewSchema.enableDataScope ? 'green' : 'gray'}>
-                  {t(
-                    previewSchema.enableDataScope
-                      ? 'generator.wizard.dataScope.enabledTag'
-                      : 'generator.wizard.dataScope.disabledTag',
-                  )}
-                </Tag>
-                <Tag color={previewSchema.includeDashboardWidget ? 'arcoblue' : 'gray'}>
-                  {t(
-                    previewSchema.includeDashboardWidget
-                      ? 'generator.wizard.dashboardWidget.enabledTag'
-                      : 'generator.wizard.dashboardWidget.disabledTag',
-                  )}
-                </Tag>
-                <Tag color="blue">
-                  {t('generator.wizard.step3.impact.dependencies', {
-                    count: previewSchema.dependencies?.length || 0,
-                  })}
-                </Tag>
-                <Tag color="orange">
-                  {t('generator.wizard.step3.impact.relations', {
-                    count: previewSchema.relations?.length || 0,
-                  })}
-                </Tag>
-              </Space>
-              <div className="generator-wizard__impact-list">
-                {previewGeneratedFiles.slice(0, 8).map((file) => (
-                  <Typography.Text key={file.path} code className="generator-wizard__impact-item">
-                    {file.path}
-                  </Typography.Text>
-                ))}
-                {previewGeneratedFiles.length > 8 ? (
-                  <Typography.Text type="secondary">
-                    {t('generator.wizard.step3.impact.more', {
-                      count: previewGeneratedFiles.length - 8,
-                    })}
-                  </Typography.Text>
-                ) : null}
-              </div>
-            </Card>
-
-            <Space>
-              <Button onClick={() => setCurrentStep(1)}>{t('common.previous')}</Button>
-              <Button type="primary" onClick={handleGenerate} disabled={previewBlockingIssue}>
-                {t('generator.wizard.generate')}
-              </Button>
-            </Space>
-          </div>
-        ) : null}
-
-        {currentStep === 3 && previewSchema ? (
-          <div>
-            <Typography.Title heading={5}>{t('generator.wizard.step4.title')}</Typography.Title>
-
-            <Card className="generator-wizard__section">
-              <Space wrap>
-                <Typography.Text>
-                  {t('generator.wizard.generatedFiles', { count: generatedFiles.length })}
-                </Typography.Text>
-                <Tag color="green">
-                  {t('generator.wizard.totalLines', {
-                    lines: generatedFiles.reduce(
-                      (sum, file) => sum + file.content.split('\n').length,
-                      0,
-                    ),
-                  })}
-                </Tag>
-                <Tag color="arcoblue">
-                  {t('generator.wizard.step3.actionCount', {
-                    count: previewSchema.pageActions?.length || 0,
-                  })}
-                </Tag>
-              </Space>
-            </Card>
-
-            <Space className="generator-wizard__section">
-              <PermissionAction
-                allowed={canGenerateRegister}
-                tooltip={t('common.noPermissionAction')}
-              >
+          {currentStep === 1 ? (
+            <div>
+              <Typography.Title heading={5}>{t('generator.wizard.step2.title')}</Typography.Title>
+              <Typography.Text type="secondary" className="generator-wizard__description">
+                {t('generator.wizard.step2.desc')}
+              </Typography.Text>
+              <FieldEditor fields={fields} onChange={setFields} />
+              <Space className="generator-wizard__actions">
+                <Button onClick={() => setCurrentStep(0)}>{t('common.previous')}</Button>
                 <Button
                   type="primary"
-                  status="success"
-                  loading={registering}
-                  disabled={!oneClickEnabled}
-                  onClick={() => {
-                    submitGenerateAndRegister();
-                  }}
+                  onClick={() => setCurrentStep(2)}
+                  disabled={fields.length === 0}
                 >
-                  {t('generator.wizard.register.submit')}
+                  {t('common.next')}
                 </Button>
-              </PermissionAction>
-              <Button type="primary" onClick={handleDownload}>
-                <IconDownload /> {t('generator.wizard.download')}
-              </Button>
-              <Button onClick={() => setShowPreview(true)}>
-                <IconCode /> {t('generator.wizard.preview')}
-              </Button>
-              <Button onClick={() => setCurrentStep(2)}>{t('common.previous')}</Button>
-            </Space>
+              </Space>
+            </div>
+          ) : null}
 
-            <CodePreview
-              visible={showPreview}
-              files={generatedFiles}
-              onClose={() => setShowPreview(false)}
-            />
+          {currentStep === 2 && previewSchema ? (
+            <div>
+              <Typography.Title heading={5}>{t('generator.wizard.step3.title')}</Typography.Title>
+              <Typography.Text type="secondary" className="generator-wizard__description">
+                {t('generator.wizard.step3.desc')}
+              </Typography.Text>
 
-            {dynamicModuleDisabled ? (
-              <Alert
-                type="warning"
-                title={t('generator.wizard.register.disabledTitle')}
-                content={t('generator.wizard.register.disabledHint')}
-                className="generator-wizard__section"
-              />
-            ) : null}
-
-            {registerResult && summary ? (
-              <div className="generator-wizard__result">
-                <Alert
-                  type="success"
-                  title={t('generator.wizard.result.pendingActivation')}
-                  content={t('generator.wizard.result.pendingActivationDesc')}
-                  className="generator-wizard__section"
-                />
-                <Card
-                  title={t('generator.wizard.result.title')}
-                  className="generator-wizard__section"
-                >
-                  <Space direction="vertical" className="generator-wizard__full">
-                    <Typography.Text>
-                      {t('generator.wizard.result.moduleKey')}: {summary.moduleKey}
+              <Row gutter={16}>
+                <Col xs={24} lg={12}>
+                  <Card
+                    title={t('generator.wizard.step3.actions')}
+                    className="generator-wizard__section"
+                  >
+                    <Typography.Text type="secondary" className="generator-wizard__subdescription">
+                      {t(
+                        PAGE_ACTION_TEMPLATE_DEFINITIONS.find(
+                          (item) => item.key === selectedActionTemplate,
+                        )?.descriptionKey || 'generator.actionTemplates.standard.desc',
+                      )}
                     </Typography.Text>
-                    <Typography.Text>
-                      {t('generator.wizard.result.parentMenu')}:{' '}
-                      {summary.parentMenuPath || t('generator.wizard.result.parentMenu.topLevel')}
-                    </Typography.Text>
-                    <Typography.Text>
-                      {t('generator.wizard.result.routePath')}: {summary.routePath}
-                    </Typography.Text>
-                    <Typography.Text>
-                      {t('generator.wizard.result.routeName')}: {summary.routeName}
-                    </Typography.Text>
-                    <Typography.Text>
-                      {t('generator.wizard.result.componentKey')}: {summary.componentKey}
-                    </Typography.Text>
-                    <Typography.Text>
-                      {t('generator.wizard.result.permissionPrefix')}: {summary.permissionPrefix}
-                    </Typography.Text>
-                    <Typography.Text>
-                      {t('generator.wizard.result.backendPath')}: {summary.backendModulePath}
-                    </Typography.Text>
-                    <Typography.Text>
-                      {t('generator.wizard.result.frontendPath')}: {summary.frontendModulePath}
-                    </Typography.Text>
-                    <Typography.Text>
-                      {t('generator.wizard.result.schemaPath')}: {summary.schemaPath}
-                    </Typography.Text>
-                    <Tag color={registerResult.module.status === 3 ? 'orange' : 'green'}>
-                      {t(activationStatusKey)}
-                    </Tag>
-                  </Space>
-                </Card>
-                <Card
-                  title={t('generator.wizard.result.contractTitle')}
-                  className="generator-wizard__section"
-                >
-                  <Space direction="vertical" className="generator-wizard__full">
+                    <Checkbox.Group
+                      value={
+                        (form.getFieldValue('pageActions' as keyof ModuleSchema) as
+                          | PageActionKey[]
+                          | undefined) ?? previewSchema.pageActions
+                      }
+                      disabled={previewSchema.metadata?.tableRole === 'relation'}
+                      options={[
+                        'view',
+                        'detail',
+                        'create',
+                        'update',
+                        'delete',
+                        'export',
+                        'import',
+                      ].map((item) => ({
+                        label: t(`generator.pageActions.${item}`),
+                        value: item,
+                      }))}
+                      onChange={(value) => {
+                        form.setFieldValue('pageActions', value as PageActionKey[]);
+                      }}
+                    />
+                  </Card>
+                </Col>
+                <Col xs={24} lg={12}>
+                  <Card
+                    title={t('generator.wizard.step3.dataPolicies')}
+                    className="generator-wizard__section"
+                  >
                     <Space wrap>
-                      <Tag color="arcoblue">
-                        {t('generator.wizard.result.templateVersion')}:{' '}
-                        {summary.contract.templateVersion}
-                      </Tag>
-                      <Tag color={registerResult.module.autoRecycle ? 'orange' : 'gray'}>
-                        {registerResult.module.autoRecycle
-                          ? t('generator.wizard.lifecycle.autoRecycleTag')
-                          : t('generator.wizard.lifecycle.standardTag')}
-                      </Tag>
-                      <Tag color={summary.contract.dataScopeEnabled ? 'green' : 'gray'}>
-                        {t('generator.wizard.result.dataScope')}: {summary.contract.dataScopeMode}
-                      </Tag>
-                      <Tag color="blue">
-                        {t('generator.wizard.result.dependencyCount', {
-                          count: summary.contract.dependencyCount,
+                      <Tag color="green">
+                        {t('generator.wizard.step3.fieldCount', {
+                          count: previewSchema.model.fields.length,
                         })}
                       </Tag>
-                      <Tag color="orange">
-                        {t('generator.wizard.result.relationCount', {
-                          count: summary.contract.relationCount,
+                      <Tag color="arcoblue">
+                        {t('generator.wizard.step3.uniqueCount', {
+                          count: previewSchema.model.fields.filter(
+                            (field) => field.validation?.unique,
+                          ).length,
+                        })}
+                      </Tag>
+                      <Tag color="purple">
+                        {t('generator.wizard.step3.enumCount', {
+                          count: previewSchema.model.fields.filter((field) => field.type === 'enum')
+                            .length,
                         })}
                       </Tag>
                     </Space>
-                    {(summary.contract.dependencies?.length || 0) > 0 ? (
-                      <Space direction="vertical" className="generator-wizard__full">
-                        <Typography.Text type="secondary">
-                          {t('generator.wizard.result.dependencies')}
-                        </Typography.Text>
-                        {summary.contract.dependencies?.map((dependency) => (
-                          <Typography.Text key={dependency.module} code>
-                            {dependency.module}
-                            {dependency.reason ? ` · ${dependency.reason}` : ''}
-                          </Typography.Text>
+                    <div className="generator-wizard__enum-list">
+                      {previewSchema.model.fields
+                        .filter((field) => field.type === 'enum')
+                        .map((field) => (
+                          <div key={field.name} className="generator-wizard__enum-item">
+                            <Typography.Text>{field.label}</Typography.Text>
+                            <Typography.Text type="secondary">
+                              {' '}
+                              · {field.dictCode || t('generator.fieldEditor.enumInline')}
+                            </Typography.Text>
+                          </div>
                         ))}
-                      </Space>
-                    ) : null}
-                    {(summary.contract.relations?.length || 0) > 0 ? (
-                      <Space direction="vertical" className="generator-wizard__full">
-                        <Typography.Text type="secondary">
-                          {t('generator.wizard.result.relations')}
-                        </Typography.Text>
-                        {summary.contract.relations?.map((relation) => (
-                          <Typography.Text key={`${relation.name}-${relation.targetModule}`} code>
-                            {relation.name} · {relation.type} · {relation.targetModule} ·{' '}
-                            {relation.localField} → {relation.targetField}
-                            {relation.targetLabelField ? ` · label:${relation.targetLabelField}` : ''}
-                            {relation.lookupApi ? ` · api:${relation.lookupApi}` : ''}
-                            {relation.lookupValueField ? ` · value:${relation.lookupValueField}` : ''}
-                          </Typography.Text>
-                        ))}
-                      </Space>
-                    ) : null}
-                  </Space>
-                </Card>
-                <Card
-                  title={t('generator.wizard.result.verifications')}
-                  className="generator-wizard__section"
-                >
-                  <Space direction="vertical" className="generator-wizard__full">
-                    {summary.verifications.map((item) => (
-                      <Space
-                        key={`${item.code}-${item.detail}`}
-                        align="start"
-                        className="generator-wizard__verification-row"
-                      >
-                        <Space>
-                          <Tag
-                            color={
-                              item.status === 'pass'
-                                ? 'green'
-                                : item.status === 'warn'
-                                  ? 'orange'
-                                  : 'arcoblue'
-                            }
-                          >
-                            {t(`generator.wizard.result.verificationStatus.${item.status}`)}
-                          </Tag>
-                          <Typography.Text>{t(item.messageKey)}</Typography.Text>
-                        </Space>
-                        <Typography.Text type="secondary">{item.detail}</Typography.Text>
-                      </Space>
-                    ))}
-                  </Space>
-                </Card>
+                    </div>
+                  </Card>
+                </Col>
+              </Row>
+
+              <Card
+                title={t('generator.wizard.step3.permissions')}
+                className="generator-wizard__section"
+              >
                 <Space wrap>
-                  {canOpenModuleManager ? (
-                    <Button
-                      loading={auditingActivation}
-                      disabled={registerResult.module.status === 1}
-                      onClick={() => {
-                        handleAuditActivation();
-                      }}
-                    >
-                      {t('generator.wizard.result.checkActivation')}
-                    </Button>
+                  {previewSchema.permissions.length === 0 ? (
+                    <Typography.Text type="secondary">
+                      {t('generator.wizard.step3.permissions.empty')}
+                    </Typography.Text>
+                  ) : (
+                    previewSchema.permissions.map((permission) => (
+                      <Tag key={permission.key}>{permission.key}</Tag>
+                    ))
+                  )}
+                </Space>
+              </Card>
+
+              <Row gutter={16}>
+                <Col xs={24} lg={12}>
+                  <Card
+                    title={t('generator.wizard.step3.menuPreview')}
+                    className="generator-wizard__section"
+                  >
+                    <Typography.Text type="secondary" className="generator-wizard__subdescription">
+                      {t('generator.wizard.step3.menuPreview.desc')}
+                    </Typography.Text>
+                    {renderMenuPreview(previewMenuTree)}
+                  </Card>
+                </Col>
+                <Col xs={24} lg={12}>
+                  <Card
+                    title={t('generator.wizard.step3.i18nCompleteness')}
+                    className="generator-wizard__section"
+                  >
+                    <Typography.Text type="secondary" className="generator-wizard__subdescription">
+                      {t('generator.wizard.step3.i18nCompleteness.desc')}
+                    </Typography.Text>
+                    <Space direction="vertical" className="generator-wizard__full">
+                      {previewCompletenessIssues.length === 0 ? (
+                        <Alert type="success" content={t('generator.validation.passed')} />
+                      ) : (
+                        previewCompletenessIssues.map((issue) => (
+                          <Alert
+                            key={`${issue.code}-${issue.detail || ''}`}
+                            type={issue.level === 'error' ? 'error' : 'warning'}
+                            content={`${t(issue.messageKey)}${issue.detail ? `: ${issue.detail}` : ''}`}
+                          />
+                        ))
+                      )}
+                    </Space>
+                  </Card>
+                </Col>
+              </Row>
+
+              <Card
+                title={t('generator.wizard.step3.translationPreview')}
+                className="generator-wizard__section"
+              >
+                <Space direction="vertical" className="generator-wizard__full" size={12}>
+                  <Space align="center" className="generator-wizard__toolbar">
+                    <Typography.Text type="secondary">
+                      {t('generator.wizard.step3.translationPreview.desc')}
+                    </Typography.Text>
+                    <Space wrap>
+                      <Button size="small" onClick={handleExportTranslations}>
+                        {t('generator.wizard.step3.translationPreview.export')}
+                      </Button>
+                      <Button size="small" onClick={handleImportTranslations}>
+                        {t('generator.wizard.step3.translationPreview.import')}
+                      </Button>
+                    </Space>
+                  </Space>
+                  <AppTable<TranslationPreviewRow>
+                    className="system-list__table"
+                    rowKey="key"
+                    data={pagedPreviewTranslationRows}
+                    pagination={buildStandardPagination(t, {
+                      current: translationPreviewPagination.current,
+                      pageSize: translationPreviewPagination.pageSize,
+                      total: previewTranslationRows.length,
+                      sizeOptions: [8, 16, 32, 64],
+                      onChange: (page, pageSize) => {
+                        setTranslationPreviewPagination({
+                          current: page,
+                          pageSize: pageSize || translationPreviewPagination.pageSize,
+                        });
+                      },
+                    })}
+                    columns={[
+                      {
+                        title: t('generator.wizard.step3.translationPreview.key'),
+                        dataIndex: 'key',
+                        width: 320,
+                        render: (value: string) => <Typography.Text code>{value}</Typography.Text>,
+                      },
+                      {
+                        title: t('generator.wizard.step3.translationPreview.zh'),
+                        dataIndex: 'zh',
+                        render: (value: string, record: TranslationPreviewRow) => (
+                          <Input
+                            value={value}
+                            className="generator-wizard__translation-input"
+                            onChange={(nextValue) =>
+                              updateTranslationOverride(record.key, 'zh', nextValue)
+                            }
+                          />
+                        ),
+                      },
+                      {
+                        title: t('generator.wizard.step3.translationPreview.en'),
+                        dataIndex: 'en',
+                        render: (value: string, record: TranslationPreviewRow) => (
+                          <Input
+                            value={value}
+                            className="generator-wizard__translation-input"
+                            onChange={(nextValue) =>
+                              updateTranslationOverride(record.key, 'en', nextValue)
+                            }
+                          />
+                        ),
+                      },
+                    ]}
+                  />
+                </Space>
+              </Card>
+
+              <Card
+                title={t('generator.wizard.step3.generationImpact')}
+                className="generator-wizard__section"
+              >
+                <Space wrap className="generator-wizard__section">
+                  <Tag color="arcoblue">
+                    {t('generator.wizard.step3.impact.files', {
+                      count: previewGeneratedFiles.length,
+                    })}
+                  </Tag>
+                  <Tag color="green">{previewSchema.model.tableName}</Tag>
+                  <Tag
+                    color={previewSchema.metadata?.tableRole === 'relation' ? 'orange' : 'purple'}
+                  >
+                    {t(`generator.wizard.tableRole.${previewSchema.metadata?.tableRole || 'main'}`)}
+                  </Tag>
+                  <Tag color={previewSchema.enableDataScope ? 'green' : 'gray'}>
+                    {t(
+                      previewSchema.enableDataScope
+                        ? 'generator.wizard.dataScope.enabledTag'
+                        : 'generator.wizard.dataScope.disabledTag',
+                    )}
+                  </Tag>
+                  <Tag color={previewSchema.includeDashboardWidget ? 'arcoblue' : 'gray'}>
+                    {t(
+                      previewSchema.includeDashboardWidget
+                        ? 'generator.wizard.dashboardWidget.enabledTag'
+                        : 'generator.wizard.dashboardWidget.disabledTag',
+                    )}
+                  </Tag>
+                  <Tag color="blue">
+                    {t('generator.wizard.step3.impact.dependencies', {
+                      count: previewSchema.dependencies?.length || 0,
+                    })}
+                  </Tag>
+                  <Tag color="orange">
+                    {t('generator.wizard.step3.impact.relations', {
+                      count: previewSchema.relations?.length || 0,
+                    })}
+                  </Tag>
+                </Space>
+                <div className="generator-wizard__impact-list">
+                  {previewGeneratedFiles.slice(0, 8).map((file) => (
+                    <Typography.Text key={file.path} code className="generator-wizard__impact-item">
+                      {file.path}
+                    </Typography.Text>
+                  ))}
+                  {previewGeneratedFiles.length > 8 ? (
+                    <Typography.Text type="secondary">
+                      {t('generator.wizard.step3.impact.more', {
+                        count: previewGeneratedFiles.length - 8,
+                      })}
+                    </Typography.Text>
                   ) : null}
-                  {canOpenModuleManager ? (
-                    <Button onClick={() => navigate('/system/modules')}>
-                      {t('generator.wizard.result.openModuleManager')}
-                    </Button>
-                  ) : null}
+                </div>
+              </Card>
+
+              <Space>
+                <Button onClick={() => setCurrentStep(1)}>{t('common.previous')}</Button>
+                <Button type="primary" onClick={handleGenerate} disabled={previewBlockingIssue}>
+                  {t('generator.wizard.generate')}
+                </Button>
+              </Space>
+            </div>
+          ) : null}
+
+          {currentStep === 3 && previewSchema ? (
+            <div>
+              <Typography.Title heading={5}>{t('generator.wizard.step4.title')}</Typography.Title>
+
+              <Card className="generator-wizard__section">
+                <Space wrap>
+                  <Typography.Text>
+                    {t('generator.wizard.generatedFiles', { count: generatedFiles.length })}
+                  </Typography.Text>
+                  <Tag color="green">
+                    {t('generator.wizard.totalLines', {
+                      lines: generatedFiles.reduce(
+                        (sum, file) => sum + file.content.split('\n').length,
+                        0,
+                      ),
+                    })}
+                  </Tag>
+                  <Tag color="arcoblue">
+                    {t('generator.wizard.step3.actionCount', {
+                      count: previewSchema.pageActions?.length || 0,
+                    })}
+                  </Tag>
+                </Space>
+              </Card>
+
+              <Space className="generator-wizard__section">
+                <PermissionAction
+                  allowed={canGenerateRegister}
+                  tooltip={t('common.noPermissionAction')}
+                >
                   <Button
+                    type="primary"
+                    status="success"
+                    loading={registering}
+                    disabled={!oneClickEnabled}
                     onClick={() => {
-                      setRegisterResult(null);
-                      setGeneratedFiles([]);
-                      setCurrentStep(0);
+                      submitGenerateAndRegister();
                     }}
                   >
-                    {t('generator.wizard.result.generateAnother')}
+                    {t('generator.wizard.register.submit')}
                   </Button>
-                </Space>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+                </PermissionAction>
+                <Button type="primary" onClick={handleDownload}>
+                  <IconDownload /> {t('generator.wizard.download')}
+                </Button>
+                <Button onClick={() => setShowPreview(true)}>
+                  <IconCode /> {t('generator.wizard.preview')}
+                </Button>
+                <Button onClick={() => setCurrentStep(2)}>{t('common.previous')}</Button>
+              </Space>
+
+              <CodePreview
+                visible={showPreview}
+                files={generatedFiles}
+                onClose={() => setShowPreview(false)}
+              />
+
+              {dynamicModuleDisabled ? (
+                <Alert
+                  type="warning"
+                  title={t('generator.wizard.register.disabledTitle')}
+                  content={t('generator.wizard.register.disabledHint')}
+                  className="generator-wizard__section"
+                />
+              ) : null}
+
+              {registerResult && summary ? (
+                <div className="generator-wizard__result">
+                  <Alert
+                    type="success"
+                    title={t('generator.wizard.result.pendingActivation')}
+                    content={t('generator.wizard.result.pendingActivationDesc')}
+                    className="generator-wizard__section"
+                  />
+                  <Card
+                    title={t('generator.wizard.result.title')}
+                    className="generator-wizard__section"
+                  >
+                    <Space direction="vertical" className="generator-wizard__full">
+                      <Typography.Text>
+                        {t('generator.wizard.result.moduleKey')}: {summary.moduleKey}
+                      </Typography.Text>
+                      <Typography.Text>
+                        {t('generator.wizard.result.parentMenu')}:{' '}
+                        {summary.parentMenuPath || t('generator.wizard.result.parentMenu.topLevel')}
+                      </Typography.Text>
+                      <Typography.Text>
+                        {t('generator.wizard.result.routePath')}: {summary.routePath}
+                      </Typography.Text>
+                      <Typography.Text>
+                        {t('generator.wizard.result.routeName')}: {summary.routeName}
+                      </Typography.Text>
+                      <Typography.Text>
+                        {t('generator.wizard.result.componentKey')}: {summary.componentKey}
+                      </Typography.Text>
+                      <Typography.Text>
+                        {t('generator.wizard.result.permissionPrefix')}: {summary.permissionPrefix}
+                      </Typography.Text>
+                      <Typography.Text>
+                        {t('generator.wizard.result.backendPath')}: {summary.backendModulePath}
+                      </Typography.Text>
+                      <Typography.Text>
+                        {t('generator.wizard.result.frontendPath')}: {summary.frontendModulePath}
+                      </Typography.Text>
+                      <Typography.Text>
+                        {t('generator.wizard.result.schemaPath')}: {summary.schemaPath}
+                      </Typography.Text>
+                      <Tag color={registerResult.module.status === 3 ? 'orange' : 'green'}>
+                        {t(activationStatusKey)}
+                      </Tag>
+                    </Space>
+                  </Card>
+                  <Card
+                    title={t('generator.wizard.result.contractTitle')}
+                    className="generator-wizard__section"
+                  >
+                    <Space direction="vertical" className="generator-wizard__full">
+                      <Space wrap>
+                        <Tag color="arcoblue">
+                          {t('generator.wizard.result.templateVersion')}:{' '}
+                          {summary.contract.templateVersion}
+                        </Tag>
+                        <Tag color={registerResult.module.autoRecycle ? 'orange' : 'gray'}>
+                          {registerResult.module.autoRecycle
+                            ? t('generator.wizard.lifecycle.autoRecycleTag')
+                            : t('generator.wizard.lifecycle.standardTag')}
+                        </Tag>
+                        <Tag color={summary.contract.dataScopeEnabled ? 'green' : 'gray'}>
+                          {t('generator.wizard.result.dataScope')}: {summary.contract.dataScopeMode}
+                        </Tag>
+                        <Tag color="blue">
+                          {t('generator.wizard.result.dependencyCount', {
+                            count: summary.contract.dependencyCount,
+                          })}
+                        </Tag>
+                        <Tag color="orange">
+                          {t('generator.wizard.result.relationCount', {
+                            count: summary.contract.relationCount,
+                          })}
+                        </Tag>
+                      </Space>
+                      {(summary.contract.dependencies?.length || 0) > 0 ? (
+                        <Space direction="vertical" className="generator-wizard__full">
+                          <Typography.Text type="secondary">
+                            {t('generator.wizard.result.dependencies')}
+                          </Typography.Text>
+                          {summary.contract.dependencies?.map((dependency) => (
+                            <Typography.Text key={dependency.module} code>
+                              {dependency.module}
+                              {dependency.reason ? ` · ${dependency.reason}` : ''}
+                            </Typography.Text>
+                          ))}
+                        </Space>
+                      ) : null}
+                      {(summary.contract.relations?.length || 0) > 0 ? (
+                        <Space direction="vertical" className="generator-wizard__full">
+                          <Typography.Text type="secondary">
+                            {t('generator.wizard.result.relations')}
+                          </Typography.Text>
+                          {summary.contract.relations?.map((relation) => (
+                            <Typography.Text key={`${relation.name}-${relation.targetModule}`} code>
+                              {relation.name} · {relation.type} · {relation.targetModule} ·{' '}
+                              {relation.localField} → {relation.targetField}
+                              {relation.targetLabelField
+                                ? ` · label:${relation.targetLabelField}`
+                                : ''}
+                              {relation.lookupApi ? ` · api:${relation.lookupApi}` : ''}
+                              {relation.lookupValueField
+                                ? ` · value:${relation.lookupValueField}`
+                                : ''}
+                            </Typography.Text>
+                          ))}
+                        </Space>
+                      ) : null}
+                    </Space>
+                  </Card>
+                  <Card
+                    title={t('generator.wizard.result.verifications')}
+                    className="generator-wizard__section"
+                  >
+                    <Space direction="vertical" className="generator-wizard__full">
+                      {summary.verifications.map((item) => (
+                        <Space
+                          key={`${item.code}-${item.detail}`}
+                          align="start"
+                          className="generator-wizard__verification-row"
+                        >
+                          <Space>
+                            <Tag
+                              color={
+                                item.status === 'pass'
+                                  ? 'green'
+                                  : item.status === 'warn'
+                                    ? 'orange'
+                                    : 'arcoblue'
+                              }
+                            >
+                              {t(`generator.wizard.result.verificationStatus.${item.status}`)}
+                            </Tag>
+                            <Typography.Text>{t(item.messageKey)}</Typography.Text>
+                          </Space>
+                          <Typography.Text type="secondary">{item.detail}</Typography.Text>
+                        </Space>
+                      ))}
+                    </Space>
+                  </Card>
+                  <Space wrap>
+                    {canOpenModuleManager ? (
+                      <Button
+                        loading={auditingActivation}
+                        disabled={registerResult.module.status === 1}
+                        onClick={() => {
+                          handleAuditActivation();
+                        }}
+                      >
+                        {t('generator.wizard.result.checkActivation')}
+                      </Button>
+                    ) : null}
+                    {canOpenModuleManager ? (
+                      <Button onClick={() => navigate('/system/modules')}>
+                        {t('generator.wizard.result.openModuleManager')}
+                      </Button>
+                    ) : null}
+                    <Button
+                      onClick={() => {
+                        setRegisterResult(null);
+                        setGeneratedFiles([]);
+                        setCurrentStep(0);
+                      }}
+                    >
+                      {t('generator.wizard.result.generateAnother')}
+                    </Button>
+                  </Space>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </Card>
       </Space>
       <AppModal
@@ -2194,11 +2257,7 @@ const ModuleWizard: React.FC = () => {
                     <Button size="mini" type="text" onClick={() => handleEditDatasource(record)}>
                       <IconEdit /> {t('common.edit')}
                     </Button>
-                    <Button
-                      size="mini"
-                      type="text"
-                      onClick={() => handleTestDatasource(record.id)}
-                    >
+                    <Button size="mini" type="text" onClick={() => handleTestDatasource(record.id)}>
                       <IconCode /> {t('generator.datasource.test')}
                     </Button>
                     <Popconfirm
