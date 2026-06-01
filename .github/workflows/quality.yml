@@ -7,14 +7,10 @@ on:
 
 permissions:
   contents: read
-  statuses: write
 
 env:
   NODE_VERSION: "22"
   GO_VERSION_FILE: go.mod
-
-permissions:
-  contents: read
 
 jobs:
   # ============================================================
