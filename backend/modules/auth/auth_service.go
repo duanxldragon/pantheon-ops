@@ -82,13 +82,6 @@ const (
 	sessionUserAgentColumn    = "user_agent"
 )
 
-
-type sessionActivityUpdate struct {
-	LastActivityAt *time.Time
-	LastIP         string
-	UserAgent      string
-}
-
 // NewAuthService 构造函数
 func NewAuthService(db *gorm.DB) *AuthService {
 	s := &AuthService{
@@ -742,12 +735,14 @@ func (s *AuthService) TouchSessionActivity(sessionID string, userID uint64, ip s
 	}
 
 	now := time.Now()
-	updates := sessionActivityUpdate{LastActivityAt: &now}
+	updates := map[string]any{
+		sessionLastActivityColumn: &now,
+	}
 	if clientIP := normalizeSessionClientIP(ip); clientIP != "" {
-		updates.LastIP = clientIP
+		updates[sessionLastIPColumn] = clientIP
 	}
 	if agent := normalizeSessionUserAgent(userAgent); agent != "" {
-		updates.UserAgent = agent
+		updates[sessionUserAgentColumn] = agent
 	}
 
 	return s.db.Model(&SystemUserSession{}).
@@ -755,7 +750,7 @@ func (s *AuthService) TouchSessionActivity(sessionID string, userID uint64, ip s
 		Where("user_id = ?", userID).
 		Where("revoked_at IS NULL").
 		Where("(last_activity_at IS NULL OR last_activity_at < ?)", now.Add(-1*time.Minute)).
-		Updates(&updates).Error
+		Updates(updates).Error
 }
 
 // ListSessions 获取当前用户会话列表
