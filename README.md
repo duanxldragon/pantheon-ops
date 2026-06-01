@@ -123,6 +123,17 @@ npm run test:smoke:impexp
 npm run test:smoke:backoffice-ui
 ```
 
+## 手动 Sonar
+
+Sonar 仅作为本地辅助审查工具，不参与 GitHub required checks。
+
+```powershell
+Set-Content pantheon-sonarcloud.env "SONAR_HOST_URL=https://sonarcloud.io`nSONAR_TOKEN=..."
+./scripts/run-sonar.ps1
+```
+
+扫描结果上传后，直接在 SonarCloud 仪表盘查看热点、重复率和新代码问题。
+
 ## 权限模型摘要
 
 Pantheon Platform 将权限拆成四层：
