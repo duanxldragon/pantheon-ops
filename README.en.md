@@ -60,4 +60,5 @@ npm run dev
 - [docs/README.md](./docs/README.md): Chinese primary index
 - [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md): inheritance lock, local scope, and override boundaries
 - [DESIGN.md](./DESIGN.md): repo-level design stance
+- `../pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`: shared code-quality and security governance strategy
 - [docs/README.en.md](./docs/README.en.md) and [docs/PROJECT_INHERITANCE.en.md](./docs/PROJECT_INHERITANCE.en.md): English companion entry points
