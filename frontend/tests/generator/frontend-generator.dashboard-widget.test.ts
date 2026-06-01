@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 
-import { FrontendGenerator } from '../../src/modules/generator/frontend-generator';
-import type { ModuleSchema } from '../../src/modules/generator/schema';
+import { FrontendGenerator } from '../../src/modules/system/generator/frontend-generator';
+import type { ModuleSchema } from '../../src/modules/system/generator/schema';
 
 function createSchema(overrides: Partial<ModuleSchema> = {}): ModuleSchema {
   const name = overrides.name ?? 'cmdb/asset';
