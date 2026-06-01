@@ -1109,7 +1109,7 @@ func TestAuthService_ListAllSessionsCleansExpiredAndIdleSessions(t *testing.T) {
 	}
 }
 
-func TestAuthService_TouchSessionActivityStoresUserAgentAsValue(t *testing.T) {
+func TestAuthService_TouchSessionActivityDoesNotPersistUserAgent(t *testing.T) {
 	db := setupTestDB(t)
 	s := NewAuthService(db)
 	now := time.Now()
@@ -1130,8 +1130,7 @@ func TestAuthService_TouchSessionActivityStoresUserAgentAsValue(t *testing.T) {
 		t.Fatalf("seed session: %v", err)
 	}
 
-	maliciousAgent := "Mozilla/5.0', revoked_at = CURRENT_TIMESTAMP --"
-	if err := s.TouchSessionActivity(session.SessionID, testUser.ID, "127.0.0.1", maliciousAgent); err != nil {
+	if err := s.TouchSessionActivity(session.SessionID, testUser.ID, "127.0.0.1", "Mozilla/5.0', revoked_at = CURRENT_TIMESTAMP --"); err != nil {
 		t.Fatalf("touch session activity: %v", err)
 	}
 
@@ -1142,8 +1141,8 @@ func TestAuthService_TouchSessionActivityStoresUserAgentAsValue(t *testing.T) {
 	if stored.RevokedAt != nil {
 		t.Fatalf("expected malicious user agent to be stored as data, not executed as SQL")
 	}
-	if stored.UserAgent != maliciousAgent {
-		t.Fatalf("expected user agent value %q, got %q", maliciousAgent, stored.UserAgent)
+	if stored.UserAgent != "" {
+		t.Fatalf("expected touch endpoint not to persist user agent, got %q", stored.UserAgent)
 	}
 	if stored.LastIP != "127.0.0.1" {
 		t.Fatalf("expected last ip to update, got %s", stored.LastIP)

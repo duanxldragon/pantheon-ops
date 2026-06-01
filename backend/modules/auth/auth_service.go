@@ -741,9 +741,6 @@ func (s *AuthService) TouchSessionActivity(sessionID string, userID uint64, ip s
 	if clientIP := normalizeSessionClientIP(ip); clientIP != "" {
 		updates[sessionLastIPColumn] = clientIP
 	}
-	if agent := normalizeSessionUserAgent(userAgent); agent != "" {
-		updates[sessionUserAgentColumn] = agent
-	}
 
 	return s.db.Model(&SystemUserSession{}).
 		Where("session_id = ?", sessionID).
