@@ -377,6 +377,17 @@ func TestResolveWorkspaceRootIgnoresEnvWhenExplicitStartProvided(t *testing.T) {
 	}
 }
 
+func TestResolveWorkspacePathRejectsEscapes(t *testing.T) {
+	root := prepareScaffoldWorkspaceRoot(t)
+
+	if _, err := resolveWorkspacePath(root, "../outside.txt"); err == nil {
+		t.Fatal("expected relative escape path rejected")
+	}
+	if _, err := resolveWorkspacePath(root, "backend/modules/business/asset/module.go"); err != nil {
+		t.Fatalf("expected in-workspace path accepted, got %v", err)
+	}
+}
+
 func prepareScaffoldWorkspaceRoot(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
