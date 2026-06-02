@@ -32,6 +32,7 @@
   "business.deploy.package.sourceFilePlaceholder": "上传后自动生成可访问地址",
   "business.deploy.package.uploadSource": "上传源码包",
   "business.deploy.package.sourceFileHint": "可上传 tar.gz、tgz、zip 等源码包，用于内网离线部署。",
+  "business.deploy.package.sourceUrl": "源码地址",
   "business.deploy.package.latestDeployedAt": "最近部署时间",
   "business.deploy.package.latestTask": "最近任务",
   "business.deploy.package.hero.scope": "数据范围",

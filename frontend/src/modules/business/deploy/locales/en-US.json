@@ -41,6 +41,7 @@
   "business.deploy.package.sourceFilePlaceholder": "An accessible URL is generated after upload",
   "business.deploy.package.uploadSource": "Upload Source Package",
   "business.deploy.package.sourceFileHint": "Supports tar.gz, tgz, zip, and similar source archives for offline deployments.",
+  "business.deploy.package.sourceUrl": "Source URL",
   "business.deploy.package.name": "Name",
   "business.deploy.package.version": "Version",
   "business.deploy.package.description": "Description",
