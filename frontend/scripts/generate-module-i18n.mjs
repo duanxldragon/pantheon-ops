@@ -3,6 +3,7 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { loadResourceModule } from './lib/load-resource-module.mjs';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const frontendRoot = path.resolve(path.dirname(currentFilePath), '..');
@@ -37,15 +38,10 @@ function parseGeneratedResource(filePath) {
   if (!fs.existsSync(filePath)) {
     return {};
   }
-  const content = fs.readFileSync(filePath, 'utf8');
-  const match = content.match(/=\s*({[\s\S]*?})\s*;\s*export default /);
-  if (!match) {
-    throw new Error(`Invalid generated locale resource ${path.relative(frontendRoot, filePath)}`);
-  }
   try {
-    return Function(`"use strict"; return (${match[1]});`)();
+    return loadResourceModule(filePath);
   } catch (error) {
-    throw new Error(`Invalid generated locale object ${path.relative(frontendRoot, filePath)}: ${error.message}`);
+    throw new Error(`Invalid generated locale resource ${path.relative(frontendRoot, filePath)}: ${error.message}`);
   }
 }
 
