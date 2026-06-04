@@ -6,6 +6,8 @@ Pantheon Ops is the operations-management repository derived from the Pantheon P
 
 The repository keeps platform foundation capabilities as business runtime infrastructure, but its main evolution focus is `business/cmdb`, `business/deploy`, and future operations-domain modules. Ongoing evolution of generic backoffice capabilities should flow back to `pantheon-base`.
 
+The default collaboration model is now: `pantheon-ops` consumes `pantheon-base` foundation releases instead of tracking `pantheon-base/main` directly.
+
 ## Positioning
 
 - **Platform layer**: inherits the application shell, route composition, middleware, workbench, and cross-domain aggregate views from Pantheon Platform
@@ -55,9 +57,18 @@ npm install
 npm run dev
 ```
 
+## Common Commands
+
+```bash
+npm run upgrade:foundation:plan -- --manifest <bundle-root>\manifest.json --bundle <bundle-root>
+npm run upgrade:foundation:apply -- --manifest <bundle-root>\manifest.json --bundle <bundle-root>
+```
+
 ## Document Entry
 
 - [docs/README.md](./docs/README.md): Chinese primary index
 - [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md): inheritance lock, local scope, and override boundaries
+- `Base release line + Base version` inside `docs/PROJECT_INHERITANCE.md` is the current consumer-version anchor
+- [.agents/skills/README.md](./.agents/skills/README.md): repository-local Codex workflow skills
 - [DESIGN.md](./DESIGN.md): repo-level design stance
 - [docs/README.en.md](./docs/README.en.md) and [docs/PROJECT_INHERITANCE.en.md](./docs/PROJECT_INHERITANCE.en.md): English companion entry points
