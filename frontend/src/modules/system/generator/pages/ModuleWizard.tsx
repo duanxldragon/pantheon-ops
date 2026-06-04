@@ -200,6 +200,20 @@ function parseCsvRows(content: string): string[][] {
   return rows;
 }
 
+function readFileText(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      resolve(typeof result === 'string' ? result : '');
+    };
+    reader.onerror = () => {
+      reject(reader.error || new Error('Failed to read file'));
+    };
+    reader.readAsText(file, 'utf-8');
+  });
+}
+
 const ModuleWizard: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -760,22 +774,22 @@ const ModuleWizard: React.FC = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.csv,text/csv';
+    const importTranslationOverrides = async (file: File) => {
+      const rows = parseCsvRows(await readFileText(file));
+      setTranslationOverrides((current) => mergeTranslationOverrides(current, rows.slice(1)));
+    };
     input.onchange = () => {
       const file = input.files?.[0];
       if (!file) {
         return;
       }
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const rows = parseCsvRows(String(reader.result || ''));
-          setTranslationOverrides((current) => mergeTranslationOverrides(current, rows.slice(1)));
+      importTranslationOverrides(file)
+        .then(() => {
           message.success(t('generator.wizard.step3.translationPreview.importSuccess'));
-        } catch {
+        })
+        .catch(() => {
           message.error(t('generator.wizard.step3.translationPreview.importError'));
-        }
-      };
-      reader.readAsText(file, 'utf-8');
+        });
     };
     input.click();
   };
@@ -923,9 +937,11 @@ const ModuleWizard: React.FC = () => {
           en: previewSchema.i18n.translations.en[key] || '',
         }))
     : [];
+  const translationPreviewPage = translationPreviewPagination.current;
+  const translationPreviewPageSize = translationPreviewPagination.pageSize;
   const pagedPreviewTranslationRows = previewTranslationRows.slice(
-    (translationPreviewPagination.current - 1) * translationPreviewPagination.pageSize,
-    translationPreviewPagination.current * translationPreviewPagination.pageSize,
+    (translationPreviewPage - 1) * translationPreviewPageSize,
+    translationPreviewPage * translationPreviewPageSize,
   );
   const activationStatusKey = registerResult
     ? registerResult.module.status === 1
@@ -938,9 +954,9 @@ const ModuleWizard: React.FC = () => {
   useEffect(() => {
     const totalPages = Math.max(
       1,
-      Math.ceil(previewTranslationRows.length / translationPreviewPagination.pageSize),
+      Math.ceil(previewTranslationRows.length / translationPreviewPageSize),
     );
-    if (translationPreviewPagination.current > totalPages) {
+    if (translationPreviewPage > totalPages) {
       const timer = globalThis.setTimeout(() => {
         setTranslationPreviewPagination((current) => ({ ...current, current: totalPages }));
       }, 0);
@@ -949,8 +965,8 @@ const ModuleWizard: React.FC = () => {
     return undefined;
   }, [
     previewTranslationRows.length,
-    translationPreviewPagination.current,
-    translationPreviewPagination.pageSize,
+    translationPreviewPage,
+    translationPreviewPageSize,
   ]);
 
   const renderMenuPreview = (nodes: GeneratorMenuPreviewNode[]) => (

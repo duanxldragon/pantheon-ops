@@ -2,6 +2,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import {
+  backendMergedJsonPaths,
+  collectFiles,
+  isBackendOverlayPath,
+  mergeBuiltinLocaleResources,
+  normalizeLineEndings,
+  readGoModuleName,
+  rewriteBackendModuleReferences,
+  sharedBackendEntries,
+} from './foundation-release/shared-foundation-rules.mjs';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const opsRoot = path.resolve(path.dirname(currentFilePath), '..');
@@ -12,90 +22,22 @@ const baseRepoRoot = process.env.PANTHEON_BASE_REPO_ROOT
 const baseBackendRoot = path.join(baseRepoRoot, 'backend');
 const opsBackendRoot = path.join(opsRoot, 'backend');
 
-const sharedEntries = ['cmd', 'internal', 'modules', 'pkg'];
-
-const excludedPaths = new Set([
-  'internal/scaffold/workspace.go',
-  'internal/scaffold/workspace_test.go',
-  'modules/business/business.go',
-  'modules/business/generated_registry.go',
-  'modules/business/retired_modules.go',
-  'modules/platform/health.go',
-  'modules/system/dynamicmodule/dynamic_module_service_test.go',
-  'modules/system/generator/generator_service_test.go',
-  'modules/system/iam/menu/component_registry.go',
-  'modules/system/iam/menu/generated_component_registry.go',
-]);
-
-const excludedDirPrefixes = [
-  'cmd/server/uploads/',
-];
-
-function toRepoPath(filePath) {
-  return filePath.split(path.sep).join('/');
-}
-
 function readFile(filePath) {
   return fs.readFileSync(filePath, 'utf8');
 }
 
-function normalizeBackendSource(source) {
-  return source
-    .replaceAll('\r\n', '\n')
-    .replaceAll('pantheon-platform/backend', '__BACKEND_MODULE__')
-    .replaceAll('pantheon-base/backend', '__BACKEND_MODULE__')
-    .replaceAll('pantheon-ops/backend', '__BACKEND_MODULE__')
-    .replaceAll('module pantheon-platform', 'module __ROOT_MODULE__')
-    .replaceAll('module pantheon-ops', 'module __ROOT_MODULE__');
-}
-
-function compareBuiltinLocaleResources(baseSource, opsSource) {
-  const baseLocales = JSON.parse(baseSource);
-  const opsLocales = JSON.parse(opsSource);
-
-  for (const [locale, basePack] of Object.entries(baseLocales)) {
-    const opsPack = opsLocales[locale];
-    if (!opsPack || typeof opsPack !== 'object') {
-      return false;
-    }
-
-    for (const [key, value] of Object.entries(basePack)) {
-      if (key.startsWith('business.')) {
-        continue;
-      }
-      if (opsPack[key] !== value) {
-        return false;
-      }
-    }
+function buildExpectedOpsSource(relativePath, baseSource, opsSource, baseModuleName, opsModuleName) {
+  const rewrittenBaseSource = rewriteBackendModuleReferences(baseSource, baseModuleName, opsModuleName);
+  if (!backendMergedJsonPaths.has(relativePath) || !opsSource) {
+    return rewrittenBaseSource;
   }
 
-  return true;
-}
-
-function sourcesMatch(relativePath, baseSource, opsSource) {
-  if (relativePath === 'modules/system/i18n/builtin_locale_resources.json') {
-    return compareBuiltinLocaleResources(baseSource, opsSource);
-  }
-
-  return normalizeBackendSource(baseSource) === normalizeBackendSource(opsSource);
-}
-
-function collectFiles(rootPath, currentPath = rootPath, bucket = []) {
-  const entries = fs.readdirSync(currentPath, { withFileTypes: true });
-  for (const entry of entries) {
-    const nextPath = path.join(currentPath, entry.name);
-    if (entry.isDirectory()) {
-      collectFiles(rootPath, nextPath, bucket);
-      continue;
-    }
-    bucket.push(toRepoPath(path.relative(rootPath, nextPath)));
-  }
-  return bucket;
+  return mergeBuiltinLocaleResources(rewrittenBaseSource, opsSource);
 }
 
 function collectSharedBaseFiles() {
   const files = [];
-  for (const entry of sharedEntries) {
+  for (const entry of sharedBackendEntries) {
     const absolutePath = path.join(baseBackendRoot, entry);
     if (!fs.existsSync(absolutePath)) {
       continue;
@@ -111,15 +53,14 @@ function main() {
     process.exit(1);
   }
 
+  const baseModuleName = readGoModuleName(baseRepoRoot);
+  const opsModuleName = readGoModuleName(opsRoot);
+
   const missingFiles = [];
   const diffFiles = [];
 
   for (const relativePath of collectSharedBaseFiles()) {
-    if (excludedPaths.has(relativePath)) {
-      continue;
-    }
-
-    if (excludedDirPrefixes.some((prefix) => relativePath.startsWith(prefix))) {
+    if (isBackendOverlayPath(relativePath)) {
       continue;
     }
 
@@ -134,7 +75,8 @@ function main() {
     const baseSource = readFile(baseFilePath);
     const opsSource = readFile(opsFilePath);
 
-    if (!sourcesMatch(relativePath, baseSource, opsSource)) {
+    const expectedOpsSource = buildExpectedOpsSource(relativePath, baseSource, opsSource, baseModuleName, opsModuleName);
+    if (normalizeLineEndings(expectedOpsSource) !== normalizeLineEndings(opsSource)) {
       diffFiles.push(relativePath);
     }
   }

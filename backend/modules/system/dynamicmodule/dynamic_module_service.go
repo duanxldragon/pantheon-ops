@@ -2,7 +2,6 @@ package dynamicmodule
 
 import (
 	"errors"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -301,8 +300,16 @@ func (s *DynamicModuleService) RegisterManagedModule(moduleName string) (*Module
 	if err != nil {
 		return nil, err
 	}
-	if !generatedDirExists(filepath.Join(s.workspaceRoot, "backend", "modules", scope, shortName)) ||
-		!generatedDirExists(filepath.Join(s.workspaceRoot, "frontend", "src", "modules", scope, shortName)) {
+	backendPath, ok := generatedModuleRelativePath("backend", "modules", scope, shortName)
+	if !ok {
+		return nil, errors.New("module.invalid_name")
+	}
+	frontendPath, ok := generatedModuleRelativePath("frontend", "src", "modules", scope, shortName)
+	if !ok {
+		return nil, errors.New("module.invalid_name")
+	}
+	if !generatedDirExists(s.workspaceRoot, backendPath) ||
+		!generatedDirExists(s.workspaceRoot, frontendPath) {
 		return nil, errors.New("module.register.source_missing")
 	}
 

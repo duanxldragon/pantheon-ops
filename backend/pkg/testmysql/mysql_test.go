@@ -6,26 +6,31 @@ import (
 )
 
 func TestBuildTestDBNameSanitizesSegments(t *testing.T) {
-	name := buildTestDBName("Pantheon`;DROP", "Test/Case #1")
-	if name == "" {
-		t.Fatal("expected database name")
+	name, err := buildTestDBName(" Main DB ", "suite/Test Case")
+	if err != nil {
+		t.Fatalf("buildTestDBName() error = %v", err)
 	}
-	if strings.ContainsAny(name, "`;#- ") {
-		t.Fatalf("expected sanitized database name, got %q", name)
+	if !strings.HasPrefix(name, "main_db_suite_test_case_") {
+		t.Fatalf("buildTestDBName() prefix = %q", name)
 	}
 	if len(name) > 60 {
-		t.Fatalf("expected database name length <= 60, got %d", len(name))
-	}
-	if !testDBIdentifierPattern.MatchString(name) {
-		t.Fatalf("expected database name to match identifier pattern, got %q", name)
+		t.Fatalf("buildTestDBName() length = %d, want <= 60", len(name))
 	}
 }
 
-func TestQuoteDatabaseIdentifierRejectsUnsafeNames(t *testing.T) {
-	if _, err := quoteDatabaseIdentifier("safe_name"); err != nil {
-		t.Fatalf("expected safe identifier accepted, got %v", err)
-	}
-	if _, err := quoteDatabaseIdentifier("unsafe-name"); err == nil {
-		t.Fatal("expected unsafe identifier rejected")
+func TestQuoteMySQLIdentifierRejectsUnsafeNames(t *testing.T) {
+	defer func() {
+		recovered := recover()
+		if recovered == nil {
+			t.Fatal("quoteMySQLIdentifier() should panic for unsafe identifiers")
+		}
+	}()
+
+	quoteMySQLIdentifier("unsafe-name")
+}
+
+func TestQuoteMySQLIdentifierWrapsSafeNames(t *testing.T) {
+	if got := quoteMySQLIdentifier("safe_name_01"); got != "`safe_name_01`" {
+		t.Fatalf("quoteMySQLIdentifier() = %q", got)
 	}
 }
