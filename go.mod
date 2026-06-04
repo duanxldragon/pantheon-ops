@@ -51,7 +51,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
-	github.com/quic-go/quic-go v0.59.0 // indirect
+	github.com/quic-go/quic-go v0.59.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/tinylib/msgp v1.6.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
