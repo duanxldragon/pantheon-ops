@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"pantheon-platform/backend/pkg/common"
-	"pantheon-platform/backend/pkg/database"
+	"pantheon-ops/backend/pkg/common"
+	"pantheon-ops/backend/pkg/database"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -29,7 +29,7 @@ func RegisterHealthRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	r.GET("/health", func(c *gin.Context) {
 		resp := healthResp{
 			Status:    "ok",
-			Service:   "pantheon-platform",
+			Service:   "pantheon-ops",
 			Timestamp: time.Now().UTC().Format(time.RFC3339),
 			RequestID: common.GetRequestID(c),
 			Dependencies: map[string]healthDependency{

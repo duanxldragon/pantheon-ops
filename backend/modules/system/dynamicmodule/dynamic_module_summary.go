@@ -2,7 +2,7 @@ package dynamicmodule
 
 import (
 	"fmt"
-	"pantheon-platform/backend/internal/scaffold"
+	"pantheon-ops/backend/internal/scaffold"
 	"path/filepath"
 	"strings"
 )

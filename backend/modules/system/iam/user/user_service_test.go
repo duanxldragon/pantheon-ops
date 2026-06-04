@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-	"pantheon-platform/backend/pkg/testmysql"
+	"pantheon-ops/backend/pkg/testmysql"
 )
 
 func setupUserTestDB(t *testing.T) *gorm.DB {

@@ -1,9 +1,9 @@
 package dynamicmodule
 
 import (
-	"pantheon-platform/backend/internal/middleware"
-	"pantheon-platform/backend/pkg/common"
-	"pantheon-platform/backend/pkg/contracts"
+	"pantheon-ops/backend/internal/middleware"
+	"pantheon-ops/backend/pkg/common"
+	"pantheon-ops/backend/pkg/contracts"
 	"strings"
 
 	"github.com/gin-gonic/gin"

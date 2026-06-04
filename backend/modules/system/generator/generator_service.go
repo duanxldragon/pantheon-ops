@@ -6,7 +6,7 @@ import (
 	"errors"
 	"strings"
 
-	"pantheon-platform/backend/internal/scaffold"
+	"pantheon-ops/backend/internal/scaffold"
 
 	"gorm.io/gorm"
 )

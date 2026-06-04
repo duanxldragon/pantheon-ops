@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-platform/backend/pkg/database"
-	"pantheon-platform/backend/pkg/testmysql"
+	"pantheon-ops/backend/pkg/database"
+	"pantheon-ops/backend/pkg/testmysql"
 
 	"gorm.io/gorm"
 )

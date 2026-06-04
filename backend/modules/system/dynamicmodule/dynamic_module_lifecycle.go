@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-platform/backend/internal/scaffold"
-	systemi18n "pantheon-platform/backend/modules/system/i18n"
+	"pantheon-ops/backend/internal/scaffold"
+	systemi18n "pantheon-ops/backend/modules/system/i18n"
 
 	"gorm.io/gorm"
 )

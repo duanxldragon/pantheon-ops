@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"pantheon-platform/backend/pkg/contracts"
-	"pantheon-platform/backend/pkg/database"
-	"pantheon-platform/backend/pkg/impexp"
+	"pantheon-ops/backend/pkg/contracts"
+	"pantheon-ops/backend/pkg/database"
+	"pantheon-ops/backend/pkg/impexp"
 
 	"gorm.io/gorm"
 )

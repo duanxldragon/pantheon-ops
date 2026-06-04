@@ -13,11 +13,11 @@ import (
 	"time"
 	"unicode"
 
-	user "pantheon-platform/backend/modules/system/iam/user"
-	"pantheon-platform/backend/pkg/authsession"
-	"pantheon-platform/backend/pkg/common"
-	"pantheon-platform/backend/pkg/database"
-	"pantheon-platform/backend/pkg/impexp"
+	user "pantheon-ops/backend/modules/system/iam/user"
+	"pantheon-ops/backend/pkg/authsession"
+	"pantheon-ops/backend/pkg/common"
+	"pantheon-ops/backend/pkg/database"
+	"pantheon-ops/backend/pkg/impexp"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"

@@ -3,7 +3,7 @@ package system
 import (
 	"testing"
 
-	"pantheon-platform/backend/internal/middleware"
+	"pantheon-ops/backend/internal/middleware"
 )
 
 func TestAuditService_MigrateBackfillsDerivedFields(t *testing.T) {

@@ -9,7 +9,7 @@ import (
 	"io"
 	"strings"
 
-	"pantheon-platform/backend/pkg/common"
+	"pantheon-ops/backend/pkg/common"
 )
 
 const encryptedMFASecretPrefix = "mfa:v1:"

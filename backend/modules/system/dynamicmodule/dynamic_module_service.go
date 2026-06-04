@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-platform/backend/internal/scaffold"
-	"pantheon-platform/backend/pkg/contracts"
+	"pantheon-ops/backend/internal/scaffold"
+	"pantheon-ops/backend/pkg/contracts"
 
 	"gorm.io/gorm"
 )
