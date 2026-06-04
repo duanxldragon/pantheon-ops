@@ -4,7 +4,7 @@ import (
 	"strings"
 	"unicode"
 
-	"pantheon-platform/backend/pkg/common"
+	"pantheon-ops/backend/pkg/common"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

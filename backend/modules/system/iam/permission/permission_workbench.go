@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-platform/backend/pkg/database"
+	"pantheon-ops/backend/pkg/database"
 
 	"gorm.io/gorm/clause"
 )

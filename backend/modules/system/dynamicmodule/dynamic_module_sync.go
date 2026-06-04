@@ -10,7 +10,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"pantheon-platform/backend/internal/scaffold"
+	"pantheon-ops/backend/internal/scaffold"
 )
 
 func (s *DynamicModuleService) SyncBuiltInModules() error {

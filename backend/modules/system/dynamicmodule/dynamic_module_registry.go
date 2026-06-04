@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"pantheon-platform/backend/internal/scaffold"
+	"pantheon-ops/backend/internal/scaffold"
 )
 
 func generatedModuleRelativePath(parts ...string) (string, bool) {

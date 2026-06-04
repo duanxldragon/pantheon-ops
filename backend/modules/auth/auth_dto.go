@@ -1,6 +1,6 @@
 package auth
 
-import user "pantheon-platform/backend/modules/system/iam/user"
+import user "pantheon-ops/backend/modules/system/iam/user"
 
 // LoginReq 登录请求 DTO
 type LoginReq struct {

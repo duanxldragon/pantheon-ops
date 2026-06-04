@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-platform/backend/internal/middleware"
+	"pantheon-ops/backend/internal/middleware"
 )
 
 const auditBenchmarkRowCount = 20000

@@ -71,6 +71,11 @@ In this document, "sync" should now be read as:
 
 It should not mean continuously tracking `main`.
 
+The recommended path is now the release consumer instead of manual tree copies:
+
+- `npm run upgrade:foundation:apply -- --manifest <bundle-root>\manifest.json --bundle <bundle-root>`
+- the command syncs shared backend/frontend files, preserves ops-local overlays such as menu registries and generator workspace files, rewrites shared backend imports to the `pantheon-ops` module path, and re-runs frontend `base-sync` plus `menu-contract`
+
 ## 6.1 Landing-Side Decision Rules
 
 When a problem appears, decide the landing side before editing:

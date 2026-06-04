@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"sort"
 	"strings"
 	"text/template"
@@ -57,20 +56,6 @@ func ResolveWorkspaceRoot(start string) (string, error) {
 			break
 		}
 		current = parent
-	}
-
-	if _, sourceFile, _, ok := runtime.Caller(0); ok {
-		current = filepath.Dir(sourceFile)
-		for {
-			if isWorkspaceRoot(current) {
-				return current, nil
-			}
-			parent := filepath.Dir(current)
-			if parent == current {
-				break
-			}
-			current = parent
-		}
 	}
 
 	return "", errors.New("workspace.not_found")
@@ -153,10 +138,14 @@ func WriteGeneratedModuleSource(workspaceRoot string, req *RegisterGeneratedModu
 
 	written := make([]string, 0, len(files)+1)
 	seen := make(map[string]struct{}, len(files))
+	workspaceAbs, err := filepath.Abs(workspaceRoot)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, file := range files {
-		relativePath := filepath.ToSlash(strings.TrimSpace(file.Path))
-		if relativePath == "" || strings.Contains(relativePath, "..") || !filepath.IsLocal(relativePath) {
+		relativePath := normalizeRelativePath(file.Path)
+		if relativePath == "" || relativePath == "." || isRelativeEscapePath(relativePath) {
 			return nil, errors.New("module.generate.invalid_path")
 		}
 		if !strings.HasPrefix(relativePath, backendPrefix) && !strings.HasPrefix(relativePath, frontendPrefix) {
@@ -167,7 +156,10 @@ func WriteGeneratedModuleSource(workspaceRoot string, req *RegisterGeneratedModu
 		}
 		seen[relativePath] = struct{}{}
 
-		absolutePath := filepath.Join(workspaceRoot, filepath.FromSlash(relativePath))
+		absolutePath, err := resolveWorkspacePath(workspaceAbs, relativePath)
+		if err != nil {
+			return nil, errors.New("module.generate.invalid_path")
+		}
 		if err := os.MkdirAll(filepath.Dir(absolutePath), 0o755); err != nil {
 			return nil, err
 		}
@@ -180,11 +172,10 @@ func WriteGeneratedModuleSource(workspaceRoot string, req *RegisterGeneratedModu
 		written = append(written, relativePath)
 	}
 
-	schemaRelativePath := filepath.ToSlash(filepath.Join("schema", "generated", scope, name+".json"))
-	if !filepath.IsLocal(schemaRelativePath) {
+	schemaPath, err := resolveWorkspacePath(workspaceAbs, filepath.ToSlash(filepath.Join("schema", "generated", scope, name+".json")))
+	if err != nil {
 		return nil, errors.New("module.generate.invalid_path")
 	}
-	schemaPath := filepath.Join(workspaceRoot, filepath.FromSlash(schemaRelativePath))
 	if err := os.MkdirAll(filepath.Dir(schemaPath), 0o755); err != nil {
 		return nil, err
 	}
@@ -255,16 +246,19 @@ func RemoveGeneratedModuleSource(workspaceRoot string, scope string, name string
 	}
 
 	targets := []string{
-		filepath.ToSlash(filepath.Join("backend", "modules", scope, name)),
-		filepath.ToSlash(filepath.Join("frontend", "src", "modules", scope, name)),
-		filepath.ToSlash(filepath.Join("schema", "generated", scope, name+".json")),
+		filepath.Join(workspaceRoot, "backend", "modules", scope, name),
+		filepath.Join(workspaceRoot, "frontend", "src", "modules", scope, name),
+		filepath.Join(workspaceRoot, "schema", "generated", scope, name+".json"),
+	}
+	workspaceAbs, err := filepath.Abs(workspaceRoot)
+	if err != nil {
+		return err
 	}
 
-	for _, relativeTarget := range targets {
-		if !filepath.IsLocal(relativeTarget) {
+	for _, target := range targets {
+		if !pathWithinRoot(workspaceAbs, target) {
 			return errors.New("module.generate.invalid_path")
 		}
-		target := filepath.Join(workspaceRoot, filepath.FromSlash(relativeTarget))
 		if err := os.RemoveAll(target); err != nil {
 			return err
 		}
@@ -340,7 +334,7 @@ func writeGeneratedBackendRegistry(workspaceRoot string, scope string, refs []Ge
 		name := ref.Name
 		entries = append(entries, entry{
 			Alias:      safeIdentifier(name),
-			ImportPath: fmt.Sprintf("pantheon-platform/backend/modules/%s/%s", scope, name),
+			ImportPath: fmt.Sprintf("pantheon-ops/backend/modules/%s/%s", scope, name),
 			InitFunc:   "Init" + toPascal(name) + "Module",
 		})
 	}
@@ -521,6 +515,42 @@ func safeIdentifier(value string) string {
 func fileExists(path string) bool {
 	info, err := os.Stat(path)
 	return err == nil && !info.IsDir()
+}
+
+func normalizeRelativePath(value string) string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return ""
+	}
+	return filepath.ToSlash(filepath.Clean(filepath.FromSlash(trimmed)))
+}
+
+func isRelativeEscapePath(value string) bool {
+	return value == ".." || strings.HasPrefix(value, "../")
+}
+
+func pathWithinRoot(root string, target string) bool {
+	rootAbs, err := filepath.Abs(root)
+	if err != nil {
+		return false
+	}
+	targetAbs, err := filepath.Abs(target)
+	if err != nil {
+		return false
+	}
+	relative, err := filepath.Rel(rootAbs, targetAbs)
+	if err != nil {
+		return false
+	}
+	return relative != ".." && !strings.HasPrefix(relative, ".."+string(filepath.Separator))
+}
+
+func resolveWorkspacePath(workspaceRoot string, relativePath string) (string, error) {
+	absolutePath := filepath.Join(workspaceRoot, filepath.FromSlash(relativePath))
+	if !pathWithinRoot(workspaceRoot, absolutePath) {
+		return "", errors.New("module.generate.invalid_path")
+	}
+	return absolutePath, nil
 }
 
 func WriteGeneratedFallbackResources(workspaceRoot string) error {

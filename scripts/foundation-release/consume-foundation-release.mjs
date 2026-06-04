@@ -3,6 +3,17 @@ import path from 'node:path';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import {
+  backendMergedJsonPaths,
+  collectFiles,
+  detectBackendModuleNameFromTree,
+  ensureDir,
+  isBackendOverlayPath,
+  isFrontendOverlayPath,
+  mergeBuiltinLocaleResources,
+  readGoModuleName,
+  rewriteBackendModuleReferences,
+} from './shared-foundation-rules.mjs';
 
 const DEFAULT_OPS_ROOT = process.cwd();
 
@@ -101,12 +112,67 @@ function updateInheritanceDoc(filePath, manifest, language) {
   fs.writeFileSync(filePath, content, 'utf8');
 }
 
-function applySharedBundle(bundleRoot, opsRoot, folderName) {
-  const sourceRoot = path.join(bundleRoot, 'bundle', folderName);
+function readUtf8(filePath) {
+  return fs.readFileSync(filePath, 'utf8');
+}
+
+function writeUtf8(filePath, content) {
+  ensureDir(filePath);
+  fs.writeFileSync(filePath, content, 'utf8');
+}
+
+function resolveBackendModuleNames(bundleRoot, opsRoot, manifest) {
+  const sharedBackendRoot = path.join(bundleRoot, 'bundle', 'shared-backend', 'backend');
+  const baseModuleName = manifest.baseGoModule
+    || manifest.baseModule
+    || detectBackendModuleNameFromTree(sharedBackendRoot);
+  const opsModuleName = readGoModuleName(opsRoot);
+  return { baseModuleName, opsModuleName };
+}
+
+function applySharedBackendBundle(bundleRoot, opsRoot, manifest) {
+  const sourceRoot = path.join(bundleRoot, 'bundle', 'shared-backend', 'backend');
   if (!fs.existsSync(sourceRoot)) {
     return;
   }
-  fs.cpSync(sourceRoot, opsRoot, { recursive: true });
+
+  const targetRoot = path.join(opsRoot, 'backend');
+  const { baseModuleName, opsModuleName } = resolveBackendModuleNames(bundleRoot, opsRoot, manifest);
+
+  for (const relativePath of collectFiles(sourceRoot)) {
+    if (isBackendOverlayPath(relativePath)) {
+      continue;
+    }
+
+    const sourcePath = path.join(sourceRoot, relativePath);
+    const targetPath = path.join(targetRoot, relativePath);
+    const source = readUtf8(sourcePath);
+    let nextSource = rewriteBackendModuleReferences(source, baseModuleName, opsModuleName);
+
+    if (backendMergedJsonPaths.has(relativePath) && fs.existsSync(targetPath)) {
+      nextSource = mergeBuiltinLocaleResources(nextSource, readUtf8(targetPath));
+    }
+
+    writeUtf8(targetPath, nextSource);
+  }
+}
+
+function applySharedFrontendBundle(bundleRoot, opsRoot) {
+  const sourceRoot = path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'src');
+  if (!fs.existsSync(sourceRoot)) {
+    return;
+  }
+
+  const targetRoot = path.join(opsRoot, 'frontend', 'src');
+  for (const relativePath of collectFiles(sourceRoot)) {
+    if (isFrontendOverlayPath(relativePath)) {
+      continue;
+    }
+
+    const sourcePath = path.join(sourceRoot, relativePath);
+    const targetPath = path.join(targetRoot, relativePath);
+    writeUtf8(targetPath, readUtf8(sourcePath));
+  }
 }
 
 function runCheckScript(opsRoot, scriptName) {
@@ -122,6 +188,24 @@ function runCheckScript(opsRoot, scriptName) {
 
   if (result.status !== 0) {
     throw new Error(result.stderr || result.stdout || `${scriptName} failed`);
+  }
+
+  return result.stdout.trim();
+}
+
+function runNodeScript(opsRoot, scriptRelativePath) {
+  const scriptPath = path.join(opsRoot, scriptRelativePath);
+  if (!fs.existsSync(scriptPath)) {
+    throw new Error(`required check script is missing: ${scriptRelativePath}`);
+  }
+
+  const result = spawnSync(process.execPath, [scriptPath, '--check'], {
+    cwd: opsRoot,
+    encoding: 'utf8',
+  });
+
+  if (result.status !== 0) {
+    throw new Error(result.stderr || result.stdout || `${scriptRelativePath} failed`);
   }
 
   return result.stdout.trim();
@@ -143,12 +227,12 @@ export function consumeFoundationRelease(options) {
   }
 
   if (options.applySharedBackend) {
-    applySharedBundle(options.bundleRoot, options.opsRoot, 'shared-backend');
+    applySharedBackendBundle(options.bundleRoot, options.opsRoot, manifest);
     summary.push('Applied shared-backend bundle');
   }
 
   if (options.applySharedFrontend) {
-    applySharedBundle(options.bundleRoot, options.opsRoot, 'shared-frontend');
+    applySharedFrontendBundle(options.bundleRoot, options.opsRoot);
     summary.push('Applied shared-frontend bundle');
   }
 
@@ -157,6 +241,10 @@ export function consumeFoundationRelease(options) {
     runCheckScript(options.opsRoot, 'check-inheritance-contract.mjs');
     summary.push('Running check-base-backend-sync.mjs');
     runCheckScript(options.opsRoot, 'check-base-backend-sync.mjs');
+    summary.push('Running frontend/scripts/sync-base-shared.mjs --check');
+    runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'sync-base-shared.mjs'));
+    summary.push('Running frontend/scripts/check-menu-contract.mjs --check');
+    runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'check-menu-contract.mjs'));
   }
 
   return {

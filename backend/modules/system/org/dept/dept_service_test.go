@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"pantheon-platform/backend/pkg/testmysql"
+	"pantheon-ops/backend/pkg/testmysql"
 )
 
 func setupDeptTestDB(t *testing.T) *gorm.DB {
