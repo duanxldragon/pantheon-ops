@@ -217,54 +217,6 @@ func TestValidateRegisterRequestAcceptsP2GovernanceContract(t *testing.T) {
 	}
 }
 
-func TestWriteGeneratedModuleSourceBuildsFilesServerSideWhenFilesOmitted(t *testing.T) {
-	root := prepareScaffoldWorkspaceRoot(t)
-	scriptDir := filepath.Join(root, "frontend", "scripts")
-	if err := os.MkdirAll(scriptDir, 0o755); err != nil {
-		t.Fatalf("mkdir script dir: %v", err)
-	}
-	script := `import { readFileSync } from 'node:fs';
-const schema = JSON.parse(readFileSync(process.argv[2], 'utf8'));
-const files = [
-  {
-    path: 'backend/modules/business/asset/module.go',
-    content: 'package asset\n',
-    language: 'go',
-  },
-  {
-    path: 'frontend/src/modules/business/asset/index.ts',
-    content: 'export const AssetModule = {}\n',
-    language: 'typescript',
-  },
-];
-process.stdout.write(JSON.stringify(files));
-`
-	if err := os.WriteFile(filepath.Join(scriptDir, "export-generated-module.mjs"), []byte(script), 0o644); err != nil {
-		t.Fatalf("write script: %v", err)
-	}
-
-	req := newScaffoldTestRequest()
-	req.Files = nil
-
-	written, err := WriteGeneratedModuleSource(root, req)
-	if err != nil {
-		t.Fatalf("write generated source with server-side generation: %v", err)
-	}
-
-	if len(written) != 3 {
-		t.Fatalf("expected 3 written artifacts, got %d (%v)", len(written), written)
-	}
-	if !fileExists(filepath.Join(root, "backend", "modules", "business", "asset", "module.go")) {
-		t.Fatal("expected backend module file to be generated")
-	}
-	if !fileExists(filepath.Join(root, "frontend", "src", "modules", "business", "asset", "index.ts")) {
-		t.Fatal("expected frontend module file to be generated")
-	}
-	if !fileExists(filepath.Join(root, "schema", "generated", "business", "asset.json")) {
-		t.Fatal("expected schema file to be written")
-	}
-}
-
 func TestWriteGeneratedFallbackResourcesBuildsGeneratedLocaleFiles(t *testing.T) {
 	root := t.TempDir()
 	schemaDir := filepath.Join(root, "schema", "generated", "business", "cmdb")
@@ -327,6 +279,67 @@ func TestWriteGeneratedFallbackResourcesBuildsGeneratedLocaleFiles(t *testing.T)
 	}
 }
 
+func TestWriteGeneratedModuleSourceBuildsFilesServerSideWhenFilesOmitted(t *testing.T) {
+	root := prepareScaffoldWorkspaceRoot(t)
+	scriptDir := filepath.Join(root, "frontend", "scripts")
+	if err := os.MkdirAll(scriptDir, 0o755); err != nil {
+		t.Fatalf("mkdir script dir: %v", err)
+	}
+	script := `import { readFileSync } from 'node:fs';
+const schema = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+const files = [
+  {
+    path: 'backend/modules/business/asset/module.go',
+    content: 'package asset\n',
+    language: 'go',
+  },
+  {
+    path: 'frontend/src/modules/business/asset/index.ts',
+    content: 'export const AssetModule = {}\n',
+    language: 'typescript',
+  },
+];
+process.stdout.write(JSON.stringify(files));
+`
+	if err := os.WriteFile(filepath.Join(scriptDir, "export-generated-module.mjs"), []byte(script), 0o644); err != nil {
+		t.Fatalf("write script: %v", err)
+	}
+
+	req := newScaffoldTestRequest()
+	req.Files = nil
+
+	written, err := WriteGeneratedModuleSource(root, req)
+	if err != nil {
+		t.Fatalf("write generated source with server-side generation: %v", err)
+	}
+
+	if len(written) != 3 {
+		t.Fatalf("expected 3 written artifacts, got %d (%v)", len(written), written)
+	}
+	if !fileExists(filepath.Join(root, "backend", "modules", "business", "asset", "module.go")) {
+		t.Fatal("expected backend module file to be generated")
+	}
+	if !fileExists(filepath.Join(root, "frontend", "src", "modules", "business", "asset", "index.ts")) {
+		t.Fatal("expected frontend module file to be generated")
+	}
+	if !fileExists(filepath.Join(root, "schema", "generated", "business", "asset.json")) {
+		t.Fatal("expected schema file to be written")
+	}
+}
+
+func TestWriteGeneratedModuleSourceRejectsEscapingGeneratedFilePath(t *testing.T) {
+	root := prepareScaffoldWorkspaceRoot(t)
+	req := newScaffoldTestRequest()
+	req.Files = []GeneratedFile{{
+		Path:    "backend/modules/business/asset/../../outside.go",
+		Content: "package outside\n",
+	}}
+
+	if _, err := WriteGeneratedModuleSource(root, req); err == nil || err.Error() != "module.generate.invalid_path" {
+		t.Fatalf("expected invalid path error, got %v", err)
+	}
+}
+
 func newScaffoldTestRequest() *RegisterGeneratedModuleRequest {
 	req := &RegisterGeneratedModuleRequest{
 		Schema: ModuleSchema{
@@ -377,21 +390,33 @@ func TestResolveWorkspaceRootIgnoresEnvWhenExplicitStartProvided(t *testing.T) {
 	}
 }
 
-func TestResolveWorkspacePathRejectsEscapes(t *testing.T) {
-	root := prepareScaffoldWorkspaceRoot(t)
-
-	if _, err := resolveWorkspacePath(root, "../outside.txt"); err == nil {
-		t.Fatal("expected relative escape path rejected")
+func TestResolveWorkspaceRootFallsBackToSourceTreeWhenCwdIsNotWorkspace(t *testing.T) {
+	originalWd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
 	}
-	if _, err := resolveWorkspacePath(root, "backend/modules/business/asset/module.go"); err != nil {
-		t.Fatalf("expected in-workspace path accepted, got %v", err)
+	tempWd := t.TempDir()
+	if err := os.Chdir(tempWd); err != nil {
+		t.Fatalf("chdir temp: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalWd)
+	}()
+
+	resolved, err := ResolveWorkspaceRoot("")
+	if err != nil {
+		t.Fatalf("resolve workspace root from source fallback: %v", err)
+	}
+	resolvedBase := filepath.Base(filepath.Clean(resolved))
+	if !strings.Contains(resolvedBase, "pantheon-base") {
+		t.Fatalf("expected source-tree fallback under pantheon-base workspace, got %s", resolved)
 	}
 }
 
 func prepareScaffoldWorkspaceRoot(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
-	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module pantheon-ops\n\ngo 1.25.4\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module pantheon-platform\n\ngo 1.25.4\n"), 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}
 	if err := os.MkdirAll(filepath.Join(root, "backend"), 0o755); err != nil {

@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"pantheon-ops/backend/pkg/common"
+	"pantheon-platform/backend/pkg/common"
 
 	"github.com/gin-gonic/gin"
 )

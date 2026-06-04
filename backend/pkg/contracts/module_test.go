@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"pantheon-ops/backend/pkg/testmysql"
+	"pantheon-platform/backend/pkg/testmysql"
 )
 
 type orderedModule struct {

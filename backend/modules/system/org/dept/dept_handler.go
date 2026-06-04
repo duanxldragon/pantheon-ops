@@ -3,8 +3,8 @@ package org
 import (
 	"strconv"
 
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/impexp"
+	"pantheon-platform/backend/pkg/common"
+	"pantheon-platform/backend/pkg/impexp"
 
 	"github.com/gin-gonic/gin"
 )

@@ -54,30 +54,6 @@ const staticComponentRegistry = {
   'system/generator/ModuleWizard': defineRegistryEntry(
     () => import('../../modules/system/generator/pages/ModuleWizard'),
   ),
-  'business/cmdb/host/CmdbHostList': defineRegistryEntry(
-    () => import('../../modules/business/cmdb/host/CmdbHostList'),
-  ),
-  'business/cmdb/host/CmdbHostDetail': defineRegistryEntry(
-    () => import('../../modules/business/cmdb/host/CmdbHostDetail'),
-  ),
-  'business/cmdb/group/CmdbGroupList': defineRegistryEntry(
-    () => import('../../modules/business/cmdb/group/CmdbGroupList'),
-  ),
-  'business/cmdb/label/CmdbLabelSchemaList': defineRegistryEntry(
-    () => import('../../modules/business/cmdb/label/CmdbLabelSchemaList'),
-  ),
-  'business/deploy/package/DeployPackageList': defineRegistryEntry(
-    () => import('../../modules/business/deploy/package/DeployPackageList'),
-  ),
-  'business/deploy/template/DeployTemplateList': defineRegistryEntry(
-    () => import('../../modules/business/deploy/template/DeployTemplateList'),
-  ),
-  'business/deploy/task/DeployTaskList': defineRegistryEntry(
-    () => import('../../modules/business/deploy/task/DeployTaskList'),
-  ),
-  'business/deploy/task/DeployTaskDetail': defineRegistryEntry(
-    () => import('../../modules/business/deploy/task/DeployTaskDetail'),
-  ),
 } satisfies Record<string, RegistryEntry>;
 
 const componentRegistry = {

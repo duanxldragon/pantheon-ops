@@ -6,6 +6,8 @@ import (
 	"unicode"
 )
 
+const errInvalidModuleName = "module.invalid_name"
+
 func normalizeStaticModuleName(moduleName string) string {
 	normalized := strings.TrimSpace(moduleName)
 	switch normalized {
@@ -30,23 +32,23 @@ func inferModuleScope(moduleName string) string {
 func splitModuleKey(moduleName string) (string, string, error) {
 	normalized := strings.TrimSpace(moduleName)
 	if normalized == "" {
-		return "", "", errors.New("module.invalid_name")
+		return "", "", errors.New(errInvalidModuleName)
 	}
 	parts := strings.SplitN(normalized, ".", 2)
 	if len(parts) != 2 {
-		return "", "", errors.New("module.invalid_name")
+		return "", "", errors.New(errInvalidModuleName)
 	}
 	scope := strings.TrimSpace(parts[0])
 	rawName := strings.TrimSpace(parts[1])
 	if rawName == "" || strings.Contains(rawName, "..") || strings.ContainsAny(rawName, `\`) {
-		return "", "", errors.New("module.invalid_name")
+		return "", "", errors.New(errInvalidModuleName)
 	}
 	name := strings.TrimSpace(strings.ReplaceAll(rawName, ".", "/"))
 	if (scope != "system" && scope != "business") || name == "" {
-		return "", "", errors.New("module.invalid_name")
+		return "", "", errors.New(errInvalidModuleName)
 	}
 	if !isValidDynamicModulePath(name, scope == "business") {
-		return "", "", errors.New("module.invalid_name")
+		return "", "", errors.New(errInvalidModuleName)
 	}
 	return scope, name, nil
 }

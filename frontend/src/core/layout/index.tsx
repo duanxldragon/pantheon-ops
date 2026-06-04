@@ -120,6 +120,66 @@ interface NoticeRiskItem {
   run: () => void;
 }
 
+interface NoticeStatItem {
+  key: string;
+  label: string;
+  value: number;
+  tone: 'danger' | 'warning' | 'neutral';
+}
+
+interface NoticeRecentItem {
+  id: string | number;
+  username: string;
+  status: number;
+  time: string;
+  message: string;
+}
+
+type TranslateLabel = (key: string, options?: Record<string, unknown>) => string;
+type NavigateToPath = (path: string) => void;
+interface MenuRenderOptions {
+  handleMenuNavigation: NavigateToPath;
+  t: TranslateLabel;
+}
+
+async function resolveSilently<T>(task: Promise<T>): Promise<T | undefined> {
+  try {
+    return await task;
+  } catch {
+    return undefined;
+  }
+}
+
+function runSilently(task: Promise<unknown>) {
+  task.catch(() => undefined);
+}
+
+function buildOpenedPageTab(
+  path: string,
+  fallbackTitle: string,
+  options: Partial<OpenedPageTab> = {},
+): OpenedPageTab {
+  return {
+    path,
+    titleKey: options.titleKey,
+    fallbackTitle,
+    closable: options.closable ?? path !== '/dashboard',
+    pinned: options.pinned ?? path === '/dashboard',
+  };
+}
+
+function normalizeOpenedPageTab(item: OpenedPageTab): OpenedPageTab {
+  return {
+    ...item,
+    closable: item.path !== '/dashboard' && item.closable !== false,
+    pinned: item.path === '/dashboard' || Boolean(item.pinned),
+  };
+}
+
+function normalizeOpenedTabs(tabs: OpenedPageTab[]): OpenedPageTab[] {
+  return tabs.map((item) => normalizeOpenedPageTab(item));
+}
+
 function orderOpenedTabs(tabs: OpenedPageTab[]): OpenedPageTab[] {
   const dashboardTabs = tabs.filter((item) => item.path === '/dashboard');
   const pinnedTabs = tabs.filter((item) => item.path !== '/dashboard' && item.pinned);
@@ -149,17 +209,38 @@ function readOpenedTabs(): OpenedPageTab[] {
       return [];
     }
     return orderOpenedTabs(
-      parsed
-        .filter((item) => typeof item.path === 'string' && item.path.startsWith('/'))
-        .map((item) => ({
-          ...item,
-          closable: item.path !== '/dashboard' && item.closable !== false,
-          pinned: item.path === '/dashboard' || Boolean(item.pinned),
-        })),
+      normalizeOpenedTabs(
+        parsed.filter((item) => typeof item.path === 'string' && item.path.startsWith('/')),
+      ),
     );
   } catch {
     return [];
   }
+}
+
+function mergeOpenedTabsIntoState(
+  currentTabs: OpenedPageTab[],
+  nextTab: OpenedPageTab,
+  dashboardTitle: string,
+): OpenedPageTab[] {
+  const existingIndex = currentTabs.findIndex((item) => item.path === nextTab.path);
+  const mergedTabs =
+    existingIndex >= 0
+      ? currentTabs.map((item, index) =>
+          index === existingIndex ? { ...item, ...nextTab, pinned: item.pinned || nextTab.pinned } : item,
+        )
+      : [...currentTabs, nextTab];
+  const dashboardTab = buildOpenedPageTab('/dashboard', dashboardTitle, {
+    titleKey: 'dashboard.title',
+    closable: false,
+    pinned: true,
+  });
+  const normalizedTabs = mergedTabs.some((item) => item.path === '/dashboard')
+    ? mergedTabs
+    : [dashboardTab, ...mergedTabs];
+  const limitedTabs = limitOpenedTabs(normalizeOpenedTabs(normalizedTabs));
+  localStorage.setItem(OPENED_TABS_STORAGE_KEY, JSON.stringify(limitedTabs));
+  return limitedTabs;
 }
 
 function findMenuTitleKey(nodes: MenuNode[], path: string): string | undefined {
@@ -230,6 +311,79 @@ function findMenuNavigationPath(item: MenuNode): string | undefined {
   return item.children?.length ? findFirstNavigableMenuPath(item.children) || undefined : undefined;
 }
 
+function preloadRouteByPath(path: string) {
+  runSilently(preloadRouteComponent(path));
+}
+
+function renderMenuItems(
+  nodes: MenuNode[],
+  options: MenuRenderOptions,
+  level = 0,
+): React.ReactNode[] {
+  return nodes.map((item) => {
+    const entryClassName = [
+      'app-shell__menu-entry',
+      `app-shell__menu-entry--level-${Math.min(level, 2)}`,
+      item.children && item.children.length > 0
+        ? 'app-shell__menu-entry--group'
+        : 'app-shell__menu-entry--leaf',
+    ].join(' ');
+    const iconClassName = [
+      'app-shell__menu-entry-icon',
+      `app-shell__menu-entry-icon--level-${Math.min(level, 2)}`,
+    ].join(' ');
+
+    if (item.children && item.children.length > 0) {
+      const navigationPath = findMenuNavigationPath(item);
+      const handleGroupNavigation = () => {
+        if (navigationPath) {
+          options.handleMenuNavigation(navigationPath);
+        }
+      };
+
+      return (
+        <Menu.SubMenu
+          key={item.id.toString()}
+          title={
+            <button type="button" className={entryClassName} onClick={handleGroupNavigation}>
+              <span className={iconClassName}>{renderMenuIcon(item.icon)}</span>
+              <span className="app-shell__menu-entry-copy">
+                <span className="app-shell__menu-entry-label">{options.t(item.titleKey)}</span>
+              </span>
+            </button>
+          }
+        >
+          {renderMenuItems(item.children, options, level + 1)}
+        </Menu.SubMenu>
+      );
+    }
+
+    const handleLeafNavigation = () => {
+      options.handleMenuNavigation(item.path);
+    };
+    const handleLeafPreload = () => {
+      preloadRouteByPath(item.path);
+    };
+
+    return (
+      <Menu.Item key={item.path}>
+        <button
+          type="button"
+          className={entryClassName}
+          onClick={handleLeafNavigation}
+          onMouseEnter={handleLeafPreload}
+          onFocus={handleLeafPreload}
+        >
+          <span className={iconClassName}>{renderMenuIcon(item.icon)}</span>
+          <span className="app-shell__menu-entry-copy">
+            <span className="app-shell__menu-entry-label">{options.t(item.titleKey)}</span>
+          </span>
+        </button>
+      </Menu.Item>
+    );
+  });
+}
+
 function filterMenuTreeByCapabilities(nodes: MenuNode[], orgEnabled: boolean): MenuNode[] {
   return nodes
     .filter((item) => orgEnabled || item.module !== 'system.org')
@@ -239,6 +393,271 @@ function filterMenuTreeByCapabilities(nodes: MenuNode[], orgEnabled: boolean): M
         ? filterMenuTreeByCapabilities(item.children, orgEnabled)
         : [],
     }));
+}
+
+function walkMenuNodes(
+  nodes: MenuNode[],
+  ancestors: MenuNode[],
+  items: CommandSearchItem[],
+  t: TranslateLabel,
+  navigate: NavigateToPath,
+) {
+  nodes.forEach((item) => {
+    const trail = [...ancestors, item];
+    if (item.path && item.type !== 'F') {
+      const title = t(item.titleKey);
+      const parentTrail = trail
+        .slice(0, -1)
+        .map((node) => t(node.titleKey))
+        .join(' / ');
+      items.push({
+        key: `menu-${item.id}`,
+        title,
+        subtitle: parentTrail || item.path,
+        section: t('app.command.section.menu'),
+        searchText: [
+          title,
+          parentTrail,
+          item.path,
+          item.routeName,
+          item.component,
+          item.pagePerm,
+          item.perms,
+          item.module,
+        ]
+          .filter(Boolean)
+          .join(' '),
+        icon: renderMenuIcon(item.icon),
+        run: () => {
+          if (item.isExternal === 1) {
+            globalThis.open(item.path, '_blank', 'noopener,noreferrer');
+            return;
+          }
+          navigate(item.path);
+        },
+      });
+    }
+    if (item.children?.length) {
+      walkMenuNodes(item.children, trail, items, t, navigate);
+    }
+  });
+}
+
+function buildCommandItems(options: {
+  canAccessDashboard: boolean;
+  visibleMenuTree: MenuNode[];
+  t: TranslateLabel;
+  navigate: NavigateToPath;
+  handleGoProfile: () => void;
+  handleGoSecurity: () => void;
+}): CommandSearchItem[] {
+  const { canAccessDashboard, visibleMenuTree, t, navigate, handleGoProfile, handleGoSecurity } =
+    options;
+  const items: CommandSearchItem[] = canAccessDashboard
+    ? [
+        {
+          key: 'quick-dashboard',
+          title: t('dashboard.title'),
+          subtitle: t('app.command.section.quick'),
+          section: t('app.command.section.quick'),
+          searchText: `${t('dashboard.title')} dashboard /dashboard`,
+          icon: renderMenuIcon('dashboard'),
+          run: () => navigate('/dashboard'),
+        },
+      ]
+    : [];
+
+  items.push(
+    {
+      key: 'quick-profile',
+      title: t('system.profile.title'),
+      subtitle: t('app.command.section.quick'),
+      section: t('app.command.section.quick'),
+      searchText: `${t('system.profile.title')} profile /system/profile`,
+      icon: <IconUser />,
+      run: handleGoProfile,
+    },
+    {
+      key: 'quick-security',
+      title: t('auth.security.title'),
+      subtitle: t('app.command.section.quick'),
+      section: t('app.command.section.quick'),
+      searchText: `${t('auth.security.title')} security /auth/security`,
+      icon: <IconSafe />,
+      run: handleGoSecurity,
+    },
+  );
+
+  walkMenuNodes(visibleMenuTree, [], items, t, navigate);
+  return items;
+}
+
+function buildNoticeEntries(options: {
+  canViewNoticeSummary: boolean;
+  isAdmin: boolean;
+  hasPerm: (permission: string) => boolean;
+  t: TranslateLabel;
+  navigate: NavigateToPath;
+  handleGoSecurity: () => void;
+}): NoticeEntry[] {
+  const { canViewNoticeSummary, isAdmin, hasPerm, t, navigate, handleGoSecurity } = options;
+  const entries: NoticeEntry[] = [];
+  if (canViewNoticeSummary) {
+    entries.push({
+      key: 'notice-security',
+      title: t('auth.security.title'),
+      description: t('app.notice.securityDesc'),
+      icon: <IconSafe />,
+      run: handleGoSecurity,
+    });
+  }
+
+  if (isAdmin || hasPerm('system:session:list')) {
+    entries.push({
+      key: 'notice-session',
+      title: t('system.menu.session'),
+      description: t('app.notice.sessionDesc'),
+      icon: renderMenuIcon('safe'),
+      run: () => navigate('/system/session'),
+    });
+  }
+
+  if (isAdmin || hasPerm('system:login-log:list')) {
+    entries.push({
+      key: 'notice-login-log',
+      title: t('system.menu.loginLog'),
+      description: t('app.notice.loginLogDesc'),
+      icon: renderMenuIcon('safe'),
+      run: () => navigate('/system/login-log'),
+    });
+  }
+
+  if (isAdmin || hasPerm('system:security-event:list')) {
+    entries.push({
+      key: 'notice-security-event',
+      title: t('system.menu.securityEvent'),
+      description: t('app.notice.securityEventDesc'),
+      icon: renderMenuIcon('safe'),
+      run: () => navigate('/system/security-event'),
+    });
+  }
+
+  if (isAdmin || hasPerm('system:operation-log:list')) {
+    entries.push({
+      key: 'notice-operation-log',
+      title: t('system.menu.operationLog'),
+      description: t('app.notice.operationLogDesc'),
+      icon: renderMenuIcon('safe'),
+      run: () => navigate('/system/operation-log'),
+    });
+  }
+
+  return entries;
+}
+
+function buildNoticeStatItems(summary: DashboardSummary | null, t: TranslateLabel): NoticeStatItem[] {
+  if (!summary) {
+    return [];
+  }
+  return [
+    {
+      key: 'failed-logins',
+      label: t('app.notice.failedLogins'),
+      value: summary.loginFailureCount,
+      tone: summary.loginFailureCount > 0 ? 'danger' : 'neutral',
+    },
+    {
+      key: 'sessions',
+      label: t('app.notice.activeSessions'),
+      value: summary.activeSessionCount,
+      tone: 'neutral',
+    },
+    {
+      key: 'security-events',
+      label: t('app.notice.pendingSecurityEvents'),
+      value: summary.pendingSecurityEventCount,
+      tone: summary.pendingSecurityEventCount > 0 ? 'warning' : 'neutral',
+    },
+    {
+      key: 'operations',
+      label: t('app.notice.todayOperations'),
+      value: summary.todayOperationCount,
+      tone: 'neutral',
+    },
+  ];
+}
+
+function buildNoticeRecentItems(summary: DashboardSummary | null, t: TranslateLabel): NoticeRecentItem[] {
+  if (!summary) {
+    return [];
+  }
+  return summary.recentLogins.slice(0, 3).map((item) => ({
+    id: item.id,
+    username: item.username,
+    status: item.status,
+    time: formatDateTime(item.loginTime),
+    message: t(item.msg || '', { defaultValue: item.msg || '-' }),
+  }));
+}
+
+function buildNoticeRiskGroups(options: {
+  summary: DashboardSummary | null;
+  isAdmin: boolean;
+  hasPerm: (permission: string) => boolean;
+  t: TranslateLabel;
+  navigate: NavigateToPath;
+}): NoticeRiskItem[] {
+  const { summary, isAdmin, hasPerm, t, navigate } = options;
+  if (!summary) {
+    return [];
+  }
+  const groups: NoticeRiskItem[] = [];
+
+  if ((isAdmin || hasPerm('system:login-log:list')) && summary.loginFailureCount > 0) {
+    groups.push({
+      key: 'risk-login-failure',
+      title: t('app.notice.risk.failedLogin'),
+      description: t('app.notice.risk.failedLoginDesc'),
+      value: summary.loginFailureCount,
+      tone: 'danger',
+      run: () => navigate('/system/login-log'),
+    });
+  }
+
+  if ((isAdmin || hasPerm('system:security-event:list')) && summary.pendingSecurityEventCount > 0) {
+    groups.push({
+      key: 'risk-security-event',
+      title: t('app.notice.risk.securityEvent'),
+      description: t('app.notice.risk.securityEventDesc'),
+      value: summary.pendingSecurityEventCount,
+      tone: 'warning',
+      run: () => navigate('/system/security-event'),
+    });
+  }
+
+  if ((isAdmin || hasPerm('system:session:list')) && summary.activeSessionCount > 0) {
+    groups.push({
+      key: 'risk-active-session',
+      title: t('app.notice.risk.activeSession'),
+      description: t('app.notice.risk.activeSessionDesc'),
+      value: summary.activeSessionCount,
+      tone: 'neutral',
+      run: () => navigate('/system/session'),
+    });
+  }
+
+  if ((isAdmin || hasPerm('system:operation-log:list')) && summary.todayOperationCount > 0) {
+    groups.push({
+      key: 'risk-operation',
+      title: t('app.notice.risk.operation'),
+      description: t('app.notice.risk.operationDesc'),
+      value: summary.todayOperationCount,
+      tone: 'warning',
+      run: () => navigate('/system/operation-log'),
+    });
+  }
+
+  return groups;
 }
 
 const BaseLayout: React.FC = () => {
@@ -314,15 +733,17 @@ const BaseLayout: React.FC = () => {
       }
       return trailItems;
     }
+    let currentLabel = location.pathname;
+    if (currentMenuTitleKey) {
+      currentLabel = t(currentMenuTitleKey);
+    } else if (currentRouteTitleKey) {
+      currentLabel = t(currentRouteTitleKey);
+    }
     return [
       ...root,
       {
         path: activeMenuPath,
-        label: currentMenuTitleKey
-          ? t(currentMenuTitleKey)
-          : currentRouteTitleKey
-            ? t(currentRouteTitleKey)
-            : location.pathname,
+        label: currentLabel,
       },
     ];
   }, [
@@ -343,6 +764,7 @@ const BaseLayout: React.FC = () => {
   const userDisplayName = userInfo?.nickname || userInfo?.username || t('common.user');
   const roleLabel = userInfo?.roles?.[0] || '';
   const isHorizontalLayout = layoutMode === 'horizontal';
+  const isVerticalLayout = !isHorizontalLayout;
   const layoutModeLabel = t(
     isHorizontalLayout ? 'app.layoutMode.horizontal' : 'app.layoutMode.vertical',
   );
@@ -354,6 +776,7 @@ const BaseLayout: React.FC = () => {
   );
   const appName = publicSettings.siteName || t('app.name');
   const brandInitial = getBrandInitial(appName);
+  const showExpandedBrand = !collapsed;
   const { theme, setTheme, options: themeOptions } = usePantheonTheme();
   const activeTheme = themeOptions.find((item) => item.key === theme) ?? themeOptions[0];
   const sessionIdleMinutes =
@@ -389,12 +812,12 @@ const BaseLayout: React.FC = () => {
         persistLoginNotice(noticeKey);
       }
       if (revokeSession) {
-        await logoutApi().catch(() => undefined);
+        await resolveSilently(logoutApi());
       }
-      await refreshPublicSettings().catch(() => undefined);
+      await resolveSilently(refreshPublicSettings());
       clearPantheonThemePreference();
       const nextLanguage = clearExplicitLanguagePreference();
-      await switchI18nLanguage(nextLanguage).catch(() => undefined);
+      await resolveSilently(switchI18nLanguage(nextLanguage));
       clearShellSessionState();
       setOpenedTabs([]);
       resetMenuTree();
@@ -427,7 +850,7 @@ const BaseLayout: React.FC = () => {
         return;
       }
       lastSyncedActivityAtRef.current = now;
-      void reportActivity().catch(() => undefined);
+      runSilently(reportActivity());
     },
     [locked, syncShellActivity, token],
   );
@@ -438,9 +861,9 @@ const BaseLayout: React.FC = () => {
     }
     bootstrappedRef.current = true;
 
-    fetchMenuTree().catch(() => undefined);
+    runSilently(fetchMenuTree());
     if (!useAuthStore.getState().userInfo) {
-      ensureAuthUserInfo().catch(() => undefined);
+      runSilently(ensureAuthUserInfo());
     }
     const initialActivityAt = readShellLastActivityAt();
     syncShellActivity(initialActivityAt && initialActivityAt > 0 ? initialActivityAt : Date.now());
@@ -458,14 +881,12 @@ const BaseLayout: React.FC = () => {
       if (!token) {
         return;
       }
-      if (!hasExplicitLanguagePreference()) {
-        void refreshPublicSettings()
-          .then((settings) => switchI18nLanguage(settings.defaultLanguage))
-          .catch(() => undefined);
+      if (hasExplicitLanguagePreference()) {
+        runSilently(refreshPublicSettings());
       } else {
-        refreshPublicSettings().catch(() => undefined);
+        runSilently(refreshPublicSettings().then((settings) => switchI18nLanguage(settings.defaultLanguage)));
       }
-      fetchMenuTree({ force: true }).catch(() => undefined);
+      runSilently(fetchMenuTree({ force: true }));
     },
   );
   useRefreshPolling(token, [
@@ -506,7 +927,7 @@ const BaseLayout: React.FC = () => {
         }
       }
     };
-    void loadNoticeSummary();
+    runSilently(loadNoticeSummary());
     return () => {
       active = false;
     };
@@ -527,55 +948,13 @@ const BaseLayout: React.FC = () => {
   }, [locked]);
 
   useEffect(() => {
-    const nextTab: OpenedPageTab = {
-      path: location.pathname,
+    const nextTab = buildOpenedPageTab(location.pathname, currentPageTitle, {
       titleKey: currentTabTitleKey,
-      fallbackTitle: currentPageTitle,
-      closable: location.pathname !== '/dashboard',
-      pinned: location.pathname === '/dashboard',
-    };
-
-    const mergeTabsIntoState = (
-      currentTabs: OpenedPageTab[],
-      currentNextTab: OpenedPageTab,
-      dashboardTitle: string,
-    ) => {
-      const existingIndex = currentTabs.findIndex((item) => item.path === currentNextTab.path);
-      const mergedTabs =
-        existingIndex >= 0
-          ? currentTabs.map((item, index) =>
-              index === existingIndex
-                ? { ...item, ...currentNextTab, pinned: item.pinned || currentNextTab.pinned }
-                : item,
-            )
-          : [...currentTabs, currentNextTab];
-      const normalizedTabs = mergedTabs.some((item) => item.path === '/dashboard')
-        ? mergedTabs
-        : [
-            {
-              path: '/dashboard',
-              titleKey: 'dashboard.title',
-              fallbackTitle: dashboardTitle,
-              closable: false,
-              pinned: true,
-            },
-            ...mergedTabs,
-          ];
-      const limitedTabs = limitOpenedTabs(
-        normalizedTabs.map((item) => ({
-          ...item,
-          closable: item.path !== '/dashboard' && item.closable !== false,
-          pinned: item.path === '/dashboard' || Boolean(item.pinned),
-        })),
-      );
-      localStorage.setItem(OPENED_TABS_STORAGE_KEY, JSON.stringify(limitedTabs));
-      return limitedTabs;
-    };
+    });
 
     const timer = globalThis.setTimeout(() => {
-      setOpenedTabs((currentTabs) =>
-        mergeTabsIntoState(currentTabs, nextTab, t('dashboard.title')),
-      );
+      const dashboardTitle = t('dashboard.title');
+      setOpenedTabs((currentTabs) => mergeOpenedTabsIntoState(currentTabs, nextTab, dashboardTitle));
     }, 0);
     return () => globalThis.clearTimeout(timer);
   }, [currentPageTitle, currentTabTitleKey, location.pathname, t]);
@@ -586,7 +965,7 @@ const BaseLayout: React.FC = () => {
     }
     const timer = globalThis.setInterval(() => {
       if (Date.now() - lastActivityAtRef.current >= sessionIdleMs) {
-        performLogout(true, 'session.idle_timeout').catch(() => undefined);
+        runSilently(performLogout(true, 'session.idle_timeout'));
       }
     }, 15000);
     return () => globalThis.clearInterval(timer);
@@ -681,89 +1060,18 @@ const BaseLayout: React.FC = () => {
       return;
     }
     if (actionKey === 'logout') {
-      void handleLogout();
+      runSilently(handleLogout());
     }
-  };
-
-  const walkMenuNodes = (
-    nodes: MenuNode[],
-    ancestors: MenuNode[],
-    items: CommandSearchItem[],
-    t: (key: string) => string,
-  ) => {
-    nodes.forEach((item) => {
-      const trail = [...ancestors, item];
-      if (item.path && item.type !== 'F') {
-        const title = t(item.titleKey);
-        const parentTrail = trail
-          .slice(0, -1)
-          .map((node) => t(node.titleKey))
-          .join(' / ');
-        items.push({
-          key: `menu-${item.id}`,
-          title,
-          subtitle: parentTrail || item.path,
-          section: t('app.command.section.menu'),
-          searchText: [
-            title,
-            parentTrail,
-            item.path,
-            item.routeName,
-            item.component,
-            item.pagePerm,
-            item.perms,
-            item.module,
-          ]
-            .filter(Boolean)
-            .join(' '),
-          icon: renderMenuIcon(item.icon),
-          run: () => {
-            if (item.isExternal === 1) {
-              globalThis.open(item.path, '_blank', 'noopener,noreferrer');
-              return;
-            }
-            navigate(item.path);
-          },
-        });
-      }
-      if (item.children?.length) {
-        walkMenuNodes(item.children, trail, items, t);
-      }
-    });
   };
 
   const commandItems = useMemo<CommandSearchItem[]>(() => {
-    const items: CommandSearchItem[] = [];
-
-    if (canAccessDashboard) {
-      items.push({
-        key: 'quick-dashboard',
-        title: t('dashboard.title'),
-        subtitle: t('app.command.section.quick'),
-        section: t('app.command.section.quick'),
-        searchText: `${t('dashboard.title')} dashboard /dashboard`,
-        icon: renderMenuIcon('dashboard'),
-        run: () => navigate('/dashboard'),
-      });
-    }
-
-    items.push({
-      key: 'quick-profile',
-      title: t('system.profile.title'),
-      subtitle: t('app.command.section.quick'),
-      section: t('app.command.section.quick'),
-      searchText: `${t('system.profile.title')} profile /system/profile`,
-      icon: <IconUser />,
-      run: handleGoProfile,
-    });
-    items.push({
-      key: 'quick-security',
-      title: t('auth.security.title'),
-      subtitle: t('app.command.section.quick'),
-      section: t('app.command.section.quick'),
-      searchText: `${t('auth.security.title')} security /auth/security`,
-      icon: <IconSafe />,
-      run: handleGoSecurity,
+    const items = buildCommandItems({
+      canAccessDashboard,
+      visibleMenuTree,
+      t,
+      navigate,
+      handleGoProfile,
+      handleGoSecurity,
     });
 
     openedTabs.forEach((item) => {
@@ -779,7 +1087,6 @@ const BaseLayout: React.FC = () => {
       });
     });
 
-    walkMenuNodes(visibleMenuTree, [], items, t);
     return items;
   }, [
     canAccessDashboard,
@@ -806,59 +1113,14 @@ const BaseLayout: React.FC = () => {
   };
 
   const noticeEntries = useMemo<NoticeEntry[]>(() => {
-    const entries: NoticeEntry[] = [];
-
-    if (canViewNoticeSummary) {
-      entries.push({
-        key: 'notice-security',
-        title: t('auth.security.title'),
-        description: t('app.notice.securityDesc'),
-        icon: <IconSafe />,
-        run: handleGoSecurity,
-      });
-    }
-
-    if (isAdmin || hasPerm('system:session:list')) {
-      entries.push({
-        key: 'notice-session',
-        title: t('system.menu.session'),
-        description: t('app.notice.sessionDesc'),
-        icon: renderMenuIcon('safe'),
-        run: () => navigate('/system/session'),
-      });
-    }
-
-    if (isAdmin || hasPerm('system:login-log:list')) {
-      entries.push({
-        key: 'notice-login-log',
-        title: t('system.menu.loginLog'),
-        description: t('app.notice.loginLogDesc'),
-        icon: renderMenuIcon('safe'),
-        run: () => navigate('/system/login-log'),
-      });
-    }
-
-    if (isAdmin || hasPerm('system:security-event:list')) {
-      entries.push({
-        key: 'notice-security-event',
-        title: t('system.menu.securityEvent'),
-        description: t('app.notice.securityEventDesc'),
-        icon: renderMenuIcon('safe'),
-        run: () => navigate('/system/security-event'),
-      });
-    }
-
-    if (isAdmin || hasPerm('system:operation-log:list')) {
-      entries.push({
-        key: 'notice-operation-log',
-        title: t('system.menu.operationLog'),
-        description: t('app.notice.operationLogDesc'),
-        icon: renderMenuIcon('safe'),
-        run: () => navigate('/system/operation-log'),
-      });
-    }
-
-    return entries;
+    return buildNoticeEntries({
+      canViewNoticeSummary,
+      isAdmin,
+      hasPerm,
+      t,
+      navigate,
+      handleGoSecurity,
+    });
   }, [canViewNoticeSummary, handleGoSecurity, hasPerm, isAdmin, navigate, t]);
 
   const noticeBadgeCount = useMemo(() => {
@@ -868,109 +1130,27 @@ const BaseLayout: React.FC = () => {
     return Math.min(noticeSummary.loginFailureCount + noticeSummary.pendingSecurityEventCount, 99);
   }, [noticeSummary]);
 
-  const noticeStatItems = useMemo(() => {
-    if (!noticeSummary) {
-      return [];
-    }
-    return [
-      {
-        key: 'failed-logins',
-        label: t('app.notice.failedLogins'),
-        value: noticeSummary.loginFailureCount,
-        tone: noticeSummary.loginFailureCount > 0 ? 'danger' : 'neutral',
-      },
-      {
-        key: 'sessions',
-        label: t('app.notice.activeSessions'),
-        value: noticeSummary.activeSessionCount,
-        tone: 'neutral',
-      },
-      {
-        key: 'security-events',
-        label: t('app.notice.pendingSecurityEvents'),
-        value: noticeSummary.pendingSecurityEventCount,
-        tone: noticeSummary.pendingSecurityEventCount > 0 ? 'warning' : 'neutral',
-      },
-      {
-        key: 'operations',
-        label: t('app.notice.todayOperations'),
-        value: noticeSummary.todayOperationCount,
-        tone: 'neutral',
-      },
-    ];
-  }, [noticeSummary, t]);
+  const noticeStatItems = useMemo(
+    () => buildNoticeStatItems(noticeSummary, t),
+    [noticeSummary, t],
+  );
 
-  const noticeRecentItems = useMemo(() => {
-    if (!noticeSummary) {
-      return [];
-    }
-    return noticeSummary.recentLogins.slice(0, 3).map((item) => ({
-      id: item.id,
-      username: item.username,
-      status: item.status,
-      time: formatDateTime(item.loginTime),
-      message: t(item.msg || '', { defaultValue: item.msg || '-' }),
-    }));
-  }, [noticeSummary, t]);
+  const noticeRecentItems = useMemo(
+    () => buildNoticeRecentItems(noticeSummary, t),
+    [noticeSummary, t],
+  );
 
-  const noticeRiskGroups = useMemo<NoticeRiskItem[]>(() => {
-    if (!noticeSummary) {
-      return [];
-    }
-    const groups: NoticeRiskItem[] = [];
-
-    if ((isAdmin || hasPerm('system:login-log:list')) && noticeSummary.loginFailureCount > 0) {
-      groups.push({
-        key: 'risk-login-failure',
-        title: t('app.notice.risk.failedLogin'),
-        description: t('app.notice.risk.failedLoginDesc'),
-        value: noticeSummary.loginFailureCount,
-        tone: 'danger',
-        run: () => navigate('/system/login-log'),
-      });
-    }
-
-    if (
-      (isAdmin || hasPerm('system:security-event:list')) &&
-      noticeSummary.pendingSecurityEventCount > 0
-    ) {
-      groups.push({
-        key: 'risk-security-event',
-        title: t('app.notice.risk.securityEvent'),
-        description: t('app.notice.risk.securityEventDesc'),
-        value: noticeSummary.pendingSecurityEventCount,
-        tone: 'warning',
-        run: () => navigate('/system/security-event'),
-      });
-    }
-
-    if ((isAdmin || hasPerm('system:session:list')) && noticeSummary.activeSessionCount > 0) {
-      groups.push({
-        key: 'risk-active-session',
-        title: t('app.notice.risk.activeSession'),
-        description: t('app.notice.risk.activeSessionDesc'),
-        value: noticeSummary.activeSessionCount,
-        tone: 'neutral',
-        run: () => navigate('/system/session'),
-      });
-    }
-
-    if (
-      (isAdmin || hasPerm('system:operation-log:list')) &&
-      noticeSummary.todayOperationCount > 0
-    ) {
-      groups.push({
-        key: 'risk-operation',
-        title: t('app.notice.risk.operation'),
-        description: t('app.notice.risk.operationDesc'),
-        value: noticeSummary.todayOperationCount,
-        tone: 'warning',
-        run: () => navigate('/system/operation-log'),
-      });
-    }
-
-    return groups;
-  }, [hasPerm, isAdmin, navigate, noticeSummary, t]);
+  const noticeRiskGroups = useMemo<NoticeRiskItem[]>(
+    () =>
+      buildNoticeRiskGroups({
+        summary: noticeSummary,
+        isAdmin,
+        hasPerm,
+        t,
+        navigate,
+      }),
+    [hasPerm, isAdmin, navigate, noticeSummary, t],
+  );
   const hasNoticeAttention = noticeBadgeCount > 0 || noticeRiskGroups.length > 0;
   const showNoticeCenter = canViewNoticeSummary;
 
@@ -995,8 +1175,8 @@ const BaseLayout: React.FC = () => {
     localStorage.setItem(OPENED_TABS_STORAGE_KEY, JSON.stringify(safeTabs));
     setOpenedTabs(safeTabs);
     if (targetPath === location.pathname) {
-      const fallbackTab = safeTabs[safeTabs.length - 1];
-      navigate(fallbackTab.path);
+      const fallbackTab = safeTabs.at(-1);
+      navigate(fallbackTab?.path || '/dashboard');
     }
   };
 
@@ -1047,7 +1227,7 @@ const BaseLayout: React.FC = () => {
     localStorage.setItem(OPENED_TABS_STORAGE_KEY, JSON.stringify(safeTabs));
     setOpenedTabs(safeTabs);
     if (!safeTabs.some((item) => item.path === location.pathname)) {
-      navigate(safeTabs[safeTabs.length - 1].path);
+      navigate(safeTabs.at(-1)?.path || '/dashboard');
     }
   };
 
@@ -1134,7 +1314,7 @@ const BaseLayout: React.FC = () => {
         preferences: mergedPreferences,
       });
 
-      void updateCurrentUserPreferences(mergedPreferences)
+      updateCurrentUserPreferences(mergedPreferences)
         .then((nextUserInfo) => {
           if (useAuthStore.getState().token === token) {
             setUserInfo(nextUserInfo);
@@ -1173,7 +1353,7 @@ const BaseLayout: React.FC = () => {
         preferences.language !== currentLanguage
       ) {
         setExplicitLanguagePreference(preferences.language);
-        void switchI18nLanguage(preferences.language);
+        runSilently(switchI18nLanguage(preferences.language));
       }
     }, 0);
     return () => globalThis.clearTimeout(timer);
@@ -1184,7 +1364,7 @@ const BaseLayout: React.FC = () => {
       return;
     }
     setExplicitLanguagePreference(language);
-    void switchI18nLanguage(language);
+    runSilently(switchI18nLanguage(language));
   };
 
   const toggleLayoutMode = () => {
@@ -1317,81 +1497,18 @@ const BaseLayout: React.FC = () => {
     </div>
   );
 
-  const handleMenuNavigation = (key: string) => {
+  const handleMenuNavigation = useCallback((key: string) => {
     const selected = findMenuNodeByPath(visibleMenuTree, key);
     if (selected?.isExternal === 1) {
       globalThis.open(selected.path, '_blank', 'noopener,noreferrer');
       return;
     }
     navigate(key);
-  };
-
-  const renderMenuItems = (nodes: MenuNode[], level = 0) =>
-    nodes.map((item) => {
-      const entryClassName = [
-        'app-shell__menu-entry',
-        `app-shell__menu-entry--level-${Math.min(level, 2)}`,
-        item.children && item.children.length > 0
-          ? 'app-shell__menu-entry--group'
-          : 'app-shell__menu-entry--leaf',
-      ].join(' ');
-      const iconClassName = [
-        'app-shell__menu-entry-icon',
-        `app-shell__menu-entry-icon--level-${Math.min(level, 2)}`,
-      ].join(' ');
-
-      if (item.children && item.children.length > 0) {
-        const navigationPath = findMenuNavigationPath(item);
-        return (
-          <Menu.SubMenu
-            key={item.id.toString()}
-            title={
-              <span
-                className={entryClassName}
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  if (navigationPath) {
-                    handleMenuNavigation(navigationPath);
-                  }
-                }}
-                onKeyDown={(event) => {
-                  if ((event.key === 'Enter' || event.key === ' ') && navigationPath) {
-                    event.preventDefault();
-                    handleMenuNavigation(navigationPath);
-                  }
-                }}
-              >
-                <span className={iconClassName}>{renderMenuIcon(item.icon)}</span>
-                <span className="app-shell__menu-entry-copy">
-                  <span className="app-shell__menu-entry-label">{t(item.titleKey)}</span>
-                </span>
-              </span>
-            }
-          >
-            {renderMenuItems(item.children, level + 1)}
-          </Menu.SubMenu>
-        );
-      }
-      return (
-        <Menu.Item key={item.path}>
-          <span
-            className={entryClassName}
-            onMouseEnter={() => {
-              void preloadRouteComponent(item.path);
-            }}
-            onFocus={() => {
-              void preloadRouteComponent(item.path);
-            }}
-          >
-            <span className={iconClassName}>{renderMenuIcon(item.icon)}</span>
-            <span className="app-shell__menu-entry-copy">
-              <span className="app-shell__menu-entry-label">{t(item.titleKey)}</span>
-            </span>
-          </span>
-        </Menu.Item>
-      );
-    });
+  }, [navigate, visibleMenuTree]);
+  const renderedMenuItems = useMemo(
+    () => renderMenuItems(visibleMenuTree, { handleMenuNavigation, t }),
+    [handleMenuNavigation, t, visibleMenuTree],
+  );
 
   const openedTabsContent = publicSettings.enableTabBar ? (
     <div
@@ -1457,10 +1574,10 @@ const BaseLayout: React.FC = () => {
               draggable={item.path !== '/dashboard'}
               onClick={() => navigate(item.path)}
               onMouseEnter={() => {
-                void preloadRouteComponent(item.path);
+                runSilently(preloadRouteComponent(item.path));
               }}
               onFocus={() => {
-                void preloadRouteComponent(item.path);
+                runSilently(preloadRouteComponent(item.path));
               }}
               onDoubleClick={() => closeTab(item.path)}
               onMouseDown={(event) => {
@@ -1530,25 +1647,17 @@ const BaseLayout: React.FC = () => {
                 {item.titleKey ? t(item.titleKey) : item.fallbackTitle}
               </span>
               {canCloseCurrent ? (
-                <span
-                  role="button"
-                  tabIndex={0}
+                <button
+                  type="button"
                   aria-label={t('common.close')}
                   className="app-shell__tab-close"
                   onClick={(event) => {
                     event.stopPropagation();
                     closeTab(item.path);
                   }}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      closeTab(item.path);
-                    }
-                  }}
                 >
                   <IconClose />
-                </span>
+                </button>
               ) : null}
             </div>
           </Dropdown>
@@ -1557,6 +1666,80 @@ const BaseLayout: React.FC = () => {
     </div>
   ) : null;
 
+  let noticePanelBody: React.ReactNode = <div className="app-shell__notice-empty">{t('app.notice.empty')}</div>;
+  if (noticeLoading) {
+    noticePanelBody = <div className="app-shell__notice-empty">{t('common.loading')}</div>;
+  } else if (noticeSummary) {
+    noticePanelBody = (
+      <>
+        <div className="app-shell__notice-stats">
+          {noticeStatItems.map((item) => (
+            <div
+              key={item.key}
+              className={[
+                'app-shell__notice-stat',
+                item.tone === 'danger' ? 'app-shell__notice-stat--danger' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              <span className="app-shell__notice-stat-label">{item.label}</span>
+              <span className="app-shell__notice-stat-value">{item.value}</span>
+            </div>
+          ))}
+        </div>
+        <div className="app-shell__notice-summary">
+          <span className="app-shell__notice-summary-label">{t('app.notice.lastSuccess')}</span>
+          <span className="app-shell__notice-summary-value">
+            {noticeSummary.lastSuccessfulLoginAt
+              ? formatDateTime(noticeSummary.lastSuccessfulLoginAt)
+              : t('dashboard.lastSuccessfulLoginEmpty')}
+          </span>
+        </div>
+        {noticeRiskGroups.length > 0 ? (
+          <div className="app-shell__notice-list">
+            <div className="app-shell__notice-section">{t('app.notice.section.risk')}</div>
+            {noticeRiskGroups.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                className={['app-shell__notice-risk', `app-shell__notice-risk--${item.tone}`].join(' ')}
+                onClick={item.run}
+              >
+                <span className="app-shell__notice-risk-copy">
+                  <span className="app-shell__notice-risk-title">{item.title}</span>
+                  <span className="app-shell__notice-risk-desc">{item.description}</span>
+                </span>
+                <span className="app-shell__notice-risk-value">{item.value}</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
+        <div className="app-shell__notice-list">
+          <div className="app-shell__notice-section">{t('app.notice.section.recent')}</div>
+          {noticeRecentItems.length > 0 ? (
+            noticeRecentItems.map((item) => (
+              <div key={item.id} className="app-shell__notice-log">
+                <span
+                  className={`app-shell__notice-log-dot ${item.status === 1 ? 'app-shell__notice-log-dot--success' : 'app-shell__notice-log-dot--danger'}`}
+                />
+                <span className="app-shell__notice-log-copy">
+                  <span className="app-shell__notice-log-title">{item.username}</span>
+                  <span className="app-shell__notice-log-desc">{item.message}</span>
+                </span>
+                <span className="app-shell__notice-log-time">{item.time}</span>
+              </div>
+            ))
+          ) : (
+            <div className="app-shell__notice-empty app-shell__notice-empty--compact">
+              {t('dashboard.recentLoginsEmpty')}
+            </div>
+          )}
+        </div>
+      </>
+    );
+  }
+
   return (
     <Layout
       className={[
@@ -1564,7 +1747,7 @@ const BaseLayout: React.FC = () => {
         isHorizontalLayout ? 'app-shell--horizontal' : 'app-shell--vertical',
       ].join(' ')}
     >
-      {!isHorizontalLayout ? (
+      {isVerticalLayout ? (
         <Sider
           className="app-shell__sider"
           theme="light"
@@ -1588,7 +1771,7 @@ const BaseLayout: React.FC = () => {
                 brandInitial
               )}
             </div>
-            {!collapsed ? (
+            {showExpandedBrand ? (
               <div className="app-shell__brand-text">
                 <span className="app-shell__brand-title">{appName}</span>
               </div>
@@ -1603,7 +1786,7 @@ const BaseLayout: React.FC = () => {
               defaultOpenKeys={menuOpenKeys}
               onClickMenuItem={handleMenuNavigation}
             >
-              {renderMenuItems(visibleMenuTree)}
+              {renderedMenuItems}
             </Menu>
           </Spin>
         </Sider>
@@ -1611,7 +1794,7 @@ const BaseLayout: React.FC = () => {
       <Layout className="app-shell__main">
         <Header className="app-shell__header">
           <div className="app-shell__header-left">
-            {!isHorizontalLayout ? (
+            {isVerticalLayout ? (
               <Button
                 type="text"
                 className="app-shell__collapse-btn"
@@ -1659,91 +1842,7 @@ const BaseLayout: React.FC = () => {
                       <span className="app-shell__notice-title">{t('app.notice.title')}</span>
                       <span className="app-shell__notice-subtitle">{t('app.notice.subtitle')}</span>
                     </div>
-                    {noticeLoading ? (
-                      <div className="app-shell__notice-empty">{t('common.loading')}</div>
-                    ) : noticeSummary ? (
-                      <>
-                        <div className="app-shell__notice-stats">
-                          {noticeStatItems.map((item) => (
-                            <div
-                              key={item.key}
-                              className={[
-                                'app-shell__notice-stat',
-                                item.tone === 'danger' ? 'app-shell__notice-stat--danger' : '',
-                              ]
-                                .filter(Boolean)
-                                .join(' ')}
-                            >
-                              <span className="app-shell__notice-stat-label">{item.label}</span>
-                              <span className="app-shell__notice-stat-value">{item.value}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="app-shell__notice-summary">
-                          <span className="app-shell__notice-summary-label">
-                            {t('app.notice.lastSuccess')}
-                          </span>
-                          <span className="app-shell__notice-summary-value">
-                            {noticeSummary.lastSuccessfulLoginAt
-                              ? formatDateTime(noticeSummary.lastSuccessfulLoginAt)
-                              : t('dashboard.lastSuccessfulLoginEmpty')}
-                          </span>
-                        </div>
-                        {noticeRiskGroups.length > 0 ? (
-                          <div className="app-shell__notice-list">
-                            <div className="app-shell__notice-section">
-                              {t('app.notice.section.risk')}
-                            </div>
-                            {noticeRiskGroups.map((item) => (
-                              <button
-                                key={item.key}
-                                type="button"
-                                className={[
-                                  'app-shell__notice-risk',
-                                  `app-shell__notice-risk--${item.tone}`,
-                                ].join(' ')}
-                                onClick={item.run}
-                              >
-                                <span className="app-shell__notice-risk-copy">
-                                  <span className="app-shell__notice-risk-title">{item.title}</span>
-                                  <span className="app-shell__notice-risk-desc">
-                                    {item.description}
-                                  </span>
-                                </span>
-                                <span className="app-shell__notice-risk-value">{item.value}</span>
-                              </button>
-                            ))}
-                          </div>
-                        ) : null}
-                        <div className="app-shell__notice-list">
-                          <div className="app-shell__notice-section">
-                            {t('app.notice.section.recent')}
-                          </div>
-                          {noticeRecentItems.length > 0 ? (
-                            noticeRecentItems.map((item) => (
-                              <div key={item.id} className="app-shell__notice-log">
-                                <span
-                                  className={`app-shell__notice-log-dot ${item.status === 1 ? 'app-shell__notice-log-dot--success' : 'app-shell__notice-log-dot--danger'}`}
-                                />
-                                <span className="app-shell__notice-log-copy">
-                                  <span className="app-shell__notice-log-title">
-                                    {item.username}
-                                  </span>
-                                  <span className="app-shell__notice-log-desc">{item.message}</span>
-                                </span>
-                                <span className="app-shell__notice-log-time">{item.time}</span>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="app-shell__notice-empty app-shell__notice-empty--compact">
-                              {t('dashboard.recentLoginsEmpty')}
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    ) : (
-                      <div className="app-shell__notice-empty">{t('app.notice.empty')}</div>
-                    )}
+                    {noticePanelBody}
                     {noticeEntries.length > 0 ? (
                       <div className="app-shell__notice-list">
                         <div className="app-shell__notice-section">
@@ -1859,13 +1958,13 @@ const BaseLayout: React.FC = () => {
                 triggerProps={{ className: 'app-shell__top-menu-popup' }}
                 onClickMenuItem={handleMenuNavigation}
               >
-                {renderMenuItems(visibleMenuTree)}
+                {renderedMenuItems}
               </Menu>
             </Spin>
           </div>
         ) : null}
         {isHorizontalLayout ? openedTabsContent : null}
-        {!isHorizontalLayout ? openedTabsContent : null}
+        {isVerticalLayout ? openedTabsContent : null}
         <Content className="app-shell__content">
           <div className="app-shell__content-inner">
             <Outlet />
@@ -1892,7 +1991,7 @@ const BaseLayout: React.FC = () => {
             placeholder={t('app.lock.passwordPlaceholder')}
             onChange={setUnlockPassword}
             onPressEnter={() => {
-              handleUnlock().catch(() => undefined);
+              runSilently(handleUnlock());
             }}
           />
           <Space>
@@ -1900,14 +1999,14 @@ const BaseLayout: React.FC = () => {
               type="primary"
               loading={unlockLoading}
               onClick={() => {
-                handleUnlock().catch(() => undefined);
+                runSilently(handleUnlock());
               }}
             >
               {t('app.lock.unlock')}
             </Button>
             <Button
               onClick={() => {
-                void handleLogout();
+                runSilently(handleLogout());
               }}
             >
               {t('common.logout')}

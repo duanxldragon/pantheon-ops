@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-ops/backend/pkg/database"
-	"pantheon-ops/backend/pkg/impexp"
+	"pantheon-platform/backend/pkg/database"
+	"pantheon-platform/backend/pkg/impexp"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

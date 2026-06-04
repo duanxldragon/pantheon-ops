@@ -10,7 +10,6 @@ interface StandardPaginationOptions {
   pageSize?: number;
   total?: number;
   onChange?: PaginationProps['onChange'];
-  onPageSizeChange?: PaginationProps['onPageSizeChange'];
   sizeOptions?: number[];
   sizeCanChange?: boolean;
   pageSizeChangeResetCurrent?: boolean;
@@ -27,7 +26,6 @@ export function buildStandardPagination(
     pageSize = 10,
     total = 0,
     onChange,
-    onPageSizeChange,
     sizeOptions = DEFAULT_SIZE_OPTIONS,
     sizeCanChange = true,
     pageSizeChangeResetCurrent = false,
@@ -46,7 +44,6 @@ export function buildStandardPagination(
     pageSize,
     total,
     onChange,
-    onPageSizeChange,
     showJumper: true,
     pageSizeChangeResetCurrent,
     sizeCanChange,

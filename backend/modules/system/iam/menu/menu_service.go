@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"pantheon-ops/backend/pkg/capability"
+	"pantheon-platform/backend/pkg/capability"
 	"strings"
 
 	"gorm.io/gorm"

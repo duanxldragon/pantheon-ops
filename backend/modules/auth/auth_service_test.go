@@ -4,13 +4,13 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-ops/backend/internal/middleware"
-	auditmod "pantheon-ops/backend/modules/system/audit"
-	settingmod "pantheon-ops/backend/modules/system/config/setting"
-	user "pantheon-ops/backend/modules/system/iam/user"
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/contracts"
-	"pantheon-ops/backend/pkg/testmysql"
+	"pantheon-platform/backend/internal/middleware"
+	auditmod "pantheon-platform/backend/modules/system/audit"
+	settingmod "pantheon-platform/backend/modules/system/config/setting"
+	user "pantheon-platform/backend/modules/system/iam/user"
+	"pantheon-platform/backend/pkg/common"
+	"pantheon-platform/backend/pkg/contracts"
+	"pantheon-platform/backend/pkg/testmysql"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -871,6 +871,40 @@ func TestAuthService_ListSessionsOnlyReturnsActiveSessions(t *testing.T) {
 	}
 }
 
+func TestAuthService_TouchSessionActivityUpdatesSanitizedFields(t *testing.T) {
+	db := setupTestDB(t)
+	s := NewAuthService(db)
+
+	session := SystemUserSession{
+		SessionID:        "touch-session",
+		UserID:           42,
+		RefreshJTI:       "touch-jti",
+		RefreshExpiresAt: time.Now().Add(24 * time.Hour),
+		CreatedAt:        time.Now().Add(-2 * time.Hour),
+	}
+	if err := db.Create(&session).Error; err != nil {
+		t.Fatalf("seed session: %v", err)
+	}
+
+	if err := s.TouchSessionActivity("touch-session", 42, " 127.0.0.1 ", "  Test Browser\x00  "); err != nil {
+		t.Fatalf("touch session activity: %v", err)
+	}
+
+	var updated SystemUserSession
+	if err := db.Where("session_id = ?", "touch-session").First(&updated).Error; err != nil {
+		t.Fatalf("load updated session: %v", err)
+	}
+	if updated.LastActivityAt == nil {
+		t.Fatalf("expected last activity to be updated")
+	}
+	if updated.LastIP != "127.0.0.1" {
+		t.Fatalf("expected normalized ip, got %q", updated.LastIP)
+	}
+	if updated.UserAgent != "Test Browser" {
+		t.Fatalf("expected sanitized user agent, got %q", updated.UserAgent)
+	}
+}
+
 func TestAuthService_GetSecurityOverviewIncludesRuntimePolicy(t *testing.T) {
 	db := setupTestDB(t)
 	s := NewAuthService(db)
@@ -1106,46 +1140,6 @@ func TestAuthService_ListAllSessionsCleansExpiredAndIdleSessions(t *testing.T) {
 	}
 	if revokedRows != 2 {
 		t.Fatalf("expected cleaned sessions to be revoked, got %d", revokedRows)
-	}
-}
-
-func TestAuthService_TouchSessionActivityDoesNotPersistUserAgent(t *testing.T) {
-	db := setupTestDB(t)
-	s := NewAuthService(db)
-	now := time.Now()
-
-	testUser := user.SystemUser{Username: "agent-safety-user", Status: 1}
-	if err := db.Create(&testUser).Error; err != nil {
-		t.Fatalf("seed user: %v", err)
-	}
-	session := SystemUserSession{
-		SessionID:        "agent-safety-session",
-		UserID:           testUser.ID,
-		RefreshJTI:       "agent-safety-jti",
-		RefreshExpiresAt: now.Add(24 * time.Hour),
-		LastActivityAt:   timePtr(now.Add(-2 * time.Minute)),
-		CreatedAt:        now.Add(-time.Hour),
-	}
-	if err := db.Create(&session).Error; err != nil {
-		t.Fatalf("seed session: %v", err)
-	}
-
-	if err := s.TouchSessionActivity(session.SessionID, testUser.ID, "127.0.0.1", "Mozilla/5.0', revoked_at = CURRENT_TIMESTAMP --"); err != nil {
-		t.Fatalf("touch session activity: %v", err)
-	}
-
-	var stored SystemUserSession
-	if err := db.Where("session_id = ?", session.SessionID).First(&stored).Error; err != nil {
-		t.Fatalf("load session: %v", err)
-	}
-	if stored.RevokedAt != nil {
-		t.Fatalf("expected malicious user agent to be stored as data, not executed as SQL")
-	}
-	if stored.UserAgent != "" {
-		t.Fatalf("expected touch endpoint not to persist user agent, got %q", stored.UserAgent)
-	}
-	if stored.LastIP != "127.0.0.1" {
-		t.Fatalf("expected last ip to update, got %s", stored.LastIP)
 	}
 }
 

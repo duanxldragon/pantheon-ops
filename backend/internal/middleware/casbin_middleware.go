@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/database"
+	"pantheon-platform/backend/pkg/common"
+	"pantheon-platform/backend/pkg/database"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -22,38 +22,43 @@ func CasbinMiddleware() gin.HandlerFunc {
 			roleKeys = []string{"guest"}
 		}
 
-		// 2. 获取请求路径和方法
-		obj := c.Request.URL.Path
-		act := c.Request.Method
-
-		// 3. Casbin 校验
 		if database.Enforcer == nil {
-			common.Fail(c, common.CodeForbidden, "permission.engine.not_initialized")
-			c.Abort()
+			failPermissionCheck(c, "permission.engine.not_initialized")
 			return
 		}
 
-		allowed := false
-		for _, roleKey := range roleKeys {
-			success, err := database.Enforcer.Enforce(roleKey, obj, act)
-			if err != nil {
-				common.Fail(c, common.CodeForbidden, "permission.denied")
-				c.Abort()
-				return
-			}
-			if success {
-				allowed = true
-				break
-			}
-		}
-		if !allowed {
-			common.Fail(c, common.CodeForbidden, "permission.denied")
-			c.Abort()
+		allowed, err := authorizeRoleKeys(roleKeys, c.Request.URL.Path, c.Request.Method, func(roleKey, obj, act string) (bool, error) {
+			return database.Enforcer.Enforce(roleKey, obj, act)
+		})
+		if err != nil || !allowed {
+			failPermissionCheck(c, "permission.denied")
 			return
 		}
 
 		c.Next()
 	}
+}
+
+func failPermissionCheck(c *gin.Context, messageKey string) {
+	common.Fail(c, common.CodeForbidden, messageKey)
+	c.Abort()
+}
+
+func authorizeRoleKeys(
+	roleKeys []string,
+	obj, act string,
+	enforce func(roleKey, obj, act string) (bool, error),
+) (bool, error) {
+	for _, roleKey := range roleKeys {
+		allowed, err := enforce(roleKey, obj, act)
+		if err != nil {
+			return false, err
+		}
+		if allowed {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func isSelfServiceRoute(c *gin.Context) bool {

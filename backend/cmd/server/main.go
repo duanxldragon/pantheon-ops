@@ -4,14 +4,14 @@ import (
 	"log"
 	"os"
 
-	"pantheon-ops/backend/internal/middleware"
-	"pantheon-ops/backend/modules/auth"
-	"pantheon-ops/backend/modules/business"
-	"pantheon-ops/backend/modules/dashboard"
-	"pantheon-ops/backend/modules/platform"
-	"pantheon-ops/backend/modules/system"
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/database"
+	"pantheon-platform/backend/internal/middleware"
+	"pantheon-platform/backend/modules/auth"
+	"pantheon-platform/backend/modules/business"
+	"pantheon-platform/backend/modules/dashboard"
+	"pantheon-platform/backend/modules/platform"
+	"pantheon-platform/backend/modules/system"
+	"pantheon-platform/backend/pkg/common"
+	"pantheon-platform/backend/pkg/database"
 
 	"github.com/gin-gonic/gin"
 )

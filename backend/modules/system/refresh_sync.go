@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"pantheon-ops/backend/pkg/common"
+	"pantheon-platform/backend/pkg/common"
 )
 
 type SystemRefreshVersion struct {

@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/database"
+	"pantheon-platform/backend/pkg/common"
+	"pantheon-platform/backend/pkg/database"
 
 	"github.com/gin-gonic/gin"
 )
