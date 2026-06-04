@@ -10,8 +10,8 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
 - Base repository：当前继承源是 `../pantheon-base`
 - Base release line：当前跟随 `release/0.8`
-- Base version：当前锁定到 `0b06ee4`（`0b06ee40ae2a281bf2a0004343368599a326bc67`）
-- Inheritance mode：`foundation-release-consumer`，表示 ops 消费底座 release，本地只扩展业务域
+- Base version：当前锁定到 `base-v0.8.1`（`3427c1a2fdc0b16ce6aa8735a13f3c94896ab374`）
+- Inheritance mode：`foundation-release-consumer`
 
 ## 2. 继承的底座规则
 
@@ -92,6 +92,11 @@ Current business-domain overrides that stay local to `pantheon-ops`:
 ## 6.2 推荐同步流程
 
 同步时固定做四件事：在 `pantheon-base` 完成共享改动；记录共享路径；在 `pantheon-ops` 检查 backend、frontend、generator、i18n、menu 差异；只同步共享部分并重新执行业务模块校验。
+
+当前推荐直接通过 release consumer 执行同步，而不是人工整目录覆盖：
+
+- `npm run upgrade:foundation:apply -- --manifest <bundle-root>\manifest.json --bundle <bundle-root>`
+- 该命令会同步共享 backend/frontend、保留 ops 本地 overlay（如 menu registry、generator workspace、frontend generated registry）、把共享 backend import 重写到 `pantheon-ops` 模块名，并补跑 frontend `base-sync` + `menu-contract`
 
 ## 6.3 不建议的同步方式
 

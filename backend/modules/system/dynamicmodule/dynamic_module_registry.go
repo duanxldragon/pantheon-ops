@@ -10,17 +10,25 @@ import (
 	"pantheon-ops/backend/internal/scaffold"
 )
 
-func generatedModulePath(root string, parts ...string) string {
-	cleaned := make([]string, 0, len(parts)+1)
-	cleaned = append(cleaned, filepath.Clean(root))
+func generatedModuleRelativePath(parts ...string) (string, bool) {
+	cleaned := make([]string, 0, len(parts))
 	for _, part := range parts {
-		trimmed := strings.Trim(strings.ReplaceAll(strings.TrimSpace(part), "\\", "/"), "/")
-		if trimmed == "" || trimmed == "." || trimmed == ".." || strings.Contains(trimmed, "..") {
-			continue
+		normalized := strings.Trim(strings.ReplaceAll(strings.TrimSpace(part), "\\", "/"), "/")
+		if normalized == "" || !filepath.IsLocal(filepath.FromSlash(normalized)) {
+			return "", false
 		}
-		cleaned = append(cleaned, trimmed)
+		for _, segment := range strings.Split(normalized, "/") {
+			if segment == "" || segment == "." || segment == ".." || strings.Contains(segment, "..") || strings.ContainsAny(segment, `<>:"|?*`) {
+				return "", false
+			}
+			cleaned = append(cleaned, segment)
+		}
 	}
-	return filepath.Join(cleaned...)
+	relativePath := filepath.ToSlash(filepath.Join(cleaned...))
+	if relativePath == "" || !filepath.IsLocal(filepath.FromSlash(relativePath)) {
+		return "", false
+	}
+	return relativePath, true
 }
 
 func (s *DynamicModuleService) RebuildGeneratedRegistries() error {
@@ -60,13 +68,32 @@ func (s *DynamicModuleService) generatedModuleArtifactsExist(scope string, name 
 	if strings.TrimSpace(s.workspaceRoot) == "" {
 		return false
 	}
-	return generatedDirExists(generatedModulePath(s.workspaceRoot, "backend", "modules", scope, name)) &&
-		generatedDirExists(generatedModulePath(s.workspaceRoot, "frontend", "src", "modules", scope, name)) &&
-		generatedPathExists(generatedModulePath(s.workspaceRoot, "schema", "generated", scope, name+".json"))
+	backendRelativePath, ok := generatedModuleRelativePath("backend", "modules", scope, name)
+	if !ok {
+		return false
+	}
+	frontendRelativePath, ok := generatedModuleRelativePath("frontend", "src", "modules", scope, name)
+	if !ok {
+		return false
+	}
+	schemaRelativePath, ok := generatedModuleRelativePath("schema", "generated", scope, name+".json")
+	if !ok {
+		return false
+	}
+	return generatedDirExists(s.workspaceRoot, backendRelativePath) &&
+		generatedDirExists(s.workspaceRoot, frontendRelativePath) &&
+		generatedPathExists(s.workspaceRoot, schemaRelativePath)
 }
 
 func (s *DynamicModuleService) loadGeneratedModuleSchema(scope string, name string) (*scaffold.ModuleSchema, error) {
-	target := generatedModulePath(s.workspaceRoot, "schema", "generated", scope, name+".json")
+	relativeTarget, ok := generatedModuleRelativePath("schema", "generated", scope, name+".json")
+	if !ok {
+		return nil, errors.New("module.register.schema_invalid")
+	}
+	target, resolved := resolveGeneratedWorkspacePath(s.workspaceRoot, relativeTarget)
+	if !resolved {
+		return nil, errors.New("module.register.schema_invalid")
+	}
 	content, err := os.ReadFile(target)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -84,17 +111,46 @@ func (s *DynamicModuleService) loadGeneratedModuleSchema(scope string, name stri
 	return &schema, nil
 }
 
-func generatedPathExists(path string) bool {
+func resolveGeneratedWorkspacePath(workspaceRoot string, relativePath string) (string, bool) {
+	normalizedRoot := filepath.Clean(strings.TrimSpace(workspaceRoot))
+	normalizedRelative := filepath.ToSlash(strings.TrimSpace(relativePath))
+	if normalizedRoot == "" || normalizedRelative == "" {
+		return "", false
+	}
+	if strings.Contains(normalizedRelative, "..") || !filepath.IsLocal(normalizedRelative) {
+		return "", false
+	}
+	target := filepath.Join(normalizedRoot, filepath.FromSlash(normalizedRelative))
+	relativeToRoot, err := filepath.Rel(normalizedRoot, target)
+	if err != nil || relativeToRoot == ".." || strings.HasPrefix(relativeToRoot, ".."+string(os.PathSeparator)) {
+		return "", false
+	}
+	return target, true
+}
+
+func generatedPathExists(workspaceRoot string, relativePath string) bool {
+	path, ok := resolveGeneratedWorkspacePath(workspaceRoot, relativePath)
+	if !ok {
+		return false
+	}
 	info, err := os.Stat(path)
 	return err == nil && !info.IsDir()
 }
 
-func generatedDirExists(path string) bool {
+func generatedDirExists(workspaceRoot string, relativePath string) bool {
+	path, ok := resolveGeneratedWorkspacePath(workspaceRoot, relativePath)
+	if !ok {
+		return false
+	}
 	info, err := os.Stat(path)
 	return err == nil && info.IsDir()
 }
 
-func generatedFileContainsAll(path string, fragments ...string) bool {
+func generatedFileContainsAll(workspaceRoot string, relativePath string, fragments ...string) bool {
+	path, ok := resolveGeneratedWorkspacePath(workspaceRoot, relativePath)
+	if !ok {
+		return false
+	}
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return false

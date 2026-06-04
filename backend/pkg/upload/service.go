@@ -272,7 +272,11 @@ func (s *Service) ResolveLocalPath(objectKey string) (string, error) {
 	if err != nil {
 		return "", errors.New("upload.path.invalid")
 	}
-	return secureJoin(rootPath, objectKey)
+	normalizedKey, err := NormalizeObjectKey(objectKey)
+	if err != nil {
+		return "", err
+	}
+	return secureJoin(rootPath, normalizedKey)
 }
 
 func BuildFileURL(publicBaseURL, requestBaseURL, objectKey string) string {
@@ -343,10 +347,9 @@ func normalizeS3Endpoint(raw string) (string, bool, error) {
 }
 
 func secureJoin(rootPath, relativePath string) (string, error) {
-	cleanRelative := strings.TrimSpace(relativePath)
-	cleanRelative = strings.TrimLeft(filepath.ToSlash(cleanRelative), "/")
-	if cleanRelative == "" {
-		return "", errors.New("upload.path.invalid")
+	cleanRelative, err := NormalizeObjectKey(relativePath)
+	if err != nil {
+		return "", err
 	}
 	targetPath := filepath.Join(rootPath, filepath.FromSlash(cleanRelative))
 	absRoot, err := filepath.Abs(rootPath)
@@ -362,6 +365,25 @@ func secureJoin(rootPath, relativePath string) (string, error) {
 		return "", errors.New("upload.path.invalid")
 	}
 	return absTarget, nil
+}
+
+func NormalizeObjectKey(objectKey string) (string, error) {
+	normalized := strings.TrimLeft(filepath.ToSlash(strings.TrimSpace(objectKey)), "/")
+	if normalized == "" || !filepath.IsLocal(filepath.FromSlash(normalized)) {
+		return "", errors.New("upload.path.invalid")
+	}
+	segments := strings.Split(normalized, "/")
+	for _, segment := range segments {
+		if segment == "" || segment == "." || segment == ".." || strings.Contains(segment, "..") || strings.ContainsAny(segment, `<>:"|?*`) {
+			return "", errors.New("upload.path.invalid")
+		}
+		for _, char := range segment {
+			if char < 32 || char == 127 {
+				return "", errors.New("upload.path.invalid")
+			}
+		}
+	}
+	return strings.Join(segments, "/"), nil
 }
 
 func normalizeAllowedTypes(items []string) []string {

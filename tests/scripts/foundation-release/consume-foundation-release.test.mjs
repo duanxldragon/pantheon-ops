@@ -58,7 +58,20 @@ function createFixture(root) {
     frontend: [],
     docs: [],
   });
-  writeText(path.join(bundlePath, 'shared-backend', 'backend', 'pkg', 'service.go'), 'package pkg\n');
+  writeText(path.join(opsRoot, 'go.mod'), 'module pantheon-ops\n\ngo 1.24.0\n');
+  writeText(
+    path.join(bundlePath, 'shared-backend', 'backend', 'pkg', 'service.go'),
+    [
+      'package pkg',
+      '',
+      'import "pantheon-platform/backend/internal/middleware"',
+      '',
+      'func Use() {',
+      '\t_ = middleware.WithOperationLog',
+      '}',
+      '',
+    ].join('\n'),
+  );
 
   writeText(
     path.join(opsRoot, 'docs', 'PROJECT_INHERITANCE.md'),
@@ -92,6 +105,14 @@ function createFixture(root) {
     path.join(opsRoot, 'scripts', 'check-base-backend-sync.mjs'),
     "console.log('OK shared backend is aligned with pantheon-base');\n",
   );
+  writeText(
+    path.join(opsRoot, 'frontend', 'scripts', 'sync-base-shared.mjs'),
+    "console.log('OK shared frontend is aligned with pantheon-base');\n",
+  );
+  writeText(
+    path.join(opsRoot, 'frontend', 'scripts', 'check-menu-contract.mjs'),
+    "console.log('OK menu contract');\n",
+  );
 
   return { bundleRoot, manifestPath, opsRoot };
 }
@@ -108,6 +129,8 @@ test('dry-run prints the target release and planned checks', () => {
     assert.match(result.stdout, /base-v0\.8\.0/);
     assert.match(result.stdout, /check-inheritance-contract/);
     assert.match(result.stdout, /check-base-backend-sync/);
+    assert.match(result.stdout, /sync-base-shared/);
+    assert.match(result.stdout, /check-menu-contract/);
   });
 });
 
@@ -159,5 +182,119 @@ test('apply mode copies shared backend files from the bundle into ops', () => {
 
     assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
     assert.equal(fs.existsSync(path.join(opsRoot, 'backend', 'pkg', 'service.go')), true);
+    const serviceSource = fs.readFileSync(path.join(opsRoot, 'backend', 'pkg', 'service.go'), 'utf8');
+    assert.match(serviceSource, /pantheon-ops\/backend\/internal\/middleware/);
+    assert.doesNotMatch(serviceSource, /pantheon-platform\/backend\/internal\/middleware/);
+  });
+});
+
+test('apply mode preserves backend and frontend overlay files while updating shared files', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-backend', 'backend', 'modules', 'system', 'iam', 'menu', 'component_registry.go'),
+      'base component registry\n',
+    );
+    writeText(
+      path.join(opsRoot, 'backend', 'modules', 'system', 'iam', 'menu', 'component_registry.go'),
+      'ops component registry\n',
+    );
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'core', 'router', 'generatedComponentRegistry.ts'),
+      'export const generatedComponentRegistry = { base: true };\n',
+    );
+    writeText(
+      path.join(opsRoot, 'frontend', 'src', 'core', 'router', 'generatedComponentRegistry.ts'),
+      'export const generatedComponentRegistry = { ops: true };\n',
+    );
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'core', 'shell.ts'),
+      'export const shell = "base";\n',
+    );
+
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--apply-shared-backend',
+        '--apply-shared-frontend',
+      ],
+      repoRoot,
+    );
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+    assert.equal(
+      fs.readFileSync(path.join(opsRoot, 'backend', 'modules', 'system', 'iam', 'menu', 'component_registry.go'), 'utf8'),
+      'ops component registry\n',
+    );
+    assert.equal(
+      fs.readFileSync(path.join(opsRoot, 'frontend', 'src', 'core', 'router', 'generatedComponentRegistry.ts'), 'utf8'),
+      'export const generatedComponentRegistry = { ops: true };\n',
+    );
+    assert.equal(
+      fs.readFileSync(path.join(opsRoot, 'frontend', 'src', 'core', 'shell.ts'), 'utf8'),
+      'export const shell = "base";\n',
+    );
+  });
+});
+
+test('apply mode merges shared i18n updates without dropping ops business locale keys', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+
+    writeJson(
+      path.join(bundleRoot, 'bundle', 'shared-backend', 'backend', 'modules', 'system', 'i18n', 'builtin_locale_resources.json'),
+      {
+        'zh-CN': {
+          'app.name': 'Pantheon Base',
+          'business.shared': 'base should not win',
+        },
+        'en-US': {
+          'app.name': 'Pantheon Base',
+        },
+      },
+    );
+    writeJson(
+      path.join(opsRoot, 'backend', 'modules', 'system', 'i18n', 'builtin_locale_resources.json'),
+      {
+        'zh-CN': {
+          'app.name': 'Old Ops Name',
+          'business.cmdb.host.title': '主机台账',
+        },
+        'en-US': {
+          'app.name': 'Old Ops Name',
+          'business.cmdb.host.title': 'Host Inventory',
+        },
+      },
+    );
+
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--apply-shared-backend',
+      ],
+      repoRoot,
+    );
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+
+    const locales = JSON.parse(
+      fs.readFileSync(path.join(opsRoot, 'backend', 'modules', 'system', 'i18n', 'builtin_locale_resources.json'), 'utf8'),
+    );
+    assert.equal(locales['zh-CN']['app.name'], 'Pantheon Base');
+    assert.equal(locales['zh-CN']['business.cmdb.host.title'], '主机台账');
+    assert.equal(locales['en-US']['app.name'], 'Pantheon Base');
+    assert.equal(locales['en-US']['business.cmdb.host.title'], 'Host Inventory');
+    assert.equal(locales['zh-CN']['business.shared'], 'base should not win');
   });
 });

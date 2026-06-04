@@ -2,12 +2,23 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import {
+  allowedFrontendOpsOnlyPaths,
+  collectFiles,
+  ensureDir,
+  frontendOverlayPaths,
+  sharedFrontendEntries,
+  toRepoPath,
+} from '../../scripts/foundation-release/shared-foundation-rules.mjs';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const scriptsDir = path.dirname(currentFilePath);
 const opsFrontendRoot = path.resolve(scriptsDir, '..');
 const workspaceRoot = path.resolve(opsFrontendRoot, '..', '..');
-const baseSrcRoot = path.join(workspaceRoot, 'pantheon-base', 'frontend', 'src');
+const baseRepoRoot = process.env.PANTHEON_BASE_REPO_ROOT
+  ? path.resolve(process.env.PANTHEON_BASE_REPO_ROOT)
+  : path.join(workspaceRoot, 'pantheon-base');
+const baseSrcRoot = path.join(baseRepoRoot, 'frontend', 'src');
 
 // In CI, pantheon-base may not be checked out as a sibling directory.
 if (!fs.existsSync(baseSrcRoot)) {
@@ -16,55 +27,17 @@ if (!fs.existsSync(baseSrcRoot)) {
   process.exit(0);
 }
 
-const opsSrcRoot = path.join(workspaceRoot, 'pantheon-ops', 'frontend', 'src');
-
-const sharedEntries = [
-  'components',
-  'core',
-  'modules/auth',
-  'modules/dashboard',
-  'modules/system',
-  'index.css',
-];
-
-const excludedDiffPaths = new Set([
-  'core/router/componentRegistry.ts',
-  'core/router/modules.ts',
-  'modules/system/generator/backend-generator.ts',
-]);
-
-const allowedOpsOnlyPaths = new Set([]);
+const opsSrcRoot = path.join(opsFrontendRoot, 'src');
 
 const checkMode = process.argv.includes('--check');
-
-function toRepoPath(filePath) {
-  return filePath.split(path.sep).join('/');
-}
 
 function readFile(filePath) {
   return fs.readFileSync(filePath, 'utf8');
 }
 
-function ensureDir(filePath) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-}
-
-function collectFiles(rootPath, currentPath = rootPath, bucket = []) {
-  const entries = fs.readdirSync(currentPath, { withFileTypes: true });
-  for (const entry of entries) {
-    const nextPath = path.join(currentPath, entry.name);
-    if (entry.isDirectory()) {
-      collectFiles(rootPath, nextPath, bucket);
-      continue;
-    }
-    bucket.push(toRepoPath(path.relative(rootPath, nextPath)));
-  }
-  return bucket;
-}
-
 function collectSharedBaseFiles() {
   const files = [];
-  for (const entry of sharedEntries) {
+  for (const entry of sharedFrontendEntries) {
     const absolutePath = path.join(baseSrcRoot, entry);
     const stats = fs.statSync(absolutePath);
     if (stats.isDirectory()) {
@@ -78,7 +51,7 @@ function collectSharedBaseFiles() {
 
 function collectSharedOpsOnlyFiles() {
   const extraFiles = [];
-  for (const entry of sharedEntries) {
+  for (const entry of sharedFrontendEntries) {
     const absolutePath = path.join(opsSrcRoot, entry);
     if (!fs.existsSync(absolutePath)) {
       continue;
@@ -92,7 +65,7 @@ function collectSharedOpsOnlyFiles() {
       if (fs.existsSync(basePath)) {
         continue;
       }
-      if (excludedDiffPaths.has(relativePath) || allowedOpsOnlyPaths.has(relativePath)) {
+      if (frontendOverlayPaths.has(relativePath) || allowedFrontendOpsOnlyPaths.has(relativePath)) {
         continue;
       }
       extraFiles.push(relativePath);
@@ -108,7 +81,7 @@ function main() {
   const missingFiles = [];
 
   for (const relativePath of sharedFiles) {
-    if (excludedDiffPaths.has(relativePath)) {
+    if (frontendOverlayPaths.has(relativePath)) {
       continue;
     }
     const baseFilePath = path.join(baseSrcRoot, relativePath);

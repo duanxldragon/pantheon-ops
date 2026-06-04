@@ -160,84 +160,76 @@ func ensureMenuSeeds(db *gorm.DB, seeds []menuSeed) error {
 }
 
 func ensureSingleMenuSeed(db *gorm.DB, seed menuSeed) error {
-	var menuID uint64
-	if seed.Path != "" {
-		if err := db.Table("system_menu").Select("id").Where("path = ?", seed.Path).Limit(1).Pluck("id", &menuID).Error; err != nil {
-			return err
-		}
-	} else if seed.Perms != "" {
-		if err := db.Table("system_menu").Select("id").Where("perms = ?", seed.Perms).Limit(1).Pluck("id", &menuID).Error; err != nil {
-			return err
-		}
-	}
-
 	parentID, err := resolveMenuParentID(db, seed.ParentKey)
 	if err != nil {
 		return err
 	}
-	if menuID == 0 {
-		payload := map[string]interface{}{
-			"parent_id":   parentID,
-			"title_key":   seed.TitleKey,
-			"path":        seed.Path,
-			"component":   seed.Component,
-			"page_perm":   seed.PagePerm,
-			"perms":       seed.Perms,
-			"type":        normalizeSeedMenuType(seed.Type),
-			"icon":        seed.Icon,
-			"route_name":  strings.TrimSpace(seed.RouteName),
-			"module":      normalizeSeedMenuModule(seed.Module),
-			"sort":        seed.Sort,
-			"is_visible":  1,
-			"is_cache":    normalizeSeedMenuFlag(seed.IsCache),
-			"is_external": normalizeSeedMenuFlag(seed.IsExternal),
-			"active_menu": strings.TrimSpace(seed.ActiveMenu),
-		}
-		if err := db.Table("system_menu").Create(payload).Error; err != nil {
-			return err
-		}
-		if seed.Path != "" {
-			if err := db.Table("system_menu").Select("id").Where("path = ?", seed.Path).Limit(1).Pluck("id", &menuID).Error; err != nil {
-				return err
-			}
-		} else if seed.Perms != "" {
-			if err := db.Table("system_menu").Select("id").Where("perms = ?", seed.Perms).Limit(1).Pluck("id", &menuID).Error; err != nil {
-				return err
-			}
-		}
-	} else {
-		updates := map[string]interface{}{
-			"parent_id":   parentID,
-			"title_key":   seed.TitleKey,
-			"component":   seed.Component,
-			"page_perm":   seed.PagePerm,
-			"icon":        seed.Icon,
-			"route_name":  strings.TrimSpace(seed.RouteName),
-			"module":      normalizeSeedMenuModule(seed.Module),
-			"sort":        seed.Sort,
-			"type":        normalizeSeedMenuType(seed.Type),
-			"is_visible":  1,
-			"is_cache":    normalizeSeedMenuFlag(seed.IsCache),
-			"is_external": normalizeSeedMenuFlag(seed.IsExternal),
-			"active_menu": strings.TrimSpace(seed.ActiveMenu),
-			"path":        seed.Path,
-			"perms":       seed.Perms,
-		}
-		if err := db.Table("system_menu").Where("id = ?", menuID).Updates(updates).Error; err != nil {
-			return err
-		}
-	}
-
-	if menuID == 0 {
-		return nil
-	}
-
-	var adminRoleID uint64
-	if err := db.Table("system_role").Select("id").Where("role_key = ?", "admin").Limit(1).Pluck("id", &adminRoleID).Error; err != nil {
+	menuID, err := upsertSeedMenu(db, seed, parentID)
+	if err != nil {
 		return err
 	}
-	if adminRoleID == 0 {
+	if menuID == 0 {
 		return nil
+	}
+	return ensureAdminRoleMenuBinding(db, menuID)
+}
+
+func upsertSeedMenu(db *gorm.DB, seed menuSeed, parentID uint64) (uint64, error) {
+	menuID, err := lookupSeedMenuID(db, seed)
+	if err != nil || menuID == 0 {
+		if err != nil {
+			return 0, err
+		}
+		if err := db.Table("system_menu").Create(buildSeedMenuPayload(seed, parentID)).Error; err != nil {
+			return 0, err
+		}
+		return lookupSeedMenuID(db, seed)
+	}
+
+	if err := db.Table("system_menu").Where("id = ?", menuID).Updates(buildSeedMenuPayload(seed, parentID)).Error; err != nil {
+		return 0, err
+	}
+	return menuID, nil
+}
+
+func lookupSeedMenuID(db *gorm.DB, seed menuSeed) (uint64, error) {
+	var menuID uint64
+	switch {
+	case seed.Path != "":
+		err := db.Table("system_menu").Select("id").Where("path = ?", seed.Path).Limit(1).Pluck("id", &menuID).Error
+		return menuID, err
+	case seed.Perms != "":
+		err := db.Table("system_menu").Select("id").Where("perms = ?", seed.Perms).Limit(1).Pluck("id", &menuID).Error
+		return menuID, err
+	default:
+		return 0, nil
+	}
+}
+
+func buildSeedMenuPayload(seed menuSeed, parentID uint64) map[string]interface{} {
+	return map[string]interface{}{
+		"parent_id":   parentID,
+		"title_key":   seed.TitleKey,
+		"path":        seed.Path,
+		"component":   seed.Component,
+		"page_perm":   seed.PagePerm,
+		"perms":       seed.Perms,
+		"type":        normalizeSeedMenuType(seed.Type),
+		"icon":        seed.Icon,
+		"route_name":  strings.TrimSpace(seed.RouteName),
+		"module":      normalizeSeedMenuModule(seed.Module),
+		"sort":        seed.Sort,
+		"is_visible":  1,
+		"is_cache":    normalizeSeedMenuFlag(seed.IsCache),
+		"is_external": normalizeSeedMenuFlag(seed.IsExternal),
+		"active_menu": strings.TrimSpace(seed.ActiveMenu),
+	}
+}
+
+func ensureAdminRoleMenuBinding(db *gorm.DB, menuID uint64) error {
+	adminRoleID, err := lookupAdminRoleID(db)
+	if err != nil || adminRoleID == 0 {
+		return err
 	}
 
 	var count int64
@@ -245,11 +237,17 @@ func ensureSingleMenuSeed(db *gorm.DB, seed menuSeed) error {
 		return err
 	}
 	if count == 0 {
-		if err := db.Exec("INSERT INTO system_role_menu (role_id, menu_id) VALUES (?, ?)", adminRoleID, menuID).Error; err != nil {
-			return err
-		}
+		return db.Exec("INSERT INTO system_role_menu (role_id, menu_id) VALUES (?, ?)", adminRoleID, menuID).Error
 	}
 	return nil
+}
+
+func lookupAdminRoleID(db *gorm.DB) (uint64, error) {
+	var adminRoleID uint64
+	if err := db.Table("system_role").Select("id").Where("role_key = ?", "admin").Limit(1).Pluck("id", &adminRoleID).Error; err != nil {
+		return 0, err
+	}
+	return adminRoleID, nil
 }
 
 func resolveMenuParentID(db *gorm.DB, parentKey string) (uint64, error) {

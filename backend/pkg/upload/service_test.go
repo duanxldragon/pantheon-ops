@@ -260,8 +260,26 @@ func TestResolveLocalPathBlocksTraversal(t *testing.T) {
 			"upload.local_path":     t.TempDir(),
 		},
 	})
-	if _, err := service.ResolveLocalPath("../evil.txt"); err == nil {
-		t.Fatal("expected traversal to be blocked")
+	cases := []string{
+		"../evil.txt",
+		"profile/../../evil.txt",
+		"profile/..hidden/evil.txt",
+		`C:\windows\system.ini`,
+	}
+	for _, objectKey := range cases {
+		if _, err := service.ResolveLocalPath(objectKey); err == nil {
+			t.Fatalf("expected traversal to be blocked for %q", objectKey)
+		}
+	}
+}
+
+func TestNormalizeObjectKeyAllowsGeneratedUploadKeys(t *testing.T) {
+	key, err := NormalizeObjectKey("/profile/avatar/20260424/0b4a5f46-7c3d-4f9e-9a55-9533e4da3d60.png")
+	if err != nil {
+		t.Fatalf("normalize generated key: %v", err)
+	}
+	if key != "profile/avatar/20260424/0b4a5f46-7c3d-4f9e-9a55-9533e4da3d60.png" {
+		t.Fatalf("unexpected normalized key: %s", key)
 	}
 }
 
