@@ -7,6 +7,7 @@ English quick guide: [CLAUDE.md](./CLAUDE.md)
 ## 必守规则
 
 - 开工先读 `docs/PROJECT_INHERITANCE.md`、`../pantheon-base/DESIGN.md`、`../pantheon-base/AGENTS.md`、`../pantheon-base/docs/README.md`，再按任务补读 base 文档和本地 `docs/designs/BUSINESS_*`。
+- 本仓库的 repo-local workflow skills 位于 `.agents/skills/`；涉及继承校验、PR 收口和 GitHub Actions 红灯时，优先看 `repo-verify`、`repo-pr-gate`、`repo-ci-triage`、`gh-fix-ci`。
 - 任务先分层：`platform / system/auth / system/iam / system/org / system/config / business/*`；跨层先说边界再动手。
 - `pantheon-base` 拥有 `platform` 和 `system/*`；本仓库只沉淀业务设计、业务验收和本地继承说明。
 - 业务模块可使用 base 扩展点、共享契约和公共包，但不可本地 override 底座行为。

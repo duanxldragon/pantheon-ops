@@ -5,9 +5,11 @@ Chinese version: [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
 ## 1. Inheritance Source
 
 - Base repository: `../pantheon-base`
-- Base branch: `main`
+- Base release line: `release/0.8`
 - Base version: `0b06ee4` (`0b06ee40ae2a281bf2a0004343368599a326bc67`)
-- Inheritance mode: `foundation-only`
+- Inheritance mode: `foundation-release-consumer`
+
+This repository no longer treats `base/main` as the default consumer surface. `main` may continue to absorb optimization and governance work, while ops upgrades only to explicit foundation releases or tags by default.
 
 ## 2. Inherited Base Rules
 
@@ -27,6 +29,13 @@ Before editing this repository, read:
 3. `../pantheon-base/AGENTS.md`
 4. `../pantheon-base/docs/README.md`
 5. matching base contracts, designs, and acceptance docs
+
+Repository-local workflow skills live under `.agents/skills/` and cover:
+
+- `repo-verify`
+- `repo-pr-gate`
+- `repo-ci-triage`
+- `gh-fix-ci`
 
 ## 4. Local Business Scope
 
@@ -53,6 +62,14 @@ Shared foundation changes such as upload behavior, pagination behavior, shared a
 2. validate in `pantheon-base`
 3. sync shared paths into `pantheon-ops`
 4. re-validate local business modules in `pantheon-ops`
+
+In this document, "sync" should now be read as:
+
+- choose a newer `pantheon-base` foundation release
+- upgrade the release consumed by ops
+- repair only the real overlay breakpoints against that release
+
+It should not mean continuously tracking `main`.
 
 ## 6.1 Landing-Side Decision Rules
 
@@ -138,6 +155,7 @@ At minimum, record:
 Common local command:
 
 - `npm run check:inheritance`: one-shot check for task-packet template linkage, inheritance markers, and shared backend alignment
+- `npm run check:base-sync`: shared backend and frontend alignment check against base
 
 ## 7. Runtime Isolation
 

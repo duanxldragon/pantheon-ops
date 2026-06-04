@@ -21,6 +21,10 @@ Before implementing, reviewing, debugging, or designing in this repository, read
 9. matching `../pantheon-base/docs/acceptances/*`
 10. local business docs under `docs/designs/BUSINESS_*`
 
+Repository-local workflow skills live under:
+
+- `.agents/skills/README.md`
+
 ## Layer ownership
 
 - `pantheon-base` owns `platform` and `system/*`.
