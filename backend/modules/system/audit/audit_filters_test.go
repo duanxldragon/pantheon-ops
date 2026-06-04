@@ -3,7 +3,7 @@ package system
 import (
 	"testing"
 
-	"pantheon-ops/backend/internal/middleware"
+	"pantheon-platform/backend/internal/middleware"
 )
 
 func TestDetectOperationLogSourceDomain(t *testing.T) {

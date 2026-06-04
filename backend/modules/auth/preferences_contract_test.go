@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-ops/backend/internal/middleware"
-	user "pantheon-ops/backend/modules/system/iam/user"
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/testmysql"
+	"pantheon-platform/backend/internal/middleware"
+	user "pantheon-platform/backend/modules/system/iam/user"
+	"pantheon-platform/backend/pkg/common"
+	"pantheon-platform/backend/pkg/testmysql"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -127,19 +127,44 @@ func TestAuthPreferencesContract_UpdatePersistsAndAuditsPreferenceChange(t *test
 		t.Fatalf("unexpected status code: %d", recorder.Code)
 	}
 
+	resp := decodePreferenceUserInfoResp(t, recorder.Body.Bytes())
+	assertUpdatedPreferenceResponse(t, resp)
+	assertPersistedPreferenceJSON(t, db)
+	assertPreferenceAuditLogUpdated(t, waitPreferenceAuditLog(t, db))
+}
+
+func decodePreferenceUserInfoResp(t *testing.T, body []byte) struct {
+	Code int          `json:"code"`
+	Data UserInfoResp `json:"data"`
+} {
+	t.Helper()
+
 	var resp struct {
 		Code int          `json:"code"`
 		Data UserInfoResp `json:"data"`
 	}
-	if err := json.Unmarshal(recorder.Body.Bytes(), &resp); err != nil {
+	if err := json.Unmarshal(body, &resp); err != nil {
 		t.Fatalf("unmarshal response: %v", err)
 	}
 	if resp.Code != common.CodeSuccess {
 		t.Fatalf("unexpected business code: %d", resp.Code)
 	}
+	return resp
+}
+
+func assertUpdatedPreferenceResponse(t *testing.T, resp struct {
+	Code int          `json:"code"`
+	Data UserInfoResp `json:"data"`
+}) {
+	t.Helper()
+
 	if resp.Data.Preferences == nil || resp.Data.Preferences.Theme != "slate" || resp.Data.Preferences.Language != "en-US" || resp.Data.Preferences.LayoutMode != "horizontal" || resp.Data.Preferences.DensityMode != "compact" {
 		t.Fatalf("unexpected response preferences: %+v", resp.Data.Preferences)
 	}
+}
+
+func assertPersistedPreferenceJSON(t *testing.T, db *gorm.DB) {
+	t.Helper()
 
 	var updated user.SystemUser
 	if err := db.First(&updated, uint64(1)).Error; err != nil {
@@ -148,8 +173,11 @@ func TestAuthPreferencesContract_UpdatePersistsAndAuditsPreferenceChange(t *test
 	if updated.PreferenceJSON != `{"theme":"slate","language":"en-US","layoutMode":"horizontal","densityMode":"compact"}` {
 		t.Fatalf("unexpected persisted preference json: %s", updated.PreferenceJSON)
 	}
+}
 
-	log := waitPreferenceAuditLog(t, db)
+func assertPreferenceAuditLogUpdated(t *testing.T, log middleware.SystemLogOper) {
+	t.Helper()
+
 	if log.Title != "更新平台偏好" {
 		t.Fatalf("unexpected audit title: %s", log.Title)
 	}

@@ -10,8 +10,8 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
 - Base repository：当前继承源是 `../pantheon-base`
 - Base release line：当前跟随 `release/0.8`
-- Base version：当前锁定到 `0b06ee4`（`0b06ee40ae2a281bf2a0004343368599a326bc67`）
-- Inheritance mode：`foundation-release-consumer`，表示 ops 消费底座 release，本地只扩展业务域
+- Base version：当前锁定到 `base-v0.8.1`（`3427c1a2fdc0b16ce6aa8735a13f3c94896ab374`）
+- Inheritance mode：`foundation-release-consumer`
 
 ## 2. 继承的底座规则
 

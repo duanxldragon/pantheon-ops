@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/database"
-	"pantheon-ops/backend/pkg/impexp"
+	"pantheon-platform/backend/pkg/common"
+	"pantheon-platform/backend/pkg/database"
+	"pantheon-platform/backend/pkg/impexp"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"

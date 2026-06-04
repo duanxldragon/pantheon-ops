@@ -13,11 +13,11 @@ import (
 	"time"
 	"unicode"
 
-	user "pantheon-ops/backend/modules/system/iam/user"
-	"pantheon-ops/backend/pkg/authsession"
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/database"
-	"pantheon-ops/backend/pkg/impexp"
+	user "pantheon-platform/backend/modules/system/iam/user"
+	"pantheon-platform/backend/pkg/authsession"
+	"pantheon-platform/backend/pkg/common"
+	"pantheon-platform/backend/pkg/database"
+	"pantheon-platform/backend/pkg/impexp"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -62,6 +62,20 @@ type authRuntimePolicy struct {
 	SSOEnabled              bool
 }
 
+type adminSessionRow struct {
+	SessionID        string     `gorm:"column:session_id"`
+	UserID           uint64     `gorm:"column:user_id"`
+	Username         string     `gorm:"column:username"`
+	Nickname         string     `gorm:"column:nickname"`
+	LastIP           string     `gorm:"column:last_ip"`
+	UserAgent        string     `gorm:"column:user_agent"`
+	RefreshExpiresAt time.Time  `gorm:"column:refresh_expires_at"`
+	LastRefreshAt    *time.Time `gorm:"column:last_refresh_at"`
+	LastActivityAt   *time.Time `gorm:"column:last_activity_at"`
+	RevokedAt        *time.Time `gorm:"column:revoked_at"`
+	CreatedAt        time.Time  `gorm:"column:created_at"`
+}
+
 const (
 	defaultPasswordMinLength       = 6
 	defaultMaxFailedAttempts       = 5
@@ -77,9 +91,50 @@ const (
 )
 
 const (
-	sessionLastActivityColumn = "last_activity_at"
-	sessionLastIPColumn       = "last_ip"
-	sessionUserAgentColumn    = "user_agent"
+	settingPasswordMinLengthKey       = "security.password_min_length"
+	settingPasswordRequireDigitKey    = "security.password_require_digit"
+	settingPasswordRequireUpperKey    = "security.password_require_uppercase"
+	settingPasswordHistoryLimitKey    = "security.password_history_limit"
+	settingPasswordExpireDaysKey      = "security.password_expire_days"
+	settingMaxFailedAttemptsKey       = "login.max_failed_attempts"
+	settingLockMinutesKey             = "login.lock_minutes"
+	settingSourceMaxFailedAttemptsKey = "login.source_max_failed_attempts"
+	settingSourceWindowMinutesKey     = "login.source_window_minutes"
+	settingSourceLockMinutesKey       = "login.source_lock_minutes"
+	settingSessionIdleMinutesKey      = "login.session_idle_minutes"
+	settingMaxActiveSessionsKey       = "login.max_active_sessions_per_user"
+	settingLoginLogRetentionDaysKey   = "audit.login_log_retention_days"
+	settingSessionRetentionDaysKey    = "audit.session_retention_days"
+	settingSecurityEventEnabledKey    = "login.security_event_enabled"
+	settingCaptchaEnabledKey          = "login.captcha_enabled"
+	settingMFAEnabledKey              = "login.mfa_enabled"
+	settingSSOEnabledKey              = "login.sso_enabled"
+
+	errDatabaseNotInitialized        = "database.not_initialized"
+	errAuthLoginSourceBlocked        = "auth.login.error.source_blocked"
+	errSessionInvalid                = "session.invalid"
+	errCurrentSessionRevokeForbidden = "auth.session.current_revoke_forbidden"
+
+	userIDWhereClause        = "user_id = ?"
+	settingKeyWhereClause    = "setting_key = ?"
+	usernameLikeWhereClause  = "username LIKE ?"
+	loginTimeDescOrderClause = "login_time desc, id desc"
+
+	userIDAndFactorTypeEnabledWhereClause    = userIDWhereClause + " AND factor_type = ? AND enabled = ?"
+	userIDAndFactorTypeWhereClause           = userIDWhereClause + " AND factor_type = ?"
+	sessionIDAndUserIDWhereClause            = "session_id = ? AND " + userIDWhereClause
+	sessionIDAndActiveUserIDWhereClause      = sessionIDAndUserIDWhereClause + " AND revoked_at IS NULL"
+	otherActiveSessionsByUserWhereClause     = userIDWhereClause + " AND session_id <> ? AND revoked_at IS NULL"
+	systemUserRoleUserIDAndStatusWhereClause = "system_user_role.user_id = ? AND system_role.status = ?"
+	systemUserRoleUserIDAndPermsWhereClause  = "system_user_role.user_id = ? AND system_role_permission.permission_key <> ''"
+	systemUserUsernameLikeWhereClause        = "system_user.username LIKE ?"
+
+	touchSessionActivitySQL = `UPDATE system_user_session
+SET last_activity_at = ?,
+    last_ip = CASE WHEN ? <> '' THEN ? ELSE last_ip END,
+    user_agent = CASE WHEN ? <> '' THEN ? ELSE user_agent END
+WHERE session_id = ? AND user_id = ? AND revoked_at IS NULL
+  AND (last_activity_at IS NULL OR last_activity_at < ?)`
 )
 
 // NewAuthService 构造函数
@@ -97,45 +152,45 @@ func NewAuthService(db *gorm.DB) *AuthService {
 // ReloadSettings 重新加载核心安全策略缓存
 func (s *AuthService) ReloadSettings() error {
 	policy := authRuntimePolicy{
-		PasswordMinLength:       s.fetchSettingIntFromDB("security.password_min_length", defaultPasswordMinLength),
-		PasswordRequireDigit:    s.fetchSettingBoolFromDB("security.password_require_digit", false),
-		PasswordRequireUpper:    s.fetchSettingBoolFromDB("security.password_require_uppercase", false),
-		PasswordHistoryLimit:    s.fetchSettingIntFromDB("security.password_history_limit", 0),
-		PasswordExpireDays:      s.fetchSettingIntFromDB("security.password_expire_days", 0),
-		MaxFailedAttempts:       s.fetchSettingIntFromDB("login.max_failed_attempts", defaultMaxFailedAttempts),
-		LockMinutes:             s.fetchSettingIntFromDB("login.lock_minutes", defaultLockMinutes),
-		SourceMaxFailedAttempts: s.fetchSettingIntFromDB("login.source_max_failed_attempts", defaultSourceMaxFailedAttempts),
-		SourceWindowMinutes:     s.fetchSettingIntFromDB("login.source_window_minutes", defaultSourceWindowMinutes),
-		SourceLockMinutes:       s.fetchSettingIntFromDB("login.source_lock_minutes", defaultSourceLockMinutes),
-		SessionIdleMinutes:      s.fetchSettingIntFromDB("login.session_idle_minutes", defaultSessionIdleMinutes),
-		MaxActiveSessions:       s.fetchSettingIntFromDB("login.max_active_sessions_per_user", defaultMaxActiveSessions),
-		LoginLogRetentionDays:   s.fetchSettingIntFromDB("audit.login_log_retention_days", defaultLoginLogRetentionDays),
-		SessionRetentionDays:    s.fetchSettingIntFromDB("audit.session_retention_days", defaultSessionRetentionDays),
-		SecurityEventEnabled:    s.fetchSettingBoolFromDB("login.security_event_enabled", true),
-		CaptchaEnabled:          s.fetchSettingBoolFromDB("login.captcha_enabled", false),
-		MFAEnabled:              s.fetchSettingBoolFromDB("login.mfa_enabled", false),
-		SSOEnabled:              s.fetchSettingBoolFromDB("login.sso_enabled", false),
+		PasswordMinLength:       s.fetchSettingIntFromDB(settingPasswordMinLengthKey, defaultPasswordMinLength),
+		PasswordRequireDigit:    s.fetchSettingBoolFromDB(settingPasswordRequireDigitKey, false),
+		PasswordRequireUpper:    s.fetchSettingBoolFromDB(settingPasswordRequireUpperKey, false),
+		PasswordHistoryLimit:    s.fetchSettingIntFromDB(settingPasswordHistoryLimitKey, 0),
+		PasswordExpireDays:      s.fetchSettingIntFromDB(settingPasswordExpireDaysKey, 0),
+		MaxFailedAttempts:       s.fetchSettingIntFromDB(settingMaxFailedAttemptsKey, defaultMaxFailedAttempts),
+		LockMinutes:             s.fetchSettingIntFromDB(settingLockMinutesKey, defaultLockMinutes),
+		SourceMaxFailedAttempts: s.fetchSettingIntFromDB(settingSourceMaxFailedAttemptsKey, defaultSourceMaxFailedAttempts),
+		SourceWindowMinutes:     s.fetchSettingIntFromDB(settingSourceWindowMinutesKey, defaultSourceWindowMinutes),
+		SourceLockMinutes:       s.fetchSettingIntFromDB(settingSourceLockMinutesKey, defaultSourceLockMinutes),
+		SessionIdleMinutes:      s.fetchSettingIntFromDB(settingSessionIdleMinutesKey, defaultSessionIdleMinutes),
+		MaxActiveSessions:       s.fetchSettingIntFromDB(settingMaxActiveSessionsKey, defaultMaxActiveSessions),
+		LoginLogRetentionDays:   s.fetchSettingIntFromDB(settingLoginLogRetentionDaysKey, defaultLoginLogRetentionDays),
+		SessionRetentionDays:    s.fetchSettingIntFromDB(settingSessionRetentionDaysKey, defaultSessionRetentionDays),
+		SecurityEventEnabled:    s.fetchSettingBoolFromDB(settingSecurityEventEnabledKey, true),
+		CaptchaEnabled:          s.fetchSettingBoolFromDB(settingCaptchaEnabledKey, false),
+		MFAEnabled:              s.fetchSettingBoolFromDB(settingMFAEnabledKey, false),
+		SSOEnabled:              s.fetchSettingBoolFromDB(settingSSOEnabledKey, false),
 	}
 
 	s.settingsMu.Lock()
-	s.settingsCache["security.password_min_length"] = policy.PasswordMinLength
-	s.settingsCache["security.password_require_digit"] = boolToInt(policy.PasswordRequireDigit)
-	s.settingsCache["security.password_require_uppercase"] = boolToInt(policy.PasswordRequireUpper)
-	s.settingsCache["security.password_history_limit"] = policy.PasswordHistoryLimit
-	s.settingsCache["security.password_expire_days"] = policy.PasswordExpireDays
-	s.settingsCache["login.max_failed_attempts"] = policy.MaxFailedAttempts
-	s.settingsCache["login.lock_minutes"] = policy.LockMinutes
-	s.settingsCache["login.source_max_failed_attempts"] = policy.SourceMaxFailedAttempts
-	s.settingsCache["login.source_window_minutes"] = policy.SourceWindowMinutes
-	s.settingsCache["login.source_lock_minutes"] = policy.SourceLockMinutes
-	s.settingsCache["login.session_idle_minutes"] = policy.SessionIdleMinutes
-	s.settingsCache["login.max_active_sessions_per_user"] = policy.MaxActiveSessions
-	s.settingsCache["audit.login_log_retention_days"] = policy.LoginLogRetentionDays
-	s.settingsCache["audit.session_retention_days"] = policy.SessionRetentionDays
-	s.settingsCache["login.security_event_enabled"] = boolToInt(policy.SecurityEventEnabled)
-	s.settingsCache["login.captcha_enabled"] = boolToInt(policy.CaptchaEnabled)
-	s.settingsCache["login.mfa_enabled"] = boolToInt(policy.MFAEnabled)
-	s.settingsCache["login.sso_enabled"] = boolToInt(policy.SSOEnabled)
+	s.settingsCache[settingPasswordMinLengthKey] = policy.PasswordMinLength
+	s.settingsCache[settingPasswordRequireDigitKey] = boolToInt(policy.PasswordRequireDigit)
+	s.settingsCache[settingPasswordRequireUpperKey] = boolToInt(policy.PasswordRequireUpper)
+	s.settingsCache[settingPasswordHistoryLimitKey] = policy.PasswordHistoryLimit
+	s.settingsCache[settingPasswordExpireDaysKey] = policy.PasswordExpireDays
+	s.settingsCache[settingMaxFailedAttemptsKey] = policy.MaxFailedAttempts
+	s.settingsCache[settingLockMinutesKey] = policy.LockMinutes
+	s.settingsCache[settingSourceMaxFailedAttemptsKey] = policy.SourceMaxFailedAttempts
+	s.settingsCache[settingSourceWindowMinutesKey] = policy.SourceWindowMinutes
+	s.settingsCache[settingSourceLockMinutesKey] = policy.SourceLockMinutes
+	s.settingsCache[settingSessionIdleMinutesKey] = policy.SessionIdleMinutes
+	s.settingsCache[settingMaxActiveSessionsKey] = policy.MaxActiveSessions
+	s.settingsCache[settingLoginLogRetentionDaysKey] = policy.LoginLogRetentionDays
+	s.settingsCache[settingSessionRetentionDaysKey] = policy.SessionRetentionDays
+	s.settingsCache[settingSecurityEventEnabledKey] = boolToInt(policy.SecurityEventEnabled)
+	s.settingsCache[settingCaptchaEnabledKey] = boolToInt(policy.CaptchaEnabled)
+	s.settingsCache[settingMFAEnabledKey] = boolToInt(policy.MFAEnabled)
+	s.settingsCache[settingSSOEnabledKey] = boolToInt(policy.SSOEnabled)
 	s.settingsMu.Unlock()
 
 	return nil
@@ -159,7 +214,7 @@ func (s *AuthService) WatchSettings() {
 // Migrate 初始化认证域表结构。
 func (s *AuthService) Migrate() error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return errors.New(errDatabaseNotInitialized)
 	}
 	if err := s.db.AutoMigrate(&SystemUserSession{}, &SystemLogLogin{}, &SystemLoginThrottle{}, &SystemAuthFactor{}, &SystemAuthMFAChallenge{}, &SystemAuthSecurityEvent{}, &SystemUserPasswordHistory{}); err != nil {
 		return err
@@ -168,9 +223,9 @@ func (s *AuthService) Migrate() error {
 }
 
 // VerifyPasswordForOperation 敏感操作前的密码二次验证
-func (s *AuthService) VerifyPasswordForOperation(userID uint64, sessionID string, password string) (string, error) {
+func (s *AuthService) VerifyPasswordForOperation(userID uint64, sessionID, password string) (string, error) {
 	if s.db == nil {
-		return "", errors.New("database.not_initialized")
+		return "", errors.New(errDatabaseNotInitialized)
 	}
 	if strings.TrimSpace(sessionID) == "" {
 		return "", errors.New("auth.operation.verification_mismatch")
@@ -203,96 +258,120 @@ func (s *AuthService) Login(req *LoginReq) (*user.SystemUser, error) {
 
 func (s *AuthService) LoginWithSource(req *LoginReq, sourceKey string) (*user.SystemUser, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 	policy := s.getAuthRuntimePolicy()
-	if blocked, err := s.checkSourceThrottle(sourceKey, policy, time.Now()); err != nil {
+	now := time.Now()
+	if err := s.ensureSourceThrottleAllowed(sourceKey, policy, now); err != nil {
 		return nil, err
-	} else if blocked {
-		return nil, errors.New("auth.login.error.source_blocked")
-	}
-	username := strings.TrimSpace(req.Username)
-	if username == "" {
-		_, _ = s.recordSourceFailure(sourceKey, policy, time.Now())
-		return nil, errors.New("user.login.error.not_found")
 	}
 
-	var currentUser user.SystemUser
-	result := s.db.Where("username = ?", username).First(&currentUser)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			if blocked, markErr := s.recordSourceFailure(sourceKey, policy, time.Now()); markErr != nil {
-				return nil, markErr
-			} else if blocked {
-				return nil, errors.New("auth.login.error.source_blocked")
-			}
-			return nil, errors.New("user.login.error.not_found")
-		}
-		return nil, result.Error
+	currentUser, err := s.loadLoginUserWithSource(strings.TrimSpace(req.Username), sourceKey, policy, now)
+	if err != nil {
+		return nil, err
 	}
-
-	if currentUser.Status == 2 {
-		if blocked, markErr := s.recordSourceFailure(sourceKey, policy, time.Now()); markErr != nil {
-			return nil, markErr
-		} else if blocked {
-			return nil, errors.New("auth.login.error.source_blocked")
-		}
-		return nil, errors.New("user.login.error.disabled")
-	}
-	if currentUser.LoginLockedUntil != nil && currentUser.LoginLockedUntil.After(time.Now()) {
-		if blocked, markErr := s.recordSourceFailure(sourceKey, policy, time.Now()); markErr != nil {
-			return nil, markErr
-		} else if blocked {
-			return nil, errors.New("auth.login.error.source_blocked")
-		}
-		return nil, errors.New("user.login.error.locked")
+	if err := s.ensureLoginUserAvailable(currentUser, sourceKey, policy, now); err != nil {
+		return nil, err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(currentUser.Password), []byte(req.Password)); err != nil {
-		locked, markErr := s.recordFailedLoginAttempt(&currentUser, policy)
-		if markErr != nil {
-			return nil, markErr
-		}
-		if blocked, sourceErr := s.recordSourceFailure(sourceKey, policy, time.Now()); sourceErr != nil {
-			return nil, sourceErr
-		} else if blocked {
-			s.recordSecurityEvent(SystemAuthSecurityEvent{
-				UserID:     currentUser.ID,
-				Username:   currentUser.Username,
-				EventType:  "source_blocked",
-				Severity:   "high",
-				SourceKey:  sourceKey,
-				MessageKey: "auth.security.event.source_blocked",
-			})
-			return nil, errors.New("auth.login.error.source_blocked")
-		}
-		if locked {
-			s.recordSecurityEvent(SystemAuthSecurityEvent{
-				UserID:     currentUser.ID,
-				Username:   currentUser.Username,
-				EventType:  "account_locked",
-				Severity:   "high",
-				SourceKey:  sourceKey,
-				MessageKey: "auth.security.event.account_locked",
-			})
-			return nil, errors.New("user.login.error.locked")
-		}
-		s.recordSecurityEvent(SystemAuthSecurityEvent{
-			UserID:     currentUser.ID,
-			Username:   currentUser.Username,
-			EventType:  "password_wrong",
-			Severity:   "medium",
-			SourceKey:  sourceKey,
-			IP:         loginSourceIP(sourceKey),
-			MessageKey: "auth.security.event.password_wrong",
-		})
-		return nil, errors.New("user.login.error.password_wrong")
+		return nil, s.handlePasswordMismatch(currentUser, sourceKey, policy, now)
 	}
 	if err := s.clearFailedLoginState(currentUser.ID); err != nil {
 		return nil, err
 	}
 
-	return &currentUser, nil
+	return currentUser, nil
+}
+
+func (s *AuthService) ensureSourceThrottleAllowed(sourceKey string, policy authRuntimePolicy, now time.Time) error {
+	blocked, err := s.checkSourceThrottle(sourceKey, policy, now)
+	if err != nil {
+		return err
+	}
+	if blocked {
+		return errors.New(errAuthLoginSourceBlocked)
+	}
+	return nil
+}
+
+func (s *AuthService) loadLoginUserWithSource(username, sourceKey string, policy authRuntimePolicy, now time.Time) (*user.SystemUser, error) {
+	if username == "" {
+		_ = s.failLoginSourceBlocked(sourceKey, policy, now)
+		return nil, errors.New("user.login.error.not_found")
+	}
+
+	var currentUser user.SystemUser
+	result := s.db.Where("username = ?", username).First(&currentUser)
+	if result.Error == nil {
+		return &currentUser, nil
+	}
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		if err := s.failLoginSourceBlocked(sourceKey, policy, now); err != nil {
+			return nil, err
+		}
+		return nil, errors.New("user.login.error.not_found")
+	}
+	return nil, result.Error
+}
+
+func (s *AuthService) ensureLoginUserAvailable(currentUser *user.SystemUser, sourceKey string, policy authRuntimePolicy, now time.Time) error {
+	if currentUser.Status == 2 {
+		if err := s.failLoginSourceBlocked(sourceKey, policy, now); err != nil {
+			return err
+		}
+		return errors.New("user.login.error.disabled")
+	}
+	if currentUser.LoginLockedUntil != nil && currentUser.LoginLockedUntil.After(now) {
+		if err := s.failLoginSourceBlocked(sourceKey, policy, now); err != nil {
+			return err
+		}
+		return errors.New("user.login.error.locked")
+	}
+	return nil
+}
+
+func (s *AuthService) handlePasswordMismatch(currentUser *user.SystemUser, sourceKey string, policy authRuntimePolicy, now time.Time) error {
+	locked, err := s.recordFailedLoginAttempt(currentUser, policy)
+	if err != nil {
+		return err
+	}
+	blocked, err := s.recordSourceFailure(sourceKey, policy, now)
+	if err != nil {
+		return err
+	}
+	if blocked {
+		s.recordSecurityEvent(SystemAuthSecurityEvent{
+			UserID:     currentUser.ID,
+			Username:   currentUser.Username,
+			EventType:  "source_blocked",
+			Severity:   "high",
+			SourceKey:  sourceKey,
+			MessageKey: "auth.security.event.source_blocked",
+		})
+		return errors.New(errAuthLoginSourceBlocked)
+	}
+	if locked {
+		s.recordSecurityEvent(SystemAuthSecurityEvent{
+			UserID:     currentUser.ID,
+			Username:   currentUser.Username,
+			EventType:  "account_locked",
+			Severity:   "high",
+			SourceKey:  sourceKey,
+			MessageKey: "auth.security.event.account_locked",
+		})
+		return errors.New("user.login.error.locked")
+	}
+	s.recordSecurityEvent(SystemAuthSecurityEvent{
+		UserID:     currentUser.ID,
+		Username:   currentUser.Username,
+		EventType:  "password_wrong",
+		Severity:   "medium",
+		SourceKey:  sourceKey,
+		IP:         loginSourceIP(sourceKey),
+		MessageKey: "auth.security.event.password_wrong",
+	})
+	return errors.New("user.login.error.password_wrong")
 }
 
 func (s *AuthService) Authenticate(req *LoginReq) (*user.SystemUser, error) {
@@ -301,7 +380,7 @@ func (s *AuthService) Authenticate(req *LoginReq) (*user.SystemUser, error) {
 
 func (s *AuthService) CreateMFAChallenge(currentUser *user.SystemUser) (*MFAChallengeResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 	if currentUser == nil || currentUser.ID == 0 {
 		return nil, errors.New("auth.mfa.user_invalid")
@@ -311,7 +390,7 @@ func (s *AuthService) CreateMFAChallenge(currentUser *user.SystemUser) (*MFAChal
 	}
 
 	var factor SystemAuthFactor
-	err := s.db.Where("user_id = ? AND factor_type = ? AND enabled = ?", currentUser.ID, "totp", 1).First(&factor).Error
+	err := s.db.Where(userIDAndFactorTypeEnabledWhereClause, currentUser.ID, "totp", 1).First(&factor).Error
 	setupRequired := errors.Is(err, gorm.ErrRecordNotFound)
 	if err != nil && !setupRequired {
 		return nil, err
@@ -356,96 +435,34 @@ func (s *AuthService) CreateMFAChallenge(currentUser *user.SystemUser) (*MFAChal
 	return resp, nil
 }
 
-func (s *AuthService) VerifyMFAChallenge(req *MFAVerifyReq, ip string, userAgent string) (*AuthTokenResp, error) {
+func (s *AuthService) VerifyMFAChallenge(req *MFAVerifyReq, ip, userAgent string) (*AuthTokenResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 	if req == nil || strings.TrimSpace(req.ChallengeID) == "" {
 		return nil, errors.New("auth.mfa.challenge_required")
 	}
 
-	var challenge SystemAuthMFAChallenge
-	if err := s.db.Where("challenge_id = ?", strings.TrimSpace(req.ChallengeID)).First(&challenge).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("auth.mfa.challenge_invalid")
-		}
+	now := time.Now()
+	challenge, err := s.loadActiveMFAChallenge(strings.TrimSpace(req.ChallengeID), now)
+	if err != nil {
 		return nil, err
 	}
-	if challenge.ConsumedAt != nil || !challenge.ExpiresAt.After(time.Now()) {
-		return nil, errors.New("auth.mfa.challenge_expired")
-	}
 
-	secret := ""
-	if challenge.SetupRequired == 1 {
-		decrypted, err := decryptMFASecret(challenge.SecretEncrypted)
-		if err != nil {
-			return nil, err
-		}
-		secret = decrypted
-	} else {
-		var factor SystemAuthFactor
-		if err := s.db.Where("user_id = ? AND factor_type = ? AND enabled = ?", challenge.UserID, "totp", 1).First(&factor).Error; err != nil {
-			return nil, errors.New("auth.mfa.factor_missing")
-		}
-		decrypted, err := decryptMFASecret(factor.SecretEncrypted)
-		if err != nil {
-			return nil, err
-		}
-		secret = decrypted
+	secret, err := s.loadMFAChallengeSecret(*challenge)
+	if err != nil {
+		return nil, err
 	}
-	if !validateTOTPCode(secret, req.Code, time.Now()) {
+	if !validateTOTPCode(secret, req.Code, now) {
 		return nil, errors.New("auth.mfa.code_invalid")
 	}
 
-	var currentUser user.SystemUser
-	if err := s.db.First(&currentUser, challenge.UserID).Error; err != nil {
+	currentUser, err := s.loadMFAChallengeUser(challenge.UserID)
+	if err != nil {
 		return nil, err
 	}
-	if currentUser.Status == 2 {
-		return nil, errors.New("user.login.error.disabled")
-	}
 
-	now := time.Now()
-	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		if challenge.SetupRequired == 1 {
-			encryptedSecret, err := encryptMFASecret(secret)
-			if err != nil {
-				return err
-			}
-			var factor SystemAuthFactor
-			err = tx.Where("user_id = ? AND factor_type = ?", challenge.UserID, "totp").First(&factor).Error
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				factor = SystemAuthFactor{
-					UserID:          challenge.UserID,
-					FactorType:      "totp",
-					SecretEncrypted: encryptedSecret,
-					Enabled:         1,
-					ConfirmedAt:     &now,
-				}
-				if err := tx.Create(&factor).Error; err != nil {
-					return err
-				}
-			} else if err != nil {
-				return err
-			} else if err := tx.Model(&factor).Updates(map[string]any{
-				"secret_encrypted": encryptedSecret,
-				"enabled":          1,
-				"confirmed_at":     &now,
-			}).Error; err != nil {
-				return err
-			}
-		}
-		result := tx.Model(&SystemAuthMFAChallenge{}).
-			Where("id = ? AND consumed_at IS NULL", challenge.ID).
-			Update("consumed_at", &now)
-		if result.Error != nil {
-			return result.Error
-		}
-		if result.RowsAffected == 0 {
-			return errors.New("auth.mfa.challenge_expired")
-		}
-		return nil
-	}); err != nil {
+	if err := s.finalizeMFAChallenge(*challenge, secret, now); err != nil {
 		return nil, err
 	}
 
@@ -453,7 +470,7 @@ func (s *AuthService) VerifyMFAChallenge(req *MFAVerifyReq, ip string, userAgent
 	if err != nil {
 		return nil, err
 	}
-	tokenPair, err := s.CreateSession(&currentUser, roles, ip, userAgent)
+	tokenPair, err := s.CreateSession(currentUser, roles, ip, userAgent)
 	if err != nil {
 		return nil, err
 	}
@@ -474,17 +491,102 @@ func (s *AuthService) VerifyMFAChallenge(req *MFAVerifyReq, ip string, userAgent
 	}, nil
 }
 
+func (s *AuthService) loadActiveMFAChallenge(challengeID string, now time.Time) (*SystemAuthMFAChallenge, error) {
+	var challenge SystemAuthMFAChallenge
+	if err := s.db.Where("challenge_id = ?", challengeID).First(&challenge).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("auth.mfa.challenge_invalid")
+		}
+		return nil, err
+	}
+	if challenge.ConsumedAt != nil || !challenge.ExpiresAt.After(now) {
+		return nil, errors.New("auth.mfa.challenge_expired")
+	}
+	return &challenge, nil
+}
+
+func (s *AuthService) loadMFAChallengeSecret(challenge SystemAuthMFAChallenge) (string, error) {
+	if challenge.SetupRequired == 1 {
+		return decryptMFASecret(challenge.SecretEncrypted)
+	}
+
+	var factor SystemAuthFactor
+	if err := s.db.Where(userIDAndFactorTypeEnabledWhereClause, challenge.UserID, "totp", 1).First(&factor).Error; err != nil {
+		return "", errors.New("auth.mfa.factor_missing")
+	}
+	return decryptMFASecret(factor.SecretEncrypted)
+}
+
+func (s *AuthService) loadMFAChallengeUser(userID uint64) (*user.SystemUser, error) {
+	var currentUser user.SystemUser
+	if err := s.db.First(&currentUser, userID).Error; err != nil {
+		return nil, err
+	}
+	if currentUser.Status == 2 {
+		return nil, errors.New("user.login.error.disabled")
+	}
+	return &currentUser, nil
+}
+
+func (s *AuthService) finalizeMFAChallenge(challenge SystemAuthMFAChallenge, secret string, now time.Time) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		if challenge.SetupRequired == 1 {
+			encryptedSecret, err := encryptMFASecret(secret)
+			if err != nil {
+				return err
+			}
+			if err := upsertMFAFactor(tx, challenge.UserID, encryptedSecret, now); err != nil {
+				return err
+			}
+		}
+
+		result := tx.Model(&SystemAuthMFAChallenge{}).
+			Where("id = ? AND consumed_at IS NULL", challenge.ID).
+			Update("consumed_at", &now)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return errors.New("auth.mfa.challenge_expired")
+		}
+		return nil
+	})
+}
+
+func upsertMFAFactor(tx *gorm.DB, userID uint64, encryptedSecret string, now time.Time) error {
+	var factor SystemAuthFactor
+	err := tx.Where(userIDAndFactorTypeWhereClause, userID, "totp").First(&factor).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		factor = SystemAuthFactor{
+			UserID:          userID,
+			FactorType:      "totp",
+			SecretEncrypted: encryptedSecret,
+			Enabled:         1,
+			ConfirmedAt:     &now,
+		}
+		return tx.Create(&factor).Error
+	}
+	if err != nil {
+		return err
+	}
+	return tx.Model(&factor).Updates(map[string]any{
+		"secret_encrypted": encryptedSecret,
+		"enabled":          1,
+		"confirmed_at":     &now,
+	}).Error
+}
+
 // GetUserRoles 获取用户角色标识
 func (s *AuthService) GetUserRoles(userID uint64) ([]string, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 
 	var roles []string
 	err := s.db.Table("system_role").
 		Select("system_role.role_key").
 		Joins("JOIN system_user_role ON system_user_role.role_id = system_role.id").
-		Where("system_user_role.user_id = ? AND system_role.status = ?", userID, 1).
+		Where(systemUserRoleUserIDAndStatusWhereClause, userID, 1).
 		Pluck("system_role.role_key", &roles).Error
 	if err != nil {
 		return nil, err
@@ -495,14 +597,14 @@ func (s *AuthService) GetUserRoles(userID uint64) ([]string, error) {
 // GetUserPerms 获取用户按钮/接口权限标识
 func (s *AuthService) GetUserPerms(userID uint64) ([]string, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 
 	var permissionKeys []string
 	err := s.db.Table("system_role_permission").
 		Select("DISTINCT system_role_permission.permission_key").
 		Joins("JOIN system_user_role ON system_user_role.role_id = system_role_permission.role_id").
-		Where("system_user_role.user_id = ? AND system_role_permission.permission_key <> ''", userID).
+		Where(systemUserRoleUserIDAndPermsWhereClause, userID).
 		Pluck("system_role_permission.permission_key", &permissionKeys).Error
 	if err != nil {
 		return nil, err
@@ -513,7 +615,7 @@ func (s *AuthService) GetUserPerms(userID uint64) ([]string, error) {
 // GetCurrentUserInfo 获取当前登录主体信息
 func (s *AuthService) GetCurrentUserInfo(userID uint64) (*UserInfoResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 
 	var currentUser user.SystemUser
@@ -545,7 +647,7 @@ func (s *AuthService) GetCurrentUserInfo(userID uint64) (*UserInfoResp, error) {
 
 func (s *AuthService) UpdateCurrentUserPreferences(userID uint64, req *UserPlatformPreferenceUpdateReq) (*UserPreferenceUpdateResult, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 
 	var currentUser user.SystemUser
@@ -589,7 +691,7 @@ func (s *AuthService) UpdateCurrentUserPreferences(userID uint64, req *UserPlatf
 // UpdatePassword 修改当前登录用户密码
 func (s *AuthService) UpdatePassword(userID uint64, currentSessionID string, req *PasswordUpdateReq) error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return errors.New(errDatabaseNotInitialized)
 	}
 
 	oldPassword := strings.TrimSpace(req.OldPassword)
@@ -621,35 +723,13 @@ func (s *AuthService) UpdatePassword(userID uint64, currentSessionID string, req
 		return err
 	}
 
-	return s.db.Transaction(func(tx *gorm.DB) error {
-		if policy.PasswordHistoryLimit > 0 {
-			if err := tx.Create(&SystemUserPasswordHistory{
-				UserID:       currentUser.ID,
-				PasswordHash: currentUser.Password,
-				ChangedAt:    time.Now(),
-			}).Error; err != nil {
-				return err
-			}
-		}
-		if err := tx.Model(&currentUser).Update("password", string(passwordHash)).Error; err != nil {
-			return err
-		}
-		if strings.TrimSpace(currentSessionID) == "" {
-			return nil
-		}
-		now := time.Now()
-		return tx.Model(&SystemUserSession{}).
-			Where("user_id = ? AND session_id <> ? AND revoked_at IS NULL", userID, currentSessionID).
-			Updates(map[string]interface{}{
-				"revoked_at": &now,
-			}).Error
-	})
+	return s.persistPasswordUpdate(currentUser, userID, currentSessionID, string(passwordHash), policy.PasswordHistoryLimit > 0)
 }
 
 // CreateSession 创建登录会话并签发 token pair
-func (s *AuthService) CreateSession(currentUser *user.SystemUser, roles []string, ip string, userAgent string) (*common.TokenPair, error) {
+func (s *AuthService) CreateSession(currentUser *user.SystemUser, roles []string, ip, userAgent string) (*common.TokenPair, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 	policy := s.getAuthRuntimePolicy()
 	now := time.Now()
@@ -677,13 +757,13 @@ func (s *AuthService) CreateSession(currentUser *user.SystemUser, roles []string
 }
 
 // RefreshSession 轮换 refresh token 并返回新的 token pair
-func (s *AuthService) RefreshSession(claims *common.CustomClaims, ip string, userAgent string) (*common.TokenPair, error) {
+func (s *AuthService) RefreshSession(claims *common.CustomClaims, ip, userAgent string) (*common.TokenPair, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 
 	var session SystemUserSession
-	err := s.db.Where("session_id = ? AND user_id = ?", claims.SessionID, claims.UserID).First(&session).Error
+	err := s.db.Where(sessionIDAndUserIDWhereClause, claims.SessionID, claims.UserID).First(&session).Error
 	if err != nil {
 		return nil, err
 	}
@@ -729,31 +809,32 @@ func (s *AuthService) RevokeSession(sessionID string) error {
 		Updates(map[string]interface{}{"revoked_at": &now}).Error
 }
 
-func (s *AuthService) TouchSessionActivity(sessionID string, userID uint64, ip string, userAgent string) error {
+func (s *AuthService) TouchSessionActivity(sessionID string, userID uint64, ip, userAgent string) error {
 	if s.db == nil || strings.TrimSpace(sessionID) == "" || userID == 0 {
 		return nil
 	}
 
 	now := time.Now()
-	updates := map[string]any{
-		sessionLastActivityColumn: &now,
-	}
-	if clientIP := normalizeSessionClientIP(ip); clientIP != "" {
-		updates[sessionLastIPColumn] = clientIP
-	}
+	clientIP := normalizeSessionClientIP(ip)
+	agent := normalizeSessionUserAgent(userAgent)
 
-	return s.db.Model(&SystemUserSession{}).
-		Where("session_id = ?", sessionID).
-		Where("user_id = ?", userID).
-		Where("revoked_at IS NULL").
-		Where("(last_activity_at IS NULL OR last_activity_at < ?)", now.Add(-1*time.Minute)).
-		Updates(updates).Error
+	return s.db.Exec(
+		touchSessionActivitySQL,
+		now,
+		clientIP,
+		clientIP,
+		agent,
+		agent,
+		sessionID,
+		userID,
+		now.Add(-1*time.Minute),
+	).Error
 }
 
 // ListSessions 获取当前用户会话列表
 func (s *AuthService) ListSessions(userID uint64, currentSessionID string) ([]SessionResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 
 	now := time.Now()
@@ -764,7 +845,7 @@ func (s *AuthService) ListSessions(userID uint64, currentSessionID string) ([]Se
 
 	var sessions []SystemUserSession
 	if err := authsession.ApplyActiveScope(s.db, "", now, policy.SessionIdleMinutes).
-		Where("user_id = ?", userID).
+		Where(userIDWhereClause, userID).
 		Order("created_at desc").
 		Find(&sessions).Error; err != nil {
 		return nil, err
@@ -784,9 +865,9 @@ func (s *AuthService) ListSessions(userID uint64, currentSessionID string) ([]Se
 }
 
 // GetSecurityOverview 获取当前账号安全概览
-func (s *AuthService) GetSecurityOverview(userID uint64, username string, currentSessionID string) (*SecurityOverviewResp, error) {
+func (s *AuthService) GetSecurityOverview(userID uint64, username, currentSessionID string) (*SecurityOverviewResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 	policy := s.getAuthRuntimePolicy()
 	now := time.Now()
@@ -818,7 +899,7 @@ func (s *AuthService) GetSecurityOverview(userID uint64, username string, curren
 
 	var activeSessionCount int64
 	if err := authsession.ApplyActiveScope(s.db.Model(&SystemUserSession{}), "", now, policy.SessionIdleMinutes).
-		Where("user_id = ?", userID).
+		Where(userIDWhereClause, userID).
 		Count(&activeSessionCount).Error; err != nil {
 		return nil, err
 	}
@@ -826,7 +907,7 @@ func (s *AuthService) GetSecurityOverview(userID uint64, username string, curren
 	var lastLoginAt *string
 	var lastLogin SystemLogLogin
 	err = s.db.Where("username = ? AND status = ?", username, 1).
-		Order("login_time desc, id desc").
+		Order(loginTimeDescOrderClause).
 		First(&lastLogin).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
@@ -866,21 +947,21 @@ func (s *AuthService) GetSecurityOverview(userID uint64, username string, curren
 }
 
 // RevokeOwnedSession 吊销当前用户的指定会话
-func (s *AuthService) RevokeOwnedSession(userID uint64, currentSessionID string, targetSessionID string) error {
+func (s *AuthService) RevokeOwnedSession(userID uint64, currentSessionID, targetSessionID string) error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return errors.New(errDatabaseNotInitialized)
 	}
 	if strings.TrimSpace(targetSessionID) == "" {
-		return errors.New("session.invalid")
+		return errors.New(errSessionInvalid)
 	}
 	if targetSessionID == currentSessionID {
-		return errors.New("auth.session.current_revoke_forbidden")
+		return errors.New(errCurrentSessionRevokeForbidden)
 	}
 
 	var session SystemUserSession
-	if err := s.db.Where("session_id = ? AND user_id = ?", targetSessionID, userID).First(&session).Error; err != nil {
+	if err := s.db.Where(sessionIDAndUserIDWhereClause, targetSessionID, userID).First(&session).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("session.invalid")
+			return errors.New(errSessionInvalid)
 		}
 		return err
 	}
@@ -890,7 +971,7 @@ func (s *AuthService) RevokeOwnedSession(userID uint64, currentSessionID string,
 
 	now := time.Now()
 	return s.db.Model(&SystemUserSession{}).
-		Where("session_id = ? AND user_id = ? AND revoked_at IS NULL", targetSessionID, userID).
+		Where(sessionIDAndActiveUserIDWhereClause, targetSessionID, userID).
 		Updates(map[string]interface{}{"revoked_at": &now}).Error
 }
 
@@ -915,29 +996,11 @@ func (s *AuthService) ListLoginLogs(query *LoginLogQuery) (*LoginLogPageResp, er
 
 func (s *AuthService) ListSecurityEvents(query *SecurityEventQuery) (*SecurityEventPageResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 
 	page, pageSize := normalizeSecurityEventPageQuery(query)
-	db := s.db.Model(&SystemAuthSecurityEvent{})
-	if query != nil {
-		if strings.TrimSpace(query.Username) != "" {
-			db = db.Where("username LIKE ?", "%"+strings.TrimSpace(query.Username)+"%")
-		}
-		if strings.TrimSpace(query.EventType) != "" {
-			db = db.Where("event_type = ?", strings.TrimSpace(query.EventType))
-		}
-		if strings.TrimSpace(query.Severity) != "" {
-			db = db.Where("severity = ?", strings.TrimSpace(query.Severity))
-		}
-		if query.Acknowledged != nil {
-			if *query.Acknowledged {
-				db = db.Where("acknowledged_at IS NOT NULL")
-			} else {
-				db = db.Where("acknowledged_at IS NULL")
-			}
-		}
-	}
+	db := applySecurityEventFilters(s.db.Model(&SystemAuthSecurityEvent{}), query)
 
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
@@ -955,9 +1018,31 @@ func (s *AuthService) ListSecurityEvents(query *SecurityEventQuery) (*SecurityEv
 	}, nil
 }
 
+func applySecurityEventFilters(db *gorm.DB, query *SecurityEventQuery) *gorm.DB {
+	if query == nil {
+		return db
+	}
+	if strings.TrimSpace(query.Username) != "" {
+		db = db.Where(usernameLikeWhereClause, "%"+strings.TrimSpace(query.Username)+"%")
+	}
+	if strings.TrimSpace(query.EventType) != "" {
+		db = db.Where("event_type = ?", strings.TrimSpace(query.EventType))
+	}
+	if strings.TrimSpace(query.Severity) != "" {
+		db = db.Where("severity = ?", strings.TrimSpace(query.Severity))
+	}
+	if query.Acknowledged == nil {
+		return db
+	}
+	if *query.Acknowledged {
+		return db.Where("acknowledged_at IS NOT NULL")
+	}
+	return db.Where("acknowledged_at IS NULL")
+}
+
 func (s *AuthService) ExportLoginLogs(query *LoginLogQuery) (*impexp.CSVFile, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 	s.ensureAutomaticLoginLogRetention()
 
@@ -987,9 +1072,9 @@ func (s *AuthService) ExportLoginLogs(query *LoginLogQuery) (*impexp.CSVFile, er
 	}, nil
 }
 
-func (s *AuthService) CleanupLoginLogs(retentionDays int, startedAt string, endedAt string) (int64, error) {
+func (s *AuthService) CleanupLoginLogs(retentionDays int, startedAt, endedAt string) (int64, error) {
 	if s.db == nil {
-		return 0, errors.New("database.not_initialized")
+		return 0, errors.New(errDatabaseNotInitialized)
 	}
 	window, err := parseCleanupWindow(startedAt, endedAt, "auth.login_log.cleanup.range_invalid")
 	if err != nil {
@@ -1012,9 +1097,9 @@ func (s *AuthService) CleanupLoginLogs(retentionDays int, startedAt string, ende
 	return result.RowsAffected, nil
 }
 
-func (s *AuthService) CleanupHistoricSessions(retentionDays int, startedAt string, endedAt string) (int64, error) {
+func (s *AuthService) CleanupHistoricSessions(retentionDays int, startedAt, endedAt string) (int64, error) {
 	if s.db == nil {
-		return 0, errors.New("database.not_initialized")
+		return 0, errors.New(errDatabaseNotInitialized)
 	}
 	window, err := parseCleanupWindow(startedAt, endedAt, "auth.session.cleanup.range_invalid")
 	if err != nil {
@@ -1046,16 +1131,16 @@ func (s *AuthService) CleanupHistoricSessions(retentionDays int, startedAt strin
 
 func (s *AuthService) BatchRevokeSessions(currentSessionID string, sessionIDs []string) (int64, error) {
 	if s.db == nil {
-		return 0, errors.New("database.not_initialized")
+		return 0, errors.New(errDatabaseNotInitialized)
 	}
 
 	normalized := normalizeSessionIDs(sessionIDs)
 	if len(normalized) == 0 {
-		return 0, errors.New("session.invalid")
+		return 0, errors.New(errSessionInvalid)
 	}
 	for _, sessionID := range normalized {
 		if sessionID == currentSessionID {
-			return 0, errors.New("auth.session.current_revoke_forbidden")
+			return 0, errors.New(errCurrentSessionRevokeForbidden)
 		}
 	}
 
@@ -1069,9 +1154,9 @@ func (s *AuthService) BatchRevokeSessions(currentSessionID string, sessionIDs []
 	return result.RowsAffected, nil
 }
 
-func (s *AuthService) AcknowledgeSecurityEvent(eventID uint64, actorID uint64, actorUsername string, note string) error {
+func (s *AuthService) AcknowledgeSecurityEvent(eventID, actorID uint64, actorUsername, note string) error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return errors.New(errDatabaseNotInitialized)
 	}
 	note = strings.TrimSpace(note)
 	if note == "" {
@@ -1129,7 +1214,7 @@ func (s *AuthService) getRetentionOptionsFromSetting(settingKey string, fallback
 	var row struct {
 		SettingValue string `gorm:"column:setting_value"`
 	}
-	if err := s.db.Table("system_setting").Select("setting_value").Where("setting_key = ?", settingKey).Take(&row).Error; err != nil {
+	if err := s.db.Table("system_setting").Select("setting_value").Where(settingKeyWhereClause, settingKey).Take(&row).Error; err != nil {
 		return fallback
 	}
 
@@ -1160,7 +1245,7 @@ func (s *AuthService) getRetentionOptionsFromSetting(settingKey string, fallback
 
 func (s *AuthService) BatchDeleteLoginLogs(ids []uint64) (int64, error) {
 	if s.db == nil {
-		return 0, errors.New("database.not_initialized")
+		return 0, errors.New(errDatabaseNotInitialized)
 	}
 
 	normalized := normalizeUint64IDs(ids)
@@ -1177,7 +1262,7 @@ func (s *AuthService) BatchDeleteLoginLogs(ids []uint64) (int64, error) {
 
 func (s *AuthService) listLoginLogs(query *LoginLogQuery) (*LoginLogPageResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 	s.ensureAutomaticLoginLogRetention()
 
@@ -1186,7 +1271,7 @@ func (s *AuthService) listLoginLogs(query *LoginLogQuery) (*LoginLogPageResp, er
 	page, pageSize := normalizePageQuery(queryPage(query), queryPageSize(query))
 	if query != nil {
 		if strings.TrimSpace(query.Username) != "" {
-			db = db.Where("username LIKE ?", fmt.Sprintf("%%%s%%", strings.TrimSpace(query.Username)))
+			db = db.Where(usernameLikeWhereClause, "%"+strings.TrimSpace(query.Username)+"%")
 		}
 		if query.Status != nil && (*query.Status == 0 || *query.Status == 1) {
 			db = db.Where("status = ?", *query.Status)
@@ -1197,7 +1282,7 @@ func (s *AuthService) listLoginLogs(query *LoginLogQuery) (*LoginLogPageResp, er
 	if err := db.Count(&total).Error; err != nil {
 		return nil, err
 	}
-	if err := db.Order("login_time desc, id desc").Offset((page - 1) * pageSize).Limit(pageSize).Find(&logs).Error; err != nil {
+	if err := db.Order(loginTimeDescOrderClause).Offset((page - 1) * pageSize).Limit(pageSize).Find(&logs).Error; err != nil {
 		return nil, err
 	}
 
@@ -1225,7 +1310,7 @@ func (s *AuthService) listLoginLogs(query *LoginLogQuery) (*LoginLogPageResp, er
 
 func (s *AuthService) listLoginLogsForExport(query *LoginLogQuery) ([]SystemLogLogin, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 	s.ensureAutomaticLoginLogRetention()
 
@@ -1233,13 +1318,13 @@ func (s *AuthService) listLoginLogsForExport(query *LoginLogQuery) ([]SystemLogL
 	db := s.db.Model(&SystemLogLogin{})
 	if query != nil {
 		if strings.TrimSpace(query.Username) != "" {
-			db = db.Where("username LIKE ?", fmt.Sprintf("%%%s%%", strings.TrimSpace(query.Username)))
+			db = db.Where(usernameLikeWhereClause, "%"+strings.TrimSpace(query.Username)+"%")
 		}
 		if query.Status != nil && (*query.Status == 0 || *query.Status == 1) {
 			db = db.Where("status = ?", *query.Status)
 		}
 	}
-	if err := db.Order("login_time desc, id desc").Find(&logs).Error; err != nil {
+	if err := db.Order(loginTimeDescOrderClause).Find(&logs).Error; err != nil {
 		return nil, err
 	}
 	return logs, nil
@@ -1248,7 +1333,7 @@ func (s *AuthService) listLoginLogsForExport(query *LoginLogQuery) ([]SystemLogL
 // ListAllSessions 获取管理员会话列表
 func (s *AuthService) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPageResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, errors.New(errDatabaseNotInitialized)
 	}
 
 	now := time.Now()
@@ -1257,41 +1342,13 @@ func (s *AuthService) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPa
 		return nil, err
 	}
 
-	type sessionRow struct {
-		SessionID        string     `gorm:"column:session_id"`
-		UserID           uint64     `gorm:"column:user_id"`
-		Username         string     `gorm:"column:username"`
-		Nickname         string     `gorm:"column:nickname"`
-		LastIP           string     `gorm:"column:last_ip"`
-		UserAgent        string     `gorm:"column:user_agent"`
-		RefreshExpiresAt time.Time  `gorm:"column:refresh_expires_at"`
-		LastRefreshAt    *time.Time `gorm:"column:last_refresh_at"`
-		LastActivityAt   *time.Time `gorm:"column:last_activity_at"`
-		RevokedAt        *time.Time `gorm:"column:revoked_at"`
-		CreatedAt        time.Time  `gorm:"column:created_at"`
-	}
-
 	page, pageSize := normalizePageQuery(queryPageFromAdminSession(query), queryPageSizeFromAdminSession(query))
 	db := s.db.Table("system_user_session").
 		Select("system_user_session.session_id, system_user_session.user_id, system_user.username, system_user.nickname, system_user_session.last_ip, system_user_session.user_agent, system_user_session.refresh_expires_at, system_user_session.last_refresh_at, system_user_session.last_activity_at, system_user_session.revoked_at, system_user_session.created_at").
 		Joins("LEFT JOIN system_user ON system_user.id = system_user_session.user_id")
-	if query != nil {
-		if strings.TrimSpace(query.Username) != "" {
-			db = db.Where("system_user.username LIKE ?", fmt.Sprintf("%%%s%%", strings.TrimSpace(query.Username)))
-		}
-		if strings.TrimSpace(query.LastIP) != "" {
-			db = db.Where("system_user_session.last_ip LIKE ?", fmt.Sprintf("%%%s%%", strings.TrimSpace(query.LastIP)))
-		}
-		if query.Status != nil {
-			if *query.Status == 1 {
-				db = authsession.ApplyActiveScope(db, "system_user_session", now, policy.SessionIdleMinutes)
-			} else if *query.Status == 2 {
-				db = db.Where("system_user_session.revoked_at IS NOT NULL")
-			}
-		}
-	}
+	db = applyAdminSessionFilters(db, query, now, policy)
 
-	var rows []sessionRow
+	var rows []adminSessionRow
 	if err := db.Order("system_user_session.created_at desc").Scan(&rows).Error; err != nil {
 		return nil, err
 	}
@@ -1301,38 +1358,15 @@ func (s *AuthService) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPa
 	var revokedCount int64
 	for _, row := range rows {
 		clientInfo := parseClientInfo(row.UserAgent)
-		if query != nil {
-			if strings.TrimSpace(query.Browser) != "" && !strings.EqualFold(strings.TrimSpace(query.Browser), clientInfo.Browser) {
-				continue
-			}
-			if strings.TrimSpace(query.OS) != "" && !strings.EqualFold(strings.TrimSpace(query.OS), clientInfo.OS) {
-				continue
-			}
-			if strings.TrimSpace(query.Device) != "" && !strings.EqualFold(strings.TrimSpace(query.Device), clientInfo.Device) {
-				continue
-			}
+		if !matchesAdminSessionFilters(query, clientInfo) {
+			continue
 		}
 		if row.RevokedAt == nil {
 			activeCount++
 		} else {
 			revokedCount++
 		}
-		items = append(items, AdminSessionResp{
-			SessionID:        row.SessionID,
-			UserID:           row.UserID,
-			Username:         row.Username,
-			Nickname:         row.Nickname,
-			LastIP:           row.LastIP,
-			Browser:          clientInfo.Browser,
-			OS:               clientInfo.OS,
-			Device:           clientInfo.Device,
-			UserAgent:        clientInfo.UserAgent,
-			RefreshExpiresAt: row.RefreshExpiresAt.Format(time.RFC3339),
-			LastRefreshAt:    formatNullableTime(row.LastRefreshAt),
-			LastActivityAt:   formatNullableTime(row.LastActivityAt),
-			RevokedAt:        formatNullableTime(row.RevokedAt),
-			CreatedAt:        row.CreatedAt.Format(time.RFC3339),
-		})
+		items = append(items, buildAdminSessionResp(row, clientInfo))
 	}
 
 	total := int64(len(items))
@@ -1355,16 +1389,73 @@ func (s *AuthService) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPa
 	}, nil
 }
 
+func applyAdminSessionFilters(db *gorm.DB, query *AdminSessionQuery, now time.Time, policy authRuntimePolicy) *gorm.DB {
+	if query == nil {
+		return db
+	}
+	if strings.TrimSpace(query.Username) != "" {
+		db = db.Where(systemUserUsernameLikeWhereClause, "%"+strings.TrimSpace(query.Username)+"%")
+	}
+	if strings.TrimSpace(query.LastIP) != "" {
+		db = db.Where("system_user_session.last_ip LIKE ?", "%"+strings.TrimSpace(query.LastIP)+"%")
+	}
+	if query.Status == nil {
+		return db
+	}
+	if *query.Status == 1 {
+		return authsession.ApplyActiveScope(db, "system_user_session", now, policy.SessionIdleMinutes)
+	}
+	if *query.Status == 2 {
+		return db.Where("system_user_session.revoked_at IS NOT NULL")
+	}
+	return db
+}
+
+func matchesAdminSessionFilters(query *AdminSessionQuery, clientInfo ClientInfoResp) bool {
+	if query == nil {
+		return true
+	}
+	if strings.TrimSpace(query.Browser) != "" && !strings.EqualFold(strings.TrimSpace(query.Browser), clientInfo.Browser) {
+		return false
+	}
+	if strings.TrimSpace(query.OS) != "" && !strings.EqualFold(strings.TrimSpace(query.OS), clientInfo.OS) {
+		return false
+	}
+	if strings.TrimSpace(query.Device) != "" && !strings.EqualFold(strings.TrimSpace(query.Device), clientInfo.Device) {
+		return false
+	}
+	return true
+}
+
+func buildAdminSessionResp(row adminSessionRow, clientInfo ClientInfoResp) AdminSessionResp {
+	return AdminSessionResp{
+		SessionID:        row.SessionID,
+		UserID:           row.UserID,
+		Username:         row.Username,
+		Nickname:         row.Nickname,
+		LastIP:           row.LastIP,
+		Browser:          clientInfo.Browser,
+		OS:               clientInfo.OS,
+		Device:           clientInfo.Device,
+		UserAgent:        clientInfo.UserAgent,
+		RefreshExpiresAt: row.RefreshExpiresAt.Format(time.RFC3339),
+		LastRefreshAt:    formatNullableTime(row.LastRefreshAt),
+		LastActivityAt:   formatNullableTime(row.LastActivityAt),
+		RevokedAt:        formatNullableTime(row.RevokedAt),
+		CreatedAt:        row.CreatedAt.Format(time.RFC3339),
+	}
+}
+
 // RevokeAnySession 管理员吊销任意会话
-func (s *AuthService) RevokeAnySession(currentSessionID string, targetSessionID string) error {
+func (s *AuthService) RevokeAnySession(currentSessionID, targetSessionID string) error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return errors.New(errDatabaseNotInitialized)
 	}
 	if strings.TrimSpace(targetSessionID) == "" {
-		return errors.New("session.invalid")
+		return errors.New(errSessionInvalid)
 	}
 	if targetSessionID == currentSessionID {
-		return errors.New("auth.session.current_revoke_forbidden")
+		return errors.New(errCurrentSessionRevokeForbidden)
 	}
 
 	now := time.Now()
@@ -1399,24 +1490,24 @@ func (s *AuthService) getAuthRuntimePolicy() authRuntimePolicy {
 	defer s.settingsMu.RUnlock()
 
 	return authRuntimePolicy{
-		PasswordMinLength:       s.settingsCache["security.password_min_length"],
-		PasswordRequireDigit:    s.settingsCache["security.password_require_digit"] == 1,
-		PasswordRequireUpper:    s.settingsCache["security.password_require_uppercase"] == 1,
-		PasswordHistoryLimit:    s.settingsCache["security.password_history_limit"],
-		PasswordExpireDays:      s.settingsCache["security.password_expire_days"],
-		MaxFailedAttempts:       s.settingsCache["login.max_failed_attempts"],
-		LockMinutes:             s.settingsCache["login.lock_minutes"],
-		SourceMaxFailedAttempts: maxInt(s.settingsCache["login.source_max_failed_attempts"], defaultSourceMaxFailedAttempts),
-		SourceWindowMinutes:     maxInt(s.settingsCache["login.source_window_minutes"], defaultSourceWindowMinutes),
-		SourceLockMinutes:       maxInt(s.settingsCache["login.source_lock_minutes"], defaultSourceLockMinutes),
-		SessionIdleMinutes:      s.settingsCache["login.session_idle_minutes"],
-		MaxActiveSessions:       maxInt(s.settingsCache["login.max_active_sessions_per_user"], defaultMaxActiveSessions),
-		LoginLogRetentionDays:   maxInt(s.settingsCache["audit.login_log_retention_days"], defaultLoginLogRetentionDays),
-		SessionRetentionDays:    maxInt(s.settingsCache["audit.session_retention_days"], defaultSessionRetentionDays),
-		SecurityEventEnabled:    s.settingsCache["login.security_event_enabled"] == 1,
-		CaptchaEnabled:          s.settingsCache["login.captcha_enabled"] == 1,
-		MFAEnabled:              s.settingsCache["login.mfa_enabled"] == 1,
-		SSOEnabled:              s.settingsCache["login.sso_enabled"] == 1,
+		PasswordMinLength:       s.settingsCache[settingPasswordMinLengthKey],
+		PasswordRequireDigit:    s.settingsCache[settingPasswordRequireDigitKey] == 1,
+		PasswordRequireUpper:    s.settingsCache[settingPasswordRequireUpperKey] == 1,
+		PasswordHistoryLimit:    s.settingsCache[settingPasswordHistoryLimitKey],
+		PasswordExpireDays:      s.settingsCache[settingPasswordExpireDaysKey],
+		MaxFailedAttempts:       s.settingsCache[settingMaxFailedAttemptsKey],
+		LockMinutes:             s.settingsCache[settingLockMinutesKey],
+		SourceMaxFailedAttempts: maxInt(s.settingsCache[settingSourceMaxFailedAttemptsKey], defaultSourceMaxFailedAttempts),
+		SourceWindowMinutes:     maxInt(s.settingsCache[settingSourceWindowMinutesKey], defaultSourceWindowMinutes),
+		SourceLockMinutes:       maxInt(s.settingsCache[settingSourceLockMinutesKey], defaultSourceLockMinutes),
+		SessionIdleMinutes:      s.settingsCache[settingSessionIdleMinutesKey],
+		MaxActiveSessions:       maxInt(s.settingsCache[settingMaxActiveSessionsKey], defaultMaxActiveSessions),
+		LoginLogRetentionDays:   maxInt(s.settingsCache[settingLoginLogRetentionDaysKey], defaultLoginLogRetentionDays),
+		SessionRetentionDays:    maxInt(s.settingsCache[settingSessionRetentionDaysKey], defaultSessionRetentionDays),
+		SecurityEventEnabled:    s.settingsCache[settingSecurityEventEnabledKey] == 1,
+		CaptchaEnabled:          s.settingsCache[settingCaptchaEnabledKey] == 1,
+		MFAEnabled:              s.settingsCache[settingMFAEnabledKey] == 1,
+		SSOEnabled:              s.settingsCache[settingSSOEnabledKey] == 1,
 	}
 }
 
@@ -1465,7 +1556,7 @@ func (s *AuthService) ensureAutomaticLoginLogRetention() {
 	s.lastCleanupAt["login_log_retention"] = now
 	s.cleanupMu.Unlock()
 
-	retentionDays := s.getSettingInt("audit.login_log_retention_days", defaultLoginLogRetentionDays)
+	retentionDays := s.getSettingInt(settingLoginLogRetentionDaysKey, defaultLoginLogRetentionDays)
 	if retentionDays <= 0 {
 		retentionDays = defaultLoginLogRetentionDays
 	}
@@ -1492,7 +1583,7 @@ func (s *AuthService) fetchSettingIntFromDB(settingKey string, fallback int) int
 	var rawValue string
 	err := s.db.Table("system_setting").
 		Select("setting_value").
-		Where("setting_key = ?", settingKey).
+		Where(settingKeyWhereClause, settingKey).
 		Limit(1).
 		Pluck("setting_value", &rawValue).Error
 	if err != nil {
@@ -1514,7 +1605,7 @@ func (s *AuthService) fetchSettingBoolFromDB(settingKey string, fallback bool) b
 	var rawValue string
 	err := s.db.Table("system_setting").
 		Select("setting_value").
-		Where("setting_key = ?", settingKey).
+		Where(settingKeyWhereClause, settingKey).
 		Limit(1).
 		Pluck("setting_value", &rawValue).Error
 	if err != nil {
@@ -1528,7 +1619,7 @@ func (s *AuthService) fetchSettingBoolFromDB(settingKey string, fallback bool) b
 	return parsed
 }
 
-func (s *AuthService) ensurePasswordNotRecentlyUsed(userID uint64, newPassword string, currentPasswordHash string, policy authRuntimePolicy) error {
+func (s *AuthService) ensurePasswordNotRecentlyUsed(userID uint64, newPassword, currentPasswordHash string, policy authRuntimePolicy) error {
 	if policy.PasswordHistoryLimit <= 0 {
 		return nil
 	}
@@ -1537,7 +1628,7 @@ func (s *AuthService) ensurePasswordNotRecentlyUsed(userID uint64, newPassword s
 	}
 
 	var rows []SystemUserPasswordHistory
-	if err := s.db.Where("user_id = ?", userID).
+	if err := s.db.Where(userIDWhereClause, userID).
 		Order("changed_at desc, id desc").
 		Limit(policy.PasswordHistoryLimit).
 		Find(&rows).Error; err != nil {
@@ -1579,7 +1670,7 @@ type cleanupWindow struct {
 	EndedAt   time.Time
 }
 
-func parseCleanupWindow(startedAt string, endedAt string, invalidErr string) (*cleanupWindow, error) {
+func parseCleanupWindow(startedAt, endedAt, invalidErr string) (*cleanupWindow, error) {
 	startedAt = strings.TrimSpace(startedAt)
 	endedAt = strings.TrimSpace(endedAt)
 	if startedAt == "" && endedAt == "" {
@@ -1607,7 +1698,7 @@ func (s *AuthService) listRecentSecurityEvents(userID uint64, limit int) []Secur
 		return []SecurityEventResp{}
 	}
 	var events []SystemAuthSecurityEvent
-	if err := s.db.Where("user_id = ?", userID).Order("created_at desc, id desc").Limit(limit).Find(&events).Error; err != nil {
+	if err := s.db.Where(userIDWhereClause, userID).Order("created_at desc, id desc").Limit(limit).Find(&events).Error; err != nil {
 		return []SecurityEventResp{}
 	}
 	return toSecurityEventRespList(events)
@@ -1627,7 +1718,7 @@ func toSecurityEventRespList(events []SystemAuthSecurityEvent) []SecurityEventRe
 			UserAgent:           item.UserAgent,
 			MessageKey:          item.MessageKey,
 			Metadata:            item.Metadata,
-			AcknowledgedAt:      formatOptionalTime(item.AcknowledgedAt),
+			AcknowledgedAt:      formatNullableTime(item.AcknowledgedAt),
 			AcknowledgedBy:      item.AcknowledgedBy,
 			AcknowledgedByUser:  item.AcknowledgedByUser,
 			AcknowledgementNote: item.AcknowledgementNote,
@@ -1635,14 +1726,6 @@ func toSecurityEventRespList(events []SystemAuthSecurityEvent) []SecurityEventRe
 		})
 	}
 	return result
-}
-
-func formatOptionalTime(value *time.Time) *string {
-	if value == nil {
-		return nil
-	}
-	formatted := value.Format(time.RFC3339)
-	return &formatted
 }
 
 func (s *AuthService) passwordExpiresAt(userID uint64, policy authRuntimePolicy) *string {
@@ -1671,7 +1754,7 @@ func (s *AuthService) isPasswordExpired(userID uint64, policy authRuntimePolicy,
 
 func (s *AuthService) passwordLastChangedAt(userID uint64) time.Time {
 	var row SystemUserPasswordHistory
-	if err := s.db.Where("user_id = ?", userID).Order("changed_at desc, id desc").First(&row).Error; err == nil {
+	if err := s.db.Where(userIDWhereClause, userID).Order("changed_at desc, id desc").First(&row).Error; err == nil {
 		return row.ChangedAt
 	}
 	var currentUser user.SystemUser
@@ -1686,7 +1769,7 @@ func (s *AuthService) passwordLastChangedAt(userID uint64) time.Time {
 
 func (s *AuthService) recordFailedLoginAttempt(currentUser *user.SystemUser, policy authRuntimePolicy) (bool, error) {
 	if s.db == nil || currentUser == nil {
-		return false, errors.New("database.not_initialized")
+		return false, errors.New(errDatabaseNotInitialized)
 	}
 
 	nextAttempts := currentUser.FailedLoginAttempts + 1
@@ -1747,6 +1830,17 @@ func (s *AuthService) checkSourceThrottle(sourceKey string, policy authRuntimePo
 	return false, nil
 }
 
+func (s *AuthService) failLoginSourceBlocked(sourceKey string, policy authRuntimePolicy, now time.Time) error {
+	blocked, err := s.recordSourceFailure(sourceKey, policy, now)
+	if err != nil {
+		return err
+	}
+	if blocked {
+		return errors.New(errAuthLoginSourceBlocked)
+	}
+	return nil
+}
+
 func (s *AuthService) recordSourceFailure(sourceKey string, policy authRuntimePolicy, now time.Time) (bool, error) {
 	normalizedKey := strings.TrimSpace(sourceKey)
 	if normalizedKey == "" || policy.SourceMaxFailedAttempts <= 0 {
@@ -1756,34 +1850,38 @@ func (s *AuthService) recordSourceFailure(sourceKey string, policy authRuntimePo
 	var throttle SystemLoginThrottle
 	err := s.db.Where("source_key = ?", normalizedKey).First(&throttle).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		throttle = SystemLoginThrottle{
-			SourceKey:       normalizedKey,
-			FailureCount:    1,
-			WindowStartedAt: &now,
-			LastAttemptAt:   &now,
-		}
-		if policy.SourceMaxFailedAttempts <= 1 {
-			blockedUntil := now.Add(time.Duration(maxInt(policy.SourceLockMinutes, 1)) * time.Minute)
-			throttle.BlockedUntil = &blockedUntil
-		}
-		if err := s.db.Create(&throttle).Error; err != nil {
-			return false, err
-		}
-		return throttle.BlockedUntil != nil && throttle.BlockedUntil.After(now), nil
+		return s.createSourceThrottleFailure(normalizedKey, policy, now)
 	}
 	if err != nil {
 		return false, err
 	}
 
-	if throttle.BlockedUntil != nil && throttle.BlockedUntil.After(now) {
+	if sourceThrottleBlocked(throttle.BlockedUntil, now) {
 		return true, nil
 	}
 
+	return s.updateSourceThrottleFailure(&throttle, policy, now)
+}
+
+func (s *AuthService) createSourceThrottleFailure(sourceKey string, policy authRuntimePolicy, now time.Time) (bool, error) {
+	throttle := SystemLoginThrottle{
+		SourceKey:       sourceKey,
+		FailureCount:    1,
+		WindowStartedAt: &now,
+		LastAttemptAt:   &now,
+		BlockedUntil:    sourceThrottleBlockedUntil(policy, now, policy.SourceMaxFailedAttempts <= 1),
+	}
+	if err := s.db.Create(&throttle).Error; err != nil {
+		return false, err
+	}
+	return sourceThrottleBlocked(throttle.BlockedUntil, now), nil
+}
+
+func (s *AuthService) updateSourceThrottleFailure(throttle *SystemLoginThrottle, policy authRuntimePolicy, now time.Time) (bool, error) {
 	windowStartedAt := throttle.WindowStartedAt
 	if s.isSourceThrottleWindowExpired(windowStartedAt, policy, now) || windowStartedAt == nil {
 		windowStartedAt = &now
-		throttle.FailureCount = 0
-		throttle.BlockedUntil = nil
+		throttle.FailureCount, throttle.BlockedUntil = 0, nil
 	}
 
 	throttle.FailureCount++
@@ -1791,8 +1889,7 @@ func (s *AuthService) recordSourceFailure(sourceKey string, policy authRuntimePo
 	throttle.LastAttemptAt = &now
 
 	if throttle.FailureCount >= policy.SourceMaxFailedAttempts {
-		blockedUntil := now.Add(time.Duration(maxInt(policy.SourceLockMinutes, 1)) * time.Minute)
-		throttle.BlockedUntil = &blockedUntil
+		throttle.BlockedUntil = sourceThrottleBlockedUntil(policy, now, true)
 	}
 
 	if err := s.db.Model(&throttle).Updates(map[string]any{
@@ -1803,7 +1900,7 @@ func (s *AuthService) recordSourceFailure(sourceKey string, policy authRuntimePo
 	}).Error; err != nil {
 		return false, err
 	}
-	return throttle.BlockedUntil != nil && throttle.BlockedUntil.After(now), nil
+	return sourceThrottleBlocked(throttle.BlockedUntil, now), nil
 }
 
 func (s *AuthService) isSourceThrottleWindowExpired(windowStartedAt *time.Time, policy authRuntimePolicy, now time.Time) bool {
@@ -1814,9 +1911,21 @@ func (s *AuthService) isSourceThrottleWindowExpired(windowStartedAt *time.Time, 
 	return windowStartedAt.Add(time.Duration(windowMinutes) * time.Minute).Before(now)
 }
 
+func sourceThrottleBlocked(blockedUntil *time.Time, now time.Time) bool {
+	return blockedUntil != nil && blockedUntil.After(now)
+}
+
+func sourceThrottleBlockedUntil(policy authRuntimePolicy, now time.Time, shouldBlock bool) *time.Time {
+	if !shouldBlock {
+		return nil
+	}
+	blockedUntil := now.Add(time.Duration(maxInt(policy.SourceLockMinutes, 1)) * time.Minute)
+	return &blockedUntil
+}
+
 func (s *AuthService) clearFailedLoginState(userID uint64) error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return errors.New(errDatabaseNotInitialized)
 	}
 	return s.db.Model(&user.SystemUser{}).
 		Where("id = ? AND (failed_login_attempts <> 0 OR login_locked_until IS NOT NULL)", userID).
@@ -1826,7 +1935,7 @@ func (s *AuthService) clearFailedLoginState(userID uint64) error {
 		}).Error
 }
 
-func maxInt(a int, b int) int {
+func maxInt(a, b int) int {
 	if a > b {
 		return a
 	}
@@ -1848,6 +1957,35 @@ func (s *AuthService) issueTokenPair(currentUser *user.SystemUser, roles []strin
 	}
 	session.RefreshExpiresAt = pair.RefreshExpiresAt
 	return pair, nil
+}
+
+func (s *AuthService) persistPasswordUpdate(currentUser user.SystemUser, userID uint64, currentSessionID, passwordHash string, keepHistory bool) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		if keepHistory {
+			if err := tx.Create(&SystemUserPasswordHistory{
+				UserID:       currentUser.ID,
+				PasswordHash: currentUser.Password,
+				ChangedAt:    time.Now(),
+			}).Error; err != nil {
+				return err
+			}
+		}
+		if err := tx.Model(&currentUser).Update("password", passwordHash).Error; err != nil {
+			return err
+		}
+		return revokeOtherUserSessions(tx, userID, currentSessionID)
+	})
+}
+
+func revokeOtherUserSessions(tx *gorm.DB, userID uint64, currentSessionID string) error {
+	if strings.TrimSpace(currentSessionID) == "" {
+		return nil
+	}
+
+	now := time.Now()
+	return tx.Model(&SystemUserSession{}).
+		Where(otherActiveSessionsByUserWhereClause, userID, currentSessionID).
+		Updates(map[string]interface{}{"revoked_at": &now}).Error
 }
 
 func truncateString(value string, length int) string {
@@ -1929,7 +2067,7 @@ func formatNullableTime(value *time.Time) *string {
 	return &formatted
 }
 
-func normalizePageQuery(page int, pageSize int) (int, int) {
+func normalizePageQuery(page, pageSize int) (int, int) {
 	if page <= 0 {
 		page = 1
 	}

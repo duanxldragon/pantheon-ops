@@ -2,7 +2,7 @@ package dynamicmodule
 
 import (
 	"fmt"
-	"pantheon-ops/backend/internal/scaffold"
+	"pantheon-platform/backend/internal/scaffold"
 	"path/filepath"
 	"strings"
 )
@@ -137,7 +137,7 @@ func verifyGeneratedContract(schema scaffold.ModuleSchema) GeneratedModuleVerifi
 func (s *DynamicModuleService) verifyGeneratedFilesWritten(writtenFiles []string) GeneratedModuleVerification {
 	missing := make([]string, 0)
 	for _, relativePath := range writtenFiles {
-		if !generatedPathExists(filepath.Join(s.workspaceRoot, filepath.FromSlash(relativePath))) {
+		if !generatedPathExists(s.workspaceRoot, relativePath) {
 			missing = append(missing, relativePath)
 		}
 	}
@@ -158,8 +158,7 @@ func (s *DynamicModuleService) verifyGeneratedFilesWritten(writtenFiles []string
 }
 
 func (s *DynamicModuleService) verifyRegistryFile(code string, passStatus string, passKey string, relativePath string, fragments ...string) GeneratedModuleVerification {
-	target := filepath.Join(s.workspaceRoot, relativePath)
-	if generatedFileContainsAll(target, fragments...) {
+	if generatedFileContainsAll(s.workspaceRoot, relativePath, fragments...) {
 		return GeneratedModuleVerification{
 			Code:       code,
 			Status:     passStatus,

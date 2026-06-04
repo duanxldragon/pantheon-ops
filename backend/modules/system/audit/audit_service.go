@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"pantheon-ops/backend/internal/middleware"
-	"pantheon-ops/backend/pkg/impexp"
+	"pantheon-platform/backend/internal/middleware"
+	"pantheon-platform/backend/pkg/impexp"
 
 	"gorm.io/gorm"
 )

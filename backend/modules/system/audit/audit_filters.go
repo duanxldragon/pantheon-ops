@@ -3,7 +3,7 @@ package system
 import (
 	"strings"
 
-	"pantheon-ops/backend/internal/middleware"
+	"pantheon-platform/backend/internal/middleware"
 )
 
 const (

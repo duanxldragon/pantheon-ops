@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
 	"mime"
 	"net/http"
 	"os"
@@ -10,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/impexp"
-	uploadpkg "pantheon-ops/backend/pkg/upload"
+	"pantheon-platform/backend/pkg/common"
+	"pantheon-platform/backend/pkg/impexp"
+	uploadpkg "pantheon-platform/backend/pkg/upload"
 )
 
 type SettingHandler struct {
@@ -186,30 +185,28 @@ func (h *SettingHandler) ServeUploadedFile(c *gin.Context) {
 		return
 	}
 
-	objectKey := strings.TrimLeft(c.Param("filepath"), "/")
-	if objectKey == "" {
+	cfg, err := h.uploadService.LoadConfig()
+	if err != nil || cfg.StorageDriver != "local" {
+		common.Fail(c, common.CodeError, "upload.file.not_found")
+		return
+	}
+
+	rootPath, err := filepath.Abs(strings.TrimSpace(cfg.LocalPath))
+	if err != nil {
+		common.Fail(c, common.CodeError, "upload.file.not_found")
+		return
+	}
+
+	objectKey, err := uploadpkg.NormalizeObjectKey(c.Param("filepath"))
+	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, "upload.file.not_found")
 		return
 	}
 
-	filePath, err := h.uploadService.ResolveLocalPath(objectKey)
-	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "upload.file.not_found")
-		return
-	}
-	if _, statErr := os.Stat(filePath); statErr != nil {
-		if errors.Is(statErr, os.ErrNotExist) {
-			common.Fail(c, common.CodeError, "upload.file.not_found")
-			return
-		}
-		common.Fail(c, common.CodeError, "upload.file.read.error")
-		return
-	}
-
-	if contentType := mime.TypeByExtension(strings.ToLower(filepath.Ext(filePath))); contentType != "" {
+	if contentType := mime.TypeByExtension(strings.ToLower(filepath.Ext(objectKey))); contentType != "" {
 		c.Header("Content-Type", contentType)
 	}
-	c.File(filePath)
+	http.ServeFileFS(c.Writer, c.Request, os.DirFS(rootPath), objectKey)
 }
 
 func requestBaseURL(c *gin.Context) string {

@@ -4,10 +4,10 @@ import (
 	"errors"
 	"time"
 
-	auth "pantheon-ops/backend/modules/auth"
-	dynamicmodule "pantheon-ops/backend/modules/system/dynamicmodule"
-	dept "pantheon-ops/backend/modules/system/org/dept"
-	"pantheon-ops/backend/pkg/authsession"
+	auth "pantheon-platform/backend/modules/auth"
+	dynamicmodule "pantheon-platform/backend/modules/system/dynamicmodule"
+	dept "pantheon-platform/backend/modules/system/org/dept"
+	"pantheon-platform/backend/pkg/authsession"
 
 	"gorm.io/gorm"
 )

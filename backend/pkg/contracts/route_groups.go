@@ -1,7 +1,7 @@
 package contracts
 
 import (
-	"pantheon-ops/backend/internal/middleware"
+	"pantheon-platform/backend/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

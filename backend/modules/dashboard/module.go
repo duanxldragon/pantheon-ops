@@ -1,8 +1,8 @@
 package dashboard
 
 import (
-	"pantheon-ops/backend/internal/middleware"
-	"pantheon-ops/backend/pkg/contracts"
+	"pantheon-platform/backend/internal/middleware"
+	"pantheon-platform/backend/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
