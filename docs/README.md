@@ -4,6 +4,8 @@ English version: [README.en.md](./README.en.md)
 
 `pantheon-ops` 是 Pantheon 平台的运维域业务仓库，从 `pantheon-base` 继承底座架构、契约和验收标准。
 
+默认继承方式已经调整为消费 `pantheon-base` 的 foundation release，而不是直接追随 `main`。
+
 本目录只承载本仓库**自有的业务文档**。架构、契约、UI 规范、通用验收等基座级文档全部由 `pantheon-base/docs/` 提供，不在 ops 复制副本。
 
 ---
@@ -14,6 +16,7 @@ English version: [README.en.md](./README.en.md)
 |---|---|
 | [README.md](./README.md) / [README.en.md](./README.en.md) | 仓库入口与推荐阅读顺序 |
 | [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) / [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md) | 与 `pantheon-base` 的继承关系、版本锁定、本地业务范围与 override 边界 |
+| [../.agents/skills/README.zh.md](../.agents/skills/README.zh.md) / [../.agents/skills/README.md](../.agents/skills/README.md) | repo-local Codex skills：继承校验、PR 收口、CI 红灯排查 |
 | [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) / [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.md) | `pantheon-ops` 业务开发与 `base -> ops` 同步的最小任务包模板 |
 | [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) / [designs/BUSINESS_CMDB_MODULE_DESIGN.en.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.en.md) | CMDB 业务模块完整设计（含数据模型、API、UI、字典依赖、验收） |
 | [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) / [designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md) | 安装部署业务模块完整设计 |
@@ -48,7 +51,6 @@ English version: [README.en.md](./README.en.md)
 - `../../pantheon-base/DESIGN.md`
 - `../../pantheon-base/AGENTS.md`
 - `../../pantheon-base/docs/README.md`（base 文档总索引）
-- `../../pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`（base 质量与安全治理策略主文档）
 - `../../pantheon-base/docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md`
 - `../../pantheon-base/docs/contracts/DOCUMENT_METADATA_AND_STATUS.md`
 
