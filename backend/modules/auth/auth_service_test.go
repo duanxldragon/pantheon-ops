@@ -1109,6 +1109,46 @@ func TestAuthService_ListAllSessionsCleansExpiredAndIdleSessions(t *testing.T) {
 	}
 }
 
+func TestAuthService_TouchSessionActivityDoesNotPersistUserAgent(t *testing.T) {
+	db := setupTestDB(t)
+	s := NewAuthService(db)
+	now := time.Now()
+
+	testUser := user.SystemUser{Username: "agent-safety-user", Status: 1}
+	if err := db.Create(&testUser).Error; err != nil {
+		t.Fatalf("seed user: %v", err)
+	}
+	session := SystemUserSession{
+		SessionID:        "agent-safety-session",
+		UserID:           testUser.ID,
+		RefreshJTI:       "agent-safety-jti",
+		RefreshExpiresAt: now.Add(24 * time.Hour),
+		LastActivityAt:   timePtr(now.Add(-2 * time.Minute)),
+		CreatedAt:        now.Add(-time.Hour),
+	}
+	if err := db.Create(&session).Error; err != nil {
+		t.Fatalf("seed session: %v", err)
+	}
+
+	if err := s.TouchSessionActivity(session.SessionID, testUser.ID, "127.0.0.1", "Mozilla/5.0', revoked_at = CURRENT_TIMESTAMP --"); err != nil {
+		t.Fatalf("touch session activity: %v", err)
+	}
+
+	var stored SystemUserSession
+	if err := db.Where("session_id = ?", session.SessionID).First(&stored).Error; err != nil {
+		t.Fatalf("load session: %v", err)
+	}
+	if stored.RevokedAt != nil {
+		t.Fatalf("expected malicious user agent to be stored as data, not executed as SQL")
+	}
+	if stored.UserAgent != "" {
+		t.Fatalf("expected touch endpoint not to persist user agent, got %q", stored.UserAgent)
+	}
+	if stored.LastIP != "127.0.0.1" {
+		t.Fatalf("expected last ip to update, got %s", stored.LastIP)
+	}
+}
+
 func TestAuthService_CreateSessionRevokesOlderActiveSessionsByConfiguredLimit(t *testing.T) {
 	db := setupTestDB(t)
 	s := NewAuthService(db)

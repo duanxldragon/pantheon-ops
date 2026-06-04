@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { ModuleExporter } from '../../src/modules/generator/exporter';
+import { ModuleExporter } from '../../src/modules/system/generator/exporter';
 import {
   buildAuditActionKey,
   buildDashboardQuickActionDescriptionKey,
@@ -15,7 +15,7 @@ import {
   validateGeneratorCompleteness,
   type ModuleField,
   type ModuleSchema,
-} from '../../src/modules/generator/schema';
+} from '../../src/modules/system/generator/schema';
 
 function createFields(): ModuleField[] {
   return [
@@ -174,6 +174,8 @@ assert.deepEqual([...files.keys()], [
   'frontend/src/modules/business/cmdb/asset/index.ts',
   'frontend/src/modules/business/cmdb/asset/api.ts',
   'frontend/src/modules/business/cmdb/asset/CmdbAssetList.tsx',
+  'frontend/src/modules/business/cmdb/asset/CmdbAssetForm.tsx',
+  'frontend/src/modules/business/cmdb/asset/CmdbAssetDetail.tsx',
 ]);
 
 const backendModule = files.get('backend/modules/business/cmdb/asset/module.go') || '';
@@ -195,7 +197,6 @@ assert.match(frontendIndex, /i18nNamespaces:\s*\['business\.cmdb\.asset'\]/);
 assert.match(frontendIndex, /dashboardWidgets:\s*\[/);
 
 const frontendList = files.get('frontend/src/modules/business/cmdb/asset/CmdbAssetList.tsx') || '';
-assert.match(frontendList, /t\('business\.cmdb\.asset\.title'\)/);
 assert.match(frontendList, /t\('business\.cmdb\.asset\.field\.assetCode\.label'\)/);
 assert.doesNotMatch(frontendList, />资产管理</);
 

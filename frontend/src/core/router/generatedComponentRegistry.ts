@@ -1,4 +1,4 @@
-import { type LazyExoticComponent, type ComponentType } from 'react';
+import { lazy, type LazyExoticComponent, type ComponentType } from 'react';
 
 interface RegistryEntry {
 	component: LazyExoticComponent<ComponentType>;
@@ -6,6 +6,13 @@ interface RegistryEntry {
 }
 
 type ComponentLoader = () => Promise<{ default: ComponentType }>;
+
+function defineRegistryEntry(loader: ComponentLoader): RegistryEntry {
+	return {
+		component: lazy(loader),
+		preload: loader,
+	};
+}
 
 export const generatedComponentRegistry = {
 	'business/bizscope/BizScopeList': defineRegistryEntry(() => import('../../modules/business/bizscope/BizScopeList')),
