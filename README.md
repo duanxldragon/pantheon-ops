@@ -6,6 +6,8 @@ Pantheon Ops 是基于 Pantheon Platform 底座拆出的运维管理平台，用
 
 该仓库保留平台底座能力作为业务运行基础，但演进重点放在 `business/cmdb`、`business/deploy` 及后续运维业务模块；通用后台能力的持续演进应回到 `pantheon-platform` 仓库。
 
+默认协作模型已经调整为：`pantheon-ops` 消费 `pantheon-base` 的 foundation release，而不是直接跟随 `pantheon-base/main`。
+
 ## 项目定位
 
 - **平台层**：继承 Pantheon Platform 的应用壳层、路由装配、中间件、平台工作台、跨域聚合视图。
@@ -121,6 +123,12 @@ npm run test:smoke:impexp
 
 # 后台 UI smoke
 npm run test:smoke:backoffice-ui
+
+# 规划消费某个 foundation release
+npm run upgrade:foundation:plan -- --manifest <bundle-root>\\manifest.json --bundle <bundle-root>
+
+# 应用共享 backend 并更新继承锚点
+npm run upgrade:foundation:apply -- --manifest <bundle-root>\\manifest.json --bundle <bundle-root>
 ```
 
 ## 手动 Sonar
@@ -149,6 +157,8 @@ Pantheon Platform 将权限拆成四层：
 
 - [docs/README.md](./docs/README.md)：中文主索引。
 - [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md)：先看继承关系、版本锁定与本地业务范围。
+- `docs/PROJECT_INHERITANCE.md` 中的 `Base release line + Base version` 是当前 consumer 版本锚点。
+- [.agents/skills/README.zh.md](./.agents/skills/README.zh.md)：本仓库的 repo-local Codex skills 入口。
 - [DESIGN.md](./DESIGN.md)：再看仓库级设计边界。
 - [CONTRIBUTING.md](./CONTRIBUTING.md) / [SECURITY.md](./SECURITY.md)：协作与安全规则。
 - 如需英文入口，使用 [README.en.md](./README.en.md) 与 [docs/README.en.md](./docs/README.en.md)。
