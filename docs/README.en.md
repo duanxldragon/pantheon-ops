@@ -4,12 +4,15 @@ Chinese version: [README.md](./README.md)
 
 `pantheon-ops` is the operations-domain business repository built on top of `pantheon-base`. It inherits the base architecture, contracts, and acceptance standards from `pantheon-base`.
 
+The default inheritance mode is now to consume `pantheon-base` foundation releases instead of tracking `main` directly.
+
 This directory contains only repository-owned business documents. Architecture, contracts, UI rules, and shared acceptance documents should come directly from `pantheon-base/docs/` and must not be duplicated into ops.
 
 ## Repository-Owned Documents
 
 - [README.md](./README.md) / [README.en.md](./README.en.md): repo entry and reading order
 - [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) / [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md): inheritance relationship, version pin, local business scope, and override boundaries
+- [../.agents/skills/README.zh.md](../.agents/skills/README.zh.md) / [../.agents/skills/README.md](../.agents/skills/README.md): repo-local Codex skills for inheritance checks, PR closure, and CI triage
 - [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) / [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.md): minimum task-packet template for business work and `base -> ops` sync
 - [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) / [designs/BUSINESS_CMDB_MODULE_DESIGN.en.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.en.md): CMDB business-module design
 - [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) / [designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md): deploy business-module design
@@ -45,8 +48,7 @@ Then read foundation docs directly in `pantheon-base`:
 1. `../../pantheon-base/DESIGN.md`
 2. `../../pantheon-base/AGENTS.md`
 3. `../../pantheon-base/docs/README.md`
-4. `../../pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`
-5. matching base contracts, designs, and acceptance docs
+4. matching base contracts, designs, and acceptance docs
 
 ## Governance Rule
 
