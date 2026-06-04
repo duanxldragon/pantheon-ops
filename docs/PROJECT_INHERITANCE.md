@@ -4,12 +4,14 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
 这份文件用于说明 `pantheon-ops` 如何继承 `pantheon-base`，以及本仓库本地允许扩展的范围。
 
+默认规则已经从“跟随 base/main”调整为“消费 base foundation release”。`main` 可以继续承载优化和治理工作，但 ops 默认只升级到显式 release/tag。
+
 ## 1. 继承源
 
 - Base repository：当前继承源是 `../pantheon-base`
-- Base branch：当前跟随 `main`
+- Base release line：当前跟随 `release/0.8`
 - Base version：当前锁定到 `0b06ee4`（`0b06ee40ae2a281bf2a0004343368599a326bc67`）
-- Inheritance mode：`foundation-only`，表示 ops 继承底座规则，本地只扩展业务域
+- Inheritance mode：`foundation-release-consumer`，表示 ops 消费底座 release，本地只扩展业务域
 
 ## 2. 继承的底座规则
 
@@ -30,6 +32,13 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 4. `../pantheon-base/docs/README.md`
 5. 对应的 base contracts、designs 和 acceptance docs
 6. 本仓库对应 `docs/designs/BUSINESS_*` 和 `docs/acceptances/BUSINESS_*`
+
+本仓库自己的 repo-local workflow skills 位于 `.agents/skills/`，主要用于：
+
+- `repo-verify`：把业务改动或继承改动映射到最小验证矩阵
+- `repo-pr-gate`：统一 PR 收口、落点说明和高风险门禁
+- `repo-ci-triage`：把 GitHub Actions 红灯映射回本地复现命令
+- `gh-fix-ci`：在 hosted run 级别继续排查 CI 红灯
 
 ## 4. 本地业务范围
 
@@ -57,6 +66,14 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 ## 6.1 Base First 同步机制
 
 涉及平台底座、共享后台壳层、共享前端组件、上传能力、分页能力、通用表格行为时，先改 base，再同步 ops，最后叠加业务模块改动。
+
+这里的“同步”后续默认理解为：
+
+- 选择一个新的 `pantheon-base` foundation release
+- 升级 ops 所消费的 release 版本
+- 再修复 business overlay 与新底座 release 的真实断点
+
+而不是长期直接跟随 `main` 做文件漂移同步。
 
 已按此规则处理的共享项包括：
 
@@ -164,6 +181,7 @@ npm run build
 常用本地命令：
 
 - `npm run check:inheritance`：一键检查 task packet 模板、继承契约、共享 backend 对齐状态
+- `npm run check:base-sync`：检查共享 backend + frontend 是否与 base 对齐
 
 ## 7. 运行时隔离
 
