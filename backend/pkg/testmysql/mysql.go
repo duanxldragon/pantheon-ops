@@ -3,10 +3,10 @@ package testmysql
 import (
 	"database/sql"
 	"fmt"
-	"math/rand"
 	"os"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -44,11 +44,15 @@ func Open(t *testing.T) *gorm.DB {
 	t.Cleanup(func() { _ = adminDB.Close() })
 
 	testDBName := buildTestDBName(cfg.DBName, t.Name())
-	if _, err := adminDB.Exec(fmt.Sprintf("CREATE DATABASE `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci", testDBName)); err != nil {
+	quotedTestDBName, err := quoteDatabaseIdentifier(testDBName)
+	if err != nil {
+		t.Fatalf("build test database name: %v", err)
+	}
+	if _, err := adminDB.Exec(fmt.Sprintf("CREATE DATABASE %s CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci", quotedTestDBName)); err != nil {
 		t.Fatalf("create test database %s: %v", testDBName, err)
 	}
 	t.Cleanup(func() {
-		_, _ = adminDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS `%s`", testDBName))
+		_, _ = adminDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", quotedTestDBName))
 	})
 
 	testCfg := *cfg
@@ -80,21 +84,31 @@ func Open(t *testing.T) *gorm.DB {
 }
 
 var testDBNameSanitizer = regexp.MustCompile(`[^a-z0-9]+`)
+var testDBIdentifierPattern = regexp.MustCompile(`^[a-z0-9_]+$`)
+var testDBSequence uint64
+
+func sanitizeDBNameSegment(value string, fallback string) string {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	normalized = strings.ReplaceAll(normalized, "/", "_")
+	normalized = testDBNameSanitizer.ReplaceAllString(normalized, "_")
+	normalized = strings.Trim(normalized, "_")
+	if normalized == "" {
+		return fallback
+	}
+	return normalized
+}
+
+func quoteDatabaseIdentifier(name string) (string, error) {
+	if !testDBIdentifierPattern.MatchString(name) {
+		return "", fmt.Errorf("invalid database identifier %q", name)
+	}
+	return "`" + name + "`", nil
+}
 
 func buildTestDBName(base string, testName string) string {
-	normalizedBase := strings.ToLower(strings.TrimSpace(base))
-	if normalizedBase == "" {
-		normalizedBase = "pantheon"
-	}
-	normalizedName := strings.ToLower(strings.TrimSpace(testName))
-	normalizedName = strings.ReplaceAll(normalizedName, "/", "_")
-	normalizedName = testDBNameSanitizer.ReplaceAllString(normalizedName, "_")
-	normalizedName = strings.Trim(normalizedName, "_")
-	if normalizedName == "" {
-		normalizedName = "test"
-	}
-
-	suffix := fmt.Sprintf("%d_%04d", time.Now().UnixNano(), rand.Intn(10000))
+	normalizedBase := sanitizeDBNameSegment(base, "pantheon")
+	normalizedName := sanitizeDBNameSegment(testName, "test")
+	suffix := fmt.Sprintf("%d_%06d", time.Now().UnixNano(), atomic.AddUint64(&testDBSequence, 1)%1_000_000)
 	name := fmt.Sprintf("%s_%s_%s", normalizedBase, normalizedName, suffix)
 	if len(name) > 60 {
 		name = name[:60]

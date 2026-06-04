@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import test from 'node:test';
 
 import { ModuleExporter } from '../../src/modules/system/generator/exporter';
 import {
@@ -161,78 +162,80 @@ function assertCompletenessPasses(schema: ModuleSchema) {
   assert.deepEqual(blockingIssues, []);
 }
 
-const schema = createSchema();
-const files = generatedFiles(schema);
+test('generator emits expected business main-table contract', () => {
+  const schema = createSchema();
+  const files = generatedFiles(schema);
 
-assertCompletenessPasses(schema);
-assert.deepEqual([...files.keys()], [
-  'backend/modules/business/cmdb/asset/asset_model.go',
-  'backend/modules/business/cmdb/asset/asset_dto.go',
-  'backend/modules/business/cmdb/asset/asset_service.go',
-  'backend/modules/business/cmdb/asset/asset_handler.go',
-  'backend/modules/business/cmdb/asset/module.go',
-  'frontend/src/modules/business/cmdb/asset/index.ts',
-  'frontend/src/modules/business/cmdb/asset/api.ts',
-  'frontend/src/modules/business/cmdb/asset/CmdbAssetList.tsx',
-  'frontend/src/modules/business/cmdb/asset/CmdbAssetForm.tsx',
-  'frontend/src/modules/business/cmdb/asset/CmdbAssetDetail.tsx',
-]);
+  assertCompletenessPasses(schema);
+  assert.deepEqual([...files.keys()], [
+    'backend/modules/business/cmdb/asset/asset_model.go',
+    'backend/modules/business/cmdb/asset/asset_dto.go',
+    'backend/modules/business/cmdb/asset/asset_service.go',
+    'backend/modules/business/cmdb/asset/asset_handler.go',
+    'backend/modules/business/cmdb/asset/module.go',
+    'frontend/src/modules/business/cmdb/asset/index.ts',
+    'frontend/src/modules/business/cmdb/asset/api.ts',
+    'frontend/src/modules/business/cmdb/asset/CmdbAssetList.tsx',
+    'frontend/src/modules/business/cmdb/asset/CmdbAssetForm.tsx',
+    'frontend/src/modules/business/cmdb/asset/CmdbAssetDetail.tsx',
+  ]);
 
-const backendModule = files.get('backend/modules/business/cmdb/asset/module.go') || '';
-assert.match(backendModule, /ModuleName:\s+"business\.cmdb\.asset"/);
-assert.match(backendModule, /PagePerm:\s+"business:cmdb:asset:list"/);
-assert.match(backendModule, /Perms:\s+"business:cmdb:asset:create"/);
-assert.match(backendModule, /Key:\s+"business\.cmdb\.asset\.field\.assetCode\.label"/);
-assert.match(backendModule, /Key:\s+"business\.cmdb\.asset\.audit\.create"/);
+  const backendModule = files.get('backend/modules/business/cmdb/asset/module.go') || '';
+  assert.match(backendModule, /ModuleName:\s+"business\.cmdb\.asset"/);
+  assert.match(backendModule, /PagePerm:\s+"business:cmdb:asset:list"/);
+  assert.match(backendModule, /Perms:\s+"business:cmdb:asset:create"/);
+  assert.match(backendModule, /Key:\s+"business\.cmdb\.asset\.field\.assetCode\.label"/);
+  assert.match(backendModule, /Key:\s+"business\.cmdb\.asset\.audit\.create"/);
 
-const backendService = files.get('backend/modules/business/cmdb/asset/asset_service.go') || '';
-assert.match(backendService, /database\.WithDataScope\(dataScope\)/);
-assert.doesNotMatch(backendService, /backend\/modules\/system\//);
+  const backendService = files.get('backend/modules/business/cmdb/asset/asset_service.go') || '';
+  assert.match(backendService, /database\.WithDataScope\(dataScope\)/);
+  assert.doesNotMatch(backendService, /backend\/modules\/system\//);
 
-const frontendIndex = files.get('frontend/src/modules/business/cmdb/asset/index.ts') || '';
-assert.match(frontendIndex, /routes:\s*\[/);
-assert.match(frontendIndex, /menus:\s*\[/);
-assert.match(frontendIndex, /permissions:\s*\[/);
-assert.match(frontendIndex, /i18nNamespaces:\s*\['business\.cmdb\.asset'\]/);
-assert.match(frontendIndex, /dashboardWidgets:\s*\[/);
+  const frontendIndex = files.get('frontend/src/modules/business/cmdb/asset/index.ts') || '';
+  assert.match(frontendIndex, /routes:\s*\[/);
+  assert.match(frontendIndex, /menus:\s*\[/);
+  assert.match(frontendIndex, /permissions:\s*\[/);
+  assert.match(frontendIndex, /i18nNamespaces:\s*\['business\.cmdb\.asset'\]/);
+  assert.match(frontendIndex, /dashboardWidgets:\s*\[/);
 
-const frontendList = files.get('frontend/src/modules/business/cmdb/asset/CmdbAssetList.tsx') || '';
-assert.match(frontendList, /t\('business\.cmdb\.asset\.field\.assetCode\.label'\)/);
-assert.doesNotMatch(frontendList, />资产管理</);
-
-const relationSchema = createSchema({
-  name: 'cmdb/asset_vendor',
-  displayName: '资产供应商关系',
-  displayNameEn: 'Asset Vendor Relation',
-  pageActions: [],
-  dependencies: [],
-  relations: [],
-  metadata: {
-    businessContext: 'cmdb',
-    businessContextTitle: 'CMDB',
-    businessContextTitleEn: 'CMDB',
-    tableRole: 'relation',
-    primaryTable: 'biz_cmdb_asset',
-    relationFromField: 'asset_id',
-    relationToField: 'vendor_id',
-  },
-  model: {
-    tableName: 'biz_cmdb_asset_vendor',
-    modelName: 'CmdbAssetVendor',
-    fields: createFields(),
-  },
-  includeDashboardWidget: true,
+  const frontendList = files.get('frontend/src/modules/business/cmdb/asset/CmdbAssetList.tsx') || '';
+  assert.match(frontendList, /t\('business\.cmdb\.asset\.field\.assetCode\.label'\)/);
+  assert.doesNotMatch(frontendList, />资产管理</);
 });
-const relationFiles = generatedFiles(relationSchema);
-const relationIndex = relationFiles.get('frontend/src/modules/business/cmdb/asset_vendor/index.ts') || '';
-const relationModule = relationFiles.get('backend/modules/business/cmdb/asset_vendor/module.go') || '';
 
-assertCompletenessPasses(relationSchema);
-assert.match(relationIndex, /routes:\s*\[\]/);
-assert.match(relationIndex, /menus:\s*\[\]/);
-assert.match(relationIndex, /permissions:\s*\[\]/);
-assert.doesNotMatch(relationIndex, /dashboardWidgets:/);
-assert.doesNotMatch(relationModule, /PagePerm:/);
-assert.doesNotMatch(relationModule, /Perms:/);
+test('relation table contract omits navigation and permission bindings', () => {
+  const relationSchema = createSchema({
+    name: 'cmdb/asset_vendor',
+    displayName: '资产供应商关系',
+    displayNameEn: 'Asset Vendor Relation',
+    pageActions: [],
+    dependencies: [],
+    relations: [],
+    metadata: {
+      businessContext: 'cmdb',
+      businessContextTitle: 'CMDB',
+      businessContextTitleEn: 'CMDB',
+      tableRole: 'relation',
+      primaryTable: 'biz_cmdb_asset',
+      relationFromField: 'asset_id',
+      relationToField: 'vendor_id',
+    },
+    model: {
+      tableName: 'biz_cmdb_asset_vendor',
+      modelName: 'CmdbAssetVendor',
+      fields: createFields(),
+    },
+    includeDashboardWidget: true,
+  });
+  const relationFiles = generatedFiles(relationSchema);
+  const relationIndex = relationFiles.get('frontend/src/modules/business/cmdb/asset_vendor/index.ts') || '';
+  const relationModule = relationFiles.get('backend/modules/business/cmdb/asset_vendor/module.go') || '';
 
-console.log('generator quality contract tests passed');
+  assertCompletenessPasses(relationSchema);
+  assert.match(relationIndex, /routes:\s*\[\]/);
+  assert.match(relationIndex, /menus:\s*\[\]/);
+  assert.match(relationIndex, /permissions:\s*\[\]/);
+  assert.doesNotMatch(relationIndex, /dashboardWidgets:/);
+  assert.doesNotMatch(relationModule, /PagePerm:/);
+  assert.doesNotMatch(relationModule, /Perms:/);
+});
