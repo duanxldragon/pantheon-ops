@@ -8,7 +8,10 @@
     "check:inheritance-contract": "node scripts/check-inheritance-contract.mjs",
     "check:docs-frontmatter": "node scripts/frontmatter-check.mjs",
     "check:task-packet-template": "node scripts/check-task-packet-template.mjs",
-    "check:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs --check"
+    "check:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs --check",
+    "upgrade:foundation:plan": "node scripts/foundation-release/consume-foundation-release.mjs --check",
+    "upgrade:foundation:apply": "node scripts/foundation-release/consume-foundation-release.mjs --apply-shared-backend --update-inheritance-docs --check",
+    "test:foundation-release": "node --test tests/scripts/foundation-release/*.test.mjs"
   },
   "devDependencies": {
     "playwright": "^1.60.0"
