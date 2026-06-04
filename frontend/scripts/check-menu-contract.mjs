@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
+import { loadResourceModule } from './lib/load-resource-module.mjs';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const workspaceRoot = path.resolve(path.dirname(currentFilePath), '..', '..');
@@ -24,36 +24,6 @@ const frontendGeneratedI18nRoot = path.join(workspaceRoot, 'frontend', 'src', 'i
 
 function readFile(filePath) {
   return fs.readFileSync(filePath, 'utf8');
-}
-
-function loadResourceModule(modulePath, cache = new Map()) {
-  const resolvedPath = path.resolve(modulePath);
-  if (cache.has(resolvedPath)) {
-    return cache.get(resolvedPath);
-  }
-
-  const source = readFile(resolvedPath);
-  const importMatches = [...source.matchAll(/import\s+([A-Za-z0-9_$]+)\s+from\s+['"](.+?)['"];?/g)];
-  const importedBindings = {};
-
-  for (const [, localName, specifier] of importMatches) {
-    const nextPath = path.resolve(path.dirname(resolvedPath), `${specifier}.ts`);
-    importedBindings[localName] = loadResourceModule(nextPath, cache);
-  }
-
-  const sanitized = source
-    .replace(/import\s+[A-Za-z0-9_$]+\s+from\s+['"].+?['"];?\s*/g, '')
-    .replace(/export default\s+([A-Za-z0-9_$]+);?\s*$/m, 'module.exports = $1;');
-
-  const context = {
-    module: { exports: {} },
-    exports: {},
-    ...importedBindings,
-  };
-
-  vm.runInNewContext(sanitized, context, { filename: resolvedPath });
-  cache.set(resolvedPath, context.module.exports);
-  return context.module.exports;
 }
 
 function walkFiles(dirPath, matcher, bucket = []) {

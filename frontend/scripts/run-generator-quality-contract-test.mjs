@@ -5,7 +5,7 @@ import ts from 'typescript';
 
 const rootDir = dirname(fileURLToPath(import.meta.url));
 const frontendDir = join(rootDir, '..');
-const testDir = join(frontendDir, 'node_modules', '.tmp', 'generator-quality-contract-test');
+const testDir = join(frontendDir, '.tmp', 'generator-quality-contract-test');
 
 const files = [
   'src/modules/system/generator/schema.ts',
