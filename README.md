@@ -133,14 +133,14 @@ npm run upgrade:foundation:apply -- --manifest <bundle-root>\\manifest.json --bu
 
 ## 手动 Sonar
 
-Sonar 仅作为本地辅助审查工具，不参与 GitHub required checks。
+Sonar 仅作为辅助审查工具，不参与 GitHub required checks。CodeQL 负责安全主信号，Codacy 如果出现也只看作参考仪表盘。
 
 ```powershell
 Set-Content pantheon-sonarcloud.env "SONAR_HOST_URL=https://sonarcloud.io`nSONAR_TOKEN=..."
 ./scripts/run-sonar.ps1
 ```
 
-扫描结果上传后，直接在 SonarCloud 仪表盘查看热点、重复率和新代码问题。
+扫描结果上传后，直接在 SonarCloud 仪表盘查看热点、重复率和新代码问题。更完整的门禁策略见 `pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`。
 
 ## 权限模型摘要
 
@@ -161,6 +161,7 @@ Pantheon Platform 将权限拆成四层：
 - [.agents/skills/README.zh.md](./.agents/skills/README.zh.md)：本仓库的 repo-local Codex skills 入口。
 - [DESIGN.md](./DESIGN.md)：再看仓库级设计边界。
 - [CONTRIBUTING.md](./CONTRIBUTING.md) / [SECURITY.md](./SECURITY.md)：协作与安全规则。
+- `pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`：质量与安全治理策略主文档。
 - 如需英文入口，使用 [README.en.md](./README.en.md) 与 [docs/README.en.md](./docs/README.en.md)。
 
 ## 推荐阅读顺序

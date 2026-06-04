@@ -45,7 +45,8 @@ Then read foundation docs directly in `pantheon-base`:
 1. `../../pantheon-base/DESIGN.md`
 2. `../../pantheon-base/AGENTS.md`
 3. `../../pantheon-base/docs/README.md`
-4. matching base contracts, designs, and acceptance docs
+4. `../../pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`
+5. matching base contracts, designs, and acceptance docs
 
 ## Governance Rule
 

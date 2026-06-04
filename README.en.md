@@ -71,4 +71,5 @@ npm run upgrade:foundation:apply -- --manifest <bundle-root>\manifest.json --bun
 - `Base release line + Base version` inside `docs/PROJECT_INHERITANCE.md` is the current consumer-version anchor
 - [.agents/skills/README.md](./.agents/skills/README.md): repository-local Codex workflow skills
 - [DESIGN.md](./DESIGN.md): repo-level design stance
+- `../pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`: shared code-quality and security governance strategy
 - [docs/README.en.md](./docs/README.en.md) and [docs/PROJECT_INHERITANCE.en.md](./docs/PROJECT_INHERITANCE.en.md): English companion entry points

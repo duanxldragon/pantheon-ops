@@ -48,6 +48,7 @@ English version: [README.en.md](./README.en.md)
 - `../../pantheon-base/DESIGN.md`
 - `../../pantheon-base/AGENTS.md`
 - `../../pantheon-base/docs/README.md`（base 文档总索引）
+- `../../pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`（base 质量与安全治理策略主文档）
 - `../../pantheon-base/docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md`
 - `../../pantheon-base/docs/contracts/DOCUMENT_METADATA_AND_STATUS.md`
 
