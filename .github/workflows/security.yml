@@ -60,7 +60,7 @@ jobs:
 
       - name: Upload dependency reports
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: security-dependency-reports
           path: security-reports/
@@ -90,7 +90,7 @@ jobs:
 
       - name: Upload secret reports
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: security-secret-reports
           path: security-reports/
@@ -120,7 +120,7 @@ jobs:
 
       - name: Report repository security scorecard
         continue-on-error: true
-        uses: ossf/scorecard-action@v2.4.0
+        uses: ossf/scorecard-action@v2.4.3
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           results_file: security-reports/scorecard.json
@@ -129,7 +129,7 @@ jobs:
 
       - name: Upload workflow posture reports
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: security-workflow-posture-reports
           path: security-reports/
