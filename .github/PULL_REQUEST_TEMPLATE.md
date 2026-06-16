@@ -19,24 +19,21 @@
 - [ ] 系统页 smoke：`cd frontend && npm run test:smoke:system`
 - [ ] 角色授权 smoke：`cd frontend && npm run test:smoke:role-auth`
 - [ ] 其他专项验证已补充
-- [ ] 如需 SonarQube，仅完成手动辅助检查（非门禁）
 - [ ] CodeQL 结果已检查并解释
-- [ ] Codacy（如出现）仅作为参考，未作为门禁
 - [ ] GitHub required checks 通过
-- [ ] 独立 reviewer 已完成且非作者自审
+- [ ] Copilot review 已请求，或已说明当前仓库/账号不可用
+- [ ] 已启用或确认将启用 squash auto-merge
 
 补充说明：
 
 ## 审核留痕
 
-- 独立 reviewer：
-- CODEOWNERS 命中：
+- Copilot review：requested / automatic-policy / unavailable
 - CodeQL 结果：
-- 如有手动 Sonar 结果链接：
-- 如有 Codacy 结果，仅记录为参考：
 - GitHub checks 结果：
+- Auto-merge：enabled / not-enabled / not-applicable
 - 是否高风险改动：
-- 若高风险，第二审批人：
+- Residual risk / follow-up：
 
 ## 检查清单
 
@@ -46,4 +43,4 @@
 - [ ] 菜单、页面授权、操作授权、接口授权边界保持清晰
 - [ ] 涉及数据库/权限/菜单/接口变更时，文档已同步
 - [ ] 已确认不会泄露敏感配置、账号密码或 Token
-- [ ] 已确认不是作者自审替代第三方审核
+- [ ] 已确认本次 PR 由 GitHub required checks、CodeQL 和分支保护负责最终合并门禁
