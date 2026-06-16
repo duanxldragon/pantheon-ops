@@ -10,7 +10,6 @@ Thumbs.db
 .env
 .env.*
 !.env.example
-pantheon-sonarcloud.env
 
 # Logs
 *.log
