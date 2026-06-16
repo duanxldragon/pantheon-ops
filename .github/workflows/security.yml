@@ -247,3 +247,4 @@ jobs:
              [ "${CODEQL_SECURITY_SCAN_RESULT}" != "success" ] || \
              [ "${CODEQL_ALERT_RESULT}" != "success" ]; then
             exit 1
+          fi
