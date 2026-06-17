@@ -30,9 +30,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          if gh pr edit "$PR_NUMBER" --add-reviewer "@copilot"; then
+          if gh pr edit "$PR_NUMBER" --repo "$GH_REPO" --add-reviewer "@copilot"; then
             echo "Copilot review requested for PR #${PR_NUMBER}."
           else
             echo "Copilot review is unavailable or already requested; continuing without blocking."
@@ -43,6 +44,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          gh pr merge "$PR_NUMBER" --auto --squash
+          gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --auto --squash

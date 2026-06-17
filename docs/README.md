@@ -33,6 +33,7 @@ English version: [README.en.md](./README.en.md)
 - 中文 `.md` 仍是本仓库主阅读面。
 - `.en.md` companion 用于国际协作、外部分享和后续扩展。
 - `PROJECT_INHERITANCE` 已切换到与其余文档一致的模式：`PROJECT_INHERITANCE.md` 为中文主入口，`PROJECT_INHERITANCE.en.md` 为英文 companion。
+- GitHub 协作默认走原生 PR 自动化：`Quality Gates`、`Security Gates`、Copilot review 请求（可用时）与 squash auto-merge，不再依赖 Sonar/Codacy/OCR 门禁。
 
 建议实际阅读时先看：
 
