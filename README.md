@@ -138,7 +138,7 @@ npm run upgrade:foundation:apply -- --manifest <bundle-root>\\manifest.json --bu
 - `Quality Gates`：文档治理、前端契约、后端测试
 - `Security Gates`：secret scan、workflow posture、dependency reports、CodeQL scan 与 CodeQL alert gate
 
-CodeQL 是唯一主安全信号。代码质量由 GitHub required checks、CodeQL、分支保护和可选的 Copilot review 共同兜底；不再依赖 Codacy 或 OCR 作为合并门禁。更完整的策略见 `pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`。
+CodeQL 是唯一主安全信号。代码质量由 GitHub required checks、CodeQL、分支保护和可选的 Copilot review 共同兜底；不再依赖 Sonar、Codacy 或 OCR 作为合并门禁。当前 `main` 分支保护只要求 `Quality Gates` 与 `Security Gates`，并关闭 strict up-to-date 要求，以适配单人维护下的 squash auto-merge。更完整的策略见 `pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`。
 
 ## 权限模型摘要
 
