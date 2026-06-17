@@ -1,0 +1,104 @@
+{
+  "taskId": "2026-06-17-github-governance-followup",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": ".agents/adapters/codex.md"
+  },
+  "commands": [
+    {
+      "command": "node --test tests/scripts/check-pr-governance.test.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "PR governance validator regression tests passed."
+    },
+    {
+      "command": "node --test tests/scripts/check-duplication.test.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Duplication gate regression tests passed."
+    },
+    {
+      "command": "npm run check:pr-governance",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Repository PR governance template check passed."
+    },
+    {
+      "command": "npm run check:docs-frontmatter",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Repository docs frontmatter check passed."
+    },
+    {
+      "command": "npm run check:task-packet-template",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Task packet template linkage check passed."
+    },
+    {
+      "command": "npm run check:generated-modules",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Generated module hygiene check passed."
+    },
+    {
+      "command": "node scripts/check-pr-governance.mjs --event .tmp-pr-event.json",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Synthetic pull_request payload confirms the PR body satisfies the governance validator."
+    },
+    {
+      "command": "C:\\Users\\xiaolong\\AppData\\Roaming\\Python\\Python312\\Scripts\\zizmor.exe --format plain .github/workflows",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Workflow posture scan reports no findings after pinning actions and disabling credential persistence."
+    },
+    {
+      "command": "npm run check:inheritance",
+      "cwd": "pantheon-ops",
+      "status": "failed",
+      "durationMs": 0,
+      "notes": "Current repo baseline still has shared backend drift against pantheon-base; this governance-only PR records the gap and avoids treating it as an unconditional blocker."
+    }
+  ],
+  "graphChecks": {
+    "usedCodeGraph": false,
+    "affectedSubgraph": [
+      "pull_request -> governance scripts -> quality/security workflows -> required checks"
+    ],
+    "checks": [
+      "call-depth",
+      "cycle",
+      "hub"
+    ],
+    "findings": [],
+    "notes": "Repository governance wiring reviewed from workflow entrypoints to required status aggregators."
+  },
+  "browserEvidence": [],
+  "runtimeSensitive": true,
+  "runtimeLogs": [],
+  "runtimeMetrics": [],
+  "runtimeGap": "This patch does not exercise product runtime flows locally; smoke and frontend baseline failures are recorded as deferred repo debt outside the governance-only scope.",
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-06-17-github-governance-followup.task.md",
+    "evidenceDir": ".harness/evidence/2026-06-17-github-governance-followup/",
+    "reviewFile": ".harness/evidence/2026-06-17-github-governance-followup/review.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "knownGaps": [
+    "Current `npm run check:inheritance` still fails because pantheon-ops is behind pantheon-base shared backend paths.",
+    "Current frontend build gate and system smoke suite expose pre-existing repo baseline debt not addressed by this governance-only PR.",
+    "Current repository duplication baseline is above the long-term threshold; the new duplication gate remains report-only for PRs and merge_group."
+  ],
+  "completedAt": "2026-06-17T06:40:00Z"
+}

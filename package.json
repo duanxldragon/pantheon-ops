@@ -1,17 +1,21 @@
 {
   "license": "MIT",
   "scripts": {
+    "check:duplication": "node scripts/check-duplication.mjs",
     "check:base-sync": "node scripts/check-base-backend-sync.mjs && npm --prefix frontend run check:base-sync",
     "check:base-sync:backend": "node scripts/check-base-backend-sync.mjs",
     "check:base-sync:frontend": "npm --prefix frontend run check:base-sync",
     "check:inheritance": "npm run check:task-packet-template && npm run check:inheritance-contract && npm run check:base-sync:backend",
     "check:inheritance-contract": "node scripts/check-inheritance-contract.mjs",
     "check:docs-frontmatter": "node scripts/frontmatter-check.mjs",
+    "check:pr-governance": "node scripts/check-pr-governance.mjs",
     "check:task-packet-template": "node scripts/check-task-packet-template.mjs",
     "check:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs --check",
     "upgrade:foundation:plan": "node scripts/foundation-release/consume-foundation-release.mjs --check",
     "upgrade:foundation:apply": "node scripts/foundation-release/consume-foundation-release.mjs --apply-shared-backend --apply-shared-frontend --update-inheritance-docs --check",
-    "test:foundation-release": "node --test tests/scripts/**/*.test.mjs"
+    "test:foundation-release": "node --test tests/scripts/**/*.test.mjs",
+    "test:pr-governance": "node --test tests/scripts/check-pr-governance.test.mjs",
+    "test:duplication": "node --test tests/scripts/check-duplication.test.mjs"
   },
   "devDependencies": {
     "playwright": "^1.60.0"
