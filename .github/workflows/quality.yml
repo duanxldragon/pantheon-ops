@@ -38,6 +38,16 @@ jobs:
       - name: Check task packet template
         run: npm run check:task-packet-template
 
+      - name: Check PR governance template
+        run: npm run check:pr-governance
+
+      - name: Validate PR governance body
+        if: github.event_name == 'pull_request'
+        run: node scripts/check-pr-governance.mjs --event "$GITHUB_EVENT_PATH"
+
+      - name: Check inheritance contract
+        run: npm run check:inheritance
+
       - name: Check generated modules
         run: npm run check:generated-modules
 
@@ -73,9 +83,7 @@ jobs:
         working-directory: frontend
         env:
           PANTHEON_CI: "true"
-        run: |
-          npm run i18n:generate-module
-          npx vite build
+        run: npm run build
 
   backend-tests:
     name: Backend Tests
@@ -95,12 +103,167 @@ jobs:
       - name: Test backend
         run: go test -race ./...
 
+  duplication:
+    name: Duplication Gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Run duplication scan
+        id: duplication
+        continue-on-error: true
+        shell: bash
+        run: npm run check:duplication -- --json > duplication-report.json
+
+      - name: Upload duplication report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: duplication-report
+          path: duplication-report.json
+          if-no-files-found: warn
+
+      - name: Enforce duplication gate
+        if: always()
+        shell: bash
+        env:
+          DUPLICATION_RESULT: ${{ steps.duplication.outcome }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          echo "duplication: ${DUPLICATION_RESULT}"
+          echo "event: ${EVENT_NAME}"
+          if [ "${EVENT_NAME}" = "pull_request" ] || [ "${EVENT_NAME}" = "merge_group" ]; then
+            echo "Duplication is report-only for PR and merge_group until a new-code duplication gate exists."
+            exit 0
+          fi
+          if [ "${DUPLICATION_RESULT}" != "success" ]; then
+            exit 1
+          fi
+
+  smoke-sanity:
+    name: Smoke Sanity
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: DHCCroot@2025
+          MYSQL_DATABASE: pantheon_ops
+          TZ: Asia/Shanghai
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pDHCCroot@2025"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    env:
+      PANTHEON_DSN: root:DHCCroot@2025@tcp(127.0.0.1:3306)/pantheon_ops?charset=utf8mb4&parseTime=True&loc=UTC
+      PANTHEON_TEST_DSN: root:DHCCroot@2025@tcp(127.0.0.1:3306)/pantheon_ops?charset=utf8mb4&parseTime=True&loc=UTC
+      PANTHEON_REDIS_ADDR: 127.0.0.1:6379
+      PANTHEON_WORKSPACE_ROOT: ${{ github.workspace }}
+      PANTHEON_PORT: "8080"
+      PANTHEON_API_BASE_URL: http://127.0.0.1:8080/api/v1
+      PANTHEON_API_PROXY_TARGET: http://127.0.0.1:8080
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: ${{ env.GO_VERSION_FILE }}
+          cache: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Start backend
+        shell: bash
+        run: |
+          nohup go run ./backend/cmd/server >"$RUNNER_TEMP/pantheon-ops-backend.log" 2>&1 &
+          echo $! >"$RUNNER_TEMP/pantheon-ops-backend.pid"
+
+      - name: Wait for backend health
+        shell: bash
+        run: |
+          for attempt in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:8080/api/v1/health >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend did not become healthy in time." >&2
+          cat "$RUNNER_TEMP/pantheon-ops-backend.log" >&2 || true
+          exit 1
+
+      - name: Run smoke sanity suite
+        working-directory: frontend
+        run: npm run test:smoke:platform:contracts && npm run test:smoke:system
+
+      - name: Upload smoke artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-sanity-artifacts
+          path: |
+            frontend/test-results
+            ${{ runner.temp }}/pantheon-ops-backend.log
+          if-no-files-found: ignore
+
+      - name: Stop backend
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/pantheon-ops-backend.pid" ]; then
+            kill "$(cat "$RUNNER_TEMP/pantheon-ops-backend.pid")" || true
+          fi
+
   quality-gates:
     name: Quality Gates
     needs:
       - docs-governance
       - frontend-contract
       - backend-tests
+      - duplication
+      - smoke-sanity
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -112,12 +275,18 @@ jobs:
           DOCS_GOVERNANCE_RESULT: ${{ needs.docs-governance.result }}
           FRONTEND_CONTRACT_RESULT: ${{ needs.frontend-contract.result }}
           BACKEND_TESTS_RESULT: ${{ needs.backend-tests.result }}
+          DUPLICATION_RESULT: ${{ needs.duplication.result }}
+          SMOKE_SANITY_RESULT: ${{ needs.smoke-sanity.result }}
         run: |
           echo "Docs Governance: ${DOCS_GOVERNANCE_RESULT}"
           echo "Frontend Contract: ${FRONTEND_CONTRACT_RESULT}"
           echo "Backend Tests: ${BACKEND_TESTS_RESULT}"
+          echo "Duplication Gate: ${DUPLICATION_RESULT}"
+          echo "Smoke Sanity: ${SMOKE_SANITY_RESULT}"
           if [ "${DOCS_GOVERNANCE_RESULT}" != "success" ] || \
              [ "${FRONTEND_CONTRACT_RESULT}" != "success" ] || \
-             [ "${BACKEND_TESTS_RESULT}" != "success" ]; then
+             [ "${DUPLICATION_RESULT}" != "success" ] || \
+             [ "${BACKEND_TESTS_RESULT}" != "success" ] || \
+             [ "${SMOKE_SANITY_RESULT}" != "success" ]; then
             exit 1
           fi

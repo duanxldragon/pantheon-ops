@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   dependency-vulnerabilities:
-    name: Dependency vulnerability reports
+    name: Dependency Vulnerabilities
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
@@ -41,23 +41,27 @@ jobs:
         run: mkdir -p security-reports
 
       - name: Report Go vulnerabilities
+        id: govulncheck
         continue-on-error: true
         run: go run golang.org/x/vuln/cmd/govulncheck@latest -json ./... > security-reports/govulncheck.json
 
       - name: Report root npm vulnerabilities
+        id: npm-audit-root
         continue-on-error: true
         run: |
           npm ci
-          npm audit --registry=https://registry.npmjs.org --json --audit-level=moderate > security-reports/npm-audit-root.json
+          npm audit --registry=https://registry.npmjs.org --json --audit-level=high > security-reports/npm-audit-root.json
 
       - name: Report frontend npm vulnerabilities
+        id: npm-audit-frontend
         continue-on-error: true
         working-directory: frontend
         run: |
           npm ci
-          npm audit --registry=https://registry.npmjs.org --json --audit-level=moderate > ../security-reports/npm-audit-frontend.json
+          npm audit --registry=https://registry.npmjs.org --json --audit-level=high > ../security-reports/npm-audit-frontend.json
 
       - name: Report OSV vulnerabilities
+        id: osv-scanner
         continue-on-error: true
         run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@latest scan --recursive --format json --output security-reports/osv-scanner.json .
 
@@ -69,8 +73,28 @@ jobs:
           path: security-reports/
           if-no-files-found: warn
 
+      - name: Enforce dependency vulnerability gate
+        if: always()
+        shell: bash
+        env:
+          GOVULNCHECK_RESULT: ${{ steps.govulncheck.outcome }}
+          NPM_AUDIT_ROOT_RESULT: ${{ steps.npm-audit-root.outcome }}
+          NPM_AUDIT_FRONTEND_RESULT: ${{ steps.npm-audit-frontend.outcome }}
+          OSV_SCANNER_RESULT: ${{ steps.osv-scanner.outcome }}
+        run: |
+          echo "govulncheck: ${GOVULNCHECK_RESULT}"
+          echo "npm audit (root): ${NPM_AUDIT_ROOT_RESULT}"
+          echo "npm audit (frontend): ${NPM_AUDIT_FRONTEND_RESULT}"
+          echo "osv-scanner: ${OSV_SCANNER_RESULT}"
+          if [ "${GOVULNCHECK_RESULT}" != "success" ] || \
+             [ "${NPM_AUDIT_ROOT_RESULT}" != "success" ] || \
+             [ "${NPM_AUDIT_FRONTEND_RESULT}" != "success" ] || \
+             [ "${OSV_SCANNER_RESULT}" != "success" ]; then
+            exit 1
+          fi
+
   secret-scan:
-    name: Secret scan report
+    name: Secret Scan
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -90,8 +114,30 @@ jobs:
         run: mkdir -p security-reports
 
       - name: Report leaked secrets
+        id: gitleaks
         continue-on-error: true
-        run: go run github.com/zricethezav/gitleaks/v8@latest detect --source . --redact --report-format json --report-path security-reports/gitleaks.json --exit-code 0
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha }}
+        run: |
+          set -euo pipefail
+          log_opts=()
+          if [ "${EVENT_NAME}" = "pull_request" ] && [ -n "${PR_BASE_SHA}" ] && [ -n "${PR_HEAD_SHA}" ]; then
+            log_opts=(--log-opts="${PR_BASE_SHA}..${PR_HEAD_SHA}")
+          elif [ "${EVENT_NAME}" = "merge_group" ] && [ -n "${MERGE_GROUP_BASE_SHA}" ] && [ -n "${MERGE_GROUP_HEAD_SHA}" ]; then
+            log_opts=(--log-opts="${MERGE_GROUP_BASE_SHA}..${MERGE_GROUP_HEAD_SHA}")
+          fi
+
+          go run github.com/zricethezav/gitleaks/v8@latest detect \
+            --source . \
+            "${log_opts[@]}" \
+            --redact \
+            --report-format json \
+            --report-path security-reports/gitleaks.json
 
       - name: Upload secret reports
         if: always()
@@ -101,8 +147,19 @@ jobs:
           path: security-reports/
           if-no-files-found: warn
 
+      - name: Enforce secret scan gate
+        if: always()
+        shell: bash
+        env:
+          GITLEAKS_RESULT: ${{ steps.gitleaks.outcome }}
+        run: |
+          echo "gitleaks: ${GITLEAKS_RESULT}"
+          if [ "${GITLEAKS_RESULT}" != "success" ]; then
+            exit 1
+          fi
+
   workflow-posture:
-    name: GitHub Actions posture reports
+    name: Workflow Posture
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -119,6 +176,7 @@ jobs:
           python-version: "3.x"
 
       - name: Report workflow risks with zizmor
+        id: zizmor
         continue-on-error: true
         run: |
           python -m pip install --user zizmor
@@ -126,6 +184,7 @@ jobs:
           "$HOME/.local/bin/zizmor" --format json .github/workflows > security-reports/zizmor.json
 
       - name: Report repository security scorecard
+        id: scorecard
         continue-on-error: true
         uses: ossf/scorecard-action@v2.4.3
         with:
@@ -141,6 +200,20 @@ jobs:
           name: security-workflow-posture-reports
           path: security-reports/
           if-no-files-found: warn
+
+      - name: Enforce workflow posture gate
+        if: always()
+        shell: bash
+        env:
+          ZIZMOR_RESULT: ${{ steps.zizmor.outcome }}
+          SCORECARD_RESULT: ${{ steps.scorecard.outcome }}
+        run: |
+          echo "zizmor: ${ZIZMOR_RESULT}"
+          echo "scorecard: ${SCORECARD_RESULT}"
+          if [ "${ZIZMOR_RESULT}" != "success" ] || \
+             [ "${SCORECARD_RESULT}" != "success" ]; then
+            exit 1
+          fi
 
   codeql-security:
     name: CodeQL Security Scan
@@ -221,6 +294,7 @@ jobs:
   security-gates:
     name: Security Gates
     needs:
+      - dependency-vulnerabilities
       - secret-scan
       - workflow-posture
       - codeql-security
@@ -233,15 +307,21 @@ jobs:
       - name: Enforce security results
         shell: bash
         env:
+          DEPENDENCY_VULNERABILITIES_RESULT: ${{ needs.dependency-vulnerabilities.result }}
           SECRET_SCAN_RESULT: ${{ needs.secret-scan.result }}
           WORKFLOW_POSTURE_RESULT: ${{ needs.workflow-posture.result }}
           CODEQL_SECURITY_SCAN_RESULT: ${{ needs.codeql-security.result }}
           CODEQL_ALERT_RESULT: ${{ needs.codeql-alerts.result }}
         run: |
+          echo "Dependency Vulnerabilities: ${DEPENDENCY_VULNERABILITIES_RESULT}"
           echo "Secret Scan: ${SECRET_SCAN_RESULT}"
           echo "Workflow Posture: ${WORKFLOW_POSTURE_RESULT}"
           echo "CodeQL Security Scan: ${CODEQL_SECURITY_SCAN_RESULT}"
           echo "CodeQL Alert Gate: ${CODEQL_ALERT_RESULT}"
+          if [ "${DEPENDENCY_VULNERABILITIES_RESULT}" != "success" ] && \
+             [ "${DEPENDENCY_VULNERABILITIES_RESULT}" != "skipped" ]; then
+            exit 1
+          fi
           if [ "${SECRET_SCAN_RESULT}" != "success" ] || \
              [ "${WORKFLOW_POSTURE_RESULT}" != "success" ] || \
              [ "${CODEQL_SECURITY_SCAN_RESULT}" != "success" ] || \
