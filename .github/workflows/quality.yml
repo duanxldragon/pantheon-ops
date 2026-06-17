@@ -13,21 +13,59 @@ env:
   GO_VERSION_FILE: go.mod
 
 jobs:
+  change-scope:
+    name: Change Scope
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      frontend_contract: ${{ steps.scope.outputs.frontend_contract || 'false' }}
+      smoke_sanity: ${{ steps.scope.outputs.smoke_sanity || 'false' }}
+      inheritance_sensitive: ${{ steps.scope.outputs.inheritance_sensitive || 'false' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+
+      - name: Detect changed scope
+        id: scope
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d
+        with:
+          predicate-quantifier: some
+          filters: |
+            frontend_contract:
+              - 'frontend/**'
+            smoke_sanity:
+              - 'backend/**'
+              - 'frontend/**'
+              - 'go.mod'
+              - 'go.sum'
+            inheritance_sensitive:
+              - 'docs/PROJECT_INHERITANCE.md'
+              - 'scripts/check-base-backend-sync.mjs'
+              - 'scripts/check-inheritance-contract.mjs'
+
   docs-governance:
     name: Docs Governance
+    needs:
+      - change-scope
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: package-lock.json
+          package-manager-cache: false
 
       - name: Install root dependencies
         run: npm ci
@@ -46,6 +84,7 @@ jobs:
         run: node scripts/check-pr-governance.mjs --event "$GITHUB_EVENT_PATH"
 
       - name: Check inheritance contract
+        if: ${{ github.event_name != 'pull_request' || needs.change-scope.outputs.inheritance_sensitive == 'true' }}
         run: npm run check:inheritance
 
       - name: Check generated modules
@@ -53,19 +92,23 @@ jobs:
 
   frontend-contract:
     name: Frontend Contract
+    needs:
+      - change-scope
+    if: ${{ github.event_name != 'pull_request' || needs.change-scope.outputs.frontend_contract == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          package-manager-cache: false
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -92,13 +135,15 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: ${{ env.GO_VERSION_FILE }}
-          cache: true
+          cache: false
 
       - name: Test backend
         run: go test -race ./...
@@ -110,14 +155,15 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: package-lock.json
+          package-manager-cache: false
 
       - name: Install root dependencies
         run: npm ci
@@ -130,7 +176,7 @@ jobs:
 
       - name: Upload duplication report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: duplication-report
           path: duplication-report.json
@@ -155,6 +201,9 @@ jobs:
 
   smoke-sanity:
     name: Smoke Sanity
+    needs:
+      - change-scope
+    if: ${{ github.event_name != 'pull_request' || needs.change-scope.outputs.smoke_sanity == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -192,20 +241,21 @@ jobs:
       PANTHEON_API_PROXY_TARGET: http://127.0.0.1:8080
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: ${{ env.GO_VERSION_FILE }}
-          cache: true
+          cache: false
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          package-manager-cache: false
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -240,7 +290,7 @@ jobs:
 
       - name: Upload smoke artifacts
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
         with:
           name: smoke-sanity-artifacts
           path: |
@@ -259,6 +309,7 @@ jobs:
   quality-gates:
     name: Quality Gates
     needs:
+      - change-scope
       - docs-governance
       - frontend-contract
       - backend-tests
@@ -272,21 +323,38 @@ jobs:
       - name: Enforce quality results
         shell: bash
         env:
+          EVENT_NAME: ${{ github.event_name }}
+          FRONTEND_CONTRACT_SCOPE: ${{ needs.change-scope.outputs.frontend_contract }}
+          SMOKE_SANITY_SCOPE: ${{ needs.change-scope.outputs.smoke_sanity }}
           DOCS_GOVERNANCE_RESULT: ${{ needs.docs-governance.result }}
           FRONTEND_CONTRACT_RESULT: ${{ needs.frontend-contract.result }}
           BACKEND_TESTS_RESULT: ${{ needs.backend-tests.result }}
           DUPLICATION_RESULT: ${{ needs.duplication.result }}
           SMOKE_SANITY_RESULT: ${{ needs.smoke-sanity.result }}
         run: |
+          FRONTEND_CONTRACT_REQUIRED=true
+          SMOKE_SANITY_REQUIRED=true
+          if [ "${EVENT_NAME}" = "pull_request" ] && [ "${FRONTEND_CONTRACT_SCOPE}" != "true" ]; then
+            FRONTEND_CONTRACT_REQUIRED=false
+          fi
+          if [ "${EVENT_NAME}" = "pull_request" ] && [ "${SMOKE_SANITY_SCOPE}" != "true" ]; then
+            SMOKE_SANITY_REQUIRED=false
+          fi
           echo "Docs Governance: ${DOCS_GOVERNANCE_RESULT}"
           echo "Frontend Contract: ${FRONTEND_CONTRACT_RESULT}"
           echo "Backend Tests: ${BACKEND_TESTS_RESULT}"
           echo "Duplication Gate: ${DUPLICATION_RESULT}"
           echo "Smoke Sanity: ${SMOKE_SANITY_RESULT}"
+          echo "Frontend Contract Required: ${FRONTEND_CONTRACT_REQUIRED}"
+          echo "Smoke Sanity Required: ${SMOKE_SANITY_REQUIRED}"
           if [ "${DOCS_GOVERNANCE_RESULT}" != "success" ] || \
-             [ "${FRONTEND_CONTRACT_RESULT}" != "success" ] || \
              [ "${DUPLICATION_RESULT}" != "success" ] || \
-             [ "${BACKEND_TESTS_RESULT}" != "success" ] || \
-             [ "${SMOKE_SANITY_RESULT}" != "success" ]; then
+             [ "${BACKEND_TESTS_RESULT}" != "success" ]; then
+            exit 1
+          fi
+          if [ "${FRONTEND_CONTRACT_REQUIRED}" = "true" ] && [ "${FRONTEND_CONTRACT_RESULT}" != "success" ]; then
+            exit 1
+          fi
+          if [ "${SMOKE_SANITY_REQUIRED}" = "true" ] && [ "${SMOKE_SANITY_RESULT}" != "success" ]; then
             exit 1
           fi

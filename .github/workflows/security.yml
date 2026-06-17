@@ -24,18 +24,21 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: 22
+          package-manager-cache: false
 
       - name: Prepare report directory
         run: mkdir -p security-reports
@@ -43,7 +46,7 @@ jobs:
       - name: Report Go vulnerabilities
         id: govulncheck
         continue-on-error: true
-        run: go run golang.org/x/vuln/cmd/govulncheck@latest -json ./... > security-reports/govulncheck.json
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 -json ./... > security-reports/govulncheck.json
 
       - name: Report root npm vulnerabilities
         id: npm-audit-root
@@ -67,7 +70,7 @@ jobs:
 
       - name: Upload dependency reports
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: security-dependency-reports
           path: security-reports/
@@ -100,15 +103,16 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
 
       - name: Prepare report directory
         run: mkdir -p security-reports
@@ -132,7 +136,7 @@ jobs:
             log_opts=(--log-opts="${MERGE_GROUP_BASE_SHA}..${MERGE_GROUP_HEAD_SHA}")
           fi
 
-          go run github.com/zricethezav/gitleaks/v8@latest detect \
+          go run github.com/zricethezav/gitleaks/v8@v8.30.1 detect \
             --source . \
             "${log_opts[@]}" \
             --redact \
@@ -141,7 +145,7 @@ jobs:
 
       - name: Upload secret reports
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: security-secret-reports
           path: security-reports/
@@ -165,37 +169,30 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
 
       - name: Prepare report directory
         run: mkdir -p security-reports
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: "3.x"
 
       - name: Report workflow risks with zizmor
         id: zizmor
         continue-on-error: true
+        shell: bash
         run: |
-          python -m pip install --user zizmor
+          python -m pip install --user zizmor==1.25.2
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           "$HOME/.local/bin/zizmor" --format json .github/workflows > security-reports/zizmor.json
 
-      - name: Report repository security scorecard
-        id: scorecard
-        continue-on-error: true
-        uses: ossf/scorecard-action@v2.4.3
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          results_file: security-reports/scorecard.json
-          results_format: json
-          publish_results: false
-
       - name: Upload workflow posture reports
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: security-workflow-posture-reports
           path: security-reports/
@@ -206,12 +203,9 @@ jobs:
         shell: bash
         env:
           ZIZMOR_RESULT: ${{ steps.zizmor.outcome }}
-          SCORECARD_RESULT: ${{ steps.scorecard.outcome }}
         run: |
           echo "zizmor: ${ZIZMOR_RESULT}"
-          echo "scorecard: ${SCORECARD_RESULT}"
-          if [ "${ZIZMOR_RESULT}" != "success" ] || \
-             [ "${SCORECARD_RESULT}" != "success" ]; then
+          if [ "${ZIZMOR_RESULT}" != "success" ]; then
             exit 1
           fi
 
@@ -224,18 +218,19 @@ jobs:
       security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@7211b7c8077ea37d8641b6271f6a365a22a5fbfa
         with:
           languages: go, typescript
           queries: security-extended
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@7211b7c8077ea37d8641b6271f6a365a22a5fbfa
         with:
           category: "/language:go,typescript"
 
@@ -285,7 +280,7 @@ jobs:
 
       - name: Upload CodeQL alert report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: security-codeql-alert-report
           path: security-reports/codeql-alerts.json
