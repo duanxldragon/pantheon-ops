@@ -34,6 +34,7 @@ Repository-local workflow skills live under `.agents/skills/` and cover:
 
 - `repo-verify`
 - `repo-pr-gate`
+- `gh-address-comments`
 - `repo-ci-triage`
 - `gh-fix-ci`
 

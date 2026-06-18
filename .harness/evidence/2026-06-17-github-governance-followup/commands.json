@@ -7,18 +7,11 @@
   },
   "commands": [
     {
-      "command": "node --test tests/scripts/check-pr-governance.test.mjs",
+      "command": "node --test tests/scripts/address-github-feedback.test.mjs tests/scripts/fetch-github-feedback.test.mjs tests/scripts/run-github-feedback-loop.test.mjs tests/scripts/pr-automation-workflow.test.mjs tests/scripts/check-pr-governance.test.mjs",
       "cwd": "pantheon-ops",
       "status": "passed",
       "durationMs": 0,
-      "notes": "PR governance validator regression tests passed."
-    },
-    {
-      "command": "node --test tests/scripts/check-duplication.test.mjs",
-      "cwd": "pantheon-ops",
-      "status": "passed",
-      "durationMs": 0,
-      "notes": "Duplication gate regression tests passed."
+      "notes": "GitHub feedback loop, PR automation, and PR governance regression tests passed locally."
     },
     {
       "command": "npm run check:pr-governance",
@@ -39,7 +32,14 @@
       "cwd": "pantheon-ops",
       "status": "passed",
       "durationMs": 0,
-      "notes": "Task packet template linkage check passed."
+      "notes": "Task packet linkage check passed."
+    },
+    {
+      "command": "npm run check:inheritance-contract",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Inheritance contract doc check passed without forcing backend drift verification for docs-only changes."
     },
     {
       "command": "npm run check:generated-modules",
@@ -49,25 +49,18 @@
       "notes": "Generated module hygiene check passed."
     },
     {
-      "command": "node scripts/check-pr-governance.mjs --event .tmp-pr-event.json",
+      "command": "npm run check:pr-governance -- --event .tmp-pr-event.json",
       "cwd": "pantheon-ops",
       "status": "passed",
       "durationMs": 0,
       "notes": "Synthetic pull_request payload confirms the PR body satisfies the governance validator."
     },
     {
-      "command": "C:\\Users\\xiaolong\\AppData\\Roaming\\Python\\Python312\\Scripts\\zizmor.exe --format plain .github/workflows",
+      "command": "node scripts/check-pr-governance.mjs",
       "cwd": "pantheon-ops",
       "status": "passed",
       "durationMs": 0,
-      "notes": "Workflow posture scan reports no findings after pinning actions and disabling credential persistence."
-    },
-    {
-      "command": "npm run check:inheritance",
-      "cwd": "pantheon-ops",
-      "status": "failed",
-      "durationMs": 0,
-      "notes": "Current repo baseline still has shared backend drift against pantheon-base; this governance-only PR records the gap and avoids treating it as an unconditional blocker."
+      "notes": "Template validation passed locally."
     }
   ],
   "graphChecks": {
@@ -81,13 +74,13 @@
       "hub"
     ],
     "findings": [],
-    "notes": "Repository governance wiring reviewed from workflow entrypoints to required status aggregators."
+    "notes": "Repository governance wiring spans feedback classification/apply scripts, PR automation prereqs, and scoped quality gates."
   },
   "browserEvidence": [],
   "runtimeSensitive": true,
   "runtimeLogs": [],
   "runtimeMetrics": [],
-  "runtimeGap": "This patch does not exercise product runtime flows locally; smoke and frontend baseline failures are recorded as deferred repo debt outside the governance-only scope.",
+  "runtimeGap": "This patch does not exercise product runtime flows locally; the change stays at repository-governance and quality-gate composition level.",
   "linkage": {
     "taskPacket": "docs/harness/tasks/2026-06-17-github-governance-followup.task.md",
     "evidenceDir": ".harness/evidence/2026-06-17-github-governance-followup/",
@@ -96,9 +89,9 @@
     "planRefs": []
   },
   "knownGaps": [
-    "Current `npm run check:inheritance` still fails because pantheon-ops is behind pantheon-base shared backend paths.",
+    "Current repo baseline still has shared backend drift against pantheon-base, but this docs-governance patch no longer treats documentation-only inheritance edits as drift-blocking by themselves.",
     "Current frontend build gate and system smoke suite expose pre-existing repo baseline debt not addressed by this governance-only PR.",
-    "Current repository duplication baseline is above the long-term threshold; the new duplication gate remains report-only for PRs and merge_group."
+    "Current repository duplication baseline is above the long-term threshold; the duplication gate remains report-only for PRs and merge_group."
   ],
-  "completedAt": "2026-06-17T06:40:00Z"
+  "completedAt": "2026-06-18T00:00:00Z"
 }

@@ -78,7 +78,7 @@ CodeQL is the primary security signal. Code quality is gated by GitHub required 
 - [docs/README.md](./docs/README.md): Chinese primary index
 - [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md): inheritance lock, local scope, and override boundaries
 - `Base release line + Base version` inside `docs/PROJECT_INHERITANCE.md` is the current consumer-version anchor
-- [.agents/skills/README.md](./.agents/skills/README.md): repository-local Codex workflow skills
+- [.agents/skills/README.md](./.agents/skills/README.md): repository-local Codex workflow skills for inheritance checks, PR closure, GitHub comment automation, and CI triage
 - [DESIGN.md](./DESIGN.md): repo-level design stance
 - `../pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`: shared code-quality and security governance strategy
 - [docs/README.en.md](./docs/README.en.md) and [docs/PROJECT_INHERITANCE.en.md](./docs/PROJECT_INHERITANCE.en.md): English companion entry points

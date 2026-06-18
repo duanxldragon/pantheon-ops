@@ -2,7 +2,7 @@
 
 ## Goal
 
-Make the Pantheon Ops GitHub governance PR self-contained and mergeable without turning existing product baseline debt into a blocker for a repository-governance-only patch.
+Make the Pantheon Ops GitHub governance and feedback-closure automation self-contained and mergeable without turning existing inheritance drift or product baseline debt into a blocker for a repository-governance-only patch.
 
 ## Primary Layer
 
@@ -37,9 +37,10 @@ platform/governance
 ### In
 
 - Keep the PR governance template, body validator, and duplication report scripts introduced by this branch.
-- Pin GitHub Actions workflow references and disable credential persistence in required-check workflows.
+- Add GitHub feedback fetch/apply loop scripts plus the `gh-address-comments` repo skill so PR, issue, and discussion comments can be closed through one automation path.
 - Scope frontend, smoke, and inheritance required gates so governance-only pull requests do not fail on unrelated repo baseline debt.
-- Add task packet, commands evidence, and review artifact linkage required by the PR governance body checker.
+- Ensure solo PR automation only enables squash auto-merge after PR governance and GitHub feedback gates both pass.
+- Add task packet, commands evidence, review artifact, and PR body linkage required by the PR governance body checker.
 
 ### Out
 
@@ -56,11 +57,30 @@ platform/governance
 - `.harness/evidence/2026-06-17-github-governance-followup/commands.json`
 - `.harness/evidence/2026-06-17-github-governance-followup/review.md`
 - `.harness/evidence/2026-06-17-github-governance-followup/pr-body.md`
+- `.agents/skills/gh-address-comments/SKILL.md`
+- `scripts/address-github-feedback.mjs`
+- `scripts/fetch-github-feedback.mjs`
+- `scripts/run-github-feedback-loop.mjs`
+- `tests/scripts/address-github-feedback.test.mjs`
+- `tests/scripts/fetch-github-feedback.test.mjs`
+- `tests/scripts/pr-automation-workflow.test.mjs`
+- `tests/scripts/run-github-feedback-loop.test.mjs`
 
 ### Modify
 
+- `.github/workflows/pr-automation.yml`
 - `.github/workflows/quality.yml`
-- `.github/workflows/security.yml`
+- `.agents/skills/README.md`
+- `.agents/skills/README.zh.md`
+- `.agents/skills/repo-pr-gate/SKILL.md`
+- `AGENTS.md`
+- `README.md`
+- `README.en.md`
+- `docs/PROJECT_INHERITANCE.md`
+- `docs/PROJECT_INHERITANCE.en.md`
+- `docs/README.md`
+- `docs/README.en.md`
+- `package.json`
 
 ### Do Not Touch
 
@@ -72,7 +92,8 @@ platform/governance
 
 - This patch stays in `pantheon-ops` because it is repository governance and local PR closure logic, not shared platform runtime behavior.
 - `frontend-contract` and `smoke-sanity` remain required for product-affecting pull requests, but are skipped for governance-only pull requests.
-- `check:inheritance` stays available for inheritance-sensitive changes, but is no longer an unconditional docs-governance blocker while the repo baseline still carries shared backend drift.
+- `check:inheritance` stays available for real inheritance-sensitive changes, but documentation-only edits to `docs/PROJECT_INHERITANCE.md` should not be treated as a backend drift gate by themselves.
+- The GitHub feedback loop is repo-governance only. It does not modify business runtime behavior.
 
 ## Method Readiness
 
@@ -98,13 +119,16 @@ platform/governance
 
 ## Verification Plan
 
+- `node --test tests/scripts/address-github-feedback.test.mjs`
+- `node --test tests/scripts/fetch-github-feedback.test.mjs`
+- `node --test tests/scripts/run-github-feedback-loop.test.mjs`
+- `node --test tests/scripts/pr-automation-workflow.test.mjs`
 - `node --test tests/scripts/check-pr-governance.test.mjs`
-- `node --test tests/scripts/check-duplication.test.mjs`
 - `npm run check:pr-governance`
 - `npm run check:docs-frontmatter`
 - `npm run check:task-packet-template`
+- `npm run check:inheritance-contract`
 - `npm run check:generated-modules`
-- `zizmor --format plain .github/workflows`
 
 ## Linkage
 
@@ -118,7 +142,7 @@ platform/governance
 
 - command result summary
 - PR governance body
-- workflow posture report
+- workflow posture and gating summary
 
 ## Human Gates
 

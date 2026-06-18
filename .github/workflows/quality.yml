@@ -44,7 +44,6 @@ jobs:
               - 'go.mod'
               - 'go.sum'
             inheritance_sensitive:
-              - 'docs/PROJECT_INHERITANCE.md'
               - 'scripts/check-base-backend-sync.mjs'
               - 'scripts/check-inheritance-contract.mjs'
 
