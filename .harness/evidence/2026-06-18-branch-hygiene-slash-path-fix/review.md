@@ -50,6 +50,7 @@ No P0/P1/P2 findings found.
 ## Residual Risk
 
 - Final proof still depends on a real hosted branch-hygiene run deleting a closed-PR residue branch whose name contains `/`.
+- The first hosted `Docs Governance` run evaluated a stale PR body snapshot from before the governance fields were updated; a fresh synchronize event is required so the hosted gate reads the current PR body.
 
 ## Verification Checked
 
