@@ -3,6 +3,7 @@
   "scripts": {
     "apply:github-feedback": "node scripts/address-github-feedback.mjs",
     "run:github-feedback-loop": "node scripts/run-github-feedback-loop.mjs",
+    "test:branch-hygiene": "node --test tests/scripts/cleanup-github-branches.test.mjs tests/scripts/branch-hygiene-workflow.test.mjs",
     "check:duplication": "node scripts/check-duplication.mjs",
     "check:github-feedback": "node scripts/fetch-github-feedback.mjs --check",
     "check:base-sync": "node scripts/check-base-backend-sync.mjs && npm --prefix frontend run check:base-sync",
