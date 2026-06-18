@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  buildBranchDeletePath,
+  buildBranchLookupPath,
   buildDeletionDecision,
   collectBranchCleanupCandidates,
 } from '../../scripts/cleanup-github-branches.mjs';
@@ -121,4 +123,24 @@ test('buildDeletionDecision deletes only exact stale closed-pr branch residues',
     action: 'skip-open-pr',
     reason: 'open-pr-still-uses-branch',
   });
+});
+
+test('branch path helpers preserve slash-separated branch names for GitHub branch endpoints', () => {
+  assert.equal(
+    buildBranchLookupPath({
+      owner: 'duanxldragon',
+      repo: 'pantheon-ops',
+      branchName: 'verify/branch-hygiene-residue-ops-20260618',
+    }),
+    '/repos/duanxldragon/pantheon-ops/branches/verify/branch-hygiene-residue-ops-20260618',
+  );
+
+  assert.equal(
+    buildBranchDeletePath({
+      owner: 'duanxldragon',
+      repo: 'pantheon-ops',
+      branchName: 'verify/branch-hygiene-residue-ops-20260618',
+    }),
+    '/repos/duanxldragon/pantheon-ops/git/refs/heads/verify/branch-hygiene-residue-ops-20260618',
+  );
 });
