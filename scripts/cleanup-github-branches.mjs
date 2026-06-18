@@ -103,8 +103,16 @@ export function buildDeletionDecision({ candidate, currentBranchSha, hasOpenPull
   return { action: 'delete', reason: 'closed-pr-head-branch-residue' };
 }
 
+export function buildBranchLookupPath({ owner, repo, branchName }) {
+  return `/repos/${owner}/${repo}/branches/${branchName}`;
+}
+
+export function buildBranchDeletePath({ owner, repo, branchName }) {
+  return `/repos/${owner}/${repo}/git/refs/heads/${branchName}`;
+}
+
 async function branchHeadSha(owner, repo, branchName, { token, apiBase }) {
-  const { data, status } = await githubRequest(`/repos/${owner}/${repo}/branches/${encodeURIComponent(branchName)}`, {
+  const { data, status } = await githubRequest(buildBranchLookupPath({ owner, repo, branchName }), {
     token,
     apiBase,
   });
@@ -123,7 +131,7 @@ async function hasOpenPullRequestForBranch(owner, repo, branchName, { token, api
 }
 
 async function deleteBranch(owner, repo, branchName, { token, apiBase }) {
-  await githubRequest(`/repos/${owner}/${repo}/git/refs/heads/${encodeURIComponent(branchName)}`, {
+  await githubRequest(buildBranchDeletePath({ owner, repo, branchName }), {
     method: 'DELETE',
     token,
     apiBase,
