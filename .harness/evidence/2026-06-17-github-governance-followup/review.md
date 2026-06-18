@@ -8,7 +8,7 @@
   "verdict": "findings addressed",
   "structuralReview": {
     "affectedSubgraph": [
-      "pull_request -> governance scripts -> quality/security workflows -> required checks"
+      "pull_request -> feedback gate scripts -> pr automation -> scoped quality gates"
     ],
     "checks": [
       "call-depth",
@@ -16,7 +16,7 @@
       "hub"
     ],
     "findings": [],
-    "notes": "Repository governance review focused on required check composition, workflow posture, and artifact linkage."
+    "notes": "Repository governance review focused on feedback closure automation, scoped inheritance gating, and artifact linkage."
   },
   "linkage": {
     "taskPacket": "docs/harness/tasks/2026-06-17-github-governance-followup.task.md",
@@ -31,13 +31,13 @@
 ## Findings
 
 1. `.github/workflows/quality.yml`
-   The prior branch state turned existing frontend and smoke debt into a blocker for a governance-only PR. Required checks now stay strict for product-affecting changes, but they skip frontend and smoke jobs when the pull request only touches governance files.
+   The quality workflow needs to treat documentation-only edits to `docs/PROJECT_INHERITANCE.md` as governance text, not as proof that backend inheritance drift must be re-verified. Otherwise solo-maintainer documentation updates keep reopening a known unrelated blocker.
 
-2. `.github/workflows/quality.yml`
-   The prior branch state also made `npm run check:inheritance` an unconditional docs-governance gate even though the repo already has shared backend drift unrelated to this patch. The gate now runs only when inheritance-sensitive files change.
+2. `scripts/address-github-feedback.mjs`, `scripts/fetch-github-feedback.mjs`, `scripts/run-github-feedback-loop.mjs`
+   The repo now has one automation path for PR review comments plus linked issue and discussion comments. That matters because solo PR auto-merge should not remain blocked by stale comment state the maintainer does not want to triage manually.
 
-3. `.github/workflows/security.yml`
-   Workflow posture previously failed because the required-check workflows still used floating GitHub Action tags and default credential persistence. The workflow now pins action SHAs, disables credential persistence, and removes the extra scorecard step from the required posture gate.
+3. `.github/workflows/pr-automation.yml`
+   Auto-merge should only be enabled after both governance-body validation and GitHub feedback closure pass. The workflow expresses that correctly, but it depends on the quality gate no longer over-triggering inheritance drift for documentation-only changes.
 
 ## Assumptions
 
@@ -53,5 +53,5 @@
 
 ## Recommended Next Step
 
-- Merge this governance PR once the refreshed required checks pass.
+- Merge this governance PR once the refreshed required checks pass and auto-merge is enabled.
 - Follow with targeted remediation PRs for base-sync drift, frontend i18n hardcode debt, smoke failures, and duplication reduction.

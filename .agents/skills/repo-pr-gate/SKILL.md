@@ -11,8 +11,9 @@ Pantheon Ops PR closure must prove both business correctness and inheritance dis
 
 1. Run `repo-verify`.
 2. Decide whether the landing side is really `pantheon-ops`.
-3. Attach evidence.
-4. Request independent review.
+3. Run `gh-address-comments` if the branch PR or linked issue/discussion already has actionable GitHub feedback.
+4. Attach evidence.
+5. Request independent review.
 
 ## Mandatory Landing-Side Check
 
@@ -37,6 +38,8 @@ High-risk scope in this repo includes:
 
 ## Extra Gates
 
+- Open GitHub feedback:
+  - use `gh-address-comments` before calling the PR ready
 - UI change:
   - use `impeccable`
   - attach rendered evidence or a concrete runtime gap

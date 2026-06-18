@@ -37,6 +37,7 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
 - `repo-verify`：把业务改动或继承改动映射到最小验证矩阵
 - `repo-pr-gate`：统一 PR 收口、落点说明和高风险门禁
+- `gh-address-comments`：自动处理并收口 GitHub PR、Issue、Discussion 中的可执行评论
 - `repo-ci-triage`：把 GitHub Actions 红灯映射回本地复现命令
 - `gh-fix-ci`：在 hosted run 级别继续排查 CI 红灯
 
