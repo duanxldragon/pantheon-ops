@@ -1,0 +1,52 @@
+{
+  "taskId": "2026-06-18-branch-hygiene-fallback",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": ".agents/adapters/codex.md"
+  },
+  "commands": [
+    {
+      "command": "node --test tests/scripts/cleanup-github-branches.test.mjs tests/scripts/branch-hygiene-workflow.test.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Verifies stale-branch candidate selection, deletion guardrails, and workflow trigger posture."
+    },
+    {
+      "command": "node --test tests/scripts/check-duplication.test.mjs tests/scripts/check-pr-governance.test.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Confirms the repo-local governance validators still pass after adding the standalone branch-hygiene workflow."
+    }
+  ],
+  "graphChecks": {
+    "usedCodeGraph": false,
+    "affectedSubgraph": [
+      "push|schedule|workflow_dispatch -> branch-hygiene workflow -> GitHub pull request history -> remote branch deletion"
+    ],
+    "checks": [
+      "call-depth",
+      "sensitive-flow"
+    ],
+    "findings": [],
+    "notes": "This change is repository-governance only and stays within GitHub workflow orchestration plus the dedicated cleanup script."
+  },
+  "browserEvidence": [],
+  "runtimeSensitive": true,
+  "runtimeLogs": [],
+  "runtimeGap": "Hosted GitHub workflow execution and live branch deletion still require post-push verification against the real repository.",
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-06-18-branch-hygiene-fallback.task.md",
+    "evidenceDir": ".harness/evidence/2026-06-18-branch-hygiene-fallback/",
+    "reviewFile": ".harness/evidence/2026-06-18-branch-hygiene-fallback/review.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "knownGaps": [
+    "The initial local run does not prove hosted GitHub API behavior for slash-containing branch names.",
+    "Final proof still depends on a real closed-PR residue branch being cleaned by the hosted workflow."
+  ],
+  "completedAt": "2026-06-18T04:35:00Z"
+}
