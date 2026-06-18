@@ -157,7 +157,7 @@ Pantheon Platform 将权限拆成四层：
 - [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md)：先看继承关系、版本锁定与本地业务范围。
 - `docs/PROJECT_INHERITANCE.md` 中的 `Base release line + Base version` 是当前 consumer 版本锚点。
 - `upgrade:foundation:apply` 会保留 ops 本地 menu/generator/workspace overlay，重写共享 backend import 到 `pantheon-ops`，并补跑 frontend base-sync + menu-contract。
-- [.agents/skills/README.zh.md](./.agents/skills/README.zh.md)：本仓库的 repo-local Codex skills 入口。
+- [.agents/skills/README.zh.md](./.agents/skills/README.zh.md)：本仓库的 repo-local Codex skills 入口，覆盖继承校验、PR 收口、GitHub comments 自动处理与 CI 红灯排查。
 - [DESIGN.md](./DESIGN.md)：再看仓库级设计边界。
 - [CONTRIBUTING.md](./CONTRIBUTING.md) / [SECURITY.md](./SECURITY.md)：协作与安全规则。
 - `pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`：质量与安全治理策略主文档。

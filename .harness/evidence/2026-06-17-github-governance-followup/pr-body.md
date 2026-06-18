@@ -7,13 +7,13 @@
 
 ## Scope
 
-- In scope: `PR governance body validation, duplication reporting, pinned workflow actions, and change-scope gating for governance-only pull requests`
+- In scope: `GitHub feedback fetch/apply loop, gh-address-comments repo skill, PR governance body validation, solo PR auto-merge prereqs, and scoped inheritance gating for governance-only pull requests`
 - Out of scope: `frontend i18n hardcode cleanup, system smoke debt, repository duplication reduction, and shared backend drift remediation`
 
 ## Verification
 
-- Commands: `node --test tests/scripts/check-pr-governance.test.mjs`; `node --test tests/scripts/check-duplication.test.mjs`; `npm run check:pr-governance`; `npm run check:docs-frontmatter`; `npm run check:task-packet-template`; `npm run check:generated-modules`; `zizmor --format plain .github/workflows`
-- Result: `governance scripts and workflow posture checks pass locally; existing base-sync drift remains recorded as deferred repo debt and is no longer treated as an unconditional blocker for this governance-only PR`
+- Commands: `node --test tests/scripts/address-github-feedback.test.mjs tests/scripts/fetch-github-feedback.test.mjs tests/scripts/run-github-feedback-loop.test.mjs tests/scripts/pr-automation-workflow.test.mjs tests/scripts/check-pr-governance.test.mjs`; `npm run check:pr-governance`; `npm run check:docs-frontmatter`; `npm run check:task-packet-template`; `npm run check:inheritance-contract`; `npm run check:generated-modules`; `node scripts/check-pr-governance.mjs --event .tmp-pr-event.json`
+- Result: `feedback-closure scripts, PR automation prerequisites, and PR governance checks will be refreshed locally; documentation-only inheritance edits no longer need to reopen the known shared-backend drift blocker`
 
 ## Evidence
 

@@ -7,7 +7,7 @@ English quick guide: [CLAUDE.md](./CLAUDE.md)
 ## 必守规则
 
 - 开工先读 `docs/PROJECT_INHERITANCE.md`、`../pantheon-base/DESIGN.md`、`../pantheon-base/AGENTS.md`、`../pantheon-base/docs/README.md`，再按任务补读 base 文档和本地 `docs/designs/BUSINESS_*`。
-- 本仓库的 repo-local workflow skills 位于 `.agents/skills/`；涉及继承校验、PR 收口和 GitHub Actions 红灯时，优先看 `repo-verify`、`repo-pr-gate`、`repo-ci-triage`、`gh-fix-ci`。
+- 本仓库的 repo-local workflow skills 位于 `.agents/skills/`；涉及继承校验、PR 收口、GitHub comments 收敛和 GitHub Actions 红灯时，优先看 `repo-verify`、`repo-pr-gate`、`gh-address-comments`、`repo-ci-triage`、`gh-fix-ci`。
 - 任务先分层：`platform / system/auth / system/iam / system/org / system/config / business/*`；跨层先说边界再动手。
 - 个人维护阶段，`pantheon-ops` 默认优先走 `L1` 轻量闭环；只有文案/只读/纯格式化这类小改走 `L0`。一旦发现共享底座问题、继承同步、权限/菜单/i18n/导入导出/审计/生成器边界，升级到 `L2`，并优先判断是否应回 `pantheon-base`。
 - `pantheon-base` 拥有 `platform` 和 `system/*`；本仓库只沉淀业务设计、业务验收和本地继承说明。

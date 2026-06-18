@@ -13,9 +13,71 @@ permissions:
   pull-requests: write
 
 jobs:
+  governance-prereq:
+    name: PR Governance Prereq
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      pr_body_ready: ${{ steps.pr-body-ready.outcome == 'success' && 'true' || 'false' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Validate PR governance body
+        id: pr-body-ready
+        run: node scripts/check-pr-governance.mjs --event "$GITHUB_EVENT_PATH"
+
+  feedback-prereq:
+    name: GitHub Feedback Prereq
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      feedback_ready: ${{ steps.feedback-gate.outcome == 'success' && 'true' || 'false' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Check GitHub feedback gate
+        id: feedback-gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: npm run check:github-feedback -- --repo "$GITHUB_REPOSITORY" --pr "$PR_NUMBER"
+
   automate-solo-pr:
     name: Automate Solo PR
+    needs:
+      - governance-prereq
+      - feedback-prereq
     if: >
+      needs.governance-prereq.outputs.pr_body_ready == 'true' &&
+      needs.feedback-prereq.outputs.feedback_ready == 'true' &&
       github.event.pull_request.draft == false &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       (
