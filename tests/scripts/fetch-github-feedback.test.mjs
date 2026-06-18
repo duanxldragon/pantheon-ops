@@ -181,10 +181,45 @@ test('buildFeedbackSnapshot flattens review threads, issue comments, and discuss
   assert.equal(snapshot.summary.sourceCounts['pull-request-review'], 2);
   assert.equal(snapshot.summary.sourceCounts['issue-comment'], 1);
   assert.equal(snapshot.summary.sourceCounts['discussion-comment'], 2);
+  assert.equal(snapshot.items[0].commentDatabaseId, null);
   assert.equal(snapshot.summary.classificationCounts['actionable-change'], 1);
   assert.equal(snapshot.summary.classificationCounts.closed, 3);
   assert.equal(snapshot.summary.classificationCounts['explanation-only'], 1);
   assert.equal(snapshot.summary.classificationCounts['out-of-scope'] ?? 0, 0);
+});
+
+test('buildFeedbackSnapshot preserves PR review comment database ids for reply writeback', () => {
+  const snapshot = buildFeedbackSnapshot({
+    repoFullName: 'acme/demo',
+    pullRequest: {
+      number: 42,
+      url: 'https://github.com/acme/demo/pull/42',
+      title: 'Tighten GitHub governance',
+      body: '',
+      reviewThreads: [
+        {
+          id: 'thread-1',
+          isResolved: false,
+          isOutdated: false,
+          comments: [
+            {
+              id: 'pr-comment-1',
+              commentDatabaseId: 101,
+              databaseId: 101,
+              body: 'Please update the PR gate docs.',
+              url: 'https://github.com/acme/demo/pull/42#discussion_r101',
+              createdAt: '2026-06-17T00:00:00Z',
+              author: { login: 'reviewer-1' },
+            },
+          ],
+        },
+      ],
+    },
+    issues: [],
+    discussions: [],
+  });
+
+  assert.equal(snapshot.items[0].commentDatabaseId, 101);
 });
 
 test('evaluateFeedbackGate blocks auto-closure when non-closed feedback remains', () => {

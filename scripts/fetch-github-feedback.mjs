@@ -415,6 +415,7 @@ function fetchGitHubFeedbackSnapshot({ repoFullName, pullRequestNumber }) {
 function createBaseItem(sourceType, data) {
   return {
     id: data.id,
+    commentDatabaseId: data.commentDatabaseId ?? null,
     sourceType,
     sourceUrl: data.url ?? '',
     body: data.body ?? '',
