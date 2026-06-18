@@ -47,32 +47,27 @@ test('pr automation validates governance and GitHub feedback before enabling aut
     /needs\.feedback-prereq\.outputs\.feedback_ready == 'true'/i,
     'auto-merge should only be considered after the GitHub feedback prerequisite succeeds',
   );
+  assert.match(
+    workflowSource,
+    /gh pr merge "\$PR_NUMBER" --repo "\$GH_REPO" --auto --squash --delete-branch/i,
+    'auto-merge should request GitHub to delete the branch as part of the merge operation',
+  );
 });
 
-test('pr automation deletes merged solo feature branches on pull request close', () => {
-  assert.match(
+test('pr automation does not rely on a pull_request.closed cleanup follow-up', () => {
+  assert.doesNotMatch(
     workflowSource,
     /pull_request:\s*\n\s*types:\s*\n[\s\S]*-\s*closed/i,
-    'pr automation should listen for pull_request.closed events',
+    'pr automation should not depend on pull_request.closed to clean merged branches',
   );
-  assert.match(
+  assert.doesNotMatch(
     workflowSource,
     /delete-merged-head-branch:\s*\n[\s\S]*name:\s*Delete Merged Head Branch/i,
-    'pr automation should define a merged-branch cleanup job',
+    'pr automation should not define a separate merged-branch cleanup job',
   );
-  assert.match(
-    workflowSource,
-    /github\.event\.action == 'closed'[\s\S]*github\.event\.pull_request\.merged == true/i,
-    'merged-branch cleanup should only run for merged pull requests',
-  );
-  assert.match(
-    workflowSource,
-    /github\.event\.pull_request\.head\.repo\.full_name == github\.repository/i,
-    'merged-branch cleanup should only delete branches from the same repository',
-  );
-  assert.match(
+  assert.doesNotMatch(
     workflowSource,
     /gh api -X DELETE "repos\/\$GH_REPO\/git\/refs\/heads\/\$HEAD_REF"/i,
-    'merged-branch cleanup should delete the remote head branch explicitly',
+    'pr automation should not rely on a follow-up branch delete API call',
   );
 });
