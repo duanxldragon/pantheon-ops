@@ -1,0 +1,114 @@
+{
+  "taskId": "2026-06-18-pr-branch-cleanup-automation",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": ".agents/adapters/codex.md"
+  },
+  "commands": [
+    {
+      "command": "node --test tests/scripts/pr-automation-workflow.test.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "locks merged-branch cleanup behavior into PR automation"
+    },
+    {
+      "command": "node --test tests/scripts/run-github-feedback-loop.test.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "confirms the cleanup workflow change does not break feedback-loop coverage"
+    },
+    {
+      "command": "npm run check:pr-governance",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "PR governance template remains valid"
+    },
+    {
+      "command": "npm run check:docs-frontmatter",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "new packet and evidence files satisfy docs governance"
+    },
+    {
+      "command": "npm run check:task-packet-template",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "task packet linkage remains valid"
+    },
+    {
+      "command": "npm run check:inheritance-contract",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "inheritance contract remains valid"
+    },
+    {
+      "command": "npm run check:generated-modules",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "no generated module drift"
+    },
+    {
+      "command": "gh api -X DELETE repos/duanxldragon/pantheon-ops/git/refs/heads/docs/solo-delivery-tiers",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "cleaned superseded closed branch that no longer belongs in the solo-maintainer flow"
+    },
+    {
+      "command": "gh api -X DELETE repos/duanxldragon/pantheon-ops/git/refs/heads/feat/github-feedback-governance",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "cleaned merged feature branch after PR #53"
+    },
+    {
+      "command": "git fetch origin --prune",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "refreshed remote-tracking refs after remote branch cleanup"
+    },
+    {
+      "command": "git config fetch.prune true",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "future fetches will automatically prune deleted remote refs"
+    }
+  ],
+  "graphChecks": {
+    "usedCodeGraph": false,
+    "affectedSubgraph": [
+      "pull_request.closed -> merged branch cleanup job -> remote branch deletion"
+    ],
+    "checks": [
+      "hub-check"
+    ],
+    "findings": [],
+    "notes": "Repository governance only."
+  },
+  "browserEvidence": [],
+  "runtimeSensitive": true,
+  "runtimeLogs": [],
+  "runtimeGap": "Repository-governance patch only; product runtime evidence is not applicable.",
+  "linkage": {
+    "taskPacket": "docs/harness/tasks/2026-06-18-pr-branch-cleanup-automation.task.md",
+    "evidenceDir": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/",
+    "reviewFile": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/review.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "knownGaps": [
+    "Historical local branches still require explicit cleanup decisions when they contain unpublished commits.",
+    "Closed-but-unmerged remote branches need a separate one-time repository cleanup policy."
+  ],
+  "completedAt": "2026-06-18T00:00:00Z"
+}
