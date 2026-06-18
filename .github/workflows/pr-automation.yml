@@ -9,8 +9,8 @@ on:
       - ready_for_review
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+  pull-requests: read
 
 jobs:
   governance-prereq:
@@ -86,6 +86,9 @@ jobs:
         github.event.pull_request.author_association == 'COLLABORATOR'
       )
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Request Copilot review when available
         shell: bash
