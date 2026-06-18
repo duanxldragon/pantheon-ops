@@ -7,6 +7,7 @@ on:
       - reopened
       - synchronize
       - ready_for_review
+      - closed
 
 permissions:
   contents: read
@@ -113,3 +114,25 @@ jobs:
         run: |
           set -euo pipefail
           gh pr merge "$PR_NUMBER" --repo "$GH_REPO" --auto --squash
+
+  delete-merged-head-branch:
+    name: Delete Merged Head Branch
+    if: >
+      github.event.action == 'closed' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref != github.event.pull_request.base.ref
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Delete merged head branch
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          gh api -X DELETE "repos/$GH_REPO/git/refs/heads/$HEAD_REF"
