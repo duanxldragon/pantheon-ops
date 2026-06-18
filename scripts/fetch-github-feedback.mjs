@@ -652,6 +652,7 @@ export function buildFeedbackSnapshot({ repoFullName, pullRequest, issues = [], 
           number: pullRequest.number,
           url: pullRequest.url,
           title: pullRequest.title,
+          body: pullRequest.body ?? '',
         }
       : null,
     issues: issues.map((issue) => ({

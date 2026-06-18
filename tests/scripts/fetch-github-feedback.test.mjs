@@ -222,6 +222,23 @@ test('buildFeedbackSnapshot preserves PR review comment database ids for reply w
   assert.equal(snapshot.items[0].commentDatabaseId, 101);
 });
 
+test('buildFeedbackSnapshot preserves pull request body for downstream close-intent handling', () => {
+  const snapshot = buildFeedbackSnapshot({
+    repoFullName: 'acme/demo',
+    pullRequest: {
+      number: 42,
+      url: 'https://github.com/acme/demo/pull/42',
+      title: 'Tighten GitHub governance',
+      body: 'Closes #12',
+      reviewThreads: [],
+    },
+    issues: [],
+    discussions: [],
+  });
+
+  assert.equal(snapshot.pullRequest.body, 'Closes #12');
+});
+
 test('evaluateFeedbackGate blocks auto-closure when non-closed feedback remains', () => {
   const snapshot = buildFeedbackSnapshot({
     repoFullName: 'acme/demo',
