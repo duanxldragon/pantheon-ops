@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 
 const GITHUB_REFERENCE_PATTERN =
   /https:\/\/github\.com\/([^/\s]+)\/([^/\s]+)\/(issues|discussions)\/(\d+)/gi;
+const CLOSE_ISSUE_PATTERN =
+  /\b(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#(\d+)\b/gi;
 const CLOSED_STATUSES = new Set(['resolved', 'closed', 'outdated', 'answered']);
 const OUT_OF_SCOPE_PATTERNS = [
   /\bfollow[- ]up pr\b/i,
@@ -548,6 +550,19 @@ export function extractGitHubReferences(text, repoFullName) {
       bucket,
       number,
       toCanonicalReferenceUrl(targetRepo, type, number),
+    );
+  }
+
+  for (const match of content.matchAll(CLOSE_ISSUE_PATTERN)) {
+    const number = Number.parseInt(match[2], 10);
+    if (!Number.isInteger(number)) {
+      continue;
+    }
+    appendUniqueReference(
+      references,
+      'issues',
+      number,
+      toCanonicalReferenceUrl(targetRepo, 'issues', number),
     );
   }
 

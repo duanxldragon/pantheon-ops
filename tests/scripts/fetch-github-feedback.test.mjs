@@ -32,6 +32,26 @@ but ignore https://github.com/acme/other/issues/99
   });
 });
 
+test('extractGitHubReferences also recognizes same-repo issue shorthand from PR close directives', () => {
+  const references = extractGitHubReferences(
+    `
+Closes #12
+fixes #12
+Resolves #34
+but ignore closes #not-a-number
+`,
+    'acme/demo',
+  );
+
+  assert.deepEqual(references, {
+    issues: [
+      { number: 12, url: 'https://github.com/acme/demo/issues/12' },
+      { number: 34, url: 'https://github.com/acme/demo/issues/34' },
+    ],
+    discussions: [],
+  });
+});
+
 test('classifyFeedbackItem marks resolved feedback as closed', () => {
   const result = classifyFeedbackItem({
     sourceType: 'pull-request-review',
