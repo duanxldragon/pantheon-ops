@@ -238,10 +238,25 @@ function parseKeyValueBullets(sectionContent) {
 }
 
 function readJsonIfExists(filePath) {
-  if (!fs.existsSync(filePath)) {
-    return null;
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return null;
+    }
+    throw error;
   }
-  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+function readUtf8IfExists(filePath) {
+  try {
+    return fs.readFileSync(filePath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return null;
+    }
+    throw error;
+  }
 }
 
 function parseTaskPacket(taskPath, root) {
@@ -526,10 +541,10 @@ function rewriteTaskPacketLinkage(taskPath, manifest) {
 }
 
 function rewriteReviewLinkage(reviewPath, taskId, manifest) {
-  if (!fs.existsSync(reviewPath)) {
+  const content = readUtf8IfExists(reviewPath);
+  if (content === null) {
     return;
   }
-  const content = fs.readFileSync(reviewPath, 'utf8');
   const manifestPath = buildTaskManifestPath(taskId);
   const evidencePath = `.harness/evidence/${taskId}/commands.json`;
   const match = content.match(/## Machine Readable\s+```json\s*([\s\S]*?)\s*```/m);
@@ -569,11 +584,11 @@ function rewriteReviewLinkage(reviewPath, taskId, manifest) {
 }
 
 function rewritePrBody(prBodyPath, taskId) {
-  if (!fs.existsSync(prBodyPath)) {
+  let rewritten = readUtf8IfExists(prBodyPath);
+  if (rewritten === null) {
     return;
   }
   const manifestPath = buildTaskManifestPath(taskId);
-  let rewritten = fs.readFileSync(prBodyPath, 'utf8');
 
   rewritten = rewritten.replace(
     /^(\s*[-*]\s+)Task Packet([：:])\s*`?[^`\r\n]+`?\s*$/gim,
@@ -633,9 +648,9 @@ function migrate(root, write) {
       taskId: manifest.taskId,
       taskDoc: toRepoPath(root, taskPath),
       manifest: manifestRepoPath,
-      commands: fs.existsSync(commandsPath) ? toRepoPath(root, commandsPath) : null,
-      review: fs.existsSync(reviewPath) ? toRepoPath(root, reviewPath) : null,
-      prBody: fs.existsSync(prBodyPath) ? toRepoPath(root, prBodyPath) : null,
+      commands: commands ? toRepoPath(root, commandsPath) : null,
+      review: readUtf8IfExists(reviewPath) !== null ? toRepoPath(root, reviewPath) : null,
+      prBody: readUtf8IfExists(prBodyPath) !== null ? toRepoPath(root, prBodyPath) : null,
     });
 
     if (!write) {
