@@ -25,6 +25,52 @@ function withFixtureRepo(callback) {
   }
 }
 
+function writeTaskManifest(repoRoot, taskId) {
+  const manifestPath = path.join(repoRoot, '.harness', 'tasks', taskId, 'manifest.json');
+  fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+  fs.writeFileSync(
+    manifestPath,
+    `${JSON.stringify(
+      {
+        taskId,
+        title: 'Ops governance follow-up',
+        goal: 'Keep GitHub governance writeback manifest-first in pantheon-ops.',
+        primaryLayer: 'business/deploy',
+        scope: {
+          in: ['Repository governance automation', 'Local PR closure logic'],
+          out: ['Shared platform runtime changes'],
+        },
+        implementationNotes: [
+          'This stays in pantheon-ops because it is repository governance and local PR closure logic, not shared platform runtime behavior.',
+        ],
+        linkage: {
+          evidenceDir: `.harness/evidence/${taskId}/`,
+          reviewFile: `.harness/evidence/${taskId}/review.md`,
+          changeRef: 'none',
+          planRefs: [],
+        },
+        verificationPlan: {
+          commands: ['node --test tests/scripts/check-pr-governance.test.mjs'],
+          runtimeEvidence: [],
+        },
+        runtimeSensitive: false,
+        evidenceRequired: ['commands.json'],
+        humanGates: ['none'],
+        completionChecklist: [
+          'Layer and boundary declared',
+          'Contract anchors read',
+          'Verification run or exception recorded',
+          'Evidence saved or summarized',
+          'Review completed',
+        ],
+      },
+      null,
+      2,
+    )}\n`,
+    'utf8',
+  );
+}
+
 const validTemplate = `## Summary
 
 - Target repo: \`pantheon-ops\`
@@ -44,7 +90,8 @@ const validTemplate = `## Summary
 
 ## Evidence
 
-- Task Packet: \`docs/harness/tasks/<task-id>.task.md\`
+- Task ID: \`<task-id>\`
+- Task Manifest: \`.harness/tasks/<task-id>/manifest.json\`
 - Evidence: \`.harness/evidence/<task-id>/commands.json\`
 - Human gate: \`none\`
 
@@ -103,7 +150,8 @@ test('validatePrBody rejects template and inline artifact placeholders', () => {
 
 ## Evidence
 
-- Task Packet: \`docs/TASK_PACKET_OPS_TEMPLATE.md\`
+- Task ID: \`2026-06-17-sample\`
+- Task Manifest: \`docs/TASK_PACKET_OPS_TEMPLATE.md\`
 - Evidence: \`inline command summary\`
 - Human gate: \`none\`
 
@@ -118,7 +166,7 @@ test('validatePrBody rejects template and inline artifact placeholders', () => {
 - GitHub signal: \`repo-quality-gate\`
   `);
 
-  assert.match(findings.join('\n'), /Task Packet/);
+  assert.match(findings.join('\n'), /Task Manifest/);
   assert.match(findings.join('\n'), /Evidence/);
   assert.match(findings.join('\n'), /Review artifact/);
 });
@@ -143,7 +191,8 @@ test('validatePrBody rejects missing artifact files', () => {
 
 ## Evidence
 
-- Task Packet: \`docs/harness/tasks/2026-06-17-missing.task.md\`
+- Task ID: \`2026-06-17-missing\`
+- Task Manifest: \`.harness/tasks/2026-06-17-missing/manifest.json\`
 - Evidence: \`.harness/evidence/2026-06-17-missing/commands.json\`
 - Human gate: \`none\`
 
@@ -158,32 +207,31 @@ test('validatePrBody rejects missing artifact files', () => {
 - GitHub signal: \`repo-quality-gate\`
   `, { rootDir: path.resolve(testDir, '../..') });
 
-  assert.match(findings.join('\n'), /Task Packet/);
+  assert.match(findings.join('\n'), /Task Manifest/);
   assert.match(findings.join('\n'), /Evidence/);
   assert.match(findings.join('\n'), /Review artifact/);
 });
 
-test('validatePrBody accepts existing task packet, evidence, and review artifact files', () => {
+test('validatePrBody accepts existing manifest, evidence, and review artifact files', () => {
   withFixtureRepo((repoRoot) => {
-    const taskPacketPath = path.join(repoRoot, 'docs', 'harness', 'tasks', '2026-06-17-sample.task.md');
+    const taskId = '2026-06-17-sample';
     const commandsArtifactPath = path.join(
       repoRoot,
       '.harness',
       'evidence',
-      '2026-06-17-sample',
+      taskId,
       'commands.json',
     );
     const reviewArtifactPath = path.join(
       repoRoot,
       '.harness',
       'evidence',
-      '2026-06-17-sample',
+      taskId,
       'review.md',
     );
-    fs.mkdirSync(path.dirname(taskPacketPath), { recursive: true });
+    writeTaskManifest(repoRoot, taskId);
     fs.mkdirSync(path.dirname(commandsArtifactPath), { recursive: true });
     fs.mkdirSync(path.dirname(reviewArtifactPath), { recursive: true });
-    fs.writeFileSync(taskPacketPath, '# Task Packet: sample\n', 'utf8');
     fs.writeFileSync(commandsArtifactPath, '{"commands":[]}\n', 'utf8');
     fs.writeFileSync(reviewArtifactPath, '# Review Summary: sample\n', 'utf8');
 
@@ -206,14 +254,15 @@ test('validatePrBody accepts existing task packet, evidence, and review artifact
 
 ## Evidence
 
-- Task Packet: \`docs/harness/tasks/2026-06-17-sample.task.md\`
-- Evidence: \`.harness/evidence/2026-06-17-sample/commands.json\`
+- Task ID: \`${taskId}\`
+- Task Manifest: \`.harness/tasks/${taskId}/manifest.json\`
+- Evidence: \`.harness/evidence/${taskId}/commands.json\`
 - Human gate: \`none\`
 
 ## Review
 
 - Review status: \`passed\`
-- Review artifact: \`.harness/evidence/2026-06-17-sample/review.md\`
+- Review artifact: \`.harness/evidence/${taskId}/review.md\`
 
 ## Release Risk
 
@@ -227,25 +276,25 @@ test('validatePrBody accepts existing task packet, evidence, and review artifact
 
 test('validatePrBody rejects mismatched evidence task id linkage', () => {
   withFixtureRepo((repoRoot) => {
-    const taskPacketPath = path.join(repoRoot, 'docs', 'harness', 'tasks', '2026-06-17-sample.task.md');
+    const taskId = '2026-06-17-sample';
+    const evidenceTaskId = '2026-06-17-other';
     const commandsArtifactPath = path.join(
       repoRoot,
       '.harness',
       'evidence',
-      '2026-06-17-other',
+      evidenceTaskId,
       'commands.json',
     );
     const reviewArtifactPath = path.join(
       repoRoot,
       '.harness',
       'evidence',
-      '2026-06-17-sample',
+      taskId,
       'review.md',
     );
-    fs.mkdirSync(path.dirname(taskPacketPath), { recursive: true });
+    writeTaskManifest(repoRoot, taskId);
     fs.mkdirSync(path.dirname(commandsArtifactPath), { recursive: true });
     fs.mkdirSync(path.dirname(reviewArtifactPath), { recursive: true });
-    fs.writeFileSync(taskPacketPath, '# Task Packet: sample\n', 'utf8');
     fs.writeFileSync(commandsArtifactPath, '{"commands":[]}\n', 'utf8');
     fs.writeFileSync(reviewArtifactPath, '# Review Summary: sample\n', 'utf8');
 
@@ -268,14 +317,15 @@ test('validatePrBody rejects mismatched evidence task id linkage', () => {
 
 ## Evidence
 
-- Task Packet: \`docs/harness/tasks/2026-06-17-sample.task.md\`
-- Evidence: \`.harness/evidence/2026-06-17-other/commands.json\`
+- Task ID: \`${taskId}\`
+- Task Manifest: \`.harness/tasks/${taskId}/manifest.json\`
+- Evidence: \`.harness/evidence/${evidenceTaskId}/commands.json\`
 - Human gate: \`none\`
 
 ## Review
 
 - Review status: \`passed\`
-- Review artifact: \`.harness/evidence/2026-06-17-sample/review.md\`
+- Review artifact: \`.harness/evidence/${taskId}/review.md\`
 
 ## Release Risk
 

@@ -1,0 +1,95 @@
+{
+  "taskId": "2026-06-18-pr-branch-cleanup-automation",
+  "title": "2026-06-18-pr-branch-cleanup-automation",
+  "goal": "Make solo-maintainer PR flow delete merged same-repo head branches deterministically in `pantheon-ops`, instead of relying on GitHub repository auto-delete behavior alone.",
+  "primaryLayer": "platform/governance",
+  "taskDoc": "docs/harness/tasks/2026-06-18-pr-branch-cleanup-automation.task.md",
+  "scope": {
+    "in": [
+      "add `pull_request.closed` cleanup handling to PR automation",
+      "explicitly delete merged same-repo head branches after merge",
+      "lock cleanup behavior with workflow tests",
+      "capture one-time evidence for current branch-hygiene cleanup"
+    ],
+    "out": [
+      "business runtime behavior",
+      "frontend runtime behavior",
+      "shared base sync remediation"
+    ]
+  },
+  "implementationNotes": [
+    "Repository setting `deleteBranchOnMerge=true` remains enabled, but workflow cleanup owns the deterministic delete path after merge.",
+    "Cleanup applies only to merged PRs whose head branch belongs to the same repository and differs from the base branch."
+  ],
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "../pantheon-base/AGENTS.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-06-18-pr-branch-cleanup-automation.task.md",
+      ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/commands.json",
+      ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/summary.md",
+      ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/review.md",
+      ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/pr-body.md"
+    ],
+    "modify": [
+      ".github/workflows/pr-automation.yml",
+      "tests/scripts/pr-automation-workflow.test.mjs"
+    ],
+    "doNotTouch": [
+      "backend/modules/business/*",
+      "frontend/src/modules/business/*",
+      "../pantheon-base/**"
+    ]
+  },
+  "harnessProfile": {
+    "template": "pantheon-ops custom",
+    "overlay": "none",
+    "qualityProfile": "ci-workflow",
+    "portableFailureClass": "repo-quality-gate",
+    "ownerLayer": "repository-governance",
+    "coverageDimensions": [
+      "maintainability",
+      "security"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "node --test tests/scripts/pr-automation-workflow.test.mjs",
+      "node --test tests/scripts/run-github-feedback-loop.test.mjs",
+      "npm run check:pr-governance",
+      "npm run check:docs-frontmatter",
+      "npm run check:task-packet-template",
+      "npm run check:inheritance-contract",
+      "npm run check:generated-modules"
+    ],
+    "runtimeEvidence": [
+      "node --test tests/scripts/pr-automation-workflow.test.mjs",
+      "node --test tests/scripts/run-github-feedback-loop.test.mjs",
+      "workflow test output",
+      "current remote branch cleanup record"
+    ]
+  },
+  "runtimeSensitive": true,
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/",
+    "reviewFile": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/review.md",
+    "summaryFile": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "evidenceRequired": [
+    "workflow test output",
+    "governance check output",
+    "current remote branch cleanup record"
+  ],
+  "completionChecklist": [
+    "Layer and landing side declared",
+    "Cleanup rule added",
+    "Verification run or exception recorded",
+    "Evidence saved or summarized",
+    "Review completed"
+  ]
+}

@@ -4,7 +4,7 @@ English version: [README.en.md](./README.en.md)
 
 Pantheon Ops 是基于 Pantheon Platform 底座拆出的运维管理平台，用 CMDB 和 Deploy 作为第一批业务能力，独立承载运维资源台账、分组、标签规范和部署任务管理。
 
-该仓库保留平台底座能力作为业务运行基础，但演进重点放在 `business/cmdb`、`business/deploy` 及后续运维业务模块；通用后台能力的持续演进应回到 `pantheon-platform` 仓库。
+该仓库保留平台底座能力作为业务运行基础，但演进重点放在 `business/bizscope`、`business/cmdb`、`business/deploy` 及后续运维业务模块；通用后台能力的持续演进应回到 `pantheon-platform` 仓库。
 
 默认协作模型已经调整为：`pantheon-ops` 消费 `pantheon-base` 的 foundation release，而不是直接跟随 `pantheon-base/main`。
 
@@ -12,7 +12,7 @@ Pantheon Ops 是基于 Pantheon Platform 底座拆出的运维管理平台，用
 
 - **平台层**：继承 Pantheon Platform 的应用壳层、路由装配、中间件、平台工作台、跨域聚合视图。
 - **系统域**：继承认证安全、用户角色权限、菜单、组织、配置、字典、审计等底座能力。
-- **业务域**：当前内置 `business/cmdb` 和 `business/deploy`，作为运维管理平台的核心业务。
+- **业务域**：当前内置 `business/bizscope`、`business/cmdb` 和 `business/deploy`，分别承担业务域治理、资源台账与部署执行。
 
 ## 核心能力
 
@@ -155,6 +155,7 @@ Pantheon Platform 将权限拆成四层：
 
 - [docs/README.md](./docs/README.md)：中文主索引。
 - [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md)：先看继承关系、版本锁定与本地业务范围。
+- [docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md)：业务域治理、主机绑定与部署信任边界设计。
 - `docs/PROJECT_INHERITANCE.md` 中的 `Base release line + Base version` 是当前 consumer 版本锚点。
 - `upgrade:foundation:apply` 会保留 ops 本地 menu/generator/workspace overlay，重写共享 backend import 到 `pantheon-ops`，并补跑 frontend base-sync + menu-contract。
 - [.agents/skills/README.zh.md](./.agents/skills/README.zh.md)：本仓库的 repo-local Codex skills 入口，覆盖继承校验、PR 收口、GitHub comments 自动处理与 CI 红灯排查。

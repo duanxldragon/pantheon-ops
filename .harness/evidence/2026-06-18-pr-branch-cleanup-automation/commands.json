@@ -100,11 +100,12 @@
   "runtimeLogs": [],
   "runtimeGap": "Repository-governance patch only; product runtime evidence is not applicable.",
   "linkage": {
-    "taskPacket": "docs/harness/tasks/2026-06-18-pr-branch-cleanup-automation.task.md",
     "evidenceDir": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/",
     "reviewFile": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/review.md",
     "changeRef": "none",
-    "planRefs": []
+    "planRefs": [],
+    "taskManifest": ".harness/tasks/2026-06-18-pr-branch-cleanup-automation/manifest.json",
+    "summaryFile": ".harness/evidence/2026-06-18-pr-branch-cleanup-automation/summary.md"
   },
   "knownGaps": [
     "Historical local branches still require explicit cleanup decisions when they contain unpublished commits.",

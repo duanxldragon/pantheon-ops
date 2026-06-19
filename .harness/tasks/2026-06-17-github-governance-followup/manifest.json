@@ -1,0 +1,169 @@
+{
+  "taskId": "2026-06-17-github-governance-followup",
+  "title": "github-governance-followup",
+  "goal": "Make the Pantheon Ops GitHub governance and feedback-closure automation self-contained and mergeable without turning existing inheritance drift or product baseline debt into a blocker for a repository-governance-only patch.",
+  "primaryLayer": "platform/governance",
+  "taskDoc": "docs/harness/tasks/2026-06-17-github-governance-followup.task.md",
+  "scope": {
+    "in": [
+      "Keep the PR governance template, body validator, and duplication report scripts introduced by this branch.",
+      "Add GitHub feedback fetch/apply loop scripts plus the `gh-address-comments` repo skill so PR, issue, and discussion comments can be closed through one automation path.",
+      "Scope frontend, smoke, and inheritance required gates so governance-only pull requests do not fail on unrelated repo baseline debt.",
+      "Ensure solo PR automation only enables squash auto-merge after PR governance and GitHub feedback gates both pass.",
+      "Add task packet, commands evidence, review artifact, and PR body linkage required by the PR governance body checker."
+    ],
+    "out": [
+      "Fix existing frontend i18n hardcode debt.",
+      "Fix existing system smoke regressions.",
+      "Resolve current `base -> ops` shared backend drift.",
+      "Reduce current repository-wide duplication baseline below the long-term threshold."
+    ]
+  },
+  "implementationNotes": [
+    "This patch stays in `pantheon-ops` because it is repository governance and local PR closure logic, not shared platform runtime behavior.",
+    "`frontend-contract` and `smoke-sanity` remain required for product-affecting pull requests, but are skipped for governance-only pull requests.",
+    "`check:inheritance` stays available for real inheritance-sensitive changes, but documentation-only edits to `docs/PROJECT_INHERITANCE.md` should not be treated as a backend drift gate by themselves.",
+    "The GitHub feedback loop is repo-governance only. It does not modify business runtime behavior."
+  ],
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "../pantheon-base/DESIGN.md",
+    "../pantheon-base/AGENTS.md",
+    "../pantheon-base/docs/README.md",
+    "../harness-engineering/docs/harness/VERIFICATION_EVIDENCE_SPEC.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-06-17-github-governance-followup.task.md",
+      ".harness/evidence/2026-06-17-github-governance-followup/commands.json",
+      ".harness/evidence/2026-06-17-github-governance-followup/review.md",
+      ".harness/evidence/2026-06-17-github-governance-followup/pr-body.md",
+      ".agents/skills/gh-address-comments/SKILL.md",
+      "scripts/address-github-feedback.mjs",
+      "scripts/fetch-github-feedback.mjs",
+      "scripts/run-github-feedback-loop.mjs",
+      "tests/scripts/address-github-feedback.test.mjs",
+      "tests/scripts/fetch-github-feedback.test.mjs",
+      "tests/scripts/pr-automation-workflow.test.mjs",
+      "tests/scripts/run-github-feedback-loop.test.mjs"
+    ],
+    "modify": [
+      ".github/workflows/pr-automation.yml",
+      ".github/workflows/quality.yml",
+      ".agents/skills/README.md",
+      ".agents/skills/README.zh.md",
+      ".agents/skills/repo-pr-gate/SKILL.md",
+      "AGENTS.md",
+      "README.md",
+      "README.en.md",
+      "docs/PROJECT_INHERITANCE.md",
+      "docs/PROJECT_INHERITANCE.en.md",
+      "docs/README.md",
+      "docs/README.en.md",
+      "package.json"
+    ],
+    "doNotTouch": [
+      "backend/modules/business/*",
+      "frontend/src/modules/business/*",
+      "shared backend sync payloads from `pantheon-base`"
+    ]
+  },
+  "harnessProfile": {
+    "template": "pantheon-ops custom",
+    "overlay": "none",
+    "qualityProfile": "ci-workflow",
+    "portableFailureClass": "repo-quality-gate",
+    "ownerLayer": "repository-governance",
+    "coverageDimensions": [
+      "maintainability",
+      "security"
+    ]
+  },
+  "methodReadiness": {
+    "consumerSpecificControls": [
+      "pantheon-ops repo-local governance"
+    ],
+    "requiredSensors": [
+      "command"
+    ],
+    "requiredEvidence": [
+      "commands.json",
+      "review.md"
+    ],
+    "ratchetDecision": "gate-updated",
+    "deferredCodeIssues": [
+      "frontend hardcode debt",
+      "system smoke debt",
+      "base-sync drift",
+      "duplication baseline"
+    ]
+  },
+  "deliveryGovernance": {
+    "designGate": [
+      "short boundary note"
+    ],
+    "developmentGate": [
+      "workflow pinning",
+      "task/evidence/review linkage"
+    ],
+    "qaAcceptanceGate": [
+      "local script and workflow posture verification"
+    ],
+    "githubGovernanceGate": [
+      "repo-quality-gate"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "pull_request -> governance scripts -> quality/security workflows -> required checks"
+    ],
+    "riskNodes": [
+      "quality gate aggregator",
+      "security gate aggregator",
+      "workflow posture"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "node --test tests/scripts/address-github-feedback.test.mjs",
+      "node --test tests/scripts/fetch-github-feedback.test.mjs",
+      "node --test tests/scripts/run-github-feedback-loop.test.mjs",
+      "node --test tests/scripts/pr-automation-workflow.test.mjs",
+      "node --test tests/scripts/check-pr-governance.test.mjs",
+      "npm run check:pr-governance",
+      "npm run check:docs-frontmatter",
+      "npm run check:task-packet-template",
+      "npm run check:inheritance-contract",
+      "npm run check:generated-modules"
+    ],
+    "runtimeEvidence": [
+      "node --test tests/scripts/address-github-feedback.test.mjs",
+      "node --test tests/scripts/fetch-github-feedback.test.mjs",
+      "node --test tests/scripts/run-github-feedback-loop.test.mjs",
+      "node --test tests/scripts/pr-automation-workflow.test.mjs",
+      "workflow posture and gating summary"
+    ]
+  },
+  "runtimeSensitive": true,
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-06-17-github-governance-followup/",
+    "reviewFile": ".harness/evidence/2026-06-17-github-governance-followup/review.md",
+    "summaryFile": ".harness/evidence/2026-06-17-github-governance-followup/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "evidenceRequired": [
+    "command result summary",
+    "PR governance body",
+    "workflow posture and gating summary"
+  ],
+  "completionChecklist": [
+    "Layer and landing side declared",
+    "Scope and deferred debt split recorded",
+    "Required evidence files created",
+    "Workflow posture validated",
+    "Governance scripts re-verified",
+    "PR body updated to real artifact paths"
+  ]
+}

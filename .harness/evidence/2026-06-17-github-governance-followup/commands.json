@@ -82,11 +82,12 @@
   "runtimeMetrics": [],
   "runtimeGap": "This patch does not exercise product runtime flows locally; the change stays at repository-governance and quality-gate composition level.",
   "linkage": {
-    "taskPacket": "docs/harness/tasks/2026-06-17-github-governance-followup.task.md",
     "evidenceDir": ".harness/evidence/2026-06-17-github-governance-followup/",
     "reviewFile": ".harness/evidence/2026-06-17-github-governance-followup/review.md",
     "changeRef": "none",
-    "planRefs": []
+    "planRefs": [],
+    "taskManifest": ".harness/tasks/2026-06-17-github-governance-followup/manifest.json",
+    "summaryFile": ".harness/evidence/2026-06-17-github-governance-followup/summary.md"
   },
   "knownGaps": [
     "Current repo baseline still has shared backend drift against pantheon-base, but this docs-governance patch no longer treats documentation-only inheritance edits as drift-blocking by themselves.",

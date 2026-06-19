@@ -18,18 +18,18 @@
     "notes": "The fix is scoped to hosted GitHub path handling for slash-containing branch names. Query parameter encoding and deletion guardrails remain unchanged."
   },
   "linkage": {
-    "taskPacket": "docs/harness/tasks/2026-06-18-branch-hygiene-slash-path-fix.task.md",
     "evidence": ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/commands.json",
     "reviewFile": ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/review.md",
     "changeRef": "none",
-    "planRefs": []
+    "planRefs": [],
+    "taskManifest": ".harness/tasks/2026-06-18-branch-hygiene-slash-path-fix/manifest.json"
   }
 }
 ```
 
 ## Linkage
 
-- Task Packet: `docs/harness/tasks/2026-06-18-branch-hygiene-slash-path-fix.task.md`
+- Task Manifest: `.harness/tasks/2026-06-18-branch-hygiene-slash-path-fix/manifest.json`
 - Evidence: `.harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/commands.json`
 - OpenSpec Change: `none`
 

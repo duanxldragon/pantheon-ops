@@ -19,8 +19,9 @@ English quick guide: [CLAUDE.md](./CLAUDE.md)
 
 ## 文档与同步边界
 
-- ops `docs/` 只保留 `README.md`、`PROJECT_INHERITANCE.md`、`docs/designs/BUSINESS_*`、`docs/acceptances/BUSINESS_*`。
+- ops `docs/` 主阅读面只保留 `README.md`、`PROJECT_INHERITANCE.md`、`TASK_PACKET_OPS_TEMPLATE.md` 与 `docs/designs/BUSINESS_*`。
 - 不在 ops 新增架构、平台、系统域、UI 规范或底座验收副本；这些内容只能改 `pantheon-base/docs/`。
+- `docs/harness/tasks/` 仅作为 task packet 实例与 evidence linkage 的存放目录，不作为业务文档主入口，也不承载平台/系统域长期设计。
 - 非 trivial PR 前跑继承/漂移检查；`generic drift` 回 base，`business-specific` 才留在 ops。
 - `L2` 任务必须给出 task packet 或父 task packet 引用、最小 evidence 和 review 路径；`L1` 至少要有轻量计划和明确验证集合。
 - 回复优先使用“平台层 / 系统域 / 业务域”的语言，并说明逻辑拆分还是物理拆分。

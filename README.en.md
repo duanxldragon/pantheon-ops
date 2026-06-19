@@ -2,9 +2,9 @@
 
 Chinese version: [README.md](./README.md)
 
-Pantheon Ops is the operations-management repository derived from the Pantheon Platform foundation. It uses CMDB and Deploy as its first business modules and focuses on operations resource inventory, grouping, tag standards, and deployment task management.
+Pantheon Ops is the operations-management repository derived from the Pantheon Platform foundation. It uses BizScope, CMDB, and Deploy as its first business modules and focuses on business-scope governance, operations resource inventory, grouping, tag standards, and deployment task management.
 
-The repository keeps platform foundation capabilities as business runtime infrastructure, but its main evolution focus is `business/cmdb`, `business/deploy`, and future operations-domain modules. Ongoing evolution of generic backoffice capabilities should flow back to `pantheon-base`.
+The repository keeps platform foundation capabilities as business runtime infrastructure, but its main evolution focus is `business/bizscope`, `business/cmdb`, `business/deploy`, and future operations-domain modules. Ongoing evolution of generic backoffice capabilities should flow back to `pantheon-base`.
 
 The default collaboration model is now: `pantheon-ops` consumes `pantheon-base` foundation releases instead of tracking `pantheon-base/main` directly.
 
@@ -12,7 +12,7 @@ The default collaboration model is now: `pantheon-ops` consumes `pantheon-base` 
 
 - **Platform layer**: inherits the application shell, route composition, middleware, workbench, and cross-domain aggregate views from Pantheon Platform
 - **System domains**: inherits auth/security, users/roles/permissions, menus, organization, configuration, dictionaries, audit
-- **Business domains**: currently ships `business/cmdb` and `business/deploy`
+- **Business domains**: currently ships `business/bizscope`, `business/cmdb`, and `business/deploy`
 
 ## Recommended Reading Order
 
@@ -77,6 +77,7 @@ CodeQL is the primary security signal. Code quality is gated by GitHub required 
 
 - [docs/README.md](./docs/README.md): Chinese primary index
 - [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md): inheritance lock, local scope, and override boundaries
+- [docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md): business-scope governance, host-binding, and deploy trust-boundary design
 - `Base release line + Base version` inside `docs/PROJECT_INHERITANCE.md` is the current consumer-version anchor
 - [.agents/skills/README.md](./.agents/skills/README.md): repository-local Codex workflow skills for inheritance checks, PR closure, GitHub comment automation, and CI triage
 - [DESIGN.md](./DESIGN.md): repo-level design stance
