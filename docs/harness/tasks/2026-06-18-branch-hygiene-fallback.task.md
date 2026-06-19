@@ -114,6 +114,7 @@ platform/governance
 ## Linkage
 
 - Task ID: `2026-06-18-branch-hygiene-fallback`
+- Task Manifest: `.harness/tasks/2026-06-18-branch-hygiene-fallback/manifest.json`
 - OpenSpec Change: none
 - Plan References: none
 - Evidence Directory: `.harness/evidence/2026-06-18-branch-hygiene-fallback/`

@@ -17,7 +17,8 @@
 
 ## Evidence
 
-- Task Packet: `docs/harness/tasks/2026-06-18-branch-hygiene-slash-path-fix.task.md`
+- Task ID: `2026-06-18-branch-hygiene-slash-path-fix`
+- Task Manifest: `.harness/tasks/2026-06-18-branch-hygiene-slash-path-fix/manifest.json`
 - Evidence: `.harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/commands.json`
 - Human gate: `none`
 

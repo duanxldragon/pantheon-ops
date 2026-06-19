@@ -5,7 +5,7 @@
 ```json
 {
   "taskId": "2026-06-17-github-governance-followup",
-  "verdict": "findings addressed",
+  "verdict": "approved",
   "structuralReview": {
     "affectedSubgraph": [
       "pull_request -> feedback gate scripts -> pr automation -> scoped quality gates"
@@ -19,11 +19,11 @@
     "notes": "Repository governance review focused on feedback closure automation, scoped inheritance gating, and artifact linkage."
   },
   "linkage": {
-    "taskPacket": "docs/harness/tasks/2026-06-17-github-governance-followup.task.md",
     "evidence": ".harness/evidence/2026-06-17-github-governance-followup/commands.json",
     "reviewFile": ".harness/evidence/2026-06-17-github-governance-followup/review.md",
     "changeRef": "none",
-    "planRefs": []
+    "planRefs": [],
+    "taskManifest": ".harness/tasks/2026-06-17-github-governance-followup/manifest.json"
   }
 }
 ```

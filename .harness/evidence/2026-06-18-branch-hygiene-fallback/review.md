@@ -18,18 +18,18 @@
     "notes": "The fallback remains decoupled from pull_request.closed and only deletes same-repo closed-PR head branches when the live branch SHA still matches the closed PR head SHA."
   },
   "linkage": {
-    "taskPacket": "docs/harness/tasks/2026-06-18-branch-hygiene-fallback.task.md",
     "evidence": ".harness/evidence/2026-06-18-branch-hygiene-fallback/commands.json",
     "reviewFile": ".harness/evidence/2026-06-18-branch-hygiene-fallback/review.md",
     "changeRef": "none",
-    "planRefs": []
+    "planRefs": [],
+    "taskManifest": ".harness/tasks/2026-06-18-branch-hygiene-fallback/manifest.json"
   }
 }
 ```
 
 ## Linkage
 
-- Task Packet: `docs/harness/tasks/2026-06-18-branch-hygiene-fallback.task.md`
+- Task Manifest: `.harness/tasks/2026-06-18-branch-hygiene-fallback/manifest.json`
 - Evidence: `.harness/evidence/2026-06-18-branch-hygiene-fallback/commands.json`
 - OpenSpec Change: `none`
 

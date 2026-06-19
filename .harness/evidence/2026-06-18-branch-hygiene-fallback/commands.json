@@ -38,11 +38,12 @@
   "runtimeLogs": [],
   "runtimeGap": "Hosted GitHub workflow execution and live branch deletion still require post-push verification against the real repository.",
   "linkage": {
-    "taskPacket": "docs/harness/tasks/2026-06-18-branch-hygiene-fallback.task.md",
     "evidenceDir": ".harness/evidence/2026-06-18-branch-hygiene-fallback/",
     "reviewFile": ".harness/evidence/2026-06-18-branch-hygiene-fallback/review.md",
     "changeRef": "none",
-    "planRefs": []
+    "planRefs": [],
+    "taskManifest": ".harness/tasks/2026-06-18-branch-hygiene-fallback/manifest.json",
+    "summaryFile": ".harness/evidence/2026-06-18-branch-hygiene-fallback/summary.md"
   },
   "knownGaps": [
     "The initial local run does not prove hosted GitHub API behavior for slash-containing branch names.",
