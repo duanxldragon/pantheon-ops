@@ -17,7 +17,8 @@
 
 ## Evidence
 
-- Task Packet: `docs/harness/tasks/<task-id>.task.md`
+- Task ID: `<task-id>`
+- Task Manifest: `.harness/tasks/<task-id>/manifest.json`
 - Evidence: `.harness/evidence/<task-id>/commands.json`
 - Human gate: `none | base version | inherited override deletion | business schema | shared logic backport`
 

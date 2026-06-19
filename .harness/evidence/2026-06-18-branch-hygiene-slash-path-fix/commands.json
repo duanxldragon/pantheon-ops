@@ -31,11 +31,12 @@
   "runtimeLogs": [],
   "runtimeGap": "Hosted GitHub workflow execution still needs a post-merge residue-branch rerun to prove live cleanup with slash-separated branch names.",
   "linkage": {
-    "taskPacket": "docs/harness/tasks/2026-06-18-branch-hygiene-slash-path-fix.task.md",
     "evidenceDir": ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/",
     "reviewFile": ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/review.md",
     "changeRef": "none",
-    "planRefs": []
+    "planRefs": [],
+    "taskManifest": ".harness/tasks/2026-06-18-branch-hygiene-slash-path-fix/manifest.json",
+    "summaryFile": ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/summary.md"
   },
   "knownGaps": [
     "This evidence only proves the local regression suite and not the real GitHub hosted workflow run.",

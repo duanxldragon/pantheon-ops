@@ -133,6 +133,7 @@ platform/governance
 ## Linkage
 
 - Task ID: 2026-06-17-github-governance-followup
+- Task Manifest: `.harness/tasks/2026-06-17-github-governance-followup/manifest.json`
 - OpenSpec Change: none
 - Plan References: none
 - Evidence Directory: `.harness/evidence/2026-06-17-github-governance-followup/`

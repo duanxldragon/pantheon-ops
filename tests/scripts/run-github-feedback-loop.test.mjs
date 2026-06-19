@@ -160,30 +160,50 @@ function createAutoContextOwnershipNote() {
   return 'This stays in `pantheon-base` because the PR automation gate is shared platform governance rather than a business overlay.';
 }
 
-function createAutoContextTaskPacket(taskId) {
-  return `# Task Packet: ${taskId}
-
-## Goal
-
-Tighten the GitHub governance automation so feedback can be closed without manual triage.
-
-## Scope
-
-### In
-
-- Update the GitHub feedback automation scripts and writeback flow.
-- Keep repository governance checks aligned with the automation loop.
-
-### Out
-
-- Follow-up product runtime changes stay outside this PR.
-- Existing repo baseline debt remains tracked separately.
-
-## Implementation Notes
-
-- ${createAutoContextOwnershipNote()}
-- The automation reuses repo-local evidence instead of hand-written closeout notes.
-`;
+function createAutoContextManifest(taskId) {
+  return {
+    taskId,
+    title: 'GitHub feedback automation governance',
+    goal: 'Tighten the GitHub governance automation so feedback can be closed without manual triage.',
+    primaryLayer: 'business/deploy',
+    scope: {
+      in: [
+        'Update the GitHub feedback automation scripts and writeback flow.',
+        'Keep repository governance checks aligned with the automation loop.',
+      ],
+      out: [
+        'Follow-up product runtime changes stay outside this PR.',
+        'Existing repo baseline debt remains tracked separately.',
+      ],
+    },
+    implementationNotes: [
+      createAutoContextOwnershipNote(),
+      'The automation reuses repo-local evidence instead of hand-written closeout notes.',
+    ],
+    linkage: {
+      evidenceDir: `.harness/evidence/${taskId}/`,
+      reviewFile: `.harness/evidence/${taskId}/review.md`,
+      changeRef: 'none',
+      planRefs: [],
+    },
+    verificationPlan: {
+      commands: [
+        'node --test tests/scripts/address-github-feedback.test.mjs tests/scripts/fetch-github-feedback.test.mjs',
+        'node --test tests/scripts/pr-automation-workflow.test.mjs',
+      ],
+      runtimeEvidence: [],
+    },
+    runtimeSensitive: false,
+    evidenceRequired: ['commands.json'],
+    humanGates: ['none'],
+    completionChecklist: [
+      'Layer and boundary declared',
+      'Contract anchors read',
+      'Verification run or exception recorded',
+      'Evidence saved or summarized',
+      'Review completed',
+    ],
+  };
 }
 
 function createAutoContextCommands(taskId) {
@@ -215,7 +235,7 @@ function createAutoContextCommands(taskId) {
       },
     ],
     linkage: {
-      taskPacket: `docs/harness/tasks/${taskId}.task.md`,
+      taskManifest: `.harness/tasks/${taskId}/manifest.json`,
       evidenceDir: `.harness/evidence/${taskId}/`,
       reviewFile: `.harness/evidence/${taskId}/review.md`,
       changeRef: 'none',
@@ -231,7 +251,8 @@ function createAutoContextPullRequestBody(taskId) {
 
 - Automation-only governance follow-up.
 
-- Task Packet: docs/harness/tasks/${taskId}.task.md
+- Task ID: ${taskId}
+- Task Manifest: .harness/tasks/${taskId}/manifest.json
 - Evidence: .harness/evidence/${taskId}/commands.json
 - Review Artifact: .harness/evidence/${taskId}/review.md
 
@@ -249,12 +270,12 @@ function createAutoContextSnapshotFixture(taskId) {
 function writeAutoContextArtifacts(rootDir) {
   const taskId = createAutoContextTaskId();
   const evidenceDir = path.join(rootDir, '.harness', 'evidence', taskId);
-  const taskDir = path.join(rootDir, 'docs', 'harness', 'tasks');
+  const manifestPath = path.join(rootDir, '.harness', 'tasks', taskId, 'manifest.json');
   fs.mkdirSync(evidenceDir, { recursive: true });
-  fs.mkdirSync(taskDir, { recursive: true });
+  fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
   fs.writeFileSync(
-    path.join(taskDir, `${taskId}.task.md`),
-    createAutoContextTaskPacket(taskId),
+    manifestPath,
+    `${JSON.stringify(createAutoContextManifest(taskId), null, 2)}\n`,
   );
   fs.writeFileSync(
     path.join(evidenceDir, 'commands.json'),

@@ -8,9 +8,17 @@ import {
   parseJsonFile,
   planWritebackActions,
 } from './address-github-feedback.mjs';
+import {
+  buildTaskManifestPath,
+  deriveTaskContextFromManifest,
+  normalizeRepoRelativePath,
+  readTaskManifest,
+  resolveRepoPath,
+} from './task-manifest.mjs';
 
 const BODY_FIELD_LABELS = {
-  taskPacket: ['Task Packet', 'Task packet'],
+  taskId: ['Task ID'],
+  taskManifest: ['Task Manifest'],
   evidence: ['Evidence'],
   reviewArtifact: ['Review Artifact', 'Review artifact'],
 };
@@ -38,16 +46,6 @@ function formatBulletSummary(lines) {
 
 function normalizeRepoFullName(repoFullName) {
   return String(repoFullName ?? '').trim().toLowerCase();
-}
-
-function normalizeRepoRelativePath(value) {
-  return String(value ?? '')
-    .trim()
-    .replace(/^`+/, '')
-    .replace(/`+$/, '')
-    .replaceAll('\\', '/')
-    .replace(/^\.\/+/, '')
-    .replace(/^\/+/, '');
 }
 
 function readFileIfExists(filePath) {
@@ -80,11 +78,7 @@ function parseBodyField(body, labels) {
 }
 
 function resolveArtifactPath(repoRoot, relativePath) {
-  const normalized = normalizeRepoRelativePath(relativePath);
-  if (!normalized || normalized.includes('://') || path.isAbsolute(normalized) || normalized.startsWith('..')) {
-    return null;
-  }
-  return path.join(repoRoot, normalized);
+  return resolveRepoPath(repoRoot, relativePath);
 }
 
 function findCommandsJsonCandidates(rootDir) {
@@ -207,7 +201,8 @@ function defaultOwnershipSummary(repoRoot) {
 
 function loadEvidenceArtifacts(snapshot, repoRoot) {
   const body = snapshot?.pullRequest?.body ?? '';
-  const bodyTaskPacket = parseBodyField(body, BODY_FIELD_LABELS.taskPacket);
+  const bodyTaskId = parseBodyField(body, BODY_FIELD_LABELS.taskId);
+  const bodyTaskManifest = parseBodyField(body, BODY_FIELD_LABELS.taskManifest);
   const bodyEvidence = parseBodyField(body, BODY_FIELD_LABELS.evidence);
   const bodyReviewArtifact = parseBodyField(body, BODY_FIELD_LABELS.reviewArtifact);
 
@@ -219,9 +214,14 @@ function loadEvidenceArtifacts(snapshot, repoRoot) {
       return fallback ? parseJsonFileIfExists(fallback.filePath) : null;
     })();
 
-  const taskPacketRelativePath =
-    bodyTaskPacket ??
-    normalizeRepoRelativePath(commandsEvidence?.linkage?.taskPacket ?? '');
+  const taskId =
+    bodyTaskId ??
+    (typeof commandsEvidence?.taskId === 'string' ? commandsEvidence.taskId.trim() : '') ??
+    '';
+  const taskManifestRelativePath =
+    bodyTaskManifest ||
+    normalizeRepoRelativePath(commandsEvidence?.linkage?.taskManifest ?? '') ||
+    (taskId ? buildTaskManifestPath(taskId) : '');
   const reviewRelativePath =
     bodyReviewArtifact ??
     normalizeRepoRelativePath(commandsEvidence?.linkage?.reviewFile ?? '');
@@ -235,18 +235,30 @@ function loadEvidenceArtifacts(snapshot, repoRoot) {
           'commands.json',
         )
       : null);
-  const taskPacketPath = resolveArtifactPath(repoRoot, taskPacketRelativePath);
+  let taskManifest = null;
+  if (taskManifestRelativePath) {
+    try {
+      taskManifest = readTaskManifest(repoRoot, taskManifestRelativePath);
+    } catch {
+      taskManifest = null;
+    }
+  }
   const reviewPath = resolveArtifactPath(repoRoot, reviewRelativePath);
   const summaryPath =
-    resolvedCommandsJsonPath && fs.existsSync(path.join(path.dirname(resolvedCommandsJsonPath), 'summary.md'))
+    resolveArtifactPath(
+      repoRoot,
+      normalizeRepoRelativePath(commandsEvidence?.linkage?.summaryFile ?? ''),
+    ) ??
+    (resolvedCommandsJsonPath &&
+    fs.existsSync(path.join(path.dirname(resolvedCommandsJsonPath), 'summary.md'))
       ? path.join(path.dirname(resolvedCommandsJsonPath), 'summary.md')
-      : null;
+      : null);
 
   return {
+    taskId,
+    taskManifest,
     commandsEvidence,
     commandsJsonPath: resolvedCommandsJsonPath,
-    taskPacketPath,
-    taskPacketContent: readFileIfExists(taskPacketPath),
     reviewPath,
     reviewContent: readFileIfExists(reviewPath),
     summaryPath,
@@ -268,35 +280,26 @@ function deriveVerificationSummary(commandsEvidence, reviewContent) {
   return uniqueLines(extractMarkdownBullets(verificationSection));
 }
 
-function deriveChangeSummary(taskPacketContent) {
-  const goal = extractMarkdownParagraph(extractMarkdownSection(taskPacketContent, 2, 'Goal'));
-  const scopeSection = extractMarkdownSection(taskPacketContent, 2, 'Scope');
-  const inBullets = extractMarkdownBullets(
-    extractMarkdownSection(scopeSection, 3, 'In') ||
-      extractMarkdownSection(taskPacketContent, 3, 'In'),
-  );
-  return uniqueLines([goal, ...inBullets]).slice(0, 6);
+function deriveChangeSummary(taskManifest) {
+  if (!taskManifest?.payload) {
+    return [];
+  }
+  return deriveTaskContextFromManifest(taskManifest.payload).changeSummary;
 }
 
-function deriveOwnershipSummary(taskPacketContent, repoRoot) {
-  const implementationNotes = extractMarkdownSection(taskPacketContent, 2, 'Implementation Notes');
-  const implementationBullets = extractMarkdownBullets(implementationNotes);
-  const preferred =
-    implementationBullets.find((line) => /\b(stays?|belongs?)\b/i.test(line)) ??
-    implementationBullets[0] ??
-    '';
-
+function deriveOwnershipSummary(taskManifest, repoRoot) {
+  const preferred = taskManifest?.payload
+    ? deriveTaskContextFromManifest(taskManifest.payload).ownershipSummary
+    : '';
   return preferred || defaultOwnershipSummary(repoRoot);
 }
 
-function deriveOutOfScopeSummary(taskPacketContent, commandsEvidence) {
-  const scopeSection = extractMarkdownSection(taskPacketContent, 2, 'Scope');
-  const outBullets = extractMarkdownBullets(
-    extractMarkdownSection(scopeSection, 3, 'Out') ||
-      extractMarkdownSection(taskPacketContent, 3, 'Out'),
-  );
-  if (outBullets.length > 0) {
-    return buildScopedSummary('Out of scope for this change', outBullets);
+function deriveOutOfScopeSummary(taskManifest, commandsEvidence) {
+  const manifestSummary = taskManifest?.payload
+    ? deriveTaskContextFromManifest(taskManifest.payload).outOfScopeSummary
+    : '';
+  if (manifestSummary) {
+    return manifestSummary;
   }
 
   const knownGaps = uniqueLines(commandsEvidence?.knownGaps);
@@ -310,16 +313,16 @@ function deriveOutOfScopeSummary(taskPacketContent, commandsEvidence) {
 export function deriveFeedbackContext(snapshot, options = {}) {
   const repoRoot = path.resolve(options.repoRoot ?? process.cwd());
   const {
+    taskManifest,
     commandsEvidence,
-    taskPacketContent,
     reviewContent,
   } = loadEvidenceArtifacts(snapshot, repoRoot);
 
   return {
-    changeSummary: deriveChangeSummary(taskPacketContent),
+    changeSummary: deriveChangeSummary(taskManifest),
     verificationSummary: deriveVerificationSummary(commandsEvidence, reviewContent),
-    ownershipSummary: deriveOwnershipSummary(taskPacketContent, repoRoot),
-    outOfScopeSummary: deriveOutOfScopeSummary(taskPacketContent, commandsEvidence),
+    ownershipSummary: deriveOwnershipSummary(taskManifest, repoRoot),
+    outOfScopeSummary: deriveOutOfScopeSummary(taskManifest, commandsEvidence),
     closeIssueNumbers: extractCloseIssueNumbers(snapshot?.pullRequest?.body ?? '', snapshot?.repoFullName),
     resolveOutOfScopeReviewThreads: false,
   };

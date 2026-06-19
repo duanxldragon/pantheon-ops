@@ -17,7 +17,8 @@
 
 ## Evidence
 
-- Task Packet: `docs/harness/tasks/2026-06-17-github-governance-followup.task.md`
+- Task ID: `2026-06-17-github-governance-followup`
+- Task Manifest: `.harness/tasks/2026-06-17-github-governance-followup/manifest.json`
 - Evidence: `.harness/evidence/2026-06-17-github-governance-followup/commands.json`
 - Human gate: `none`
 

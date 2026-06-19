@@ -1,0 +1,141 @@
+{
+  "taskId": "2026-06-18-branch-hygiene-slash-path-fix",
+  "title": "2026-06-18-branch-hygiene-slash-path-fix",
+  "goal": "Fix the hosted `branch-hygiene` cleanup flow so slash-separated branch names keep working against the real GitHub branch lookup and branch deletion REST endpoints.",
+  "primaryLayer": "platform/governance",
+  "taskDoc": "docs/harness/tasks/2026-06-18-branch-hygiene-slash-path-fix.task.md",
+  "scope": {
+    "in": [
+      "preserve raw slash-separated branch names for GitHub `/branches/{branch}` lookup paths",
+      "preserve raw slash-separated branch names for GitHub `/git/refs/heads/{branch}` delete paths",
+      "add regression coverage that locks this hosted GitHub API behavior for slash branch names"
+    ],
+    "out": [
+      "changing the `pulls?head=` or `pulls?base=` query parameter encoding rules",
+      "changing business-domain code or inheritance overlays",
+      "changing merge strategy, PR governance, or local branch cleanup behavior"
+    ]
+  },
+  "implementationNotes": [
+    "Real GitHub hosted verification showed that these branch endpoints expect slash-separated branch names as path segments rather than `%2F`-encoded path atoms.",
+    "Open-PR and base-branch query filters should keep their existing query encoding posture.",
+    "The deletion guard must stay SHA-verified so a recreated branch with the same name is preserved."
+  ],
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "../pantheon-base/AGENTS.md",
+    "../pantheon-base/DESIGN.md",
+    "../pantheon-base/docs/README.md",
+    "docs/harness/tasks/2026-06-18-branch-hygiene-fallback.task.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-06-18-branch-hygiene-slash-path-fix.task.md",
+      ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/commands.json",
+      ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/review.md",
+      ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/pr-body.md"
+    ],
+    "modify": [
+      "scripts/cleanup-github-branches.mjs",
+      "tests/scripts/cleanup-github-branches.test.mjs"
+    ],
+    "doNotTouch": [
+      ".github/workflows/pr-automation.yml",
+      "backend/modules/business/*",
+      "frontend/src/modules/business/*",
+      "shared backend sync payloads from `pantheon-base`"
+    ]
+  },
+  "harnessProfile": {
+    "template": "pantheon-ops custom",
+    "overlay": "none",
+    "qualityProfile": "ci-workflow",
+    "portableFailureClass": "ci-signal-noise",
+    "ownerLayer": "repository-governance",
+    "coverageDimensions": [
+      "behaviour",
+      "maintainability"
+    ]
+  },
+  "methodReadiness": {
+    "consumerSpecificControls": [
+      "pantheon-ops repo-local governance"
+    ],
+    "requiredSensors": [
+      "command"
+    ],
+    "requiredEvidence": [
+      "workflow test output",
+      "hosted residue verification note"
+    ],
+    "ratchetDecision": "sensor-added"
+  },
+  "deliveryGovernance": {
+    "designGate": [
+      "root-cause note captured"
+    ],
+    "developmentGate": [
+      "regression coverage added before hosted rerun"
+    ],
+    "qaAcceptanceGate": [
+      "local workflow and script verification"
+    ],
+    "githubGovernanceGate": [
+      "repo-quality-gate"
+    ]
+  },
+  "executionRoles": {
+    "implementerPosture": "implementer",
+    "reviewerPosture": [
+      "architecture",
+      "mechanical"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "push",
+      "schedule",
+      "workflow_dispatch -> branch-hygiene workflow -> cleanup script -> GitHub branch lookup/delete endpoints"
+    ],
+    "riskNodes": [
+      "slash branch path handling",
+      "recreated branch safety",
+      "hosted verification fidelity"
+    ],
+    "graphFocus": [
+      "sensitive-input-flow"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "npm run test:branch-hygiene",
+      "hosted GitHub rerun against a real closed-PR residue branch after merge"
+    ],
+    "runtimeEvidence": [
+      "npm run test:branch-hygiene",
+      "hosted GitHub rerun against a real closed-PR residue branch after merge",
+      "branch hygiene workflow test output",
+      "hosted GitHub residue cleanup proof after merge"
+    ]
+  },
+  "runtimeSensitive": true,
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/",
+    "reviewFile": ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/review.md",
+    "summaryFile": ".harness/evidence/2026-06-18-branch-hygiene-slash-path-fix/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "evidenceRequired": [
+    "branch hygiene workflow test output",
+    "hosted GitHub residue cleanup proof after merge"
+  ],
+  "completionChecklist": [
+    "hosted slash-path root cause recorded",
+    "regression coverage added",
+    "local branch-hygiene tests rerun",
+    "hosted residue cleanup rerun after merge",
+    "residual risk updated"
+  ]
+}
