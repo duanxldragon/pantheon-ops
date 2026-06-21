@@ -238,62 +238,73 @@ const SettingOverviewPage: React.FC = () => {
                     description: item.description,
                   }))}
                 />
-                <div className="setting-overview-page__anchor-strip" role="tablist" aria-label={t('system.setting.hero.title')}>
+                <div className="setting-page__group-nav-grid">
                   {visibleGroups.map((meta) => {
-                      const group = groupedSettings.find((item) => item.groupKey === meta.key);
-                      const issueCount = groupIssueCounts[meta.key] || 0;
-                      const active = activeGroupKey === meta.key;
-                      const tabId = `setting-group-tab-${meta.key}`;
-                      const panelId = `setting-group-section-${meta.key}`;
-                      return (
-                        <button
-                          key={meta.key}
-                          type="button"
-                          id={tabId}
-                          role="tab"
-                          aria-selected={active}
-                          aria-controls={panelId}
-                          tabIndex={active ? 0 : -1}
-                          className={`setting-overview-page__anchor-item${active ? ' setting-overview-page__anchor-item--active' : ''}`}
-                          onClick={() => {
-                            switchGroup(meta.key);
-                          }}
-                        >
-                          <span className="setting-overview-page__anchor-title-row">
-                            <span className="setting-overview-page__anchor-title">
-                              {t(meta.titleKey)}
-                            </span>
-                            {issueCount > 0 ? (
-                              <Tag color={meta.tone === 'danger' ? 'red' : 'orange'}>
-                                {t('common.total', { count: issueCount })}
-                              </Tag>
-                            ) : null}
-                          </span>
-                          <span className="setting-overview-page__anchor-desc">
-                            {t(meta.descriptionKey, '')}
-                          </span>
-                          <span className="setting-overview-page__anchor-meta">
-                            {t('common.total', { count: group?.items.length ?? 0 })}
-                          </span>
-                        </button>
-                      );
-                    })}
+                    const group = groupedSettings.find((item) => item.groupKey === meta.key);
+                    const issueCount = groupIssueCounts[meta.key] || 0;
+                    const active = activeGroupKey === meta.key;
+                    const tabId = `setting-group-tab-${meta.key}`;
+                    const panelId = `setting-group-section-${meta.key}`;
+                    return (
+                      <button
+                        key={meta.key}
+                        type="button"
+                        id={tabId}
+                        aria-controls={panelId}
+                        aria-pressed={active}
+                        className={`setting-page__group-nav-item${active ? ' setting-page__group-nav-item--active' : ''}`}
+                        onClick={() => {
+                          switchGroup(meta.key);
+                        }}
+                      >
+                        <span className="setting-page__group-nav-title-row">
+                          <span className="setting-page__group-nav-title">{t(meta.titleKey)}</span>
+                          {issueCount > 0 ? (
+                            <Tag color={meta.tone === 'danger' ? 'red' : 'orange'}>
+                              {t('common.total', { count: issueCount })}
+                            </Tag>
+                          ) : null}
+                        </span>
+                        <span className="setting-page__group-nav-desc">
+                          {t(meta.descriptionKey, '')}
+                        </span>
+                        <span className="setting-page__group-nav-meta">
+                          {t('common.total', { count: group?.items.length ?? 0 })}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
+                {overview ? (
+                  <div className="setting-page__runtime-strip">
+                    <Typography.Text type="secondary">
+                      {t('system.setting.hero.storageHint')} {overview.storageDriver || '-'}
+                    </Typography.Text>
+                    <Typography.Text type="secondary">
+                      {t('system.setting.hero.languageHint')} {overview.defaultLanguage || '-'}
+                    </Typography.Text>
+                    <Typography.Text type="secondary">
+                      {t('system.setting.hero.themeHint')} {overview.defaultTheme || '-'}
+                    </Typography.Text>
+                  </div>
+                ) : null}
                 {activeGroup ? (
-                  <SettingGroupWorkspace
-                    key={activeGroup.groupKey}
-                    sectionId={`setting-group-section-${activeGroup.groupKey}`}
-                    labelledById={`setting-group-tab-${activeGroup.groupKey}`}
-                    className="setting-overview-page__workspace"
-                    groupKey={activeGroup.groupKey}
-                    groupItems={activeGroup.items}
-                    canUpdateSetting={canViewSettings && canUpdateSetting}
-                    canRefreshCache={canViewSettings && canRefreshCache}
-                    canExportAudit={canViewSettings && canExportAudit}
-                    canViewOperationLog={canViewSettings && canViewOperationLog}
-                    showAuditCard
-                    onReload={reload}
-                  />
+                  <div className="setting-overview-page__group-card">
+                    <SettingGroupWorkspace
+                      key={activeGroup.groupKey}
+                      sectionId={`setting-group-section-${activeGroup.groupKey}`}
+                      labelledById={`setting-group-tab-${activeGroup.groupKey}`}
+                      className="setting-overview-page__workspace"
+                      groupKey={activeGroup.groupKey}
+                      groupItems={activeGroup.items}
+                      canUpdateSetting={canViewSettings && canUpdateSetting}
+                      canRefreshCache={canViewSettings && canRefreshCache}
+                      canExportAudit={canViewSettings && canExportAudit}
+                      canViewOperationLog={canViewSettings && canViewOperationLog}
+                      showAuditCard
+                      onReload={reload}
+                    />
+                  </div>
                 ) : null}
               </div>
             </PageSplitLayout>

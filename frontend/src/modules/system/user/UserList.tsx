@@ -764,8 +764,11 @@ const UserList: React.FC = () => {
     await loadData(query, { silent: true });
   };
 
-  const batchActionDisabled = !canBatchUpdate || selectedRowKeys.length === 0;
-  const batchDeleteDisabled = !canBatchDelete || selectedRowKeys.length === 0;
+  const hasSelectedRows = selectedRowKeys.length > 0;
+  const hasProtectedSelection = selectedRowKeys.some((key) => Number(key) === 1);
+  const batchEnableDisabled = !canBatchUpdate || !hasSelectedRows;
+  const batchDisableDisabled = !canBatchUpdate || !hasSelectedRows || hasProtectedSelection;
+  const batchDeleteDisabled = !canBatchDelete || !hasSelectedRows;
   const filteredPostOptions = [
     { label: t('system.post.none'), value: 0 },
     ...postOptions
@@ -787,7 +790,7 @@ const UserList: React.FC = () => {
     () => postOptions.filter((item) => item.value > 0).length,
     [postOptions],
   );
-  const batchActionReady = !batchActionDisabled || !batchDeleteDisabled;
+  const batchActionReady = !batchEnableDisabled || !batchDisableDisabled || !batchDeleteDisabled;
   const statusMetrics = useMemo(
     () => [
       {
@@ -977,9 +980,9 @@ const UserList: React.FC = () => {
                       onOk={() => {
                         void handleBatchStatus(1);
                       }}
-                      disabled={batchActionDisabled}
+                      disabled={batchEnableDisabled}
                     >
-                      <Button disabled={batchActionDisabled}>{t('system.user.batchEnable')}</Button>
+                      <Button disabled={batchEnableDisabled}>{t('system.user.batchEnable')}</Button>
                     </Popconfirm>
                   </PermissionAction>
                   <PermissionAction allowed={canBatchUpdate} tooltip={t('common.noPermissionAction')}>
@@ -988,11 +991,11 @@ const UserList: React.FC = () => {
                       onOk={() => {
                         void handleBatchStatus(2);
                       }}
-                      disabled={batchActionDisabled}
+                      disabled={batchDisableDisabled}
                     >
                       <Button
-                        status={batchActionDisabled ? undefined : 'warning'}
-                        disabled={batchActionDisabled}
+                        status={batchDisableDisabled ? undefined : 'warning'}
+                        disabled={batchDisableDisabled}
                       >
                         {t('system.user.batchDisable')}
                       </Button>
@@ -1037,7 +1040,6 @@ const UserList: React.FC = () => {
                   checkCrossPage: true,
                   preserveSelectedRowKeys: true,
                   fixed: true,
-                  checkboxProps: (row) => ({ disabled: row.id === 1 }),
                   onChange: (rowKeys) => setSelectedRowKeys(rowKeys),
                 }}
                 onChange={handleTableChange}
