@@ -62,6 +62,7 @@ export { default as PageLoading } from './feedback/PageLoading';
 export { default as RouteContentFallback } from './feedback/RouteContentFallback';
 export { default as PageEmpty } from './feedback/PageEmpty';
 export { default as PageError } from './feedback/PageError';
+export { default as PageRequestError } from './feedback/PageRequestError';
 export { default as PageForbidden } from './feedback/PageForbidden';
 export { default as PageNotFound } from './feedback/PageNotFound';
 export { default as PageServerError } from './feedback/PageServerError';

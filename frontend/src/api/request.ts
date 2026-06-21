@@ -257,6 +257,8 @@ export const isTimeoutRequestError = (error: unknown) =>
   isRequestError(error) && error.kind === 'timeout';
 export const isNetworkRequestError = (error: unknown) =>
   isRequestError(error) && (error.kind === 'network' || error.kind === 'timeout');
+export const isForbiddenRequestError = (error: unknown) =>
+  isRequestError(error) && error.kind === 'forbidden';
 export const isServerRequestError = (error: unknown) =>
   isRequestError(error) && error.kind === 'server';
 

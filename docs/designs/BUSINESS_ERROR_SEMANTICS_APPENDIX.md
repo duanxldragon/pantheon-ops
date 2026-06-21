@@ -136,12 +136,34 @@ business.<module>.<resource>.<reason>
 | `business.deploy.task.nameRequired` | 任务名称必填 |
 | `business.deploy.task.packageRequired` | 组件必选 |
 | `business.deploy.task.packageDisabled` | 组件已禁用，不能用于新任务 |
+| `business.deploy.task.scopeRequired` | 主机部署必须选择业务域 |
+| `business.deploy.task.scopeInvalid` | 所选业务域不存在或不可用 |
 | `business.deploy.task.targetRequired` | 目标主机或分组必填 |
+| `business.deploy.task.invalidTargetType` | 目标类型无效 |
 | `business.deploy.task.targetOutOfScope` | 目标不在当前数据范围内 |
 | `business.deploy.task.invalidExecutorType` | 执行方式无效 |
+| `business.deploy.task.invalidAction` | 任务动作无效 |
+| `business.deploy.task.targetStatusMismatch` | 目标当前状态不支持所选动作 |
+| `business.deploy.task.templateNotFound` | 任务引用的模板不存在 |
+| `business.deploy.task.templateDisabled` | 任务引用的模板已停用 |
+| `business.deploy.task.packageNotFound` | 任务引用的组件不存在 |
 | `business.deploy.task.invalidStartState` | 当前状态不允许启动 |
+| `business.deploy.task.invalidUpdateState` | 当前状态不允许编辑 |
+| `business.deploy.task.invalidDeleteState` | 当前状态不允许删除 |
 | `business.deploy.task.emptyResolvedTargets` | 解析后无可执行目标 |
 | `business.deploy.task.invalidCancelState` | 当前状态不允许取消 |
+| `business.deploy.task.templateParamsInvalid` | 启动或保存时模板参数不完整或模板变量无法解析 |
+| `business.deploy.task.templateInvalid` | 启动时固定模板定义无效 |
+| `business.deploy.task.installCommandRequired` | 启动安装类任务时组件缺少安装命令 |
+| `business.deploy.task.uninstallCommandRequired` | 启动卸载类任务时组件缺少卸载命令 |
+| `business.deploy.task.packageSourceMissing` | 启动固定模板任务时缺少可下载的软件包来源 |
+| `business.deploy.task.sshHostKeyRequired` | SSH 启动缺少主机指纹 |
+| `business.deploy.task.sshHostKeyMismatch` | SSH 主机指纹校验失败 |
+| `business.deploy.task.sshUserRequired` | SSH 启动缺少用户名 |
+| `business.deploy.task.sshPasswordRequired` | SSH 密码认证模式缺少密码 |
+| `business.deploy.task.sshPrivateKeyRequired` | SSH 私钥认证模式缺少私钥 |
+| `business.deploy.task.sshAuthFailed` | SSH 认证失败 |
+| `business.deploy.task.sshConnectFailed` | SSH 连接失败 |
 
 ### 3.3 TaskHost
 
