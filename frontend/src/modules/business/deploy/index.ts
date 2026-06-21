@@ -1,1 +1,80 @@
-import { defineModule } from '../../../core/router/types';  export const DeployModule = defineModule({   name: 'deploy',   scope: 'business',   routes: [     {       path: 'operations/deploy/package',       routeName: 'deploy-package-list',       titleKey: 'operations.deploy.package.menu',       componentKey: 'business/deploy/package/DeployPackageList',       pagePermission: 'business:deploy:package:view',     },     {       path: 'operations/deploy/template',       routeName: 'deploy-template-list',       titleKey: 'operations.deploy.template.menu',       componentKey: 'business/deploy/template/DeployTemplateList',       pagePermission: 'business:deploy:template:list',     },     {       path: 'operations/deploy/task',       routeName: 'deploy-task-list',       titleKey: 'operations.deploy.task.menu',       componentKey: 'business/deploy/task/DeployTaskList',       pagePermission: 'business:deploy:task:view',     },     {       path: 'operations/deploy/task/:id',       routeName: 'deploy-task-detail',       titleKey: 'operations.deploy.task.detail',       componentKey: 'business/deploy/task/DeployTaskDetail',       pagePermission: 'business:deploy:task:detail',     },   ],   menus: [     {       path: '/operations/deploy/package',       titleKey: 'operations.deploy.package.menu',       icon: 'apps',       routeName: 'deploy-package-list',       module: 'business.deploy',     },     {       path: '/operations/deploy/template',       titleKey: 'operations.deploy.template.menu',       icon: 'code',       routeName: 'deploy-template-list',       module: 'business.deploy',     },     {       path: '/operations/deploy/task',       titleKey: 'operations.deploy.task.menu',       icon: 'tool',       routeName: 'deploy-task-list',       module: 'business.deploy',     },   ],   permissions: [     'business:deploy:package:view',     'business:deploy:package:list',     'business:deploy:package:create',     'business:deploy:package:update',     'business:deploy:package:delete',     'business:deploy:template:list',     'business:deploy:template:create',     'business:deploy:template:update',     'business:deploy:template:delete',     'business:deploy:task:view',     'business:deploy:task:list',     'business:deploy:task:detail',     'business:deploy:task:create',     'business:deploy:task:update',     'business:deploy:task:delete',     'business:deploy:task:start',     'business:deploy:task:cancel',     'business:deploy:task:mark-result',   ],   i18nNamespaces: ['business.deploy'], });
+import { defineModule } from '../../../core/router/types';
+
+export const DeployModule = defineModule({
+  name: 'deploy',
+  scope: 'business',
+  routes: [
+    {
+      path: 'operations/deploy/package',
+      routeName: 'deploy-package-list',
+      titleKey: 'operations.deploy.package.menu',
+      componentKey: 'business/deploy/package/DeployPackageList',
+      pagePermission: 'business:deploy:package:view',
+    },
+    {
+      path: 'operations/deploy/template',
+      routeName: 'deploy-template-list',
+      titleKey: 'operations.deploy.template.menu',
+      componentKey: 'business/deploy/template/DeployTemplateList',
+      pagePermission: 'business:deploy:template:list',
+    },
+    {
+      path: 'operations/deploy/task',
+      routeName: 'deploy-task-list',
+      titleKey: 'operations.deploy.task.menu',
+      componentKey: 'business/deploy/task/DeployTaskList',
+      pagePermission: 'business:deploy:task:view',
+    },
+    {
+      path: 'operations/deploy/task/:id',
+      routeName: 'deploy-task-detail',
+      titleKey: 'operations.deploy.task.detail',
+      componentKey: 'business/deploy/task/DeployTaskDetail',
+      pagePermission: 'business:deploy:task:detail',
+    },
+  ],
+  menus: [
+    {
+      path: '/operations/deploy/package',
+      titleKey: 'operations.deploy.package.menu',
+      icon: 'apps',
+      routeName: 'deploy-package-list',
+      module: 'business.deploy',
+    },
+    {
+      path: '/operations/deploy/template',
+      titleKey: 'operations.deploy.template.menu',
+      icon: 'code',
+      routeName: 'deploy-template-list',
+      module: 'business.deploy',
+    },
+    {
+      path: '/operations/deploy/task',
+      titleKey: 'operations.deploy.task.menu',
+      icon: 'tool',
+      routeName: 'deploy-task-list',
+      module: 'business.deploy',
+    },
+  ],
+  permissions: [
+    'business:deploy:package:view',
+    'business:deploy:package:list',
+    'business:deploy:package:create',
+    'business:deploy:package:update',
+    'business:deploy:package:delete',
+    'business:deploy:template:list',
+    'business:deploy:template:create',
+    'business:deploy:template:update',
+    'business:deploy:template:delete',
+    'business:deploy:task:view',
+    'business:deploy:task:list',
+    'business:deploy:task:detail',
+    'business:deploy:task:create',
+    'business:deploy:task:update',
+    'business:deploy:task:delete',
+    'business:deploy:task:start',
+    'business:deploy:task:cancel',
+    'business:deploy:task:mark-result',
+  ],
+  i18nNamespaces: ['business.deploy'],
+});

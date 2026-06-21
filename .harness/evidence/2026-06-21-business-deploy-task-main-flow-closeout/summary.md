@@ -1,1 +1,7 @@
-# Verification Summary: 2026-06-21-business-deploy-task-main-flow-closeout  - Scope: `business/deploy` task main-flow closure only - Result: deploy task create/update/delete/start/detail/cancel/taskHost result now align to `business.deploy.task.*` semantics, with matching docs, locales and smoke assertions - Local proof: backend package tests, i18n generation, i18n missing-key check, menu contract, frontend base-sync, and inheritance checks passed - Runtime gap: no clean local full-repo type-check or rendered smoke evidence in this dirty-tree session; PR workflows are expected to provide clean-branch gate coverage - Residual boundary: package/template CRUD legacy semantics remain intentionally out of scope for this PR
+# Verification Summary: 2026-06-21-business-deploy-task-main-flow-closeout
+
+- Scope: `business/deploy` task main-flow closure only
+- Result: deploy task create/update/delete/start/detail/cancel/taskHost result now align to `business.deploy.task.*` semantics, with matching docs, locales and smoke assertions
+- Local proof: backend package tests, i18n generation, i18n missing-key check, menu contract, frontend base-sync, and inheritance checks passed
+- Runtime gap: no clean local full-repo type-check or rendered smoke evidence in this dirty-tree session; PR workflows are expected to provide clean-branch gate coverage
+- Residual boundary: package/template CRUD legacy semantics remain intentionally out of scope for this PR
