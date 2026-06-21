@@ -608,17 +608,14 @@ export default function CmdbHostList() {
                 current: query.page || 1,
                 pageSize: query.pageSize || 10,
                 total,
-                onChange: (nextPage) => {
+                onChange: (nextPage, nextPageSize) => {
                   setQuery((prev) => ({
                     ...prev,
                     page: nextPage || 1,
-                  }));
-                },
-                onPageSizeChange: (nextPageSize) => {
-                  setQuery((prev) => ({
-                    ...prev,
-                    page: 1,
-                    pageSize: nextPageSize || prev.pageSize || 10,
+                    pageSize:
+                      nextPageSize && nextPageSize > 0
+                        ? nextPageSize
+                        : prev.pageSize || 10,
                   }));
                 },
                 pageSizeChangeResetCurrent: true,
