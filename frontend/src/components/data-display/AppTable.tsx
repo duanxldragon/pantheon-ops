@@ -244,43 +244,47 @@ function AppTable<T>(props: AppTableProps<T>) {
           }
 
           const originalItemRender = paginationNode.props.itemRender;
-          const decoratedPaginationNode = React.cloneElement(paginationNode, {
-            itemRender: (page, type, originElement) => {
-              const renderedOrigin = originalItemRender
-                ? originalItemRender(page, type, originElement)
-                : originElement;
+          const decoratedPaginationNode = React.createElement(
+            paginationNode.type as React.ElementType<PaginationNodeProps>,
+            {
+              ...paginationNode.props,
+              itemRender: (page, type, originElement) => {
+                const renderedOrigin = originalItemRender
+                  ? originalItemRender(page, type, originElement)
+                  : originElement;
 
-              if (type === 'prev') {
-                return (
-                  <span className="app-table__pagination-step-group">
-                    {createBoundaryPaginationItem<T>(
-                      'first',
-                      paginationNode.props,
-                      firstPageAriaLabel,
-                      rest.onChange,
-                    )}
-                    <span className="app-table__pagination-step-origin">{renderedOrigin}</span>
-                  </span>
-                );
-              }
+                if (type === 'prev') {
+                  return (
+                    <span className="app-table__pagination-step-group">
+                      {createBoundaryPaginationItem<T>(
+                        'first',
+                        paginationNode.props,
+                        firstPageAriaLabel,
+                        rest.onChange,
+                      )}
+                      <span className="app-table__pagination-step-origin">{renderedOrigin}</span>
+                    </span>
+                  );
+                }
 
-              if (type === 'next') {
-                return (
-                  <span className="app-table__pagination-step-group">
-                    <span className="app-table__pagination-step-origin">{renderedOrigin}</span>
-                    {createBoundaryPaginationItem<T>(
-                      'last',
-                      paginationNode.props,
-                      lastPageAriaLabel,
-                      rest.onChange,
-                    )}
-                  </span>
-                );
-              }
+                if (type === 'next') {
+                  return (
+                    <span className="app-table__pagination-step-group">
+                      <span className="app-table__pagination-step-origin">{renderedOrigin}</span>
+                      {createBoundaryPaginationItem<T>(
+                        'last',
+                        paginationNode.props,
+                        lastPageAriaLabel,
+                        rest.onChange,
+                      )}
+                    </span>
+                  );
+                }
 
-              return renderedOrigin;
+                return renderedOrigin;
+              },
             },
-          });
+          );
           const callerNode = renderPagination
             ? renderPagination(decoratedPaginationNode)
             : decoratedPaginationNode;

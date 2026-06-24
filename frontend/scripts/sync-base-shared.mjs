@@ -6,23 +6,32 @@ import {
   allowedFrontendOpsOnlyPaths,
   collectFiles,
   ensureDir,
+  frontendRelocatedComponentPrefixes,
   frontendOverlayPaths,
-  sharedFrontendEntries,
+  listFilesFromGitCommit,
+  readFileFromGitCommit,
+  readFoundationLock,
+  resolveBaseRepoRoot,
+  sharedFrontendEntriesFromLock,
+  stripTreePrefix,
+  normalizeLineEndings,
+  toOriginalFrontendPath,
+  toRelocatedFrontendPath,
   toRepoPath,
 } from '../../scripts/foundation-release/shared-foundation-rules.mjs';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const scriptsDir = path.dirname(currentFilePath);
 const opsFrontendRoot = path.resolve(scriptsDir, '..');
-const workspaceRoot = path.resolve(opsFrontendRoot, '..', '..');
-const baseRepoRoot = process.env.PANTHEON_BASE_REPO_ROOT
-  ? path.resolve(process.env.PANTHEON_BASE_REPO_ROOT)
-  : path.join(workspaceRoot, 'pantheon-base');
-const baseSrcRoot = path.join(baseRepoRoot, 'frontend', 'src');
+const opsRoot = path.resolve(opsFrontendRoot, '..');
+const foundationLock = readFoundationLock(opsRoot);
+const baseRepoRoot = resolveBaseRepoRoot(opsRoot, foundationLock);
+const compareWorkspaceHead = process.argv.includes('--workspace-head');
+const targetCommit = compareWorkspaceHead ? 'HEAD' : foundationLock.baseCommit;
 
 // In CI, pantheon-base may not be checked out as a sibling directory.
-if (!fs.existsSync(baseSrcRoot)) {
-  console.warn('[sync-base-shared] pantheon-base not found at', baseSrcRoot);
+if (!fs.existsSync(baseRepoRoot)) {
+  console.warn('[sync-base-shared] pantheon-base not found at', baseRepoRoot);
   console.warn('[sync-base-shared] skipping base sync check (running in CI without base repo)');
   process.exit(0);
 }
@@ -35,23 +44,80 @@ function readFile(filePath) {
   return fs.readFileSync(filePath, 'utf8');
 }
 
+function toRelativeImportSpecifier(fromRelativePath, toRelativePath) {
+  const fromDir = path.posix.dirname(toRepoPath(fromRelativePath));
+  const nextSpecifier = path.posix.relative(fromDir, toRepoPath(toRelativePath));
+  if (nextSpecifier.startsWith('../')) {
+    return nextSpecifier;
+  }
+  return `./${nextSpecifier}`;
+}
+
+function rewriteRelativeImportSpecifier(specifier, originalRelativePath, relocatedRelativePath) {
+  if (!specifier.startsWith('./') && !specifier.startsWith('../')) {
+    return specifier;
+  }
+
+  const originalDir = path.posix.dirname(toRepoPath(originalRelativePath));
+  const originalTarget = path.posix.normalize(path.posix.join(originalDir, specifier));
+  const relocatedTarget = toRelocatedFrontendPath(originalTarget);
+  const nextSpecifier = toRelativeImportSpecifier(relocatedRelativePath, relocatedTarget);
+  return nextSpecifier === '.' ? './' : nextSpecifier;
+}
+
+function rewriteFrontendBaseSource(baseSource, originalRelativePath, relocatedRelativePath) {
+  let nextSource = baseSource
+    .replace(
+      /\b(from\s*|import\s*\(\s*|import\s+)(['"])(\.{1,2}\/[^'"]+)\2/gu,
+      (match, prefix, quote, specifier) =>
+        `${prefix}${quote}${rewriteRelativeImportSpecifier(
+          specifier,
+          originalRelativePath,
+          relocatedRelativePath,
+        )}${quote}`,
+    );
+  nextSource = nextSource.replace(
+    /(\bcomponent(?:Key)?\s*:\s*['"])([^'"]+)(['"])/gu,
+    (match, prefix, componentKey, suffix) => {
+      for (const [fromPrefix, toPrefix] of frontendRelocatedComponentPrefixes.entries()) {
+        if (componentKey.startsWith(fromPrefix)) {
+          return `${prefix}${toPrefix}${componentKey.slice(fromPrefix.length)}${suffix}`;
+        }
+      }
+      return match;
+    },
+  );
+  return nextSource;
+}
+
+function readRewrittenBaseSource(relativePath) {
+  const originalRelativePath = toOriginalFrontendPath(relativePath);
+  const baseSource = readFileFromGitCommit(baseRepoRoot, targetCommit, `frontend/src/${originalRelativePath}`);
+  return rewriteFrontendBaseSource(baseSource, originalRelativePath, relativePath);
+}
+
 function collectSharedBaseFiles() {
-  const files = [];
-  for (const entry of sharedFrontendEntries) {
-    const absolutePath = path.join(baseSrcRoot, entry);
-    const stats = fs.statSync(absolutePath);
-    if (stats.isDirectory()) {
-      files.push(...collectFiles(baseSrcRoot, absolutePath));
+  const files = new Set();
+  for (const entry of sharedFrontendEntriesFromLock(foundationLock)) {
+    const treePrefix = `frontend/src/${entry}`;
+    const gitFiles = listFilesFromGitCommit(baseRepoRoot, targetCommit, treePrefix);
+    if (gitFiles.length === 0 && !entry.includes('.')) {
       continue;
     }
-    files.push(toRepoPath(entry));
+    if (gitFiles.length === 0) {
+      files.add(toRepoPath(entry));
+      continue;
+    }
+    for (const filePath of gitFiles) {
+      files.add(toRelocatedFrontendPath(stripTreePrefix(filePath, 'frontend/src')));
+    }
   }
-  return files.sort((a, b) => a.localeCompare(b));
+  return [...files].sort((a, b) => a.localeCompare(b));
 }
 
 function collectSharedOpsOnlyFiles() {
   const extraFiles = [];
-  for (const entry of sharedFrontendEntries) {
+  for (const entry of sharedFrontendEntriesFromLock(foundationLock)) {
     const absolutePath = path.join(opsSrcRoot, entry);
     if (!fs.existsSync(absolutePath)) {
       continue;
@@ -61,10 +127,12 @@ function collectSharedOpsOnlyFiles() {
       continue;
     }
     for (const relativePath of collectFiles(opsSrcRoot, absolutePath)) {
-      const basePath = path.join(baseSrcRoot, relativePath);
-      if (fs.existsSync(basePath)) {
+      const originalRelativePath = toOriginalFrontendPath(relativePath);
+      const basePath = `frontend/src/${originalRelativePath}`;
+      try {
+        readFileFromGitCommit(baseRepoRoot, targetCommit, basePath);
         continue;
-      }
+      } catch {}
       if (frontendOverlayPaths.has(relativePath) || allowedFrontendOpsOnlyPaths.has(relativePath)) {
         continue;
       }
@@ -84,7 +152,6 @@ function main() {
     if (frontendOverlayPaths.has(relativePath)) {
       continue;
     }
-    const baseFilePath = path.join(baseSrcRoot, relativePath);
     const opsFilePath = path.join(opsSrcRoot, relativePath);
     if (!fs.existsSync(opsFilePath)) {
       if (checkMode) {
@@ -92,14 +159,14 @@ function main() {
         continue;
       }
       ensureDir(opsFilePath);
-      fs.writeFileSync(opsFilePath, readFile(baseFilePath), 'utf8');
+      fs.writeFileSync(opsFilePath, readRewrittenBaseSource(relativePath), 'utf8');
       changedFiles.push(relativePath);
       continue;
     }
 
-    const baseSource = readFile(baseFilePath);
+    const baseSource = readRewrittenBaseSource(relativePath);
     const opsSource = readFile(opsFilePath);
-    if (baseSource === opsSource) {
+    if (normalizeLineEndings(baseSource) === normalizeLineEndings(opsSource)) {
       continue;
     }
 
@@ -117,11 +184,17 @@ function main() {
 
   if (checkMode) {
     if (missingFiles.length === 0 && driftFiles.length === 0 && opsOnlyFiles.length === 0) {
-      console.log('OK shared frontend is aligned with pantheon-base');
+      const sourceLabel = compareWorkspaceHead
+        ? 'pantheon-base workspace HEAD'
+        : `pantheon-base ${foundationLock.releaseVersion} (${foundationLock.baseCommit})`;
+      console.log(`OK shared frontend is aligned with ${sourceLabel}`);
       return;
     }
 
-    console.error('pantheon-ops shared frontend drift detected');
+    const sourceLabel = compareWorkspaceHead
+      ? 'pantheon-base workspace HEAD'
+      : `pantheon-base ${foundationLock.releaseVersion} (${foundationLock.baseCommit})`;
+    console.error(`pantheon-ops shared frontend drift detected against ${sourceLabel}`);
     for (const relativePath of missingFiles) {
       console.error(`MISSING ${relativePath}`);
     }
@@ -142,7 +215,9 @@ function main() {
   console.log(
     changedFiles.length === 0
       ? 'No shared frontend files needed syncing'
-      : `Synced ${changedFiles.length} shared frontend files from pantheon-base`,
+      : `Synced ${changedFiles.length} shared frontend files from ${
+        compareWorkspaceHead ? 'pantheon-base workspace HEAD' : `${foundationLock.releaseVersion}`
+      }`,
   );
 }
 

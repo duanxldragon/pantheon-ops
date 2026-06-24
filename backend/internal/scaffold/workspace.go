@@ -18,6 +18,7 @@ var managedTableNamePattern = regexp.MustCompile(`^[a-z0-9_]+$`)
 
 const workspaceRootEnvKey = "PANTHEON_WORKSPACE_ROOT"
 const generatedModuleExporterScript = "frontend/scripts/export-generated-module.mjs"
+const GeneratedFeatureLedgerRelativePath = "schema/generated/feature-ledger.json"
 
 func isWorkspaceRoot(candidate string) bool {
 	return fileExists(filepath.Join(candidate, "go.mod")) &&
@@ -515,6 +516,22 @@ func safeIdentifier(value string) string {
 func fileExists(path string) bool {
 	info, err := os.Stat(path)
 	return err == nil && !info.IsDir()
+}
+
+func writeJSONFile(target string, payload any) error {
+	serialized, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(target, serialized, 0o644)
+}
+
+func WriteGeneratedFeatureLedgerSnapshot(workspaceRoot string, snapshot any) error {
+	target := filepath.Join(workspaceRoot, filepath.FromSlash(GeneratedFeatureLedgerRelativePath))
+	return writeJSONFile(target, snapshot)
 }
 
 func normalizeRelativePath(value string) string {

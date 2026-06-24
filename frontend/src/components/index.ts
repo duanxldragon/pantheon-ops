@@ -42,6 +42,7 @@ export {
 } from './table/crossPageSelection';
 export {
   buildStandardPagination,
+  getPagedItems,
   STANDARD_PAGINATION_SIZE_OPTIONS,
 } from './table/standardPagination';
 export { default as FormSection } from './patterns/FormSection';

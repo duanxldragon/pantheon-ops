@@ -51,7 +51,7 @@ func trimDiagnosticError(value string) string {
 	return trimmed[:512]
 }
 
-func buildArtifactMissingVerification(scope string, name string) GeneratedModuleVerification {
+func buildArtifactMissingVerification(scope, name string) GeneratedModuleVerification {
 	return GeneratedModuleVerification{
 		Code:       "artifact_check",
 		Status:     "warn",

@@ -9,6 +9,8 @@
     "build": "tsc -b && vite build",
     "sync:base-shared": "node ./scripts/sync-base-shared.mjs",
     "check:base-sync": "node ./scripts/sync-base-shared.mjs --check",
+    "sync:base-shared:workspace": "node ./scripts/sync-base-shared.mjs --workspace-head",
+    "check:base-sync:workspace": "node ./scripts/sync-base-shared.mjs --check --workspace-head",
     "i18n:generate-module": "node ./scripts/generate-module-i18n.mjs",
     "check:i18n-generated": "node ./scripts/generate-module-i18n.mjs --check",
     "check:menu-contract": "node ./scripts/check-menu-contract.mjs",

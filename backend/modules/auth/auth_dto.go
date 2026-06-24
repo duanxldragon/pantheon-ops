@@ -1,6 +1,6 @@
 package auth
 
-import user "pantheon-ops/backend/modules/system/iam/user"
+import "pantheon-ops/backend/pkg/platformprefs"
 
 // LoginReq 登录请求 DTO
 type LoginReq struct {
@@ -26,15 +26,15 @@ type PasswordUpdateReq struct {
 
 // UserInfoResp 当前登录主体信息 DTO
 type UserInfoResp struct {
-	ID          uint64                           `json:"id"`
-	Username    string                           `json:"username"`
-	Nickname    string                           `json:"nickname"`
-	Avatar      string                           `json:"avatar"`
-	Email       string                           `json:"email"`
-	Phone       string                           `json:"phone"`
-	Roles       []string                         `json:"roles"`
-	Perms       []string                         `json:"perms"`
-	Preferences *user.UserPlatformPreferenceResp `json:"preferences,omitempty"`
+	ID          uint64                            `json:"id"`
+	Username    string                            `json:"username"`
+	Nickname    string                            `json:"nickname"`
+	Avatar      string                            `json:"avatar"`
+	Email       string                            `json:"email"`
+	Phone       string                            `json:"phone"`
+	Roles       []string                          `json:"roles"`
+	Perms       []string                          `json:"perms"`
+	Preferences *platformprefs.PlatformPreference `json:"preferences,omitempty"`
 }
 
 type UserPlatformPreferenceUpdateReq struct {
@@ -58,14 +58,14 @@ type AuthTokenResp struct {
 	SetupRequired    bool          `json:"setupRequired,omitempty"`
 	TOTPSecret       string        `json:"totpSecret,omitempty"`
 	TOTPProvisionURI string        `json:"totpProvisionUri,omitempty"`
-	Token            string        `json:"token"`
-	AccessToken      string        `json:"accessToken"`
-	RefreshToken     string        `json:"refreshToken"`
+	Token            string        `json:"-"`
+	AccessToken      string        `json:"-"`
+	RefreshToken     string        `json:"-"`
 	TokenType        string        `json:"tokenType"`
 	AccessExpiresAt  string        `json:"accessExpiresAt"`
 	RefreshExpiresAt string        `json:"refreshExpiresAt"`
 	SessionID        string        `json:"sessionId"`
-	User             *UserInfoResp `json:"user"`
+	User             *UserInfoResp `json:"user,omitempty"`
 }
 
 type MFAChallengeResp struct {

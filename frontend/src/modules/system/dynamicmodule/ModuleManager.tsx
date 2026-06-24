@@ -42,8 +42,8 @@ import {
   GovernanceSummaryBar,
   ListHeaderActions,
   PageContainer,
-  PageError,
   PageLoading,
+  PageRequestError,
   TABLE_ACTION_COLUMN_WIDTH,
   TABLE_COLUMN_WIDTH,
   withTableColumnPriority,
@@ -527,7 +527,8 @@ const ModuleManager: React.FC = () => {
 
   if (error) {
     return (
-      <PageError
+      <PageRequestError
+        error={error}
         onRetry={() => {
           loadData({ force: true });
         }}

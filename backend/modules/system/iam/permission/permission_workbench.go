@@ -1,7 +1,7 @@
 package iam
 
 import (
-	"errors"
+	"pantheon-ops/backend/pkg/common"
 	"sort"
 	"strings"
 	"time"
@@ -49,7 +49,7 @@ type permissionRequiredAPIPolicy struct {
 
 func (s *PermissionService) GetWorkbench(query *PermissionWorkbenchQuery) (*PermissionWorkbenchResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var roles []permissionWorkbenchRoleRow
@@ -460,7 +460,7 @@ func (s *PermissionService) countRecentWorkbenchRemediationEvents(roleKeys []str
 	return len(events), nil
 }
 
-func collectRequiredAPIPolicies(pagePermissions []PermissionWorkbenchPermissionResp, actionPermissions []PermissionWorkbenchPermissionResp) []permissionRequiredAPIPolicy {
+func collectRequiredAPIPolicies(pagePermissions, actionPermissions []PermissionWorkbenchPermissionResp) []permissionRequiredAPIPolicy {
 	seen := make(map[string]struct{})
 	result := make([]permissionRequiredAPIPolicy, 0)
 	appendPolicy := func(path string, method string) {
@@ -516,6 +516,10 @@ func diffMissingAPIPolicies(required []permissionRequiredAPIPolicy, actual []Per
 
 func requiredAPIPoliciesByPermissionKey(permissionKey string) []permissionRequiredAPIPolicy {
 	switch strings.TrimSpace(permissionKey) {
+	case "system:user:list":
+		return []permissionRequiredAPIPolicy{
+			{Path: "/api/v1/system/user/list", Method: "GET"},
+		}
 	case "system:security-event:list":
 		return []permissionRequiredAPIPolicy{
 			{Path: "/api/v1/system/security-event/list", Method: "GET"},
@@ -551,7 +555,87 @@ func requiredAPIPoliciesByPermissionKey(permissionKey string) []permissionRequir
 			{Path: "/api/v1/system/generator/datasources/:id", Method: "DELETE"},
 			{Path: "/api/v1/system/generator/datasources/:id/test", Method: "POST"},
 		}
+	case "system:user:create":
+		return []permissionRequiredAPIPolicy{
+			{Path: "/api/v1/system/user/create", Method: "POST"},
+		}
 	default:
 		return nil
 	}
+}
+
+// getRoleMissingAPIPolicies fetches only the data needed to determine missing API policies
+// for a single role, without computing the full workbench. This avoids loading overview,
+// remediation events, integrity/coverage filters, and unrelated roles.
+func (s *PermissionService) getRoleMissingAPIPolicies(roleKey string) (*PermissionWorkbenchRoleResp, error) {
+	var role permissionWorkbenchRoleRow
+	if err := s.db.Table("system_role").
+		Where("role_key = ? AND deleted_at IS NULL", roleKey).
+		First(&role).Error; err != nil {
+		return nil, err
+	}
+
+	result := &PermissionWorkbenchRoleResp{
+		ID:                 role.ID,
+		RoleName:           role.RoleName,
+		RoleKey:            role.RoleKey,
+		Status:             role.Status,
+		Menus:              []PermissionWorkbenchMenuResp{},
+		PagePermissions:    []PermissionWorkbenchPermissionResp{},
+		ActionPermissions:  []PermissionWorkbenchPermissionResp{},
+		UnknownPermissions: []PermissionWorkbenchPermissionResp{},
+		APIPolicies:        []PermissionWorkbenchAPIPolicyResp{},
+		MissingAPIPolicies: []PermissionWorkbenchAPIPolicyResp{},
+	}
+
+	_, permissionCatalog, err := s.loadPermissionCatalog()
+	if err != nil {
+		return nil, err
+	}
+
+	roleMenus, err := s.loadWorkbenchMenus([]uint64{role.ID})
+	if err != nil {
+		return nil, err
+	}
+	result.Menus = roleMenus[role.ID]
+	result.MenuCount = len(result.Menus)
+
+	rolePermissions, err := s.loadWorkbenchPermissions([]uint64{role.ID})
+	if err != nil {
+		return nil, err
+	}
+	for _, key := range rolePermissions[role.ID] {
+		meta, ok := permissionCatalog[key]
+		if !ok {
+			result.UnknownPermissions = append(result.UnknownPermissions, PermissionWorkbenchPermissionResp{
+				Key:  key,
+				Kind: "unknown",
+			})
+			continue
+		}
+		if meta.Kind == "page" {
+			result.PagePermissions = append(result.PagePermissions, meta)
+		} else {
+			result.ActionPermissions = append(result.ActionPermissions, meta)
+		}
+	}
+	result.PagePermissionCount = len(result.PagePermissions)
+	result.ActionPermissionCount = len(result.ActionPermissions)
+	result.UnknownPermissionCount = len(result.UnknownPermissions)
+
+	policies, err := s.loadWorkbenchPolicies([]string{roleKey})
+	if err != nil {
+		return nil, err
+	}
+	result.APIPolicies = policies[roleKey]
+	result.APIPolicyCount = len(result.APIPolicies)
+
+	requiredPolicies := collectRequiredAPIPolicies(result.PagePermissions, result.ActionPermissions)
+	result.RequiredAPIPolicyCount = len(requiredPolicies)
+	result.MissingAPIPolicies = diffMissingAPIPolicies(requiredPolicies, result.APIPolicies)
+	result.MissingAPIPolicyCount = len(result.MissingAPIPolicies)
+	result.HasPageGap = result.MenuCount > 0 && result.PagePermissionCount == 0
+	result.HasAPIGap = result.MissingAPIPolicyCount > 0
+
+	return result, nil
 }

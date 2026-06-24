@@ -6,10 +6,11 @@ Chinese version: [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
 
 - Base repository: `../pantheon-base`
 - Base release line: `release/0.8`
-- Base version: `base-v0.8.1` (`3427c1a2fdc0b16ce6aa8735a13f3c94896ab374`)
+- Base version: `base-v0.8.4` (`412a465e7c3a2620b81e81edf3d5c9a16fb33952`)
 - Inheritance mode: `foundation-release-consumer`
 
 This repository no longer treats `base/main` as the default consumer surface. `main` may continue to absorb optimization and governance work, while ops upgrades only to explicit foundation releases or tags by default.
+`foundation-release.lock.json` is the machine-readable inheritance anchor. Default base-sync checks validate against that lock instead of directly against the current `pantheon-base` worktree.
 
 ## 2. Inherited Base Rules
 
@@ -75,7 +76,9 @@ It should not mean continuously tracking `main`.
 The recommended path is now the release consumer instead of manual tree copies:
 
 - `npm run upgrade:foundation:apply -- --manifest <bundle-root>\manifest.json --bundle <bundle-root>`
+- if `pantheon-base/releases/<version>/manifest.json` already exists locally, ops can build the bundle and consume it directly via `npm run upgrade:foundation:local-plan -- --release-version <version>` or `npm run upgrade:foundation:local-apply -- --release-version <version>`
 - the command syncs shared backend/frontend files, preserves ops-local overlays such as menu registries and generator workspace files, rewrites shared backend imports to the `pantheon-ops` module path, and re-runs frontend `base-sync` plus `menu-contract`
+- during normal feature work, `npm run check:base-sync` validates only against the release pinned in `foundation-release.lock.json`; use `npm run check:base-sync:workspace` explicitly when you want to compare ops against the current `pantheon-base` worktree and decide whether to start a new upgrade pass
 
 ## 6.1 Landing-Side Decision Rules
 
@@ -120,19 +123,33 @@ Set-Location D:\workspace\go\pantheon-platform\pantheon-ops
 npm run check:inheritance
 ```
 
-3. if the previous step fails, inspect shared backend alignment separately and use the output to decide the sync scope
+3. during normal business development, validate only whether ops still matches the currently pinned release
 
 ```powershell
 npm run check:base-sync:backend
+npm run check:base-sync:frontend
 ```
 
-4. if shared backend files must be synced, sync them file-by-file and do not overwrite `business/*`
+4. when you need to know whether recent base evolution now requires a sync pass, run the explicit workspace comparison
+
+```powershell
+npm run check:base-sync:workspace
+```
+
+5. once the workspace comparison says an upgrade is warranted, prefer consuming the local release instead of hand-copying files
+
+```powershell
+npm run upgrade:foundation:local-plan -- --release-version base-v0.8.3
+npm run upgrade:foundation:local-apply -- --release-version base-v0.8.3
+```
+
+6. if shared backend files must be synced, sync them file-by-file and do not overwrite `business/*`
 
 ```powershell
 git diff --name-only -- D:\workspace\go\pantheon-platform\pantheon-base\backend
 ```
 
-5. run the minimum validation in both repositories
+7. run the minimum validation in both repositories
 
 ```powershell
 Set-Location D:\workspace\go\pantheon-platform\pantheon-base
@@ -143,7 +160,7 @@ go test ./...
 npm run check:base-sync:backend
 ```
 
-6. if the turn also touched shared frontend shell behavior, pagination, shared tables, or shared i18n, add minimum frontend validation or smoke
+8. if the turn also touched shared frontend shell behavior, pagination, shared tables, or shared i18n, add minimum frontend validation or smoke
 
 ```powershell
 Set-Location D:\workspace\go\pantheon-platform\pantheon-ops\frontend
@@ -160,8 +177,9 @@ At minimum, record:
 
 Common local command:
 
-- `npm run check:inheritance`: one-shot check for task-packet template linkage, inheritance markers, and shared backend alignment
-- `npm run check:base-sync`: shared backend and frontend alignment check against base
+- `npm run check:inheritance`: one-shot check for task-packet template linkage, inheritance markers, foundation lock, and shared backend alignment
+- `npm run check:base-sync`: shared backend and frontend alignment check against `foundation-release.lock.json`
+- `npm run check:base-sync:workspace`: explicit check against the current `pantheon-base` worktree to decide whether a new upgrade pass is needed
 
 ## 7. Runtime Isolation
 

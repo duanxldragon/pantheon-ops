@@ -157,7 +157,7 @@ func suggestScope(tableName string) string {
 	return "business"
 }
 
-func suggestTitle(tableName string, comment string) string {
+func suggestTitle(tableName, comment string) string {
 	trimmed := strings.TrimSpace(comment)
 	if trimmed != "" {
 		return trimmed
@@ -165,7 +165,7 @@ func suggestTitle(tableName string, comment string) string {
 	return humanizeLabel(strings.TrimPrefix(strings.TrimPrefix(tableName, "biz_"), "system_"), "")
 }
 
-func humanizeLabel(name string, comment string) string {
+func humanizeLabel(name, comment string) string {
 	if trimmed := strings.TrimSpace(comment); trimmed != "" {
 		return trimmed
 	}
@@ -264,7 +264,7 @@ var conventionalEnglishFieldLabels = map[string]string{
 	"ssh_port":      "SSH port",
 }
 
-func shouldFieldBeSearchable(name string, fieldType string) bool {
+func shouldFieldBeSearchable(name, fieldType string) bool {
 	if fieldType == "text" || fieldType == "relation" {
 		return false
 	}

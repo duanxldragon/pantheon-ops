@@ -11,6 +11,7 @@ import {
   isBackendOverlayPath,
   isFrontendOverlayPath,
   mergeBuiltinLocaleResources,
+  readFoundationLock,
   readGoModuleName,
   rewriteBackendModuleReferences,
 } from './shared-foundation-rules.mjs';
@@ -112,6 +113,27 @@ function updateInheritanceDoc(filePath, manifest, language) {
   fs.writeFileSync(filePath, content, 'utf8');
 }
 
+function updateFoundationLock(opsRoot, manifest) {
+  const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
+  const currentLock = readFoundationLock(opsRoot);
+  const nextLock = {
+    ...currentLock,
+    releaseLine: manifest.releaseLine,
+    releaseVersion: manifest.releaseVersion,
+    baseCommit: manifest.baseCommit,
+    consumerMode: manifest.consumerMode,
+  };
+
+  if (manifest.sharedPaths) {
+    nextLock.sharedPaths = {
+      ...currentLock.sharedPaths,
+      ...manifest.sharedPaths,
+    };
+  }
+
+  fs.writeFileSync(lockPath, `${JSON.stringify(nextLock, null, 2)}\n`, 'utf8');
+}
+
 function readUtf8(filePath) {
   return fs.readFileSync(filePath, 'utf8');
 }
@@ -122,7 +144,7 @@ function writeUtf8(filePath, content) {
 }
 
 function resolveBackendModuleNames(bundleRoot, opsRoot, manifest) {
-  const sharedBackendRoot = path.join(bundleRoot, 'bundle', 'shared-backend', 'backend');
+  const sharedBackendRoot = path.join(bundleRoot, 'shared-backend', 'backend');
   const baseModuleName = manifest.baseGoModule
     || manifest.baseModule
     || detectBackendModuleNameFromTree(sharedBackendRoot);
@@ -131,7 +153,7 @@ function resolveBackendModuleNames(bundleRoot, opsRoot, manifest) {
 }
 
 function applySharedBackendBundle(bundleRoot, opsRoot, manifest) {
-  const sourceRoot = path.join(bundleRoot, 'bundle', 'shared-backend', 'backend');
+  const sourceRoot = path.join(bundleRoot, 'shared-backend', 'backend');
   if (!fs.existsSync(sourceRoot)) {
     return;
   }
@@ -158,7 +180,7 @@ function applySharedBackendBundle(bundleRoot, opsRoot, manifest) {
 }
 
 function applySharedFrontendBundle(bundleRoot, opsRoot) {
-  const sourceRoot = path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'src');
+  const sourceRoot = path.join(bundleRoot, 'shared-frontend', 'frontend', 'src');
   if (!fs.existsSync(sourceRoot)) {
     return;
   }
@@ -223,7 +245,9 @@ export function consumeFoundationRelease(options) {
   if (options.updateInheritanceDocs) {
     updateInheritanceDoc(path.join(options.opsRoot, 'docs', 'PROJECT_INHERITANCE.md'), manifest, 'zh');
     updateInheritanceDoc(path.join(options.opsRoot, 'docs', 'PROJECT_INHERITANCE.en.md'), manifest, 'en');
+    updateFoundationLock(options.opsRoot, manifest);
     summary.push('Updated inheritance docs');
+    summary.push('Updated foundation-release.lock.json');
   }
 
   if (options.applySharedBackend) {

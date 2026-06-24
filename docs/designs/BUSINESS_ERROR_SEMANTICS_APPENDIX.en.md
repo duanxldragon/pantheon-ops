@@ -78,6 +78,11 @@ Representative keys:
 
 - `business.deploy.package.nameVersionConflict`
 - `business.deploy.task.packageDisabled`
+- `business.deploy.task.invalidTargetType`
+- `business.deploy.task.invalidAction`
+- `business.deploy.task.targetStatusMismatch`
+- `business.deploy.task.templateParamsInvalid`
+- `business.deploy.task.sshConnectFailed`
 - `business.deploy.task.invalidCancelState`
 - `business.deploy.taskHost.invalidResultState`
 

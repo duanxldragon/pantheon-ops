@@ -2,19 +2,20 @@ import { findRouteByPath } from './modules';
 import { preloadRegisteredComponent, type RegisteredComponentKey } from './componentRegistry';
 import { getDashboardSummary } from '../../modules/dashboard/api';
 import { getSecurityOverview, getSessions, getOwnLoginLogs } from '../../modules/auth/api';
-import { getUserList } from '../../modules/system/user/api';
-import { getRoleList } from '../../modules/system/role/api';
-import { getDeptOverview, getDeptTree } from '../../modules/system/dept/api';
-import { getPostList } from '../../modules/system/post/api';
-import { getMenuTree } from '../../modules/system/menu/api';
+import { getUserList } from '../../modules/system/iam/user/api';
+import { getRoleList } from '../../modules/system/iam/role/api';
+import { getDeptOverview, getDeptTree } from '../../modules/system/org/dept/api';
+import { getPostList } from '../../modules/system/org/post/api';
+import { getMenuTree } from '../../modules/system/iam/menu/api';
 import {
   getPermissionPolicyList,
   getPermissionWorkbench,
-} from '../../modules/system/permission/api';
-import { getDictTypeList } from '../../modules/system/dict/api';
-import { getSettingList, getSettingOverview } from '../../modules/system/setting/api';
-import type { MenuNode } from '../../modules/system/menu/api';
-import type { UserInfo } from '../../store/useAuthStore';
+} from '../../modules/system/iam/permission/api';
+import { getDictTypeList } from '../../modules/system/config/dict/api';
+import { getSettingList, getSettingOverview } from '../../modules/system/config/setting/api';
+import type { MenuNode } from '../../modules/system/iam/menu/api';
+import type { UserInfo } from '../../store/authTypes';
+import { shouldWarmHighFrequencyRouteData } from './warmupPolicy';
 
 const warmedRoutes = new Set<string>();
 const warmedComponents = new Set<RegisteredComponentKey>();
@@ -209,6 +210,9 @@ function cacheWarmData<T>(cacheKey: string, loader: () => Promise<T>, ttlMs = DE
 }
 
 function preloadRouteData(path: string, context?: RouteWarmupContext) {
+  if (!shouldWarmHighFrequencyRouteData()) {
+    return Promise.resolve(undefined);
+  }
   if (!canWarmRoute(path, context)) {
     return Promise.resolve(undefined);
   }

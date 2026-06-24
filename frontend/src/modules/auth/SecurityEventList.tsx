@@ -26,8 +26,8 @@ import {
   GovernanceSummaryBar,
   PageContainer,
   PageEmpty,
-  PageError,
   PageLoading,
+  PageRequestError,
   TABLE_COLUMN_WIDTH,
   useGovernanceRail,
 } from '../../components';
@@ -83,7 +83,7 @@ const SecurityEventList: React.FC = () => {
     pageSize: 10,
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [ackTarget, setAckTarget] = useState<SecurityEventRow | null>(null);
   const [ackNote, setAckNote] = useState('');
   const [ackSubmitting, setAckSubmitting] = useState(false);
@@ -95,8 +95,8 @@ const SecurityEventList: React.FC = () => {
       const result = await getAdminSecurityEventList(nextQuery);
       setData(result);
       setQuery(nextQuery);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'request.failed');
+    } catch (requestError) {
+      setError(requestError);
     } finally {
       setLoading(false);
     }
@@ -331,7 +331,7 @@ const SecurityEventList: React.FC = () => {
         <Card className="page-panel system-list__table-card auth-security-event-page__table-card">
           <Typography.Text type="secondary">{t('auth.securityEvent.hint')}</Typography.Text>
           {loading && data.items.length === 0 ? <PageLoading /> : null}
-          {error ? <PageError description={error} onRetry={() => void fetchData(query)} /> : null}
+          {error ? <PageRequestError error={error} onRetry={() => void fetchData(query)} /> : null}
           {!error && data.items.length === 0 && !loading ? (
             <PageEmpty description={t('auth.securityEvent.empty')} />
           ) : null}

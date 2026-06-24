@@ -365,8 +365,8 @@ import {
   ListHeaderActions,
   PageContainer,
   PageEmpty,
-  PageError,
   PageLoading,
+  PageRequestError,
   SystemRowActions,
   TableBatchActionBar,
   TABLE_ACTION_COLUMN_WIDTH,
@@ -464,7 +464,7 @@ const ${modelName}List: React.FC = () => {
   }
 
   if (error) {
-    return <PageError onRetry={() => { void loadData(); }} />;
+    return <PageRequestError error={error} onRetry={() => { void loadData(); }} />;
   }
 
   return (
@@ -476,7 +476,8 @@ ${this.generateWorkbenchHeaderActions(headerActionsEnabled, batchActionsEnabled)
         <Card className="page-panel system-list__table-card">
           {loading && data.length === 0 ? <PageLoading /> : null}
           {error && data.length === 0 ? (
-            <PageError
+            <PageRequestError
+              error={error}
               onRetry={() => {
                 void loadData(query);
               }}
@@ -625,7 +626,14 @@ import { message } from '${toSrcRoot}/components/feedback/message';
 import { isArcoFormValidationError } from '${toSrcRoot}/core/arco/formValidation';
 import { getGeneratedModuleSchema } from '${toSrcRoot}/modules/system/dynamicmodule/api';
 import { get${modelName}Detail, type ${modelName}Detail } from './api';
-import { AppModal, PageContainer, PageEmpty, PageError, PageLoading, SubmitBar } from '${toSrcRoot}/components';
+import {
+  AppModal,
+  PageContainer,
+  PageEmpty,
+  PageLoading,
+  PageRequestError,
+  SubmitBar,
+} from '${toSrcRoot}/components';
 
 ${this.generateGovernanceConstants()}
 ${relationRuntimeHelpers}
@@ -1017,7 +1025,7 @@ const ${modelName}DetailPage: React.FC = () => {
   }
 
   if (error) {
-    return <PageError onRetry={() => { void loadDetail(); }} />;
+    return <PageRequestError error={error} onRetry={() => { void loadDetail(); }} />;
   }
 
   if (!detail) {

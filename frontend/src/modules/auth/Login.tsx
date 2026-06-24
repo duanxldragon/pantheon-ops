@@ -30,7 +30,7 @@ import {
   isTimeoutRequestError,
 } from '../../api/request';
 import { login, verifyMFA, type LoginPayload, type LoginResp } from './api';
-import { findFirstNavigableMenuPath } from '../system/menu/api';
+import { findFirstNavigableMenuPath } from '../system/iam/menu/api';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useMenuStore } from '../../store/useMenuStore';
 import ThemeSwitcher from '../../core/theme/ThemeSwitcher';
@@ -40,6 +40,7 @@ import {
   setExplicitLanguagePreference,
   usePublicSettings,
 } from '../../core/settings/publicSettings';
+import { COOKIE_TOKEN_PLACEHOLDER } from '../../core/auth/sessionSnapshot';
 import { SUPPORTED_LOCALES, switchI18nLanguage, type SupportedLocale } from '../../i18n';
 import './Login.css';
 
@@ -110,12 +111,12 @@ const LoginPage: React.FC = () => {
   }, [loginNotice]);
 
   const completeLogin = async (res: LoginResp) => {
-    if (!res.accessToken || !res.refreshToken || !res.user) {
+    if (!res.user) {
       throw new Error('auth.login.response_invalid');
     }
     clearShellSessionState();
     resetMenuTree();
-    setTokens(res.accessToken, res.refreshToken);
+    setTokens(COOKIE_TOKEN_PLACEHOLDER, COOKIE_TOKEN_PLACEHOLDER);
     setUserInfo(res.user);
     const menuTree = await fetchMenuTree();
     const fallbackMenuPath = findFirstNavigableMenuPath(menuTree);

@@ -30,7 +30,7 @@ func generateTOTPSecret() (string, error) {
 	return strings.TrimRight(base32.StdEncoding.EncodeToString(raw), "="), nil
 }
 
-func buildTOTPURL(username string, secret string) string {
+func buildTOTPURL(username, secret string) string {
 	account := strings.TrimSpace(username)
 	if account == "" {
 		account = "pantheon-user"

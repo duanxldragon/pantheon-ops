@@ -38,16 +38,13 @@ func (s *DynamicModuleService) RebuildGeneratedRegistries() error {
 	if _, err := s.syncGeneratedModuleRegistrations(); err != nil {
 		return err
 	}
-	refs, err := s.listGeneratedModuleRefs()
-	if err != nil {
-		return err
-	}
-	return scaffold.WriteGeneratedRegistries(s.workspaceRoot, refs)
+	_, _, err := s.refreshGeneratedWorkspaceArtifacts()
+	return err
 }
 
 func (s *DynamicModuleService) listGeneratedModuleRefs() ([]scaffold.GeneratedModuleRef, error) {
 	var modules []ModuleRegistration
-	if err := s.db.Where("table_name <> '' AND status <> ?", ModuleStatusUninstalled).Find(&modules).Error; err != nil {
+	if err := s.db.Where("table_name <> '' AND status <> ?", ModuleStatusUninstalled).Order("scope ASC").Order("name ASC").Find(&modules).Error; err != nil {
 		return nil, err
 	}
 	refs := make([]scaffold.GeneratedModuleRef, 0, len(modules))
@@ -64,7 +61,7 @@ func (s *DynamicModuleService) listGeneratedModuleRefs() ([]scaffold.GeneratedMo
 	return refs, nil
 }
 
-func (s *DynamicModuleService) generatedModuleArtifactsExist(scope string, name string) bool {
+func (s *DynamicModuleService) generatedModuleArtifactsExist(scope, name string) bool {
 	if strings.TrimSpace(s.workspaceRoot) == "" {
 		return false
 	}
@@ -85,13 +82,16 @@ func (s *DynamicModuleService) generatedModuleArtifactsExist(scope string, name 
 		generatedPathExists(s.workspaceRoot, schemaRelativePath)
 }
 
-func (s *DynamicModuleService) loadGeneratedModuleSchema(scope string, name string) (*scaffold.ModuleSchema, error) {
+func (s *DynamicModuleService) loadGeneratedModuleSchema(scope, name string) (*scaffold.ModuleSchema, error) {
 	relativeTarget, ok := generatedModuleRelativePath("schema", "generated", scope, name+".json")
 	if !ok {
 		return nil, errors.New("module.register.schema_invalid")
 	}
 	target, resolved := resolveGeneratedWorkspacePath(s.workspaceRoot, relativeTarget)
 	if !resolved {
+		return nil, errors.New("module.register.schema_invalid")
+	}
+	if !filepath.IsLocal(relativeTarget) {
 		return nil, errors.New("module.register.schema_invalid")
 	}
 	content, err := os.ReadFile(target)
@@ -111,7 +111,7 @@ func (s *DynamicModuleService) loadGeneratedModuleSchema(scope string, name stri
 	return &schema, nil
 }
 
-func resolveGeneratedWorkspacePath(workspaceRoot string, relativePath string) (string, bool) {
+func resolveGeneratedWorkspacePath(workspaceRoot, relativePath string) (string, bool) {
 	normalizedRoot := filepath.Clean(strings.TrimSpace(workspaceRoot))
 	normalizedRelative := filepath.ToSlash(strings.TrimSpace(relativePath))
 	if normalizedRoot == "" || normalizedRelative == "" {
@@ -128,7 +128,7 @@ func resolveGeneratedWorkspacePath(workspaceRoot string, relativePath string) (s
 	return target, true
 }
 
-func generatedPathExists(workspaceRoot string, relativePath string) bool {
+func generatedPathExists(workspaceRoot, relativePath string) bool {
 	path, ok := resolveGeneratedWorkspacePath(workspaceRoot, relativePath)
 	if !ok {
 		return false
@@ -137,7 +137,7 @@ func generatedPathExists(workspaceRoot string, relativePath string) bool {
 	return err == nil && !info.IsDir()
 }
 
-func generatedDirExists(workspaceRoot string, relativePath string) bool {
+func generatedDirExists(workspaceRoot, relativePath string) bool {
 	path, ok := resolveGeneratedWorkspacePath(workspaceRoot, relativePath)
 	if !ok {
 		return false

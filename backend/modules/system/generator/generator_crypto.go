@@ -76,7 +76,7 @@ func decryptDatasourcePassword(value string) (string, error) {
 func getDatasourceCipherKey() []byte {
 	value := common.ResolveSecret("PANTHEON_GENERATOR_DATASOURCE_SECRET", "")
 	if strings.TrimSpace(value) == "" {
-		value = common.ResolveSecret("PANTHEON_SETTING_SECRET", common.DefaultSettingSecret)
+		value = common.ResolveSecret("PANTHEON_SETTING_SECRET", common.DefaultDevSecrets.Setting)
 	}
 
 	key := []byte(value)

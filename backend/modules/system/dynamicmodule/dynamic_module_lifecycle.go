@@ -92,11 +92,8 @@ func (s *DynamicModuleService) DeleteModuleRecord(moduleName string) error {
 	if strings.TrimSpace(s.workspaceRoot) == "" {
 		return nil
 	}
-	refs, err := s.listGeneratedModuleRefs()
-	if err != nil {
-		return err
-	}
-	return scaffold.WriteGeneratedRegistries(s.workspaceRoot, refs)
+	_, err := s.refreshGeneratedWorkspaceArtifactsIfAvailable()
+	return err
 }
 
 func (s *DynamicModuleService) PurgeModule(moduleName string, dropTable bool, purgeSource bool) (*ModuleI18nLifecycleSummary, error) {
@@ -164,14 +161,8 @@ func (s *DynamicModuleService) deleteModuleNavigationArtifacts(moduleName string
 }
 
 func (s *DynamicModuleService) rewriteGeneratedRegistriesIfWorkspaceAvailable() error {
-	if strings.TrimSpace(s.workspaceRoot) == "" {
-		return nil
-	}
-	refs, err := s.listGeneratedModuleRefs()
-	if err != nil {
-		return err
-	}
-	return scaffold.WriteGeneratedRegistries(s.workspaceRoot, refs)
+	_, err := s.refreshGeneratedWorkspaceArtifactsIfAvailable()
+	return err
 }
 
 // ListRegisteredModules 获取已注册模块列表
@@ -196,7 +187,7 @@ func (s *DynamicModuleService) ListRegisteredModules() ([]ModuleRegistrationResp
 	return resp, nil
 }
 
-func (s *DynamicModuleService) dropManagedModuleTable(scope string, tableName string) error {
+func (s *DynamicModuleService) dropManagedModuleTable(scope, tableName string) error {
 	if err := scaffold.ValidateManagedTableName(scope, tableName); err != nil {
 		return err
 	}
@@ -241,17 +232,16 @@ func (s *DynamicModuleService) FinalizeUnregister(moduleName string, purgeSource
 	if strings.TrimSpace(s.workspaceRoot) == "" {
 		return nil, errors.New("workspace.not_found")
 	}
-	refs, err := s.listGeneratedModuleRefs()
-	if err != nil {
-		return nil, err
-	}
-	if err := scaffold.WriteGeneratedRegistries(s.workspaceRoot, refs); err != nil {
-		return nil, err
-	}
 	if !purgeSource {
+		if _, err := s.refreshGeneratedWorkspaceArtifactsIfAvailable(); err != nil {
+			return nil, err
+		}
 		return buildModuleI18nLifecycleSummary(moduleName, false, nil), nil
 	}
 	if err := scaffold.RemoveGeneratedModuleSource(s.workspaceRoot, scope, shortName); err != nil {
+		return nil, err
+	}
+	if _, err := s.refreshGeneratedWorkspaceArtifactsIfAvailable(); err != nil {
 		return nil, err
 	}
 	return s.advanceModuleI18nLifecycle(moduleName)
@@ -305,7 +295,7 @@ func (s *DynamicModuleService) advanceModuleI18nLifecycle(moduleName string) (*M
 	return buildModuleI18nLifecycleSummary(moduleName, true, resp), nil
 }
 
-func mergeI18nLifecycleAdvanceResp(target *systemi18n.I18nUnusedLifecycleAdvanceResp, source *systemi18n.I18nUnusedLifecycleAdvanceResp) {
+func mergeI18nLifecycleAdvanceResp(target, source *systemi18n.I18nUnusedLifecycleAdvanceResp) {
 	if target == nil || source == nil {
 		return
 	}

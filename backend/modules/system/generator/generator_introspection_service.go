@@ -31,7 +31,7 @@ type generatorSchemaReader struct {
 	close  func() error
 }
 
-func (s *GeneratorService) ListTables(datasourceID string, keyword string) ([]TableOptionResp, error) {
+func (s *GeneratorService) ListTables(datasourceID, keyword string) ([]TableOptionResp, error) {
 	reader, err := s.openSchemaReader(datasourceID)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (s *GeneratorService) ListTables(datasourceID string, keyword string) ([]Ta
 	return items, nil
 }
 
-func (s *GeneratorService) PreviewTable(datasourceID string, tableName string) (*TableSchemaPreviewResp, error) {
+func (s *GeneratorService) PreviewTable(datasourceID, tableName string) (*TableSchemaPreviewResp, error) {
 	normalizedTable := strings.TrimSpace(tableName)
 	if normalizedTable == "" {
 		return nil, errors.New("generator.table.required")

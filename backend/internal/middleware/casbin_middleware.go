@@ -65,7 +65,7 @@ func isSelfServiceRoute(c *gin.Context) bool {
 	return isSelfServiceRouteBySignature(c.FullPath(), c.Request.Method, c.Query("scope"))
 }
 
-func isSelfServiceRouteBySignature(fullPath string, method string, scope string) bool {
+func isSelfServiceRouteBySignature(fullPath, method, scope string) bool {
 	switch fullPath {
 	case "/api/v1/system/logout":
 		return method == "POST"

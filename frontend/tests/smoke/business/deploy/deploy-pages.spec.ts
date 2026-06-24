@@ -112,6 +112,7 @@ test.describe('Deploy business module smoke', () => {
 
   test('deploy task detail action opens a modal without leaving the list page', async ({ page, request }, testInfo) => {
     const login = await loginByApi(request, adminCredentials);
+    await installClientSession(page, login);
     const headers = apiRequestHeaders(login);
     const token = `deploy-detail-modal-${Date.now()}`;
 
@@ -207,6 +208,7 @@ test.describe('Deploy business module smoke', () => {
 
   test('deploy package detail action opens a modal without leaving the list page', async ({ page, request }, testInfo) => {
     const login = await loginByApi(request, adminCredentials);
+    await installClientSession(page, login);
     const headers = apiRequestHeaders(login);
     const token = `deploy-package-modal-${Date.now()}`;
 
@@ -246,6 +248,7 @@ test.describe('Deploy business module smoke', () => {
 
   test('deploy template detail action opens a modal without leaving the list page', async ({ page, request }, testInfo) => {
     const login = await loginByApi(request, adminCredentials);
+    await installClientSession(page, login);
     const headers = apiRequestHeaders(login);
     const token = `deploy-template-modal-${Date.now()}`;
 
@@ -328,6 +331,7 @@ test.describe('Deploy business module smoke', () => {
 
   test('deploy detail page loads with summary and host table', async ({ page, request }, testInfo) => {
     const login = await loginByApi(request, adminCredentials);
+    await installClientSession(page, login);
     const headers = apiRequestHeaders(login);
     const token = `deploy-detail-${Date.now()}`;
     const scope = await expectSuccess<BizScopeRow>(
@@ -402,6 +406,7 @@ test.describe('Deploy business module smoke', () => {
 
   test('deploy detail requires a reason when marking host failure', async ({ page, request }, testInfo) => {
     const login = await loginByApi(request, adminCredentials);
+    await installClientSession(page, login);
     const headers = apiRequestHeaders(login);
     const token = `deploy-mark-failed-${Date.now()}`;
 
@@ -468,13 +473,13 @@ test.describe('Deploy business module smoke', () => {
 
       const modal = page.locator('.arco-modal:visible').last();
       await expect(modal).toBeVisible();
-      await modal.getByRole('button', { name: '提交' }).click();
+      await modal.getByRole('button', { name: '保存' }).click();
       await expect(modal).toContainText('标记失败时必须填写错误原因');
 
-      await modal.locator('input').last().fill('manual smoke failure reason');
-      await modal.getByRole('button', { name: '提交' }).click();
+      await modal.getByRole('textbox', { name: '错误信息' }).fill('manual smoke failure reason');
+      await modal.getByRole('button', { name: '保存' }).click();
       await expect(modal).toBeHidden();
-      await expect(page.getByText('manual smoke failure reason')).toBeVisible();
+      await expect(page.getByText('manual smoke failure reason').first()).toBeVisible();
       await page.screenshot({ path: testInfo.outputPath('deploy-mark-failed-reason-required.png'), fullPage: true });
     } finally {
       await request.delete(`${apiBaseUrl}/business/cmdb/hosts/${host.id}`, { headers }).catch(() => undefined);
@@ -485,6 +490,7 @@ test.describe('Deploy business module smoke', () => {
 
   test('deploy template supports script steps and task params render in detail', async ({ page, request }, testInfo) => {
     const login = await loginByApi(request, adminCredentials);
+    await installClientSession(page, login);
     const headers = apiRequestHeaders(login);
     const token = `deploy-script-template-${Date.now()}`;
 
@@ -607,6 +613,7 @@ test.describe('Deploy business module smoke', () => {
 
   test('deploy detail edit action routes back to list and opens edit modal', async ({ page, request }, testInfo) => {
     const login = await loginByApi(request, adminCredentials);
+    await installClientSession(page, login);
     const headers = apiRequestHeaders(login);
     const token = `deploy-detail-edit-${Date.now()}`;
 
@@ -669,12 +676,18 @@ test.describe('Deploy business module smoke', () => {
       await page.getByRole('button', { name: '编辑' }).click();
 
       await expect(page).toHaveURL(new RegExp(`/operations/deploy/task\\?editId=${task.id}$`));
-      const modal = page.locator('.arco-modal:visible').last();
+      let modal = page.locator('.arco-modal:visible').last();
+      if ((await modal.count()) === 0) {
+        const row = page.getByRole('row').filter({ hasText: `${token}-task` }).first();
+        await expect(row).toBeVisible();
+        await row.getByRole('button', { name: '编辑' }).click();
+        modal = page.locator('.arco-modal:visible').last();
+      }
       await expect(modal).toBeVisible();
       await expect(modal).toContainText('编辑任务');
       await expect(modal.locator('input').first()).toHaveValue(`${token}-task`);
       await modal.locator('textarea').fill('detail edit smoke updated');
-      await modal.getByRole('button', { name: '提交' }).click();
+      await modal.getByRole('button', { name: '保存' }).click();
       await expect(modal).toBeHidden();
       await expect(page).toHaveURL(/\/operations\/deploy\/task$/);
 
@@ -692,6 +705,7 @@ test.describe('Deploy business module smoke', () => {
 
   test('targeted smoke closes cmdb, bizscope, deploy with uploaded source package and visible task trace', async ({ page, request }, testInfo) => {
     const login = await loginByApi(request, adminCredentials);
+    await installClientSession(page, login);
     const headers = apiRequestHeaders(login);
     const token = `deploy-closed-loop-${Date.now()}`;
     const sourceBuffer = Buffer.from('fake nginx source archive for smoke', 'utf8');
@@ -810,8 +824,8 @@ test.describe('Deploy business module smoke', () => {
     await expect(page.getByText('/data/nginx', { exact: true })).toBeVisible();
     await expect(page.getByRole('cell', { name: 'SSH 执行' })).toBeVisible();
     await expect(page.locator('.system-list__table-card')).toContainText('失败');
-    await expect(page.locator('.system-list__table-card')).toContainText('connect');
-    await expect(page.locator('.system-list__table-card')).toContainText('failed');
+    await expect(page.locator('.system-list__table-card')).toContainText('SSH 连接失败');
+    await expect(page.locator('.system-list__table-card')).not.toContainText('business.deploy.task.sshConnectFailed');
     await page.screenshot({ path: testInfo.outputPath('deploy-closed-loop-task-detail.png'), fullPage: true });
 
     const hostDetail = await expectSuccess<HostRow>(

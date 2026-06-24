@@ -43,8 +43,13 @@ func CleanupInactiveSessions(db *gorm.DB, now time.Time, idleMinutes int) error 
 }
 
 func CleanupUserOverflowSessions(db *gorm.DB, userID uint64, now time.Time, idleMinutes int, maxActiveSessions int) error {
-	if db == nil || userID == 0 || maxActiveSessions <= 0 {
+	if db == nil || userID == 0 || maxActiveSessions < 0 {
 		return nil
+	}
+	if maxActiveSessions == 0 {
+		return db.Table("system_user_session").
+			Where("user_id = ? AND revoked_at IS NULL", userID).
+			Update("revoked_at", now).Error
 	}
 
 	var keepIDs []string

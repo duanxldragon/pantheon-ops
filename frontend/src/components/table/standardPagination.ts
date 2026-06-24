@@ -53,4 +53,22 @@ export function buildStandardPagination(
   };
 }
 
+interface PagedItemsResult<T> {
+  currentPage: number;
+  totalPages: number;
+  pageItems: T[];
+}
+
+export function getPagedItems<T>(items: T[], current: number, pageSize: number): PagedItemsResult<T> {
+  const safePageSize = Math.max(1, pageSize);
+  const totalPages = Math.max(1, Math.ceil(items.length / safePageSize));
+  const currentPage = Math.min(Math.max(1, current), totalPages);
+  const startIndex = (currentPage - 1) * safePageSize;
+  return {
+    currentPage,
+    totalPages,
+    pageItems: items.slice(startIndex, startIndex + safePageSize),
+  };
+}
+
 export { DEFAULT_SIZE_OPTIONS as STANDARD_PAGINATION_SIZE_OPTIONS };

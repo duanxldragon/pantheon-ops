@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"pantheon-ops/backend/internal/middleware"
+	settingmod "pantheon-ops/backend/modules/system/config/setting"
 	user "pantheon-ops/backend/modules/system/iam/user"
 	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/testmysql"
@@ -23,7 +24,14 @@ func setupPreferenceContractRouter(t *testing.T) (*gin.Engine, *gorm.DB) {
 	gin.SetMode(gin.TestMode)
 
 	db := testmysql.Open(t)
-	if err := db.AutoMigrate(&user.SystemUser{}, &SystemUserSession{}, &SystemLogLogin{}, &SystemLoginThrottle{}, &middleware.SystemLogOper{}); err != nil {
+	if err := db.AutoMigrate(
+		&user.SystemUser{},
+		&SystemUserSession{},
+		&SystemLogLogin{},
+		&SystemLoginThrottle{},
+		&middleware.SystemLogOper{},
+		&settingmod.SystemSetting{},
+	); err != nil {
 		t.Fatalf("migrate auth preference contract tables: %v", err)
 	}
 	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_role (id BIGINT PRIMARY KEY, role_key VARCHAR(64), status INT)").Error; err != nil {

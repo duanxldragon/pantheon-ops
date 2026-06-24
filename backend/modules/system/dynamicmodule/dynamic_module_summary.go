@@ -199,6 +199,29 @@ func (s *DynamicModuleService) verifyParentMenu(parentMenuPath string, parentMen
 	}
 }
 
+func verifyFeatureLedgerSnapshot(snapshot *FeatureLedgerSnapshot) GeneratedModuleVerification {
+	if snapshot == nil {
+		return GeneratedModuleVerification{
+			Code:       "feature_ledger",
+			Status:     "warn",
+			MessageKey: "module.generate.verify.feature_ledger_drift",
+			Detail:     "snapshot unavailable",
+		}
+	}
+	status := "pass"
+	messageKey := "module.generate.verify.feature_ledger_updated"
+	if len(snapshot.Issues) > 0 {
+		status = "warn"
+		messageKey = "module.generate.verify.feature_ledger_drift"
+	}
+	return GeneratedModuleVerification{
+		Code:       "feature_ledger",
+		Status:     status,
+		MessageKey: messageKey,
+		Detail:     fmt.Sprintf("entries=%d,issues=%d", len(snapshot.Entries), len(snapshot.Issues)),
+	}
+}
+
 func (s *DynamicModuleService) generatedParentMenuExists(parentMenuPath string) bool {
 	if strings.TrimSpace(parentMenuPath) == "" {
 		return false

@@ -18,6 +18,7 @@ import (
 	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/database"
 	"pantheon-ops/backend/pkg/impexp"
+	"pantheon-ops/backend/pkg/platformprefs"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -27,17 +28,20 @@ import (
 type AuthService struct {
 	db *gorm.DB
 
-	// 核心安全策略缓存
+	// 账号安全策略缓存
 	settingsMu    sync.RWMutex
 	settingsCache map[string]int
 	cleanupMu     sync.Mutex
 	lastCleanupAt map[string]time.Time
+
+	sessions  *authSessionService
+	passwords *authPasswordService
 }
 
 type UserPreferenceUpdateResult struct {
 	User      *UserInfoResp
-	Previous  *user.UserPlatformPreferenceResp
-	Current   *user.UserPlatformPreferenceResp
+	Previous  *platformprefs.PlatformPreference
+	Current   *platformprefs.PlatformPreference
 	Persisted string
 }
 
@@ -110,7 +114,6 @@ const (
 	settingMFAEnabledKey              = "login.mfa_enabled"
 	settingSSOEnabledKey              = "login.sso_enabled"
 
-	errDatabaseNotInitialized        = "database.not_initialized"
 	errAuthLoginSourceBlocked        = "auth.login.error.source_blocked"
 	errSessionInvalid                = "session.invalid"
 	errCurrentSessionRevokeForbidden = "auth.session.current_revoke_forbidden"
@@ -144,6 +147,8 @@ func NewAuthService(db *gorm.DB) *AuthService {
 		settingsCache: make(map[string]int),
 		lastCleanupAt: make(map[string]time.Time),
 	}
+	s.sessions = newAuthSessionService(s)
+	s.passwords = newAuthPasswordService(s)
 	// 启动时同步加载一次核心设置
 	_ = s.ReloadSettings()
 	return s
@@ -201,7 +206,7 @@ func (s *AuthService) WatchSettings() {
 	if database.RDB == nil {
 		return
 	}
-	pubsub := database.RDB.Subscribe(context.Background(), "settings:refresh")
+	pubsub := database.RDB.Subscribe(context.TODO(), "settings:refresh")
 	go func() {
 		defer pubsub.Close()
 		ch := pubsub.Channel()
@@ -214,7 +219,7 @@ func (s *AuthService) WatchSettings() {
 // Migrate 初始化认证域表结构。
 func (s *AuthService) Migrate() error {
 	if s.db == nil {
-		return errors.New(errDatabaseNotInitialized)
+		return common.ErrDatabaseNotInitialized
 	}
 	if err := s.db.AutoMigrate(&SystemUserSession{}, &SystemLogLogin{}, &SystemLoginThrottle{}, &SystemAuthFactor{}, &SystemAuthMFAChallenge{}, &SystemAuthSecurityEvent{}, &SystemUserPasswordHistory{}); err != nil {
 		return err
@@ -225,7 +230,7 @@ func (s *AuthService) Migrate() error {
 // VerifyPasswordForOperation 敏感操作前的密码二次验证
 func (s *AuthService) VerifyPasswordForOperation(userID uint64, sessionID, password string) (string, error) {
 	if s.db == nil {
-		return "", errors.New(errDatabaseNotInitialized)
+		return "", common.ErrDatabaseNotInitialized
 	}
 	if strings.TrimSpace(sessionID) == "" {
 		return "", errors.New("auth.operation.verification_mismatch")
@@ -258,7 +263,7 @@ func (s *AuthService) Login(req *LoginReq) (*user.SystemUser, error) {
 
 func (s *AuthService) LoginWithSource(req *LoginReq, sourceKey string) (*user.SystemUser, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	policy := s.getAuthRuntimePolicy()
 	now := time.Now()
@@ -297,7 +302,7 @@ func (s *AuthService) ensureSourceThrottleAllowed(sourceKey string, policy authR
 
 func (s *AuthService) loadLoginUserWithSource(username, sourceKey string, policy authRuntimePolicy, now time.Time) (*user.SystemUser, error) {
 	if username == "" {
-		_ = s.failLoginSourceBlocked(sourceKey, policy, now)
+		_ = s.failLoginSourceBlocked(nil, sourceKey, policy, now)
 		return nil, errors.New("user.login.error.not_found")
 	}
 
@@ -307,7 +312,7 @@ func (s *AuthService) loadLoginUserWithSource(username, sourceKey string, policy
 		return &currentUser, nil
 	}
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		if err := s.failLoginSourceBlocked(sourceKey, policy, now); err != nil {
+		if err := s.failLoginSourceBlocked(nil, sourceKey, policy, now); err != nil {
 			return nil, err
 		}
 		return nil, errors.New("user.login.error.not_found")
@@ -317,13 +322,13 @@ func (s *AuthService) loadLoginUserWithSource(username, sourceKey string, policy
 
 func (s *AuthService) ensureLoginUserAvailable(currentUser *user.SystemUser, sourceKey string, policy authRuntimePolicy, now time.Time) error {
 	if currentUser.Status == 2 {
-		if err := s.failLoginSourceBlocked(sourceKey, policy, now); err != nil {
+		if err := s.failLoginSourceBlocked(currentUser, sourceKey, policy, now); err != nil {
 			return err
 		}
 		return errors.New("user.login.error.disabled")
 	}
 	if currentUser.LoginLockedUntil != nil && currentUser.LoginLockedUntil.After(now) {
-		if err := s.failLoginSourceBlocked(sourceKey, policy, now); err != nil {
+		if err := s.failLoginSourceBlocked(currentUser, sourceKey, policy, now); err != nil {
 			return err
 		}
 		return errors.New("user.login.error.locked")
@@ -380,7 +385,7 @@ func (s *AuthService) Authenticate(req *LoginReq) (*user.SystemUser, error) {
 
 func (s *AuthService) CreateMFAChallenge(currentUser *user.SystemUser) (*MFAChallengeResp, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if currentUser == nil || currentUser.ID == 0 {
 		return nil, errors.New("auth.mfa.user_invalid")
@@ -437,7 +442,7 @@ func (s *AuthService) CreateMFAChallenge(currentUser *user.SystemUser) (*MFAChal
 
 func (s *AuthService) VerifyMFAChallenge(req *MFAVerifyReq, ip, userAgent string) (*AuthTokenResp, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if req == nil || strings.TrimSpace(req.ChallengeID) == "" {
 		return nil, errors.New("auth.mfa.challenge_required")
@@ -553,33 +558,10 @@ func (s *AuthService) finalizeMFAChallenge(challenge SystemAuthMFAChallenge, sec
 	})
 }
 
-func upsertMFAFactor(tx *gorm.DB, userID uint64, encryptedSecret string, now time.Time) error {
-	var factor SystemAuthFactor
-	err := tx.Where(userIDAndFactorTypeWhereClause, userID, "totp").First(&factor).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		factor = SystemAuthFactor{
-			UserID:          userID,
-			FactorType:      "totp",
-			SecretEncrypted: encryptedSecret,
-			Enabled:         1,
-			ConfirmedAt:     &now,
-		}
-		return tx.Create(&factor).Error
-	}
-	if err != nil {
-		return err
-	}
-	return tx.Model(&factor).Updates(map[string]any{
-		"secret_encrypted": encryptedSecret,
-		"enabled":          1,
-		"confirmed_at":     &now,
-	}).Error
-}
-
 // GetUserRoles 获取用户角色标识
 func (s *AuthService) GetUserRoles(userID uint64) ([]string, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var roles []string
@@ -597,7 +579,7 @@ func (s *AuthService) GetUserRoles(userID uint64) ([]string, error) {
 // GetUserPerms 获取用户按钮/接口权限标识
 func (s *AuthService) GetUserPerms(userID uint64) ([]string, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var permissionKeys []string
@@ -615,7 +597,7 @@ func (s *AuthService) GetUserPerms(userID uint64) ([]string, error) {
 // GetCurrentUserInfo 获取当前登录主体信息
 func (s *AuthService) GetCurrentUserInfo(userID uint64) (*UserInfoResp, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var currentUser user.SystemUser
@@ -641,13 +623,13 @@ func (s *AuthService) GetCurrentUserInfo(userID uint64) (*UserInfoResp, error) {
 		Phone:       currentUser.Phone,
 		Roles:       roles,
 		Perms:       perms,
-		Preferences: user.ParseUserPlatformPreferences(currentUser.PreferenceJSON),
+		Preferences: platformprefs.Parse(currentUser.PreferenceJSON),
 	}, nil
 }
 
 func (s *AuthService) UpdateCurrentUserPreferences(userID uint64, req *UserPlatformPreferenceUpdateReq) (*UserPreferenceUpdateResult, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var currentUser user.SystemUser
@@ -655,14 +637,14 @@ func (s *AuthService) UpdateCurrentUserPreferences(userID uint64, req *UserPlatf
 		return nil, err
 	}
 
-	previousPreferences := user.ParseUserPlatformPreferences(currentUser.PreferenceJSON)
-	nextPreferences := user.NormalizeUserPlatformPreferences(&user.UserPlatformPreferenceResp{
+	previousPreferences := platformprefs.Parse(currentUser.PreferenceJSON)
+	nextPreferences := platformprefs.Normalize(&platformprefs.PlatformPreference{
 		Theme:       req.Theme,
 		Language:    req.Language,
 		LayoutMode:  req.LayoutMode,
 		DensityMode: req.DensityMode,
 	})
-	preferenceJSON, err := user.MarshalUserPlatformPreferences(nextPreferences)
+	preferenceJSON, err := platformprefs.Marshal(nextPreferences)
 	if err != nil {
 		return nil, err
 	}
@@ -691,7 +673,7 @@ func (s *AuthService) UpdateCurrentUserPreferences(userID uint64, req *UserPlatf
 // UpdatePassword 修改当前登录用户密码
 func (s *AuthService) UpdatePassword(userID uint64, currentSessionID string, req *PasswordUpdateReq) error {
 	if s.db == nil {
-		return errors.New(errDatabaseNotInitialized)
+		return common.ErrDatabaseNotInitialized
 	}
 
 	oldPassword := strings.TrimSpace(req.OldPassword)
@@ -729,7 +711,7 @@ func (s *AuthService) UpdatePassword(userID uint64, currentSessionID string, req
 // CreateSession 创建登录会话并签发 token pair
 func (s *AuthService) CreateSession(currentUser *user.SystemUser, roles []string, ip, userAgent string) (*common.TokenPair, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	policy := s.getAuthRuntimePolicy()
 	now := time.Now()
@@ -744,7 +726,7 @@ func (s *AuthService) CreateSession(currentUser *user.SystemUser, roles []string
 		SessionID:        uuid.NewString(),
 		UserID:           currentUser.ID,
 		RefreshJTI:       uuid.NewString(),
-		RefreshExpiresAt: now.Add(7 * 24 * time.Hour),
+		RefreshExpiresAt: now.Add(common.RefreshTokenTTL),
 		LastActivityAt:   &now,
 		LastIP:           ip,
 		UserAgent:        truncateString(userAgent, 255),
@@ -759,7 +741,7 @@ func (s *AuthService) CreateSession(currentUser *user.SystemUser, roles []string
 // RefreshSession 轮换 refresh token 并返回新的 token pair
 func (s *AuthService) RefreshSession(claims *common.CustomClaims, ip, userAgent string) (*common.TokenPair, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var session SystemUserSession
@@ -785,7 +767,7 @@ func (s *AuthService) RefreshSession(claims *common.CustomClaims, ip, userAgent 
 
 	now := time.Now()
 	session.RefreshJTI = uuid.NewString()
-	session.RefreshExpiresAt = now.Add(7 * 24 * time.Hour)
+	session.RefreshExpiresAt = now.Add(common.RefreshTokenTTL)
 	session.LastRefreshAt = &now
 	session.LastActivityAt = &now
 	session.LastIP = ip
@@ -834,7 +816,7 @@ func (s *AuthService) TouchSessionActivity(sessionID string, userID uint64, ip, 
 // ListSessions 获取当前用户会话列表
 func (s *AuthService) ListSessions(userID uint64, currentSessionID string) ([]SessionResp, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	now := time.Now()
@@ -867,7 +849,7 @@ func (s *AuthService) ListSessions(userID uint64, currentSessionID string) ([]Se
 // GetSecurityOverview 获取当前账号安全概览
 func (s *AuthService) GetSecurityOverview(userID uint64, username, currentSessionID string) (*SecurityOverviewResp, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	policy := s.getAuthRuntimePolicy()
 	now := time.Now()
@@ -949,7 +931,7 @@ func (s *AuthService) GetSecurityOverview(userID uint64, username, currentSessio
 // RevokeOwnedSession 吊销当前用户的指定会话
 func (s *AuthService) RevokeOwnedSession(userID uint64, currentSessionID, targetSessionID string) error {
 	if s.db == nil {
-		return errors.New(errDatabaseNotInitialized)
+		return common.ErrDatabaseNotInitialized
 	}
 	if strings.TrimSpace(targetSessionID) == "" {
 		return errors.New(errSessionInvalid)
@@ -996,7 +978,7 @@ func (s *AuthService) ListLoginLogs(query *LoginLogQuery) (*LoginLogPageResp, er
 
 func (s *AuthService) ListSecurityEvents(query *SecurityEventQuery) (*SecurityEventPageResp, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	page, pageSize := normalizeSecurityEventPageQuery(query)
@@ -1042,7 +1024,7 @@ func applySecurityEventFilters(db *gorm.DB, query *SecurityEventQuery) *gorm.DB 
 
 func (s *AuthService) ExportLoginLogs(query *LoginLogQuery) (*impexp.CSVFile, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	s.ensureAutomaticLoginLogRetention()
 
@@ -1074,7 +1056,7 @@ func (s *AuthService) ExportLoginLogs(query *LoginLogQuery) (*impexp.CSVFile, er
 
 func (s *AuthService) CleanupLoginLogs(retentionDays int, startedAt, endedAt string) (int64, error) {
 	if s.db == nil {
-		return 0, errors.New(errDatabaseNotInitialized)
+		return 0, common.ErrDatabaseNotInitialized
 	}
 	window, err := parseCleanupWindow(startedAt, endedAt, "auth.login_log.cleanup.range_invalid")
 	if err != nil {
@@ -1099,7 +1081,7 @@ func (s *AuthService) CleanupLoginLogs(retentionDays int, startedAt, endedAt str
 
 func (s *AuthService) CleanupHistoricSessions(retentionDays int, startedAt, endedAt string) (int64, error) {
 	if s.db == nil {
-		return 0, errors.New(errDatabaseNotInitialized)
+		return 0, common.ErrDatabaseNotInitialized
 	}
 	window, err := parseCleanupWindow(startedAt, endedAt, "auth.session.cleanup.range_invalid")
 	if err != nil {
@@ -1131,7 +1113,7 @@ func (s *AuthService) CleanupHistoricSessions(retentionDays int, startedAt, ende
 
 func (s *AuthService) BatchRevokeSessions(currentSessionID string, sessionIDs []string) (int64, error) {
 	if s.db == nil {
-		return 0, errors.New(errDatabaseNotInitialized)
+		return 0, common.ErrDatabaseNotInitialized
 	}
 
 	normalized := normalizeSessionIDs(sessionIDs)
@@ -1156,7 +1138,7 @@ func (s *AuthService) BatchRevokeSessions(currentSessionID string, sessionIDs []
 
 func (s *AuthService) AcknowledgeSecurityEvent(eventID, actorID uint64, actorUsername, note string) error {
 	if s.db == nil {
-		return errors.New(errDatabaseNotInitialized)
+		return common.ErrDatabaseNotInitialized
 	}
 	note = strings.TrimSpace(note)
 	if note == "" {
@@ -1245,7 +1227,7 @@ func (s *AuthService) getRetentionOptionsFromSetting(settingKey string, fallback
 
 func (s *AuthService) BatchDeleteLoginLogs(ids []uint64) (int64, error) {
 	if s.db == nil {
-		return 0, errors.New(errDatabaseNotInitialized)
+		return 0, common.ErrDatabaseNotInitialized
 	}
 
 	normalized := normalizeUint64IDs(ids)
@@ -1262,7 +1244,7 @@ func (s *AuthService) BatchDeleteLoginLogs(ids []uint64) (int64, error) {
 
 func (s *AuthService) listLoginLogs(query *LoginLogQuery) (*LoginLogPageResp, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	s.ensureAutomaticLoginLogRetention()
 
@@ -1310,7 +1292,7 @@ func (s *AuthService) listLoginLogs(query *LoginLogQuery) (*LoginLogPageResp, er
 
 func (s *AuthService) listLoginLogsForExport(query *LoginLogQuery) ([]SystemLogLogin, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	s.ensureAutomaticLoginLogRetention()
 
@@ -1333,7 +1315,7 @@ func (s *AuthService) listLoginLogsForExport(query *LoginLogQuery) ([]SystemLogL
 // ListAllSessions 获取管理员会话列表
 func (s *AuthService) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPageResp, error) {
 	if s.db == nil {
-		return nil, errors.New(errDatabaseNotInitialized)
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	now := time.Now()
@@ -1449,7 +1431,7 @@ func buildAdminSessionResp(row adminSessionRow, clientInfo ClientInfoResp) Admin
 // RevokeAnySession 管理员吊销任意会话
 func (s *AuthService) RevokeAnySession(currentSessionID, targetSessionID string) error {
 	if s.db == nil {
-		return errors.New(errDatabaseNotInitialized)
+		return common.ErrDatabaseNotInitialized
 	}
 	if strings.TrimSpace(targetSessionID) == "" {
 		return errors.New(errSessionInvalid)
@@ -1497,13 +1479,13 @@ func (s *AuthService) getAuthRuntimePolicy() authRuntimePolicy {
 		PasswordExpireDays:      s.settingsCache[settingPasswordExpireDaysKey],
 		MaxFailedAttempts:       s.settingsCache[settingMaxFailedAttemptsKey],
 		LockMinutes:             s.settingsCache[settingLockMinutesKey],
-		SourceMaxFailedAttempts: maxInt(s.settingsCache[settingSourceMaxFailedAttemptsKey], defaultSourceMaxFailedAttempts),
-		SourceWindowMinutes:     maxInt(s.settingsCache[settingSourceWindowMinutesKey], defaultSourceWindowMinutes),
-		SourceLockMinutes:       maxInt(s.settingsCache[settingSourceLockMinutesKey], defaultSourceLockMinutes),
-		SessionIdleMinutes:      s.settingsCache[settingSessionIdleMinutesKey],
-		MaxActiveSessions:       maxInt(s.settingsCache[settingMaxActiveSessionsKey], defaultMaxActiveSessions),
-		LoginLogRetentionDays:   maxInt(s.settingsCache[settingLoginLogRetentionDaysKey], defaultLoginLogRetentionDays),
-		SessionRetentionDays:    maxInt(s.settingsCache[settingSessionRetentionDaysKey], defaultSessionRetentionDays),
+		SourceMaxFailedAttempts: fallbackPositiveInt(s.settingsCache[settingSourceMaxFailedAttemptsKey], defaultSourceMaxFailedAttempts),
+		SourceWindowMinutes:     fallbackPositiveInt(s.settingsCache[settingSourceWindowMinutesKey], defaultSourceWindowMinutes),
+		SourceLockMinutes:       fallbackPositiveInt(s.settingsCache[settingSourceLockMinutesKey], defaultSourceLockMinutes),
+		SessionIdleMinutes:      fallbackPositiveInt(s.settingsCache[settingSessionIdleMinutesKey], defaultSessionIdleMinutes),
+		MaxActiveSessions:       fallbackPositiveInt(s.settingsCache[settingMaxActiveSessionsKey], defaultMaxActiveSessions),
+		LoginLogRetentionDays:   fallbackPositiveInt(s.settingsCache[settingLoginLogRetentionDaysKey], defaultLoginLogRetentionDays),
+		SessionRetentionDays:    fallbackPositiveInt(s.settingsCache[settingSessionRetentionDaysKey], defaultSessionRetentionDays),
 		SecurityEventEnabled:    s.settingsCache[settingSecurityEventEnabledKey] == 1,
 		CaptchaEnabled:          s.settingsCache[settingCaptchaEnabledKey] == 1,
 		MFAEnabled:              s.settingsCache[settingMFAEnabledKey] == 1,
@@ -1769,7 +1751,7 @@ func (s *AuthService) passwordLastChangedAt(userID uint64) time.Time {
 
 func (s *AuthService) recordFailedLoginAttempt(currentUser *user.SystemUser, policy authRuntimePolicy) (bool, error) {
 	if s.db == nil || currentUser == nil {
-		return false, errors.New(errDatabaseNotInitialized)
+		return false, common.ErrDatabaseNotInitialized
 	}
 
 	nextAttempts := currentUser.FailedLoginAttempts + 1
@@ -1830,12 +1812,22 @@ func (s *AuthService) checkSourceThrottle(sourceKey string, policy authRuntimePo
 	return false, nil
 }
 
-func (s *AuthService) failLoginSourceBlocked(sourceKey string, policy authRuntimePolicy, now time.Time) error {
+func (s *AuthService) failLoginSourceBlocked(currentUser *user.SystemUser, sourceKey string, policy authRuntimePolicy, now time.Time) error {
 	blocked, err := s.recordSourceFailure(sourceKey, policy, now)
 	if err != nil {
 		return err
 	}
 	if blocked {
+		if currentUser != nil {
+			s.recordSecurityEvent(SystemAuthSecurityEvent{
+				UserID:     currentUser.ID,
+				Username:   currentUser.Username,
+				EventType:  "source_blocked",
+				Severity:   "high",
+				SourceKey:  sourceKey,
+				MessageKey: "auth.security.event.source_blocked",
+			})
+		}
 		return errors.New(errAuthLoginSourceBlocked)
 	}
 	return nil
@@ -1925,7 +1917,7 @@ func sourceThrottleBlockedUntil(policy authRuntimePolicy, now time.Time, shouldB
 
 func (s *AuthService) clearFailedLoginState(userID uint64) error {
 	if s.db == nil {
-		return errors.New(errDatabaseNotInitialized)
+		return common.ErrDatabaseNotInitialized
 	}
 	return s.db.Model(&user.SystemUser{}).
 		Where("id = ? AND (failed_login_attempts <> 0 OR login_locked_until IS NOT NULL)", userID).
@@ -1940,6 +1932,13 @@ func maxInt(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func fallbackPositiveInt(value, fallback int) int {
+	if value > 0 {
+		return value
+	}
+	return fallback
 }
 
 func boolToInt(value bool) int {
@@ -2161,4 +2160,27 @@ func queryPageSizeFromAdminSession(query *AdminSessionQuery) int {
 		return 10
 	}
 	return query.PageSize
+}
+
+func upsertMFAFactor(tx *gorm.DB, userID uint64, encryptedSecret string, now time.Time) error {
+	var factor SystemAuthFactor
+	err := tx.Where(userIDAndFactorTypeWhereClause, userID, "totp").First(&factor).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		factor = SystemAuthFactor{
+			UserID:          userID,
+			FactorType:      "totp",
+			SecretEncrypted: encryptedSecret,
+			Enabled:         1,
+			ConfirmedAt:     &now,
+		}
+		return tx.Create(&factor).Error
+	}
+	if err != nil {
+		return err
+	}
+	return tx.Model(&factor).Updates(map[string]any{
+		"secret_encrypted": encryptedSecret,
+		"enabled":          1,
+		"confirmed_at":     &now,
+	}).Error
 }

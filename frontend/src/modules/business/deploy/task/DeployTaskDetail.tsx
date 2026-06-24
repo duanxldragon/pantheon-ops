@@ -90,6 +90,13 @@ const isTaskNotFoundError = (error: unknown) =>
   isRequestError(error) &&
   (error.status === 404 || error.code === 404 || error.messageKey === 'business.deploy.task.notFound');
 
+function resolveDeployMessage(t: (key: string) => string, value?: string) {
+  if (!value) {
+    return '-';
+  }
+  return value.startsWith('business.deploy.') ? t(value) : value;
+}
+
 export default function DeployTaskDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -237,7 +244,12 @@ export default function DeployTaskDetail() {
 
   const handleSubmit = async () => {
     if (!selectedHost) return;
-    const values = await form.validate();
+    let values: MarkResultFormValues;
+    try {
+      values = await form.validate();
+    } catch {
+      return;
+    }
     await submitResult(selectedHost, { status: 'failed', ...values });
   };
 
@@ -335,7 +347,12 @@ export default function DeployTaskDetail() {
       width: 100,
       render: (_: unknown, row) => row.durationSeconds ? `${row.durationSeconds}s` : '-',
     },
-    { title: t('business.deploy.task.errorMessage'), dataIndex: 'errorMessage', ellipsis: true },
+    {
+      title: t('business.deploy.task.errorMessage'),
+      dataIndex: 'errorMessage',
+      ellipsis: true,
+      render: (_: unknown, row) => resolveDeployMessage(t, row.errorMessage),
+    },
     {
       title: t('common.action'),
       fixed: 'right',
@@ -411,7 +428,12 @@ export default function DeployTaskDetail() {
       width: 180,
       render: (_: unknown, row) => row.at ? formatDateTime(row.at) : '-',
     },
-    { title: t('business.deploy.task.message'), dataIndex: 'message', ellipsis: true },
+    {
+      title: t('business.deploy.task.message'),
+      dataIndex: 'message',
+      ellipsis: true,
+      render: (_: unknown, row) => resolveDeployMessage(t, row.message),
+    },
   ];
 
   if (loading) {

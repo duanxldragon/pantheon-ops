@@ -66,7 +66,7 @@ func decryptMFASecret(value string) (string, error) {
 }
 
 func getMFACipherKey() []byte {
-	value := common.ResolveSecret("PANTHEON_MFA_SECRET", common.DefaultMFASecret)
+	value := common.ResolveSecret("PANTHEON_MFA_SECRET", common.DefaultDevSecrets.MFA)
 	key := []byte(value)
 	if len(key) >= 32 {
 		return key[:32]

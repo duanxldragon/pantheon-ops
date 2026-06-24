@@ -26,24 +26,24 @@ const staticComponentRegistry = {
   'system/profile/ProfileCenter': defineRegistryEntry(
     () => import('../../modules/system/profile/ProfileCenter'),
   ),
-  'system/dict/DictPage': defineRegistryEntry(() => import('../../modules/system/dict/DictPage')),
+  'system/config/dict/DictPage': defineRegistryEntry(() => import('../../modules/system/config/dict/DictPage')),
   'system/i18n/I18nList': defineRegistryEntry(() => import('../../modules/system/i18n/I18nList')),
-  'system/dept/DeptList': defineRegistryEntry(() => import('../../modules/system/dept/DeptList')),
-  'system/menu/MenuList': defineRegistryEntry(() => import('../../modules/system/menu/MenuList')),
-  'system/permission/PermissionList': defineRegistryEntry(
-    () => import('../../modules/system/permission/PermissionList'),
+  'system/org/dept/DeptList': defineRegistryEntry(() => import('../../modules/system/org/dept/DeptList')),
+  'system/iam/menu/MenuList': defineRegistryEntry(() => import('../../modules/system/iam/menu/MenuList')),
+  'system/iam/permission/PermissionList': defineRegistryEntry(
+    () => import('../../modules/system/iam/permission/PermissionList'),
   ),
-  'system/post/PostList': defineRegistryEntry(() => import('../../modules/system/post/PostList')),
-  'system/role/RoleList': defineRegistryEntry(() => import('../../modules/system/role/RoleList')),
-  'system/setting/SettingOverviewPage': defineRegistryEntry(
-    () => import('../../modules/system/setting/SettingOverviewPage'),
+  'system/org/post/PostList': defineRegistryEntry(() => import('../../modules/system/org/post/PostList')),
+  'system/iam/role/RoleList': defineRegistryEntry(() => import('../../modules/system/iam/role/RoleList')),
+  'system/config/setting/SettingOverviewPage': defineRegistryEntry(
+    () => import('../../modules/system/config/setting/SettingOverviewPage'),
   ),
-  'system/setting/SettingGroupPage': defineRegistryEntry(
-    () => import('../../modules/system/setting/SettingGroupPage'),
+  'system/config/setting/SettingGroupPage': defineRegistryEntry(
+    () => import('../../modules/system/config/setting/SettingGroupPage'),
   ),
-  'system/user/UserList': defineRegistryEntry(() => import('../../modules/system/user/UserList')),
-  'system/user/UserDetail': defineRegistryEntry(
-    () => import('../../modules/system/user/UserDetail'),
+  'system/iam/user/UserList': defineRegistryEntry(() => import('../../modules/system/iam/user/UserList')),
+  'system/iam/user/UserDetail': defineRegistryEntry(
+    () => import('../../modules/system/iam/user/UserDetail'),
   ),
   'system/audit/OperationLogList': defineRegistryEntry(
     () => import('../../modules/system/audit/OperationLogList'),

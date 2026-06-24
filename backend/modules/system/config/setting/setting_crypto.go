@@ -76,7 +76,7 @@ func decryptSettingValue(value string) (string, error) {
 }
 
 func getSettingCipherKey() []byte {
-	value := common.ResolveSecret("PANTHEON_SETTING_SECRET", common.DefaultSettingSecret)
+	value := common.ResolveSecret("PANTHEON_SETTING_SECRET", common.DefaultDevSecrets.Setting)
 
 	key := []byte(value)
 	switch {

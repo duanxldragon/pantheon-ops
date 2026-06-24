@@ -30,17 +30,14 @@ export interface UserPlatformPreferences {
   densityMode?: 'comfortable' | 'compact';
 }
 
-export interface AuthTokens {
-  token?: string;
-  accessToken?: string;
-  refreshToken?: string;
+export interface AuthSessionPayload {
   tokenType?: string;
   accessExpiresAt?: string;
   refreshExpiresAt?: string;
   sessionId?: string;
 }
 
-export interface LoginResp extends AuthTokens {
+export interface LoginResp extends AuthSessionPayload {
   mfaRequired?: boolean;
   challengeId?: string;
   setupRequired?: boolean;
@@ -48,10 +45,6 @@ export interface LoginResp extends AuthTokens {
   totpProvisionUri?: string;
   expiresAt?: string;
   user?: UserInfo;
-}
-
-export interface RefreshTokenPayload {
-  refreshToken: string;
 }
 
 export interface UserPasswordUpdatePayload {
@@ -251,11 +244,10 @@ export function verifyMFA(data: MFAVerifyPayload) {
   });
 }
 
-export function refreshToken(data: RefreshTokenPayload) {
-  return apiRequest<AuthTokens>({
+export function refreshToken() {
+  return apiRequest<AuthSessionPayload>({
     url: '/auth/refresh',
     method: 'post',
-    data,
     skipAuthRefresh: true,
     skipErrorMessage: true,
   });

@@ -36,22 +36,22 @@ func (w operationLogWriter) Write(data []byte) (int, error) {
 }
 
 type SystemLogOper struct {
-	ID              uint64 `gorm:"primaryKey;autoIncrement"`
-	RequestID       string `gorm:"size:64;index:idx_system_log_oper_request_id"`
-	Title           string `gorm:"size:64"`
-	BusinessType    int    `gorm:"default:0"`
-	Method          string `gorm:"size:128"`
-	OperName        string `gorm:"size:64"`
-	OperURL         string `gorm:"size:255"`
-	OperIP          string `gorm:"size:128"`
-	SourceDomain    string `gorm:"size:32;index:idx_system_log_oper_source_domain_page,priority:1"`
-	SourcePage      string `gorm:"size:32;index:idx_system_log_oper_source_domain_page,priority:2;index:idx_system_log_oper_source_page"`
-	OperParam       string `gorm:"type:text"`
-	JsonResult      string `gorm:"type:text"`
-	Status          int    `gorm:"default:1"`
-	FailureCategory string `gorm:"size:32;index:idx_system_log_oper_failure_category"`
-	ErrorMsg        string `gorm:"type:text"`
-	OperTime        time.Time
+	ID              uint64    `gorm:"primaryKey;autoIncrement"`
+	RequestID       string    `gorm:"size:64;index:idx_system_log_oper_request_id"`
+	Title           string    `gorm:"size:64"`
+	BusinessType    int       `gorm:"default:0"`
+	Method          string    `gorm:"size:128"`
+	OperName        string    `gorm:"size:64;index:idx_system_log_oper_oper_name"`
+	OperURL         string    `gorm:"size:255"`
+	OperIP          string    `gorm:"size:128"`
+	SourceDomain    string    `gorm:"size:32;index:idx_system_log_oper_source_domain_page,priority:1"`
+	SourcePage      string    `gorm:"size:32;index:idx_system_log_oper_source_domain_page,priority:2;index:idx_system_log_oper_source_page"`
+	OperParam       string    `gorm:"type:text"`
+	JsonResult      string    `gorm:"type:text"`
+	Status          int       `gorm:"default:1"`
+	FailureCategory string    `gorm:"size:32;index:idx_system_log_oper_failure_category"`
+	ErrorMsg        string    `gorm:"type:text"`
+	OperTime        time.Time `gorm:"index:idx_system_log_oper_oper_time"`
 	CostTime        int64
 }
 

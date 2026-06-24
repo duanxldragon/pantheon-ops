@@ -72,7 +72,7 @@ func TestAuditService_ExportOperationLogsIncludesDerivedColumns(t *testing.T) {
 		t.Fatalf("export audit logs: %v", err)
 	}
 
-	expectedHeaders := []string{"title", "businessType", "sourceDomain", "sourcePage", "method", "operName", "operUrl", "operIp", "status", "failureCategory", "errorMsg", "operTime", "costTime"}
+	expectedHeaders := []string{"requestId", "title", "businessType", "sourceDomain", "sourcePage", "method", "operName", "operUrl", "operIp", "status", "failureCategory", "errorMsg", "operTime", "costTime"}
 	if len(file.Headers) != len(expectedHeaders) {
 		t.Fatalf("expected %d headers, got %d", len(expectedHeaders), len(file.Headers))
 	}
@@ -86,28 +86,28 @@ func TestAuditService_ExportOperationLogsIncludesDerivedColumns(t *testing.T) {
 		t.Fatalf("expected 2 rows, got %d", len(file.Rows))
 	}
 
-	if file.Rows[1][0] != "上传文件" {
-		t.Fatalf("expected latest row first, got %s", file.Rows[1][0])
+	if file.Rows[1][1] != "上传文件" {
+		t.Fatalf("expected latest row first, got %s", file.Rows[1][1])
 	}
 
-	if file.Rows[0][2] != operationLogSourceDomainIAM {
-		t.Fatalf("expected success row source domain %s, got %s", operationLogSourceDomainIAM, file.Rows[0][2])
+	if file.Rows[0][3] != operationLogSourceDomainIAM {
+		t.Fatalf("expected success row source domain %s, got %s", operationLogSourceDomainIAM, file.Rows[0][3])
 	}
-	if file.Rows[0][3] != operationLogSourcePageUser {
-		t.Fatalf("expected success row source page %s, got %s", operationLogSourcePageUser, file.Rows[0][3])
+	if file.Rows[0][4] != operationLogSourcePageUser {
+		t.Fatalf("expected success row source page %s, got %s", operationLogSourcePageUser, file.Rows[0][4])
 	}
-	if file.Rows[0][9] != "" {
-		t.Fatalf("expected success row failure category empty, got %s", file.Rows[0][9])
+	if file.Rows[0][10] != "" {
+		t.Fatalf("expected success row failure category empty, got %s", file.Rows[0][10])
 	}
 
-	if file.Rows[1][2] != operationLogSourceDomainConfig {
-		t.Fatalf("expected upload row source domain %s, got %s", operationLogSourceDomainConfig, file.Rows[1][2])
+	if file.Rows[1][3] != operationLogSourceDomainConfig {
+		t.Fatalf("expected upload row source domain %s, got %s", operationLogSourceDomainConfig, file.Rows[1][3])
 	}
-	if file.Rows[1][3] != operationLogSourcePageUpload {
-		t.Fatalf("expected upload row source page %s, got %s", operationLogSourcePageUpload, file.Rows[1][3])
+	if file.Rows[1][4] != operationLogSourcePageUpload {
+		t.Fatalf("expected upload row source page %s, got %s", operationLogSourcePageUpload, file.Rows[1][4])
 	}
-	if file.Rows[1][9] != operationLogFailureValidation {
-		t.Fatalf("expected upload row failure category %s, got %s", operationLogFailureValidation, file.Rows[1][9])
+	if file.Rows[1][10] != operationLogFailureValidation {
+		t.Fatalf("expected upload row failure category %s, got %s", operationLogFailureValidation, file.Rows[1][10])
 	}
 }
 
@@ -166,8 +166,8 @@ func TestAuditService_ExportOperationLogsRespectsDerivedFilters(t *testing.T) {
 	if len(file.Rows) != 1 {
 		t.Fatalf("expected 1 filtered row, got %d", len(file.Rows))
 	}
-	if file.Rows[0][0] != "上传文件" {
-		t.Fatalf("expected filtered row title 上传文件, got %s", file.Rows[0][0])
+	if file.Rows[0][1] != "上传文件" {
+		t.Fatalf("expected filtered row title 上传文件, got %s", file.Rows[0][1])
 	}
 }
 

@@ -1,4 +1,4 @@
-import type { MenuNode } from '../system/menu/api';
+import type { MenuNode } from '../system/iam/menu/api';
 import { registeredModules } from '../../core/router/modules';
 import {
   buildDashboardWidgetRegistry,

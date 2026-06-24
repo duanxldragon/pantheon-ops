@@ -28,10 +28,33 @@ function writeText(filePath, value) {
 function copyFixtureScripts(opsRoot) {
   const syncScriptPath = path.join(opsRoot, 'frontend', 'scripts', 'sync-base-shared.mjs');
   const rulesScriptPath = path.join(opsRoot, 'scripts', 'foundation-release', 'shared-foundation-rules.mjs');
+  const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
   fs.mkdirSync(path.dirname(syncScriptPath), { recursive: true });
   fs.mkdirSync(path.dirname(rulesScriptPath), { recursive: true });
   fs.copyFileSync(sourceSyncScript, syncScriptPath);
   fs.copyFileSync(sourceRulesScript, rulesScriptPath);
+  writeText(
+    lockPath,
+    `${JSON.stringify({
+      schemaVersion: 1,
+      baseRepo: '../pantheon-base-fixture',
+      releaseLine: 'release/test',
+      releaseVersion: 'base-vtest',
+      baseCommit: 'HEAD',
+      consumerMode: 'foundation-release-consumer',
+      sharedPaths: {
+        frontend: [
+          'frontend/src/components',
+          'frontend/src/core',
+          'frontend/src/store',
+          'frontend/src/modules/auth',
+          'frontend/src/modules/dashboard',
+          'frontend/src/modules/system',
+          'frontend/src/index.css',
+        ],
+      },
+    }, null, 2)}\n`,
+  );
   return syncScriptPath;
 }
 

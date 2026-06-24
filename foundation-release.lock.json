@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "baseRepo": "../pantheon-base",
+  "releaseLine": "release/0.8",
+  "releaseVersion": "base-v0.8.4",
+  "baseCommit": "412a465e7c3a2620b81e81edf3d5c9a16fb33952",
+  "consumerMode": "foundation-release-consumer",
+  "sharedPaths": {
+    "backend": [
+      "backend/cmd",
+      "backend/internal",
+      "backend/modules",
+      "backend/pkg"
+    ],
+    "frontend": [
+      "frontend/src/components",
+      "frontend/src/core",
+      "frontend/src/store",
+      "frontend/src/modules/auth",
+      "frontend/src/modules/dashboard",
+      "frontend/src/modules/system",
+      "frontend/src/index.css"
+    ],
+    "docs": [
+      "docs/designs/FOUNDATION_RELEASE_MODEL.md",
+      "docs/designs/WORKFLOW.md"
+    ]
+  }
+}

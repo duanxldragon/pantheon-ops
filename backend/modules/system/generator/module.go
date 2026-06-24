@@ -9,7 +9,7 @@ import (
 )
 
 func InitGeneratorModule(r *gin.RouterGroup, db *gorm.DB) {
-	_ = db.AutoMigrate(&GeneratorDatasource{})
+	// AutoMigrate handled by versioned migrations or contracts system
 	service := NewGeneratorService(db)
 	handler := NewGeneratorHandler(service)
 

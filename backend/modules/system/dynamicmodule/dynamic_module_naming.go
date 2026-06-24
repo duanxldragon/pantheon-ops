@@ -53,11 +53,11 @@ func splitModuleKey(moduleName string) (string, string, error) {
 	return scope, name, nil
 }
 
-func buildModuleKey(scope string, name string) string {
+func buildModuleKey(scope, name string) string {
 	return strings.TrimSpace(scope) + "." + strings.ReplaceAll(strings.Trim(strings.TrimSpace(name), "/"), "/", ".")
 }
 
-func resolveGeneratedParentMenu(scope string, name string, explicitParent string) (string, string) {
+func resolveGeneratedParentMenu(scope, name, explicitParent string) (string, string) {
 	normalizedExplicit := normalizeGeneratedMenuPath(explicitParent)
 	if normalizedExplicit != "" {
 		return normalizedExplicit, "explicit"
@@ -71,7 +71,7 @@ func resolveGeneratedParentMenu(scope string, name string, explicitParent string
 	return "", "top_level"
 }
 
-func inferGeneratedModelName(name string, explicit string) string {
+func inferGeneratedModelName(name, explicit string) string {
 	trimmed := strings.TrimSpace(explicit)
 	if trimmed != "" {
 		return trimmed

@@ -5,12 +5,13 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 这份文件用于说明 `pantheon-ops` 如何继承 `pantheon-base`，以及本仓库本地允许扩展的范围。
 
 默认规则已经从“跟随 base/main”调整为“消费 base foundation release”。`main` 可以继续承载优化和治理工作，但 ops 默认只升级到显式 release/tag。
+`foundation-release.lock.json` 是机器可读的继承锚点；默认 `base-sync` 校验以这份 lock 为准，而不是直接以 `pantheon-base` 当前工作树为准。
 
 ## 1. 继承源
 
 - Base repository：当前继承源是 `../pantheon-base`
 - Base release line：当前跟随 `release/0.8`
-- Base version：当前锁定到 `base-v0.8.1`（`3427c1a2fdc0b16ce6aa8735a13f3c94896ab374`）
+- Base version：当前锁定到 `base-v0.8.4`（`412a465e7c3a2620b81e81edf3d5c9a16fb33952`）
 - Inheritance mode：`foundation-release-consumer`
 
 ## 2. 继承的底座规则
@@ -97,7 +98,9 @@ Current business-domain overrides that stay local to `pantheon-ops`:
 当前推荐直接通过 release consumer 执行同步，而不是人工整目录覆盖：
 
 - `npm run upgrade:foundation:apply -- --manifest <bundle-root>\manifest.json --bundle <bundle-root>`
+- 如果本地已有 `pantheon-base/releases/<version>/manifest.json`，可以直接让 ops 本地生成 bundle 并消费：`npm run upgrade:foundation:local-plan -- --release-version <version>` 或 `npm run upgrade:foundation:local-apply -- --release-version <version>`
 - 该命令会同步共享 backend/frontend、保留 ops 本地 overlay（如 menu registry、generator workspace、frontend generated registry）、把共享 backend import 重写到 `pantheon-ops` 模块名，并补跑 frontend `base-sync` + `menu-contract`
+- 日常开发时，`npm run check:base-sync` 只检查当前工作树是否仍符合 `foundation-release.lock.json` 锁定的 foundation release；只有显式执行 `npm run check:base-sync:workspace` 时，才对比 `pantheon-base` 当前工作树，作为“是否需要发起新一轮 upgrade”的预演信号
 
 ## 6.3 不建议的同步方式
 
@@ -146,19 +149,33 @@ Set-Location D:\workspace\go\pantheon-platform\pantheon-ops
 npm run check:inheritance
 ```
 
-3. 如果上一步失败，再单独检查共享 backend 是否仍与 base 对齐，并根据输出决定同步范围
+3. 日常业务开发默认只检查“是否仍符合已锁定 release”
 
 ```powershell
 npm run check:base-sync:backend
+npm run check:base-sync:frontend
 ```
 
-4. 如需同步共享后端路径，按文件级方式同步，不覆盖 `business/*`
+4. 需要判断 base 最近演进是否已经值得同步时，再显式跑 workspace 对比
+
+```powershell
+npm run check:base-sync:workspace
+```
+
+5. 如果 workspace 对比确认需要升级，优先直接消费本地 release，而不是手搓文件覆盖
+
+```powershell
+npm run upgrade:foundation:local-plan -- --release-version base-v0.8.3
+npm run upgrade:foundation:local-apply -- --release-version base-v0.8.3
+```
+
+6. 如需同步共享后端路径，按文件级方式同步，不覆盖 `business/*`
 
 ```powershell
 git diff --name-only -- D:\workspace\go\pantheon-platform\pantheon-base\backend
 ```
 
-5. 完成同步后分别执行最小验证
+7. 完成同步后分别执行最小验证
 
 ```powershell
 Set-Location D:\workspace\go\pantheon-platform\pantheon-base
@@ -169,7 +186,7 @@ go test ./...
 npm run check:base-sync:backend
 ```
 
-6. 如果本轮还涉及前端共享壳层、分页、共享表格或共享 i18n，再补最小前端验证或 smoke
+8. 如果本轮还涉及前端共享壳层、分页、共享表格或共享 i18n，再补最小前端验证或 smoke
 
 ```powershell
 Set-Location D:\workspace\go\pantheon-platform\pantheon-ops\frontend
@@ -186,8 +203,52 @@ npm run build
 
 常用本地命令：
 
-- `npm run check:inheritance`：一键检查 task packet 模板、继承契约、共享 backend 对齐状态
-- `npm run check:base-sync`：检查共享 backend + frontend 是否与 base 对齐
+- `npm run check:inheritance`：一键检查 task packet 模板、继承契约、foundation lock、共享 backend 和 frontend 对齐状态
+- `npm run check:base-sync`：检查共享 backend + frontend 是否仍符合 `foundation-release.lock.json`
+- `npm run check:base-sync:workspace`：显式检查当前 `pantheon-base` 工作树是否已经偏离 ops 当前锁定 release，作为是否发起 upgrade 的预演信号
+- `npm run check:base-sync:backend`：仅检查共享 backend 文件级对齐
+- `npm run check:base-sync:frontend`：仅检查共享 frontend 文件级对齐
+
+## 6.7 自动化漂移检测
+
+已配置两层自动化机制，确保 base 演进时不会被遗忘：
+
+### 第一层：每 PR 强制继承契约
+
+`.github/workflows/quality.yml` 中 `docs-governance` 作业现在**始终运行** `check:inheritance`，包含：
+
+- task packet 模板完整性
+- 继承契约文档关键标记
+- `foundation-release.lock.json` 结构合法性
+- 共享 backend 文件级对齐（本地有 base 仓库时）
+- 共享 frontend 文件级对齐（本地有 base 仓库时）
+- lock 文件新鲜度检查（base 仓库可用时自动计算落后 HEAD 的 commit 数）
+
+CI 环境中 base 仓库不可用时，backend 检查自动跳过而非报错，由第二层兜底。
+
+### 第二层：每周定时漂移检测
+
+`.github/workflows/inheritance-drift-detection.yml`：
+
+- 每周一 UTC 08:57 自动运行
+- 同时 checkout `pantheon-base` 和 `pantheon-ops`
+- 运行 `check:base-sync:backend:workspace` + `check:base-sync:frontend:workspace`
+- 检测到漂移时自动创建带 `inheritance-drift` 标签的 Issue
+- 已有未关闭漂移 Issue 时不重复创建
+- 也支持手动触发：Actions → Inheritance Drift Detection → Run workflow
+
+### 日常开发中的信号
+
+本地开发时，`frontend` 的 `prebuild` 钩子已经包含 `check:base-sync`。
+如果本地有 `pantheon-base` 仓库，文件级差异会在构建前失败并给出明确的 MISSING/DIFF 路径。
+
+如果本地没有 base 仓库（常见于纯 ops 业务开发），建议定期运行：
+
+```powershell
+npm run check:base-sync:workspace
+```
+
+或关注每周自动创建的漂移 Issue。
 
 ## 7. 运行时隔离
 

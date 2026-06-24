@@ -206,6 +206,10 @@ func (h *SettingHandler) ServeUploadedFile(c *gin.Context) {
 	if contentType := mime.TypeByExtension(strings.ToLower(filepath.Ext(objectKey))); contentType != "" {
 		c.Header("Content-Type", contentType)
 	}
+	if !filepath.IsLocal(objectKey) {
+		common.Fail(c, common.CodeParamInvalid, "upload.file.not_found")
+		return
+	}
 	http.ServeFileFS(c.Writer, c.Request, os.DirFS(rootPath), objectKey)
 }
 

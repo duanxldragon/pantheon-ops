@@ -49,12 +49,12 @@ func Open(t *testing.T) *gorm.DB {
 		t.Fatalf("build test database name: %v", err)
 	}
 	createDatabaseStatement := buildCreateDatabaseStatement(testDBName)
-	if _, err := adminDB.Exec(createDatabaseStatement); err != nil {
+	if _, err := adminDB.Exec(createDatabaseStatement); err != nil { // NOSONAR — test helper, controlled input
 		t.Fatalf("create test database %s: %v", testDBName, err)
 	}
 	dropDatabaseStatement := buildDropDatabaseStatement(testDBName)
 	t.Cleanup(func() {
-		_, _ = adminDB.Exec(dropDatabaseStatement)
+		_, _ = adminDB.Exec(dropDatabaseStatement) // NOSONAR — test helper, controlled input
 	})
 
 	testCfg := *cfg
@@ -88,6 +88,8 @@ func Open(t *testing.T) *gorm.DB {
 var testDBNameSanitizer = regexp.MustCompile(`[^a-z0-9]+`)
 var validMySQLIdentifierPattern = regexp.MustCompile(`^[a-z0-9_]+$`)
 
+const maxTestDBNameLength = 60
+
 func buildTestDBName(base, testName string) (string, error) {
 	normalizedBase := normalizeDBNameSegment(base, "pantheon")
 	if normalizedBase == "" {
@@ -102,11 +104,20 @@ func buildTestDBName(base, testName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	name := fmt.Sprintf("%s_%s_%s", normalizedBase, normalizedName, suffix)
-	if len(name) > 60 {
-		name = name[:60]
+
+	prefix := strings.TrimRight(fmt.Sprintf("%s_%s", normalizedBase, normalizedName), "_")
+	maxPrefixLength := maxTestDBNameLength - len(suffix) - 1
+	if maxPrefixLength <= 0 {
+		return "", fmt.Errorf("generated mysql suffix %q exceeds identifier budget", suffix)
 	}
-	name = strings.TrimRight(name, "_")
+	if len(prefix) > maxPrefixLength {
+		prefix = strings.TrimRight(prefix[:maxPrefixLength], "_")
+	}
+	if prefix == "" {
+		prefix = "test"
+	}
+
+	name := prefix + "_" + suffix
 	if !validMySQLIdentifierPattern.MatchString(name) {
 		return "", fmt.Errorf("invalid generated database name %q", name)
 	}

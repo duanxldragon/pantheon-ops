@@ -2,6 +2,7 @@ package auth
 
 import (
 	"strings"
+	"time"
 
 	"pantheon-ops/backend/internal/middleware"
 	"pantheon-ops/backend/pkg/contracts"
@@ -13,6 +14,10 @@ import (
 func InitAuthModule(r *gin.RouterGroup, db *gorm.DB) {
 	authSvc := NewAuthService(db)
 	authHandler := NewAuthHandler(authSvc)
+	publicAuthRateLimiter := middleware.RateLimiter(middleware.RateLimiterConfig{
+		MaxRequests: 100,
+		Window:      time.Minute,
+	})
 
 	contracts.RegisterRuntimeSettingReloader("system/auth", authSvc.ReloadSettings)
 
@@ -25,13 +30,13 @@ func InitAuthModule(r *gin.RouterGroup, db *gorm.DB) {
 			MigrateFunc:   func(_ *gorm.DB) error { return authSvc.Migrate() },
 			SeedMenusFunc: seedAuthModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				sys := r.Group("/system")
+				sys := r.Group("/system").Use(publicAuthRateLimiter)
 				{
 					sys.POST("/login", authHandler.LoginHandler)
 					sys.POST("/refresh", authHandler.RefreshTokenHandler)
 				}
 
-				apiAuth := r.Group("/auth")
+				apiAuth := r.Group("/auth").Use(publicAuthRateLimiter)
 				{
 					apiAuth.POST("/login", authHandler.LoginHandler)
 					apiAuth.POST("/mfa/verify", authHandler.VerifyMFAHandler)

@@ -36,12 +36,13 @@ import {
   FormSection,
   PageContainer,
   PageEmpty,
-  PageError,
   PageLoading,
+  PageRequestError,
   PageSplitLayout,
   StandardRailNotePanel,
   StandardRailSummary,
   SubmitBar,
+  getPagedItems,
   TABLE_ACTION_COLUMN_WIDTH,
 } from '../../components';
 import SessionDetailModal from './SessionDetailModal';
@@ -58,7 +59,7 @@ const SecurityCenter: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
-  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [overview, setOverview] = useState<SecurityOverview | null>(null);
   const [sessions, setSessions] = useState<AuthSession[]>([]);
   const [loginLogs, setLoginLogs] = useState<LoginLogRow[]>([]);
@@ -68,7 +69,7 @@ const SecurityCenter: React.FC = () => {
 
   const loadSecurityContext = useCallback(async () => {
     setLoading(true);
-    setLoadFailed(false);
+    setLoadError(null);
     try {
       const [overviewResp, sessionsResp, loginLogsResp] = await Promise.all([
         resolveRouteWarmData('/auth/security', 'overview', () => getSecurityOverview()),
@@ -83,8 +84,8 @@ const SecurityCenter: React.FC = () => {
       }
       setSessions(sessionsResp);
       setLoginLogs(loginLogsResp.items);
-    } catch {
-      setLoadFailed(true);
+    } catch (requestError) {
+      setLoadError(requestError);
       message.error(t('common.loadFailed'));
     } finally {
       setLoading(false);
@@ -102,18 +103,12 @@ const SecurityCenter: React.FC = () => {
     () => overview?.currentSession ?? sessions.find((item) => item.isCurrent) ?? null,
     [overview, sessions],
   );
-  const sessionTotalPages = useMemo(
-    () => Math.max(1, Math.ceil(sessions.length / sessionPagination.pageSize)),
-    [sessionPagination.pageSize, sessions.length],
+  const { currentPage: sessionCurrentPage, pageItems: pagedSessions } = getPagedItems(
+    sessions,
+    sessionPagination.current,
+    sessionPagination.pageSize,
   );
-  const sessionCurrentPage = useMemo(
-    () => Math.min(sessionPagination.current, sessionTotalPages),
-    [sessionPagination.current, sessionTotalPages],
-  );
-  const pagedSessions = useMemo(() => {
-    const startIndex = (sessionCurrentPage - 1) * sessionPagination.pageSize;
-    return sessions.slice(startIndex, startIndex + sessionPagination.pageSize);
-  }, [sessionCurrentPage, sessionPagination.pageSize, sessions]);
+  const sessionPageSize = sessionPagination.pageSize;
 
   const translateLogMessage = useCallback(
     (value?: string | null) => {
@@ -383,9 +378,10 @@ const SecurityCenter: React.FC = () => {
   return (
     <PageContainer>
       <Space direction="vertical" size={16} className="system-page-template">
-        {loadFailed && !loading && !overview ? (
+        {loadError && !loading && !overview ? (
           <Card className="page-panel">
-            <PageError
+            <PageRequestError
+              error={loadError}
               onRetry={() => {
                 void loadSecurityContext();
               }}
@@ -578,7 +574,7 @@ const SecurityCenter: React.FC = () => {
                 </div>
                 <Tag>{t('auth.security.sessionHint')}</Tag>
               </div>
-              {sessions.length === 0 && !loadFailed ? (
+              {sessions.length === 0 && !loadError ? (
                 <PageEmpty description={t('auth.session.empty')} />
               ) : (
                 <AppTable<AuthSession>
@@ -588,14 +584,14 @@ const SecurityCenter: React.FC = () => {
                   loading={loading && Boolean(overview)}
                   pagination={buildStandardPagination(t, {
                     current: sessionCurrentPage,
-                    pageSize: sessionPagination.pageSize,
+                    pageSize: sessionPageSize,
                     total: sessions.length,
                     sizeCanChange: false,
                     sizeOptions: [5],
                     onChange: (page, pageSize) => {
                       setSessionPagination({
                         current: page,
-                        pageSize: pageSize || sessionPagination.pageSize,
+                        pageSize: pageSize || sessionPageSize,
                       });
                     },
                   })}
@@ -630,7 +626,7 @@ const SecurityCenter: React.FC = () => {
                   </Tag>
                 </Space>
               </div>
-              {loginLogs.length === 0 && !loadFailed ? (
+              {loginLogs.length === 0 && !loadError ? (
                 <PageEmpty description={t('auth.loginLog.empty')} />
               ) : (
                 <AppTable<LoginLogRow>

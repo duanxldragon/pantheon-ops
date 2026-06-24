@@ -209,6 +209,11 @@ test.describe.serial('Deploy business api smoke', () => {
         },
       }),
     );
+    await expectSuccess<null>(
+      await apiContext.patch(`${apiBaseUrl}/business/cmdb/hosts/${hostB.id}/status`, {
+        data: { status: 'online' },
+      }),
+    );
 
     const pkgA = await expectSuccess<PackageRow>(
       await apiContext.post(`${apiBaseUrl}/business/deploy/packages`, {

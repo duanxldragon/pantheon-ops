@@ -184,7 +184,7 @@ func (s *DashboardService) GetSummary() (*SummaryResp, error) {
 	return resp, nil
 }
 
-func minInt(a int, b int) int {
+func minInt(a, b int) int {
 	if a < b {
 		return a
 	}

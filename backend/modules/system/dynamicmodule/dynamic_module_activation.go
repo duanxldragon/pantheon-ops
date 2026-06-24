@@ -144,7 +144,7 @@ func (s *DynamicModuleService) generatedModuleRuntimeReady(moduleKey string) boo
 	return count > 0
 }
 
-func (s *DynamicModuleService) generatedFrontendBundleReady(scope string, name string) bool {
+func (s *DynamicModuleService) generatedFrontendBundleReady(scope, name string) bool {
 	moduleDir := filepath.Join(s.workspaceRoot, "frontend", "src", "modules", scope, name)
 	distDir := filepath.Join(s.workspaceRoot, "frontend", "dist")
 	moduleMtime, ok := newestFileModTime(moduleDir)

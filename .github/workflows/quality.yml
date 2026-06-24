@@ -83,7 +83,6 @@ jobs:
         run: node scripts/check-pr-governance.mjs --event "$GITHUB_EVENT_PATH"
 
       - name: Check inheritance contract
-        if: ${{ github.event_name != 'pull_request' || needs.change-scope.outputs.inheritance_sensitive == 'true' }}
         run: npm run check:inheritance
 
       - name: Check generated modules

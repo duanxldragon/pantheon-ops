@@ -186,8 +186,13 @@ English version: [BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md](./BUSINESS_BIZSCOPE_MOD
 
 ### 7.3 详情页 `BizScopeDetail`
 
-- 展示编码、名称、负责人、环境、状态、备注。
-- 当前接口已经返回 `hostCount`，文档上应把它视作业务域概览字段；后续如果页面补展示，优先复用现有详情接口而不是新增接口。
+- 顶部使用业务详情页 hero 指标区，至少展示 `hostCount`、状态、环境、更新时间。
+- 展示编码、名称、负责人、环境、状态、备注、更新时间。
+- 展示当前已绑定主机列表，字段至少包含 `hostname / ip / os / status`。
+- 当拥有 `business:bizscope:update` 时，页面内提供“绑定主机”入口，并通过抽屉或等价的二级表面展示可绑定主机列表。
+- 绑定主机只展示当前 `business_scope_id` 为空的主机；绑定后刷新详情与已绑定主机列表。
+- 已绑定主机支持单台解绑；解绑后刷新详情与已绑定主机列表。
+- 当前接口已经返回 `hostCount`，概览字段必须优先复用现有详情接口而不是新增接口。
 
 ### 7.4 UI 约束
 

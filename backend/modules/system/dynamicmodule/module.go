@@ -34,8 +34,7 @@ func DynamicModuleEnvGuard() gin.HandlerFunc {
 
 // InitDynamicModule 初始化动态模块管理
 func InitDynamicModule(r *gin.RouterGroup, db *gorm.DB) {
-	// 自动创建模块注册表
-	db.AutoMigrate(&ModuleRegistration{})
+	// AutoMigrate handled by versioned migrations or contracts system
 
 	service := NewDynamicModuleService(db)
 	handler := NewDynamicModuleHandler(service)
