@@ -80,7 +80,7 @@ function downloadArchive(lock, options) {
       { cwd: options.opsRoot },
     );
   } catch (err) {
-    if (options.ifExists && /release not found/i.test(err.message)) {
+    if (options.ifExists && /release not found|no assets to download/i.test(err.message)) {
       fs.rmSync(downloadDir, { recursive: true, force: true });
       console.log(`Foundation release ${lock.releaseVersion} not found on ${repo} — skipping install`);
       process.exit(0);
@@ -175,6 +175,17 @@ function main() {
       };
     } else {
       downloadResult = downloadArchive(lock, options);
+    }
+
+    if (!fs.existsSync(downloadResult.archivePath)) {
+      if (options.ifExists) {
+        console.log(`Foundation release ${lock.releaseVersion} artifact not found on ${lock.releaseArtifact?.githubRepo ?? 'GitHub'} — skipping install`);
+        if (downloadResult.downloadDir) {
+          fs.rmSync(downloadResult.downloadDir, { recursive: true, force: true });
+        }
+        return 0;
+      }
+      throw new Error(`downloaded release artifact not found: ${downloadResult.archivePath}`);
     }
 
     installArchive(
