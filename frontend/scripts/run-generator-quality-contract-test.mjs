@@ -8,11 +8,11 @@ const frontendDir = join(rootDir, '..');
 const testDir = join(frontendDir, '.tmp', 'generator-quality-contract-test');
 
 const files = [
-  'src/modules/system/generator/schema.ts',
-  'src/modules/system/generator/type-mapping.ts',
-  'src/modules/system/generator/backend-generator.ts',
-  'src/modules/system/generator/frontend-generator.ts',
-  'src/modules/system/generator/exporter.ts',
+  'src/modules/lowcode/generator/schema.ts',
+  'src/modules/lowcode/generator/type-mapping.ts',
+  'src/modules/lowcode/generator/backend-generator.ts',
+  'src/modules/lowcode/generator/frontend-generator.ts',
+  'src/modules/lowcode/generator/exporter.ts',
   'tests/generator/generator-quality-contract.test.ts',
 ];
 

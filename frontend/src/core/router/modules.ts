@@ -1,7 +1,7 @@
 import type { ModuleConfig } from './types';
 import { AuthModule } from '../../modules/auth';
 import { DashboardModule } from '../../modules/dashboard';
-import { GeneratorModule } from '../../modules/system/generator';
+import { GeneratorModule } from '../../modules/lowcode/generator';
 import { UserModule } from '../../modules/system/iam/user';
 import { RoleModule } from '../../modules/system/iam/role';
 import { MenuModule } from '../../modules/system/iam/menu';
@@ -11,13 +11,13 @@ import { PostModule } from '../../modules/system/org/post';
 import { DictModule } from '../../modules/system/config/dict';
 import { SettingModule } from '../../modules/system/config/setting';
 import { I18nModule } from '../../modules/system/i18n';
-import { DynamicModuleModule } from '../../modules/system/dynamicmodule';
+import { DynamicModuleModule } from '../../modules/lowcode/dynamicmodule';
 import { AuditModule } from '../../modules/system/audit';
 import { ProfileModule } from '../../modules/system/profile';
-import { generatedSystemModules } from '../../modules/generated/system';
+import { generatedSystemModules } from '../../modules/lowcode/generated/system';
 import { CmdbModule } from '../../modules/business/cmdb';
 import { DeployModule } from '../../modules/business/deploy';
-import { generatedBusinessModules } from '../../modules/generated/business';
+import { generatedBusinessModules } from '../../modules/lowcode/generated/business';
 
 export const systemModules: ModuleConfig[] = [
   DashboardModule,

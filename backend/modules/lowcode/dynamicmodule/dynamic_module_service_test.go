@@ -90,7 +90,7 @@ func TestRegisterGeneratedModuleWritesRegistries(t *testing.T) {
 
 	assertFileContains(t, filepath.Join(workspaceRoot, "backend", "modules", "business", "generated_registry.go"), `ticket "pantheon-ops/backend/modules/business/ticket"`)
 	assertFileContains(t, filepath.Join(workspaceRoot, "backend", "modules", "business", "generated_registry.go"), "ticket.InitTicketModule")
-	assertFileContains(t, filepath.Join(workspaceRoot, "frontend", "src", "modules", "generated", "business.ts"), "TicketModule")
+	assertFileContains(t, filepath.Join(workspaceRoot, "frontend", "src", "modules", "lowcode", "generated", "business.ts"), "TicketModule")
 	assertFileContains(t, filepath.Join(workspaceRoot, "frontend", "src", "core", "router", "generatedComponentRegistry.ts"), "'business/ticket/TicketList'")
 	assertFileContains(t, filepath.Join(workspaceRoot, "frontend", "src", "core", "router", "generatedComponentRegistry.ts"), "'business/ticket/TicketDetail'")
 }
@@ -725,7 +725,7 @@ func TestRebuildGeneratedRegistries_SkipsMissingManagedSource(t *testing.T) {
 	}
 
 	assertFileNotContains(t, filepath.Join(workspaceRoot, "backend", "modules", "business", "generated_registry.go"), "business/asset")
-	assertFileNotContains(t, filepath.Join(workspaceRoot, "frontend", "src", "modules", "generated", "business.ts"), "AssetModule")
+	assertFileNotContains(t, filepath.Join(workspaceRoot, "frontend", "src", "modules", "lowcode", "generated", "business.ts"), "AssetModule")
 	assertFileNotContains(t, filepath.Join(workspaceRoot, "frontend", "src", "core", "router", "generatedComponentRegistry.ts"), "business/asset/AssetList")
 	assertFileNotContains(t, filepath.Join(workspaceRoot, "frontend", "src", "core", "router", "generatedComponentRegistry.ts"), "lazy(() =>")
 }
@@ -1159,7 +1159,7 @@ func prepareDynamicModuleWorkspace(t *testing.T) string {
 	mustMkdirAll(t, filepath.Join(root, "backend", "modules", "business"))
 	mustMkdirAll(t, filepath.Join(root, "backend", "modules", "system", "iam", "menu"))
 	mustMkdirAll(t, filepath.Join(root, "frontend", "scripts"))
-	mustMkdirAll(t, filepath.Join(root, "frontend", "src", "modules", "generated"))
+	mustMkdirAll(t, filepath.Join(root, "frontend", "src", "modules", "lowcode", "generated"))
 	mustMkdirAll(t, filepath.Join(root, "frontend", "src", "core", "router"))
 	mustMkdirAll(t, filepath.Join(root, "schema", "generated", "business"))
 	mustWriteFile(t, filepath.Join(root, "frontend", "scripts", "export-generated-module.mjs"), `import { readFileSync } from 'node:fs';
@@ -1209,8 +1209,8 @@ func mustWriteGeneratedRegistryStubs(t *testing.T, root string) {
 	mustWriteFile(t, filepath.Join(root, "backend", "modules", "business", "generated_registry.go"), "package business\n")
 	mustWriteFile(t, filepath.Join(root, "backend", "modules", "system", "generated_registry.go"), "package system\n")
 	mustWriteFile(t, filepath.Join(root, "backend", "modules", "system", "iam", "menu", "generated_component_registry.go"), "package iam\n")
-	mustWriteFile(t, filepath.Join(root, "frontend", "src", "modules", "generated", "business.ts"), "export const generatedBusinessModules = []\n")
-	mustWriteFile(t, filepath.Join(root, "frontend", "src", "modules", "generated", "system.ts"), "export const generatedSystemModules = []\n")
+	mustWriteFile(t, filepath.Join(root, "frontend", "src", "modules", "lowcode", "generated", "business.ts"), "export const generatedBusinessModules = []\n")
+	mustWriteFile(t, filepath.Join(root, "frontend", "src", "modules", "lowcode", "generated", "system.ts"), "export const generatedSystemModules = []\n")
 	mustWriteFile(t, filepath.Join(root, "frontend", "src", "core", "router", "generatedComponentRegistry.ts"), "export const generatedComponentRegistry = {}\n")
 }
 

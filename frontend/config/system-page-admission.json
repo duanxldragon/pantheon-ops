@@ -180,7 +180,7 @@
   {
     "path": "/system/modules",
     "title": "模块注册表",
-    "sourceFile": "src/modules/system/dynamicmodule/ModuleManager.tsx",
+    "sourceFile": "src/modules/lowcode/dynamicmodule/ModuleManager.tsx",
     "narrative": "module-governance",
     "governanceDrawer": "forbidden",
     "hero": "forbidden"
@@ -188,7 +188,7 @@
   {
     "path": "/system/generator",
     "title": "模块生成器",
-    "sourceFile": "src/modules/system/generator/pages/ModuleWizard.tsx",
+    "sourceFile": "src/modules/lowcode/generator/pages/ModuleWizard.tsx",
     "narrative": "module-onboarding",
     "governanceDrawer": "forbidden",
     "hero": "forbidden"

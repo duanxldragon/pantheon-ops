@@ -6,17 +6,20 @@ import {
   allowedBackendOpsOnlyPaths,
   backendMergedJsonPaths,
   collectFiles,
+  detectBackendModuleNameFromTree,
   isBackendOverlayPath,
   listFilesFromGitCommit,
   mergeBuiltinLocaleResources,
   normalizeLineEndings,
   readFileFromGitCommit,
   readFoundationLock,
+  resolveFoundationReleasePaths,
   readGoModuleName,
   resolveBaseRepoRoot,
   rewriteBackendModuleReferences,
   sharedBackendEntriesFromLock,
   stripTreePrefix,
+  toRepoPath,
 } from './foundation-release/shared-foundation-rules.mjs';
 
 const currentFilePath = fileURLToPath(import.meta.url);
@@ -37,10 +40,10 @@ function buildExpectedOpsSource(relativePath, baseSource, opsSource, baseModuleN
   return mergeBuiltinLocaleResources(rewrittenBaseSource, opsSource);
 }
 
-function collectSharedBaseFiles() {
+function collectSharedBaseFilesFromWorkspace() {
   const lock = readFoundationLock(opsRoot);
   const baseRepoRoot = resolveBaseRepoRoot(opsRoot, lock);
-  const targetCommit = compareWorkspaceHead ? 'HEAD' : lock.baseCommit;
+  const targetCommit = 'HEAD';
   if (!fs.existsSync(baseRepoRoot)) {
     return {
       baseRepoRoot,
@@ -66,20 +69,61 @@ function collectSharedBaseFiles() {
   };
 }
 
-function main() {
-  const { baseRepoRoot, lock, targetCommit, files: baseFiles, missingBaseRepo } = collectSharedBaseFiles();
-  if (missingBaseRepo) {
-    if (process.env.PANTHEON_CI || process.env.CI) {
-      console.warn('[check-base-backend-sync] pantheon-base not found at', baseRepoRoot);
-      console.warn('[check-base-backend-sync] skipping backend sync check (running in CI without base repo)');
-      process.exit(0);
+function collectSharedBaseFilesFromRelease() {
+  const lock = readFoundationLock(opsRoot);
+  const releasePaths = resolveFoundationReleasePaths(opsRoot, lock);
+  const files = new Set();
+
+  for (const entry of sharedBackendEntriesFromLock(lock)) {
+    const entryDir = path.join(releasePaths.sharedBackendRoot, entry);
+    if (!fs.existsSync(entryDir)) {
+      continue;
     }
+    const stats = fs.statSync(entryDir);
+    if (!stats.isDirectory()) {
+      files.add(toRepoPath(entry));
+      continue;
+    }
+    for (const filePath of collectFiles(releasePaths.sharedBackendRoot, entryDir)) {
+      files.add(filePath);
+    }
+  }
+
+  return {
+    lock,
+    targetCommit: lock.baseCommit,
+    sourceRoot: releasePaths.sharedBackendRoot,
+    sourceLabel: `foundation release ${lock.releaseVersion} (${lock.baseCommit})`,
+    files: [...files].sort((a, b) => a.localeCompare(b)),
+  };
+}
+
+function collectSharedBaseFiles() {
+  if (compareWorkspaceHead) {
+    return collectSharedBaseFilesFromWorkspace();
+  }
+  return collectSharedBaseFilesFromRelease();
+}
+
+function readSharedBaseSource(source, relativePath) {
+  if (source.sourceRoot) {
+    return readFile(path.join(source.sourceRoot, relativePath));
+  }
+  return readFileFromGitCommit(source.baseRepoRoot, source.targetCommit, `backend/${relativePath}`);
+}
+
+function main() {
+  const source = collectSharedBaseFiles();
+  const { baseRepoRoot, lock, targetCommit, files: baseFiles, missingBaseRepo } = source;
+  if (missingBaseRepo) {
     console.error(`pantheon-base repo root not found: ${baseRepoRoot}`);
     process.exit(1);
   }
   const baseFileSet = new Set(baseFiles);
 
-  const baseModuleName = readGoModuleName(baseRepoRoot);
+  const baseModuleName = source.sourceRoot
+    ? detectBackendModuleNameFromTree(source.sourceRoot)
+    : readGoModuleName(baseRepoRoot);
   const opsModuleName = readGoModuleName(opsRoot);
 
   const missingFiles = [];
@@ -99,7 +143,7 @@ function main() {
       continue;
     }
 
-    const baseSource = readFileFromGitCommit(baseRepoRoot, targetCommit, `backend/${relativePath}`);
+    const baseSource = readSharedBaseSource(source, relativePath);
     const opsSource = readFile(opsFilePath);
 
     const expectedOpsSource = buildExpectedOpsSource(relativePath, baseSource, opsSource, baseModuleName, opsModuleName);
@@ -132,7 +176,7 @@ function main() {
       }
       // Try reading from base commit — if it exists, it's just a different file name
       try {
-        readFileFromGitCommit(baseRepoRoot, targetCommit, `backend/${relativePath}`);
+        readSharedBaseSource(source, relativePath);
         continue;
       } catch {}
       staleFiles.push(relativePath);
@@ -140,16 +184,12 @@ function main() {
   }
 
   if (missingFiles.length === 0 && diffFiles.length === 0 && staleFiles.length === 0) {
-    const sourceLabel = compareWorkspaceHead
-      ? 'pantheon-base workspace HEAD'
-      : `pantheon-base ${lock.releaseVersion} (${lock.baseCommit})`;
+    const sourceLabel = source.sourceLabel ?? 'pantheon-base workspace HEAD';
     console.log(`OK shared backend is aligned with ${sourceLabel}`);
     return;
   }
 
-  const sourceLabel = compareWorkspaceHead
-    ? 'pantheon-base workspace HEAD'
-    : `pantheon-base ${lock.releaseVersion} (${lock.baseCommit})`;
+  const sourceLabel = source.sourceLabel ?? 'pantheon-base workspace HEAD';
   console.error(`pantheon-ops shared backend drift detected against ${sourceLabel}`);
   for (const relativePath of missingFiles) {
     console.error(`MISSING ${relativePath}`);

@@ -14,6 +14,15 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 - Base version：当前锁定到 `base-v0.8.4`（`412a465e7c3a2620b81e81edf3d5c9a16fb33952`）
 - Inheritance mode：`foundation-release-consumer`
 
+### 1.1 版本号命名规则
+
+自 2026-06-24 起，workspace 版本号统一采用 `pantheon-<product>-v<major>.<minor>.<patch>` 格式，权威定义见 [`../../docs/VERSIONING.md`](../../docs/VERSIONING.md)。
+
+- 历史 tag `base-v0.8.1` / `base-v0.8.2` / `base-v0.8.3` / `base-v0.8.4` 保留为历史记录，不重命名
+- 自 `pantheon-base-v0.8.5` 起，本仓库 lock、升级命令、release notes 中出现的版本号都必须用新格式
+- 下次 ops 真正升级时，目标 `releaseVersion` 直接写新格式，`foundation-release.lock.json` 的 `releaseVersion` 字段在同一次升级中一次性切到新格式
+- 不为切换命名格式单独发 patch；版本号变化必须伴随真实的底座差异
+
 ## 2. 继承的底座规则
 
 本仓库继承自 `pantheon-base` 的核心规则包括：
@@ -72,6 +81,7 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 这里的“同步”后续默认理解为：
 
 - 选择一个新的 `pantheon-base` foundation release
+- 从 GitHub release 或本地 archive 安装该 release artifact
 - 升级 ops 所消费的 release 版本
 - 再修复 business overlay 与新底座 release 的真实断点
 
@@ -95,12 +105,14 @@ Current business-domain overrides that stay local to `pantheon-ops`:
 
 同步时固定做四件事：在 `pantheon-base` 完成共享改动；记录共享路径；在 `pantheon-ops` 检查 backend、frontend、generator、i18n、menu 差异；只同步共享部分并重新执行业务模块校验。
 
-当前推荐直接通过 release consumer 执行同步，而不是人工整目录覆盖：
+当前推荐直接通过 release artifact + release consumer 执行同步，而不是人工整目录覆盖：
 
+- `npm run foundation:install`：按 `foundation-release.lock.json` 下载并安装已锁定的 release artifact
+- `npm run foundation:install -- --archive <foundation-release-version>.tgz`：从本地 archive 安装 release artifact
 - `npm run upgrade:foundation:apply -- --manifest <bundle-root>\manifest.json --bundle <bundle-root>`
 - 如果本地已有 `pantheon-base/releases/<version>/manifest.json`，可以直接让 ops 本地生成 bundle 并消费：`npm run upgrade:foundation:local-plan -- --release-version <version>` 或 `npm run upgrade:foundation:local-apply -- --release-version <version>`
 - 该命令会同步共享 backend/frontend、保留 ops 本地 overlay（如 menu registry、generator workspace、frontend generated registry）、把共享 backend import 重写到 `pantheon-ops` 模块名，并补跑 frontend `base-sync` + `menu-contract`
-- 日常开发时，`npm run check:base-sync` 只检查当前工作树是否仍符合 `foundation-release.lock.json` 锁定的 foundation release；只有显式执行 `npm run check:base-sync:workspace` 时，才对比 `pantheon-base` 当前工作树，作为“是否需要发起新一轮 upgrade”的预演信号
+- 日常开发时，`npm run check:base-sync` 只检查当前工作树是否仍符合 `foundation-release.lock.json` 锁定的 foundation release artifact；只有显式执行 `npm run check:base-sync:workspace` 时，才对比 `pantheon-base` 当前工作树，作为“是否需要发起新一轮 upgrade”的预演信号
 
 ## 6.3 不建议的同步方式
 
@@ -142,40 +154,46 @@ Current business-domain overrides that stay local to `pantheon-ops`:
 git -C D:\workspace\go\pantheon-platform\pantheon-base rev-parse --short HEAD
 ```
 
-2. 在 `pantheon-ops` 先跑一键继承校验，先把模板、继承契约和共享 backend 对齐状态一次性过掉
+2. 在 `pantheon-ops` 安装当前锁定的 foundation release artifact
 
 ```powershell
 Set-Location D:\workspace\go\pantheon-platform\pantheon-ops
+npm run foundation:install
+```
+
+3. 再跑一键继承校验，先把模板、继承契约和共享 backend/frontend 对齐状态一次性过掉
+
+```powershell
 npm run check:inheritance
 ```
 
-3. 日常业务开发默认只检查“是否仍符合已锁定 release”
+4. 日常业务开发默认只检查“是否仍符合已锁定 release artifact”
 
 ```powershell
 npm run check:base-sync:backend
 npm run check:base-sync:frontend
 ```
 
-4. 需要判断 base 最近演进是否已经值得同步时，再显式跑 workspace 对比
+5. 需要判断 base 最近演进是否已经值得同步时，再显式跑 workspace 对比
 
 ```powershell
 npm run check:base-sync:workspace
 ```
 
-5. 如果 workspace 对比确认需要升级，优先直接消费本地 release，而不是手搓文件覆盖
+6. 如果 workspace 对比确认需要升级，优先先在 `pantheon-base` 切新 release，再让 ops 消费该 release，而不是手搓文件覆盖
 
 ```powershell
-npm run upgrade:foundation:local-plan -- --release-version base-v0.8.3
-npm run upgrade:foundation:local-apply -- --release-version base-v0.8.3
+npm run upgrade:foundation:local-plan -- --release-version pantheon-base-v0.8.5
+npm run upgrade:foundation:local-apply -- --release-version pantheon-base-v0.8.5
 ```
 
-6. 如需同步共享后端路径，按文件级方式同步，不覆盖 `business/*`
+7. 如需同步共享后端路径，按文件级方式同步，不覆盖 `business/*`
 
 ```powershell
 git diff --name-only -- D:\workspace\go\pantheon-platform\pantheon-base\backend
 ```
 
-7. 完成同步后分别执行最小验证
+8. 完成同步后分别执行最小验证
 
 ```powershell
 Set-Location D:\workspace\go\pantheon-platform\pantheon-base
@@ -186,7 +204,7 @@ go test ./...
 npm run check:base-sync:backend
 ```
 
-8. 如果本轮还涉及前端共享壳层、分页、共享表格或共享 i18n，再补最小前端验证或 smoke
+9. 如果本轮还涉及前端共享壳层、分页、共享表格或共享 i18n，再补最小前端验证或 smoke
 
 ```powershell
 Set-Location D:\workspace\go\pantheon-platform\pantheon-ops\frontend
@@ -203,8 +221,9 @@ npm run build
 
 常用本地命令：
 
+- `npm run foundation:install`：安装 `foundation-release.lock.json` 锁定的 release artifact
 - `npm run check:inheritance`：一键检查 task packet 模板、继承契约、foundation lock、共享 backend 和 frontend 对齐状态
-- `npm run check:base-sync`：检查共享 backend + frontend 是否仍符合 `foundation-release.lock.json`
+- `npm run check:base-sync`：检查共享 backend + frontend 是否仍符合 `foundation-release.lock.json` 锁定的 release artifact
 - `npm run check:base-sync:workspace`：显式检查当前 `pantheon-base` 工作树是否已经偏离 ops 当前锁定 release，作为是否发起 upgrade 的预演信号
 - `npm run check:base-sync:backend`：仅检查共享 backend 文件级对齐
 - `npm run check:base-sync:frontend`：仅检查共享 frontend 文件级对齐

@@ -22,6 +22,7 @@ English version: [README.en.md](./README.en.md)
 | [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) / [designs/BUSINESS_CMDB_MODULE_DESIGN.en.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.en.md) | CMDB 业务模块完整设计（含数据模型、API、UI、字典依赖、验收） |
 | [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) / [designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md) | 安装部署业务模块完整设计 |
 | [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md) / [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md) | ops 业务模块 canonical 错误 key 语义附录 |
+| [designs/FOUNDATION_UPGRADE_PATH.md](./designs/FOUNDATION_UPGRADE_PATH.md) / [designs/FOUNDATION_UPGRADE_PATH.en.md](./designs/FOUNDATION_UPGRADE_PATH.en.md) | 当前 `base-v0.8.4` → `base-v0.8.5` 升级路径文档（含变更范围、升级步骤与回滚说明）|
 | [designs/PLATFORM_SRE_EVOLUTION_PLAN.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.md) / [designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md) | SRE 演进路线图：从 Web 平台到 K8s-native 的五阶段计划 |
 | [../DESIGN.md](../DESIGN.md) / [../DESIGN.en.md](../DESIGN.en.md) | 仓库级总体设计与继承的基座设计立场 |
 | [../frontend/README.md](../frontend/README.md) / [../frontend/README.en.md](../frontend/README.en.md) | 前端工作区说明 |

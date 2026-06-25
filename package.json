@@ -1,6 +1,7 @@
 {
   "license": "MIT",
   "scripts": {
+    "prebuild": "npm run check:base-sync",
     "apply:github-feedback": "node scripts/address-github-feedback.mjs",
     "run:github-feedback-loop": "node scripts/run-github-feedback-loop.mjs",
     "test:branch-hygiene": "node --test tests/scripts/cleanup-github-branches.test.mjs tests/scripts/branch-hygiene-workflow.test.mjs",
@@ -19,8 +20,9 @@
     "check:task-packet-template": "node scripts/check-task-packet-template.mjs",
     "check:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs --check",
     "check:overlay-compile": "node scripts/check-overlay-compile.mjs",
-    "upgrade:foundation:plan": "node scripts/foundation-release/consume-foundation-release.mjs --check",
+    "upgrade:foundation:plan": "node scripts/foundation-release/consume-foundation-release.mjs --dry-run",
     "upgrade:foundation:apply": "node scripts/foundation-release/consume-foundation-release.mjs --apply-shared-backend --apply-shared-frontend --update-inheritance-docs --check",
+    "foundation:install": "node scripts/foundation-release/install-foundation-release.mjs",
     "upgrade:foundation:local-plan": "node scripts/foundation-release/upgrade-from-local-base-release.mjs --plan-only",
     "upgrade:foundation:local-apply": "node scripts/foundation-release/upgrade-from-local-base-release.mjs",
     "test:foundation-release": "node --test tests/scripts/**/*.test.mjs",

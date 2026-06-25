@@ -49,10 +49,10 @@ const staticComponentRegistry = {
     () => import('../../modules/system/audit/OperationLogList'),
   ),
   'system/dynamicmodule/ModuleManager': defineRegistryEntry(
-    () => import('../../modules/system/dynamicmodule/ModuleManager'),
+    () => import('../../modules/lowcode/dynamicmodule/ModuleManager'),
   ),
   'system/generator/ModuleWizard': defineRegistryEntry(
-    () => import('../../modules/system/generator/pages/ModuleWizard'),
+    () => import('../../modules/lowcode/generator/pages/ModuleWizard'),
   ),
   'business/cmdb/host/CmdbHostList': defineRegistryEntry(
     () => import('../../modules/business/cmdb/host/CmdbHostList'),

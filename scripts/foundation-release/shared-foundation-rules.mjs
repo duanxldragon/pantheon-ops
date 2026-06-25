@@ -23,8 +23,8 @@ export const backendOverlayPaths = new Set([
   'modules/platform/health.go',
   'modules/system/seed.go',
   'modules/system/seed_test.go',
-  'modules/system/dynamicmodule/dynamic_module_service_test.go',
-  'modules/system/generator/generator_service_test.go',
+  'modules/lowcode/dynamicmodule/dynamic_module_service_test.go',
+  'modules/lowcode/generator/generator_service_test.go',
   'modules/system/iam/menu/component_registry.go',
   'modules/system/iam/menu/generated_component_registry.go',
 ]);
@@ -35,7 +35,7 @@ export const frontendOverlayPaths = new Set([
   'core/router/componentRegistry.ts',
   'core/router/generatedComponentRegistry.ts',
   'core/router/modules.ts',
-  'modules/system/generator/backend-generator.ts',
+  'modules/lowcode/generator/backend-generator.ts',
 ]);
 
 export const frontendRelocatedPathPrefixes = new Map([
@@ -71,6 +71,8 @@ export const allowedFrontendOpsOnlyPaths = new Set([]);
 export const backendMergedJsonPaths = new Set([
   'modules/system/i18n/builtin_locale_resources.json',
 ]);
+
+const FOUNDATION_RELEASE_ENV = 'PANTHEON_FOUNDATION_RELEASE_ROOT';
 
 export function toRepoPath(filePath) {
   return filePath.split(path.sep).join('/');
@@ -146,6 +148,77 @@ export function resolveBaseRepoRoot(opsRoot, lock = readFoundationLock(opsRoot))
   return path.resolve(opsRoot, lock.baseRepo ?? '../pantheon-base');
 }
 
+function isFoundationReleaseRoot(candidatePath) {
+  return fs.existsSync(path.join(candidatePath, 'manifest.json'))
+    && fs.existsSync(path.join(candidatePath, 'bundle'));
+}
+
+export function foundationReleaseCandidates(opsRoot, lock = readFoundationLock(opsRoot)) {
+  const candidates = [];
+  if (process.env[FOUNDATION_RELEASE_ENV]) {
+    candidates.push(path.resolve(process.env[FOUNDATION_RELEASE_ENV]));
+  }
+  if (lock.releaseArtifact?.localPath) {
+    candidates.push(path.resolve(opsRoot, lock.releaseArtifact.localPath));
+  }
+  candidates.push(path.resolve(opsRoot, '.foundation', 'releases', lock.releaseVersion));
+  candidates.push(path.resolve(opsRoot, 'dist', 'foundation-releases', lock.releaseVersion));
+
+  const baseRepoRoot = resolveBaseRepoRoot(opsRoot, lock);
+  candidates.push(path.resolve(baseRepoRoot, 'dist', 'foundation-releases', lock.releaseVersion));
+
+  return [...new Set(candidates)];
+}
+
+export function resolveFoundationReleaseRoot(opsRoot, lock = readFoundationLock(opsRoot)) {
+  for (const candidatePath of foundationReleaseCandidates(opsRoot, lock)) {
+    if (isFoundationReleaseRoot(candidatePath)) {
+      return candidatePath;
+    }
+  }
+
+  throw new Error(
+    [
+      `foundation release artifact not found for ${lock.releaseVersion}`,
+      `Set ${FOUNDATION_RELEASE_ENV} to a directory containing manifest.json and bundle/,`,
+      'or download/build the locked pantheon-base release artifact before running base-sync checks.',
+      'Use --workspace-head only for explicit local preview checks.',
+    ].join(' '),
+  );
+}
+
+export function readFoundationReleaseManifest(releaseRoot, lock) {
+  const manifestPath = path.join(releaseRoot, 'manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  if (manifest.sourceRepo !== 'pantheon-base') {
+    throw new Error(`foundation release manifest sourceRepo must be pantheon-base: ${manifestPath}`);
+  }
+  if (manifest.consumerMode !== 'foundation-release-consumer') {
+    throw new Error(`foundation release manifest has unsupported consumerMode: ${manifestPath}`);
+  }
+  if (manifest.releaseVersion !== lock.releaseVersion) {
+    throw new Error(
+      `foundation release version mismatch: lock=${lock.releaseVersion} manifest=${manifest.releaseVersion}`,
+    );
+  }
+  if (manifest.baseCommit !== lock.baseCommit) {
+    throw new Error(`foundation release commit mismatch: lock=${lock.baseCommit} manifest=${manifest.baseCommit}`);
+  }
+  return manifest;
+}
+
+export function resolveFoundationReleasePaths(opsRoot, lock = readFoundationLock(opsRoot)) {
+  const releaseRoot = resolveFoundationReleaseRoot(opsRoot, lock);
+  const manifest = readFoundationReleaseManifest(releaseRoot, lock);
+  return {
+    releaseRoot,
+    manifest,
+    bundleRoot: path.join(releaseRoot, 'bundle'),
+    sharedBackendRoot: path.join(releaseRoot, 'bundle', 'shared-backend', 'backend'),
+    sharedFrontendRoot: path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src'),
+  };
+}
+
 export function isBackendOverlayPath(relativePath) {
   return backendOverlayPaths.has(relativePath)
     || backendOverlayDirPrefixes.some((prefix) => relativePath.startsWith(prefix));
@@ -171,6 +244,51 @@ export function toOriginalFrontendPath(relativePath) {
     }
   }
   return relativePath;
+}
+
+function toRelativeImportSpecifier(fromRelativePath, toRelativePath) {
+  const fromDir = path.posix.dirname(toRepoPath(fromRelativePath));
+  const nextSpecifier = path.posix.relative(fromDir, toRepoPath(toRelativePath));
+  if (nextSpecifier.startsWith('../')) {
+    return nextSpecifier;
+  }
+  return `./${nextSpecifier}`;
+}
+
+function rewriteRelativeImportSpecifier(specifier, originalRelativePath, relocatedRelativePath) {
+  if (!specifier.startsWith('./') && !specifier.startsWith('../')) {
+    return specifier;
+  }
+
+  const originalDir = path.posix.dirname(toRepoPath(originalRelativePath));
+  const originalTarget = path.posix.normalize(path.posix.join(originalDir, specifier));
+  const relocatedTarget = toRelocatedFrontendPath(originalTarget);
+  const nextSpecifier = toRelativeImportSpecifier(relocatedRelativePath, relocatedTarget);
+  return nextSpecifier === '.' ? './' : nextSpecifier;
+}
+
+export function rewriteFrontendBaseSource(baseSource, originalRelativePath, relocatedRelativePath) {
+  let nextSource = baseSource.replace(
+    /\b(from\s*|import\s*\(\s*|import\s+)(['"])(\.{1,2}\/[^'"]+)\2/gu,
+    (match, prefix, quote, specifier) =>
+      `${prefix}${quote}${rewriteRelativeImportSpecifier(
+        specifier,
+        originalRelativePath,
+        relocatedRelativePath,
+      )}${quote}`,
+  );
+  nextSource = nextSource.replace(
+    /(\bcomponent(?:Key)?\s*:\s*['"])([^'"]+)(['"])/gu,
+    (match, prefix, componentKey, suffix) => {
+      for (const [fromPrefix, toPrefix] of frontendRelocatedComponentPrefixes.entries()) {
+        if (componentKey.startsWith(fromPrefix)) {
+          return `${prefix}${toPrefix}${componentKey.slice(fromPrefix.length)}${suffix}`;
+        }
+      }
+      return match;
+    },
+  );
+  return nextSource;
 }
 
 export function readGoModuleName(repoRoot) {

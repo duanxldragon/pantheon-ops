@@ -155,12 +155,14 @@ function checkLockStaleness() {
   if (revList === null) return;
 
   const commitsAhead = parseInt(revList, 10);
-  if (commitsAhead > 10) {
+  const threshold = parseInt(process.env.FOUNDATION_LOCK_STALENESS_THRESHOLD ?? '10', 10);
+  if (commitsAhead > threshold) {
     warnings.push(
       `Locked base commit (${lockedCommit.slice(0, 8)}) is ${commitsAhead} commits behind ` +
-      `pantheon-base HEAD. Consider running:\n` +
+      `pantheon-base HEAD (threshold: ${threshold}). Consider running:\n` +
       `  npm run check:base-sync:workspace    (preview drift)\n` +
       `  npm run upgrade:foundation:local-plan -- --release-version <version>\n` +
+      `Or override the threshold: FOUNDATION_LOCK_STALENESS_THRESHOLD=20\n` +
       `A scheduled CI workflow (.github/workflows/inheritance-drift-detection.yml) ` +
       `runs weekly to detect this automatically.`,
     );

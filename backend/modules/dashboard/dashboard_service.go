@@ -5,7 +5,7 @@ import (
 	"time"
 
 	auth "pantheon-ops/backend/modules/auth"
-	dynamicmodule "pantheon-ops/backend/modules/system/dynamicmodule"
+	dynamicmodule "pantheon-ops/backend/modules/lowcode/dynamicmodule"
 	dept "pantheon-ops/backend/modules/system/org/dept"
 	"pantheon-ops/backend/pkg/authsession"
 

@@ -15,7 +15,7 @@ const DEFAULT_CONFIG = {
     '/.git/',
     '/.codegraph/',
     '/scripts/harness/',
-    '/frontend/src/modules/generated/',
+    '/frontend/src/modules/lowcode/generated/',
     '/frontend/src/modules/business/',
     '/schema/generated/',
     '/tests/fixtures/',

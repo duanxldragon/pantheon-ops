@@ -41,19 +41,19 @@ function overlayConsumerPackages() {
   // its consumers should be recorded here too.
   const consumerMap = {
     'internal/scaffold/workspace.go': [
-      './backend/modules/system/dynamicmodule/...',
-      './backend/modules/system/generator/...',
+      './backend/modules/lowcode/dynamicmodule/...',
+      './backend/modules/lowcode/generator/...',
       './backend/modules/system/i18n/...',
     ],
     'internal/scaffold/workspace_test.go': [
       './backend/internal/scaffold/...',
-      './backend/modules/system/dynamicmodule/...',
+      './backend/modules/lowcode/dynamicmodule/...',
     ],
-    'modules/system/dynamicmodule/dynamic_module_service_test.go': [
-      './backend/modules/system/dynamicmodule/...',
+    'modules/lowcode/dynamicmodule/dynamic_module_service_test.go': [
+      './backend/modules/lowcode/dynamicmodule/...',
     ],
-    'modules/system/generator/generator_service_test.go': [
-      './backend/modules/system/generator/...',
+    'modules/lowcode/generator/generator_service_test.go': [
+      './backend/modules/lowcode/generator/...',
     ],
     'modules/system/iam/menu/component_registry.go': [
       './backend/modules/system/iam/menu/...',

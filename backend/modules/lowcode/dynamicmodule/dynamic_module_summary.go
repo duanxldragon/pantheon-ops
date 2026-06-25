@@ -53,7 +53,7 @@ func (s *DynamicModuleService) buildGeneratedModuleSummary(req *scaffold.Registe
 			"frontend_registry",
 			"pass",
 			"module.generate.verify.frontend_registry_updated",
-			filepath.Join("frontend", "src", "modules", "generated", scope+".ts"),
+			filepath.Join("frontend", "src", "modules", "lowcode", "generated", scope+".ts"),
 			toGeneratedPascal(name)+"Module",
 		),
 		s.verifyRegistryFile(

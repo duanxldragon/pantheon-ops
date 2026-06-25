@@ -60,6 +60,7 @@ npm run dev
 ## Common Commands
 
 ```bash
+npm run foundation:install
 npm run upgrade:foundation:plan -- --manifest <bundle-root>\manifest.json --bundle <bundle-root>
 npm run upgrade:foundation:apply -- --manifest <bundle-root>\manifest.json --bundle <bundle-root>
 ```

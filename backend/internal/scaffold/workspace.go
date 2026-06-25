@@ -354,7 +354,7 @@ func writeGeneratedBackendRegistry(workspaceRoot string, scope string, refs []Ge
 }
 
 func writeGeneratedFrontendModuleRegistry(workspaceRoot string, scope string, refs []GeneratedModuleRef) error {
-	target := filepath.Join(workspaceRoot, "frontend", "src", "modules", "generated", scope+".ts")
+	target := filepath.Join(workspaceRoot, "frontend", "src", "modules", "lowcode", "generated", scope+".ts")
 
 	type entry struct {
 		ImportPath string

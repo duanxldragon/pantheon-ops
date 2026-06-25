@@ -5,6 +5,14 @@
   "releaseVersion": "base-v0.8.4",
   "baseCommit": "412a465e7c3a2620b81e81edf3d5c9a16fb33952",
   "consumerMode": "foundation-release-consumer",
+  "releaseArtifact": {
+    "githubRepo": "duanxldragon/pantheon-base",
+    "assetName": "foundation-release-base-v0.8.4.tgz",
+    "localPath": ".foundation/releases/base-v0.8.4",
+    "checksum": null
+  },
+  "lockedAt": "2026-06-24T00:00:00Z",
+  "lockedBy": "foundation-release-upgrade-v0.8.4",
   "sharedPaths": {
     "backend": [
       "backend/cmd",

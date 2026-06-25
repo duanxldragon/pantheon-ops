@@ -59,7 +59,7 @@ import {
 import { usePermission } from '../../../hooks/usePermission';
 import { SUPPORTED_LOCALES, reloadI18nResources } from '../../../i18n';
 import { isRequestError } from '../../../api/request';
-import { getRegisteredModules } from '../dynamicmodule/api';
+import { getRegisteredModules } from '../../lowcode/dynamicmodule/api';
 import {
   archiveObservedUnusedKeys,
   batchDeleteI18n,

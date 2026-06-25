@@ -111,9 +111,9 @@ function main() {
     ];
 
     if (options.planOnly) {
-      consumeArgs.push('--check');
+      consumeArgs.push('--dry-run');
     } else {
-      consumeArgs.push('--apply-shared-backend', '--apply-shared-frontend', '--update-inheritance-docs', '--check');
+      consumeArgs.push('--apply-shared-backend', '--apply-shared-frontend', '--update-inheritance-docs', '--rollback-on-error', '--check');
     }
 
     runNodeScript(options.opsRoot, consumeScriptPath, consumeArgs);
