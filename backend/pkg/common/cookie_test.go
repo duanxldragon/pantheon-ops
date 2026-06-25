@@ -32,7 +32,7 @@ func TestCSRFCookieAlwaysUsesSecureFlag(t *testing.T) {
 	}
 }
 
-func TestCSRFCookieKeepsHttpOnlyDisabled(t *testing.T) {
+func TestCSRFCookieUsesHttpOnlyHeaderContract(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	token, err := SetCSRFCookie(recorder)
 	if err != nil {
@@ -46,8 +46,11 @@ func TestCSRFCookieKeepsHttpOnlyDisabled(t *testing.T) {
 	if cookie.Name != CookieCSRFToken {
 		t.Fatalf("expected csrf cookie, got %s", cookie.Name)
 	}
-	if cookie.HttpOnly {
-		t.Fatal("expected csrf cookie to remain readable by the browser")
+	if !cookie.HttpOnly {
+		t.Fatal("expected csrf cookie to be httpOnly")
+	}
+	if recorder.Header().Get("X-CSRF-Token") != token {
+		t.Fatalf("expected csrf header to mirror generated token, got %q", recorder.Header().Get("X-CSRF-Token"))
 	}
 	if !strings.Contains(recorder.Header().Get("Set-Cookie"), "SameSite=Strict") {
 		t.Fatal("expected strict same-site cookie")
@@ -79,5 +82,8 @@ func TestClearTokenCookiesUsesDeletionMarkers(t *testing.T) {
 		if !strings.Contains(raw, "=;") {
 			t.Fatalf("expected cleared cookie value, got %s", raw)
 		}
+	}
+	if recorder.Header().Get("X-CSRF-Token") != "" {
+		t.Fatalf("expected csrf header to be cleared, got %q", recorder.Header().Get("X-CSRF-Token"))
 	}
 }

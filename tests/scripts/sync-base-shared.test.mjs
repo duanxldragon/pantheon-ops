@@ -28,10 +28,33 @@ function writeText(filePath, value) {
 function copyFixtureScripts(opsRoot) {
   const syncScriptPath = path.join(opsRoot, 'frontend', 'scripts', 'sync-base-shared.mjs');
   const rulesScriptPath = path.join(opsRoot, 'scripts', 'foundation-release', 'shared-foundation-rules.mjs');
+  const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
   fs.mkdirSync(path.dirname(syncScriptPath), { recursive: true });
   fs.mkdirSync(path.dirname(rulesScriptPath), { recursive: true });
   fs.copyFileSync(sourceSyncScript, syncScriptPath);
   fs.copyFileSync(sourceRulesScript, rulesScriptPath);
+  writeText(
+    lockPath,
+    `${JSON.stringify({
+      schemaVersion: 1,
+      baseRepo: '../pantheon-base-fixture',
+      releaseLine: 'release/test',
+      releaseVersion: 'base-vtest',
+      baseCommit: 'HEAD',
+      consumerMode: 'foundation-release-consumer',
+      sharedPaths: {
+        frontend: [
+          'frontend/src/components',
+          'frontend/src/core',
+          'frontend/src/store',
+          'frontend/src/modules/auth',
+          'frontend/src/modules/dashboard',
+          'frontend/src/modules/system',
+          'frontend/src/index.css',
+        ],
+      },
+    }, null, 2)}\n`,
+  );
   return syncScriptPath;
 }
 
@@ -44,13 +67,13 @@ function createSharedFrontendTree(rootPath, contents) {
   writeText(path.join(rootPath, 'frontend', 'src', 'index.css'), contents.indexCss);
 }
 
-function runSync(scriptPath, cwd, baseRepoRoot, args = []) {
+function runSync(scriptPath, cwd, envOverrides = {}, args = ['--workspace-head']) {
   return spawnSync(process.execPath, [scriptPath, ...args], {
     cwd,
     encoding: 'utf8',
     env: {
       ...process.env,
-      PANTHEON_BASE_REPO_ROOT: baseRepoRoot,
+      ...envOverrides,
     },
   });
 }
@@ -78,7 +101,7 @@ test('sync-base-shared respects PANTHEON_BASE_REPO_ROOT and the current ops work
       indexCss: 'body { color: red; }\n',
     });
 
-    const applyResult = runSync(syncScriptPath, opsRoot, baseRoot);
+    const applyResult = runSync(syncScriptPath, opsRoot, { PANTHEON_BASE_REPO_ROOT: baseRoot });
     assert.equal(applyResult.status, 0, applyResult.stderr || applyResult.stdout || applyResult.error?.message);
 
     assert.equal(
@@ -94,8 +117,69 @@ test('sync-base-shared respects PANTHEON_BASE_REPO_ROOT and the current ops work
       'body { color: black; }\n',
     );
 
-    const checkResult = runSync(syncScriptPath, opsRoot, baseRoot, ['--check']);
+    const checkResult = runSync(
+      syncScriptPath,
+      opsRoot,
+      { PANTHEON_BASE_REPO_ROOT: baseRoot },
+      ['--workspace-head', '--check'],
+    );
     assert.equal(checkResult.status, 0, checkResult.stderr || checkResult.stdout || checkResult.error?.message);
-    assert.match(checkResult.stdout, /OK shared frontend is aligned with pantheon-base/);
+    assert.match(checkResult.stdout, /OK shared frontend is aligned with pantheon-base workspace HEAD/);
+  });
+});
+
+test('sync-base-shared uses the installed release artifact by default', () => {
+  withTempDir((root) => {
+    const releaseRoot = path.join(root, 'release-root');
+    const opsRoot = path.join(root, 'ops-worktree-fixture');
+    const syncScriptPath = copyFixtureScripts(opsRoot);
+
+    writeText(
+      path.join(releaseRoot, 'manifest.json'),
+      `${JSON.stringify({
+        schemaVersion: 1,
+        releaseVersion: 'base-vtest',
+        releaseLine: 'release/test',
+        baseCommit: 'HEAD',
+        sourceRepo: 'pantheon-base',
+        consumerMode: 'foundation-release-consumer',
+        sharedPaths: {
+          frontend: ['frontend/src/components', 'frontend/src/index.css'],
+        },
+      }, null, 2)}\n`,
+    );
+    createSharedFrontendTree(path.join(releaseRoot, 'bundle', 'shared-frontend'), {
+      components: 'export const releaseComponent = true;\n',
+      core: 'export const releaseCore = true;\n',
+      auth: 'export const releaseAuth = true;\n',
+      dashboard: 'export const releaseDashboard = true;\n',
+      system: 'export const releaseSystem = true;\n',
+      indexCss: 'body { color: green; }\n',
+    });
+    createSharedFrontendTree(opsRoot, {
+      components: 'export const oldComponent = true;\n',
+      core: 'export const oldCore = true;\n',
+      auth: 'export const oldAuth = true;\n',
+      dashboard: 'export const oldDashboard = true;\n',
+      system: 'export const oldSystem = true;\n',
+      indexCss: 'body { color: red; }\n',
+    });
+
+    const applyResult = runSync(
+      syncScriptPath,
+      opsRoot,
+      { PANTHEON_FOUNDATION_RELEASE_ROOT: releaseRoot },
+      [],
+    );
+    assert.equal(applyResult.status, 0, applyResult.stderr || applyResult.stdout || applyResult.error?.message);
+
+    assert.equal(
+      fs.readFileSync(path.join(opsRoot, 'frontend', 'src', 'components', 'index.ts'), 'utf8'),
+      'export const releaseComponent = true;\n',
+    );
+    assert.equal(
+      fs.readFileSync(path.join(opsRoot, 'frontend', 'src', 'index.css'), 'utf8'),
+      'body { color: green; }\n',
+    );
   });
 });

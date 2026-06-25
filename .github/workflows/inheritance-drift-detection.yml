@@ -1,0 +1,168 @@
+name: Inheritance Drift Detection
+
+on:
+  schedule:
+    # Every Monday at 08:57 UTC (off-peak, avoid :00 and :30)
+    - cron: '57 8 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "22"
+
+jobs:
+  detect-drift:
+    name: Detect base→ops inheritance drift
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      backend-outcome: ${{ steps.backend-drift.outcome }}
+      frontend-outcome: ${{ steps.frontend-drift.outcome }}
+    steps:
+      - name: Checkout pantheon-ops
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          path: pantheon-ops
+          persist-credentials: false
+
+      - name: Checkout pantheon-base
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          repository: ${{ github.repository_owner }}/pantheon-base
+          path: pantheon-base
+          persist-credentials: false
+          # Shallow clone is sufficient for workspace comparison
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
+
+      - name: Install ops dependencies
+        working-directory: pantheon-ops
+        run: npm ci
+
+      - name: Check backend sync against base workspace HEAD
+        id: backend-drift
+        continue-on-error: true
+        working-directory: pantheon-ops
+        run: npm run check:base-sync:backend:workspace
+
+      - name: Check frontend sync against base workspace HEAD
+        id: frontend-drift
+        continue-on-error: true
+        working-directory: pantheon-ops
+        run: npm run check:base-sync:frontend:workspace
+
+      - name: Report drift summary
+        if: steps.backend-drift.outcome == 'failure' || steps.frontend-drift.outcome == 'failure'
+        shell: bash
+        env:
+          BACKEND_DRIFT_OUTCOME: ${{ steps.backend-drift.outcome }}
+          FRONTEND_DRIFT_OUTCOME: ${{ steps.frontend-drift.outcome }}
+        run: |
+          if [ "${BACKEND_DRIFT_OUTCOME}" = "failure" ]; then
+            backend_result="❌ Drift"
+          else
+            backend_result="✅ Clean"
+          fi
+          if [ "${FRONTEND_DRIFT_OUTCOME}" = "failure" ]; then
+            frontend_result="❌ Drift"
+          else
+            frontend_result="✅ Clean"
+          fi
+
+          echo "## Inheritance Drift Detected" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Drift was detected between \`pantheon-base\` HEAD and \`pantheon-ops\` \`foundation-release.lock.json\`." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Check | Result |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Backend | ${backend_result} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Frontend | ${frontend_result} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Action:** Run \`npm run upgrade:foundation:local-plan -- --release-version <version>\` in \`pantheon-ops\` to plan the upgrade." >> "$GITHUB_STEP_SUMMARY"
+
+  open-drift-issue:
+    name: Open drift issue
+    needs:
+      - detect-drift
+    if: needs.detect-drift.outputs.backend-outcome == 'failure' || needs.detect-drift.outputs.frontend-outcome == 'failure'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Open drift issue
+        uses: actions/github-script@08891c257ab1e72ecee86875cb7bd7cd404c9583
+        env:
+          BACKEND_DRIFT_OUTCOME: ${{ needs.detect-drift.outputs.backend-outcome }}
+          FRONTEND_DRIFT_OUTCOME: ${{ needs.detect-drift.outputs.frontend-outcome }}
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['inheritance-drift'],
+              state: 'open',
+            });
+
+            const backendDrift = process.env.BACKEND_DRIFT_OUTCOME === 'failure';
+            const frontendDrift = process.env.FRONTEND_DRIFT_OUTCOME === 'failure';
+
+            const body = `## pantheon-base → pantheon-ops Inheritance Drift
+
+            Drift was detected between \`pantheon-base\` HEAD and the locked foundation release in \`pantheon-ops\`.
+
+            - **Backend drift**: ${backendDrift ? '❌ Yes' : '✅ No'}
+            - **Frontend drift**: ${frontendDrift ? '❌ Yes' : '✅ No'}
+
+            ### What to do
+
+            1. Review the CI job logs for detailed MISSING/DIFF entries
+            2. Run locally:
+               \`\`\`
+               cd pantheon-ops
+               npm run check:base-sync:workspace
+               \`\`\`
+            3. If the drift is intentional base evolution, plan an upgrade:
+               \`\`\`
+               npm run upgrade:foundation:local-plan -- --release-version <new-version>
+               npm run upgrade:foundation:local-apply -- --release-version <new-version>
+               \`\`\`
+            4. Close this issue after the upgrade is complete.
+
+            > 🤖 Auto-detected by the weekly inheritance drift detection workflow.`;
+
+            // Deduplicate: only open a new issue if no open drift issue exists
+            if (issues.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Inheritance drift detected — pantheon-base has evolved past locked release`,
+                body,
+                labels: ['inheritance-drift'],
+              });
+              console.log('Created new inheritance drift issue');
+            } else {
+              console.log(`Skipped — ${issues.length} open drift issue(s) already exist`);
+            }
+
+  all-clean:
+    name: No drift
+    needs:
+      - detect-drift
+      - open-drift-issue
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Status
+        shell: bash
+        run: |
+          echo "Inheritance drift detection complete."
+          echo "Check the detect-drift job for results."

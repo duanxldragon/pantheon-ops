@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const errRequestFailed = "request.failed"
+
 type PermissionHandler struct {
 	service *PermissionService
 }
@@ -77,7 +79,7 @@ func (h *PermissionHandler) RemediateWorkbenchPolicies(c *gin.Context) {
 
 	resp, err := h.service.RemediateWorkbenchPolicies(&req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, resp)
@@ -109,7 +111,7 @@ func (h *PermissionHandler) UpdateDataScopePolicy(c *gin.Context) {
 
 	resp, err := h.service.UpdateDataScopePolicy(c.Param("roleKey"), &req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, resp)
@@ -140,7 +142,7 @@ func (h *PermissionHandler) CreatePolicy(c *gin.Context) {
 
 	policy, err := h.service.CreatePolicy(&req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, policy)
@@ -162,7 +164,7 @@ func (h *PermissionHandler) UpdatePolicy(c *gin.Context) {
 
 	policy, err := h.service.UpdatePolicy(policyID, &req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, policy)
@@ -177,7 +179,7 @@ func (h *PermissionHandler) DeletePolicy(c *gin.Context) {
 	}
 
 	if err := h.service.DeletePolicy(policyID); err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})

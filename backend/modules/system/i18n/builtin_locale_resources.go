@@ -34,7 +34,7 @@ func getBuiltinLocalePack(locale string) map[string]string {
 	return cloneLangPack(pack)
 }
 
-func getBuiltinLocaleValue(locale string, key string) (string, bool) {
+func getBuiltinLocaleValue(locale, key string) (string, bool) {
 	pack := loadBuiltinLocaleResources()[strings.TrimSpace(locale)]
 	if len(pack) == 0 {
 		return "", false

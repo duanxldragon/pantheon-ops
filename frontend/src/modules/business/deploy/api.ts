@@ -295,6 +295,7 @@ export function getDeployTaskDetail(id: number) {
   return apiRequest<DeployTaskRow>({
     url: `/business/deploy/tasks/${id}`,
     method: 'get',
+    skipErrorMessage: true,
   });
 }
 
@@ -303,6 +304,21 @@ export function createDeployTask(data: DeployTaskPayload) {
     url: '/business/deploy/tasks',
     method: 'post',
     data,
+  });
+}
+
+export function updateDeployTask(id: number, data: Partial<DeployTaskPayload> & { templateId?: number; packageId?: number }) {
+  return apiRequest<DeployTaskRow>({
+    url: `/business/deploy/tasks/${id}`,
+    method: 'put',
+    data,
+  });
+}
+
+export function deleteDeployTask(id: number) {
+  return apiRequest<void>({
+    url: `/business/deploy/tasks/${id}`,
+    method: 'delete',
   });
 }
 

@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { getRefreshState } from './api';
-import { hasAuthCookie } from '../../store/useAuthStore';
+import { hasAuthSession } from '../../store/useAuthStore';
 import { isLogoutTransitionActive } from '../../api/request';
+import { shouldPublishRefreshForVersionChange } from './versioning';
+import { buildRefreshTopicKey } from './topicKey';
+import { shouldPollServerRefreshState } from '../runtime/automationPolicy';
 
 export type PantheonRefreshTopic =
   | 'system:user:changed'
@@ -98,7 +101,11 @@ export function useRefreshSubscription(
   handler: RefreshHandler,
 ) {
   const handlerRef = useRef(handler);
-  const topicKey = useMemo(() => normalizeTopics(topics).join(','), [topics]);
+  const topicKey = useMemo(() => buildRefreshTopicKey(topics), [topics]);
+  const normalizedTopics = useMemo(
+    () => (topicKey ? (topicKey.split(',') as PantheonRefreshTopic[]) : []),
+    [topicKey],
+  );
 
   useEffect(() => {
     handlerRef.current = handler;
@@ -106,10 +113,10 @@ export function useRefreshSubscription(
 
   useEffect(
     () =>
-      subscribeRefresh(topics, (payload) => {
+      subscribeRefresh(normalizedTopics, (payload) => {
         handlerRef.current(payload);
       }),
-    [topicKey, topics],
+    [normalizedTopics, topicKey],
   );
 }
 
@@ -119,13 +126,16 @@ export function useRefreshPolling(
   intervalMs = DEFAULT_REFRESH_POLL_INTERVAL_MS,
 ) {
   const versionsRef = useRef<Record<string, number>>({});
-  const normalizedTopics = useMemo(() => normalizeTopics(topics).sort((a, b) => a.localeCompare(b)), [topics]);
-  const topicKey = useMemo(() => normalizedTopics.join(','), [normalizedTopics]);
-  const authToken = token || (globalThis.document !== undefined && hasAuthCookie() ? '_cookie' : null);
+  const topicKey = useMemo(() => buildRefreshTopicKey(topics), [topics]);
+  const normalizedTopics = useMemo(
+    () => (topicKey ? (topicKey.split(',') as PantheonRefreshTopic[]) : []),
+    [topicKey],
+  );
+  const authToken = token || (globalThis.document !== undefined && hasAuthSession() ? '_session' : null);
 
   useEffect(() => {
     versionsRef.current = {};
-    if (!authToken || !topicKey) {
+    if (!shouldPollServerRefreshState() || !authToken || !topicKey) {
       return;
     }
 
@@ -136,7 +146,7 @@ export function useRefreshPolling(
       if (isLogoutTransitionActive()) {
         return;
       }
-      if (globalThis.document !== undefined && !hasAuthCookie()) {
+      if (globalThis.document !== undefined && !hasAuthSession()) {
         return;
       }
       try {
@@ -146,8 +156,10 @@ export function useRefreshPolling(
         }
         normalizedTopics.forEach((topic) => {
           const nextVersion = Number(resp.topics?.[topic] || 0);
-          const previousVersion = Number(versionsRef.current[topic] || 0);
-          if (previousVersion > 0 && nextVersion > previousVersion) {
+          const previousVersion = Object.hasOwn(versionsRef.current, topic)
+            ? Number(versionsRef.current[topic])
+            : undefined;
+          if (shouldPublishRefreshForVersionChange(previousVersion, nextVersion)) {
             publishRefresh(topic, 'server/sync');
           }
           versionsRef.current[topic] = nextVersion;
@@ -168,5 +180,5 @@ export function useRefreshPolling(
         globalThis.clearInterval(timer);
       }
     };
-  }, [authToken, intervalMs, topicKey, normalizedTopics]);
+  }, [authToken, intervalMs, topicKey]);
 }

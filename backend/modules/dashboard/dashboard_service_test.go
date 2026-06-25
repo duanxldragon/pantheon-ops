@@ -8,7 +8,7 @@ import (
 	auth "pantheon-ops/backend/modules/auth"
 	dict "pantheon-ops/backend/modules/system/config/dict"
 	setting "pantheon-ops/backend/modules/system/config/setting"
-	dynamicmodule "pantheon-ops/backend/modules/system/dynamicmodule"
+	dynamicmodule "pantheon-ops/backend/modules/lowcode/dynamicmodule"
 	systemi18n "pantheon-ops/backend/modules/system/i18n"
 	menu "pantheon-ops/backend/modules/system/iam/menu"
 	role "pantheon-ops/backend/modules/system/iam/role"
@@ -198,8 +198,8 @@ func TestDashboardService_GetSummary(t *testing.T) {
 	if summary.TotalRoles != 1 || summary.TotalDepts != 1 || summary.TotalPosts != 1 {
 		t.Fatalf("expected role/dept/post counts to be 1, got roles=%d depts=%d posts=%d", summary.TotalRoles, summary.TotalDepts, summary.TotalPosts)
 	}
-	if summary.TotalDictTypes != 1 || summary.TotalSettings != 1 {
-		t.Fatalf("expected dict/settings counts to be 1, got dictTypes=%d settings=%d", summary.TotalDictTypes, summary.TotalSettings)
+	if summary.TotalDictTypes != 1 || summary.TotalSettings != 2 {
+		t.Fatalf("expected dict/settings counts to be 1/2, got dictTypes=%d settings=%d", summary.TotalDictTypes, summary.TotalSettings)
 	}
 	if summary.TotalI18nEntries != 1 || summary.ActiveModuleCount != 1 {
 		t.Fatalf("expected i18n/module counts to be 1, got i18n=%d modules=%d", summary.TotalI18nEntries, summary.ActiveModuleCount)

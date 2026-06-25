@@ -94,9 +94,9 @@ Deploy 允许消费的最小能力面建议固定为：
 
 | 菜单 key | 路径 | titleKey | routeName | module | component key | pagePermission | activeMenu | 类型 | 说明 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `business.deploy.package` | `/operations/deploy/package` | `operations.deploy.package.menu` | `deploy-package-list` | `business.deploy` | `business/deploy/package/DeployPackageList` | `business:deploy:package:list` | — | `C` | 软件组件列表 |
+| `business.deploy.package` | `/operations/deploy/package` | `operations.deploy.package.menu` | `deploy-package-list` | `business.deploy` | `business/deploy/package/DeployPackageList` | `business:deploy:package:view` | — | `C` | 软件组件列表 |
 | `business.deploy.template` | `/operations/deploy/template` | `operations.deploy.template.menu` | `deploy-template-list` | `business.deploy` | `business/deploy/template/DeployTemplateList` | `business:deploy:template:list` | — | `C` | 任务模板列表 |
-| `business.deploy.task` | `/operations/deploy/task` | `operations.deploy.task.menu` | `deploy-task-list` | `business.deploy` | `business/deploy/task/DeployTaskList` | `business:deploy:task:list` | — | `C` | 部署任务列表 |
+| `business.deploy.task` | `/operations/deploy/task` | `operations.deploy.task.menu` | `deploy-task-list` | `business.deploy` | `business/deploy/task/DeployTaskList` | `business:deploy:task:view` | — | `C` | 部署任务列表 |
 | `business.deploy.task.detail` | `/operations/deploy/task/:id` | `operations.deploy.task.detail` | `deploy-task-detail` | `business.deploy` | `business/deploy/task/DeployTaskDetail` | `business:deploy:task:detail` | `/operations/deploy/task` | `C` | 任务详情页，不进侧边菜单 |
 
 约束：
@@ -337,6 +337,7 @@ pending -> skipped
   - `remark`
 - 服务端必须通过 `ResolveTaskTargets` capability 固化主机快照后再落任务
 - 若传 `templateId`，服务端必须回填模板快照，并允许从模板默认组件/默认动作派生任务头信息
+- host 目标必须和动作匹配：`install / reinstall` 允许 `assigned / online`，`uninstall / upgrade` 仅允许 `online`
 - 关键错误：
   - `business.deploy.task.nameRequired`
   - `business.deploy.task.packageRequired`
@@ -344,8 +345,11 @@ pending -> skipped
   - `business.deploy.task.scopeRequired`
   - `business.deploy.task.scopeInvalid`
   - `business.deploy.task.targetRequired`
+  - `business.deploy.task.invalidTargetType`
   - `business.deploy.task.invalidExecutorType`
+  - `business.deploy.task.invalidAction`
   - `business.deploy.task.targetOutOfScope`
+  - `business.deploy.task.targetStatusMismatch`
 
 #### 7.3.5 `GET /tasks/:id`
 
@@ -358,9 +362,25 @@ pending -> skipped
 - 只允许 `draft / pending` 状态启动
 - 启动时生成 `biz_deploy_task_host` 快照记录
 - `ssh` 执行方式要求补充 `sshUser`、认证信息和 `hostFingerprint`
+- `ssh` 启动前必须先完成固定模板参数、脚本模板变量和命令缺失检查；前置配置不合法时不得把任务推进到 `running`
 - 关键错误：
+  - `business.deploy.task.templateNotFound`
+  - `business.deploy.task.templateDisabled`
+  - `business.deploy.task.packageNotFound`
   - `business.deploy.task.invalidStartState`
   - `business.deploy.task.emptyResolvedTargets`
+  - `business.deploy.task.templateParamsInvalid`
+  - `business.deploy.task.templateInvalid`
+  - `business.deploy.task.installCommandRequired`
+  - `business.deploy.task.uninstallCommandRequired`
+  - `business.deploy.task.packageSourceMissing`
+  - `business.deploy.task.sshHostKeyRequired`
+  - `business.deploy.task.sshUserRequired`
+  - `business.deploy.task.sshPasswordRequired`
+  - `business.deploy.task.sshPrivateKeyRequired`
+  - `business.deploy.task.sshHostKeyMismatch`
+  - `business.deploy.task.sshAuthFailed`
+  - `business.deploy.task.sshConnectFailed`
 
 #### 7.3.7 `POST /tasks/:id/cancel`
 
@@ -458,7 +478,7 @@ pending -> skipped
 - host 模式：先选业务域，再从该业务域下状态为 `assigned/online` 的主机中多选
 - 真实闭环脚本会先判断主机是否已安装目标组件：已安装则执行 `uninstall -> reinstall`，未安装则跳过卸载直接执行 `install`
   - group 模式：分组多选
-- **校验**：组件状态必须为 `enabled`；host 模式必须先选业务域；目标至少 1 个；固定模板任务默认切到 `ssh`
+- **校验**：组件状态必须为 `enabled`；`action` 仅允许 `install / uninstall / upgrade / reinstall`；`targetType` 仅允许 `host / group`；host 模式必须先选业务域；目标至少 1 个；主机目标状态必须与动作匹配（`install / reinstall` 允许 `assigned / online`，`uninstall / upgrade` 仅允许 `online`）；固定模板任务默认切到 `ssh`
 
 ### 8.8 部署任务详情 `DeployTaskDetail`
 

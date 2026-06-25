@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import {
   Button,
   Card,
@@ -15,7 +16,7 @@ import {
   Typography,
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
-import { IconClose, IconEye, IconPlayArrow, IconPlus, IconTool } from '@arco-design/web-react/icon';
+import { IconClose, IconDelete, IconEdit, IconEye, IconPlayArrow, IconPlus, IconTool } from '@arco-design/web-react/icon';
 import {
   AppModal,
   AppTable,
@@ -41,11 +42,13 @@ import { getBizScopeOptions, type BizScopeOptionItem } from '../../bizscope/api'
 import {
   cancelDeployTask,
   createDeployTask,
+  deleteDeployTask,
   getDeployTaskDetail,
   getDeployPackageList,
   getDeployTaskList,
   getDeployTemplateList,
   startDeployTask,
+  updateDeployTask,
   type DeployPackageRow,
   type DeployTaskPayload,
   type DeployTaskRow,
@@ -72,6 +75,7 @@ type TaskFormValues = {
 };
 
 const statusColorMap: Record<string, string> = {
+  draft: 'gray',
   pending: 'gray',
   running: 'arcoblue',
   success: 'green',
@@ -83,6 +87,7 @@ export default function DeployTaskList() {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
   const governanceRail = useGovernanceRail();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [form] = Form.useForm<TaskFormValues>();
   const [startForm] = Form.useForm<StartDeployTaskPayload>();
   const [data, setData] = useState<DeployTaskRow[]>([]);
@@ -101,6 +106,7 @@ export default function DeployTaskList() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [visible, setVisible] = useState(false);
+  const [editingTask, setEditingTask] = useState<DeployTaskRow | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [startVisible, setStartVisible] = useState(false);
   const [startSubmitting, setStartSubmitting] = useState(false);
@@ -115,9 +121,13 @@ export default function DeployTaskList() {
   const [detailVisible, setDetailVisible] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailTask, setDetailTask] = useState<DeployTaskRow | null>(null);
+  const [routeEditLoading, setRouteEditLoading] = useState(false);
+  const [routeEditHandledId, setRouteEditHandledId] = useState<number | null>(null);
 
   const canCreate = hasPerm('business:deploy:task:create');
   const canDetail = hasPerm('business:deploy:task:detail');
+  const canUpdate = hasPerm('business:deploy:task:update');
+  const canDelete = hasPerm('business:deploy:task:delete');
   const canStart = hasPerm('business:deploy:task:start');
   const canCancel = hasPerm('business:deploy:task:cancel');
 
@@ -161,6 +171,22 @@ export default function DeployTaskList() {
     }
   }, [page, pageSize, queryKeyword, queryStatus, t]);
 
+  const refreshDataSilently = useCallback(async () => {
+    try {
+      const result = await getDeployTaskList({
+        page,
+        pageSize,
+        keyword: queryKeyword,
+        status: queryStatus,
+      });
+      setData(result.items);
+      setTotal(result.total);
+      setError(null);
+    } catch {
+      // Keep the current table state stable during background polling.
+    }
+  }, [page, pageSize, queryKeyword, queryStatus]);
+
   const loadOptions = useCallback(async () => {
     const [packageResp, templateResp, scopeResp, groupResp] = await Promise.all([
       getDeployPackageList({ page: 1, pageSize: 200, status: 'enabled' }),
@@ -196,6 +222,16 @@ export default function DeployTaskList() {
       void Promise.all([loadData(), loadOptions()]);
     });
   }, [loadData, loadOptions]);
+
+  useEffect(() => {
+    if (!data.some((item) => item.status === 'pending' || item.status === 'running')) {
+      return;
+    }
+    const timer = globalThis.setInterval(() => {
+      void refreshDataSilently();
+    }, 5000);
+    return () => globalThis.clearInterval(timer);
+  }, [data, refreshDataSilently]);
 
   const heroStats = useMemo(
     () => [
@@ -271,7 +307,29 @@ export default function DeployTaskList() {
     return {};
   }, [selectedRuntimeTemplateEntry, selectedTemplate, sourceKind]);
 
+  const clearTaskEditIntent = useCallback(() => {
+    if (!searchParams.has('editId')) {
+      return;
+    }
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('editId');
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  const closeTaskModal = useCallback(() => {
+    setVisible(false);
+    setEditingTask(null);
+    setRouteEditHandledId(null);
+    setSelectedBusinessScopeId(undefined);
+    setSelectedPackage(null);
+    setSelectedTemplate(null);
+    setHosts([]);
+    form.resetFields();
+    clearTaskEditIntent();
+  }, [clearTaskEditIntent, form]);
+
   const openCreate = async () => {
+    setEditingTask(null);
     setTargetType('host');
     setTaskAction('install');
     setSourceKind('template');
@@ -301,6 +359,103 @@ export default function DeployTaskList() {
     setVisible(true);
   };
 
+  const openEdit = useCallback(async (row: DeployTaskRow) => {
+    setEditingTask(row);
+    setTargetType(row.targetType || 'host');
+    setTaskAction((row.action as TaskFormValues['action']) || 'install');
+    const nextSourceKind = row.templateId ? 'template' : 'package';
+    setSourceKind(nextSourceKind);
+    form.resetFields();
+    const options = await loadOptions();
+    const nextTemplate = row.templateId
+      ? options.templates.find((item) => item.id === row.templateId) || null
+      : null;
+    const nextPackage = row.packageId
+      ? options.packages.find((item) => item.id === row.packageId) || null
+      : null;
+    setSelectedTemplate(nextTemplate);
+    setSelectedPackage(nextSourceKind === 'package' ? nextPackage : null);
+    setSelectedBusinessScopeId(row.targetType === 'host' ? row.businessScopeId || undefined : undefined);
+    if (row.targetType === 'host') {
+      await loadScopedHosts(row.businessScopeId || undefined);
+    } else {
+      setHosts([]);
+    }
+    form.setFieldsValue({
+      name: row.name,
+      sourceKind: nextSourceKind,
+      templateId: nextTemplate?.id,
+      packageId: nextSourceKind === 'package' ? nextPackage?.id : undefined,
+      action: (row.action as TaskFormValues['action']) || 'install',
+      targetType: row.targetType,
+      businessScopeId: row.targetType === 'host' ? row.businessScopeId || undefined : undefined,
+      targetIds: row.targetIds || [],
+      executorType: row.executorType,
+      templateParams: buildInitialTaskTemplateParams((row.templateParams as Record<string, unknown>) || {}),
+      remark: row.remark || '',
+    });
+    setVisible(true);
+  }, [form, loadOptions, loadScopedHosts]);
+
+  useEffect(() => {
+    const editId = Number(searchParams.get('editId') || 0);
+    if (
+      !editId ||
+      Number.isNaN(editId) ||
+      !canUpdate ||
+      visible ||
+      routeEditLoading ||
+      routeEditHandledId === editId
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    const timer = globalThis.setTimeout(() => {
+      setRouteEditLoading(true);
+      const existingRow = data.find((item) => item.id === editId);
+      const detailPromise = existingRow ? Promise.resolve(existingRow) : getDeployTaskDetail(editId);
+      detailPromise
+        .then(async (row) => {
+          if (cancelled) {
+            return;
+          }
+          await openEdit(row);
+          if (cancelled) {
+            return;
+          }
+          setRouteEditHandledId(editId);
+        })
+        .catch(() => {
+          if (cancelled) {
+            return;
+          }
+          Message.error(t('common.loadFailed'));
+          clearTaskEditIntent();
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setRouteEditLoading(false);
+          }
+        });
+    }, 0);
+
+    return () => {
+      cancelled = true;
+      globalThis.clearTimeout(timer);
+    };
+  }, [
+    canUpdate,
+    clearTaskEditIntent,
+    data,
+    openEdit,
+    routeEditHandledId,
+    routeEditLoading,
+    searchParams,
+    t,
+    visible,
+  ]);
+
   const handleSubmit = async () => {
     const values = await form.validate();
     const payload: DeployTaskPayload = {
@@ -322,17 +477,24 @@ export default function DeployTaskList() {
         action: values.action || 'install',
         ...buildTaskTemplateParams(values.templateParams, runtimeParameterSchema),
       };
+    } else if (editingTask) {
+      payload.templateParams = {};
     }
     setSubmitting(true);
     try {
-      await createDeployTask(payload);
-      Message.success(t('common.createSuccess'));
-      setVisible(false);
-      setSelectedBusinessScopeId(undefined);
-      setSelectedPackage(null);
-      setSelectedTemplate(null);
-      setHosts([]);
-      form.resetFields();
+      if (editingTask) {
+        if (values.sourceKind === 'template') {
+          payload.packageId = undefined;
+        } else {
+          payload.templateId = 0;
+        }
+        await updateDeployTask(editingTask.id, payload);
+        Message.success(t('common.updateSuccess'));
+      } else {
+        await createDeployTask(payload);
+        Message.success(t('common.createSuccess'));
+      }
+      closeTaskModal();
       await loadData();
     } finally {
       setSubmitting(false);
@@ -375,6 +537,13 @@ export default function DeployTaskList() {
   const handleCancel = async (id: number) => {
     await cancelDeployTask(id);
     Message.success(t('business.deploy.task.cancelSuccess'));
+    await loadData();
+  };
+
+  const handleDelete = async (id: number) => {
+    await deleteDeployTask(id);
+    Message.success(t('common.deleteSuccess'));
+    setSelectedRowKeys((current) => current.filter((rowKey) => Number(rowKey) !== id));
     await loadData();
   };
 
@@ -467,7 +636,7 @@ export default function DeployTaskList() {
     {
       title: t('common.action'),
       fixed: 'right',
-      width: 260,
+      width: 340,
       render: (_: unknown, row) => (
         <Space className="system-list__actions">
           {canDetail && (
@@ -482,7 +651,12 @@ export default function DeployTaskList() {
               {t('common.detail')}
             </Button>
           )}
-          {canStart && row.status === 'pending' && (
+          {canUpdate && ['draft', 'pending'].includes(row.status) && (
+            <Button type="text" size="small" icon={<IconEdit />} onClick={() => void openEdit(row)}>
+              {t('common.edit')}
+            </Button>
+          )}
+          {canStart && ['draft', 'pending'].includes(row.status) && (
             row.executorType === 'ssh' ? (
               <Button type="text" size="small" icon={<IconPlayArrow />} onClick={() => openStart(row)}>
                 {t('business.deploy.task.start')}
@@ -496,6 +670,13 @@ export default function DeployTaskList() {
           {canCancel && ['pending', 'running'].includes(row.status) && (
             <Popconfirm title={t('business.deploy.task.cancelConfirm')} onOk={() => handleCancel(row.id)}>
               <Button type="text" size="small" status="danger" icon={<IconClose />}>{t('business.deploy.task.cancel')}</Button>
+            </Popconfirm>
+          )}
+          {canDelete && ['draft', 'pending'].includes(row.status) && (
+            <Popconfirm title={t('business.deploy.task.deleteConfirm')} onOk={() => handleDelete(row.id)}>
+              <Button type="text" size="small" status="danger" icon={<IconDelete />}>
+                {t('common.delete')}
+              </Button>
             </Popconfirm>
           )}
         </Space>
@@ -533,7 +714,7 @@ export default function DeployTaskList() {
             <Form.Item label={t('common.keyword')}><Input value={keyword} onChange={setKeyword} allowClear /></Form.Item>
             <Form.Item label={t('business.deploy.task.status')}>
               <Select value={status} onChange={setStatus} allowClear style={{ width: 150 }}>
-                {['pending', 'running', 'success', 'failed', 'canceled'].map((item) => (
+                {['draft', 'pending', 'running', 'success', 'failed', 'canceled'].map((item) => (
                   <Select.Option key={item} value={item}>{t(`business.deploy.task.status.${item}`)}</Select.Option>
                 ))}
               </Select>
@@ -640,12 +821,12 @@ export default function DeployTaskList() {
                 current: page,
                 pageSize,
                 total,
-                onChange: (nextPage) => {
+                onChange: (nextPage, nextPageSize) => {
                   setPage(nextPage || 1);
-                },
-                onPageSizeChange: (nextPageSize) => {
-                  setPageSize(nextPageSize || pageSize);
-                  setPage(1);
+                  if (nextPageSize && nextPageSize !== pageSize) {
+                    setPageSize(nextPageSize);
+                    setPage(1);
+                  }
                 },
                 pageSizeChangeResetCurrent: true,
               })}
@@ -811,17 +992,10 @@ export default function DeployTaskList() {
         ) : null}
       </AppModal>
       <AppModal
-        title={t('business.deploy.task.createTitle')}
+        title={editingTask ? t('business.deploy.task.editTitle') : t('business.deploy.task.createTitle')}
         visible={visible}
         footer={null}
-        onCancel={() => {
-          setVisible(false);
-          setSelectedBusinessScopeId(undefined);
-          setSelectedPackage(null);
-          setSelectedTemplate(null);
-          setHosts([]);
-          form.resetFields();
-        }}
+        onCancel={closeTaskModal}
       >
         <Form form={form} layout="vertical">
           <Form.Item field="name" label={t('business.deploy.task.name')} rules={[{ required: true }]}>
@@ -838,6 +1012,8 @@ export default function DeployTaskList() {
                 form.setFieldValue('packageId', undefined);
                 form.setFieldValue('templateParams', {});
                 form.setFieldValue('executorType', 'manual');
+                form.setFieldValue('action', 'install');
+                setTaskAction('install');
               }}
             >
               <Select.Option value="template">{t('business.deploy.task.sourceTemplate')}</Select.Option>
@@ -1005,7 +1181,7 @@ export default function DeployTaskList() {
           <Form.Item field="remark" label={t('business.deploy.task.remark')}>
             <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
           </Form.Item>
-          <SubmitBar loading={submitting} onCancel={() => setVisible(false)} onSubmit={handleSubmit} />
+          <SubmitBar loading={submitting} onCancel={closeTaskModal} onSubmit={handleSubmit} />
         </Form>
       </AppModal>
       <AppModal

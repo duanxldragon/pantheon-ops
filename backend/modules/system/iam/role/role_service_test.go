@@ -129,6 +129,34 @@ func TestRoleService_MigrateSeedsAdminRoleAndBinding(t *testing.T) {
 	}
 }
 
+func TestRoleService_BootstrapSeedsAdminRoleAndBinding(t *testing.T) {
+	db := setupRoleTestDB(t)
+	if err := db.Exec("INSERT INTO system_user (id, username) VALUES (1, 'admin')").Error; err != nil {
+		t.Fatalf("seed admin user: %v", err)
+	}
+
+	s := NewRoleService(db)
+	if err := s.Bootstrap(); err != nil {
+		t.Fatalf("bootstrap: %v", err)
+	}
+
+	var adminRole SystemRole
+	if err := db.Where("role_key = ?", "admin").First(&adminRole).Error; err != nil {
+		t.Fatalf("load admin role: %v", err)
+	}
+	if adminRole.Status != 1 {
+		t.Fatalf("expected admin role status 1, got %d", adminRole.Status)
+	}
+
+	var bindingCount int64
+	if err := db.Table("system_user_role").Where("user_id = ? AND role_id = ?", 1, adminRole.ID).Count(&bindingCount).Error; err != nil {
+		t.Fatalf("count admin binding: %v", err)
+	}
+	if bindingCount != 1 {
+		t.Fatalf("expected admin binding count 1, got %d", bindingCount)
+	}
+}
+
 func TestRoleService_DeleteRole(t *testing.T) {
 	db := setupRoleTestDB(t)
 	s := NewRoleService(db)

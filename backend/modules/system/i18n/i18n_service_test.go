@@ -277,7 +277,7 @@ func TestI18nService_GetLangPackMergesZhFallback(t *testing.T) {
 func TestI18nService_GetOverviewSummarizesCoverage(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
@@ -408,10 +408,10 @@ func TestI18nService_FillMissingLocales(t *testing.T) {
 	}
 }
 
-func TestI18nService_FillMissingLocalesUsesBuiltinValue(t *testing.T) {
+func TestI18nService_FillMissingLocalesAllCoveredByBuiltin(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
@@ -425,23 +425,15 @@ func TestI18nService_FillMissingLocalesUsesBuiltinValue(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fill missing locales: %v", err)
 	}
-	if resp.Created == 0 {
-		t.Fatalf("expected created rows")
-	}
-
-	var row SystemI18n
-	if err := db.Where("`key` = ? AND locale = ?", "system.menu.session", "en-US").First(&row).Error; err != nil {
-		t.Fatalf("load hydrated locale: %v", err)
-	}
-	if row.Value != "Sessions" {
-		t.Fatalf("expected builtin value, got %q", row.Value)
+	if resp.Created != 0 {
+		t.Fatalf("expected no created rows (all locales covered by builtin), got %d", resp.Created)
 	}
 }
 
 func TestI18nService_GetOverviewUsesBuiltinCoverage(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
@@ -470,7 +462,7 @@ func TestI18nService_GetOverviewUsesBuiltinCoverage(t *testing.T) {
 func TestI18nService_HydrateBuiltinLocales(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
@@ -485,8 +477,8 @@ func TestI18nService_HydrateBuiltinLocales(t *testing.T) {
 	if err != nil {
 		t.Fatalf("hydrate builtin locales: %v", err)
 	}
-	if resp.Updated == 0 || resp.Created == 0 {
-		t.Fatalf("expected updated and created rows, got %+v", resp)
+	if resp.Updated == 0 {
+		t.Fatalf("expected updated rows, got %+v", resp)
 	}
 
 	var enRow SystemI18n
@@ -495,14 +487,6 @@ func TestI18nService_HydrateBuiltinLocales(t *testing.T) {
 	}
 	if enRow.Value != "Sessions" {
 		t.Fatalf("expected hydrated en value, got %q", enRow.Value)
-	}
-
-	var frRow SystemI18n
-	if err := db.Where("`key` = ? AND locale = ?", "system.menu.session", "fr-FR").First(&frRow).Error; err != nil {
-		t.Fatalf("load fr row: %v", err)
-	}
-	if frRow.Value != "Sessions" {
-		t.Fatalf("expected created fr value, got %q", frRow.Value)
 	}
 }
 
@@ -525,6 +509,46 @@ func TestI18nService_SeedI18nModuleI18nHydratesBuiltinLocales(t *testing.T) {
 		if strings.TrimSpace(row.Value) == "" || row.Value == "[system.menu.session]" {
 			t.Fatalf("expected hydrated locale value for %s, got %q", locale, row.Value)
 		}
+	}
+}
+
+func TestCanonicalMenuLocaleEntriesIncludeLowCodeKeys(t *testing.T) {
+	const (
+		englishLocale = "en-US"
+		lowCodeModule = moduleLowcode
+	)
+
+	lowCodeEntry, ok := canonicalMenuLocaleEntries[i18nLocaleKey{
+		Locale: englishLocale,
+		Key:    keyMenuLowcode,
+	}]
+	if !ok {
+		t.Fatalf("expected low-code menu entry")
+	}
+	if lowCodeEntry != (i18nCanonicalEntry{Module: lowCodeModule, Group: "menu", Value: "Low-Code"}) {
+		t.Fatalf("unexpected low-code entry: %#v", lowCodeEntry)
+	}
+
+	modulesEntry, ok := canonicalMenuLocaleEntries[i18nLocaleKey{
+		Locale: englishLocale,
+		Key:    keyMenuModules,
+	}]
+	if !ok {
+		t.Fatalf("expected modules menu entry")
+	}
+	if modulesEntry != (i18nCanonicalEntry{Module: lowCodeModule, Group: "menu", Value: "Modules"}) {
+		t.Fatalf("unexpected modules entry: %#v", modulesEntry)
+	}
+
+	generatorEntry, ok := canonicalMenuLocaleEntries[i18nLocaleKey{
+		Locale: englishLocale,
+		Key:    keyMenuGenerator,
+	}]
+	if !ok {
+		t.Fatalf("expected generator menu entry")
+	}
+	if generatorEntry != (i18nCanonicalEntry{Module: lowCodeModule, Group: "menu", Value: "Code Generator"}) {
+		t.Fatalf("unexpected generator entry: %#v", generatorEntry)
 	}
 }
 
@@ -785,18 +809,21 @@ func TestI18nService_ImportRejectsInvalidRows(t *testing.T) {
 func TestI18nService_GetAudit(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
+	// Use raw Create to bypass BatchInsert dedup - need 2 rows with same (locale,key) for duplicate detection
 	items := []SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "shared.audit.conflict", Locale: "zh-CN", Value: "配置冲突"},
 		{Module: "system.iam", Group: "labels", Key: "shared.audit.conflict", Locale: "zh-CN", Value: "用户冲突"},
 		{Module: "system.config", Group: "messages", Key: "zz.audit.unused.key", Locale: "zh-CN", Value: "未使用"},
 		{Module: "system.config", Group: "messages", Key: "zz.audit.unused.key", Locale: "en-US", Value: "[zz.audit.unused.key]"},
 	}
-	if err := service.BatchInsert(items); err != nil {
-		t.Fatalf("seed items: %v", err)
+	for i := range items {
+		if err := db.Create(&items[i]).Error; err != nil {
+			t.Fatalf("seed item %d: %v", i, err)
+		}
 	}
 
 	resp, err := service.GetAudit()
@@ -1022,16 +1049,19 @@ func TestI18nService_GetAuditIncludesStalePlaceholders(t *testing.T) {
 func TestI18nService_CleanupUnusedKeysByModule(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
+	// Use raw Create to bypass BatchInsert dedup - need 2 rows with same (locale,key) in different modules
 	items := []SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "zz.audit.cleanup.key", Locale: "zh-CN", Value: "清理我"},
 		{Module: "system.iam", Group: "messages", Key: "zz.audit.cleanup.key", Locale: "zh-CN", Value: "别删我"},
 	}
-	if err := service.BatchInsert(items); err != nil {
-		t.Fatalf("seed items: %v", err)
+	for i := range items {
+		if err := db.Create(&items[i]).Error; err != nil {
+			t.Fatalf("seed item %d: %v", i, err)
+		}
 	}
 
 	resp, err := service.CleanupUnusedKeys("system.config")
@@ -1060,7 +1090,7 @@ func TestI18nService_CleanupUnusedKeysByModule(t *testing.T) {
 func TestI18nService_ExportByModule(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 

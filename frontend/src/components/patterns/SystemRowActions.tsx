@@ -37,6 +37,7 @@ const SystemRowActions: React.FC<SystemRowActionsProps> = ({ actions, className 
 
         const button = (
           <Button
+            key={action.key}
             type="text"
             size="small"
             icon={action.icon}
@@ -49,7 +50,7 @@ const SystemRowActions: React.FC<SystemRowActionsProps> = ({ actions, className 
         );
 
         if (!action.confirm) {
-          return React.cloneElement(button, { key: action.key });
+          return button;
         }
 
         return (

@@ -48,6 +48,23 @@ function createFixture(root) {
     baseCommit: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
     sourceRepo: 'pantheon-base',
     consumerMode: 'foundation-release-consumer',
+    baseGoModule: 'pantheon-base',
+    sharedPaths: {
+      backend: ['backend/pkg'],
+    },
+  });
+  writeJson(path.join(opsRoot, 'foundation-release.lock.json'), {
+    schemaVersion: 1,
+    baseRepo: '../pantheon-base',
+    releaseLine: 'release/0.7',
+    releaseVersion: 'base-v0.7.9',
+    baseCommit: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    consumerMode: 'foundation-release-consumer',
+    releaseArtifact: {
+      githubRepo: 'duanxldragon/pantheon-base',
+      assetName: 'foundation-release-base-v0.7.9.tgz',
+      localPath: '.foundation/releases/base-v0.7.9',
+    },
     sharedPaths: {
       backend: ['backend/pkg'],
     },
@@ -58,13 +75,13 @@ function createFixture(root) {
     frontend: [],
     docs: [],
   });
-  writeText(path.join(opsRoot, 'go.mod'), 'module pantheon-ops\n\ngo 1.24.0\n');
+  writeText(path.join(opsRoot, 'go.mod'), 'module pantheon-ops/backend\n\ngo 1.24.0\n');
   writeText(
     path.join(bundlePath, 'shared-backend', 'backend', 'pkg', 'service.go'),
     [
       'package pkg',
       '',
-      'import "pantheon-platform/backend/internal/middleware"',
+      'import "pantheon-base/backend/internal/middleware"',
       '',
       'func Use() {',
       '\t_ = middleware.WithOperationLog',
@@ -161,6 +178,10 @@ test('apply mode updates inheritance anchors in both Chinese and English docs', 
     assert.match(enDoc, /Base release line: `release\/0\.8`/);
     assert.match(enDoc, /Base version: `base-v0\.8\.0`/);
     assert.match(enDoc, /Inheritance mode: `foundation-release-consumer`/);
+    assert.equal(
+      fs.existsSync(path.join(opsRoot, '.foundation', 'releases', 'base-v0.8.0', 'manifest.json')),
+      true,
+    );
   });
 });
 
@@ -176,6 +197,7 @@ test('apply mode copies shared backend files from the bundle into ops', () => {
         '--bundle',
         bundleRoot,
         '--apply-shared-backend',
+        '--skip-go-validation',
       ],
       repoRoot,
     );
@@ -223,6 +245,7 @@ test('apply mode preserves backend and frontend overlay files while updating sha
         bundleRoot,
         '--apply-shared-backend',
         '--apply-shared-frontend',
+        '--skip-go-validation',
       ],
       repoRoot,
     );
@@ -240,6 +263,52 @@ test('apply mode preserves backend and frontend overlay files while updating sha
       fs.readFileSync(path.join(opsRoot, 'frontend', 'src', 'core', 'shell.ts'), 'utf8'),
       'export const shell = "base";\n',
     );
+  });
+});
+
+test('apply mode relocates shared frontend system module paths into the ops structure', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'modules', 'system', 'user', 'index.ts'),
+      [
+        "import { loadUser } from './api';",
+        '',
+        "export const userRoute = { componentKey: 'system/user/list' };",
+        'export { loadUser };',
+        '',
+      ].join('\n'),
+    );
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'modules', 'system', 'user', 'api.ts'),
+      'export const loadUser = () => null;\n',
+    );
+
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--apply-shared-frontend',
+      ],
+      repoRoot,
+    );
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+    assert.equal(
+      fs.existsSync(path.join(opsRoot, 'frontend', 'src', 'modules', 'system', 'user', 'index.ts')),
+      false,
+    );
+    const relocatedSource = fs.readFileSync(
+      path.join(opsRoot, 'frontend', 'src', 'modules', 'system', 'iam', 'user', 'index.ts'),
+      'utf8',
+    );
+    assert.match(relocatedSource, /componentKey: 'system\/iam\/user\/list'/);
+    assert.match(relocatedSource, /from '\.\/api'/);
   });
 });
 
@@ -282,6 +351,7 @@ test('apply mode merges shared i18n updates without dropping ops business locale
         '--bundle',
         bundleRoot,
         '--apply-shared-backend',
+        '--skip-go-validation',
       ],
       repoRoot,
     );
@@ -296,5 +366,100 @@ test('apply mode merges shared i18n updates without dropping ops business locale
     assert.equal(locales['en-US']['app.name'], 'Pantheon Base');
     assert.equal(locales['en-US']['business.cmdb.host.title'], 'Host Inventory');
     assert.equal(locales['zh-CN']['business.shared'], 'base should not win');
+  });
+});
+
+test('--dry-run mode prints "DRY RUN" and shows no changes when files are already aligned', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    // Write an identical file to ops so dry-run finds no diff
+    writeText(
+      path.join(opsRoot, 'backend', 'pkg', 'service.go'),
+      [
+        'package pkg',
+        '',
+        'import "pantheon-ops/backend/internal/middleware"',
+        '',
+        'func Use() {',
+        '\t_ = middleware.WithOperationLog',
+        '}',
+        '',
+      ].join('\n'),
+    );
+
+    const result = runScript(
+      ['--ops-root', opsRoot, '--manifest', manifestPath, '--bundle', bundleRoot, '--dry-run'],
+      repoRoot,
+    );
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+    assert.match(result.stdout, /DRY RUN/);
+    assert.match(result.stdout, /No changes needed/);
+  });
+});
+
+test('--dry-run mode lists files that would change with CREATE or REWRITE actions', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    // ops has a stale file — dry-run should report it as REWRITE
+    writeText(
+      path.join(opsRoot, 'backend', 'pkg', 'service.go'),
+      '// stale content\n',
+    );
+
+    const result = runScript(
+      ['--ops-root', opsRoot, '--manifest', manifestPath, '--bundle', bundleRoot, '--dry-run'],
+      repoRoot,
+    );
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+    assert.match(result.stdout, /DRY RUN/);
+    assert.match(result.stdout, /REWRITE/);
+    assert.match(result.stdout, /pkg\/service\.go/);
+  });
+});
+
+test('apply mode writes lockedAt and lockedBy to foundation-release.lock.json', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--update-inheritance-docs',
+      ],
+      repoRoot,
+    );
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+
+    const lock = JSON.parse(
+      fs.readFileSync(path.join(opsRoot, 'foundation-release.lock.json'), 'utf8'),
+    );
+    assert.ok(lock.lockedAt, 'lockedAt should be set');
+    assert.ok(lock.lockedBy, 'lockedBy should be set');
+    assert.match(lock.lockedAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+  });
+});
+
+test('--dry-run does not modify any files on disk', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    // Touch the lock file timestamp before dry-run
+    const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
+    const mtimeBefore = fs.statSync(lockPath).mtimeMs;
+
+    runScript(
+      ['--ops-root', opsRoot, '--manifest', manifestPath, '--bundle', bundleRoot, '--dry-run'],
+      repoRoot,
+    );
+
+    const mtimeAfter = fs.statSync(lockPath).mtimeMs;
+    assert.equal(mtimeAfter, mtimeBefore, 'foundation-release.lock.json should not be modified by dry-run');
   });
 });

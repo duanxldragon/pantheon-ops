@@ -2,9 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type APIRequestContext } from '@playwright/test';
-import { ModuleExporter } from '../../../../src/modules/system/generator/exporter';
-import type { GenerateAndRegisterResp, GeneratorTablePreview } from '../../../../src/modules/system/generator/api';
-import type { ModuleField, ModuleSchema, PageActionKey } from '../../../../src/modules/system/generator/schema';
+import { ModuleExporter } from '../../../../src/modules/lowcode/generator/exporter';
+import type { GenerateAndRegisterResp, GeneratorTablePreview } from '../../../../src/modules/lowcode/generator/api';
+import type { ModuleField, ModuleSchema, PageActionKey } from '../../../../src/modules/lowcode/generator/schema';
 import {
   buildAuditActionKey,
   buildFieldHelpTextKey,
@@ -16,7 +16,7 @@ import {
   generateDefaultMenus,
   generateDefaultPermissions,
   inferModelName,
-} from '../../../../src/modules/system/generator/schema';
+} from '../../../../src/modules/lowcode/generator/schema';
 import {
   adminCredentials,
   apiBaseUrl,

@@ -15,7 +15,7 @@ func TestValidateRequiredProductionSecret(t *testing.T) {
 		t.Fatal("expected fallback secret to fail in production")
 	}
 
-	t.Setenv("TEST_SECRET", "real-secret")
+	t.Setenv("TEST_SECRET", "real-secret-that-is-at-least-32-bytes-long!")
 	if err := ValidateRequiredProductionSecret("TEST_SECRET", "fallback"); err != nil {
 		t.Fatalf("expected configured secret to pass: %v", err)
 	}

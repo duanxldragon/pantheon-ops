@@ -45,7 +45,7 @@ func requireTemplateParamsForAction(action string, templateParams map[string]any
 	}
 	for _, key := range keys {
 		if strings.TrimSpace(anyToString(templateParams[key])) == "" {
-			return errors.New("deploytask.template_params_invalid")
+			return errors.New(errDeployTaskTemplateParamsInvalid)
 		}
 	}
 	return nil
@@ -64,7 +64,7 @@ func renderFixedTemplateScript(pkg DeployPackage, task DeployTask) (string, erro
 	case TemplateCodeHarborOffline:
 		return renderHarborOfflineScript(pkg, task)
 	default:
-		return "", errors.New("deploytask.template_invalid")
+		return "", errors.New(errDeployTaskTemplateInvalid)
 	}
 }
 
@@ -101,7 +101,7 @@ func renderMySQLSystemdScript(pkg DeployPackage, task DeployTask) (string, error
 	port := templateParamString(params, "port", "3306")
 	rootPassword := templateParamString(params, "rootPassword", "")
 	if action != TaskActionUninstall && strings.TrimSpace(rootPassword) == "" {
-		return "", errors.New("deploytask.template_params_invalid")
+		return "", errors.New(errDeployTaskTemplateParamsInvalid)
 	}
 	if action == TaskActionUninstall {
 		return fmt.Sprintf(`set -e
@@ -293,7 +293,7 @@ func renderMinIOSystemdScript(pkg DeployPackage, task DeployTask) (string, error
 	rootUser := templateParamString(params, "rootUser", "minioadmin")
 	rootPassword := templateParamString(params, "rootPassword", "")
 	if action != TaskActionUninstall && strings.TrimSpace(rootPassword) == "" {
-		return "", errors.New("deploytask.template_params_invalid")
+		return "", errors.New(errDeployTaskTemplateParamsInvalid)
 	}
 	if action == TaskActionUninstall {
 		return fmt.Sprintf(`set -e
@@ -370,7 +370,7 @@ func renderHarborOfflineScript(pkg DeployPackage, task DeployTask) (string, erro
 	httpPort := templateParamString(params, "httpPort", "8088")
 	adminPassword := templateParamString(params, "adminPassword", "")
 	if action != TaskActionUninstall && (hostname == "" || adminPassword == "") {
-		return "", errors.New("deploytask.template_params_invalid")
+		return "", errors.New(errDeployTaskTemplateParamsInvalid)
 	}
 	if action == TaskActionUninstall {
 		return fmt.Sprintf(`set -e
@@ -425,19 +425,19 @@ func buildSourceFetchScript(pkg DeployPackage, fallbackURL string, targetDirExpr
 		if fallbackURL != "" {
 			artifactName = filepath.Base(fallbackURL)
 		} else {
-			return "", "", errors.New("deploypackage.source_missing")
+			return "", "", errors.New(errDeployTaskPackageSourceMissing)
 		}
 	}
 	if strings.TrimSpace(pkg.SourceObjectKey) != "" || strings.TrimSpace(pkg.SourceURL) != "" {
 		if strings.TrimSpace(pkg.SourceURL) == "" {
-			return "", "", errors.New("deploypackage.source_missing")
+			return "", "", errors.New(errDeployTaskPackageSourceMissing)
 		}
 		return artifactName, fmt.Sprintf(`SOURCE_URL="%s"
 curl --connect-timeout 15 --max-time 300 --retry 2 --retry-delay 2 -fsSL "$SOURCE_URL" -o %s/%s
 `, pkg.SourceURL, targetDirExpr, artifactName), nil
 	}
 	if fallbackURL == "" {
-		return "", "", errors.New("deploypackage.source_missing")
+		return "", "", errors.New(errDeployTaskPackageSourceMissing)
 	}
 	return artifactName, fmt.Sprintf(`curl --connect-timeout 15 --max-time 300 --retry 2 --retry-delay 2 -fsSL "%s" -o %s/%s
 `, fallbackURL, targetDirExpr, artifactName), nil

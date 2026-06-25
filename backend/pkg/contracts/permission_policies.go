@@ -117,6 +117,8 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 	case "business:bizscope:view":
 		return []PermissionAPIPolicy{
 			{Path: "/api/v1/business/bizscope/:id", Method: "GET"},
+			{Path: "/api/v1/business/bizscope/:id/hosts", Method: "GET"},
+			{Path: "/api/v1/business/bizscope/:id/available-hosts", Method: "GET"},
 		}
 	case "business:bizscope:create":
 		return []PermissionAPIPolicy{
@@ -125,6 +127,8 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 	case "business:bizscope:update":
 		return []PermissionAPIPolicy{
 			{Path: "/api/v1/business/bizscope/:id", Method: "PUT"},
+			{Path: "/api/v1/business/bizscope/:id/hosts/bind", Method: "POST"},
+			{Path: "/api/v1/business/bizscope/:id/hosts/:hostId", Method: "DELETE"},
 		}
 	case "business:bizscope:delete":
 		return []PermissionAPIPolicy{
@@ -178,6 +182,10 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 	case "business:deploy:task:update":
 		return []PermissionAPIPolicy{
 			{Path: "/api/v1/business/deploy/tasks/:id", Method: "PUT"},
+		}
+	case "business:deploy:task:delete":
+		return []PermissionAPIPolicy{
+			{Path: "/api/v1/business/deploy/tasks/:id", Method: "DELETE"},
 		}
 	case "business:deploy:task:start":
 		return []PermissionAPIPolicy{

@@ -87,6 +87,37 @@ function extractCookieValue(setCookieHeader: string | undefined, name: string) {
   return match?.[1] ?? null;
 }
 
+function collectSetCookieHeader(response: Awaited<ReturnType<APIRequestContext['post']>>) {
+  const headerValues = response
+    .headersArray()
+    .filter((header) => header.name.toLowerCase() === 'set-cookie')
+    .map((header) => header.value);
+  if (headerValues.length > 0) {
+    return headerValues.join(', ');
+  }
+  return response.headers()['set-cookie'];
+}
+
+function attachCookieTokens(
+  response: Awaited<ReturnType<APIRequestContext['post']>>,
+  payload: ApiEnvelope<AuthPayload>,
+): ApiEnvelope<AuthPayload> {
+  const setCookieHeader = collectSetCookieHeader(response);
+  const accessToken = payload.data?.accessToken ?? extractCookieValue(setCookieHeader, 'pantheon_access_token');
+  const refreshToken = payload.data?.refreshToken ?? extractCookieValue(setCookieHeader, 'pantheon_refresh_token');
+  if (!accessToken || !refreshToken) {
+    return payload;
+  }
+  return {
+    ...payload,
+    data: {
+      ...payload.data,
+      accessToken,
+      refreshToken,
+    },
+  };
+}
+
 type MysqlConfig = {
   host: string;
   port: number;
@@ -286,7 +317,7 @@ async function resolveLoginResponse(
   credentials: LoginCredentials,
 ) {
   expect(response.ok()).toBeTruthy();
-  const payload = (await response.json()) as ApiEnvelope<AuthPayload>;
+  const payload = attachCookieTokens(response, (await response.json()) as ApiEnvelope<AuthPayload>);
   expect(payload.code).toBe(200);
   if (payload.data?.accessToken && payload.data?.refreshToken) {
     return { response, payload };
@@ -306,7 +337,7 @@ async function resolveLoginResponse(
     },
   });
   expect(verifyResponse.ok()).toBeTruthy();
-  const verifyPayload = (await verifyResponse.json()) as ApiEnvelope<AuthPayload>;
+  const verifyPayload = attachCookieTokens(verifyResponse, (await verifyResponse.json()) as ApiEnvelope<AuthPayload>);
   expect(verifyPayload.code).toBe(200);
   expect(verifyPayload.data?.accessToken).toBeTruthy();
   expect(verifyPayload.data?.refreshToken).toBeTruthy();
@@ -323,7 +354,7 @@ export async function loginByApi(
   });
   const { response, payload } = await resolveLoginResponse(request, initialResponse, credentials);
   const csrfToken =
-    extractCookieValue(response.headers()['set-cookie'], 'pantheon_csrf_token') ??
+    extractCookieValue(collectSetCookieHeader(response), 'pantheon_csrf_token') ??
     `pantheon-smoke-csrf-${Date.now()}`;
   return {
     accessToken: payload.data.accessToken as string,

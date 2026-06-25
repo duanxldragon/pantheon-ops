@@ -93,6 +93,16 @@
   gap: 10px;
   width: 100%;
   min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .app-shell__menu-entry-copy {
@@ -1312,11 +1322,29 @@
   width: 18px;
   height: 18px;
   margin-right: -4px;
-  border-radius: 8px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0;
+  background: transparent;
   color: var(--text-tertiary);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  appearance: none;
+  -webkit-appearance: none;
   transition:
+    opacity 0.18s ease,
+    visibility 0.18s ease,
     background 0.18s ease,
     color 0.18s ease;
+}
+
+.app-shell__tab:hover .app-shell__tab-close,
+.app-shell__tab:focus-visible .app-shell__tab-close,
+.app-shell__tab:focus-within .app-shell__tab-close {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .app-shell__tab-close:hover {
@@ -1807,6 +1835,14 @@
 @media (max-width: 768px) {
   .app-shell__header {
     padding: 12px 16px 10px;
+  }
+
+  .app-shell__notice-panel {
+    width: min(336px, calc(100vw - 48px));
+  }
+
+  .app-shell__preference-panel {
+    width: min(336px, calc(100vw - 48px));
   }
 
   .app-shell__header-brand-text,

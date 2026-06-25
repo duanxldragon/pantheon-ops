@@ -27,11 +27,6 @@ import type { TFunction } from 'i18next';
 import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
 import { useTranslation } from 'react-i18next';
 import { showImportResult } from '../../../api/importExport';
-import {
-  isNetworkRequestError,
-  isServerRequestError,
-  isTimeoutRequestError,
-} from '../../../api/request';
 import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
@@ -52,10 +47,8 @@ import {
   ListHeaderActions,
   PageContainer,
   PageEmpty,
-  PageError,
   PageLoading,
-  PageNetworkError,
-  PageServerError,
+  PageRequestError,
   PermissionAction,
   TABLE_ACTION_COLUMN_WIDTH,
   TABLE_COLUMN_WIDTH,
@@ -66,7 +59,7 @@ import {
 import { usePermission } from '../../../hooks/usePermission';
 import { SUPPORTED_LOCALES, reloadI18nResources } from '../../../i18n';
 import { isRequestError } from '../../../api/request';
-import { getRegisteredModules } from '../dynamicmodule/api';
+import { getRegisteredModules } from '../../lowcode/dynamicmodule/api';
 import {
   archiveObservedUnusedKeys,
   batchDeleteI18n,
@@ -473,7 +466,7 @@ const I18nList: React.FC = () => {
         }),
       })) || []),
     ],
-    [canRefresh, groupOptions.length, overview, t],
+    [canRefresh, groupOptions.length, overview, t, total],
   );
 
   const handleSearch = () => {
@@ -1138,13 +1131,7 @@ const I18nList: React.FC = () => {
   }
 
   if (error) {
-    if (isNetworkRequestError(error)) {
-      return <PageNetworkError timeout={isTimeoutRequestError(error)} onRetry={retryLoadData} />;
-    }
-    if (isServerRequestError(error)) {
-      return <PageServerError onRetry={retryLoadData} />;
-    }
-    return <PageError onRetry={retryLoadData} />;
+    return <PageRequestError error={error} onRetry={retryLoadData} />;
   }
 
   return (

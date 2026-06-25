@@ -1,16 +1,47 @@
 package middleware
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"pantheon-ops/backend/pkg/common"
+	"pantheon-ops/backend/pkg/database"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
+
+// --- DataScope caches ---
+var (
+	// User dept cache: userID -> deptID
+	userDeptCacheMu sync.RWMutex
+	userDeptCache   = make(map[string]userDeptEntry)
+	userDeptTTL     = 5 * time.Minute
+
+	// Role policy cache: roleKey hash -> policies
+	rolePolicyCacheMu sync.RWMutex
+	rolePolicyCache   = make(map[string]rolePolicyEntry)
+	rolePolicyTTL     = 5 * time.Minute
+
+	// Table existence cache (avoid DDL metadata queries per request)
+	tableExistCacheMu sync.RWMutex
+	tableExistCache   = make(map[string]bool)
+)
+
+type userDeptEntry struct {
+	deptID   uint64
+	cachedAt time.Time
+}
+
+type rolePolicyEntry struct {
+	policies []SystemRoleDataScope
+	cachedAt time.Time
+}
 
 type SystemRoleDataScope struct {
 	ID      uint64 `gorm:"primaryKey;autoIncrement"`
@@ -27,7 +58,28 @@ func MigrateDataScopePolicy(db *gorm.DB) error {
 	if db == nil {
 		return nil
 	}
-	return db.AutoMigrate(&SystemRoleDataScope{})
+	if database.ShouldAutoMigrate() {
+		if err := db.AutoMigrate(&SystemRoleDataScope{}); err != nil {
+			return err
+		}
+		storeCachedTableExistence(db, (&SystemRoleDataScope{}).TableName(), true)
+		return nil
+	}
+	if cachedHasTable(db, &SystemRoleDataScope{}) {
+		return nil
+	}
+	if err := db.Exec(`
+CREATE TABLE IF NOT EXISTS system_role_data_scope (
+	id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+	role_key VARCHAR(64) NOT NULL,
+	mode VARCHAR(32) NOT NULL DEFAULT 'all',
+	dept_ids TEXT NULL,
+	UNIQUE KEY idx_system_role_data_scope_role_key (role_key)
+)`).Error; err != nil {
+		return err
+	}
+	storeCachedTableExistence(db, (&SystemRoleDataScope{}).TableName(), true)
+	return nil
 }
 
 func DataScopeMiddleware(db *gorm.DB) gin.HandlerFunc {
@@ -54,22 +106,47 @@ func DataScopeMiddleware(db *gorm.DB) gin.HandlerFunc {
 }
 
 func loadCurrentUserDeptID(db *gorm.DB, userID uint64) uint64 {
+	cacheKey := buildUserDeptCacheKey(db, userID)
+
+	// Check cache first
+	userDeptCacheMu.RLock()
+	if entry, ok := userDeptCache[cacheKey]; ok && time.Since(entry.cachedAt) < userDeptTTL {
+		userDeptCacheMu.RUnlock()
+		return entry.deptID
+	}
+	userDeptCacheMu.RUnlock()
+
 	var deptID uint64
 	if err := db.Table("system_user").Select("dept_id").Where("id = ?", userID).Limit(1).Pluck("dept_id", &deptID).Error; err != nil {
-		log.Printf("data scope: failed to load user dept id userID=%d: %v", userID, err)
+		slog.Warn("data scope: failed to load user dept id", "userID", userID, "error", err)
 	}
+
+	// Store in cache
+	userDeptCacheMu.Lock()
+	userDeptCache[cacheKey] = userDeptEntry{deptID: deptID, cachedAt: time.Now()}
+	if len(userDeptCache) > 10000 {
+		now := time.Now()
+		for k, v := range userDeptCache {
+			if now.Sub(v.cachedAt) > userDeptTTL {
+				delete(userDeptCache, k)
+			}
+		}
+	}
+	userDeptCacheMu.Unlock()
+
 	return deptID
 }
 
 func applyRoleDataScopePolicy(db *gorm.DB, scope *common.DataScopeReq) {
-	if scope == nil || len(scope.RoleKeys) == 0 || !db.Migrator().HasTable(&SystemRoleDataScope{}) {
+	if scope == nil || len(scope.RoleKeys) == 0 || !cachedHasTable(db, &SystemRoleDataScope{}) {
 		return
 	}
-	var policies []SystemRoleDataScope
-	if err := db.Where("role_key IN ?", scope.RoleKeys).Find(&policies).Error; err != nil {
-		log.Printf("data scope: failed to load role policies roles=%s: %v", strings.Join(scope.RoleKeys, ","), err)
+
+	policies, ok := loadRoleDataScopePolicies(db, scope.RoleKeys)
+	if !ok {
 		return
 	}
+
 	if len(policies) == 0 {
 		return
 	}
@@ -87,11 +164,97 @@ func applyRoleDataScopePolicy(db *gorm.DB, scope *common.DataScopeReq) {
 	}
 }
 
+func loadRoleDataScopePolicies(db *gorm.DB, roleKeys []string) ([]SystemRoleDataScope, bool) {
+	cacheKey := buildRolePolicyCacheKey(db, roleKeys)
+	rolePolicyCacheMu.RLock()
+	if entry, ok := rolePolicyCache[cacheKey]; ok && time.Since(entry.cachedAt) < rolePolicyTTL {
+		rolePolicyCacheMu.RUnlock()
+		return entry.policies, true
+	}
+	rolePolicyCacheMu.RUnlock()
+
+	var policies []SystemRoleDataScope
+	if err := db.Where("role_key IN ?", roleKeys).Find(&policies).Error; err != nil {
+		slog.Warn("data scope: failed to load role policies", "roles", strings.Join(roleKeys, ","), "error", err)
+		return nil, false
+	}
+
+	rolePolicyCacheMu.Lock()
+	rolePolicyCache[cacheKey] = rolePolicyEntry{policies: policies, cachedAt: time.Now()}
+	if len(rolePolicyCache) > 1000 {
+		now := time.Now()
+		for k, v := range rolePolicyCache {
+			if now.Sub(v.cachedAt) > rolePolicyTTL {
+				delete(rolePolicyCache, k)
+			}
+		}
+	}
+	rolePolicyCacheMu.Unlock()
+
+	return policies, true
+}
+
+// cachedHasTable caches the result of db.Migrator().HasTable() to avoid
+// per-request DDL metadata queries.
+func cachedHasTable(db *gorm.DB, model interface{}) bool {
+	var tableName string
+	switch v := model.(type) {
+	case string:
+		tableName = v
+	case interface{ TableName() string }:
+		tableName = v.TableName()
+	}
+	if tableName == "" {
+		return db.Migrator().HasTable(model)
+	}
+	cacheKey := buildTableExistCacheKey(db, tableName)
+	tableExistCacheMu.RLock()
+	if exists, ok := tableExistCache[cacheKey]; ok {
+		tableExistCacheMu.RUnlock()
+		return exists
+	}
+	tableExistCacheMu.RUnlock()
+
+	exists := db.Migrator().HasTable(model)
+	storeCachedTableExistence(db, tableName, exists)
+	return exists
+}
+
+func storeCachedTableExistence(db *gorm.DB, tableName string, exists bool) {
+	cacheKey := buildTableExistCacheKey(db, tableName)
+	tableExistCacheMu.Lock()
+	tableExistCache[cacheKey] = exists
+	tableExistCacheMu.Unlock()
+}
+
+func buildUserDeptCacheKey(db *gorm.DB, userID uint64) string {
+	return buildDatabaseCacheNamespace(db) + ":user:" + strconv.FormatUint(userID, 10)
+}
+
+func buildRolePolicyCacheKey(db *gorm.DB, roleKeys []string) string {
+	return buildDatabaseCacheNamespace(db) + ":roles:" + strings.Join(roleKeys, ",")
+}
+
+func buildTableExistCacheKey(db *gorm.DB, tableName string) string {
+	return buildDatabaseCacheNamespace(db) + ":table:" + tableName
+}
+
+func buildDatabaseCacheNamespace(db *gorm.DB) string {
+	if db == nil {
+		return "nil"
+	}
+	sqlDB, err := db.DB()
+	if err == nil && sqlDB != nil {
+		return fmt.Sprintf("%p", sqlDB)
+	}
+	return fmt.Sprintf("%p", db)
+}
+
 func loadDeptAndChildrenIDs(db *gorm.DB, deptID uint64) []uint64 {
 	if db == nil || deptID == 0 {
 		return nil
 	}
-	if !db.Migrator().HasTable("system_dept") {
+	if !cachedHasTable(db, "system_dept") {
 		return []uint64{deptID}
 	}
 
@@ -109,7 +272,7 @@ func loadDeptAndChildrenIDs(db *gorm.DB, deptID uint64) []uint64 {
 		).
 		Order("id asc").
 		Pluck("id", &ids).Error; err != nil {
-		log.Printf("data scope: failed to expand dept children deptID=%d: %v", deptID, err)
+		slog.Warn("data scope: failed to expand dept children", "deptID", deptID, "error", err)
 		return []uint64{deptID}
 	}
 	if len(ids) == 0 {

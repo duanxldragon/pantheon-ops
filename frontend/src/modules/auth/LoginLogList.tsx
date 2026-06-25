@@ -15,7 +15,7 @@ import { message } from '../../components/feedback/message';
 import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
 import { IconDelete, IconDownload, IconSearch } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
-import { getSettingGroup, type SettingGroup } from '../system/setting/api';
+import { getSettingGroup, type SettingGroup } from '../system/config/setting/api';
 import {
   getVisibleSelectedRowKeys,
   mergeCrossPageSelection,
@@ -44,8 +44,8 @@ import {
   GovernanceSummaryBar,
   PageContainer,
   PageEmpty,
-  PageError,
   PageLoading,
+  PageRequestError,
   PermissionAction,
   TABLE_COLUMN_WIDTH,
   useGovernanceRail,
@@ -76,7 +76,7 @@ const LoginLogList: React.FC = () => {
   const [data, setData] = useState<LoginLogRow[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [query, setQuery] = useState<LoginLogQuery>(emptyQuery);
   const [queryForm] = Form.useForm<LoginLogQuery>();
   const [selectedRowKeys, setSelectedRowKeys] = useState<number[]>([]);
@@ -91,13 +91,13 @@ const LoginLogList: React.FC = () => {
   const loadData = useCallback(
     async (nextQuery: LoginLogQuery = query) => {
       setLoading(true);
-      setLoadFailed(false);
+      setLoadError(null);
       try {
         const result: LoginLogPageResp = await getAdminLoginLogList(nextQuery);
         setData(result.items);
         setTotal(result.total);
-      } catch {
-        setLoadFailed(true);
+      } catch (requestError) {
+        setLoadError(requestError);
         message.error(t('common.loadFailed'));
       } finally {
         setLoading(false);
@@ -446,8 +446,9 @@ const LoginLogList: React.FC = () => {
               }
             />
             {loading && data.length === 0 ? <PageLoading /> : null}
-            {loadFailed && !loading ? (
-              <PageError
+            {loadError && !loading ? (
+              <PageRequestError
+                error={loadError}
                 onRetry={() => {
                   void loadData(query);
                 }}

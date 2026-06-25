@@ -8,9 +8,9 @@ const frontendDir = join(rootDir, '..');
 const testDir = join(frontendDir, '.tmp', 'generator-dashboard-widget-test');
 
 const files = [
-  'src/modules/system/generator/schema.ts',
-  'src/modules/system/generator/type-mapping.ts',
-  'src/modules/system/generator/frontend-generator.ts',
+  'src/modules/lowcode/generator/schema.ts',
+  'src/modules/lowcode/generator/type-mapping.ts',
+  'src/modules/lowcode/generator/frontend-generator.ts',
   'tests/generator/frontend-generator.dashboard-widget.test.ts',
 ];
 

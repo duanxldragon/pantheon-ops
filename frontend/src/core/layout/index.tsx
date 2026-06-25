@@ -33,7 +33,7 @@ import {
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { beginLogoutTransition, endLogoutTransition } from '../../api/request';
-import { findFirstNavigableMenuPath, type MenuNode } from '../../modules/system/menu/api';
+import { findFirstNavigableMenuPath, type MenuNode } from '../../modules/system/iam/menu/api';
 import {
   logout as logoutApi,
   reportActivity,
@@ -52,6 +52,7 @@ import { renderMenuIcon } from '../menu/icon';
 import { clearPantheonThemePreference, usePantheonTheme } from '../theme/theme';
 import { AppModal } from '../../components';
 import { getDashboardSummary, type DashboardSummary } from '../../modules/dashboard/api';
+import { clearClientAuthSession } from '../auth/clientSession';
 import {
   getBrandInitial,
   hasExplicitLanguagePreference,
@@ -62,6 +63,11 @@ import {
 import { clearExplicitLanguagePreference } from '../settings/languagePreference';
 import { SUPPORTED_LOCALES, switchI18nLanguage, type SupportedLocale } from '../../i18n';
 import { preloadRouteComponent } from '../router/prefetch';
+import {
+  shouldLoadShellNoticeSummary,
+  shouldPollServerRefreshState,
+  shouldReportShellActivity,
+} from '../runtime/automationPolicy';
 import {
   OPENED_TABS_STORAGE_KEY,
   persistShellDensityMode,
@@ -759,7 +765,7 @@ const BaseLayout: React.FC = () => {
     () => menuTrail.slice(0, -1).map((item) => item.id.toString()),
     [menuTrail],
   );
-  const currentPageTitle = breadcrumbItems[breadcrumbItems.length - 1]?.label || t('app.workspace');
+  const currentPageTitle = breadcrumbItems.at(-1)?.label || t('app.workspace');
   const currentTabTitleKey = currentRouteTitleKey || currentMenuTitleKey;
   const userDisplayName = userInfo?.nickname || userInfo?.username || t('common.user');
   const roleLabel = userInfo?.roles?.[0] || '';
@@ -782,6 +788,7 @@ const BaseLayout: React.FC = () => {
   const sessionIdleMinutes =
     publicSettings.sessionIdleMinutes > 0 ? publicSettings.sessionIdleMinutes : 30;
   const sessionIdleMs = sessionIdleMinutes * 60 * 1000;
+  const backgroundNetworkEnabled = shouldPollServerRefreshState();
   const hasDashboardEntry = useMemo(
     () => Boolean(findMenuNodeByPath(visibleMenuTree, '/dashboard')),
     [visibleMenuTree],
@@ -819,6 +826,7 @@ const BaseLayout: React.FC = () => {
       const nextLanguage = clearExplicitLanguagePreference();
       await resolveSilently(switchI18nLanguage(nextLanguage));
       clearShellSessionState();
+      clearClientAuthSession();
       setOpenedTabs([]);
       resetMenuTree();
       clearAuth();
@@ -846,7 +854,11 @@ const BaseLayout: React.FC = () => {
         lastInteractionAtRef.current = now;
       }
       syncShellActivity(now);
-      if (!syncRemote || now - lastSyncedActivityAtRef.current < 60000) {
+      if (
+        !shouldReportShellActivity() ||
+        !syncRemote ||
+        now - lastSyncedActivityAtRef.current < 60000
+      ) {
         return;
       }
       lastSyncedActivityAtRef.current = now;
@@ -889,7 +901,7 @@ const BaseLayout: React.FC = () => {
       runSilently(fetchMenuTree({ force: true }));
     },
   );
-  useRefreshPolling(token, [
+  useRefreshPolling(backgroundNetworkEnabled ? token : null, [
     'system:user:changed',
     'system:role:changed',
     'system:menu:changed',
@@ -904,7 +916,7 @@ const BaseLayout: React.FC = () => {
   useEffect(() => {
     let active = true;
     const loadNoticeSummary = async () => {
-      if (!token || !canViewNoticeSummary) {
+      if (!shouldLoadShellNoticeSummary() || !token || !canViewNoticeSummary) {
         if (active) {
           setNoticeSummary(null);
           setNoticeLoading(false);

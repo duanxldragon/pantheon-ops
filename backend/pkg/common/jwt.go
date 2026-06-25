@@ -2,26 +2,47 @@ package common
 
 import (
 	"errors"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 const (
 	TokenTypeAccess    = "access"
 	TokenTypeRefresh   = "refresh"
 	TokenTypeOperation = "operation"
+
+	// DefaultAccessTokenTTL is the default lifetime for access tokens.
+	DefaultAccessTokenTTL = 15 * time.Minute
+	// DefaultRefreshTokenTTL is the default lifetime for refresh tokens.
+	DefaultRefreshTokenTTL = 7 * 24 * time.Hour
 )
 
 var (
-	AccessTokenSecret    = []byte(DefaultAccessTokenSecret)
-	RefreshTokenSecret   = []byte(DefaultRefreshTokenSecret)
-	OperationTokenSecret = []byte(DefaultOperationTokenSecret)
+	// AccessTokenTTL is the effective TTL for access tokens, overridable via SetTokenTTL.
+	AccessTokenTTL = DefaultAccessTokenTTL
+	// RefreshTokenTTL is the effective TTL for refresh tokens, overridable via SetTokenTTL.
+	RefreshTokenTTL = DefaultRefreshTokenTTL
+
+	AccessTokenSecret    = []byte(DefaultDevSecrets.AccessToken)
+	RefreshTokenSecret   = []byte(DefaultDevSecrets.RefreshToken)
+	OperationTokenSecret = []byte(DefaultDevSecrets.OperationToken)
 	ErrTokenInvalid      = errors.New("token.invalid")
 	ErrTokenExpired      = errors.New("token.expired")
 	ErrTokenType         = errors.New("token.type.invalid")
 )
+
+// SetTokenTTL overrides the effective token TTLs. Pass zero to use defaults.
+// This allows the Setting system to configure TTLs at startup without circular imports.
+func SetTokenTTL(accessTTL, refreshTTL time.Duration) {
+	if accessTTL > 0 {
+		AccessTokenTTL = accessTTL
+	}
+	if refreshTTL > 0 {
+		RefreshTokenTTL = refreshTTL
+	}
+}
 
 type TokenPair struct {
 	AccessToken      string    `json:"accessToken"`
@@ -43,11 +64,11 @@ type CustomClaims struct {
 }
 
 func accessTokenTTL() time.Duration {
-	return 15 * time.Minute
+	return AccessTokenTTL
 }
 
 func refreshTokenTTL() time.Duration {
-	return 7 * 24 * time.Hour
+	return RefreshTokenTTL
 }
 
 func buildClaims(userID uint64, username string, roleKeys []string, tokenType string, sessionID string, tokenID string, expiresAt time.Time) CustomClaims {
@@ -104,7 +125,7 @@ func GenerateTokenPair(userID uint64, username string, roleKeys []string, sessio
 	}, nil
 }
 
-func ParseToken(tokenString string, expectedType string) (*CustomClaims, error) {
+func ParseToken(tokenString, expectedType string) (*CustomClaims, error) {
 	secret := AccessTokenSecret
 	if expectedType == TokenTypeRefresh {
 		secret = RefreshTokenSecret
@@ -129,7 +150,8 @@ func ParseToken(tokenString string, expectedType string) (*CustomClaims, error) 
 
 func GenerateOperationToken(userID uint64, sessionID string, operationScope string, ttl time.Duration) (string, error) {
 	expiresAt := time.Now().Add(ttl)
-	claims := buildClaims(userID, "op-verify", []string{}, TokenTypeOperation, sessionID, "op-"+os.Getenv("HOSTNAME"), expiresAt)
+	tokenID := "op-" + uuid.NewString()
+	claims := buildClaims(userID, "op-verify", []string{}, TokenTypeOperation, sessionID, tokenID, expiresAt)
 	claims.OperationScope = operationScope
 	return signToken(claims, OperationTokenSecret)
 }

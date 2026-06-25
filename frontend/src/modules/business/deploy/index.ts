@@ -9,7 +9,7 @@ export const DeployModule = defineModule({
       routeName: 'deploy-package-list',
       titleKey: 'operations.deploy.package.menu',
       componentKey: 'business/deploy/package/DeployPackageList',
-      pagePermission: 'business:deploy:package:list',
+      pagePermission: 'business:deploy:package:view',
     },
     {
       path: 'operations/deploy/template',
@@ -23,7 +23,7 @@ export const DeployModule = defineModule({
       routeName: 'deploy-task-list',
       titleKey: 'operations.deploy.task.menu',
       componentKey: 'business/deploy/task/DeployTaskList',
-      pagePermission: 'business:deploy:task:list',
+      pagePermission: 'business:deploy:task:view',
     },
     {
       path: 'operations/deploy/task/:id',
@@ -57,6 +57,7 @@ export const DeployModule = defineModule({
     },
   ],
   permissions: [
+    'business:deploy:package:view',
     'business:deploy:package:list',
     'business:deploy:package:create',
     'business:deploy:package:update',
@@ -65,10 +66,12 @@ export const DeployModule = defineModule({
     'business:deploy:template:create',
     'business:deploy:template:update',
     'business:deploy:template:delete',
+    'business:deploy:task:view',
     'business:deploy:task:list',
     'business:deploy:task:detail',
     'business:deploy:task:create',
     'business:deploy:task:update',
+    'business:deploy:task:delete',
     'business:deploy:task:start',
     'business:deploy:task:cancel',
     'business:deploy:task:mark-result',

@@ -347,6 +347,11 @@ func TestSettingService_MigrateSeedsAuthSecurityPolicySettings(t *testing.T) {
 
 func TestSettingService_MigrateUpgradesLegacySessionCleanupRetentionDefault(t *testing.T) {
 	db := setupSettingTestDB(t)
+	service := NewSettingService(db)
+	if err := db.AutoMigrate(&SystemSetting{}); err != nil {
+		t.Fatalf("create setting table: %v", err)
+	}
+
 	if err := db.Create(&SystemSetting{
 		SettingKey:   "audit.session_cleanup_retention_options",
 		SettingValue: "[7,30,90]",
@@ -358,7 +363,6 @@ func TestSettingService_MigrateUpgradesLegacySessionCleanupRetentionDefault(t *t
 		t.Fatalf("seed legacy setting: %v", err)
 	}
 
-	service := NewSettingService(db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate setting: %v", err)
 	}

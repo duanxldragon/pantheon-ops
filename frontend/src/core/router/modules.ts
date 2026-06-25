@@ -1,23 +1,23 @@
 import type { ModuleConfig } from './types';
 import { AuthModule } from '../../modules/auth';
 import { DashboardModule } from '../../modules/dashboard';
-import { GeneratorModule } from '../../modules/system/generator';
-import { DictModule } from '../../modules/system/dict';
-import { DeptModule } from '../../modules/system/dept';
-import { MenuModule } from '../../modules/system/menu';
-import { PermissionModule } from '../../modules/system/permission';
-import { ProfileModule } from '../../modules/system/profile';
-import { PostModule } from '../../modules/system/post';
-import { RoleModule } from '../../modules/system/role';
-import { SettingModule } from '../../modules/system/setting';
-import { AuditModule } from '../../modules/system/audit';
-import { DynamicModuleModule } from '../../modules/system/dynamicmodule';
+import { GeneratorModule } from '../../modules/lowcode/generator';
+import { UserModule } from '../../modules/system/iam/user';
+import { RoleModule } from '../../modules/system/iam/role';
+import { MenuModule } from '../../modules/system/iam/menu';
+import { PermissionModule } from '../../modules/system/iam/permission';
+import { DeptModule } from '../../modules/system/org/dept';
+import { PostModule } from '../../modules/system/org/post';
+import { DictModule } from '../../modules/system/config/dict';
+import { SettingModule } from '../../modules/system/config/setting';
 import { I18nModule } from '../../modules/system/i18n';
-import { UserModule } from '../../modules/system/user';
-import { generatedSystemModules } from '../../modules/generated/system';
+import { DynamicModuleModule } from '../../modules/lowcode/dynamicmodule';
+import { AuditModule } from '../../modules/system/audit';
+import { ProfileModule } from '../../modules/system/profile';
+import { generatedSystemModules } from '../../modules/lowcode/generated/system';
 import { CmdbModule } from '../../modules/business/cmdb';
 import { DeployModule } from '../../modules/business/deploy';
-import { generatedBusinessModules } from '../../modules/generated/business';
+import { generatedBusinessModules } from '../../modules/lowcode/generated/business';
 
 export const systemModules: ModuleConfig[] = [
   DashboardModule,

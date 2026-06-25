@@ -6,8 +6,8 @@ import (
 	audit "pantheon-ops/backend/modules/system/audit"
 	dict "pantheon-ops/backend/modules/system/config/dict"
 	setting "pantheon-ops/backend/modules/system/config/setting"
-	"pantheon-ops/backend/modules/system/dynamicmodule"
-	generator "pantheon-ops/backend/modules/system/generator"
+	"pantheon-ops/backend/modules/lowcode/dynamicmodule"
+	generator "pantheon-ops/backend/modules/lowcode/generator"
 	i18n "pantheon-ops/backend/modules/system/i18n"
 	menu "pantheon-ops/backend/modules/system/iam/menu"
 	permission "pantheon-ops/backend/modules/system/iam/permission"
@@ -24,6 +24,11 @@ import (
 
 // InitSystemModule 初始化系统模块
 func InitSystemModule(r *gin.RouterGroup, db *gorm.DB) {
+	// 清理历史废弃菜单（/workspace、/operations 等）
+	if err := CleanupObsoleteMenus(db); err != nil {
+		panic(err)
+	}
+
 	// 用户模块注入
 	userSvc := user.NewUserService(db)
 	userHandler := user.NewUserHandler(userSvc)
@@ -81,24 +86,28 @@ func InitSystemModule(r *gin.RouterGroup, db *gorm.DB) {
 			},
 		},
 		contracts.FuncModule{
-			ModuleName:  "user",
-			MigrateFunc: func(_ *gorm.DB) error { return userSvc.Migrate() },
+			ModuleName:    "user",
+			MigrateFunc:   func(_ *gorm.DB) error { return userSvc.Migrate() },
+			BootstrapFunc: func(_ *gorm.DB) error { return userSvc.Bootstrap() },
 			Register: func(r *gin.RouterGroup) {
 				systemProtected := r.Group("/system").Use(middleware.JWTAuthMiddleware()).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(refreshSyncSvc))
+				systemDataScoped := r.Group("/system").Use(middleware.JWTAuthMiddleware()).Use(middleware.CasbinMiddleware()).Use(middleware.DataScopeMiddleware(db)).Use(RefreshSyncMiddleware(refreshSyncSvc))
 				{
 					systemProtected.GET("/profile", userHandler.GetProfile)
 					systemProtected.PUT("/profile", userHandler.UpdateProfile)
-					systemProtected.GET("/user/list", userHandler.GetUserList)
 					systemProtected.GET("/user/import-template", userHandler.DownloadImportTemplate)
 					systemProtected.GET("/user/:id", userHandler.GetUserDetail)
 					systemProtected.POST("/user", userHandler.CreateUser)
-					systemProtected.POST("/user/export", userHandler.ExportUsers)
 					systemProtected.POST("/user/import", userHandler.ImportUsers)
 					systemProtected.POST("/user/batch-status", userHandler.BatchUpdateUserStatus)
 					systemProtected.POST("/user/batch-delete", middleware.SecureActionMiddleware(), userHandler.BatchDeleteUsers)
 					systemProtected.PUT("/user/:id", userHandler.UpdateUser)
 					systemProtected.PUT("/user/:id/reset-password", userHandler.ResetPassword)
 					systemProtected.DELETE("/user/:id", userHandler.DeleteUser)
+				}
+				{
+					systemDataScoped.GET("/user/list", userHandler.GetUserList)
+					systemDataScoped.POST("/user/export", userHandler.ExportUsers)
 				}
 			},
 		},
@@ -117,8 +126,9 @@ func InitSystemModule(r *gin.RouterGroup, db *gorm.DB) {
 			},
 		},
 		contracts.FuncModule{
-			ModuleName:  "role",
-			MigrateFunc: func(_ *gorm.DB) error { return roleSvc.Migrate() },
+			ModuleName:    "role",
+			MigrateFunc:   func(_ *gorm.DB) error { return roleSvc.Migrate() },
+			BootstrapFunc: func(_ *gorm.DB) error { return roleSvc.Bootstrap() },
 			Register: func(r *gin.RouterGroup) {
 				systemProtected := r.Group("/system").Use(middleware.JWTAuthMiddleware()).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(refreshSyncSvc))
 				{
@@ -139,6 +149,7 @@ func InitSystemModule(r *gin.RouterGroup, db *gorm.DB) {
 		contracts.FuncModule{
 			ModuleName:    "dept",
 			MigrateFunc:   func(_ *gorm.DB) error { return deptSvc.Migrate() },
+			BootstrapFunc: func(_ *gorm.DB) error { return deptSvc.Bootstrap() },
 			SeedMenusFunc: seedDeptModuleMenus,
 			Register: func(r *gin.RouterGroup) {
 				systemProtected := r.Group("/system").Use(middleware.JWTAuthMiddleware()).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(refreshSyncSvc))
@@ -163,6 +174,7 @@ func InitSystemModule(r *gin.RouterGroup, db *gorm.DB) {
 		contracts.FuncModule{
 			ModuleName:    "post",
 			MigrateFunc:   func(_ *gorm.DB) error { return postSvc.Migrate() },
+			BootstrapFunc: func(_ *gorm.DB) error { return postSvc.Bootstrap() },
 			SeedMenusFunc: seedPostModuleMenus,
 			Register: func(r *gin.RouterGroup) {
 				systemProtected := r.Group("/system").Use(middleware.JWTAuthMiddleware()).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(refreshSyncSvc))
@@ -187,6 +199,7 @@ func InitSystemModule(r *gin.RouterGroup, db *gorm.DB) {
 				}
 				return permissionSvc.Migrate()
 			},
+			BootstrapFunc: func(_ *gorm.DB) error { return permissionSvc.Bootstrap() },
 			SeedMenusFunc: seedPermissionModuleMenus,
 			Register: func(r *gin.RouterGroup) {
 				systemProtected := r.Group("/system").Use(middleware.JWTAuthMiddleware()).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(refreshSyncSvc))
@@ -211,6 +224,7 @@ func InitSystemModule(r *gin.RouterGroup, db *gorm.DB) {
 		contracts.FuncModule{
 			ModuleName:    "dict",
 			MigrateFunc:   func(_ *gorm.DB) error { return dictSvc.Migrate() },
+			BootstrapFunc: func(_ *gorm.DB) error { return dictSvc.Bootstrap() },
 			SeedMenusFunc: seedDictModuleMenus,
 			Register: func(r *gin.RouterGroup) {
 				systemPublic := r.Group("/system")
@@ -247,6 +261,7 @@ func InitSystemModule(r *gin.RouterGroup, db *gorm.DB) {
 		contracts.FuncModule{
 			ModuleName:    "setting",
 			MigrateFunc:   func(_ *gorm.DB) error { return settingSvc.Migrate() },
+			BootstrapFunc: func(_ *gorm.DB) error { return settingSvc.Bootstrap() },
 			SeedMenusFunc: seedSettingModuleMenus,
 			Register: func(r *gin.RouterGroup) {
 				systemPublic := r.Group("/system")
@@ -275,6 +290,7 @@ func InitSystemModule(r *gin.RouterGroup, db *gorm.DB) {
 		contracts.FuncModule{
 			ModuleName:    "i18n",
 			MigrateFunc:   func(_ *gorm.DB) error { return i18nSvc.Migrate() },
+			BootstrapFunc: func(_ *gorm.DB) error { return i18nSvc.Bootstrap() },
 			SeedMenusFunc: seedI18nModuleMenus,
 			SeedI18nFunc:  func(db *gorm.DB) error { return i18nSvc.SeedI18nModuleI18n(db) },
 			Register: func(r *gin.RouterGroup) {
@@ -313,6 +329,7 @@ func InitSystemModule(r *gin.RouterGroup, db *gorm.DB) {
 		contracts.FuncModule{
 			ModuleName:    "audit",
 			MigrateFunc:   func(_ *gorm.DB) error { return auditSvc.Migrate() },
+			BootstrapFunc: func(_ *gorm.DB) error { return auditSvc.Bootstrap() },
 			SeedMenusFunc: seedAuditModuleMenus,
 			Register: func(r *gin.RouterGroup) {
 				systemProtected := r.Group("/system").Use(middleware.JWTAuthMiddleware()).Use(middleware.CasbinMiddleware())

@@ -14,7 +14,7 @@ import { message } from '../../components/feedback/message';
 import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
 import { IconDelete, IconSearch } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
-import { getSettingGroup, type SettingGroup } from '../system/setting/api';
+import { getSettingGroup, type SettingGroup } from '../system/config/setting/api';
 import {
   getVisibleSelectedRowKeys,
   mergeCrossPageSelection,
@@ -43,8 +43,8 @@ import {
   GovernanceSummaryBar,
   PageContainer,
   PageEmpty,
-  PageError,
   PageLoading,
+  PageRequestError,
   TABLE_ACTION_COLUMN_WIDTH,
   useGovernanceRail,
   withTableColumnPriority,
@@ -86,7 +86,7 @@ const SessionList: React.FC = () => {
   const [activeCount, setActiveCount] = useState(0);
   const [revokedCount, setRevokedCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [query, setQuery] = useState<AdminSessionQuery>(emptyQuery);
   const [detailSession, setDetailSession] = useState<AdminSessionRow | null>(null);
   const [queryForm] = Form.useForm<AdminSessionQuery>();
@@ -104,7 +104,7 @@ const SessionList: React.FC = () => {
       const silent = options?.silent === true;
       if (!silent) {
         setLoading(true);
-        setLoadFailed(false);
+        setLoadError(null);
       }
       try {
         const result: AdminSessionPageResp = await getAdminSessionList(nextQuery);
@@ -112,8 +112,8 @@ const SessionList: React.FC = () => {
         setTotal(result.total);
         setActiveCount(result.activeCount);
         setRevokedCount(result.revokedCount);
-      } catch {
-        setLoadFailed(true);
+      } catch (requestError) {
+        setLoadError(requestError);
         message.error(t('common.loadFailed'));
       } finally {
         if (!silent) {
@@ -537,8 +537,9 @@ const SessionList: React.FC = () => {
               </div>
             ) : null}
             {loading && data.length === 0 ? <PageLoading /> : null}
-            {loadFailed && !loading ? (
-              <PageError
+            {loadError && !loading ? (
+              <PageRequestError
+                error={loadError}
                 onRetry={() => {
                   void loadData(query);
                 }}

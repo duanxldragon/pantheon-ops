@@ -308,13 +308,11 @@ func TestPermissionService_GetWorkbenchCoverageFilter(t *testing.T) {
 	}).Error; err != nil {
 		t.Fatalf("seed role permissions: %v", err)
 	}
-	if err := db.Create(&database.CasbinRule{
-		PType: "p",
-		V0:    "complete_role",
-		V1:    "/api/v1/system/user/list",
-		V2:    "GET",
+	if err := db.Create(&[]database.CasbinRule{
+		{PType: "p", V0: "complete_role", V1: "/api/v1/system/user/list", V2: "GET"},
+		{PType: "p", V0: "complete_role", V1: "/api/v1/system/user/create", V2: "POST"},
 	}).Error; err != nil {
-		t.Fatalf("seed casbin rule: %v", err)
+		t.Fatalf("seed casbin rules: %v", err)
 	}
 
 	workbench, err := service.GetWorkbench(nil)
@@ -481,6 +479,85 @@ func TestPermissionService_GetWorkbenchIncludesRemediationGovernanceSummary(t *t
 	}
 	if cleanRole.LastRemediationAt != "" {
 		t.Fatalf("expected clean role to have no last remediation timestamp, got %s", cleanRole.LastRemediationAt)
+	}
+}
+
+func TestPermissionService_GetWorkbenchUsesVersionedRemediationTableName(t *testing.T) {
+	db := setupPermissionTestDB(t)
+	service := NewPermissionService(db)
+
+	if err := db.Create(&permissionTestRole{
+		ID:       1,
+		RoleName: "Versioned Remediated",
+		RoleKey:  "versioned_remediated",
+		Status:   1,
+		Sort:     1,
+	}).Error; err != nil {
+		t.Fatalf("seed role: %v", err)
+	}
+	if err := db.Create(&permissionTestMenu{
+		ID:       10,
+		TitleKey: "system.menu.generator",
+		Path:     "/system/generator",
+		Module:   "system.lowcode",
+		Type:     "C",
+		PagePerm: "system:generator:use",
+	}).Error; err != nil {
+		t.Fatalf("seed menu: %v", err)
+	}
+	if err := db.Create(&permissionTestRolePermission{
+		RoleID:        1,
+		PermissionKey: "system:generator:use",
+	}).Error; err != nil {
+		t.Fatalf("seed role permission: %v", err)
+	}
+	if err := db.Create(&database.CasbinRule{
+		PType: "p",
+		V0:    "versioned_remediated",
+		V1:    "/api/v1/system/dynamic-modules/generate",
+		V2:    "POST",
+	}).Error; err != nil {
+		t.Fatalf("seed api policy: %v", err)
+	}
+	if err := db.Exec(`
+CREATE TABLE IF NOT EXISTS permission_workbench_remediation_event (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  role_key VARCHAR(64) NOT NULL,
+  issue_type VARCHAR(32) NOT NULL,
+  issue_key VARCHAR(255) NOT NULL,
+  before_state VARCHAR(32) NOT NULL,
+  after_state VARCHAR(32) NOT NULL,
+  action VARCHAR(32) NOT NULL,
+  created_count INT DEFAULT 0,
+  skipped_count INT DEFAULT 0,
+  created_at DATETIME(3) DEFAULT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_permission_remediation_role_created (role_key, created_at),
+  INDEX idx_permission_remediation_issue_type (issue_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+`).Error; err != nil {
+		t.Fatalf("create versioned remediation table: %v", err)
+	}
+	if err := db.Exec(`
+INSERT INTO permission_workbench_remediation_event
+  (role_key, issue_type, issue_key, before_state, after_state, action, created_count, skipped_count, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+`, "versioned_remediated", "api-gap", "POST /api/v1/system/dynamic-modules/generate", "api-gap", "complete", "remediated", 1, 0, time.Now()).Error; err != nil {
+		t.Fatalf("seed versioned remediation event: %v", err)
+	}
+
+	workbench, err := service.GetWorkbench(&PermissionWorkbenchQuery{RoleKey: "versioned_remediated"})
+	if err != nil {
+		t.Fatalf("get workbench: %v", err)
+	}
+	if len(workbench.Roles) != 1 {
+		t.Fatalf("expected 1 role, got %+v", workbench.Roles)
+	}
+	if workbench.Roles[0].GovernanceStatus != "remediated" {
+		t.Fatalf("expected governance status remediated, got %+v", workbench.Roles[0])
+	}
+	if workbench.Overview.RemediatedRoleCount != 1 {
+		t.Fatalf("expected remediated role count 1, got %+v", workbench.Overview)
 	}
 }
 

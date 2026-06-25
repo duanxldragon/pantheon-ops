@@ -9,19 +9,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
-  isNetworkRequestError,
-  isServerRequestError,
-  isTimeoutRequestError,
-} from '../../api/request';
-import {
   AppTable,
   DateTimeMeta,
   PageContainer,
   PageEmpty,
-  PageError,
   PageLoading,
-  PageNetworkError,
-  PageServerError,
+  PageRequestError,
 } from '../../components';
 import { renderMenuIcon } from '../../core/menu/icon';
 import { resolveRouteWarmData } from '../../core/router/prefetch';
@@ -262,35 +255,6 @@ const DashboardPage: React.FC = () => {
 
   const primaryAttentionItems = useMemo(() => attentionItems.slice(0, 4), [attentionItems]);
 
-  const renderErrorState = () => {
-    if (isNetworkRequestError(error)) {
-      return (
-        <PageNetworkError
-          timeout={isTimeoutRequestError(error)}
-          onRetry={() => {
-            void loadSummary();
-          }}
-        />
-      );
-    }
-    if (isServerRequestError(error)) {
-      return (
-        <PageServerError
-          onRetry={() => {
-            void loadSummary();
-          }}
-        />
-      );
-    }
-    return (
-      <PageError
-        onRetry={() => {
-          void loadSummary();
-        }}
-      />
-    );
-  };
-
   return (
     <PageContainer className="dashboard-page">
       {loading && !summary ? (
@@ -299,7 +263,14 @@ const DashboardPage: React.FC = () => {
         </Card>
       ) : null}
       {error && !summary ? (
-        <Card className="page-panel dashboard-panel-card">{renderErrorState()}</Card>
+        <Card className="page-panel dashboard-panel-card">
+          <PageRequestError
+            error={error}
+            onRetry={() => {
+              void loadSummary();
+            }}
+          />
+        </Card>
       ) : null}
       {summary ? (
         <Space direction="vertical" size={20} className="dashboard-grid">

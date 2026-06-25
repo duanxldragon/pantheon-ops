@@ -41,6 +41,31 @@ type deployExecutionSummary struct {
 	RemovedComponentNames []string
 }
 
+var (
+	errDeployTaskNotFound  = errors.New("business.deploy.task.notFound")
+	errDeployTaskForbidden = errors.New("business.deploy.task.forbidden")
+)
+
+const (
+	errDeployTaskTemplateParamsInvalid    = "business.deploy.task.templateParamsInvalid"
+	errDeployTaskTemplateInvalid          = "business.deploy.task.templateInvalid"
+	errDeployTaskTemplateNotFound         = "business.deploy.task.templateNotFound"
+	errDeployTaskTemplateDisabled         = "business.deploy.task.templateDisabled"
+	errDeployTaskInstallCommandRequired   = "business.deploy.task.installCommandRequired"
+	errDeployTaskUninstallCommandRequired = "business.deploy.task.uninstallCommandRequired"
+	errDeployTaskPackageNotFound          = "business.deploy.task.packageNotFound"
+	errDeployTaskPackageSourceMissing     = "business.deploy.task.packageSourceMissing"
+	errDeployTaskInvalidUpdateState       = "business.deploy.task.invalidUpdateState"
+	errDeployTaskInvalidDeleteState       = "business.deploy.task.invalidDeleteState"
+	errDeployTaskSSHHostKeyRequired       = "business.deploy.task.sshHostKeyRequired"
+	errDeployTaskSSHHostKeyMismatch       = "business.deploy.task.sshHostKeyMismatch"
+	errDeployTaskSSHUserRequired          = "business.deploy.task.sshUserRequired"
+	errDeployTaskSSHPasswordRequired      = "business.deploy.task.sshPasswordRequired"
+	errDeployTaskSSHPrivateKeyRequired    = "business.deploy.task.sshPrivateKeyRequired"
+	errDeployTaskSSHAuthFailed            = "business.deploy.task.sshAuthFailed"
+	errDeployTaskSSHConnectFailed         = "business.deploy.task.sshConnectFailed"
+)
+
 func NewDeployService(db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability) *DeployService {
 	return &DeployService{
 		db:               db,
@@ -283,27 +308,31 @@ func (s *DeployService) CreateTask(req CreateTaskRequest, actor string, dataScop
 		return nil, errors.New("database.not_initialized")
 	}
 	req.Name = strings.TrimSpace(req.Name)
-	if req.Name == "" || len(common.NormalizeUint64IDs(req.TargetIDs)) == 0 {
-		return nil, errors.New("deploytask.invalid")
+	targetIDs := common.NormalizeUint64IDs(req.TargetIDs)
+	if req.Name == "" {
+		return nil, errors.New("business.deploy.task.nameRequired")
+	}
+	if len(targetIDs) == 0 {
+		return nil, errors.New("business.deploy.task.targetRequired")
 	}
 	if !validTargetType(req.TargetType) {
-		return nil, errors.New("deploytask.target_invalid")
+		return nil, errors.New("business.deploy.task.invalidTargetType")
 	}
 	if req.ExecutorType == "" {
 		req.ExecutorType = ExecutorTypeManual
 	}
 	if !validExecutorType(req.ExecutorType) {
-		return nil, errors.New("deploytask.executor_invalid")
+		return nil, errors.New("business.deploy.task.invalidExecutorType")
 	}
 	var pkg DeployPackage
 	var template *TemplateResponse
 	if req.TemplateID > 0 {
 		templateDetail, err := s.GetTemplate(req.TemplateID)
 		if err != nil {
-			return nil, err
+			return nil, mapDeployTaskTemplateLookupError(err)
 		}
 		if templateDetail.Status != TemplateStatusEnabled {
-			return nil, errors.New("deploytemplate.disabled")
+			return nil, errors.New(errDeployTaskTemplateDisabled)
 		}
 		template = templateDetail
 		if req.PackageID == 0 {
@@ -321,37 +350,36 @@ func (s *DeployService) CreateTask(req CreateTaskRequest, actor string, dataScop
 	}
 	action := normalizeTaskAction(req.Action)
 	if !validTaskAction(action) {
-		return nil, errors.New("deploytask.action_invalid")
+		return nil, errors.New("business.deploy.task.invalidAction")
 	}
 	if req.PackageID == 0 {
-		return nil, errors.New("deploytask.invalid")
+		return nil, errors.New("business.deploy.task.packageRequired")
 	}
 	if err := s.db.First(&pkg, req.PackageID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("deploypackage.not_found")
+			return nil, errors.New(errDeployTaskPackageNotFound)
 		}
 		return nil, err
 	}
 	if pkg.Status != PackageStatusEnabled {
-		return nil, errors.New("deploypackage.disabled")
+		return nil, errors.New("business.deploy.task.packageDisabled")
 	}
 	if template == nil {
 		if err := validateTemplateParams(pkg.ExecutionMode, pkg.TemplateCode, pkg.TemplateConfig, req.TemplateParams); err != nil {
 			return nil, err
 		}
 	}
-	targetIDs := common.NormalizeUint64IDs(req.TargetIDs)
 	scopeName := ""
 	if req.TargetType == TargetTypeHost {
 		if req.BusinessScopeID == 0 {
-			return nil, errors.New("deploytask.scope_required")
+			return nil, errors.New("business.deploy.task.scopeRequired")
 		}
 		var count int64
 		if err := s.db.Table("biz_business_scope").Where("id = ? AND status = ? AND deleted_at IS NULL", req.BusinessScopeID, "active").Count(&count).Error; err != nil {
 			return nil, err
 		}
 		if count == 0 {
-			return nil, errors.New("deploytask.scope_invalid")
+			return nil, errors.New("business.deploy.task.scopeInvalid")
 		}
 		hosts, err := s.cmdbCapability.ResolveDeployTargets(cmdb.DeployHostResolveRequest{
 			BusinessScopeID: req.BusinessScopeID,
@@ -363,11 +391,11 @@ func (s *DeployService) CreateTask(req CreateTaskRequest, actor string, dataScop
 			return nil, err
 		}
 		if len(hosts) != len(targetIDs) {
-			return nil, errors.New("deploytask.scope_invalid")
+			return nil, errors.New("business.deploy.task.targetOutOfScope")
 		}
 		for _, host := range hosts {
 			if !hostStatusAllowedForAction(host.Status, action) {
-				return nil, errors.New("deploytask.target_invalid")
+				return nil, errors.New("business.deploy.task.targetStatusMismatch")
 			}
 			scopeName = host.BusinessScopeName
 		}
@@ -390,7 +418,7 @@ func (s *DeployService) CreateTask(req CreateTaskRequest, actor string, dataScop
 		ExecutorType:      req.ExecutorType,
 		ExecutionMode:     pkg.ExecutionMode,
 		TemplateParams:    datatypes.JSON(templateParamsJSON),
-		Status:            TaskStatusPending,
+		Status:            TaskStatusDraft,
 		Remark:            req.Remark,
 		CreatedBy:         actor,
 		UpdatedBy:         actor,
@@ -403,10 +431,10 @@ func (s *DeployService) CreateTask(req CreateTaskRequest, actor string, dataScop
 	if err := s.db.Create(&task).Error; err != nil {
 		return nil, err
 	}
-	return s.GetTask(task.ID)
+	return s.GetTask(task.ID, dataScope)
 }
 
-func (s *DeployService) ListTasks(query TaskQuery) (*TaskListResponse, error) {
+func (s *DeployService) ListTasks(query TaskQuery, dataScope *common.DataScopeReq) (*TaskListResponse, error) {
 	if query.Page <= 0 {
 		query.Page = 1
 	}
@@ -425,26 +453,41 @@ func (s *DeployService) ListTasks(query TaskQuery) (*TaskListResponse, error) {
 		db = db.Where("executor_type = ?", strings.TrimSpace(query.ExecutorType))
 	}
 	var total int64
-	if err := db.Count(&total).Error; err != nil {
+	var rows []DeployTask
+	if err := db.Order("id DESC").Find(&rows).Error; err != nil {
 		return nil, err
 	}
-	var rows []DeployTask
-	if err := db.Order("id DESC").Offset((query.Page - 1) * query.PageSize).Limit(query.PageSize).Find(&rows).Error; err != nil {
+	if dataScope != nil && !dataScope.IsAdmin && strings.TrimSpace(dataScope.Mode) != "" && strings.TrimSpace(dataScope.Mode) != common.DataScopeModeAll {
+		filteredRows, err := s.filterVisibleTasks(rows, dataScope)
+		if err != nil {
+			return nil, err
+		}
+		rows = filteredRows
+	}
+	total = int64(len(rows))
+	start := (query.Page - 1) * query.PageSize
+	if start >= len(rows) {
+		return &TaskListResponse{Items: []TaskResponse{}, Total: total, Page: query.Page, PageSize: query.PageSize}, nil
+	}
+	end := start + query.PageSize
+	if end > len(rows) {
+		end = len(rows)
+	}
+	rows = rows[start:end]
+	hostsByTaskID, err := s.loadTaskHostsByTaskIDs(extractTaskIDs(rows))
+	if err != nil {
 		return nil, err
 	}
 	items := make([]TaskResponse, 0, len(rows))
 	for i := range rows {
-		items = append(items, taskToResponse(&rows[i], nil))
+		items = append(items, taskToResponse(&rows[i], hostsByTaskID[rows[i].ID]))
 	}
 	return &TaskListResponse{Items: items, Total: total, Page: query.Page, PageSize: query.PageSize}, nil
 }
 
-func (s *DeployService) GetTask(id uint64) (*TaskResponse, error) {
-	var task DeployTask
-	if err := s.db.First(&task, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("deploytask.not_found")
-		}
+func (s *DeployService) GetTask(id uint64, dataScope *common.DataScopeReq) (*TaskResponse, error) {
+	task, err := s.loadVisibleTask(id, dataScope)
+	if err != nil {
 		return nil, err
 	}
 	var hosts []DeployTaskHost
@@ -455,125 +498,245 @@ func (s *DeployService) GetTask(id uint64) (*TaskResponse, error) {
 	for i := range hosts {
 		hostResp = append(hostResp, taskHostToResponse(&hosts[i]))
 	}
-	resp := taskToResponse(&task, hostResp)
+	resp := taskToResponse(task, hostResp)
 	return &resp, nil
 }
 
-func (s *DeployService) UpdateTask(id uint64, req UpdateTaskRequest, actor string) (*TaskResponse, error) {
-	var task DeployTask
-	if err := s.db.First(&task, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("deploytask.not_found")
-		}
+func (s *DeployService) UpdateTask(id uint64, req UpdateTaskRequest, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
+	task, err := s.loadVisibleTask(id, dataScope)
+	if err != nil {
 		return nil, err
 	}
 	if task.Status != TaskStatusPending && task.Status != TaskStatusDraft {
-		return nil, errors.New("deploytask.status_locked")
+		return nil, errors.New(errDeployTaskInvalidUpdateState)
 	}
-	updates := map[string]interface{}{"updated_by": actor, "updated_at": time.Now()}
+	nextName := task.Name
 	if req.Name != nil {
-		if strings.TrimSpace(*req.Name) == "" {
-			return nil, errors.New("deploytask.invalid")
+		nextName = strings.TrimSpace(*req.Name)
+		if nextName == "" {
+			return nil, errors.New("business.deploy.task.nameRequired")
 		}
-		updates["name"] = strings.TrimSpace(*req.Name)
 	}
+	nextTemplateID := task.TemplateID
+	if req.TemplateID != nil {
+		nextTemplateID = *req.TemplateID
+	}
+	nextPackageID := task.PackageID
 	if req.PackageID != nil {
-		var pkg DeployPackage
-		if err := s.db.First(&pkg, *req.PackageID).Error; err != nil {
-			return nil, errors.New("deploypackage.not_found")
-		}
-		updates["package_id"] = pkg.ID
-		updates["package_name"] = pkg.Name
-		updates["package_version"] = pkg.Version
+		nextPackageID = *req.PackageID
 	}
+	nextBusinessScopeID := task.BusinessScopeID
 	if req.BusinessScopeID != nil {
-		updates["business_scope_id"] = *req.BusinessScopeID
-		if *req.BusinessScopeID == 0 {
-			updates["business_scope_name"] = ""
-		} else {
-			var scopeName string
-			if err := s.db.Table("biz_business_scope").Select("name").Where("id = ? AND deleted_at IS NULL", *req.BusinessScopeID).Limit(1).Pluck("name", &scopeName).Error; err != nil {
-				return nil, err
-			}
-			updates["business_scope_name"] = scopeName
+		nextBusinessScopeID = *req.BusinessScopeID
+	}
+	nextAction := normalizeTaskAction(task.Action)
+	if req.Action != nil {
+		nextAction = normalizeTaskAction(*req.Action)
+		if !validTaskAction(nextAction) {
+			return nil, errors.New("business.deploy.task.invalidAction")
 		}
 	}
+	nextTargetType := task.TargetType
 	if req.TargetType != nil {
 		if !validTargetType(*req.TargetType) {
-			return nil, errors.New("deploytask.target_invalid")
+			return nil, errors.New("business.deploy.task.invalidTargetType")
 		}
-		updates["target_type"] = *req.TargetType
+		nextTargetType = *req.TargetType
 	}
+	nextTargetIDs := parseUint64JSON(task.TargetIDs)
 	if req.TargetIDs != nil {
-		targetIDs := common.NormalizeUint64IDs(req.TargetIDs)
-		if len(targetIDs) == 0 {
-			return nil, errors.New("deploytask.invalid")
+		nextTargetIDs = common.NormalizeUint64IDs(req.TargetIDs)
+		if len(nextTargetIDs) == 0 {
+			return nil, errors.New("business.deploy.task.targetRequired")
 		}
-		targetJSON, _ := json.Marshal(targetIDs)
-		updates["target_ids"] = datatypes.JSON(targetJSON)
 	}
+	nextExecutorType := task.ExecutorType
 	if req.ExecutorType != nil {
 		if !validExecutorType(*req.ExecutorType) {
-			return nil, errors.New("deploytask.executor_invalid")
+			return nil, errors.New("business.deploy.task.invalidExecutorType")
 		}
-		updates["executor_type"] = *req.ExecutorType
-	}
-	if req.Action != nil {
-		action := normalizeTaskAction(*req.Action)
-		if !validTaskAction(action) {
-			return nil, errors.New("deploytask.action_invalid")
-		}
-		updates["action"] = action
+		nextExecutorType = *req.ExecutorType
 	}
 	nextTemplateParams := decodeJSONMap(task.TemplateParams)
 	if req.TemplateParams != nil {
 		nextTemplateParams = *req.TemplateParams
-		templateParamsJSON, _ := json.Marshal(*req.TemplateParams)
-		updates["template_params"] = datatypes.JSON(templateParamsJSON)
+	}
+	nextRemark := task.Remark
+	if req.Remark != nil {
+		nextRemark = *req.Remark
+	}
+	var template *TemplateResponse
+	if nextTemplateID > 0 {
+		templateDetail, err := s.GetTemplate(nextTemplateID)
+		if err != nil {
+			return nil, mapDeployTaskTemplateLookupError(err)
+		}
+		if templateDetail.Status != TemplateStatusEnabled {
+			return nil, errors.New(errDeployTaskTemplateDisabled)
+		}
+		template = templateDetail
+		if req.PackageID == nil {
+			nextPackageID = templateDetail.PackageID
+			if nextPackageID == 0 && len(templateDetail.Steps) > 0 {
+				nextPackageID = templateDetail.Steps[0].PackageID
+			}
+		}
+		if req.Action == nil {
+			nextAction = normalizeTaskAction(templateDetail.DefaultAction)
+		}
+		if req.TemplateParams == nil && len(templateDetail.ParameterSchema) > 0 {
+			nextTemplateParams = templateDetail.ParameterSchema
+		}
+	}
+	if nextPackageID == 0 {
+		return nil, errors.New("business.deploy.task.packageRequired")
 	}
 	var pkg DeployPackage
-	if err := s.db.First(&pkg, task.PackageID).Error; err == nil {
+	if err := s.db.First(&pkg, nextPackageID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New(errDeployTaskPackageNotFound)
+		}
+		return nil, err
+	}
+	if pkg.Status != PackageStatusEnabled {
+		return nil, errors.New("business.deploy.task.packageDisabled")
+	}
+	if template == nil {
 		if err := validateTemplateParams(pkg.ExecutionMode, pkg.TemplateCode, pkg.TemplateConfig, nextTemplateParams); err != nil {
 			return nil, err
 		}
 	}
-	if req.Remark != nil {
-		updates["remark"] = *req.Remark
+	nextTargetIDs = common.NormalizeUint64IDs(nextTargetIDs)
+	if len(nextTargetIDs) == 0 {
+		return nil, errors.New("business.deploy.task.targetRequired")
 	}
-	if err := s.db.Model(&task).Updates(updates).Error; err != nil {
+	scopeName := task.BusinessScopeName
+	if nextTargetType == TargetTypeHost {
+		if nextBusinessScopeID == 0 {
+			return nil, errors.New("business.deploy.task.scopeRequired")
+		}
+		var count int64
+		if err := s.db.Table("biz_business_scope").Where("id = ? AND status = ? AND deleted_at IS NULL", nextBusinessScopeID, "active").Count(&count).Error; err != nil {
+			return nil, err
+		}
+		if count == 0 {
+			return nil, errors.New("business.deploy.task.scopeInvalid")
+		}
+		hosts, err := s.cmdbCapability.ResolveDeployTargets(cmdb.DeployHostResolveRequest{
+			BusinessScopeID: nextBusinessScopeID,
+			TargetType:      nextTargetType,
+			TargetIDs:       nextTargetIDs,
+			DataScope:       dataScope,
+		})
+		if err != nil {
+			return nil, err
+		}
+		if len(hosts) != len(nextTargetIDs) {
+			return nil, errors.New("business.deploy.task.targetOutOfScope")
+		}
+		for _, host := range hosts {
+			if !hostStatusAllowedForAction(host.Status, nextAction) {
+				return nil, errors.New("business.deploy.task.targetStatusMismatch")
+			}
+			scopeName = host.BusinessScopeName
+		}
+	} else {
+		nextBusinessScopeID = 0
+		scopeName = ""
+	}
+	targetJSON, _ := json.Marshal(nextTargetIDs)
+	templateParamsJSON, _ := json.Marshal(nextTemplateParams)
+	updates := map[string]interface{}{
+		"name":                nextName,
+		"template_id":         uint64(0),
+		"template_name":       "",
+		"template_version":    "",
+		"package_id":          pkg.ID,
+		"package_name":        pkg.Name,
+		"package_version":     pkg.Version,
+		"business_scope_id":   nextBusinessScopeID,
+		"business_scope_name": scopeName,
+		"action":              nextAction,
+		"target_type":         nextTargetType,
+		"target_ids":          datatypes.JSON(targetJSON),
+		"executor_type":       nextExecutorType,
+		"execution_mode":      pkg.ExecutionMode,
+		"template_params":     datatypes.JSON(templateParamsJSON),
+		"remark":              nextRemark,
+		"updated_by":          actor,
+		"updated_at":          time.Now(),
+	}
+	if template != nil {
+		updates["template_id"] = template.ID
+		updates["template_name"] = template.Name
+		updates["template_version"] = template.Version
+		updates["execution_mode"] = template.ExecutionMode
+	}
+	if err := s.db.Model(task).Updates(updates).Error; err != nil {
 		return nil, err
 	}
-	return s.GetTask(id)
+	return s.GetTask(id, dataScope)
+}
+
+func (s *DeployService) DeleteTask(id uint64, actor string, dataScope *common.DataScopeReq) error {
+	task, err := s.loadVisibleTask(id, dataScope)
+	if err != nil {
+		return err
+	}
+	if task.Status != TaskStatusDraft && task.Status != TaskStatusPending {
+		return errors.New(errDeployTaskInvalidDeleteState)
+	}
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("task_id = ?", task.ID).Delete(&DeployTaskHost{}).Error; err != nil {
+			return err
+		}
+		result := tx.Model(task).Updates(map[string]interface{}{
+			"updated_by": actor,
+			"updated_at": time.Now(),
+		}).Delete(task)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return errDeployTaskNotFound
+		}
+		return nil
+	})
 }
 
 func (s *DeployService) StartTask(id uint64, req StartTaskRequest, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
-	var task DeployTask
-	if err := s.db.First(&task, id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("deploytask.not_found")
-		}
+	task, err := s.loadVisibleTask(id, dataScope)
+	if err != nil {
 		return nil, err
 	}
-	if task.Status != TaskStatusPending {
-		return nil, errors.New("deploytask.status_invalid")
+	if task.Status != TaskStatusDraft && task.Status != TaskStatusPending {
+		return nil, errors.New("business.deploy.task.invalidStartState")
 	}
 	var pkg DeployPackage
 	if err := s.db.First(&pkg, task.PackageID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("deploypackage.not_found")
+			return nil, errors.New(errDeployTaskPackageNotFound)
 		}
 		return nil, err
 	}
-	hosts, err := s.resolveTaskTargets(&task, dataScope)
+	hosts, err := s.resolveTaskTargets(task, dataScope)
 	if err != nil {
 		return nil, err
 	}
 	if len(hosts) == 0 {
-		return nil, errors.New("deploytask.no_targets")
+		return nil, errors.New("business.deploy.task.emptyResolvedTargets")
+	}
+	if task.ExecutorType == ExecutorTypeSSH {
+		if err := validateDeploySSHStartRequest(req); err != nil {
+			return nil, err
+		}
+		if err := s.validateTaskExecutionPlan(*task, pkg, hosts); err != nil {
+			return nil, mapDeployTaskExecutionPlanError(err)
+		}
 	}
 	now := time.Now()
 	err = s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&task).Updates(map[string]interface{}{
+		if err := tx.Model(task).Updates(map[string]interface{}{
 			"status":     TaskStatusRunning,
 			"started_at": &now,
 			"updated_by": actor,
@@ -606,23 +769,23 @@ func (s *DeployService) StartTask(id uint64, req StartTaskRequest, actor string,
 		return nil, err
 	}
 	if task.ExecutorType == ExecutorTypeSSH {
-		if err := s.executeSSHTask(task, pkg, hosts, req, actor); err != nil {
+		if err := s.executeSSHTask(*task, pkg, hosts, req, actor); err != nil {
 			return nil, err
 		}
 	}
-	return s.GetTask(id)
+	return s.GetTask(id, dataScope)
 }
 
-func (s *DeployService) CancelTask(id uint64, actor string) (*TaskResponse, error) {
+func (s *DeployService) CancelTask(id uint64, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
 	now := time.Now()
-	var task DeployTask
-	if err := s.db.First(&task, id).Error; err != nil {
-		return nil, errors.New("deploytask.not_found")
+	task, err := s.loadVisibleTask(id, dataScope)
+	if err != nil {
+		return nil, err
 	}
-	if task.Status == TaskStatusSuccess || task.Status == TaskStatusFailed || task.Status == TaskStatusCanceled {
-		return nil, errors.New("deploytask.status_locked")
+	if task.Status != TaskStatusPending && task.Status != TaskStatusRunning {
+		return nil, errors.New("business.deploy.task.invalidCancelState")
 	}
-	if err := s.db.Model(&task).Updates(map[string]interface{}{
+	if err := s.db.Model(task).Updates(map[string]interface{}{
 		"status":      TaskStatusCanceled,
 		"finished_at": &now,
 		"updated_by":  actor,
@@ -636,32 +799,32 @@ func (s *DeployService) CancelTask(id uint64, actor string) (*TaskResponse, erro
 		"updated_by":  actor,
 		"updated_at":  now,
 	}).Error
-	return s.GetTask(id)
+	return s.GetTask(id, dataScope)
 }
 
-func (s *DeployService) MarkHostResult(hostID uint64, req MarkHostResultRequest, actor string) (*TaskHostResponse, error) {
-	return s.markHostResultWithSummary(hostID, req, actor, deployExecutionSummary{})
+func (s *DeployService) MarkHostResult(hostID uint64, req MarkHostResultRequest, actor string, dataScope *common.DataScopeReq) (*TaskHostResponse, error) {
+	return s.markHostResultWithSummary(hostID, req, actor, dataScope, deployExecutionSummary{})
 }
 
-func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostResultRequest, actor string, summary deployExecutionSummary) (*TaskHostResponse, error) {
+func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostResultRequest, actor string, dataScope *common.DataScopeReq, summary deployExecutionSummary) (*TaskHostResponse, error) {
 	if req.Status != TaskHostStatusSuccess && req.Status != TaskHostStatusFailed && req.Status != TaskHostStatusSkipped {
-		return nil, errors.New("deploytask.result_invalid")
+		return nil, errors.New("business.deploy.taskHost.invalidResultState")
 	}
 	req.Stdout = truncateDeployLog(req.Stdout, 60000)
 	req.Stderr = truncateDeployLog(req.Stderr, 60000)
 	req.ErrorMessage = truncateDeployLog(req.ErrorMessage, 480)
+	if req.Status == TaskHostStatusFailed && strings.TrimSpace(req.ErrorMessage) == "" {
+		return nil, errors.New("business.deploy.taskHost.markFailed.reasonRequired")
+	}
 	var host DeployTaskHost
 	if err := s.db.First(&host, hostID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("deploytask.host_not_found")
+			return nil, errors.New("business.deploy.taskHost.notFound")
 		}
 		return nil, err
 	}
-	var task DeployTask
-	if err := s.db.First(&task, host.TaskID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("deploytask.not_found")
-		}
+	task, err := s.loadVisibleTask(host.TaskID, dataScope)
+	if err != nil {
 		return nil, err
 	}
 	now := time.Now()
@@ -753,6 +916,144 @@ func (s *DeployService) resolveTaskTargets(task *DeployTask, dataScope *common.D
 		})
 	}
 	return result, nil
+}
+
+func (s *DeployService) loadVisibleTask(id uint64, dataScope *common.DataScopeReq) (*DeployTask, error) {
+	if s.db == nil {
+		return nil, errors.New("database.not_initialized")
+	}
+	var task DeployTask
+	if err := s.db.First(&task, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errDeployTaskNotFound
+		}
+		return nil, err
+	}
+	visible, err := s.taskVisible(&task, dataScope)
+	if err != nil {
+		return nil, err
+	}
+	if !visible {
+		return nil, errDeployTaskForbidden
+	}
+	return &task, nil
+}
+
+func isDeployTaskNotFound(err error) bool {
+	return errors.Is(err, errDeployTaskNotFound) || strings.TrimSpace(errorText(err)) == errDeployTaskNotFound.Error()
+}
+
+func isDeployTaskForbidden(err error) bool {
+	return errors.Is(err, errDeployTaskForbidden) || strings.TrimSpace(errorText(err)) == errDeployTaskForbidden.Error()
+}
+
+func mapDeployTaskTemplateLookupError(err error) error {
+	if err == nil {
+		return nil
+	}
+	switch strings.TrimSpace(errorText(err)) {
+	case "deploytemplate.not_found":
+		return errors.New(errDeployTaskTemplateNotFound)
+	case "deploytemplate.disabled":
+		return errors.New(errDeployTaskTemplateDisabled)
+	default:
+		return err
+	}
+}
+
+func mapDeployTaskExecutionPlanError(err error) error {
+	if err == nil {
+		return nil
+	}
+	switch strings.TrimSpace(errorText(err)) {
+	case "deploytemplate.not_found":
+		return errors.New(errDeployTaskTemplateNotFound)
+	case "deploytemplate.disabled":
+		return errors.New(errDeployTaskTemplateDisabled)
+	case "deploytemplate.invalid":
+		return errors.New(errDeployTaskTemplateInvalid)
+	case "deploypackage.not_found":
+		return errors.New(errDeployTaskPackageNotFound)
+	case "deploypackage.disabled":
+		return errors.New("business.deploy.task.packageDisabled")
+	case "deploypackage.source_missing":
+		return errors.New(errDeployTaskPackageSourceMissing)
+	default:
+		return err
+	}
+}
+
+func errorText(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
+}
+
+func (s *DeployService) filterVisibleTasks(rows []DeployTask, dataScope *common.DataScopeReq) ([]DeployTask, error) {
+	if !requiresScopedTaskVisibility(dataScope) {
+		return rows, nil
+	}
+	filtered := make([]DeployTask, 0, len(rows))
+	for i := range rows {
+		visible, err := s.taskVisible(&rows[i], dataScope)
+		if err != nil {
+			return nil, err
+		}
+		if visible {
+			filtered = append(filtered, rows[i])
+		}
+	}
+	return filtered, nil
+}
+
+func (s *DeployService) taskVisible(task *DeployTask, dataScope *common.DataScopeReq) (bool, error) {
+	if task == nil {
+		return false, nil
+	}
+	if !requiresScopedTaskVisibility(dataScope) {
+		return true, nil
+	}
+	hasVisibleTaskHost, hasTaskHosts, err := s.taskHasVisibleTaskHost(task.ID, dataScope)
+	if err != nil {
+		return false, err
+	}
+	if hasTaskHosts {
+		return hasVisibleTaskHost, nil
+	}
+	hosts, err := s.resolveTaskTargets(task, dataScope)
+	if err != nil {
+		return false, err
+	}
+	return len(hosts) > 0, nil
+}
+
+func (s *DeployService) taskHasVisibleTaskHost(taskID uint64, dataScope *common.DataScopeReq) (bool, bool, error) {
+	var taskHostCount int64
+	if err := s.db.Model(&DeployTaskHost{}).Where("task_id = ?", taskID).Count(&taskHostCount).Error; err != nil {
+		return false, false, err
+	}
+	if taskHostCount == 0 {
+		return false, false, nil
+	}
+	var visibleCount int64
+	err := s.db.Table("biz_deploy_task_host").
+		Joins("JOIN biz_cmdb_host ON biz_cmdb_host.id = biz_deploy_task_host.host_id").
+		Where("biz_deploy_task_host.task_id = ? AND biz_cmdb_host.deleted_at IS NULL", taskID).
+		Scopes(database.WithDataScope(dataScope)).
+		Count(&visibleCount).Error
+	if err != nil {
+		return false, true, err
+	}
+	return visibleCount > 0, true, nil
+}
+
+func requiresScopedTaskVisibility(dataScope *common.DataScopeReq) bool {
+	if dataScope == nil || dataScope.IsAdmin {
+		return false
+	}
+	mode := strings.TrimSpace(dataScope.Mode)
+	return mode != "" && mode != common.DataScopeModeAll
 }
 
 func (s *DeployService) recomputeTaskStatus(taskID uint64, actor string) error {
@@ -893,7 +1194,7 @@ func (c *deploySSHClient) Close() error {
 func deployHostKeyCallback(expectedFingerprint string) ssh.HostKeyCallback {
 	return func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 		if strings.TrimSpace(ssh.FingerprintSHA256(key)) != strings.TrimSpace(expectedFingerprint) {
-			return errors.New("deploytask.ssh_host_key_mismatch")
+			return errors.New(errDeployTaskSSHHostKeyMismatch)
 		}
 		return nil
 	}
@@ -902,11 +1203,11 @@ func deployHostKeyCallback(expectedFingerprint string) ssh.HostKeyCallback {
 func newDeploySSHRunner(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 	fingerprint := strings.TrimSpace(req.HostFingerprint)
 	if fingerprint == "" {
-		return nil, errors.New("deploytask.ssh_host_key_required")
+		return nil, errors.New(errDeployTaskSSHHostKeyRequired)
 	}
 	user := strings.TrimSpace(req.SSHUser)
 	if user == "" {
-		return nil, errors.New("deploytask.ssh_user_required")
+		return nil, errors.New(errDeployTaskSSHUserRequired)
 	}
 	authMode := strings.TrimSpace(req.AuthMode)
 	if authMode == "" {
@@ -921,12 +1222,12 @@ func newDeploySSHRunner(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHR
 	case "private_key":
 		signer, err := ssh.ParsePrivateKey([]byte(req.SSHPrivateKey))
 		if err != nil {
-			return nil, errors.New("deploytask.ssh_auth_failed")
+			return nil, errors.New(errDeployTaskSSHAuthFailed)
 		}
 		config.Auth = []ssh.AuthMethod{ssh.PublicKeys(signer)}
 	default:
 		if strings.TrimSpace(req.SSHPassword) == "" {
-			return nil, errors.New("deploytask.ssh_password_required")
+			return nil, errors.New(errDeployTaskSSHPasswordRequired)
 		}
 		config.Auth = []ssh.AuthMethod{ssh.Password(req.SSHPassword)}
 	}
@@ -937,7 +1238,10 @@ func newDeploySSHRunner(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHR
 	}
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", host.IP, port), config)
 	if err != nil {
-		return nil, errors.New("deploytask.ssh_connect_failed")
+		if strings.Contains(strings.TrimSpace(err.Error()), errDeployTaskSSHHostKeyMismatch) {
+			return nil, errors.New(errDeployTaskSSHHostKeyMismatch)
+		}
+		return nil, errors.New(errDeployTaskSSHConnectFailed)
 	}
 	return &deploySSHClient{client: client}, nil
 }
@@ -960,9 +1264,9 @@ type deployInstalledComponent struct {
 func (s *DeployService) executeSSHTask(task DeployTask, pkg DeployPackage, hosts []cmdbHostSnapshot, req StartTaskRequest, actor string) error {
 	plan, err := s.resolveTaskExecutionPlan(task, pkg)
 	if err != nil {
-		return err
+		return mapDeployTaskExecutionPlanError(err)
 	}
-	taskDetail, err := s.GetTask(task.ID)
+	taskDetail, err := s.GetTask(task.ID, nil)
 	if err != nil {
 		return err
 	}
@@ -983,7 +1287,7 @@ func (s *DeployService) executeSSHTask(task DeployTask, pkg DeployPackage, hosts
 				Status:       TaskHostStatusFailed,
 				ErrorMessage: runnerErr.Error(),
 				ExecutorID:   fmt.Sprintf("ssh:%s", target.IP),
-			}, actor); err != nil {
+			}, actor, nil); err != nil {
 				return err
 			}
 			continue
@@ -1012,7 +1316,7 @@ func (s *DeployService) executeSSHTask(task DeployTask, pkg DeployPackage, hosts
 			}
 			script, renderErr := s.renderExecutionStepScript(step, task, target)
 			if renderErr != nil {
-				executionErr = renderErr
+				executionErr = mapDeployTaskExecutionPlanError(renderErr)
 				_ = s.appendTaskHostTrace(task.ID, taskHost.ID, []map[string]any{
 					{
 						"at":          time.Now().Format(time.RFC3339),
@@ -1041,7 +1345,7 @@ func (s *DeployService) executeSSHTask(task DeployTask, pkg DeployPackage, hosts
 			})
 			precheckScript, hasPrecheck, precheckErr := renderDeployCheckSnippet(step, task, target, "precheckCommand")
 			if precheckErr != nil {
-				executionErr = precheckErr
+				executionErr = mapDeployTaskExecutionPlanError(precheckErr)
 				_ = s.appendTaskHostTrace(task.ID, taskHost.ID, []map[string]any{
 					{
 						"at":          time.Now().Format(time.RFC3339),
@@ -1120,7 +1424,7 @@ func (s *DeployService) executeSSHTask(task DeployTask, pkg DeployPackage, hosts
 			}
 			postcheckScript, hasPostcheck, postcheckErr := renderDeployCheckSnippet(step, task, target, "postcheckCommand")
 			if postcheckErr != nil {
-				executionErr = postcheckErr
+				executionErr = mapDeployTaskExecutionPlanError(postcheckErr)
 				_ = s.appendTaskHostTrace(task.ID, taskHost.ID, []map[string]any{
 					{
 						"at":          time.Now().Format(time.RFC3339),
@@ -1216,7 +1520,7 @@ func (s *DeployService) executeSSHTask(task DeployTask, pkg DeployPackage, hosts
 				Stderr:       combinedStderr,
 				ErrorMessage: errorMessage,
 				ExecutorID:   executorID,
-			}, actor, deployExecutionSummary{}); err != nil {
+			}, actor, nil, deployExecutionSummary{}); err != nil {
 				return err
 			}
 			_ = s.appendTaskHostTrace(task.ID, taskHost.ID, []map[string]any{
@@ -1229,7 +1533,7 @@ func (s *DeployService) executeSSHTask(task DeployTask, pkg DeployPackage, hosts
 			Stdout:     combinedStdout,
 			Stderr:     combinedStderr,
 			ExecutorID: executorID,
-		}, actor, summary); err != nil {
+		}, actor, nil, summary); err != nil {
 			return err
 		}
 		_ = s.appendTaskHostTrace(task.ID, taskHost.ID, []map[string]any{
@@ -1282,7 +1586,7 @@ func (s *DeployService) resolveTaskExecutionPlan(task DeployTask, fallbackPackag
 			stepType = TemplateStepTypePackage
 		}
 		if stepType != TemplateStepTypePackage && stepType != TemplateStepTypeScript {
-			return nil, errors.New("deploytemplate.invalid")
+			return nil, errors.New(errDeployTaskTemplateInvalid)
 		}
 		effectiveAction := normalizeTaskAction(task.Action)
 		if effectiveAction == "" {
@@ -1367,7 +1671,7 @@ func (s *DeployService) renderExecutionStepScript(step deployExecutionStep, task
 	if step.StepType == TemplateStepTypeScript {
 		script := readDeployConfigString(step.StepConfig, "script")
 		if script == "" {
-			return "", errors.New("deploytemplate.invalid")
+			return "", errors.New(errDeployTaskTemplateInvalid)
 		}
 		return renderTemplateSnippet(script, buildDeployRenderContext(step, task, host))
 	}
@@ -1395,7 +1699,7 @@ func renderTemplateSnippet(template string, context map[string]string) (string, 
 		key := strings.TrimSpace(match[1])
 		value, ok := context[key]
 		if !ok {
-			renderErr = fmt.Errorf("missing template variable: %s", key)
+			renderErr = errors.New(errDeployTaskTemplateParamsInvalid)
 			return token
 		}
 		return value
@@ -1783,18 +2087,60 @@ func validateTemplateParams(executionMode string, templateCode string, templateC
 	return validateTemplateParamsForCode(executionMode, templateCode, templateConfigRaw, templateParams)
 }
 
+func validateDeploySSHStartRequest(req StartTaskRequest) error {
+	if strings.TrimSpace(req.HostFingerprint) == "" {
+		return errors.New(errDeployTaskSSHHostKeyRequired)
+	}
+	if strings.TrimSpace(req.SSHUser) == "" {
+		return errors.New(errDeployTaskSSHUserRequired)
+	}
+	if strings.TrimSpace(req.AuthMode) == "private_key" {
+		if strings.TrimSpace(req.SSHPrivateKey) == "" {
+			return errors.New(errDeployTaskSSHPrivateKeyRequired)
+		}
+		return nil
+	}
+	if strings.TrimSpace(req.SSHPassword) == "" {
+		return errors.New(errDeployTaskSSHPasswordRequired)
+	}
+	return nil
+}
+
+func (s *DeployService) validateTaskExecutionPlan(task DeployTask, fallbackPackage DeployPackage, hosts []cmdbHostSnapshot) error {
+	plan, err := s.resolveTaskExecutionPlan(task, fallbackPackage)
+	if err != nil {
+		return err
+	}
+	if len(hosts) == 0 {
+		return nil
+	}
+	sampleHost := hosts[0]
+	for _, step := range plan {
+		if _, err := s.renderExecutionStepScript(step, task, sampleHost); err != nil {
+			return err
+		}
+		if _, _, err := renderDeployCheckSnippet(step, task, sampleHost, "precheckCommand"); err != nil {
+			return err
+		}
+		if _, _, err := renderDeployCheckSnippet(step, task, sampleHost, "postcheckCommand"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *DeployService) resolveInstallScript(pkg DeployPackage, task DeployTask) (string, error) {
 	if strings.TrimSpace(pkg.TemplateCode) != "" && pkg.ExecutionMode == ExecutionModeFixed {
 		return renderFixedTemplateScript(pkg, task)
 	}
 	if normalizeTaskAction(task.Action) == TaskActionUninstall {
 		if strings.TrimSpace(pkg.UninstallCommand) == "" {
-			return "", errors.New("deploytask.uninstall_command_required")
+			return "", errors.New(errDeployTaskUninstallCommandRequired)
 		}
 		return pkg.UninstallCommand, nil
 	}
 	if strings.TrimSpace(pkg.InstallCommand) == "" {
-		return "", errors.New("deploytask.install_command_required")
+		return "", errors.New(errDeployTaskInstallCommandRequired)
 	}
 	return pkg.InstallCommand, nil
 }
@@ -1807,7 +2153,7 @@ func renderNginxSystemdScript(pkg DeployPackage, task DeployTask) (string, error
 	sourceObjectKey := strings.TrimSpace(pkg.SourceObjectKey)
 	sourceURL := strings.TrimSpace(pkg.SourceURL)
 	if action != TaskActionUninstall && (installRoot == "" || serviceName == "") {
-		return "", errors.New("deploytask.template_params_invalid")
+		return "", errors.New(errDeployTaskTemplateParamsInvalid)
 	}
 	if action == TaskActionUninstall {
 		if serviceName == "" {
@@ -1833,12 +2179,12 @@ echo "Uninstall completed for ${SERVICE_NAME}"
 	}
 	version := strings.TrimSpace(pkg.Version)
 	if version == "" {
-		return "", errors.New("deploypackage.invalid")
+		return "", errors.New(errDeployTaskTemplateInvalid)
 	}
 	sourceDownload := ""
 	if sourceObjectKey != "" {
 		if sourceURL == "" {
-			return "", errors.New("deploypackage.source_missing")
+			return "", errors.New(errDeployTaskPackageSourceMissing)
 		}
 		sourceDownload = fmt.Sprintf(`SOURCE_URL="%s"
 curl -fsSL "$SOURCE_URL" -o "$PKG_DIR/$TARBALL"
@@ -1957,6 +2303,29 @@ func computeDurationSeconds(startedAt *time.Time, finishedAt *time.Time) int64 {
 	return seconds
 }
 
+func extractTaskIDs(rows []DeployTask) []uint64 {
+	ids := make([]uint64, 0, len(rows))
+	for _, row := range rows {
+		ids = append(ids, row.ID)
+	}
+	return ids
+}
+
+func (s *DeployService) loadTaskHostsByTaskIDs(taskIDs []uint64) (map[uint64][]TaskHostResponse, error) {
+	result := make(map[uint64][]TaskHostResponse, len(taskIDs))
+	if len(taskIDs) == 0 {
+		return result, nil
+	}
+	var hosts []DeployTaskHost
+	if err := s.db.Where("task_id IN ?", taskIDs).Order("task_id ASC, id ASC").Find(&hosts).Error; err != nil {
+		return nil, err
+	}
+	for _, host := range hosts {
+		result[host.TaskID] = append(result[host.TaskID], taskHostToResponse(&host))
+	}
+	return result, nil
+}
+
 func (s *DeployService) loadPackageDeploymentStats(packageIDs []uint64) (map[uint64]packageDeploymentStat, error) {
 	result := make(map[uint64]packageDeploymentStat, len(packageIDs))
 	if len(packageIDs) == 0 {
@@ -1997,8 +2366,4 @@ func (s *DeployService) loadPackageDeploymentStats(packageIDs []uint64) (map[uin
 		result[task.PackageID] = stat
 	}
 	return result, nil
-}
-
-func (s *DeployService) taskQuery(dataScope *common.DataScopeReq) *gorm.DB {
-	return s.db.Model(&DeployTask{}).Scopes(database.WithDataScope(dataScope))
 }

@@ -31,7 +31,7 @@ func (h *Handler) List(c *gin.Context) {
 }
 
 func (h *Handler) Options(c *gin.Context) {
-	items, err := h.service.ListOptions()
+	items, err := h.service.ListOptions(common.GetDataScope(c))
 	if err != nil {
 		common.Fail(c, common.CodeError, "bizscope.options.error")
 		return
@@ -45,7 +45,7 @@ func (h *Handler) Detail(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
 		return
 	}
-	item, serviceErr := h.service.Get(id)
+	item, serviceErr := h.service.Get(id, common.GetDataScope(c))
 	if serviceErr != nil {
 		common.Fail(c, common.CodeError, "bizscope.detail.error")
 		return
@@ -59,7 +59,7 @@ func (h *Handler) Hosts(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
 		return
 	}
-	items, serviceErr := h.service.ListBoundHosts(id)
+	items, serviceErr := h.service.ListBoundHosts(id, common.GetDataScope(c))
 	if serviceErr != nil {
 		common.Fail(c, common.CodeError, "bizscope.hosts.error")
 		return
@@ -73,7 +73,7 @@ func (h *Handler) AvailableHosts(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
 		return
 	}
-	items, serviceErr := h.service.ListAvailableHosts(id)
+	items, serviceErr := h.service.ListAvailableHosts(id, common.GetDataScope(c))
 	if serviceErr != nil {
 		common.Fail(c, common.CodeError, "bizscope.availableHosts.error")
 		return
@@ -93,7 +93,7 @@ func (h *Handler) BindHosts(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
 		return
 	}
-	if serviceErr := h.service.BindHosts(id, req.HostIDs); serviceErr != nil {
+	if serviceErr := h.service.BindHosts(id, req.HostIDs, common.GetDataScope(c)); serviceErr != nil {
 		common.Fail(c, common.CodeError, "bizscope.bindHosts.error")
 		return
 	}
@@ -112,7 +112,7 @@ func (h *Handler) UnbindHost(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, "param.invalid")
 		return
 	}
-	if serviceErr := h.service.UnbindHost(scopeID, hostID); serviceErr != nil {
+	if serviceErr := h.service.UnbindHost(scopeID, hostID, common.GetDataScope(c)); serviceErr != nil {
 		common.Fail(c, common.CodeError, "bizscope.unbindHost.error")
 		return
 	}

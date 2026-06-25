@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "baseRepo": "../pantheon-base",
+  "releaseLine": "release/0.8",
+  "releaseVersion": "base-v0.8.3",
+  "baseCommit": "d635044855024535487c2faba92c642c74608eec",
+  "consumerMode": "foundation-release-consumer",
+  "releaseArtifact": {
+    "githubRepo": "duanxldragon/pantheon-base",
+    "assetName": "foundation-release-base-v0.8.3.tgz",
+    "localPath": ".foundation/releases/base-v0.8.3",
+    "checksum": null
+  },
+  "lockedAt": "2026-06-25T06:00:00Z",
+  "lockedBy": "foundation-release-upgrade-v0.8.5",
+  "sharedPaths": {
+    "backend": [
+      "backend/cmd",
+      "backend/internal",
+      "backend/modules",
+      "backend/pkg"
+    ],
+    "frontend": [
+      "frontend/src/components",
+      "frontend/src/core",
+      "frontend/src/store",
+      "frontend/src/modules/auth",
+      "frontend/src/modules/platform",
+      "frontend/src/modules/lowcode",
+      "frontend/src/index.css"
+    ],
+    "docs": [
+      "docs/designs/FOUNDATION_RELEASE_MODEL.md",
+      "docs/designs/WORKFLOW.md"
+    ]
+  }
+}

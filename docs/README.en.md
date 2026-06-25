@@ -18,6 +18,7 @@ This directory contains only repository-owned business documents. Architecture, 
 - [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) / [designs/BUSINESS_CMDB_MODULE_DESIGN.en.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.en.md): CMDB business-module design
 - [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) / [designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md): deploy business-module design
 - [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md) / [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md): canonical business error-key appendix
+- [designs/FOUNDATION_UPGRADE_PATH.md](./designs/FOUNDATION_UPGRADE_PATH.md) / [designs/FOUNDATION_UPGRADE_PATH.en.md](./designs/FOUNDATION_UPGRADE_PATH.en.md): upgrade path document for `base-v0.8.4` → `base-v0.8.5` (change scope, steps, and rollback notes)
 - [designs/PLATFORM_SRE_EVOLUTION_PLAN.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.md) / [designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md): SRE evolution roadmap
 - [../DESIGN.md](../DESIGN.md) / [../DESIGN.en.md](../DESIGN.en.md): repo-level design stance
 - [../frontend/README.md](../frontend/README.md) / [../frontend/README.en.md](../frontend/README.en.md): frontend workspace notes

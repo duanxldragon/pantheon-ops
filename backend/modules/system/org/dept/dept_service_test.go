@@ -15,18 +15,62 @@ func setupDeptTestDB(t *testing.T) *gorm.DB {
 	return testmysql.Open(t)
 }
 
+type deptFixturePost struct {
+	ID        uint64         `gorm:"primaryKey;autoIncrement"`
+	DeptID    uint64         `gorm:"column:dept_id"`
+	PostCode  string         `gorm:"column:post_code;size:64"`
+	PostName  string         `gorm:"column:post_name;size:128"`
+	Sort      int            `gorm:"column:sort;default:0"`
+	Status    int            `gorm:"column:status"`
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
+}
+
+func (deptFixturePost) TableName() string {
+	return "system_post"
+}
+
+type deptFixtureUser struct {
+	ID        uint64         `gorm:"primaryKey;autoIncrement"`
+	Username  string         `gorm:"column:username;size:64"`
+	Password  string         `gorm:"column:password;size:255"`
+	Nickname  string         `gorm:"column:nickname;size:64"`
+	DeptID    uint64         `gorm:"column:dept_id"`
+	PostID    uint64         `gorm:"column:post_id"`
+	Status    int            `gorm:"column:status"`
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
+}
+
+func (deptFixtureUser) TableName() string {
+	return "system_user"
+}
+
+func migrateDeptFixturePosts(t *testing.T, db *gorm.DB) {
+	t.Helper()
+	if err := db.AutoMigrate(&deptFixturePost{}); err != nil {
+		t.Fatalf("migrate post fixture: %v", err)
+	}
+}
+
+func migrateDeptFixtureUsers(t *testing.T, db *gorm.DB) {
+	t.Helper()
+	if err := db.AutoMigrate(&deptFixtureUser{}); err != nil {
+		t.Fatalf("migrate user fixture: %v", err)
+	}
+}
+
 func TestDeptService_MigrateCreatesRootAndReparentsTopLevel(t *testing.T) {
 	db := setupDeptTestDB(t)
 	if err := db.AutoMigrate(&SystemDept{}); err != nil {
 		t.Fatalf("migrate dept table: %v", err)
 	}
-	if err := db.Exec(`INSERT INTO system_dept (id, parent_id, ancestors, is_root, dept_name, status) VALUES (10, 0, '', 0, '研发中心', 1)`).Error; err != nil {
+	now := time.Now().UTC().Format("2006-01-02 15:04:05")
+	if err := db.Exec(fmt.Sprintf(`INSERT INTO system_dept (id, parent_id, ancestors, is_root, dept_name, status, created_at, updated_at) VALUES (10, 0, '', 0, '研发中心', 1, '%s', '%s')`, now, now)).Error; err != nil {
 		t.Fatalf("seed dept 10: %v", err)
 	}
-	if err := db.Exec(`INSERT INTO system_dept (id, parent_id, ancestors, is_root, dept_name, status) VALUES (11, 10, '10', 0, '平台研发部', 1)`).Error; err != nil {
+	if err := db.Exec(fmt.Sprintf(`INSERT INTO system_dept (id, parent_id, ancestors, is_root, dept_name, status, created_at, updated_at) VALUES (11, 10, '10', 0, '平台研发部', 1, '%s', '%s')`, now, now)).Error; err != nil {
 		t.Fatalf("seed dept 11: %v", err)
 	}
-	if err := db.Exec(`INSERT INTO system_dept (id, parent_id, ancestors, is_root, dept_name, status) VALUES (12, 0, '', 0, '财务部', 1)`).Error; err != nil {
+	if err := db.Exec(fmt.Sprintf(`INSERT INTO system_dept (id, parent_id, ancestors, is_root, dept_name, status, created_at, updated_at) VALUES (12, 0, '', 0, '财务部', 1, '%s', '%s')`, now, now)).Error; err != nil {
 		t.Fatalf("seed dept 12: %v", err)
 	}
 
@@ -93,9 +137,8 @@ func TestDeptService_DeleteIgnoresSoftDeletedUsers(t *testing.T) {
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
 	}
-	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_user (id INTEGER PRIMARY KEY, dept_id INTEGER, deleted_at DATETIME)").Error; err != nil {
-		t.Fatalf("create user fixture: %v", err)
-	}
+	migrateDeptFixtureUsers(t, db)
+	migrateDeptFixturePosts(t, db)
 
 	var root SystemDept
 	if err := db.Where("is_root = ?", 1).First(&root).Error; err != nil {
@@ -125,9 +168,7 @@ func TestDeptService_DeleteRejectsDeptWithPosts(t *testing.T) {
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
 	}
-	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_post (id INTEGER PRIMARY KEY, dept_id INTEGER, deleted_at DATETIME)").Error; err != nil {
-		t.Fatalf("create post fixture: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
 
 	var root SystemDept
 	if err := db.Where("is_root = ?", 1).First(&root).Error; err != nil {
@@ -196,28 +237,8 @@ func TestDeptService_BatchUpdateDeptStatus(t *testing.T) {
 func TestDeptService_BatchUpdateDeptLeader(t *testing.T) {
 	db := setupDeptTestDB(t)
 	service := NewDeptService(db)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER,
-		deleted_at DATETIME
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_user (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		username TEXT,
-		password TEXT,
-		nickname TEXT,
-		dept_id INTEGER,
-		post_id INTEGER,
-		status INTEGER,
-		deleted_at DATETIME
-	)`).Error; err != nil {
-		t.Fatalf("create user table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
+	migrateDeptFixtureUsers(t, db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
 	}
@@ -274,28 +295,8 @@ func TestDeptService_BatchUpdateDeptLeader(t *testing.T) {
 func TestDeptService_ListLeaderCandidatesAndUpdateWithLeaderUser(t *testing.T) {
 	db := setupDeptTestDB(t)
 	service := NewDeptService(db)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER,
-		deleted_at DATETIME
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_user (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		username TEXT,
-		password TEXT,
-		nickname TEXT,
-		dept_id INTEGER,
-		post_id INTEGER,
-		status INTEGER,
-		deleted_at DATETIME
-	)`).Error; err != nil {
-		t.Fatalf("create user table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
+	migrateDeptFixtureUsers(t, db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
 	}
@@ -405,15 +406,7 @@ func TestDeptService_GetDeptTreeIncludesAncestorsForSearch(t *testing.T) {
 
 func TestDeptService_GetDeptTreeSupportsGovernanceFilter(t *testing.T) {
 	db := setupDeptTestDB(t)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
 	service := NewDeptService(db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
@@ -526,15 +519,7 @@ func TestDeptService_ImportTemplateAndExport(t *testing.T) {
 
 func TestDeptService_ExportDeptsSupportsGovernanceFilter(t *testing.T) {
 	db := setupDeptTestDB(t)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
 	service := NewDeptService(db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
@@ -582,23 +567,8 @@ func TestDeptService_ExportDeptsSupportsGovernanceFilter(t *testing.T) {
 
 func TestDeptService_ExportDeptsIncludesGovernanceMetrics(t *testing.T) {
 	db := setupDeptTestDB(t)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_user (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		status INTEGER,
-		deleted_at DATETIME
-	)`).Error; err != nil {
-		t.Fatalf("create user table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
+	migrateDeptFixtureUsers(t, db)
 	service := NewDeptService(db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
@@ -666,24 +636,8 @@ func TestDeptService_ExportDeptsIncludesGovernanceMetrics(t *testing.T) {
 
 func TestDeptService_ListGovernanceTasks(t *testing.T) {
 	db := setupDeptTestDB(t)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_user (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_id INTEGER,
-		status INTEGER,
-		deleted_at DATETIME
-	)`).Error; err != nil {
-		t.Fatalf("create user table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
+	migrateDeptFixtureUsers(t, db)
 	service := NewDeptService(db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
@@ -770,15 +724,7 @@ func TestDeptService_ExportGovernanceTasks(t *testing.T) {
 
 func TestDeptService_GetOverview(t *testing.T) {
 	db := setupDeptTestDB(t)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
 
 	service := NewDeptService(db)
 	if err := service.Migrate(); err != nil {

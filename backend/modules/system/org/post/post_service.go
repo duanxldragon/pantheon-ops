@@ -3,6 +3,7 @@ package org
 import (
 	"errors"
 	"fmt"
+	"pantheon-ops/backend/pkg/common"
 	"strings"
 	"time"
 
@@ -24,17 +25,24 @@ func NewPostService(db *gorm.DB) *PostService {
 
 func (s *PostService) Migrate() error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return common.ErrDatabaseNotInitialized
 	}
 	if err := s.db.AutoMigrate(&SystemPost{}); err != nil {
 		return err
+	}
+	return s.Bootstrap()
+}
+
+func (s *PostService) Bootstrap() error {
+	if s.db == nil {
+		return common.ErrDatabaseNotInitialized
 	}
 	return s.releaseDeletedPostCodes()
 }
 
 func (s *PostService) ListPosts(query *PostListQuery) (*PostListPageResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var posts []SystemPost
@@ -92,7 +100,7 @@ func (s *PostService) ListPosts(query *PostListQuery) (*PostListPageResp, error)
 
 func (s *PostService) CreatePost(req *PostCreateReq) (*PostListResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if err := s.validatePostCreate(0, req.PostCode, req.DeptID); err != nil {
 		return nil, err
@@ -120,7 +128,7 @@ func (s *PostService) CreatePost(req *PostCreateReq) (*PostListResp, error) {
 
 func (s *PostService) UpdatePost(postID uint64, req *PostUpdateReq) (*PostListResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var post SystemPost
@@ -156,7 +164,7 @@ func (s *PostService) UpdatePost(postID uint64, req *PostUpdateReq) (*PostListRe
 
 func (s *PostService) DeletePost(postID uint64) error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return common.ErrDatabaseNotInitialized
 	}
 
 	if err := s.ensurePostsNotAssignedToUsers([]uint64{postID}); err != nil {
@@ -183,7 +191,7 @@ func (s *PostService) DeletePost(postID uint64) error {
 
 func (s *PostService) BatchUpdatePostStatus(postIDs []uint64, status int) (int, error) {
 	if s.db == nil {
-		return 0, errors.New("database.not_initialized")
+		return 0, common.ErrDatabaseNotInitialized
 	}
 	normalizedIDs := normalizePostIDs(postIDs)
 	if len(normalizedIDs) == 0 {
@@ -226,7 +234,7 @@ func (s *PostService) BatchUpdatePostStatus(postIDs []uint64, status int) (int, 
 
 func (s *PostService) ExportPosts(query *PostListQuery) (*impexp.CSVFile, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	rows, err := s.listPostsForExport(query)
@@ -292,7 +300,7 @@ func (s *PostService) ImportPosts(records [][]string) (*impexp.ImportResult, err
 		Errors:  []impexp.ImportError{},
 	}
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if len(records) == 0 {
 		impexp.AppendImportError(result, 0, "file", "import.file.empty")
@@ -639,7 +647,7 @@ func normalizePostIDs(ids []uint64) []uint64 {
 
 func (s *PostService) loadPostUserCounts() (map[uint64]int, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if !s.db.Migrator().HasTable("system_user") {
 		return map[uint64]int{}, nil
@@ -666,7 +674,7 @@ func (s *PostService) loadPostUserCounts() (map[uint64]int, error) {
 	return result, nil
 }
 
-func buildPostGovernanceTags(status int, assignedUserCount int) []string {
+func buildPostGovernanceTags(status, assignedUserCount int) []string {
 	tags := make([]string, 0, 2)
 	if assignedUserCount > 0 {
 		tags = append(tags, "in-use")
@@ -687,7 +695,7 @@ func buildPostGovernanceBlockers(assignedUserCount int) []string {
 	return []string{"none"}
 }
 
-func buildPostGovernanceActions(status int, assignedUserCount int) []string {
+func buildPostGovernanceActions(status, assignedUserCount int) []string {
 	if assignedUserCount > 0 {
 		if normalizePostStatus(status) == 2 {
 			return []string{"reassign-users", "review-status"}

@@ -2,7 +2,7 @@
   {
     "path": "/system/user",
     "title": "用户管理",
-    "sourceFile": "src/modules/system/user/UserList.tsx",
+    "sourceFile": "src/modules/system/iam/user/UserList.tsx",
     "narrative": "task-first-list",
     "governanceDrawer": "allowed",
     "governanceButtonText": "治理摘要",
@@ -12,7 +12,7 @@
   {
     "path": "/system/setting",
     "title": "系统设置",
-    "sourceFile": "src/modules/system/setting/SettingOverviewPage.tsx",
+    "sourceFile": "src/modules/system/config/setting/SettingOverviewPage.tsx",
     "narrative": "config-overview",
     "identitySelectors": [
       ".setting-overview-page"
@@ -46,7 +46,7 @@
   {
     "path": "/system/setting/:groupKey",
     "title": "系统设置",
-    "sourceFile": "src/modules/system/setting/SettingGroupPage.tsx",
+    "sourceFile": "src/modules/system/config/setting/SettingGroupPage.tsx",
     "narrative": "config-group",
     "identitySelectors": [
       ".setting-group-page"
@@ -80,7 +80,7 @@
   {
     "path": "/system/role",
     "title": "角色管理",
-    "sourceFile": "src/modules/system/role/RoleList.tsx",
+    "sourceFile": "src/modules/system/iam/role/RoleList.tsx",
     "narrative": "governance-workbench",
     "governanceDrawer": "allowed",
     "governanceButtonText": "授权摘要",
@@ -90,7 +90,7 @@
   {
     "path": "/system/menu",
     "title": "菜单管理",
-    "sourceFile": "src/modules/system/menu/MenuList.tsx",
+    "sourceFile": "src/modules/system/iam/menu/MenuList.tsx",
     "narrative": "governance-workbench",
     "governanceDrawer": "allowed",
     "governanceButtonText": "元数据摘要",
@@ -100,7 +100,7 @@
   {
     "path": "/system/permission",
     "title": "权限管理",
-    "sourceFile": "src/modules/system/permission/PermissionList.tsx",
+    "sourceFile": "src/modules/system/iam/permission/PermissionList.tsx",
     "narrative": "governance-workbench",
     "governanceDrawer": "allowed",
     "governanceButtonText": "治理摘要",
@@ -110,7 +110,7 @@
   {
     "path": "/system/dept",
     "title": "部门管理",
-    "sourceFile": "src/modules/system/dept/DeptList.tsx",
+    "sourceFile": "src/modules/system/org/dept/DeptList.tsx",
     "narrative": "governance-workbench",
     "governanceDrawer": "allowed",
     "governanceButtonText": "治理视角",
@@ -120,7 +120,7 @@
   {
     "path": "/system/post",
     "title": "岗位管理",
-    "sourceFile": "src/modules/system/post/PostList.tsx",
+    "sourceFile": "src/modules/system/org/post/PostList.tsx",
     "narrative": "governance-workbench",
     "governanceDrawer": "allowed",
     "governanceButtonText": "治理摘要",
@@ -130,7 +130,7 @@
   {
     "path": "/system/dict",
     "title": "字典管理",
-    "sourceFile": "src/modules/system/dict/DictPage.tsx",
+    "sourceFile": "src/modules/system/config/dict/DictPage.tsx",
     "narrative": "governance-workbench",
     "governanceDrawer": "allowed",
     "governanceButtonText": "治理摘要",
@@ -180,7 +180,7 @@
   {
     "path": "/system/modules",
     "title": "模块注册表",
-    "sourceFile": "src/modules/system/dynamicmodule/ModuleManager.tsx",
+    "sourceFile": "src/modules/lowcode/dynamicmodule/ModuleManager.tsx",
     "narrative": "module-governance",
     "governanceDrawer": "forbidden",
     "hero": "forbidden"
@@ -188,7 +188,7 @@
   {
     "path": "/system/generator",
     "title": "模块生成器",
-    "sourceFile": "src/modules/system/generator/pages/ModuleWizard.tsx",
+    "sourceFile": "src/modules/lowcode/generator/pages/ModuleWizard.tsx",
     "narrative": "module-onboarding",
     "governanceDrawer": "forbidden",
     "hero": "forbidden"

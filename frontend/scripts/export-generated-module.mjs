@@ -13,11 +13,11 @@ if (!schemaPath) {
 }
 
 const files = [
-  'src/modules/system/generator/schema.ts',
-  'src/modules/system/generator/type-mapping.ts',
-  'src/modules/system/generator/backend-generator.ts',
-  'src/modules/system/generator/frontend-generator.ts',
-  'src/modules/system/generator/exporter.ts',
+  'src/modules/lowcode/generator/schema.ts',
+  'src/modules/lowcode/generator/type-mapping.ts',
+  'src/modules/lowcode/generator/backend-generator.ts',
+  'src/modules/lowcode/generator/frontend-generator.ts',
+  'src/modules/lowcode/generator/exporter.ts',
 ];
 
 rmSync(tempDir, { recursive: true, force: true });

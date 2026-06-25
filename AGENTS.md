@@ -10,6 +10,7 @@ English quick guide: [CLAUDE.md](./CLAUDE.md)
 - 本仓库的 repo-local workflow skills 位于 `.agents/skills/`；涉及继承校验、PR 收口、GitHub comments 收敛和 GitHub Actions 红灯时，优先看 `repo-verify`、`repo-pr-gate`、`gh-address-comments`、`repo-ci-triage`、`gh-fix-ci`。
 - 任务先分层：`platform / system/auth / system/iam / system/org / system/config / business/*`；跨层先说边界再动手。
 - 个人维护阶段，`pantheon-ops` 默认优先走 `L1` 轻量闭环；只有文案/只读/纯格式化这类小改走 `L0`。一旦发现共享底座问题、继承同步、权限/菜单/i18n/导入导出/审计/生成器边界，升级到 `L2`，并优先判断是否应回 `pantheon-base`。
+- 实现前应用最小复杂度阶梯：先判断是否不需要做、能否复用 base/ops 现有 helper/component/script/contract、能否用标准库、平台原生能力或已安装依赖；只有这些都不满足时才写最小新增代码。不得用“简化”削弱鉴权、审计、i18n、可访问性、运行态证据或业务验收。
 - `pantheon-base` 拥有 `platform` 和 `system/*`；本仓库只沉淀业务设计、业务验收和本地继承说明。
 - 业务模块可使用 base 扩展点、共享契约和公共包，但不可本地 override 底座行为。
 - 发现共享平台、系统域、UI、权限、i18n、审计或验收规则问题时，先判断是否应在 `pantheon-base` 修复，再同步到 ops。

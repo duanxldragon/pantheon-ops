@@ -610,12 +610,12 @@ export default function CmdbGroupList() {
                     current: page,
                     pageSize,
                     total: filteredFlatData.length,
-                    onChange: (nextPage) => {
+                    onChange: (nextPage, nextPageSize) => {
                       setPage(nextPage || 1);
-                    },
-                    onPageSizeChange: (nextPageSize) => {
-                      setPageSize(nextPageSize || pageSize);
-                      setPage(1);
+                      if (nextPageSize && nextPageSize !== pageSize) {
+                        setPageSize(nextPageSize);
+                        setPage(1);
+                      }
                     },
                     pageSizeChangeResetCurrent: true,
                   })}
