@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "baseRepo": "../pantheon-base",
   "releaseLine": "release/0.8",
-  "releaseVersion": "base-v0.8.5",
-  "baseCommit": "185e31f030108ad0e85cf8a6c87912222656ba3a",
+  "releaseVersion": "base-v0.8.3",
+  "baseCommit": "d635044855024535487c2faba92c642c74608eec",
   "consumerMode": "foundation-release-consumer",
   "releaseArtifact": {
     "githubRepo": "duanxldragon/pantheon-base",
-    "assetName": "foundation-release-base-v0.8.5.tgz",
-    "localPath": ".foundation/releases/base-v0.8.5",
+    "assetName": "foundation-release-base-v0.8.3.tgz",
+    "localPath": ".foundation/releases/base-v0.8.3",
     "checksum": null
   },
   "lockedAt": "2026-06-25T06:00:00Z",

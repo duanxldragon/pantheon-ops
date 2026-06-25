@@ -35,6 +35,8 @@ function parseArgs(argv) {
       if (!value) throw new Error('--repo requires owner/repo');
       options.repo = value;
       index += 1;
+    } else if (arg === '--if-exists') {
+      options.ifExists = true;
     } else if (arg === '--help' || arg === '-h') {
       options.help = true;
     } else {
@@ -70,12 +72,22 @@ function downloadArchive(lock, options) {
   }
 
   const downloadDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-foundation-release-'));
-  runCommand(
-    'gh',
-    ['release', 'download', lock.releaseVersion, '--repo', repo, '--pattern', assetName, '--dir', downloadDir],
-    `gh release download ${lock.releaseVersion}`,
-    { cwd: options.opsRoot },
-  );
+  try {
+    runCommand(
+      'gh',
+      ['release', 'download', lock.releaseVersion, '--repo', repo, '--pattern', assetName, '--dir', downloadDir],
+      `gh release download ${lock.releaseVersion}`,
+      { cwd: options.opsRoot },
+    );
+  } catch (err) {
+    if (options.ifExists && /release not found/i.test(err.message)) {
+      fs.rmSync(downloadDir, { recursive: true, force: true });
+      console.log(`Foundation release ${lock.releaseVersion} not found on ${repo} — skipping install`);
+      process.exit(0);
+    }
+    fs.rmSync(downloadDir, { recursive: true, force: true });
+    throw err;
+  }
 
   const archivePath = path.join(downloadDir, assetName);
   if (!fs.existsSync(archivePath)) {
