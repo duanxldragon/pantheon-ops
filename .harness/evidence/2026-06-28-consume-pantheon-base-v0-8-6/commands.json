@@ -1,0 +1,104 @@
+{
+  "taskId": "2026-06-28-consume-pantheon-base-v0-8-6",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": ".agents/adapters/codex.md"
+  },
+  "commands": [
+    {
+      "command": "go test ./...",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "validated the backend after converging auth/common/lowcode shared paths to base-v0.8.6"
+    },
+    {
+      "command": "npm --prefix frontend run build",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "validated frontend shared shell and prebuild contracts after the base sync"
+    },
+    {
+      "command": "npm --prefix frontend run test:smoke:scripts",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "covers smoke helper and runner regression checks, including cookie-backed login compatibility"
+    },
+    {
+      "command": "npm run check:docs-frontmatter",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "validates the new task packet document against repository docs governance"
+    },
+    {
+      "command": "npm run check:task-packet-template",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "confirms task packet references and required template markers remain valid"
+    },
+    {
+      "command": "npm run check:pr-governance",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "confirms the PR template contract remains valid before updating the PR body"
+    },
+    {
+      "command": "npm --prefix frontend run lint",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "confirms frontend lint stays scoped to source files after excluding repository-local temporary test output directories"
+    },
+    {
+      "command": "npm run check:generated-modules",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "confirms no generated module residue remains before CI docs governance runs"
+    },
+    {
+      "command": "gh pr checks 66 --repo duanxldragon/pantheon-ops",
+      "cwd": "pantheon-ops",
+      "status": "observed",
+      "durationMs": 0,
+      "notes": "captured remote failures: PR governance body missing template sections, docs governance blocked by the same body issue, and smoke sanity failed on auth.login.response_invalid"
+    }
+  ],
+  "graphChecks": {
+    "usedCodeGraph": false,
+    "affectedSubgraph": [
+      "backend/shared auth/common/lowcode -> frontend smoke helpers -> release sync scripts"
+    ],
+    "checks": [
+      "inheritance-sync"
+    ],
+    "findings": [],
+    "notes": "This task is primarily a shared-structure and validation compatibility sync."
+  },
+  "browserEvidence": [],
+  "runtimeSensitive": true,
+  "runtimeLogs": [
+    "GitHub Actions smoke sanity log showed backend startup succeeded, then browser smoke failed because auth helpers treated cookie-backed login as an invalid response.",
+    "Local frontend lint also surfaced repository-local .tmp generator artifacts, so lint now ignores temporary test output directories to match the intended frontend source boundary."
+  ],
+  "runtimeGap": "Full end-to-end smoke still depends on CI services and Playwright browser/runtime setup; local evidence here focuses on the smoke helper regression path and validation commands required for merge readiness.",
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-06-28-consume-pantheon-base-v0-8-6/",
+    "reviewFile": ".harness/evidence/2026-06-28-consume-pantheon-base-v0-8-6/review.md",
+    "changeRef": "none",
+    "planRefs": [],
+    "taskManifest": ".harness/tasks/2026-06-28-consume-pantheon-base-v0-8-6/manifest.json",
+    "summaryFile": ".harness/evidence/2026-06-28-consume-pantheon-base-v0-8-6/summary.md"
+  },
+  "knownGaps": [
+    "The full browser smoke suite is only partially covered locally in this turn because the local environment lacks the same hosted service setup as GitHub Actions.",
+    "This task intentionally does not expand smoke coverage beyond the compatibility fix needed for the current base sync."
+  ],
+  "completedAt": "2026-06-28T00:00:00Z"
+}
