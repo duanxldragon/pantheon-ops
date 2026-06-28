@@ -1,4 +1,6 @@
 import { defineModule } from '../../../core/router/types';
+import { getMenuTree } from '../menu/api';
+import { getRoleList } from './api';
 
 export const RoleModule = defineModule({
   name: 'role',
@@ -21,6 +23,14 @@ export const RoleModule = defineModule({
       routeName: 'system-role',
       module: 'system.iam',
     },
+  ],
+  routeDataWarmers: [
+    {
+      path: '/system/role',
+      key: 'list:default',
+      load: () => getRoleList({ roleName: '', roleKey: '', page: 1, pageSize: 10 }),
+    },
+    { path: '/system/role', key: 'menus:manage', load: () => getMenuTree({ scope: 'manage' }) },
   ],
   dashboardWidgets: [
     {

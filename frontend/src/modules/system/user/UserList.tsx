@@ -1,9 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import {
-  Avatar,
   Button,
   Card,
-  Form,
   Grid,
   Input,
   Popconfirm,
@@ -12,8 +10,8 @@ import {
   Tag,
   Tooltip,
   Typography,
+  Form,
 } from '@arco-design/web-react';
-import { message } from '../../../components/feedback/message';
 import {
   IconDelete,
   IconDownload,
@@ -22,52 +20,21 @@ import {
   IconLock,
   IconPlus,
   IconSearch,
-  IconUpload,
 } from '@arco-design/web-react/icon';
-import { uploadSystemFile } from '../../../api/upload';
 import { useTranslation } from 'react-i18next';
-import { showImportResult } from '../../../api/importExport';
-import {
-  isNetworkRequestError,
-  isServerRequestError,
-  isTimeoutRequestError,
-} from '../../../api/request';
-import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import { formatDateTime } from '../../../core/format/dateTime';
-import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
-import { invalidateRouteWarmDataMany, resolveRouteWarmData } from '../../../core/router/prefetch';
-import { usePublicSettings } from '../../../core/settings/publicSettings';
 import { usePermission } from '../../../hooks/usePermission';
-import { getDeptTree, type DeptNode } from '../dept/api';
-import { getPostList } from '../post/api';
-import { getRoleList } from '../role/api';
 import type {
   ColumnProps,
   SorterInfo,
   TableProps,
 } from '@arco-design/web-react/es/Table/interface';
-import {
-  batchDeleteUsers,
-  batchUpdateUserStatus,
-  createUser,
-  downloadUserImportTemplate,
-  exportUsers,
-  getUserDetail,
-  getUserList,
-  importUsers,
-  resetUserPassword,
-  updateUser,
-  type UserCreatePayload,
-  type UserDetail as UserDetailData,
-  type UserListQuery,
-  type UserListRow,
-} from './api';
+import type { UserCreatePayload, UserListQuery, UserListRow } from './api';
 import {
   AppModal,
   AppTable,
   buildStandardPagination,
   FilterPanel,
-  FormSection,
   ImportCsvButton,
   ListHeaderActions,
   PageContainer,
@@ -78,19 +45,20 @@ import {
   GovernanceRailToggleButton,
   GovernanceSummaryBar,
   PageLoading,
-  PageNetworkError,
-  PageServerError,
-  SubmitBar,
+  PageRequestError,
+  PermissionAction,
   SystemRowActions,
   TableBatchActionBar,
-  PermissionAction,
   TABLE_ACTION_COLUMN_WIDTH,
   TABLE_COLUMN_WIDTH,
   useGovernanceRail,
   withTableColumnPriority,
 } from '../../../components';
 import UserDetailContent from './UserDetailContent';
-import '../list-page.css';
+import UserFormModal from './UserFormModal';
+import ResetPasswordModal from './ResetPasswordModal';
+import { useUserList, emptyQuery } from './useUserList';
+import '../components/shared/list-page.css';
 import './user.css';
 
 const Row = Grid.Row;
@@ -102,80 +70,63 @@ interface ResetPasswordFormValues {
   confirmPassword: string;
 }
 
-const emptyForm: UserCreatePayload = {
-  username: '',
-  password: '',
-  nickname: '',
-  email: '',
-  phone: '',
-  avatar: '',
-  status: 1,
-  deptId: 0,
-  postId: 0,
-  roleIds: [],
-};
-
-const emptyQuery: UserListQuery = {
-  username: '',
-  nickname: '',
-  status: undefined,
-  page: 1,
-  pageSize: 10,
-};
-
-function isDefaultUserListQuery(query: UserListQuery) {
-  return (
-    !query.username &&
-    !query.nickname &&
-    query.status === undefined &&
-    query.deptId === undefined &&
-    query.postId === undefined &&
-    (query.page ?? 1) === 1 &&
-    (query.pageSize ?? 10) === 10 &&
-    !query.sortField &&
-    !query.sortOrder
-  );
-}
-
-interface LoadDataOptions {
-  silent?: boolean;
-}
-
 function getTableText(value: string | number | null | undefined) {
   const text = typeof value === 'number' ? String(value) : value?.trim();
   return text || '-';
 }
 
 const UserList: React.FC = () => {
-  const [data, setData] = useState<UserListRow[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<unknown>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const [editing, setEditing] = useState<UserListRow | null>(null);
-  const [detailTarget, setDetailTarget] = useState<UserListRow | null>(null);
-  const [detailData, setDetailData] = useState<UserDetailData | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [detailError, setDetailError] = useState(false);
-  const [resetTarget, setResetTarget] = useState<UserListRow | null>(null);
-  const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string | number>>([]);
-  const [query, setQuery] = useState<UserListQuery>(emptyQuery);
-  const [roleOptions, setRoleOptions] = useState<Array<{ label: string; value: number }>>([]);
-  const [deptOptions, setDeptOptions] = useState<Array<{ label: string; value: number }>>([]);
-  const [postOptions, setPostOptions] = useState<
-    Array<{ label: string; value: number; deptId: number }>
-  >([]);
-  const [formDeptId, setFormDeptId] = useState(0);
-  const [avatarPreview, setAvatarPreview] = useState('');
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [form] = Form.useForm<UserCreatePayload>();
   const [resetPasswordForm] = Form.useForm<ResetPasswordFormValues>();
-  const [queryForm] = Form.useForm<UserListQuery>();
+  const [queryForm] = Form.useForm();
+
+  const {
+    state,
+    orgEnabled,
+    orgRequiredForUser,
+    // Form modal
+    openCreate,
+    openEdit,
+    closeForm,
+    submitForm,
+    handleAvatarUploadSuccess,
+    handleDeptChange,
+    // Detail modal
+    openDetail,
+    closeDetail,
+    retryDetail,
+    // Reset password modal
+    openResetPassword,
+    closeResetPassword,
+    submitResetPassword,
+    // Row actions
+    handleRowStatus,
+    // Query actions
+    search: doSearch,
+    resetQuery,
+    setQuery,
+    setSelectedRowKeys,
+    // Data loading
+    loadData,
+    // Avatar preview
+    setAvatarPreview,
+    // Batch actions
+    handleExport,
+    handleDownloadTemplate,
+    handleImport,
+    handleBatchStatus,
+    handleBatchDelete,
+    // Derived
+    filteredPostOptions,
+    enabledUserCount,
+    disabledUserCount,
+    unassignedRoleUserCount,
+    assignableRoleCount,
+    availableDeptCount,
+    availablePostCount,
+  } = useUserList(form);
+
   const { t } = useTranslation();
-  const publicSettings = usePublicSettings();
-  const orgEnabled = publicSettings.orgEnabled;
-  const orgRequiredForUser = orgEnabled && publicSettings.orgRequiredForUser;
   const { isAdmin, hasPerm } = usePermission();
   const governanceRail = useGovernanceRail();
   const canView = isAdmin || hasPerm('system:user:view');
@@ -186,310 +137,16 @@ const UserList: React.FC = () => {
   const canImport = isAdmin || hasPerm('system:user:import');
   const canBatchUpdate = isAdmin || hasPerm('system:user:batch-update');
   const canBatchDelete = isAdmin || hasPerm('system:user:batch-delete');
-  const invalidateUserCaches = useCallback(() => {
-    invalidateRouteWarmDataMany([
-      { path: '/system/user', resourceKeys: ['list:default'] },
-      { path: '/system/dept', resourceKeys: ['users:org-chart'] },
-    ]);
-  }, []);
 
-  const loadData = useCallback(
-    async (nextQuery: UserListQuery = query, options?: LoadDataOptions) => {
-      const silent = options?.silent === true;
-      if (!silent) {
-        setLoading(true);
-        setError(null);
-      }
-      try {
-        const result = isDefaultUserListQuery(nextQuery)
-          ? await resolveRouteWarmData('/system/user', 'list:default', () => getUserList(nextQuery))
-          : await getUserList(nextQuery);
-        setData(result.items);
-        setTotal(result.total);
-      } catch (requestError) {
-        setError(requestError);
-      } finally {
-        if (!silent) {
-          setLoading(false);
-        }
-      }
-    },
-    [query],
-  );
+  const batchActionDisabled = !canBatchUpdate || state.selectedRowKeys.length === 0;
+  const batchDeleteDisabled = !canBatchDelete || state.selectedRowKeys.length === 0;
+  const batchActionReady = !batchActionDisabled || !batchDeleteDisabled;
 
-  const loadRoles = useCallback(async () => {
-    try {
-      const result = await resolveRouteWarmData('/system/user', 'roles:active', () =>
-        getRoleList({ page: 1, pageSize: 100, sortField: 'sort', sortOrder: 'asc', status: 1 }),
-      );
-      setRoleOptions(
-        result.items.map((item) => ({
-          label: item.roleName,
-          value: item.id,
-        })),
-      );
-    } catch {
-      message.error(t('common.loadFailed'));
-    }
-  }, [t]);
-
-  const loadDeptAndPostOptions = useCallback(async () => {
-    if (!orgEnabled) {
-      setDeptOptions([]);
-      setPostOptions([]);
-      return;
-    }
-    try {
-      const [deptRows, postRows] = await Promise.all([
-        resolveRouteWarmData('/system/user', 'depts:default', () =>
-          getDeptTree({ sortField: 'sort', sortOrder: 'asc' }),
-        ),
-        resolveRouteWarmData('/system/user', 'posts:active', () =>
-          getPostList({ page: 1, pageSize: 100, sortField: 'sort', sortOrder: 'asc', status: 1 }),
-        ),
-      ]);
-      const flattenDept = (nodes: DeptNode[], depth = 0): Array<{ label: string; value: number }> =>
-        nodes.flatMap((item) => [
-          { label: `${'— '.repeat(depth)}${item.deptName}`, value: item.id },
-          ...(item.children?.length ? flattenDept(item.children, depth + 1) : []),
-        ]);
-      const selectableDeptRows = deptRows.flatMap((item) =>
-        item.isRoot ? item.children || [] : [item],
-      );
-      setDeptOptions([
-        { label: t('system.dept.none'), value: 0 },
-        ...flattenDept(selectableDeptRows),
-      ]);
-      setPostOptions(
-        postRows.items.map((item) => ({
-          label: item.postName,
-          value: item.id,
-          deptId: item.deptId,
-        })),
-      );
-    } catch {
-      message.error(t('common.loadFailed'));
-    }
-  }, [orgEnabled, t]);
-
-  useEffect(() => {
-    const timer = globalThis.setTimeout(() => {
-      void loadData(query);
-    }, 0);
-    return () => globalThis.clearTimeout(timer);
-  }, [loadData, query]);
-
-  useEffect(() => {
-    const timer = globalThis.setTimeout(() => {
-      void loadRoles();
-    }, 0);
-    return () => globalThis.clearTimeout(timer);
-  }, [loadRoles]);
-
-  useEffect(() => {
-    const timer = globalThis.setTimeout(() => {
-      void loadDeptAndPostOptions();
-    }, 0);
-    return () => globalThis.clearTimeout(timer);
-  }, [loadDeptAndPostOptions]);
-
-  useRefreshSubscription(
-    ['system:user:changed', 'system:role:changed', 'system:dept:changed', 'system:post:changed'],
-    (payload) => {
-      if (payload.source === 'system/user') {
-        return;
-      }
-      void loadData(query);
-      void loadRoles();
-      if (orgEnabled) {
-        void loadDeptAndPostOptions();
-      }
-    },
-  );
-
-  const openCreate = () => {
-    setEditing(null);
-    setFormDeptId(emptyForm.deptId || 0);
-    setAvatarPreview('');
-    form.setFieldsValue(emptyForm);
-    setVisible(true);
-  };
-
-  const openEdit = async (row: UserListRow) => {
-    try {
-      const detail = await getUserDetail(row.id);
-      setEditing(row);
-      setFormDeptId(orgEnabled ? detail.deptId || 0 : 0);
-      setAvatarPreview(detail.avatar || '');
-      form.setFieldsValue({
-        username: detail.username,
-        nickname: detail.nickname,
-        email: detail.email,
-        phone: detail.phone,
-        avatar: detail.avatar || '',
-        deptId: orgEnabled ? detail.deptId : 0,
-        postId: orgEnabled ? detail.postId : 0,
-        status: detail.status,
-        roleIds: detail.roleIds || [],
-      });
-      setVisible(true);
-    } catch {
-      message.error(t('common.loadFailed'));
-    }
-  };
-
-  const loadDetail = useCallback(async (id: number) => {
-    setDetailLoading(true);
-    setDetailError(false);
-    try {
-      const result = await getUserDetail(id);
-      setDetailData(result);
-    } catch {
-      setDetailError(true);
-      setDetailData(null);
-    } finally {
-      setDetailLoading(false);
-    }
-  }, []);
-
-  const openDetail = (row: UserListRow) => {
-    setDetailTarget(row);
-    setDetailData(null);
-    setDetailError(false);
-    void loadDetail(row.id);
-  };
-
-  const closeDetail = () => {
-    setDetailTarget(null);
-    setDetailData(null);
-    setDetailError(false);
-    setDetailLoading(false);
-  };
-
-  const submitForm = async () => {
-    let values;
-    try {
-      values = await form.validate();
-    } catch (error) {
-      if (isArcoFormValidationError(error)) {
-        return;
-      }
-      return;
-    }
-    setSubmitting(true);
-    try {
-      if (editing) {
-        await updateUser(editing.id, {
-          nickname: values.nickname,
-          email: values.email,
-          phone: values.phone,
-          avatar: values.avatar,
-          deptId: orgEnabled ? values.deptId : 0,
-          postId: orgEnabled ? values.postId : 0,
-          status: values.status,
-          roleIds: values.roleIds || [],
-        });
-        message.success(t('common.updateSuccess'));
-      } else {
-        await createUser({
-          ...values,
-          roleIds: values.roleIds || [],
-          deptId: orgEnabled ? values.deptId : 0,
-          postId: orgEnabled ? values.postId : 0,
-        });
-        message.success(t('common.createSuccess'));
-      }
-      invalidateUserCaches();
-      publishRefresh('system:user:changed', 'system/user');
-      setVisible(false);
-      setAvatarPreview('');
-      await loadData(query, { silent: true });
-    } catch {
-      message.error(t('common.actionFailed'));
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleUploadAvatar = async (file?: File | null) => {
-    if (!file) {
-      return;
-    }
-    setUploadingAvatar(true);
-    try {
-      const uploaded = await uploadSystemFile(file, 'user/avatar');
-      form.setFieldValue('avatar', uploaded.url);
-      setAvatarPreview(uploaded.url);
-      message.success(t('system.profile.avatarUploadSuccess'));
-    } finally {
-      setUploadingAvatar(false);
-    }
-  };
-
-  const openResetPassword = (row: UserListRow) => {
-    resetPasswordForm.setFieldsValue({ newPassword: '', confirmPassword: '' });
-    setResetTarget(row);
-  };
-
-  const submitResetPassword = async () => {
-    if (!resetTarget) {
-      return;
-    }
-    let values;
-    try {
-      values = await resetPasswordForm.validate();
-    } catch (error) {
-      if (isArcoFormValidationError(error)) {
-        return;
-      }
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const result = await resetUserPassword(resetTarget.id, { newPassword: values.newPassword });
-      message.success(t('system.user.resetPasswordSuccess', { count: result.revokedSessionCount }));
-      setResetTarget(null);
-      resetPasswordForm.resetFields();
-    } catch {
-      message.error(t('common.actionFailed'));
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleRowStatus = async (row: UserListRow, status: 1 | 2) => {
-    await batchUpdateUserStatus({ userIds: [row.id], status });
-    message.success(
-      status === 1 ? t('system.user.enableSuccess') : t('system.user.disableSuccess'),
-    );
-    invalidateUserCaches();
-    publishRefresh('system:user:changed', 'system/user');
-    await loadData(query, { silent: true });
-  };
-
-  const search = () => {
-    const values = queryForm.getFieldsValue();
-    setSelectedRowKeys([]);
-    setQuery({
-      ...query,
-      ...values,
-      page: 1,
-    });
-  };
-
-  const reset = () => {
-    queryForm.setFieldsValue(emptyQuery);
-    setSelectedRowKeys([]);
-    setQuery(emptyQuery);
-  };
+  // ---- Column helpers ----
 
   const toArcoSortOrder = (sortOrder?: UserListQuery['sortOrder']) => {
-    if (sortOrder === 'asc') {
-      return 'ascend';
-    }
-    if (sortOrder === 'desc') {
-      return 'descend';
-    }
+    if (sortOrder === 'asc') return 'ascend';
+    if (sortOrder === 'desc') return 'descend';
     return undefined;
   };
 
@@ -497,7 +154,7 @@ const UserList: React.FC = () => {
     field: NonNullable<UserListQuery['sortField']>,
   ): Partial<ColumnProps<UserListRow>> => ({
     sorter: true,
-    sortOrder: query.sortField === field ? toArcoSortOrder(query.sortOrder) : undefined,
+    sortOrder: state.query.sortField === field ? toArcoSortOrder(state.query.sortOrder) : undefined,
   });
 
   const renderCellText = (value: string | number | null | undefined, className?: string) => {
@@ -507,36 +164,15 @@ const UserList: React.FC = () => {
         {text}
       </span>
     );
-
     return text === '-' ? cell : <Tooltip content={text}>{cell}</Tooltip>;
   };
 
   const roleLabelById = useMemo(
-    () => new Map(roleOptions.map((item) => [item.value, item.label])),
-    [roleOptions],
+    () => new Map(state.roleOptions.map((item) => [item.value, item.label])),
+    [state.roleOptions],
   );
 
-  const handleTableChange: TableProps<UserListRow>['onChange'] = (pagination, sorter) => {
-    const currentSorter = Array.isArray(sorter) ? sorter[0] : (sorter as SorterInfo | undefined);
-    const nextQuery: UserListQuery = {
-      ...query,
-      page: pagination.current || 1,
-      pageSize: pagination.pageSize || query.pageSize || emptyQuery.pageSize,
-      sortField: currentSorter?.direction ? String(currentSorter.field) : undefined,
-      sortOrder:
-        currentSorter?.direction === 'ascend'
-          ? 'asc'
-          : currentSorter?.direction === 'descend'
-            ? 'desc'
-            : undefined,
-    };
-    const sortChanged =
-      nextQuery.sortField !== query.sortField || nextQuery.sortOrder !== query.sortOrder;
-    if (sortChanged) {
-      setSelectedRowKeys([]);
-    }
-    setQuery(nextQuery);
-  };
+  // ---- Columns ----
 
   const columns: ColumnProps<UserListRow>[] = [
     {
@@ -592,10 +228,10 @@ const UserList: React.FC = () => {
         const roleText = roleNames?.length
           ? roleNames.join(' / ')
           : roleLabels?.length
-          ? roleLabels.join(' / ')
-          : row.roleKeys?.length
-            ? row.roleKeys.join(' / ')
-            : undefined;
+            ? roleLabels.join(' / ')
+            : row.roleKeys?.length
+              ? row.roleKeys.join(' / ')
+              : undefined;
         return renderCellText(roleText, 'system-user-list__role-text');
       },
     },
@@ -681,143 +317,67 @@ const UserList: React.FC = () => {
     },
   ];
 
-  const renderErrorState = () => {
-    if (isNetworkRequestError(error)) {
-      return (
-        <PageNetworkError
-          timeout={isTimeoutRequestError(error)}
-          onRetry={() => {
-            void loadData(query);
-          }}
-        />
-      );
+  // ---- Table change ----
+
+  const handleTableChange: TableProps<UserListRow>['onChange'] = (pagination, sorter) => {
+    const currentSorter = Array.isArray(sorter) ? sorter[0] : (sorter as SorterInfo | undefined);
+    const nextQuery = {
+      ...state.query,
+      page: pagination.current || 1,
+      pageSize: pagination.pageSize || state.query.pageSize || emptyQuery.pageSize,
+      sortField: currentSorter?.direction ? String(currentSorter.field) : undefined,
+      sortOrder:
+        currentSorter?.direction === 'ascend'
+          ? 'asc'
+          : currentSorter?.direction === 'descend'
+            ? 'desc'
+            : undefined,
+    } as import('./api').UserListQuery;
+    const sortChanged =
+      nextQuery.sortField !== state.query.sortField ||
+      nextQuery.sortOrder !== state.query.sortOrder;
+    if (sortChanged) {
+      setSelectedRowKeys([]);
     }
-    if (isServerRequestError(error)) {
-      return (
-        <PageServerError
-          onRetry={() => {
-            void loadData(query);
-          }}
-        />
-      );
-    }
-    return (
-      <PageError
-        onRetry={() => {
-          void loadData(query);
-        }}
-      />
-    );
+    setQuery(nextQuery);
   };
 
-  const handleExport = async () => {
-    await exportUsers(query);
+  // ---- Search ----
+
+  const search = () => {
+    const values = queryForm.getFieldsValue();
+    doSearch(values);
   };
 
-  const handleDownloadTemplate = async () => {
-    await downloadUserImportTemplate();
+  const reset = () => {
+    queryForm.setFieldsValue(emptyQuery);
+    resetQuery();
   };
 
-  const handleImport = async (file: File) => {
-    const result = await importUsers(file);
-    showImportResult(result, t);
-    if (result.applied) {
-      invalidateUserCaches();
-      publishRefresh('system:user:changed', 'system/user');
-      await loadData(query, { silent: true });
-      await loadRoles();
-      if (orgEnabled) {
-        await loadDeptAndPostOptions();
-      }
-    }
-  };
+  // ---- Governance metrics ----
 
-  const handleBatchStatus = async (status: 1 | 2) => {
-    if (selectedRowKeys.length === 0) {
-      message.warning(t('common.batchSelectionRequired'));
-      return;
-    }
-    const userIds = selectedRowKeys.map((item) => Number(item)).filter((item) => item > 0);
-    const result = await batchUpdateUserStatus({ userIds, status });
-    message.success(t('system.user.batchStatusSuccess', { count: result.updatedCount }));
-    invalidateUserCaches();
-    publishRefresh('system:user:changed', 'system/user');
-    setSelectedRowKeys([]);
-    await loadData(query, { silent: true });
-  };
-
-  const handleBatchDelete = async () => {
-    if (selectedRowKeys.length === 0) {
-      message.warning(t('common.batchSelectionRequired'));
-      return;
-    }
-    const ids = selectedRowKeys.map((item) => Number(item)).filter((item) => item > 0);
-    const result = await batchDeleteUsers({ ids });
-    const messageKey =
-      result.failedCount > 0 ? 'common.batchDeletePartialSuccess' : 'common.batchDeleteSuccess';
-    message[result.failedCount > 0 ? 'warning' : 'success'](
-      t(messageKey, { deleted: result.deletedCount, failed: result.failedCount }),
-    );
-    invalidateUserCaches();
-    publishRefresh('system:user:changed', 'system/user');
-    setSelectedRowKeys([]);
-    await loadData(query, { silent: true });
-  };
-
-  const batchActionDisabled = !canBatchUpdate || selectedRowKeys.length === 0;
-  const batchDeleteDisabled = !canBatchDelete || selectedRowKeys.length === 0;
-  const filteredPostOptions = [
-    { label: t('system.post.none'), value: 0 },
-    ...postOptions
-      .filter((item) => formDeptId > 0 && item.deptId === formDeptId)
-      .map(({ label, value }) => ({ label, value })),
-  ];
-  const enabledUserCount = useMemo(() => data.filter((item) => item.status === 1).length, [data]);
-  const disabledUserCount = useMemo(() => data.filter((item) => item.status !== 1).length, [data]);
-  const unassignedRoleUserCount = useMemo(
-    () => data.filter((item) => !item.roleKeys?.length).length,
-    [data],
-  );
-  const assignableRoleCount = useMemo(() => roleOptions.length, [roleOptions]);
-  const availableDeptCount = useMemo(
-    () => deptOptions.filter((item) => item.value > 0).length,
-    [deptOptions],
-  );
-  const availablePostCount = useMemo(
-    () => postOptions.filter((item) => item.value > 0).length,
-    [postOptions],
-  );
-  const batchActionReady = !batchActionDisabled || !batchDeleteDisabled;
   const statusMetrics = useMemo(
     () => [
-      {
-        key: 'total',
-        label: t('system.menu.user'),
-        value: total,
-      },
-      {
-        key: 'enabled',
-        label: t('system.user.status.enabled'),
-        value: enabledUserCount,
-      },
-      {
-        key: 'disabled',
-        label: t('system.user.hero.disabledRows'),
-        value: disabledUserCount,
-      },
+      { key: 'total', label: t('system.menu.user'), value: state.total },
+      { key: 'enabled', label: t('system.user.status.enabled'), value: enabledUserCount },
+      { key: 'disabled', label: t('system.user.hero.disabledRows'), value: disabledUserCount },
       {
         key: 'unassigned',
         label: t('system.user.hero.unassignedRoles'),
         value: unassignedRoleUserCount,
       },
-      {
-        key: 'roles',
-        label: t('system.user.hero.rolesReady'),
-        value: assignableRoleCount,
-      },
+      { key: 'roles', label: t('system.user.hero.rolesReady'), value: assignableRoleCount },
     ],
-    [assignableRoleCount, disabledUserCount, enabledUserCount, t, total, unassignedRoleUserCount],
+    [
+      assignableRoleCount,
+      disabledUserCount,
+      enabledUserCount,
+      t,
+      state.total,
+      unassignedRoleUserCount,
+    ],
   );
+
   const governanceSummaryItems = useMemo(
     () => [
       {
@@ -838,17 +398,8 @@ const UserList: React.FC = () => {
     ],
     [availableDeptCount, availablePostCount, assignableRoleCount, batchActionReady, orgEnabled, t],
   );
-  const handleDeptChange = (value: unknown) => {
-    const nextDeptId = Number(value || 0);
-    setFormDeptId(nextDeptId);
-    const currentPostId = Number(form.getFieldValue('postId') || 0);
-    if (currentPostId > 0) {
-      const currentPost = postOptions.find((item) => item.value === currentPostId);
-      if (!currentPost || currentPost.deptId !== nextDeptId) {
-        form.setFieldsValue({ postId: 0 });
-      }
-    }
-  };
+
+  // ---- Render ----
 
   return (
     <PageContainer>
@@ -916,8 +467,8 @@ const UserList: React.FC = () => {
           </FilterPanel>
           <Card className="page-panel system-list__table-card system-user-list__table-card">
             <TableBatchActionBar
-              selectedCount={selectedRowKeys.length}
-              selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
+              selectedCount={state.selectedRowKeys.length}
+              selectedText={t('common.selectedCount', { count: state.selectedRowKeys.length })}
               clearText={t('common.clearSelection')}
               clearSuccessText={t('common.clearSelectionSuccess')}
               onClear={() => setSelectedRowKeys([])}
@@ -971,7 +522,10 @@ const UserList: React.FC = () => {
               }
               actions={
                 <>
-                  <PermissionAction allowed={canBatchUpdate} tooltip={t('common.noPermissionAction')}>
+                  <PermissionAction
+                    allowed={canBatchUpdate}
+                    tooltip={t('common.noPermissionAction')}
+                  >
                     <Popconfirm
                       title={t('system.user.batchEnableConfirm')}
                       onOk={() => {
@@ -982,7 +536,10 @@ const UserList: React.FC = () => {
                       <Button disabled={batchActionDisabled}>{t('system.user.batchEnable')}</Button>
                     </Popconfirm>
                   </PermissionAction>
-                  <PermissionAction allowed={canBatchUpdate} tooltip={t('common.noPermissionAction')}>
+                  <PermissionAction
+                    allowed={canBatchUpdate}
+                    tooltip={t('common.noPermissionAction')}
+                  >
                     <Popconfirm
                       title={t('system.user.batchDisableConfirm')}
                       onOk={() => {
@@ -998,7 +555,10 @@ const UserList: React.FC = () => {
                       </Button>
                     </Popconfirm>
                   </PermissionAction>
-                  <PermissionAction allowed={canBatchDelete} tooltip={t('common.noPermissionAction')}>
+                  <PermissionAction
+                    allowed={canBatchDelete}
+                    tooltip={t('common.noPermissionAction')}
+                  >
                     <Popconfirm
                       title={t('system.user.batchDeleteConfirm')}
                       onOk={() => {
@@ -1018,22 +578,31 @@ const UserList: React.FC = () => {
                 </>
               }
             />
-            {loading && data.length === 0 ? <PageLoading /> : null}
-            {error && data.length === 0 ? renderErrorState() : null}
-            {!loading && !error && data.length === 0 ? (
+            {state.loading && state.data.length === 0 ? <PageLoading /> : null}
+            {state.error && state.data.length === 0 ? (
+              <PageRequestError
+                error={state.error}
+                onRetry={() => {
+                  void loadData(state.query);
+                }}
+              />
+            ) : null}
+            {!state.loading && !state.error && state.data.length === 0 ? (
               <PageEmpty description={t('common.noData')} />
             ) : null}
-            {!loading && !(error && data.length === 0) && data.length > 0 ? (
+            {!state.loading &&
+            !(state.error && state.data.length === 0) &&
+            state.data.length > 0 ? (
               <AppTable<UserListRow>
                 className="system-list__table system-user-list__table"
-                data={data}
+                data={state.data}
                 columns={columns}
                 rowKey="id"
-                loading={loading}
+                loading={state.loading}
                 scroll={{ x: 'max-content' }}
                 rowSelection={{
                   type: 'checkbox',
-                  selectedRowKeys,
+                  selectedRowKeys: state.selectedRowKeys,
                   checkCrossPage: true,
                   preserveSelectedRowKeys: true,
                   fixed: true,
@@ -1043,9 +612,9 @@ const UserList: React.FC = () => {
                 onChange={handleTableChange}
                 emptyText={t('common.noData')}
                 pagination={buildStandardPagination(t, {
-                  current: query.page || emptyQuery.page,
-                  pageSize: query.pageSize || emptyQuery.pageSize,
-                  total,
+                  current: state.query.page || emptyQuery.page,
+                  pageSize: state.query.pageSize || emptyQuery.pageSize,
+                  total: state.total,
                 })}
               />
             ) : null}
@@ -1063,260 +632,56 @@ const UserList: React.FC = () => {
         <GovernanceRailSummary items={governanceSummaryItems} />
       </GovernanceInsightDrawer>
 
-      <AppModal
-        title={editing ? t('system.user.edit') : t('system.user.create')}
-        visible={visible}
-        size="lg"
-        onCancel={() => {
-          setVisible(false);
-          setAvatarPreview('');
+      <UserFormModal
+        visible={state.formVisible}
+        editing={state.editingRow}
+        submitting={state.submitting}
+        orgEnabled={orgEnabled}
+        orgRequiredForUser={orgRequiredForUser}
+        formDeptId={state.formDeptId}
+        avatarPreview={state.avatarPreview}
+        roleOptions={state.roleOptions}
+        deptOptions={state.deptOptions}
+        filteredPostOptions={filteredPostOptions}
+        form={form}
+        onSubmit={() => {
+          void submitForm();
         }}
-        footer={
-          <SubmitBar
-            onCancel={() => {
-              setVisible(false);
-              setAvatarPreview('');
-            }}
-            onSubmit={() => {
-              void submitForm();
-            }}
-            loading={submitting}
-            submitText={editing ? t('common.save') : t('common.add')}
-          />
-        }
-        unmountOnExit
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onSubmit={() => {
-            void submitForm();
-          }}
-        >
-          <Space direction="vertical" size={20} className="dialog-form-stack">
-            <FormSection title={t('common.basicInfo')}>
-              <FormItem
-                label={t('system.user.username')}
-                field="username"
-                rules={[{ required: true, message: t('auth.usernameRequired') }]}
-              >
-                <Input disabled={Boolean(editing)} onPressEnter={() => form.submit()} />
-              </FormItem>
-              {!editing ? (
-                <FormItem
-                  label={t('system.user.password')}
-                  field="password"
-                  rules={[{ required: true, message: t('auth.passwordRequired') }]}
-                >
-                  <Input.Password onPressEnter={() => form.submit()} />
-                </FormItem>
-              ) : null}
-              <FormItem label={t('system.user.nickname')} field="nickname">
-                <Input onPressEnter={() => form.submit()} />
-              </FormItem>
-              <FormItem
-                label={t('system.user.email')}
-                field="email"
-                rules={[
-                  {
-                    validator: (value, callback) => {
-                      if (!value || /\S+@\S+\.\S+/.test(String(value))) {
-                        callback();
-                        return;
-                      }
-                      callback(t('system.user.email.invalid'));
-                    },
-                  },
-                ]}
-              >
-                <Input onPressEnter={() => form.submit()} />
-              </FormItem>
-              <FormItem label={t('system.user.phone')} field="phone">
-                <Input onPressEnter={() => form.submit()} />
-              </FormItem>
-              <FormItem label={t('system.user.avatar')} field="avatar">
-                <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                  <Input
-                    placeholder={t('system.profile.avatarPlaceholder')}
-                    onChange={(value) => setAvatarPreview(value)}
-                  />
-                  <Space align="center" wrap>
-                    <Avatar size={40}>
-                      {avatarPreview ? (
-                        <img src={avatarPreview} alt={t('system.user.avatar')} />
-                      ) : (
-                        t('common.user').slice(0, 1)
-                      )}
-                    </Avatar>
-                    <Button
-                      icon={<IconUpload />}
-                      loading={uploadingAvatar}
-                      onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/png,image/jpeg,image/jpg,image/webp,image/gif';
-                        input.onchange = () => {
-                          void handleUploadAvatar(input.files?.[0]);
-                        };
-                        input.click();
-                      }}
-                    >
-                      {t('system.profile.uploadAvatar')}
-                    </Button>
-                    <Typography.Text type="secondary">
-                      {t('system.profile.avatarUploadHint')}
-                    </Typography.Text>
-                  </Space>
-                </Space>
-              </FormItem>
-            </FormSection>
-            <FormSection title={t('common.accessControl')}>
-              {orgEnabled ? (
-                <>
-                  <FormItem
-                    label={t('system.user.dept')}
-                    field="deptId"
-                    rules={
-                      orgRequiredForUser
-                        ? [
-                            {
-                              validator: (value, callback) => {
-                                if (Number(value || 0) > 0) {
-                                  callback();
-                                  return;
-                                }
-                                callback(t('system.user.dept.required'));
-                              },
-                            },
-                          ]
-                        : undefined
-                    }
-                  >
-                    <Select options={deptOptions} onChange={handleDeptChange} />
-                  </FormItem>
-                  <FormItem label={t('system.user.post')} field="postId">
-                    <Select options={filteredPostOptions} disabled={formDeptId === 0} />
-                  </FormItem>
-                </>
-              ) : null}
-              <FormItem label={t('system.user.status')} field="status">
-                <Select
-                  options={[
-                    { label: t('system.user.status.enabled'), value: 1 },
-                    { label: t('system.user.status.disabled'), value: 2 },
-                  ]}
-                />
-              </FormItem>
-              <FormItem
-                className="system-user-list__role-field"
-                label={t('system.user.roles')}
-                field="roleIds"
-              >
-                <Select mode="multiple" allowClear options={roleOptions} />
-              </FormItem>
-            </FormSection>
-          </Space>
-        </Form>
-      </AppModal>
+        onCancel={closeForm}
+        onDeptChange={handleDeptChange}
+        onAvatarPreviewChange={setAvatarPreview}
+        onAvatarUploadSuccess={handleAvatarUploadSuccess}
+      />
 
       <AppModal
         title={
-          detailTarget
-            ? `${detailTarget.username} / ${detailTarget.nickname || '-'}`
+          state.detailTarget
+            ? `${state.detailTarget.username} / ${state.detailTarget.nickname || '-'}`
             : t('system.user.detail')
         }
-        visible={Boolean(detailTarget)}
+        visible={Boolean(state.detailTarget)}
         size="xl"
         onCancel={closeDetail}
         footer={null}
       >
-        {detailLoading ? <PageLoading /> : null}
-        {!detailLoading && detailError ? (
-          <PageError
-            onRetry={() => {
-              if (detailTarget) {
-                void loadDetail(detailTarget.id);
-              }
-            }}
-          />
-        ) : null}
-        {!detailLoading && !detailError && !detailData ? (
+        {state.detailLoading ? <PageLoading /> : null}
+        {!state.detailLoading && state.detailError ? <PageError onRetry={retryDetail} /> : null}
+        {!state.detailLoading && !state.detailError && !state.detailData ? (
           <PageEmpty description={t('common.noData')} />
         ) : null}
-        {!detailLoading && !detailError && detailData ? (
-          <UserDetailContent detail={detailData} orgEnabled={orgEnabled} />
+        {!state.detailLoading && !state.detailError && state.detailData ? (
+          <UserDetailContent detail={state.detailData} orgEnabled={orgEnabled} />
         ) : null}
       </AppModal>
 
-      <AppModal
-        title={t('system.user.resetPasswordTitle')}
-        visible={Boolean(resetTarget)}
-        size="sm"
-        onCancel={() => {
-          setResetTarget(null);
-          resetPasswordForm.resetFields();
-        }}
-        footer={
-          <SubmitBar
-            onCancel={() => {
-              setResetTarget(null);
-              resetPasswordForm.resetFields();
-            }}
-            onSubmit={() => {
-              void submitResetPassword();
-            }}
-            loading={submitting}
-            submitText={t('system.user.resetPassword')}
-          />
-        }
-        unmountOnExit
-      >
-        <Form
-          form={resetPasswordForm}
-          layout="vertical"
-          onSubmit={() => {
-            void submitResetPassword();
-          }}
-        >
-          <Space direction="vertical" size={16} className="dialog-form-stack">
-            <FormItem label={t('system.user.resetPasswordTarget')}>
-              <Input
-                value={
-                  resetTarget ? `${resetTarget.username} / ${resetTarget.nickname || '-'}` : ''
-                }
-                disabled
-              />
-            </FormItem>
-            <FormItem
-              label={t('system.user.newPassword')}
-              field="newPassword"
-              rules={[{ required: true, message: t('auth.passwordRequired') }]}
-            >
-              <Input.Password onPressEnter={() => resetPasswordForm.submit()} />
-            </FormItem>
-            <FormItem
-              label={t('system.user.confirmPassword')}
-              field="confirmPassword"
-              rules={[
-                { required: true, message: t('system.profile.confirmPasswordRequired') },
-                {
-                  validator: (value, callback) => {
-                    const nextPassword = resetPasswordForm.getFieldValue('newPassword');
-                    if (!value || value === nextPassword) {
-                      callback();
-                      return;
-                    }
-                    callback(t('system.profile.confirmPasswordMismatch'));
-                  },
-                },
-              ]}
-            >
-              <Input.Password onPressEnter={() => resetPasswordForm.submit()} />
-            </FormItem>
-            <Tag color="orange">{t('system.user.resetPasswordHint')}</Tag>
-          </Space>
-        </Form>
-      </AppModal>
+      <ResetPasswordModal
+        visible={Boolean(state.resetTarget)}
+        target={state.resetTarget}
+        submitting={state.submitting}
+        form={resetPasswordForm}
+        onSubmit={submitResetPassword}
+        onCancel={closeResetPassword}
+      />
     </PageContainer>
   );
 };

@@ -25,12 +25,7 @@ import {
 } from '../user/api';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { useAuthStore } from '../../../store/useAuthStore';
-import {
-  FormSection,
-  PageContainer,
-  PageLoading,
-  SubmitBar,
-} from '../../../components';
+import { FormSection, PageContainer, PageLoading, SubmitBar } from '../../../components';
 import './profile.css';
 
 const Row = Grid.Row;
@@ -218,7 +213,13 @@ const ProfileCenter: React.FC = () => {
                   <FormItem
                     label={t('system.profile.email')}
                     field="email"
-                    rules={[{ match: /\S+@\S+\.\S+/, message: t('system.user.email.invalid') }]}
+                    rules={[
+                      {
+                        // NOSONAR - simple email shape check; backend owns authoritative validation.
+                        match: /\S+@\S+\.\S+/,
+                        message: t('system.user.email.invalid'),
+                      },
+                    ]}
                   >
                     <Input onPressEnter={() => profileForm.submit()} />
                   </FormItem>

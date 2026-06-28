@@ -26,11 +26,6 @@ import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/in
 import { useTranslation } from 'react-i18next';
 import { message } from '../../../components/feedback/message';
 import { showImportResult } from '../../../api/importExport';
-import {
-  isNetworkRequestError,
-  isServerRequestError,
-  isTimeoutRequestError,
-} from '../../../api/request';
 import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
@@ -48,10 +43,8 @@ import {
   ImportCsvButton,
   ListHeaderActions,
   PageEmpty,
-  PageError,
   PageLoading,
-  PageNetworkError,
-  PageServerError,
+  PageRequestError,
   SubmitBar,
   TABLE_ACTION_COLUMN_WIDTH,
   TableBatchActionBar,
@@ -78,7 +71,7 @@ import {
   type DictTypeRow,
   type DictUsageAnalysisResp,
 } from './api';
-import '../list-page.css';
+import '../components/shared/list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -422,16 +415,6 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
     }));
   };
 
-  const renderRequestErrorState = useCallback((requestError: unknown, onRetry: () => void) => {
-    if (isNetworkRequestError(requestError)) {
-      return <PageNetworkError timeout={isTimeoutRequestError(requestError)} onRetry={onRetry} />;
-    }
-    if (isServerRequestError(requestError)) {
-      return <PageServerError onRetry={onRetry} />;
-    }
-    return <PageError onRetry={onRetry} />;
-  }, []);
-
   const itemColumns: ColumnProps<DictItemRow>[] = useMemo(
     () => [
       {
@@ -530,7 +513,11 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
   const itemBatchActionDisabled = !canBatchUpdate || selectedItemRowKeys.length === 0;
   const itemBatchDeleteDisabled = !canBatchDelete || selectedItemRowKeys.length === 0;
   const visibleSelectedItemRowKeys = useMemo(
-    () => getVisibleSelectedRowKeys(selectedItemRowKeys, itemRows.map((item) => item.id)),
+    () =>
+      getVisibleSelectedRowKeys(
+        selectedItemRowKeys,
+        itemRows.map((item) => item.id),
+      ),
     [itemRows, selectedItemRowKeys],
   );
 
@@ -732,11 +719,7 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
                   }}
                   disabled={itemBatchDeleteDisabled}
                 >
-                  <Button
-                    status="danger"
-                    icon={<IconDelete />}
-                    disabled={itemBatchDeleteDisabled}
-                  >
+                  <Button status="danger" icon={<IconDelete />} disabled={itemBatchDeleteDisabled}>
                     {t('common.deleteSelected')}
                   </Button>
                 </Popconfirm>
@@ -750,11 +733,14 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
         ) : (
           <>
             {itemLoading && itemRows.length === 0 ? <PageLoading /> : null}
-            {itemError && itemRows.length === 0
-              ? renderRequestErrorState(itemError, () => {
+            {itemError && itemRows.length === 0 ? (
+              <PageRequestError
+                error={itemError}
+                onRetry={() => {
                   void loadItems(itemQuery, selectedType?.dictCode);
-                })
-              : null}
+                }}
+              />
+            ) : null}
             {!itemLoading && !itemError && itemTotal === 0 ? (
               <PageEmpty description={t('system.dict.itemEmpty')} />
             ) : null}
@@ -771,7 +757,11 @@ const DictItemTab: React.FC<DictItemTabProps> = ({
                   preserveSelectedRowKeys: true,
                   onChange: (keys) =>
                     setSelectedItemRowKeys((currentKeys) =>
-                      mergeCrossPageSelection(currentKeys, keys, itemRows.map((item) => item.id)),
+                      mergeCrossPageSelection(
+                        currentKeys,
+                        keys,
+                        itemRows.map((item) => item.id),
+                      ),
                     ),
                 }}
                 emptyText={t('system.dict.itemEmpty')}

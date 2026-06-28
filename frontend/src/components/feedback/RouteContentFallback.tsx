@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Skeleton, Space } from '@arco-design/web-react';
-import PageContainer from '../patterns/PageContainer';
+import PageContainer from '../patterns/layout/PageContainer';
 
 const RouteContentFallback: React.FC = () => (
   <PageContainer className="route-content-fallback" data-testid="route-content-fallback">

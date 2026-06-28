@@ -310,8 +310,40 @@ a {
   gap: 8px 16px;
 }
 
+.menu-list-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+}
+
 .setting-page__field {
   margin-bottom: 0;
+}
+
+.menu-list-form__grid .arco-form-item {
+  margin-bottom: 0;
+}
+
+.menu-list-form__grid .arco-form-item-content {
+  min-width: 0;
+}
+
+.menu-list-form__grid .arco-form-item-control,
+.menu-list-form__grid .arco-form-item-control-children,
+.menu-list-form__grid .arco-tree-select,
+.menu-list-form__grid .arco-select,
+.menu-list-form__grid .arco-auto-complete,
+.menu-list-form__grid .arco-input-number {
+  width: 100%;
+  min-width: 0;
+}
+
+.menu-list-form__grid .arco-form-item-label-col {
+  padding-bottom: 2px;
+}
+
+.menu-list-form__field--full {
+  grid-column: 1 / -1;
 }
 
 .setting-page__field--full {
@@ -514,7 +546,7 @@ a {
 }
 
 .setting-overview-page__anchor-item--active::after {
-  content: "";
+  content: '';
   position: absolute;
   right: 0;
   bottom: -1px;
@@ -2827,6 +2859,11 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 
 @media (max-width: 840px) {
   .setting-page__field-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .menu-list-form__grid {
     grid-template-columns: 1fr;
     gap: 8px;
   }

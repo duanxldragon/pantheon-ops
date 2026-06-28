@@ -1,4 +1,5 @@
 import { defineModule } from '../../../core/router/types';
+import { getSettingList, getSettingOverview } from './api';
 import { isSettingGroupKey } from './settingGroups';
 
 function resolveSettingRouteTitleKey(path: string) {
@@ -36,6 +37,10 @@ export const SettingModule = defineModule({
       routeName: 'system-setting',
       module: 'system.config',
     },
+  ],
+  routeDataWarmers: [
+    { path: '/system/setting', key: 'list:default', load: () => getSettingList() },
+    { path: '/system/setting', key: 'overview', load: () => getSettingOverview() },
   ],
   dashboardWidgets: [
     {

@@ -7,27 +7,73 @@ const currentFilePath = fileURLToPath(import.meta.url);
 const frontendRoot = path.resolve(path.dirname(currentFilePath), '..');
 const layoutCssPath = path.join(frontendRoot, 'src', 'core', 'layout', 'index.css');
 const globalCssPath = path.join(frontendRoot, 'src', 'index.css');
-const listPageCssPath = path.join(frontendRoot, 'src', 'modules', 'system', 'list-page.css');
-const loginCssPath = path.join(frontendRoot, 'src', 'modules', 'auth', 'Login.css');
+const listPageCssPath = path.join(
+  frontendRoot,
+  'src',
+  'modules',
+  'system',
+  'components',
+  'shared',
+  'list-page.css',
+);
+const loginCssPath = path.join(
+  frontendRoot,
+  'src',
+  'modules',
+  'auth',
+  'login',
+  'components',
+  'Login.css',
+);
 const modulesRoot = path.join(frontendRoot, 'src', 'modules');
 const tableBatchActionBarPath = path.join(
   frontendRoot,
   'src',
   'components',
   'patterns',
+  'table',
   'TableBatchActionBar.tsx',
 );
-const appModalPath = path.join(frontendRoot, 'src', 'components', 'patterns', 'AppModal.tsx');
-const appDrawerPath = path.join(frontendRoot, 'src', 'components', 'patterns', 'AppDrawer.tsx');
+const appModalPath = path.join(
+  frontendRoot,
+  'src',
+  'components',
+  'patterns',
+  'modals',
+  'AppModal.tsx',
+);
+const appDrawerPath = path.join(
+  frontendRoot,
+  'src',
+  'components',
+  'patterns',
+  'modals',
+  'AppDrawer.tsx',
+);
 const appModalActionsPath = path.join(
   frontendRoot,
   'src',
   'components',
   'patterns',
+  'modals',
   'AppModalActions.ts',
 );
-const formSectionPath = path.join(frontendRoot, 'src', 'components', 'patterns', 'FormSection.tsx');
-const submitBarPath = path.join(frontendRoot, 'src', 'components', 'patterns', 'SubmitBar.tsx');
+const formSectionPath = path.join(
+  frontendRoot,
+  'src',
+  'components',
+  'patterns',
+  'feedback',
+  'FormSection.tsx',
+);
+const submitBarPath = path.join(
+  frontendRoot,
+  'src',
+  'components',
+  'patterns',
+  'actions',
+  'SubmitBar.tsx',
+);
 const pageEmptyPath = path.join(frontendRoot, 'src', 'components', 'feedback', 'PageEmpty.tsx');
 const pageLoadingPath = path.join(frontendRoot, 'src', 'components', 'feedback', 'PageLoading.tsx');
 const pageErrorPath = path.join(frontendRoot, 'src', 'components', 'feedback', 'PageError.tsx');
@@ -78,39 +124,11 @@ const requiredGlobalTokens = [
 ];
 
 function getBlock(cssSource, selector) {
-  let start = cssSource.indexOf(selector);
-  while (start >= 0) {
-    let beforeIndex = start - 1;
-    while (beforeIndex >= 0 && /\s/.test(cssSource[beforeIndex])) {
-      beforeIndex -= 1;
-    }
-    const before = beforeIndex < 0 ? '\n' : cssSource[beforeIndex];
-    const after = cssSource[start + selector.length] || '';
-    if ((/[},]/.test(before) || before === '\n') && (/[\s,{]/.test(after) || after === '')) {
-      break;
-    }
-    start = cssSource.indexOf(selector, start + selector.length);
-  }
-  if (start < 0) {
-    return '';
-  }
-  const open = cssSource.indexOf('{', start);
-  if (open < 0) {
-    return '';
-  }
-  let depth = 0;
-  for (let index = open; index < cssSource.length; index += 1) {
-    const char = cssSource[index];
-    if (char === '{') {
-      depth += 1;
-    } else if (char === '}') {
-      depth -= 1;
-      if (depth === 0) {
-        return cssSource.slice(open + 1, index);
-      }
-    }
-  }
-  return '';
+  return extractCssRules(cssSource)
+    .filter(({ selectorText }) => splitSelectorList(selectorText).includes(selector))
+    .map(({ body }) => body.trim())
+    .filter(Boolean)
+    .join('\n');
 }
 
 function requireBlock(cssSource, selector, findings) {
@@ -124,7 +142,7 @@ function requireBlock(cssSource, selector, findings) {
 function getStandaloneBlock(cssSource, selector) {
   const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const match = cssSource.match(
-    new RegExp(String.raw`(?:^|\n)${escapedSelector}\s*\{([\s\S]*?)\n\}`, 'i'),
+    new RegExp(`(?:^|\\n)${escapedSelector}\\s*\\{([\\s\\S]*?)\\n\\}`, 'i'),
   );
   return match?.[1] || '';
 }
@@ -138,10 +156,7 @@ function requireStandaloneBlock(cssSource, selector, findings) {
 }
 
 function hasDeclaration(block, property, expectedValue) {
-  const pattern = new RegExp(
-    String.raw`${property}\s*:\s*${expectedValue}(?:\s*!important)?\s*;`,
-    'i',
-  );
+  const pattern = new RegExp(`${property}\\s*:\\s*${expectedValue}(?:\\s*!important)?\\s*;`, 'i');
   return pattern.test(block);
 }
 
@@ -161,7 +176,7 @@ function splitSelectorList(selectorText) {
 
 function extractCssRules(cssSource) {
   const rules = [];
-  const rulePattern = /([^{}]+)\{([^{}]*)\}/g;
+  const rulePattern = /([^{}]+)\{([^{}]*)\}/g; // NOSONAR — build-only script, small CSS input
   let match;
   while ((match = rulePattern.exec(cssSource))) {
     const selectorText = match[1].trim();
@@ -242,22 +257,24 @@ const findings = [];
 
 const moduleSourceFiles = readFilesRecursive(
   modulesRoot,
-  (entryPath) =>
-    /\.(?:tsx|ts)$/.test(entryPath) &&
-    !entryPath.endsWith('.test.ts') &&
-    !entryPath.includes(`${path.sep}modules${path.sep}business${path.sep}`) &&
-    !entryPath.includes(`${path.sep}modules${path.sep}generator${path.sep}`),
+  (entryPath) => /\.(?:tsx|ts)$/.test(entryPath) && !entryPath.endsWith('.test.ts'),
 );
 
 for (const sourcePath of moduleSourceFiles) {
   const moduleSource = fs.readFileSync(sourcePath, 'utf8');
   const relativePath = path.relative(frontendRoot, sourcePath).replaceAll(path.sep, '/');
   if (/<PageHeader\b/.test(moduleSource)) {
-    findings.push(`${relativePath} must not render page-level PageHeader inside functional modules.`);
+    findings.push(
+      `${relativePath} must not render page-level PageHeader inside functional modules.`,
+    );
   }
 
   for (const block of extractSelfClosingJsxBlocks(moduleSource, 'GovernanceSummaryBar')) {
-    if (/(IconPlus|IconDownload|ImportCsvButton|common\.add|common\.export|common\.import|common\.refresh)/.test(block)) {
+    if (
+      /(IconPlus|IconDownload|ImportCsvButton|common\.add|common\.export|common\.import|common\.refresh)/.test(
+        block,
+      )
+    ) {
       findings.push(
         `${relativePath} must not put CRUD/import/export/refresh actions inside GovernanceSummaryBar.`,
       );
@@ -382,6 +399,22 @@ if (headerBlock) {
   }
   if (!hasDeclaration(headerBlock, 'line-height', 'normal')) {
     findings.push('.app-shell__header must reset inherited header line-height to normal.');
+  }
+}
+
+const menuEntryBlock = requireBlock(source, '.app-shell__menu-entry', findings);
+if (menuEntryBlock) {
+  if (!hasDeclaration(menuEntryBlock, 'border', '0')) {
+    findings.push('.app-shell__menu-entry must remove the browser default button border.');
+  }
+  if (!hasDeclaration(menuEntryBlock, 'background', 'transparent')) {
+    findings.push('.app-shell__menu-entry must keep a transparent button background.');
+  }
+  if (!hasDeclaration(menuEntryBlock, 'padding', '0')) {
+    findings.push('.app-shell__menu-entry must remove the browser default button padding.');
+  }
+  if (!hasDeclaration(menuEntryBlock, 'appearance', 'none')) {
+    findings.push('.app-shell__menu-entry must disable native button appearance.');
   }
 }
 
@@ -511,9 +544,7 @@ const systemTableCardBlock = requireBlock(
 );
 if (systemTableCardBlock) {
   if (
-    !/padding\s*:\s*var\(--shell-table-card-padding\)\s*!important\s*;/i.test(
-      systemTableCardBlock,
-    )
+    !/padding\s*:\s*var\(--shell-table-card-padding\)\s*!important\s*;/i.test(systemTableCardBlock)
   ) {
     findings.push(
       '.system-list__table-card must use --shell-table-card-padding so table left/right spacing is consistent.',
@@ -564,6 +595,61 @@ if (
   findings.push('FilterPanel action buttons must align to --shell-filter-control-min-height.');
 }
 
+const filterPanelBlock = requireBlock(globalSource, '.filter-panel', findings);
+if (filterPanelBlock) {
+  if (
+    !hasDeclaration(
+      filterPanelBlock,
+      'border-color',
+      'color-mix\\(in srgb, var\\(--panel-border\\) 92%, transparent\\)',
+    )
+  ) {
+    findings.push('.filter-panel must use the shared softened panel border.');
+  }
+  if (
+    !hasDeclaration(
+      filterPanelBlock,
+      'background',
+      'color-mix\\(in srgb, var\\(--panel-muted\\) 82%, #fff\\)',
+    )
+  ) {
+    findings.push('.filter-panel must use the shared muted filter background.');
+  }
+  if (!hasDeclaration(filterPanelBlock, 'box-shadow', 'none')) {
+    findings.push('.filter-panel must not render an extra shadow layer.');
+  }
+}
+
+const filterLabelBlock = requireBlock(
+  globalSource,
+  '.filter-panel .arco-form-item-label-col > label',
+  findings,
+);
+if (filterLabelBlock) {
+  if (!hasDeclaration(filterLabelBlock, 'color', 'var\\(--text-secondary\\)')) {
+    findings.push('FilterPanel labels must use the secondary text color.');
+  }
+  if (!hasDeclaration(filterLabelBlock, 'font-weight', '500')) {
+    findings.push('FilterPanel labels must use a stable 500 weight.');
+  }
+}
+
+if (
+  !/\.filter-panel\s+\.arco-input-inner-wrapper:hover,[\s\S]*?border-color\s*:\s*color-mix\(in srgb, var\(--brand-primary\) 34%, var\(--panel-border-strong\)\)\s*;/i.test(
+    globalSource,
+  )
+) {
+  findings.push('FilterPanel hover controls must use the shared softened brand border.');
+}
+
+if (
+  !/\.filter-panel\s+\.arco-input-focus,[\s\S]*?border-color\s*:\s*var\(--brand-primary\)\s*;[\s\S]*?box-shadow\s*:\s*0 0 0 3px color-mix\(in srgb, var\(--brand-primary\) 12%, transparent\)\s*;/i.test(
+    globalSource,
+  )
+) {
+  findings.push('FilterPanel focused controls must use the shared brand focus ring.');
+}
+
 const submitBarBlock = requireBlock(globalSource, '.submit-bar', findings);
 if (submitBarBlock) {
   if (!hasDeclaration(submitBarBlock, 'justify-content', 'flex-end')) {
@@ -584,9 +670,8 @@ if (pageEmptyLoadingBlock) {
   }
 }
 
-const pageLoadingHasMinHeight = /(?:^|\n)\.page-loading\s*\{[\s\S]*?min-height\s*:\s*240px\s*;/i.test(
-  globalSource,
-);
+const pageLoadingHasMinHeight =
+  /(?:^|\n)\.page-loading\s*\{[\s\S]*?min-height\s*:\s*240px\s*;/i.test(globalSource);
 if (!pageLoadingHasMinHeight) {
   requireBlock(globalSource, '.page-loading', findings);
   findings.push('.page-loading must keep a stable 240px minimum height.');
@@ -619,9 +704,15 @@ if (
 ) {
   findings.push('.list-header-actions must use --shell-list-actions-gap.');
 }
+if (listHeaderActionsBlock && !hasDeclaration(listHeaderActionsBlock, 'align-items', 'center')) {
+  findings.push('.list-header-actions must vertically center grouped page actions.');
+}
 
 const workActionsBlock = requireBlock(listPageSource, '.system-list__work-actions', findings);
 if (workActionsBlock) {
+  if (!hasDeclaration(workActionsBlock, 'align-items', 'center')) {
+    findings.push('.system-list__work-actions must vertically center work-area actions.');
+  }
   if (!hasDeclaration(workActionsBlock, 'justify-content', 'flex-end')) {
     findings.push('.system-list__work-actions must align work-area actions to the right.');
   }
@@ -656,7 +747,7 @@ if (!/maskClosable\s*=\s*false/.test(appDrawerSource)) {
 
 for (const actionName of ['Confirm', 'Success', 'Error']) {
   if (
-    !new RegExp(String.raw`showAppModal${actionName}[\s\S]*?mergeDialogClassName\('app-dialog'`).test(
+    !new RegExp(`showAppModal${actionName}[\\s\\S]*?mergeDialogClassName\\('app-dialog'`).test(
       appModalActionsSource,
     )
   ) {
@@ -694,13 +785,106 @@ if (batchMainBlock) {
   }
 }
 
+const systemTableHeadBlock = requireBlock(listPageSource, '.system-list__table-head', findings);
+if (systemTableHeadBlock) {
+  if (!hasDeclaration(systemTableHeadBlock, 'align-items', 'center')) {
+    findings.push('.system-list__table-head must vertically center title and actions.');
+  }
+  if (!hasDeclaration(systemTableHeadBlock, 'gap', 'var\\(--shell-table-head-gap\\)')) {
+    findings.push('.system-list__table-head must use --shell-table-head-gap.');
+  }
+}
+
+const listHeaderButtonBlock = requireBlock(
+  listPageSource,
+  '.list-header-actions .arco-btn',
+  findings,
+);
+if (listHeaderButtonBlock) {
+  if (!hasDeclaration(listHeaderButtonBlock, 'border-radius', 'var\\(--radius-md\\)')) {
+    findings.push(
+      '.list-header-actions buttons must use the shared radius and horizontal padding.',
+    );
+  }
+  if (!hasDeclaration(listHeaderButtonBlock, 'padding-inline', '14px')) {
+    findings.push(
+      '.list-header-actions buttons must use the shared radius and horizontal padding.',
+    );
+  }
+}
+
+const batchActionButtonBlock = requireBlock(
+  listPageSource,
+  '.table-batch-action-bar .arco-btn',
+  findings,
+);
+if (batchActionButtonBlock) {
+  if (!hasDeclaration(batchActionButtonBlock, 'border-radius', 'var\\(--radius-md\\)')) {
+    findings.push(
+      '.table-batch-action-bar buttons must use the shared radius and horizontal padding.',
+    );
+  }
+  if (!hasDeclaration(batchActionButtonBlock, 'padding-inline', '14px')) {
+    findings.push(
+      '.table-batch-action-bar buttons must use the shared radius and horizontal padding.',
+    );
+  }
+}
+
+const paginationShellBlock = requireBlock(
+  globalSource,
+  '.app-table .arco-table-pagination',
+  findings,
+);
+if (paginationShellBlock) {
+  if (!hasDeclaration(paginationShellBlock, 'justify-content', 'flex-end')) {
+    findings.push('.app-table pagination shell must align controls to the right.');
+  }
+  if (
+    !hasDeclaration(
+      paginationShellBlock,
+      'border-top',
+      '1px solid color-mix\\(in srgb, var\\(--panel-border\\) 88%, transparent\\)',
+    )
+  ) {
+    findings.push('.app-table pagination shell must use the shared top divider.');
+  }
+}
+
+if (
+  !/\.app-table\s+\.arco-pagination-item,[\s\S]*?border\s*:\s*1px solid color-mix\(in srgb, var\(--panel-border\) 82%, transparent\)\s*;[\s\S]*?background\s*:\s*var\(--panel-bg-solid\)\s*;/i.test(
+    globalSource,
+  )
+) {
+  findings.push('.app-table pagination items must use the shared subtle border and background.');
+}
+
+const paginationActiveBlock = requireBlock(
+  globalSource,
+  '.app-table .arco-pagination-item-active',
+  findings,
+);
+if (paginationActiveBlock) {
+  if (
+    !hasDeclaration(
+      paginationActiveBlock,
+      'background',
+      'color-mix\\(in srgb, var\\(--brand-primary\\) 12%, #fff\\)',
+    )
+  ) {
+    findings.push('.app-table active pagination item must use the shared brand-tinted background.');
+  }
+}
+
 const appDialogControlBlock = requireBlock(
   globalSource,
   '.app-dialog .arco-input-inner-wrapper',
   findings,
 );
 if (appDialogControlBlock) {
-  if (!hasDeclaration(appDialogControlBlock, 'border', '1px solid var\\(--panel-border-strong\\)')) {
+  if (
+    !hasDeclaration(appDialogControlBlock, 'border', '1px solid var\\(--panel-border-strong\\)')
+  ) {
     findings.push('.app-dialog controls must render one shared outer border.');
   }
   if (!hasDeclaration(appDialogControlBlock, 'background', '#fff')) {
@@ -718,7 +902,11 @@ const appDialogInputNumberControlBlock = requireBlock(
 );
 if (appDialogInputNumberControlBlock) {
   if (
-    !hasDeclaration(appDialogInputNumberControlBlock, 'border', '1px solid var\\(--panel-border-strong\\)')
+    !hasDeclaration(
+      appDialogInputNumberControlBlock,
+      'border',
+      '1px solid var\\(--panel-border-strong\\)',
+    )
   ) {
     findings.push('.app-dialog InputNumber outer control must render one shared border.');
   }
@@ -730,7 +918,9 @@ const appDrawerControlBlock = requireBlock(
   findings,
 );
 if (appDrawerControlBlock) {
-  if (!hasDeclaration(appDrawerControlBlock, 'border', '1px solid var\\(--panel-border-strong\\)')) {
+  if (
+    !hasDeclaration(appDrawerControlBlock, 'border', '1px solid var\\(--panel-border-strong\\)')
+  ) {
     findings.push('.app-drawer controls must render one shared outer border.');
   }
   if (!hasDeclaration(appDrawerControlBlock, 'background', '#fff')) {
@@ -771,11 +961,7 @@ if (!/@keyframes\s+app-dialog-no-scale/i.test(globalSource)) {
   findings.push('.app-dialog must define app-dialog-no-scale keyframes.');
 }
 
-const appDialogHeaderBlock = requireBlock(
-  globalSource,
-  '.app-dialog .arco-modal-header',
-  findings,
-);
+const appDialogHeaderBlock = requireBlock(globalSource, '.app-dialog .arco-modal-header', findings);
 if (appDialogHeaderBlock) {
   if (!/height\s*:\s*64px\s*!important\s*;/i.test(appDialogHeaderBlock)) {
     findings.push('.app-dialog header must keep a stable 64px height.');
@@ -805,11 +991,7 @@ if (appDialogContentBlock) {
   }
 }
 
-const appDialogFooterBlock = requireBlock(
-  globalSource,
-  '.app-dialog .arco-modal-footer',
-  findings,
-);
+const appDialogFooterBlock = requireBlock(globalSource, '.app-dialog .arco-modal-footer', findings);
 if (appDialogFooterBlock && !hasDeclaration(appDialogFooterBlock, 'padding', '16px 24px 20px')) {
   findings.push('.app-dialog footer must use shared dialog padding.');
 }
@@ -913,7 +1095,10 @@ const dialogCardTitleTextBlock = requireBlock(
   '.app-dialog .dialog-grid-card .arco-card-header-title .arco-typography',
   findings,
 );
-if (dialogCardTitleTextBlock && !hasDeclaration(dialogCardTitleTextBlock, 'white-space', 'nowrap')) {
+if (
+  dialogCardTitleTextBlock &&
+  !hasDeclaration(dialogCardTitleTextBlock, 'white-space', 'nowrap')
+) {
   findings.push('.dialog-grid-card title text must not wrap.');
 }
 
@@ -1002,8 +1187,11 @@ if (globalInputNumberInnerBlock) {
   }
 }
 
-for (const selectorList of globalSource.match(/[^{}]*\.arco-input-number\s+\.arco-input-inner-wrapper[^{}]*\{[^{}]*\}/g) ?? []) {
-  const borderedDeclaration = selectorList.match(/\b(border|border-color)\s*:\s*([^;]+);/i);
+for (const selectorList of globalSource.match(
+  /[^{}]*\.arco-input-number\s+\.arco-input-inner-wrapper[^{}]*\{[^{}]*\}/g,
+) ?? []) {
+  // NOSONAR — build-only script
+  const borderedDeclaration = selectorList.match(/\b(border|border-color)\s*:\s*([^;]+);/i); // NOSONAR — build-only script
   if (borderedDeclaration && borderedDeclaration[2].trim() !== '0') {
     findings.push(
       'InputNumber inner wrapper must not be part of the bordered control group; the outer .arco-input-number owns the border.',
@@ -1033,6 +1221,7 @@ if (globalNestedInputFocusBlock) {
 }
 
 if (/(?:^|\n)\s*\.arco-input:focus\s*,/i.test(globalSource)) {
+  // NOSONAR — build-only script
   findings.push(
     'Bare .arco-input:focus must not own the global focus ring; the outer input wrapper owns it.',
   );
@@ -1091,7 +1280,9 @@ if (loginPasswordInnerInputBlock) {
     findings.push('.auth-login-card password inner inputs must not render their own shadow.');
   }
   if (!hasDeclaration(loginPasswordInnerInputBlock, 'outline', '0')) {
-    findings.push('.auth-login-card password inner inputs must not render their own focus outline.');
+    findings.push(
+      '.auth-login-card password inner inputs must not render their own focus outline.',
+    );
   }
 }
 
@@ -1189,7 +1380,9 @@ if (
     settingGroupPageSource,
   )
 ) {
-  findings.push('SettingGroupPage must use the shared GovernanceSummaryBar for governance summary.');
+  findings.push(
+    'SettingGroupPage must use the shared GovernanceSummaryBar for governance summary.',
+  );
 }
 
 if (/<PageHeader/.test(settingGroupPageSource)) {
@@ -1200,7 +1393,10 @@ if (/setting-page__overview(?:-|_)/.test(settingGroupPageSource)) {
   findings.push('SettingGroupPage must not use legacy setting-page__overview* styles.');
 }
 
-if (/setting-page__overview(?:-|_)/.test(globalSource) || /setting-page__overview(?:-|_)/.test(listPageSource)) {
+if (
+  /setting-page__overview(?:-|_)/.test(globalSource) ||
+  /setting-page__overview(?:-|_)/.test(listPageSource)
+) {
   findings.push('Legacy setting-page__overview* CSS is forbidden; use GovernanceSummaryBar.');
 }
 
@@ -1212,7 +1408,7 @@ if (/\.dict-page__governance-bar\s+\.arco-card-body/i.test(globalSource + listPa
   findings.push('Dict governance bar must not define card-body overrides.');
 }
 
-const tableHeaderRule = globalSource.match(/(?:^|\n)\.arco-table-th\s*\{[\s\S]*?\n\}/)?.[0] || '';
+const tableHeaderRule = /(?:^|\n)\.arco-table-th\s*\{[\s\S]*?\n\}/.exec(globalSource)?.[0] || '';
 if (!tableHeaderRule) {
   findings.push('Missing CSS block: .arco-table-th');
 } else {

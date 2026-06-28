@@ -29,11 +29,6 @@ import {
   IconSearch,
 } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
-import {
-  isNetworkRequestError,
-  isServerRequestError,
-  isTimeoutRequestError,
-} from '../../../api/request';
 import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
@@ -70,10 +65,8 @@ import {
   ListHeaderActions,
   PageContainer,
   PageEmpty,
-  PageError,
   PageLoading,
-  PageNetworkError,
-  PageServerError,
+  PageRequestError,
   SubmitBar,
   SystemRowActions,
   TableBatchActionBar,
@@ -83,7 +76,7 @@ import {
   useGovernanceRail,
   withTableColumnPriority,
 } from '../../../components';
-import '../list-page.css';
+import '../components/shared/list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -357,7 +350,10 @@ const RoleList: React.FC = () => {
   );
 
   const visibleSelectedRowKeys = useMemo(() => {
-    return getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.id));
+    return getVisibleSelectedRowKeys(
+      selectedRowKeys,
+      data.map((item) => item.id),
+    );
   }, [data, selectedRowKeys]);
 
   const permissionCatalog = useMemo(() => {
@@ -819,35 +815,6 @@ const RoleList: React.FC = () => {
       }))
     : [];
 
-  const renderErrorState = () => {
-    if (isNetworkRequestError(error)) {
-      return (
-        <PageNetworkError
-          timeout={isTimeoutRequestError(error)}
-          onRetry={() => {
-            void loadData(query);
-          }}
-        />
-      );
-    }
-    if (isServerRequestError(error)) {
-      return (
-        <PageServerError
-          onRetry={() => {
-            void loadData(query);
-          }}
-        />
-      );
-    }
-    return (
-      <PageError
-        onRetry={() => {
-          void loadData(query);
-        }}
-      />
-    );
-  };
-
   const batchActionDisabled = !canBatchUpdate || selectedRowKeys.length === 0;
   const batchDeleteDisabled = !canBatchDelete || selectedRowKeys.length === 0;
   const enabledRoleCount = useMemo(() => data.filter((item) => item.status === 1).length, [data]);
@@ -1043,11 +1010,7 @@ const RoleList: React.FC = () => {
                       }}
                       disabled={batchDeleteDisabled}
                     >
-                      <Button
-                        status="danger"
-                        icon={<IconDelete />}
-                        disabled={batchDeleteDisabled}
-                      >
+                      <Button status="danger" icon={<IconDelete />} disabled={batchDeleteDisabled}>
                         {t('common.deleteSelected')}
                       </Button>
                     </Popconfirm>
@@ -1056,7 +1019,14 @@ const RoleList: React.FC = () => {
               }
             />
             {loading && data.length === 0 ? <PageLoading /> : null}
-            {error && data.length === 0 ? renderErrorState() : null}
+            {error && data.length === 0 ? (
+              <PageRequestError
+                error={error}
+                onRetry={() => {
+                  void loadData(query);
+                }}
+              />
+            ) : null}
             {!loading && !error && data.length === 0 ? (
               <PageEmpty description={t('common.noData')} />
             ) : null}
@@ -1068,18 +1038,22 @@ const RoleList: React.FC = () => {
                 rowKey="id"
                 loading={loading}
                 scroll={{ x: 'max-content' }}
-                    rowSelection={{
-                      type: 'checkbox',
-                      selectedRowKeys: visibleSelectedRowKeys,
-                      checkCrossPage: true,
-                      preserveSelectedRowKeys: true,
-                      fixed: true,
-                      checkboxProps: (row) => ({ disabled: row.roleKey === 'admin' }),
-                      onChange: (rowKeys) =>
-                        setSelectedRowKeys((keys) =>
-                          mergeCrossPageSelection(keys, rowKeys, data.map((item) => item.id)),
-                        ),
-                    }}
+                rowSelection={{
+                  type: 'checkbox',
+                  selectedRowKeys: visibleSelectedRowKeys,
+                  checkCrossPage: true,
+                  preserveSelectedRowKeys: true,
+                  fixed: true,
+                  checkboxProps: (row) => ({ disabled: row.roleKey === 'admin' }),
+                  onChange: (rowKeys) =>
+                    setSelectedRowKeys((keys) =>
+                      mergeCrossPageSelection(
+                        keys,
+                        rowKeys,
+                        data.map((item) => item.id),
+                      ),
+                    ),
+                }}
                 onChange={handleTableChange}
                 emptyText={t('common.noData')}
                 pagination={buildStandardPagination(t, {

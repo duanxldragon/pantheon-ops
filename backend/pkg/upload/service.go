@@ -131,8 +131,15 @@ func (s *Service) MaxBytes() (int64, error) {
 }
 
 func (s *Service) Store(fileHeader *multipart.FileHeader, scope, requestBaseURL string) (*StoredFile, error) {
+	return s.StoreWithContext(context.Background(), fileHeader, scope, requestBaseURL)
+}
+
+func (s *Service) StoreWithContext(ctx context.Context, fileHeader *multipart.FileHeader, scope, requestBaseURL string) (*StoredFile, error) {
 	if fileHeader == nil {
 		return nil, errors.New("upload.file.required")
+	}
+	if ctx == nil {
+		ctx = context.Background()
 	}
 
 	cfg, err := s.LoadConfig()
@@ -165,7 +172,7 @@ func (s *Service) Store(fileHeader *multipart.FileHeader, scope, requestBaseURL 
 	case "local":
 		return s.storeLocal(cfg, fileHeader, objectKey, contentType, requestBaseURL)
 	case "s3":
-		return s.storeS3(cfg, fileHeader, objectKey, contentType)
+		return s.storeS3(ctx, cfg, fileHeader, objectKey, contentType)
 	default:
 		return nil, errors.New("upload.storage_driver.unsupported")
 	}
@@ -211,7 +218,7 @@ func (s *Service) storeLocal(cfg *Config, fileHeader *multipart.FileHeader, obje
 	}, nil
 }
 
-func (s *Service) storeS3(cfg *Config, fileHeader *multipart.FileHeader, objectKey, contentType string) (*StoredFile, error) {
+func (s *Service) storeS3(ctx context.Context, cfg *Config, fileHeader *multipart.FileHeader, objectKey, contentType string) (*StoredFile, error) {
 	if strings.TrimSpace(cfg.S3Endpoint) == "" {
 		return nil, errors.New("upload.s3.endpoint.required")
 	}
@@ -227,7 +234,6 @@ func (s *Service) storeS3(cfg *Config, fileHeader *multipart.FileHeader, objectK
 		return nil, err
 	}
 
-	ctx := context.Background()
 	exists, err := client.BucketExists(ctx, cfg.S3Bucket)
 	if err != nil {
 		return nil, errors.New("upload.s3.bucket.ensure.error")

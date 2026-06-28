@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"pantheon-ops/backend/internal/middleware"
+	"pantheon-ops/backend/pkg/database"
 	"pantheon-ops/backend/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
@@ -174,18 +175,18 @@ func InitBizScopeModule(r *gin.RouterGroup, db *gorm.DB) {
 		SeedMenusFunc: seedMenus,
 		SeedI18nFunc:  seedI18n,
 		Register: func(r *gin.RouterGroup) {
-			protected := r.Group("/business/bizscope").Use(middleware.JWTAuthMiddleware()).Use(middleware.CasbinMiddleware())
+			protected := r.Group("/business/bizscope").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
 			{
-			protected.GET("/list", handler.List)
-			protected.GET("/options", handler.Options)
-			protected.GET("/:id", handler.Detail)
-			protected.GET("/:id/hosts", handler.Hosts)
-			protected.GET("/:id/available-hosts", handler.AvailableHosts)
-			protected.POST("/:id/hosts/bind", handler.BindHosts)
-			protected.DELETE("/:id/hosts/:hostId", handler.UnbindHost)
-			protected.POST("", handler.Create)
-			protected.PUT("/:id", handler.Update)
-			protected.DELETE("/:id", handler.Delete)
+				protected.GET("/list", handler.List)
+				protected.GET("/options", handler.Options)
+				protected.GET("/:id", handler.Detail)
+				protected.GET("/:id/hosts", handler.Hosts)
+				protected.GET("/:id/available-hosts", handler.AvailableHosts)
+				protected.POST("/:id/hosts/bind", handler.BindHosts)
+				protected.DELETE("/:id/hosts/:hostId", handler.UnbindHost)
+				protected.POST("", handler.Create)
+				protected.PUT("/:id", handler.Update)
+				protected.DELETE("/:id", handler.Delete)
 			}
 		},
 	})

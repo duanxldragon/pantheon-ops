@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const errRequestFailed = "request.failed"
+
 type PostHandler struct {
 	service *PostService
 }
@@ -42,7 +44,7 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 
 	post, err := h.service.CreatePost(&req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, post)
@@ -64,7 +66,7 @@ func (h *PostHandler) UpdatePost(c *gin.Context) {
 
 	post, err := h.service.UpdatePost(postID, &req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, post)
@@ -81,7 +83,7 @@ func (h *PostHandler) BatchUpdatePostStatus(c *gin.Context) {
 
 	updatedCount, err := h.service.BatchUpdatePostStatus(req.PostIDs, req.Status)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"updatedCount": updatedCount})
@@ -96,7 +98,7 @@ func (h *PostHandler) DeletePost(c *gin.Context) {
 	}
 
 	if err := h.service.DeletePost(postID); err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})

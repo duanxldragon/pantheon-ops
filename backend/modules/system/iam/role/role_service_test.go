@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/database"
 	"pantheon-ops/backend/pkg/testmysql"
 
@@ -55,7 +56,7 @@ func TestRoleService_CreateRole(t *testing.T) {
 
 	// 2. RoleKey 重复
 	_, err = s.CreateRole(req)
-	if err == nil || err.Error() != "role.key.exists" {
+	if err == nil || common.ErrMessage(err) != "role.key.exists" {
 		t.Errorf("expected role key exists error, got %v", err)
 	}
 
@@ -63,7 +64,7 @@ func TestRoleService_CreateRole(t *testing.T) {
 	req.RoleKey = "invalid_perm"
 	req.PermissionKeys = []string{"nonexistent:perm"}
 	_, err = s.CreateRole(req)
-	if err == nil || err.Error() != "role.permission.invalid" {
+	if err == nil || common.ErrMessage(err) != "role.permission.invalid" {
 		t.Errorf("expected permission invalid error, got %v", err)
 	}
 }
@@ -110,6 +111,34 @@ func TestRoleService_MigrateSeedsAdminRoleAndBinding(t *testing.T) {
 	s := NewRoleService(db)
 	if err := s.Migrate(); err != nil {
 		t.Fatalf("migrate: %v", err)
+	}
+
+	var adminRole SystemRole
+	if err := db.Where("role_key = ?", "admin").First(&adminRole).Error; err != nil {
+		t.Fatalf("load admin role: %v", err)
+	}
+	if adminRole.Status != 1 {
+		t.Fatalf("expected admin role status 1, got %d", adminRole.Status)
+	}
+
+	var bindingCount int64
+	if err := db.Table("system_user_role").Where("user_id = ? AND role_id = ?", 1, adminRole.ID).Count(&bindingCount).Error; err != nil {
+		t.Fatalf("count admin binding: %v", err)
+	}
+	if bindingCount != 1 {
+		t.Fatalf("expected admin binding count 1, got %d", bindingCount)
+	}
+}
+
+func TestRoleService_BootstrapSeedsAdminRoleAndBinding(t *testing.T) {
+	db := setupRoleTestDB(t)
+	if err := db.Exec("INSERT INTO system_user (id, username) VALUES (1, 'admin')").Error; err != nil {
+		t.Fatalf("seed admin user: %v", err)
+	}
+
+	s := NewRoleService(db)
+	if err := s.Bootstrap(); err != nil {
+		t.Fatalf("bootstrap: %v", err)
 	}
 
 	var adminRole SystemRole
@@ -182,7 +211,7 @@ func TestRoleService_DeleteRole(t *testing.T) {
 	adminRole := SystemRole{RoleName: "Admin", RoleKey: "admin"}
 	db.Create(&adminRole)
 	err = s.DeleteRole(adminRole.ID)
-	if err == nil || err.Error() != "role.delete.error.protected" {
+	if err == nil || common.ErrMessage(err) != "role.delete.error.protected" {
 		t.Errorf("expected protected error for admin role, got %v", err)
 	}
 
@@ -192,7 +221,7 @@ func TestRoleService_DeleteRole(t *testing.T) {
 	_ = db.Exec("INSERT INTO system_user_role (user_id, role_id) VALUES (1, ?)", roleWithUser.ID)
 
 	err = s.DeleteRole(roleWithUser.ID)
-	if err == nil || err.Error() != "role.delete.error.has_users" {
+	if err == nil || common.ErrMessage(err) != "role.delete.error.has_users" {
 		t.Errorf("expected has_users error, got %v", err)
 	}
 }
@@ -265,7 +294,7 @@ func TestRoleService_ExportAndBatchStatus(t *testing.T) {
 		t.Fatalf("expected role status 2, got %d", disabled.Status)
 	}
 
-	if _, err := s.BatchUpdateRoleStatus([]uint64{adminRole.ID}, 2); err == nil || err.Error() != "role.update.error.protected" {
+	if _, err := s.BatchUpdateRoleStatus([]uint64{adminRole.ID}, 2); err == nil || common.ErrMessage(err) != "role.update.error.protected" {
 		t.Fatalf("expected protected error for admin batch disable, got %v", err)
 	}
 }
@@ -355,7 +384,7 @@ func TestRoleService_RemoveAdminMemberProtection(t *testing.T) {
 		t.Fatalf("seed admin binding: %v", err)
 	}
 
-	if _, err := s.RemoveRoleMembers(adminRole.ID, []uint64{1}); err == nil || err.Error() != "user.update.error.protected" {
+	if _, err := s.RemoveRoleMembers(adminRole.ID, []uint64{1}); err == nil || common.ErrMessage(err) != "user.update.error.protected" {
 		t.Fatalf("expected protected error when removing built-in admin, got %v", err)
 	}
 }

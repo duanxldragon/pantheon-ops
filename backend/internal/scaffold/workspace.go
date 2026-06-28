@@ -18,6 +18,7 @@ var managedTableNamePattern = regexp.MustCompile(`^[a-z0-9_]+$`)
 
 const workspaceRootEnvKey = "PANTHEON_WORKSPACE_ROOT"
 const generatedModuleExporterScript = "frontend/scripts/export-generated-module.mjs"
+const GeneratedFeatureLedgerRelativePath = "schema/generated/feature-ledger.json"
 
 func isWorkspaceRoot(candidate string) bool {
 	return fileExists(filepath.Join(candidate, "go.mod")) &&
@@ -286,6 +287,11 @@ func WriteGeneratedRegistries(workspaceRoot string, refs []GeneratedModuleRef) e
 	return writeGeneratedBackendComponentRegistry(workspaceRoot, normalized)
 }
 
+func WriteGeneratedFeatureLedgerSnapshot(workspaceRoot string, snapshot any) error {
+	target := filepath.Join(workspaceRoot, filepath.FromSlash(GeneratedFeatureLedgerRelativePath))
+	return writeJSONFile(target, snapshot)
+}
+
 func normalizeGeneratedModuleRefs(refs []GeneratedModuleRef) []GeneratedModuleRef {
 	seen := make(map[string]struct{}, len(refs))
 	normalized := make([]GeneratedModuleRef, 0, len(refs))
@@ -449,6 +455,17 @@ func writeTemplateFile(target string, templateSource string, data any) error {
 	return tpl.Execute(file, data)
 }
 
+func writeJSONFile(target string, payload any) error {
+	serialized, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(target, serialized, 0o644)
+}
+
 func isValidModulePath(name string, allowNested bool) bool {
 	normalized := strings.TrimSpace(name)
 	if normalized == "" {
@@ -568,7 +585,7 @@ func WriteGeneratedFallbackResources(workspaceRoot string) error {
 			if walkErr != nil {
 				return walkErr
 			}
-			if d.IsDir() || !strings.EqualFold(filepath.Ext(path), ".json") {
+			if d.IsDir() || !strings.EqualFold(filepath.Ext(path), ".json") || strings.EqualFold(filepath.Base(path), filepath.Base(GeneratedFeatureLedgerRelativePath)) {
 				return nil
 			}
 

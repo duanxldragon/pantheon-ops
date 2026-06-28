@@ -6,8 +6,15 @@ Chinese version: [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
 
 - Base repository: `../pantheon-base`
 - Base release line: `release/0.8`
-- Base version: `base-v0.8.1` (`3427c1a2fdc0b16ce6aa8735a13f3c94896ab374`)
+- Base version: `base-v0.8.6` (`dec10461ecc8d9ed1422ea1538dd6872b2a13283`)
+- Release lock file: `foundation-release.lock.json`
 - Inheritance mode: `foundation-release-consumer`
+
+Conventions:
+
+- the machine-readable lock version remains `base-v0.8.6`
+- the GitHub release title may use a shorter human-facing display name such as `v0.8.6`
+- automation, validation, and consumer scripts must treat `foundation-release.lock.json` as the source of truth
 
 This repository no longer treats `base/main` as the default consumer surface. `main` may continue to absorb optimization and governance work, while ops upgrades only to explicit foundation releases or tags by default.
 
@@ -76,6 +83,7 @@ The recommended path is now the release consumer instead of manual tree copies:
 
 - `npm run upgrade:foundation:apply -- --manifest <bundle-root>\manifest.json --bundle <bundle-root>`
 - the command syncs shared backend/frontend files, preserves ops-local overlays such as menu registries and generator workspace files, rewrites shared backend imports to the `pantheon-ops` module path, and re-runs frontend `base-sync` plus `menu-contract`
+- the standard apply flow should also update `foundation-release.lock.json` and `docs/PROJECT_INHERITANCE*`
 
 ## 6.1 Landing-Side Decision Rules
 

@@ -54,7 +54,7 @@ import {
 } from '../api';
 import { buildDeployTemplateDefaultParameters, getDeployFixedTemplateCatalogEntry } from '../catalog';
 import { formatDateTime } from '../../../../core/format/dateTime';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../deploy.css';
 
 type TaskFormValues = {
@@ -640,12 +640,9 @@ export default function DeployTaskList() {
                 current: page,
                 pageSize,
                 total,
-                onChange: (nextPage) => {
+                onChange: (nextPage, nextPageSize) => {
                   setPage(nextPage || 1);
-                },
-                onPageSizeChange: (nextPageSize) => {
                   setPageSize(nextPageSize || pageSize);
-                  setPage(1);
                 },
                 pageSizeChangeResetCurrent: true,
               })}

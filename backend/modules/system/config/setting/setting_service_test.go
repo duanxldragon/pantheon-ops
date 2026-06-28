@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/testmysql"
 )
 
@@ -105,21 +106,21 @@ func TestSettingService_UpdateGroupValidatesValueType(t *testing.T) {
 	_, err := service.UpdateGroup("upload", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
 		{SettingKey: "upload.allowed_types", SettingValue: "[invalid json]"},
 	}})
-	if err == nil || err.Error() != "setting.value.invalid_json" {
+	if err == nil || common.ErrMessage(err) != "setting.value.invalid_json" {
 		t.Fatalf("expected invalid json error, got %v", err)
 	}
 
 	_, err = service.UpdateGroup("upload", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
 		{SettingKey: "upload.max_file_size", SettingValue: "not-a-number"},
 	}})
-	if err == nil || err.Error() != "setting.value.invalid_number" {
+	if err == nil || common.ErrMessage(err) != "setting.value.invalid_number" {
 		t.Fatalf("expected invalid number error, got %v", err)
 	}
 
 	_, err = service.UpdateGroup("upload", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
 		{SettingKey: "upload.storage_driver", SettingValue: "ftp"},
 	}})
-	if err == nil || err.Error() != "setting.value.invalid_option" {
+	if err == nil || common.ErrMessage(err) != "setting.value.invalid_option" {
 		t.Fatalf("expected invalid option error for storage driver, got %v", err)
 	}
 
@@ -157,7 +158,7 @@ func TestSettingService_UpdateGroupValidatesValueType(t *testing.T) {
 	_, err = service.UpdateGroup("upload", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
 		{SettingKey: "upload.allowed_types", SettingValue: "{\"jpg\":true}"},
 	}})
-	if err == nil || err.Error() != "setting.value.invalid_json" {
+	if err == nil || common.ErrMessage(err) != "setting.value.invalid_json" {
 		t.Fatalf("expected invalid json-array error, got %v", err)
 	}
 
@@ -198,21 +199,21 @@ func TestSettingService_UpdateGroupValidatesValueType(t *testing.T) {
 	_, err = service.UpdateGroup("audit", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
 		{SettingKey: "audit.operation_log_retention_options", SettingValue: "[]"},
 	}})
-	if err == nil || err.Error() != "setting.value.invalid_option" {
+	if err == nil || common.ErrMessage(err) != "setting.value.invalid_option" {
 		t.Fatalf("expected invalid empty audit retention options error, got %v", err)
 	}
 
 	_, err = service.UpdateGroup("audit", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
 		{SettingKey: "audit.operation_log_retention_options", SettingValue: "[0,7]"},
 	}})
-	if err == nil || err.Error() != "setting.value.invalid_option" {
+	if err == nil || common.ErrMessage(err) != "setting.value.invalid_option" {
 		t.Fatalf("expected invalid non-positive audit retention option error, got %v", err)
 	}
 
 	_, err = service.UpdateGroup("platform", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
 		{SettingKey: "platform.app_mode", SettingValue: "invalid"},
 	}})
-	if err == nil || err.Error() != "setting.value.invalid_option" {
+	if err == nil || common.ErrMessage(err) != "setting.value.invalid_option" {
 		t.Fatalf("expected invalid app mode option error, got %v", err)
 	}
 }
@@ -347,6 +348,11 @@ func TestSettingService_MigrateSeedsAuthSecurityPolicySettings(t *testing.T) {
 
 func TestSettingService_MigrateUpgradesLegacySessionCleanupRetentionDefault(t *testing.T) {
 	db := setupSettingTestDB(t)
+	service := NewSettingService(db)
+	if err := db.AutoMigrate(&SystemSetting{}); err != nil {
+		t.Fatalf("create setting table: %v", err)
+	}
+
 	if err := db.Create(&SystemSetting{
 		SettingKey:   "audit.session_cleanup_retention_options",
 		SettingValue: "[7,30,90]",
@@ -358,7 +364,6 @@ func TestSettingService_MigrateUpgradesLegacySessionCleanupRetentionDefault(t *t
 		t.Fatalf("seed legacy setting: %v", err)
 	}
 
-	service := NewSettingService(db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate setting: %v", err)
 	}

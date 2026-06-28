@@ -15,7 +15,7 @@ import {
 import { getDictTypeList, type DictTypeQuery, type DictTypeRow } from './api';
 import DictTypeTab from './DictTypeTab';
 import DictItemTab from './DictItemTab';
-import '../list-page.css';
+import '../components/shared/list-page.css';
 
 const emptyTypeQuery: DictTypeQuery = {
   dictCode: '',

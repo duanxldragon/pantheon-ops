@@ -8,6 +8,11 @@ The repository keeps platform foundation capabilities as business runtime infras
 
 The default collaboration model is now: `pantheon-ops` consumes `pantheon-base` foundation releases instead of tracking `pantheon-base/main` directly.
 
+The current release anchor is split into two layers:
+
+- `foundation-release.lock.json`: machine-readable consumer lock, currently pinned to `base-v0.8.6`
+- GitHub release display name: short title `v0.8.6`, used for human-facing release browsing only
+
 ## Positioning
 
 - **Platform layer**: inherits the application shell, route composition, middleware, workbench, and cross-domain aggregate views from Pantheon Platform
@@ -78,7 +83,7 @@ CodeQL is the primary security signal. Code quality is gated by GitHub required 
 - [docs/README.md](./docs/README.md): Chinese primary index
 - [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md): inheritance lock, local scope, and override boundaries
 - [docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md): business-scope governance, host-binding, and deploy trust-boundary design
-- `Base release line + Base version` inside `docs/PROJECT_INHERITANCE.md` is the current consumer-version anchor
+- `foundation-release.lock.json` is the machine-readable consumer-version anchor; `docs/PROJECT_INHERITANCE.md` keeps the human-readable explanation
 - [.agents/skills/README.md](./.agents/skills/README.md): repository-local Codex workflow skills for inheritance checks, PR closure, GitHub comment automation, and CI triage
 - [DESIGN.md](./DESIGN.md): repo-level design stance
 - `../pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`: shared code-quality and security governance strategy

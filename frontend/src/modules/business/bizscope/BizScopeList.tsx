@@ -44,7 +44,7 @@ import {
   type BizScopeRow,
 } from './api';
 import BizScopeForm from './BizScopeForm';
-import '../../system/list-page.css';
+import '../../system/components/shared/list-page.css';
 
 const { Row, Col } = Grid;
 

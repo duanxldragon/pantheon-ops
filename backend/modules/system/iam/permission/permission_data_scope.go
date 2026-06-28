@@ -1,7 +1,6 @@
 package iam
 
 import (
-	"errors"
 	"sort"
 	"strconv"
 	"strings"
@@ -22,16 +21,16 @@ type permissionDataScopeRoleRow struct {
 
 func (s *PermissionService) ListDataScopePolicies(query *PermissionDataScopeQuery) (*PermissionDataScopePolicyListResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var roles []permissionDataScopeRoleRow
 	db := s.db.Table("system_role").Where("deleted_at IS NULL")
 	if query != nil {
 		if strings.TrimSpace(query.RoleKey) != "" {
-			db = db.Where("role_key LIKE ?", "%"+strings.TrimSpace(query.RoleKey)+"%")
+			db = db.Where("role_key LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.RoleKey))+"%")
 		}
-		if query.Status != nil && (*query.Status == 1 || *query.Status == 2) {
+		if query.Status != nil && common.IsEnabledStatus(*query.Status) {
 			db = db.Where("status = ?", *query.Status)
 		}
 	}
@@ -78,25 +77,25 @@ func (s *PermissionService) ListDataScopePolicies(query *PermissionDataScopeQuer
 
 func (s *PermissionService) UpdateDataScopePolicy(roleKey string, req *PermissionDataScopePolicyUpdateReq) (*PermissionDataScopePolicyResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if req == nil {
-		return nil, errors.New("param.invalid")
+		return nil, common.NewBadRequest("param.invalid")
 	}
 	roleKey = strings.TrimSpace(roleKey)
 	if roleKey == "" {
-		return nil, errors.New("param.invalid")
+		return nil, common.NewBadRequest("param.invalid")
 	}
 	if err := s.ensureRoleKeyExists(roleKey); err != nil {
 		return nil, err
 	}
 	mode := normalizeDataScopeMode(req.Mode)
 	if !isValidDataScopeMode(mode) {
-		return nil, errors.New("permission.data_scope.mode_invalid")
+		return nil, common.NewBadRequest("permission.data_scope.mode_invalid")
 	}
 	deptIDs := normalizePermissionDataScopeDeptIDs(req.DeptIDs)
 	if mode == common.DataScopeModeCustom && len(deptIDs) == 0 {
-		return nil, errors.New("permission.data_scope.dept_required")
+		return nil, common.NewBadRequest("permission.data_scope.dept_required")
 	}
 	if mode != common.DataScopeModeCustom {
 		deptIDs = []uint64{}

@@ -1,4 +1,5 @@
 import { defineModule } from '../../../core/router/types';
+import { getDictTypeList } from './api';
 
 export const DictModule = defineModule({
   name: 'dict',
@@ -21,6 +22,9 @@ export const DictModule = defineModule({
       routeName: 'system-dict',
       module: 'system.config',
     },
+  ],
+  routeDataWarmers: [
+    { path: '/system/dict', key: 'types:default', load: () => getDictTypeList({}) },
   ],
   dashboardWidgets: [
     {

@@ -1,0 +1,1179 @@
+    return `import React, { useCallback, useEffect, useState } from 'react';
+import {
+  Alert,
+  Button,
+  Card,
+  Descriptions,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Space,
+  Switch,
+  Table,
+  Tag,
+  Typography,
+} from '@arco-design/web-react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router-dom';
+import { apiRequest } from '${toSrcRoot}/api/request';
+import { message } from '${toSrcRoot}/components/feedback/message';
+import { isArcoFormValidationError } from '${toSrcRoot}/core/arco/formValidation';
+import { getGeneratedModuleSchema } from '${toSrcRoot}/modules/lowcode/dynamicmodule/api';
+import { get${modelName}Detail, type ${modelName}Detail } from './api';
+import {
+  AppModal,
+  PageContainer,
+  PageEmpty,
+  PageLoading,
+  PageRequestError,
+  SubmitBar,
+} from '${toSrcRoot}/components';
+
+${this.generateGovernanceConstants()}
+${relationRuntimeHelpers}
+
+const FormItem = Form.Item;
+const TextArea = Input.TextArea;
+
+const ${modelName}DetailPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const scope = '${this.schema.scope}';
+  const moduleName = '${this.schema.name}';
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const [detail, setDetail] = useState<${modelName}Detail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
+  const [relatedData, setRelatedData] = useState<Record<string, RelationRuntimeState>>({});
+  const [childSchemas, setChildSchemas] = useState<Record<string, ChildModuleSchema | null>>({});
+  const [childSchemaErrors, setChildSchemaErrors] = useState<Record<string, boolean>>({});
+  const [editingChildRelation, setEditingChildRelation] = useState<RelationEditorState | null>(null);
+  const [bindingRelation, setBindingRelation] = useState<ManyToManyBindingState | null>(null);
+  const [childSubmitting, setChildSubmitting] = useState(false);
+  const [manyToManySubmitting, setManyToManySubmitting] = useState(false);
+  const [childRelationOptions, setChildRelationOptions] = useState<Record<string, RelationEditorOption[]>>({});
+  const [childRelationLoading, setChildRelationLoading] = useState<Record<string, boolean>>({});
+  const [childForm] = Form.useForm();
+  const [bindForm] = Form.useForm();
+
+  const loadDetail = useCallback(async () => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await get${modelName}Detail(Number(id));
+      setDetail(result);
+    } catch (requestError) {
+      setError(requestError);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  const loadChildRelationOptions = useCallback(async (schema: ChildModuleSchema) => {
+    const relationContracts = buildChildRelationContractMap(schema);
+    const loadingKeys: string[] = [];
+
+    setChildRelationLoading((prev) => {
+      const next = { ...prev };
+      Object.values(relationContracts).forEach((contract) => {
+        if (!contract.lookupApi) {
+          return;
+        }
+        const optionKey = buildChildRelationOptionKey(schema.name, contract.field);
+        next[optionKey] = true;
+        loadingKeys.push(optionKey);
+      });
+      return next;
+    });
+
+    try {
+      const nextOptions: Record<string, RelationEditorOption[]> = {};
+      await Promise.all(
+        Object.values(relationContracts).map(async (contract) => {
+          if (!contract.lookupApi) {
+            return;
+          }
+          const rows = await loadLookupRelationRows(contract.lookupApi);
+          nextOptions[buildChildRelationOptionKey(schema.name, contract.field)] =
+            normalizeChildRelationOptions(rows, contract);
+        }),
+      );
+      if (Object.keys(nextOptions).length > 0) {
+        setChildRelationOptions((prev) => ({ ...prev, ...nextOptions }));
+      }
+    } finally {
+      if (loadingKeys.length > 0) {
+        setChildRelationLoading((prev) => {
+          const next = { ...prev };
+          loadingKeys.forEach((key) => {
+            next[key] = false;
+          });
+          return next;
+        });
+      }
+    }
+  }, []);
+
+  const loadRelationData = useCallback(
+    async (nextDetail: ${modelName}Detail) => {
+      const nextState: Record<string, RelationRuntimeState> = {};
+      await Promise.all(
+        governanceRelations.map(async (relation) => {
+          nextState[relation.name] = { loading: true, items: [] };
+          try {
+            if (relation.type === 'lookup' && relation.lookupApi) {
+              const optionRows = await loadLookupRelationRows(relation.lookupApi);
+              const localValue = nextDetail[relation.localField as keyof ${modelName}Detail];
+              const matched = optionRows.filter((row) => {
+                const rawValue =
+                  row[relation.lookupValueField || relation.targetField] ?? row.value ?? row.id;
+                return String(rawValue ?? '') === String(localValue ?? '');
+              });
+              nextState[relation.name] = {
+                loading: false,
+                items: matched,
+              };
+              return;
+            }
+            const localValue = nextDetail[relation.localField as keyof ${modelName}Detail];
+            if (relation.type === 'manyToMany') {
+              if (!relation.lookupApi) {
+                nextState[relation.name] = {
+                  loading: false,
+                  items: [],
+                  unsupported: true,
+                };
+                return;
+              }
+              const [bindingRows, optionRows] = await Promise.all([
+                loadManyToManyRelationRows(scope, moduleName, localValue, relation.name),
+                loadLookupRelationRows(relation.lookupApi),
+              ]);
+              nextState[relation.name] = {
+                loading: false,
+                items: mergeManyToManyRelationRows(bindingRows, optionRows, relation),
+              };
+              return;
+            }
+            if (localValue === undefined || localValue === null || localValue === '') {
+              nextState[relation.name] = { loading: false, items: [] };
+              return;
+            }
+            const listResult = await loadModuleRelationRows(
+              scope,
+              relation.targetModule,
+              relation.targetField,
+              localValue,
+            );
+            nextState[relation.name] = {
+              loading: false,
+              items: listResult,
+            };
+          } catch {
+            nextState[relation.name] = {
+              loading: false,
+              items: [],
+              error: true,
+            };
+          }
+        }),
+      );
+      setRelatedData(nextState);
+    },
+    [moduleName, scope],
+  );
+
+  useEffect(() => {
+    void loadDetail();
+  }, [loadDetail]);
+
+  useEffect(() => {
+    const childRelations = governanceRelations.filter(
+      (relation) => relation.type === 'oneToMany' && !relation.lookupApi,
+    );
+    if (childRelations.length === 0) {
+      return;
+    }
+    void Promise.all(
+      childRelations.map(async (relation) => {
+        try {
+          const schema = await loadManagedModuleSchema(
+            getGeneratedModuleSchema,
+            scope,
+            relation.targetModule,
+          );
+          setChildSchemas((prev) => ({ ...prev, [relation.name]: schema }));
+        } catch {
+          setChildSchemaErrors((prev) => ({ ...prev, [relation.name]: true }));
+        }
+      }),
+    );
+  }, [scope]);
+
+  useEffect(() => {
+    if (!detail) {
+      return;
+    }
+    void loadRelationData(detail);
+  }, [detail, loadRelationData]);
+
+  const openChildCreateModal = useCallback(
+    async (relation: (typeof governanceRelations)[number]) => {
+      if (!detail) {
+        return;
+      }
+      const schema = childSchemas[relation.name];
+      if (!schema) {
+        message.error(t('generator.wizard.result.childTableSchemaLoadFailed'));
+        return;
+      }
+      childForm.setFieldsValue(
+        buildChildRelationInitialValues(relation, detail as unknown as Record<string, unknown>),
+      );
+      setEditingChildRelation({ relationName: relation.name, mode: 'create' });
+      await loadChildRelationOptions(schema);
+    },
+    [childForm, childSchemas, detail, loadChildRelationOptions, t],
+  );
+
+  const openChildEditModal = useCallback(
+    async (relation: (typeof governanceRelations)[number], record: RelationRuntimeRow) => {
+      if (!detail) {
+        return;
+      }
+      const schema = childSchemas[relation.name];
+      if (!schema) {
+        message.error(t('generator.wizard.result.childTableSchemaLoadFailed'));
+        return;
+      }
+      childForm.setFieldsValue(
+        buildChildRelationInitialValues(
+          relation,
+          detail as unknown as Record<string, unknown>,
+          record,
+        ),
+      );
+      setEditingChildRelation({ relationName: relation.name, mode: 'edit', record });
+      await loadChildRelationOptions(schema);
+    },
+    [childForm, childSchemas, detail, loadChildRelationOptions, t],
+  );
+
+  const closeChildDialog = useCallback(() => {
+    setEditingChildRelation(null);
+    childForm.resetFields();
+  }, [childForm]);
+
+  const openRelationBindModal = useCallback(
+    async (relation: (typeof governanceRelations)[number]) => {
+      if (!detail || relation.type !== 'manyToMany' || !relation.lookupApi) {
+        return;
+      }
+      const optionRows = await loadLookupRelationRows(relation.lookupApi);
+      const options = normalizeManyToManyBindingOptions(optionRows, relation);
+      const selectedTargetIds = (relatedData[relation.name]?.items || [])
+        .map((row) => resolveRelationRowValue(row, relation))
+        .filter((value): value is string | number => value !== null);
+      bindForm.setFieldsValue({ targetIds: selectedTargetIds });
+      setBindingRelation({
+        relationName: relation.name,
+        options,
+      });
+    },
+    [bindForm, detail, relatedData],
+  );
+
+  const closeRelationBindModal = useCallback(() => {
+    setBindingRelation(null);
+    bindForm.resetFields();
+  }, [bindForm]);
+
+  const submitChildRelationForm = useCallback(async () => {
+    if (!detail || !editingChildRelation) {
+      return;
+    }
+    const relation =
+      governanceRelations.find((item) => item.name === editingChildRelation.relationName) || null;
+    if (!relation) {
+      return;
+    }
+
+    let values: Record<string, unknown>;
+    try {
+      values = await childForm.validate();
+    } catch (submitError) {
+      if (isArcoFormValidationError(submitError)) {
+        return;
+      }
+      throw submitError;
+    }
+
+    setChildSubmitting(true);
+    try {
+      const payload = {
+        ...values,
+        [relation.targetField]: detail[relation.localField as keyof ${modelName}Detail],
+      };
+      if (editingChildRelation.mode === 'edit') {
+        const recordId = Number(editingChildRelation.record?.id ?? 0);
+        if (!recordId) {
+          message.error(t('common.actionFailed'));
+          return;
+        }
+        await apiRequest({
+          url: \`\${buildModuleCrudBasePath(scope, relation.targetModule)}/\${recordId}\`,
+          method: 'put',
+          data: payload,
+        });
+        message.success(t('common.updateSuccess'));
+      } else {
+        await apiRequest({
+          url: buildModuleCrudBasePath(scope, relation.targetModule),
+          method: 'post',
+          data: payload,
+        });
+        message.success(t('common.createSuccess'));
+      }
+      closeChildDialog();
+      await loadRelationData(detail);
+    } finally {
+      setChildSubmitting(false);
+    }
+  }, [childForm, closeChildDialog, detail, editingChildRelation, loadRelationData, scope, t]);
+
+  const submitManyToManyBinding = useCallback(async () => {
+    if (!detail || !bindingRelation) {
+      return;
+    }
+    const relation = governanceRelations.find((item) => item.name === bindingRelation.relationName) || null;
+    if (!relation) {
+      return;
+    }
+
+    let values: Record<string, unknown>;
+    try {
+      values = await bindForm.validate();
+    } catch (submitError) {
+      if (isArcoFormValidationError(submitError)) {
+        return;
+      }
+      throw submitError;
+    }
+
+    const targetIds = Array.isArray(values.targetIds)
+      ? values.targetIds.filter((item) => item !== null && item !== undefined && item !== '')
+      : [];
+
+    setManyToManySubmitting(true);
+    try {
+      await apiRequest({
+        url: buildManyToManyRelationBasePath(scope, moduleName, detail.id, relation.name),
+        method: 'post',
+        data: { targetIds: targetIds.map((item) => String(item)) },
+      });
+      message.success(t('common.updateSuccess'));
+      closeRelationBindModal();
+      await loadRelationData(detail);
+    } finally {
+      setManyToManySubmitting(false);
+    }
+  }, [bindForm, bindingRelation, closeRelationBindModal, detail, loadRelationData, moduleName, scope, t]);
+
+  const unbindManyToManyRelation = useCallback(
+    async (relation: (typeof governanceRelations)[number], record: RelationRuntimeRow) => {
+      if (!detail) {
+        return;
+      }
+      const targetId = resolveRelationRowValue(record, relation);
+      if (targetId === null) {
+        message.error(t('common.actionFailed'));
+        return;
+      }
+      await apiRequest({
+        url: buildManyToManyRelationItemPath(scope, moduleName, detail.id, relation.name, targetId),
+        method: 'delete',
+      });
+      message.success(t('common.updateSuccess'));
+      await loadRelationData(detail);
+    },
+    [detail, loadRelationData, moduleName, scope, t],
+  );
+
+  const activeChildRelation =
+    editingChildRelation
+      ? governanceRelations.find((item) => item.name === editingChildRelation.relationName) || null
+      : null;
+  const activeChildSchema = activeChildRelation ? childSchemas[activeChildRelation.name] || null : null;
+  const editableChildFields =
+    activeChildRelation && activeChildSchema
+      ? buildEditableChildFields(activeChildRelation, activeChildSchema)
+      : [];
+  const activeChildContracts = activeChildSchema ? buildChildRelationContractMap(activeChildSchema) : {};
+
+  if (loading) {
+    return <PageLoading />;
+  }
+
+  if (error) {
+    return <PageRequestError error={error} onRetry={() => { void loadDetail(); }} />;
+  }
+
+  if (!detail) {
+    return <PageEmpty />;
+  }
+
+  return (
+    <PageContainer>
+      <Card bordered={false}>
+        <Typography.Title heading={5}>{t('${titleKey}')}</Typography.Title>
+        <Descriptions column={1} data={[
+${this.generateDetailDescriptionItems()}
+        ]} />
+      </Card>
+      <Card bordered={false}>
+        <Space direction="vertical" size={16} style={{ width: '100%' }}>
+          <Typography.Title heading={6}>
+            {t('generator.wizard.result.contractTitle')}
+          </Typography.Title>
+          <Space wrap>
+            <Tag color="purple">{t(\`generator.wizard.tableRole.\${governanceTableRole}\`)}</Tag>
+            {governancePrimaryTable ? (
+              <Tag color="arcoblue">
+                {t('generator.wizard.primaryTable')}: {governancePrimaryTable}
+              </Tag>
+            ) : null}
+            {governanceRelationFromField ? <Tag color="orange">{governanceRelationFromField}</Tag> : null}
+            {governanceRelationToField ? <Tag color="orange">{governanceRelationToField}</Tag> : null}
+          </Space>
+          {governanceDependencies.length > 0 ? (
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Typography.Text type="secondary">
+                {t('generator.wizard.result.dependencies')}
+              </Typography.Text>
+              {governanceDependencies.map((dependency) => (
+                <Typography.Text key={dependency.module} code>
+                  {dependency.module}
+                  {dependency.reason ? \` · \${dependency.reason}\` : ''}
+                </Typography.Text>
+              ))}
+            </Space>
+          ) : null}
+          {governanceRelations.length > 0 ? (
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Typography.Text type="secondary">
+                {t('generator.wizard.result.relations')}
+              </Typography.Text>
+              {governanceRelations.map((relation) => (
+                <Typography.Text key={\`\${relation.name}-\${relation.targetModule}\`} code>
+                  {relation.name} · {relation.type} · {relation.targetModule} · {relation.localField} → {relation.targetField}
+                  {relation.junctionTable ? \` · \${relation.junctionTable}\` : ''}
+                </Typography.Text>
+              ))}
+            </Space>
+          ) : null}
+        </Space>
+      </Card>
+      {governanceRelations.length > 0 ? (
+        <Card bordered={false}>
+          <Space direction="vertical" size={16} style={{ width: '100%' }}>
+            <Typography.Title heading={6}>
+              {t('generator.wizard.result.relatedData')}
+            </Typography.Title>
+            {governanceRelations.map((relation) => {
+              const relationState = relatedData[relation.name];
+              const rows = relationState?.items || [];
+              return (
+                <Card key={relation.name} size="small">
+                  <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                    <Space wrap>
+                      <Typography.Text code>{relation.name}</Typography.Text>
+                      <Tag color="arcoblue">{relation.type}</Tag>
+                      <Typography.Text type="secondary">{relation.targetModule}</Typography.Text>
+                      {resolveEditableChildRelation(
+                        relation,
+                        childSchemas[relation.name] || null,
+                        '${tableName}',
+                      ) ? (
+                        <Button
+                          size="mini"
+                          type="primary"
+                          onClick={() => {
+                            void openChildCreateModal(relation);
+                          }}
+                        >
+                          {t('generator.wizard.result.childTableCreate')}
+                        </Button>
+                      ) : relation.type === 'manyToMany' && relation.lookupApi ? (
+                        <Button
+                          size="mini"
+                          type="primary"
+                          onClick={() => {
+                            void openRelationBindModal(relation);
+                          }}
+                        >
+                          {t('generator.wizard.result.relatedDataBind')}
+                        </Button>
+                      ) : null}
+                      <Button
+                        size="mini"
+                        onClick={() => navigate(buildRelationRuntimePath(scope, relation.targetModule))}
+                      >
+                        {t('generator.wizard.result.openRelatedModule')}
+                      </Button>
+                    </Space>
+                    {childSchemaErrors[relation.name] ? (
+                      <Alert type="warning" content={t('generator.wizard.result.childTableSchemaLoadFailed')} />
+                    ) : null}
+                    {relationState?.loading ? (
+                      <Typography.Text type="secondary">{t('common.loading')}</Typography.Text>
+                    ) : relationState?.unsupported ? (
+                      <Alert type="info" content={t('generator.wizard.result.relatedDataUnsupported')} />
+                    ) : relationState?.error ? (
+                      <Alert type="warning" content={t('generator.wizard.result.relatedDataLoadFailed')} />
+                    ) : rows.length === 0 ? (
+                      <Typography.Text type="secondary">{t('common.noData')}</Typography.Text>
+                    ) : (
+                      <Table
+                        size="small"
+                        pagination={false}
+                        rowKey={(record) =>
+                          String(
+                            record.id ??
+                              record[relation.targetField] ??
+                              record[relation.lookupValueField || relation.targetField] ??
+                              relation.name,
+                          )
+                        }
+                        data={rows.slice(0, 5)}
+                        columns={buildRelationRuntimeColumns(
+                          relation,
+                          rows,
+                          resolveEditableChildRelation(
+                            relation,
+                            childSchemas[relation.name] || null,
+                            '${tableName}',
+                          )
+                            ? (record) => {
+                                void openChildEditModal(relation, record);
+                              }
+                            : undefined,
+                          relation.type === 'manyToMany'
+                            ? (record) => {
+                                void unbindManyToManyRelation(relation, record);
+                              }
+                            : undefined,
+                          t('generator.wizard.result.childTableActions'),
+                          t('generator.wizard.result.childTableEdit'),
+                          t('generator.wizard.result.relatedDataUnbind'),
+                        )}
+                      />
+                    )}
+                  </Space>
+                </Card>
+              );
+            })}
+          </Space>
+        </Card>
+      ) : null}
+      <AppModal
+        title={t('generator.wizard.result.relatedDataBind')}
+        visible={Boolean(bindingRelation)}
+        size="md"
+        onCancel={closeRelationBindModal}
+        footer={
+          <SubmitBar
+            onCancel={closeRelationBindModal}
+            onSubmit={() => {
+              void submitManyToManyBinding();
+            }}
+            loading={manyToManySubmitting}
+            submitText={t('common.save')}
+          />
+        }
+      >
+        <Form form={bindForm} layout="vertical">
+          <FormItem
+            field="targetIds"
+            label={bindingRelation?.relationName || 'targetIds'}
+            rules={[{ required: true, message: t('common.required') }]}
+          >
+            <Select
+              mode="multiple"
+              allowClear
+              options={bindingRelation?.options || []}
+              placeholder={t('generator.wizard.result.relatedDataBind')}
+            />
+          </FormItem>
+        </Form>
+      </AppModal>
+      <AppModal
+        title={
+          editingChildRelation?.mode === 'edit'
+            ? t('generator.wizard.result.childTableDialogEdit')
+            : t('generator.wizard.result.childTableDialogCreate')
+        }
+        visible={Boolean(editingChildRelation)}
+        size="lg"
+        onCancel={closeChildDialog}
+        footer={
+          <SubmitBar
+            onCancel={closeChildDialog}
+            onSubmit={() => {
+              void submitChildRelationForm();
+            }}
+            loading={childSubmitting}
+            submitText={
+              editingChildRelation?.mode === 'edit' ? t('common.save') : t('common.create')
+            }
+          />
+        }
+        unmountOnExit
+      >
+        <Form
+          form={childForm}
+          layout="vertical"
+          onSubmit={() => {
+            void submitChildRelationForm();
+          }}
+        >
+          <Space direction="vertical" size={16} style={{ width: '100%' }}>
+            {activeChildRelation && activeChildSchema ? (
+              editableChildFields.length > 0 ? (
+                editableChildFields.map((field) => {
+                  const optionKey = buildChildRelationOptionKey(activeChildSchema.name, field.name);
+                  return (
+                    <FormItem
+                      key={field.name}
+                      label={field.label || field.name}
+                      field={field.name}
+                      rules={field.required ? [{ required: true }] : undefined}
+                      triggerPropName={field.type === 'bool' ? 'checked' : undefined}
+                    >
+                      {renderChildFieldInput(
+                        field,
+                        activeChildContracts[field.name],
+                        childRelationOptions[optionKey] || [],
+                        Boolean(childRelationLoading[optionKey]),
+                      )}
+                    </FormItem>
+                  );
+                })
+              ) : (
+                <Alert type="info" content={t('generator.wizard.result.childTableNoEditableFields')} />
+              )
+            ) : (
+              <Alert type="warning" content={t('generator.wizard.result.childTableSchemaLoadFailed')} />
+            )}
+          </Space>
+        </Form>
+      </AppModal>
+    </PageContainer>
+  );
+};
+
+export default ${modelName}DetailPage;
+`;
+  }
+
+  /**
+   * 生成空查询字段
+   */
+  private generateEmptyQueryFields(): string {
+    const searchableFields = this.schema.model.fields.filter((f) => f.searchable);
+
+    return searchableFields
+      .map((field) => {
+        const defaultValue = this.getDefaultValue(field.type);
+        return `  ${field.name}: ${defaultValue},`;
+      })
+      .join('\n');
+  }
+
+  private generateFormItems(): string {
+    return this.schema.model.fields
+      .filter((field) => field.visibleInForm !== false)
+      .map((field) => this.renderFormItem(field))
+      .join('\n');
+  }
+
+  private renderFormItem(field: ModuleSchema['model']['fields'][number]): string {
+    const labelKey = buildFieldLabelKey(this.schema.scope, this.schema.name, field.name);
+    const placeholderKey = buildFieldPlaceholderKey(
+      this.schema.scope,
+      this.schema.name,
+      field.name,
+    );
+    const rules = field.required ? ` rules={[{ required: true }]}` : '';
+
+    if (field.type === 'enum') {
+      const options = (field.enumOptions ?? [])
+        .map(
+          (option) =>
+            `                <Select.Option value="${option.value}">{t('${buildEnumOptionKey(this.schema.scope, this.schema.name, field.name, option.value)}')}</Select.Option>`,
+        )
+        .join('\n');
+      return `      <FormItem label={t('${labelKey}')} field="${field.name}"${rules}>
+        <Select allowClear>
+${options}
+        </Select>
+      </FormItem>`;
+    }
+
+    if (field.type === 'relation') {
+      return `      <FormItem label={t('${labelKey}')} field="${field.name}"${rules}>
+        <Select
+          allowClear
+          loading={Boolean(relationLoading['${field.name}'])}
+          disabled={!relationLookupContractMap['${field.name}']?.lookupApi}
+          placeholder={t('${placeholderKey}')}
+          options={relationOptions['${field.name}'] || []}
+        />
+        <Space direction="vertical" size={4} style={{ width: '100%' }}>
+          <Typography.Text type="secondary">
+            {t('generator.fieldEditor.type.relation')} · ${field.name} · ${this.buildRelationFieldTargetHint(field.name)}
+          </Typography.Text>
+          <Typography.Text type="secondary">
+            {relationLookupContractMap['${field.name}']?.lookupApi || relationLookupContractMap['${field.name}']?.targetModule || 'lookup pending'}
+          </Typography.Text>
+          <Typography.Text type="secondary">
+            {relationLookupContractMap['${field.name}']?.targetLabelField || relationLookupContractMap['${field.name}']?.targetField || 'label pending'}
+          </Typography.Text>
+        </Space>
+      </FormItem>`;
+    }
+
+    if (field.type === 'int' || field.type === 'float') {
+      return `      <FormItem label={t('${labelKey}')} field="${field.name}"${rules}>
+        <InputNumber style={{ width: '100%' }} />
+      </FormItem>`;
+    }
+
+    if (field.type === 'bool') {
+      return `      <FormItem label={t('${labelKey}')} field="${field.name}" triggerPropName="checked">
+        <Switch />
+      </FormItem>`;
+    }
+
+    return `      <FormItem label={t('${labelKey}')} field="${field.name}"${rules}>
+        <Input />
+      </FormItem>`;
+  }
+
+  private generateDetailDescriptionItems(): string {
+    return this.schema.model.fields
+      .map((field) => {
+        const labelKey = buildFieldLabelKey(this.schema.scope, this.schema.name, field.name);
+        return `          { label: t('${labelKey}'), value: String(detail.${field.name} ?? '-') },`;
+      })
+      .join('\n');
+  }
+
+  private buildDetailComponentKey(scope: string, name: string): string {
+    return `${scope}/${splitModuleSegments(name).join('/')}/${this.modelName}Detail`;
+  }
+
+  private generateWorkbenchTableColumns(includeRowActions: boolean): string {
+    const listFields = this.schema.model.fields.filter((field) => field.visibleInList !== false);
+    const columns = listFields.map((field) => {
+      const labelKey = buildFieldLabelKey(this.schema.scope, this.schema.name, field.name);
+      return `                {
+                  title: t('${labelKey}'),
+                  dataIndex: '${field.name}',
+                },`;
+    });
+
+    if (includeRowActions) {
+      columns.push(`                {
+                  title: t('common.action'),
+                  width: TABLE_ACTION_COLUMN_WIDTH.medium,
+                  fixed: 'right',
+                  render: (_: unknown, row: ${this.modelName}ListRow) => (
+                    <SystemRowActions
+                      actions={[
+${this.generateRowActionItems()}
+                      ]}
+                    />
+                  ),
+                },`);
+    }
+
+    return columns.join('\n');
+  }
+
+  private generateRowActionItems(): string {
+    const actions = getPageActions(this.schema);
+    const items: string[] = [];
+
+    if (actions.includes('view') || actions.includes('detail')) {
+      items.push(`                        {
+                          key: 'detail',
+                          text: t('common.detail'),
+                          icon: <IconEye />,
+                          onClick: () => navigate('${buildPageRoutePath(this.schema.scope, this.schema.name)}/' + row.id),
+                        },`);
+    }
+    if (actions.includes('delete')) {
+      items.push(`                        {
+                          key: 'delete',
+                          text: t('common.delete'),
+                          icon: <IconDelete />,
+                          status: 'danger',
+                          confirm: {
+                            title: t('common.deleteConfirm'),
+                            onOk: async () => {
+                              await delete${this.modelName}(row.id);
+                              message.success(t('common.deleteSuccess'));
+                              await loadData(query);
+                            },
+                          },
+                        },`);
+    }
+
+    return items.join('\n');
+  }
+
+  private generateListActionImports(): string {
+    const imports: string[] = [];
+    if (this.hasPageAction('delete')) {
+      imports.push(`delete${this.modelName}`);
+    }
+    if (this.hasPageAction('export')) {
+      imports.push(`export${this.modelName}s`);
+    }
+    if (this.hasPageAction('import')) {
+      imports.push(`import${this.modelName}s`);
+    }
+    return imports.length > 0 ? `${imports.join(', ')} ,` : '';
+  }
+
+  private hasPageAction(action: string): boolean {
+    return getPageActions(this.schema).includes(action as never);
+  }
+
+  private isListGovernanceEnabled(): boolean {
+    return this.schema.listLayout?.governance !== false && this.shouldRenderListGovernanceNotice();
+  }
+
+  private isListSearchEnabled(): boolean {
+    const hasSearchableFields = this.schema.model.fields.some((field) => field.searchable);
+    return hasSearchableFields && this.schema.listLayout?.search !== false;
+  }
+
+  private isListHeaderActionsEnabled(): boolean {
+    const actions = getPageActions(this.schema);
+    return (
+      this.schema.listLayout?.headerActions !== false &&
+      (actions.includes('create') || actions.includes('export') || actions.includes('import'))
+    );
+  }
+
+  private isListBatchActionsEnabled(): boolean {
+    const actions = getPageActions(this.schema);
+    return this.schema.listLayout?.batchActions !== false && actions.includes('delete');
+  }
+
+  private isListRowActionsEnabled(): boolean {
+    const actions = getPageActions(this.schema);
+    return (
+      this.schema.listLayout?.rowActions !== false &&
+      (actions.includes('view') ||
+        actions.includes('detail') ||
+        actions.includes('delete') ||
+        actions.includes('update'))
+    );
+  }
+
+  private generateWorkbenchGovernanceBlock(): string {
+    if (!this.isListGovernanceEnabled()) {
+      return '';
+    }
+    return `        <GovernanceSummaryBar
+          eyebrow={t('generator.wizard.listLayout.governance', 'Governance')}
+          title={t('${buildTitleKey(this.schema.scope, this.schema.name)}')}
+          description={t('generator.wizard.relationFields.help')}
+          metrics={[
+            {
+              key: 'tableRole',
+              label: t('generator.wizard.tableRole'),
+              value: t(\`generator.wizard.tableRole.\${governanceTableRole}\`),
+            },
+            {
+              key: 'primaryTable',
+              label: t('generator.wizard.primaryTable'),
+              value: governancePrimaryTable || '-',
+            },
+          ]}
+        />`;
+  }
+
+  private generateWorkbenchSearchBlock(): string {
+    if (!this.isListSearchEnabled()) {
+      return '';
+    }
+    const searchableFields = this.schema.model.fields.filter((field) => field.searchable);
+    return `        <FilterPanel>
+          <Form form={queryForm} layout="vertical" onSubmit={() => search()}>
+            <Row gutter={16}>
+${searchableFields
+  .map(
+    (field) => `              <Col xs={24} md={6}>
+                <FormItem label={t('${buildFieldLabelKey(this.schema.scope, this.schema.name, field.name)}')} field="${field.name}">
+                  ${this.renderSearchField(field)}
+                </FormItem>
+              </Col>`,
+  )
+  .join('\n')}
+              <Col xs={24} md={6}>
+                <FormItem className="filter-panel__action-item">
+                  <Space>
+                    <Button type="primary" htmlType="submit" icon={<IconSearch />}>
+                      {t('common.search')}
+                    </Button>
+                    <Button onClick={reset}>{t('common.reset')}</Button>
+                  </Space>
+                </FormItem>
+              </Col>
+            </Row>
+          </Form>
+        </FilterPanel>`;
+  }
+
+  private renderSearchField(field: ModuleSchema['model']['fields'][number]): string {
+    if (field.type === 'enum') {
+      const options = (field.enumOptions ?? [])
+        .map(
+          (option) =>
+            `{ label: t('${buildEnumOptionKey(this.schema.scope, this.schema.name, field.name, option.value)}'), value: '${option.value}' }`,
+        )
+        .join(', ');
+      return `<Select allowClear options={[${options}]} />`;
+    }
+    return `<Input onPressEnter={() => queryForm.submit()} />`;
+  }
+
+  private generateWorkbenchHeaderActions(
+    headerActionsEnabled: boolean,
+    batchActionsEnabled: boolean,
+  ): string {
+    if (!headerActionsEnabled && !batchActionsEnabled) {
+      return '';
+    }
+
+    const utilityActions: string[] = [];
+    const primaryActions: string[] = [];
+
+    if (this.hasPageAction('export')) {
+      utilityActions.push(`                  <Button icon={<IconDownload />} onClick={() => { void handleExport(); }}>
+                    {t('common.export')}
+                  </Button>`);
+    }
+    if (this.hasPageAction('import')) {
+      utilityActions.push(`                  <ImportCsvButton onSelect={(file) => { void handleImport(file); }}>
+                    {t('common.import')}
+                  </ImportCsvButton>`);
+    }
+    if (this.hasPageAction('create')) {
+      primaryActions.push(`                  <Button
+                    type="primary"
+                    icon={<IconPlus />}
+                    onClick={() => {
+                      message.info(t('common.comingSoon'));
+                    }}
+                  >
+                    {t('common.add')}
+                  </Button>`);
+    }
+
+    return `        <TableBatchActionBar
+            selectedCount={selectedRowKeys.length}
+            selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
+            clearText={t('common.clearSelection')}
+            clearSuccessText={t('common.clearSelectionSuccess')}
+            onClear={() => setSelectedRowKeys([])}
+            prefixActions={
+              <ListHeaderActions
+                utility={
+                  <>
+${utilityActions.join('\n')}
+                  </>
+                }
+                primary={
+                  <>
+${primaryActions.join('\n')}
+                  </>
+                }
+              />
+            }
+            ${
+              batchActionsEnabled
+                ? `actions={
+              <Popconfirm
+                title={t('common.deleteConfirm')}
+                onOk={() => {
+                  void handleBatchDelete();
+                }}
+                disabled={selectedRowKeys.length === 0 || submitting}
+              >
+                <Button
+                  status="danger"
+                  icon={<IconDelete />}
+                  disabled={selectedRowKeys.length === 0 || submitting}
+                  loading={submitting}
+                >
+                  {t('common.deleteSelected')}
+                </Button>
+              </Popconfirm>
+            }`
+                : ''
+            }
+          />`;
+  }
+
+  private generateListGovernanceConstants(): string {
+    const tableRole = this.schema.metadata?.tableRole || 'main';
+    const primaryTable = this.schema.metadata?.primaryTable || '';
+    const relationFromField = this.schema.metadata?.relationFromField || '';
+    const relationToField = this.schema.metadata?.relationToField || '';
+
+    return `const governanceTableRole = '${tableRole}';
+const governancePrimaryTable = '${primaryTable}';
+const governanceRelationFromField = '${relationFromField}';
+const governanceRelationToField = '${relationToField}';
+`;
+  }
+
+  private shouldRenderListGovernanceNotice(): boolean {
+    const tableRole = this.schema.metadata?.tableRole || 'main';
+    const primaryTable = this.schema.metadata?.primaryTable || '';
+    const relationFromField = this.schema.metadata?.relationFromField || '';
+    const relationToField = this.schema.metadata?.relationToField || '';
+
+    return (
+      tableRole === 'detail' ||
+      tableRole === 'relation' ||
+      Boolean(primaryTable) ||
+      Boolean(relationFromField) ||
+      Boolean(relationToField)
+    );
+  }
+
+  private generateGovernanceConstants(): string {
+    const dependencies = JSON.stringify(this.schema.dependencies ?? [], null, 2);
+    const relations = JSON.stringify(this.schema.relations ?? [], null, 2);
+    const tableRole = this.schema.metadata?.tableRole || 'main';
+    const primaryTable = this.schema.metadata?.primaryTable || '';
+    const relationFromField = this.schema.metadata?.relationFromField || '';
+    const relationToField = this.schema.metadata?.relationToField || '';
+
+    return `const governanceDependencies = ${dependencies} as Array<{
+  module: string;
+  required?: boolean;
+  reason?: string;
+}>;
+
+const governanceRelations = ${relations} as Array<{
+  name: string;
+  type: string;
+  targetModule: string;
+  localField: string;
+  targetField: string;
+  targetLabelField?: string;
+  lookupApi?: string;
+  lookupValueField?: string;
+  junctionTable?: string;
+}>;
+
+const governanceTableRole = '${tableRole}';
+const governancePrimaryTable = '${primaryTable}';
+const governanceRelationFromField = '${relationFromField}';
+const governanceRelationToField = '${relationToField}';
+`;
+  }
+
+  private generateRelationLookupContracts(): string {
+    const relationFields = this.schema.model.fields.filter((field) => field.type === 'relation');
+    if (relationFields.length === 0) {
+      return '';
+    }
+
+    const contracts = relationFields.map((field) => {
+      const relation = (this.schema.relations ?? []).find((item) => item.localField === field.name);
+      return {
+        field: field.name,
+        targetModule: relation?.targetModule || '',
+        targetField: relation?.targetField || '',
+        targetLabelField: relation?.targetLabelField || '',
+        lookupApi: relation?.lookupApi || '',
+        lookupValueField: relation?.lookupValueField || relation?.targetField || '',
+        type: relation?.type || 'lookup',
+      };
+    });
+
+    return `const relationLookupContractMap = ${JSON.stringify(contracts, null, 2)}.reduce<Record<string, {
+  field: string;
+  targetModule: string;
+  targetField: string;
+  targetLabelField: string;
+  lookupApi: string;
+  lookupValueField: string;
+  type: string;
+}>>((acc, item) => {
+  acc[item.field] = item;
+  return acc;
+}, {});
+`;
+  }
+
+  private generateRelationLookupImports(): string {
+    const relationFields = this.schema.model.fields.filter((field) => field.type === 'relation');
+    if (relationFields.length === 0) {
+      return '';
+    }
+    return relationFields
+      .map((field) => `get${this.toPascalCase(field.name)}RelationOptions, `)
+      .join('');
+  }
+
+  private generateRelationLookupLoaderEffect(): string {
+    const relationFields = this.schema.model.fields.filter((field) => field.type === 'relation');
+    if (relationFields.length === 0) {
+      return '';
+    }
+
+    const calls = relationFields
+      .map((field) => {
+        const functionName = this.toPascalCase(field.name);
+        return `      if (relationLookupContractMap['${field.name}']?.lookupApi) {
+        nextLoading['${field.name}'] = true;
+        loaders.push(
+          get${functionName}RelationOptions()
+            .then((options) => {
+              nextOptions['${field.name}'] = options;
+            })
+            .finally(() => {
+              setRelationLoading((prev) => ({ ...prev, ['${field.name}']: false }));
+            }),
+        );
+      }`;
+      })
+      .join('\n');
+
+    return `  useEffect(() => {
+    const nextOptions: Record<string, Array<{ label: string; value: string | number }>> = {};
+    const nextLoading: Record<string, boolean> = {};
+    const loaders: Array<Promise<void>> = [];
+${calls}
+    setRelationLoading(nextLoading);
+    if (loaders.length === 0) {
+      return;
+    }
+    void Promise.all(loaders).then(() => {
+      setRelationOptions(nextOptions);
+    });
+  }, []);
+`;

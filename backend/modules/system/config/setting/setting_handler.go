@@ -171,7 +171,7 @@ func (h *SettingHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	stored, err := h.uploadService.Store(fileHeader, c.DefaultQuery("scope", "general"), requestBaseURL(c))
+	stored, err := h.uploadService.StoreWithContext(c.Request.Context(), fileHeader, c.DefaultQuery("scope", "general"), requestBaseURL(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "request.failed")
 		return
@@ -205,6 +205,10 @@ func (h *SettingHandler) ServeUploadedFile(c *gin.Context) {
 
 	if contentType := mime.TypeByExtension(strings.ToLower(filepath.Ext(objectKey))); contentType != "" {
 		c.Header("Content-Type", contentType)
+	}
+	if !filepath.IsLocal(objectKey) {
+		common.Fail(c, common.CodeParamInvalid, "upload.file.not_found")
+		return
 	}
 	http.ServeFileFS(c.Writer, c.Request, os.DirFS(rootPath), objectKey)
 }

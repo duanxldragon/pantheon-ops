@@ -28,8 +28,10 @@ type GormCasbinAdapter struct {
 }
 
 func NewGormCasbinAdapter(db *gorm.DB) (*GormCasbinAdapter, error) {
-	if err := db.AutoMigrate(&CasbinRule{}); err != nil {
-		return nil, err
+	if ShouldAutoMigrate() {
+		if err := db.AutoMigrate(&CasbinRule{}); err != nil {
+			return nil, err
+		}
 	}
 	return &GormCasbinAdapter{db: db}, nil
 }

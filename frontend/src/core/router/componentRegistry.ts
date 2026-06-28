@@ -16,13 +16,19 @@ function defineRegistryEntry(loader: ComponentLoader): RegistryEntry {
 }
 
 const staticComponentRegistry = {
-  'dashboard': defineRegistryEntry(() => import('../../modules/dashboard/Dashboard')),
-  'auth/SecurityCenter': defineRegistryEntry(() => import('../../modules/auth/SecurityCenter')),
-  'auth/LoginLogList': defineRegistryEntry(() => import('../../modules/auth/LoginLogList')),
-  'auth/SecurityEventList': defineRegistryEntry(
-    () => import('../../modules/auth/SecurityEventList'),
+  'dashboard': defineRegistryEntry(() => import('../../modules/platform/Dashboard')),
+  'auth/SecurityCenter': defineRegistryEntry(
+    () => import('../../modules/auth/security/components/SecurityCenter'),
   ),
-  'auth/SessionList': defineRegistryEntry(() => import('../../modules/auth/SessionList')),
+  'auth/LoginLogList': defineRegistryEntry(
+    () => import('../../modules/auth/security/components/LoginLogList'),
+  ),
+  'auth/SecurityEventList': defineRegistryEntry(
+    () => import('../../modules/auth/security/components/SecurityEventList'),
+  ),
+  'auth/SessionList': defineRegistryEntry(
+    () => import('../../modules/auth/session/components/SessionList'),
+  ),
   'system/profile/ProfileCenter': defineRegistryEntry(
     () => import('../../modules/system/profile/ProfileCenter'),
   ),
@@ -48,11 +54,11 @@ const staticComponentRegistry = {
   'system/audit/OperationLogList': defineRegistryEntry(
     () => import('../../modules/system/audit/OperationLogList'),
   ),
-  'system/dynamicmodule/ModuleManager': defineRegistryEntry(
-    () => import('../../modules/system/dynamicmodule/ModuleManager'),
+  'lowcode/dynamicmodule/ModuleManager': defineRegistryEntry(
+    () => import('../../modules/lowcode/dynamicmodule/ModuleManager'),
   ),
-  'system/generator/ModuleWizard': defineRegistryEntry(
-    () => import('../../modules/system/generator/pages/ModuleWizard'),
+  'lowcode/generator/ModuleWizard': defineRegistryEntry(
+    () => import('../../modules/lowcode/generator/pages/ModuleWizard'),
   ),
   'business/cmdb/host/CmdbHostList': defineRegistryEntry(
     () => import('../../modules/business/cmdb/host/CmdbHostList'),

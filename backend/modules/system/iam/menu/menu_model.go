@@ -22,6 +22,7 @@ type SystemMenu struct {
 	IsCache    int       `gorm:"default:0" json:"isCache"`
 	IsExternal int       `gorm:"default:0" json:"isExternal"`
 	ActiveMenu string    `gorm:"size:255;default:''" json:"activeMenu"`
+	HideInNav  int       `gorm:"default:0" json:"hideInNav"` // 1:隐藏导航, 0:正常显示
 	CreatedAt  time.Time `json:"createdAt"`
 	UpdatedAt  time.Time `json:"updatedAt"`
 }

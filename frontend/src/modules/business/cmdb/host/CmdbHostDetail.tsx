@@ -14,16 +14,20 @@ import {
   Typography,
 } from '@arco-design/web-react';
 import { IconLeft, IconCode } from '@arco-design/web-react/icon';
-import { AppModal, PageEmpty, PageError, PageLoading } from '../../../../components';
-import PageContainer from '../../../../components/patterns/PageContainer';
-import PageHeader from '../../../../components/patterns/PageHeader';
-import FormSection from '../../../../components/patterns/FormSection';
-import SubmitBar from '../../../../components/patterns/SubmitBar';
+import {
+  AppModal,
+  FormSection,
+  PageContainer,
+  PageEmpty,
+  PageError,
+  PageLoading,
+  SubmitBar,
+} from '../../../../components';
 import { getHostDetail, collectHostConfig } from './api';
 import type { HostRow } from './api';
 import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../cmdb.css';
 
 export default function CmdbHostDetail() {
@@ -129,7 +133,6 @@ export default function CmdbHostDetail() {
   if (error || !host) {
     return (
       <PageContainer>
-        <PageHeader title={t('operations.cmdb.host.detail')} />
         <PageError description={t('common.loadFailedDesc')} onRetry={loadDetail} />
       </PageContainer>
     );
@@ -137,21 +140,18 @@ export default function CmdbHostDetail() {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={host.hostname}
-        extra={
-          <Space>
-            {canCollect && host.os === 'linux' && (
-              <Button icon={<IconCode />} onClick={() => setCollectVisible(true)}>
-                {t('business.cmdb.host.collect')}
-              </Button>
-            )}
-            <Button icon={<IconLeft />} onClick={() => navigate('/operations/cmdb/host')}>
-              {t('common.back')}
+      <div className="system-list__work-actions">
+        <Space>
+          {canCollect && host.os === 'linux' && (
+            <Button icon={<IconCode />} onClick={() => setCollectVisible(true)}>
+              {t('business.cmdb.host.collect')}
             </Button>
-          </Space>
-        }
-      />
+          )}
+          <Button icon={<IconLeft />} onClick={() => navigate('/operations/cmdb/host')}>
+            {t('common.back')}
+          </Button>
+        </Space>
+      </div>
       <Space direction="vertical" size={16} className="system-page-template">
         <Card className="page-panel system-page-hero cmdb-page__hero">
           <div className="system-page-hero__top">

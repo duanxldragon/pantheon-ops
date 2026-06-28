@@ -154,6 +154,7 @@ test('apply mode updates inheritance anchors in both Chinese and English docs', 
 
     const zhDoc = fs.readFileSync(path.join(opsRoot, 'docs', 'PROJECT_INHERITANCE.md'), 'utf8');
     const enDoc = fs.readFileSync(path.join(opsRoot, 'docs', 'PROJECT_INHERITANCE.en.md'), 'utf8');
+    const releaseLock = JSON.parse(fs.readFileSync(path.join(opsRoot, 'foundation-release.lock.json'), 'utf8'));
 
     assert.match(zhDoc, /Base release line：当前跟随 `release\/0\.8`/);
     assert.match(zhDoc, /Base version：当前锁定到 `base-v0\.8\.0`/);
@@ -161,6 +162,42 @@ test('apply mode updates inheritance anchors in both Chinese and English docs', 
     assert.match(enDoc, /Base release line: `release\/0\.8`/);
     assert.match(enDoc, /Base version: `base-v0\.8\.0`/);
     assert.match(enDoc, /Inheritance mode: `foundation-release-consumer`/);
+    assert.equal(releaseLock.releaseVersion, 'base-v0.8.0');
+    assert.equal(releaseLock.releaseDisplayName, 'v0.8.0');
+    assert.equal(releaseLock.releaseArtifact.tagName, 'base-v0.8.0');
+    assert.equal(releaseLock.releaseArtifact.releaseName, 'v0.8.0');
+  });
+});
+
+test('apply mode preserves existing release artifact defaults from the current lock file', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    writeJson(path.join(opsRoot, 'foundation-release.lock.json'), {
+      baseRepo: '../pantheon-base',
+      releaseArtifact: {
+        githubRepo: 'custom/pantheon-base',
+        localPath: '.foundation/custom/base-v0.8.0',
+      },
+    });
+
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--update-inheritance-docs',
+      ],
+      repoRoot,
+    );
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+
+    const releaseLock = JSON.parse(fs.readFileSync(path.join(opsRoot, 'foundation-release.lock.json'), 'utf8'));
+    assert.equal(releaseLock.releaseArtifact.githubRepo, 'custom/pantheon-base');
+    assert.equal(releaseLock.releaseArtifact.localPath, '.foundation/custom/base-v0.8.0');
   });
 });
 

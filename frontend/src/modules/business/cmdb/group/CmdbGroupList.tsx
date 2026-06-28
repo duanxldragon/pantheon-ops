@@ -43,7 +43,7 @@ import { getGroupList, getGroupMembers, createGroup, updateGroup, deleteGroup } 
 import type { CreateGroupPayload, GroupRow, GroupMemberResp, GroupMemberRow } from './api';
 import CmdbGroupForm from './CmdbGroupForm';
 import { usePermission } from '../../../../hooks/usePermission';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../cmdb.css';
 
 function flattenGroups(groups: GroupRow[]): GroupRow[] {
@@ -610,12 +610,9 @@ export default function CmdbGroupList() {
                     current: page,
                     pageSize,
                     total: filteredFlatData.length,
-                    onChange: (nextPage) => {
+                    onChange: (nextPage, nextPageSize) => {
                       setPage(nextPage || 1);
-                    },
-                    onPageSizeChange: (nextPageSize) => {
                       setPageSize(nextPageSize || pageSize);
-                      setPage(1);
                     },
                     pageSizeChangeResetCurrent: true,
                   })}

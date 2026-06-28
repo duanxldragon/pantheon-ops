@@ -1,4 +1,6 @@
 import { defineModule } from '../../../core/router/types';
+import { getDeptTree } from '../dept/api';
+import { getPostList } from './api';
 
 export const PostModule = defineModule({
   name: 'post',
@@ -20,6 +22,18 @@ export const PostModule = defineModule({
       icon: 'tags',
       routeName: 'system-post',
       module: 'system.org',
+    },
+  ],
+  routeDataWarmers: [
+    {
+      path: '/system/post',
+      key: 'list:default',
+      load: () => getPostList({ page: 1, pageSize: 10 }),
+    },
+    {
+      path: '/system/post',
+      key: 'depts:sorted',
+      load: () => getDeptTree({ sortField: 'sort', sortOrder: 'asc' }),
     },
   ],
   dashboardWidgets: [

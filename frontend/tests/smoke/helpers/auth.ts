@@ -87,6 +87,13 @@ function extractCookieValue(setCookieHeader: string | undefined, name: string) {
   return match?.[1] ?? null;
 }
 
+function buildCookieHeader(cookies: Array<{ name: string; value: string | null | undefined }>) {
+  return cookies
+    .filter((cookie) => typeof cookie.value === 'string' && cookie.value.length > 0)
+    .map((cookie) => `${cookie.name}=${cookie.value}`)
+    .join('; ');
+}
+
 type MysqlConfig = {
   host: string;
   port: number;
@@ -288,8 +295,20 @@ async function resolveLoginResponse(
   expect(response.ok()).toBeTruthy();
   const payload = (await response.json()) as ApiEnvelope<AuthPayload>;
   expect(payload.code).toBe(200);
-  if (payload.data?.accessToken && payload.data?.refreshToken) {
-    return { response, payload };
+  const accessToken = extractCookieValue(response.headers()['set-cookie'], 'pantheon_access_token');
+  const refreshToken = extractCookieValue(response.headers()['set-cookie'], 'pantheon_refresh_token');
+  if ((payload.data?.accessToken && payload.data?.refreshToken) || (accessToken && refreshToken)) {
+    return {
+      response,
+      payload: {
+        ...payload,
+        data: {
+          ...payload.data,
+          accessToken: payload.data?.accessToken ?? accessToken ?? undefined,
+          refreshToken: payload.data?.refreshToken ?? refreshToken ?? undefined,
+        },
+      },
+    };
   }
   if (!payload.data?.mfaRequired || !payload.data.challengeId) {
     throw new Error('auth.login.response_invalid');
@@ -308,9 +327,28 @@ async function resolveLoginResponse(
   expect(verifyResponse.ok()).toBeTruthy();
   const verifyPayload = (await verifyResponse.json()) as ApiEnvelope<AuthPayload>;
   expect(verifyPayload.code).toBe(200);
-  expect(verifyPayload.data?.accessToken).toBeTruthy();
-  expect(verifyPayload.data?.refreshToken).toBeTruthy();
-  return { response: verifyResponse, payload: verifyPayload, password: credentials.password };
+  const verifyAccessToken =
+    verifyPayload.data?.accessToken ??
+    extractCookieValue(verifyResponse.headers()['set-cookie'], 'pantheon_access_token') ??
+    undefined;
+  const verifyRefreshToken =
+    verifyPayload.data?.refreshToken ??
+    extractCookieValue(verifyResponse.headers()['set-cookie'], 'pantheon_refresh_token') ??
+    undefined;
+  expect(verifyAccessToken).toBeTruthy();
+  expect(verifyRefreshToken).toBeTruthy();
+  return {
+    response: verifyResponse,
+    payload: {
+      ...verifyPayload,
+      data: {
+        ...verifyPayload.data,
+        accessToken: verifyAccessToken,
+        refreshToken: verifyRefreshToken,
+      },
+    },
+    password: credentials.password,
+  };
 }
 
 export async function loginByApi(
@@ -432,7 +470,11 @@ export function apiRequestHeaders(login: BrowserLoginResult) {
   return {
     ...authHeaders(login.accessToken),
     'X-CSRF-Token': login.csrfToken,
-    Cookie: `pantheon_csrf_token=${login.csrfToken}`,
+    Cookie: buildCookieHeader([
+      { name: 'pantheon_access_token', value: login.accessToken },
+      { name: 'pantheon_refresh_token', value: login.refreshToken },
+      { name: 'pantheon_csrf_token', value: login.csrfToken },
+    ]),
   };
 }
 

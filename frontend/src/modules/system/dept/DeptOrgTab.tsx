@@ -2,18 +2,7 @@ import React from 'react';
 import { Button, Card, Space, Tag } from '@arco-design/web-react';
 import { IconEye, IconPlus } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
-import {
-  isNetworkRequestError,
-  isServerRequestError,
-  isTimeoutRequestError,
-} from '../../../api/request';
-import {
-  PageEmpty,
-  PageError,
-  PageLoading,
-  PageNetworkError,
-  PageServerError,
-} from '../../../components';
+import { PageEmpty, PageLoading, PageRequestError } from '../../../components';
 import type { DeptNode } from './api';
 import type { PostRow } from '../post/api';
 import type { UserListRow } from '../user/api';
@@ -202,21 +191,11 @@ const DeptOrgTab: React.FC<DeptOrgTabProps> = ({
 }) => {
   const { t } = useTranslation();
 
-  const renderOrgErrorState = () => {
-    if (isNetworkRequestError(orgError)) {
-      return <PageNetworkError timeout={isTimeoutRequestError(orgError)} onRetry={onRefresh} />;
-    }
-    if (isServerRequestError(orgError)) {
-      return <PageServerError onRetry={onRefresh} />;
-    }
-    return <PageError onRetry={onRefresh} />;
-  };
-
   if (orgLoading && orgDepts.length === 0) {
     return <PageLoading />;
   }
   if (orgError && orgDepts.length === 0) {
-    return renderOrgErrorState();
+    return <PageRequestError error={orgError} onRetry={onRefresh} />;
   }
   if (!orgLoading && !orgError && orgDepts.length === 0) {
     return <PageEmpty description={t('system.dept.orgNoDept')} />;

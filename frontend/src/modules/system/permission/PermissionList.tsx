@@ -23,11 +23,6 @@ import {
 } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { showImportResult } from '../../../api/importExport';
-import {
-  isNetworkRequestError,
-  isServerRequestError,
-  isTimeoutRequestError,
-} from '../../../api/request';
 import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
 import { invalidateRouteWarmDataMany, resolveRouteWarmData } from '../../../core/router/prefetch';
@@ -72,10 +67,8 @@ import {
   ListHeaderActions,
   PageContainer,
   PageEmpty,
-  PageError,
   PageLoading,
-  PageNetworkError,
-  PageServerError,
+  PageRequestError,
   PermissionAction,
   SubmitBar,
   TABLE_ACTION_COLUMN_WIDTH,
@@ -83,7 +76,7 @@ import {
   TableBatchActionBar,
   useGovernanceRail,
 } from '../../../components';
-import '../list-page.css';
+import '../components/shared/list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -402,7 +395,10 @@ const PermissionList: React.FC = () => {
   };
 
   const visibleSelectedRowKeys = useMemo(() => {
-    return getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.id));
+    return getVisibleSelectedRowKeys(
+      selectedRowKeys,
+      data.map((item) => item.id),
+    );
   }, [data, selectedRowKeys]);
 
   const batchDeleteDisabled = !canBatchDelete || selectedRowKeys.length === 0;
@@ -488,16 +484,6 @@ const PermissionList: React.FC = () => {
     ],
     [activeTab, canExport, t, workbench?.overview.unknownPermissionAssignmentCount],
   );
-
-  const renderRequestErrorState = (requestError: unknown, onRetry: () => void) => {
-    if (isNetworkRequestError(requestError)) {
-      return <PageNetworkError timeout={isTimeoutRequestError(requestError)} onRetry={onRetry} />;
-    }
-    if (isServerRequestError(requestError)) {
-      return <PageServerError onRetry={onRetry} />;
-    }
-    return <PageError onRetry={onRetry} />;
-  };
 
   const columns: ColumnProps<PermissionPolicyRow>[] = [
     {
@@ -758,11 +744,14 @@ const PermissionList: React.FC = () => {
                   }
                 />
                 {loading && data.length === 0 ? <PageLoading /> : null}
-                {policyError && data.length === 0
-                  ? renderRequestErrorState(policyError, () => {
+                {policyError && data.length === 0 ? (
+                  <PageRequestError
+                    error={policyError}
+                    onRetry={() => {
                       loadData(query);
-                    })
-                  : null}
+                    }}
+                  />
+                ) : null}
                 {!loading && !policyError && data.length === 0 ? (
                   <PageEmpty description={t('common.noData')} />
                 ) : null}
@@ -783,7 +772,11 @@ const PermissionList: React.FC = () => {
                       checkboxProps: (row) => ({ disabled: row.roleKey === 'admin' }),
                       onChange: (rowKeys) =>
                         setSelectedRowKeys((keys) =>
-                          mergeCrossPageSelection(keys, rowKeys, data.map((item) => item.id)),
+                          mergeCrossPageSelection(
+                            keys,
+                            rowKeys,
+                            data.map((item) => item.id),
+                          ),
                         ),
                     }}
                     onChange={handleTableChange}

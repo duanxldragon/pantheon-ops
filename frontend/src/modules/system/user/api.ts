@@ -1,7 +1,7 @@
 import { apiRequest } from '../../../api/request';
 import { downloadFile } from '../../../api/file';
 import { uploadImportFile } from '../../../api/importExport';
-import type { UserPlatformPreferences } from '../../auth/api';
+import type { UserPlatformPreferences } from '../../auth/security/types';
 
 export type UserProfileExt = Record<string, unknown>;
 

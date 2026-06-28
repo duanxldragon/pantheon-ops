@@ -1,8 +1,7 @@
 package impexp
 
 import (
-	"errors"
-	"fmt"
+	"pantheon-ops/backend/pkg/common"
 	"sort"
 	"strconv"
 	"strings"
@@ -79,7 +78,7 @@ func ParseEnabledStatus(raw string) int {
 
 func BuildDeptPathMaps(db *gorm.DB) (map[uint64]string, map[string]uint64, error) {
 	if db == nil {
-		return nil, nil, errors.New("database.not_initialized")
+		return nil, nil, common.NewBadRequest("database.not_initialized")
 	}
 
 	type deptRow struct {
@@ -113,10 +112,10 @@ func BuildDeptPathMaps(db *gorm.DB) (map[uint64]string, map[string]uint64, error
 		}
 		row, ok := byID[id]
 		if !ok {
-			return "", fmt.Errorf("dept.not_found")
+			return "", common.NewNotFound("dept.not_found")
 		}
 		if visiting[id] {
-			return "", errors.New("dept.path.circular")
+			return "", common.NewBadRequest("dept.path.circular")
 		}
 		visiting[id] = true
 		defer func() {

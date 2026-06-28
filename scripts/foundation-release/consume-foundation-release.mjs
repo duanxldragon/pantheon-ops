@@ -16,6 +16,9 @@ import {
 } from './shared-foundation-rules.mjs';
 
 const DEFAULT_OPS_ROOT = process.cwd();
+const DEFAULT_BASE_REPO = '../pantheon-base';
+const DEFAULT_GITHUB_REPO = 'duanxldragon/pantheon-base';
+const DEFAULT_LOCAL_RELEASE_ROOT = '.foundation/releases';
 
 function parseArgs(argv) {
   const options = {
@@ -72,12 +75,30 @@ function validateOptions(options) {
   }
 }
 
-function readManifest(manifestPath) {
-  if (!fs.existsSync(manifestPath)) {
-    throw new Error(`manifest not found: ${manifestPath}`);
+function readJsonFile(filePath, description) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      throw new Error(`${description} not found: ${filePath}`);
+    }
+    throw new Error(`${description} is invalid JSON: ${error.message}`);
   }
+}
 
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+function readJsonFileIfExists(filePath, fallbackValue, description) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return fallbackValue;
+    }
+    throw new Error(`${description} is invalid JSON: ${error.message}`);
+  }
+}
+
+function readManifest(manifestPath) {
+  const manifest = readJsonFile(manifestPath, 'manifest');
   if (manifest.sourceRepo !== 'pantheon-base') {
     throw new Error('manifest sourceRepo must be pantheon-base');
   }
@@ -85,6 +106,11 @@ function readManifest(manifestPath) {
     throw new Error('manifest consumerMode must be foundation-release-consumer');
   }
   return manifest;
+}
+
+function normalizeReleaseDisplayName(releaseVersion) {
+  const match = releaseVersion.match(/(v\d+\.\d+\.\d+)$/);
+  return match ? match[1] : releaseVersion;
 }
 
 function replaceLine(content, patterns, nextLine) {
@@ -110,6 +136,37 @@ function updateInheritanceDoc(filePath, manifest, language) {
   }
 
   fs.writeFileSync(filePath, content, 'utf8');
+}
+
+function buildFoundationReleaseLock(manifest, existingLock = {}) {
+  const assetName = manifest.releaseArtifact?.assetName || `foundation-release-${manifest.releaseVersion}.tgz`;
+  return {
+    schemaVersion: 1,
+    baseRepo: existingLock.baseRepo || DEFAULT_BASE_REPO,
+    sourceRepo: manifest.sourceRepo,
+    consumerMode: manifest.consumerMode,
+    releaseLine: manifest.releaseLine,
+    releaseVersion: manifest.releaseVersion,
+    releaseDisplayName: normalizeReleaseDisplayName(manifest.releaseVersion),
+    baseCommit: manifest.baseCommit,
+    releaseArtifact: {
+      githubRepo: existingLock.releaseArtifact?.githubRepo || DEFAULT_GITHUB_REPO,
+      tagName: manifest.releaseVersion,
+      releaseName: normalizeReleaseDisplayName(manifest.releaseVersion),
+      assetName,
+      localPath: existingLock.releaseArtifact?.localPath || `${DEFAULT_LOCAL_RELEASE_ROOT}/${manifest.releaseVersion}`,
+    },
+    sharedPaths: manifest.sharedPaths || existingLock.sharedPaths || {},
+    lockedAt: new Date().toISOString(),
+    lockedBy: 'consume-foundation-release',
+  };
+}
+
+function updateFoundationReleaseLock(opsRoot, manifest) {
+  const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
+  const existingLock = readJsonFileIfExists(lockPath, {}, 'foundation release lock');
+  const nextLock = buildFoundationReleaseLock(manifest, existingLock);
+  fs.writeFileSync(lockPath, `${JSON.stringify(nextLock, null, 2)}\n`, 'utf8');
 }
 
 function readUtf8(filePath) {
@@ -223,7 +280,8 @@ export function consumeFoundationRelease(options) {
   if (options.updateInheritanceDocs) {
     updateInheritanceDoc(path.join(options.opsRoot, 'docs', 'PROJECT_INHERITANCE.md'), manifest, 'zh');
     updateInheritanceDoc(path.join(options.opsRoot, 'docs', 'PROJECT_INHERITANCE.en.md'), manifest, 'en');
-    summary.push('Updated inheritance docs');
+    updateFoundationReleaseLock(options.opsRoot, manifest);
+    summary.push('Updated inheritance docs and release lock');
   }
 
   if (options.applySharedBackend) {

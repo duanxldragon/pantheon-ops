@@ -38,8 +38,10 @@ function copyFixtureScripts(opsRoot) {
 function createSharedFrontendTree(rootPath, contents) {
   writeText(path.join(rootPath, 'frontend', 'src', 'components', 'index.ts'), contents.components);
   writeText(path.join(rootPath, 'frontend', 'src', 'core', 'layout.ts'), contents.core);
+  writeText(path.join(rootPath, 'frontend', 'src', 'store', 'useStore.ts'), contents.store);
   writeText(path.join(rootPath, 'frontend', 'src', 'modules', 'auth', 'index.ts'), contents.auth);
-  writeText(path.join(rootPath, 'frontend', 'src', 'modules', 'dashboard', 'index.ts'), contents.dashboard);
+  writeText(path.join(rootPath, 'frontend', 'src', 'modules', 'lowcode', 'index.ts'), contents.lowcode);
+  writeText(path.join(rootPath, 'frontend', 'src', 'modules', 'platform', 'index.ts'), contents.platform);
   writeText(path.join(rootPath, 'frontend', 'src', 'modules', 'system', 'index.ts'), contents.system);
   writeText(path.join(rootPath, 'frontend', 'src', 'index.css'), contents.indexCss);
 }
@@ -64,16 +66,20 @@ test('sync-base-shared respects PANTHEON_BASE_REPO_ROOT and the current ops work
     createSharedFrontendTree(baseRoot, {
       components: 'export const baseComponent = true;\n',
       core: 'export const baseCore = true;\n',
+      store: 'export const baseStore = true;\n',
       auth: 'export const baseAuth = true;\n',
-      dashboard: 'export const baseDashboard = true;\n',
+      lowcode: 'export const baseLowcode = true;\n',
+      platform: 'export const basePlatform = true;\n',
       system: 'export const baseSystem = true;\n',
       indexCss: 'body { color: black; }\n',
     });
     createSharedFrontendTree(opsRoot, {
       components: 'export const oldComponent = true;\n',
       core: 'export const oldCore = true;\n',
+      store: 'export const oldStore = true;\n',
       auth: 'export const oldAuth = true;\n',
-      dashboard: 'export const oldDashboard = true;\n',
+      lowcode: 'export const oldLowcode = true;\n',
+      platform: 'export const oldPlatform = true;\n',
       system: 'export const oldSystem = true;\n',
       indexCss: 'body { color: red; }\n',
     });
@@ -88,6 +94,10 @@ test('sync-base-shared respects PANTHEON_BASE_REPO_ROOT and the current ops work
     assert.equal(
       fs.readFileSync(path.join(opsRoot, 'frontend', 'src', 'core', 'layout.ts'), 'utf8'),
       'export const baseCore = true;\n',
+    );
+    assert.equal(
+      fs.readFileSync(path.join(opsRoot, 'frontend', 'src', 'store', 'useStore.ts'), 'utf8'),
+      'export const baseStore = true;\n',
     );
     assert.equal(
       fs.readFileSync(path.join(opsRoot, 'frontend', 'src', 'index.css'), 'utf8'),

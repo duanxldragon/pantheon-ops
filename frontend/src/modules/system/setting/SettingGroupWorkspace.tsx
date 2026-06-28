@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Form, Message } from '@arco-design/web-react';
 import type { TableProps } from '@arco-design/web-react/es/Table/interface';
 import { useTranslation } from 'react-i18next';
@@ -68,27 +68,30 @@ const SettingGroupWorkspace: React.FC<SettingGroupWorkspaceProps> = ({
 
   const fieldNames = useMemo(() => groupItems.map((item) => item.settingKey), [groupItems]);
 
-  const loadAudit = async (page = 1, pageSize = defaultAuditPageSize) => {
-    if (!shouldShowAuditCard) {
-      return null;
-    }
-    setAuditLoading(true);
-    try {
-      const result = await getSettingAuditList({ groupKey, page, pageSize });
-      setAuditRows(result.items);
-      setAuditTotal(result.total);
-      setAuditQuery({
-        page: result.page || page,
-        pageSize: result.pageSize || pageSize,
-      });
-      return result;
-    } catch {
-      Message.error(t('common.loadFailed'));
-      return null;
-    } finally {
-      setAuditLoading(false);
-    }
-  };
+  const loadAudit = useCallback(
+    async (page = 1, pageSize = defaultAuditPageSize) => {
+      if (!shouldShowAuditCard) {
+        return null;
+      }
+      setAuditLoading(true);
+      try {
+        const result = await getSettingAuditList({ groupKey, page, pageSize });
+        setAuditRows(result.items);
+        setAuditTotal(result.total);
+        setAuditQuery({
+          page: result.page || page,
+          pageSize: result.pageSize || pageSize,
+        });
+        return result;
+      } catch {
+        Message.error(t('common.loadFailed'));
+        return null;
+      } finally {
+        setAuditLoading(false);
+      }
+    },
+    [groupKey, shouldShowAuditCard, t],
+  );
 
   useEffect(() => {
     if (!shouldShowAuditCard) {
@@ -98,7 +101,7 @@ const SettingGroupWorkspace: React.FC<SettingGroupWorkspaceProps> = ({
       void loadAudit(1, defaultAuditPageSize);
     }, 0);
     return () => globalThis.clearTimeout(timer);
-  }, [groupKey, shouldShowAuditCard]);
+  }, [groupKey, loadAudit, shouldShowAuditCard]);
 
   const resetGroupValues = () => {
     form.setFieldsValue(buildFormValues(groupItems));

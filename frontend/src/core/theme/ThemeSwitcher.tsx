@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, Dropdown, Menu } from '@arco-design/web-react';
 import { IconPalette } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
-import { usePantheonTheme, type PantheonThemeKey } from './theme';
+import { useTheme, type PantheonThemeKey } from '../../hooks';
 
 interface ThemeSwitcherProps {
   className?: string;
@@ -11,7 +11,7 @@ interface ThemeSwitcherProps {
 
 const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ className, showLabel = true }) => {
   const { t } = useTranslation();
-  const { theme, setTheme, options } = usePantheonTheme();
+  const { theme, setTheme, options } = useTheme();
   const activeTheme = options.find((item) => item.key === theme) ?? options[0];
 
   return (

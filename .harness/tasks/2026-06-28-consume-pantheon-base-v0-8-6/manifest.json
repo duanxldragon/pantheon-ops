@@ -1,0 +1,157 @@
+{
+  "taskId": "2026-06-28-consume-pantheon-base-v0-8-6",
+  "title": "consume-pantheon-base-v0-8-6",
+  "goal": "Consume pantheon-base base-v0.8.6 into pantheon-ops, remove legacy conflicting shared structures, and restore a green validation path for ongoing ops development.",
+  "primaryLayer": "inheritance-sync/platform",
+  "dependencyLayers": [
+    "backend/shared",
+    "frontend/shared",
+    "repository-governance"
+  ],
+  "taskDoc": "docs/harness/tasks/2026-06-28-consume-pantheon-base-v0-8-6.task.md",
+  "scope": {
+    "in": [
+      "consume pantheon-base base-v0.8.6 across backend shared modules, frontend shared contracts, and release consumption scripts",
+      "remove legacy duplicate common, auth, and system lowcode structures that conflict with the new base layout",
+      "align scaffold workspace helpers with the current generated feature-ledger contract",
+      "restore backend tests, frontend build, and smoke-helper compatibility required by this base sync",
+      "add governance evidence and PR body linkage required to merge this upgrade branch"
+    ],
+    "out": [
+      "new business features in pantheon-ops",
+      "follow-up cleanup of unrelated historical GitHub workflow runs",
+      "further redesign of smoke coverage beyond compatibility fixes needed for base-v0.8.6"
+    ]
+  },
+  "implementationNotes": [
+    "The backend sync converges pantheon-ops to the current pantheon-base shared layout instead of keeping dual old and new directory structures alive.",
+    "Login and MFA success paths now rely on secure cookies for token transport, so smoke helpers must accept cookie-backed auth sessions even when JSON omits raw tokens.",
+    "Governance artifact backfill is part of this task because the upgrade code was already validated locally but the PR could not merge without task and evidence linkage."
+  ],
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "../pantheon-base/AGENTS.md",
+    "../pantheon-base/README.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-06-28-consume-pantheon-base-v0-8-6.task.md",
+      ".harness/tasks/2026-06-28-consume-pantheon-base-v0-8-6/manifest.json",
+      ".harness/evidence/2026-06-28-consume-pantheon-base-v0-8-6/commands.json",
+      ".harness/evidence/2026-06-28-consume-pantheon-base-v0-8-6/review.md",
+      ".harness/evidence/2026-06-28-consume-pantheon-base-v0-8-6/pr-body.md"
+    ],
+    "modify": [
+      "backend/**",
+      "frontend/**",
+      "scripts/**",
+      "docs/PROJECT_INHERITANCE.md",
+      "README.md"
+    ],
+    "doNotTouch": [
+      "unrelated historical branches or workflow-run retention settings",
+      "../pantheon-base/**"
+    ]
+  },
+  "harnessProfile": {
+    "template": "pantheon-ops custom",
+    "overlay": "none",
+    "qualityProfile": "inheritance-sync",
+    "portableFailureClass": "repo-quality-gate",
+    "ownerLayer": "inheritance-sync",
+    "coverageDimensions": [
+      "maintainability",
+      "compatibility",
+      "release-safety"
+    ]
+  },
+  "methodReadiness": {
+    "consumerSpecificControls": [
+      "pantheon-ops inheritance sync"
+    ],
+    "requiredSensors": [
+      "command"
+    ],
+    "requiredEvidence": [
+      "commands.json",
+      "review.md"
+    ],
+    "ratchetDecision": "base-updated",
+    "deferredCodeIssues": [
+      "broader smoke-suite expansion remains future work"
+    ]
+  },
+  "deliveryGovernance": {
+    "designGate": [
+      "inheritance boundary confirmation"
+    ],
+    "developmentGate": [
+      "shared structure convergence",
+      "governance artifact linkage"
+    ],
+    "qaAcceptanceGate": [
+      "backend tests",
+      "frontend build",
+      "smoke-helper regression checks"
+    ],
+    "githubGovernanceGate": [
+      "repo-quality-gate"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "backend/shared auth/common/lowcode -> frontend smoke helpers -> release sync scripts"
+    ],
+    "boundaryCrossings": [
+      "pantheon-base -> pantheon-ops"
+    ],
+    "riskNodes": [
+      "login session contract",
+      "generated feature-ledger snapshot",
+      "legacy shared-path duplicates"
+    ],
+    "graphFocus": [
+      "inheritance sync compatibility"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "go test ./...",
+      "npm --prefix frontend run build",
+      "npm --prefix frontend run test:smoke:scripts",
+      "npm run check:docs-frontmatter",
+      "npm run check:task-packet-template",
+      "npm run check:pr-governance"
+    ],
+    "runtimeEvidence": [
+      "backend test result summary",
+      "frontend build result summary",
+      "smoke helper compatibility check"
+    ]
+  },
+  "runtimeSensitive": true,
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-06-28-consume-pantheon-base-v0-8-6/",
+    "reviewFile": ".harness/evidence/2026-06-28-consume-pantheon-base-v0-8-6/review.md",
+    "summaryFile": ".harness/evidence/2026-06-28-consume-pantheon-base-v0-8-6/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "evidenceRequired": [
+    "backend test result summary",
+    "frontend build result summary",
+    "smoke helper compatibility check",
+    "PR governance body linkage"
+  ],
+  "humanGates": [
+    "base version"
+  ],
+  "completionChecklist": [
+    "base version and landing side declared",
+    "legacy conflicting structures removed",
+    "verification run or exception recorded",
+    "governance artifacts saved",
+    "PR body updated to real artifact paths"
+  ]
+}

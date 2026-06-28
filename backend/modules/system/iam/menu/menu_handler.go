@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const errRequestFailed = "request.failed"
+
 type MenuHandler struct {
 	service *MenuService
 }
@@ -97,7 +99,7 @@ func (h *MenuHandler) DeleteMenu(c *gin.Context) {
 	}
 
 	if err := h.service.DeleteMenu(menuID); err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})

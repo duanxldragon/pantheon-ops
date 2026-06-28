@@ -1,4 +1,5 @@
 import { defineModule } from '../../../core/router/types';
+import { getMenuTree } from './api';
 
 export const MenuModule = defineModule({
   name: 'menu',
@@ -21,6 +22,9 @@ export const MenuModule = defineModule({
       routeName: 'system-menu',
       module: 'system.iam',
     },
+  ],
+  routeDataWarmers: [
+    { path: '/system/menu', key: 'tree:manage', load: () => getMenuTree({ scope: 'manage' }) },
   ],
   dashboardWidgets: [
     {
