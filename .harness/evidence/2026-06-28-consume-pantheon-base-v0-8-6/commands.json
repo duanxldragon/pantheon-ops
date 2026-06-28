@@ -63,6 +63,20 @@
       "notes": "confirms no generated module residue remains before CI docs governance runs"
     },
     {
+      "command": "go test ./backend/internal/middleware",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "locks the structured request logging shape to route templates and presence flags instead of user-controlled raw request strings"
+    },
+    {
+      "command": "node --test tests/scripts/foundation-release/consume-foundation-release.test.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "covers foundation release lock updates after removing the lock-file read race pattern"
+    },
+    {
       "command": "gh pr checks 66 --repo duanxldragon/pantheon-ops",
       "cwd": "pantheon-ops",
       "status": "observed",
@@ -85,7 +99,8 @@
   "runtimeSensitive": true,
   "runtimeLogs": [
     "GitHub Actions smoke sanity log showed backend startup succeeded, then browser smoke failed because auth helpers treated cookie-backed login as an invalid response.",
-    "Local frontend lint also surfaced repository-local .tmp generator artifacts, so lint now ignores temporary test output directories to match the intended frontend source boundary."
+    "Local frontend lint also surfaced repository-local .tmp generator artifacts, so lint now ignores temporary test output directories to match the intended frontend source boundary.",
+    "GitHub Feedback Prereq then surfaced open CodeQL review comments for raw request logging fields and a lock-file read race in the foundation-release consumer script; both paths were hardened locally and covered by targeted tests."
   ],
   "runtimeGap": "Full end-to-end smoke still depends on CI services and Playwright browser/runtime setup; local evidence here focuses on the smoke helper regression path and validation commands required for merge readiness.",
   "linkage": {

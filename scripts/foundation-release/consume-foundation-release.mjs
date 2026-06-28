@@ -75,12 +75,30 @@ function validateOptions(options) {
   }
 }
 
-function readManifest(manifestPath) {
-  if (!fs.existsSync(manifestPath)) {
-    throw new Error(`manifest not found: ${manifestPath}`);
+function readJsonFile(filePath, description) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      throw new Error(`${description} not found: ${filePath}`);
+    }
+    throw new Error(`${description} is invalid JSON: ${error.message}`);
   }
+}
 
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+function readJsonFileIfExists(filePath, fallbackValue, description) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return fallbackValue;
+    }
+    throw new Error(`${description} is invalid JSON: ${error.message}`);
+  }
+}
+
+function readManifest(manifestPath) {
+  const manifest = readJsonFile(manifestPath, 'manifest');
   if (manifest.sourceRepo !== 'pantheon-base') {
     throw new Error('manifest sourceRepo must be pantheon-base');
   }
@@ -146,9 +164,7 @@ function buildFoundationReleaseLock(manifest, existingLock = {}) {
 
 function updateFoundationReleaseLock(opsRoot, manifest) {
   const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
-  const existingLock = fs.existsSync(lockPath)
-    ? JSON.parse(fs.readFileSync(lockPath, 'utf8'))
-    : {};
+  const existingLock = readJsonFileIfExists(lockPath, {}, 'foundation release lock');
   const nextLock = buildFoundationReleaseLock(manifest, existingLock);
   fs.writeFileSync(lockPath, `${JSON.stringify(nextLock, null, 2)}\n`, 'utf8');
 }
