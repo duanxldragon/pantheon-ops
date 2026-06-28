@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Button,
   Card,
@@ -14,11 +14,6 @@ import { message } from '../../../components/feedback/message';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { IconEdit, IconSearch } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
-import {
-  isNetworkRequestError,
-  isServerRequestError,
-  isTimeoutRequestError,
-} from '../../../api/request';
 import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
 import { usePermission } from '../../../hooks/usePermission';
@@ -33,12 +28,11 @@ import {
   AppModal,
   AppTable,
   buildStandardPagination,
+  getPagedItems,
   FilterPanel,
   PageEmpty,
-  PageError,
   PageLoading,
-  PageNetworkError,
-  PageServerError,
+  PageRequestError,
   TABLE_ACTION_COLUMN_WIDTH,
   TABLE_COLUMN_WIDTH,
   withTableColumnPriority,
@@ -105,13 +99,10 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
     return () => globalThis.clearTimeout(timer);
   }, [loadDataScopePolicies, dataScopeQuery]);
 
-  const tableTotalPages = useMemo(
-    () => Math.max(1, Math.ceil(dataScopeRows.length / tablePagination.pageSize)),
-    [dataScopeRows.length, tablePagination.pageSize],
-  );
-  const tableCurrentPage = useMemo(
-    () => Math.min(tablePagination.current, tableTotalPages),
-    [tablePagination.current, tableTotalPages],
+  const { currentPage: tableCurrentPage } = getPagedItems(
+    dataScopeRows,
+    tablePagination.current,
+    tablePagination.pageSize,
   );
 
   useRefreshSubscription(
@@ -190,16 +181,6 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
       setDataScopeSubmittingRoleKey('');
       closeDataScopeEditor();
     }
-  };
-
-  const renderRequestErrorState = (requestError: unknown, onRetry: () => void) => {
-    if (isNetworkRequestError(requestError)) {
-      return <PageNetworkError timeout={isTimeoutRequestError(requestError)} onRetry={onRetry} />;
-    }
-    if (isServerRequestError(requestError)) {
-      return <PageServerError onRetry={onRetry} />;
-    }
-    return <PageError onRetry={onRetry} />;
   };
 
   const dataScopeColumns: ColumnProps<PermissionDataScopePolicy>[] = [
@@ -319,11 +300,14 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
         </FilterPanel>
         <Card className="page-panel system-list__table-card">
           {dataScopeLoading && dataScopeRows.length === 0 ? <PageLoading /> : null}
-          {dataScopeError && dataScopeRows.length === 0
-            ? renderRequestErrorState(dataScopeError, () => {
+          {dataScopeError && dataScopeRows.length === 0 ? (
+            <PageRequestError
+              error={dataScopeError}
+              onRetry={() => {
                 void loadDataScopePolicies(dataScopeQuery);
-              })
-            : null}
+              }}
+            />
+          ) : null}
           {!dataScopeLoading && !dataScopeError && dataScopeRows.length === 0 ? (
             <PageEmpty description={t('common.noData')} />
           ) : null}

@@ -12,7 +12,7 @@ const UserDetail: React.FC = () => {
   const { t } = useTranslation();
   const [detail, setDetail] = useState<UserDetailData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<unknown>(null);
 
   const userId = useMemo(() => Number(id), [id]);
   const invalidUserId = !Number.isInteger(userId) || userId <= 0;
@@ -20,18 +20,18 @@ const UserDetail: React.FC = () => {
   const loadDetail = useCallback(async () => {
     if (invalidUserId) {
       setDetail(null);
-      setError(false);
+      setError(null);
       setLoading(false);
       return;
     }
 
     setLoading(true);
-    setError(false);
+    setError(null);
     try {
       const result = await getUserDetail(userId);
       setDetail(result);
-    } catch {
-      setError(true);
+    } catch (requestError) {
+      setError(requestError);
       setDetail(null);
     } finally {
       setLoading(false);

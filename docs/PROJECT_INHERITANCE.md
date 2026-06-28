@@ -10,8 +10,15 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
 - Base repository：当前继承源是 `../pantheon-base`
 - Base release line：当前跟随 `release/0.8`
-- Base version：当前锁定到 `base-v0.8.1`（`3427c1a2fdc0b16ce6aa8735a13f3c94896ab374`）
+- Base version：当前锁定到 `base-v0.8.6`（`dec10461ecc8d9ed1422ea1538dd6872b2a13283`）
+- Release lock file：`foundation-release.lock.json`
 - Inheritance mode：`foundation-release-consumer`
+
+约定：
+
+- machine-readable 锁版本继续使用 `base-v0.8.6`
+- GitHub release 标题允许使用更短的人读展示名 `v0.8.6`
+- 后续自动化、校验和消费脚本一律以 `foundation-release.lock.json` 为准
 
 ## 2. 继承的底座规则
 
@@ -98,6 +105,7 @@ Current business-domain overrides that stay local to `pantheon-ops`:
 
 - `npm run upgrade:foundation:apply -- --manifest <bundle-root>\manifest.json --bundle <bundle-root>`
 - 该命令会同步共享 backend/frontend、保留 ops 本地 overlay（如 menu registry、generator workspace、frontend generated registry）、把共享 backend import 重写到 `pantheon-ops` 模块名，并补跑 frontend `base-sync` + `menu-contract`
+- 标准 apply 流还应同步更新 `foundation-release.lock.json` 与 `docs/PROJECT_INHERITANCE*`
 
 ## 6.3 不建议的同步方式
 

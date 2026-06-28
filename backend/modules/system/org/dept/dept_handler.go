@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const errRequestFailed = "request.failed"
+
 type DeptHandler struct {
 	service *DeptService
 }
@@ -65,7 +67,7 @@ func (h *DeptHandler) GetDeptLeaderCandidates(c *gin.Context) {
 
 	items, err := h.service.ListLeaderCandidates(deptID)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, items)
@@ -81,7 +83,7 @@ func (h *DeptHandler) CreateDept(c *gin.Context) {
 
 	dept, err := h.service.CreateDept(&req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, dept)
@@ -103,7 +105,7 @@ func (h *DeptHandler) UpdateDept(c *gin.Context) {
 
 	dept, err := h.service.UpdateDept(deptID, &req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, dept)
@@ -120,7 +122,7 @@ func (h *DeptHandler) BatchUpdateDeptStatus(c *gin.Context) {
 
 	updatedCount, err := h.service.BatchUpdateDeptStatus(req.DeptIDs, req.Status)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"updatedCount": updatedCount})
@@ -137,7 +139,7 @@ func (h *DeptHandler) BatchUpdateDeptLeader(c *gin.Context) {
 
 	updatedCount, err := h.service.BatchUpdateDeptLeader(req.Items)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"updatedCount": updatedCount})
@@ -152,7 +154,7 @@ func (h *DeptHandler) DeleteDept(c *gin.Context) {
 	}
 
 	if err := h.service.DeleteDept(deptID); err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})

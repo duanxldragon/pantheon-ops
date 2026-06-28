@@ -42,7 +42,7 @@ import {
   type LabelSchemaRow,
 } from './api';
 import { labelCategoryOptions, labelPresetOptions } from './catalog';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../cmdb.css';
 
 type LabelFormValues = LabelSchemaPayload & {
@@ -131,6 +131,7 @@ export default function CmdbLabelSchemaList() {
     }
     form.setFieldsValue({
       ...preset.payload,
+      description: t(preset.descriptionI18nKey),
       presetKey,
       required: false,
     });
@@ -493,12 +494,9 @@ export default function CmdbLabelSchemaList() {
                 current: page,
                 pageSize,
                 total,
-                onChange: (nextPage) => {
+                onChange: (nextPage, nextPageSize) => {
                   setPage(nextPage || 1);
-                },
-                onPageSizeChange: (nextPageSize) => {
                   setPageSize(nextPageSize || pageSize);
-                  setPage(1);
                 },
                 pageSizeChangeResetCurrent: true,
               })}
@@ -585,12 +583,9 @@ export default function CmdbLabelSchemaList() {
                           style={{ width: 280 }}
                         />
                       </Form.Item>
-                      <Button
-                        type="text"
-                        status="danger"
-                        icon={<IconDelete />}
-                        onClick={() => remove(index)}
-                      />
+                      <Popconfirm title={t('common.deleteConfirm')} onOk={() => remove(index)}>
+                        <Button type="text" status="danger" icon={<IconDelete />} />
+                      </Popconfirm>
                     </Space>
                   ))}
                   <Button type="dashed" icon={<IconPlus />} onClick={() => add('')}>

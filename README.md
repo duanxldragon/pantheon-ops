@@ -8,6 +8,11 @@ Pantheon Ops 是基于 Pantheon Platform 底座拆出的运维管理平台，用
 
 默认协作模型已经调整为：`pantheon-ops` 消费 `pantheon-base` 的 foundation release，而不是直接跟随 `pantheon-base/main`。
 
+当前版本锚点分成两层：
+
+- `foundation-release.lock.json`：机器可读锁文件，当前固定到 `base-v0.8.6`
+- GitHub Release 展示名：短标题 `v0.8.6`，只作为人读入口，不替代 tag/锁版本
+
 ## 项目定位
 
 - **平台层**：继承 Pantheon Platform 的应用壳层、路由装配、中间件、平台工作台、跨域聚合视图。
@@ -156,7 +161,7 @@ Pantheon Platform 将权限拆成四层：
 - [docs/README.md](./docs/README.md)：中文主索引。
 - [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md)：先看继承关系、版本锁定与本地业务范围。
 - [docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md)：业务域治理、主机绑定与部署信任边界设计。
-- `docs/PROJECT_INHERITANCE.md` 中的 `Base release line + Base version` 是当前 consumer 版本锚点。
+- `foundation-release.lock.json` 是当前 consumer 的机器可读版本锚点；`docs/PROJECT_INHERITANCE.md` 保留人读说明。
 - `upgrade:foundation:apply` 会保留 ops 本地 menu/generator/workspace overlay，重写共享 backend import 到 `pantheon-ops`，并补跑 frontend base-sync + menu-contract。
 - [.agents/skills/README.zh.md](./.agents/skills/README.zh.md)：本仓库的 repo-local Codex skills 入口，覆盖继承校验、PR 收口、GitHub comments 自动处理与 CI 红灯排查。
 - [DESIGN.md](./DESIGN.md)：再看仓库级设计边界。

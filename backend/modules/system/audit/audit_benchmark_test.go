@@ -1,6 +1,7 @@
 package system
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 	"testing"
@@ -155,27 +156,67 @@ func buildAuditBenchmarkRow(index int) (domain string, page string, failureCateg
 func explainOperationLogQueryPlan(t *testing.T, service *AuditService, query string, args ...any) []string {
 	t.Helper()
 
-	rows, err := service.db.Raw("EXPLAIN QUERY PLAN "+query, args...).Rows()
+	rows, err := service.db.Raw("EXPLAIN "+query, args...).Rows()
 	if err != nil {
 		t.Fatalf("explain query plan: %v", err)
 	}
 	defer rows.Close()
 
-	plan := make([]string, 0, 4)
-	for rows.Next() {
-		var selectID int
-		var order int
-		var from int
-		var detail string
-		if err := rows.Scan(&selectID, &order, &from, &detail); err != nil {
-			t.Fatalf("scan query plan row: %v", err)
-		}
-		plan = append(plan, detail)
+	plan, err := collectOperationLogQueryPlan(rows)
+	if err != nil {
+		t.Fatalf("collect query plan: %v", err)
 	}
 	if len(plan) == 0 {
 		t.Fatal("expected query plan rows")
 	}
 	return plan
+}
+
+func collectOperationLogQueryPlan(rows *sql.Rows) ([]string, error) {
+	cols, err := rows.Columns()
+	if err != nil {
+		return nil, fmt.Errorf("get explain columns: %w", err)
+	}
+	plan := make([]string, 0, 4)
+	for rows.Next() {
+		row, err := scanOperationLogQueryPlanRow(rows, cols)
+		if err != nil {
+			return nil, err
+		}
+		plan = append(plan, row)
+	}
+	return plan, nil
+}
+
+func scanOperationLogQueryPlanRow(rows *sql.Rows, cols []string) (string, error) {
+	values := make([]any, len(cols))
+	valuePtrs := make([]any, len(cols))
+	for i := range cols {
+		valuePtrs[i] = &values[i]
+	}
+	if err := rows.Scan(valuePtrs...); err != nil {
+		return "", fmt.Errorf("scan query plan row: %w", err)
+	}
+
+	parts := make([]string, 0, len(cols))
+	for _, value := range values {
+		part := formatOperationLogQueryPlanValue(value)
+		if part != "" {
+			parts = append(parts, part)
+		}
+	}
+	return strings.Join(parts, " "), nil
+}
+
+func formatOperationLogQueryPlanValue(value any) string {
+	switch v := value.(type) {
+	case nil:
+		return ""
+	case []byte:
+		return string(v)
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }
 
 func containsAnyPlanToken(plan []string, token string) bool {

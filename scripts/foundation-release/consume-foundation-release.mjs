@@ -16,6 +16,9 @@ import {
 } from './shared-foundation-rules.mjs';
 
 const DEFAULT_OPS_ROOT = process.cwd();
+const DEFAULT_BASE_REPO = '../pantheon-base';
+const DEFAULT_GITHUB_REPO = 'duanxldragon/pantheon-base';
+const DEFAULT_LOCAL_RELEASE_ROOT = '.foundation/releases';
 
 function parseArgs(argv) {
   const options = {
@@ -87,6 +90,11 @@ function readManifest(manifestPath) {
   return manifest;
 }
 
+function normalizeReleaseDisplayName(releaseVersion) {
+  const match = releaseVersion.match(/(v\d+\.\d+\.\d+)$/);
+  return match ? match[1] : releaseVersion;
+}
+
 function replaceLine(content, patterns, nextLine) {
   for (const pattern of patterns) {
     if (pattern.test(content)) {
@@ -110,6 +118,39 @@ function updateInheritanceDoc(filePath, manifest, language) {
   }
 
   fs.writeFileSync(filePath, content, 'utf8');
+}
+
+function buildFoundationReleaseLock(manifest, existingLock = {}) {
+  const assetName = manifest.releaseArtifact?.assetName || `foundation-release-${manifest.releaseVersion}.tgz`;
+  return {
+    schemaVersion: 1,
+    baseRepo: existingLock.baseRepo || DEFAULT_BASE_REPO,
+    sourceRepo: manifest.sourceRepo,
+    consumerMode: manifest.consumerMode,
+    releaseLine: manifest.releaseLine,
+    releaseVersion: manifest.releaseVersion,
+    releaseDisplayName: normalizeReleaseDisplayName(manifest.releaseVersion),
+    baseCommit: manifest.baseCommit,
+    releaseArtifact: {
+      githubRepo: existingLock.releaseArtifact?.githubRepo || DEFAULT_GITHUB_REPO,
+      tagName: manifest.releaseVersion,
+      releaseName: normalizeReleaseDisplayName(manifest.releaseVersion),
+      assetName,
+      localPath: existingLock.releaseArtifact?.localPath || `${DEFAULT_LOCAL_RELEASE_ROOT}/${manifest.releaseVersion}`,
+    },
+    sharedPaths: manifest.sharedPaths || existingLock.sharedPaths || {},
+    lockedAt: new Date().toISOString(),
+    lockedBy: 'consume-foundation-release',
+  };
+}
+
+function updateFoundationReleaseLock(opsRoot, manifest) {
+  const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
+  const existingLock = fs.existsSync(lockPath)
+    ? JSON.parse(fs.readFileSync(lockPath, 'utf8'))
+    : {};
+  const nextLock = buildFoundationReleaseLock(manifest, existingLock);
+  fs.writeFileSync(lockPath, `${JSON.stringify(nextLock, null, 2)}\n`, 'utf8');
 }
 
 function readUtf8(filePath) {
@@ -223,7 +264,8 @@ export function consumeFoundationRelease(options) {
   if (options.updateInheritanceDocs) {
     updateInheritanceDoc(path.join(options.opsRoot, 'docs', 'PROJECT_INHERITANCE.md'), manifest, 'zh');
     updateInheritanceDoc(path.join(options.opsRoot, 'docs', 'PROJECT_INHERITANCE.en.md'), manifest, 'en');
-    summary.push('Updated inheritance docs');
+    updateFoundationReleaseLock(options.opsRoot, manifest);
+    summary.push('Updated inheritance docs and release lock');
   }
 
   if (options.applySharedBackend) {

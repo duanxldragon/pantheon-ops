@@ -2,17 +2,16 @@ package database
 
 import (
 	"context"
-	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"pantheon-ops/backend/pkg/metrics"
 )
 
 var RDB *redis.Client
-var ctx = context.Background()
 
-// InitRedis 初始化 Redis 连接
+// InitRedis 初始化 Redis 连接（可选依赖，连接失败不阻止服务启动）
 func InitRedis(addr string, password string, db int) {
 	RDB = redis.NewClient(&redis.Options{
 		Addr:     addr,
@@ -21,20 +20,36 @@ func InitRedis(addr string, password string, db int) {
 	})
 
 	// 测试连接
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	_, err := RDB.Ping(ctx).Result()
 	if err != nil {
-		log.Fatalf("failed to connect redis: %v", err)
+		slog.Warn("failed to connect redis (token blacklist will be disabled)", "error", err)
+		RDB = nil
+		return
 	}
 
-	fmt.Println("Redis connection successful")
+	// 启动后台协程采集 Redis 连接池指标
+	go func() {
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			stats := RDB.PoolStats()
+			metrics.RedisConnectionsActive.Set(float64(stats.TotalConns - stats.IdleConns))
+			metrics.RedisConnectionsIdle.Set(float64(stats.IdleConns))
+		}
+	}()
+
+	slog.Info("Redis connection successful")
 }
 
 // SetEx 设置带过期时间的缓存 (对底座后续业务很有用)
-func SetEx(key string, value interface{}, expiration time.Duration) error {
+func SetEx(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
 	return RDB.Set(ctx, key, value, expiration).Err()
 }
 
 // Get 获取缓存
-func Get(key string) (string, error) {
+func Get(ctx context.Context, key string) (string, error) {
 	return RDB.Get(ctx, key).Result()
 }

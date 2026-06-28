@@ -1,4 +1,7 @@
 import { defineModule } from '../../../core/router/types';
+import { getPostList } from '../post/api';
+import { getUserList } from '../user/api';
+import { getDeptOverview, getDeptTree } from './api';
 
 export const DeptModule = defineModule({
   name: 'dept',
@@ -20,6 +23,25 @@ export const DeptModule = defineModule({
       icon: 'branch',
       routeName: 'system-dept',
       module: 'system.org',
+    },
+  ],
+  routeDataWarmers: [
+    { path: '/system/dept', key: 'tree:default', load: () => getDeptTree({}) },
+    { path: '/system/dept', key: 'overview', load: () => getDeptOverview() },
+    {
+      path: '/system/dept',
+      key: 'tree:sorted',
+      load: () => getDeptTree({ sortField: 'sort', sortOrder: 'asc' }),
+    },
+    {
+      path: '/system/dept',
+      key: 'posts:org-chart',
+      load: () => getPostList({ page: 1, pageSize: 1000, sortField: 'sort', sortOrder: 'asc' }),
+    },
+    {
+      path: '/system/dept',
+      key: 'users:org-chart',
+      load: () => getUserList({ page: 1, pageSize: 1000, sortField: 'username', sortOrder: 'asc' }),
     },
   ],
   dashboardWidgets: [

@@ -308,13 +308,11 @@ func TestPermissionService_GetWorkbenchCoverageFilter(t *testing.T) {
 	}).Error; err != nil {
 		t.Fatalf("seed role permissions: %v", err)
 	}
-	if err := db.Create(&database.CasbinRule{
-		PType: "p",
-		V0:    "complete_role",
-		V1:    "/api/v1/system/user/list",
-		V2:    "GET",
+	if err := db.Create(&[]database.CasbinRule{
+		{PType: "p", V0: "complete_role", V1: "/api/v1/system/user/list", V2: "GET"},
+		{PType: "p", V0: "complete_role", V1: "/api/v1/system/user/create", V2: "POST"},
 	}).Error; err != nil {
-		t.Fatalf("seed casbin rule: %v", err)
+		t.Fatalf("seed casbin rules: %v", err)
 	}
 
 	workbench, err := service.GetWorkbench(nil)
@@ -387,7 +385,7 @@ func TestPermissionService_GetWorkbenchIncludesRemediationGovernanceSummary(t *t
 	if err := db.Create(&database.CasbinRule{
 		PType: "p",
 		V0:    "remediated_role",
-		V1:    "/api/v1/system/dynamic-modules/generate",
+		V1:    "/api/v1/lowcode/dynamic-modules/generate",
 		V2:    "POST",
 	}).Error; err != nil {
 		t.Fatalf("seed casbin rule: %v", err)
@@ -398,7 +396,7 @@ func TestPermissionService_GetWorkbenchIncludesRemediationGovernanceSummary(t *t
 		{
 			RoleKey:      "pending_role",
 			IssueType:    "api-gap",
-			IssueKey:     "POST /api/v1/system/dynamic-modules/generate",
+			IssueKey:     "POST /api/v1/lowcode/dynamic-modules/generate",
 			BeforeState:  "api-gap",
 			AfterState:   "complete",
 			Action:       "remediated",
@@ -409,7 +407,7 @@ func TestPermissionService_GetWorkbenchIncludesRemediationGovernanceSummary(t *t
 		{
 			RoleKey:      "remediated_role",
 			IssueType:    "api-gap",
-			IssueKey:     "POST /api/v1/system/dynamic-modules/generate",
+			IssueKey:     "POST /api/v1/lowcode/dynamic-modules/generate",
 			BeforeState:  "api-gap",
 			AfterState:   "complete",
 			Action:       "remediated",
@@ -484,6 +482,85 @@ func TestPermissionService_GetWorkbenchIncludesRemediationGovernanceSummary(t *t
 	}
 }
 
+func TestPermissionService_GetWorkbenchUsesVersionedRemediationTableName(t *testing.T) {
+	db := setupPermissionTestDB(t)
+	service := NewPermissionService(db)
+
+	if err := db.Create(&permissionTestRole{
+		ID:       1,
+		RoleName: "Versioned Remediated",
+		RoleKey:  "versioned_remediated",
+		Status:   1,
+		Sort:     1,
+	}).Error; err != nil {
+		t.Fatalf("seed role: %v", err)
+	}
+	if err := db.Create(&permissionTestMenu{
+		ID:       10,
+		TitleKey: "system.menu.generator",
+		Path:     "/system/generator",
+		Module:   "system.lowcode",
+		Type:     "C",
+		PagePerm: "system:generator:use",
+	}).Error; err != nil {
+		t.Fatalf("seed menu: %v", err)
+	}
+	if err := db.Create(&permissionTestRolePermission{
+		RoleID:        1,
+		PermissionKey: "system:generator:use",
+	}).Error; err != nil {
+		t.Fatalf("seed role permission: %v", err)
+	}
+	if err := db.Create(&database.CasbinRule{
+		PType: "p",
+		V0:    "versioned_remediated",
+		V1:    "/api/v1/lowcode/dynamic-modules/generate",
+		V2:    "POST",
+	}).Error; err != nil {
+		t.Fatalf("seed api policy: %v", err)
+	}
+	if err := db.Exec(`
+CREATE TABLE IF NOT EXISTS permission_workbench_remediation_event (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  role_key VARCHAR(64) NOT NULL,
+  issue_type VARCHAR(32) NOT NULL,
+  issue_key VARCHAR(255) NOT NULL,
+  before_state VARCHAR(32) NOT NULL,
+  after_state VARCHAR(32) NOT NULL,
+  action VARCHAR(32) NOT NULL,
+  created_count INT DEFAULT 0,
+  skipped_count INT DEFAULT 0,
+  created_at DATETIME(3) DEFAULT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_permission_remediation_role_created (role_key, created_at),
+  INDEX idx_permission_remediation_issue_type (issue_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+`).Error; err != nil {
+		t.Fatalf("create versioned remediation table: %v", err)
+	}
+	if err := db.Exec(`
+INSERT INTO permission_workbench_remediation_event
+  (role_key, issue_type, issue_key, before_state, after_state, action, created_count, skipped_count, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+`, "versioned_remediated", "api-gap", "POST /api/v1/lowcode/dynamic-modules/generate", "api-gap", "complete", "remediated", 1, 0, time.Now()).Error; err != nil {
+		t.Fatalf("seed versioned remediation event: %v", err)
+	}
+
+	workbench, err := service.GetWorkbench(&PermissionWorkbenchQuery{RoleKey: "versioned_remediated"})
+	if err != nil {
+		t.Fatalf("get workbench: %v", err)
+	}
+	if len(workbench.Roles) != 1 {
+		t.Fatalf("expected 1 role, got %+v", workbench.Roles)
+	}
+	if workbench.Roles[0].GovernanceStatus != "remediated" {
+		t.Fatalf("expected governance status remediated, got %+v", workbench.Roles[0])
+	}
+	if workbench.Overview.RemediatedRoleCount != 1 {
+		t.Fatalf("expected remediated role count 1, got %+v", workbench.Overview)
+	}
+}
+
 func TestPermissionService_GetWorkbenchDetectsSpecificRequiredAPIPolicyGap(t *testing.T) {
 	db := setupPermissionTestDB(t)
 	service := NewPermissionService(db)
@@ -512,8 +589,8 @@ func TestPermissionService_GetWorkbenchDetectsSpecificRequiredAPIPolicyGap(t *te
 		t.Fatalf("seed role permissions: %v", err)
 	}
 	if err := db.Create(&[]database.CasbinRule{
-		{PType: "p", V0: "generate_gap", V1: "/api/v1/system/dynamic-modules", V2: "GET"},
-		{PType: "p", V0: "generate_ready", V1: "/api/v1/system/dynamic-modules/generate", V2: "POST"},
+		{PType: "p", V0: "generate_gap", V1: "/api/v1/lowcode/dynamic-modules", V2: "GET"},
+		{PType: "p", V0: "generate_ready", V1: "/api/v1/lowcode/dynamic-modules/generate", V2: "POST"},
 	}).Error; err != nil {
 		t.Fatalf("seed casbin rules: %v", err)
 	}
@@ -543,7 +620,7 @@ func TestPermissionService_GetWorkbenchDetectsSpecificRequiredAPIPolicyGap(t *te
 	if gapRole.MissingAPIPolicyCount != 1 {
 		t.Fatalf("expected 1 missing api policy, got %+v", gapRole.MissingAPIPolicies)
 	}
-	if len(gapRole.MissingAPIPolicies) != 1 || gapRole.MissingAPIPolicies[0].Path != "/api/v1/system/dynamic-modules/generate" || gapRole.MissingAPIPolicies[0].Method != "POST" {
+	if len(gapRole.MissingAPIPolicies) != 1 || gapRole.MissingAPIPolicies[0].Path != "/api/v1/lowcode/dynamic-modules/generate" || gapRole.MissingAPIPolicies[0].Method != "POST" {
 		t.Fatalf("unexpected missing policies: %+v", gapRole.MissingAPIPolicies)
 	}
 	if readyRole.HasAPIGap {
@@ -601,13 +678,13 @@ func TestPermissionService_RemediateWorkbenchPolicies(t *testing.T) {
 	if resp.SkippedCount != 0 {
 		t.Fatalf("expected skipped count 0 before remediation, got %+v", resp)
 	}
-	if resp.CreatedPolicies[0].Path != "/api/v1/system/dynamic-modules/generate" || resp.CreatedPolicies[0].Method != "POST" {
+	if resp.CreatedPolicies[0].Path != "/api/v1/lowcode/dynamic-modules/generate" || resp.CreatedPolicies[0].Method != "POST" {
 		t.Fatalf("unexpected created policy: %+v", resp.CreatedPolicies[0])
 	}
 
 	var count int64
 	if err := db.Model(&database.CasbinRule{}).
-		Where("ptype = ? AND v0 = ? AND v1 = ? AND v2 = ?", "p", "generate_gap", "/api/v1/system/dynamic-modules/generate", "POST").
+		Where("ptype = ? AND v0 = ? AND v1 = ? AND v2 = ?", "p", "generate_gap", "/api/v1/lowcode/dynamic-modules/generate", "POST").
 		Count(&count).Error; err != nil {
 		t.Fatalf("count created policy: %v", err)
 	}

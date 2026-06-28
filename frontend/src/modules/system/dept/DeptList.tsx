@@ -31,11 +31,6 @@ import type {
 import type { TreeSelectDataType } from '@arco-design/web-react/es/TreeSelect/interface';
 import { useTranslation } from 'react-i18next';
 import { showImportResult } from '../../../api/importExport';
-import {
-  isNetworkRequestError,
-  isServerRequestError,
-  isTimeoutRequestError,
-} from '../../../api/request';
 import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
 import { invalidateRouteWarmDataMany, resolveRouteWarmData } from '../../../core/router/prefetch';
@@ -76,6 +71,7 @@ import {
   AppModal,
   AppTable,
   buildStandardPagination,
+  getPagedItems,
   FilterPanel,
   FormSection,
   GovernanceInsightDrawer,
@@ -88,8 +84,7 @@ import {
   PageEmpty,
   PageError,
   PageLoading,
-  PageNetworkError,
-  PageServerError,
+  PageRequestError,
   SubmitBar,
   SystemRowActions,
   TableBatchActionBar,
@@ -99,7 +94,7 @@ import {
   useGovernanceRail,
   withTableColumnPriority,
 } from '../../../components';
-import '../list-page.css';
+import '../components/shared/list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -435,13 +430,10 @@ const DeptList: React.FC = () => {
     },
   );
 
-  const tableTotalPages = useMemo(
-    () => Math.max(1, Math.ceil(data.length / tablePagination.pageSize)),
-    [data.length, tablePagination.pageSize],
-  );
-  const tableCurrentPage = useMemo(
-    () => Math.min(tablePagination.current, tableTotalPages),
-    [tablePagination.current, tableTotalPages],
+  const { currentPage: tableCurrentPage } = getPagedItems(
+    data,
+    tablePagination.current,
+    tablePagination.pageSize,
   );
 
   useEffect(() => {
@@ -855,35 +847,6 @@ const DeptList: React.FC = () => {
       ),
     },
   ];
-
-  const renderErrorState = () => {
-    if (isNetworkRequestError(error)) {
-      return (
-        <PageNetworkError
-          timeout={isTimeoutRequestError(error)}
-          onRetry={() => {
-            loadData(query);
-          }}
-        />
-      );
-    }
-    if (isServerRequestError(error)) {
-      return (
-        <PageServerError
-          onRetry={() => {
-            loadData(query);
-          }}
-        />
-      );
-    }
-    return (
-      <PageError
-        onRetry={() => {
-          loadData(query);
-        }}
-      />
-    );
-  };
 
   const handleExport = async () => {
     await exportDepts(query);
@@ -1376,7 +1339,14 @@ const DeptList: React.FC = () => {
                   }
                 />
                 {loading && data.length === 0 ? <PageLoading /> : null}
-                {error && data.length === 0 ? renderErrorState() : null}
+                {error && data.length === 0 ? (
+                  <PageRequestError
+                    error={error}
+                    onRetry={() => {
+                      loadData(query);
+                    }}
+                  />
+                ) : null}
                 {!loading && !error && data.length === 0 ? (
                   <PageEmpty description={t('common.noData')} />
                 ) : null}
@@ -1623,7 +1593,13 @@ const DeptList: React.FC = () => {
                   <FormItem
                     label={t('system.dept.email')}
                     field="email"
-                    rules={[{ match: /\S+@\S+\.\S+/, message: t('system.user.email.invalid') }]}
+                    rules={[
+                      {
+                        // NOSONAR - simple email shape check; backend owns authoritative validation.
+                        match: /\S+@\S+\.\S+/,
+                        message: t('system.user.email.invalid'),
+                      },
+                    ]}
                   >
                     <Input onPressEnter={() => form.submit()} />
                   </FormItem>

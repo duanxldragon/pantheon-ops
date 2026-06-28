@@ -13,15 +13,11 @@ import {
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { IconSearch } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
-import {
-  isNetworkRequestError,
-  isServerRequestError,
-  isTimeoutRequestError,
-} from '../../../api/request';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { usePermission } from '../../../hooks/usePermission';
 import {
   getPermissionWorkbenchRemediationEvents,
+  type PermissionWorkbenchPermission,
   type PermissionWorkbenchQuery,
   type PermissionWorkbenchRemediationEvent,
   type PermissionWorkbenchRole,
@@ -31,12 +27,11 @@ import {
   AppModal,
   AppTable,
   buildStandardPagination,
+  getPagedItems,
   FilterPanel,
   PageEmpty,
-  PageError,
   PageLoading,
-  PageNetworkError,
-  PageServerError,
+  PageRequestError,
   TABLE_ACTION_COLUMN_WIDTH,
   TABLE_COLUMN_WIDTH,
   withTableColumnPriority,
@@ -45,6 +40,18 @@ import {
 const Row = Grid.Row;
 const Col = Grid.Col;
 const FormItem = Form.Item;
+
+function dedupePermissions(items: PermissionWorkbenchPermission[]) {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const identity = `${item.kind}:${item.key}:${item.path || ''}`;
+    if (seen.has(identity)) {
+      return false;
+    }
+    seen.add(identity);
+    return true;
+  });
+}
 
 const emptyWorkbenchQuery: PermissionWorkbenchQuery = {
   roleKey: '',
@@ -175,13 +182,10 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
     return roles.filter((role) => role.governanceStatus === 'pending');
   }, [viewMode, workbench?.roles]);
 
-  const tableTotalPages = useMemo(
-    () => Math.max(1, Math.ceil(displayedRoles.length / tablePagination.pageSize)),
-    [displayedRoles.length, tablePagination.pageSize],
-  );
-  const tableCurrentPage = useMemo(
-    () => Math.min(tablePagination.current, tableTotalPages),
-    [tablePagination.current, tableTotalPages],
+  const { currentPage: tableCurrentPage } = getPagedItems(
+    displayedRoles,
+    tablePagination.current,
+    tablePagination.pageSize,
   );
 
   const renderGovernanceStatusTag = (role: PermissionWorkbenchRole) => {
@@ -207,15 +211,18 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
     [remediationEvents, t],
   );
 
-  const renderRequestErrorState = (requestError: unknown, onRetry: () => void) => {
-    if (isNetworkRequestError(requestError)) {
-      return <PageNetworkError timeout={isTimeoutRequestError(requestError)} onRetry={onRetry} />;
-    }
-    if (isServerRequestError(requestError)) {
-      return <PageServerError onRetry={onRetry} />;
-    }
-    return <PageError onRetry={onRetry} />;
-  };
+  const detailPagePermissions = useMemo(
+    () => dedupePermissions(detailRole?.pagePermissions ?? []),
+    [detailRole?.pagePermissions],
+  );
+  const detailActionPermissions = useMemo(
+    () => dedupePermissions(detailRole?.actionPermissions ?? []),
+    [detailRole?.actionPermissions],
+  );
+  const detailUnknownPermissions = useMemo(
+    () => dedupePermissions(detailRole?.unknownPermissions ?? []),
+    [detailRole?.unknownPermissions],
+  );
 
   const workbenchColumns: ColumnProps<PermissionWorkbenchRole>[] = [
     { title: t('system.role.roleName'), dataIndex: 'roleName', width: TABLE_COLUMN_WIDTH.name },
@@ -326,7 +333,11 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
               {t('system.permission.workbench.positioningHint')}
             </Typography.Text>
           </div>
-          <Space size={8} className="permission-workbench__context-tools system-list__work-actions" wrap>
+          <Space
+            size={8}
+            className="permission-workbench__context-tools system-list__work-actions"
+            wrap
+          >
             {utilityActions}
             <div className="permission-workbench__view-switch">
               <Button
@@ -441,15 +452,13 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
 
         <Card className="page-panel system-list__table-card">
           {workbenchLoading && !workbench ? <PageLoading /> : null}
-          {workbenchError && !workbench
-            ? renderRequestErrorState(workbenchError, onRetryLoadWorkbench)
-            : null}
+          {workbenchError && !workbench ? (
+            <PageRequestError error={workbenchError} onRetry={onRetryLoadWorkbench} />
+          ) : null}
           {!workbenchLoading && !workbenchError && displayedRoles.length === 0 ? (
             <PageEmpty description={t('common.noData')} />
           ) : null}
-          {!workbenchLoading &&
-          !(workbenchError && !workbench) &&
-          displayedRoles.length > 0 ? (
+          {!workbenchLoading && !(workbenchError && !workbench) && displayedRoles.length > 0 ? (
             <AppTable<PermissionWorkbenchRole>
               className="system-list__table"
               rowKey="id"
@@ -619,7 +628,9 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
               className="detail-panel-card"
               title={t('system.permission.workbench.remediationTimelineSection')}
             >
-              <AppTable<(PermissionWorkbenchRemediationEvent & { actionLabel: string; stateLabel: string })>
+              <AppTable<
+                PermissionWorkbenchRemediationEvent & { actionLabel: string; stateLabel: string }
+              >
                 rowKey="id"
                 data={remediationTimelineRows}
                 columns={[
@@ -653,7 +664,10 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
               />
             </Card>
 
-            <Card className="detail-panel-card" title={t('system.permission.workbench.rawCoverageSection')}>
+            <Card
+              className="detail-panel-card"
+              title={t('system.permission.workbench.rawCoverageSection')}
+            >
               <Space direction="vertical" size={12} style={{ width: '100%' }}>
                 <Space direction="vertical" size={6} style={{ width: '100%' }}>
                   <Typography.Text bold>
@@ -677,9 +691,9 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
                     {t('system.permission.workbench.pageSection')}
                   </Typography.Text>
                   <Space wrap>
-                    {detailRole.pagePermissions.length > 0 ? (
-                      detailRole.pagePermissions.map((item) => (
-                        <Tag key={item.key} color="arcoblue">
+                    {detailPagePermissions.length > 0 ? (
+                      detailPagePermissions.map((item) => (
+                        <Tag key={`${item.kind}:${item.key}:${item.path || ''}`} color="arcoblue">
                           {translateTitleKey(item.titleKey, item.key)}
                         </Tag>
                       ))
@@ -694,9 +708,9 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
                     {t('system.permission.workbench.actionSection')}
                   </Typography.Text>
                   <Space wrap>
-                    {detailRole.actionPermissions.length > 0 ? (
-                      detailRole.actionPermissions.map((item) => (
-                        <Tag key={item.key} color="green">
+                    {detailActionPermissions.length > 0 ? (
+                      detailActionPermissions.map((item) => (
+                        <Tag key={`${item.kind}:${item.key}:${item.path || ''}`} color="green">
                           {translateTitleKey(item.titleKey, item.key)}
                         </Tag>
                       ))
@@ -729,14 +743,14 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
                   />
                 </Space>
 
-                {detailRole.unknownPermissions.length > 0 ? (
+                {detailUnknownPermissions.length > 0 ? (
                   <Space direction="vertical" size={6} style={{ width: '100%' }}>
                     <Typography.Text bold>
                       {t('system.permission.workbench.unknownSection')}
                     </Typography.Text>
                     <Space wrap>
-                      {detailRole.unknownPermissions.map((item) => (
-                        <Tag key={item.key} color="orange">
+                      {detailUnknownPermissions.map((item) => (
+                        <Tag key={`${item.kind}:${item.key}:${item.path || ''}`} color="orange">
                           {item.key}
                         </Tag>
                       ))}

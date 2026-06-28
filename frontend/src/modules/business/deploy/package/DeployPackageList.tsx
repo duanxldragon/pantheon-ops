@@ -45,7 +45,7 @@ import {
   type DeployPackageRow,
 } from '../api';
 import { deployFixedTemplateCatalog, getDeployFixedTemplateCatalogEntry } from '../catalog';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../deploy.css';
 
 export default function DeployPackageList() {
@@ -443,12 +443,9 @@ export default function DeployPackageList() {
                 current: page,
                 pageSize,
                 total,
-                onChange: (nextPage) => {
+                onChange: (nextPage, nextPageSize) => {
                   setPage(nextPage || 1);
-                },
-                onPageSizeChange: (nextPageSize) => {
                   setPageSize(nextPageSize || pageSize);
-                  setPage(1);
                 },
                 pageSizeChangeResetCurrent: true,
               })}

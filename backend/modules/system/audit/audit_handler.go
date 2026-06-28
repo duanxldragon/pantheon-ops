@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const errRequestFailed = "request.failed"
+
 type AuditHandler struct {
 	service *AuditService
 }
@@ -56,7 +58,7 @@ func (h *AuditHandler) DeleteOperationLog(c *gin.Context) {
 	}
 
 	if err := h.service.DeleteOperationLog(logID); err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})
@@ -73,7 +75,7 @@ func (h *AuditHandler) CleanupOperationLogs(c *gin.Context) {
 
 	clearedCount, err := h.service.CleanupOperationLogs(req.RetentionDays, req.StartedAt, req.EndedAt)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"clearedCount": clearedCount})
@@ -90,7 +92,7 @@ func (h *AuditHandler) BatchDeleteOperationLogs(c *gin.Context) {
 
 	deletedCount, err := h.service.BatchDeleteOperationLogs(req.IDs)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"deletedCount": deletedCount})

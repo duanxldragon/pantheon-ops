@@ -47,8 +47,8 @@ import {
   GovernanceSummaryBar,
   PageContainer,
   PageEmpty,
-  PageError,
   PageLoading,
+  PageRequestError,
   PermissionAction,
   TABLE_ACTION_COLUMN_WIDTH,
   TABLE_COLUMN_WIDTH,
@@ -57,7 +57,7 @@ import {
 } from '../../../components';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { usePermission } from '../../../hooks/usePermission';
-import '../list-page.css';
+import '../components/shared/list-page.css';
 import { toCleanupTimestamp, loadRetentionSetting } from './retentionSetting';
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -451,7 +451,7 @@ const OperationLogList: React.FC = () => {
   const [data, setData] = useState<OperationLogRow[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [query, setQuery] = useState<OperationLogQuery>(emptyQuery);
   const [queryForm] = Form.useForm<OperationLogQuery>();
   const [detailVisible, setDetailVisible] = useState(false);
@@ -489,13 +489,13 @@ const OperationLogList: React.FC = () => {
   const loadData = useCallback(
     async (nextQuery: OperationLogQuery = query) => {
       setLoading(true);
-      setLoadFailed(false);
+      setLoadError(null);
       try {
         const result = await getOperationLogList(nextQuery);
         setData(result.items);
         setTotal(result.total);
-      } catch {
-        setLoadFailed(true);
+      } catch (requestError) {
+        setLoadError(requestError);
         message.error(t('common.loadFailed'));
       } finally {
         setLoading(false);
@@ -510,7 +510,6 @@ const OperationLogList: React.FC = () => {
     }, 0);
     return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
-
 
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
@@ -1030,8 +1029,9 @@ const OperationLogList: React.FC = () => {
             />
 
             {loading && data.length === 0 ? <PageLoading /> : null}
-            {loadFailed && !loading ? (
-              <PageError
+            {loadError && !loading ? (
+              <PageRequestError
+                error={loadError}
                 onRetry={() => {
                   void loadData(query);
                 }}

@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Card, Descriptions, Space } from '@arco-design/web-react';
+import { Button, Card, Descriptions, Space, Typography } from '@arco-design/web-react';
 import { IconLeft } from '@arco-design/web-react/icon';
 import { PageContainer, PageError, PageLoading } from '../../../components';
-import PageHeader from '../../../components/patterns/PageHeader';
 import { getBizScopeDetail, type BizScopeDetail as BizScopeDetailType } from './api';
-import '../../system/list-page.css';
+import '../../system/components/shared/list-page.css';
 
 export default function BizScopeDetail() {
   const { id } = useParams<{ id: string }>();
@@ -57,16 +56,20 @@ export default function BizScopeDetail() {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={detail.name}
-        subtitle={t('operations.bizscope.detail')}
-        extra={
-          <Button icon={<IconLeft />} onClick={() => navigate('/operations/business-scope')}>
-            {t('common.back')}
-          </Button>
-        }
-      />
+      <div className="system-list__work-actions">
+        <Button icon={<IconLeft />} onClick={() => navigate('/operations/business-scope')}>
+          {t('common.back')}
+        </Button>
+      </div>
       <Space direction="vertical" size={16} className="system-page-template">
+        <Card className="page-panel system-page-hero">
+          <Space direction="vertical" size={4}>
+            <span className="system-page-hero__eyebrow">{t('operations.bizscope.detail')}</span>
+            <Typography.Title heading={5} className="system-page-hero__title">
+              {detail.name}
+            </Typography.Title>
+          </Space>
+        </Card>
         <Card className="page-panel">
           <Descriptions
             column={2}

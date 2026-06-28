@@ -48,7 +48,7 @@ import {
   buildDeployTemplateDefaultParameters,
   getDeployFixedTemplateCatalogEntry,
 } from '../catalog';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../deploy.css';
 
 type TemplateFormValues = {
@@ -534,10 +534,9 @@ export default function DeployTemplateList() {
                 current: page,
                 pageSize,
                 total,
-                onChange: (nextPage) => setPage(nextPage || 1),
-                onPageSizeChange: (nextPageSize) => {
+                onChange: (nextPage, nextPageSize) => {
+                  setPage(nextPage || 1);
                   setPageSize(nextPageSize || pageSize);
-                  setPage(1);
                 },
                 pageSizeChangeResetCurrent: true,
               })}
@@ -746,13 +745,18 @@ export default function DeployTemplateList() {
                             <Typography.Text style={{ fontWeight: 600 }}>
                               {t('business.deploy.template.stepTitle', { index: index + 1 })}
                             </Typography.Text>
-                            <Button
-                              type="text"
-                              status="danger"
-                              icon={<IconDelete />}
-                              onClick={() => remove(index)}
+                            <Popconfirm
+                              title={t('common.deleteConfirm')}
+                              onOk={() => remove(index)}
                               disabled={fields.length === 1}
-                            />
+                            >
+                              <Button
+                                type="text"
+                                status="danger"
+                                icon={<IconDelete />}
+                                disabled={fields.length === 1}
+                              />
+                            </Popconfirm>
                           </Space>
                           <Form.Item field={`steps[${index}].stepName`} label={t('business.deploy.template.stepName')}>
                             <Input />

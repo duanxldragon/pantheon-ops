@@ -1,7 +1,7 @@
 package scaffold
 
 import (
-	"errors"
+	"pantheon-ops/backend/pkg/common"
 	"regexp"
 	"strings"
 )
@@ -11,12 +11,12 @@ var moduleRelationFieldPattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]*$`)
 func validateGovernanceContract(req *RegisterGeneratedModuleRequest) error {
 	templateVersion := strings.TrimSpace(req.Schema.TemplateVersion)
 	if templateVersion != "" && templateVersion != "v1" {
-		return errors.New("module.generate.invalid_template_version")
+		return common.NewBadRequest("module.generate.invalid_template_version")
 	}
 
 	dataScopeMode := strings.TrimSpace(req.Schema.DataScopeMode)
 	if dataScopeMode != "" && !isValidDataScopeMode(dataScopeMode) {
-		return errors.New("module.generate.invalid_data_scope")
+		return common.NewBadRequest("module.generate.invalid_data_scope")
 	}
 
 	moduleName := strings.TrimSpace(req.Schema.Name)
@@ -24,20 +24,20 @@ func validateGovernanceContract(req *RegisterGeneratedModuleRequest) error {
 	for _, dependency := range req.Schema.Dependencies {
 		dependencyModule := strings.TrimSpace(dependency.Module)
 		if !isValidModulePath(dependencyModule, true) {
-			return errors.New("module.generate.invalid_dependency")
+			return common.NewBadRequest("module.generate.invalid_dependency")
 		}
 		if dependencyModule == moduleName {
-			return errors.New("module.generate.invalid_dependency")
+			return common.NewBadRequest("module.generate.invalid_dependency")
 		}
 		if _, ok := seenDependencies[dependencyModule]; ok {
-			return errors.New("module.generate.invalid_dependency")
+			return common.NewBadRequest("module.generate.invalid_dependency")
 		}
 		seenDependencies[dependencyModule] = struct{}{}
 	}
 
 	for _, relation := range req.Schema.Relations {
 		if !isValidRelationContract(req.Schema.Scope, relation) {
-			return errors.New("module.generate.invalid_relation")
+			return common.NewBadRequest("module.generate.invalid_relation")
 		}
 	}
 	return nil

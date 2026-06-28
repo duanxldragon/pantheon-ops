@@ -1,6 +1,7 @@
 package testmysql
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -15,6 +16,28 @@ func TestBuildTestDBNameSanitizesSegments(t *testing.T) {
 	}
 	if len(name) > 60 {
 		t.Fatalf("buildTestDBName() length = %d, want <= 60", len(name))
+	}
+}
+
+func TestBuildTestDBNamePreservesRandomSuffixWhenPrefixIsTruncated(t *testing.T) {
+	name, err := buildTestDBName(
+		"pantheon_base",
+		"TestAuthPreferencesContract_GetMeIncludesNormalizedSecurityPolicyAndSessionInventory",
+	)
+	if err != nil {
+		t.Fatalf("buildTestDBName() error = %v", err)
+	}
+	if len(name) > maxTestDBNameLength {
+		t.Fatalf("buildTestDBName() length = %d, want <= %d", len(name), maxTestDBNameLength)
+	}
+	if !strings.HasPrefix(name, "pantheon_base_") {
+		t.Fatalf("buildTestDBName() prefix = %q", name)
+	}
+	if !strings.Contains(name, "testauthpreferences") {
+		t.Fatalf("buildTestDBName() should retain part of normalized test name, got %q", name)
+	}
+	if !regexp.MustCompile(`_\d+_\d{4}$`).MatchString(name) {
+		t.Fatalf("buildTestDBName() must retain numeric suffix, got %q", name)
 	}
 }
 

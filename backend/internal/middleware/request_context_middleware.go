@@ -1,7 +1,9 @@
 package middleware
 
 import (
+	"context"
 	"strings"
+	"time"
 	"unicode"
 
 	"pantheon-ops/backend/pkg/common"
@@ -26,6 +28,10 @@ func RequestContextMiddleware() gin.HandlerFunc {
 		c.Set(common.ContextKeyTraceID, requestID)
 		c.Header(common.HeaderRequestID, requestID)
 		c.Header(common.HeaderTraceID, requestID)
+
+		ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+		defer cancel()
+		c.Request = c.Request.WithContext(ctx)
 
 		c.Next()
 	}

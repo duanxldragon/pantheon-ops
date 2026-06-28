@@ -1,4 +1,8 @@
 import { defineModule } from '../../../core/router/types';
+import { getDeptTree } from '../dept/api';
+import { getPostList } from '../post/api';
+import { getRoleList } from '../role/api';
+import { getUserList } from './api';
 
 export const UserModule = defineModule({
   name: 'user',
@@ -28,6 +32,30 @@ export const UserModule = defineModule({
       icon: 'user',
       routeName: 'system-user',
       module: 'system.iam',
+    },
+  ],
+  routeDataWarmers: [
+    {
+      path: '/system/user',
+      key: 'list:default',
+      load: () => getUserList({ username: '', nickname: '', page: 1, pageSize: 10 }),
+    },
+    {
+      path: '/system/user',
+      key: 'roles:active',
+      load: () =>
+        getRoleList({ page: 1, pageSize: 100, sortField: 'sort', sortOrder: 'asc', status: 1 }),
+    },
+    {
+      path: '/system/user',
+      key: 'depts:default',
+      load: () => getDeptTree({ sortField: 'sort', sortOrder: 'asc' }),
+    },
+    {
+      path: '/system/user',
+      key: 'posts:active',
+      load: () =>
+        getPostList({ page: 1, pageSize: 100, sortField: 'sort', sortOrder: 'asc', status: 1 }),
     },
   ],
   dashboardWidgets: [

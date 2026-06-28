@@ -17,12 +17,12 @@ func TestEnsureMenuSeedsReparentsLegacyFlatMenus(t *testing.T) {
 		t.Fatalf("seed admin role: %v", err)
 	}
 	if err := db.Exec(`
-INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu)
+INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
 VALUES
-(100, 0, 'system.menu.user', '/system/user', 'system/user/UserList', 'system:user:list', '', 'C', 'user', 'system-user', 'system', 2, 1, 0, 0, ''),
-(101, 0, 'system.menu.dict', '/system/dict', 'system/dict/DictPage', 'system:dict:list', '', 'C', 'list', 'system-dict', 'system', 11, 1, 1, 0, ''),
-(102, 0, 'system.menu.modules', '/system/modules', 'system/dynamicmodule/ModuleManager', 'system:module:list', '', 'C', 'apps', 'system-modules', 'system', 12, 1, 0, 0, ''),
-(103, 0, 'system.menu.generator', '/system/generator', 'system/generator/ModuleWizard', 'system:generator:use', '', 'C', 'code', 'system-generator', 'system', 13, 1, 0, 0, '')
+(100, 0, 'system.menu.user', '/system/user', 'system/user/UserList', 'system:user:list', '', 'C', 'user', 'system-user', 'system', 2, 1, 0, 0, '', 0),
+(101, 0, 'system.menu.dict', '/system/dict', 'system/dict/DictPage', 'system:dict:list', '', 'C', 'list', 'system-dict', 'system', 11, 1, 1, 0, '', 0),
+(102, 0, 'system.menu.modules', '/system/modules', 'system/dynamicmodule/ModuleManager', 'system:module:list', '', 'C', 'apps', 'system-modules', 'system', 12, 1, 0, 0, '', 0),
+(103, 0, 'system.menu.generator', '/system/generator', 'system/generator/ModuleWizard', 'system:generator:use', '', 'C', 'code', 'system-generator', 'system', 13, 1, 0, 0, '', 0)
 `).Error; err != nil {
 		t.Fatalf("seed legacy menus: %v", err)
 	}
@@ -42,6 +42,38 @@ VALUES
 	assertAdminMenuBound(t, db, "/system/access")
 	assertAdminMenuBound(t, db, "/system/user")
 	assertAdminMenuBound(t, db, "/system/lowcode")
+}
+
+func TestNormalizeSeedMenuTypePreservesDirectoryMarker(t *testing.T) {
+	if got := normalizeSeedMenuType("D"); got != "D" {
+		t.Fatalf("expected D to be preserved, got %s", got)
+	}
+}
+
+func TestCoreMenuSeedsExcludeObsoletePlatformContainers(t *testing.T) {
+	for _, seed := range coreMenuSeeds() {
+		switch seed.Path {
+		case "/workspace", "/operations":
+			t.Fatalf("expected obsolete platform container %s to be excluded from core menu seeds", seed.Path)
+		}
+		if seed.TitleKey == "app.workspace" || seed.TitleKey == "operations.menu" {
+			t.Fatalf("expected obsolete platform container title %s to be excluded from core menu seeds", seed.TitleKey)
+		}
+	}
+
+	var dashboard menuSeed
+	for _, seed := range coreMenuSeeds() {
+		if seed.Path == "/dashboard" {
+			dashboard = seed
+			break
+		}
+	}
+	if dashboard.Path == "" {
+		t.Fatalf("expected dashboard seed to remain")
+	}
+	if dashboard.ParentKey != "" {
+		t.Fatalf("expected dashboard seed to be root, got parent key %s", dashboard.ParentKey)
+	}
 }
 
 func TestOrgAccessControlSeedContract(t *testing.T) {
@@ -82,10 +114,10 @@ func TestEnsureMenuSeedsCleansObsoleteMenuMatrixEntries(t *testing.T) {
 		t.Fatalf("seed admin role: %v", err)
 	}
 	if err := db.Exec(`
-INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu)
+INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
 VALUES
-(200, 0, 'system.menu-matrix', '/system/menu-matrix', 'system/menu/MenuMatrix', 'system:menu:matrix', '', 'C', 'menu', 'system-menu-matrix', 'system.iam', 99, 1, 0, 0, ''),
-(201, 200, 'system.permission.menu.matrix.export', '', '', '', 'system:menu:matrix', 'F', '', '', 'system.iam', 1, 1, 0, 0, '')
+(200, 0, 'system.menu-matrix', '/system/menu-matrix', 'system/menu/MenuMatrix', 'system:menu:matrix', '', 'C', 'menu', 'system-menu-matrix', 'system.iam', 99, 1, 0, 0, '', 0),
+(201, 200, 'system.permission.menu.matrix.export', '', '', '', 'system:menu:matrix', 'F', '', '', 'system.iam', 1, 1, 0, 0, '', 0)
 `).Error; err != nil {
 		t.Fatalf("seed obsolete menu matrix: %v", err)
 	}
@@ -129,6 +161,64 @@ VALUES
 	}
 }
 
+func TestEnsureMenuSeedsRemovesObsoletePlatformContainers(t *testing.T) {
+	db := testmysql.Open(t)
+	if err := createSeedTestTables(db); err != nil {
+		t.Fatalf("create tables: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
+		t.Fatalf("seed admin role: %v", err)
+	}
+	if err := db.Exec(`
+INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
+VALUES
+(300, 0, 'app.workspace', '/workspace', '', '', '', 'D', 'dashboard', 'workspace', 'platform', 10, 1, 0, 0, '', 1),
+(301, 300, 'system.menu.dashboard', '/dashboard', 'dashboard', 'platform:dashboard:view', '', 'C', 'dashboard', 'dashboard', 'platform', 1, 1, 0, 0, '', 0),
+(302, 300, 'operations.menu', '/operations', '', '', '', 'M', 'desktop', 'operations', 'platform', 20, 1, 0, 0, '', 1),
+(303, 302, 'business.ticket.menu', '/operations/ticket', 'business/ticket/TicketList', 'business:ticket:list', '', 'C', 'file', 'business-ticket', 'business.ticket', 1, 1, 0, 0, '', 0)
+`).Error; err != nil {
+		t.Fatalf("seed obsolete platform containers: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_role_menu (role_id, menu_id) VALUES (1, 300), (1, 301), (1, 302), (1, 303)").Error; err != nil {
+		t.Fatalf("seed obsolete role menu bindings: %v", err)
+	}
+
+	seeds := append([]menuSeed{}, baseMenuGroupSeeds()...)
+	seeds = append(seeds, coreMenuSeeds()...)
+	if err := ensureMenuSeeds(db, seeds); err != nil {
+		t.Fatalf("ensure seeds: %v", err)
+	}
+
+	var containerCount int64
+	if err := db.Table("system_menu").
+		Where(
+			"path IN ? OR title_key IN ? OR route_name IN ?",
+			[]string{"/workspace", "/operations"},
+			[]string{"app.workspace", "operations.menu"},
+			[]string{"workspace", "operations"},
+		).
+		Count(&containerCount).Error; err != nil {
+		t.Fatalf("count obsolete platform containers: %v", err)
+	}
+	if containerCount != 0 {
+		t.Fatalf("expected obsolete platform containers to be removed, got %d", containerCount)
+	}
+
+	var obsoleteBindingCount int64
+	if err := db.Table("system_role_menu").Where("menu_id IN ?", []int{300, 302}).Count(&obsoleteBindingCount).Error; err != nil {
+		t.Fatalf("count obsolete platform container bindings: %v", err)
+	}
+	if obsoleteBindingCount != 0 {
+		t.Fatalf("expected obsolete platform container bindings to be removed, got %d", obsoleteBindingCount)
+	}
+
+	assertMenuRoot(t, db, "/dashboard", "platform")
+	assertMenuRoot(t, db, "/operations/ticket", "business.ticket")
+	assertAdminMenuBound(t, db, "/dashboard")
+	assertAdminMenuBound(t, db, "/operations/ticket")
+	assertAdminPermissionBound(t, db, "platform:dashboard:view")
+}
+
 func createSeedTestTables(db *gorm.DB) error {
 	if err := db.Exec(`
 CREATE TABLE system_menu (
@@ -147,7 +237,8 @@ CREATE TABLE system_menu (
 	is_visible TINYINT DEFAULT 1,
 	is_cache TINYINT DEFAULT 0,
 	is_external TINYINT DEFAULT 0,
-	active_menu VARCHAR(255) DEFAULT ''
+	active_menu VARCHAR(255) DEFAULT '',
+	hide_in_nav TINYINT DEFAULT 0
 )`).Error; err != nil {
 		return err
 	}
@@ -204,6 +295,31 @@ func assertMenuParent(t *testing.T, db *gorm.DB, childPath string, parentPath st
 	}
 	if child.Module != expectedModule {
 		t.Fatalf("expected %s module %s, got %s", childPath, expectedModule, child.Module)
+	}
+}
+
+func assertMenuRoot(t *testing.T, db *gorm.DB, path string, expectedModule string) {
+	t.Helper()
+	var row struct {
+		ID       uint64
+		ParentID uint64
+		Module   string
+	}
+	if err := db.Table("system_menu").
+		Select("id, parent_id, module").
+		Where("path = ?", path).
+		Limit(1).
+		Scan(&row).Error; err != nil {
+		t.Fatalf("load menu %s: %v", path, err)
+	}
+	if row.ID == 0 {
+		t.Fatalf("expected menu %s to exist", path)
+	}
+	if row.ParentID != 0 {
+		t.Fatalf("expected %s to be a root menu, got parent %d", path, row.ParentID)
+	}
+	if row.Module != expectedModule {
+		t.Fatalf("expected %s module %s, got %s", path, expectedModule, row.Module)
 	}
 }
 

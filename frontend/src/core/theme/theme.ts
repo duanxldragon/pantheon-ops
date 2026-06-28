@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getPublicSettingList } from '../../modules/system/setting/api';
 
 export type PantheonThemeKey = 'indigo' | 'emerald' | 'violet' | 'slate';
 
@@ -43,7 +42,7 @@ export const pantheonThemeOptions: PantheonThemeOption[] = [
 
 const themeKeys = new Set<PantheonThemeKey>(pantheonThemeOptions.map((item) => item.key));
 
-function normalizeTheme(value?: string | null): PantheonThemeKey {
+export function normalizeTheme(value?: string | null): PantheonThemeKey {
   return value && themeKeys.has(value as PantheonThemeKey) ? (value as PantheonThemeKey) : 'indigo';
 }
 
@@ -72,7 +71,9 @@ export function applyPantheonTheme(theme: PantheonThemeKey) {
 
   document.documentElement.dataset.pantheonTheme = theme;
   globalThis.localStorage.setItem(PANTHEON_THEME_STORAGE_KEY, theme);
-  globalThis.dispatchEvent(new CustomEvent<PantheonThemeKey>(PANTHEON_THEME_EVENT, { detail: theme }));
+  globalThis.dispatchEvent(
+    new CustomEvent<PantheonThemeKey>(PANTHEON_THEME_EVENT, { detail: theme }),
+  );
 }
 
 export function applyPantheonDefaultTheme(theme: PantheonThemeKey) {
@@ -99,19 +100,8 @@ export async function initializePantheonTheme() {
   }
 
   const defaultTheme = readStoredTheme(PANTHEON_DEFAULT_THEME_KEY) || 'indigo';
-  if (globalThis.document !== undefined) {
-    document.documentElement.dataset.pantheonTheme = defaultTheme;
-  }
-
-  try {
-    const response = await getPublicSettingList();
-    const serverTheme = normalizeTheme(response.settings['ui.default_theme']);
-    applyPantheonDefaultTheme(serverTheme);
-    return serverTheme;
-  } catch {
-    applyPantheonDefaultTheme(defaultTheme);
-    return defaultTheme;
-  }
+  applyPantheonDefaultTheme(defaultTheme);
+  return defaultTheme;
 }
 
 export function clearPantheonThemePreference() {

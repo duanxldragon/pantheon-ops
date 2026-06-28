@@ -14,30 +14,19 @@
     "title": "系统设置",
     "sourceFile": "src/modules/system/setting/SettingOverviewPage.tsx",
     "narrative": "config-overview",
-    "identitySelectors": [
-      ".setting-overview-page"
-    ],
+    "identitySelectors": [".setting-overview-page"],
     "requiredSmokeAssertions": [
       {
         "file": "tests/smoke/system/system-pages.spec.ts",
-        "tokens": [
-          "/system/setting",
-          ".setting-overview-page"
-        ]
+        "tokens": ["/system/setting", ".setting-overview-page"]
       },
       {
         "file": "tests/smoke/platform/backoffice-ui-visual.spec.ts",
-        "tokens": [
-          "/system/setting",
-          "系统设置"
-        ]
+        "tokens": ["/system/setting", "系统设置"]
       },
       {
         "file": "tests/smoke/platform/shell-visual-contract.spec.ts",
-        "tokens": [
-          "/system/setting",
-          ".setting-overview-page"
-        ]
+        "tokens": ["/system/setting", ".setting-overview-page"]
       }
     ],
     "governanceDrawer": "forbidden",
@@ -48,30 +37,19 @@
     "title": "系统设置",
     "sourceFile": "src/modules/system/setting/SettingGroupPage.tsx",
     "narrative": "config-group",
-    "identitySelectors": [
-      ".setting-group-page"
-    ],
+    "identitySelectors": [".setting-group-page"],
     "requiredSmokeAssertions": [
       {
         "file": "tests/smoke/system/system-pages.spec.ts",
-        "tokens": [
-          "/system/setting/security",
-          ".setting-group-page"
-        ]
+        "tokens": ["/system/setting/security", ".setting-group-page"]
       },
       {
         "file": "tests/smoke/platform/system-secondary-route-visual.spec.ts",
-        "tokens": [
-          "/system/setting/basic",
-          ".setting-group-page"
-        ]
+        "tokens": ["/system/setting/basic", ".setting-group-page"]
       },
       {
         "file": "tests/smoke/platform/shell-visual-contract.spec.ts",
-        "tokens": [
-          "/system/setting/basic",
-          ".setting-group-page"
-        ]
+        "tokens": ["/system/setting/basic", ".setting-group-page"]
       }
     ],
     "governanceDrawer": "forbidden",
@@ -150,7 +128,7 @@
   {
     "path": "/system/login-log",
     "title": "登录日志",
-    "sourceFile": "src/modules/auth/LoginLogList.tsx",
+    "sourceFile": "src/modules/auth/security/components/LoginLogList.tsx",
     "narrative": "audit-console",
     "governanceDrawer": "allowed",
     "governanceButtonText": "审计摘要",
@@ -160,7 +138,7 @@
   {
     "path": "/system/session",
     "title": "会话管理",
-    "sourceFile": "src/modules/auth/SessionList.tsx",
+    "sourceFile": "src/modules/auth/session/components/SessionList.tsx",
     "narrative": "audit-console",
     "governanceDrawer": "allowed",
     "governanceButtonText": "会话摘要",
@@ -180,7 +158,7 @@
   {
     "path": "/system/modules",
     "title": "模块注册表",
-    "sourceFile": "src/modules/system/dynamicmodule/ModuleManager.tsx",
+    "sourceFile": "src/modules/lowcode/dynamicmodule/ModuleManager.tsx",
     "narrative": "module-governance",
     "governanceDrawer": "forbidden",
     "hero": "forbidden"
@@ -188,7 +166,7 @@
   {
     "path": "/system/generator",
     "title": "模块生成器",
-    "sourceFile": "src/modules/system/generator/pages/ModuleWizard.tsx",
+    "sourceFile": "src/modules/lowcode/generator/pages/ModuleWizard.tsx",
     "narrative": "module-onboarding",
     "governanceDrawer": "forbidden",
     "hero": "forbidden"

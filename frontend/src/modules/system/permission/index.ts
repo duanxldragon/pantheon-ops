@@ -1,4 +1,6 @@
 import { defineModule } from '../../../core/router/types';
+import { getRoleList } from '../role/api';
+import { getPermissionPolicyList, getPermissionWorkbench } from './api';
 
 export const PermissionModule = defineModule({
   name: 'permission',
@@ -20,6 +22,23 @@ export const PermissionModule = defineModule({
       icon: 'lock',
       routeName: 'system-permission',
       module: 'system.iam',
+    },
+  ],
+  routeDataWarmers: [
+    {
+      path: '/system/permission',
+      key: 'workbench:default',
+      load: () => getPermissionWorkbench({}),
+    },
+    {
+      path: '/system/permission',
+      key: 'list:default',
+      load: () => getPermissionPolicyList({ page: 1, pageSize: 10 }),
+    },
+    {
+      path: '/system/permission',
+      key: 'roles:default',
+      load: () => getRoleList({ page: 1, pageSize: 100, sortField: 'sort', sortOrder: 'asc' }),
     },
   ],
   dashboardWidgets: [

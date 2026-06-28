@@ -1,0 +1,321 @@
+settings:
+  - settingKey: "site.name"
+    settingValue: "Pantheon Base"
+    valueType: "string"
+    groupKey: "basic"
+    module: "system"
+    isPublic: 1
+    isEncrypted: 0
+    remark: "system.setting.remark.site.name"
+  - settingKey: "site.logo"
+    settingValue: ""
+    valueType: "string"
+    groupKey: "basic"
+    module: "system"
+    isPublic: 1
+    isEncrypted: 0
+    remark: "system.setting.remark.site.logo"
+  - settingKey: "platform.app_mode"
+    settingValue: "enterprise"
+    valueType: "string"
+    groupKey: "platform"
+    module: "platform"
+    isPublic: 1
+    isEncrypted: 0
+    remark: "system.setting.remark.platform.app_mode"
+  - settingKey: "org.enabled"
+    settingValue: "true"
+    valueType: "boolean"
+    groupKey: "platform"
+    module: "system.org"
+    isPublic: 1
+    isEncrypted: 0
+    remark: "system.setting.remark.org.enabled"
+  - settingKey: "org.required_for_user"
+    settingValue: "false"
+    valueType: "boolean"
+    groupKey: "platform"
+    module: "system.org"
+    isPublic: 1
+    isEncrypted: 0
+    remark: "system.setting.remark.org.required_for_user"
+  - settingKey: "security.password_min_length"
+    settingValue: "6"
+    valueType: "number"
+    groupKey: "security"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.security.password_min_length"
+  - settingKey: "security.password_require_digit"
+    settingValue: "false"
+    valueType: "boolean"
+    groupKey: "security"
+    module: "system.auth"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.security.password_require_digit"
+  - settingKey: "security.password_require_uppercase"
+    settingValue: "false"
+    valueType: "boolean"
+    groupKey: "security"
+    module: "system.auth"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.security.password_require_uppercase"
+  - settingKey: "security.password_history_limit"
+    settingValue: "0"
+    valueType: "number"
+    groupKey: "security"
+    module: "system.auth"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.security.password_history_limit"
+  - settingKey: "security.password_expire_days"
+    settingValue: "0"
+    valueType: "number"
+    groupKey: "security"
+    module: "system.auth"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.security.password_expire_days"
+  - settingKey: "login.max_failed_attempts"
+    settingValue: "5"
+    valueType: "number"
+    groupKey: "login"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.login.max_failed_attempts"
+  - settingKey: "login.lock_minutes"
+    settingValue: "15"
+    valueType: "number"
+    groupKey: "login"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.login.lock_minutes"
+  - settingKey: "login.source_max_failed_attempts"
+    settingValue: "20"
+    valueType: "number"
+    groupKey: "login"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.login.source_max_failed_attempts"
+  - settingKey: "login.source_window_minutes"
+    settingValue: "15"
+    valueType: "number"
+    groupKey: "login"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.login.source_window_minutes"
+  - settingKey: "login.source_lock_minutes"
+    settingValue: "15"
+    valueType: "number"
+    groupKey: "login"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.login.source_lock_minutes"
+  - settingKey: "login.security_event_enabled"
+    settingValue: "true"
+    valueType: "boolean"
+    groupKey: "login"
+    module: "system.auth"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.login.security_event_enabled"
+  - settingKey: "login.captcha_enabled"
+    settingValue: "false"
+    valueType: "boolean"
+    groupKey: "login"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.login.captcha_enabled"
+  - settingKey: "login.mfa_enabled"
+    settingValue: "false"
+    valueType: "boolean"
+    groupKey: "login"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.login.mfa_enabled"
+  - settingKey: "login.sso_enabled"
+    settingValue: "false"
+    valueType: "boolean"
+    groupKey: "login"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.login.sso_enabled"
+  - settingKey: "login.session_idle_minutes"
+    settingValue: "30"
+    valueType: "number"
+    groupKey: "login"
+    module: "system"
+    isPublic: 1
+    isEncrypted: 0
+    remark: "system.setting.remark.login.session_idle_minutes"
+  - settingKey: "login.max_active_sessions_per_user"
+    settingValue: "1"
+    valueType: "number"
+    groupKey: "login"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.login.max_active_sessions_per_user"
+  - settingKey: "audit.login_log_retention_options"
+    settingValue: "[1,7,30]"
+    valueType: "json"
+    groupKey: "audit"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.audit.login_log_retention_options"
+  - settingKey: "audit.operation_log_retention_options"
+    settingValue: "[1,7,30]"
+    valueType: "json"
+    groupKey: "audit"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.audit.operation_log_retention_options"
+  - settingKey: "audit.session_cleanup_retention_options"
+    settingValue: "[1,7,30]"
+    valueType: "json"
+    groupKey: "audit"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.audit.session_cleanup_retention_options"
+  - settingKey: "audit.login_log_retention_days"
+    settingValue: "90"
+    valueType: "number"
+    groupKey: "audit"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.audit.login_log_retention_days"
+  - settingKey: "audit.operation_log_retention_days"
+    settingValue: "180"
+    valueType: "number"
+    groupKey: "audit"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.audit.operation_log_retention_days"
+  - settingKey: "audit.session_retention_days"
+    settingValue: "90"
+    valueType: "number"
+    groupKey: "audit"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.audit.session_retention_days"
+  - settingKey: "i18n.default_language"
+    settingValue: "zh-CN"
+    valueType: "string"
+    groupKey: "i18n"
+    module: "system"
+    isPublic: 1
+    isEncrypted: 0
+    remark: "system.setting.remark.i18n.default_language"
+  - settingKey: "ui.default_theme"
+    settingValue: "indigo"
+    valueType: "string"
+    groupKey: "ui"
+    module: "system"
+    isPublic: 1
+    isEncrypted: 0
+    remark: "system.setting.remark.ui.default_theme"
+  - settingKey: "ui.enable_tab_bar"
+    settingValue: "true"
+    valueType: "boolean"
+    groupKey: "ui"
+    module: "system"
+    isPublic: 1
+    isEncrypted: 0
+    remark: "system.setting.remark.ui.enable_tab_bar"
+  - settingKey: "upload.storage_driver"
+    settingValue: "local"
+    valueType: "string"
+    groupKey: "upload"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.upload.storage_driver"
+  - settingKey: "upload.max_file_size"
+    settingValue: "20"
+    valueType: "number"
+    groupKey: "upload"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.upload.max_file_size"
+  - settingKey: "upload.allowed_types"
+    settingValue: "[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\",\"zip\",\"gz\",\"tgz\",\"tar\"]"
+    valueType: "json"
+    groupKey: "upload"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.upload.allowed_types"
+  - settingKey: "upload.local_path"
+    settingValue: "./uploads"
+    valueType: "string"
+    groupKey: "upload"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.upload.local_path"
+  - settingKey: "upload.public_base_url"
+    settingValue: ""
+    valueType: "string"
+    groupKey: "upload"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.upload.public_base_url"
+  - settingKey: "upload.s3_endpoint"
+    settingValue: ""
+    valueType: "string"
+    groupKey: "upload"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.upload.s3_endpoint"
+  - settingKey: "upload.s3_bucket"
+    settingValue: ""
+    valueType: "string"
+    groupKey: "upload"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.upload.s3_bucket"
+  - settingKey: "upload.s3_region"
+    settingValue: "us-east-1"
+    valueType: "string"
+    groupKey: "upload"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.upload.s3_region"
+  - settingKey: "upload.s3_access_key_id"
+    settingValue: ""
+    valueType: "string"
+    groupKey: "upload"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 1
+    remark: "system.setting.remark.upload.s3_access_key_id"
+  - settingKey: "upload.s3_secret_access_key"
+    settingValue: ""
+    valueType: "string"
+    groupKey: "upload"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 1
+    remark: "system.setting.remark.upload.s3_secret_access_key"

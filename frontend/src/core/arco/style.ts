@@ -29,4 +29,5 @@ import '@arco-design/web-react/es/Tabs/style/css.js';
 import '@arco-design/web-react/es/Tag/style/css.js';
 import '@arco-design/web-react/es/Tooltip/style/css.js';
 import '@arco-design/web-react/es/Tree/style/css.js';
+import '@arco-design/web-react/es/TreeSelect/style/css.js';
 import '@arco-design/web-react/es/Typography/style/css.js';

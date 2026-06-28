@@ -2,7 +2,9 @@ package database
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
+	"os"
+	"strings"
 	"time"
 
 	mysqlDriver "github.com/go-sql-driver/mysql"
@@ -10,6 +12,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
+	"pantheon-ops/backend/pkg/metrics"
 )
 
 var DB *gorm.DB
@@ -37,23 +40,57 @@ func normalizeMySQLDSN(dsn string) (string, error) {
 	return parsed.FormatDSN(), nil
 }
 
-// InitDB 初始化数据库连接
+func gormLogLevel() logger.LogLevel {
+	if strings.EqualFold(strings.TrimSpace(os.Getenv("PANTHEON_ENV")), "production") {
+		return logger.Warn
+	}
+	return logger.Info
+}
+
+// DBDriver represents the database driver type.
+// Currently only MySQL is supported; additional drivers can be added here.
+type DBDriver string
+
+const (
+	DriverMySQL DBDriver = "mysql"
+)
+
+// InitDB initializes the database connection.
+// The driver is determined by the DSN prefix or PANTHEON_DB_DRIVER env var.
+// Currently only MySQL is supported; this abstraction allows future expansion.
 func InitDB(dsn string) {
+	driver := DBDriver(strings.ToLower(strings.TrimSpace(os.Getenv("PANTHEON_DB_DRIVER"))))
+	if driver == "" {
+		driver = DriverMySQL // default
+	}
+
+	switch driver {
+	case DriverMySQL:
+		initMySQL(dsn)
+	default:
+		slog.Error("unsupported database driver", "driver", driver)
+		os.Exit(1)
+	}
+}
+
+func initMySQL(dsn string) {
 	var err error
 	normalizedDSN, err := normalizeMySQLDSN(dsn)
 	if err != nil {
-		log.Fatalf("PANTHEON_DSN must be a valid MySQL DSN: %v", err)
+		slog.Error("PANTHEON_DSN must be a valid MySQL DSN", "error", err)
+		os.Exit(1)
 	}
 
 	DB, err = gorm.Open(mysql.Open(normalizedDSN), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true, // 使用单数表名
 		},
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(gormLogLevel()),
 	})
 
 	if err != nil {
-		log.Fatalf("failed to connect database: %v", err)
+		slog.Error("failed to connect database", "error", err)
+		os.Exit(1)
 	}
 
 	sqlDB, _ := DB.DB()
@@ -61,5 +98,17 @@ func InitDB(dsn string) {
 	sqlDB.SetMaxOpenConns(100)          // 最大开放连接数
 	sqlDB.SetConnMaxLifetime(time.Hour) // 连接最大存活时间
 
-	fmt.Println("Database connection successful")
+	// 启动后台协程采集数据库连接池指标
+	go func() {
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			stats := sqlDB.Stats()
+			metrics.DBConnectionsActive.Set(float64(stats.InUse))
+			metrics.DBConnectionsIdle.Set(float64(stats.Idle))
+			metrics.DBConnectionsOpen.Set(float64(stats.OpenConnections))
+		}
+	}()
+
+	slog.Info("Database connection successful", "driver", "mysql")
 }

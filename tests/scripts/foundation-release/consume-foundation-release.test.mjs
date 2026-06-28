@@ -154,6 +154,7 @@ test('apply mode updates inheritance anchors in both Chinese and English docs', 
 
     const zhDoc = fs.readFileSync(path.join(opsRoot, 'docs', 'PROJECT_INHERITANCE.md'), 'utf8');
     const enDoc = fs.readFileSync(path.join(opsRoot, 'docs', 'PROJECT_INHERITANCE.en.md'), 'utf8');
+    const releaseLock = JSON.parse(fs.readFileSync(path.join(opsRoot, 'foundation-release.lock.json'), 'utf8'));
 
     assert.match(zhDoc, /Base release line：当前跟随 `release\/0\.8`/);
     assert.match(zhDoc, /Base version：当前锁定到 `base-v0\.8\.0`/);
@@ -161,6 +162,10 @@ test('apply mode updates inheritance anchors in both Chinese and English docs', 
     assert.match(enDoc, /Base release line: `release\/0\.8`/);
     assert.match(enDoc, /Base version: `base-v0\.8\.0`/);
     assert.match(enDoc, /Inheritance mode: `foundation-release-consumer`/);
+    assert.equal(releaseLock.releaseVersion, 'base-v0.8.0');
+    assert.equal(releaseLock.releaseDisplayName, 'v0.8.0');
+    assert.equal(releaseLock.releaseArtifact.tagName, 'base-v0.8.0');
+    assert.equal(releaseLock.releaseArtifact.releaseName, 'v0.8.0');
   });
 });
 

@@ -16,7 +16,7 @@ func CasbinMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 1. 获取用户角色集合 (在 JWT 中间件之后，应已设置)
+		// 1. 获取用户角色集合 (在 Token 中间件之后，应已设置)
 		roleKeys := readRoleKeysFromContext(c)
 		if len(roleKeys) == 0 {
 			roleKeys = []string{"guest"}
@@ -65,7 +65,7 @@ func isSelfServiceRoute(c *gin.Context) bool {
 	return isSelfServiceRouteBySignature(c.FullPath(), c.Request.Method, c.Query("scope"))
 }
 
-func isSelfServiceRouteBySignature(fullPath string, method string, scope string) bool {
+func isSelfServiceRouteBySignature(fullPath, method, scope string) bool {
 	switch fullPath {
 	case "/api/v1/system/logout":
 		return method == "POST"

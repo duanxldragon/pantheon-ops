@@ -17,11 +17,15 @@ import {
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { IconLeft } from '@arco-design/web-react/icon';
-import { AppModal, PageEmpty, PageError, PageLoading } from '../../../../components';
+import {
+  AppModal,
+  PageContainer,
+  PageEmpty,
+  PageError,
+  PageLoading,
+  SubmitBar,
+} from '../../../../components';
 import AppTable from '../../../../components/data-display/AppTable';
-import PageContainer from '../../../../components/patterns/PageContainer';
-import PageHeader from '../../../../components/patterns/PageHeader';
-import SubmitBar from '../../../../components/patterns/SubmitBar';
 import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
 import {
@@ -30,7 +34,7 @@ import {
   type DeployTaskHostRow,
   type DeployTaskRow,
 } from '../api';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../deploy.css';
 
 const statusColorMap: Record<string, string> = {
@@ -242,13 +246,23 @@ export default function DeployTaskDetail() {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={task.name}
-        subtitle={t('operations.deploy.task.detail')}
-        extra={<Button icon={<IconLeft />} onClick={() => navigate('/operations/deploy/task')}>{t('common.back')}</Button>}
-      />
+      <div className="system-list__work-actions">
+        <Button icon={<IconLeft />} onClick={() => navigate('/operations/deploy/task')}>
+          {t('common.back')}
+        </Button>
+      </div>
       <Space direction="vertical" size={16} className="system-page-template">
         <Card className="page-panel system-page-hero">
+          <Space direction="vertical" size={8} style={{ width: '100%' }}>
+            <div className="system-page-hero__top">
+              <div className="system-page-hero__copy">
+                <span className="system-page-hero__eyebrow">{t('operations.deploy.task.detail')}</span>
+                <Typography.Title heading={5} className="system-page-hero__title">
+                  {task.name}
+                </Typography.Title>
+              </div>
+            </div>
+          </Space>
           <div className="deploy-page__hero-grid">
             {heroStats.map((item) => (
               <div key={item.key} className="deploy-page__metric">

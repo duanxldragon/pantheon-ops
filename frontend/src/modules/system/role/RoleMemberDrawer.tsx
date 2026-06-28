@@ -1,18 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Button,
-  Card,
-  Input,
-  Select,
-  Space,
-  Tag,
-  Typography,
-} from '@arco-design/web-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Button, Card, Input, Select, Space, Tag, Typography } from '@arco-design/web-react';
 import { IconDelete, IconPlus, IconRefresh, IconSearch } from '@arco-design/web-react/icon';
-import type {
-  ColumnProps,
-  TableProps,
-} from '@arco-design/web-react/es/Table/interface';
+import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
 import { useTranslation } from 'react-i18next';
 import {
   AppDrawer,
@@ -92,63 +81,65 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
 
   const toggleCandidate = (userId: number) => {
     setSelectedCandidateIds((current) =>
-      current.includes(userId)
-        ? current.filter((item) => item !== userId)
-        : [...current, userId],
+      current.includes(userId) ? current.filter((item) => item !== userId) : [...current, userId],
     );
   };
 
-  const loadMembers = async (nextQuery: RoleMemberQuery = memberQuery) => {
-    if (!role) {
-      return;
-    }
-    setMemberLoading(true);
-    setMemberError(false);
-    try {
-      const result = await getRoleMembers(role.id, nextQuery);
-      setMemberRows(result.items);
-      setMemberTotal(result.total);
-      setMemberQuery({
-        keyword: nextQuery.keyword || '',
-        status: nextQuery.status,
-        page: result.page || nextQuery.page || defaultMemberQuery.page,
-        pageSize: result.pageSize || nextQuery.pageSize || defaultMemberQuery.pageSize,
-      });
-    } catch {
-      setMemberError(true);
-      setMemberRows([]);
-      setMemberTotal(0);
-    } finally {
-      setMemberLoading(false);
-    }
-  };
+  const loadMembers = useCallback(
+    async (nextQuery: RoleMemberQuery = defaultMemberQuery) => {
+      if (!role) {
+        return;
+      }
+      setMemberLoading(true);
+      setMemberError(false);
+      try {
+        const result = await getRoleMembers(role.id, nextQuery);
+        setMemberRows(result.items);
+        setMemberTotal(result.total);
+        setMemberQuery({
+          keyword: nextQuery.keyword || '',
+          status: nextQuery.status,
+          page: result.page || nextQuery.page || defaultMemberQuery.page,
+          pageSize: result.pageSize || nextQuery.pageSize || defaultMemberQuery.pageSize,
+        });
+      } catch {
+        setMemberError(true);
+        setMemberRows([]);
+        setMemberTotal(0);
+      } finally {
+        setMemberLoading(false);
+      }
+    },
+    [role],
+  );
 
-  const loadCandidates = async (keyword = candidateKeyword) => {
-    if (!role) {
-      return;
-    }
-    setCandidateLoading(true);
-    try {
-      const result: RoleMemberPageResp = await getRoleMemberCandidates(role.id, {
-        keyword,
-        page: 1,
-        pageSize: 20,
-      });
-      setCandidateOptions(
-        result.items.map((item) => ({
-          label: item.nickname
-            ? `${item.username} / ${item.nickname}`
-            : item.username,
-          value: item.id,
-        })),
-      );
-    } catch {
-      setCandidateOptions([]);
-      message.error(t('common.loadFailed'));
-    } finally {
-      setCandidateLoading(false);
-    }
-  };
+  const loadCandidates = useCallback(
+    async (keyword = '') => {
+      if (!role) {
+        return;
+      }
+      setCandidateLoading(true);
+      try {
+        const result: RoleMemberPageResp = await getRoleMemberCandidates(role.id, {
+          keyword,
+          page: 1,
+          pageSize: 20,
+        });
+        setCandidateOptions(
+          result.items.map((item) => ({
+            label: item.nickname ? `${item.username} / ${item.nickname}` : item.username,
+            value: item.id,
+          })),
+        );
+      } catch {
+        setCandidateOptions([]);
+        message.error(t('common.loadFailed'));
+      } finally {
+        setCandidateLoading(false);
+      }
+    },
+    [role, t],
+  );
 
   useEffect(() => {
     if (!visible || !role) {
@@ -159,7 +150,7 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
       void loadCandidates('');
     }, 0);
     return () => globalThis.clearTimeout(timer);
-  }, [role, visible]);
+  }, [loadCandidates, loadMembers, role, visible]);
 
   const handleMemberTableChange: TableProps<RoleMemberRow>['onChange'] = (pagination) => {
     const nextQuery = {
@@ -189,37 +180,52 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
     }
   };
 
-  const handleRemove = async (userId: number) => {
-    if (!role) {
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const result = await removeRoleMembers(role.id, { userIds: [userId] });
-      message.success(t('system.role.members.removeSuccess', { count: result.removedCount }));
-      onMembershipChanged?.();
-      await loadMembers({
-        ...memberQuery,
-        page:
-          memberRows.length === 1 && (memberQuery.page || 1) > 1
-            ? (memberQuery.page || 1) - 1
-            : memberQuery.page || 1,
-      });
-      await loadCandidates(candidateKeyword);
-    } catch {
-      message.error(t('common.actionFailed'));
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const handleRemove = useCallback(
+    async (userId: number) => {
+      if (!role) {
+        return;
+      }
+      setSubmitting(true);
+      try {
+        const result = await removeRoleMembers(role.id, { userIds: [userId] });
+        message.success(t('system.role.members.removeSuccess', { count: result.removedCount }));
+        onMembershipChanged?.();
+        await loadMembers({
+          ...memberQuery,
+          page:
+            memberRows.length === 1 && (memberQuery.page || 1) > 1
+              ? (memberQuery.page || 1) - 1
+              : memberQuery.page || 1,
+        });
+        await loadCandidates(candidateKeyword);
+      } catch {
+        message.error(t('common.actionFailed'));
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [
+      candidateKeyword,
+      loadCandidates,
+      loadMembers,
+      memberQuery,
+      memberRows.length,
+      onMembershipChanged,
+      role,
+      t,
+    ],
+  );
 
-  const confirmRemove = (userId: number) => {
-    showAppModalConfirm({
-      size: 'sm',
-      title: t('system.role.members.removeConfirm'),
-      onOk: () => handleRemove(userId),
-    });
-  };
+  const confirmRemove = useCallback(
+    (userId: number) => {
+      showAppModalConfirm({
+        size: 'sm',
+        title: t('system.role.members.removeConfirm'),
+        onOk: () => handleRemove(userId),
+      });
+    },
+    [handleRemove, t],
+  );
 
   const memberColumns: ColumnProps<RoleMemberRow>[] = useMemo(
     () => [
@@ -288,9 +294,7 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
 
   const drawerTitle = role ? (
     <div className="role-member-drawer__title">
-      <Typography.Text className="role-member-drawer__title-main">
-        {role.roleName}
-      </Typography.Text>
+      <Typography.Text className="role-member-drawer__title-main">{role.roleName}</Typography.Text>
       <Typography.Text type="secondary" className="role-member-drawer__title-sub">
         {role.roleKey} · {t('system.role.members')}
       </Typography.Text>
@@ -315,9 +319,7 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
               <Typography.Text className="role-member-drawer__summary-title">
                 {t('system.role.members.subtitle')}
               </Typography.Text>
-              <Typography.Text type="secondary">
-                {t('system.role.members.hint')}
-              </Typography.Text>
+              <Typography.Text type="secondary">{t('system.role.members.hint')}</Typography.Text>
             </div>
             <div className="role-member-drawer__summary-meta">
               <Tag color={role?.status === 1 ? 'green' : 'red'}>

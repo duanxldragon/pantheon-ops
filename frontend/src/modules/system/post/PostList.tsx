@@ -27,11 +27,6 @@ import {
 } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { showImportResult } from '../../../api/importExport';
-import {
-  isNetworkRequestError,
-  isServerRequestError,
-  isTimeoutRequestError,
-} from '../../../api/request';
 import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
@@ -70,10 +65,8 @@ import {
   ListHeaderActions,
   PageContainer,
   PageEmpty,
-  PageError,
   PageLoading,
-  PageNetworkError,
-  PageServerError,
+  PageRequestError,
   PermissionAction,
   SubmitBar,
   SystemRowActions,
@@ -83,7 +76,7 @@ import {
   useGovernanceRail,
   withTableColumnPriority,
 } from '../../../components';
-import '../list-page.css';
+import '../components/shared/list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -340,7 +333,7 @@ const PostList: React.FC = () => {
         currentSorter?.direction === 'ascend'
           ? 'asc'
           : currentSorter?.direction === 'descend'
-          ? 'desc'
+            ? 'desc'
             : undefined,
     };
     const sortChanged =
@@ -349,35 +342,6 @@ const PostList: React.FC = () => {
       setSelectedRowKeys([]);
     }
     setQuery(nextQuery);
-  };
-
-  const renderErrorState = () => {
-    if (isNetworkRequestError(error)) {
-      return (
-        <PageNetworkError
-          timeout={isTimeoutRequestError(error)}
-          onRetry={() => {
-            loadData(query);
-          }}
-        />
-      );
-    }
-    if (isServerRequestError(error)) {
-      return (
-        <PageServerError
-          onRetry={() => {
-            loadData(query);
-          }}
-        />
-      );
-    }
-    return (
-      <PageError
-        onRetry={() => {
-          loadData(query);
-        }}
-      />
-    );
   };
 
   const handleExport = async () => {
@@ -431,7 +395,10 @@ const PostList: React.FC = () => {
   };
 
   const visibleSelectedRowKeys = useMemo(() => {
-    return getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.id));
+    return getVisibleSelectedRowKeys(
+      selectedRowKeys,
+      data.map((item) => item.id),
+    );
   }, [data, selectedRowKeys]);
 
   const heroStats = useMemo(() => {
@@ -813,11 +780,7 @@ const PostList: React.FC = () => {
                       }}
                       disabled={batchDeleteDisabled}
                     >
-                      <Button
-                        status="danger"
-                        icon={<IconDelete />}
-                        disabled={batchDeleteDisabled}
-                      >
+                      <Button status="danger" icon={<IconDelete />} disabled={batchDeleteDisabled}>
                         {t('common.deleteSelected')}
                       </Button>
                     </Popconfirm>
@@ -826,7 +789,14 @@ const PostList: React.FC = () => {
               }
             />
             {loading && data.length === 0 ? <PageLoading /> : null}
-            {error && data.length === 0 ? renderErrorState() : null}
+            {error && data.length === 0 ? (
+              <PageRequestError
+                error={error}
+                onRetry={() => {
+                  loadData(query);
+                }}
+              />
+            ) : null}
             {!loading && !error && data.length === 0 ? (
               <PageEmpty description={t('system.post.empty')} />
             ) : null}
@@ -846,7 +816,11 @@ const PostList: React.FC = () => {
                   fixed: true,
                   onChange: (rowKeys) =>
                     setSelectedRowKeys((keys) =>
-                      mergeCrossPageSelection(keys, rowKeys, data.map((item) => item.id)),
+                      mergeCrossPageSelection(
+                        keys,
+                        rowKeys,
+                        data.map((item) => item.id),
+                      ),
                     ),
                 }}
                 onChange={handleTableChange}

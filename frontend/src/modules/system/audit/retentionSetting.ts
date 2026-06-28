@@ -1,4 +1,7 @@
-export function normalizeRetentionOptions(rawValue: string | undefined, defaultOptions: number[] = [1, 7, 30]): number[] {
+export function normalizeRetentionOptions(
+  rawValue: string | undefined,
+  defaultOptions: number[] = [1, 7, 30],
+): number[] {
   if (!rawValue) {
     return defaultOptions;
   }
@@ -8,9 +11,7 @@ export function normalizeRetentionOptions(rawValue: string | undefined, defaultO
       return defaultOptions;
     }
     const normalized = Array.from(
-      new Set(
-        parsed.map(Number).filter((item) => Number.isInteger(item) && item > 0),
-      ),
+      new Set(parsed.map(Number).filter((item) => Number.isInteger(item) && item > 0)),
     ).sort((left, right) => right - left);
     return normalized.length > 0 ? normalized : defaultOptions;
   } catch {

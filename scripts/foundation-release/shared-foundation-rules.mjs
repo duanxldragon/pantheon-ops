@@ -6,8 +6,10 @@ export const sharedBackendEntries = ['cmd', 'internal', 'modules', 'pkg'];
 export const sharedFrontendEntries = [
   'components',
   'core',
+  'store',
   'modules/auth',
-  'modules/dashboard',
+  'modules/lowcode',
+  'modules/platform',
   'modules/system',
   'index.css',
 ];
@@ -19,8 +21,10 @@ export const backendOverlayPaths = new Set([
   'modules/business/generated_registry.go',
   'modules/business/retired_modules.go',
   'modules/platform/health.go',
-  'modules/system/dynamicmodule/dynamic_module_service_test.go',
-  'modules/system/generator/generator_service_test.go',
+  'modules/system/seed.go',
+  'modules/system/seed_test.go',
+  'modules/lowcode/dynamicmodule/dynamic_module_service_test.go',
+  'modules/lowcode/generator/generator_service_test.go',
   'modules/system/iam/menu/component_registry.go',
   'modules/system/iam/menu/generated_component_registry.go',
 ]);
@@ -31,7 +35,7 @@ export const frontendOverlayPaths = new Set([
   'core/router/componentRegistry.ts',
   'core/router/generatedComponentRegistry.ts',
   'core/router/modules.ts',
-  'modules/system/generator/backend-generator.ts',
+  'modules/lowcode/generator/backend-generator.ts',
 ]);
 
 export const allowedFrontendOpsOnlyPaths = new Set([]);

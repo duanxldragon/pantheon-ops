@@ -2,7 +2,10 @@ import { Message } from '@arco-design/web-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
-import { refreshPublicSettings, hasExplicitLanguagePreference } from '../../../core/settings/publicSettings';
+import {
+  refreshPublicSettings,
+  hasExplicitLanguagePreference,
+} from '../../../core/settings/publicSettings';
 import { invalidateRouteWarmData, resolveRouteWarmData } from '../../../core/router/prefetch';
 import {
   applyPantheonDefaultTheme,
@@ -215,7 +218,9 @@ export function useSettingCatalog() {
     setLoading(true);
     setError(null);
     try {
-      const rows = await resolveRouteWarmData('/system/setting', 'list:default', () => getSettingList());
+      const rows = await resolveRouteWarmData('/system/setting', 'list:default', () =>
+        getSettingList(),
+      );
       setSettings(rows);
       try {
         const overviewResp = await resolveRouteWarmData('/system/setting', 'overview', () =>
