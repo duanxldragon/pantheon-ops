@@ -32,6 +32,7 @@ import {
   mergeCrossPageSelection,
 } from '../../../components/table/crossPageSelection';
 import { getRoleList } from '../role/api';
+import { translateRoleName } from '../role/display';
 import {
   batchDeletePermissionPolicies,
   createPermissionPolicy,
@@ -227,7 +228,7 @@ const PermissionList: React.FC = () => {
       );
       setRoleOptions(
         result.items.map((item) => ({
-          label: item.roleName,
+          label: translateRoleName(item.roleName, t),
           value: item.roleKey,
         })),
       );
@@ -539,6 +540,7 @@ const PermissionList: React.FC = () => {
     <PageContainer>
       <Space direction="vertical" size={16} className="system-page-template">
         <GovernanceSummaryBar
+          className="permission-page__governance-bar"
           eyebrow={t('system.permission.hero.eyebrow')}
           title={t('system.permission.hero.title')}
           description={t('system.permission.hero.desc')}
@@ -556,8 +558,8 @@ const PermissionList: React.FC = () => {
             </GovernanceRailToggleButton>
           }
         />
-        <>
-          <Card className="page-panel permission-workbench__tabs">
+        <div className="permission-page__content">
+          <Card className="page-panel permission-workbench__tabs permission-page__tabs-panel">
             <Tabs
               activeTab={activeTab}
               onChange={(value) => setActiveTab(value as PermissionTabKey)}
@@ -608,68 +610,59 @@ const PermissionList: React.FC = () => {
               />
             </Space>
           ) : activeTab === 'data-scope' ? (
-            <Space direction="vertical" size={16} style={{ width: '100%' }}>
-              <div className="system-list__work-actions">
-                <ListHeaderActions
-                  utility={
-                    <Button
-                      icon={<IconRefresh />}
-                      onClick={() => {
-                        publishRefresh('system:permission:changed', 'system/permission');
-                      }}
-                    >
-                      {t('common.refresh')}
-                    </Button>
-                  }
-                />
-              </div>
+            <Space direction="vertical" size={12} style={{ width: '100%' }}>
               <PermissionDataScopeTab roleOptions={roleOptions} />
             </Space>
           ) : (
-            <Space direction="vertical" size={16} style={{ width: '100%' }}>
-              <FilterPanel>
-                <Form form={queryForm} layout="vertical" onSubmit={() => search()}>
-                  <Row gutter={16}>
-                    <Col span={8}>
-                      <FormItem label={t('system.permission.roleKey')} field="roleKey">
-                        <Select allowClear options={roleOptions} />
-                      </FormItem>
-                    </Col>
-                    <Col span={8}>
-                      <FormItem label={t('system.permission.path')} field="path">
-                        <Input onPressEnter={() => queryForm.submit()} />
-                      </FormItem>
-                    </Col>
-                    <Col span={4}>
-                      <FormItem label={t('system.permission.method')} field="method">
-                        <Select
-                          allowClear
-                          options={methodOptions.map((item) => ({ label: item, value: item }))}
-                        />
-                      </FormItem>
-                    </Col>
-                    <Col span={4}>
-                      <FormItem className="filter-panel__action-item">
-                        <Space>
-                          <Button type="primary" htmlType="submit" icon={<IconSearch />}>
-                            {t('common.search')}
-                          </Button>
-                          <Button onClick={reset}>{t('common.reset')}</Button>
-                        </Space>
-                      </FormItem>
-                    </Col>
-                  </Row>
-                </Form>
-              </FilterPanel>
-              <Card className="page-panel system-list__table-card">
+            <Space direction="vertical" size={12} style={{ width: '100%' }}>
+              <div className="permission-page__api-filter-shell">
+                <FilterPanel>
+                  <Form form={queryForm} layout="vertical" onSubmit={() => search()}>
+                    <Row gutter={16}>
+                      <Col xs={24} sm={12} lg={8}>
+                        <FormItem label={t('system.permission.roleKey')} field="roleKey">
+                          <Select allowClear options={roleOptions} />
+                        </FormItem>
+                      </Col>
+                      <Col xs={24} sm={12} lg={8}>
+                        <FormItem label={t('system.permission.path')} field="path">
+                          <Input onPressEnter={() => queryForm.submit()} />
+                        </FormItem>
+                      </Col>
+                      <Col xs={24} sm={12} lg={4}>
+                        <FormItem label={t('system.permission.method')} field="method">
+                          <Select
+                            allowClear
+                            options={methodOptions.map((item) => ({ label: item, value: item }))}
+                          />
+                        </FormItem>
+                      </Col>
+                      <Col xs={24} sm={12} lg={4}>
+                        <FormItem className="filter-panel__action-item">
+                          <Space>
+                            <Button type="primary" htmlType="submit" icon={<IconSearch />}>
+                              {t('common.search')}
+                            </Button>
+                            <Button onClick={reset}>{t('common.reset')}</Button>
+                          </Space>
+                        </FormItem>
+                      </Col>
+                    </Row>
+                  </Form>
+                </FilterPanel>
+              </div>
+              <Card className="page-panel system-list__table-card permission-page__api-table-card">
                 <TableBatchActionBar
+                  className="permission-page__api-action-bar"
                   selectedCount={selectedRowKeys.length}
                   selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
                   clearText={t('common.clearSelection')}
                   clearSuccessText={t('common.clearSelectionSuccess')}
                   onClear={() => setSelectedRowKeys([])}
+                  showSelectionSummary={selectedRowKeys.length > 0}
                   prefixActions={
                     <ListHeaderActions
+                      className="permission-page__api-list-actions"
                       utility={
                         <>
                           <Button
@@ -791,7 +784,7 @@ const PermissionList: React.FC = () => {
               </Card>
             </Space>
           )}
-        </>
+        </div>
       </Space>
 
       <GovernanceInsightDrawer

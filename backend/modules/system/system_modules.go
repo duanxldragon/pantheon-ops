@@ -173,6 +173,8 @@ func initIAMModules(deps *systemModuleDependencies) []contracts.BackendModule {
 					systemProtected.POST("/role/export", deps.roleHandler.ExportRoles)
 					systemProtected.POST("/role/batch-status", deps.roleHandler.BatchUpdateRoleStatus)
 					systemProtected.POST("/role/batch-delete", middleware.SecureActionMiddleware(), deps.roleHandler.BatchDeleteRoles)
+					systemProtected.GET("/role/import-template", deps.roleHandler.DownloadImportTemplate)
+					systemProtected.POST("/role/import", deps.roleHandler.ImportRoles)
 					systemProtected.POST("/role/:id/users", deps.roleHandler.AddRoleMembers)
 					systemProtected.POST("/role/:id/users/remove", deps.roleHandler.RemoveRoleMembers)
 					systemProtected.PUT("/role/:id", deps.roleHandler.UpdateRole)

@@ -4,9 +4,9 @@ import (
 	"pantheon-ops/backend/internal/middleware"
 	"pantheon-ops/backend/pkg/database"
 
-	dept "pantheon-ops/backend/modules/system/org/dept"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	dept "pantheon-ops/backend/modules/system/org/dept"
 )
 
 type platformDeptGovernanceTaskLoader struct {
@@ -24,6 +24,8 @@ func (l platformDeptGovernanceTaskLoader) ListOrgGovernanceTasks() ([]OrgGoverna
 		result = append(result, OrgGovernanceTask{
 			TaskKey:               task.TaskKey,
 			GovernanceScope:       task.GovernanceScope,
+			GovernanceTag:         task.GovernanceTag,
+			GovernanceAction:      task.GovernanceAction,
 			GovernanceScopeLabel:  task.GovernanceScopeLabel,
 			GovernanceTagLabel:    task.GovernanceTagLabel,
 			GovernanceActionLabel: task.GovernanceActionLabel,

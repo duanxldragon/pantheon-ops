@@ -327,31 +327,94 @@ ${extraApi ? `\n${extraApi}\n` : ''}
   generateListPage(): string {
     const modelName = this.modelName;
     const toSrcRoot = this.relativeToSrcRoot();
+    const pageActions = getPageActions(this.schema);
     const governanceEnabled = this.isListGovernanceEnabled();
     const searchEnabled = this.isListSearchEnabled();
     const headerActionsEnabled = this.isListHeaderActionsEnabled();
     const batchActionsEnabled = this.isListBatchActionsEnabled();
     const rowActionsEnabled = this.isListRowActionsEnabled();
+    const searchableFields = this.schema.model.fields.filter((field) => field.searchable);
+    const searchUsesSelect = searchableFields.some((field) => field.type === 'enum');
+    const searchUsesInput = searchableFields.some((field) => field.type !== 'enum');
+    const detailActionEnabled = pageActions.includes('view') || pageActions.includes('detail');
+    const createActionEnabled = pageActions.includes('create');
+    const deleteActionEnabled = pageActions.includes('delete');
+    const exportActionEnabled = pageActions.includes('export');
+    const importActionEnabled = pageActions.includes('import');
+    const useNavigateHook = detailActionEnabled;
+    const useMessage =
+      createActionEnabled ||
+      importActionEnabled ||
+      (deleteActionEnabled && (batchActionsEnabled || rowActionsEnabled));
     const governanceConstants = governanceEnabled
       ? `${this.generateListGovernanceConstants()}\n`
       : '';
     const listImports = ['Card', 'Space'];
     if (searchEnabled) {
-      listImports.unshift('Button', 'Form', 'Grid', 'Input', 'Select');
+      listImports.unshift('Form', 'Grid');
+      if (searchUsesInput) {
+        listImports.unshift('Input');
+      }
+      if (searchUsesSelect) {
+        listImports.unshift('Select');
+      }
     }
-    if (headerActionsEnabled || rowActionsEnabled) {
+    if (searchEnabled || headerActionsEnabled || batchActionsEnabled) {
+      listImports.unshift('Button');
+    }
+    if (batchActionsEnabled) {
       listImports.unshift('Popconfirm');
     }
+    const iconImports: string[] = [];
+    if (deleteActionEnabled && (batchActionsEnabled || rowActionsEnabled)) {
+      iconImports.push('IconDelete');
+    }
+    if (exportActionEnabled) {
+      iconImports.push('IconDownload');
+    }
+    if (detailActionEnabled) {
+      iconImports.push('IconEye');
+    }
+    if (createActionEnabled) {
+      iconImports.push('IconPlus');
+    }
+    if (searchEnabled) {
+      iconImports.push('IconSearch');
+    }
+    const componentImports = [
+      'AppTable',
+      'PageContainer',
+      'PageEmpty',
+      'PageLoading',
+      'PageRequestError',
+      'buildStandardPagination',
+    ];
+    if (searchEnabled) {
+      componentImports.splice(1, 0, 'FilterPanel');
+    }
     if (governanceEnabled) {
-      listImports.unshift('Alert', 'Tag');
+      componentImports.splice(componentImports.length - 3, 0, 'GovernanceSummaryBar');
+    }
+    if (importActionEnabled) {
+      componentImports.splice(componentImports.length - 3, 0, 'ImportCsvButton');
+    }
+    if (headerActionsEnabled) {
+      componentImports.splice(componentImports.length - 3, 0, 'ListHeaderActions');
+    }
+    if (rowActionsEnabled) {
+      componentImports.splice(componentImports.length - 3, 0, 'SystemRowActions');
+      componentImports.splice(componentImports.length - 3, 0, 'TABLE_ACTION_COLUMN_WIDTH');
+    }
+    if (batchActionsEnabled) {
+      componentImports.splice(componentImports.length - 3, 0, 'TableBatchActionBar');
     }
 
     return `import React, { useCallback, useEffect, useState } from 'react';
 import { ${listImports.join(', ')} } from '@arco-design/web-react';
-import { IconDelete, IconDownload, IconEye, IconPlus, IconSearch } from '@arco-design/web-react/icon';
+${iconImports.length > 0 ? `import { ${iconImports.join(', ')} } from '@arco-design/web-react/icon';` : ''}
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { message } from '${toSrcRoot}/components/feedback/message';
+${useNavigateHook ? "import { useNavigate } from 'react-router-dom';" : ''}
+${useMessage ? `import { message } from '${toSrcRoot}/components/feedback/message';` : ''}
 import {
   ${this.generateListActionImports()}
   get${modelName}List,
@@ -359,26 +422,15 @@ import {
   type ${modelName}ListRow,
 } from './api';
 import {
-  AppTable,
-  FilterPanel,
-  GovernanceSummaryBar,
-  ImportCsvButton,
-  ListHeaderActions,
-  PageContainer,
-  PageEmpty,
-  PageLoading,
-  PageRequestError,
-  SystemRowActions,
-  TableBatchActionBar,
-  TABLE_ACTION_COLUMN_WIDTH,
-  buildStandardPagination,
+  ${componentImports.join(',\n  ')},
 } from '${toSrcRoot}/components';
 import '${this.relativeToSystemListPageCss()}';
 
 ${governanceConstants}
 
-const FormItem = Form.Item;
+${searchEnabled ? `const FormItem = Form.Item;
 const { Row, Col } = Grid;
+` : ''}
 
 const emptyQuery: ${modelName}ListQuery = {
 ${this.generateEmptyQueryFields()}
@@ -387,15 +439,15 @@ ${this.generateEmptyQueryFields()}
 };
 
 const ${modelName}List: React.FC = () => {
-  const navigate = useNavigate();
+  ${useNavigateHook ? 'const navigate = useNavigate();' : ''}
   const [data, setData] = useState<${modelName}ListRow[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [query, setQuery] = useState<${modelName}ListQuery>(emptyQuery);
-  const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string | number>>([]);
-  const [submitting, setSubmitting] = useState(false);
-  const [queryForm] = Form.useForm<${modelName}ListQuery>();
+  ${batchActionsEnabled ? 'const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string | number>>([]);' : ''}
+  ${batchActionsEnabled ? 'const [submitting, setSubmitting] = useState(false);' : ''}
+  ${searchEnabled ? `const [queryForm] = Form.useForm<${modelName}ListQuery>();` : ''}
   const { t } = useTranslation();
 
   const loadData = useCallback(async (nextQuery: ${modelName}ListQuery = query) => {
@@ -416,9 +468,9 @@ const ${modelName}List: React.FC = () => {
     void loadData();
   }, [loadData]);
 
-  const search = () => {
+  ${searchEnabled ? `const search = () => {
     const values = queryForm.getFieldsValue();
-    setSelectedRowKeys([]);
+    ${batchActionsEnabled ? 'setSelectedRowKeys([]);' : ''}
     const nextQuery = {
       ...query,
       ...values,
@@ -430,26 +482,22 @@ const ${modelName}List: React.FC = () => {
 
   const reset = () => {
     queryForm.setFieldsValue(emptyQuery);
-    setSelectedRowKeys([]);
+    ${batchActionsEnabled ? 'setSelectedRowKeys([]);' : ''}
     setQuery(emptyQuery);
     void loadData(emptyQuery);
-  };
+  };` : ''}
 
-  const handleExport = async () => {
-    ${this.hasPageAction('export') ? `await export${modelName}s(query);` : "message.info(t('common.comingSoon'));"}
-  };
+  ${exportActionEnabled ? `const handleExport = async () => {
+    await export${modelName}s(query);
+  };` : ''}
 
-  const handleImport = async (file: File) => {
-    ${
-      this.hasPageAction('import')
-        ? `await import${modelName}s(file);
-    message.success(t('common.importSuccess'));`
-        : 'void file;'
-    }
+  ${importActionEnabled ? `const handleImport = async (file: File) => {
+    await import${modelName}s(file);
+    message.success(t('common.importSuccess'));
     await loadData(query);
-  };
+  };` : ''}
 
-  const handleBatchDelete = async () => {
+  ${batchActionsEnabled ? `const handleBatchDelete = async () => {
     if (selectedRowKeys.length === 0) {
       return;
     }
@@ -462,7 +510,7 @@ const ${modelName}List: React.FC = () => {
     } finally {
       setSubmitting(false);
     }
-  };
+  };` : ''}
 
   if (loading && data.length === 0) {
     return <PageLoading />;
@@ -1453,7 +1501,7 @@ ${this.generateRowActionItems()}
 
   private generateListActionImports(): string {
     const imports: string[] = [];
-    if (this.hasPageAction('delete')) {
+    if (this.hasPageAction('delete') && this.isListBatchActionsEnabled()) {
       imports.push(`delete${this.modelName}`);
     }
     if (this.hasPageAction('export')) {
@@ -1603,26 +1651,32 @@ ${searchableFields
                   </Button>`);
     }
 
+    const listHeaderActions = `        <ListHeaderActions
+          utility={
+            <>
+${utilityActions.join('\n')}
+            </>
+          }
+          primary={
+            <>
+${primaryActions.join('\n')}
+            </>
+          }
+        />`;
+
+    if (!batchActionsEnabled) {
+      return listHeaderActions;
+    }
+
     return `        <TableBatchActionBar
             selectedCount={selectedRowKeys.length}
             selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
             clearText={t('common.clearSelection')}
             clearSuccessText={t('common.clearSelectionSuccess')}
             onClear={() => setSelectedRowKeys([])}
-            prefixActions={
-              <ListHeaderActions
-                utility={
-                  <>
-${utilityActions.join('\n')}
-                  </>
-                }
-                primary={
-                  <>
-${primaryActions.join('\n')}
-                  </>
-                }
-              />
-            }
+            ${headerActionsEnabled ? `prefixActions={
+${listHeaderActions}
+            }` : ''}
             ${
               batchActionsEnabled
                 ? `actions={
@@ -1651,13 +1705,9 @@ ${primaryActions.join('\n')}
   private generateListGovernanceConstants(): string {
     const tableRole = this.schema.metadata?.tableRole || 'main';
     const primaryTable = this.schema.metadata?.primaryTable || '';
-    const relationFromField = this.schema.metadata?.relationFromField || '';
-    const relationToField = this.schema.metadata?.relationToField || '';
 
     return `const governanceTableRole = '${tableRole}';
 const governancePrimaryTable = '${primaryTable}';
-const governanceRelationFromField = '${relationFromField}';
-const governanceRelationToField = '${relationToField}';
 `;
   }
 

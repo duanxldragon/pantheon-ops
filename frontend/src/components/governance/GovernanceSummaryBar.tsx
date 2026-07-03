@@ -33,6 +33,7 @@ const GovernanceSummaryBar: React.FC<GovernanceSummaryBarProps> = ({
   className,
 }) => {
   const mainTitle = title || description;
+  const secondaryDescription = title ? description : null;
 
   return (
     <section
@@ -45,6 +46,9 @@ const GovernanceSummaryBar: React.FC<GovernanceSummaryBarProps> = ({
             {icon ? <span className="governance-summary-bar__icon">{icon}</span> : null}
             <Typography.Text className="governance-summary-bar__title">{mainTitle}</Typography.Text>
           </div>
+        ) : null}
+        {secondaryDescription ? (
+          <span className="governance-summary-bar__desc">{secondaryDescription}</span>
         ) : null}
       </div>
       <div className="governance-summary-bar__metrics">
@@ -59,6 +63,9 @@ const GovernanceSummaryBar: React.FC<GovernanceSummaryBarProps> = ({
           >
             <span className="governance-summary-bar__metric-label">{item.label}</span>
             <strong className="governance-summary-bar__metric-value">{item.value}</strong>
+            {item.description ? (
+              <span className="governance-summary-bar__metric-desc">{item.description}</span>
+            ) : null}
           </div>
         ))}
       </div>

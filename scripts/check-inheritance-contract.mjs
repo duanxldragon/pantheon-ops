@@ -11,6 +11,7 @@ const requiredFiles = [
   'docs/README.en.md',
   'docs/PROJECT_INHERITANCE.md',
   'docs/PROJECT_INHERITANCE.en.md',
+  'frontend/src/modules/system/role/display.ts',
 ];
 
 const requiredMarkers = {
@@ -28,7 +29,7 @@ const requiredMarkers = {
     'TASK_PACKET_OPS_TEMPLATE.md',
   ],
   'docs/PROJECT_INHERITANCE.md': [
-    'Base repository：当前继承源是 `../pantheon-base`',
+    'Base repository：当前继承源是 `pantheon-base`',
     'Base version：当前锁定到',
     'business/cmdb',
     'business/deploy',
@@ -38,7 +39,7 @@ const requiredMarkers = {
     '是否分别验证了 base 和 ops 的最小启动、build 或 smoke',
   ],
   'docs/PROJECT_INHERITANCE.en.md': [
-    'Base repository: `../pantheon-base`',
+    'Base repository: `pantheon-base`',
     'Base version:',
     'business/cmdb',
     'business/deploy',
@@ -46,6 +47,11 @@ const requiredMarkers = {
     'which base commit introduced the shared change',
     'which shared paths were synced and which were intentionally left out',
     'whether base and ops each received their minimum validation pass',
+  ],
+  'frontend/src/modules/system/role/display.ts': [
+    'translateRoleName',
+    'resolveSubmittedRoleName',
+    'isRoleNameTranslationKey',
   ],
 };
 
@@ -79,8 +85,8 @@ if (releaseLock) {
   if (releaseLock.schemaVersion !== 1) {
     findings.push('foundation-release.lock.json: schemaVersion must be 1');
   }
-  if (releaseLock.baseRepo !== '../pantheon-base') {
-    findings.push('foundation-release.lock.json: baseRepo must be ../pantheon-base');
+  if (releaseLock.baseRepo !== 'pantheon-base') {
+    findings.push('foundation-release.lock.json: baseRepo must be pantheon-base');
   }
   if (releaseLock.sourceRepo !== 'pantheon-base') {
     findings.push('foundation-release.lock.json: sourceRepo must be pantheon-base');

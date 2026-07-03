@@ -270,10 +270,28 @@ func (s *MenuService) DeleteMenu(menuID uint64) error {
 
 func buildMenuTree(menus []SystemMenu, parentID uint64) []*MenuTreeResp {
 	// Build index: parentID -> menus with that parent
+	// Deduplicate by path (for menus with path) or perms (for menus without path)
 	index := make(map[uint64][]*MenuTreeResp)
+	seen := make(map[string]struct{}) // track unique key per parent
 	for i := range menus {
-		node := toMenuTreeResp(menus[i])
-		index[menus[i].ParentID] = append(index[menus[i].ParentID], node)
+		m := menus[i]
+		// Determine deduplication key: prefer path, fallback to perms
+		var dedupKey string
+		if m.Path != "" {
+			dedupKey = m.Path
+		} else if m.Perms != "" {
+			dedupKey = m.Perms
+		} else {
+			// No path or perms — use id as fallback key
+			dedupKey = fmt.Sprintf("id:%d", m.ID)
+		}
+		seenKey := fmt.Sprintf("%d:%s", m.ParentID, dedupKey)
+		if _, exists := seen[seenKey]; exists {
+			continue // skip duplicate
+		}
+		seen[seenKey] = struct{}{}
+		node := toMenuTreeResp(m)
+		index[m.ParentID] = append(index[m.ParentID], node)
 	}
 	// Recursively attach children using the index — O(n) total
 	var attachChildren func(parentID uint64)
@@ -315,8 +333,17 @@ func shouldHideManageMenuNode(node *MenuTreeResp) bool {
 
 func normalizeScopedNavigationMenuTree(nodes []*MenuTreeResp, parentID uint64) []*MenuTreeResp {
 	normalized := make([]*MenuTreeResp, 0, len(nodes))
+	dedupSeen := make(map[string]struct{}) // global dedup by path at this level
 	for _, node := range nodes {
-		normalized = append(normalized, normalizeScopedNavigationMenuNode(node, parentID)...)
+		for _, n := range normalizeScopedNavigationMenuNode(node, parentID) {
+			if n.Path != "" {
+				if _, exists := dedupSeen[n.Path]; exists {
+					continue // skip duplicate at this level (e.g. children promoted from multiple hidden containers)
+				}
+				dedupSeen[n.Path] = struct{}{}
+			}
+			normalized = append(normalized, n)
+		}
 	}
 	return normalized
 }

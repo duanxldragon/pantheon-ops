@@ -13,12 +13,12 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --radius-xs: 2px;
+  --radius-xs: 4px;
   --radius-sm: 4px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  --radius-overlay: 4px;
-  --radius-control: var(--radius-xs);
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-overlay: 8px;
+  --radius-control: var(--radius-md);
   --radius-action: var(--radius-sm);
   --radius-pill: 999px;
   --app-bg: #f7f8fa;
@@ -27,11 +27,11 @@
   --panel-bg: #ffffff;
   --panel-bg-solid: #ffffff;
   --panel-muted: #f7f8fa;
-  --panel-border: rgba(229, 230, 235, 0.92);
-  --panel-border-strong: rgba(209, 213, 219, 0.92);
-  --panel-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-  --panel-shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --panel-shadow-strong: 0 12px 32px rgba(15, 23, 42, 0.1);
+  --panel-border: rgba(229, 230, 235, 0.82);
+  --panel-border-strong: rgba(209, 213, 219, 0.78);
+  --panel-shadow: 0 12px 28px rgba(15, 23, 42, 0.055);
+  --panel-shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 18px rgba(15, 23, 42, 0.03);
+  --panel-shadow-strong: 0 18px 42px rgba(15, 23, 42, 0.14);
   --text-primary: #1f2329;
   --text-secondary: #4e5969;
   --text-tertiary: #86909c;
@@ -687,7 +687,7 @@ a {
 }
 
 .page-panel {
-  border: 1px solid var(--panel-border-strong);
+  border: 1px solid var(--panel-border);
   border-radius: var(--radius-md);
   background: var(--panel-bg-solid);
   box-shadow: var(--panel-shadow-soft);
@@ -696,7 +696,7 @@ a {
 .side-rail-panel {
   position: relative;
   overflow: hidden;
-  border-color: var(--panel-border-strong) !important;
+  border-color: var(--panel-border) !important;
   background: var(--panel-bg-solid);
 }
 
@@ -704,9 +704,9 @@ a {
   content: '';
   position: absolute;
   inset: 0 0 auto;
-  height: 3px;
+  height: 2px;
   background: var(--brand-primary);
-  opacity: 0.72;
+  opacity: 0.54;
 }
 
 .page-panel .arco-card-head {
@@ -820,8 +820,8 @@ a {
 .side-rail-item {
   padding: 11px 12px;
   border: 1px solid var(--panel-border);
-  border-radius: var(--radius-xs);
-  background: var(--panel-bg-solid);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--panel-muted) 76%, #ffffff);
 }
 
 .side-rail-item--warning {
@@ -861,8 +861,8 @@ a {
 .side-rail-note {
   padding: 13px 14px;
   border: 1px solid var(--panel-border);
-  border-radius: var(--radius-xs);
-  background: var(--panel-bg-solid);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--panel-muted) 72%, #ffffff);
 }
 
 .side-rail-note--warning {
@@ -1058,7 +1058,7 @@ a {
   display: flex;
   flex-direction: column;
   background: var(--panel-bg-solid);
-  border: 1px solid var(--panel-border-strong);
+  border: 1px solid var(--panel-border);
   border-radius: var(--radius-overlay);
   box-shadow: var(--panel-shadow-strong);
   z-index: 2500 !important;
@@ -1107,7 +1107,7 @@ a {
   width: 100%;
   max-height: calc(100dvh - 32px - 64px - 74px);
   padding: 20px 24px 24px;
-  background: var(--panel-muted);
+  background: color-mix(in srgb, var(--panel-muted) 78%, #ffffff);
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1248,7 +1248,7 @@ a {
 .app-drawer .arco-drawer-body,
 .app-drawer .arco-drawer-content {
   padding: 20px 24px 24px;
-  background: var(--panel-bg-solid);
+  background: color-mix(in srgb, var(--panel-muted) 82%, #ffffff);
 }
 
 .app-drawer .arco-drawer-footer {
@@ -1268,7 +1268,7 @@ a {
 .app-drawer.arco-drawer,
 .app-drawer .arco-drawer-content {
   overflow: hidden;
-  border: 1px solid var(--panel-border-strong);
+  border: 1px solid var(--panel-border);
   border-radius: var(--radius-overlay);
   background: var(--panel-bg-solid);
   box-shadow: var(--panel-shadow-strong);
@@ -1389,8 +1389,8 @@ a {
 .app-dialog .dialog-grid-card,
 .app-dialog .detail-panel-card {
   overflow: hidden;
-  border-color: var(--panel-border-strong) !important;
-  border-radius: var(--radius-xs);
+  border-color: color-mix(in srgb, var(--panel-border) 92%, transparent) !important;
+  border-radius: var(--radius-md);
   background: var(--panel-bg-solid) !important;
   box-shadow: none;
 }
@@ -1405,7 +1405,7 @@ a {
 .app-dialog .detail-panel-card .arco-card-head {
   min-height: 44px;
   border-bottom-color: var(--panel-border);
-  background: color-mix(in srgb, var(--brand-primary) 2%, #fff);
+  background: color-mix(in srgb, var(--panel-muted) 86%, #ffffff);
 }
 
 .app-dialog .dialog-grid-card .arco-card-header-title {
@@ -1581,6 +1581,8 @@ a {
 }
 
 .filter-panel {
+  border-width: 1px;
+  border-style: solid;
   border-color: color-mix(in srgb, var(--panel-border) 92%, transparent);
   background: color-mix(in srgb, var(--panel-muted) 82%, #fff);
   box-shadow: none;
@@ -1614,6 +1616,7 @@ a {
 
 .filter-panel .arco-row {
   align-items: flex-end;
+  row-gap: 2px;
 }
 
 .filter-panel .arco-col,
@@ -1639,6 +1642,7 @@ a {
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 500;
+  line-height: 1.45;
 }
 
 .filter-panel .arco-input-inner-wrapper,
@@ -1651,7 +1655,7 @@ a {
 .filter-panel .arco-textarea-wrapper {
   min-height: var(--shell-filter-control-min-height);
   width: 100%;
-  border: 1px solid color-mix(in srgb, var(--panel-border-strong) 90%, #fff);
+  border: 1px solid color-mix(in srgb, var(--panel-border-strong) 82%, #fff);
   border-radius: var(--radius-control);
   background: var(--panel-bg-solid);
   box-shadow: none;
@@ -1714,7 +1718,7 @@ a {
 .filter-panel__action-item .arco-btn {
   min-height: var(--shell-filter-control-min-height);
   padding-inline: 16px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-action);
   white-space: nowrap;
 }
 
@@ -1725,9 +1729,9 @@ a {
 
 @media (min-width: 1280px) {
   .filter-panel .arco-row > .arco-col {
-    flex: 1 1 168px !important;
-    min-width: 148px;
-    max-width: 184px !important;
+    flex: 1 1 180px !important;
+    min-width: 160px;
+    max-width: 208px !important;
   }
 
   .filter-panel .arco-row > .arco-col:last-child {
@@ -1815,6 +1819,7 @@ a {
 .arco-input-password,
 .arco-input-password .arco-input-inner-wrapper,
 .arco-input-number,
+.arco-input-group-wrapper,
 input.arco-input,
 .arco-select-view,
 .arco-tree-select-view,
@@ -1872,6 +1877,7 @@ textarea.arco-textarea,
 .arco-input-inner-wrapper,
 .arco-input-password,
 .arco-input-number,
+.arco-input-group-wrapper,
 input.arco-input,
 .arco-select-view,
 .arco-tree-select-view,
@@ -1891,6 +1897,7 @@ input.arco-input,
 .arco-input-inner-wrapper:hover,
 .arco-input-password:hover,
 .arco-input-number:hover,
+.arco-input-group-wrapper:hover,
 input.arco-input:hover,
 .arco-select-view:hover,
 .arco-tree-select:hover .arco-tree-select-view,
@@ -1906,6 +1913,7 @@ textarea.arco-textarea:hover,
 .arco-input-password:focus-within,
 .arco-input-number.arco-input-focus,
 .arco-input-number:focus-within,
+.arco-input-group-wrapper:focus-within,
 input.arco-input:focus,
 .arco-select-focused .arco-select-view,
 .arco-select-open .arco-select-view,
@@ -1990,6 +1998,11 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   box-shadow: none;
 }
 
+.arco-input-group > .arco-input-inner-wrapper:only-child,
+.arco-input-group > .arco-input-inner-wrapper.arco-input-inner-wrapper-focus:only-child {
+  border-radius: var(--radius-control);
+}
+
 .arco-input-disabled,
 .arco-input-disabled:hover {
   border-color: var(--panel-border);
@@ -2003,7 +2016,7 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 }
 
 .arco-input-number-step-button {
-  border-radius: 8px;
+  border-radius: var(--radius-control);
 }
 
 .arco-input-number-mode-embed .arco-input-number-step-layer .arco-input-number-step-button {
@@ -2258,7 +2271,7 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 }
 
 .arco-tabs-header-title {
-  border-radius: 10px 10px 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -2378,6 +2391,11 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   background: var(--panel-bg-solid);
   box-shadow: var(--panel-shadow-soft);
   min-width: 0;
+}
+
+.filter-panel {
+  background: color-mix(in srgb, var(--panel-muted) 52%, #ffffff);
+  border-color: color-mix(in srgb, var(--panel-border) 94%, transparent);
 }
 
 .app-table-shell {

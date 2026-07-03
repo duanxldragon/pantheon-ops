@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Card, Input, Select, Space, Tag, Typography } from '@arco-design/web-react';
 import { IconDelete, IconPlus, IconRefresh, IconSearch } from '@arco-design/web-react/icon';
 import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
@@ -27,6 +27,7 @@ import {
   type RoleMemberRow,
   type RoleRow,
 } from './api';
+import { translateRoleName } from './display';
 
 interface RoleMemberDrawerProps {
   role: RoleRow | null;
@@ -56,6 +57,7 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
   const [memberLoading, setMemberLoading] = useState(false);
   const [memberError, setMemberError] = useState(false);
   const [memberQuery, setMemberQuery] = useState<RoleMemberQuery>(defaultMemberQuery);
+  const memberQueryRef = useRef<RoleMemberQuery>(defaultMemberQuery);
   const [candidateOptions, setCandidateOptions] = useState<Array<{ label: string; value: number }>>(
     [],
   );
@@ -64,11 +66,27 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
   const [selectedCandidateIds, setSelectedCandidateIds] = useState<number[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
+  const replaceMemberQuery = useCallback((nextQuery: RoleMemberQuery) => {
+    memberQueryRef.current = nextQuery;
+    setMemberQuery(nextQuery);
+    return nextQuery;
+  }, []);
+
+  const patchMemberQuery = useCallback((patch: Partial<RoleMemberQuery>) => {
+    const nextQuery = {
+      ...memberQueryRef.current,
+      ...patch,
+    };
+    memberQueryRef.current = nextQuery;
+    setMemberQuery(nextQuery);
+    return nextQuery;
+  }, []);
+
   const resetDrawerState = () => {
     setMemberRows([]);
     setMemberTotal(0);
     setMemberError(false);
-    setMemberQuery(defaultMemberQuery);
+    replaceMemberQuery(defaultMemberQuery);
     setCandidateOptions([]);
     setCandidateKeyword('');
     setSelectedCandidateIds([]);
@@ -96,7 +114,7 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
         const result = await getRoleMembers(role.id, nextQuery);
         setMemberRows(result.items);
         setMemberTotal(result.total);
-        setMemberQuery({
+        replaceMemberQuery({
           keyword: nextQuery.keyword || '',
           status: nextQuery.status,
           page: result.page || nextQuery.page || defaultMemberQuery.page,
@@ -110,7 +128,7 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
         setMemberLoading(false);
       }
     },
-    [role],
+    [replaceMemberQuery, role],
   );
 
   const loadCandidates = useCallback(
@@ -154,9 +172,10 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
 
   const handleMemberTableChange: TableProps<RoleMemberRow>['onChange'] = (pagination) => {
     const nextQuery = {
-      ...memberQuery,
+      ...memberQueryRef.current,
       page: pagination.current || 1,
-      pageSize: pagination.pageSize || memberQuery.pageSize || defaultMemberQuery.pageSize,
+      pageSize:
+        pagination.pageSize || memberQueryRef.current.pageSize || defaultMemberQuery.pageSize,
     };
     void loadMembers(nextQuery);
   };
@@ -171,7 +190,7 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
       message.success(t('system.role.members.addSuccess', { count: result.addedCount }));
       setSelectedCandidateIds([]);
       onMembershipChanged?.();
-      await loadMembers({ ...memberQuery, page: 1 });
+      await loadMembers({ ...memberQueryRef.current, page: 1 });
       await loadCandidates('');
     } catch {
       message.error(t('common.actionFailed'));
@@ -191,11 +210,11 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
         message.success(t('system.role.members.removeSuccess', { count: result.removedCount }));
         onMembershipChanged?.();
         await loadMembers({
-          ...memberQuery,
-          page:
-            memberRows.length === 1 && (memberQuery.page || 1) > 1
-              ? (memberQuery.page || 1) - 1
-              : memberQuery.page || 1,
+          ...memberQueryRef.current,
+          page: (() => {
+            const currentPage = memberQueryRef.current.page || 1;
+            return memberRows.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
+          })(),
         });
         await loadCandidates(candidateKeyword);
       } catch {
@@ -208,7 +227,6 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
       candidateKeyword,
       loadCandidates,
       loadMembers,
-      memberQuery,
       memberRows.length,
       onMembershipChanged,
       role,
@@ -294,7 +312,9 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
 
   const drawerTitle = role ? (
     <div className="role-member-drawer__title">
-      <Typography.Text className="role-member-drawer__title-main">{role.roleName}</Typography.Text>
+      <Typography.Text className="role-member-drawer__title-main">
+        {translateRoleName(role.roleName, t)}
+      </Typography.Text>
       <Typography.Text type="secondary" className="role-member-drawer__title-sub">
         {role.roleKey} · {t('system.role.members')}
       </Typography.Text>
@@ -406,10 +426,10 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
               value={memberQuery.keyword}
               placeholder={t('system.role.members.searchPlaceholder')}
               onChange={(value) => {
-                setMemberQuery((current) => ({ ...current, keyword: value }));
+                patchMemberQuery({ keyword: value });
               }}
               onPressEnter={() => {
-                void loadMembers({ ...memberQuery, page: 1 });
+                void loadMembers({ ...memberQueryRef.current, page: 1 });
               }}
             />
             <Select
@@ -421,23 +441,22 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
                 { label: t('system.user.status.disabled'), value: 2 },
               ]}
               onChange={(value) => {
-                setMemberQuery((current) => ({
-                  ...current,
+                patchMemberQuery({
                   status: typeof value === 'number' ? value : undefined,
-                }));
+                });
               }}
             />
             <Button
               type="primary"
               onClick={() => {
-                void loadMembers({ ...memberQuery, page: 1 });
+                void loadMembers({ ...memberQueryRef.current, page: 1 });
               }}
             >
               {t('common.search')}
             </Button>
             <Button
               onClick={() => {
-                setMemberQuery(defaultMemberQuery);
+                replaceMemberQuery(defaultMemberQuery);
                 void loadMembers(defaultMemberQuery);
               }}
             >
@@ -448,7 +467,7 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
           {!memberLoading && memberError ? (
             <PageError
               onRetry={() => {
-                void loadMembers(memberQuery);
+                void loadMembers(memberQueryRef.current);
               }}
             />
           ) : null}

@@ -3,6 +3,7 @@ import { Avatar, Card, Descriptions, Grid, Space, Tag, Typography } from '@arco-
 import { useTranslation } from 'react-i18next';
 import type { UserDetail as UserDetailData } from './api';
 import { formatDateTime } from '../../../core/format/dateTime';
+import { translateRoleName } from '../role/display';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -14,7 +15,8 @@ interface UserDetailContentProps {
 
 const UserDetailContent: React.FC<UserDetailContentProps> = ({ detail, orgEnabled = true }) => {
   const { t } = useTranslation();
-  const roleNames = detail.roleNames?.filter(Boolean) || [];
+  const roleNames =
+    detail.roleNames?.filter(Boolean).map((roleName) => translateRoleName(roleName, t)) || [];
   const roleKeys = detail.roleKeys?.filter(Boolean) || [];
   const displayRoles = roleNames.length > 0 ? roleNames : roleKeys;
   const summaryItems = [

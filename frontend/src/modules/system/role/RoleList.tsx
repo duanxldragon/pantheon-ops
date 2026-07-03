@@ -28,6 +28,7 @@ import {
   IconPlus,
   IconSearch,
 } from '@arco-design/web-react/icon';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import { formatDateTime } from '../../../core/format/dateTime';
@@ -44,13 +45,17 @@ import {
   batchUpdateRoleStatus,
   createRole,
   deleteRole,
+  downloadRoleImportTemplate,
   exportRoles,
   getRoleList,
+  importRoles,
   updateRole,
   type RoleListQuery,
   type RolePayload,
   type RoleRow,
 } from './api';
+import type { PermissionDataScopeMode } from '../permission/api';
+import { resolveSubmittedRoleName, translateRoleName } from './display';
 import RoleMemberDrawer from './RoleMemberDrawer';
 import {
   AppModal,
@@ -62,6 +67,7 @@ import {
   GovernanceRailSummary,
   GovernanceRailToggleButton,
   GovernanceSummaryBar,
+  ImportCsvButton,
   ListHeaderActions,
   PageContainer,
   PageEmpty,
@@ -91,6 +97,7 @@ interface RoleFormValues {
   pagePermissionKeys: string[];
   actionPermissionKeys: string[];
   unknownPermissionKeys: string[];
+  dataScope: PermissionDataScopeMode;
 }
 
 const emptyForm: RoleFormValues = {
@@ -102,6 +109,7 @@ const emptyForm: RoleFormValues = {
   pagePermissionKeys: [],
   actionPermissionKeys: [],
   unknownPermissionKeys: [],
+  dataScope: 'self',
 };
 
 const emptyQuery: RoleListQuery = {
@@ -255,6 +263,7 @@ const PermissionTreeSelector: React.FC<PermissionTreeSelectorProps> = ({
 };
 
 const RoleList: React.FC = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState<RoleRow[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -277,6 +286,7 @@ const RoleList: React.FC = () => {
   const canBatchUpdate = isAdmin || hasPerm('system:role:batch-update');
   const canBatchDelete = isAdmin || hasPerm('system:role:batch-delete');
   const canExport = isAdmin || hasPerm('system:role:export');
+  const canImport = isAdmin || hasPerm('system:role:import');
   const governanceRail = useGovernanceRail();
   const invalidateRoleCaches = useCallback(() => {
     invalidateRouteWarmDataMany([
@@ -561,7 +571,7 @@ const RoleList: React.FC = () => {
   const openEdit = (row: RoleRow) => {
     const splitPermissions = splitPermissionKeys(row.permissionKeys);
     const formValues = {
-      roleName: row.roleName,
+      roleName: translateRoleName(row.roleName, t),
       roleKey: row.roleKey,
       sort: row.sort,
       status: row.status,
@@ -589,7 +599,7 @@ const RoleList: React.FC = () => {
       return;
     }
     const payload: RolePayload = {
-      roleName: values.roleName,
+      roleName: resolveSubmittedRoleName(values.roleName, editing?.roleName, t),
       roleKey: values.roleKey,
       sort: values.sort,
       status: values.status,
@@ -599,6 +609,7 @@ const RoleList: React.FC = () => {
         values.actionPermissionKeys,
         values.unknownPermissionKeys,
       ),
+      dataScope: values.dataScope,
     };
     setSubmitting(true);
     try {
@@ -608,6 +619,22 @@ const RoleList: React.FC = () => {
       } else {
         await createRole(payload);
         message.success(t('common.createSuccess'));
+        setTimeout(() => {
+          message.info(
+            <span>
+              {t('system.role.governanceHint')}&nbsp;
+              <a
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  navigate('/system/permission');
+                }}
+              >
+                {t('system.role.governanceHintAction')}
+              </a>
+            </span>,
+            { duration: 8 },
+          );
+        }, 100);
       }
       invalidateRoleCaches();
       publishRefresh('system:role:changed', 'system/role');
@@ -666,6 +693,27 @@ const RoleList: React.FC = () => {
 
   const handleExport = async () => {
     await exportRoles(query);
+  };
+
+  const handleDownloadTemplate = async () => {
+    await downloadRoleImportTemplate();
+  };
+
+  const handleImport = async (file: File) => {
+    try {
+      const result = await importRoles(file);
+      if (result.applied) {
+        message.success(
+          t('system.role.importSuccess', {
+            created: result.created,
+            updated: result.updated,
+          }),
+        );
+        void loadData(query, { silent: true });
+      }
+    } catch {
+      message.error(t('system.role.importFailed'));
+    }
   };
 
   const search = () => {
@@ -728,6 +776,7 @@ const RoleList: React.FC = () => {
       title: t('system.role.roleName'),
       dataIndex: 'roleName',
       width: TABLE_COLUMN_WIDTH.name,
+      render: (value: string) => translateRoleName(value, t),
       ...sortableColumn('roleName'),
     },
     withTableColumnPriority(
@@ -937,15 +986,31 @@ const RoleList: React.FC = () => {
               prefixActions={
                 <ListHeaderActions
                   utility={
-                    <Button
-                      icon={<IconDownload />}
-                      onClick={() => {
-                        void handleExport();
-                      }}
-                      disabled={!canExport}
-                    >
-                      {t('common.export')}
-                    </Button>
+                    <>
+                      <Button
+                        icon={<IconDownload />}
+                        onClick={() => {
+                          void handleExport();
+                        }}
+                        disabled={!canExport}
+                      >
+                        {t('common.export')}
+                      </Button>
+                      <Button
+                        icon={<IconDownload />}
+                        onClick={() => {
+                          void handleDownloadTemplate();
+                        }}
+                      >
+                        {t('common.downloadTemplate')}
+                      </Button>
+                      <ImportCsvButton
+                        disabled={!canImport}
+                        onSelect={handleImport}
+                      >
+                        {t('common.import')}
+                      </ImportCsvButton>
+                    </>
                   }
                   primary={
                     <Button
@@ -1127,6 +1192,19 @@ const RoleList: React.FC = () => {
                   options={[
                     { label: t('system.user.status.enabled'), value: 1 },
                     { label: t('system.user.status.disabled'), value: 2 },
+                  ]}
+                />
+              </FormItem>
+              <FormItem label={t('system.role.dataScope')} field="dataScope">
+                <Select
+                  options={[
+                    { label: t('system.permission.dataScope.mode.all'), value: 'all' },
+                    { label: t('system.permission.dataScope.mode.self'), value: 'self' },
+                    { label: t('system.permission.dataScope.mode.dept'), value: 'dept' },
+                    {
+                      label: t('system.permission.dataScope.mode.deptAndChildren'),
+                      value: 'dept_and_children',
+                    },
                   ]}
                 />
               </FormItem>

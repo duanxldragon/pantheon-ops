@@ -4,7 +4,7 @@
   grid-template-columns: minmax(360px, 44%) minmax(420px, 56%);
   min-height: 100dvh;
   overflow: hidden;
-  background: color-mix(in srgb, var(--app-bg) 92%, var(--panel-bg-solid) 8%);
+  background: var(--app-bg);
 }
 
 .auth-login-page__brand-pane,
@@ -19,7 +19,7 @@
   justify-content: center;
   padding: 64px 56px;
   border-right: 1px solid var(--panel-border);
-  background: color-mix(in srgb, var(--panel-bg-solid) 62%, transparent);
+  background: var(--panel-bg-solid);
 }
 
 .auth-login-page__brand-inner {

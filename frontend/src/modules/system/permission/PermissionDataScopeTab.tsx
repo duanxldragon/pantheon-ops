@@ -12,7 +12,7 @@ import {
 } from '@arco-design/web-react';
 import { message } from '../../../components/feedback/message';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
-import { IconEdit, IconSearch } from '@arco-design/web-react/icon';
+import { IconEdit, IconRefresh, IconSearch } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
@@ -30,6 +30,7 @@ import {
   buildStandardPagination,
   getPagedItems,
   FilterPanel,
+  ListHeaderActions,
   PageEmpty,
   PageLoading,
   PageRequestError,
@@ -37,6 +38,7 @@ import {
   TABLE_COLUMN_WIDTH,
   withTableColumnPriority,
 } from '../../../components';
+import { translateRoleName } from '../role/display';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -130,6 +132,10 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
     setDataScopeQuery({});
   };
 
+  const refreshDataScope = () => {
+    void loadDataScopePolicies(dataScopeQuery);
+  };
+
   const openDataScopeEditor = (row: PermissionDataScopePolicy) => {
     setDataScopeEditingRow(row);
     setDataScopeModeDraft(row.mode);
@@ -184,7 +190,12 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
   };
 
   const dataScopeColumns: ColumnProps<PermissionDataScopePolicy>[] = [
-    { title: t('system.role.roleName'), dataIndex: 'roleName', width: TABLE_COLUMN_WIDTH.name },
+    {
+      title: t('system.role.roleName'),
+      dataIndex: 'roleName',
+      width: TABLE_COLUMN_WIDTH.name,
+      render: (value: string) => translateRoleName(value, t),
+    },
     withTableColumnPriority(
       { title: t('system.role.roleKey'), dataIndex: 'roleKey', width: TABLE_COLUMN_WIDTH.code },
       'medium',
@@ -265,40 +276,50 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
 
   return (
     <>
-      <Space direction="vertical" size={16} style={{ width: '100%' }}>
-        <FilterPanel>
-          <Form form={dataScopeForm} layout="vertical" onSubmit={() => searchDataScope()}>
-            <Row gutter={16}>
-              <Col span={8}>
-                <FormItem label={t('system.permission.roleKey')} field="roleKey">
-                  <Select allowClear options={roleOptions} />
-                </FormItem>
-              </Col>
-              <Col span={6}>
-                <FormItem label={t('system.role.status')} field="status">
-                  <Select
-                    allowClear
-                    options={[
-                      { label: t('system.user.status.enabled'), value: 1 },
-                      { label: t('system.user.status.disabled'), value: 2 },
-                    ]}
-                  />
-                </FormItem>
-              </Col>
-              <Col span={6}>
-                <FormItem className="filter-panel__action-item">
-                  <Space>
-                    <Button type="primary" htmlType="submit" icon={<IconSearch />}>
-                      {t('common.search')}
-                    </Button>
-                    <Button onClick={resetDataScope}>{t('common.reset')}</Button>
-                  </Space>
-                </FormItem>
-              </Col>
-            </Row>
-          </Form>
-        </FilterPanel>
-        <Card className="page-panel system-list__table-card">
+      <Space direction="vertical" size={12} style={{ width: '100%' }}>
+        <div className="permission-page__data-scope-filter-shell">
+          <FilterPanel>
+            <Form form={dataScopeForm} layout="vertical" onSubmit={() => searchDataScope()}>
+              <Row gutter={16}>
+                <Col xs={24} sm={12} lg={8}>
+                  <FormItem label={t('system.permission.roleKey')} field="roleKey">
+                    <Select allowClear options={roleOptions} />
+                  </FormItem>
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
+                  <FormItem label={t('system.role.status')} field="status">
+                    <Select
+                      allowClear
+                      options={[
+                        { label: t('system.user.status.enabled'), value: 1 },
+                        { label: t('system.user.status.disabled'), value: 2 },
+                      ]}
+                    />
+                  </FormItem>
+                </Col>
+                <Col xs={24} sm={12} lg={6}>
+                  <FormItem className="filter-panel__action-item">
+                    <Space>
+                      <Button type="primary" htmlType="submit" icon={<IconSearch />}>
+                        {t('common.search')}
+                      </Button>
+                      <Button onClick={resetDataScope}>{t('common.reset')}</Button>
+                    </Space>
+                  </FormItem>
+                </Col>
+              </Row>
+            </Form>
+          </FilterPanel>
+        </div>
+        <Card className="page-panel system-list__table-card permission-page__data-scope-table-card">
+          <ListHeaderActions
+            className="permission-page__data-scope-actions"
+            utility={
+              <Button icon={<IconRefresh />} onClick={refreshDataScope}>
+                {t('common.refresh')}
+              </Button>
+            }
+          />
           {dataScopeLoading && dataScopeRows.length === 0 ? <PageLoading /> : null}
           {dataScopeError && dataScopeRows.length === 0 ? (
             <PageRequestError
@@ -339,7 +360,7 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
       <AppModal
         title={
           dataScopeEditingRow
-            ? `${dataScopeEditingRow.roleName} · ${dataScopeEditingRow.roleKey}`
+            ? `${translateRoleName(dataScopeEditingRow.roleName, t)} · ${dataScopeEditingRow.roleKey}`
             : t('system.permission.dataScope.tab')
         }
         visible={Boolean(dataScopeEditingRow)}

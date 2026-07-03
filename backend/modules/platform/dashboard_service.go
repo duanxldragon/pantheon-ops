@@ -21,6 +21,8 @@ const (
 type OrgGovernanceTask struct {
 	TaskKey               string
 	GovernanceScope       string
+	GovernanceTag         string
+	GovernanceAction      string
 	GovernanceScopeLabel  string
 	GovernanceTagLabel    string
 	GovernanceActionLabel string
@@ -132,13 +134,26 @@ func (s *DashboardService) GetSummary() (*SummaryResp, error) {
 		resp.OrgGovernanceTaskCount = len(tasks)
 		resp.OrgGovernanceTasks = make([]DashboardTodoResp, 0, len(tasks))
 		for _, task := range tasks {
+			resourceLabel := task.DeptName
+			if task.GovernanceScope == "post" && task.PostName != "" {
+				if task.DeptName != "" {
+					resourceLabel = task.PostName + " / " + task.DeptName
+				} else {
+					resourceLabel = task.PostName
+				}
+			}
 			resp.OrgGovernanceTasks = append(resp.OrgGovernanceTasks, DashboardTodoResp{
 				TaskKey:          task.TaskKey,
 				Domain:           task.GovernanceScope,
+				Issue:            task.GovernanceTag,
+				Action:           task.GovernanceAction,
 				ScopeLabel:       task.GovernanceScopeLabel,
 				IssueLabel:       task.GovernanceTagLabel,
 				ActionLabel:      task.GovernanceActionLabel,
+				ResourceLabel:    resourceLabel,
 				RelatedUserCount: task.RelatedUserCount,
+				RoutePath:        "/system/dept",
+				RouteStateDeptID: task.DeptID,
 			})
 		}
 	}
@@ -171,7 +186,7 @@ func (s *DashboardService) loadSummaryCounts(resp *SummaryResp, now, since, toda
 			return s.countTable("system_log_login", "status = ? AND login_time >= ?", 0, since)
 		}, apply: func(value int64) { resp.LoginFailureCount = value }},
 		{count: func() (int64, error) {
-			return s.countTable(operationLogTableName, "created_at >= ?", todayStart)
+			return s.countTable(operationLogTableName, "oper_time >= ?", todayStart)
 		}, apply: func(value int64) { resp.TodayOperationCount = value }},
 	}
 

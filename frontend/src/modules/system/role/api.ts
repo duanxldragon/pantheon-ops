@@ -1,5 +1,6 @@
 import { apiRequest } from '../../../api/request';
 import { downloadFile } from '../../../api/file';
+import type { PermissionDataScopeMode } from '../permission/api';
 
 export interface RoleRow {
   id: number;
@@ -10,6 +11,7 @@ export interface RoleRow {
   createdAt: string;
   menuIds: number[];
   permissionKeys: string[];
+  dataScope: PermissionDataScopeMode;
 }
 
 export interface RoleListQuery {
@@ -36,6 +38,7 @@ export interface RolePayload {
   status: number;
   menuIds: number[];
   permissionKeys: string[];
+  dataScope: PermissionDataScopeMode;
 }
 
 export interface RoleBatchStatusPayload {
@@ -117,6 +120,33 @@ export function exportRoles(data?: RoleListQuery) {
     method: 'post',
     data,
     filename: 'system-role-export.csv',
+  });
+}
+
+export function downloadRoleImportTemplate() {
+  return downloadFile({
+    url: '/system/role/import-template',
+    method: 'get',
+    filename: 'system-role-import-template.csv',
+  });
+}
+
+export interface ImportResult {
+  applied: boolean;
+  created: number;
+  updated: number;
+  failed: number;
+  errors: Array<{ row: number; field: string; message: string }>;
+}
+
+export function importRoles(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return apiRequest<ImportResult>({
+    url: '/system/role/import',
+    method: 'post',
+    data: formData,
+    headers: { 'Content-Type': 'multipart/form-data' },
   });
 }
 

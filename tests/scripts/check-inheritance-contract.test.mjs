@@ -57,9 +57,9 @@ function createFixture(root) {
   writeText(
     path.join(root, 'docs', 'PROJECT_INHERITANCE.md'),
     [
-      '- Base repository：当前继承源是 `../pantheon-base`',
+      '- Base repository：当前继承源是 `pantheon-base`',
       '- Base release line：当前跟随 `release/0.8`',
-      '- Base version：当前锁定到 `base-v0.8.6`（`dec10461ecc8d9ed1422ea1538dd6872b2a13283`）',
+      '- Base version：当前锁定到 `base-v0.8.9`（`2fd15f0c1fed598c824261eebcc094eeaa650219`）',
       'business/cmdb',
       'business/deploy',
       '如果 foundation 规则必须变更，先改 `pantheon-base`，再升级 `pantheon-ops`',
@@ -72,9 +72,9 @@ function createFixture(root) {
   writeText(
     path.join(root, 'docs', 'PROJECT_INHERITANCE.en.md'),
     [
-      '- Base repository: `../pantheon-base`',
+      '- Base repository: `pantheon-base`',
       '- Base release line: `release/0.8`',
-      '- Base version: `base-v0.8.6` (`dec10461ecc8d9ed1422ea1538dd6872b2a13283`)',
+      '- Base version: `base-v0.8.9` (`2fd15f0c1fed598c824261eebcc094eeaa650219`)',
       'business/cmdb',
       'business/deploy',
       'update `pantheon-base` first and then upgrade `pantheon-ops`',
@@ -84,21 +84,40 @@ function createFixture(root) {
       '',
     ].join('\n'),
   );
+  writeText(
+    path.join(root, 'frontend', 'src', 'modules', 'system', 'role', 'display.ts'),
+    [
+      'import type { TFunction } from "i18next";',
+      '',
+      'export function isRoleNameTranslationKey(roleName: string | null | undefined): boolean {',
+      '  return Boolean(roleName);',
+      '}',
+      '',
+      'export function translateRoleName(roleName: string | null | undefined, t: TFunction): string {',
+      '  return roleName ? t(roleName, { defaultValue: roleName }) : "-";',
+      '}',
+      '',
+      'export function resolveSubmittedRoleName(roleName: string | null | undefined, originalRoleName: string | null | undefined, t: TFunction): string {',
+      '  return roleName || originalRoleName || t("common.unknown");',
+      '}',
+      '',
+    ].join('\n'),
+  );
   writeJson(path.join(root, 'foundation-release.lock.json'), {
     schemaVersion: 1,
-    baseRepo: '../pantheon-base',
+    baseRepo: 'pantheon-base',
     sourceRepo: 'pantheon-base',
     consumerMode: 'foundation-release-consumer',
     releaseLine: 'release/0.8',
-    releaseVersion: 'base-v0.8.6',
-    releaseDisplayName: 'v0.8.6',
-    baseCommit: 'dec10461ecc8d9ed1422ea1538dd6872b2a13283',
+    releaseVersion: 'base-v0.8.9',
+    releaseDisplayName: 'v0.8.9',
+    baseCommit: '2fd15f0c1fed598c824261eebcc094eeaa650219',
     releaseArtifact: {
       githubRepo: 'duanxldragon/pantheon-base',
-      tagName: 'base-v0.8.6',
-      releaseName: 'v0.8.6',
-      assetName: 'foundation-release-base-v0.8.6.tgz',
-      localPath: '.foundation/releases/base-v0.8.6',
+      tagName: 'base-v0.8.9',
+      releaseName: 'v0.8.9',
+      assetName: 'foundation-release-base-v0.8.9.tgz',
+      localPath: '.foundation/releases/base-v0.8.9',
     },
   });
 }
@@ -125,7 +144,7 @@ test('check-inheritance-contract fails when docs drift from the release lock', (
     writeText(
       path.join(root, 'docs', 'PROJECT_INHERITANCE.en.md'),
       [
-        '- Base repository: `../pantheon-base`',
+        '- Base repository: `pantheon-base`',
         '- Base release line: `release/0.8`',
         '- Base version: `base-v0.8.5` (`old`)',
         'business/cmdb',

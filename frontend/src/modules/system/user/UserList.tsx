@@ -49,7 +49,6 @@ import {
   PermissionAction,
   SystemRowActions,
   TableBatchActionBar,
-  TABLE_ACTION_COLUMN_WIDTH,
   TABLE_COLUMN_WIDTH,
   useGovernanceRail,
   withTableColumnPriority,
@@ -58,6 +57,7 @@ import UserDetailContent from './UserDetailContent';
 import UserFormModal from './UserFormModal';
 import ResetPasswordModal from './ResetPasswordModal';
 import { useUserList, emptyQuery } from './useUserList';
+import { translateRoleName } from '../role/display';
 import '../components/shared/list-page.css';
 import './user.css';
 
@@ -221,7 +221,9 @@ const UserList: React.FC = () => {
       dataIndex: 'roleNames',
       width: TABLE_COLUMN_WIDTH.tagGroup,
       render: (_: string[], row: UserListRow) => {
-        const roleNames = row.roleNames?.filter(Boolean);
+        const roleNames = row.roleNames
+          ?.filter(Boolean)
+          .map((roleName) => translateRoleName(roleName, t));
         const roleLabels = row.roleIds
           ?.map((roleId) => roleLabelById.get(roleId))
           .filter((value): value is string => Boolean(value));
@@ -268,7 +270,7 @@ const UserList: React.FC = () => {
     ),
     {
       title: t('common.action'),
-      width: TABLE_ACTION_COLUMN_WIDTH.wide,
+      width: 316,
       fixed: 'right',
       render: (_: unknown, row: UserListRow) => (
         <SystemRowActions
@@ -567,7 +569,7 @@ const UserList: React.FC = () => {
                       disabled={batchDeleteDisabled}
                     >
                       <Button
-                        status={batchDeleteDisabled ? undefined : 'danger'}
+                        status="danger"
                         icon={<IconDelete />}
                         disabled={batchDeleteDisabled}
                       >

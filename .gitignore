@@ -57,6 +57,7 @@ test-results/
 .codex_i18n_schema.go
 frontend/tmp-icon-audit.cjs
 frontend/tmp-icon-audit.js
+.foundation/
 backend/cmd/server/uploads/
 backend/uploads/
 uploads/

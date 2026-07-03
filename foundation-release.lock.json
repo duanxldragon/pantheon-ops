@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "baseRepo": "../pantheon-base",
+  "baseRepo": "pantheon-base",
   "sourceRepo": "pantheon-base",
   "consumerMode": "foundation-release-consumer",
   "releaseLine": "release/0.8",
-  "releaseVersion": "base-v0.8.6",
-  "releaseDisplayName": "v0.8.6",
-  "baseCommit": "dec10461ecc8d9ed1422ea1538dd6872b2a13283",
+  "releaseVersion": "base-v0.8.10",
+  "releaseDisplayName": "v0.8.10",
+  "baseCommit": "1777a8585e12f9fec39f23d10b15c578479e09cb",
   "releaseArtifact": {
     "githubRepo": "duanxldragon/pantheon-base",
-    "tagName": "base-v0.8.6",
-    "releaseName": "v0.8.6",
-    "assetName": "foundation-release-base-v0.8.6.tgz",
-    "localPath": ".foundation/releases/base-v0.8.6"
+    "tagName": "base-v0.8.10",
+    "releaseName": "v0.8.10",
+    "assetName": "foundation-release-base-v0.8.10.tgz",
+    "localPath": ".foundation/releases/base-v0.8.10"
   },
   "sharedPaths": {
     "backend": [
@@ -36,6 +36,6 @@
       "docs/designs/WORKFLOW.md"
     ]
   },
-  "lockedAt": "2026-06-28T04:45:00.000Z",
-  "lockedBy": "upgrade/base-v0.8.6"
+  "lockedAt": "2026-07-03T14:24:36.617Z",
+  "lockedBy": "consume-foundation-release"
 }

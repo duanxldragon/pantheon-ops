@@ -46,24 +46,58 @@ function createSharedFrontendTree(rootPath, contents) {
   writeText(path.join(rootPath, 'frontend', 'src', 'index.css'), contents.indexCss);
 }
 
-function runSync(scriptPath, cwd, baseRepoRoot, args = []) {
+function createReleaseCache(rootPath, contents, releaseVersion = 'base-v0.8.0') {
+  const releaseRoot = path.join(rootPath, '.foundation', 'releases', releaseVersion);
+  writeText(path.join(rootPath, 'go.mod'), 'module pantheon-ops\n\ngo 1.24.0\n');
+  writeText(path.join(releaseRoot, 'go.mod'), 'module pantheon-platform\n\ngo 1.24.0\n');
+  createSharedFrontendTree(path.join(releaseRoot, 'bundle', 'shared-frontend'), contents);
+  writeText(path.join(releaseRoot, 'manifest.json'), JSON.stringify({
+    releaseVersion,
+    releaseLine: 'release/0.8',
+    baseCommit: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+    sourceRepo: 'pantheon-base',
+    consumerMode: 'foundation-release-consumer',
+    releaseArtifact: {
+      assetName: `foundation-release-${releaseVersion}.tgz`,
+    },
+  }, null, 2));
+  writeText(path.join(rootPath, 'foundation-release.lock.json'), JSON.stringify({
+    schemaVersion: 1,
+    baseRepo: 'pantheon-base',
+    sourceRepo: 'pantheon-base',
+    consumerMode: 'foundation-release-consumer',
+    releaseLine: 'release/0.8',
+    releaseVersion,
+    releaseDisplayName: 'v0.8.0',
+    baseCommit: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+    releaseArtifact: {
+      githubRepo: 'duanxldragon/pantheon-base',
+      tagName: releaseVersion,
+      releaseName: 'v0.8.0',
+      assetName: `foundation-release-${releaseVersion}.tgz`,
+      localPath: `.foundation/releases/${releaseVersion}`,
+    },
+    sharedPaths: {
+      frontend: ['frontend/src/components'],
+    },
+    lockedAt: '2026-07-03T00:00:00.000Z',
+    lockedBy: 'consume-foundation-release',
+  }, null, 2));
+}
+
+function runSync(scriptPath, cwd, args = []) {
   return spawnSync(process.execPath, [scriptPath, ...args], {
     cwd,
     encoding: 'utf8',
-    env: {
-      ...process.env,
-      PANTHEON_BASE_REPO_ROOT: baseRepoRoot,
-    },
   });
 }
 
-test('sync-base-shared respects PANTHEON_BASE_REPO_ROOT and the current ops worktree path', () => {
+test('sync-base-shared uses the local release cache and the current ops worktree path', () => {
   withTempDir((root) => {
-    const baseRoot = path.join(root, 'pantheon-base-fixture');
     const opsRoot = path.join(root, 'ops-worktree-fixture');
     const syncScriptPath = copyFixtureScripts(opsRoot);
 
-    createSharedFrontendTree(baseRoot, {
+    createReleaseCache(opsRoot, {
       components: 'export const baseComponent = true;\n',
       core: 'export const baseCore = true;\n',
       store: 'export const baseStore = true;\n',
@@ -84,7 +118,7 @@ test('sync-base-shared respects PANTHEON_BASE_REPO_ROOT and the current ops work
       indexCss: 'body { color: red; }\n',
     });
 
-    const applyResult = runSync(syncScriptPath, opsRoot, baseRoot);
+    const applyResult = runSync(syncScriptPath, opsRoot);
     assert.equal(applyResult.status, 0, applyResult.stderr || applyResult.stdout || applyResult.error?.message);
 
     assert.equal(
@@ -104,7 +138,7 @@ test('sync-base-shared respects PANTHEON_BASE_REPO_ROOT and the current ops work
       'body { color: black; }\n',
     );
 
-    const checkResult = runSync(syncScriptPath, opsRoot, baseRoot, ['--check']);
+    const checkResult = runSync(syncScriptPath, opsRoot, ['--check']);
     assert.equal(checkResult.status, 0, checkResult.stderr || checkResult.stdout || checkResult.error?.message);
     assert.match(checkResult.stdout, /OK shared frontend is aligned with pantheon-base/);
   });

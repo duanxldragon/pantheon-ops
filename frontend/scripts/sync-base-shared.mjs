@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
   allowedFrontendOpsOnlyPaths,
@@ -14,28 +15,72 @@ import {
 const currentFilePath = fileURLToPath(import.meta.url);
 const scriptsDir = path.dirname(currentFilePath);
 const opsFrontendRoot = path.resolve(scriptsDir, '..');
-const workspaceRoot = path.resolve(opsFrontendRoot, '..', '..');
-const baseRepoRoot = process.env.PANTHEON_BASE_REPO_ROOT
-  ? path.resolve(process.env.PANTHEON_BASE_REPO_ROOT)
-  : path.join(workspaceRoot, 'pantheon-base');
-const baseSrcRoot = path.join(baseRepoRoot, 'frontend', 'src');
-
-// In CI, pantheon-base may not be checked out as a sibling directory.
-if (!fs.existsSync(baseSrcRoot)) {
-  console.warn('[sync-base-shared] pantheon-base not found at', baseSrcRoot);
-  console.warn('[sync-base-shared] skipping base sync check (running in CI without base repo)');
-  process.exit(0);
-}
+const opsRoot = path.resolve(opsFrontendRoot, '..');
+const releaseLockPath = path.join(opsRoot, 'foundation-release.lock.json');
 
 const opsSrcRoot = path.join(opsFrontendRoot, 'src');
+const frontendWorktreeRoots = [
+  'frontend/src/components',
+  'frontend/src/core',
+  'frontend/src/store',
+  'frontend/src/modules/auth',
+  'frontend/src/modules/lowcode',
+  'frontend/src/modules/platform',
+  'frontend/src/modules/system',
+  'frontend/src/index.css',
+];
 
 const checkMode = process.argv.includes('--check');
+
+function readJson(filePath, description) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      throw new Error(`${description} not found: ${filePath}`);
+    }
+    throw new Error(`${description} is invalid JSON: ${error.message}`);
+  }
+}
+
+function resolveCachedReleaseFrontendRoot() {
+  const releaseLock = readJson(releaseLockPath, 'foundation release lock');
+  const localPath = releaseLock.releaseArtifact?.localPath;
+  if (typeof localPath !== 'string' || localPath.length === 0) {
+    throw new Error('foundation-release.lock.json: releaseArtifact.localPath must be set');
+  }
+
+  const releaseRoot = path.resolve(opsRoot, localPath);
+  const baseSrcRoot = path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src');
+  if (!fs.existsSync(baseSrcRoot)) {
+    throw new Error(`cached foundation release frontend root not found: ${baseSrcRoot}`);
+  }
+
+  return {
+    releaseLock,
+    baseSrcRoot,
+  };
+}
 
 function readFile(filePath) {
   return fs.readFileSync(filePath, 'utf8');
 }
 
-function collectSharedBaseFiles() {
+function listGitUntrackedPaths(roots) {
+  const result = spawnSync('git', ['ls-files', '--others', '--exclude-standard', '--', ...roots], {
+    cwd: opsRoot,
+    encoding: 'utf8',
+  });
+  if (result.status !== 0) {
+    throw new Error(result.stderr || result.stdout || 'failed to list untracked frontend files');
+  }
+  return result.stdout
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function collectSharedBaseFiles(baseSrcRoot) {
   const files = [];
   for (const entry of sharedFrontendEntries) {
     const absolutePath = path.join(baseSrcRoot, entry);
@@ -49,7 +94,7 @@ function collectSharedBaseFiles() {
   return files.sort((a, b) => a.localeCompare(b));
 }
 
-function collectSharedOpsOnlyFiles() {
+function collectSharedOpsOnlyFiles(baseSrcRoot) {
   const extraFiles = [];
   for (const entry of sharedFrontendEntries) {
     const absolutePath = path.join(opsSrcRoot, entry);
@@ -75,10 +120,12 @@ function collectSharedOpsOnlyFiles() {
 }
 
 function main() {
-  const sharedFiles = collectSharedBaseFiles();
+  const { baseSrcRoot } = resolveCachedReleaseFrontendRoot();
+  const sharedFiles = collectSharedBaseFiles(baseSrcRoot);
   const changedFiles = [];
   const driftFiles = [];
   const missingFiles = [];
+  const untrackedFiles = [];
 
   for (const relativePath of sharedFiles) {
     if (frontendOverlayPaths.has(relativePath)) {
@@ -113,10 +160,20 @@ function main() {
     changedFiles.push(relativePath);
   }
 
-  const opsOnlyFiles = collectSharedOpsOnlyFiles();
+  const opsOnlyFiles = collectSharedOpsOnlyFiles(baseSrcRoot);
+  for (const relativePath of listGitUntrackedPaths(frontendWorktreeRoots)) {
+    if (frontendOverlayPaths.has(relativePath) || allowedFrontendOpsOnlyPaths.has(relativePath)) {
+      continue;
+    }
+    if (!sharedFiles.includes(relativePath)) {
+      untrackedFiles.push(relativePath);
+      continue;
+    }
+    untrackedFiles.push(relativePath);
+  }
 
   if (checkMode) {
-    if (missingFiles.length === 0 && driftFiles.length === 0 && opsOnlyFiles.length === 0) {
+    if (missingFiles.length === 0 && driftFiles.length === 0 && opsOnlyFiles.length === 0 && untrackedFiles.length === 0) {
       console.log('OK shared frontend is aligned with pantheon-base');
       return;
     }
@@ -130,6 +187,9 @@ function main() {
     }
     for (const relativePath of opsOnlyFiles) {
       console.error(`OPS_ONLY ${relativePath}`);
+    }
+    for (const relativePath of untrackedFiles) {
+      console.error(`UNTRACKED ${relativePath}`);
     }
     process.exit(1);
   }

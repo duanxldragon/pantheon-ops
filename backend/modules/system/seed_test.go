@@ -440,3 +440,136 @@ func assertAdminPermissionBound(t *testing.T, db *gorm.DB, perms string) {
 		t.Fatalf("expected admin action permission %s to be excluded from navigation menu bindings, got %d", perms, count)
 	}
 }
+
+func TestCleanupDuplicateMenusRemovesDuplicatesByPath(t *testing.T) {
+	db := testmysql.Open(t)
+	if err := createSeedTestTables(db); err != nil {
+		t.Fatalf("create tables: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
+		t.Fatalf("seed admin role: %v", err)
+	}
+
+	// Insert duplicate menus with same path
+	if err := db.Exec(`
+INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
+VALUES
+(500, 0, 'system.menu.lowcode', '/system/lowcode', '', '', '', 'M', 'code', 'system-lowcode', 'system.lowcode', 45, 1, 0, 0, '', 0),
+(501, 0, 'system.menu.lowcode', '/system/lowcode', '', '', '', 'M', 'code', 'system-lowcode', 'system.lowcode', 45, 1, 0, 0, '', 0),
+(502, 0, 'system.menu.lowcode', '/system/lowcode', '', '', '', 'M', 'code', 'system-lowcode', 'system.lowcode', 45, 1, 0, 0, '', 0)
+`).Error; err != nil {
+		t.Fatalf("seed duplicate menus: %v", err)
+	}
+
+	// Run cleanup
+	if err := cleanupDuplicateMenus(db); err != nil {
+		t.Fatalf("cleanup duplicate menus: %v", err)
+	}
+
+	// Should only have 1 menu with path /system/lowcode
+	var count int64
+	if err := db.Table("system_menu").Where("path = ?", "/system/lowcode").Count(&count).Error; err != nil {
+		t.Fatalf("count menus: %v", err)
+	}
+	if count != 1 {
+		t.Fatalf("expected 1 menu after cleanup, got %d", count)
+	}
+
+	// Should keep the smallest id (500)
+	var keepID int64
+	if err := db.Table("system_menu").Where("path = ?", "/system/lowcode").Pluck("id", &keepID).Error; err != nil {
+		t.Fatalf("get menu id: %v", err)
+	}
+	if keepID != 500 {
+		t.Fatalf("expected smallest id 500 to be kept, got %d", keepID)
+	}
+}
+
+func TestCleanupDuplicateMenusRemovesDuplicatesByPerms(t *testing.T) {
+	db := testmysql.Open(t)
+	if err := createSeedTestTables(db); err != nil {
+		t.Fatalf("create tables: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
+		t.Fatalf("seed admin role: %v", err)
+	}
+
+	// Insert parent menu first
+	if err := db.Exec(`
+INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
+VALUES
+(600, 0, 'system.menu.user', '/system/user', 'system/user/UserList', 'system:user:list', '', 'C', 'user', 'system-user', 'system.iam', 10, 1, 0, 0, '', 0)
+`).Error; err != nil {
+		t.Fatalf("seed parent menu: %v", err)
+	}
+
+	// Insert duplicate menus with same perms (no path)
+	if err := db.Exec(`
+INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
+VALUES
+(601, 600, 'system.permission.user.view', '', '', '', 'system:user:view', 'F', '', '', 'system.iam', 1, 1, 0, 0, '', 0),
+(602, 600, 'system.permission.user.view', '', '', '', 'system:user:view', 'F', '', '', 'system.iam', 1, 1, 0, 0, '', 0)
+`).Error; err != nil {
+		t.Fatalf("seed duplicate permission menus: %v", err)
+	}
+
+	// Run cleanup
+	if err := cleanupDuplicateMenus(db); err != nil {
+		t.Fatalf("cleanup duplicate menus: %v", err)
+	}
+
+	// Should only have 1 menu with perms system:user:view
+	var count int64
+	if err := db.Table("system_menu").Where("perms = ?", "system:user:view").Count(&count).Error; err != nil {
+		t.Fatalf("count menus: %v", err)
+	}
+	if count != 1 {
+		t.Fatalf("expected 1 menu after cleanup, got %d", count)
+	}
+
+	// Should keep the smallest id (601)
+	var keepID int64
+	if err := db.Table("system_menu").Where("perms = ?", "system:user:view").Pluck("id", &keepID).Error; err != nil {
+		t.Fatalf("get menu id: %v", err)
+	}
+	if keepID != 601 {
+		t.Fatalf("expected smallest id 601 to be kept, got %d", keepID)
+	}
+}
+
+func TestCleanupDuplicateMenusIsIdempotent(t *testing.T) {
+	db := testmysql.Open(t)
+	if err := createSeedTestTables(db); err != nil {
+		t.Fatalf("create tables: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
+		t.Fatalf("seed admin role: %v", err)
+	}
+
+	// Insert unique menus (no duplicates)
+	if err := db.Exec(`
+INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
+VALUES
+(700, 0, 'system.menu.config', '/system/config', '', '', '', 'M', 'settings', 'system-config', 'system.config', 50, 1, 0, 0, '', 0),
+(701, 0, 'system.menu.dict', '/system/dict', 'system/dict/DictPage', 'system:dict:list', '', 'C', 'list', 'system-dict', 'system.config', 10, 1, 1, 0, '', 0)
+`).Error; err != nil {
+		t.Fatalf("seed menus: %v", err)
+	}
+
+	// Run cleanup twice
+	if err := cleanupDuplicateMenus(db); err != nil {
+		t.Fatalf("first cleanup: %v", err)
+	}
+	if err := cleanupDuplicateMenus(db); err != nil {
+		t.Fatalf("second cleanup: %v", err)
+	}
+
+	// Should still have 2 menus
+	var count int64
+	if err := db.Table("system_menu").Count(&count).Error; err != nil {
+		t.Fatalf("count menus: %v", err)
+	}
+	if count != 2 {
+		t.Fatalf("expected 2 menus after idempotent cleanup, got %d", count)
+	}
+}

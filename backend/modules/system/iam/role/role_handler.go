@@ -70,6 +70,40 @@ func (h *RoleHandler) ExportRoles(c *gin.Context) {
 	}
 }
 
+func (h *RoleHandler) DownloadImportTemplate(c *gin.Context) {
+	file := h.service.BuildRoleImportTemplate()
+	if err := impexp.WriteCSV(c, *file); err != nil {
+		common.Fail(c, common.CodeError, "role.import.template.error")
+	}
+}
+
+func (h *RoleHandler) ImportRoles(c *gin.Context) {
+	common.SetAuditMetadata(c, "导入角色", common.BusinessImport)
+
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, "import.file.required")
+		return
+	}
+	file, err := fileHeader.Open()
+	if err != nil {
+		common.Fail(c, common.CodeError, "import.file.read.error")
+		return
+	}
+	records, err := impexp.ReadCSV(file)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, "import.file.invalid_csv")
+		return
+	}
+
+	result, err := h.service.ImportRoles(records)
+	if err != nil {
+		common.Fail(c, common.CodeError, "role.import.error")
+		return
+	}
+	common.Success(c, result)
+}
+
 // UpdateRole 更新角色。
 func (h *RoleHandler) UpdateRole(c *gin.Context) {
 	common.SetAuditMetadata(c, "role.update.title", common.BusinessUpdate)

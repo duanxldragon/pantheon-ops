@@ -41,9 +41,11 @@ function createFixture(root) {
   const manifestPath = path.join(bundleRoot, 'manifest.json');
   const bundlePath = path.join(bundleRoot, 'bundle');
   const opsRoot = path.join(root, 'pantheon-ops');
+  const releaseVersion = 'base-v0.8.0';
+  const releaseRoot = path.join(opsRoot, '.foundation', 'releases', releaseVersion);
 
   writeJson(manifestPath, {
-    releaseVersion: 'base-v0.8.0',
+    releaseVersion,
     releaseLine: 'release/0.8',
     baseCommit: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
     sourceRepo: 'pantheon-base',
@@ -52,13 +54,55 @@ function createFixture(root) {
       backend: ['backend/pkg'],
     },
   });
+  writeJson(path.join(releaseRoot, 'manifest.json'), {
+    releaseVersion,
+    releaseLine: 'release/0.8',
+    baseCommit: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+    sourceRepo: 'pantheon-base',
+    consumerMode: 'foundation-release-consumer',
+    releaseArtifact: {
+      assetName: 'foundation-release-base-v0.8.0.tgz',
+    },
+    sharedPaths: {
+      backend: ['backend/pkg'],
+    },
+  });
+  writeText(path.join(releaseRoot, 'go.mod'), 'module pantheon-platform\n\ngo 1.24.0\n');
+  writeText(path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'components', 'index.ts'), 'export const baseComponent = true;\n');
+  writeText(path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'core', 'layout.ts'), 'export const baseCore = true;\n');
+  writeText(path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'store', 'useStore.ts'), 'export const baseStore = true;\n');
+  writeText(path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'modules', 'auth', 'index.ts'), 'export const baseAuth = true;\n');
+  writeText(path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'modules', 'lowcode', 'index.ts'), 'export const baseLowcode = true;\n');
+  writeText(path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'modules', 'platform', 'index.ts'), 'export const basePlatform = true;\n');
+  writeText(path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'modules', 'system', 'index.ts'), 'export const baseSystem = true;\n');
+  writeText(path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'index.css'), 'body { color: black; }\n');
+  writeText(path.join(opsRoot, 'frontend', 'src', 'components', 'index.ts'), 'export const baseComponent = true;\n');
+  writeText(path.join(opsRoot, 'frontend', 'src', 'core', 'layout.ts'), 'export const baseCore = true;\n');
+  writeText(path.join(opsRoot, 'frontend', 'src', 'store', 'useStore.ts'), 'export const baseStore = true;\n');
+  writeText(path.join(opsRoot, 'frontend', 'src', 'modules', 'auth', 'index.ts'), 'export const baseAuth = true;\n');
+  writeText(path.join(opsRoot, 'frontend', 'src', 'modules', 'lowcode', 'index.ts'), 'export const baseLowcode = true;\n');
+  writeText(path.join(opsRoot, 'frontend', 'src', 'modules', 'platform', 'index.ts'), 'export const basePlatform = true;\n');
+  writeText(path.join(opsRoot, 'frontend', 'src', 'modules', 'system', 'index.ts'), 'export const baseSystem = true;\n');
+  writeText(path.join(opsRoot, 'frontend', 'src', 'index.css'), 'body { color: black; }\n');
   writeJson(path.join(bundlePath, 'manifest.paths.json'), {
-    releaseVersion: 'base-v0.8.0',
+    releaseVersion,
     backend: [{ source: 'backend/pkg', target: 'backend/pkg' }],
     frontend: [],
     docs: [],
   });
-  writeText(path.join(opsRoot, 'go.mod'), 'module pantheon-ops\n\ngo 1.24.0\n');
+  writeText(
+    path.join(releaseRoot, 'bundle', 'shared-backend', 'backend', 'pkg', 'service.go'),
+    [
+      'package pkg',
+      '',
+      'import "pantheon-platform/backend/internal/middleware"',
+      '',
+      'func Use() {',
+      '\t_ = middleware.WithOperationLog',
+      '}',
+      '',
+    ].join('\n'),
+  );
   writeText(
     path.join(bundlePath, 'shared-backend', 'backend', 'pkg', 'service.go'),
     [
@@ -72,14 +116,28 @@ function createFixture(root) {
       '',
     ].join('\n'),
   );
+  writeText(path.join(opsRoot, 'go.mod'), 'module pantheon-ops\n\ngo 1.24.0\n');
+  writeText(
+    path.join(opsRoot, 'backend', 'pkg', 'service.go'),
+    [
+      'package pkg',
+      '',
+      'import "pantheon-ops/backend/internal/middleware"',
+      '',
+      'func Use() {',
+      '\t_ = middleware.WithOperationLog',
+      '}',
+      '',
+    ].join('\n'),
+  );
 
   writeText(
     path.join(opsRoot, 'docs', 'PROJECT_INHERITANCE.md'),
     [
       '# 项目继承说明',
       '',
-      '- Base repository：当前继承源是 `../pantheon-base`',
-      '- Base branch：当前跟随 `main`',
+      '- Base repository：当前继承源是 `pantheon-base`',
+      '- Base release line：当前跟随 `release/0.8`',
       '- Base version：当前锁定到 `old`（`old`）',
       '- Inheritance mode：`foundation-only`',
       '',
@@ -90,13 +148,35 @@ function createFixture(root) {
     [
       '# Project Inheritance',
       '',
-      '- Base repository: `../pantheon-base`',
-      '- Base branch: `main`',
+      '- Base repository: `pantheon-base`',
+      '- Base release line: `release/0.8`',
       '- Base version: `old` (`old`)',
       '- Inheritance mode: `foundation-only`',
       '',
     ].join('\n'),
   );
+  writeJson(path.join(opsRoot, 'foundation-release.lock.json'), {
+    schemaVersion: 1,
+    baseRepo: 'pantheon-base',
+    sourceRepo: 'pantheon-base',
+    consumerMode: 'foundation-release-consumer',
+    releaseLine: 'release/0.8',
+    releaseVersion,
+    releaseDisplayName: 'v0.8.0',
+    baseCommit: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+    releaseArtifact: {
+      githubRepo: 'duanxldragon/pantheon-base',
+      tagName: releaseVersion,
+      releaseName: 'v0.8.0',
+      assetName: 'foundation-release-base-v0.8.0.tgz',
+      localPath: `.foundation/releases/${releaseVersion}`,
+    },
+    sharedPaths: {
+      backend: ['backend/pkg'],
+    },
+    lockedAt: '2026-07-03T00:00:00.000Z',
+    lockedBy: 'consume-foundation-release',
+  });
   writeText(
     path.join(opsRoot, 'scripts', 'check-inheritance-contract.mjs'),
     "console.log('OK inheritance contract');\n",
@@ -166,6 +246,8 @@ test('apply mode updates inheritance anchors in both Chinese and English docs', 
     assert.equal(releaseLock.releaseDisplayName, 'v0.8.0');
     assert.equal(releaseLock.releaseArtifact.tagName, 'base-v0.8.0');
     assert.equal(releaseLock.releaseArtifact.releaseName, 'v0.8.0');
+    assert.equal(releaseLock.releaseArtifact.localPath, '.foundation/releases/base-v0.8.0');
+    assert.equal(releaseLock.baseRepo, 'pantheon-base');
   });
 });
 
@@ -173,7 +255,7 @@ test('apply mode preserves existing release artifact defaults from the current l
   withTempDir((root) => {
     const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
     writeJson(path.join(opsRoot, 'foundation-release.lock.json'), {
-      baseRepo: '../pantheon-base',
+      baseRepo: 'pantheon-base',
       releaseArtifact: {
         githubRepo: 'custom/pantheon-base',
         localPath: '.foundation/custom/base-v0.8.0',
@@ -222,6 +304,31 @@ test('apply mode copies shared backend files from the bundle into ops', () => {
     const serviceSource = fs.readFileSync(path.join(opsRoot, 'backend', 'pkg', 'service.go'), 'utf8');
     assert.match(serviceSource, /pantheon-ops\/backend\/internal\/middleware/);
     assert.doesNotMatch(serviceSource, /pantheon-platform\/backend\/internal\/middleware/);
+  });
+});
+
+test('release-version mode reads the cached release without explicit manifest and bundle paths', () => {
+  withTempDir((root) => {
+    const { opsRoot } = createFixture(root);
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--release-version',
+        'base-v0.8.0',
+        '--update-inheritance-docs',
+        '--apply-shared-backend',
+        '--apply-shared-frontend',
+        '--check',
+      ],
+      repoRoot,
+    );
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+    assert.match(result.stdout, /Target foundation release: base-v0\.8\.0/);
+    assert.match(result.stdout, /Cached release root:/);
+    assert.equal(fs.existsSync(path.join(opsRoot, 'backend', 'pkg', 'service.go')), true);
+    assert.equal(fs.existsSync(path.join(opsRoot, 'frontend', 'src', 'components', 'index.ts')), true);
   });
 });
 

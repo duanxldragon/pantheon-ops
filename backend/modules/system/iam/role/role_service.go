@@ -18,6 +18,19 @@ type RoleService struct {
 
 const deletedRoleKeyPrefix = "__deleted_role_"
 
+// roleDataScopePolicy mirrors PermissionRoleDataScopePolicy to avoid cross-directory import.
+// Table name: system_role_data_scope
+type roleDataScopePolicy struct {
+	ID      uint64 `gorm:"primaryKey;autoIncrement"`
+	RoleKey string `gorm:"size:64;not null;uniqueIndex"`
+	Mode    string `gorm:"size:32;not null;default:'all'"`
+	DeptIDs string `gorm:"type:text"`
+}
+
+func (roleDataScopePolicy) TableName() string {
+	return "system_role_data_scope"
+}
+
 func NewRoleService(db *gorm.DB) *RoleService {
 	return &RoleService{db: db}
 }
@@ -26,7 +39,7 @@ func (s *RoleService) Migrate() error {
 	if s.db == nil {
 		return common.NewBadRequest("database.not_initialized")
 	}
-	if err := s.db.AutoMigrate(&SystemRole{}, &SystemRolePermission{}, &SystemRoleMenu{}); err != nil {
+	if err := s.db.AutoMigrate(&SystemRole{}, &SystemRolePermission{}, &SystemRoleMenu{}, &roleDataScopePolicy{}); err != nil {
 		return err
 	}
 	return s.Bootstrap()
@@ -102,6 +115,7 @@ func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error)
 	if err != nil {
 		return nil, err
 	}
+	roleDataScopes := s.loadRoleDataScopes(roleIDs)
 
 	items := make([]RoleListResp, 0, len(roles))
 	for _, item := range roles {
@@ -114,6 +128,7 @@ func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error)
 			CreatedAt:      item.CreatedAt.Format(time.RFC3339),
 			MenuIDs:        roleMenus[item.ID],
 			PermissionKeys: rolePermissions[item.ID],
+			DataScope:      roleDataScopes[item.ID],
 		})
 	}
 
@@ -249,6 +264,7 @@ func (s *RoleService) CreateRole(req *RoleCreateReq) (*RoleListResp, error) {
 	}
 	menuIDs := normalizeUint64IDs(req.MenuIDs)
 	permissionKeys := normalizePermissionKeys(req.PermissionKeys)
+	dataScope := normalizeRoleDataScope(req.DataScope)
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&role).Error; err != nil {
@@ -257,7 +273,13 @@ func (s *RoleService) CreateRole(req *RoleCreateReq) (*RoleListResp, error) {
 		if err := s.replaceRoleMenus(tx, role.ID, menuIDs); err != nil {
 			return err
 		}
-		return s.replaceRolePermissions(tx, role.ID, permissionKeys)
+		if err := s.replaceRolePermissions(tx, role.ID, permissionKeys); err != nil {
+			return err
+		}
+		if err := s.upsertRoleDataScopePolicy(tx, role.RoleKey, dataScope); err != nil {
+			return err
+		}
+		return nil
 	}); err != nil {
 		return nil, err
 	}
@@ -271,6 +293,7 @@ func (s *RoleService) CreateRole(req *RoleCreateReq) (*RoleListResp, error) {
 		CreatedAt:      role.CreatedAt.Format(time.RFC3339),
 		MenuIDs:        menuIDs,
 		PermissionKeys: permissionKeys,
+		DataScope:      dataScope,
 	}, nil
 }
 
@@ -294,6 +317,7 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 	role.Status = normalizeRoleStatus(req.Status)
 	menuIDs := normalizeUint64IDs(req.MenuIDs)
 	permissionKeys := normalizePermissionKeys(req.PermissionKeys)
+	dataScope := normalizeRoleDataScope(req.DataScope)
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(&role).Error; err != nil {
@@ -302,7 +326,13 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 		if err := s.replaceRoleMenus(tx, role.ID, menuIDs); err != nil {
 			return err
 		}
-		return s.replaceRolePermissions(tx, role.ID, permissionKeys)
+		if err := s.replaceRolePermissions(tx, role.ID, permissionKeys); err != nil {
+			return err
+		}
+		if err := s.upsertRoleDataScopePolicy(tx, role.RoleKey, dataScope); err != nil {
+			return err
+		}
+		return nil
 	}); err != nil {
 		return nil, err
 	}
@@ -316,6 +346,7 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 		CreatedAt:      role.CreatedAt.Format(time.RFC3339),
 		MenuIDs:        menuIDs,
 		PermissionKeys: permissionKeys,
+		DataScope:      dataScope,
 	}, nil
 }
 
@@ -532,4 +563,89 @@ func (s *RoleService) listUsersByRoleMembership(roleID uint64, query *RoleMember
 		Page:     page,
 		PageSize: pageSize,
 	}, nil
+}
+
+// upsertRoleDataScopePolicy creates or updates a data scope policy for a role.
+func (s *RoleService) upsertRoleDataScopePolicy(tx *gorm.DB, roleKey string, mode string) error {
+	mode = normalizeRoleDataScope(mode)
+	if !isValidRoleDataScopeMode(mode) {
+		return common.NewBadRequest("permission.data_scope.mode_invalid")
+	}
+
+	policy := roleDataScopePolicy{
+		RoleKey: roleKey,
+		Mode:    mode,
+		DeptIDs: "",
+	}
+	return tx.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "role_key"}},
+		DoUpdates: clause.AssignmentColumns([]string{"mode", "dept_ids"}),
+	}).Create(&policy).Error
+}
+
+// loadRoleDataScopes loads data scope policies for a list of role IDs.
+func (s *RoleService) loadRoleDataScopes(roleIDs []uint64) map[uint64]string {
+	result := make(map[uint64]string, len(roleIDs))
+	for _, id := range roleIDs {
+		result[id] = common.DataScopeModeAll
+	}
+	if len(roleIDs) == 0 {
+		return result
+	}
+	if !s.db.Migrator().HasTable(&roleDataScopePolicy{}) {
+		return result
+	}
+
+	var roleRows []struct {
+		ID      uint64 `gorm:"column:id"`
+		RoleKey string `gorm:"column:role_key"`
+	}
+	if err := s.db.Table("system_role").
+		Select("id, role_key").
+		Where("id IN ?", roleIDs).
+		Scan(&roleRows).Error; err != nil {
+		return result
+	}
+
+	roleKeys := make([]string, 0, len(roleRows))
+	roleKeyToID := make(map[string]uint64, len(roleRows))
+	for _, row := range roleRows {
+		roleKeys = append(roleKeys, row.RoleKey)
+		roleKeyToID[row.RoleKey] = row.ID
+	}
+
+	if len(roleKeys) == 0 {
+		return result
+	}
+
+	var policies []roleDataScopePolicy
+	if err := s.db.Where("role_key IN ?", roleKeys).Find(&policies).Error; err != nil {
+		return result
+	}
+	for _, policy := range policies {
+		if roleID, ok := roleKeyToID[policy.RoleKey]; ok {
+			result[roleID] = policy.Mode
+		}
+	}
+	return result
+}
+
+// normalizeRoleDataScope normalizes and validates a data scope mode string.
+func normalizeRoleDataScope(dataScope string) string {
+	mode := strings.TrimSpace(strings.ToLower(dataScope))
+	switch mode {
+	case common.DataScopeModeSelf, common.DataScopeModeDept, common.DataScopeModeDeptAndChildren, common.DataScopeModeCustom:
+		return mode
+	default:
+		return common.DataScopeModeAll
+	}
+}
+
+func isValidRoleDataScopeMode(mode string) bool {
+	switch mode {
+	case common.DataScopeModeAll, common.DataScopeModeSelf, common.DataScopeModeDept, common.DataScopeModeDeptAndChildren, common.DataScopeModeCustom:
+		return true
+	default:
+		return false
+	}
 }

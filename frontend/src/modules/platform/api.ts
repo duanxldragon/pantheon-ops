@@ -14,6 +14,8 @@ export interface DashboardRecentLogin {
 export interface DashboardTodoItem {
   taskKey: string;
   domain: string;
+  issue: string;
+  action: string;
   scopeLabel: string;
   issueLabel: string;
   actionLabel: string;

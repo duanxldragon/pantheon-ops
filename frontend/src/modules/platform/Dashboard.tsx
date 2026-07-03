@@ -20,7 +20,12 @@ import { renderMenuIcon } from '../../core/menu/icon';
 import { resolveRouteWarmData } from '../../core/router/prefetch';
 import { usePermission } from '../../hooks/usePermission';
 import { useMenuStore } from '../../store/useMenuStore';
-import { getDashboardSummary, type DashboardRecentLogin, type DashboardSummary } from './api';
+import {
+  getDashboardSummary,
+  type DashboardRecentLogin,
+  type DashboardSummary,
+  type DashboardTodoItem,
+} from './api';
 import {
   dashboardDomainOverviewWidgets,
   dashboardQuickActionWidgets,
@@ -30,6 +35,147 @@ import './dashboard.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
+const QUICK_ACTION_LIMIT = 6;
+const QUICK_ACTION_PRIORITY = [
+  'platform.users',
+  'platform.roles',
+  'platform.permission',
+  'platform.menus',
+  'platform.setting',
+  'platform.security',
+  'platform.dict',
+  'platform.post',
+  'platform.login-log',
+  'platform.session',
+  'platform.security-event',
+  'platform.audit',
+  'platform.i18n',
+  'platform.module-manager',
+  'platform.generator',
+];
+const DOMAIN_CARD_PRIORITY = [
+  'platform.domain.access',
+  'platform.domain.org',
+  'platform.domain.config',
+  'platform.domain.security',
+  'platform.domain.lowcode',
+  'platform.domain.governance',
+];
+const TODO_SCOPE_ALIASES: Record<string, 'dept' | 'post'> = {
+  dept: 'dept',
+  department: 'dept',
+  部门: 'dept',
+  post: 'post',
+  岗位: 'post',
+};
+const TODO_ISSUE_ALIASES: Record<string, string> = {
+  'clean': 'clean',
+  'healthy': 'clean',
+  '治理正常': 'clean',
+  'leaderless': 'leaderless',
+  'leader missing': 'leaderless',
+  '缺负责人部门': 'leaderless',
+  '缺负责人': 'leaderless',
+  'no-post': 'no-post',
+  'no posts': 'no-post',
+  '无岗位部门': 'no-post',
+  '无岗位': 'no-post',
+  'empty': 'empty',
+  'empty department': 'empty',
+  '空部门': 'empty',
+  'in-use': 'in-use',
+  'assigned members': 'in-use',
+  '在用岗位': 'in-use',
+  'disabled': 'disabled',
+  'disabled posts': 'disabled',
+  '已禁用岗位': 'disabled',
+};
+const TODO_ACTION_ALIASES: Record<string, string> = {
+  'assign-leader': 'assign-leader',
+  'assign leader': 'assign-leader',
+  '补负责人': 'assign-leader',
+  'create-post': 'create-post',
+  'create post': 'create-post',
+  '补岗位': 'create-post',
+  'review-merge-or-delete': 'review-merge-or-delete',
+  'review merge or delete': 'review-merge-or-delete',
+  '评估合并或删除': 'review-merge-or-delete',
+  'clear-child-depts': 'clear-child-depts',
+  'clear child departments': 'clear-child-depts',
+  '清理下级部门': 'clear-child-depts',
+  'clear-posts': 'clear-posts',
+  'clear posts': 'clear-posts',
+  '清理岗位': 'clear-posts',
+  'clear-users': 'clear-users',
+  'clear users': 'clear-users',
+  '迁移成员': 'clear-users',
+  'reassign-users': 'reassign-users',
+  'reassign users': 'reassign-users',
+  '调整岗位成员': 'reassign-users',
+  'review-status': 'review-status',
+  'review status': 'review-status',
+  '复核岗位状态': 'review-status',
+  'delete-or-keep-disabled': 'delete-or-keep-disabled',
+  'delete or keep disabled': 'delete-or-keep-disabled',
+  '删除或保留停用岗位': 'delete-or-keep-disabled',
+};
+
+function compareByPriority(leftKey: string, rightKey: string, priority: string[]) {
+  const leftIndex = priority.indexOf(leftKey);
+  const rightIndex = priority.indexOf(rightKey);
+
+  if (leftIndex === -1 && rightIndex === -1) {
+    return leftKey.localeCompare(rightKey);
+  }
+  if (leftIndex === -1) {
+    return 1;
+  }
+  if (rightIndex === -1) {
+    return -1;
+  }
+  return leftIndex - rightIndex;
+}
+
+function normalizeTodoAlias(value?: string | null) {
+  return value?.trim().toLowerCase().replace(/\s+/g, ' ') ?? '';
+}
+
+function resolveTodoScopeCode(...values: Array<string | null | undefined>) {
+  for (const value of values) {
+    const normalized = normalizeTodoAlias(value);
+    if (normalized && TODO_SCOPE_ALIASES[normalized]) {
+      return TODO_SCOPE_ALIASES[normalized];
+    }
+  }
+  return values.find((value): value is string => Boolean(value?.trim())) ?? '';
+}
+
+function resolveTodoIssueCode(...values: Array<string | null | undefined>) {
+  for (const value of values) {
+    const normalized = normalizeTodoAlias(value);
+    if (normalized && TODO_ISSUE_ALIASES[normalized]) {
+      return TODO_ISSUE_ALIASES[normalized];
+    }
+  }
+  return values.find((value): value is string => Boolean(value?.trim())) ?? '';
+}
+
+function resolveTodoActionCode(...values: Array<string | null | undefined>) {
+  for (const value of values) {
+    const normalized = normalizeTodoAlias(value);
+    if (normalized && TODO_ACTION_ALIASES[normalized]) {
+      return TODO_ACTION_ALIASES[normalized];
+    }
+  }
+  return values.find((value): value is string => Boolean(value?.trim())) ?? '';
+}
+
+function buildTodoRouteState(item: DashboardTodoItem) {
+  return {
+    deptId: item.routeStateDeptId,
+    taskKey: item.taskKey,
+  };
+}
 
 const DashboardPage: React.FC = () => {
   const { t } = useTranslation();
@@ -131,8 +277,11 @@ const DashboardPage: React.FC = () => {
         key: widget.key,
         path: widget.path,
         title: t(widget.titleKey),
+        description: t(widget.descriptionKey),
         icon: widget.icon,
-      }));
+      }))
+      .sort((left, right) => compareByPriority(left.key, right.key, QUICK_ACTION_PRIORITY))
+      .slice(0, QUICK_ACTION_LIMIT);
   }, [hasPerm, isAdmin, menuTree, t]);
 
   const domainCards = useMemo(
@@ -144,8 +293,10 @@ const DashboardPage: React.FC = () => {
           title: t(widget.titleKey),
           description: t(widget.descriptionKey),
           summary: widget.summary(summary, t),
+          compactSummary: compactMetricText(widget.summary(summary, t)),
           path: widget.path,
-        })),
+        }))
+        .sort((left, right) => compareByPriority(left.key, right.key, DOMAIN_CARD_PRIORITY)),
     [hasPerm, isAdmin, menuTree, summary, t],
   );
 
@@ -155,6 +306,120 @@ const DashboardPage: React.FC = () => {
     }
     return <DateTimeMeta value={value} />;
   };
+
+  function compactMetricText(value: string) {
+    const numbers = value.match(/\d+/g);
+    if (!numbers?.length) {
+      return value;
+    }
+    return numbers.join(' / ');
+  }
+
+  const recentLoginPreview = useMemo(() => summary?.recentLogins.slice(0, 6) ?? [], [summary]);
+
+  const translateTodoScope = useCallback(
+    (scope: string, fallback?: string) => {
+      if (scope === 'dept') {
+        return t('dashboard.todo.scope.dept');
+      }
+      if (scope === 'post') {
+        return t('dashboard.todo.scope.post');
+      }
+      return fallback || scope || '-';
+    },
+    [t],
+  );
+
+  const translateTodoIssue = useCallback(
+    (scope: string, issue: string, fallback?: string) => {
+      if (scope === 'dept') {
+        if (issue === 'leaderless') {
+          return t('system.dept.governance.leaderless');
+        }
+        if (issue === 'no-post') {
+          return t('system.dept.governance.noPost');
+        }
+        if (issue === 'empty') {
+          return t('system.dept.governance.empty');
+        }
+        if (issue === 'clean') {
+          return t('system.dept.governance.clean');
+        }
+      }
+      if (scope === 'post') {
+        if (issue === 'in-use') {
+          return t('dashboard.todo.issue.inUse');
+        }
+        if (issue === 'disabled') {
+          return t('dashboard.todo.issue.disabled');
+        }
+        if (issue === 'clean') {
+          return t('system.dept.governance.clean');
+        }
+      }
+      return fallback || issue || '-';
+    },
+    [t],
+  );
+
+  const translateTodoAction = useCallback(
+    (action: string, fallback?: string) => {
+      if (action === 'assign-leader') {
+        return t('dashboard.todo.action.assignLeader');
+      }
+      if (action === 'create-post') {
+        return t('system.dept.action.createPost');
+      }
+      if (action === 'review-merge-or-delete') {
+        return t('dashboard.todo.action.reviewMergeOrDelete');
+      }
+      if (action === 'clear-child-depts') {
+        return t('dashboard.todo.action.clearChildDepts');
+      }
+      if (action === 'clear-posts') {
+        return t('dashboard.todo.action.clearPosts');
+      }
+      if (action === 'clear-users') {
+        return t('dashboard.todo.action.clearUsers');
+      }
+      if (action === 'reassign-users') {
+        return t('dashboard.todo.action.reassignUsers');
+      }
+      if (action === 'review-status') {
+        return t('dashboard.todo.action.reviewStatus');
+      }
+      if (action === 'delete-or-keep-disabled') {
+        return t('dashboard.todo.action.deleteOrKeepDisabled');
+      }
+      return fallback || action || '-';
+    },
+    [t],
+  );
+
+  const todoItems = useMemo(
+    () =>
+      (summary?.orgGovernanceTasks ?? []).map((item) => {
+        const scopeCode = resolveTodoScopeCode(item.domain, item.scopeLabel);
+        const issueCode = resolveTodoIssueCode(item.issue, item.issueLabel);
+        const actionCode = resolveTodoActionCode(item.action, item.actionLabel);
+        return {
+          ...item,
+          localizedScopeLabel: translateTodoScope(scopeCode, item.scopeLabel),
+          localizedIssueLabel: translateTodoIssue(scopeCode, issueCode, item.issueLabel),
+          localizedActionLabel: translateTodoAction(actionCode, item.actionLabel),
+        };
+      }),
+    [summary, translateTodoAction, translateTodoIssue, translateTodoScope],
+  );
+
+  const openTodoTask = useCallback(
+    (item: DashboardTodoItem) => {
+      navigate(item.routePath || '/system/dept', {
+        state: buildTodoRouteState(item),
+      });
+    },
+    [navigate],
+  );
 
   const loginColumns = [
     {
@@ -240,21 +505,9 @@ const DashboardPage: React.FC = () => {
         value: summary.orgGovernanceTaskCount,
         desc: t('dashboard.orgGovernanceTasksDesc'),
       },
-      {
-        key: 'last-login',
-        tone: 'neutral',
-        icon: <IconClockCircle />,
-        label: t('dashboard.lastSuccessfulLogin'),
-        value: summary.lastSuccessfulLoginAt
-          ? renderActivityTime(summary.lastSuccessfulLoginAt)
-          : t('dashboard.lastSuccessfulLoginEmpty'),
-        desc: t('dashboard.subtitle'),
-      },
     ];
   }, [successRate, summary, t]);
-
-  const primaryAttentionItems = useMemo(() => attentionItems.slice(0, 4), [attentionItems]);
-
+  const primaryAttentionItems = attentionItems;
   return (
     <PageContainer className="dashboard-page">
       {loading && !summary ? (
@@ -281,14 +534,11 @@ const DashboardPage: React.FC = () => {
                 <Typography.Title heading={4} className="dashboard-hero-card__title">
                   {t('dashboard.title')}
                 </Typography.Title>
-                <Typography.Paragraph className="dashboard-hero-card__desc">
-                  {t('dashboard.subtitle')}
-                </Typography.Paragraph>
               </div>
             </div>
             <Row gutter={[12, 12]}>
               {stats.map((item) => (
-                <Col xs={24} sm={12} xl={6} key={item.title}>
+                <Col xs={24} sm={12} xl={6} key={item.key}>
                   <div className={`dashboard-stat-card dashboard-stat-card--${item.key}`}>
                     <div className="dashboard-stat-card__title">
                       <Typography.Text>{item.title}</Typography.Text>
@@ -303,7 +553,69 @@ const DashboardPage: React.FC = () => {
           </Card>
 
           <Row gutter={[16, 16]}>
-            <Col xs={24} lg={15}>
+            <Col xs={24} lg={12}>
+              <Card
+                className="page-panel dashboard-panel-card dashboard-panel-card--todo"
+                title={t('dashboard.todoCenter')}
+              >
+                {todoItems.length ? (
+                  <div className="dashboard-task-grid">
+                    {todoItems.map((item) => (
+                      <div
+                        key={item.taskKey}
+                        className="dashboard-task-card"
+                        onClick={() => openTodoTask(item)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            openTodoTask(item);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <span className="dashboard-task-card__icon">
+                          <IconExclamationCircle />
+                        </span>
+                        <div className="dashboard-task-card__body">
+                          <div className="dashboard-task-card__head">
+                            <span className="dashboard-task-card__title">
+                              {item.localizedIssueLabel}
+                              <Tag size="small" style={{ marginLeft: 8 }}>
+                                {item.localizedScopeLabel}
+                              </Tag>
+                            </span>
+                            <span className="dashboard-task-card__action">
+                              <Button
+                                type="text"
+                                size="small"
+                                icon={<IconArrowRight />}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  openTodoTask(item);
+                                }}
+                              >
+                                {t('dashboard.openTask')}
+                              </Button>
+                            </span>
+                          </div>
+                          <span className="dashboard-task-card__desc">{item.resourceLabel}</span>
+                          <span className="dashboard-task-card__desc">
+                            {item.localizedActionLabel}
+                            {item.relatedUserCount > 0
+                              ? ` · ${t('dashboard.relatedUsers', { count: item.relatedUserCount })}`
+                              : ''}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <PageEmpty description={t('dashboard.todoEmpty')} />
+                )}
+              </Card>
+            </Col>
+            <Col xs={24} lg={12}>
               <Card
                 className="page-panel dashboard-panel-card dashboard-panel-card--attention"
                 title={t('dashboard.attentionPanel')}
@@ -315,21 +627,26 @@ const DashboardPage: React.FC = () => {
                       className={`dashboard-focus-item dashboard-focus-item--${item.tone}`}
                     >
                       <span className="dashboard-focus-item__icon">{item.icon}</span>
-                      <span className="dashboard-focus-item__copy">
-                        <span className="dashboard-focus-item__label">{item.label}</span>
-                        <span
-                          className={`dashboard-focus-item__value${item.key === 'last-login' ? ' dashboard-focus-item__value--meta' : ''}`}
-                        >
-                          {item.value}
+                      <span className="dashboard-focus-item__body">
+                        <span className="dashboard-focus-item__head">
+                          <span className="dashboard-focus-item__label">{item.label}</span>
+                          <span
+                            className={`dashboard-focus-item__value${item.key === 'last-login' ? ' dashboard-focus-item__value--meta' : ''}`}
+                          >
+                            {item.value}
+                          </span>
                         </span>
+                        <span className="dashboard-focus-item__desc">{item.desc}</span>
                       </span>
-                      <span className="dashboard-focus-item__desc">{item.desc}</span>
                     </div>
                   ))}
                 </div>
               </Card>
             </Col>
-            <Col xs={24} lg={9}>
+          </Row>
+
+          <Row gutter={[16, 16]}>
+            <Col xs={24} lg={12}>
               <Card
                 className="page-panel dashboard-panel-card dashboard-panel-card--actions"
                 title={t('dashboard.primaryActions')}
@@ -348,7 +665,13 @@ const DashboardPage: React.FC = () => {
                         <span className="dashboard-quick-action__icon">
                           {renderMenuIcon(item.icon)}
                         </span>
-                        <span className="dashboard-quick-action__title">{item.title}</span>
+                        <span className="dashboard-quick-action__body">
+                          <span className="dashboard-quick-action__title">{item.title}</span>
+                          <span className="dashboard-quick-action__desc">{item.description}</span>
+                        </span>
+                        <span className="dashboard-quick-action__arrow" aria-hidden="true">
+                          <IconArrowRight />
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -357,79 +680,38 @@ const DashboardPage: React.FC = () => {
                 )}
               </Card>
             </Col>
-          </Row>
-
-          <Row gutter={[16, 16]}>
-            <Col xs={24}>
-              <Card className="page-panel dashboard-panel-card" title={t('dashboard.todoCenter')}>
-                {summary.orgGovernanceTasks?.length ? (
-                  <div className="dashboard-task-grid">
-                    {summary.orgGovernanceTasks.map((item) => (
-                      <div key={item.taskKey} className="dashboard-task-card">
-                        <span className="dashboard-task-card__icon">
-                          <IconExclamationCircle />
-                        </span>
-                        <div className="dashboard-task-card__body">
-                          <span className="dashboard-task-card__title">
-                            {item.issueLabel}
-                            <Tag size="small" style={{ marginLeft: 8 }}>
-                              {item.scopeLabel}
-                            </Tag>
-                          </span>
-                          <span className="dashboard-task-card__desc">{item.resourceLabel}</span>
-                          <span className="dashboard-task-card__desc">
-                            {item.actionLabel}
-                            {item.relatedUserCount > 0
-                              ? ` · ${t('dashboard.relatedUsers', { count: item.relatedUserCount })}`
-                              : ''}
-                          </span>
-                        </div>
-                        <Button
-                          type="text"
-                          size="small"
-                          icon={<IconArrowRight />}
-                          onClick={() =>
-                            navigate(item.routePath, {
-                              state: { deptId: item.routeStateDeptId, taskKey: item.taskKey },
-                            })
-                          }
-                        >
-                          {t('dashboard.openTask')}
-                        </Button>
+            <Col xs={24} lg={12}>
+              <Card
+                className="page-panel dashboard-panel-card dashboard-panel-card--domains"
+                title={t('dashboard.domainOverview')}
+              >
+                <div className="dashboard-domain-grid">
+                  {domainCards.map((item) => (
+                    <div
+                      key={item.key}
+                      className={`dashboard-domain-card dashboard-domain-card--${item.key}`}
+                    >
+                      <span className="dashboard-domain-card__summary" title={item.summary}>
+                        {item.compactSummary}
+                      </span>
+                      <div className="dashboard-domain-card__body">
+                        <span className="dashboard-domain-card__title">{item.title}</span>
+                        <span className="dashboard-domain-card__desc">{item.description}</span>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <PageEmpty description={t('dashboard.todoEmpty')} />
-                )}
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<IconArrowRight />}
+                        aria-label={t('dashboard.openModule')}
+                        title={t('dashboard.openModule')}
+                        onClick={() => navigate(item.path)}
+                      />
+                    </div>
+                  ))}
+                </div>
               </Card>
             </Col>
           </Row>
-
-          <Card className="page-panel dashboard-panel-card" title={t('dashboard.domainOverview')}>
-            <div className="dashboard-domain-grid">
-              {domainCards.map((item) => (
-                <div
-                  key={item.key}
-                  className={`dashboard-domain-card dashboard-domain-card--${item.key}`}
-                >
-                  <div className="dashboard-domain-card__head">
-                    <span className="dashboard-domain-card__title">{item.title}</span>
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<IconArrowRight />}
-                      onClick={() => navigate(item.path)}
-                    >
-                      {t('dashboard.openModule')}
-                    </Button>
-                  </div>
-                  <span className="dashboard-domain-card__summary">{item.summary}</span>
-                  <span className="dashboard-domain-card__desc">{item.description}</span>
-                </div>
-              ))}
-            </div>
-          </Card>
 
           <Card
             className="page-panel dashboard-panel-card dashboard-login-table"
@@ -449,7 +731,7 @@ const DashboardPage: React.FC = () => {
               rowKey="id"
               loading={loading}
               columns={loginColumns}
-              data={summary.recentLogins}
+              data={recentLoginPreview}
               pagination={false}
               scroll={{ x: 1040 }}
               emptyText={t('dashboard.recentLoginsEmpty')}

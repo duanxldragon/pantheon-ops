@@ -44,7 +44,6 @@ export function buildStandardPagination(
     pageSize,
     total,
     onChange,
-    showJumper: true,
     pageSizeChangeResetCurrent,
     sizeCanChange,
     sizeOptions,

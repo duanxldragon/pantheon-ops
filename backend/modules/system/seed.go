@@ -64,6 +64,9 @@ func ensureMenuSeeds(db *gorm.DB, seeds []menuSeed) error {
 	if err := CleanupObsoleteMenus(db); err != nil {
 		return err
 	}
+	if err := cleanupDuplicateMenus(db); err != nil {
+		return err
+	}
 	for _, seed := range seeds {
 		if err := ensureSingleMenuSeed(db, seed); err != nil {
 			return err
@@ -454,11 +457,11 @@ func auditMenuSeeds() []menuSeed {
 func ensureSingleMenuSeed(db *gorm.DB, seed menuSeed) error {
 	var menuID uint64
 	if seed.Path != "" {
-		if err := db.Table("system_menu").Select("id").Where("path = ?", seed.Path).Limit(1).Pluck("id", &menuID).Error; err != nil {
+		if err := db.Table("system_menu").Select("id").Where("path = ?", seed.Path).Order("id ASC").Limit(1).Pluck("id", &menuID).Error; err != nil {
 			return err
 		}
 	} else if seed.Perms != "" {
-		if err := db.Table("system_menu").Select("id").Where("perms = ?", seed.Perms).Limit(1).Pluck("id", &menuID).Error; err != nil {
+		if err := db.Table("system_menu").Select("id").Where("perms = ?", seed.Perms).Order("id ASC").Limit(1).Pluck("id", &menuID).Error; err != nil {
 			return err
 		}
 	}
@@ -490,11 +493,11 @@ func ensureSingleMenuSeed(db *gorm.DB, seed menuSeed) error {
 			return err
 		}
 		if seed.Path != "" {
-			if err := db.Table("system_menu").Select("id").Where("path = ?", seed.Path).Limit(1).Pluck("id", &menuID).Error; err != nil {
+			if err := db.Table("system_menu").Select("id").Where("path = ?", seed.Path).Order("id ASC").Limit(1).Pluck("id", &menuID).Error; err != nil {
 				return err
 			}
 		} else if seed.Perms != "" {
-			if err := db.Table("system_menu").Select("id").Where("perms = ?", seed.Perms).Limit(1).Pluck("id", &menuID).Error; err != nil {
+			if err := db.Table("system_menu").Select("id").Where("perms = ?", seed.Perms).Order("id ASC").Limit(1).Pluck("id", &menuID).Error; err != nil {
 				return err
 			}
 		}
@@ -838,7 +841,7 @@ func resolveMenuParentID(db *gorm.DB, parentKey string) (uint64, error) {
 
 func lookupMenuIDByPath(db *gorm.DB, path string) (uint64, error) {
 	var menuID uint64
-	if err := db.Table("system_menu").Select("id").Where("path = ?", path).Limit(1).Pluck("id", &menuID).Error; err != nil {
+	if err := db.Table("system_menu").Select("id").Where("path = ?", path).Order("id ASC").Limit(1).Pluck("id", &menuID).Error; err != nil {
 		return 0, err
 	}
 	return menuID, nil
@@ -865,4 +868,64 @@ func normalizeSeedMenuFlag(value int) int {
 		return 1
 	}
 	return 0
+}
+
+// cleanupDuplicateMenus removes duplicate menus based on path and perms uniqueness.
+// For menus with non-empty paths, keeps the smallest id and deletes others.
+// For menus with only perms (no path), keeps the smallest id and deletes others.
+func cleanupDuplicateMenus(db *gorm.DB) error {
+	if db == nil || !db.Migrator().HasTable("system_menu") {
+		return nil
+	}
+
+	// Clean up duplicate path-based menus (where path is not empty)
+	if err := cleanupDuplicateMenusByColumn(db, "path", ""); err != nil {
+		return err
+	}
+
+	// Clean up duplicate perms-based menus (where perms is not empty)
+	if err := cleanupDuplicateMenusByColumn(db, "perms", ""); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func cleanupDuplicateMenusByColumn(db *gorm.DB, columnName, excludeValue string) error {
+	// Find duplicate values for the given column
+	var duplicates []string
+	subQuery := db.Table("system_menu").
+		Select(columnName).
+		Where(columnName+" != ?", "").
+		Where(columnName+" != ?", excludeValue).
+		Group(columnName).
+		Having("COUNT(*) > 1").
+		Order(columnName)
+
+	if err := subQuery.Pluck(columnName, &duplicates).Error; err != nil {
+		return err
+	}
+
+	for _, value := range duplicates {
+		// Keep the smallest id, delete the rest
+		var keepID uint64
+		if err := db.Table("system_menu").
+			Select("id").
+			Where(columnName+" = ?", value).
+			Order("id ASC").
+			Limit(1).
+			Pluck("id", &keepID).Error; err != nil {
+			return err
+		}
+
+		if keepID > 0 {
+			if err := db.Table("system_menu").
+				Where(columnName+" = ? AND id != ?", value, keepID).
+				Delete(nil).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

@@ -16,7 +16,6 @@ import {
 } from './shared-foundation-rules.mjs';
 
 const DEFAULT_OPS_ROOT = process.cwd();
-const DEFAULT_BASE_REPO = '../pantheon-base';
 const DEFAULT_GITHUB_REPO = 'duanxldragon/pantheon-base';
 const DEFAULT_LOCAL_RELEASE_ROOT = '.foundation/releases';
 
@@ -27,6 +26,7 @@ function parseArgs(argv) {
     applySharedFrontend: false,
     updateInheritanceDocs: false,
     check: false,
+    list: false,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -45,6 +45,10 @@ function parseArgs(argv) {
       if (!value) throw new Error('--bundle requires a path');
       options.bundleRoot = path.resolve(value);
       index += 1;
+    } else if (arg === '--release-version') {
+      if (!value) throw new Error('--release-version requires a value');
+      options.releaseVersion = value;
+      index += 1;
     } else if (arg === '--apply-shared-backend') {
       options.applySharedBackend = true;
     } else if (arg === '--apply-shared-frontend') {
@@ -53,6 +57,8 @@ function parseArgs(argv) {
       options.updateInheritanceDocs = true;
     } else if (arg === '--check') {
       options.check = true;
+    } else if (arg === '--list') {
+      options.list = true;
     } else if (arg === '--help' || arg === '-h') {
       options.help = true;
     } else {
@@ -65,6 +71,15 @@ function parseArgs(argv) {
 
 function validateOptions(options) {
   if (options.help) {
+    return;
+  }
+  if (options.list) {
+    return;
+  }
+  if (!options.manifestPath && !options.releaseVersion) {
+    throw new Error('manifest or release-version is required');
+  }
+  if (options.releaseVersion && !options.manifestPath) {
     return;
   }
   if (!options.manifestPath) {
@@ -95,6 +110,35 @@ function readJsonFileIfExists(filePath, fallbackValue, description) {
     }
     throw new Error(`${description} is invalid JSON: ${error.message}`);
   }
+}
+
+function getReleaseCacheRoot(opsRoot) {
+  return path.join(opsRoot, DEFAULT_LOCAL_RELEASE_ROOT);
+}
+
+function readCachedReleaseManifest(opsRoot, releaseVersion) {
+  const releaseRoot = path.join(getReleaseCacheRoot(opsRoot), releaseVersion);
+  const manifestPath = path.join(releaseRoot, 'manifest.json');
+  if (!fs.existsSync(manifestPath)) {
+    throw new Error(`cached foundation release manifest not found: ${manifestPath}`);
+  }
+  return {
+    releaseRoot,
+    manifestPath,
+    manifest: readJsonFile(manifestPath, 'cached foundation release manifest'),
+  };
+}
+
+function listCachedReleaseVersions(opsRoot) {
+  const releaseRoot = getReleaseCacheRoot(opsRoot);
+  if (!fs.existsSync(releaseRoot)) {
+    return [];
+  }
+  return fs
+    .readdirSync(releaseRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort((a, b) => a.localeCompare(b));
 }
 
 function readManifest(manifestPath) {
@@ -140,9 +184,13 @@ function updateInheritanceDoc(filePath, manifest, language) {
 
 function buildFoundationReleaseLock(manifest, existingLock = {}) {
   const assetName = manifest.releaseArtifact?.assetName || `foundation-release-${manifest.releaseVersion}.tgz`;
+  const existingLocalPath = existingLock.releaseArtifact?.localPath;
+  const nextLocalPath = existingLocalPath?.startsWith(`${DEFAULT_LOCAL_RELEASE_ROOT}/`)
+    ? `${DEFAULT_LOCAL_RELEASE_ROOT}/${manifest.releaseVersion}`
+    : existingLocalPath || `${DEFAULT_LOCAL_RELEASE_ROOT}/${manifest.releaseVersion}`;
   return {
     schemaVersion: 1,
-    baseRepo: existingLock.baseRepo || DEFAULT_BASE_REPO,
+    baseRepo: manifest.sourceRepo,
     sourceRepo: manifest.sourceRepo,
     consumerMode: manifest.consumerMode,
     releaseLine: manifest.releaseLine,
@@ -154,7 +202,7 @@ function buildFoundationReleaseLock(manifest, existingLock = {}) {
       tagName: manifest.releaseVersion,
       releaseName: normalizeReleaseDisplayName(manifest.releaseVersion),
       assetName,
-      localPath: existingLock.releaseArtifact?.localPath || `${DEFAULT_LOCAL_RELEASE_ROOT}/${manifest.releaseVersion}`,
+      localPath: nextLocalPath,
     },
     sharedPaths: manifest.sharedPaths || existingLock.sharedPaths || {},
     lockedAt: new Date().toISOString(),
@@ -271,10 +319,39 @@ function runNodeScript(opsRoot, scriptRelativePath) {
 export function consumeFoundationRelease(options) {
   validateOptions(options);
 
-  const manifest = readManifest(options.manifestPath);
+  if (options.list) {
+    const versions = listCachedReleaseVersions(options.opsRoot);
+    const currentLockPath = path.join(options.opsRoot, 'foundation-release.lock.json');
+    const currentLock = readJsonFileIfExists(currentLockPath, null, 'foundation release lock');
+    console.log([
+      `Cached foundation releases under ${getReleaseCacheRoot(options.opsRoot)}:`,
+      ...(versions.length > 0 ? versions.map((version) => `- ${version}${currentLock?.releaseVersion === version ? ' (current)' : ''}`) : ['- <none>']),
+    ].join('\n'));
+    return {
+      manifest: null,
+      summary: versions,
+    };
+  }
+
+  let manifest;
+  let cachedRelease;
+  if (options.releaseVersion && !options.manifestPath) {
+    cachedRelease = readCachedReleaseManifest(options.opsRoot, options.releaseVersion);
+    manifest = cachedRelease.manifest;
+    options.manifestPath = cachedRelease.manifestPath;
+    options.bundleRoot = cachedRelease.releaseRoot;
+  } else {
+    manifest = readManifest(options.manifestPath);
+    cachedRelease = readCachedReleaseManifest(options.opsRoot, manifest.releaseVersion);
+    if (!options.bundleRoot) {
+      options.bundleRoot = cachedRelease.releaseRoot;
+    }
+  }
+
   const summary = [
     `Target foundation release: ${manifest.releaseVersion}`,
     `Release line: ${manifest.releaseLine}`,
+    `Cached release root: ${cachedRelease.releaseRoot}`,
   ];
 
   if (options.updateInheritanceDocs) {
@@ -314,13 +391,16 @@ export function consumeFoundationRelease(options) {
 function printHelp() {
   console.log(`Usage:
   node scripts/foundation-release/consume-foundation-release.mjs --manifest <path> --bundle <path> [options]
+  node scripts/foundation-release/consume-foundation-release.mjs --release-version <version> [options]
 
 Options:
   --ops-root <path>
+  --release-version <version>
   --apply-shared-backend
   --apply-shared-frontend
   --update-inheritance-docs
-  --check`);
+  --check
+  --list`);
 }
 
 function main() {

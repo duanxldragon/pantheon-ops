@@ -10,6 +10,7 @@ import { usePublicSettings } from '../../../core/settings/publicSettings';
 import { getDeptTree, type DeptNode } from '../dept/api';
 import { getPostList } from '../post/api';
 import { getRoleList } from '../role/api';
+import { translateRoleName } from '../role/display';
 import {
   batchDeleteUsers,
   batchUpdateUserStatus,
@@ -263,7 +264,10 @@ export function useUserList(form: FormInstance<UserCreatePayload>) {
       );
       dispatch({
         type: 'SET_ROLE_OPTIONS',
-        options: result.items.map((item) => ({ label: item.roleName, value: item.id })),
+        options: result.items.map((item) => ({
+          label: translateRoleName(item.roleName, t),
+          value: item.id,
+        })),
       });
     } catch {
       message.error(t('common.loadFailed'));
