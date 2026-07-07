@@ -42,7 +42,7 @@ export const pantheonThemeOptions: PantheonThemeOption[] = [
 
 const themeKeys = new Set<PantheonThemeKey>(pantheonThemeOptions.map((item) => item.key));
 
-function normalizeTheme(value?: string | null): PantheonThemeKey {
+export function normalizeTheme(value?: string | null): PantheonThemeKey {
   return value && themeKeys.has(value as PantheonThemeKey) ? (value as PantheonThemeKey) : 'indigo';
 }
 
@@ -71,7 +71,9 @@ export function applyPantheonTheme(theme: PantheonThemeKey) {
 
   document.documentElement.dataset.pantheonTheme = theme;
   globalThis.localStorage.setItem(PANTHEON_THEME_STORAGE_KEY, theme);
-  globalThis.dispatchEvent(new CustomEvent<PantheonThemeKey>(PANTHEON_THEME_EVENT, { detail: theme }));
+  globalThis.dispatchEvent(
+    new CustomEvent<PantheonThemeKey>(PANTHEON_THEME_EVENT, { detail: theme }),
+  );
 }
 
 export function applyPantheonDefaultTheme(theme: PantheonThemeKey) {

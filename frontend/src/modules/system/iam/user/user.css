@@ -112,6 +112,7 @@
 
 .system-user-list__row-actions .arco-btn-text {
   white-space: nowrap;
+  padding-inline: 4px;
 }
 
 .system-user-list__role-field .arco-select-view {

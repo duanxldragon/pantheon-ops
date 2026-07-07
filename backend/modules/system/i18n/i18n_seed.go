@@ -11,11 +11,10 @@ import (
 )
 
 const (
-
-	moduleLowcode        = "system.lowcode"
-	keyMenuLowcode       = "system.menu.lowcode"
-	keyMenuModules       = "system.menu.modules"
-	keyMenuGenerator     = "system.menu.generator"
+	moduleLowcode    = "system.lowcode"
+	keyMenuLowcode   = "system.menu.lowcode"
+	keyMenuModules   = "system.menu.modules"
+	keyMenuGenerator = "system.menu.generator"
 )
 
 type i18nLocaleKey struct {
@@ -102,11 +101,11 @@ var canonicalMenuLocaleEntries = map[i18nLocaleKey]i18nCanonicalEntry{
 	{Locale: "ja-JP", Key: "system.menu.config"}:        {Module: "system.config", Group: "menu", Value: "システム設定"},
 	{Locale: "ko-KR", Key: "system.menu.config"}:        {Module: "system.config", Group: "menu", Value: "시스템 설정"},
 	{Locale: "fr-FR", Key: "system.menu.config"}:        {Module: "system.config", Group: "menu", Value: "Configuration système"},
-	{Locale: "zh-CN", Key: keyMenuLowcode}:       {Module: moduleLowcode, Group: "menu", Value: "低代码平台"},
-	{Locale: "en-US", Key: keyMenuLowcode}:       {Module: moduleLowcode, Group: "menu", Value: "Low-Code"},
-	{Locale: "ja-JP", Key: keyMenuLowcode}:       {Module: moduleLowcode, Group: "menu", Value: "モジュール開発"},
-	{Locale: "ko-KR", Key: keyMenuLowcode}:       {Module: moduleLowcode, Group: "menu", Value: "모듈 개발"},
-	{Locale: "fr-FR", Key: keyMenuLowcode}:       {Module: moduleLowcode, Group: "menu", Value: "Développement de modules"},
+	{Locale: "zh-CN", Key: keyMenuLowcode}:              {Module: moduleLowcode, Group: "menu", Value: "低代码平台"},
+	{Locale: "en-US", Key: keyMenuLowcode}:              {Module: moduleLowcode, Group: "menu", Value: "Low-Code"},
+	{Locale: "ja-JP", Key: keyMenuLowcode}:              {Module: moduleLowcode, Group: "menu", Value: "モジュール開発"},
+	{Locale: "ko-KR", Key: keyMenuLowcode}:              {Module: moduleLowcode, Group: "menu", Value: "모듈 개발"},
+	{Locale: "fr-FR", Key: keyMenuLowcode}:              {Module: moduleLowcode, Group: "menu", Value: "Développement de modules"},
 	{Locale: "zh-CN", Key: "system.menu.security"}:      {Module: "system.auth", Group: "menu", Value: "安全审计"},
 	{Locale: "en-US", Key: "system.menu.security"}:      {Module: "system.auth", Group: "menu", Value: "Security & Audit"},
 	{Locale: "ja-JP", Key: "system.menu.security"}:      {Module: "system.auth", Group: "menu", Value: "セキュリティと監査"},
@@ -157,16 +156,16 @@ var canonicalMenuLocaleEntries = map[i18nLocaleKey]i18nCanonicalEntry{
 	{Locale: "ja-JP", Key: "system.menu.i18n"}:          {Module: "system.config", Group: "menu", Value: "国際化管理"},
 	{Locale: "ko-KR", Key: "system.menu.i18n"}:          {Module: "system.config", Group: "menu", Value: "국제화 관리"},
 	{Locale: "fr-FR", Key: "system.menu.i18n"}:          {Module: "system.config", Group: "menu", Value: "Gestion de l'internationalisation"},
-	{Locale: "zh-CN", Key: keyMenuModules}:       {Module: moduleLowcode, Group: "menu", Value: "模块管理"},
-	{Locale: "en-US", Key: keyMenuModules}:       {Module: moduleLowcode, Group: "menu", Value: "Modules"},
-	{Locale: "ja-JP", Key: keyMenuModules}:       {Module: moduleLowcode, Group: "menu", Value: "モジュール登録"},
-	{Locale: "ko-KR", Key: keyMenuModules}:       {Module: moduleLowcode, Group: "menu", Value: "모듈 등록"},
-	{Locale: "fr-FR", Key: keyMenuModules}:       {Module: moduleLowcode, Group: "menu", Value: "Registre des modules"},
-	{Locale: "zh-CN", Key: keyMenuGenerator}:     {Module: moduleLowcode, Group: "menu", Value: "模块生成器"},
-	{Locale: "en-US", Key: keyMenuGenerator}:     {Module: moduleLowcode, Group: "menu", Value: "Code Generator"},
-	{Locale: "ja-JP", Key: keyMenuGenerator}:     {Module: moduleLowcode, Group: "menu", Value: "モジュール生成"},
-	{Locale: "ko-KR", Key: keyMenuGenerator}:     {Module: moduleLowcode, Group: "menu", Value: "모듈 생성기"},
-	{Locale: "fr-FR", Key: keyMenuGenerator}:     {Module: moduleLowcode, Group: "menu", Value: "Générateur de modules"},
+	{Locale: "zh-CN", Key: keyMenuModules}:              {Module: moduleLowcode, Group: "menu", Value: "模块管理"},
+	{Locale: "en-US", Key: keyMenuModules}:              {Module: moduleLowcode, Group: "menu", Value: "Modules"},
+	{Locale: "ja-JP", Key: keyMenuModules}:              {Module: moduleLowcode, Group: "menu", Value: "モジュール登録"},
+	{Locale: "ko-KR", Key: keyMenuModules}:              {Module: moduleLowcode, Group: "menu", Value: "모듈 등록"},
+	{Locale: "fr-FR", Key: keyMenuModules}:              {Module: moduleLowcode, Group: "menu", Value: "Registre des modules"},
+	{Locale: "zh-CN", Key: keyMenuGenerator}:            {Module: moduleLowcode, Group: "menu", Value: "模块生成器"},
+	{Locale: "en-US", Key: keyMenuGenerator}:            {Module: moduleLowcode, Group: "menu", Value: "Code Generator"},
+	{Locale: "ja-JP", Key: keyMenuGenerator}:            {Module: moduleLowcode, Group: "menu", Value: "モジュール生成"},
+	{Locale: "ko-KR", Key: keyMenuGenerator}:            {Module: moduleLowcode, Group: "menu", Value: "모듈 생성기"},
+	{Locale: "fr-FR", Key: keyMenuGenerator}:            {Module: moduleLowcode, Group: "menu", Value: "Générateur de modules"},
 	{Locale: "zh-CN", Key: "system.menu.loginLog"}:      {Module: "system.auth", Group: "menu", Value: "登录日志"},
 	{Locale: "en-US", Key: "system.menu.loginLog"}:      {Module: "system.auth", Group: "menu", Value: "Login Logs"},
 	{Locale: "ja-JP", Key: "system.menu.loginLog"}:      {Module: "system.auth", Group: "menu", Value: "ログインログ"},

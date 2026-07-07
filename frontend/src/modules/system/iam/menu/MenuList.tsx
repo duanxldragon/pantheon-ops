@@ -72,7 +72,7 @@ import {
   isRegisteredComponentKey,
   listRegisteredComponentKeys,
 } from '../../../../core/router/componentRegistry';
-import '../../list-page.css';
+import '../../components/shared/list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -447,12 +447,7 @@ const MenuList: React.FC = () => {
   const renderMenuActions = (row: MenuNode) => (
     <Space size={4} className="system-list__actions menu-list-page__row-actions">
       {canCreate && row.type !== 'F' ? (
-        <Button
-          type="text"
-          size="small"
-          icon={<IconPlus />}
-          onClick={() => openCreateChild(row)}
-        >
+        <Button type="text" size="small" icon={<IconPlus />} onClick={() => openCreateChild(row)}>
           {t('system.menu.createChild')}
         </Button>
       ) : null}
@@ -819,7 +814,12 @@ const MenuList: React.FC = () => {
                     {t('system.menu.view.card')}
                   </Button>
                 </Space>
-                <Button type="primary" icon={<IconPlus />} onClick={openCreate} disabled={!canCreate}>
+                <Button
+                  type="primary"
+                  icon={<IconPlus />}
+                  onClick={openCreate}
+                  disabled={!canCreate}
+                >
                   {t('common.add')}
                 </Button>
               </PageActions>

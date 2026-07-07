@@ -16,7 +16,7 @@ func CasbinMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 1. 获取用户角色集合 (在 JWT 中间件之后，应已设置)
+		// 1. 获取用户角色集合 (在 Token 中间件之后，应已设置)
 		roleKeys := readRoleKeysFromContext(c)
 		if len(roleKeys) == 0 {
 			roleKeys = []string{"guest"}

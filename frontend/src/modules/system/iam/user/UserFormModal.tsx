@@ -1,14 +1,6 @@
 import React from 'react';
 import { uploadSystemFile } from '../../../../api/upload';
-import {
-  Avatar,
-  Button,
-  Form,
-  Input,
-  Select,
-  Space,
-  Typography,
-} from '@arco-design/web-react';
+import { Avatar, Button, Form, Input, Select, Space, Typography } from '@arco-design/web-react';
 import { IconUpload } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { AppModal, FormSection, SubmitBar } from '../../../../components';
@@ -80,11 +72,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
       }
       unmountOnExit
     >
-      <Form
-        form={form}
-        layout="vertical"
-        onSubmit={onSubmit}
-      >
+      <Form form={form} layout="vertical" onSubmit={onSubmit}>
         <Space direction="vertical" size={20} className="dialog-form-stack">
           <FormSection title={t('common.basicInfo')}>
             <FormItem
@@ -112,7 +100,8 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
               rules={[
                 {
                   validator: (value, callback) => {
-                    if (!value || /\S+@\S+\.\S+/.test(String(value))) { // NOSONAR — simple email regex
+                    if (!value || /\S+@\S+\.\S+/.test(String(value))) {
+                      // NOSONAR — simple email regex
                       callback();
                       return;
                     }

@@ -1,7 +1,6 @@
 package iam
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/url"
@@ -12,7 +11,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
-
 
 type MenuService struct {
 	db *gorm.DB
@@ -43,10 +41,10 @@ func (s *MenuService) GetMenuTree(query *MenuListQuery, roleKeys []string) ([]*M
 	db := s.db.Model(&SystemMenu{})
 	if query != nil {
 		if strings.TrimSpace(query.TitleKey) != "" {
-			db = db.Where("title_key LIKE ?", fmt.Sprintf("%%%s%%", strings.TrimSpace(query.TitleKey)))
+			db = db.Where("title_key LIKE ?", fmt.Sprintf("%%%s%%", common.EscapeLikePattern(strings.TrimSpace(query.TitleKey))))
 		}
 		if strings.TrimSpace(query.Path) != "" {
-			db = db.Where("path LIKE ?", fmt.Sprintf("%%%s%%", strings.TrimSpace(query.Path)))
+			db = db.Where("path LIKE ?", fmt.Sprintf("%%%s%%", common.EscapeLikePattern(strings.TrimSpace(query.Path))))
 		}
 		if query.IsVisible != nil && (*query.IsVisible == 0 || *query.IsVisible == 1) {
 			db = db.Where("is_visible = ?", *query.IsVisible)
@@ -259,7 +257,7 @@ func (s *MenuService) DeleteMenu(menuID uint64) error {
 		return err
 	}
 	if childCount > 0 {
-		return errors.New("menu.delete.error.has_children")
+		return common.NewInternal("menu.delete.error.has_children")
 	}
 
 	return s.db.Transaction(func(tx *gorm.DB) error {
@@ -272,10 +270,28 @@ func (s *MenuService) DeleteMenu(menuID uint64) error {
 
 func buildMenuTree(menus []SystemMenu, parentID uint64) []*MenuTreeResp {
 	// Build index: parentID -> menus with that parent
+	// Deduplicate by path (for menus with path) or perms (for menus without path)
 	index := make(map[uint64][]*MenuTreeResp)
+	seen := make(map[string]struct{}) // track unique key per parent
 	for i := range menus {
-		node := toMenuTreeResp(menus[i])
-		index[menus[i].ParentID] = append(index[menus[i].ParentID], node)
+		m := menus[i]
+		// Determine deduplication key: prefer path, fallback to perms
+		var dedupKey string
+		if m.Path != "" {
+			dedupKey = m.Path
+		} else if m.Perms != "" {
+			dedupKey = m.Perms
+		} else {
+			// No path or perms — use id as fallback key
+			dedupKey = fmt.Sprintf("id:%d", m.ID)
+		}
+		seenKey := fmt.Sprintf("%d:%s", m.ParentID, dedupKey)
+		if _, exists := seen[seenKey]; exists {
+			continue // skip duplicate
+		}
+		seen[seenKey] = struct{}{}
+		node := toMenuTreeResp(m)
+		index[m.ParentID] = append(index[m.ParentID], node)
 	}
 	// Recursively attach children using the index — O(n) total
 	var attachChildren func(parentID uint64)
@@ -317,8 +333,17 @@ func shouldHideManageMenuNode(node *MenuTreeResp) bool {
 
 func normalizeScopedNavigationMenuTree(nodes []*MenuTreeResp, parentID uint64) []*MenuTreeResp {
 	normalized := make([]*MenuTreeResp, 0, len(nodes))
+	dedupSeen := make(map[string]struct{}) // global dedup by path at this level
 	for _, node := range nodes {
-		normalized = append(normalized, normalizeScopedNavigationMenuNode(node, parentID)...)
+		for _, n := range normalizeScopedNavigationMenuNode(node, parentID) {
+			if n.Path != "" {
+				if _, exists := dedupSeen[n.Path]; exists {
+					continue // skip duplicate at this level (e.g. children promoted from multiple hidden containers)
+				}
+				dedupSeen[n.Path] = struct{}{}
+			}
+			normalized = append(normalized, n)
+		}
 	}
 	return normalized
 }
@@ -515,7 +540,7 @@ func (s *MenuService) validateMenuUpdate(menuID uint64, req *MenuUpdateReq) erro
 		return err
 	}
 	if req.ParentID == menuID {
-		return errors.New("menu.update.error.parent_self")
+		return common.NewInternal("menu.update.error.parent_self")
 	}
 	if err := s.ensureParentExists(req.ParentID); err != nil {
 		return err
@@ -529,13 +554,13 @@ func (s *MenuService) validateMenuMeta(menuID uint64, req *MenuCreateReq) error 
 	isExternal := normalizeMenuFlag(req.IsExternal)
 
 	if menuType == "C" && routeName == "" {
-		return errors.New("menu.route_name.required")
+		return common.NewBadRequest("menu.route_name.required")
 	}
 	if menuType == "C" && isExternal != 1 && normalizeMenuPerm(req.PagePerm) == "" {
-		return errors.New("menu.page_perm.required")
+		return common.NewBadRequest("menu.page_perm.required")
 	}
 	if menuType == "F" && normalizeMenuPerm(req.Perms) == "" {
-		return errors.New("menu.perms.required")
+		return common.NewBadRequest("menu.perms.required")
 	}
 	if routeName != "" {
 		if err := s.ensureRouteNameUnique(menuID, routeName); err != nil {
@@ -544,16 +569,16 @@ func (s *MenuService) validateMenuMeta(menuID uint64, req *MenuCreateReq) error 
 	}
 	if isExternal == 1 {
 		if !isValidExternalMenuPath(req.Path) {
-			return errors.New("menu.path.invalid_external")
+			return common.NewBadRequest("menu.path.invalid_external")
 		}
 		return nil
 	}
 	componentKey := strings.TrimSpace(req.Component)
 	if menuType == "C" && componentKey == "" {
-		return errors.New("menu.component.required")
+		return common.NewBadRequest("menu.component.required")
 	}
 	if menuType == "C" && requiresRegisteredMenuComponent(normalizeMenuModule(req.Module)) && !isRegisteredMenuComponentKey(componentKey) {
-		return errors.New("menu.component.invalid")
+		return common.NewBadRequest("menu.component.invalid")
 	}
 	return nil
 }
@@ -568,7 +593,7 @@ func (s *MenuService) ensureParentExists(parentID uint64) error {
 		return err
 	}
 	if count == 0 {
-		return errors.New("menu.parent.not_found")
+		return common.NewNotFound("menu.parent.not_found")
 	}
 	return nil
 }
@@ -587,7 +612,7 @@ func (s *MenuService) ensurePathUnique(menuID uint64, path string) error {
 		return err
 	}
 	if count > 0 {
-		return errors.New("menu.path.exists")
+		return common.NewConflict("menu.path.exists")
 	}
 	return nil
 }
@@ -602,7 +627,7 @@ func (s *MenuService) ensureRouteNameUnique(menuID uint64, routeName string) err
 		return err
 	}
 	if count > 0 {
-		return errors.New("menu.route_name.exists")
+		return common.NewConflict("menu.route_name.exists")
 	}
 	return nil
 }

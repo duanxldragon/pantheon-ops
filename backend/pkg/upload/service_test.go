@@ -36,21 +36,25 @@ type fakeObjectStorageClient struct {
 	putObjectCalled      bool
 	lastBucket           string
 	lastObjectKey        string
+	lastContext          context.Context
 	lastPutObjectOptions minio.PutObjectOptions
 }
 
-func (f *fakeObjectStorageClient) BucketExists(_ context.Context, bucketName string) (bool, error) {
+func (f *fakeObjectStorageClient) BucketExists(ctx context.Context, bucketName string) (bool, error) {
+	f.lastContext = ctx
 	f.lastBucket = bucketName
 	return f.bucketExists, f.bucketExistsErr
 }
 
-func (f *fakeObjectStorageClient) MakeBucket(_ context.Context, bucketName string, _ minio.MakeBucketOptions) error {
+func (f *fakeObjectStorageClient) MakeBucket(ctx context.Context, bucketName string, _ minio.MakeBucketOptions) error {
+	f.lastContext = ctx
 	f.makeBucketCalled = true
 	f.lastBucket = bucketName
 	return f.makeBucketErr
 }
 
-func (f *fakeObjectStorageClient) PutObject(_ context.Context, bucketName, objectName string, reader io.Reader, _ int64, opts minio.PutObjectOptions) (minio.UploadInfo, error) {
+func (f *fakeObjectStorageClient) PutObject(ctx context.Context, bucketName, objectName string, reader io.Reader, _ int64, opts minio.PutObjectOptions) (minio.UploadInfo, error) {
+	f.lastContext = ctx
 	f.putObjectCalled = true
 	f.lastBucket = bucketName
 	f.lastObjectKey = objectName
@@ -175,6 +179,34 @@ func TestServiceStoreUsesS3ClientWhenConfigured(t *testing.T) {
 	}
 	if stored.URL != "https://cdn.example.com/files/"+stored.ObjectKey {
 		t.Fatalf("unexpected s3 url: %s", stored.URL)
+	}
+}
+
+func TestServiceStoreWithContextPassesContextToS3Client(t *testing.T) {
+	fakeClient := &fakeObjectStorageClient{bucketExists: true}
+	service := NewService(stubConfigReader{
+		values: map[string]string{
+			"upload.storage_driver":       "s3",
+			"upload.max_file_size":        "2",
+			"upload.allowed_types":        `["png"]`,
+			"upload.s3_endpoint":          "https://minio.example.com",
+			"upload.s3_bucket":            "pantheon",
+			"upload.s3_access_key_id":     "demo-key",
+			"upload.s3_secret_access_key": "demo-secret",
+		},
+	})
+	service.s3ClientFactory = func(cfg *Config) (objectStorageClient, error) {
+		return fakeClient, nil
+	}
+
+	ctx := context.WithValue(context.Background(), "request-id", "req-upload-001")
+	fileHeader := buildFileHeader(t, "avatar.png", "image/png", []byte("avatar-demo"))
+	if _, err := service.StoreWithContext(ctx, fileHeader, "profile/avatar", "http://localhost:8080"); err != nil {
+		t.Fatalf("store s3 file with context: %v", err)
+	}
+
+	if fakeClient.lastContext == nil || fakeClient.lastContext.Value("request-id") != "req-upload-001" {
+		t.Fatalf("expected request context to reach s3 client, got %#v", fakeClient.lastContext)
 	}
 }
 

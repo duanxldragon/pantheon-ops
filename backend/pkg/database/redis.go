@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"pantheon-ops/backend/pkg/metrics"
 )
 
 var RDB *redis.Client
@@ -15,7 +16,7 @@ func InitRedis(addr string, password string, db int) {
 	RDB = redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: password, // 如果没有密码则留空
-		DB:       db,        // 默认使用 DB 0
+		DB:       db,       // 默认使用 DB 0
 	})
 
 	// 测试连接
@@ -28,6 +29,17 @@ func InitRedis(addr string, password string, db int) {
 		RDB = nil
 		return
 	}
+
+	// 启动后台协程采集 Redis 连接池指标
+	go func() {
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			stats := RDB.PoolStats()
+			metrics.RedisConnectionsActive.Set(float64(stats.TotalConns - stats.IdleConns))
+			metrics.RedisConnectionsIdle.Set(float64(stats.IdleConns))
+		}
+	}()
 
 	slog.Info("Redis connection successful")
 }

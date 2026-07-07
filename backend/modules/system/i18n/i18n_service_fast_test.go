@@ -49,9 +49,9 @@ func TestBuiltinLocaleHelpersReturnSafeCopiesAndFilterPlaceholders(t *testing.T)
 func TestGetLangPackUsesCacheAndBuiltinFallbackWithoutDB(t *testing.T) {
 	service := NewI18nService(nil)
 	service.cache["zh-CN"] = map[string]string{
-		"common.username":  "账号",
-		"custom.only":      "仅中文",
-		"custom.fallback":  "中文回退",
+		"common.username": "账号",
+		"custom.only":     "仅中文",
+		"custom.fallback": "中文回退",
 	}
 	service.cache["en-US"] = map[string]string{
 		"common.username": "[common.username]",

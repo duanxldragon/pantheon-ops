@@ -2,6 +2,7 @@ package generator
 
 import (
 	"errors"
+	"pantheon-ops/backend/pkg/common"
 	"regexp"
 	"strings"
 
@@ -71,10 +72,10 @@ func (s *GeneratorService) ListTables(datasourceID, keyword string) ([]TableOpti
 func (s *GeneratorService) PreviewTable(datasourceID, tableName string) (*TableSchemaPreviewResp, error) {
 	normalizedTable := strings.TrimSpace(tableName)
 	if normalizedTable == "" {
-		return nil, errors.New("generator.table.required")
+		return nil, common.NewBadRequest("generator.table.required")
 	}
 	if !regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString(normalizedTable) {
-		return nil, errors.New("generator.table.invalid")
+		return nil, common.NewBadRequest("generator.table.invalid")
 	}
 
 	reader, err := s.openSchemaReader(datasourceID)
@@ -91,7 +92,7 @@ func (s *GeneratorService) PreviewTable(datasourceID, tableName string) (*TableS
 		Where("table_schema = ? and table_name = ?", reader.schema, normalizedTable).
 		Take(&table).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("generator.table.not_found")
+			return nil, common.NewNotFound("generator.table.not_found")
 		}
 		return nil, err
 	}

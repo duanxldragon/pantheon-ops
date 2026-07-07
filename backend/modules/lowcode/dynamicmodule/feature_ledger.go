@@ -97,7 +97,7 @@ type featureLedgerRequiredField struct {
 
 func (s *DynamicModuleService) refreshGeneratedWorkspaceArtifacts() (*FeatureLedgerSnapshot, int, error) {
 	if strings.TrimSpace(s.workspaceRoot) == "" {
-		return nil, 0, errors.New("workspace.not_found")
+		return nil, 0, common.NewNotFound("workspace.not_found")
 	}
 
 	refs, err := s.listGeneratedModuleRefs()
@@ -270,7 +270,7 @@ func (s *DynamicModuleService) collectFeatureLedgerSchemaFiles() ([]featureLedge
 		return nil, err
 	}
 	if !info.IsDir() {
-		return nil, errors.New("workspace.schema_root_invalid")
+		return nil, common.NewBadRequest("workspace.schema_root_invalid")
 	}
 
 	files := make([]featureLedgerSchemaFile, 0)

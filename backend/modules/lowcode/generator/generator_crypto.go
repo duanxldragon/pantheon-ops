@@ -5,11 +5,11 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"io"
 	"strings"
 
 	"pantheon-ops/backend/pkg/common"
+	commonsecurity "pantheon-ops/backend/pkg/common/security"
 )
 
 const generatorEncryptedPrefix = "enc:v1:"
@@ -62,7 +62,7 @@ func decryptDatasourcePassword(value string) (string, error) {
 		return "", err
 	}
 	if len(raw) < gcm.NonceSize() {
-		return "", errors.New("generator.datasource.decrypt.invalid")
+		return "", common.NewBadRequest("generator.datasource.decrypt.invalid")
 	}
 
 	nonce, cipherText := raw[:gcm.NonceSize()], raw[gcm.NonceSize():]
@@ -74,9 +74,9 @@ func decryptDatasourcePassword(value string) (string, error) {
 }
 
 func getDatasourceCipherKey() []byte {
-	value := common.ResolveSecret("PANTHEON_GENERATOR_DATASOURCE_SECRET", "")
+	value := commonsecurity.ResolveSecret("PANTHEON_GENERATOR_DATASOURCE_SECRET", "")
 	if strings.TrimSpace(value) == "" {
-		value = common.ResolveSecret("PANTHEON_SETTING_SECRET", common.DefaultDevSecrets.Setting)
+		value = commonsecurity.ResolveSecret("PANTHEON_SETTING_SECRET", commonsecurity.DefaultDevSecrets.Setting)
 	}
 
 	key := []byte(value)

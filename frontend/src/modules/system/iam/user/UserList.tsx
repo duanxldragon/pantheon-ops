@@ -49,7 +49,6 @@ import {
   PermissionAction,
   SystemRowActions,
   TableBatchActionBar,
-  TABLE_ACTION_COLUMN_WIDTH,
   TABLE_COLUMN_WIDTH,
   useGovernanceRail,
   withTableColumnPriority,
@@ -58,7 +57,8 @@ import UserDetailContent from './UserDetailContent';
 import UserFormModal from './UserFormModal';
 import ResetPasswordModal from './ResetPasswordModal';
 import { useUserList, emptyQuery } from './useUserList';
-import '../../list-page.css';
+import { translateRoleName } from '../role/display';
+import '../../components/shared/list-page.css';
 import './user.css';
 
 const Row = Grid.Row;
@@ -221,17 +221,19 @@ const UserList: React.FC = () => {
       dataIndex: 'roleNames',
       width: TABLE_COLUMN_WIDTH.tagGroup,
       render: (_: string[], row: UserListRow) => {
-        const roleNames = row.roleNames?.filter(Boolean);
+        const roleNames = row.roleNames
+          ?.filter(Boolean)
+          .map((roleName) => translateRoleName(roleName, t));
         const roleLabels = row.roleIds
           ?.map((roleId) => roleLabelById.get(roleId))
           .filter((value): value is string => Boolean(value));
         const roleText = roleNames?.length
           ? roleNames.join(' / ')
           : roleLabels?.length
-          ? roleLabels.join(' / ')
-          : row.roleKeys?.length
-            ? row.roleKeys.join(' / ')
-            : undefined;
+            ? roleLabels.join(' / ')
+            : row.roleKeys?.length
+              ? row.roleKeys.join(' / ')
+              : undefined;
         return renderCellText(roleText, 'system-user-list__role-text');
       },
     },
@@ -268,7 +270,7 @@ const UserList: React.FC = () => {
     ),
     {
       title: t('common.action'),
-      width: TABLE_ACTION_COLUMN_WIDTH.wide,
+      width: 316,
       fixed: 'right',
       render: (_: unknown, row: UserListRow) => (
         <SystemRowActions
@@ -334,7 +336,8 @@ const UserList: React.FC = () => {
             : undefined,
     } as import('./api').UserListQuery;
     const sortChanged =
-      nextQuery.sortField !== state.query.sortField || nextQuery.sortOrder !== state.query.sortOrder;
+      nextQuery.sortField !== state.query.sortField ||
+      nextQuery.sortOrder !== state.query.sortOrder;
     if (sortChanged) {
       setSelectedRowKeys([]);
     }
@@ -360,10 +363,21 @@ const UserList: React.FC = () => {
       { key: 'total', label: t('system.menu.user'), value: state.total },
       { key: 'enabled', label: t('system.user.status.enabled'), value: enabledUserCount },
       { key: 'disabled', label: t('system.user.hero.disabledRows'), value: disabledUserCount },
-      { key: 'unassigned', label: t('system.user.hero.unassignedRoles'), value: unassignedRoleUserCount },
+      {
+        key: 'unassigned',
+        label: t('system.user.hero.unassignedRoles'),
+        value: unassignedRoleUserCount,
+      },
       { key: 'roles', label: t('system.user.hero.rolesReady'), value: assignableRoleCount },
     ],
-    [assignableRoleCount, disabledUserCount, enabledUserCount, t, state.total, unassignedRoleUserCount],
+    [
+      assignableRoleCount,
+      disabledUserCount,
+      enabledUserCount,
+      t,
+      state.total,
+      unassignedRoleUserCount,
+    ],
   );
 
   const governanceSummaryItems = useMemo(
@@ -510,7 +524,10 @@ const UserList: React.FC = () => {
               }
               actions={
                 <>
-                  <PermissionAction allowed={canBatchUpdate} tooltip={t('common.noPermissionAction')}>
+                  <PermissionAction
+                    allowed={canBatchUpdate}
+                    tooltip={t('common.noPermissionAction')}
+                  >
                     <Popconfirm
                       title={t('system.user.batchEnableConfirm')}
                       onOk={() => {
@@ -521,7 +538,10 @@ const UserList: React.FC = () => {
                       <Button disabled={batchActionDisabled}>{t('system.user.batchEnable')}</Button>
                     </Popconfirm>
                   </PermissionAction>
-                  <PermissionAction allowed={canBatchUpdate} tooltip={t('common.noPermissionAction')}>
+                  <PermissionAction
+                    allowed={canBatchUpdate}
+                    tooltip={t('common.noPermissionAction')}
+                  >
                     <Popconfirm
                       title={t('system.user.batchDisableConfirm')}
                       onOk={() => {
@@ -537,7 +557,10 @@ const UserList: React.FC = () => {
                       </Button>
                     </Popconfirm>
                   </PermissionAction>
-                  <PermissionAction allowed={canBatchDelete} tooltip={t('common.noPermissionAction')}>
+                  <PermissionAction
+                    allowed={canBatchDelete}
+                    tooltip={t('common.noPermissionAction')}
+                  >
                     <Popconfirm
                       title={t('system.user.batchDeleteConfirm')}
                       onOk={() => {
@@ -546,7 +569,7 @@ const UserList: React.FC = () => {
                       disabled={batchDeleteDisabled}
                     >
                       <Button
-                        status={batchDeleteDisabled ? undefined : 'danger'}
+                        status="danger"
                         icon={<IconDelete />}
                         disabled={batchDeleteDisabled}
                       >
@@ -569,7 +592,9 @@ const UserList: React.FC = () => {
             {!state.loading && !state.error && state.data.length === 0 ? (
               <PageEmpty description={t('common.noData')} />
             ) : null}
-            {!state.loading && !(state.error && state.data.length === 0) && state.data.length > 0 ? (
+            {!state.loading &&
+            !(state.error && state.data.length === 0) &&
+            state.data.length > 0 ? (
               <AppTable<UserListRow>
                 className="system-list__table system-user-list__table"
                 data={state.data}

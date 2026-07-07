@@ -309,10 +309,10 @@ func applyUserListFilters(db *gorm.DB, query *UserListQuery) *gorm.DB {
 		return db
 	}
 	if strings.TrimSpace(query.Username) != "" {
-		db = db.Where("username LIKE ?", fmt.Sprintf("%%%s%%", strings.TrimSpace(query.Username)))
+		db = db.Where("username LIKE ?", fmt.Sprintf("%%%s%%", common.EscapeLikePattern(strings.TrimSpace(query.Username))))
 	}
 	if strings.TrimSpace(query.Nickname) != "" {
-		db = db.Where("nickname LIKE ?", fmt.Sprintf("%%%s%%", strings.TrimSpace(query.Nickname)))
+		db = db.Where("nickname LIKE ?", fmt.Sprintf("%%%s%%", common.EscapeLikePattern(strings.TrimSpace(query.Nickname))))
 	}
 	if query.DeptID > 0 {
 		db = db.Where("dept_id = ?", query.DeptID)
@@ -320,7 +320,7 @@ func applyUserListFilters(db *gorm.DB, query *UserListQuery) *gorm.DB {
 	if query.PostID > 0 {
 		db = db.Where("post_id = ?", query.PostID)
 	}
-	if query.Status != nil && (*query.Status == 1 || *query.Status == 2) {
+	if query.Status != nil && common.IsEnabledStatus(*query.Status) {
 		db = db.Where("status = ?", *query.Status)
 	}
 	return db

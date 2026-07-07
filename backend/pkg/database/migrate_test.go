@@ -381,7 +381,7 @@ INSERT INTO system_generator_datasource (
 INSERT INTO permission_workbench_remediation_event (
 	role_key, issue_type, issue_key, before_state, after_state, action, created_count, skipped_count, created_at
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(3))
-`, "runtime-role", "api-gap", "POST /api/v1/system/dynamic-modules/generate", "api-gap", "complete", "remediated", 1, 0).Error; err != nil {
+`, "runtime-role", "api-gap", "POST /api/v1/lowcode/dynamic-modules/generate", "api-gap", "complete", "remediated", 1, 0).Error; err != nil {
 		t.Fatalf("insert current runtime remediation event row: %v", err)
 	}
 }
@@ -393,7 +393,7 @@ func assertPermissionWorkbenchRemediationRuntimeWriteSucceeds(t *testing.T, db *
 INSERT INTO permission_workbench_remediation_event (
 	role_key, issue_type, issue_key, before_state, after_state, action, created_count, skipped_count, created_at
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(3))
-`, roleKey, "api-gap", "POST /api/v1/system/dynamic-modules/generate", "api-gap", "complete", "remediated", 1, 0).Error; err != nil {
+`, roleKey, "api-gap", "POST /api/v1/lowcode/dynamic-modules/generate", "api-gap", "complete", "remediated", 1, 0).Error; err != nil {
 		t.Fatalf("insert current runtime remediation event row for %s: %v", roleKey, err)
 	}
 }

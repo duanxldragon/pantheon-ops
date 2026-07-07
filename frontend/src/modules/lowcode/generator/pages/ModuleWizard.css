@@ -5,24 +5,26 @@
 .generator-wizard-card .arco-card-body {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   padding: var(--shell-panel-body-padding);
 }
 
 .generator-wizard__step-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .generator-wizard__step-card {
   display: grid;
-  gap: 6px;
+  gap: 5px;
   min-width: 0;
-  padding: 14px 16px;
+  min-height: 108px;
+  padding: 12px 14px;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-md);
   background: var(--panel-muted);
+  align-content: start;
 }
 
 .generator-wizard__step-card--active {
@@ -46,12 +48,17 @@
   color: var(--text-primary);
   font-weight: 600;
   line-height: 1.4;
+  font-size: 14px;
 }
 
 .generator-wizard__step-desc {
   color: var(--text-secondary);
   font-size: 12px;
-  line-height: 1.55;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .generator-wizard__content-divider {
@@ -69,6 +76,7 @@
 .generator-wizard__toolbar {
   width: 100%;
   justify-content: space-between;
+  gap: 10px 12px;
 }
 
 .generator-wizard__description {

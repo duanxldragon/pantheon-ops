@@ -1,4 +1,67 @@
 import { defineModule } from '../../core/router/types';
+import { getOwnLoginLogs, getSecurityOverview } from './security/api';
+import { getSessions } from './session/api';
+
+export { LoginPageComponent as LoginPage } from './login/components/Login';
+export { login } from './login/api';
+export type { LoginPayload, LoginResp } from './login/api';
+
+export { verifyMFA } from './mfa/api';
+export type { MFAVerifyPayload } from './mfa/api';
+
+export {
+  getSessions,
+  revokeSession,
+  getAdminSessionList,
+  revokeAdminSession,
+  cleanupAdminSessions,
+  batchRevokeAdminSessions,
+  logout,
+  reportActivity,
+} from './session/api';
+export type {
+  AuthSession,
+  AuthSessionPayload,
+  AdminSessionRow,
+  AdminSessionQuery,
+  AdminSessionPageResp,
+  SessionCleanupPayload,
+  SessionBatchRevokePayload,
+} from './session/api';
+
+export {
+  acknowledgeSecurityEvent,
+  getSecurityOverview,
+  getOwnLoginLogs,
+  getAdminLoginLogList,
+  getAdminSecurityEventList,
+  exportAdminLoginLogs,
+  exportSelectedAdminLoginLogs,
+  cleanupAdminLoginLogs,
+  batchDeleteAdminLoginLogs,
+  updatePassword,
+  getMe,
+  verifyOperationPassword,
+  updateCurrentUserPreferences,
+} from './security/api';
+export type {
+  SecurityOverview,
+  SecurityPolicy,
+  SecurityEventRow,
+  SecurityEventQuery,
+  SecurityEventPageResp,
+  SecurityEventAcknowledgePayload,
+  LoginLogRow,
+  LoginLogQuery,
+  LoginLogCleanupPayload,
+  LoginLogBatchDeletePayload,
+  LoginLogPageResp,
+  UserPasswordUpdatePayload,
+  UserInfo,
+  UserPlatformPreferences,
+} from './security/api';
+
+export { formatClientSummary, renderClientInfo } from './session/clientInfo';
 
 export const AuthModule = defineModule({
   name: 'auth',
@@ -57,6 +120,15 @@ export const AuthModule = defineModule({
       icon: 'safe',
       routeName: 'system-security-event',
       module: 'system.auth',
+    },
+  ],
+  routeDataWarmers: [
+    { path: '/auth/security', key: 'overview', load: () => getSecurityOverview() },
+    { path: '/auth/security', key: 'sessions', load: () => getSessions() },
+    {
+      path: '/auth/security',
+      key: 'login-logs',
+      load: () => getOwnLoginLogs({ page: 1, pageSize: 10 }),
     },
   ],
   dashboardWidgets: [

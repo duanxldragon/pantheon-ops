@@ -1,20 +1,23 @@
-const CLIENT_CSRF_TOKEN_STORAGE_KEY = 'pantheon_csrf_token';
 const CLIENT_SESSION_HINT_STORAGE_KEY = 'pantheon_session_hint';
-const LEGACY_CSRF_COOKIE_PATTERN = /(?:^|;\s*)pantheon_csrf_token=([^;]+)/;
+const CLIENT_CSRF_TOKEN_STORAGE_KEY = 'pantheon_csrf_token';
 
-function readStorage(key: string): string {
-  if (globalThis.localStorage === undefined) {
-    return '';
+function canUseStorage() {
+  return globalThis.localStorage !== undefined;
+}
+
+function readStorage(key: string): string | null {
+  if (!canUseStorage()) {
+    return null;
   }
   try {
-    return globalThis.localStorage.getItem(key) || '';
+    return globalThis.localStorage.getItem(key);
   } catch {
-    return '';
+    return null;
   }
 }
 
 function writeStorage(key: string, value: string) {
-  if (globalThis.localStorage === undefined) {
+  if (!canUseStorage()) {
     return;
   }
   try {
@@ -25,7 +28,7 @@ function writeStorage(key: string, value: string) {
 }
 
 function removeStorage(key: string) {
-  if (globalThis.localStorage === undefined) {
+  if (!canUseStorage()) {
     return;
   }
   try {
@@ -35,7 +38,11 @@ function removeStorage(key: string) {
   }
 }
 
+let inMemoryCsrfToken = '';
+let sessionHintStored = false;
+
 export function markAuthSessionActive() {
+  sessionHintStored = true;
   writeStorage(CLIENT_SESSION_HINT_STORAGE_KEY, '1');
 }
 
@@ -44,35 +51,28 @@ export function persistCsrfToken(token: string) {
   if (!normalized) {
     return;
   }
+  inMemoryCsrfToken = normalized;
   writeStorage(CLIENT_CSRF_TOKEN_STORAGE_KEY, normalized);
   markAuthSessionActive();
 }
 
 export function readStoredCsrfToken(): string {
-  hydrateLegacyAuthSession();
-  return readStorage(CLIENT_CSRF_TOKEN_STORAGE_KEY);
+  if (!inMemoryCsrfToken) {
+    const persistedToken = readStorage(CLIENT_CSRF_TOKEN_STORAGE_KEY)?.trim() || '';
+    if (persistedToken) {
+      inMemoryCsrfToken = persistedToken;
+    }
+  }
+  return inMemoryCsrfToken;
 }
 
 export function clearClientAuthSession() {
-  removeStorage(CLIENT_CSRF_TOKEN_STORAGE_KEY);
+  inMemoryCsrfToken = '';
+  sessionHintStored = false;
   removeStorage(CLIENT_SESSION_HINT_STORAGE_KEY);
+  removeStorage(CLIENT_CSRF_TOKEN_STORAGE_KEY);
 }
 
 export function hasAuthSessionHint(): boolean {
-  hydrateLegacyAuthSession();
-  return readStorage(CLIENT_SESSION_HINT_STORAGE_KEY) === '1' || readStorage(CLIENT_CSRF_TOKEN_STORAGE_KEY) !== '';
-}
-
-export function hydrateLegacyAuthSession() {
-  if (globalThis.document === undefined) {
-    return;
-  }
-  if (readStorage(CLIENT_SESSION_HINT_STORAGE_KEY) === '1' && readStorage(CLIENT_CSRF_TOKEN_STORAGE_KEY) !== '') {
-    return;
-  }
-  const match = globalThis.document.cookie.match(LEGACY_CSRF_COOKIE_PATTERN);
-  if (!match?.[1]) {
-    return;
-  }
-  persistCsrfToken(decodeURIComponent(match[1]));
+  return sessionHintStored || inMemoryCsrfToken !== '' || readStorage(CLIENT_SESSION_HINT_STORAGE_KEY) === '1';
 }

@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"pantheon-ops/backend/pkg/common"
 )
 
 func TestValidateRegisterRequestHonorsScopeSpecificModuleNameRules(t *testing.T) {
@@ -59,7 +61,7 @@ func TestValidateRegisterRequestHonorsScopeSpecificModuleNameRules(t *testing.T)
 				t.Fatalf("expected success, got %v", err)
 			}
 			if tt.wantError != "" {
-				if err == nil || err.Error() != tt.wantError {
+				if err == nil || common.ErrMessage(err) != tt.wantError {
 					t.Fatalf("expected %s, got %v", tt.wantError, err)
 				}
 			}
@@ -85,7 +87,7 @@ func TestValidateRegisterRequestRejectsUnsafeManagedTableName(t *testing.T) {
 	}
 
 	err := ValidateRegisterRequest(req)
-	if err == nil || err.Error() != "module.generate.invalid_table_name" {
+	if err == nil || common.ErrMessage(err) != "module.generate.invalid_table_name" {
 		t.Fatalf("expected invalid table name error, got %v", err)
 	}
 }
@@ -178,7 +180,7 @@ func TestValidateRegisterRequestRejectsInvalidGovernanceContract(t *testing.T) {
 			tt.mutate(req)
 
 			err := ValidateRegisterRequest(req)
-			if err == nil || err.Error() != tt.wantError {
+			if err == nil || common.ErrMessage(err) != tt.wantError {
 				t.Fatalf("expected %s, got %v", tt.wantError, err)
 			}
 		})

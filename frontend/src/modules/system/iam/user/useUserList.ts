@@ -10,6 +10,7 @@ import { usePublicSettings } from '../../../../core/settings/publicSettings';
 import { getDeptTree, type DeptNode } from '../../org/dept/api';
 import { getPostList } from '../../org/post/api';
 import { getRoleList } from '../role/api';
+import { translateRoleName } from '../role/display';
 import {
   batchDeleteUsers,
   batchUpdateUserStatus,
@@ -187,7 +188,13 @@ function userListReducer(state: UserListState, action: UserListAction): UserList
     case 'SET_DETAIL_ERROR':
       return { ...state, detailError: action.error, detailData: null };
     case 'CLOSE_DETAIL':
-      return { ...state, detailTarget: null, detailData: null, detailError: false, detailLoading: false };
+      return {
+        ...state,
+        detailTarget: null,
+        detailData: null,
+        detailError: false,
+        detailLoading: false,
+      };
     case 'OPEN_RESET_PASSWORD':
       return { ...state, resetTarget: action.row };
     case 'CLOSE_RESET_PASSWORD':
@@ -211,9 +218,7 @@ interface LoadDataOptions {
   silent?: boolean;
 }
 
-export function useUserList(
-  form: FormInstance<UserCreatePayload>,
-) {
+export function useUserList(form: FormInstance<UserCreatePayload>) {
   const [state, dispatch] = useReducer(userListReducer, initialState);
   const { t } = useTranslation();
   const publicSettings = usePublicSettings();
@@ -259,7 +264,10 @@ export function useUserList(
       );
       dispatch({
         type: 'SET_ROLE_OPTIONS',
-        options: result.items.map((item) => ({ label: item.roleName, value: item.id })),
+        options: result.items.map((item) => ({
+          label: translateRoleName(item.roleName, t),
+          value: item.id,
+        })),
       });
     } catch {
       message.error(t('common.loadFailed'));
@@ -419,12 +427,15 @@ export function useUserList(
     }
   }, [form, invalidateUserCaches, loadData, orgEnabled, state.editingRow, state.query, t]);
 
-  const handleAvatarUploadSuccess = useCallback((response: unknown) => {
-    const uploaded = response as { url: string };
-    form.setFieldValue('avatar', uploaded.url);
-    dispatch({ type: 'SET_AVATAR_PREVIEW', preview: uploaded.url });
-    message.success(t('system.profile.avatarUploadSuccess'));
-  }, [form, t]);
+  const handleAvatarUploadSuccess = useCallback(
+    (response: unknown) => {
+      const uploaded = response as { url: string };
+      form.setFieldValue('avatar', uploaded.url);
+      dispatch({ type: 'SET_AVATAR_PREVIEW', preview: uploaded.url });
+      message.success(t('system.profile.avatarUploadSuccess'));
+    },
+    [form, t],
+  );
 
   const handleDeptChange = useCallback(
     (value: unknown) => {
@@ -471,12 +482,9 @@ export function useUserList(
 
   // ---- Reset password modal actions ----
 
-  const openResetPassword = useCallback(
-    (row: UserListRow) => {
-      dispatch({ type: 'OPEN_RESET_PASSWORD', row });
-    },
-    [],
-  );
+  const openResetPassword = useCallback((row: UserListRow) => {
+    dispatch({ type: 'OPEN_RESET_PASSWORD', row });
+  }, []);
 
   const closeResetPassword = useCallback(() => {
     dispatch({ type: 'CLOSE_RESET_PASSWORD' });
@@ -490,7 +498,9 @@ export function useUserList(
       dispatch({ type: 'SET_SUBMITTING', submitting: true });
       try {
         const result = await resetUserPassword(state.resetTarget.id, { newPassword });
-        message.success(t('system.user.resetPasswordSuccess', { count: result.revokedSessionCount }));
+        message.success(
+          t('system.user.resetPasswordSuccess', { count: result.revokedSessionCount }),
+        );
         dispatch({ type: 'CLOSE_RESET_PASSWORD' });
       } catch {
         message.error(t('common.actionFailed'));
@@ -622,8 +632,14 @@ export function useUserList(
     [state.postOptions, state.formDeptId, t],
   );
 
-  const enabledUserCount = useMemo(() => state.data.filter((item) => item.status === 1).length, [state.data]);
-  const disabledUserCount = useMemo(() => state.data.filter((item) => item.status !== 1).length, [state.data]);
+  const enabledUserCount = useMemo(
+    () => state.data.filter((item) => item.status === 1).length,
+    [state.data],
+  );
+  const disabledUserCount = useMemo(
+    () => state.data.filter((item) => item.status !== 1).length,
+    [state.data],
+  );
   const unassignedRoleUserCount = useMemo(
     () => state.data.filter((item) => !item.roleKeys?.length).length,
     [state.data],

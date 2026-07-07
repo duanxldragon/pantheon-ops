@@ -16,7 +16,11 @@ import { findFirstNavigableMenuPath } from './modules/system/iam/menu/api';
 import { useMenuStore } from './store/useMenuStore';
 
 const BaseLayout = lazy(() => import('./core/layout'));
-const LoginPage = lazy(() => import('./modules/auth/Login'));
+const LoginPage = lazy(() =>
+  import('./modules/auth/login/components/Login').then((module) => ({
+    default: module.LoginPageComponent,
+  })),
+);
 const SecondaryVerifyModal = lazy(() =>
   import('./components/feedback/SecondaryVerifyModal').then((module) => ({
     default: module.SecondaryVerifyModal,

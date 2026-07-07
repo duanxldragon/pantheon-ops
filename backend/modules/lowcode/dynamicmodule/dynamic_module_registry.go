@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"pantheon-ops/backend/pkg/common"
 	"path/filepath"
 	"strings"
 
@@ -33,7 +34,7 @@ func generatedModuleRelativePath(parts ...string) (string, bool) {
 
 func (s *DynamicModuleService) RebuildGeneratedRegistries() error {
 	if strings.TrimSpace(s.workspaceRoot) == "" {
-		return errors.New("workspace.not_found")
+		return common.NewNotFound("workspace.not_found")
 	}
 	if _, err := s.syncGeneratedModuleRegistrations(); err != nil {
 		return err
@@ -85,28 +86,28 @@ func (s *DynamicModuleService) generatedModuleArtifactsExist(scope, name string)
 func (s *DynamicModuleService) loadGeneratedModuleSchema(scope, name string) (*scaffold.ModuleSchema, error) {
 	relativeTarget, ok := generatedModuleRelativePath("schema", "generated", scope, name+".json")
 	if !ok {
-		return nil, errors.New("module.register.schema_invalid")
+		return nil, common.NewBadRequest("module.register.schema_invalid")
 	}
 	target, resolved := resolveGeneratedWorkspacePath(s.workspaceRoot, relativeTarget)
 	if !resolved {
-		return nil, errors.New("module.register.schema_invalid")
+		return nil, common.NewBadRequest("module.register.schema_invalid")
 	}
 	if !filepath.IsLocal(relativeTarget) {
-		return nil, errors.New("module.register.schema_invalid")
+		return nil, common.NewBadRequest("module.register.schema_invalid")
 	}
 	content, err := os.ReadFile(target)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return nil, errors.New("module.register.source_missing")
+			return nil, common.NewBadRequest("module.register.source_missing")
 		}
 		return nil, err
 	}
 	var schema scaffold.ModuleSchema
 	if err := json.Unmarshal(content, &schema); err != nil {
-		return nil, errors.New("module.register.schema_invalid")
+		return nil, common.NewBadRequest("module.register.schema_invalid")
 	}
 	if strings.TrimSpace(schema.Name) == "" || strings.TrimSpace(schema.Scope) == "" || strings.TrimSpace(schema.Model.TableName) == "" {
-		return nil, errors.New("module.register.schema_invalid")
+		return nil, common.NewBadRequest("module.register.schema_invalid")
 	}
 	return &schema, nil
 }

@@ -2,11 +2,7 @@ import React from 'react';
 import { Button, Card, Space, Tag } from '@arco-design/web-react';
 import { IconEye, IconPlus } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
-import {
-  PageEmpty,
-  PageLoading,
-  PageRequestError,
-} from '../../../../components';
+import { PageEmpty, PageLoading, PageRequestError } from '../../../../components';
 import type { DeptNode } from './api';
 import type { PostRow } from '../post/api';
 import type { UserListRow } from '../../iam/user/api';

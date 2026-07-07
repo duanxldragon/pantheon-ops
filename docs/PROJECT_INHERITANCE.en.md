@@ -6,7 +6,7 @@ Chinese version: [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
 
 - Base repository: `../pantheon-base`
 - Base release line: `release/0.8`
-- Base version: `pantheon-base-v0.8.5` (`185e31f030108ad0e85cf8a6c87912222656ba3a`)
+- Base version: `base-v0.8.10` (`1777a8585e12f9fec39f23d10b15c578479e09cb`)
 - Inheritance mode: `foundation-release-consumer`
 
 This repository no longer treats `base/main` as the default consumer surface. `main` may continue to absorb optimization and governance work, while ops upgrades only to explicit foundation releases or tags by default.
@@ -148,8 +148,8 @@ npm run check:base-sync:workspace
 6. once the workspace comparison says an upgrade is warranted, cut a new `pantheon-base` release first and then consume that release instead of hand-copying files
 
 ```powershell
-npm run upgrade:foundation:local-plan -- --release-version base-v0.8.3
-npm run upgrade:foundation:local-apply -- --release-version base-v0.8.3
+npm run upgrade:foundation:local-plan -- --release-version base-v0.8.10
+npm run upgrade:foundation:local-apply -- --release-version base-v0.8.10
 ```
 
 7. if shared backend files must be synced, sync them file-by-file and do not overwrite `business/*`

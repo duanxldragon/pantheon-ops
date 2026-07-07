@@ -39,7 +39,7 @@ import {
   shouldGenerateNavigation,
   splitModuleSegments,
 } from './schema';
-import { TYPE_MAPPING, generateStructTags, getRequiredImports } from './type-mapping';
+import { TYPE_MAPPING, generateStructTags, getRequiredImports } from './typeMapping';
 
 type StructTagOptions = NonNullable<Parameters<typeof generateStructTags>[2]>;
 

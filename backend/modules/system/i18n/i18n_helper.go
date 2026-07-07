@@ -1,7 +1,6 @@
 package system
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -496,7 +495,7 @@ func (s *I18nService) ArchiveObservedUnusedKeys(module string) (*I18nUnusedLifec
 
 func (s *I18nService) DeleteArchivedUnusedKeys(module string, confirmArchived bool) (*I18nUnusedLifecycleResp, error) {
 	if !confirmArchived {
-		return nil, errors.New("i18n.lifecycle.delete.confirm_required")
+		return nil, common.NewBadRequest("i18n.lifecycle.delete.confirm_required")
 	}
 	return s.deleteArchivedUnusedKeys(module, false)
 }
@@ -604,7 +603,7 @@ func (s *I18nService) PreviewRenameKey(req *I18nRenamePreviewReq) (*I18nRenamePr
 	oldKey := strings.TrimSpace(req.OldKey)
 	newKey := strings.TrimSpace(req.NewKey)
 	if module == "" || oldKey == "" || newKey == "" || oldKey == newKey {
-		return nil, errors.New("i18n.rename.invalid")
+		return nil, common.NewBadRequest("i18n.rename.invalid")
 	}
 
 	resp := &I18nRenamePreviewResp{
@@ -625,7 +624,7 @@ func (s *I18nService) PreviewRenameKey(req *I18nRenamePreviewReq) (*I18nRenamePr
 	}
 	resp.AffectedRows = int64(len(sourceRows))
 	if resp.AffectedRows == 0 {
-		return nil, errors.New("i18n.rename.source_not_found")
+		return nil, common.NewNotFound("i18n.rename.source_not_found")
 	}
 	for _, row := range sourceRows {
 		resp.AffectedLocales = append(resp.AffectedLocales, row.Locale)
@@ -660,10 +659,10 @@ func (s *I18nService) RenameKey(req *I18nRenameExecuteReq) (*I18nRenameExecuteRe
 		return nil, err
 	}
 	if preview.ExistingTargetRows > 0 {
-		return nil, errors.New("i18n.rename.target_exists")
+		return nil, common.NewConflict("i18n.rename.target_exists")
 	}
 	if preview.RequiresCodeMigration && !req.ConfirmSourceUpdated {
-		return nil, errors.New("i18n.rename.source_not_confirmed")
+		return nil, common.NewBadRequest("i18n.rename.source_not_confirmed")
 	}
 
 	resp := &I18nRenameExecuteResp{
@@ -1364,7 +1363,7 @@ func (s *I18nService) resetI18nLifecycle(_ string, module, key string) error {
 
 func (s *I18nService) transitionUnusedLifecycle(module string, fromStatus string, toStatus string, requireConfirm bool) (*I18nUnusedLifecycleResp, error) {
 	if requireConfirm {
-		return nil, errors.New("i18n.lifecycle.transition.invalid")
+		return nil, common.NewBadRequest("i18n.lifecycle.transition.invalid")
 	}
 	return s.transitionUnusedLifecycleWithFilter(module, fromStatus, toStatus, nil)
 }

@@ -55,7 +55,7 @@ import {
   type DictTypeQuery,
   type DictTypeRow,
 } from './api';
-import '../../list-page.css';
+import '../../components/shared/list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -154,7 +154,10 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
     onQueryChange(emptyTypeQuery);
   };
 
-  const typeTableTotalPages = Math.max(1, Math.ceil(typeRows.length / Math.max(1, typeTablePageSize)));
+  const typeTableTotalPages = Math.max(
+    1,
+    Math.ceil(typeRows.length / Math.max(1, typeTablePageSize)),
+  );
   const typeTableCurrentPage = Math.min(typeTablePage, typeTableTotalPages);
 
   const openCreateType = () => {
@@ -297,13 +300,13 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
         'medium',
       ),
       withTableColumnPriority(
-      {
-        title: t('system.dict.item'),
-        dataIndex: 'itemCount',
-        width: TABLE_COLUMN_WIDTH.count,
-        render: (_: unknown, row: DictTypeRow) => (
-          <Text>{`${row.activeItemCount}/${row.itemCount}`}</Text>
-        ),
+        {
+          title: t('system.dict.item'),
+          dataIndex: 'itemCount',
+          width: TABLE_COLUMN_WIDTH.count,
+          render: (_: unknown, row: DictTypeRow) => (
+            <Text>{`${row.activeItemCount}/${row.itemCount}`}</Text>
+          ),
         },
         'low',
       ),
@@ -483,11 +486,7 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
                   }}
                   disabled={typeBatchDeleteDisabled}
                 >
-                  <Button
-                    status="danger"
-                    icon={<IconDelete />}
-                    disabled={typeBatchDeleteDisabled}
-                  >
+                  <Button status="danger" icon={<IconDelete />} disabled={typeBatchDeleteDisabled}>
                     {t('common.deleteSelected')}
                   </Button>
                 </Popconfirm>

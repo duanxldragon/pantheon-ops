@@ -17,6 +17,7 @@ import { formatDateTime } from '../../../../core/format/dateTime';
 import { usePermission } from '../../../../hooks/usePermission';
 import {
   getPermissionWorkbenchRemediationEvents,
+  type PermissionWorkbenchPermission,
   type PermissionWorkbenchQuery,
   type PermissionWorkbenchRemediationEvent,
   type PermissionWorkbenchRole,
@@ -35,10 +36,23 @@ import {
   TABLE_COLUMN_WIDTH,
   withTableColumnPriority,
 } from '../../../../components';
+import { translateRoleName } from '../role/display';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
 const FormItem = Form.Item;
+
+function dedupePermissions(items: PermissionWorkbenchPermission[]) {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const identity = `${item.kind}:${item.key}:${item.path || ''}`;
+    if (seen.has(identity)) {
+      return false;
+    }
+    seen.add(identity);
+    return true;
+  });
+}
 
 const emptyWorkbenchQuery: PermissionWorkbenchQuery = {
   roleKey: '',
@@ -198,8 +212,26 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
     [remediationEvents, t],
   );
 
+  const detailPagePermissions = useMemo(
+    () => dedupePermissions(detailRole?.pagePermissions ?? []),
+    [detailRole?.pagePermissions],
+  );
+  const detailActionPermissions = useMemo(
+    () => dedupePermissions(detailRole?.actionPermissions ?? []),
+    [detailRole?.actionPermissions],
+  );
+  const detailUnknownPermissions = useMemo(
+    () => dedupePermissions(detailRole?.unknownPermissions ?? []),
+    [detailRole?.unknownPermissions],
+  );
+
   const workbenchColumns: ColumnProps<PermissionWorkbenchRole>[] = [
-    { title: t('system.role.roleName'), dataIndex: 'roleName', width: TABLE_COLUMN_WIDTH.name },
+    {
+      title: t('system.role.roleName'),
+      dataIndex: 'roleName',
+      width: TABLE_COLUMN_WIDTH.name,
+      render: (value: string) => translateRoleName(value, t),
+    },
     withTableColumnPriority(
       { title: t('system.role.roleKey'), dataIndex: 'roleKey', width: TABLE_COLUMN_WIDTH.code },
       'medium',
@@ -297,7 +329,7 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
 
   return (
     <>
-      <Space direction="vertical" size={12} className="permission-workbench">
+      <Space direction="vertical" size={10} className="permission-workbench">
         <div className="page-panel permission-workbench__context">
           <div className="permission-workbench__context-copy">
             <span className="permission-workbench__context-kicker">
@@ -307,12 +339,24 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
               {t('system.permission.workbench.positioningHint')}
             </Typography.Text>
           </div>
-          <Space size={8} className="permission-workbench__context-tools system-list__work-actions" wrap>
-            {utilityActions}
-            <div className="permission-workbench__view-switch">
+          <div className="permission-workbench__context-tools system-list__work-actions">
+            {utilityActions ? (
+              <div className="permission-workbench__utility-actions">{utilityActions}</div>
+            ) : null}
+            <div
+              className="permission-workbench__view-switch"
+              role="group"
+              aria-label={t('system.permission.workbench.tab')}
+            >
               <Button
-                type={viewMode === 'pending' ? 'primary' : 'secondary'}
+                type="text"
                 size="small"
+                className={
+                  viewMode === 'pending'
+                    ? 'permission-workbench__view-button permission-workbench__view-button--active'
+                    : 'permission-workbench__view-button'
+                }
+                aria-pressed={viewMode === 'pending'}
                 onClick={() => {
                   setViewMode('pending');
                   setTablePagination((current) => ({ ...current, current: 1 }));
@@ -321,8 +365,14 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
                 {t('system.permission.workbench.view.pending')}
               </Button>
               <Button
-                type={viewMode === 'all' ? 'primary' : 'secondary'}
+                type="text"
                 size="small"
+                className={
+                  viewMode === 'all'
+                    ? 'permission-workbench__view-button permission-workbench__view-button--active'
+                    : 'permission-workbench__view-button'
+                }
+                aria-pressed={viewMode === 'all'}
                 onClick={() => {
                   setViewMode('all');
                   setTablePagination((current) => ({ ...current, current: 1 }));
@@ -331,16 +381,16 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
                 {t('system.permission.workbench.view.all')}
               </Button>
             </div>
-          </Space>
+          </div>
         </div>
 
         {workbench ? (
-          <Row gutter={[12, 12]} className="permission-workbench__overview">
+          <Row gutter={[10, 10]} className="permission-workbench__overview">
             {overviewCards.map((item) => (
               <Col xs={24} sm={12} lg={6} key={item.title}>
                 <Card className="page-stat-panel permission-workbench__overview-card">
                   <Typography.Text type="secondary">{item.title}</Typography.Text>
-                  <Typography.Title heading={4} style={{ margin: '8px 0 0' }}>
+                  <Typography.Title heading={4} className="permission-workbench__overview-value">
                     {item.value}
                   </Typography.Title>
                 </Card>
@@ -349,78 +399,80 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
           </Row>
         ) : null}
 
-        <FilterPanel>
-          <Form form={workbenchForm} layout="vertical" onSubmit={() => searchWorkbench()}>
-            <Row gutter={16}>
-              <Col span={8}>
-                <FormItem label={t('system.permission.roleKey')} field="roleKey">
-                  <Select allowClear options={roleOptions} />
-                </FormItem>
-              </Col>
-              <Col span={6}>
-                <FormItem label={t('system.role.status')} field="status">
-                  <Select
-                    allowClear
-                    options={[
-                      { label: t('system.user.status.enabled'), value: 1 },
-                      { label: t('system.user.status.disabled'), value: 2 },
-                    ]}
-                  />
-                </FormItem>
-              </Col>
-              <Col span={6}>
-                <FormItem label={t('system.permission.workbench.integrity')} field="integrity">
-                  <Select
-                    allowClear
-                    options={[
-                      {
-                        label: t('system.permission.workbench.integrity.unknown'),
-                        value: 'unknown',
-                      },
-                      {
-                        label: t('system.permission.workbench.integrity.clean'),
-                        value: 'clean',
-                      },
-                    ]}
-                  />
-                </FormItem>
-              </Col>
-              <Col span={6}>
-                <FormItem label={t('system.permission.workbench.coverage')} field="coverage">
-                  <Select
-                    allowClear
-                    options={[
-                      {
-                        label: t('system.permission.workbench.coverage.pageGap'),
-                        value: 'page-gap',
-                      },
-                      {
-                        label: t('system.permission.workbench.coverage.apiGap'),
-                        value: 'api-gap',
-                      },
-                      {
-                        label: t('system.permission.workbench.coverage.complete'),
-                        value: 'complete',
-                      },
-                    ]}
-                  />
-                </FormItem>
-              </Col>
-              <Col span={4}>
-                <FormItem className="filter-panel__action-item">
-                  <Space>
-                    <Button type="primary" htmlType="submit" icon={<IconSearch />}>
-                      {t('common.search')}
-                    </Button>
-                    <Button onClick={resetWorkbench}>{t('common.reset')}</Button>
-                  </Space>
-                </FormItem>
-              </Col>
-            </Row>
-          </Form>
-        </FilterPanel>
+        <div className="permission-workbench__filter-shell">
+          <FilterPanel>
+            <Form form={workbenchForm} layout="vertical" onSubmit={() => searchWorkbench()}>
+              <Row gutter={16}>
+                <Col xs={24} sm={12} lg={8} xl={7}>
+                  <FormItem label={t('system.permission.roleKey')} field="roleKey">
+                    <Select allowClear options={roleOptions} />
+                  </FormItem>
+                </Col>
+                <Col xs={24} sm={12} lg={4} xl={4}>
+                  <FormItem label={t('system.role.status')} field="status">
+                    <Select
+                      allowClear
+                      options={[
+                        { label: t('system.user.status.enabled'), value: 1 },
+                        { label: t('system.user.status.disabled'), value: 2 },
+                      ]}
+                    />
+                  </FormItem>
+                </Col>
+                <Col xs={24} sm={12} lg={4} xl={4}>
+                  <FormItem label={t('system.permission.workbench.integrity')} field="integrity">
+                    <Select
+                      allowClear
+                      options={[
+                        {
+                          label: t('system.permission.workbench.integrity.unknown'),
+                          value: 'unknown',
+                        },
+                        {
+                          label: t('system.permission.workbench.integrity.clean'),
+                          value: 'clean',
+                        },
+                      ]}
+                    />
+                  </FormItem>
+                </Col>
+                <Col xs={24} sm={12} lg={4} xl={5}>
+                  <FormItem label={t('system.permission.workbench.coverage')} field="coverage">
+                    <Select
+                      allowClear
+                      options={[
+                        {
+                          label: t('system.permission.workbench.coverage.pageGap'),
+                          value: 'page-gap',
+                        },
+                        {
+                          label: t('system.permission.workbench.coverage.apiGap'),
+                          value: 'api-gap',
+                        },
+                        {
+                          label: t('system.permission.workbench.coverage.complete'),
+                          value: 'complete',
+                        },
+                      ]}
+                    />
+                  </FormItem>
+                </Col>
+                <Col xs={24} sm={12} lg={4} xl={4}>
+                  <FormItem className="filter-panel__action-item">
+                    <Space>
+                      <Button type="primary" htmlType="submit" icon={<IconSearch />}>
+                        {t('common.search')}
+                      </Button>
+                      <Button onClick={resetWorkbench}>{t('common.reset')}</Button>
+                    </Space>
+                  </FormItem>
+                </Col>
+              </Row>
+            </Form>
+          </FilterPanel>
+        </div>
 
-        <Card className="page-panel system-list__table-card">
+        <Card className="page-panel system-list__table-card permission-workbench__table-card">
           {workbenchLoading && !workbench ? <PageLoading /> : null}
           {workbenchError && !workbench ? (
             <PageRequestError error={workbenchError} onRetry={onRetryLoadWorkbench} />
@@ -428,9 +480,7 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
           {!workbenchLoading && !workbenchError && displayedRoles.length === 0 ? (
             <PageEmpty description={t('common.noData')} />
           ) : null}
-          {!workbenchLoading &&
-          !(workbenchError && !workbench) &&
-          displayedRoles.length > 0 ? (
+          {!workbenchLoading && !(workbenchError && !workbench) && displayedRoles.length > 0 ? (
             <AppTable<PermissionWorkbenchRole>
               className="system-list__table"
               rowKey="id"
@@ -458,7 +508,7 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
       <AppModal
         title={
           detailRole
-            ? `${detailRole.roleName} · ${detailRole.roleKey}`
+            ? `${translateRoleName(detailRole.roleName, t)} · ${detailRole.roleKey}`
             : t('system.permission.workbench.detailTitle')
         }
         visible={Boolean(detailRole)}
@@ -600,7 +650,9 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
               className="detail-panel-card"
               title={t('system.permission.workbench.remediationTimelineSection')}
             >
-              <AppTable<(PermissionWorkbenchRemediationEvent & { actionLabel: string; stateLabel: string })>
+              <AppTable<
+                PermissionWorkbenchRemediationEvent & { actionLabel: string; stateLabel: string }
+              >
                 rowKey="id"
                 data={remediationTimelineRows}
                 columns={[
@@ -634,7 +686,10 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
               />
             </Card>
 
-            <Card className="detail-panel-card" title={t('system.permission.workbench.rawCoverageSection')}>
+            <Card
+              className="detail-panel-card"
+              title={t('system.permission.workbench.rawCoverageSection')}
+            >
               <Space direction="vertical" size={12} style={{ width: '100%' }}>
                 <Space direction="vertical" size={6} style={{ width: '100%' }}>
                   <Typography.Text bold>
@@ -658,9 +713,9 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
                     {t('system.permission.workbench.pageSection')}
                   </Typography.Text>
                   <Space wrap>
-                    {detailRole.pagePermissions.length > 0 ? (
-                      detailRole.pagePermissions.map((item) => (
-                        <Tag key={item.key} color="arcoblue">
+                    {detailPagePermissions.length > 0 ? (
+                      detailPagePermissions.map((item) => (
+                        <Tag key={`${item.kind}:${item.key}:${item.path || ''}`} color="arcoblue">
                           {translateTitleKey(item.titleKey, item.key)}
                         </Tag>
                       ))
@@ -675,9 +730,9 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
                     {t('system.permission.workbench.actionSection')}
                   </Typography.Text>
                   <Space wrap>
-                    {detailRole.actionPermissions.length > 0 ? (
-                      detailRole.actionPermissions.map((item) => (
-                        <Tag key={item.key} color="green">
+                    {detailActionPermissions.length > 0 ? (
+                      detailActionPermissions.map((item) => (
+                        <Tag key={`${item.kind}:${item.key}:${item.path || ''}`} color="green">
                           {translateTitleKey(item.titleKey, item.key)}
                         </Tag>
                       ))
@@ -710,14 +765,14 @@ export const PermissionWorkbenchTab: React.FC<PermissionWorkbenchTabProps> = ({
                   />
                 </Space>
 
-                {detailRole.unknownPermissions.length > 0 ? (
+                {detailUnknownPermissions.length > 0 ? (
                   <Space direction="vertical" size={6} style={{ width: '100%' }}>
                     <Typography.Text bold>
                       {t('system.permission.workbench.unknownSection')}
                     </Typography.Text>
                     <Space wrap>
-                      {detailRole.unknownPermissions.map((item) => (
-                        <Tag key={item.key} color="orange">
+                      {detailUnknownPermissions.map((item) => (
+                        <Tag key={`${item.kind}:${item.key}:${item.path || ''}`} color="orange">
                           {item.key}
                         </Tag>
                       ))}

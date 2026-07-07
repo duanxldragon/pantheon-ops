@@ -1,40 +1,34 @@
 package middleware
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"sync"
 	"time"
 
+	"pantheon-ops/backend/pkg/database"
+
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 )
 
-// rateLimiterEntry tracks request count and last reset time for a single key.
-type rateLimiterEntry struct {
-	count    int
-	lastSeen time.Time
-}
-
-func evictExpiredEntries(entries map[string]*rateLimiterEntry, now time.Time, window time.Duration) {
-	for k, v := range entries {
-		if now.Sub(v.lastSeen) > 2*window {
-			delete(entries, k)
-		}
-	}
+// RateLimitStore abstracts the backing store for rate limit counters.
+type RateLimitStore interface {
+	// Allow reports whether the given key is within the limit for the window.
+	// Returns true if allowed, false if rate-limited.
+	Allow(ctx context.Context, key string, limit int, window time.Duration) (bool, error)
 }
 
 // RateLimiterConfig defines the configuration for rate limiting.
 type RateLimiterConfig struct {
-	// MaxRequests is the maximum number of requests allowed within the window.
 	MaxRequests int
-	// Window is the time window for the rate limit.
-	Window time.Duration
-	// KeyFunc extracts the rate limit key from the request (default: client IP).
-	KeyFunc func(c *gin.Context) string
+	Window      time.Duration
+	KeyFunc     func(c *gin.Context) string
+	Store       RateLimitStore // nil defaults to in-memory store
 }
 
 // RateLimiter returns a Gin middleware that limits request frequency per key.
-// Uses an in-memory sliding window counter with lazy eviction.
 func RateLimiter(config RateLimiterConfig) gin.HandlerFunc {
 	if config.MaxRequests <= 0 {
 		config.MaxRequests = 100
@@ -43,49 +37,99 @@ func RateLimiter(config RateLimiterConfig) gin.HandlerFunc {
 		config.Window = time.Minute
 	}
 	if config.KeyFunc == nil {
-		config.KeyFunc = func(c *gin.Context) string {
-			return c.ClientIP()
-		}
+		config.KeyFunc = func(c *gin.Context) string { return c.ClientIP() }
 	}
-
-	var mu sync.Mutex
-	entries := make(map[string]*rateLimiterEntry)
-
-	// Lazy eviction: periodically clean up stale entries
-	var lastCleanup time.Time
+	store := config.Store
+	if store == nil {
+		store = newMemoryRateLimitStore()
+	}
 
 	return func(c *gin.Context) {
 		key := config.KeyFunc(c)
-
-		mu.Lock()
-		now := time.Now()
-
-		// Lazy eviction: clean up entries older than 2x window every minute
-		if now.Sub(lastCleanup) > time.Minute {
-			evictExpiredEntries(entries, now, config.Window)
-			lastCleanup = now
-		}
-
-		entry, exists := entries[key]
-		if !exists || now.Sub(entry.lastSeen) > config.Window {
-			entries[key] = &rateLimiterEntry{count: 1, lastSeen: now}
-			mu.Unlock()
+		allowed, err := store.Allow(c.Request.Context(), key, config.MaxRequests, config.Window)
+		if err != nil {
+			slog.Warn("rate limit store error, allowing request", "error", err)
 			c.Next()
 			return
 		}
-
-		entry.count++
-		if entry.count > config.MaxRequests {
-			mu.Unlock()
-			slog.Warn("rate limit exceeded", "key", key, "path", c.Request.URL.Path, "limit", config.MaxRequests, "window", config.Window)
-			c.JSON(http.StatusTooManyRequests, gin.H{
-				"code":    429,
-				"message": "too many requests",
-			})
+		if !allowed {
+			slog.Warn("rate limit exceeded", "key", key, "path", c.Request.URL.Path, "limit", config.MaxRequests)
+			c.JSON(http.StatusTooManyRequests, gin.H{"code": 429, "message": "too many requests"})
 			c.Abort()
 			return
 		}
-		mu.Unlock()
 		c.Next()
 	}
+}
+
+// NewRedisRateLimitStore returns a RateLimitStore backed by Redis.
+// Uses a Lua script for atomic INCR + EXPIRE in a single round-trip.
+func NewRedisRateLimitStore() RateLimitStore {
+	if database.RDB == nil {
+		return newMemoryRateLimitStore()
+	}
+	return &redisRateLimitStore{rdb: database.RDB}
+}
+
+// ── Redis store ───────────────────────────────────────────────────────
+
+var incrWithExpireScript = redis.NewScript(`
+local key = KEYS[1]
+local limit = tonumber(ARGV[2])
+local window = tonumber(ARGV[3])
+local current = redis.call("INCR", key)
+if current == 1 then
+	redis.call("PEXPIRE", key, window)
+end
+if current > limit then
+	return 0
+end
+return 1
+`)
+
+type redisRateLimitStore struct {
+	rdb *redis.Client
+}
+
+func (s *redisRateLimitStore) Allow(ctx context.Context, key string, limit int, window time.Duration) (bool, error) {
+	redisKey := "rate_limit:" + key
+	result, err := incrWithExpireScript.Run(ctx, s.rdb, []string{redisKey}, 1, limit, window.Milliseconds()).Int()
+	if err != nil {
+		return false, err
+	}
+	return result == 1, nil
+}
+
+// ── Memory store (fallback) ───────────────────────────────────────────
+
+type memoryRateLimitStore struct {
+	mu      sync.Mutex
+	entries map[string]*rateLimiterEntry
+}
+
+type rateLimiterEntry struct {
+	count    int
+	lastSeen time.Time
+}
+
+func newMemoryRateLimitStore() *memoryRateLimitStore {
+	return &memoryRateLimitStore{entries: make(map[string]*rateLimiterEntry)}
+}
+
+func (s *memoryRateLimitStore) Allow(ctx context.Context, key string, limit int, window time.Duration) (bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	now := time.Now()
+	entry, exists := s.entries[key]
+	if !exists || now.Sub(entry.lastSeen) > window {
+		s.entries[key] = &rateLimiterEntry{count: 1, lastSeen: now}
+		return true, nil
+	}
+
+	entry.count++
+	if entry.count > limit {
+		return false, nil
+	}
+	return true, nil
 }

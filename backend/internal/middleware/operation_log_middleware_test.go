@@ -155,6 +155,22 @@ func TestOperationLogMiddleware_SanitizesResponseResult(t *testing.T) {
 	}
 }
 
+func TestOperationLogBufferCapsCapturedBody(t *testing.T) {
+	buffer := newOperationLogBuffer()
+	payload := strings.Repeat("a", defaultOperationLogBodyLimit+1024)
+
+	written, err := buffer.Write([]byte(payload))
+	if err != nil {
+		t.Fatalf("write operation log buffer: %v", err)
+	}
+	if written != len(payload) {
+		t.Fatalf("expected write to report full response length, got %d", written)
+	}
+	if buffer.Len() != defaultOperationLogBodyLimit {
+		t.Fatalf("expected captured response to be capped at %d, got %d", defaultOperationLogBodyLimit, buffer.Len())
+	}
+}
+
 func TestRequestContextMiddleware_PropagatesHeaders(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

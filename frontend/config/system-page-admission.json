@@ -150,7 +150,7 @@
   {
     "path": "/system/login-log",
     "title": "登录日志",
-    "sourceFile": "src/modules/auth/LoginLogList.tsx",
+    "sourceFile": "src/modules/auth/security/components/LoginLogList.tsx",
     "narrative": "audit-console",
     "governanceDrawer": "allowed",
     "governanceButtonText": "审计摘要",
@@ -160,7 +160,7 @@
   {
     "path": "/system/session",
     "title": "会话管理",
-    "sourceFile": "src/modules/auth/SessionList.tsx",
+    "sourceFile": "src/modules/auth/session/components/SessionList.tsx",
     "narrative": "audit-console",
     "governanceDrawer": "allowed",
     "governanceButtonText": "会话摘要",

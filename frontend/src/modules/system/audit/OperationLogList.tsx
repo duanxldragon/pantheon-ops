@@ -57,7 +57,7 @@ import {
 } from '../../../components';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { usePermission } from '../../../hooks/usePermission';
-import '../list-page.css';
+import '../components/shared/list-page.css';
 import { toCleanupTimestamp, loadRetentionSetting } from './retentionSetting';
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -510,7 +510,6 @@ const OperationLogList: React.FC = () => {
     }, 0);
     return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
-
 
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {

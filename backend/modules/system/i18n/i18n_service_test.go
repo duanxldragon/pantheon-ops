@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/testmysql"
 )
 
@@ -690,7 +691,7 @@ func TestI18nService_CreateRejectsCrossModuleLocaleKeyDuplicate(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expected duplicate rejection")
 	}
-	if err.Error() != "i18n.key.duplicate" {
+	if common.ErrMessage(err) != "i18n.key.duplicate" {
 		t.Fatalf("expected i18n.key.duplicate, got %v", err)
 	}
 }
@@ -1205,7 +1206,7 @@ func TestI18nService_RenameKeyRequiresSourceConfirmation(t *testing.T) {
 		OldKey: "common.close",
 		NewKey: "system.config.common.close",
 	})
-	if err == nil || err.Error() != "i18n.rename.source_not_confirmed" {
+	if err == nil || common.ErrMessage(err) != "i18n.rename.source_not_confirmed" {
 		t.Fatalf("expected source confirmation error, got %v", err)
 	}
 }
@@ -1265,7 +1266,7 @@ func TestI18nService_UnusedLifecycleFlow(t *testing.T) {
 		}
 	}
 
-	if _, err := service.DeleteArchivedUnusedKeys("system.config", false); err == nil || err.Error() != "i18n.lifecycle.delete.confirm_required" {
+	if _, err := service.DeleteArchivedUnusedKeys("system.config", false); err == nil || common.ErrMessage(err) != "i18n.lifecycle.delete.confirm_required" {
 		t.Fatalf("expected confirm required error, got %v", err)
 	}
 	if err := db.Model(&SystemI18n{}).

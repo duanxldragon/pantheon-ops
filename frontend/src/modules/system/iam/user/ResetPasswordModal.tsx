@@ -65,11 +65,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
       }
       unmountOnExit
     >
-      <Form
-        form={form}
-        layout="vertical"
-        onSubmit={handleSubmit}
-      >
+      <Form form={form} layout="vertical" onSubmit={handleSubmit}>
         <Space direction="vertical" size={16} className="dialog-form-stack">
           <FormItem label={t('system.user.resetPasswordTarget')}>
             <Input

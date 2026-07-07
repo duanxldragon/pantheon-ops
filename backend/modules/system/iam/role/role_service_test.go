@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/database"
 	"pantheon-ops/backend/pkg/testmysql"
 
@@ -16,9 +17,8 @@ func setupRoleTestDB(t *testing.T) *gorm.DB {
 	db := testmysql.Open(t)
 
 	// 迁移模型
-	_ = db.AutoMigrate(&SystemRole{}, &SystemRolePermission{}, &database.CasbinRule{})
+	_ = db.AutoMigrate(&SystemRole{}, &SystemRolePermission{}, &SystemRoleMenu{}, &roleDataScopePolicy{}, &database.CasbinRule{})
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_menu (id INTEGER PRIMARY KEY, page_perm TEXT, perms TEXT, type TEXT)")
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role_menu (role_id INTEGER, menu_id INTEGER)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_role (user_id INTEGER, role_id INTEGER)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user (id INTEGER PRIMARY KEY, username TEXT, nickname TEXT, dept_id INTEGER, post_id INTEGER, status INTEGER, created_at DATETIME, updated_at DATETIME, deleted_at DATETIME)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_dept (id INTEGER PRIMARY KEY, dept_name TEXT)")
@@ -55,7 +55,7 @@ func TestRoleService_CreateRole(t *testing.T) {
 
 	// 2. RoleKey 重复
 	_, err = s.CreateRole(req)
-	if err == nil || err.Error() != "role.key.exists" {
+	if err == nil || common.ErrMessage(err) != "role.key.exists" {
 		t.Errorf("expected role key exists error, got %v", err)
 	}
 
@@ -63,7 +63,7 @@ func TestRoleService_CreateRole(t *testing.T) {
 	req.RoleKey = "invalid_perm"
 	req.PermissionKeys = []string{"nonexistent:perm"}
 	_, err = s.CreateRole(req)
-	if err == nil || err.Error() != "role.permission.invalid" {
+	if err == nil || common.ErrMessage(err) != "role.permission.invalid" {
 		t.Errorf("expected permission invalid error, got %v", err)
 	}
 }
@@ -95,6 +95,17 @@ func TestRoleService_ListRolesExcludesActionMenuBindings(t *testing.T) {
 	}
 	if len(resp.Items[0].MenuIDs) != 1 || resp.Items[0].MenuIDs[0] != 1 {
 		t.Fatalf("expected only navigation menu id 1, got %+v", resp.Items[0].MenuIDs)
+	}
+}
+
+func TestNormalizeRoleDataScopeDefaultsToAll(t *testing.T) {
+	for _, value := range []string{"", " ", "invalid"} {
+		if got := normalizeRoleDataScope(value); got != common.DataScopeModeAll {
+			t.Fatalf("expected %q to normalize to all, got %q", value, got)
+		}
+	}
+	if got := normalizeRoleDataScope(common.DataScopeModeSelf); got != common.DataScopeModeSelf {
+		t.Fatalf("expected self to remain self, got %q", got)
 	}
 }
 
@@ -210,7 +221,7 @@ func TestRoleService_DeleteRole(t *testing.T) {
 	adminRole := SystemRole{RoleName: "Admin", RoleKey: "admin"}
 	db.Create(&adminRole)
 	err = s.DeleteRole(adminRole.ID)
-	if err == nil || err.Error() != "role.delete.error.protected" {
+	if err == nil || common.ErrMessage(err) != "role.delete.error.protected" {
 		t.Errorf("expected protected error for admin role, got %v", err)
 	}
 
@@ -220,7 +231,7 @@ func TestRoleService_DeleteRole(t *testing.T) {
 	_ = db.Exec("INSERT INTO system_user_role (user_id, role_id) VALUES (1, ?)", roleWithUser.ID)
 
 	err = s.DeleteRole(roleWithUser.ID)
-	if err == nil || err.Error() != "role.delete.error.has_users" {
+	if err == nil || common.ErrMessage(err) != "role.delete.error.has_users" {
 		t.Errorf("expected has_users error, got %v", err)
 	}
 }
@@ -293,7 +304,7 @@ func TestRoleService_ExportAndBatchStatus(t *testing.T) {
 		t.Fatalf("expected role status 2, got %d", disabled.Status)
 	}
 
-	if _, err := s.BatchUpdateRoleStatus([]uint64{adminRole.ID}, 2); err == nil || err.Error() != "role.update.error.protected" {
+	if _, err := s.BatchUpdateRoleStatus([]uint64{adminRole.ID}, 2); err == nil || common.ErrMessage(err) != "role.update.error.protected" {
 		t.Fatalf("expected protected error for admin batch disable, got %v", err)
 	}
 }
@@ -383,7 +394,7 @@ func TestRoleService_RemoveAdminMemberProtection(t *testing.T) {
 		t.Fatalf("seed admin binding: %v", err)
 	}
 
-	if _, err := s.RemoveRoleMembers(adminRole.ID, []uint64{1}); err == nil || err.Error() != "user.update.error.protected" {
+	if _, err := s.RemoveRoleMembers(adminRole.ID, []uint64{1}); err == nil || common.ErrMessage(err) != "user.update.error.protected" {
 		t.Fatalf("expected protected error when removing built-in admin, got %v", err)
 	}
 }

@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"errors"
 	"strings"
 	"sync"
 	"time"
@@ -152,7 +151,7 @@ func (s *SettingService) GetGroup(groupKey string) (*SettingGroupResp, error) {
 
 	groupKey = strings.TrimSpace(groupKey)
 	if groupKey == "" {
-		return nil, errors.New("setting.group.invalid")
+		return nil, common.NewBadRequest("setting.group.invalid")
 	}
 
 	s.cacheMu.RLock()
@@ -196,17 +195,17 @@ func (s *SettingService) UpdateGroup(groupKey string, req *SettingGroupUpdateReq
 
 	groupKey = strings.TrimSpace(groupKey)
 	if groupKey == "" {
-		return nil, errors.New("setting.group.invalid")
+		return nil, common.NewBadRequest("setting.group.invalid")
 	}
 	if req == nil || len(req.Items) == 0 {
-		return nil, errors.New("param.invalid")
+		return nil, common.NewBadRequest("param.invalid")
 	}
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range req.Items {
 			settingKey := strings.TrimSpace(item.SettingKey)
 			if settingKey == "" {
-				return errors.New("setting.key.required")
+				return common.NewBadRequest("setting.key.required")
 			}
 
 			var current SystemSetting

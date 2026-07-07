@@ -1,7 +1,6 @@
 package iam
 
 import (
-	"errors"
 	"strings"
 	"time"
 
@@ -13,13 +12,46 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+type SessionLifecycle interface {
+	RevokeUserSessions(userID uint64, now time.Time) (int64, error)
+	DeleteUserSessions(userID uint64) error
+}
+
+type SessionLifecycleFactory func(db *gorm.DB) SessionLifecycle
+
+type UserServiceOption func(*UserService)
+
 type UserService struct {
-	db *gorm.DB
+	db                      *gorm.DB
+	sessionLifecycleFactory SessionLifecycleFactory
+}
+
+func WithSessionLifecycle(factory SessionLifecycleFactory) UserServiceOption {
+	return func(s *UserService) {
+		s.sessionLifecycleFactory = factory
+	}
 }
 
 // NewUserService 构造函数
-func NewUserService(db *gorm.DB) *UserService {
-	return &UserService{db: db}
+func NewUserService(db *gorm.DB, options ...UserServiceOption) *UserService {
+	s := &UserService{
+		db: db,
+	}
+	for _, option := range options {
+		option(s)
+	}
+	return s
+}
+
+func (s *UserService) withSessionLifecycle(db *gorm.DB, fn func(SessionLifecycle) error) error {
+	if s == nil || s.sessionLifecycleFactory == nil {
+		return nil
+	}
+	lifecycle := s.sessionLifecycleFactory(db)
+	if lifecycle == nil {
+		return nil
+	}
+	return fn(lifecycle)
 }
 
 // Migrate 初始化表结构和种子数据
@@ -66,7 +98,7 @@ func (s *UserService) GetUserRoles(userID uint64) ([]string, error) {
 	err := s.db.Table("system_role").
 		Select("system_role.role_key").
 		Joins("JOIN system_user_role ON system_user_role.role_id = system_role.id").
-		Where("system_user_role.user_id = ? AND system_role.status = ?", userID, 1).
+		Where("system_user_role.user_id = ? AND system_role.status = ?", userID, common.StatusEnabled).
 		Pluck("system_role.role_key", &roles).Error
 	if err != nil {
 		return nil, err
@@ -351,7 +383,7 @@ func (s *UserService) UpdateUser(userID uint64, req *UserUpdateReq) (*UserListRe
 		"dept_id":  req.DeptID,
 		"post_id":  req.PostID,
 	}
-	if req.Status == 1 || req.Status == 2 {
+	if common.IsEnabledStatus(req.Status) {
 		updates["status"] = req.Status
 	}
 
@@ -449,7 +481,7 @@ func (s *UserService) ResetPassword(userID uint64, newPassword string) (int64, e
 
 	trimmedPassword := strings.TrimSpace(newPassword)
 	if len(trimmedPassword) < s.getConfiguredPasswordMinLength() {
-		return 0, errors.New("user.update.error.password_too_short")
+		return 0, common.NewBadRequest("user.update.error.password_too_short")
 	}
 
 	var user SystemUser
@@ -468,15 +500,11 @@ func (s *UserService) ResetPassword(userID uint64, newPassword string) (int64, e
 			return err
 		}
 
-		now := time.Now()
-		result := tx.Table("system_user_session").
-			Where("user_id = ? AND revoked_at IS NULL", userID).
-			Updates(map[string]interface{}{"revoked_at": &now})
-		if result.Error != nil {
-			return result.Error
-		}
-		revokedSessionCount = result.RowsAffected
-		return nil
+		return s.withSessionLifecycle(tx, func(lifecycle SessionLifecycle) error {
+			var err error
+			revokedSessionCount, err = lifecycle.RevokeUserSessions(userID, time.Now())
+			return err
+		})
 	}); err != nil {
 		return 0, err
 	}
@@ -490,10 +518,10 @@ func (s *UserService) BatchUpdateUserStatus(userIDs []uint64, status int) (int, 
 	}
 	normalizedIDs := normalizeUint64IDs(userIDs)
 	if len(normalizedIDs) == 0 {
-		return 0, errors.New("user.batch.empty")
+		return 0, common.NewBadRequest("user.batch.empty")
 	}
-	if status != 1 && status != 2 {
-		return 0, errors.New("param.invalid")
+	if !common.IsEnabledStatus(status) {
+		return 0, common.NewBadRequest("param.invalid")
 	}
 
 	var users []SystemUser
@@ -501,12 +529,12 @@ func (s *UserService) BatchUpdateUserStatus(userIDs []uint64, status int) (int, 
 		return 0, err
 	}
 	if len(users) != len(normalizedIDs) {
-		return 0, errors.New("user.batch.not_found")
+		return 0, common.NewNotFound("user.batch.not_found")
 	}
-	if status == 2 {
+	if status == common.StatusDisabled {
 		for _, user := range users {
 			if user.ID == 1 {
-				return 0, errors.New("user.update.error.protected")
+				return 0, common.NewForbidden("user.update.error.protected")
 			}
 		}
 	}
@@ -529,7 +557,7 @@ func (s *UserService) DeleteUser(userID uint64) error {
 		return common.ErrDatabaseNotInitialized
 	}
 	if userID == 1 {
-		return errors.New("user.delete.error.protected")
+		return common.NewForbidden("user.delete.error.protected")
 	}
 
 	return s.db.Transaction(func(tx *gorm.DB) error {
@@ -537,7 +565,9 @@ func (s *UserService) DeleteUser(userID uint64) error {
 		if err := tx.First(&user, userID).Error; err != nil {
 			return err
 		}
-		if err := tx.Exec("DELETE FROM system_user_session WHERE user_id = ?", userID).Error; err != nil {
+		if err := s.withSessionLifecycle(tx, func(lifecycle SessionLifecycle) error {
+			return lifecycle.DeleteUserSessions(userID)
+		}); err != nil {
 			return err
 		}
 		if err := tx.Exec("DELETE FROM system_user_role WHERE user_id = ?", userID).Error; err != nil {

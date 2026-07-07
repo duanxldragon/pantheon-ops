@@ -7,27 +7,73 @@ const currentFilePath = fileURLToPath(import.meta.url);
 const frontendRoot = path.resolve(path.dirname(currentFilePath), '..');
 const layoutCssPath = path.join(frontendRoot, 'src', 'core', 'layout', 'index.css');
 const globalCssPath = path.join(frontendRoot, 'src', 'index.css');
-const listPageCssPath = path.join(frontendRoot, 'src', 'modules', 'system', 'list-page.css');
-const loginCssPath = path.join(frontendRoot, 'src', 'modules', 'auth', 'Login.css');
+const listPageCssPath = path.join(
+  frontendRoot,
+  'src',
+  'modules',
+  'system',
+  'components',
+  'shared',
+  'list-page.css',
+);
+const loginCssPath = path.join(
+  frontendRoot,
+  'src',
+  'modules',
+  'auth',
+  'login',
+  'components',
+  'Login.css',
+);
 const modulesRoot = path.join(frontendRoot, 'src', 'modules');
 const tableBatchActionBarPath = path.join(
   frontendRoot,
   'src',
   'components',
   'patterns',
+  'table',
   'TableBatchActionBar.tsx',
 );
-const appModalPath = path.join(frontendRoot, 'src', 'components', 'patterns', 'AppModal.tsx');
-const appDrawerPath = path.join(frontendRoot, 'src', 'components', 'patterns', 'AppDrawer.tsx');
+const appModalPath = path.join(
+  frontendRoot,
+  'src',
+  'components',
+  'patterns',
+  'modals',
+  'AppModal.tsx',
+);
+const appDrawerPath = path.join(
+  frontendRoot,
+  'src',
+  'components',
+  'patterns',
+  'modals',
+  'AppDrawer.tsx',
+);
 const appModalActionsPath = path.join(
   frontendRoot,
   'src',
   'components',
   'patterns',
+  'modals',
   'AppModalActions.ts',
 );
-const formSectionPath = path.join(frontendRoot, 'src', 'components', 'patterns', 'FormSection.tsx');
-const submitBarPath = path.join(frontendRoot, 'src', 'components', 'patterns', 'SubmitBar.tsx');
+const formSectionPath = path.join(
+  frontendRoot,
+  'src',
+  'components',
+  'patterns',
+  'feedback',
+  'FormSection.tsx',
+);
+const submitBarPath = path.join(
+  frontendRoot,
+  'src',
+  'components',
+  'patterns',
+  'actions',
+  'SubmitBar.tsx',
+);
 const pageEmptyPath = path.join(frontendRoot, 'src', 'components', 'feedback', 'PageEmpty.tsx');
 const pageLoadingPath = path.join(frontendRoot, 'src', 'components', 'feedback', 'PageLoading.tsx');
 const pageErrorPath = path.join(frontendRoot, 'src', 'components', 'feedback', 'PageError.tsx');

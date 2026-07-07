@@ -9,7 +9,11 @@ export function isArcoFormValidationError(error: unknown): error is ArcoFormVali
 export function isLikelyEmailAddress(value: string): boolean {
   const normalized = String(value || '').trim();
   const atIndex = normalized.indexOf('@');
-  if (atIndex <= 0 || atIndex !== normalized.lastIndexOf('@') || atIndex === normalized.length - 1) {
+  if (
+    atIndex <= 0 ||
+    atIndex !== normalized.lastIndexOf('@') ||
+    atIndex === normalized.length - 1
+  ) {
     return false;
   }
 

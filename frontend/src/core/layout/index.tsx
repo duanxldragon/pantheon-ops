@@ -34,13 +34,12 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { beginLogoutTransition, endLogoutTransition } from '../../api/request';
 import { findFirstNavigableMenuPath, type MenuNode } from '../../modules/system/iam/menu/api';
+import { logout as logoutApi, reportActivity } from '../../modules/auth/session/api';
 import {
-  logout as logoutApi,
-  reportActivity,
   updateCurrentUserPreferences,
   verifyOperationPassword,
   type UserPlatformPreferences,
-} from '../../modules/auth/api';
+} from '../../modules/auth/security/api';
 import { ensureAuthUserInfo } from '../auth/bootstrap';
 import { useMenuStore } from '../../store/useMenuStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -49,9 +48,10 @@ import { useRefreshPolling, useRefreshSubscription } from '../refresh/refreshBus
 import { findRouteByPath, systemRouteTitleMap } from '../router/modules';
 import { formatDateTime } from '../format/dateTime';
 import { renderMenuIcon } from '../menu/icon';
-import { clearPantheonThemePreference, usePantheonTheme } from '../theme/theme';
+import { useTheme } from '../../hooks';
+import { clearPantheonThemePreference } from '../theme/theme';
 import { AppModal } from '../../components';
-import { getDashboardSummary, type DashboardSummary } from '../../modules/dashboard/api';
+import { getDashboardSummary, type DashboardSummary } from '../../modules/platform/api';
 import { clearClientAuthSession } from '../auth/clientSession';
 import {
   getBrandInitial,
@@ -233,7 +233,9 @@ function mergeOpenedTabsIntoState(
   const mergedTabs =
     existingIndex >= 0
       ? currentTabs.map((item, index) =>
-          index === existingIndex ? { ...item, ...nextTab, pinned: item.pinned || nextTab.pinned } : item,
+          index === existingIndex
+            ? { ...item, ...nextTab, pinned: item.pinned || nextTab.pinned }
+            : item,
         )
       : [...currentTabs, nextTab];
   const dashboardTab = buildOpenedPageTab('/dashboard', dashboardTitle, {
@@ -561,7 +563,10 @@ function buildNoticeEntries(options: {
   return entries;
 }
 
-function buildNoticeStatItems(summary: DashboardSummary | null, t: TranslateLabel): NoticeStatItem[] {
+function buildNoticeStatItems(
+  summary: DashboardSummary | null,
+  t: TranslateLabel,
+): NoticeStatItem[] {
   if (!summary) {
     return [];
   }
@@ -593,7 +598,10 @@ function buildNoticeStatItems(summary: DashboardSummary | null, t: TranslateLabe
   ];
 }
 
-function buildNoticeRecentItems(summary: DashboardSummary | null, t: TranslateLabel): NoticeRecentItem[] {
+function buildNoticeRecentItems(
+  summary: DashboardSummary | null,
+  t: TranslateLabel,
+): NoticeRecentItem[] {
   if (!summary) {
     return [];
   }
@@ -783,7 +791,7 @@ const BaseLayout: React.FC = () => {
   const appName = publicSettings.siteName || t('app.name');
   const brandInitial = getBrandInitial(appName);
   const showExpandedBrand = !collapsed;
-  const { theme, setTheme, options: themeOptions } = usePantheonTheme();
+  const { theme, setTheme, options: themeOptions } = useTheme();
   const activeTheme = themeOptions.find((item) => item.key === theme) ?? themeOptions[0];
   const sessionIdleMinutes =
     publicSettings.sessionIdleMinutes > 0 ? publicSettings.sessionIdleMinutes : 30;
@@ -896,7 +904,9 @@ const BaseLayout: React.FC = () => {
       if (hasExplicitLanguagePreference()) {
         runSilently(refreshPublicSettings());
       } else {
-        runSilently(refreshPublicSettings().then((settings) => switchI18nLanguage(settings.defaultLanguage)));
+        runSilently(
+          refreshPublicSettings().then((settings) => switchI18nLanguage(settings.defaultLanguage)),
+        );
       }
       runSilently(fetchMenuTree({ force: true }));
     },
@@ -966,7 +976,9 @@ const BaseLayout: React.FC = () => {
 
     const timer = globalThis.setTimeout(() => {
       const dashboardTitle = t('dashboard.title');
-      setOpenedTabs((currentTabs) => mergeOpenedTabsIntoState(currentTabs, nextTab, dashboardTitle));
+      setOpenedTabs((currentTabs) =>
+        mergeOpenedTabsIntoState(currentTabs, nextTab, dashboardTitle),
+      );
     }, 0);
     return () => globalThis.clearTimeout(timer);
   }, [currentPageTitle, currentTabTitleKey, location.pathname, t]);
@@ -1142,10 +1154,7 @@ const BaseLayout: React.FC = () => {
     return Math.min(noticeSummary.loginFailureCount + noticeSummary.pendingSecurityEventCount, 99);
   }, [noticeSummary]);
 
-  const noticeStatItems = useMemo(
-    () => buildNoticeStatItems(noticeSummary, t),
-    [noticeSummary, t],
-  );
+  const noticeStatItems = useMemo(() => buildNoticeStatItems(noticeSummary, t), [noticeSummary, t]);
 
   const noticeRecentItems = useMemo(
     () => buildNoticeRecentItems(noticeSummary, t),
@@ -1509,14 +1518,17 @@ const BaseLayout: React.FC = () => {
     </div>
   );
 
-  const handleMenuNavigation = useCallback((key: string) => {
-    const selected = findMenuNodeByPath(visibleMenuTree, key);
-    if (selected?.isExternal === 1) {
-      globalThis.open(selected.path, '_blank', 'noopener,noreferrer');
-      return;
-    }
-    navigate(key);
-  }, [navigate, visibleMenuTree]);
+  const handleMenuNavigation = useCallback(
+    (key: string) => {
+      const selected = findMenuNodeByPath(visibleMenuTree, key);
+      if (selected?.isExternal === 1) {
+        globalThis.open(selected.path, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      navigate(key);
+    },
+    [navigate, visibleMenuTree],
+  );
   const renderedMenuItems = useMemo(
     () => renderMenuItems(visibleMenuTree, { handleMenuNavigation, t }),
     [handleMenuNavigation, t, visibleMenuTree],
@@ -1678,7 +1690,9 @@ const BaseLayout: React.FC = () => {
     </div>
   ) : null;
 
-  let noticePanelBody: React.ReactNode = <div className="app-shell__notice-empty">{t('app.notice.empty')}</div>;
+  let noticePanelBody: React.ReactNode = (
+    <div className="app-shell__notice-empty">{t('app.notice.empty')}</div>
+  );
   if (noticeLoading) {
     noticePanelBody = <div className="app-shell__notice-empty">{t('common.loading')}</div>;
   } else if (noticeSummary) {
@@ -1715,7 +1729,9 @@ const BaseLayout: React.FC = () => {
               <button
                 key={item.key}
                 type="button"
-                className={['app-shell__notice-risk', `app-shell__notice-risk--${item.tone}`].join(' ')}
+                className={['app-shell__notice-risk', `app-shell__notice-risk--${item.tone}`].join(
+                  ' ',
+                )}
                 onClick={item.run}
               >
                 <span className="app-shell__notice-risk-copy">
@@ -1848,6 +1864,7 @@ const BaseLayout: React.FC = () => {
               <Dropdown
                 trigger="click"
                 position="br"
+                triggerProps={{ autoFitPosition: false }}
                 droplist={
                   <div className="app-shell__notice-panel">
                     <div className="app-shell__notice-header">

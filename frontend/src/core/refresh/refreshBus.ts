@@ -131,7 +131,8 @@ export function useRefreshPolling(
     () => (topicKey ? (topicKey.split(',') as PantheonRefreshTopic[]) : []),
     [topicKey],
   );
-  const authToken = token || (globalThis.document !== undefined && hasAuthSession() ? '_session' : null);
+  const authToken =
+    token || (globalThis.document !== undefined && hasAuthSession() ? '_session' : null);
 
   useEffect(() => {
     versionsRef.current = {};
@@ -180,5 +181,5 @@ export function useRefreshPolling(
         globalThis.clearInterval(timer);
       }
     };
-  }, [authToken, intervalMs, topicKey]);
+  }, [authToken, intervalMs, normalizedTopics, topicKey]);
 }

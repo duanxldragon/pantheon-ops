@@ -1044,7 +1044,10 @@ export function generateDefaultMenus(schema: ModuleSchema): MenuSeedConfig[] {
       key: groupKey,
       parentKey: parentSegments.length > 0 ? parentSegments.join('-') : scope,
       titleKey: buildMenuGroupTitleKey(scope, groupSegments),
-      path: scope === 'business' ? `/operations/${groupSegments.join('/')}` : `/${scope}/${groupSegments.join('/')}`,
+      path:
+        scope === 'business'
+          ? `/operations/${groupSegments.join('/')}`
+          : `/${scope}/${groupSegments.join('/')}`,
       type: 'M',
       icon: 'apps',
       routeName: `${scope}-${groupSegments.join('-')}`,

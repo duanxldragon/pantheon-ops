@@ -6,7 +6,7 @@ import type { CreateHostPayload, HostRow, LabelEntry } from './api';
 import { getLabelSchemaOptions, type LabelSchemaRow } from '../label/api';
 import { getBizScopeOptions, type BizScopeOptionItem } from '../../bizscope/api';
 import { isFreeValueLabel, labelValueOptions } from '../label/options';
-import SubmitBar from '../../../../components/patterns/SubmitBar';
+import SubmitBar from '../../../../components/patterns/actions/SubmitBar';
 
 interface Props {
   editing: HostRow | null;

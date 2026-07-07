@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"pantheon-ops/backend/pkg/common"
+	commonhttp "pantheon-ops/backend/pkg/common/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,7 +37,7 @@ func CSRFMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		csrfCookie, err := c.Cookie(common.CookieCSRFToken)
+		csrfCookie, err := c.Cookie(commonhttp.CookieCSRFToken)
 		if err != nil || csrfCookie == "" {
 			common.Fail(c, common.CodeForbidden, "csrf.missing")
 			c.Abort()

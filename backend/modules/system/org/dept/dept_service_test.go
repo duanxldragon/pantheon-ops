@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/testmysql"
 )
 
@@ -126,7 +127,7 @@ func TestDeptService_DeleteDeptRejectsRoot(t *testing.T) {
 	}
 
 	err := service.DeleteDept(root.ID)
-	if err == nil || err.Error() != "dept.root.delete_forbidden" {
+	if err == nil || common.ErrMessage(err) != "dept.root.delete_forbidden" {
 		t.Fatalf("expected root delete forbidden, got %v", err)
 	}
 }
@@ -188,7 +189,7 @@ func TestDeptService_DeleteRejectsDeptWithPosts(t *testing.T) {
 	}
 
 	err := service.DeleteDept(child.ID)
-	if err == nil || err.Error() != "dept.delete.error.has_posts" {
+	if err == nil || common.ErrMessage(err) != "dept.delete.error.has_posts" {
 		t.Fatalf("expected dept has posts error, got %v", err)
 	}
 }
@@ -229,7 +230,7 @@ func TestDeptService_BatchUpdateDeptStatus(t *testing.T) {
 		t.Fatalf("expected dept status 2, got %d", disabled.Status)
 	}
 
-	if _, err := service.BatchUpdateDeptStatus([]uint64{root.ID}, 2); err == nil || err.Error() != "dept.root.status_fixed" {
+	if _, err := service.BatchUpdateDeptStatus([]uint64{root.ID}, 2); err == nil || common.ErrMessage(err) != "dept.root.status_fixed" {
 		t.Fatalf("expected root status fixed error, got %v", err)
 	}
 }
@@ -287,7 +288,7 @@ func TestDeptService_BatchUpdateDeptLeader(t *testing.T) {
 		t.Fatalf("expected leader updated, got %+v", refreshed)
 	}
 
-	if _, err := service.BatchUpdateDeptLeader([]DeptBatchLeaderItem{{DeptID: child.ID}}); err == nil || err.Error() != "dept.leader.required" {
+	if _, err := service.BatchUpdateDeptLeader([]DeptBatchLeaderItem{{DeptID: child.ID}}); err == nil || common.ErrMessage(err) != "dept.leader.required" {
 		t.Fatalf("expected leader required error, got %v", err)
 	}
 }
@@ -364,7 +365,7 @@ func TestDeptService_ListLeaderCandidatesAndUpdateWithLeaderUser(t *testing.T) {
 		Sort:         dept.Sort,
 		LeaderUserID: noPostUserID,
 		Status:       dept.Status,
-	}); err == nil || err.Error() != "dept.leader.user_invalid" {
+	}); err == nil || common.ErrMessage(err) != "dept.leader.user_invalid" {
 		t.Fatalf("expected invalid leader user error, got %v", err)
 	}
 }

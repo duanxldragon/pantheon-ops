@@ -11,14 +11,10 @@ import {
   SideRailPanel,
 } from '../../../../components';
 import { usePermission } from '../../../../hooks/usePermission';
-import {
-  resolveSettingGroupMeta,
-  settingGroups,
-  type SettingGroupKey,
-} from './settingGroups';
+import { resolveSettingGroupMeta, settingGroups, type SettingGroupKey } from './settingGroups';
 import SettingGroupWorkspace from './SettingGroupWorkspace';
 import { useSettingCatalog } from './useSettingCatalog';
-import '../../list-page.css';
+import '../../components/shared/list-page.css';
 
 const SettingOverviewPage: React.FC = () => {
   const { t } = useTranslation();
@@ -31,7 +27,8 @@ const SettingOverviewPage: React.FC = () => {
   const canViewOperationLog = isAdmin || hasPerm('system:operation-log:list');
   const { loading, error, settings, overview, groupedSettings, reload } = useSettingCatalog();
   const visibleGroups = useMemo(
-    () => settingGroups.filter((meta) => groupedSettings.some((group) => group.groupKey === meta.key)),
+    () =>
+      settingGroups.filter((meta) => groupedSettings.some((group) => group.groupKey === meta.key)),
     [groupedSettings],
   );
 

@@ -19,9 +19,9 @@ import { IconDelete, IconEdit, IconLeft } from '@arco-design/web-react/icon';
 import { isForbiddenRequestError, isRequestError } from '../../../../api/request';
 import { AppModal, PageEmpty, PageForbidden, PageLoading, PageNotFound, PageRequestError } from '../../../../components';
 import AppTable from '../../../../components/data-display/AppTable';
-import PageContainer from '../../../../components/patterns/PageContainer';
-import PageHeader from '../../../../components/patterns/PageHeader';
-import SubmitBar from '../../../../components/patterns/SubmitBar';
+import PageContainer from '../../../../components/patterns/layout/PageContainer';
+import PageHeader from '../../../../components/patterns/layout/PageHeader';
+import SubmitBar from '../../../../components/patterns/actions/SubmitBar';
 import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
 import {

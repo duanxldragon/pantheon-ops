@@ -140,7 +140,8 @@ function normalizeRoutePath(routePath) {
 }
 
 function parseFrontendModules() {
-  const files = walkFiles(frontendModulesRoot, (filePath) => filePath.endsWith(`${path.sep}index.ts`));
+  const files = walkFiles(frontendModulesRoot, (filePath) => filePath.endsWith(`${path.sep}index.ts`))
+    .filter((filePath) => !filePath.includes(`${path.sep}templates${path.sep}`));
   const modules = [];
 
   for (const filePath of files) {

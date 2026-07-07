@@ -1,8 +1,8 @@
 package iam
 
 import (
-	"errors"
 	"fmt"
+	"pantheon-ops/backend/pkg/common"
 	"strings"
 	"time"
 
@@ -18,15 +18,28 @@ type RoleService struct {
 
 const deletedRoleKeyPrefix = "__deleted_role_"
 
+// roleDataScopePolicy mirrors PermissionRoleDataScopePolicy to avoid cross-directory import.
+// Table name: system_role_data_scope
+type roleDataScopePolicy struct {
+	ID      uint64 `gorm:"primaryKey;autoIncrement"`
+	RoleKey string `gorm:"size:64;not null;uniqueIndex"`
+	Mode    string `gorm:"size:32;not null;default:'all'"`
+	DeptIDs string `gorm:"type:text"`
+}
+
+func (roleDataScopePolicy) TableName() string {
+	return "system_role_data_scope"
+}
+
 func NewRoleService(db *gorm.DB) *RoleService {
 	return &RoleService{db: db}
 }
 
 func (s *RoleService) Migrate() error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return common.NewBadRequest("database.not_initialized")
 	}
-	if err := s.db.AutoMigrate(&SystemRole{}, &SystemRolePermission{}, &SystemRoleMenu{}); err != nil {
+	if err := s.db.AutoMigrate(&SystemRole{}, &SystemRolePermission{}, &SystemRoleMenu{}, &roleDataScopePolicy{}); err != nil {
 		return err
 	}
 	return s.Bootstrap()
@@ -34,7 +47,7 @@ func (s *RoleService) Migrate() error {
 
 func (s *RoleService) Bootstrap() error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return common.NewBadRequest("database.not_initialized")
 	}
 	if err := s.releaseDeletedRoleKeys(); err != nil {
 		return err
@@ -54,7 +67,7 @@ func (s *RoleService) Bootstrap() error {
 // ListRoles 获取角色分页列表。
 func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.NewBadRequest("database.not_initialized")
 	}
 
 	var roles []SystemRole
@@ -62,12 +75,12 @@ func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error)
 	page, pageSize := normalizeRolePageQuery(query)
 	if query != nil {
 		if strings.TrimSpace(query.RoleName) != "" {
-			db = db.Where("role_name LIKE ?", fmt.Sprintf("%%%s%%", strings.TrimSpace(query.RoleName)))
+			db = db.Where("role_name LIKE ?", fmt.Sprintf("%%%s%%", common.EscapeLikePattern(strings.TrimSpace(query.RoleName))))
 		}
 		if strings.TrimSpace(query.RoleKey) != "" {
-			db = db.Where("role_key LIKE ?", fmt.Sprintf("%%%s%%", strings.TrimSpace(query.RoleKey)))
+			db = db.Where("role_key LIKE ?", fmt.Sprintf("%%%s%%", common.EscapeLikePattern(strings.TrimSpace(query.RoleKey))))
 		}
-		if query.Status != nil && (*query.Status == 1 || *query.Status == 2) {
+		if query.Status != nil && common.IsEnabledStatus(*query.Status) {
 			db = db.Where("status = ?", *query.Status)
 		}
 	}
@@ -102,6 +115,7 @@ func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error)
 	if err != nil {
 		return nil, err
 	}
+	roleDataScopes := s.loadRoleDataScopes(roleIDs)
 
 	items := make([]RoleListResp, 0, len(roles))
 	for _, item := range roles {
@@ -114,6 +128,7 @@ func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error)
 			CreatedAt:      item.CreatedAt.Format(time.RFC3339),
 			MenuIDs:        roleMenus[item.ID],
 			PermissionKeys: rolePermissions[item.ID],
+			DataScope:      roleDataScopes[item.ID],
 		})
 	}
 
@@ -127,7 +142,7 @@ func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error)
 
 func (s *RoleService) ListRoleMembers(roleID uint64, query *RoleMemberQuery) (*RoleMemberPageResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.NewBadRequest("database.not_initialized")
 	}
 	if _, err := s.getRole(roleID); err != nil {
 		return nil, err
@@ -137,7 +152,7 @@ func (s *RoleService) ListRoleMembers(roleID uint64, query *RoleMemberQuery) (*R
 
 func (s *RoleService) ListAssignableUsers(roleID uint64, query *RoleMemberQuery) (*RoleMemberPageResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.NewBadRequest("database.not_initialized")
 	}
 	if _, err := s.getRole(roleID); err != nil {
 		return nil, err
@@ -147,7 +162,7 @@ func (s *RoleService) ListAssignableUsers(roleID uint64, query *RoleMemberQuery)
 
 func (s *RoleService) AddRoleMembers(roleID uint64, userIDs []uint64) (int, error) {
 	if s.db == nil {
-		return 0, errors.New("database.not_initialized")
+		return 0, common.NewBadRequest("database.not_initialized")
 	}
 	if _, err := s.getRole(roleID); err != nil {
 		return 0, err
@@ -155,7 +170,7 @@ func (s *RoleService) AddRoleMembers(roleID uint64, userIDs []uint64) (int, erro
 
 	normalizedUserIDs := normalizeUint64IDs(userIDs)
 	if len(normalizedUserIDs) == 0 {
-		return 0, errors.New("user.batch.empty")
+		return 0, common.NewBadRequest("user.batch.empty")
 	}
 	if err := s.ensureUsersExist(normalizedUserIDs); err != nil {
 		return 0, err
@@ -201,7 +216,7 @@ func (s *RoleService) AddRoleMembers(roleID uint64, userIDs []uint64) (int, erro
 
 func (s *RoleService) RemoveRoleMembers(roleID uint64, userIDs []uint64) (int, error) {
 	if s.db == nil {
-		return 0, errors.New("database.not_initialized")
+		return 0, common.NewBadRequest("database.not_initialized")
 	}
 	role, err := s.getRole(roleID)
 	if err != nil {
@@ -210,7 +225,7 @@ func (s *RoleService) RemoveRoleMembers(roleID uint64, userIDs []uint64) (int, e
 
 	normalizedUserIDs := normalizeUint64IDs(userIDs)
 	if len(normalizedUserIDs) == 0 {
-		return 0, errors.New("user.batch.empty")
+		return 0, common.NewBadRequest("user.batch.empty")
 	}
 	if err := s.ensureUsersExist(normalizedUserIDs); err != nil {
 		return 0, err
@@ -218,7 +233,7 @@ func (s *RoleService) RemoveRoleMembers(roleID uint64, userIDs []uint64) (int, e
 	if role.RoleKey == "admin" {
 		for _, userID := range normalizedUserIDs {
 			if userID == 1 {
-				return 0, errors.New("user.update.error.protected")
+				return 0, common.NewConflict("user.update.error.protected")
 			}
 		}
 	}
@@ -235,7 +250,7 @@ func (s *RoleService) RemoveRoleMembers(roleID uint64, userIDs []uint64) (int, e
 // CreateRole 创建角色。
 func (s *RoleService) CreateRole(req *RoleCreateReq) (*RoleListResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.NewBadRequest("database.not_initialized")
 	}
 	if err := s.validateRoleCreate(req); err != nil {
 		return nil, err
@@ -249,6 +264,7 @@ func (s *RoleService) CreateRole(req *RoleCreateReq) (*RoleListResp, error) {
 	}
 	menuIDs := normalizeUint64IDs(req.MenuIDs)
 	permissionKeys := normalizePermissionKeys(req.PermissionKeys)
+	dataScope := normalizeRoleDataScope(req.DataScope)
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(&role).Error; err != nil {
@@ -257,7 +273,13 @@ func (s *RoleService) CreateRole(req *RoleCreateReq) (*RoleListResp, error) {
 		if err := s.replaceRoleMenus(tx, role.ID, menuIDs); err != nil {
 			return err
 		}
-		return s.replaceRolePermissions(tx, role.ID, permissionKeys)
+		if err := s.replaceRolePermissions(tx, role.ID, permissionKeys); err != nil {
+			return err
+		}
+		if err := s.upsertRoleDataScopePolicy(tx, role.RoleKey, dataScope); err != nil {
+			return err
+		}
+		return nil
 	}); err != nil {
 		return nil, err
 	}
@@ -271,13 +293,14 @@ func (s *RoleService) CreateRole(req *RoleCreateReq) (*RoleListResp, error) {
 		CreatedAt:      role.CreatedAt.Format(time.RFC3339),
 		MenuIDs:        menuIDs,
 		PermissionKeys: permissionKeys,
+		DataScope:      dataScope,
 	}, nil
 }
 
 // UpdateRole 更新角色。
 func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.NewBadRequest("database.not_initialized")
 	}
 
 	var role SystemRole
@@ -294,6 +317,7 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 	role.Status = normalizeRoleStatus(req.Status)
 	menuIDs := normalizeUint64IDs(req.MenuIDs)
 	permissionKeys := normalizePermissionKeys(req.PermissionKeys)
+	dataScope := normalizeRoleDataScope(req.DataScope)
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(&role).Error; err != nil {
@@ -302,7 +326,13 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 		if err := s.replaceRoleMenus(tx, role.ID, menuIDs); err != nil {
 			return err
 		}
-		return s.replaceRolePermissions(tx, role.ID, permissionKeys)
+		if err := s.replaceRolePermissions(tx, role.ID, permissionKeys); err != nil {
+			return err
+		}
+		if err := s.upsertRoleDataScopePolicy(tx, role.RoleKey, dataScope); err != nil {
+			return err
+		}
+		return nil
 	}); err != nil {
 		return nil, err
 	}
@@ -316,13 +346,14 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 		CreatedAt:      role.CreatedAt.Format(time.RFC3339),
 		MenuIDs:        menuIDs,
 		PermissionKeys: permissionKeys,
+		DataScope:      dataScope,
 	}, nil
 }
 
 // DeleteRole 删除角色。
 func (s *RoleService) DeleteRole(roleID uint64) error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return common.NewBadRequest("database.not_initialized")
 	}
 
 	var role SystemRole
@@ -330,7 +361,7 @@ func (s *RoleService) DeleteRole(roleID uint64) error {
 		return err
 	}
 	if role.ID == 1 || role.RoleKey == "admin" {
-		return errors.New("role.delete.error.protected")
+		return common.NewConflict("role.delete.error.protected")
 	}
 
 	var userCount int64
@@ -338,7 +369,7 @@ func (s *RoleService) DeleteRole(roleID uint64) error {
 		return err
 	}
 	if userCount > 0 {
-		return errors.New("role.delete.error.has_users")
+		return common.NewInternal("role.delete.error.has_users")
 	}
 
 	roleKey := role.RoleKey
@@ -371,14 +402,14 @@ func (s *RoleService) DeleteRole(roleID uint64) error {
 
 func (s *RoleService) BatchUpdateRoleStatus(roleIDs []uint64, status int) (int, error) {
 	if s.db == nil {
-		return 0, errors.New("database.not_initialized")
+		return 0, common.NewBadRequest("database.not_initialized")
 	}
 	normalizedIDs := normalizeUint64IDs(roleIDs)
 	if len(normalizedIDs) == 0 {
-		return 0, errors.New("role.batch.empty")
+		return 0, common.NewBadRequest("role.batch.empty")
 	}
-	if status != 1 && status != 2 {
-		return 0, errors.New("param.invalid")
+	if !common.IsEnabledStatus(status) {
+		return 0, common.NewBadRequest("param.invalid")
 	}
 
 	var roles []SystemRole
@@ -386,12 +417,12 @@ func (s *RoleService) BatchUpdateRoleStatus(roleIDs []uint64, status int) (int, 
 		return 0, err
 	}
 	if len(roles) != len(normalizedIDs) {
-		return 0, errors.New("role.batch.not_found")
+		return 0, common.NewNotFound("role.batch.not_found")
 	}
-	if status == 2 {
+	if status == common.StatusDisabled {
 		for _, role := range roles {
 			if role.ID == 1 || role.RoleKey == "admin" {
-				return 0, errors.New("role.update.error.protected")
+				return 0, common.NewConflict("role.update.error.protected")
 			}
 		}
 	}
@@ -488,11 +519,11 @@ func (s *RoleService) listUsersByRoleMembership(roleID uint64, query *RoleMember
 		if keyword != "" {
 			db = db.Where(
 				"(system_user.username LIKE ? OR system_user.nickname LIKE ?)",
-				fmt.Sprintf("%%%s%%", keyword),
-				fmt.Sprintf("%%%s%%", keyword),
+				fmt.Sprintf("%%%s%%", common.EscapeLikePattern(keyword)),
+				fmt.Sprintf("%%%s%%", common.EscapeLikePattern(keyword)),
 			)
 		}
-		if query.Status != nil && (*query.Status == 1 || *query.Status == 2) {
+		if query.Status != nil && common.IsEnabledStatus(*query.Status) {
 			db = db.Where("system_user.status = ?", *query.Status)
 		}
 	}
@@ -532,4 +563,89 @@ func (s *RoleService) listUsersByRoleMembership(roleID uint64, query *RoleMember
 		Page:     page,
 		PageSize: pageSize,
 	}, nil
+}
+
+// upsertRoleDataScopePolicy creates or updates a data scope policy for a role.
+func (s *RoleService) upsertRoleDataScopePolicy(tx *gorm.DB, roleKey string, mode string) error {
+	mode = normalizeRoleDataScope(mode)
+	if !isValidRoleDataScopeMode(mode) {
+		return common.NewBadRequest("permission.data_scope.mode_invalid")
+	}
+
+	policy := roleDataScopePolicy{
+		RoleKey: roleKey,
+		Mode:    mode,
+		DeptIDs: "",
+	}
+	return tx.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "role_key"}},
+		DoUpdates: clause.AssignmentColumns([]string{"mode", "dept_ids"}),
+	}).Create(&policy).Error
+}
+
+// loadRoleDataScopes loads data scope policies for a list of role IDs.
+func (s *RoleService) loadRoleDataScopes(roleIDs []uint64) map[uint64]string {
+	result := make(map[uint64]string, len(roleIDs))
+	for _, id := range roleIDs {
+		result[id] = common.DataScopeModeAll
+	}
+	if len(roleIDs) == 0 {
+		return result
+	}
+	if !s.db.Migrator().HasTable(&roleDataScopePolicy{}) {
+		return result
+	}
+
+	var roleRows []struct {
+		ID      uint64 `gorm:"column:id"`
+		RoleKey string `gorm:"column:role_key"`
+	}
+	if err := s.db.Table("system_role").
+		Select("id, role_key").
+		Where("id IN ?", roleIDs).
+		Scan(&roleRows).Error; err != nil {
+		return result
+	}
+
+	roleKeys := make([]string, 0, len(roleRows))
+	roleKeyToID := make(map[string]uint64, len(roleRows))
+	for _, row := range roleRows {
+		roleKeys = append(roleKeys, row.RoleKey)
+		roleKeyToID[row.RoleKey] = row.ID
+	}
+
+	if len(roleKeys) == 0 {
+		return result
+	}
+
+	var policies []roleDataScopePolicy
+	if err := s.db.Where("role_key IN ?", roleKeys).Find(&policies).Error; err != nil {
+		return result
+	}
+	for _, policy := range policies {
+		if roleID, ok := roleKeyToID[policy.RoleKey]; ok {
+			result[roleID] = policy.Mode
+		}
+	}
+	return result
+}
+
+// normalizeRoleDataScope normalizes and validates a data scope mode string.
+func normalizeRoleDataScope(dataScope string) string {
+	mode := strings.TrimSpace(strings.ToLower(dataScope))
+	switch mode {
+	case common.DataScopeModeSelf, common.DataScopeModeDept, common.DataScopeModeDeptAndChildren, common.DataScopeModeCustom:
+		return mode
+	default:
+		return common.DataScopeModeAll
+	}
+}
+
+func isValidRoleDataScopeMode(mode string) bool {
+	switch mode {
+	case common.DataScopeModeAll, common.DataScopeModeSelf, common.DataScopeModeDept, common.DataScopeModeDeptAndChildren, common.DataScopeModeCustom:
+		return true
+	default:
+		return false
+	}
 }

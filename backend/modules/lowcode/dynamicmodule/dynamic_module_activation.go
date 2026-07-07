@@ -1,8 +1,8 @@
 package dynamicmodule
 
 import (
-	"fmt"
 	"os"
+	"pantheon-ops/backend/pkg/common"
 	"path/filepath"
 	"strings"
 	"time"
@@ -13,7 +13,7 @@ func (s *DynamicModuleService) AuditPendingGeneratedModuleActivations() (*Activa
 		return &ActivationAuditSummary{}, nil
 	}
 	if strings.TrimSpace(s.workspaceRoot) == "" {
-		return nil, fmt.Errorf("workspace.not_found")
+		return nil, common.NewNotFound("workspace.not_found")
 	}
 
 	var modules []ModuleRegistration

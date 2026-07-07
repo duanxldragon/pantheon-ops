@@ -50,15 +50,15 @@ func (s *PostService) ListPosts(query *PostListQuery) (*PostListPageResp, error)
 	page, pageSize := normalizePostPageQuery(query)
 	if query != nil {
 		if strings.TrimSpace(query.PostCode) != "" {
-			db = db.Where("post_code LIKE ?", "%"+strings.TrimSpace(query.PostCode)+"%")
+			db = db.Where("post_code LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.PostCode))+"%")
 		}
 		if strings.TrimSpace(query.PostName) != "" {
-			db = db.Where("post_name LIKE ?", "%"+strings.TrimSpace(query.PostName)+"%")
+			db = db.Where("post_name LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.PostName))+"%")
 		}
 		if query.DeptID > 0 {
 			db = db.Where("dept_id = ?", query.DeptID)
 		}
-		if query.Status != nil && (*query.Status == 1 || *query.Status == 2) {
+		if query.Status != nil && common.IsEnabledStatus(*query.Status) {
 			db = db.Where("status = ?", *query.Status)
 		}
 	}
@@ -138,7 +138,7 @@ func (s *PostService) UpdatePost(postID uint64, req *PostUpdateReq) (*PostListRe
 	if err := s.validatePostCreate(postID, req.PostCode, req.DeptID); err != nil {
 		return nil, err
 	}
-	if post.Status != 2 && normalizePostStatus(req.Status) == 2 {
+	if post.Status != common.StatusDisabled && normalizePostStatus(req.Status) == common.StatusDisabled {
 		if err := s.ensurePostsNotAssignedToUsers([]uint64{postID}); err != nil {
 			return nil, err
 		}
@@ -168,8 +168,8 @@ func (s *PostService) DeletePost(postID uint64) error {
 	}
 
 	if err := s.ensurePostsNotAssignedToUsers([]uint64{postID}); err != nil {
-		if err.Error() == "post.status.error.has_users" {
-			return errors.New("post.delete.error.has_users")
+		if common.ErrMessage(err) == "post.status.error.has_users" {
+			return common.NewInternal("post.delete.error.has_users")
 		}
 		return err
 	}
@@ -195,10 +195,10 @@ func (s *PostService) BatchUpdatePostStatus(postIDs []uint64, status int) (int, 
 	}
 	normalizedIDs := normalizePostIDs(postIDs)
 	if len(normalizedIDs) == 0 {
-		return 0, errors.New("post.batch.empty")
+		return 0, common.NewBadRequest("post.batch.empty")
 	}
-	if status != 1 && status != 2 {
-		return 0, errors.New("param.invalid")
+	if !common.IsEnabledStatus(status) {
+		return 0, common.NewBadRequest("param.invalid")
 	}
 
 	var posts []SystemPost
@@ -206,12 +206,12 @@ func (s *PostService) BatchUpdatePostStatus(postIDs []uint64, status int) (int, 
 		return 0, err
 	}
 	if len(posts) != len(normalizedIDs) {
-		return 0, errors.New("post.batch.not_found")
+		return 0, common.NewNotFound("post.batch.not_found")
 	}
-	if normalizePostStatus(status) == 2 {
+	if normalizePostStatus(status) == common.StatusDisabled {
 		activeIDs := make([]uint64, 0, len(posts))
 		for _, post := range posts {
-			if post.Status != 2 {
+			if post.Status != common.StatusDisabled {
 				activeIDs = append(activeIDs, post.ID)
 			}
 		}
@@ -445,15 +445,15 @@ func (s *PostService) listPostsForExport(query *PostListQuery) ([]SystemPost, er
 	db := s.db.Model(&SystemPost{})
 	if query != nil {
 		if strings.TrimSpace(query.PostCode) != "" {
-			db = db.Where("post_code LIKE ?", "%"+strings.TrimSpace(query.PostCode)+"%")
+			db = db.Where("post_code LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.PostCode))+"%")
 		}
 		if strings.TrimSpace(query.PostName) != "" {
-			db = db.Where("post_name LIKE ?", "%"+strings.TrimSpace(query.PostName)+"%")
+			db = db.Where("post_name LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.PostName))+"%")
 		}
 		if query.DeptID > 0 {
 			db = db.Where("dept_id = ?", query.DeptID)
 		}
-		if query.Status != nil && (*query.Status == 1 || *query.Status == 2) {
+		if query.Status != nil && common.IsEnabledStatus(*query.Status) {
 			db = db.Where("status = ?", *query.Status)
 		}
 	}
@@ -471,7 +471,7 @@ func (s *PostService) listPostsForExport(query *PostListQuery) ([]SystemPost, er
 func (s *PostService) validatePostCreate(postID uint64, postCode string, deptID uint64) error {
 	trimmedCode := strings.TrimSpace(postCode)
 	if trimmedCode == "" {
-		return errors.New("param.invalid")
+		return common.NewBadRequest("param.invalid")
 	}
 	if err := s.ensurePostDeptID(deptID); err != nil {
 		return err
@@ -486,14 +486,14 @@ func (s *PostService) validatePostCreate(postID uint64, postCode string, deptID 
 		return err
 	}
 	if count > 0 {
-		return errors.New("post.code.exists")
+		return common.NewConflict("post.code.exists")
 	}
 	return nil
 }
 
 func (s *PostService) ensurePostDeptID(deptID uint64) error {
 	if deptID == 0 {
-		return errors.New("post.dept.required")
+		return common.NewBadRequest("post.dept.required")
 	}
 	type row struct {
 		ID     uint64 `gorm:"column:id"`
@@ -502,12 +502,12 @@ func (s *PostService) ensurePostDeptID(deptID uint64) error {
 	var dept row
 	if err := s.db.Table("system_dept").Select("id, is_root").Where("id = ?", deptID).First(&dept).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("post.dept.invalid")
+			return common.NewBadRequest("post.dept.invalid")
 		}
 		return err
 	}
-	if dept.IsRoot == 1 {
-		return errors.New("post.dept.root_forbidden")
+	if dept.IsRoot == common.StatusFlagYes {
+		return common.NewForbidden("post.dept.root_forbidden")
 	}
 	return nil
 }
@@ -623,10 +623,7 @@ func normalizePostSort(query *PostListQuery) (string, bool) {
 }
 
 func normalizePostStatus(status int) int {
-	if status == 2 {
-		return 2
-	}
-	return 1
+	return common.NormalizeEnabledStatus(status)
 }
 
 func normalizePostIDs(ids []uint64) []uint64 {
@@ -679,7 +676,7 @@ func buildPostGovernanceTags(status, assignedUserCount int) []string {
 	if assignedUserCount > 0 {
 		tags = append(tags, "in-use")
 	}
-	if normalizePostStatus(status) == 2 {
+	if normalizePostStatus(status) == common.StatusDisabled {
 		tags = append(tags, "disabled")
 	}
 	if len(tags) == 0 {
@@ -697,12 +694,12 @@ func buildPostGovernanceBlockers(assignedUserCount int) []string {
 
 func buildPostGovernanceActions(status, assignedUserCount int) []string {
 	if assignedUserCount > 0 {
-		if normalizePostStatus(status) == 2 {
+		if normalizePostStatus(status) == common.StatusDisabled {
 			return []string{"reassign-users", "review-status"}
 		}
 		return []string{"reassign-users"}
 	}
-	if normalizePostStatus(status) == 2 {
+	if normalizePostStatus(status) == common.StatusDisabled {
 		return []string{"delete-or-keep-disabled"}
 	}
 	return []string{"keep-observing"}
@@ -717,7 +714,7 @@ func (s *PostService) ensurePostsNotAssignedToUsers(postIDs []uint64) error {
 		return err
 	}
 	if userCount > 0 {
-		return errors.New("post.status.error.has_users")
+		return common.NewInternal("post.status.error.has_users")
 	}
 	return nil
 }
@@ -759,5 +756,5 @@ func (s *PostService) allocateDeletedPostCode(tx *gorm.DB, postID uint64) (strin
 			return candidate, nil
 		}
 	}
-	return "", errors.New("post.delete.error.archive_code_conflict")
+	return "", common.NewConflict("post.delete.error.archive_code_conflict")
 }

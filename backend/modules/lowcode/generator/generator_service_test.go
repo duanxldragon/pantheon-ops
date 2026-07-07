@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"pantheon-ops/backend/internal/scaffold"
+	"pantheon-ops/backend/pkg/common"
 )
 
 func TestSuggestModuleNameMatchesScopeConventions(t *testing.T) {
@@ -131,7 +132,7 @@ func TestNormalizeDatasourceReqRejectsUnsafeHosts(t *testing.T) {
 				t.Fatalf("expected success, got %v", err)
 			}
 			if tt.wantError != "" {
-				if err == nil || err.Error() != tt.wantError {
+				if err == nil || common.ErrMessage(err) != tt.wantError {
 					t.Fatalf("expected %s, got %v", tt.wantError, err)
 				}
 			}
