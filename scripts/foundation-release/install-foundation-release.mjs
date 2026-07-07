@@ -126,13 +126,18 @@ function installArchive(archivePath, releaseRoot, expectedSha256) {
 }
 
 function verifyChecksum(archivePath, expectedSha256) {
-  const result = spawnSync('certutil', ['-hashfile', archivePath, 'SHA256'], { encoding: 'utf8' });
+  const isWindows = process.platform === 'win32';
+  const command = isWindows ? 'certutil' : 'sha256sum';
+  const args = isWindows ? ['-hashfile', archivePath, 'SHA256'] : [archivePath];
+  const result = spawnSync(command, args, { encoding: 'utf8' });
   if (result.status !== 0) {
     throw new Error(`checksum computation failed: ${result.stderr || result.stdout}`);
   }
-  const actualSha256 = result.stdout.split('\n').find((l) => l.trim().length === 64)?.trim();
+  const actualSha256 = isWindows
+    ? result.stdout.split('\n').find((l) => l.trim().length === 64)?.trim()
+    : result.stdout.trim().split(/\s+/)[0];
   if (!actualSha256) {
-    throw new Error('could not parse SHA256 from certutil output');
+    throw new Error(`could not parse SHA256 from ${command} output`);
   }
   if (actualSha256.toLowerCase() !== expectedSha256.toLowerCase()) {
     throw new Error(
