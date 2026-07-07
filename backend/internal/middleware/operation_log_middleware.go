@@ -2,9 +2,12 @@ package middleware
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -18,7 +21,7 @@ import (
 
 type operationLogWriter struct {
 	gin.ResponseWriter
-	body *bytes.Buffer
+	body *operationLogBuffer
 }
 
 const (
@@ -28,11 +31,37 @@ const (
 	operationLogResultKey       = "operationLog.result"
 	operationLogStatusKey       = "operationLog.status"
 	operationLogErrorMsgKey     = "operationLog.errorMsg"
+
+	defaultOperationLogQueueSize = 1024
+	defaultOperationLogBodyLimit = 64 * 1024
+	operationLogWriteTimeout     = 2 * time.Second
 )
 
 func (w operationLogWriter) Write(data []byte) (int, error) {
 	w.body.Write(data)
 	return w.ResponseWriter.Write(data)
+}
+
+type operationLogBuffer struct {
+	bytes.Buffer
+	limit int
+}
+
+func newOperationLogBuffer() *operationLogBuffer {
+	return &operationLogBuffer{limit: defaultOperationLogBodyLimit}
+}
+
+func (b *operationLogBuffer) Write(data []byte) (int, error) {
+	if b.limit <= 0 || b.Len() >= b.limit {
+		return len(data), nil
+	}
+	remaining := b.limit - b.Len()
+	if len(data) > remaining {
+		_, _ = b.Buffer.Write(data[:remaining])
+		return len(data), nil
+	}
+	_, _ = b.Buffer.Write(data)
+	return len(data), nil
 }
 
 type SystemLogOper struct {
@@ -59,8 +88,69 @@ func (SystemLogOper) TableName() string {
 	return "system_log_oper"
 }
 
+type operationLogAsyncStore struct {
+	db    *gorm.DB
+	queue chan SystemLogOper
+}
+
+func newOperationLogAsyncStore(db *gorm.DB) *operationLogAsyncStore {
+	if db == nil {
+		return nil
+	}
+	store := &operationLogAsyncStore{
+		db:    db,
+		queue: make(chan SystemLogOper, operationLogQueueSize()),
+	}
+	go store.run()
+	return store
+}
+
+func operationLogQueueSize() int {
+	value := strings.TrimSpace(os.Getenv("PANTHEON_OPERATION_LOG_QUEUE_SIZE"))
+	if value == "" {
+		return defaultOperationLogQueueSize
+	}
+	size, err := strconv.Atoi(value)
+	if err != nil || size <= 0 {
+		return defaultOperationLogQueueSize
+	}
+	return size
+}
+
+func (s *operationLogAsyncStore) enqueue(log SystemLogOper) {
+	if s == nil || s.db == nil {
+		return
+	}
+	select {
+	case s.queue <- log:
+	default:
+		slog.Warn("operation log queue full; writing synchronously")
+		s.write(log)
+	}
+}
+
+func (s *operationLogAsyncStore) run() {
+	for log := range s.queue {
+		s.write(log)
+	}
+}
+
+func (s *operationLogAsyncStore) write(log SystemLogOper) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			slog.Error("operation log write panic", "panic", recovered)
+		}
+	}()
+	ctx, cancel := context.WithTimeout(context.Background(), operationLogWriteTimeout)
+	defer cancel()
+	if err := s.db.WithContext(ctx).Create(&log).Error; err != nil {
+		slog.Error("operation log write failed", "error", err)
+	}
+}
+
 // OperationLogMiddleware 异步记录操作日志。
 func OperationLogMiddleware(db *gorm.DB) gin.HandlerFunc {
+	store := newOperationLogAsyncStore(db)
 	return func(c *gin.Context) {
 		if db == nil || c.Request.Method == http.MethodGet {
 			c.Next()
@@ -69,7 +159,7 @@ func OperationLogMiddleware(db *gorm.DB) gin.HandlerFunc {
 
 		start := time.Now()
 		requestBody := readAndRestoreBody(c)
-		responseBody := &bytes.Buffer{}
+		responseBody := newOperationLogBuffer()
 		c.Writer = operationLogWriter{ResponseWriter: c.Writer, body: responseBody}
 
 		c.Next()
@@ -79,14 +169,14 @@ func OperationLogMiddleware(db *gorm.DB) gin.HandlerFunc {
 			username, _ = value.(string)
 		}
 
-		status := 1
+		status := common.OperationStatusSuccess
 		errorMessage := ""
 		if c.Writer.Status() >= http.StatusBadRequest {
-			status = 2
+			status = common.OperationStatusFailure
 			errorMessage = http.StatusText(c.Writer.Status())
 		}
 		if code, message := parseBusinessResult(responseBody.String()); code != 0 && code != 200 {
-			status = 2
+			status = common.OperationStatusFailure
 			errorMessage = message
 		}
 		if overrideStatus, ok := readOperationLogStatus(c); ok {
@@ -115,7 +205,7 @@ func OperationLogMiddleware(db *gorm.DB) gin.HandlerFunc {
 			CostTime:        time.Since(start).Milliseconds(),
 		}
 
-		go db.Create(&log)
+		store.enqueue(log)
 	}
 }
 
@@ -320,7 +410,7 @@ func DetectOperationLogSourcePage(operURL string) string {
 }
 
 func DetectOperationLogFailureCategory(status int, errorMsg string, jsonResult string) string {
-	if status != 2 {
+	if status != common.OperationStatusFailure {
 		return ""
 	}
 	errorText := strings.ToLower(strings.TrimSpace(errorMsg) + " " + strings.TrimSpace(jsonResult))

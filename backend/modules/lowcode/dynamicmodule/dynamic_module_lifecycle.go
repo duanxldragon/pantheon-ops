@@ -2,6 +2,7 @@ package dynamicmodule
 
 import (
 	"errors"
+	"pantheon-ops/backend/pkg/common"
 	"strings"
 	"time"
 
@@ -23,7 +24,7 @@ func (s *DynamicModuleService) UnregisterModule(moduleName string, dropTable boo
 	var registration ModuleRegistration
 	if err := s.db.Where("name = ?", moduleName).First(&registration).Error; err == nil {
 		if strings.TrimSpace(registration.ModelTableName) == "" {
-			return nil, errors.New("module.unregister.builtin_forbidden")
+			return nil, common.NewForbidden("module.unregister.builtin_forbidden")
 		}
 	}
 
@@ -74,15 +75,15 @@ func (s *DynamicModuleService) DeleteModuleRecord(moduleName string) error {
 	var registration ModuleRegistration
 	if err := s.db.Where("name = ?", moduleName).First(&registration).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("module.not_found")
+			return common.NewNotFound("module.not_found")
 		}
 		return err
 	}
 	if strings.TrimSpace(registration.ModelTableName) == "" {
-		return errors.New("module.unregister.builtin_forbidden")
+		return common.NewForbidden("module.unregister.builtin_forbidden")
 	}
 	if registration.Status != ModuleStatusUninstalled {
-		return errors.New("module.delete_record.requires_uninstalled")
+		return common.NewBadRequest("module.delete_record.requires_uninstalled")
 	}
 
 	if err := s.db.Delete(&registration).Error; err != nil {
@@ -104,12 +105,12 @@ func (s *DynamicModuleService) PurgeModule(moduleName string, dropTable bool, pu
 	var registration ModuleRegistration
 	if err := s.db.Where("name = ?", moduleName).First(&registration).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("module.not_found")
+			return nil, common.NewNotFound("module.not_found")
 		}
 		return nil, err
 	}
 	if isBuiltInModuleRegistration(registration) {
-		return nil, errors.New("module.unregister.builtin_forbidden")
+		return nil, common.NewForbidden("module.unregister.builtin_forbidden")
 	}
 	if strings.TrimSpace(registration.ModelTableName) == "" {
 		if err := s.deleteModuleNavigationArtifacts(moduleName); err != nil {
@@ -230,7 +231,7 @@ func (s *DynamicModuleService) FinalizeUnregister(moduleName string, purgeSource
 		return nil, err
 	}
 	if strings.TrimSpace(s.workspaceRoot) == "" {
-		return nil, errors.New("workspace.not_found")
+		return nil, common.NewNotFound("workspace.not_found")
 	}
 	if !purgeSource {
 		if _, err := s.refreshGeneratedWorkspaceArtifactsIfAvailable(); err != nil {

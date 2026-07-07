@@ -9,7 +9,7 @@ const testDir = join(frontendDir, '.tmp', 'generator-quality-contract-test');
 
 const files = [
   'src/modules/lowcode/generator/schema.ts',
-  'src/modules/lowcode/generator/type-mapping.ts',
+  'src/modules/lowcode/generator/typeMapping.ts',
   'src/modules/lowcode/generator/backend-generator.ts',
   'src/modules/lowcode/generator/frontend-generator.ts',
   'src/modules/lowcode/generator/exporter.ts',

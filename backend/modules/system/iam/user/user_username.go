@@ -1,13 +1,13 @@
 package iam
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
 	"pantheon-ops/backend/pkg/common"
+	commonsecurity "pantheon-ops/backend/pkg/common/security"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -80,7 +80,7 @@ func (s *UserService) ensureAdminUserSeed() error {
 		Username: "admin",
 		Password: string(passwordHash),
 		Nickname: "Administrator",
-		Status:   1,
+		Status:   common.StatusEnabled,
 	}
 	admin.ID = 1
 	return s.db.Create(&admin).Error
@@ -88,17 +88,17 @@ func (s *UserService) ensureAdminUserSeed() error {
 
 func resolveInitialAdminPassword() (string, error) {
 	password := strings.TrimSpace(os.Getenv("PANTHEON_INITIAL_ADMIN_PASSWORD"))
-	if !common.IsProductionEnv() {
+	if !commonsecurity.IsProductionEnv() {
 		if password != "" {
 			return password, nil
 		}
 		return defaultDevInitialAdminPassword, nil
 	}
 	if password == "" {
-		return "", errors.New("admin.initial_password_required")
+		return "", common.NewBadRequest("admin.initial_password_required")
 	}
 	if len(password) < productionInitialAdminMinLength {
-		return "", errors.New("admin.initial_password_too_short")
+		return "", common.NewBadRequest("admin.initial_password_too_short")
 	}
 	return password, nil
 }
@@ -173,5 +173,5 @@ func (s *UserService) allocateDeletedUsername(tx *gorm.DB, userID uint64) (strin
 		}
 	}
 
-	return "", errors.New("user.delete.error.archive_username_conflict")
+	return "", common.NewConflict("user.delete.error.archive_username_conflict")
 }

@@ -6,8 +6,8 @@
 
 import type { ModuleSchema } from './schema';
 import { getLeafModuleName, inferModelName } from './schema';
-import { BackendGenerator } from './backend-generator';
-import { FrontendGenerator } from './frontend-generator';
+import { BackendGenerator } from './backendGenerator';
+import { FrontendGenerator } from './frontendGenerator';
 
 /**
  * 生成的文件

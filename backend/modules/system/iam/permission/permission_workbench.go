@@ -56,9 +56,9 @@ func (s *PermissionService) GetWorkbench(query *PermissionWorkbenchQuery) (*Perm
 	db := s.db.Table("system_role").Where("deleted_at IS NULL")
 	if query != nil {
 		if strings.TrimSpace(query.RoleKey) != "" {
-			db = db.Where("role_key LIKE ?", "%"+strings.TrimSpace(query.RoleKey)+"%")
+			db = db.Where("role_key LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.RoleKey))+"%")
 		}
-		if query.Status != nil && (*query.Status == 1 || *query.Status == 2) {
+		if query.Status != nil && common.IsEnabledStatus(*query.Status) {
 			db = db.Where("status = ?", *query.Status)
 		}
 	}
@@ -85,7 +85,7 @@ func (s *PermissionService) GetWorkbench(query *PermissionWorkbenchQuery) (*Perm
 		roleIDs = append(roleIDs, item.ID)
 		roleKeys = append(roleKeys, item.RoleKey)
 		roleIndex[item.ID] = index
-		if item.Status == 1 {
+		if item.Status == common.StatusEnabled {
 			resp.Overview.EnabledRoleCount++
 		}
 		resp.Roles = append(resp.Roles, PermissionWorkbenchRoleResp{
@@ -265,7 +265,7 @@ func summarizeWorkbenchOverview(roles []PermissionWorkbenchRoleResp) PermissionW
 		RoleCount: len(roles),
 	}
 	for _, role := range roles {
-		if role.Status == 1 {
+		if role.Status == common.StatusEnabled {
 			overview.EnabledRoleCount++
 		}
 		overview.NavigationAssignmentCount += role.MenuCount
@@ -526,34 +526,34 @@ func requiredAPIPoliciesByPermissionKey(permissionKey string) []permissionRequir
 		}
 	case "system:module:list":
 		return []permissionRequiredAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules", Method: "GET"},
+			{Path: "/api/v1/lowcode/dynamic-modules", Method: "GET"},
 		}
 	case "system:module:register":
 		return []permissionRequiredAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules", Method: "POST"},
+			{Path: "/api/v1/lowcode/dynamic-modules", Method: "POST"},
 		}
 	case "system:module:unregister":
 		return []permissionRequiredAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules/:name", Method: "DELETE"},
+			{Path: "/api/v1/lowcode/dynamic-modules/:name", Method: "DELETE"},
 		}
 	case "system:module:delete_record":
 		return []permissionRequiredAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules/:name/record", Method: "DELETE"},
+			{Path: "/api/v1/lowcode/dynamic-modules/:name/record", Method: "DELETE"},
 		}
 	case "system:module:purge":
 		return []permissionRequiredAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules/:name/purge", Method: "DELETE"},
+			{Path: "/api/v1/lowcode/dynamic-modules/:name/purge", Method: "DELETE"},
 		}
 	case "system:module:generate":
 		return []permissionRequiredAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules/generate", Method: "POST"},
+			{Path: "/api/v1/lowcode/dynamic-modules/generate", Method: "POST"},
 		}
 	case "system:generator:datasource:manage":
 		return []permissionRequiredAPIPolicy{
-			{Path: "/api/v1/system/generator/datasources", Method: "POST"},
-			{Path: "/api/v1/system/generator/datasources/:id", Method: "PUT"},
-			{Path: "/api/v1/system/generator/datasources/:id", Method: "DELETE"},
-			{Path: "/api/v1/system/generator/datasources/:id/test", Method: "POST"},
+			{Path: "/api/v1/lowcode/generator/datasources", Method: "POST"},
+			{Path: "/api/v1/lowcode/generator/datasources/:id", Method: "PUT"},
+			{Path: "/api/v1/lowcode/generator/datasources/:id", Method: "DELETE"},
+			{Path: "/api/v1/lowcode/generator/datasources/:id/test", Method: "POST"},
 		}
 	case "system:user:create":
 		return []permissionRequiredAPIPolicy{

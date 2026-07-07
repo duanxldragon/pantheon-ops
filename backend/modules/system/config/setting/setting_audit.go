@@ -133,7 +133,7 @@ func applyAuditFilters(db *gorm.DB, query *SettingAuditQuery) *gorm.DB {
 		return db
 	}
 	if strings.TrimSpace(query.OperName) != "" {
-		db = db.Where("oper_name LIKE ?", "%"+strings.TrimSpace(query.OperName)+"%")
+		db = db.Where("oper_name LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.OperName))+"%")
 	}
 	if strings.TrimSpace(query.GroupKey) != "" {
 		// JSON_EXTRACT with unquote for exact match on JSON field — index-friendly

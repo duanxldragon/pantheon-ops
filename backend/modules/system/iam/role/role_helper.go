@@ -3,6 +3,7 @@ package iam
 import (
 	"errors"
 	"fmt"
+	"pantheon-ops/backend/pkg/common"
 	"strings"
 	"time"
 
@@ -20,7 +21,7 @@ func (s *RoleService) ensureAdminRoleSeed() error {
 			RoleName: "role.admin.name",
 			RoleKey:  "admin",
 			Sort:     1,
-			Status:   1,
+			Status:   common.StatusEnabled,
 		}
 		var count int64
 		if err := s.db.Unscoped().Model(&SystemRole{}).Where("id = ?", 1).Count(&count).Error; err != nil {
@@ -40,8 +41,8 @@ func (s *RoleService) ensureAdminRoleSeed() error {
 		if adminRole.Sort == 0 {
 			updates["sort"] = 1
 		}
-		if adminRole.Status != 1 {
-			updates["status"] = 1
+		if adminRole.Status != common.StatusEnabled {
+			updates["status"] = common.StatusEnabled
 		}
 		if len(updates) == 0 {
 			return nil
@@ -83,7 +84,7 @@ func (s *RoleService) ensureAdminUserBinding() error {
 
 func (s *RoleService) validateRoleCreate(req *RoleCreateReq) error {
 	if strings.TrimSpace(req.RoleName) == "" || strings.TrimSpace(req.RoleKey) == "" {
-		return errors.New("param.invalid")
+		return common.NewBadRequest("param.invalid")
 	}
 	if err := s.ensureRoleKeyUnique(0, req.RoleKey); err != nil {
 		return err
@@ -96,10 +97,10 @@ func (s *RoleService) validateRoleCreate(req *RoleCreateReq) error {
 
 func (s *RoleService) validateRoleUpdate(role *SystemRole, req *RoleUpdateReq) error {
 	if strings.TrimSpace(req.RoleName) == "" || strings.TrimSpace(req.RoleKey) == "" {
-		return errors.New("param.invalid")
+		return common.NewBadRequest("param.invalid")
 	}
-	if role.RoleKey == "admin" && (strings.TrimSpace(req.RoleKey) != "admin" || req.Status == 2) {
-		return errors.New("role.update.error.protected")
+	if role.RoleKey == "admin" && (strings.TrimSpace(req.RoleKey) != "admin" || req.Status == common.StatusDisabled) {
+		return common.NewConflict("role.update.error.protected")
 	}
 	if err := s.ensureRoleKeyUnique(role.ID, req.RoleKey); err != nil {
 		return err
@@ -120,7 +121,7 @@ func (s *RoleService) ensureRoleKeyUnique(roleID uint64, roleKey string) error {
 		return err
 	}
 	if count > 0 {
-		return errors.New("role.key.exists")
+		return common.NewConflict("role.key.exists")
 	}
 	return nil
 }
@@ -155,7 +156,7 @@ func (s *RoleService) ensurePermissionKeysExist(permissionKeys []string) error {
 	}
 	for _, key := range normalized {
 		if _, ok := exists[key]; !ok {
-			return errors.New("role.permission.invalid")
+			return common.NewBadRequest("role.permission.invalid")
 		}
 	}
 	return nil
@@ -167,7 +168,7 @@ func (s *RoleService) ensureUsersExist(userIDs []uint64) error {
 		return err
 	}
 	if count != int64(len(userIDs)) {
-		return errors.New("user.batch.not_found")
+		return common.NewNotFound("user.batch.not_found")
 	}
 	return nil
 }
@@ -224,7 +225,7 @@ func (s *RoleService) allocateDeletedRoleKey(tx *gorm.DB, roleID uint64) (string
 			return candidate, nil
 		}
 	}
-	return "", errors.New("role.delete.error.archive_key_conflict")
+	return "", common.NewConflict("role.delete.error.archive_key_conflict")
 }
 
 func (s *RoleService) backfillRolePermissions() error {
@@ -271,10 +272,7 @@ func reloadRolePolicies() error {
 }
 
 func normalizeRoleStatus(status int) int {
-	if status == 2 {
-		return 2
-	}
-	return 1
+	return common.NormalizeEnabledStatus(status)
 }
 
 func normalizeRolePageQuery(query *RoleListQuery) (int, int) {

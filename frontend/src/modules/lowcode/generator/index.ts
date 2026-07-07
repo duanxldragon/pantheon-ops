@@ -45,13 +45,13 @@ export {
   generateStructTags,
   getRequiredImports,
   TS_TYPE_UTILS,
-} from './type-mapping';
+} from './typeMapping';
 
 // 后端生成器
-export { BackendGenerator } from './backend-generator';
+export { BackendGenerator } from './backendGenerator';
 
 // 前端生成器
-export { FrontendGenerator } from './frontend-generator';
+export { FrontendGenerator } from './frontendGenerator';
 
 // 导出器
 export { ModuleExporter, type GeneratedFile } from './exporter';

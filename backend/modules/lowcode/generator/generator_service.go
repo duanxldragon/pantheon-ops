@@ -3,7 +3,7 @@ package generator
 import (
 	"archive/zip"
 	"bytes"
-	"errors"
+	"pantheon-ops/backend/pkg/common"
 	"strings"
 
 	"pantheon-ops/backend/internal/scaffold"
@@ -23,7 +23,7 @@ func NewGeneratorService(db *gorm.DB) *GeneratorService {
 
 func (s *GeneratorService) PreviewGeneratedFiles(schema *scaffold.ModuleSchema) ([]scaffold.GeneratedFile, error) {
 	if schema == nil {
-		return nil, errors.New("module.generate.invalid_payload")
+		return nil, common.NewBadRequest("module.generate.invalid_payload")
 	}
 	req := &scaffold.RegisterGeneratedModuleRequest{
 		Schema: *schema,
@@ -32,7 +32,7 @@ func (s *GeneratorService) PreviewGeneratedFiles(schema *scaffold.ModuleSchema) 
 		return nil, err
 	}
 	if strings.TrimSpace(s.workspaceRoot) == "" {
-		return nil, errors.New("workspace.not_found")
+		return nil, common.NewNotFound("workspace.not_found")
 	}
 	return scaffold.GenerateModuleFilesFromSchema(s.workspaceRoot, *schema)
 }

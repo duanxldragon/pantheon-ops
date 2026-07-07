@@ -293,3 +293,51 @@ func TestAuditService_ListOperationLogsDoesNotBackfillDuringQuery(t *testing.T) 
 		t.Fatalf("expected query path to avoid backfill, got domain=%s page=%s failure=%s", reloaded.SourceDomain, reloaded.SourcePage, reloaded.FailureCategory)
 	}
 }
+
+func TestAuditService_ListOperationLogsCapsPageSize(t *testing.T) {
+	db := setupAuditTestDB(t)
+	service := NewAuditService(db)
+	if err := service.Migrate(); err != nil {
+		t.Fatalf("migrate audit: %v", err)
+	}
+
+	page, err := service.ListOperationLogs(&OperationLogQuery{Page: 1, PageSize: 1000})
+	if err != nil {
+		t.Fatalf("list operation logs: %v", err)
+	}
+	if page.PageSize != maxOperationLogPageSize {
+		t.Fatalf("expected page size cap %d, got %d", maxOperationLogPageSize, page.PageSize)
+	}
+}
+
+func TestAuditService_ExportOperationLogsCapsRows(t *testing.T) {
+	db := setupAuditTestDB(t)
+	service := NewAuditService(db)
+	if err := service.Migrate(); err != nil {
+		t.Fatalf("migrate audit: %v", err)
+	}
+
+	rows := make([]middleware.SystemLogOper, 0, maxOperationLogExportRows+1)
+	now := time.Now().UTC()
+	for i := 0; i < maxOperationLogExportRows+1; i++ {
+		rows = append(rows, middleware.SystemLogOper{
+			Title:    "bulk",
+			Method:   "GET",
+			OperName: "admin",
+			OperURL:  "/api/v1/system/user",
+			Status:   1,
+			OperTime: now.Add(time.Duration(i) * time.Second),
+		})
+	}
+	if err := db.CreateInBatches(rows, 500).Error; err != nil {
+		t.Fatalf("seed operation logs: %v", err)
+	}
+
+	file, err := service.ExportOperationLogs(&OperationLogQuery{})
+	if err != nil {
+		t.Fatalf("export operation logs: %v", err)
+	}
+	if len(file.Rows) != maxOperationLogExportRows {
+		t.Fatalf("expected export cap %d, got %d", maxOperationLogExportRows, len(file.Rows))
+	}
+}

@@ -1,7 +1,7 @@
 package iam
 
 import (
-	"errors"
+	"pantheon-ops/backend/pkg/common"
 
 	"gorm.io/gorm"
 )
@@ -44,7 +44,7 @@ func (s *RoleService) ensureMenuIDsExist(menuIDs []uint64) error {
 		return err
 	}
 	if count != int64(len(normalized)) {
-		return errors.New("role.menu.invalid")
+		return common.NewBadRequest("role.menu.invalid")
 	}
 	return nil
 }

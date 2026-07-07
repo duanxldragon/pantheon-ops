@@ -7,27 +7,19 @@ import {
   Form,
   Grid,
   Input,
-  InputNumber,
-  Popconfirm,
   Select,
   Space,
-  Table,
   Tag,
   Typography,
 } from '@arco-design/web-react';
-import { message } from '../../../../components/feedback/message';
 import {
   IconCode,
-  IconDelete,
   IconDownload,
-  IconEdit,
   IconPlus,
   IconRefresh,
 } from '@arco-design/web-react/icon';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { isRequestError } from '../../../../api/request';
-import { ensureOperationVerified } from '../../../../api/request';
+import { message } from '../../../../components/feedback/message';
+import { isRequestError, ensureOperationVerified } from '../../../../api/request';
 import PermissionAction from '../../../../components/patterns/PermissionAction';
 import {
   AppTable,
@@ -39,6 +31,8 @@ import {
   showAppModalConfirm,
 } from '../../../../components';
 import { usePermission } from '../../../../hooks/usePermission';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { auditPendingActivations, getModuleStatus } from '../../dynamicmodule/api';
 
 import type { GenerateAndRegisterResp, GeneratedFile } from '../api';
@@ -57,8 +51,10 @@ import {
   type GeneratorTableOption,
   type UpsertGeneratorDatasourcePayload,
 } from '../api';
-import { FieldEditor } from '../components/FieldEditor';
-import { CodePreview } from '../components/CodePreview';
+import { FieldEditor } from '../../components/FieldEditor';
+import { CodePreview } from '../../components/CodePreview';
+import DatasourceManagerModal from './components/DatasourceManagerModal';
+import MenuPreviewTree from './components/MenuPreviewTree';
 import './ModuleWizard.css';
 import {
   buildDashboardQuickActionDescriptionKey,
@@ -87,7 +83,6 @@ import {
   validateGeneratorCompleteness,
   type BusinessTableRole,
   type DataScopeMode,
-  type GeneratorMenuPreviewNode,
   type ModuleField,
   type ModuleListLayoutConfig,
   type ModuleRelationType,
@@ -963,34 +958,7 @@ const ModuleWizard: React.FC = () => {
       return () => globalThis.clearTimeout(timer);
     }
     return undefined;
-  }, [
-    previewTranslationRows.length,
-    translationPreviewPage,
-    translationPreviewPageSize,
-  ]);
-
-  const renderMenuPreview = (nodes: GeneratorMenuPreviewNode[]) => (
-    <div className="generator-wizard__menu-tree">
-      {nodes.length === 0 ? (
-        <Typography.Text type="secondary">
-          {t('generator.wizard.step3.menuPreview.empty')}
-        </Typography.Text>
-      ) : (
-        nodes.map((node) => (
-          <div key={node.key} className="generator-wizard__menu-node">
-            <Space wrap>
-              <Tag color={node.type === 'M' ? 'arcoblue' : node.type === 'C' ? 'green' : 'orange'}>
-                {node.type}
-              </Tag>
-              <Typography.Text>{node.titleKey}</Typography.Text>
-              {node.path ? <Typography.Text type="secondary">{node.path}</Typography.Text> : null}
-            </Space>
-            {node.children.length > 0 ? renderMenuPreview(node.children) : null}
-          </div>
-        ))
-      )}
-    </div>
-  );
+  }, [previewTranslationRows.length, translationPreviewPage, translationPreviewPageSize]);
 
   const submitGenerateAndRegister = async (overwrite = false) => {
     if (!previewSchema) {
@@ -1266,8 +1234,10 @@ const ModuleWizard: React.FC = () => {
                       loading={tableLoading}
                       placeholder={t('generator.wizard.sourceTable.placeholder')}
                       filterOption={(inputValue, option) =>
-                        String((option as React.ReactElement<{ value?: string | number }> | null)?.props
-                          ?.value || '')
+                        String(
+                          (option as React.ReactElement<{ value?: string | number }> | null)?.props
+                            ?.value || '',
+                        )
                           .toLowerCase()
                           .includes(inputValue.toLowerCase())
                       }
@@ -1819,7 +1789,7 @@ const ModuleWizard: React.FC = () => {
                     </Typography.Text>
                   ) : (
                     previewSchema.permissions.map((permission) => (
-                      <Tag key={permission.key}>{permission.key}</Tag>
+                      <Tag key={`${permission.type}:${permission.key}`}>{permission.key}</Tag>
                     ))
                   )}
                 </Space>
@@ -1834,7 +1804,7 @@ const ModuleWizard: React.FC = () => {
                     <Typography.Text type="secondary" className="generator-wizard__subdescription">
                       {t('generator.wizard.step3.menuPreview.desc')}
                     </Typography.Text>
-                    {renderMenuPreview(previewMenuTree)}
+                    {previewSchema ? <MenuPreviewTree nodes={previewMenuTree} /> : null}
                   </Card>
                 </Col>
                 <Col xs={24} lg={12}>
@@ -2246,183 +2216,17 @@ const ModuleWizard: React.FC = () => {
         footer={null}
         size="xl"
       >
-        <Space direction="vertical" className="generator-wizard__full" size={16}>
-          <Table
-            pagination={false}
-            rowKey="id"
-            data={datasources.filter((item) => !item.isCurrent)}
-            columns={[
-              { title: t('generator.datasource.name'), dataIndex: 'name' },
-              { title: t('generator.datasource.databaseName'), dataIndex: 'databaseName' },
-              { title: t('generator.datasource.host'), dataIndex: 'host' },
-              {
-                title: t('generator.datasource.status'),
-                dataIndex: 'status',
-                render: (value: number) => (
-                  <Tag color={value === 1 ? 'green' : 'gray'}>
-                    {value === 1
-                      ? t('system.user.status.enabled')
-                      : t('system.user.status.disabled')}
-                  </Tag>
-                ),
-              },
-              {
-                title: t('common.action'),
-                render: (_: unknown, record: GeneratorDatasource) => (
-                  <Space>
-                    <Button size="mini" type="text" onClick={() => handleEditDatasource(record)}>
-                      <IconEdit /> {t('common.edit')}
-                    </Button>
-                    <Button size="mini" type="text" onClick={() => handleTestDatasource(record.id)}>
-                      <IconCode /> {t('generator.datasource.test')}
-                    </Button>
-                    <Popconfirm
-                      title={t('generator.datasource.deleteConfirm')}
-                      onOk={() => handleDeleteDatasource(record.id)}
-                    >
-                      <Button size="mini" type="text" status="danger">
-                        <IconDelete /> {t('common.delete')}
-                      </Button>
-                    </Popconfirm>
-                  </Space>
-                ),
-              },
-            ]}
-            noDataElement={t('generator.datasource.empty')}
-          />
-          <Card
-            size="small"
-            title={
-              editingDatasourceId
-                ? t('generator.datasource.editTitle')
-                : t('generator.datasource.createTitle')
-            }
-          >
-            <Form
-              form={datasourceForm}
-              layout="vertical"
-              onSubmit={() => {
-                handleSaveDatasource();
-              }}
-            >
-              <Row gutter={16}>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    field="name"
-                    label={t('generator.datasource.name')}
-                    rules={[{ required: true, message: t('common.required') }]}
-                  >
-                    <Input
-                      placeholder={t('generator.datasource.namePlaceholder')}
-                      onPressEnter={() => datasourceForm.submit()}
-                    />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    field="driver"
-                    label={t('generator.datasource.driver')}
-                    initialValue="mysql"
-                  >
-                    <Select>
-                      <Select.Option value="mysql">MySQL</Select.Option>
-                    </Select>
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    field="host"
-                    label={t('generator.datasource.host')}
-                    rules={[{ required: true, message: t('common.required') }]}
-                  >
-                    <Input
-                      placeholder={t('generator.datasource.hostPlaceholder')}
-                      onPressEnter={() => datasourceForm.submit()}
-                    />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    field="port"
-                    label={t('generator.datasource.port')}
-                    initialValue={3306}
-                    rules={[{ required: true, message: t('common.required') }]}
-                  >
-                    <InputNumber
-                      placeholder={t('generator.datasource.portPlaceholder')}
-                      className="generator-wizard__number-input"
-                    />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    field="databaseName"
-                    label={t('generator.datasource.databaseName')}
-                    rules={[{ required: true, message: t('common.required') }]}
-                  >
-                    <Input
-                      placeholder={t('generator.datasource.databasePlaceholder')}
-                      onPressEnter={() => datasourceForm.submit()}
-                    />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    field="username"
-                    label={t('generator.datasource.username')}
-                    rules={[{ required: true, message: t('common.required') }]}
-                  >
-                    <Input
-                      placeholder={t('generator.datasource.usernamePlaceholder')}
-                      onPressEnter={() => datasourceForm.submit()}
-                    />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    field="password"
-                    label={t('generator.datasource.password')}
-                    extra={
-                      editingDatasourceId ? t('generator.datasource.passwordOptional') : undefined
-                    }
-                  >
-                    <Input.Password
-                      placeholder={t('generator.datasource.passwordPlaceholder')}
-                      onPressEnter={() => datasourceForm.submit()}
-                    />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    field="status"
-                    label={t('generator.datasource.status')}
-                    initialValue={1}
-                  >
-                    <Select>
-                      <Select.Option value={1}>{t('system.user.status.enabled')}</Select.Option>
-                      <Select.Option value={0}>{t('system.user.status.disabled')}</Select.Option>
-                    </Select>
-                  </FormItem>
-                </Col>
-                <Col xs={24}>
-                  <FormItem field="remark" label={t('i18n.remark')}>
-                    <Input.TextArea autoSize={{ minRows: 2, maxRows: 3 }} />
-                  </FormItem>
-                </Col>
-              </Row>
-              <Space>
-                <Button onClick={resetDatasourceForm}>{t('common.reset')}</Button>
-                <Button
-                  type="primary"
-                  loading={datasourceSaving}
-                  onClick={() => handleSaveDatasource()}
-                >
-                  {editingDatasourceId ? t('common.save') : t('common.create')}
-                </Button>
-              </Space>
-            </Form>
-          </Card>
-        </Space>
+        <DatasourceManagerModal
+          editingId={editingDatasourceId}
+          saving={datasourceSaving}
+          form={datasourceForm}
+          items={datasources}
+          onEditItem={handleEditDatasource}
+          onDeleteItem={handleDeleteDatasource}
+          onTestItem={handleTestDatasource}
+          onSave={handleSaveDatasource}
+          onReset={resetDatasourceForm}
+        />
       </AppModal>
     </PageContainer>
   );

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"pantheon-ops/backend/pkg/common"
 	// Required for the go:embed seed_data.yaml directive below.
 	_ "embed"
 	"encoding/json"
@@ -286,20 +287,20 @@ func validateAndNormalizeSettingValue(settingKey, valueType, value string) (stri
 	case "json":
 		return validateJSONSettingValue(settingKey, normalizedValue)
 	default:
-		return "", errors.New("setting.value_type.invalid")
+		return "", common.NewBadRequest("setting.value_type.invalid")
 	}
 }
 
 func validateNumberSettingValue(normalizedValue string) (string, error) {
 	if _, err := strconv.ParseFloat(strings.TrimSpace(normalizedValue), 64); err != nil {
-		return "", errors.New("setting.value.invalid_number")
+		return "", common.NewBadRequest("setting.value.invalid_number")
 	}
 	return normalizedValue, nil
 }
 
 func validateBooleanSettingValue(normalizedValue string) (string, error) {
 	if _, err := strconv.ParseBool(strings.TrimSpace(normalizedValue)); err != nil {
-		return "", errors.New("setting.value.invalid_boolean")
+		return "", common.NewBadRequest("setting.value.invalid_boolean")
 	}
 	return normalizedValue, nil
 }

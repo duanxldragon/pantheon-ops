@@ -15,10 +15,10 @@ import {
 } from '@arco-design/web-react';
 import { IconLeft, IconCode } from '@arco-design/web-react/icon';
 import { AppModal, PageEmpty, PageError, PageLoading } from '../../../../components';
-import PageContainer from '../../../../components/patterns/PageContainer';
-import PageHeader from '../../../../components/patterns/PageHeader';
-import FormSection from '../../../../components/patterns/FormSection';
-import SubmitBar from '../../../../components/patterns/SubmitBar';
+import PageContainer from '../../../../components/patterns/layout/PageContainer';
+import PageHeader from '../../../../components/patterns/layout/PageHeader';
+import FormSection from '../../../../components/patterns/feedback/FormSection';
+import SubmitBar from '../../../../components/patterns/actions/SubmitBar';
 import { getHostDetail, collectHostConfig } from './api';
 import type { HostRow } from './api';
 import { usePermission } from '../../../../hooks/usePermission';

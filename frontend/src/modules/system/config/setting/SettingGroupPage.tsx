@@ -19,7 +19,7 @@ import {
 } from './settingGroups';
 import SettingGroupWorkspace from './SettingGroupWorkspace';
 import { useSettingCatalog } from './useSettingCatalog';
-import '../../list-page.css';
+import '../../components/shared/list-page.css';
 
 const SettingGroupPage: React.FC = () => {
   const { t } = useTranslation();
@@ -82,7 +82,11 @@ const SettingGroupPage: React.FC = () => {
 
   return (
     <PageContainer>
-      <Space direction="vertical" size={12} className="system-page-template setting-page setting-group-page">
+      <Space
+        direction="vertical"
+        size={12}
+        className="system-page-template setting-page setting-group-page"
+      >
         {loading && settings.length === 0 ? <PageLoading /> : null}
         {error && settings.length === 0 ? (
           <PageRequestError

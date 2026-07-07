@@ -21,6 +21,7 @@ export const backendOverlayPaths = new Set([
   'modules/business/generated_registry.go',
   'modules/business/retired_modules.go',
   'modules/platform/health.go',
+  'modules/auth/login/login_menu.go',
   'modules/system/seed.go',
   'modules/system/seed_test.go',
   'modules/lowcode/dynamicmodule/dynamic_module_service_test.go',
@@ -35,7 +36,11 @@ export const frontendOverlayPaths = new Set([
   'core/router/componentRegistry.ts',
   'core/router/generatedComponentRegistry.ts',
   'core/router/modules.ts',
+  'modules/lowcode/dynamicmodule/index.ts',
+  'modules/lowcode/generator/index.ts',
   'modules/lowcode/generator/backend-generator.ts',
+  'modules/system/components/shared/list-page.css',
+  'modules/system/list-page.css',
 ]);
 
 export const frontendRelocatedPathPrefixes = new Map([
@@ -61,6 +66,7 @@ export const frontendRelocatedComponentPrefixes = new Map([
 ]);
 
 export const allowedBackendOpsOnlyPaths = new Set([
+  'modules/auth/login/login_menu_seed.go',
   'modules/system/i18n/builtin_locale_resources_test.go',
   'pkg/contracts/permission_policies.go',
   'pkg/contracts/permission_policies_test.go',

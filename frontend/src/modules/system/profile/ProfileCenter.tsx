@@ -25,12 +25,7 @@ import {
 } from '../iam/user/api';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { useAuthStore } from '../../../store/useAuthStore';
-import {
-  FormSection,
-  PageContainer,
-  PageLoading,
-  SubmitBar,
-} from '../../../components';
+import { FormSection, PageContainer, PageLoading, SubmitBar } from '../../../components';
 import './profile.css';
 
 const Row = Grid.Row;

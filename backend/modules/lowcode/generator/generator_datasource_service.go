@@ -1,10 +1,10 @@
 package generator
 
 import (
-	"pantheon-ops/backend/pkg/common"
 	"errors"
 	"fmt"
 	"net/netip"
+	"pantheon-ops/backend/pkg/common"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,7 +14,6 @@ import (
 	mysqlgorm "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
-
 
 func (s *GeneratorService) ListDatasources() ([]GeneratorDatasourceResp, error) {
 	if s.db == nil {
@@ -72,7 +71,7 @@ func (s *GeneratorService) UpdateDatasource(id string, req *UpsertGeneratorDatas
 	var existing GeneratorDatasource
 	if err := s.db.First(&existing, numericID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("generator.datasource.not_found")
+			return nil, common.NewNotFound("generator.datasource.not_found")
 		}
 		return nil, err
 	}
@@ -113,7 +112,7 @@ func (s *GeneratorService) DeleteDatasource(id string) error {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return errors.New("generator.datasource.not_found")
+		return common.NewNotFound("generator.datasource.not_found")
 	}
 	return nil
 }
@@ -190,10 +189,10 @@ func (s *GeneratorService) openSchemaReader(datasourceID string) (*generatorSche
 		return nil, err
 	}
 	if row.Status != generatorDatasourceEnabled {
-		return nil, errors.New("generator.datasource.disabled")
+		return nil, common.NewBadRequest("generator.datasource.disabled")
 	}
 	if strings.TrimSpace(row.Driver) != "" && !strings.EqualFold(strings.TrimSpace(row.Driver), "mysql") {
-		return nil, errors.New("generator.datasource.driver_unsupported")
+		return nil, common.NewBadRequest("generator.datasource.driver_unsupported")
 	}
 	password, err := decryptDatasourcePassword(row.PasswordEncrypted)
 	if err != nil {
@@ -215,7 +214,7 @@ func (s *GeneratorService) openSchemaReader(datasourceID string) (*generatorSche
 
 	db, err := gorm.Open(mysqlgorm.Open(cfg.FormatDSN()), &gorm.Config{})
 	if err != nil {
-		return nil, errors.New("generator.datasource.connect_failed")
+		return nil, common.NewInternal("generator.datasource.connect_failed")
 	}
 	sqlDB, err := db.DB()
 	if err != nil {
@@ -239,7 +238,7 @@ func (s *GeneratorService) loadDatasource(id string) (*GeneratorDatasource, erro
 	var row GeneratorDatasource
 	if err := s.db.First(&row, numericID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("generator.datasource.not_found")
+			return nil, common.NewNotFound("generator.datasource.not_found")
 		}
 		return nil, err
 	}
@@ -252,14 +251,14 @@ func (s *GeneratorService) currentSchema() (string, error) {
 		return "", err
 	}
 	if strings.TrimSpace(schemaName) == "" {
-		return "", errors.New("database.schema_unknown")
+		return "", common.NewBadRequest("database.schema_unknown")
 	}
 	return schemaName, nil
 }
 
 func normalizeDatasourceReq(req *UpsertGeneratorDatasourceReq, requirePassword bool) (*GeneratorDatasource, error) {
 	if req == nil {
-		return nil, errors.New("param.invalid")
+		return nil, common.NewBadRequest("param.invalid")
 	}
 	name := strings.TrimSpace(req.Name)
 	host := strings.TrimSpace(req.Host)
@@ -270,10 +269,10 @@ func normalizeDatasourceReq(req *UpsertGeneratorDatasourceReq, requirePassword b
 		driver = "mysql"
 	}
 	if name == "" || host == "" || databaseName == "" || username == "" {
-		return nil, errors.New("generator.datasource.required")
+		return nil, common.NewBadRequest("generator.datasource.required")
 	}
 	if driver != "mysql" {
-		return nil, errors.New("generator.datasource.driver_unsupported")
+		return nil, common.NewBadRequest("generator.datasource.driver_unsupported")
 	}
 	if err := validateDatasourceHost(host); err != nil {
 		return nil, err
@@ -283,14 +282,14 @@ func normalizeDatasourceReq(req *UpsertGeneratorDatasourceReq, requirePassword b
 		port = 3306
 	}
 	if port > 65535 {
-		return nil, errors.New("generator.datasource.port_invalid")
+		return nil, common.NewBadRequest("generator.datasource.port_invalid")
 	}
 	if req.Status != generatorDatasourceEnabled && req.Status != generatorDatasourceDisabled {
 		req.Status = generatorDatasourceEnabled
 	}
 	password := strings.TrimSpace(req.Password)
 	if requirePassword && password == "" {
-		return nil, errors.New("generator.datasource.password_required")
+		return nil, common.NewBadRequest("generator.datasource.password_required")
 	}
 	encrypted := ""
 	var err error
@@ -318,31 +317,31 @@ func normalizeDatasourceReq(req *UpsertGeneratorDatasourceReq, requirePassword b
 func validateDatasourceHost(host string) error {
 	normalizedHost := strings.ToLower(strings.TrimSpace(host))
 	if normalizedHost == "" {
-		return errors.New("generator.datasource.required")
+		return common.NewBadRequest("generator.datasource.required")
 	}
 	if strings.ContainsAny(normalizedHost, `/\:@`) {
-		return errors.New("generator.datasource.host_invalid")
+		return common.NewBadRequest("generator.datasource.host_invalid")
 	}
 
 	if addr, err := netip.ParseAddr(normalizedHost); err == nil {
 		if addr.IsLoopback() || addr.IsMulticast() || addr.IsLinkLocalMulticast() || addr.IsLinkLocalUnicast() || addr.IsUnspecified() {
-			return errors.New("generator.datasource.host_invalid")
+			return common.NewBadRequest("generator.datasource.host_invalid")
 		}
 		return nil
 	}
 
 	if normalizedHost == "localhost" || strings.HasSuffix(normalizedHost, ".localhost") {
-		return errors.New("generator.datasource.host_invalid")
+		return common.NewBadRequest("generator.datasource.host_invalid")
 	}
 	if !regexp.MustCompile(`^[a-z0-9.-]+$`).MatchString(normalizedHost) {
-		return errors.New("generator.datasource.host_invalid")
+		return common.NewBadRequest("generator.datasource.host_invalid")
 	}
 	if strings.HasPrefix(normalizedHost, ".") || strings.HasSuffix(normalizedHost, ".") || strings.Contains(normalizedHost, "..") {
-		return errors.New("generator.datasource.host_invalid")
+		return common.NewBadRequest("generator.datasource.host_invalid")
 	}
 	for _, label := range strings.Split(normalizedHost, ".") {
 		if label == "" || strings.HasPrefix(label, "-") || strings.HasSuffix(label, "-") {
-			return errors.New("generator.datasource.host_invalid")
+			return common.NewBadRequest("generator.datasource.host_invalid")
 		}
 	}
 	return nil
@@ -351,11 +350,11 @@ func validateDatasourceHost(host string) error {
 func parseDatasourceNumericID(id string) (uint64, error) {
 	trimmed := strings.TrimSpace(id)
 	if trimmed == "" || trimmed == generatorDatasourceCurrentID {
-		return 0, errors.New("generator.datasource.not_found")
+		return 0, common.NewNotFound("generator.datasource.not_found")
 	}
 	value, err := strconv.ParseUint(trimmed, 10, 64)
 	if err != nil || value == 0 {
-		return 0, errors.New("generator.datasource.not_found")
+		return 0, common.NewNotFound("generator.datasource.not_found")
 	}
 	return value, nil
 }

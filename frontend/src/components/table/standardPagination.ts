@@ -44,7 +44,6 @@ export function buildStandardPagination(
     pageSize,
     total,
     onChange,
-    showJumper: true,
     pageSizeChangeResetCurrent,
     sizeCanChange,
     sizeOptions,
@@ -59,7 +58,11 @@ interface PagedItemsResult<T> {
   pageItems: T[];
 }
 
-export function getPagedItems<T>(items: T[], current: number, pageSize: number): PagedItemsResult<T> {
+export function getPagedItems<T>(
+  items: T[],
+  current: number,
+  pageSize: number,
+): PagedItemsResult<T> {
   const safePageSize = Math.max(1, pageSize);
   const totalPages = Math.max(1, Math.ceil(items.length / safePageSize));
   const currentPage = Math.min(Math.max(1, current), totalPages);

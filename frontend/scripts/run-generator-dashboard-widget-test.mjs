@@ -9,7 +9,7 @@ const testDir = join(frontendDir, '.tmp', 'generator-dashboard-widget-test');
 
 const files = [
   'src/modules/lowcode/generator/schema.ts',
-  'src/modules/lowcode/generator/type-mapping.ts',
+  'src/modules/lowcode/generator/typeMapping.ts',
   'src/modules/lowcode/generator/frontend-generator.ts',
   'tests/generator/frontend-generator.dashboard-widget.test.ts',
 ];

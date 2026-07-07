@@ -1,4 +1,4 @@
-import { getMe, type UserInfo } from '../../modules/auth/api';
+import { getMe, type UserInfo } from '../../modules/auth/security/api';
 import { hasAuthSession, useAuthStore } from '../../store/useAuthStore';
 import { COOKIE_TOKEN_PLACEHOLDER } from './sessionSnapshot';
 

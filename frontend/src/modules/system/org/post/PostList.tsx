@@ -76,7 +76,7 @@ import {
   useGovernanceRail,
   withTableColumnPriority,
 } from '../../../../components';
-import '../../list-page.css';
+import '../../components/shared/list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -333,7 +333,7 @@ const PostList: React.FC = () => {
         currentSorter?.direction === 'ascend'
           ? 'asc'
           : currentSorter?.direction === 'descend'
-          ? 'desc'
+            ? 'desc'
             : undefined,
     };
     const sortChanged =
@@ -395,7 +395,10 @@ const PostList: React.FC = () => {
   };
 
   const visibleSelectedRowKeys = useMemo(() => {
-    return getVisibleSelectedRowKeys(selectedRowKeys, data.map((item) => item.id));
+    return getVisibleSelectedRowKeys(
+      selectedRowKeys,
+      data.map((item) => item.id),
+    );
   }, [data, selectedRowKeys]);
 
   const heroStats = useMemo(() => {
@@ -777,11 +780,7 @@ const PostList: React.FC = () => {
                       }}
                       disabled={batchDeleteDisabled}
                     >
-                      <Button
-                        status="danger"
-                        icon={<IconDelete />}
-                        disabled={batchDeleteDisabled}
-                      >
+                      <Button status="danger" icon={<IconDelete />} disabled={batchDeleteDisabled}>
                         {t('common.deleteSelected')}
                       </Button>
                     </Popconfirm>
@@ -817,7 +816,11 @@ const PostList: React.FC = () => {
                   fixed: true,
                   onChange: (rowKeys) =>
                     setSelectedRowKeys((keys) =>
-                      mergeCrossPageSelection(keys, rowKeys, data.map((item) => item.id)),
+                      mergeCrossPageSelection(
+                        keys,
+                        rowKeys,
+                        data.map((item) => item.id),
+                      ),
                     ),
                 }}
                 onChange={handleTableChange}

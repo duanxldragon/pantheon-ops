@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
+	"pantheon-ops/backend/pkg/metrics"
 )
 
 var DB *gorm.DB
@@ -96,6 +97,18 @@ func initMySQL(dsn string) {
 	sqlDB.SetMaxIdleConns(10)           // 最大空闲连接数
 	sqlDB.SetMaxOpenConns(100)          // 最大开放连接数
 	sqlDB.SetConnMaxLifetime(time.Hour) // 连接最大存活时间
+
+	// 启动后台协程采集数据库连接池指标
+	go func() {
+		ticker := time.NewTicker(10 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			stats := sqlDB.Stats()
+			metrics.DBConnectionsActive.Set(float64(stats.InUse))
+			metrics.DBConnectionsIdle.Set(float64(stats.Idle))
+			metrics.DBConnectionsOpen.Set(float64(stats.OpenConnections))
+		}
+	}()
 
 	slog.Info("Database connection successful", "driver", "mysql")
 }

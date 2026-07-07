@@ -3,7 +3,9 @@ package dynamicmodule
 import (
 	"pantheon-ops/backend/internal/middleware"
 	"pantheon-ops/backend/pkg/common"
+	commonsecurity "pantheon-ops/backend/pkg/common/security"
 	"pantheon-ops/backend/pkg/contracts"
+	"pantheon-ops/backend/pkg/database"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -11,14 +13,14 @@ import (
 )
 
 func dynamicModuleEnabled() bool {
-	value := strings.ToLower(strings.TrimSpace(common.ResolveSecret("PANTHEON_ENABLE_DYNAMIC_MODULES", "")))
+	value := strings.ToLower(strings.TrimSpace(commonsecurity.ResolveSecret("PANTHEON_ENABLE_DYNAMIC_MODULES", "")))
 	switch value {
 	case "1", "true", "yes", "on":
 		return true
 	case "0", "false", "no", "off":
 		return false
 	}
-	return !common.IsProductionEnv()
+	return !commonsecurity.IsProductionEnv()
 }
 
 func DynamicModuleEnvGuard() gin.HandlerFunc {
@@ -39,6 +41,8 @@ func InitDynamicModule(r *gin.RouterGroup, db *gorm.DB) {
 	service := NewDynamicModuleService(db)
 	handler := NewDynamicModuleHandler(service)
 
+	tokenMiddleware := middleware.TokenAuthMiddleware(database.RDB)
+
 	modules := []contracts.BackendModule{
 		contracts.FuncModule{
 			ModuleName: "dynamic-module",
@@ -46,8 +50,8 @@ func InitDynamicModule(r *gin.RouterGroup, db *gorm.DB) {
 				return db.AutoMigrate(&ModuleRegistration{})
 			},
 			Register: func(r *gin.RouterGroup) {
-				readAPI := r.Group("/system/dynamic-modules").
-					Use(middleware.JWTAuthMiddleware()).
+				readAPI := r.Group("/lowcode/dynamic-modules").
+					Use(tokenMiddleware).
 					Use(middleware.CasbinMiddleware()).
 					Use(DynamicModuleEnvGuard())
 				{
@@ -56,8 +60,8 @@ func InitDynamicModule(r *gin.RouterGroup, db *gorm.DB) {
 					readAPI.GET("/:name", handler.GetModuleStatus)
 				}
 
-				writeAPI := r.Group("/system/dynamic-modules").
-					Use(middleware.JWTAuthMiddleware()).
+				writeAPI := r.Group("/lowcode/dynamic-modules").
+					Use(tokenMiddleware).
 					Use(middleware.CasbinMiddleware()).
 					Use(DynamicModuleEnvGuard()).
 					Use(middleware.SecureActionMiddleware())

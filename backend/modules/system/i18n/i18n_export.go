@@ -25,7 +25,7 @@ func (s *I18nService) Export(query *I18nQuery) (*impexp.CSVFile, error) {
 		db = db.Where("locale = ?", query.Locale)
 	}
 	if query.Key != "" {
-		db = db.Where("`key` LIKE ?", "%"+query.Key+"%")
+		db = db.Where("`key` LIKE ?", "%"+common.EscapeLikePattern(query.Key)+"%")
 	}
 
 	var rows []SystemI18n

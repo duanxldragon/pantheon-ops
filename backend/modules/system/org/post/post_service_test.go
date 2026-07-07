@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/testmysql"
 )
 
@@ -168,7 +169,7 @@ func TestPostService_BatchUpdatePostStatus(t *testing.T) {
 		t.Fatalf("expected post status 2, got %d", disabled.Status)
 	}
 
-	if _, err := service.BatchUpdatePostStatus([]uint64{999}, 1); err == nil || err.Error() != "post.batch.not_found" {
+	if _, err := service.BatchUpdatePostStatus([]uint64{999}, 1); err == nil || common.ErrMessage(err) != "post.batch.not_found" {
 		t.Fatalf("expected not found error, got %v", err)
 	}
 }
@@ -198,7 +199,7 @@ func TestPostService_UpdateRejectsDisableWhenUsersAssigned(t *testing.T) {
 		Status:   2,
 		Remark:   created.Remark,
 	})
-	if err == nil || err.Error() != "post.status.error.has_users" {
+	if err == nil || common.ErrMessage(err) != "post.status.error.has_users" {
 		t.Fatalf("expected disable blocked by active users, got %v", err)
 	}
 }
@@ -221,7 +222,7 @@ func TestPostService_BatchDisableRejectsPostsAssignedToUsers(t *testing.T) {
 	}
 
 	_, err = service.BatchUpdatePostStatus([]uint64{created.ID}, 2)
-	if err == nil || err.Error() != "post.status.error.has_users" {
+	if err == nil || common.ErrMessage(err) != "post.status.error.has_users" {
 		t.Fatalf("expected batch disable blocked by active users, got %v", err)
 	}
 }

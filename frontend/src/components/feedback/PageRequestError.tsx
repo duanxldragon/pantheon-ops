@@ -1,5 +1,9 @@
 import React from 'react';
-import { isNetworkRequestError, isServerRequestError, isTimeoutRequestError } from '../../api/request';
+import {
+  isNetworkRequestError,
+  isServerRequestError,
+  isTimeoutRequestError,
+} from '../../api/request';
 import PageError from './PageError';
 import PageNetworkError from './PageNetworkError';
 import PageServerError from './PageServerError';

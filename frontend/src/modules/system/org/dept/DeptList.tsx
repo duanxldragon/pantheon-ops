@@ -94,7 +94,7 @@ import {
   useGovernanceRail,
   withTableColumnPriority,
 } from '../../../../components';
-import '../../list-page.css';
+import '../../components/shared/list-page.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;

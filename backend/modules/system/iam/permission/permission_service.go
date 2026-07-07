@@ -1,7 +1,6 @@
 package iam
 
 import (
-	"errors"
 	"fmt"
 	"pantheon-ops/backend/pkg/common"
 	"sort"
@@ -129,7 +128,7 @@ func (s *PermissionService) CreatePolicy(req *PermissionPolicyCreateReq) (*Permi
 		V2:    method,
 	}
 	if err := s.db.Create(&policy).Error; err != nil {
-		return nil, errors.New("permission.policy.exists")
+		return nil, common.NewConflict("permission.policy.exists")
 	}
 	if err := reloadPermissionPolicies(); err != nil {
 		return nil, err
@@ -166,7 +165,7 @@ func (s *PermissionService) UpdatePolicy(policyID uint64, req *PermissionPolicyU
 	policy.V4 = ""
 	policy.V5 = ""
 	if err := s.db.Save(&policy).Error; err != nil {
-		return nil, errors.New("permission.policy.exists")
+		return nil, common.NewConflict("permission.policy.exists")
 	}
 	if err := reloadPermissionPolicies(); err != nil {
 		return nil, err
@@ -294,7 +293,7 @@ func (s *PermissionService) RemediateWorkbenchPolicies(req *PermissionWorkbenchR
 	}
 	roleKey := strings.TrimSpace(req.RoleKey)
 	if roleKey == "" {
-		return nil, errors.New("param.invalid")
+		return nil, common.NewBadRequest("param.invalid")
 	}
 	if err := s.ensureRoleKeyExists(roleKey); err != nil {
 		return nil, err
@@ -307,7 +306,7 @@ func (s *PermissionService) RemediateWorkbenchPolicies(req *PermissionWorkbenchR
 		return nil, err
 	}
 	if role == nil {
-		return nil, errors.New("permission.role.invalid")
+		return nil, common.NewBadRequest("permission.role.invalid")
 	}
 	resp := &PermissionWorkbenchRemediateResp{
 		RoleKey:         roleKey,
@@ -505,7 +504,7 @@ func validateImportHeader(records [][]string, result *impexp.ImportResult) (map[
 		}
 	}
 	if result.Failed > 0 {
-		return nil, errors.New("import.header.missing")
+		return nil, common.NewBadRequest("import.header.missing")
 	}
 	return headerIndex, nil
 }
@@ -548,7 +547,7 @@ func validateImportRows(records [][]string, headerIndex map[string]int, result *
 		})
 	}
 	if result.Failed > 0 {
-		return nil, errors.New("import.row.invalid")
+		return nil, common.NewBadRequest("import.row.invalid")
 	}
 	return rows, nil
 }
@@ -574,7 +573,7 @@ func validateImportRoleKeys(db *gorm.DB, rows []policyImportRow, result *impexp.
 				impexp.AppendImportError(result, row.RowNumber, "roleKey", "permission.role.invalid")
 			}
 		}
-		return errors.New("import.role.invalid")
+		return common.NewBadRequest("import.role.invalid")
 	}
 	return nil
 }
@@ -621,10 +620,10 @@ func (s *PermissionService) listPoliciesForExport(query *PermissionPolicyQuery) 
 	db := s.db.Model(&database.CasbinRule{}).Where(permissionPtypeClause, "p")
 	if query != nil {
 		if strings.TrimSpace(query.RoleKey) != "" {
-			db = db.Where("v0 LIKE ?", "%"+strings.TrimSpace(query.RoleKey)+"%")
+			db = db.Where("v0 LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.RoleKey))+"%")
 		}
 		if strings.TrimSpace(query.Path) != "" {
-			db = db.Where("v1 LIKE ?", "%"+strings.TrimSpace(query.Path)+"%")
+			db = db.Where("v1 LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.Path))+"%")
 		}
 		if strings.TrimSpace(query.Method) != "" {
 			db = db.Where("v2 = ?", normalizePolicyMethod(query.Method))
@@ -651,7 +650,7 @@ func (s *PermissionService) validatePolicyPayload(policyID uint64, roleKey strin
 	path = strings.TrimSpace(path)
 	method = normalizePolicyMethod(method)
 	if roleKey == "" || path == "" || method == "" {
-		return "", "", "", errors.New("param.invalid")
+		return "", "", "", common.NewBadRequest("param.invalid")
 	}
 	if err := s.ensureRoleKeyExists(roleKey); err != nil {
 		return "", "", "", err
@@ -668,7 +667,7 @@ func (s *PermissionService) ensureRoleKeyExists(roleKey string) error {
 		return err
 	}
 	if count == 0 {
-		return errors.New("permission.role.invalid")
+		return common.NewBadRequest("permission.role.invalid")
 	}
 	return nil
 }
@@ -683,7 +682,7 @@ func (s *PermissionService) ensurePolicyUnique(policyID uint64, roleKey string, 
 		return err
 	}
 	if count > 0 {
-		return errors.New("permission.policy.exists")
+		return common.NewConflict("permission.policy.exists")
 	}
 	return nil
 }

@@ -76,7 +76,7 @@ export interface RegisterModulePayload {
  */
 export function getRegisteredModules() {
   return apiRequest<ModuleRegistration[]>({
-    url: '/system/dynamic-modules',
+    url: '/lowcode/dynamic-modules',
     method: 'get',
   });
 }
@@ -86,7 +86,7 @@ export function getRegisteredModules() {
  */
 export function registerModule(data: RegisterModulePayload) {
   return apiRequest<{ registered: boolean; message: string; module: ModuleRegistration }>({
-    url: '/system/dynamic-modules',
+    url: '/lowcode/dynamic-modules',
     method: 'post',
     data,
   });
@@ -97,14 +97,14 @@ export function registerModule(data: RegisterModulePayload) {
  */
 export function unregisterModule(name: string, dropTable = false) {
   return apiRequest<UnregisterModuleResp>({
-    url: `/system/dynamic-modules/${name}?dropTable=${dropTable}`,
+    url: `/lowcode/dynamic-modules/${name}?dropTable=${dropTable}`,
     method: 'delete',
   });
 }
 
 export function deleteModuleRecord(name: string) {
   return apiRequest<{ deleted: boolean; message: string }>({
-    url: `/system/dynamic-modules/${name}/record`,
+    url: `/lowcode/dynamic-modules/${name}/record`,
     method: 'delete',
   });
 }
@@ -116,21 +116,21 @@ export function purgeModule(
   const dropTable = options?.dropTable ? 'true' : 'false';
   const purgeSource = options?.purgeSource === false ? 'false' : 'true';
   return apiRequest<PurgeModuleResp>({
-    url: `/system/dynamic-modules/${name}/purge?dropTable=${dropTable}&purgeSource=${purgeSource}`,
+    url: `/lowcode/dynamic-modules/${name}/purge?dropTable=${dropTable}&purgeSource=${purgeSource}`,
     method: 'delete',
   });
 }
 
 export function repairRegistries() {
   return apiRequest<{ repaired: boolean; message: string; summary: RegistryRepairSummary }>({
-    url: '/system/dynamic-modules/repair',
+    url: '/lowcode/dynamic-modules/repair',
     method: 'post',
   });
 }
 
 export function auditPendingActivations() {
   return apiRequest<{ audited: boolean; message: string; summary: ActivationAuditSummary }>({
-    url: '/system/dynamic-modules/activation-audit',
+    url: '/lowcode/dynamic-modules/activation-audit',
     method: 'post',
   });
 }
@@ -140,14 +140,14 @@ export function auditPendingActivations() {
  */
 export function getModuleStatus(name: string) {
   return apiRequest<ModuleRegistration>({
-    url: `/system/dynamic-modules/${name}`,
+    url: `/lowcode/dynamic-modules/${name}`,
     method: 'get',
   });
 }
 
 export function getGeneratedModuleSchema(module: string) {
   return apiRequest<ModuleSchema>({
-    url: '/system/dynamic-modules/schema',
+    url: '/lowcode/dynamic-modules/schema',
     method: 'get',
     params: { module },
     skipErrorMessage: true,

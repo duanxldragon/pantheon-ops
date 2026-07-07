@@ -57,12 +57,9 @@ export interface PreviewGeneratedFilesResp {
   files: GeneratedFile[];
 }
 
-export function generateAndRegisterModule(data: {
-  schema: ModuleSchema;
-  overwrite?: boolean;
-}) {
+export function generateAndRegisterModule(data: { schema: ModuleSchema; overwrite?: boolean }) {
   return apiRequest<GenerateAndRegisterResp>({
-    url: '/system/dynamic-modules/generate',
+    url: '/lowcode/dynamic-modules/generate',
     method: 'post',
     data,
     skipErrorMessage: true,
@@ -71,7 +68,7 @@ export function generateAndRegisterModule(data: {
 
 export function previewGeneratedFiles(data: { schema: ModuleSchema }) {
   return apiRequest<PreviewGeneratedFilesResp>({
-    url: '/system/generator/preview-files',
+    url: '/lowcode/generator/preview-files',
     method: 'post',
     data,
     skipErrorMessage: true,
@@ -81,7 +78,7 @@ export function previewGeneratedFiles(data: { schema: ModuleSchema }) {
 export function downloadGeneratedSource(data: { schema: ModuleSchema }) {
   const archiveName = `${data.schema.name || 'module'}-module.zip`.replaceAll('/', '-');
   return downloadFile({
-    url: '/system/generator/download-source',
+    url: '/lowcode/generator/download-source',
     method: 'post',
     data,
     filename: archiveName,
@@ -135,14 +132,14 @@ export interface UpsertGeneratorDatasourcePayload {
 
 export function listGeneratorDatasources() {
   return apiRequest<GeneratorDatasource[]>({
-    url: '/system/generator/datasources',
+    url: '/lowcode/generator/datasources',
     method: 'get',
   });
 }
 
 export function createGeneratorDatasource(data: UpsertGeneratorDatasourcePayload) {
   return apiRequest<GeneratorDatasource>({
-    url: '/system/generator/datasources',
+    url: '/lowcode/generator/datasources',
     method: 'post',
     data,
   });
@@ -150,7 +147,7 @@ export function createGeneratorDatasource(data: UpsertGeneratorDatasourcePayload
 
 export function updateGeneratorDatasource(id: string, data: UpsertGeneratorDatasourcePayload) {
   return apiRequest<GeneratorDatasource>({
-    url: `/system/generator/datasources/${id}`,
+    url: `/lowcode/generator/datasources/${id}`,
     method: 'put',
     data,
   });
@@ -158,21 +155,21 @@ export function updateGeneratorDatasource(id: string, data: UpsertGeneratorDatas
 
 export function deleteGeneratorDatasource(id: string) {
   return apiRequest<{ deleted: boolean }>({
-    url: `/system/generator/datasources/${id}`,
+    url: `/lowcode/generator/datasources/${id}`,
     method: 'delete',
   });
 }
 
 export function testGeneratorDatasource(id: string) {
   return apiRequest<GeneratorDatasource>({
-    url: `/system/generator/datasources/${id}/test`,
+    url: `/lowcode/generator/datasources/${id}/test`,
     method: 'post',
   });
 }
 
 export function listGeneratorTables(datasourceId?: string, keyword?: string) {
   return apiRequest<GeneratorTableOption[]>({
-    url: '/system/generator/tables',
+    url: '/lowcode/generator/tables',
     method: 'get',
     params: { datasourceId, keyword },
   });
@@ -180,7 +177,7 @@ export function listGeneratorTables(datasourceId?: string, keyword?: string) {
 
 export function previewGeneratorTable(tableName: string, datasourceId?: string) {
   return apiRequest<GeneratorTablePreview>({
-    url: '/system/generator/table-schema',
+    url: '/lowcode/generator/table-schema',
     method: 'get',
     params: { tableName, datasourceId },
   });

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"gorm.io/gorm"
+	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/testmysql"
 )
 
@@ -66,7 +67,7 @@ func TestMenuServiceValidateMenuMetaRejectsUnknownRegisteredComponent(t *testing
 		Module:     "system.iam",
 		IsExternal: 0,
 	})
-	if err == nil || err.Error() != "menu.component.invalid" {
+	if err == nil || common.ErrMessage(err) != "menu.component.invalid" {
 		t.Fatalf("expected menu.component.invalid, got %v", err)
 	}
 }
@@ -159,7 +160,7 @@ func TestMenuServiceNavigationFlattensPlatformWorkspaceMenus(t *testing.T) {
 	}
 	if err := db.Create(&SystemMenu{
 		ID:        2,
-		ParentID:   1,
+		ParentID:  1,
 		TitleKey:  "system.menu.dashboard",
 		Path:      "/dashboard",
 		Type:      "C",
@@ -173,7 +174,7 @@ func TestMenuServiceNavigationFlattensPlatformWorkspaceMenus(t *testing.T) {
 	}
 	if err := db.Create(&SystemMenu{
 		ID:        3,
-		ParentID:   1,
+		ParentID:  1,
 		TitleKey:  "operations.menu",
 		Path:      "/operations",
 		Type:      "M",
@@ -187,7 +188,7 @@ func TestMenuServiceNavigationFlattensPlatformWorkspaceMenus(t *testing.T) {
 	}
 	if err := db.Create(&SystemMenu{
 		ID:        4,
-		ParentID:   3,
+		ParentID:  3,
 		TitleKey:  "business.ticket.menu",
 		Path:      "/operations/ticket",
 		Component: "business/ticket/TicketList",
@@ -244,7 +245,7 @@ func TestMenuServiceManageTreeHidesWorkspaceContainer(t *testing.T) {
 	}
 	if err := db.Create(&SystemMenu{
 		ID:        2,
-		ParentID:   1,
+		ParentID:  1,
 		TitleKey:  "system.menu.dashboard",
 		Path:      "/dashboard",
 		Type:      "C",

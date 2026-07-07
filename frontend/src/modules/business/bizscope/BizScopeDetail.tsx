@@ -21,8 +21,8 @@ import {
   PageError,
   PageLoading,
 } from '../../../components';
-import PageHeader from '../../../components/patterns/PageHeader';
-import FormSection from '../../../components/patterns/FormSection';
+import PageHeader from '../../../components/patterns/layout/PageHeader';
+import FormSection from '../../../components/patterns/feedback/FormSection';
 import { usePermission } from '../../../hooks/usePermission';
 import { formatDateTime } from '../../../core/format/dateTime';
 import {

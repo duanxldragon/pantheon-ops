@@ -14,7 +14,7 @@ export function hasAuthSession(): boolean {
 interface AuthState {
   /**
    * In Cookie auth mode, this is only a boolean flag for "is logged in" state
-   * (non-empty = logged in), not the actual JWT. The actual access/refresh tokens
+   * (non-empty = logged in), not the actual token. The actual access/refresh tokens
    * are stored in HttpOnly cookies managed by the backend and are never accessible
    * to JavaScript.
    */

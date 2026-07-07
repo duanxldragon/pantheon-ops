@@ -49,7 +49,7 @@ import {
   withTableColumnPriority,
 } from '../../../components';
 import { SECONDARY_VERIFY_CANCELLED_ERROR } from '../../../components/feedback/secondaryVerifyController';
-import '../list-page.css';
+import '../../system/components/shared/list-page.css';
 
 const moduleManagerWarmDataKeys = ['modules:registered'];
 const moduleManagerDiagnosticsColumnWidth = 112;
@@ -104,9 +104,8 @@ const ModuleManager: React.FC = () => {
   const [purging, setPurging] = useState(false);
   const [purgeConfirmed, setPurgeConfirmed] = useState(false);
   const [repairing, setRepairing] = useState(false);
-  const [lastLifecycleSummary, setLastLifecycleSummary] = useState<ModuleI18nLifecycleSummary | null>(
-    null,
-  );
+  const [lastLifecycleSummary, setLastLifecycleSummary] =
+    useState<ModuleI18nLifecycleSummary | null>(null);
 
   const loadData = useCallback(async (options?: { force?: boolean }) => {
     if (options?.force) {
@@ -273,10 +272,7 @@ const ModuleManager: React.FC = () => {
       dataIndex: 'name',
       width: TABLE_COLUMN_WIDTH.identity,
       render: (name: string) => (
-        <Typography.Text
-          className="system-list__ellipsis-text"
-          ellipsis={{ showTooltip: true }}
-        >
+        <Typography.Text className="system-list__ellipsis-text" ellipsis={{ showTooltip: true }}>
           {name}
         </Typography.Text>
       ),
@@ -286,10 +282,7 @@ const ModuleManager: React.FC = () => {
       dataIndex: 'displayName',
       width: TABLE_COLUMN_WIDTH.name,
       render: (displayName?: string) => (
-        <Typography.Text
-          className="system-list__ellipsis-text"
-          ellipsis={{ showTooltip: true }}
-        >
+        <Typography.Text className="system-list__ellipsis-text" ellipsis={{ showTooltip: true }}>
           {displayName || '-'}
         </Typography.Text>
       ),
@@ -344,10 +337,7 @@ const ModuleManager: React.FC = () => {
         dataIndex: 'tableName',
         width: TABLE_COLUMN_WIDTH.name,
         render: (tableName: string) => (
-          <Typography.Text
-            className="system-list__ellipsis-text"
-            ellipsis={{ showTooltip: true }}
-          >
+          <Typography.Text className="system-list__ellipsis-text" ellipsis={{ showTooltip: true }}>
             {tableName || '-'}
           </Typography.Text>
         ),
@@ -417,9 +407,7 @@ const ModuleManager: React.FC = () => {
             );
           }
           if (record.lastVerifiedAt) {
-            return (
-              <Tag color="green">{t('generator.moduleManager.diagnostics.verified')}</Tag>
-            );
+            return <Tag color="green">{t('generator.moduleManager.diagnostics.verified')}</Tag>;
           }
           return <span>-</span>;
         },
@@ -594,7 +582,10 @@ const ModuleManager: React.FC = () => {
                 </>
               }
               primary={
-                <PermissionAction allowed={canOpenGenerator} tooltip={t('common.noPermissionAction')}>
+                <PermissionAction
+                  allowed={canOpenGenerator}
+                  tooltip={t('common.noPermissionAction')}
+                >
                   <Button
                     size="small"
                     type="primary"
@@ -709,10 +700,10 @@ const ModuleManager: React.FC = () => {
                       table: purgeTarget.tableName,
                     })
                   : purgeTarget.tableName
-                  ? t('generator.moduleManager.purgeModal.keepTable', {
-                      table: purgeTarget.tableName,
-                    })
-                  : t('generator.moduleManager.purgeModal.noTable')}
+                    ? t('generator.moduleManager.purgeModal.keepTable', {
+                        table: purgeTarget.tableName,
+                      })
+                    : t('generator.moduleManager.purgeModal.noTable')}
               </Typography.Text>
             </Space>
             {purgeTarget.tableName && !hasAutoRecycle(purgeTarget) ? (
