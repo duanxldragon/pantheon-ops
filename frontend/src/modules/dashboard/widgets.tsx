@@ -1,1 +1,6 @@
-export * from '../platform/widgets';
+export {
+  dashboardDomainOverviewWidgets,
+  dashboardQuickActionWidgets,
+  dashboardWidgetRegistry,
+  isDashboardWidgetVisible,
+} from '../platform/widgets';

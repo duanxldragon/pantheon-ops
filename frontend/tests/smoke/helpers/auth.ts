@@ -412,6 +412,9 @@ export async function signInAsAdmin(page: Page) {
 
 export async function installClientSession(page: Page, login: BrowserLoginResult) {
   await primeChineseLocale(page);
+  await page.addInitScript(() => {
+    localStorage.setItem('pantheon_session_hint', '1');
+  });
   const appBaseUrl = new URL(
     page.url() === 'about:blank' ? '/' : page.url(),
     page.url() === 'about:blank' ? defaultWebBaseUrl : undefined,
@@ -443,6 +446,13 @@ export async function installClientSession(page: Page, login: BrowserLoginResult
       sameSite: 'Strict',
     },
   ]);
+  try {
+    await page.evaluate(() => {
+      localStorage.setItem('pantheon_session_hint', '1');
+    });
+  } catch {
+    // The current page may still be about:blank; the init script covers the next navigation.
+  }
 }
 
 export async function getCsrfToken(page: Page) {

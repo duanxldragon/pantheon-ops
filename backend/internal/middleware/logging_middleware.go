@@ -13,10 +13,6 @@ import (
 func StructuredLoggingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		method := logging.SanitizeLogValue(c.Request.Method)
-		path := logging.SanitizeLogValue(c.Request.URL.Path)
-		query := logging.SanitizeLogValue(c.Request.URL.RawQuery)
-		clientIP := logging.SanitizeLogValue(c.ClientIP())
 
 		c.Next()
 
@@ -27,28 +23,17 @@ func StructuredLoggingMiddleware() gin.HandlerFunc {
 		logger := logging.LogFromContext(c.Request.Context())
 
 		if len(c.Errors) > 0 {
-			// 记录错误
-			for _, e := range c.Errors.Errors() {
-				logger.Error("HTTP Request Error",
-					zap.String("method", method),
-					zap.String("path", path),
-					zap.String("query", query),
-					zap.Int("status", c.Writer.Status()),
-					zap.Duration("latency", latency),
-					zap.String("ip", clientIP),
-					zap.String("error", logging.SanitizeLogValue(e)),
-				)
-			}
-		} else {
-			// 记录正常请求
-			logger.Info("HTTP Request",
-				zap.String("method", method),
-				zap.String("path", path),
-				zap.String("query", query),
+			logger.Error("HTTP Request Error",
 				zap.Int("status", c.Writer.Status()),
 				zap.Duration("latency", latency),
-				zap.String("ip", clientIP),
+				zap.Int("error_count", len(c.Errors)),
 			)
+			return
 		}
+
+		logger.Info("HTTP Request",
+			zap.Int("status", c.Writer.Status()),
+			zap.Duration("latency", latency),
+		)
 	}
 }

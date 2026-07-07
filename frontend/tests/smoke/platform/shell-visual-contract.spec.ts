@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { signInAsAdmin } from '../helpers/auth';
+import { apiBaseUrl, authHeaders, signInAsAdmin, verifiedHeaders } from '../helpers/auth';
 import { expectPagePathname } from '../helpers/url-pattern';
 
 const systemTablePages = [
@@ -70,6 +70,73 @@ async function navigateInShell(page: import('@playwright/test').Page, path: stri
     globalThis.dispatchEvent(new PopStateEvent('popstate'));
   }, path);
   expectPagePathname(page, path);
+}
+
+async function deleteUserByUsername(
+  page: import('@playwright/test').Page,
+  accessToken: string,
+  username: string,
+) {
+  const response = await page.request.get(`${apiBaseUrl}/system/user/list`, {
+    headers: authHeaders(accessToken),
+    params: { username, page: 1, pageSize: 20 },
+  });
+  if (!response.ok()) {
+    return;
+  }
+  const payload = await response.json();
+  const items = Array.isArray(payload.data?.items) ? payload.data.items : [];
+  for (const item of items) {
+    if (item.username === username) {
+      await page.request.delete(`${apiBaseUrl}/system/user/${item.id}`, {
+        headers: await verifiedHeaders(page, accessToken),
+      }).catch(() => undefined);
+    }
+  }
+}
+
+async function getFirstActiveRole(
+  page: import('@playwright/test').Page,
+  accessToken: string,
+): Promise<{ id: number; roleKey: string }> {
+  const response = await page.request.get(`${apiBaseUrl}/system/role/list`, {
+    headers: authHeaders(accessToken),
+    params: { page: 1, pageSize: 100, status: 1, sortField: 'sort', sortOrder: 'asc' },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  const items = Array.isArray(payload.data?.items) ? payload.data.items : [];
+  const role = items.find((item: { id: number; roleKey: string }) => item.roleKey !== 'guest');
+  expect(role).toBeTruthy();
+  return role!;
+}
+
+async function createUserByApi(
+  page: import('@playwright/test').Page,
+  accessToken: string,
+  data: {
+    username: string;
+    password: string;
+    nickname: string;
+    roleIds: number[];
+    email?: string;
+    phone?: string;
+    status?: number;
+  },
+) {
+  const response = await page.request.post(`${apiBaseUrl}/system/user`, {
+    headers: await verifiedHeaders(page, accessToken),
+    data: {
+      email: '',
+      phone: '',
+      status: 1,
+      ...data,
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+  const payload = await response.json();
+  expect(payload.code).toBe(200);
+  return payload.data as { id: number };
 }
 
 async function openSystemDialogPage(page: import('@playwright/test').Page, path: string) {
@@ -533,7 +600,7 @@ test('platform shell breadcrumb and function bars do not clip text or use inset 
   expect(settingShellStyles.groupNavItem?.borderStyle).toContain('solid');
 });
 
-test('setting workspace keeps summary and group navigation on the shared page rhythm', async ({
+test('setting overview keeps summary and anchor navigation on the shared page rhythm', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -541,17 +608,17 @@ test('setting workspace keeps summary and group navigation on the shared page rh
   await navigateInShell(page, '/system/setting');
   await expect(page.locator('.setting-overview-page > .page-header')).toHaveCount(0);
   await expect(page.locator('.governance-summary-bar')).toBeVisible();
-  await expect(page.locator('.setting-page__group-nav-item').first()).toBeVisible();
+  await expect(page.locator('.setting-overview-page__anchor-item').first()).toBeVisible();
   await expect(page.locator('.setting-page__overview-head')).toHaveCount(0);
   await expect(page.locator('.system-page-hero')).toHaveCount(0);
 
   const overviewContract = await page.evaluate(() => {
     const summary = document.querySelector<HTMLElement>('.governance-summary-bar');
-    const groupGrid = document.querySelector<HTMLElement>('.setting-page__group-nav-grid');
-    const groupItem = document.querySelector<HTMLElement>('.setting-page__group-nav-item');
-    const groupTitle = document.querySelector<HTMLElement>('.setting-page__group-nav-title');
+    const anchorStrip = document.querySelector<HTMLElement>('.setting-overview-page__anchor-strip');
+    const anchorItem = document.querySelector<HTMLElement>('.setting-overview-page__anchor-item');
+    const anchorTitle = document.querySelector<HTMLElement>('.setting-overview-page__anchor-title');
     const runtimeStrip = document.querySelector<HTMLElement>('.setting-page__runtime-strip');
-    const overviewCard = document.querySelector<HTMLElement>('.setting-overview-page__group-card');
+    const workspace = document.querySelector<HTMLElement>('.setting-overview-page__workspace');
 
     const read = (element?: HTMLElement | null) => {
       if (!element) {
@@ -574,23 +641,22 @@ test('setting workspace keeps summary and group navigation on the shared page rh
 
     return {
       summary: read(summary),
-      groupGrid: read(groupGrid),
-      groupItem: read(groupItem),
-      groupTitle: read(groupTitle),
+      anchorStrip: read(anchorStrip),
+      anchorItem: read(anchorItem),
+      anchorTitle: read(anchorTitle),
       runtimeStrip: read(runtimeStrip),
-      overviewCard: read(overviewCard),
+      workspace: read(workspace),
     };
   });
 
   expect(overviewContract.summary?.display).toBe('grid');
   expect(overviewContract.summary?.paddingTop).toBe('10px');
   expect(overviewContract.summary?.paddingBottom).toBe('10px');
-  expect(overviewContract.groupGrid?.display).toBe('grid');
-  expect(overviewContract.groupGrid?.gap).toBe('8px');
-  expect(overviewContract.groupItem?.height).toBeLessThanOrEqual(120);
-  expect(overviewContract.groupTitle?.fontSize).toBe('13px');
+  expect(overviewContract.anchorStrip?.display).toBe('flex');
+  expect(overviewContract.anchorItem?.height).toBeLessThanOrEqual(120);
+  expect(overviewContract.anchorTitle?.fontSize).toBe('13px');
   expect(overviewContract.runtimeStrip?.display).toBe('flex');
-  expect(overviewContract.overviewCard?.top).toBeGreaterThan(overviewContract.summary!.top);
+  expect(overviewContract.workspace?.top).toBeGreaterThan(overviewContract.summary!.top);
 });
 
 test('setting group routes use distinct opened-tab labels', async ({ page }) => {
@@ -1320,84 +1386,104 @@ test('governance drawers share overlay spacing and surface contracts', async ({ 
 test('empty loading error and destructive controls keep shared visual semantics', async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await signInAsAdmin(page);
-  await navigateInShell(page, '/system/user');
+  const accessToken = await signInAsAdmin(page);
+  const now = Date.now();
+  const username = `smoke_user_list_${now}`;
+  const password = 'ChangeMe123';
 
-  await page.evaluate(() => {
-    const host = document.createElement('div');
-    host.setAttribute('data-testid', 'visual-state-fixtures');
-    host.innerHTML = `
-      <div class="page-loading"><div class="arco-spin"></div></div>
-      <div class="page-empty"><div class="page-empty__inner">empty</div></div>
-    `;
-    document.body.appendChild(host);
-  });
+  await deleteUserByUsername(page, accessToken, username);
 
-  const stateContract = await page.evaluate(() => {
-    const read = (selector: string) => {
-      const element = document.querySelector<HTMLElement>(selector);
-      if (!element) {
-        return null;
-      }
-      const style = globalThis.getComputedStyle(element);
-      const rect = element.getBoundingClientRect();
-      return {
-        backgroundColor: style.backgroundColor,
-        borderTopStyle: style.borderTopStyle,
-        borderTopWidth: style.borderTopWidth,
-        display: style.display,
-        height: Math.round(rect.height),
-        justifyContent: style.justifyContent,
-        lineHeight: style.lineHeight,
-        paddingTop: style.paddingTop,
-        width: Math.round(rect.width),
+  try {
+    const role = await getFirstActiveRole(page, accessToken);
+    await createUserByApi(page, accessToken, {
+      username,
+      password,
+      nickname: `烟测用户${now}`,
+      roleIds: [role.id],
+    });
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await navigateInShell(page, '/system/user');
+
+    await page.evaluate(() => {
+      const host = document.createElement('div');
+      host.setAttribute('data-testid', 'visual-state-fixtures');
+      host.innerHTML = `
+        <div class="page-loading"><div class="arco-spin"></div></div>
+        <div class="page-empty"><div class="page-empty__inner">empty</div></div>
+      `;
+      document.body.appendChild(host);
+    });
+
+    const stateContract = await page.evaluate(() => {
+      const read = (selector: string) => {
+        const element = document.querySelector<HTMLElement>(selector);
+        if (!element) {
+          return null;
+        }
+        const style = globalThis.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return {
+          backgroundColor: style.backgroundColor,
+          borderTopStyle: style.borderTopStyle,
+          borderTopWidth: style.borderTopWidth,
+          display: style.display,
+          height: Math.round(rect.height),
+          justifyContent: style.justifyContent,
+          lineHeight: style.lineHeight,
+          paddingTop: style.paddingTop,
+          width: Math.round(rect.width),
+        };
       };
-    };
-    return {
-      loading: read('[data-testid="visual-state-fixtures"] .page-loading'),
-      empty: read('[data-testid="visual-state-fixtures"] .page-empty'),
-      emptyInner: read('[data-testid="visual-state-fixtures"] .page-empty__inner'),
-    };
-  });
-
-  expect(stateContract.loading?.height).toBeGreaterThanOrEqual(240);
-  expect(stateContract.loading?.display).toBe('flex');
-  expect(stateContract.loading?.justifyContent).toBe('center');
-  expect(stateContract.empty?.height).toBeGreaterThanOrEqual(220);
-  expect(stateContract.empty?.paddingTop).toBe('16px');
-  expect(stateContract.emptyInner?.borderTopStyle).toBe('dashed');
-
-  await navigateInShell(page, '/system/user/not-a-number');
-  await expect(page.locator('.app-shell__content .page-empty').first()).toBeVisible();
-  await page.locator('[data-testid="visual-state-fixtures"]').evaluate((element) => {
-    element.remove();
-  });
-  await navigateInShell(page, '/system/user');
-  await expect(page.locator('.system-list__table-card .app-table')).toBeVisible();
-  await page.locator('.system-user-list__table .arco-checkbox').nth(1).click({ force: true });
-  await expect(page.getByRole('button', { name: '删除所选' })).toBeEnabled();
-
-  const destructiveContract = await page.evaluate(() => {
-    const listRoot = document.querySelector<HTMLElement>('.page-container') || document;
-    const buttons = Array.from(listRoot.querySelectorAll<HTMLElement>('.arco-btn')).filter(
-      (button) => /删除|delete/i.test(button.textContent || ''),
-    );
-    return buttons.map((button) => {
-      const style = globalThis.getComputedStyle(button);
       return {
-        text: button.textContent?.trim() || '',
-        hasDangerClass: Array.from(button.classList).some((className) =>
-          className.includes('danger'),
-        ),
-        color: style.color,
+        loading: read('[data-testid="visual-state-fixtures"] .page-loading'),
+        empty: read('[data-testid="visual-state-fixtures"] .page-empty'),
+        emptyInner: read('[data-testid="visual-state-fixtures"] .page-empty__inner'),
       };
     });
-  });
 
-  expect(destructiveContract.length).toBeGreaterThan(0);
-  for (const button of destructiveContract) {
-    expect(button.hasDangerClass, button.text).toBe(true);
+    expect(stateContract.loading?.height).toBeGreaterThanOrEqual(240);
+    expect(stateContract.loading?.display).toBe('flex');
+    expect(stateContract.loading?.justifyContent).toBe('center');
+    expect(stateContract.empty?.height).toBeGreaterThanOrEqual(220);
+    expect(stateContract.empty?.paddingTop).toBe('16px');
+    expect(stateContract.emptyInner?.borderTopStyle).toBe('dashed');
+
+    await navigateInShell(page, '/system/user/not-a-number');
+    await expect(page.locator('.app-shell__content .page-empty').first()).toBeVisible();
+    await page.locator('[data-testid="visual-state-fixtures"]').evaluate((element) => {
+      element.remove();
+    });
+    await navigateInShell(page, '/system/user');
+    await expect(page.locator('.system-list__table-card .app-table')).toBeVisible();
+    const userRow = page.getByRole('row', { name: new RegExp(username) }).first();
+    await expect(userRow).toBeVisible();
+    await userRow.locator('.arco-checkbox').first().click({ force: true });
+    await expect(page.getByRole('button', { name: '删除所选' })).toBeEnabled();
+
+    const destructiveContract = await page.evaluate(() => {
+      const listRoot = document.querySelector<HTMLElement>('.page-container') || document;
+      const buttons = Array.from(listRoot.querySelectorAll<HTMLElement>('.arco-btn')).filter(
+        (button) => /删除|delete/i.test(button.textContent || ''),
+      );
+      return buttons.map((button) => {
+        const style = globalThis.getComputedStyle(button);
+        return {
+          text: button.textContent?.trim() || '',
+          hasDangerClass: Array.from(button.classList).some((className) =>
+            className.includes('danger'),
+          ),
+          color: style.color,
+        };
+      });
+    });
+
+    expect(destructiveContract.length).toBeGreaterThan(0);
+    for (const button of destructiveContract) {
+      expect(button.hasDangerClass, button.text).toBe(true);
+    }
+  } finally {
+    await deleteUserByUsername(page, accessToken, username);
   }
 });
 
