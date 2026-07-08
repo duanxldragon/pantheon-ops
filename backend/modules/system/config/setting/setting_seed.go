@@ -20,6 +20,9 @@ const settingModuleAuth = "system.auth"
 const settingErrInvalidJSON = "setting.value.invalid_json"
 const settingErrInvalidOption = "setting.value.invalid_option"
 const settingValueRetentionDaysDefault = "[1,7,30]"
+const settingValueUploadAllowedTypesLegacy = "[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\"]"
+const settingValueUploadAllowedTypesArchives = "[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\",\"zip\",\"gz\",\"tgz\",\"tar\"]"
+const settingValueUploadAllowedTypesDefault = "[\"jpg\",\"jpeg\",\"png\",\"webp\",\"gif\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\",\"zip\",\"gz\",\"tgz\",\"tar\"]"
 
 type defaultSettingSeed struct {
 	SettingKey   string `yaml:"settingKey"`
@@ -65,7 +68,7 @@ var defaultSettingSeeds = []defaultSettingSeed{
 	{SettingKey: "ui.enable_tab_bar", SettingValue: "true", ValueType: "boolean", GroupKey: "ui", Module: "system", IsPublic: 1, Remark: "system.setting.remark.ui.enable_tab_bar"},
 	{SettingKey: "upload.storage_driver", SettingValue: "local", ValueType: "string", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.storage_driver"},
 	{SettingKey: "upload.max_file_size", SettingValue: "20", ValueType: "number", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.max_file_size"},
-	{SettingKey: "upload.allowed_types", SettingValue: "[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\",\"zip\",\"gz\",\"tgz\",\"tar\"]", ValueType: "json", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.allowed_types"},
+	{SettingKey: "upload.allowed_types", SettingValue: settingValueUploadAllowedTypesDefault, ValueType: "json", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.allowed_types"},
 	{SettingKey: "upload.local_path", SettingValue: "./uploads", ValueType: "string", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.local_path"},
 	{SettingKey: "upload.public_base_url", SettingValue: "", ValueType: "string", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.public_base_url"},
 	{SettingKey: "upload.s3_endpoint", SettingValue: "", ValueType: "string", GroupKey: "upload", Module: "system", IsPublic: 0, Remark: "system.setting.remark.upload.s3_endpoint"},

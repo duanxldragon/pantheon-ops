@@ -62,7 +62,10 @@ func (s *SettingService) Bootstrap() error {
 	if err := s.normalizeLegacySettingValue(settingKeyUploadDriver); err != nil {
 		return err
 	}
-	if err := s.migrateLegacySettingValue("upload.allowed_types", "[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\"]", "[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\",\"zip\",\"gz\",\"tgz\",\"tar\"]"); err != nil {
+	if err := s.migrateLegacySettingValue("upload.allowed_types", settingValueUploadAllowedTypesLegacy, settingValueUploadAllowedTypesDefault); err != nil {
+		return err
+	}
+	if err := s.migrateLegacySettingValue("upload.allowed_types", settingValueUploadAllowedTypesArchives, settingValueUploadAllowedTypesDefault); err != nil {
 		return err
 	}
 	if err := s.migrateLegacySettingValue("audit.session_cleanup_retention_options", "[7,30,90]", "[1,7,30]"); err != nil {

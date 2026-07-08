@@ -256,7 +256,7 @@ settings:
     isEncrypted: 0
     remark: "system.setting.remark.upload.max_file_size"
   - settingKey: "upload.allowed_types"
-    settingValue: "[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\",\"zip\",\"gz\",\"tgz\",\"tar\"]"
+    settingValue: "[\"jpg\",\"jpeg\",\"png\",\"webp\",\"gif\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\",\"zip\",\"gz\",\"tgz\",\"tar\"]"
     valueType: "json"
     groupKey: "upload"
     module: "system"

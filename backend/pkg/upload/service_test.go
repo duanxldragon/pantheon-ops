@@ -226,6 +226,66 @@ func TestServiceStoreRejectsDisallowedExtension(t *testing.T) {
 	}
 }
 
+func TestServiceLoadConfigIncludesWebpAndGifByDefault(t *testing.T) {
+	service := NewService(stubConfigReader{})
+	cfg, err := service.LoadConfig()
+	if err != nil {
+		t.Fatalf("load config: %v", err)
+	}
+
+	expected := map[string]struct{}{
+		"jpg":  {},
+		"jpeg": {},
+		"png":  {},
+		"webp": {},
+		"gif":  {},
+		"pdf":  {},
+		"doc":  {},
+		"docx": {},
+		"xls":  {},
+		"xlsx": {},
+		"zip":  {},
+		"gz":   {},
+		"tgz":  {},
+		"tar":  {},
+	}
+	if len(cfg.AllowedTypes) != len(expected) {
+		t.Fatalf("unexpected allowed types length: %d", len(cfg.AllowedTypes))
+	}
+	for _, allowedType := range cfg.AllowedTypes {
+		if _, ok := expected[allowedType]; !ok {
+			t.Fatalf("unexpected allowed type: %s", allowedType)
+		}
+		delete(expected, allowedType)
+	}
+	if len(expected) != 0 {
+		t.Fatalf("missing allowed types: %+v", expected)
+	}
+}
+
+func TestServiceStoreAllowsWebpAndGifByDefault(t *testing.T) {
+	tempDir := t.TempDir()
+	service := NewService(stubConfigReader{
+		values: map[string]string{
+			"upload.local_path": tempDir,
+		},
+	})
+	service.now = func() time.Time {
+		return time.Date(2026, 4, 24, 10, 0, 0, 0, time.UTC)
+	}
+
+	for _, filename := range []string{"avatar.webp", "avatar.gif"} {
+		fileHeader := buildFileHeader(t, filename, "image/"+strings.TrimPrefix(filepath.Ext(filename), "."), []byte("avatar-demo"))
+		stored, err := service.Store(fileHeader, "profile/avatar", "http://localhost:8080")
+		if err != nil {
+			t.Fatalf("store %s: %v", filename, err)
+		}
+		if !strings.HasSuffix(stored.ObjectKey, filepath.Ext(filename)) {
+			t.Fatalf("unexpected object key for %s: %s", filename, stored.ObjectKey)
+		}
+	}
+}
+
 func TestServiceStoreRejectsOversizedFile(t *testing.T) {
 	service := NewService(stubConfigReader{
 		values: map[string]string{

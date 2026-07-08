@@ -267,8 +267,56 @@ func TestSettingService_MigrateSeedsUploadAllowedTypesForDeployArchives(t *testi
 	if err != nil {
 		t.Fatalf("get upload.allowed_types: %v", err)
 	}
-	if value != "[\"jpg\",\"jpeg\",\"png\",\"pdf\",\"doc\",\"docx\",\"xls\",\"xlsx\",\"zip\",\"gz\",\"tgz\",\"tar\"]" {
+	if value != settingValueUploadAllowedTypesDefault {
 		t.Fatalf("unexpected upload.allowed_types default: %s", value)
+	}
+}
+
+func TestSettingService_MigrateUpgradesLegacyUploadAllowedTypes(t *testing.T) {
+	cases := []struct {
+		name        string
+		legacyValue string
+	}{
+		{
+			name:        "legacy pre-archive seed",
+			legacyValue: settingValueUploadAllowedTypesLegacy,
+		},
+		{
+			name:        "legacy archive seed",
+			legacyValue: settingValueUploadAllowedTypesArchives,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			db := setupSettingTestDB(t)
+			service := NewSettingService(db)
+			if err := db.AutoMigrate(&SystemSetting{}); err != nil {
+				t.Fatalf("create setting table: %v", err)
+			}
+			if err := db.Create(&SystemSetting{
+				SettingKey:   "upload.allowed_types",
+				SettingValue: tc.legacyValue,
+				ValueType:    "json",
+				GroupKey:     "upload",
+				Module:       "system",
+				Remark:       "legacy upload types",
+			}).Error; err != nil {
+				t.Fatalf("seed legacy upload.allowed_types: %v", err)
+			}
+
+			if err := service.Migrate(); err != nil {
+				t.Fatalf("migrate setting: %v", err)
+			}
+
+			value, err := service.GetByKey("upload.allowed_types")
+			if err != nil {
+				t.Fatalf("get upload.allowed_types: %v", err)
+			}
+			if value != settingValueUploadAllowedTypesDefault {
+				t.Fatalf("unexpected migrated upload.allowed_types: %s", value)
+			}
+		})
 	}
 }
 
