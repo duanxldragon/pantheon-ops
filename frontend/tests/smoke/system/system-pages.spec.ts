@@ -571,29 +571,31 @@ test('setting page shows audit table only in audit group and removes governance 
   await expect(page.getByRole('button', { name: '治理摘要' })).toHaveCount(0);
   await expect(page.locator('.setting-page__audit-card')).toHaveCount(0);
   await expect(page.locator('.setting-overview-page')).toBeVisible();
-  await expect(page.locator('.setting-page__group-nav-grid')).toBeVisible();
+  await expect(page.locator('.setting-overview-page__anchor-strip')).toBeVisible();
+  await expect(page.locator('.setting-page__group-nav-grid')).toHaveCount(0);
 
-  await page.getByRole('button', { name: /日志治理/ }).click();
-  await expect(page).toHaveURL(/\/system\/setting\/audit$/);
+  await page.getByRole('tab', { name: /日志治理/ }).click();
+  await expect(page).toHaveURL(/\/system\/setting\?group=audit$/);
   await expect(page.locator('.setting-page__audit-card')).toBeVisible();
 
-  await page.getByRole('button', { name: /基础信息/ }).click();
-  await expect(page).toHaveURL(/\/system\/setting\/basic$/);
+  await page.getByRole('tab', { name: /基础信息/ }).click();
+  await expect(page).toHaveURL(/\/system\/setting\?group=basic$/);
   await expect(page.locator('.setting-page__audit-card')).toHaveCount(0);
 });
 
-test('setting route lands in the single workspace with group navigation', async ({
+test('setting route lands in the overview workspace with anchor navigation', async ({
   page,
 }) => {
   await page.goto('/system/setting', { waitUntil: 'networkidle' });
 
   await expectVisiblePageTitle(page, '系统设置');
   await expect(page.locator('.setting-overview-page')).toBeVisible();
-  await expect(page.locator('.setting-page__group-nav-grid')).toBeVisible();
+  await expect(page.locator('.setting-overview-page__anchor-strip')).toBeVisible();
+  await expect(page.locator('.setting-overview-page__workspace')).toBeVisible();
+  await expect(page.locator('.setting-page__group-nav-grid')).toHaveCount(0);
   await expect(page).toHaveURL(/\/system\/setting$/);
-  await expect(page.getByRole('tab', { name: '系统设置' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /基础信息/ }).first()).toBeVisible();
-  await expect(page.getByRole('button', { name: /日志治理/ })).toBeVisible();
+  await expect(page.getByRole('tab', { name: /基础信息/ }).first()).toBeVisible();
+  await expect(page.getByRole('tab', { name: /日志治理/ })).toBeVisible();
 });
 
 test('setting group route isolates one group context per route', async ({ page }) => {
@@ -2234,7 +2236,7 @@ test('module permission smoke: list-only role can view registry but cannot regis
       },
     });
     expect(createRoleResponse.ok()).toBeTruthy();
-    await createApiPermission(page, adminAccessToken, roleKey, '/api/v1/system/dynamic-modules', 'GET');
+    await createApiPermission(page, adminAccessToken, roleKey, '/api/v1/lowcode/dynamic-modules', 'GET');
     await createApiPermission(page, adminAccessToken, roleKey, '/api/v1/system/menu/tree', 'GET');
 
     const role = await getRoleByKey(page, adminAccessToken, roleKey);
@@ -2277,7 +2279,7 @@ test('module manager smoke: auto-recycle module shows explicit lifecycle and pur
   page,
 }) => {
   await signInAsAdmin(page);
-  await page.route(/\/api\/v1\/system\/dynamic-modules$/, async (route) => {
+  await page.route(/\/api\/v1\/lowcode\/dynamic-modules$/, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -2590,11 +2592,13 @@ test('user governance smoke: cross-page selection keeps the full selected set', 
   await page.goto('/system/user', { waitUntil: 'networkidle' });
   await expectPageIdentityReady(page, '用户管理');
   await expectNoPageError(page);
-  await expect(page.locator('.arco-checkbox').nth(1)).toBeVisible();
+  const selectableRowCheckbox = () =>
+    page.locator('.system-user-list__table tbody .arco-checkbox').first();
+  await expect(selectableRowCheckbox()).toBeVisible();
 
   const pager = page.locator('.system-user-list__table');
-  const selectedText = page.locator('.table-batch-action-bar__meta');
-  const firstPageCheckbox = page.locator('.arco-checkbox').nth(1);
+  const selectedText = page.locator('.table-batch-action-bar__summary');
+  const firstPageCheckbox = selectableRowCheckbox();
   await firstPageCheckbox.click({ force: true });
   await expect(selectedText).toContainText('已选 1 条');
 
@@ -2606,7 +2610,7 @@ test('user governance smoke: cross-page selection keeps the full selected set', 
     .toBe('2');
   await expect(selectedText).toContainText('已选 1 条');
 
-  const secondPageCheckbox = page.locator('.arco-checkbox').nth(1);
+  const secondPageCheckbox = selectableRowCheckbox();
   await secondPageCheckbox.click({ force: true });
   await expect(selectedText).toContainText('已选 2 条');
 
@@ -3022,7 +3026,9 @@ test('security-event governance smoke: pending event can be acknowledged with a 
 
 test('refresh sync smoke: setting page auto-updates across isolated contexts', async ({ browser, page }) => {
   test.setTimeout(45000);
-  const accessToken = await signInAsAdmin(page);
+  const adminTokens = await loginByApi(page.request, adminCredentials);
+  await installClientSession(page, adminTokens);
+  const accessToken = adminTokens.accessToken;
   const groupResponse = await page.request.get(`${apiBaseUrl}/system/setting/group/basic`, {
     headers: authHeaders(accessToken),
   });
@@ -3041,7 +3047,6 @@ test('refresh sync smoke: setting page auto-updates across isolated contexts', a
   const syncPage = await syncContext.newPage();
 
   try {
-    const adminTokens = await loginByApi(page.request, adminCredentials);
     await installClientSession(syncPage, adminTokens);
     const refreshBootstrap = waitForRefreshBootstrap(syncPage);
     await syncPage.goto('/system/setting/basic', { waitUntil: 'networkidle' });
@@ -3063,7 +3068,9 @@ test('refresh sync smoke: setting page auto-updates across isolated contexts', a
 
 test('refresh sync smoke: dict page auto-updates across isolated contexts', async ({ browser, page }) => {
   test.setTimeout(45000);
-  const accessToken = await signInAsAdmin(page);
+  const adminTokens = await loginByApi(page.request, adminCredentials);
+  await installClientSession(page, adminTokens);
+  const accessToken = adminTokens.accessToken;
   const dictCode = `system_sync_${Date.now()}`;
   const dictName = `system.dict.sync.${Date.now()}`;
 
@@ -3071,7 +3078,6 @@ test('refresh sync smoke: dict page auto-updates across isolated contexts', asyn
   const syncPage = await syncContext.newPage();
 
   try {
-    const adminTokens = await loginByApi(page.request, adminCredentials);
     await installClientSession(syncPage, adminTokens);
     const refreshBootstrap = waitForRefreshBootstrap(syncPage);
     await syncPage.goto('/system/dict', { waitUntil: 'networkidle' });
@@ -3107,14 +3113,15 @@ test('refresh sync smoke: dict page auto-updates across isolated contexts', asyn
 
 test('refresh sync smoke: i18n page auto-updates across isolated contexts', async ({ browser, page }) => {
   test.setTimeout(45000);
-  const accessToken = await signInAsAdmin(page);
+  const adminTokens = await loginByApi(page.request, adminCredentials);
+  await installClientSession(page, adminTokens);
+  const accessToken = adminTokens.accessToken;
   const i18nKey = `i18n.sync.${Date.now()}`;
 
   const syncContext = await browser.newContext();
   const syncPage = await syncContext.newPage();
 
   try {
-    const adminTokens = await loginByApi(page.request, adminCredentials);
     await installClientSession(syncPage, adminTokens);
     await syncPage.goto('/system/i18n', { waitUntil: 'networkidle' });
     await formItem(syncPage, '翻译键').locator('input').first().fill(i18nKey);

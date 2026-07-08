@@ -74,7 +74,7 @@ export function registerSystemWorkspaceTaskDepthSmokeTests({
       const summaryPayloadPromise = expectOkJson<DashboardSummary>(
         page.waitForResponse(
           (response) =>
-            response.url().includes('/api/v1/platform/dashboard/summary') &&
+            response.url().includes('/api/v1/dashboard/summary') &&
             response.request().method() === 'GET',
         ),
       );
