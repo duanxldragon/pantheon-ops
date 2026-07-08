@@ -181,7 +181,7 @@ const matrixCases: FormMatrixCase[] = [
     fillValid: async (form) => {
       await form.getByPlaceholder('例如：system.menu.example').fill('system.menu.matrix');
       await form.getByPlaceholder('例如：/system/example').fill('/system/menu-matrix');
-      await form.getByPlaceholder('例如：business/cmdb/CMDBTypeList').fill('system/menu/MenuList');
+      await form.getByPlaceholder('例如：business/cmdb/CMDBTypeList').fill('system/iam/menu/MenuList');
       await form.getByPlaceholder('例如：system-example').fill('system-menu-matrix');
       await form.getByPlaceholder('例如：system.iam / system.auth / platform / business.order').fill('system.iam');
       await form.getByPlaceholder('例如：system:example:list').nth(0).fill('system:menu:matrix');
