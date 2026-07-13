@@ -2,7 +2,7 @@
 
 English version: [README.md](./README.md)
 
-这里存放 `pantheon-ops` 的 repo-local Codex skills。
+这里存放 `pantheon-ops` 的 repo-local agent skills。
 
 共享模板源头：
 

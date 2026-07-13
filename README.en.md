@@ -80,7 +80,7 @@ CodeQL is the primary security signal. Code quality is gated by GitHub required 
 - [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md): inheritance lock, local scope, and override boundaries
 - [docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md): business-scope governance, host-binding, and deploy trust-boundary design
 - `Base release line + Base version` inside `docs/PROJECT_INHERITANCE.md` is the current consumer-version anchor
-- [.agents/skills/README.md](./.agents/skills/README.md): repository-local Codex workflow skills for inheritance checks, PR closure, GitHub comment automation, and CI triage
+- [.agents/skills/README.md](./.agents/skills/README.md): repository-local agent workflow skills for inheritance checks, PR closure, GitHub comment automation, and CI triage
 - [DESIGN.md](./DESIGN.md): repo-level design stance
 - `../pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`: shared code-quality and security governance strategy
 - [docs/README.en.md](./docs/README.en.md) and [docs/PROJECT_INHERITANCE.en.md](./docs/PROJECT_INHERITANCE.en.md): English companion entry points

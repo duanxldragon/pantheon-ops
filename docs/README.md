@@ -16,7 +16,7 @@ English version: [README.en.md](./README.en.md)
 |---|---|
 | [README.md](./README.md) / [README.en.md](./README.en.md) | 仓库入口与推荐阅读顺序 |
 | [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) / [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md) | 与 `pantheon-base` 的继承关系、版本锁定、本地业务范围与 override 边界 |
-| [../.agents/skills/README.zh.md](../.agents/skills/README.zh.md) / [../.agents/skills/README.md](../.agents/skills/README.md) | repo-local Codex skills：继承校验、PR 收口、GitHub comments 自动处理、CI 红灯排查 |
+| [../.agents/skills/README.zh.md](../.agents/skills/README.zh.md) / [../.agents/skills/README.md](../.agents/skills/README.md) | repo-local agent skills：继承校验、PR 收口、GitHub comments 自动处理、CI 红灯排查 |
 | [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) / [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.md) | `pantheon-ops` 业务开发与 `base -> ops` 同步的最小任务包模板 |
 | [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md) / [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md) | 业务域模块设计：业务域台账、主机绑定边界与 Deploy 信任来源 |
 | [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) / [designs/BUSINESS_CMDB_MODULE_DESIGN.en.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.en.md) | CMDB 业务模块完整设计（含数据模型、API、UI、字典依赖、验收） |
@@ -99,7 +99,6 @@ English version: [README.en.md](./README.en.md)
 - `../../pantheon-base/docs/designs/BUSINESS_MODELING_REVIEW_CHECKLIST.md`
 - `../../pantheon-base/docs/designs/P2_SCALE_ROADMAP.md`
 - `../../pantheon-base/docs/designs/WORKFLOW.md`
-- `../../pantheon-base/docs/designs/GSTACK_WINDOWS_GUIDE.md`
 
 ### 2.5 验收
 - `../../pantheon-base/docs/acceptances/ACCEPTANCE_CHECKLIST.md`
