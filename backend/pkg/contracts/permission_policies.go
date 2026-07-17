@@ -96,6 +96,7 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 	case "business:cmdb:label:list":
 		return []PermissionAPIPolicy{
 			{Path: "/api/v1/business/cmdb/labels", Method: "GET"},
+			{Path: "/api/v1/business/cmdb/labels/options", Method: "GET"},
 		}
 	case "business:cmdb:label:create":
 		return []PermissionAPIPolicy{
@@ -137,6 +138,7 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 	case "business:deploy:package:list":
 		return []PermissionAPIPolicy{
 			{Path: "/api/v1/business/deploy/packages", Method: "GET"},
+			{Path: "/api/v1/business/deploy/packages/:id", Method: "GET"},
 		}
 	case "business:deploy:package:create":
 		return []PermissionAPIPolicy{

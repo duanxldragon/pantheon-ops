@@ -108,3 +108,37 @@ func TestRequiredAPIPoliciesByPermissionKeyDeployTask(t *testing.T) {
 		})
 	}
 }
+
+func TestRequiredAPIPoliciesByPermissionKeyBusinessListRoutes(t *testing.T) {
+	tests := []struct {
+		name           string
+		permissionKey  string
+		expectedPolicy []PermissionAPIPolicy
+	}{
+		{
+			name:          "cmdb label list includes options",
+			permissionKey: "business:cmdb:label:list",
+			expectedPolicy: []PermissionAPIPolicy{
+				{Path: "/api/v1/business/cmdb/labels", Method: "GET"},
+				{Path: "/api/v1/business/cmdb/labels/options", Method: "GET"},
+			},
+		},
+		{
+			name:          "deploy package list includes detail",
+			permissionKey: "business:deploy:package:list",
+			expectedPolicy: []PermissionAPIPolicy{
+				{Path: "/api/v1/business/deploy/packages", Method: "GET"},
+				{Path: "/api/v1/business/deploy/packages/:id", Method: "GET"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			policies := RequiredAPIPoliciesByPermissionKey(tt.permissionKey)
+			if !reflect.DeepEqual(policies, tt.expectedPolicy) {
+				t.Fatalf("unexpected policies for %s: got %+v want %+v", tt.permissionKey, policies, tt.expectedPolicy)
+			}
+		})
+	}
+}
