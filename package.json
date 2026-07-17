@@ -16,6 +16,7 @@
     "check:inheritance": "npm run check:task-packet-template && npm run check:inheritance-contract && npm run check:base-sync:backend && npm run check:base-sync:frontend && npm run check:overlay-compile",
     "check:inheritance-contract": "node scripts/check-inheritance-contract.mjs",
     "check:docs-frontmatter": "node scripts/frontmatter-check.mjs",
+    "check:encoding": "node scripts/check-encoding.mjs --root . --strict",
     "check:pr-governance": "node scripts/check-pr-governance.mjs",
     "check:task-packet-template": "node scripts/check-task-packet-template.mjs",
     "check:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs --check",

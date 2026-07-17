@@ -80,6 +80,12 @@ jobs:
       - name: Check docs frontmatter
         run: npm run check:docs-frontmatter
 
+      - name: Check encoding integrity
+        # Blocking even on PRs: invalid UTF-8 in tracked text files is always
+        # corruption (e.g. a tool writing back with a non-UTF-8 codepage),
+        # never a false positive. Ratchet from the 2026-06/07 mojibake incident.
+        run: npm run check:encoding
+
       - name: Check task packet template
         run: npm run check:task-packet-template
 
