@@ -584,10 +584,10 @@ export default function DeployPackageList() {
                 <Input />
               </Form.Item>
               {currentTemplateEntry ? (
-                <div style={{ marginBottom: 16, padding: 12, borderRadius: 6, background: 'var(--color-fill-1)' }}>
+                <div style={{ marginBottom: 16, padding: 12, borderRadius: 6, background: 'var(--panel-muted)' }}>
                   <Space direction="vertical" size={6}>
                     <span style={{ fontWeight: 500 }}>{t('business.deploy.package.templateSummary')}</span>
-                    <span style={{ color: 'var(--color-text-3)', fontSize: 12 }}>
+                    <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>
                       {t(currentTemplateEntry.summaryKey)}
                     </span>
                   </Space>

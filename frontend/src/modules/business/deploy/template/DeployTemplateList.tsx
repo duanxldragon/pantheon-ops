@@ -738,7 +738,7 @@ export default function DeployTemplateList() {
                       <div
                         key={field.key}
                         style={{
-                          border: '1px solid var(--color-border-2)',
+                          border: '1px solid var(--panel-border)',
                           borderRadius: 8,
                           padding: 12,
                         }}

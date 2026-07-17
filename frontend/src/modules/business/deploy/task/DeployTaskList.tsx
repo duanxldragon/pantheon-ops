@@ -1069,7 +1069,7 @@ export default function DeployTaskList() {
             </Form.Item>
           )}
           {selectedRuntimePackage ? (
-            <div style={{ marginBottom: 16, padding: 12, borderRadius: 6, background: 'var(--color-fill-1)' }}>
+            <div style={{ marginBottom: 16, padding: 12, borderRadius: 6, background: 'var(--panel-muted)' }}>
               <Space direction="vertical" size={4}>
                 <Typography.Text style={{ fontWeight: 500 }}>
                   {`${selectedRuntimePackage.name} ${selectedRuntimePackage.version}`}
@@ -1097,7 +1097,7 @@ export default function DeployTaskList() {
           </Form.Item>
           {Object.keys(runtimeParameterSchema).length > 0 ? (
             <>
-              <div style={{ marginBottom: 16, padding: 12, borderRadius: 6, background: 'var(--color-fill-1)', color: 'var(--color-text-3)', fontSize: 12 }}>
+              <div style={{ marginBottom: 16, padding: 12, borderRadius: 6, background: 'var(--panel-muted)', color: 'var(--text-tertiary)', fontSize: 12 }}>
                 {selectedRuntimeIsNginxTemplate
                   ? t('business.deploy.task.templateParams.nginxHint')
                   : t('business.deploy.task.templateParams.dynamicHint')}
@@ -1195,11 +1195,11 @@ export default function DeployTaskList() {
         }}
       >
         <Form form={startForm} layout="vertical">
-          <div style={{ color: 'var(--color-text-3)', marginBottom: 16 }}>
+          <div style={{ color: 'var(--text-tertiary)', marginBottom: 16 }}>
             {t('business.deploy.task.startSshHint')}
           </div>
           {startingTask?.templateParams && Object.keys(startingTask.templateParams).length > 0 ? (
-            <div style={{ color: 'var(--color-text-3)', marginBottom: 16 }}>
+            <div style={{ color: 'var(--text-tertiary)', marginBottom: 16 }}>
               {t('business.deploy.task.startSshTemplateHint')}
             </div>
           ) : null}
