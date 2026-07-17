@@ -2,7 +2,7 @@
 
 English version: [BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./BUSINESS_DEPLOY_MODULE_DESIGN.en.md)
 
-更新时间：2026-05-28
+更新时间：2026-07-17
 
 类型：Design
 归属层：business/deploy
@@ -285,6 +285,7 @@ pending -> skipped
 | 接口 | 方法 | 说明 | 权限 |
 | :--- | :--- | :--- | :--- |
 | `/packages` | GET | 软件组件列表 | `business:deploy:package:list` |
+| `/packages/:id` | GET | 软件组件详情 | 权限映射缺口：路由已实现，但 `business:deploy:package:list` 当前只映射 `GET /packages`，未覆盖本路由；见任务卡 `2026-07-17-business-permission-gaps` |
 | `/packages` | POST | 新建软件组件 | `business:deploy:package:create` |
 | `/packages/:id` | PUT | 编辑软件组件 | `business:deploy:package:update` |
 | `/packages/:id` | DELETE | 删除软件组件 | `business:deploy:package:delete` |
@@ -297,10 +298,11 @@ pending -> skipped
 | `/tasks` | POST | 创建部署任务 | `business:deploy:task:create` |
 | `/tasks/:id` | GET | 任务详情 | `business:deploy:task:detail` |
 | `/tasks/:id` | PUT | 编辑未启动任务 | `business:deploy:task:update` |
+| `/tasks/:id` | DELETE | 删除未启动任务（`draft / pending`，同步清理 task-host 明细） | `business:deploy:task:delete` |
 | `/tasks/:id/start` | POST | 启动任务 | `business:deploy:task:start` |
 | `/tasks/:id/cancel` | POST | 取消任务 | `business:deploy:task:cancel` |
 | `/task-hosts/:id/result` | POST | 标记主机执行结果 | `business:deploy:task:mark-result` |
-| `/task-hosts/:id/report` | POST | Agent 结果回写预留 | 第一版不挂菜单 |
+| `/task-hosts/:id/report` | POST | Agent 结果回写预留；当前与 `/result` 绑定同一 handler，“人工标记 vs 执行器上报”来源区分尚未实现 | Agent 阶段待办，第一版不挂菜单 |
 
 ### 7.3 请求 / 响应要点
 
@@ -387,7 +389,13 @@ pending -> skipped
 - 只允许 `pending / running` 状态取消
 - 关键错误：`business.deploy.task.invalidCancelState`
 
-#### 7.3.8 `POST /task-hosts/:id/result`
+#### 7.3.8 `DELETE /tasks/:id`
+
+- 只允许删除 `draft / pending` 状态任务
+- 删除任务时同步清理对应 `biz_deploy_task_host` 明细
+- 关键错误：`business.deploy.task.invalidDeleteState`
+
+#### 7.3.9 `POST /task-hosts/:id/result`
 
 - body：`status` (`success | failed | skipped`)、`stdout`、`stderr`、`errorMessage`
 - `failed` 时 `errorMessage` 必填
@@ -550,19 +558,30 @@ pending -> skipped
 - `business:deploy:package:create`
 - `business:deploy:package:update`
 - `business:deploy:package:delete`
+- `business:deploy:template:list`
+- `business:deploy:template:create`
+- `business:deploy:template:update`
+- `business:deploy:template:delete`
 - `business:deploy:task:view`
 - `business:deploy:task:list`
 - `business:deploy:task:detail`
 - `business:deploy:task:create`
 - `business:deploy:task:update`
+- `business:deploy:task:delete`
 - `business:deploy:task:start`
 - `business:deploy:task:cancel`
 - `business:deploy:task:mark-result`
 
+模板权限现状：
+
+- `business:deploy:template:list/create/update/delete` 四项均已在 `backend/pkg/contracts/permission_policies.go` 定义 API 路由映射
+- `deploy_seed.go` 当前只 seed 模板列表 C 菜单（`PagePerm=business:deploy:template:list`）
+- `create/update/delete` 三项 F 按钮 seed 缺失，不能写成已完成的角色授权事实；缺口见任务卡 `2026-07-17-business-permission-gaps`
+
 审计动作：
 
 - 新建/编辑/删除软件组件
-- 新建/编辑部署任务
+- 新建/编辑/删除部署任务
 - 启动部署任务
 - 取消部署任务
 - 标记主机执行结果

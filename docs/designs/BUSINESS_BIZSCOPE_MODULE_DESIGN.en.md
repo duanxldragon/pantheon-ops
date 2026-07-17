@@ -2,7 +2,7 @@
 
 Chinese version: [BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./BUSINESS_BIZSCOPE_MODULE_DESIGN.md)
 
-Updated: 2026-06-18
+Updated: 2026-07-17
 
 Type: Design
 Layer: business/bizscope
@@ -136,6 +136,8 @@ Local error summary:
 | `param.invalid` | invalid request payload |
 
 Repository-wide canonical error semantics still live in `BUSINESS_ERROR_SEMANTICS_APPENDIX.md`.
+
+The short `bizscope.*` keys above are the historical implementation truth. Their canonical target mapping and migration plan are documented in the BizScope section of `BUSINESS_ERROR_SEMANTICS_APPENDIX.md`.
 
 ## 6. Menus, Routes, and Permissions
 

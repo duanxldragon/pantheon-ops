@@ -2,7 +2,7 @@
 
 English version: [BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md)
 
-更新时间：2026-05-11
+更新时间：2026-07-17
 
 类型：Design
 归属层：business/*
@@ -173,9 +173,42 @@ business.<module>.<resource>.<reason>
 | `business.deploy.taskHost.invalidResultState` | 当前状态不允许标记结果 |
 | `business.deploy.taskHost.markFailed.reasonRequired` | 标记失败时必须填写错误原因 |
 
+### 3.4 Template
+
+Deploy Template CRUD 已上线，但当前尚未定义 Template 资源的 canonical 错误 key 清单。本段仅记录待补事实，本任务不发明新 key；后续应在新增或收口模板业务错误时先补本文，再同步模块设计与 i18n。
+
 ---
 
-## 4. 新模块接入要求
+## 4. BizScope 现状与目标态
+
+来源设计文档：
+
+- `BUSINESS_BIZSCOPE_MODULE_DESIGN.md`
+
+### 4.1 当前实现返回值
+
+| 当前 Key | 说明 | 规则判断 |
+| :--- | :--- | :--- |
+| `bizscope.code_exists` | 业务域编码重复 | 历史短 key，违反 §1.1 canonical 规则 |
+| `bizscope.in_use` | 业务域仍绑定主机，不能删除 | 历史短 key，违反 §1.1 canonical 规则 |
+| `bizscope.not_found` | 业务域不存在 | 历史短 key，违反 §1.1 canonical 规则 |
+| `param.invalid` | 请求参数无效 | base 通用参数错误 key，不属于 BizScope 资源级 canonical key |
+
+前三项短 key 属于历史债务，迁移不在本任务内。
+
+### 4.2 canonical 目标态
+
+| 当前 Key | 目标 Key |
+| :--- | :--- |
+| `bizscope.code_exists` | `business.bizscope.codeExists` |
+| `bizscope.in_use` | `business.bizscope.inUse` |
+| `bizscope.not_found` | `business.bizscope.notFound` |
+
+迁移计划见任务卡 `2026-07-17-bizscope-error-key-canonicalization`。
+
+---
+
+## 5. 新模块接入要求
 
 后续新增 `business/*` 模块时，设计文档至少要补：
 
@@ -190,7 +223,7 @@ business.<module>.<resource>.<reason>
 
 ---
 
-## 5. 变更规则
+## 6. 变更规则
 
 - 新增、重命名、废弃业务错误 key 时，优先修改本文，再同步回业务模块设计文档
 - 业务模块设计文档中的错误章节是模块局部说明，**本文是 ops 仓库级 canonical 附录**

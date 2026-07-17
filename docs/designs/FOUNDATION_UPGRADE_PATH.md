@@ -1,10 +1,29 @@
 # Foundation Release Upgrade Path
 
-## base-v0.8.4 → base-v0.8.5
-
 English version: [FOUNDATION_UPGRADE_PATH.en.md](./FOUNDATION_UPGRADE_PATH.en.md)
 
-## 基本信息
+更新时间：2026-07-17
+
+类型：Design
+归属层：platform
+状态：Active
+
+本文是 `pantheon-ops` 消费 `pantheon-base` foundation release 的滚动升级记录。每次真实升级都应更新当前基线，并追加对应历史记录。
+
+## 当前基线
+
+- `foundation-release.lock.json` 当前锁定 `base-v0.8.11`
+- base commit：`a201a13f05615903f2d57df4809e2a923a87c668`
+- 消费模式：`foundation-release-consumer`
+- 本地 release 产物：`.foundation/releases/base-v0.8.11`
+
+`base-v0.8.5` 到 `base-v0.8.11` 期间，仓库经 `base-v0.8.8`、`base-v0.8.9`、`base-v0.8.10`、`base-v0.8.11` 多次 foundation-release-consumer 升级，`.foundation/releases/` 保留了对应产物；逐版本明细未记录。后续每次升级必须在本文档追加版本、commit、变更范围、验证与回滚信息。
+
+## 历史升级记录
+
+### base-v0.8.4 → base-v0.8.5
+
+#### 基本信息
 
 | 字段 | 值 |
 |---|---|
@@ -14,11 +33,11 @@ English version: [FOUNDATION_UPGRADE_PATH.en.md](./FOUNDATION_UPGRADE_PATH.en.md
 | 升级模式 | `foundation-release-consumer` |
 | 变更摘要 | Auth foundation hardening、secure-action runtime updates、upload safety fixes、release artifact packaging |
 
-## 变更范围
+#### 变更范围
 
 本次 release 涉及以下共享路径的变更：
 
-### Backend 变更
+##### Backend 变更
 
 | 路径 | 变更类型 | 说明 |
 |---|---|---|
@@ -33,7 +52,7 @@ English version: [FOUNDATION_UPGRADE_PATH.en.md](./FOUNDATION_UPGRADE_PATH.en.md
 | `backend/pkg/authtoken/token.go` | MODIFY | Auth Token 处理更新 |
 | `backend/pkg/upload/service.go` | MODIFY | 上传服务安全修复 |
 
-### Frontend 变更
+##### Frontend 变更
 
 | 路径 | 变更类型 | 说明 |
 |---|---|---|
@@ -42,12 +61,12 @@ English version: [FOUNDATION_UPGRADE_PATH.en.md](./FOUNDATION_UPGRADE_PATH.en.md
 | `frontend/src/modules/system/setting/*` | MODIFY | 系统设置页面更新 |
 | `frontend/src/modules/system/role/*` | MODIFY | 角色管理页面更新 |
 
-### 新增文件
+##### 新增文件
 
 - `frontend/src/modules/system/post/PostList.tsx`（岗位列表）
 - `frontend/src/modules/system/permission/PermissionWorkbenchTab.tsx`（权限工作台 Tab）
 
-## ops 本地 Overlay 不受影响
+#### ops 本地 Overlay 不受影响
 
 以下路径是 ops 本地扩展点，升级过程不会覆盖：
 
@@ -59,9 +78,9 @@ English version: [FOUNDATION_UPGRADE_PATH.en.md](./FOUNDATION_UPGRADE_PATH.en.md
 - `frontend/src/modules/system/generator/backend-generator.ts`
 - `backend/modules/system/i18n/builtin_locale_resources.json`（`business.*` 词条会被保留合并）
 
-## 升级步骤
+#### 升级步骤
 
-### 步骤 1：记录当前基座版本
+##### 步骤 1：记录当前基座版本
 
 ```powershell
 cd D:\workspace\go\pantheon-platform\pantheon-base
@@ -69,7 +88,7 @@ git rev-parse --short HEAD
 # 记录当前 base commit（例如：185e31f0）
 ```
 
-### 步骤 2：预览升级差异（推荐先执行）
+##### 步骤 2：预览升级差异（推荐先执行）
 
 ```powershell
 cd D:\workspace\go\pantheon-platform\pantheon-ops
@@ -78,7 +97,7 @@ npm run upgrade:foundation:local-plan -- --release-version base-v0.8.5
 
 此命令会以 dry-run 模式展示所有将被改动的共享文件，不会修改任何文件。
 
-### 步骤 3：执行升级
+##### 步骤 3：执行升级
 
 ```powershell
 npm run upgrade:foundation:local-apply -- --release-version base-v0.8.5
@@ -94,7 +113,7 @@ npm run upgrade:foundation:local-apply -- --release-version base-v0.8.5
 6. 运行 `go build ./...` 验证后端模块引用重写正确性
 7. 运行 `check:inheritance` 完整继承检查
 
-### 步骤 4：验证
+##### 步骤 4：验证
 
 ```powershell
 # 后端编译验证
@@ -109,7 +128,7 @@ npm run build
 npm run check:inheritance
 ```
 
-### 步骤 5：如需回滚
+##### 步骤 5：如需回滚
 
 如果升级后出现非预期问题，可通过 git 回滚：
 
@@ -121,7 +140,7 @@ git stash pop
 
 然后手动还原 `foundation-release.lock.json`、`docs/PROJECT_INHERITANCE.md` 和 `docs/PROJECT_INHERITANCE.en.md`。
 
-## 预期结果
+#### 预期结果
 
 升级成功后：
 
@@ -129,7 +148,7 @@ git stash pop
 - 所有共享 backend/frontend 文件与 `base-v0.8.5` 字节级对齐（overlay 文件除外）
 - `go build ./...` 和 `check:inheritance` 均通过
 
-## 回滚注意事项
+#### 回滚注意事项
 
 - `upgrade:foundation:local-apply` 在执行文件写入前会自动 git stash 本地改动
 - 如果 `go build` 失败，脚本会输出错误并报告失败，不会自动回滚

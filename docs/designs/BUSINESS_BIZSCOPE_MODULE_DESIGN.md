@@ -2,7 +2,7 @@
 
 English version: [BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md](./BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md)
 
-更新时间：2026-06-18
+更新时间：2026-07-17
 
 类型：Design
 归属层：business/bizscope
@@ -135,7 +135,9 @@ English version: [BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md](./BUSINESS_BIZSCOPE_MOD
 | `bizscope.not_found` | 业务域不存在 |
 | `param.invalid` | 请求参数无效 |
 
-仓库级 canonical 错误语义仍以 `BUSINESS_ERROR_SEMANTICS_APPENDIX.md` 为准；本节只保留本模块局部摘要。
+仓库级 canonical 错误语义仍以 BUSINESS_ERROR_SEMANTICS_APPENDIX.md 为准；本节只保留本模块局部摘要。
+
+上述 BizScope 短 key 是当前实现的历史现状；canonical 目标态及迁移计划见 BUSINESS_ERROR_SEMANTICS_APPENDIX.md 的 BizScope 章节。
 
 ## 6. 菜单、路由与权限
 
