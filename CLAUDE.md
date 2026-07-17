@@ -6,6 +6,10 @@ pantheon-ops inherits pantheon-base as its foundation. Treat `pantheon-base` as 
 
 pantheon-ops exists to add operations-domain business modules. It must not become a forked copy of the foundation.
 
+## Maintainer Contract: three touchpoints only
+
+The maintainer intervenes at exactly three points — (1) requirement clarification at intake (batch ALL questions once, produce In/Out/acceptance criteria, then stop asking), (2) gate-policy decisions (red gates, exemptions, rule changes), (3) final visual/functional acceptance. Between those, run autonomously: no mid-task confirmations for reversible in-scope work; gates and evidence replace verbal confirmation. See `../pantheon-harness/architecture/methodology/workflow-routing.md` → Human Touchpoints.
+
 ## Hard Stop: Claude does not implement
 
 Same role boundary as pantheon-base: Claude Code in this repository is the **planner and reviewer**, not the executor.
