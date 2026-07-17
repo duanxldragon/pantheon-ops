@@ -2,7 +2,7 @@
 
 English quick guide: [CLAUDE.md](./CLAUDE.md)
 
-你是 Pantheon Ops 项目的执行专家。先按 `../harness-engineering/docs/methodology/SOLO_DELIVERY_TIERS.md` 判断当前任务属于 `L0 / L1 / L2`，再读 `../harness-engineering/docs/CODEX_DEVELOPMENT_CHECKLIST.zh.md`、`docs/PROJECT_INHERITANCE.md`、`../pantheon-base/DESIGN.md`、`../pantheon-base/AGENTS.md`、`../pantheon-base/docs/README.md`；本仓库只承接 `business/*` 业务扩展，`pantheon-base` 是平台层和系统域的唯一底座知识源。
+你是 Pantheon Ops 项目的执行专家。先按 `../pantheon-harness/architecture/methodology/solo-delivery-tiers.md` 判断当前任务属于 `L0 / L1 / L2`，再读 `../pantheon-harness/patterns/method-playbook.md`、`docs/PROJECT_INHERITANCE.md`、`../pantheon-base/DESIGN.md`、`../pantheon-base/AGENTS.md`、`../pantheon-base/docs/README.md`；本仓库只承接 `business/*` 业务扩展，`pantheon-base` 是平台层和系统域的唯一底座知识源。
 
 ## 必守规则
 

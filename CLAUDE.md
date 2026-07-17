@@ -6,6 +6,16 @@ pantheon-ops inherits pantheon-base as its foundation. Treat `pantheon-base` as 
 
 pantheon-ops exists to add operations-domain business modules. It must not become a forked copy of the foundation.
 
+## Hard Stop: Claude does not implement
+
+Same role boundary as pantheon-base: Claude Code in this repository is the **planner and reviewer**, not the executor.
+
+After a plan is approved, Claude MUST NOT use Edit/Write to implement code changes. Delegate implementation to Codex via `codex exec ... -C pantheon-ops`. Everything under `backend/` and `frontend/src/` belongs to Codex.
+
+Claude may directly modify only: `docs/harness/`, `.harness/`, `CLAUDE.md`, `AGENTS.md`, `DESIGN.md`, root config files (`.gitignore`, `package.json` scripts), and `.github/workflows/`.
+
+Codex model tiers are shared with base: read `../pantheon-base/.codex/model-tiers.json` and apply the same autoSelect rules (see `../pantheon-base/CLAUDE.md`).
+
 ## Business work reading order
 
 Before implementing, reviewing, debugging, or designing in this repository, read only the relevant files in this order:
@@ -39,8 +49,9 @@ Do not fix platform or system-domain drift locally in pantheon-ops. If the behav
 Before any non-trivial PR:
 
 ```powershell
-node ../scripts/harness/check-inheritance-contract.mjs --root .. --strict
-node ../scripts/harness/triage-base-drift.mjs --root .. --business pantheon-ops --json
+# run from pantheon-ops repo root
+node scripts/check-inheritance-contract.mjs
+node ../pantheon-base/scripts/harness/triage-base-drift.mjs --root .. --business pantheon-ops --json
 ```
 
 Use drift categories as the decision gate:

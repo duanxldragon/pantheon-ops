@@ -6,7 +6,7 @@ English version: [README.md](./README.md)
 
 共享模板源头：
 
-- 工作区级的 `harness-engineering/.agents/skills/README.zh.md`
+- 工作区级的 `pantheon-harness/config/agents/skills/`
 
 当前提供：
 

@@ -6,7 +6,7 @@ Pantheon Ops keeps repository-local agent skills here.
 
 Shared template source:
 
-- `harness-engineering/.agents/skills/README.md` at the workspace level
+- `pantheon-harness/config/agents/skills/` at the workspace level
 
 Available skills:
 
