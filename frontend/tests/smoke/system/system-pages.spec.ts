@@ -944,8 +944,8 @@ test('i18n smoke: detail edit create and delete dialogs work', async ({ page }) 
   await formItem(page, '翻译键').locator('input').first().fill(seedKey);
   await page.getByRole('button', { name: '搜索' }).click();
 
-  const targetRow = page.getByRole('row', { name: new RegExp(seedKey) }).first();
-  await expect(targetRow).toBeVisible();
+  const targetRow = page.locator('.system-list__table tbody tr').filter({ hasText: seedKey }).first();
+  await expect(targetRow).toBeVisible({ timeout: 15000 });
 
   await targetRow.getByRole('button', { name: '详情' }).click();
   const detailDialog = page.getByRole('dialog').filter({ has: page.getByText('翻译详情', { exact: true }) });
@@ -986,7 +986,8 @@ test('i18n smoke: detail edit create and delete dialogs work', async ({ page }) 
   await page.locator('.filter-panel').getByRole('button', { name: '重置' }).click();
   await formItem(page, '翻译键').locator('input').first().fill(createKey);
   await page.getByRole('button', { name: '搜索' }).click();
-  await expect(page.getByRole('row', { name: new RegExp(createKey) }).first()).toBeVisible();
+  const createdRow = page.locator('.system-list__table tbody tr').filter({ hasText: createKey }).first();
+  await expect(createdRow).toBeVisible({ timeout: 15000 });
 
   const createdListResp = await page.request.get(`${apiBaseUrl}/system/i18n/list`, {
     headers: authHeaders(accessToken),
@@ -998,7 +999,8 @@ test('i18n smoke: detail edit create and delete dialogs work', async ({ page }) 
   await page.locator('.filter-panel').getByRole('button', { name: '重置' }).click();
   await formItem(page, '翻译键').locator('input').first().fill(seedKey);
   await page.getByRole('button', { name: '搜索' }).click();
-  const deleteRow = page.getByRole('row', { name: new RegExp(seedKey) }).first();
+  const deleteRow = page.locator('.system-list__table tbody tr').filter({ hasText: seedKey }).first();
+  await expect(deleteRow).toBeVisible({ timeout: 15000 });
   await deleteRow.getByRole('button', { name: '删除' }).click();
   const deleteConfirmPopup = page
     .locator('.arco-popconfirm:visible, .arco-trigger-popup:visible, .arco-popover:visible, [role="tooltip"]:visible, [role="dialog"]:visible')
@@ -2589,6 +2591,46 @@ test('operation-log governance smoke: selecting rows enables batch delete afford
 });
 
 test('user governance smoke: cross-page selection keeps the full selected set', async ({ page }) => {
+  const pageSize = 10;
+  const userRows = Array.from({ length: pageSize + 2 }, (_, index) => ({
+    id: 980001 + index,
+    username: `cross-page-user-${index + 1}`,
+    nickname: `Cross Page User ${index + 1}`,
+    email: `cross-page-user-${index + 1}@example.com`,
+    phone: `1380000${String(index + 1).padStart(4, '0')}`,
+    deptId: 1,
+    deptName: 'Pantheon Base',
+    postId: 1,
+    postName: '管理员',
+    status: 1,
+    createdAt: `2026-05-${String(index + 1).padStart(2, '0')} 08:00:00`,
+    roleIds: [1],
+    roleKeys: ['admin'],
+    roleNames: ['管理员'],
+  }));
+
+  await page.route(/\/api\/v1\/system\/user\/list(?:\?.*)?$/, async (route) => {
+    const url = new URL(route.request().url());
+    const currentPage = Number(url.searchParams.get('page') ?? '1');
+    const currentPageSize = Number(url.searchParams.get('pageSize') ?? String(pageSize));
+    const start = (currentPage - 1) * currentPageSize;
+    const items = userRows.slice(start, start + currentPageSize);
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        code: 200,
+        data: {
+          items,
+          total: userRows.length,
+          page: currentPage,
+          pageSize: currentPageSize,
+        },
+      }),
+    });
+  });
+
   await page.goto('/system/user', { waitUntil: 'networkidle' });
   await expectPageIdentityReady(page, '用户管理');
   await expectNoPageError(page);
@@ -2602,7 +2644,9 @@ test('user governance smoke: cross-page selection keeps the full selected set', 
   await firstPageCheckbox.click({ force: true });
   await expect(selectedText).toContainText('已选 1 条');
 
-  await pager.locator('.arco-pagination-item').filter({ hasText: '2' }).first().click();
+  const secondPageButton = pager.locator('.arco-pagination-item').filter({ hasText: '2' }).first();
+  await expect(secondPageButton).toBeVisible();
+  await secondPageButton.click();
   await expect
     .poll(async () => {
       return pager.locator('.arco-pagination-item-active').innerText();
@@ -2614,7 +2658,9 @@ test('user governance smoke: cross-page selection keeps the full selected set', 
   await secondPageCheckbox.click({ force: true });
   await expect(selectedText).toContainText('已选 2 条');
 
-  await pager.locator('.arco-pagination-item').filter({ hasText: '1' }).first().click();
+  const firstPageButton = pager.locator('.arco-pagination-item').filter({ hasText: '1' }).first();
+  await expect(firstPageButton).toBeVisible();
+  await firstPageButton.click();
   await expect
     .poll(async () => {
       return pager.locator('.arco-pagination-item-active').innerText();
