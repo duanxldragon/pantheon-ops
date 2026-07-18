@@ -10,57 +10,89 @@ import {
 
 const root = process.cwd();
 const TEMPLATE_CANDIDATES = [
-  path.join(root, '.github', 'PULL_REQUEST_TEMPLATE.md'),
   path.join(root, '.github', 'pull_request_template.md'),
+  path.join(root, '.github', 'PULL_REQUEST_TEMPLATE.md'),
 ];
 
 const REQUIRED_SECTIONS = [
-  '## Summary',
-  '## Scope',
-  '## Verification',
-  '## Evidence',
-  '## Review',
-  '## Release Risk',
+  '## 变更摘要',
+  '## Harness 链路',
+  '## Harness adoption markers',
+  '## 边界说明',
+  '## 验证记录',
+  '## 审核留痕',
+  '## 检查清单',
 ];
 
 const REQUIRED_FIELDS = [
-  { label: 'Target repo', allowExplicitNone: false },
-  { label: 'Layer', allowExplicitNone: false },
-  { label: 'Task mode', allowExplicitNone: false },
-  { label: 'Sync expectation', allowExplicitNone: false },
-  { label: 'In scope', allowExplicitNone: false },
-  { label: 'Out of scope', allowExplicitNone: true },
-  { label: 'Commands', allowExplicitNone: false },
-  { label: 'Result', allowExplicitNone: false },
+  { label: '改动层级', allowExplicitNone: false },
+  { label: '改动模块', allowExplicitNone: false },
+  { label: '目标问题', allowExplicitNone: false },
+  { label: '预期影响', allowExplicitNone: false },
   { label: 'Task ID', allowExplicitNone: true },
   { label: 'Task Manifest', allowExplicitNone: true },
-  { label: 'Evidence', allowExplicitNone: false },
-  { label: 'Human gate', allowExplicitNone: true },
-  { label: 'Review status', allowExplicitNone: false },
-  { label: 'Review artifact', allowExplicitNone: false },
-  { label: 'Known gaps', allowExplicitNone: true },
-  { label: 'GitHub signal', allowExplicitNone: false },
+  { label: 'Evidence', allowExplicitNone: true },
+  { label: 'Verification evidence', allowExplicitNone: true },
+  { label: 'Review Artifact', allowExplicitNone: true },
+  { label: 'OpenSpec change', allowExplicitNone: true },
+  { label: 'Trivial change', allowExplicitNone: false },
+  { label: 'Quality Profile', allowExplicitNone: false },
+  { label: 'Ratchet Decision', allowExplicitNone: false },
+  { label: 'GitHub Signal', allowExplicitNone: false },
+  { label: 'task id', allowExplicitNone: true },
+  { label: 'task manifest', allowExplicitNone: true },
+  { label: 'evidence', allowExplicitNone: true },
+  { label: 'boundaries', allowExplicitNone: true },
+  { label: 'backend response contract', allowExplicitNone: true },
+  { label: 'backend DTO contract', allowExplicitNone: true },
+  { label: 'permission contract', allowExplicitNone: true },
+  { label: 'audit coverage', allowExplicitNone: true },
+  { label: 'visual evidence', allowExplicitNone: true },
+  { label: 'inheritance contract', allowExplicitNone: true },
+  { label: 'base drift', allowExplicitNone: true },
+  { label: 'Base/ops inheritance', allowExplicitNone: true },
+  { label: 'Copilot review', allowExplicitNone: false },
+  { label: 'CodeQL 结果', allowExplicitNone: false },
+  { label: 'GitHub checks 结果', allowExplicitNone: false },
+  { label: 'Auto-merge', allowExplicitNone: false },
+  { label: 'Duplication Gate 结果', allowExplicitNone: false },
+  { label: '是否高风险改动', allowExplicitNone: false },
+  { label: 'Residual risk / follow-up', allowExplicitNone: true },
 ];
 
 const EXPLICIT_NONE = new Set(['none', 'n/a', 'na', 'not-applicable', 'not applicable']);
+const YES_VALUES = new Set(['yes', 'true']);
+const NO_VALUES = new Set(['no', 'false']);
+const QUALITY_PROFILES = new Set([
+  'auth-security',
+  'permission-policy',
+  'i18n',
+  'ui-runtime',
+  'generator',
+  'ci-workflow',
+  'none',
+]);
+const RATCHET_DECISIONS = new Set([
+  'no-repeat-observed',
+  'guide-updated',
+  'sensor-added',
+  'gate-updated',
+  'template-updated',
+  'adapter-updated',
+  'registry-only',
+]);
+const GITHUB_SIGNALS = new Set([
+  'method-gate',
+  'repo-quality-gate',
+  'runtime-evidence-gate',
+  'external-flaky',
+  'not-applicable',
+]);
 const PLACEHOLDER_PATTERNS = [
   /^<.*>$/i,
   /^\[.*fill.*\]$/i,
-  /^(todo|tbd|pending)$/i,
+  /^(todo|tbd)$/i,
 ];
-const TASK_PACKET_TEMPLATE_PATHS = new Set([
-  'docs/TASK_PACKET_OPS_TEMPLATE.md',
-]);
-const EVIDENCE_PLACEHOLDERS = new Set([
-  'inline command summary',
-  'screenshot path',
-  'runtime gap',
-  'smoke artifact',
-]);
-const REVIEW_ARTIFACT_PLACEHOLDERS = new Set([
-  'inline review summary',
-  'evidence/review note',
-]);
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -71,7 +103,7 @@ function normalizeValue(value) {
 }
 
 function parseField(content, label) {
-  const pattern = new RegExp(`^[\\-*]\\s+${escapeRegExp(label)}:\\s*(.+)$`, 'mi');
+  const pattern = new RegExp(`^[\\-*]\\s+${escapeRegExp(label)}[：:]\\s*(.+)$`, 'mi');
   const match = content.match(pattern);
   return match ? normalizeValue(match[1]) : null;
 }
@@ -91,70 +123,116 @@ function hasExistingRepoFile(rootDir, value) {
   return fs.existsSync(path.join(rootDir, normalized));
 }
 
-function extractTaskIdFromEvidencePath(value, suffix) {
+function extractTaskIdFromArtifactPath(value, suffix) {
   const pattern = new RegExp(`^\\.harness/evidence/(.+)/${suffix}$`, 'i');
   const match = normalizeRepoRelativePath(value).match(pattern);
   return match ? match[1] : null;
+}
+
+function validateFileReference({
+  findings,
+  fieldLabel,
+  value,
+  rootDir,
+  pattern,
+  placeholderMessage,
+}) {
+  if (value === null) {
+    return;
+  }
+  if (EXPLICIT_NONE.has(value.toLowerCase())) {
+    return;
+  }
+  if (isPlaceholder(value)) {
+    findings.push(`placeholder value is not allowed for PR field: ${fieldLabel}`);
+    return;
+  }
+  const normalized = normalizeRepoRelativePath(value);
+  if (!pattern.test(normalized)) {
+    findings.push(`${fieldLabel} must reference ${placeholderMessage}`);
+    return;
+  }
+  if (!hasExistingRepoFile(rootDir, normalized)) {
+    findings.push(`${fieldLabel} file does not exist in repository: ${normalized}`);
+  }
 }
 
 function validateArtifactLinkage(content, rootDir, findings) {
   const taskIdValue = parseField(content, 'Task ID');
   const taskManifestValue = parseField(content, 'Task Manifest');
   const evidenceValue = parseField(content, 'Evidence');
-  if (taskIdValue !== null) {
-    const normalizedTaskId = normalizeValue(taskIdValue);
-    if (EXPLICIT_NONE.has(normalizedTaskId.toLowerCase())) {
-      findings.push('Task ID must reference a concrete task identifier; explicit none is not allowed');
-    } else if (!/^[A-Za-z0-9][A-Za-z0-9-]*$/.test(normalizedTaskId)) {
-      findings.push('Task ID must be a normalized task identifier such as YYYY-MM-DD-task-name');
-    }
-  }
-  if (taskManifestValue !== null) {
-    const normalizedTaskManifest = normalizeRepoRelativePath(taskManifestValue);
-    if (EXPLICIT_NONE.has(taskManifestValue.toLowerCase())) {
-      findings.push('Task Manifest must reference a repository task manifest file; explicit none is not allowed');
-    } else if (!/^\.harness\/tasks\/.+\/manifest\.json$/i.test(normalizedTaskManifest)) {
-      findings.push('Task Manifest must reference .harness/tasks/<task-id>/manifest.json');
-    } else if (!hasExistingRepoFile(rootDir, normalizedTaskManifest)) {
-      findings.push(`Task Manifest file does not exist in repository: ${normalizedTaskManifest}`);
-    } else {
-      try {
-        readTaskManifest(rootDir, normalizedTaskManifest);
-      } catch (error) {
-        findings.push(error.message);
+  const verificationEvidenceValue = parseField(content, 'Verification evidence');
+  const reviewArtifactValue = parseField(content, 'Review Artifact');
+  const trivialValue = parseField(content, 'Trivial change')?.toLowerCase() ?? '';
+  const isTrivial = YES_VALUES.has(trivialValue);
+
+  if (!isTrivial) {
+    for (const [fieldLabel, value] of [
+      ['Task ID', taskIdValue],
+      ['Task Manifest', taskManifestValue],
+      ['Evidence', evidenceValue],
+      ['Verification evidence', verificationEvidenceValue],
+      ['Review Artifact', reviewArtifactValue],
+    ]) {
+      if (value === null || EXPLICIT_NONE.has(value.toLowerCase())) {
+        findings.push(`explicit none is not allowed for PR field: ${fieldLabel}`);
       }
     }
   }
 
-  if (evidenceValue !== null) {
-    const normalizedEvidence = normalizeRepoRelativePath(evidenceValue);
-    if (EVIDENCE_PLACEHOLDERS.has(evidenceValue.toLowerCase())) {
-      findings.push('Evidence must reference a repository commands artifact, not an inline summary placeholder');
-    } else if (!/^\.harness\/evidence\/.+\/commands\.json$/i.test(normalizedEvidence)) {
-      findings.push('Evidence must reference .harness/evidence/<task-id>/commands.json');
-    } else if (!hasExistingRepoFile(rootDir, normalizedEvidence)) {
-      findings.push(`Evidence file does not exist in repository: ${normalizedEvidence}`);
+  if (taskIdValue !== null) {
+    const normalizedTaskId = normalizeValue(taskIdValue);
+    if (
+      !EXPLICIT_NONE.has(normalizedTaskId.toLowerCase()) &&
+      !/^[A-Za-z0-9][A-Za-z0-9-]*$/.test(normalizedTaskId)
+    ) {
+      findings.push('Task ID must be a normalized task identifier such as YYYY-MM-DD-task-name');
     }
   }
-
-  const reviewArtifactValue = parseField(content, 'Review artifact');
-  if (reviewArtifactValue !== null) {
-    const normalizedReviewArtifact = normalizeRepoRelativePath(reviewArtifactValue);
-    if (REVIEW_ARTIFACT_PLACEHOLDERS.has(reviewArtifactValue.toLowerCase())) {
-      findings.push('Review artifact must reference a repository review file, not an inline summary placeholder');
-    } else if (!/^\.harness\/evidence\/.+\/review\.md$/i.test(normalizedReviewArtifact)) {
-      findings.push('Review artifact must reference .harness/evidence/<task-id>/review.md');
-    } else if (!hasExistingRepoFile(rootDir, normalizedReviewArtifact)) {
-      findings.push(`Review artifact file does not exist in repository: ${normalizedReviewArtifact}`);
-    }
-  }
+  validateFileReference({
+    findings,
+    fieldLabel: 'Task Manifest',
+    value: taskManifestValue,
+    rootDir,
+    pattern: /^\.harness\/tasks\/.+\/manifest\.json$/i,
+    placeholderMessage: '.harness/tasks/<task-id>/manifest.json',
+  });
+  validateFileReference({
+    findings,
+    fieldLabel: 'Evidence',
+    value: evidenceValue,
+    rootDir,
+    pattern: /^\.harness\/evidence\/.+\/commands\.json$/i,
+    placeholderMessage: '.harness/evidence/<task-id>/commands.json',
+  });
+  validateFileReference({
+    findings,
+    fieldLabel: 'Verification evidence',
+    value: verificationEvidenceValue,
+    rootDir,
+    pattern: /^\.harness\/evidence\/.+\/summary\.md$/i,
+    placeholderMessage: '.harness/evidence/<task-id>/summary.md',
+  });
+  validateFileReference({
+    findings,
+    fieldLabel: 'Review Artifact',
+    value: reviewArtifactValue,
+    rootDir,
+    pattern: /^\.harness\/evidence\/.+\/review\.md$/i,
+    placeholderMessage: '.harness/evidence/<task-id>/review.md',
+  });
 
   const taskManifestTaskId = taskManifestValue
     ? extractTaskIdFromManifestPath(taskManifestValue)
     : null;
-  const evidenceTaskId = evidenceValue ? extractTaskIdFromEvidencePath(evidenceValue, 'commands\\.json') : null;
+  const evidenceTaskId = evidenceValue
+    ? extractTaskIdFromArtifactPath(evidenceValue, 'commands\\.json')
+    : null;
+  const verificationTaskId = verificationEvidenceValue
+    ? extractTaskIdFromArtifactPath(verificationEvidenceValue, 'summary\\.md')
+    : null;
   const reviewTaskId = reviewArtifactValue
-    ? extractTaskIdFromEvidencePath(reviewArtifactValue, 'review\\.md')
+    ? extractTaskIdFromArtifactPath(reviewArtifactValue, 'review\\.md')
     : null;
   const canonicalTaskId =
     (taskIdValue && !EXPLICIT_NONE.has(taskIdValue.toLowerCase()) ? normalizeValue(taskIdValue) : null) ??
@@ -166,9 +244,46 @@ function validateArtifactLinkage(content, rootDir, findings) {
   if (canonicalTaskId && evidenceTaskId && canonicalTaskId !== evidenceTaskId) {
     findings.push('Task ID and Evidence must reference the same task-id');
   }
-  if (canonicalTaskId && reviewTaskId && canonicalTaskId !== reviewTaskId) {
-    findings.push('Task ID and Review artifact must reference the same task-id');
+  if (canonicalTaskId && verificationTaskId && canonicalTaskId !== verificationTaskId) {
+    findings.push('Task ID and Verification evidence must reference the same task-id');
   }
+  if (canonicalTaskId && reviewTaskId && canonicalTaskId !== reviewTaskId) {
+    findings.push('Task ID and Review Artifact must reference the same task-id');
+  }
+  if (taskManifestValue && !EXPLICIT_NONE.has(taskManifestValue.toLowerCase())) {
+    try {
+      const manifest = readTaskManifest(rootDir, taskManifestValue);
+      if (canonicalTaskId && manifest.payload.taskId !== canonicalTaskId) {
+        findings.push('Task Manifest payload taskId must match Task ID and artifact task-id');
+      }
+    } catch (error) {
+      findings.push(error.message);
+    }
+  }
+}
+
+function validateEnum(findings, label, value, allowed) {
+  if (value === null) {
+    return;
+  }
+  if (!allowed.has(value)) {
+    findings.push(`invalid value for PR field: ${label}`);
+  }
+}
+
+function isAllowedExplicitNoneValue(fieldLabel, normalizedValue) {
+  if (fieldLabel === 'Quality Profile' && normalizedValue === 'none') {
+    return true;
+  }
+  if (
+    (fieldLabel === 'GitHub Signal' ||
+      fieldLabel === 'CodeQL 结果' ||
+      fieldLabel === 'Duplication Gate 结果') &&
+    (normalizedValue === 'not-applicable' || normalizedValue === 'not applicable')
+  ) {
+    return true;
+  }
+  return false;
 }
 
 export function validatePrTemplate(content) {
@@ -217,9 +332,32 @@ export function validatePrBody(content, options = {}) {
       findings.push(`placeholder value is not allowed for PR field: ${field.label}`);
       continue;
     }
-    if (!field.allowExplicitNone && EXPLICIT_NONE.has(value.toLowerCase())) {
+    const normalizedValue = value.toLowerCase();
+    if (
+      !field.allowExplicitNone &&
+      EXPLICIT_NONE.has(normalizedValue) &&
+      !isAllowedExplicitNoneValue(field.label, normalizedValue)
+    ) {
       findings.push(`explicit none is not allowed for PR field: ${field.label}`);
     }
+  }
+
+  const trivialValue = parseField(content, 'Trivial change')?.toLowerCase() ?? '';
+  if (!YES_VALUES.has(trivialValue) && !NO_VALUES.has(trivialValue)) {
+    findings.push('Trivial change must be yes or no');
+  }
+
+  const qualityProfileValue = parseField(content, 'Quality Profile')?.toLowerCase() ?? null;
+  validateEnum(findings, 'Quality Profile', qualityProfileValue, QUALITY_PROFILES);
+
+  const ratchetDecisionValue = parseField(content, 'Ratchet Decision')?.toLowerCase() ?? null;
+  validateEnum(findings, 'Ratchet Decision', ratchetDecisionValue, RATCHET_DECISIONS);
+
+  const githubSignalValue = parseField(content, 'GitHub Signal')?.toLowerCase() ?? null;
+  validateEnum(findings, 'GitHub Signal', githubSignalValue, GITHUB_SIGNALS);
+
+  if (NO_VALUES.has(trivialValue) && qualityProfileValue === 'none') {
+    findings.push('Quality Profile must not be none for non-trivial changes');
   }
 
   validateArtifactLinkage(content, rootDir, findings);
@@ -250,7 +388,7 @@ function readPrBodyFromEvent(eventPath) {
 
 function reportAndExit(findings, successMessage) {
   if (findings.length > 0) {
-    console.error('Pantheon Ops PR governance check failed');
+    console.error('Pantheon Base PR governance check failed');
     for (const finding of findings) {
       console.error(`- ${finding}`);
     }
@@ -266,13 +404,13 @@ function main(argv) {
   if (eventFlagIndex >= 0) {
     const eventPath = args[eventFlagIndex + 1];
     const body = readPrBodyFromEvent(eventPath);
-    reportAndExit(validatePrBody(body), 'OK pantheon-ops PR body governance fields are present');
+    reportAndExit(validatePrBody(body), 'OK pantheon-base PR body governance fields are present');
     return;
   }
 
   reportAndExit(
     validatePrTemplate(readTemplate()),
-    'OK pantheon-ops PR template governance fields are present',
+    'OK pantheon-base PR template governance fields are present',
   );
 }
 
