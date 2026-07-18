@@ -11,6 +11,12 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	bizScopeCodeExistsKey = "business.bizscope.codeExists"
+	bizScopeInUseKey      = "business.bizscope.inUse"
+	bizScopeNotFoundKey   = "business.bizscope.notFound"
+)
+
 type bizScopeHostSnapshot struct {
 	ID                uint64 `gorm:"column:id"`
 	Hostname          string `gorm:"column:hostname"`
@@ -113,7 +119,7 @@ func (s *Service) Get(id uint64, dataScope *common.DataScopeReq) (*BizScopeDetai
 	var row BizScope
 	if err := s.db.First(&row, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("bizscope.not_found")
+			return nil, errors.New(bizScopeNotFoundKey)
 		}
 		return nil, err
 	}
@@ -127,7 +133,7 @@ func (s *Service) Get(id uint64, dataScope *common.DataScopeReq) (*BizScopeDetai
 
 func (s *Service) Create(req *CreateBizScopeRequest) (*BizScopeListResp, error) {
 	if s.codeExists(req.Code, 0) {
-		return nil, errors.New("bizscope.code_exists")
+		return nil, errors.New(bizScopeCodeExistsKey)
 	}
 	row := BizScope{
 		Code:        strings.TrimSpace(req.Code),
@@ -148,7 +154,7 @@ func (s *Service) Update(id uint64, req *UpdateBizScopeRequest) (*BizScopeListRe
 	var row BizScope
 	if err := s.db.First(&row, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("bizscope.not_found")
+			return nil, errors.New(bizScopeNotFoundKey)
 		}
 		return nil, err
 	}
@@ -156,7 +162,7 @@ func (s *Service) Update(id uint64, req *UpdateBizScopeRequest) (*BizScopeListRe
 	if req.Code != nil {
 		code := strings.TrimSpace(*req.Code)
 		if s.codeExists(code, id) {
-			return nil, errors.New("bizscope.code_exists")
+			return nil, errors.New(bizScopeCodeExistsKey)
 		}
 		row.Code = code
 	}
@@ -188,14 +194,14 @@ func (s *Service) Delete(id uint64) error {
 		return err
 	}
 	if hostCount > 0 {
-		return errors.New("bizscope.in_use")
+		return errors.New(bizScopeInUseKey)
 	}
 	result := s.db.Delete(&BizScope{}, id)
 	if result.Error != nil {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return errors.New("bizscope.not_found")
+		return errors.New(bizScopeNotFoundKey)
 	}
 	return nil
 }
@@ -242,7 +248,7 @@ func (s *Service) ListBoundHosts(scopeID uint64, dataScope *common.DataScopeReq)
 	var scope BizScope
 	if err := s.db.First(&scope, scopeID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("bizscope.not_found")
+			return nil, errors.New(bizScopeNotFoundKey)
 		}
 		return nil, err
 	}
@@ -272,7 +278,7 @@ func (s *Service) ListAvailableHosts(scopeID uint64, dataScope *common.DataScope
 	var scope BizScope
 	if err := s.db.First(&scope, scopeID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("bizscope.not_found")
+			return nil, errors.New(bizScopeNotFoundKey)
 		}
 		return nil, err
 	}
@@ -302,7 +308,7 @@ func (s *Service) BindHosts(scopeID uint64, hostIDs []uint64, dataScope *common.
 	var scope BizScope
 	if err := s.db.First(&scope, scopeID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("bizscope.not_found")
+			return errors.New(bizScopeNotFoundKey)
 		}
 		return err
 	}
@@ -326,7 +332,7 @@ func (s *Service) BindHosts(scopeID uint64, hostIDs []uint64, dataScope *common.
 		return result.Error
 	}
 	if result.RowsAffected != int64(len(normalizedHostIDs)) {
-		return errors.New("bizscope.not_found")
+		return errors.New(bizScopeNotFoundKey)
 	}
 	return nil
 }
@@ -335,7 +341,7 @@ func (s *Service) UnbindHost(scopeID uint64, hostID uint64, dataScope *common.Da
 	var scope BizScope
 	if err := s.db.First(&scope, scopeID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("bizscope.not_found")
+			return errors.New(bizScopeNotFoundKey)
 		}
 		return err
 	}
@@ -348,7 +354,7 @@ func (s *Service) UnbindHost(scopeID uint64, hostID uint64, dataScope *common.Da
 	var row bizScopeHostSnapshot
 	if err := s.scopedHostsQuery(dataScope).Where("biz_cmdb_host.id = ?", hostID).Take(&row).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("bizscope.not_found")
+			return errors.New(bizScopeNotFoundKey)
 		}
 		return err
 	}
@@ -362,7 +368,7 @@ func (s *Service) UnbindHost(scopeID uint64, hostID uint64, dataScope *common.Da
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return errors.New("bizscope.not_found")
+		return errors.New(bizScopeNotFoundKey)
 	}
 	return nil
 }

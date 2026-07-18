@@ -2,7 +2,7 @@
 
 English version: [BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md](./BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md)
 
-更新时间：2026-07-17
+更新时间：2026-07-18
 
 类型：Design
 归属层：business/bizscope
@@ -126,18 +126,19 @@ English version: [BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md](./BUSINESS_BIZSCOPE_MOD
 | `PUT` | `/:id` | 更新业务域 | `business:bizscope:update` |
 | `DELETE` | `/:id` | 删除业务域 | `business:bizscope:delete` |
 
-错误语义：
+错误语义（已迁移）：
 
 | Key | 说明 |
 | :--- | :--- |
-| `bizscope.code_exists` | 业务域编码重复 |
-| `bizscope.in_use` | 业务域仍绑定主机，不能删除 |
-| `bizscope.not_found` | 业务域不存在 |
+| `business.bizscope.codeExists` | 业务域编码重复 |
+| `business.bizscope.inUse` | 业务域仍绑定主机，不能删除 |
+| `business.bizscope.notFound` | 业务域、绑定目标或作用域内主机不存在 |
 | `param.invalid` | 请求参数无效 |
+| `request.failed` | 无独立业务语义的查询、数据库或框架失败 |
 
-仓库级 canonical 错误语义仍以 BUSINESS_ERROR_SEMANTICS_APPENDIX.md 为准；本节只保留本模块局部摘要。
+handler 不再返回 `bizscope.<action>.error` 流水 key：service 已给出稳定业务语义时原样返回 canonical key 或 `param.invalid`，其他错误统一回落 base 的 `request.failed`。旧短 key 不保留前端 fallback 映射，后端 seed 会删除本模块对应的 legacy 运行时翻译记录。
 
-上述 BizScope 短 key 是当前实现的历史现状；canonical 目标态及迁移计划见 BUSINESS_ERROR_SEMANTICS_APPENDIX.md 的 BizScope 章节。
+仓库级 canonical 错误语义和逐 handler 迁移记录仍以 BUSINESS_ERROR_SEMANTICS_APPENDIX.md 为准；本节只保留本模块局部摘要。
 
 ## 6. 菜单、路由与权限
 

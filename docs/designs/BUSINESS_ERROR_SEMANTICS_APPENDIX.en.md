@@ -2,7 +2,7 @@
 
 Chinese version: [BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./BUSINESS_ERROR_SEMANTICS_APPENDIX.md)
 
-Updated: 2026-07-17
+Updated: 2026-07-18
 
 Type: Design
 Layer: `business/*`
@@ -148,30 +148,42 @@ Deploy Template CRUD is implemented, but a canonical error-key list for the Temp
 
 ---
 
-## 4. BizScope Current State and Target State
+## 4. BizScope Migrated State
 
 Source: `BUSINESS_BIZSCOPE_MODULE_DESIGN.md`.
 
-### 4.1 Current Implementation Values
+### 4.1 Canonical List
 
-| Current key | Meaning | Rule assessment |
+| Key | Meaning | Source |
 | :--- | :--- | :--- |
-| `bizscope.code_exists` | duplicate business-scope code | legacy short key; violates Section 1.1 |
-| `bizscope.in_use` | scope still has bound hosts | legacy short key; violates Section 1.1 |
-| `bizscope.not_found` | scope not found | legacy short key; violates Section 1.1 |
-| `param.invalid` | invalid request | valid generic Base key, not a BizScope resource key |
+| `business.bizscope.codeExists` | duplicate business-scope code | Create / Update uniqueness validation |
+| `business.bizscope.inUse` | scope still has bound hosts | Delete reference protection |
+| `business.bizscope.notFound` | scope, binding target, or in-scope host not found | Detail / Hosts / Bind / Unbind / Update / Delete |
+| `param.invalid` | invalid request | generic Base parameter key |
+| `request.failed` | query, database, or framework failure without business meaning | generic Base request-failure key |
 
-The three `bizscope.*` short keys are historical debt. Migration is outside this documentation task.
+`backend/modules/business/bizscope` no longer returns `bizscope.code_exists`, `bizscope.in_use`, or `bizscope.not_found`.
 
-### 4.2 Canonical Target State
+### 4.2 Handler Pipeline-Key Migration
 
-| Current key | Target key |
+| Retired handler key | Migrated handling |
 | :--- | :--- |
-| `bizscope.code_exists` | `business.bizscope.codeExists` |
-| `bizscope.in_use` | `business.bizscope.inUse` |
-| `bizscope.not_found` | `business.bizscope.notFound` |
+| `bizscope.list.error` | no distinct business meaning; falls back to `request.failed` |
+| `bizscope.options.error` | no distinct business meaning; falls back to `request.failed` |
+| `bizscope.detail.error` | returns `business.bizscope.notFound` for a missing resource; otherwise falls back to `request.failed` |
+| `bizscope.hosts.error` | returns `business.bizscope.notFound` for a missing scope; otherwise falls back to `request.failed` |
+| `bizscope.availableHosts.error` | returns `business.bizscope.notFound` for a missing scope; otherwise falls back to `request.failed` |
+| `bizscope.bindHosts.error` | returns `business.bizscope.notFound` for a missing scope or in-scope host and `param.invalid` for empty hostIds; otherwise falls back to `request.failed` |
+| `bizscope.unbindHost.error` | returns `business.bizscope.notFound` for a missing scope, host, or binding; otherwise falls back to `request.failed` |
+| `bizscope.create.error` | returns `business.bizscope.codeExists` for a code conflict; otherwise falls back to `request.failed` |
+| `bizscope.update.error` | returns `business.bizscope.notFound` for a missing resource and `business.bizscope.codeExists` for a code conflict; otherwise falls back to `request.failed` |
+| `bizscope.delete.error` | returns `business.bizscope.inUse` while hosts are bound and `business.bizscope.notFound` for a missing resource; otherwise falls back to `request.failed` |
 
-Migration is tracked in `2026-07-17-bizscope-error-key-canonicalization`.
+### 4.3 Legacy-Key Fallback Decision
+
+Decision: **remove the legacy keys directly; do not retain a one-version fallback mapping**.
+
+The frontend request layer only validates that backend `message` looks like an i18n key and then performs an exact translation lookup. It has no business branch for the old BizScope short keys. A missing translation displays `request.failed` plus the raw key in development and only `request.failed` in production. Retaining aliases would therefore extend a dual-key lifecycle without required compatibility. The zh-CN / en-US module locales and backend seed now use canonical keys, and the seed removes the three legacy runtime rows owned by `business.bizscope`.
 
 ---
 

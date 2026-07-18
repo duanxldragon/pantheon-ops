@@ -2,7 +2,7 @@
 
 Chinese version: [BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./BUSINESS_BIZSCOPE_MODULE_DESIGN.md)
 
-Updated: 2026-07-17
+Updated: 2026-07-18
 
 Type: Design
 Layer: business/bizscope
@@ -126,18 +126,19 @@ Prefix: `/api/v1/business/bizscope`
 | `PUT` | `/:id` | update scope | `business:bizscope:update` |
 | `DELETE` | `/:id` | delete scope | `business:bizscope:delete` |
 
-Local error summary:
+Migrated local error summary:
 
 | Key | Meaning |
 | :--- | :--- |
-| `bizscope.code_exists` | duplicate scope code |
-| `bizscope.in_use` | scope still has bound hosts |
-| `bizscope.not_found` | scope not found |
+| `business.bizscope.codeExists` | duplicate scope code |
+| `business.bizscope.inUse` | scope still has bound hosts |
+| `business.bizscope.notFound` | scope, binding target, or in-scope host not found |
 | `param.invalid` | invalid request payload |
+| `request.failed` | query, database, or framework failure without distinct business meaning |
 
-Repository-wide canonical error semantics still live in `BUSINESS_ERROR_SEMANTICS_APPENDIX.md`.
+Handlers no longer return `bizscope.<action>.error` pipeline keys. Stable service semantics pass through as canonical keys or `param.invalid`; all other failures use the Base `request.failed` fallback. No frontend aliases are retained for the old short keys, and the backend seed removes this module's legacy runtime translation rows.
 
-The short `bizscope.*` keys above are the historical implementation truth. Their canonical target mapping and migration plan are documented in the BizScope section of `BUSINESS_ERROR_SEMANTICS_APPENDIX.md`.
+Repository-wide canonical semantics and the per-handler migration record remain in `BUSINESS_ERROR_SEMANTICS_APPENDIX.md`; this section is only the module-local summary.
 
 ## 6. Menus, Routes, and Permissions
 

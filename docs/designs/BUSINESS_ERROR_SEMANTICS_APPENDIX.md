@@ -2,7 +2,7 @@
 
 English version: [BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md)
 
-更新时间：2026-07-17
+更新时间：2026-07-18
 
 类型：Design
 归属层：business/*
@@ -179,32 +179,44 @@ Deploy Template CRUD 已上线，但当前尚未定义 Template 资源的 canoni
 
 ---
 
-## 4. BizScope 现状与目标态
+## 4. BizScope 已迁移状态
 
 来源设计文档：
 
 - `BUSINESS_BIZSCOPE_MODULE_DESIGN.md`
 
-### 4.1 当前实现返回值
+### 4.1 canonical 清单
 
-| 当前 Key | 说明 | 规则判断 |
+| Key | 说明 | 来源 |
 | :--- | :--- | :--- |
-| `bizscope.code_exists` | 业务域编码重复 | 历史短 key，违反 §1.1 canonical 规则 |
-| `bizscope.in_use` | 业务域仍绑定主机，不能删除 | 历史短 key，违反 §1.1 canonical 规则 |
-| `bizscope.not_found` | 业务域不存在 | 历史短 key，违反 §1.1 canonical 规则 |
-| `param.invalid` | 请求参数无效 | base 通用参数错误 key，不属于 BizScope 资源级 canonical key |
+| `business.bizscope.codeExists` | 业务域编码重复 | Create / Update 业务唯一性校验 |
+| `business.bizscope.inUse` | 业务域仍绑定主机，不能删除 | Delete 引用保护 |
+| `business.bizscope.notFound` | 业务域、绑定目标或作用域内主机不存在 | Detail / Hosts / Bind / Unbind / Update / Delete |
+| `param.invalid` | 请求参数无效 | base 通用参数错误 key |
+| `request.failed` | 非业务语义的查询、数据库或框架失败 | base 通用请求失败 key |
 
-前三项短 key 属于历史债务，迁移不在本任务内。
+`backend/modules/business/bizscope` 已不再返回 `bizscope.code_exists`、`bizscope.in_use`、`bizscope.not_found`。
 
-### 4.2 canonical 目标态
+### 4.2 handler 流水 key 迁移结果
 
-| 当前 Key | 目标 Key |
+| 旧 handler Key | 已迁移处理 |
 | :--- | :--- |
-| `bizscope.code_exists` | `business.bizscope.codeExists` |
-| `bizscope.in_use` | `business.bizscope.inUse` |
-| `bizscope.not_found` | `business.bizscope.notFound` |
+| `bizscope.list.error` | 无独立业务语义；回落 `request.failed` |
+| `bizscope.options.error` | 无独立业务语义；回落 `request.failed` |
+| `bizscope.detail.error` | 资源不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
+| `bizscope.hosts.error` | 业务域不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
+| `bizscope.availableHosts.error` | 业务域不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
+| `bizscope.bindHosts.error` | 业务域/作用域内主机不存在时返回 `business.bizscope.notFound`，空 hostIds 返回 `param.invalid`；其他失败回落 `request.failed` |
+| `bizscope.unbindHost.error` | 业务域、主机或绑定关系不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
+| `bizscope.create.error` | 编码冲突返回 `business.bizscope.codeExists`；其他失败回落 `request.failed` |
+| `bizscope.update.error` | 资源不存在返回 `business.bizscope.notFound`，编码冲突返回 `business.bizscope.codeExists`；其他失败回落 `request.failed` |
+| `bizscope.delete.error` | 仍被主机引用返回 `business.bizscope.inUse`，资源不存在返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
 
-迁移计划见任务卡 `2026-07-17-bizscope-error-key-canonicalization`。
+### 4.3 旧 key fallback 决策
+
+决策：**直接移除，不保留一个版本的旧 key fallback 映射**。
+
+依据：前端请求层只对后端 `message` 做 i18n key 形态识别和精确翻译，不存在对旧 BizScope 短 key 的业务分支；翻译未命中时开发环境显示 `request.failed` 加原 key，生产环境只显示 `request.failed`。因此保留旧映射只会延长双 key 生命周期，不能提供必要兼容。zh-CN / en-US 模块 locale 和后端 seed 已改为 canonical key，seed 同时删除 `business.bizscope` 下三个 legacy 运行时记录。
 
 ---
 

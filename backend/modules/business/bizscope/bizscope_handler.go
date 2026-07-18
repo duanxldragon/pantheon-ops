@@ -24,7 +24,7 @@ func (h *Handler) List(c *gin.Context) {
 	}
 	items, err := h.service.List(&query, common.GetDataScope(c))
 	if err != nil {
-		common.Fail(c, common.CodeError, "bizscope.list.error")
+		failBizScopeError(c, err)
 		return
 	}
 	common.Success(c, items)
@@ -33,7 +33,7 @@ func (h *Handler) List(c *gin.Context) {
 func (h *Handler) Options(c *gin.Context) {
 	items, err := h.service.ListOptions(common.GetDataScope(c))
 	if err != nil {
-		common.Fail(c, common.CodeError, "bizscope.options.error")
+		failBizScopeError(c, err)
 		return
 	}
 	common.Success(c, items)
@@ -47,7 +47,7 @@ func (h *Handler) Detail(c *gin.Context) {
 	}
 	item, serviceErr := h.service.Get(id, common.GetDataScope(c))
 	if serviceErr != nil {
-		common.Fail(c, common.CodeError, "bizscope.detail.error")
+		failBizScopeError(c, serviceErr)
 		return
 	}
 	common.Success(c, item)
@@ -61,7 +61,7 @@ func (h *Handler) Hosts(c *gin.Context) {
 	}
 	items, serviceErr := h.service.ListBoundHosts(id, common.GetDataScope(c))
 	if serviceErr != nil {
-		common.Fail(c, common.CodeError, "bizscope.hosts.error")
+		failBizScopeError(c, serviceErr)
 		return
 	}
 	common.Success(c, items)
@@ -75,7 +75,7 @@ func (h *Handler) AvailableHosts(c *gin.Context) {
 	}
 	items, serviceErr := h.service.ListAvailableHosts(id, common.GetDataScope(c))
 	if serviceErr != nil {
-		common.Fail(c, common.CodeError, "bizscope.availableHosts.error")
+		failBizScopeError(c, serviceErr)
 		return
 	}
 	common.Success(c, items)
@@ -94,7 +94,7 @@ func (h *Handler) BindHosts(c *gin.Context) {
 		return
 	}
 	if serviceErr := h.service.BindHosts(id, req.HostIDs, common.GetDataScope(c)); serviceErr != nil {
-		common.Fail(c, common.CodeError, "bizscope.bindHosts.error")
+		failBizScopeError(c, serviceErr)
 		return
 	}
 	common.Success(c, gin.H{"bound": true})
@@ -113,7 +113,7 @@ func (h *Handler) UnbindHost(c *gin.Context) {
 		return
 	}
 	if serviceErr := h.service.UnbindHost(scopeID, hostID, common.GetDataScope(c)); serviceErr != nil {
-		common.Fail(c, common.CodeError, "bizscope.unbindHost.error")
+		failBizScopeError(c, serviceErr)
 		return
 	}
 	common.Success(c, gin.H{"unbound": true})
@@ -128,7 +128,7 @@ func (h *Handler) Create(c *gin.Context) {
 	}
 	item, serviceErr := h.service.Create(&req)
 	if serviceErr != nil {
-		common.Fail(c, common.CodeError, "bizscope.create.error")
+		failBizScopeError(c, serviceErr)
 		return
 	}
 	common.Success(c, item)
@@ -148,7 +148,7 @@ func (h *Handler) Update(c *gin.Context) {
 	}
 	item, serviceErr := h.service.Update(id, &req)
 	if serviceErr != nil {
-		common.Fail(c, common.CodeError, "bizscope.update.error")
+		failBizScopeError(c, serviceErr)
 		return
 	}
 	common.Success(c, item)
@@ -162,8 +162,21 @@ func (h *Handler) Delete(c *gin.Context) {
 		return
 	}
 	if serviceErr := h.service.Delete(id); serviceErr != nil {
-		common.Fail(c, common.CodeError, "bizscope.delete.error")
+		failBizScopeError(c, serviceErr)
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})
+}
+
+func failBizScopeError(c *gin.Context, err error) {
+	common.Fail(c, common.CodeError, resolveBizScopeErrorKey(err))
+}
+
+func resolveBizScopeErrorKey(err error) string {
+	switch message := common.ErrMessage(err); message {
+	case bizScopeCodeExistsKey, bizScopeInUseKey, bizScopeNotFoundKey, "param.invalid":
+		return message
+	default:
+		return "request.failed"
+	}
 }
