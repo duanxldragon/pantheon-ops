@@ -86,6 +86,11 @@ jobs:
         # never a false positive. Ratchet from the 2026-06/07 mojibake incident.
         run: npm run check:encoding
 
+      - name: Check structure contract
+        # Blocking even on PRs: file placement and naming against base
+        # REPOSITORY_LAYOUT.md — misplaced files only get harder to move later.
+        run: npm run check:structure
+
       - name: Check task packet template
         run: npm run check:task-packet-template
 
