@@ -67,7 +67,7 @@
   },
   "dependencies": {
     "@arco-design/web-react": "*",
-    "axios": "^1.16.0",
+    "axios": "^1.18.0",
     "i18next": "*",
     "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
