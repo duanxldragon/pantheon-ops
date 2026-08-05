@@ -478,13 +478,13 @@ function runCheckScript(opsRoot, scriptName) {
   return result.stdout.trim();
 }
 
-function runNodeScript(opsRoot, scriptRelativePath, checkMode = true) {
+function runNodeScript(opsRoot, scriptRelativePath, checkMode = true, additionalArgs = []) {
   const scriptPath = path.join(opsRoot, scriptRelativePath);
   if (!fs.existsSync(scriptPath)) {
     throw new Error(`required check script is missing: ${scriptRelativePath}`);
   }
 
-  const args = checkMode ? [scriptPath, '--check'] : [scriptPath];
+  const args = [scriptPath, ...(checkMode ? ['--check'] : []), ...additionalArgs];
   const result = spawnSync(process.execPath, args, {
     cwd: opsRoot,
     encoding: 'utf8',
@@ -527,6 +527,28 @@ export function consumeFoundationRelease(options) {
   const summary = [
     `Target foundation release: ${manifest.releaseVersion}`,
     `Release line: ${manifest.releaseLine}`,
+  ];
+  const builtinResourcePath = path.join(
+    resolveBundleRoot(options.bundleRoot),
+    'shared-backend',
+    'backend',
+    'modules',
+    'system',
+    'i18n',
+    'builtin_locale_resources.json',
+  );
+  const foundationI18nArgs = ['--builtin-resource', builtinResourcePath];
+  const sharedFrontendSourceRoot = path.join(
+    resolveBundleRoot(options.bundleRoot),
+    'shared-frontend',
+    'frontend',
+    'src',
+  );
+  const sharedFrontendArgs = [
+    '--source-root',
+    sharedFrontendSourceRoot,
+    '--manifest',
+    options.manifestPath,
   ];
   if (compatibilitySummary) {
     summary.push(compatibilitySummary);
@@ -603,10 +625,22 @@ export function consumeFoundationRelease(options) {
       rollbackState.captureDirectory(path.join(options.opsRoot, 'frontend', 'src'));
       const frontendResult = applySharedFrontendBundle(options.bundleRoot, options.opsRoot, false, rollbackState);
       summary.push(`Applied shared-frontend bundle (${frontendResult.applied} files)`);
-      runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'sync-base-shared.mjs'), false);
+      runNodeScript(
+        options.opsRoot,
+        path.join('frontend', 'scripts', 'sync-base-shared.mjs'),
+        false,
+        sharedFrontendArgs,
+      );
       summary.push('Removed obsolete shared frontend files');
-      runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'sync-foundation-i18n.mjs'), false);
+      runNodeScript(
+        options.opsRoot,
+        path.join('frontend', 'scripts', 'sync-foundation-i18n.mjs'),
+        false,
+        foundationI18nArgs,
+      );
       summary.push('Synced foundation i18n fallback resources');
+      runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'generate-module-i18n.mjs'), false);
+      summary.push('Generated frontend i18n fallback resources');
     }
 
     if (options.check) {
@@ -615,9 +649,27 @@ export function consumeFoundationRelease(options) {
       summary.push('Running check-base-backend-sync.mjs');
       runCheckScript(options.opsRoot, 'check-base-backend-sync.mjs');
       summary.push('Running frontend/scripts/sync-base-shared.mjs --check');
-      runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'sync-base-shared.mjs'));
+      runNodeScript(
+        options.opsRoot,
+        path.join('frontend', 'scripts', 'sync-base-shared.mjs'),
+        true,
+        sharedFrontendArgs,
+      );
       summary.push('Running frontend/scripts/sync-foundation-i18n.mjs --check');
-      runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'sync-foundation-i18n.mjs'));
+      runNodeScript(
+        options.opsRoot,
+        path.join('frontend', 'scripts', 'sync-foundation-i18n.mjs'),
+        true,
+        foundationI18nArgs,
+      );
+      summary.push('Running frontend/scripts/generate-module-i18n.mjs --check');
+      runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'generate-module-i18n.mjs'));
+      summary.push('Running frontend/scripts/check-i18n-missing-keys.mjs');
+      runNodeScript(
+        options.opsRoot,
+        path.join('frontend', 'scripts', 'check-i18n-missing-keys.mjs'),
+        false,
+      );
       summary.push('Running frontend/scripts/check-menu-contract.mjs --check');
       runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'check-menu-contract.mjs'));
     }

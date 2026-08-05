@@ -88,10 +88,10 @@ export function buildFoundationFallbackResources({
   const resources = Object.fromEntries(locales.map((locale) => [locale, {}]));
 
   for (const key of requiredKeys) {
-    if (Object.hasOwn(fallbackResources['zh-CN'] ?? {}, key)) {
-      continue;
-    }
     for (const locale of locales) {
+      if (Object.hasOwn(fallbackResources[locale] ?? {}, key)) {
+        continue;
+      }
       const value = builtinResources[locale]?.[key];
       if (typeof value === 'string' && value.trim() !== '') {
         resources[locale][key] = value;
@@ -149,14 +149,23 @@ export function syncFoundationI18n({
 }
 
 function main() {
-  const releasePaths = resolveFoundationReleasePaths(opsRoot);
-  const builtinResourcePath = path.join(
-    releasePaths.sharedBackendRoot,
-    'modules',
-    'system',
-    'i18n',
-    'builtin_locale_resources.json',
-  );
+  const builtinResourceArgIndex = process.argv.indexOf('--builtin-resource');
+  const explicitBuiltinResourcePath = builtinResourceArgIndex >= 0
+    ? process.argv[builtinResourceArgIndex + 1]
+    : undefined;
+  if (builtinResourceArgIndex >= 0 && !explicitBuiltinResourcePath) {
+    throw new Error('--builtin-resource requires a path');
+  }
+  const releasePaths = explicitBuiltinResourcePath ? null : resolveFoundationReleasePaths(opsRoot);
+  const builtinResourcePath = explicitBuiltinResourcePath
+    ? path.resolve(explicitBuiltinResourcePath)
+    : path.join(
+        releasePaths.sharedBackendRoot,
+        'modules',
+        'system',
+        'i18n',
+        'builtin_locale_resources.json',
+      );
   const checkOnly = process.argv.includes('--check');
   const result = syncFoundationI18n({ builtinResourcePath, checkOnly });
   const keyCount = Object.values(result.resources).reduce((sum, resource) => sum + Object.keys(resource).length, 0);

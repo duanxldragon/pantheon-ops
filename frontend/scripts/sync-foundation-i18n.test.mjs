@@ -88,3 +88,34 @@ test('foundation i18n sync derives only missing static keys from the release res
     }),
   );
 });
+
+test('foundation i18n sync evaluates missing keys independently for each locale', () => {
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-foundation-i18n-locale-'));
+  const sourceRoot = path.join(tmpRoot, 'src');
+  const resourcesRoot = path.join(sourceRoot, 'i18n', 'resources');
+  const builtinResourcePath = path.join(tmpRoot, 'builtin_locale_resources.json');
+
+  writeFile(path.join(sourceRoot, 'Example.tsx'), "t('system.partial');\n");
+  writeFile(
+    path.join(resourcesRoot, 'zh-CN.ts'),
+    "export default { 'system.partial': '已有中文' };\n",
+  );
+  writeFile(path.join(resourcesRoot, 'en-US.ts'), 'export default {};\n');
+  writeFile(
+    builtinResourcePath,
+    `${JSON.stringify({
+      'zh-CN': { 'system.partial': '底座中文' },
+      'en-US': { 'system.partial': 'Foundation English' },
+    })}\n`,
+  );
+
+  const resources = buildFoundationFallbackResources({
+    sourceRoot,
+    fallbackResourcesRoot: resourcesRoot,
+    builtinResourcePath,
+    locales: ['zh-CN', 'en-US'],
+  });
+
+  assert.deepEqual(resources['zh-CN'], {});
+  assert.deepEqual(resources['en-US'], { 'system.partial': 'Foundation English' });
+});

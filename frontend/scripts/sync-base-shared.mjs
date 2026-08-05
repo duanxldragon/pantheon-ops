@@ -25,7 +25,39 @@ const currentFilePath = fileURLToPath(import.meta.url);
 const scriptsDir = path.dirname(currentFilePath);
 const opsFrontendRoot = path.resolve(scriptsDir, '..');
 const opsRoot = path.resolve(opsFrontendRoot, '..');
-const foundationLock = readFoundationLock(opsRoot);
+
+function argumentValue(name) {
+  const index = process.argv.indexOf(name);
+  if (index < 0) {
+    return undefined;
+  }
+  const value = process.argv[index + 1];
+  if (!value) {
+    throw new Error(`${name} requires a path`);
+  }
+  return path.resolve(value);
+}
+
+const explicitSourceRoot = argumentValue('--source-root');
+const explicitManifestPath = argumentValue('--manifest');
+if (Boolean(explicitSourceRoot) !== Boolean(explicitManifestPath)) {
+  throw new Error('--source-root and --manifest must be provided together');
+}
+const lockedFoundation = readFoundationLock(opsRoot);
+const explicitManifest = explicitManifestPath
+  ? JSON.parse(fs.readFileSync(explicitManifestPath, 'utf8'))
+  : null;
+const foundationLock = explicitManifest
+  ? {
+      ...lockedFoundation,
+      releaseVersion: explicitManifest.releaseVersion,
+      baseCommit: explicitManifest.baseCommit,
+      sharedPaths: {
+        ...lockedFoundation.sharedPaths,
+        ...explicitManifest.sharedPaths,
+      },
+    }
+  : lockedFoundation;
 const compareWorkspaceHead = process.argv.includes('--workspace-head');
 
 const opsSrcRoot = path.join(opsFrontendRoot, 'src');
@@ -48,6 +80,13 @@ function statIfPresent(filePath) {
 }
 
 function resolveSharedSource() {
+  if (explicitSourceRoot) {
+    return {
+      sourceRoot: explicitSourceRoot,
+      targetCommit: foundationLock.baseCommit,
+      sourceLabel: `foundation release ${foundationLock.releaseVersion} (${foundationLock.baseCommit})`,
+    };
+  }
   if (compareWorkspaceHead) {
     const baseRepoRoot = resolveBaseRepoRoot(opsRoot, foundationLock);
     if (!fs.existsSync(baseRepoRoot)) {

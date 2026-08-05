@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { hasCssDeclaration as hasDeclaration } from './lib/css-declarations.mjs';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const frontendRoot = path.resolve(path.dirname(currentFilePath), '..');
@@ -179,17 +180,6 @@ function requireStandaloneBlock(cssSource, selector, findings) {
     findings.push(`Missing CSS block: ${selector}`);
   }
   return block;
-}
-
-function hasDeclaration(block, property, expectedValue) {
-  const normalizedValue = String(expectedValue).replace(/\\([()[\]])/g, '$1');
-  const escapedProperty = property.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
-  const escapedValue = normalizedValue.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
-  const pattern = new RegExp(
-    String.raw`${escapedProperty}\s*:\s*${escapedValue}(?:\s*!important)?\s*;`,
-    'i',
-  );
-  return pattern.test(block);
 }
 
 function collectBorderLines(block) {

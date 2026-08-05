@@ -124,15 +124,53 @@ function createFixture(root) {
   );
   writeText(
     path.join(opsRoot, 'frontend', 'scripts', 'sync-base-shared.mjs'),
-    "console.log('OK shared frontend is aligned with pantheon-base');\n",
+    [
+      "const sourceIndex = process.argv.indexOf('--source-root');",
+      "const manifestIndex = process.argv.indexOf('--manifest');",
+      "const sourceRoot = sourceIndex >= 0 ? process.argv[sourceIndex + 1] : '';",
+      "const manifestPath = manifestIndex >= 0 ? process.argv[manifestIndex + 1] : '';",
+      "if (!sourceRoot.includes('release-bundle') || !manifestPath.endsWith('manifest.json')) process.exit(1);",
+      "console.log('OK shared frontend is aligned with pantheon-base');",
+      '',
+    ].join('\n'),
   );
   writeText(
     path.join(opsRoot, 'frontend', 'scripts', 'sync-foundation-i18n.mjs'),
-    "console.log('OK foundation i18n fallback is aligned');\n",
+    [
+      "import path from 'node:path';",
+      "const index = process.argv.indexOf('--builtin-resource');",
+      "const resourcePath = index >= 0 ? process.argv[index + 1] : '';",
+      "if (!resourcePath || path.basename(resourcePath) !== 'builtin_locale_resources.json' || !resourcePath.includes('release-bundle')) process.exit(1);",
+      "console.log('OK foundation i18n fallback is aligned');",
+      '',
+    ].join('\n'),
+  );
+  writeText(
+    path.join(opsRoot, 'frontend', 'scripts', 'generate-module-i18n.mjs'),
+    [
+      "import fs from 'node:fs';",
+      "import path from 'node:path';",
+      "const target = path.join(process.cwd(), 'frontend', 'src', 'i18n', 'resources', 'generated', 'fixture.ts');",
+      "if (process.argv.includes('--check')) {",
+      "  if (!fs.existsSync(target) || fs.readFileSync(target, 'utf8') !== 'generated\\n') process.exit(1);",
+      '} else {',
+      "  fs.mkdirSync(path.dirname(target), { recursive: true });",
+      "  fs.writeFileSync(target, 'generated\\n', 'utf8');",
+      '}',
+      '',
+    ].join('\n'),
+  );
+  writeText(
+    path.join(opsRoot, 'frontend', 'scripts', 'check-i18n-missing-keys.mjs'),
+    "console.log('OK no missing i18n keys');\n",
   );
   writeText(
     path.join(opsRoot, 'frontend', 'scripts', 'check-menu-contract.mjs'),
     "console.log('OK menu contract');\n",
+  );
+  writeText(
+    path.join(opsRoot, 'frontend', 'src', 'i18n', 'resources', 'generated', 'fixture.ts'),
+    'generated\n',
   );
 
   return { bundleRoot, manifestPath, opsRoot };
@@ -451,6 +489,44 @@ test('apply mode removes obsolete files inside shared frontend paths before chec
   });
 });
 
+test('apply mode regenerates frontend i18n output from the supplied bundle', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    const generatedPath = path.join(
+      opsRoot,
+      'frontend',
+      'src',
+      'i18n',
+      'resources',
+      'generated',
+      'fixture.ts',
+    );
+    fs.rmSync(generatedPath);
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'core', 'shell.ts'),
+      'export const shell = "base";\n',
+    );
+
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--apply-shared-frontend',
+        '--check',
+        '--rollback-on-error',
+      ],
+      repoRoot,
+    );
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+    assert.equal(fs.readFileSync(generatedPath, 'utf8'), 'generated\n');
+  });
+});
+
 test('apply mode updates platform health source with its shared Base tests', () => {
   withTempDir((root) => {
     const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
@@ -759,9 +835,23 @@ test('rollback restores inheritance anchors and release artifacts when a require
     const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
     const zhDocPath = path.join(opsRoot, 'docs', 'PROJECT_INHERITANCE.md');
     const enDocPath = path.join(opsRoot, 'docs', 'PROJECT_INHERITANCE.en.md');
+    const generatedPath = path.join(
+      opsRoot,
+      'frontend',
+      'src',
+      'i18n',
+      'resources',
+      'generated',
+      'fixture.ts',
+    );
     const originalLock = fs.readFileSync(lockPath, 'utf8');
     const originalZhDoc = fs.readFileSync(zhDocPath, 'utf8');
     const originalEnDoc = fs.readFileSync(enDocPath, 'utf8');
+    writeText(generatedPath, 'original generated output\n');
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'core', 'shell.ts'),
+      'export const shell = "base";\n',
+    );
     writeText(
       path.join(opsRoot, 'scripts', 'check-base-backend-sync.mjs'),
       "console.error('expected check failure'); process.exit(1);\n",
@@ -776,6 +866,7 @@ test('rollback restores inheritance anchors and release artifacts when a require
         '--bundle',
         bundleRoot,
         '--update-inheritance-docs',
+        '--apply-shared-frontend',
         '--check',
         '--rollback-on-error',
       ],
@@ -787,6 +878,7 @@ test('rollback restores inheritance anchors and release artifacts when a require
     assert.equal(fs.readFileSync(lockPath, 'utf8'), originalLock);
     assert.equal(fs.readFileSync(zhDocPath, 'utf8'), originalZhDoc);
     assert.equal(fs.readFileSync(enDocPath, 'utf8'), originalEnDoc);
+    assert.equal(fs.readFileSync(generatedPath, 'utf8'), 'original generated output\n');
     assert.equal(
       fs.existsSync(path.join(opsRoot, '.foundation', 'releases', 'base-v0.8.0')),
       false,
