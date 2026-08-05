@@ -15,9 +15,11 @@ import {
   isFrontendOverlayPath,
   mergeBuiltinLocaleResources,
   readFoundationLock,
+  readVerifiedReleaseMarker,
   readGoModuleName,
   rewriteFrontendBaseSource,
   rewriteBackendBaseSource,
+  sharedFrontendToolingEntriesFromLock,
   toRelocatedFrontendPath,
 } from './shared-foundation-rules.mjs';
 
@@ -136,7 +138,7 @@ function updateInheritanceDoc(filePath, manifest, language) {
   fs.writeFileSync(filePath, content, 'utf8');
 }
 
-function updateFoundationLock(opsRoot, manifest) {
+function updateFoundationLock(opsRoot, manifest, verificationMarker) {
   const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
   const currentLock = readFoundationLock(opsRoot);
   const nextLock = {
@@ -159,6 +161,7 @@ function updateFoundationLock(opsRoot, manifest) {
     ...currentLock.releaseArtifact,
     ...manifest.releaseArtifact,
     localPath: `.foundation/releases/${manifest.releaseVersion}`,
+    checksum: verificationMarker.archiveSha256,
   };
 
   fs.writeFileSync(lockPath, `${JSON.stringify(nextLock, null, 2)}\n`, 'utf8');
@@ -393,6 +396,32 @@ function computeFrontendChange(relativePath, sourceRoot, targetRoot) {
   return null;
 }
 
+function computeSharedToolingChange(repoRelativePath, sourceRoot, opsRoot) {
+  const sourcePath = path.join(sourceRoot, repoRelativePath);
+  if (!fs.existsSync(sourcePath)) {
+    throw new Error(`shared frontend tooling asset is missing from the release bundle: ${repoRelativePath}`);
+  }
+
+  const targetPath = path.join(opsRoot, repoRelativePath);
+  const nextSource = readUtf8(sourcePath);
+  const targetExists = fs.existsSync(targetPath);
+  const targetContent = targetExists ? readUtf8(targetPath) : null;
+  if (
+    targetExists
+    && normalizeLineEndings(nextSource) === normalizeLineEndings(targetContent)
+  ) {
+    return null;
+  }
+
+  return {
+    action: targetExists ? 'REWRITE' : 'CREATE',
+    path: repoRelativePath,
+    targetPath,
+    newContent: nextSource,
+    oldContent: targetContent,
+  };
+}
+
 function applySharedBackendBundle(bundleRoot, opsRoot, manifest, dryRun = false, rollbackState = null) {
   const sourceRoot = path.join(resolveBundleRoot(bundleRoot), 'shared-backend', 'backend');
   if (!fs.existsSync(sourceRoot)) {
@@ -460,6 +489,37 @@ function applySharedFrontendBundle(bundleRoot, opsRoot, dryRun = false, rollback
   return { skipped: 0, applied: collectFiles(sourceRoot).length, dryRun };
 }
 
+function applySharedFrontendToolingBundle(
+  bundleRoot,
+  opsRoot,
+  manifest,
+  dryRun = false,
+  rollbackState = null,
+) {
+  const sourceRoot = path.join(resolveBundleRoot(bundleRoot), 'shared-frontend');
+  const entries = sharedFrontendToolingEntriesFromLock(manifest);
+  const changes = [];
+
+  for (const repoRelativePath of entries) {
+    const change = computeSharedToolingChange(repoRelativePath, sourceRoot, opsRoot);
+    if (!change) {
+      continue;
+    }
+
+    if (dryRun) {
+      changes.push(change);
+    } else {
+      rollbackState?.captureFile(change.targetPath);
+      writeUtf8(change.targetPath, change.newContent);
+    }
+  }
+
+  if (dryRun) {
+    return { skipped: 0, applied: changes.length, changes, dryRun };
+  }
+  return { skipped: 0, applied: entries.length, dryRun };
+}
+
 function runCheckScript(opsRoot, scriptName) {
   const scriptPath = path.join(opsRoot, 'scripts', scriptName);
   if (!fs.existsSync(scriptPath)) {
@@ -519,6 +579,14 @@ export function consumeFoundationRelease(options) {
   validateOptions(options);
 
   const manifest = readManifest(options.manifestPath);
+  const releaseRoot = resolveReleaseRoot(options.bundleRoot);
+  if (!releaseRoot) {
+    throw new Error('foundation consumer requires an installed release root containing manifest.json and bundle/');
+  }
+  if (path.resolve(options.manifestPath) !== path.resolve(releaseRoot, 'manifest.json')) {
+    throw new Error('manifest must belong to the supplied verified foundation release root');
+  }
+  const verificationMarker = readVerifiedReleaseMarker(releaseRoot, manifest);
   const compatibilitySummary = validateConsumerCompatibility(
     options.opsRoot,
     manifest,
@@ -558,9 +626,16 @@ export function consumeFoundationRelease(options) {
     summary.push('DRY RUN — no files will be modified');
     const backendDryRun = applySharedBackendBundle(options.bundleRoot, options.opsRoot, manifest, true);
     const frontendDryRun = applySharedFrontendBundle(options.bundleRoot, options.opsRoot, true);
+    const frontendToolingDryRun = applySharedFrontendToolingBundle(
+      options.bundleRoot,
+      options.opsRoot,
+      manifest,
+      true,
+    );
     const allChanges = [
       ...(backendDryRun.changes || []),
       ...(frontendDryRun.changes || []),
+      ...(frontendToolingDryRun.changes || []),
     ];
     if (allChanges.length === 0) {
       console.log('No changes needed — shared paths are already aligned.');
@@ -601,7 +676,7 @@ export function consumeFoundationRelease(options) {
       installConsumedReleaseArtifact(options.bundleRoot, options.opsRoot, manifest, rollbackState);
       updateInheritanceDoc(zhDocPath, manifest, 'zh');
       updateInheritanceDoc(enDocPath, manifest, 'en');
-      updateFoundationLock(options.opsRoot, manifest);
+      updateFoundationLock(options.opsRoot, manifest, verificationMarker);
       summary.push('Updated inheritance docs');
       summary.push('Updated foundation-release.lock.json');
     }
@@ -624,7 +699,16 @@ export function consumeFoundationRelease(options) {
       // Snapshot the whole tree because that cleanup can delete files the bundle no longer contains.
       rollbackState.captureDirectory(path.join(options.opsRoot, 'frontend', 'src'));
       const frontendResult = applySharedFrontendBundle(options.bundleRoot, options.opsRoot, false, rollbackState);
-      summary.push(`Applied shared-frontend bundle (${frontendResult.applied} files)`);
+      const frontendToolingResult = applySharedFrontendToolingBundle(
+        options.bundleRoot,
+        options.opsRoot,
+        manifest,
+        false,
+        rollbackState,
+      );
+      summary.push(
+        `Applied shared-frontend bundle (${frontendResult.applied + frontendToolingResult.applied} files)`,
+      );
       runNodeScript(
         options.opsRoot,
         path.join('frontend', 'scripts', 'sync-base-shared.mjs'),

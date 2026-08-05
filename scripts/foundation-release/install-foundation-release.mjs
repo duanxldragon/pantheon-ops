@@ -6,8 +6,11 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 import {
+  computeFileSha256,
+  computeReleaseTreeSha256,
   readFoundationLock,
   readFoundationReleaseManifest,
+  verifiedReleaseMarkerName,
 } from './shared-foundation-rules.mjs';
 
 const currentFilePath = fileURLToPath(import.meta.url);
@@ -65,6 +68,33 @@ function resolveArtifactMetadata(lock, options) {
   return { assetName, repo };
 }
 
+function parseChecksumFile(checksumPath, archivePath) {
+  const checksumContents = fs.readFileSync(checksumPath, 'utf8').trim();
+  const checksumMatch = checksumContents.match(/^([a-fA-F0-9]{64})\s+\*?(.+)$/u);
+  if (!checksumMatch) {
+    throw new Error(`invalid SHA-256 checksum file: ${checksumPath}`);
+  }
+  const [, checksum, recordedFileName] = checksumMatch;
+  const archiveName = path.basename(archivePath);
+  if (path.basename(recordedFileName) !== archiveName) {
+    throw new Error(`checksum file ${checksumPath} names ${recordedFileName}, expected ${archiveName}`);
+  }
+  return checksum.toLowerCase();
+}
+
+function checksumFromAdjacentFile(archivePath) {
+  const checksumPath = `${archivePath}.sha256`;
+  return fs.existsSync(checksumPath) ? parseChecksumFile(checksumPath, archivePath) : null;
+}
+
+function requireExpectedChecksum(downloadedChecksum, lockChecksum) {
+  const checksum = downloadedChecksum ?? lockChecksum ?? null;
+  if (!/^[a-f0-9]{64}$/iu.test(checksum ?? '')) {
+    throw new Error('foundation release SHA-256 is required from an adjacent .sha256 file or releaseArtifact.checksum');
+  }
+  return checksum.toLowerCase();
+}
+
 function downloadArchive(lock, options) {
   const { assetName, repo } = resolveArtifactMetadata(lock, options);
   if (!repo) {
@@ -94,7 +124,6 @@ function downloadArchive(lock, options) {
     throw new Error(`downloaded release artifact not found: ${archivePath}`);
   }
 
-  let checksum = null;
   const checksumAssetName = `${assetName}.sha256`;
   try {
     runCommand(
@@ -103,48 +132,84 @@ function downloadArchive(lock, options) {
       `gh release download checksum ${lock.releaseVersion}`,
       { cwd: options.opsRoot },
     );
-    const checksumPath = path.join(downloadDir, checksumAssetName);
-    if (fs.existsSync(checksumPath)) {
-      const checksumContent = fs.readFileSync(checksumPath, 'utf8').trim();
-      checksum = checksumContent.split(/\s+/)[0];
+  } catch (error) {
+    if (!lock.releaseArtifact?.checksum) {
+      fs.rmSync(downloadDir, { recursive: true, force: true });
+      throw new Error(`checksum asset is required for ${lock.releaseVersion}: ${error.message}`);
     }
-  } catch {
-    // checksum file not present — skip verification
   }
+
+  const checksumPath = path.join(downloadDir, checksumAssetName);
+  const checksum = fs.existsSync(checksumPath)
+    ? parseChecksumFile(checksumPath, archivePath)
+    : null;
 
   return { archivePath, checksum, downloadDir };
 }
 
-function installArchive(archivePath, releaseRoot, expectedSha256) {
-  fs.rmSync(releaseRoot, { recursive: true, force: true });
-  fs.mkdirSync(releaseRoot, { recursive: true });
-  runCommand('tar', ['-xzf', archivePath, '-C', releaseRoot], `extract ${archivePath}`);
-  if (expectedSha256) {
-    verifyChecksum(archivePath, expectedSha256);
-  }
-  fs.rmSync(archivePath, { force: true });
-}
-
 function verifyChecksum(archivePath, expectedSha256) {
-  const isWindows = process.platform === 'win32';
-  const command = isWindows ? 'certutil' : 'sha256sum';
-  const args = isWindows ? ['-hashfile', archivePath, 'SHA256'] : [archivePath];
-  const result = spawnSync(command, args, { encoding: 'utf8' });
-  if (result.status !== 0) {
-    throw new Error(`checksum computation failed: ${result.stderr || result.stdout}`);
-  }
-  const actualSha256 = isWindows
-    ? result.stdout.split('\n').find((l) => l.trim().length === 64)?.trim()
-    : result.stdout.trim().split(/\s+/)[0];
-  if (!actualSha256) {
-    throw new Error(`could not parse SHA256 from ${command} output`);
-  }
+  const actualSha256 = computeFileSha256(archivePath);
   if (actualSha256.toLowerCase() !== expectedSha256.toLowerCase()) {
     throw new Error(
       `checksum mismatch for ${archivePath}\n` +
       `  expected: ${expectedSha256}\n` +
       `  actual:   ${actualSha256}`,
     );
+  }
+  return actualSha256.toLowerCase();
+}
+
+function writeVerificationMarker(releaseRoot, manifest, archivePath, archiveSha256) {
+  const marker = {
+    schemaVersion: 1,
+    releaseVersion: manifest.releaseVersion,
+    baseCommit: manifest.baseCommit,
+    archiveAssetName: path.basename(archivePath),
+    archiveSha256,
+    manifestSha256: computeFileSha256(path.join(releaseRoot, 'manifest.json')),
+    releaseTreeSha256: computeReleaseTreeSha256(releaseRoot),
+    verifiedAt: new Date().toISOString(),
+  };
+  fs.writeFileSync(
+    path.join(releaseRoot, verifiedReleaseMarkerName),
+    `${JSON.stringify(marker, null, 2)}\n`,
+    'utf8',
+  );
+}
+
+function installArchive(archivePath, releaseRoot, expectedSha256, lock) {
+  const archiveSha256 = verifyChecksum(archivePath, expectedSha256);
+  const releasesRoot = path.dirname(releaseRoot);
+  fs.mkdirSync(releasesRoot, { recursive: true });
+  const temporaryRoot = fs.mkdtempSync(path.join(releasesRoot, '.install-'));
+  const backupRoot = path.join(releasesRoot, `.backup-${path.basename(releaseRoot)}-${process.pid}-${Date.now()}`);
+  let previousMoved = false;
+  let installedMoved = false;
+
+  try {
+    runCommand('tar', ['-xzf', archivePath, '-C', temporaryRoot], `extract ${archivePath}`);
+    const manifest = readFoundationReleaseManifest(temporaryRoot, lock);
+    writeVerificationMarker(temporaryRoot, manifest, archivePath, archiveSha256);
+
+    if (fs.existsSync(releaseRoot)) {
+      fs.renameSync(releaseRoot, backupRoot);
+      previousMoved = true;
+    }
+    fs.renameSync(temporaryRoot, releaseRoot);
+    installedMoved = true;
+    if (previousMoved) {
+      fs.rmSync(backupRoot, { recursive: true, force: true });
+      previousMoved = false;
+    }
+  } catch (error) {
+    fs.rmSync(temporaryRoot, { recursive: true, force: true });
+    if (installedMoved) {
+      fs.rmSync(releaseRoot, { recursive: true, force: true });
+    }
+    if (previousMoved && fs.existsSync(backupRoot)) {
+      fs.renameSync(backupRoot, releaseRoot);
+    }
+    throw error;
   }
 }
 
@@ -155,12 +220,13 @@ function printHelp() {
 Behavior:
   Installs the locked pantheon-base foundation release under .foundation/releases/<releaseVersion>.
   Without --archive, downloads foundation-release-<releaseVersion>.tgz from the configured GitHub release.
-  If a .sha256 checksum file is present on the release, it is verified after download.
-  The lock file may also carry a "checksum" field as fallback verification.
+  A SHA-256 from the adjacent .sha256 file or lock is required and verified before extraction.
+  The manifest is validated in a temporary directory before the installed release is replaced.
   Temp download directories are cleaned up after successful installation.`);
 }
 
 function main() {
+  let downloadResult = null;
   try {
     const options = parseArgs(process.argv.slice(2));
     if (options.help) {
@@ -170,12 +236,10 @@ function main() {
 
     const lock = readFoundationLock(options.opsRoot);
     const releaseRoot = path.join(options.opsRoot, '.foundation', 'releases', lock.releaseVersion);
-    let downloadResult;
-
     if (options.archivePath) {
       downloadResult = {
         archivePath: path.resolve(options.archivePath),
-        checksum: null,
+        checksum: checksumFromAdjacentFile(path.resolve(options.archivePath)),
         downloadDir: null,
       };
     } else {
@@ -185,31 +249,26 @@ function main() {
     if (!fs.existsSync(downloadResult.archivePath)) {
       if (options.ifExists) {
         console.log(`Foundation release ${lock.releaseVersion} artifact not found on ${lock.releaseArtifact?.githubRepo ?? 'GitHub'} — skipping install`);
-        if (downloadResult.downloadDir) {
-          fs.rmSync(downloadResult.downloadDir, { recursive: true, force: true });
-        }
         return 0;
       }
       throw new Error(`downloaded release artifact not found: ${downloadResult.archivePath}`);
     }
 
-    installArchive(
-      downloadResult.archivePath,
-      releaseRoot,
-      downloadResult.checksum ?? lock.releaseArtifact?.checksum ?? null,
+    const expectedChecksum = requireExpectedChecksum(
+      downloadResult.checksum,
+      lock.releaseArtifact?.checksum,
     );
-    readFoundationReleaseManifest(releaseRoot, lock);
-
-    // Clean up the temp download directory
-    if (downloadResult.downloadDir) {
-      fs.rmSync(downloadResult.downloadDir, { recursive: true, force: true });
-    }
+    installArchive(downloadResult.archivePath, releaseRoot, expectedChecksum, lock);
 
     console.log(`Installed foundation release ${lock.releaseVersion} to ${releaseRoot}`);
     return 0;
   } catch (error) {
     console.error(error.message);
     return 1;
+  } finally {
+    if (downloadResult?.downloadDir) {
+      fs.rmSync(downloadResult.downloadDir, { recursive: true, force: true });
+    }
   }
 }
 

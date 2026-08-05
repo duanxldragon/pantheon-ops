@@ -24,7 +24,7 @@
     "check:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs --check",
     "check:overlay-compile": "node scripts/check-overlay-compile.mjs",
     "upgrade:foundation:plan": "node scripts/foundation-release/consume-foundation-release.mjs --dry-run",
-    "upgrade:foundation:apply": "node scripts/foundation-release/consume-foundation-release.mjs --apply-shared-backend --apply-shared-frontend --update-inheritance-docs --check",
+    "upgrade:foundation:apply": "node scripts/foundation-release/consume-foundation-release.mjs --apply-shared-backend --apply-shared-frontend --update-inheritance-docs --check --rollback-on-error",
     "foundation:install": "node scripts/foundation-release/install-foundation-release.mjs",
     "upgrade:foundation:local-plan": "node scripts/foundation-release/upgrade-from-local-base-release.mjs --plan-only",
     "upgrade:foundation:local-apply": "node scripts/foundation-release/upgrade-from-local-base-release.mjs",

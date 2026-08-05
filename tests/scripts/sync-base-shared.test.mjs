@@ -183,3 +183,62 @@ test('sync-base-shared uses the installed release artifact by default', () => {
     );
   });
 });
+
+test('sync-base-shared checks and applies allowlisted frontend tooling from the release', () => {
+  withTempDir((root) => {
+    const releaseRoot = path.join(root, 'release-root');
+    const opsRoot = path.join(root, 'ops-worktree-fixture');
+    const syncScriptPath = copyFixtureScripts(opsRoot);
+    const toolingEntry = 'frontend/scripts/lib/css-declarations.mjs';
+    const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
+    const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+    lock.sharedPaths.frontend = ['frontend/src/components', toolingEntry];
+    writeText(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
+
+    writeText(
+      path.join(releaseRoot, 'manifest.json'),
+      `${JSON.stringify({
+        schemaVersion: 1,
+        releaseVersion: 'base-vtest',
+        releaseLine: 'release/test',
+        baseCommit: 'HEAD',
+        sourceRepo: 'pantheon-base',
+        consumerMode: 'foundation-release-consumer',
+        sharedPaths: { frontend: ['frontend/src/components', toolingEntry] },
+      }, null, 2)}\n`,
+    );
+    writeText(
+      path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'components', 'index.ts'),
+      'export const component = true;\n',
+    );
+    writeText(
+      path.join(releaseRoot, 'bundle', 'shared-frontend', toolingEntry),
+      'export const matcher = "release";\n',
+    );
+    writeText(
+      path.join(opsRoot, 'frontend', 'src', 'components', 'index.ts'),
+      'export const component = true;\n',
+    );
+
+    const env = { PANTHEON_FOUNDATION_RELEASE_ROOT: releaseRoot };
+    const missingResult = runSync(syncScriptPath, opsRoot, env, ['--check']);
+    assert.notEqual(missingResult.status, 0);
+    assert.match(missingResult.stderr, /MISSING frontend\/scripts\/lib\/css-declarations\.mjs/);
+
+    writeText(path.join(opsRoot, toolingEntry), 'export const matcher = "stale";\n');
+    const driftResult = runSync(syncScriptPath, opsRoot, env, ['--check']);
+    assert.notEqual(driftResult.status, 0);
+    assert.match(driftResult.stderr, /DIFF frontend\/scripts\/lib\/css-declarations\.mjs/);
+
+    const applyResult = runSync(syncScriptPath, opsRoot, env, []);
+    assert.equal(applyResult.status, 0, applyResult.stderr || applyResult.stdout || applyResult.error?.message);
+    assert.equal(
+      fs.readFileSync(path.join(opsRoot, toolingEntry), 'utf8'),
+      'export const matcher = "release";\n',
+    );
+
+    const checkResult = runSync(syncScriptPath, opsRoot, env, ['--check']);
+    assert.equal(checkResult.status, 0, checkResult.stderr || checkResult.stdout || checkResult.error?.message);
+    assert.match(checkResult.stdout, /OK shared frontend is aligned/);
+  });
+});

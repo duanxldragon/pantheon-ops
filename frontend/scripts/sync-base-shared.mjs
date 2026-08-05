@@ -14,6 +14,7 @@ import {
   resolveBaseRepoRoot,
   rewriteFrontendBaseSource,
   sharedFrontendEntriesFromLock,
+  sharedFrontendToolingEntriesFromLock,
   stripTreePrefix,
   normalizeLineEndings,
   toOriginalFrontendPath,
@@ -83,6 +84,7 @@ function resolveSharedSource() {
   if (explicitSourceRoot) {
     return {
       sourceRoot: explicitSourceRoot,
+      frontendTreeRoot: path.resolve(explicitSourceRoot, '..'),
       targetCommit: foundationLock.baseCommit,
       sourceLabel: `foundation release ${foundationLock.releaseVersion} (${foundationLock.baseCommit})`,
     };
@@ -103,9 +105,23 @@ function resolveSharedSource() {
   return {
     releaseRoot: releasePaths.releaseRoot,
     sourceRoot: releasePaths.sharedFrontendRoot,
+    frontendTreeRoot: releasePaths.sharedFrontendTreeRoot,
     targetCommit: foundationLock.baseCommit,
     sourceLabel: `foundation release ${foundationLock.releaseVersion} (${foundationLock.baseCommit})`,
   };
+}
+
+function readSharedToolingSource(repoRelativePath) {
+  if (sharedSource.frontendTreeRoot) {
+    return readFile(
+      path.join(sharedSource.frontendTreeRoot, stripTreePrefix(repoRelativePath, 'frontend')),
+    );
+  }
+  return readFileFromGitCommit(
+    sharedSource.baseRepoRoot,
+    sharedSource.targetCommit,
+    repoRelativePath,
+  );
 }
 
 const sharedSource = resolveSharedSource();
@@ -229,6 +245,41 @@ function main() {
     ensureDir(opsFilePath);
     fs.writeFileSync(opsFilePath, baseSource, 'utf8');
     changedFiles.push(relativePath);
+  }
+
+  for (const repoRelativePath of sharedFrontendToolingEntriesFromLock(foundationLock)) {
+    const opsFilePath = path.join(opsRoot, repoRelativePath);
+    const baseSource = readSharedToolingSource(repoRelativePath);
+    let opsSource = null;
+    try {
+      opsSource = readFile(opsFilePath);
+    } catch (error) {
+      if (error?.code !== 'ENOENT') {
+        throw error;
+      }
+    }
+
+    if (opsSource === null) {
+      if (checkMode) {
+        missingFiles.push(repoRelativePath);
+        continue;
+      }
+      ensureDir(opsFilePath);
+      fs.writeFileSync(opsFilePath, baseSource, 'utf8');
+      changedFiles.push(repoRelativePath);
+      continue;
+    }
+
+    if (normalizeLineEndings(baseSource) === normalizeLineEndings(opsSource)) {
+      continue;
+    }
+    if (checkMode) {
+      driftFiles.push(repoRelativePath);
+      continue;
+    }
+
+    fs.writeFileSync(opsFilePath, baseSource, 'utf8');
+    changedFiles.push(repoRelativePath);
   }
 
   const opsOnlyFiles = collectSharedOpsOnlyFiles();

@@ -1,6 +1,9 @@
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
+
+export const verifiedReleaseMarkerName = '.foundation-release-verified.json';
 
 export const sharedBackendEntries = ['cmd', 'internal', 'modules', 'pkg'];
 
@@ -13,6 +16,10 @@ export const sharedFrontendEntries = [
   'modules/system',
   'index.css',
 ];
+
+export const sharedFrontendToolingPaths = new Set([
+  'frontend/scripts/lib/css-declarations.mjs',
+]);
 
 export const backendOverlayPaths = new Set([
   'internal/scaffold/workspace.go',
@@ -98,6 +105,61 @@ export function normalizeLineEndings(source) {
   return source.replaceAll('\r\n', '\n');
 }
 
+export function computeFileSha256(filePath) {
+  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+}
+
+export function computeReleaseTreeSha256(releaseRoot) {
+  const digest = crypto.createHash('sha256');
+  const files = collectFiles(releaseRoot)
+    .filter((relativePath) => relativePath !== verifiedReleaseMarkerName)
+    .sort();
+
+  for (const relativePath of files) {
+    const content = fs.readFileSync(path.join(releaseRoot, relativePath));
+    digest.update(relativePath);
+    digest.update('\0');
+    digest.update(String(content.length));
+    digest.update('\0');
+    digest.update(content);
+    digest.update('\0');
+  }
+  return digest.digest('hex');
+}
+
+export function readVerifiedReleaseMarker(releaseRoot, manifest, expectedChecksum = null) {
+  const markerPath = path.join(releaseRoot, verifiedReleaseMarkerName);
+  if (!fs.existsSync(markerPath)) {
+    throw new Error(`foundation release verification marker not found: ${markerPath}`);
+  }
+
+  const marker = JSON.parse(fs.readFileSync(markerPath, 'utf8'));
+  if (marker.schemaVersion !== 1) {
+    throw new Error(`unsupported foundation release verification marker: ${markerPath}`);
+  }
+  if (marker.releaseVersion !== manifest.releaseVersion || marker.baseCommit !== manifest.baseCommit) {
+    throw new Error(`foundation release verification marker identity mismatch: ${markerPath}`);
+  }
+  if (!/^[a-f0-9]{64}$/iu.test(marker.archiveSha256 ?? '')) {
+    throw new Error(`foundation release verification marker has invalid archiveSha256: ${markerPath}`);
+  }
+  if (expectedChecksum && marker.archiveSha256.toLowerCase() !== expectedChecksum.toLowerCase()) {
+    throw new Error(
+      `foundation release checksum mismatch: lock=${expectedChecksum} marker=${marker.archiveSha256}`,
+    );
+  }
+
+  const manifestSha256 = computeFileSha256(path.join(releaseRoot, 'manifest.json'));
+  if (marker.manifestSha256 !== manifestSha256) {
+    throw new Error(`foundation release manifest changed after verification: ${releaseRoot}`);
+  }
+  const releaseTreeSha256 = computeReleaseTreeSha256(releaseRoot);
+  if (marker.releaseTreeSha256 !== releaseTreeSha256) {
+    throw new Error(`foundation release contents changed after verification: ${releaseRoot}`);
+  }
+  return marker;
+}
+
 export function readFoundationLock(opsRoot) {
   const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
   if (!fs.existsSync(lockPath)) {
@@ -137,6 +199,17 @@ export function sharedFrontendEntriesFromLock(lock) {
   return entries
     .filter((entry) => typeof entry === 'string' && entry.startsWith('frontend/src/'))
     .map((entry) => stripTreePrefix(entry, 'frontend/src'));
+}
+
+export function sharedFrontendToolingEntriesFromLock(lock) {
+  const entries = lock.sharedPaths?.frontend;
+  if (!Array.isArray(entries)) {
+    return [];
+  }
+
+  return entries.filter(
+    (entry) => typeof entry === 'string' && sharedFrontendToolingPaths.has(toRepoPath(entry)),
+  );
 }
 
 export function resolveBaseRepoRoot(opsRoot, lock = readFoundationLock(opsRoot)) {
@@ -215,6 +288,7 @@ export function resolveFoundationReleasePaths(opsRoot, lock = readFoundationLock
     bundleRoot: path.join(releaseRoot, 'bundle'),
     sharedBackendRoot: path.join(releaseRoot, 'bundle', 'shared-backend', 'backend'),
     sharedFrontendRoot: path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src'),
+    sharedFrontendTreeRoot: path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend'),
   };
 }
 

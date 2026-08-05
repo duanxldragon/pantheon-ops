@@ -1,10 +1,15 @@
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import {
+  computeFileSha256,
+  computeReleaseTreeSha256,
+} from '../../../scripts/foundation-release/shared-foundation-rules.mjs';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(currentFilePath), '..', '..', '..');
@@ -29,10 +34,41 @@ function writeText(filePath, value) {
   fs.writeFileSync(filePath, value, 'utf8');
 }
 
-function runScript(args, cwd) {
+function writeTestVerificationMarker(args) {
+  const bundleIndex = args.indexOf('--bundle');
+  if (bundleIndex < 0) return;
+  const releaseRoot = path.resolve(args[bundleIndex + 1]);
+  const manifest = JSON.parse(fs.readFileSync(path.join(releaseRoot, 'manifest.json'), 'utf8'));
+  writeJson(path.join(releaseRoot, '.foundation-release-verified.json'), {
+    schemaVersion: 1,
+    releaseVersion: manifest.releaseVersion,
+    baseCommit: manifest.baseCommit,
+    archiveAssetName: `foundation-release-${manifest.releaseVersion}.tgz`,
+    archiveSha256: crypto.createHash('sha256').update(manifest.releaseVersion).digest('hex'),
+    manifestSha256: computeFileSha256(path.join(releaseRoot, 'manifest.json')),
+    releaseTreeSha256: computeReleaseTreeSha256(releaseRoot),
+    verifiedAt: '2026-08-05T00:00:00.000Z',
+  });
+}
+
+function runRawScript(args, cwd) {
   return spawnSync(process.execPath, [scriptPath, ...args], {
     cwd,
     encoding: 'utf8',
+  });
+}
+
+function runScript(args, cwd) {
+  writeTestVerificationMarker(args);
+  return runRawScript(args, cwd);
+}
+
+function runNpmApply(args) {
+  writeTestVerificationMarker(args);
+  return spawnSync('npm', ['run', 'upgrade:foundation:apply', '--', ...args], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    shell: process.platform === 'win32',
   });
 }
 
@@ -725,6 +761,45 @@ test('--dry-run mode lists files that would change with CREATE or REWRITE action
   });
 });
 
+test('shared frontend tooling is reported by dry-run and applied from the release bundle', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.sharedPaths.frontend = ['frontend/scripts/lib/css-declarations.mjs'];
+    writeJson(manifestPath, manifest);
+    const toolingPath = path.join('frontend', 'scripts', 'lib', 'css-declarations.mjs');
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-frontend', toolingPath),
+      'export const matcher = "release";\n',
+    );
+    writeText(path.join(opsRoot, toolingPath), 'export const matcher = "stale";\n');
+
+    const dryRun = runScript(
+      ['--ops-root', opsRoot, '--manifest', manifestPath, '--bundle', bundleRoot, '--dry-run'],
+      repoRoot,
+    );
+    assert.equal(dryRun.status, 0, dryRun.stderr || dryRun.stdout || dryRun.error?.message);
+    assert.match(dryRun.stdout, /REWRITE frontend[\\/]scripts[\\/]lib[\\/]css-declarations\.mjs/);
+    assert.equal(fs.readFileSync(path.join(opsRoot, toolingPath), 'utf8'), 'export const matcher = "stale";\n');
+
+    const applyResult = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--apply-shared-frontend',
+        '--rollback-on-error',
+      ],
+      repoRoot,
+    );
+    assert.equal(applyResult.status, 0, applyResult.stderr || applyResult.stdout || applyResult.error?.message);
+    assert.equal(fs.readFileSync(path.join(opsRoot, toolingPath), 'utf8'), 'export const matcher = "release";\n');
+  });
+});
+
 test('apply mode writes lockedAt and lockedBy to foundation-release.lock.json', () => {
   withTempDir((root) => {
     const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
@@ -793,6 +868,44 @@ test('write operations require rollback-on-error', () => {
   });
 });
 
+test('consumer rejects an unverified or modified release root', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    const args = ['--ops-root', opsRoot, '--manifest', manifestPath, '--bundle', bundleRoot, '--dry-run'];
+
+    const unverified = runRawScript(args, repoRoot);
+    assert.notEqual(unverified.status, 0);
+    assert.match(unverified.stderr, /verification marker not found/);
+
+    writeTestVerificationMarker(args);
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-backend', 'backend', 'pkg', 'service.go'),
+      'package pkg\n// modified after verification\n',
+    );
+    const modified = runRawScript(args, repoRoot);
+    assert.notEqual(modified.status, 0);
+    assert.match(modified.stderr, /contents changed after verification/);
+  });
+});
+
+test('the formal npm apply entry executes with rollback protection', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    const result = runNpmApply([
+      '--ops-root',
+      opsRoot,
+      '--manifest',
+      manifestPath,
+      '--bundle',
+      bundleRoot,
+      '--skip-go-validation',
+    ]);
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+    assert.match(result.stdout, /Updated foundation-release\.lock\.json/);
+  });
+});
+
 test('consumer blocks incompatible release lines unless the forward jump is explicit', () => {
   withTempDir((root) => {
     const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
@@ -847,6 +960,23 @@ test('rollback restores inheritance anchors and release artifacts when a require
     const originalLock = fs.readFileSync(lockPath, 'utf8');
     const originalZhDoc = fs.readFileSync(zhDocPath, 'utf8');
     const originalEnDoc = fs.readFileSync(enDocPath, 'utf8');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.sharedPaths.frontend = ['frontend/scripts/lib/css-declarations.mjs'];
+    writeJson(manifestPath, manifest);
+    const toolingPath = path.join(opsRoot, 'frontend', 'scripts', 'lib', 'css-declarations.mjs');
+    writeText(toolingPath, 'export const matcher = "original";\n');
+    writeText(
+      path.join(
+        bundleRoot,
+        'bundle',
+        'shared-frontend',
+        'frontend',
+        'scripts',
+        'lib',
+        'css-declarations.mjs',
+      ),
+      'export const matcher = "release";\n',
+    );
     writeText(generatedPath, 'original generated output\n');
     writeText(
       path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'core', 'shell.ts'),
@@ -879,6 +1009,7 @@ test('rollback restores inheritance anchors and release artifacts when a require
     assert.equal(fs.readFileSync(zhDocPath, 'utf8'), originalZhDoc);
     assert.equal(fs.readFileSync(enDocPath, 'utf8'), originalEnDoc);
     assert.equal(fs.readFileSync(generatedPath, 'utf8'), 'original generated output\n');
+    assert.equal(fs.readFileSync(toolingPath, 'utf8'), 'export const matcher = "original";\n');
     assert.equal(
       fs.existsSync(path.join(opsRoot, '.foundation', 'releases', 'base-v0.8.0')),
       false,
