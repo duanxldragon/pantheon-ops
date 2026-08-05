@@ -127,6 +127,10 @@ function createFixture(root) {
     "console.log('OK shared frontend is aligned with pantheon-base');\n",
   );
   writeText(
+    path.join(opsRoot, 'frontend', 'scripts', 'sync-foundation-i18n.mjs'),
+    "console.log('OK foundation i18n fallback is aligned');\n",
+  );
+  writeText(
     path.join(opsRoot, 'frontend', 'scripts', 'check-menu-contract.mjs'),
     "console.log('OK menu contract');\n",
   );

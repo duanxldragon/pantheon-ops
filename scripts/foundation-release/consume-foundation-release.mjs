@@ -605,6 +605,8 @@ export function consumeFoundationRelease(options) {
       summary.push(`Applied shared-frontend bundle (${frontendResult.applied} files)`);
       runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'sync-base-shared.mjs'), false);
       summary.push('Removed obsolete shared frontend files');
+      runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'sync-foundation-i18n.mjs'), false);
+      summary.push('Synced foundation i18n fallback resources');
     }
 
     if (options.check) {
@@ -614,6 +616,8 @@ export function consumeFoundationRelease(options) {
       runCheckScript(options.opsRoot, 'check-base-backend-sync.mjs');
       summary.push('Running frontend/scripts/sync-base-shared.mjs --check');
       runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'sync-base-shared.mjs'));
+      summary.push('Running frontend/scripts/sync-foundation-i18n.mjs --check');
+      runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'sync-foundation-i18n.mjs'));
       summary.push('Running frontend/scripts/check-menu-contract.mjs --check');
       runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'check-menu-contract.mjs'));
     }

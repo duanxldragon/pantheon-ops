@@ -4,11 +4,12 @@ import (
 	"archive/zip"
 	"bytes"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"pantheon-ops/backend/internal/scaffold"
-	"pantheon-ops/backend/pkg/common"
 )
 
 func TestSuggestModuleNameMatchesScopeConventions(t *testing.T) {
@@ -104,13 +105,15 @@ func TestMapColumnToFieldSplitsChineseAndEnglishFallbacks(t *testing.T) {
 
 func TestNormalizeDatasourceReqRejectsUnsafeHosts(t *testing.T) {
 	tests := []struct {
-		name      string
-		host      string
-		wantError string
+		name         string
+		host         string
+		allowPrivate bool
+		wantError    string
 	}{
 		{name: "reject localhost", host: "localhost", wantError: "generator.datasource.host_invalid"},
 		{name: "reject loopback ip", host: "127.0.0.1", wantError: "generator.datasource.host_invalid"},
-		{name: "allow private ip", host: "10.10.10.10"},
+		{name: "reject private ip by default", host: "10.10.10.10", wantError: "generator.datasource.host_private_disabled"},
+		{name: "allow private ip when opted in", host: "10.10.10.10", allowPrivate: true},
 		{name: "allow internal hostname", host: "db.internal"},
 		{name: "reject invalid host chars", host: "db/internal", wantError: "generator.datasource.host_invalid"},
 		{name: "allow public hostname", host: "db.example.com"},
@@ -118,25 +121,29 @@ func TestNormalizeDatasourceReqRejectsUnsafeHosts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := normalizeDatasourceReq(&UpsertGeneratorDatasourceReq{
-				Name:         "demo",
-				Driver:       "mysql",
-				Host:         tt.host,
-				Port:         3306,
-				DatabaseName: "demo",
-				Username:     "root",
-				Password:     "secret",
-				Status:       generatorDatasourceEnabled,
-			}, true)
-			if tt.wantError == "" && err != nil {
-				t.Fatalf("expected success, got %v", err)
-			}
-			if tt.wantError != "" {
-				if err == nil || common.ErrMessage(err) != tt.wantError {
-					t.Fatalf("expected %s, got %v", tt.wantError, err)
-				}
-			}
+			assertDatasourceNormalization(t, tt.host, tt.allowPrivate, tt.wantError)
 		})
+	}
+}
+
+func assertDatasourceNormalization(t *testing.T, host string, allowPrivate bool, wantError string) {
+	t.Helper()
+	t.Setenv("PANTHEON_GENERATOR_DATASOURCE_ALLOW_PRIVATE", map[bool]string{true: "true"}[allowPrivate])
+	_, err := normalizeDatasourceReq(&UpsertGeneratorDatasourceReq{
+		Name:         "demo",
+		Driver:       "mysql",
+		Host:         host,
+		Port:         3306,
+		DatabaseName: "demo",
+		Username:     "root",
+		Password:     "secret",
+		Status:       generatorDatasourceEnabled,
+	}, true)
+	if wantError == "" && err != nil {
+		t.Fatalf("expected success, got %v", err)
+	}
+	if wantError != "" && (err == nil || !strings.Contains(err.Error(), wantError)) {
+		t.Fatalf("expected %s, got %v", wantError, err)
 	}
 }
 
@@ -147,7 +154,7 @@ func TestBuildGeneratedModuleArchiveUsesServerSideFiles(t *testing.T) {
 			t.Fatalf("mkdir %s: %v", dir, err)
 		}
 	}
-	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module pantheon-ops\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "backend", "go.mod"), []byte("module pantheon-platform\n"), 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}
 
@@ -172,6 +179,11 @@ process.stdout.write(JSON.stringify(files));
 	if err := os.WriteFile(filepath.Join(scriptDir, "export-generated-module.mjs"), []byte(script), 0o644); err != nil {
 		t.Fatalf("write exporter script: %v", err)
 	}
+	nodeBinary, err := exec.LookPath("node")
+	if err != nil {
+		t.Skip("node is not installed in PATH")
+	}
+	t.Setenv("PANTHEON_NODE_BIN", nodeBinary)
 
 	service := &GeneratorService{workspaceRoot: root}
 	archive, filename, err := service.BuildGeneratedModuleArchive(&scaffold.ModuleSchema{
