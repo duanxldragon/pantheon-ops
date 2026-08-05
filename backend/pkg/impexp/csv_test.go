@@ -67,7 +67,7 @@ func TestReadCSV_NilFile(t *testing.T) {
 				t.Log("recovered from panic (expected with nil file)")
 			}
 		}()
-		ReadCSV(nil)
+		_, _ = ReadCSV(nil)
 	}()
 }
 

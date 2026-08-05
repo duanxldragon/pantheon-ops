@@ -8,12 +8,15 @@ import (
 
 	"pantheon-ops/backend/pkg/common"
 	commonsecurity "pantheon-ops/backend/pkg/common/security"
+	"pantheon-ops/backend/pkg/rbacbind"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 const deletedUsernamePrefix = "__deleted_user_"
+
+const condIDEquals = "id = ?"
 
 const (
 	defaultConfiguredPasswordMinLength = 6
@@ -50,7 +53,7 @@ func (s *UserService) normalizeUserPreferenceJSON() error {
 		}
 		if err := s.db.Unscoped().
 			Model(&SystemUser{}).
-			Where("id = ?", row.ID).
+			Where(condIDEquals, row.ID).
 			Update("preference_json", normalized).Error; err != nil {
 			return err
 		}
@@ -61,7 +64,7 @@ func (s *UserService) normalizeUserPreferenceJSON() error {
 
 func (s *UserService) ensureAdminUserSeed() error {
 	var count int64
-	if err := s.db.Model(&SystemUser{}).Where("id = ?", 1).Count(&count).Error; err != nil {
+	if err := s.db.Model(&SystemUser{}).Where(condIDEquals, 1).Count(&count).Error; err != nil {
 		return err
 	}
 	if count > 0 {
@@ -116,14 +119,7 @@ func (s *UserService) ensureAdminRoleBinding() error {
 		return nil
 	}
 
-	var count int64
-	if err := s.db.Table("system_user_role").Where("user_id = ? AND role_id = ?", 1, adminRoleID).Count(&count).Error; err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil
-	}
-	return s.db.Exec("INSERT INTO system_user_role (user_id, role_id) VALUES (?, ?)", 1, adminRoleID).Error
+	return rbacbind.EnsureUserRole(s.db, 1, adminRoleID)
 }
 
 func (s *UserService) releaseDeletedUsernames() error {
@@ -145,7 +141,7 @@ func (s *UserService) releaseDeletedUsernames() error {
 			}
 			if err := tx.Unscoped().
 				Model(&SystemUser{}).
-				Where("id = ?", user.ID).
+				Where(condIDEquals, user.ID).
 				Update("username", deletedUsername).Error; err != nil {
 				return err
 			}

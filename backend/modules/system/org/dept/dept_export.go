@@ -1,6 +1,7 @@
 package org
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -13,13 +14,18 @@ import (
 
 // dept_export.go - Export functions for dept module
 
+// maxDeptExportRows 对齐日志导出的行数上限（var 便于测试降低阈值）。
+// 注意：上限作用在树过滤(filterDeptTreeNodes)之前，超大库带过滤条件的
+// 导出可能少返回；冻结期接受，导出全量部门本身不该超过该规模。
+var maxDeptExportRows = 10000
+
 // ExportDepts exports department list to CSV
-func (s *DeptService) ExportDepts(query *DeptListQuery) (*impexp.CSVFile, error) {
+func (s *DeptService) ExportDepts(ctx context.Context, query *DeptListQuery) (*impexp.CSVFile, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
 
-	depts, err := s.listDeptsForExport(query)
+	depts, err := s.listDeptsForExport(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -139,12 +145,13 @@ func (s *DeptService) ExportGovernanceTasks(query *DeptGovernanceTaskQuery) (*im
 }
 
 // listDeptsForExport lists departments with optional filtering
-func (s *DeptService) listDeptsForExport(query *DeptListQuery) ([]SystemDept, error) {
+func (s *DeptService) listDeptsForExport(ctx context.Context, query *DeptListQuery) ([]SystemDept, error) {
 	var depts []SystemDept
 	sortColumn, sortDesc := normalizeDeptSort(query)
-	if err := s.db.Model(&SystemDept{}).
+	if err := s.db.WithContext(ctx).Model(&SystemDept{}).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: sortColumn}, Desc: sortDesc}).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: false}).
+		Limit(maxDeptExportRows).
 		Find(&depts).Error; err != nil {
 		return nil, err
 	}

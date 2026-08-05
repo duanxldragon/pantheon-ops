@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"context"
 	"testing"
 
 	"go.uber.org/zap"
@@ -125,6 +126,20 @@ func TestSanitizeLogFields(t *testing.T) {
 	}
 	if fields[1].String != "bad  line" {
 		t.Fatalf("unexpected sanitized error field: %+v", fields[1])
+	}
+}
+
+func TestLogFromContextUsesRequestID(t *testing.T) {
+	if err := InitLogger("development"); err != nil {
+		t.Fatalf("Failed to initialize logger: %v", err)
+	}
+
+	got := LogFromContext(WithRequestID(context.Background(), "req-abc-123"))
+	if got == nil {
+		t.Fatal("LogFromContext() returned nil logger")
+	}
+	if got == Logger {
+		t.Fatal("LogFromContext() should enrich the logger when a request ID is present")
 	}
 }
 

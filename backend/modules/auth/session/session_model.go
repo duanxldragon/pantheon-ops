@@ -46,14 +46,17 @@ type ClientInfoResp struct {
 
 // AdminSessionQuery 管理员会话查询
 type AdminSessionQuery struct {
-	Username string `form:"username" json:"username"`
-	LastIP   string `form:"lastIp" json:"lastIp"`
-	Browser  string `form:"browser" json:"browser"`
-	OS       string `form:"os" json:"os"`
-	Device   string `form:"device" json:"device"`
-	Status   *int   `form:"status" json:"status"`
-	Page     int    `form:"page" json:"page"`
-	PageSize int    `form:"pageSize" json:"pageSize"`
+	Keyword   string `form:"keyword" json:"keyword"`
+	Username  string `form:"username" json:"username"`
+	LastIP    string `form:"lastIp" json:"lastIp"`
+	Browser   string `form:"browser" json:"browser"`
+	OS        string `form:"os" json:"os"`
+	Device    string `form:"device" json:"device"`
+	Status    *int   `form:"status" json:"status"`
+	StartedAt string `form:"startedAt" json:"startedAt"`
+	EndedAt   string `form:"endedAt" json:"endedAt"`
+	Page      int    `form:"page" json:"page"`
+	PageSize  int    `form:"pageSize" json:"pageSize"`
 }
 
 // AdminSessionResp 管理员会话 DTO

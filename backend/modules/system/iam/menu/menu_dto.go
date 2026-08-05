@@ -61,6 +61,7 @@ type MenuUpdateReq struct {
 }
 
 type MenuListQuery struct {
+	Keyword   string `form:"keyword"`
 	TitleKey  string `form:"titleKey"`
 	Path      string `form:"path"`
 	IsVisible *int   `form:"isVisible"`

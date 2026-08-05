@@ -11,6 +11,8 @@ import (
 	"pantheon-ops/backend/internal/scaffold"
 )
 
+const msgModuleSchemaInvalid = "module.register.schema_invalid"
+
 func generatedModuleRelativePath(parts ...string) (string, bool) {
 	cleaned := make([]string, 0, len(parts))
 	for _, part := range parts {
@@ -86,14 +88,14 @@ func (s *DynamicModuleService) generatedModuleArtifactsExist(scope, name string)
 func (s *DynamicModuleService) loadGeneratedModuleSchema(scope, name string) (*scaffold.ModuleSchema, error) {
 	relativeTarget, ok := generatedModuleRelativePath("schema", "generated", scope, name+".json")
 	if !ok {
-		return nil, common.NewBadRequest("module.register.schema_invalid")
+		return nil, common.NewBadRequest(msgModuleSchemaInvalid)
 	}
 	target, resolved := resolveGeneratedWorkspacePath(s.workspaceRoot, relativeTarget)
 	if !resolved {
-		return nil, common.NewBadRequest("module.register.schema_invalid")
+		return nil, common.NewBadRequest(msgModuleSchemaInvalid)
 	}
 	if !filepath.IsLocal(relativeTarget) {
-		return nil, common.NewBadRequest("module.register.schema_invalid")
+		return nil, common.NewBadRequest(msgModuleSchemaInvalid)
 	}
 	content, err := os.ReadFile(target)
 	if err != nil {
@@ -104,10 +106,10 @@ func (s *DynamicModuleService) loadGeneratedModuleSchema(scope, name string) (*s
 	}
 	var schema scaffold.ModuleSchema
 	if err := json.Unmarshal(content, &schema); err != nil {
-		return nil, common.NewBadRequest("module.register.schema_invalid")
+		return nil, common.NewBadRequest(msgModuleSchemaInvalid)
 	}
 	if strings.TrimSpace(schema.Name) == "" || strings.TrimSpace(schema.Scope) == "" || strings.TrimSpace(schema.Model.TableName) == "" {
-		return nil, common.NewBadRequest("module.register.schema_invalid")
+		return nil, common.NewBadRequest(msgModuleSchemaInvalid)
 	}
 	return &schema, nil
 }

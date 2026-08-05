@@ -10,9 +10,11 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"pantheon-ops/backend/pkg/common"
+	"pantheon-ops/backend/pkg/metrics"
 
 	"gorm.io/gorm"
 
@@ -38,7 +40,7 @@ const (
 )
 
 func (w operationLogWriter) Write(data []byte) (int, error) {
-	w.body.Write(data)
+	_, _ = w.body.Write(data)
 	return w.ResponseWriter.Write(data)
 }
 
@@ -89,8 +91,11 @@ func (SystemLogOper) TableName() string {
 }
 
 type operationLogAsyncStore struct {
-	db    *gorm.DB
-	queue chan SystemLogOper
+	db           *gorm.DB
+	queue        chan SystemLogOper
+	done         chan struct{}
+	closed       atomic.Bool
+	lastDropWarn atomic.Int64
 }
 
 func newOperationLogAsyncStore(db *gorm.DB) *operationLogAsyncStore {
@@ -100,6 +105,7 @@ func newOperationLogAsyncStore(db *gorm.DB) *operationLogAsyncStore {
 	store := &operationLogAsyncStore{
 		db:    db,
 		queue: make(chan SystemLogOper, operationLogQueueSize()),
+		done:  make(chan struct{}),
 	}
 	go store.run()
 	return store
@@ -118,20 +124,57 @@ func operationLogQueueSize() int {
 }
 
 func (s *operationLogAsyncStore) enqueue(log SystemLogOper) {
-	if s == nil || s.db == nil {
+	if s == nil || s.db == nil || s.closed.Load() {
 		return
 	}
+	// Close 与 enqueue 竞争时向已关闭 channel 发送会 panic；停机序列在
+	// server.Shutdown 之后才关队列，这里兜底以防极端时序。
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			slog.Warn("operation log enqueue after close dropped", "panic", recovered)
+		}
+	}()
 	select {
 	case s.queue <- log:
+		metrics.OperationLogQueueDepth.Set(float64(len(s.queue)))
 	default:
-		slog.Warn("operation log queue full; writing synchronously")
-		s.write(log)
+		// 队列满时丢弃并计数，不再回退同步写：同步回退会让 MySQL 变慢时
+		// 所有变更请求跟着阻塞（唯一现实的负载退化路径，冻结审查结论）。
+		metrics.OperationLogDroppedTotal.Inc()
+		s.warnDropRateLimited()
+	}
+}
+
+func (s *operationLogAsyncStore) warnDropRateLimited() {
+	const warnIntervalSeconds = 30
+	now := time.Now().Unix()
+	last := s.lastDropWarn.Load()
+	if now-last < warnIntervalSeconds {
+		return
+	}
+	if s.lastDropWarn.CompareAndSwap(last, now) {
+		slog.Warn("operation log queue full; dropping entries",
+			"queue_size", cap(s.queue), "metric", "pantheon_operation_log_dropped_total")
 	}
 }
 
 func (s *operationLogAsyncStore) run() {
+	defer close(s.done)
 	for log := range s.queue {
 		s.write(log)
+	}
+}
+
+// Close 停止接收新日志并排空队列；ctx 超时则放弃剩余条目。
+func (s *operationLogAsyncStore) Close(ctx context.Context) {
+	if s == nil || !s.closed.CompareAndSwap(false, true) {
+		return
+	}
+	close(s.queue)
+	select {
+	case <-s.done:
+	case <-ctx.Done():
+		slog.Warn("operation log drain timed out", "remaining", len(s.queue))
 	}
 }
 
@@ -148,9 +191,18 @@ func (s *operationLogAsyncStore) write(log SystemLogOper) {
 	}
 }
 
+// opLogStore 记录进程内当前的操作日志异步存储，供优雅停机时排空。
+var opLogStore *operationLogAsyncStore
+
+// ShutdownOperationLog 排空操作日志队列（优雅停机时调用）。
+func ShutdownOperationLog(ctx context.Context) {
+	opLogStore.Close(ctx)
+}
+
 // OperationLogMiddleware 异步记录操作日志。
 func OperationLogMiddleware(db *gorm.DB) gin.HandlerFunc {
 	store := newOperationLogAsyncStore(db)
+	opLogStore = store
 	return func(c *gin.Context) {
 		if db == nil || c.Request.Method == http.MethodGet {
 			c.Next()
@@ -303,7 +355,7 @@ func sanitizeJSON(raw string) string {
 		return raw
 	}
 
-	payload = maskSensitivePayload(payload).(map[string]interface{})
+	payload, _ = maskSensitivePayload(payload).(map[string]interface{})
 
 	data, err := json.Marshal(payload)
 	if err != nil {

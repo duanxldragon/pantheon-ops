@@ -57,6 +57,14 @@ func buildModuleKey(scope, name string) string {
 	return strings.TrimSpace(scope) + "." + strings.ReplaceAll(strings.Trim(strings.TrimSpace(name), "/"), "/", ".")
 }
 
+// modulePermissionPrefix 构造模块权限键前缀。
+// 生成器写入的权限键按段用 ":" 连接（如 business:a:b:list），
+// 而 splitModuleKey 返回的 shortName 用 "/" 分段（a/b），此处统一转换，
+// 保证嵌套模块卸载时权限清理的 LIKE 模式与实际权限键匹配。
+func modulePermissionPrefix(scope, shortName string) string {
+	return scope + ":" + strings.ReplaceAll(shortName, "/", ":")
+}
+
 func resolveGeneratedParentMenu(scope, name, explicitParent string) (string, string) {
 	normalizedExplicit := normalizeGeneratedMenuPath(explicitParent)
 	if normalizedExplicit != "" {
@@ -139,19 +147,21 @@ func isValidDynamicModulePath(name string, allowNested bool) bool {
 		return false
 	}
 	for _, segment := range segments {
-		if segment == "" {
+		if !isValidDynamicModulePathSegment(segment) {
 			return false
 		}
-		for index, char := range segment {
-			if index == 0 {
-				if !unicode.IsLower(char) {
-					return false
-				}
-				continue
-			}
-			if !(unicode.IsLower(char) || unicode.IsDigit(char) || char == '_') {
-				return false
-			}
+	}
+	return true
+}
+
+func isValidDynamicModulePathSegment(segment string) bool {
+	runes := []rune(segment)
+	if len(runes) == 0 || !unicode.IsLower(runes[0]) {
+		return false
+	}
+	for _, char := range runes[1:] {
+		if !unicode.IsLower(char) && !unicode.IsDigit(char) && char != '_' {
+			return false
 		}
 	}
 	return true

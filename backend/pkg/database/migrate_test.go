@@ -75,6 +75,9 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 		"permission_workbench_remediation_event": {
 			"issue_key", "before_state", "after_state", "action", "created_count", "skipped_count",
 		},
+		"system_module_registration": {
+			"scope", "source", "owner", "bounded_context", "summary", "source_table", "auto_recycle", "table_name", "installed_at", "uninstalled_at", "last_verified_at", "last_error", "last_verification_result",
+		},
 	}
 
 	for table, columns := range expectedColumns {
@@ -139,6 +142,24 @@ func TestRunMigrationsAppliesLatestCompatWhenBootstrappedSchemaMissesPermissionW
 	assertMigrationColumnExists(t, db, "permission_workbench_remediation_event", "created_count")
 	assertMigrationColumnExists(t, db, "permission_workbench_remediation_event", "skipped_count")
 	assertPermissionWorkbenchRemediationRuntimeWriteSucceeds(t, db, "legacy-role")
+	assertLatestMigrationVersion(t, db)
+}
+
+func TestRunMigrationsAppliesLatestCompatWhenBootstrappedSchemaMissesSystemModuleRegistration(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+
+	seedCurrentSchemaBootstrapMarkers(t, db)
+	if err := db.Exec("DROP TABLE IF EXISTS system_module_registration").Error; err != nil {
+		t.Fatalf("drop system_module_registration: %v", err)
+	}
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations on pre-system-module-registration current schema: %v", err)
+	}
+
+	assertMigrationColumnExists(t, db, "system_module_registration", "table_name")
+	assertMigrationColumnExists(t, db, "system_module_registration", "last_verification_result")
 	assertLatestMigrationVersion(t, db)
 }
 
@@ -384,6 +405,14 @@ INSERT INTO permission_workbench_remediation_event (
 `, "runtime-role", "api-gap", "POST /api/v1/lowcode/dynamic-modules/generate", "api-gap", "complete", "remediated", 1, 0).Error; err != nil {
 		t.Fatalf("insert current runtime remediation event row: %v", err)
 	}
+
+	if err := db.Exec(`
+INSERT INTO system_module_registration (
+	name, display_name, scope, source, owner, bounded_context, summary, source_table, auto_recycle, table_name, status, installed_at, last_verified_at, last_error, last_verification_result
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`, "business.runtime", "Runtime Module", "business", "generated", "platform", "runtime", "compat", "runtime_source", 1, "biz_runtime", 3, "2026-07-09T00:00:00Z", "", "", "[]").Error; err != nil {
+		t.Fatalf("insert current runtime module registration row: %v", err)
+	}
 }
 
 func assertPermissionWorkbenchRemediationRuntimeWriteSucceeds(t *testing.T, db *gorm.DB, roleKey string) {
@@ -558,6 +587,27 @@ func seedCurrentSchemaBootstrapMarkers(t *testing.T, db *gorm.DB) {
 			INDEX idx_permission_remediation_role_created (role_key, created_at),
 			INDEX idx_permission_remediation_issue_type (issue_type),
 			INDEX idx_permission_remediation_action (action)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+		`CREATE TABLE system_module_registration (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			name VARCHAR(64) DEFAULT '',
+			display_name VARCHAR(128) DEFAULT '',
+			scope VARCHAR(32) DEFAULT '',
+			source VARCHAR(32) DEFAULT '',
+			owner VARCHAR(128) DEFAULT '',
+			bounded_context VARCHAR(128) DEFAULT '',
+			summary VARCHAR(255) DEFAULT '',
+			source_table VARCHAR(128) DEFAULT '',
+			auto_recycle TINYINT(1) NOT NULL DEFAULT 0,
+			table_name VARCHAR(128) DEFAULT '',
+			status INT DEFAULT 1,
+			installed_at VARCHAR(64) DEFAULT '',
+			uninstalled_at VARCHAR(64) DEFAULT '',
+			last_verified_at VARCHAR(64) DEFAULT '',
+			last_error VARCHAR(512) DEFAULT '',
+			last_verification_result TEXT,
+			PRIMARY KEY (id),
+			UNIQUE INDEX idx_system_module_registration_name (name)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 	}
 

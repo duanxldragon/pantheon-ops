@@ -147,12 +147,12 @@ func (s *Service) VerifyChallengeWithContext(ctx context.Context, req *MFAVerify
 	}
 
 	now := time.Now()
-	challenge, err := s.loadActiveChallenge(strings.TrimSpace(req.ChallengeID), now)
+	challenge, err := s.loadActiveChallenge(ctx, strings.TrimSpace(req.ChallengeID), now)
 	if err != nil {
 		return nil, err
 	}
 
-	secret, err := s.loadChallengeSecret(*challenge)
+	secret, err := s.loadChallengeSecret(ctx, *challenge)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (s *Service) VerifyChallengeWithContext(ctx context.Context, req *MFAVerify
 		return nil, errors.New("user.login.error.disabled")
 	}
 
-	if err := s.finalizeChallenge(*challenge, secret, now); err != nil {
+	if err := s.finalizeChallenge(ctx, *challenge, secret, now); err != nil {
 		return nil, err
 	}
 
@@ -193,9 +193,9 @@ func (s *Service) VerifyChallengeWithContext(ctx context.Context, req *MFAVerify
 	}, nil
 }
 
-func (s *Service) loadActiveChallenge(challengeID string, now time.Time) (*SystemAuthMFAChallenge, error) {
+func (s *Service) loadActiveChallenge(ctx context.Context, challengeID string, now time.Time) (*SystemAuthMFAChallenge, error) {
 	var challenge SystemAuthMFAChallenge
-	if err := s.db.Where("challenge_id = ?", challengeID).First(&challenge).Error; err != nil {
+	if err := s.db.WithContext(ctx).Where("challenge_id = ?", challengeID).First(&challenge).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("auth.mfa.challenge_invalid")
 		}
@@ -207,19 +207,19 @@ func (s *Service) loadActiveChallenge(challengeID string, now time.Time) (*Syste
 	return &challenge, nil
 }
 
-func (s *Service) loadChallengeSecret(challenge SystemAuthMFAChallenge) (string, error) {
+func (s *Service) loadChallengeSecret(ctx context.Context, challenge SystemAuthMFAChallenge) (string, error) {
 	if challenge.SetupRequired == 1 {
 		return DecryptMFASecret(challenge.SecretEncrypted)
 	}
 	var factor SystemAuthFactor
-	if err := s.db.Where(userIDAndFactorTypeEnabledWhereClause, challenge.UserID, "totp", 1).First(&factor).Error; err != nil {
+	if err := s.db.WithContext(ctx).Where(userIDAndFactorTypeEnabledWhereClause, challenge.UserID, "totp", 1).First(&factor).Error; err != nil {
 		return "", errors.New("auth.mfa.factor_missing")
 	}
 	return DecryptMFASecret(factor.SecretEncrypted)
 }
 
-func (s *Service) finalizeChallenge(challenge SystemAuthMFAChallenge, secret string, now time.Time) error {
-	return s.db.Transaction(func(tx *gorm.DB) error {
+func (s *Service) finalizeChallenge(ctx context.Context, challenge SystemAuthMFAChallenge, secret string, now time.Time) error {
+	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if challenge.SetupRequired == 1 {
 			encryptedSecret, err := EncryptMFASecret(secret)
 			if err != nil {

@@ -2,10 +2,6 @@ import { useSyncExternalStore } from 'react';
 import { getPublicSettingList } from '../../modules/system/config/setting/api';
 import {
   clearExplicitLanguagePreference as clearExplicitLanguagePreferenceBase,
-  hasExplicitLanguagePreference,
-  LANGUAGE_EXPLICIT_STORAGE_KEY,
-  LANGUAGE_STORAGE_KEY,
-  setExplicitLanguagePreference,
   syncDefaultLanguagePreference as syncDefaultLanguagePreferenceBase,
 } from './languagePreference';
 import { applyPantheonDefaultTheme, type PantheonThemeKey } from '../theme/theme';
@@ -15,7 +11,7 @@ export {
   LANGUAGE_EXPLICIT_STORAGE_KEY,
   hasExplicitLanguagePreference,
   setExplicitLanguagePreference,
-};
+} from './languagePreference';
 
 export interface PublicSettingsState {
   siteName: string;
@@ -111,16 +107,14 @@ export function applyPublicSettings(settings: Record<string, string>) {
 }
 
 export async function refreshPublicSettings() {
-  if (!publicSettingsRefreshTask) {
-    publicSettingsRefreshTask = getPublicSettingList()
-      .then((response) => {
-        applyPublicSettings(response.settings);
-        return publicSettingsState;
-      })
-      .finally(() => {
-        publicSettingsRefreshTask = null;
-      });
-  }
+  publicSettingsRefreshTask ??= getPublicSettingList()
+    .then((response) => {
+      applyPublicSettings(response.settings);
+      return publicSettingsState;
+    })
+    .finally(() => {
+      publicSettingsRefreshTask = null;
+    });
   return publicSettingsRefreshTask;
 }
 

@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// PlatformPreference stores the user's platform-level UI preferences.
 type PlatformPreference struct {
 	Theme       string `json:"theme,omitempty"`
 	Language    string `json:"language,omitempty"`
@@ -36,6 +37,7 @@ var (
 	}
 )
 
+// Parse decodes a preference payload and normalizes its values.
 func Parse(raw string) *PlatformPreference {
 	if strings.TrimSpace(raw) == "" {
 		return nil
@@ -48,6 +50,7 @@ func Parse(raw string) *PlatformPreference {
 	return Normalize(preferences)
 }
 
+// Normalize sanitizes a preference payload and drops empty results.
 func Normalize(preferences *PlatformPreference) *PlatformPreference {
 	if preferences == nil {
 		return nil
@@ -65,6 +68,7 @@ func Normalize(preferences *PlatformPreference) *PlatformPreference {
 	return normalized
 }
 
+// Marshal serializes a normalized preference payload.
 func Marshal(preferences *PlatformPreference) (string, error) {
 	normalized := Normalize(preferences)
 	if normalized == nil {

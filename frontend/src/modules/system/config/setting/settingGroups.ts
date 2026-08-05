@@ -19,12 +19,22 @@ export interface SettingGroupMeta {
   tone: 'neutral' | 'warning' | 'danger';
 }
 
+function settingGroupTone(key: SettingGroupKey): SettingGroupMeta['tone'] {
+  if (key === 'audit') {
+    return 'danger';
+  }
+  if (key === 'security' || key === 'login') {
+    return 'warning';
+  }
+  return 'neutral';
+}
+
 export const settingGroups: SettingGroupMeta[] = settingGroupOrder.map((key) => ({
   key,
   titleKey: `system.setting.group.${key}`,
   descriptionKey: `system.setting.groupHint.${key}`,
   path: `/system/setting/${key}`,
-  tone: key === 'audit' ? 'danger' : key === 'security' || key === 'login' ? 'warning' : 'neutral',
+  tone: settingGroupTone(key),
 }));
 
 export function isSettingGroupKey(value?: string): value is SettingGroupKey {

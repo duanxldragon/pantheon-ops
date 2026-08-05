@@ -44,7 +44,7 @@
   color: var(--brand-primary);
   font-size: 20px;
   font-weight: 700;
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   overflow: hidden;
 }
 
@@ -81,19 +81,19 @@
   border-radius: var(--radius-pill);
 }
 
-.auth-login-page__headline {
+.auth-login-page .auth-login-page__headline {
   max-width: 460px;
-  margin: 16px 0 14px !important;
-  color: var(--text-primary) !important;
-  font-size: 32px !important;
-  line-height: 1.18 !important;
+  margin: 16px 0 14px;
+  color: var(--text-primary);
+  font-size: 32px;
+  line-height: 1.18;
   letter-spacing: -0.02em;
 }
 
-.auth-login-page__description {
+.auth-login-page .auth-login-page__description {
   max-width: 460px;
-  margin: 0 !important;
-  color: var(--text-secondary) !important;
+  margin: 0;
+  color: var(--text-secondary);
   line-height: 1.8;
 }
 
@@ -133,12 +133,12 @@
   max-width: calc(100% - 64px);
 }
 
-.auth-login-page__tool-btn {
+.auth-login-page__tools .auth-login-page__tool-btn {
   height: 38px;
-  border: 1px solid var(--panel-border) !important;
-  border-radius: var(--radius-action) !important;
-  background: var(--panel-bg-solid) !important;
-  color: var(--text-secondary) !important;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-action);
+  background: var(--panel-bg-solid);
+  color: var(--text-secondary);
   box-shadow: none;
 }
 
@@ -159,14 +159,14 @@
   margin-bottom: 16px;
 }
 
-.auth-login-card__title {
-  margin: 0 0 10px !important;
-  color: var(--text-primary) !important;
+.auth-login-card .auth-login-card__title {
+  margin: 0 0 10px;
+  color: var(--text-primary);
 }
 
-.auth-login-card__subtitle {
-  margin: 0 !important;
-  color: var(--text-secondary) !important;
+.auth-login-card .auth-login-card__subtitle {
+  margin: 0;
+  color: var(--text-secondary);
   line-height: 1.7;
 }
 
@@ -203,7 +203,7 @@
   height: 188px;
   border: 1px solid color-mix(in srgb, var(--text-primary) 8%, var(--panel-border));
   border-radius: var(--radius-sm);
-  background: #ffffff;
+  background: var(--surface-lift);
 }
 
 .auth-login-mfa-qr__image svg {
@@ -245,7 +245,7 @@
   min-height: 40px;
   border: 1px solid var(--panel-border-strong);
   border-radius: var(--radius-control);
-  background: #ffffff;
+  background: var(--control-bg);
   box-shadow: none;
 }
 
@@ -280,9 +280,9 @@
 }
 
 .auth-login-card__submit {
-  height: 44px !important;
+  height: 44px;
   margin-top: 4px;
-  border-radius: var(--radius-action) !important;
+  border-radius: var(--radius-action);
   font-weight: 600;
 }
 
@@ -317,9 +317,9 @@
     display: none;
   }
 
-  .auth-login-page__headline {
-    margin-top: 12px !important;
-    font-size: 24px !important;
+  .auth-login-page .auth-login-page__headline {
+    margin-top: 12px;
+    font-size: 24px;
   }
 
   .auth-login-page__tools {

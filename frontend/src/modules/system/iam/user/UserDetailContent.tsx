@@ -38,9 +38,18 @@ const UserDetailContent: React.FC<UserDetailContentProps> = ({ detail, orgEnable
         '-'
       ),
     },
-    { label: t('auth.security.lastLoginAt'), value: formatDateTime(detail.lastLoginAt) },
-    { label: t('system.user.createdAt'), value: formatDateTime(detail.createdAt) },
-    { label: t('system.user.updatedAt'), value: formatDateTime(detail.updatedAt) },
+    {
+      label: t('auth.security.lastLoginAt'),
+      value: formatDateTime(detail.lastLoginAt, { withSeconds: true }),
+    },
+    {
+      label: t('system.user.createdAt'),
+      value: formatDateTime(detail.createdAt, { withSeconds: true }),
+    },
+    {
+      label: t('system.user.updatedAt'),
+      value: formatDateTime(detail.updatedAt, { withSeconds: true }),
+    },
   ];
 
   return (

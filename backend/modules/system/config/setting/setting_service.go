@@ -14,10 +14,11 @@ import (
 )
 
 const (
-	settingKeyUITheme      = "ui.default_theme"
-	settingKeyUploadDriver = "upload.storage_driver"
-	settingKeyI18nLanguage = "i18n.default_language"
-	settingKeyAppMode      = "platform.app_mode"
+	settingKeyUITheme            = "ui.default_theme"
+	settingKeyUploadDriver       = "upload.storage_driver"
+	settingKeyI18nLanguage       = "i18n.default_language"
+	settingKeyAppMode            = "platform.app_mode"
+	settingKeyUploadAllowedTypes = "upload.allowed_types"
 )
 
 type SettingService struct {
@@ -62,10 +63,10 @@ func (s *SettingService) Bootstrap() error {
 	if err := s.normalizeLegacySettingValue(settingKeyUploadDriver); err != nil {
 		return err
 	}
-	if err := s.migrateLegacySettingValue("upload.allowed_types", settingValueUploadAllowedTypesLegacy, settingValueUploadAllowedTypesDefault); err != nil {
+	if err := s.migrateLegacySettingValue(settingKeyUploadAllowedTypes, settingValueUploadAllowedTypesLegacy, settingValueUploadAllowedTypesDefault); err != nil {
 		return err
 	}
-	if err := s.migrateLegacySettingValue("upload.allowed_types", settingValueUploadAllowedTypesArchives, settingValueUploadAllowedTypesDefault); err != nil {
+	if err := s.migrateLegacySettingValue(settingKeyUploadAllowedTypes, settingValueUploadAllowedTypesArchives, settingValueUploadAllowedTypesDefault); err != nil {
 		return err
 	}
 	if err := s.migrateLegacySettingValue("audit.session_cleanup_retention_options", "[7,30,90]", "[1,7,30]"); err != nil {
@@ -206,30 +207,7 @@ func (s *SettingService) UpdateGroup(groupKey string, req *SettingGroupUpdateReq
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range req.Items {
-			settingKey := strings.TrimSpace(item.SettingKey)
-			if settingKey == "" {
-				return common.NewBadRequest("setting.key.required")
-			}
-
-			var current SystemSetting
-			if err := tx.Where("setting_key = ? AND group_key = ?", settingKey, groupKey).First(&current).Error; err != nil {
-				return err
-			}
-
-			nextValue := strings.TrimSpace(item.SettingValue)
-			if current.IsEncrypted == 1 && nextValue == "" {
-				continue
-			}
-
-			normalizedValue, err := validateAndNormalizeSettingValue(current.SettingKey, current.ValueType, nextValue)
-			if err != nil {
-				return err
-			}
-			storedValue, err := prepareSettingStoredValue(normalizedValue, current.IsEncrypted)
-			if err != nil {
-				return err
-			}
-			if err := tx.Model(&current).Update("setting_value", storedValue).Error; err != nil {
+			if err := updateSettingGroupItem(tx, groupKey, item); err != nil {
 				return err
 			}
 		}
@@ -243,6 +221,39 @@ func (s *SettingService) UpdateGroup(groupKey string, req *SettingGroupUpdateReq
 		return nil, err
 	}
 	return s.GetGroup(groupKey)
+}
+
+// updateSettingGroupItem applies a single setting update within an existing transaction.
+// It returns nil (skipping the item) when an encrypted setting is cleared with an empty
+// value, which is byte-for-byte equivalent to the original `continue` semantics.
+func updateSettingGroupItem(tx *gorm.DB, groupKey string, item SettingUpdateItemReq) error {
+	settingKey := strings.TrimSpace(item.SettingKey)
+	if settingKey == "" {
+		return common.NewBadRequest("setting.key.required")
+	}
+
+	var current SystemSetting
+	if err := tx.Where("setting_key = ? AND group_key = ?", settingKey, groupKey).First(&current).Error; err != nil {
+		return err
+	}
+
+	nextValue := strings.TrimSpace(item.SettingValue)
+	if current.IsEncrypted == 1 && nextValue == "" {
+		return nil
+	}
+
+	normalizedValue, err := validateAndNormalizeSettingValue(current.SettingKey, current.ValueType, nextValue)
+	if err != nil {
+		return err
+	}
+	storedValue, err := prepareSettingStoredValue(normalizedValue, current.IsEncrypted)
+	if err != nil {
+		return err
+	}
+	if err := tx.Model(&current).Update("setting_value", storedValue).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *SettingService) GetPublicSettings() (*PublicSettingResp, error) {
@@ -288,6 +299,25 @@ func (s *SettingService) GetOverview() (*SettingOverviewResp, error) {
 		Issues: make([]SettingOverviewIssueResp, 0),
 	}
 	byKey := make(map[string]SystemSetting, len(rows))
+	aggregateSettingOverviewCounts(rows, resp, byKey)
+
+	resp.StorageDriver = safeSettingOverviewValue(byKey[settingKeyUploadDriver], "local")
+	resp.DefaultLanguage = safeSettingOverviewValue(byKey[settingKeyI18nLanguage], "zh-CN")
+	resp.DefaultTheme = safeSettingOverviewValue(byKey[settingKeyUITheme], "indigo")
+
+	requiredKeys := buildRequiredSettingKeys(resp.StorageDriver)
+	seenIssues := make(map[string]struct{})
+	checkRequiredSettingKeys(requiredKeys, byKey, resp, seenIssues)
+	checkPublicEncryptedConflicts(rows, resp, seenIssues)
+	appendAllowedValueIssues(resp, seenIssues, byKey)
+
+	resp.RiskCount = len(resp.Issues)
+	return resp, nil
+}
+
+// aggregateSettingOverviewCounts tallies total/public/encrypted counts and indexes rows by key.
+// It preserves the exact behavior of the original inline aggregation loop.
+func aggregateSettingOverviewCounts(rows []SystemSetting, resp *SettingOverviewResp, byKey map[string]SystemSetting) {
 	for _, row := range rows {
 		resp.TotalSettingCount++
 		if row.IsPublic == 1 {
@@ -298,11 +328,11 @@ func (s *SettingService) GetOverview() (*SettingOverviewResp, error) {
 		}
 		byKey[row.SettingKey] = row
 	}
+}
 
-	resp.StorageDriver = safeSettingOverviewValue(byKey[settingKeyUploadDriver], "local")
-	resp.DefaultLanguage = safeSettingOverviewValue(byKey[settingKeyI18nLanguage], "zh-CN")
-	resp.DefaultTheme = safeSettingOverviewValue(byKey[settingKeyUITheme], "indigo")
-
+// buildRequiredSettingKeys returns the ordered list of required setting keys for the
+// current storage driver. S3 requires extra S3-specific keys; otherwise a local path key is required.
+func buildRequiredSettingKeys(storageDriver string) []string {
 	requiredKeys := []string{
 		"site.name",
 		settingKeyAppMode,
@@ -330,9 +360,9 @@ func (s *SettingService) GetOverview() (*SettingOverviewResp, error) {
 		"ui.enable_tab_bar",
 		settingKeyUploadDriver,
 		"upload.max_file_size",
-		"upload.allowed_types",
+		settingKeyUploadAllowedTypes,
 	}
-	if resp.StorageDriver == "s3" {
+	if storageDriver == "s3" {
 		requiredKeys = append(requiredKeys,
 			"upload.s3_endpoint",
 			"upload.s3_bucket",
@@ -342,8 +372,11 @@ func (s *SettingService) GetOverview() (*SettingOverviewResp, error) {
 	} else {
 		requiredKeys = append(requiredKeys, "upload.local_path")
 	}
+	return requiredKeys
+}
 
-	seenIssues := make(map[string]struct{})
+// checkRequiredSettingKeys flags any required key that is missing or has no value.
+func checkRequiredSettingKeys(requiredKeys []string, byKey map[string]SystemSetting, resp *SettingOverviewResp, seenIssues map[string]struct{}) {
 	for _, settingKey := range requiredKeys {
 		row, ok := byKey[settingKey]
 		if !ok || !systemSettingHasValue(row) {
@@ -356,7 +389,10 @@ func (s *SettingService) GetOverview() (*SettingOverviewResp, error) {
 			})
 		}
 	}
+}
 
+// checkPublicEncryptedConflicts flags settings that are simultaneously public and encrypted.
+func checkPublicEncryptedConflicts(rows []SystemSetting, resp *SettingOverviewResp, seenIssues map[string]struct{}) {
 	for _, row := range rows {
 		if row.IsPublic == 1 && row.IsEncrypted == 1 {
 			resp.Issues = appendSettingOverviewIssue(resp.Issues, seenIssues, SettingOverviewIssueResp{
@@ -367,43 +403,65 @@ func (s *SettingService) GetOverview() (*SettingOverviewResp, error) {
 			})
 		}
 	}
+}
 
-	if _, ok := allowedStorageDriverValues[resp.StorageDriver]; !ok {
-		resp.Issues = appendSettingOverviewIssue(resp.Issues, seenIssues, SettingOverviewIssueResp{
+// overviewAllowedValueCheck describes a single allowed-value validation for the overview.
+type overviewAllowedValueCheck struct {
+	Value      string
+	Allowed    map[string]struct{}
+	SettingKey string
+	GroupKey   string
+	Severity   string
+	ReasonKey  string
+}
+
+// appendAllowedValueIssues flags overview issues for invalid storage driver, language, theme, and app mode.
+func appendAllowedValueIssues(resp *SettingOverviewResp, seenIssues map[string]struct{}, byKey map[string]SystemSetting) {
+	appMode := safeSettingOverviewValue(byKey[settingKeyAppMode], "enterprise")
+	checks := []overviewAllowedValueCheck{
+		{
+			Value:      resp.StorageDriver,
+			Allowed:    allowedStorageDriverValues,
 			SettingKey: settingKeyUploadDriver,
 			GroupKey:   "upload",
 			Severity:   "critical",
 			ReasonKey:  "setting.overview.issue.invalid_storage_driver",
-		})
-	}
-	if _, ok := allowedLanguageValues[resp.DefaultLanguage]; !ok {
-		resp.Issues = appendSettingOverviewIssue(resp.Issues, seenIssues, SettingOverviewIssueResp{
+		},
+		{
+			Value:      resp.DefaultLanguage,
+			Allowed:    allowedLanguageValues,
 			SettingKey: settingKeyI18nLanguage,
 			GroupKey:   "i18n",
 			Severity:   "warning",
 			ReasonKey:  "setting.overview.issue.invalid_default_language",
-		})
-	}
-	if _, ok := allowedThemeValues[resp.DefaultTheme]; !ok {
-		resp.Issues = appendSettingOverviewIssue(resp.Issues, seenIssues, SettingOverviewIssueResp{
+		},
+		{
+			Value:      resp.DefaultTheme,
+			Allowed:    allowedThemeValues,
 			SettingKey: settingKeyUITheme,
 			GroupKey:   "ui",
 			Severity:   "warning",
 			ReasonKey:  "setting.overview.issue.invalid_default_theme",
-		})
-	}
-	appMode := safeSettingOverviewValue(byKey[settingKeyAppMode], "enterprise")
-	if _, ok := allowedAppModeValues[appMode]; !ok {
-		resp.Issues = appendSettingOverviewIssue(resp.Issues, seenIssues, SettingOverviewIssueResp{
+		},
+		{
+			Value:      appMode,
+			Allowed:    allowedAppModeValues,
 			SettingKey: settingKeyAppMode,
 			GroupKey:   "platform",
 			Severity:   "warning",
 			ReasonKey:  "setting.overview.issue.invalid_app_mode",
-		})
+		},
 	}
-
-	resp.RiskCount = len(resp.Issues)
-	return resp, nil
+	for _, check := range checks {
+		if _, ok := check.Allowed[check.Value]; !ok {
+			resp.Issues = appendSettingOverviewIssue(resp.Issues, seenIssues, SettingOverviewIssueResp{
+				SettingKey: check.SettingKey,
+				GroupKey:   check.GroupKey,
+				Severity:   check.Severity,
+				ReasonKey:  check.ReasonKey,
+			})
+		}
+	}
 }
 
 func (s *SettingService) RefreshSettingCache(groupKeys []string) (*SettingCacheRefreshResp, error) {

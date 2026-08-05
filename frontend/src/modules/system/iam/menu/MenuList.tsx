@@ -4,10 +4,8 @@ import {
   Button,
   Card,
   Form,
-  Grid,
   Input,
   InputNumber,
-  Popconfirm,
   Select,
   Space,
   Tag,
@@ -21,7 +19,6 @@ import {
   IconEdit,
   IconList,
   IconPlus,
-  IconSearch,
   IconUnorderedList,
 } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
@@ -50,7 +47,7 @@ import {
   AppTable,
   buildStandardPagination,
   getPagedItems,
-  FilterPanel,
+  SearchToolbar,
   FormSection,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
@@ -61,6 +58,7 @@ import {
   PageEmpty,
   PageLoading,
   PageRequestError,
+  SystemRowActions,
   SubmitBar,
   TABLE_ACTION_COLUMN_WIDTH,
   TABLE_COLUMN_WIDTH,
@@ -74,8 +72,6 @@ import {
 } from '../../../../core/router/componentRegistry';
 import '../../components/shared/list-page.css';
 
-const Row = Grid.Row;
-const Col = Grid.Col;
 const FormItem = Form.Item;
 const registeredComponentKeys = listRegisteredComponentKeys();
 
@@ -109,6 +105,7 @@ const emptyForm: MenuFormValues = {
 };
 
 const emptyQuery: MenuListQuery = {
+  keyword: '',
   titleKey: '',
   path: '',
   isVisible: undefined,
@@ -118,6 +115,10 @@ const emptyQuery: MenuListQuery = {
 
 interface LoadDataOptions {
   silent?: boolean;
+}
+
+function canAccess(isAdmin: boolean, hasPerm: (permission: string) => boolean, permission: string) {
+  return isAdmin || hasPerm(permission);
 }
 
 const MenuList: React.FC = () => {
@@ -132,13 +133,12 @@ const MenuList: React.FC = () => {
   const [tablePagination, setTablePagination] = useState({ current: 1, pageSize: 10 });
   const [query, setQuery] = useState<MenuListQuery>(emptyQuery);
   const [form] = Form.useForm<MenuFormValues>();
-  const [queryForm] = Form.useForm<MenuListQuery>();
   const { fetchMenuTree } = useMenuStore();
   const { t } = useTranslation();
   const { isAdmin, hasPerm } = usePermission();
-  const canCreate = isAdmin || hasPerm('system:menu:create');
-  const canEdit = isAdmin || hasPerm('system:menu:update');
-  const canDelete = isAdmin || hasPerm('system:menu:delete');
+  const canCreate = canAccess(isAdmin, hasPerm, 'system:menu:create');
+  const canEdit = canAccess(isAdmin, hasPerm, 'system:menu:update');
+  const canDelete = canAccess(isAdmin, hasPerm, 'system:menu:delete');
   const governanceRail = useGovernanceRail();
   const invalidateMenuCaches = useCallback(() => {
     invalidateRouteWarmDataMany([
@@ -310,8 +310,7 @@ const MenuList: React.FC = () => {
     ]);
   };
 
-  const search = () => {
-    const values = queryForm.getFieldsValue();
+  const search = (values: Partial<MenuListQuery>) => {
     setTablePagination((current) => ({ ...current, current: 1 }));
     setQuery({
       ...query,
@@ -320,7 +319,6 @@ const MenuList: React.FC = () => {
   };
 
   const reset = () => {
-    queryForm.setFieldsValue(emptyQuery);
     setTablePagination((current) => ({ ...current, current: 1 }));
     setQuery(emptyQuery);
   };
@@ -445,25 +443,36 @@ const MenuList: React.FC = () => {
   }, [excludedParentIDs, parentTree, t]);
 
   const renderMenuActions = (row: MenuNode) => (
-    <Space size={4} className="system-list__actions menu-list-page__row-actions">
-      {canCreate && row.type !== 'F' ? (
-        <Button type="text" size="small" icon={<IconPlus />} onClick={() => openCreateChild(row)}>
-          {t('system.menu.createChild')}
-        </Button>
-      ) : null}
-      {canEdit ? (
-        <Button type="text" size="small" icon={<IconEdit />} onClick={() => openEdit(row)}>
-          {t('common.edit')}
-        </Button>
-      ) : null}
-      {canDelete ? (
-        <Popconfirm title={t('common.deleteConfirm')} onOk={() => removeMenu(row.id)}>
-          <Button type="text" size="small" status="danger" icon={<IconDelete />}>
-            {t('common.delete')}
-          </Button>
-        </Popconfirm>
-      ) : null}
-    </Space>
+    <SystemRowActions
+      className="menu-list-page__row-actions"
+      actions={[
+        {
+          key: 'create-child',
+          text: t('system.menu.createChild'),
+          icon: <IconPlus />,
+          onClick: () => openCreateChild(row),
+          hidden: !canCreate || row.type === 'F',
+        },
+        {
+          key: 'edit',
+          text: t('common.edit'),
+          icon: <IconEdit />,
+          onClick: () => openEdit(row),
+          hidden: !canEdit,
+        },
+        {
+          key: 'delete',
+          text: t('common.delete'),
+          icon: <IconDelete />,
+          hidden: !canDelete,
+          status: 'danger',
+          confirm: {
+            title: t('common.deleteConfirm'),
+            onOk: () => removeMenu(row.id),
+          },
+        },
+      ]}
+    />
   );
 
   const renderListView = () => (
@@ -639,7 +648,8 @@ const MenuList: React.FC = () => {
       {
         title: t('system.menu.sort'),
         dataIndex: 'sort',
-        width: TABLE_COLUMN_WIDTH.count,
+        width: TABLE_COLUMN_WIDTH.sm,
+        fixed: 'right',
         ...sortableColumn('sort'),
       },
       'medium',
@@ -648,6 +658,7 @@ const MenuList: React.FC = () => {
       title: t('system.menu.visible'),
       dataIndex: 'isVisible',
       width: TABLE_COLUMN_WIDTH.status,
+      fixed: 'right',
       ...sortableColumn('isVisible'),
       render: renderVisibleTag,
     },
@@ -726,382 +737,381 @@ const MenuList: React.FC = () => {
     [flattenedMenus, t],
   );
 
-  return (
-    <PageContainer>
-      <Space direction="vertical" size={16} className="system-page-template">
-        <GovernanceSummaryBar
-          eyebrow={t('system.menu.hero.eyebrow')}
-          title={t('system.menu.hero.title')}
-          description={t('system.menu.hero.desc')}
-          metrics={heroStats.slice(0, 3).map((item) => ({
-            key: item.key,
-            label: item.label,
-            value: item.value,
-          }))}
-          action={
-            <GovernanceRailToggleButton
-              expanded={governanceRail.expanded}
-              onToggle={governanceRail.toggle}
-            >
-              {t('system.menu.hero.summaryTitle')}
-            </GovernanceRailToggleButton>
-          }
-        />
-        <>
-          <FilterPanel>
-            <Form form={queryForm} layout="vertical" onSubmit={() => search()}>
-              <Row gutter={16}>
-                <Col xs={24} md={12} lg={8}>
-                  <FormItem label={t('system.menu.titleKey')} field="titleKey">
-                    <Input onPressEnter={() => queryForm.submit()} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12} lg={8}>
-                  <FormItem label={t('system.menu.path')} field="path">
-                    <Input onPressEnter={() => queryForm.submit()} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12} lg={4}>
-                  <FormItem label={t('system.menu.visible')} field="isVisible">
-                    <Select
-                      allowClear
-                      options={[
-                        { label: t('common.yes'), value: 1 },
-                        { label: t('common.no'), value: 0 },
-                      ]}
-                    />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12} lg={4}>
-                  <FormItem className="filter-panel__action-item">
-                    <Space>
-                      <Button type="primary" htmlType="submit" icon={<IconSearch />}>
-                        {t('common.search')}
-                      </Button>
-                      <Button onClick={reset}>{t('common.reset')}</Button>
-                    </Space>
-                  </FormItem>
-                </Col>
-              </Row>
-            </Form>
-          </FilterPanel>
-          <Card className="page-panel system-list__table-card">
-            <div className="system-list__work-actions">
-              <PageActions>
-                <Space size={4} className="menu-view-switcher">
-                  <Button
-                    size="small"
-                    type={viewMode === 'table' ? 'primary' : 'secondary'}
-                    icon={<IconList />}
-                    onClick={() => setViewMode('table')}
-                  >
-                    {t('system.menu.view.table')}
-                  </Button>
-                  <Button
-                    size="small"
-                    type={viewMode === 'list' ? 'primary' : 'secondary'}
-                    icon={<IconUnorderedList />}
-                    onClick={() => setViewMode('list')}
-                  >
-                    {t('system.menu.view.list')}
-                  </Button>
-                  <Button
-                    size="small"
-                    type={viewMode === 'card' ? 'primary' : 'secondary'}
-                    icon={<IconApps />}
-                    onClick={() => setViewMode('card')}
-                  >
-                    {t('system.menu.view.card')}
-                  </Button>
-                </Space>
-                <Button
-                  type="primary"
-                  icon={<IconPlus />}
-                  onClick={openCreate}
-                  disabled={!canCreate}
-                >
-                  {t('common.add')}
-                </Button>
-              </PageActions>
-            </div>
-            {loading && data.length === 0 ? <PageLoading /> : null}
-            {error && data.length === 0 ? (
-              <PageRequestError
-                error={error}
-                onRetry={() => {
-                  loadData(query);
-                }}
-              />
-            ) : null}
-            {!loading && !error && data.length === 0 ? (
-              <PageEmpty description={t('common.noData')} />
-            ) : null}
-            {!loading &&
-            !(error && data.length === 0) &&
-            data.length > 0 &&
-            viewMode === 'table' ? (
-              <AppTable<MenuNode>
-                className="system-list__table"
-                data={data}
-                columns={columns}
-                rowKey="id"
-                loading={loading}
-                scroll={{ x: 'max-content' }}
-                onChange={handleTableChange}
-                emptyText={t('common.noData')}
-                pagination={buildStandardPagination(t, {
-                  current: tableCurrentPage,
-                  pageSize: tablePagination.pageSize,
-                  total: data.length,
-                })}
-              />
-            ) : null}
-            {!loading && !(error && data.length === 0) && data.length > 0 && viewMode === 'list'
-              ? renderListView()
-              : null}
-            {!loading && !(error && data.length === 0) && data.length > 0 && viewMode === 'card'
-              ? renderCardView()
-              : null}
-          </Card>
-        </>
-      </Space>
+  const renderLoadingState = () => (loading && data.length === 0 ? <PageLoading /> : null);
 
-      <GovernanceInsightDrawer
-        title={t('system.menu.hero.summaryTitle')}
-        visible={governanceRail.expanded}
-        onClose={governanceRail.close}
-        noteTitle={t('system.menu.hero.summaryTitle')}
-        noteDescription={t('system.menu.hero.sideDesc')}
-      >
-        <GovernanceRailSummary items={governanceSummaryItems} />
-      </GovernanceInsightDrawer>
+  const renderErrorState = () =>
+    error && data.length === 0 ? (
+      <PageRequestError
+        error={error}
+        onRetry={() => {
+          loadData(query);
+        }}
+      />
+    ) : null;
 
-      <AppModal
-        title={editing ? t('system.menu.edit') : t('system.menu.create')}
-        visible={visible}
-        size="xl"
-        autoFocus={false}
-        onCancel={() => setVisible(false)}
-        footer={
-          <SubmitBar
-            onCancel={() => setVisible(false)}
-            onSubmit={() => {
-              submitForm();
-            }}
-            loading={submitting}
-            submitText={editing ? t('common.save') : t('common.add')}
-          />
+  const renderEmptyState = () =>
+    !loading && !error && data.length === 0 ? <PageEmpty description={t('common.noData')} /> : null;
+
+  const renderTableView = () =>
+    !loading && !(error && data.length === 0) && data.length > 0 && viewMode === 'table' ? (
+      <AppTable<MenuNode>
+        className="system-list__table"
+        data={data}
+        columns={columns}
+        rowKey="id"
+        loading={loading}
+        scroll={{ x: 'max-content' }}
+        onChange={handleTableChange}
+        emptyText={t('common.noData')}
+        pagination={buildStandardPagination(t, {
+          current: tableCurrentPage,
+          pageSize: tablePagination.pageSize,
+          total: data.length,
+        })}
+      />
+    ) : null;
+
+  const renderListViewState = () =>
+    !loading && !(error && data.length === 0) && data.length > 0 && viewMode === 'list'
+      ? renderListView()
+      : null;
+
+  const renderCardViewState = () =>
+    !loading && !(error && data.length === 0) && data.length > 0 && viewMode === 'card'
+      ? renderCardView()
+      : null;
+
+  const renderPageContent = () => (
+    <Space direction="vertical" size={16} className="system-page-template">
+      <GovernanceSummaryBar
+        eyebrow={t('system.menu.hero.eyebrow')}
+        title={t('system.menu.hero.title')}
+        description={t('system.menu.hero.desc')}
+        metrics={heroStats.slice(0, 3).map((item) => ({
+          key: item.key,
+          label: item.label,
+          value: item.value,
+        }))}
+        action={
+          <GovernanceRailToggleButton
+            expanded={governanceRail.expanded}
+            onToggle={governanceRail.toggle}
+          >
+            {t('system.menu.hero.summaryTitle')}
+          </GovernanceRailToggleButton>
         }
-        unmountOnExit
-      >
-        <Form
-          form={form}
-          layout="vertical"
+      />
+      <>
+        <SearchToolbar
+          keyword={query.keyword ?? ''}
+          keywordPlaceholder={t('system.menu.search.placeholder')}
+          onKeywordChange={(keyword) => search({ keyword })}
+          inlineFilters={
+            <Select
+              allowClear
+              placeholder={t('system.menu.visible')}
+              value={query.isVisible}
+              onChange={(value) => search({ isVisible: value })}
+              options={[
+                { label: t('common.yes'), value: 1 },
+                { label: t('common.no'), value: 0 },
+              ]}
+            />
+          }
+          hasActiveFilters={Boolean(query.keyword || query.isVisible !== undefined)}
+          onClearAll={reset}
+        />
+        <Card className="page-panel system-list__table-card">
+          <div className="system-list__work-actions">
+            <PageActions>
+              <Space size={4} className="menu-view-switcher">
+                <Button
+                  size="small"
+                  type={viewMode === 'table' ? 'primary' : 'secondary'}
+                  icon={<IconList />}
+                  onClick={() => setViewMode('table')}
+                >
+                  {t('system.menu.view.table')}
+                </Button>
+                <Button
+                  size="small"
+                  type={viewMode === 'list' ? 'primary' : 'secondary'}
+                  icon={<IconUnorderedList />}
+                  onClick={() => setViewMode('list')}
+                >
+                  {t('system.menu.view.list')}
+                </Button>
+                <Button
+                  size="small"
+                  type={viewMode === 'card' ? 'primary' : 'secondary'}
+                  icon={<IconApps />}
+                  onClick={() => setViewMode('card')}
+                >
+                  {t('system.menu.view.card')}
+                </Button>
+              </Space>
+              <Button type="primary" icon={<IconPlus />} onClick={openCreate} disabled={!canCreate}>
+                {t('common.add')}
+              </Button>
+            </PageActions>
+          </div>
+          {renderLoadingState()}
+          {renderErrorState()}
+          {renderEmptyState()}
+          {renderTableView()}
+          {renderListViewState()}
+          {renderCardViewState()}
+        </Card>
+      </>
+    </Space>
+  );
+
+  const renderGovernanceDrawer = () => (
+    <GovernanceInsightDrawer
+      title={t('system.menu.hero.summaryTitle')}
+      visible={governanceRail.expanded}
+      onClose={governanceRail.close}
+      noteTitle={t('system.menu.hero.summaryTitle')}
+      noteDescription={t('system.menu.hero.sideDesc')}
+    >
+      <GovernanceRailSummary items={governanceSummaryItems} />
+    </GovernanceInsightDrawer>
+  );
+
+  const renderFormModal = () => (
+    <AppModal
+      title={editing ? t('system.menu.edit') : t('system.menu.create')}
+      visible={visible}
+      size="xl"
+      autoFocus={false}
+      onCancel={() => setVisible(false)}
+      footer={
+        <SubmitBar
+          onCancel={() => setVisible(false)}
           onSubmit={() => {
             submitForm();
           }}
-        >
-          <Space direction="vertical" size={20} className="dialog-form-stack">
-            <FormSection title={t('common.basicInfo')}>
-              <div className="menu-list-form__grid">
-                <FormItem label={t('system.menu.parentId')} field="parentId">
-                  <TreeSelect
-                    allowClear
-                    showSearch
-                    treeData={parentOptions}
-                    placeholder={t('system.menu.parentId')}
-                  />
-                </FormItem>
-                <FormItem
-                  label={t('system.menu.titleKey')}
-                  field="titleKey"
-                  rules={[{ required: true, message: t('system.menu.titleRequired') }]}
-                >
-                  <Input
-                    placeholder={t('system.menu.titleKey.placeholder')}
-                    onPressEnter={() => form.submit()}
-                  />
-                </FormItem>
-                <FormItem label={t('system.menu.path')} field="path">
-                  <Input
-                    placeholder={t('system.menu.path.placeholder')}
-                    onPressEnter={() => form.submit()}
-                  />
-                </FormItem>
-                <FormItem
-                  label={t('system.menu.routeName')}
-                  field="routeName"
-                  rules={[
-                    {
-                      validator: (value, callback) => {
-                        const type = form.getFieldValue('type');
-                        if (type === 'C' && !String(value || '').trim()) {
-                          callback(t('system.menu.routeNameRequired'));
-                          return;
-                        }
-                        callback();
-                      },
+          loading={submitting}
+          submitText={editing ? t('common.save') : t('common.add')}
+        />
+      }
+      unmountOnExit
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onSubmit={() => {
+          submitForm();
+        }}
+      >
+        <Space direction="vertical" size={20} className="dialog-form-stack">
+          <FormSection title={t('common.basicInfo')}>
+            <div className="menu-list-form__grid">
+              <FormItem label={t('system.menu.parentId')} field="parentId">
+                <TreeSelect
+                  allowClear
+                  showSearch
+                  treeData={parentOptions}
+                  placeholder={t('system.menu.parentId')}
+                />
+              </FormItem>
+              <FormItem
+                label={t('system.menu.titleKey')}
+                field="titleKey"
+                rules={[{ required: true, message: t('system.menu.titleRequired') }]}
+              >
+                <Input
+                  placeholder={t('system.menu.titleKey.placeholder')}
+                  onPressEnter={() => form.submit()}
+                />
+              </FormItem>
+              <FormItem label={t('system.menu.path')} field="path">
+                <Input
+                  placeholder={t('system.menu.path.placeholder')}
+                  onPressEnter={() => form.submit()}
+                />
+              </FormItem>
+              <FormItem
+                label={t('system.menu.routeName')}
+                field="routeName"
+                rules={[
+                  {
+                    validator: (value, callback) => {
+                      const type = form.getFieldValue('type');
+                      if (type === 'C' && !String(value || '').trim()) {
+                        callback(t('system.menu.routeNameRequired'));
+                        return;
+                      }
+                      callback();
                     },
-                  ]}
-                >
-                  <Input
-                    placeholder={t('system.menu.routeName.placeholder')}
-                    onPressEnter={() => form.submit()}
-                  />
-                </FormItem>
-                <FormItem
-                  className="menu-list-form__field--full"
-                  label={t('system.menu.component')}
-                  field="component"
-                  rules={[
-                    {
-                      validator: (value, callback) => {
-                        const type = form.getFieldValue('type');
-                        const isExternal = form.getFieldValue('isExternal');
-                        const moduleName = String(form.getFieldValue('module') || '').trim();
-                        const componentKey = String(value || '').trim();
-                        if (type === 'C' && isExternal !== 1 && !componentKey) {
-                          callback(t('system.menu.componentRequired'));
-                          return;
-                        }
-                        const requiresRegisteredComponent =
-                          moduleName === 'platform' ||
-                          moduleName.startsWith('system.') ||
-                          moduleName.startsWith('business.');
-                        if (
-                          type === 'C' &&
-                          isExternal !== 1 &&
-                          requiresRegisteredComponent &&
-                          !isRegisteredComponentKey(componentKey)
-                        ) {
-                          callback(t('system.menu.componentInvalid'));
-                          return;
-                        }
-                        callback();
-                      },
+                  },
+                ]}
+              >
+                <Input
+                  placeholder={t('system.menu.routeName.placeholder')}
+                  onPressEnter={() => form.submit()}
+                />
+              </FormItem>
+              <FormItem
+                className="menu-list-form__field--full"
+                label={t('system.menu.component')}
+                field="component"
+                rules={[
+                  {
+                    validator: (value, callback) => {
+                      const type = form.getFieldValue('type');
+                      const isExternal = form.getFieldValue('isExternal');
+                      const moduleName = String(form.getFieldValue('module') || '').trim();
+                      const componentKey = String(value || '').trim();
+                      if (type === 'C' && isExternal !== 1 && !componentKey) {
+                        callback(t('system.menu.componentRequired'));
+                        return;
+                      }
+                      const requiresRegisteredComponent =
+                        moduleName === 'platform' ||
+                        moduleName.startsWith('system.') ||
+                        moduleName.startsWith('business.');
+                      if (
+                        type === 'C' &&
+                        isExternal !== 1 &&
+                        requiresRegisteredComponent &&
+                        !isRegisteredComponentKey(componentKey)
+                      ) {
+                        callback(t('system.menu.componentInvalid'));
+                        return;
+                      }
+                      callback();
                     },
-                  ]}
-                >
-                  <AutoComplete
-                    allowClear
-                    data={registeredComponentKeys}
-                    placeholder={t('system.menu.component.placeholder')}
-                    filterOption
-                    onPressEnter={() => form.submit()}
-                  />
-                </FormItem>
-                <FormItem
-                  className="menu-list-form__field--full"
-                  label={t('system.menu.pagePerm')}
-                  field="pagePerm"
-                  rules={[
-                    {
-                      validator: (value, callback) => {
-                        const type = form.getFieldValue('type');
-                        const isExternal = form.getFieldValue('isExternal');
-                        if (type === 'C' && isExternal !== 1 && !String(value || '').trim()) {
-                          callback(t('system.menu.pagePermRequired'));
-                          return;
-                        }
-                        callback();
-                      },
+                  },
+                ]}
+              >
+                <AutoComplete
+                  allowClear
+                  data={registeredComponentKeys}
+                  placeholder={t('system.menu.component.placeholder')}
+                  filterOption
+                  onPressEnter={() => form.submit()}
+                />
+              </FormItem>
+              <FormItem
+                className="menu-list-form__field--full"
+                label={t('system.menu.pagePerm')}
+                field="pagePerm"
+                rules={[
+                  {
+                    validator: (value, callback) => {
+                      const type = form.getFieldValue('type');
+                      const isExternal = form.getFieldValue('isExternal');
+                      if (type === 'C' && isExternal !== 1 && !String(value || '').trim()) {
+                        callback(t('system.menu.pagePermRequired'));
+                        return;
+                      }
+                      callback();
                     },
-                  ]}
-                >
-                  <Input
-                    placeholder={t('system.menu.pagePerm.placeholder')}
-                    onPressEnter={() => form.submit()}
-                  />
-                </FormItem>
-                <FormItem
-                  className="menu-list-form__field--full"
-                  label={t('system.menu.perms')}
-                  field="perms"
-                  rules={[
-                    {
-                      validator: (value, callback) => {
-                        const type = form.getFieldValue('type');
-                        if (type === 'F' && !String(value || '').trim()) {
-                          callback(t('system.menu.permsRequired'));
-                          return;
-                        }
-                        callback();
-                      },
+                  },
+                ]}
+              >
+                <Input
+                  placeholder={t('system.menu.pagePerm.placeholder')}
+                  onPressEnter={() => form.submit()}
+                />
+              </FormItem>
+              <FormItem
+                className="menu-list-form__field--full"
+                label={t('system.menu.perms')}
+                field="perms"
+                rules={[
+                  {
+                    validator: (value, callback) => {
+                      const type = form.getFieldValue('type');
+                      if (type === 'F' && !String(value || '').trim()) {
+                        callback(t('system.menu.permsRequired'));
+                        return;
+                      }
+                      callback();
                     },
+                  },
+                ]}
+              >
+                <Input
+                  placeholder={t('system.menu.perms.placeholder')}
+                  onPressEnter={() => form.submit()}
+                />
+              </FormItem>
+            </div>
+          </FormSection>
+          <FormSection title={t('system.menu.metadata')}>
+            <div className="menu-list-form__grid">
+              <FormItem label={t('system.menu.module')} field="module">
+                <Input
+                  placeholder={t('system.menu.module.placeholder')}
+                  onPressEnter={() => form.submit()}
+                />
+              </FormItem>
+              <FormItem label={t('system.menu.type')} field="type">
+                <Select
+                  options={[
+                    { label: t('system.menu.type.menuGroup'), value: 'M' },
+                    { label: t('system.menu.type.menu'), value: 'C' },
+                    { label: t('system.menu.type.button'), value: 'F' },
                   ]}
-                >
-                  <Input
-                    placeholder={t('system.menu.perms.placeholder')}
-                    onPressEnter={() => form.submit()}
-                  />
-                </FormItem>
-              </div>
-            </FormSection>
-            <FormSection title={t('system.menu.metadata')}>
-              <div className="menu-list-form__grid">
-                <FormItem label={t('system.menu.module')} field="module">
-                  <Input
-                    placeholder={t('system.menu.module.placeholder')}
-                    onPressEnter={() => form.submit()}
-                  />
-                </FormItem>
-                <FormItem label={t('system.menu.type')} field="type">
-                  <Select
-                    options={[
-                      { label: t('system.menu.type.menuGroup'), value: 'M' },
-                      { label: t('system.menu.type.menu'), value: 'C' },
-                      { label: t('system.menu.type.button'), value: 'F' },
-                    ]}
-                  />
-                </FormItem>
-                <FormItem label={t('system.menu.icon')} field="icon">
-                  <Select
-                    allowClear
-                    placeholder={t('system.menu.icon.placeholder')}
-                    options={MENU_ICON_OPTIONS.map((item) => ({
-                      label: t(item.labelKey),
-                      value: item.value,
-                    }))}
-                  />
-                </FormItem>
-                <FormItem label={t('system.menu.sort')} field="sort">
-                  <InputNumber min={0} style={{ width: '100%' }} />
-                </FormItem>
-                <FormItem label={t('system.menu.visible')} field="isVisible">
-                  <Select
-                    options={[
-                      { label: t('common.yes'), value: 1 },
-                      { label: t('common.no'), value: 0 },
-                    ]}
-                  />
-                </FormItem>
-                <FormItem label={t('system.menu.cache')} field="isCache">
-                  <Select
-                    options={[
-                      { label: t('common.yes'), value: 1 },
-                      { label: t('common.no'), value: 0 },
-                    ]}
-                  />
-                </FormItem>
-                <FormItem label={t('system.menu.external')} field="isExternal">
-                  <Select
-                    options={[
-                      { label: t('common.yes'), value: 1 },
-                      { label: t('common.no'), value: 0 },
-                    ]}
-                  />
-                </FormItem>
-                <FormItem label={t('system.menu.activeMenu')} field="activeMenu">
-                  <Input
-                    placeholder={t('system.menu.activeMenu.placeholder')}
-                    onPressEnter={() => form.submit()}
-                  />
-                </FormItem>
-              </div>
-            </FormSection>
-          </Space>
-        </Form>
-      </AppModal>
+                />
+              </FormItem>
+              <FormItem label={t('system.menu.icon')} field="icon">
+                <Select
+                  allowClear
+                  placeholder={t('system.menu.icon.placeholder')}
+                  options={MENU_ICON_OPTIONS.map((item) => ({
+                    label: t(item.labelKey),
+                    value: item.value,
+                  }))}
+                />
+              </FormItem>
+              <FormItem label={t('system.menu.sort')} field="sort">
+                <InputNumber min={0} style={{ width: '100%' }} />
+              </FormItem>
+              <FormItem label={t('system.menu.visible')} field="isVisible">
+                <Select
+                  options={[
+                    { label: t('common.yes'), value: 1 },
+                    { label: t('common.no'), value: 0 },
+                  ]}
+                />
+              </FormItem>
+              <FormItem label={t('system.menu.cache')} field="isCache">
+                <Select
+                  options={[
+                    { label: t('common.yes'), value: 1 },
+                    { label: t('common.no'), value: 0 },
+                  ]}
+                />
+              </FormItem>
+              <FormItem label={t('system.menu.external')} field="isExternal">
+                <Select
+                  options={[
+                    { label: t('common.yes'), value: 1 },
+                    { label: t('common.no'), value: 0 },
+                  ]}
+                />
+              </FormItem>
+              <FormItem label={t('system.menu.activeMenu')} field="activeMenu">
+                <Input
+                  placeholder={t('system.menu.activeMenu.placeholder')}
+                  onPressEnter={() => form.submit()}
+                />
+              </FormItem>
+            </div>
+          </FormSection>
+        </Space>
+      </Form>
+    </AppModal>
+  );
+
+  return (
+    <PageContainer>
+      {renderPageContent()}
+      {renderGovernanceDrawer()}
+      {renderFormModal()}
     </PageContainer>
   );
 };

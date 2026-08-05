@@ -22,6 +22,7 @@ export interface PostRow {
 }
 
 export interface PostListQuery {
+  keyword?: string;
   postCode?: string;
   postName?: string;
   deptId?: number;

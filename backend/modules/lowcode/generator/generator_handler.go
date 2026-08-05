@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const msgParamInvalid = "param.invalid"
+
 type GeneratorHandler struct {
 	service *GeneratorService
 }
@@ -26,11 +28,11 @@ func (h *GeneratorHandler) ListDatasources(c *gin.Context) {
 }
 
 func (h *GeneratorHandler) CreateDatasource(c *gin.Context) {
-	common.SetAuditMetadata(c, "新增生成器数据源", common.BusinessInsert)
+	common.SetAuditMetadata(c, "generator.datasource.create.title", common.BusinessInsert)
 
 	var req UpsertGeneratorDatasourceReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	item, err := h.service.CreateDatasource(&req)
@@ -42,11 +44,11 @@ func (h *GeneratorHandler) CreateDatasource(c *gin.Context) {
 }
 
 func (h *GeneratorHandler) UpdateDatasource(c *gin.Context) {
-	common.SetAuditMetadata(c, "更新生成器数据源", common.BusinessUpdate)
+	common.SetAuditMetadata(c, "generator.datasource.update.title", common.BusinessUpdate)
 
 	var req UpsertGeneratorDatasourceReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	item, err := h.service.UpdateDatasource(c.Param("id"), &req)
@@ -58,7 +60,7 @@ func (h *GeneratorHandler) UpdateDatasource(c *gin.Context) {
 }
 
 func (h *GeneratorHandler) DeleteDatasource(c *gin.Context) {
-	common.SetAuditMetadata(c, "删除生成器数据源", common.BusinessDelete)
+	common.SetAuditMetadata(c, "generator.datasource.delete.title", common.BusinessDelete)
 
 	if err := h.service.DeleteDatasource(c.Param("id")); err != nil {
 		common.FailWithError(c, mapGeneratorErrorCode(err), err, "generator.datasource.delete.error")
@@ -68,7 +70,7 @@ func (h *GeneratorHandler) DeleteDatasource(c *gin.Context) {
 }
 
 func (h *GeneratorHandler) TestDatasource(c *gin.Context) {
-	common.SetAuditMetadata(c, "测试生成器数据源", common.BusinessOther)
+	common.SetAuditMetadata(c, "generator.datasource.test.title", common.BusinessOther)
 
 	item, err := h.service.TestDatasource(c.Param("id"))
 	if err != nil {
@@ -102,11 +104,13 @@ func (h *GeneratorHandler) PreviewTable(c *gin.Context) {
 }
 
 func (h *GeneratorHandler) PreviewGeneratedFiles(c *gin.Context) {
+	common.SetAuditMetadata(c, "generator.preview_files.title", common.BusinessOther)
+
 	var req struct {
 		Schema scaffold.ModuleSchema `json:"schema"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	files, err := h.service.PreviewGeneratedFiles(&req.Schema)
@@ -118,11 +122,13 @@ func (h *GeneratorHandler) PreviewGeneratedFiles(c *gin.Context) {
 }
 
 func (h *GeneratorHandler) DownloadGeneratedSource(c *gin.Context) {
+	common.SetAuditMetadata(c, "generator.download_source.title", common.BusinessExport)
+
 	var req struct {
 		Schema scaffold.ModuleSchema `json:"schema"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 

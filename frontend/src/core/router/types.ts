@@ -16,9 +16,7 @@ export type DashboardWidgetSourceDomain =
   | `business/${string}`;
 
 export type DashboardWidgetCleanupPolicy =
-  | 'platform_owned'
-  | 'hide_when_forbidden'
-  | 'remove_with_source_module';
+  'platform_owned' | 'hide_when_forbidden' | 'remove_with_source_module';
 
 export type DashboardWidgetSlot = 'quick-action' | 'domain-overview';
 export type DashboardWidgetNavigationSource = 'menu' | 'direct';

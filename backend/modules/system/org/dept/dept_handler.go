@@ -10,6 +10,7 @@ import (
 )
 
 const errRequestFailed = "request.failed"
+const errParamInvalid = "param.invalid"
 
 type DeptHandler struct {
 	service *DeptService
@@ -22,7 +23,7 @@ func NewDeptHandler(s *DeptService) *DeptHandler {
 func (h *DeptHandler) GetDeptTree(c *gin.Context) {
 	var query DeptListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -46,7 +47,7 @@ func (h *DeptHandler) GetDeptOverview(c *gin.Context) {
 func (h *DeptHandler) GetGovernanceTasks(c *gin.Context) {
 	var query DeptGovernanceTaskQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -61,7 +62,7 @@ func (h *DeptHandler) GetGovernanceTasks(c *gin.Context) {
 func (h *DeptHandler) GetDeptLeaderCandidates(c *gin.Context) {
 	deptID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -74,10 +75,10 @@ func (h *DeptHandler) GetDeptLeaderCandidates(c *gin.Context) {
 }
 
 func (h *DeptHandler) CreateDept(c *gin.Context) {
-	common.SetAuditMetadata(c, "新增部门", common.BusinessInsert)
+	common.SetAuditMetadata(c, "dept.create.title", common.BusinessInsert)
 	var req DeptCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -90,16 +91,16 @@ func (h *DeptHandler) CreateDept(c *gin.Context) {
 }
 
 func (h *DeptHandler) UpdateDept(c *gin.Context) {
-	common.SetAuditMetadata(c, "编辑部门", common.BusinessUpdate)
+	common.SetAuditMetadata(c, "dept.update.title", common.BusinessUpdate)
 	var req DeptUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	deptID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -112,11 +113,11 @@ func (h *DeptHandler) UpdateDept(c *gin.Context) {
 }
 
 func (h *DeptHandler) BatchUpdateDeptStatus(c *gin.Context) {
-	common.SetAuditMetadata(c, "批量更新部门状态", common.BusinessUpdate)
+	common.SetAuditMetadata(c, "dept.batch_status.title", common.BusinessUpdate)
 
 	var req DeptBatchStatusReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -129,11 +130,11 @@ func (h *DeptHandler) BatchUpdateDeptStatus(c *gin.Context) {
 }
 
 func (h *DeptHandler) BatchUpdateDeptLeader(c *gin.Context) {
-	common.SetAuditMetadata(c, "批量补负责人", common.BusinessUpdate)
+	common.SetAuditMetadata(c, "dept.batch_leader.title", common.BusinessUpdate)
 
 	var req DeptBatchLeaderReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -146,10 +147,10 @@ func (h *DeptHandler) BatchUpdateDeptLeader(c *gin.Context) {
 }
 
 func (h *DeptHandler) DeleteDept(c *gin.Context) {
-	common.SetAuditMetadata(c, "删除部门", common.BusinessDelete)
+	common.SetAuditMetadata(c, "dept.delete.title", common.BusinessDelete)
 	deptID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -161,11 +162,11 @@ func (h *DeptHandler) DeleteDept(c *gin.Context) {
 }
 
 func (h *DeptHandler) BatchDeleteDepts(c *gin.Context) {
-	common.SetAuditMetadata(c, "批量删除部门", common.BusinessDelete)
+	common.SetAuditMetadata(c, "dept.batch_delete.title", common.BusinessDelete)
 
 	var req common.BatchDeleteReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 	resp := common.BatchDelete(req.IDs, h.service.DeleteDept)
@@ -173,14 +174,14 @@ func (h *DeptHandler) BatchDeleteDepts(c *gin.Context) {
 }
 
 func (h *DeptHandler) ExportDepts(c *gin.Context) {
-	common.SetAuditMetadata(c, "导出部门", common.BusinessExport)
+	common.SetAuditMetadata(c, "dept.export.title", common.BusinessExport)
 
 	var query DeptListQuery
 	if err := c.ShouldBindJSON(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	file, err := h.service.ExportDepts(&query)
+	file, err := h.service.ExportDepts(c.Request.Context(), &query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dept.export.error")
 		return
@@ -191,11 +192,11 @@ func (h *DeptHandler) ExportDepts(c *gin.Context) {
 }
 
 func (h *DeptHandler) ExportGovernanceTasks(c *gin.Context) {
-	common.SetAuditMetadata(c, "导出组织治理任务", common.BusinessExport)
+	common.SetAuditMetadata(c, "dept.governance.export.title", common.BusinessExport)
 
 	var query DeptGovernanceTaskQuery
 	if err := c.ShouldBindJSON(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 	file, err := h.service.ExportGovernanceTasks(&query)
@@ -216,7 +217,7 @@ func (h *DeptHandler) DownloadImportTemplate(c *gin.Context) {
 }
 
 func (h *DeptHandler) ImportDepts(c *gin.Context) {
-	common.SetAuditMetadata(c, "导入部门", common.BusinessImport)
+	common.SetAuditMetadata(c, "dept.import.title", common.BusinessImport)
 
 	fileHeader, err := c.FormFile("file")
 	if err != nil {

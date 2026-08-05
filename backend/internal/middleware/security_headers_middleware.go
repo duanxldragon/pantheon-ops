@@ -3,14 +3,14 @@ package middleware
 import "github.com/gin-gonic/gin"
 
 const (
-	cspHeader  = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
 	hstsHeader = "max-age=31536000; includeSubDomains"
 	permHeader = "camera=(), microphone=(), geolocation=()"
 )
 
+// SecurityHeadersMiddleware 设置通用安全响应头。
+// 注意：Content-Security-Policy 由 CSPMiddleware 统一负责（单一来源），此处不再设置。
 func SecurityHeadersMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Header("Content-Security-Policy", cspHeader)
 		c.Header("Strict-Transport-Security", hstsHeader)
 		c.Header("X-Content-Type-Options", "nosniff")
 		c.Header("X-Frame-Options", "DENY")

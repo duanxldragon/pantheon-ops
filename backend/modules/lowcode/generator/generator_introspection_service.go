@@ -38,7 +38,7 @@ func (s *GeneratorService) ListTables(datasourceID, keyword string) ([]TableOpti
 		return nil, err
 	}
 	if reader.close != nil {
-		defer reader.close()
+		defer func() { _ = reader.close() }()
 	}
 
 	query := reader.db.Table("information_schema.tables").
@@ -83,7 +83,7 @@ func (s *GeneratorService) PreviewTable(datasourceID, tableName string) (*TableS
 		return nil, err
 	}
 	if reader.close != nil {
-		defer reader.close()
+		defer func() { _ = reader.close() }()
 	}
 
 	var table tableRow

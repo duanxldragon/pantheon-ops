@@ -155,7 +155,7 @@ const SettingOverviewPage: React.FC = () => {
                         </span>
                         {issueCount > 0 ? (
                           <Tag color={meta.tone === 'danger' ? 'red' : 'orange'}>
-                            {t('common.total', { count: issueCount })}
+                            {t('common.totalWithCount', { count: issueCount })}
                           </Tag>
                         ) : null}
                       </span>
@@ -163,7 +163,7 @@ const SettingOverviewPage: React.FC = () => {
                         {t(meta.descriptionKey, '')}
                       </span>
                       <span className="setting-overview-page__anchor-meta">
-                        {t('common.total', { count: group?.items.length ?? 0 })}
+                        {t('common.totalWithCount', { count: group?.items.length ?? 0 })}
                       </span>
                     </button>
                   );

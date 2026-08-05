@@ -58,7 +58,7 @@ export { ModuleExporter, type GeneratedFile } from './exporter';
 
 export const GeneratorModule = defineModule({
   name: 'generator',
-  scope: 'system',
+  scope: 'lowcode',
   routes: [
     {
       path: 'system/generator',
@@ -66,7 +66,7 @@ export const GeneratorModule = defineModule({
       titleKey: 'system.menu.generator',
       icon: 'code',
       pagePermission: 'system:generator:use',
-      componentKey: 'system/generator/ModuleWizard',
+      componentKey: 'lowcode/generator/ModuleWizard',
     },
   ],
   menus: [

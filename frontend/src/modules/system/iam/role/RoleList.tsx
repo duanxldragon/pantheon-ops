@@ -61,7 +61,7 @@ import {
   AppModal,
   AppTable,
   buildStandardPagination,
-  FilterPanel,
+  SearchToolbar,
   FormSection,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
@@ -113,6 +113,7 @@ const emptyForm: RoleFormValues = {
 };
 
 const emptyQuery: RoleListQuery = {
+  keyword: '',
   roleName: '',
   roleKey: '',
   status: undefined,
@@ -122,6 +123,7 @@ const emptyQuery: RoleListQuery = {
 
 function isDefaultRoleListQuery(query: RoleListQuery) {
   return (
+    !query.keyword &&
     !query.roleName &&
     !query.roleKey &&
     query.status === undefined &&
@@ -277,7 +279,6 @@ const RoleList: React.FC = () => {
   const [menuTree, setMenuTree] = useState<MenuNode[]>([]);
   const [authorizationCounts, setAuthorizationCounts] = useState(emptyAuthorizationCounts);
   const [form] = Form.useForm<RoleFormValues>();
-  const [queryForm] = Form.useForm<RoleListQuery>();
   const { t } = useTranslation();
   const { isAdmin, hasPerm } = usePermission();
   const canCreate = isAdmin || hasPerm('system:role:create');
@@ -603,7 +604,7 @@ const RoleList: React.FC = () => {
       roleKey: values.roleKey,
       sort: values.sort,
       status: values.status,
-      menuIds: values.menuIds.map((item) => Number(item)),
+      menuIds: values.menuIds.map(Number),
       permissionKeys: mergePermissionKeys(
         values.pagePermissionKeys,
         values.actionPermissionKeys,
@@ -623,14 +624,22 @@ const RoleList: React.FC = () => {
           message.info(
             <span>
               {t('system.role.governanceHint')}&nbsp;
-              <a
-                style={{ cursor: 'pointer' }}
+              <button
+                type="button"
+                style={{
+                  cursor: 'pointer',
+                  border: 'none',
+                  background: 'none',
+                  padding: 0,
+                  color: 'inherit',
+                  font: 'inherit',
+                }}
                 onClick={() => {
                   navigate('/system/permission');
                 }}
               >
                 {t('system.role.governanceHintAction')}
-              </a>
+              </button>
             </span>,
             { duration: 8 },
           );
@@ -664,7 +673,7 @@ const RoleList: React.FC = () => {
       message.warning(t('common.batchSelectionRequired'));
       return;
     }
-    const roleIds = selectedRowKeys.map((item) => Number(item)).filter((item) => item > 0);
+    const roleIds = selectedRowKeys.map(Number).filter((item) => item > 0);
     const result = await batchUpdateRoleStatus({ roleIds, status });
     message.success(t('system.role.batchStatusSuccess', { count: result.updatedCount }));
     invalidateRoleCaches();
@@ -678,7 +687,7 @@ const RoleList: React.FC = () => {
       message.warning(t('common.batchSelectionRequired'));
       return;
     }
-    const ids = selectedRowKeys.map((item) => Number(item)).filter((item) => item > 0);
+    const ids = selectedRowKeys.map(Number).filter((item) => item > 0);
     const result = await batchDeleteRoles({ ids });
     const messageKey =
       result.failedCount > 0 ? 'common.batchDeletePartialSuccess' : 'common.batchDeleteSuccess';
@@ -716,8 +725,7 @@ const RoleList: React.FC = () => {
     }
   };
 
-  const search = () => {
-    const values = queryForm.getFieldsValue();
+  const search = (values: Partial<RoleListQuery>) => {
     setSelectedRowKeys([]);
     setQuery({
       ...query,
@@ -727,7 +735,6 @@ const RoleList: React.FC = () => {
   };
 
   const reset = () => {
-    queryForm.setFieldsValue(emptyQuery);
     setSelectedRowKeys([]);
     setQuery(emptyQuery);
   };
@@ -751,17 +758,18 @@ const RoleList: React.FC = () => {
 
   const handleTableChange: TableProps<RoleRow>['onChange'] = (pagination, sorter) => {
     const currentSorter = Array.isArray(sorter) ? sorter[0] : (sorter as SorterInfo | undefined);
+    let nextSortOrder: 'asc' | 'desc' | undefined;
+    if (currentSorter?.direction === 'ascend') {
+      nextSortOrder = 'asc';
+    } else if (currentSorter?.direction === 'descend') {
+      nextSortOrder = 'desc';
+    }
     const nextQuery: RoleListQuery = {
       ...query,
       page: pagination.current || 1,
       pageSize: pagination.pageSize || query.pageSize || emptyQuery.pageSize,
       sortField: currentSorter?.direction ? String(currentSorter.field) : undefined,
-      sortOrder:
-        currentSorter?.direction === 'ascend'
-          ? 'asc'
-          : currentSorter?.direction === 'descend'
-            ? 'desc'
-            : undefined,
+      sortOrder: nextSortOrder,
     };
     const sortChanged =
       nextQuery.sortField !== query.sortField || nextQuery.sortOrder !== query.sortOrder;
@@ -814,7 +822,11 @@ const RoleList: React.FC = () => {
         dataIndex: 'createdAt',
         width: TABLE_COLUMN_WIDTH.datetime,
         ...sortableColumn('createdAt'),
-        render: (value: string) => formatDateTime(value),
+        render: (value: string) => (
+          <Typography.Text className="system-list__datetime-text">
+            {formatDateTime(value)}
+          </Typography.Text>
+        ),
       },
       'low',
     ),
@@ -939,43 +951,25 @@ const RoleList: React.FC = () => {
           }
         />
         <>
-          <FilterPanel>
-            <Form form={queryForm} layout="vertical" onSubmit={() => search()}>
-              <Row gutter={16}>
-                <Col span={6}>
-                  <FormItem label={t('system.role.roleName')} field="roleName">
-                    <Input onPressEnter={() => queryForm.submit()} />
-                  </FormItem>
-                </Col>
-                <Col span={6}>
-                  <FormItem label={t('system.role.roleKey')} field="roleKey">
-                    <Input onPressEnter={() => queryForm.submit()} />
-                  </FormItem>
-                </Col>
-                <Col span={6}>
-                  <FormItem label={t('system.role.status')} field="status">
-                    <Select
-                      allowClear
-                      options={[
-                        { label: t('system.user.status.enabled'), value: 1 },
-                        { label: t('system.user.status.disabled'), value: 2 },
-                      ]}
-                    />
-                  </FormItem>
-                </Col>
-                <Col span={6}>
-                  <FormItem className="filter-panel__action-item">
-                    <Space>
-                      <Button type="primary" htmlType="submit" icon={<IconSearch />}>
-                        {t('common.search')}
-                      </Button>
-                      <Button onClick={reset}>{t('common.reset')}</Button>
-                    </Space>
-                  </FormItem>
-                </Col>
-              </Row>
-            </Form>
-          </FilterPanel>
+          <SearchToolbar
+            keyword={query.keyword ?? ''}
+            keywordPlaceholder={t('system.role.search.placeholder')}
+            onKeywordChange={(keyword) => search({ keyword })}
+            inlineFilters={
+              <Select
+                allowClear
+                placeholder={t('system.role.status')}
+                value={query.status}
+                onChange={(value) => search({ status: value })}
+                options={[
+                  { label: t('system.user.status.enabled'), value: 1 },
+                  { label: t('system.user.status.disabled'), value: 2 },
+                ]}
+              />
+            }
+            hasActiveFilters={Boolean(query.keyword || query.status !== undefined)}
+            onClearAll={reset}
+          />
           <Card className="page-panel system-list__table-card">
             <TableBatchActionBar
               selectedCount={selectedRowKeys.length}
@@ -1004,10 +998,7 @@ const RoleList: React.FC = () => {
                       >
                         {t('common.downloadTemplate')}
                       </Button>
-                      <ImportCsvButton
-                        disabled={!canImport}
-                        onSelect={handleImport}
-                      >
+                      <ImportCsvButton disabled={!canImport} onSelect={handleImport}>
                         {t('common.import')}
                       </ImportCsvButton>
                     </>
@@ -1169,45 +1160,57 @@ const RoleList: React.FC = () => {
         >
           <Space direction="vertical" size={20} className="dialog-form-stack">
             <FormSection title={t('common.basicInfo')}>
-              <FormItem
-                label={t('system.role.roleName')}
-                field="roleName"
-                rules={[{ required: true, message: t('system.role.roleName.required') }]}
-              >
-                <Input onPressEnter={() => form.submit()} />
-              </FormItem>
-              <FormItem
-                label={t('system.role.roleKey')}
-                field="roleKey"
-                rules={[{ required: true, message: t('system.role.roleKey.required') }]}
-              >
-                <Input disabled={protectedRole} onPressEnter={() => form.submit()} />
-              </FormItem>
-              <FormItem label={t('system.role.sort')} field="sort">
-                <InputNumber min={0} />
-              </FormItem>
-              <FormItem label={t('system.role.status')} field="status">
-                <Select
-                  disabled={protectedRole}
-                  options={[
-                    { label: t('system.user.status.enabled'), value: 1 },
-                    { label: t('system.user.status.disabled'), value: 2 },
-                  ]}
-                />
-              </FormItem>
-              <FormItem label={t('system.role.dataScope')} field="dataScope">
-                <Select
-                  options={[
-                    { label: t('system.permission.dataScope.mode.all'), value: 'all' },
-                    { label: t('system.permission.dataScope.mode.self'), value: 'self' },
-                    { label: t('system.permission.dataScope.mode.dept'), value: 'dept' },
-                    {
-                      label: t('system.permission.dataScope.mode.deptAndChildren'),
-                      value: 'dept_and_children',
-                    },
-                  ]}
-                />
-              </FormItem>
+              <Row gutter={16}>
+                <Col xs={24} md={12}>
+                  <FormItem
+                    label={t('system.role.roleName')}
+                    field="roleName"
+                    rules={[{ required: true, message: t('system.role.roleName.required') }]}
+                  >
+                    <Input onPressEnter={() => form.submit()} />
+                  </FormItem>
+                </Col>
+                <Col xs={24} md={12}>
+                  <FormItem
+                    label={t('system.role.roleKey')}
+                    field="roleKey"
+                    rules={[{ required: true, message: t('system.role.roleKey.required') }]}
+                  >
+                    <Input disabled={protectedRole} onPressEnter={() => form.submit()} />
+                  </FormItem>
+                </Col>
+                <Col xs={24} md={12}>
+                  <FormItem label={t('system.role.sort')} field="sort">
+                    <InputNumber min={0} />
+                  </FormItem>
+                </Col>
+                <Col xs={24} md={12}>
+                  <FormItem label={t('system.role.status')} field="status">
+                    <Select
+                      disabled={protectedRole}
+                      options={[
+                        { label: t('system.user.status.enabled'), value: 1 },
+                        { label: t('system.user.status.disabled'), value: 2 },
+                      ]}
+                    />
+                  </FormItem>
+                </Col>
+                <Col xs={24} md={12}>
+                  <FormItem label={t('system.role.dataScope')} field="dataScope">
+                    <Select
+                      options={[
+                        { label: t('system.permission.dataScope.mode.all'), value: 'all' },
+                        { label: t('system.permission.dataScope.mode.self'), value: 'self' },
+                        { label: t('system.permission.dataScope.mode.dept'), value: 'dept' },
+                        {
+                          label: t('system.permission.dataScope.mode.deptAndChildren'),
+                          value: 'dept_and_children',
+                        },
+                      ]}
+                    />
+                  </FormItem>
+                </Col>
+              </Row>
             </FormSection>
             <FormSection
               title={t('common.accessControl')}

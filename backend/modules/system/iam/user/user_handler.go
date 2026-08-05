@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const errParamInvalid = "param.invalid"
+
 type UserHandler struct {
 	service *UserService
 }
@@ -35,7 +37,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 
 // UpdateProfile 更新个人资料。
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
-	common.SetAuditMetadata(c, "更新个人资料", common.BusinessUpdate)
+	common.SetAuditMetadata(c, "user.profile.update.title", common.BusinessUpdate)
 	userID, ok := getUserIDFromContext(c)
 	if !ok {
 		common.Fail(c, common.CodeUnauthorized, "token.invalid")
@@ -44,7 +46,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 
 	var req UserProfileUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -60,7 +62,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 func (h *UserHandler) GetUserList(c *gin.Context) {
 	var query UserListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -74,15 +76,15 @@ func (h *UserHandler) GetUserList(c *gin.Context) {
 }
 
 func (h *UserHandler) ExportUsers(c *gin.Context) {
-	common.SetAuditMetadata(c, "导出用户", common.BusinessExport)
+	common.SetAuditMetadata(c, "user.export.title", common.BusinessExport)
 
 	var query UserListQuery
 	if err := c.ShouldBindJSON(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 	dataScope := common.GetDataScope(c)
-	file, err := h.service.ExportUsers(&query, dataScope)
+	file, err := h.service.ExportUsers(c.Request.Context(), &query, dataScope)
 	if err != nil {
 		common.Fail(c, common.CodeError, "user.export.error")
 		return
@@ -100,7 +102,7 @@ func (h *UserHandler) DownloadImportTemplate(c *gin.Context) {
 }
 
 func (h *UserHandler) ImportUsers(c *gin.Context) {
-	common.SetAuditMetadata(c, "导入用户", common.BusinessImport)
+	common.SetAuditMetadata(c, "user.import.title", common.BusinessImport)
 
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
@@ -130,7 +132,7 @@ func (h *UserHandler) ImportUsers(c *gin.Context) {
 func (h *UserHandler) GetUserDetail(c *gin.Context) {
 	userID, err := parseUintParam(c, "id")
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -144,10 +146,10 @@ func (h *UserHandler) GetUserDetail(c *gin.Context) {
 
 // CreateUser 创建用户。
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	common.SetAuditMetadata(c, "新增用户", common.BusinessInsert)
+	common.SetAuditMetadata(c, "user.create.title", common.BusinessInsert)
 	var req UserCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -161,16 +163,16 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 // UpdateUser 更新用户。
 func (h *UserHandler) UpdateUser(c *gin.Context) {
-	common.SetAuditMetadata(c, "编辑用户", common.BusinessUpdate)
+	common.SetAuditMetadata(c, "user.update.title", common.BusinessUpdate)
 	var req UserUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	userID, err := parseUintParam(c, "id")
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -184,17 +186,17 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 
 // ResetPassword 重置用户密码。
 func (h *UserHandler) ResetPassword(c *gin.Context) {
-	common.SetAuditMetadata(c, "重置用户密码", common.BusinessUpdate)
+	common.SetAuditMetadata(c, "user.password.reset.title", common.BusinessUpdate)
 
 	userID, err := parseUintParam(c, "id")
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	var req UserResetPasswordReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -210,11 +212,11 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 }
 
 func (h *UserHandler) BatchUpdateUserStatus(c *gin.Context) {
-	common.SetAuditMetadata(c, "批量更新用户状态", common.BusinessUpdate)
+	common.SetAuditMetadata(c, "user.batch_status.title", common.BusinessUpdate)
 
 	var req UserBatchStatusReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -227,11 +229,11 @@ func (h *UserHandler) BatchUpdateUserStatus(c *gin.Context) {
 }
 
 func (h *UserHandler) BatchDeleteUsers(c *gin.Context) {
-	common.SetAuditMetadata(c, "批量删除用户", common.BusinessDelete)
+	common.SetAuditMetadata(c, "user.batch_delete.title", common.BusinessDelete)
 
 	var req common.BatchDeleteReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 	resp := common.BatchDelete(req.IDs, h.service.DeleteUser)
@@ -240,10 +242,10 @@ func (h *UserHandler) BatchDeleteUsers(c *gin.Context) {
 
 // DeleteUser 删除用户。
 func (h *UserHandler) DeleteUser(c *gin.Context) {
-	common.SetAuditMetadata(c, "删除用户", common.BusinessDelete)
+	common.SetAuditMetadata(c, "user.delete.title", common.BusinessDelete)
 	userID, err := parseUintParam(c, "id")
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 

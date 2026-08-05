@@ -100,7 +100,11 @@ const SettingAuditCard: React.FC<SettingAuditCardProps> = ({
     {
       title: t('system.setting.audit.operTime'),
       dataIndex: 'operTime',
-      render: (value: string) => formatDateTime(value),
+      render: (value: string) => (
+        <Typography.Text className="system-list__datetime-text">
+          {formatDateTime(value, { withSeconds: true })}
+        </Typography.Text>
+      ),
     },
     {
       title: t('common.action'),
@@ -126,7 +130,7 @@ const SettingAuditCard: React.FC<SettingAuditCardProps> = ({
             {t('system.setting.audit.title')}
           </Typography.Text>
           <Typography.Paragraph type="secondary" style={{ margin: '4px 0 0' }}>
-            {t('common.total', { count: total })}
+            {t('common.totalWithCount', { count: total })}
           </Typography.Paragraph>
         </div>
         <Space>

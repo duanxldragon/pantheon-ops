@@ -1,7 +1,13 @@
 .system-user-list__role-text {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
   color: var(--text-primary);
   font-size: 14px;
   line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .system-user-list__function-bar {
@@ -28,13 +34,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.system-user-list__title {
-  margin: 0 !important;
-  color: var(--text-primary);
-  font-size: 18px !important;
-  line-height: 24px !important;
 }
 
 .system-user-list__function-bar .list-header-actions {
@@ -137,35 +136,41 @@
   transform: translateY(1px);
 }
 
-.system-user-list__role-field .arco-input-tag {
+.system-user-list__role-field.system-user-list__role-field .arco-input-tag {
   min-height: auto;
-  border: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.system-user-list__role-field .arco-input-tag.arco-input-tag-focus {
-  box-shadow: none !important;
+.system-user-list__role-field.system-user-list__role-field .arco-input-tag.arco-input-tag-focus {
+  box-shadow: none;
 }
 
 .system-user-list__role-field .arco-input-tag-tag {
   max-width: 100%;
 }
 
-.system-user-list__role-field .arco-input-tag .arco-input-inner-wrapper,
-.system-user-list__role-field .arco-input-tag .arco-input,
-.system-user-list__role-field .arco-input-tag input.arco-input,
-.system-user-list__role-field .arco-input-tag .arco-input-tag-input {
-  border: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  outline: 0 !important;
+.system-user-list__role-field.system-user-list__role-field
+  .arco-input-tag
+  .arco-input-inner-wrapper,
+.system-user-list__role-field.system-user-list__role-field .arco-input-tag .arco-input,
+.system-user-list__role-field.system-user-list__role-field .arco-input-tag input.arco-input,
+.system-user-list__role-field.system-user-list__role-field .arco-input-tag .arco-input-tag-input {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
 }
 
-.system-user-list__role-field .arco-input-tag .arco-input-tag-input:focus,
-.system-user-list__role-field .arco-input-tag .arco-input-tag-input:focus-visible {
-  outline: 0 !important;
-  box-shadow: none !important;
+.system-user-list__role-field.system-user-list__role-field
+  .arco-input-tag
+  .arco-input-tag-input:focus,
+.system-user-list__role-field.system-user-list__role-field
+  .arco-input-tag
+  .arco-input-tag-input:focus-visible {
+  outline: 0;
+  box-shadow: none;
 }
 
 .system-user-list__row-menu {

@@ -7,6 +7,16 @@ interface MenuPreviewTreeProps {
   nodes: GeneratorMenuPreviewNode[];
 }
 
+function menuNodeTypeColor(type: string) {
+  if (type === 'M') {
+    return 'arcoblue';
+  }
+  if (type === 'C') {
+    return 'green';
+  }
+  return 'orange';
+}
+
 const MenuPreviewTree: React.FC<MenuPreviewTreeProps> = ({ nodes }) => {
   const { t } = useTranslation();
 
@@ -23,15 +33,9 @@ const MenuPreviewTree: React.FC<MenuPreviewTreeProps> = ({ nodes }) => {
       {nodes.map((node) => (
         <div key={node.key}>
           <Space wrap>
-            <Tag
-              color={node.type === 'M' ? 'arcoblue' : node.type === 'C' ? 'green' : 'orange'}
-            >
-              {node.type}
-            </Tag>
+            <Tag color={menuNodeTypeColor(node.type)}>{node.type}</Tag>
             <Typography.Text>{node.titleKey}</Typography.Text>
-            {node.path ? (
-              <Typography.Text type="secondary">{node.path}</Typography.Text>
-            ) : null}
+            {node.path ? <Typography.Text type="secondary">{node.path}</Typography.Text> : null}
           </Space>
           {node.children.length > 0 && (
             <div style={{ marginLeft: 24, marginTop: 8 }}>

@@ -15,14 +15,7 @@ import {
   TreeSelect,
 } from '@arco-design/web-react';
 import { message } from '../../../../components/feedback/message';
-import {
-  IconDelete,
-  IconDownload,
-  IconEdit,
-  IconEye,
-  IconPlus,
-  IconSearch,
-} from '@arco-design/web-react/icon';
+import { IconDelete, IconDownload, IconEdit, IconEye, IconPlus } from '@arco-design/web-react/icon';
 import type {
   ColumnProps,
   SorterInfo,
@@ -31,7 +24,7 @@ import type {
 import type { TreeSelectDataType } from '@arco-design/web-react/es/TreeSelect/interface';
 import { useTranslation } from 'react-i18next';
 import { showImportResult } from '../../../../api/importExport';
-import { isArcoFormValidationError } from '../../../../core/arco/formValidation';
+import { isArcoFormValidationError, isLikelyEmailAddress } from '../../../../core/arco/formValidation';
 import { publishRefresh, useRefreshSubscription } from '../../../../core/refresh/refreshBus';
 import { invalidateRouteWarmDataMany, resolveRouteWarmData } from '../../../../core/router/prefetch';
 import { usePermission } from '../../../../hooks/usePermission';
@@ -72,7 +65,7 @@ import {
   AppTable,
   buildStandardPagination,
   getPagedItems,
-  FilterPanel,
+  SearchToolbar,
   FormSection,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
@@ -204,20 +197,24 @@ interface LoadDataOptions {
   silent?: boolean;
 }
 
+function canAccess(isAdmin: boolean, hasPerm: (permission: string) => boolean, permission: string) {
+  return isAdmin || hasPerm(permission);
+}
+
 const DeptList: React.FC = () => {
   const { t } = useTranslation();
   const { isAdmin, hasPerm } = usePermission();
-  const canCreate = isAdmin || hasPerm('system:dept:create');
-  const canEdit = isAdmin || hasPerm('system:dept:update');
-  const canDelete = isAdmin || hasPerm('system:dept:delete');
-  const canExport = isAdmin || hasPerm('system:dept:export');
-  const canImport = isAdmin || hasPerm('system:dept:import');
-  const canBatchUpdate = isAdmin || hasPerm('system:dept:batch-update');
-  const canBatchDelete = isAdmin || hasPerm('system:dept:batch-delete');
-  const canViewPosts = isAdmin || hasPerm('system:post:list');
-  const canViewUsers = isAdmin || hasPerm('system:user:list');
-  const canCreatePost = isAdmin || hasPerm('system:post:create');
-  const canViewUserDetail = isAdmin || hasPerm('system:user:view');
+  const canCreate = canAccess(isAdmin, hasPerm, 'system:dept:create');
+  const canEdit = canAccess(isAdmin, hasPerm, 'system:dept:update');
+  const canDelete = canAccess(isAdmin, hasPerm, 'system:dept:delete');
+  const canExport = canAccess(isAdmin, hasPerm, 'system:dept:export');
+  const canImport = canAccess(isAdmin, hasPerm, 'system:dept:import');
+  const canBatchUpdate = canAccess(isAdmin, hasPerm, 'system:dept:batch-update');
+  const canBatchDelete = canAccess(isAdmin, hasPerm, 'system:dept:batch-delete');
+  const canViewPosts = canAccess(isAdmin, hasPerm, 'system:post:list');
+  const canViewUsers = canAccess(isAdmin, hasPerm, 'system:user:list');
+  const canCreatePost = canAccess(isAdmin, hasPerm, 'system:post:create');
+  const canViewUserDetail = canAccess(isAdmin, hasPerm, 'system:user:view');
   const [activeTab, setActiveTab] = useState('manage');
   const [data, setData] = useState<DeptNode[]>([]);
   const [allDeptTree, setAllDeptTree] = useState<DeptNode[]>([]);
@@ -253,7 +250,6 @@ const DeptList: React.FC = () => {
   const [form] = Form.useForm<DeptFormValues>();
   const [leaderForm] = Form.useForm<DeptLeaderFormValues>();
   const [postForm] = Form.useForm<OrgPostFormValues>();
-  const [queryForm] = Form.useForm<DeptListQuery>();
   const governanceRail = useGovernanceRail({ enabled: activeTab === 'manage' });
   const loadDataRequestIdRef = useRef(0);
   const invalidateDeptCaches = useCallback(() => {
@@ -652,8 +648,7 @@ const DeptList: React.FC = () => {
     }
   };
 
-  const search = () => {
-    const values = queryForm.getFieldsValue();
+  const search = (values: Partial<DeptListQuery>) => {
     setSelectedRowKeys([]);
     setTablePagination((current) => ({ ...current, current: 1 }));
     setQuery({
@@ -663,21 +658,10 @@ const DeptList: React.FC = () => {
   };
 
   const applyGovernanceFilter = (governance?: 'leaderless' | 'no-post' | 'empty') => {
-    const nextQuery: DeptListQuery = {
-      ...query,
-      governance,
-    };
-    queryForm.setFieldsValue({
-      ...queryForm.getFieldsValue(),
-      governance,
-    });
-    setSelectedRowKeys([]);
-    setTablePagination((current) => ({ ...current, current: 1 }));
-    setQuery(nextQuery);
+    search({ governance });
   };
 
   const reset = () => {
-    queryForm.setFieldsValue(emptyQuery);
     setSelectedRowKeys([]);
     setTablePagination({ current: 1, pageSize: 10 });
     setQuery(emptyQuery);
@@ -879,7 +863,7 @@ const DeptList: React.FC = () => {
       message.warning(t('common.batchSelectionRequired'));
       return;
     }
-    const deptIds = selectedRowKeys.map((item) => Number(item)).filter((item) => item > 0);
+    const deptIds = selectedRowKeys.map(Number).filter((item) => item > 0);
     const result = await batchUpdateDeptStatus({ deptIds, status });
     message.success(t('system.dept.batchStatusSuccess', { count: result.updatedCount }));
     invalidateDeptCaches();
@@ -897,7 +881,7 @@ const DeptList: React.FC = () => {
       message.warning(t('common.batchSelectionRequired'));
       return;
     }
-    const ids = selectedRowKeys.map((item) => Number(item)).filter((item) => item > 0);
+    const ids = selectedRowKeys.map(Number).filter((item) => item > 0);
     const result = await batchDeleteDepts({ ids });
     const messageKey =
       result.failedCount > 0 ? 'common.batchDeletePartialSuccess' : 'common.batchDeleteSuccess';
@@ -939,9 +923,9 @@ const DeptList: React.FC = () => {
   };
 
   const openBatchLeader = () => {
-    const selectedDeptIds = selectedRowKeys.map((item) => Number(item)).filter((item) => item > 0);
+    const selectedDeptIds = new Set(selectedRowKeys.map(Number).filter((item) => item > 0));
     const selectedDepts = flatDeptRows.filter(
-      (item) => selectedDeptIds.includes(item.id) && !item.isRoot,
+      (item) => selectedDeptIds.has(item.id) && !item.isRoot,
     );
     if (selectedDepts.length === 0) {
       message.warning(t('common.batchSelectionRequired'));
@@ -1082,735 +1066,745 @@ const DeptList: React.FC = () => {
     }
   };
 
-  return (
-    <PageContainer>
-      <Space
-        direction="vertical"
-        size={12}
-        className="system-page-template governance-workbench dept-list-page"
-      >
-        {overview ? (
-          <GovernanceSummaryBar
-            eyebrow={t('system.dept.hero.eyebrow')}
-            title={t('system.dept.hero.title')}
-            description={t('system.dept.hero.desc')}
-            metrics={heroStats.slice(0, 4).map((item) => ({
+  let leaderCandidateExtra = t('system.dept.leaderCandidateCreateHint');
+  if (editing) {
+    leaderCandidateExtra =
+      leaderCandidates.length > 0
+        ? t('system.dept.leaderCandidateHint')
+        : t('system.dept.leaderCandidateEmpty');
+  }
+
+  const formatTaskBlockedBySuffix = (blockedBy?: string, blockedByLabel?: string) => {
+    if (!blockedByLabel) {
+      return '';
+    }
+    const blockedByText = t(`system.dept.task.blockedBy.${blockedBy}`, {
+      defaultValue: blockedByLabel,
+    });
+    return ` · ${blockedByText}`;
+  };
+
+  const renderDeptTableStates = () => (
+    <>
+      {loading && data.length === 0 ? <PageLoading /> : null}
+      {error && data.length === 0 ? (
+        <PageRequestError
+          error={error}
+          onRetry={() => {
+            loadData(query);
+          }}
+        />
+      ) : null}
+      {!loading && !error && data.length === 0 ? (
+        <PageEmpty description={t('common.noData')} />
+      ) : null}
+      {!loading && !(error && data.length === 0) && data.length > 0 ? (
+        <AppTable<DeptNode>
+          className="system-list__table"
+          data={data}
+          columns={columns}
+          rowKey="id"
+          loading={loading}
+          scroll={{ x: 'max-content' }}
+          rowSelection={{
+            type: 'checkbox',
+            selectedRowKeys,
+            fixed: true,
+            checkboxProps: (row) => ({ disabled: row.isRoot }),
+            onChange: (rowKeys) => setSelectedRowKeys(rowKeys),
+          }}
+          onChange={handleTableChange}
+          emptyText={t('common.noData')}
+          pagination={buildStandardPagination(t, {
+            current: tableCurrentPage,
+            pageSize: tablePagination.pageSize,
+            total: data.length,
+          })}
+        />
+      ) : null}
+    </>
+  );
+
+  const renderPageContent = () => (
+    <Space
+      direction="vertical"
+      size={12}
+      className="system-page-template governance-workbench dept-list-page"
+    >
+      {overview ? (
+        <GovernanceSummaryBar
+          eyebrow={t('system.dept.hero.eyebrow')}
+          title={t('system.dept.hero.title')}
+          description={t('system.dept.hero.desc')}
+          metrics={heroStats.slice(0, 4).map((item) => {
+            // 指标说明统一收进治理抽屉（governanceSummaryItems），指标卡保持
+            // label + value 两行节奏；可点击指标只承担“点击即过滤”动作。
+            const metricFilters: Record<string, 'leaderless' | 'no-post' | 'empty' | undefined> = {
+              leaderless: 'leaderless',
+              noPost: 'no-post',
+              empty: 'empty',
+              issues: undefined,
+            };
+            const actionable = Object.hasOwn(metricFilters, item.key);
+            const triggerFilter = () => applyGovernanceFilter(metricFilters[item.key]);
+            return {
               key: item.key,
               label: item.label,
               value: item.value,
-              description: item.hint,
-              role:
-                item.key === 'leaderless' ||
-                item.key === 'noPost' ||
-                item.key === 'empty' ||
-                item.key === 'issues'
-                  ? 'button'
-                  : undefined,
-              tabIndex:
-                item.key === 'leaderless' ||
-                item.key === 'noPost' ||
-                item.key === 'empty' ||
-                item.key === 'issues'
-                  ? 0
-                  : undefined,
-              onClick:
-                item.key === 'leaderless'
-                  ? () => applyGovernanceFilter('leaderless')
-                  : item.key === 'noPost'
-                    ? () => applyGovernanceFilter('no-post')
-                    : item.key === 'empty'
-                      ? () => applyGovernanceFilter('empty')
-                      : item.key === 'issues'
-                        ? () => applyGovernanceFilter(undefined)
-                        : undefined,
-              onKeyDown:
-                item.key === 'leaderless' ||
-                item.key === 'noPost' ||
-                item.key === 'empty' ||
-                item.key === 'issues'
-                  ? (event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        if (item.key === 'leaderless') {
-                          applyGovernanceFilter('leaderless');
-                        } else if (item.key === 'noPost') {
-                          applyGovernanceFilter('no-post');
-                        } else if (item.key === 'empty') {
-                          applyGovernanceFilter('empty');
-                        } else {
-                          applyGovernanceFilter(undefined);
-                        }
-                      }
+              className: actionable ? 'governance-summary-bar__metric--action' : undefined,
+              role: actionable ? 'button' : undefined,
+              tabIndex: actionable ? 0 : undefined,
+              onClick: actionable ? triggerFilter : undefined,
+              onKeyDown: actionable
+                ? (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      triggerFilter();
                     }
-                  : undefined,
-            }))}
-            action={
-              <GovernanceRailToggleButton
-                expanded={governanceRail.expanded}
-                onToggle={governanceRail.toggle}
-              >
-                {t('system.dept.governance')}
-              </GovernanceRailToggleButton>
-            }
-          />
-        ) : null}
-        <Tabs activeTab={activeTab} onChange={setActiveTab} className="system-dept-tabs">
-          <Tabs.TabPane key="manage" title={t('system.dept.manageTab')}>
-            <div className="page-main-column dept-list-page__layout">
-              <FilterPanel>
-                <Form form={queryForm} layout="vertical" onSubmit={() => search()}>
-                  <Row gutter={16}>
-                    <Col xs={24} md={12} lg={6}>
-                      <FormItem label={t('system.dept.deptName')} field="deptName">
-                        <Input onPressEnter={() => queryForm.submit()} />
-                      </FormItem>
-                    </Col>
-                    <Col xs={24} md={12} lg={6}>
-                      <FormItem label={t('system.dept.status')} field="status">
-                        <Select
-                          allowClear
-                          options={[
-                            { label: t('system.user.status.enabled'), value: 1 },
-                            { label: t('system.user.status.disabled'), value: 2 },
-                          ]}
-                        />
-                      </FormItem>
-                    </Col>
-                    <Col xs={24} md={12} lg={6}>
-                      <FormItem label={t('system.dept.governance')} field="governance">
-                        <Select
-                          allowClear
-                          options={[
-                            { label: t('system.dept.governance.leaderless'), value: 'leaderless' },
-                            { label: t('system.dept.governance.noPost'), value: 'no-post' },
-                            { label: t('system.dept.governance.empty'), value: 'empty' },
-                          ]}
-                        />
-                      </FormItem>
-                    </Col>
-                    <Col xs={24} md={12} lg={6}>
-                      <FormItem className="filter-panel__action-item">
-                        <Space size={6}>
-                          <Button
-                            size="small"
-                            type="primary"
-                            htmlType="submit"
-                            icon={<IconSearch />}
-                          >
-                            {t('common.search')}
-                          </Button>
-                          <Button size="small" onClick={reset}>
-                            {t('common.reset')}
-                          </Button>
-                        </Space>
-                      </FormItem>
-                    </Col>
-                  </Row>
-                </Form>
-              </FilterPanel>
-              <Card className="page-panel system-list__table-card dept-list-page__table-card">
-                <TableBatchActionBar
-                  selectedCount={selectedRowKeys.length}
-                  selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
-                  clearText={t('common.clearSelection')}
-                  clearSuccessText={t('common.clearSelectionSuccess')}
-                  onClear={() => setSelectedRowKeys([])}
-                  prefixActions={
-                    <ListHeaderActions
-                      className="dept-list-page__header-actions"
-                      utility={
-                        <>
-                          <Button
-                            size="small"
-                            icon={<IconDownload />}
-                            onClick={() => {
-                              handleExport();
-                            }}
-                            disabled={!canExport}
-                          >
-                            {t('common.export')}
-                          </Button>
-                          <Button
-                            size="small"
-                            onClick={() => {
-                              handleDownloadTemplate();
-                            }}
-                            disabled={!canImport}
-                          >
-                            {t('common.downloadTemplate')}
-                          </Button>
-                          <ImportCsvButton
-                            disabled={!canImport}
-                            onSelect={(file) => {
-                              handleImport(file);
-                            }}
-                          >
-                            {t('common.import')}
-                          </ImportCsvButton>
-                        </>
-                      }
-                      primary={
+                  }
+                : undefined,
+            };
+          })}
+          action={
+            <GovernanceRailToggleButton
+              expanded={governanceRail.expanded}
+              onToggle={governanceRail.toggle}
+            >
+              {t('system.dept.governance')}
+            </GovernanceRailToggleButton>
+          }
+        />
+      ) : null}
+      <Tabs activeTab={activeTab} onChange={setActiveTab} className="system-dept-tabs">
+        <Tabs.TabPane key="manage" title={t('system.dept.manageTab')}>
+          <div className="page-main-column dept-list-page__layout">
+            <SearchToolbar
+              keyword={query.deptName ?? ''}
+              keywordPlaceholder={t('system.dept.search.placeholder')}
+              onKeywordChange={(deptName) => search({ deptName })}
+              inlineFilters={
+                <>
+                  <Select
+                    allowClear
+                    placeholder={t('system.dept.status')}
+                    value={query.status}
+                    onChange={(value) => search({ status: value })}
+                    options={[
+                      { label: t('system.user.status.enabled'), value: 1 },
+                      { label: t('system.user.status.disabled'), value: 2 },
+                    ]}
+                  />
+                  <Select
+                    allowClear
+                    placeholder={t('system.dept.governance')}
+                    value={query.governance}
+                    onChange={(value) => search({ governance: value })}
+                    options={[
+                      { label: t('system.dept.governance.leaderless'), value: 'leaderless' },
+                      { label: t('system.dept.governance.noPost'), value: 'no-post' },
+                      { label: t('system.dept.governance.empty'), value: 'empty' },
+                    ]}
+                  />
+                </>
+              }
+              hasActiveFilters={Boolean(
+                query.deptName || query.status !== undefined || query.governance !== undefined,
+              )}
+              onClearAll={reset}
+            />
+            <Card className="page-panel system-list__table-card dept-list-page__table-card">
+              <TableBatchActionBar
+                selectedCount={selectedRowKeys.length}
+                selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
+                clearText={t('common.clearSelection')}
+                clearSuccessText={t('common.clearSelectionSuccess')}
+                onClear={() => setSelectedRowKeys([])}
+                prefixActions={
+                  <ListHeaderActions
+                    className="dept-list-page__header-actions"
+                    utility={
+                      <>
                         <Button
                           size="small"
-                          type="primary"
-                          icon={<IconPlus />}
-                          onClick={openCreate}
-                          disabled={!canCreate}
+                          icon={<IconDownload />}
+                          onClick={() => {
+                            handleExport();
+                          }}
+                          disabled={!canExport}
                         >
-                          {t('common.add')}
+                          {t('common.export')}
                         </Button>
-                      }
-                    />
-                  }
-                  hint={
-                    !canBatchUpdate || !canBatchDelete || !canEdit
-                      ? t('common.batchActionPermissionHint')
-                      : undefined
-                  }
-                  actions={
-                    <>
-                      <PermissionAction
-                        allowed={canBatchUpdate}
-                        tooltip={t('common.noPermissionAction')}
-                      >
-                        <Popconfirm
-                          title={t('system.dept.batchEnableConfirm')}
-                          onOk={() => {
-                            handleBatchStatus(1);
+                        <Button
+                          size="small"
+                          onClick={() => {
+                            handleDownloadTemplate();
                           }}
+                          disabled={!canImport}
+                        >
+                          {t('common.downloadTemplate')}
+                        </Button>
+                        <ImportCsvButton
+                          disabled={!canImport}
+                          onSelect={(file) => {
+                            handleImport(file);
+                          }}
+                        >
+                          {t('common.import')}
+                        </ImportCsvButton>
+                      </>
+                    }
+                    primary={
+                      <Button
+                        type="primary"
+                        icon={<IconPlus />}
+                        onClick={openCreate}
+                        disabled={!canCreate}
+                      >
+                        {t('common.add')}
+                      </Button>
+                    }
+                  />
+                }
+                hint={
+                  !canBatchUpdate || !canBatchDelete || !canEdit
+                    ? t('common.batchActionPermissionHint')
+                    : undefined
+                }
+                actions={
+                  <>
+                    <PermissionAction
+                      allowed={canBatchUpdate}
+                      tooltip={t('common.noPermissionAction')}
+                    >
+                      <Popconfirm
+                        title={t('system.dept.batchEnableConfirm')}
+                        onOk={() => {
+                          handleBatchStatus(1);
+                        }}
+                        disabled={batchActionDisabled}
+                      >
+                        <Button size="small" disabled={batchActionDisabled}>
+                          {t('system.dept.batchEnable')}
+                        </Button>
+                      </Popconfirm>
+                    </PermissionAction>
+                    <PermissionAction
+                      allowed={canBatchUpdate}
+                      tooltip={t('common.noPermissionAction')}
+                    >
+                      <Popconfirm
+                        title={t('system.dept.batchDisableConfirm')}
+                        onOk={() => {
+                          handleBatchStatus(2);
+                        }}
+                        disabled={batchActionDisabled}
+                      >
+                        <Button
+                          size="small"
+                          status={batchActionDisabled ? undefined : 'warning'}
                           disabled={batchActionDisabled}
                         >
-                          <Button size="small" disabled={batchActionDisabled}>
-                            {t('system.dept.batchEnable')}
-                          </Button>
-                        </Popconfirm>
-                      </PermissionAction>
-                      <PermissionAction
-                        allowed={canBatchUpdate}
-                        tooltip={t('common.noPermissionAction')}
+                          {t('system.dept.batchDisable')}
+                        </Button>
+                      </Popconfirm>
+                    </PermissionAction>
+                    <PermissionAction
+                      allowed={canBatchDelete}
+                      tooltip={t('common.noPermissionAction')}
+                    >
+                      <Popconfirm
+                        title={t('system.dept.batchDeleteConfirm')}
+                        onOk={() => {
+                          handleBatchDelete();
+                        }}
+                        disabled={batchDeleteDisabled}
                       >
-                        <Popconfirm
-                          title={t('system.dept.batchDisableConfirm')}
-                          onOk={() => {
-                            handleBatchStatus(2);
-                          }}
-                          disabled={batchActionDisabled}
-                        >
-                          <Button
-                            size="small"
-                            status={batchActionDisabled ? undefined : 'warning'}
-                            disabled={batchActionDisabled}
-                          >
-                            {t('system.dept.batchDisable')}
-                          </Button>
-                        </Popconfirm>
-                      </PermissionAction>
-                      <PermissionAction
-                        allowed={canBatchDelete}
-                        tooltip={t('common.noPermissionAction')}
-                      >
-                        <Popconfirm
-                          title={t('system.dept.batchDeleteConfirm')}
-                          onOk={() => {
-                            handleBatchDelete();
-                          }}
+                        <Button
+                          size="small"
+                          status="danger"
+                          icon={<IconDelete />}
                           disabled={batchDeleteDisabled}
                         >
-                          <Button
-                            size="small"
-                            status="danger"
-                            icon={<IconDelete />}
-                            disabled={batchDeleteDisabled}
-                          >
-                            {t('common.deleteSelected')}
-                          </Button>
-                        </Popconfirm>
-                      </PermissionAction>
-                      <PermissionAction allowed={canEdit} tooltip={t('common.noPermissionAction')}>
-                        <Button
-                          size="small"
-                          onClick={openBatchLeader}
-                          disabled={batchLeaderDisabled}
-                        >
-                          {t('system.dept.batchLeader')}
+                          {t('common.deleteSelected')}
                         </Button>
-                      </PermissionAction>
-                    </>
-                  }
-                />
-                {loading && data.length === 0 ? <PageLoading /> : null}
-                {error && data.length === 0 ? (
-                  <PageRequestError
-                    error={error}
-                    onRetry={() => {
-                      loadData(query);
-                    }}
-                  />
-                ) : null}
-                {!loading && !error && data.length === 0 ? (
-                  <PageEmpty description={t('common.noData')} />
-                ) : null}
-                {!loading && !(error && data.length === 0) && data.length > 0 ? (
-                  <AppTable<DeptNode>
-                    className="system-list__table"
-                    data={data}
-                    columns={columns}
-                    rowKey="id"
-                    loading={loading}
-                    scroll={{ x: 'max-content' }}
-                    rowSelection={{
-                      type: 'checkbox',
-                      selectedRowKeys,
-                      fixed: true,
-                      checkboxProps: (row) => ({ disabled: row.isRoot }),
-                      onChange: (rowKeys) => setSelectedRowKeys(rowKeys),
-                    }}
-                    onChange={handleTableChange}
-                    emptyText={t('common.noData')}
-                    pagination={buildStandardPagination(t, {
-                      current: tableCurrentPage,
-                      pageSize: tablePagination.pageSize,
-                      total: data.length,
-                    })}
-                  />
-                ) : null}
-              </Card>
-            </div>
-          </Tabs.TabPane>
-          <Tabs.TabPane key="org" title={t('system.dept.orgTab')}>
-            <DeptOrgTab
-              orgDepts={orgDepts}
-              orgPosts={orgPosts}
-              orgUsers={orgUsers}
-              orgLoading={orgLoading}
-              orgError={orgError}
-              selectedOrgDeptId={selectedOrgDeptId}
-              onSelectDept={setSelectedOrgDeptId}
-              flatOrgDepts={flatOrgDepts}
-              postsByDept={postsByDept}
-              usersByDept={usersByDept}
-              usersByPost={usersByPost}
-              selectedOrgDept={selectedOrgDept}
-              selectedOrgStats={selectedOrgStats}
-              canViewPosts={canViewPosts}
-              canViewUsers={canViewUsers}
-              canCreatePost={canCreatePost}
-              canViewUserDetail={canViewUserDetail}
-              onRefresh={() => {
-                loadOrgData();
-              }}
-              onCreatePost={openCreatePost}
-              onViewUserDetail={(id) => {
-                openUserDetail(id);
-              }}
-            />
-          </Tabs.TabPane>
-        </Tabs>
-      </Space>
-
-      <GovernanceInsightDrawer
-        title={t('system.dept.governance')}
-        visible={governanceRail.expanded && Boolean(overview)}
-        onClose={governanceRail.close}
-        noteTitle={t('system.dept.governance')}
-        noteDescription={t('system.dept.governanceHint')}
-      >
-        <div className="dept-governance-rail">
-          <GovernanceRailSummary
-            items={[
-              ...governanceSummaryItems,
-              {
-                label: t('system.dept.task.title'),
-                value: governanceTasks.length,
-                description: t('system.dept.task.hint'),
-              },
-            ]}
-          />
-          <div className="dept-governance-rail__tasks">
-            <div className="dept-governance-rail__tasks-head">
-              <div className="dept-governance-rail__tasks-copy">
-                <Typography.Text className="dept-governance-rail__tasks-title">
-                  {t('system.dept.task.title')}
-                </Typography.Text>
-                <Typography.Text type="secondary" className="dept-governance-rail__tasks-hint">
-                  {t('system.dept.task.hint')}
-                </Typography.Text>
-              </div>
-              <Space wrap>
-                <Typography.Text type="secondary">
-                  {t('common.total', { count: governanceTasks.length })}
-                </Typography.Text>
-                <Button
-                  size="small"
-                  onClick={() => {
-                    loadData(query);
-                  }}
-                  loading={governanceLoading}
-                >
-                  {t('common.refresh')}
-                </Button>
-                <Button
-                  size="small"
-                  icon={<IconDownload />}
-                  onClick={() => {
-                    handleExportGovernanceTasks();
-                  }}
-                  disabled={!canExport}
-                >
-                  {t('system.dept.task.export')}
-                </Button>
-              </Space>
-            </div>
-            {governanceTaskPreview.length > 0 ? (
-              <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                {governanceTaskPreview.map((task) => (
-                  <div key={task.taskKey} className="dept-governance-rail__task">
-                    <div className="dept-governance-rail__task-head">
-                      <Space wrap size={6}>
-                        <Tag color="arcoblue">{task.governanceScopeLabel}</Tag>
-                        <Tag color="orange">{task.governanceTagLabel}</Tag>
-                        {task.relatedUserCount > 0 ? (
-                          <Tag color="gold">
-                            {t('system.dept.task.relatedUserCount')}: {task.relatedUserCount}
-                          </Tag>
-                        ) : null}
-                      </Space>
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<IconEye />}
-                        onClick={() => {
-                          locateGovernanceTask(task);
-                        }}
-                      >
-                        {t('system.dept.task.locate')}
+                      </Popconfirm>
+                    </PermissionAction>
+                    <PermissionAction allowed={canEdit} tooltip={t('common.noPermissionAction')}>
+                      <Button size="small" onClick={openBatchLeader} disabled={batchLeaderDisabled}>
+                        {t('system.dept.batchLeader')}
                       </Button>
-                    </div>
-                    <Typography.Text className="dept-governance-rail__task-resource">
-                      {task.governanceScope === 'post'
-                        ? `${task.postName || '-'} / ${task.deptName || '-'}`
-                        : task.deptName}
-                    </Typography.Text>
-                    <Typography.Text type="secondary" className="dept-governance-rail__task-meta">
-                      {task.governanceActionLabel}
-                      {task.governanceBlockedByLabel ? ` · ${task.governanceBlockedByLabel}` : ''}
-                    </Typography.Text>
-                  </div>
-                ))}
-              </Space>
-            ) : (
-              <Typography.Text type="secondary">{t('common.noData')}</Typography.Text>
-            )}
+                    </PermissionAction>
+                  </>
+                }
+              />
+              {renderDeptTableStates()}
+            </Card>
           </div>
-        </div>
-      </GovernanceInsightDrawer>
-
-      <AppModal
-        title={editing ? t('system.dept.edit') : t('system.dept.create')}
-        visible={visible}
-        size="lg"
-        onCancel={() => setVisible(false)}
-        footer={
-          <SubmitBar
-            onCancel={() => setVisible(false)}
-            onSubmit={() => {
-              submitForm();
+        </Tabs.TabPane>
+        <Tabs.TabPane key="org" title={t('system.dept.orgTab')}>
+          <DeptOrgTab
+            orgDepts={orgDepts}
+            orgPosts={orgPosts}
+            orgUsers={orgUsers}
+            orgLoading={orgLoading}
+            orgError={orgError}
+            selectedOrgDeptId={selectedOrgDeptId}
+            onSelectDept={setSelectedOrgDeptId}
+            flatOrgDepts={flatOrgDepts}
+            postsByDept={postsByDept}
+            usersByDept={usersByDept}
+            usersByPost={usersByPost}
+            selectedOrgDept={selectedOrgDept}
+            selectedOrgStats={selectedOrgStats}
+            canViewPosts={canViewPosts}
+            canViewUsers={canViewUsers}
+            canCreatePost={canCreatePost}
+            canViewUserDetail={canViewUserDetail}
+            onRefresh={() => {
+              loadOrgData();
             }}
-            loading={submitting}
-            submitText={editing ? t('common.save') : t('common.add')}
+            onCreatePost={openCreatePost}
+            onViewUserDetail={(id) => {
+              openUserDetail(id);
+            }}
           />
-        }
-        unmountOnExit
-      >
-        <Form
-          form={form}
-          layout="vertical"
+        </Tabs.TabPane>
+      </Tabs>
+    </Space>
+  );
+
+  const renderGovernanceDrawer = () => (
+    <GovernanceInsightDrawer
+      title={t('system.dept.governance')}
+      visible={governanceRail.expanded && Boolean(overview)}
+      onClose={governanceRail.close}
+      noteTitle={t('system.dept.governance')}
+      noteDescription={t('system.dept.governanceHint')}
+    >
+      <div className="dept-governance-rail">
+        <GovernanceRailSummary
+          items={[
+            ...governanceSummaryItems,
+            {
+              label: t('system.dept.task.title'),
+              value: governanceTasks.length,
+              description: t('system.dept.task.hint'),
+            },
+          ]}
+        />
+        <div className="dept-governance-rail__tasks">
+          <div className="dept-governance-rail__tasks-head">
+            <div className="dept-governance-rail__tasks-copy">
+              <Typography.Text className="dept-governance-rail__tasks-title">
+                {t('system.dept.task.title')}
+              </Typography.Text>
+              <Typography.Text type="secondary" className="dept-governance-rail__tasks-hint">
+                {t('system.dept.task.hint')}
+              </Typography.Text>
+            </div>
+            <Space wrap>
+              <Typography.Text type="secondary">
+                {t('common.totalWithCount', { count: governanceTasks.length })}
+              </Typography.Text>
+              <Button
+                size="small"
+                onClick={() => {
+                  loadData(query);
+                }}
+                loading={governanceLoading}
+              >
+                {t('common.refresh')}
+              </Button>
+              <Button
+                size="small"
+                icon={<IconDownload />}
+                onClick={() => {
+                  handleExportGovernanceTasks();
+                }}
+                disabled={!canExport}
+              >
+                {t('system.dept.task.export')}
+              </Button>
+            </Space>
+          </div>
+          {governanceTaskPreview.length > 0 ? (
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              {governanceTaskPreview.map((task) => (
+                <div key={task.taskKey} className="dept-governance-rail__task">
+                  <div className="dept-governance-rail__task-head">
+                    <Space wrap size={6}>
+                      <Tag color="arcoblue">
+                        {t(`system.dept.task.scope.${task.governanceScope}`, {
+                          defaultValue: task.governanceScopeLabel,
+                        })}
+                      </Tag>
+                      <Tag color="orange">
+                        {t(`system.dept.task.tag.${task.governanceTag}`, {
+                          defaultValue: task.governanceTagLabel,
+                        })}
+                      </Tag>
+                      {task.relatedUserCount > 0 ? (
+                        <Tag color="gold">
+                          {t('system.dept.task.relatedUserCount')}: {task.relatedUserCount}
+                        </Tag>
+                      ) : null}
+                    </Space>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<IconEye />}
+                      onClick={() => {
+                        locateGovernanceTask(task);
+                      }}
+                    >
+                      {t('system.dept.task.locate')}
+                    </Button>
+                  </div>
+                  <Typography.Text className="dept-governance-rail__task-resource">
+                    {task.governanceScope === 'post'
+                      ? `${task.postName || '-'} / ${task.deptName || '-'}`
+                      : task.deptName}
+                  </Typography.Text>
+                  <Typography.Text type="secondary" className="dept-governance-rail__task-meta">
+                    {task.governanceActionLabel
+                      ? t(`system.dept.task.action.${task.governanceAction}`, {
+                          defaultValue: task.governanceActionLabel,
+                        })
+                      : ''}
+                    {formatTaskBlockedBySuffix(
+                      task.governanceBlockedBy,
+                      task.governanceBlockedByLabel,
+                    )}
+                  </Typography.Text>
+                </div>
+              ))}
+            </Space>
+          ) : (
+            <Typography.Text type="secondary">{t('common.noData')}</Typography.Text>
+          )}
+        </div>
+      </div>
+    </GovernanceInsightDrawer>
+  );
+
+  const renderDeptFormModal = () => (
+    <AppModal
+      title={editing ? t('system.dept.edit') : t('system.dept.create')}
+      visible={visible}
+      size="lg"
+      onCancel={() => setVisible(false)}
+      footer={
+        <SubmitBar
+          onCancel={() => setVisible(false)}
           onSubmit={() => {
             submitForm();
           }}
-        >
-          <Space direction="vertical" size={20} className="dialog-form-stack">
-            <FormSection title={t('common.basicInfo')}>
-              <Row gutter={16}>
-                <Col xs={24} md={12}>
-                  <FormItem label={t('system.dept.parentId')} field="parentId">
-                    <TreeSelect treeData={deptOptions} disabled={editing?.isRoot} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    label={t('system.dept.deptName')}
-                    field="deptName"
-                    rules={[{ required: true, message: t('system.dept.deptNameRequired') }]}
-                  >
-                    <Input onPressEnter={() => form.submit()} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    label={t('system.dept.leaderCandidate')}
-                    field="leaderUserId"
-                    extra={
-                      editing
-                        ? leaderCandidates.length > 0
-                          ? t('system.dept.leaderCandidateHint')
-                          : t('system.dept.leaderCandidateEmpty')
-                        : t('system.dept.leaderCandidateCreateHint')
-                    }
-                  >
-                    <Select
-                      allowClear
-                      showSearch
-                      loading={leaderCandidateLoading}
-                      disabled={!editing || editing.isRoot}
-                      placeholder={
-                        editing
-                          ? t('system.dept.leaderCandidatePlaceholder')
-                          : t('system.dept.leaderCandidateCreateHint')
-                      }
-                      options={leaderCandidates.map((item) => ({
-                        label: `${item.displayName} · ${item.postName || '-'}`,
-                        value: item.userId,
-                      }))}
-                      onChange={handleLeaderCandidateChange}
-                    />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem label={t('system.dept.leader')} field="leader">
-                    <Input
-                      placeholder={t('system.dept.leaderLegacyPlaceholder')}
-                      onPressEnter={() => form.submit()}
-                    />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem label={t('system.dept.phone')} field="phone">
-                    <Input onPressEnter={() => form.submit()} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    label={t('system.dept.email')}
-                    field="email"
-                    rules={[
-                      {
-                        // NOSONAR - simple email shape check; backend owns authoritative validation.
-                        match: /\S+@\S+\.\S+/,
-                        message: t('system.user.email.invalid'),
-                      },
-                    ]}
-                  >
-                    <Input onPressEnter={() => form.submit()} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={6}>
-                  <FormItem label={t('system.dept.sort')} field="sort">
-                    <InputNumber min={0} style={{ width: '100%' }} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={6}>
-                  <FormItem label={t('system.dept.status')} field="status">
-                    <Select
-                      options={[
-                        { label: t('system.user.status.enabled'), value: 1 },
-                        { label: t('system.user.status.disabled'), value: 2 },
-                      ]}
-                      disabled={editing?.isRoot}
-                    />
-                  </FormItem>
-                </Col>
-              </Row>
-            </FormSection>
-          </Space>
-        </Form>
-      </AppModal>
-
-      <AppModal
-        title={t('system.dept.batchLeader')}
-        visible={leaderVisible}
-        size="lg"
-        onCancel={() => {
-          setLeaderVisible(false);
-          setBatchLeaderTasks([]);
-          leaderForm.resetFields();
+          loading={submitting}
+          submitText={editing ? t('common.save') : t('common.add')}
+        />
+      }
+      unmountOnExit
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onSubmit={() => {
+          submitForm();
         }}
-        footer={
-          <SubmitBar
-            onCancel={() => {
-              setLeaderVisible(false);
-              setBatchLeaderTasks([]);
-              leaderForm.resetFields();
-            }}
-            onSubmit={() => {
-              submitBatchLeader();
-            }}
-            submitText={t('common.save')}
-          />
-        }
-        unmountOnExit
       >
-        <Form
-          form={leaderForm}
-          layout="vertical"
+        <Space direction="vertical" size={20} className="dialog-form-stack">
+          <FormSection title={t('common.basicInfo')}>
+            <Row gutter={16}>
+              <Col xs={24} md={12}>
+                <FormItem label={t('system.dept.parentId')} field="parentId">
+                  <TreeSelect treeData={deptOptions} disabled={editing?.isRoot} />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={12}>
+                <FormItem
+                  label={t('system.dept.deptName')}
+                  field="deptName"
+                  rules={[{ required: true, message: t('system.dept.deptNameRequired') }]}
+                >
+                  <Input onPressEnter={() => form.submit()} />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={12}>
+                <FormItem
+                  label={t('system.dept.leaderCandidate')}
+                  field="leaderUserId"
+                  extra={leaderCandidateExtra}
+                >
+                  <Select
+                    allowClear
+                    showSearch
+                    loading={leaderCandidateLoading}
+                    disabled={!editing || editing.isRoot}
+                    placeholder={t('system.dept.leaderCandidatePlaceholder')}
+                    options={leaderCandidates.map((item) => ({
+                      label: `${item.displayName} · ${item.postName || '-'}`,
+                      value: item.userId,
+                    }))}
+                    onChange={handleLeaderCandidateChange}
+                  />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={12}>
+                <FormItem label={t('system.dept.leader')} field="leader">
+                  <Input
+                    placeholder={t('system.dept.leaderLegacyPlaceholder')}
+                    onPressEnter={() => form.submit()}
+                  />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={12}>
+                <FormItem label={t('system.dept.phone')} field="phone">
+                  <Input onPressEnter={() => form.submit()} />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={12}>
+                <FormItem
+                  label={t('system.dept.email')}
+                  field="email"
+                  rules={[
+                    {
+                      // Linear-time email shape check; backend owns authoritative validation.
+                      validator: (value, callback) => {
+                        if (!value || isLikelyEmailAddress(String(value))) {
+                          callback();
+                          return;
+                        }
+                        callback(t('system.user.email.invalid'));
+                      },
+                    },
+                  ]}
+                >
+                  <Input onPressEnter={() => form.submit()} />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={6}>
+                <FormItem label={t('system.dept.sort')} field="sort">
+                  <InputNumber min={0} style={{ width: '100%' }} />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={6}>
+                <FormItem label={t('system.dept.status')} field="status">
+                  <Select
+                    options={[
+                      { label: t('system.user.status.enabled'), value: 1 },
+                      { label: t('system.user.status.disabled'), value: 2 },
+                    ]}
+                    disabled={editing?.isRoot}
+                  />
+                </FormItem>
+              </Col>
+            </Row>
+          </FormSection>
+        </Space>
+      </Form>
+    </AppModal>
+  );
+
+  const renderBatchLeaderModal = () => (
+    <AppModal
+      title={t('system.dept.batchLeader')}
+      visible={leaderVisible}
+      size="lg"
+      onCancel={() => {
+        setLeaderVisible(false);
+        setBatchLeaderTasks([]);
+        leaderForm.resetFields();
+      }}
+      footer={
+        <SubmitBar
+          onCancel={() => {
+            setLeaderVisible(false);
+            setBatchLeaderTasks([]);
+            leaderForm.resetFields();
+          }}
           onSubmit={() => {
             submitBatchLeader();
           }}
-        >
-          <Space direction="vertical" size={16} style={{ width: '100%' }}>
-            <div>{t('system.dept.batchLeaderTaskHint')}</div>
-            {batchLeaderTasks.map((task) => (
-              <Card key={task.deptId} size="small">
-                <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                  <strong>{task.deptName}</strong>
-                  <FormItem
-                    label={t('system.dept.leaderCandidate')}
-                    field={String(task.deptId)}
-                    rules={[{ required: true, message: t('dept.leader.required') }]}
-                    extra={
+          submitText={t('common.save')}
+        />
+      }
+      unmountOnExit
+    >
+      <Form
+        form={leaderForm}
+        layout="vertical"
+        onSubmit={() => {
+          submitBatchLeader();
+        }}
+      >
+        <Space direction="vertical" size={16} style={{ width: '100%' }}>
+          <div>{t('system.dept.batchLeaderTaskHint')}</div>
+          {batchLeaderTasks.map((task) => (
+            <Card key={task.deptId} size="small">
+              <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                <strong>{task.deptName}</strong>
+                <FormItem
+                  label={t('system.dept.leaderCandidate')}
+                  field={String(task.deptId)}
+                  rules={[{ required: true, message: t('dept.leader.required') }]}
+                  extra={
+                    task.candidates.length > 0
+                      ? t('system.dept.leaderCandidateHint')
+                      : t('system.dept.batchLeaderNoCandidate')
+                  }
+                >
+                  <Select
+                    showSearch
+                    allowClear
+                    loading={leaderCandidateLoading}
+                    disabled={task.candidates.length === 0}
+                    placeholder={
                       task.candidates.length > 0
-                        ? t('system.dept.leaderCandidateHint')
+                        ? t('system.dept.leaderCandidatePlaceholder')
                         : t('system.dept.batchLeaderNoCandidate')
                     }
-                  >
-                    <Select
-                      showSearch
-                      allowClear
-                      loading={leaderCandidateLoading}
-                      disabled={task.candidates.length === 0}
-                      placeholder={
-                        task.candidates.length > 0
-                          ? t('system.dept.leaderCandidatePlaceholder')
-                          : t('system.dept.batchLeaderNoCandidate')
-                      }
-                      options={task.candidates.map((item) => ({
-                        label: `${item.displayName} · ${item.postName || '-'}`,
-                        value: item.userId,
-                      }))}
-                    />
-                  </FormItem>
-                </Space>
-              </Card>
-            ))}
-          </Space>
-        </Form>
-      </AppModal>
+                    options={task.candidates.map((item) => ({
+                      label: `${item.displayName} · ${item.postName || '-'}`,
+                      value: item.userId,
+                    }))}
+                  />
+                </FormItem>
+              </Space>
+            </Card>
+          ))}
+        </Space>
+      </Form>
+    </AppModal>
+  );
 
-      <AppModal
-        title={t('system.dept.orgCreatePostTitle')}
-        visible={postVisible}
-        size="md"
-        onCancel={() => {
-          setPostVisible(false);
-          setCreatingPostDept(null);
-        }}
-        footer={
-          <SubmitBar
-            onCancel={() => {
-              setPostVisible(false);
-              setCreatingPostDept(null);
-            }}
-            onSubmit={() => {
-              submitPostForm();
-            }}
-            loading={postSubmitting}
-            submitText={t('common.add')}
-          />
-        }
-        unmountOnExit
-      >
-        <Form
-          form={postForm}
-          layout="vertical"
+  const renderPostFormModal = () => (
+    <AppModal
+      title={t('system.dept.orgCreatePostTitle')}
+      visible={postVisible}
+      size="md"
+      onCancel={() => {
+        setPostVisible(false);
+        setCreatingPostDept(null);
+      }}
+      footer={
+        <SubmitBar
+          onCancel={() => {
+            setPostVisible(false);
+            setCreatingPostDept(null);
+          }}
           onSubmit={() => {
             submitPostForm();
           }}
-        >
-          <Space direction="vertical" size={20} className="dialog-form-stack">
-            <FormSection title={t('common.basicInfo')}>
-              <Row gutter={16}>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    label={t('system.post.dept')}
-                    field="deptId"
-                    rules={[{ required: true, message: t('system.post.deptRequired') }]}
-                  >
-                    <Select
-                      disabled
-                      options={
-                        creatingPostDept
-                          ? [{ label: creatingPostDept.deptName, value: creatingPostDept.id }]
-                          : []
-                      }
-                    />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    label={t('system.post.postCode')}
-                    field="postCode"
-                    rules={[{ required: true, message: t('system.post.postCodeRequired') }]}
-                  >
-                    <Input onPressEnter={() => postForm.submit()} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem
-                    label={t('system.post.postName')}
-                    field="postName"
-                    rules={[{ required: true, message: t('system.post.postNameRequired') }]}
-                  >
-                    <Input onPressEnter={() => postForm.submit()} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem label={t('system.post.sort')} field="sort">
-                    <InputNumber min={0} style={{ width: '100%' }} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12}>
-                  <FormItem label={t('system.post.status')} field="status">
-                    <Select
-                      options={[
-                        { label: t('system.user.status.enabled'), value: 1 },
-                        { label: t('system.user.status.disabled'), value: 2 },
-                      ]}
-                    />
-                  </FormItem>
-                </Col>
-                <Col span={24}>
-                  <FormItem label={t('system.post.remark')} field="remark">
-                    <Input.TextArea maxLength={200} autoSize={{ minRows: 3, maxRows: 5 }} />
-                  </FormItem>
-                </Col>
-              </Row>
-            </FormSection>
-          </Space>
-        </Form>
-      </AppModal>
-
-      <AppModal
-        title={t('system.user.detail')}
-        visible={userDetailVisible}
-        size="detail"
-        footer={null}
-        onCancel={() => setUserDetailVisible(false)}
-        unmountOnExit
+          loading={postSubmitting}
+          submitText={t('common.add')}
+        />
+      }
+      unmountOnExit
+    >
+      <Form
+        form={postForm}
+        layout="vertical"
+        onSubmit={() => {
+          submitPostForm();
+        }}
       >
-        {userDetailLoading ? <PageLoading /> : null}
-        {userDetailError ? (
-          <PageError
-            onRetry={() => {
-              if (userDetailId > 0) {
-                openUserDetail(userDetailId);
-              }
-            }}
-          />
-        ) : null}
-        {!userDetailLoading && !userDetailError && userDetail ? (
-          <UserDetailContent detail={userDetail} />
-        ) : null}
-      </AppModal>
+        <Space direction="vertical" size={20} className="dialog-form-stack">
+          <FormSection title={t('common.basicInfo')}>
+            <Row gutter={16}>
+              <Col xs={24} md={12}>
+                <FormItem
+                  label={t('system.post.dept')}
+                  field="deptId"
+                  rules={[{ required: true, message: t('system.post.deptRequired') }]}
+                >
+                  <Select
+                    disabled
+                    options={
+                      creatingPostDept
+                        ? [{ label: creatingPostDept.deptName, value: creatingPostDept.id }]
+                        : []
+                    }
+                  />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={12}>
+                <FormItem
+                  label={t('system.post.postCode')}
+                  field="postCode"
+                  rules={[{ required: true, message: t('system.post.postCodeRequired') }]}
+                >
+                  <Input onPressEnter={() => postForm.submit()} />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={12}>
+                <FormItem
+                  label={t('system.post.postName')}
+                  field="postName"
+                  rules={[{ required: true, message: t('system.post.postNameRequired') }]}
+                >
+                  <Input onPressEnter={() => postForm.submit()} />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={12}>
+                <FormItem label={t('system.post.sort')} field="sort">
+                  <InputNumber min={0} style={{ width: '100%' }} />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={12}>
+                <FormItem label={t('system.post.status')} field="status">
+                  <Select
+                    options={[
+                      { label: t('system.user.status.enabled'), value: 1 },
+                      { label: t('system.user.status.disabled'), value: 2 },
+                    ]}
+                  />
+                </FormItem>
+              </Col>
+              <Col span={24}>
+                <FormItem label={t('system.post.remark')} field="remark">
+                  <Input.TextArea maxLength={200} autoSize={{ minRows: 3, maxRows: 5 }} />
+                </FormItem>
+              </Col>
+            </Row>
+          </FormSection>
+        </Space>
+      </Form>
+    </AppModal>
+  );
+
+  const renderUserDetailModal = () => (
+    <AppModal
+      title={t('system.user.detail')}
+      visible={userDetailVisible}
+      size="detail"
+      footer={null}
+      onCancel={() => setUserDetailVisible(false)}
+      unmountOnExit
+    >
+      {userDetailLoading ? <PageLoading /> : null}
+      {userDetailError ? (
+        <PageError
+          onRetry={() => {
+            if (userDetailId > 0) {
+              openUserDetail(userDetailId);
+            }
+          }}
+        />
+      ) : null}
+      {!userDetailLoading && !userDetailError && userDetail ? (
+        <UserDetailContent detail={userDetail} />
+      ) : null}
+    </AppModal>
+  );
+
+  return (
+    <PageContainer>
+      {renderPageContent()}
+      {renderGovernanceDrawer()}
+      {renderDeptFormModal()}
+      {renderBatchLeaderModal()}
+      {renderPostFormModal()}
+      {renderUserDetailModal()}
     </PageContainer>
   );
 };

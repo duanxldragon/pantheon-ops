@@ -7,6 +7,7 @@ import (
 	"unicode"
 
 	"pantheon-ops/backend/pkg/common"
+	"pantheon-ops/backend/pkg/logging"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -14,6 +15,7 @@ import (
 
 const maxRequestIDLength = 64
 
+// RequestContextMiddleware injects request and trace IDs into the request context.
 func RequestContextMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		requestID := normalizeIncomingRequestID(
@@ -29,7 +31,8 @@ func RequestContextMiddleware() gin.HandlerFunc {
 		c.Header(common.HeaderRequestID, requestID)
 		c.Header(common.HeaderTraceID, requestID)
 
-		ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+		ctx := logging.WithRequestID(c.Request.Context(), requestID)
+		ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 		defer cancel()
 		c.Request = c.Request.WithContext(ctx)
 

@@ -54,6 +54,7 @@ import '../../system/components/shared/list-page.css';
 const moduleManagerWarmDataKeys = ['modules:registered'];
 const moduleManagerDiagnosticsColumnWidth = 112;
 const moduleManagerTimeColumnWidth = 128;
+type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
 
 function invalidateModuleManagerWarmData() {
   invalidateRouteWarmData('/system/modules', moduleManagerWarmDataKeys);
@@ -78,6 +79,19 @@ function statusColor(status: number) {
   return 'gray';
 }
 
+function scopeColor(scope: string) {
+  if (scope === 'system') return 'blue';
+  if (scope === 'platform') return 'purple';
+  return 'green';
+}
+
+function statusLabelKey(status: number) {
+  if (status === 1) return 'generator.moduleManager.status.active';
+  if (status === 3) return 'generator.moduleManager.status.pending';
+  if (status === 4) return 'generator.moduleManager.status.failed';
+  return 'generator.moduleManager.status.uninstalled';
+}
+
 function hasLifecycleChanges(summary: ModuleI18nLifecycleSummary | null | undefined) {
   if (!summary?.triggered) {
     return false;
@@ -85,17 +99,370 @@ function hasLifecycleChanges(summary: ModuleI18nLifecycleSummary | null | undefi
   return summary.observedRows > 0 || summary.archivedRows > 0 || summary.deletedRows > 0;
 }
 
+function renderPurgeTableHint(t: TranslateFn, record: ModuleRegistration) {
+  if (hasAutoRecycle(record)) {
+    return t('generator.moduleManager.purgeModal.autoRecycleTable', { table: record.tableName });
+  }
+  if (record.tableName) {
+    return t('generator.moduleManager.purgeModal.keepTable', { table: record.tableName });
+  }
+  return t('generator.moduleManager.purgeModal.noTable');
+}
+
+function resolveModulePermissions(isAdmin: boolean, hasPerm: (permission: string) => boolean) {
+  return {
+    canOpenGenerator: isAdmin || hasPerm('system:generator:use'),
+    canRegister: isAdmin || hasPerm('system:module:register'),
+    canUnregister: isAdmin || hasPerm('system:module:unregister'),
+    canDeleteRecord: isAdmin || hasPerm('system:module:delete_record'),
+    canPurge: isAdmin || hasPerm('system:module:purge'),
+    canRepair: isAdmin || hasPerm('system:module:repair'),
+  };
+}
+
+function buildModuleStateAlert(
+  featureDisabled: boolean,
+  modules: ModuleRegistration[],
+  t: TranslateFn,
+) {
+  if (featureDisabled) {
+    return <Alert type="warning" content={t('generator.moduleManager.disabledHint')} />;
+  }
+  if (modules.some((item) => item.status === 3)) {
+    return <Alert type="warning" content={t('generator.moduleManager.pendingHint')} />;
+  }
+  return <Alert type="info" content={t('generator.moduleManager.repairHint')} />;
+}
+
+interface ModuleManagerTableProps {
+  canDeleteRecord: boolean;
+  canPurge: boolean;
+  canRegister: boolean;
+  canUnregister: boolean;
+  featureDisabled: boolean;
+  modules: ModuleRegistration[];
+  onDeleteRecord: (name: string) => Promise<void>;
+  onOpenPurge: (record: ModuleRegistration) => void;
+  onRegister: (name: string) => Promise<void>;
+  onUnregister: (name: string) => Promise<void>;
+  t: TranslateFn;
+}
+
+function ModuleManagerTable({
+  canDeleteRecord,
+  canPurge,
+  canRegister,
+  canUnregister,
+  featureDisabled,
+  modules,
+  onDeleteRecord,
+  onOpenPurge,
+  onRegister,
+  onUnregister,
+  t,
+}: Readonly<ModuleManagerTableProps>) {
+  const columns = [
+    {
+      title: t('generator.moduleManager.name'),
+      dataIndex: 'name',
+      width: TABLE_COLUMN_WIDTH.identity,
+      render: (name: string) => (
+        <Typography.Text className="system-list__ellipsis-text" ellipsis={{ showTooltip: true }}>
+          {name}
+        </Typography.Text>
+      ),
+    },
+    {
+      title: t('generator.moduleManager.displayName'),
+      dataIndex: 'displayName',
+      width: TABLE_COLUMN_WIDTH.name,
+      render: (displayName?: string) => (
+        <Typography.Text className="system-list__ellipsis-text" ellipsis={{ showTooltip: true }}>
+          {displayName || '-'}
+        </Typography.Text>
+      ),
+    },
+    {
+      title: t('generator.moduleManager.scope'),
+      dataIndex: 'scope',
+      width: TABLE_COLUMN_WIDTH.scope,
+      render: (scope: string) => <Tag color={scopeColor(scope)}>{scope}</Tag>,
+    },
+    {
+      title: t('generator.moduleManager.source'),
+      dataIndex: 'source',
+      width: TABLE_COLUMN_WIDTH.code,
+      render: (source: string) => (
+        <Tag
+          color={
+            source === 'generated' || source === 'database' || source === 'manual'
+              ? 'green'
+              : 'arcoblue'
+          }
+        >
+          {t(`generator.moduleManager.source.${source || 'core'}`)}
+        </Tag>
+      ),
+    },
+    withTableColumnPriority(
+      {
+        title: t('generator.moduleManager.owner'),
+        dataIndex: 'owner',
+        width: TABLE_COLUMN_WIDTH.owner,
+        render: (value?: string) => value || '-',
+      },
+      'medium',
+    ),
+    withTableColumnPriority(
+      {
+        title: t('generator.moduleManager.boundedContext'),
+        dataIndex: 'boundedContext',
+        width: TABLE_COLUMN_WIDTH.owner,
+        render: (value?: string) => value || '-',
+      },
+      'medium',
+    ),
+    withTableColumnPriority(
+      {
+        title: t('generator.moduleManager.tableName'),
+        dataIndex: 'tableName',
+        width: TABLE_COLUMN_WIDTH.name,
+        render: (tableName: string) => (
+          <Typography.Text className="system-list__ellipsis-text" ellipsis={{ showTooltip: true }}>
+            {tableName || '-'}
+          </Typography.Text>
+        ),
+      },
+      'low',
+    ),
+    withTableColumnPriority(
+      {
+        title: t('generator.moduleManager.lifecycle'),
+        dataIndex: 'autoRecycle',
+        width: TABLE_COLUMN_WIDTH.status,
+        render: (_value: boolean | undefined, record: ModuleRegistration) => {
+          if (!record.tableName) {
+            return <Tag color="gray">{t('generator.moduleManager.lifecycle.noTable')}</Tag>;
+          }
+          return hasAutoRecycle(record) ? (
+            <Space size={6}>
+              <Tag color="orange">{t('generator.moduleManager.lifecycle.autoRecycle')}</Tag>
+            </Space>
+          ) : (
+            <Tag color="arcoblue">{t('generator.moduleManager.lifecycle.standard')}</Tag>
+          );
+        },
+      },
+      'medium',
+    ),
+    {
+      title: t('generator.moduleManager.status'),
+      dataIndex: 'status',
+      width: TABLE_COLUMN_WIDTH.status,
+      render: (status: number) => (
+        <Tag color={statusColor(status)}>{t(statusLabelKey(status))}</Tag>
+      ),
+    },
+    withTableColumnPriority(
+      {
+        title: t('generator.moduleManager.installedAt'),
+        dataIndex: 'installedAt',
+        width: moduleManagerTimeColumnWidth,
+        render: (value?: string) => (
+          <Typography.Text className="system-list__datetime-text">
+            {formatDateTime(value)}
+          </Typography.Text>
+        ),
+      },
+      'low',
+    ),
+    withTableColumnPriority(
+      {
+        title: t('generator.moduleManager.diagnostics'),
+        width: moduleManagerDiagnosticsColumnWidth,
+        render: (_value: unknown, record: ModuleRegistration) => {
+          if (record.lastError) {
+            return (
+              <Space direction="vertical" size={2}>
+                <Tag color="red">{t('generator.moduleManager.diagnostics.failed')}</Tag>
+                <Typography.Text type="secondary">{t(record.lastError)}</Typography.Text>
+              </Space>
+            );
+          }
+          if (record.lastVerifiedAt) {
+            return <Tag color="green">{t('generator.moduleManager.diagnostics.verified')}</Tag>;
+          }
+          return <span>-</span>;
+        },
+      },
+      'low',
+    ),
+    withTableColumnPriority(
+      {
+        title: t('generator.moduleManager.verifiedAt'),
+        dataIndex: 'lastVerifiedAt',
+        width: moduleManagerTimeColumnWidth,
+        render: (value?: string) => (
+          <Typography.Text className="system-list__datetime-text">
+            {formatDateTime(value)}
+          </Typography.Text>
+        ),
+      },
+      'low',
+    ),
+    {
+      title: t('common.action'),
+      width: TABLE_ACTION_COLUMN_WIDTH.wide,
+      render: (_value: unknown, record: ModuleRegistration) => {
+        const managedRegistration = isManagedRegistration(record);
+        const businessStaticRegistration = isBusinessStaticRegistration(record);
+        const canPurgeRecord = managedRegistration || businessStaticRegistration;
+        return (
+          <Space size={4} className="system-list__actions">
+            {record.builtIn ? (
+              <Tag color="arcoblue">{t('generator.moduleManager.builtIn')}</Tag>
+            ) : null}
+            {record.status === 2 && managedRegistration ? (
+              <>
+                <PermissionAction allowed={canRegister} tooltip={t('common.noPermissionAction')}>
+                  <Button
+                    type="text"
+                    disabled={featureDisabled}
+                    onClick={() => {
+                      void onRegister(record.name);
+                    }}
+                  >
+                    <IconPlus /> {t('generator.moduleManager.register')}
+                  </Button>
+                </PermissionAction>
+                <PermissionAction
+                  allowed={canDeleteRecord}
+                  tooltip={t('common.noPermissionAction')}
+                >
+                  <Popconfirm
+                    title={t('generator.moduleManager.confirmDeleteRecord')}
+                    disabled={featureDisabled || !canDeleteRecord}
+                    onOk={() => onDeleteRecord(record.name)}
+                  >
+                    <Button
+                      type="text"
+                      status="danger"
+                      disabled={featureDisabled || !canDeleteRecord}
+                    >
+                      <IconDelete /> {t('generator.moduleManager.deleteRecord')}
+                    </Button>
+                  </Popconfirm>
+                </PermissionAction>
+              </>
+            ) : null}
+            {record.status !== 2 && managedRegistration && canUnregister ? (
+              <PermissionAction allowed={canUnregister} tooltip={t('common.noPermissionAction')}>
+                <Popconfirm
+                  title={
+                    hasAutoRecycle(record)
+                      ? t('generator.moduleManager.confirmUninstallAutoRecycle', {
+                          table: record.tableName,
+                        })
+                      : t('generator.moduleManager.confirmUninstall')
+                  }
+                  disabled={featureDisabled || !canUnregister}
+                  onOk={() => onUnregister(record.name)}
+                >
+                  <Button type="text" status="danger" disabled={featureDisabled || !canUnregister}>
+                    <IconDelete /> {t('generator.moduleManager.unregister')}
+                  </Button>
+                </Popconfirm>
+              </PermissionAction>
+            ) : null}
+            {canPurgeRecord ? (
+              <PermissionAction allowed={canPurge} tooltip={t('common.noPermissionAction')}>
+                <Button
+                  type="text"
+                  status="danger"
+                  disabled={featureDisabled || !canPurge}
+                  onClick={() => onOpenPurge(record)}
+                >
+                  <IconDelete /> {t('generator.moduleManager.purge')}
+                </Button>
+              </PermissionAction>
+            ) : null}
+          </Space>
+        );
+      },
+    },
+  ];
+
+  return (
+    <AppTable
+      className="system-list__table"
+      columns={columns}
+      data={modules}
+      rowKey="name"
+      pagination={false}
+      emptyText={
+        featureDisabled
+          ? t('generator.moduleManager.readOnlyEmpty')
+          : t('generator.moduleManager.empty')
+      }
+    />
+  );
+}
+
+function ModuleLifecycleNotice({
+  summary,
+  t,
+}: Readonly<{
+  summary: ModuleI18nLifecycleSummary | null;
+  t: TranslateFn;
+}>) {
+  if (!summary?.triggered) {
+    return null;
+  }
+  return (
+    <Alert
+      type="info"
+      content={
+        hasLifecycleChanges(summary) ? (
+          <Space wrap size={8}>
+            <Typography.Text>
+              {t('generator.moduleManager.i18nLifecycle.notice', { module: summary.module })}
+            </Typography.Text>
+            <Tag color={summary.observedRows > 0 ? 'gold' : 'gray'}>
+              {t('generator.moduleManager.i18nLifecycle.observe', {
+                count: summary.observedRows,
+              })}
+            </Tag>
+            <Tag color={summary.archivedRows > 0 ? 'orange' : 'gray'}>
+              {t('generator.moduleManager.i18nLifecycle.archive', {
+                count: summary.archivedRows,
+              })}
+            </Tag>
+            <Tag color={summary.deletedRows > 0 ? 'red' : 'gray'}>
+              {t('generator.moduleManager.i18nLifecycle.delete', {
+                count: summary.deletedRows,
+              })}
+            </Tag>
+            <Typography.Text type="secondary">
+              {t('generator.moduleManager.i18nLifecycle.retention', {
+                days: summary.archivedRetentionThresholdDays,
+              })}
+            </Typography.Text>
+          </Space>
+        ) : (
+          t('generator.moduleManager.i18nLifecycle.empty')
+        )
+      }
+    />
+  );
+}
+
 const ModuleManager: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAdmin, hasPerm } = usePermission();
   const [purgeForm] = Form.useForm<{ dropTable: boolean; confirmed: boolean }>();
-  const canOpenGenerator = isAdmin || hasPerm('system:generator:use');
-  const canRegister = isAdmin || hasPerm('system:module:register');
-  const canUnregister = isAdmin || hasPerm('system:module:unregister');
-  const canDeleteRecord = isAdmin || hasPerm('system:module:delete_record');
-  const canPurge = isAdmin || hasPerm('system:module:purge');
-  const canRepair = isAdmin || hasPerm('system:module:repair');
+  const { canOpenGenerator, canRegister, canUnregister, canDeleteRecord, canPurge, canRepair } =
+    resolveModulePermissions(isAdmin, hasPerm);
   const [modules, setModules] = useState<ModuleRegistration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
@@ -266,249 +633,6 @@ const ModuleManager: React.FC = () => {
     [modules],
   );
 
-  const columns = [
-    {
-      title: t('generator.moduleManager.name'),
-      dataIndex: 'name',
-      width: TABLE_COLUMN_WIDTH.identity,
-      render: (name: string) => (
-        <Typography.Text className="system-list__ellipsis-text" ellipsis={{ showTooltip: true }}>
-          {name}
-        </Typography.Text>
-      ),
-    },
-    {
-      title: t('generator.moduleManager.displayName'),
-      dataIndex: 'displayName',
-      width: TABLE_COLUMN_WIDTH.name,
-      render: (displayName?: string) => (
-        <Typography.Text className="system-list__ellipsis-text" ellipsis={{ showTooltip: true }}>
-          {displayName || '-'}
-        </Typography.Text>
-      ),
-    },
-    {
-      title: t('generator.moduleManager.scope'),
-      dataIndex: 'scope',
-      width: TABLE_COLUMN_WIDTH.scope,
-      render: (scope: string) => (
-        <Tag color={scope === 'system' ? 'blue' : scope === 'platform' ? 'purple' : 'green'}>
-          {scope}
-        </Tag>
-      ),
-    },
-    {
-      title: t('generator.moduleManager.source'),
-      dataIndex: 'source',
-      width: TABLE_COLUMN_WIDTH.code,
-      render: (source: string) => (
-        <Tag
-          color={
-            source === 'generated' || source === 'database' || source === 'manual'
-              ? 'green'
-              : 'arcoblue'
-          }
-        >
-          {t(`generator.moduleManager.source.${source || 'core'}`)}
-        </Tag>
-      ),
-    },
-    withTableColumnPriority(
-      {
-        title: t('generator.moduleManager.owner'),
-        dataIndex: 'owner',
-        width: TABLE_COLUMN_WIDTH.owner,
-        render: (value?: string) => value || '-',
-      },
-      'medium',
-    ),
-    withTableColumnPriority(
-      {
-        title: t('generator.moduleManager.boundedContext'),
-        dataIndex: 'boundedContext',
-        width: TABLE_COLUMN_WIDTH.owner,
-        render: (value?: string) => value || '-',
-      },
-      'medium',
-    ),
-    withTableColumnPriority(
-      {
-        title: t('generator.moduleManager.tableName'),
-        dataIndex: 'tableName',
-        width: TABLE_COLUMN_WIDTH.name,
-        render: (tableName: string) => (
-          <Typography.Text className="system-list__ellipsis-text" ellipsis={{ showTooltip: true }}>
-            {tableName || '-'}
-          </Typography.Text>
-        ),
-      },
-      'low',
-    ),
-    withTableColumnPriority(
-      {
-        title: t('generator.moduleManager.lifecycle'),
-        dataIndex: 'autoRecycle',
-        width: TABLE_COLUMN_WIDTH.status,
-        render: (_value: boolean | undefined, record: ModuleRegistration) => {
-          if (!record.tableName) {
-            return <Tag color="gray">{t('generator.moduleManager.lifecycle.noTable')}</Tag>;
-          }
-          return hasAutoRecycle(record) ? (
-            <Space size={6}>
-              <Tag color="orange">{t('generator.moduleManager.lifecycle.autoRecycle')}</Tag>
-            </Space>
-          ) : (
-            <Tag color="arcoblue">{t('generator.moduleManager.lifecycle.standard')}</Tag>
-          );
-        },
-      },
-      'medium',
-    ),
-    {
-      title: t('generator.moduleManager.status'),
-      dataIndex: 'status',
-      width: TABLE_COLUMN_WIDTH.status,
-      render: (status: number) => (
-        <Tag color={statusColor(status)}>
-          {status === 1
-            ? t('generator.moduleManager.status.active')
-            : status === 3
-              ? t('generator.moduleManager.status.pending')
-              : status === 4
-                ? t('generator.moduleManager.status.failed')
-                : t('generator.moduleManager.status.uninstalled')}
-        </Tag>
-      ),
-    },
-    withTableColumnPriority(
-      {
-        title: t('generator.moduleManager.installedAt'),
-        dataIndex: 'installedAt',
-        width: moduleManagerTimeColumnWidth,
-        render: (value?: string) => (
-          <Typography.Text className="system-list__datetime-text">
-            {formatDateTime(value)}
-          </Typography.Text>
-        ),
-      },
-      'low',
-    ),
-    withTableColumnPriority(
-      {
-        title: t('generator.moduleManager.diagnostics'),
-        width: moduleManagerDiagnosticsColumnWidth,
-        render: (_value: unknown, record: ModuleRegistration) => {
-          if (record.lastError) {
-            return (
-              <Space direction="vertical" size={2}>
-                <Tag color="red">{t('generator.moduleManager.diagnostics.failed')}</Tag>
-                <Typography.Text type="secondary">{t(record.lastError)}</Typography.Text>
-              </Space>
-            );
-          }
-          if (record.lastVerifiedAt) {
-            return <Tag color="green">{t('generator.moduleManager.diagnostics.verified')}</Tag>;
-          }
-          return <span>-</span>;
-        },
-      },
-      'low',
-    ),
-    withTableColumnPriority(
-      {
-        title: t('generator.moduleManager.verifiedAt'),
-        dataIndex: 'lastVerifiedAt',
-        width: moduleManagerTimeColumnWidth,
-        render: (value?: string) => (
-          <Typography.Text className="system-list__datetime-text">
-            {formatDateTime(value)}
-          </Typography.Text>
-        ),
-      },
-      'low',
-    ),
-    {
-      title: t('common.action'),
-      width: TABLE_ACTION_COLUMN_WIDTH.wide,
-      render: (_value: unknown, record: ModuleRegistration) => {
-        const managedRegistration = isManagedRegistration(record);
-        const businessStaticRegistration = isBusinessStaticRegistration(record);
-        const canPurgeRecord = managedRegistration || businessStaticRegistration;
-        return (
-          <Space size={4} className="system-list__actions">
-            {record.builtIn ? (
-              <Tag color="arcoblue">{t('generator.moduleManager.builtIn')}</Tag>
-            ) : null}
-            {record.status === 2 && managedRegistration ? (
-              <>
-                <PermissionAction allowed={canRegister} tooltip={t('common.noPermissionAction')}>
-                  <Button
-                    type="text"
-                    disabled={featureDisabled}
-                    onClick={() => {
-                      handleRegister(record.name);
-                    }}
-                  >
-                    <IconPlus /> {t('generator.moduleManager.register')}
-                  </Button>
-                </PermissionAction>
-                <PermissionAction
-                  allowed={canDeleteRecord}
-                  tooltip={t('common.noPermissionAction')}
-                >
-                  <Popconfirm
-                    title={t('generator.moduleManager.confirmDeleteRecord')}
-                    disabled={featureDisabled || !canDeleteRecord}
-                    onOk={() => handleDeleteRecord(record.name)}
-                  >
-                    <Button
-                      type="text"
-                      status="danger"
-                      disabled={featureDisabled || !canDeleteRecord}
-                    >
-                      <IconDelete /> {t('generator.moduleManager.deleteRecord')}
-                    </Button>
-                  </Popconfirm>
-                </PermissionAction>
-              </>
-            ) : null}
-            {record.status !== 2 && managedRegistration && canUnregister ? (
-              <PermissionAction allowed={canUnregister} tooltip={t('common.noPermissionAction')}>
-                <Popconfirm
-                  title={
-                    hasAutoRecycle(record)
-                      ? t('generator.moduleManager.confirmUninstallAutoRecycle', {
-                          table: record.tableName,
-                        })
-                      : t('generator.moduleManager.confirmUninstall')
-                  }
-                  disabled={featureDisabled || !canUnregister}
-                  onOk={() => handleUnregister(record.name)}
-                >
-                  <Button type="text" status="danger" disabled={featureDisabled || !canUnregister}>
-                    <IconDelete /> {t('generator.moduleManager.unregister')}
-                  </Button>
-                </Popconfirm>
-              </PermissionAction>
-            ) : null}
-            {canPurgeRecord ? (
-              <PermissionAction allowed={canPurge} tooltip={t('common.noPermissionAction')}>
-                <Button
-                  type="text"
-                  status="danger"
-                  disabled={featureDisabled || !canPurge}
-                  onClick={() => openPurgeModal(record)}
-                >
-                  <IconDelete /> {t('generator.moduleManager.purge')}
-                </Button>
-              </PermissionAction>
-            ) : null}
-          </Space>
-        );
-      },
-    },
-  ];
-
   if (loading && modules.length === 0) {
     return <PageLoading />;
   }
@@ -523,6 +647,8 @@ const ModuleManager: React.FC = () => {
       />
     );
   }
+
+  const moduleStateAlert = buildModuleStateAlert(featureDisabled, modules, t);
 
   return (
     <PageContainer>
@@ -599,63 +725,21 @@ const ModuleManager: React.FC = () => {
             />
           </div>
           <div className="module-manager-page__notice-stack">
-            {lastLifecycleSummary?.triggered ? (
-              <Alert
-                type="info"
-                content={
-                  hasLifecycleChanges(lastLifecycleSummary) ? (
-                    <Space wrap size={8}>
-                      <Typography.Text>
-                        {t('generator.moduleManager.i18nLifecycle.notice', {
-                          module: lastLifecycleSummary.module,
-                        })}
-                      </Typography.Text>
-                      <Tag color={lastLifecycleSummary.observedRows > 0 ? 'gold' : 'gray'}>
-                        {t('generator.moduleManager.i18nLifecycle.observe', {
-                          count: lastLifecycleSummary.observedRows,
-                        })}
-                      </Tag>
-                      <Tag color={lastLifecycleSummary.archivedRows > 0 ? 'orange' : 'gray'}>
-                        {t('generator.moduleManager.i18nLifecycle.archive', {
-                          count: lastLifecycleSummary.archivedRows,
-                        })}
-                      </Tag>
-                      <Tag color={lastLifecycleSummary.deletedRows > 0 ? 'red' : 'gray'}>
-                        {t('generator.moduleManager.i18nLifecycle.delete', {
-                          count: lastLifecycleSummary.deletedRows,
-                        })}
-                      </Tag>
-                      <Typography.Text type="secondary">
-                        {t('generator.moduleManager.i18nLifecycle.retention', {
-                          days: lastLifecycleSummary.archivedRetentionThresholdDays,
-                        })}
-                      </Typography.Text>
-                    </Space>
-                  ) : (
-                    t('generator.moduleManager.i18nLifecycle.empty')
-                  )
-                }
-              />
-            ) : null}
-            {featureDisabled ? (
-              <Alert type="warning" content={t('generator.moduleManager.disabledHint')} />
-            ) : modules.some((item) => item.status === 3) ? (
-              <Alert type="warning" content={t('generator.moduleManager.pendingHint')} />
-            ) : (
-              <Alert type="info" content={t('generator.moduleManager.repairHint')} />
-            )}
+            <ModuleLifecycleNotice summary={lastLifecycleSummary} t={t} />
+            {moduleStateAlert}
           </div>
-          <AppTable
-            className="system-list__table"
-            columns={columns}
-            data={modules}
-            rowKey="name"
-            pagination={false}
-            emptyText={
-              featureDisabled
-                ? t('generator.moduleManager.readOnlyEmpty')
-                : t('generator.moduleManager.empty')
-            }
+          <ModuleManagerTable
+            canDeleteRecord={canDeleteRecord}
+            canPurge={canPurge}
+            canRegister={canRegister}
+            canUnregister={canUnregister}
+            featureDisabled={featureDisabled}
+            modules={modules}
+            onDeleteRecord={handleDeleteRecord}
+            onOpenPurge={openPurgeModal}
+            onRegister={handleRegister}
+            onUnregister={handleUnregister}
+            t={t}
           />
         </Card>
       </Space>
@@ -695,15 +779,7 @@ const ModuleManager: React.FC = () => {
                 </Typography.Text>
               ) : null}
               <Typography.Text type="secondary">
-                {hasAutoRecycle(purgeTarget)
-                  ? t('generator.moduleManager.purgeModal.autoRecycleTable', {
-                      table: purgeTarget.tableName,
-                    })
-                  : purgeTarget.tableName
-                    ? t('generator.moduleManager.purgeModal.keepTable', {
-                        table: purgeTarget.tableName,
-                      })
-                    : t('generator.moduleManager.purgeModal.noTable')}
+                {renderPurgeTableHint(t, purgeTarget)}
               </Typography.Text>
             </Space>
             {purgeTarget.tableName && !hasAutoRecycle(purgeTarget) ? (

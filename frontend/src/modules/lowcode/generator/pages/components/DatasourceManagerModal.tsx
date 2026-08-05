@@ -14,20 +14,15 @@ import {
 const { Row, Col } = Grid;
 import { IconEdit } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
-import type {
-  GeneratorDatasource,
-  UpsertGeneratorDatasourcePayload,
-} from '../../api';
+import type { GeneratorDatasource, UpsertGeneratorDatasourcePayload } from '../../api';
 
 const FormItem = Form.Item;
 
 export interface DatasourceManagerProps {
-  visible?: boolean;
   editingId: string | null;
   saving: boolean;
   form: ReturnType<typeof Form.useForm<UpsertGeneratorDatasourcePayload>>[0];
   items: GeneratorDatasource[];
-  onClose?: () => void;
   onEditItem: (item: GeneratorDatasource) => void;
   onDeleteItem: (id: string) => void;
   onTestItem: (id: string) => void;
@@ -95,9 +90,7 @@ const DatasourceManagerModal: React.FC<DatasourceManagerProps> = ({
       <Card
         size="small"
         title={
-          editingId
-            ? t('generator.datasource.editTitle')
-            : t('generator.datasource.createTitle')
+          editingId ? t('generator.datasource.editTitle') : t('generator.datasource.createTitle')
         }
       >
         <Form form={form} layout="vertical" onSubmit={onSave}>
@@ -112,7 +105,11 @@ const DatasourceManagerModal: React.FC<DatasourceManagerProps> = ({
               </FormItem>
             </Col>
             <Col xs={24} md={12}>
-              <FormItem field="driver" label={t('generator.datasource.driver')} initialValue="mysql">
+              <FormItem
+                field="driver"
+                label={t('generator.datasource.driver')}
+                initialValue="mysql"
+              >
                 <Input disabled />
               </FormItem>
             </Col>

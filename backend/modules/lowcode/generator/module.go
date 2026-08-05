@@ -2,6 +2,7 @@ package generator
 
 import (
 	"pantheon-ops/backend/internal/middleware"
+	"pantheon-ops/backend/modules/lowcode/dynamicmodule"
 	"pantheon-ops/backend/pkg/contracts"
 	"pantheon-ops/backend/pkg/database"
 
@@ -25,8 +26,8 @@ func InitGeneratorModule(r *gin.RouterGroup, db *gorm.DB) {
 				readAPI.GET("/datasources", handler.ListDatasources)
 				readAPI.GET("/tables", handler.ListTables)
 				readAPI.GET("/table-schema", handler.PreviewTable)
-				readAPI.POST("/preview-files", handler.PreviewGeneratedFiles)
-				readAPI.POST("/download-source", handler.DownloadGeneratedSource)
+				readAPI.POST("/preview-files", dynamicmodule.DynamicModuleEnvGuard(), handler.PreviewGeneratedFiles)
+				readAPI.POST("/download-source", dynamicmodule.DynamicModuleEnvGuard(), handler.DownloadGeneratedSource)
 			}
 
 			writeAPI := r.Group("/lowcode/generator").

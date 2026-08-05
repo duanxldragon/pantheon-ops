@@ -132,7 +132,7 @@ const SettingGroupPage: React.FC = () => {
                         <span className="setting-page__group-nav-title">{t(meta.titleKey)}</span>
                         {issueCount > 0 ? (
                           <Tag color={meta.tone === 'danger' ? 'red' : 'orange'}>
-                            {t('common.total', { count: issueCount })}
+                            {t('common.totalWithCount', { count: issueCount })}
                           </Tag>
                         ) : null}
                       </span>
@@ -140,7 +140,7 @@ const SettingGroupPage: React.FC = () => {
                         {t(meta.descriptionKey, '')}
                       </span>
                       <span className="setting-page__group-nav-meta">
-                        {t('common.total', { count: group.items.length })}
+                        {t('common.totalWithCount', { count: group.items.length })}
                       </span>
                     </button>
                   );

@@ -191,6 +191,14 @@ settings:
     isPublic: 0
     isEncrypted: 0
     remark: "system.setting.remark.audit.session_cleanup_retention_options"
+  - settingKey: "audit.security_event_retention_options"
+    settingValue: "[1,7,30]"
+    valueType: "json"
+    groupKey: "audit"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.audit.security_event_retention_options"
   - settingKey: "audit.login_log_retention_days"
     settingValue: "90"
     valueType: "number"
@@ -215,6 +223,14 @@ settings:
     isPublic: 0
     isEncrypted: 0
     remark: "system.setting.remark.audit.session_retention_days"
+  - settingKey: "audit.security_event_retention_days"
+    settingValue: "180"
+    valueType: "number"
+    groupKey: "audit"
+    module: "system"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.audit.security_event_retention_days"
   - settingKey: "i18n.default_language"
     settingValue: "zh-CN"
     valueType: "string"

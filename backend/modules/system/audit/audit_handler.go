@@ -10,6 +10,7 @@ import (
 )
 
 const errRequestFailed = "request.failed"
+const errParamInvalid = "param.invalid"
 
 type AuditHandler struct {
 	service *AuditService
@@ -22,7 +23,7 @@ func NewAuditHandler(s *AuditService) *AuditHandler {
 func (h *AuditHandler) GetOperationLogList(c *gin.Context) {
 	var query OperationLogQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -37,7 +38,7 @@ func (h *AuditHandler) GetOperationLogList(c *gin.Context) {
 func (h *AuditHandler) GetOperationLog(c *gin.Context) {
 	logID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -53,7 +54,7 @@ func (h *AuditHandler) DeleteOperationLog(c *gin.Context) {
 	common.SetAuditMetadata(c, "audit.operation_log.delete.title", common.BusinessDelete)
 	logID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -69,7 +70,7 @@ func (h *AuditHandler) CleanupOperationLogs(c *gin.Context) {
 
 	var req OperationLogCleanupReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -86,7 +87,7 @@ func (h *AuditHandler) BatchDeleteOperationLogs(c *gin.Context) {
 
 	var req OperationLogBatchDeleteReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -103,7 +104,7 @@ func (h *AuditHandler) ExportOperationLogs(c *gin.Context) {
 
 	var query OperationLogQuery
 	if err := c.ShouldBindJSON(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 	file, err := h.service.ExportOperationLogs(&query)

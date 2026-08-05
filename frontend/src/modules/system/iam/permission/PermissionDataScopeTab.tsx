@@ -3,7 +3,6 @@ import {
   Button,
   Card,
   Form,
-  Grid,
   Input,
   Select,
   Space,
@@ -12,7 +11,7 @@ import {
 } from '@arco-design/web-react';
 import { message } from '../../../../components/feedback/message';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
-import { IconEdit, IconRefresh, IconSearch } from '@arco-design/web-react/icon';
+import { IconEdit, IconRefresh } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { isArcoFormValidationError } from '../../../../core/arco/formValidation';
 import { publishRefresh, useRefreshSubscription } from '../../../../core/refresh/refreshBus';
@@ -29,7 +28,7 @@ import {
   AppTable,
   buildStandardPagination,
   getPagedItems,
-  FilterPanel,
+  SearchToolbar,
   ListHeaderActions,
   PageEmpty,
   PageLoading,
@@ -40,8 +39,6 @@ import {
 } from '../../../../components';
 import { translateRoleName } from '../role/display';
 
-const Row = Grid.Row;
-const Col = Grid.Col;
 const FormItem = Form.Item;
 
 interface LoadDataOptions {
@@ -72,7 +69,6 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
     null,
   );
   const [dataScopeModeDraft, setDataScopeModeDraft] = useState<PermissionDataScopeMode>('all');
-  const [dataScopeForm] = Form.useForm<PermissionDataScopeQuery>();
   const [dataScopeEditorForm] = Form.useForm<DataScopeEditorFormValues>();
 
   const loadDataScopePolicies = useCallback(
@@ -117,8 +113,7 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
     },
   );
 
-  const searchDataScope = () => {
-    const values = dataScopeForm.getFieldsValue();
+  const searchDataScope = (values: Partial<PermissionDataScopeQuery>) => {
     setTablePagination((current) => ({ ...current, current: 1 }));
     setDataScopeQuery({
       ...dataScopeQuery,
@@ -127,7 +122,6 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
   };
 
   const resetDataScope = () => {
-    dataScopeForm.setFieldsValue({});
     setTablePagination({ current: 1, pageSize: 10 });
     setDataScopeQuery({});
   };
@@ -278,38 +272,34 @@ export const PermissionDataScopeTab: React.FC<PermissionDataScopeTabProps> = ({ 
     <>
       <Space direction="vertical" size={12} style={{ width: '100%' }}>
         <div className="permission-page__data-scope-filter-shell">
-          <FilterPanel>
-            <Form form={dataScopeForm} layout="vertical" onSubmit={() => searchDataScope()}>
-              <Row gutter={16}>
-                <Col xs={24} sm={12} lg={8}>
-                  <FormItem label={t('system.permission.roleKey')} field="roleKey">
-                    <Select allowClear options={roleOptions} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                  <FormItem label={t('system.role.status')} field="status">
-                    <Select
-                      allowClear
-                      options={[
-                        { label: t('system.user.status.enabled'), value: 1 },
-                        { label: t('system.user.status.disabled'), value: 2 },
-                      ]}
-                    />
-                  </FormItem>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                  <FormItem className="filter-panel__action-item">
-                    <Space>
-                      <Button type="primary" htmlType="submit" icon={<IconSearch />}>
-                        {t('common.search')}
-                      </Button>
-                      <Button onClick={resetDataScope}>{t('common.reset')}</Button>
-                    </Space>
-                  </FormItem>
-                </Col>
-              </Row>
-            </Form>
-          </FilterPanel>
+          <SearchToolbar
+            inlineFilters={
+              <>
+                <Select
+                  allowClear
+                  showSearch
+                  placeholder={t('system.permission.roleKey')}
+                  value={dataScopeQuery.roleKey || undefined}
+                  onChange={(value) => searchDataScope({ roleKey: value ?? '' })}
+                  options={roleOptions}
+                />
+                <Select
+                  allowClear
+                  placeholder={t('system.role.status')}
+                  value={dataScopeQuery.status}
+                  onChange={(value) => searchDataScope({ status: value })}
+                  options={[
+                    { label: t('system.user.status.enabled'), value: 1 },
+                    { label: t('system.user.status.disabled'), value: 2 },
+                  ]}
+                />
+              </>
+            }
+            hasActiveFilters={Boolean(
+              dataScopeQuery.roleKey || dataScopeQuery.status !== undefined,
+            )}
+            onClearAll={resetDataScope}
+          />
         </div>
         <Card className="page-panel system-list__table-card permission-page__data-scope-table-card">
           <ListHeaderActions

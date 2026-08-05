@@ -23,7 +23,7 @@ func BodySizeLimit(maxBytes int64) gin.HandlerFunc {
 		if c.Request.ContentLength > maxBytes {
 			c.JSON(http.StatusRequestEntityTooLarge, gin.H{
 				"code":    413,
-				"message": "request body too large",
+				"message": "request.body_too_large",
 			})
 			c.Abort()
 			return

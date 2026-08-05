@@ -101,16 +101,28 @@ func TestGetRawLangPackReturnsCacheClone(t *testing.T) {
 // NOSONAR - parameterized nil-db guard test covering 7+ API paths; each block is a simple call+assert
 func TestI18nServiceNilDBGuardPathsReturnStableShapes(t *testing.T) {
 	service := NewI18nService(nil)
+	expectedLocales := []string{"zh-CN", "en-US", "ja-JP", "ko-KR", "fr-FR"}
 
+	assertNilDBSupportedLocales(t, service, expectedLocales)
+	assertNilDBOverview(t, service, expectedLocales)
+	assertNilDBMissingAndFillResponses(t, service)
+	assertNilDBHydrateResponse(t, service)
+	assertNilDBAuditResponse(t, service)
+}
+
+func assertNilDBSupportedLocales(t *testing.T, service *I18nService, expectedLocales []string) {
+	t.Helper()
 	locales, err := service.ListSupportedLocales()
 	if err != nil {
 		t.Fatalf("list supported locales: %v", err)
 	}
-	expectedLocales := []string{"zh-CN", "en-US", "ja-JP", "ko-KR", "fr-FR"}
 	if !reflect.DeepEqual(locales, expectedLocales) {
 		t.Fatalf("expected default locales %v, got %v", expectedLocales, locales)
 	}
+}
 
+func assertNilDBOverview(t *testing.T, service *I18nService, expectedLocales []string) {
+	t.Helper()
 	overview, err := service.GetOverview()
 	if err != nil {
 		t.Fatalf("get overview: %v", err)
@@ -121,7 +133,10 @@ func TestI18nServiceNilDBGuardPathsReturnStableShapes(t *testing.T) {
 	if overview.TotalEntries != 0 || overview.UniqueKeyCount != 0 || len(overview.Coverage) != 0 {
 		t.Fatalf("expected empty nil-db overview, got %+v", overview)
 	}
+}
 
+func assertNilDBMissingAndFillResponses(t *testing.T, service *I18nService) {
+	t.Helper()
 	missing, err := service.ListMissingLocales(" system.config ")
 	if err != nil {
 		t.Fatalf("list missing locales: %v", err)
@@ -137,7 +152,10 @@ func TestI18nServiceNilDBGuardPathsReturnStableShapes(t *testing.T) {
 	if filled.Created != 0 || len(filled.Locales) != 0 || len(filled.Keys) != 0 {
 		t.Fatalf("expected empty fill response, got %+v", filled)
 	}
+}
 
+func assertNilDBHydrateResponse(t *testing.T, service *I18nService) {
+	t.Helper()
 	hydrated, err := service.HydrateBuiltinLocales("system.config")
 	if err != nil {
 		t.Fatalf("hydrate builtin locales: %v", err)
@@ -145,7 +163,10 @@ func TestI18nServiceNilDBGuardPathsReturnStableShapes(t *testing.T) {
 	if hydrated.Created != 0 || hydrated.Updated != 0 || len(hydrated.Locales) != 0 || len(hydrated.Keys) != 0 {
 		t.Fatalf("expected empty hydrate response, got %+v", hydrated)
 	}
+}
 
+func assertNilDBAuditResponse(t *testing.T, service *I18nService) {
+	t.Helper()
 	audit, err := service.GetAudit()
 	if err != nil {
 		t.Fatalf("get audit: %v", err)

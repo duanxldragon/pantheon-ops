@@ -360,4 +360,3 @@ export default {{modelName}}Form;
 import DETAIL_TEMPLATE from './detailTemplate_clean.txt?raw';
 
 export { DETAIL_TEMPLATE };
-

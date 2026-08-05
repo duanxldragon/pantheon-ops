@@ -3,7 +3,21 @@ package system
 import (
 	"strings"
 
+	"pantheon-ops/backend/pkg/rbacbind"
+
 	"gorm.io/gorm"
+)
+
+const (
+	moduleIAM     = "system.iam"
+	moduleOrg     = "system.org"
+	moduleConfig  = "system.config"
+	moduleLowcode = "system.lowcode"
+
+	menuKeyOperationLog = "operation-log"
+
+	orderByIDASC   = "id ASC"
+	condPathEquals = "path = ?"
 )
 
 type menuSeed struct {
@@ -64,6 +78,9 @@ func ensureMenuSeeds(db *gorm.DB, seeds []menuSeed) error {
 	if err := CleanupObsoleteMenus(db); err != nil {
 		return err
 	}
+	if err := cleanupDuplicateMenus(db); err != nil {
+		return err
+	}
 	for _, seed := range seeds {
 		if err := ensureSingleMenuSeed(db, seed); err != nil {
 			return err
@@ -87,7 +104,7 @@ var obsoleteMenuRules = []obsoleteMenuRule{
 		TitleKeys:  []string{"system.menu-matrix", "system.menu.matrix"},
 		Paths:      []string{"/system/menu-matrix"},
 		RouteNames: []string{"system-menu-matrix"},
-		Components: []string{"system/menu/MenuMatrix"},
+		Components: []string{"system/iam/menu/MenuMatrix"},
 		PagePerms:  []string{"system:menu:matrix"},
 		Perms:      []string{"system:menu:matrix"},
 		Cascade:    true,
@@ -112,7 +129,7 @@ func baseMenuGroupSeeds() []menuSeed {
 			Path:      "/system/access",
 			Type:      "M",
 			Icon:      "idcard",
-			Module:    "system.iam",
+			Module:    moduleIAM,
 			RouteName: "system-access",
 			Sort:      20,
 		},
@@ -122,7 +139,7 @@ func baseMenuGroupSeeds() []menuSeed {
 			Path:      "/system/org",
 			Type:      "M",
 			Icon:      "storage",
-			Module:    "system.org",
+			Module:    moduleOrg,
 			RouteName: "system-org",
 			Sort:      30,
 		},
@@ -132,7 +149,7 @@ func baseMenuGroupSeeds() []menuSeed {
 			Path:      "/system/config",
 			Type:      "M",
 			Icon:      "tool",
-			Module:    "system.config",
+			Module:    moduleConfig,
 			RouteName: "system-config",
 			Sort:      50,
 		},
@@ -142,7 +159,7 @@ func baseMenuGroupSeeds() []menuSeed {
 			Path:      "/system/lowcode",
 			Type:      "M",
 			Icon:      "code",
-			Module:    "system.lowcode",
+			Module:    moduleLowcode,
 			RouteName: "system-lowcode",
 			Sort:      45,
 		},
@@ -184,7 +201,7 @@ func coreMenuSeeds() []menuSeed {
 			Type:      "C",
 			Icon:      "user",
 			RouteName: "system-user",
-			Module:    "system.iam",
+			Module:    moduleIAM,
 			Sort:      10,
 		},
 		{
@@ -198,7 +215,7 @@ func coreMenuSeeds() []menuSeed {
 			Type:      "C",
 			Icon:      "user-group",
 			RouteName: "system-role",
-			Module:    "system.iam",
+			Module:    moduleIAM,
 			Sort:      20,
 		},
 		{
@@ -212,7 +229,7 @@ func coreMenuSeeds() []menuSeed {
 			Type:      "C",
 			Icon:      "menu",
 			RouteName: "system-menu",
-			Module:    "system.iam",
+			Module:    moduleIAM,
 			Sort:      40,
 		},
 	}
@@ -231,7 +248,7 @@ func deptMenuSeeds() []menuSeed {
 			Type:      "C",
 			Icon:      "branch",
 			RouteName: "system-dept",
-			Module:    "system.org",
+			Module:    moduleOrg,
 			Sort:      10,
 		},
 		{Key: "dept-create", ParentKey: "dept", TitleKey: "system.permission.dept.create", Perms: "system:dept:create", Type: "F", Sort: 1},
@@ -257,7 +274,7 @@ func postMenuSeeds() []menuSeed {
 			Type:      "C",
 			Icon:      "tags",
 			RouteName: "system-post",
-			Module:    "system.org",
+			Module:    moduleOrg,
 			Sort:      20,
 		},
 		{Key: "post-create", ParentKey: "post", TitleKey: "system.permission.post.create", Perms: "system:post:create", Type: "F", Sort: 1},
@@ -283,7 +300,7 @@ func permissionMenuSeeds() []menuSeed {
 			Type:      "C",
 			Icon:      "lock",
 			RouteName: "system-permission",
-			Module:    "system.iam",
+			Module:    moduleIAM,
 			Sort:      30,
 		},
 		{Key: "user-view", ParentKey: "user", TitleKey: "system.permission.user.view", Perms: "system:user:view", Type: "F", Sort: 1},
@@ -301,6 +318,7 @@ func permissionMenuSeeds() []menuSeed {
 		{Key: "role-batch-update", ParentKey: "role", TitleKey: "system.permission.role.batch_update", Perms: "system:role:batch-update", Type: "F", Sort: 4},
 		{Key: "role-batch-delete", ParentKey: "role", TitleKey: "system.permission.role.batch_delete", Perms: "system:role:batch-delete", Type: "F", Sort: 5},
 		{Key: "role-export", ParentKey: "role", TitleKey: "system.permission.role.export", Perms: "system:role:export", Type: "F", Sort: 6},
+		{Key: "role-import", ParentKey: "role", TitleKey: "system.permission.role.import", Perms: "system:role:import", Type: "F", Sort: 7},
 		{Key: "menu-create", ParentKey: "menu", TitleKey: "system.permission.menu.create", Perms: "system:menu:create", Type: "F", Sort: 1},
 		{Key: "menu-update", ParentKey: "menu", TitleKey: "system.permission.menu.update", Perms: "system:menu:update", Type: "F", Sort: 2},
 		{Key: "menu-delete", ParentKey: "menu", TitleKey: "system.permission.menu.delete", Perms: "system:menu:delete", Type: "F", Sort: 3},
@@ -326,7 +344,7 @@ func settingMenuSeeds() []menuSeed {
 			Type:      "C",
 			Icon:      "settings",
 			RouteName: "system-setting",
-			Module:    "system.config",
+			Module:    moduleConfig,
 			IsCache:   1,
 			Sort:      20,
 		},
@@ -343,12 +361,12 @@ func platformToolMenuSeeds() []menuSeed {
 			ParentKey: "lowcode",
 			TitleKey:  "system.menu.modules",
 			Path:      "/system/modules",
-			Component: "system/dynamicmodule/ModuleManager",
+			Component: "lowcode/dynamicmodule/ModuleManager",
 			PagePerm:  "system:module:list",
 			Type:      "C",
 			Icon:      "apps",
 			RouteName: "system-modules",
-			Module:    "system.lowcode",
+			Module:    moduleLowcode,
 			Sort:      35,
 		},
 		{Key: "module-register", ParentKey: "modules", TitleKey: "system.permission.module.register", Perms: "system:module:register", Type: "F", Sort: 1},
@@ -361,12 +379,12 @@ func platformToolMenuSeeds() []menuSeed {
 			ParentKey: "lowcode",
 			TitleKey:  "system.menu.generator",
 			Path:      "/system/generator",
-			Component: "system/generator/ModuleWizard",
+			Component: "lowcode/generator/ModuleWizard",
 			PagePerm:  "system:generator:use",
 			Type:      "C",
 			Icon:      "code",
 			RouteName: "system-generator",
-			Module:    "system.lowcode",
+			Module:    moduleLowcode,
 			Sort:      40,
 		},
 		{Key: "module-generate", ParentKey: "generator", TitleKey: "system.permission.module.generate", Perms: "system:module:generate", Type: "F", Sort: 1},
@@ -387,7 +405,7 @@ func dictMenuSeeds() []menuSeed {
 			Type:      "C",
 			Icon:      "book",
 			RouteName: "system-dict",
-			Module:    "system.config",
+			Module:    moduleConfig,
 			IsCache:   1,
 			Sort:      10,
 		},
@@ -415,7 +433,7 @@ func i18nMenuSeeds() []menuSeed {
 			Type:      "C",
 			Icon:      "language",
 			RouteName: "system-i18n",
-			Module:    "system.config",
+			Module:    moduleConfig,
 			IsCache:   1,
 			Sort:      30,
 		},
@@ -432,7 +450,7 @@ func i18nMenuSeeds() []menuSeed {
 func auditMenuSeeds() []menuSeed {
 	return []menuSeed{
 		{
-			Key:       "operation-log",
+			Key:       menuKeyOperationLog,
 			ParentKey: "security",
 			TitleKey:  "system.menu.operationLog",
 			Path:      "/system/operation-log",
@@ -445,87 +463,91 @@ func auditMenuSeeds() []menuSeed {
 			Module:    "system.audit",
 			Sort:      30,
 		},
-		{Key: "operation-log-delete", ParentKey: "operation-log", TitleKey: "system.permission.operation_log.delete", Perms: "system:operation-log:delete", Type: "F", Sort: 1},
-		{Key: "operation-log-clear", ParentKey: "operation-log", TitleKey: "system.permission.operation_log.clear", Perms: "system:operation-log:clear", Type: "F", Sort: 2},
-		{Key: "operation-log-export", ParentKey: "operation-log", TitleKey: "system.permission.operation_log.export", Perms: "system:operation-log:export", Type: "F", Sort: 3},
+		{Key: "operation-log-delete", ParentKey: menuKeyOperationLog, TitleKey: "system.permission.operation_log.delete", Perms: "system:operation-log:delete", Type: "F", Sort: 1},
+		{Key: "operation-log-clear", ParentKey: menuKeyOperationLog, TitleKey: "system.permission.operation_log.clear", Perms: "system:operation-log:clear", Type: "F", Sort: 2},
+		{Key: "operation-log-export", ParentKey: menuKeyOperationLog, TitleKey: "system.permission.operation_log.export", Perms: "system:operation-log:export", Type: "F", Sort: 3},
 	}
 }
 
 func ensureSingleMenuSeed(db *gorm.DB, seed menuSeed) error {
-	var menuID uint64
-	if seed.Path != "" {
-		if err := db.Table("system_menu").Select("id").Where("path = ?", seed.Path).Limit(1).Pluck("id", &menuID).Error; err != nil {
-			return err
-		}
-	} else if seed.Perms != "" {
-		if err := db.Table("system_menu").Select("id").Where("perms = ?", seed.Perms).Limit(1).Pluck("id", &menuID).Error; err != nil {
-			return err
-		}
+	menuID, err := resolveSeedMenuID(db, seed)
+	if err != nil {
+		return err
 	}
-
 	parentID, err := resolveMenuParentID(db, seed.ParentKey)
 	if err != nil {
 		return err
 	}
 	if menuID == 0 {
-		payload := map[string]interface{}{
-			"parent_id":   parentID,
-			"title_key":   seed.TitleKey,
-			"path":        seed.Path,
-			"component":   seed.Component,
-			"page_perm":   seed.PagePerm,
-			"perms":       seed.Perms,
-			"type":        normalizeSeedMenuType(seed.Type),
-			"icon":        seed.Icon,
-			"route_name":  strings.TrimSpace(seed.RouteName),
-			"module":      normalizeSeedMenuModule(seed.Module),
-			"sort":        seed.Sort,
-			"is_visible":  1,
-			"is_cache":    normalizeSeedMenuFlag(seed.IsCache),
-			"is_external": normalizeSeedMenuFlag(seed.IsExternal),
-			"active_menu": strings.TrimSpace(seed.ActiveMenu),
-			"hide_in_nav": normalizeSeedMenuFlag(seed.HideInNav),
-		}
-		if err := db.Table("system_menu").Create(payload).Error; err != nil {
+		if menuID, err = createSeedMenu(db, seed, parentID); err != nil {
 			return err
 		}
-		if seed.Path != "" {
-			if err := db.Table("system_menu").Select("id").Where("path = ?", seed.Path).Limit(1).Pluck("id", &menuID).Error; err != nil {
-				return err
-			}
-		} else if seed.Perms != "" {
-			if err := db.Table("system_menu").Select("id").Where("perms = ?", seed.Perms).Limit(1).Pluck("id", &menuID).Error; err != nil {
-				return err
-			}
-		}
 	} else {
-		updates := map[string]interface{}{
-			"parent_id":   parentID,
-			"title_key":   seed.TitleKey,
-			"component":   seed.Component,
-			"page_perm":   seed.PagePerm,
-			"icon":        seed.Icon,
-			"route_name":  strings.TrimSpace(seed.RouteName),
-			"module":      normalizeSeedMenuModule(seed.Module),
-			"sort":        seed.Sort,
-			"type":        normalizeSeedMenuType(seed.Type),
-			"is_visible":  1,
-			"is_cache":    normalizeSeedMenuFlag(seed.IsCache),
-			"is_external": normalizeSeedMenuFlag(seed.IsExternal),
-			"active_menu": strings.TrimSpace(seed.ActiveMenu),
-			"hide_in_nav": normalizeSeedMenuFlag(seed.HideInNav),
-		}
-		updates["path"] = seed.Path
-		updates["perms"] = seed.Perms
-		if err := db.Table("system_menu").Where("id = ?", menuID).Updates(updates).Error; err != nil {
+		if err := updateSeedMenu(db, seed, parentID, menuID); err != nil {
 			return err
 		}
 	}
-
 	if menuID == 0 {
 		return nil
 	}
+	return bindSeedMenuAdminRole(db, seed, menuID)
+}
 
+func resolveSeedMenuID(db *gorm.DB, seed menuSeed) (uint64, error) {
+	if seed.Path != "" {
+		var id uint64
+		if err := db.Table("system_menu").Select("id").Where(condPathEquals, seed.Path).Order(orderByIDASC).Limit(1).Pluck("id", &id).Error; err != nil {
+			return 0, err
+		}
+		return id, nil
+	}
+	if seed.Perms != "" {
+		var id uint64
+		if err := db.Table("system_menu").Select("id").Where("perms = ?", seed.Perms).Order(orderByIDASC).Limit(1).Pluck("id", &id).Error; err != nil {
+			return 0, err
+		}
+		return id, nil
+	}
+	return 0, nil
+}
+
+func createSeedMenu(db *gorm.DB, seed menuSeed, parentID uint64) (uint64, error) {
+	payload := seedMenuPayload(seed, parentID)
+	if err := db.Table("system_menu").Create(payload).Error; err != nil {
+		return 0, err
+	}
+	return resolveSeedMenuID(db, seed)
+}
+
+func updateSeedMenu(db *gorm.DB, seed menuSeed, parentID, menuID uint64) error {
+	updates := seedMenuPayload(seed, parentID)
+	updates["path"] = seed.Path
+	updates["perms"] = seed.Perms
+	return db.Table("system_menu").Where("id = ?", menuID).Updates(updates).Error
+}
+
+func seedMenuPayload(seed menuSeed, parentID uint64) map[string]interface{} {
+	return map[string]interface{}{
+		"parent_id":   parentID,
+		"title_key":   seed.TitleKey,
+		"path":        seed.Path,
+		"component":   seed.Component,
+		"page_perm":   seed.PagePerm,
+		"perms":       seed.Perms,
+		"type":        normalizeSeedMenuType(seed.Type),
+		"icon":        seed.Icon,
+		"route_name":  strings.TrimSpace(seed.RouteName),
+		"module":      normalizeSeedMenuModule(seed.Module),
+		"sort":        seed.Sort,
+		"is_visible":  1,
+		"is_cache":    normalizeSeedMenuFlag(seed.IsCache),
+		"is_external": normalizeSeedMenuFlag(seed.IsExternal),
+		"active_menu": strings.TrimSpace(seed.ActiveMenu),
+		"hide_in_nav": normalizeSeedMenuFlag(seed.HideInNav),
+	}
+}
+
+func bindSeedMenuAdminRole(db *gorm.DB, seed menuSeed, menuID uint64) error {
 	var adminRoleID uint64
 	if err := db.Table("system_role").Select("id").Where("role_key = ?", "admin").Limit(1).Pluck("id", &adminRoleID).Error; err != nil {
 		return err
@@ -533,16 +555,9 @@ func ensureSingleMenuSeed(db *gorm.DB, seed menuSeed) error {
 	if adminRoleID == 0 {
 		return nil
 	}
-
 	if normalizeSeedMenuType(seed.Type) != "F" {
-		var count int64
-		if err := db.Table("system_role_menu").Where("role_id = ? AND menu_id = ?", adminRoleID, menuID).Count(&count).Error; err != nil {
+		if err := rbacbind.EnsureRoleMenu(db, adminRoleID, menuID); err != nil {
 			return err
-		}
-		if count == 0 {
-			if err := db.Exec("INSERT INTO system_role_menu (role_id, menu_id) VALUES (?, ?)", adminRoleID, menuID).Error; err != nil {
-				return err
-			}
 		}
 	}
 	if err := ensureAdminPermissionSeed(db, adminRoleID, seed.PagePerm); err != nil {
@@ -713,86 +728,29 @@ func resolveRetainedMenuParent(parentByID map[uint64]uint64, parentID uint64) ui
 	return 0
 }
 
+// collectObsoleteMenuIDs returns the set of menu IDs matching any matcher of the given obsolete
+// rule, optionally cascading to descendant menus when rule.Cascade is set. The returned IDs are
+// de-duplicated; ordering is unspecified (derived from map iteration).
 func collectObsoleteMenuIDs(tx *gorm.DB, rule obsoleteMenuRule) ([]uint64, error) {
 	collected := make(map[uint64]struct{})
+	directIDs := make([]uint64, 0)
 
-	var collect func(ids []uint64) error
-	collect = func(ids []uint64) error {
-		for _, id := range ids {
-			if id == 0 {
-				continue
-			}
-			if _, ok := collected[id]; ok {
-				continue
-			}
-			collected[id] = struct{}{}
-
-			if !rule.Cascade {
-				continue
-			}
-
-			var children []uint64
-			if err := tx.Table("system_menu").Select("id").Where("parent_id = ?", id).Pluck("id", &children).Error; err != nil {
-				return err
-			}
-			if err := collect(children); err != nil {
-				return err
-			}
-		}
-		return nil
+	columns := []struct {
+		values []string
+		column string
+	}{
+		{rule.TitleKeys, "title_key"},
+		{rule.Paths, "path"},
+		{rule.RouteNames, "route_name"},
+		{rule.Components, "component"},
+		{rule.PagePerms, "page_perm"},
+		{rule.Perms, "perms"},
 	}
-
-	var directIDs []uint64
-	if len(rule.TitleKeys) > 0 {
-		if err := tx.Table("system_menu").Select("id").Where("title_key IN ?", rule.TitleKeys).Pluck("id", &directIDs).Error; err != nil {
-			return nil, err
+	for _, matcher := range columns {
+		if len(matcher.values) == 0 {
+			continue
 		}
-		if err := collect(directIDs); err != nil {
-			return nil, err
-		}
-	}
-	if len(rule.Paths) > 0 {
-		directIDs = directIDs[:0]
-		if err := tx.Table("system_menu").Select("id").Where("path IN ?", rule.Paths).Pluck("id", &directIDs).Error; err != nil {
-			return nil, err
-		}
-		if err := collect(directIDs); err != nil {
-			return nil, err
-		}
-	}
-	if len(rule.RouteNames) > 0 {
-		directIDs = directIDs[:0]
-		if err := tx.Table("system_menu").Select("id").Where("route_name IN ?", rule.RouteNames).Pluck("id", &directIDs).Error; err != nil {
-			return nil, err
-		}
-		if err := collect(directIDs); err != nil {
-			return nil, err
-		}
-	}
-	if len(rule.Components) > 0 {
-		directIDs = directIDs[:0]
-		if err := tx.Table("system_menu").Select("id").Where("component IN ?", rule.Components).Pluck("id", &directIDs).Error; err != nil {
-			return nil, err
-		}
-		if err := collect(directIDs); err != nil {
-			return nil, err
-		}
-	}
-	if len(rule.PagePerms) > 0 {
-		directIDs = directIDs[:0]
-		if err := tx.Table("system_menu").Select("id").Where("page_perm IN ?", rule.PagePerms).Pluck("id", &directIDs).Error; err != nil {
-			return nil, err
-		}
-		if err := collect(directIDs); err != nil {
-			return nil, err
-		}
-	}
-	if len(rule.Perms) > 0 {
-		directIDs = directIDs[:0]
-		if err := tx.Table("system_menu").Select("id").Where("perms IN ?", rule.Perms).Pluck("id", &directIDs).Error; err != nil {
-			return nil, err
-		}
-		if err := collect(directIDs); err != nil {
+		if err := collectObsoleteMenuIDsByColumn(tx, rule, collected, matcher.column, matcher.values, &directIDs); err != nil {
 			return nil, err
 		}
 	}
@@ -804,30 +762,69 @@ func collectObsoleteMenuIDs(tx *gorm.DB, rule obsoleteMenuRule) ([]uint64, error
 	return result, nil
 }
 
+// collectObsoleteMenuIDsByColumn queries system_menu for IDs whose column matches any of the given
+// values and merges them (with cascade) into collected, reusing directIDs' backing array across
+// calls to avoid reallocation.
+func collectObsoleteMenuIDsByColumn(tx *gorm.DB, rule obsoleteMenuRule, collected map[uint64]struct{}, column string, values []string, directIDs *[]uint64) error {
+	*directIDs = (*directIDs)[:0]
+	if err := tx.Table("system_menu").Select("id").Where(column+" IN ?", values).Pluck("id", directIDs).Error; err != nil {
+		return err
+	}
+	return collectObsoleteMenuIDsRecursive(tx, rule, *directIDs, collected)
+}
+
+// collectObsoleteMenuIDsRecursive merges ids (and their descendants when rule.Cascade is set) into
+// collected. It is a no-op for id == 0 and for IDs already present in collected, preventing both
+// duplicate work and infinite recursion on cyclic parent references.
+func collectObsoleteMenuIDsRecursive(tx *gorm.DB, rule obsoleteMenuRule, ids []uint64, collected map[uint64]struct{}) error {
+	for _, id := range ids {
+		if id == 0 {
+			continue
+		}
+		if _, ok := collected[id]; ok {
+			continue
+		}
+		collected[id] = struct{}{}
+
+		if !rule.Cascade {
+			continue
+		}
+
+		var children []uint64
+		if err := tx.Table("system_menu").Select("id").Where("parent_id = ?", id).Pluck("id", &children).Error; err != nil {
+			return err
+		}
+		if err := collectObsoleteMenuIDsRecursive(tx, rule, children, collected); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func resolveMenuParentID(db *gorm.DB, parentKey string) (uint64, error) {
 	if parentKey == "" {
 		return 0, nil
 	}
 	parentPaths := map[string]string{
-		"access":        "/system/access",
-		"org":           "/system/org",
-		"config":        "/system/config",
-		"lowcode":       "/system/lowcode",
-		"security":      "/system/security",
-		"user":          "/system/user",
-		"role":          "/system/role",
-		"menu":          "/system/menu",
-		"dept":          "/system/dept",
-		"post":          "/system/post",
-		"permission":    "/system/permission",
-		"login-log":     "/system/login-log",
-		"session":       "/system/session",
-		"setting":       "/system/setting",
-		"modules":       "/system/modules",
-		"generator":     "/system/generator",
-		"dict":          "/system/dict",
-		"i18n":          "/system/i18n",
-		"operation-log": "/system/operation-log",
+		"access":            "/system/access",
+		"org":               "/system/org",
+		"config":            "/system/config",
+		"lowcode":           "/system/lowcode",
+		"security":          "/system/security",
+		"user":              "/system/user",
+		"role":              "/system/role",
+		"menu":              "/system/menu",
+		"dept":              "/system/dept",
+		"post":              "/system/post",
+		"permission":        "/system/permission",
+		"login-log":         "/system/login-log",
+		"session":           "/system/session",
+		"setting":           "/system/setting",
+		"modules":           "/system/modules",
+		"generator":         "/system/generator",
+		"dict":              "/system/dict",
+		"i18n":              "/system/i18n",
+		menuKeyOperationLog: "/system/operation-log",
 	}
 	parentPath, ok := parentPaths[parentKey]
 	if !ok {
@@ -838,7 +835,7 @@ func resolveMenuParentID(db *gorm.DB, parentKey string) (uint64, error) {
 
 func lookupMenuIDByPath(db *gorm.DB, path string) (uint64, error) {
 	var menuID uint64
-	if err := db.Table("system_menu").Select("id").Where("path = ?", path).Limit(1).Pluck("id", &menuID).Error; err != nil {
+	if err := db.Table("system_menu").Select("id").Where(condPathEquals, path).Order(orderByIDASC).Limit(1).Pluck("id", &menuID).Error; err != nil {
 		return 0, err
 	}
 	return menuID, nil
@@ -865,4 +862,64 @@ func normalizeSeedMenuFlag(value int) int {
 		return 1
 	}
 	return 0
+}
+
+// cleanupDuplicateMenus removes duplicate menus based on path and perms uniqueness.
+// For menus with non-empty paths, keeps the smallest id and deletes others.
+// For menus with only perms (no path), keeps the smallest id and deletes others.
+func cleanupDuplicateMenus(db *gorm.DB) error {
+	if db == nil || !db.Migrator().HasTable("system_menu") {
+		return nil
+	}
+
+	// Clean up duplicate path-based menus (where path is not empty)
+	if err := cleanupDuplicateMenusByColumn(db, "path", ""); err != nil {
+		return err
+	}
+
+	// Clean up duplicate perms-based menus (where perms is not empty)
+	if err := cleanupDuplicateMenusByColumn(db, "perms", ""); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func cleanupDuplicateMenusByColumn(db *gorm.DB, columnName, excludeValue string) error {
+	// Find duplicate values for the given column
+	var duplicates []string
+	subQuery := db.Table("system_menu").
+		Select(columnName).
+		Where(columnName+" != ?", "").
+		Where(columnName+" != ?", excludeValue).
+		Group(columnName).
+		Having("COUNT(*) > 1").
+		Order(columnName)
+
+	if err := subQuery.Pluck(columnName, &duplicates).Error; err != nil {
+		return err
+	}
+
+	for _, value := range duplicates {
+		// Keep the smallest id, delete the rest
+		var keepID uint64
+		if err := db.Table("system_menu").
+			Select("id").
+			Where(columnName+" = ?", value).
+			Order(orderByIDASC).
+			Limit(1).
+			Pluck("id", &keepID).Error; err != nil {
+			return err
+		}
+
+		if keepID > 0 {
+			if err := db.Table("system_menu").
+				Where(columnName+" = ? AND id != ?", value, keepID).
+				Delete(nil).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

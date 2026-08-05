@@ -9,10 +9,19 @@ import (
 	"pantheon-ops/backend/pkg/common"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
+
+const condIDIn = "id IN ?"
 
 type DeptService struct {
 	db *gorm.DB
+}
+
+type deptLeaderUpdate struct {
+	deptID       uint64
+	leader       string
+	leaderUserID uint64
 }
 
 const defaultRootDeptName = "Pantheon Base"
@@ -123,39 +132,63 @@ func (s *DeptService) DeleteDept(deptID uint64) error {
 		return common.ErrDatabaseNotInitialized
 	}
 
+	// 检查与删除同事务并对部门行加锁，避免检查通过后、删除前
+	// 出现新增子部门/岗位/用户的并发窗口。
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		return deleteDeptInTransaction(tx, deptID)
+	})
+}
+
+func deleteDeptInTransaction(tx *gorm.DB, deptID uint64) error {
 	var dept SystemDept
-	if err := s.db.First(&dept, deptID).Error; err != nil {
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&dept, deptID).Error; err != nil {
 		return err
 	}
 	if dept.IsRoot == common.StatusFlagYes {
 		return common.NewForbidden("dept.root.delete_forbidden")
 	}
-
-	var childCount int64
-	if err := s.db.Model(&SystemDept{}).Where("parent_id = ?", deptID).Count(&childCount).Error; err != nil {
+	if err := ensureDeptHasNoChildren(tx, deptID); err != nil {
 		return err
 	}
-	if childCount > 0 {
-		return common.NewInternal("dept.delete.error.has_children")
-	}
-
-	var postCount int64
-	if err := s.db.Table("system_post").Where("dept_id = ? AND deleted_at IS NULL", deptID).Count(&postCount).Error; err != nil {
+	if err := ensureDeptHasNoPosts(tx, deptID); err != nil {
 		return err
 	}
-	if postCount > 0 {
-		return common.NewInternal("dept.delete.error.has_posts")
-	}
-
-	var userCount int64
-	if err := s.db.Table("system_user").Where("dept_id = ? AND deleted_at IS NULL", deptID).Count(&userCount).Error; err != nil {
+	if err := ensureDeptHasNoUsers(tx, deptID); err != nil {
 		return err
 	}
-	if userCount > 0 {
-		return common.NewInternal("dept.delete.error.has_users")
-	}
+	return tx.Delete(&SystemDept{}, deptID).Error
+}
 
-	return s.db.Delete(&SystemDept{}, deptID).Error
+func ensureDeptHasNoChildren(tx *gorm.DB, deptID uint64) error {
+	return ensureDeptReferenceCountZero(
+		tx.Model(&SystemDept{}).Where("parent_id = ?", deptID),
+		"dept.delete.error.has_children",
+	)
+}
+
+func ensureDeptHasNoPosts(tx *gorm.DB, deptID uint64) error {
+	return ensureDeptReferenceCountZero(
+		tx.Table("system_post").Where("dept_id = ? AND deleted_at IS NULL", deptID),
+		"dept.delete.error.has_posts",
+	)
+}
+
+func ensureDeptHasNoUsers(tx *gorm.DB, deptID uint64) error {
+	return ensureDeptReferenceCountZero(
+		tx.Table("system_user").Where("dept_id = ? AND deleted_at IS NULL", deptID),
+		"dept.delete.error.has_users",
+	)
+}
+
+func ensureDeptReferenceCountZero(query *gorm.DB, errorKey string) error {
+	var count int64
+	if err := query.Count(&count).Error; err != nil {
+		return err
+	}
+	if count > 0 {
+		return common.NewInternal(errorKey)
+	}
+	return nil
 }
 
 // BatchUpdateDeptStatus updates multiple departments status
@@ -172,7 +205,7 @@ func (s *DeptService) BatchUpdateDeptStatus(deptIDs []uint64, status int) (int, 
 	}
 
 	var depts []SystemDept
-	if err := s.db.Where("id IN ?", normalizedIDs).Find(&depts).Error; err != nil {
+	if err := s.db.Where(condIDIn, normalizedIDs).Find(&depts).Error; err != nil {
 		return 0, err
 	}
 	if len(depts) != len(normalizedIDs) {
@@ -185,7 +218,7 @@ func (s *DeptService) BatchUpdateDeptStatus(deptIDs []uint64, status int) (int, 
 	}
 
 	if err := s.db.Model(&SystemDept{}).
-		Where("id IN ?", normalizedIDs).
+		Where(condIDIn, normalizedIDs).
 		Updates(map[string]any{
 			"status":     normalizeSystemStatus(status),
 			"updated_at": time.Now(),
@@ -206,65 +239,76 @@ func (s *DeptService) BatchUpdateDeptLeader(items []DeptBatchLeaderItem) (int, e
 		return 0, common.NewBadRequest("dept.batch.empty")
 	}
 
-	deptIDs := make([]uint64, 0, len(normalizedItems))
-	deptToLeader := make(map[uint64]DeptBatchLeaderItem, len(normalizedItems))
-	for _, item := range normalizedItems {
-		deptIDs = append(deptIDs, item.DeptID)
-		deptToLeader[item.DeptID] = item
-	}
-	var depts []SystemDept
-	if err := s.db.Where("id IN ?", deptIDs).Find(&depts).Error; err != nil {
+	updates, err := s.prepareDeptLeaderUpdates(normalizedItems)
+	if err != nil {
 		return 0, err
-	}
-	if len(depts) != len(deptIDs) {
-		return 0, common.NewNotFound("dept.batch.not_found")
-	}
-	updates := make([]struct {
-		DeptID       uint64
-		Leader       string
-		LeaderUserID uint64
-	}, 0, len(depts))
-	for _, dept := range depts {
-		if dept.IsRoot == common.StatusFlagYes {
-			return 0, common.NewForbidden("dept.root.update_forbidden")
-		}
-		item := deptToLeader[dept.ID]
-		if item.LeaderUserID == 0 {
-			return 0, common.NewBadRequest("dept.leader.required")
-		}
-		leader, leaderUserID, err := s.resolveDeptLeaderFields(dept.ID, "", item.LeaderUserID)
-		if err != nil {
-			return 0, err
-		}
-		updates = append(updates, struct {
-			DeptID       uint64
-			Leader       string
-			LeaderUserID uint64
-		}{
-			DeptID:       dept.ID,
-			Leader:       leader,
-			LeaderUserID: leaderUserID,
-		})
 	}
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		for _, item := range updates {
-			if err := tx.Model(&SystemDept{}).
-				Where("id = ?", item.DeptID).
-				Updates(map[string]any{
-					"leader_user_id": item.LeaderUserID,
-					"leader":         item.Leader,
-					"updated_at":     time.Now(),
-				}).Error; err != nil {
-				return err
-			}
-		}
-		return nil
+		return applyDeptLeaderUpdates(tx, updates)
 	}); err != nil {
 		return 0, err
 	}
 
 	return len(normalizedItems), nil
+}
+
+func (s *DeptService) prepareDeptLeaderUpdates(items []DeptBatchLeaderItem) ([]deptLeaderUpdate, error) {
+	deptIDs := make([]uint64, 0, len(items))
+	deptToLeader := make(map[uint64]DeptBatchLeaderItem, len(items))
+	for _, item := range items {
+		deptIDs = append(deptIDs, item.DeptID)
+		deptToLeader[item.DeptID] = item
+	}
+	var depts []SystemDept
+	if err := s.db.Where(condIDIn, deptIDs).Find(&depts).Error; err != nil {
+		return nil, err
+	}
+	if len(depts) != len(deptIDs) {
+		return nil, common.NewNotFound("dept.batch.not_found")
+	}
+	updates := make([]deptLeaderUpdate, 0, len(depts))
+	for _, dept := range depts {
+		update, err := s.resolveDeptLeaderUpdate(dept, deptToLeader[dept.ID])
+		if err != nil {
+			return nil, err
+		}
+		updates = append(updates, update)
+	}
+	return updates, nil
+}
+
+func (s *DeptService) resolveDeptLeaderUpdate(dept SystemDept, item DeptBatchLeaderItem) (deptLeaderUpdate, error) {
+	if dept.IsRoot == common.StatusFlagYes {
+		return deptLeaderUpdate{}, common.NewForbidden("dept.root.update_forbidden")
+	}
+	if item.LeaderUserID == 0 {
+		return deptLeaderUpdate{}, common.NewBadRequest("dept.leader.required")
+	}
+	leader, leaderUserID, err := s.resolveDeptLeaderFields(dept.ID, "", item.LeaderUserID)
+	if err != nil {
+		return deptLeaderUpdate{}, err
+	}
+	return deptLeaderUpdate{
+		deptID:       dept.ID,
+		leader:       leader,
+		leaderUserID: leaderUserID,
+	}, nil
+}
+
+func applyDeptLeaderUpdates(tx *gorm.DB, updates []deptLeaderUpdate) error {
+	for _, item := range updates {
+		if err := tx.Model(&SystemDept{}).
+			Where("id = ?", item.deptID).
+			Updates(map[string]any{
+				"leader_user_id": item.leaderUserID,
+				"leader":         item.leader,
+				"updated_at":     time.Now(),
+			}).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Validation and helper functions
@@ -426,53 +470,67 @@ func (s *DeptService) refreshChildAncestors(tx *gorm.DB, deptID uint64) error {
 
 func (s *DeptService) ensureRootDept() error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		var root SystemDept
-		err := tx.Where("is_root = ?", common.StatusFlagYes).Order("id asc").First(&root).Error
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		root, err := ensureRootDeptRecord(tx)
+		if err != nil {
 			return err
 		}
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			root = SystemDept{
-				ParentID:  0,
-				Ancestors: "",
-				IsRoot:    common.StatusFlagYes,
-				DeptName:  defaultRootDeptName,
-				Sort:      0,
-				Status:    common.StatusEnabled,
-			}
-			if err := tx.Create(&root).Error; err != nil {
-				return err
-			}
-		} else {
-			root.ParentID = 0
-			root.Ancestors = ""
-			root.IsRoot = common.StatusFlagYes
-			root.Status = common.StatusEnabled
-			if err := tx.Save(&root).Error; err != nil {
-				return err
-			}
-		}
-
-		var topLevelDepts []SystemDept
-		if err := tx.Where("parent_id = ? AND id <> ?", 0, root.ID).Find(&topLevelDepts).Error; err != nil {
+		if err := s.attachTopLevelDeptsToRoot(tx, root.ID); err != nil {
 			return err
 		}
-		for _, dept := range topLevelDepts {
-			dept.ParentID = root.ID
-			dept.Ancestors = fmt.Sprintf("%d", root.ID)
-			dept.IsRoot = common.StatusFlagNo
-			if err := tx.Save(&dept).Error; err != nil {
-				return err
-			}
-			if err := s.refreshChildAncestors(tx, dept.ID); err != nil {
-				return err
-			}
-		}
-
-		return tx.Model(&SystemDept{}).
-			Where("id <> ? AND is_root = ?", root.ID, common.StatusFlagYes).
-			Update("is_root", common.StatusFlagNo).Error
+		return clearAdditionalRootFlags(tx, root.ID)
 	})
+}
+
+func ensureRootDeptRecord(tx *gorm.DB) (SystemDept, error) {
+	var root SystemDept
+	err := tx.Where("is_root = ?", common.StatusFlagYes).Order("id asc").First(&root).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return root, err
+	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		root = SystemDept{
+			ParentID:  0,
+			Ancestors: "",
+			IsRoot:    common.StatusFlagYes,
+			DeptName:  defaultRootDeptName,
+			Sort:      0,
+			Status:    common.StatusEnabled,
+		}
+		if err := tx.Create(&root).Error; err != nil {
+			return root, err
+		}
+		return root, nil
+	}
+	root.ParentID = 0
+	root.Ancestors = ""
+	root.IsRoot = common.StatusFlagYes
+	root.Status = common.StatusEnabled
+	return root, tx.Save(&root).Error
+}
+
+func (s *DeptService) attachTopLevelDeptsToRoot(tx *gorm.DB, rootID uint64) error {
+	var topLevelDepts []SystemDept
+	if err := tx.Where("parent_id = ? AND id <> ?", 0, rootID).Find(&topLevelDepts).Error; err != nil {
+		return err
+	}
+	for _, dept := range topLevelDepts {
+		dept.ParentID = rootID
+		dept.Ancestors = fmt.Sprintf("%d", rootID)
+		dept.IsRoot = common.StatusFlagNo
+		if err := tx.Save(&dept).Error; err != nil {
+			return err
+		}
+		if err := s.refreshChildAncestors(tx, dept.ID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func clearAdditionalRootFlags(tx *gorm.DB, rootID uint64) error {
+	return tx.Model(&SystemDept{}).
+		Where("id <> ? AND is_root = ?", rootID, common.StatusFlagYes).
+		Update("is_root", common.StatusFlagNo).Error
 }
 
 // Utility functions

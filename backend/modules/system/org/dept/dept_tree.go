@@ -13,6 +13,12 @@ import (
 
 // dept_tree.go - Tree building and query functions
 
+// overviewPostRow is a lightweight projection of system_post rows for overview aggregation.
+type overviewPostRow struct {
+	DeptID uint64
+	Status int
+}
+
 // GetDeptTree returns department tree with optional filtering
 func (s *DeptService) GetDeptTree(query *DeptListQuery) ([]*DeptTreeResp, error) {
 	if s.db == nil {
@@ -47,21 +53,16 @@ func (s *DeptService) GetOverview() (*DeptOverviewResp, error) {
 		return nil, err
 	}
 
-	type orgPostRow struct {
-		DeptID uint64
-		Status int
-	}
-	posts := make([]orgPostRow, 0)
-	if s.db.Migrator().HasTable("system_post") {
-		if err := s.db.Table("system_post").Select("dept_id, status").Order("id asc").Find(&posts).Error; err != nil {
-			return nil, err
-		}
+	posts, err := s.loadOverviewPosts()
+	if err != nil {
+		return nil, err
 	}
 
 	childCountByDept := make(map[uint64]int, len(depts))
 	for _, dept := range depts {
 		childCountByDept[dept.ParentID]++
 	}
+
 	postCountByDept := make(map[uint64]int, len(posts))
 	enabledPostCountByDept := make(map[uint64]int, len(posts))
 	for _, post := range posts {
@@ -74,25 +75,9 @@ func (s *DeptService) GetOverview() (*DeptOverviewResp, error) {
 	resp := &DeptOverviewResp{}
 	var rootID uint64
 	for _, dept := range depts {
-		resp.TotalDeptCount++
-		if dept.Status == common.StatusEnabled {
-			resp.EnabledDeptCount++
-		} else {
-			resp.DisabledDeptCount++
-		}
+		accumulateDeptOverview(dept, resp, childCountByDept, postCountByDept)
 		if dept.IsRoot == common.StatusFlagYes {
-			resp.RootDeptCount++
 			rootID = dept.ID
-			continue
-		}
-		if strings.TrimSpace(dept.Leader) == "" {
-			resp.LeaderlessDeptCount++
-		}
-		if postCountByDept[dept.ID] == 0 {
-			resp.NoPostDeptCount++
-		}
-		if childCountByDept[dept.ID] == 0 && postCountByDept[dept.ID] == 0 {
-			resp.EmptyDeptCount++
 		}
 	}
 
@@ -108,6 +93,45 @@ func (s *DeptService) GetOverview() (*DeptOverviewResp, error) {
 	}
 	resp.HealthIssueCount = resp.LeaderlessDeptCount + resp.NoPostDeptCount + resp.DisabledDeptCount
 	return resp, nil
+}
+
+// loadOverviewPosts loads department post rows for overview aggregation.
+func (s *DeptService) loadOverviewPosts() ([]overviewPostRow, error) {
+	posts := make([]overviewPostRow, 0)
+	if s.db.Migrator().HasTable("system_post") {
+		if err := s.db.Table("system_post").Select("dept_id, status").Order("id asc").Find(&posts).Error; err != nil {
+			return nil, err
+		}
+	}
+	return posts, nil
+}
+
+// accumulateDeptOverview folds a single department's counters into the overview response.
+func accumulateDeptOverview(
+	dept SystemDept,
+	resp *DeptOverviewResp,
+	childCountByDept map[uint64]int,
+	postCountByDept map[uint64]int,
+) {
+	resp.TotalDeptCount++
+	if dept.Status == common.StatusEnabled {
+		resp.EnabledDeptCount++
+	} else {
+		resp.DisabledDeptCount++
+	}
+	if dept.IsRoot == common.StatusFlagYes {
+		resp.RootDeptCount++
+		return
+	}
+	if strings.TrimSpace(dept.Leader) == "" {
+		resp.LeaderlessDeptCount++
+	}
+	if postCountByDept[dept.ID] == 0 {
+		resp.NoPostDeptCount++
+	}
+	if childCountByDept[dept.ID] == 0 && postCountByDept[dept.ID] == 0 {
+		resp.EmptyDeptCount++
+	}
 }
 
 // ListLeaderCandidates returns candidate users for department leadership
@@ -244,12 +268,7 @@ func filterDeptTreeNodes(depts []SystemDept, query *DeptListQuery, postCountByDe
 	}
 	for _, dept := range depts {
 		if matchesDeptQuery(dept, nameFilter, query.Status, governanceFilter, childCountByDept, postCountByDept) {
-			included[dept.ID] = struct{}{}
-			for _, ancestorID := range splitAncestors(dept.Ancestors) {
-				if _, ok := byID[ancestorID]; ok {
-					included[ancestorID] = struct{}{}
-				}
-			}
+			markDeptAndAncestorsIncluded(dept, byID, included)
 		}
 	}
 
@@ -260,6 +279,16 @@ func filterDeptTreeNodes(depts []SystemDept, query *DeptListQuery, postCountByDe
 		}
 	}
 	return filtered
+}
+
+// markDeptAndAncestorsIncluded marks a department and its existing ancestors as included.
+func markDeptAndAncestorsIncluded(dept SystemDept, byID map[uint64]SystemDept, included map[uint64]struct{}) {
+	included[dept.ID] = struct{}{}
+	for _, ancestorID := range splitAncestors(dept.Ancestors) {
+		if _, ok := byID[ancestorID]; ok {
+			included[ancestorID] = struct{}{}
+		}
+	}
 }
 
 // matchesDeptQuery checks if department matches query filters
@@ -318,22 +347,22 @@ func toDeptTreeResp(dept SystemDept, childDeptCount int, postCount int) *DeptTre
 	isNoPost := dept.IsRoot != common.StatusFlagYes && postCount == 0
 	isEmpty := dept.IsRoot != common.StatusFlagYes && childDeptCount == 0 && postCount == 0
 	return &DeptTreeResp{
-		ID:              dept.ID,
-		ParentID:        dept.ParentID,
-		Ancestors:       dept.Ancestors,
-		IsRoot:          dept.IsRoot == common.StatusFlagYes,
-		DeptName:        dept.DeptName,
-		Sort:            dept.Sort,
-		LeaderUserID:    dept.LeaderUserID,
-		Leader:          dept.Leader,
-		Phone:           dept.Phone,
-		Email:           dept.Email,
-		Status:          dept.Status,
-		ChildDeptCount:  childDeptCount,
-		PostCount:       postCount,
-		IsLeaderless:    isLeaderless,
-		IsNoPost:        isNoPost,
-		IsEmpty:         isEmpty,
+		ID:             dept.ID,
+		ParentID:       dept.ParentID,
+		Ancestors:      dept.Ancestors,
+		IsRoot:         dept.IsRoot == common.StatusFlagYes,
+		DeptName:       dept.DeptName,
+		Sort:           dept.Sort,
+		LeaderUserID:   dept.LeaderUserID,
+		Leader:         dept.Leader,
+		Phone:          dept.Phone,
+		Email:          dept.Email,
+		Status:         dept.Status,
+		ChildDeptCount: childDeptCount,
+		PostCount:      postCount,
+		IsLeaderless:   isLeaderless,
+		IsNoPost:       isNoPost,
+		IsEmpty:        isEmpty,
 	}
 }
 

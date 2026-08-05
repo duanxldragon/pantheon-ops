@@ -23,36 +23,49 @@ func (s *DynamicModuleService) AuditPendingGeneratedModuleActivations() (*Activa
 
 	summary := &ActivationAuditSummary{}
 	for index := range modules {
-		module := &modules[index]
-		scope, name, err := splitModuleKey(module.Name)
-		if err != nil {
-			continue
-		}
-
-		summary.CheckedModules++
-		backendReady := s.generatedModuleRuntimeReady(module.Name)
-		frontendReady := s.generatedFrontendBundleReady(scope, name)
-		if backendReady {
-			summary.RuntimeReadyModules++
-		}
-		if frontendReady {
-			summary.FrontendReadyModules++
-		}
-
-		status := ModuleStatusPendingActivation
-		if backendReady && frontendReady {
-			status = ModuleStatusActive
-			summary.ActivatedModules++
-		} else {
-			summary.PendingModules++
-		}
-
-		if err := s.persistModuleDiagnostics(module, status, "", s.buildActivationAuditVerifications(module.Name, scope, name, backendReady, frontendReady)); err != nil {
+		if err := s.auditPendingGeneratedModule(&modules[index], summary); err != nil {
 			return nil, err
 		}
 	}
 
 	return summary, nil
+}
+
+func (s *DynamicModuleService) auditPendingGeneratedModule(module *ModuleRegistration, summary *ActivationAuditSummary) error {
+	scope, name, err := splitModuleKey(module.Name)
+	if err != nil {
+		return nil
+	}
+
+	summary.CheckedModules++
+	backendReady := s.generatedModuleRuntimeReady(module.Name)
+	frontendReady := s.generatedFrontendBundleReady(scope, name)
+	updateActivationAuditSummary(summary, backendReady, frontendReady)
+
+	status := ModuleStatusPendingActivation
+	if backendReady && frontendReady {
+		status = ModuleStatusActive
+	}
+	return s.persistModuleDiagnostics(
+		module,
+		status,
+		"",
+		s.buildActivationAuditVerifications(module.Name, scope, name, backendReady, frontendReady),
+	)
+}
+
+func updateActivationAuditSummary(summary *ActivationAuditSummary, backendReady, frontendReady bool) {
+	if backendReady {
+		summary.RuntimeReadyModules++
+	}
+	if frontendReady {
+		summary.FrontendReadyModules++
+	}
+	if backendReady && frontendReady {
+		summary.ActivatedModules++
+		return
+	}
+	summary.PendingModules++
 }
 
 func (s *DynamicModuleService) buildActivationAuditVerifications(moduleKey string, scope string, name string, backendReady bool, frontendReady bool) []GeneratedModuleVerification {

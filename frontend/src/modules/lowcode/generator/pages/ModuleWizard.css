@@ -29,12 +29,12 @@
 
 .generator-wizard__step-card--active {
   border-color: color-mix(in srgb, var(--brand-primary) 30%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 5%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 5%, var(--surface-lift));
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
 }
 
 .generator-wizard__step-card--done {
-  background: color-mix(in srgb, var(--status-success-soft) 20%, #fff);
+  background: color-mix(in srgb, var(--color-success-bg) 20%, var(--surface-lift));
 }
 
 .generator-wizard__step-index {
@@ -172,8 +172,8 @@
     grid-template-columns: 1fr;
   }
 
-  .generator-wizard__toolbar {
-    align-items: stretch !important;
+  .generator-wizard .generator-wizard__toolbar {
+    align-items: stretch;
     flex-direction: column;
   }
 
@@ -182,8 +182,8 @@
     flex-wrap: wrap;
   }
 
-  .generator-wizard__verification-row {
-    align-items: stretch !important;
+  .generator-wizard .generator-wizard__verification-row {
+    align-items: stretch;
     flex-direction: column;
   }
 }

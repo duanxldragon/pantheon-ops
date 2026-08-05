@@ -16,7 +16,7 @@ import { IconLock, IconUpload, IconUser } from '@arco-design/web-react/icon';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { uploadSystemFile } from '../../../api/upload';
-import { isArcoFormValidationError } from '../../../core/arco/formValidation';
+import { isArcoFormValidationError, isLikelyEmailAddress } from '../../../core/arco/formValidation';
 import {
   getProfile,
   updateProfile,
@@ -177,7 +177,7 @@ const ProfileCenter: React.FC = () => {
                   { label: t('system.profile.phone'), value: profile?.phone || '-' },
                   {
                     label: t('system.profile.createdAt'),
-                    value: formatDateTime(profile?.createdAt),
+                    value: formatDateTime(profile?.createdAt, { withSeconds: true }),
                   },
                 ]}
               />
@@ -215,9 +215,14 @@ const ProfileCenter: React.FC = () => {
                     field="email"
                     rules={[
                       {
-                        // NOSONAR - simple email shape check; backend owns authoritative validation.
-                        match: /\S+@\S+\.\S+/,
-                        message: t('system.user.email.invalid'),
+                        // Linear-time email shape check; backend owns authoritative validation.
+                        validator: (value, callback) => {
+                          if (!value || isLikelyEmailAddress(String(value))) {
+                            callback();
+                            return;
+                          }
+                          callback(t('system.user.email.invalid'));
+                        },
                       },
                     ]}
                   >

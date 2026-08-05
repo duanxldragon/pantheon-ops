@@ -186,7 +186,7 @@ func assertPersistedPreferenceJSON(t *testing.T, db *gorm.DB) {
 func assertPreferenceAuditLogUpdated(t *testing.T, log middleware.SystemLogOper) {
 	t.Helper()
 
-	if log.Title != "更新平台偏好" {
+	if log.Title != "auth.preferences.update.title" {
 		t.Fatalf("unexpected audit title: %s", log.Title)
 	}
 	if log.BusinessType != common.BusinessUpdate {

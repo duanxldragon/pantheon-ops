@@ -212,6 +212,55 @@ test('apply mode copies shared backend files from the bundle into ops', () => {
   });
 });
 
+test('apply mode updates shared lowcode generator tests', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    const targetPath = path.join(
+      opsRoot,
+      'backend',
+      'modules',
+      'lowcode',
+      'generator',
+      'generator_service_test.go',
+    );
+    writeText(
+      path.join(
+        bundleRoot,
+        'bundle',
+        'shared-backend',
+        'backend',
+        'modules',
+        'lowcode',
+        'generator',
+        'generator_service_test.go',
+      ),
+      'package generator\n\nconst datasourcePolicy = "base"\n',
+    );
+    writeText(targetPath, 'package generator\n\nconst datasourcePolicy = "stale ops"\n');
+
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--apply-shared-backend',
+        '--skip-go-validation',
+        '--rollback-on-error',
+      ],
+      repoRoot,
+    );
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+    assert.equal(
+      fs.readFileSync(targetPath, 'utf8'),
+      'package generator\n\nconst datasourcePolicy = "base"\n',
+    );
+  });
+});
+
 test('apply mode rewrites both legacy and current Base Go import prefixes', () => {
   withTempDir((root) => {
     const { manifestPath, bundleRoot, opsRoot } = createFixture(root);

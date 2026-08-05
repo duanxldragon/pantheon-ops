@@ -13,10 +13,13 @@ type RefreshTokenReq struct {
 
 // LoginLogQuery 登录日志查询
 type LoginLogQuery struct {
-	Username string `form:"username" json:"username"`
-	Status   *int   `form:"status" json:"status"`
-	Page     int    `form:"page" json:"page"`
-	PageSize int    `form:"pageSize" json:"pageSize"`
+	Keyword   string `form:"keyword" json:"keyword"`
+	Username  string `form:"username" json:"username"`
+	Status    *int   `form:"status" json:"status"`
+	StartedAt string `form:"startedAt" json:"startedAt"`
+	EndedAt   string `form:"endedAt" json:"endedAt"`
+	Page      int    `form:"page" json:"page"`
+	PageSize  int    `form:"pageSize" json:"pageSize"`
 }
 
 type LoginLogCleanupReq struct {
@@ -43,12 +46,35 @@ type LoginLogResp struct {
 }
 
 type LoginLogPageResp struct {
-	Items    []LoginLogResp `json:"items"`
-	Total    int64          `json:"total"`
-	Page     int            `json:"page"`
-	PageSize int            `json:"pageSize"`
+	Items []LoginLogResp `json:"items"`
+	Total int64          `json:"total"`
+	// SuccessCount/FailedCount aggregate the whole filtered set (all pages),
+	// so the governance bar shows global numbers instead of page-local ones.
+	SuccessCount int64 `json:"successCount"`
+	FailedCount  int64 `json:"failedCount"`
+	Page         int   `json:"page"`
+	PageSize     int   `json:"pageSize"`
 }
 
 type LoginLogCleanupResp struct {
 	ClearedCount int64 `json:"clearedCount"`
+}
+
+type SecurityEventCleanupReq struct {
+	RetentionDays int    `json:"retentionDays"`
+	StartedAt     string `json:"startedAt"`
+	EndedAt       string `json:"endedAt"`
+}
+
+type SecurityEventCleanupResp struct {
+	ClearedCount int64 `json:"clearedCount"`
+}
+
+type SecurityEventBatchAcknowledgeReq struct {
+	IDs                 []uint64 `json:"ids"`
+	AcknowledgementNote string   `json:"acknowledgementNote"`
+}
+
+type SecurityEventBatchAcknowledgeResp struct {
+	AcknowledgedCount int64 `json:"acknowledgedCount"`
 }

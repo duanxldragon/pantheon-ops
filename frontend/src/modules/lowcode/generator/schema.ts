@@ -14,13 +14,7 @@ export type TemplateLevel = 'basic' | 'enterprise';
 export type FieldType = 'string' | 'text' | 'int' | 'float' | 'bool' | 'date' | 'enum' | 'relation';
 
 export type PageActionKey =
-  | 'view'
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'export'
-  | 'import'
-  | 'detail';
+  'view' | 'create' | 'update' | 'delete' | 'export' | 'import' | 'detail';
 
 export type PageActionTemplate = 'standard' | 'masterData' | 'lookup';
 
@@ -539,7 +533,7 @@ export const FIELD_TEMPLATE_DEFINITIONS: FieldTemplateDefinition[] = [
         'generator.fieldTemplates.phone.placeholder',
         'generator.fieldTemplates.phone.placeholder',
       ),
-      validation: { pattern: '^1[3-9]\\d{9}$' },
+      validation: { pattern: String.raw`^1[3-9]\d{9}$` },
       templateKey: 'phone',
     }),
   },
@@ -578,7 +572,7 @@ export const FIELD_TEMPLATE_DEFINITIONS: FieldTemplateDefinition[] = [
         'generator.fieldTemplates.email.placeholder',
         'generator.fieldTemplates.email.placeholder',
       ),
-      validation: { pattern: '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' },
+      validation: { pattern: String.raw`^[^\s@]+@[^\s@]+\.[^\s@]+$` },
       templateKey: 'email',
     }),
   },
@@ -790,7 +784,7 @@ export const PAGE_ACTION_TEMPLATE_DEFINITIONS: PageActionTemplateDefinition[] = 
 
 export function splitModuleSegments(name: string): string[] {
   return name
-    .replace(/\\/g, '/')
+    .replaceAll('\\', '/')
     .split('/')
     .map((segment) => segment.trim())
     .filter(Boolean);
@@ -822,7 +816,7 @@ export function isValidScopedModulePath(scope: ModuleScope, value?: string): boo
 
 export function getLeafModuleName(name: string): string {
   const segments = splitModuleSegments(name);
-  return segments[segments.length - 1] || name;
+  return segments.at(-1) || name;
 }
 
 function toPascalCase(value: string): string {
@@ -856,7 +850,7 @@ export function buildPageRoutePath(scope: ModuleScope, name: string): string {
 export function normalizeMenuPath(value?: string): string {
   const normalized = String(value || '')
     .trim()
-    .replace(/\\/g, '/');
+    .replaceAll('\\', '/');
   if (!normalized) {
     return '';
   }
@@ -1140,49 +1134,81 @@ export function buildMenuPreview(schema: Pick<ModuleSchema, 'menus'>): Generator
   return roots;
 }
 
-export function validateGeneratorCompleteness(schema: ModuleSchema): GeneratorCompletenessIssue[] {
-  const issues: GeneratorCompletenessIssue[] = [];
+function validateBusinessContext(schema: ModuleSchema): GeneratorCompletenessIssue[] {
   const segments = splitModuleSegments(schema.name);
-  const zh = schema.i18n.translations.zh;
-  const en = schema.i18n.translations.en;
-  const requiredKeys = new Set<string>();
-
   if (schema.scope === 'business' && segments.length > 0) {
     const expectedContext = segments[0];
     if (!schema.metadata?.businessContext) {
-      issues.push({
-        code: 'business_context_missing',
-        level: 'warn',
-        messageKey: 'generator.validation.businessContextMissing',
-        detail: expectedContext,
-      });
+      return [
+        {
+          code: 'business_context_missing',
+          level: 'warn',
+          messageKey: 'generator.validation.businessContextMissing',
+          detail: expectedContext,
+        },
+      ];
     }
   }
+  return [];
+}
 
-  if (getTableRole(schema) === 'relation' && schema.menus.length > 0) {
-    issues.push({
+function validateRelationTableMenu(schema: ModuleSchema): GeneratorCompletenessIssue[] {
+  if (getTableRole(schema) !== 'relation' || schema.menus.length === 0) {
+    return [];
+  }
+  return [
+    {
       code: 'relation_table_has_menu',
       level: 'error',
       messageKey: 'generator.validation.relationTableHasMenu',
       detail: schema.name,
-    });
-  }
+    },
+  ];
+}
 
-  for (const dependency of schema.dependencies ?? []) {
-    if (
-      !isValidScopedModulePath('business', dependency.module) &&
-      !isValidScopedModulePath('system', dependency.module)
-    ) {
-      issues.push({
-        code: 'dependency_invalid',
-        level: 'error',
-        messageKey: 'generator.validation.dependencyInvalid',
-        detail: dependency.module,
-      });
-    }
-  }
+function validateRelationMetadataFields(schema: ModuleSchema): GeneratorCompletenessIssue[] {
+  const relationFieldPattern = /^[A-Za-z]\w*$/;
+  return (
+    [
+      ['relation_from_field_invalid', schema.metadata?.relationFromField],
+      ['relation_to_field_invalid', schema.metadata?.relationToField],
+    ] as const
+  ).flatMap(([code, field]) =>
+    field && !relationFieldPattern.test(field)
+      ? [
+          {
+            code,
+            level: 'error' as const,
+            messageKey: 'generator.validation.relationIncomplete',
+            detail: field,
+          },
+        ]
+      : [],
+  );
+}
 
-  for (const relation of schema.relations ?? []) {
+function validateDependencies(schema: ModuleSchema): GeneratorCompletenessIssue[] {
+  return (schema.dependencies ?? []).flatMap((dependency) => {
+    const valid =
+      isValidScopedModulePath('business', dependency.module) ||
+      isValidScopedModulePath('system', dependency.module);
+    return valid
+      ? []
+      : [
+          {
+            code: 'dependency_invalid',
+            level: 'error' as const,
+            messageKey: 'generator.validation.dependencyInvalid',
+            detail: dependency.module,
+          },
+        ];
+  });
+}
+
+function validateRelations(schema: ModuleSchema): GeneratorCompletenessIssue[] {
+  const relationFieldPattern = /^[A-Za-z]\w*$/;
+  return (schema.relations ?? []).flatMap((relation) => {
+    const issues: GeneratorCompletenessIssue[] = [];
     if (!['oneToMany', 'manyToMany', 'lookup'].includes(relation.type)) {
       issues.push({
         code: 'relation_type_invalid',
@@ -1199,7 +1225,7 @@ export function validateGeneratorCompleteness(schema: ModuleSchema): GeneratorCo
         detail: relation.name || schema.name,
       });
     }
-    if (relation.targetLabelField && !/^[A-Za-z][A-Za-z0-9_]*$/.test(relation.targetLabelField)) {
+    if (relation.targetLabelField && !relationFieldPattern.test(relation.targetLabelField)) {
       issues.push({
         code: 'relation_target_label_field_invalid',
         level: 'error',
@@ -1207,7 +1233,7 @@ export function validateGeneratorCompleteness(schema: ModuleSchema): GeneratorCo
         detail: relation.targetLabelField,
       });
     }
-    if (relation.lookupValueField && !/^[A-Za-z][A-Za-z0-9_]*$/.test(relation.lookupValueField)) {
+    if (relation.lookupValueField && !relationFieldPattern.test(relation.lookupValueField)) {
       issues.push({
         code: 'relation_lookup_value_field_invalid',
         level: 'error',
@@ -1223,11 +1249,12 @@ export function validateGeneratorCompleteness(schema: ModuleSchema): GeneratorCo
         detail: relation.lookupApi,
       });
     }
-  }
+    return issues;
+  });
+}
 
-  for (const menu of schema.menus) {
-    requiredKeys.add(menu.titleKey);
-  }
+function collectRequiredTranslationKeys(schema: ModuleSchema): Set<string> {
+  const requiredKeys = new Set(schema.menus.map((menu) => menu.titleKey));
   requiredKeys.add(buildTitleKey(schema.scope, schema.name));
   if (
     schema.scope === 'business' &&
@@ -1251,8 +1278,13 @@ export function validateGeneratorCompleteness(schema: ModuleSchema): GeneratorCo
   for (const auditAction of ['create', 'update', 'delete'] as const) {
     requiredKeys.add(buildAuditActionKey(schema.scope, schema.name, auditAction));
   }
+  return requiredKeys;
+}
 
-  for (const key of requiredKeys) {
+function validateTranslations(schema: ModuleSchema): GeneratorCompletenessIssue[] {
+  const issues: GeneratorCompletenessIssue[] = [];
+  const { zh, en } = schema.i18n.translations;
+  for (const key of collectRequiredTranslationKeys(schema)) {
     if (!zh[key]) {
       issues.push({
         code: 'i18n_zh_missing',
@@ -1270,6 +1302,16 @@ export function validateGeneratorCompleteness(schema: ModuleSchema): GeneratorCo
       });
     }
   }
-
   return issues;
+}
+
+export function validateGeneratorCompleteness(schema: ModuleSchema): GeneratorCompletenessIssue[] {
+  return [
+    ...validateBusinessContext(schema),
+    ...validateRelationTableMenu(schema),
+    ...validateRelationMetadataFields(schema),
+    ...validateDependencies(schema),
+    ...validateRelations(schema),
+    ...validateTranslations(schema),
+  ];
 }

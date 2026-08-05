@@ -1,9 +1,19 @@
 import React from 'react';
 import { uploadSystemFile } from '../../../../api/upload';
-import { Avatar, Button, Form, Input, Select, Space, Typography } from '@arco-design/web-react';
+import {
+  Avatar,
+  Button,
+  Form,
+  Grid,
+  Input,
+  Select,
+  Space,
+  Typography,
+} from '@arco-design/web-react';
 import { IconUpload } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { AppModal, FormSection, SubmitBar } from '../../../../components';
+import { isLikelyEmailAddress } from '../../../../core/arco/formValidation';
 import type { FormInstance } from '@arco-design/web-react/es/Form';
 import type { UserCreatePayload, UserListRow } from './api';
 
@@ -27,6 +37,7 @@ interface UserFormModalProps {
 }
 
 const FormItem = Form.Item;
+const { Row, Col } = Grid;
 
 const UserFormModal: React.FC<UserFormModalProps> = ({
   visible,
@@ -75,46 +86,58 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
       <Form form={form} layout="vertical" onSubmit={onSubmit}>
         <Space direction="vertical" size={20} className="dialog-form-stack">
           <FormSection title={t('common.basicInfo')}>
-            <FormItem
-              label={t('system.user.username')}
-              field="username"
-              rules={[{ required: true, message: t('auth.usernameRequired') }]}
-            >
-              <Input disabled={Boolean(editing)} onPressEnter={() => form.submit()} />
-            </FormItem>
-            {!editing ? (
-              <FormItem
-                label={t('system.user.password')}
-                field="password"
-                rules={[{ required: true, message: t('auth.passwordRequired') }]}
-              >
-                <Input.Password onPressEnter={() => form.submit()} />
-              </FormItem>
-            ) : null}
-            <FormItem label={t('system.user.nickname')} field="nickname">
-              <Input onPressEnter={() => form.submit()} />
-            </FormItem>
-            <FormItem
-              label={t('system.user.email')}
-              field="email"
-              rules={[
-                {
-                  validator: (value, callback) => {
-                    if (!value || /\S+@\S+\.\S+/.test(String(value))) {
-                      // NOSONAR — simple email regex
-                      callback();
-                      return;
-                    }
-                    callback(t('system.user.email.invalid'));
-                  },
-                },
-              ]}
-            >
-              <Input onPressEnter={() => form.submit()} />
-            </FormItem>
-            <FormItem label={t('system.user.phone')} field="phone">
-              <Input onPressEnter={() => form.submit()} />
-            </FormItem>
+            <Row gutter={16}>
+              <Col xs={24} md={12}>
+                <FormItem
+                  label={t('system.user.username')}
+                  field="username"
+                  rules={[{ required: true, message: t('auth.usernameRequired') }]}
+                >
+                  <Input disabled={Boolean(editing)} onPressEnter={() => form.submit()} />
+                </FormItem>
+              </Col>
+              {!editing ? (
+                <Col xs={24} md={12}>
+                  <FormItem
+                    label={t('system.user.password')}
+                    field="password"
+                    rules={[{ required: true, message: t('auth.passwordRequired') }]}
+                  >
+                    <Input.Password onPressEnter={() => form.submit()} />
+                  </FormItem>
+                </Col>
+              ) : null}
+              <Col xs={24} md={12}>
+                <FormItem label={t('system.user.nickname')} field="nickname">
+                  <Input onPressEnter={() => form.submit()} />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={12}>
+                <FormItem
+                  label={t('system.user.email')}
+                  field="email"
+                  rules={[
+                    {
+                      validator: (value, callback) => {
+                        // Linear-time email shape check; backend owns authoritative validation.
+                        if (!value || isLikelyEmailAddress(String(value))) {
+                          callback();
+                          return;
+                        }
+                        callback(t('system.user.email.invalid'));
+                      },
+                    },
+                  ]}
+                >
+                  <Input onPressEnter={() => form.submit()} />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={12}>
+                <FormItem label={t('system.user.phone')} field="phone">
+                  <Input onPressEnter={() => form.submit()} />
+                </FormItem>
+              </Col>
+            </Row>
             <FormItem label={t('system.user.avatar')} field="avatar">
               <Space direction="vertical" size={8} style={{ width: '100%' }}>
                 <Input
@@ -151,49 +174,59 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
             </FormItem>
           </FormSection>
           <FormSection title={t('common.accessControl')}>
-            {orgEnabled ? (
-              <>
+            <Row gutter={16}>
+              {orgEnabled ? (
+                <>
+                  <Col xs={24} md={12}>
+                    <FormItem
+                      label={t('system.user.dept')}
+                      field="deptId"
+                      rules={
+                        orgRequiredForUser
+                          ? [
+                              {
+                                validator: (value, callback) => {
+                                  if (Number(value || 0) > 0) {
+                                    callback();
+                                    return;
+                                  }
+                                  callback(t('system.user.dept.required'));
+                                },
+                              },
+                            ]
+                          : undefined
+                      }
+                    >
+                      <Select options={deptOptions} onChange={onDeptChange} />
+                    </FormItem>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <FormItem label={t('system.user.post')} field="postId">
+                      <Select options={filteredPostOptions} disabled={formDeptId === 0} />
+                    </FormItem>
+                  </Col>
+                </>
+              ) : null}
+              <Col xs={24} md={12}>
+                <FormItem label={t('system.user.status')} field="status">
+                  <Select
+                    options={[
+                      { label: t('system.user.status.enabled'), value: 1 },
+                      { label: t('system.user.status.disabled'), value: 2 },
+                    ]}
+                  />
+                </FormItem>
+              </Col>
+              <Col xs={24} md={12}>
                 <FormItem
-                  label={t('system.user.dept')}
-                  field="deptId"
-                  rules={
-                    orgRequiredForUser
-                      ? [
-                          {
-                            validator: (value, callback) => {
-                              if (Number(value || 0) > 0) {
-                                callback();
-                                return;
-                              }
-                              callback(t('system.user.dept.required'));
-                            },
-                          },
-                        ]
-                      : undefined
-                  }
+                  className="system-user-list__role-field"
+                  label={t('system.user.roles')}
+                  field="roleIds"
                 >
-                  <Select options={deptOptions} onChange={onDeptChange} />
+                  <Select mode="multiple" allowClear options={roleOptions} />
                 </FormItem>
-                <FormItem label={t('system.user.post')} field="postId">
-                  <Select options={filteredPostOptions} disabled={formDeptId === 0} />
-                </FormItem>
-              </>
-            ) : null}
-            <FormItem label={t('system.user.status')} field="status">
-              <Select
-                options={[
-                  { label: t('system.user.status.enabled'), value: 1 },
-                  { label: t('system.user.status.disabled'), value: 2 },
-                ]}
-              />
-            </FormItem>
-            <FormItem
-              className="system-user-list__role-field"
-              label={t('system.user.roles')}
-              field="roleIds"
-            >
-              <Select mode="multiple" allowClear options={roleOptions} />
-            </FormItem>
+              </Col>
+            </Row>
           </FormSection>
         </Space>
       </Form>

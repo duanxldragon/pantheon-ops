@@ -29,6 +29,11 @@ interface SessionDetailModalProps {
   onCancel: () => void;
 }
 
+function formatSessionUserLabel(session: SessionDetailRecord) {
+  const nicknameSuffix = session.nickname ? ` / ${session.nickname}` : '';
+  return `${session.username}${nicknameSuffix}`;
+}
+
 const SessionDetailModal: React.FC<SessionDetailModalProps> = ({ visible, session, onCancel }) => {
   const { t } = useTranslation();
 
@@ -51,7 +56,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({ visible, sessio
               </Typography.Text>
               <Typography.Text className="auth-detail-summary__desc">
                 {session.username
-                  ? `${session.username}${session.nickname ? ` / ${session.nickname}` : ''}`
+                  ? formatSessionUserLabel(session)
                   : t('auth.security.currentSessionSummary')}
               </Typography.Text>
             </div>
@@ -81,13 +86,17 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({ visible, sessio
                 label: t('auth.session.lastActive'),
                 value: formatDateTime(
                   session.lastActivityAt || session.lastRefreshAt || session.createdAt,
+                  { withSeconds: true },
                 ),
               },
               {
                 label: t('auth.session.refreshExpiresAt'),
-                value: formatDateTime(session.refreshExpiresAt),
+                value: formatDateTime(session.refreshExpiresAt, { withSeconds: true }),
               },
-              { label: t('system.profile.createdAt'), value: formatDateTime(session.createdAt) },
+              {
+                label: t('system.profile.createdAt'),
+                value: formatDateTime(session.createdAt, { withSeconds: true }),
+              },
               {
                 label: t('auth.session.status'),
                 value: session.revokedAt

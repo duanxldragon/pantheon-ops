@@ -5,7 +5,10 @@ import (
 	"regexp"
 	"strings"
 
+	"pantheon-ops/backend/pkg/logging"
+
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type Response struct {
@@ -53,6 +56,16 @@ func isI18nMessageKey(message string) bool {
 	return i18nKeyPattern.MatchString(strings.TrimSpace(message))
 }
 
+// lastMessageSegment returns the final ": "-delimited segment of a message,
+// which is where the sentinel-wrapped i18n key lives (see pkg/common/error.go).
+func lastMessageSegment(message string) string {
+	message = strings.TrimSpace(message)
+	if idx := strings.LastIndex(message, ": "); idx != -1 {
+		message = message[idx+2:]
+	}
+	return message
+}
+
 func resolveErrorMessageKey(err error, fallback string) string {
 	if err == nil {
 		if strings.TrimSpace(fallback) != "" {
@@ -60,10 +73,7 @@ func resolveErrorMessageKey(err error, fallback string) string {
 		}
 		return "request.failed"
 	}
-	message := strings.TrimSpace(err.Error())
-	if idx := strings.LastIndex(message, ": "); idx != -1 {
-		message = message[idx+2:]
-	}
+	message := lastMessageSegment(err.Error())
 	if isI18nMessageKey(message) {
 		return message
 	}
@@ -74,6 +84,17 @@ func resolveErrorMessageKey(err error, fallback string) string {
 }
 
 func FailWithError(c *gin.Context, code int, err error, fallback string) {
+	// When err carries no i18n message key, resolveErrorMessageKey replaces it
+	// with the generic fallback ("request.failed"), discarding the underlying
+	// cause (e.g. a raw GORM/driver error). Log the original here so the detail
+	// is not silently swallowed at the HTTP boundary.
+	if err != nil && !isI18nMessageKey(lastMessageSegment(err.Error())) {
+		logging.Error("request failed with unclassified error",
+			zap.Int("code", code),
+			zap.String("requestId", GetRequestID(c)),
+			zap.String("error", err.Error()),
+		)
+	}
 	Fail(c, code, resolveErrorMessageKey(err, fallback))
 }
 

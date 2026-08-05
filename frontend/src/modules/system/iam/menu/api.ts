@@ -39,6 +39,7 @@ export interface MenuPayload {
 }
 
 export interface MenuListQuery {
+  keyword?: string;
   titleKey?: string;
   path?: string;
   isVisible?: number;

@@ -64,6 +64,7 @@ export interface UserListState {
 }
 
 const emptyQuery: UserListQuery = {
+  keyword: '',
   username: '',
   nickname: '',
   status: undefined,
@@ -86,6 +87,7 @@ const emptyForm: UserCreatePayload = {
 
 function isDefaultUserListQuery(query: UserListQuery) {
   return (
+    !query.keyword &&
     !query.username &&
     !query.nickname &&
     query.status === undefined &&
@@ -444,7 +446,7 @@ export function useUserList(form: FormInstance<UserCreatePayload>) {
       const currentPostId = Number(form.getFieldValue('postId') || 0);
       if (currentPostId > 0) {
         const currentPost = state.postOptions.find((item) => item.value === currentPostId);
-        if (!currentPost || currentPost.deptId !== nextDeptId) {
+        if (currentPost?.deptId !== nextDeptId) {
           form.setFieldsValue({ postId: 0 });
         }
       }
@@ -585,7 +587,7 @@ export function useUserList(form: FormInstance<UserCreatePayload>) {
         message.warning(t('common.batchSelectionRequired'));
         return;
       }
-      const userIds = state.selectedRowKeys.map((item) => Number(item)).filter((item) => item > 0);
+      const userIds = state.selectedRowKeys.map(Number).filter((item) => item > 0);
       const result = await batchUpdateUserStatus({ userIds, status });
       message.success(t('system.user.batchStatusSuccess', { count: result.updatedCount }));
       invalidateUserCaches();
@@ -601,7 +603,7 @@ export function useUserList(form: FormInstance<UserCreatePayload>) {
       message.warning(t('common.batchSelectionRequired'));
       return;
     }
-    const ids = state.selectedRowKeys.map((item) => Number(item)).filter((item) => item > 0);
+    const ids = state.selectedRowKeys.map(Number).filter((item) => item > 0);
     const result = await batchDeleteUsers({ ids });
     const messageKey =
       result.failedCount > 0 ? 'common.batchDeletePartialSuccess' : 'common.batchDeleteSuccess';

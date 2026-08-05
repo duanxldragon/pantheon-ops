@@ -17,6 +17,7 @@ import (
 	"gorm.io/gorm/schema"
 )
 
+// Open creates an isolated MySQL database for the current test.
 func Open(t *testing.T) *gorm.DB {
 	t.Helper()
 
@@ -42,7 +43,9 @@ func Open(t *testing.T) *gorm.DB {
 	if err != nil {
 		t.Fatalf("open mysql admin connection: %v", err)
 	}
-	t.Cleanup(func() { _ = adminDB.Close() })
+	t.Cleanup(func() {
+		_ = adminDB.Close()
+	})
 
 	testDBName, err := buildTestDBName(cfg.DBName, t.Name())
 	if err != nil {
@@ -81,7 +84,9 @@ func Open(t *testing.T) *gorm.DB {
 	if err != nil {
 		t.Fatalf("resolve sql db: %v", err)
 	}
-	t.Cleanup(func() { _ = sqlDB.Close() })
+	t.Cleanup(func() {
+		_ = sqlDB.Close()
+	})
 	return db
 }
 

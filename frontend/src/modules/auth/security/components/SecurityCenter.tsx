@@ -12,6 +12,7 @@ import {
 } from '@arco-design/web-react';
 import { message } from '../../../../components/feedback/message';
 import { IconEye, IconLock } from '@arco-design/web-react/icon';
+import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { useTranslation } from 'react-i18next';
 import { formatDateTime } from '../../../../core/format/dateTime';
 import { resolveRouteWarmData } from '../../../../core/router/prefetch';
@@ -52,6 +53,313 @@ import '../../auth.css';
 const FormItem = Form.Item;
 const Row = Grid.Row;
 const Col = Grid.Col;
+
+type TranslateFn = (key: string, options?: Record<string, unknown>) => string;
+
+const renderActivityTime = (value?: string | null) => {
+  if (!value) {
+    return '-';
+  }
+  return <DateTimeMeta value={value} />;
+};
+
+// 纯函数抽离：安全策略展示项构造不依赖组件状态，降低组件体认知复杂度。
+function buildSecurityPolicyItems(
+  t: TranslateFn,
+  policy: SecurityPolicy | undefined,
+): Array<{ label: string; value: string; hint: string }> {
+  if (!policy) {
+    return [];
+  }
+  const yesNo = (enabled: boolean) => (enabled ? t('common.yes') : t('common.no'));
+  return [
+    {
+      label: t('system.setting.item.security.password_min_length'),
+      value: t('auth.security.policy.passwordMinLength', { count: policy.passwordMinLength }),
+      hint: t('system.setting.remark.security.password_min_length'),
+    },
+    {
+      label: t('system.setting.item.security.password_require_digit'),
+      value: yesNo(policy.passwordRequireDigit),
+      hint: t('system.setting.remark.security.password_require_digit'),
+    },
+    {
+      label: t('system.setting.item.security.password_require_uppercase'),
+      value: yesNo(policy.passwordRequireUpper),
+      hint: t('system.setting.remark.security.password_require_uppercase'),
+    },
+    {
+      label: t('system.setting.item.security.password_history_limit'),
+      value: String(policy.passwordHistoryLimit ?? 0),
+      hint: t('system.setting.remark.security.password_history_limit'),
+    },
+    {
+      label: t('system.setting.item.security.password_expire_days'),
+      value: String(policy.passwordExpireDays ?? 0),
+      hint: t('system.setting.remark.security.password_expire_days'),
+    },
+    {
+      label: t('system.setting.item.login.max_failed_attempts'),
+      value: t('auth.security.policy.maxFailedAttempts', { count: policy.maxFailedAttempts }),
+      hint: t('system.setting.remark.login.max_failed_attempts'),
+    },
+    {
+      label: t('system.setting.item.login.lock_minutes'),
+      value: t('auth.security.policy.lockMinutes', { count: policy.lockMinutes }),
+      hint: t('system.setting.remark.login.lock_minutes'),
+    },
+    {
+      label: t('system.setting.item.login.source_max_failed_attempts'),
+      value: t('auth.security.policy.sourceMaxFailedAttempts', {
+        count: policy.sourceMaxFailedAttempts,
+      }),
+      hint: t('system.setting.remark.login.source_max_failed_attempts'),
+    },
+    {
+      label: t('system.setting.item.login.source_window_minutes'),
+      value: t('auth.security.policy.sourceWindowMinutes', { count: policy.sourceWindowMinutes }),
+      hint: t('system.setting.remark.login.source_window_minutes'),
+    },
+    {
+      label: t('system.setting.item.login.source_lock_minutes'),
+      value: t('auth.security.policy.sourceLockMinutes', { count: policy.sourceLockMinutes }),
+      hint: t('system.setting.remark.login.source_lock_minutes'),
+    },
+    {
+      label: t('system.setting.item.login.session_idle_minutes'),
+      value: t('auth.security.policy.sessionIdleMinutes', { count: policy.sessionIdleMinutes }),
+      hint: t('system.setting.remark.login.session_idle_minutes'),
+    },
+    {
+      label: t('system.setting.item.login.max_active_sessions_per_user'),
+      value: t('auth.security.policy.maxActiveSessions', { count: policy.maxActiveSessions }),
+      hint: t('system.setting.remark.login.max_active_sessions_per_user'),
+    },
+    {
+      label: t('system.setting.item.audit.session_retention_days'),
+      value: t('auth.security.policy.sessionRetentionDays', {
+        count: policy.sessionRetentionDays,
+      }),
+      hint: t('system.setting.remark.audit.session_retention_days'),
+    },
+    {
+      label: t('system.setting.item.login.captcha_enabled'),
+      value: yesNo(policy.captchaEnabled),
+      hint: t('system.setting.remark.login.captcha_enabled'),
+    },
+    {
+      label: t('system.setting.item.login.mfa_enabled'),
+      value: yesNo(policy.mfaEnabled),
+      hint: t('system.setting.remark.login.mfa_enabled'),
+    },
+    {
+      label: t('system.setting.item.login.sso_enabled'),
+      value: yesNo(policy.ssoEnabled),
+      hint: t('system.setting.remark.login.sso_enabled'),
+    },
+  ];
+}
+
+function buildSessionColumns(options: {
+  t: TranslateFn;
+  revokingSessionId: string | null;
+  onDetail: (session: AuthSession) => void;
+  onRevoke: (sessionId: string) => Promise<void>;
+}): ColumnProps<AuthSession>[] {
+  const { t, revokingSessionId, onDetail, onRevoke } = options;
+  return [
+    {
+      title: t('auth.session.current'),
+      dataIndex: 'isCurrent',
+      render: (_: unknown, record) =>
+        record.isCurrent ? (
+          <Tag color="arcoblue">{t('auth.session.currentDevice')}</Tag>
+        ) : (
+          <Tag>{t('auth.session.otherDevice')}</Tag>
+        ),
+    },
+    {
+      title: t('auth.session.ip'),
+      dataIndex: 'lastIp',
+      render: (value) => value || '-',
+    },
+    {
+      title: t('auth.session.userAgent'),
+      dataIndex: 'device',
+      render: (_: unknown, record) => (
+        <Typography.Text ellipsis={{ showTooltip: true }} style={{ maxWidth: 320 }}>
+          {formatClientSummary(record)}
+        </Typography.Text>
+      ),
+    },
+    {
+      title: t('auth.session.lastActive'),
+      dataIndex: 'lastRefreshAt',
+      render: (value: string | undefined, record) => renderActivityTime(value || record.createdAt),
+    },
+    {
+      title: t('auth.session.refreshExpiresAt'),
+      dataIndex: 'refreshExpiresAt',
+      render: (value) => (
+        <Typography.Text className="system-list__datetime-text">
+          {formatDateTime(value, { withSeconds: true })}
+        </Typography.Text>
+      ),
+    },
+    {
+      title: t('system.profile.createdAt'),
+      dataIndex: 'createdAt',
+      render: (value) => (
+        <Typography.Text className="system-list__datetime-text">
+          {formatDateTime(value, { withSeconds: true })}
+        </Typography.Text>
+      ),
+    },
+    {
+      title: t('common.action'),
+      dataIndex: 'action',
+      width: TABLE_ACTION_COLUMN_WIDTH.compact,
+      render: (_: unknown, record) => (
+        <Space size={4} className="system-list__actions">
+          <Button type="text" icon={<IconEye />} onClick={() => onDetail(record)}>
+            {t('common.detail')}
+          </Button>
+          <Popconfirm
+            title={t('auth.session.revokeConfirm')}
+            onOk={() => onRevoke(record.sessionId)}
+            disabled={record.isCurrent}
+          >
+            <Button
+              type="text"
+              status="danger"
+              disabled={record.isCurrent}
+              loading={revokingSessionId === record.sessionId}
+            >
+              {record.isCurrent ? t('auth.session.current') : t('auth.session.revoke')}
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+}
+
+function buildLoginLogColumns(
+  t: TranslateFn,
+  translateLogMessage: (value?: string | null) => string,
+): ColumnProps<LoginLogRow>[] {
+  return [
+    {
+      title: t('auth.loginLog.loginTime'),
+      dataIndex: 'loginTime',
+      render: (value) => renderActivityTime(value),
+    },
+    {
+      title: t('auth.loginLog.ip'),
+      dataIndex: 'ipaddr',
+      render: (value) => value || '-',
+    },
+    {
+      title: t('auth.loginLog.browser'),
+      dataIndex: 'browser',
+      render: (_: unknown, record) => renderClientInfo(record),
+    },
+    {
+      title: t('auth.loginLog.status'),
+      dataIndex: 'status',
+      render: (value) =>
+        value === 1 ? (
+          <Tag color="green">{t('auth.loginLog.status.success')}</Tag>
+        ) : (
+          <Tag color="red">{t('auth.loginLog.status.failed')}</Tag>
+        ),
+    },
+    {
+      title: t('auth.loginLog.failureReason'),
+      dataIndex: 'msg',
+      ellipsis: true,
+      render: (value) => translateLogMessage(value),
+    },
+  ];
+}
+
+interface SecurityRailProps {
+  currentSession: AuthSession | null;
+  loading: boolean;
+  overview: SecurityOverview | null;
+  policyItems: Array<{ label: string; value: string; hint: string }>;
+  t: TranslateFn;
+  userInfo: ReturnType<typeof useAuthStore.getState>['userInfo'];
+}
+
+function SecurityRail({
+  currentSession,
+  loading,
+  overview,
+  policyItems,
+  t,
+  userInfo,
+}: Readonly<SecurityRailProps>) {
+  return (
+    <>
+      {loading && !overview ? (
+        <PageLoading />
+      ) : (
+        <StandardRailSummary
+          title={t('auth.security.overview')}
+          items={[
+            {
+              label: t('system.profile.username'),
+              value: overview?.user?.username || userInfo?.username || '-',
+              description: overview?.user?.nickname || userInfo?.nickname || '-',
+            },
+            {
+              label: t('auth.security.currentDevice'),
+              value: formatClientSummary(currentSession),
+              description: currentSession?.lastIp || '-',
+            },
+            {
+              label: t('auth.session.lastActive'),
+              value: currentSession
+                ? renderActivityTime(currentSession.lastRefreshAt || currentSession.createdAt)
+                : '-',
+            },
+          ]}
+        />
+      )}
+      {policyItems.length === 0 && loading ? <PageLoading /> : null}
+      {policyItems.length > 0 ? (
+        <StandardRailSummary
+          title={t('auth.security.policy')}
+          items={policyItems.map((item) => ({
+            label: item.label,
+            value: item.value,
+            description: item.hint,
+          }))}
+        />
+      ) : null}
+      {overview?.recentSecurityEvents?.length ? (
+        <StandardRailSummary
+          title={t('system.menu.securityEvent')}
+          items={overview.recentSecurityEvents.slice(0, 4).map((item) => ({
+            label: t(`auth.securityEvent.type.${item.eventType}`, {
+              defaultValue: item.eventType,
+            }),
+            value: t(`auth.securityEvent.severity.${item.severity}`, {
+              defaultValue: item.severity,
+            }),
+            description: formatDateTime(item.createdAt, { withSeconds: true }),
+          }))}
+        />
+      ) : null}
+      <StandardRailNotePanel
+        title={t('auth.security.hero.sideTitle')}
+        noteTitle={t('auth.security.currentSessionSummary')}
+        noteDescription={t('auth.security.hero.sideDesc')}
+      />
+    </>
+  );
+}
 
 const SecurityCenter: React.FC = () => {
   const { t } = useTranslation();
@@ -120,13 +428,6 @@ const SecurityCenter: React.FC = () => {
     [t],
   );
 
-  const renderActivityTime = (value?: string | null) => {
-    if (!value) {
-      return '-';
-    }
-    return <DateTimeMeta value={value} />;
-  };
-
   const handleChangePassword = async () => {
     const values = await passwordForm.validate();
     setSavingPassword(true);
@@ -173,207 +474,24 @@ const SecurityCenter: React.FC = () => {
       hint: t('auth.security.currentSessionSummary'),
     },
     {
-      label: t('auth.loginLog.status.success'),
+      label: t('auth.security.recentSuccessfulLoginCount'),
       value: String(successCount),
       hint: t('auth.security.recentWindow'),
     },
   ];
 
-  const policyItems = useMemo<Array<{ label: string; value: string; hint: string }>>(() => {
-    const policy: SecurityPolicy | undefined = overview?.policy;
-    if (!policy) {
-      return [];
-    }
-    return [
-      {
-        label: t('system.setting.item.security.password_min_length'),
-        value: t('auth.security.policy.passwordMinLength', { count: policy.passwordMinLength }),
-        hint: t('system.setting.remark.security.password_min_length'),
-      },
-      {
-        label: t('system.setting.item.security.password_require_digit'),
-        value: policy.passwordRequireDigit ? t('common.yes') : t('common.no'),
-        hint: t('system.setting.remark.security.password_require_digit'),
-      },
-      {
-        label: t('system.setting.item.security.password_require_uppercase'),
-        value: policy.passwordRequireUpper ? t('common.yes') : t('common.no'),
-        hint: t('system.setting.remark.security.password_require_uppercase'),
-      },
-      {
-        label: t('system.setting.item.security.password_history_limit'),
-        value: String(policy.passwordHistoryLimit ?? 0),
-        hint: t('system.setting.remark.security.password_history_limit'),
-      },
-      {
-        label: t('system.setting.item.security.password_expire_days'),
-        value: String(policy.passwordExpireDays ?? 0),
-        hint: t('system.setting.remark.security.password_expire_days'),
-      },
-      {
-        label: t('system.setting.item.login.max_failed_attempts'),
-        value: t('auth.security.policy.maxFailedAttempts', { count: policy.maxFailedAttempts }),
-        hint: t('system.setting.remark.login.max_failed_attempts'),
-      },
-      {
-        label: t('system.setting.item.login.lock_minutes'),
-        value: t('auth.security.policy.lockMinutes', { count: policy.lockMinutes }),
-        hint: t('system.setting.remark.login.lock_minutes'),
-      },
-      {
-        label: t('system.setting.item.login.source_max_failed_attempts'),
-        value: t('auth.security.policy.sourceMaxFailedAttempts', {
-          count: policy.sourceMaxFailedAttempts,
-        }),
-        hint: t('system.setting.remark.login.source_max_failed_attempts'),
-      },
-      {
-        label: t('system.setting.item.login.source_window_minutes'),
-        value: t('auth.security.policy.sourceWindowMinutes', { count: policy.sourceWindowMinutes }),
-        hint: t('system.setting.remark.login.source_window_minutes'),
-      },
-      {
-        label: t('system.setting.item.login.source_lock_minutes'),
-        value: t('auth.security.policy.sourceLockMinutes', { count: policy.sourceLockMinutes }),
-        hint: t('system.setting.remark.login.source_lock_minutes'),
-      },
-      {
-        label: t('system.setting.item.login.session_idle_minutes'),
-        value: t('auth.security.policy.sessionIdleMinutes', { count: policy.sessionIdleMinutes }),
-        hint: t('system.setting.remark.login.session_idle_minutes'),
-      },
-      {
-        label: t('system.setting.item.login.max_active_sessions_per_user'),
-        value: t('auth.security.policy.maxActiveSessions', { count: policy.maxActiveSessions }),
-        hint: t('system.setting.remark.login.max_active_sessions_per_user'),
-      },
-      {
-        label: t('system.setting.item.audit.session_retention_days'),
-        value: t('auth.security.policy.sessionRetentionDays', {
-          count: policy.sessionRetentionDays,
-        }),
-        hint: t('system.setting.remark.audit.session_retention_days'),
-      },
-      {
-        label: t('system.setting.item.login.captcha_enabled'),
-        value: policy.captchaEnabled ? t('common.yes') : t('common.no'),
-        hint: t('system.setting.remark.login.captcha_enabled'),
-      },
-      {
-        label: t('system.setting.item.login.mfa_enabled'),
-        value: policy.mfaEnabled ? t('common.yes') : t('common.no'),
-        hint: t('system.setting.remark.login.mfa_enabled'),
-      },
-      {
-        label: t('system.setting.item.login.sso_enabled'),
-        value: policy.ssoEnabled ? t('common.yes') : t('common.no'),
-        hint: t('system.setting.remark.login.sso_enabled'),
-      },
-    ];
-  }, [overview?.policy, t]);
+  const policyItems = useMemo<Array<{ label: string; value: string; hint: string }>>(
+    () => buildSecurityPolicyItems(t, overview?.policy),
+    [overview?.policy, t],
+  );
 
-  const sessionColumns = [
-    {
-      title: t('auth.session.current'),
-      dataIndex: 'isCurrent',
-      render: (_: unknown, record: AuthSession) =>
-        record.isCurrent ? (
-          <Tag color="arcoblue">{t('auth.session.currentDevice')}</Tag>
-        ) : (
-          <Tag>{t('auth.session.otherDevice')}</Tag>
-        ),
-    },
-    {
-      title: t('auth.session.ip'),
-      dataIndex: 'lastIp',
-      render: (value: string) => value || '-',
-    },
-    {
-      title: t('auth.session.userAgent'),
-      dataIndex: 'device',
-      render: (_: unknown, record: AuthSession) => (
-        <Typography.Text ellipsis={{ showTooltip: true }} style={{ maxWidth: 320 }}>
-          {formatClientSummary(record)}
-        </Typography.Text>
-      ),
-    },
-    {
-      title: t('auth.session.lastActive'),
-      dataIndex: 'lastRefreshAt',
-      render: (value: string | undefined, record: AuthSession) =>
-        renderActivityTime(value || record.createdAt),
-    },
-    {
-      title: t('auth.session.refreshExpiresAt'),
-      dataIndex: 'refreshExpiresAt',
-      render: (value: string) => formatDateTime(value),
-    },
-    {
-      title: t('system.profile.createdAt'),
-      dataIndex: 'createdAt',
-      render: (value: string) => formatDateTime(value),
-    },
-    {
-      title: t('common.action'),
-      dataIndex: 'action',
-      width: TABLE_ACTION_COLUMN_WIDTH.compact,
-      render: (_: unknown, record: AuthSession) => (
-        <Space size={4} className="system-list__actions">
-          <Button type="text" icon={<IconEye />} onClick={() => setDetailSession(record)}>
-            {t('common.detail')}
-          </Button>
-          <Popconfirm
-            title={t('auth.session.revokeConfirm')}
-            onOk={() => handleRevokeSession(record.sessionId)}
-            disabled={record.isCurrent}
-          >
-            <Button
-              type="text"
-              status="danger"
-              disabled={record.isCurrent}
-              loading={revokingSessionId === record.sessionId}
-            >
-              {record.isCurrent ? t('auth.session.current') : t('auth.session.revoke')}
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
-
-  const loginLogColumns = [
-    {
-      title: t('auth.loginLog.loginTime'),
-      dataIndex: 'loginTime',
-      render: (value: string) => renderActivityTime(value),
-    },
-    {
-      title: t('auth.loginLog.ip'),
-      dataIndex: 'ipaddr',
-      render: (value: string) => value || '-',
-    },
-    {
-      title: t('auth.loginLog.browser'),
-      dataIndex: 'browser',
-      render: (_: unknown, record: LoginLogRow) => renderClientInfo(record),
-    },
-    {
-      title: t('auth.loginLog.status'),
-      dataIndex: 'status',
-      render: (value: number) =>
-        value === 1 ? (
-          <Tag color="green">{t('auth.loginLog.status.success')}</Tag>
-        ) : (
-          <Tag color="red">{t('auth.loginLog.status.failed')}</Tag>
-        ),
-    },
-    {
-      title: t('auth.loginLog.failureReason'),
-      dataIndex: 'msg',
-      ellipsis: true,
-      render: (value: string) => translateLogMessage(value),
-    },
-  ];
+  const sessionColumns = buildSessionColumns({
+    t,
+    revokingSessionId,
+    onDetail: setDetailSession,
+    onRevoke: handleRevokeSession,
+  });
+  const loginLogColumns = buildLoginLogColumns(t, translateLogMessage);
 
   return (
     <PageContainer>
@@ -411,65 +529,14 @@ const SecurityCenter: React.FC = () => {
 
         <PageSplitLayout
           rail={
-            <>
-              {loading && !overview ? (
-                <PageLoading />
-              ) : (
-                <StandardRailSummary
-                  title={t('auth.security.overview')}
-                  items={[
-                    {
-                      label: t('system.profile.username'),
-                      value: overview?.user?.username || userInfo?.username || '-',
-                      description: overview?.user?.nickname || userInfo?.nickname || '-',
-                    },
-                    {
-                      label: t('auth.security.currentDevice'),
-                      value: formatClientSummary(currentSession),
-                      description: currentSession?.lastIp || '-',
-                    },
-                    {
-                      label: t('auth.session.lastActive'),
-                      value: currentSession
-                        ? renderActivityTime(
-                            currentSession.lastRefreshAt || currentSession.createdAt,
-                          )
-                        : '-',
-                    },
-                  ]}
-                />
-              )}
-              {policyItems.length === 0 && loading ? <PageLoading /> : null}
-              {policyItems.length > 0 ? (
-                <StandardRailSummary
-                  title={t('auth.security.policy')}
-                  items={policyItems.map((item) => ({
-                    label: item.label,
-                    value: item.value,
-                    description: item.hint,
-                  }))}
-                />
-              ) : null}
-              {overview?.recentSecurityEvents?.length ? (
-                <StandardRailSummary
-                  title={t('system.menu.securityEvent')}
-                  items={overview.recentSecurityEvents.map((item) => ({
-                    label: t(`auth.securityEvent.type.${item.eventType}`, {
-                      defaultValue: item.eventType,
-                    }),
-                    value: t(`auth.securityEvent.severity.${item.severity}`, {
-                      defaultValue: item.severity,
-                    }),
-                    description: formatDateTime(item.createdAt),
-                  }))}
-                />
-              ) : null}
-              <StandardRailNotePanel
-                title={t('auth.security.hero.sideTitle')}
-                noteTitle={t('auth.security.currentSessionSummary')}
-                noteDescription={t('auth.security.hero.sideDesc')}
-              />
-            </>
+            <SecurityRail
+              currentSession={currentSession}
+              loading={loading}
+              overview={overview}
+              policyItems={policyItems}
+              t={t}
+              userInfo={userInfo}
+            />
           }
         >
           <Card
@@ -562,7 +629,9 @@ const SecurityCenter: React.FC = () => {
           <Card
             className="page-panel"
             title={t('auth.security.sessions')}
-            extra={<Tag color="arcoblue">{t('common.total', { count: sessions.length })}</Tag>}
+            extra={
+              <Tag color="arcoblue">{t('common.totalWithCount', { count: sessions.length })}</Tag>
+            }
           >
             <Space direction="vertical" size={16} className="auth-table-stack">
               <div className="auth-inline-note">
@@ -595,7 +664,7 @@ const SecurityCenter: React.FC = () => {
                       });
                     },
                   })}
-                  scroll={{ x: 1100 }}
+                  scroll={{ x: 'max-content' }}
                   emptyText={t('auth.session.empty')}
                 />
               )}
@@ -607,7 +676,7 @@ const SecurityCenter: React.FC = () => {
             title={t('auth.security.loginLogs')}
             extra={
               <Tag color={failedCount > 0 ? 'orange' : 'green'}>
-                {t('common.total', { count: loginLogs.length })}
+                {t('common.totalWithCount', { count: loginLogs.length })}
               </Tag>
             }
           >

@@ -9,10 +9,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// DefaultSessionIdleMinutes is the fallback idle timeout in minutes.
 const DefaultSessionIdleMinutes = 30
+
+// DefaultMaxActiveSessionsPerUser is the fallback session cap per user.
 const DefaultMaxActiveSessionsPerUser = 1
+
+// DefaultSessionRetentionDays is the fallback retention window in days.
 const DefaultSessionRetentionDays = 90
 
+// ApplyActiveScope filters session queries to active, non-expired records.
 func ApplyActiveScope(db *gorm.DB, alias string, now time.Time, idleMinutes int) *gorm.DB {
 	prefix := columnPrefix(alias)
 	scoped := db.
@@ -24,6 +30,7 @@ func ApplyActiveScope(db *gorm.DB, alias string, now time.Time, idleMinutes int)
 	return scoped
 }
 
+// CleanupInactiveSessions revokes inactive sessions from the session table.
 func CleanupInactiveSessions(db *gorm.DB, now time.Time, idleMinutes int) error {
 	if db == nil {
 		return nil
@@ -42,6 +49,7 @@ func CleanupInactiveSessions(db *gorm.DB, now time.Time, idleMinutes int) error 
 		Update("revoked_at", now).Error
 }
 
+// CleanupUserOverflowSessions revokes overflow sessions for one user.
 func CleanupUserOverflowSessions(db *gorm.DB, userID uint64, now time.Time, idleMinutes int, maxActiveSessions int) error {
 	if db == nil || userID == 0 || maxActiveSessions < 0 {
 		return nil
@@ -71,6 +79,7 @@ func CleanupUserOverflowSessions(db *gorm.DB, userID uint64, now time.Time, idle
 	return overflow.Update("revoked_at", now).Error
 }
 
+// PurgeHistoricSessions removes sessions that are beyond the retention window.
 func PurgeHistoricSessions(db *gorm.DB, now time.Time, retentionDays int) error {
 	if db == nil || retentionDays <= 0 {
 		return nil
@@ -82,6 +91,7 @@ func PurgeHistoricSessions(db *gorm.DB, now time.Time, retentionDays int) error 
 		Delete(nil).Error
 }
 
+// LoadSessionIdleMinutes reads the idle timeout setting from the database.
 func LoadSessionIdleMinutes(db *gorm.DB, fallback int) int {
 	if db == nil {
 		return fallback

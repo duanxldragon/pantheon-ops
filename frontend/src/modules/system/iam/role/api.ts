@@ -15,6 +15,7 @@ export interface RoleRow {
 }
 
 export interface RoleListQuery {
+  keyword?: string;
   roleName?: string;
   roleKey?: string;
   status?: number;

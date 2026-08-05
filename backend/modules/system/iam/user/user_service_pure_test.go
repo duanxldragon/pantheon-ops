@@ -1,6 +1,8 @@
 package iam
 
 import (
+	"context"
+	"errors"
 	"net/http/httptest"
 	"strconv"
 	"strings"
@@ -8,6 +10,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+
+	"pantheon-ops/backend/pkg/common"
 )
 
 func itoa(n int) string {
@@ -43,30 +47,55 @@ func TestNormalizeStatus_99_Returns1(t *testing.T) {
 // ---- normalizeUserPageQuery ----
 
 func TestNormalizeUserPageQuery_Nil(t *testing.T) {
-	page, pageSize := normalizeUserPageQuery(nil)
+	page, pageSize, err := normalizeUserPageQuery(nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if page != 1 || pageSize != 10 {
 		t.Fatalf("expected (1, 10), got (%d, %d)", page, pageSize)
 	}
 }
 
 func TestNormalizeUserPageQuery_ZeroValues(t *testing.T) {
-	page, pageSize := normalizeUserPageQuery(&UserListQuery{})
+	page, pageSize, err := normalizeUserPageQuery(&UserListQuery{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if page != 1 || pageSize != 10 {
 		t.Fatalf("expected (1, 10) for zero values, got (%d, %d)", page, pageSize)
 	}
 }
 
 func TestNormalizeUserPageQuery_CustomValues(t *testing.T) {
-	page, pageSize := normalizeUserPageQuery(&UserListQuery{Page: 3, PageSize: 20})
+	page, pageSize, err := normalizeUserPageQuery(&UserListQuery{Page: 3, PageSize: 20})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if page != 3 || pageSize != 20 {
 		t.Fatalf("expected (3, 20), got (%d, %d)", page, pageSize)
 	}
 }
 
 func TestNormalizeUserPageQuery_MaxPageSize(t *testing.T) {
-	_, pageSize := normalizeUserPageQuery(&UserListQuery{PageSize: 200})
+	_, pageSize, err := normalizeUserPageQuery(&UserListQuery{PageSize: 200})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if pageSize != 100 {
 		t.Fatalf("expected pageSize capped at 100, got %d", pageSize)
+	}
+}
+
+func TestNormalizeUserPageQuery_RejectsDeepOffset(t *testing.T) {
+	_, _, err := normalizeUserPageQuery(&UserListQuery{Page: 1002, PageSize: 100})
+	if err == nil {
+		t.Fatal("expected deep pagination error")
+	}
+	if !errors.Is(err, common.ErrBadRequest) {
+		t.Fatalf("expected bad request error, got %v", err)
+	}
+	if got := common.ErrMessage(err); got != "param.page.too_large" {
+		t.Fatalf("expected param.page.too_large, got %s", got)
 	}
 }
 
@@ -405,7 +434,7 @@ func TestDeleteUser_DBNil(t *testing.T) {
 
 func TestExportUsers_DBNil(t *testing.T) {
 	s := &UserService{db: nil}
-	_, err := s.ExportUsers(nil, nil)
+	_, err := s.ExportUsers(context.Background(), nil, nil)
 	if err == nil {
 		t.Fatal("expected error when db is nil")
 	}

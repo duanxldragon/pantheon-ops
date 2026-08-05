@@ -1,3 +1,4 @@
+//nolint:revive // HTTP handler surface is intentionally exported for the auth module.
 package login
 
 import (
@@ -13,9 +14,11 @@ import (
 	commonhttp "pantheon-ops/backend/pkg/common/http"
 	"pantheon-ops/backend/pkg/database"
 	"pantheon-ops/backend/pkg/impexp"
+	"pantheon-ops/backend/pkg/logging"
 	"pantheon-ops/backend/pkg/platformprefs"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type AuthHandler struct {
@@ -23,6 +26,8 @@ type AuthHandler struct {
 }
 
 const csrfGenerateErrorKey = "csrf.generate.error"
+const msgParamInvalid = "param.invalid"
+const headerUserAgent = "User-Agent"
 
 func NewAuthHandler(s *Runtime) *AuthHandler {
 	return &AuthHandler{service: s}
@@ -90,16 +95,16 @@ func writeRefreshSuccessResponse(c *gin.Context, tokenPair *authtoken.Pair) bool
 }
 
 func (h *AuthHandler) LoginHandler(c *gin.Context) {
-	common.SetAuditMetadata(c, "auth.login.title", common.BusinessOther)
+	common.SetAuditMetadata(c, "auth.login.audit.title", common.BusinessOther)
 
 	var req LoginReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 
 	ip := c.ClientIP()
-	userAgent := c.GetHeader("User-Agent")
+	userAgent := c.GetHeader(headerUserAgent)
 	clientInfo := authsessiondomain.ParseClientInfo(userAgent)
 
 	sourceKey := buildLoginSourceKey(ip)
@@ -156,12 +161,12 @@ func (h *AuthHandler) VerifyMFAHandler(c *gin.Context) {
 
 	var req MFAVerifyReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 
 	ip := c.ClientIP()
-	userAgent := c.GetHeader("User-Agent")
+	userAgent := c.GetHeader(headerUserAgent)
 	clientInfo := authsessiondomain.ParseClientInfo(userAgent)
 	resp, err := h.service.VerifyMFAChallengeWithContext(c.Request.Context(), &req, ip, userAgent)
 	if err != nil {
@@ -192,7 +197,7 @@ func (h *AuthHandler) RefreshTokenHandler(c *gin.Context) {
 	if refreshToken == "" {
 		var req RefreshTokenReq
 		if err := c.ShouldBindJSON(&req); err != nil {
-			common.Fail(c, common.CodeParamInvalid, "param.invalid")
+			common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 			return
 		}
 		refreshToken = req.RefreshToken
@@ -208,10 +213,16 @@ func (h *AuthHandler) RefreshTokenHandler(c *gin.Context) {
 		return
 	}
 
-	tokenPair, err := h.service.RefreshSessionWithContext(c.Request.Context(), refreshClaims.SessionID, refreshClaims.UserID, c.ClientIP(), c.GetHeader("User-Agent"))
+	tokenPair, err := h.service.RefreshSessionWithContext(c.Request.Context(), refreshClaims.SessionID, refreshClaims.UserID, c.ClientIP(), c.GetHeader(headerUserAgent))
 	if err != nil {
 		common.FailWithError(c, common.CodeUnauthorized, err, "auth.session.refresh.error")
 		return
+	}
+
+	// 刷新令牌轮换：新 pair 签发成功后立即失效旧 refresh token，防止旧 token 在剩余 TTL 内被重放。
+	if err := authtoken.DeleteRefresh(c.Request.Context(), database.RDB, refreshToken); err != nil {
+		logging.Warn("revoke rotated refresh token failed",
+			zap.String("session_id", refreshClaims.SessionID), zap.Error(err))
 	}
 
 	if !writeRefreshSuccessResponse(c, tokenPair) {
@@ -228,11 +239,11 @@ func (h *AuthHandler) GetCurrentUserInfo(c *gin.Context) {
 }
 
 func (h *AuthHandler) UpdateCurrentUserPreferences(c *gin.Context) {
-	common.SetAuditMetadata(c, "更新平台偏好", common.BusinessUpdate)
+	common.SetAuditMetadata(c, "auth.preferences.update.title", common.BusinessUpdate)
 
 	var req UserPlatformPreferenceUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 
@@ -254,7 +265,7 @@ func (h *AuthHandler) UpdatePassword(c *gin.Context) {
 
 	var req PasswordUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	if err := h.service.UpdatePassword(common.GetUserID(c), c.GetString("sessionId"), &req); err != nil {
@@ -266,7 +277,7 @@ func (h *AuthHandler) UpdatePassword(c *gin.Context) {
 func (h *AuthHandler) GetLoginLogList(c *gin.Context) {
 	var query LoginLogQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.service.ListLoginLogs(&query)
@@ -280,7 +291,7 @@ func (h *AuthHandler) GetLoginLogList(c *gin.Context) {
 func (h *AuthHandler) GetSecurityEventList(c *gin.Context) {
 	var query SecurityEventQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.service.ListSecurityEvents(&query)
@@ -296,13 +307,13 @@ func (h *AuthHandler) AcknowledgeSecurityEvent(c *gin.Context) {
 
 	eventID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 
 	var req SecurityEventAcknowledgeReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 
@@ -318,12 +329,51 @@ func (h *AuthHandler) AcknowledgeSecurityEvent(c *gin.Context) {
 	common.Success(c, gin.H{"acknowledged": true})
 }
 
+func (h *AuthHandler) BatchAcknowledgeSecurityEvents(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.security_event.batch_acknowledge.title", common.BusinessUpdate)
+
+	var req SecurityEventBatchAcknowledgeReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+
+	acknowledgedCount, err := h.service.BatchAcknowledgeSecurityEvents(
+		req.IDs,
+		common.GetUserID(c),
+		c.GetString("username"),
+		req.AcknowledgementNote,
+	)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "auth.security_event.acknowledge.error")
+		return
+	}
+	common.Success(c, SecurityEventBatchAcknowledgeResp{AcknowledgedCount: acknowledgedCount})
+}
+
+func (h *AuthHandler) CleanupSecurityEvents(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.security_event.cleanup.title", common.BusinessClean)
+
+	var req SecurityEventCleanupReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+
+	clearedCount, err := h.service.CleanupSecurityEvents(req.RetentionDays, req.StartedAt, req.EndedAt)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "auth.security_event.cleanup.error")
+		return
+	}
+	common.Success(c, SecurityEventCleanupResp{ClearedCount: clearedCount})
+}
+
 func (h *AuthHandler) ExportLoginLogs(c *gin.Context) {
 	common.SetAuditMetadata(c, "audit.login_log.export.title", common.BusinessExport)
 
 	var query LoginLogQuery
 	if err := c.ShouldBindJSON(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	file, err := h.service.ExportLoginLogs(&query)
@@ -379,7 +429,7 @@ func (h *AuthHandler) CleanupLoginLogs(c *gin.Context) {
 
 	var req LoginLogCleanupReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 
@@ -396,7 +446,7 @@ func (h *AuthHandler) CleanupHistoricSessions(c *gin.Context) {
 
 	var req SessionCleanupReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 
@@ -413,7 +463,7 @@ func (h *AuthHandler) BatchRevokeSessions(c *gin.Context) {
 
 	var req SessionBatchRevokeReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 
@@ -430,7 +480,7 @@ func (h *AuthHandler) BatchDeleteLoginLogs(c *gin.Context) {
 
 	var req LoginLogBatchDeleteReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 
@@ -444,7 +494,7 @@ func (h *AuthHandler) BatchDeleteLoginLogs(c *gin.Context) {
 func (h *AuthHandler) GetSessionList(c *gin.Context) {
 	var query AdminSessionQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.service.ListAllSessions(&query)
@@ -479,7 +529,7 @@ func (h *AuthHandler) VerifyOperationPassword(c *gin.Context) {
 		Password string `json:"password" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	token, err := h.service.VerifyPasswordForOperationWithContext(c.Request.Context(), common.GetUserID(c), c.GetString("sessionId"), req.Password)
@@ -493,7 +543,7 @@ func (h *AuthHandler) VerifyOperationPassword(c *gin.Context) {
 func (h *AuthHandler) TouchActivity(c *gin.Context) {
 	common.SetAuditMetadata(c, "auth.session.touch.title", common.BusinessUpdate)
 
-	if err := h.service.TouchSessionActivity(c.GetString("sessionId"), common.GetUserID(c), c.ClientIP(), c.GetHeader("User-Agent")); err != nil {
+	if err := h.service.TouchSessionActivity(c.GetString("sessionId"), common.GetUserID(c), c.ClientIP(), c.GetHeader(headerUserAgent)); err != nil {
 		common.FailWithError(c, common.CodeError, err, "auth.session.touch.error")
 		return
 	}
@@ -530,7 +580,7 @@ func (h *AuthHandler) RevokeSession(c *gin.Context) {
 func (h *AuthHandler) GetOwnLoginLogs(c *gin.Context) {
 	var query LoginLogQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.service.ListOwnLoginLogs(c.GetString("username"), &query)
@@ -547,10 +597,6 @@ func buildLoginSourceKey(ip string) string {
 		return "ip:unknown"
 	}
 	return "ip:" + trimmed
-}
-
-func parseRefreshToken(refreshToken string) (*TokenRefreshClaims, error) {
-	return parseRefreshTokenWithContext(context.Background(), refreshToken)
 }
 
 func parseRefreshTokenWithContext(ctx context.Context, refreshToken string) (*TokenRefreshClaims, error) {

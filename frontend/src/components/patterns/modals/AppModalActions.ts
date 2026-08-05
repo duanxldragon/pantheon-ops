@@ -12,11 +12,19 @@ function resolveDialogStyle(config: AppModalStaticConfig) {
   };
 }
 
+function resolveDialogWrapStyle(config: AppModalStaticConfig) {
+  return {
+    ...config.wrapStyle,
+    zIndex: config.wrapStyle?.zIndex ?? config.style?.zIndex ?? 2500,
+  };
+}
+
 export function showAppModalConfirm(config: AppModalStaticConfig) {
   return Modal.confirm({
     ...config,
     className: mergeDialogClassName('app-dialog', config.className),
     style: resolveDialogStyle(config),
+    wrapStyle: resolveDialogWrapStyle(config),
   });
 }
 
@@ -25,6 +33,7 @@ export function showAppModalSuccess(config: AppModalStaticConfig) {
     ...config,
     className: mergeDialogClassName('app-dialog', config.className),
     style: resolveDialogStyle(config),
+    wrapStyle: resolveDialogWrapStyle(config),
   });
 }
 
@@ -33,5 +42,6 @@ export function showAppModalError(config: AppModalStaticConfig) {
     ...config,
     className: mergeDialogClassName('app-dialog', config.className),
     style: resolveDialogStyle(config),
+    wrapStyle: resolveDialogWrapStyle(config),
   });
 }

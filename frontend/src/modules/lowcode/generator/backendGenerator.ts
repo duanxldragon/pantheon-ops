@@ -44,9 +44,9 @@ import { TYPE_MAPPING, generateStructTags, getRequiredImports } from './typeMapp
 type StructTagOptions = NonNullable<Parameters<typeof generateStructTags>[2]>;
 
 export class BackendGenerator {
-  private schema: ModuleSchema;
-  private packageName: string;
-  private modelName: string;
+  private readonly schema: ModuleSchema;
+  private readonly packageName: string;
+  private readonly modelName: string;
 
   constructor(schema: ModuleSchema) {
     this.schema = schema;
@@ -240,15 +240,25 @@ ${relationDTOs ? `\n${relationDTOs}` : ''}
       return '\t// 无搜索字段';
     }
 
-    return searchableFields
-      .map((field) => {
-        const tsType = this.goTypeFromField(field.type);
-        // 可搜索字段通常可选
-        const isPointer = field.type === 'int' || field.type === 'float';
-        const goType = isPointer ? `*${tsType}` : tsType;
-        return `\t${this.capitalize(field.name)} ${goType} \`form:"${field.name}" json:"${field.name}"\``;
-      })
-      .join('\n');
+    const fields = searchableFields.map((field) => {
+      const tsType = this.goTypeFromField(field.type);
+      // 可搜索字段通常可选
+      const isPointer = field.type === 'int' || field.type === 'float';
+      const goType = isPointer ? `*${tsType}` : tsType;
+      return `\t${this.capitalize(field.name)} ${goType} \`form:"${field.name}" json:"${field.name}"\``;
+    });
+    // 统一关键词：跨所有文本型可搜索字段 OR LIKE
+    if (this.getKeywordSearchColumns().length > 0) {
+      fields.unshift('\tKeyword string `form:"keyword" json:"keyword"`');
+    }
+    return fields.join('\n');
+  }
+
+  /** 文本型可搜索字段的数据库列名，供统一关键词 OR LIKE。 */
+  private getKeywordSearchColumns(): string[] {
+    return this.schema.model.fields
+      .filter((f) => f.searchable && f.type !== 'int' && f.type !== 'float' && f.type !== 'enum')
+      .map((f) => this.toDBColumn(f.name));
   }
 
   /**
@@ -270,8 +280,8 @@ ${relationDTOs ? `\n${relationDTOs}` : ''}
 
 import (
 \t"errors"
-\t${hasDataScope ? `"pantheon-platform/backend/pkg/common"` : ``}
-\t${hasDataScope ? `"pantheon-platform/backend/pkg/database"` : ``}
+\t${hasDataScope ? `"pantheon-base/pkg/common"` : ``}
+\t${hasDataScope ? `"pantheon-base/pkg/database"` : ``}
 \t${requiresStrconv ? `"strconv"` : ``}
 \t"strings"
 \t"time"
@@ -461,22 +471,31 @@ ${relationServices ? `\n${relationServices}` : ''}
       return '// 无搜索条件';
     }
 
-    return searchableFields
-      .map((field) => {
-        const fieldName = this.capitalize(field.name);
-        const columnName = this.toDBColumn(field.name);
-        const isPointer = field.type === 'int' || field.type === 'float';
-        if (isPointer) {
-          return `if query.${fieldName} != nil {
+    const filters = searchableFields.map((field) => {
+      const fieldName = this.capitalize(field.name);
+      const columnName = this.toDBColumn(field.name);
+      const isPointer = field.type === 'int' || field.type === 'float';
+      if (isPointer) {
+        return `if query.${fieldName} != nil {
 \t\tdb = db.Where("${columnName} = ?", query.${fieldName})
 \t}`;
-        } else {
-          return `if query.${fieldName} != "" {
+      } else {
+        return `if query.${fieldName} != "" {
 \t\tdb = db.Where("${columnName} LIKE ?", "%"+query.${fieldName}+"%")
 \t}`;
-        }
-      })
-      .join('\n\t');
+      }
+    });
+    // 统一关键词：跨所有文本型可搜索字段 OR LIKE
+    const keywordColumns = this.getKeywordSearchColumns();
+    if (keywordColumns.length > 0) {
+      const clause = keywordColumns.map((column) => `${column} LIKE ?`).join(' OR ');
+      const args = keywordColumns.map(() => 'keyword').join(', ');
+      filters.unshift(`if strings.TrimSpace(query.Keyword) != "" {
+\t\tkeyword := "%" + strings.TrimSpace(query.Keyword) + "%"
+\t\tdb = db.Where("${clause}", ${args})
+\t}`);
+    }
+    return filters.join('\n\t');
   }
 
   private toDBColumn(name: string): string {
@@ -553,7 +572,7 @@ ${relationServices ? `\n${relationServices}` : ''}
     return `package ${this.packageName}
 
 import (
-\t"pantheon-platform/backend/pkg/common"
+\t"pantheon-base/pkg/common"
 \t"strconv"
 \t"github.com/gin-gonic/gin"
 )
@@ -690,8 +709,8 @@ ${relationHandlers ? `\n${relationHandlers}` : ''}
     return `package ${this.packageName}
 
 import (
-\t"pantheon-platform/backend/internal/middleware"
-\t"pantheon-platform/backend/pkg/contracts"
+\t"pantheon-base/internal/middleware"
+\t"pantheon-base/pkg/contracts"
 \t"strings"
 \t"github.com/gin-gonic/gin"
 \t"gorm.io/gorm"
@@ -922,11 +941,10 @@ func seed${modelName}I18n(db *gorm.DB) error {
     const menuKey = segments.join('-');
     const explicitParentPath = normalizeMenuPath(this.schema.parentMenu || '');
     const shouldGenerateAncestorMenus = !explicitParentPath && segments.length > 1;
-    const inferredParentPath = shouldGenerateAncestorMenus
-      ? ''
-      : segments.length > 1
-        ? buildPageRoutePath(this.schema.scope, segments.slice(0, -1).join('/'))
-        : '';
+    let inferredParentPath = '';
+    if (!shouldGenerateAncestorMenus && segments.length > 1) {
+      inferredParentPath = buildPageRoutePath(this.schema.scope, segments.slice(0, -1).join('/'));
+    }
     const parentPath = normalizeMenuPath(explicitParentPath || inferredParentPath || '');
     const parentKey = shouldGenerateAncestorMenus ? segments.slice(0, -1).join('-') : '';
     const actionSeeds = getPageActions(this.schema)
@@ -1012,7 +1030,7 @@ func seed${modelName}I18n(db *gorm.DB) error {
     for (let index = 0; index < segments.length - 1; index += 1) {
       const groupSegments = segments.slice(0, index + 1);
       const groupTitleKey = buildMenuGroupTitleKey(this.schema.scope, groupSegments);
-      const fallback = inferMenuGroupDisplayName(groupSegments[groupSegments.length - 1]);
+      const fallback = inferMenuGroupDisplayName(groupSegments.at(-1) ?? '');
       pushEntry(zhEntries, seenZh, {
         group: 'menu',
         key: groupTitleKey,
@@ -1528,11 +1546,7 @@ func (h *${this.modelName}Handler) Unbind${relationName}Relation(c *gin.Context)
   }
 
   private generateOptionNameExpression(sourceVar: string): string {
-    const labelField = this.resolveOptionLabelField();
-    if (!labelField) {
-      return `strconv.FormatUint(${sourceVar}.ID, 10)`;
-    }
-    return `${sourceVar}.${labelField}`;
+    return this.generateOptionLabelExpression(sourceVar);
   }
 
   /**
@@ -1550,7 +1564,7 @@ func (h *${this.modelName}Handler) Unbind${relationName}Relation(c *gin.Context)
   }
 
   private escapeGoString(value: string): string {
-    return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    return value.replaceAll('\\', String.raw`\\`).replaceAll('"', String.raw`\"`);
   }
 
   private toPascalCase(value: string): string {

@@ -125,11 +125,21 @@ func applyAdminSessionFilters(db *gorm.DB, query *AdminSessionQuery, now time.Ti
 	if query == nil {
 		return db
 	}
+	if strings.TrimSpace(query.Keyword) != "" {
+		keyword := "%" + common.EscapeLikePattern(strings.TrimSpace(query.Keyword)) + "%"
+		db = db.Where("system_user.username LIKE ? OR system_user_session.last_ip LIKE ?", keyword, keyword)
+	}
 	if strings.TrimSpace(query.Username) != "" {
 		db = db.Where("system_user.username LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.Username))+"%")
 	}
 	if strings.TrimSpace(query.LastIP) != "" {
 		db = db.Where("system_user_session.last_ip LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.LastIP))+"%")
+	}
+	if start, ok := parseSessionFilterTime(query.StartedAt); ok {
+		db = db.Where("system_user_session.created_at >= ?", start)
+	}
+	if end, ok := parseSessionFilterTime(query.EndedAt); ok {
+		db = db.Where("system_user_session.created_at <= ?", end)
 	}
 	if query.Status == nil {
 		return db
@@ -141,6 +151,21 @@ func applyAdminSessionFilters(db *gorm.DB, query *AdminSessionQuery, now time.Ti
 		return db.Where("system_user_session.revoked_at IS NOT NULL")
 	}
 	return db
+}
+
+// parseSessionFilterTime accepts the same formats the login-log list filter
+// does, so all audit toolbars share one frontend time-range component.
+func parseSessionFilterTime(value string) (time.Time, bool) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return time.Time{}, false
+	}
+	for _, layout := range []string{time.RFC3339, "2006-01-02 15:04:05", "2006-01-02 15:04"} {
+		if parsed, err := time.ParseInLocation(layout, value, time.Local); err == nil {
+			return parsed, true
+		}
+	}
+	return time.Time{}, false
 }
 
 func matchesAdminSessionFilters(query *AdminSessionQuery, clientInfo ClientInfoResp) bool {

@@ -19,6 +19,7 @@ const AppDrawer: React.FC<AppDrawerProps> = ({
   className,
   size = 'xl',
   width,
+  zIndex = 2500,
   maskClosable = false,
   unmountOnExit = true,
   ...rest
@@ -26,6 +27,7 @@ const AppDrawer: React.FC<AppDrawerProps> = ({
   <Drawer
     className={className ? `app-drawer ${className}` : 'app-drawer'}
     width={width ?? sizeWidthMap[size]}
+    zIndex={zIndex}
     maskClosable={maskClosable}
     unmountOnExit={unmountOnExit}
     {...rest}

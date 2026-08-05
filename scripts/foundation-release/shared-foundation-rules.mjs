@@ -22,7 +22,6 @@ export const backendOverlayPaths = new Set([
   'modules/business/retired_modules.go',
   'modules/auth/login/login_menu.go',
   'modules/lowcode/dynamicmodule/dynamic_module_service_test.go',
-  'modules/lowcode/generator/generator_service_test.go',
   'modules/system/iam/menu/component_registry.go',
   'modules/system/iam/menu/generated_component_registry.go',
 ]);

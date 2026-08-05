@@ -13,42 +13,22 @@ import (
 func StructuredLoggingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		method := logging.SanitizeLogValue(c.Request.Method)
-		path := logging.SanitizeLogValue(c.Request.URL.Path)
-		query := logging.SanitizeLogValue(c.Request.URL.RawQuery)
-		clientIP := logging.SanitizeLogValue(c.ClientIP())
-
 		c.Next()
 
 		end := time.Now()
 		latency := end.Sub(start)
 
-		// Inject trace ID from OpenTelemetry context for log correlation
+		// Inject request-scoped context into the structured log sink.
 		logger := logging.LogFromContext(c.Request.Context())
+		fields := []zap.Field{
+			zap.Int("status", c.Writer.Status()),
+			zap.Duration("latency", latency),
+		}
 
 		if len(c.Errors) > 0 {
-			// 记录错误
-			for _, e := range c.Errors.Errors() {
-				logger.Error("HTTP Request Error",
-					zap.String("method", method),
-					zap.String("path", path),
-					zap.String("query", query),
-					zap.Int("status", c.Writer.Status()),
-					zap.Duration("latency", latency),
-					zap.String("ip", clientIP),
-					zap.String("error", logging.SanitizeLogValue(e)),
-				)
-			}
+			logger.Error("HTTP Request Error", append(fields, zap.Int("error_count", len(c.Errors)))...)
 		} else {
-			// 记录正常请求
-			logger.Info("HTTP Request",
-				zap.String("method", method),
-				zap.String("path", path),
-				zap.String("query", query),
-				zap.Int("status", c.Writer.Status()),
-				zap.Duration("latency", latency),
-				zap.String("ip", clientIP),
-			)
+			logger.Info("HTTP Request", fields...)
 		}
 	}
 }

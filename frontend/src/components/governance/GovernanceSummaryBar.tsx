@@ -32,8 +32,9 @@ const GovernanceSummaryBar: React.FC<GovernanceSummaryBarProps> = ({
   action,
   className,
 }) => {
+  // 治理栏只保留两行（功能域 + 标题）；description 仅在无标题时兜底，
+  // 详细说明统一放治理抽屉，避免三行文案挤占页面高度。
   const mainTitle = title || description;
-  const secondaryDescription = title ? description : null;
 
   return (
     <section
@@ -46,9 +47,6 @@ const GovernanceSummaryBar: React.FC<GovernanceSummaryBarProps> = ({
             {icon ? <span className="governance-summary-bar__icon">{icon}</span> : null}
             <Typography.Text className="governance-summary-bar__title">{mainTitle}</Typography.Text>
           </div>
-        ) : null}
-        {secondaryDescription ? (
-          <span className="governance-summary-bar__desc">{secondaryDescription}</span>
         ) : null}
       </div>
       <div className="governance-summary-bar__metrics">

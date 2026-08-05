@@ -17,7 +17,7 @@ func CasbinMiddleware() gin.HandlerFunc {
 		}
 
 		// 1. 获取用户角色集合 (在 Token 中间件之后，应已设置)
-		roleKeys := readRoleKeysFromContext(c)
+		roleKeys := common.GetRoleKeys(c)
 		if len(roleKeys) == 0 {
 			roleKeys = []string{"guest"}
 		}
@@ -99,17 +99,5 @@ func isSelfServiceRouteBySignature(fullPath, method, scope string) bool {
 }
 
 func readRoleKeysFromContext(c *gin.Context) []string {
-	roleKeysValue, ok := c.Get("roleKeys")
-	if ok {
-		if roleKeys, ok := roleKeysValue.([]string); ok {
-			return roleKeys
-		}
-	}
-	roleKeyValue, ok := c.Get("roleKey")
-	if ok {
-		if roleKey, ok := roleKeyValue.(string); ok && roleKey != "" {
-			return []string{roleKey}
-		}
-	}
-	return nil
+	return common.GetRoleKeys(c)
 }

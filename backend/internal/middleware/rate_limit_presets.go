@@ -31,7 +31,10 @@ func RefreshTokenRateLimitMiddleware(rdb *redis.Client) gin.HandlerFunc {
 	})
 }
 
-// GeneralAPIRateLimitMiddleware 一般API速率限制：每用户每秒最多50次
+// GeneralAPIRateLimitMiddleware 一般API速率限制：每用户每秒最多50次。
+// 注意：底座未注册本预设（全局限流走 cmd/server 注册的 RateLimiter，
+// 按 IP 计数——组级中间件先于 TokenAuthMiddleware 执行，取不到 userId）。
+// 保留导出供下游仓库在路由级(认证后)按用户限流使用。
 func GeneralAPIRateLimitMiddleware(rdb *redis.Client) gin.HandlerFunc {
 	return ratelimit.NewRateLimitMiddleware(rdb, ratelimit.RateLimitConfig{
 		Rate: limiter.Rate{

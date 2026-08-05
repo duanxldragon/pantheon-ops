@@ -12,6 +12,7 @@ import (
 
 	mysqlDriver "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
+	// Blank import registers the golang-migrate MySQL database driver used by RunMigrations.
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"gorm.io/gorm"
@@ -22,6 +23,7 @@ var migrationFS embed.FS
 
 const migrationsTableName = "schema_migrations"
 const menuHideInNavCompatMigrationVersion = 6
+const moduleRegistrationCompatMigrationVersion = 8
 
 type schemaColumnMarker struct {
 	table  string
@@ -40,7 +42,7 @@ var preMenuHideInNavRuntimeSchemaMarkers = []schemaColumnMarker{
 	{table: "system_generator_datasource", column: "password_encrypted"},
 }
 
-var currentRuntimeSchemaMarkers = append(
+var preModuleRegistrationRuntimeSchemaMarkers = append(
 	[]schemaColumnMarker{
 		{table: "system_menu", column: "hide_in_nav"},
 		{table: "permission_workbench_remediation_event", column: "issue_key"},
@@ -51,6 +53,13 @@ var currentRuntimeSchemaMarkers = append(
 		{table: "permission_workbench_remediation_event", column: "skipped_count"},
 	},
 	preMenuHideInNavRuntimeSchemaMarkers...,
+)
+
+var currentRuntimeSchemaMarkers = append(
+	[]schemaColumnMarker{
+		{table: "system_module_registration", column: "table_name"},
+	},
+	preModuleRegistrationRuntimeSchemaMarkers...,
 )
 
 // RunMigrations executes all pending database migrations.
@@ -75,7 +84,7 @@ func RunMigrations(dsn string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create migrate instance: %w", err)
 	}
-	defer m.Close()
+	defer func() { _, _ = m.Close() }()
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("migration failed: %w", err)
@@ -95,7 +104,7 @@ func bootstrapExistingCurrentSchema(dsn string) error {
 	if err != nil {
 		return fmt.Errorf("open mysql connection: %w", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	if err := db.Ping(); err != nil {
 		return fmt.Errorf("ping mysql connection: %w", err)
@@ -112,6 +121,14 @@ func bootstrapExistingCurrentSchema(dsn string) error {
 	}
 	if looksCurrent {
 		return bootstrapMigrationVersion(db, latestVersion)
+	}
+
+	looksPreModuleRegistration, err := looksLikePreModuleRegistrationRuntimeSchema(db)
+	if err != nil {
+		return err
+	}
+	if looksPreModuleRegistration && latestVersion >= moduleRegistrationCompatMigrationVersion {
+		return bootstrapMigrationVersion(db, moduleRegistrationCompatMigrationVersion-1)
 	}
 
 	looksPreMenuHideInNav, err := looksLikePreMenuHideInNavRuntimeSchema(db)
@@ -156,7 +173,7 @@ func writeMigrationVersion(db *sql.DB, version int, dirty bool) error {
 	if err != nil {
 		return fmt.Errorf("begin migration state transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	if _, err := tx.Exec("CREATE TABLE IF NOT EXISTS `" + migrationsTableName + "` (version bigint not null primary key, dirty boolean not null)"); err != nil {
 		return fmt.Errorf("create schema migrations table: %w", err)
@@ -197,6 +214,10 @@ func recordedMigrationVersion(db *sql.DB) (int, bool, bool, error) {
 
 func looksLikeCurrentRuntimeSchema(db *sql.DB) (bool, error) {
 	return looksLikeRuntimeSchema(db, currentRuntimeSchemaMarkers)
+}
+
+func looksLikePreModuleRegistrationRuntimeSchema(db *sql.DB) (bool, error) {
+	return looksLikeRuntimeSchema(db, preModuleRegistrationRuntimeSchemaMarkers)
 }
 
 func looksLikePreMenuHideInNavRuntimeSchema(db *sql.DB) (bool, error) {

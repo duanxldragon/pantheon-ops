@@ -57,19 +57,29 @@ func (a *GormCasbinAdapter) SavePolicy(m model.Model) error {
 		}
 
 		for sec, ptypes := range m {
-			if sec != "p" && sec != "g" {
-				continue
-			}
-			for ptype, ast := range ptypes {
-				for _, rule := range ast.Policy {
-					if err := tx.Create(newCasbinRule(ptype, rule)).Error; err != nil {
-						return err
-					}
+			if isPersistedCasbinSection(sec) {
+				if err := saveCasbinPolicySection(tx, ptypes); err != nil {
+					return err
 				}
 			}
 		}
 		return nil
 	})
+}
+
+func isPersistedCasbinSection(section string) bool {
+	return section == "p" || section == "g"
+}
+
+func saveCasbinPolicySection(tx *gorm.DB, ptypes model.AssertionMap) error {
+	for ptype, ast := range ptypes {
+		for _, rule := range ast.Policy {
+			if err := tx.Create(newCasbinRule(ptype, rule)).Error; err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (a *GormCasbinAdapter) AddPolicy(_ string, ptype string, rule []string) error {

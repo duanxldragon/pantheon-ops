@@ -61,6 +61,7 @@ export interface UserDetail {
 }
 
 export interface UserListQuery {
+  keyword?: string;
   username?: string;
   nickname?: string;
   deptId?: number;

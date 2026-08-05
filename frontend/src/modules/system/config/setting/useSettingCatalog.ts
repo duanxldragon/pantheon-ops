@@ -59,7 +59,7 @@ export function normalizeAuditRetentionTagValues(rawValues: Array<string | numbe
         .filter((item) => Number.isInteger(item) && item > 0 && item <= 365),
     ),
   ).sort((left, right) => left - right);
-  return normalized.map((item) => String(item));
+  return normalized.map(String);
 }
 
 export function parseAuditRetentionSettingValue(rawValue: string) {
@@ -129,7 +129,7 @@ export function serializeSettingValue(item: SettingItem, rawValue: SettingFormVa
     if (normalized.length === 0) {
       throw new Error('setting.value.invalid_audit_retention');
     }
-    return JSON.stringify(normalized.map((option) => Number(option)));
+    return JSON.stringify(normalized.map(Number));
   }
   if (item.valueType === 'boolean') {
     return String(Boolean(rawValue));
@@ -137,7 +137,7 @@ export function serializeSettingValue(item: SettingItem, rawValue: SettingFormVa
   if (item.valueType === 'number') {
     if (typeof rawValue === 'number') {
       if (!Number.isFinite(rawValue)) {
-        throw new Error('setting.value.invalid_number');
+        throw new TypeError('setting.value.invalid_number');
       }
       return String(rawValue);
     }
@@ -163,7 +163,7 @@ export function readFormFieldValue(
     return directValue as SettingFormValue;
   }
 
-  if (Object.prototype.hasOwnProperty.call(values, fieldKey)) {
+  if (Object.hasOwn(values, fieldKey)) {
     return values[fieldKey] as SettingFormValue;
   }
 

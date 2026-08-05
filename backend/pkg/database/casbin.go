@@ -14,11 +14,26 @@ var Enforcer *casbin.SyncedEnforcer
 // InitCasbin 初始化权限引擎
 func InitCasbin(db *gorm.DB) {
 	if db == nil {
-		slog.Error("casbin init error: database not initialized")
-		os.Exit(1)
+		exitCasbinInit("casbin init error: database not initialized", nil)
+	}
+	setCasbinWatcher(nil)
+
+	m := loadCasbinModel()
+	adapter, err := NewGormCasbinAdapter(db)
+	if err != nil {
+		exitCasbinInit("casbin adapter error", err)
 	}
 
-	// 模型 (定义在 system 模块内部或本地配置)
+	Enforcer, err = casbin.NewSyncedEnforcer(m, adapter)
+	if err != nil {
+		exitCasbinInit("casbin enforcer error", err)
+	}
+	loadCasbinPolicyOrExit("casbin load policy error")
+	seedAdminCasbinPolicies()
+	configureCasbinWatcher()
+}
+
+func loadCasbinModel() model.Model {
 	m, err := model.NewModelFromString(`
 		[request_definition]
 		r = sub, obj, act
@@ -32,41 +47,49 @@ func InitCasbin(db *gorm.DB) {
 		m = (r.sub == p.sub || g(r.sub, p.sub)) && keyMatch2(r.obj, p.obj) && r.act == p.act
 	`)
 	if err != nil {
-		slog.Error("casbin model error", "error", err)
-		os.Exit(1)
+		exitCasbinInit("casbin model error", err)
 	}
+	return m
+}
 
-	adapter, err := NewGormCasbinAdapter(db)
-	if err != nil {
-		slog.Error("casbin adapter error", "error", err)
-		os.Exit(1)
-	}
-
-	Enforcer, err = casbin.NewSyncedEnforcer(m, adapter)
-	if err != nil {
-		slog.Error("casbin enforcer error", "error", err)
-		os.Exit(1)
-	}
-	if err := Enforcer.LoadPolicy(); err != nil {
-		slog.Error("casbin load policy error", "error", err)
-		os.Exit(1)
-	}
-
+func seedAdminCasbinPolicies() {
 	changed := false
 	for _, method := range []string{"GET", "POST", "PUT", "PATCH", "DELETE"} {
 		added, err := Enforcer.AddPolicy("admin", "/api/v1/*", method)
 		if err != nil {
-			slog.Error("casbin seed policy error", "error", err)
-			os.Exit(1)
+			exitCasbinInit("casbin seed policy error", err)
 		}
-		if added {
-			changed = true
-		}
+		changed = changed || added
 	}
 	if changed {
-		if err := Enforcer.LoadPolicy(); err != nil {
-			slog.Error("casbin reload policy error", "error", err)
-			os.Exit(1)
-		}
+		loadCasbinPolicyOrExit("casbin reload policy error")
 	}
+}
+
+func loadCasbinPolicyOrExit(message string) {
+	if err := Enforcer.LoadPolicy(); err != nil {
+		exitCasbinInit(message, err)
+	}
+}
+
+func configureCasbinWatcher() {
+	watcher := initCasbinWatcher(RDB)
+	if watcher == nil {
+		return
+	}
+	if err := Enforcer.SetWatcher(watcher); err != nil {
+		slog.Warn("casbin watcher init failed", "error", err)
+		watcher.Close()
+		return
+	}
+	setCasbinWatcher(watcher)
+}
+
+func exitCasbinInit(message string, err error) {
+	if err == nil {
+		slog.Error(message)
+	} else {
+		slog.Error(message, "error", err)
+	}
+	os.Exit(1)
 }

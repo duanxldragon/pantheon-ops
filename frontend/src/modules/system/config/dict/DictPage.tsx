@@ -24,7 +24,7 @@ const emptyTypeQuery: DictTypeQuery = {
 };
 
 function isDefaultDictTypeQuery(query: DictTypeQuery) {
-  return !query.dictCode && !query.dictName && query.status === undefined;
+  return !query.keyword && !query.dictCode && !query.dictName && query.status === undefined;
 }
 
 type DictTabKey = 'types' | 'items';
@@ -172,19 +172,19 @@ const DictPage: React.FC = () => {
               key: 'types',
               label: t('system.dict.type'),
               value: typeSummary.total,
-              description: t('system.dict.hero.disabledHint'),
+              description: t('system.dict.hero.typeHint'),
             },
             {
               key: 'active',
               label: t('system.user.status.enabled'),
               value: typeSummary.active,
-              description: t('system.dict.hero.refreshHint'),
+              description: t('system.dict.hero.activeHint'),
             },
             {
               key: 'items',
               label: t('system.dict.item'),
               value: typeSummary.items,
-              description: t('system.dict.hero.importHint'),
+              description: t('system.dict.hero.itemHint'),
             },
           ]}
           action={

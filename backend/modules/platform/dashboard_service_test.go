@@ -104,12 +104,6 @@ func TestDashboardServiceGetSummaryUsesCurrentRuntimeSchema(t *testing.T) {
 	}
 }
 
-type noopGovernanceLoader struct{}
-
-func (noopGovernanceLoader) ListOrgGovernanceTasks() ([]OrgGovernanceTask, error) {
-	return nil, nil
-}
-
 type staticGovernanceLoader struct {
 	tasks []OrgGovernanceTask
 }

@@ -1,3 +1,4 @@
+//nolint:revive // This model file intentionally exports a large DTO surface.
 package system
 
 import (
@@ -44,19 +45,7 @@ type I18nResp struct {
 }
 
 func toI18nResp(item SystemI18n) I18nResp {
-	return I18nResp{
-		ID:                item.ID,
-		Module:            item.Module,
-		Group:             item.Group,
-		Key:               item.Key,
-		Locale:            item.Locale,
-		Value:             item.Value,
-		Remark:            item.Remark,
-		LifecycleStatus:   item.LifecycleStatus,
-		LifecycleMarkedAt: item.LifecycleMarkedAt,
-		CreatedAt:         item.CreatedAt,
-		UpdatedAt:         item.UpdatedAt,
-	}
+	return I18nResp(item)
 }
 
 func (SystemI18n) TableName() string {

@@ -17,13 +17,16 @@ import (
 	"strings"
 	"unicode"
 
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 // Logger 是全局 zap logger 实例
 var Logger *zap.Logger
+
+type contextKey string
+
+const requestIDContextKey contextKey = "request-id"
 
 // InitLogger 初始化全局结构化日志系统
 // 根据环境配置选择不同的日志格式：
@@ -165,16 +168,25 @@ func sanitizeLogFields(fields []zap.Field) []zap.Field {
 	return sanitized
 }
 
-// LogFromContext extracts trace ID from OpenTelemetry context and returns
-// a logger with the trace_id field injected for log correlation.
+// LogFromContext extracts the request ID from context and returns
+// a logger with the requestId field injected for log correlation.
 func LogFromContext(ctx context.Context) *zap.Logger {
+	if Logger == nil {
+		return zap.NewNop()
+	}
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	span := trace.SpanFromContext(ctx)
-	sc := span.SpanContext()
-	if sc.HasTraceID() {
-		return Logger.With(zap.String("trace_id", sc.TraceID().String()))
+	if requestID, ok := ctx.Value(requestIDContextKey).(string); ok && requestID != "" {
+		return Logger.With(zap.String("requestId", SanitizeLogValue(requestID)))
 	}
 	return Logger
+}
+
+// WithRequestID stores a request ID in context for log correlation.
+func WithRequestID(ctx context.Context, requestID string) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return context.WithValue(ctx, requestIDContextKey, requestID)
 }

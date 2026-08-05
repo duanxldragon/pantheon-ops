@@ -7,88 +7,38 @@ import (
 )
 
 func TestPrometheusMetrics(t *testing.T) {
-	t.Run("HTTPRequestsTotal", func(t *testing.T) {
-		if HTTPRequestsTotal == nil {
-			t.Error("HTTPRequestsTotal is nil")
-		}
+	tests := []struct {
+		name     string
+		metric   any
+		exercise func()
+	}{
+		{name: "HTTPRequestsTotal", metric: HTTPRequestsTotal, exercise: func() {
+			HTTPRequestsTotal.WithLabelValues("GET", "/api/test", "200").Inc()
+		}},
+		{name: "HTTPRequestDuration", metric: HTTPRequestDuration, exercise: func() {
+			HTTPRequestDuration.WithLabelValues("GET", "/api/test").Observe(0.123)
+		}},
+		{name: "DBConnectionsActive", metric: DBConnectionsActive, exercise: func() { DBConnectionsActive.Set(10) }},
+		{name: "DBConnectionsIdle", metric: DBConnectionsIdle, exercise: func() { DBConnectionsIdle.Set(5) }},
+		{name: "DBConnectionsOpen", metric: DBConnectionsOpen, exercise: func() { DBConnectionsOpen.Set(15) }},
+		{name: "RedisConnectionsActive", metric: RedisConnectionsActive, exercise: func() { RedisConnectionsActive.Set(3) }},
+		{name: "RedisConnectionsIdle", metric: RedisConnectionsIdle, exercise: func() { RedisConnectionsIdle.Set(2) }},
+		{name: "AuthLoginAttempts", metric: AuthLoginAttempts, exercise: func() {
+			AuthLoginAttempts.WithLabelValues("success").Inc()
+			AuthLoginAttempts.WithLabelValues("failed").Inc()
+			AuthLoginAttempts.WithLabelValues("locked").Inc()
+		}},
+		{name: "ActiveSessions", metric: ActiveSessions, exercise: func() { ActiveSessions.Set(100) }},
+	}
 
-		// 测试指标更新
-		HTTPRequestsTotal.WithLabelValues("GET", "/api/test", "200").Inc()
-	})
-
-	t.Run("HTTPRequestDuration", func(t *testing.T) {
-		if HTTPRequestDuration == nil {
-			t.Error("HTTPRequestDuration is nil")
-		}
-
-		// 测试指标更新
-		HTTPRequestDuration.WithLabelValues("GET", "/api/test").Observe(0.123)
-	})
-
-	t.Run("DBConnectionsActive", func(t *testing.T) {
-		if DBConnectionsActive == nil {
-			t.Error("DBConnectionsActive is nil")
-		}
-
-		// 测试指标更新
-		DBConnectionsActive.Set(10)
-	})
-
-	t.Run("DBConnectionsIdle", func(t *testing.T) {
-		if DBConnectionsIdle == nil {
-			t.Error("DBConnectionsIdle is nil")
-		}
-
-		// 测试指标更新
-		DBConnectionsIdle.Set(5)
-	})
-
-	t.Run("DBConnectionsOpen", func(t *testing.T) {
-		if DBConnectionsOpen == nil {
-			t.Error("DBConnectionsOpen is nil")
-		}
-
-		// 测试指标更新
-		DBConnectionsOpen.Set(15)
-	})
-
-	t.Run("RedisConnectionsActive", func(t *testing.T) {
-		if RedisConnectionsActive == nil {
-			t.Error("RedisConnectionsActive is nil")
-		}
-
-		// 测试指标更新
-		RedisConnectionsActive.Set(3)
-	})
-
-	t.Run("RedisConnectionsIdle", func(t *testing.T) {
-		if RedisConnectionsIdle == nil {
-			t.Error("RedisConnectionsIdle is nil")
-		}
-
-		// 测试指标更新
-		RedisConnectionsIdle.Set(2)
-	})
-
-	t.Run("AuthLoginAttempts", func(t *testing.T) {
-		if AuthLoginAttempts == nil {
-			t.Error("AuthLoginAttempts is nil")
-		}
-
-		// 测试指标更新
-		AuthLoginAttempts.WithLabelValues("success").Inc()
-		AuthLoginAttempts.WithLabelValues("failed").Inc()
-		AuthLoginAttempts.WithLabelValues("locked").Inc()
-	})
-
-	t.Run("ActiveSessions", func(t *testing.T) {
-		if ActiveSessions == nil {
-			t.Error("ActiveSessions is nil")
-		}
-
-		// 测试指标更新
-		ActiveSessions.Set(100)
-	})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.metric == nil {
+				t.Fatalf("%s is nil", tt.name)
+			}
+			tt.exercise()
+		})
+	}
 }
 
 func TestMetricsRegistration(t *testing.T) {

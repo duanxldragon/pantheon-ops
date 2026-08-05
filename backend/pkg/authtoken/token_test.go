@@ -58,6 +58,56 @@ func TestDeleteSessionPairAllowsNilRedis(t *testing.T) {
 	}
 }
 
+func TestRevokeSessionRefreshCascadesTokenDeletion(t *testing.T) {
+	rdb := testredis.Open(t)
+	ctx := context.Background()
+	const sessionID = "sess-cascade-1"
+	token := NewRefreshToken()
+	if err := StoreRefresh(ctx, rdb, token, 42, sessionID, time.Minute); err != nil {
+		t.Fatalf("store refresh: %v", err)
+	}
+	if _, _, err := ValidateRefresh(ctx, rdb, token); err != nil {
+		t.Fatalf("refresh should be valid before revoke: %v", err)
+	}
+
+	if err := RevokeSessionRefresh(ctx, rdb, sessionID); err != nil {
+		t.Fatalf("revoke session refresh: %v", err)
+	}
+	if _, _, err := ValidateRefresh(ctx, rdb, token); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("expected refresh token to be deleted after cascade, got %v", err)
+	}
+	// 幂等：重复吊销与无索引会话都应静默成功。
+	if err := RevokeSessionRefresh(ctx, rdb, sessionID); err != nil {
+		t.Fatalf("second revoke should be a no-op, got %v", err)
+	}
+	if err := RevokeSessionRefresh(ctx, rdb, "never-issued"); err != nil {
+		t.Fatalf("revoking unknown session should succeed, got %v", err)
+	}
+	if err := RevokeSessionRefresh(ctx, nil, sessionID); err != nil {
+		t.Fatalf("nil redis should be ignored, got %v", err)
+	}
+}
+
+func TestStoreRefreshRotationKeepsIndexOnLatestToken(t *testing.T) {
+	rdb := testredis.Open(t)
+	ctx := context.Background()
+	const sessionID = "sess-rotate-1"
+	oldToken := NewRefreshToken()
+	newToken := NewRefreshToken()
+	if err := StoreRefresh(ctx, rdb, oldToken, 42, sessionID, time.Minute); err != nil {
+		t.Fatalf("store old refresh: %v", err)
+	}
+	if err := StoreRefresh(ctx, rdb, newToken, 42, sessionID, time.Minute); err != nil {
+		t.Fatalf("store rotated refresh: %v", err)
+	}
+	if err := RevokeSessionRefresh(ctx, rdb, sessionID); err != nil {
+		t.Fatalf("revoke session refresh: %v", err)
+	}
+	if _, _, err := ValidateRefresh(ctx, rdb, newToken); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("expected latest refresh token to be revoked, got %v", err)
+	}
+}
+
 func TestTokenStoreOperationsHandleNilRedis(t *testing.T) {
 	ctx := context.Background()
 	if err := StoreSession(ctx, nil, "access", &SessionData{}, time.Minute); !errors.Is(err, ErrStoreNotInitialized) {

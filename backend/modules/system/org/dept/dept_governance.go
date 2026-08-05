@@ -8,10 +8,55 @@ import (
 	"pantheon-ops/backend/pkg/impexp"
 )
 
+const (
+	govActionKeepObserving   = "keep-observing"
+	govActionClearChildDepts = "clear-child-depts"
+	govActionClearPosts      = "clear-posts"
+	govActionClearUsers      = "clear-users"
+	govActionReassignUsers   = "reassign-users"
+	govTagNoPost             = "no-post"
+)
+
 // dept_governance.go - Governance functions for dept module
 
-// ListGovernanceTasks lists governance tasks for departments and posts
+// postGovernanceRow is a lightweight projection used when scanning posts for governance tasks.
+type postGovernanceRow struct {
+	ID       uint64
+	DeptID   uint64
+	PostCode string
+	PostName string
+	Status   int
+}
+
+// governanceSnapshot holds the preloaded counts and path maps shared by the task builders.
+type governanceSnapshot struct {
+	depts               []SystemDept
+	childCountByDept    map[uint64]int
+	postCountByDept     map[uint64]int
+	userCountByDept     map[uint64]int
+	postUserCountByPost map[uint64]int
+	pathByID            map[uint64]string
+}
+
+// ListGovernanceTasks lists governance tasks for departments and posts.
+// It orchestrates data loading and delegates the per-resource task building to helpers.
 func (s *DeptService) ListGovernanceTasks(query *DeptGovernanceTaskQuery) ([]DeptGovernanceTaskResp, error) {
+	snapshot, err := s.loadGovernanceSnapshot()
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]DeptGovernanceTaskResp, 0)
+	s.collectDeptGovernanceTasks(snapshot, query, &items)
+
+	if err := s.collectPostGovernanceTasks(snapshot, query, &items); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+// loadGovernanceSnapshot preloads all counts and path maps required for task building.
+func (s *DeptService) loadGovernanceSnapshot() (*governanceSnapshot, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
@@ -41,99 +86,123 @@ func (s *DeptService) ListGovernanceTasks(query *DeptGovernanceTaskQuery) ([]Dep
 		return nil, err
 	}
 
-	items := make([]DeptGovernanceTaskResp, 0)
-	for _, dept := range depts {
+	return &governanceSnapshot{
+		depts:               depts,
+		childCountByDept:    childCountByDept,
+		postCountByDept:     postCountByDept,
+		userCountByDept:     userCountByDept,
+		postUserCountByPost: postUserCountByPost,
+		pathByID:            pathByID,
+	}, nil
+}
+
+// collectDeptGovernanceTasks appends governance tasks derived from departments.
+func (s *DeptService) collectDeptGovernanceTasks(snapshot *governanceSnapshot, query *DeptGovernanceTaskQuery, items *[]DeptGovernanceTaskResp) {
+	for _, dept := range snapshot.depts {
 		if dept.IsRoot == common.StatusFlagYes {
 			continue
 		}
-		deptPath := pathByID[dept.ID]
-		governanceTags := buildDeptGovernanceTags(dept, childCountByDept[dept.ID], postCountByDept[dept.ID])
-		governanceBlockedBy := buildDeptDeleteBlockers(childCountByDept[dept.ID], postCountByDept[dept.ID], userCountByDept[dept.ID])
-		governanceActions := buildDeptGovernanceActions(governanceTags, governanceBlockedBy)
-		for index, action := range governanceActions {
-			if action == "keep-observing" {
-				continue
-			}
-			task := DeptGovernanceTaskResp{
-				TaskKey:               fmt.Sprintf("dept:%d:%s", dept.ID, action),
-				GovernanceScope:       "dept",
-				GovernanceScopeLabel:  impexp.GovernanceScopeLabel("dept"),
-				GovernanceTag:         pickDeptTaskTag(governanceTags, action),
-				GovernanceBlockedBy:   pickDeptTaskBlockedBy(governanceBlockedBy, action),
-				GovernanceAction:      action,
-				GovernanceActionLabel: impexp.GovernanceActionLabels([]string{action}),
-				DeptID:                dept.ID,
-				DeptName:              dept.DeptName,
-				DeptPath:              deptPath,
-				RelatedUserCount:      userCountByDept[dept.ID],
-				ResourceStatus:        dept.Status,
-			}
-			if task.GovernanceTag == "" && len(governanceTags) > 0 {
-				task.GovernanceTag = governanceTags[min(index, len(governanceTags)-1)]
-			}
-			if task.GovernanceBlockedBy == "" {
-				task.GovernanceBlockedBy = "none"
-			}
-			task.GovernanceTagLabel = impexp.GovernanceTagLabels([]string{task.GovernanceTag})
-			task.GovernanceBlockedByLabel = impexp.GovernanceBlockedByLabels([]string{task.GovernanceBlockedBy})
-			if matchGovernanceTaskQuery(task, query) {
-				items = append(items, task)
-			}
+		s.appendDeptGovernanceTasks(dept, snapshot, query, items)
+	}
+}
+
+// appendDeptGovernanceTasks builds and appends the governance tasks for a single department.
+func (s *DeptService) appendDeptGovernanceTasks(dept SystemDept, snapshot *governanceSnapshot, query *DeptGovernanceTaskQuery, items *[]DeptGovernanceTaskResp) {
+	deptPath := snapshot.pathByID[dept.ID]
+	governanceTags := buildDeptGovernanceTags(dept, snapshot.childCountByDept[dept.ID], snapshot.postCountByDept[dept.ID])
+	governanceBlockedBy := buildDeptDeleteBlockers(snapshot.childCountByDept[dept.ID], snapshot.postCountByDept[dept.ID], snapshot.userCountByDept[dept.ID])
+	governanceActions := buildDeptGovernanceActions(governanceTags, governanceBlockedBy)
+
+	for index, action := range governanceActions {
+		if action == govActionKeepObserving {
+			continue
+		}
+		task := DeptGovernanceTaskResp{
+			TaskKey:               fmt.Sprintf("dept:%d:%s", dept.ID, action),
+			GovernanceScope:       "dept",
+			GovernanceScopeLabel:  impexp.GovernanceScopeLabel("dept"),
+			GovernanceTag:         pickDeptTaskTag(governanceTags, action),
+			GovernanceBlockedBy:   pickDeptTaskBlockedBy(governanceBlockedBy, action),
+			GovernanceAction:      action,
+			GovernanceActionLabel: impexp.GovernanceActionLabels([]string{action}),
+			DeptID:                dept.ID,
+			DeptName:              dept.DeptName,
+			DeptPath:              deptPath,
+			RelatedUserCount:      snapshot.userCountByDept[dept.ID],
+			ResourceStatus:        dept.Status,
+		}
+		if task.GovernanceTag == "" && len(governanceTags) > 0 {
+			task.GovernanceTag = governanceTags[min(index, len(governanceTags)-1)]
+		}
+		if task.GovernanceBlockedBy == "" {
+			task.GovernanceBlockedBy = "none"
+		}
+		task.GovernanceTagLabel = impexp.GovernanceTagLabels([]string{task.GovernanceTag})
+		task.GovernanceBlockedByLabel = impexp.GovernanceBlockedByLabels([]string{task.GovernanceBlockedBy})
+		if matchGovernanceTaskQuery(task, query) {
+			*items = append(*items, task)
 		}
 	}
+}
 
-	if s.db.Migrator().HasTable("system_post") {
-		type postTaskRow struct {
-			ID       uint64
-			DeptID   uint64
-			PostCode string
-			PostName string
-			Status   int
-		}
-		posts := make([]postTaskRow, 0)
-		if err := s.db.Table("system_post").Select("id, dept_id, post_code, post_name, status").Order("sort asc").Order("id asc").Scan(&posts).Error; err != nil {
-			return nil, err
-		}
-		for _, post := range posts {
-			governanceTags := buildLocalPostGovernanceTags(post.Status, postUserCountByPost[post.ID])
-			governanceBlockedBy := buildLocalPostGovernanceBlockers(postUserCountByPost[post.ID])
-			governanceActions := buildLocalPostGovernanceActions(post.Status, postUserCountByPost[post.ID])
-			for _, action := range governanceActions {
-				if action == "keep-observing" {
-					continue
-				}
-				task := DeptGovernanceTaskResp{
-					TaskKey:               fmt.Sprintf("post:%d:%s", post.ID, action),
-					GovernanceScope:       "post",
-					GovernanceScopeLabel:  impexp.GovernanceScopeLabel("post"),
-					GovernanceTag:         pickPostTaskTag(governanceTags, action),
-					GovernanceBlockedBy:   pickPostTaskBlockedBy(governanceBlockedBy, action),
-					GovernanceAction:      action,
-					GovernanceActionLabel: impexp.GovernanceActionLabels([]string{action}),
-					DeptID:                post.DeptID,
-					DeptName:              deptNameByID(depts, post.DeptID),
-					DeptPath:              pathByID[post.DeptID],
-					PostID:                post.ID,
-					PostName:              post.PostName,
-					RelatedUserCount:      postUserCountByPost[post.ID],
-					ResourceStatus:        post.Status,
-				}
-				if task.GovernanceTag == "" && len(governanceTags) > 0 {
-					task.GovernanceTag = governanceTags[0]
-				}
-				if task.GovernanceBlockedBy == "" {
-					task.GovernanceBlockedBy = "none"
-				}
-				task.GovernanceTagLabel = impexp.GovernanceTagLabels([]string{task.GovernanceTag})
-				task.GovernanceBlockedByLabel = impexp.GovernanceBlockedByLabels([]string{task.GovernanceBlockedBy})
-				if matchGovernanceTaskQuery(task, query) {
-					items = append(items, task)
-				}
-			}
-		}
+// collectPostGovernanceTasks appends governance tasks derived from posts (when the post table exists).
+func (s *DeptService) collectPostGovernanceTasks(snapshot *governanceSnapshot, query *DeptGovernanceTaskQuery, items *[]DeptGovernanceTaskResp) error {
+	if !s.db.Migrator().HasTable("system_post") {
+		return nil
 	}
 
-	return items, nil
+	posts := make([]postGovernanceRow, 0)
+	if err := s.db.Table("system_post").
+		Select("id, dept_id, post_code, post_name, status").
+		Order("sort asc").Order("id asc").
+		Scan(&posts).Error; err != nil {
+		return err
+	}
+
+	for _, post := range posts {
+		s.appendPostGovernanceTasks(post, snapshot, query, items)
+	}
+	return nil
+}
+
+// appendPostGovernanceTasks builds and appends the governance tasks for a single post.
+func (s *DeptService) appendPostGovernanceTasks(post postGovernanceRow, snapshot *governanceSnapshot, query *DeptGovernanceTaskQuery, items *[]DeptGovernanceTaskResp) {
+	governanceTags := buildLocalPostGovernanceTags(post.Status, snapshot.postUserCountByPost[post.ID])
+	governanceBlockedBy := buildLocalPostGovernanceBlockers(snapshot.postUserCountByPost[post.ID])
+	governanceActions := buildLocalPostGovernanceActions(post.Status, snapshot.postUserCountByPost[post.ID])
+
+	for _, action := range governanceActions {
+		if action == govActionKeepObserving {
+			continue
+		}
+		task := DeptGovernanceTaskResp{
+			TaskKey:               fmt.Sprintf("post:%d:%s", post.ID, action),
+			GovernanceScope:       "post",
+			GovernanceScopeLabel:  impexp.GovernanceScopeLabel("post"),
+			GovernanceTag:         pickPostTaskTag(governanceTags, action),
+			GovernanceBlockedBy:   pickPostTaskBlockedBy(governanceBlockedBy, action),
+			GovernanceAction:      action,
+			GovernanceActionLabel: impexp.GovernanceActionLabels([]string{action}),
+			DeptID:                post.DeptID,
+			DeptName:              deptNameByID(snapshot.depts, post.DeptID),
+			DeptPath:              snapshot.pathByID[post.DeptID],
+			PostID:                post.ID,
+			PostName:              post.PostName,
+			RelatedUserCount:      snapshot.postUserCountByPost[post.ID],
+			ResourceStatus:        post.Status,
+		}
+		if task.GovernanceTag == "" && len(governanceTags) > 0 {
+			task.GovernanceTag = governanceTags[0]
+		}
+		if task.GovernanceBlockedBy == "" {
+			task.GovernanceBlockedBy = "none"
+		}
+		task.GovernanceTagLabel = impexp.GovernanceTagLabels([]string{task.GovernanceTag})
+		task.GovernanceBlockedByLabel = impexp.GovernanceBlockedByLabels([]string{task.GovernanceBlockedBy})
+		if matchGovernanceTaskQuery(task, query) {
+			*items = append(*items, task)
+		}
+	}
 }
 
 // loadDeptChildCounts loads child department counts
@@ -225,7 +294,7 @@ func buildDeptGovernanceTags(dept SystemDept, childDeptCount int, postCount int)
 		tags = append(tags, "leaderless")
 	}
 	if postCount == 0 {
-		tags = append(tags, "no-post")
+		tags = append(tags, govTagNoPost)
 	}
 	if childDeptCount == 0 && postCount == 0 {
 		tags = append(tags, "empty")
@@ -273,7 +342,7 @@ func buildDeptGovernanceActions(tags, deleteBlockedBy []string) []string {
 		switch tag {
 		case "leaderless":
 			appendAction("assign-leader")
-		case "no-post":
+		case govTagNoPost:
 			appendAction("create-post")
 		case "empty":
 			appendAction("review-merge-or-delete")
@@ -282,15 +351,15 @@ func buildDeptGovernanceActions(tags, deleteBlockedBy []string) []string {
 	for _, blocker := range deleteBlockedBy {
 		switch blocker {
 		case "children":
-			appendAction("clear-child-depts")
+			appendAction(govActionClearChildDepts)
 		case "posts":
-			appendAction("clear-posts")
+			appendAction(govActionClearPosts)
 		case "users":
-			appendAction("clear-users")
+			appendAction(govActionClearUsers)
 		}
 	}
 	if len(actions) == 0 {
-		return []string{"keep-observing"}
+		return []string{govActionKeepObserving}
 	}
 	return actions
 }
@@ -322,14 +391,14 @@ func buildLocalPostGovernanceBlockers(assignedUserCount int) []string {
 func buildLocalPostGovernanceActions(status, assignedUserCount int) []string {
 	if assignedUserCount > 0 {
 		if normalizeSystemStatus(status) == common.StatusDisabled {
-			return []string{"reassign-users", "review-status"}
+			return []string{govActionReassignUsers, "review-status"}
 		}
-		return []string{"reassign-users"}
+		return []string{govActionReassignUsers}
 	}
 	if normalizeSystemStatus(status) == common.StatusDisabled {
 		return []string{"delete-or-keep-disabled"}
 	}
-	return []string{"keep-observing"}
+	return []string{govActionKeepObserving}
 }
 
 // pickDeptTaskTag picks governance tag for a department action
@@ -338,10 +407,10 @@ func pickDeptTaskTag(tags []string, action string) string {
 	case "assign-leader":
 		return "leaderless"
 	case "create-post":
-		return "no-post"
+		return govTagNoPost
 	case "review-merge-or-delete":
 		return "empty"
-	case "clear-child-depts", "clear-posts", "clear-users":
+	case govActionClearChildDepts, govActionClearPosts, govActionClearUsers:
 		return "clean"
 	default:
 		if len(tags) > 0 {
@@ -354,11 +423,11 @@ func pickDeptTaskTag(tags []string, action string) string {
 // pickDeptTaskBlockedBy picks governance blockedBy for a department action
 func pickDeptTaskBlockedBy(blockedBy []string, action string) string {
 	switch action {
-	case "clear-child-depts":
+	case govActionClearChildDepts:
 		return "children"
-	case "clear-posts":
+	case govActionClearPosts:
 		return "posts"
-	case "clear-users":
+	case govActionClearUsers:
 		return "users"
 	default:
 		if len(blockedBy) > 0 {
@@ -371,7 +440,7 @@ func pickDeptTaskBlockedBy(blockedBy []string, action string) string {
 // pickPostTaskTag picks governance tag for a post action
 func pickPostTaskTag(tags []string, action string) string {
 	switch action {
-	case "reassign-users":
+	case govActionReassignUsers:
 		return "in-use"
 	case "review-status", "delete-or-keep-disabled":
 		return "disabled"
@@ -386,7 +455,7 @@ func pickPostTaskTag(tags []string, action string) string {
 // pickPostTaskBlockedBy picks governance blockedBy for a post action
 func pickPostTaskBlockedBy(blockedBy []string, action string) string {
 	switch action {
-	case "reassign-users":
+	case govActionReassignUsers:
 		return "users"
 	default:
 		if len(blockedBy) > 0 {

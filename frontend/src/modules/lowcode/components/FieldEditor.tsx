@@ -39,7 +39,10 @@ const { Row, Col } = Grid;
 
 function enumOptionsToText(options?: EnumOption[]) {
   return (options ?? [])
-    .map((item) => `${item.value}|${item.label}${item.color ? `|${item.color}` : ''}`)
+    .map((item) => {
+      const colorSuffix = item.color ? `|${item.color}` : '';
+      return `${item.value}|${item.label}${colorSuffix}`;
+    })
     .join('\n');
 }
 

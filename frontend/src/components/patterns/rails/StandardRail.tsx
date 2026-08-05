@@ -1,6 +1,6 @@
 import React from 'react';
 import { SideRailItem, SideRailNote, SideRailPanel, SideRailStack } from './SideRail';
-import type { RailSummaryItem, RailSummaryTone } from './RailSummary';
+import { withRailSummaryKeys, type RailSummaryItem, type RailSummaryTone } from './RailSummary';
 
 interface StandardRailSummaryProps {
   title?: React.ReactNode;
@@ -26,9 +26,9 @@ export const StandardRailSummary: React.FC<StandardRailSummaryProps> = ({
 }) => (
   <SideRailPanel title={title} className={panelClassName}>
     <SideRailStack className={className}>
-      {items.map((item, index) => (
+      {withRailSummaryKeys(items).map(({ key, item }) => (
         <SideRailItem
-          key={index}
+          key={key}
           label={item.label}
           value={item.value}
           description={item.description}

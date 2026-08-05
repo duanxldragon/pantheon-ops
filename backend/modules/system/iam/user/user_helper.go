@@ -13,15 +13,19 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+const condIDIn = "id IN ?"
+
 func normalizeStatus(status int) int {
 	return common.NormalizeEnabledStatus(status)
 }
 
-func normalizeUserPageQuery(query *UserListQuery) (int, int) {
+const maxUserPageOffset = 100000
+
+func normalizeUserPageQuery(query *UserListQuery) (int, int, error) {
 	page := 1
 	pageSize := 10
 	if query == nil {
-		return page, pageSize
+		return page, pageSize, nil
 	}
 	if query.Page > 0 {
 		page = query.Page
@@ -32,7 +36,10 @@ func normalizeUserPageQuery(query *UserListQuery) (int, int) {
 	if pageSize > 100 {
 		pageSize = 100
 	}
-	return page, pageSize
+	if int64(page-1)*int64(pageSize) > maxUserPageOffset {
+		return 0, 0, common.NewBadRequest("param.page.too_large")
+	}
+	return page, pageSize, nil
 }
 
 func normalizeUserSort(query *UserListQuery) (string, bool) {
@@ -141,29 +148,33 @@ func (s *UserService) validateUserUpdate(user *SystemUser, req *UserUpdateReq) e
 	if err := s.ensureUserRoleIDs(req.RoleIDs); err != nil {
 		return err
 	}
+	return s.validateBuiltinAdminUpdate(user, req)
+}
 
-	if user.ID == 1 && req.Status == common.StatusDisabled {
+func (s *UserService) validateBuiltinAdminUpdate(user *SystemUser, req *UserUpdateReq) error {
+	if user.ID != common.BuiltinAdminUserID {
+		return nil
+	}
+	if user.ID == common.BuiltinAdminUserID && req.Status == common.StatusDisabled {
 		return common.NewForbidden("user.update.error.protected")
 	}
-	if user.ID == 1 {
-		adminRoleID, err := s.getAdminRoleID()
-		if err != nil {
-			return err
-		}
-		if adminRoleID > 0 {
-			hasAdmin := false
-			for _, roleID := range normalizeUint64IDs(req.RoleIDs) {
-				if roleID == adminRoleID {
-					hasAdmin = true
-					break
-				}
-			}
-			if !hasAdmin {
-				return common.NewForbidden("user.update.error.protected")
-			}
-		}
+	adminRoleID, err := s.getAdminRoleID()
+	if err != nil {
+		return err
+	}
+	if adminRoleID > 0 && !containsUint64(normalizeUint64IDs(req.RoleIDs), adminRoleID) {
+		return common.NewForbidden("user.update.error.protected")
 	}
 	return nil
+}
+
+func containsUint64(values []uint64, target uint64) bool {
+	for _, value := range values {
+		if value == target {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *UserService) ensureUserRoleIDs(roleIDs []uint64) error {
@@ -348,7 +359,7 @@ func (s *UserService) loadDeptNames(users []SystemUser) (map[uint64]string, erro
 		DeptName string `gorm:"column:dept_name"`
 	}
 	var rows []deptNameRow
-	if err := s.db.Table("system_dept").Select("id, dept_name").Where("id IN ?", deptIDs).Scan(&rows).Error; err != nil {
+	if err := s.db.Table("system_dept").Select("id, dept_name").Where(condIDIn, deptIDs).Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 	for _, row := range rows {
@@ -380,7 +391,7 @@ func (s *UserService) loadPostNames(users []SystemUser) (map[uint64]string, erro
 		PostName string `gorm:"column:post_name"`
 	}
 	var rows []postNameRow
-	if err := s.db.Table("system_post").Select("id, post_name").Where("id IN ?", postIDs).Scan(&rows).Error; err != nil {
+	if err := s.db.Table("system_post").Select("id, post_name").Where(condIDIn, postIDs).Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 	for _, row := range rows {
@@ -412,7 +423,7 @@ func (s *UserService) loadPostCodes(users []SystemUser) (map[uint64]string, erro
 		PostCode string `gorm:"column:post_code"`
 	}
 	var rows []postCodeRow
-	if err := s.db.Table("system_post").Select("id, post_code").Where("id IN ?", postIDs).Scan(&rows).Error; err != nil {
+	if err := s.db.Table("system_post").Select("id, post_code").Where(condIDIn, postIDs).Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 	for _, row := range rows {
@@ -533,10 +544,7 @@ func (s *UserService) loadUserProfileExt(userID uint64) (map[string]interface{},
 		return nil, nil
 	}
 	var ext SystemUserProfileExt
-	if err := s.db.First(&ext, "user_id = ?", userID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
+	if err := s.db.Where("user_id = ?", userID).Limit(1).Find(&ext).Error; err != nil {
 		return nil, err
 	}
 	return unmarshalUserProfileExt(ext.ProfileJSON)

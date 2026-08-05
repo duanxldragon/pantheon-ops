@@ -74,5 +74,9 @@ export function clearClientAuthSession() {
 }
 
 export function hasAuthSessionHint(): boolean {
-  return sessionHintStored || inMemoryCsrfToken !== '' || readStorage(CLIENT_SESSION_HINT_STORAGE_KEY) === '1';
+  return (
+    sessionHintStored ||
+    inMemoryCsrfToken !== '' ||
+    readStorage(CLIENT_SESSION_HINT_STORAGE_KEY) === '1'
+  );
 }

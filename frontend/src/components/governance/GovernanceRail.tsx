@@ -8,7 +8,11 @@ import {
   SideRailPanel,
   SideRailStack,
 } from '../patterns/rails/SideRail';
-import type { RailSummaryItem, RailSummaryTone } from '../patterns/rails/RailSummary';
+import {
+  withRailSummaryKeys,
+  type RailSummaryItem,
+  type RailSummaryTone,
+} from '../patterns/rails/RailSummary';
 
 interface GovernanceRailToggleButtonProps {
   expanded: boolean;
@@ -102,9 +106,9 @@ export const GovernanceRailSummary: React.FC<GovernanceRailSummaryProps> = ({
   className,
 }) => (
   <SideRailStack className={className}>
-    {items.map((item, index) => (
+    {withRailSummaryKeys(items).map(({ key, item }) => (
       <SideRailItem
-        key={index}
+        key={key}
         label={item.label}
         value={item.value}
         description={item.description}

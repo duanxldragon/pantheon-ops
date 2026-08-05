@@ -12,12 +12,7 @@ import {
   Tag,
   Typography,
 } from '@arco-design/web-react';
-import {
-  IconCode,
-  IconDownload,
-  IconPlus,
-  IconRefresh,
-} from '@arco-design/web-react/icon';
+import { IconCode, IconDownload, IconPlus, IconRefresh } from '@arco-design/web-react/icon';
 import { message } from '../../../../components/feedback/message';
 import { isRequestError, ensureOperationVerified } from '../../../../api/request';
 import PermissionAction from '../../../../components/patterns/PermissionAction';
@@ -35,7 +30,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { auditPendingActivations, getModuleStatus } from '../../dynamicmodule/api';
 
-import type { GenerateAndRegisterResp, GeneratedFile } from '../api';
 import {
   createGeneratorDatasource,
   deleteGeneratorDatasource,
@@ -47,6 +41,8 @@ import {
   previewGeneratedFiles as requestPreviewGeneratedFiles,
   testGeneratorDatasource,
   updateGeneratorDatasource,
+  type GenerateAndRegisterResp,
+  type GeneratedFile,
   type GeneratorDatasource,
   type GeneratorTableOption,
   type UpsertGeneratorDatasourcePayload,
@@ -55,6 +51,7 @@ import { FieldEditor } from '../../components/FieldEditor';
 import { CodePreview } from '../../components/CodePreview';
 import DatasourceManagerModal from './components/DatasourceManagerModal';
 import MenuPreviewTree from './components/MenuPreviewTree';
+import '../../../system/components/shared/list-page.css';
 import './ModuleWizard.css';
 import {
   buildDashboardQuickActionDescriptionKey,
@@ -108,6 +105,48 @@ interface TranslationPreviewRow {
   en: string;
 }
 
+interface ResolvedModuleMetadata {
+  businessContext?: string;
+  businessContextTitle?: string;
+  businessContextTitleEn?: string;
+  tableRole: BusinessTableRole;
+  primaryTable?: string;
+  relationFromField?: string;
+  relationToField?: string;
+  boundedContext?: string;
+  owner?: string;
+  summary?: string;
+  sourceMode: 'manual' | 'database';
+  sourceDatasourceId?: string;
+  sourceDatasourceName?: string;
+  sourceTable?: string;
+  autoRecycle: boolean;
+}
+
+interface BuildModuleSchemaInput {
+  values: Partial<ModuleSchema>;
+  metadata: ResolvedModuleMetadata;
+  fields: ModuleField[];
+  templateVersion: 'v1';
+  dependencyModulesText: string;
+  relationContractsText: string;
+  enableDataScope: boolean;
+  includeDashboardWidget: boolean;
+  listLayout: ModuleListLayoutConfig;
+  dataScopeMode: DataScopeMode;
+  translationOverrides: Record<string, TranslationOverride>;
+  actionLabel: (action: Exclude<PageActionKey, 'detail'>, locale: 'zh-CN' | 'en-US') => string;
+}
+
+interface CsvParseState {
+  current: string;
+  row: string[];
+  rows: string[][];
+  inQuotes: boolean;
+}
+
+type RegistrationErrorKind = 'cancelled' | 'disabled' | 'overwrite' | 'request' | 'unknown';
+
 function resolvePreferredDatasourceId(
   items: Array<Pick<GeneratorDatasource, 'id' | 'isCurrent'>>,
   selectedDatasourceId: string,
@@ -147,52 +186,80 @@ function escapeCsvCell(value: string): string {
   if (!/[",\n\r]/.test(normalized)) {
     return normalized;
   }
-  return `"${normalized.replace(/"/g, '""')}"`;
+  return `"${normalized.replaceAll('"', '""')}"`;
+}
+
+function verificationStatusColor(status: string): string {
+  if (status === 'pass') {
+    return 'green';
+  }
+  if (status === 'warn') {
+    return 'orange';
+  }
+  return 'arcoblue';
+}
+
+function moduleActivationStatusKey(status: number): string {
+  if (status === 1) {
+    return 'generator.moduleManager.status.active';
+  }
+  if (status === 2) {
+    return 'generator.moduleManager.status.uninstalled';
+  }
+  return 'generator.moduleManager.status.pending';
+}
+
+function appendCsvRow(state: CsvParseState) {
+  state.row.push(state.current);
+  if (state.row.some((cell) => cell.trim() !== '')) {
+    state.rows.push(state.row);
+  }
+  state.row = [];
+  state.current = '';
+}
+
+function consumeCsvCharacter(
+  state: CsvParseState,
+  char: string,
+  next: string | undefined,
+): boolean {
+  if (char === '"' && state.inQuotes && next === '"') {
+    state.current += '"';
+    return true;
+  }
+  if (char === '"') {
+    state.inQuotes = !state.inQuotes;
+    return false;
+  }
+  if (char === ',' && !state.inQuotes) {
+    state.row.push(state.current);
+    state.current = '';
+    return false;
+  }
+  if ((char === '\n' || char === '\r') && !state.inQuotes) {
+    appendCsvRow(state);
+    return char === '\r' && next === '\n';
+  }
+  state.current += char;
+  return false;
 }
 
 function parseCsvRows(content: string): string[][] {
-  const rows: string[][] = [];
-  let current = '';
-  let row: string[] = [];
-  let inQuotes = false;
+  const state: CsvParseState = {
+    current: '',
+    row: [],
+    rows: [],
+    inQuotes: false,
+  };
 
   for (let index = 0; index < content.length; index += 1) {
-    const char = content[index];
-    const next = content[index + 1];
-    if (char === '"' && inQuotes && next === '"') {
-      current += '"';
+    if (consumeCsvCharacter(state, content[index], content[index + 1])) {
       index += 1;
-      continue;
     }
-    if (char === '"') {
-      inQuotes = !inQuotes;
-      continue;
-    }
-    if (char === ',' && !inQuotes) {
-      row.push(current);
-      current = '';
-      continue;
-    }
-    if ((char === '\n' || char === '\r') && !inQuotes) {
-      if (char === '\r' && next === '\n') {
-        index += 1;
-      }
-      row.push(current);
-      if (row.some((cell) => cell.trim() !== '')) {
-        rows.push(row);
-      }
-      row = [];
-      current = '';
-      continue;
-    }
-    current += char;
   }
 
-  row.push(current);
-  if (row.some((cell) => cell.trim() !== '')) {
-    rows.push(row);
-  }
-  return rows;
+  appendCsvRow(state);
+  return state.rows;
 }
 
 function readFileText(file: File): Promise<string> {
@@ -207,6 +274,441 @@ function readFileText(file: File): Promise<string> {
     };
     reader.readAsText(file, 'utf-8');
   });
+}
+
+function parseDependencyModules(value: string) {
+  return value
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((module) => ({ module, required: true }));
+}
+
+function parseRelationContracts(value: string) {
+  return value
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => {
+      const [
+        name = '',
+        type = 'lookup',
+        targetModule = '',
+        localField = '',
+        targetField = '',
+        targetLabelField = '',
+        lookupApi = '',
+        lookupValueField = '',
+        junctionTable = '',
+      ] = item.split('|').map((part) => part.trim());
+      return {
+        name,
+        type: type as ModuleRelationType,
+        targetModule,
+        localField,
+        targetField,
+        targetLabelField: targetLabelField || undefined,
+        lookupApi: lookupApi || undefined,
+        lookupValueField: lookupValueField || undefined,
+        junctionTable: junctionTable || undefined,
+      };
+    });
+}
+
+function buildFieldTranslations(
+  scope: ModuleScope,
+  name: string,
+  fields: ModuleField[],
+  locale: 'zh' | 'en',
+  titleKey: string,
+  title: string,
+): Record<string, string> {
+  return fields.reduce<Record<string, string>>(
+    (translations, field) => {
+      const isEnglish = locale === 'en';
+      translations[buildFieldLabelKey(scope, name, field.name)] =
+        (isEnglish ? field.labelEn : field.label) || field.label;
+      const placeholder = isEnglish ? field.placeholderEn || field.placeholder : field.placeholder;
+      if (placeholder) {
+        translations[buildFieldPlaceholderKey(scope, name, field.name)] = placeholder;
+      }
+      const helpText = isEnglish ? field.helpTextEn || field.helpText : field.helpText;
+      if (helpText) {
+        translations[buildFieldHelpTextKey(scope, name, field.name)] = helpText;
+      }
+      for (const item of field.enumOptions ?? []) {
+        translations[buildEnumOptionKey(scope, name, field.name, item.value)] =
+          (isEnglish ? item.labelEn : item.label) || item.label;
+      }
+      return translations;
+    },
+    { [titleKey]: title },
+  );
+}
+
+function addDashboardTranslations(
+  translations: { zh: Record<string, string>; en: Record<string, string> },
+  enabled: boolean,
+  key: string,
+  displayName: string,
+  displayNameEn: string,
+) {
+  if (!enabled) {
+    return;
+  }
+  translations.zh[key] = `进入${displayName}`;
+  translations.en[key] = `Open ${displayNameEn}`;
+}
+
+function addMenuGroupTranslations(
+  translations: { zh: Record<string, string>; en: Record<string, string> },
+  scope: ModuleScope,
+  moduleSegments: string[],
+  businessContext: string,
+  businessContextTitle: string,
+  businessContextTitleEn: string,
+) {
+  moduleSegments.slice(0, -1).forEach((_, index) => {
+    const groupSegments = moduleSegments.slice(0, index + 1);
+    const groupTitleKey = buildMenuGroupTitleKey(scope, groupSegments);
+    const isBusinessContext = index === 0 && groupSegments[0] === businessContext;
+    const groupDisplayName = isBusinessContext
+      ? businessContextTitle
+      : inferMenuGroupDisplayName(groupSegments.at(-1) ?? '');
+    const groupDisplayNameEn = isBusinessContext ? businessContextTitleEn : groupDisplayName;
+    translations.zh[groupTitleKey] = translations.zh[groupTitleKey] || groupDisplayName;
+    translations.en[groupTitleKey] = translations.en[groupTitleKey] || groupDisplayNameEn;
+  });
+}
+
+function addActionTranslations(
+  translations: { zh: Record<string, string>; en: Record<string, string> },
+  scope: ModuleScope,
+  name: string,
+  pageActions: PageActionKey[],
+  displayName: string,
+  displayNameEn: string,
+  actionLabel: BuildModuleSchemaInput['actionLabel'],
+) {
+  pageActions
+    .filter((action) => action !== 'detail')
+    .forEach((action) => {
+      const key = buildPermissionTitleKey(scope, name, action);
+      translations.zh[key] = `${actionLabel(action, 'zh-CN')}${displayName}`;
+      translations.en[key] = `${actionLabel(action, 'en-US')} ${displayNameEn}`;
+    });
+
+  for (const action of ['create', 'update', 'delete'] as const) {
+    const key = buildAuditActionKey(scope, name, action);
+    translations.zh[key] = `${actionLabel(action, 'zh-CN')}${displayName}`;
+    translations.en[key] = `${actionLabel(action, 'en-US')} ${displayNameEn}`;
+  }
+}
+
+function applyTranslationOverrides(
+  translations: { zh: Record<string, string>; en: Record<string, string> },
+  overrides: Record<string, TranslationOverride>,
+) {
+  Object.entries(overrides).forEach(([key, override]) => {
+    if (Object.hasOwn(translations.zh, key) && override.zh !== undefined) {
+      translations.zh[key] = override.zh;
+    }
+    if (Object.hasOwn(translations.en, key) && override.en !== undefined) {
+      translations.en[key] = override.en;
+    }
+  });
+}
+
+function buildListLayout(
+  requested: ModuleListLayoutConfig,
+  metadata: ResolvedModuleMetadata,
+  fields: ModuleField[],
+  pageActions: PageActionKey[],
+  enableExport: boolean,
+  enableImport: boolean,
+): ModuleListLayoutConfig {
+  const hasSearchableFields = fields.some((field) => field.searchable);
+  const hasVisibleListFields = fields.some((field) => field.visibleInList !== false);
+  return {
+    governance:
+      requested.governance !== false &&
+      Boolean(metadata.primaryTable || metadata.relationFromField || metadata.relationToField),
+    search: hasSearchableFields && requested.search !== false,
+    headerActions:
+      (enableExport || enableImport || pageActions.includes('create')) &&
+      requested.headerActions !== false,
+    batchActions:
+      pageActions.some((action) => ['update', 'delete'].includes(action)) &&
+      requested.batchActions !== false,
+    rowActions:
+      hasVisibleListFields &&
+      pageActions.some((action) => ['view', 'detail', 'update', 'delete'].includes(action)) &&
+      requested.rowActions !== false,
+  };
+}
+
+function buildModuleSchema(input: BuildModuleSchemaInput): ModuleSchema {
+  const { values, metadata } = input;
+  const name = normalizeModulePath(values.name || '');
+  const displayName = values.displayName || '';
+  const displayNameEn = values.displayNameEn || displayName;
+  const scope = (values.scope as ModuleScope | undefined) || 'business';
+  const templateLevel = (values.templateLevel as TemplateLevel | undefined) || 'enterprise';
+  const tableRole = metadata.tableRole || 'main';
+  const canAttachDashboardWidget = scope === 'business' && tableRole !== 'relation';
+  const pageActionTemplate =
+    (values.pageActionTemplate as PageActionTemplate | undefined) || 'standard';
+  const pageActions =
+    tableRole === 'relation'
+      ? []
+      : ((values.pageActions as PageActionKey[] | undefined) ??
+        getPageActions({
+          pageActionTemplate,
+          enableExport: templateLevel === 'enterprise',
+          enableImport: templateLevel === 'enterprise',
+        }));
+  const enableExport = pageActions.includes('export');
+  const enableImport = pageActions.includes('import');
+  const model = values.model || {
+    tableName: scope === 'system' ? `system_${name}` : `biz_${name}`,
+    fields: [],
+  };
+  const normalizedFields = normalizeFields(input.fields);
+  const titleKey = buildTitleKey(scope, name);
+  const businessContext = normalizeBusinessContext(
+    metadata.businessContext || inferBusinessContextFromName(name),
+  );
+  const businessContextTitle =
+    metadata.businessContextTitle || inferMenuGroupDisplayName(businessContext);
+  const businessContextTitleEn = metadata.businessContextTitleEn || businessContextTitle;
+  const translations = {
+    zh: buildFieldTranslations(scope, name, normalizedFields, 'zh', titleKey, displayName),
+    en: buildFieldTranslations(scope, name, normalizedFields, 'en', titleKey, displayNameEn),
+  };
+  addDashboardTranslations(
+    translations,
+    canAttachDashboardWidget && input.includeDashboardWidget,
+    buildDashboardQuickActionDescriptionKey(scope, name),
+    displayName,
+    displayNameEn,
+  );
+  addMenuGroupTranslations(
+    translations,
+    scope,
+    name.split('/').filter(Boolean),
+    businessContext,
+    businessContextTitle,
+    businessContextTitleEn,
+  );
+  addActionTranslations(
+    translations,
+    scope,
+    name,
+    pageActions,
+    displayName,
+    displayNameEn,
+    input.actionLabel,
+  );
+  applyTranslationOverrides(translations, input.translationOverrides);
+
+  const schema: ModuleSchema = {
+    name,
+    templateVersion: input.templateVersion,
+    displayName,
+    description: values.description,
+    displayNameEn,
+    scope,
+    templateLevel,
+    parentMenu: normalizeMenuPath(values.parentMenu),
+    pageActionTemplate,
+    pageActions,
+    dependencies: parseDependencyModules(input.dependencyModulesText),
+    relations: parseRelationContracts(input.relationContractsText),
+    dataScopeMode: input.enableDataScope ? input.dataScopeMode : 'none',
+    listLayout: buildListLayout(
+      input.listLayout,
+      metadata,
+      normalizedFields,
+      pageActions,
+      enableExport,
+      enableImport,
+    ),
+    metadata: {
+      businessContext,
+      businessContextTitle,
+      businessContextTitleEn,
+      tableRole,
+      primaryTable: metadata.primaryTable,
+      relationFromField: metadata.relationFromField,
+      relationToField: metadata.relationToField,
+      boundedContext: metadata.boundedContext,
+      owner: metadata.owner,
+      summary: metadata.summary,
+      sourceMode: metadata.sourceMode,
+      sourceDatasourceId: metadata.sourceDatasourceId,
+      sourceDatasourceName: metadata.sourceDatasourceName,
+      sourceTable: metadata.sourceTable,
+      autoRecycle: metadata.autoRecycle,
+    },
+    model: {
+      tableName: model.tableName,
+      modelName: inferModelName({
+        name,
+        displayName,
+        scope,
+        templateLevel,
+        pageActionTemplate,
+        pageActions,
+        model,
+        menus: [],
+        permissions: [],
+        i18n: { namespace: '', translations: { zh: {}, en: {} } },
+      } as ModuleSchema),
+      fields: normalizedFields,
+    },
+    menus: [],
+    permissions: [],
+    i18n: {
+      namespace: buildModuleNamespace(scope, name),
+      translations,
+    },
+    enableExport,
+    enableImport,
+    enableAudit: templateLevel === 'enterprise',
+    enableDataScope: input.enableDataScope,
+    includeDashboardWidget: canAttachDashboardWidget ? input.includeDashboardWidget : false,
+  };
+
+  schema.menus = generateDefaultMenus(schema);
+  schema.permissions = generateDefaultPermissions(schema);
+  return schema;
+}
+
+function classifyRegistrationError(error: unknown, overwrite: boolean): RegistrationErrorKind {
+  if (error instanceof Error && error.message === SECONDARY_VERIFY_CANCELLED_ERROR) {
+    return 'cancelled';
+  }
+  if (isRequestError(error) && error.messageKey === 'module.dynamic.disabled') {
+    return 'disabled';
+  }
+  if (
+    isRequestError(error) &&
+    (error.messageKey === 'module.generate.file_exists' ||
+      error.messageKey === 'module.generate.already_exists') &&
+    !overwrite
+  ) {
+    return 'overwrite';
+  }
+  return isRequestError(error) ? 'request' : 'unknown';
+}
+
+function resolvePreviewSchema(currentStep: number, buildSchema: () => ModuleSchema) {
+  return currentStep >= 2 ? buildSchema() : null;
+}
+
+function schemaKey(schema: ModuleSchema | null): string {
+  return schema ? JSON.stringify(schema) : '';
+}
+
+function resolvePreviewMenuTree(schema: ModuleSchema | null) {
+  return schema ? buildMenuPreview(schema) : [];
+}
+
+function resolvePreviewCompletenessIssues(schema: ModuleSchema | null) {
+  return schema ? validateGeneratorCompleteness(schema) : [];
+}
+
+function resolvePreviewGeneratedFiles(
+  generatedSchemaKey: string,
+  previewSchemaKey: string,
+  generatedFiles: GeneratedFile[],
+) {
+  return generatedSchemaKey === previewSchemaKey ? generatedFiles : [];
+}
+
+function buildTranslationPreviewRows(schema: ModuleSchema | null): TranslationPreviewRow[] {
+  if (!schema) {
+    return [];
+  }
+  return Array.from(
+    new Set([
+      ...Object.keys(schema.i18n.translations.zh),
+      ...Object.keys(schema.i18n.translations.en),
+    ]),
+  )
+    .sort((a, b) => a.localeCompare(b))
+    .map((key) => ({
+      key,
+      zh: schema.i18n.translations.zh[key] || '',
+      en: schema.i18n.translations.en[key] || '',
+    }));
+}
+
+function renderWhen(condition: boolean, node: React.ReactNode): React.ReactNode {
+  return condition ? node : null;
+}
+
+function renderSchemaStep(
+  currentStep: number,
+  expectedStep: number,
+  schema: ModuleSchema | null,
+  render: (schema: ModuleSchema) => React.ReactNode,
+): React.ReactNode {
+  if (currentStep !== expectedStep || !schema) {
+    return null;
+  }
+  return render(schema);
+}
+
+function renderRegistrationResult(
+  result: GenerateAndRegisterResp | null,
+  summary: GenerateAndRegisterResp['summary'] | undefined,
+  render: (
+    result: GenerateAndRegisterResp,
+    summary: GenerateAndRegisterResp['summary'],
+  ) => React.ReactNode,
+): React.ReactNode {
+  if (!result || !summary) {
+    return null;
+  }
+  return render(result, summary);
+}
+
+function choose<T>(condition: boolean, whenTrue: T, whenFalse: T): T {
+  return condition ? whenTrue : whenFalse;
+}
+
+function valueOr<T>(value: T | null | undefined | false | '', fallback: T): T {
+  return value || fallback;
+}
+
+function hasAccess(isAdmin: boolean, hasPermission: boolean): boolean {
+  return isAdmin || hasPermission;
+}
+
+function buildWizardStepClass(index: number, currentStep: number): string {
+  const activeClass = index === currentStep ? ' generator-wizard__step-card--active' : '';
+  const doneClass = index < currentStep ? ' generator-wizard__step-card--done' : '';
+  return `generator-wizard__step-card${activeClass}${doneClass}`;
+}
+
+function resolveSelectedActionTemplate(values: Partial<ModuleSchema>): PageActionTemplate {
+  return (values.pageActionTemplate as PageActionTemplate | undefined) || 'standard';
+}
+
+function isOneClickRegistrationEnabled(
+  currentStep: number,
+  schemaScope: ModuleScope,
+  generatedSchemaKey: string,
+  previewSchemaKey: string,
+  generatedFileCount: number,
+): boolean {
+  return (
+    currentStep === 3 &&
+    schemaScope === 'business' &&
+    generatedSchemaKey === previewSchemaKey &&
+    generatedFileCount > 0
+  );
 }
 
 const ModuleWizard: React.FC = () => {
@@ -253,7 +755,7 @@ const ModuleWizard: React.FC = () => {
     Record<string, TranslationOverride>
   >({});
   const [datasourceForm] = Form.useForm<UpsertGeneratorDatasourcePayload>();
-  const canManageDatasources = isAdmin || hasPerm('system:generator:datasource:manage');
+  const canManageDatasources = hasAccess(isAdmin, hasPerm('system:generator:datasource:manage'));
   const actionLabel = (action: Exclude<PageActionKey, 'detail'>, locale: 'zh-CN' | 'en-US') =>
     t(`generator.pageActions.${action}`, { lng: locale });
 
@@ -353,44 +855,7 @@ const ModuleWizard: React.FC = () => {
 
   const getAllFormValues = () => form.getFields() as Partial<ModuleSchema>;
 
-  const parseDependencyModules = () =>
-    dependencyModulesText
-      .split(/[\n,]/)
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .map((module) => ({ module, required: true }));
-
-  const parseRelationContracts = () =>
-    relationContractsText
-      .split('\n')
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .map((item) => {
-        const [
-          name = '',
-          type = 'lookup',
-          targetModule = '',
-          localField = '',
-          targetField = '',
-          targetLabelField = '',
-          lookupApi = '',
-          lookupValueField = '',
-          junctionTable = '',
-        ] = item.split('|').map((part) => part.trim());
-        return {
-          name,
-          type: type as ModuleRelationType,
-          targetModule,
-          localField,
-          targetField,
-          targetLabelField: targetLabelField || undefined,
-          lookupApi: lookupApi || undefined,
-          lookupValueField: lookupValueField || undefined,
-          junctionTable: junctionTable || undefined,
-        };
-      });
-
-  const readMetadataValues = () => {
+  const readMetadataValues = (): ResolvedModuleMetadata => {
     const metadata = getAllFormValues().metadata;
     return {
       businessContext: metadata?.businessContext || undefined,
@@ -411,217 +876,21 @@ const ModuleWizard: React.FC = () => {
     };
   };
 
-  const buildSchema = (): ModuleSchema => {
-    const values = getAllFormValues();
-    const metadata = readMetadataValues();
-    const name = normalizeModulePath(values.name || '');
-    const displayName = values.displayName || '';
-    const displayNameEn = values.displayNameEn || displayName;
-    const scope = (values.scope as ModuleScope | undefined) || 'business';
-    const parentMenu = normalizeMenuPath(values.parentMenu);
-    const templateLevel = (values.templateLevel as TemplateLevel | undefined) || 'enterprise';
-    const tableRole = (metadata.tableRole as BusinessTableRole | undefined) || 'main';
-    const canAttachDashboardWidget = scope === 'business' && tableRole !== 'relation';
-    const pageActionTemplate =
-      (values.pageActionTemplate as PageActionTemplate | undefined) || 'standard';
-    const pageActions =
-      tableRole === 'relation'
-        ? []
-        : ((values.pageActions as PageActionKey[] | undefined) ??
-          getPageActions({
-            pageActionTemplate,
-            enableExport: templateLevel === 'enterprise',
-            enableImport: templateLevel === 'enterprise',
-          }));
-    const enableExport = pageActions.includes('export');
-    const enableImport = pageActions.includes('import');
-    const model = values.model || {
-      tableName: scope === 'system' ? `system_${name}` : `biz_${name}`,
-      fields: [],
-    };
-    const normalizedFields = normalizeFields(fields);
-    const hasSearchableFields = normalizedFields.some((field) => field.searchable);
-    const hasVisibleListFields = normalizedFields.some((field) => field.visibleInList !== false);
-    const titleKey = buildTitleKey(scope, name);
-    const dashboardQuickActionDescriptionKey = buildDashboardQuickActionDescriptionKey(scope, name);
-    const moduleSegments = name.split('/').filter(Boolean);
-    const businessContext = normalizeBusinessContext(
-      metadata.businessContext || inferBusinessContextFromName(name),
-    );
-    const businessContextTitle =
-      metadata.businessContextTitle || inferMenuGroupDisplayName(businessContext);
-    const businessContextTitleEn = metadata.businessContextTitleEn || businessContextTitle;
-    const zhTranslations = normalizedFields.reduce<Record<string, string>>(
-      (acc, field) => {
-        acc[buildFieldLabelKey(scope, name, field.name)] = field.label;
-        if (field.placeholder) {
-          acc[buildFieldPlaceholderKey(scope, name, field.name)] = field.placeholder;
-        }
-        if (field.helpText) {
-          acc[buildFieldHelpTextKey(scope, name, field.name)] = field.helpText;
-        }
-        for (const item of field.enumOptions ?? []) {
-          acc[buildEnumOptionKey(scope, name, field.name, item.value)] = item.label;
-        }
-        return acc;
-      },
-      {
-        [titleKey]: displayName,
-      },
-    );
-    const enTranslations = normalizedFields.reduce<Record<string, string>>(
-      (acc, field) => {
-        acc[buildFieldLabelKey(scope, name, field.name)] = field.labelEn || field.label;
-        if (field.placeholder || field.placeholderEn) {
-          acc[buildFieldPlaceholderKey(scope, name, field.name)] =
-            field.placeholderEn || field.placeholder || '';
-        }
-        if (field.helpText || field.helpTextEn) {
-          acc[buildFieldHelpTextKey(scope, name, field.name)] =
-            field.helpTextEn || field.helpText || '';
-        }
-        for (const item of field.enumOptions ?? []) {
-          acc[buildEnumOptionKey(scope, name, field.name, item.value)] = item.labelEn || item.label;
-        }
-        return acc;
-      },
-      {
-        [titleKey]: displayNameEn,
-      },
-    );
-    if (canAttachDashboardWidget && includeDashboardWidget) {
-      zhTranslations[dashboardQuickActionDescriptionKey] = `进入${displayName}`;
-      enTranslations[dashboardQuickActionDescriptionKey] = `Open ${displayNameEn}`;
-    }
-
-    moduleSegments.slice(0, -1).forEach((_, index) => {
-      const groupSegments = moduleSegments.slice(0, index + 1);
-      const groupTitleKey = buildMenuGroupTitleKey(scope, groupSegments);
-      const groupDisplayName =
-        index === 0 && groupSegments[0] === businessContext
-          ? businessContextTitle
-          : inferMenuGroupDisplayName(groupSegments[groupSegments.length - 1]);
-      const groupDisplayNameEn =
-        index === 0 && groupSegments[0] === businessContext
-          ? businessContextTitleEn
-          : groupDisplayName;
-      zhTranslations[groupTitleKey] = zhTranslations[groupTitleKey] || groupDisplayName;
-      enTranslations[groupTitleKey] = enTranslations[groupTitleKey] || groupDisplayNameEn;
-    });
-
-    pageActions
-      .filter((action) => action !== 'detail')
-      .forEach((action) => {
-        const key = buildPermissionTitleKey(scope, name, action);
-        zhTranslations[key] = `${actionLabel(action, 'zh-CN')}${displayName}`;
-        enTranslations[key] = `${actionLabel(action, 'en-US')} ${displayNameEn}`;
-      });
-
-    zhTranslations[buildAuditActionKey(scope, name, 'create')] =
-      `${actionLabel('create', 'zh-CN')}${displayName}`;
-    zhTranslations[buildAuditActionKey(scope, name, 'update')] =
-      `${actionLabel('update', 'zh-CN')}${displayName}`;
-    zhTranslations[buildAuditActionKey(scope, name, 'delete')] =
-      `${actionLabel('delete', 'zh-CN')}${displayName}`;
-    enTranslations[buildAuditActionKey(scope, name, 'create')] =
-      `${actionLabel('create', 'en-US')} ${displayNameEn}`;
-    enTranslations[buildAuditActionKey(scope, name, 'update')] =
-      `${actionLabel('update', 'en-US')} ${displayNameEn}`;
-    enTranslations[buildAuditActionKey(scope, name, 'delete')] =
-      `${actionLabel('delete', 'en-US')} ${displayNameEn}`;
-
-    Object.entries(translationOverrides).forEach(([key, override]) => {
-      if (Object.prototype.hasOwnProperty.call(zhTranslations, key) && override.zh !== undefined) {
-        zhTranslations[key] = override.zh;
-      }
-      if (Object.prototype.hasOwnProperty.call(enTranslations, key) && override.en !== undefined) {
-        enTranslations[key] = override.en;
-      }
-    });
-
-    const schema: ModuleSchema = {
-      name,
+  const buildSchema = (): ModuleSchema =>
+    buildModuleSchema({
+      values: getAllFormValues(),
+      metadata: readMetadataValues(),
+      fields,
       templateVersion,
-      displayName,
-      description: values.description,
-      displayNameEn,
-      scope,
-      templateLevel,
-      parentMenu,
-      pageActionTemplate,
-      pageActions,
-      dependencies: parseDependencyModules(),
-      relations: parseRelationContracts(),
-      dataScopeMode: enableDataScope ? dataScopeMode : 'none',
-      listLayout: {
-        governance:
-          tableRole !== 'relation' &&
-          Boolean(metadata.primaryTable || metadata.relationFromField || metadata.relationToField),
-        search: hasSearchableFields && listLayout.search !== false,
-        headerActions:
-          (enableExport || enableImport || pageActions.includes('create')) &&
-          listLayout.headerActions !== false,
-        batchActions:
-          pageActions.some((action) => ['update', 'delete'].includes(action)) &&
-          listLayout.batchActions !== false,
-        rowActions:
-          hasVisibleListFields &&
-          pageActions.some((action) => ['view', 'detail', 'update', 'delete'].includes(action)) &&
-          listLayout.rowActions !== false,
-      },
-      metadata: {
-        businessContext,
-        businessContextTitle,
-        businessContextTitleEn,
-        tableRole,
-        primaryTable: metadata.primaryTable,
-        relationFromField: metadata.relationFromField,
-        relationToField: metadata.relationToField,
-        boundedContext: metadata.boundedContext,
-        owner: metadata.owner,
-        summary: metadata.summary,
-        sourceMode: metadata.sourceMode,
-        sourceDatasourceId: metadata.sourceDatasourceId,
-        sourceDatasourceName: metadata.sourceDatasourceName,
-        sourceTable: metadata.sourceTable,
-        autoRecycle: metadata.autoRecycle,
-      },
-      model: {
-        tableName: model.tableName,
-        modelName: inferModelName({
-          name,
-          displayName,
-          scope,
-          templateLevel,
-          pageActionTemplate,
-          pageActions,
-          model,
-          menus: [],
-          permissions: [],
-          i18n: { namespace: '', translations: { zh: {}, en: {} } },
-        } as ModuleSchema),
-        fields: normalizedFields,
-      },
-      menus: [],
-      permissions: [],
-      i18n: {
-        namespace: buildModuleNamespace(scope, name),
-        translations: {
-          zh: zhTranslations,
-          en: enTranslations,
-        },
-      },
-      enableExport,
-      enableImport,
-      enableAudit: templateLevel === 'enterprise',
+      dependencyModulesText,
+      relationContractsText,
       enableDataScope,
-      includeDashboardWidget: canAttachDashboardWidget ? includeDashboardWidget : false,
-    };
-
-    schema.menus = generateDefaultMenus(schema);
-    schema.permissions = generateDefaultPermissions(schema);
-    return schema;
-  };
+      includeDashboardWidget,
+      listLayout,
+      dataScopeMode,
+      translationOverrides,
+      actionLabel,
+    });
 
   const getNormalizedNameAndScope = () => {
     const values = getAllFormValues();
@@ -641,15 +910,13 @@ const ModuleWizard: React.FC = () => {
     return false;
   };
 
-  const previewSchema = currentStep >= 2 ? buildSchema() : null;
-  const previewSchemaKey = previewSchema ? JSON.stringify(previewSchema) : '';
-  const selectedActionTemplate =
-    (getAllFormValues().pageActionTemplate as PageActionTemplate | undefined) || 'standard';
+  const previewSchema = resolvePreviewSchema(currentStep, buildSchema);
+  const previewSchemaKey = schemaKey(previewSchema);
+  const selectedActionTemplate = resolveSelectedActionTemplate(getAllFormValues());
 
   const handleBasicInfoSubmit = async () => {
     try {
-      let values = getAllFormValues();
-      let metadata = readMetadataValues();
+      const metadata = readMetadataValues();
       const sourceMode = metadata.sourceMode;
       if (sourceMode === 'database' && !metadata.sourceTable) {
         message.error(t('generator.wizard.sourceTable.required'));
@@ -665,8 +932,7 @@ const ModuleWizard: React.FC = () => {
       }
 
       await form.validate();
-      values = getAllFormValues();
-      metadata = readMetadataValues();
+      const values = getAllFormValues();
       const normalizedName = normalizeModulePath(values.name || '');
       const scope = (values.scope as ModuleScope | undefined) || 'business';
       if (!isValidScopedModulePath(scope, normalizedName)) {
@@ -904,47 +1170,32 @@ const ModuleWizard: React.FC = () => {
     }
   };
 
-  const oneClickEnabled =
-    currentStep === 3 &&
-    buildSchema().scope === 'business' &&
-    generatedSchemaKey === previewSchemaKey &&
-    generatedFiles.length > 0;
-  const canGenerateRegister = isAdmin || hasPerm('system:module:generate');
-  const canOpenModuleManager = isAdmin || hasPerm('system:module:list');
+  const oneClickEnabled = isOneClickRegistrationEnabled(
+    currentStep,
+    buildSchema().scope,
+    generatedSchemaKey,
+    previewSchemaKey,
+    generatedFiles.length,
+  );
+  const canGenerateRegister = hasAccess(isAdmin, hasPerm('system:module:generate'));
+  const canOpenModuleManager = hasAccess(isAdmin, hasPerm('system:module:list'));
   const summary = registerResult?.summary;
-  const previewMenuTree = previewSchema ? buildMenuPreview(previewSchema) : [];
-  const previewCompletenessIssues = previewSchema
-    ? validateGeneratorCompleteness(previewSchema)
-    : [];
+  const previewMenuTree = resolvePreviewMenuTree(previewSchema);
+  const previewCompletenessIssues = resolvePreviewCompletenessIssues(previewSchema);
   const previewBlockingIssue = previewCompletenessIssues.some((issue) => issue.level === 'error');
-  const previewGeneratedFiles = generatedSchemaKey === previewSchemaKey ? generatedFiles : [];
-  const previewTranslationRows: TranslationPreviewRow[] = previewSchema
-    ? Array.from(
-        new Set([
-          ...Object.keys(previewSchema.i18n.translations.zh),
-          ...Object.keys(previewSchema.i18n.translations.en),
-        ]),
-      )
-        .sort((a, b) => a.localeCompare(b))
-        .map((key) => ({
-          key,
-          zh: previewSchema.i18n.translations.zh[key] || '',
-          en: previewSchema.i18n.translations.en[key] || '',
-        }))
-    : [];
+  const previewGeneratedFiles = resolvePreviewGeneratedFiles(
+    generatedSchemaKey,
+    previewSchemaKey,
+    generatedFiles,
+  );
+  const previewTranslationRows = buildTranslationPreviewRows(previewSchema);
   const translationPreviewPage = translationPreviewPagination.current;
   const translationPreviewPageSize = translationPreviewPagination.pageSize;
   const pagedPreviewTranslationRows = previewTranslationRows.slice(
     (translationPreviewPage - 1) * translationPreviewPageSize,
     translationPreviewPage * translationPreviewPageSize,
   );
-  const activationStatusKey = registerResult
-    ? registerResult.module.status === 1
-      ? 'generator.moduleManager.status.active'
-      : registerResult.module.status === 2
-        ? 'generator.moduleManager.status.uninstalled'
-        : 'generator.moduleManager.status.pending'
-    : '';
+  const activationStatusKey = moduleActivationStatusKey(registerResult?.module.status ?? 0);
 
   useEffect(() => {
     const totalPages = Math.max(
@@ -983,33 +1234,29 @@ const ModuleWizard: React.FC = () => {
       setRegisterResult(result);
       message.success(t('generator.wizard.register.success'));
     } catch (error) {
-      if (error instanceof Error && error.message === SECONDARY_VERIFY_CANCELLED_ERROR) {
-        return;
+      switch (classifyRegistrationError(error, overwrite)) {
+        case 'cancelled':
+          return;
+        case 'disabled':
+          setDynamicModuleDisabled(true);
+          return;
+        case 'overwrite':
+          showAppModalConfirm({
+            title: t('generator.wizard.register.overwriteTitle'),
+            content: t('generator.wizard.register.overwriteContent'),
+            onOk: () => {
+              submitGenerateAndRegister(true);
+            },
+          });
+          return;
+        case 'request':
+          message.error(
+            t(isRequestError(error) ? error.messageKey || 'request.failed' : 'request.failed'),
+          );
+          return;
+        default:
+          message.error(t('request.failed'));
       }
-      if (isRequestError(error) && error.messageKey === 'module.dynamic.disabled') {
-        setDynamicModuleDisabled(true);
-        return;
-      }
-      if (
-        isRequestError(error) &&
-        (error.messageKey === 'module.generate.file_exists' ||
-          error.messageKey === 'module.generate.already_exists') &&
-        !overwrite
-      ) {
-        showAppModalConfirm({
-          title: t('generator.wizard.register.overwriteTitle'),
-          content: t('generator.wizard.register.overwriteContent'),
-          onOk: () => {
-            submitGenerateAndRegister(true);
-          },
-        });
-        return;
-      }
-      if (isRequestError(error)) {
-        message.error(t(error.messageKey || 'request.failed'));
-        return;
-      }
-      message.error(t('request.failed'));
     } finally {
       setRegistering(false);
     }
@@ -1099,7 +1346,8 @@ const ModuleWizard: React.FC = () => {
           ]}
         />
         <Card className="page-panel generator-wizard-card">
-          {canOpenModuleManager ? (
+          {renderWhen(
+            canOpenModuleManager,
             <div className="system-list__work-actions">
               <ListHeaderActions
                 primary={
@@ -1108,16 +1356,11 @@ const ModuleWizard: React.FC = () => {
                   </Button>
                 }
               />
-            </div>
-          ) : null}
+            </div>,
+          )}
           <div className="generator-wizard__steps generator-wizard__step-grid">
             {wizardSteps.map((step, index) => (
-              <div
-                key={step.title}
-                className={`generator-wizard__step-card${
-                  index === currentStep ? ' generator-wizard__step-card--active' : ''
-                }${index < currentStep ? ' generator-wizard__step-card--done' : ''}`}
-              >
+              <div key={step.title} className={buildWizardStepClass(index, currentStep)}>
                 <span className="generator-wizard__step-index">{index + 1}</span>
                 <span className="generator-wizard__step-title">{step.title}</span>
                 <span className="generator-wizard__step-desc">{step.description}</span>
@@ -1127,7 +1370,8 @@ const ModuleWizard: React.FC = () => {
 
           <div className="generator-wizard__content-divider" />
 
-          {currentStep === 0 ? (
+          {renderWhen(
+            currentStep === 0,
             <Form form={form} layout="vertical">
               <FormItem
                 label={t('generator.wizard.moduleName')}
@@ -1460,10 +1704,10 @@ const ModuleWizard: React.FC = () => {
                       <Select
                         value={
                           ((form.getFieldValue('scope') as ModuleScope | undefined) ||
-                            'business') === 'business' && selectedTableRole !== 'relation'
-                            ? includeDashboardWidget
-                              ? 'enabled'
-                              : 'disabled'
+                            'business') === 'business' &&
+                          selectedTableRole !== 'relation' &&
+                          includeDashboardWidget
+                            ? 'enabled'
                             : 'disabled'
                         }
                         disabled={
@@ -1668,10 +1912,11 @@ const ModuleWizard: React.FC = () => {
               <Button type="primary" onClick={handleBasicInfoSubmit}>
                 {t('common.next')}
               </Button>
-            </Form>
-          ) : null}
+            </Form>,
+          )}
 
-          {currentStep === 1 ? (
+          {renderWhen(
+            currentStep === 1,
             <div>
               <Typography.Title heading={5}>{t('generator.wizard.step2.title')}</Typography.Title>
               <Typography.Text type="secondary" className="generator-wizard__description">
@@ -1688,10 +1933,10 @@ const ModuleWizard: React.FC = () => {
                   {t('common.next')}
                 </Button>
               </Space>
-            </div>
-          ) : null}
+            </div>,
+          )}
 
-          {currentStep === 2 && previewSchema ? (
+          {renderSchemaStep(currentStep, 2, previewSchema, (stepSchema) => (
             <div>
               <Typography.Title heading={5}>{t('generator.wizard.step3.title')}</Typography.Title>
               <Typography.Text type="secondary" className="generator-wizard__description">
@@ -1714,10 +1959,9 @@ const ModuleWizard: React.FC = () => {
                     <Checkbox.Group
                       value={
                         (form.getFieldValue('pageActions' as keyof ModuleSchema) as
-                          | PageActionKey[]
-                          | undefined) ?? previewSchema.pageActions
+                          PageActionKey[] | undefined) ?? stepSchema.pageActions
                       }
-                      disabled={previewSchema.metadata?.tableRole === 'relation'}
+                      disabled={stepSchema.metadata?.tableRole === 'relation'}
                       options={[
                         'view',
                         'detail',
@@ -1744,25 +1988,24 @@ const ModuleWizard: React.FC = () => {
                     <Space wrap>
                       <Tag color="green">
                         {t('generator.wizard.step3.fieldCount', {
-                          count: previewSchema.model.fields.length,
+                          count: stepSchema.model.fields.length,
                         })}
                       </Tag>
                       <Tag color="arcoblue">
                         {t('generator.wizard.step3.uniqueCount', {
-                          count: previewSchema.model.fields.filter(
-                            (field) => field.validation?.unique,
-                          ).length,
+                          count: stepSchema.model.fields.filter((field) => field.validation?.unique)
+                            .length,
                         })}
                       </Tag>
                       <Tag color="purple">
                         {t('generator.wizard.step3.enumCount', {
-                          count: previewSchema.model.fields.filter((field) => field.type === 'enum')
+                          count: stepSchema.model.fields.filter((field) => field.type === 'enum')
                             .length,
                         })}
                       </Tag>
                     </Space>
                     <div className="generator-wizard__enum-list">
-                      {previewSchema.model.fields
+                      {stepSchema.model.fields
                         .filter((field) => field.type === 'enum')
                         .map((field) => (
                           <div key={field.name} className="generator-wizard__enum-item">
@@ -1783,12 +2026,12 @@ const ModuleWizard: React.FC = () => {
                 className="generator-wizard__section"
               >
                 <Space wrap>
-                  {previewSchema.permissions.length === 0 ? (
+                  {stepSchema.permissions.length === 0 ? (
                     <Typography.Text type="secondary">
                       {t('generator.wizard.step3.permissions.empty')}
                     </Typography.Text>
                   ) : (
-                    previewSchema.permissions.map((permission) => (
+                    stepSchema.permissions.map((permission) => (
                       <Tag key={`${permission.type}:${permission.key}`}>{permission.key}</Tag>
                     ))
                   )}
@@ -1804,7 +2047,7 @@ const ModuleWizard: React.FC = () => {
                     <Typography.Text type="secondary" className="generator-wizard__subdescription">
                       {t('generator.wizard.step3.menuPreview.desc')}
                     </Typography.Text>
-                    {previewSchema ? <MenuPreviewTree nodes={previewMenuTree} /> : null}
+                    <MenuPreviewTree nodes={previewMenuTree} />
                   </Card>
                 </Col>
                 <Col xs={24} lg={12}>
@@ -1819,13 +2062,16 @@ const ModuleWizard: React.FC = () => {
                       {previewCompletenessIssues.length === 0 ? (
                         <Alert type="success" content={t('generator.validation.passed')} />
                       ) : (
-                        previewCompletenessIssues.map((issue) => (
-                          <Alert
-                            key={`${issue.code}-${issue.detail || ''}`}
-                            type={issue.level === 'error' ? 'error' : 'warning'}
-                            content={`${t(issue.messageKey)}${issue.detail ? `: ${issue.detail}` : ''}`}
-                          />
-                        ))
+                        previewCompletenessIssues.map((issue) => {
+                          const detailSuffix = issue.detail ? `: ${issue.detail}` : '';
+                          return (
+                            <Alert
+                              key={`${issue.code}-${issue.detail || ''}`}
+                              type={issue.level === 'error' ? 'error' : 'warning'}
+                              content={`${t(issue.messageKey)}${detailSuffix}`}
+                            />
+                          );
+                        })
                       )}
                     </Space>
                   </Card>
@@ -1914,34 +2160,32 @@ const ModuleWizard: React.FC = () => {
                       count: previewGeneratedFiles.length,
                     })}
                   </Tag>
-                  <Tag color="green">{previewSchema.model.tableName}</Tag>
-                  <Tag
-                    color={previewSchema.metadata?.tableRole === 'relation' ? 'orange' : 'purple'}
-                  >
-                    {t(`generator.wizard.tableRole.${previewSchema.metadata?.tableRole || 'main'}`)}
+                  <Tag color="green">{stepSchema.model.tableName}</Tag>
+                  <Tag color={stepSchema.metadata?.tableRole === 'relation' ? 'orange' : 'purple'}>
+                    {t(`generator.wizard.tableRole.${stepSchema.metadata?.tableRole || 'main'}`)}
                   </Tag>
-                  <Tag color={previewSchema.enableDataScope ? 'green' : 'gray'}>
+                  <Tag color={stepSchema.enableDataScope ? 'green' : 'gray'}>
                     {t(
-                      previewSchema.enableDataScope
+                      stepSchema.enableDataScope
                         ? 'generator.wizard.dataScope.enabledTag'
                         : 'generator.wizard.dataScope.disabledTag',
                     )}
                   </Tag>
-                  <Tag color={previewSchema.includeDashboardWidget ? 'arcoblue' : 'gray'}>
+                  <Tag color={stepSchema.includeDashboardWidget ? 'arcoblue' : 'gray'}>
                     {t(
-                      previewSchema.includeDashboardWidget
+                      stepSchema.includeDashboardWidget
                         ? 'generator.wizard.dashboardWidget.enabledTag'
                         : 'generator.wizard.dashboardWidget.disabledTag',
                     )}
                   </Tag>
                   <Tag color="blue">
                     {t('generator.wizard.step3.impact.dependencies', {
-                      count: previewSchema.dependencies?.length || 0,
+                      count: stepSchema.dependencies?.length || 0,
                     })}
                   </Tag>
                   <Tag color="orange">
                     {t('generator.wizard.step3.impact.relations', {
-                      count: previewSchema.relations?.length || 0,
+                      count: stepSchema.relations?.length || 0,
                     })}
                   </Tag>
                 </Space>
@@ -1968,9 +2212,9 @@ const ModuleWizard: React.FC = () => {
                 </Button>
               </Space>
             </div>
-          ) : null}
+          ))}
 
-          {currentStep === 3 && previewSchema ? (
+          {renderSchemaStep(currentStep, 3, previewSchema, (stepSchema) => (
             <div>
               <Typography.Title heading={5}>{t('generator.wizard.step4.title')}</Typography.Title>
 
@@ -1989,7 +2233,7 @@ const ModuleWizard: React.FC = () => {
                   </Tag>
                   <Tag color="arcoblue">
                     {t('generator.wizard.step3.actionCount', {
-                      count: previewSchema.pageActions?.length || 0,
+                      count: stepSchema.pageActions?.length || 0,
                     })}
                   </Tag>
                 </Space>
@@ -2027,16 +2271,17 @@ const ModuleWizard: React.FC = () => {
                 onClose={() => setShowPreview(false)}
               />
 
-              {dynamicModuleDisabled ? (
+              {renderWhen(
+                dynamicModuleDisabled,
                 <Alert
                   type="warning"
                   title={t('generator.wizard.register.disabledTitle')}
                   content={t('generator.wizard.register.disabledHint')}
                   className="generator-wizard__section"
-                />
-              ) : null}
+                />,
+              )}
 
-              {registerResult && summary ? (
+              {renderRegistrationResult(registerResult, summary, (result, resultSummary) => (
                 <div className="generator-wizard__result">
                   <Alert
                     type="success"
@@ -2050,34 +2295,40 @@ const ModuleWizard: React.FC = () => {
                   >
                     <Space direction="vertical" className="generator-wizard__full">
                       <Typography.Text>
-                        {t('generator.wizard.result.moduleKey')}: {summary.moduleKey}
+                        {t('generator.wizard.result.moduleKey')}: {resultSummary.moduleKey}
                       </Typography.Text>
                       <Typography.Text>
                         {t('generator.wizard.result.parentMenu')}:{' '}
-                        {summary.parentMenuPath || t('generator.wizard.result.parentMenu.topLevel')}
+                        {valueOr(
+                          resultSummary.parentMenuPath,
+                          t('generator.wizard.result.parentMenu.topLevel'),
+                        )}
                       </Typography.Text>
                       <Typography.Text>
-                        {t('generator.wizard.result.routePath')}: {summary.routePath}
+                        {t('generator.wizard.result.routePath')}: {resultSummary.routePath}
                       </Typography.Text>
                       <Typography.Text>
-                        {t('generator.wizard.result.routeName')}: {summary.routeName}
+                        {t('generator.wizard.result.routeName')}: {resultSummary.routeName}
                       </Typography.Text>
                       <Typography.Text>
-                        {t('generator.wizard.result.componentKey')}: {summary.componentKey}
+                        {t('generator.wizard.result.componentKey')}: {resultSummary.componentKey}
                       </Typography.Text>
                       <Typography.Text>
-                        {t('generator.wizard.result.permissionPrefix')}: {summary.permissionPrefix}
+                        {t('generator.wizard.result.permissionPrefix')}:{' '}
+                        {resultSummary.permissionPrefix}
                       </Typography.Text>
                       <Typography.Text>
-                        {t('generator.wizard.result.backendPath')}: {summary.backendModulePath}
+                        {t('generator.wizard.result.backendPath')}:{' '}
+                        {resultSummary.backendModulePath}
                       </Typography.Text>
                       <Typography.Text>
-                        {t('generator.wizard.result.frontendPath')}: {summary.frontendModulePath}
+                        {t('generator.wizard.result.frontendPath')}:{' '}
+                        {resultSummary.frontendModulePath}
                       </Typography.Text>
                       <Typography.Text>
-                        {t('generator.wizard.result.schemaPath')}: {summary.schemaPath}
+                        {t('generator.wizard.result.schemaPath')}: {resultSummary.schemaPath}
                       </Typography.Text>
-                      <Tag color={registerResult.module.status === 3 ? 'orange' : 'green'}>
+                      <Tag color={choose(result.module.status === 3, 'orange', 'green')}>
                         {t(activationStatusKey)}
                       </Tag>
                     </Space>
@@ -2090,60 +2341,75 @@ const ModuleWizard: React.FC = () => {
                       <Space wrap>
                         <Tag color="arcoblue">
                           {t('generator.wizard.result.templateVersion')}:{' '}
-                          {summary.contract.templateVersion}
+                          {resultSummary.contract.templateVersion}
                         </Tag>
-                        <Tag color={registerResult.module.autoRecycle ? 'orange' : 'gray'}>
-                          {registerResult.module.autoRecycle
-                            ? t('generator.wizard.lifecycle.autoRecycleTag')
-                            : t('generator.wizard.lifecycle.standardTag')}
+                        <Tag color={choose(Boolean(result.module.autoRecycle), 'orange', 'gray')}>
+                          {choose(
+                            Boolean(result.module.autoRecycle),
+                            t('generator.wizard.lifecycle.autoRecycleTag'),
+                            t('generator.wizard.lifecycle.standardTag'),
+                          )}
                         </Tag>
-                        <Tag color={summary.contract.dataScopeEnabled ? 'green' : 'gray'}>
-                          {t('generator.wizard.result.dataScope')}: {summary.contract.dataScopeMode}
+                        <Tag
+                          color={choose(resultSummary.contract.dataScopeEnabled, 'green', 'gray')}
+                        >
+                          {t('generator.wizard.result.dataScope')}:{' '}
+                          {resultSummary.contract.dataScopeMode}
                         </Tag>
                         <Tag color="blue">
                           {t('generator.wizard.result.dependencyCount', {
-                            count: summary.contract.dependencyCount,
+                            count: resultSummary.contract.dependencyCount,
                           })}
                         </Tag>
                         <Tag color="orange">
                           {t('generator.wizard.result.relationCount', {
-                            count: summary.contract.relationCount,
+                            count: resultSummary.contract.relationCount,
                           })}
                         </Tag>
                       </Space>
-                      {(summary.contract.dependencies?.length || 0) > 0 ? (
+                      {renderWhen(
+                        (resultSummary.contract.dependencies?.length || 0) > 0,
                         <Space direction="vertical" className="generator-wizard__full">
                           <Typography.Text type="secondary">
                             {t('generator.wizard.result.dependencies')}
                           </Typography.Text>
-                          {summary.contract.dependencies?.map((dependency) => (
+                          {resultSummary.contract.dependencies?.map((dependency) => (
                             <Typography.Text key={dependency.module} code>
                               {dependency.module}
-                              {dependency.reason ? ` · ${dependency.reason}` : ''}
+                              {choose(Boolean(dependency.reason), ` · ${dependency.reason}`, '')}
                             </Typography.Text>
                           ))}
-                        </Space>
-                      ) : null}
-                      {(summary.contract.relations?.length || 0) > 0 ? (
+                        </Space>,
+                      )}
+                      {renderWhen(
+                        (resultSummary.contract.relations?.length || 0) > 0,
                         <Space direction="vertical" className="generator-wizard__full">
                           <Typography.Text type="secondary">
                             {t('generator.wizard.result.relations')}
                           </Typography.Text>
-                          {summary.contract.relations?.map((relation) => (
+                          {resultSummary.contract.relations?.map((relation) => (
                             <Typography.Text key={`${relation.name}-${relation.targetModule}`} code>
                               {relation.name} · {relation.type} · {relation.targetModule} ·{' '}
                               {relation.localField} → {relation.targetField}
-                              {relation.targetLabelField
-                                ? ` · label:${relation.targetLabelField}`
-                                : ''}
-                              {relation.lookupApi ? ` · api:${relation.lookupApi}` : ''}
-                              {relation.lookupValueField
-                                ? ` · value:${relation.lookupValueField}`
-                                : ''}
+                              {choose(
+                                Boolean(relation.targetLabelField),
+                                ` · label:${relation.targetLabelField}`,
+                                '',
+                              )}
+                              {choose(
+                                Boolean(relation.lookupApi),
+                                ` · api:${relation.lookupApi}`,
+                                '',
+                              )}
+                              {choose(
+                                Boolean(relation.lookupValueField),
+                                ` · value:${relation.lookupValueField}`,
+                                '',
+                              )}
                             </Typography.Text>
                           ))}
-                        </Space>
-                      ) : null}
+                        </Space>,
+                      )}
                     </Space>
                   </Card>
                   <Card
@@ -2151,22 +2417,14 @@ const ModuleWizard: React.FC = () => {
                     className="generator-wizard__section"
                   >
                     <Space direction="vertical" className="generator-wizard__full">
-                      {summary.verifications.map((item) => (
+                      {resultSummary.verifications.map((item) => (
                         <Space
                           key={`${item.code}-${item.detail}`}
                           align="start"
                           className="generator-wizard__verification-row"
                         >
                           <Space>
-                            <Tag
-                              color={
-                                item.status === 'pass'
-                                  ? 'green'
-                                  : item.status === 'warn'
-                                    ? 'orange'
-                                    : 'arcoblue'
-                              }
-                            >
+                            <Tag color={verificationStatusColor(item.status)}>
                               {t(`generator.wizard.result.verificationStatus.${item.status}`)}
                             </Tag>
                             <Typography.Text>{t(item.messageKey)}</Typography.Text>
@@ -2177,22 +2435,24 @@ const ModuleWizard: React.FC = () => {
                     </Space>
                   </Card>
                   <Space wrap>
-                    {canOpenModuleManager ? (
+                    {renderWhen(
+                      canOpenModuleManager,
                       <Button
                         loading={auditingActivation}
-                        disabled={registerResult.module.status === 1}
+                        disabled={result.module.status === 1}
                         onClick={() => {
                           handleAuditActivation();
                         }}
                       >
                         {t('generator.wizard.result.checkActivation')}
-                      </Button>
-                    ) : null}
-                    {canOpenModuleManager ? (
+                      </Button>,
+                    )}
+                    {renderWhen(
+                      canOpenModuleManager,
                       <Button onClick={() => navigate('/system/modules')}>
                         {t('generator.wizard.result.openModuleManager')}
-                      </Button>
-                    ) : null}
+                      </Button>,
+                    )}
                     <Button
                       onClick={() => {
                         setRegisterResult(null);
@@ -2204,9 +2464,9 @@ const ModuleWizard: React.FC = () => {
                     </Button>
                   </Space>
                 </div>
-              ) : null}
+              ))}
             </div>
-          ) : null}
+          ))}
         </Card>
       </Space>
       <AppModal

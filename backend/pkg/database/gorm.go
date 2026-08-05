@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -45,6 +46,18 @@ func gormLogLevel() logger.LogLevel {
 		return logger.Warn
 	}
 	return logger.Info
+}
+
+func envInt(name string, def int) int {
+	raw := strings.TrimSpace(os.Getenv(name))
+	if raw == "" {
+		return def
+	}
+	value, err := strconv.Atoi(raw)
+	if err != nil || value <= 0 {
+		return def
+	}
+	return value
 }
 
 // DBDriver represents the database driver type.
@@ -93,10 +106,15 @@ func initMySQL(dsn string) {
 		os.Exit(1)
 	}
 
-	sqlDB, _ := DB.DB()
-	sqlDB.SetMaxIdleConns(10)           // 最大空闲连接数
-	sqlDB.SetMaxOpenConns(100)          // 最大开放连接数
-	sqlDB.SetConnMaxLifetime(time.Hour) // 连接最大存活时间
+	sqlDB, err := DB.DB()
+	if err != nil {
+		slog.Error("failed to resolve sql database", "error", err)
+		os.Exit(1)
+	}
+	sqlDB.SetMaxIdleConns(envInt("PANTHEON_DB_MAX_IDLE_CONNS", 10))                                            // 最大空闲连接数
+	sqlDB.SetMaxOpenConns(envInt("PANTHEON_DB_MAX_OPEN_CONNS", 100))                                           // 最大开放连接数
+	sqlDB.SetConnMaxLifetime(time.Duration(envInt("PANTHEON_DB_CONN_MAX_LIFETIME_MINUTES", 60)) * time.Minute) // 连接最大存活时间
+	sqlDB.SetConnMaxIdleTime(time.Duration(envInt("PANTHEON_DB_CONN_MAX_IDLE_MINUTES", 30)) * time.Minute)     // 连接最大空闲时间
 
 	// 启动后台协程采集数据库连接池指标
 	go func() {

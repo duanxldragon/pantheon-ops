@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS system_role_data_scope (
 func DataScopeMiddleware(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := common.GetUserID(c)
-		roleKeys := readRoleKeysFromContext(c)
+		roleKeys := common.GetRoleKeys(c)
 		scope := &common.DataScopeReq{
 			UserID:   userID,
 			RoleKeys: roleKeys,

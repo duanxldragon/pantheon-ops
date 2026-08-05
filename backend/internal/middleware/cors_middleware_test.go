@@ -54,7 +54,7 @@ func TestCORSMiddlewareAllowsConfiguredOrigin(t *testing.T) {
 	if got := recorder.Header().Get("Access-Control-Allow-Credentials"); got != "true" {
 		t.Fatalf("expected credentials header for allowed origin, got %q", got)
 	}
-	if got := recorder.Header().Get("Access-Control-Expose-Headers"); got == "" {
+	if recorder.Header().Get("Access-Control-Expose-Headers") == "" {
 		t.Fatal("expected expose headers to remain configured")
 	}
 }

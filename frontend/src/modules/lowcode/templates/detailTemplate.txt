@@ -907,6 +907,16 @@ ${this.generateRowActionItems()}
               label: t('generator.wizard.primaryTable'),
               value: governancePrimaryTable || '-',
             },
+            {
+              key: 'relationFromField',
+              label: t('generator.wizard.relationFromField'),
+              value: governanceRelationFromField || '-',
+            },
+            {
+              key: 'relationToField',
+              label: t('generator.wizard.relationToField'),
+              value: governanceRelationToField || '-',
+            },
           ]}
         />`;
   }
@@ -1040,10 +1050,10 @@ ${primaryActions.join('\n')}
     const relationFromField = this.schema.metadata?.relationFromField || '';
     const relationToField = this.schema.metadata?.relationToField || '';
 
-    return `const governanceTableRole = '${tableRole}';
-const governancePrimaryTable = '${primaryTable}';
-const governanceRelationFromField = '${relationFromField}';
-const governanceRelationToField = '${relationToField}';
+    return `const governanceTableRole = ${JSON.stringify(tableRole)};
+const governancePrimaryTable = ${JSON.stringify(primaryTable)};
+const governanceRelationFromField = ${JSON.stringify(relationFromField)};
+const governanceRelationToField = ${JSON.stringify(relationToField)};
 `;
   }
 
@@ -1088,10 +1098,10 @@ const governanceRelations = ${relations} as Array<{
   junctionTable?: string;
 }>;
 
-const governanceTableRole = '${tableRole}';
-const governancePrimaryTable = '${primaryTable}';
-const governanceRelationFromField = '${relationFromField}';
-const governanceRelationToField = '${relationToField}';
+const governanceTableRole = ${JSON.stringify(tableRole)};
+const governancePrimaryTable = ${JSON.stringify(primaryTable)};
+const governanceRelationFromField = ${JSON.stringify(relationFromField)};
+const governanceRelationToField = ${JSON.stringify(relationToField)};
 `;
   }
 

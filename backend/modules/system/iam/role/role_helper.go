@@ -3,18 +3,25 @@ package iam
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"pantheon-ops/backend/pkg/common"
 	"strings"
 	"time"
 
 	"pantheon-ops/backend/pkg/database"
+	"pantheon-ops/backend/pkg/rbacbind"
 
 	"gorm.io/gorm"
 )
 
+const (
+	condRoleKeyEquals = "role_key = ?"
+	condIDEquals      = "id = ?"
+)
+
 func (s *RoleService) ensureAdminRoleSeed() error {
 	var adminRole SystemRole
-	err := s.db.Where("role_key = ?", "admin").First(&adminRole).Error
+	err := s.db.Where(condRoleKeyEquals, "admin").First(&adminRole).Error
 	switch {
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		adminRole = SystemRole{
@@ -24,7 +31,7 @@ func (s *RoleService) ensureAdminRoleSeed() error {
 			Status:   common.StatusEnabled,
 		}
 		var count int64
-		if err := s.db.Unscoped().Model(&SystemRole{}).Where("id = ?", 1).Count(&count).Error; err != nil {
+		if err := s.db.Unscoped().Model(&SystemRole{}).Where(condIDEquals, 1).Count(&count).Error; err != nil {
 			return err
 		}
 		if count == 0 {
@@ -57,7 +64,7 @@ func (s *RoleService) ensureAdminUserBinding() error {
 	}
 
 	var adminRoleID uint64
-	if err := s.db.Table("system_role").Select("id").Where("role_key = ?", "admin").Limit(1).Pluck("id", &adminRoleID).Error; err != nil {
+	if err := s.db.Table("system_role").Select("id").Where(condRoleKeyEquals, "admin").Limit(1).Pluck("id", &adminRoleID).Error; err != nil {
 		return err
 	}
 	if adminRoleID == 0 {
@@ -65,26 +72,19 @@ func (s *RoleService) ensureAdminUserBinding() error {
 	}
 
 	var adminUserCount int64
-	if err := s.db.Table("system_user").Where("id = ?", 1).Count(&adminUserCount).Error; err != nil {
+	if err := s.db.Table("system_user").Where(condIDEquals, 1).Count(&adminUserCount).Error; err != nil {
 		return err
 	}
 	if adminUserCount == 0 {
 		return nil
 	}
 
-	var bindingCount int64
-	if err := s.db.Table("system_user_role").Where("user_id = ? AND role_id = ?", 1, adminRoleID).Count(&bindingCount).Error; err != nil {
-		return err
-	}
-	if bindingCount > 0 {
-		return nil
-	}
-	return s.db.Exec("INSERT INTO system_user_role (user_id, role_id) VALUES (?, ?)", 1, adminRoleID).Error
+	return rbacbind.EnsureUserRole(s.db, 1, adminRoleID)
 }
 
 func (s *RoleService) validateRoleCreate(req *RoleCreateReq) error {
 	if strings.TrimSpace(req.RoleName) == "" || strings.TrimSpace(req.RoleKey) == "" {
-		return common.NewBadRequest("param.invalid")
+		return common.NewBadRequest(errParamInvalid)
 	}
 	if err := s.ensureRoleKeyUnique(0, req.RoleKey); err != nil {
 		return err
@@ -97,7 +97,7 @@ func (s *RoleService) validateRoleCreate(req *RoleCreateReq) error {
 
 func (s *RoleService) validateRoleUpdate(role *SystemRole, req *RoleUpdateReq) error {
 	if strings.TrimSpace(req.RoleName) == "" || strings.TrimSpace(req.RoleKey) == "" {
-		return common.NewBadRequest("param.invalid")
+		return common.NewBadRequest(errParamInvalid)
 	}
 	if role.RoleKey == "admin" && (strings.TrimSpace(req.RoleKey) != "admin" || req.Status == common.StatusDisabled) {
 		return common.NewConflict("role.update.error.protected")
@@ -113,7 +113,7 @@ func (s *RoleService) validateRoleUpdate(role *SystemRole, req *RoleUpdateReq) e
 
 func (s *RoleService) ensureRoleKeyUnique(roleID uint64, roleKey string) error {
 	var count int64
-	db := s.db.Model(&SystemRole{}).Where("role_key = ?", strings.TrimSpace(roleKey))
+	db := s.db.Model(&SystemRole{}).Where(condRoleKeyEquals, strings.TrimSpace(roleKey))
 	if roleID > 0 {
 		db = db.Where("id <> ?", roleID)
 	}
@@ -177,15 +177,18 @@ func (s *RoleService) replaceRolePermissions(tx *gorm.DB, roleID uint64, permiss
 	if err := tx.Exec("DELETE FROM system_role_permission WHERE role_id = ?", roleID).Error; err != nil {
 		return err
 	}
-	for _, permissionKey := range normalizePermissionKeys(permissionKeys) {
-		if err := tx.Create(&SystemRolePermission{
+	normalized := normalizePermissionKeys(permissionKeys)
+	if len(normalized) == 0 {
+		return nil
+	}
+	permissions := make([]SystemRolePermission, 0, len(normalized))
+	for _, permissionKey := range normalized {
+		permissions = append(permissions, SystemRolePermission{
 			RoleID:        roleID,
 			PermissionKey: permissionKey,
-		}).Error; err != nil {
-			return err
-		}
+		})
 	}
-	return nil
+	return tx.CreateInBatches(permissions, 100).Error
 }
 
 func (s *RoleService) releaseDeletedRoleKeys() error {
@@ -202,7 +205,7 @@ func (s *RoleService) releaseDeletedRoleKeys() error {
 			if err != nil {
 				return err
 			}
-			if err := tx.Unscoped().Model(&SystemRole{}).Where("id = ?", role.ID).Update("role_key", deletedRoleKey).Error; err != nil {
+			if err := tx.Unscoped().Model(&SystemRole{}).Where(condIDEquals, role.ID).Update("role_key", deletedRoleKey).Error; err != nil {
 				return err
 			}
 		}
@@ -268,7 +271,11 @@ func reloadRolePolicies() error {
 	if database.Enforcer == nil {
 		return nil
 	}
-	return database.Enforcer.LoadPolicy()
+	if err := database.Enforcer.LoadPolicy(); err != nil {
+		slog.Error("casbin policy reload failed after DB write", "component", "system/iam/role", "error", err)
+		return err
+	}
+	return nil
 }
 
 func normalizeRoleStatus(status int) int {

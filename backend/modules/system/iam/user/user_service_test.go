@@ -1,6 +1,7 @@
 package iam
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -141,6 +142,40 @@ func TestUserService_UpdateUser(t *testing.T) {
 	_, err = s.UpdateUser(999, updateReq)
 	if err == nil {
 		t.Error("expected error for non-existent user, got nil")
+	}
+}
+
+func TestUserService_LoadUserProfileExtMissingRow(t *testing.T) {
+	db := setupUserTestDB(t)
+	s := NewUserService(db)
+
+	profileExt, err := s.loadUserProfileExt(42)
+	if err != nil {
+		t.Fatalf("expected missing optional profile ext to succeed, got %v", err)
+	}
+	if profileExt != nil {
+		t.Fatalf("expected nil profile ext for missing row, got %+v", profileExt)
+	}
+}
+
+func TestUserService_LoadUserProfileExtPropagatesDatabaseError(t *testing.T) {
+	db := setupUserTestDB(t)
+	s := NewUserService(db)
+	wantErr := errors.New("forced profile extension query failure")
+	const callbackName = "test:force_profile_ext_query_error"
+	if err := db.Callback().Query().Before("gorm:query").Register(callbackName, func(tx *gorm.DB) {
+		_ = tx.AddError(wantErr)
+	}); err != nil {
+		t.Fatalf("register query callback: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := db.Callback().Query().Remove(callbackName); err != nil {
+			t.Errorf("remove query callback: %v", err)
+		}
+	})
+
+	if _, err := s.loadUserProfileExt(42); !errors.Is(err, wantErr) {
+		t.Fatalf("expected database query error %v to propagate, got %v", wantErr, err)
 	}
 }
 
@@ -450,6 +485,96 @@ func TestUserService_DeleteUser(t *testing.T) {
 	}
 }
 
+func TestUserService_ExportUsersHonorsRowCap(t *testing.T) {
+	db := setupUserTestDB(t)
+	s := NewUserService(db)
+
+	oldCap := maxUserExportRows
+	maxUserExportRows = 2
+	defer func() { maxUserExportRows = oldCap }()
+
+	for _, name := range []string{"cap_user_a", "cap_user_b", "cap_user_c"} {
+		if err := db.Create(&SystemUser{Username: name, Password: "hashed", Status: 1}).Error; err != nil {
+			t.Fatalf("seed user %s: %v", name, err)
+		}
+	}
+
+	exported, err := s.ExportUsers(context.Background(), &UserListQuery{Keyword: "cap_user_"}, nil)
+	if err != nil {
+		t.Fatalf("export users: %v", err)
+	}
+	if len(exported.Rows) != 2 {
+		t.Fatalf("expected export capped at 2 rows, got %d", len(exported.Rows))
+	}
+
+	cancelled, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := s.ExportUsers(cancelled, &UserListQuery{}, nil); err == nil {
+		t.Fatalf("expected cancelled context to abort export")
+	}
+}
+
+func TestUserService_DeleteUserPurgesAuthArtifacts(t *testing.T) {
+	db := setupUserTestDB(t)
+	s := newUserServiceWithSessionLifecycle(db)
+
+	// auth 域残留表（用户包不 own 这些模型，用 DDL 建表）
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_password_history (id BIGINT PRIMARY KEY AUTO_INCREMENT, user_id BIGINT, password_hash VARCHAR(255))")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_auth_factor (id BIGINT PRIMARY KEY AUTO_INCREMENT, user_id BIGINT, factor_type VARCHAR(32), secret VARCHAR(255))")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_auth_mfa_challenge (id BIGINT PRIMARY KEY AUTO_INCREMENT, user_id BIGINT, challenge_id VARCHAR(64))")
+
+	// 占位用户占用 ID 1（受保护不可删）
+	db.Create(&SystemUser{Username: "admin_placeholder2"})
+
+	userResp, err := s.CreateUser(&UserCreateReq{
+		Username: "purge_test",
+		Password: "password123",
+		RoleIDs:  []uint64{2},
+		Status:   1,
+	})
+	if err != nil {
+		t.Fatalf("failed to create user: %v", err)
+	}
+
+	seeds := []string{
+		"INSERT INTO system_user_password_history (user_id, password_hash) VALUES (?, 'old-hash')",
+		"INSERT INTO system_auth_factor (user_id, factor_type, secret) VALUES (?, 'totp', 'top-secret')",
+		"INSERT INTO system_auth_mfa_challenge (user_id, challenge_id) VALUES (?, 'chal-1')",
+		"INSERT INTO system_user_profile_ext (user_id, profile_json) VALUES (?, '{}')",
+		"INSERT INTO system_user_session (session_id, user_id) VALUES ('sess-purge', ?)",
+	}
+	for _, stmt := range seeds {
+		if err := db.Exec(stmt, userResp.ID).Error; err != nil {
+			t.Fatalf("failed to seed auth artifact: %v", err)
+		}
+	}
+	// 其他用户的 MFA 因子必须保留
+	if err := db.Exec("INSERT INTO system_auth_factor (user_id, factor_type, secret) VALUES (1, 'totp', 'keep-me')").Error; err != nil {
+		t.Fatalf("failed to seed other user's factor: %v", err)
+	}
+
+	if err := s.DeleteUser(userResp.ID); err != nil {
+		t.Fatalf("expected delete to succeed, got %v", err)
+	}
+
+	assertCount := func(table string, where string, arg any, want int64) {
+		t.Helper()
+		var count int64
+		if err := db.Table(table).Where(where, arg).Count(&count).Error; err != nil {
+			t.Fatalf("failed to count %s: %v", table, err)
+		}
+		if count != want {
+			t.Fatalf("expected %d rows in %s for %v, got %d", want, table, arg, count)
+		}
+	}
+	assertCount("system_user_password_history", "user_id = ?", userResp.ID, 0)
+	assertCount("system_auth_factor", "user_id = ?", userResp.ID, 0)
+	assertCount("system_auth_mfa_challenge", "user_id = ?", userResp.ID, 0)
+	assertCount("system_user_profile_ext", "user_id = ?", userResp.ID, 0)
+	assertCount("system_user_session", "user_id = ?", userResp.ID, 0)
+	assertCount("system_auth_factor", "user_id = ?", uint64(1), 1)
+}
+
 func TestUserService_MigrateReleasesLegacyDeletedUsername(t *testing.T) {
 	db := setupUserTestDB(t)
 
@@ -708,7 +833,7 @@ func TestUserService_ImportTemplateAndExport(t *testing.T) {
 		t.Fatalf("unexpected import result: %+v", result)
 	}
 
-	exported, err := s.ExportUsers(&UserListQuery{Username: "sample_user"}, nil)
+	exported, err := s.ExportUsers(context.Background(), &UserListQuery{Username: "sample_user"}, nil)
 	if err != nil {
 		t.Fatalf("export user: %v", err)
 	}

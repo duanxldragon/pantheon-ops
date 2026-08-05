@@ -17,16 +17,20 @@
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
+  --radius-xl: 12px;
   --radius-overlay: 8px;
   --radius-control: var(--radius-md);
   --radius-action: var(--radius-sm);
   --radius-pill: 999px;
   --app-bg: #f7f8fa;
-  --app-grid-line: rgba(29, 33, 41, 0.035);
   --app-shell-overlay: #ffffff;
   --panel-bg: #ffffff;
   --panel-bg-solid: #ffffff;
   --panel-muted: #f7f8fa;
+  --control-bg: #ffffff;
+  /* surface-lift = the "elevate toward" color used by color-mix surfaces.
+     #ffffff in light (zero change) → a lifted dark surface in dark mode. */
+  --surface-lift: #ffffff;
   --panel-border: rgba(229, 230, 235, 0.82);
   --panel-border-strong: rgba(209, 213, 219, 0.78);
   --panel-shadow: 0 12px 28px rgba(15, 23, 42, 0.055);
@@ -38,7 +42,6 @@
   --brand-primary: #165dff;
   --brand-primary-soft: rgba(22, 93, 255, 0.12);
   --brand-primary-muted: rgba(22, 93, 255, 0.08);
-  --brand-gradient: #165dff;
   --shell-sider-bg: #162033;
   --shell-sider-elevated: #1d2940;
   --shell-sider-border: rgba(255, 255, 255, 0.1);
@@ -46,17 +49,29 @@
   --shell-sider-text-muted: rgba(255, 255, 255, 0.72);
   --shell-sider-active-bg: rgba(255, 255, 255, 0.14);
   --shell-sider-hover-bg: rgba(255, 255, 255, 0.1);
-  --shell-sider-menu-surface: color-mix(in srgb, var(--shell-sider-bg) 78%, #ffffff 22%);
-  --shell-sider-menu-nested-surface: color-mix(in srgb, var(--shell-sider-bg) 86%, #ffffff 14%);
+  --shell-sider-menu-surface: color-mix(
+    in srgb,
+    var(--shell-sider-bg) 78%,
+    var(--surface-lift) 22%
+  );
+  --shell-sider-menu-nested-surface: color-mix(
+    in srgb,
+    var(--shell-sider-bg) 86%,
+    var(--surface-lift) 14%
+  );
   --shell-sider-menu-divider: rgba(255, 255, 255, 0.08);
-  --shell-brand-shadow: 0 12px 28px rgba(22, 93, 255, 0.24);
-  --login-glow: rgba(22, 93, 255, 0.12);
-  --login-metric-secondary: rgba(0, 180, 42, 0.12);
-  --login-metric-tertiary: rgba(255, 125, 0, 0.12);
-  --danger-soft: rgba(245, 63, 63, 0.12);
-  --danger-border: rgba(245, 63, 63, 0.32);
-  --status-success-soft: rgba(0, 180, 42, 0.12);
-  --status-warning-soft: rgba(255, 125, 0, 0.12);
+  --color-success: #00b42a;
+  --color-success-bg: rgba(0, 180, 42, 0.12);
+  --color-warning: #ff7d00;
+  --color-warning-bg: rgba(255, 125, 0, 0.12);
+  --color-error: #f53f3f;
+  --color-error-bg: rgba(245, 63, 63, 0.12);
+  --color-info: #3491fa;
+  --color-info-bg: rgba(52, 145, 250, 0.12);
+  --danger-soft: var(--color-error-bg);
+  --danger-border: color-mix(in srgb, var(--color-error) 32%, transparent);
+  --status-success-soft: var(--color-success-bg);
+  --status-warning-soft: var(--color-warning-bg);
   --primary-1: 232, 243, 255;
   --primary-2: 190, 218, 255;
   --primary-3: 148, 191, 255;
@@ -67,6 +82,16 @@
   --primary-8: 7, 44, 166;
   --primary-9: 3, 26, 121;
   --primary-10: 0, 13, 77;
+  --pantheon-primary-1: 232, 243, 255;
+  --pantheon-primary-2: 190, 218, 255;
+  --pantheon-primary-3: 148, 191, 255;
+  --pantheon-primary-4: 106, 161, 255;
+  --pantheon-primary-5: 64, 128, 255;
+  --pantheon-primary-6: 22, 93, 255;
+  --pantheon-primary-7: 14, 66, 210;
+  --pantheon-primary-8: 7, 44, 166;
+  --pantheon-primary-9: 3, 26, 121;
+  --pantheon-primary-10: 0, 13, 77;
   --shell-page-gap: 16px;
   --shell-page-header-gap: 12px;
   --shell-panel-body-padding: 18px;
@@ -89,31 +114,45 @@
   --shell-action-bar-min-height: 32px;
   --shell-table-head-gap: 8px 12px;
   --shell-governance-select-width: 200px;
-}
-
-body {
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    'Microsoft YaHei',
-    sans-serif;
+  /* P2-2 通用阶梯 token —— 供浮层与业务页优先消费；壳层专用变量继续保留 */
+  --space-2xs: 2px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  --font-size-caption: 12px;
+  --font-size-body-sm: 13px;
+  --font-size-body: 14px;
+  --font-size-body-lg: 16px;
+  --font-size-heading-sm: 18px;
+  --font-size-heading: 20px;
+  --font-size-display: 24px;
+  --line-height-tight: 1.3;
+  --line-height-base: 1.5;
+  --line-height-relaxed: 1.7;
+  --motion-duration-fast: 120ms;
+  --motion-duration-base: 200ms;
+  --motion-duration-slow: 320ms;
+  --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --z-base: 1;
+  --z-sticky: 100;
+  --z-dropdown: 1000;
+  --z-overlay: 1200;
+  --z-modal: 1300;
+  --z-notification: 1400;
 }
 
 :root[data-pantheon-theme='emerald'] {
   --app-bg: #f6faf8;
-  --app-grid-line: rgba(18, 52, 42, 0.04);
   --brand-primary: #00a870;
   --brand-primary-soft: rgba(0, 168, 112, 0.13);
   --brand-primary-muted: rgba(0, 168, 112, 0.08);
-  --brand-gradient: #00a870;
   --shell-sider-bg: #143126;
   --shell-sider-elevated: #1a3d32;
-  --shell-brand-shadow: 0 12px 28px rgba(0, 168, 112, 0.26);
-  --login-glow: rgba(0, 168, 112, 0.14);
-  --login-metric-secondary: rgba(64, 128, 255, 0.12);
-  --login-metric-tertiary: rgba(255, 125, 0, 0.12);
   --primary-1: 232, 255, 248;
   --primary-2: 173, 245, 224;
   --primary-3: 113, 232, 200;
@@ -124,21 +163,25 @@ body {
   --primary-8: 0, 102, 76;
   --primary-9: 0, 71, 57;
   --primary-10: 0, 41, 37;
+  --pantheon-primary-1: 232, 255, 248;
+  --pantheon-primary-2: 173, 245, 224;
+  --pantheon-primary-3: 113, 232, 200;
+  --pantheon-primary-4: 64, 214, 177;
+  --pantheon-primary-5: 25, 191, 151;
+  --pantheon-primary-6: 0, 168, 112;
+  --pantheon-primary-7: 0, 135, 94;
+  --pantheon-primary-8: 0, 102, 76;
+  --pantheon-primary-9: 0, 71, 57;
+  --pantheon-primary-10: 0, 41, 37;
 }
 
 :root[data-pantheon-theme='violet'] {
   --app-bg: #f7f6fb;
-  --app-grid-line: rgba(55, 37, 92, 0.04);
   --brand-primary: #722ed1;
   --brand-primary-soft: rgba(114, 46, 209, 0.13);
   --brand-primary-muted: rgba(114, 46, 209, 0.08);
-  --brand-gradient: #722ed1;
   --shell-sider-bg: #22193b;
   --shell-sider-elevated: #2c2350;
-  --shell-brand-shadow: 0 12px 28px rgba(114, 46, 209, 0.26);
-  --login-glow: rgba(114, 46, 209, 0.14);
-  --login-metric-secondary: rgba(64, 128, 255, 0.12);
-  --login-metric-tertiary: rgba(255, 125, 0, 0.12);
   --primary-1: 247, 237, 255;
   --primary-2: 229, 198, 255;
   --primary-3: 209, 158, 255;
@@ -149,21 +192,25 @@ body {
   --primary-8: 59, 16, 122;
   --primary-9: 37, 6, 77;
   --primary-10: 20, 0, 46;
+  --pantheon-primary-1: 247, 237, 255;
+  --pantheon-primary-2: 229, 198, 255;
+  --pantheon-primary-3: 209, 158, 255;
+  --pantheon-primary-4: 186, 119, 255;
+  --pantheon-primary-5: 151, 82, 247;
+  --pantheon-primary-6: 114, 46, 209;
+  --pantheon-primary-7: 85, 29, 166;
+  --pantheon-primary-8: 59, 16, 122;
+  --pantheon-primary-9: 37, 6, 77;
+  --pantheon-primary-10: 20, 0, 46;
 }
 
 :root[data-pantheon-theme='slate'] {
   --app-bg: #f6f8fb;
-  --app-grid-line: rgba(51, 65, 85, 0.04);
   --brand-primary: #334155;
   --brand-primary-soft: rgba(51, 65, 85, 0.12);
   --brand-primary-muted: rgba(51, 65, 85, 0.08);
-  --brand-gradient: #334155;
   --shell-sider-bg: #182235;
   --shell-sider-elevated: #243148;
-  --shell-brand-shadow: 0 12px 28px rgba(51, 65, 85, 0.24);
-  --login-glow: rgba(51, 65, 85, 0.12);
-  --login-metric-secondary: rgba(2, 132, 199, 0.12);
-  --login-metric-tertiary: rgba(217, 119, 6, 0.12);
   --primary-1: 241, 245, 249;
   --primary-2: 226, 232, 240;
   --primary-3: 203, 213, 225;
@@ -174,6 +221,76 @@ body {
   --primary-8: 15, 23, 42;
   --primary-9: 8, 15, 29;
   --primary-10: 2, 6, 23;
+  --pantheon-primary-1: 241, 245, 249;
+  --pantheon-primary-2: 226, 232, 240;
+  --pantheon-primary-3: 203, 213, 225;
+  --pantheon-primary-4: 148, 163, 184;
+  --pantheon-primary-5: 100, 116, 139;
+  --pantheon-primary-6: 51, 65, 85;
+  --pantheon-primary-7: 30, 41, 59;
+  --pantheon-primary-8: 15, 23, 42;
+  --pantheon-primary-9: 8, 15, 29;
+  --pantheon-primary-10: 2, 6, 23;
+}
+
+/* ===========================================================================
+   P3-1 暗色模式 —— 语义角色重定义（非机械反色）
+   仅覆盖中性 surface/text/shadow/软背景等 token；品牌色按主题在下方提亮。
+   Arco 组件通过 body[arco-theme='dark'] 联动，二者由 colorMode.ts 同步设置。
+   =========================================================================== */
+:root[data-color-mode='dark'] {
+  color: #e5e8ee;
+  background: #0d1118;
+  --app-bg: #0f141c;
+  --app-shell-overlay: #171e28;
+  --panel-bg: #171e28;
+  --panel-bg-solid: #171e28;
+  --panel-muted: #1b2530;
+  --panel-border: rgba(255, 255, 255, 0.1);
+  --panel-border-strong: rgba(255, 255, 255, 0.18);
+  --panel-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  --panel-shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 18px rgba(0, 0, 0, 0.32);
+  --panel-shadow-strong: 0 18px 42px rgba(0, 0, 0, 0.58);
+  --text-primary: #e5e8ee;
+  --text-secondary: #a9b2c0;
+  --text-tertiary: #727d8f;
+  --control-bg: #10161e;
+  --surface-lift: #26313f;
+  /* 软背景在暗色下略提高透明度，保证语义色可辨 */
+  --color-success-bg: rgba(0, 180, 42, 0.2);
+  --color-warning-bg: rgba(255, 125, 0, 0.2);
+  --color-error-bg: rgba(245, 63, 63, 0.2);
+  --color-info-bg: rgba(52, 145, 250, 0.2);
+  /* 侧栏在暗色下与内容区统一为深表面，弱化边界差 */
+  --shell-sider-bg: #12161f;
+  --shell-sider-elevated: #1a212c;
+  --shell-sider-border: rgba(255, 255, 255, 0.08);
+}
+
+/* 品牌色在暗色下提亮、略降饱和、保持色相 */
+:root[data-color-mode='dark'][data-pantheon-theme='indigo'],
+:root[data-color-mode='dark']:not([data-pantheon-theme]) {
+  --brand-primary: #5b88ff;
+  --brand-primary-soft: rgba(91, 136, 255, 0.22);
+  --brand-primary-muted: rgba(91, 136, 255, 0.14);
+}
+
+:root[data-color-mode='dark'][data-pantheon-theme='emerald'] {
+  --brand-primary: #1fc78f;
+  --brand-primary-soft: rgba(31, 199, 143, 0.22);
+  --brand-primary-muted: rgba(31, 199, 143, 0.14);
+}
+
+:root[data-color-mode='dark'][data-pantheon-theme='violet'] {
+  --brand-primary: #9a6cf0;
+  --brand-primary-soft: rgba(154, 108, 240, 0.22);
+  --brand-primary-muted: rgba(154, 108, 240, 0.14);
+}
+
+:root[data-color-mode='dark'][data-pantheon-theme='slate'] {
+  --brand-primary: #7c8ba3;
+  --brand-primary-soft: rgba(124, 139, 163, 0.24);
+  --brand-primary-muted: rgba(124, 139, 163, 0.16);
 }
 
 :root[data-pantheon-density='compact'] {
@@ -209,9 +326,28 @@ body,
 }
 
 body {
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'Microsoft YaHei',
+    sans-serif;
   background: var(--app-bg);
   color: var(--text-primary);
   font-feature-settings: 'tnum' 1;
+  /* Arco 组件的 --primary-* 定义在 body 上，:root 的主题梯度会被覆盖；
+     这里用 :root 侧透传的 --pantheon-primary-* 把主题色同步给 Arco。 */
+  --primary-1: var(--pantheon-primary-1);
+  --primary-2: var(--pantheon-primary-2);
+  --primary-3: var(--pantheon-primary-3);
+  --primary-4: var(--pantheon-primary-4);
+  --primary-5: var(--pantheon-primary-5);
+  --primary-6: var(--pantheon-primary-6);
+  --primary-7: var(--pantheon-primary-7);
+  --primary-8: var(--pantheon-primary-8);
+  --primary-9: var(--pantheon-primary-9);
+  --primary-10: var(--pantheon-primary-10);
 }
 
 * {
@@ -260,13 +396,13 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
+  :root[data-pantheon-theme][data-pantheon-theme] *,
+  :root[data-pantheon-theme][data-pantheon-theme] *::before,
+  :root[data-pantheon-theme][data-pantheon-theme] *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    scroll-behavior: auto;
+    transition-duration: 0.01ms;
   }
 }
 
@@ -297,7 +433,7 @@ a {
 
 .page-actions {
   flex-wrap: wrap;
-  gap: 8px !important;
+  gap: 8px;
 }
 
 .setting-page__form-stack {
@@ -378,7 +514,7 @@ a {
 }
 
 .setting-page__meta-actions {
-  gap: 8px !important;
+  gap: 8px;
   margin-right: auto;
 }
 
@@ -401,6 +537,11 @@ a {
   gap: 12px;
 }
 
+/* 4 metric cards with descriptions: a fixed 2x2 grid avoids the 3+1 auto-fit hole. */
+.setting-page__governance-bar .governance-summary-bar__metrics {
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+}
+
 .setting-page__group-nav-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -418,21 +559,21 @@ a {
   background: var(--panel-bg-solid);
   text-align: left;
   transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease;
+    border-color var(--motion-duration-base) ease,
+    background-color var(--motion-duration-base) ease;
   cursor: pointer;
 }
 
 .setting-page__group-nav-item:hover,
 .setting-page__group-nav-item:focus-visible {
   border-color: color-mix(in srgb, var(--brand-primary) 26%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 3%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 3%, var(--surface-lift));
   outline: none;
 }
 
 .setting-page__group-nav-item--active {
   border-color: color-mix(in srgb, var(--brand-primary) 34%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 5%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 5%, var(--surface-lift));
 }
 
 .setting-page__group-nav-title-row {
@@ -523,14 +664,14 @@ a {
   text-align: left;
   cursor: pointer;
   transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
-    color 0.2s ease;
+    border-color var(--motion-duration-base) ease,
+    background-color var(--motion-duration-base) ease,
+    color var(--motion-duration-base) ease;
 }
 
 .setting-overview-page__anchor-item:hover,
 .setting-overview-page__anchor-item:focus-visible {
-  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
   outline: none;
 }
 
@@ -539,7 +680,7 @@ a {
 }
 
 .setting-overview-page__anchor-item--active {
-  z-index: 1;
+  z-index: var(--z-base);
   border-color: color-mix(in srgb, var(--brand-primary) 22%, var(--panel-border));
   background: var(--panel-bg-solid);
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-primary) 10%, transparent);
@@ -631,13 +772,13 @@ a {
 }
 
 .setting-overview-page__risk-item--warning {
-  border-color: color-mix(in srgb, var(--status-warning-soft) 58%, var(--panel-border));
-  background: color-mix(in srgb, var(--status-warning-soft) 18%, #ffffff);
+  border-color: color-mix(in srgb, var(--color-warning-bg) 58%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-warning-bg) 18%, var(--surface-lift));
 }
 
 .setting-overview-page__risk-item--critical {
-  border-color: color-mix(in srgb, var(--danger-soft) 62%, var(--panel-border));
-  background: color-mix(in srgb, var(--danger-soft) 14%, #ffffff);
+  border-color: color-mix(in srgb, var(--color-error-bg) 62%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-error-bg) 14%, var(--surface-lift));
 }
 
 .setting-overview-page__risk-header {
@@ -693,10 +834,10 @@ a {
   box-shadow: var(--panel-shadow-soft);
 }
 
-.side-rail-panel {
+.side-rail-panel.side-rail-panel {
   position: relative;
   overflow: hidden;
-  border-color: var(--panel-border) !important;
+  border-color: var(--panel-border);
   background: var(--panel-bg-solid);
 }
 
@@ -733,6 +874,7 @@ a {
   grid-template-columns: minmax(0, 2.35fr) minmax(236px, 272px);
   align-items: start;
   gap: var(--shell-page-split-gap);
+  min-width: 0;
   width: 100%;
 }
 
@@ -757,17 +899,20 @@ a {
   overflow: hidden;
 }
 
-.page-split-layout {
-  min-width: 0;
-  width: 100%;
-}
-
 .page-side-column {
   display: flex;
   flex-direction: column;
   gap: var(--shell-page-side-gap);
   position: sticky;
   top: 0;
+  /* 侧栏高于视口时允许内部滚动，避免 sticky 钉住后底部内容不可达 */
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+/* 侧栏卡片不参与 flex 收缩，超出部分交给侧栏自身滚动，避免卡片内容被截断 */
+.page-side-column > * {
+  flex-shrink: 0;
 }
 
 .side-rail-panel .arco-card-body {
@@ -821,17 +966,17 @@ a {
   padding: 11px 12px;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--panel-muted) 76%, #ffffff);
+  background: color-mix(in srgb, var(--panel-muted) 76%, var(--surface-lift));
 }
 
 .side-rail-item--warning {
-  border-color: color-mix(in srgb, var(--status-warning-soft) 58%, var(--panel-border));
-  background: color-mix(in srgb, var(--status-warning-soft) 20%, #ffffff);
+  border-color: color-mix(in srgb, var(--color-warning-bg) 58%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-warning-bg) 20%, var(--surface-lift));
 }
 
 .side-rail-item--danger {
-  border-color: color-mix(in srgb, var(--danger-soft) 62%, var(--panel-border));
-  background: color-mix(in srgb, var(--danger-soft) 18%, #ffffff);
+  border-color: color-mix(in srgb, var(--color-error-bg) 62%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-error-bg) 18%, var(--surface-lift));
 }
 
 .side-rail-item__label {
@@ -862,17 +1007,17 @@ a {
   padding: 13px 14px;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--panel-muted) 72%, #ffffff);
+  background: color-mix(in srgb, var(--panel-muted) 72%, var(--surface-lift));
 }
 
 .side-rail-note--warning {
-  border-color: color-mix(in srgb, var(--status-warning-soft) 58%, var(--panel-border));
-  background: color-mix(in srgb, var(--status-warning-soft) 20%, #ffffff);
+  border-color: color-mix(in srgb, var(--color-warning-bg) 58%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-warning-bg) 20%, var(--surface-lift));
 }
 
 .side-rail-note--danger {
-  border-color: color-mix(in srgb, var(--danger-soft) 62%, var(--panel-border));
-  background: color-mix(in srgb, var(--danger-soft) 18%, #ffffff);
+  border-color: color-mix(in srgb, var(--color-error-bg) 62%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-error-bg) 18%, var(--surface-lift));
 }
 
 .side-rail-note__title {
@@ -942,20 +1087,20 @@ a {
   min-height: 22px;
   padding: 0 8px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   color: var(--brand-primary);
   font-size: 11px;
   font-weight: 600;
 }
 
-.system-page-hero__title {
-  margin: 8px 0 6px !important;
-  font-size: 24px !important;
-  line-height: 1.08 !important;
+.system-page-hero .system-page-hero__title {
+  margin: 8px 0 6px;
+  font-size: 24px;
+  line-height: 1.08;
 }
 
-.system-page-hero__desc {
-  margin: 0 !important;
+.system-page-hero .system-page-hero__desc {
+  margin: 0;
   color: var(--text-secondary);
   font-size: 13px;
   line-height: 1.55;
@@ -1057,26 +1202,26 @@ a {
 .app-dialog {
   display: flex;
   flex-direction: column;
+  z-index: 2500;
   background: var(--panel-bg-solid);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-overlay);
   box-shadow: var(--panel-shadow-strong);
-  z-index: 2500 !important;
   max-width: calc(100vw - 32px);
   max-height: calc(100dvh - 32px);
   overflow: hidden;
 }
 
-.app-dialog.zoomModal-appear,
-.app-dialog.zoomModal-appear-active,
-.app-dialog.zoomModal-enter,
-.app-dialog.zoomModal-enter-active,
-.app-dialog.zoomModal-exit,
-.app-dialog.zoomModal-exit-active {
-  animation-name: app-dialog-no-scale !important;
-  animation-duration: 1ms !important;
-  animation-timing-function: linear !important;
-  transform: none !important;
+.app-dialog.app-dialog.zoomModal-appear,
+.app-dialog.app-dialog.zoomModal-appear-active,
+.app-dialog.app-dialog.zoomModal-enter,
+.app-dialog.app-dialog.zoomModal-enter-active,
+.app-dialog.app-dialog.zoomModal-exit,
+.app-dialog.app-dialog.zoomModal-exit-active {
+  animation-name: app-dialog-no-scale;
+  animation-duration: 1ms;
+  animation-timing-function: linear;
+  transform: none;
 }
 
 @keyframes app-dialog-no-scale {
@@ -1091,14 +1236,10 @@ a {
   }
 }
 
-.app-drawer {
-  z-index: 2500 !important;
-}
-
-.app-dialog .arco-modal-header {
-  height: 64px !important;
-  min-height: 64px !important;
-  padding: 16px 24px !important;
+.app-dialog.app-dialog .arco-modal-header.arco-modal-header {
+  height: 64px;
+  min-height: 64px;
+  padding: 16px 24px;
   background: var(--panel-bg-solid);
   border-bottom: 1px solid var(--panel-border-strong);
 }
@@ -1107,10 +1248,12 @@ a {
   width: 100%;
   max-height: calc(100dvh - 32px - 64px - 74px);
   padding: 20px 24px 24px;
-  background: color-mix(in srgb, var(--panel-muted) 78%, #ffffff);
+  background: color-mix(in srgb, var(--panel-muted) 78%, var(--surface-lift));
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .app-dialog .arco-modal-footer {
@@ -1130,7 +1273,7 @@ a {
 }
 
 .app-dialog .arco-modal-close-icon:hover {
-  background: color-mix(in srgb, var(--brand-primary) 8%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
 }
 
 .app-dialog .arco-modal-header,
@@ -1138,49 +1281,44 @@ a {
   flex: 0 0 auto;
 }
 
-.app-dialog .arco-modal-content {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
 .app-dialog .arco-form-item:last-child {
   margin-bottom: 0;
 }
 
-.app-dialog .arco-input-password,
-.app-dialog .arco-select-view,
-.app-dialog .arco-tree-select-view,
-.app-dialog .arco-picker,
-.app-dialog .arco-textarea-wrapper,
-.app-dialog .arco-input-tag {
-  border: 1px solid var(--panel-border-strong) !important;
-  background: #fff !important;
+.app-dialog.app-dialog .arco-input-password,
+.app-dialog.app-dialog .arco-select-view,
+.app-dialog.app-dialog .arco-tree-select-view,
+.app-dialog.app-dialog .arco-picker,
+.app-dialog.app-dialog .arco-textarea-wrapper,
+.app-dialog.app-dialog .arco-input-tag {
+  border: 1px solid var(--panel-border-strong);
+  background: var(--control-bg);
   box-shadow: none;
 }
 
 .app-dialog .arco-input-inner-wrapper {
   border: 1px solid var(--panel-border-strong);
-  background: #fff;
+  background: var(--control-bg);
   box-shadow: none;
 }
 
 .app-dialog input.arco-input,
 .app-dialog textarea.arco-textarea {
   border: 1px solid var(--panel-border-strong);
-  background: #fff;
+  background: var(--control-bg);
   box-shadow: none;
 }
 
 .app-dialog .arco-input-number {
   border: 1px solid var(--panel-border-strong);
-  background: #fff;
+  background: var(--control-bg);
   box-shadow: none;
 }
 
-.app-dialog .arco-select-view,
-.app-dialog .arco-tree-select-view,
-.app-dialog .arco-picker {
-  background: #fff !important;
+.app-dialog.app-dialog .arco-select-view,
+.app-dialog.app-dialog .arco-tree-select-view,
+.app-dialog.app-dialog .arco-picker {
+  background: var(--control-bg);
 }
 
 .app-dialog .arco-input-inner-wrapper .arco-input,
@@ -1197,38 +1335,38 @@ a {
   outline: 0;
 }
 
-.app-dialog .arco-input-password .arco-input,
-.app-dialog .arco-input-number .arco-input,
-.app-dialog .arco-textarea-wrapper .arco-textarea {
-  border-width: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  outline: 0 !important;
+.app-dialog.app-dialog .arco-input-password .arco-input,
+.app-dialog.app-dialog .arco-input-number .arco-input,
+.app-dialog.app-dialog .arco-textarea-wrapper .arco-textarea {
+  border-width: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
 }
 
-.app-dialog .arco-input-password .arco-input-group,
-.app-dialog .arco-input-password .arco-input-inner-wrapper,
-.app-dialog .arco-input-number .arco-input-inner-wrapper {
-  border-width: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  outline: 0 !important;
+.app-dialog.app-dialog .arco-input-password .arco-input-group,
+.app-dialog.app-dialog .arco-input-password .arco-input-inner-wrapper,
+.app-dialog.app-dialog .arco-input-number .arco-input-inner-wrapper {
+  border-width: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
 }
 
-.app-dialog .arco-input-inner-wrapper.arco-input-focus,
-.app-dialog .arco-input-password.arco-input-focus,
-.app-dialog .arco-input-password:focus-within,
-.app-dialog .arco-input-number.arco-input-focus,
-.app-dialog .arco-input-number:focus-within,
-.app-dialog .arco-select-focused .arco-select-view,
-.app-dialog .arco-select-open .arco-select-view,
-.app-dialog .arco-select-view.arco-select-view-focus,
-.app-dialog .arco-tree-select.arco-tree-select-focused .arco-tree-select-view,
-.app-dialog .arco-picker-focused,
-.app-dialog .arco-textarea-wrapper-focus,
-.app-dialog .arco-input-tag.arco-input-tag-focus {
-  border-color: var(--brand-primary) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 14%, transparent) !important;
+.app-dialog.app-dialog .arco-input-inner-wrapper.arco-input-focus,
+.app-dialog.app-dialog .arco-input-password.arco-input-focus,
+.app-dialog.app-dialog .arco-input-password:focus-within,
+.app-dialog.app-dialog .arco-input-number.arco-input-focus,
+.app-dialog.app-dialog .arco-input-number:focus-within,
+.app-dialog.app-dialog .arco-select-focused .arco-select-view,
+.app-dialog.app-dialog .arco-select-open .arco-select-view,
+.app-dialog.app-dialog .arco-select-view.arco-select-view-focus,
+.app-dialog.app-dialog .arco-tree-select.arco-tree-select-focused .arco-tree-select-view,
+.app-dialog.app-dialog .arco-picker-focused,
+.app-dialog.app-dialog .arco-textarea-wrapper-focus,
+.app-dialog.app-dialog .arco-input-tag.arco-input-tag-focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 14%, transparent);
 }
 
 .app-drawer .arco-drawer-header {
@@ -1247,8 +1385,9 @@ a {
 
 .app-drawer .arco-drawer-body,
 .app-drawer .arco-drawer-content {
+  /* 抽屉体与弹窗体（.app-dialog .arco-modal-content）共用同一 muted 表面比例。 */
   padding: 20px 24px 24px;
-  background: color-mix(in srgb, var(--panel-muted) 82%, #ffffff);
+  background: color-mix(in srgb, var(--panel-muted) 78%, var(--surface-lift));
 }
 
 .app-drawer .arco-drawer-footer {
@@ -1262,11 +1401,10 @@ a {
 }
 
 .app-drawer .arco-drawer-close-btn:hover {
-  background: color-mix(in srgb, var(--brand-primary) 8%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
 }
 
-.app-drawer.arco-drawer,
-.app-drawer .arco-drawer-content {
+.app-drawer.arco-drawer {
   overflow: hidden;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-overlay);
@@ -1276,39 +1414,36 @@ a {
 
 .app-drawer.arco-drawer .arco-drawer-content {
   overflow-y: auto;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
 }
 
-.app-drawer .arco-input-password,
-.app-drawer .arco-input-number,
-.app-drawer .arco-select-view,
-.app-drawer .arco-tree-select-view,
-.app-drawer .arco-picker,
-.app-drawer .arco-textarea-wrapper,
-.app-drawer .arco-input-tag {
-  border: 1px solid var(--panel-border-strong) !important;
-  background: #fff !important;
+.app-drawer.app-drawer .arco-input-password,
+.app-drawer.app-drawer .arco-input-number,
+.app-drawer.app-drawer .arco-select-view,
+.app-drawer.app-drawer .arco-tree-select-view,
+.app-drawer.app-drawer .arco-picker,
+.app-drawer.app-drawer .arco-textarea-wrapper,
+.app-drawer.app-drawer .arco-input-tag {
+  border: 1px solid var(--panel-border-strong);
+  background: var(--control-bg);
   box-shadow: none;
 }
 
 .app-drawer .arco-input-inner-wrapper {
   border: 1px solid var(--panel-border-strong);
-  background: #fff;
+  background: var(--control-bg);
   box-shadow: none;
 }
 
 .app-drawer input.arco-input,
 .app-drawer textarea.arco-textarea {
   border: 1px solid var(--panel-border-strong);
-  background: #fff;
+  background: var(--control-bg);
   box-shadow: none;
 }
 
 .app-drawer .arco-input-number {
   border: 1px solid var(--panel-border-strong);
-  background: #fff;
+  background: var(--control-bg);
   box-shadow: none;
 }
 
@@ -1326,22 +1461,22 @@ a {
   outline: 0;
 }
 
-.app-drawer .arco-input-password .arco-input,
-.app-drawer .arco-input-number .arco-input,
-.app-drawer .arco-textarea-wrapper .arco-textarea {
-  border-width: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  outline: 0 !important;
+.app-drawer.app-drawer .arco-input-password .arco-input,
+.app-drawer.app-drawer .arco-input-number .arco-input,
+.app-drawer.app-drawer .arco-textarea-wrapper .arco-textarea {
+  border-width: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
 }
 
-.app-drawer .arco-input-password .arco-input-group,
-.app-drawer .arco-input-password .arco-input-inner-wrapper,
-.app-drawer .arco-input-number .arco-input-inner-wrapper {
-  border-width: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  outline: 0 !important;
+.app-drawer.app-drawer .arco-input-password .arco-input-group,
+.app-drawer.app-drawer .arco-input-password .arco-input-inner-wrapper,
+.app-drawer.app-drawer .arco-input-number .arco-input-inner-wrapper {
+  border-width: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
 }
 
 .app-drawer .arco-input-inner-wrapper.arco-input-focus,
@@ -1373,39 +1508,39 @@ a {
   box-shadow: none;
 }
 
-.dialog-grid-card {
+.dialog-grid-card.dialog-grid-card {
   height: 100%;
-  background: color-mix(in srgb, var(--brand-primary) 4%, #fff) !important;
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
 }
 
-.dialog-grid-card--danger {
-  background: color-mix(in srgb, var(--danger-soft) 60%, #fff) !important;
+.dialog-grid-card--danger.dialog-grid-card--danger {
+  background: color-mix(in srgb, var(--color-error-bg) 60%, var(--surface-lift));
 }
 
 .detail-panel-card {
   background: var(--panel-bg-solid);
 }
 
-.app-dialog .dialog-grid-card,
-.app-dialog .detail-panel-card {
+.app-dialog.app-dialog .dialog-grid-card,
+.app-dialog.app-dialog .detail-panel-card {
   overflow: hidden;
-  border-color: color-mix(in srgb, var(--panel-border) 92%, transparent) !important;
+  border-color: color-mix(in srgb, var(--panel-border) 92%, transparent);
   border-radius: var(--radius-md);
-  background: var(--panel-bg-solid) !important;
+  background: var(--panel-bg-solid);
   box-shadow: none;
 }
 
-.app-dialog .dialog-grid-card--danger,
-.app-dialog .detail-panel-card--danger {
-  border-color: var(--danger-border) !important;
-  background: color-mix(in srgb, var(--danger-soft) 24%, #fff) !important;
+.app-dialog.app-dialog .dialog-grid-card--danger,
+.app-dialog.app-dialog .detail-panel-card--danger {
+  border-color: color-mix(in srgb, var(--color-error) 32%, transparent);
+  background: color-mix(in srgb, var(--color-error-bg) 24%, var(--surface-lift));
 }
 
 .app-dialog .dialog-grid-card .arco-card-head,
 .app-dialog .detail-panel-card .arco-card-head {
   min-height: 44px;
   border-bottom-color: var(--panel-border);
-  background: color-mix(in srgb, var(--panel-muted) 86%, #ffffff);
+  background: color-mix(in srgb, var(--panel-muted) 86%, var(--surface-lift));
 }
 
 .app-dialog .dialog-grid-card .arco-card-header-title {
@@ -1414,11 +1549,11 @@ a {
   min-width: 0;
 }
 
-.app-dialog .dialog-grid-card .arco-card-header-title .arco-space {
+.app-dialog.app-dialog .dialog-grid-card .arco-card-header-title .arco-space.arco-space {
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 8px !important;
+  gap: 8px;
   width: 100%;
   min-width: 0;
 }
@@ -1516,6 +1651,10 @@ a {
 }
 
 .role-member-drawer__candidate-list {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: auto;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -1532,8 +1671,8 @@ a {
   white-space: nowrap;
 }
 
-.role-member-drawer__candidate-pill .arco-btn-content * {
-  pointer-events: none !important;
+.role-member-drawer__candidate-pill.role-member-drawer__candidate-pill .arco-btn-content > * {
+  pointer-events: none;
 }
 
 .role-member-drawer__candidate-pill--selected {
@@ -1542,6 +1681,16 @@ a {
 
 .role-member-drawer__candidate-empty {
   line-height: 32px;
+}
+
+.role-member-drawer__nickname-text {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: normal;
 }
 
 .role-member-drawer__filter-row {
@@ -1581,11 +1730,13 @@ a {
 }
 
 .filter-panel {
-  border-width: 1px;
-  border-style: solid;
-  border-color: color-mix(in srgb, var(--panel-border) 92%, transparent);
-  background: color-mix(in srgb, var(--panel-muted) 82%, #fff);
-  box-shadow: none;
+  /* 单一真相块：与 :root[data-pantheon-theme] .arco-card 的实际渲染一致
+     （SearchToolbar/FilterPanel 均为 Card，卡片规则本就以更高特异性生效）。 */
+  min-width: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: var(--panel-bg-solid);
+  box-shadow: var(--panel-shadow-soft);
 }
 
 .filter-panel__header {
@@ -1629,8 +1780,8 @@ a {
   margin-bottom: var(--shell-filter-form-item-margin-bottom);
 }
 
-.filter-panel__action-item {
-  margin-bottom: var(--shell-filter-form-item-margin-bottom) !important;
+.filter-panel .filter-panel__action-item {
+  margin-bottom: var(--shell-filter-form-item-margin-bottom);
 }
 
 .filter-panel .arco-form-item-label-col {
@@ -1655,7 +1806,7 @@ a {
 .filter-panel .arco-textarea-wrapper {
   min-height: var(--shell-filter-control-min-height);
   width: 100%;
-  border: 1px solid color-mix(in srgb, var(--panel-border-strong) 82%, #fff);
+  border: 1px solid color-mix(in srgb, var(--panel-border-strong) 82%, var(--surface-lift));
   border-radius: var(--radius-control);
   background: var(--panel-bg-solid);
   box-shadow: none;
@@ -1674,7 +1825,7 @@ a {
 .filter-panel .arco-picker:hover,
 .filter-panel .arco-textarea-wrapper:hover {
   border-color: color-mix(in srgb, var(--brand-primary) 34%, var(--panel-border-strong));
-  background: #fff;
+  background: var(--control-bg);
 }
 
 .filter-panel .arco-input-focus,
@@ -1688,7 +1839,7 @@ a {
 .filter-panel .arco-textarea-wrapper-focus {
   border-color: var(--brand-primary);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 12%, transparent);
-  background: #fff;
+  background: var(--control-bg);
 }
 
 .filter-panel .arco-select-view input.arco-input,
@@ -1699,7 +1850,7 @@ a {
 }
 
 .filter-panel .arco-space {
-  gap: 8px !important;
+  gap: 8px;
 }
 
 .filter-panel__action-item .arco-form-item-control,
@@ -1708,11 +1859,11 @@ a {
   align-items: flex-end;
 }
 
-.filter-panel__action-item .arco-space {
+.filter-panel .filter-panel__action-item .arco-space {
   justify-content: flex-end;
   width: 100%;
   flex-wrap: nowrap;
-  gap: 10px !important;
+  gap: 10px;
 }
 
 .filter-panel__action-item .arco-btn {
@@ -1723,21 +1874,21 @@ a {
 }
 
 .filter-panel__action-item .arco-btn:not(.arco-btn-primary) {
-  border-color: color-mix(in srgb, var(--panel-border-strong) 92%, #fff);
+  border-color: color-mix(in srgb, var(--panel-border-strong) 92%, var(--surface-lift));
   background: var(--panel-bg-solid);
 }
 
 @media (min-width: 1280px) {
-  .filter-panel .arco-row > .arco-col {
-    flex: 1 1 180px !important;
+  .filter-panel.filter-panel .arco-row > .arco-col {
+    flex: 1 1 180px;
     min-width: 160px;
-    max-width: 208px !important;
+    max-width: 208px;
   }
 
-  .filter-panel .arco-row > .arco-col:last-child {
-    flex: 0 0 auto !important;
+  .filter-panel.filter-panel .arco-row > .arco-col:last-child {
+    flex: 0 0 auto;
     min-width: auto;
-    max-width: none !important;
+    max-width: none;
     margin-left: auto;
   }
 
@@ -1751,7 +1902,159 @@ a {
   }
 }
 
-@media (max-width: 720px) {
+/* SearchToolbar：单行搜索工具栏（关键词 + 行内筛选 + 弹层筛选 + 清空） */
+.search-toolbar .filter-panel__body,
+.search-toolbar .search-toolbar__body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: var(--shell-filter-body-padding);
+  padding-bottom: calc(var(--shell-filter-form-item-margin-bottom) + 2px);
+}
+
+.search-toolbar__keyword {
+  flex: 1 1 260px;
+  min-width: 200px;
+  max-width: 560px;
+}
+
+/* Arco input-group wrapper 默认按行内内容撑高，收紧为控件实际高度。 */
+.search-toolbar__keyword .arco-input-group {
+  display: flex;
+}
+
+/* 外层 group wrapper 只做布局：边框由内层 inner-wrapper 承担，避免双边框叠高。 */
+.search-toolbar .search-toolbar__keyword.arco-input-group-wrapper {
+  min-height: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* 工具栏内所有控件对齐同一控件规格：高度与页面输入控件一致。
+   边框/hover/focus 交由全局 .arco-* 控件规则接管，避免高特异性覆盖交互态。 */
+.search-toolbar .search-toolbar__keyword .arco-input-inner-wrapper,
+.search-toolbar .search-toolbar__inline .arco-select-view,
+.search-toolbar .search-toolbar__inline .arco-tree-select-view,
+.search-toolbar .search-toolbar__inline .arco-picker {
+  height: var(--shell-filter-control-min-height);
+  min-height: var(--shell-filter-control-min-height);
+  box-sizing: border-box;
+}
+
+.search-toolbar .search-toolbar__inline .arco-btn,
+.search-toolbar .search-toolbar__advanced-trigger {
+  height: var(--shell-filter-control-min-height);
+  min-height: var(--shell-filter-control-min-height);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--control-bg);
+  box-sizing: border-box;
+}
+
+.search-toolbar__inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.search-toolbar__inline .arco-select,
+.search-toolbar__inline .arco-tree-select,
+.search-toolbar__inline .arco-picker {
+  width: 168px;
+}
+
+.search-toolbar .arco-form-item {
+  margin-bottom: 0;
+}
+
+.search-toolbar__advanced-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--shell-filter-control-min-height);
+  border-color: color-mix(in srgb, var(--panel-border-strong) 92%, var(--surface-lift));
+  border-radius: var(--radius-control);
+  background: var(--panel-bg-solid);
+  white-space: nowrap;
+}
+
+.search-toolbar__badge .arco-badge-number {
+  background: var(--brand-primary);
+  box-shadow: none;
+}
+
+.search-toolbar__clear {
+  min-height: var(--shell-filter-control-min-height);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.search-toolbar__clear:hover {
+  color: var(--text-primary);
+}
+
+.search-toolbar__extra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.search-toolbar__popover {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 264px;
+  max-width: min(320px, calc(100vw - 48px));
+  padding: 4px 2px;
+}
+
+.search-toolbar__popover .arco-form-item {
+  margin-bottom: 0;
+}
+
+.search-toolbar__popover .arco-select,
+.search-toolbar__popover .arco-tree-select,
+.search-toolbar__popover .arco-picker,
+.search-toolbar__popover .arco-input-inner-wrapper,
+.search-toolbar__popover input.arco-input {
+  width: 100%;
+  min-height: var(--shell-filter-control-min-height);
+}
+
+.search-toolbar__popover-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.search-toolbar__popover-field > label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+@media (max-width: 768px) {
+  .search-toolbar .filter-panel__body,
+  .search-toolbar .search-toolbar__body {
+    gap: 8px;
+  }
+
+  .search-toolbar__keyword {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .search-toolbar__extra {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
   .role-member-drawer__summary,
   .role-member-drawer__toolbar,
   .role-member-drawer__filter-row {
@@ -1842,9 +2145,9 @@ textarea.arco-textarea,
   border-radius: var(--radius-overlay);
 }
 
-.arco-card {
+:root[data-pantheon-theme] .arco-card {
   overflow: hidden;
-  border-color: var(--panel-border) !important;
+  border-color: var(--panel-border);
   background: var(--panel-bg-solid);
   box-shadow: var(--panel-shadow-soft);
 }
@@ -1871,7 +2174,7 @@ textarea.arco-textarea,
 .arco-form-item-error .arco-picker,
 .arco-form-item-error .arco-textarea-wrapper,
 .arco-form-item-error .arco-input-tag {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger-soft) 62%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-error-bg) 62%, transparent);
 }
 
 .arco-input-inner-wrapper,
@@ -1886,12 +2189,12 @@ input.arco-input,
 .arco-input-tag {
   min-height: var(--shell-control-min-height);
   border: 1px solid var(--panel-border-strong);
-  background: #fff;
+  background: var(--control-bg);
   box-shadow: none;
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
+    border-color var(--motion-duration-base) ease,
+    box-shadow var(--motion-duration-base) ease,
+    background var(--motion-duration-base) ease;
 }
 
 .arco-input-inner-wrapper:hover,
@@ -1925,7 +2228,7 @@ textarea.arco-textarea:focus,
 .arco-input-tag.arco-input-tag-focus {
   border-color: var(--brand-primary);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 14%, transparent);
-  background: #fff;
+  background: var(--control-bg);
 }
 
 .arco-input-inner-wrapper .arco-input,
@@ -2020,32 +2323,32 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 }
 
 .arco-input-number-mode-embed .arco-input-number-step-layer .arco-input-number-step-button {
-  background: color-mix(in srgb, var(--brand-primary) 6%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-lift));
 }
 
 .arco-input-number-mode-embed
   .arco-input-inner-wrapper:not(.arco-input-inner-wrapper-focus)
   .arco-input-number-step-button:not(.arco-input-number-step-button-disabled):hover {
-  background: color-mix(in srgb, var(--brand-primary) 12%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 12%, var(--surface-lift));
 }
 
 .arco-tree-select .arco-tree-select-view {
   border-radius: var(--radius-control);
   border-color: var(--panel-border-strong);
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--control-bg);
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
+    border-color var(--motion-duration-base) ease,
+    box-shadow var(--motion-duration-base) ease,
+    background var(--motion-duration-base) ease;
 }
 
 .arco-tree-node-title:hover {
-  background: color-mix(in srgb, var(--brand-primary) 8%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
 }
 
 .arco-tree-node-selected .arco-tree-node-title {
   color: var(--brand-primary);
-  background: color-mix(in srgb, var(--brand-primary) 10%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 10%, var(--surface-lift));
 }
 
 .arco-select-view-value,
@@ -2073,23 +2376,23 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 }
 
 .arco-alert-info {
-  border-color: color-mix(in srgb, var(--brand-primary) 18%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 7%, #fff);
+  border-color: color-mix(in srgb, var(--color-info) 18%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-info) 7%, var(--surface-lift));
 }
 
 .arco-alert-success {
-  border-color: color-mix(in srgb, var(--status-success-soft) 85%, var(--panel-border));
-  background: color-mix(in srgb, var(--status-success-soft) 48%, #fff);
+  border-color: color-mix(in srgb, var(--color-success-bg) 85%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-success-bg) 48%, var(--surface-lift));
 }
 
 .arco-alert-warning {
-  border-color: color-mix(in srgb, var(--status-warning-soft) 85%, var(--panel-border));
-  background: color-mix(in srgb, var(--status-warning-soft) 48%, #fff);
+  border-color: color-mix(in srgb, var(--color-warning-bg) 85%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-warning-bg) 48%, var(--surface-lift));
 }
 
 .arco-alert-error {
-  border-color: color-mix(in srgb, var(--danger-soft) 92%, var(--panel-border));
-  background: color-mix(in srgb, var(--danger-soft) 52%, #fff);
+  border-color: color-mix(in srgb, var(--color-error-bg) 92%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-error-bg) 52%, var(--surface-lift));
 }
 
 .arco-alert-title {
@@ -2151,19 +2454,19 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 }
 
 .arco-message-info {
-  border-color: color-mix(in srgb, var(--brand-primary) 18%, var(--panel-border));
+  border-color: color-mix(in srgb, var(--color-info) 18%, var(--panel-border));
 }
 
 .arco-message-success {
-  border-color: color-mix(in srgb, var(--status-success-soft) 85%, var(--panel-border));
+  border-color: color-mix(in srgb, var(--color-success-bg) 85%, var(--panel-border));
 }
 
 .arco-message-warning {
-  border-color: color-mix(in srgb, var(--status-warning-soft) 85%, var(--panel-border));
+  border-color: color-mix(in srgb, var(--color-warning-bg) 85%, var(--panel-border));
 }
 
 .arco-message-error {
-  border-color: color-mix(in srgb, var(--danger-soft) 95%, var(--panel-border));
+  border-color: color-mix(in srgb, var(--color-error-bg) 95%, var(--panel-border));
 }
 
 .arco-message-close-btn {
@@ -2171,7 +2474,7 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 }
 
 .arco-message-close-btn:hover {
-  background: color-mix(in srgb, var(--brand-primary) 8%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
 }
 
 .arco-notification {
@@ -2192,19 +2495,19 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 }
 
 .arco-notification-info {
-  border-color: color-mix(in srgb, var(--brand-primary) 18%, var(--panel-border));
+  border-color: color-mix(in srgb, var(--color-info) 18%, var(--panel-border));
 }
 
 .arco-notification-success {
-  border-color: color-mix(in srgb, var(--status-success-soft) 85%, var(--panel-border));
+  border-color: color-mix(in srgb, var(--color-success-bg) 85%, var(--panel-border));
 }
 
 .arco-notification-warning {
-  border-color: color-mix(in srgb, var(--status-warning-soft) 85%, var(--panel-border));
+  border-color: color-mix(in srgb, var(--color-warning-bg) 85%, var(--panel-border));
 }
 
 .arco-notification-error {
-  border-color: color-mix(in srgb, var(--danger-soft) 95%, var(--panel-border));
+  border-color: color-mix(in srgb, var(--color-error-bg) 95%, var(--panel-border));
 }
 
 .arco-notification .arco-notification-close-btn {
@@ -2212,7 +2515,7 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 }
 
 .arco-notification .arco-notification-close-btn:hover {
-  background: color-mix(in srgb, var(--brand-primary) 8%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
 }
 
 .arco-popconfirm-content {
@@ -2234,7 +2537,7 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 }
 
 .arco-popconfirm-title-icon .arco-icon-exclamation-circle-fill {
-  color: #ff7d00;
+  color: var(--color-warning);
 }
 
 .arco-popconfirm .arco-popconfirm-btn {
@@ -2247,11 +2550,11 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   margin-left: 0;
 }
 
-.arco-table-container,
-.arco-table-border .arco-table-container,
-.arco-table-th,
-.arco-table-td {
-  border-color: var(--panel-border-strong) !important;
+:root[data-pantheon-theme] .arco-table-container,
+:root[data-pantheon-theme] .arco-table-border .arco-table-container,
+:root[data-pantheon-theme] .arco-table-th,
+:root[data-pantheon-theme] .arco-table-td {
+  border-color: var(--panel-border-strong);
 }
 
 .arco-table-th {
@@ -2265,9 +2568,9 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   background: var(--panel-muted);
 }
 
-.arco-tabs-header-nav::before,
-.arco-tabs-header-nav::after {
-  border-bottom-color: var(--panel-border-strong) !important;
+:root[data-pantheon-theme] .arco-tabs-header-nav::before,
+:root[data-pantheon-theme] .arco-tabs-header-nav::after {
+  border-bottom-color: var(--panel-border-strong);
 }
 
 .arco-tabs-header-title {
@@ -2293,7 +2596,7 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 .arco-tabs-header-nav-rounded .arco-tabs-header-title-active,
 .arco-tabs-header-nav-rounded .arco-tabs-header-title-active:hover {
   border-color: var(--panel-border-strong);
-  background: color-mix(in srgb, var(--brand-primary) 10%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 10%, var(--surface-lift));
   box-shadow: none;
 }
 
@@ -2315,9 +2618,9 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   overflow: hidden;
 }
 
-.arco-descriptions-bordered .arco-descriptions-item-label,
-.arco-descriptions-bordered .arco-descriptions-item-value {
-  border-color: var(--panel-border) !important;
+:root[data-pantheon-theme] .arco-descriptions-bordered .arco-descriptions-item-label,
+:root[data-pantheon-theme] .arco-descriptions-bordered .arco-descriptions-item-value {
+  border-color: var(--panel-border);
 }
 
 .arco-tag {
@@ -2385,19 +2688,6 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 }
 
 .page-panel,
-.filter-panel {
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius-md);
-  background: var(--panel-bg-solid);
-  box-shadow: var(--panel-shadow-soft);
-  min-width: 0;
-}
-
-.filter-panel {
-  background: color-mix(in srgb, var(--panel-muted) 52%, #ffffff);
-  border-color: color-mix(in srgb, var(--panel-border) 94%, transparent);
-}
-
 .app-table-shell {
   width: 100%;
   min-width: 0;
@@ -2412,7 +2702,7 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   padding: 8px 10px;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--brand-primary) 4%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
   color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.5;
@@ -2447,18 +2737,20 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 }
 
 .app-table .arco-table-container {
+  /* 单一真相块：表格容器直角（外层 page-panel 的 radius-md 承担轮廓圆角）。 */
   overflow: auto hidden;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   background: var(--panel-bg-solid);
+  -webkit-overflow-scrolling: touch;
 }
 
-.app-table .arco-table-content-scroll::before,
-.app-table .arco-table-content-scroll::after,
-.app-table .arco-table-col-fixed-left-first::after,
-.app-table .arco-table-col-fixed-left-last::after,
-.app-table .arco-table-col-fixed-right-first::after,
-.app-table .arco-table-col-fixed-right-last::after {
-  box-shadow: none !important;
+.app-table.app-table .arco-table-content-scroll.arco-table-content-scroll::before,
+.app-table.app-table .arco-table-content-scroll.arco-table-content-scroll::after,
+.app-table.app-table .arco-table-col-fixed-left-first::after,
+.app-table.app-table .arco-table-col-fixed-left-last::after,
+.app-table.app-table .arco-table-col-fixed-right-first::after,
+.app-table.app-table .arco-table-col-fixed-right-last::after {
+  box-shadow: none;
 }
 
 .app-table .arco-table-th.arco-table-col-fixed-left,
@@ -2505,10 +2797,6 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 .app-table .arco-table-tr:hover .arco-table-td.arco-table-col-fixed-left,
 .app-table .arco-table-tr:hover .arco-table-td.arco-table-col-fixed-right {
   background: var(--panel-muted);
-}
-
-.app-table .arco-table-container {
-  border-radius: 0;
 }
 
 .app-table .arco-table-header {
@@ -2697,7 +2985,7 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 .arco-pagination-item-jumper {
   min-height: 28px;
   border-radius: 9px;
-  transition: all 0.2s ease;
+  transition: all var(--motion-duration-base) ease;
 }
 
 .app-table .arco-pagination-option,
@@ -2771,13 +3059,13 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 .arco-pagination-item-prev:hover,
 .arco-pagination-item-next:hover {
   border-color: color-mix(in srgb, var(--brand-primary) 28%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 6%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
 .app-table .arco-pagination-item-active {
   border-color: color-mix(in srgb, var(--brand-primary) 24%, transparent);
-  background: color-mix(in srgb, var(--brand-primary) 12%, #fff);
+  background: color-mix(in srgb, var(--brand-primary) 12%, var(--surface-lift));
   color: var(--brand-primary);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 16%, transparent);
 }
@@ -2819,7 +3107,7 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   min-height: var(--shell-table-action-min-height);
 }
 
-@media (max-width: 1440px) {
+@media (max-width: 1280px) {
   .app-table .app-table__col--hide-lg {
     display: none;
   }
@@ -2864,7 +3152,7 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1280px) {
   .page-header {
     flex-direction: column;
     align-items: stretch;
@@ -2875,7 +3163,7 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   }
 }
 
-@media (max-width: 840px) {
+@media (max-width: 768px) {
   .setting-page__field-grid {
     grid-template-columns: 1fr;
     gap: 8px;
@@ -2957,8 +3245,8 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
     padding: 12px;
   }
 
-  .app-dialog {
-    width: calc(100vw - 24px) !important;
+  .app-dialog.app-dialog {
+    width: calc(100vw - 24px);
     max-width: calc(100vw - 24px);
     max-height: calc(100dvh - 24px);
     margin: 12px auto;
@@ -2968,11 +3256,11 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
     max-height: calc(100dvh - 24px - 64px - 74px);
   }
 
-  .app-dialog .arco-modal-header,
-  .app-dialog .arco-modal-content,
-  .app-dialog .arco-modal-footer {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+  .app-dialog.app-dialog .arco-modal-header.arco-modal-header,
+  .app-dialog.app-dialog .arco-modal-content.arco-modal-content,
+  .app-dialog.app-dialog .arco-modal-footer.arco-modal-footer {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .filter-panel__header {
@@ -2987,16 +3275,16 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
     padding-bottom: 0;
   }
 
-  .filter-panel .arco-row {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+  .filter-panel.filter-panel .arco-row {
+    margin-left: 0;
+    margin-right: 0;
   }
 
-  .filter-panel .arco-col {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+  .filter-panel.filter-panel .arco-col {
+    flex: 0 0 100%;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .filter-panel__action-item .arco-form-item-control,
@@ -3007,15 +3295,9 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
     width: 100%;
   }
 
-  .filter-panel__action-item .arco-space {
+  .filter-panel .filter-panel__action-item .arco-space {
     flex-direction: column;
-    align-items: stretch !important;
-  }
-
-  .app-table .arco-table-container {
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
+    align-items: stretch;
   }
 
   .app-table__mobile-hint {
@@ -3062,11 +3344,52 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
     padding: 14px;
   }
 
-  .system-page-hero__title {
-    font-size: 20px !important;
+  .system-page-hero .system-page-hero__title {
+    font-size: 20px;
   }
 
   .system-page-kpi-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ===========================================================================
+   P3-3 移动端抽屉式侧栏 —— ≤768px 时 sider 变为覆盖式抽屉（点击 toggle 弹出）。
+   桌面端结构不受影响；仅在移动断点内改变定位与位移。
+   =========================================================================== */
+@media (max-width: 768px) {
+  .app-shell--vertical .app-shell__sider {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100dvh;
+    z-index: var(--z-overlay);
+    transform: translateX(-100%);
+    transition: transform var(--motion-duration-base) var(--motion-ease-standard);
+    box-shadow: var(--panel-shadow-strong);
+  }
+
+  .app-shell--vertical.app-shell--mobile-open .app-shell__sider {
+    transform: translateX(0);
+  }
+
+  .app-shell__mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-overlay) - 1);
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.45);
+    animation: appShellBackdropIn var(--motion-duration-fast) var(--motion-ease-standard);
+  }
+}
+
+@keyframes appShellBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

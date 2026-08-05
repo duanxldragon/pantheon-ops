@@ -21,6 +21,7 @@ type RoleListPageResp struct {
 }
 
 type RoleListQuery struct {
+	Keyword   string `form:"keyword" json:"keyword"`
 	RoleName  string `form:"roleName" json:"roleName"`
 	RoleKey   string `form:"roleKey" json:"roleKey"`
 	Status    *int   `form:"status" json:"status"`

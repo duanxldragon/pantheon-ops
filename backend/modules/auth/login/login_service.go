@@ -1,16 +1,20 @@
+//nolint:revive // Legacy login facade keeps the package API stable.
 package login
 
 import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"pantheon-ops/backend/modules/auth/security"
 	user "pantheon-ops/backend/modules/system/iam/user"
 	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/impexp"
+	"pantheon-ops/backend/pkg/logging"
 
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -30,6 +34,11 @@ type LoginService struct {
 	db       *gorm.DB
 	policy   PolicyProvider
 	recorder SecurityEventRecorder
+
+	// Throttle state for automatic retention cleanup: without it every
+	// RecordLoginLog/List/Export issues a full-table DELETE scan.
+	autoCleanupMu     sync.Mutex
+	lastAutoCleanupAt time.Time
 }
 
 // NewLoginService creates a LoginService with the given DB and policy provider.
@@ -164,26 +173,42 @@ func (s *LoginService) ListLoginLogs(query *LoginLogQuery) (*LoginLogPageResp, e
 	return s.listLoginLogs(query, "")
 }
 
+// scopedLoginLogQuery applies the shared list filters so that the paged query
+// and the whole-set aggregates run over the identical scope.
+func (s *LoginService) scopedLoginLogQuery(query *LoginLogQuery, filterUsername string) *gorm.DB {
+	db := s.db.Model(&SystemLogLogin{})
+	if filterUsername != "" {
+		db = db.Where(usernameLikeWhereClause, "%"+filterUsername+"%")
+	} else if query != nil && strings.TrimSpace(query.Username) != "" {
+		db = db.Where(usernameLikeWhereClause, "%"+strings.TrimSpace(query.Username)+"%")
+	}
+	if filterUsername == "" {
+		db = applyLoginLogKeyword(db, query)
+	}
+	db = applyLoginLogTimeWindow(db, query)
+	if query != nil && query.Status != nil && common.IsLoginStatus(*query.Status) {
+		db = db.Where("status = ?", *query.Status)
+	}
+	return db
+}
+
 func (s *LoginService) listLoginLogs(query *LoginLogQuery, filterUsername string) (*LoginLogPageResp, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var logs []SystemLogLogin
-	db := s.db.Model(&SystemLogLogin{})
 	page, pageSize := normalizePageQuery(queryPage(query), queryPageSize(query))
-
-	if filterUsername != "" {
-		db = db.Where(usernameLikeWhereClause, "%"+filterUsername+"%")
-	} else if query != nil && strings.TrimSpace(query.Username) != "" {
-		db = db.Where(usernameLikeWhereClause, "%"+strings.TrimSpace(query.Username)+"%")
-	}
-	if query != nil && query.Status != nil && common.IsLoginStatus(*query.Status) {
-		db = db.Where("status = ?", *query.Status)
-	}
+	db := s.scopedLoginLogQuery(query, filterUsername)
 
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
+		return nil, err
+	}
+	var successCount int64
+	if err := s.scopedLoginLogQuery(query, filterUsername).
+		Where("status = ?", common.LoginStatusSuccess).
+		Count(&successCount).Error; err != nil {
 		return nil, err
 	}
 	if err := db.Order(loginTimeDescOrderClause).Offset((page - 1) * pageSize).Limit(pageSize).Find(&logs).Error; err != nil {
@@ -204,7 +229,14 @@ func (s *LoginService) listLoginLogs(query *LoginLogQuery, filterUsername string
 			LoginTime:     item.LoginTime.Format(time.RFC3339),
 		})
 	}
-	return &LoginLogPageResp{Items: items, Total: total, Page: page, PageSize: pageSize}, nil
+	return &LoginLogPageResp{
+		Items:        items,
+		Total:        total,
+		SuccessCount: successCount,
+		FailedCount:  total - successCount,
+		Page:         page,
+		PageSize:     pageSize,
+	}, nil
 }
 
 // ExportLoginLogs exports login logs as CSV.
@@ -222,7 +254,7 @@ func (s *LoginService) ExportLoginLogs(query *LoginLogQuery) (*impexp.CSVFile, e
 	rows := make([][]string, 0, len(logs))
 	for _, item := range logs {
 		rows = append(rows, []string{
-			item.Username, item.Ipaddr, item.LoginLocation, item.Browser, item.Os,
+			item.Username, item.Ipaddr, common.LocationDisplayText(item.LoginLocation), item.Browser, item.Os,
 			fmt.Sprintf("%d", item.Status), item.Msg, item.LoginTime.Format(time.RFC3339),
 		})
 	}
@@ -256,6 +288,10 @@ func (s *LoginService) CleanupLoginLogs(retentionDays int, startedAt, endedAt st
 	return result.RowsAffected, result.Error
 }
 
+// maxBatchIDs caps id-list inputs on batch endpoints so a single request
+// cannot smuggle an arbitrarily large IN clause past BodySizeLimit.
+const maxBatchIDs = 500
+
 // BatchDeleteLoginLogs deletes login logs by IDs.
 func (s *LoginService) BatchDeleteLoginLogs(ids []uint64) (int64, error) {
 	if s.db == nil {
@@ -264,6 +300,9 @@ func (s *LoginService) BatchDeleteLoginLogs(ids []uint64) (int64, error) {
 	normalized := normalizeUint64IDs(ids)
 	if len(normalized) == 0 {
 		return 0, errors.New(errLoginLogDeleteIdsRequired)
+	}
+	if len(normalized) > maxBatchIDs {
+		return 0, errors.New("param.invalid")
 	}
 	result := s.db.Where("id IN ?", normalized).Delete(&SystemLogLogin{})
 	return result.RowsAffected, result.Error
@@ -276,14 +315,46 @@ func (s *LoginService) listLoginLogsForExport(query *LoginLogQuery) ([]SystemLog
 	s.ensureAutomaticLoginLogRetention()
 
 	var logs []SystemLogLogin
-	db := s.db.Model(&SystemLogLogin{})
-	if query != nil && strings.TrimSpace(query.Username) != "" {
-		db = db.Where(usernameLikeWhereClause, "%"+strings.TrimSpace(query.Username)+"%")
-	}
-	if query != nil && query.Status != nil && common.IsLoginStatus(*query.Status) {
-		db = db.Where("status = ?", *query.Status)
-	}
+	// Reuse the exact list-scope filters (username/keyword/status AND the
+	// time window) so the CSV always matches the filtered view being exported.
+	db := s.scopedLoginLogQuery(query, "")
 	return logs, db.Order(loginTimeDescOrderClause).Limit(maxLoginLogExportRows).Find(&logs).Error
+}
+
+// applyLoginLogKeyword 关键词匹配用户名 / IP / 登录地。
+func applyLoginLogKeyword(db *gorm.DB, query *LoginLogQuery) *gorm.DB {
+	if query == nil || strings.TrimSpace(query.Keyword) == "" {
+		return db
+	}
+	keyword := "%" + common.EscapeLikePattern(strings.TrimSpace(query.Keyword)) + "%"
+	return db.Where("username LIKE ? OR ipaddr LIKE ? OR login_location LIKE ?", keyword, keyword, keyword)
+}
+
+// applyLoginLogTimeWindow 按登录时间窗口过滤；起止时间接受 RFC3339 或 "2006-01-02 15:04"。
+func applyLoginLogTimeWindow(db *gorm.DB, query *LoginLogQuery) *gorm.DB {
+	if query == nil {
+		return db
+	}
+	if start, ok := parseLoginLogTime(query.StartedAt); ok {
+		db = db.Where("login_time >= ?", start)
+	}
+	if end, ok := parseLoginLogTime(query.EndedAt); ok {
+		db = db.Where("login_time <= ?", end)
+	}
+	return db
+}
+
+func parseLoginLogTime(value string) (time.Time, bool) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return time.Time{}, false
+	}
+	for _, layout := range []string{time.RFC3339, "2006-01-02 15:04:05", "2006-01-02 15:04"} {
+		if parsed, err := time.ParseInLocation(layout, value, time.Local); err == nil {
+			return parsed, true
+		}
+	}
+	return time.Time{}, false
 }
 
 // RecordLoginLog writes a login log entry.
@@ -304,7 +375,10 @@ func (s *LoginService) RecordLoginLog(requestID, username, ip, browser, os strin
 		LoginTime:     time.Now(),
 		LoginLocation: common.GetLocationByIP(ip),
 	}
-	_ = s.db.Create(&loginLog).Error
+	if err := s.db.Create(&loginLog).Error; err != nil {
+		logging.Warn("record login log failed",
+			zap.String("username", username), zap.Error(err))
+	}
 }
 
 func (s *LoginService) ensureAutomaticLoginLogRetention() {
@@ -312,9 +386,19 @@ func (s *LoginService) ensureAutomaticLoginLogRetention() {
 		return
 	}
 	now := time.Now()
+	s.autoCleanupMu.Lock()
+	if !s.lastAutoCleanupAt.IsZero() && now.Sub(s.lastAutoCleanupAt) < autoCleanupMinInterval {
+		s.autoCleanupMu.Unlock()
+		return
+	}
+	s.lastAutoCleanupAt = now
+	s.autoCleanupMu.Unlock()
+
 	policy := s.policy.GetRuntimePolicy()
 	cutoff := now.AddDate(0, 0, -maxInt(policy.LoginLogRetentionDays, 1))
-	_ = s.db.Where("login_time < ?", cutoff).Delete(&SystemLogLogin{}).Error
+	if err := s.db.Where("login_time < ?", cutoff).Delete(&SystemLogLogin{}).Error; err != nil {
+		logging.Warn("cleanup expired login logs failed", zap.Error(err))
+	}
 }
 
 func (s *LoginService) recordFailedLoginAttempt(currentUser *user.SystemUser, policy RuntimePolicy) (bool, error) {
@@ -361,11 +445,14 @@ func (s *LoginService) checkSourceThrottle(sourceKey string, policy RuntimePolic
 		return true, nil
 	}
 	if s.isSourceThrottleWindowExpired(throttle.WindowStartedAt, policy, now) || (throttle.BlockedUntil != nil && !throttle.BlockedUntil.After(now)) {
-		_ = s.db.Model(&throttle).Updates(map[string]any{
+		if err := s.db.Model(&throttle).Updates(map[string]any{
 			"failure_count":     0,
 			"window_started_at": nil,
 			"blocked_until":     nil,
-		}).Error
+		}).Error; err != nil {
+			logging.Error("reset login source throttle failed",
+				zap.String("source_key", normalizedKey), zap.Error(err))
+		}
 	}
 	return false, nil
 }
@@ -427,12 +514,16 @@ func (s *LoginService) updateSourceThrottleFailure(throttle *SystemLoginThrottle
 	if throttle.FailureCount >= policy.SourceMaxFailedAttempts {
 		throttle.BlockedUntil = sourceThrottleBlockedUntil(policy, now, true)
 	}
-	_ = s.db.Model(&throttle).Updates(map[string]any{
+	if err := s.db.Model(&throttle).Updates(map[string]any{
 		"failure_count":     throttle.FailureCount,
 		"window_started_at": throttle.WindowStartedAt,
 		"last_attempt_at":   throttle.LastAttemptAt,
 		"blocked_until":     throttle.BlockedUntil,
-	}).Error
+	}).Error; err != nil {
+		// 限流计数更新失败意味着暴力破解计数可能不增长，必须以 Error 级留痕。
+		logging.Error("update login source throttle failed",
+			zap.String("source_key", throttle.SourceKey), zap.Error(err))
+	}
 	return sourceThrottleBlocked(throttle.BlockedUntil, now), nil
 }
 
@@ -491,12 +582,12 @@ const (
 	errUserNotFound                = "user.login.error.not_found"
 	errUserDisabled                = "user.login.error.disabled"
 	errUserLocked                  = "user.login.error.locked"
-	errPasswordWrong               = "user.login.error.password_wrong"
+	errPasswordWrong               = "user.login.error.password_wrong" // #nosec G101 -- application error code, not a credential.
 	errTokenInvalid                = "token.invalid"
 	errLoginLogCleanupRangeInvalid = "auth.login_log.cleanup.range_invalid"
 	errLoginLogCleanupDaysInvalid  = "auth.login_log.cleanup.days_invalid"
 	errLoginLogDeleteIdsRequired   = "auth.login_log.delete.ids_required"
-	msgSecurityEventPasswordWrong  = "auth.security.event.password_wrong"
+	msgSecurityEventPasswordWrong  = "auth.security.event.password_wrong" // #nosec G101 -- application event code, not a credential.
 	msgSecurityEventSourceBlocked  = "auth.security.event.source_blocked"
 	msgSecurityEventAccountLocked  = "auth.security.event.account_locked"
 

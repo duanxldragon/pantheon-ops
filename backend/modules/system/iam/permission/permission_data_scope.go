@@ -19,6 +19,7 @@ type permissionDataScopeRoleRow struct {
 	Sort     int    `gorm:"column:sort"`
 }
 
+// ListDataScopePolicies returns the current data scope policies.
 func (s *PermissionService) ListDataScopePolicies(query *PermissionDataScopeQuery) (*PermissionDataScopePolicyListResp, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
@@ -75,6 +76,7 @@ func (s *PermissionService) ListDataScopePolicies(query *PermissionDataScopeQuer
 	return &PermissionDataScopePolicyListResp{Items: items, Total: len(items)}, nil
 }
 
+// UpdateDataScopePolicy upserts the data scope policy for a role.
 func (s *PermissionService) UpdateDataScopePolicy(roleKey string, req *PermissionDataScopePolicyUpdateReq) (*PermissionDataScopePolicyResp, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
@@ -141,57 +143,6 @@ func (s *PermissionService) loadRoleDataScopePolicies(roleKeys []string) (map[st
 		result[policy.RoleKey] = policy
 	}
 	return result, nil
-}
-
-// getRoleDataScopePolicies returns data scope policies for the given role keys.
-func (s *PermissionService) getRoleDataScopePolicies(roleKeys []string) (map[string]PermissionRoleDataScopePolicy, error) {
-	result := make(map[string]PermissionRoleDataScopePolicy)
-	if len(roleKeys) == 0 {
-		return result, nil
-	}
-	if !s.db.Migrator().HasTable(&PermissionRoleDataScopePolicy{}) {
-		return result, nil
-	}
-	var policies []PermissionRoleDataScopePolicy
-	if err := s.db.Where("role_key IN ?", roleKeys).Find(&policies).Error; err != nil {
-		return result, nil
-	}
-	for _, policy := range policies {
-		result[policy.RoleKey] = policy
-	}
-	return result, nil
-}
-
-// upsertRoleDataScopePolicy creates or updates a data scope policy for a role.
-func (s *PermissionService) upsertRoleDataScopePolicy(roleKey string, mode string, deptIDs []uint64) (*PermissionRoleDataScopePolicy, error) {
-	if s.db == nil {
-		return nil, common.ErrDatabaseNotInitialized
-	}
-	mode = normalizeDataScopeMode(mode)
-	if !isValidDataScopeMode(mode) {
-		return nil, common.NewBadRequest("permission.data_scope.mode_invalid")
-	}
-	if mode == common.DataScopeModeCustom {
-		deptIDs = normalizePermissionDataScopeDeptIDs(deptIDs)
-		if len(deptIDs) == 0 {
-			return nil, common.NewBadRequest("permission.data_scope.dept_required")
-		}
-	} else {
-		deptIDs = []uint64{}
-	}
-
-	policy := PermissionRoleDataScopePolicy{
-		RoleKey: roleKey,
-		Mode:    mode,
-		DeptIDs: joinPermissionDataScopeDeptIDs(deptIDs),
-	}
-	if err := s.db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "role_key"}},
-		DoUpdates: clause.AssignmentColumns([]string{"mode", "dept_ids"}),
-	}).Create(&policy).Error; err != nil {
-		return nil, err
-	}
-	return &policy, nil
 }
 
 func normalizeDataScopeMode(mode string) string {

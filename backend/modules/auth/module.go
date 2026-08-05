@@ -72,10 +72,12 @@ func InitAuthModule(r *gin.RouterGroup, db *gorm.DB) {
 					systemProtected.POST("/login-log/batch-delete", middleware.SecureActionMiddleware(), authHandler.BatchDeleteLoginLogs)
 					systemProtected.GET("/security-event/list", authHandler.GetSecurityEventList)
 					systemProtected.POST("/security-event/:id/acknowledge", middleware.SecureActionMiddleware(), authHandler.AcknowledgeSecurityEvent)
+					systemProtected.POST("/security-event/batch-acknowledge", middleware.SecureActionMiddleware(), authHandler.BatchAcknowledgeSecurityEvents)
+					systemProtected.POST("/security-event/cleanup", middleware.SecureActionMiddleware(), authHandler.CleanupSecurityEvents)
 					systemProtected.GET("/session/list", authHandler.GetSessionList)
 					systemProtected.POST("/session/cleanup", middleware.SecureActionMiddleware(), authHandler.CleanupHistoricSessions)
 					systemProtected.POST("/session/batch-revoke", middleware.SecureActionMiddleware(), authHandler.BatchRevokeSessions)
-					systemProtected.DELETE("/session/:id", authHandler.RevokeAnySession)
+					systemProtected.DELETE("/session/:id", middleware.SecureActionMiddleware(), authHandler.RevokeAnySession)
 				}
 
 				authV2 := r.Group("/auth").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
@@ -102,7 +104,7 @@ func publicAuthRateLimitKey(c *gin.Context) string {
 	return c.FullPath() + ":" + c.ClientIP()
 }
 
-func publicAuthRateLimitMax(productionDefault int, nonProductionDefault int) int {
+func publicAuthRateLimitMax(productionDefault, nonProductionDefault int) int {
 	if override := strings.TrimSpace(os.Getenv("PANTHEON_PUBLIC_AUTH_RATE_LIMIT_MAX")); override != "" {
 		value, err := strconv.Atoi(override)
 		if err == nil && value > 0 {

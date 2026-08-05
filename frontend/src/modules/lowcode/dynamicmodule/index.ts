@@ -6,7 +6,7 @@ import { defineModule } from '../../../core/router/types';
 
 export const DynamicModuleModule = defineModule({
   name: 'dynamic-module',
-  scope: 'system',
+  scope: 'lowcode',
   routes: [
     {
       path: 'system/modules',
@@ -14,7 +14,7 @@ export const DynamicModuleModule = defineModule({
       titleKey: 'system.menu.modules',
       icon: 'apps',
       pagePermission: 'system:module:list',
-      componentKey: 'system/dynamicmodule/ModuleManager',
+      componentKey: 'lowcode/dynamicmodule/ModuleManager',
     },
   ],
   menus: [

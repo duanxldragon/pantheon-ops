@@ -14,43 +14,63 @@ func WithDataScope(req *common.DataScopeReq) func(db *gorm.DB) *gorm.DB {
 		if req == nil || req.IsAdmin {
 			return db
 		}
-
-		switch strings.TrimSpace(req.Mode) {
-		case "", common.DataScopeModeAll:
-			return db
-		case common.DataScopeModeDept:
-			if req.DeptID == 0 {
-				return db.Where("1 = 0")
-			}
-			return db.Where("dept_id = ?", req.DeptID)
-		case common.DataScopeModeDeptAndChildren:
-			if len(req.DeptIDs) > 0 {
-				return db.Where("dept_id IN ?", req.DeptIDs)
-			}
-			if req.DeptID == 0 {
-				return db.Where("1 = 0")
-			}
-			return db.Where("dept_id = ?", req.DeptID)
-		case common.DataScopeModeCustom:
-			if len(req.DeptIDs) == 0 {
-				return db.Where("1 = 0")
-			}
-			return db.Where("dept_id IN ?", req.DeptIDs)
-		case common.DataScopeModeSelf:
-			if req.UserID == 0 {
-				return db.Where("1 = 0")
-			}
-			return applySelfDataScope(db, req.UserID)
-		default:
-			return db.Where("1 = 0")
-		}
+		return applyDataScopeMode(db, req)
 	}
+}
+
+func applyDataScopeMode(db *gorm.DB, req *common.DataScopeReq) *gorm.DB {
+	switch strings.TrimSpace(req.Mode) {
+	case "", common.DataScopeModeAll:
+		return db
+	case common.DataScopeModeDept:
+		return applyDeptDataScope(db, req.DeptID)
+	case common.DataScopeModeDeptAndChildren:
+		return applyDeptAndChildrenDataScope(db, req)
+	case common.DataScopeModeCustom:
+		return applyCustomDataScope(db, req.DeptIDs)
+	case common.DataScopeModeSelf:
+		return applyRequestedSelfDataScope(db, req.UserID)
+	default:
+		return denyDataScope(db)
+	}
+}
+
+func applyDeptDataScope(db *gorm.DB, deptID uint64) *gorm.DB {
+	if deptID == 0 {
+		return denyDataScope(db)
+	}
+	return db.Where("dept_id = ?", deptID)
+}
+
+func applyDeptAndChildrenDataScope(db *gorm.DB, req *common.DataScopeReq) *gorm.DB {
+	if len(req.DeptIDs) > 0 {
+		return db.Where("dept_id IN ?", req.DeptIDs)
+	}
+	return applyDeptDataScope(db, req.DeptID)
+}
+
+func applyCustomDataScope(db *gorm.DB, deptIDs []uint64) *gorm.DB {
+	if len(deptIDs) == 0 {
+		return denyDataScope(db)
+	}
+	return db.Where("dept_id IN ?", deptIDs)
+}
+
+func applyRequestedSelfDataScope(db *gorm.DB, userID uint64) *gorm.DB {
+	if userID == 0 {
+		return denyDataScope(db)
+	}
+	return applySelfDataScope(db, userID)
+}
+
+func denyDataScope(db *gorm.DB) *gorm.DB {
+	return db.Where("1 = 0")
 }
 
 func applySelfDataScope(db *gorm.DB, userID uint64) *gorm.DB {
 	columns, ok := statementColumns(db)
 	if !ok {
-		return db.Where("1 = 0")
+		return denyDataScope(db)
 	}
 
 	ownerColumns := make([]string, 0, 2)
@@ -72,7 +92,7 @@ func applySelfDataScope(db *gorm.DB, userID uint64) *gorm.DB {
 	if _, exists := columns["id"]; exists {
 		return db.Where("id = ?", userID)
 	}
-	return db.Where("1 = 0")
+	return denyDataScope(db)
 }
 
 func statementColumns(db *gorm.DB) (map[string]struct{}, bool) {

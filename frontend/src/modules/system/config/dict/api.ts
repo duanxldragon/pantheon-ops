@@ -18,6 +18,7 @@ export interface DictTypeRow {
 }
 
 export interface DictTypeQuery {
+  keyword?: string;
   dictCode?: string;
   dictName?: string;
   status?: number;
@@ -57,6 +58,8 @@ export interface DictItemQuery {
   status?: number;
   page?: number;
   pageSize?: number;
+  sortField?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface DictItemPayload {

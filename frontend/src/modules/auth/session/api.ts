@@ -40,12 +40,15 @@ export interface AdminSessionRow {
 }
 
 export interface AdminSessionQuery {
+  keyword?: string;
   username?: string;
   lastIp?: string;
   browser?: string;
   os?: string;
   device?: string;
   status?: number;
+  startedAt?: string;
+  endedAt?: string;
   page?: number;
   pageSize?: number;
 }

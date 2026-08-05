@@ -1,10 +1,14 @@
 package session
 
 import (
+	"context"
 	"testing"
 	"time"
 
+	"pantheon-ops/backend/pkg/authtoken"
+	"pantheon-ops/backend/pkg/database"
 	"pantheon-ops/backend/pkg/testmysql"
+	"pantheon-ops/backend/pkg/testredis"
 )
 
 func setupLifecycleTestDB(t *testing.T) *LifecycleService {
@@ -94,6 +98,113 @@ func TestLifecycleService_DeleteUserSessions(t *testing.T) {
 	}
 }
 
+func TestLifecycleService_RevokeUserTokens(t *testing.T) {
+	service := setupLifecycleTestDB(t)
+	rdb := testredis.Open(t)
+	oldRDB := database.RDB
+	database.RDB = rdb
+	t.Cleanup(func() { database.RDB = oldRDB })
+
+	now := time.Date(2026, 7, 26, 12, 0, 0, 0, time.UTC)
+	if err := service.db.Create(&[]SystemUserSession{
+		{SessionID: "revoke-a", UserID: 42, RefreshJTI: "r1", RefreshExpiresAt: now.Add(time.Hour)},
+		{SessionID: "revoke-b", UserID: 42, RefreshJTI: "r2", RefreshExpiresAt: now.Add(time.Hour)},
+		{SessionID: "keep-c", UserID: 99, RefreshJTI: "r3", RefreshExpiresAt: now.Add(time.Hour)},
+	}).Error; err != nil {
+		t.Fatalf("seed sessions: %v", err)
+	}
+
+	ctx := context.Background()
+	for _, seed := range []struct {
+		token, sid string
+		uid        uint64
+	}{
+		{token: "rt-a", sid: "revoke-a", uid: 42},
+		{token: "rt-b", sid: "revoke-b", uid: 42},
+		{token: "rt-c", sid: "keep-c", uid: 99},
+	} {
+		if err := authtoken.StoreRefresh(ctx, rdb, seed.token, seed.uid, seed.sid, time.Hour); err != nil {
+			t.Fatalf("seed refresh token %s: %v", seed.token, err)
+		}
+	}
+
+	if err := service.RevokeUserTokens(42); err != nil {
+		t.Fatalf("revoke user tokens: %v", err)
+	}
+
+	blacklistVal, err := rdb.Get(ctx, authtoken.BlacklistUserKey(42)).Result()
+	if err != nil || blacklistVal == "" {
+		t.Fatalf("expected blacklist key for user 42, got val=%q err=%v", blacklistVal, err)
+	}
+	ttl, err := rdb.TTL(ctx, authtoken.BlacklistUserKey(42)).Result()
+	if err != nil || ttl < authtoken.AccessTokenTTL {
+		t.Fatalf("expected blacklist TTL >= access token TTL, got %v err=%v", ttl, err)
+	}
+	for _, revoked := range []string{"rt-a", "rt-b"} {
+		if _, _, err := authtoken.ValidateRefresh(ctx, rdb, revoked); err == nil {
+			t.Fatalf("expected refresh token %s revoked", revoked)
+		}
+	}
+	if _, _, err := authtoken.ValidateRefresh(ctx, rdb, "rt-c"); err != nil {
+		t.Fatalf("expected other user's refresh token kept, got %v", err)
+	}
+	if val, err := rdb.Get(ctx, authtoken.BlacklistUserKey(99)).Result(); err == nil {
+		t.Fatalf("expected no blacklist for user 99, got %q", val)
+	}
+}
+
+func TestLifecycleService_PurgeUserAuthArtifacts(t *testing.T) {
+	service := setupLifecycleTestDB(t)
+
+	execLifecycleStatements(t, service, []string{
+		"CREATE TABLE IF NOT EXISTS system_user_password_history (id BIGINT PRIMARY KEY AUTO_INCREMENT, user_id BIGINT, password_hash VARCHAR(255))",
+		"CREATE TABLE IF NOT EXISTS system_auth_factor (id BIGINT PRIMARY KEY AUTO_INCREMENT, user_id BIGINT, factor_type VARCHAR(32), secret VARCHAR(255))",
+		"CREATE TABLE IF NOT EXISTS system_auth_mfa_challenge (id BIGINT PRIMARY KEY AUTO_INCREMENT, user_id BIGINT, challenge_id VARCHAR(64))",
+	}, "create table")
+	execLifecycleStatements(t, service, []string{
+		"INSERT INTO system_user_password_history (user_id, password_hash) VALUES (42, 'h1'), (99, 'h2')",
+		"INSERT INTO system_auth_factor (user_id, factor_type, secret) VALUES (42, 'totp', 's1'), (99, 'totp', 's2')",
+		"INSERT INTO system_auth_mfa_challenge (user_id, challenge_id) VALUES (42, 'c1'), (99, 'c2')",
+	}, "seed rows")
+
+	if err := service.PurgeUserAuthArtifacts(42); err != nil {
+		t.Fatalf("purge artifacts: %v", err)
+	}
+
+	for _, table := range []string{"system_user_password_history", "system_auth_factor", "system_auth_mfa_challenge"} {
+		assertLifecycleTableUserRows(t, service, table, 42, 0)
+		assertLifecycleTableUserRows(t, service, table, 99, 1)
+	}
+
+	// 表不存在时应静默跳过（HasTable 守卫）
+	if err := service.db.Exec("DROP TABLE system_auth_mfa_challenge").Error; err != nil {
+		t.Fatalf("drop table: %v", err)
+	}
+	if err := service.PurgeUserAuthArtifacts(99); err != nil {
+		t.Fatalf("expected purge to skip missing table, got %v", err)
+	}
+}
+
+func execLifecycleStatements(t *testing.T, service *LifecycleService, statements []string, action string) {
+	t.Helper()
+	for _, stmt := range statements {
+		if err := service.db.Exec(stmt).Error; err != nil {
+			t.Fatalf("%s: %v", action, err)
+		}
+	}
+}
+
+func assertLifecycleTableUserRows(t *testing.T, service *LifecycleService, table string, userID uint64, want int64) {
+	t.Helper()
+	var got int64
+	if err := service.db.Table(table).Where("user_id = ?", userID).Count(&got).Error; err != nil {
+		t.Fatalf("count %s for user %d: %v", table, userID, err)
+	}
+	if got != want {
+		t.Fatalf("expected %s rows for user %d to be %d, got %d", table, userID, want, got)
+	}
+}
+
 func TestLifecycleService_NilAndZeroInputsAreNoops(t *testing.T) {
 	var nilService *LifecycleService
 	if revoked, err := nilService.RevokeUserSessions(42, time.Now()); err != nil || revoked != 0 {
@@ -101,6 +212,12 @@ func TestLifecycleService_NilAndZeroInputsAreNoops(t *testing.T) {
 	}
 	if err := nilService.DeleteUserSessions(42); err != nil {
 		t.Fatalf("expected nil service delete noop, got %v", err)
+	}
+	if err := nilService.PurgeUserAuthArtifacts(42); err != nil {
+		t.Fatalf("expected nil service purge noop, got %v", err)
+	}
+	if err := nilService.RevokeUserTokens(42); err != nil {
+		t.Fatalf("expected nil service token revoke noop, got %v", err)
 	}
 
 	service := NewLifecycleService(nil)

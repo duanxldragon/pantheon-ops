@@ -12,8 +12,8 @@
   flex-shrink: 0;
 }
 
-.generator-code-preview__section-title {
-  margin-top: 0 !important;
+.generator-code-preview .generator-code-preview__section-title {
+  margin-top: 0;
 }
 
 .generator-code-preview__content {
@@ -26,8 +26,8 @@
   margin-bottom: 16px;
 }
 
-.generator-code-preview__file-title {
-  margin: 0 !important;
+.generator-code-preview .generator-code-preview__file-title {
+  margin: 0;
 }
 
 .generator-code-preview__path {

@@ -78,6 +78,107 @@ function resolveLoginErrorKey(error: unknown, fallbackKey: string) {
   return fallbackKey;
 }
 
+// 开发态排障日志：非业务错误(网络/服务端/超时)打到控制台，生产静默。
+function logDevLoginError(error: unknown) {
+  if (
+    import.meta.env.DEV &&
+    (!isRequestError(error) || isServerRequestError(error) || isTimeoutRequestError(error))
+  ) {
+    console.error(error);
+  }
+}
+
+function canEnterPlatformDashboard(user: { roles?: string[]; perms?: string[] }) {
+  return Boolean(user.roles?.includes('admin') || user.perms?.includes('platform:dashboard:view'));
+}
+
+interface BrandIdentityProps {
+  appName: string;
+  brandInitial: string;
+  siteLogo?: string;
+  subtitle: string;
+}
+
+function BrandIdentity({
+  appName,
+  brandInitial,
+  siteLogo,
+  subtitle,
+}: Readonly<BrandIdentityProps>) {
+  return (
+    <div className="auth-login-page__brand">
+      <div className="auth-login-page__brand-mark">
+        {siteLogo ? <img src={siteLogo} alt={appName} /> : brandInitial}
+      </div>
+      <div className="auth-login-page__brand-copy">
+        <span className="auth-login-page__brand-title">{appName}</span>
+        <span className="auth-login-page__brand-subtitle">{subtitle}</span>
+      </div>
+    </div>
+  );
+}
+
+interface MFAChallengeFieldsProps {
+  challenge: LoginResp;
+  t: ReturnType<typeof useTranslation>['t'];
+  onSubmit: () => void;
+}
+
+function MFAChallengeFields({ challenge, t, onSubmit }: Readonly<MFAChallengeFieldsProps>) {
+  return (
+    <>
+      <Alert
+        className="auth-login-card__notice"
+        type={challenge.setupRequired ? 'warning' : 'info'}
+        content={challenge.setupRequired ? t('auth.mfa.setupHint') : t('auth.mfa.verifyHint')}
+      />
+      {challenge.setupRequired && challenge.totpSecret ? (
+        <div className="auth-login-mfa-setup">
+          {challenge.totpProvisionUri ? (
+            <div className="auth-login-mfa-qr">
+              <div className="auth-login-mfa-qr__image" aria-label={t('auth.mfa.scanQr')}>
+                <QRCodeSVG value={challenge.totpProvisionUri} size={168} level="M" includeMargin />
+              </div>
+              <Typography.Text className="auth-login-mfa-qr__hint">
+                <IconQrcode />
+                {t('auth.mfa.scanQr')}
+              </Typography.Text>
+            </div>
+          ) : null}
+          <Typography.Text className="auth-login-mfa-setup__label">
+            {t('auth.mfa.manualSecret')}
+          </Typography.Text>
+          <Typography.Text copyable className="auth-login-mfa-setup__secret">
+            {challenge.totpSecret}
+          </Typography.Text>
+          {challenge.totpProvisionUri ? (
+            <>
+              <Typography.Text className="auth-login-mfa-setup__label">
+                {t('auth.mfa.provisionUri')}
+              </Typography.Text>
+              <Typography.Text copyable className="auth-login-mfa-setup__uri">
+                {challenge.totpProvisionUri}
+              </Typography.Text>
+            </>
+          ) : null}
+        </div>
+      ) : null}
+      <FormItem
+        label={t('auth.mfa.code')}
+        field="mfaCode"
+        rules={[{ required: true, message: t('auth.mfa.codeRequired') }]}
+      >
+        <Input
+          placeholder={t('auth.mfa.codePlaceholder')}
+          size="large"
+          maxLength={6}
+          onPressEnter={onSubmit}
+        />
+      </FormItem>
+    </>
+  );
+}
+
 export function LoginPageComponent() {
   const [form] = Form.useForm<LoginPayload & { mfaCode?: string }>();
   const [loading, setLoading] = useState(false);
@@ -140,12 +241,7 @@ export function LoginPageComponent() {
     setUserInfo(res.user);
     const menuTree = await fetchMenuTree();
     const fallbackMenuPath = findFirstNavigableMenuPath(menuTree);
-    const nextPath = resolvePostLoginPath(
-      Boolean(
-        res.user.roles?.includes('admin') || res.user.perms?.includes('platform:dashboard:view'),
-      ),
-      fallbackMenuPath,
-    );
+    const nextPath = resolvePostLoginPath(canEnterPlatformDashboard(res.user), fallbackMenuPath);
     message.success(t('auth.loginSuccess'));
     navigate(nextPath, { replace: true });
   };
@@ -171,12 +267,7 @@ export function LoginPageComponent() {
       }
       await completeLogin(res);
     } catch (error) {
-      if (
-        import.meta.env.DEV &&
-        (!isRequestError(error) || isServerRequestError(error) || isTimeoutRequestError(error))
-      ) {
-        console.error(error);
-      }
+      logDevLoginError(error);
       const fallbackKey = mfaChallenge ? 'auth.mfa.verifyFailed' : 'auth.loginFailed';
       message.error(t(resolveLoginErrorKey(error, fallbackKey)));
     } finally {
@@ -203,21 +294,12 @@ export function LoginPageComponent() {
     <div className="auth-login-page">
       <section className="auth-login-page__brand-pane">
         <div className="auth-login-page__brand-inner">
-          <div className="auth-login-page__brand">
-            <div className="auth-login-page__brand-mark">
-              {publicSettings.siteLogo ? (
-                <img src={publicSettings.siteLogo} alt={appName} />
-              ) : (
-                brandInitial
-              )}
-            </div>
-            <div className="auth-login-page__brand-copy">
-              <span className="auth-login-page__brand-title">{appName}</span>
-              <span className="auth-login-page__brand-subtitle">
-                {t('auth.login.consoleLabel')}
-              </span>
-            </div>
-          </div>
+          <BrandIdentity
+            appName={appName}
+            brandInitial={brandInitial}
+            siteLogo={publicSettings.siteLogo}
+            subtitle={t('auth.login.consoleLabel')}
+          />
 
           <div className="auth-login-page__intro">
             <Tag color="arcoblue" bordered={false} className="auth-login-page__tag">
@@ -245,21 +327,12 @@ export function LoginPageComponent() {
 
       <section className="auth-login-page__form-pane" aria-label={t('auth.login.visualAria')}>
         <div className="auth-login-page__mobile-brand">
-          <div className="auth-login-page__brand">
-            <div className="auth-login-page__brand-mark">
-              {publicSettings.siteLogo ? (
-                <img src={publicSettings.siteLogo} alt={appName} />
-              ) : (
-                brandInitial
-              )}
-            </div>
-            <div className="auth-login-page__brand-copy">
-              <span className="auth-login-page__brand-title">{appName}</span>
-              <span className="auth-login-page__brand-subtitle">
-                {t('auth.login.consoleLabel')}
-              </span>
-            </div>
-          </div>
+          <BrandIdentity
+            appName={appName}
+            brandInitial={brandInitial}
+            siteLogo={publicSettings.siteLogo}
+            subtitle={t('auth.login.consoleLabel')}
+          />
         </div>
 
         <div className="auth-login-page__tools">
@@ -333,63 +406,7 @@ export function LoginPageComponent() {
               />
             </FormItem>
             {mfaChallenge ? (
-              <>
-                <Alert
-                  className="auth-login-card__notice"
-                  type={mfaChallenge.setupRequired ? 'warning' : 'info'}
-                  content={
-                    mfaChallenge.setupRequired ? t('auth.mfa.setupHint') : t('auth.mfa.verifyHint')
-                  }
-                />
-                {mfaChallenge.setupRequired && mfaChallenge.totpSecret ? (
-                  <div className="auth-login-mfa-setup">
-                    {mfaChallenge.totpProvisionUri ? (
-                      <div className="auth-login-mfa-qr">
-                        <div className="auth-login-mfa-qr__image" aria-label={t('auth.mfa.scanQr')}>
-                          <QRCodeSVG
-                            value={mfaChallenge.totpProvisionUri}
-                            size={168}
-                            level="M"
-                            includeMargin
-                          />
-                        </div>
-                        <Typography.Text className="auth-login-mfa-qr__hint">
-                          <IconQrcode />
-                          {t('auth.mfa.scanQr')}
-                        </Typography.Text>
-                      </div>
-                    ) : null}
-                    <Typography.Text className="auth-login-mfa-setup__label">
-                      {t('auth.mfa.manualSecret')}
-                    </Typography.Text>
-                    <Typography.Text copyable className="auth-login-mfa-setup__secret">
-                      {mfaChallenge.totpSecret}
-                    </Typography.Text>
-                    {mfaChallenge.totpProvisionUri ? (
-                      <>
-                        <Typography.Text className="auth-login-mfa-setup__label">
-                          {t('auth.mfa.provisionUri')}
-                        </Typography.Text>
-                        <Typography.Text copyable className="auth-login-mfa-setup__uri">
-                          {mfaChallenge.totpProvisionUri}
-                        </Typography.Text>
-                      </>
-                    ) : null}
-                  </div>
-                ) : null}
-                <FormItem
-                  label={t('auth.mfa.code')}
-                  field="mfaCode"
-                  rules={[{ required: true, message: t('auth.mfa.codeRequired') }]}
-                >
-                  <Input
-                    placeholder={t('auth.mfa.codePlaceholder')}
-                    size="large"
-                    maxLength={6}
-                    onPressEnter={() => form.submit()}
-                  />
-                </FormItem>
-              </>
+              <MFAChallengeFields challenge={mfaChallenge} t={t} onSubmit={() => form.submit()} />
             ) : null}
             <Button
               type="primary"

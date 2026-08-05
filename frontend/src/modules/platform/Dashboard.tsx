@@ -120,6 +120,14 @@ const TODO_ACTION_ALIASES: Record<string, string> = {
   '删除或保留停用岗位': 'delete-or-keep-disabled',
 };
 
+function compactMetricText(value: string) {
+  const numbers = value.match(/\d+/g);
+  if (!numbers?.length) {
+    return value;
+  }
+  return numbers.join(' / ');
+}
+
 function compareByPriority(leftKey: string, rightKey: string, priority: string[]) {
   const leftIndex = priority.indexOf(leftKey);
   const rightIndex = priority.indexOf(rightKey);
@@ -135,6 +143,21 @@ function compareByPriority(leftKey: string, rightKey: string, priority: string[]
   }
   return leftIndex - rightIndex;
 }
+
+// scope -> issue -> i18n key, aligned with the task alias lookup tables above.
+const TODO_ISSUE_LABEL_KEYS: Record<string, Record<string, string>> = {
+  dept: {
+    'leaderless': 'system.dept.governance.leaderless',
+    'no-post': 'system.dept.governance.noPost',
+    'empty': 'system.dept.governance.empty',
+    'clean': 'system.dept.governance.clean',
+  },
+  post: {
+    'in-use': 'dashboard.todo.issue.inUse',
+    'disabled': 'dashboard.todo.issue.disabled',
+    'clean': 'system.dept.governance.clean',
+  },
+};
 
 function normalizeTodoAlias(value?: string | null) {
   return value?.trim().toLowerCase().replace(/\s+/g, ' ') ?? '';
@@ -307,14 +330,6 @@ const DashboardPage: React.FC = () => {
     return <DateTimeMeta value={value} />;
   };
 
-  function compactMetricText(value: string) {
-    const numbers = value.match(/\d+/g);
-    if (!numbers?.length) {
-      return value;
-    }
-    return numbers.join(' / ');
-  }
-
   const recentLoginPreview = useMemo(() => summary?.recentLogins.slice(0, 6) ?? [], [summary]);
 
   const translateTodoScope = useCallback(
@@ -332,30 +347,9 @@ const DashboardPage: React.FC = () => {
 
   const translateTodoIssue = useCallback(
     (scope: string, issue: string, fallback?: string) => {
-      if (scope === 'dept') {
-        if (issue === 'leaderless') {
-          return t('system.dept.governance.leaderless');
-        }
-        if (issue === 'no-post') {
-          return t('system.dept.governance.noPost');
-        }
-        if (issue === 'empty') {
-          return t('system.dept.governance.empty');
-        }
-        if (issue === 'clean') {
-          return t('system.dept.governance.clean');
-        }
-      }
-      if (scope === 'post') {
-        if (issue === 'in-use') {
-          return t('dashboard.todo.issue.inUse');
-        }
-        if (issue === 'disabled') {
-          return t('dashboard.todo.issue.disabled');
-        }
-        if (issue === 'clean') {
-          return t('system.dept.governance.clean');
-        }
+      const labelKey = TODO_ISSUE_LABEL_KEYS[scope]?.[issue];
+      if (labelKey) {
+        return t(labelKey);
       }
       return fallback || issue || '-';
     },
@@ -561,18 +555,11 @@ const DashboardPage: React.FC = () => {
                 {todoItems.length ? (
                   <div className="dashboard-task-grid">
                     {todoItems.map((item) => (
-                      <div
+                      <button
                         key={item.taskKey}
+                        type="button"
                         className="dashboard-task-card"
                         onClick={() => openTodoTask(item)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            openTodoTask(item);
-                          }
-                        }}
-                        role="button"
-                        tabIndex={0}
                       >
                         <span className="dashboard-task-card__icon">
                           <IconExclamationCircle />
@@ -586,17 +573,8 @@ const DashboardPage: React.FC = () => {
                               </Tag>
                             </span>
                             <span className="dashboard-task-card__action">
-                              <Button
-                                type="text"
-                                size="small"
-                                icon={<IconArrowRight />}
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  openTodoTask(item);
-                                }}
-                              >
-                                {t('dashboard.openTask')}
-                              </Button>
+                              {t('dashboard.openTask')}
+                              <IconArrowRight aria-hidden="true" />
                             </span>
                           </div>
                           <span className="dashboard-task-card__desc">{item.resourceLabel}</span>
@@ -607,7 +585,7 @@ const DashboardPage: React.FC = () => {
                               : ''}
                           </span>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 ) : (
@@ -687,9 +665,12 @@ const DashboardPage: React.FC = () => {
               >
                 <div className="dashboard-domain-grid">
                   {domainCards.map((item) => (
-                    <div
+                    <button
                       key={item.key}
+                      type="button"
                       className={`dashboard-domain-card dashboard-domain-card--${item.key}`}
+                      aria-label={`${item.title} · ${t('dashboard.openModule')}`}
+                      onClick={() => navigate(item.path)}
                     >
                       <span className="dashboard-domain-card__summary" title={item.summary}>
                         {item.compactSummary}
@@ -698,15 +679,10 @@ const DashboardPage: React.FC = () => {
                         <span className="dashboard-domain-card__title">{item.title}</span>
                         <span className="dashboard-domain-card__desc">{item.description}</span>
                       </div>
-                      <Button
-                        type="text"
-                        size="small"
-                        icon={<IconArrowRight />}
-                        aria-label={t('dashboard.openModule')}
-                        title={t('dashboard.openModule')}
-                        onClick={() => navigate(item.path)}
-                      />
-                    </div>
+                      <span className="dashboard-domain-card__arrow" aria-hidden="true">
+                        <IconArrowRight />
+                      </span>
+                    </button>
                   ))}
                 </div>
               </Card>
@@ -733,7 +709,7 @@ const DashboardPage: React.FC = () => {
               columns={loginColumns}
               data={recentLoginPreview}
               pagination={false}
-              scroll={{ x: 1040 }}
+              scroll={{ x: 'max-content' }}
               emptyText={t('dashboard.recentLoginsEmpty')}
             />
           </Card>

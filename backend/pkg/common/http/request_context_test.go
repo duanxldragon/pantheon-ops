@@ -14,7 +14,7 @@ func TestGetRequestIDReturnsEmptyForNilContext(t *testing.T) {
 	}
 }
 
-func TestGetRequestIDFromHeader(t *testing.T) {
+func TestGetRequestIDIgnoresHeaderWithoutContext(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)
@@ -24,8 +24,8 @@ func TestGetRequestIDFromHeader(t *testing.T) {
 	c.Request.Header.Set(HeaderRequestID, "req-abc-123")
 
 	id := GetRequestID(c)
-	if id != "req-abc-123" {
-		t.Fatalf("expected req-abc-123, got %s", id)
+	if id != "" {
+		t.Fatalf("expected empty string when request ID is not stored in context, got %s", id)
 	}
 }
 
@@ -42,19 +42,15 @@ func TestGetRequestIDFromContextKey(t *testing.T) {
 	}
 }
 
-func TestGetRequestIDContextKeyTakesPrecedence(t *testing.T) {
+func TestGetRequestIDTrimsContextValue(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	recorder := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(recorder)
-	c.Request = &http.Request{
-		Header: http.Header{},
-	}
-	c.Request.Header.Set(HeaderRequestID, "from-header")
-	c.Set(ContextKeyRequestID, "from-context")
+	c.Set(ContextKeyRequestID, "  from-context  ")
 
 	id := GetRequestID(c)
 	if id != "from-context" {
-		t.Fatalf("expected from-context (key precedence), got %s", id)
+		t.Fatalf("expected from-context, got %s", id)
 	}
 }
 

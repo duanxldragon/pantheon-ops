@@ -10,6 +10,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const msgParamInvalid = "param.invalid"
+const msgModuleInvalidName = "module.invalid_name"
+
 type DynamicModuleHandler struct {
 	service *DynamicModuleService
 }
@@ -20,14 +23,14 @@ func NewDynamicModuleHandler(s *DynamicModuleService) *DynamicModuleHandler {
 
 // RegisterModule 注册模块
 func (h *DynamicModuleHandler) RegisterModule(c *gin.Context) {
-	common.SetAuditMetadata(c, "注册动态模块", common.BusinessInsert)
+	common.SetAuditMetadata(c, "module.register.title", common.BusinessInsert)
 
 	var req struct {
 		Name string `json:"name" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 
@@ -35,7 +38,7 @@ func (h *DynamicModuleHandler) RegisterModule(c *gin.Context) {
 	if err != nil {
 		code := common.CodeError
 		switch err.Error() {
-		case "module.invalid_name", "module.register.source_missing", "module.register.schema_invalid":
+		case msgModuleInvalidName, "module.register.source_missing", msgModuleSchemaInvalid:
 			code = common.CodeParamInvalid
 		}
 		common.FailWithError(c, code, err, "module.register.error")
@@ -50,11 +53,11 @@ func (h *DynamicModuleHandler) RegisterModule(c *gin.Context) {
 }
 
 func (h *DynamicModuleHandler) GenerateAndRegisterModule(c *gin.Context) {
-	common.SetAuditMetadata(c, "一键生成并注册模块", common.BusinessInsert)
+	common.SetAuditMetadata(c, "module.generate_register.title", common.BusinessInsert)
 
 	rawBody, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	c.Request.Body = io.NopCloser(bytes.NewReader(rawBody))
@@ -64,7 +67,7 @@ func (h *DynamicModuleHandler) GenerateAndRegisterModule(c *gin.Context) {
 		Overwrite bool                  `json:"overwrite"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	applyGenerateSchemaRawMetadata(rawBody, &input.Schema)
@@ -96,7 +99,7 @@ func (h *DynamicModuleHandler) GenerateAndRegisterModule(c *gin.Context) {
 
 // UnregisterModule 卸载模块
 func (h *DynamicModuleHandler) UnregisterModule(c *gin.Context) {
-	common.SetAuditMetadata(c, "卸载动态模块", common.BusinessDelete)
+	common.SetAuditMetadata(c, "module.uninstall.title", common.BusinessDelete)
 
 	moduleName := c.Param("name")
 	dropTable := c.Query("dropTable") == "true"
@@ -116,7 +119,7 @@ func (h *DynamicModuleHandler) UnregisterModule(c *gin.Context) {
 }
 
 func (h *DynamicModuleHandler) DeleteModuleRecord(c *gin.Context) {
-	common.SetAuditMetadata(c, "删除动态模块记录", common.BusinessDelete)
+	common.SetAuditMetadata(c, "module.record.delete.title", common.BusinessDelete)
 
 	if err := h.service.DeleteModuleRecord(c.Param("name")); err != nil {
 		common.FailWithError(c, common.CodeError, err, "module.delete_record.error")
@@ -129,7 +132,7 @@ func (h *DynamicModuleHandler) DeleteModuleRecord(c *gin.Context) {
 }
 
 func (h *DynamicModuleHandler) PurgeModule(c *gin.Context) {
-	common.SetAuditMetadata(c, "彻底删除动态模块", common.BusinessDelete)
+	common.SetAuditMetadata(c, "module.purge.title", common.BusinessDelete)
 
 	moduleName := c.Param("name")
 	dropTable := c.Query("dropTable") == "true"
@@ -148,7 +151,7 @@ func (h *DynamicModuleHandler) PurgeModule(c *gin.Context) {
 }
 
 func (h *DynamicModuleHandler) RepairRegistries(c *gin.Context) {
-	common.SetAuditMetadata(c, "执行模块注册表自检修复", common.BusinessUpdate)
+	common.SetAuditMetadata(c, "module.registry.repair.title", common.BusinessUpdate)
 
 	summary, err := h.service.AuditAndRepairGeneratedRegistries()
 	if err != nil {
@@ -163,7 +166,7 @@ func (h *DynamicModuleHandler) RepairRegistries(c *gin.Context) {
 }
 
 func (h *DynamicModuleHandler) AuditPendingActivations(c *gin.Context) {
-	common.SetAuditMetadata(c, "执行模块激活检查", common.BusinessOther)
+	common.SetAuditMetadata(c, "module.activation.check.title", common.BusinessOther)
 
 	summary, err := h.service.AuditPendingGeneratedModuleActivations()
 	if err != nil {
@@ -180,7 +183,7 @@ func (h *DynamicModuleHandler) AuditPendingActivations(c *gin.Context) {
 func (h *DynamicModuleHandler) GetModuleSchema(c *gin.Context) {
 	moduleName := c.Query("module")
 	if moduleName == "" {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 
@@ -188,7 +191,7 @@ func (h *DynamicModuleHandler) GetModuleSchema(c *gin.Context) {
 	if err != nil {
 		code := common.CodeError
 		switch err.Error() {
-		case "module.invalid_name", "module.register.source_missing", "module.register.schema_invalid":
+		case msgModuleInvalidName, "module.register.source_missing", msgModuleSchemaInvalid:
 			code = common.CodeParamInvalid
 		}
 		common.FailWithError(c, code, err, "module.schema.error")
@@ -258,7 +261,7 @@ func isGenerateValidationError(err error) bool {
 		"module.generate.file_exists",
 		"module.generate.already_exists",
 		"module.generate.business_only",
-		"module.invalid_name":
+		msgModuleInvalidName:
 		return true
 	default:
 		return false

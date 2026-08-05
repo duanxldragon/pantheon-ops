@@ -11,7 +11,8 @@ import (
 
 var RDB *redis.Client
 
-// InitRedis 初始化 Redis 连接（可选依赖，连接失败不阻止服务启动）
+// InitRedis 初始化 Redis 连接。连接失败不阻止服务启动，但 Redis 承载令牌
+// 会话存储与吊销黑名单——缺失时所有认证请求都会失败（事实上的硬依赖）。
 func InitRedis(addr string, password string, db int) {
 	RDB = redis.NewClient(&redis.Options{
 		Addr:     addr,
@@ -25,7 +26,7 @@ func InitRedis(addr string, password string, db int) {
 
 	_, err := RDB.Ping(ctx).Result()
 	if err != nil {
-		slog.Warn("failed to connect redis (token blacklist will be disabled)", "error", err)
+		slog.Warn("failed to connect redis (authenticated requests will fail: Redis stores token sessions and the revocation blacklist)", "error", err)
 		RDB = nil
 		return
 	}

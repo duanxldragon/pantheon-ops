@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import {
   Button,
   Form,
-  Grid,
   Input,
   Popconfirm,
   Select,
@@ -15,7 +14,6 @@ import {
   IconDownload,
   IconEdit,
   IconPlus,
-  IconSearch,
 } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { useTranslation } from 'react-i18next';
@@ -28,7 +26,7 @@ import {
   AppModal,
   AppTable,
   buildStandardPagination,
-  FilterPanel,
+  SearchToolbar,
   FormSection,
   ImportCsvButton,
   ListHeaderActions,
@@ -39,6 +37,7 @@ import {
   TABLE_ACTION_COLUMN_WIDTH,
   TableBatchActionBar,
   PermissionAction,
+  SystemRowActions,
   TABLE_COLUMN_WIDTH,
   withTableColumnPriority,
 } from '../../../../components';
@@ -57,8 +56,6 @@ import {
 } from './api';
 import '../../components/shared/list-page.css';
 
-const Row = Grid.Row;
-const Col = Grid.Col;
 const FormItem = Form.Item;
 const { Text } = Typography;
 
@@ -127,7 +124,6 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
   const [editingType, setEditingType] = useState<DictTypeRow | null>(null);
   const [typeSubmitting, setTypeSubmitting] = useState(false);
   const [typeForm] = Form.useForm<DictTypePayload>();
-  const [queryForm] = Form.useForm<DictTypeQuery>();
 
   const invalidateCaches = useCallback((dictCode?: string) => {
     const targets: Array<{ path: string; resourceKeys?: string[] }> = [
@@ -139,17 +135,15 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
     invalidateRouteWarmDataMany(targets);
   }, []);
 
-  const handleSearch = () => {
-    const values = queryForm.getFieldsValue();
+  const handleSearch = (values: Partial<DictTypeQuery>) => {
     setTypeTablePage(1);
     onQueryChange({
-      ...emptyTypeQuery,
+      ...typeQuery,
       ...values,
     });
   };
 
   const handleReset = () => {
-    queryForm.setFieldsValue(emptyTypeQuery);
     setTypeTablePage(1);
     onQueryChange(emptyTypeQuery);
   };
@@ -227,7 +221,7 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
       message.warning(t('common.batchSelectionRequired'));
       return;
     }
-    const typeIds = selectedTypeRowKeys.map((item) => Number(item)).filter((item) => item > 0);
+    const typeIds = selectedTypeRowKeys.map(Number).filter((item) => item > 0);
     const result = await batchUpdateDictTypeStatus({ typeIds, status });
     message.success(t('system.dict.type.batchStatusSuccess', { count: result.updatedCount }));
     invalidateCaches();
@@ -241,7 +235,7 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
       message.warning(t('common.batchSelectionRequired'));
       return;
     }
-    const ids = selectedTypeRowKeys.map((item) => Number(item)).filter((item) => item > 0);
+    const ids = selectedTypeRowKeys.map(Number).filter((item) => item > 0);
     const result = await batchDeleteDictTypes({ ids });
     const messageKey =
       result.failedCount > 0 ? 'common.batchDeletePartialSuccess' : 'common.batchDeleteSuccess';
@@ -278,6 +272,7 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
         title: t('system.dict.dictCode'),
         dataIndex: 'dictCode',
         width: TABLE_COLUMN_WIDTH.code,
+        sorter: (a: DictTypeRow, b: DictTypeRow) => a.dictCode.localeCompare(b.dictCode),
         render: (value: string, row: DictTypeRow) => (
           <Button type="text" style={{ padding: 0 }} onClick={() => onSelectType(row)}>
             {value}
@@ -288,6 +283,7 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
         title: t('system.dict.dictName'),
         dataIndex: 'dictName',
         width: TABLE_COLUMN_WIDTH.name,
+        sorter: (a: DictTypeRow, b: DictTypeRow) => a.dictName.localeCompare(b.dictName),
         render: (value: string) => <Text ellipsis={{ showTooltip: true }}>{t(value, value)}</Text>,
       },
       withTableColumnPriority(
@@ -296,6 +292,8 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
           dataIndex: 'module',
           width: TABLE_COLUMN_WIDTH.code,
           ellipsis: true,
+          sorter: (a: DictTypeRow, b: DictTypeRow) =>
+            (a.module ?? '').localeCompare(b.module ?? ''),
         },
         'medium',
       ),
@@ -304,6 +302,7 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
           title: t('system.dict.item'),
           dataIndex: 'itemCount',
           width: TABLE_COLUMN_WIDTH.count,
+          sorter: (a: DictTypeRow, b: DictTypeRow) => a.itemCount - b.itemCount,
           render: (_: unknown, row: DictTypeRow) => (
             <Text>{`${row.activeItemCount}/${row.itemCount}`}</Text>
           ),
@@ -314,6 +313,7 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
         title: t('system.dict.status'),
         dataIndex: 'status',
         width: TABLE_COLUMN_WIDTH.status,
+        sorter: (a: DictTypeRow, b: DictTypeRow) => a.status - b.status,
         render: (value: number) => (
           <Tag color={value === 1 ? 'green' : 'red'}>
             {value === 1 ? t('system.user.status.enabled') : t('system.user.status.disabled')}
@@ -325,28 +325,35 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
         width: TABLE_ACTION_COLUMN_WIDTH.wide,
         fixed: 'right',
         render: (_: unknown, row: DictTypeRow) => (
-          <Space size={4} className="system-list__actions dict-page__row-actions">
-            <Button size="small" type="text" onClick={() => onSwitchToItemsTab(row)}>
-              {t('system.dict.item')}
-            </Button>
-            <Button
-              size="small"
-              icon={<IconEdit />}
-              onClick={() => openEditType(row)}
-              disabled={!canEdit}
-            >
-              {t('common.edit')}
-            </Button>
-            <Popconfirm
-              title={t('common.deleteConfirm')}
-              onOk={() => removeType(row)}
-              disabled={!canDelete}
-            >
-              <Button size="small" status="danger" icon={<IconDelete />} disabled={!canDelete}>
-                {t('common.delete')}
-              </Button>
-            </Popconfirm>
-          </Space>
+          <SystemRowActions
+            className="dict-page__row-actions"
+            actions={[
+              {
+                key: 'items',
+                text: t('system.dict.item'),
+                onClick: () => onSwitchToItemsTab(row),
+              },
+              {
+                key: 'edit',
+                text: t('common.edit'),
+                icon: <IconEdit />,
+                onClick: () => openEditType(row),
+                hidden: !canEdit,
+              },
+              {
+                key: 'delete',
+                text: t('common.delete'),
+                icon: <IconDelete />,
+                hidden: !canDelete,
+                status: 'danger',
+                confirm: {
+                  title: t('common.deleteConfirm'),
+                  onOk: () => removeType(row),
+                  disabled: !canDelete,
+                },
+              },
+            ]}
+          />
         ),
       },
     ],
@@ -359,43 +366,25 @@ const DictTypeTab: React.FC<DictTypeTabProps> = ({
   return (
     <>
       <Space direction="vertical" size={16} style={{ width: '100%' }}>
-        <FilterPanel>
-          <Form form={queryForm} layout="vertical" onSubmit={() => handleSearch()}>
-            <Row gutter={16}>
-              <Col xs={24} md={12} lg={8}>
-                <FormItem label={t('system.dict.dictCode')} field="dictCode">
-                  <Input onPressEnter={() => queryForm.submit()} />
-                </FormItem>
-              </Col>
-              <Col xs={24} md={12} lg={8}>
-                <FormItem label={t('system.dict.dictName')} field="dictName">
-                  <Input onPressEnter={() => queryForm.submit()} />
-                </FormItem>
-              </Col>
-              <Col xs={24} md={12} lg={4}>
-                <FormItem label={t('system.dict.status')} field="status">
-                  <Select
-                    allowClear
-                    options={[
-                      { label: t('system.user.status.enabled'), value: 1 },
-                      { label: t('system.user.status.disabled'), value: 2 },
-                    ]}
-                  />
-                </FormItem>
-              </Col>
-              <Col xs={24} md={12} lg={4}>
-                <FormItem className="filter-panel__action-item">
-                  <Space>
-                    <Button type="primary" htmlType="submit" icon={<IconSearch />}>
-                      {t('common.search')}
-                    </Button>
-                    <Button onClick={handleReset}>{t('common.reset')}</Button>
-                  </Space>
-                </FormItem>
-              </Col>
-            </Row>
-          </Form>
-        </FilterPanel>
+        <SearchToolbar
+          keyword={typeQuery.keyword ?? ''}
+          keywordPlaceholder={t('system.dict.search.placeholder')}
+          onKeywordChange={(keyword) => handleSearch({ keyword })}
+          inlineFilters={
+            <Select
+              allowClear
+              placeholder={t('system.dict.status')}
+              value={typeQuery.status}
+              onChange={(value) => handleSearch({ status: value })}
+              options={[
+                { label: t('system.user.status.enabled'), value: 1 },
+                { label: t('system.user.status.disabled'), value: 2 },
+              ]}
+            />
+          }
+          hasActiveFilters={Boolean(typeQuery.keyword || typeQuery.status !== undefined)}
+          onClearAll={handleReset}
+        />
         <TableBatchActionBar
           selectedCount={selectedTypeRowKeys.length}
           selectedText={t('common.selectedCount', { count: selectedTypeRowKeys.length })}

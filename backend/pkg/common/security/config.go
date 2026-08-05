@@ -34,6 +34,7 @@ func generateDevFallback(label string) string {
 	return "dev-only-" + label + "-" + strings.Repeat("x", 32-len(label)-10)
 }
 
+// IsProductionEnv reports whether the process is running in production mode.
 func IsProductionEnv() bool {
 	for _, key := range []string{"PANTHEON_ENV", "APP_ENV", "GO_ENV"} {
 		value := strings.ToLower(strings.TrimSpace(os.Getenv(key)))
@@ -79,6 +80,7 @@ func GenerateRandomSecret(byteLen int) (string, error) {
 	return hex.EncodeToString(b), nil
 }
 
+// InitSecurityConfig validates required security secrets before startup.
 func InitSecurityConfig() error {
 	for _, item := range []struct {
 		name     string

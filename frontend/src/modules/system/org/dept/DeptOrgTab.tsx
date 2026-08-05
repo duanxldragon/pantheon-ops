@@ -32,21 +32,13 @@ const OrgDeptNode: React.FC<OrgDeptNodeProps> = ({
   const enabledPosts = posts.filter((post) => post.status === 1).length;
 
   const selectDept = () => onSelect(dept.id);
-  const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      selectDept();
-    }
-  };
 
   return (
     <div className="org-chart__branch">
-      <div
+      <button
+        type="button"
         className={`org-chart__dept-card${selectedDeptId === dept.id ? ' org-chart__dept-card--active' : ''}`}
-        role="button"
-        tabIndex={0}
         onClick={selectDept}
-        onKeyDown={handleKeyDown}
       >
         <div className="org-chart__dept-header">
           <div className="org-chart__dept-title">
@@ -124,7 +116,7 @@ const OrgDeptNode: React.FC<OrgDeptNodeProps> = ({
             </div>
           ) : null}
         </div>
-      </div>
+      </button>
       {dept.children?.length ? (
         <div className="org-chart__children">
           {dept.children.map((child) => (
@@ -167,6 +159,13 @@ interface DeptOrgTabProps {
   onViewUserDetail: (userId: number) => void;
 }
 
+function getSelectedDeptItems<T>(
+  selectedDept: DeptNode | undefined,
+  itemsByDept: Map<number, T[]>,
+) {
+  return selectedDept ? itemsByDept.get(selectedDept.id) || [] : [];
+}
+
 const DeptOrgTab: React.FC<DeptOrgTabProps> = ({
   orgDepts,
   orgPosts,
@@ -201,8 +200,94 @@ const DeptOrgTab: React.FC<DeptOrgTabProps> = ({
     return <PageEmpty description={t('system.dept.orgNoDept')} />;
   }
 
-  const selectedPosts = selectedOrgDept ? postsByDept.get(selectedOrgDept.id) || [] : [];
-  const selectedUsers = selectedOrgDept ? usersByDept.get(selectedOrgDept.id) || [] : [];
+  const selectedPosts = getSelectedDeptItems(selectedOrgDept, postsByDept);
+  const selectedUsers = getSelectedDeptItems(selectedOrgDept, usersByDept);
+
+  const renderPermissionNotice = () =>
+    !canViewPosts || !canViewUsers ? (
+      <Card className="org-structure__notice">
+        {!canViewPosts ? <span>{t('system.dept.orgPostPermissionHint')}</span> : null}
+        {!canViewUsers ? <span>{t('system.dept.orgUserPermissionHint')}</span> : null}
+      </Card>
+    ) : null;
+
+  const renderSelectedDetail = () => {
+    if (!selectedOrgDept) {
+      return <PageEmpty description={t('system.dept.orgNoSelection')} />;
+    }
+    return (
+      <Space direction="vertical" size={14} className="org-structure__detail">
+        <div className="org-structure__detail-grid">
+          <div>
+            <span>{t('system.dept.leader')}</span>
+            <strong>{selectedOrgDept.leader || '-'}</strong>
+          </div>
+          <div>
+            <span>{t('system.dept.phone')}</span>
+            <strong>{selectedOrgDept.phone || '-'}</strong>
+          </div>
+          <div>
+            <span>{t('system.dept.orgChildren')}</span>
+            <strong>{selectedOrgDept.children?.length || 0}</strong>
+          </div>
+          <div>
+            <span>{t('system.dept.status')}</span>
+            <strong>
+              {selectedOrgDept.status === 1
+                ? t('system.user.status.enabled')
+                : t('system.user.status.disabled')}
+            </strong>
+          </div>
+        </div>
+        <div>
+          <div className="org-structure__sub-title-row">
+            <div className="org-structure__sub-title">{t('system.dept.orgDirectPosts')}</div>
+            {selectedOrgDept.isRoot ? <span>{t('system.dept.orgRootPostHint')}</span> : null}
+          </div>
+          <div className="org-structure__tag-list">
+            {selectedPosts.length > 0 ? (
+              selectedPosts.map((post) => (
+                <Tag key={post.id} color={post.status === 1 ? 'arcoblue' : 'gray'}>
+                  {post.postName}
+                </Tag>
+              ))
+            ) : (
+              <span>{t('system.dept.orgNoPosts')}</span>
+            )}
+          </div>
+        </div>
+        <div>
+          <div className="org-structure__sub-title">{t('system.dept.orgDirectMembers')}</div>
+          <div className="org-structure__member-list">
+            {selectedUsers.length > 0 ? (
+              selectedUsers.map((user) => (
+                <div className="org-structure__member-item" key={user.id}>
+                  <div>
+                    <strong>{user.nickname || user.username}</strong>
+                    <span>
+                      {user.username} · {user.postName || t('system.post.none')}
+                    </span>
+                  </div>
+                  <Button
+                    size="mini"
+                    type="text"
+                    icon={<IconEye />}
+                    disabled={!canViewUserDetail}
+                    onClick={() => onViewUserDetail(user.id)}
+                  >
+                    {t('common.detail')}
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <span>{t('system.dept.orgNoMembers')}</span>
+            )}
+          </div>
+        </div>
+        <div className="org-structure__rule">{t('system.dept.orgRelationRule')}</div>
+      </Space>
+    );
+  };
 
   return (
     <Space direction="vertical" size={16} className="org-structure">
@@ -226,12 +311,7 @@ const DeptOrgTab: React.FC<DeptOrgTabProps> = ({
           </strong>
         </Card>
       </div>
-      {!canViewPosts || !canViewUsers ? (
-        <Card className="org-structure__notice">
-          {!canViewPosts ? <span>{t('system.dept.orgPostPermissionHint')}</span> : null}
-          {!canViewUsers ? <span>{t('system.dept.orgUserPermissionHint')}</span> : null}
-        </Card>
-      ) : null}
+      {renderPermissionNotice()}
       <div className="org-structure__body">
         <Card className="page-panel org-structure__chart-card">
           <div className="org-structure__section-head">
@@ -275,80 +355,7 @@ const DeptOrgTab: React.FC<DeptOrgTabProps> = ({
               {t('system.dept.orgAddPost')}
             </Button>
           </div>
-          {selectedOrgDept ? (
-            <Space direction="vertical" size={14} className="org-structure__detail">
-              <div className="org-structure__detail-grid">
-                <div>
-                  <span>{t('system.dept.leader')}</span>
-                  <strong>{selectedOrgDept.leader || '-'}</strong>
-                </div>
-                <div>
-                  <span>{t('system.dept.phone')}</span>
-                  <strong>{selectedOrgDept.phone || '-'}</strong>
-                </div>
-                <div>
-                  <span>{t('system.dept.orgChildren')}</span>
-                  <strong>{selectedOrgDept.children?.length || 0}</strong>
-                </div>
-                <div>
-                  <span>{t('system.dept.status')}</span>
-                  <strong>
-                    {selectedOrgDept.status === 1
-                      ? t('system.user.status.enabled')
-                      : t('system.user.status.disabled')}
-                  </strong>
-                </div>
-              </div>
-              <div>
-                <div className="org-structure__sub-title-row">
-                  <div className="org-structure__sub-title">{t('system.dept.orgDirectPosts')}</div>
-                  {selectedOrgDept.isRoot ? <span>{t('system.dept.orgRootPostHint')}</span> : null}
-                </div>
-                <div className="org-structure__tag-list">
-                  {selectedPosts.length > 0 ? (
-                    selectedPosts.map((post) => (
-                      <Tag key={post.id} color={post.status === 1 ? 'arcoblue' : 'gray'}>
-                        {post.postName}
-                      </Tag>
-                    ))
-                  ) : (
-                    <span>{t('system.dept.orgNoPosts')}</span>
-                  )}
-                </div>
-              </div>
-              <div>
-                <div className="org-structure__sub-title">{t('system.dept.orgDirectMembers')}</div>
-                <div className="org-structure__member-list">
-                  {selectedUsers.length > 0 ? (
-                    selectedUsers.map((user) => (
-                      <div className="org-structure__member-item" key={user.id}>
-                        <div>
-                          <strong>{user.nickname || user.username}</strong>
-                          <span>
-                            {user.username} · {user.postName || t('system.post.none')}
-                          </span>
-                        </div>
-                        <Button
-                          size="mini"
-                          type="text"
-                          icon={<IconEye />}
-                          disabled={!canViewUserDetail}
-                          onClick={() => onViewUserDetail(user.id)}
-                        >
-                          {t('common.detail')}
-                        </Button>
-                      </div>
-                    ))
-                  ) : (
-                    <span>{t('system.dept.orgNoMembers')}</span>
-                  )}
-                </div>
-              </div>
-              <div className="org-structure__rule">{t('system.dept.orgRelationRule')}</div>
-            </Space>
-          ) : (
-            <PageEmpty description={t('system.dept.orgNoSelection')} />
-          )}
+          {renderSelectedDetail()}
         </Card>
       </div>
     </Space>

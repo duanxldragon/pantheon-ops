@@ -47,6 +47,14 @@ interface SettingGroupFormProps {
   onCancel: () => void;
 }
 
+function isWideSettingField(item: SettingItem) {
+  return (
+    auditRetentionSettingKeys.has(item.settingKey) ||
+    item.valueType === 'json' ||
+    item.isEncrypted === 1
+  );
+}
+
 const SettingGroupForm: React.FC<SettingGroupFormProps> = ({
   form,
   activeGroupKey,
@@ -93,47 +101,12 @@ const SettingGroupForm: React.FC<SettingGroupFormProps> = ({
     return item.defaultValue;
   };
 
-  const renderField = (item: SettingItem) => {
-    const label = t(`system.setting.item.${item.settingKey}`, item.settingKey);
-    const isWideField =
-      auditRetentionSettingKeys.has(item.settingKey) ||
-      item.valueType === 'json' ||
-      item.isEncrypted === 1;
-    const fieldClassName = isWideField
-      ? 'setting-page__field setting-page__field--full'
-      : 'setting-page__field';
-    const remark = t(item.remark, '');
-    const help = (
-      <Space direction="vertical" size={4}>
-        {remark ? <span>{remark}</span> : null}
-        {item.isEncrypted === 1 ? (
-          <Space size={8} wrap>
-            <Tag color="red">{t('system.setting.encrypted')}</Tag>
-            <Typography.Text type="secondary">
-              {item.hasValue === 1
-                ? t('system.setting.leaveEmptyToKeep')
-                : t('system.setting.encryptedEmptyHint')}
-            </Typography.Text>
-          </Space>
-        ) : (
-          <Space size={12} wrap>
-            <Button
-              type="text"
-              size="small"
-              onClick={() => {
-                form.setFieldValue(item.settingKey, parseDefaultFieldValue(item));
-              }}
-            >
-              {t('system.setting.restoreDefault')}
-            </Button>
-            <Typography.Text type="secondary">
-              {t('system.setting.defaultValueHint', { value: formatDefaultValueLabel(item) })}
-            </Typography.Text>
-          </Space>
-        )}
-      </Space>
-    );
-
+  const renderNamedSelectField = (
+    item: SettingItem,
+    label: string,
+    fieldClassName: string,
+    help: React.ReactNode,
+  ) => {
     if (item.settingKey === 'ui.default_theme') {
       return (
         <FormItem
@@ -210,8 +183,97 @@ const SettingGroupForm: React.FC<SettingGroupFormProps> = ({
         </FormItem>
       );
     }
-    if (auditRetentionSettingKeys.has(item.settingKey)) {
-      const savedValues = parseAuditRetentionSettingValue(item.settingValue);
+    return null;
+  };
+
+  const renderAuditRetentionField = (
+    item: SettingItem,
+    label: string,
+    fieldClassName: string,
+    help: React.ReactNode,
+  ) => {
+    if (!auditRetentionSettingKeys.has(item.settingKey)) {
+      return null;
+    }
+    const savedValues = parseAuditRetentionSettingValue(item.settingValue);
+    return (
+      <FormItem
+        key={item.settingKey}
+        className={fieldClassName}
+        field={item.settingKey}
+        label={label}
+        extra={help}
+        rules={[
+          {
+            required: true,
+            type: 'array',
+            minLength: 1,
+            message: t('system.setting.audit.retentionRequired'),
+          },
+          {
+            validator: (_value, callback) => {
+              const currentValue = form.getFieldValue(item.settingKey);
+              const normalized = normalizeAuditRetentionTagValues(
+                Array.isArray(currentValue) ? currentValue : [],
+              );
+              if (normalized.length === 0) {
+                callback(t('system.setting.audit.retentionRequired'));
+                return;
+              }
+              if (normalized.length !== (Array.isArray(currentValue) ? currentValue.length : 0)) {
+                callback(t('system.setting.audit.retentionInvalid'));
+                return;
+              }
+              callback();
+            },
+          },
+        ]}
+      >
+        <Space direction="vertical" size={8} style={{ width: '100%' }}>
+          <Select
+            mode="multiple"
+            allowCreate
+            placeholder={t('system.setting.audit.retentionPlaceholder')}
+            options={recommendedAuditRetentionOptions.map((option) => ({
+              label: t('common.keepRecentDays', { count: option }),
+              value: String(option),
+            }))}
+            onChange={(value) => {
+              form.setFieldValue(
+                item.settingKey,
+                normalizeAuditRetentionTagValues(value as Array<string | number>),
+              );
+            }}
+          />
+          <FormItem noStyle shouldUpdate>
+            {() => {
+              const currentValue = normalizeAuditRetentionTagValues(
+                Array.isArray(form.getFieldValue(item.settingKey))
+                  ? (form.getFieldValue(item.settingKey) as Array<string | number>)
+                  : [],
+              );
+              const dirty = !isSameStringArray(currentValue, savedValues);
+              if (!dirty) {
+                return null;
+              }
+              return <Tag color="orange">{t('system.setting.audit.unsavedChanges')}</Tag>;
+            }}
+          </FormItem>
+        </Space>
+      </FormItem>
+    );
+  };
+
+  const renderNumberField = (
+    item: SettingItem,
+    label: string,
+    fieldClassName: string,
+    help: React.ReactNode,
+  ) => {
+    if (item.valueType !== 'number') {
+      return null;
+    }
+    if (auditRetentionDaySettingKeys.has(item.settingKey)) {
       return (
         <FormItem
           key={item.settingKey}
@@ -219,65 +281,79 @@ const SettingGroupForm: React.FC<SettingGroupFormProps> = ({
           field={item.settingKey}
           label={label}
           extra={help}
-          rules={[
-            {
-              required: true,
-              type: 'array',
-              minLength: 1,
-              message: t('system.setting.audit.retentionRequired'),
-            },
-            {
-              validator: (_value, callback) => {
-                const currentValue = form.getFieldValue(item.settingKey);
-                const normalized = normalizeAuditRetentionTagValues(
-                  Array.isArray(currentValue) ? currentValue : [],
-                );
-                if (normalized.length === 0) {
-                  callback(t('system.setting.audit.retentionRequired'));
-                  return;
-                }
-                if (normalized.length !== (Array.isArray(currentValue) ? currentValue.length : 0)) {
-                  callback(t('system.setting.audit.retentionInvalid'));
-                  return;
-                }
-                callback();
-              },
-            },
-          ]}
+          rules={[{ required: true, message: t('common.requiredField', { field: label }) }]}
         >
-          <Space direction="vertical" size={8} style={{ width: '100%' }}>
-            <Select
-              mode="multiple"
-              allowCreate
-              placeholder={t('system.setting.audit.retentionPlaceholder')}
-              options={recommendedAuditRetentionOptions.map((option) => ({
-                label: t('common.keepRecentDays', { count: option }),
-                value: String(option),
-              }))}
-              onChange={(value) => {
-                form.setFieldValue(
-                  item.settingKey,
-                  normalizeAuditRetentionTagValues(value as Array<string | number>),
-                );
-              }}
-            />
-            <FormItem noStyle shouldUpdate>
-              {() => {
-                const currentValue = normalizeAuditRetentionTagValues(
-                  Array.isArray(form.getFieldValue(item.settingKey))
-                    ? (form.getFieldValue(item.settingKey) as Array<string | number>)
-                    : [],
-                );
-                const dirty = !isSameStringArray(currentValue, savedValues);
-                if (!dirty) {
-                  return null;
-                }
-                return <Tag color="orange">{t('system.setting.audit.unsavedChanges')}</Tag>;
-              }}
-            </FormItem>
-          </Space>
+          <Select
+            options={recommendedAuditRetentionDayOptions.map((option) => ({
+              label: t('system.setting.audit.retentionDaysOption', { count: option }),
+              value: option,
+            }))}
+          />
         </FormItem>
       );
+    }
+    return (
+      <FormItem
+        key={item.settingKey}
+        className={fieldClassName}
+        field={item.settingKey}
+        label={label}
+        extra={help}
+        rules={[{ required: true, message: t('common.requiredField', { field: label }) }]}
+      >
+        <InputNumber
+          style={{ width: '100%' }}
+          precision={integerSettingKeys.has(item.settingKey) ? 0 : undefined}
+          min={integerSettingKeys.has(item.settingKey) ? 1 : undefined}
+        />
+      </FormItem>
+    );
+  };
+
+  const renderField = (item: SettingItem) => {
+    const label = t(`system.setting.item.${item.settingKey}`, item.settingKey);
+    const isWideField = isWideSettingField(item);
+    const fieldClassName = isWideField
+      ? 'setting-page__field setting-page__field--full'
+      : 'setting-page__field';
+    const remark = t(item.remark, '');
+    const help = (
+      <Space direction="vertical" size={4}>
+        {remark ? <span>{remark}</span> : null}
+        {item.isEncrypted === 1 ? (
+          <Space size={8} wrap>
+            <Tag color="red">{t('system.setting.encrypted')}</Tag>
+            <Typography.Text type="secondary">
+              {item.hasValue === 1
+                ? t('system.setting.leaveEmptyToKeep')
+                : t('system.setting.encryptedEmptyHint')}
+            </Typography.Text>
+          </Space>
+        ) : (
+          <Space size={12} wrap>
+            <Button
+              type="text"
+              size="small"
+              onClick={() => {
+                form.setFieldValue(item.settingKey, parseDefaultFieldValue(item));
+              }}
+            >
+              {t('system.setting.restoreDefault')}
+            </Button>
+            <Typography.Text type="secondary">
+              {t('system.setting.defaultValueHint', { value: formatDefaultValueLabel(item) })}
+            </Typography.Text>
+          </Space>
+        )}
+      </Space>
+    );
+    const namedSelectField = renderNamedSelectField(item, label, fieldClassName, help);
+    if (namedSelectField) {
+      return namedSelectField;
+    }
+    const auditRetentionField = renderAuditRetentionField(item, label, fieldClassName, help);
+    if (auditRetentionField) {
+      return auditRetentionField;
     }
 
     if (item.valueType === 'boolean') {
@@ -294,42 +370,9 @@ const SettingGroupForm: React.FC<SettingGroupFormProps> = ({
         </FormItem>
       );
     }
-    if (item.valueType === 'number') {
-      if (auditRetentionDaySettingKeys.has(item.settingKey)) {
-        return (
-          <FormItem
-            key={item.settingKey}
-            className={fieldClassName}
-            field={item.settingKey}
-            label={label}
-            extra={help}
-            rules={[{ required: true, message: t('common.requiredField', { field: label }) }]}
-          >
-            <Select
-              options={recommendedAuditRetentionDayOptions.map((option) => ({
-                label: t('system.setting.audit.retentionDaysOption', { count: option }),
-                value: option,
-              }))}
-            />
-          </FormItem>
-        );
-      }
-      return (
-        <FormItem
-          key={item.settingKey}
-          className={fieldClassName}
-          field={item.settingKey}
-          label={label}
-          extra={help}
-          rules={[{ required: true, message: t('common.requiredField', { field: label }) }]}
-        >
-          <InputNumber
-            style={{ width: '100%' }}
-            precision={integerSettingKeys.has(item.settingKey) ? 0 : undefined}
-            min={integerSettingKeys.has(item.settingKey) ? 1 : undefined}
-          />
-        </FormItem>
-      );
+    const numberField = renderNumberField(item, label, fieldClassName, help);
+    if (numberField) {
+      return numberField;
     }
     if (item.isEncrypted === 1) {
       return (

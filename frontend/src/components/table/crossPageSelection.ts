@@ -10,10 +10,6 @@ export type SharedPaginationConfig = {
 const DEFAULT_PAGE_SIZE = 10;
 const DEFAULT_CURRENT_PAGE = 1;
 
-function normalizeRowKey(key: CrossPageRowKey) {
-  return String(key);
-}
-
 export function isPaginationConfig(
   pagination: SharedPaginationConfig | boolean | undefined,
 ): pagination is SharedPaginationConfig {
@@ -38,8 +34,8 @@ export function getVisibleSelectedRowKeys(
   selectedRowKeys: CrossPageRowKey[],
   visibleRowKeys: CrossPageRowKey[],
 ) {
-  const visibleKeySet = new Set(visibleRowKeys.map(normalizeRowKey));
-  return selectedRowKeys.filter((key) => visibleKeySet.has(normalizeRowKey(key)));
+  const visibleKeySet = new Set(visibleRowKeys.map(String));
+  return selectedRowKeys.filter((key) => visibleKeySet.has(String(key)));
 }
 
 export function mergeCrossPageSelection(
@@ -47,15 +43,15 @@ export function mergeCrossPageSelection(
   nextVisibleSelectedRowKeys: CrossPageRowKey[],
   visibleRowKeys: CrossPageRowKey[],
 ) {
-  const visibleKeySet = new Set(visibleRowKeys.map(normalizeRowKey));
+  const visibleKeySet = new Set(visibleRowKeys.map(String));
   const hiddenSelectedRowKeys = selectedRowKeys.filter(
-    (key) => !visibleKeySet.has(normalizeRowKey(key)),
+    (key) => !visibleKeySet.has(String(key)),
   );
   const mergedRowKeys = [...hiddenSelectedRowKeys, ...nextVisibleSelectedRowKeys];
   const seen = new Set<string>();
 
   return mergedRowKeys.filter((key) => {
-    const normalizedKey = normalizeRowKey(key);
+    const normalizedKey = String(key);
     if (seen.has(normalizedKey)) {
       return false;
     }

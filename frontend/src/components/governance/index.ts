@@ -5,11 +5,12 @@ export {
   GovernanceInsightDrawer,
 } from './GovernanceRail';
 export {
-  default as GovernanceCleanupBar,
-  type GovernanceCleanupMode,
-} from './GovernanceCleanupBar';
-export {
   default as GovernanceSummaryBar,
   type GovernanceSummaryBarProps,
   type GovernanceSummaryMetric,
 } from './GovernanceSummaryBar';
+export {
+  default as GovernanceCleanupBar,
+  type GovernanceCleanupMode,
+  type GovernanceCleanupPayload,
+} from './GovernanceCleanupBar';

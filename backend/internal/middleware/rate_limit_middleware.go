@@ -13,8 +13,8 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// RateLimitStore abstracts the backing store for rate limit counters.
-type RateLimitStore interface {
+// RateLimitAllower abstracts the backing store for rate limit counters.
+type RateLimitAllower interface {
 	// Allow reports whether the given key is within the limit for the window.
 	// Returns true if allowed, false if rate-limited.
 	Allow(ctx context.Context, key string, limit int, window time.Duration) (bool, error)
@@ -25,7 +25,7 @@ type RateLimiterConfig struct {
 	MaxRequests int
 	Window      time.Duration
 	KeyFunc     func(c *gin.Context) string
-	Store       RateLimitStore // nil defaults to in-memory store
+	Store       RateLimitAllower // nil defaults to in-memory store
 }
 
 // RateLimiter returns a Gin middleware that limits request frequency per key.
@@ -53,8 +53,8 @@ func RateLimiter(config RateLimiterConfig) gin.HandlerFunc {
 			return
 		}
 		if !allowed {
-			slog.Warn("rate limit exceeded", "key", key, "path", c.Request.URL.Path, "limit", config.MaxRequests)
-			c.JSON(http.StatusTooManyRequests, gin.H{"code": 429, "message": "too many requests"})
+			slog.Warn("rate limit exceeded", "limit", config.MaxRequests)
+			c.JSON(http.StatusTooManyRequests, gin.H{"code": 429, "message": "request.too_many"})
 			c.Abort()
 			return
 		}
@@ -62,9 +62,9 @@ func RateLimiter(config RateLimiterConfig) gin.HandlerFunc {
 	}
 }
 
-// NewRedisRateLimitStore returns a RateLimitStore backed by Redis.
+// NewRedisRateLimitStore returns a RateLimitAllower backed by Redis.
 // Uses a Lua script for atomic INCR + EXPIRE in a single round-trip.
-func NewRedisRateLimitStore() RateLimitStore {
+func NewRedisRateLimitStore() RateLimitAllower {
 	if database.RDB == nil {
 		return newMemoryRateLimitStore()
 	}
@@ -124,6 +124,7 @@ func (s *memoryRateLimitStore) Allow(ctx context.Context, key string, limit int,
 	entry, exists := s.entries[key]
 	if !exists || now.Sub(entry.lastSeen) > window {
 		s.entries[key] = &rateLimiterEntry{count: 1, lastSeen: now}
+		s.evictStaleLocked(now, window)
 		return true, nil
 	}
 
@@ -132,4 +133,18 @@ func (s *memoryRateLimitStore) Allow(ctx context.Context, key string, limit int,
 		return false, nil
 	}
 	return true, nil
+}
+
+// evictStaleLocked 在 map 超阈值时清理过期条目，防止无 Redis 部署下
+// 按 key（路径+IP）无界增长。调用方须持有 s.mu。
+func (s *memoryRateLimitStore) evictStaleLocked(now time.Time, window time.Duration) {
+	const maxEntries = 10000
+	if len(s.entries) <= maxEntries {
+		return
+	}
+	for key, entry := range s.entries {
+		if now.Sub(entry.lastSeen) > window {
+			delete(s.entries, key)
+		}
+	}
 }

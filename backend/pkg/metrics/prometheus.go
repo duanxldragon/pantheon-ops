@@ -78,4 +78,20 @@ var (
 			Help: "Number of active user sessions",
 		},
 	)
+
+	// OperationLogDroppedTotal 操作日志异步队列满时丢弃的日志条数。
+	OperationLogDroppedTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "pantheon_operation_log_dropped_total",
+			Help: "Operation log entries dropped because the async queue was full",
+		},
+	)
+
+	// OperationLogQueueDepth 操作日志异步队列当前深度。
+	OperationLogQueueDepth = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "pantheon_operation_log_queue_depth",
+			Help: "Current depth of the operation log async queue",
+		},
+	)
 )

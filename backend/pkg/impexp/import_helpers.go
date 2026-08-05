@@ -23,6 +23,18 @@ type ImportResult struct {
 	Errors  []ImportError `json:"errors"`
 }
 
+type deptPathRow struct {
+	ID       uint64 `gorm:"column:id"`
+	ParentID uint64 `gorm:"column:parent_id"`
+	DeptName string `gorm:"column:dept_name"`
+}
+
+type deptPathResolver struct {
+	byID     map[uint64]deptPathRow
+	pathByID map[uint64]string
+	visiting map[uint64]bool
+}
+
 func AppendImportError(result *ImportResult, row int, field string, message string) {
 	result.Failed++
 	result.Errors = append(result.Errors, ImportError{
@@ -81,13 +93,7 @@ func BuildDeptPathMaps(db *gorm.DB) (map[uint64]string, map[string]uint64, error
 		return nil, nil, common.NewBadRequest("database.not_initialized")
 	}
 
-	type deptRow struct {
-		ID       uint64 `gorm:"column:id"`
-		ParentID uint64 `gorm:"column:parent_id"`
-		DeptName string `gorm:"column:dept_name"`
-	}
-
-	var rows []deptRow
+	var rows []deptPathRow
 	if err := db.Table("system_dept").
 		Select("id, parent_id, dept_name").
 		Order("id asc").
@@ -95,55 +101,61 @@ func BuildDeptPathMaps(db *gorm.DB) (map[uint64]string, map[string]uint64, error
 		return nil, nil, err
 	}
 
-	byID := make(map[uint64]deptRow, len(rows))
+	byID := make(map[uint64]deptPathRow, len(rows))
 	for _, row := range rows {
 		byID[row.ID] = row
 	}
 
-	pathByID := make(map[uint64]string, len(rows))
-	visiting := make(map[uint64]bool, len(rows))
-	var resolvePath func(id uint64) (string, error)
-	resolvePath = func(id uint64) (string, error) {
-		if id == 0 {
-			return "", nil
-		}
-		if path, ok := pathByID[id]; ok {
-			return path, nil
-		}
-		row, ok := byID[id]
-		if !ok {
-			return "", common.NewNotFound("dept.not_found")
-		}
-		if visiting[id] {
-			return "", common.NewBadRequest("dept.path.circular")
-		}
-		visiting[id] = true
-		defer func() {
-			delete(visiting, id)
-		}()
-
-		parentPath, err := resolvePath(row.ParentID)
-		if err != nil {
-			return "", err
-		}
-		path := strings.TrimSpace(row.DeptName)
-		if parentPath != "" {
-			path = parentPath + "/" + path
-		}
-		pathByID[id] = path
-		return path, nil
+	resolver := deptPathResolver{
+		byID:     byID,
+		pathByID: make(map[uint64]string, len(rows)),
+		visiting: make(map[uint64]bool, len(rows)),
 	}
 
 	pathToID := make(map[string]uint64, len(rows))
 	for _, row := range rows {
-		path, err := resolvePath(row.ID)
+		path, err := resolver.resolve(row.ID)
 		if err != nil {
 			return nil, nil, err
 		}
 		pathToID[path] = row.ID
 	}
 
-	return pathByID, pathToID, nil
+	return resolver.pathByID, pathToID, nil
+}
+
+func (r *deptPathResolver) resolve(id uint64) (string, error) {
+	if id == 0 {
+		return "", nil
+	}
+	if path, ok := r.pathByID[id]; ok {
+		return path, nil
+	}
+	row, ok := r.byID[id]
+	if !ok {
+		return "", common.NewNotFound("dept.not_found")
+	}
+	if r.visiting[id] {
+		return "", common.NewBadRequest("dept.path.circular")
+	}
+
+	r.visiting[id] = true
+	defer delete(r.visiting, id)
+	parentPath, err := r.resolve(row.ParentID)
+	if err != nil {
+		return "", err
+	}
+	path := joinDeptPath(parentPath, row.DeptName)
+	r.pathByID[id] = path
+	return path, nil
+}
+
+func joinDeptPath(parentPath, deptName string) string {
+	path := strings.TrimSpace(deptName)
+	if parentPath == "" {
+		return path
+	}
+	return parentPath + "/" + path
 }
 
 func ReadCSVField(record []string, headerIndex map[string]int, key string) string {

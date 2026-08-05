@@ -1,12 +1,14 @@
 package iam
 
 import (
+	"context"
 	"strings"
 	"testing"
 	"time"
 
 	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/database"
+	"pantheon-ops/backend/pkg/impexp"
 	"pantheon-ops/backend/pkg/testmysql"
 
 	"gorm.io/gorm"
@@ -175,12 +177,18 @@ func TestRoleService_DeleteRole(t *testing.T) {
 	// 创建占位角色占用 ID 1
 	db.Create(&SystemRole{RoleName: "Placeholder", RoleKey: "placeholder"})
 
-	// 创建初始角色
 	createReq := &RoleCreateReq{
 		RoleName: "Delete Me",
 		RoleKey:  "delete_me",
 		Status:   1,
 	}
+	assertRoleDeletionCleansAssociations(t, db, s, createReq)
+	assertProtectedRoleDeletion(t, db, s)
+	assertRoleWithUsersDeletion(t, db, s)
+}
+
+func assertRoleDeletionCleansAssociations(t *testing.T, db *gorm.DB, s *RoleService, createReq *RoleCreateReq) {
+	t.Helper()
 	roleResp, err := s.CreateRole(createReq)
 	if err != nil {
 		t.Fatalf("failed to create role: %v", err)
@@ -194,9 +202,12 @@ func TestRoleService_DeleteRole(t *testing.T) {
 		t.Fatalf("failed to seed casbin policy: %v", err)
 	}
 
-	// 1. 成功删除
-	err = s.DeleteRole(roleResp.ID)
-	if err != nil {
+	// 预置 custom 数据权限策略，验证删除会清理而不是被同名新角色继承
+	if err := db.Exec("INSERT INTO system_role_data_scope (role_key, mode) VALUES ('delete_me','custom') ON DUPLICATE KEY UPDATE mode='custom'").Error; err != nil {
+		t.Fatalf("failed to seed data scope policy: %v", err)
+	}
+
+	if err := s.DeleteRole(roleResp.ID); err != nil {
 		t.Errorf("expected no error for ID %d, got %v", roleResp.ID, err)
 	}
 	var deletedRole SystemRole
@@ -213,26 +224,97 @@ func TestRoleService_DeleteRole(t *testing.T) {
 	if policyCount != 0 {
 		t.Fatalf("expected casbin policies to be removed, got %d", policyCount)
 	}
+	var scopeCount int64
+	if err := db.Model(&roleDataScopePolicy{}).Where(condRoleKeyEquals, "delete_me").Count(&scopeCount).Error; err != nil {
+		t.Fatalf("failed to count data scope policies: %v", err)
+	}
+	if scopeCount != 0 {
+		t.Fatalf("expected data scope policies to be removed, got %d", scopeCount)
+	}
 	if _, err := s.CreateRole(createReq); err != nil {
 		t.Fatalf("expected role key to be reusable after delete, got %v", err)
 	}
+	var recreatedScope roleDataScopePolicy
+	if err := db.Where(condRoleKeyEquals, "delete_me").First(&recreatedScope).Error; err == nil {
+		if recreatedScope.Mode == "custom" {
+			t.Fatalf("re-created role inherited dead role's custom data scope")
+		}
+	}
+}
 
-	// 2. 删除超级管理员 (admin)
+func assertProtectedRoleDeletion(t *testing.T, db *gorm.DB, s *RoleService) {
+	t.Helper()
 	adminRole := SystemRole{RoleName: "Admin", RoleKey: "admin"}
 	db.Create(&adminRole)
-	err = s.DeleteRole(adminRole.ID)
+	err := s.DeleteRole(adminRole.ID)
 	if err == nil || common.ErrMessage(err) != "role.delete.error.protected" {
 		t.Errorf("expected protected error for admin role, got %v", err)
 	}
+}
 
-	// 3. 删除有用户的角色
+func assertRoleWithUsersDeletion(t *testing.T, db *gorm.DB, s *RoleService) {
+	t.Helper()
 	roleWithUser := SystemRole{RoleName: "Has User", RoleKey: "has_user"}
 	db.Create(&roleWithUser)
 	_ = db.Exec("INSERT INTO system_user_role (user_id, role_id) VALUES (1, ?)", roleWithUser.ID)
 
-	err = s.DeleteRole(roleWithUser.ID)
+	err := s.DeleteRole(roleWithUser.ID)
 	if err == nil || common.ErrMessage(err) != "role.delete.error.has_users" {
 		t.Errorf("expected has_users error, got %v", err)
+	}
+}
+
+func TestRoleService_ExportRolesHonorsRowCap(t *testing.T) {
+	db := setupRoleTestDB(t)
+	s := NewRoleService(db)
+
+	oldCap := maxRoleExportRows
+	maxRoleExportRows = 2
+	defer func() { maxRoleExportRows = oldCap }()
+
+	for _, key := range []string{"cap_role_a", "cap_role_b", "cap_role_c"} {
+		if err := db.Create(&SystemRole{RoleName: key, RoleKey: key, Status: 1}).Error; err != nil {
+			t.Fatalf("seed role %s: %v", key, err)
+		}
+	}
+
+	exported, err := s.ExportRoles(context.Background(), &RoleListQuery{RoleKey: "cap_role_"})
+	if err != nil {
+		t.Fatalf("export roles: %v", err)
+	}
+	if len(exported.Rows) != 2 {
+		t.Fatalf("expected export capped at 2 rows, got %d", len(exported.Rows))
+	}
+}
+
+func TestRoleService_DeleteRoleRollsBackOnFailure(t *testing.T) {
+	db := setupRoleTestDB(t)
+	s := NewRoleService(db)
+
+	roleResp, err := s.CreateRole(&RoleCreateReq{
+		RoleName: "Rollback Me",
+		RoleKey:  "rollback_me",
+		Status:   1,
+	})
+	if err != nil {
+		t.Fatalf("failed to create role: %v", err)
+	}
+
+	// 删除 system_role_menu 表制造事务中途失败，验证角色未被半删除。
+	if err := db.Exec("DROP TABLE system_role_menu").Error; err != nil {
+		t.Fatalf("failed to drop table for failure injection: %v", err)
+	}
+
+	if err := s.DeleteRole(roleResp.ID); err == nil {
+		t.Fatalf("expected delete to fail after dropping system_role_menu")
+	}
+
+	var role SystemRole
+	if err := db.First(&role, roleResp.ID).Error; err != nil {
+		t.Fatalf("expected role to survive failed delete, got %v", err)
+	}
+	if role.RoleKey != "rollback_me" {
+		t.Fatalf("expected role key unchanged after rollback, got %s", role.RoleKey)
 	}
 }
 
@@ -281,7 +363,7 @@ func TestRoleService_ExportAndBatchStatus(t *testing.T) {
 		t.Fatalf("seed editor role: %v", err)
 	}
 
-	exported, err := s.ExportRoles(&RoleListQuery{RoleKey: "editor"})
+	exported, err := s.ExportRoles(context.Background(), &RoleListQuery{RoleKey: "editor"})
 	if err != nil {
 		t.Fatalf("export roles: %v", err)
 	}
@@ -335,21 +417,8 @@ func TestRoleService_RoleMembersLifecycle(t *testing.T) {
 		t.Fatalf("expected 2 members added, got %d", addedCount)
 	}
 
-	members, err := s.ListRoleMembers(role.ID, &RoleMemberQuery{Page: 1, PageSize: 10})
-	if err != nil {
-		t.Fatalf("list role members: %v", err)
-	}
-	if members.Total != 2 || len(members.Items) != 2 {
-		t.Fatalf("expected 2 bound members, got %+v", members)
-	}
-
-	candidates, err := s.ListAssignableUsers(role.ID, &RoleMemberQuery{Page: 1, PageSize: 10})
-	if err != nil {
-		t.Fatalf("list role candidates: %v", err)
-	}
-	if candidates.Total != 0 {
-		t.Fatalf("expected no remaining candidates, got %+v", candidates.Items)
-	}
+	assertRoleMemberPage(t, s, role.ID, 2, "")
+	assertRoleCandidatePage(t, s, role.ID, "", 0, "")
 
 	removedCount, err := s.RemoveRoleMembers(role.ID, []uint64{11})
 	if err != nil {
@@ -359,20 +428,35 @@ func TestRoleService_RoleMembersLifecycle(t *testing.T) {
 		t.Fatalf("expected 1 member removed, got %d", removedCount)
 	}
 
-	members, err = s.ListRoleMembers(role.ID, &RoleMemberQuery{Page: 1, PageSize: 10})
-	if err != nil {
-		t.Fatalf("list role members after remove: %v", err)
-	}
-	if members.Total != 1 || len(members.Items) != 1 || members.Items[0].Username != "bob" {
-		t.Fatalf("expected only bob to remain bound, got %+v", members.Items)
-	}
+	assertRoleMemberPage(t, s, role.ID, 1, "bob")
+	assertRoleCandidatePage(t, s, role.ID, "alice", 1, "alice")
+}
 
-	candidates, err = s.ListAssignableUsers(role.ID, &RoleMemberQuery{Keyword: "alice", Page: 1, PageSize: 10})
+func assertRoleMemberPage(t *testing.T, s *RoleService, roleID uint64, wantTotal int64, wantUsername string) {
+	t.Helper()
+	members, err := s.ListRoleMembers(roleID, &RoleMemberQuery{Page: 1, PageSize: 10})
 	if err != nil {
-		t.Fatalf("list candidates after remove: %v", err)
+		t.Fatalf("list role members: %v", err)
 	}
-	if candidates.Total != 1 || len(candidates.Items) != 1 || candidates.Items[0].Username != "alice" {
-		t.Fatalf("expected alice to return to candidates, got %+v", candidates.Items)
+	if members.Total != wantTotal || len(members.Items) != int(wantTotal) {
+		t.Fatalf("unexpected role members: %+v", members)
+	}
+	if wantUsername != "" && members.Items[0].Username != wantUsername {
+		t.Fatalf("expected role member %s, got %+v", wantUsername, members.Items)
+	}
+}
+
+func assertRoleCandidatePage(t *testing.T, s *RoleService, roleID uint64, keyword string, wantTotal int64, wantUsername string) {
+	t.Helper()
+	candidates, err := s.ListAssignableUsers(roleID, &RoleMemberQuery{Keyword: keyword, Page: 1, PageSize: 10})
+	if err != nil {
+		t.Fatalf("list role candidates: %v", err)
+	}
+	if candidates.Total != wantTotal || len(candidates.Items) != int(wantTotal) {
+		t.Fatalf("unexpected role candidates: %+v", candidates)
+	}
+	if wantUsername != "" && candidates.Items[0].Username != wantUsername {
+		t.Fatalf("expected role candidate %s, got %+v", wantUsername, candidates.Items)
 	}
 }
 
@@ -396,5 +480,151 @@ func TestRoleService_RemoveAdminMemberProtection(t *testing.T) {
 
 	if _, err := s.RemoveRoleMembers(adminRole.ID, []uint64{1}); err == nil || common.ErrMessage(err) != "user.update.error.protected" {
 		t.Fatalf("expected protected error when removing built-in admin, got %v", err)
+	}
+}
+
+// roleImportHeader 与 role_export.go 中 BuildRoleImportTemplate 的表头保持一致。
+var roleImportHeader = []string{"roleName", "roleKey", "sort", "status", "menuIds", "permissionKeys"}
+
+func hasImportErrorMessage(errors []impexp.ImportError, msg string) bool {
+	for _, e := range errors {
+		if e.Message == msg {
+			return true
+		}
+	}
+	return false
+}
+
+func TestRoleService_ImportRolesEmptyFile(t *testing.T) {
+	db := setupRoleTestDB(t)
+	s := NewRoleService(db)
+
+	result, err := s.ImportRoles([][]string{})
+	if err != nil {
+		t.Fatalf("unexpected error on empty records: %v", err)
+	}
+	if result.Applied {
+		t.Fatalf("expected applied=false for empty file")
+	}
+	if result.Failed != 1 {
+		t.Fatalf("expected failed=1 for empty file, got %d", result.Failed)
+	}
+	if !hasImportErrorMessage(result.Errors, "import.file.empty") {
+		t.Fatalf("expected import.file.empty error, got %+v", result.Errors)
+	}
+}
+
+func TestRoleService_ImportRolesCreateAndUpdate(t *testing.T) {
+	db := setupRoleTestDB(t)
+	s := NewRoleService(db)
+
+	createRecords := [][]string{
+		roleImportHeader,
+		{"Imported A", "imported_a", "10", "1", "1", ""},
+		{"Imported B", "imported_b", "20", "2", "1", ""},
+	}
+	created, err := s.ImportRoles(createRecords)
+	if err != nil {
+		t.Fatalf("import create: %v", err)
+	}
+	if !created.Applied || created.Created != 2 || created.Updated != 0 {
+		t.Fatalf("expected 2 created, got %+v", created)
+	}
+
+	updateRecords := [][]string{
+		roleImportHeader,
+		{"Imported A Edit", "imported_a", "11", "2", "1", ""},
+	}
+	updated, err := s.ImportRoles(updateRecords)
+	if err != nil {
+		t.Fatalf("import update: %v", err)
+	}
+	if !updated.Applied || updated.Updated != 1 || updated.Created != 0 {
+		t.Fatalf("expected 1 updated, got %+v", updated)
+	}
+
+	var role SystemRole
+	if err := db.Where("role_key = ?", "imported_a").First(&role).Error; err != nil {
+		t.Fatalf("load updated role: %v", err)
+	}
+	if role.Status != 2 || role.Sort != 11 || role.RoleName != "Imported A Edit" {
+		t.Fatalf("unexpected updated role: status=%d sort=%d name=%s", role.Status, role.Sort, role.RoleName)
+	}
+
+	var menuCount int64
+	if err := db.Table("system_role_menu").Where("role_id = ?", role.ID).Count(&menuCount).Error; err != nil {
+		t.Fatalf("count menus: %v", err)
+	}
+	if menuCount != 1 {
+		t.Fatalf("expected 1 menu binding after update, got %d", menuCount)
+	}
+}
+
+func TestRoleService_ImportRowsDuplicateDetection(t *testing.T) {
+	db := setupRoleTestDB(t)
+	s := NewRoleService(db)
+
+	records := [][]string{
+		roleImportHeader,
+		{"Dup One", "dup_role", "1", "1", "", ""},
+		{"Dup Two", "dup_role", "2", "1", "", ""},
+	}
+	result, err := s.ImportRoles(records)
+	if err != nil {
+		t.Fatalf("import dup: %v", err)
+	}
+	if result.Applied {
+		t.Fatalf("expected applied=false for duplicate rows")
+	}
+	if result.Failed == 0 {
+		t.Fatalf("expected at least one failure for duplicate rows")
+	}
+	if !hasImportErrorMessage(result.Errors, "import.duplicate.row.2") {
+		t.Fatalf("expected duplicate-row error, got %+v", result.Errors)
+	}
+}
+
+func TestRoleService_ImportRowsRejectInvalidReferences(t *testing.T) {
+	testCases := []struct {
+		name        string
+		record      []string
+		wantMessage string
+	}{
+		{
+			name:        "missing role key",
+			record:      []string{"No Key", "", "1", "1", "", ""},
+			wantMessage: "role.roleKey.required",
+		},
+		{
+			name:        "missing role name",
+			record:      []string{"", "no_name", "1", "1", "", ""},
+			wantMessage: "role.roleName.required",
+		},
+		{
+			name:        "invalid menu id",
+			record:      []string{"Bad Menu", "bad_menu", "1", "1", "99", ""},
+			wantMessage: "role.menu.not_found",
+		},
+		{
+			name:        "invalid permission",
+			record:      []string{"Bad Perm", "bad_perm", "1", "1", "", "bogus:perm"},
+			wantMessage: "role.permission.not_found",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			db := setupRoleTestDB(t)
+			result, err := NewRoleService(db).ImportRoles([][]string{roleImportHeader, testCase.record})
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if result.Applied || result.Failed == 0 {
+				t.Fatalf("expected import validation failure, got %+v", result)
+			}
+			if !hasImportErrorMessage(result.Errors, testCase.wantMessage) {
+				t.Fatalf("expected %s, got %+v", testCase.wantMessage, result.Errors)
+			}
+		})
 	}
 }

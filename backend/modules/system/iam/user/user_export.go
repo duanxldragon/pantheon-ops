@@ -1,6 +1,7 @@
 package iam
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -13,12 +14,17 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func (s *UserService) ExportUsers(query *UserListQuery, dataScope *common.DataScopeReq) (*impexp.CSVFile, error) {
+// maxUserExportRows 对齐日志导出的行数上限，防止大库全表导出占满内存并
+// 长期占用连接（var 便于测试降低阈值）。
+var maxUserExportRows = 10000
+
+// ExportUsers 导出用户 CSV（受 maxUserExportRows 上限与请求上下文取消约束）。
+func (s *UserService) ExportUsers(ctx context.Context, query *UserListQuery, dataScope *common.DataScopeReq) (*impexp.CSVFile, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
 
-	users, err := s.listUsersForExport(query, dataScope)
+	users, err := s.listUsersForExport(ctx, query, dataScope)
 	if err != nil {
 		return nil, err
 	}
@@ -72,6 +78,25 @@ func (s *UserService) BuildUserImportTemplate() *impexp.CSVFile {
 	}
 }
 
+// importRow represents a single parsed CSV row that will be applied to the
+// database, either as a create or an update operation.
+type importRow struct {
+	Username string
+	Password string
+	Create   *UserCreateReq
+	Update   *UserUpdateReq
+	Existing *SystemUser
+}
+
+// userImportLookups holds the pre-loaded reference data required to resolve
+// CSV field values into concrete database identifiers.
+type userImportLookups struct {
+	deptPathToID       map[string]uint64
+	postIDByCode       map[string]uint64
+	roleIDByKey        map[string]uint64
+	existingByUsername map[string]*SystemUser
+}
+
 func (s *UserService) ImportUsers(records [][]string) (*impexp.ImportResult, error) {
 	result := &impexp.ImportResult{
 		Applied: false,
@@ -85,6 +110,32 @@ func (s *UserService) ImportUsers(records [][]string) (*impexp.ImportResult, err
 		return result, nil
 	}
 
+	headerIndex := s.buildUserImportHeaderIndex(records, result)
+	if result.Failed > 0 {
+		return result, nil
+	}
+
+	lookups, err := s.loadUserImportLookups()
+	if err != nil {
+		return nil, err
+	}
+
+	rows := s.parseUserImportRows(records, headerIndex, lookups, result)
+	if result.Failed > 0 {
+		return result, nil
+	}
+
+	if err := s.applyUserImportRows(rows, result); err != nil {
+		return nil, err
+	}
+
+	result.Applied = true
+	return result, nil
+}
+
+// buildUserImportHeaderIndex maps each header name to its column index and
+// records an error for any required header that is missing from the file.
+func (s *UserService) buildUserImportHeaderIndex(records [][]string, result *impexp.ImportResult) map[string]int {
 	headerIndex := make(map[string]int, len(records[0]))
 	for index, header := range records[0] {
 		headerIndex[strings.TrimSpace(header)] = index
@@ -95,10 +146,12 @@ func (s *UserService) ImportUsers(records [][]string) (*impexp.ImportResult, err
 			impexp.AppendImportError(result, 0, header, "import.header.missing")
 		}
 	}
-	if result.Failed > 0 {
-		return result, nil
-	}
+	return headerIndex
+}
 
+// loadUserImportLookups pre-loads the reference data needed to resolve CSV
+// values into database identifiers.
+func (s *UserService) loadUserImportLookups() (*userImportLookups, error) {
 	_, deptPathToID, err := impexp.BuildDeptPathMaps(s.db)
 	if err != nil {
 		return nil, err
@@ -115,15 +168,17 @@ func (s *UserService) ImportUsers(records [][]string) (*impexp.ImportResult, err
 	if err != nil {
 		return nil, err
 	}
+	return &userImportLookups{
+		deptPathToID:       deptPathToID,
+		postIDByCode:       postIDByCode,
+		roleIDByKey:        roleIDByKey,
+		existingByUsername: existingByUsername,
+	}, nil
+}
 
-	type importRow struct {
-		Username string
-		Password string
-		Create   *UserCreateReq
-		Update   *UserUpdateReq
-		Existing *SystemUser
-	}
-
+// parseUserImportRows iterates over the data records and builds the list of
+// import rows, appending validation errors to the result as needed.
+func (s *UserService) parseUserImportRows(records [][]string, headerIndex map[string]int, lookups *userImportLookups, result *impexp.ImportResult) []importRow {
 	rows := make([]importRow, 0, len(records)-1)
 	seenUsernames := make(map[string]int, len(records)-1)
 	for rowIndex := 1; rowIndex < len(records); rowIndex++ {
@@ -132,78 +187,37 @@ func (s *UserService) ImportUsers(records [][]string) (*impexp.ImportResult, err
 			continue
 		}
 		rowNumber := rowIndex + 1
-		username := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "username"))
-		password := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "password"))
-		nickname := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "nickname"))
-		email := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "email"))
-		phone := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "phone"))
-		deptPath := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "deptPath"))
-		postCode := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "postCode"))
-		roleKeys := impexp.SplitPipeValues(impexp.ReadCSVField(record, headerIndex, "roleKeys"))
+		row := s.buildUserImportRow(record, rowNumber, headerIndex, lookups, seenUsernames, result)
+		rows = append(rows, row)
+	}
+	return rows
+}
 
-		if username == "" {
-			impexp.AppendImportError(result, rowNumber, "username", "user.username.required")
-		}
-		if firstRow, ok := seenUsernames[username]; ok && username != "" {
-			impexp.AppendImportError(result, rowNumber, "username", fmt.Sprintf("import.duplicate.row.%d", firstRow))
-		} else if username != "" {
-			seenUsernames[username] = rowNumber
-		}
-		if err := validateOptionalEmail(email); err != nil {
-			impexp.AppendImportError(result, rowNumber, "email", err.Error())
-		}
+// buildUserImportRow parses a single data record into an importRow, performing
+// all field-level validations and appending errors to the result.
+func (s *UserService) buildUserImportRow(record []string, rowNumber int, headerIndex map[string]int, lookups *userImportLookups, seenUsernames map[string]int, result *impexp.ImportResult) importRow {
+	username := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "username"))
+	password := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "password"))
+	nickname := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "nickname"))
+	email := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "email"))
+	phone := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "phone"))
+	deptPath := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "deptPath"))
+	postCode := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "postCode"))
+	roleKeys := impexp.SplitPipeValues(impexp.ReadCSVField(record, headerIndex, "roleKeys"))
 
-		var deptID uint64
-		if deptPath != "" {
-			deptID = deptPathToID[deptPath]
-			if deptID == 0 {
-				impexp.AppendImportError(result, rowNumber, "deptPath", "user.dept.invalid")
-			}
-		}
-		var postID uint64
-		if postCode != "" {
-			postID = postIDByCode[postCode]
-			if postID == 0 {
-				impexp.AppendImportError(result, rowNumber, "postCode", "user.post.invalid")
-			}
-		}
-		roleIDs := make([]uint64, 0, len(roleKeys))
-		for _, roleKey := range roleKeys {
-			roleID := roleIDByKey[roleKey]
-			if roleID == 0 {
-				impexp.AppendImportError(result, rowNumber, "roleKeys", "user.role.invalid")
-				continue
-			}
-			roleIDs = append(roleIDs, roleID)
-		}
+	s.validateUserImportIdentity(username, rowNumber, seenUsernames, result)
+	if err := validateOptionalEmail(email); err != nil {
+		impexp.AppendImportError(result, rowNumber, "email", err.Error())
+	}
 
-		status := impexp.ParseEnabledStatus(impexp.ReadCSVField(record, headerIndex, "status"))
-		existing := existingByUsername[username]
-		if existing != nil {
-			updateReq := &UserUpdateReq{
-				Nickname: nickname,
-				Email:    email,
-				Phone:    phone,
-				DeptID:   deptID,
-				PostID:   postID,
-				Status:   status,
-				RoleIDs:  roleIDs,
-			}
-			if err := s.validateUserUpdate(existing, updateReq); err != nil {
-				impexp.AppendImportError(result, rowNumber, "username", err.Error())
-			}
-			rows = append(rows, importRow{
-				Username: username,
-				Password: password,
-				Update:   updateReq,
-				Existing: existing,
-			})
-			continue
-		}
+	deptID := s.resolveUserImportDeptID(deptPath, lookups.deptPathToID, rowNumber, result)
+	postID := s.resolveUserImportPostID(postCode, lookups.postIDByCode, rowNumber, result)
+	roleIDs := s.resolveUserImportRoleIDs(roleKeys, lookups.roleIDByKey, rowNumber, result)
 
-		createReq := &UserCreateReq{
-			Username: username,
-			Password: password,
+	status := impexp.ParseEnabledStatus(impexp.ReadCSVField(record, headerIndex, "status"))
+	existing := lookups.existingByUsername[username]
+	if existing != nil {
+		updateReq := &UserUpdateReq{
 			Nickname: nickname,
 			Email:    email,
 			Phone:    phone,
@@ -212,78 +226,170 @@ func (s *UserService) ImportUsers(records [][]string) (*impexp.ImportResult, err
 			Status:   status,
 			RoleIDs:  roleIDs,
 		}
-		if strings.TrimSpace(password) == "" {
-			impexp.AppendImportError(result, rowNumber, "password", "user.password.required")
-		}
-		if err := s.validateUserCreate(createReq); err != nil {
+		if err := s.validateUserUpdate(existing, updateReq); err != nil {
 			impexp.AppendImportError(result, rowNumber, "username", err.Error())
 		}
-		rows = append(rows, importRow{
+		return importRow{
 			Username: username,
 			Password: password,
-			Create:   createReq,
-		})
-	}
-
-	if result.Failed > 0 {
-		return result, nil
-	}
-
-	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		for _, row := range rows {
-			if row.Update != nil && row.Existing != nil {
-				updates := map[string]interface{}{
-					"nickname": row.Update.Nickname,
-					"email":    row.Update.Email,
-					"phone":    row.Update.Phone,
-					"dept_id":  row.Update.DeptID,
-					"post_id":  row.Update.PostID,
-					"status":   normalizeStatus(row.Update.Status),
-				}
-				if err := tx.Model(row.Existing).Updates(updates).Error; err != nil {
-					return err
-				}
-				if err := replaceUserRoles(tx, row.Existing.ID, normalizeUint64IDs(row.Update.RoleIDs)); err != nil {
-					return err
-				}
-				result.Updated++
-				continue
-			}
-
-			passwordHash, err := bcrypt.GenerateFromPassword([]byte(row.Create.Password), bcrypt.DefaultCost)
-			if err != nil {
-				return err
-			}
-			user := SystemUser{
-				Username: row.Create.Username,
-				Password: string(passwordHash),
-				Nickname: row.Create.Nickname,
-				Email:    row.Create.Email,
-				Phone:    row.Create.Phone,
-				DeptID:   row.Create.DeptID,
-				PostID:   row.Create.PostID,
-				Status:   normalizeStatus(row.Create.Status),
-			}
-			if err := tx.Create(&user).Error; err != nil {
-				return err
-			}
-			if err := replaceUserRoles(tx, user.ID, normalizeUint64IDs(row.Create.RoleIDs)); err != nil {
-				return err
-			}
-			result.Created++
+			Update:   updateReq,
+			Existing: existing,
 		}
-		return nil
-	}); err != nil {
-		return nil, err
 	}
 
-	result.Applied = true
-	return result, nil
+	createReq := &UserCreateReq{
+		Username: username,
+		Password: password,
+		Nickname: nickname,
+		Email:    email,
+		Phone:    phone,
+		DeptID:   deptID,
+		PostID:   postID,
+		Status:   status,
+		RoleIDs:  roleIDs,
+	}
+	if strings.TrimSpace(password) == "" {
+		impexp.AppendImportError(result, rowNumber, "password", "user.password.required")
+	}
+	if err := s.validateUserCreate(createReq); err != nil {
+		impexp.AppendImportError(result, rowNumber, "username", err.Error())
+	}
+	return importRow{
+		Username: username,
+		Password: password,
+		Create:   createReq,
+	}
 }
 
-func (s *UserService) listUsersForExport(query *UserListQuery, dataScope *common.DataScopeReq) ([]SystemUser, error) {
+// validateUserImportIdentity checks that the username is present and not
+// duplicated within the file, recording errors on failure.
+func (s *UserService) validateUserImportIdentity(username string, rowNumber int, seenUsernames map[string]int, result *impexp.ImportResult) {
+	if username == "" {
+		impexp.AppendImportError(result, rowNumber, "username", "user.username.required")
+	}
+	if firstRow, ok := seenUsernames[username]; ok && username != "" {
+		impexp.AppendImportError(result, rowNumber, "username", fmt.Sprintf("import.duplicate.row.%d", firstRow))
+	} else if username != "" {
+		seenUsernames[username] = rowNumber
+	}
+}
+
+// resolveUserImportDeptID resolves the department path to its ID, recording an
+// error when the path is provided but not found.
+func (s *UserService) resolveUserImportDeptID(deptPath string, deptPathToID map[string]uint64, rowNumber int, result *impexp.ImportResult) uint64 {
+	if deptPath == "" {
+		return 0
+	}
+	deptID := deptPathToID[deptPath]
+	if deptID == 0 {
+		impexp.AppendImportError(result, rowNumber, "deptPath", "user.dept.invalid")
+	}
+	return deptID
+}
+
+// resolveUserImportPostID resolves the post code to its ID, recording an error
+// when the code is provided but not found.
+func (s *UserService) resolveUserImportPostID(postCode string, postIDByCode map[string]uint64, rowNumber int, result *impexp.ImportResult) uint64 {
+	if postCode == "" {
+		return 0
+	}
+	postID := postIDByCode[postCode]
+	if postID == 0 {
+		impexp.AppendImportError(result, rowNumber, "postCode", "user.post.invalid")
+	}
+	return postID
+}
+
+// resolveUserImportRoleIDs resolves the list of role keys to role IDs,
+// recording an error for every unknown role key.
+func (s *UserService) resolveUserImportRoleIDs(roleKeys []string, roleIDByKey map[string]uint64, rowNumber int, result *impexp.ImportResult) []uint64 {
+	roleIDs := make([]uint64, 0, len(roleKeys))
+	for _, roleKey := range roleKeys {
+		roleID := roleIDByKey[roleKey]
+		if roleID == 0 {
+			impexp.AppendImportError(result, rowNumber, "roleKeys", "user.role.invalid")
+			continue
+		}
+		roleIDs = append(roleIDs, roleID)
+	}
+	return roleIDs
+}
+
+// applyUserImportRows applies all parsed rows inside a single database
+// transaction.
+func (s *UserService) applyUserImportRows(rows []importRow, result *impexp.ImportResult) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		return s.applyUserImportRowsInTx(tx, rows, result)
+	})
+}
+
+// applyUserImportRowsInTx iterates over the parsed rows and applies each one.
+func (s *UserService) applyUserImportRowsInTx(tx *gorm.DB, rows []importRow, result *impexp.ImportResult) error {
+	for _, row := range rows {
+		if err := s.applyUserImportRow(tx, row, result); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// applyUserImportRow applies a single parsed row as an update or a create.
+func (s *UserService) applyUserImportRow(tx *gorm.DB, row importRow, result *impexp.ImportResult) error {
+	if row.Update != nil && row.Existing != nil {
+		return s.applyUserImportUpdate(tx, row, result)
+	}
+	return s.applyUserImportCreate(tx, row, result)
+}
+
+// applyUserImportUpdate persists the update for an existing user.
+func (s *UserService) applyUserImportUpdate(tx *gorm.DB, row importRow, result *impexp.ImportResult) error {
+	updates := map[string]interface{}{
+		"nickname": row.Update.Nickname,
+		"email":    row.Update.Email,
+		"phone":    row.Update.Phone,
+		"dept_id":  row.Update.DeptID,
+		"post_id":  row.Update.PostID,
+		"status":   normalizeStatus(row.Update.Status),
+	}
+	if err := tx.Model(row.Existing).Updates(updates).Error; err != nil {
+		return err
+	}
+	if err := replaceUserRoles(tx, row.Existing.ID, normalizeUint64IDs(row.Update.RoleIDs)); err != nil {
+		return err
+	}
+	result.Updated++
+	return nil
+}
+
+// applyUserImportCreate persists the creation of a new user.
+func (s *UserService) applyUserImportCreate(tx *gorm.DB, row importRow, result *impexp.ImportResult) error {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(row.Create.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user := SystemUser{
+		Username: row.Create.Username,
+		Password: string(passwordHash),
+		Nickname: row.Create.Nickname,
+		Email:    row.Create.Email,
+		Phone:    row.Create.Phone,
+		DeptID:   row.Create.DeptID,
+		PostID:   row.Create.PostID,
+		Status:   normalizeStatus(row.Create.Status),
+	}
+	if err := tx.Create(&user).Error; err != nil {
+		return err
+	}
+	if err := replaceUserRoles(tx, user.ID, normalizeUint64IDs(row.Create.RoleIDs)); err != nil {
+		return err
+	}
+	result.Created++
+	return nil
+}
+
+func (s *UserService) listUsersForExport(ctx context.Context, query *UserListQuery, dataScope *common.DataScopeReq) ([]SystemUser, error) {
 	var users []SystemUser
-	db := s.db.Model(&SystemUser{}).Scopes(database.WithDataScope(dataScope))
+	db := s.db.WithContext(ctx).Model(&SystemUser{}).Scopes(database.WithDataScope(dataScope))
 	db = applyUserListFilters(db, query)
 
 	sortColumn, sortDesc := normalizeUserSort(query)
@@ -296,6 +402,7 @@ func (s *UserService) listUsersForExport(query *UserListQuery, dataScope *common
 			Column: clause.Column{Name: "id"},
 			Desc:   false,
 		}).
+		Limit(maxUserExportRows).
 		Find(&users).Error; err != nil {
 		return nil, err
 	}
@@ -307,6 +414,10 @@ func (s *UserService) listUsersForExport(query *UserListQuery, dataScope *common
 func applyUserListFilters(db *gorm.DB, query *UserListQuery) *gorm.DB {
 	if query == nil {
 		return db
+	}
+	if strings.TrimSpace(query.Keyword) != "" {
+		keyword := fmt.Sprintf("%%%s%%", common.EscapeLikePattern(strings.TrimSpace(query.Keyword)))
+		db = db.Where("username LIKE ? OR nickname LIKE ? OR email LIKE ?", keyword, keyword, keyword)
 	}
 	if strings.TrimSpace(query.Username) != "" {
 		db = db.Where("username LIKE ?", fmt.Sprintf("%%%s%%", common.EscapeLikePattern(strings.TrimSpace(query.Username))))

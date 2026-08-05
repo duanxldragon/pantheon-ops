@@ -120,3 +120,26 @@ func GetUserID(c *gin.Context) uint64 {
 	}
 	return 0
 }
+
+// GetRoleKeys extracts the role key slice from the Gin context.
+func GetRoleKeys(c *gin.Context) []string {
+	if c == nil {
+		return nil
+	}
+	for _, key := range []string{"roleKeys", "roleKey"} {
+		val, ok := c.Get(key)
+		if !ok {
+			continue
+		}
+		switch roleKeys := val.(type) {
+		case []string:
+			return roleKeys
+		case string:
+			trimmed := strings.TrimSpace(roleKeys)
+			if trimmed != "" {
+				return []string{trimmed}
+			}
+		}
+	}
+	return nil
+}

@@ -28,6 +28,7 @@ import {
   type RoleRow,
 } from './api';
 import { translateRoleName } from './display';
+import '../../components/shared/list-page.css';
 
 interface RoleMemberDrawerProps {
   role: RoleRow | null;
@@ -256,7 +257,15 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
         title: t('system.user.nickname'),
         dataIndex: 'nickname',
         width: TABLE_COLUMN_WIDTH.identity,
-        render: (value: string) => value || '-',
+        ellipsis: true,
+        render: (value: string) => (
+          <Typography.Text
+            className="role-member-drawer__nickname-text"
+            ellipsis={{ cssEllipsis: true, showTooltip: true }}
+          >
+            {value || '-'}
+          </Typography.Text>
+        ),
       },
       {
         title: t('system.user.status'),
@@ -284,7 +293,11 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
         title: t('system.user.createdAt'),
         dataIndex: 'createdAt',
         width: TABLE_COLUMN_WIDTH.datetime,
-        render: (value: string) => formatDateTime(value),
+        render: (value: string) => (
+          <Typography.Text className="system-list__datetime-text">
+            {formatDateTime(value)}
+          </Typography.Text>
+        ),
       },
       {
         title: t('common.action'),
@@ -390,9 +403,8 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
               {t('common.refresh')}
             </Button>
           </div>
-          <div
+          <fieldset
             className="role-member-drawer__candidate-list"
-            role="listbox"
             aria-label={t('system.role.members.candidatePlaceholder')}
           >
             {candidateOptions.length > 0 ? (
@@ -415,7 +427,7 @@ const RoleMemberDrawer: React.FC<RoleMemberDrawerProps> = ({
                 {candidateLoading ? t('common.loading') : t('system.role.members.candidateEmpty')}
               </Typography.Text>
             )}
-          </div>
+          </fieldset>
         </Card>
 
         <Card className="dialog-grid-card" size="small">

@@ -23,7 +23,6 @@ import {
   IconDownload,
   IconEdit,
   IconPlus,
-  IconSearch,
 } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { showImportResult } from '../../../../api/importExport';
@@ -55,7 +54,7 @@ import {
   AppModal,
   AppTable,
   buildStandardPagination,
-  FilterPanel,
+  SearchToolbar,
   FormSection,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
@@ -83,6 +82,7 @@ const Col = Grid.Col;
 const FormItem = Form.Item;
 
 const emptyQuery: PostListQuery = {
+  keyword: '',
   postCode: '',
   postName: '',
   deptId: undefined,
@@ -119,6 +119,7 @@ function normalizePostRow(row: PostRow): PostRow {
 
 function isDefaultPostListQuery(query: PostListQuery) {
   return (
+    !query.keyword &&
     !query.postCode &&
     !query.postName &&
     query.deptId === undefined &&
@@ -156,7 +157,6 @@ const PostList: React.FC = () => {
   const [deptOptions, setDeptOptions] = useState<Array<{ label: string; value: number }>>([]);
   const [query, setQuery] = useState<PostListQuery>(emptyQuery);
   const [form] = Form.useForm<PostPayload>();
-  const [queryForm] = Form.useForm<PostListQuery>();
   const invalidatePostCaches = useCallback(() => {
     invalidateRouteWarmDataMany([
       { path: '/system/post', resourceKeys: ['list:default'] },
@@ -289,8 +289,7 @@ const PostList: React.FC = () => {
     setQuery({ ...query, page: nextPage });
   };
 
-  const search = () => {
-    const values = queryForm.getFieldsValue();
+  const search = (values: Partial<PostListQuery>) => {
     setSelectedRowKeys([]);
     setQuery({
       ...query,
@@ -300,7 +299,6 @@ const PostList: React.FC = () => {
   };
 
   const reset = () => {
-    queryForm.setFieldsValue(emptyQuery);
     setSelectedRowKeys([]);
     setQuery(emptyQuery);
   };
@@ -324,17 +322,18 @@ const PostList: React.FC = () => {
 
   const handleTableChange: TableProps<PostRow>['onChange'] = (pagination, sorter) => {
     const currentSorter = Array.isArray(sorter) ? sorter[0] : (sorter as SorterInfo | undefined);
+    let nextSortOrder: 'asc' | 'desc' | undefined;
+    if (currentSorter?.direction === 'ascend') {
+      nextSortOrder = 'asc';
+    } else if (currentSorter?.direction === 'descend') {
+      nextSortOrder = 'desc';
+    }
     const nextQuery: PostListQuery = {
       ...query,
       page: pagination.current || 1,
       pageSize: pagination.pageSize || query.pageSize || emptyQuery.pageSize,
       sortField: currentSorter?.direction ? String(currentSorter.field) : undefined,
-      sortOrder:
-        currentSorter?.direction === 'ascend'
-          ? 'asc'
-          : currentSorter?.direction === 'descend'
-            ? 'desc'
-            : undefined,
+      sortOrder: nextSortOrder,
     };
     const sortChanged =
       nextQuery.sortField !== query.sortField || nextQuery.sortOrder !== query.sortOrder;
@@ -367,7 +366,7 @@ const PostList: React.FC = () => {
       message.warning(t('common.batchSelectionRequired'));
       return;
     }
-    const postIds = selectedRowKeys.map((item) => Number(item)).filter((item) => item > 0);
+    const postIds = selectedRowKeys.map(Number).filter((item) => item > 0);
     const result = await batchUpdatePostStatus({ postIds, status });
     message.success(t('system.post.batchStatusSuccess', { count: result.updatedCount }));
     invalidatePostCaches();
@@ -381,7 +380,7 @@ const PostList: React.FC = () => {
       message.warning(t('common.batchSelectionRequired'));
       return;
     }
-    const ids = selectedRowKeys.map((item) => Number(item)).filter((item) => item > 0);
+    const ids = selectedRowKeys.map(Number).filter((item) => item > 0);
     const result = await batchDeletePosts({ ids });
     const messageKey =
       result.failedCount > 0 ? 'common.batchDeletePartialSuccess' : 'common.batchDeleteSuccess';
@@ -442,15 +441,25 @@ const PostList: React.FC = () => {
     [data],
   );
 
-  const renderGovernanceTags = (labels: string[], tone: 'tag' | 'note' = 'tag') => {
-    if (labels.length === 0) {
+  const renderGovernanceTags = (keys: string[], tone: 'tag' | 'note' = 'tag') => {
+    if (keys.length === 0) {
       return '-';
     }
+    // Backend returns stable i18n keys (`governanceTags`, `governanceBlockedBy`,
+    // `governanceActions`); only the rendered labels used to be displayed. The
+    // label values came from the English dictionary hardcoded on the backend
+    // (`impexp.GovernanceTagLabels` etc.) and therefore leaked through every
+    // non-English locale. Translate by key here and ignore the label strings.
+    const labels = keys.map((key) =>
+      t(`system.post.governance.tag.${key}`, {
+        defaultValue: t(`system.dept.task.tag.${key}`, { defaultValue: key }),
+      }),
+    );
     if (tone === 'note') {
       return (
         <Space size={[6, 6]} wrap>
-          {labels.map((label) => (
-            <Tag key={label} size="small">
+          {labels.map((label, index) => (
+            <Tag key={`${keys[index]}-${label}`} size="small">
               {label}
             </Tag>
           ))}
@@ -459,8 +468,8 @@ const PostList: React.FC = () => {
     }
     return (
       <Space size={[6, 6]} wrap>
-        {labels.map((label) => (
-          <Tag key={label} size="small" color="arcoblue">
+        {labels.map((label, index) => (
+          <Tag key={`${keys[index]}-${label}`} size="small" color="arcoblue">
             {label}
           </Tag>
         ))}
@@ -499,7 +508,7 @@ const PostList: React.FC = () => {
         title: t('system.dept.governance'),
         dataIndex: 'governanceTagLabels',
         width: TABLE_COLUMN_WIDTH.tagGroup,
-        render: (_: unknown, row: PostRow) => renderGovernanceTags(row.governanceTagLabels),
+        render: (_: unknown, row: PostRow) => renderGovernanceTags(row.governanceTags),
       },
       'low',
     ),
@@ -508,8 +517,25 @@ const PostList: React.FC = () => {
         title: t('system.post.hero.blockedBy'),
         dataIndex: 'governanceBlockedDesc',
         width: TABLE_COLUMN_WIDTH.diagnostics,
-        render: (_: unknown, row: PostRow) =>
-          renderGovernanceTags(row.governanceBlockedDesc, 'note'),
+        render: (_: unknown, row: PostRow) => {
+          const labels = row.governanceBlockedBy.map((key) =>
+            t(`system.post.governance.blockedBy.${key}`, {
+              defaultValue: t(`system.dept.task.blockedBy.${key}`, { defaultValue: key }),
+            }),
+          );
+          if (labels.length === 0) {
+            return '-';
+          }
+          return (
+            <Space size={[6, 6]} wrap>
+              {labels.map((label, index) => (
+                <Tag key={`${row.governanceBlockedBy[index]}-${label}`} size="small">
+                  {label}
+                </Tag>
+              ))}
+            </Space>
+          );
+        },
       },
       'medium',
     ),
@@ -518,11 +544,21 @@ const PostList: React.FC = () => {
         title: t('system.post.hero.nextAction'),
         dataIndex: 'governanceActionLabel',
         width: TABLE_COLUMN_WIDTH.tagGroup,
-        render: (_: unknown, row: PostRow) => (
-          <Typography.Text className="post-governance__action-text">
-            {row.governanceActionLabel.join(' / ') || '-'}
-          </Typography.Text>
-        ),
+        render: (_: unknown, row: PostRow) => {
+          const labels = row.governanceActions.map((key) =>
+            t(`system.post.governance.action.${key}`, {
+              defaultValue: t(`system.dept.task.action.${key}`, { defaultValue: key }),
+            }),
+          );
+          if (labels.length === 0) {
+            return '-';
+          }
+          return (
+            <Typography.Text className="post-governance__action-text">
+              {labels.join(' / ')}
+            </Typography.Text>
+          );
+        },
       },
       'low',
     ),
@@ -556,7 +592,11 @@ const PostList: React.FC = () => {
         dataIndex: 'createdAt',
         width: TABLE_COLUMN_WIDTH.datetime,
         ...sortableColumn('createdAt'),
-        render: (value: string) => formatDateTime(value),
+        render: (value: string) => (
+          <Typography.Text className="system-list__datetime-text">
+            {formatDateTime(value)}
+          </Typography.Text>
+        ),
       },
       'low',
     ),
@@ -637,48 +677,37 @@ const PostList: React.FC = () => {
           }
         />
         <>
-          <FilterPanel>
-            <Form form={queryForm} layout="vertical" onSubmit={() => search()}>
-              <Row gutter={16}>
-                <Col xs={24} md={12} lg={5}>
-                  <FormItem label={t('system.post.postCode')} field="postCode">
-                    <Input onPressEnter={() => queryForm.submit()} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12} lg={5}>
-                  <FormItem label={t('system.post.postName')} field="postName">
-                    <Input onPressEnter={() => queryForm.submit()} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12} lg={5}>
-                  <FormItem label={t('system.post.dept')} field="deptId">
-                    <Select allowClear options={deptOptions} />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12} lg={5}>
-                  <FormItem label={t('system.post.status')} field="status">
-                    <Select
-                      allowClear
-                      options={[
-                        { label: t('system.user.status.enabled'), value: 1 },
-                        { label: t('system.user.status.disabled'), value: 2 },
-                      ]}
-                    />
-                  </FormItem>
-                </Col>
-                <Col xs={24} md={12} lg={4}>
-                  <FormItem className="filter-panel__action-item">
-                    <Space>
-                      <Button type="primary" htmlType="submit" icon={<IconSearch />}>
-                        {t('common.search')}
-                      </Button>
-                      <Button onClick={reset}>{t('common.reset')}</Button>
-                    </Space>
-                  </FormItem>
-                </Col>
-              </Row>
-            </Form>
-          </FilterPanel>
+          <SearchToolbar
+            keyword={query.keyword ?? ''}
+            keywordPlaceholder={t('system.post.search.placeholder')}
+            onKeywordChange={(keyword) => search({ keyword })}
+            inlineFilters={
+              <>
+                <Select
+                  allowClear
+                  showSearch
+                  placeholder={t('system.post.dept')}
+                  value={query.deptId}
+                  onChange={(value) => search({ deptId: value })}
+                  options={deptOptions}
+                />
+                <Select
+                  allowClear
+                  placeholder={t('system.post.status')}
+                  value={query.status}
+                  onChange={(value) => search({ status: value })}
+                  options={[
+                    { label: t('system.user.status.enabled'), value: 1 },
+                    { label: t('system.user.status.disabled'), value: 2 },
+                  ]}
+                />
+              </>
+            }
+            hasActiveFilters={Boolean(
+              query.keyword || query.deptId !== undefined || query.status !== undefined,
+            )}
+            onClearAll={reset}
+          />
           <Card className="page-panel system-list__table-card">
             <TableBatchActionBar
               selectedCount={selectedRowKeys.length}

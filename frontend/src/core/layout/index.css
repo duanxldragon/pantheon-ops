@@ -3,6 +3,18 @@
   background: transparent;
 }
 
+/*
+ * Vertical (sidebar) layout: the Sider must sit side-by-side with the main
+ * column. Arco normally sets `flex-direction: row` via `.arco-layout-has-sider`,
+ * but that class is not emitted here because the Sider is rendered inside the
+ * <LayoutSideMenu> wrapper (behind a conditional + backdrop sibling), so Arco's
+ * child-type detection misses it and `.arco-layout` keeps its default `column`.
+ * Force row explicitly so the sidebar and content render as columns, not stacked.
+ */
+.app-shell--vertical {
+  flex-direction: row;
+}
+
 .app-shell--horizontal {
   flex-direction: column;
 }
@@ -38,7 +50,7 @@
   height: 36px;
   border-radius: var(--radius-sm);
   border: 1px solid color-mix(in srgb, var(--brand-primary) 12%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 6%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-lift));
   color: var(--brand-primary);
   font-size: 18px;
   font-weight: 700;
@@ -77,10 +89,10 @@
   width: 100%;
 }
 
-.app-shell__menu {
+.app-shell .app-shell__menu {
   padding: 0 10px 16px;
   background: transparent;
-  border-inline-end: none !important;
+  border-inline-end: none;
 }
 
 .app-shell__menu .arco-menu-inner {
@@ -132,7 +144,7 @@
     transform 0.18s ease;
 }
 
-.app-shell__menu-entry-icon .arco-icon {
+.app-shell .app-shell__menu-entry-icon .arco-icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -140,7 +152,7 @@
   height: 100%;
   font-size: 16px;
   line-height: 1;
-  margin-right: 0 !important;
+  margin-right: 0;
 }
 
 .app-shell__menu-entry--level-0 {
@@ -167,7 +179,7 @@
   width: 22px;
   height: 22px;
   border: none;
-  border-radius: 7px;
+  border-radius: var(--radius-lg);
   background: transparent;
   color: color-mix(in srgb, var(--brand-primary) 44%, var(--text-tertiary));
   box-shadow: none;
@@ -186,9 +198,10 @@
 .app-shell__menu .arco-menu-item {
   position: relative;
   min-height: 42px;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   margin-bottom: 2px;
   overflow: hidden;
+  background: transparent;
   transition:
     background 0.18s ease,
     box-shadow 0.18s ease,
@@ -209,9 +222,9 @@
   flex: 1 1 auto;
 }
 
-.app-shell__menu > .arco-menu-inner > .arco-menu-item,
-.app-shell__menu > .arco-menu-inner > .arco-menu-sub > .arco-menu-inline-header {
-  padding: 0 12px 0 14px !important;
+.app-shell .app-shell__menu > .arco-menu-inner > .arco-menu-item,
+.app-shell .app-shell__menu > .arco-menu-inner > .arco-menu-sub > .arco-menu-inline-header {
+  padding: 0 12px 0 14px;
 }
 
 .app-shell__menu .arco-menu-inline-header::before,
@@ -252,11 +265,6 @@
   flex: 1 1 auto;
 }
 
-.app-shell__menu .arco-menu-item,
-.app-shell__menu .arco-menu-inline-header {
-  background: transparent;
-}
-
 .app-shell__menu > .arco-menu-inner > .arco-menu-sub > .arco-menu-inline-content {
   margin: 0 0 8px;
 }
@@ -272,10 +280,10 @@
   background: transparent;
 }
 
-.app-shell__menu .arco-menu-inline-content .arco-menu-item {
+.app-shell .app-shell__menu .arco-menu-inline-content .arco-menu-item {
   min-height: 38px;
   margin-bottom: 2px;
-  padding: 0 12px 0 14px !important;
+  padding: 0 12px 0 14px;
   background: transparent;
 }
 
@@ -301,8 +309,8 @@
   align-items: center;
 }
 
-.app-shell__menu .arco-menu-open > .arco-menu-inline-header {
-  background: color-mix(in srgb, var(--brand-primary) 4%, rgba(255, 255, 255, 0.92)) !important;
+.app-shell .app-shell__menu .arco-menu-open > .arco-menu-inline-header {
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
   color: var(--text-primary);
 }
 
@@ -311,26 +319,31 @@
   font-weight: 600;
 }
 
-.app-shell__menu .arco-menu-open > .arco-menu-inline-header .arco-menu-icon,
-.app-shell__menu .arco-menu-open > .arco-menu-inline-header .arco-menu-icon-suffix .arco-icon {
-  color: var(--brand-primary) !important;
-}
-
-.app-shell__menu .arco-menu-open > .arco-menu-inline-header .app-shell__menu-entry-icon--level-0 {
-  background: color-mix(in srgb, var(--brand-primary) 10%, #ffffff);
+.app-shell .app-shell__menu .arco-menu-open > .arco-menu-inline-header .arco-menu-icon,
+.app-shell
+  .app-shell__menu
+  .arco-menu-open
+  > .arco-menu-inline-header
+  .arco-menu-icon-suffix
+  .arco-icon {
   color: var(--brand-primary);
 }
 
-.app-shell__menu .arco-menu-item:hover,
-.app-shell__menu .arco-menu-inline-header:hover {
-  background: color-mix(in srgb, var(--brand-primary) 3%, rgba(255, 255, 255, 0.92)) !important;
+.app-shell__menu .arco-menu-open > .arco-menu-inline-header .app-shell__menu-entry-icon--level-0 {
+  background: color-mix(in srgb, var(--brand-primary) 10%, var(--surface-lift));
+  color: var(--brand-primary);
+}
+
+.app-shell .app-shell__menu .arco-menu-item:hover,
+.app-shell .app-shell__menu .arco-menu-inline-header:hover {
+  background: color-mix(in srgb, var(--brand-primary) 3%, var(--surface-lift));
   color: var(--text-primary);
   box-shadow: none;
 }
 
 .app-shell__menu .arco-menu-item:hover .app-shell__menu-entry-icon--level-0,
 .app-shell__menu .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-0 {
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
@@ -338,19 +351,19 @@
 .app-shell__menu .arco-menu-item:hover .app-shell__menu-entry-icon--level-2,
 .app-shell__menu .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-1,
 .app-shell__menu .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-2 {
-  background: color-mix(in srgb, var(--brand-primary) 6%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
-.app-shell__menu .arco-menu-selected,
-.app-shell__menu .arco-menu-inline-header.arco-menu-selected {
-  background: color-mix(in srgb, var(--brand-primary) 8%, rgba(255, 255, 255, 0.96)) !important;
+.app-shell .app-shell__menu .arco-menu-selected,
+.app-shell .app-shell__menu .arco-menu-inline-header.arco-menu-selected {
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 8%, transparent);
 }
 
-.app-shell__menu .arco-menu-selected,
-.app-shell__menu .arco-menu-selected .arco-menu-icon {
-  color: var(--brand-primary) !important;
+.app-shell .app-shell__menu .arco-menu-selected,
+.app-shell .app-shell__menu .arco-menu-selected .arco-menu-icon {
+  color: var(--brand-primary);
 }
 
 .app-shell__menu .arco-menu-selected::before,
@@ -360,14 +373,14 @@
   background: var(--brand-primary);
 }
 
-.app-shell__menu .arco-menu-selected .arco-menu-icon,
-.app-shell__menu .arco-menu-inline-header.arco-menu-selected .arco-menu-icon {
-  color: var(--brand-primary) !important;
+.app-shell .app-shell__menu .arco-menu-selected .arco-menu-icon,
+.app-shell .app-shell__menu .arco-menu-inline-header.arco-menu-selected .arco-menu-icon {
+  color: var(--brand-primary);
 }
 
 .app-shell__menu .arco-menu-selected .app-shell__menu-entry-icon--level-0,
 .app-shell__menu .arco-menu-inline-header.arco-menu-selected .app-shell__menu-entry-icon--level-0 {
-  background: color-mix(in srgb, var(--brand-primary) 12%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 12%, var(--surface-lift));
   color: var(--brand-primary);
   transform: none;
 }
@@ -376,7 +389,7 @@
 .app-shell__menu .arco-menu-selected .app-shell__menu-entry-icon--level-2,
 .app-shell__menu .arco-menu-inline-header.arco-menu-selected .app-shell__menu-entry-icon--level-1,
 .app-shell__menu .arco-menu-inline-header.arco-menu-selected .app-shell__menu-entry-icon--level-2 {
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
@@ -414,8 +427,8 @@
   font-size: 14px;
 }
 
-.app-shell__menu .arco-menu-icon {
-  margin-right: 0 !important;
+.app-shell .app-shell__menu .arco-menu-icon {
+  margin-right: 0;
 }
 
 .app-shell__menu .arco-menu-icon-suffix {
@@ -462,7 +475,7 @@
   height: auto;
   min-height: 64px;
   padding: 12px 24px 10px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface-lift);
   border-bottom: 1px solid var(--panel-border);
   box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
   line-height: normal;
@@ -496,9 +509,9 @@
   justify-content: center;
   width: 30px;
   height: 30px;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   border: 1px solid color-mix(in srgb, var(--brand-primary) 18%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   color: var(--brand-primary);
   font-size: 15px;
   font-weight: 700;
@@ -515,7 +528,7 @@
 .app-shell__collapse-btn,
 .app-shell__icon-btn,
 .app-shell__user-trigger {
-  border-radius: var(--radius-sm) !important;
+  border-radius: var(--radius-sm);
 }
 
 .app-shell__header-meta {
@@ -549,9 +562,9 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  flex: 0 1 280px;
-  min-width: 220px;
-  max-width: 320px;
+  flex: 0 1 360px;
+  min-width: 280px;
+  max-width: 420px;
   height: 36px;
   padding: 0 10px 0 10px;
   border: 1px solid rgba(229, 230, 235, 0.82);
@@ -595,16 +608,16 @@
   padding-inline: 8px;
   border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--brand-primary) 6%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-lift));
   color: var(--text-tertiary);
   font-size: 11px;
   font-family: inherit;
 }
 
-.app-shell__icon-btn {
+.app-shell .app-shell__icon-btn {
   min-width: 36px;
   height: 36px;
-  padding-inline: 8px !important;
+  padding-inline: 8px;
   border: 1px solid rgba(229, 230, 235, 0.82);
   background: var(--panel-bg-solid);
   color: var(--text-secondary);
@@ -621,21 +634,21 @@
 
 .app-shell__icon-btn:hover {
   border-color: color-mix(in srgb, var(--brand-primary) 18%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
   color: var(--brand-primary);
   box-shadow: none;
 }
 
 .app-shell__icon-btn--attention {
-  border-color: color-mix(in srgb, var(--danger-color, #f53f3f) 18%, var(--panel-border));
-  background: color-mix(in srgb, var(--danger-color, #f53f3f) 5%, #ffffff);
-  color: var(--danger-color, #f53f3f);
+  border-color: color-mix(in srgb, var(--color-error) 18%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-error) 5%, var(--surface-lift));
+  color: var(--color-error);
 }
 
 .app-shell__icon-btn--attention:hover {
-  border-color: color-mix(in srgb, var(--danger-color, #f53f3f) 28%, var(--panel-border));
-  background: color-mix(in srgb, var(--danger-color, #f53f3f) 7%, #ffffff);
-  color: var(--danger-color, #f53f3f);
+  border-color: color-mix(in srgb, var(--color-error) 28%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-error) 7%, var(--surface-lift));
+  color: var(--color-error);
 }
 
 .app-shell__top-nav {
@@ -655,13 +668,13 @@
   width: 100%;
 }
 
-.app-shell__top-menu {
+.app-shell .app-shell__top-menu {
   min-height: 52px;
   padding: 6px 8px;
   border: 1px solid color-mix(in srgb, var(--brand-primary) 6%, var(--panel-border));
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.94) !important;
-  border-bottom: none !important;
+  border-radius: var(--radius-xl);
+  background: var(--surface-lift);
+  border-bottom: none;
   box-shadow: none;
   white-space: nowrap;
 }
@@ -677,17 +690,17 @@
   margin-left: 0;
 }
 
-.app-shell__top-menu .arco-menu-item,
-.app-shell__top-menu .arco-menu-pop-header,
-.app-shell__top-menu .arco-menu-inline-header {
+.app-shell .app-shell__top-menu .arco-menu-item,
+.app-shell .app-shell__top-menu .arco-menu-pop-header,
+.app-shell .app-shell__top-menu .arco-menu-inline-header {
   position: relative;
   display: inline-flex;
   align-items: center;
   min-height: 42px;
   height: 42px;
-  padding: 0 14px 0 16px !important;
+  padding: 0 14px 0 16px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: transparent;
   color: var(--text-secondary);
   font-weight: 500;
@@ -738,17 +751,17 @@
 .app-shell__top-menu .app-shell__menu-entry-icon--level-2 {
   width: 22px;
   height: 22px;
-  border-radius: 7px;
+  border-radius: var(--radius-lg);
   background: transparent;
   color: color-mix(in srgb, var(--brand-primary) 44%, var(--text-tertiary));
 }
 
-.app-shell__top-menu .arco-menu-item:hover,
-.app-shell__top-menu .arco-menu-pop-header:hover,
-.app-shell__top-menu .arco-menu-inline-header:hover {
+.app-shell .app-shell__top-menu .arco-menu-item:hover,
+.app-shell .app-shell__top-menu .arco-menu-pop-header:hover,
+.app-shell .app-shell__top-menu .arco-menu-inline-header:hover {
   border-color: color-mix(in srgb, var(--brand-primary) 16%, var(--panel-border));
   color: var(--text-primary);
-  background: color-mix(in srgb, var(--brand-primary) 3%, rgba(255, 255, 255, 0.94)) !important;
+  background: color-mix(in srgb, var(--brand-primary) 3%, var(--surface-lift));
 }
 
 .app-shell__top-menu .arco-menu-item:hover::before,
@@ -762,7 +775,7 @@
 .app-shell__top-menu .arco-menu-item:hover .app-shell__menu-entry-icon--level-0,
 .app-shell__top-menu .arco-menu-pop-header:hover .app-shell__menu-entry-icon--level-0,
 .app-shell__top-menu .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-0 {
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
@@ -772,17 +785,17 @@
 .app-shell__top-menu .arco-menu-pop-header:hover .app-shell__menu-entry-icon--level-2,
 .app-shell__top-menu .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-1,
 .app-shell__top-menu .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-2 {
-  background: color-mix(in srgb, var(--brand-primary) 6%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
-.app-shell__top-menu .arco-menu-selected,
-.app-shell__top-menu .arco-menu-pop-header.arco-menu-selected,
-.app-shell__top-menu .arco-menu-inline-header.arco-menu-selected {
+.app-shell .app-shell__top-menu .arco-menu-selected,
+.app-shell .app-shell__top-menu .arco-menu-pop-header.arco-menu-selected,
+.app-shell .app-shell__top-menu .arco-menu-inline-header.arco-menu-selected {
   border-color: color-mix(in srgb, var(--brand-primary) 18%, var(--panel-border));
-  color: var(--brand-primary) !important;
+  color: var(--brand-primary);
   font-weight: 600;
-  background: color-mix(in srgb, var(--brand-primary) 10%, rgba(255, 255, 255, 0.92)) !important;
+  background: color-mix(in srgb, var(--brand-primary) 10%, var(--surface-lift));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 6%, transparent);
 }
 
@@ -799,7 +812,7 @@
 .app-shell__top-menu
   .arco-menu-inline-header.arco-menu-selected
   .app-shell__menu-entry-icon--level-0 {
-  background: color-mix(in srgb, var(--brand-primary) 12%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 12%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
@@ -813,7 +826,7 @@
 .app-shell__top-menu
   .arco-menu-inline-header.arco-menu-selected
   .app-shell__menu-entry-icon--level-2 {
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
@@ -821,8 +834,8 @@
   color: inherit;
 }
 
-.app-shell__top-menu .arco-menu-pop {
-  margin-left: 0 !important;
+.app-shell .app-shell__top-menu .arco-menu-pop {
+  margin-left: 0;
 }
 
 .app-shell__top-menu-popup {
@@ -833,7 +846,7 @@
   min-width: 220px;
   padding: 8px;
   border: 1px solid color-mix(in srgb, var(--brand-primary) 10%, var(--panel-border));
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   background: var(--panel-bg-solid);
   box-shadow: var(--panel-shadow-soft);
 }
@@ -845,7 +858,7 @@
   min-height: 42px;
   margin-bottom: 2px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: transparent;
   color: var(--text-secondary);
   transition:
@@ -871,7 +884,7 @@
 .app-shell__top-menu-popup .app-shell__menu-entry-icon--level-2 {
   width: 22px;
   height: 22px;
-  border-radius: 7px;
+  border-radius: var(--radius-lg);
   background: transparent;
   color: color-mix(in srgb, var(--brand-primary) 44%, var(--text-tertiary));
 }
@@ -886,14 +899,14 @@
 .app-shell__top-menu-popup .arco-menu-pop-header:hover,
 .app-shell__top-menu-popup .arco-menu-inline-header:hover {
   border-color: color-mix(in srgb, var(--brand-primary) 14%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 4%, rgba(255, 255, 255, 0.84));
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
   color: var(--text-primary);
 }
 
 .app-shell__top-menu-popup .arco-menu-item:hover .app-shell__menu-entry-icon--level-0,
 .app-shell__top-menu-popup .arco-menu-pop-header:hover .app-shell__menu-entry-icon--level-0,
 .app-shell__top-menu-popup .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-0 {
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
@@ -903,7 +916,7 @@
 .app-shell__top-menu-popup .arco-menu-pop-header:hover .app-shell__menu-entry-icon--level-2,
 .app-shell__top-menu-popup .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-1,
 .app-shell__top-menu-popup .arco-menu-inline-header:hover .app-shell__menu-entry-icon--level-2 {
-  background: color-mix(in srgb, var(--brand-primary) 6%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
@@ -911,7 +924,7 @@
 .app-shell__top-menu-popup .arco-menu-pop-header.arco-menu-selected,
 .app-shell__top-menu-popup .arco-menu-inline-header.arco-menu-selected {
   border-color: color-mix(in srgb, var(--brand-primary) 16%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 10%, rgba(255, 255, 255, 0.92));
+  background: color-mix(in srgb, var(--brand-primary) 10%, var(--surface-lift));
   color: var(--brand-primary);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 6%, transparent);
 }
@@ -956,7 +969,7 @@
 .app-shell__top-menu-popup
   .arco-menu-inline-header.arco-menu-selected
   .app-shell__menu-entry-icon--level-0 {
-  background: color-mix(in srgb, var(--brand-primary) 12%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 12%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
@@ -974,7 +987,7 @@
 .app-shell__top-menu-popup
   .arco-menu-inline-header.arco-menu-selected
   .app-shell__menu-entry-icon--level-2 {
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
@@ -989,10 +1002,10 @@
   color: var(--text-tertiary);
 }
 
-.app-shell__top-menu-popup .arco-trigger-arrow,
-.app-shell__top-menu-popup .arco-trigger-arrow::before {
-  background: var(--panel-bg-solid) !important;
-  border-color: color-mix(in srgb, var(--panel-border) 86%, transparent) !important;
+.app-shell__top-menu-popup.app-shell__top-menu-popup .arco-trigger-arrow,
+.app-shell__top-menu-popup.app-shell__top-menu-popup .arco-trigger-arrow::before {
+  background: var(--panel-bg-solid);
+  border-color: color-mix(in srgb, var(--panel-border) 86%, transparent);
 }
 
 .app-shell__user-trigger {
@@ -1000,9 +1013,9 @@
   align-items: center;
   gap: 8px;
   height: 36px;
-  padding-inline: 8px !important;
+  padding-inline: 8px;
   border: 1px solid rgba(229, 230, 235, 0.82);
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface-lift);
   box-shadow: none;
   transition:
     border-color 0.18s ease,
@@ -1012,15 +1025,17 @@
 
 .app-shell__user-trigger:hover {
   border-color: color-mix(in srgb, var(--brand-primary) 16%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
   box-shadow: none;
 }
 
 .app-shell__preference-panel {
   width: min(392px, calc(100vw - 32px));
+  max-height: min(560px, calc(100dvh - 96px));
+  overflow-y: auto;
   padding: 12px;
   border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
-  border-radius: 14px;
+  border-radius: var(--radius-xl);
   background: var(--panel-bg-solid);
   box-shadow: var(--panel-shadow-soft);
 }
@@ -1078,7 +1093,7 @@
 .app-shell__preference-item:hover,
 .app-shell__preference-item--active {
   border-color: color-mix(in srgb, var(--brand-primary) 14%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 5%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 5%, var(--surface-lift));
 }
 
 .app-shell__preference-item + .app-shell__preference-item {
@@ -1091,8 +1106,8 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   color: var(--brand-primary);
   flex-shrink: 0;
 }
@@ -1146,7 +1161,7 @@
   min-height: 36px;
   padding: 0 12px;
   border: 1px solid rgba(229, 230, 235, 0.9);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: var(--panel-bg-solid);
   color: var(--text-secondary);
   font-size: 13px;
@@ -1167,7 +1182,7 @@
 .app-shell__preference-pill:hover,
 .app-shell__preference-pill--active {
   border-color: color-mix(in srgb, var(--brand-primary) 18%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 7%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 7%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
@@ -1256,7 +1271,7 @@
   min-height: 30px;
   padding: 0 8px 0 10px;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: var(--radius-lg);
   background: var(--panel-bg-solid);
   color: var(--text-secondary);
   font: inherit;
@@ -1273,13 +1288,13 @@
 
 .app-shell__tab:hover {
   border-color: transparent;
-  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
   color: var(--text-primary);
 }
 
 .app-shell__tab--active {
   border-color: transparent;
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   color: var(--brand-primary);
   box-shadow: none;
 }
@@ -1295,7 +1310,7 @@
 
 .app-shell__tab--drag-over {
   border-color: transparent;
-  background: color-mix(in srgb, var(--brand-primary) 12%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 12%, var(--surface-lift));
 }
 
 .app-shell__tab-pin {
@@ -1348,7 +1363,7 @@
 }
 
 .app-shell__tab-close:hover {
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   color: var(--brand-primary);
 }
 
@@ -1397,6 +1412,8 @@
 
 .app-shell__notice-panel {
   width: min(392px, calc(100vw - 32px));
+  max-height: min(560px, calc(100dvh - 96px));
+  overflow-y: auto;
   padding: 10px;
   border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
   border-radius: 12px;
@@ -1427,7 +1444,7 @@
   padding: 10px 12px;
   border: 1px dashed color-mix(in srgb, var(--brand-primary) 14%, var(--panel-border));
   border-radius: 12px;
-  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
   color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.6;
@@ -1451,12 +1468,12 @@
   padding: 8px 10px;
   border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
   border-radius: 12px;
-  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
 }
 
 .app-shell__notice-stat--danger {
-  border-color: color-mix(in srgb, var(--danger-soft) 82%, var(--panel-border));
-  background: color-mix(in srgb, var(--danger-soft) 42%, #ffffff);
+  border-color: color-mix(in srgb, var(--color-error-bg) 82%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-error-bg) 42%, var(--surface-lift));
 }
 
 .app-shell__notice-stat-label {
@@ -1479,7 +1496,7 @@
   margin-bottom: 10px;
   padding: 8px 10px;
   border-radius: 12px;
-  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
 }
 
 .app-shell__notice-summary-label {
@@ -1503,7 +1520,7 @@
   padding: 9px 10px;
   border: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
   border-radius: 12px;
-  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
   color: inherit;
   text-align: left;
   transition:
@@ -1517,17 +1534,17 @@
 
 .app-shell__notice-risk:hover {
   border-color: color-mix(in srgb, var(--brand-primary) 12%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 6%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-lift));
 }
 
 .app-shell__notice-risk--danger {
-  border-color: color-mix(in srgb, var(--danger-soft) 88%, var(--panel-border));
-  background: color-mix(in srgb, var(--danger-soft) 42%, #ffffff);
+  border-color: color-mix(in srgb, var(--color-error-bg) 88%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-error-bg) 42%, var(--surface-lift));
 }
 
 .app-shell__notice-risk--warning {
-  border-color: color-mix(in srgb, var(--status-warning-soft) 88%, var(--panel-border));
-  background: color-mix(in srgb, var(--status-warning-soft) 42%, #ffffff);
+  border-color: color-mix(in srgb, var(--color-warning-bg) 88%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-warning-bg) 42%, var(--surface-lift));
 }
 
 .app-shell__notice-risk-copy {
@@ -1557,7 +1574,7 @@
   height: 28px;
   padding-inline: 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--surface-lift);
   color: var(--text-primary);
   font-size: 13px;
   font-weight: 700;
@@ -1599,7 +1616,7 @@
 
 .app-shell__notice-item:hover {
   border-color: color-mix(in srgb, var(--brand-primary) 12%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
 }
 
 .app-shell__notice-item-icon {
@@ -1608,8 +1625,8 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: 9px;
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   color: var(--brand-primary);
   flex-shrink: 0;
 }
@@ -1654,11 +1671,11 @@
 }
 
 .app-shell__notice-log-dot--success {
-  background: #00b42a;
+  background: var(--color-success);
 }
 
 .app-shell__notice-log-dot--danger {
-  background: #f53f3f;
+  background: var(--color-error);
 }
 
 .app-shell__notice-log-copy {
@@ -1699,8 +1716,8 @@
   height: 16px;
   padding-inline: 4px;
   border-radius: 999px;
-  background: #f53f3f;
-  color: #fff;
+  background: var(--color-error);
+  color: var(--surface-lift);
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
@@ -1735,7 +1752,7 @@
   width: 100%;
   padding: 8px 10px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   background: transparent;
   color: inherit;
   text-align: left;
@@ -1747,7 +1764,7 @@
 
 .app-command__item:hover {
   border-color: color-mix(in srgb, var(--brand-primary) 12%, var(--panel-border));
-  background: color-mix(in srgb, var(--brand-primary) 4%, #ffffff);
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
 }
 
 .app-command__item + .app-command__item {
@@ -1760,8 +1777,8 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: 9px;
-  background: color-mix(in srgb, var(--brand-primary) 8%, #ffffff);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
   color: var(--brand-primary);
   flex-shrink: 0;
 }
@@ -1837,8 +1854,30 @@
     padding: 12px 16px 10px;
   }
 
+  /* 窄屏下搜索触发器让位：280px 的桌面 min-width 会把右侧按钮组挤出
+   * 视口，通知/偏好弹层随触发按钮一起越界（x < 0）。
+   * flex 修饰必须打在 .arco-space-item 包装层上（Space 的 flex 子项是
+   * 包装层而非按钮本身），basis 归零让搜索框只吃剩余空间，否则占位
+   * 文本的内在宽度会把头像挤到第二行。 */
+  .app-shell__header-actions > .arco-space-item:first-child {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .app-shell__search-trigger {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .app-shell__search-placeholder {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .app-shell__notice-panel {
     width: min(336px, calc(100vw - 48px));
+    margin-top: 2px;
   }
 
   .app-shell__preference-panel {
@@ -1855,7 +1894,7 @@
   }
 
   .app-shell__top-menu {
-    border-radius: 14px;
+    border-radius: var(--radius-xl);
   }
 
   .app-shell__search-shortcut {

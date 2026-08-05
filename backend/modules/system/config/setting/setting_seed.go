@@ -60,9 +60,11 @@ var defaultSettingSeeds = []defaultSettingSeed{
 	{SettingKey: "audit.login_log_retention_options", SettingValue: settingValueRetentionDaysDefault, ValueType: "json", GroupKey: "audit", Module: "system", IsPublic: 0, Remark: "system.setting.remark.audit.login_log_retention_options"},
 	{SettingKey: "audit.operation_log_retention_options", SettingValue: settingValueRetentionDaysDefault, ValueType: "json", GroupKey: "audit", Module: "system", IsPublic: 0, Remark: "system.setting.remark.audit.operation_log_retention_options"},
 	{SettingKey: "audit.session_cleanup_retention_options", SettingValue: settingValueRetentionDaysDefault, ValueType: "json", GroupKey: "audit", Module: "system", IsPublic: 0, Remark: "system.setting.remark.audit.session_cleanup_retention_options"},
+	{SettingKey: "audit.security_event_retention_options", SettingValue: settingValueRetentionDaysDefault, ValueType: "json", GroupKey: "audit", Module: "system", IsPublic: 0, Remark: "system.setting.remark.audit.security_event_retention_options"},
 	{SettingKey: "audit.login_log_retention_days", SettingValue: "90", ValueType: "number", GroupKey: "audit", Module: "system", IsPublic: 0, Remark: "system.setting.remark.audit.login_log_retention_days"},
 	{SettingKey: "audit.operation_log_retention_days", SettingValue: "180", ValueType: "number", GroupKey: "audit", Module: "system", IsPublic: 0, Remark: "system.setting.remark.audit.operation_log_retention_days"},
 	{SettingKey: "audit.session_retention_days", SettingValue: "90", ValueType: "number", GroupKey: "audit", Module: "system", IsPublic: 0, Remark: "system.setting.remark.audit.session_retention_days"},
+	{SettingKey: "audit.security_event_retention_days", SettingValue: "180", ValueType: "number", GroupKey: "audit", Module: "system", IsPublic: 0, Remark: "system.setting.remark.audit.security_event_retention_days"},
 	{SettingKey: "i18n.default_language", SettingValue: "zh-CN", ValueType: "string", GroupKey: "i18n", Module: "system", IsPublic: 1, Remark: "system.setting.remark.i18n.default_language"},
 	{SettingKey: "ui.default_theme", SettingValue: "indigo", ValueType: "string", GroupKey: "ui", Module: "system", IsPublic: 1, Remark: "system.setting.remark.ui.default_theme"},
 	{SettingKey: "ui.enable_tab_bar", SettingValue: "true", ValueType: "boolean", GroupKey: "ui", Module: "system", IsPublic: 1, Remark: "system.setting.remark.ui.enable_tab_bar"},
@@ -347,7 +349,8 @@ func validateSettingJSONShape(settingKey string, target interface{}) error {
 func isAuditRetentionOptionsSetting(settingKey string) bool {
 	return settingKey == "audit.login_log_retention_options" ||
 		settingKey == "audit.operation_log_retention_options" ||
-		settingKey == "audit.session_cleanup_retention_options"
+		settingKey == "audit.session_cleanup_retention_options" ||
+		settingKey == "audit.security_event_retention_options"
 }
 
 // SettingNormalizer normalizes a setting value for a specific key.

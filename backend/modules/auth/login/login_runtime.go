@@ -1,3 +1,4 @@
+//nolint:revive // Runtime exposes a broad auth facade and interface surface.
 package login
 
 import (
@@ -19,11 +20,15 @@ import (
 	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/database"
 	"pantheon-ops/backend/pkg/impexp"
+	"pantheon-ops/backend/pkg/logging"
 	"pantheon-ops/backend/pkg/platformprefs"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
+
+const logMsgAuthSettingsReloadFallback = "auth settings reload: read setting failed, using fallback"
 
 const (
 	defaultPasswordMinLength       = 6
@@ -61,25 +66,7 @@ const (
 	settingMFAEnabledKey               = "login.mfa_enabled"
 	settingSSOEnabledKey               = "login.sso_enabled"
 
-	errSessionInvalid                = "session.invalid"
-	errCurrentSessionRevokeForbidden = "auth.session.current_revoke_forbidden"
-
-	userIDWhereClause     = "user_id = ?"
 	settingKeyWhereClause = "setting_key = ?"
-
-	sessionIDAndUserIDWhereClause            = "session_id = ? AND " + userIDWhereClause
-	sessionIDAndActiveUserIDWhereClause      = sessionIDAndUserIDWhereClause + " AND revoked_at IS NULL"
-	otherActiveSessionsByUserWhereClause     = userIDWhereClause + " AND session_id <> ? AND revoked_at IS NULL"
-	systemUserRoleUserIDAndStatusWhereClause = "system_user_role.user_id = ? AND system_role.status = ?"
-	systemUserRoleUserIDAndPermsWhereClause  = "system_user_role.user_id = ? AND system_role_permission.permission_key <> ''"
-	systemUserUsernameLikeWhereClause        = "system_user.username LIKE ?"
-
-	touchSessionActivitySQL = `UPDATE system_user_session
-SET last_activity_at = ?,
-    last_ip = CASE WHEN ? <> '' THEN ? ELSE last_ip END,
-    user_agent = CASE WHEN ? <> '' THEN ? ELSE user_agent END
-WHERE session_id = ? AND user_id = ? AND revoked_at IS NULL
-  AND (last_activity_at IS NULL OR last_activity_at < ?)`
 )
 
 // Runtime is the root auth service that composes sub-domain services.
@@ -97,8 +84,6 @@ type Runtime struct {
 	settingsCache                map[string]int
 	loginLogCleanupRetentionDays []int
 	sessionCleanupRetentionDays  []int
-	cleanupMu                    sync.Mutex
-	lastCleanupAt                map[string]time.Time
 }
 
 // NewRuntime constructs the root auth service and its sub-services.
@@ -106,7 +91,6 @@ func NewRuntime(db *gorm.DB) *Runtime {
 	s := &Runtime{
 		db:            db,
 		settingsCache: make(map[string]int),
-		lastCleanupAt: make(map[string]time.Time),
 	}
 
 	// Build sub-services, wiring them back through interfaces on Runtime.
@@ -204,7 +188,10 @@ func (s *Runtime) RecordSecurityEvent(event security.SystemAuthSecurityEvent) {
 	if event.Severity == "" {
 		event.Severity = "medium"
 	}
-	_ = s.db.Create(&event).Error
+	if err := s.db.Create(&event).Error; err != nil {
+		logging.Warn("record security event failed",
+			zap.String("event_type", event.EventType), zap.Error(err))
+	}
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -313,34 +300,24 @@ func (s *Runtime) CreateSessionWithContext(ctx context.Context, userID uint64, r
 	if err := s.db.Create(&sess).Error; err != nil {
 		return nil, err
 	}
-	return s.issueTokenPair(ctx, &u, roles, &sess)
+	pair, err := s.issueTokenPair(ctx, &u, roles, &sess)
+	if err != nil {
+		// Token issuance failed after the session row was persisted; remove it so
+		// failed logins don't accumulate orphan sessions in the governance views.
+		if delErr := s.db.Delete(&sess).Error; delErr != nil {
+			logging.Warn("cleanup orphan session after token issuance failure failed",
+				zap.String("sessionId", sess.SessionID), zap.Error(delErr))
+		}
+		return nil, err
+	}
+	return pair, nil
 }
 
 // ─────────────────────────────────────────────────────────────
 // security.PolicyProvider implementation
 // ─────────────────────────────────────────────────────────────
 func (s *Runtime) GetSecurityRuntimePolicy() security.AuthRuntimePolicy {
-	s.settingsMu.RLock()
-	defer s.settingsMu.RUnlock()
-	return security.AuthRuntimePolicy{
-		PasswordMinLength:       s.settingsCache[settingPasswordMinLengthKey],
-		PasswordRequireDigit:    s.settingsCache[settingPasswordRequireDigitKey] == 1,
-		PasswordRequireUpper:    s.settingsCache[settingPasswordRequireUpperKey] == 1,
-		PasswordHistoryLimit:    s.settingsCache[settingPasswordHistoryLimitKey],
-		PasswordExpireDays:      s.settingsCache[settingPasswordExpireDaysKey],
-		MaxFailedAttempts:       s.settingsCache[settingMaxFailedAttemptsKey],
-		LockMinutes:             s.settingsCache[settingLockMinutesKey],
-		SourceMaxFailedAttempts: s.settingsCache[settingSourceMaxFailedAttemptsKey],
-		SourceWindowMinutes:     s.settingsCache[settingSourceWindowMinutesKey],
-		SourceLockMinutes:       s.settingsCache[settingSourceLockMinutesKey],
-		SessionIdleMinutes:      s.settingsCache[settingSessionIdleMinutesKey],
-		MaxActiveSessions:       s.settingsCache[settingMaxActiveSessionsKey],
-		SessionRetentionDays:    s.settingsCache[settingSessionRetentionDaysKey],
-		SecurityEventEnabled:    s.settingsCache[settingSecurityEventEnabledKey] == 1,
-		CaptchaEnabled:          s.settingsCache[settingCaptchaEnabledKey] == 1,
-		MFAEnabled:              s.settingsCache[settingMFAEnabledKey] == 1,
-		SSOEnabled:              s.settingsCache[settingSSOEnabledKey] == 1,
-	}
+	return s.GetAuthRuntimePolicy()
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -645,6 +622,14 @@ func (s *Runtime) AcknowledgeSecurityEvent(eventID, actorID uint64, actorUsernam
 	return s.securitySvc.AcknowledgeSecurityEvent(eventID, actorID, actorUsername, note)
 }
 
+func (s *Runtime) BatchAcknowledgeSecurityEvents(eventIDs []uint64, actorID uint64, actorUsername, note string) (int64, error) {
+	return s.securitySvc.BatchAcknowledgeSecurityEvents(eventIDs, actorID, actorUsername, note)
+}
+
+func (s *Runtime) CleanupSecurityEvents(retentionDays int, startedAt, endedAt string) (int64, error) {
+	return s.securitySvc.CleanupSecurityEvents(retentionDays, startedAt, endedAt)
+}
+
 // ─────────────────────────────────────────────────────────────
 // Settings management
 // ─────────────────────────────────────────────────────────────
@@ -705,7 +690,9 @@ func (s *Runtime) WatchSettings() {
 	}
 	pubsub := database.RDB.Subscribe(context.TODO(), "settings:refresh")
 	go func() {
-		defer pubsub.Close()
+		defer func() {
+			_ = pubsub.Close()
+		}()
 		for range pubsub.Channel() {
 			_ = s.ReloadSettings()
 		}
@@ -746,16 +733,6 @@ func (s *Runtime) getSecurityEventEnabled() bool {
 	return s.settingsCache[settingSecurityEventEnabledKey] == 1
 }
 
-func (s *Runtime) getSettingInt(settingKey string, fallback int) int {
-	s.settingsMu.RLock()
-	if val, ok := s.settingsCache[settingKey]; ok {
-		s.settingsMu.RUnlock()
-		return val
-	}
-	s.settingsMu.RUnlock()
-	return s.fetchSettingIntFromDB(settingKey, fallback)
-}
-
 func (s *Runtime) fetchSettingIntFromDB(settingKey string, fallback int) int {
 	if s.db == nil {
 		return fallback
@@ -767,6 +744,8 @@ func (s *Runtime) fetchSettingIntFromDB(settingKey string, fallback int) int {
 		Limit(1).
 		Pluck("setting_value", &rawValue).Error
 	if err != nil {
+		logging.Warn(logMsgAuthSettingsReloadFallback,
+			zap.String("setting_key", settingKey), zap.Error(err))
 		return fallback
 	}
 	val, err := strconv.Atoi(strings.TrimSpace(rawValue))
@@ -787,6 +766,8 @@ func (s *Runtime) fetchSettingBoolFromDB(settingKey string, fallback bool) bool 
 		Limit(1).
 		Pluck("setting_value", &rawValue).Error
 	if err != nil {
+		logging.Warn(logMsgAuthSettingsReloadFallback,
+			zap.String("setting_key", settingKey), zap.Error(err))
 		return fallback
 	}
 	parsed, err := strconv.ParseBool(strings.TrimSpace(rawValue))
@@ -807,6 +788,8 @@ func (s *Runtime) fetchSettingIntSliceFromDB(settingKey string, fallback []int) 
 		Limit(1).
 		Pluck("setting_value", &rawValue).Error
 	if err != nil {
+		logging.Warn(logMsgAuthSettingsReloadFallback,
+			zap.String("setting_key", settingKey), zap.Error(err))
 		return cloneIntSlice(fallback)
 	}
 	return normalizeRetentionDays(rawValue, fallback)
@@ -916,25 +899,7 @@ type authRuntimePolicy struct {
 
 func toSecurityEventRespList(events []security.SecurityEventResp) []SecurityEventResp {
 	result := make([]SecurityEventResp, 0, len(events))
-	for _, item := range events {
-		result = append(result, SecurityEventResp{
-			ID:                  item.ID,
-			UserID:              item.UserID,
-			Username:            item.Username,
-			EventType:           item.EventType,
-			Severity:            item.Severity,
-			SourceKey:           item.SourceKey,
-			IP:                  item.IP,
-			UserAgent:           item.UserAgent,
-			MessageKey:          item.MessageKey,
-			Metadata:            item.Metadata,
-			AcknowledgedAt:      item.AcknowledgedAt,
-			AcknowledgedBy:      item.AcknowledgedBy,
-			AcknowledgedByUser:  item.AcknowledgedByUser,
-			AcknowledgementNote: item.AcknowledgementNote,
-			CreatedAt:           item.CreatedAt,
-		})
-	}
+	result = append(result, events...)
 	return result
 }
 

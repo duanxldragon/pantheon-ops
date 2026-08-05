@@ -38,3 +38,27 @@ func TestGormLogLevelUsesInfoOutsideProduction(t *testing.T) {
 		t.Fatalf("expected info log level outside production, got %v", got)
 	}
 }
+
+func TestEnvInt(t *testing.T) {
+	tests := []struct {
+		name  string
+		value string
+		want  int
+	}{
+		{name: "empty uses default", value: "", want: 7},
+		{name: "invalid uses default", value: "abc", want: 7},
+		{name: "zero uses default", value: "0", want: 7},
+		{name: "negative uses default", value: "-1", want: 7},
+		{name: "positive value", value: "12", want: 12},
+		{name: "trimmed positive value", value: " 15 ", want: 15},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("PANTHEON_TEST_ENV_INT", tt.value)
+			if got := envInt("PANTHEON_TEST_ENV_INT", 7); got != tt.want {
+				t.Fatalf("envInt() = %d, want %d", got, tt.want)
+			}
+		})
+	}
+}

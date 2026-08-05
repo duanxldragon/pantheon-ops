@@ -38,7 +38,7 @@ func TestFailOnCSRFCookieErrorWritesErrorResponse(t *testing.T) {
 	if recorder.Body.Len() == 0 {
 		t.Fatal("expected failure response body to be written")
 	}
-	if got := recorder.Header().Get("Content-Type"); got == "" {
+	if recorder.Header().Get("Content-Type") == "" {
 		t.Fatal("expected failure response content type to be set")
 	}
 	if body := recorder.Body.String(); !strings.Contains(body, `"code":`+strconv.Itoa(common.CodeError)) {

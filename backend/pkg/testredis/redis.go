@@ -10,6 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// Open creates a Redis client for integration tests.
 func Open(t *testing.T) *redis.Client {
 	t.Helper()
 

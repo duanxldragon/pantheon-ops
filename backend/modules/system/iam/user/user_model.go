@@ -16,8 +16,8 @@ type SystemUser struct {
 	Email               string         `gorm:"size:128" json:"email"`
 	Phone               string         `gorm:"size:20" json:"phone"`
 	PreferenceJSON      string         `gorm:"type:text" json:"-"`
-	DeptID              uint64         `gorm:"default:0" json:"deptId"`
-	PostID              uint64         `gorm:"default:0" json:"postId"`
+	DeptID              uint64         `gorm:"default:0;index:idx_system_user_dept_id" json:"deptId"`
+	PostID              uint64         `gorm:"default:0;index:idx_system_user_post_id" json:"postId"`
 	Status              int            `gorm:"default:1" json:"status"` // 1:正常, 2:禁用
 	FailedLoginAttempts int            `gorm:"default:0" json:"-"`
 	LoginLockedUntil    *time.Time     `json:"-"`

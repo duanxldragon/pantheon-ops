@@ -117,12 +117,12 @@ export function clearPantheonThemePreference() {
 }
 
 export function usePantheonTheme() {
-  const [theme, setThemeState] = useState<PantheonThemeKey>(() => getStoredPantheonTheme());
+  const [theme, setTheme] = useState<PantheonThemeKey>(() => getStoredPantheonTheme());
 
   useEffect(() => {
     const handleThemeChange = (event: Event) => {
       const nextTheme = (event as CustomEvent<PantheonThemeKey>).detail;
-      setThemeState(normalizeTheme(nextTheme));
+      setTheme(normalizeTheme(nextTheme));
     };
 
     globalThis.addEventListener(PANTHEON_THEME_EVENT, handleThemeChange);
@@ -131,11 +131,11 @@ export function usePantheonTheme() {
     };
   }, []);
 
-  const setTheme = useCallback((nextTheme: PantheonThemeKey) => {
+  const updateTheme = useCallback((nextTheme: PantheonThemeKey) => {
     const normalizedTheme = normalizeTheme(nextTheme);
-    setThemeState(normalizedTheme);
+    setTheme(normalizedTheme);
     applyPantheonTheme(normalizedTheme);
   }, []);
 
-  return { theme, setTheme, options: pantheonThemeOptions };
+  return { theme, setTheme: updateTheme, options: pantheonThemeOptions };
 }

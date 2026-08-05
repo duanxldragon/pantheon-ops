@@ -89,7 +89,7 @@
 
 .auth-detail-user-agent {
   max-width: 100%;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 768px) {

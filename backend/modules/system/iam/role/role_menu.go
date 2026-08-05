@@ -2,6 +2,7 @@ package iam
 
 import (
 	"pantheon-ops/backend/pkg/common"
+	"pantheon-ops/backend/pkg/rbacbind"
 
 	"gorm.io/gorm"
 )
@@ -53,10 +54,5 @@ func (s *RoleService) replaceRoleMenus(tx *gorm.DB, roleID uint64, menuIDs []uin
 	if err := tx.Exec("DELETE FROM system_role_menu WHERE role_id = ?", roleID).Error; err != nil {
 		return err
 	}
-	for _, menuID := range menuIDs {
-		if err := tx.Exec("INSERT INTO system_role_menu (role_id, menu_id) VALUES (?, ?)", roleID, menuID).Error; err != nil {
-			return err
-		}
-	}
-	return nil
+	return rbacbind.InsertRoleMenus(tx, roleID, menuIDs)
 }

@@ -160,7 +160,7 @@ func explainOperationLogQueryPlan(t *testing.T, service *AuditService, query str
 	if err != nil {
 		t.Fatalf("explain query plan: %v", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	plan, err := collectOperationLogQueryPlan(rows)
 	if err != nil {

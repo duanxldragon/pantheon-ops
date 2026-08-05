@@ -5,7 +5,10 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"pantheon-ops/backend/internal/middleware"
@@ -26,16 +29,7 @@ import (
 )
 
 func main() {
-	// 0. 初始化结构化日志
-	env := os.Getenv("PANTHEON_ENV")
-	if env == "" {
-		env = "development"
-	}
-
-	if err := logging.InitLogger(env); err != nil {
-		slog.Error("Failed to initialize logger", "error", err)
-		os.Exit(1)
-	}
+	env := initEnvironment()
 	defer logging.Sync()
 
 	logging.Info("Starting Pantheon Base",
@@ -43,85 +37,120 @@ func main() {
 		zap.String("environment", env),
 	)
 
-	// 0b. 初始化 OpenTelemetry 追踪
-	otlpEndpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
-	if otlpEndpoint != "" {
-		_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		tp, err := telemetry.InitTracer("pantheon-base", otlpEndpoint)
-		if err != nil {
-			logging.Error("Failed to initialize tracer", zap.Error(err))
-		} else {
-			defer func() {
-				shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-				defer shutdownCancel()
-				if err := tp.Shutdown(shutdownCtx); err != nil {
-					logging.Error("Error shutting down tracer", zap.Error(err))
-				}
-			}()
-			logging.Info("OpenTelemetry tracer initialized", zap.String("endpoint", otlpEndpoint))
-		}
+	if shutdownTracer := initTelemetry(); shutdownTracer != nil {
+		defer shutdownTracer()
 	}
 
-	// 1. 初始化核心基础能力
+	initInfrastructure()
+	r := buildRouter(env)
+	runServer(r)
+}
+
+func initEnvironment() string {
+	env := os.Getenv("PANTHEON_ENV")
+	if env == "" {
+		env = "development"
+	}
+	if err := logging.InitLogger(env); err != nil {
+		slog.Error("Failed to initialize logger", "error", err)
+		os.Exit(1)
+	}
+	return env
+}
+
+func initTelemetry() func() {
+	otlpEndpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	if otlpEndpoint == "" {
+		return nil
+	}
+	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	tp, err := telemetry.InitTracer("pantheon-base", otlpEndpoint)
+	if err != nil {
+		logging.Error("Failed to initialize tracer", zap.Error(err))
+		return nil
+	}
+	logging.Info("OpenTelemetry tracer initialized", zap.String("endpoint", otlpEndpoint))
+	return func() {
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer shutdownCancel()
+		if err := tp.Shutdown(shutdownCtx); err != nil {
+			logging.Error("Error shutting down tracer", zap.Error(err))
+		}
+	}
+}
+
+func initInfrastructure() {
 	common.InitLocationService()
 	if err := common.InitSecurityConfig(); err != nil {
 		logging.Error("Security configuration invalid", zap.Error(err))
 		os.Exit(1)
 	}
 
-	// 1. 初始化数据库
 	dsn := os.Getenv("PANTHEON_DSN")
 	if dsn == "" {
 		logging.Fatal("PANTHEON_DSN is required")
 	}
 	database.InitDB(dsn)
+	runDatabaseMigrations(dsn)
 
-	// 1b. 数据库迁移：默认使用版本化迁移(golang-migrate)，开发模式可启用 AutoMigrate
-	if database.ShouldAutoMigrate() {
-		slog.Info("PANTHEON_AUTO_MIGRATE=true: using GORM AutoMigrate (dev mode)")
-		// AutoMigrate 由各模块的 Migrate() 方法在注册时自动执行
-	} else {
-		if err := database.RunMigrations(dsn); err != nil {
-			slog.Error("database migration failed", "error", err)
-			os.Exit(1)
-		}
-	}
-
-	// 2. 初始化 Redis (默认本地地址)
 	if redisAddr := os.Getenv("PANTHEON_REDIS_ADDR"); redisAddr != "" {
 		database.InitRedis(redisAddr, os.Getenv("PANTHEON_REDIS_PASSWORD"), 0)
 	}
-
 	database.InitCasbin(database.DB)
+}
 
-	// 3. 初始化 Gin
+func runDatabaseMigrations(dsn string) {
+	if database.ShouldAutoMigrate() {
+		slog.Info("PANTHEON_AUTO_MIGRATE=true: using GORM AutoMigrate (dev mode)")
+		return
+	}
+	if err := database.RunMigrations(dsn); err != nil {
+		slog.Error("database migration failed", "error", err)
+		os.Exit(1)
+	}
+}
+
+func buildRouter(env string) *gin.Engine {
 	r := gin.Default()
 	r.Use(middleware.SecurityHeadersMiddleware())
-	r.Use(middleware.CSPMiddleware()) // Content-Security-Policy
+	r.Use(middleware.CSPMiddleware())
 	r.Use(middleware.BodySizeLimit(middleware.DefaultMaxBodyBytes))
 	r.Use(middleware.CORSMiddleware())
-	r.Use(otelgin.Middleware("pantheon-base")) // OpenTelemetry 追踪
-	r.Use(middleware.PrometheusMiddleware())   // Prometheus 指标采集
+	r.Use(otelgin.Middleware("pantheon-base"))
+	r.Use(middleware.PrometheusMiddleware())
 	r.Use(middleware.RequestContextMiddleware(), middleware.OperationLogMiddleware(database.DB))
 	r.Use(middleware.CSRFMiddleware())
+	registerMetricsRoute(r, env)
+	registerAPIRoutes(r)
+	return r
+}
 
-	// 3. 注册 Prometheus metrics 端点。生产环境默认要求显式 token 或公开开关。
-	if shouldExposeMetrics(env) {
-		r.GET("/metrics", metricsAccessMiddleware(), gin.WrapH(promhttp.Handler()))
-	} else {
+func registerMetricsRoute(r *gin.Engine, env string) {
+	if !shouldExposeMetrics(env) {
 		logging.Warn("Prometheus metrics endpoint disabled; set PANTHEON_METRICS_BEARER_TOKEN or PANTHEON_METRICS_PUBLIC=true to expose it")
+		return
 	}
+	r.GET("/metrics", metricsAccessMiddleware(), gin.WrapH(promhttp.Handler()))
+}
 
-	// 4. 注册底座模块
+func registerAPIRoutes(r *gin.Engine) {
 	api := r.Group("/api/v1")
+	if envFlag("PANTHEON_API_RATE_LIMIT_ENABLED") != envFlagFalse {
+		api.Use(middleware.RateLimiter(middleware.RateLimiterConfig{
+			MaxRequests: envIntDefault("PANTHEON_API_RATE_LIMIT_MAX", 6000),
+			Window:      time.Duration(envIntDefault("PANTHEON_API_RATE_LIMIT_WINDOW_SECONDS", 60)) * time.Second,
+			Store:       middleware.NewRedisRateLimitStore(),
+		}))
+	}
 	platform.RegisterPlatformRoutes(api, database.DB)
 	lowcode.InitLowcodeModule(api, database.DB)
 	system.InitSystemModule(api, database.DB)
 	auth.InitAuthModule(api, database.DB)
 	business.InitBusinessModules(api, database.DB)
+}
 
-	// 5. 启动服务器
+func runServer(r *gin.Engine) {
 	port := os.Getenv("PANTHEON_PORT")
 	if port == "" {
 		port = "8080"
@@ -135,14 +164,45 @@ func main() {
 		WriteTimeout:      30 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		slog.Error("failed to run server", "error", err)
-		os.Exit(1)
+	// 优雅停机：SIGINT/SIGTERM 后先停止接收连接并等在途请求完成，
+	// 再排空操作日志异步队列，避免部署时丢请求、丢审计日志。
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("failed to run server", "error", err)
+			stop()
+		}
+	}()
+
+	<-ctx.Done()
+	slog.Info("shutdown signal received; draining")
+
+	shutdownTimeout := time.Duration(envIntDefault("PANTHEON_SHUTDOWN_TIMEOUT_SECONDS", 15)) * time.Second
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		slog.Error("http server shutdown error", "error", err)
 	}
+	middleware.ShutdownOperationLog(shutdownCtx)
+	slog.Info("server stopped")
+}
+
+func envIntDefault(name string, fallback int) int {
+	raw := strings.TrimSpace(os.Getenv(name))
+	if raw == "" {
+		return fallback
+	}
+	value, err := strconv.Atoi(raw)
+	if err != nil || value <= 0 {
+		return fallback
+	}
+	return value
 }
 
 func shouldExposeMetrics(env string) bool {
-	if envFlag("PANTHEON_METRICS_ENABLED") == "false" {
+	if envFlag("PANTHEON_METRICS_ENABLED") == envFlagFalse {
 		return false
 	}
 	if !strings.EqualFold(strings.TrimSpace(env), "production") {
@@ -151,7 +211,7 @@ func shouldExposeMetrics(env string) bool {
 	if strings.TrimSpace(os.Getenv("PANTHEON_METRICS_BEARER_TOKEN")) != "" {
 		return true
 	}
-	return envFlag("PANTHEON_METRICS_PUBLIC") == "true"
+	return envFlag("PANTHEON_METRICS_PUBLIC") == envFlagTrue
 }
 
 func metricsAccessMiddleware() gin.HandlerFunc {
@@ -170,12 +230,17 @@ func metricsAccessMiddleware() gin.HandlerFunc {
 	}
 }
 
+const (
+	envFlagTrue  = "true"
+	envFlagFalse = "false"
+)
+
 func envFlag(name string) string {
 	switch strings.ToLower(strings.TrimSpace(os.Getenv(name))) {
-	case "1", "true", "yes", "on":
-		return "true"
-	case "0", "false", "no", "off":
-		return "false"
+	case "1", envFlagTrue, "yes", "on":
+		return envFlagTrue
+	case "0", envFlagFalse, "no", "off":
+		return envFlagFalse
 	default:
 		return ""
 	}

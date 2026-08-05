@@ -103,119 +103,66 @@ func TestSettingService_UpdateGroupValidatesValueType(t *testing.T) {
 		t.Fatalf("migrate setting: %v", err)
 	}
 
-	_, err := service.UpdateGroup("upload", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
-		{SettingKey: "upload.allowed_types", SettingValue: "[invalid json]"},
-	}})
-	if err == nil || common.ErrMessage(err) != "setting.value.invalid_json" {
-		t.Fatalf("expected invalid json error, got %v", err)
+	cases := []settingUpdateValidationCase{
+		{name: "invalid json", group: "upload", key: "upload.allowed_types", value: "[invalid json]", wantError: "setting.value.invalid_json"},
+		{name: "invalid number", group: "upload", key: "upload.max_file_size", value: "not-a-number", wantError: "setting.value.invalid_number"},
+		{name: "invalid storage driver", group: "upload", key: "upload.storage_driver", value: "ftp", wantError: "setting.value.invalid_option"},
+		{name: "legacy storage driver alias", group: "upload", key: "upload.storage_driver", value: "s3-compatible", wantValue: "s3"},
+		{name: "supported default language", group: "i18n", key: "i18n.default_language", value: "fr-FR"},
+		{name: "legacy theme alias", group: "ui", key: "ui.default_theme", value: "light"},
+		{name: "json object instead of array", group: "upload", key: "upload.allowed_types", value: `{"jpg":true}`, wantError: "setting.value.invalid_json"},
+		{name: "normalize login retention options", group: "audit", key: "audit.login_log_retention_options", value: "[30,7,30,1]", wantValue: "[1,7,30]"},
+		{name: "normalize session retention options", group: "audit", key: "audit.session_cleanup_retention_options", value: "[30,7,30,1]", wantValue: "[1,7,30]"},
+		{name: "empty retention options", group: "audit", key: "audit.operation_log_retention_options", value: "[]", wantError: "setting.value.invalid_option"},
+		{name: "non-positive retention option", group: "audit", key: "audit.operation_log_retention_options", value: "[0,7]", wantError: "setting.value.invalid_option"},
+		{name: "invalid app mode", group: "platform", key: "platform.app_mode", value: "invalid", wantError: "setting.value.invalid_option"},
 	}
-
-	_, err = service.UpdateGroup("upload", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
-		{SettingKey: "upload.max_file_size", SettingValue: "not-a-number"},
-	}})
-	if err == nil || common.ErrMessage(err) != "setting.value.invalid_number" {
-		t.Fatalf("expected invalid number error, got %v", err)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assertSettingUpdateValidation(t, service, tc)
+		})
 	}
+}
 
-	_, err = service.UpdateGroup("upload", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
-		{SettingKey: "upload.storage_driver", SettingValue: "ftp"},
+type settingUpdateValidationCase struct {
+	name      string
+	group     string
+	key       string
+	value     string
+	wantError string
+	wantValue string
+}
+
+func assertSettingUpdateValidation(t *testing.T, service *SettingService, tc settingUpdateValidationCase) {
+	t.Helper()
+	updated, err := service.UpdateGroup(tc.group, &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
+		{SettingKey: tc.key, SettingValue: tc.value},
 	}})
-	if err == nil || common.ErrMessage(err) != "setting.value.invalid_option" {
-		t.Fatalf("expected invalid option error for storage driver, got %v", err)
+	if tc.wantError != "" {
+		if err == nil || common.ErrMessage(err) != tc.wantError {
+			t.Fatalf("expected %s, got %v", tc.wantError, err)
+		}
+		return
 	}
-
-	updatedUpload, err := service.UpdateGroup("upload", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
-		{SettingKey: "upload.storage_driver", SettingValue: "s3-compatible"},
-	}})
 	if err != nil {
-		t.Fatalf("expected legacy storage driver alias to be accepted, got %v", err)
+		t.Fatalf("expected update to succeed, got %v", err)
 	}
-	var normalizedStorageDriver string
-	for _, item := range updatedUpload.Items {
-		if item.SettingKey == "upload.storage_driver" {
-			normalizedStorageDriver = item.SettingValue
-			break
+	if tc.wantValue != "" {
+		assertUpdatedSettingValue(t, updated.Items, tc.key, tc.wantValue)
+	}
+}
+
+func assertUpdatedSettingValue(t *testing.T, items []SettingResp, key, want string) {
+	t.Helper()
+	for _, item := range items {
+		if item.SettingKey == key {
+			if item.SettingValue != want {
+				t.Fatalf("expected %s to normalize to %s, got %s", key, want, item.SettingValue)
+			}
+			return
 		}
 	}
-	if normalizedStorageDriver != "s3" {
-		t.Fatalf("expected legacy storage driver to normalize to s3, got %s", normalizedStorageDriver)
-	}
-
-	_, err = service.UpdateGroup("i18n", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
-		{SettingKey: "i18n.default_language", SettingValue: "fr-FR"},
-	}})
-	if err != nil {
-		t.Fatalf("expected fr-FR to be accepted as default language, got %v", err)
-	}
-
-	_, err = service.UpdateGroup("ui", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
-		{SettingKey: "ui.default_theme", SettingValue: "light"},
-	}})
-	if err != nil {
-		t.Fatalf("expected legacy theme alias to be accepted, got %v", err)
-	}
-
-	_, err = service.UpdateGroup("upload", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
-		{SettingKey: "upload.allowed_types", SettingValue: "{\"jpg\":true}"},
-	}})
-	if err == nil || common.ErrMessage(err) != "setting.value.invalid_json" {
-		t.Fatalf("expected invalid json-array error, got %v", err)
-	}
-
-	updatedAudit, err := service.UpdateGroup("audit", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
-		{SettingKey: "audit.login_log_retention_options", SettingValue: "[30,7,30,1]"},
-	}})
-	if err != nil {
-		t.Fatalf("expected audit retention options to be accepted, got %v", err)
-	}
-	var normalizedAuditValue string
-	for _, item := range updatedAudit.Items {
-		if item.SettingKey == "audit.login_log_retention_options" {
-			normalizedAuditValue = item.SettingValue
-			break
-		}
-	}
-	if normalizedAuditValue != "[1,7,30]" {
-		t.Fatalf("expected normalized audit retention options, got %s", normalizedAuditValue)
-	}
-
-	updatedSessionAudit, err := service.UpdateGroup("audit", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
-		{SettingKey: "audit.session_cleanup_retention_options", SettingValue: "[30,7,30,1]"},
-	}})
-	if err != nil {
-		t.Fatalf("expected session cleanup retention options to be accepted, got %v", err)
-	}
-	var normalizedSessionAuditValue string
-	for _, item := range updatedSessionAudit.Items {
-		if item.SettingKey == "audit.session_cleanup_retention_options" {
-			normalizedSessionAuditValue = item.SettingValue
-			break
-		}
-	}
-	if normalizedSessionAuditValue != "[1,7,30]" {
-		t.Fatalf("expected normalized session cleanup retention options, got %s", normalizedSessionAuditValue)
-	}
-
-	_, err = service.UpdateGroup("audit", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
-		{SettingKey: "audit.operation_log_retention_options", SettingValue: "[]"},
-	}})
-	if err == nil || common.ErrMessage(err) != "setting.value.invalid_option" {
-		t.Fatalf("expected invalid empty audit retention options error, got %v", err)
-	}
-
-	_, err = service.UpdateGroup("audit", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
-		{SettingKey: "audit.operation_log_retention_options", SettingValue: "[0,7]"},
-	}})
-	if err == nil || common.ErrMessage(err) != "setting.value.invalid_option" {
-		t.Fatalf("expected invalid non-positive audit retention option error, got %v", err)
-	}
-
-	_, err = service.UpdateGroup("platform", &SettingGroupUpdateReq{Items: []SettingUpdateItemReq{
-		{SettingKey: "platform.app_mode", SettingValue: "invalid"},
-	}})
-	if err == nil || common.ErrMessage(err) != "setting.value.invalid_option" {
-		t.Fatalf("expected invalid app mode option error, got %v", err)
-	}
+	t.Fatalf("expected updated settings to contain %s", key)
 }
 
 func TestSettingService_MigrateSeedsPlatformCapabilities(t *testing.T) {
@@ -289,34 +236,37 @@ func TestSettingService_MigrateUpgradesLegacyUploadAllowedTypes(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			db := setupSettingTestDB(t)
-			service := NewSettingService(db)
-			if err := db.AutoMigrate(&SystemSetting{}); err != nil {
-				t.Fatalf("create setting table: %v", err)
-			}
-			if err := db.Create(&SystemSetting{
-				SettingKey:   "upload.allowed_types",
-				SettingValue: tc.legacyValue,
-				ValueType:    "json",
-				GroupKey:     "upload",
-				Module:       "system",
-				Remark:       "legacy upload types",
-			}).Error; err != nil {
-				t.Fatalf("seed legacy upload.allowed_types: %v", err)
-			}
-
-			if err := service.Migrate(); err != nil {
-				t.Fatalf("migrate setting: %v", err)
-			}
-
-			value, err := service.GetByKey("upload.allowed_types")
-			if err != nil {
-				t.Fatalf("get upload.allowed_types: %v", err)
-			}
-			if value != settingValueUploadAllowedTypesDefault {
-				t.Fatalf("unexpected migrated upload.allowed_types: %s", value)
-			}
+			assertLegacyUploadAllowedTypesMigration(t, tc.legacyValue)
 		})
+	}
+}
+
+func assertLegacyUploadAllowedTypesMigration(t *testing.T, legacyValue string) {
+	t.Helper()
+	db := setupSettingTestDB(t)
+	service := NewSettingService(db)
+	if err := db.AutoMigrate(&SystemSetting{}); err != nil {
+		t.Fatalf("create setting table: %v", err)
+	}
+	if err := db.Create(&SystemSetting{
+		SettingKey:   "upload.allowed_types",
+		SettingValue: legacyValue,
+		ValueType:    "json",
+		GroupKey:     "upload",
+		Module:       "system",
+		Remark:       "legacy upload types",
+	}).Error; err != nil {
+		t.Fatalf("seed legacy upload.allowed_types: %v", err)
+	}
+	if err := service.Migrate(); err != nil {
+		t.Fatalf("migrate setting: %v", err)
+	}
+	value, err := service.GetByKey("upload.allowed_types")
+	if err != nil {
+		t.Fatalf("get upload.allowed_types: %v", err)
+	}
+	if value != settingValueUploadAllowedTypesDefault {
+		t.Fatalf("unexpected migrated upload.allowed_types: %s", value)
 	}
 }
 

@@ -9,6 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	errParamInvalid  = "param.invalid"
+	errRequestFailed = "request.failed"
+)
+
 type RoleHandler struct {
 	service *RoleService
 }
@@ -21,7 +26,7 @@ func NewRoleHandler(s *RoleService) *RoleHandler {
 func (h *RoleHandler) GetRoleList(c *gin.Context) {
 	var query RoleListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -39,28 +44,28 @@ func (h *RoleHandler) CreateRole(c *gin.Context) {
 
 	var req RoleCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	role, err := h.service.CreateRole(&req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, role)
 }
 
 func (h *RoleHandler) ExportRoles(c *gin.Context) {
-	common.SetAuditMetadata(c, "导出角色", common.BusinessExport)
+	common.SetAuditMetadata(c, "role.export.title", common.BusinessExport)
 
 	var query RoleListQuery
 	if err := c.ShouldBindJSON(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
-	file, err := h.service.ExportRoles(&query)
+	file, err := h.service.ExportRoles(c.Request.Context(), &query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "role.export.error")
 		return
@@ -78,7 +83,7 @@ func (h *RoleHandler) DownloadImportTemplate(c *gin.Context) {
 }
 
 func (h *RoleHandler) ImportRoles(c *gin.Context) {
-	common.SetAuditMetadata(c, "导入角色", common.BusinessImport)
+	common.SetAuditMetadata(c, "role.import.title", common.BusinessImport)
 
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
@@ -110,47 +115,47 @@ func (h *RoleHandler) UpdateRole(c *gin.Context) {
 
 	var req RoleUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	roleID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	role, err := h.service.UpdateRole(roleID, &req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, role)
 }
 
 func (h *RoleHandler) BatchUpdateRoleStatus(c *gin.Context) {
-	common.SetAuditMetadata(c, "批量更新角色状态", common.BusinessUpdate)
+	common.SetAuditMetadata(c, "role.batch_status.title", common.BusinessUpdate)
 
 	var req RoleBatchStatusReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	updatedCount, err := h.service.BatchUpdateRoleStatus(req.RoleIDs, req.Status)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"updatedCount": updatedCount})
 }
 
 func (h *RoleHandler) BatchDeleteRoles(c *gin.Context) {
-	common.SetAuditMetadata(c, "批量删除角色", common.BusinessDelete)
+	common.SetAuditMetadata(c, "role.batch_delete.title", common.BusinessDelete)
 
 	var req common.BatchDeleteReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 	resp := common.BatchDelete(req.IDs, h.service.DeleteRole)
@@ -160,19 +165,19 @@ func (h *RoleHandler) BatchDeleteRoles(c *gin.Context) {
 func (h *RoleHandler) GetRoleMembers(c *gin.Context) {
 	roleID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	var query RoleMemberQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	resp, err := h.service.ListRoleMembers(roleID, &query)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, resp)
@@ -181,65 +186,65 @@ func (h *RoleHandler) GetRoleMembers(c *gin.Context) {
 func (h *RoleHandler) GetRoleMemberCandidates(c *gin.Context) {
 	roleID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	var query RoleMemberQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	resp, err := h.service.ListAssignableUsers(roleID, &query)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, resp)
 }
 
 func (h *RoleHandler) AddRoleMembers(c *gin.Context) {
-	common.SetAuditMetadata(c, "维护角色成员", common.BusinessUpdate)
+	common.SetAuditMetadata(c, "role.members.update.title", common.BusinessUpdate)
 
 	roleID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	var req RoleMemberAssignReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	addedCount, err := h.service.AddRoleMembers(roleID, req.UserIDs)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"addedCount": addedCount})
 }
 
 func (h *RoleHandler) RemoveRoleMembers(c *gin.Context) {
-	common.SetAuditMetadata(c, "移除角色成员", common.BusinessUpdate)
+	common.SetAuditMetadata(c, "role.members.remove.title", common.BusinessUpdate)
 
 	roleID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	var req RoleMemberAssignReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	removedCount, err := h.service.RemoveRoleMembers(roleID, req.UserIDs)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"removedCount": removedCount})
@@ -251,12 +256,12 @@ func (h *RoleHandler) DeleteRole(c *gin.Context) {
 
 	roleID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	if err := h.service.DeleteRole(roleID); err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})

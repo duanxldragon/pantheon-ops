@@ -33,7 +33,7 @@ func TestMenuServiceCreateMenuBindsAdminRole(t *testing.T) {
 	menu, err := service.CreateMenu(&MenuCreateReq{
 		TitleKey:   "system.menu.user",
 		Path:       "/system/user-smoke",
-		Component:  "system/user/UserList",
+		Component:  "system/iam/user/UserList",
 		PagePerm:   "system:user:list",
 		Type:       "C",
 		RouteName:  "system-user-smoke",
@@ -51,6 +51,70 @@ func TestMenuServiceCreateMenuBindsAdminRole(t *testing.T) {
 	}
 	if count != 1 {
 		t.Fatalf("expected admin role to bind created menu, got count=%d", count)
+	}
+}
+
+func TestMenuService_DeleteMenuPurgesOrphanRolePermissions(t *testing.T) {
+	db := setupMenuTestDB(t)
+	service := NewMenuService(db)
+
+	menu := SystemMenu{TitleKey: "smoke.orphan", Path: "/smoke/orphan", Type: "C", PagePerm: "smoke:orphan:list", Perms: "smoke:orphan:act"}
+	if err := db.Create(&menu).Error; err != nil {
+		t.Fatalf("seed menu: %v", err)
+	}
+	seeds := []string{"smoke:orphan:list", "smoke:orphan:act", "smoke:other:list"}
+	for _, key := range seeds {
+		if err := db.Exec("INSERT INTO system_role_permission (role_id, permission_key) VALUES (1, ?)", key).Error; err != nil {
+			t.Fatalf("seed role permission %s: %v", key, err)
+		}
+	}
+
+	if err := service.DeleteMenu(menu.ID); err != nil {
+		t.Fatalf("delete menu: %v", err)
+	}
+
+	var orphanCount int64
+	if err := db.Table("system_role_permission").Where("permission_key IN ?", []string{"smoke:orphan:list", "smoke:orphan:act"}).Count(&orphanCount).Error; err != nil {
+		t.Fatalf("count orphan permissions: %v", err)
+	}
+	if orphanCount != 0 {
+		t.Fatalf("expected orphan role permissions purged, got %d", orphanCount)
+	}
+	var keptCount int64
+	if err := db.Table("system_role_permission").Where("permission_key = ?", "smoke:other:list").Count(&keptCount).Error; err != nil {
+		t.Fatalf("count unrelated permissions: %v", err)
+	}
+	if keptCount != 1 {
+		t.Fatalf("expected unrelated role permission kept, got %d", keptCount)
+	}
+}
+
+func TestMenuService_DeleteMenuKeepsSharedPermissionKey(t *testing.T) {
+	db := setupMenuTestDB(t)
+	service := NewMenuService(db)
+
+	first := SystemMenu{TitleKey: "smoke.shared.a", Path: "/smoke/shared-a", Type: "C", PagePerm: "smoke:shared:list"}
+	second := SystemMenu{TitleKey: "smoke.shared.b", Path: "/smoke/shared-b", Type: "C", PagePerm: "smoke:shared:list"}
+	if err := db.Create(&first).Error; err != nil {
+		t.Fatalf("seed first menu: %v", err)
+	}
+	if err := db.Create(&second).Error; err != nil {
+		t.Fatalf("seed second menu: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_role_permission (role_id, permission_key) VALUES (1, 'smoke:shared:list')").Error; err != nil {
+		t.Fatalf("seed role permission: %v", err)
+	}
+
+	if err := service.DeleteMenu(first.ID); err != nil {
+		t.Fatalf("delete menu: %v", err)
+	}
+
+	var count int64
+	if err := db.Table("system_role_permission").Where("permission_key = ?", "smoke:shared:list").Count(&count).Error; err != nil {
+		t.Fatalf("count shared permission: %v", err)
+	}
+	if count != 1 {
+		t.Fatalf("expected shared permission key kept while another menu owns it, got %d", count)
 	}
 }
 
@@ -78,7 +142,7 @@ func TestMenuServiceValidateMenuMetaAcceptsRegisteredComponent(t *testing.T) {
 	err := service.validateMenuMeta(0, &MenuCreateReq{
 		TitleKey:   "system.menu.user",
 		Path:       "/system/user",
-		Component:  "system/user/UserList",
+		Component:  "system/iam/user/UserList",
 		PagePerm:   "system:user:list",
 		Type:       "C",
 		RouteName:  "system-user",

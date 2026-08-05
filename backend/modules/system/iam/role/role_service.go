@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"pantheon-ops/backend/pkg/database"
+	"pantheon-ops/backend/pkg/rbacbind"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -16,7 +17,18 @@ type RoleService struct {
 	db *gorm.DB
 }
 
+type roleListAssociations struct {
+	menus       map[uint64][]uint64
+	permissions map[uint64][]string
+	dataScopes  map[uint64]string
+}
+
 const deletedRoleKeyPrefix = "__deleted_role_"
+
+const (
+	errDatabaseNotInitialized = "database.not_initialized"
+	condIDIn                  = "id IN ?"
+)
 
 // roleDataScopePolicy mirrors PermissionRoleDataScopePolicy to avoid cross-directory import.
 // Table name: system_role_data_scope
@@ -37,7 +49,7 @@ func NewRoleService(db *gorm.DB) *RoleService {
 
 func (s *RoleService) Migrate() error {
 	if s.db == nil {
-		return common.NewBadRequest("database.not_initialized")
+		return common.NewBadRequest(errDatabaseNotInitialized)
 	}
 	if err := s.db.AutoMigrate(&SystemRole{}, &SystemRolePermission{}, &SystemRoleMenu{}, &roleDataScopePolicy{}); err != nil {
 		return err
@@ -47,7 +59,7 @@ func (s *RoleService) Migrate() error {
 
 func (s *RoleService) Bootstrap() error {
 	if s.db == nil {
-		return common.NewBadRequest("database.not_initialized")
+		return common.NewBadRequest(errDatabaseNotInitialized)
 	}
 	if err := s.releaseDeletedRoleKeys(); err != nil {
 		return err
@@ -67,23 +79,12 @@ func (s *RoleService) Bootstrap() error {
 // ListRoles 获取角色分页列表。
 func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error) {
 	if s.db == nil {
-		return nil, common.NewBadRequest("database.not_initialized")
+		return nil, common.NewBadRequest(errDatabaseNotInitialized)
 	}
 
 	var roles []SystemRole
-	db := s.db.Model(&SystemRole{})
 	page, pageSize := normalizeRolePageQuery(query)
-	if query != nil {
-		if strings.TrimSpace(query.RoleName) != "" {
-			db = db.Where("role_name LIKE ?", fmt.Sprintf("%%%s%%", common.EscapeLikePattern(strings.TrimSpace(query.RoleName))))
-		}
-		if strings.TrimSpace(query.RoleKey) != "" {
-			db = db.Where("role_key LIKE ?", fmt.Sprintf("%%%s%%", common.EscapeLikePattern(strings.TrimSpace(query.RoleKey))))
-		}
-		if query.Status != nil && common.IsEnabledStatus(*query.Status) {
-			db = db.Where("status = ?", *query.Status)
-		}
-	}
+	db := buildRoleListQuery(s.db, query)
 
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
@@ -102,21 +103,61 @@ func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error)
 		return nil, err
 	}
 
+	associations, err := s.loadRoleListAssociations(roles)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RoleListPageResp{
+		Items:    buildRoleListItems(roles, associations),
+		Total:    total,
+		Page:     page,
+		PageSize: pageSize,
+	}, nil
+}
+
+func buildRoleListQuery(db *gorm.DB, query *RoleListQuery) *gorm.DB {
+	db = db.Model(&SystemRole{})
+	if query == nil {
+		return db
+	}
+	if keyword := strings.TrimSpace(query.Keyword); keyword != "" {
+		pattern := fmt.Sprintf("%%%s%%", common.EscapeLikePattern(keyword))
+		db = db.Where("role_name LIKE ? OR role_key LIKE ?", pattern, pattern)
+	}
+	if roleName := strings.TrimSpace(query.RoleName); roleName != "" {
+		db = db.Where("role_name LIKE ?", fmt.Sprintf("%%%s%%", common.EscapeLikePattern(roleName)))
+	}
+	if roleKey := strings.TrimSpace(query.RoleKey); roleKey != "" {
+		db = db.Where("role_key LIKE ?", fmt.Sprintf("%%%s%%", common.EscapeLikePattern(roleKey)))
+	}
+	if query.Status != nil && common.IsEnabledStatus(*query.Status) {
+		db = db.Where("status = ?", *query.Status)
+	}
+	return db
+}
+
+func (s *RoleService) loadRoleListAssociations(roles []SystemRole) (roleListAssociations, error) {
 	roleIDs := make([]uint64, 0, len(roles))
 	for _, item := range roles {
 		roleIDs = append(roleIDs, item.ID)
 	}
-
-	roleMenus, err := s.loadRoleMenus(roleIDs)
+	menus, err := s.loadRoleMenus(roleIDs)
 	if err != nil {
-		return nil, err
+		return roleListAssociations{}, err
 	}
-	rolePermissions, err := s.loadRolePermissions(roleIDs)
+	permissions, err := s.loadRolePermissions(roleIDs)
 	if err != nil {
-		return nil, err
+		return roleListAssociations{}, err
 	}
-	roleDataScopes := s.loadRoleDataScopes(roleIDs)
+	return roleListAssociations{
+		menus:       menus,
+		permissions: permissions,
+		dataScopes:  s.loadRoleDataScopes(roleIDs),
+	}, nil
+}
 
+func buildRoleListItems(roles []SystemRole, associations roleListAssociations) []RoleListResp {
 	items := make([]RoleListResp, 0, len(roles))
 	for _, item := range roles {
 		items = append(items, RoleListResp{
@@ -126,23 +167,17 @@ func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error)
 			Sort:           item.Sort,
 			Status:         item.Status,
 			CreatedAt:      item.CreatedAt.Format(time.RFC3339),
-			MenuIDs:        roleMenus[item.ID],
-			PermissionKeys: rolePermissions[item.ID],
-			DataScope:      roleDataScopes[item.ID],
+			MenuIDs:        associations.menus[item.ID],
+			PermissionKeys: associations.permissions[item.ID],
+			DataScope:      associations.dataScopes[item.ID],
 		})
 	}
-
-	return &RoleListPageResp{
-		Items:    items,
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
-	}, nil
+	return items
 }
 
 func (s *RoleService) ListRoleMembers(roleID uint64, query *RoleMemberQuery) (*RoleMemberPageResp, error) {
 	if s.db == nil {
-		return nil, common.NewBadRequest("database.not_initialized")
+		return nil, common.NewBadRequest(errDatabaseNotInitialized)
 	}
 	if _, err := s.getRole(roleID); err != nil {
 		return nil, err
@@ -152,7 +187,7 @@ func (s *RoleService) ListRoleMembers(roleID uint64, query *RoleMemberQuery) (*R
 
 func (s *RoleService) ListAssignableUsers(roleID uint64, query *RoleMemberQuery) (*RoleMemberPageResp, error) {
 	if s.db == nil {
-		return nil, common.NewBadRequest("database.not_initialized")
+		return nil, common.NewBadRequest(errDatabaseNotInitialized)
 	}
 	if _, err := s.getRole(roleID); err != nil {
 		return nil, err
@@ -162,7 +197,7 @@ func (s *RoleService) ListAssignableUsers(roleID uint64, query *RoleMemberQuery)
 
 func (s *RoleService) AddRoleMembers(roleID uint64, userIDs []uint64) (int, error) {
 	if s.db == nil {
-		return 0, common.NewBadRequest("database.not_initialized")
+		return 0, common.NewBadRequest(errDatabaseNotInitialized)
 	}
 	if _, err := s.getRole(roleID); err != nil {
 		return 0, err
@@ -191,32 +226,29 @@ func (s *RoleService) AddRoleMembers(roleID uint64, userIDs []uint64) (int, erro
 		existing[row.UserID] = struct{}{}
 	}
 
-	addedCount := 0
-	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		for _, userID := range normalizedUserIDs {
-			if _, ok := existing[userID]; ok {
-				continue
-			}
-			if err := tx.Exec(
-				"INSERT INTO system_user_role (user_id, role_id) VALUES (?, ?)",
-				userID,
-				roleID,
-			).Error; err != nil {
-				return err
-			}
-			addedCount++
+	userIDsToAdd := make([]uint64, 0, len(normalizedUserIDs))
+	for _, userID := range normalizedUserIDs {
+		if _, ok := existing[userID]; ok {
+			continue
 		}
-		return nil
+		userIDsToAdd = append(userIDsToAdd, userID)
+	}
+	if len(userIDsToAdd) == 0 {
+		return 0, nil
+	}
+
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		return rbacbind.InsertUserRoles(tx, userIDsToAdd, roleID)
 	}); err != nil {
 		return 0, err
 	}
 
-	return addedCount, nil
+	return len(userIDsToAdd), nil
 }
 
 func (s *RoleService) RemoveRoleMembers(roleID uint64, userIDs []uint64) (int, error) {
 	if s.db == nil {
-		return 0, common.NewBadRequest("database.not_initialized")
+		return 0, common.NewBadRequest(errDatabaseNotInitialized)
 	}
 	role, err := s.getRole(roleID)
 	if err != nil {
@@ -230,9 +262,9 @@ func (s *RoleService) RemoveRoleMembers(roleID uint64, userIDs []uint64) (int, e
 	if err := s.ensureUsersExist(normalizedUserIDs); err != nil {
 		return 0, err
 	}
-	if role.RoleKey == "admin" {
+	if role.RoleKey == common.AdminRoleKey {
 		for _, userID := range normalizedUserIDs {
-			if userID == 1 {
+			if userID == common.BuiltinAdminUserID {
 				return 0, common.NewConflict("user.update.error.protected")
 			}
 		}
@@ -250,7 +282,7 @@ func (s *RoleService) RemoveRoleMembers(roleID uint64, userIDs []uint64) (int, e
 // CreateRole 创建角色。
 func (s *RoleService) CreateRole(req *RoleCreateReq) (*RoleListResp, error) {
 	if s.db == nil {
-		return nil, common.NewBadRequest("database.not_initialized")
+		return nil, common.NewBadRequest(errDatabaseNotInitialized)
 	}
 	if err := s.validateRoleCreate(req); err != nil {
 		return nil, err
@@ -300,7 +332,7 @@ func (s *RoleService) CreateRole(req *RoleCreateReq) (*RoleListResp, error) {
 // UpdateRole 更新角色。
 func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListResp, error) {
 	if s.db == nil {
-		return nil, common.NewBadRequest("database.not_initialized")
+		return nil, common.NewBadRequest(errDatabaseNotInitialized)
 	}
 
 	var role SystemRole
@@ -320,23 +352,28 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 	dataScope := normalizeRoleDataScope(req.DataScope)
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Save(&role).Error; err != nil {
-			return err
-		}
-		if err := s.replaceRoleMenus(tx, role.ID, menuIDs); err != nil {
-			return err
-		}
-		if err := s.replaceRolePermissions(tx, role.ID, permissionKeys); err != nil {
-			return err
-		}
-		if err := s.upsertRoleDataScopePolicy(tx, role.RoleKey, dataScope); err != nil {
-			return err
-		}
-		return nil
+		return s.updateRoleInTransaction(tx, &role, menuIDs, permissionKeys, dataScope)
 	}); err != nil {
 		return nil, err
 	}
 
+	return buildRoleListResp(role, menuIDs, permissionKeys, dataScope), nil
+}
+
+func (s *RoleService) updateRoleInTransaction(tx *gorm.DB, role *SystemRole, menuIDs []uint64, permissionKeys []string, dataScope string) error {
+	if err := tx.Save(role).Error; err != nil {
+		return err
+	}
+	if err := s.replaceRoleMenus(tx, role.ID, menuIDs); err != nil {
+		return err
+	}
+	if err := s.replaceRolePermissions(tx, role.ID, permissionKeys); err != nil {
+		return err
+	}
+	return s.upsertRoleDataScopePolicy(tx, role.RoleKey, dataScope)
+}
+
+func buildRoleListResp(role SystemRole, menuIDs []uint64, permissionKeys []string, dataScope string) *RoleListResp {
 	return &RoleListResp{
 		ID:             role.ID,
 		RoleName:       role.RoleName,
@@ -347,52 +384,17 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 		MenuIDs:        menuIDs,
 		PermissionKeys: permissionKeys,
 		DataScope:      dataScope,
-	}, nil
+	}
 }
 
 // DeleteRole 删除角色。
 func (s *RoleService) DeleteRole(roleID uint64) error {
 	if s.db == nil {
-		return common.NewBadRequest("database.not_initialized")
+		return common.NewBadRequest(errDatabaseNotInitialized)
 	}
 
-	var role SystemRole
-	if err := s.db.First(&role, roleID).Error; err != nil {
-		return err
-	}
-	if role.ID == 1 || role.RoleKey == "admin" {
-		return common.NewConflict("role.delete.error.protected")
-	}
-
-	var userCount int64
-	if err := s.db.Table("system_user_role").Where("role_id = ?", roleID).Count(&userCount).Error; err != nil {
-		return err
-	}
-	if userCount > 0 {
-		return common.NewInternal("role.delete.error.has_users")
-	}
-
-	roleKey := role.RoleKey
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Exec("DELETE FROM system_role_menu WHERE role_id = ?", roleID).Error; err != nil {
-			return err
-		}
-		if err := tx.Exec("DELETE FROM system_role_permission WHERE role_id = ?", roleID).Error; err != nil {
-			return err
-		}
-		if err := tx.Model(&database.CasbinRule{}).
-			Where("ptype = ? AND v0 = ?", "p", roleKey).
-			Delete(&database.CasbinRule{}).Error; err != nil {
-			return err
-		}
-		deletedRoleKey, err := s.allocateDeletedRoleKey(tx, role.ID)
-		if err != nil {
-			return err
-		}
-		if err := tx.Model(&role).Update("role_key", deletedRoleKey).Error; err != nil {
-			return err
-		}
-		return tx.Delete(&role).Error
+		return s.deleteRoleInTransaction(tx, roleID)
 	}); err != nil {
 		return err
 	}
@@ -400,20 +402,84 @@ func (s *RoleService) DeleteRole(roleID uint64) error {
 	return reloadRolePolicies()
 }
 
+func (s *RoleService) deleteRoleInTransaction(tx *gorm.DB, roleID uint64) error {
+	role, err := loadDeletableRole(tx, roleID)
+	if err != nil {
+		return err
+	}
+	if err := deleteRoleBindings(tx, role.ID, role.RoleKey); err != nil {
+		return err
+	}
+	if err := deleteRoleDataScopes(tx, role.RoleKey); err != nil {
+		return err
+	}
+	deletedRoleKey, err := s.allocateDeletedRoleKey(tx, role.ID)
+	if err != nil {
+		return err
+	}
+	if err := tx.Model(&role).Update("role_key", deletedRoleKey).Error; err != nil {
+		return err
+	}
+	return tx.Delete(&role).Error
+}
+
+func loadDeletableRole(tx *gorm.DB, roleID uint64) (SystemRole, error) {
+	// 前置检查放在事务内并对角色行加锁，避免成员绑定检查与删除之间的并发窗口。
+	var role SystemRole
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&role, roleID).Error; err != nil {
+		return role, err
+	}
+	if role.ID == common.BuiltinAdminRoleID || role.RoleKey == common.AdminRoleKey {
+		return role, common.NewConflict("role.delete.error.protected")
+	}
+	var userCount int64
+	if err := tx.Table("system_user_role").Where("role_id = ?", roleID).Count(&userCount).Error; err != nil {
+		return role, err
+	}
+	if userCount > 0 {
+		return role, common.NewInternal("role.delete.error.has_users")
+	}
+	return role, nil
+}
+
+func deleteRoleBindings(tx *gorm.DB, roleID uint64, roleKey string) error {
+	if err := tx.Exec("DELETE FROM system_role_menu WHERE role_id = ?", roleID).Error; err != nil {
+		return err
+	}
+	if err := tx.Exec("DELETE FROM system_role_permission WHERE role_id = ?", roleID).Error; err != nil {
+		return err
+	}
+	return tx.Model(&database.CasbinRule{}).
+		Where("ptype = ? AND v0 = ?", "p", roleKey).
+		Delete(&database.CasbinRule{}).Error
+}
+
+func deleteRoleDataScopes(tx *gorm.DB, roleKey string) error {
+	// Data-scope tables use role_key; retaining rows would let a recreated role inherit stale policy.
+	if err := tx.Where(condRoleKeyEquals, roleKey).Delete(&roleDataScopePolicy{}).Error; err != nil {
+		return err
+	}
+	if !tx.Migrator().HasTable("permission_role_data_scope_policy") {
+		return nil
+	}
+	return tx.Table("permission_role_data_scope_policy").
+		Where(condRoleKeyEquals, roleKey).Delete(nil).Error
+}
+
 func (s *RoleService) BatchUpdateRoleStatus(roleIDs []uint64, status int) (int, error) {
 	if s.db == nil {
-		return 0, common.NewBadRequest("database.not_initialized")
+		return 0, common.NewBadRequest(errDatabaseNotInitialized)
 	}
 	normalizedIDs := normalizeUint64IDs(roleIDs)
 	if len(normalizedIDs) == 0 {
 		return 0, common.NewBadRequest("role.batch.empty")
 	}
 	if !common.IsEnabledStatus(status) {
-		return 0, common.NewBadRequest("param.invalid")
+		return 0, common.NewBadRequest(errParamInvalid)
 	}
 
 	var roles []SystemRole
-	if err := s.db.Where("id IN ?", normalizedIDs).Find(&roles).Error; err != nil {
+	if err := s.db.Where(condIDIn, normalizedIDs).Find(&roles).Error; err != nil {
 		return 0, err
 	}
 	if len(roles) != len(normalizedIDs) {
@@ -421,14 +487,14 @@ func (s *RoleService) BatchUpdateRoleStatus(roleIDs []uint64, status int) (int, 
 	}
 	if status == common.StatusDisabled {
 		for _, role := range roles {
-			if role.ID == 1 || role.RoleKey == "admin" {
+			if role.ID == common.BuiltinAdminRoleID || role.RoleKey == common.AdminRoleKey {
 				return 0, common.NewConflict("role.update.error.protected")
 			}
 		}
 	}
 
 	if err := s.db.Model(&SystemRole{}).
-		Where("id IN ?", normalizedIDs).
+		Where(condIDIn, normalizedIDs).
 		Updates(map[string]any{
 			"status":     normalizeRoleStatus(status),
 			"updated_at": time.Now(),
@@ -602,7 +668,7 @@ func (s *RoleService) loadRoleDataScopes(roleIDs []uint64) map[uint64]string {
 	}
 	if err := s.db.Table("system_role").
 		Select("id, role_key").
-		Where("id IN ?", roleIDs).
+		Where(condIDIn, roleIDs).
 		Scan(&roleRows).Error; err != nil {
 		return result
 	}

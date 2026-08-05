@@ -1,6 +1,7 @@
 package system
 
 import (
+	// Blank import enables the //go:embed directive that loads builtin_locale_resources.json.
 	_ "embed"
 	"encoding/json"
 	"strings"

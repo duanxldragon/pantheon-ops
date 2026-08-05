@@ -191,6 +191,7 @@ export const AuthModule = defineModule({
     'system:session:clear',
     'system:security-event:list',
     'system:security-event:acknowledge',
+    'system:security-event:clear',
   ],
   i18nNamespaces: ['auth', 'system.menu'],
 });

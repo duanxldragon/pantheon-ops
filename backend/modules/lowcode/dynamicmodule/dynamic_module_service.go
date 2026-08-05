@@ -1,3 +1,4 @@
+//nolint:revive // Dynamic module service exports a large facade intentionally.
 package dynamicmodule
 
 import (
@@ -19,6 +20,14 @@ const (
 	ModuleStatusFailed            = 4
 )
 
+const (
+	condNameEquals            = "name = ?"
+	condModuleEquals          = "module = ?"
+	msgModuleNotFound         = "module.not_found"
+	msgModuleBuiltinForbidden = "module.unregister.builtin_forbidden"
+	msgWorkspaceNotFound      = "workspace.not_found"
+)
+
 // DynamicModuleService 动态模块管理服务
 type DynamicModuleService struct {
 	db            *gorm.DB
@@ -27,7 +36,10 @@ type DynamicModuleService struct {
 
 // NewDynamicModuleService 创建服务实例
 func NewDynamicModuleService(db *gorm.DB) *DynamicModuleService {
-	workspaceRoot, _ := scaffold.ResolveWorkspaceRoot("")
+	workspaceRoot, err := scaffold.ResolveWorkspaceRoot("")
+	if err != nil {
+		workspaceRoot = ""
+	}
 	return &DynamicModuleService{db: db, workspaceRoot: workspaceRoot}
 }
 
@@ -75,26 +87,7 @@ type ModuleRegistrationResp struct {
 }
 
 func toModuleRegistrationResp(module ModuleRegistration) ModuleRegistrationResp {
-	return ModuleRegistrationResp{
-		ID:                     module.ID,
-		Name:                   module.Name,
-		DisplayName:            module.DisplayName,
-		Scope:                  module.Scope,
-		Source:                 module.Source,
-		Owner:                  module.Owner,
-		BoundedContext:         module.BoundedContext,
-		Summary:                module.Summary,
-		SourceTable:            module.SourceTable,
-		AutoRecycle:            module.AutoRecycle,
-		ModelTableName:         module.ModelTableName,
-		Status:                 module.Status,
-		InstalledAt:            module.InstalledAt,
-		UninstalledAt:          module.UninstalledAt,
-		LastVerifiedAt:         module.LastVerifiedAt,
-		LastError:              module.LastError,
-		LastVerificationResult: module.LastVerificationResult,
-		BuiltIn:                module.BuiltIn,
-	}
+	return ModuleRegistrationResp(module)
 }
 
 type GeneratedModuleVerification struct {
@@ -207,13 +200,13 @@ func (s *DynamicModuleService) RegisterGeneratedModule(req *scaffold.RegisterGen
 		return nil, nil, nil, common.NewBadRequest("module.generate.business_only")
 	}
 	if strings.TrimSpace(s.workspaceRoot) == "" {
-		return nil, nil, nil, common.NewNotFound("workspace.not_found")
+		return nil, nil, nil, common.NewNotFound(msgWorkspaceNotFound)
 	}
 
 	moduleKey := buildModuleKey(req.Schema.Scope, req.Schema.Name)
 
 	var existing ModuleRegistration
-	err := s.db.Where("name = ?", moduleKey).First(&existing).Error
+	err := s.db.Where(condNameEquals, moduleKey).First(&existing).Error
 	if err == nil && strings.TrimSpace(existing.ModelTableName) == "" {
 		return nil, nil, nil, common.NewBadRequest("module.generate.reserved")
 	}
@@ -279,18 +272,14 @@ func (s *DynamicModuleService) RegisterManagedModule(moduleName string) (*Module
 		return nil, err
 	}
 	if strings.TrimSpace(s.workspaceRoot) == "" {
-		return nil, common.NewNotFound("workspace.not_found")
+		return nil, common.NewNotFound(msgWorkspaceNotFound)
 	}
 
-	var registration ModuleRegistration
-	err = s.db.Where("name = ?", moduleName).First(&registration).Error
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	registration, active, err := s.loadManagedModuleRegistration(moduleName)
+	if err != nil {
 		return nil, err
 	}
-	if err == nil && strings.TrimSpace(registration.ModelTableName) == "" {
-		return nil, common.NewForbidden("module.register.builtin_forbidden")
-	}
-	if err == nil && registration.Status == ModuleStatusActive {
+	if active {
 		registration.BuiltIn = false
 		return &registration, nil
 	}
@@ -299,19 +288,52 @@ func (s *DynamicModuleService) RegisterManagedModule(moduleName string) (*Module
 	if err != nil {
 		return nil, err
 	}
-	backendPath, ok := generatedModuleRelativePath("backend", "modules", scope, shortName)
-	if !ok {
-		return nil, common.NewBadRequest("module.invalid_name")
+	if err := s.validateGeneratedModuleSource(scope, shortName); err != nil {
+		return nil, err
 	}
-	frontendPath, ok := generatedModuleRelativePath("frontend", "src", "modules", scope, shortName)
-	if !ok {
-		return nil, common.NewBadRequest("module.invalid_name")
+
+	populateManagedModuleRegistration(&registration, moduleName, schema)
+	if err := s.db.Save(&registration).Error; err != nil {
+		return nil, err
+	}
+
+	if _, _, err := s.refreshGeneratedWorkspaceArtifacts(); err != nil {
+		return nil, err
+	}
+
+	registration.BuiltIn = false
+	return &registration, nil
+}
+
+func (s *DynamicModuleService) loadManagedModuleRegistration(moduleName string) (ModuleRegistration, bool, error) {
+	var registration ModuleRegistration
+	err := s.db.Where(condNameEquals, moduleName).First(&registration).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return registration, false, nil
+	}
+	if err != nil {
+		return registration, false, err
+	}
+	if strings.TrimSpace(registration.ModelTableName) == "" {
+		return registration, false, common.NewForbidden("module.register.builtin_forbidden")
+	}
+	return registration, registration.Status == ModuleStatusActive, nil
+}
+
+func (s *DynamicModuleService) validateGeneratedModuleSource(scope, shortName string) error {
+	backendPath, backendOK := generatedModuleRelativePath("backend", "modules", scope, shortName)
+	frontendPath, frontendOK := generatedModuleRelativePath("frontend", "src", "modules", scope, shortName)
+	if !backendOK || !frontendOK {
+		return common.NewBadRequest("module.invalid_name")
 	}
 	if !generatedDirExists(s.workspaceRoot, backendPath) ||
 		!generatedDirExists(s.workspaceRoot, frontendPath) {
-		return nil, common.NewBadRequest("module.register.source_missing")
+		return common.NewBadRequest("module.register.source_missing")
 	}
+	return nil
+}
 
+func populateManagedModuleRegistration(registration *ModuleRegistration, moduleName string, schema *scaffold.ModuleSchema) {
 	registration.Name = moduleName
 	registration.DisplayName = strings.TrimSpace(schema.DisplayName)
 	registration.Scope = strings.TrimSpace(schema.Scope)
@@ -325,21 +347,11 @@ func (s *DynamicModuleService) RegisterManagedModule(moduleName string) (*Module
 	registration.Status = ModuleStatusPendingActivation
 	registration.InstalledAt = time.Now().Format(time.RFC3339)
 	registration.UninstalledAt = ""
-	if err := s.db.Save(&registration).Error; err != nil {
-		return nil, err
-	}
-
-	if _, _, err := s.refreshGeneratedWorkspaceArtifacts(); err != nil {
-		return nil, err
-	}
-
-	registration.BuiltIn = false
-	return &registration, nil
 }
 
 func (s *DynamicModuleService) GetManagedModuleSchema(moduleName string) (*scaffold.ModuleSchema, error) {
 	if strings.TrimSpace(s.workspaceRoot) == "" {
-		return nil, common.NewNotFound("workspace.not_found")
+		return nil, common.NewNotFound(msgWorkspaceNotFound)
 	}
 	scope, shortName, err := splitModuleKey(moduleName)
 	if err != nil {

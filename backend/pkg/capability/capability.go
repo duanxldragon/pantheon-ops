@@ -6,12 +6,14 @@ import (
 	"gorm.io/gorm"
 )
 
+// Supported platform application modes.
 const (
 	AppModeEnterprise = "enterprise"
 	AppModeConsumer   = "consumer"
 	AppModeHybrid     = "hybrid"
 )
 
+// PlatformCapabilities captures the current platform feature toggles.
 type PlatformCapabilities struct {
 	AppMode            string
 	OrgEnabled         bool
@@ -23,6 +25,7 @@ type settingRow struct {
 	SettingValue string
 }
 
+// Defaults returns the platform capability defaults.
 func Defaults() PlatformCapabilities {
 	return PlatformCapabilities{
 		AppMode:            AppModeEnterprise,
@@ -31,6 +34,7 @@ func Defaults() PlatformCapabilities {
 	}
 }
 
+// Load resolves platform capabilities from system settings.
 func Load(db *gorm.DB) PlatformCapabilities {
 	caps := Defaults()
 	if db == nil {
@@ -58,6 +62,7 @@ func Load(db *gorm.DB) PlatformCapabilities {
 	return caps
 }
 
+// NormalizeAppMode normalizes a raw app mode value.
 func NormalizeAppMode(value string) string {
 	switch strings.TrimSpace(value) {
 	case AppModeConsumer:

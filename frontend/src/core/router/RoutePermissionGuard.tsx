@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { PageForbidden, RouteContentFallback } from '../../components';
 import { ensureAuthUserInfo } from '../auth/bootstrap';
+import { checkPermission } from '../permissions/checkPermission';
 import { useAuthStore } from '../../store/useAuthStore';
 
 interface RoutePermissionGuardProps {
@@ -26,10 +27,7 @@ const RoutePermissionGuard: React.FC<RoutePermissionGuardProps> = ({ permission,
     return <RouteContentFallback />;
   }
 
-  const isAdmin = userInfo.roles?.includes('admin') || false;
-  const allowed = isAdmin || userInfo.perms?.includes(permission);
-
-  return allowed ? children : <PageForbidden />;
+  return checkPermission(userInfo, permission) ? children : <PageForbidden />;
 };
 
 export default RoutePermissionGuard;

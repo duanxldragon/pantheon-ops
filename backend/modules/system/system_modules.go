@@ -21,6 +21,12 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	routeGroupSystem = "/system"
+	routeUserByID    = "/user/:id"
+	routeI18nByID    = "/i18n/:id"
+)
+
 type systemModuleDependencies struct {
 	db *gorm.DB
 
@@ -108,7 +114,7 @@ func initRefreshSyncModules(deps *systemModuleDependencies) []contracts.BackendM
 			ModuleName:  "refresh-sync",
 			MigrateFunc: func(_ *gorm.DB) error { return deps.refreshSyncSvc.Migrate() },
 			Register: func(r *gin.RouterGroup) {
-				systemAuth := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB))
+				systemAuth := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB))
 				{
 					systemAuth.GET("/refresh/state", deps.refreshSyncHandler.GetState)
 				}
@@ -124,20 +130,20 @@ func initIAMModules(deps *systemModuleDependencies) []contracts.BackendModule {
 			MigrateFunc:   func(_ *gorm.DB) error { return deps.userSvc.Migrate() },
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.userSvc.Bootstrap() },
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
-				systemDataScoped := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(middleware.DataScopeMiddleware(deps.db)).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				systemDataScoped := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(middleware.DataScopeMiddleware(deps.db)).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
 				{
 					systemProtected.GET("/profile", deps.userHandler.GetProfile)
 					systemProtected.PUT("/profile", deps.userHandler.UpdateProfile)
 					systemProtected.GET("/user/import-template", deps.userHandler.DownloadImportTemplate)
-					systemProtected.GET("/user/:id", deps.userHandler.GetUserDetail)
+					systemProtected.GET(routeUserByID, deps.userHandler.GetUserDetail)
 					systemProtected.POST("/user", deps.userHandler.CreateUser)
 					systemProtected.POST("/user/import", deps.userHandler.ImportUsers)
 					systemProtected.POST("/user/batch-status", deps.userHandler.BatchUpdateUserStatus)
 					systemProtected.POST("/user/batch-delete", middleware.SecureActionMiddleware(), deps.userHandler.BatchDeleteUsers)
-					systemProtected.PUT("/user/:id", deps.userHandler.UpdateUser)
-					systemProtected.PUT("/user/:id/reset-password", deps.userHandler.ResetPassword)
-					systemProtected.DELETE("/user/:id", deps.userHandler.DeleteUser)
+					systemProtected.PUT(routeUserByID, deps.userHandler.UpdateUser)
+					systemProtected.PUT("/user/:id/reset-password", middleware.SecureActionMiddleware(), deps.userHandler.ResetPassword)
+					systemProtected.DELETE(routeUserByID, middleware.SecureActionMiddleware(), deps.userHandler.DeleteUser)
 				}
 				{
 					systemDataScoped.GET("/user/list", deps.userHandler.GetUserList)
@@ -150,12 +156,12 @@ func initIAMModules(deps *systemModuleDependencies) []contracts.BackendModule {
 			MigrateFunc:   func(_ *gorm.DB) error { return deps.menuSvc.Migrate() },
 			SeedMenusFunc: seedMenuModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
 				{
 					systemProtected.GET("/menu/tree", deps.menuHandler.GetMenuTree)
 					systemProtected.POST("/menu", deps.menuHandler.CreateMenu)
 					systemProtected.PUT("/menu/:id", deps.menuHandler.UpdateMenu)
-					systemProtected.DELETE("/menu/:id", deps.menuHandler.DeleteMenu)
+					systemProtected.DELETE("/menu/:id", middleware.SecureActionMiddleware(), deps.menuHandler.DeleteMenu)
 				}
 			},
 		},
@@ -164,7 +170,7 @@ func initIAMModules(deps *systemModuleDependencies) []contracts.BackendModule {
 			MigrateFunc:   func(_ *gorm.DB) error { return deps.roleSvc.Migrate() },
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.roleSvc.Bootstrap() },
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
 				{
 					systemProtected.GET("/role/list", deps.roleHandler.GetRoleList)
 					systemProtected.GET("/role/:id/users", deps.roleHandler.GetRoleMembers)
@@ -178,7 +184,7 @@ func initIAMModules(deps *systemModuleDependencies) []contracts.BackendModule {
 					systemProtected.POST("/role/:id/users", deps.roleHandler.AddRoleMembers)
 					systemProtected.POST("/role/:id/users/remove", deps.roleHandler.RemoveRoleMembers)
 					systemProtected.PUT("/role/:id", deps.roleHandler.UpdateRole)
-					systemProtected.DELETE("/role/:id", deps.roleHandler.DeleteRole)
+					systemProtected.DELETE("/role/:id", middleware.SecureActionMiddleware(), deps.roleHandler.DeleteRole)
 				}
 			},
 		},
@@ -193,7 +199,7 @@ func initIAMModules(deps *systemModuleDependencies) []contracts.BackendModule {
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.permissionSvc.Bootstrap() },
 			SeedMenusFunc: seedPermissionModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
 				{
 					systemProtected.GET("/permission/workbench", deps.permissionHandler.GetWorkbench)
 					systemProtected.GET("/permission/workbench/remediation", deps.permissionHandler.ListWorkbenchRemediationEvents)
@@ -223,7 +229,7 @@ func initOrgModules(deps *systemModuleDependencies) []contracts.BackendModule {
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.deptSvc.Bootstrap() },
 			SeedMenusFunc: seedDeptModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
 				{
 					systemProtected.GET("/dept/overview", deps.deptHandler.GetDeptOverview)
 					systemProtected.GET("/dept/governance/tasks", deps.deptHandler.GetGovernanceTasks)
@@ -248,7 +254,7 @@ func initOrgModules(deps *systemModuleDependencies) []contracts.BackendModule {
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.postSvc.Bootstrap() },
 			SeedMenusFunc: seedPostModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
 				{
 					systemProtected.GET("/post/list", deps.postHandler.GetPostList)
 					systemProtected.GET("/post/import-template", deps.postHandler.DownloadImportTemplate)
@@ -273,12 +279,12 @@ func initConfigModules(deps *systemModuleDependencies) []contracts.BackendModule
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.dictSvc.Bootstrap() },
 			SeedMenusFunc: seedDictModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				systemPublic := r.Group("/system")
+				systemPublic := r.Group(routeGroupSystem)
 				{
 					systemPublic.GET("/dict/options", deps.dictHandler.GetDictOptions)
 				}
 
-				systemProtected := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
 				{
 					systemProtected.GET("/dict/type/list", deps.dictHandler.GetDictTypeList)
 					systemProtected.GET("/dict/type/import-template", deps.dictHandler.DownloadDictTypeImportTemplate)
@@ -310,18 +316,18 @@ func initConfigModules(deps *systemModuleDependencies) []contracts.BackendModule
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.settingSvc.Bootstrap() },
 			SeedMenusFunc: seedSettingModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				systemPublic := r.Group("/system")
+				systemPublic := r.Group(routeGroupSystem)
 				{
 					systemPublic.GET("/setting/public", deps.settingHandler.GetPublicSettings)
 					systemPublic.GET("/upload/files/*filepath", deps.settingHandler.ServeUploadedFile)
 				}
 
-				systemAuth := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB))
+				systemAuth := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB))
 				{
 					systemAuth.POST("/upload", RefreshSyncMiddleware(deps.refreshSyncSvc), deps.settingHandler.UploadFile)
 				}
 
-				systemProtected := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
 				{
 					systemProtected.GET("/setting/overview", deps.settingHandler.GetSettingOverview)
 					systemProtected.GET("/setting/list", deps.settingHandler.GetSettingList)
@@ -345,12 +351,12 @@ func initI18nModules(deps *systemModuleDependencies) []contracts.BackendModule {
 			SeedMenusFunc: seedI18nModuleMenus,
 			SeedI18nFunc:  func(db *gorm.DB) error { return deps.i18nSvc.SeedI18nModuleI18n(db) },
 			Register: func(r *gin.RouterGroup) {
-				sysPublic := r.Group("/system")
+				sysPublic := r.Group(routeGroupSystem)
 				{
 					sysPublic.GET("/i18n/pack", deps.i18nHandler.GetLangPack)
 				}
 
-				sysProtected := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
+				sysProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
 				{
 					sysProtected.GET("/i18n/overview", deps.i18nHandler.GetOverview)
 					sysProtected.GET("/i18n/audit", deps.i18nHandler.GetAudit)
@@ -366,9 +372,9 @@ func initI18nModules(deps *systemModuleDependencies) []contracts.BackendModule {
 					sysProtected.POST("/i18n", RefreshSyncMiddleware(deps.refreshSyncSvc), deps.i18nHandler.Create)
 					sysProtected.GET("/i18n/list", deps.i18nHandler.List)
 					sysProtected.GET("/i18n/import-template", deps.i18nHandler.DownloadImportTemplate)
-					sysProtected.GET("/i18n/:id", deps.i18nHandler.Get)
-					sysProtected.PUT("/i18n/:id", RefreshSyncMiddleware(deps.refreshSyncSvc), deps.i18nHandler.Update)
-					sysProtected.DELETE("/i18n/:id", RefreshSyncMiddleware(deps.refreshSyncSvc), deps.i18nHandler.Delete)
+					sysProtected.GET(routeI18nByID, deps.i18nHandler.Get)
+					sysProtected.PUT(routeI18nByID, RefreshSyncMiddleware(deps.refreshSyncSvc), deps.i18nHandler.Update)
+					sysProtected.DELETE(routeI18nByID, RefreshSyncMiddleware(deps.refreshSyncSvc), deps.i18nHandler.Delete)
 					sysProtected.POST("/i18n/batch-delete", RefreshSyncMiddleware(deps.refreshSyncSvc), deps.i18nHandler.DeleteBatch)
 					sysProtected.POST("/i18n/export", deps.i18nHandler.Export)
 					sysProtected.POST("/i18n/import", RefreshSyncMiddleware(deps.refreshSyncSvc), deps.i18nHandler.Import)
@@ -388,7 +394,7 @@ func initAuditModules(deps *systemModuleDependencies) []contracts.BackendModule 
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.auditSvc.Bootstrap() },
 			SeedMenusFunc: seedAuditModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
 				{
 					systemProtected.GET("/operation-log/list", deps.auditHandler.GetOperationLogList)
 					systemProtected.GET("/operation-log/:id", deps.auditHandler.GetOperationLog)
