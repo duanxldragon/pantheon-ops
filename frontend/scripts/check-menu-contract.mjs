@@ -109,7 +109,7 @@ function extractObjectBlocks(arrayBody) {
   return blocks;
 }
 
-function extractField(block, fieldName) {
+function extractField(block, fieldName, constValues = new Map()) {
   const patterns = [
     new RegExp(String.raw`\b${fieldName}\b\s*:\s*'([^']*)'`),
     new RegExp(String.raw`\b${fieldName}\b\s*:\s*"([^"]*)"`),
@@ -120,6 +120,11 @@ function extractField(block, fieldName) {
     if (match) {
       return match[1];
     }
+  }
+  const identifierPattern = new RegExp(String.raw`\b${fieldName}\b\s*:\s*([A-Za-z_][A-Za-z0-9_]*)`);
+  const identifierMatch = block.match(identifierPattern);
+  if (identifierMatch) {
+    return constValues.get(identifierMatch[1]) ?? '';
   }
   return '';
 }
@@ -194,20 +199,23 @@ function parseBackendSeeds() {
       continue;
     }
     const source = readFile(filePath);
-    const matches = source.matchAll(/\{([^{}]*\bKey:\s*"[^"]+"[^{}]*)\}/gms);
+    const constValues = new Map(
+      [...source.matchAll(/\b([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"([^"]*)"/g)].map((match) => [match[1], match[2]]),
+    );
+    const matches = source.matchAll(/\{([^{}]*\bKey:\s*(?:"[^"]+"|[A-Za-z_][A-Za-z0-9_]*)[^{}]*)\}/gms);
     for (const match of matches) {
       const block = match[1];
       const type = extractField(block, 'Type');
       const item = {
         filePath,
-        key: extractField(block, 'Key'),
-        path: extractField(block, 'Path'),
-        titleKey: extractField(block, 'TitleKey'),
-        component: extractField(block, 'Component'),
-        pagePerm: extractField(block, 'PagePerm'),
-        perms: extractField(block, 'Perms'),
-        routeName: extractField(block, 'RouteName'),
-        module: extractField(block, 'Module'),
+        key: extractField(block, 'Key', constValues),
+        path: extractField(block, 'Path', constValues),
+        titleKey: extractField(block, 'TitleKey', constValues),
+        component: extractField(block, 'Component', constValues),
+        pagePerm: extractField(block, 'PagePerm', constValues),
+        perms: extractField(block, 'Perms', constValues),
+        routeName: extractField(block, 'RouteName', constValues),
+        module: extractField(block, 'Module', constValues),
         type,
       };
       if (item.path || item.pagePerm || item.perms) {
@@ -217,6 +225,32 @@ function parseBackendSeeds() {
   }
 
   return seeds;
+}
+
+function addBuiltinLocaleKeys(translations, prefixes) {
+  const resourcePath = path.join(
+    workspaceRoot,
+    'backend',
+    'modules',
+    'system',
+    'i18n',
+    'builtin_locale_resources.json',
+  );
+  if (!fs.existsSync(resourcePath)) {
+    return;
+  }
+
+  const resources = JSON.parse(readFile(resourcePath));
+  for (const [locale, resource] of Object.entries(resources)) {
+    if (!translations.has(locale) || !resource || typeof resource !== 'object') {
+      continue;
+    }
+    for (const key of Object.keys(resource)) {
+      if (prefixes.some((prefix) => key.startsWith(prefix))) {
+        translations.get(locale).add(key);
+      }
+    }
+  }
 }
 
 function parseRegistryKeys() {
@@ -338,6 +372,7 @@ function parseBackendMenuI18nSeeds() {
     }
   }
 
+  addBuiltinLocaleKeys(translations, ['system.menu.']);
   return translations;
 }
 
@@ -371,6 +406,9 @@ function parseBackendScopedI18nSeeds(groupNames) {
     }
   }
 
+  if (groups.has('permission')) {
+    addBuiltinLocaleKeys(translations, ['system.permission.']);
+  }
   return translations;
 }
 
@@ -456,7 +494,7 @@ function main() {
   reportDuplicates(permissions, (item) => item.key, '权限 key');
 
   for (const module of frontendModules) {
-    if (!['platform', 'system', 'business'].includes(module.scope)) {
+    if (!['platform', 'system', 'lowcode', 'business'].includes(module.scope)) {
       errors.push(`非法模块 scope: ${module.scope} (${module.filePath})`);
     }
     if (module.i18nNamespaces.length === 0) {

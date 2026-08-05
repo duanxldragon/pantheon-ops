@@ -33,9 +33,6 @@ export const frontendOverlayPaths = new Set([
   'core/router/componentRegistry.ts',
   'core/router/generatedComponentRegistry.ts',
   'core/router/modules.ts',
-  'modules/lowcode/dynamicmodule/index.ts',
-  'modules/lowcode/generator/index.ts',
-  'modules/lowcode/generator/backend-generator.ts',
   'modules/system/components/shared/list-page.css',
   'modules/system/list-page.css',
 ]);
