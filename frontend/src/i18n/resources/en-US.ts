@@ -2168,6 +2168,7 @@ const enUSFallback = {
   'system.permission.role.batch_update': 'Role Batch Status Update',
   'system.permission.role.batch_delete': 'Role Batch Delete',
   'system.permission.role.export': 'Role Export',
+  'system.permission.role.import': 'Role Import',
   'system.permission.menu.create': 'Menu Create',
   'system.permission.menu.update': 'Menu Update',
   'system.permission.menu.delete': 'Menu Delete',

@@ -55,7 +55,13 @@ const staticComponentRegistry = {
   'system/dynamicmodule/ModuleManager': defineRegistryEntry(
     () => import('../../modules/lowcode/dynamicmodule/ModuleManager'),
   ),
+  'lowcode/dynamicmodule/ModuleManager': defineRegistryEntry(
+    () => import('../../modules/lowcode/dynamicmodule/ModuleManager'),
+  ),
   'system/generator/ModuleWizard': defineRegistryEntry(
+    () => import('../../modules/lowcode/generator/pages/ModuleWizard'),
+  ),
+  'lowcode/generator/ModuleWizard': defineRegistryEntry(
     () => import('../../modules/lowcode/generator/pages/ModuleWizard'),
   ),
   'business/cmdb/host/CmdbHostList': defineRegistryEntry(

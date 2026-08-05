@@ -1985,6 +1985,7 @@ const zhCNFallback = {
   'system.permission.role.batch_update': '角色批量状态更新',
   'system.permission.role.batch_delete': '角色批量删除',
   'system.permission.role.export': '角色导出',
+  'system.permission.role.import': '角色导入',
   'system.permission.menu.create': '菜单新增',
   'system.permission.menu.update': '菜单编辑',
   'system.permission.menu.delete': '菜单删除',
