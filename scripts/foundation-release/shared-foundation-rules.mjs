@@ -331,9 +331,17 @@ export function detectBackendModuleNameFromTree(rootPath) {
       continue;
     }
     const source = fs.readFileSync(path.join(rootPath, relativePath), 'utf8');
-    const match = source.match(/"([^"\s]+)\/backend(?:\/[^"\s]*)?"/);
-    if (match) {
-      return match[1];
+    const legacyLayoutMatch = source.match(
+      /"([^"\s]+)\/backend\/(?:cmd|internal|modules|pkg)(?:\/[^"\s]*)?"/,
+    );
+    if (legacyLayoutMatch) {
+      return legacyLayoutMatch[1];
+    }
+    const currentLayoutMatch = source.match(
+      /"([^"\s]+)\/(?:cmd|internal|modules|pkg)(?:\/[^"\s]*)?"/,
+    );
+    if (currentLayoutMatch) {
+      return currentLayoutMatch[1];
     }
   }
 
@@ -341,7 +349,9 @@ export function detectBackendModuleNameFromTree(rootPath) {
 }
 
 export function rewriteBackendModuleReferences(source, fromModuleName, toModuleName) {
-  return source.replaceAll(`${fromModuleName}/backend`, `${toModuleName}/backend`);
+  return source
+    .replaceAll(`${fromModuleName}/backend`, toModuleName)
+    .replaceAll(`${fromModuleName}/`, `${toModuleName}/`);
 }
 
 export function mergeBuiltinLocaleResources(baseSource, opsSource) {

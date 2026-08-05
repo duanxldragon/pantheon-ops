@@ -284,15 +284,15 @@ function createRollbackState() {
 
 function resolveBackendModuleNames(bundleRoot, opsRoot, manifest) {
   const sharedBackendRoot = path.join(resolveBundleRoot(bundleRoot), 'shared-backend', 'backend');
-  // baseModuleName: the bare module name without /backend (e.g. pantheon-base).
-  // opsModuleName: the bare ops module name without /backend (e.g. pantheon-ops).
-  // readGoModuleName returns the full go.mod module (e.g. pantheon-ops/backend),
-  // so we strip the /backend suffix to get the bare name.
-  const opsBare = readGoModuleName(opsRoot).replace(/\/backend$/, '');
+  // Base owns backend/go.mod, so its imports start at the declared module name.
+  // Ops keeps go.mod at the repository root and the Go packages below backend/.
+  // Preserve the legacy layout when the Ops module already includes /backend.
+  const opsModule = readGoModuleName(opsRoot);
+  const opsModuleName = opsModule.endsWith('/backend') ? opsModule : `${opsModule}/backend`;
   const baseModuleName = manifest.baseGoModule
     || manifest.baseModule
     || detectBackendModuleNameFromTree(sharedBackendRoot);
-  return { baseModuleName, opsModuleName: opsBare };
+  return { baseModuleName, opsModuleName };
 }
 
 function resolveBundleRoot(bundleRoot) {

@@ -124,7 +124,7 @@ function main() {
 
   const baseModuleName = source.sourceRoot
     ? detectBackendModuleNameFromTree(source.sourceRoot)
-    : readGoModuleName(baseRepoRoot);
+    : readGoModuleName(path.join(baseRepoRoot, 'backend'));
   const opsModuleName = readGoModuleName(opsRoot);
 
   const missingFiles = [];
