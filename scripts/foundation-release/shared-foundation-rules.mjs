@@ -21,8 +21,6 @@ export const backendOverlayPaths = new Set([
   'modules/business/generated_registry.go',
   'modules/business/retired_modules.go',
   'modules/auth/login/login_menu.go',
-  'modules/system/seed.go',
-  'modules/system/seed_test.go',
   'modules/lowcode/dynamicmodule/dynamic_module_service_test.go',
   'modules/lowcode/generator/generator_service_test.go',
   'modules/system/iam/menu/component_registry.go',
@@ -351,6 +349,16 @@ export function rewriteBackendModuleReferences(source, fromModuleName, toModuleN
   return source
     .replaceAll(`${fromModuleName}/backend`, toModuleName)
     .replaceAll(`${fromModuleName}/`, `${toModuleName}/`);
+}
+
+export function rewriteBackendBaseSource(source, fromModuleName, toModuleName) {
+  let nextSource = rewriteBackendModuleReferences(source, fromModuleName, toModuleName);
+  for (const [fromPrefix, toPrefix] of frontendRelocatedComponentPrefixes.entries()) {
+    nextSource = nextSource
+      .replaceAll(`"${fromPrefix}`, `"${toPrefix}`)
+      .replaceAll(`'${fromPrefix}`, `'${toPrefix}`);
+  }
+  return nextSource;
 }
 
 export function mergeBuiltinLocaleResources(baseSource, opsSource) {

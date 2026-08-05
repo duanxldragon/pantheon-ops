@@ -17,7 +17,7 @@ import {
   resolveFoundationReleasePaths,
   readGoModuleName,
   resolveBaseRepoRoot,
-  rewriteBackendModuleReferences,
+  rewriteBackendBaseSource,
   sharedBackendEntriesFromLock,
   stripTreePrefix,
   toRepoPath,
@@ -33,7 +33,7 @@ function readFile(filePath) {
 }
 
 function buildExpectedOpsSource(relativePath, baseSource, opsSource, baseModuleName, opsModuleName) {
-  const rewrittenBaseSource = rewriteBackendModuleReferences(baseSource, baseModuleName, opsModuleName);
+  const rewrittenBaseSource = rewriteBackendBaseSource(baseSource, baseModuleName, opsModuleName);
   if (!backendMergedJsonPaths.has(relativePath) || !opsSource) {
     return rewrittenBaseSource;
   }

@@ -17,7 +17,7 @@ import {
   readFoundationLock,
   readGoModuleName,
   rewriteFrontendBaseSource,
-  rewriteBackendModuleReferences,
+  rewriteBackendBaseSource,
   toRelocatedFrontendPath,
 } from './shared-foundation-rules.mjs';
 
@@ -352,7 +352,7 @@ function computeBackendChange(relativePath, sourceRoot, targetRoot, baseModuleNa
   const sourcePath = path.join(sourceRoot, relativePath);
   const targetPath = path.join(targetRoot, relativePath);
   const source = readUtf8(sourcePath);
-  let nextSource = rewriteBackendModuleReferences(source, baseModuleName, opsModuleName);
+  let nextSource = rewriteBackendBaseSource(source, baseModuleName, opsModuleName);
   if (backendMergedJsonPaths.has(relativePath) && fs.existsSync(targetPath)) {
     nextSource = mergeBuiltinLocaleResources(nextSource, readUtf8(targetPath));
   }

@@ -251,6 +251,41 @@ test('apply mode rewrites both legacy and current Base Go import prefixes', () =
   });
 });
 
+test('apply mode relocates Base menu component keys for the Ops frontend structure', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-backend', 'backend', 'modules', 'system', 'seed.go'),
+      [
+        'package system',
+        '',
+        'var menuComponent = "system/user/UserList"',
+        '',
+      ].join('\n'),
+    );
+
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--apply-shared-backend',
+        '--skip-go-validation',
+        '--rollback-on-error',
+      ],
+      repoRoot,
+    );
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+    const seedSource = fs.readFileSync(path.join(opsRoot, 'backend', 'modules', 'system', 'seed.go'), 'utf8');
+    assert.match(seedSource, /system\/iam\/user\/UserList/);
+    assert.doesNotMatch(seedSource, /"system\/user\/UserList"/);
+  });
+});
+
 test('apply mode preserves backend and frontend overlay files while updating shared files', () => {
   withTempDir((root) => {
     const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
