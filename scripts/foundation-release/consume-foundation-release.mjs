@@ -478,13 +478,14 @@ function runCheckScript(opsRoot, scriptName) {
   return result.stdout.trim();
 }
 
-function runNodeScript(opsRoot, scriptRelativePath) {
+function runNodeScript(opsRoot, scriptRelativePath, checkMode = true) {
   const scriptPath = path.join(opsRoot, scriptRelativePath);
   if (!fs.existsSync(scriptPath)) {
     throw new Error(`required check script is missing: ${scriptRelativePath}`);
   }
 
-  const result = spawnSync(process.execPath, [scriptPath, '--check'], {
+  const args = checkMode ? [scriptPath, '--check'] : [scriptPath];
+  const result = spawnSync(process.execPath, args, {
     cwd: opsRoot,
     encoding: 'utf8',
   });
@@ -597,8 +598,13 @@ export function consumeFoundationRelease(options) {
     }
 
     if (options.applySharedFrontend) {
+      // sync-base-shared also removes obsolete files inside Base-owned paths.
+      // Snapshot the whole tree because that cleanup can delete files the bundle no longer contains.
+      rollbackState.captureDirectory(path.join(options.opsRoot, 'frontend', 'src'));
       const frontendResult = applySharedFrontendBundle(options.bundleRoot, options.opsRoot, false, rollbackState);
       summary.push(`Applied shared-frontend bundle (${frontendResult.applied} files)`);
+      runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'sync-base-shared.mjs'), false);
+      summary.push('Removed obsolete shared frontend files');
     }
 
     if (options.check) {

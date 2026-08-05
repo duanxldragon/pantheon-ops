@@ -355,6 +355,49 @@ test('apply mode preserves backend and frontend overlay files while updating sha
   });
 });
 
+test('apply mode removes obsolete files inside shared frontend paths before checking drift', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    const staleFilePath = path.join(
+      opsRoot,
+      'frontend',
+      'src',
+      'modules',
+      'lowcode',
+      'generator',
+      'backend-generator.ts',
+    );
+    writeText(staleFilePath, 'export const staleGenerator = true;\n');
+    writeText(
+      path.join(opsRoot, 'frontend', 'scripts', 'sync-base-shared.mjs'),
+      [
+        "import fs from 'node:fs';",
+        "if (process.argv.includes('--check')) process.exit(1);",
+        `fs.rmSync(${JSON.stringify(staleFilePath)}, { force: true });`,
+        "console.log('Removed obsolete shared frontend files');",
+        '',
+      ].join('\n'),
+    );
+
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--apply-shared-frontend',
+        '--rollback-on-error',
+      ],
+      repoRoot,
+    );
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+    assert.equal(fs.existsSync(staleFilePath), false);
+  });
+});
+
 test('apply mode updates platform health source with its shared Base tests', () => {
   withTempDir((root) => {
     const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
