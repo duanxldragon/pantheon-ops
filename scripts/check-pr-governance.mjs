@@ -388,7 +388,7 @@ function readPrBodyFromEvent(eventPath) {
 
 function reportAndExit(findings, successMessage) {
   if (findings.length > 0) {
-    console.error('Pantheon Base PR governance check failed');
+    console.error('Pantheon Ops PR governance check failed');
     for (const finding of findings) {
       console.error(`- ${finding}`);
     }
@@ -404,13 +404,13 @@ function main(argv) {
   if (eventFlagIndex >= 0) {
     const eventPath = args[eventFlagIndex + 1];
     const body = readPrBodyFromEvent(eventPath);
-    reportAndExit(validatePrBody(body), 'OK pantheon-base PR body governance fields are present');
+    reportAndExit(validatePrBody(body), 'OK pantheon-ops PR body governance fields are present');
     return;
   }
 
   reportAndExit(
     validatePrTemplate(readTemplate()),
-    'OK pantheon-base PR template governance fields are present',
+    'OK pantheon-ops PR template governance fields are present',
   );
 }
 
