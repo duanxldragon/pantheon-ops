@@ -21,6 +21,7 @@ In scope:
 - Strengthen the Ops release consumer to require rollback protection, enforce release compatibility, and preserve all backend/frontend business overlays.
 - Update the foundation lock, inheritance documents, and local verified release artifact through the consumer.
 - Verify inherited backend/frontend alignment and the smallest relevant backend, frontend, menu, i18n, and smoke gates.
+- Relocate the obsolete shared PageHeader into the business extension area without changing its markup, classes, or detail-page behavior.
 
 Out of scope:
 - Editing or copying Pantheon Base platform/system source into Ops.

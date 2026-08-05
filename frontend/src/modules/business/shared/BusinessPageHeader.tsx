@@ -1,14 +1,14 @@
 import React from 'react';
 import { Space, Typography } from '@arco-design/web-react';
 
-interface PageHeaderProps {
+interface BusinessPageHeaderProps {
   title?: React.ReactNode;
   subtitle?: React.ReactNode;
   extra?: React.ReactNode;
   className?: string;
 }
 
-const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, extra, className }) => (
+const BusinessPageHeader: React.FC<BusinessPageHeaderProps> = ({ title, subtitle, extra, className }) => (
   <div className={className ? `page-header ${className}` : 'page-header'}>
     {title || subtitle ? (
       <Space direction="vertical" size={4} className="page-header__meta">
@@ -26,4 +26,4 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, subtitle, extra, classNa
   </div>
 );
 
-export default PageHeader;
+export default BusinessPageHeader;

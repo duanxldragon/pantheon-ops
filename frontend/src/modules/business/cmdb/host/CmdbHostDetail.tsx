@@ -16,7 +16,7 @@ import {
 import { IconLeft, IconCode } from '@arco-design/web-react/icon';
 import { AppModal, PageEmpty, PageError, PageLoading } from '../../../../components';
 import PageContainer from '../../../../components/patterns/layout/PageContainer';
-import PageHeader from '../../../../components/patterns/layout/PageHeader';
+import PageHeader from '../../shared/BusinessPageHeader';
 import FormSection from '../../../../components/patterns/feedback/FormSection';
 import SubmitBar from '../../../../components/patterns/actions/SubmitBar';
 import { getHostDetail, collectHostConfig } from './api';

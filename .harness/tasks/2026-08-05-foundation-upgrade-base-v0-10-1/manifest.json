@@ -48,12 +48,13 @@
       "foundation-release.lock.json",
       "docs/PROJECT_INHERITANCE.md",
       "docs/PROJECT_INHERITANCE.en.md",
+      "frontend/src/modules/business/{bizscope,cmdb,deploy}/** (mechanical BusinessPageHeader import relocation only)",
+      "frontend/src/modules/business/shared/BusinessPageHeader.tsx",
       ".foundation/releases/pantheon-base-v0.10.1/**"
     ],
     "doNotTouch": [
       "../pantheon-base/**",
-      "backend/modules/business/**",
-      "frontend/src/modules/business/**"
+      "backend/modules/business/**"
     ]
   },
   "harnessProfile": {
