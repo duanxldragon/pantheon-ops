@@ -86,12 +86,20 @@ for (const relativePath of requiredFiles) {
     if (!foundationLock?.baseCommit || !/^[0-9a-f]{40}$/iu.test(foundationLock.baseCommit)) {
       findings.push(`${relativePath}: baseCommit must be a 40-char git commit`);
     }
-    if (foundationLock?.releaseLine !== 'release/0.8') {
-      findings.push(`${relativePath}: releaseLine must remain release/0.8`);
+    if (!/^release\/\d+\.\d+$/u.test(foundationLock?.releaseLine ?? '')) {
+      findings.push(`${relativePath}: releaseLine must use release/<major>.<minor> format`);
+    }
+    if (foundationLock?.releaseVersion && foundationLock.releaseArtifact?.localPath
+      !== `.foundation/releases/${foundationLock.releaseVersion}`) {
+      findings.push(`${relativePath}: releaseArtifact.localPath must match releaseVersion`);
     }
   }
 
   if (relativePath === 'docs/PROJECT_INHERITANCE.md' && foundationLock) {
+    const releaseLineMarker = `Base release line：当前跟随 \`${foundationLock.releaseLine}\``;
+    if (!content.includes(releaseLineMarker)) {
+      findings.push(`${relativePath}: base release line marker does not match foundation-release.lock.json`);
+    }
     const releaseMarker = `Base version：当前锁定到 \`${foundationLock.releaseVersion}\`（\`${foundationLock.baseCommit}\`）`;
     if (!content.includes(releaseMarker)) {
       findings.push(`${relativePath}: base version marker does not match foundation-release.lock.json`);
@@ -99,6 +107,10 @@ for (const relativePath of requiredFiles) {
   }
 
   if (relativePath === 'docs/PROJECT_INHERITANCE.en.md' && foundationLock) {
+    const releaseLineMarker = `Base release line: \`${foundationLock.releaseLine}\``;
+    if (!content.includes(releaseLineMarker)) {
+      findings.push(`${relativePath}: base release line marker does not match foundation-release.lock.json`);
+    }
     const releaseMarker = `Base version: \`${foundationLock.releaseVersion}\` (\`${foundationLock.baseCommit}\`)`;
     if (!content.includes(releaseMarker)) {
       findings.push(`${relativePath}: base version marker does not match foundation-release.lock.json`);
