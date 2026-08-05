@@ -20,7 +20,7 @@ import { isForbiddenRequestError, isRequestError } from '../../../../api/request
 import { AppModal, PageEmpty, PageForbidden, PageLoading, PageNotFound, PageRequestError } from '../../../../components';
 import AppTable from '../../../../components/data-display/AppTable';
 import PageContainer from '../../../../components/patterns/layout/PageContainer';
-import PageHeader from '../../shared/BusinessPageHeader';
+import BusinessPageHeader from '../../shared/BusinessPageHeader';
 import SubmitBar from '../../../../components/patterns/actions/SubmitBar';
 import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
@@ -454,7 +454,7 @@ export default function DeployTaskDetail() {
 
   return (
     <PageContainer>
-      <PageHeader
+      <BusinessPageHeader
         title={task.name}
         subtitle={t('operations.deploy.task.detail')}
         extra={(

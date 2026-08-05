@@ -16,7 +16,7 @@ import {
 import { IconLeft, IconCode } from '@arco-design/web-react/icon';
 import { AppModal, PageEmpty, PageError, PageLoading } from '../../../../components';
 import PageContainer from '../../../../components/patterns/layout/PageContainer';
-import PageHeader from '../../shared/BusinessPageHeader';
+import BusinessPageHeader from '../../shared/BusinessPageHeader';
 import FormSection from '../../../../components/patterns/feedback/FormSection';
 import SubmitBar from '../../../../components/patterns/actions/SubmitBar';
 import { getHostDetail, collectHostConfig } from './api';
@@ -129,7 +129,7 @@ export default function CmdbHostDetail() {
   if (error || !host) {
     return (
       <PageContainer>
-        <PageHeader title={t('operations.cmdb.host.detail')} />
+        <BusinessPageHeader title={t('operations.cmdb.host.detail')} />
         <PageError description={t('common.loadFailedDesc')} onRetry={loadDetail} />
       </PageContainer>
     );
@@ -137,7 +137,7 @@ export default function CmdbHostDetail() {
 
   return (
     <PageContainer>
-      <PageHeader
+      <BusinessPageHeader
         title={host.hostname}
         extra={
           <Space>

@@ -17,6 +17,7 @@ const listPageCssPath = path.join(
   'shared',
   'list-page.css',
 );
+const dashboardCssPath = path.join(frontendRoot, 'src', 'modules', 'platform', 'dashboard.css');
 const loginCssPath = path.join(
   frontendRoot,
   'src',
@@ -90,6 +91,7 @@ const userListPath = path.join(
 const source = fs.readFileSync(layoutCssPath, 'utf8');
 const globalSource = fs.readFileSync(globalCssPath, 'utf8');
 const listPageSource = fs.readFileSync(listPageCssPath, 'utf8');
+const dashboardCssSource = fs.readFileSync(dashboardCssPath, 'utf8');
 const loginCssSource = fs.readFileSync(loginCssPath, 'utf8');
 const tableBatchActionBarSource = fs.readFileSync(tableBatchActionBarPath, 'utf8');
 const appModalSource = fs.readFileSync(appModalPath, 'utf8');
@@ -282,7 +284,6 @@ const moduleSourceFiles = readFilesRecursive(
   (entryPath) =>
     /\.(?:tsx|ts)$/.test(entryPath) &&
     !entryPath.endsWith('.test.ts') &&
-    !entryPath.includes(`${path.sep}modules${path.sep}business${path.sep}`) &&
     !entryPath.includes(`${path.sep}modules${path.sep}generator${path.sep}`),
 );
 
@@ -391,6 +392,7 @@ const platformCssSources = [
   ['global CSS', globalSource],
   ['layout CSS', source],
   ['system list-page CSS', listPageSource],
+  ['dashboard CSS', dashboardCssSource],
 ];
 
 for (const [label, cssSource] of platformCssSources) {

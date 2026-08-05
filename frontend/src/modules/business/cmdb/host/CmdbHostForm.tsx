@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Form, Input, InputNumber, Select, Button, Space } from '@arco-design/web-react';
+import { Form, Input, InputNumber, Select, Button, Space, Popconfirm } from '@arco-design/web-react';
 import { IconPlus, IconDelete } from '@arco-design/web-react/icon';
 import type { CreateHostPayload, HostRow, LabelEntry } from './api';
 import { getLabelSchemaOptions, type LabelSchemaRow } from '../label/api';
@@ -177,12 +177,14 @@ export default function CmdbHostForm({ editing, onSubmit, onCancel, submitting }
                       ))}
                     </Select>
                   </Form.Item>
-                  <Button
-                    type="text"
-                    status="danger"
-                    icon={<IconDelete />}
-                    onClick={() => remove(index)}
-                  />
+                  <Popconfirm title={t('common.deleteConfirm')} onOk={() => remove(index)}>
+                    <Button
+                      type="text"
+                      status="danger"
+                      icon={<IconDelete />}
+                      aria-label={t('common.delete')}
+                    />
+                  </Popconfirm>
                 </Space>
               ))}
               <Button type="dashed" icon={<IconPlus />} onClick={() => add()}>

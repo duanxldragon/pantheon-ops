@@ -21,7 +21,7 @@ import {
   PageError,
   PageLoading,
 } from '../../../components';
-import PageHeader from '../shared/BusinessPageHeader';
+import BusinessPageHeader from '../shared/BusinessPageHeader';
 import FormSection from '../../../components/patterns/feedback/FormSection';
 import { usePermission } from '../../../hooks/usePermission';
 import { formatDateTime } from '../../../core/format/dateTime';
@@ -315,7 +315,7 @@ export default function BizScopeDetail() {
 
   return (
     <PageContainer>
-      <PageHeader
+      <BusinessPageHeader
         title={detail.name}
         subtitle={t('operations.bizscope.detail')}
         extra={

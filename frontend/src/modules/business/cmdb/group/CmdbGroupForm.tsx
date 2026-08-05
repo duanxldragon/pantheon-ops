@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Form, Input, Select, Button, Space, Radio } from '@arco-design/web-react';
+import { Form, Input, Select, Button, Space, Radio, Popconfirm } from '@arco-design/web-react';
 import { IconPlus, IconDelete } from '@arco-design/web-react/icon';
 import type { CreateGroupPayload, GroupRow, ConditionRule } from './api';
 import { getLabelSchemaOptions, type LabelSchemaRow } from '../label/api';
@@ -219,13 +219,19 @@ export default function CmdbGroupForm({
                       ))}
                     </Select>
                   </Form.Item>
-                  <Button
-                    type="text"
-                    status="danger"
-                    icon={<IconDelete />}
-                    onClick={() => remove(index)}
+                  <Popconfirm
+                    title={t('common.deleteConfirm')}
+                    onOk={() => remove(index)}
                     disabled={fields.length === 1}
-                  />
+                  >
+                    <Button
+                      type="text"
+                      status="danger"
+                      icon={<IconDelete />}
+                      disabled={fields.length === 1}
+                      aria-label={t('common.delete')}
+                    />
+                  </Popconfirm>
                 </Space>
               ))}
               <Button type="dashed" icon={<IconPlus />} onClick={() => add({ key: '', op: 'eq', val: '' })}>
