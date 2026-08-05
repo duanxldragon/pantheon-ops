@@ -230,8 +230,18 @@ export function isBackendOverlayPath(relativePath) {
     || backendOverlayDirPrefixes.some((prefix) => relativePath.startsWith(prefix));
 }
 
+export function isBackendBusinessPath(relativePath) {
+  return relativePath === 'modules/business'
+    || relativePath.startsWith('modules/business/');
+}
+
 export function isFrontendOverlayPath(relativePath) {
   return frontendOverlayPaths.has(relativePath);
+}
+
+export function isFrontendBusinessPath(relativePath) {
+  return relativePath === 'modules/business'
+    || relativePath.startsWith('modules/business/');
 }
 
 export function toRelocatedFrontendPath(relativePath) {

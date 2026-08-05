@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
@@ -8,7 +9,9 @@ import {
   collectFiles,
   detectBackendModuleNameFromTree,
   ensureDir,
+  isBackendBusinessPath,
   isBackendOverlayPath,
+  isFrontendBusinessPath,
   isFrontendOverlayPath,
   mergeBuiltinLocaleResources,
   readFoundationLock,
@@ -29,6 +32,7 @@ function parseArgs(argv) {
     check: false,
     dryRun: false,
     rollbackOnError: false,
+    allowReleaseLineJump: false,
     skipGoValidation: false,
   };
 
@@ -60,6 +64,8 @@ function parseArgs(argv) {
       options.dryRun = true;
     } else if (arg === '--rollback-on-error') {
       options.rollbackOnError = true;
+    } else if (arg === '--allow-release-line-jump') {
+      options.allowReleaseLineJump = true;
     } else if (arg === '--skip-go-validation') {
       options.skipGoValidation = true;
     } else if (arg === '--help' || arg === '-h') {
@@ -81,6 +87,12 @@ function validateOptions(options) {
   }
   if (!options.bundleRoot) {
     throw new Error('bundle is required');
+  }
+  if (
+    (options.applySharedBackend || options.applySharedFrontend || options.updateInheritanceDocs)
+    && !options.rollbackOnError
+  ) {
+    throw new Error('--rollback-on-error is required whenever the foundation consumer modifies files');
   }
 }
 
@@ -165,6 +177,111 @@ function writeUtf8(filePath, content) {
   fs.writeFileSync(filePath, content, 'utf8');
 }
 
+function parseReleaseLine(releaseLine, fieldName) {
+  const match = /^release\/(\d+)\.(\d+)$/u.exec(releaseLine ?? '');
+  if (!match) {
+    throw new Error(`${fieldName} must use release/<major>.<minor> format; received ${releaseLine ?? 'missing'}`);
+  }
+  return { major: Number(match[1]), minor: Number(match[2]) };
+}
+
+function compareReleaseLines(left, right) {
+  const leftVersion = parseReleaseLine(left, 'release line');
+  const rightVersion = parseReleaseLine(right, 'release line');
+  if (leftVersion.major !== rightVersion.major) {
+    return leftVersion.major - rightVersion.major;
+  }
+  return leftVersion.minor - rightVersion.minor;
+}
+
+function validateConsumerCompatibility(opsRoot, manifest, allowReleaseLineJump) {
+  const minimumCurrentRelease = manifest.consumerCompatibility?.['pantheon-ops']?.minimumCurrentRelease;
+  if (!minimumCurrentRelease) {
+    return null;
+  }
+
+  const currentLock = readFoundationLock(opsRoot);
+  if (compareReleaseLines(currentLock.releaseLine, minimumCurrentRelease) >= 0) {
+    return null;
+  }
+
+  if (allowReleaseLineJump && compareReleaseLines(manifest.releaseLine, currentLock.releaseLine) > 0) {
+    return [
+      `Explicit release-line jump accepted: ${currentLock.releaseLine} -> ${manifest.releaseLine}`,
+      `Target requires minimum current release ${minimumCurrentRelease}`,
+    ].join('; ');
+  }
+
+  throw new Error(
+    [
+      `foundation release ${manifest.releaseVersion} requires current release ${minimumCurrentRelease} or newer`,
+      `but pantheon-ops is locked to ${currentLock.releaseLine}`,
+      'Review the release transition, run a dry-run, then pass --allow-release-line-jump only for an intentional forward release-line migration.',
+    ].join('; '),
+  );
+}
+
+function ensureCleanWorktree(opsRoot) {
+  const statusResult = spawnSync('git', ['status', '--porcelain', '--untracked-files=all'], {
+    cwd: opsRoot,
+    encoding: 'utf8',
+  });
+  if (statusResult.status !== 0) {
+    return;
+  }
+  if (statusResult.stdout.trim()) {
+    throw new Error('foundation apply requires a clean git worktree; commit or stash existing changes first');
+  }
+}
+
+function createRollbackState() {
+  const files = new Map();
+  const directories = new Map();
+  const snapshotRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-foundation-rollback-'));
+
+  function captureFile(filePath) {
+    if (files.has(filePath)) {
+      return;
+    }
+    files.set(filePath, fs.existsSync(filePath) ? fs.readFileSync(filePath) : null);
+  }
+
+  function captureDirectory(directoryPath) {
+    if (directories.has(directoryPath)) {
+      return;
+    }
+    const backupPath = path.join(snapshotRoot, `directory-${directories.size}`);
+    const exists = fs.existsSync(directoryPath);
+    if (exists) {
+      fs.cpSync(directoryPath, backupPath, { recursive: true });
+    }
+    directories.set(directoryPath, { exists, backupPath });
+  }
+
+  function restore() {
+    for (const [filePath, original] of files) {
+      if (original === null) {
+        fs.rmSync(filePath, { force: true });
+      } else {
+        ensureDir(filePath);
+        fs.writeFileSync(filePath, original);
+      }
+    }
+    for (const [directoryPath, snapshot] of directories) {
+      fs.rmSync(directoryPath, { recursive: true, force: true });
+      if (snapshot.exists) {
+        fs.cpSync(snapshot.backupPath, directoryPath, { recursive: true });
+      }
+    }
+  }
+
+  function cleanup() {
+    fs.rmSync(snapshotRoot, { recursive: true, force: true });
+  }
+
+  return { captureFile, captureDirectory, restore, cleanup };
+}
+
 function resolveBackendModuleNames(bundleRoot, opsRoot, manifest) {
   const sharedBackendRoot = path.join(resolveBundleRoot(bundleRoot), 'shared-backend', 'backend');
   // baseModuleName: the bare module name without /backend (e.g. pantheon-base).
@@ -197,7 +314,7 @@ function resolveReleaseRoot(bundleRoot) {
   return null;
 }
 
-function installConsumedReleaseArtifact(bundleRoot, opsRoot, manifest) {
+function installConsumedReleaseArtifact(bundleRoot, opsRoot, manifest, rollbackState) {
   const releaseRoot = resolveReleaseRoot(bundleRoot);
   if (!releaseRoot) {
     return;
@@ -207,6 +324,7 @@ function installConsumedReleaseArtifact(bundleRoot, opsRoot, manifest) {
   if (path.resolve(releaseRoot) === path.resolve(targetRoot)) {
     return;
   }
+  rollbackState.captureDirectory(targetRoot);
   fs.rmSync(targetRoot, { recursive: true, force: true });
   fs.mkdirSync(path.dirname(targetRoot), { recursive: true });
   fs.cpSync(releaseRoot, targetRoot, { recursive: true });
@@ -275,7 +393,7 @@ function computeFrontendChange(relativePath, sourceRoot, targetRoot) {
   return null;
 }
 
-function applySharedBackendBundle(bundleRoot, opsRoot, manifest, dryRun = false) {
+function applySharedBackendBundle(bundleRoot, opsRoot, manifest, dryRun = false, rollbackState = null) {
   const sourceRoot = path.join(resolveBundleRoot(bundleRoot), 'shared-backend', 'backend');
   if (!fs.existsSync(sourceRoot)) {
     return { skipped: 0, applied: 0, dryRun };
@@ -286,7 +404,7 @@ function applySharedBackendBundle(bundleRoot, opsRoot, manifest, dryRun = false)
   const changes = [];
 
   for (const relativePath of collectFiles(sourceRoot)) {
-    if (isBackendOverlayPath(relativePath)) {
+    if (isBackendOverlayPath(relativePath) || isBackendBusinessPath(relativePath)) {
       continue;
     }
 
@@ -298,6 +416,7 @@ function applySharedBackendBundle(bundleRoot, opsRoot, manifest, dryRun = false)
     if (dryRun) {
       changes.push(change);
     } else {
+      rollbackState?.captureFile(change.targetPath);
       writeUtf8(change.targetPath, change.newContent);
     }
   }
@@ -308,7 +427,7 @@ function applySharedBackendBundle(bundleRoot, opsRoot, manifest, dryRun = false)
   return { skipped: 0, applied: collectFiles(sourceRoot).length, dryRun };
 }
 
-function applySharedFrontendBundle(bundleRoot, opsRoot, dryRun = false) {
+function applySharedFrontendBundle(bundleRoot, opsRoot, dryRun = false, rollbackState = null) {
   const sourceRoot = path.join(resolveBundleRoot(bundleRoot), 'shared-frontend', 'frontend', 'src');
   if (!fs.existsSync(sourceRoot)) {
     return { skipped: 0, applied: 0, dryRun };
@@ -319,7 +438,7 @@ function applySharedFrontendBundle(bundleRoot, opsRoot, dryRun = false) {
 
   for (const relativePath of collectFiles(sourceRoot)) {
     const targetRelativePath = toRelocatedFrontendPath(relativePath);
-    if (isFrontendOverlayPath(targetRelativePath)) {
+    if (isFrontendOverlayPath(targetRelativePath) || isFrontendBusinessPath(targetRelativePath)) {
       continue;
     }
     const change = computeFrontendChange(relativePath, sourceRoot, targetRoot);
@@ -330,6 +449,7 @@ function applySharedFrontendBundle(bundleRoot, opsRoot, dryRun = false) {
     if (dryRun) {
       changes.push(change);
     } else {
+      rollbackState?.captureFile(change.targetPath);
       writeUtf8(change.targetPath, change.newContent);
     }
   }
@@ -376,33 +496,6 @@ function runNodeScript(opsRoot, scriptRelativePath) {
   return result.stdout.trim();
 }
 
-function stashOpsChanges(opsRoot) {
-  const statusResult = spawnSync('git', ['status', '--porcelain'], {
-    cwd: opsRoot,
-    encoding: 'utf8',
-  });
-  if (statusResult.status !== 0) {
-    // Not a git repo — nothing to stash, nothing to lose
-    return null;
-  }
-  const hasChanges = statusResult.stdout.trim().length > 0;
-  if (!hasChanges) {
-    return null;
-  }
-
-  const result = spawnSync('git', ['stash', 'push', '-m',
-    `foundation-upgrade-stash-${new Date().toISOString()}`],
-    { cwd: opsRoot, encoding: 'utf8' });
-  if (result.status !== 0) {
-    throw new Error(`git stash failed: ${result.stderr || result.stdout}`);
-  }
-  return result.stdout.trim();
-}
-
-function popStash(opsRoot) {
-  spawnSync('git', ['stash', 'pop'], { cwd: opsRoot, encoding: 'utf8' });
-}
-
 function validateGoBuild(opsRoot) {
   const backendRoot = path.join(opsRoot, 'backend');
 
@@ -418,34 +511,25 @@ function validateGoBuild(opsRoot) {
     return;
   }
 
-  // Even if vet fails (e.g. due to missing transitive deps in test environments),
-  // the rewriter is still considered valid as long as the files themselves are
-  // syntactically sound. Log and continue rather than aborting the upgrade.
-  console.warn(`go vet exited ${vetResult.status} — checking syntax only...`);
-  const fmtResult = spawnSync('go', ['fmt', './...'], {
-    cwd: backendRoot,
-    encoding: 'utf8',
-    env: { ...process.env, CGO_ENABLED: '0' },
-  });
-  if (fmtResult.status !== 0) {
-    throw new Error(
-      `go vet / go fmt failed; module rewrites may have introduced errors:\n${
-        vetResult.stderr || vetResult.stdout
-      }\n${fmtResult.stderr || fmtResult.stdout}`,
-    );
-  }
+  throw new Error(`go vet failed after module rewrites:\n${vetResult.stderr || vetResult.stdout}`);
 }
 
 export function consumeFoundationRelease(options) {
   validateOptions(options);
 
   const manifest = readManifest(options.manifestPath);
+  const compatibilitySummary = validateConsumerCompatibility(
+    options.opsRoot,
+    manifest,
+    options.allowReleaseLineJump,
+  );
   const summary = [
     `Target foundation release: ${manifest.releaseVersion}`,
     `Release line: ${manifest.releaseLine}`,
   ];
-
-  let stashRef = null;
+  if (compatibilitySummary) {
+    summary.push(compatibilitySummary);
+  }
 
   if (options.dryRun) {
     summary.push('DRY RUN — no files will be modified');
@@ -477,23 +561,30 @@ export function consumeFoundationRelease(options) {
     return { manifest, summary, dryRun: true, changes: allChanges };
   }
 
-  if (options.applySharedBackend || options.applySharedFrontend) {
-    stashRef = stashOpsChanges(options.opsRoot);
-    summary.push(`Stashed local changes: ${stashRef}`);
+  const writesFiles = options.applySharedBackend || options.applySharedFrontend || options.updateInheritanceDocs;
+  if (writesFiles) {
+    ensureCleanWorktree(options.opsRoot);
   }
+  const rollbackState = createRollbackState();
 
   try {
     if (options.updateInheritanceDocs) {
-      installConsumedReleaseArtifact(options.bundleRoot, options.opsRoot, manifest);
-      updateInheritanceDoc(path.join(options.opsRoot, 'docs', 'PROJECT_INHERITANCE.md'), manifest, 'zh');
-      updateInheritanceDoc(path.join(options.opsRoot, 'docs', 'PROJECT_INHERITANCE.en.md'), manifest, 'en');
+      const zhDocPath = path.join(options.opsRoot, 'docs', 'PROJECT_INHERITANCE.md');
+      const enDocPath = path.join(options.opsRoot, 'docs', 'PROJECT_INHERITANCE.en.md');
+      const lockPath = path.join(options.opsRoot, 'foundation-release.lock.json');
+      rollbackState.captureFile(zhDocPath);
+      rollbackState.captureFile(enDocPath);
+      rollbackState.captureFile(lockPath);
+      installConsumedReleaseArtifact(options.bundleRoot, options.opsRoot, manifest, rollbackState);
+      updateInheritanceDoc(zhDocPath, manifest, 'zh');
+      updateInheritanceDoc(enDocPath, manifest, 'en');
       updateFoundationLock(options.opsRoot, manifest);
       summary.push('Updated inheritance docs');
       summary.push('Updated foundation-release.lock.json');
     }
 
     if (options.applySharedBackend) {
-      const backendResult = applySharedBackendBundle(options.bundleRoot, options.opsRoot, manifest);
+      const backendResult = applySharedBackendBundle(options.bundleRoot, options.opsRoot, manifest, false, rollbackState);
       summary.push(`Applied shared-backend bundle (${backendResult.applied} files)`);
 
       if (!options.skipGoValidation) {
@@ -506,7 +597,7 @@ export function consumeFoundationRelease(options) {
     }
 
     if (options.applySharedFrontend) {
-      const frontendResult = applySharedFrontendBundle(options.bundleRoot, options.opsRoot);
+      const frontendResult = applySharedFrontendBundle(options.bundleRoot, options.opsRoot, false, rollbackState);
       summary.push(`Applied shared-frontend bundle (${frontendResult.applied} files)`);
     }
 
@@ -521,15 +612,12 @@ export function consumeFoundationRelease(options) {
       runNodeScript(options.opsRoot, path.join('frontend', 'scripts', 'check-menu-contract.mjs'));
     }
   } catch (error) {
-    if (stashRef && options.rollbackOnError) {
-      console.error(`Error during apply: ${error.message}`);
-      console.error('Rolling back via git stash pop...');
-      popStash(options.opsRoot);
-      console.error('Rolled back to pre-upgrade state.');
-      process.exitCode = 1;
-      return;
-    }
+    rollbackState.restore();
+    console.error(`Error during apply: ${error.message}`);
+    console.error('Rolled back files changed by this foundation apply.');
     throw error;
+  } finally {
+    rollbackState.cleanup();
   }
 
   return { manifest, summary };
@@ -546,7 +634,8 @@ Options:
   --update-inheritance-docs
   --check
   --dry-run           preview what would change without modifying files
-  --rollback-on-error automatically restore via git stash pop on failure`);
+  --rollback-on-error required for write operations; restores touched files on failure
+  --allow-release-line-jump explicitly acknowledge an intentional forward release-line migration`);
 }
 
 function main() {

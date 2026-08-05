@@ -1,0 +1,103 @@
+{
+  "taskId": "2026-08-05-foundation-upgrade-base-v0-10-1",
+  "title": "Consume pantheon-base-v0.10.1 in Pantheon Ops",
+  "goal": "Consume the immutable pantheon-base-v0.10.1 foundation release through the guarded Ops consumer while preserving all business overlays and proving the inherited contracts.",
+  "primaryLayer": "inheritance-sync",
+  "taskDoc": "docs/harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-1.task.md",
+  "scope": {
+    "in": [
+      "download and verify the formal pantheon-base-v0.10.1 release artifact",
+      "guard the foundation consumer against unprotected writes, unsafe compatibility transitions, and business overlay replacement",
+      "apply shared backend and frontend paths from the verified release bundle",
+      "update the foundation lock and inheritance documents",
+      "verify inherited contracts and targeted runtime gates"
+    ],
+    "out": [
+      "changes to pantheon-base source or release tags",
+      "manual copies of base files into pantheon-ops",
+      "business feature changes outside preservation of business overlays"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "../pantheon-base/DESIGN.md",
+    "../pantheon-base/AGENTS.md",
+    "../pantheon-base/docs/README.md"
+  ],
+  "sourceRelease": {
+    "releaseVersion": "pantheon-base-v0.10.1",
+    "releaseLine": "release/0.10",
+    "baseCommit": "929fcf5fdb0d8f663d7b66b68d6668e193daf8b9",
+    "archiveSha256": "2123073d7c01d44c48537d1a0f1fb8655d095ca00ac3205586a436c33f62487e"
+  },
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-1.task.md",
+      ".harness/tasks/2026-08-05-foundation-upgrade-base-v0-10-1/manifest.json",
+      ".harness/evidence/2026-08-05-foundation-upgrade-base-v0-10-1/commands.json",
+      ".harness/evidence/2026-08-05-foundation-upgrade-base-v0-10-1/summary.md",
+      ".harness/evidence/2026-08-05-foundation-upgrade-base-v0-10-1/review.md",
+      ".harness/evidence/2026-08-05-foundation-upgrade-base-v0-10-1/pr-body.md"
+    ],
+    "modify": [
+      "scripts/foundation-release/consume-foundation-release.mjs",
+      "scripts/foundation-release/shared-foundation-rules.mjs",
+      "scripts/check-base-backend-sync.mjs",
+      "tests/scripts/foundation-release/consume-foundation-release.test.mjs",
+      "foundation-release.lock.json",
+      "docs/PROJECT_INHERITANCE.md",
+      "docs/PROJECT_INHERITANCE.en.md",
+      ".foundation/releases/pantheon-base-v0.10.1/**"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "backend/modules/business/**",
+      "frontend/src/modules/business/**"
+    ]
+  },
+  "harnessProfile": {
+    "template": "pantheon-ops inheritance L2",
+    "qualityProfile": "foundation-release-consumer",
+    "ownerLayer": "inheritance-boundary",
+    "coverageDimensions": [
+      "release-identity",
+      "business-overlay-preservation",
+      "rollback-safety",
+      "inherited-contracts",
+      "hosted-verification"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "node --test tests/scripts/foundation-release/consume-foundation-release.test.mjs",
+      "npm run check:inheritance",
+      "npm run check:base-sync",
+      "go test ./...",
+      "npm run type-check",
+      "npm run build",
+      "npm run test:smoke:business"
+    ],
+    "runtimeEvidence": [
+      "GitHub pull_request quality and security workflows",
+      "Base release identity verification",
+      "Ops consumer dry-run and apply output"
+    ]
+  },
+  "runtimeSensitive": true,
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-08-05-foundation-upgrade-base-v0-10-1/",
+    "reviewFile": ".harness/evidence/2026-08-05-foundation-upgrade-base-v0-10-1/review.md",
+    "summaryFile": ".harness/evidence/2026-08-05-foundation-upgrade-base-v0-10-1/summary.md",
+    "changeRef": "pending",
+    "planRefs": []
+  },
+  "completionChecklist": [
+    "release identity verified",
+    "consumer safety regression tests passed",
+    "business overlays preserved",
+    "inheritance checks passed",
+    "review and hosted verification recorded",
+    "Ops lock consumes the exact Base release"
+  ]
+}

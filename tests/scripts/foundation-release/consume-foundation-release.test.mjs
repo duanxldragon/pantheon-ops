@@ -163,6 +163,7 @@ test('apply mode updates inheritance anchors in both Chinese and English docs', 
         '--bundle',
         bundleRoot,
         '--update-inheritance-docs',
+        '--rollback-on-error',
       ],
       repoRoot,
     );
@@ -198,6 +199,7 @@ test('apply mode copies shared backend files from the bundle into ops', () => {
         bundleRoot,
         '--apply-shared-backend',
         '--skip-go-validation',
+        '--rollback-on-error',
       ],
       repoRoot,
     );
@@ -223,6 +225,14 @@ test('apply mode preserves backend and frontend overlay files while updating sha
       'ops component registry\n',
     );
     writeText(
+      path.join(bundleRoot, 'bundle', 'shared-backend', 'backend', 'modules', 'business', 'cmdb', 'host.go'),
+      'base business module\n',
+    );
+    writeText(
+      path.join(opsRoot, 'backend', 'modules', 'business', 'cmdb', 'host.go'),
+      'ops business module\n',
+    );
+    writeText(
       path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'core', 'router', 'generatedComponentRegistry.ts'),
       'export const generatedComponentRegistry = { base: true };\n',
     );
@@ -246,6 +256,7 @@ test('apply mode preserves backend and frontend overlay files while updating sha
         '--apply-shared-backend',
         '--apply-shared-frontend',
         '--skip-go-validation',
+        '--rollback-on-error',
       ],
       repoRoot,
     );
@@ -262,6 +273,10 @@ test('apply mode preserves backend and frontend overlay files while updating sha
     assert.equal(
       fs.readFileSync(path.join(opsRoot, 'frontend', 'src', 'core', 'shell.ts'), 'utf8'),
       'export const shell = "base";\n',
+    );
+    assert.equal(
+      fs.readFileSync(path.join(opsRoot, 'backend', 'modules', 'business', 'cmdb', 'host.go'), 'utf8'),
+      'ops business module\n',
     );
   });
 });
@@ -294,6 +309,7 @@ test('apply mode relocates shared frontend system module paths into the ops stru
         '--bundle',
         bundleRoot,
         '--apply-shared-frontend',
+        '--rollback-on-error',
       ],
       repoRoot,
     );
@@ -352,6 +368,7 @@ test('apply mode merges shared i18n updates without dropping ops business locale
         bundleRoot,
         '--apply-shared-backend',
         '--skip-go-validation',
+        '--rollback-on-error',
       ],
       repoRoot,
     );
@@ -432,6 +449,7 @@ test('apply mode writes lockedAt and lockedBy to foundation-release.lock.json', 
         '--bundle',
         bundleRoot,
         '--update-inheritance-docs',
+        '--rollback-on-error',
       ],
       repoRoot,
     );
@@ -461,5 +479,104 @@ test('--dry-run does not modify any files on disk', () => {
 
     const mtimeAfter = fs.statSync(lockPath).mtimeMs;
     assert.equal(mtimeAfter, mtimeBefore, 'foundation-release.lock.json should not be modified by dry-run');
+  });
+});
+
+test('write operations require rollback-on-error', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--apply-shared-backend',
+        '--skip-go-validation',
+      ],
+      repoRoot,
+    );
+
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /--rollback-on-error is required/);
+  });
+});
+
+test('consumer blocks incompatible release lines unless the forward jump is explicit', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.consumerCompatibility = {
+      'pantheon-ops': {
+        minimumCurrentRelease: 'release/0.8',
+      },
+    };
+    writeJson(manifestPath, manifest);
+
+    const blocked = runScript(
+      ['--ops-root', opsRoot, '--manifest', manifestPath, '--bundle', bundleRoot, '--dry-run'],
+      repoRoot,
+    );
+    assert.notEqual(blocked.status, 0);
+    assert.match(blocked.stderr, /requires current release release\/0\.8 or newer/);
+
+    const allowed = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--dry-run',
+        '--allow-release-line-jump',
+      ],
+      repoRoot,
+    );
+    assert.equal(allowed.status, 0, allowed.stderr || allowed.stdout || allowed.error?.message);
+    assert.match(allowed.stdout, /Explicit release-line jump accepted/);
+  });
+});
+
+test('rollback restores inheritance anchors and release artifacts when a required check fails', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
+    const zhDocPath = path.join(opsRoot, 'docs', 'PROJECT_INHERITANCE.md');
+    const enDocPath = path.join(opsRoot, 'docs', 'PROJECT_INHERITANCE.en.md');
+    const originalLock = fs.readFileSync(lockPath, 'utf8');
+    const originalZhDoc = fs.readFileSync(zhDocPath, 'utf8');
+    const originalEnDoc = fs.readFileSync(enDocPath, 'utf8');
+    writeText(
+      path.join(opsRoot, 'scripts', 'check-base-backend-sync.mjs'),
+      "console.error('expected check failure'); process.exit(1);\n",
+    );
+
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--update-inheritance-docs',
+        '--check',
+        '--rollback-on-error',
+      ],
+      repoRoot,
+    );
+
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Rolled back files changed by this foundation apply/);
+    assert.equal(fs.readFileSync(lockPath, 'utf8'), originalLock);
+    assert.equal(fs.readFileSync(zhDocPath, 'utf8'), originalZhDoc);
+    assert.equal(fs.readFileSync(enDocPath, 'utf8'), originalEnDoc);
+    assert.equal(
+      fs.existsSync(path.join(opsRoot, '.foundation', 'releases', 'base-v0.8.0')),
+      false,
+    );
   });
 });

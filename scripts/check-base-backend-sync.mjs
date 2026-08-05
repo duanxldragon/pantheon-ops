@@ -7,6 +7,7 @@ import {
   backendMergedJsonPaths,
   collectFiles,
   detectBackendModuleNameFromTree,
+  isBackendBusinessPath,
   isBackendOverlayPath,
   listFilesFromGitCommit,
   mergeBuiltinLocaleResources,
@@ -132,7 +133,7 @@ function main() {
 
   // 1) Files in base that are missing or differ in ops
   for (const relativePath of baseFiles) {
-    if (isBackendOverlayPath(relativePath)) {
+    if (isBackendOverlayPath(relativePath) || isBackendBusinessPath(relativePath)) {
       continue;
     }
 
@@ -161,14 +162,10 @@ function main() {
       continue;
     }
     for (const relativePath of collectFiles(opsBackendRoot, entryDir)) {
-      if (isBackendOverlayPath(relativePath)) {
+      if (isBackendOverlayPath(relativePath) || isBackendBusinessPath(relativePath)) {
         continue;
       }
       if (allowedBackendOpsOnlyPaths.has(relativePath)) {
-        continue;
-      }
-      // Skip business/ — business modules are ops-owned, not base-shared
-      if (relativePath.startsWith('modules/business/') || relativePath.startsWith('modules\\business\\')) {
         continue;
       }
       if (baseFileSet.has(relativePath)) {
