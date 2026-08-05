@@ -320,6 +320,49 @@ test('apply mode preserves backend and frontend overlay files while updating sha
   });
 });
 
+test('apply mode updates platform health source with its shared Base tests', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-backend', 'backend', 'modules', 'platform', 'health.go'),
+      'package platform\n\nconst healthSource = "base"\n',
+    );
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-backend', 'backend', 'modules', 'platform', 'health_test.go'),
+      'package platform\n\nfunc TestHealthSource() { _ = healthSource }\n',
+    );
+    writeText(
+      path.join(opsRoot, 'backend', 'modules', 'platform', 'health.go'),
+      'package platform\n\nconst healthSource = "stale ops copy"\n',
+    );
+
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--apply-shared-backend',
+        '--skip-go-validation',
+        '--rollback-on-error',
+      ],
+      repoRoot,
+    );
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+    assert.equal(
+      fs.readFileSync(path.join(opsRoot, 'backend', 'modules', 'platform', 'health.go'), 'utf8'),
+      'package platform\n\nconst healthSource = "base"\n',
+    );
+    assert.equal(
+      fs.existsSync(path.join(opsRoot, 'backend', 'modules', 'platform', 'health_test.go')),
+      true,
+    );
+  });
+});
+
 test('apply mode relocates shared frontend system module paths into the ops structure', () => {
   withTempDir((root) => {
     const { manifestPath, bundleRoot, opsRoot } = createFixture(root);

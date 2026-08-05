@@ -20,7 +20,6 @@ export const backendOverlayPaths = new Set([
   'modules/business/business.go',
   'modules/business/generated_registry.go',
   'modules/business/retired_modules.go',
-  'modules/platform/health.go',
   'modules/auth/login/login_menu.go',
   'modules/system/seed.go',
   'modules/system/seed_test.go',
