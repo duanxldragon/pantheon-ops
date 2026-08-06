@@ -34,10 +34,7 @@ function writeText(filePath, value) {
   fs.writeFileSync(filePath, value, 'utf8');
 }
 
-function writeTestVerificationMarker(args) {
-  const bundleIndex = args.indexOf('--bundle');
-  if (bundleIndex < 0) return;
-  const releaseRoot = path.resolve(args[bundleIndex + 1]);
+function writeVerificationMarker(releaseRoot) {
   const manifest = JSON.parse(fs.readFileSync(path.join(releaseRoot, 'manifest.json'), 'utf8'));
   writeJson(path.join(releaseRoot, '.foundation-release-verified.json'), {
     schemaVersion: 1,
@@ -49,6 +46,12 @@ function writeTestVerificationMarker(args) {
     releaseTreeSha256: computeReleaseTreeSha256(releaseRoot),
     verifiedAt: '2026-08-05T00:00:00.000Z',
   });
+}
+
+function writeTestVerificationMarker(args) {
+  const bundleIndex = args.indexOf('--bundle');
+  if (bundleIndex < 0) return;
+  writeVerificationMarker(path.resolve(args[bundleIndex + 1]));
 }
 
 function runRawScript(args, cwd) {
@@ -903,6 +906,27 @@ test('the formal npm apply entry executes with rollback protection', () => {
 
     assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
     assert.match(result.stdout, /Updated foundation-release\.lock\.json/);
+  });
+});
+
+test('CLI defaults to the verified installed release pinned by the lock', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
+    const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+    lock.releaseLine = manifest.releaseLine;
+    lock.releaseVersion = manifest.releaseVersion;
+    lock.baseCommit = manifest.baseCommit;
+    lock.releaseArtifact.localPath = bundleRoot;
+    writeJson(lockPath, lock);
+    writeVerificationMarker(bundleRoot);
+
+    const result = runRawScript(['--ops-root', opsRoot, '--dry-run'], repoRoot);
+
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+    assert.match(result.stdout, /Target foundation release: base-v0\.8\.0/);
+    assert.match(result.stdout, /DRY RUN/);
   });
 });
 

@@ -17,6 +17,7 @@ import {
   readFoundationLock,
   readVerifiedReleaseMarker,
   readGoModuleName,
+  resolveFoundationReleasePaths,
   rewriteFrontendBaseSource,
   rewriteBackendBaseSource,
   sharedFrontendToolingEntriesFromLock,
@@ -96,6 +97,21 @@ function validateOptions(options) {
   ) {
     throw new Error('--rollback-on-error is required whenever the foundation consumer modifies files');
   }
+}
+
+function resolveCliReleasePaths(options) {
+  const hasManifest = Boolean(options.manifestPath);
+  const hasBundle = Boolean(options.bundleRoot);
+  if (hasManifest || hasBundle) {
+    return options;
+  }
+
+  const { releaseRoot } = resolveFoundationReleasePaths(options.opsRoot);
+  return {
+    ...options,
+    manifestPath: path.join(releaseRoot, 'manifest.json'),
+    bundleRoot: releaseRoot,
+  };
 }
 
 function readManifest(manifestPath) {
@@ -771,7 +787,7 @@ export function consumeFoundationRelease(options) {
 
 function printHelp() {
   console.log(`Usage:
-  node scripts/foundation-release/consume-foundation-release.mjs --manifest <path> --bundle <path> [options]
+  node scripts/foundation-release/consume-foundation-release.mjs [--manifest <path> --bundle <path>] [options]
 
 Options:
   --ops-root <path>
@@ -794,6 +810,7 @@ function main() {
       return 0;
     }
 
+    options = resolveCliReleasePaths(options);
     const result = consumeFoundationRelease(options);
     console.log(result.summary.join('\n'));
     if (result.dryRun) {
