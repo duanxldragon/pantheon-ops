@@ -11,7 +11,7 @@
     "localPath": ".foundation/releases/pantheon-base-v0.10.2",
     "checksum": "b300c17f7e605e113ef4d2ceb8de1ac59bc29a2fad1cbcc4d9f1a6fdf04af09c"
   },
-  "lockedAt": "2026-08-05T11:26:06.605Z",
+  "lockedAt": "2026-08-06T00:24:35.443Z",
   "lockedBy": "xiaolong",
   "sharedPaths": {
     "backend": [
@@ -28,7 +28,8 @@
       "frontend/src/modules/lowcode",
       "frontend/src/modules/platform",
       "frontend/src/modules/system",
-      "frontend/src/index.css"
+      "frontend/src/index.css",
+      "frontend/scripts/lib/css-declarations.mjs"
     ],
     "docs": [
       "docs/designs/FOUNDATION_RELEASE_MODEL.md",

@@ -58,7 +58,7 @@ function initialWorkbench(roleKey: string) {
         apiPolicies: [],
         missingApiPolicies: [
           {
-            path: '/api/v1/system/dynamic-modules/generate',
+            path: '/api/v1/lowcode/dynamic-modules/generate',
             method: 'POST',
           },
         ],
@@ -124,7 +124,7 @@ function remediatedWorkbench(roleKey: string) {
         apiPolicies: [
           {
             id: 9001,
-            path: '/api/v1/system/dynamic-modules/generate',
+            path: '/api/v1/lowcode/dynamic-modules/generate',
             method: 'POST',
           },
         ],
@@ -482,7 +482,7 @@ test('permission workbench remediation retries through secondary verify and clos
               id: 2,
               roleKey,
               issueType: 'api-gap',
-              issueKey: 'POST /api/v1/system/dynamic-modules/generate',
+              issueKey: 'POST /api/v1/lowcode/dynamic-modules/generate',
               beforeState: 'api-gap',
               afterState: 'complete',
               action: 'remediated',
@@ -494,7 +494,7 @@ test('permission workbench remediation retries through secondary verify and clos
               id: 1,
               roleKey,
               issueType: 'api-gap',
-              issueKey: 'POST /api/v1/system/dynamic-modules/generate',
+              issueKey: 'POST /api/v1/lowcode/dynamic-modules/generate',
               beforeState: 'complete',
               afterState: 'complete',
               action: 'noop',
@@ -508,7 +508,7 @@ test('permission workbench remediation retries through secondary verify and clos
               id: 1,
               roleKey,
               issueType: 'api-gap',
-              issueKey: 'POST /api/v1/system/dynamic-modules/generate',
+              issueKey: 'POST /api/v1/lowcode/dynamic-modules/generate',
               beforeState: 'complete',
               afterState: 'complete',
               action: 'noop',
@@ -541,7 +541,7 @@ test('permission workbench remediation retries through secondary verify and clos
         createdPolicies: [
           {
             id: 9001,
-            path: '/api/v1/system/dynamic-modules/generate',
+            path: '/api/v1/lowcode/dynamic-modules/generate',
             method: 'POST',
           },
         ],
@@ -562,7 +562,7 @@ test('permission workbench remediation retries through secondary verify and clos
   const detailDialog = page.getByRole('dialog').filter({ hasText: roleKey }).first();
   await expect(detailDialog).toBeVisible();
   await expect(detailDialog.getByText('最近整改时间线', { exact: true })).toBeVisible();
-  await expect(detailDialog.getByText('/api/v1/system/dynamic-modules/generate', { exact: true })).toBeVisible();
+  await expect(detailDialog.getByText('/api/v1/lowcode/dynamic-modules/generate', { exact: true })).toBeVisible();
 
   await detailDialog.getByRole('button', { name: '一键补齐推荐策略', exact: true }).click();
 
@@ -576,6 +576,6 @@ test('permission workbench remediation retries through secondary verify and clos
   await expect(page.locator('.arco-message').getByText('已补齐 1 条推荐接口策略', { exact: false }).last()).toBeVisible();
   await expect(detailDialog.getByRole('button', { name: '一键补齐推荐策略', exact: true })).toHaveCount(0);
   await expect(detailDialog.getByText('缺接口策略', { exact: true })).toHaveCount(0);
-  await expect(detailDialog.getByText('/api/v1/system/dynamic-modules/generate', { exact: true })).toHaveCount(1);
+  await expect(detailDialog.getByText('/api/v1/lowcode/dynamic-modules/generate', { exact: true })).toHaveCount(1);
   await expect(detailDialog.getByText('已整改', { exact: true })).toBeVisible();
 });

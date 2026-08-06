@@ -219,7 +219,7 @@ function buildSchema(preview: GeneratorTablePreview): ModuleSchema {
 }
 
 async function purgeModuleIfExists(request: APIRequestContext, login: BrowserLoginResult, operationToken: string) {
-  const response = await request.delete(`${apiBaseUrl}/system/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`, {
+  const response = await request.delete(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`, {
     headers: {
       ...apiRequestHeaders(login),
       'X-Operation-Token': operationToken,
@@ -233,7 +233,7 @@ async function purgeModuleIfExists(request: APIRequestContext, login: BrowserLog
 }
 
 async function getModuleStatus(request: APIRequestContext, login: BrowserLoginResult) {
-  const response = await request.get(`${apiBaseUrl}/system/dynamic-modules/${moduleKey}`, {
+  const response = await request.get(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}`, {
     headers: apiRequestHeaders(login),
     failOnStatusCode: false,
   });
@@ -277,7 +277,7 @@ test('cmdb host database-import flow generates a temporary module without droppi
   const files = exporter.generateAll();
   expect(files.length).toBe(10);
 
-  const generateResponse = await page.request.post(`${apiBaseUrl}/system/dynamic-modules/generate`, {
+  const generateResponse = await page.request.post(`${apiBaseUrl}/lowcode/dynamic-modules/generate`, {
     headers: {
       ...apiRequestHeaders(login),
       'X-Operation-Token': operationToken,
@@ -319,7 +319,7 @@ test('cmdb host database-import flow generates a temporary module without droppi
   await expect.poll(async () => readFileContains(frontendRegistry, `../business/${moduleName}`)).toBe(true);
   await expect.poll(async () => readFileContains(componentRegistry, `business/${moduleName}/CmdbhostqaList`)).toBe(true);
 
-  const purgeResponse = await page.request.delete(`${apiBaseUrl}/system/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`, {
+  const purgeResponse = await page.request.delete(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`, {
     headers: {
       ...apiRequestHeaders(login),
       'X-Operation-Token': operationToken,

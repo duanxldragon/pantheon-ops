@@ -184,15 +184,19 @@ test('sync-base-shared uses the installed release artifact by default', () => {
   });
 });
 
-test('sync-base-shared checks and applies allowlisted frontend tooling from the release', () => {
+test('sync-base-shared checks and applies all allowlisted frontend tooling from the release', () => {
   withTempDir((root) => {
     const releaseRoot = path.join(root, 'release-root');
     const opsRoot = path.join(root, 'ops-worktree-fixture');
     const syncScriptPath = copyFixtureScripts(opsRoot);
-    const toolingEntry = 'frontend/scripts/lib/css-declarations.mjs';
+    const toolingEntries = [
+      'frontend/scripts/export-generated-module.mjs',
+      'frontend/scripts/lib/css-declarations.mjs',
+      'frontend/scripts/transpile-typescript-files.mjs',
+    ];
     const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
     const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
-    lock.sharedPaths.frontend = ['frontend/src/components', toolingEntry];
+    lock.sharedPaths.frontend = ['frontend/src/components', ...toolingEntries];
     writeText(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
 
     writeText(
@@ -204,17 +208,19 @@ test('sync-base-shared checks and applies allowlisted frontend tooling from the 
         baseCommit: 'HEAD',
         sourceRepo: 'pantheon-base',
         consumerMode: 'foundation-release-consumer',
-        sharedPaths: { frontend: ['frontend/src/components', toolingEntry] },
+        sharedPaths: { frontend: ['frontend/src/components', ...toolingEntries] },
       }, null, 2)}\n`,
     );
     writeText(
       path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'components', 'index.ts'),
       'export const component = true;\n',
     );
-    writeText(
-      path.join(releaseRoot, 'bundle', 'shared-frontend', toolingEntry),
-      'export const matcher = "release";\n',
-    );
+    for (const toolingEntry of toolingEntries) {
+      writeText(
+        path.join(releaseRoot, 'bundle', 'shared-frontend', toolingEntry),
+        `release:${toolingEntry}\n`,
+      );
+    }
     writeText(
       path.join(opsRoot, 'frontend', 'src', 'components', 'index.ts'),
       'export const component = true;\n',
@@ -223,19 +229,27 @@ test('sync-base-shared checks and applies allowlisted frontend tooling from the 
     const env = { PANTHEON_FOUNDATION_RELEASE_ROOT: releaseRoot };
     const missingResult = runSync(syncScriptPath, opsRoot, env, ['--check']);
     assert.notEqual(missingResult.status, 0);
-    assert.match(missingResult.stderr, /MISSING frontend\/scripts\/lib\/css-declarations\.mjs/);
+    for (const toolingEntry of toolingEntries) {
+      assert.match(missingResult.stderr, new RegExp(`MISSING ${toolingEntry.replaceAll('.', '\\.')}`));
+    }
 
-    writeText(path.join(opsRoot, toolingEntry), 'export const matcher = "stale";\n');
+    for (const toolingEntry of toolingEntries) {
+      writeText(path.join(opsRoot, toolingEntry), `stale:${toolingEntry}\n`);
+    }
     const driftResult = runSync(syncScriptPath, opsRoot, env, ['--check']);
     assert.notEqual(driftResult.status, 0);
-    assert.match(driftResult.stderr, /DIFF frontend\/scripts\/lib\/css-declarations\.mjs/);
+    for (const toolingEntry of toolingEntries) {
+      assert.match(driftResult.stderr, new RegExp(`DIFF ${toolingEntry.replaceAll('.', '\\.')}`));
+    }
 
     const applyResult = runSync(syncScriptPath, opsRoot, env, []);
     assert.equal(applyResult.status, 0, applyResult.stderr || applyResult.stdout || applyResult.error?.message);
-    assert.equal(
-      fs.readFileSync(path.join(opsRoot, toolingEntry), 'utf8'),
-      'export const matcher = "release";\n',
-    );
+    for (const toolingEntry of toolingEntries) {
+      assert.equal(
+        fs.readFileSync(path.join(opsRoot, toolingEntry), 'utf8'),
+        `release:${toolingEntry}\n`,
+      );
+    }
 
     const checkResult = runSync(syncScriptPath, opsRoot, env, ['--check']);
     assert.equal(checkResult.status, 0, checkResult.stderr || checkResult.stdout || checkResult.error?.message);

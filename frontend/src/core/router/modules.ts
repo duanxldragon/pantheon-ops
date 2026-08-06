@@ -16,6 +16,7 @@ import { AuditModule } from '../../modules/system/audit';
 import { ProfileModule } from '../../modules/system/profile';
 import { generatedSystemModules } from '../../modules/generated/system';
 import { CmdbModule } from '../../modules/business/cmdb';
+import { BizScopeModule } from '../../modules/business/bizscope';
 import { DeployModule } from '../../modules/business/deploy';
 import { generatedBusinessModules } from '../../modules/generated/business';
 
@@ -38,7 +39,12 @@ export const systemModules: ModuleConfig[] = [
   ...generatedSystemModules,
 ];
 
-export const businessModules: ModuleConfig[] = [CmdbModule, ...generatedBusinessModules, DeployModule];
+export const businessModules: ModuleConfig[] = [
+  CmdbModule,
+  BizScopeModule,
+  ...generatedBusinessModules,
+  DeployModule,
+];
 
 export const registeredModules: ModuleConfig[] = [...systemModules, ...businessModules];
 

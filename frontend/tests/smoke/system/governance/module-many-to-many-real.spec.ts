@@ -39,7 +39,7 @@ async function purgeModule(
   moduleKey: string,
 ) {
   await request.delete(
-    `${apiBaseUrl}/system/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`,
+    `${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,

@@ -5,7 +5,7 @@ import ts from 'typescript';
 
 const rootDir = dirname(fileURLToPath(import.meta.url));
 const frontendDir = join(rootDir, '..');
-const tempDir = join(frontendDir, 'node_modules', '.tmp', 'generator-server-export');
+const tempDir = join(frontendDir, 'node_modules', '.tmp', `generator-server-export-${process.pid}`);
 const schemaPath = process.argv[2];
 
 if (!schemaPath) {
@@ -15,8 +15,8 @@ if (!schemaPath) {
 const files = [
   'src/modules/lowcode/generator/schema.ts',
   'src/modules/lowcode/generator/typeMapping.ts',
-  'src/modules/lowcode/generator/backend-generator.ts',
-  'src/modules/lowcode/generator/frontend-generator.ts',
+  'src/modules/lowcode/generator/backendGenerator.ts',
+  'src/modules/lowcode/generator/frontendGenerator.ts',
   'src/modules/lowcode/generator/exporter.ts',
 ];
 
@@ -52,7 +52,7 @@ for (const file of files) {
 }
 
 const { ModuleExporter } = await import(
-  pathToFileURL(join(tempDir, 'src', 'modules', 'system', 'generator', 'exporter.js'))
+  pathToFileURL(join(tempDir, 'src', 'modules', 'lowcode', 'generator', 'exporter.js'))
 );
 
 const schema = JSON.parse(readFileSync(schemaPath, 'utf8'));

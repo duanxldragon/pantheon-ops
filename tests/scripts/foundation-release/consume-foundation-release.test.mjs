@@ -764,26 +764,35 @@ test('--dry-run mode lists files that would change with CREATE or REWRITE action
   });
 });
 
-test('shared frontend tooling is reported by dry-run and applied from the release bundle', () => {
+test('allowlisted shared frontend tooling is reported by dry-run and applied from the release bundle', () => {
   withTempDir((root) => {
     const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-    manifest.sharedPaths.frontend = ['frontend/scripts/lib/css-declarations.mjs'];
+    const toolingPaths = [
+      'frontend/scripts/export-generated-module.mjs',
+      'frontend/scripts/lib/css-declarations.mjs',
+      'frontend/scripts/transpile-typescript-files.mjs',
+    ];
+    manifest.sharedPaths.frontend = toolingPaths;
     writeJson(manifestPath, manifest);
-    const toolingPath = path.join('frontend', 'scripts', 'lib', 'css-declarations.mjs');
-    writeText(
-      path.join(bundleRoot, 'bundle', 'shared-frontend', toolingPath),
-      'export const matcher = "release";\n',
-    );
-    writeText(path.join(opsRoot, toolingPath), 'export const matcher = "stale";\n');
+    for (const toolingPath of toolingPaths) {
+      writeText(
+        path.join(bundleRoot, 'bundle', 'shared-frontend', toolingPath),
+        `release:${toolingPath}\n`,
+      );
+      writeText(path.join(opsRoot, toolingPath), `stale:${toolingPath}\n`);
+    }
 
     const dryRun = runScript(
       ['--ops-root', opsRoot, '--manifest', manifestPath, '--bundle', bundleRoot, '--dry-run'],
       repoRoot,
     );
     assert.equal(dryRun.status, 0, dryRun.stderr || dryRun.stdout || dryRun.error?.message);
-    assert.match(dryRun.stdout, /REWRITE frontend[\\/]scripts[\\/]lib[\\/]css-declarations\.mjs/);
-    assert.equal(fs.readFileSync(path.join(opsRoot, toolingPath), 'utf8'), 'export const matcher = "stale";\n');
+    for (const toolingPath of toolingPaths) {
+      const outputPath = toolingPath.split('/').join(`[\\\\/]`);
+      assert.match(dryRun.stdout, new RegExp(`REWRITE ${outputPath}`));
+      assert.equal(fs.readFileSync(path.join(opsRoot, toolingPath), 'utf8'), `stale:${toolingPath}\n`);
+    }
 
     const applyResult = runScript(
       [
@@ -799,7 +808,9 @@ test('shared frontend tooling is reported by dry-run and applied from the releas
       repoRoot,
     );
     assert.equal(applyResult.status, 0, applyResult.stderr || applyResult.stdout || applyResult.error?.message);
-    assert.equal(fs.readFileSync(path.join(opsRoot, toolingPath), 'utf8'), 'export const matcher = "release";\n');
+    for (const toolingPath of toolingPaths) {
+      assert.equal(fs.readFileSync(path.join(opsRoot, toolingPath), 'utf8'), `release:${toolingPath}\n`);
+    }
   });
 });
 
@@ -985,10 +996,15 @@ test('rollback restores inheritance anchors and release artifacts when a require
     const originalZhDoc = fs.readFileSync(zhDocPath, 'utf8');
     const originalEnDoc = fs.readFileSync(enDocPath, 'utf8');
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-    manifest.sharedPaths.frontend = ['frontend/scripts/lib/css-declarations.mjs'];
+    manifest.sharedPaths.frontend = [
+      'frontend/scripts/export-generated-module.mjs',
+      'frontend/scripts/lib/css-declarations.mjs',
+    ];
     writeJson(manifestPath, manifest);
     const toolingPath = path.join(opsRoot, 'frontend', 'scripts', 'lib', 'css-declarations.mjs');
+    const exporterPath = path.join(opsRoot, 'frontend', 'scripts', 'export-generated-module.mjs');
     writeText(toolingPath, 'export const matcher = "original";\n');
+    writeText(exporterPath, 'original exporter\n');
     writeText(
       path.join(
         bundleRoot,
@@ -1000,6 +1016,17 @@ test('rollback restores inheritance anchors and release artifacts when a require
         'css-declarations.mjs',
       ),
       'export const matcher = "release";\n',
+    );
+    writeText(
+      path.join(
+        bundleRoot,
+        'bundle',
+        'shared-frontend',
+        'frontend',
+        'scripts',
+        'export-generated-module.mjs',
+      ),
+      'release exporter\n',
     );
     writeText(generatedPath, 'original generated output\n');
     writeText(
@@ -1034,6 +1061,7 @@ test('rollback restores inheritance anchors and release artifacts when a require
     assert.equal(fs.readFileSync(enDocPath, 'utf8'), originalEnDoc);
     assert.equal(fs.readFileSync(generatedPath, 'utf8'), 'original generated output\n');
     assert.equal(fs.readFileSync(toolingPath, 'utf8'), 'export const matcher = "original";\n');
+    assert.equal(fs.readFileSync(exporterPath, 'utf8'), 'original exporter\n');
     assert.equal(
       fs.existsSync(path.join(opsRoot, '.foundation', 'releases', 'base-v0.8.0')),
       false,

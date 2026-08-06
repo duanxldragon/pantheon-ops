@@ -15,27 +15,27 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 		}
 	case "system:module:list":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules", Method: "GET"},
+			{Path: "/api/v1/lowcode/dynamic-modules", Method: "GET"},
 		}
 	case "system:module:register":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules", Method: "POST"},
+			{Path: "/api/v1/lowcode/dynamic-modules", Method: "POST"},
 		}
 	case "system:module:unregister":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules/:name", Method: "DELETE"},
+			{Path: "/api/v1/lowcode/dynamic-modules/:name", Method: "DELETE"},
 		}
 	case "system:module:delete_record":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules/:name/record", Method: "DELETE"},
+			{Path: "/api/v1/lowcode/dynamic-modules/:name/record", Method: "DELETE"},
 		}
 	case "system:module:purge":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules/:name/purge", Method: "DELETE"},
+			{Path: "/api/v1/lowcode/dynamic-modules/:name/purge", Method: "DELETE"},
 		}
 	case "system:module:generate":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules/generate", Method: "POST"},
+			{Path: "/api/v1/lowcode/dynamic-modules/generate", Method: "POST"},
 		}
 	case "system:generator:datasource:manage":
 		return []PermissionAPIPolicy{

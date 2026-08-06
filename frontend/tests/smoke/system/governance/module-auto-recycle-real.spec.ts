@@ -66,7 +66,7 @@ test('auto-recycle governance flow purges managed table through real UI and back
 
   await expect
     .poll(async () => {
-      const response = await page.request.get(`${apiBaseUrl}/system/dynamic-modules/${moduleKey}`, {
+      const response = await page.request.get(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}`, {
         headers: apiRequestHeaders(login),
         failOnStatusCode: false,
       });
@@ -83,7 +83,7 @@ test('auto-recycle governance flow purges managed table through real UI and back
     .toBe(false);
 
   const cleanupResponse = await page.request.delete(
-    `${apiBaseUrl}/system/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`,
+    `${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`,
     {
       headers: {
         ...apiRequestHeaders(login),

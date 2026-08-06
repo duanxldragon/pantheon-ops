@@ -196,7 +196,7 @@ async function stopServer() {
     return;
   }
   shuttingDown = true;
-  if (server.exitCode !== null) {
+  if (!server || server.exitCode !== null) {
     return;
   }
   server.kill('SIGTERM');

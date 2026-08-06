@@ -18,7 +18,9 @@ export const sharedFrontendEntries = [
 ];
 
 export const sharedFrontendToolingPaths = new Set([
+  'frontend/scripts/export-generated-module.mjs',
   'frontend/scripts/lib/css-declarations.mjs',
+  'frontend/scripts/transpile-typescript-files.mjs',
 ]);
 
 export const backendOverlayPaths = new Set([
