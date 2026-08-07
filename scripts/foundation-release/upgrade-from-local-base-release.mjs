@@ -1,9 +1,15 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-import { readFoundationLock } from './shared-foundation-rules.mjs';
+import {
+  computeFileSha256,
+  computeReleaseTreeSha256,
+  readFoundationLock,
+  verifiedReleaseMarkerName,
+} from './shared-foundation-rules.mjs';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const scriptsDir = path.dirname(currentFilePath);
@@ -73,6 +79,63 @@ function runNodeScript(cwd, scriptPath, args) {
   return result.stdout.trim();
 }
 
+function runGit(baseRoot, args) {
+  const result = spawnSync('git', args, { cwd: baseRoot, encoding: 'utf8' });
+  if (result.status !== 0) {
+    throw new Error(result.stderr || result.stdout || `git ${args.join(' ')} failed`);
+  }
+  return result.stdout.trim();
+}
+
+function readArchiveChecksum(checksumPath, archivePath) {
+  const contents = fs.readFileSync(checksumPath, 'utf8').trim();
+  const match = contents.match(/^([a-fA-F0-9]{64})\s+\*?(.+)$/u);
+  if (!match || path.basename(match[2]) !== path.basename(archivePath)) {
+    throw new Error(`invalid foundation release checksum file: ${checksumPath}`);
+  }
+  return match[1].toLowerCase();
+}
+
+export function verifyAndMarkLocalRelease({ baseRoot, bundleRoot, manifestPath, releaseVersion }) {
+  const worktreeStatus = runGit(baseRoot, ['status', '--short']);
+  if (worktreeStatus) {
+    throw new Error('local foundation upgrade requires a clean pantheon-base worktree');
+  }
+
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const headCommit = runGit(baseRoot, ['rev-parse', 'HEAD']);
+  if (manifest.releaseVersion !== releaseVersion || manifest.baseCommit !== headCommit) {
+    throw new Error(
+      `local foundation identity mismatch: release=${manifest.releaseVersion} baseCommit=${manifest.baseCommit} HEAD=${headCommit}`,
+    );
+  }
+
+  const archivePath = path.join(bundleRoot, `foundation-release-${releaseVersion}.tgz`);
+  const checksumPath = `${archivePath}.sha256`;
+  const expectedChecksum = readArchiveChecksum(checksumPath, archivePath);
+  const actualChecksum = computeFileSha256(archivePath);
+  if (actualChecksum !== expectedChecksum) {
+    throw new Error(`local foundation archive checksum mismatch: ${archivePath}`);
+  }
+
+  const marker = {
+    schemaVersion: 1,
+    releaseVersion,
+    baseCommit: manifest.baseCommit,
+    archiveAssetName: path.basename(archivePath),
+    archiveSha256: actualChecksum,
+    manifestSha256: computeFileSha256(manifestPath),
+    releaseTreeSha256: computeReleaseTreeSha256(bundleRoot),
+    verifiedAt: new Date().toISOString(),
+  };
+  fs.writeFileSync(
+    path.join(bundleRoot, verifiedReleaseMarkerName),
+    `${JSON.stringify(marker, null, 2)}\n`,
+    'utf8',
+  );
+  return marker;
+}
+
 function printHelp() {
   console.log(`Usage:
   node scripts/foundation-release/upgrade-from-local-base-release.mjs --release-version <version> [--base-root <path>] [--plan-only]
@@ -99,6 +162,7 @@ function main() {
     summary.push(`Target local foundation release: ${options.releaseVersion}`);
 
     runNodeScript(options.baseRoot, buildScriptPath, ['--release-version', options.releaseVersion]);
+    verifyAndMarkLocalRelease(options);
     summary.push(`Built local base bundle: ${options.bundleRoot}`);
 
     const consumeArgs = [
