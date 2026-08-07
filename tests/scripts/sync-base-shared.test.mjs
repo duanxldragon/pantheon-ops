@@ -191,8 +191,18 @@ test('sync-base-shared checks and applies all allowlisted frontend tooling from 
     const syncScriptPath = copyFixtureScripts(opsRoot);
     const toolingEntries = [
       'frontend/scripts/export-generated-module.mjs',
+      'frontend/scripts/lib/auth-cookie-session.mjs',
       'frontend/scripts/lib/css-declarations.mjs',
+      'frontend/scripts/run-smoke-suite.mjs',
       'frontend/scripts/transpile-typescript-files.mjs',
+      'frontend/tests/fixtures/coverage.ts',
+      'frontend/tests/smoke/helpers/auth.ts',
+      'frontend/tests/smoke/helpers/fixture-policy.ts',
+      'frontend/tests/smoke/helpers/shared-read-cache.ts',
+      'frontend/tests/smoke/helpers/url-pattern.ts',
+      'frontend/tests/smoke/platform/shell-visual-contract.spec.ts',
+      'frontend/tests/smoke/system/system-pages.spec.ts',
+      'frontend/tests/smoke/system/system-workspace-task-depth.ts',
     ];
     const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
     const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));

@@ -770,8 +770,18 @@ test('allowlisted shared frontend tooling is reported by dry-run and applied fro
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
     const toolingPaths = [
       'frontend/scripts/export-generated-module.mjs',
+      'frontend/scripts/lib/auth-cookie-session.mjs',
       'frontend/scripts/lib/css-declarations.mjs',
+      'frontend/scripts/run-smoke-suite.mjs',
       'frontend/scripts/transpile-typescript-files.mjs',
+      'frontend/tests/fixtures/coverage.ts',
+      'frontend/tests/smoke/helpers/auth.ts',
+      'frontend/tests/smoke/helpers/fixture-policy.ts',
+      'frontend/tests/smoke/helpers/shared-read-cache.ts',
+      'frontend/tests/smoke/helpers/url-pattern.ts',
+      'frontend/tests/smoke/platform/shell-visual-contract.spec.ts',
+      'frontend/tests/smoke/system/system-pages.spec.ts',
+      'frontend/tests/smoke/system/system-workspace-task-depth.ts',
     ];
     manifest.sharedPaths.frontend = toolingPaths;
     writeJson(manifestPath, manifest);
