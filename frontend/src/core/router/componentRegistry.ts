@@ -76,6 +76,12 @@ const staticComponentRegistry = {
   'business/cmdb/label/CmdbLabelSchemaList': defineRegistryEntry(
     () => import('../../modules/business/cmdb/label/CmdbLabelSchemaList'),
   ),
+  'business/bizscope/BizScopeList': defineRegistryEntry(
+    () => import('../../modules/business/bizscope/BizScopeList'),
+  ),
+  'business/bizscope/BizScopeDetail': defineRegistryEntry(
+    () => import('../../modules/business/bizscope/BizScopeDetail'),
+  ),
   'business/deploy/package/DeployPackageList': defineRegistryEntry(
     () => import('../../modules/business/deploy/package/DeployPackageList'),
   ),

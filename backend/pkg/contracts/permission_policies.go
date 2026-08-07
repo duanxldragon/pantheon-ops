@@ -39,10 +39,10 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 		}
 	case "system:generator:datasource:manage":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/generator/datasources", Method: "POST"},
-			{Path: "/api/v1/system/generator/datasources/:id", Method: "PUT"},
-			{Path: "/api/v1/system/generator/datasources/:id", Method: "DELETE"},
-			{Path: "/api/v1/system/generator/datasources/:id/test", Method: "POST"},
+			{Path: "/api/v1/lowcode/generator/datasources", Method: "POST"},
+			{Path: "/api/v1/lowcode/generator/datasources/:id", Method: "PUT"},
+			{Path: "/api/v1/lowcode/generator/datasources/:id", Method: "DELETE"},
+			{Path: "/api/v1/lowcode/generator/datasources/:id/test", Method: "POST"},
 		}
 	case "business:cmdb:host:list":
 		return []PermissionAPIPolicy{

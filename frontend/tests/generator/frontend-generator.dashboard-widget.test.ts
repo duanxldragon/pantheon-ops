@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { FrontendGenerator } from '../../src/modules/lowcode/generator/frontend-generator';
+import { FrontendGenerator } from '../../src/modules/lowcode/generator/frontendGenerator';
 import type { ModuleSchema } from '../../src/modules/lowcode/generator/schema';
 
 function createSchema(overrides: Partial<ModuleSchema> = {}): ModuleSchema {

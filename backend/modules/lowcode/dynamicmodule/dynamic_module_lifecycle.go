@@ -286,9 +286,17 @@ func (s *DynamicModuleService) FinalizeUnregister(moduleName string, purgeSource
 	if scope != "business" {
 		return nil, common.NewForbidden(msgModuleBuiltinForbidden)
 	}
+	// Remove registry references while the source files still exist. This keeps
+	// Vite and Go file watchers from observing imports that point at a directory
+	// which has already been removed.
+	if _, err := s.refreshGeneratedWorkspaceArtifactsIfAvailable(); err != nil {
+		return nil, err
+	}
 	if err := scaffold.RemoveGeneratedModuleSource(s.workspaceRoot, scope, shortName); err != nil {
 		return nil, err
 	}
+	// Refresh again after deleting the schema so the feature ledger reflects
+	// the final workspace state.
 	if _, err := s.refreshGeneratedWorkspaceArtifactsIfAvailable(); err != nil {
 		return nil, err
 	}

@@ -840,10 +840,6 @@ export function buildRoutePath(scope: ModuleScope, name: string): string {
 }
 
 export function buildPageRoutePath(scope: ModuleScope, name: string): string {
-  const segments = splitModuleSegments(name);
-  if (scope === 'business') {
-    return `/operations/${segments.join('/')}`;
-  }
   return buildRoutePath(scope, name);
 }
 
@@ -1038,10 +1034,7 @@ export function generateDefaultMenus(schema: ModuleSchema): MenuSeedConfig[] {
       key: groupKey,
       parentKey: parentSegments.length > 0 ? parentSegments.join('-') : scope,
       titleKey: buildMenuGroupTitleKey(scope, groupSegments),
-      path:
-        scope === 'business'
-          ? `/operations/${groupSegments.join('/')}`
-          : `/${scope}/${groupSegments.join('/')}`,
+      path: buildPageRoutePath(scope, groupSegments.join('/')),
       type: 'M',
       icon: 'apps',
       routeName: `${scope}-${groupSegments.join('-')}`,

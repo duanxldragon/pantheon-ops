@@ -1210,8 +1210,8 @@ func mustWriteGeneratedRegistryStubs(t *testing.T, root string) {
 	mustWriteFile(t, filepath.Join(root, "backend", "modules", "business", "generated_registry.go"), "package business\n")
 	mustWriteFile(t, filepath.Join(root, "backend", "modules", "system", "generated_registry.go"), "package system\n")
 	mustWriteFile(t, filepath.Join(root, "backend", "modules", "system", "iam", "menu", "generated_component_registry.go"), "package iam\n")
-	mustWriteFile(t, filepath.Join(root, "frontend", "src", "modules", "lowcode", "generated", "business.ts"), "export const generatedBusinessModules = []\n")
-	mustWriteFile(t, filepath.Join(root, "frontend", "src", "modules", "lowcode", "generated", "system.ts"), "export const generatedSystemModules = []\n")
+	mustWriteFile(t, filepath.Join(root, "frontend", "src", "modules", "generated", "business.ts"), "export const generatedBusinessModules = []\n")
+	mustWriteFile(t, filepath.Join(root, "frontend", "src", "modules", "generated", "system.ts"), "export const generatedSystemModules = []\n")
 	mustWriteFile(t, filepath.Join(root, "frontend", "src", "core", "router", "generatedComponentRegistry.ts"), "export const generatedComponentRegistry = {}\n")
 }
 

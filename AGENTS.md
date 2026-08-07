@@ -15,6 +15,7 @@ English quick guide: [CLAUDE.md](./CLAUDE.md)
 - 业务模块可使用 base 扩展点、共享契约和公共包，但不可本地 override 底座行为。
 - 发现共享平台、系统域、UI、权限、i18n、审计或验收规则问题时，先判断是否应在 `pantheon-base` 修复，再同步到 ops。
 - 改动菜单、权限、i18n、数据库、接口、seed 或 smoke 范围时，同步更新测试、脚本、fixture、门禁或文档。
+- 在 Windows 上执行提交、push、PR 或合并收口前，完整 Go race 必须使用 `D:\msys64\mingw64\bin` 并显式启用 cgo：`$env:PATH='D:\msys64\mingw64\bin;' + $env:PATH; $env:CGO_ENABLED='1'; go test -race ./...`。不得用未启用 cgo 的测试或普通 `go test ./...` 代替该门禁。
 - 触碰 UI 时先遵守 base 设计约束并使用 `impeccable`，提供渲染证据或说明未产出证据的原因。
 - 业务错误 key 以 `docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md` 为 canonical 清单。
 

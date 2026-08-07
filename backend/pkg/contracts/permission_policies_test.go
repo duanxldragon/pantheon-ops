@@ -5,6 +5,20 @@ import (
 	"testing"
 )
 
+func TestRequiredAPIPoliciesByPermissionKeyGeneratorDatasource(t *testing.T) {
+	expected := []PermissionAPIPolicy{
+		{Path: "/api/v1/lowcode/generator/datasources", Method: "POST"},
+		{Path: "/api/v1/lowcode/generator/datasources/:id", Method: "PUT"},
+		{Path: "/api/v1/lowcode/generator/datasources/:id", Method: "DELETE"},
+		{Path: "/api/v1/lowcode/generator/datasources/:id/test", Method: "POST"},
+	}
+
+	policies := RequiredAPIPoliciesByPermissionKey("system:generator:datasource:manage")
+	if !reflect.DeepEqual(policies, expected) {
+		t.Fatalf("unexpected generator datasource policies: got %+v want %+v", policies, expected)
+	}
+}
+
 func TestRequiredAPIPoliciesByPermissionKeyBizScope(t *testing.T) {
 	tests := []struct {
 		name           string

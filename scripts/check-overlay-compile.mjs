@@ -52,6 +52,9 @@ function overlayConsumerPackages() {
     'modules/lowcode/dynamicmodule/dynamic_module_service_test.go': [
       './backend/modules/lowcode/dynamicmodule/...',
     ],
+    'modules/lowcode/dynamicmodule/dynamic_module_lifecycle.go': [
+      './backend/modules/lowcode/dynamicmodule/...',
+    ],
     'modules/lowcode/generator/generator_service_test.go': [
       './backend/modules/lowcode/generator/...',
     ],

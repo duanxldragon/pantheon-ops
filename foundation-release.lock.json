@@ -2,16 +2,16 @@
   "schemaVersion": 1,
   "baseRepo": "../pantheon-base",
   "releaseLine": "release/0.10",
-  "releaseVersion": "pantheon-base-v0.10.2",
-  "baseCommit": "e38ce7395c46cecd71f644952e95268404c8a10c",
+  "releaseVersion": "pantheon-base-v0.10.3",
+  "baseCommit": "c8c5832d85f33f2f245526f4d0eab9df93225880",
   "consumerMode": "foundation-release-consumer",
   "releaseArtifact": {
     "githubRepo": "duanxldragon/pantheon-base",
-    "assetName": "foundation-release-pantheon-base-v0.10.2.tgz",
-    "localPath": ".foundation/releases/pantheon-base-v0.10.2",
-    "checksum": "b300c17f7e605e113ef4d2ceb8de1ac59bc29a2fad1cbcc4d9f1a6fdf04af09c"
+    "assetName": "foundation-release-pantheon-base-v0.10.3.tgz",
+    "localPath": ".foundation/releases/pantheon-base-v0.10.3",
+    "checksum": "c0d3981c315cd323234e1272cc2cd473cbf114c213938abb4b4ff268a94e1239"
   },
-  "lockedAt": "2026-08-06T00:24:35.443Z",
+  "lockedAt": "2026-08-07T06:53:33.425Z",
   "lockedBy": "xiaolong",
   "sharedPaths": {
     "backend": [
@@ -29,7 +29,9 @@
       "frontend/src/modules/platform",
       "frontend/src/modules/system",
       "frontend/src/index.css",
-      "frontend/scripts/lib/css-declarations.mjs"
+      "frontend/scripts/export-generated-module.mjs",
+      "frontend/scripts/lib/css-declarations.mjs",
+      "frontend/scripts/transpile-typescript-files.mjs"
     ],
     "docs": [
       "docs/designs/FOUNDATION_RELEASE_MODEL.md",

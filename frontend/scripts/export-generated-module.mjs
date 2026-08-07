@@ -1,11 +1,8 @@
-import { mkdirSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-import ts from 'typescript';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-const rootDir = dirname(fileURLToPath(import.meta.url));
-const frontendDir = join(rootDir, '..');
-const tempDir = join(frontendDir, 'node_modules', '.tmp', `generator-server-export-${process.pid}`);
+import { prepareTranspiledWorkspace } from './transpile-typescript-files.mjs';
 const schemaPath = process.argv[2];
 
 if (!schemaPath) {
@@ -20,36 +17,7 @@ const files = [
   'src/modules/lowcode/generator/exporter.ts',
 ];
 
-rmSync(tempDir, { recursive: true, force: true });
-mkdirSync(tempDir, { recursive: true });
-writeFileSync(join(tempDir, 'package.json'), '{"type":"commonjs"}\n');
-
-for (const file of files) {
-  const sourcePath = join(frontendDir, file);
-  const outputPath = join(tempDir, file.replace(/\.ts$/, '.js'));
-  const output = ts.transpileModule(ts.sys.readFile(sourcePath) ?? '', {
-    fileName: sourcePath,
-    compilerOptions: {
-      target: ts.ScriptTarget.ES2023,
-      module: ts.ModuleKind.CommonJS,
-      esModuleInterop: true,
-      importsNotUsedAsValues: ts.ImportsNotUsedAsValues.Remove,
-    },
-    reportDiagnostics: true,
-  });
-
-  if (output.diagnostics?.length) {
-    const message = ts.formatDiagnosticsWithColorAndContext(output.diagnostics, {
-      getCanonicalFileName: (name) => name,
-      getCurrentDirectory: () => frontendDir,
-      getNewLine: () => '\n',
-    });
-    throw new Error(message);
-  }
-
-  mkdirSync(dirname(outputPath), { recursive: true });
-  writeFileSync(outputPath, output.outputText);
-}
+const { tempDir } = prepareTranspiledWorkspace(`generator-server-export-${process.pid}`, files);
 
 const { ModuleExporter } = await import(
   pathToFileURL(join(tempDir, 'src', 'modules', 'lowcode', 'generator', 'exporter.js'))

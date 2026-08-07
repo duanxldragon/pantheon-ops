@@ -118,7 +118,7 @@ func TestResolveGeneratedParentMenu(t *testing.T) {
 	}{
 		{"explicit path", "system", "auth", "/admin/auth", "/admin/auth", "explicit"},
 		{"explicit with backslash", "system", "auth", "\\admin\\auth", "/admin/auth", "explicit"},
-		{"business inferred parent", "business", "order/manage", "", "/operations/order", "inferred"},
+		{"business inferred parent", "business", "order/manage", "", "/business/order", "inferred"},
 		{"business flat path", "business", "order", "", "", "top_level"},
 		{"business flat path with slash", "business", "order/", "", "", "top_level"},
 		{"system default top level", "system", "auth", "", "", "top_level"},

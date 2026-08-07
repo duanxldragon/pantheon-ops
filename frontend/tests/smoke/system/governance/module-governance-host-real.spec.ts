@@ -86,7 +86,7 @@ type TablePreviewProbe =
   | { available: false; status: number; code: number; message: string };
 
 async function fetchTablePreview(request: APIRequestContext, login: BrowserLoginResult): Promise<TablePreviewProbe> {
-  const response = await request.get(`${apiBaseUrl}/system/generator/table-schema`, {
+  const response = await request.get(`${apiBaseUrl}/lowcode/generator/table-schema`, {
     headers: apiRequestHeaders(login),
     params: {
       datasourceId: 'current',
@@ -340,7 +340,7 @@ test('cmdb host database-import flow generates a temporary module without droppi
   await expect.poll(async () => readFileContains(frontendRegistry, `../business/${moduleName}`)).toBe(false);
   await expect.poll(async () => readFileContains(componentRegistry, `business/${moduleName}/CmdbhostqaList`)).toBe(false);
 
-  const tableCheck = await page.request.get(`${apiBaseUrl}/system/generator/table-schema`, {
+  const tableCheck = await page.request.get(`${apiBaseUrl}/lowcode/generator/table-schema`, {
     headers: apiRequestHeaders(login),
     params: {
       datasourceId: 'current',

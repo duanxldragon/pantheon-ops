@@ -966,7 +966,7 @@ func seed${modelName}I18n(db *gorm.DB) error {
 \t\tKey:       "${groupKey}",
 \t\tParentKey: "${parentSegments.join('-')}",
 \t\tTitleKey:  "${groupTitleKey}",
-\t\tPath:      "${this.schema.scope === 'business' ? `/operations/${groupSegments.join('/')}` : `/${this.schema.scope}/${groupSegments.join('/')}`}",
+\t\tPath:      "${buildPageRoutePath(this.schema.scope, groupSegments.join('/'))}",
 \t\tType:      "M",
 \t\tIcon:      "apps",
 \t\tRouteName: "${this.schema.scope}-${groupSegments.join('-')}",
