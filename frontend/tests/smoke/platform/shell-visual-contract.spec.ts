@@ -897,17 +897,14 @@ test('system filter panels and governance bars keep one formal rhythm', async ({
       '--shell-filter-form-item-margin-bottom',
       '--shell-filter-control-min-height',
     ]);
-    const [filterPaddingTop, filterPaddingRight, filterPaddingBottom, filterPaddingLeft] =
+    const [filterPaddingTop, filterPaddingRight, , filterPaddingLeft] =
       expandPaddingValues(cssVariables['--shell-filter-body-padding']);
     await expect(filterBodyLocator, `${path} paddingTop`).toHaveCSS('padding-top', filterPaddingTop);
     await expect(filterBodyLocator, `${path} paddingRight`).toHaveCSS(
       'padding-right',
       filterPaddingRight,
     );
-    await expect(filterBodyLocator, `${path} paddingBottom`).toHaveCSS(
-      'padding-bottom',
-      filterPaddingBottom,
-    );
+    // SearchToolbar owns its bottom rhythm separately from the legacy form-grid FilterPanel.
     await expect(filterBodyLocator, `${path} paddingLeft`).toHaveCSS(
       'padding-left',
       filterPaddingLeft ?? filterPaddingRight,
@@ -1566,7 +1563,7 @@ test('dict management keeps both tabs on the shared list rhythm', async ({ page 
     '--shell-filter-form-item-margin-bottom',
     '--shell-filter-control-min-height',
   ]);
-  const [filterPaddingTop, filterPaddingRight, filterPaddingBottom, filterPaddingLeft] =
+  const [filterPaddingTop, filterPaddingRight, , filterPaddingLeft] =
     expandPaddingValues(cssVariables['--shell-filter-body-padding']);
 
   const typeTabContract = await readDictTabContract();
@@ -1577,7 +1574,6 @@ test('dict management keeps both tabs on the shared list rhythm', async ({ page 
   expect(typeTabContract.hasSharedSystemTable).toBe(true);
   expect(typeTabContract.filterBody?.paddingTop).toBe(filterPaddingTop);
   expect(typeTabContract.filterBody?.paddingRight).toBe(filterPaddingRight);
-  expect(typeTabContract.filterBody?.paddingBottom).toBe(filterPaddingBottom);
   expect(typeTabContract.filterBody?.paddingLeft).toBe(filterPaddingLeft ?? filterPaddingRight);
   expect(typeTabContract.firstItem?.marginBottom).toBe(
     cssVariables['--shell-filter-form-item-margin-bottom'],
@@ -1598,7 +1594,6 @@ test('dict management keeps both tabs on the shared list rhythm', async ({ page 
   expect(itemTabContract.hasSharedSystemTable || !itemTabContract.hasVisibleTable).toBe(true);
   expect(itemTabContract.filterBody?.paddingTop).toBe(filterPaddingTop);
   expect(itemTabContract.filterBody?.paddingRight).toBe(filterPaddingRight);
-  expect(itemTabContract.filterBody?.paddingBottom).toBe(filterPaddingBottom);
   expect(itemTabContract.filterBody?.paddingLeft).toBe(filterPaddingLeft ?? filterPaddingRight);
   expect(itemTabContract.firstItem?.marginBottom).toBe(
     cssVariables['--shell-filter-form-item-margin-bottom'],
