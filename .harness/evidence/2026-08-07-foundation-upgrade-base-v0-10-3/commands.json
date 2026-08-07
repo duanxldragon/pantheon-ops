@@ -1,0 +1,90 @@
+{
+  "taskId": "2026-08-07-foundation-upgrade-base-v0-10-3",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": "AGENTS.md"
+  },
+  "commands": [
+    {
+      "command": "npm run check:inheritance",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "v0.10.3 backend/frontend alignment, foundation i18n, generated i18n, and overlay compile checks passed"
+    },
+    {
+      "command": "npm run test:foundation-release",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "71 foundation consumer, installer, rollback, and governance tests passed"
+    },
+    {
+      "command": "$env:PATH='D:\\msys64\\mingw64\\bin;' + $env:PATH; $env:CGO_ENABLED='1'; go test -race ./...",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "full repository race suite passed with the required MSYS2 MinGW toolchain"
+    },
+    {
+      "command": "npm run lint && npm run type-check && npm run build && npm run test:generator:smoke",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "frontend lint, TypeScript, production build, and five generator contracts passed"
+    },
+    {
+      "command": "npm run test:smoke:business",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "26 business runtime tests passed across CMDB, Deploy, master-detail, many-to-many, and auto-recycle"
+    },
+    {
+      "command": "npm run check:generated-modules && npm run check:encoding && npm run check:structure && git diff --check",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "generated cleanup, encoding, repository structure, and whitespace gates passed"
+    }
+  ],
+  "graphChecks": {
+    "usedCodeGraph": true,
+    "affectedSubgraph": [
+      "foundation release -> Ops consumer -> lowcode generator -> business routes and registries"
+    ],
+    "checks": [
+      "inheritance-boundary",
+      "generated-runtime",
+      "business-smoke"
+    ],
+    "findings": [],
+    "notes": "Shared-path compatibility fixes are explicit Ops overlays pending a later Base release."
+  },
+  "browserEvidence": [
+    {
+      "surface": "business smoke suites",
+      "status": "passed",
+      "notes": "26 Playwright tests passed against the local MySQL/Redis-backed runtime"
+    }
+  ],
+  "runtimeSensitive": true,
+  "runtimeLogs": [],
+  "runtimeGap": "none",
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/",
+    "reviewFile": ".harness/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/review.md",
+    "changeRef": "d405d1f",
+    "planRefs": [
+      "docs/harness/tasks/2026-08-07-foundation-upgrade-base-v0-10-3.task.md"
+    ],
+    "taskManifest": ".harness/tasks/2026-08-07-foundation-upgrade-base-v0-10-3/manifest.json",
+    "summaryFile": ".harness/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/summary.md"
+  },
+  "knownGaps": [
+    "Hosted checks require the pushed PR head.",
+    "Shared compatibility overlays must return to a later pantheon-base release."
+  ],
+  "completedAt": "2026-08-07T13:20:00Z"
+}
