@@ -74,6 +74,17 @@ function loadFallbackResource(resourcesRoot, locale) {
   return fs.existsSync(filePath) ? loadResourceModule(filePath) : {};
 }
 
+function readOptionalTextFile(filePath) {
+  try {
+    return fs.readFileSync(filePath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return '';
+    }
+    throw error;
+  }
+}
+
 export function buildFoundationFallbackResources({
   sourceRoot: activeSourceRoot,
   fallbackResourcesRoot: activeResourcesRoot,
@@ -126,7 +137,7 @@ export function syncFoundationI18n({
   for (const locale of locales) {
     const targetPath = path.join(activeFoundationRoot, `${locale}.json`);
     const nextContent = `${JSON.stringify(resources[locale], null, 2)}\n`;
-    const currentContent = fs.existsSync(targetPath) ? fs.readFileSync(targetPath, 'utf8') : '';
+    const currentContent = readOptionalTextFile(targetPath);
     if (currentContent === nextContent) {
       continue;
     }

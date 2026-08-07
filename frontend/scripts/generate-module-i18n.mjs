@@ -136,6 +136,17 @@ function serializeResource(locale, resource) {
   return `const ${variableName} = {\n${body}${body ? '\n' : ''}};\n\nexport default ${variableName};\n`;
 }
 
+function readOptionalTextFile(filePath) {
+  try {
+    return fs.readFileSync(filePath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return '';
+    }
+    throw error;
+  }
+}
+
 export function generateModuleI18n(options = {}) {
   const activeLocales = options.locales ?? locales;
   const activeGeneratedRoot = options.generatedResourcesRoot ?? generatedResourcesRoot;
@@ -146,7 +157,7 @@ export function generateModuleI18n(options = {}) {
   for (const locale of activeLocales) {
     const nextContent = serializeResource(locale, resources[locale]);
     const outputPath = path.join(activeGeneratedRoot, `${locale}.ts`);
-    const currentContent = fs.existsSync(outputPath) ? fs.readFileSync(outputPath, 'utf8') : '';
+    const currentContent = readOptionalTextFile(outputPath);
 
     if (currentContent !== nextContent) {
       changes.push(path.relative(frontendRoot, outputPath));
