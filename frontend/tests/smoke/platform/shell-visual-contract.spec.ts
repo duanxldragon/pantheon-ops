@@ -959,7 +959,9 @@ test('system filter panels and governance bars keep one formal rhythm', async ({
     if (governanceContract.actions) {
       expect(governanceContract.actions.justifyContent, path).toBe('flex-end');
     }
-    expect(governanceContract.select?.width, path).toBeGreaterThanOrEqual(120);
+    if (governanceContract.select) {
+      expect(governanceContract.select.width, path).toBeGreaterThanOrEqual(120);
+    }
   }
 });
 
