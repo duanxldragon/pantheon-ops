@@ -8,7 +8,7 @@ type ApiEnvelope<T> = {
 
 type DashboardSummary = {
   recentLogins: Array<{ id: number }>;
-  orgGovernanceTasks: Array<{ taskKey: string }>;
+  orgGovernanceTasks: Array<{ taskKey: string; issueLabel?: string; actionLabel?: string }>;
 };
 
 type SecurityOverview = {
@@ -68,15 +68,13 @@ export function registerSystemWorkspaceTaskDepthSmokeTests({
 }: WorkspaceTaskDepthDeps) {
   test.describe('workspace task-depth smoke', () => {
     test('dashboard keeps narrow reflow stable and task widgets ready', async ({ page }) => {
-      await signInAsAdmin(page);
+      const accessToken = await signInAsAdmin(page);
       await page.setViewportSize({ width: 520, height: 960 });
 
       const summaryPayloadPromise = expectOkJson<DashboardSummary>(
-        page.waitForResponse(
-          (response) =>
-            response.url().includes('/api/v1/dashboard/summary') &&
-            response.request().method() === 'GET',
-        ),
+        page.request.get(`${apiBaseUrl}/dashboard/summary`, {
+          headers: authHeaders(accessToken),
+        }),
       );
 
       await page.goto('/dashboard', { waitUntil: 'networkidle' });
@@ -102,6 +100,9 @@ export function registerSystemWorkspaceTaskDepthSmokeTests({
       const todoCard = cardByTitle(page, /统一待办|Unified Todo/);
       if (summaryPayload.data.orgGovernanceTasks.length > 0) {
         await expect(todoCard.locator('.dashboard-task-card').first()).toBeVisible();
+        await expect(todoCard).not.toContainText(
+          /Leader Missing|No Posts|Empty Department|Assigned Members|Assign Leader|Create Post|Review Status|Delete or Keep Disabled/,
+        );
       } else {
         await expect(todoCard.locator('.arco-empty')).toBeVisible();
       }
@@ -254,8 +255,6 @@ export function registerSystemWorkspaceTaskDepthSmokeTests({
       expect(detailPayload.code).toBe(200);
       expect(detailPayload.data.username).toBeTruthy();
       expect(detailPayload.data.roleKeys.length).toBeGreaterThan(0);
-      const expectedRoleLabel =
-        detailPayload.data.roleNames?.find(Boolean) || detailPayload.data.roleKeys[0];
 
       const detailLoadPayloadPromise = expectOkJson<UserDetail>(
         page.waitForResponse(
@@ -276,14 +275,19 @@ export function registerSystemWorkspaceTaskDepthSmokeTests({
         }),
       ).toBeVisible();
       await expect(page.getByText(detailPayload.data.username, { exact: true }).first()).toBeVisible();
-      await expect(
-        page.getByRole('row', {
-          name: new RegExp(`用户名\\s+${detailPayload.data.username}`),
-        }).first(),
-      ).toBeVisible();
-      await expect(page.getByRole('row', { name: new RegExp(`角色\\s+${expectedRoleLabel}`) }).first()).toBeVisible();
       await expect(page.getByText('基础信息', { exact: true })).toBeVisible();
       await expect(page.getByText('账号摘要', { exact: true })).toBeVisible();
+      await expect(
+        page.getByRole('row', {
+          name: new RegExp(String.raw`用户名\s+${detailPayload.data.username}`),
+        }).first(),
+      ).toBeVisible();
+      // The UI applies translateRoleName() to roleNames, converting i18n keys
+      // like 'role.admin.name' to display names like '系统管理员'. Verify the
+      // role row exists and shows a role tag rather than matching the raw value.
+      const roleRow = page.getByRole('row', { name: /角色/ }).first();
+      await expect(roleRow).toBeVisible();
+      await expect(roleRow.locator('.arco-tag').first()).toBeVisible();
       await expect(page.locator('.arco-card').first()).toContainText(
         detailPayload.data.nickname || detailPayload.data.username,
       );

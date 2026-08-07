@@ -2,16 +2,16 @@
   "schemaVersion": 1,
   "baseRepo": "../pantheon-base",
   "releaseLine": "release/0.10",
-  "releaseVersion": "pantheon-base-v0.10.3",
-  "baseCommit": "c8c5832d85f33f2f245526f4d0eab9df93225880",
+  "releaseVersion": "pantheon-base-v0.10.4",
+  "baseCommit": "091f1ae88281b75810b9a13ae14515f42fc1ccf4",
   "consumerMode": "foundation-release-consumer",
   "releaseArtifact": {
     "githubRepo": "duanxldragon/pantheon-base",
-    "assetName": "foundation-release-pantheon-base-v0.10.3.tgz",
-    "localPath": ".foundation/releases/pantheon-base-v0.10.3",
-    "checksum": "c0d3981c315cd323234e1272cc2cd473cbf114c213938abb4b4ff268a94e1239"
+    "assetName": "foundation-release-pantheon-base-v0.10.4.tgz",
+    "localPath": ".foundation/releases/pantheon-base-v0.10.4",
+    "checksum": "e43abc8b21ec817fb47f9bdc037048e8531926bedb139ac486330eb60a83af69"
   },
-  "lockedAt": "2026-08-07T06:53:33.425Z",
+  "lockedAt": "2026-08-07T22:41:30.551Z",
   "lockedBy": "xiaolong",
   "sharedPaths": {
     "backend": [
@@ -30,8 +30,18 @@
       "frontend/src/modules/system",
       "frontend/src/index.css",
       "frontend/scripts/export-generated-module.mjs",
+      "frontend/scripts/lib/auth-cookie-session.mjs",
       "frontend/scripts/lib/css-declarations.mjs",
-      "frontend/scripts/transpile-typescript-files.mjs"
+      "frontend/scripts/run-smoke-suite.mjs",
+      "frontend/scripts/transpile-typescript-files.mjs",
+      "frontend/tests/fixtures/coverage.ts",
+      "frontend/tests/smoke/helpers/auth.ts",
+      "frontend/tests/smoke/helpers/fixture-policy.ts",
+      "frontend/tests/smoke/helpers/shared-read-cache.ts",
+      "frontend/tests/smoke/helpers/url-pattern.ts",
+      "frontend/tests/smoke/platform/shell-visual-contract.spec.ts",
+      "frontend/tests/smoke/system/system-pages.spec.ts",
+      "frontend/tests/smoke/system/system-workspace-task-depth.ts"
     ],
     "docs": [
       "docs/designs/FOUNDATION_RELEASE_MODEL.md",

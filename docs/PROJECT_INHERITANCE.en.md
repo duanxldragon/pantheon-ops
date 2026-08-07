@@ -6,7 +6,7 @@ Chinese version: [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
 
 - Base repository: `../pantheon-base`
 - Base release line: `release/0.10`
-- Base version: `pantheon-base-v0.10.3` (`c8c5832d85f33f2f245526f4d0eab9df93225880`)
+- Base version: `pantheon-base-v0.10.4` (`091f1ae88281b75810b9a13ae14515f42fc1ccf4`)
 - Inheritance mode: `foundation-release-consumer`
 
 This repository no longer treats `base/main` as the default consumer surface. `main` may continue to absorb optimization and governance work, while ops upgrades only to explicit foundation releases or tags by default.
