@@ -1,0 +1,19 @@
+{
+  "taskId": "2026-08-08-foundation-upgrade-base-v0-10-5",
+  "repo": "pantheon-ops",
+  "status": "in-progress",
+  "commands": [
+    {"command": "npm run foundation:install && npm run upgrade:foundation:apply -- --manifest .foundation/releases/pantheon-base-v0.10.5/manifest.json --bundle .foundation/releases/pantheon-base-v0.10.5", "status": "passed", "notes": "Published archive verified and applied with rollback protection."},
+    {"command": "npm run check:inheritance", "status": "passed", "notes": "Backend/frontend shared paths align with v0.10.5; i18n and overlay compile pass."},
+    {"command": "npm run test:foundation-release", "status": "passed", "notes": "73/73 consumer, installer, rollback, governance, and sync tests passed."},
+    {"command": "npm --prefix frontend run test:smoke:scripts", "status": "passed", "notes": "10/10 smoke runner, auth, i18n, and resource-loader script tests passed outside sandbox."},
+    {"command": "npm --prefix frontend run lint && npm --prefix frontend run type-check && npm --prefix frontend run build", "status": "passed", "notes": "Frontend lint, TypeScript, all prebuild contracts, and production build passed outside sandbox."},
+    {"command": "$env:PATH='D:\\msys64\\mingw64\\bin;' + $env:PATH; $env:CGO_ENABLED='1'; go test -race ./...", "status": "passed", "notes": "Full Ops backend race suite passed with the required MSYS2 MinGW toolchain."},
+    {"command": "git diff --check", "status": "passed", "notes": "No whitespace errors; no business/* or generated registry drift retained."}
+  ],
+  "hostedVerification": [],
+  "runtimeGap": "Hosted PR #75 checks and merge remain pending.",
+  "knownGaps": ["Dependabot PR and alert debt remains after the feature PR is merged.", "The retired lowcode-cmdb branch still needs explicit subsumption/deletion review."],
+  "graphChecks": {"affectedSubgraph": ["Base release manifest -> installer -> Ops consumer -> shared smoke runner", "consumer allowlist -> frontend smoke scripts"], "checks": ["release-identity", "inheritance-boundary", "overlay-preservation"], "findings": []},
+  "linkage": {"taskManifest": ".harness/tasks/2026-08-08-foundation-upgrade-base-v0-10-5/manifest.json", "evidenceDir": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/", "reviewFile": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md", "summaryFile": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/summary.md"}
+}
