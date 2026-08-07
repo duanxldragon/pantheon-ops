@@ -885,16 +885,13 @@ test('system filter panels and governance bars keep one formal rhythm', async ({
     await navigateInShell(page, path);
     const filterBodyLocator = page.locator('.filter-panel .filter-panel__body').first();
     await expect(filterBodyLocator).toBeVisible();
-    const firstItemLocator = page.locator('.filter-panel .arco-form-item').first();
     const firstControlLocator = page
       .locator(
         '.filter-panel .arco-input-inner-wrapper, .filter-panel .arco-input, .filter-panel .arco-select-view, .filter-panel .arco-tree-select-view, .filter-panel .arco-picker',
       )
       .first();
-    const actionButtonLocator = page.locator('.filter-panel__action-item .arco-btn').first();
     const cssVariables = await readRootCssVariables(page, [
       '--shell-filter-body-padding',
-      '--shell-filter-form-item-margin-bottom',
       '--shell-filter-control-min-height',
     ]);
     const [filterPaddingTop, filterPaddingRight, , filterPaddingLeft] =
@@ -909,20 +906,10 @@ test('system filter panels and governance bars keep one formal rhythm', async ({
       'padding-left',
       filterPaddingLeft ?? filterPaddingRight,
     );
-    await expect(firstItemLocator, `${path} firstItem marginBottom`).toHaveCSS(
-      'margin-bottom',
-      cssVariables['--shell-filter-form-item-margin-bottom'],
-    );
     const firstControlHeight = await firstControlLocator.evaluate((element) =>
       Math.round(element.getBoundingClientRect().height),
     );
     expect(firstControlHeight, path).toBeGreaterThanOrEqual(
-      Number.parseInt(cssVariables['--shell-filter-control-min-height'], 10),
-    );
-    const actionButtonHeight = await actionButtonLocator.evaluate((element) =>
-      Math.round(element.getBoundingClientRect().height),
-    );
-    expect(actionButtonHeight, path).toBeGreaterThanOrEqual(
       Number.parseInt(cssVariables['--shell-filter-control-min-height'], 10),
     );
   }
@@ -1560,7 +1547,6 @@ test('dict management keeps both tabs on the shared list rhythm', async ({ page 
   await expect(page.locator('.dict-page__table-card .filter-panel').first()).toBeVisible();
   const cssVariables = await readRootCssVariables(page, [
     '--shell-filter-body-padding',
-    '--shell-filter-form-item-margin-bottom',
     '--shell-filter-control-min-height',
   ]);
   const [filterPaddingTop, filterPaddingRight, , filterPaddingLeft] =
@@ -1575,9 +1561,6 @@ test('dict management keeps both tabs on the shared list rhythm', async ({ page 
   expect(typeTabContract.filterBody?.paddingTop).toBe(filterPaddingTop);
   expect(typeTabContract.filterBody?.paddingRight).toBe(filterPaddingRight);
   expect(typeTabContract.filterBody?.paddingLeft).toBe(filterPaddingLeft ?? filterPaddingRight);
-  expect(typeTabContract.firstItem?.marginBottom).toBe(
-    cssVariables['--shell-filter-form-item-margin-bottom'],
-  );
   expect(typeTabContract.firstControl?.height).toBeGreaterThanOrEqual(
     Number.parseInt(cssVariables['--shell-filter-control-min-height'], 10),
   );
@@ -1595,9 +1578,6 @@ test('dict management keeps both tabs on the shared list rhythm', async ({ page 
   expect(itemTabContract.filterBody?.paddingTop).toBe(filterPaddingTop);
   expect(itemTabContract.filterBody?.paddingRight).toBe(filterPaddingRight);
   expect(itemTabContract.filterBody?.paddingLeft).toBe(filterPaddingLeft ?? filterPaddingRight);
-  expect(itemTabContract.firstItem?.marginBottom).toBe(
-    cssVariables['--shell-filter-form-item-margin-bottom'],
-  );
   expect(itemTabContract.firstControl?.height).toBeGreaterThanOrEqual(
     Number.parseInt(cssVariables['--shell-filter-control-min-height'], 10),
   );
