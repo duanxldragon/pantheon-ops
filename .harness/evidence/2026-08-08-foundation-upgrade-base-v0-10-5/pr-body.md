@@ -14,7 +14,7 @@
 - Review Artifact：`.harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md`
 - OpenSpec change：`none`
 - Trivial change：`no`
-- Quality Profile：`foundation-release-consumer`
+- Quality Profile：`generator`
 - Ratchet Decision：`adapter-updated`
 - GitHub Signal：`runtime-evidence-gate`
 

@@ -5,8 +5,6 @@ layer: inheritance-sync
 status: Active
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-  - ../pantheon-base/docs/designs/FOUNDATION_RELEASE_MODEL.md
-  - ../docs/WORKSPACE_INHERITANCE.md
 updated_at: 2026-08-08
 ---
 

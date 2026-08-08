@@ -428,7 +428,7 @@
 .table-batch-action-bar .arco-btn {
   min-height: var(--shell-action-bar-min-height);
   padding-inline: 14px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-action);
   box-shadow: none;
   transition:
     border-color 0.16s ease,
@@ -438,7 +438,7 @@
 
 .list-header-actions .arco-btn.arco-btn-primary,
 .table-batch-action-bar .arco-btn.arco-btn-primary {
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-action);
 }
 
 .list-header-actions .arco-btn:not(.arco-btn-primary):not(.arco-btn-text),
