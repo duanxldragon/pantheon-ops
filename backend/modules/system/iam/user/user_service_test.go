@@ -1,12 +1,16 @@
 package iam
 
 import (
+	"context"
+	"errors"
 	"strings"
 	"testing"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	authsession "pantheon-ops/backend/modules/auth/session"
+	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/testmysql"
 )
 
@@ -20,6 +24,7 @@ func setupUserTestDB(t *testing.T) *gorm.DB {
 	_ = db.AutoMigrate(&SystemUser{}, &SystemUserProfileExt{})
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role (id BIGINT PRIMARY KEY, role_key VARCHAR(64), role_name VARCHAR(128), status INT, deleted_at DATETIME NULL)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_role (user_id BIGINT, role_id BIGINT)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role_permission (id BIGINT PRIMARY KEY AUTO_INCREMENT, role_id BIGINT, permission_key VARCHAR(128) NOT NULL DEFAULT '')")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_session (session_id VARCHAR(128), user_id BIGINT, revoked_at DATETIME NULL)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_dept (id BIGINT PRIMARY KEY, parent_id BIGINT, dept_name VARCHAR(128))")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_post (id BIGINT PRIMARY KEY, post_code VARCHAR(64), post_name VARCHAR(128), dept_id BIGINT)")
@@ -31,6 +36,12 @@ func setupUserTestDB(t *testing.T) *gorm.DB {
 	_ = db.Exec("INSERT INTO system_role (id, role_key, role_name, status) VALUES (2, 'test', '测试角色', 1)")
 
 	return db
+}
+
+func newUserServiceWithSessionLifecycle(db *gorm.DB) *UserService {
+	return NewUserService(db, WithSessionLifecycle(func(db *gorm.DB) SessionLifecycle {
+		return authsession.NewLifecycleService(db)
+	}))
 }
 
 func TestUserService_CreateUser(t *testing.T) {
@@ -59,7 +70,7 @@ func TestUserService_CreateUser(t *testing.T) {
 
 	// 2. 用户名重复
 	_, err = s.CreateUser(req)
-	if err == nil || err.Error() != "user.create.error.username_exists" {
+	if err == nil || !errors.Is(err, common.ErrConflict) {
 		t.Errorf("expected username exists error, got %v", err)
 	}
 
@@ -67,7 +78,7 @@ func TestUserService_CreateUser(t *testing.T) {
 	req.Username = "invalid_role"
 	req.RoleIDs = []uint64{99}
 	_, err = s.CreateUser(req)
-	if err == nil || err.Error() != "user.role.invalid" {
+	if err == nil || !errors.Is(err, common.ErrBadRequest) {
 		t.Errorf("expected role invalid error, got %v", err)
 	}
 }
@@ -131,6 +142,40 @@ func TestUserService_UpdateUser(t *testing.T) {
 	_, err = s.UpdateUser(999, updateReq)
 	if err == nil {
 		t.Error("expected error for non-existent user, got nil")
+	}
+}
+
+func TestUserService_LoadUserProfileExtMissingRow(t *testing.T) {
+	db := setupUserTestDB(t)
+	s := NewUserService(db)
+
+	profileExt, err := s.loadUserProfileExt(42)
+	if err != nil {
+		t.Fatalf("expected missing optional profile ext to succeed, got %v", err)
+	}
+	if profileExt != nil {
+		t.Fatalf("expected nil profile ext for missing row, got %+v", profileExt)
+	}
+}
+
+func TestUserService_LoadUserProfileExtPropagatesDatabaseError(t *testing.T) {
+	db := setupUserTestDB(t)
+	s := NewUserService(db)
+	wantErr := errors.New("forced profile extension query failure")
+	const callbackName = "test:force_profile_ext_query_error"
+	if err := db.Callback().Query().Before("gorm:query").Register(callbackName, func(tx *gorm.DB) {
+		_ = tx.AddError(wantErr)
+	}); err != nil {
+		t.Fatalf("register query callback: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := db.Callback().Query().Remove(callbackName); err != nil {
+			t.Errorf("remove query callback: %v", err)
+		}
+	})
+
+	if _, err := s.loadUserProfileExt(42); !errors.Is(err, wantErr) {
+		t.Fatalf("expected database query error %v to propagate, got %v", wantErr, err)
 	}
 }
 
@@ -211,7 +256,7 @@ func TestUserService_BatchUpdateUserStatus(t *testing.T) {
 		t.Fatalf("expected user status 2, got %d", disabled.Status)
 	}
 
-	if _, err := s.BatchUpdateUserStatus([]uint64{1}, 2); err == nil || err.Error() != "user.update.error.protected" {
+	if _, err := s.BatchUpdateUserStatus([]uint64{1}, 2); err == nil || !errors.Is(err, common.ErrForbidden) {
 		t.Fatalf("expected protected admin error, got %v", err)
 	}
 }
@@ -243,13 +288,39 @@ func TestUserService_MigrateCreatesUserRoleTableAndAdminBinding(t *testing.T) {
 	}
 }
 
+func TestUserService_BootstrapCreatesAdminBindingOnVersionedSchema(t *testing.T) {
+	t.Setenv("PANTHEON_ENV", "development")
+	db := setupUserTestDB(t)
+
+	s := NewUserService(db)
+	if err := s.Bootstrap(); err != nil {
+		t.Fatalf("bootstrap: %v", err)
+	}
+
+	var admin SystemUser
+	if err := db.First(&admin, 1).Error; err != nil {
+		t.Fatalf("load admin user: %v", err)
+	}
+	if admin.Username != "admin" {
+		t.Fatalf("expected admin username, got %s", admin.Username)
+	}
+
+	var bindingCount int64
+	if err := db.Table("system_user_role").Where("user_id = ? AND role_id = ?", 1, 1).Count(&bindingCount).Error; err != nil {
+		t.Fatalf("count admin binding: %v", err)
+	}
+	if bindingCount != 1 {
+		t.Fatalf("expected admin user-role binding, got %d", bindingCount)
+	}
+}
+
 func TestUserService_MigrateRejectsMissingInitialAdminPasswordInProduction(t *testing.T) {
 	t.Setenv("PANTHEON_ENV", "production")
 	t.Setenv("PANTHEON_INITIAL_ADMIN_PASSWORD", "")
 	db := testmysql.Open(t)
 
 	s := NewUserService(db)
-	if err := s.Migrate(); err == nil || err.Error() != "admin.initial_password_required" {
+	if err := s.Migrate(); err == nil || !errors.Is(err, common.ErrBadRequest) {
 		t.Fatalf("expected production initial admin password guard, got %v", err)
 	}
 }
@@ -278,7 +349,7 @@ func TestResolveInitialAdminPasswordRequiresProductionOverride(t *testing.T) {
 	t.Setenv("PANTHEON_INITIAL_ADMIN_PASSWORD", "")
 
 	_, err := resolveInitialAdminPassword()
-	if err == nil || err.Error() != "admin.initial_password_required" {
+	if err == nil || !errors.Is(err, common.ErrBadRequest) {
 		t.Fatalf("expected production guard error, got %v", err)
 	}
 }
@@ -301,7 +372,7 @@ func TestResolveInitialAdminPasswordRejectsWeakProductionOverride(t *testing.T) 
 	t.Setenv("PANTHEON_INITIAL_ADMIN_PASSWORD", "123456")
 
 	_, err := resolveInitialAdminPassword()
-	if err == nil || err.Error() != "admin.initial_password_too_short" {
+	if err == nil || !errors.Is(err, common.ErrBadRequest) {
 		t.Fatalf("expected weak production password error, got %v", err)
 	}
 }
@@ -409,9 +480,99 @@ func TestUserService_DeleteUser(t *testing.T) {
 
 	// 2. 删除超级管理员 (ID=1)
 	err = s.DeleteUser(1)
-	if err == nil || err.Error() != "user.delete.error.protected" {
+	if err == nil || !errors.Is(err, common.ErrForbidden) {
 		t.Errorf("expected protected error for admin, got %v", err)
 	}
+}
+
+func TestUserService_ExportUsersHonorsRowCap(t *testing.T) {
+	db := setupUserTestDB(t)
+	s := NewUserService(db)
+
+	oldCap := maxUserExportRows
+	maxUserExportRows = 2
+	defer func() { maxUserExportRows = oldCap }()
+
+	for _, name := range []string{"cap_user_a", "cap_user_b", "cap_user_c"} {
+		if err := db.Create(&SystemUser{Username: name, Password: "hashed", Status: 1}).Error; err != nil {
+			t.Fatalf("seed user %s: %v", name, err)
+		}
+	}
+
+	exported, err := s.ExportUsers(context.Background(), &UserListQuery{Keyword: "cap_user_"}, nil)
+	if err != nil {
+		t.Fatalf("export users: %v", err)
+	}
+	if len(exported.Rows) != 2 {
+		t.Fatalf("expected export capped at 2 rows, got %d", len(exported.Rows))
+	}
+
+	cancelled, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := s.ExportUsers(cancelled, &UserListQuery{}, nil); err == nil {
+		t.Fatalf("expected cancelled context to abort export")
+	}
+}
+
+func TestUserService_DeleteUserPurgesAuthArtifacts(t *testing.T) {
+	db := setupUserTestDB(t)
+	s := newUserServiceWithSessionLifecycle(db)
+
+	// auth 域残留表（用户包不 own 这些模型，用 DDL 建表）
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_password_history (id BIGINT PRIMARY KEY AUTO_INCREMENT, user_id BIGINT, password_hash VARCHAR(255))")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_auth_factor (id BIGINT PRIMARY KEY AUTO_INCREMENT, user_id BIGINT, factor_type VARCHAR(32), secret VARCHAR(255))")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_auth_mfa_challenge (id BIGINT PRIMARY KEY AUTO_INCREMENT, user_id BIGINT, challenge_id VARCHAR(64))")
+
+	// 占位用户占用 ID 1（受保护不可删）
+	db.Create(&SystemUser{Username: "admin_placeholder2"})
+
+	userResp, err := s.CreateUser(&UserCreateReq{
+		Username: "purge_test",
+		Password: "password123",
+		RoleIDs:  []uint64{2},
+		Status:   1,
+	})
+	if err != nil {
+		t.Fatalf("failed to create user: %v", err)
+	}
+
+	seeds := []string{
+		"INSERT INTO system_user_password_history (user_id, password_hash) VALUES (?, 'old-hash')",
+		"INSERT INTO system_auth_factor (user_id, factor_type, secret) VALUES (?, 'totp', 'top-secret')",
+		"INSERT INTO system_auth_mfa_challenge (user_id, challenge_id) VALUES (?, 'chal-1')",
+		"INSERT INTO system_user_profile_ext (user_id, profile_json) VALUES (?, '{}')",
+		"INSERT INTO system_user_session (session_id, user_id) VALUES ('sess-purge', ?)",
+	}
+	for _, stmt := range seeds {
+		if err := db.Exec(stmt, userResp.ID).Error; err != nil {
+			t.Fatalf("failed to seed auth artifact: %v", err)
+		}
+	}
+	// 其他用户的 MFA 因子必须保留
+	if err := db.Exec("INSERT INTO system_auth_factor (user_id, factor_type, secret) VALUES (1, 'totp', 'keep-me')").Error; err != nil {
+		t.Fatalf("failed to seed other user's factor: %v", err)
+	}
+
+	if err := s.DeleteUser(userResp.ID); err != nil {
+		t.Fatalf("expected delete to succeed, got %v", err)
+	}
+
+	assertCount := func(table string, where string, arg any, want int64) {
+		t.Helper()
+		var count int64
+		if err := db.Table(table).Where(where, arg).Count(&count).Error; err != nil {
+			t.Fatalf("failed to count %s: %v", table, err)
+		}
+		if count != want {
+			t.Fatalf("expected %d rows in %s for %v, got %d", want, table, arg, count)
+		}
+	}
+	assertCount("system_user_password_history", "user_id = ?", userResp.ID, 0)
+	assertCount("system_auth_factor", "user_id = ?", userResp.ID, 0)
+	assertCount("system_auth_mfa_challenge", "user_id = ?", userResp.ID, 0)
+	assertCount("system_user_profile_ext", "user_id = ?", userResp.ID, 0)
+	assertCount("system_user_session", "user_id = ?", userResp.ID, 0)
+	assertCount("system_auth_factor", "user_id = ?", uint64(1), 1)
 }
 
 func TestUserService_MigrateReleasesLegacyDeletedUsername(t *testing.T) {
@@ -440,6 +601,10 @@ func TestUserService_MigrateReleasesLegacyDeletedUsername(t *testing.T) {
 	s := NewUserService(db)
 	if err := s.Migrate(); err != nil {
 		t.Fatalf("expected migrate to succeed, got %v", err)
+	}
+	// releaseDeletedUsernames is now a separate cleanup step
+	if err := s.CleanupDeletedUsernames(); err != nil {
+		t.Fatalf("expected cleanup to succeed, got %v", err)
 	}
 
 	var repaired SystemUser
@@ -492,7 +657,7 @@ func TestUserService_MigrateNormalizesLegacyPreferenceJSON(t *testing.T) {
 
 func TestUserService_ResetPassword(t *testing.T) {
 	db := setupUserTestDB(t)
-	s := NewUserService(db)
+	s := newUserServiceWithSessionLifecycle(db)
 
 	createReq := &UserCreateReq{
 		Username: "reset_test",
@@ -544,7 +709,7 @@ func TestUserService_CreateAndResetPasswordUseConfiguredMinLength(t *testing.T) 
 		RoleIDs:  []uint64{2},
 		Status:   1,
 	})
-	if err == nil || err.Error() != "user.update.error.password_too_short" {
+	if err == nil || !errors.Is(err, common.ErrBadRequest) {
 		t.Fatalf("expected create user to respect configured min length, got %v", err)
 	}
 
@@ -558,7 +723,7 @@ func TestUserService_CreateAndResetPasswordUseConfiguredMinLength(t *testing.T) 
 		t.Fatalf("create long policy user: %v", err)
 	}
 
-	if _, err := s.ResetPassword(userResp.ID, "1234567"); err == nil || err.Error() != "user.update.error.password_too_short" {
+	if _, err := s.ResetPassword(userResp.ID, "1234567"); err == nil || !errors.Is(err, common.ErrBadRequest) {
 		t.Fatalf("expected reset password to respect configured min length, got %v", err)
 	}
 }
@@ -622,8 +787,18 @@ func TestUserService_GetUserDetail(t *testing.T) {
 	if detail.UpdatedAt == "" {
 		t.Fatal("expected updatedAt to be populated")
 	}
-	if detail.LastLoginAt == nil || *detail.LastLoginAt != loginTime.Format(time.RFC3339) {
-		t.Fatalf("expected lastLoginAt to be populated, got %v", detail.LastLoginAt)
+	var storedLoginTime time.Time
+	if err := db.Table("system_log_login").
+		Select("login_time").
+		Where("username = ? AND status = ?", "detail_test", 1).
+		Order("login_time desc, id desc").
+		Limit(1).
+		Scan(&storedLoginTime).Error; err != nil {
+		t.Fatalf("load stored login time: %v", err)
+	}
+	expectedLastLoginAt := storedLoginTime.Format(time.RFC3339)
+	if detail.LastLoginAt == nil || *detail.LastLoginAt != expectedLastLoginAt {
+		t.Fatalf("expected lastLoginAt %s, got %v", expectedLastLoginAt, detail.LastLoginAt)
 	}
 
 	if _, err := s.GetUserDetail(999); err == nil {
@@ -658,7 +833,7 @@ func TestUserService_ImportTemplateAndExport(t *testing.T) {
 		t.Fatalf("unexpected import result: %+v", result)
 	}
 
-	exported, err := s.ExportUsers(&UserListQuery{Username: "sample_user"})
+	exported, err := s.ExportUsers(context.Background(), &UserListQuery{Username: "sample_user"}, nil)
 	if err != nil {
 		t.Fatalf("export user: %v", err)
 	}

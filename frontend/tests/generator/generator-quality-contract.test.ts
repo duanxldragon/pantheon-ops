@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { ModuleExporter } from '../../src/modules/system/generator/exporter';
+import { ModuleExporter } from '../../src/modules/lowcode/generator/exporter';
 import {
   buildAuditActionKey,
   buildDashboardQuickActionDescriptionKey,
@@ -16,7 +16,7 @@ import {
   validateGeneratorCompleteness,
   type ModuleField,
   type ModuleSchema,
-} from '../../src/modules/system/generator/schema';
+} from '../../src/modules/lowcode/generator/schema';
 
 function createFields(): ModuleField[] {
   return [

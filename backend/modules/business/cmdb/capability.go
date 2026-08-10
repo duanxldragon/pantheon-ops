@@ -45,10 +45,10 @@ type DeployHostResolveRequest struct {
 }
 
 type DeployHostWritebackRequest struct {
-	HostID              uint64
-	Status              string
-	Actor               string
-	InstalledComponents []InstalledComponentUpsert
+	HostID                uint64
+	Status                string
+	Actor                 string
+	InstalledComponents   []InstalledComponentUpsert
 	RemovedComponentNames []string
 }
 
@@ -79,7 +79,7 @@ func (c *deployCMDBCapability) ResolveDeployTargets(req DeployHostResolveRequest
 	case "group":
 		return c.resolveGroupTargets(targetIDs, req.DataScope)
 	default:
-		return nil, errors.New("deploytask.target_invalid")
+		return nil, errors.New("business.deploy.task.invalidTargetType")
 	}
 }
 

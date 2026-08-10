@@ -1,11 +1,7 @@
 import { useSyncExternalStore } from 'react';
-import { getPublicSettingList } from '../../modules/system/setting/api';
+import { getPublicSettingList } from '../../modules/system/config/setting/api';
 import {
   clearExplicitLanguagePreference as clearExplicitLanguagePreferenceBase,
-  hasExplicitLanguagePreference,
-  LANGUAGE_EXPLICIT_STORAGE_KEY,
-  LANGUAGE_STORAGE_KEY,
-  setExplicitLanguagePreference,
   syncDefaultLanguagePreference as syncDefaultLanguagePreferenceBase,
 } from './languagePreference';
 import { applyPantheonDefaultTheme, type PantheonThemeKey } from '../theme/theme';
@@ -15,7 +11,7 @@ export {
   LANGUAGE_EXPLICIT_STORAGE_KEY,
   hasExplicitLanguagePreference,
   setExplicitLanguagePreference,
-};
+} from './languagePreference';
 
 export interface PublicSettingsState {
   siteName: string;
@@ -34,6 +30,7 @@ const PUBLIC_SETTINGS_FALLBACK_SITE_NAME = 'Pantheon Base';
 
 let publicSettingsState: PublicSettingsState = readStoredPublicSettings();
 const listeners = new Set<() => void>();
+let publicSettingsRefreshTask: Promise<PublicSettingsState> | null = null;
 
 function readStoredPublicSettings(): PublicSettingsState {
   if (globalThis.document === undefined) {
@@ -53,16 +50,21 @@ function readStoredPublicSettings(): PublicSettingsState {
 
 function buildPublicSettingsState(settings: Record<string, string>): PublicSettingsState {
   const appMode = normalizeAppMode(settings['platform.app_mode']);
+  let siteName = settings['site.name']?.trim();
+  siteName ??= PUBLIC_SETTINGS_FALLBACK_SITE_NAME;
+  if (siteName === '') {
+    siteName = PUBLIC_SETTINGS_FALLBACK_SITE_NAME;
+  }
   return {
-    siteName: settings['site.name']?.trim() || PUBLIC_SETTINGS_FALLBACK_SITE_NAME,
-    siteLogo: settings['site.logo']?.trim() || '',
+    siteName,
+    siteLogo: settings['site.logo']?.trim() ?? '',
     appMode,
     orgEnabled: settings['org.enabled']?.trim() !== 'false',
     orgRequiredForUser: settings['org.required_for_user']?.trim() === 'true',
-    defaultLanguage: settings['i18n.default_language']?.trim() || 'zh-CN',
-    defaultTheme: settings['ui.default_theme']?.trim() || 'indigo',
+    defaultLanguage: settings['i18n.default_language']?.trim() ?? 'zh-CN',
+    defaultTheme: settings['ui.default_theme']?.trim() ?? 'indigo',
     enableTabBar: settings['ui.enable_tab_bar']?.trim() !== 'false',
-    sessionIdleMinutes: Number(settings['login.session_idle_minutes']?.trim() || '30') || 30,
+    sessionIdleMinutes: Number(settings['login.session_idle_minutes']?.trim() ?? '30'),
   };
 }
 
@@ -105,9 +107,15 @@ export function applyPublicSettings(settings: Record<string, string>) {
 }
 
 export async function refreshPublicSettings() {
-  const response = await getPublicSettingList();
-  applyPublicSettings(response.settings);
-  return publicSettingsState;
+  publicSettingsRefreshTask ??= getPublicSettingList()
+    .then((response) => {
+      applyPublicSettings(response.settings);
+      return publicSettingsState;
+    })
+    .finally(() => {
+      publicSettingsRefreshTask = null;
+    });
+  return publicSettingsRefreshTask;
 }
 
 export async function initializePublicSettings() {

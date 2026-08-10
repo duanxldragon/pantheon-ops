@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"pantheon-ops/backend/pkg/common"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -21,6 +22,12 @@ const (
 	defaultDictItemPage     = 1
 	defaultDictItemPageSize = 10
 	maxDictItemPageSize     = 100
+)
+
+const (
+	condDictCodeEquals = "dict_code = ?"
+	condIDIn           = "id IN ?"
+	condIDEquals       = "id = ?"
 )
 
 type DictService struct {
@@ -61,15 +68,15 @@ type dictTypeStatRow struct {
 }
 
 var defaultDictTypeSeeds = []dictTypeSeed{
-	{DictCode: "system_yes_no", DictName: "system.dict.seed.system_yes_no", Module: "system", Status: 1, Remark: "system.dict.remark.system_yes_no"},
-	{DictCode: "system_user_status", DictName: "system.dict.seed.system_user_status", Module: "system", Status: 1, Remark: "system.dict.remark.system_user_status"},
+	{DictCode: "system_yes_no", DictName: "system.dict.seed.system_yes_no", Module: "system", Status: common.StatusEnabled, Remark: "system.dict.remark.system_yes_no"},
+	{DictCode: "system_user_status", DictName: "system.dict.seed.system_user_status", Module: "system", Status: common.StatusEnabled, Remark: "system.dict.remark.system_user_status"},
 }
 
 var defaultDictItemSeeds = []dictItemSeed{
-	{DictCode: "system_yes_no", ItemLabelKey: "dict.system_yes_no.yes", ItemValue: "1", ItemColor: "green", Sort: 1, Status: 1},
-	{DictCode: "system_yes_no", ItemLabelKey: "dict.system_yes_no.no", ItemValue: "0", ItemColor: "gray", Sort: 2, Status: 1},
-	{DictCode: "system_user_status", ItemLabelKey: "dict.system_user_status.enabled", ItemValue: "1", ItemColor: "green", Sort: 1, Status: 1},
-	{DictCode: "system_user_status", ItemLabelKey: "dict.system_user_status.disabled", ItemValue: "2", ItemColor: "red", Sort: 2, Status: 1},
+	{DictCode: "system_yes_no", ItemLabelKey: "dict.system_yes_no.yes", ItemValue: "1", ItemColor: "green", Sort: 1, Status: common.StatusEnabled},
+	{DictCode: "system_yes_no", ItemLabelKey: "dict.system_yes_no.no", ItemValue: "0", ItemColor: "gray", Sort: 2, Status: common.StatusEnabled},
+	{DictCode: "system_user_status", ItemLabelKey: "dict.system_user_status.enabled", ItemValue: "1", ItemColor: "green", Sort: 1, Status: common.StatusEnabled},
+	{DictCode: "system_user_status", ItemLabelKey: "dict.system_user_status.disabled", ItemValue: "2", ItemColor: "red", Sort: 2, Status: common.StatusEnabled},
 }
 
 func NewDictService(db *gorm.DB) *DictService {
@@ -81,10 +88,17 @@ func NewDictService(db *gorm.DB) *DictService {
 
 func (s *DictService) Migrate() error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return common.ErrDatabaseNotInitialized
 	}
 	if err := s.db.AutoMigrate(&SystemDictType{}, &SystemDictItem{}); err != nil {
 		return err
+	}
+	return s.Bootstrap()
+}
+
+func (s *DictService) Bootstrap() error {
+	if s.db == nil {
+		return common.ErrDatabaseNotInitialized
 	}
 	if err := s.releaseDeletedDictTypeCodes(); err != nil {
 		return err
@@ -93,9 +107,20 @@ func (s *DictService) Migrate() error {
 		return err
 	}
 
+	if err := s.bootstrapDefaultDictTypes(); err != nil {
+		return err
+	}
+	if err := s.bootstrapDefaultDictItems(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *DictService) bootstrapDefaultDictTypes() error {
 	for _, item := range defaultDictTypeSeeds {
 		var count int64
-		if err := s.db.Model(&SystemDictType{}).Where("dict_code = ?", item.DictCode).Count(&count).Error; err != nil {
+		if err := s.db.Model(&SystemDictType{}).Where(condDictCodeEquals, item.DictCode).Count(&count).Error; err != nil {
 			return err
 		}
 		if count > 0 {
@@ -111,7 +136,10 @@ func (s *DictService) Migrate() error {
 			return err
 		}
 	}
+	return nil
+}
 
+func (s *DictService) bootstrapDefaultDictItems() error {
 	for _, item := range defaultDictItemSeeds {
 		var count int64
 		if err := s.db.Model(&SystemDictItem{}).
@@ -140,50 +168,18 @@ func (s *DictService) Migrate() error {
 
 func (s *DictService) ListDictTypes(query *DictTypeListQuery) ([]DictTypeResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
+	db := s.buildDictTypeListQuery(query)
 	var rows []SystemDictType
-	db := s.db.Model(&SystemDictType{})
-	if query != nil {
-		if strings.TrimSpace(query.DictCode) != "" {
-			db = db.Where("dict_code LIKE ?", "%"+strings.TrimSpace(query.DictCode)+"%")
-		}
-		if strings.TrimSpace(query.DictName) != "" {
-			db = db.Where("dict_name LIKE ?", "%"+strings.TrimSpace(query.DictName)+"%")
-		}
-		if query.Status != nil && (*query.Status == 1 || *query.Status == 2) {
-			db = db.Where("status = ?", *query.Status)
-		}
-	}
-
 	if err := db.Order("module asc, id asc").Find(&rows).Error; err != nil {
 		return nil, err
 	}
 
-	statsByCode := make(map[string]dictTypeStatRow, len(rows))
-	if len(rows) > 0 {
-		dictCodes := make([]string, 0, len(rows))
-		for _, item := range rows {
-			dictCodes = append(dictCodes, item.DictCode)
-		}
-		var statRows []dictTypeStatRow
-		if err := s.db.Model(&SystemDictItem{}).
-			Select(`
-				dict_code,
-				COUNT(*) AS item_count,
-				SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS active_item_count,
-				SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS disabled_item_count,
-				MAX(updated_at) AS last_item_updated_at
-			`).
-			Where("dict_code IN ?", dictCodes).
-			Group("dict_code").
-			Scan(&statRows).Error; err != nil {
-			return nil, err
-		}
-		for _, item := range statRows {
-			statsByCode[item.DictCode] = item
-		}
+	statsByCode, err := s.loadDictTypeStatRows(rows)
+	if err != nil {
+		return nil, err
 	}
 
 	result := make([]DictTypeResp, 0, len(rows))
@@ -193,9 +189,60 @@ func (s *DictService) ListDictTypes(query *DictTypeListQuery) ([]DictTypeResp, e
 	return result, nil
 }
 
+func (s *DictService) buildDictTypeListQuery(query *DictTypeListQuery) *gorm.DB {
+	db := s.db.Model(&SystemDictType{})
+	if query == nil {
+		return db
+	}
+	if strings.TrimSpace(query.Keyword) != "" {
+		keyword := "%" + common.EscapeLikePattern(strings.TrimSpace(query.Keyword)) + "%"
+		db = db.Where("dict_code LIKE ? OR dict_name LIKE ?", keyword, keyword)
+	}
+	if strings.TrimSpace(query.DictCode) != "" {
+		db = db.Where("dict_code LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.DictCode))+"%")
+	}
+	if strings.TrimSpace(query.DictName) != "" {
+		db = db.Where("dict_name LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.DictName))+"%")
+	}
+	if query.Status != nil && common.IsEnabledStatus(*query.Status) {
+		db = db.Where("status = ?", *query.Status)
+	}
+	return db
+}
+
+func (s *DictService) loadDictTypeStatRows(rows []SystemDictType) (map[string]dictTypeStatRow, error) {
+	statsByCode := make(map[string]dictTypeStatRow, len(rows))
+	if len(rows) == 0 {
+		return statsByCode, nil
+	}
+
+	dictCodes := make([]string, 0, len(rows))
+	for _, item := range rows {
+		dictCodes = append(dictCodes, item.DictCode)
+	}
+	var statRows []dictTypeStatRow
+	if err := s.db.Model(&SystemDictItem{}).
+		Select(`
+			dict_code,
+			COUNT(*) AS item_count,
+			SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) AS active_item_count,
+			SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) AS disabled_item_count,
+			MAX(updated_at) AS last_item_updated_at
+		`, common.StatusEnabled, common.StatusDisabled).
+		Where("dict_code IN ?", dictCodes).
+		Group("dict_code").
+		Scan(&statRows).Error; err != nil {
+		return nil, err
+	}
+	for _, item := range statRows {
+		statsByCode[item.DictCode] = item
+	}
+	return statsByCode, nil
+}
+
 func (s *DictService) CreateDictType(req *DictTypeCreateReq) (*DictTypeResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if err := s.validateDictType(0, req.DictCode); err != nil {
 		return nil, err
@@ -252,68 +299,83 @@ func (s *DictService) BuildDictTypeImportTemplate() *impexp.CSVFile {
 func (s *DictService) ImportDictTypes(records [][]string) (*impexp.ImportResult, error) {
 	result := &impexp.ImportResult{Applied: false, Errors: []impexp.ImportError{}}
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if len(records) == 0 {
 		impexp.AppendImportError(result, 0, "file", "import.file.empty")
 		return result, nil
 	}
 
-	headerIndex := make(map[string]int, len(records[0]))
-	for index, header := range records[0] {
-		headerIndex[strings.TrimSpace(header)] = index
-	}
+	headerIndex := buildImportHeaderIndex(records)
 	requiredHeaders := []string{"dictCode", "dictName", "module", "status", "remark"}
-	for _, header := range requiredHeaders {
-		if _, ok := headerIndex[header]; !ok {
-			impexp.AppendImportError(result, 0, header, "import.header.missing")
-		}
-	}
+	reportMissingImportHeaders(result, headerIndex, requiredHeaders)
 	if result.Failed > 0 {
 		return result, nil
 	}
 
-	type importRow struct {
-		DictCode string
-		DictName string
-		Module   string
-		Status   int
-		Remark   string
+	rows := s.parseDictTypeImportRows(records, headerIndex, result)
+	if result.Failed > 0 {
+		return result, nil
 	}
 
-	rows := make([]importRow, 0, len(records)-1)
+	existingByCode, err := s.loadExistingDictTypesByCode()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.upsertDictTypesInTx(rows, existingByCode, result); err != nil {
+		return nil, err
+	}
+
+	result.Applied = true
+	return result, nil
+}
+
+type dictTypeImportRow struct {
+	DictCode string
+	DictName string
+	Module   string
+	Status   int
+	Remark   string
+}
+
+func (s *DictService) parseDictTypeImportRows(records [][]string, headerIndex map[string]int, result *impexp.ImportResult) []dictTypeImportRow {
+	rows := make([]dictTypeImportRow, 0, len(records)-1)
 	seenCodes := make(map[string]int, len(records)-1)
 	for rowIndex := 1; rowIndex < len(records); rowIndex++ {
 		record := records[rowIndex]
 		if impexp.IsCSVRecordEmpty(record) {
 			continue
 		}
-		rowNumber := rowIndex + 1
-		dictCode := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "dictCode"))
-		dictName := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "dictName"))
-		if dictCode == "" {
-			impexp.AppendImportError(result, rowNumber, "dictCode", "dict.type.code.required")
-		}
-		if dictName == "" {
-			impexp.AppendImportError(result, rowNumber, "dictName", "dict.type.name.required")
-		}
-		if firstRow, ok := seenCodes[dictCode]; ok && dictCode != "" {
-			impexp.AppendImportError(result, rowNumber, "dictCode", fmt.Sprintf("import.duplicate.row.%d", firstRow))
-		} else if dictCode != "" {
-			seenCodes[dictCode] = rowNumber
-		}
-		rows = append(rows, importRow{
-			DictCode: dictCode,
-			DictName: dictName,
-			Module:   strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "module")),
-			Status:   impexp.ParseEnabledStatus(impexp.ReadCSVField(record, headerIndex, "status")),
-			Remark:   strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "remark")),
-		})
+		s.appendParsedDictTypeImportRow(&rows, seenCodes, record, headerIndex, rowIndex+1, result)
 	}
-	if result.Failed > 0 {
-		return result, nil
-	}
+	return rows
+}
 
+func (s *DictService) appendParsedDictTypeImportRow(rows *[]dictTypeImportRow, seenCodes map[string]int, record []string, headerIndex map[string]int, rowNumber int, result *impexp.ImportResult) {
+	dictCode := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "dictCode"))
+	dictName := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "dictName"))
+	if dictCode == "" {
+		impexp.AppendImportError(result, rowNumber, "dictCode", "dict.type.code.required")
+	}
+	if dictName == "" {
+		impexp.AppendImportError(result, rowNumber, "dictName", "dict.type.name.required")
+	}
+	if firstRow, ok := seenCodes[dictCode]; ok && dictCode != "" {
+		impexp.AppendImportError(result, rowNumber, "dictCode", fmt.Sprintf("import.duplicate.row.%d", firstRow))
+	} else if dictCode != "" {
+		seenCodes[dictCode] = rowNumber
+	}
+	*rows = append(*rows, dictTypeImportRow{
+		DictCode: dictCode,
+		DictName: dictName,
+		Module:   strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "module")),
+		Status:   impexp.ParseEnabledStatus(impexp.ReadCSVField(record, headerIndex, "status")),
+		Remark:   strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "remark")),
+	})
+}
+
+func (s *DictService) loadExistingDictTypesByCode() (map[string]SystemDictType, error) {
 	var existing []SystemDictType
 	if err := s.db.Find(&existing).Error; err != nil {
 		return nil, err
@@ -322,8 +384,11 @@ func (s *DictService) ImportDictTypes(records [][]string) (*impexp.ImportResult,
 	for _, row := range existing {
 		existingByCode[row.DictCode] = row
 	}
+	return existingByCode, nil
+}
 
-	if err := s.db.Transaction(func(tx *gorm.DB) error {
+func (s *DictService) upsertDictTypesInTx(rows []dictTypeImportRow, existingByCode map[string]SystemDictType, result *impexp.ImportResult) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
 		for _, row := range rows {
 			if existing, ok := existingByCode[row.DictCode]; ok {
 				existing.DictName = row.DictName
@@ -349,16 +414,12 @@ func (s *DictService) ImportDictTypes(records [][]string) (*impexp.ImportResult,
 			result.Created++
 		}
 		return nil
-	}); err != nil {
-		return nil, err
-	}
-	result.Applied = true
-	return result, nil
+	})
 }
 
 func (s *DictService) UpdateDictType(typeID uint64, req *DictTypeUpdateReq) (*DictTypeResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var row SystemDictType
@@ -381,7 +442,7 @@ func (s *DictService) UpdateDictType(typeID uint64, req *DictTypeUpdateReq) (*Di
 			return err
 		}
 		if oldCode != row.DictCode {
-			return tx.Model(&SystemDictItem{}).Where("dict_code = ?", oldCode).Update("dict_code", row.DictCode).Error
+			return tx.Model(&SystemDictItem{}).Where(condDictCodeEquals, oldCode).Update("dict_code", row.DictCode).Error
 		}
 		return nil
 	})
@@ -396,7 +457,7 @@ func (s *DictService) UpdateDictType(typeID uint64, req *DictTypeUpdateReq) (*Di
 
 func (s *DictService) DeleteDictType(typeID uint64) error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return common.ErrDatabaseNotInitialized
 	}
 
 	var row SystemDictType
@@ -405,11 +466,11 @@ func (s *DictService) DeleteDictType(typeID uint64) error {
 	}
 
 	var itemCount int64
-	if err := s.db.Model(&SystemDictItem{}).Where("dict_code = ?", row.DictCode).Count(&itemCount).Error; err != nil {
+	if err := s.db.Model(&SystemDictItem{}).Where(condDictCodeEquals, row.DictCode).Count(&itemCount).Error; err != nil {
 		return err
 	}
 	if itemCount > 0 {
-		return errors.New("dict.type.delete.error.has_items")
+		return common.NewInternal("dict.type.delete.error.has_items")
 	}
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		deletedCode, err := s.allocateDeletedDictTypeCode(tx, row.ID)
@@ -429,26 +490,26 @@ func (s *DictService) DeleteDictType(typeID uint64) error {
 
 func (s *DictService) BatchUpdateDictTypeStatus(typeIDs []uint64, status int) (int, error) {
 	if s.db == nil {
-		return 0, errors.New("database.not_initialized")
+		return 0, common.ErrDatabaseNotInitialized
 	}
 	normalizedIDs := normalizeUint64IDs(typeIDs)
 	if len(normalizedIDs) == 0 {
-		return 0, errors.New("dict.type.batch.empty")
+		return 0, common.NewBadRequest("dict.type.batch.empty")
 	}
-	if status != 1 && status != 2 {
-		return 0, errors.New("param.invalid")
+	if !common.IsEnabledStatus(status) {
+		return 0, common.NewBadRequest(errParamInvalid)
 	}
 
 	var rows []SystemDictType
-	if err := s.db.Where("id IN ?", normalizedIDs).Find(&rows).Error; err != nil {
+	if err := s.db.Where(condIDIn, normalizedIDs).Find(&rows).Error; err != nil {
 		return 0, err
 	}
 	if len(rows) != len(normalizedIDs) {
-		return 0, errors.New("dict.type.batch.not_found")
+		return 0, common.NewNotFound("dict.type.batch.not_found")
 	}
 
 	if err := s.db.Model(&SystemDictType{}).
-		Where("id IN ?", normalizedIDs).
+		Where(condIDIn, normalizedIDs).
 		Updates(map[string]any{
 			"status":     normalizeDictStatus(status),
 			"updated_at": time.Now(),
@@ -464,7 +525,7 @@ func (s *DictService) ListDictItems(query *DictItemListQuery) (*DictItemPageResp
 
 func (s *DictService) listDictItems(query *DictItemListQuery, paginate bool) (*DictItemPageResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if query == nil || strings.TrimSpace(query.DictCode) == "" {
 		page, pageSize := normalizeDictItemPageQuery(query)
@@ -476,27 +537,18 @@ func (s *DictService) listDictItems(query *DictItemListQuery, paginate bool) (*D
 		}, nil
 	}
 
-	var rows []SystemDictItem
-	db := s.db.Model(&SystemDictItem{}).Where("dict_code = ?", strings.TrimSpace(query.DictCode))
-	if strings.TrimSpace(query.Keyword) != "" {
-		keyword := "%" + strings.TrimSpace(query.Keyword) + "%"
-		db = db.Where("item_label_key LIKE ? OR item_value LIKE ? OR remark LIKE ?", keyword, keyword, keyword)
-	}
-	if query.Status != nil && (*query.Status == 1 || *query.Status == 2) {
-		db = db.Where("status = ?", *query.Status)
-	}
+	db := s.buildDictItemListQuery(query)
 	page, pageSize := normalizeDictItemPageQuery(query)
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
 		return nil, err
 	}
 
-	resultDB := db.
-		Order(clause.OrderByColumn{Column: clause.Column{Name: "sort"}, Desc: false}).
-		Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: false})
+	resultDB := s.applyDictItemListSort(db, query)
 	if paginate {
 		resultDB = resultDB.Offset((page - 1) * pageSize).Limit(pageSize)
 	}
+	var rows []SystemDictItem
 	if err := resultDB.Find(&rows).Error; err != nil {
 		return nil, err
 	}
@@ -513,9 +565,32 @@ func (s *DictService) listDictItems(query *DictItemListQuery, paginate bool) (*D
 	}, nil
 }
 
+func (s *DictService) buildDictItemListQuery(query *DictItemListQuery) *gorm.DB {
+	db := s.db.Model(&SystemDictItem{}).Where(condDictCodeEquals, strings.TrimSpace(query.DictCode))
+	if strings.TrimSpace(query.Keyword) != "" {
+		keyword := "%" + common.EscapeLikePattern(strings.TrimSpace(query.Keyword)) + "%"
+		db = db.Where("item_label_key LIKE ? OR item_value LIKE ? OR remark LIKE ?", keyword, keyword, keyword)
+	}
+	if query.Status != nil && common.IsEnabledStatus(*query.Status) {
+		db = db.Where("status = ?", *query.Status)
+	}
+	return db
+}
+
+func (s *DictService) applyDictItemListSort(db *gorm.DB, query *DictItemListQuery) *gorm.DB {
+	if sortColumn, sortDesc, ok := normalizeDictItemSort(query); ok {
+		return db.
+			Order(clause.OrderByColumn{Column: clause.Column{Name: sortColumn}, Desc: sortDesc}).
+			Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: false})
+	}
+	return db.
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "sort"}, Desc: false}).
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: false})
+}
+
 func (s *DictService) CreateDictItem(req *DictItemCreateReq) (*DictItemResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if err := s.validateDictItem(0, req.DictCode, req.ItemValue); err != nil {
 		return nil, err
@@ -576,84 +651,115 @@ func (s *DictService) BuildDictItemImportTemplate() *impexp.CSVFile {
 func (s *DictService) ImportDictItems(records [][]string) (*impexp.ImportResult, error) {
 	result := &impexp.ImportResult{Applied: false, Errors: []impexp.ImportError{}}
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if len(records) == 0 {
 		impexp.AppendImportError(result, 0, "file", "import.file.empty")
 		return result, nil
 	}
 
-	headerIndex := make(map[string]int, len(records[0]))
-	for index, header := range records[0] {
-		headerIndex[strings.TrimSpace(header)] = index
-	}
+	headerIndex := buildImportHeaderIndex(records)
 	requiredHeaders := []string{"dictCode", "itemLabelKey", "itemValue", "itemColor", "sort", "status", "remark"}
-	for _, header := range requiredHeaders {
-		if _, ok := headerIndex[header]; !ok {
-			impexp.AppendImportError(result, 0, header, "import.header.missing")
-		}
-	}
+	reportMissingImportHeaders(result, headerIndex, requiredHeaders)
 	if result.Failed > 0 {
 		return result, nil
 	}
 
-	type importRow struct {
-		DictCode     string
-		ItemLabelKey string
-		ItemValue    string
-		ItemColor    string
-		Sort         int
-		Status       int
-		Remark       string
+	rows := parseDictItemImportRows(records, headerIndex, result)
+	if result.Failed > 0 {
+		return result, nil
 	}
 
-	rows := make([]importRow, 0, len(records)-1)
+	existingByKey, err := s.loadExistingDictItemsByKey()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.upsertDictItemsInTx(rows, existingByKey, result); err != nil {
+		return nil, err
+	}
+
+	result.Applied = true
+	return result, nil
+}
+
+type dictItemImportRow struct {
+	DictCode     string
+	ItemLabelKey string
+	ItemValue    string
+	ItemColor    string
+	Sort         int
+	Status       int
+	Remark       string
+}
+
+func buildImportHeaderIndex(records [][]string) map[string]int {
+	headerIndex := make(map[string]int, len(records[0]))
+	for index, header := range records[0] {
+		headerIndex[strings.TrimSpace(header)] = index
+	}
+	return headerIndex
+}
+
+func reportMissingImportHeaders(result *impexp.ImportResult, headerIndex map[string]int, required []string) {
+	for _, header := range required {
+		if _, ok := headerIndex[header]; !ok {
+			impexp.AppendImportError(result, 0, header, "import.header.missing")
+		}
+	}
+}
+
+func parseDictItemImportRows(records [][]string, headerIndex map[string]int, result *impexp.ImportResult) []dictItemImportRow {
+	rows := make([]dictItemImportRow, 0, len(records)-1)
 	seenKeys := make(map[string]int, len(records)-1)
 	for rowIndex := 1; rowIndex < len(records); rowIndex++ {
 		record := records[rowIndex]
 		if impexp.IsCSVRecordEmpty(record) {
 			continue
 		}
-		rowNumber := rowIndex + 1
-		dictCode := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "dictCode"))
-		itemLabelKey := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "itemLabelKey"))
-		itemValue := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "itemValue"))
-		sortValue, sortErr := impexp.ParseCSVInt(impexp.ReadCSVField(record, headerIndex, "sort"))
-
-		if dictCode == "" {
-			impexp.AppendImportError(result, rowNumber, "dictCode", "dict.type.code.required")
-		}
-		if itemLabelKey == "" {
-			impexp.AppendImportError(result, rowNumber, "itemLabelKey", "dict.item.label_key.required")
-		}
-		if itemValue == "" {
-			impexp.AppendImportError(result, rowNumber, "itemValue", "dict.item.value.required")
-		}
-		if sortErr != nil {
-			impexp.AppendImportError(result, rowNumber, "sort", "import.field.invalid_integer")
-		}
-
-		compositeKey := dictCode + "|" + itemValue
-		if firstRow, ok := seenKeys[compositeKey]; ok && compositeKey != "|" {
-			impexp.AppendImportError(result, rowNumber, "itemValue", fmt.Sprintf("import.duplicate.row.%d", firstRow))
-		} else if compositeKey != "|" {
-			seenKeys[compositeKey] = rowNumber
-		}
-
-		rows = append(rows, importRow{
-			DictCode:     dictCode,
-			ItemLabelKey: itemLabelKey,
-			ItemValue:    itemValue,
-			ItemColor:    strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "itemColor")),
-			Sort:         sortValue,
-			Status:       impexp.ParseEnabledStatus(impexp.ReadCSVField(record, headerIndex, "status")),
-			Remark:       strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "remark")),
-		})
+		appendDictItemImportRow(&rows, seenKeys, record, headerIndex, rowIndex+1, result)
 	}
-	if result.Failed > 0 {
-		return result, nil
+	return rows
+}
+
+func appendDictItemImportRow(rows *[]dictItemImportRow, seenKeys map[string]int, record []string, headerIndex map[string]int, rowNumber int, result *impexp.ImportResult) {
+	dictCode := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "dictCode"))
+	itemLabelKey := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "itemLabelKey"))
+	itemValue := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "itemValue"))
+	sortValue, sortErr := impexp.ParseCSVInt(impexp.ReadCSVField(record, headerIndex, "sort"))
+
+	if dictCode == "" {
+		impexp.AppendImportError(result, rowNumber, "dictCode", "dict.type.code.required")
+	}
+	if itemLabelKey == "" {
+		impexp.AppendImportError(result, rowNumber, "itemLabelKey", "dict.item.label_key.required")
+	}
+	if itemValue == "" {
+		impexp.AppendImportError(result, rowNumber, "itemValue", "dict.item.value.required")
+	}
+	if sortErr != nil {
+		impexp.AppendImportError(result, rowNumber, "sort", "import.field.invalid_integer")
 	}
 
+	compositeKey := dictCode + "|" + itemValue
+	if firstRow, ok := seenKeys[compositeKey]; ok && compositeKey != "|" {
+		impexp.AppendImportError(result, rowNumber, "itemValue", fmt.Sprintf("import.duplicate.row.%d", firstRow))
+	} else if compositeKey != "|" {
+		seenKeys[compositeKey] = rowNumber
+	}
+
+	*rows = append(*rows, dictItemImportRow{
+		DictCode:     dictCode,
+		ItemLabelKey: itemLabelKey,
+		ItemValue:    itemValue,
+		ItemColor:    strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "itemColor")),
+		Sort:         sortValue,
+		Status:       impexp.ParseEnabledStatus(impexp.ReadCSVField(record, headerIndex, "status")),
+		Remark:       strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "remark")),
+	})
+}
+
+func (s *DictService) loadExistingDictItemsByKey() (map[string]SystemDictItem, error) {
 	var existing []SystemDictItem
 	if err := s.db.Find(&existing).Error; err != nil {
 		return nil, err
@@ -662,53 +768,63 @@ func (s *DictService) ImportDictItems(records [][]string) (*impexp.ImportResult,
 	for _, row := range existing {
 		existingByKey[row.DictCode+"|"+row.ItemValue] = row
 	}
+	return existingByKey, nil
+}
 
-	if err := s.db.Transaction(func(tx *gorm.DB) error {
+func (s *DictService) upsertDictItemsInTx(rows []dictItemImportRow, existingByKey map[string]SystemDictItem, result *impexp.ImportResult) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
 		for _, row := range rows {
-			if err := s.validateDictItem(0, row.DictCode, row.ItemValue); err != nil {
-				if existing, ok := existingByKey[row.DictCode+"|"+row.ItemValue]; ok {
-					existing.ItemLabelKey = row.ItemLabelKey
-					existing.ItemColor = row.ItemColor
-					existing.Sort = row.Sort
-					existing.Status = normalizeDictStatus(row.Status)
-					existing.Remark = row.Remark
-					if err := tx.Save(&existing).Error; err != nil {
-						return err
-					}
-					s.invalidateDictOptionCache(existing.DictCode)
-					result.Updated++
-					continue
-				}
+			if err := s.upsertDictItemImportRow(tx, row, existingByKey, result); err != nil {
 				return err
 			}
-
-			item := SystemDictItem{
-				DictCode:     row.DictCode,
-				ItemLabelKey: row.ItemLabelKey,
-				ItemValue:    row.ItemValue,
-				ItemColor:    row.ItemColor,
-				Sort:         row.Sort,
-				Status:       normalizeDictStatus(row.Status),
-				Remark:       row.Remark,
-			}
-			if err := tx.Create(&item).Error; err != nil {
-				return err
-			}
-			s.invalidateDictOptionCache(item.DictCode)
-			result.Created++
 		}
 		return nil
-	}); err != nil {
-		return nil, err
-	}
+	})
+}
 
-	result.Applied = true
-	return result, nil
+func (s *DictService) upsertDictItemImportRow(tx *gorm.DB, row dictItemImportRow, existingByKey map[string]SystemDictItem, result *impexp.ImportResult) error {
+	validationErr := s.validateDictItem(0, row.DictCode, row.ItemValue)
+	if validationErr == nil {
+		return s.createImportedDictItem(tx, row, result)
+	}
+	existing, ok := existingByKey[row.DictCode+"|"+row.ItemValue]
+	if !ok {
+		return validationErr
+	}
+	existing.ItemLabelKey = row.ItemLabelKey
+	existing.ItemColor = row.ItemColor
+	existing.Sort = row.Sort
+	existing.Status = normalizeDictStatus(row.Status)
+	existing.Remark = row.Remark
+	if err := tx.Save(&existing).Error; err != nil {
+		return err
+	}
+	s.invalidateDictOptionCache(existing.DictCode)
+	result.Updated++
+	return nil
+}
+
+func (s *DictService) createImportedDictItem(tx *gorm.DB, row dictItemImportRow, result *impexp.ImportResult) error {
+	item := SystemDictItem{
+		DictCode:     row.DictCode,
+		ItemLabelKey: row.ItemLabelKey,
+		ItemValue:    row.ItemValue,
+		ItemColor:    row.ItemColor,
+		Sort:         row.Sort,
+		Status:       normalizeDictStatus(row.Status),
+		Remark:       row.Remark,
+	}
+	if err := tx.Create(&item).Error; err != nil {
+		return err
+	}
+	s.invalidateDictOptionCache(item.DictCode)
+	result.Created++
+	return nil
 }
 
 func (s *DictService) UpdateDictItem(itemID uint64, req *DictItemUpdateReq) (*DictItemResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var row SystemDictItem
@@ -738,7 +854,7 @@ func (s *DictService) UpdateDictItem(itemID uint64, req *DictItemUpdateReq) (*Di
 
 func (s *DictService) DeleteDictItem(itemID uint64) error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return common.ErrDatabaseNotInitialized
 	}
 
 	var row SystemDictItem
@@ -764,22 +880,22 @@ func (s *DictService) DeleteDictItem(itemID uint64) error {
 
 func (s *DictService) BatchUpdateDictItemStatus(itemIDs []uint64, status int) (int, error) {
 	if s.db == nil {
-		return 0, errors.New("database.not_initialized")
+		return 0, common.ErrDatabaseNotInitialized
 	}
 	normalizedIDs := normalizeUint64IDs(itemIDs)
 	if len(normalizedIDs) == 0 {
-		return 0, errors.New("dict.item.batch.empty")
+		return 0, common.NewBadRequest("dict.item.batch.empty")
 	}
-	if status != 1 && status != 2 {
-		return 0, errors.New("param.invalid")
+	if !common.IsEnabledStatus(status) {
+		return 0, common.NewBadRequest(errParamInvalid)
 	}
 
 	var rows []SystemDictItem
-	if err := s.db.Where("id IN ?", normalizedIDs).Find(&rows).Error; err != nil {
+	if err := s.db.Where(condIDIn, normalizedIDs).Find(&rows).Error; err != nil {
 		return 0, err
 	}
 	if len(rows) != len(normalizedIDs) {
-		return 0, errors.New("dict.item.batch.not_found")
+		return 0, common.NewNotFound("dict.item.batch.not_found")
 	}
 
 	dictCodes := make([]string, 0, len(rows))
@@ -788,7 +904,7 @@ func (s *DictService) BatchUpdateDictItemStatus(itemIDs []uint64, status int) (i
 	}
 
 	if err := s.db.Model(&SystemDictItem{}).
-		Where("id IN ?", normalizedIDs).
+		Where(condIDIn, normalizedIDs).
 		Updates(map[string]any{
 			"status":     normalizeDictStatus(status),
 			"updated_at": time.Now(),
@@ -801,10 +917,10 @@ func (s *DictService) BatchUpdateDictItemStatus(itemIDs []uint64, status int) (i
 
 func (s *DictService) ReorderDictItem(itemID uint64, direction string) (*DictItemResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if direction != "up" && direction != "down" {
-		return nil, errors.New("param.invalid")
+		return nil, common.NewBadRequest(errParamInvalid)
 	}
 
 	var current SystemDictItem
@@ -812,16 +928,8 @@ func (s *DictService) ReorderDictItem(itemID uint64, direction string) (*DictIte
 		return nil, err
 	}
 
-	var neighbor SystemDictItem
-	query := s.db.Model(&SystemDictItem{}).Where("dict_code = ? AND id <> ?", current.DictCode, current.ID)
-	if direction == "up" {
-		query = query.Where("(sort < ? OR (sort = ? AND id < ?))", current.Sort, current.Sort, current.ID).
-			Order("sort desc, id desc")
-	} else {
-		query = query.Where("(sort > ? OR (sort = ? AND id > ?))", current.Sort, current.Sort, current.ID).
-			Order("sort asc, id asc")
-	}
-	if err := query.First(&neighbor).Error; err != nil {
+	neighbor, err := s.findReorderNeighbor(current, direction)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			resp := toDictItemResp(current)
 			return &resp, nil
@@ -829,20 +937,7 @@ func (s *DictService) ReorderDictItem(itemID uint64, direction string) (*DictIte
 		return nil, err
 	}
 
-	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		currentSort := current.Sort
-		current.Sort = neighbor.Sort
-		neighbor.Sort = currentSort
-		if err := tx.Model(&SystemDictItem{}).Where("id = ?", current.ID).
-			Updates(map[string]any{"sort": current.Sort, "updated_at": time.Now()}).Error; err != nil {
-			return err
-		}
-		if err := tx.Model(&SystemDictItem{}).Where("id = ?", neighbor.ID).
-			Updates(map[string]any{"sort": neighbor.Sort, "updated_at": time.Now()}).Error; err != nil {
-			return err
-		}
-		return nil
-	}); err != nil {
+	if err := s.swapDictItemSort(current, neighbor); err != nil {
 		return nil, err
 	}
 
@@ -854,9 +949,42 @@ func (s *DictService) ReorderDictItem(itemID uint64, direction string) (*DictIte
 	return &resp, nil
 }
 
+func (s *DictService) findReorderNeighbor(current SystemDictItem, direction string) (SystemDictItem, error) {
+	var neighbor SystemDictItem
+	query := s.db.Model(&SystemDictItem{}).Where("dict_code = ? AND id <> ?", current.DictCode, current.ID)
+	if direction == "up" {
+		query = query.Where("(sort < ? OR (sort = ? AND id < ?))", current.Sort, current.Sort, current.ID).
+			Order("sort desc, id desc")
+	} else {
+		query = query.Where("(sort > ? OR (sort = ? AND id > ?))", current.Sort, current.Sort, current.ID).
+			Order("sort asc, id asc")
+	}
+	if err := query.First(&neighbor).Error; err != nil {
+		return neighbor, err
+	}
+	return neighbor, nil
+}
+
+func (s *DictService) swapDictItemSort(current, neighbor SystemDictItem) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		currentSort := current.Sort
+		current.Sort = neighbor.Sort
+		neighbor.Sort = currentSort
+		if err := tx.Model(&SystemDictItem{}).Where(condIDEquals, current.ID).
+			Updates(map[string]any{"sort": current.Sort, "updated_at": time.Now()}).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&SystemDictItem{}).Where(condIDEquals, neighbor.ID).
+			Updates(map[string]any{"sort": neighbor.Sort, "updated_at": time.Now()}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
 func (s *DictService) GetDictOptions(codes []string) (DictOptionMapResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	normalizedCodes := normalizeDictCodes(codes)
@@ -869,17 +997,7 @@ func (s *DictService) GetDictOptions(codes []string) (DictOptionMapResp, error) 
 		resp[code] = []DictOptionResp{}
 	}
 
-	missingCodes := make([]string, 0, len(normalizedCodes))
-	s.optionCacheMu.RLock()
-	for _, code := range normalizedCodes {
-		if cached, ok := s.optionCache[code]; ok {
-			resp[code] = cloneDictOptions(cached)
-			continue
-		}
-		missingCodes = append(missingCodes, code)
-	}
-	s.optionCacheMu.RUnlock()
-
+	missingCodes := s.collectCachedDictOptions(normalizedCodes, resp)
 	if len(missingCodes) == 0 {
 		return resp, nil
 	}
@@ -889,19 +1007,36 @@ func (s *DictService) GetDictOptions(codes []string) (DictOptionMapResp, error) 
 		return nil, err
 	}
 
+	s.storeLoadedDictOptions(missingCodes, loaded, resp)
+	return resp, nil
+}
+
+func (s *DictService) collectCachedDictOptions(normalizedCodes []string, resp DictOptionMapResp) []string {
+	missingCodes := make([]string, 0, len(normalizedCodes))
+	s.optionCacheMu.RLock()
+	defer s.optionCacheMu.RUnlock()
+	for _, code := range normalizedCodes {
+		if cached, ok := s.optionCache[code]; ok {
+			resp[code] = cloneDictOptions(cached)
+			continue
+		}
+		missingCodes = append(missingCodes, code)
+	}
+	return missingCodes
+}
+
+func (s *DictService) storeLoadedDictOptions(missingCodes []string, loaded DictOptionMapResp, resp DictOptionMapResp) {
 	s.optionCacheMu.Lock()
+	defer s.optionCacheMu.Unlock()
 	for _, code := range missingCodes {
 		s.optionCache[code] = cloneDictOptions(loaded[code])
 		resp[code] = cloneDictOptions(s.optionCache[code])
 	}
-	s.optionCacheMu.Unlock()
-
-	return resp, nil
 }
 
 func (s *DictService) RefreshDictOptionsCache(codes []string) (*DictCacheRefreshResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	normalizedCodes := normalizeDictCodes(codes)
@@ -935,80 +1070,16 @@ func (s *DictService) RefreshDictOptionsCache(codes []string) (*DictCacheRefresh
 func (s *DictService) AnalyzeDictUsage(dictCode string) (*DictUsageAnalysisResp, error) {
 	trimmedCode := strings.TrimSpace(dictCode)
 	if trimmedCode == "" {
-		return nil, errors.New("param.invalid")
+		return nil, common.NewBadRequest(errParamInvalid)
 	}
 	projectRoot, err := resolveProjectRoot()
 	if err != nil {
 		return nil, err
 	}
 
-	allowedExt := map[string]struct{}{
-		".go":   {},
-		".ts":   {},
-		".tsx":  {},
-		".js":   {},
-		".jsx":  {},
-		".json": {},
-		".md":   {},
-		".yml":  {},
-		".yaml": {},
-	}
-	ignoredDir := map[string]struct{}{
-		".git":         {},
-		"node_modules": {},
-		"dist":         {},
-		"uploads":      {},
-		".tmp-visual":  {},
-	}
-
-	references := make([]DictUsageReferenceResp, 0)
-	walkErr := filepath.WalkDir(projectRoot, func(path string, d fs.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return nil
-		}
-		if d.IsDir() {
-			if _, skip := ignoredDir[d.Name()]; skip {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		if _, ok := allowedExt[strings.ToLower(filepath.Ext(path))]; !ok {
-			return nil
-		}
-		file, err := os.Open(path)
-		if err != nil {
-			return nil
-		}
-		defer file.Close()
-
-		scanner := bufio.NewScanner(file)
-		lineNumber := 0
-		for scanner.Scan() {
-			lineNumber++
-			line := scanner.Text()
-			searchOffset := 0
-			for {
-				index := strings.Index(line[searchOffset:], trimmedCode)
-				if index < 0 {
-					break
-				}
-				column := searchOffset + index + 1
-				relPath, _ := filepath.Rel(projectRoot, path)
-				references = append(references, DictUsageReferenceResp{
-					FilePath:   filepath.ToSlash(relPath),
-					Line:       lineNumber,
-					Column:     column,
-					Snippet:    strings.TrimSpace(line),
-					Domain:     inferDictUsageDomain(relPath),
-					ModuleHint: inferDictUsageModuleHint(relPath),
-				})
-				searchOffset += index + len(trimmedCode)
-			}
-		}
-		return nil
-	})
-	if walkErr != nil {
-		return nil, walkErr
+	references, err := scanDictUsageReferences(projectRoot, trimmedCode)
+	if err != nil {
+		return nil, err
 	}
 
 	return &DictUsageAnalysisResp{
@@ -1019,6 +1090,102 @@ func (s *DictService) AnalyzeDictUsage(dictCode string) (*DictUsageAnalysisResp,
 	}, nil
 }
 
+func scanDictUsageReferences(projectRoot, trimmedCode string) ([]DictUsageReferenceResp, error) {
+	references := make([]DictUsageReferenceResp, 0)
+	scan := dictUsageScan{
+		projectRoot: projectRoot,
+		dictCode:    trimmedCode,
+		allowedExt:  dictUsageAllowedExt(),
+		ignoredDir:  dictUsageIgnoredDir(),
+		references:  &references,
+	}
+	walkErr := filepath.WalkDir(projectRoot, func(path string, d fs.DirEntry, walkErr error) error {
+		return visitDictUsageEntry(scan, path, d, walkErr)
+	})
+	if walkErr != nil {
+		return nil, walkErr
+	}
+	return references, nil
+}
+
+func dictUsageAllowedExt() map[string]struct{} {
+	return map[string]struct{}{
+		".go":   {},
+		".ts":   {},
+		".tsx":  {},
+		".js":   {},
+		".jsx":  {},
+		".json": {},
+		".md":   {},
+		".yml":  {},
+		".yaml": {},
+	}
+}
+
+func dictUsageIgnoredDir() map[string]struct{} {
+	return map[string]struct{}{
+		".git":         {},
+		"node_modules": {},
+		"dist":         {},
+		"uploads":      {},
+		".tmp-visual":  {},
+	}
+}
+
+type dictUsageScan struct {
+	projectRoot string
+	dictCode    string
+	allowedExt  map[string]struct{}
+	ignoredDir  map[string]struct{}
+	references  *[]DictUsageReferenceResp
+}
+
+func visitDictUsageEntry(scan dictUsageScan, path string, d fs.DirEntry, walkErr error) error {
+	if walkErr != nil {
+		return nil
+	}
+	if d.IsDir() {
+		if _, skip := scan.ignoredDir[d.Name()]; skip {
+			return filepath.SkipDir
+		}
+		return nil
+	}
+	if _, ok := scan.allowedExt[strings.ToLower(filepath.Ext(path))]; !ok {
+		return nil
+	}
+	file, err := os.Open(path) // #nosec G304 -- path comes from filepath.WalkDir under the repo source roots being scanned.
+	if err != nil {
+		return nil
+	}
+	defer func() { _ = file.Close() }()
+
+	scanner := bufio.NewScanner(file)
+	lineNumber := 0
+	for scanner.Scan() {
+		lineNumber++
+		line := scanner.Text()
+		searchOffset := 0
+		for {
+			index := strings.Index(line[searchOffset:], scan.dictCode)
+			if index < 0 {
+				break
+			}
+			column := searchOffset + index + 1
+			relPath, _ := filepath.Rel(scan.projectRoot, path)
+			*scan.references = append(*scan.references, DictUsageReferenceResp{
+				FilePath:   filepath.ToSlash(relPath),
+				Line:       lineNumber,
+				Column:     column,
+				Snippet:    strings.TrimSpace(line),
+				Domain:     inferDictUsageDomain(relPath),
+				ModuleHint: inferDictUsageModuleHint(relPath),
+			})
+			searchOffset += index + len(scan.dictCode)
+		}
+	}
+	return nil
+}
+
 func (s *DictService) queryEnabledDictOptions(codes []string) (DictOptionMapResp, error) {
 	result := DictOptionMapResp{}
 	for _, code := range codes {
@@ -1027,7 +1194,7 @@ func (s *DictService) queryEnabledDictOptions(codes []string) (DictOptionMapResp
 
 	var rows []SystemDictItem
 	if err := s.db.Model(&SystemDictItem{}).
-		Where("dict_code IN ? AND status = ?", codes, 1).
+		Where("dict_code IN ? AND status = ?", codes, common.StatusEnabled).
 		Order("dict_code asc, sort asc, id asc").
 		Find(&rows).Error; err != nil {
 		return nil, err
@@ -1047,11 +1214,11 @@ func (s *DictService) queryEnabledDictOptions(codes []string) (DictOptionMapResp
 func (s *DictService) validateDictType(typeID uint64, dictCode string) error {
 	trimmedCode := strings.TrimSpace(dictCode)
 	if trimmedCode == "" {
-		return errors.New("param.invalid")
+		return common.NewBadRequest(errParamInvalid)
 	}
 
 	var count int64
-	db := s.db.Model(&SystemDictType{}).Where("dict_code = ?", trimmedCode)
+	db := s.db.Model(&SystemDictType{}).Where(condDictCodeEquals, trimmedCode)
 	if typeID > 0 {
 		db = db.Where("id <> ?", typeID)
 	}
@@ -1059,7 +1226,7 @@ func (s *DictService) validateDictType(typeID uint64, dictCode string) error {
 		return err
 	}
 	if count > 0 {
-		return errors.New("dict.type.code.exists")
+		return common.NewConflict("dict.type.code.exists")
 	}
 	return nil
 }
@@ -1068,15 +1235,15 @@ func (s *DictService) validateDictItem(itemID uint64, dictCode string, itemValue
 	trimmedCode := strings.TrimSpace(dictCode)
 	trimmedValue := strings.TrimSpace(itemValue)
 	if trimmedCode == "" || trimmedValue == "" {
-		return errors.New("param.invalid")
+		return common.NewBadRequest(errParamInvalid)
 	}
 
 	var typeCount int64
-	if err := s.db.Model(&SystemDictType{}).Where("dict_code = ?", trimmedCode).Count(&typeCount).Error; err != nil {
+	if err := s.db.Model(&SystemDictType{}).Where(condDictCodeEquals, trimmedCode).Count(&typeCount).Error; err != nil {
 		return err
 	}
 	if typeCount == 0 {
-		return errors.New("dict.type.not_found")
+		return common.NewNotFound("dict.type.not_found")
 	}
 
 	var count int64
@@ -1088,16 +1255,13 @@ func (s *DictService) validateDictItem(itemID uint64, dictCode string, itemValue
 		return err
 	}
 	if count > 0 {
-		return errors.New("dict.item.value.exists")
+		return common.NewConflict("dict.item.value.exists")
 	}
 	return nil
 }
 
 func normalizeDictStatus(status int) int {
-	if status == 2 {
-		return 2
-	}
-	return 1
+	return common.NormalizeEnabledStatus(status)
 }
 
 func normalizeDictModule(module string) string {
@@ -1123,6 +1287,32 @@ func normalizeDictItemPageQuery(query *DictItemListQuery) (int, int) {
 		pageSize = maxDictItemPageSize
 	}
 	return page, pageSize
+}
+
+// normalizeDictItemSort maps a client-supplied sort field to a whitelisted
+// dict item column, guarding against ORDER BY injection. The third return value
+// is false when no explicit sort was requested, in which case callers keep the
+// default (sort asc, id asc) ordering.
+func normalizeDictItemSort(query *DictItemListQuery) (string, bool, bool) {
+	if query == nil {
+		return "", false, false
+	}
+
+	sortWhitelist := map[string]string{
+		"itemLabelKey":   "item_label_key",
+		"item_label_key": "item_label_key",
+		"itemValue":      "item_value",
+		"item_value":     "item_value",
+		"sort":           "sort",
+		"status":         "status",
+	}
+
+	column, ok := sortWhitelist[strings.TrimSpace(query.SortField)]
+	if !ok {
+		return "", false, false
+	}
+
+	return column, strings.ToLower(strings.TrimSpace(query.SortOrder)) == "desc", true
 }
 
 func normalizeDictCodes(codes []string) []string {
@@ -1164,7 +1354,7 @@ func resolveProjectRoot() (string, error) {
 		return "", err
 	}
 	for {
-		if fileExists(filepath.Join(current, "go.mod")) && dirExists(filepath.Join(current, "frontend")) {
+		if fileExists(filepath.Join(current, "backend", "go.mod")) && dirExists(filepath.Join(current, "frontend")) {
 			return current, nil
 		}
 		parent := filepath.Dir(current)
@@ -1173,7 +1363,7 @@ func resolveProjectRoot() (string, error) {
 		}
 		current = parent
 	}
-	return "", errors.New("dict.usage.project_root_not_found")
+	return "", common.NewNotFound("dict.usage.project_root_not_found")
 }
 
 func fileExists(path string) bool {
@@ -1252,7 +1442,7 @@ func (s *DictService) releaseDeletedDictTypeCodes() error {
 			if err != nil {
 				return err
 			}
-			if err := tx.Unscoped().Model(&SystemDictType{}).Where("id = ?", item.ID).Update("dict_code", deletedCode).Error; err != nil {
+			if err := tx.Unscoped().Model(&SystemDictType{}).Where(condIDEquals, item.ID).Update("dict_code", deletedCode).Error; err != nil {
 				return err
 			}
 		}
@@ -1274,7 +1464,7 @@ func (s *DictService) releaseDeletedDictItemValues() error {
 			if err != nil {
 				return err
 			}
-			if err := tx.Unscoped().Model(&SystemDictItem{}).Where("id = ?", item.ID).Update("item_value", deletedValue).Error; err != nil {
+			if err := tx.Unscoped().Model(&SystemDictItem{}).Where(condIDEquals, item.ID).Update("item_value", deletedValue).Error; err != nil {
 				return err
 			}
 		}
@@ -1297,7 +1487,7 @@ func (s *DictService) allocateDeletedDictTypeCode(tx *gorm.DB, typeID uint64) (s
 			return candidate, nil
 		}
 	}
-	return "", errors.New("dict.type.delete.error.archive_code_conflict")
+	return "", common.NewConflict("dict.type.delete.error.archive_code_conflict")
 }
 
 func (s *DictService) allocateDeletedDictItemValue(tx *gorm.DB, itemID uint64, dictCode string) (string, error) {
@@ -1315,7 +1505,7 @@ func (s *DictService) allocateDeletedDictItemValue(tx *gorm.DB, itemID uint64, d
 			return candidate, nil
 		}
 	}
-	return "", errors.New("dict.item.delete.error.archive_value_conflict")
+	return "", common.NewConflict("dict.item.delete.error.archive_value_conflict")
 }
 
 func toDictTypeResp(item SystemDictType, stat dictTypeStatRow) DictTypeResp {

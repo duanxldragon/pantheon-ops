@@ -1,5 +1,8 @@
 package common
 
+// MaxBatchIDs 单次批量操作允许的最大 ID 数量，防止恶意超大批量请求拖垮服务。
+const MaxBatchIDs = 1000
+
 type BatchDeleteReq struct {
 	IDs []uint64 `json:"ids" binding:"required"`
 }
@@ -19,6 +22,14 @@ func BatchDelete(ids []uint64, deleteOne func(uint64) error) BatchDeleteResp {
 	normalized := NormalizeUint64IDs(ids)
 	resp := BatchDeleteResp{
 		Failures: []BatchDeleteFailure{},
+	}
+	// 超过上限时整体拒绝（不做部分执行），语义清晰且可被前端明确提示。
+	if len(normalized) > MaxBatchIDs {
+		for _, id := range normalized {
+			resp.Failures = append(resp.Failures, BatchDeleteFailure{ID: id, Reason: "request.batch.too_large"})
+		}
+		resp.FailedCount = len(resp.Failures)
+		return resp
 	}
 	for _, id := range normalized {
 		if err := deleteOne(id); err != nil {

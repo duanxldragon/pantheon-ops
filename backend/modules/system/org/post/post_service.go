@@ -3,6 +3,7 @@ package org
 import (
 	"errors"
 	"fmt"
+	"pantheon-ops/backend/pkg/common"
 	"strings"
 	"time"
 
@@ -12,11 +13,15 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+const condIDIn = "id IN ?"
+
 type PostService struct {
 	db *gorm.DB
 }
 
 const deletedPostCodePrefix = "__deleted_post_"
+
+const errPostHasUsers = "post.status.error.has_users"
 
 func NewPostService(db *gorm.DB) *PostService {
 	return &PostService{db: db}
@@ -24,36 +29,30 @@ func NewPostService(db *gorm.DB) *PostService {
 
 func (s *PostService) Migrate() error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return common.ErrDatabaseNotInitialized
 	}
 	if err := s.db.AutoMigrate(&SystemPost{}); err != nil {
 		return err
+	}
+	return s.Bootstrap()
+}
+
+func (s *PostService) Bootstrap() error {
+	if s.db == nil {
+		return common.ErrDatabaseNotInitialized
 	}
 	return s.releaseDeletedPostCodes()
 }
 
 func (s *PostService) ListPosts(query *PostListQuery) (*PostListPageResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var posts []SystemPost
 	db := s.db.Model(&SystemPost{})
 	page, pageSize := normalizePostPageQuery(query)
-	if query != nil {
-		if strings.TrimSpace(query.PostCode) != "" {
-			db = db.Where("post_code LIKE ?", "%"+strings.TrimSpace(query.PostCode)+"%")
-		}
-		if strings.TrimSpace(query.PostName) != "" {
-			db = db.Where("post_name LIKE ?", "%"+strings.TrimSpace(query.PostName)+"%")
-		}
-		if query.DeptID > 0 {
-			db = db.Where("dept_id = ?", query.DeptID)
-		}
-		if query.Status != nil && (*query.Status == 1 || *query.Status == 2) {
-			db = db.Where("status = ?", *query.Status)
-		}
-	}
+	db = applyPostListFilters(db, query)
 
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
@@ -90,9 +89,34 @@ func (s *PostService) ListPosts(query *PostListQuery) (*PostListPageResp, error)
 	}, nil
 }
 
+// applyPostListFilters 将查询条件等价应用到 *gorm.DB，保持筛选口径与原 ListPosts 完全一致：
+// 关键字同时匹配 post_code/post_name（LIKE），其余字段各自独立 LIKE/等值匹配；nil 查询不附加任何条件。
+func applyPostListFilters(db *gorm.DB, query *PostListQuery) *gorm.DB {
+	if query == nil {
+		return db
+	}
+	if strings.TrimSpace(query.Keyword) != "" {
+		keyword := "%" + common.EscapeLikePattern(strings.TrimSpace(query.Keyword)) + "%"
+		db = db.Where("post_code LIKE ? OR post_name LIKE ?", keyword, keyword)
+	}
+	if strings.TrimSpace(query.PostCode) != "" {
+		db = db.Where("post_code LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.PostCode))+"%")
+	}
+	if strings.TrimSpace(query.PostName) != "" {
+		db = db.Where("post_name LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.PostName))+"%")
+	}
+	if query.DeptID > 0 {
+		db = db.Where("dept_id = ?", query.DeptID)
+	}
+	if query.Status != nil && common.IsEnabledStatus(*query.Status) {
+		db = db.Where("status = ?", *query.Status)
+	}
+	return db
+}
+
 func (s *PostService) CreatePost(req *PostCreateReq) (*PostListResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if err := s.validatePostCreate(0, req.PostCode, req.DeptID); err != nil {
 		return nil, err
@@ -120,7 +144,7 @@ func (s *PostService) CreatePost(req *PostCreateReq) (*PostListResp, error) {
 
 func (s *PostService) UpdatePost(postID uint64, req *PostUpdateReq) (*PostListResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	var post SystemPost
@@ -130,8 +154,8 @@ func (s *PostService) UpdatePost(postID uint64, req *PostUpdateReq) (*PostListRe
 	if err := s.validatePostCreate(postID, req.PostCode, req.DeptID); err != nil {
 		return nil, err
 	}
-	if post.Status != 2 && normalizePostStatus(req.Status) == 2 {
-		if err := s.ensurePostsNotAssignedToUsers([]uint64{postID}); err != nil {
+	if post.Status != common.StatusDisabled && normalizePostStatus(req.Status) == common.StatusDisabled {
+		if err := s.ensurePostsNotAssignedToUsers(s.db, []uint64{postID}); err != nil {
 			return nil, err
 		}
 	}
@@ -156,18 +180,19 @@ func (s *PostService) UpdatePost(postID uint64, req *PostUpdateReq) (*PostListRe
 
 func (s *PostService) DeletePost(postID uint64) error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return common.ErrDatabaseNotInitialized
 	}
 
-	if err := s.ensurePostsNotAssignedToUsers([]uint64{postID}); err != nil {
-		if err.Error() == "post.status.error.has_users" {
-			return errors.New("post.delete.error.has_users")
-		}
-		return err
-	}
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		var post SystemPost
-		if err := tx.First(&post, postID).Error; err != nil {
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&post, postID).Error; err != nil {
+			return err
+		}
+		// 用户占用检查放在事务内，收窄检查与删除之间的并发窗口。
+		if err := s.ensurePostsNotAssignedToUsers(tx, []uint64{postID}); err != nil {
+			if common.ErrMessage(err) == errPostHasUsers {
+				return common.NewInternal("post.delete.error.has_users")
+			}
 			return err
 		}
 		deletedCode, err := s.allocateDeletedPostCode(tx, post.ID)
@@ -183,37 +208,37 @@ func (s *PostService) DeletePost(postID uint64) error {
 
 func (s *PostService) BatchUpdatePostStatus(postIDs []uint64, status int) (int, error) {
 	if s.db == nil {
-		return 0, errors.New("database.not_initialized")
+		return 0, common.ErrDatabaseNotInitialized
 	}
 	normalizedIDs := normalizePostIDs(postIDs)
 	if len(normalizedIDs) == 0 {
-		return 0, errors.New("post.batch.empty")
+		return 0, common.NewBadRequest("post.batch.empty")
 	}
-	if status != 1 && status != 2 {
-		return 0, errors.New("param.invalid")
+	if !common.IsEnabledStatus(status) {
+		return 0, common.NewBadRequest("param.invalid")
 	}
 
 	var posts []SystemPost
-	if err := s.db.Where("id IN ?", normalizedIDs).Find(&posts).Error; err != nil {
+	if err := s.db.Where(condIDIn, normalizedIDs).Find(&posts).Error; err != nil {
 		return 0, err
 	}
 	if len(posts) != len(normalizedIDs) {
-		return 0, errors.New("post.batch.not_found")
+		return 0, common.NewNotFound("post.batch.not_found")
 	}
-	if normalizePostStatus(status) == 2 {
+	if normalizePostStatus(status) == common.StatusDisabled {
 		activeIDs := make([]uint64, 0, len(posts))
 		for _, post := range posts {
-			if post.Status != 2 {
+			if post.Status != common.StatusDisabled {
 				activeIDs = append(activeIDs, post.ID)
 			}
 		}
-		if err := s.ensurePostsNotAssignedToUsers(activeIDs); err != nil {
+		if err := s.ensurePostsNotAssignedToUsers(s.db, activeIDs); err != nil {
 			return 0, err
 		}
 	}
 
 	if err := s.db.Model(&SystemPost{}).
-		Where("id IN ?", normalizedIDs).
+		Where(condIDIn, normalizedIDs).
 		Updates(map[string]any{
 			"status":     normalizePostStatus(status),
 			"updated_at": time.Now(),
@@ -226,7 +251,7 @@ func (s *PostService) BatchUpdatePostStatus(postIDs []uint64, status int) (int, 
 
 func (s *PostService) ExportPosts(query *PostListQuery) (*impexp.CSVFile, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 
 	rows, err := s.listPostsForExport(query)
@@ -286,13 +311,143 @@ func (s *PostService) BuildPostImportTemplate() *impexp.CSVFile {
 	}
 }
 
+// postImportRow 表示一次导入解析后的单行数据。
+type postImportRow struct {
+	DeptID   uint64
+	PostCode string
+	PostName string
+	Sort     int
+	Status   int
+	Remark   string
+}
+
+// appendPostImportDeptError records domain validation errors as i18n keys and
+// returns unexpected infrastructure errors to the caller.
+func appendPostImportDeptError(result *impexp.ImportResult, rowNumber int, err error) error {
+	if !errors.Is(err, common.ErrBadRequest) && !errors.Is(err, common.ErrForbidden) {
+		return err
+	}
+	impexp.AppendImportError(result, rowNumber, "deptPath", common.ErrMessage(err))
+	return nil
+}
+
+// validateImportHeaders 校验导入表头是否包含必填列，缺失时追加错误到 result。
+func validateImportHeaders(headerIndex map[string]int, result *impexp.ImportResult) {
+	requiredHeaders := []string{"deptPath", "postCode", "postName", "sort", "status", "remark"}
+	for _, header := range requiredHeaders {
+		if _, ok := headerIndex[header]; !ok {
+			impexp.AppendImportError(result, 0, header, "import.header.missing")
+		}
+	}
+}
+
+// readImportRow 解析并校验单行导入记录：
+//   - 空/注释行（IsCSVRecordEmpty）返回 nil，调用方跳过且不计入 rows；
+//   - 校验失败仅追加到 result.Errors，返回的非 nil 行仍应被追加到 rows；
+//   - 部门校验与重复码检测的顺序与原循环一致。
+//   - 非领域校验错误立即上抛，避免将基础设施错误暴露给导入结果。
+func (s *PostService) readImportRow(
+	record []string,
+	rowNumber int,
+	headerIndex map[string]int,
+	deptPathToID map[string]uint64,
+	seenCodes map[string]int,
+	result *impexp.ImportResult,
+) (*postImportRow, error) {
+	if impexp.IsCSVRecordEmpty(record) {
+		return nil, nil
+	}
+
+	postCode := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "postCode"))
+	postName := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "postName"))
+	deptPath := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "deptPath"))
+	sortValue, sortErr := impexp.ParseCSVInt(impexp.ReadCSVField(record, headerIndex, "sort"))
+	status := impexp.ParseEnabledStatus(impexp.ReadCSVField(record, headerIndex, "status"))
+	remark := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "remark"))
+
+	if postCode == "" {
+		impexp.AppendImportError(result, rowNumber, "postCode", "post.code.required")
+	}
+	if postName == "" {
+		impexp.AppendImportError(result, rowNumber, "postName", "post.name.required")
+	}
+	deptID := deptPathToID[deptPath]
+	if deptPath == "" {
+		impexp.AppendImportError(result, rowNumber, "deptPath", "post.dept.required")
+	} else if deptID == 0 {
+		impexp.AppendImportError(result, rowNumber, "deptPath", "post.dept.invalid")
+	} else if err := s.ensurePostDeptID(deptID); err != nil {
+		if err := appendPostImportDeptError(result, rowNumber, err); err != nil {
+			return nil, err
+		}
+	}
+	if sortErr != nil {
+		impexp.AppendImportError(result, rowNumber, "sort", "import.field.invalid_integer")
+	}
+	if postCode != "" {
+		if firstRow, ok := seenCodes[postCode]; ok {
+			impexp.AppendImportError(result, rowNumber, "postCode", fmt.Sprintf("import.duplicate.row.%d", firstRow))
+		} else {
+			seenCodes[postCode] = rowNumber
+		}
+	}
+
+	return &postImportRow{
+		DeptID:   deptID,
+		PostCode: postCode,
+		PostName: postName,
+		Sort:     sortValue,
+		Status:   status,
+		Remark:   remark,
+	}, nil
+}
+
+// applyImportRows 在事务内对每行执行新增或更新并累加导入统计，与原事务语义完全一致：
+// 已存在的 post_code 执行更新（Updated++），否则新增（Created++）；任何写入错误立即回滚事务。
+func applyImportRows(
+	tx *gorm.DB,
+	rows []postImportRow,
+	existingByCode map[string]SystemPost,
+	result *impexp.ImportResult,
+) error {
+	for _, row := range rows {
+		existing, ok := existingByCode[row.PostCode]
+		if ok {
+			existing.DeptID = row.DeptID
+			existing.PostName = row.PostName
+			existing.Sort = row.Sort
+			existing.Status = row.Status
+			existing.Remark = row.Remark
+			if err := tx.Save(&existing).Error; err != nil {
+				return err
+			}
+			result.Updated++
+			continue
+		}
+
+		post := SystemPost{
+			DeptID:   row.DeptID,
+			PostCode: row.PostCode,
+			PostName: row.PostName,
+			Sort:     row.Sort,
+			Status:   row.Status,
+			Remark:   row.Remark,
+		}
+		if err := tx.Create(&post).Error; err != nil {
+			return err
+		}
+		result.Created++
+	}
+	return nil
+}
+
 func (s *PostService) ImportPosts(records [][]string) (*impexp.ImportResult, error) {
 	result := &impexp.ImportResult{
 		Applied: false,
 		Errors:  []impexp.ImportError{},
 	}
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if len(records) == 0 {
 		impexp.AppendImportError(result, 0, "file", "import.file.empty")
@@ -303,77 +458,26 @@ func (s *PostService) ImportPosts(records [][]string) (*impexp.ImportResult, err
 	for index, header := range records[0] {
 		headerIndex[strings.TrimSpace(header)] = index
 	}
-	requiredHeaders := []string{"deptPath", "postCode", "postName", "sort", "status", "remark"}
-	for _, header := range requiredHeaders {
-		if _, ok := headerIndex[header]; !ok {
-			impexp.AppendImportError(result, 0, header, "import.header.missing")
-		}
-	}
+	validateImportHeaders(headerIndex, result)
 	if result.Failed > 0 {
 		return result, nil
 	}
 
-	type importRow struct {
-		DeptID   uint64
-		PostCode string
-		PostName string
-		Sort     int
-		Status   int
-		Remark   string
-	}
-
-	rows := make([]importRow, 0, len(records)-1)
+	rows := make([]postImportRow, 0, len(records)-1)
 	seenCodes := make(map[string]int, len(records)-1)
 	_, deptPathToID, err := impexp.BuildDeptPathMaps(s.db)
 	if err != nil {
 		return nil, err
 	}
 	for rowIndex := 1; rowIndex < len(records); rowIndex++ {
-		record := records[rowIndex]
-		if impexp.IsCSVRecordEmpty(record) {
+		row, err := s.readImportRow(records[rowIndex], rowIndex+1, headerIndex, deptPathToID, seenCodes, result)
+		if err != nil {
+			return nil, err
+		}
+		if row == nil {
 			continue
 		}
-
-		postCode := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "postCode"))
-		postName := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "postName"))
-		deptPath := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "deptPath"))
-		sortValue, sortErr := impexp.ParseCSVInt(impexp.ReadCSVField(record, headerIndex, "sort"))
-		status := impexp.ParseEnabledStatus(impexp.ReadCSVField(record, headerIndex, "status"))
-		remark := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "remark"))
-
-		if postCode == "" {
-			impexp.AppendImportError(result, rowIndex+1, "postCode", "post.code.required")
-		}
-		if postName == "" {
-			impexp.AppendImportError(result, rowIndex+1, "postName", "post.name.required")
-		}
-		deptID := deptPathToID[deptPath]
-		if deptPath == "" {
-			impexp.AppendImportError(result, rowIndex+1, "deptPath", "post.dept.required")
-		} else if deptID == 0 {
-			impexp.AppendImportError(result, rowIndex+1, "deptPath", "post.dept.invalid")
-		} else if err := s.ensurePostDeptID(deptID); err != nil {
-			impexp.AppendImportError(result, rowIndex+1, "deptPath", err.Error())
-		}
-		if sortErr != nil {
-			impexp.AppendImportError(result, rowIndex+1, "sort", "import.field.invalid_integer")
-		}
-		if postCode != "" {
-			if firstRow, ok := seenCodes[postCode]; ok {
-				impexp.AppendImportError(result, rowIndex+1, "postCode", fmt.Sprintf("import.duplicate.row.%d", firstRow))
-			} else {
-				seenCodes[postCode] = rowIndex + 1
-			}
-		}
-
-		rows = append(rows, importRow{
-			DeptID:   deptID,
-			PostCode: postCode,
-			PostName: postName,
-			Sort:     sortValue,
-			Status:   status,
-			Remark:   remark,
-		})
+		rows = append(rows, *row)
 	}
 
 	if result.Failed > 0 {
@@ -395,35 +499,7 @@ func (s *PostService) ImportPosts(records [][]string) (*impexp.ImportResult, err
 	}
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		for _, row := range rows {
-			existing, ok := existingByCode[row.PostCode]
-			if ok {
-				existing.DeptID = row.DeptID
-				existing.PostName = row.PostName
-				existing.Sort = row.Sort
-				existing.Status = row.Status
-				existing.Remark = row.Remark
-				if err := tx.Save(&existing).Error; err != nil {
-					return err
-				}
-				result.Updated++
-				continue
-			}
-
-			post := SystemPost{
-				DeptID:   row.DeptID,
-				PostCode: row.PostCode,
-				PostName: row.PostName,
-				Sort:     row.Sort,
-				Status:   row.Status,
-				Remark:   row.Remark,
-			}
-			if err := tx.Create(&post).Error; err != nil {
-				return err
-			}
-			result.Created++
-		}
-		return nil
+		return applyImportRows(tx, rows, existingByCode, result)
 	}); err != nil {
 		return nil, err
 	}
@@ -437,15 +513,15 @@ func (s *PostService) listPostsForExport(query *PostListQuery) ([]SystemPost, er
 	db := s.db.Model(&SystemPost{})
 	if query != nil {
 		if strings.TrimSpace(query.PostCode) != "" {
-			db = db.Where("post_code LIKE ?", "%"+strings.TrimSpace(query.PostCode)+"%")
+			db = db.Where("post_code LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.PostCode))+"%")
 		}
 		if strings.TrimSpace(query.PostName) != "" {
-			db = db.Where("post_name LIKE ?", "%"+strings.TrimSpace(query.PostName)+"%")
+			db = db.Where("post_name LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.PostName))+"%")
 		}
 		if query.DeptID > 0 {
 			db = db.Where("dept_id = ?", query.DeptID)
 		}
-		if query.Status != nil && (*query.Status == 1 || *query.Status == 2) {
+		if query.Status != nil && common.IsEnabledStatus(*query.Status) {
 			db = db.Where("status = ?", *query.Status)
 		}
 	}
@@ -463,7 +539,7 @@ func (s *PostService) listPostsForExport(query *PostListQuery) ([]SystemPost, er
 func (s *PostService) validatePostCreate(postID uint64, postCode string, deptID uint64) error {
 	trimmedCode := strings.TrimSpace(postCode)
 	if trimmedCode == "" {
-		return errors.New("param.invalid")
+		return common.NewBadRequest("param.invalid")
 	}
 	if err := s.ensurePostDeptID(deptID); err != nil {
 		return err
@@ -478,14 +554,14 @@ func (s *PostService) validatePostCreate(postID uint64, postCode string, deptID 
 		return err
 	}
 	if count > 0 {
-		return errors.New("post.code.exists")
+		return common.NewConflict("post.code.exists")
 	}
 	return nil
 }
 
 func (s *PostService) ensurePostDeptID(deptID uint64) error {
 	if deptID == 0 {
-		return errors.New("post.dept.required")
+		return common.NewBadRequest("post.dept.required")
 	}
 	type row struct {
 		ID     uint64 `gorm:"column:id"`
@@ -494,12 +570,12 @@ func (s *PostService) ensurePostDeptID(deptID uint64) error {
 	var dept row
 	if err := s.db.Table("system_dept").Select("id, is_root").Where("id = ?", deptID).First(&dept).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("post.dept.invalid")
+			return common.NewBadRequest("post.dept.invalid")
 		}
 		return err
 	}
-	if dept.IsRoot == 1 {
-		return errors.New("post.dept.root_forbidden")
+	if dept.IsRoot == common.StatusFlagYes {
+		return common.NewForbidden("post.dept.root_forbidden")
 	}
 	return nil
 }
@@ -526,7 +602,7 @@ func (s *PostService) loadPostDeptNames(posts []SystemPost) (map[uint64]string, 
 		DeptName string `gorm:"column:dept_name"`
 	}
 	var rows []row
-	if err := s.db.Table("system_dept").Select("id, dept_name").Where("id IN ?", deptIDs).Scan(&rows).Error; err != nil {
+	if err := s.db.Table("system_dept").Select("id, dept_name").Where(condIDIn, deptIDs).Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 	for _, row := range rows {
@@ -615,10 +691,7 @@ func normalizePostSort(query *PostListQuery) (string, bool) {
 }
 
 func normalizePostStatus(status int) int {
-	if status == 2 {
-		return 2
-	}
-	return 1
+	return common.NormalizeEnabledStatus(status)
 }
 
 func normalizePostIDs(ids []uint64) []uint64 {
@@ -639,7 +712,7 @@ func normalizePostIDs(ids []uint64) []uint64 {
 
 func (s *PostService) loadPostUserCounts() (map[uint64]int, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	if !s.db.Migrator().HasTable("system_user") {
 		return map[uint64]int{}, nil
@@ -666,12 +739,12 @@ func (s *PostService) loadPostUserCounts() (map[uint64]int, error) {
 	return result, nil
 }
 
-func buildPostGovernanceTags(status int, assignedUserCount int) []string {
+func buildPostGovernanceTags(status, assignedUserCount int) []string {
 	tags := make([]string, 0, 2)
 	if assignedUserCount > 0 {
 		tags = append(tags, "in-use")
 	}
-	if normalizePostStatus(status) == 2 {
+	if normalizePostStatus(status) == common.StatusDisabled {
 		tags = append(tags, "disabled")
 	}
 	if len(tags) == 0 {
@@ -687,29 +760,29 @@ func buildPostGovernanceBlockers(assignedUserCount int) []string {
 	return []string{"none"}
 }
 
-func buildPostGovernanceActions(status int, assignedUserCount int) []string {
+func buildPostGovernanceActions(status, assignedUserCount int) []string {
 	if assignedUserCount > 0 {
-		if normalizePostStatus(status) == 2 {
+		if normalizePostStatus(status) == common.StatusDisabled {
 			return []string{"reassign-users", "review-status"}
 		}
 		return []string{"reassign-users"}
 	}
-	if normalizePostStatus(status) == 2 {
+	if normalizePostStatus(status) == common.StatusDisabled {
 		return []string{"delete-or-keep-disabled"}
 	}
 	return []string{"keep-observing"}
 }
 
-func (s *PostService) ensurePostsNotAssignedToUsers(postIDs []uint64) error {
+func (s *PostService) ensurePostsNotAssignedToUsers(db *gorm.DB, postIDs []uint64) error {
 	if len(postIDs) == 0 {
 		return nil
 	}
 	var userCount int64
-	if err := s.db.Table("system_user").Where("post_id IN ? AND deleted_at IS NULL", postIDs).Count(&userCount).Error; err != nil {
+	if err := db.Table("system_user").Where("post_id IN ? AND deleted_at IS NULL", postIDs).Count(&userCount).Error; err != nil {
 		return err
 	}
 	if userCount > 0 {
-		return errors.New("post.status.error.has_users")
+		return common.NewInternal(errPostHasUsers)
 	}
 	return nil
 }
@@ -751,5 +824,5 @@ func (s *PostService) allocateDeletedPostCode(tx *gorm.DB, postID uint64) (strin
 			return candidate, nil
 		}
 	}
-	return "", errors.New("post.delete.error.archive_code_conflict")
+	return "", common.NewConflict("post.delete.error.archive_code_conflict")
 }

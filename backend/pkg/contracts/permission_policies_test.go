@@ -5,6 +5,20 @@ import (
 	"testing"
 )
 
+func TestRequiredAPIPoliciesByPermissionKeyGeneratorDatasource(t *testing.T) {
+	expected := []PermissionAPIPolicy{
+		{Path: "/api/v1/lowcode/generator/datasources", Method: "POST"},
+		{Path: "/api/v1/lowcode/generator/datasources/:id", Method: "PUT"},
+		{Path: "/api/v1/lowcode/generator/datasources/:id", Method: "DELETE"},
+		{Path: "/api/v1/lowcode/generator/datasources/:id/test", Method: "POST"},
+	}
+
+	policies := RequiredAPIPoliciesByPermissionKey("system:generator:datasource:manage")
+	if !reflect.DeepEqual(policies, expected) {
+		t.Fatalf("unexpected generator datasource policies: got %+v want %+v", policies, expected)
+	}
+}
+
 func TestRequiredAPIPoliciesByPermissionKeyBizScope(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -24,6 +38,8 @@ func TestRequiredAPIPoliciesByPermissionKeyBizScope(t *testing.T) {
 			permissionKey: "business:bizscope:view",
 			expectedPolicy: []PermissionAPIPolicy{
 				{Path: "/api/v1/business/bizscope/:id", Method: "GET"},
+				{Path: "/api/v1/business/bizscope/:id/hosts", Method: "GET"},
+				{Path: "/api/v1/business/bizscope/:id/available-hosts", Method: "GET"},
 			},
 		},
 		{
@@ -38,6 +54,8 @@ func TestRequiredAPIPoliciesByPermissionKeyBizScope(t *testing.T) {
 			permissionKey: "business:bizscope:update",
 			expectedPolicy: []PermissionAPIPolicy{
 				{Path: "/api/v1/business/bizscope/:id", Method: "PUT"},
+				{Path: "/api/v1/business/bizscope/:id/hosts/bind", Method: "POST"},
+				{Path: "/api/v1/business/bizscope/:id/hosts/:hostId", Method: "DELETE"},
 			},
 		},
 		{
@@ -45,6 +63,86 @@ func TestRequiredAPIPoliciesByPermissionKeyBizScope(t *testing.T) {
 			permissionKey: "business:bizscope:delete",
 			expectedPolicy: []PermissionAPIPolicy{
 				{Path: "/api/v1/business/bizscope/:id", Method: "DELETE"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			policies := RequiredAPIPoliciesByPermissionKey(tt.permissionKey)
+			if !reflect.DeepEqual(policies, tt.expectedPolicy) {
+				t.Fatalf("unexpected policies for %s: got %+v want %+v", tt.permissionKey, policies, tt.expectedPolicy)
+			}
+		})
+	}
+}
+
+func TestRequiredAPIPoliciesByPermissionKeyDeployTask(t *testing.T) {
+	tests := []struct {
+		name           string
+		permissionKey  string
+		expectedPolicy []PermissionAPIPolicy
+	}{
+		{
+			name:          "detail",
+			permissionKey: "business:deploy:task:detail",
+			expectedPolicy: []PermissionAPIPolicy{
+				{Path: "/api/v1/business/deploy/tasks/:id", Method: "GET"},
+			},
+		},
+		{
+			name:          "update",
+			permissionKey: "business:deploy:task:update",
+			expectedPolicy: []PermissionAPIPolicy{
+				{Path: "/api/v1/business/deploy/tasks/:id", Method: "PUT"},
+			},
+		},
+		{
+			name:          "delete",
+			permissionKey: "business:deploy:task:delete",
+			expectedPolicy: []PermissionAPIPolicy{
+				{Path: "/api/v1/business/deploy/tasks/:id", Method: "DELETE"},
+			},
+		},
+		{
+			name:          "cancel",
+			permissionKey: "business:deploy:task:cancel",
+			expectedPolicy: []PermissionAPIPolicy{
+				{Path: "/api/v1/business/deploy/tasks/:id/cancel", Method: "POST"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			policies := RequiredAPIPoliciesByPermissionKey(tt.permissionKey)
+			if !reflect.DeepEqual(policies, tt.expectedPolicy) {
+				t.Fatalf("unexpected policies for %s: got %+v want %+v", tt.permissionKey, policies, tt.expectedPolicy)
+			}
+		})
+	}
+}
+
+func TestRequiredAPIPoliciesByPermissionKeyBusinessListRoutes(t *testing.T) {
+	tests := []struct {
+		name           string
+		permissionKey  string
+		expectedPolicy []PermissionAPIPolicy
+	}{
+		{
+			name:          "cmdb label list includes options",
+			permissionKey: "business:cmdb:label:list",
+			expectedPolicy: []PermissionAPIPolicy{
+				{Path: "/api/v1/business/cmdb/labels", Method: "GET"},
+				{Path: "/api/v1/business/cmdb/labels/options", Method: "GET"},
+			},
+		},
+		{
+			name:          "deploy package list includes detail",
+			permissionKey: "business:deploy:package:list",
+			expectedPolicy: []PermissionAPIPolicy{
+				{Path: "/api/v1/business/deploy/packages", Method: "GET"},
+				{Path: "/api/v1/business/deploy/packages/:id", Method: "GET"},
 			},
 		},
 	}

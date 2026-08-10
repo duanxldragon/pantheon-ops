@@ -2,7 +2,7 @@
 
 English version: [BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md)
 
-更新时间：2026-05-11
+更新时间：2026-07-18
 
 类型：Design
 归属层：business/*
@@ -136,12 +136,34 @@ business.<module>.<resource>.<reason>
 | `business.deploy.task.nameRequired` | 任务名称必填 |
 | `business.deploy.task.packageRequired` | 组件必选 |
 | `business.deploy.task.packageDisabled` | 组件已禁用，不能用于新任务 |
+| `business.deploy.task.scopeRequired` | 主机部署必须选择业务域 |
+| `business.deploy.task.scopeInvalid` | 所选业务域不存在或不可用 |
 | `business.deploy.task.targetRequired` | 目标主机或分组必填 |
+| `business.deploy.task.invalidTargetType` | 目标类型无效 |
 | `business.deploy.task.targetOutOfScope` | 目标不在当前数据范围内 |
 | `business.deploy.task.invalidExecutorType` | 执行方式无效 |
+| `business.deploy.task.invalidAction` | 任务动作无效 |
+| `business.deploy.task.targetStatusMismatch` | 目标当前状态不支持所选动作 |
+| `business.deploy.task.templateNotFound` | 任务引用的模板不存在 |
+| `business.deploy.task.templateDisabled` | 任务引用的模板已停用 |
+| `business.deploy.task.packageNotFound` | 任务引用的组件不存在 |
 | `business.deploy.task.invalidStartState` | 当前状态不允许启动 |
+| `business.deploy.task.invalidUpdateState` | 当前状态不允许编辑 |
+| `business.deploy.task.invalidDeleteState` | 当前状态不允许删除 |
 | `business.deploy.task.emptyResolvedTargets` | 解析后无可执行目标 |
 | `business.deploy.task.invalidCancelState` | 当前状态不允许取消 |
+| `business.deploy.task.templateParamsInvalid` | 启动或保存时模板参数不完整或模板变量无法解析 |
+| `business.deploy.task.templateInvalid` | 启动时固定模板定义无效 |
+| `business.deploy.task.installCommandRequired` | 启动安装类任务时组件缺少安装命令 |
+| `business.deploy.task.uninstallCommandRequired` | 启动卸载类任务时组件缺少卸载命令 |
+| `business.deploy.task.packageSourceMissing` | 启动固定模板任务时缺少可下载的软件包来源 |
+| `business.deploy.task.sshHostKeyRequired` | SSH 启动缺少主机指纹 |
+| `business.deploy.task.sshHostKeyMismatch` | SSH 主机指纹校验失败 |
+| `business.deploy.task.sshUserRequired` | SSH 启动缺少用户名 |
+| `business.deploy.task.sshPasswordRequired` | SSH 密码认证模式缺少密码 |
+| `business.deploy.task.sshPrivateKeyRequired` | SSH 私钥认证模式缺少私钥 |
+| `business.deploy.task.sshAuthFailed` | SSH 认证失败 |
+| `business.deploy.task.sshConnectFailed` | SSH 连接失败 |
 
 ### 3.3 TaskHost
 
@@ -151,9 +173,54 @@ business.<module>.<resource>.<reason>
 | `business.deploy.taskHost.invalidResultState` | 当前状态不允许标记结果 |
 | `business.deploy.taskHost.markFailed.reasonRequired` | 标记失败时必须填写错误原因 |
 
+### 3.4 Template
+
+Deploy Template CRUD 已上线，但当前尚未定义 Template 资源的 canonical 错误 key 清单。本段仅记录待补事实，本任务不发明新 key；后续应在新增或收口模板业务错误时先补本文，再同步模块设计与 i18n。
+
 ---
 
-## 4. 新模块接入要求
+## 4. BizScope 已迁移状态
+
+来源设计文档：
+
+- `BUSINESS_BIZSCOPE_MODULE_DESIGN.md`
+
+### 4.1 canonical 清单
+
+| Key | 说明 | 来源 |
+| :--- | :--- | :--- |
+| `business.bizscope.codeExists` | 业务域编码重复 | Create / Update 业务唯一性校验 |
+| `business.bizscope.inUse` | 业务域仍绑定主机，不能删除 | Delete 引用保护 |
+| `business.bizscope.notFound` | 业务域、绑定目标或作用域内主机不存在 | Detail / Hosts / Bind / Unbind / Update / Delete |
+| `param.invalid` | 请求参数无效 | base 通用参数错误 key |
+| `request.failed` | 非业务语义的查询、数据库或框架失败 | base 通用请求失败 key |
+
+`backend/modules/business/bizscope` 已不再返回 `bizscope.code_exists`、`bizscope.in_use`、`bizscope.not_found`。
+
+### 4.2 handler 流水 key 迁移结果
+
+| 旧 handler Key | 已迁移处理 |
+| :--- | :--- |
+| `bizscope.list.error` | 无独立业务语义；回落 `request.failed` |
+| `bizscope.options.error` | 无独立业务语义；回落 `request.failed` |
+| `bizscope.detail.error` | 资源不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
+| `bizscope.hosts.error` | 业务域不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
+| `bizscope.availableHosts.error` | 业务域不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
+| `bizscope.bindHosts.error` | 业务域/作用域内主机不存在时返回 `business.bizscope.notFound`，空 hostIds 返回 `param.invalid`；其他失败回落 `request.failed` |
+| `bizscope.unbindHost.error` | 业务域、主机或绑定关系不存在时返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
+| `bizscope.create.error` | 编码冲突返回 `business.bizscope.codeExists`；其他失败回落 `request.failed` |
+| `bizscope.update.error` | 资源不存在返回 `business.bizscope.notFound`，编码冲突返回 `business.bizscope.codeExists`；其他失败回落 `request.failed` |
+| `bizscope.delete.error` | 仍被主机引用返回 `business.bizscope.inUse`，资源不存在返回 `business.bizscope.notFound`；其他失败回落 `request.failed` |
+
+### 4.3 旧 key fallback 决策
+
+决策：**直接移除，不保留一个版本的旧 key fallback 映射**。
+
+依据：前端请求层只对后端 `message` 做 i18n key 形态识别和精确翻译，不存在对旧 BizScope 短 key 的业务分支；翻译未命中时开发环境显示 `request.failed` 加原 key，生产环境只显示 `request.failed`。因此保留旧映射只会延长双 key 生命周期，不能提供必要兼容。zh-CN / en-US 模块 locale 和后端 seed 已改为 canonical key，seed 同时删除 `business.bizscope` 下三个 legacy 运行时记录。
+
+---
+
+## 5. 新模块接入要求
 
 后续新增 `business/*` 模块时，设计文档至少要补：
 
@@ -168,7 +235,7 @@ business.<module>.<resource>.<reason>
 
 ---
 
-## 5. 变更规则
+## 6. 变更规则
 
 - 新增、重命名、废弃业务错误 key 时，优先修改本文，再同步回业务模块设计文档
 - 业务模块设计文档中的错误章节是模块局部说明，**本文是 ops 仓库级 canonical 附录**

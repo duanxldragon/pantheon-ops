@@ -2,7 +2,7 @@
 
 English version: [BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./BUSINESS_DEPLOY_MODULE_DESIGN.en.md)
 
-更新时间：2026-05-28
+更新时间：2026-07-17
 
 类型：Design
 归属层：business/deploy
@@ -94,9 +94,9 @@ Deploy 允许消费的最小能力面建议固定为：
 
 | 菜单 key | 路径 | titleKey | routeName | module | component key | pagePermission | activeMenu | 类型 | 说明 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `business.deploy.package` | `/operations/deploy/package` | `operations.deploy.package.menu` | `deploy-package-list` | `business.deploy` | `business/deploy/package/DeployPackageList` | `business:deploy:package:list` | — | `C` | 软件组件列表 |
+| `business.deploy.package` | `/operations/deploy/package` | `operations.deploy.package.menu` | `deploy-package-list` | `business.deploy` | `business/deploy/package/DeployPackageList` | `business:deploy:package:view` | — | `C` | 软件组件列表 |
 | `business.deploy.template` | `/operations/deploy/template` | `operations.deploy.template.menu` | `deploy-template-list` | `business.deploy` | `business/deploy/template/DeployTemplateList` | `business:deploy:template:list` | — | `C` | 任务模板列表 |
-| `business.deploy.task` | `/operations/deploy/task` | `operations.deploy.task.menu` | `deploy-task-list` | `business.deploy` | `business/deploy/task/DeployTaskList` | `business:deploy:task:list` | — | `C` | 部署任务列表 |
+| `business.deploy.task` | `/operations/deploy/task` | `operations.deploy.task.menu` | `deploy-task-list` | `business.deploy` | `business/deploy/task/DeployTaskList` | `business:deploy:task:view` | — | `C` | 部署任务列表 |
 | `business.deploy.task.detail` | `/operations/deploy/task/:id` | `operations.deploy.task.detail` | `deploy-task-detail` | `business.deploy` | `business/deploy/task/DeployTaskDetail` | `business:deploy:task:detail` | `/operations/deploy/task` | `C` | 任务详情页，不进侧边菜单 |
 
 约束：
@@ -285,6 +285,7 @@ pending -> skipped
 | 接口 | 方法 | 说明 | 权限 |
 | :--- | :--- | :--- | :--- |
 | `/packages` | GET | 软件组件列表 | `business:deploy:package:list` |
+| `/packages/:id` | GET | 软件组件详情 | 权限映射缺口：路由已实现，但 `business:deploy:package:list` 当前只映射 `GET /packages`，未覆盖本路由；见任务卡 `2026-07-17-business-permission-gaps` |
 | `/packages` | POST | 新建软件组件 | `business:deploy:package:create` |
 | `/packages/:id` | PUT | 编辑软件组件 | `business:deploy:package:update` |
 | `/packages/:id` | DELETE | 删除软件组件 | `business:deploy:package:delete` |
@@ -297,10 +298,11 @@ pending -> skipped
 | `/tasks` | POST | 创建部署任务 | `business:deploy:task:create` |
 | `/tasks/:id` | GET | 任务详情 | `business:deploy:task:detail` |
 | `/tasks/:id` | PUT | 编辑未启动任务 | `business:deploy:task:update` |
+| `/tasks/:id` | DELETE | 删除未启动任务（`draft / pending`，同步清理 task-host 明细） | `business:deploy:task:delete` |
 | `/tasks/:id/start` | POST | 启动任务 | `business:deploy:task:start` |
 | `/tasks/:id/cancel` | POST | 取消任务 | `business:deploy:task:cancel` |
 | `/task-hosts/:id/result` | POST | 标记主机执行结果 | `business:deploy:task:mark-result` |
-| `/task-hosts/:id/report` | POST | Agent 结果回写预留 | 第一版不挂菜单 |
+| `/task-hosts/:id/report` | POST | Agent 结果回写预留；当前与 `/result` 绑定同一 handler，“人工标记 vs 执行器上报”来源区分尚未实现 | Agent 阶段待办，第一版不挂菜单 |
 
 ### 7.3 请求 / 响应要点
 
@@ -337,6 +339,7 @@ pending -> skipped
   - `remark`
 - 服务端必须通过 `ResolveTaskTargets` capability 固化主机快照后再落任务
 - 若传 `templateId`，服务端必须回填模板快照，并允许从模板默认组件/默认动作派生任务头信息
+- host 目标必须和动作匹配：`install / reinstall` 允许 `assigned / online`，`uninstall / upgrade` 仅允许 `online`
 - 关键错误：
   - `business.deploy.task.nameRequired`
   - `business.deploy.task.packageRequired`
@@ -344,8 +347,11 @@ pending -> skipped
   - `business.deploy.task.scopeRequired`
   - `business.deploy.task.scopeInvalid`
   - `business.deploy.task.targetRequired`
+  - `business.deploy.task.invalidTargetType`
   - `business.deploy.task.invalidExecutorType`
+  - `business.deploy.task.invalidAction`
   - `business.deploy.task.targetOutOfScope`
+  - `business.deploy.task.targetStatusMismatch`
 
 #### 7.3.5 `GET /tasks/:id`
 
@@ -358,16 +364,38 @@ pending -> skipped
 - 只允许 `draft / pending` 状态启动
 - 启动时生成 `biz_deploy_task_host` 快照记录
 - `ssh` 执行方式要求补充 `sshUser`、认证信息和 `hostFingerprint`
+- `ssh` 启动前必须先完成固定模板参数、脚本模板变量和命令缺失检查；前置配置不合法时不得把任务推进到 `running`
 - 关键错误：
+  - `business.deploy.task.templateNotFound`
+  - `business.deploy.task.templateDisabled`
+  - `business.deploy.task.packageNotFound`
   - `business.deploy.task.invalidStartState`
   - `business.deploy.task.emptyResolvedTargets`
+  - `business.deploy.task.templateParamsInvalid`
+  - `business.deploy.task.templateInvalid`
+  - `business.deploy.task.installCommandRequired`
+  - `business.deploy.task.uninstallCommandRequired`
+  - `business.deploy.task.packageSourceMissing`
+  - `business.deploy.task.sshHostKeyRequired`
+  - `business.deploy.task.sshUserRequired`
+  - `business.deploy.task.sshPasswordRequired`
+  - `business.deploy.task.sshPrivateKeyRequired`
+  - `business.deploy.task.sshHostKeyMismatch`
+  - `business.deploy.task.sshAuthFailed`
+  - `business.deploy.task.sshConnectFailed`
 
 #### 7.3.7 `POST /tasks/:id/cancel`
 
 - 只允许 `pending / running` 状态取消
 - 关键错误：`business.deploy.task.invalidCancelState`
 
-#### 7.3.8 `POST /task-hosts/:id/result`
+#### 7.3.8 `DELETE /tasks/:id`
+
+- 只允许删除 `draft / pending` 状态任务
+- 删除任务时同步清理对应 `biz_deploy_task_host` 明细
+- 关键错误：`business.deploy.task.invalidDeleteState`
+
+#### 7.3.9 `POST /task-hosts/:id/result`
 
 - body：`status` (`success | failed | skipped`)、`stdout`、`stderr`、`errorMessage`
 - `failed` 时 `errorMessage` 必填
@@ -458,7 +486,7 @@ pending -> skipped
 - host 模式：先选业务域，再从该业务域下状态为 `assigned/online` 的主机中多选
 - 真实闭环脚本会先判断主机是否已安装目标组件：已安装则执行 `uninstall -> reinstall`，未安装则跳过卸载直接执行 `install`
   - group 模式：分组多选
-- **校验**：组件状态必须为 `enabled`；host 模式必须先选业务域；目标至少 1 个；固定模板任务默认切到 `ssh`
+- **校验**：组件状态必须为 `enabled`；`action` 仅允许 `install / uninstall / upgrade / reinstall`；`targetType` 仅允许 `host / group`；host 模式必须先选业务域；目标至少 1 个；主机目标状态必须与动作匹配（`install / reinstall` 允许 `assigned / online`，`uninstall / upgrade` 仅允许 `online`）；固定模板任务默认切到 `ssh`
 
 ### 8.8 部署任务详情 `DeployTaskDetail`
 
@@ -530,19 +558,30 @@ pending -> skipped
 - `business:deploy:package:create`
 - `business:deploy:package:update`
 - `business:deploy:package:delete`
+- `business:deploy:template:list`
+- `business:deploy:template:create`
+- `business:deploy:template:update`
+- `business:deploy:template:delete`
 - `business:deploy:task:view`
 - `business:deploy:task:list`
 - `business:deploy:task:detail`
 - `business:deploy:task:create`
 - `business:deploy:task:update`
+- `business:deploy:task:delete`
 - `business:deploy:task:start`
 - `business:deploy:task:cancel`
 - `business:deploy:task:mark-result`
 
+模板权限现状：
+
+- `business:deploy:template:list/create/update/delete` 四项均已在 `backend/pkg/contracts/permission_policies.go` 定义 API 路由映射
+- `deploy_seed.go` 当前只 seed 模板列表 C 菜单（`PagePerm=business:deploy:template:list`）
+- `create/update/delete` 三项 F 按钮 seed 缺失，不能写成已完成的角色授权事实；缺口见任务卡 `2026-07-17-business-permission-gaps`
+
 审计动作：
 
 - 新建/编辑/删除软件组件
-- 新建/编辑部署任务
+- 新建/编辑/删除部署任务
 - 启动部署任务
 - 取消部署任务
 - 标记主机执行结果

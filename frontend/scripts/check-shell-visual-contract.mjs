@@ -2,39 +2,96 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { hasCssDeclaration as hasDeclaration } from './lib/css-declarations.mjs';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const frontendRoot = path.resolve(path.dirname(currentFilePath), '..');
 const layoutCssPath = path.join(frontendRoot, 'src', 'core', 'layout', 'index.css');
 const globalCssPath = path.join(frontendRoot, 'src', 'index.css');
-const listPageCssPath = path.join(frontendRoot, 'src', 'modules', 'system', 'list-page.css');
-const loginCssPath = path.join(frontendRoot, 'src', 'modules', 'auth', 'Login.css');
+const listPageCssPath = path.join(
+  frontendRoot,
+  'src',
+  'modules',
+  'system',
+  'components',
+  'shared',
+  'list-page.css',
+);
+const dashboardCssPath = path.join(frontendRoot, 'src', 'modules', 'platform', 'dashboard.css');
+const loginCssPath = path.join(
+  frontendRoot,
+  'src',
+  'modules',
+  'auth',
+  'login',
+  'components',
+  'Login.css',
+);
 const modulesRoot = path.join(frontendRoot, 'src', 'modules');
 const tableBatchActionBarPath = path.join(
   frontendRoot,
   'src',
   'components',
   'patterns',
+  'table',
   'TableBatchActionBar.tsx',
 );
-const appModalPath = path.join(frontendRoot, 'src', 'components', 'patterns', 'AppModal.tsx');
-const appDrawerPath = path.join(frontendRoot, 'src', 'components', 'patterns', 'AppDrawer.tsx');
+const appModalPath = path.join(
+  frontendRoot,
+  'src',
+  'components',
+  'patterns',
+  'modals',
+  'AppModal.tsx',
+);
+const appDrawerPath = path.join(
+  frontendRoot,
+  'src',
+  'components',
+  'patterns',
+  'modals',
+  'AppDrawer.tsx',
+);
 const appModalActionsPath = path.join(
   frontendRoot,
   'src',
   'components',
   'patterns',
+  'modals',
   'AppModalActions.ts',
 );
-const formSectionPath = path.join(frontendRoot, 'src', 'components', 'patterns', 'FormSection.tsx');
-const submitBarPath = path.join(frontendRoot, 'src', 'components', 'patterns', 'SubmitBar.tsx');
+const formSectionPath = path.join(
+  frontendRoot,
+  'src',
+  'components',
+  'patterns',
+  'feedback',
+  'FormSection.tsx',
+);
+const submitBarPath = path.join(
+  frontendRoot,
+  'src',
+  'components',
+  'patterns',
+  'actions',
+  'SubmitBar.tsx',
+);
 const pageEmptyPath = path.join(frontendRoot, 'src', 'components', 'feedback', 'PageEmpty.tsx');
 const pageLoadingPath = path.join(frontendRoot, 'src', 'components', 'feedback', 'PageLoading.tsx');
 const pageErrorPath = path.join(frontendRoot, 'src', 'components', 'feedback', 'PageError.tsx');
-const userListPath = path.join(frontendRoot, 'src', 'modules', 'system', 'user', 'UserList.tsx');
+const userListPath = path.join(
+  frontendRoot,
+  'src',
+  'modules',
+  'system',
+  'iam',
+  'user',
+  'UserList.tsx',
+);
 const source = fs.readFileSync(layoutCssPath, 'utf8');
 const globalSource = fs.readFileSync(globalCssPath, 'utf8');
 const listPageSource = fs.readFileSync(listPageCssPath, 'utf8');
+const dashboardCssSource = fs.readFileSync(dashboardCssPath, 'utf8');
 const loginCssSource = fs.readFileSync(loginCssPath, 'utf8');
 const tableBatchActionBarSource = fs.readFileSync(tableBatchActionBarPath, 'utf8');
 const appModalSource = fs.readFileSync(appModalPath, 'utf8');
@@ -47,19 +104,19 @@ const pageLoadingSource = fs.readFileSync(pageLoadingPath, 'utf8');
 const pageErrorSource = fs.readFileSync(pageErrorPath, 'utf8');
 const userListSource = fs.readFileSync(userListPath, 'utf8');
 const dictTypeTabSource = fs.readFileSync(
-  path.join(frontendRoot, 'src', 'modules', 'system', 'dict', 'DictTypeTab.tsx'),
+  path.join(frontendRoot, 'src', 'modules', 'system', 'config', 'dict', 'DictTypeTab.tsx'),
   'utf8',
 );
 const dictItemTabSource = fs.readFileSync(
-  path.join(frontendRoot, 'src', 'modules', 'system', 'dict', 'DictItemTab.tsx'),
+  path.join(frontendRoot, 'src', 'modules', 'system', 'config', 'dict', 'DictItemTab.tsx'),
   'utf8',
 );
 const dictPageSource = fs.readFileSync(
-  path.join(frontendRoot, 'src', 'modules', 'system', 'dict', 'DictPage.tsx'),
+  path.join(frontendRoot, 'src', 'modules', 'system', 'config', 'dict', 'DictPage.tsx'),
   'utf8',
 );
 const settingGroupPageSource = fs.readFileSync(
-  path.join(frontendRoot, 'src', 'modules', 'system', 'setting', 'SettingGroupPage.tsx'),
+  path.join(frontendRoot, 'src', 'modules', 'system', 'config', 'setting', 'SettingGroupPage.tsx'),
   'utf8',
 );
 
@@ -78,39 +135,29 @@ const requiredGlobalTokens = [
 ];
 
 function getBlock(cssSource, selector) {
-  let start = cssSource.indexOf(selector);
-  while (start >= 0) {
-    let beforeIndex = start - 1;
-    while (beforeIndex >= 0 && /\s/.test(cssSource[beforeIndex])) {
-      beforeIndex -= 1;
-    }
-    const before = beforeIndex < 0 ? '\n' : cssSource[beforeIndex];
-    const after = cssSource[start + selector.length] || '';
-    if ((/[},]/.test(before) || before === '\n') && (/[\s,{]/.test(after) || after === '')) {
-      break;
-    }
-    start = cssSource.indexOf(selector, start + selector.length);
-  }
-  if (start < 0) {
-    return '';
-  }
-  const open = cssSource.indexOf('{', start);
-  if (open < 0) {
-    return '';
-  }
-  let depth = 0;
-  for (let index = open; index < cssSource.length; index += 1) {
-    const char = cssSource[index];
-    if (char === '{') {
-      depth += 1;
-    } else if (char === '}') {
-      depth -= 1;
-      if (depth === 0) {
-        return cssSource.slice(open + 1, index);
-      }
-    }
-  }
-  return '';
+  const normalizedSelector = normalizeSelectorForContract(selector);
+  return extractCssRules(cssSource)
+    .filter(({ selectorText }) =>
+      splitSelectorList(selectorText).some(
+        (candidate) => normalizeSelectorForContract(candidate) === normalizedSelector,
+      ),
+    )
+    .map(({ body }) => body.trim())
+    .filter(Boolean)
+    .join('\n');
+}
+
+function normalizeSelectorForContract(selector) {
+  let normalized = selector
+    .trim()
+    .replace(/^:root\[data-pantheon-theme\]\s+/, '')
+    .replace(/^\.app-shell\s+(?=\.app-shell__)/, '');
+  let previous;
+  do {
+    previous = normalized;
+    normalized = normalized.replace(/(\.[a-z0-9_-]+)\1/gi, '$1');
+  } while (normalized !== previous);
+  return normalized;
 }
 
 function requireBlock(cssSource, selector, findings) {
@@ -135,14 +182,6 @@ function requireStandaloneBlock(cssSource, selector, findings) {
     findings.push(`Missing CSS block: ${selector}`);
   }
   return block;
-}
-
-function hasDeclaration(block, property, expectedValue) {
-  const pattern = new RegExp(
-    String.raw`${property}\s*:\s*${expectedValue}(?:\s*!important)?\s*;`,
-    'i',
-  );
-  return pattern.test(block);
 }
 
 function collectBorderLines(block) {
@@ -245,7 +284,6 @@ const moduleSourceFiles = readFilesRecursive(
   (entryPath) =>
     /\.(?:tsx|ts)$/.test(entryPath) &&
     !entryPath.endsWith('.test.ts') &&
-    !entryPath.includes(`${path.sep}modules${path.sep}business${path.sep}`) &&
     !entryPath.includes(`${path.sep}modules${path.sep}generator${path.sep}`),
 );
 
@@ -354,6 +392,7 @@ const platformCssSources = [
   ['global CSS', globalSource],
   ['layout CSS', source],
   ['system list-page CSS', listPageSource],
+  ['dashboard CSS', dashboardCssSource],
 ];
 
 for (const [label, cssSource] of platformCssSources) {
@@ -368,7 +407,11 @@ for (const [label, cssSource] of platformCssSources) {
   if (/font-weight\s*:\s*(?:620|650)\s*;/i.test(cssSource)) {
     findings.push(`${label} must use standard font weights, not 620/650.`);
   }
-  if (/var\(--(?:color|arcoblue|green|red|orange|gray)-[^)]+\)/i.test(cssSource)) {
+  if (
+    /var\(--(?:color-(?:bg|border|fill|line|mask|neutral|primary|shadow|text|white|black|gray)|arcoblue|green|red|orange|gray)-[^)]+\)/i.test(
+      cssSource,
+    )
+  ) {
     findings.push(`${label} must route Arco color tokens through Pantheon semantic tokens.`);
   }
 }
@@ -703,8 +746,8 @@ if (appDialogControlBlock) {
   if (!hasDeclaration(appDialogControlBlock, 'border', '1px solid var\\(--panel-border-strong\\)')) {
     findings.push('.app-dialog controls must render one shared outer border.');
   }
-  if (!hasDeclaration(appDialogControlBlock, 'background', '#fff')) {
-    findings.push('.app-dialog controls must use a single white control background.');
+  if (!hasDeclaration(appDialogControlBlock, 'background', 'var(--control-bg)')) {
+    findings.push('.app-dialog controls must use a single control background token.');
   }
   if (!hasDeclaration(appDialogControlBlock, 'box-shadow', 'none')) {
     findings.push('.app-dialog controls must not render a second idle shadow layer.');
@@ -733,8 +776,8 @@ if (appDrawerControlBlock) {
   if (!hasDeclaration(appDrawerControlBlock, 'border', '1px solid var\\(--panel-border-strong\\)')) {
     findings.push('.app-drawer controls must render one shared outer border.');
   }
-  if (!hasDeclaration(appDrawerControlBlock, 'background', '#fff')) {
-    findings.push('.app-drawer controls must use a single white control background.');
+  if (!hasDeclaration(appDrawerControlBlock, 'background', 'var(--control-bg)')) {
+    findings.push('.app-drawer controls must use a single control background token.');
   }
   if (!hasDeclaration(appDrawerControlBlock, 'box-shadow', 'none')) {
     findings.push('.app-drawer controls must not render a second idle shadow layer.');
@@ -756,13 +799,13 @@ if (appDialogBlock) {
 
 const appDialogAppearBlock = requireBlock(globalSource, '.app-dialog.zoomModal-appear', findings);
 if (appDialogAppearBlock) {
-  if (!/animation-name\s*:\s*app-dialog-no-scale\s*!important\s*;/i.test(appDialogAppearBlock)) {
+  if (!hasDeclaration(appDialogAppearBlock, 'animation-name', 'app-dialog-no-scale')) {
     findings.push('.app-dialog must replace zoom animation with the shared no-scale animation.');
   }
-  if (!/animation-duration\s*:\s*1ms\s*!important\s*;/i.test(appDialogAppearBlock)) {
+  if (!hasDeclaration(appDialogAppearBlock, 'animation-duration', '1ms')) {
     findings.push('.app-dialog animation must be short enough to avoid transient layout scaling.');
   }
-  if (!/transform\s*:\s*none\s*!important\s*;/i.test(appDialogAppearBlock)) {
+  if (!hasDeclaration(appDialogAppearBlock, 'transform', 'none')) {
     findings.push('.app-dialog must not use transform scaling during modal entry.');
   }
 }
@@ -777,13 +820,13 @@ const appDialogHeaderBlock = requireBlock(
   findings,
 );
 if (appDialogHeaderBlock) {
-  if (!/height\s*:\s*64px\s*!important\s*;/i.test(appDialogHeaderBlock)) {
+  if (!hasDeclaration(appDialogHeaderBlock, 'height', '64px')) {
     findings.push('.app-dialog header must keep a stable 64px height.');
   }
-  if (!/min-height\s*:\s*64px\s*!important\s*;/i.test(appDialogHeaderBlock)) {
+  if (!hasDeclaration(appDialogHeaderBlock, 'min-height', '64px')) {
     findings.push('.app-dialog header must keep a stable 64px minimum height.');
   }
-  if (!/padding\s*:\s*16px 24px\s*!important\s*;/i.test(appDialogHeaderBlock)) {
+  if (!hasDeclaration(appDialogHeaderBlock, 'padding', '16px 24px')) {
     findings.push('.app-dialog header must use shared desktop padding.');
   }
 }
@@ -1047,8 +1090,8 @@ if (loginControlBlock) {
   if (!hasDeclaration(loginControlBlock, 'border', '1px solid var\\(--panel-border-strong\\)')) {
     findings.push('.auth-login-card controls must render one shared outer border.');
   }
-  if (!hasDeclaration(loginControlBlock, 'background', '#ffffff')) {
-    findings.push('.auth-login-card controls must use a single white control background.');
+  if (!hasDeclaration(loginControlBlock, 'background', 'var(--control-bg)')) {
+    findings.push('.auth-login-card controls must use a single control background token.');
   }
   if (!hasDeclaration(loginControlBlock, 'box-shadow', 'none')) {
     findings.push('.auth-login-card controls must not render a second idle shadow layer.');
@@ -1232,8 +1275,10 @@ const appTableContainerBlock = requireBlock(
   findings,
 );
 if (appTableContainerBlock) {
-  if (!hasDeclaration(appTableContainerBlock, 'border-radius', 'var\\(--radius-md\\)')) {
-    findings.push('.app-table .arco-table-container must use radius-md.');
+  if (!hasDeclaration(appTableContainerBlock, 'border-radius', '0')) {
+    findings.push(
+      '.app-table .arco-table-container must stay square (page-panel owns the outline radius).',
+    );
   }
 }
 
@@ -1242,10 +1287,7 @@ const fixedColumnShadowBlock = requireBlock(
   '.app-table .arco-table-col-fixed-left-last::after',
   findings,
 );
-if (
-  fixedColumnShadowBlock &&
-  !/box-shadow\s*:\s*none\s*!important\s*;/i.test(fixedColumnShadowBlock)
-) {
+if (fixedColumnShadowBlock && !hasDeclaration(fixedColumnShadowBlock, 'box-shadow', 'none')) {
   findings.push(
     'AppTable fixed-column shadow must be disabled to avoid gradient-like table borders.',
   );

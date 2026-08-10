@@ -29,6 +29,7 @@ Read first:
 Implementation scope:
 - state whether this turn is a business-feature closure or a shared-foundation sync
 - state which business or platform areas are explicitly out of scope
+- apply the minimal complexity ladder first: skip / reuse base or ops capability / standard library / native platform / installed dependency / one local expression / minimum new code
 
 Sync expectation:
 - business-only

@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"pantheon-ops/backend/pkg/testmysql"
 )
 
 type orderedModule struct {
@@ -14,6 +13,10 @@ type orderedModule struct {
 }
 
 func (m orderedModule) Name() string { return m.name }
+func (m orderedModule) Bootstrap(_ *gorm.DB) error {
+	*m.steps = append(*m.steps, m.name+":bootstrap")
+	return nil
+}
 func (m orderedModule) Migrate(_ *gorm.DB) error {
 	*m.steps = append(*m.steps, m.name+":migrate")
 	return nil
@@ -35,13 +38,41 @@ func (m orderedModule) SeedI18n(_ *gorm.DB) error {
 }
 
 func TestRegisterBackendModules_PhasedExecution(t *testing.T) {
-	db := testmysql.Open(t)
+	t.Setenv("PANTHEON_AUTO_MIGRATE", "")
+	steps := make([]string, 0, 8)
+	r := gin.New()
+	api := r.Group("/api/v1")
 
+	RegisterBackendModules(api, nil,
+		orderedModule{name: "a", steps: &steps},
+		orderedModule{name: "b", steps: &steps},
+	)
+
+	expected := []string{
+		"a:bootstrap", "b:bootstrap",
+		"a:menus", "b:menus",
+		"a:perms", "b:perms",
+		"a:i18n", "b:i18n",
+		"a:register", "b:register",
+	}
+
+	if len(steps) != len(expected) {
+		t.Fatalf("unexpected steps len: got %d want %d (%v)", len(steps), len(expected), steps)
+	}
+	for index, item := range expected {
+		if steps[index] != item {
+			t.Fatalf("unexpected step at %d: got %s want %s", index, steps[index], item)
+		}
+	}
+}
+
+func TestRegisterBackendModules_RunsMigrateWhenAutoMigrateEnabled(t *testing.T) {
+	t.Setenv("PANTHEON_AUTO_MIGRATE", "true")
 	steps := make([]string, 0, 10)
 	r := gin.New()
 	api := r.Group("/api/v1")
 
-	RegisterBackendModules(api, db,
+	RegisterBackendModules(api, nil,
 		orderedModule{name: "a", steps: &steps},
 		orderedModule{name: "b", steps: &steps},
 	)

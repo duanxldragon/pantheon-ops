@@ -44,12 +44,33 @@ export function buildStandardPagination(
     pageSize,
     total,
     onChange,
-    showJumper: true,
     pageSizeChangeResetCurrent,
     sizeCanChange,
     sizeOptions,
     size,
     showTotal,
+  };
+}
+
+interface PagedItemsResult<T> {
+  currentPage: number;
+  totalPages: number;
+  pageItems: T[];
+}
+
+export function getPagedItems<T>(
+  items: T[],
+  current: number,
+  pageSize: number,
+): PagedItemsResult<T> {
+  const safePageSize = Math.max(1, pageSize);
+  const totalPages = Math.max(1, Math.ceil(items.length / safePageSize));
+  const currentPage = Math.min(Math.max(1, current), totalPages);
+  const startIndex = (currentPage - 1) * safePageSize;
+  return {
+    currentPage,
+    totalPages,
+    pageItems: items.slice(startIndex, startIndex + safePageSize),
   };
 }
 

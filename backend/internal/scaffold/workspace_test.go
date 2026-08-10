@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"pantheon-ops/backend/pkg/common"
 )
 
 func TestValidateRegisterRequestHonorsScopeSpecificModuleNameRules(t *testing.T) {
@@ -59,7 +61,7 @@ func TestValidateRegisterRequestHonorsScopeSpecificModuleNameRules(t *testing.T)
 				t.Fatalf("expected success, got %v", err)
 			}
 			if tt.wantError != "" {
-				if err == nil || err.Error() != tt.wantError {
+				if err == nil || common.ErrMessage(err) != tt.wantError {
 					t.Fatalf("expected %s, got %v", tt.wantError, err)
 				}
 			}
@@ -85,7 +87,7 @@ func TestValidateRegisterRequestRejectsUnsafeManagedTableName(t *testing.T) {
 	}
 
 	err := ValidateRegisterRequest(req)
-	if err == nil || err.Error() != "module.generate.invalid_table_name" {
+	if err == nil || common.ErrMessage(err) != "module.generate.invalid_table_name" {
 		t.Fatalf("expected invalid table name error, got %v", err)
 	}
 }
@@ -178,7 +180,7 @@ func TestValidateRegisterRequestRejectsInvalidGovernanceContract(t *testing.T) {
 			tt.mutate(req)
 
 			err := ValidateRegisterRequest(req)
-			if err == nil || err.Error() != tt.wantError {
+			if err == nil || common.ErrMessage(err) != tt.wantError {
 				t.Fatalf("expected %s, got %v", tt.wantError, err)
 			}
 		})
@@ -267,6 +269,30 @@ process.stdout.write(JSON.stringify(files));
 
 func TestWriteGeneratedFallbackResourcesBuildsGeneratedLocaleFiles(t *testing.T) {
 	root := t.TempDir()
+	foundationLocaleDir := filepath.Join(root, "frontend", "src", "i18n", "resources", "foundation")
+	if err := os.MkdirAll(foundationLocaleDir, 0o755); err != nil {
+		t.Fatalf("mkdir foundation locale dir: %v", err)
+	}
+	for _, locale := range []string{"zh-CN", "en-US", "ja-JP", "ko-KR", "fr-FR"} {
+		if err := os.WriteFile(
+			filepath.Join(foundationLocaleDir, locale+".json"),
+			[]byte(`{"foundation.request.failed":"Request failed"}`),
+			0o644,
+		); err != nil {
+			t.Fatalf("write foundation locale %s: %v", locale, err)
+		}
+	}
+	moduleLocaleDir := filepath.Join(root, "frontend", "src", "modules", "business", "deploy", "locales")
+	if err := os.MkdirAll(moduleLocaleDir, 0o755); err != nil {
+		t.Fatalf("mkdir module locale dir: %v", err)
+	}
+	if err := os.WriteFile(
+		filepath.Join(moduleLocaleDir, "zh-CN.json"),
+		[]byte(`{"business.deploy.package.templateSummary":"模板说明"}`),
+		0o644,
+	); err != nil {
+		t.Fatalf("write module locale: %v", err)
+	}
 	schemaDir := filepath.Join(root, "schema", "generated", "business", "cmdb")
 	if err := os.MkdirAll(schemaDir, 0o755); err != nil {
 		t.Fatalf("mkdir schema dir: %v", err)
@@ -309,6 +335,15 @@ func TestWriteGeneratedFallbackResourcesBuildsGeneratedLocaleFiles(t *testing.T)
 	if !strings.Contains(string(zhContent), `"business.cmdb.host.permission.export": "导出主机管理"`) {
 		t.Fatalf("expected zh generated fallback to include host export permission, got %s", string(zhContent))
 	}
+	if !strings.Contains(string(zhContent), `"business.deploy.package.templateSummary": "模板说明"`) {
+		t.Fatalf("expected zh generated fallback to preserve static business locale, got %s", string(zhContent))
+	}
+	if !strings.Contains(string(zhContent), `"foundation.request.failed": "Request failed"`) {
+		t.Fatalf("expected zh generated fallback to preserve foundation locale, got %s", string(zhContent))
+	}
+	if !strings.Contains(string(zhContent), `"business.cmdb.host.permission.export": "导出主机管理",`) {
+		t.Fatalf("expected canonical TypeScript serialization with trailing commas, got %s", string(zhContent))
+	}
 
 	enContent, err := os.ReadFile(filepath.Join(root, "frontend", "src", "i18n", "resources", "generated", "en-US.ts"))
 	if err != nil {
@@ -324,6 +359,29 @@ func TestWriteGeneratedFallbackResourcesBuildsGeneratedLocaleFiles(t *testing.T)
 	}
 	if !strings.Contains(string(jaContent), `"business.cmdb.host.title": "Host Management"`) {
 		t.Fatalf("expected ja generated fallback to include English host title, got %s", string(jaContent))
+	}
+}
+
+func TestSerializeGeneratedLocaleMatchesCanonicalKeyOrder(t *testing.T) {
+	content, err := serializeGeneratedLocale("generatedzhCNFallback", map[string]string{
+		"auth.loginLog.search.placeholder":  "camel",
+		"auth.login_log.time_range.end":     "snake",
+		"business.deploy.task.startSshHint": "hint",
+		"business.deploy.task.startedAt":    "time",
+	})
+	if err != nil {
+		t.Fatalf("serialize generated locale: %v", err)
+	}
+
+	snakeIndex := strings.Index(content, `"auth.login_log.time_range.end"`)
+	camelIndex := strings.Index(content, `"auth.loginLog.search.placeholder"`)
+	startedIndex := strings.Index(content, `"business.deploy.task.startedAt"`)
+	startSSHIndex := strings.Index(content, `"business.deploy.task.startSshHint"`)
+	if snakeIndex < 0 || camelIndex < 0 || snakeIndex >= camelIndex {
+		t.Fatalf("expected snake-case key before camel-case key, got %s", content)
+	}
+	if startedIndex < 0 || startSSHIndex < 0 || startedIndex >= startSSHIndex {
+		t.Fatalf("expected case-insensitive key order, got %s", content)
 	}
 }
 

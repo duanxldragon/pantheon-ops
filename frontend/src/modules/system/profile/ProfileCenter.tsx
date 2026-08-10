@@ -16,21 +16,16 @@ import { IconLock, IconUpload, IconUser } from '@arco-design/web-react/icon';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { uploadSystemFile } from '../../../api/upload';
-import { isArcoFormValidationError } from '../../../core/arco/formValidation';
+import { isArcoFormValidationError, isLikelyEmailAddress } from '../../../core/arco/formValidation';
 import {
   getProfile,
   updateProfile,
   type UserProfile,
   type UserProfileUpdatePayload,
-} from '../user/api';
+} from '../iam/user/api';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { useAuthStore } from '../../../store/useAuthStore';
-import {
-  FormSection,
-  PageContainer,
-  PageLoading,
-  SubmitBar,
-} from '../../../components';
+import { FormSection, PageContainer, PageLoading, SubmitBar } from '../../../components';
 import './profile.css';
 
 const Row = Grid.Row;
@@ -182,7 +177,7 @@ const ProfileCenter: React.FC = () => {
                   { label: t('system.profile.phone'), value: profile?.phone || '-' },
                   {
                     label: t('system.profile.createdAt'),
-                    value: formatDateTime(profile?.createdAt),
+                    value: formatDateTime(profile?.createdAt, { withSeconds: true }),
                   },
                 ]}
               />
@@ -218,7 +213,18 @@ const ProfileCenter: React.FC = () => {
                   <FormItem
                     label={t('system.profile.email')}
                     field="email"
-                    rules={[{ match: /\S+@\S+\.\S+/, message: t('system.user.email.invalid') }]}
+                    rules={[
+                      {
+                        // Linear-time email shape check; backend owns authoritative validation.
+                        validator: (value, callback) => {
+                          if (!value || isLikelyEmailAddress(String(value))) {
+                            callback();
+                            return;
+                          }
+                          callback(t('system.user.email.invalid'));
+                        },
+                      },
+                    ]}
                   >
                     <Input onPressEnter={() => profileForm.submit()} />
                   </FormItem>

@@ -257,14 +257,68 @@ export const isTimeoutRequestError = (error: unknown) =>
   isRequestError(error) && error.kind === 'timeout';
 export const isNetworkRequestError = (error: unknown) =>
   isRequestError(error) && (error.kind === 'network' || error.kind === 'timeout');
+export const isForbiddenRequestError = (error: unknown) =>
+  isRequestError(error) && error.kind === 'forbidden';
 export const isServerRequestError = (error: unknown) =>
   isRequestError(error) && error.kind === 'server';
 
 const OPERATION_TOKEN_KEY = 'pantheon_op_token';
 const OPERATION_TOKEN_REFRESH_BUFFER_MS = 30 * 1000;
+const OPERATION_TOKEN_FALLBACK_TTL_MS = 5 * 60 * 1000;
 
-const saveOperationToken = (token: string) => sessionStorage.setItem(OPERATION_TOKEN_KEY, token);
-const readOperationToken = () => sessionStorage.getItem(OPERATION_TOKEN_KEY);
+type StoredOperationToken = {
+  token: string;
+  acquiredAt?: number;
+  expiresAt?: number;
+};
+
+const saveOperationToken = (
+  token: string,
+  options?: {
+    acquiredAt?: number;
+    expiresAt?: number;
+  },
+) =>
+  sessionStorage.setItem(
+    OPERATION_TOKEN_KEY,
+    JSON.stringify({
+      token,
+      acquiredAt: options?.acquiredAt ?? Date.now(),
+      expiresAt: options?.expiresAt,
+    } satisfies StoredOperationToken),
+  );
+
+const readStoredOperationToken = (): StoredOperationToken | null => {
+  const rawValue = sessionStorage.getItem(OPERATION_TOKEN_KEY);
+  if (!rawValue) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(rawValue) as Partial<StoredOperationToken>;
+    if (typeof parsed.token === 'string' && parsed.token.trim()) {
+      return {
+        token: parsed.token,
+        acquiredAt: typeof parsed.acquiredAt === 'number' ? parsed.acquiredAt : undefined,
+        expiresAt: typeof parsed.expiresAt === 'number' ? parsed.expiresAt : undefined,
+      };
+    }
+  } catch {
+    // Fall through to legacy raw-token handling.
+  }
+
+  const legacyToken = rawValue.trim();
+  if (!legacyToken) {
+    return null;
+  }
+  const migrated = {
+    token: legacyToken,
+    acquiredAt: Date.now(),
+  } satisfies StoredOperationToken;
+  saveOperationToken(migrated.token, { acquiredAt: migrated.acquiredAt });
+  return migrated;
+};
+
+const readOperationToken = () => readStoredOperationToken()?.token ?? null;
 const clearOperationToken = () => sessionStorage.removeItem(OPERATION_TOKEN_KEY);
 
 const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
@@ -282,22 +336,36 @@ const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
   }
 };
 
-const isOperationTokenFresh = (token: string | null | undefined) => {
-  if (!token) {
-    return false;
-  }
-  const payload = decodeJwtPayload(token);
+const resolveOperationTokenExpiresAt = (storedToken: StoredOperationToken) => {
+  const payload = decodeJwtPayload(storedToken.token);
   const exp = typeof payload?.exp === 'number' ? payload.exp : 0;
-  if (!exp) {
+  if (exp) {
+    return exp * 1000;
+  }
+  if (typeof storedToken.expiresAt === 'number' && storedToken.expiresAt > 0) {
+    return storedToken.expiresAt;
+  }
+  if (typeof storedToken.acquiredAt === 'number' && storedToken.acquiredAt > 0) {
+    return storedToken.acquiredAt + OPERATION_TOKEN_FALLBACK_TTL_MS;
+  }
+  return 0;
+};
+
+const isOperationTokenFresh = (storedToken: StoredOperationToken | null | undefined) => {
+  if (!storedToken?.token) {
     return false;
   }
-  return exp * 1000 > Date.now() + OPERATION_TOKEN_REFRESH_BUFFER_MS;
+  const expiresAt = resolveOperationTokenExpiresAt(storedToken);
+  if (!expiresAt) {
+    return false;
+  }
+  return expiresAt > Date.now() + OPERATION_TOKEN_REFRESH_BUFFER_MS;
 };
 
 export const ensureOperationVerified = async (force = false) => {
-  const currentToken = readOperationToken();
+  const currentToken = readStoredOperationToken();
   if (!force && isOperationTokenFresh(currentToken)) {
-    return currentToken as string;
+    return currentToken!.token;
   }
   clearOperationToken();
   const opToken = await showSecondaryVerify();

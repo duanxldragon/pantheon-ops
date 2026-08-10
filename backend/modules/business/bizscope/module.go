@@ -4,7 +4,6 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-ops/backend/internal/middleware"
 	"pantheon-ops/backend/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
@@ -156,12 +155,18 @@ var i18nSeeds = []i18nSeed{
 	{Module: "business.bizscope", Locale: "en-US", Group: "audit", Key: "business.bizscope.audit.update", Value: "Update business scope"},
 	{Module: "business.bizscope", Locale: "zh-CN", Group: "audit", Key: "business.bizscope.audit.delete", Value: "删除业务域"},
 	{Module: "business.bizscope", Locale: "en-US", Group: "audit", Key: "business.bizscope.audit.delete", Value: "Delete business scope"},
-	{Module: "business.bizscope", Locale: "zh-CN", Group: "error", Key: "bizscope.code_exists", Value: "业务域编码已存在"},
-	{Module: "business.bizscope", Locale: "en-US", Group: "error", Key: "bizscope.code_exists", Value: "Business scope code already exists"},
-	{Module: "business.bizscope", Locale: "zh-CN", Group: "error", Key: "bizscope.in_use", Value: "业务域已绑定主机，不能删除"},
-	{Module: "business.bizscope", Locale: "en-US", Group: "error", Key: "bizscope.in_use", Value: "The business scope is bound to hosts and cannot be deleted"},
-	{Module: "business.bizscope", Locale: "zh-CN", Group: "error", Key: "bizscope.not_found", Value: "业务域不存在"},
-	{Module: "business.bizscope", Locale: "en-US", Group: "error", Key: "bizscope.not_found", Value: "Business scope does not exist"},
+	{Module: "business.bizscope", Locale: "zh-CN", Group: "error", Key: bizScopeCodeExistsKey, Value: "业务域编码已存在"},
+	{Module: "business.bizscope", Locale: "en-US", Group: "error", Key: bizScopeCodeExistsKey, Value: "Business scope code already exists"},
+	{Module: "business.bizscope", Locale: "zh-CN", Group: "error", Key: bizScopeInUseKey, Value: "业务域已绑定主机，不能删除"},
+	{Module: "business.bizscope", Locale: "en-US", Group: "error", Key: bizScopeInUseKey, Value: "The business scope is bound to hosts and cannot be deleted"},
+	{Module: "business.bizscope", Locale: "zh-CN", Group: "error", Key: bizScopeNotFoundKey, Value: "业务域不存在"},
+	{Module: "business.bizscope", Locale: "en-US", Group: "error", Key: bizScopeNotFoundKey, Value: "Business scope does not exist"},
+}
+
+var legacyBizScopeI18nKeys = []string{
+	"bizscope.code_exists",
+	"bizscope.in_use",
+	"bizscope.not_found",
 }
 
 func InitBizScopeModule(r *gin.RouterGroup, db *gorm.DB) {
@@ -174,18 +179,18 @@ func InitBizScopeModule(r *gin.RouterGroup, db *gorm.DB) {
 		SeedMenusFunc: seedMenus,
 		SeedI18nFunc:  seedI18n,
 		Register: func(r *gin.RouterGroup) {
-			protected := r.Group("/business/bizscope").Use(middleware.JWTAuthMiddleware()).Use(middleware.CasbinMiddleware())
+			protected := contracts.DataScopedGroup(r, "/business/bizscope", db)
 			{
-			protected.GET("/list", handler.List)
-			protected.GET("/options", handler.Options)
-			protected.GET("/:id", handler.Detail)
-			protected.GET("/:id/hosts", handler.Hosts)
-			protected.GET("/:id/available-hosts", handler.AvailableHosts)
-			protected.POST("/:id/hosts/bind", handler.BindHosts)
-			protected.DELETE("/:id/hosts/:hostId", handler.UnbindHost)
-			protected.POST("", handler.Create)
-			protected.PUT("/:id", handler.Update)
-			protected.DELETE("/:id", handler.Delete)
+				protected.GET("/list", handler.List)
+				protected.GET("/options", handler.Options)
+				protected.GET("/:id", handler.Detail)
+				protected.GET("/:id/hosts", handler.Hosts)
+				protected.GET("/:id/available-hosts", handler.AvailableHosts)
+				protected.POST("/:id/hosts/bind", handler.BindHosts)
+				protected.DELETE("/:id/hosts/:hostId", handler.UnbindHost)
+				protected.POST("", handler.Create)
+				protected.PUT("/:id", handler.Update)
+				protected.DELETE("/:id", handler.Delete)
 			}
 		},
 	})
@@ -319,30 +324,40 @@ func seedI18n(db *gorm.DB) error {
 	if db == nil || !db.Migrator().HasTable("system_i18n") {
 		return nil
 	}
-	for _, seed := range i18nSeeds {
-		var count int64
-		if err := db.Table("system_i18n").Where("module = ? AND locale = ? AND `key` = ?", seed.Module, seed.Locale, seed.Key).Count(&count).Error; err != nil {
+	return db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec(
+			"DELETE FROM system_i18n WHERE module = ? AND `key` IN ?",
+			"business.bizscope",
+			legacyBizScopeI18nKeys,
+		).Error; err != nil {
 			return err
 		}
-		payload := map[string]interface{}{
-			"module":           seed.Module,
-			"group_name":       seed.Group,
-			"key":              seed.Key,
-			"locale":           seed.Locale,
-			"value":            seed.Value,
-			"lifecycle_status": "active",
-			"updated_at":       time.Now(),
-		}
-		if count == 0 {
-			payload["created_at"] = time.Now()
-			if err := db.Table("system_i18n").Create(payload).Error; err != nil {
+
+		for _, seed := range i18nSeeds {
+			var count int64
+			if err := tx.Table("system_i18n").Where("module = ? AND locale = ? AND `key` = ?", seed.Module, seed.Locale, seed.Key).Count(&count).Error; err != nil {
 				return err
 			}
-			continue
+			payload := map[string]interface{}{
+				"module":           seed.Module,
+				"group_name":       seed.Group,
+				"key":              seed.Key,
+				"locale":           seed.Locale,
+				"value":            seed.Value,
+				"lifecycle_status": "active",
+				"updated_at":       time.Now(),
+			}
+			if count == 0 {
+				payload["created_at"] = time.Now()
+				if err := tx.Table("system_i18n").Create(payload).Error; err != nil {
+					return err
+				}
+				continue
+			}
+			if err := tx.Table("system_i18n").Where("module = ? AND locale = ? AND `key` = ?", seed.Module, seed.Locale, seed.Key).Updates(payload).Error; err != nil {
+				return err
+			}
 		}
-		if err := db.Table("system_i18n").Where("module = ? AND locale = ? AND `key` = ?", seed.Module, seed.Locale, seed.Key).Updates(payload).Error; err != nil {
-			return err
-		}
-	}
-	return nil
+		return nil
+	})
 }

@@ -17,6 +17,7 @@ Thumbs.db
 *.err.log
 
 # Local caches and temp files
+.foundation/
 .tmp/
 tmp/
 .gocache/

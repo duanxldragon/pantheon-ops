@@ -2,8 +2,8 @@ package system
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"pantheon-ops/backend/pkg/common"
 	"sort"
 	"strconv"
 	"strings"
@@ -12,14 +12,19 @@ import (
 
 	"pantheon-ops/backend/internal/middleware"
 	"pantheon-ops/backend/pkg/impexp"
+	"pantheon-ops/backend/pkg/logging"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
+const errCleanupRangeInvalid = "audit.operation_log.cleanup.range_invalid"
+
 type AuditService struct {
-	db            *gorm.DB
-	cleanupMu     sync.Mutex
-	lastCleanupAt map[string]time.Time
+	db              *gorm.DB
+	lastCleanupAtMu sync.Mutex
+	lastCleanupAt   map[string]time.Time
 }
 
 func NewAuditService(db *gorm.DB) *AuditService {
@@ -32,34 +37,34 @@ func NewAuditService(db *gorm.DB) *AuditService {
 const (
 	defaultOperationLogRetentionDays = 180
 	auditAutoCleanupMinInterval      = 15 * time.Minute
+	maxOperationLogPageSize          = 100
+	maxOperationLogExportRows        = 10000
 )
 
 func (s *AuditService) Migrate() error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return common.ErrDatabaseNotInitialized
 	}
 	if err := s.db.AutoMigrate(&middleware.SystemLogOper{}); err != nil {
 		return err
+	}
+	return s.Bootstrap()
+}
+
+func (s *AuditService) Bootstrap() error {
+	if s.db == nil {
+		return common.ErrDatabaseNotInitialized
 	}
 	return s.backfillOperationLogDerivedFields()
 }
 
 func (s *AuditService) ListOperationLogs(query *OperationLogQuery) (*OperationLogPageResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	s.ensureAutomaticOperationLogRetention()
 
-	page := 1
-	pageSize := 10
-	if query != nil {
-		if query.Page > 0 {
-			page = query.Page
-		}
-		if query.PageSize > 0 {
-			pageSize = query.PageSize
-		}
-	}
+	page, pageSize := normalizeOperationLogPageQuery(query)
 
 	db := s.applyOperationLogBaseQuery(s.db.Model(&middleware.SystemLogOper{}), query)
 	var total int64
@@ -67,7 +72,19 @@ func (s *AuditService) ListOperationLogs(query *OperationLogQuery) (*OperationLo
 	if err := db.Count(&total).Error; err != nil {
 		return nil, err
 	}
-	if err := db.Order("id desc").Offset((page - 1) * pageSize).Limit(pageSize).Find(&rows).Error; err != nil {
+	// Whole-filtered-set aggregate so the governance bar shows global numbers.
+	var successCount int64
+	if err := s.applyOperationLogBaseQuery(s.db.Model(&middleware.SystemLogOper{}), query).
+		Where("status = ?", common.OperationStatusSuccess).
+		Count(&successCount).Error; err != nil {
+		return nil, err
+	}
+	sortColumn, sortDesc := normalizeOperationLogSort(query)
+	orderedDB := db.Order(clause.OrderByColumn{Column: clause.Column{Name: sortColumn}, Desc: sortDesc})
+	if sortColumn != "id" {
+		orderedDB = orderedDB.Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: true})
+	}
+	if err := orderedDB.Offset((page - 1) * pageSize).Limit(pageSize).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 
@@ -77,16 +94,18 @@ func (s *AuditService) ListOperationLogs(query *OperationLogQuery) (*OperationLo
 	}
 
 	return &OperationLogPageResp{
-		Items:    items,
-		Total:    total,
-		Page:     page,
-		PageSize: pageSize,
+		Items:        items,
+		Total:        total,
+		SuccessCount: successCount,
+		FailedCount:  total - successCount,
+		Page:         page,
+		PageSize:     pageSize,
 	}, nil
 }
 
 func (s *AuditService) GetOperationLog(logID uint64) (*OperationLogResp, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	s.ensureAutomaticOperationLogRetention()
 
@@ -100,7 +119,7 @@ func (s *AuditService) GetOperationLog(logID uint64) (*OperationLogResp, error) 
 
 func (s *AuditService) ExportOperationLogs(query *OperationLogQuery) (*impexp.CSVFile, error) {
 	if s.db == nil {
-		return nil, errors.New("database.not_initialized")
+		return nil, common.ErrDatabaseNotInitialized
 	}
 	s.ensureAutomaticOperationLogRetention()
 
@@ -149,14 +168,14 @@ func (s *AuditService) ExportOperationLogs(query *OperationLogQuery) (*impexp.CS
 
 func (s *AuditService) DeleteOperationLog(logID uint64) error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return common.ErrDatabaseNotInitialized
 	}
 	return s.db.Delete(&middleware.SystemLogOper{}, logID).Error
 }
 
 func (s *AuditService) CleanupOperationLogs(retentionDays int, startedAt string, endedAt string) (int64, error) {
 	if s.db == nil {
-		return 0, errors.New("database.not_initialized")
+		return 0, common.ErrDatabaseNotInitialized
 	}
 	window, err := parseOperationCleanupWindow(startedAt, endedAt)
 	if err != nil {
@@ -168,7 +187,7 @@ func (s *AuditService) CleanupOperationLogs(retentionDays int, startedAt string,
 		db = db.Where("oper_time >= ? AND oper_time <= ?", window.StartedAt, window.EndedAt)
 	} else {
 		if !s.isAllowedOperationLogRetentionDays(retentionDays) {
-			return 0, errors.New("audit.operation_log.cleanup.days_invalid")
+			return 0, common.NewBadRequest("audit.operation_log.cleanup.days_invalid")
 		}
 		cutoff := time.Now().AddDate(0, 0, -retentionDays)
 		db = db.Where("oper_time < ?", cutoff)
@@ -185,25 +204,25 @@ type operationCleanupWindow struct {
 	EndedAt   time.Time
 }
 
-func parseOperationCleanupWindow(startedAt string, endedAt string) (*operationCleanupWindow, error) {
+func parseOperationCleanupWindow(startedAt, endedAt string) (*operationCleanupWindow, error) {
 	startedAt = strings.TrimSpace(startedAt)
 	endedAt = strings.TrimSpace(endedAt)
 	if startedAt == "" && endedAt == "" {
 		return nil, nil
 	}
 	if startedAt == "" || endedAt == "" {
-		return nil, errors.New("audit.operation_log.cleanup.range_invalid")
+		return nil, common.NewBadRequest(errCleanupRangeInvalid)
 	}
 	start, err := time.Parse(time.RFC3339, startedAt)
 	if err != nil {
-		return nil, errors.New("audit.operation_log.cleanup.range_invalid")
+		return nil, common.NewBadRequest(errCleanupRangeInvalid)
 	}
 	end, err := time.Parse(time.RFC3339, endedAt)
 	if err != nil {
-		return nil, errors.New("audit.operation_log.cleanup.range_invalid")
+		return nil, common.NewBadRequest(errCleanupRangeInvalid)
 	}
 	if end.Before(start) {
-		return nil, errors.New("audit.operation_log.cleanup.range_invalid")
+		return nil, common.NewBadRequest(errCleanupRangeInvalid)
 	}
 	return &operationCleanupWindow{StartedAt: start, EndedAt: end}, nil
 }
@@ -264,21 +283,23 @@ func (s *AuditService) ensureAutomaticOperationLogRetention() {
 	}
 
 	now := time.Now()
-	s.cleanupMu.Lock()
+	s.lastCleanupAtMu.Lock()
 	lastRun := s.lastCleanupAt["operation_log_retention"]
 	if !lastRun.IsZero() && now.Sub(lastRun) < auditAutoCleanupMinInterval {
-		s.cleanupMu.Unlock()
+		s.lastCleanupAtMu.Unlock()
 		return
 	}
 	s.lastCleanupAt["operation_log_retention"] = now
-	s.cleanupMu.Unlock()
+	s.lastCleanupAtMu.Unlock()
 
 	retentionDays := s.getRetentionDaysFromSetting("audit.operation_log_retention_days", defaultOperationLogRetentionDays)
 	if retentionDays <= 0 {
 		retentionDays = defaultOperationLogRetentionDays
 	}
 	cutoff := now.AddDate(0, 0, -retentionDays)
-	_ = s.db.Where("oper_time < ?", cutoff).Delete(&middleware.SystemLogOper{}).Error
+	if err := s.db.Where("oper_time < ?", cutoff).Delete(&middleware.SystemLogOper{}).Error; err != nil {
+		logging.Warn("cleanup expired operation logs failed", zap.Error(err))
+	}
 }
 
 func (s *AuditService) getRetentionDaysFromSetting(settingKey string, fallback int) int {
@@ -302,12 +323,17 @@ func (s *AuditService) getRetentionDaysFromSetting(settingKey string, fallback i
 
 func (s *AuditService) BatchDeleteOperationLogs(ids []uint64) (int64, error) {
 	if s.db == nil {
-		return 0, errors.New("database.not_initialized")
+		return 0, common.ErrDatabaseNotInitialized
 	}
 
 	normalized := normalizeAuditLogIDs(ids)
 	if len(normalized) == 0 {
-		return 0, errors.New("audit.operation_log.delete.ids_required")
+		return 0, common.NewBadRequest("audit.operation_log.delete.ids_required")
+	}
+	// Cap batch input so a single request cannot smuggle an arbitrarily
+	// large IN clause past BodySizeLimit.
+	if len(normalized) > 500 {
+		return 0, common.NewBadRequest("param.invalid")
 	}
 
 	result := s.db.Where("id IN ?", normalized).Delete(&middleware.SystemLogOper{})
@@ -320,24 +346,77 @@ func (s *AuditService) BatchDeleteOperationLogs(ids []uint64) (int64, error) {
 func (s *AuditService) listOperationLogsForExport(query *OperationLogQuery) ([]middleware.SystemLogOper, error) {
 	var rows []middleware.SystemLogOper
 	db := s.applyOperationLogBaseQuery(s.db.Model(&middleware.SystemLogOper{}), query)
-	if err := db.Order("id desc").Find(&rows).Error; err != nil {
+	if err := db.Order("id desc").Limit(maxOperationLogExportRows).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	return rows, nil
+}
+
+func normalizeOperationLogPageQuery(query *OperationLogQuery) (int, int) {
+	page := 1
+	pageSize := 10
+	if query != nil {
+		if query.Page > 0 {
+			page = query.Page
+		}
+		if query.PageSize > 0 {
+			pageSize = query.PageSize
+		}
+	}
+	if pageSize > maxOperationLogPageSize {
+		pageSize = maxOperationLogPageSize
+	}
+	return page, pageSize
+}
+
+// normalizeOperationLogSort maps a client-supplied sort field to a whitelisted
+// database column, guarding against ORDER BY injection. Unknown fields fall back
+// to id. Default order is id desc (newest first).
+func normalizeOperationLogSort(query *OperationLogQuery) (string, bool) {
+	if query == nil {
+		return "id", true
+	}
+
+	sortWhitelist := map[string]string{
+		"id":               "id",
+		"operTime":         "oper_time",
+		"oper_time":        "oper_time",
+		"status":           "status",
+		"businessType":     "business_type",
+		"business_type":    "business_type",
+		"operName":         "oper_name",
+		"oper_name":        "oper_name",
+		"title":            "title",
+		"sourceDomain":     "source_domain",
+		"source_domain":    "source_domain",
+		"failureCategory":  "failure_category",
+		"failure_category": "failure_category",
+	}
+
+	column, ok := sortWhitelist[strings.TrimSpace(query.SortField)]
+	if !ok {
+		return "id", true
+	}
+
+	return column, strings.ToLower(strings.TrimSpace(query.SortOrder)) == "desc"
 }
 
 func (s *AuditService) applyOperationLogBaseQuery(db *gorm.DB, query *OperationLogQuery) *gorm.DB {
 	if query == nil {
 		return db
 	}
+	if strings.TrimSpace(query.Keyword) != "" {
+		keyword := "%" + common.EscapeLikePattern(strings.TrimSpace(query.Keyword)) + "%"
+		db = db.Where("title LIKE ? OR oper_name LIKE ? OR request_id LIKE ?", keyword, keyword, keyword)
+	}
 	if strings.TrimSpace(query.Title) != "" {
-		db = db.Where("title LIKE ?", "%"+strings.TrimSpace(query.Title)+"%")
+		db = db.Where("title LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.Title))+"%")
 	}
 	if strings.TrimSpace(query.RequestID) != "" {
 		db = db.Where("request_id = ?", strings.TrimSpace(query.RequestID))
 	}
 	if strings.TrimSpace(query.OperName) != "" {
-		db = db.Where("oper_name LIKE ?", "%"+strings.TrimSpace(query.OperName)+"%")
+		db = db.Where("oper_name LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.OperName))+"%")
 	}
 	if query.Status != nil {
 		db = db.Where("status = ?", *query.Status)
@@ -354,7 +433,28 @@ func (s *AuditService) applyOperationLogBaseQuery(db *gorm.DB, query *OperationL
 	if strings.TrimSpace(query.FailureCategory) != "" {
 		db = db.Where("failure_category = ?", strings.TrimSpace(query.FailureCategory))
 	}
+	if start, ok := parseOperationLogTime(query.StartedAt); ok {
+		db = db.Where("oper_time >= ?", start)
+	}
+	if end, ok := parseOperationLogTime(query.EndedAt); ok {
+		db = db.Where("oper_time <= ?", end)
+	}
 	return db
+}
+
+// parseOperationLogTime accepts the same formats the login-log list filter does,
+// so both audit toolbars can share one frontend time-range component.
+func parseOperationLogTime(value string) (time.Time, bool) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return time.Time{}, false
+	}
+	for _, layout := range []string{time.RFC3339, "2006-01-02 15:04:05", "2006-01-02 15:04"} {
+		if parsed, err := time.ParseInLocation(layout, value, time.Local); err == nil {
+			return parsed, true
+		}
+	}
+	return time.Time{}, false
 }
 
 func operationLogToResp(row middleware.SystemLogOper) OperationLogResp {
@@ -381,12 +481,12 @@ func operationLogToResp(row middleware.SystemLogOper) OperationLogResp {
 
 func (s *AuditService) backfillOperationLogDerivedFields() error {
 	if s.db == nil {
-		return errors.New("database.not_initialized")
+		return common.ErrDatabaseNotInitialized
 	}
 
 	var rows []middleware.SystemLogOper
 	if err := s.db.
-		Where("COALESCE(source_domain, '') = '' OR COALESCE(source_page, '') = '' OR (status = ? AND COALESCE(failure_category, '') = '')", 2).
+		Where("COALESCE(source_domain, '') = '' OR COALESCE(source_page, '') = '' OR (status = ? AND COALESCE(failure_category, '') = '')", common.OperationStatusFailure).
 		Find(&rows).Error; err != nil {
 		return err
 	}

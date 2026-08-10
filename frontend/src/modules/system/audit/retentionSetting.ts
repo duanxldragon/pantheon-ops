@@ -1,4 +1,7 @@
-export function normalizeRetentionOptions(rawValue: string | undefined, defaultOptions: number[] = [1, 7, 30]): number[] {
+export function normalizeRetentionOptions(
+  rawValue: string | undefined,
+  defaultOptions: number[] = [1, 7, 30],
+): number[] {
   if (!rawValue) {
     return defaultOptions;
   }
@@ -8,9 +11,7 @@ export function normalizeRetentionOptions(rawValue: string | undefined, defaultO
       return defaultOptions;
     }
     const normalized = Array.from(
-      new Set(
-        parsed.map(Number).filter((item) => Number.isInteger(item) && item > 0),
-      ),
+      new Set(parsed.map(Number).filter((item) => Number.isInteger(item) && item > 0)),
     ).sort((left, right) => right - left);
     return normalized.length > 0 ? normalized : defaultOptions;
   } catch {
@@ -20,7 +21,8 @@ export function normalizeRetentionOptions(rawValue: string | undefined, defaultO
 
 export function toCleanupTimestamp(value: string): string | undefined {
   const normalized = String(value || '').trim();
-  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(normalized);
+  // Support both space-separated (new display format) and T-separated (old format) date strings
+  const match = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/.exec(normalized);
   if (!match) {
     return undefined;
   }
@@ -41,6 +43,19 @@ export function toCleanupTimestamp(value: string): string | undefined {
   const offsetHours = `${Math.floor(Math.abs(offsetMinutes) / 60)}`.padStart(2, '0');
   const offsetRemainMinutes = `${Math.abs(offsetMinutes) % 60}`.padStart(2, '0');
   return `${year}-${month}-${day}T${hour}:${minute}:${second}${sign}${offsetHours}:${offsetRemainMinutes}`;
+}
+
+export function toCleanupTimestampFromParts(date: string, time: string): string | undefined {
+  const normalizedDate = String(date || '').trim();
+  const normalizedTime = String(time || '').trim();
+  const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(normalizedDate);
+  const timeMatch = /^(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(normalizedTime);
+  if (!dateMatch || !timeMatch) {
+    return undefined;
+  }
+  const [, year, month, day] = dateMatch;
+  const [, hour, minute, second = '00'] = timeMatch;
+  return toCleanupTimestamp(`${year}-${month}-${day}T${hour}:${minute}:${second}`);
 }
 
 export function loadRetentionSetting(

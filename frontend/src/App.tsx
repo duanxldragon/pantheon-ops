@@ -1,7 +1,7 @@
 import { Suspense, lazy, type ReactElement, useEffect, useRef, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Spin } from '@arco-design/web-react';
-import { hasAuthCookie, useAuthStore } from './store/useAuthStore';
+import { useAuthStore } from './store/useAuthStore';
 import { registeredModules } from './core/router/modules';
 import { getRegisteredComponent } from './core/router/componentRegistry';
 import RoutePermissionGuard from './core/router/RoutePermissionGuard';
@@ -12,16 +12,24 @@ import {
   handleVerifySuccess,
   handleVerifyCancel,
 } from './components/feedback/secondaryVerifyController';
-import { findFirstNavigableMenuPath } from './modules/system/menu/api';
+import { findFirstNavigableMenuPath } from './modules/system/iam/menu/api';
 import { useMenuStore } from './store/useMenuStore';
 
 const BaseLayout = lazy(() => import('./core/layout'));
-const LoginPage = lazy(() => import('./modules/auth/Login'));
+const LoginPage = lazy(() =>
+  import('./modules/auth/login/components/Login').then((module) => ({
+    default: module.LoginPageComponent,
+  })),
+);
 const SecondaryVerifyModal = lazy(() =>
   import('./components/feedback/SecondaryVerifyModal').then((module) => ({
     default: module.SecondaryVerifyModal,
   })),
 );
+
+function hasAuthCookie(): boolean {
+  return document.cookie.includes('pantheon_session');
+}
 
 const AuthGuard = ({ children }: { children: ReactElement }) => {
   const { token } = useAuthStore();

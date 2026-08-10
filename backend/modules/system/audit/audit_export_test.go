@@ -72,7 +72,7 @@ func TestAuditService_ExportOperationLogsIncludesDerivedColumns(t *testing.T) {
 		t.Fatalf("export audit logs: %v", err)
 	}
 
-	expectedHeaders := []string{"title", "businessType", "sourceDomain", "sourcePage", "method", "operName", "operUrl", "operIp", "status", "failureCategory", "errorMsg", "operTime", "costTime"}
+	expectedHeaders := []string{"requestId", "title", "businessType", "sourceDomain", "sourcePage", "method", "operName", "operUrl", "operIp", "status", "failureCategory", "errorMsg", "operTime", "costTime"}
 	if len(file.Headers) != len(expectedHeaders) {
 		t.Fatalf("expected %d headers, got %d", len(expectedHeaders), len(file.Headers))
 	}
@@ -86,28 +86,28 @@ func TestAuditService_ExportOperationLogsIncludesDerivedColumns(t *testing.T) {
 		t.Fatalf("expected 2 rows, got %d", len(file.Rows))
 	}
 
-	if file.Rows[1][0] != "上传文件" {
-		t.Fatalf("expected latest row first, got %s", file.Rows[1][0])
+	if file.Rows[1][1] != "上传文件" {
+		t.Fatalf("expected latest row first, got %s", file.Rows[1][1])
 	}
 
-	if file.Rows[0][2] != operationLogSourceDomainIAM {
-		t.Fatalf("expected success row source domain %s, got %s", operationLogSourceDomainIAM, file.Rows[0][2])
+	if file.Rows[0][3] != operationLogSourceDomainIAM {
+		t.Fatalf("expected success row source domain %s, got %s", operationLogSourceDomainIAM, file.Rows[0][3])
 	}
-	if file.Rows[0][3] != operationLogSourcePageUser {
-		t.Fatalf("expected success row source page %s, got %s", operationLogSourcePageUser, file.Rows[0][3])
+	if file.Rows[0][4] != operationLogSourcePageUser {
+		t.Fatalf("expected success row source page %s, got %s", operationLogSourcePageUser, file.Rows[0][4])
 	}
-	if file.Rows[0][9] != "" {
-		t.Fatalf("expected success row failure category empty, got %s", file.Rows[0][9])
+	if file.Rows[0][10] != "" {
+		t.Fatalf("expected success row failure category empty, got %s", file.Rows[0][10])
 	}
 
-	if file.Rows[1][2] != operationLogSourceDomainConfig {
-		t.Fatalf("expected upload row source domain %s, got %s", operationLogSourceDomainConfig, file.Rows[1][2])
+	if file.Rows[1][3] != operationLogSourceDomainConfig {
+		t.Fatalf("expected upload row source domain %s, got %s", operationLogSourceDomainConfig, file.Rows[1][3])
 	}
-	if file.Rows[1][3] != operationLogSourcePageUpload {
-		t.Fatalf("expected upload row source page %s, got %s", operationLogSourcePageUpload, file.Rows[1][3])
+	if file.Rows[1][4] != operationLogSourcePageUpload {
+		t.Fatalf("expected upload row source page %s, got %s", operationLogSourcePageUpload, file.Rows[1][4])
 	}
-	if file.Rows[1][9] != operationLogFailureValidation {
-		t.Fatalf("expected upload row failure category %s, got %s", operationLogFailureValidation, file.Rows[1][9])
+	if file.Rows[1][10] != operationLogFailureValidation {
+		t.Fatalf("expected upload row failure category %s, got %s", operationLogFailureValidation, file.Rows[1][10])
 	}
 }
 
@@ -166,8 +166,8 @@ func TestAuditService_ExportOperationLogsRespectsDerivedFilters(t *testing.T) {
 	if len(file.Rows) != 1 {
 		t.Fatalf("expected 1 filtered row, got %d", len(file.Rows))
 	}
-	if file.Rows[0][0] != "上传文件" {
-		t.Fatalf("expected filtered row title 上传文件, got %s", file.Rows[0][0])
+	if file.Rows[0][1] != "上传文件" {
+		t.Fatalf("expected filtered row title 上传文件, got %s", file.Rows[0][1])
 	}
 }
 
@@ -291,5 +291,53 @@ func TestAuditService_ListOperationLogsDoesNotBackfillDuringQuery(t *testing.T) 
 	}
 	if reloaded.SourceDomain != "" || reloaded.SourcePage != "" || reloaded.FailureCategory != "" {
 		t.Fatalf("expected query path to avoid backfill, got domain=%s page=%s failure=%s", reloaded.SourceDomain, reloaded.SourcePage, reloaded.FailureCategory)
+	}
+}
+
+func TestAuditService_ListOperationLogsCapsPageSize(t *testing.T) {
+	db := setupAuditTestDB(t)
+	service := NewAuditService(db)
+	if err := service.Migrate(); err != nil {
+		t.Fatalf("migrate audit: %v", err)
+	}
+
+	page, err := service.ListOperationLogs(&OperationLogQuery{Page: 1, PageSize: 1000})
+	if err != nil {
+		t.Fatalf("list operation logs: %v", err)
+	}
+	if page.PageSize != maxOperationLogPageSize {
+		t.Fatalf("expected page size cap %d, got %d", maxOperationLogPageSize, page.PageSize)
+	}
+}
+
+func TestAuditService_ExportOperationLogsCapsRows(t *testing.T) {
+	db := setupAuditTestDB(t)
+	service := NewAuditService(db)
+	if err := service.Migrate(); err != nil {
+		t.Fatalf("migrate audit: %v", err)
+	}
+
+	rows := make([]middleware.SystemLogOper, 0, maxOperationLogExportRows+1)
+	now := time.Now().UTC()
+	for i := 0; i < maxOperationLogExportRows+1; i++ {
+		rows = append(rows, middleware.SystemLogOper{
+			Title:    "bulk",
+			Method:   "GET",
+			OperName: "admin",
+			OperURL:  "/api/v1/system/user",
+			Status:   1,
+			OperTime: now.Add(time.Duration(i) * time.Second),
+		})
+	}
+	if err := db.CreateInBatches(rows, 500).Error; err != nil {
+		t.Fatalf("seed operation logs: %v", err)
+	}
+
+	file, err := service.ExportOperationLogs(&OperationLogQuery{})
+	if err != nil {
+		t.Fatalf("export operation logs: %v", err)
+	}
+	if len(file.Rows) != maxOperationLogExportRows {
+		t.Fatalf("expected export cap %d, got %d", maxOperationLogExportRows, len(file.Rows))
 	}
 }

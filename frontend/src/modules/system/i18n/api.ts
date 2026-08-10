@@ -348,7 +348,7 @@ export function batchDeleteI18n(ids: string[]) {
   return apiRequest<{ deleted: boolean; count: number }>({
     url: '/system/i18n/batch-delete',
     method: 'post',
-    data: { ids: ids.map((id) => Number(id)) },
+    data: { ids: ids.map(Number) },
   });
 }
 

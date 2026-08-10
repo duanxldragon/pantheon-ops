@@ -12,7 +12,23 @@ export interface BizScopeRow {
 }
 
 export interface BizScopeDetail extends BizScopeRow {
+  hostCount: number;
   updatedAt: string;
+}
+
+export interface BizScopeHostRow {
+  id: number;
+  hostname: string;
+  ip: string;
+  os: string;
+  status: string;
+  businessScopeId: number;
+  businessScopeName: string;
+}
+
+export interface BizScopeHostListResp {
+  items: BizScopeHostRow[];
+  total: number;
 }
 
 export interface BizScopeListQuery {
@@ -62,6 +78,35 @@ export function getBizScopeDetail(id: number) {
   return apiRequest<BizScopeDetail>({
     url: `/business/bizscope/${id}`,
     method: 'get',
+  });
+}
+
+export function getBizScopeHosts(id: number) {
+  return apiRequest<BizScopeHostListResp>({
+    url: `/business/bizscope/${id}/hosts`,
+    method: 'get',
+  });
+}
+
+export function getBizScopeAvailableHosts(id: number) {
+  return apiRequest<BizScopeHostListResp>({
+    url: `/business/bizscope/${id}/available-hosts`,
+    method: 'get',
+  });
+}
+
+export function bindBizScopeHosts(id: number, hostIds: number[]) {
+  return apiRequest<{ bound: boolean }>({
+    url: `/business/bizscope/${id}/hosts/bind`,
+    method: 'post',
+    data: { hostIds },
+  });
+}
+
+export function unbindBizScopeHost(id: number, hostId: number) {
+  return apiRequest<{ unbound: boolean }>({
+    url: `/business/bizscope/${id}/hosts/${hostId}`,
+    method: 'delete',
   });
 }
 

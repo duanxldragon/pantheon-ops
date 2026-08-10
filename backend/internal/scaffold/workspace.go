@@ -18,6 +18,7 @@ var managedTableNamePattern = regexp.MustCompile(`^[a-z0-9_]+$`)
 
 const workspaceRootEnvKey = "PANTHEON_WORKSPACE_ROOT"
 const generatedModuleExporterScript = "frontend/scripts/export-generated-module.mjs"
+const GeneratedFeatureLedgerRelativePath = "schema/generated/feature-ledger.json"
 
 func isWorkspaceRoot(candidate string) bool {
 	return fileExists(filepath.Join(candidate, "go.mod")) &&
@@ -517,6 +518,22 @@ func fileExists(path string) bool {
 	return err == nil && !info.IsDir()
 }
 
+func writeJSONFile(target string, payload any) error {
+	serialized, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(target, serialized, 0o644)
+}
+
+func WriteGeneratedFeatureLedgerSnapshot(workspaceRoot string, snapshot any) error {
+	target := filepath.Join(workspaceRoot, filepath.FromSlash(GeneratedFeatureLedgerRelativePath))
+	return writeJSONFile(target, snapshot)
+}
+
 func normalizeRelativePath(value string) string {
 	trimmed := strings.TrimSpace(value)
 	if trimmed == "" {
@@ -563,6 +580,20 @@ func WriteGeneratedFallbackResources(workspaceRoot string) error {
 		"fr-FR": {},
 	}
 
+	if err := collectFoundationLocaleResources(
+		filepath.Join(workspaceRoot, "frontend", "src", "i18n", "resources", "foundation"),
+		localePayload,
+	); err != nil {
+		return err
+	}
+
+	if err := collectModuleLocaleResources(
+		filepath.Join(workspaceRoot, "frontend", "src", "modules"),
+		localePayload,
+	); err != nil {
+		return err
+	}
+
 	if dirExists(schemaRoot) {
 		walkErr := filepath.WalkDir(schemaRoot, func(path string, d os.DirEntry, walkErr error) error {
 			if walkErr != nil {
@@ -599,12 +630,26 @@ func WriteGeneratedFallbackResources(workspaceRoot string) error {
 			return walkErr
 		}
 	}
-	for _, locale := range []string{"ja-JP", "ko-KR", "fr-FR"} {
-		for key, value := range localePayload["en-US"] {
-			if strings.TrimSpace(localePayload[locale][key]) == "" {
-				localePayload[locale][key] = value
+	allKeys := make(map[string]struct{})
+	for _, payload := range localePayload {
+		for key := range payload {
+			allKeys[key] = struct{}{}
+		}
+	}
+	for locale, payload := range localePayload {
+		for key := range allKeys {
+			if strings.TrimSpace(payload[key]) != "" {
+				continue
+			}
+			if fallback := strings.TrimSpace(localePayload["en-US"][key]); fallback != "" {
+				payload[key] = fallback
+				continue
+			}
+			if fallback := strings.TrimSpace(localePayload["zh-CN"][key]); fallback != "" {
+				payload[key] = fallback
 			}
 		}
+		localePayload[locale] = payload
 	}
 
 	resourceDir := filepath.Join(workspaceRoot, "frontend", "src", "i18n", "resources", "generated")
@@ -612,18 +657,109 @@ func WriteGeneratedFallbackResources(workspaceRoot string) error {
 		return err
 	}
 	for locale, payload := range localePayload {
-		serialized, err := json.MarshalIndent(payload, "", "  ")
+		identifier := generatedLocaleIdentifier(locale)
+		content, err := serializeGeneratedLocale(identifier, payload)
 		if err != nil {
 			return err
 		}
-		identifier := generatedLocaleIdentifier(locale)
-		content := fmt.Sprintf("const %s = %s;\n\nexport default %s;\n", identifier, string(serialized), identifier)
 		target := filepath.Join(resourceDir, locale+".ts")
 		if err := os.WriteFile(target, []byte(content), 0o644); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func collectFoundationLocaleResources(resourcesRoot string, localePayload map[string]map[string]string) error {
+	for locale, payload := range localePayload {
+		filePath := filepath.Join(resourcesRoot, locale+".json")
+		if !fileExists(filePath) {
+			continue
+		}
+		content, err := os.ReadFile(filePath)
+		if err != nil {
+			return err
+		}
+		var translations map[string]string
+		if err := json.Unmarshal(content, &translations); err != nil {
+			return fmt.Errorf("invalid foundation locale %s: %w", filepath.ToSlash(filePath), err)
+		}
+		for key, value := range translations {
+			if strings.TrimSpace(key) == "" || strings.TrimSpace(value) == "" {
+				continue
+			}
+			payload[key] = value
+		}
+	}
+	return nil
+}
+
+func serializeGeneratedLocale(identifier string, payload map[string]string) (string, error) {
+	keys := make([]string, 0, len(payload))
+	for key := range payload {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(leftIndex, rightIndex int) bool {
+		left := strings.ToLower(keys[leftIndex])
+		right := strings.ToLower(keys[rightIndex])
+		if left != right {
+			return left < right
+		}
+		return keys[leftIndex] < keys[rightIndex]
+	})
+
+	var content strings.Builder
+	fmt.Fprintf(&content, "const %s = {\n", identifier)
+	for _, key := range keys {
+		serializedKey, err := json.Marshal(key)
+		if err != nil {
+			return "", err
+		}
+		serializedValue, err := json.Marshal(payload[key])
+		if err != nil {
+			return "", err
+		}
+		fmt.Fprintf(&content, "  %s: %s,\n", serializedKey, serializedValue)
+	}
+	fmt.Fprintf(&content, "};\n\nexport default %s;\n", identifier)
+	return content.String(), nil
+}
+
+func collectModuleLocaleResources(modulesRoot string, localePayload map[string]map[string]string) error {
+	if !dirExists(modulesRoot) {
+		return nil
+	}
+	return filepath.WalkDir(modulesRoot, func(path string, d os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if d.IsDir() || !strings.EqualFold(filepath.Ext(path), ".json") {
+			return nil
+		}
+		if filepath.Base(filepath.Dir(path)) != "locales" {
+			return nil
+		}
+		locale := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+		payload, ok := localePayload[locale]
+		if !ok {
+			return nil
+		}
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		var translations map[string]string
+		if err := json.Unmarshal(content, &translations); err != nil {
+			return fmt.Errorf("invalid module locale %s: %w", filepath.ToSlash(path), err)
+		}
+		for key, value := range translations {
+			if strings.TrimSpace(key) == "" || strings.TrimSpace(value) == "" {
+				continue
+			}
+			payload[key] = value
+		}
+		return nil
+	})
 }
 
 func dirExists(path string) bool {

@@ -1,12 +1,14 @@
 package org
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
 
 	"gorm.io/gorm"
+	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/testmysql"
 )
 
@@ -15,18 +17,62 @@ func setupDeptTestDB(t *testing.T) *gorm.DB {
 	return testmysql.Open(t)
 }
 
+type deptFixturePost struct {
+	ID        uint64         `gorm:"primaryKey;autoIncrement"`
+	DeptID    uint64         `gorm:"column:dept_id"`
+	PostCode  string         `gorm:"column:post_code;size:64"`
+	PostName  string         `gorm:"column:post_name;size:128"`
+	Sort      int            `gorm:"column:sort;default:0"`
+	Status    int            `gorm:"column:status"`
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
+}
+
+func (deptFixturePost) TableName() string {
+	return "system_post"
+}
+
+type deptFixtureUser struct {
+	ID        uint64         `gorm:"primaryKey;autoIncrement"`
+	Username  string         `gorm:"column:username;size:64"`
+	Password  string         `gorm:"column:password;size:255"`
+	Nickname  string         `gorm:"column:nickname;size:64"`
+	DeptID    uint64         `gorm:"column:dept_id"`
+	PostID    uint64         `gorm:"column:post_id"`
+	Status    int            `gorm:"column:status"`
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
+}
+
+func (deptFixtureUser) TableName() string {
+	return "system_user"
+}
+
+func migrateDeptFixturePosts(t *testing.T, db *gorm.DB) {
+	t.Helper()
+	if err := db.AutoMigrate(&deptFixturePost{}); err != nil {
+		t.Fatalf("migrate post fixture: %v", err)
+	}
+}
+
+func migrateDeptFixtureUsers(t *testing.T, db *gorm.DB) {
+	t.Helper()
+	if err := db.AutoMigrate(&deptFixtureUser{}); err != nil {
+		t.Fatalf("migrate user fixture: %v", err)
+	}
+}
+
 func TestDeptService_MigrateCreatesRootAndReparentsTopLevel(t *testing.T) {
 	db := setupDeptTestDB(t)
 	if err := db.AutoMigrate(&SystemDept{}); err != nil {
 		t.Fatalf("migrate dept table: %v", err)
 	}
-	if err := db.Exec(`INSERT INTO system_dept (id, parent_id, ancestors, is_root, dept_name, status) VALUES (10, 0, '', 0, '研发中心', 1)`).Error; err != nil {
+	now := time.Now().UTC().Format("2006-01-02 15:04:05")
+	if err := db.Exec(fmt.Sprintf(`INSERT INTO system_dept (id, parent_id, ancestors, is_root, dept_name, status, created_at, updated_at) VALUES (10, 0, '', 0, '研发中心', 1, '%s', '%s')`, now, now)).Error; err != nil {
 		t.Fatalf("seed dept 10: %v", err)
 	}
-	if err := db.Exec(`INSERT INTO system_dept (id, parent_id, ancestors, is_root, dept_name, status) VALUES (11, 10, '10', 0, '平台研发部', 1)`).Error; err != nil {
+	if err := db.Exec(fmt.Sprintf(`INSERT INTO system_dept (id, parent_id, ancestors, is_root, dept_name, status, created_at, updated_at) VALUES (11, 10, '10', 0, '平台研发部', 1, '%s', '%s')`, now, now)).Error; err != nil {
 		t.Fatalf("seed dept 11: %v", err)
 	}
-	if err := db.Exec(`INSERT INTO system_dept (id, parent_id, ancestors, is_root, dept_name, status) VALUES (12, 0, '', 0, '财务部', 1)`).Error; err != nil {
+	if err := db.Exec(fmt.Sprintf(`INSERT INTO system_dept (id, parent_id, ancestors, is_root, dept_name, status, created_at, updated_at) VALUES (12, 0, '', 0, '财务部', 1, '%s', '%s')`, now, now)).Error; err != nil {
 		t.Fatalf("seed dept 12: %v", err)
 	}
 
@@ -82,7 +128,7 @@ func TestDeptService_DeleteDeptRejectsRoot(t *testing.T) {
 	}
 
 	err := service.DeleteDept(root.ID)
-	if err == nil || err.Error() != "dept.root.delete_forbidden" {
+	if err == nil || common.ErrMessage(err) != "dept.root.delete_forbidden" {
 		t.Fatalf("expected root delete forbidden, got %v", err)
 	}
 }
@@ -93,9 +139,8 @@ func TestDeptService_DeleteIgnoresSoftDeletedUsers(t *testing.T) {
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
 	}
-	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_user (id INTEGER PRIMARY KEY, dept_id INTEGER, deleted_at DATETIME)").Error; err != nil {
-		t.Fatalf("create user fixture: %v", err)
-	}
+	migrateDeptFixtureUsers(t, db)
+	migrateDeptFixturePosts(t, db)
 
 	var root SystemDept
 	if err := db.Where("is_root = ?", 1).First(&root).Error; err != nil {
@@ -125,9 +170,7 @@ func TestDeptService_DeleteRejectsDeptWithPosts(t *testing.T) {
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
 	}
-	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_post (id INTEGER PRIMARY KEY, dept_id INTEGER, deleted_at DATETIME)").Error; err != nil {
-		t.Fatalf("create post fixture: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
 
 	var root SystemDept
 	if err := db.Where("is_root = ?", 1).First(&root).Error; err != nil {
@@ -147,7 +190,7 @@ func TestDeptService_DeleteRejectsDeptWithPosts(t *testing.T) {
 	}
 
 	err := service.DeleteDept(child.ID)
-	if err == nil || err.Error() != "dept.delete.error.has_posts" {
+	if err == nil || common.ErrMessage(err) != "dept.delete.error.has_posts" {
 		t.Fatalf("expected dept has posts error, got %v", err)
 	}
 }
@@ -188,7 +231,7 @@ func TestDeptService_BatchUpdateDeptStatus(t *testing.T) {
 		t.Fatalf("expected dept status 2, got %d", disabled.Status)
 	}
 
-	if _, err := service.BatchUpdateDeptStatus([]uint64{root.ID}, 2); err == nil || err.Error() != "dept.root.status_fixed" {
+	if _, err := service.BatchUpdateDeptStatus([]uint64{root.ID}, 2); err == nil || common.ErrMessage(err) != "dept.root.status_fixed" {
 		t.Fatalf("expected root status fixed error, got %v", err)
 	}
 }
@@ -196,28 +239,8 @@ func TestDeptService_BatchUpdateDeptStatus(t *testing.T) {
 func TestDeptService_BatchUpdateDeptLeader(t *testing.T) {
 	db := setupDeptTestDB(t)
 	service := NewDeptService(db)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER,
-		deleted_at DATETIME
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_user (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		username TEXT,
-		password TEXT,
-		nickname TEXT,
-		dept_id INTEGER,
-		post_id INTEGER,
-		status INTEGER,
-		deleted_at DATETIME
-	)`).Error; err != nil {
-		t.Fatalf("create user table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
+	migrateDeptFixtureUsers(t, db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
 	}
@@ -266,7 +289,7 @@ func TestDeptService_BatchUpdateDeptLeader(t *testing.T) {
 		t.Fatalf("expected leader updated, got %+v", refreshed)
 	}
 
-	if _, err := service.BatchUpdateDeptLeader([]DeptBatchLeaderItem{{DeptID: child.ID}}); err == nil || err.Error() != "dept.leader.required" {
+	if _, err := service.BatchUpdateDeptLeader([]DeptBatchLeaderItem{{DeptID: child.ID}}); err == nil || common.ErrMessage(err) != "dept.leader.required" {
 		t.Fatalf("expected leader required error, got %v", err)
 	}
 }
@@ -274,32 +297,36 @@ func TestDeptService_BatchUpdateDeptLeader(t *testing.T) {
 func TestDeptService_ListLeaderCandidatesAndUpdateWithLeaderUser(t *testing.T) {
 	db := setupDeptTestDB(t)
 	service := NewDeptService(db)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER,
-		deleted_at DATETIME
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_user (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		username TEXT,
-		password TEXT,
-		nickname TEXT,
-		dept_id INTEGER,
-		post_id INTEGER,
-		status INTEGER,
-		deleted_at DATETIME
-	)`).Error; err != nil {
-		t.Fatalf("create user table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
+	migrateDeptFixtureUsers(t, db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
 	}
+	dept, leaderUserID, noPostUserID := seedDeptLeaderCandidateFixture(t, db)
 
+	candidates, err := service.ListLeaderCandidates(dept.ID)
+	if err != nil {
+		t.Fatalf("list leader candidates: %v", err)
+	}
+	if len(candidates) != 1 || candidates[0].UserID != leaderUserID || candidates[0].DisplayName != "张三" {
+		t.Fatalf("unexpected candidates: %+v", candidates)
+	}
+
+	updated, err := service.UpdateDept(dept.ID, buildDeptLeaderUpdateReq(dept, leaderUserID))
+	if err != nil {
+		t.Fatalf("update dept with leader user: %v", err)
+	}
+	if updated.LeaderUserID != leaderUserID || updated.Leader != "张三" {
+		t.Fatalf("unexpected updated leader fields: %+v", updated)
+	}
+
+	if _, err := service.UpdateDept(dept.ID, buildDeptLeaderUpdateReq(dept, noPostUserID)); err == nil || common.ErrMessage(err) != "dept.leader.user_invalid" {
+		t.Fatalf("expected invalid leader user error, got %v", err)
+	}
+}
+
+func seedDeptLeaderCandidateFixture(t *testing.T, db *gorm.DB) (SystemDept, uint64, uint64) {
+	t.Helper()
 	var root SystemDept
 	if err := db.Where("is_root = ?", 1).First(&root).Error; err != nil {
 		t.Fatalf("load root dept: %v", err)
@@ -334,37 +361,16 @@ func TestDeptService_ListLeaderCandidatesAndUpdateWithLeaderUser(t *testing.T) {
 	if err := db.Table("system_user").Select("id").Where("username = ?", "lisi").Limit(1).Pluck("id", &noPostUserID).Error; err != nil {
 		t.Fatalf("load no-post user id: %v", err)
 	}
+	return dept, leaderUserID, noPostUserID
+}
 
-	candidates, err := service.ListLeaderCandidates(dept.ID)
-	if err != nil {
-		t.Fatalf("list leader candidates: %v", err)
-	}
-	if len(candidates) != 1 || candidates[0].UserID != leaderUserID || candidates[0].DisplayName != "张三" {
-		t.Fatalf("unexpected candidates: %+v", candidates)
-	}
-
-	updated, err := service.UpdateDept(dept.ID, &DeptUpdateReq{
+func buildDeptLeaderUpdateReq(dept SystemDept, leaderUserID uint64) *DeptUpdateReq {
+	return &DeptUpdateReq{
 		ParentID:     dept.ParentID,
 		DeptName:     dept.DeptName,
 		Sort:         dept.Sort,
 		LeaderUserID: leaderUserID,
 		Status:       dept.Status,
-	})
-	if err != nil {
-		t.Fatalf("update dept with leader user: %v", err)
-	}
-	if updated.LeaderUserID != leaderUserID || updated.Leader != "张三" {
-		t.Fatalf("unexpected updated leader fields: %+v", updated)
-	}
-
-	if _, err := service.UpdateDept(dept.ID, &DeptUpdateReq{
-		ParentID:     dept.ParentID,
-		DeptName:     dept.DeptName,
-		Sort:         dept.Sort,
-		LeaderUserID: noPostUserID,
-		Status:       dept.Status,
-	}); err == nil || err.Error() != "dept.leader.user_invalid" {
-		t.Fatalf("expected invalid leader user error, got %v", err)
 	}
 }
 
@@ -405,15 +411,7 @@ func TestDeptService_GetDeptTreeIncludesAncestorsForSearch(t *testing.T) {
 
 func TestDeptService_GetDeptTreeSupportsGovernanceFilter(t *testing.T) {
 	db := setupDeptTestDB(t)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
 	service := NewDeptService(db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
@@ -512,7 +510,7 @@ func TestDeptService_ImportTemplateAndExport(t *testing.T) {
 		t.Fatalf("unexpected import result: %+v", result)
 	}
 
-	exported, err := service.ExportDepts(&DeptListQuery{DeptName: "研发"})
+	exported, err := service.ExportDepts(context.Background(), &DeptListQuery{DeptName: "研发"})
 	if err != nil {
 		t.Fatalf("export dept: %v", err)
 	}
@@ -526,15 +524,7 @@ func TestDeptService_ImportTemplateAndExport(t *testing.T) {
 
 func TestDeptService_ExportDeptsSupportsGovernanceFilter(t *testing.T) {
 	db := setupDeptTestDB(t)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
 	service := NewDeptService(db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
@@ -562,7 +552,7 @@ func TestDeptService_ExportDeptsSupportsGovernanceFilter(t *testing.T) {
 		t.Fatalf("seed normal dept: %v", err)
 	}
 
-	exported, err := service.ExportDepts(&DeptListQuery{Governance: "leaderless"})
+	exported, err := service.ExportDepts(context.Background(), &DeptListQuery{Governance: "leaderless"})
 	if err != nil {
 		t.Fatalf("export leaderless dept: %v", err)
 	}
@@ -582,49 +572,42 @@ func TestDeptService_ExportDeptsSupportsGovernanceFilter(t *testing.T) {
 
 func TestDeptService_ExportDeptsIncludesGovernanceMetrics(t *testing.T) {
 	db := setupDeptTestDB(t)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_user (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		status INTEGER,
-		deleted_at DATETIME
-	)`).Error; err != nil {
-		t.Fatalf("create user table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
+	migrateDeptFixtureUsers(t, db)
 	service := NewDeptService(db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
 	}
 
+	seedDeptGovernanceMetricsFixture(t, db)
+
+	exported, err := service.ExportDepts(context.Background(), &DeptListQuery{})
+	if err != nil {
+		t.Fatalf("export dept: %v", err)
+	}
+	if len(exported.Rows) != 2 {
+		t.Fatalf("expected 2 exported rows, got %+v", exported.Rows)
+	}
+
+	parentRow, childRow := findDeptExportRows(exported.Rows)
+	if len(parentRow) == 0 || len(childRow) == 0 {
+		t.Fatalf("expected parent and child export rows, got %+v", exported.Rows)
+	}
+	assertParentGovernanceExportRow(t, parentRow)
+	assertChildGovernanceExportRow(t, childRow)
+}
+
+func seedDeptGovernanceMetricsFixture(t *testing.T, db *gorm.DB) {
+	t.Helper()
 	var root SystemDept
 	if err := db.Where("is_root = ?", 1).First(&root).Error; err != nil {
 		t.Fatalf("load root dept: %v", err)
 	}
-	parent := SystemDept{
-		ParentID:  root.ID,
-		Ancestors: fmt.Sprintf("%d", root.ID),
-		DeptName:  "研发中心",
-		Leader:    "张三",
-		Status:    1,
-	}
+	parent := SystemDept{ParentID: root.ID, Ancestors: fmt.Sprintf("%d", root.ID), DeptName: "研发中心", Leader: "张三", Status: 1}
 	if err := db.Create(&parent).Error; err != nil {
 		t.Fatalf("seed parent dept: %v", err)
 	}
-	child := SystemDept{
-		ParentID:  parent.ID,
-		Ancestors: fmt.Sprintf("%d,%d", root.ID, parent.ID),
-		DeptName:  "平台组",
-		Leader:    "李四",
-		Status:    1,
-	}
+	child := SystemDept{ParentID: parent.ID, Ancestors: fmt.Sprintf("%d,%d", root.ID, parent.ID), DeptName: "平台组", Leader: "李四", Status: 1}
 	if err := db.Create(&child).Error; err != nil {
 		t.Fatalf("seed child dept: %v", err)
 	}
@@ -634,56 +617,40 @@ func TestDeptService_ExportDeptsIncludesGovernanceMetrics(t *testing.T) {
 	if err := db.Exec(`INSERT INTO system_user (dept_id, status, deleted_at) VALUES (?, ?, NULL)`, parent.ID, 1).Error; err != nil {
 		t.Fatalf("seed user: %v", err)
 	}
+}
 
-	exported, err := service.ExportDepts(&DeptListQuery{})
-	if err != nil {
-		t.Fatalf("export dept: %v", err)
-	}
-	if len(exported.Rows) != 2 {
-		t.Fatalf("expected 2 exported rows, got %+v", exported.Rows)
-	}
-
+func findDeptExportRows(rows [][]string) ([]string, []string) {
 	var parentRow []string
 	var childRow []string
-	for _, row := range exported.Rows {
-		switch row[1] {
-		case "研发中心":
+	for _, row := range rows {
+		if row[1] == "研发中心" {
 			parentRow = row
-		case "平台组":
+		}
+		if row[1] == "平台组" {
 			childRow = row
 		}
 	}
-	if len(parentRow) == 0 || len(childRow) == 0 {
-		t.Fatalf("expected parent and child export rows, got %+v", exported.Rows)
+	return parentRow, childRow
+}
+
+func assertParentGovernanceExportRow(t *testing.T, row []string) {
+	t.Helper()
+	if row[7] == "" || row[8] != "1" || row[9] != "1" || row[10] != "1" || row[11] != "dept" || row[12] != "clean" || row[13] != "0" || row[14] != "children|posts|users" || row[15] != "clear-child-depts|clear-posts|clear-users" || row[16] != "Department" || row[17] != "Healthy" || row[18] != "Child Departments | Posts | Users" || row[19] != "Clear Child Departments | Clear Posts | Clear Users" {
+		t.Fatalf("unexpected parent governance export row: %+v", row)
 	}
-	if parentRow[7] == "" || parentRow[8] != "1" || parentRow[9] != "1" || parentRow[10] != "1" || parentRow[11] != "dept" || parentRow[12] != "clean" || parentRow[13] != "0" || parentRow[14] != "children|posts|users" || parentRow[15] != "clear-child-depts|clear-posts|clear-users" || parentRow[16] != "Department" || parentRow[17] != "Healthy" || parentRow[18] != "Child Departments | Posts | Users" || parentRow[19] != "Clear Child Departments | Clear Posts | Clear Users" {
-		t.Fatalf("unexpected parent governance export row: %+v", parentRow)
-	}
-	if childRow[8] != "0" || childRow[9] != "0" || childRow[10] != "0" || childRow[11] != "dept" || childRow[12] != "no-post|empty" || childRow[13] != "2" || childRow[14] != "none" || childRow[15] != "create-post|review-merge-or-delete" || childRow[16] != "Department" || childRow[17] != "No Posts | Empty Department" || childRow[18] != "No Blocker" || childRow[19] != "Create Post | Review Merge or Delete" {
-		t.Fatalf("unexpected child governance export row: %+v", childRow)
+}
+
+func assertChildGovernanceExportRow(t *testing.T, row []string) {
+	t.Helper()
+	if row[8] != "0" || row[9] != "0" || row[10] != "0" || row[11] != "dept" || row[12] != "no-post|empty" || row[13] != "2" || row[14] != "none" || row[15] != "create-post|review-merge-or-delete" || row[16] != "Department" || row[17] != "No Posts | Empty Department" || row[18] != "No Blocker" || row[19] != "Create Post | Review Merge or Delete" {
+		t.Fatalf("unexpected child governance export row: %+v", row)
 	}
 }
 
 func TestDeptService_ListGovernanceTasks(t *testing.T) {
 	db := setupDeptTestDB(t)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_user (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_id INTEGER,
-		status INTEGER,
-		deleted_at DATETIME
-	)`).Error; err != nil {
-		t.Fatalf("create user table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
+	migrateDeptFixtureUsers(t, db)
 	service := NewDeptService(db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate dept service: %v", err)
@@ -722,19 +689,19 @@ func TestDeptService_ListGovernanceTasks(t *testing.T) {
 	if len(items) < 2 {
 		t.Fatalf("expected multiple governance tasks, got %+v", items)
 	}
-	foundAssignLeader := false
-	foundReassignUsers := false
-	for _, item := range items {
-		if item.GovernanceAction == "assign-leader" && item.DeptID == dept.ID {
-			foundAssignLeader = true
-		}
-		if item.GovernanceAction == "reassign-users" && item.PostID == post.ID && item.GovernanceScope == "post" {
-			foundReassignUsers = true
-		}
-	}
-	if !foundAssignLeader || !foundReassignUsers {
+	if !containsDeptGovernanceTask(items, "assign-leader", dept.ID, 0, "dept") ||
+		!containsDeptGovernanceTask(items, "reassign-users", dept.ID, post.ID, "post") {
 		t.Fatalf("expected leader and post governance tasks, got %+v", items)
 	}
+}
+
+func containsDeptGovernanceTask(items []DeptGovernanceTaskResp, action string, deptID, postID uint64, scope string) bool {
+	for _, item := range items {
+		if item.GovernanceAction == action && item.DeptID == deptID && item.PostID == postID && item.GovernanceScope == scope {
+			return true
+		}
+	}
+	return false
 }
 
 func TestDeptService_ExportGovernanceTasks(t *testing.T) {
@@ -770,15 +737,7 @@ func TestDeptService_ExportGovernanceTasks(t *testing.T) {
 
 func TestDeptService_GetOverview(t *testing.T) {
 	db := setupDeptTestDB(t)
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_post (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		dept_id INTEGER,
-		post_code TEXT,
-		post_name TEXT,
-		status INTEGER
-	)`).Error; err != nil {
-		t.Fatalf("create post table: %v", err)
-	}
+	migrateDeptFixturePosts(t, db)
 
 	service := NewDeptService(db)
 	if err := service.Migrate(); err != nil {
@@ -790,23 +749,22 @@ func TestDeptService_GetOverview(t *testing.T) {
 		t.Fatalf("load root dept: %v", err)
 	}
 
-	rd := SystemDept{
-		ParentID:  root.ID,
-		Ancestors: fmt.Sprintf("%d", root.ID),
-		DeptName:  "研发中心",
-		Leader:    "",
-		Status:    1,
+	seedDeptOverviewFixture(t, db, root)
+
+	overview, err := service.GetOverview()
+	if err != nil {
+		t.Fatalf("get overview: %v", err)
 	}
+	assertDeptOverview(t, overview)
+}
+
+func seedDeptOverviewFixture(t *testing.T, db *gorm.DB, root SystemDept) {
+	t.Helper()
+	rd := SystemDept{ParentID: root.ID, Ancestors: fmt.Sprintf("%d", root.ID), DeptName: "研发中心", Status: 1}
 	if err := db.Create(&rd).Error; err != nil {
 		t.Fatalf("seed rd dept: %v", err)
 	}
-	ops := SystemDept{
-		ParentID:  root.ID,
-		Ancestors: fmt.Sprintf("%d", root.ID),
-		DeptName:  "运维中心",
-		Leader:    "张三",
-		Status:    2,
-	}
+	ops := SystemDept{ParentID: root.ID, Ancestors: fmt.Sprintf("%d", root.ID), DeptName: "运维中心", Leader: "张三", Status: 2}
 	if err := db.Create(&ops).Error; err != nil {
 		t.Fatalf("seed ops dept: %v", err)
 	}
@@ -816,11 +774,10 @@ func TestDeptService_GetOverview(t *testing.T) {
 	if err := db.Exec(`INSERT INTO system_post (dept_id, post_code, post_name, status) VALUES (?, ?, ?, ?)`, rd.ID, "qa", "测试工程师", 2).Error; err != nil {
 		t.Fatalf("seed disabled post: %v", err)
 	}
+}
 
-	overview, err := service.GetOverview()
-	if err != nil {
-		t.Fatalf("get overview: %v", err)
-	}
+func assertDeptOverview(t *testing.T, overview *DeptOverviewResp) {
+	t.Helper()
 	if overview.TotalDeptCount != 3 {
 		t.Fatalf("expected 3 depts, got %+v", overview)
 	}
@@ -833,13 +790,7 @@ func TestDeptService_GetOverview(t *testing.T) {
 	if overview.TotalPostCount != 2 || overview.EnabledPostCount != 1 {
 		t.Fatalf("unexpected post metrics: %+v", overview)
 	}
-	if overview.LeaderlessDeptCount != 1 {
-		t.Fatalf("expected 1 leaderless dept, got %+v", overview)
-	}
-	if overview.EmptyDeptCount != 1 {
-		t.Fatalf("expected 1 empty dept, got %+v", overview)
-	}
-	if overview.HealthIssueCount != 3 {
-		t.Fatalf("expected 3 health issues, got %+v", overview)
+	if overview.LeaderlessDeptCount != 1 || overview.EmptyDeptCount != 1 || overview.HealthIssueCount != 3 {
+		t.Fatalf("unexpected governance metrics: %+v", overview)
 	}
 }

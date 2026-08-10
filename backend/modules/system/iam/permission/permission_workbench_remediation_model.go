@@ -16,5 +16,5 @@ type PermissionWorkbenchRemediationEvent struct {
 }
 
 func (PermissionWorkbenchRemediationEvent) TableName() string {
-	return "system_permission_workbench_remediation"
+	return "permission_workbench_remediation_event"
 }

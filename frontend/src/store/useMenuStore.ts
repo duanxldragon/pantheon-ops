@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getMenuTree, type MenuNode } from '../modules/system/menu/api';
+import { getMenuTree, type MenuNode } from '../modules/system/iam/menu/api';
 
 let menuFetchSeq = 0;
 let menuFetchPromise: Promise<MenuNode[]> | null = null;

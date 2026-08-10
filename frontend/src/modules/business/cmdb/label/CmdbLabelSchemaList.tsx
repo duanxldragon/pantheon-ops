@@ -131,6 +131,8 @@ export default function CmdbLabelSchemaList() {
     }
     form.setFieldsValue({
       ...preset.payload,
+      name: t(preset.nameI18nKey),
+      description: t(preset.descriptionI18nKey),
       presetKey,
       required: false,
     });
@@ -493,12 +495,12 @@ export default function CmdbLabelSchemaList() {
                 current: page,
                 pageSize,
                 total,
-                onChange: (nextPage) => {
+                onChange: (nextPage, nextPageSize) => {
                   setPage(nextPage || 1);
-                },
-                onPageSizeChange: (nextPageSize) => {
-                  setPageSize(nextPageSize || pageSize);
-                  setPage(1);
+                  if (nextPageSize && nextPageSize !== pageSize) {
+                    setPageSize(nextPageSize);
+                    setPage(1);
+                  }
                 },
                 pageSizeChangeResetCurrent: true,
               })}
@@ -585,12 +587,14 @@ export default function CmdbLabelSchemaList() {
                           style={{ width: 280 }}
                         />
                       </Form.Item>
-                      <Button
-                        type="text"
-                        status="danger"
-                        icon={<IconDelete />}
-                        onClick={() => remove(index)}
-                      />
+                      <Popconfirm title={t('common.deleteConfirm')} onOk={() => remove(index)}>
+                        <Button
+                          type="text"
+                          status="danger"
+                          icon={<IconDelete />}
+                          aria-label={t('common.delete')}
+                        />
+                      </Popconfirm>
                     </Space>
                   ))}
                   <Button type="dashed" icon={<IconPlus />} onClick={() => add('')}>

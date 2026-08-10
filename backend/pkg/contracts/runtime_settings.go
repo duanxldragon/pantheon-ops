@@ -17,7 +17,9 @@ var runtimeSettingReloaders = struct {
 func RegisterRuntimeSettingReloader(name string, reload func() error) func() {
 	name = strings.TrimSpace(name)
 	if name == "" || reload == nil {
-		return func() {}
+		return func() {
+			// Intentionally empty: nothing was registered, so there is nothing to unregister.
+		}
 	}
 
 	runtimeSettingReloaders.Lock()

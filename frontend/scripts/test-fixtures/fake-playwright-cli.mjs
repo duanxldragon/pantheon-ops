@@ -9,7 +9,6 @@ if (markerPath) {
     JSON.stringify({
       args: process.argv.slice(2),
       baseUrl: process.env.PANTHEON_WEB_BASE_URL ?? null,
-      outputDir: process.env.PANTHEON_PLAYWRIGHT_OUTPUT_DIR ?? null,
     }),
   );
 }

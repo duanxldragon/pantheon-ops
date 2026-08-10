@@ -1,20 +1,8 @@
-import { findRouteByPath } from './modules';
+import { findRouteByPath, registeredModules } from './modules';
 import { preloadRegisteredComponent, type RegisteredComponentKey } from './componentRegistry';
-import { getDashboardSummary } from '../../modules/dashboard/api';
-import { getSecurityOverview, getSessions, getOwnLoginLogs } from '../../modules/auth/api';
-import { getUserList } from '../../modules/system/user/api';
-import { getRoleList } from '../../modules/system/role/api';
-import { getDeptOverview, getDeptTree } from '../../modules/system/dept/api';
-import { getPostList } from '../../modules/system/post/api';
-import { getMenuTree } from '../../modules/system/menu/api';
-import {
-  getPermissionPolicyList,
-  getPermissionWorkbench,
-} from '../../modules/system/permission/api';
-import { getDictTypeList } from '../../modules/system/dict/api';
-import { getSettingList, getSettingOverview } from '../../modules/system/setting/api';
-import type { MenuNode } from '../../modules/system/menu/api';
-import type { UserInfo } from '../../store/useAuthStore';
+import type { RouteDataWarmer } from './types';
+import type { UserInfo } from '../../store/authTypes';
+import { shouldWarmHighFrequencyRouteData } from './warmupPolicy';
 
 const warmedRoutes = new Set<string>();
 const warmedComponents = new Set<RegisteredComponentKey>();
@@ -24,90 +12,15 @@ const warmDataCache = new Map<
 >();
 const DEFAULT_WARM_TTL_MS = 30_000;
 
-const HIGH_FREQUENCY_ROUTE_PATHS = [
-  '/dashboard',
-  '/auth/security',
-  '/system/user',
-  '/system/role',
-  '/system/menu',
-  '/system/permission',
-  '/system/dept',
-  '/system/post',
-  '/system/dict',
-  '/system/setting',
-] as const;
-
-const routeDataWarmers: Partial<
-  Record<
-    (typeof HIGH_FREQUENCY_ROUTE_PATHS)[number],
-    Array<{ key: string; load: () => Promise<unknown> }>
-  >
-> = {
-  '/dashboard': [{ key: 'summary', load: () => getDashboardSummary() }],
-  '/auth/security': [
-    { key: 'overview', load: () => getSecurityOverview() },
-    { key: 'sessions', load: () => getSessions() },
-    { key: 'login-logs', load: () => getOwnLoginLogs({ page: 1, pageSize: 10 }) },
-  ],
-  '/system/user': [
-    {
-      key: 'list:default',
-      load: () => getUserList({ username: '', nickname: '', page: 1, pageSize: 10 }),
-    },
-    {
-      key: 'roles:active',
-      load: () =>
-        getRoleList({ page: 1, pageSize: 100, sortField: 'sort', sortOrder: 'asc', status: 1 }),
-    },
-    { key: 'depts:default', load: () => getDeptTree({ sortField: 'sort', sortOrder: 'asc' }) },
-    {
-      key: 'posts:active',
-      load: () =>
-        getPostList({ page: 1, pageSize: 100, sortField: 'sort', sortOrder: 'asc', status: 1 }),
-    },
-  ],
-  '/system/role': [
-    {
-      key: 'list:default',
-      load: () => getRoleList({ roleName: '', roleKey: '', page: 1, pageSize: 10 }),
-    },
-    { key: 'menus:manage', load: () => getMenuTree({ scope: 'manage' }) },
-  ],
-  '/system/menu': [{ key: 'tree:manage', load: () => getMenuTree({ scope: 'manage' }) }],
-  '/system/permission': [
-    { key: 'workbench:default', load: () => getPermissionWorkbench({}) },
-    { key: 'list:default', load: () => getPermissionPolicyList({ page: 1, pageSize: 10 }) },
-    {
-      key: 'roles:default',
-      load: () => getRoleList({ page: 1, pageSize: 100, sortField: 'sort', sortOrder: 'asc' }),
-    },
-  ],
-  '/system/dept': [
-    { key: 'tree:default', load: () => getDeptTree({}) },
-    { key: 'overview', load: () => getDeptOverview() },
-    { key: 'tree:sorted', load: () => getDeptTree({ sortField: 'sort', sortOrder: 'asc' }) },
-    {
-      key: 'posts:org-chart',
-      load: () => getPostList({ page: 1, pageSize: 1000, sortField: 'sort', sortOrder: 'asc' }),
-    },
-    {
-      key: 'users:org-chart',
-      load: () => getUserList({ page: 1, pageSize: 1000, sortField: 'username', sortOrder: 'asc' }),
-    },
-  ],
-  '/system/post': [
-    { key: 'list:default', load: () => getPostList({ page: 1, pageSize: 10 }) },
-    { key: 'depts:sorted', load: () => getDeptTree({ sortField: 'sort', sortOrder: 'asc' }) },
-  ],
-  '/system/dict': [{ key: 'types:default', load: () => getDictTypeList({}) }],
-  '/system/setting': [
-    { key: 'list:default', load: () => getSettingList() },
-    { key: 'overview', load: () => getSettingOverview() },
-  ],
-};
+interface WarmupMenuNode {
+  path?: string;
+  type?: string;
+  isExternal?: number;
+  children?: WarmupMenuNode[];
+}
 
 interface RouteWarmupContext {
-  menuTree?: MenuNode[];
+  menuTree?: WarmupMenuNode[];
   userInfo?: UserInfo | null;
 }
 
@@ -119,7 +32,7 @@ function normalizePath(path: string) {
   return path.startsWith('/') ? path : `/${path}`;
 }
 
-function collectNavigablePaths(nodes: MenuNode[], result: Set<string>) {
+function collectNavigablePaths(nodes: WarmupMenuNode[], result: Set<string>) {
   nodes.forEach((item) => {
     if (item.path && item.type === 'C' && item.isExternal !== 1) {
       result.add(normalizePath(item.path));
@@ -168,6 +81,21 @@ function canWarmRoute(path: string, context?: RouteWarmupContext) {
   return allowedPaths.has(normalizedPath);
 }
 
+function buildRouteDataWarmers() {
+  const warmersByPath = new Map<string, RouteDataWarmer[]>();
+  registeredModules.forEach((module) => {
+    module.routeDataWarmers?.forEach((warmer) => {
+      const path = normalizePath(warmer.path);
+      const pathWarmers = warmersByPath.get(path) ?? [];
+      pathWarmers.push({ ...warmer, path });
+      warmersByPath.set(path, pathWarmers);
+    });
+  });
+  return warmersByPath;
+}
+
+const routeDataWarmers = buildRouteDataWarmers();
+
 function buildWarmDataCacheKey(path: string, resourceKey: string) {
   return `${path}::${resourceKey}`;
 }
@@ -209,15 +137,20 @@ function cacheWarmData<T>(cacheKey: string, loader: () => Promise<T>, ttlMs = DE
 }
 
 function preloadRouteData(path: string, context?: RouteWarmupContext) {
+  if (!shouldWarmHighFrequencyRouteData()) {
+    return Promise.resolve(undefined);
+  }
   if (!canWarmRoute(path, context)) {
     return Promise.resolve(undefined);
   }
-  const warmers = routeDataWarmers[path as keyof typeof routeDataWarmers];
+  const warmers = routeDataWarmers.get(path);
   if (!warmers?.length) {
     return Promise.resolve(undefined);
   }
   return Promise.allSettled(
-    warmers.map((item) => cacheWarmData(buildWarmDataCacheKey(path, item.key), item.load)),
+    warmers.map((item) =>
+      cacheWarmData(buildWarmDataCacheKey(path, item.key), item.load, item.ttlMs),
+    ),
   ).then(() => undefined);
 }
 
@@ -288,7 +221,7 @@ export function scheduleHighFrequencyRouteWarmup(
 ) {
   const excludedPaths = new Set((options?.excludePaths || []).map((path) => normalizePath(path)));
   const runWarmup = () => {
-    HIGH_FREQUENCY_ROUTE_PATHS.forEach((path) => {
+    routeDataWarmers.forEach((_warmers, path) => {
       if (excludedPaths.has(normalizePath(path))) {
         return;
       }
@@ -297,9 +230,11 @@ export function scheduleHighFrequencyRouteWarmup(
   };
 
   if (globalThis.document !== undefined && 'requestIdleCallback' in globalThis) {
-    const callback = (globalThis as typeof globalThis & {
-      requestIdleCallback: (cb: () => void, options?: { timeout: number }) => number;
-    }).requestIdleCallback;
+    const callback = (
+      globalThis as typeof globalThis & {
+        requestIdleCallback: (cb: () => void, options?: { timeout: number }) => number;
+      }
+    ).requestIdleCallback;
     callback(runWarmup, { timeout: 1200 });
     return;
   }

@@ -156,7 +156,7 @@ test('permission workbench can remediate recommended generator policy against re
     expect(before.missingApiPolicyCount).toBe(1);
     expect(before.missingApiPolicies).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ path: '/api/v1/system/dynamic-modules/generate', method: 'POST' }),
+        expect.objectContaining({ path: '/api/v1/lowcode/dynamic-modules/generate', method: 'POST' }),
       ]),
     );
 
@@ -183,7 +183,7 @@ test('permission workbench can remediate recommended generator policy against re
     expect(after.missingApiPolicyCount).toBe(0);
     expect(after.apiPolicies).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ path: '/api/v1/system/dynamic-modules/generate', method: 'POST' }),
+        expect.objectContaining({ path: '/api/v1/lowcode/dynamic-modules/generate', method: 'POST' }),
       ]),
     );
   } finally {

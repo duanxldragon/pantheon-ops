@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"pantheon-ops/backend/internal/middleware"
+	"pantheon-ops/backend/pkg/common"
 )
 
 func TestAuditService_CleanupOperationLogsUsesConfiguredRetentionOptions(t *testing.T) {
@@ -35,7 +36,7 @@ func TestAuditService_CleanupOperationLogsUsesConfiguredRetentionOptions(t *test
 	}
 
 	_, err = service.CleanupOperationLogs(7, "", "")
-	if err == nil || err.Error() != "audit.operation_log.cleanup.days_invalid" {
+	if err == nil || common.ErrMessage(err) != "audit.operation_log.cleanup.days_invalid" {
 		t.Fatalf("expected invalid retention days error, got %v", err)
 	}
 }

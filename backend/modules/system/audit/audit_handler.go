@@ -9,6 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const errRequestFailed = "request.failed"
+const errParamInvalid = "param.invalid"
+
 type AuditHandler struct {
 	service *AuditService
 }
@@ -20,7 +23,7 @@ func NewAuditHandler(s *AuditService) *AuditHandler {
 func (h *AuditHandler) GetOperationLogList(c *gin.Context) {
 	var query OperationLogQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -35,7 +38,7 @@ func (h *AuditHandler) GetOperationLogList(c *gin.Context) {
 func (h *AuditHandler) GetOperationLog(c *gin.Context) {
 	logID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
@@ -51,12 +54,12 @@ func (h *AuditHandler) DeleteOperationLog(c *gin.Context) {
 	common.SetAuditMetadata(c, "audit.operation_log.delete.title", common.BusinessDelete)
 	logID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	if err := h.service.DeleteOperationLog(logID); err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})
@@ -67,13 +70,13 @@ func (h *AuditHandler) CleanupOperationLogs(c *gin.Context) {
 
 	var req OperationLogCleanupReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	clearedCount, err := h.service.CleanupOperationLogs(req.RetentionDays, req.StartedAt, req.EndedAt)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"clearedCount": clearedCount})
@@ -84,13 +87,13 @@ func (h *AuditHandler) BatchDeleteOperationLogs(c *gin.Context) {
 
 	var req OperationLogBatchDeleteReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	deletedCount, err := h.service.BatchDeleteOperationLogs(req.IDs)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"deletedCount": deletedCount})
@@ -101,7 +104,7 @@ func (h *AuditHandler) ExportOperationLogs(c *gin.Context) {
 
 	var query OperationLogQuery
 	if err := c.ShouldBindJSON(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 	file, err := h.service.ExportOperationLogs(&query)

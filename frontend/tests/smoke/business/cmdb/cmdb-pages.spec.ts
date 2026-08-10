@@ -45,6 +45,7 @@ type BizScope = {
   id: number;
   code: string;
   name: string;
+  hostCount?: number;
 };
 
 async function expectNoVisibleCmdbI18nKeys(page: import('@playwright/test').Page) {
@@ -134,6 +135,7 @@ test.describe('CMDB Host Management', () => {
 
   test('host detail action opens a modal without leaving the list page', async ({ page, request }, testInfo) => {
     const login = await loginByApi(request, adminCredentials);
+    await installClientSession(page, login);
     const headers = apiRequestHeaders(login);
     const token = `cmdb-detail-modal-${Date.now()}`;
 
@@ -239,6 +241,126 @@ test.describe('CMDB Host Management', () => {
     await expect(page.locator('.system-list__table-card')).toBeVisible();
     await page.screenshot({ path: testInfo.outputPath('bizscope-list.png'), fullPage: true });
     expect(consoleErrors).toEqual([]);
+  });
+
+  test('business scope detail binds and unbinds hosts', async ({ page, request }, testInfo) => {
+    const login = await loginByApi(request, adminCredentials);
+    await installClientSession(page, login);
+    const headers = apiRequestHeaders(login);
+    const token = `bizscope-detail-${Date.now()}`;
+
+    await cleanupCmdbFixture(request, headers, token);
+
+    const createdHostIds: number[] = [];
+    let createdScopeId = 0;
+
+    try {
+      const scope = await expectBusinessSuccess<BizScope>(
+        await request.post(`${apiBaseUrl}/business/bizscope`, {
+          headers,
+          data: {
+            code: `scope-${token}`,
+            name: `业务域-${token}`,
+            owner: 'bizscope-smoke',
+            environment: 'prod',
+            status: 'active',
+            remark: token,
+          },
+        }),
+      );
+      createdScopeId = scope.id;
+
+      const firstHost = await expectBusinessSuccess<CmdbHost>(
+        await request.post(`${apiBaseUrl}/business/cmdb/hosts`, {
+          headers,
+          data: {
+            hostname: `host-a-${token}`,
+            ip: `10.240.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}`,
+            sshPort: 22,
+            os: 'linux',
+            osVersion: 'Ubuntu 24.04',
+            cpuCores: 4,
+            memoryGb: 8,
+            diskGb: 100,
+            labels: [{ key: 'biz', val: token }],
+            owner: 'bizscope-smoke',
+            remark: token,
+          },
+        }),
+      );
+      createdHostIds.push(firstHost.id);
+
+      const secondHost = await expectBusinessSuccess<CmdbHost>(
+        await request.post(`${apiBaseUrl}/business/cmdb/hosts`, {
+          headers,
+          data: {
+            hostname: `host-b-${token}`,
+            ip: `10.241.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}`,
+            sshPort: 22,
+            os: 'linux',
+            osVersion: 'Debian 12',
+            cpuCores: 2,
+            memoryGb: 4,
+            diskGb: 50,
+            labels: [{ key: 'biz', val: token }],
+            owner: 'bizscope-smoke',
+            remark: token,
+          },
+        }),
+      );
+      createdHostIds.push(secondHost.id);
+
+      await page.goto(`/operations/business-scope/${createdScopeId}`, { waitUntil: 'networkidle' });
+      await expect(page.locator('.cmdb-page__hero-title')).toHaveText(scope.name);
+      await expect(page.locator('.cmdb-page__hero-grid')).toContainText('0');
+
+      await page.getByRole('button', { name: '绑定主机' }).first().click();
+      const drawer = page.locator('.app-drawer:visible');
+      await expect(drawer).toBeVisible();
+      await expect(drawer).toContainText(firstHost.hostname);
+      await expect(drawer).toContainText(secondHost.hostname);
+
+      const availableFirstHostRow = drawer.getByRole('row').filter({ hasText: firstHost.hostname }).first();
+      await availableFirstHostRow.locator('.arco-checkbox-mask').first().click();
+      const bindOneHostButton = drawer.getByRole('button', { name: '绑定 1 台主机' });
+      await expect(bindOneHostButton).toBeEnabled();
+      await bindOneHostButton.click();
+
+      const boundRow = page.getByRole('row').filter({ hasText: firstHost.hostname }).first();
+      await expect(boundRow).toBeVisible();
+      await expect(boundRow).toContainText('已分配');
+      await expect(page.locator('.cmdb-page__hero-grid')).toContainText('1');
+
+      const scopeDetail = await expectBusinessSuccess<BizScope>(
+        await request.get(`${apiBaseUrl}/business/bizscope/${createdScopeId}`, { headers }),
+      );
+      expect(scopeDetail.hostCount).toBe(1);
+
+      const hostDetail = await expectBusinessSuccess<CmdbHost>(
+        await request.get(`${apiBaseUrl}/business/cmdb/hosts/${firstHost.id}`, { headers }),
+      );
+      expect(hostDetail.status).toBe('assigned');
+
+      await boundRow.getByRole('button', { name: '解绑' }).click();
+      await page.getByRole('button', { name: '确定' }).last().click();
+      await expect(page.getByText(firstHost.hostname)).toHaveCount(0);
+      await expect(page.locator('.cmdb-page__hero-grid')).toContainText('0');
+
+      const unboundHost = await expectBusinessSuccess<CmdbHost>(
+        await request.get(`${apiBaseUrl}/business/cmdb/hosts/${firstHost.id}`, { headers }),
+      );
+      expect(unboundHost.status).toBe('pending');
+
+      await page.screenshot({ path: testInfo.outputPath('bizscope-detail-bind-unbind.png'), fullPage: true });
+    } finally {
+      for (const hostId of createdHostIds.reverse()) {
+        await request.delete(`${apiBaseUrl}/business/cmdb/hosts/${hostId}`, { headers });
+      }
+      if (createdScopeId) {
+        await request.delete(`${apiBaseUrl}/business/bizscope/${createdScopeId}`, { headers });
+      }
+      await cleanupCmdbFixture(request, headers, token);
+    }
   });
 
   test('label management page loads without raw i18n keys', async ({ page }, testInfo) => {

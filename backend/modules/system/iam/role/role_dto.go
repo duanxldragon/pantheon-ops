@@ -10,6 +10,7 @@ type RoleListResp struct {
 	CreatedAt      string   `json:"createdAt"`
 	MenuIDs        []uint64 `json:"menuIds"`
 	PermissionKeys []string `json:"permissionKeys"`
+	DataScope      string   `json:"dataScope"`
 }
 
 type RoleListPageResp struct {
@@ -20,6 +21,7 @@ type RoleListPageResp struct {
 }
 
 type RoleListQuery struct {
+	Keyword   string `form:"keyword" json:"keyword"`
 	RoleName  string `form:"roleName" json:"roleName"`
 	RoleKey   string `form:"roleKey" json:"roleKey"`
 	Status    *int   `form:"status" json:"status"`
@@ -36,6 +38,7 @@ type RoleCreateReq struct {
 	Status         int      `json:"status"`
 	MenuIDs        []uint64 `json:"menuIds"`
 	PermissionKeys []string `json:"permissionKeys"`
+	DataScope      string   `json:"dataScope"`
 }
 
 type RoleUpdateReq struct {
@@ -45,6 +48,7 @@ type RoleUpdateReq struct {
 	Status         int      `json:"status"`
 	MenuIDs        []uint64 `json:"menuIds"`
 	PermissionKeys []string `json:"permissionKeys"`
+	DataScope      string   `json:"dataScope"`
 }
 
 type RoleBatchStatusReq struct {

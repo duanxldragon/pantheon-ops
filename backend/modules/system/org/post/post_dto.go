@@ -27,6 +27,7 @@ type PostListPageResp struct {
 }
 
 type PostListQuery struct {
+	Keyword   string `form:"keyword" json:"keyword"`
 	PostCode  string `form:"postCode" json:"postCode"`
 	PostName  string `form:"postName" json:"postName"`
 	DeptID    uint64 `form:"deptId" json:"deptId"`

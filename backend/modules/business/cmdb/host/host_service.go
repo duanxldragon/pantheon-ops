@@ -692,12 +692,12 @@ func hostGroupPath(group hostGroupSnapshot, groupsByID map[uint64]hostGroupSnaps
 
 func (s *HostService) getBusinessScope(id uint64) (*bizscope.BizScope, error) {
 	if id == 0 {
-		return nil, errors.New("bizscope.not_found")
+		return nil, errors.New("business.bizscope.notFound")
 	}
 	var item bizscope.BizScope
 	if err := s.db.Where("id = ?", id).First(&item).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("bizscope.not_found")
+			return nil, errors.New("business.bizscope.notFound")
 		}
 		return nil, err
 	}

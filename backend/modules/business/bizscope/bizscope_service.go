@@ -11,6 +11,12 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	bizScopeCodeExistsKey = "business.bizscope.codeExists"
+	bizScopeInUseKey      = "business.bizscope.inUse"
+	bizScopeNotFoundKey   = "business.bizscope.notFound"
+)
+
 type bizScopeHostSnapshot struct {
 	ID                uint64 `gorm:"column:id"`
 	Hostname          string `gorm:"column:hostname"`
@@ -47,7 +53,7 @@ func (s *Service) List(query *BizScopeListQuery, dataScope *common.DataScopeReq)
 		query.PageSize = 10
 	}
 
-	db := s.db.Model(&BizScope{}).Scopes(database.WithDataScope(dataScope))
+	db := s.db.Model(&BizScope{})
 	if query.Code != "" {
 		db = db.Where("code LIKE ?", "%"+query.Code+"%")
 	}
@@ -86,9 +92,15 @@ func (s *Service) List(query *BizScopeListQuery, dataScope *common.DataScopeReq)
 	}, nil
 }
 
-func (s *Service) ListOptions() ([]BizScopeOptionItem, error) {
+func (s *Service) ListOptions(dataScope *common.DataScopeReq) ([]BizScopeOptionItem, error) {
 	var rows []BizScope
-	if err := s.db.Model(&BizScope{}).Where("status = ?", "active").Order("id desc").Limit(100).Find(&rows).Error; err != nil {
+	query := s.db.Model(&BizScope{}).Where("status = ?", "active")
+	if dataScope != nil && !dataScope.IsAdmin {
+		query = query.Where("EXISTS (?)", s.scopedHostsQuery(dataScope).
+			Select("1").
+			Where("biz_cmdb_host.business_scope_id = biz_business_scope.id"))
+	}
+	if err := query.Order("id desc").Limit(100).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	items := make([]BizScopeOptionItem, len(rows))
@@ -103,16 +115,16 @@ func (s *Service) ListOptions() ([]BizScopeOptionItem, error) {
 	return items, nil
 }
 
-func (s *Service) Get(id uint64) (*BizScopeDetailResp, error) {
+func (s *Service) Get(id uint64, dataScope *common.DataScopeReq) (*BizScopeDetailResp, error) {
 	var row BizScope
 	if err := s.db.First(&row, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("bizscope.not_found")
+			return nil, errors.New(bizScopeNotFoundKey)
 		}
 		return nil, err
 	}
 	var hostCount int64
-	if err := s.db.Table("biz_cmdb_host").Where("business_scope_id = ? AND deleted_at IS NULL", id).Count(&hostCount).Error; err != nil {
+	if err := s.scopedHostsQuery(dataScope).Where("biz_cmdb_host.business_scope_id = ?", id).Count(&hostCount).Error; err != nil {
 		return nil, err
 	}
 	resp := toDetailRespWithHostCount(row, hostCount)
@@ -121,7 +133,7 @@ func (s *Service) Get(id uint64) (*BizScopeDetailResp, error) {
 
 func (s *Service) Create(req *CreateBizScopeRequest) (*BizScopeListResp, error) {
 	if s.codeExists(req.Code, 0) {
-		return nil, errors.New("bizscope.code_exists")
+		return nil, errors.New(bizScopeCodeExistsKey)
 	}
 	row := BizScope{
 		Code:        strings.TrimSpace(req.Code),
@@ -142,7 +154,7 @@ func (s *Service) Update(id uint64, req *UpdateBizScopeRequest) (*BizScopeListRe
 	var row BizScope
 	if err := s.db.First(&row, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("bizscope.not_found")
+			return nil, errors.New(bizScopeNotFoundKey)
 		}
 		return nil, err
 	}
@@ -150,7 +162,7 @@ func (s *Service) Update(id uint64, req *UpdateBizScopeRequest) (*BizScopeListRe
 	if req.Code != nil {
 		code := strings.TrimSpace(*req.Code)
 		if s.codeExists(code, id) {
-			return nil, errors.New("bizscope.code_exists")
+			return nil, errors.New(bizScopeCodeExistsKey)
 		}
 		row.Code = code
 	}
@@ -182,14 +194,14 @@ func (s *Service) Delete(id uint64) error {
 		return err
 	}
 	if hostCount > 0 {
-		return errors.New("bizscope.in_use")
+		return errors.New(bizScopeInUseKey)
 	}
 	result := s.db.Delete(&BizScope{}, id)
 	if result.Error != nil {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return errors.New("bizscope.not_found")
+		return errors.New(bizScopeNotFoundKey)
 	}
 	return nil
 }
@@ -232,17 +244,17 @@ func toDetailRespWithHostCount(row BizScope, hostCount int64) BizScopeDetailResp
 	}
 }
 
-func (s *Service) ListBoundHosts(scopeID uint64) (*BizScopeHostListResp, error) {
+func (s *Service) ListBoundHosts(scopeID uint64, dataScope *common.DataScopeReq) (*BizScopeHostListResp, error) {
 	var scope BizScope
 	if err := s.db.First(&scope, scopeID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("bizscope.not_found")
+			return nil, errors.New(bizScopeNotFoundKey)
 		}
 		return nil, err
 	}
 	var rows []bizScopeHostSnapshot
-	if err := s.db.Table("biz_cmdb_host").
-		Where("business_scope_id = ? AND deleted_at IS NULL", scopeID).
+	if err := s.scopedHostsQuery(dataScope).
+		Where("biz_cmdb_host.business_scope_id = ?", scopeID).
 		Order("id DESC").
 		Find(&rows).Error; err != nil {
 		return nil, err
@@ -262,17 +274,17 @@ func (s *Service) ListBoundHosts(scopeID uint64) (*BizScopeHostListResp, error) 
 	return &BizScopeHostListResp{Items: items, Total: int64(len(items))}, nil
 }
 
-func (s *Service) ListAvailableHosts(scopeID uint64) (*BizScopeHostListResp, error) {
+func (s *Service) ListAvailableHosts(scopeID uint64, dataScope *common.DataScopeReq) (*BizScopeHostListResp, error) {
 	var scope BizScope
 	if err := s.db.First(&scope, scopeID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("bizscope.not_found")
+			return nil, errors.New(bizScopeNotFoundKey)
 		}
 		return nil, err
 	}
 	var rows []bizScopeHostSnapshot
-	if err := s.db.Table("biz_cmdb_host").
-		Where("(business_scope_id = 0 OR business_scope_id IS NULL) AND deleted_at IS NULL").
+	if err := s.scopedHostsQuery(dataScope).
+		Where("(biz_cmdb_host.business_scope_id = 0 OR biz_cmdb_host.business_scope_id IS NULL)").
 		Order("id DESC").
 		Find(&rows).Error; err != nil {
 		return nil, err
@@ -292,33 +304,44 @@ func (s *Service) ListAvailableHosts(scopeID uint64) (*BizScopeHostListResp, err
 	return &BizScopeHostListResp{Items: items, Total: int64(len(items))}, nil
 }
 
-func (s *Service) BindHosts(scopeID uint64, hostIDs []uint64) error {
+func (s *Service) BindHosts(scopeID uint64, hostIDs []uint64, dataScope *common.DataScopeReq) error {
 	var scope BizScope
 	if err := s.db.First(&scope, scopeID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("bizscope.not_found")
+			return errors.New(bizScopeNotFoundKey)
 		}
 		return err
 	}
 	if len(hostIDs) == 0 {
 		return errors.New("param.invalid")
 	}
-	return s.db.Table("biz_cmdb_host").
-		Where("id IN ? AND deleted_at IS NULL", hostIDs).
+	normalizedHostIDs := common.NormalizeUint64IDs(hostIDs)
+	if len(normalizedHostIDs) == 0 {
+		return errors.New("param.invalid")
+	}
+	result := s.scopedHostsQuery(dataScope).
+		Where("biz_cmdb_host.id IN ?", normalizedHostIDs).
 		Updates(map[string]any{
 			"business_scope_id":   scope.ID,
 			"business_scope_code": scope.Code,
 			"business_scope_name": scope.Name,
 			"status":              "assigned",
 			"updated_at":          time.Now(),
-		}).Error
+		})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected != int64(len(normalizedHostIDs)) {
+		return errors.New(bizScopeNotFoundKey)
+	}
+	return nil
 }
 
-func (s *Service) UnbindHost(scopeID uint64, hostID uint64) error {
+func (s *Service) UnbindHost(scopeID uint64, hostID uint64, dataScope *common.DataScopeReq) error {
 	var scope BizScope
 	if err := s.db.First(&scope, scopeID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("bizscope.not_found")
+			return errors.New(bizScopeNotFoundKey)
 		}
 		return err
 	}
@@ -329,13 +352,27 @@ func (s *Service) UnbindHost(scopeID uint64, hostID uint64) error {
 		"updated_at":          time.Now(),
 	}
 	var row bizScopeHostSnapshot
-	if err := s.db.Table("biz_cmdb_host").Where("id = ? AND deleted_at IS NULL", hostID).Take(&row).Error; err != nil {
+	if err := s.scopedHostsQuery(dataScope).Where("biz_cmdb_host.id = ?", hostID).Take(&row).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New(bizScopeNotFoundKey)
+		}
 		return err
 	}
 	if row.Status == "assigned" {
 		updates["status"] = "pending"
 	}
-	return s.db.Table("biz_cmdb_host").
-		Where("id = ? AND business_scope_id = ? AND deleted_at IS NULL", hostID, scopeID).
-		Updates(updates).Error
+	result := s.scopedHostsQuery(dataScope).
+		Where("biz_cmdb_host.id = ? AND biz_cmdb_host.business_scope_id = ?", hostID, scopeID).
+		Updates(updates)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New(bizScopeNotFoundKey)
+	}
+	return nil
+}
+
+func (s *Service) scopedHostsQuery(dataScope *common.DataScopeReq) *gorm.DB {
+	return s.db.Table("biz_cmdb_host").Scopes(database.WithDataScope(dataScope)).Where("biz_cmdb_host.deleted_at IS NULL")
 }

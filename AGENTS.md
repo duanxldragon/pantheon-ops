@@ -2,7 +2,7 @@
 
 English quick guide: [CLAUDE.md](./CLAUDE.md)
 
-你是 Pantheon Ops 项目的执行专家。先按 `../harness-engineering/docs/methodology/SOLO_DELIVERY_TIERS.md` 判断当前任务属于 `L0 / L1 / L2`，再读 `../harness-engineering/docs/CODEX_DEVELOPMENT_CHECKLIST.zh.md`、`docs/PROJECT_INHERITANCE.md`、`../pantheon-base/DESIGN.md`、`../pantheon-base/AGENTS.md`、`../pantheon-base/docs/README.md`；本仓库只承接 `business/*` 业务扩展，`pantheon-base` 是平台层和系统域的唯一底座知识源。
+你是 Pantheon Ops 项目的执行专家。先按 `../pantheon-harness/architecture/methodology/solo-delivery-tiers.md` 判断当前任务属于 `L0 / L1 / L2`，再读 `../pantheon-harness/patterns/method-playbook.md`、`docs/PROJECT_INHERITANCE.md`、`../pantheon-base/DESIGN.md`、`../pantheon-base/AGENTS.md`、`../pantheon-base/docs/README.md`；本仓库只承接 `business/*` 业务扩展，`pantheon-base` 是平台层和系统域的唯一底座知识源。
 
 ## 必守规则
 
@@ -10,10 +10,12 @@ English quick guide: [CLAUDE.md](./CLAUDE.md)
 - 本仓库的 repo-local workflow skills 位于 `.agents/skills/`；涉及继承校验、PR 收口、GitHub comments 收敛和 GitHub Actions 红灯时，优先看 `repo-verify`、`repo-pr-gate`、`gh-address-comments`、`repo-ci-triage`、`gh-fix-ci`。
 - 任务先分层：`platform / system/auth / system/iam / system/org / system/config / business/*`；跨层先说边界再动手。
 - 个人维护阶段，`pantheon-ops` 默认优先走 `L1` 轻量闭环；只有文案/只读/纯格式化这类小改走 `L0`。一旦发现共享底座问题、继承同步、权限/菜单/i18n/导入导出/审计/生成器边界，升级到 `L2`，并优先判断是否应回 `pantheon-base`。
+- 实现前应用最小复杂度阶梯：先判断是否不需要做、能否复用 base/ops 现有 helper/component/script/contract、能否用标准库、平台原生能力或已安装依赖；只有这些都不满足时才写最小新增代码。不得用“简化”削弱鉴权、审计、i18n、可访问性、运行态证据或业务验收。
 - `pantheon-base` 拥有 `platform` 和 `system/*`；本仓库只沉淀业务设计、业务验收和本地继承说明。
 - 业务模块可使用 base 扩展点、共享契约和公共包，但不可本地 override 底座行为。
 - 发现共享平台、系统域、UI、权限、i18n、审计或验收规则问题时，先判断是否应在 `pantheon-base` 修复，再同步到 ops。
 - 改动菜单、权限、i18n、数据库、接口、seed 或 smoke 范围时，同步更新测试、脚本、fixture、门禁或文档。
+- 在 Windows 上执行提交、push、PR 或合并收口前，完整 Go race 必须使用 `D:\msys64\mingw64\bin` 并显式启用 cgo：`$env:PATH='D:\msys64\mingw64\bin;' + $env:PATH; $env:CGO_ENABLED='1'; go test -race ./...`。不得用未启用 cgo 的测试或普通 `go test ./...` 代替该门禁。
 - 触碰 UI 时先遵守 base 设计约束并使用 `impeccable`，提供渲染证据或说明未产出证据的原因。
 - 业务错误 key 以 `docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md` 为 canonical 清单。
 

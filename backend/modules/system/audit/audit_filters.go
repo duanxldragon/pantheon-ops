@@ -53,36 +53,52 @@ func filterOperationLogs(rows []middleware.SystemLogOper, query *OperationLogQue
 	if query == nil {
 		return rows
 	}
-	sourceDomain := strings.TrimSpace(query.SourceDomain)
-	sourcePage := strings.TrimSpace(query.SourcePage)
-	failureCategory := strings.TrimSpace(query.FailureCategory)
-	if sourceDomain == "" && sourcePage == "" && failureCategory == "" {
+	filter := operationLogFilter{
+		sourceDomain:    strings.TrimSpace(query.SourceDomain),
+		sourcePage:      strings.TrimSpace(query.SourcePage),
+		failureCategory: strings.TrimSpace(query.FailureCategory),
+	}
+	if filter.empty() {
 		return rows
 	}
 	filtered := make([]middleware.SystemLogOper, 0, len(rows))
 	for _, row := range rows {
-		rowSourceDomain := strings.TrimSpace(row.SourceDomain)
-		if rowSourceDomain == "" {
-			rowSourceDomain = detectOperationLogSourceDomain(row.OperURL)
+		if filter.matches(row) {
+			filtered = append(filtered, row)
 		}
-		if sourceDomain != "" && rowSourceDomain != sourceDomain {
-			continue
-		}
-		rowSourcePage := strings.TrimSpace(row.SourcePage)
-		if rowSourcePage == "" {
-			rowSourcePage = detectOperationLogSourcePage(row.OperURL)
-		}
-		if sourcePage != "" && rowSourcePage != sourcePage {
-			continue
-		}
-		rowFailureCategory := strings.TrimSpace(row.FailureCategory)
-		if rowFailureCategory == "" {
-			rowFailureCategory = detectOperationLogFailureCategory(row.Status, row.ErrorMsg, row.JsonResult)
-		}
-		if failureCategory != "" && rowFailureCategory != failureCategory {
-			continue
-		}
-		filtered = append(filtered, row)
 	}
 	return filtered
+}
+
+type operationLogFilter struct {
+	sourceDomain    string
+	sourcePage      string
+	failureCategory string
+}
+
+func (f operationLogFilter) empty() bool {
+	return f.sourceDomain == "" && f.sourcePage == "" && f.failureCategory == ""
+}
+
+func (f operationLogFilter) matches(row middleware.SystemLogOper) bool {
+	return matchesOperationLogFilterValue(f.sourceDomain, row.SourceDomain, func() string {
+		return detectOperationLogSourceDomain(row.OperURL)
+	}) &&
+		matchesOperationLogFilterValue(f.sourcePage, row.SourcePage, func() string {
+			return detectOperationLogSourcePage(row.OperURL)
+		}) &&
+		matchesOperationLogFilterValue(f.failureCategory, row.FailureCategory, func() string {
+			return detectOperationLogFailureCategory(row.Status, row.ErrorMsg, row.JsonResult)
+		})
+}
+
+func matchesOperationLogFilterValue(expected, stored string, detect func() string) bool {
+	if expected == "" {
+		return true
+	}
+	actual := strings.TrimSpace(stored)
+	if actual == "" {
+		actual = detect()
+	}
+	return actual == expected
 }

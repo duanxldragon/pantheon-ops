@@ -14,6 +14,12 @@ import (
 	uploadpkg "pantheon-ops/backend/pkg/upload"
 )
 
+const (
+	errParamInvalid       = "param.invalid"
+	errRequestFailed      = "request.failed"
+	errUploadFileNotFound = "upload.file.not_found"
+)
+
 type SettingHandler struct {
 	service       *SettingService
 	uploadService *uploadpkg.Service
@@ -26,7 +32,7 @@ func NewSettingHandler(service *SettingService, uploadService *uploadpkg.Service
 func (h *SettingHandler) GetSettingList(c *gin.Context) {
 	var query SettingListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 	items, err := h.service.List(&query)
@@ -49,7 +55,7 @@ func (h *SettingHandler) GetSettingOverview(c *gin.Context) {
 func (h *SettingHandler) GetSettingGroup(c *gin.Context) {
 	group, err := h.service.GetGroup(c.Param("groupKey"))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, group)
@@ -60,7 +66,7 @@ func (h *SettingHandler) UpdateSettingGroup(c *gin.Context) {
 
 	var req SettingGroupUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 	groupKey := c.Param("groupKey")
@@ -74,7 +80,7 @@ func (h *SettingHandler) UpdateSettingGroup(c *gin.Context) {
 
 	group, err := h.service.UpdateGroup(groupKey, &req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	if successPayload != "" {
@@ -105,7 +111,7 @@ func (h *SettingHandler) RefreshSettingCache(c *gin.Context) {
 
 	var req SettingCacheRefreshReq
 	if err := c.ShouldBindJSON(&req); err != nil && c.Request.ContentLength > 0 {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 	resp, err := h.service.RefreshSettingCache(req.GroupKeys)
@@ -119,7 +125,7 @@ func (h *SettingHandler) RefreshSettingCache(c *gin.Context) {
 func (h *SettingHandler) GetSettingAuditList(c *gin.Context) {
 	var query SettingAuditQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 	page, err := h.service.ListAudit(&query)
@@ -135,7 +141,7 @@ func (h *SettingHandler) ExportSettingAudit(c *gin.Context) {
 
 	var query SettingAuditQuery
 	if err := c.ShouldBindJSON(&query); err != nil && c.Request.ContentLength > 0 {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 	file, err := h.service.ExportAudit(&query)
@@ -150,7 +156,7 @@ func (h *SettingHandler) ExportSettingAudit(c *gin.Context) {
 }
 
 func (h *SettingHandler) UploadFile(c *gin.Context) {
-	common.SetAuditMetadata(c, "上传文件", common.BusinessImport)
+	common.SetAuditMetadata(c, "upload.file.title", common.BusinessImport)
 	if h.uploadService == nil {
 		common.Fail(c, common.CodeError, "upload.config.unavailable")
 		return
@@ -171,9 +177,9 @@ func (h *SettingHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	stored, err := h.uploadService.Store(fileHeader, c.DefaultQuery("scope", "general"), requestBaseURL(c))
+	stored, err := h.uploadService.StoreWithContext(c.Request.Context(), fileHeader, c.DefaultQuery("scope", "general"), requestBaseURL(c))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "request.failed")
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
 	common.Success(c, stored)
@@ -187,24 +193,36 @@ func (h *SettingHandler) ServeUploadedFile(c *gin.Context) {
 
 	cfg, err := h.uploadService.LoadConfig()
 	if err != nil || cfg.StorageDriver != "local" {
-		common.Fail(c, common.CodeError, "upload.file.not_found")
+		common.Fail(c, common.CodeError, errUploadFileNotFound)
 		return
 	}
 
 	rootPath, err := filepath.Abs(strings.TrimSpace(cfg.LocalPath))
 	if err != nil {
-		common.Fail(c, common.CodeError, "upload.file.not_found")
+		common.Fail(c, common.CodeError, errUploadFileNotFound)
 		return
 	}
 
 	objectKey, err := uploadpkg.NormalizeObjectKey(c.Param("filepath"))
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "upload.file.not_found")
+		common.Fail(c, common.CodeParamInvalid, errUploadFileNotFound)
 		return
 	}
 
-	if contentType := mime.TypeByExtension(strings.ToLower(filepath.Ext(objectKey))); contentType != "" {
+	extension := strings.TrimPrefix(strings.ToLower(filepath.Ext(objectKey)), ".")
+	if contentType := mime.TypeByExtension("." + extension); contentType != "" {
 		c.Header("Content-Type", contentType)
+	}
+	// 纵深防御：禁止 MIME 嗅探；非图片类型强制下载，防止伪装内容被浏览器内联渲染。
+	c.Header("X-Content-Type-Options", "nosniff")
+	switch extension {
+	case "jpg", "jpeg", "png", "gif", "webp":
+	default:
+		c.Header("Content-Disposition", "attachment")
+	}
+	if !filepath.IsLocal(objectKey) {
+		common.Fail(c, common.CodeParamInvalid, errUploadFileNotFound)
+		return
 	}
 	http.ServeFileFS(c.Writer, c.Request, os.DirFS(rootPath), objectKey)
 }
