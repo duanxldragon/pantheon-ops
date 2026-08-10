@@ -1,6 +1,6 @@
 {
   "taskId": "2026-08-10-security-csrf-closeout",
-  "status": "in-progress",
+  "status": "awaiting-hosted-validation",
   "commands": [
     {
       "command": "npm audit --registry=https://registry.npmjs.org --audit-level=high",
@@ -37,6 +37,36 @@
       "cwd": ".",
       "status": "passed",
       "notes": "Business deployment template parameters retain task-level override precedence after removing overflow-prone map preallocation."
+    },
+    {
+      "command": "go test -race ./...",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Passed with CGO_ENABLED=1, D:\\msys64\\mingw64\\bin on PATH, and a workspace-local GOTMPDIR after the default C: temporary volume ran out of space."
+    },
+    {
+      "command": "go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "No vulnerabilities are reachable from Ops code; one required module vulnerability is unreachable."
+    },
+    {
+      "command": "go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.4.0 scan --recursive --call-analysis=go --format json .",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "GO-2026-5932 is limited to golang.org/x/crypto/openpgp and call analysis reports called:false; Ops imports bcrypt only."
+    },
+    {
+      "command": "go run github.com/zricethezav/gitleaks/v8@v8.30.1 detect --source . --redact",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "No leaks found; .gitleaks.toml narrowly allows only the confirmed initial-import false positives."
+    },
+    {
+      "command": "npm run check:inheritance",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Backend, frontend, i18n, and overlay checks align with pantheon-base-v0.10.10 (a95e6e52...)."
     }
   ],
   "hostedVerification": []

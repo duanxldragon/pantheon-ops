@@ -66,7 +66,8 @@ jobs:
       - name: Report OSV vulnerabilities
         id: osv-scanner
         continue-on-error: true
-        run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@latest scan --recursive --format json --output security-reports/osv-scanner.json .
+        # v2.5.0 requires Go 1.26.5 while this repository is locked to Go 1.25.
+        run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.4.0 scan --recursive --call-analysis=go --format json --output security-reports/osv-scanner.json .
 
       - name: Upload dependency reports
         if: always()

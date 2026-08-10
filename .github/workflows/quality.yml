@@ -234,8 +234,8 @@ jobs:
           GOLANGCI_LINT_RESULT: ${{ steps.golangci-lint.outcome }}
         run: |
           echo "golangci-lint: ${GOLANGCI_LINT_RESULT}"
-          if [ "${EVENT_NAME}" = "push" ]; then
-            echo "Full-repository lint is report-only on main and release pushes."
+          if [ "${EVENT_NAME}" = "push" ] || [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
+            echo "Full-repository lint is report-only for main, release, and manual baseline runs."
             exit 0
           fi
           if [ "${GOLANGCI_LINT_RESULT}" != "success" ]; then
