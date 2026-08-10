@@ -1,0 +1,5 @@
+[allowlist]
+description = "Known-safe literals from the initial repository import"
+commits = [
+  "7fee8f945b1fc97bef1487c26b02fd02a498f0c3",
+]
