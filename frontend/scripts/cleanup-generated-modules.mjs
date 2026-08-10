@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { generateModuleI18n } from './generate-module-i18n.mjs';
 
 const repoRoot = path.resolve(import.meta.dirname, '..', '..');
 
@@ -57,20 +58,13 @@ const REGISTRY_TEMPLATES = {
   ].join('\n'),
 
   frontendComponentRegistry: [
-    "import { lazy, type LazyExoticComponent, type ComponentType } from 'react';",
+    "import type { ComponentType, LazyExoticComponent } from 'react';",
     '',
     'type ComponentLoader = () => Promise<{ default: ComponentType }>;',
     '',
     'interface RegistryEntry {',
     '\tcomponent: LazyExoticComponent<ComponentType>;',
     '\tpreload: ComponentLoader;',
-    '}',
-    '',
-    'function defineRegistryEntry(loader: ComponentLoader): RegistryEntry {',
-    '\treturn {',
-    '\t\tcomponent: lazy(loader),',
-    '\t\tpreload: loader,',
-    '\t};',
     '}',
     '',
     'export const generatedComponentRegistry = {',
@@ -81,45 +75,12 @@ const REGISTRY_TEMPLATES = {
 
 const I18N_LOCALES = ['zh-CN', 'en-US', 'ko-KR', 'ja-JP', 'fr-FR'];
 
-function i18nTemplate(variableName) {
-  return [`const ${variableName} = {`, '};', '', `export default ${variableName};`, ''].join('\n');
-}
-
 function removeDir(dir) {
   if (fs.existsSync(dir)) {
     fs.rmSync(dir, { recursive: true, force: true });
     return true;
   }
   return false;
-}
-
-function removeSubdirs(parentDir) {
-  let removed = 0;
-  if (!fs.existsSync(parentDir)) {
-    return removed;
-  }
-  for (const entry of fs.readdirSync(parentDir, { withFileTypes: true })) {
-    if (entry.isDirectory()) {
-      removeDir(path.join(parentDir, entry.name));
-      removed++;
-    }
-  }
-  return removed;
-}
-
-function removeFilesByGlob(dir, pattern) {
-  let removed = 0;
-  if (!fs.existsSync(dir)) {
-    return removed;
-  }
-  const re = new RegExp(pattern);
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.isFile() && re.test(entry.name)) {
-      fs.unlinkSync(path.join(dir, entry.name));
-      removed++;
-    }
-  }
-  return removed;
 }
 
 function writeFile(filePath, content) {
@@ -199,18 +160,62 @@ function checkDirty() {
   return dirty;
 }
 
+function collectGeneratedBusinessModules() {
+  const modules = new Map();
+  if (!fs.existsSync(GENERATED_PATHS.schemaBusinessDir)) {
+    return modules;
+  }
+
+  const visit = (dirPath) => {
+    for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
+      const nextPath = path.join(dirPath, entry.name);
+      if (entry.isDirectory()) {
+        visit(nextPath);
+        continue;
+      }
+      if (!entry.name.endsWith('.json')) {
+        continue;
+      }
+
+      let schema;
+      try {
+        schema = JSON.parse(fs.readFileSync(nextPath, 'utf8'));
+      } catch {
+        continue;
+      }
+      const name = String(schema?.name ?? '').trim().replaceAll('\\', '/');
+      const segments = name.split('/');
+      if (!name || segments.some((segment) => !/^[a-z][a-z0-9_]*$/u.test(segment))) {
+        continue;
+      }
+      modules.set(name, nextPath);
+    }
+  };
+
+  visit(GENERATED_PATHS.schemaBusinessDir);
+  return modules;
+}
+
 function cleanup() {
   const summary = { modules: 0, schemas: 0, registries: 0, i18n: 0 };
+  const generatedModules = collectGeneratedBusinessModules();
 
-  // 1. Remove generated business module directories
-  const backendRemoved = removeSubdirs(GENERATED_PATHS.backendBusinessDir);
-  const frontendRemoved = removeSubdirs(GENERATED_PATHS.frontendBusinessDir);
-  summary.modules = backendRemoved + frontendRemoved;
+  // 1. Remove only modules backed by generated schemas. Hand-written business
+  // modules share these roots and must survive smoke cleanup.
+  for (const [name, schemaPath] of generatedModules) {
+    for (const modulesRoot of [
+      GENERATED_PATHS.backendBusinessDir,
+      GENERATED_PATHS.frontendBusinessDir,
+    ]) {
+      if (removeDir(path.join(modulesRoot, ...name.split('/')))) {
+        summary.modules++;
+      }
+    }
+    fs.unlinkSync(schemaPath);
+    summary.schemas++;
+  }
 
-  // 2. Remove generated schema files
-  summary.schemas = removeFilesByGlob(GENERATED_PATHS.schemaBusinessDir, '\\.json$');
-
-  // 3. Reset registry files
+  // 2. Reset dynamic-only registry files.
   for (const [key, filePath] of Object.entries(REGISTRY_FILES)) {
     const template = REGISTRY_TEMPLATES[key];
     if (template) {
@@ -219,23 +224,10 @@ function cleanup() {
     }
   }
 
-  // 4. Reset i18n generated locale files
-  const i18nVarNames = {
-    'zh-CN': 'generatedzhCNFallback',
-    'en-US': 'generatedenUSFallback',
-    'ko-KR': 'generatedkoKRFallback',
-    'ja-JP': 'generatedjaJPFallback',
-    'fr-FR': 'generatedfrFRFallback',
-  };
-
-  for (const locale of I18N_LOCALES) {
-    const filePath = path.join(GENERATED_PATHS.i18nDir, `${locale}.ts`);
-    const varName = i18nVarNames[locale];
-    if (varName) {
-      writeFile(filePath, i18nTemplate(varName));
-      summary.i18n++;
-    }
-  }
+  // 3. Rebuild fallbacks from hand-written module locales after generated
+  // schemas and source directories have been removed.
+  const i18nResult = generateModuleI18n({ checkOnly: false });
+  summary.i18n = i18nResult.changes.length;
 
   console.info('[generated-modules] cleanup complete');
   console.info(JSON.stringify(summary, null, 2));

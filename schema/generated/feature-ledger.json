@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "sourceOfTruth": {
+    "registrations": "system_module_registration",
+    "schemas": "schema/generated",
+    "snapshot": "schema/generated/feature-ledger.json"
+  },
+  "entries": []
+}

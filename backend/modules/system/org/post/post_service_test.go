@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/testmysql"
 )
 
@@ -16,7 +17,7 @@ func setupPostTestDB(t *testing.T) *gorm.DB {
 	if err := db.AutoMigrate(&SystemPost{}); err != nil {
 		t.Fatalf("migrate post: %v", err)
 	}
-	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_user (id INTEGER PRIMARY KEY, post_id INTEGER, deleted_at DATETIME)").Error; err != nil {
+	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_user (id INTEGER PRIMARY KEY AUTO_INCREMENT, post_id INTEGER, deleted_at DATETIME)").Error; err != nil {
 		t.Fatalf("create user fixture: %v", err)
 	}
 	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_dept (id INTEGER PRIMARY KEY, parent_id INTEGER, is_root INTEGER, dept_name TEXT)").Error; err != nil {
@@ -26,6 +27,23 @@ func setupPostTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("seed dept fixture: %v", err)
 	}
 	return db
+}
+
+type postFixtureUser struct {
+	ID        uint64         `gorm:"primaryKey;autoIncrement"`
+	PostID    uint64         `gorm:"column:post_id"`
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
+}
+
+func (postFixtureUser) TableName() string {
+	return "system_user"
+}
+
+func migratePostFixtureUsers(t *testing.T, db *gorm.DB) {
+	t.Helper()
+	if err := db.AutoMigrate(&postFixtureUser{}); err != nil {
+		t.Fatalf("migrate user fixture: %v", err)
+	}
 }
 
 func TestPostService_DeleteReleasesPostCode(t *testing.T) {
@@ -151,7 +169,7 @@ func TestPostService_BatchUpdatePostStatus(t *testing.T) {
 		t.Fatalf("expected post status 2, got %d", disabled.Status)
 	}
 
-	if _, err := service.BatchUpdatePostStatus([]uint64{999}, 1); err == nil || err.Error() != "post.batch.not_found" {
+	if _, err := service.BatchUpdatePostStatus([]uint64{999}, 1); err == nil || common.ErrMessage(err) != "post.batch.not_found" {
 		t.Fatalf("expected not found error, got %v", err)
 	}
 }
@@ -181,7 +199,7 @@ func TestPostService_UpdateRejectsDisableWhenUsersAssigned(t *testing.T) {
 		Status:   2,
 		Remark:   created.Remark,
 	})
-	if err == nil || err.Error() != "post.status.error.has_users" {
+	if err == nil || common.ErrMessage(err) != "post.status.error.has_users" {
 		t.Fatalf("expected disable blocked by active users, got %v", err)
 	}
 }
@@ -204,7 +222,7 @@ func TestPostService_BatchDisableRejectsPostsAssignedToUsers(t *testing.T) {
 	}
 
 	_, err = service.BatchUpdatePostStatus([]uint64{created.ID}, 2)
-	if err == nil || err.Error() != "post.status.error.has_users" {
+	if err == nil || common.ErrMessage(err) != "post.status.error.has_users" {
 		t.Fatalf("expected batch disable blocked by active users, got %v", err)
 	}
 }
@@ -255,13 +273,7 @@ func TestPostService_ExportPostsIncludesGovernanceColumns(t *testing.T) {
 		t.Fatalf("migrate post service: %v", err)
 	}
 
-	if err := db.Exec(`CREATE TABLE IF NOT EXISTS system_user (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		post_id INTEGER,
-		deleted_at DATETIME
-	)`).Error; err != nil {
-		t.Fatalf("create user table: %v", err)
-	}
+	migratePostFixtureUsers(t, db)
 
 	activePost := SystemPost{
 		DeptID:   10,

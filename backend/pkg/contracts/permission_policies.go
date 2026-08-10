@@ -15,34 +15,34 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 		}
 	case "system:module:list":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules", Method: "GET"},
+			{Path: "/api/v1/lowcode/dynamic-modules", Method: "GET"},
 		}
 	case "system:module:register":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules", Method: "POST"},
+			{Path: "/api/v1/lowcode/dynamic-modules", Method: "POST"},
 		}
 	case "system:module:unregister":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules/:name", Method: "DELETE"},
+			{Path: "/api/v1/lowcode/dynamic-modules/:name", Method: "DELETE"},
 		}
 	case "system:module:delete_record":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules/:name/record", Method: "DELETE"},
+			{Path: "/api/v1/lowcode/dynamic-modules/:name/record", Method: "DELETE"},
 		}
 	case "system:module:purge":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules/:name/purge", Method: "DELETE"},
+			{Path: "/api/v1/lowcode/dynamic-modules/:name/purge", Method: "DELETE"},
 		}
 	case "system:module:generate":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/dynamic-modules/generate", Method: "POST"},
+			{Path: "/api/v1/lowcode/dynamic-modules/generate", Method: "POST"},
 		}
 	case "system:generator:datasource:manage":
 		return []PermissionAPIPolicy{
-			{Path: "/api/v1/system/generator/datasources", Method: "POST"},
-			{Path: "/api/v1/system/generator/datasources/:id", Method: "PUT"},
-			{Path: "/api/v1/system/generator/datasources/:id", Method: "DELETE"},
-			{Path: "/api/v1/system/generator/datasources/:id/test", Method: "POST"},
+			{Path: "/api/v1/lowcode/generator/datasources", Method: "POST"},
+			{Path: "/api/v1/lowcode/generator/datasources/:id", Method: "PUT"},
+			{Path: "/api/v1/lowcode/generator/datasources/:id", Method: "DELETE"},
+			{Path: "/api/v1/lowcode/generator/datasources/:id/test", Method: "POST"},
 		}
 	case "business:cmdb:host:list":
 		return []PermissionAPIPolicy{
@@ -96,6 +96,7 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 	case "business:cmdb:label:list":
 		return []PermissionAPIPolicy{
 			{Path: "/api/v1/business/cmdb/labels", Method: "GET"},
+			{Path: "/api/v1/business/cmdb/labels/options", Method: "GET"},
 		}
 	case "business:cmdb:label:create":
 		return []PermissionAPIPolicy{
@@ -117,6 +118,8 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 	case "business:bizscope:view":
 		return []PermissionAPIPolicy{
 			{Path: "/api/v1/business/bizscope/:id", Method: "GET"},
+			{Path: "/api/v1/business/bizscope/:id/hosts", Method: "GET"},
+			{Path: "/api/v1/business/bizscope/:id/available-hosts", Method: "GET"},
 		}
 	case "business:bizscope:create":
 		return []PermissionAPIPolicy{
@@ -125,6 +128,8 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 	case "business:bizscope:update":
 		return []PermissionAPIPolicy{
 			{Path: "/api/v1/business/bizscope/:id", Method: "PUT"},
+			{Path: "/api/v1/business/bizscope/:id/hosts/bind", Method: "POST"},
+			{Path: "/api/v1/business/bizscope/:id/hosts/:hostId", Method: "DELETE"},
 		}
 	case "business:bizscope:delete":
 		return []PermissionAPIPolicy{
@@ -133,6 +138,7 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 	case "business:deploy:package:list":
 		return []PermissionAPIPolicy{
 			{Path: "/api/v1/business/deploy/packages", Method: "GET"},
+			{Path: "/api/v1/business/deploy/packages/:id", Method: "GET"},
 		}
 	case "business:deploy:package:create":
 		return []PermissionAPIPolicy{
@@ -178,6 +184,10 @@ func RequiredAPIPoliciesByPermissionKey(permissionKey string) []PermissionAPIPol
 	case "business:deploy:task:update":
 		return []PermissionAPIPolicy{
 			{Path: "/api/v1/business/deploy/tasks/:id", Method: "PUT"},
+		}
+	case "business:deploy:task:delete":
+		return []PermissionAPIPolicy{
+			{Path: "/api/v1/business/deploy/tasks/:id", Method: "DELETE"},
 		}
 	case "business:deploy:task:start":
 		return []PermissionAPIPolicy{

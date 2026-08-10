@@ -12,9 +12,14 @@ const PermissionAction: React.FC<PermissionActionProps> = ({ allowed, tooltip, c
     return children;
   }
 
+  const disabledChild = React.createElement(children.type as React.ElementType, {
+    ...children.props,
+    disabled: true,
+  });
+
   return (
     <Tooltip content={tooltip}>
-      <span className="permission-action">{React.cloneElement(children, { disabled: true })}</span>
+      <span className="permission-action">{disabledChild}</span>
     </Tooltip>
   );
 };

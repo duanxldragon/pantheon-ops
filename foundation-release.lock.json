@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "baseRepo": "../pantheon-base",
+  "releaseLine": "release/0.10",
+  "releaseVersion": "pantheon-base-v0.10.5",
+  "baseCommit": "b97c0f6d288e2c984fbd9215d6d3626929f68d85",
+  "consumerMode": "foundation-release-consumer",
+  "releaseArtifact": {
+    "githubRepo": "duanxldragon/pantheon-base",
+    "assetName": "foundation-release-pantheon-base-v0.10.5.tgz",
+    "localPath": ".foundation/releases/pantheon-base-v0.10.5",
+    "checksum": "a49457b96ec1ff18bd716c149708433798e5e99db8698fa686f6346c26f555f0"
+  },
+  "lockedAt": "2026-08-07T23:23:51.071Z",
+  "lockedBy": "xiaolong",
+  "sharedPaths": {
+    "backend": [
+      "backend/cmd",
+      "backend/internal",
+      "backend/modules",
+      "backend/pkg"
+    ],
+    "frontend": [
+      "frontend/src/components",
+      "frontend/src/core",
+      "frontend/src/store",
+      "frontend/src/modules/auth",
+      "frontend/src/modules/lowcode",
+      "frontend/src/modules/platform",
+      "frontend/src/modules/system",
+      "frontend/src/index.css",
+      "frontend/scripts/export-generated-module.mjs",
+      "frontend/scripts/lib/auth-cookie-session.mjs",
+      "frontend/scripts/lib/css-declarations.mjs",
+      "frontend/scripts/run-smoke-suite.mjs",
+      "frontend/scripts/run-smoke-suite.test.mjs",
+      "frontend/scripts/test-fixtures/bind-ready-server.mjs",
+      "frontend/scripts/test-fixtures/fake-playwright-cli.mjs",
+      "frontend/scripts/test-fixtures/record-cleanup.mjs",
+      "frontend/scripts/transpile-typescript-files.mjs",
+      "frontend/tests/fixtures/coverage.ts",
+      "frontend/tests/smoke/helpers/auth.ts",
+      "frontend/tests/smoke/helpers/fixture-policy.ts",
+      "frontend/tests/smoke/helpers/shared-read-cache.ts",
+      "frontend/tests/smoke/helpers/url-pattern.ts",
+      "frontend/tests/smoke/platform/shell-visual-contract.spec.ts",
+      "frontend/tests/smoke/system/system-pages.spec.ts",
+      "frontend/tests/smoke/system/system-workspace-task-depth.ts"
+    ],
+    "docs": [
+      "docs/designs/FOUNDATION_RELEASE_MODEL.md",
+      "docs/designs/WORKFLOW.md"
+    ]
+  }
+}

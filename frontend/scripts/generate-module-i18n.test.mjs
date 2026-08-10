@@ -26,6 +26,7 @@ test('loadModuleLocales preserves existing generated translations and falls back
   const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-i18n-'));
   const modulesDir = path.join(tmpRoot, 'modules');
   const generatedDir = path.join(tmpRoot, 'generated');
+  const foundationDir = path.join(tmpRoot, 'foundation');
 
   writeJson(path.join(modulesDir, 'business', 'cmdb', 'locales', 'zh-CN.json'), {
     'business.cmdb.sample.title': '主机台账',
@@ -42,10 +43,16 @@ test('loadModuleLocales preserves existing generated translations and falls back
   writeGenerated(path.join(generatedDir, 'fr-FR.ts'), 'generatedfrFRFallback', {});
   writeGenerated(path.join(generatedDir, 'zh-CN.ts'), 'generatedzhCNFallback', {});
   writeGenerated(path.join(generatedDir, 'en-US.ts'), 'generatedenUSFallback', {});
+  writeJson(path.join(foundationDir, 'zh-CN.json'), { 'system.role.import': 'Role import' });
+  writeJson(path.join(foundationDir, 'en-US.json'), { 'system.role.import': 'Role import' });
+  writeJson(path.join(foundationDir, 'ja-JP.json'), { 'system.role.import': 'Role import' });
+  writeJson(path.join(foundationDir, 'ko-KR.json'), { 'system.role.import': 'Role import' });
+  writeJson(path.join(foundationDir, 'fr-FR.json'), { 'system.role.import': 'Role import' });
 
   const resources = loadModuleLocales({
     modulesRoot: modulesDir,
     generatedResourcesRoot: generatedDir,
+    foundationResourcesRoot: foundationDir,
     locales: ['zh-CN', 'en-US', 'ja-JP', 'ko-KR', 'fr-FR'],
   });
 
@@ -53,4 +60,5 @@ test('loadModuleLocales preserves existing generated translations and falls back
   assert.equal(resources['ko-KR']['business.cmdb.sample.title'], 'Host Inventory');
   assert.equal(resources['fr-FR']['business.cmdb.sample.zhOnly'], '仅中文说明');
   assert.equal(resources['zh-CN']['business.cmdb.sample.title'], '主机台账');
+  assert.equal(resources['zh-CN']['system.role.import'], 'Role import');
 });

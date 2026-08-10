@@ -2,114 +2,120 @@
 
 Chinese version: [PLATFORM_SRE_EVOLUTION_PLAN.md](./PLATFORM_SRE_EVOLUTION_PLAN.md)
 
-Updated: 2026-05-19
+Updated: 2026-07-17
 
-Type: Design (Roadmap)  
-Layer: `platform`  
+Type: Design (Roadmap)
+Layer: `platform`
 Status: Active
+Author: duanxldragon
 
-This roadmap defines how `pantheon-ops` can evolve from a web-based operations console into a Kubernetes-native SRE platform.
+This roadmap evolves `pantheon-ops` from a web operations console into a Kubernetes-native SRE platform. It reflects the current implementation truth and continues the Agent/SSH direction reserved by the Deploy design.
 
-It is based on the actual code baseline captured on May 11, 2026 and extends the execution directions reserved in `BUSINESS_DEPLOY_MODULE_DESIGN.md`.
+---
 
-## Current Baseline
+## 1. Current Code Baseline
 
-Already in place:
+### 1.1 Existing Capabilities
 
-- CMDB host, group, and label management
-- deployment task orchestration skeleton
-- four-layer permission model and Casbin integration
-- low-code generator and dynamic module lifecycle
-- a working condition-expression engine
+| Capability | Location | Maturity |
+| :--- | :--- | :--- |
+| CMDB hosts/groups/labels | `backend/modules/business/cmdb/` | production-ready |
+| deployment orchestration and target expressions | `backend/modules/business/deploy/` | orchestration-ready |
+| four-layer permissions and Casbin | `backend/pkg/database/casbin.go` | mature |
+| low-code generator | `backend/modules/lowcode/generator/` | extensible |
+| dynamic module lifecycle | `backend/modules/lowcode/dynamicmodule/` | extensible |
+| AND/OR + eq/neq/in/notIn DSL | `deploy_service.go` | usable; later map to K8s label selectors |
 
-Main gaps:
+### 1.2 Capability Gaps
 
-- no real execution engine yet
-- no agent communication loop
-- no Kubernetes-native control plane
-- no observability stack
-- no production deployment packaging
-- no CI/CD pipeline
+| Gap | Current truth | Target |
+| :--- | :--- | :--- |
+| real execution engine | a real SSH loop is implemented inline in `business/deploy/deploy_service.go` using `ssh.Dial` with automatic result write-back | extract `backend/pkg/executor/`; add Agent and K8s Job modes |
+| Agent communication | `ExecutorTypeAgent` exists without implementation | Agent Sidecar pulls tasks and reports results |
+| Kubernetes integration | no `client-go` or kubeconfig | Operator, CRDs, and webhooks |
+| observability | no metrics endpoint or structured logging baseline | Prometheus, Loki, tracing |
+| packaging | docker-compose is development-only | Dockerfile, Helm chart, one-command deployment |
+| CI/CD | absent | commit to image to Helm deployment |
 
-## Five Stages
+---
 
-### Stage 1: Real Execution Engine
+## 2. Five-Stage Evolution Route
 
-Introduce real SSH and agent-backed execution for deployment tasks.
+### Stage 1: Real Execution Engine (SSH + Agent Communication)
 
-Key outputs:
+**Goal:** extract a clean executor boundary from the working inline SSH loop and add Agent communication.
 
-- `backend/pkg/executor/ssh_executor.go`
-- `backend/pkg/executor/agent_executor.go`
-- `deploy_service.go` orchestration changes
+| Step | Module | Current/remaining work |
+| :--- | :--- | :--- |
+| 1.1 | `backend/pkg/executor/ssh_executor.go` | implemented inline; extract connection, command execution, stdout/stderr, timeout, and host snapshot handling from `deploy_service.go` |
+| 1.2 | `backend/pkg/executor/agent_executor.go` | pending: HTTP task delivery with retry and idempotency |
+| 1.3 | `backend/modules/business/deploy/deploy_service.go` | SSH selection/execution/write-back is implemented inline; refactor to unified executor dispatch, then add concurrency/cancellation semantics |
+| 1.4 | `backend/modules/business/deploy/deploy_service.go` | pending: distinguish manual result marking from executor reports |
 
-Primary learning areas:
-
-- Go SSH clients
-- concurrent execution
-- context cancellation
-- result writeback semantics
+Acceptance keeps the already working create/start/SSH/automatic-write-back loop, adds multi-host isolation, and preserves stdout/stderr/error recording.
 
 ### Stage 2: Agent Sidecar
 
-Build a separate Go agent service that can run on Kubernetes nodes, pull tasks, execute commands, report results, and expose Prometheus metrics.
+Build a separate `pantheon-agent/` Go module that long-polls tasks, executes shell commands, streams or reports results, sends heartbeats, exposes Prometheus metrics, ships as a container, and runs as a DaemonSet.
 
-Key outputs:
-
-- `pantheon-agent/` standalone module
-- long-poll or equivalent task retrieval
-- execution reporting
-- `/metrics` endpoint
-- Docker image and DaemonSet deployment
+Acceptance requires an end-to-end Agent task loop, metrics scraping, and offline detection.
 
 ### Stage 3: Kubernetes Operator
 
-Build a `kubebuilder`-based operator so CMDB hosts and deploy tasks become Kubernetes-native resources.
+Build a kubebuilder-based `pantheon-operator/` with `Host` and `DeployTask` CRDs, reconcilers, validating/mutating webhooks, RBAC, and Helm packaging. Existing GORM models map to CRD spec/status, service validation maps to webhooks, and Deploy state transitions map to status conditions.
 
-Key outputs:
-
-- `Host` and `DeployTask` CRDs
-- controllers and webhooks
-- Helm chart packaging
-- sync bridge between CRDs and current Pantheon data models
+Acceptance requires CR-to-CMDB synchronization, task Job reconciliation, webhook rejection/defaulting, and Helm installation.
 
 ### Stage 4: Observability
 
-Add full-stack metrics, logging, dashboards, and alerting across `pantheon-ops`, agents, and the operator.
+Add Pantheon API/task metrics, Prometheus and Grafana, Agent metrics, Loki/Promtail logs, Alertmanager rules, and a notification webhook integration.
 
-Key outputs:
-
-- Prometheus metrics endpoints
-- Grafana dashboards
-- Loki/Promtail log collection
-- Alertmanager rules
+Core metrics cover API requests/latency, deployment task counts, Agent heartbeats, and Agent execution duration. Acceptance requires live dashboards, routed failure alerts, and searchable execution logs.
 
 ### Stage 5: Packaging and One-Click Deployment
 
-Package the stack so a bare Kubernetes cluster can be turned into a runnable platform quickly.
+Add a multi-stage `pantheon-ops` Dockerfile, a top-level Helm chart for the full stack, a deployment script, and a concise operations handbook. The target is a runnable stack on a blank Kubernetes cluster within 30 minutes.
 
-Key outputs:
+---
 
-- `pantheon-ops` Dockerfile
-- top-level Helm chart
-- deployment script
-- short operator handbook
+## 3. Skill Matrix
 
-## Skill Growth Target
+| Area | Current | After Stage 1 | After Stage 3 | After Stage 5 |
+| :--- | :--- | :--- | :--- | :--- |
+| Go | framework usage | independent package design | complete Operator | independent Go services |
+| Kubernetes | installation/operations | unchanged | CRD/Operator/Webhook development | native architecture design |
+| Networking | basic HTTP | SSH and HTTP clients | K8s APIs | end-to-end integration |
+| Observability | Prometheus usage | unchanged | exporter development | full-stack observability design |
+| Docker/Helm | docker-compose | Dockerfile | Helm chart | one-command deployment |
+| CI/CD | absent | unchanged | unchanged | commit to image to deploy |
 
-The roadmap is also a learning path:
+---
 
-- stronger Go package design
-- network and process execution
-- Kubernetes controller patterns
-- observability system design
-- Docker and Helm packaging
-- end-to-end delivery workflow
+## 4. Expected Timeline
 
-## Immediate Start
+| Stage | Estimate | Start condition |
+| :--- | :--- | :--- |
+| Stage 1: execution engine | 1-2 weeks | partially completed in the June 2026 Deploy closure; remaining focus is executor extraction and Agent work |
+| Stage 2: Agent Sidecar | 4-5 weeks | Stage 1 complete |
+| Stage 3: Kubernetes Operator | 5-6 weeks | Stage 2 complete |
+| Stage 4: observability | 3-4 weeks | Stage 2 complete; may overlap Stage 3 |
+| Stage 5: packaging | 2 weeks | Stages 3 and 4 complete |
 
-The first concrete milestone is small and practical: build `backend/pkg/executor/ssh_executor.go` and prove remote command execution end to end.
+Stage 1 was partially completed during the June 2026 Deploy closure; the remaining focus shifts to executor package extraction and Agent development.
 
-That step is the intended transition point from CRUD-only platform work into real SRE execution mechanics.
+---
 
-For the detailed stage tables, project skeletons, file paths, and week-by-week estimates, use the Chinese source as the authoritative roadmap.
+## 5. Immediate Start (First Remaining Stage 1 Step)
+
+Extract the proven inline SSH remote execution from `deploy_service.go` into a testable `backend/pkg/executor/ssh_executor.go`.
+
+The extraction must preserve host fingerprint validation, request-scoped credentials, result write-back, and existing error-key semantics.
+
+---
+
+## 6. References
+
+- Base architecture: `../../pantheon-base/DESIGN.md`
+- [Deploy module design](./BUSINESS_DEPLOY_MODULE_DESIGN.md)
+- [CMDB module design](./BUSINESS_CMDB_MODULE_DESIGN.md)
+- Base permission model and module contract documents

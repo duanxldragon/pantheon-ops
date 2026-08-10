@@ -16,7 +16,7 @@ const tableName = 'biz_auto_recycle_qa';
 const appBaseUrl = process.env.PANTHEON_WEB_BASE_URL ?? 'http://127.0.0.1:5174';
 
 async function listCurrentTables(page: Page, login: BrowserLoginResult) {
-  const response = await page.request.get(`${apiBaseUrl}/system/generator/tables`, {
+  const response = await page.request.get(`${apiBaseUrl}/lowcode/generator/tables`, {
     headers: apiRequestHeaders(login),
     params: { datasourceId: 'current' },
   });
@@ -62,11 +62,14 @@ test('auto-recycle governance flow purges managed table through real UI and back
   await purgeDialog.locator('.arco-checkbox').first().click();
   await expect(purgeDialog.getByRole('button', { name: '彻底删除', exact: true })).toBeEnabled();
   await purgeDialog.getByRole('button', { name: '彻底删除', exact: true }).click();
-  await expect(page.getByText('模块已彻底删除', { exact: true })).toBeVisible();
+  await expect(purgeDialog).toBeHidden();
+  await expect
+    .poll(async () => page.locator('.arco-table-tr').filter({ hasText: moduleKey }).count())
+    .toBe(0);
 
   await expect
     .poll(async () => {
-      const response = await page.request.get(`${apiBaseUrl}/system/dynamic-modules/${moduleKey}`, {
+      const response = await page.request.get(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}`, {
         headers: apiRequestHeaders(login),
         failOnStatusCode: false,
       });
@@ -83,7 +86,7 @@ test('auto-recycle governance flow purges managed table through real UI and back
     .toBe(false);
 
   const cleanupResponse = await page.request.delete(
-    `${apiBaseUrl}/system/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`,
+    `${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`,
     {
       headers: {
         ...apiRequestHeaders(login),

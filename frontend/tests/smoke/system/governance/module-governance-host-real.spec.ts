@@ -2,9 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type APIRequestContext } from '@playwright/test';
-import { ModuleExporter } from '../../../../src/modules/system/generator/exporter';
-import type { GenerateAndRegisterResp, GeneratorTablePreview } from '../../../../src/modules/system/generator/api';
-import type { ModuleField, ModuleSchema, PageActionKey } from '../../../../src/modules/system/generator/schema';
+import { ModuleExporter } from '../../../../src/modules/lowcode/generator/exporter';
+import type { GenerateAndRegisterResp, GeneratorTablePreview } from '../../../../src/modules/lowcode/generator/api';
+import type { ModuleField, ModuleSchema, PageActionKey } from '../../../../src/modules/lowcode/generator/schema';
 import {
   buildAuditActionKey,
   buildFieldHelpTextKey,
@@ -16,7 +16,7 @@ import {
   generateDefaultMenus,
   generateDefaultPermissions,
   inferModelName,
-} from '../../../../src/modules/system/generator/schema';
+} from '../../../../src/modules/lowcode/generator/schema';
 import {
   adminCredentials,
   apiBaseUrl,
@@ -86,7 +86,7 @@ type TablePreviewProbe =
   | { available: false; status: number; code: number; message: string };
 
 async function fetchTablePreview(request: APIRequestContext, login: BrowserLoginResult): Promise<TablePreviewProbe> {
-  const response = await request.get(`${apiBaseUrl}/system/generator/table-schema`, {
+  const response = await request.get(`${apiBaseUrl}/lowcode/generator/table-schema`, {
     headers: apiRequestHeaders(login),
     params: {
       datasourceId: 'current',
@@ -219,7 +219,7 @@ function buildSchema(preview: GeneratorTablePreview): ModuleSchema {
 }
 
 async function purgeModuleIfExists(request: APIRequestContext, login: BrowserLoginResult, operationToken: string) {
-  const response = await request.delete(`${apiBaseUrl}/system/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`, {
+  const response = await request.delete(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`, {
     headers: {
       ...apiRequestHeaders(login),
       'X-Operation-Token': operationToken,
@@ -233,7 +233,7 @@ async function purgeModuleIfExists(request: APIRequestContext, login: BrowserLog
 }
 
 async function getModuleStatus(request: APIRequestContext, login: BrowserLoginResult) {
-  const response = await request.get(`${apiBaseUrl}/system/dynamic-modules/${moduleKey}`, {
+  const response = await request.get(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}`, {
     headers: apiRequestHeaders(login),
     failOnStatusCode: false,
   });
@@ -277,7 +277,7 @@ test('cmdb host database-import flow generates a temporary module without droppi
   const files = exporter.generateAll();
   expect(files.length).toBe(10);
 
-  const generateResponse = await page.request.post(`${apiBaseUrl}/system/dynamic-modules/generate`, {
+  const generateResponse = await page.request.post(`${apiBaseUrl}/lowcode/dynamic-modules/generate`, {
     headers: {
       ...apiRequestHeaders(login),
       'X-Operation-Token': operationToken,
@@ -319,7 +319,7 @@ test('cmdb host database-import flow generates a temporary module without droppi
   await expect.poll(async () => readFileContains(frontendRegistry, `../business/${moduleName}`)).toBe(true);
   await expect.poll(async () => readFileContains(componentRegistry, `business/${moduleName}/CmdbhostqaList`)).toBe(true);
 
-  const purgeResponse = await page.request.delete(`${apiBaseUrl}/system/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`, {
+  const purgeResponse = await page.request.delete(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`, {
     headers: {
       ...apiRequestHeaders(login),
       'X-Operation-Token': operationToken,
@@ -340,7 +340,7 @@ test('cmdb host database-import flow generates a temporary module without droppi
   await expect.poll(async () => readFileContains(frontendRegistry, `../business/${moduleName}`)).toBe(false);
   await expect.poll(async () => readFileContains(componentRegistry, `business/${moduleName}/CmdbhostqaList`)).toBe(false);
 
-  const tableCheck = await page.request.get(`${apiBaseUrl}/system/generator/table-schema`, {
+  const tableCheck = await page.request.get(`${apiBaseUrl}/lowcode/generator/table-schema`, {
     headers: apiRequestHeaders(login),
     params: {
       datasourceId: 'current',

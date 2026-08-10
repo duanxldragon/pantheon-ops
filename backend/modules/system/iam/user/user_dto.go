@@ -64,6 +64,7 @@ type UserDetailResp struct {
 }
 
 type UserListQuery struct {
+	Keyword   string `form:"keyword" json:"keyword"`
 	Username  string `form:"username" json:"username"`
 	Nickname  string `form:"nickname" json:"nickname"`
 	DeptID    uint64 `form:"deptId" json:"deptId"`

@@ -10,7 +10,7 @@ type systemSettingAuditLog struct {
 	OperName     string `gorm:"size:64"`
 	OperURL      string `gorm:"size:255"`
 	OperIP       string `gorm:"size:128"`
-	OperParam    string `gorm:"type:text"`
+	OperParam    string `gorm:"type:json"`
 	JsonResult   string `gorm:"type:text"`
 	Status       int    `gorm:"default:1"`
 	ErrorMsg     string `gorm:"type:text"`

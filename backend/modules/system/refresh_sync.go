@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm/clause"
 
 	"pantheon-ops/backend/pkg/common"
+	"pantheon-ops/backend/pkg/database"
 )
 
 type SystemRefreshVersion struct {
@@ -42,6 +43,9 @@ func NewRefreshSyncService(db *gorm.DB) *RefreshSyncService {
 
 func (s *RefreshSyncService) Migrate() error {
 	if s.db == nil {
+		return nil
+	}
+	if !database.ShouldAutoMigrate() {
 		return nil
 	}
 	return s.db.AutoMigrate(&SystemRefreshVersion{})

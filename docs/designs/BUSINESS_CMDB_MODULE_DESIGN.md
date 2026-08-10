@@ -2,7 +2,7 @@
 
 English version: [BUSINESS_CMDB_MODULE_DESIGN.en.md](./BUSINESS_CMDB_MODULE_DESIGN.en.md)
 
-更新时间：2026-05-07
+更新时间：2026-07-17
 
 类型：Design
 归属层：business/cmdb
@@ -61,7 +61,7 @@ CMDB 是业务模块，属于运维平台能力域。它负责承载基础资源
 
 - 下游子系统（部署管理、监控告警等）通过 API 读取 CMDB 主机信息，不允许直接访问 CMDB 数据库。
 - 主机状态（`status`）和已装组件（`installed_components`）由下游子系统通过 API 更新，CMDB 不主动探测。
-- `assigned` 表示主机已绑定业务域，处于部署前置态；`online` 表示部署完成后进入已上线态。
+- `assigned` 表示主机已绑定业务域，处于部署前置态；`online` 表示部署完成后进入可运维态。
 
 ## 3. 核心业务对象
 
@@ -192,14 +192,14 @@ LabelSchema 可以维护 `options` 作为 CMDB 业务域内的常用值清单。
 ### 4.3 主机状态流转
 
 ```
-pending（待上线） → assigned（已分配） → online（已上线）
+pending（待上线） → assigned（已分配） → online（可运维）
                                          ↘ offline（已下线）
                                          ↘ maintenance（维护中）
 ```
 
 - 新录入主机默认 `pending`。
 - 绑定业务域后置为 `assigned`。
-- 部署完成后由部署模块回写为 `online`。
+- 部署完成后由部署模块回写为 `online`，表示该主机已进入可运维目标集合。
 - 状态由下游子系统（监控告警、部署管理）通过 API 更新。
 - CMDB 自身不做存活检测。
 
@@ -209,7 +209,7 @@ pending（待上线） → assigned（已分配） → online（已上线）
 | :--- | :--- | :--- |
 | `pending` | 待上线 | 已录入但尚未纳入正式运维目标 |
 | `assigned` | 已分配 | 已绑定业务域，等待安装部署 |
-| `online` | 已上线 | 部署完成，可作为常规运维任务目标 |
+| `online` | 可运维 | 部署完成，可作为常规运维任务目标 |
 | `offline` | 已下线 | 不应作为常规运维任务目标 |
 | `maintenance` | 维护中 | 默认排除自动化批量任务，除非显式选择 |
 
@@ -236,6 +236,9 @@ pending（待上线） → assigned（已分配） → online（已上线）
 | `label_values` | json | 标签键值对 | `[{"key":"env","val":"production"}]` |
 | `installed_components` | json | 已装组件 | `[{"name":"mysql","version":"8.0.35"}]` |
 | `status` | varchar(32) | 主机状态 | DEFAULT `pending`，`online`/`offline`/`maintenance` |
+| `business_scope_id` | bigint | 绑定的业务域 ID 快照 | INDEX |
+| `business_scope_code` | varchar(64) | 绑定的业务域编码快照 | 可选 |
+| `business_scope_name` | varchar(128) | 绑定的业务域名称快照 | 可选 |
 | `dept_id` | bigint | 数据范围归属部门 | INDEX，新增时默认取当前登录主体部门 |
 | `owner` | varchar(64) | 负责人 | 可选 |
 | `remark` | text | 备注 | 可选 |
@@ -347,6 +350,7 @@ API 前缀：`/api/v1/business/cmdb`
 | 方法 | 路径 | 说明 | 权限点 |
 | :--- | :--- | :--- | :--- |
 | `GET` | `/labels` | 标签规范列表 | `business:cmdb:label:list` |
+| `GET` | `/labels/options` | 标签规范下拉选项 | 权限映射缺口：路由已实现，但 `business:cmdb:label:list` 当前只映射 `GET /labels`，未覆盖本路由；见任务卡 `2026-07-17-business-permission-gaps` |
 | `POST` | `/labels` | 创建标签规范 | `business:cmdb:label:create` |
 | `PUT` | `/labels/:id` | 编辑标签规范 | `business:cmdb:label:update` |
 | `DELETE` | `/labels/:id` | 删除标签规范 | `business:cmdb:label:delete` |
@@ -562,12 +566,12 @@ CMDB 的标签规范归 `business/cmdb` 所有。它可以通过 `dict_code` 引
 
 ### 11.2 依赖配置
 
-| 配置 key | 用途 | 默认值 |
+| 配置 key | 目标用途 | 当前实现 |
 | :--- | :--- | :--- |
-| `cmdb.ssh.collect_timeout` | SSH 采集连接超时（秒） | `10` |
-| `cmdb.ssh.default_port` | 默认 SSH 端口 | `22` |
+| `cmdb.ssh.collect_timeout` | 通过 `system/config` 管理 SSH 采集连接超时（秒），默认 `10` | 尚未接入配置读取；`host_service.go` 当前硬编码 `10s` |
+| `cmdb.ssh.default_port` | 通过 `system/config` 管理默认 SSH 端口，默认 `22` | 尚未接入配置读取；模型/服务层当前直接回落 `22` |
 
-配置通过 `system/config` 的加密配置能力管理，不走环境变量或硬编码。
+目标态仍是通过 base 提供的配置能力读取上述业务配置，不直接依赖 `system/config` 内部 Service，也不以环境变量替代。配置化属于待办，见任务卡 `2026-07-17-cmdb-ssh-config-externalize`。
 
 ## 12. 审计与安全要求
 
@@ -600,7 +604,7 @@ CMDB 模块需要以下 seed：
 
 | 类别 | 内容 | 说明 |
 | :--- | :--- | :--- |
-| 菜单 | `operations`、`operations.cmdb`、`operations.cmdb.host`、`operations.cmdb.group` | 一级导航 + 子模块 |
+| 菜单 | `operations`、`operations.cmdb`、`operations.cmdb.host`、`operations.cmdb.group`、`operations.cmdb.label` | 一级导航 + 子模块 |
 | 权限 | `business:cmdb:host:*`（8 项）、`business:cmdb:group:*`（6 项）、`business:cmdb:label:*`（5 项） | 见第 7 节 |
 | i18n | `business.cmdb.*`、`operations.*` | 中英文语言包 |
 | 字典 | `cmdb_host_status`、`cmdb_os_type`、`cmdb_label_key` | 见 11.1 节 |
@@ -609,7 +613,9 @@ CMDB 模块需要以下 seed：
 组件键注册：
 
 - `business/cmdb/host/CmdbHostList` → 前端 `componentRegistry` + 后端菜单组件白名单
+- `business/cmdb/host/CmdbHostDetail` → 前端 `componentRegistry` + 后端菜单组件白名单
 - `business/cmdb/group/CmdbGroupList` → 前端 `componentRegistry` + 后端菜单组件白名单
+- `business/cmdb/label/CmdbLabelSchemaList` → 前端 `componentRegistry` + 后端菜单组件白名单
 
 ## 14. 风险与边界外事项
 

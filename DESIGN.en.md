@@ -89,7 +89,7 @@ The document also defines anti-patterns to avoid, such as decorative gradients, 
 Before implementation, read in order:
 
 1. `DESIGN.md`
-2. `AGENTS.md` / `agent.md`
+2. `AGENTS.md`
 3. `docs/README.md`
 4. contracts
 5. architecture and frontend/backend design docs

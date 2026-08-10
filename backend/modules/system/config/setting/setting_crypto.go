@@ -5,9 +5,9 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
-	"errors"
 	"io"
 	"pantheon-ops/backend/pkg/common"
+	commonsecurity "pantheon-ops/backend/pkg/common/security"
 	"strings"
 )
 
@@ -63,7 +63,7 @@ func decryptSettingValue(value string) (string, error) {
 	}
 
 	if len(raw) < gcm.NonceSize() {
-		return "", errors.New("setting.decrypt.invalid")
+		return "", common.NewBadRequest("setting.decrypt.invalid")
 	}
 
 	nonce, cipherText := raw[:gcm.NonceSize()], raw[gcm.NonceSize():]
@@ -76,7 +76,7 @@ func decryptSettingValue(value string) (string, error) {
 }
 
 func getSettingCipherKey() []byte {
-	value := common.ResolveSecret("PANTHEON_SETTING_SECRET", common.DefaultSettingSecret)
+	value := commonsecurity.ResolveSecret("PANTHEON_SETTING_SECRET", commonsecurity.DefaultDevSecrets.Setting)
 
 	key := []byte(value)
 	switch {

@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Table } from '@arco-design/web-react';
 import type { PaginationProps } from '@arco-design/web-react/es/Pagination/interface';
-import type { ColumnProps, SorterInfo, TableProps } from '@arco-design/web-react/es/Table/interface';
+import type {
+  ColumnProps,
+  SorterInfo,
+  TableProps,
+} from '@arco-design/web-react/es/Table/interface';
 import { useTranslation } from 'react-i18next';
 import PageEmpty from '../feedback/PageEmpty';
 import {
@@ -30,14 +34,7 @@ type TableChangeHandler<T> = (
   },
 ) => void;
 
-type TablePagePosition =
-  | 'tl'
-  | 'tr'
-  | 'bl'
-  | 'br'
-  | 'topCenter'
-  | 'bottomCenter'
-  | undefined;
+type TablePagePosition = 'tl' | 'tr' | 'bl' | 'br' | 'topCenter' | 'bottomCenter' | undefined;
 
 const DEFAULT_SELECTION_COLUMN_WIDTH = 44;
 
@@ -86,6 +83,13 @@ function filterResponsiveColumns<T>(
         return result;
       }
       result.push({ ...column, children });
+      return result;
+    }
+
+    // On phone-width viewports a fixed action column can cover almost the whole
+    // table, hiding the data columns behind it; let it scroll with the rest.
+    if (column.fixed && viewportWidth <= 768) {
+      result.push({ ...column, fixed: undefined });
       return result;
     }
 
@@ -160,10 +164,7 @@ function createBoundaryPaginationItem<T>(
   );
 }
 
-function renderNativePagination(
-  paginationNode: React.ReactNode,
-  pagePosition: TablePagePosition,
-) {
+function renderNativePagination(paginationNode: React.ReactNode, pagePosition: TablePagePosition) {
   return (
     <div className={getPaginationWrapperClassName(pagePosition)}>
       <div className="app-table__pagination-shell">
@@ -173,7 +174,54 @@ function renderNativePagination(
   );
 }
 
-function AppTable<T>(props: AppTableProps<T>) {
+function createDecoratedPaginationNode<T>(
+  paginationNode: React.ReactElement<PaginationNodeProps>,
+  firstPageAriaLabel: string,
+  lastPageAriaLabel: string,
+  onTableChange?: TableChangeHandler<T>,
+) {
+  const originalItemRender = paginationNode.props.itemRender;
+  return React.createElement(paginationNode.type as React.ElementType<PaginationNodeProps>, {
+    ...paginationNode.props,
+    itemRender: (page, type, originElement) => {
+      const renderedOrigin = originalItemRender
+        ? originalItemRender(page, type, originElement)
+        : originElement;
+
+      if (type === 'prev') {
+        return (
+          <span className="app-table__pagination-step-group">
+            {createBoundaryPaginationItem<T>(
+              'first',
+              paginationNode.props,
+              firstPageAriaLabel,
+              onTableChange,
+            )}
+            <span className="app-table__pagination-step-origin">{renderedOrigin}</span>
+          </span>
+        );
+      }
+
+      if (type === 'next') {
+        return (
+          <span className="app-table__pagination-step-group">
+            <span className="app-table__pagination-step-origin">{renderedOrigin}</span>
+            {createBoundaryPaginationItem<T>(
+              'last',
+              paginationNode.props,
+              lastPageAriaLabel,
+              onTableChange,
+            )}
+          </span>
+        );
+      }
+
+      return renderedOrigin;
+    },
+  });
+}
+
+function AppTable<T>(props: Readonly<AppTableProps<T>>) {
   const {
     data,
     loading,
@@ -188,11 +236,11 @@ function AppTable<T>(props: AppTableProps<T>) {
   const { t } = useTranslation();
   const rows = Array.isArray(data) ? data : [];
   const [viewportWidth, setViewportWidth] = useState(() =>
-    globalThis.document === undefined ? 1920 : globalThis.innerWidth,
+    globalThis.window === undefined ? Number.MAX_SAFE_INTEGER : globalThis.innerWidth,
   );
 
   useEffect(() => {
-    if (globalThis.document === undefined) {
+    if (globalThis.window === undefined) {
       return undefined;
     }
 
@@ -225,71 +273,36 @@ function AppTable<T>(props: AppTableProps<T>) {
   const firstPageAriaLabel = t('common.pagination.firstPage', { defaultValue: 'First page' });
   const lastPageAriaLabel = t('common.pagination.lastPage', { defaultValue: 'Last page' });
 
-  const enhancedRenderPagination =
-    isPaginationConfig(pagination)
-      ? (paginationNode?: React.ReactNode) => {
-          if (!React.isValidElement<PaginationNodeProps>(paginationNode)) {
-            return renderPagination
-              ? renderPagination(paginationNode)
-              : renderNativePagination(paginationNode, pagePosition);
-          }
-
-          const shouldDecorate =
-            !paginationNode.props.simple && getPaginationTotalPages(paginationNode.props) > 1;
-
-          if (!shouldDecorate) {
-            return renderPagination
-              ? renderPagination(paginationNode)
-              : renderNativePagination(paginationNode, pagePosition);
-          }
-
-          const originalItemRender = paginationNode.props.itemRender;
-          const decoratedPaginationNode = React.cloneElement(paginationNode, {
-            itemRender: (page, type, originElement) => {
-              const renderedOrigin = originalItemRender
-                ? originalItemRender(page, type, originElement)
-                : originElement;
-
-              if (type === 'prev') {
-                return (
-                  <span className="app-table__pagination-step-group">
-                    {createBoundaryPaginationItem<T>(
-                      'first',
-                      paginationNode.props,
-                      firstPageAriaLabel,
-                      rest.onChange,
-                    )}
-                    <span className="app-table__pagination-step-origin">{renderedOrigin}</span>
-                  </span>
-                );
-              }
-
-              if (type === 'next') {
-                return (
-                  <span className="app-table__pagination-step-group">
-                    <span className="app-table__pagination-step-origin">{renderedOrigin}</span>
-                    {createBoundaryPaginationItem<T>(
-                      'last',
-                      paginationNode.props,
-                      lastPageAriaLabel,
-                      rest.onChange,
-                    )}
-                  </span>
-                );
-              }
-
-              return renderedOrigin;
-            },
-          });
-          const callerNode = renderPagination
-            ? renderPagination(decoratedPaginationNode)
-            : decoratedPaginationNode;
-
+  const enhancedRenderPagination = isPaginationConfig(pagination)
+    ? (paginationNode?: React.ReactNode) => {
+        if (!React.isValidElement<PaginationNodeProps>(paginationNode)) {
           return renderPagination
-            ? callerNode
-            : renderNativePagination(callerNode, pagePosition);
+            ? renderPagination(paginationNode)
+            : renderNativePagination(paginationNode, pagePosition);
         }
-      : renderPagination;
+
+        const shouldDecorate =
+          !paginationNode.props.simple && getPaginationTotalPages(paginationNode.props) > 1;
+
+        if (!shouldDecorate) {
+          return renderPagination
+            ? renderPagination(paginationNode)
+            : renderNativePagination(paginationNode, pagePosition);
+        }
+
+        const decoratedPaginationNode = createDecoratedPaginationNode<T>(
+          paginationNode,
+          firstPageAriaLabel,
+          lastPageAriaLabel,
+          rest.onChange,
+        );
+        const callerNode = renderPagination
+          ? renderPagination(decoratedPaginationNode)
+          : decoratedPaginationNode;
+
+        return renderPagination ? callerNode : renderNativePagination(callerNode, pagePosition);
+      }
+    : renderPagination;
 
   return (
     <div className="app-table-shell">

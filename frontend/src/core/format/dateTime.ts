@@ -27,8 +27,14 @@ function parseDate(value: DateValue) {
   }
   if (typeof value === 'string') {
     const normalized = value.trim();
-    const localDateTimeMatch = normalized.match(
-      /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$/,
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(normalized)) {
+      const date = new Date(normalized);
+      if (!Number.isNaN(date.getTime())) {
+        return date;
+      }
+    }
+    const localDateTimeMatch = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$/.exec(
+      normalized,
     );
     if (localDateTimeMatch) {
       const [, year, month, day, hour = '00', minute = '00', second = '00'] = localDateTimeMatch;
@@ -52,6 +58,24 @@ function parseDate(value: DateValue) {
   return date;
 }
 
+function formatDateParts(date: Date, withTime: boolean, withSeconds: boolean) {
+  // Use local getters to match how backend stores / sends local datetime strings
+  // (e.g. "2026-08-11 14:23:45" → year/month/day/hour/minute/second all in local TZ).
+  // This keeps formatDateTime output consistent with parseDate input so it round-trips correctly.
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const datePart = `${year}-${month}-${day}`;
+  if (!withTime) {
+    return datePart;
+  }
+  const timePart = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  if (!withSeconds) {
+    return `${datePart} ${timePart}`;
+  }
+  return `${datePart} ${timePart}:${String(date.getSeconds()).padStart(2, '0')}`;
+}
+
 export function isValidDateValue(value?: DateValue) {
   return parseDate(value) !== null;
 }
@@ -61,22 +85,6 @@ function getInvalidFallback(value: DateValue) {
     return '-';
   }
   return String(value);
-}
-
-function padDatePart(value: number) {
-  return String(value).padStart(2, '0');
-}
-
-function formatDateParts(date: Date, withTime: boolean, withSeconds: boolean) {
-  const datePart = `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}`;
-  if (!withTime) {
-    return datePart;
-  }
-  const timePart = `${padDatePart(date.getHours())}:${padDatePart(date.getMinutes())}`;
-  if (!withSeconds) {
-    return `${datePart} ${timePart}`;
-  }
-  return `${datePart} ${timePart}:${padDatePart(date.getSeconds())}`;
 }
 
 function getRelativeTimeFormatter() {
@@ -133,7 +141,7 @@ export function formatDateTime(value?: DateValue, options?: FormatDateTimeOption
   if (!date) {
     return getInvalidFallback(value);
   }
-  return formatDateParts(date, true, options?.withSeconds !== false);
+  return formatDateParts(date, true, options?.withSeconds === true);
 }
 
 export function formatRelativeTime(value?: DateValue, baseTime: DateValue = Date.now()) {

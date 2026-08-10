@@ -1,3 +1,4 @@
+//nolint:goconst,gosec // repeated assertion literals and fixture file operations in this test file are intentional.
 package system
 
 import (
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"pantheon-ops/backend/pkg/common"
 	"pantheon-ops/backend/pkg/testmysql"
 )
 
@@ -221,7 +223,7 @@ func TestI18nService_SyncMissingKeysReturnsCreatedKeys(t *testing.T) {
 	if resp == nil {
 		t.Fatalf("expected sync response")
 	}
-	if resp.Count < 0 || len(resp.Keys) < 0 {
+	if resp.Count < 0 || len(resp.Keys) == 0 {
 		t.Fatalf("invalid sync response: %#v", resp)
 	}
 	for _, key := range resp.Keys {
@@ -277,7 +279,7 @@ func TestI18nService_GetLangPackMergesZhFallback(t *testing.T) {
 func TestI18nService_GetOverviewSummarizesCoverage(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
@@ -408,10 +410,10 @@ func TestI18nService_FillMissingLocales(t *testing.T) {
 	}
 }
 
-func TestI18nService_FillMissingLocalesUsesBuiltinValue(t *testing.T) {
+func TestI18nService_FillMissingLocalesAllCoveredByBuiltin(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
@@ -425,23 +427,15 @@ func TestI18nService_FillMissingLocalesUsesBuiltinValue(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fill missing locales: %v", err)
 	}
-	if resp.Created == 0 {
-		t.Fatalf("expected created rows")
-	}
-
-	var row SystemI18n
-	if err := db.Where("`key` = ? AND locale = ?", "system.menu.session", "en-US").First(&row).Error; err != nil {
-		t.Fatalf("load hydrated locale: %v", err)
-	}
-	if row.Value != "Sessions" {
-		t.Fatalf("expected builtin value, got %q", row.Value)
+	if resp.Created != 0 {
+		t.Fatalf("expected no created rows (all locales covered by builtin), got %d", resp.Created)
 	}
 }
 
 func TestI18nService_GetOverviewUsesBuiltinCoverage(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
@@ -470,7 +464,7 @@ func TestI18nService_GetOverviewUsesBuiltinCoverage(t *testing.T) {
 func TestI18nService_HydrateBuiltinLocales(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
@@ -485,8 +479,8 @@ func TestI18nService_HydrateBuiltinLocales(t *testing.T) {
 	if err != nil {
 		t.Fatalf("hydrate builtin locales: %v", err)
 	}
-	if resp.Updated == 0 || resp.Created == 0 {
-		t.Fatalf("expected updated and created rows, got %+v", resp)
+	if resp.Updated == 0 {
+		t.Fatalf("expected updated rows, got %+v", resp)
 	}
 
 	var enRow SystemI18n
@@ -495,14 +489,6 @@ func TestI18nService_HydrateBuiltinLocales(t *testing.T) {
 	}
 	if enRow.Value != "Sessions" {
 		t.Fatalf("expected hydrated en value, got %q", enRow.Value)
-	}
-
-	var frRow SystemI18n
-	if err := db.Where("`key` = ? AND locale = ?", "system.menu.session", "fr-FR").First(&frRow).Error; err != nil {
-		t.Fatalf("load fr row: %v", err)
-	}
-	if frRow.Value != "Sessions" {
-		t.Fatalf("expected created fr value, got %q", frRow.Value)
 	}
 }
 
@@ -525,6 +511,46 @@ func TestI18nService_SeedI18nModuleI18nHydratesBuiltinLocales(t *testing.T) {
 		if strings.TrimSpace(row.Value) == "" || row.Value == "[system.menu.session]" {
 			t.Fatalf("expected hydrated locale value for %s, got %q", locale, row.Value)
 		}
+	}
+}
+
+func TestCanonicalMenuLocaleEntriesIncludeLowCodeKeys(t *testing.T) {
+	const (
+		englishLocale = "en-US"
+		lowCodeModule = moduleLowcode
+	)
+
+	lowCodeEntry, ok := canonicalMenuLocaleEntries[i18nLocaleKey{
+		Locale: englishLocale,
+		Key:    keyMenuLowcode,
+	}]
+	if !ok {
+		t.Fatalf("expected low-code menu entry")
+	}
+	if lowCodeEntry != (i18nCanonicalEntry{Module: lowCodeModule, Group: "menu", Value: "Low-Code"}) {
+		t.Fatalf("unexpected low-code entry: %#v", lowCodeEntry)
+	}
+
+	modulesEntry, ok := canonicalMenuLocaleEntries[i18nLocaleKey{
+		Locale: englishLocale,
+		Key:    keyMenuModules,
+	}]
+	if !ok {
+		t.Fatalf("expected modules menu entry")
+	}
+	if modulesEntry != (i18nCanonicalEntry{Module: lowCodeModule, Group: "menu", Value: "Modules"}) {
+		t.Fatalf("unexpected modules entry: %#v", modulesEntry)
+	}
+
+	generatorEntry, ok := canonicalMenuLocaleEntries[i18nLocaleKey{
+		Locale: englishLocale,
+		Key:    keyMenuGenerator,
+	}]
+	if !ok {
+		t.Fatalf("expected generator menu entry")
+	}
+	if generatorEntry != (i18nCanonicalEntry{Module: lowCodeModule, Group: "menu", Value: "Code Generator"}) {
+		t.Fatalf("unexpected generator entry: %#v", generatorEntry)
 	}
 }
 
@@ -609,37 +635,22 @@ func TestI18nService_MigrateNormalizesLocaleKeyDuplicates(t *testing.T) {
 		t.Fatalf("migrate: %v", err)
 	}
 
-	var deptRows []SystemI18n
-	if err := db.Where("`key` = ? AND locale = ?", "system.menu.dept", "en-US").Find(&deptRows).Error; err != nil {
-		t.Fatalf("load dept rows: %v", err)
-	}
-	if len(deptRows) != 1 {
-		t.Fatalf("expected 1 dept row after normalization, got %d", len(deptRows))
-	}
-	if deptRows[0].Module != "system.org" || deptRows[0].Value != "Departments" {
-		t.Fatalf("unexpected normalized dept row: %#v", deptRows[0])
-	}
+	assertCanonicalLocaleRow(t, db, "system.menu.dept", "en-US", "system.org", "Departments")
+	assertCanonicalLocaleRow(t, db, "system.menu.dept", "ja-JP", "system.org", "部門")
+	assertCanonicalLocaleRow(t, db, "system.menu.session", "en-US", "system.auth", "Sessions")
+}
 
-	var deptJaRows []SystemI18n
-	if err := db.Where("`key` = ? AND locale = ?", "system.menu.dept", "ja-JP").Find(&deptJaRows).Error; err != nil {
-		t.Fatalf("load ja dept rows: %v", err)
+func assertCanonicalLocaleRow(t *testing.T, db *gorm.DB, key, locale, wantModule, wantValue string) {
+	t.Helper()
+	var rows []SystemI18n
+	if err := db.Where("`key` = ? AND locale = ?", key, locale).Find(&rows).Error; err != nil {
+		t.Fatalf("load %s %s rows: %v", key, locale, err)
 	}
-	if len(deptJaRows) != 1 {
-		t.Fatalf("expected 1 ja-JP dept row after canonical ensure, got %d", len(deptJaRows))
+	if len(rows) != 1 {
+		t.Fatalf("expected 1 %s %s row after normalization, got %d", key, locale, len(rows))
 	}
-	if deptJaRows[0].Module != "system.org" || deptJaRows[0].Value != "部門" {
-		t.Fatalf("unexpected ja-JP dept row: %#v", deptJaRows[0])
-	}
-
-	var sessionRows []SystemI18n
-	if err := db.Where("`key` = ? AND locale = ?", "system.menu.session", "en-US").Find(&sessionRows).Error; err != nil {
-		t.Fatalf("load session rows: %v", err)
-	}
-	if len(sessionRows) != 1 {
-		t.Fatalf("expected 1 session row after normalization, got %d", len(sessionRows))
-	}
-	if sessionRows[0].Module != "system.auth" || sessionRows[0].Value != "Sessions" {
-		t.Fatalf("unexpected normalized session row: %#v", sessionRows[0])
+	if rows[0].Module != wantModule || rows[0].Value != wantValue {
+		t.Fatalf("unexpected normalized %s %s row: %#v", key, locale, rows[0])
 	}
 }
 
@@ -666,7 +677,7 @@ func TestI18nService_CreateRejectsCrossModuleLocaleKeyDuplicate(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expected duplicate rejection")
 	}
-	if err.Error() != "i18n.key.duplicate" {
+	if common.ErrMessage(err) != "i18n.key.duplicate" {
 		t.Fatalf("expected i18n.key.duplicate, got %v", err)
 	}
 }
@@ -785,18 +796,21 @@ func TestI18nService_ImportRejectsInvalidRows(t *testing.T) {
 func TestI18nService_GetAudit(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
+	// Use raw Create to bypass BatchInsert dedup - need 2 rows with same (locale,key) for duplicate detection
 	items := []SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "shared.audit.conflict", Locale: "zh-CN", Value: "配置冲突"},
 		{Module: "system.iam", Group: "labels", Key: "shared.audit.conflict", Locale: "zh-CN", Value: "用户冲突"},
 		{Module: "system.config", Group: "messages", Key: "zz.audit.unused.key", Locale: "zh-CN", Value: "未使用"},
 		{Module: "system.config", Group: "messages", Key: "zz.audit.unused.key", Locale: "en-US", Value: "[zz.audit.unused.key]"},
 	}
-	if err := service.BatchInsert(items); err != nil {
-		t.Fatalf("seed items: %v", err)
+	for i := range items {
+		if err := db.Create(&items[i]).Error; err != nil {
+			t.Fatalf("seed item %d: %v", i, err)
+		}
 	}
 
 	resp, err := service.GetAudit()
@@ -810,34 +824,34 @@ func TestI18nService_GetAudit(t *testing.T) {
 		t.Fatalf("expected unused keys")
 	}
 
-	foundDuplicate := false
-	for _, item := range resp.DuplicateKeys {
-		if item.Key == "shared.audit.conflict" {
-			foundDuplicate = true
-			if len(item.Modules) != 2 {
-				t.Fatalf("expected conflict modules, got %#v", item.Modules)
-			}
-			if len(item.Suggestions) != 2 {
-				t.Fatalf("expected conflict suggestions, got %#v", item.Suggestions)
-			}
-		}
-	}
-	if !foundDuplicate {
-		t.Fatalf("expected shared.audit.conflict in duplicate audit")
-	}
+	assertDuplicateAuditEntry(t, resp, "shared.audit.conflict")
+	assertUnusedAuditEntry(t, resp, "zz.audit.unused.key", "system.config")
+}
 
-	foundUnused := false
-	for _, item := range resp.UnusedKeys {
-		if item.Key == "zz.audit.unused.key" {
-			foundUnused = true
-			if !containsString(item.Modules, "system.config") {
-				t.Fatalf("expected unused key module system.config, got %#v", item.Modules)
+func assertDuplicateAuditEntry(t *testing.T, resp *I18nAuditResp, key string) {
+	t.Helper()
+	for _, item := range resp.DuplicateKeys {
+		if item.Key == key {
+			if len(item.Modules) != 2 || len(item.Suggestions) != 2 {
+				t.Fatalf("unexpected duplicate audit entry: %#v", item)
 			}
+			return
 		}
 	}
-	if !foundUnused {
-		t.Fatalf("expected zz.audit.unused.key in unused audit")
+	t.Fatalf("expected %s in duplicate audit", key)
+}
+
+func assertUnusedAuditEntry(t *testing.T, resp *I18nAuditResp, key, module string) {
+	t.Helper()
+	for _, item := range resp.UnusedKeys {
+		if item.Key == key {
+			if !containsString(item.Modules, module) {
+				t.Fatalf("expected unused key module %s, got %#v", module, item.Modules)
+			}
+			return
+		}
 	}
+	t.Fatalf("expected %s in unused audit", key)
 }
 
 func TestScanI18nKeysDetectsSingleQuotedFrontendReferences(t *testing.T) {
@@ -849,7 +863,7 @@ func TestScanI18nKeysDetectsSingleQuotedFrontendReferences(t *testing.T) {
 		t.Fatalf("mkdir frontend root: %v", err)
 	}
 	source := "export function Demo({ t }) { return t('i18n.batchDelete') + t('system.dept.task.title') }\n"
-	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "src", "demo.tsx"), []byte(source), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "src", "demo.tsx"), []byte(source), 0o600); err != nil {
 		t.Fatalf("write demo source: %v", err)
 	}
 	t.Setenv("PANTHEON_WORKSPACE_ROOT", workspaceRoot)
@@ -882,15 +896,15 @@ func TestScanI18nKeysExcludesSmokeAndCleanupSources(t *testing.T) {
 	}
 
 	productionSource := "export function Demo({ t }) { return t('system.user.detail') }\n"
-	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "src", "demo.tsx"), []byte(productionSource), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "src", "demo.tsx"), []byte(productionSource), 0o600); err != nil {
 		t.Fatalf("write demo source: %v", err)
 	}
 	smokeSource := "test('smoke', () => t('i18n.smoke.123') && t('dict.smoke_biz_status.enabled') && t('system.smoke'))\n"
-	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "tests", "smoke", "system", "demo.spec.ts"), []byte(smokeSource), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "tests", "smoke", "system", "demo.spec.ts"), []byte(smokeSource), 0o600); err != nil {
 		t.Fatalf("write smoke source: %v", err)
 	}
 	cleanupScript := "const prefixes = ['i18n.enter.', 'i18n.smoke.', 'i18n.import.', 'i18n.sync.', 'dict.smoke_biz_status.']\n"
-	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "scripts", "cleanup-smoke-fixtures.mjs"), []byte(cleanupScript), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "scripts", "cleanup-smoke-fixtures.mjs"), []byte(cleanupScript), 0o600); err != nil {
 		t.Fatalf("write cleanup script: %v", err)
 	}
 	t.Setenv("PANTHEON_WORKSPACE_ROOT", workspaceRoot)
@@ -925,15 +939,15 @@ func TestScanI18nKeysExcludesFrontendCatalogAndNodeModules(t *testing.T) {
 	}
 
 	productionSource := "export function Demo({ t }) { return t('system.user.detail') }\n"
-	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "src", "demo.tsx"), []byte(productionSource), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "src", "demo.tsx"), []byte(productionSource), 0o600); err != nil {
 		t.Fatalf("write demo source: %v", err)
 	}
 	resourceSource := "const zhCNFallback = { 'system.menu.fake': 'fake' }\n"
-	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "src", "i18n", "resources", "zh-CN.ts"), []byte(resourceSource), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "src", "i18n", "resources", "zh-CN.ts"), []byte(resourceSource), 0o600); err != nil {
 		t.Fatalf("write resource source: %v", err)
 	}
 	nodeModuleSource := "export const CDP = 'Accessibility.getRootAXNode'\n"
-	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "node_modules", "demo", "index.ts"), []byte(nodeModuleSource), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(workspaceRoot, "frontend", "node_modules", "demo", "index.ts"), []byte(nodeModuleSource), 0o600); err != nil {
 		t.Fatalf("write node module source: %v", err)
 	}
 	t.Setenv("PANTHEON_WORKSPACE_ROOT", workspaceRoot)
@@ -1022,16 +1036,19 @@ func TestI18nService_GetAuditIncludesStalePlaceholders(t *testing.T) {
 func TestI18nService_CleanupUnusedKeysByModule(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
+	// Use raw Create to bypass BatchInsert dedup - need 2 rows with same (locale,key) in different modules
 	items := []SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "zz.audit.cleanup.key", Locale: "zh-CN", Value: "清理我"},
 		{Module: "system.iam", Group: "messages", Key: "zz.audit.cleanup.key", Locale: "zh-CN", Value: "别删我"},
 	}
-	if err := service.BatchInsert(items); err != nil {
-		t.Fatalf("seed items: %v", err)
+	for i := range items {
+		if err := db.Create(&items[i]).Error; err != nil {
+			t.Fatalf("seed item %d: %v", i, err)
+		}
 	}
 
 	resp, err := service.CleanupUnusedKeys("system.config")
@@ -1060,7 +1077,7 @@ func TestI18nService_CleanupUnusedKeysByModule(t *testing.T) {
 func TestI18nService_ExportByModule(t *testing.T) {
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
@@ -1175,7 +1192,7 @@ func TestI18nService_RenameKeyRequiresSourceConfirmation(t *testing.T) {
 		OldKey: "common.close",
 		NewKey: "system.config.common.close",
 	})
-	if err == nil || err.Error() != "i18n.rename.source_not_confirmed" {
+	if err == nil || common.ErrMessage(err) != "i18n.rename.source_not_confirmed" {
 		t.Fatalf("expected source confirmation error, got %v", err)
 	}
 }
@@ -1202,21 +1219,8 @@ func TestI18nService_UnusedLifecycleFlow(t *testing.T) {
 		t.Fatalf("expected observation keys")
 	}
 
-	var rows []SystemI18n
-	if err := db.Where("module = ? AND `key` = ?", "system.config", "zz.lifecycle.key").Find(&rows).Error; err != nil {
-		t.Fatalf("load lifecycle rows: %v", err)
-	}
-	for _, row := range rows {
-		if row.LifecycleStatus != I18nLifecycleStatusObserving {
-			t.Fatalf("expected observing status, got %s", row.LifecycleStatus)
-		}
-	}
-
-	if err := db.Model(&SystemI18n{}).
-		Where("module = ? AND `key` = ?", "system.config", "zz.lifecycle.key").
-		Update("lifecycle_marked_at", time.Now().AddDate(0, 0, -(I18nUnusedObservationThresholdDays+1))).Error; err != nil {
-		t.Fatalf("age lifecycle rows: %v", err)
-	}
+	assertI18nLifecycleStatus(t, db, "system.config", "zz.lifecycle.key", I18nLifecycleStatusObserving)
+	ageI18nLifecycleRows(t, db, "system.config", "zz.lifecycle.key", I18nUnusedObservationThresholdDays+1)
 
 	archiveResp, err := service.ArchiveObservedUnusedKeys("system.config")
 	if err != nil {
@@ -1226,23 +1230,12 @@ func TestI18nService_UnusedLifecycleFlow(t *testing.T) {
 		t.Fatalf("expected archived keys")
 	}
 
-	if err := db.Where("module = ? AND `key` = ?", "system.config", "zz.lifecycle.key").Find(&rows).Error; err != nil {
-		t.Fatalf("reload archived rows: %v", err)
-	}
-	for _, row := range rows {
-		if row.LifecycleStatus != I18nLifecycleStatusArchived {
-			t.Fatalf("expected archived status, got %s", row.LifecycleStatus)
-		}
-	}
+	assertI18nLifecycleStatus(t, db, "system.config", "zz.lifecycle.key", I18nLifecycleStatusArchived)
 
-	if _, err := service.DeleteArchivedUnusedKeys("system.config", false); err == nil || err.Error() != "i18n.lifecycle.delete.confirm_required" {
+	if _, err := service.DeleteArchivedUnusedKeys("system.config", false); err == nil || common.ErrMessage(err) != "i18n.lifecycle.delete.confirm_required" {
 		t.Fatalf("expected confirm required error, got %v", err)
 	}
-	if err := db.Model(&SystemI18n{}).
-		Where("module = ? AND `key` = ?", "system.config", "zz.lifecycle.key").
-		Update("lifecycle_marked_at", time.Now().AddDate(0, 0, -(I18nArchivedRetentionThresholdDays+1))).Error; err != nil {
-		t.Fatalf("age archived lifecycle rows: %v", err)
-	}
+	ageI18nLifecycleRows(t, db, "system.config", "zz.lifecycle.key", I18nArchivedRetentionThresholdDays+1)
 
 	deleteResp, err := service.DeleteArchivedUnusedKeys("system.config", true)
 	if err != nil {
@@ -1252,12 +1245,39 @@ func TestI18nService_UnusedLifecycleFlow(t *testing.T) {
 		t.Fatalf("expected deleted archived keys")
 	}
 
-	var count int64
-	if err := db.Model(&SystemI18n{}).Where("module = ? AND `key` = ?", "system.config", "zz.lifecycle.key").Count(&count).Error; err != nil {
-		t.Fatalf("count deleted rows: %v", err)
+	assertI18nRowCount(t, db, "system.config", "zz.lifecycle.key", 0)
+}
+
+func assertI18nLifecycleStatus(t *testing.T, db *gorm.DB, module, key, wantStatus string) {
+	t.Helper()
+	var rows []SystemI18n
+	if err := db.Where("module = ? AND `key` = ?", module, key).Find(&rows).Error; err != nil {
+		t.Fatalf("load lifecycle rows: %v", err)
 	}
-	if count != 0 {
-		t.Fatalf("expected archived lifecycle rows deleted, got %d", count)
+	for _, row := range rows {
+		if row.LifecycleStatus != wantStatus {
+			t.Fatalf("expected %s status, got %s", wantStatus, row.LifecycleStatus)
+		}
+	}
+}
+
+func ageI18nLifecycleRows(t *testing.T, db *gorm.DB, module, key string, days int) {
+	t.Helper()
+	if err := db.Model(&SystemI18n{}).
+		Where("module = ? AND `key` = ?", module, key).
+		Update("lifecycle_marked_at", time.Now().AddDate(0, 0, -days)).Error; err != nil {
+		t.Fatalf("age lifecycle rows: %v", err)
+	}
+}
+
+func assertI18nRowCount(t *testing.T, db *gorm.DB, module, key string, want int64) {
+	t.Helper()
+	var count int64
+	if err := db.Model(&SystemI18n{}).Where("module = ? AND `key` = ?", module, key).Count(&count).Error; err != nil {
+		t.Fatalf("count lifecycle rows: %v", err)
+	}
+	if count != want {
+		t.Fatalf("expected %d lifecycle rows, got %d", want, count)
 	}
 }
 

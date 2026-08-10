@@ -1,6 +1,10 @@
 package business
 
-import "gorm.io/gorm"
+import (
+	"strings"
+
+	"gorm.io/gorm"
+)
 
 type retiredModuleSpec struct {
 	ModuleNames        []string
@@ -9,7 +13,50 @@ type retiredModuleSpec struct {
 	ComponentKeys      []string
 }
 
-var retiredBusinessModules = []retiredModuleSpec{}
+// retiredBusinessModules 由 ops 维护，包含 cmdb 等业务模块的退役条目。
+// base 只保留通用 hook；具体业务退役清单属于 ops 的业务语义。
+var retiredBusinessModules = []retiredModuleSpec{
+	{
+		ModuleNames: []string{
+			"business.cmdb",
+			"business.cmdb.host",
+			"business.cmdbhostqa",
+			"business.cmdb.group",
+			"business.cmdb.label",
+			"cmdb",
+			"cmdb.host",
+			"cmdbhostqa",
+			"cmdb.group",
+		},
+		PermissionPrefixes: []string{
+			"business:cmdb:",
+			"business:cmdbhostqa:",
+			"cmdb:",
+		},
+		MenuPaths: []string{
+			"/business/cmdb",
+			"/business/cmdb/host",
+			"/business/cmdb/host/:id",
+			"/business/cmdbhostqa",
+			"/business/cmdbhostqa/:id",
+			"/business/cmdb/group",
+			"/business/cmdb/label",
+			"/operations/cmdb",
+			"/operations/cmdb/host",
+			"/operations/cmdb/host/:id",
+			"/operations/cmdb/group",
+			"/operations/cmdb/label",
+		},
+		ComponentKeys: []string{
+			"business/cmdb/host/CmdbHostList",
+			"business/cmdb/host/CmdbHostDetail",
+			"business/cmdbhostqa/CmdbhostqaList",
+			"business/cmdbhostqa/CmdbhostqaDetail",
+			"business/cmdb/group/CmdbGroupList",
+			"business/cmdb/label/CmdbLabelSchemaList",
+		},
+	},
+}
 
 func CleanupRetiredBusinessModules(db *gorm.DB) error {
 	return cleanupRetiredBusinessModules(db)
@@ -58,6 +105,17 @@ func cleanupRetiredModule(tx *gorm.DB, spec retiredModuleSpec) error {
 	if tx.Migrator().HasTable("system_i18n") && len(spec.ModuleNames) > 0 {
 		if err := tx.Table("system_i18n").Where("module IN ?", spec.ModuleNames).Delete(nil).Error; err != nil {
 			return err
+		}
+		for _, moduleName := range spec.ModuleNames {
+			trimmed := strings.TrimSpace(moduleName)
+			if trimmed == "" {
+				continue
+			}
+			if err := tx.Table("system_i18n").
+				Where("module = ? AND (`key` = ? OR `key` LIKE ?)", "system.config", trimmed, trimmed+".%").
+				Delete(nil).Error; err != nil {
+				return err
+			}
 		}
 	}
 

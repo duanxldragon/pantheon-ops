@@ -88,6 +88,38 @@ type ModuleRelation struct {
 	JunctionTable    string `json:"junctionTable,omitempty"`
 }
 
+// ModuleI18nTranslations holds the locale-to-translation mapping for a generated module.
+type ModuleI18nTranslations struct {
+	Zh map[string]string `json:"zh"`
+	En map[string]string `json:"en"`
+}
+
+// ModuleMetadata captures governance and provenance details for a generated module.
+type ModuleMetadata struct {
+	BusinessContext        string `json:"businessContext"`
+	BusinessContextTitle   string `json:"businessContextTitle"`
+	BusinessContextTitleEn string `json:"businessContextTitleEn"`
+	TableRole              string `json:"tableRole"`
+	PrimaryTable           string `json:"primaryTable"`
+	RelationFromField      string `json:"relationFromField"`
+	RelationToField        string `json:"relationToField"`
+	BoundedContext         string `json:"boundedContext"`
+	Owner                  string `json:"owner"`
+	Summary                string `json:"summary"`
+	SourceMode             string `json:"sourceMode"`
+	SourceDatasourceID     string `json:"sourceDatasourceId"`
+	SourceDatasourceName   string `json:"sourceDatasourceName"`
+	SourceTable            string `json:"sourceTable"`
+	AutoRecycle            bool   `json:"autoRecycle,omitempty"`
+}
+
+// ModuleModel describes the persistence model of a generated module.
+type ModuleModel struct {
+	TableName string        `json:"tableName"`
+	ModelName string        `json:"modelName"`
+	Fields    []ModuleField `json:"fields"`
+}
+
 type ModuleSchema struct {
 	Name               string             `json:"name"`
 	TemplateVersion    string             `json:"templateVersion,omitempty"`
@@ -102,36 +134,13 @@ type ModuleSchema struct {
 	Dependencies       []ModuleDependency `json:"dependencies,omitempty"`
 	Relations          []ModuleRelation   `json:"relations,omitempty"`
 	DataScopeMode      string             `json:"dataScopeMode,omitempty"`
-	Metadata           struct {
-		BusinessContext        string `json:"businessContext"`
-		BusinessContextTitle   string `json:"businessContextTitle"`
-		BusinessContextTitleEn string `json:"businessContextTitleEn"`
-		TableRole              string `json:"tableRole"`
-		PrimaryTable           string `json:"primaryTable"`
-		RelationFromField      string `json:"relationFromField"`
-		RelationToField        string `json:"relationToField"`
-		BoundedContext         string `json:"boundedContext"`
-		Owner                  string `json:"owner"`
-		Summary                string `json:"summary"`
-		SourceMode             string `json:"sourceMode"`
-		SourceDatasourceID     string `json:"sourceDatasourceId"`
-		SourceDatasourceName   string `json:"sourceDatasourceName"`
-		SourceTable            string `json:"sourceTable"`
-		AutoRecycle            bool   `json:"autoRecycle,omitempty"`
-	} `json:"metadata"`
-	Model struct {
-		TableName string        `json:"tableName"`
-		ModelName string        `json:"modelName"`
-		Fields    []ModuleField `json:"fields"`
-	} `json:"model"`
-	Menus       []MenuSeedConfig   `json:"menus,omitempty"`
-	Permissions []PermissionConfig `json:"permissions,omitempty"`
-	I18n        struct {
-		Namespace    string `json:"namespace"`
-		Translations struct {
-			Zh map[string]string `json:"zh"`
-			En map[string]string `json:"en"`
-		} `json:"translations"`
+	Metadata           ModuleMetadata     `json:"metadata"`
+	Model              ModuleModel        `json:"model"`
+	Menus              []MenuSeedConfig   `json:"menus,omitempty"`
+	Permissions        []PermissionConfig `json:"permissions,omitempty"`
+	I18n               struct {
+		Namespace    string                 `json:"namespace"`
+		Translations ModuleI18nTranslations `json:"translations"`
 	} `json:"i18n"`
 	EnableExport           bool `json:"enableExport,omitempty"`
 	EnableImport           bool `json:"enableImport,omitempty"`

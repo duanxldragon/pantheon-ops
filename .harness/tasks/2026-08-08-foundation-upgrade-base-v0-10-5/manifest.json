@@ -1,0 +1,50 @@
+{
+  "taskId": "2026-08-08-foundation-upgrade-base-v0-10-5",
+  "title": "Consume pantheon-base-v0.10.5 smoke runner contract",
+  "goal": "Consume the immutable pantheon-base-v0.10.5 release that closes the shared smoke runner test/fixture contract, preserve Ops business overlays, and close the v0.10.4 consumer gap.",
+  "primaryLayer": "inheritance-sync",
+  "taskDoc": "docs/harness/tasks/2026-08-08-foundation-upgrade-base-v0-10-5.task.md",
+  "scope": {
+    "in": [
+      "published foundation artifact installation and checksum verification",
+      "rollback-protected v0.10.5 consumer apply",
+      "Ops exact shared tooling allowlist and stale runner fixture cleanup",
+      "inheritance, smoke-script, frontend, and MSYS2 Go race verification",
+      "PR #75 hosted closeout"
+    ],
+    "out": [
+      "Base release mutation",
+      "manual shared-file copies",
+      "business route or API changes",
+      "new UI design or database changes"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "../pantheon-base/DESIGN.md",
+    "../pantheon-base/AGENTS.md",
+    "../pantheon-base/releases/pantheon-base-v0.10.5/manifest.json"
+  ],
+  "sourceRelease": {
+    "releaseVersion": "pantheon-base-v0.10.5",
+    "releaseLine": "release/0.10",
+    "baseCommit": "b97c0f6d288e2c984fbd9215d6d3626929f68d85",
+    "archiveSha256": "a49457b96ec1ff18bd716c149708433798e5e99db8698fa686f6346c26f555f0"
+  },
+  "harnessProfile": {
+    "template": "pantheon-ops inheritance L2",
+    "qualityProfile": "foundation-release-consumer",
+    "ownerLayer": "inheritance-boundary",
+    "coverageDimensions": ["release-identity", "consumer-compatibility", "overlay-preservation", "runtime-quality"]
+  },
+  "runtimeSensitive": true,
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/",
+    "reviewFile": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md",
+    "summaryFile": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/summary.md",
+    "changeRef": "ec7c4f8 + 600b100",
+    "planRefs": ["docs/harness/tasks/2026-08-08-foundation-upgrade-base-v0-10-5.task.md"]
+  },
+  "humanGate": "Maintainer authorized autonomous PR, release-consumption, merge, and historical-debt closeout actions."
+}

@@ -18,6 +18,7 @@ type MenuTreeResp struct {
 	IsCache    int             `json:"isCache"`
 	IsExternal int             `json:"isExternal"`
 	ActiveMenu string          `json:"activeMenu"`
+	HideInNav  int             `json:"hideInNav"`
 	Children   []*MenuTreeResp `json:"children,omitempty"` // 子菜单
 }
 
@@ -37,6 +38,7 @@ type MenuCreateReq struct {
 	IsCache    int    `json:"isCache"`
 	IsExternal int    `json:"isExternal"`
 	ActiveMenu string `json:"activeMenu"`
+	HideInNav  int    `json:"hideInNav"`
 }
 
 type MenuUpdateReq struct {
@@ -55,9 +57,11 @@ type MenuUpdateReq struct {
 	IsCache    int    `json:"isCache"`
 	IsExternal int    `json:"isExternal"`
 	ActiveMenu string `json:"activeMenu"`
+	HideInNav  int    `json:"hideInNav"`
 }
 
 type MenuListQuery struct {
+	Keyword   string `form:"keyword"`
 	TitleKey  string `form:"titleKey"`
 	Path      string `form:"path"`
 	IsVisible *int   `form:"isVisible"`

@@ -1,0 +1,63 @@
+{
+  "taskId": "2026-08-07-foundation-upgrade-base-v0-10-3",
+  "title": "Consume pantheon-base-v0.10.3 and restore generated business routes in Pantheon Ops",
+  "goal": "Consume the immutable pantheon-base-v0.10.3 release, restore generated business routes to /business/*, preserve Ops overlays, and quantify remaining repository debt.",
+  "primaryLayer": "inheritance-sync",
+  "taskDoc": "docs/harness/tasks/2026-08-07-foundation-upgrade-base-v0-10-3.task.md",
+  "scope": {
+    "in": [
+      "formal GitHub release installation and identity verification",
+      "rollback-protected shared-path apply",
+      "generated business route and menu remediation",
+      "consumer compatibility remediation for operation tokens, lowcode API policies, generated i18n, and purge ordering",
+      "business overlay preservation",
+      "local verification and runtime evidence",
+      "branch and PR debt assessment"
+    ],
+    "out": [
+      "Base release mutation",
+      "manual Base worktree copies",
+      "migration of intentionally manual /operations/* routes",
+      "remote merge or branch deletion",
+      "new UI design or database changes"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "../pantheon-base/DESIGN.md",
+    "../pantheon-base/AGENTS.md",
+    "../pantheon-base/docs/designs/LOWCODE_GENERATOR_GUIDE.md"
+  ],
+  "sourceRelease": {
+    "releaseVersion": "pantheon-base-v0.10.3",
+    "releaseLine": "release/0.10",
+    "baseCommit": "c8c5832d85f33f2f245526f4d0eab9df93225880",
+    "archiveSha256": "c0d3981c315cd323234e1272cc2cd473cbf114c213938abb4b4ff268a94e1239"
+  },
+  "harnessProfile": {
+    "template": "pantheon-ops inheritance L2",
+    "qualityProfile": "foundation-release-consumer",
+    "ownerLayer": "inheritance-boundary",
+    "coverageDimensions": [
+      "release-identity",
+      "generated-route-behavior",
+      "consumer-runtime-compatibility",
+      "business-overlay-preservation",
+      "rollback-safety",
+      "runtime-quality",
+      "repository-debt"
+    ]
+  },
+  "runtimeSensitive": true,
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/",
+    "reviewFile": ".harness/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/review.md",
+    "summaryFile": ".harness/evidence/2026-08-07-foundation-upgrade-base-v0-10-3/summary.md",
+    "changeRef": "working-tree",
+    "planRefs": [
+      "docs/harness/tasks/2026-08-07-foundation-upgrade-base-v0-10-3.task.md"
+    ]
+  },
+  "humanGate": "Satisfied for local implementation and assessment; remote merge, PR closure, and branch deletion remain separate human gates."
+}

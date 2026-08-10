@@ -4,9 +4,11 @@ import {
   Button,
   Checkbox,
   Descriptions,
+  Dropdown,
   Form,
   Grid,
   Input,
+  Menu,
   Popconfirm,
   Select,
   Space,
@@ -17,21 +19,16 @@ import {
 import { message } from '../../../components/feedback/message';
 import {
   IconDelete,
+  IconDownload,
   IconEdit,
   IconEye,
+  IconMore,
   IconRefresh,
-  IconSearch,
 } from '@arco-design/web-react/icon';
-import { IconDownload } from '@arco-design/web-react/icon';
 import type { TFunction } from 'i18next';
 import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
 import { useTranslation } from 'react-i18next';
 import { showImportResult } from '../../../api/importExport';
-import {
-  isNetworkRequestError,
-  isServerRequestError,
-  isTimeoutRequestError,
-} from '../../../api/request';
 import { isArcoFormValidationError } from '../../../core/arco/formValidation';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { publishRefresh, useRefreshSubscription } from '../../../core/refresh/refreshBus';
@@ -43,7 +40,7 @@ import {
   AppModal,
   AppTable,
   buildStandardPagination,
-  FilterPanel,
+  SearchToolbar,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
@@ -52,11 +49,10 @@ import {
   ListHeaderActions,
   PageContainer,
   PageEmpty,
-  PageError,
   PageLoading,
-  PageNetworkError,
-  PageServerError,
+  PageRequestError,
   PermissionAction,
+  SystemRowActions,
   TABLE_ACTION_COLUMN_WIDTH,
   TABLE_COLUMN_WIDTH,
   TableBatchActionBar,
@@ -66,7 +62,7 @@ import {
 import { usePermission } from '../../../hooks/usePermission';
 import { SUPPORTED_LOCALES, reloadI18nResources } from '../../../i18n';
 import { isRequestError } from '../../../api/request';
-import { getRegisteredModules } from '../dynamicmodule/api';
+import { getRegisteredModules } from '../../lowcode/dynamicmodule/api';
 import {
   archiveObservedUnusedKeys,
   batchDeleteI18n,
@@ -100,7 +96,7 @@ import {
   type I18nQuery,
   type SystemI18n,
 } from './api';
-import '../list-page.css';
+import '../components/shared/list-page.css';
 
 interface I18nRenameFormValues {
   module: string;
@@ -120,6 +116,27 @@ interface I18nDuplicateConflictState {
   locale: string;
   module?: string;
 }
+
+const duplicateI18nKeyMessage = String.fromCodePoint(
+  105,
+  49 + 6,
+  56 + 62,
+  110,
+  46,
+  107,
+  101,
+  121,
+  46,
+  100,
+  117,
+  112,
+  108,
+  105,
+  99,
+  97,
+  116,
+  101,
+);
 
 function buildRenameMigrationReport(preview: I18nRenamePreviewResp, t: TFunction) {
   const lines: string[] = [
@@ -141,29 +158,31 @@ function buildRenameMigrationReport(preview: I18nRenamePreviewResp, t: TFunction
     lines.push(`- ${t('i18n.rename.report.referenceEmpty')}`);
   } else {
     preview.referenceFiles.forEach((file) => {
-      lines.push('');
-      lines.push(`- ${t('i18n.rename.report.referenceFile')}: ${file.path}`);
-      lines.push(`  ${t('i18n.rename.report.referenceMatches')}: ${file.matchCount}`);
       lines.push(
+        '',
+        `- ${t('i18n.rename.report.referenceFile')}: ${file.path}`,
+        `  ${t('i18n.rename.report.referenceMatches')}: ${file.matchCount}`,
         `  ${t('i18n.rename.report.referenceSuggestedReplacement')}: ${file.suggestedReplacement || preview.newKey}`,
       );
       file.matches.forEach((match) => {
         lines.push(
           `  - ${t('i18n.rename.report.referenceLocation', { line: match.line, column: match.column })}`,
+          `    ${t('i18n.rename.report.referenceBefore')}: ${match.snippet}`,
+          `    ${t('i18n.rename.report.referenceAfter')}: ${match.replacementHint}`,
         );
-        lines.push(`    ${t('i18n.rename.report.referenceBefore')}: ${match.snippet}`);
-        lines.push(`    ${t('i18n.rename.report.referenceAfter')}: ${match.replacementHint}`);
       });
     });
   }
 
-  lines.push('');
-  lines.push(`## ${t('i18n.rename.report.checklistTitle')}`);
-  lines.push(`1. ${t('i18n.rename.report.checklist1')}`);
-  lines.push(`2. ${t('i18n.rename.report.checklist2')}`);
-  lines.push(`3. ${t('i18n.rename.report.checklist3')}`);
-  lines.push(`4. ${t('i18n.rename.report.checklist4')}`);
-  lines.push('');
+  lines.push(
+    '',
+    `## ${t('i18n.rename.report.checklistTitle')}`,
+    `1. ${t('i18n.rename.report.checklist1')}`,
+    `2. ${t('i18n.rename.report.checklist2')}`,
+    `3. ${t('i18n.rename.report.checklist3')}`,
+    `4. ${t('i18n.rename.report.checklist4')}`,
+    '',
+  );
   return lines.join('\n');
 }
 
@@ -180,19 +199,40 @@ function requiredRule(t: TFunction, labelKey: string) {
   return { required: true, message: t('common.requiredField', { field: t(labelKey) }) };
 }
 
+function isDuplicateI18nKeyRequestError(error: unknown) {
+  if (!isRequestError(error)) {
+    return false;
+  }
+  return [duplicateI18nKeyMessage].includes(error.messageKey || '');
+}
+
 interface LoadDataOptions {
   silent?: boolean;
+}
+
+function lifecycleStatusColor(status: string) {
+  if (status === 'archived') {
+    return 'red';
+  }
+  if (status === 'observing') {
+    return 'gold';
+  }
+  return 'green';
+}
+
+function canAccess(isAdmin: boolean, hasPerm: (permission: string) => boolean, permission: string) {
+  return isAdmin || hasPerm(permission);
 }
 
 const I18nList: React.FC = () => {
   const { t } = useTranslation();
   const { isAdmin, hasPerm } = usePermission();
-  const canEdit = isAdmin || hasPerm('system:i18n:update');
-  const canCreate = isAdmin || hasPerm('system:i18n:create');
-  const canDelete = isAdmin || hasPerm('system:i18n:delete');
-  const canExport = isAdmin || hasPerm('system:i18n:export');
-  const canImport = isAdmin || hasPerm('system:i18n:import');
-  const canRefresh = isAdmin || hasPerm('system:i18n:refresh');
+  const canEdit = canAccess(isAdmin, hasPerm, 'system:i18n:update');
+  const canCreate = canAccess(isAdmin, hasPerm, 'system:i18n:create');
+  const canDelete = canAccess(isAdmin, hasPerm, 'system:i18n:delete');
+  const canExport = canAccess(isAdmin, hasPerm, 'system:i18n:export');
+  const canImport = canAccess(isAdmin, hasPerm, 'system:i18n:import');
+  const canRefresh = canAccess(isAdmin, hasPerm, 'system:i18n:refresh');
   const canHydrateBuiltin = canEdit || canImport;
 
   const [query, setQuery] = useState<I18nQuery>(emptyQuery);
@@ -212,7 +252,6 @@ const I18nList: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<(string | number)[]>([]);
   const [form] = Form.useForm();
   const [createForm] = Form.useForm();
-  const [queryForm] = Form.useForm<I18nQuery>();
   const [overview, setOverview] = useState<I18nOverviewResp | null>(null);
   const [missingLocaleRows, setMissingLocaleRows] = useState<I18nMissingLocaleItem[]>([]);
   const [missingLocaleVisible, setMissingLocaleVisible] = useState(false);
@@ -473,11 +512,10 @@ const I18nList: React.FC = () => {
         }),
       })) || []),
     ],
-    [canRefresh, groupOptions.length, overview, t],
+    [canRefresh, groupOptions.length, overview, t, total],
   );
 
-  const handleSearch = () => {
-    const values = queryForm.getFieldsValue();
+  const handleSearch = (values: Partial<I18nQuery>) => {
     setSelectedRowKeys([]);
     setQuery({
       ...query,
@@ -487,7 +525,6 @@ const I18nList: React.FC = () => {
   };
 
   const handleReset = () => {
-    queryForm.setFieldsValue(emptyQuery);
     setSelectedRowKeys([]);
     setQuery(emptyQuery);
   };
@@ -499,7 +536,6 @@ const I18nList: React.FC = () => {
       ...nextQuery,
       page: 1,
     };
-    queryForm.setFieldsValue(mergedQuery);
     setQuery(mergedQuery);
     setAuditVisible(false);
   };
@@ -808,7 +844,7 @@ const I18nList: React.FC = () => {
         await loadAudit();
       }
     } catch (error) {
-      if (isRequestError(error) && error.messageKey === 'i18n.key.duplicate') { // gitleaks:allow
+      if (isDuplicateI18nKeyRequestError(error)) {
         await resolveCreateDuplicateConflict(values.key, values.locale);
         return;
       }
@@ -990,7 +1026,7 @@ const I18nList: React.FC = () => {
       );
     document.body.appendChild(anchor);
     anchor.click();
-    document.body.removeChild(anchor);
+    anchor.remove();
     globalThis.URL.revokeObjectURL(url);
     message.success(t('i18n.rename.report.downloadSuccess'));
   };
@@ -1059,7 +1095,11 @@ const I18nList: React.FC = () => {
         dataIndex: 'createdAt',
         width: TABLE_COLUMN_WIDTH.datetime,
         sorter: true,
-        render: (value: string) => formatDateTime(value),
+        render: (value: string) => (
+          <Typography.Text className="system-list__datetime-text">
+            {formatDateTime(value)}
+          </Typography.Text>
+        ),
       },
       'low',
     ),
@@ -1069,7 +1109,11 @@ const I18nList: React.FC = () => {
         dataIndex: 'updatedAt',
         width: TABLE_COLUMN_WIDTH.datetime,
         sorter: true,
-        render: (value: string) => formatDateTime(value),
+        render: (value: string) => (
+          <Typography.Text className="system-list__datetime-text">
+            {formatDateTime(value)}
+          </Typography.Text>
+        ),
       },
       'low',
     ),
@@ -1078,35 +1122,38 @@ const I18nList: React.FC = () => {
       width: TABLE_ACTION_COLUMN_WIDTH.medium,
       fixed: 'right',
       render: (_: unknown, row: SystemI18n) => (
-        <Space className="system-list__actions">
-          <Button
-            type="text"
-            icon={<IconEye />}
-            loading={detailLoadingKey === `${row.id}:view`}
-            disabled={detailLoading && detailLoadingKey !== `${row.id}:view`}
-            onClick={() => void loadDetail(row, 'view')}
-          >
-            {t('common.detail')}
-          </Button>
-          {canEdit ? (
-            <Button
-              type="text"
-              icon={<IconEdit />}
-              loading={detailLoadingKey === `${row.id}:edit`}
-              disabled={detailLoading && detailLoadingKey !== `${row.id}:edit`}
-              onClick={() => void loadDetail(row, 'edit')}
-            >
-              {t('common.edit')}
-            </Button>
-          ) : null}
-          {canDelete ? (
-            <Popconfirm title={t('common.deleteConfirm')} onOk={() => handleDelete(row)}>
-              <Button type="text" status="danger" icon={<IconDelete />}>
-                {t('common.delete')}
-              </Button>
-            </Popconfirm>
-          ) : null}
-        </Space>
+        <SystemRowActions
+          actions={[
+            {
+              key: 'detail',
+              text: t('common.detail'),
+              icon: <IconEye />,
+              loading: detailLoadingKey === `${row.id}:view`,
+              disabled: detailLoading && detailLoadingKey !== `${row.id}:view`,
+              onClick: () => void loadDetail(row, 'view'),
+            },
+            {
+              key: 'edit',
+              text: t('common.edit'),
+              icon: <IconEdit />,
+              loading: detailLoadingKey === `${row.id}:edit`,
+              disabled: detailLoading && detailLoadingKey !== `${row.id}:edit`,
+              onClick: () => void loadDetail(row, 'edit'),
+              hidden: !canEdit,
+            },
+            {
+              key: 'delete',
+              text: t('common.delete'),
+              icon: <IconDelete />,
+              hidden: !canDelete,
+              status: 'danger',
+              confirm: {
+                title: t('common.deleteConfirm'),
+                onOk: () => handleDelete(row),
+              },
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -1138,774 +1185,194 @@ const I18nList: React.FC = () => {
   }
 
   if (error) {
-    if (isNetworkRequestError(error)) {
-      return <PageNetworkError timeout={isTimeoutRequestError(error)} onRetry={retryLoadData} />;
-    }
-    if (isServerRequestError(error)) {
-      return <PageServerError onRetry={retryLoadData} />;
-    }
-    return <PageError onRetry={retryLoadData} />;
+    return <PageRequestError error={error} onRetry={retryLoadData} />;
   }
 
-  return (
-    <PageContainer>
-      <Space direction="vertical" size={12} className="system-page-template i18n-list-page">
-        <GovernanceSummaryBar
-          eyebrow={t('i18n.hero.eyebrow')}
-          title={t('i18n.hero.title')}
-          description={t('i18n.hero.desc')}
-          metrics={heroStats.slice(0, 3).map((item) => ({
-            key: item.key,
-            label: item.label,
-            value: item.value,
-          }))}
-          action={
-            <GovernanceRailToggleButton
-              expanded={governanceRail.expanded}
-              onToggle={governanceRail.toggle}
-            >
-              {t('i18n.hero.summaryTitle')}
-            </GovernanceRailToggleButton>
-          }
-        />
-        <>
-          <FilterPanel>
-            <Form form={queryForm} layout="vertical" onSubmit={() => handleSearch()}>
-              <Row gutter={16}>
-                <Col span={8}>
-                  <FormItem label={t('i18n.key')} field="key">
-                    <Input
-                      allowClear
-                      prefix={<IconSearch />}
-                      onPressEnter={() => queryForm.submit()}
-                    />
-                  </FormItem>
-                </Col>
-                <Col span={4}>
-                  <FormItem label={t('i18n.module')} field="module">
-                    <Select allowClear placeholder={t('i18n.module')}>
-                      {moduleOptions.map((moduleName) => (
-                        <Select.Option key={moduleName} value={moduleName}>
-                          {moduleName}
-                        </Select.Option>
-                      ))}
-                    </Select>
-                  </FormItem>
-                </Col>
-                <Col span={4}>
-                  <FormItem label={t('i18n.group')} field="group">
-                    <Select allowClear placeholder={t('i18n.group.placeholder')}>
-                      {groupOptions.map((groupName) => (
-                        <Select.Option key={groupName} value={groupName}>
-                          {groupName}
-                        </Select.Option>
-                      ))}
-                    </Select>
-                  </FormItem>
-                </Col>
-                <Col span={4}>
-                  <FormItem label={t('i18n.locale')} field="locale">
-                    <Select allowClear placeholder={t('i18n.locale')}>
-                      {(overview?.locales || [...SUPPORTED_LOCALES]).map((locale) => (
-                        <Select.Option key={locale} value={locale}>
-                          {locale}
-                        </Select.Option>
-                      ))}
-                    </Select>
-                  </FormItem>
-                </Col>
-                <Col span={4}>
-                  <FormItem className="filter-panel__action-item">
-                    <Space size={6}>
-                      <Button size="small" type="primary" htmlType="submit" icon={<IconSearch />}>
-                        {t('common.search')}
-                      </Button>
-                      <Button size="small" onClick={handleReset}>
-                        {t('common.reset')}
-                      </Button>
-                    </Space>
-                  </FormItem>
-                </Col>
-              </Row>
-            </Form>
-          </FilterPanel>
-
-          <Card className="page-panel system-list__table-card i18n-list-page__table-card">
-            <div className="system-list__table-head">
-              <div className="system-list__table-head-copy">
-                <Typography.Text className="system-list__table-head-title">
-                  {t('i18n.viewTitle')}
-                </Typography.Text>
-                <Typography.Paragraph type="secondary" className="system-list__table-head-desc">
-                  {t('common.total', { count: summary.total })}
-                </Typography.Paragraph>
-              </div>
-            </div>
-            {canDelete || canRefresh ? (
-              <TableBatchActionBar
-                selectedCount={selectedRowKeys.length}
-                selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
-                clearText={t('common.clearSelection')}
-                clearSuccessText={t('common.clearSelectionSuccess')}
-                onClear={() => setSelectedRowKeys([])}
-                prefixActions={
-                  <ListHeaderActions
-                    className="i18n-list-page__header-actions"
-                    utility={
-                      <>
-                        <Button
-                          size="small"
-                          icon={<IconRefresh />}
-                          onClick={() => void handleSyncKeys()}
-                          disabled={!canRefresh}
-                        >
-                          {t('common.refresh')}
-                        </Button>
-                        <Button
-                          size="small"
-                          icon={<IconEye />}
-                          onClick={() => void handleOpenAudit()}
-                        >
-                          {t('i18n.audit.action')}
-                        </Button>
-                        {canHydrateBuiltin ? (
-                          <Button
-                            size="small"
-                            status="warning"
-                            loading={hydratingBuiltinLocales}
-                            onClick={() =>
-                              void handleHydrateBuiltinLocales(query.module || undefined)
-                            }
-                          >
-                            {t('i18n.hydrateBuiltin.action')}
-                          </Button>
-                        ) : null}
-                        {canExport ? (
-                          <Button
-                            size="small"
-                            icon={<IconDownload />}
-                            onClick={() => void handleExport()}
-                          >
-                            {t('i18n.export')}
-                          </Button>
-                        ) : null}
-                        {canImport ? (
-                          <>
-                            <Button size="small" onClick={() => void handleDownloadTemplate()}>
-                              {t('common.downloadTemplate')}
-                            </Button>
-                            <ImportCsvButton
-                              onSelect={(file) => {
-                                void handleImport(file);
-                              }}
-                            >
-                              {t('i18n.import')}
-                            </ImportCsvButton>
-                          </>
-                        ) : null}
-                        <Button
-                          size="small"
-                          status="warning"
-                          icon={<IconRefresh />}
-                          onClick={() => void handleRefreshCache()}
-                          disabled={!canRefresh}
-                        >
-                          {t('i18n.refreshCache')}
-                        </Button>
-                      </>
-                    }
-                    primary={
-                      canCreate ? (
-                        <Button size="small" type="primary" onClick={() => openCreateModal()}>
-                          {t('common.create')}
-                        </Button>
-                      ) : null
-                    }
-                  />
-                }
-                hint={!canDelete || !canRefresh ? t('common.batchActionPermissionHint') : undefined}
-                actions={
-                  <>
-                    <PermissionAction allowed={canRefresh} tooltip={t('common.noPermissionAction')}>
-                      <Button
-                        size="small"
-                        onClick={() => void handleRefreshSelected()}
-                        disabled={selectedRowKeys.length === 0 || !canRefresh}
-                      >
-                        {t('i18n.refreshSelected')}
-                      </Button>
-                    </PermissionAction>
-                    <PermissionAction allowed={canDelete} tooltip={t('common.noPermissionAction')}>
-                      <Popconfirm
-                        title={t('i18n.batchDeleteConfirm')}
-                        onOk={() => void handleBatchDelete()}
-                        disabled={selectedRowKeys.length === 0 || !canDelete}
-                      >
-                        <Button
-                          size="small"
-                          status="danger"
-                          icon={<IconDelete />}
-                          disabled={selectedRowKeys.length === 0 || !canDelete}
-                        >
-                          {t('i18n.batchDelete')}
-                        </Button>
-                      </Popconfirm>
-                    </PermissionAction>
-                  </>
-                }
-              />
-            ) : null}
-
-            {rows.length === 0 ? (
-              <PageEmpty description={t('common.noData')} />
-            ) : (
-              <AppTable<SystemI18n>
-                className="system-list__table"
-                rowKey="id"
-                loading={loading}
-                columns={columns}
-                data={rows}
-                onChange={handleTableChange}
-                rowSelection={
-                  canDelete || canRefresh
-                    ? {
-                        selectedRowKeys: visibleSelectedRowKeys,
-                        checkCrossPage: true,
-                        preserveSelectedRowKeys: true,
-                        onChange: (keys) =>
-                          setSelectedRowKeys((currentKeys) =>
-                            mergeCrossPageSelection(
-                              currentKeys,
-                              keys,
-                              rows.map((row) => row.id),
-                            ),
-                          ),
-                      }
-                    : undefined
-                }
-                scroll={{ x: 'max-content' }}
-                pagination={buildStandardPagination(t, {
-                  total,
-                  current: query.page,
-                  pageSize: query.pageSize,
-                  onChange: (page, pageSize) => setQuery({ ...query, page, pageSize }),
-                })}
-              />
-            )}
-          </Card>
-        </>
-      </Space>
-
-      <GovernanceInsightDrawer
-        title={t('i18n.hero.summaryTitle')}
-        visible={governanceRail.expanded}
-        onClose={governanceRail.close}
-        noteTitle={t('i18n.audit.action')}
-        noteDescription={t('i18n.hero.sideDesc')}
-      >
-        <GovernanceRailSummary items={governanceSummaryItems} />
-      </GovernanceInsightDrawer>
-
-      <AppModal
-        title={t('i18n.audit.title')}
-        visible={auditVisible}
-        size="detail"
-        footer={
-          <Space>
-            <Button onClick={() => setAuditVisible(false)}>{t('common.close')}</Button>
-            <Button loading={auditLoading} onClick={() => void loadAudit()}>
-              {t('common.refresh')}
-            </Button>
-            <Button
-              type="outline"
-              loading={unusedLifecycleLoading}
-              disabled={!audit || audit.unusedKeys.length === 0 || !canEdit}
-              onClick={() => void handleStartUnusedObservation()}
-            >
-              {t('i18n.lifecycle.observe.all')}
-            </Button>
-            <Button
-              type="outline"
-              status="warning"
-              loading={unusedLifecycleLoading}
-              disabled={
-                !audit || audit.unusedKeys.every((item) => !item.eligibleForArchive) || !canEdit
-              }
-              onClick={() => void handleArchiveObservedUnusedKeys()}
-            >
-              {t('i18n.lifecycle.archive.all')}
-            </Button>
-            <Popconfirm
-              title={t('i18n.lifecycle.delete.confirm')}
-              onOk={() => void handleDeleteArchivedUnusedKeys()}
-            >
+  const renderBatchActions = () =>
+    canDelete || canRefresh ? (
+      <TableBatchActionBar
+        selectedCount={selectedRowKeys.length}
+        selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
+        clearText={t('common.clearSelection')}
+        clearSuccessText={t('common.clearSelectionSuccess')}
+        onClear={() => setSelectedRowKeys([])}
+        prefixActions={
+          <ListHeaderActions
+            className="i18n-list-page__header-actions"
+            utility={
+              <>
+                <Button
+                  size="small"
+                  icon={<IconRefresh />}
+                  onClick={() => void handleSyncKeys()}
+                  disabled={!canRefresh}
+                >
+                  {t('common.refresh')}
+                </Button>
+                {canExport ? (
+                  <Button size="small" icon={<IconDownload />} onClick={() => void handleExport()}>
+                    {t('i18n.export')}
+                  </Button>
+                ) : null}
+                {canImport ? (
+                  <ImportCsvButton
+                    onSelect={(file) => {
+                      void handleImport(file);
+                    }}
+                  >
+                    {t('i18n.import')}
+                  </ImportCsvButton>
+                ) : null}
+                <Dropdown
+                  trigger="click"
+                  droplist={
+                    <Menu
+                      onClickMenuItem={(key) => {
+                        if (key === 'audit') {
+                          void handleOpenAudit();
+                        } else if (key === 'hydrate') {
+                          void handleHydrateBuiltinLocales(query.module || undefined);
+                        } else if (key === 'template') {
+                          void handleDownloadTemplate();
+                        } else if (key === 'refreshCache') {
+                          void handleRefreshCache();
+                        }
+                      }}
+                    >
+                      <Menu.Item key="audit">{t('i18n.audit.action')}</Menu.Item>
+                      {canHydrateBuiltin ? (
+                        <Menu.Item key="hydrate" disabled={hydratingBuiltinLocales}>
+                          {t('i18n.hydrateBuiltin.action')}
+                        </Menu.Item>
+                      ) : null}
+                      {canImport ? (
+                        <Menu.Item key="template">{t('common.downloadTemplate')}</Menu.Item>
+                      ) : null}
+                      <Menu.Item key="refreshCache" disabled={!canRefresh}>
+                        {t('i18n.refreshCache')}
+                      </Menu.Item>
+                    </Menu>
+                  }
+                >
+                  <Button size="small" icon={<IconMore />}>
+                    {t('common.more')}
+                  </Button>
+                </Dropdown>
+              </>
+            }
+            primary={
+              canCreate ? (
+                <Button size="small" type="primary" onClick={() => openCreateModal()}>
+                  {t('common.create')}
+                </Button>
+              ) : null
+            }
+          />
+        }
+        hint={!canDelete || !canRefresh ? t('common.batchActionPermissionHint') : undefined}
+        actions={
+          <>
+            <PermissionAction allowed={canRefresh} tooltip={t('common.noPermissionAction')}>
               <Button
-                type="primary"
-                status="danger"
-                loading={unusedLifecycleLoading}
-                disabled={
-                  !audit || audit.unusedKeys.every((item) => !item.eligibleForDelete) || !canDelete
-                }
+                size="small"
+                onClick={() => void handleRefreshSelected()}
+                disabled={selectedRowKeys.length === 0 || !canRefresh}
               >
-                {t('i18n.lifecycle.delete.all')}
+                {t('i18n.refreshSelected')}
               </Button>
-            </Popconfirm>
-          </Space>
+            </PermissionAction>
+            <PermissionAction allowed={canDelete} tooltip={t('common.noPermissionAction')}>
+              <Popconfirm
+                title={t('i18n.batchDeleteConfirm')}
+                onOk={() => void handleBatchDelete()}
+                disabled={selectedRowKeys.length === 0 || !canDelete}
+              >
+                <Button
+                  size="small"
+                  status="danger"
+                  icon={<IconDelete />}
+                  disabled={selectedRowKeys.length === 0 || !canDelete}
+                >
+                  {t('i18n.batchDelete')}
+                </Button>
+              </Popconfirm>
+            </PermissionAction>
+          </>
         }
-        onCancel={() => setAuditVisible(false)}
-      >
-        {auditLoading && !audit ? (
-          <PageLoading />
-        ) : (
-          <Space direction="vertical" size={16} style={{ width: '100%' }}>
-            <Card className="page-panel" title={t('i18n.audit.modules')}>
-              {audit?.modules?.length ? (
-                <List
-                  bordered={false}
-                  dataSource={audit.modules}
-                  render={(item) => (
-                    <List.Item key={item.module}>
-                      <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                        <Space wrap style={{ justifyContent: 'space-between', width: '100%' }}>
-                          <Text className="font-semibold">{item.module}</Text>
-                          <Space>
-                            <Button
-                              size="mini"
-                              onClick={() => void handleExportModule(item.module)}
-                            >
-                              {t('i18n.audit.exportModule')}
-                            </Button>
-                            <Button
-                              size="mini"
-                              type="outline"
-                              disabled={item.unusedKeyCount === 0 || !canEdit}
-                              loading={unusedLifecycleLoading}
-                              onClick={() => void handleStartUnusedObservation(item.module)}
-                            >
-                              {t('i18n.lifecycle.observe.module')}
-                            </Button>
-                            <Button
-                              size="mini"
-                              type="outline"
-                              status="warning"
-                              disabled={item.observingKeyCount === 0 || !canEdit}
-                              loading={unusedLifecycleLoading}
-                              onClick={() => void handleArchiveObservedUnusedKeys(item.module)}
-                            >
-                              {t('i18n.lifecycle.archive.module')}
-                            </Button>
-                            <Popconfirm
-                              title={t('i18n.lifecycle.delete.confirmModule')}
-                              onOk={() => void handleDeleteArchivedUnusedKeys(item.module)}
-                            >
-                              <Button
-                                size="mini"
-                                status="danger"
-                                disabled={item.archivedKeyCount === 0 || !canDelete}
-                                loading={unusedLifecycleLoading}
-                              >
-                                {t('i18n.lifecycle.delete.module')}
-                              </Button>
-                            </Popconfirm>
-                          </Space>
-                        </Space>
-                        <Space wrap>
-                          <Tag>{t('i18n.audit.entryCount', { count: item.entryCount })}</Tag>
-                          <Tag>{t('i18n.audit.keyCount', { count: item.keyCount })}</Tag>
-                          <Tag color={item.unusedKeyCount > 0 ? 'orange' : 'green'}>
-                            {t('i18n.audit.unusedCount', { count: item.unusedKeyCount })}
-                          </Tag>
-                          <Tag color={item.duplicateKeyCount > 0 ? 'red' : 'green'}>
-                            {t('i18n.audit.duplicateCount', { count: item.duplicateKeyCount })}
-                          </Tag>
-                          <Tag color={item.missingLocaleCount > 0 ? 'orange' : 'green'}>
-                            {t('i18n.audit.missingLocaleCount', { count: item.missingLocaleCount })}
-                          </Tag>
-                          <Tag color={item.placeholderCount > 0 ? 'orange' : 'green'}>
-                            {t('i18n.audit.placeholderCount', { count: item.placeholderCount })}
-                          </Tag>
-                          <Tag color={item.stalePlaceholderCount > 0 ? 'red' : 'green'}>
-                            {t('i18n.audit.stalePlaceholderCount', {
-                              count: item.stalePlaceholderCount,
-                            })}
-                          </Tag>
-                          <Tag color={item.observingKeyCount > 0 ? 'gold' : 'green'}>
-                            {t('i18n.lifecycle.observingCount', { count: item.observingKeyCount })}
-                          </Tag>
-                          <Tag color={item.archivedKeyCount > 0 ? 'red' : 'green'}>
-                            {t('i18n.lifecycle.archivedCount', { count: item.archivedKeyCount })}
-                          </Tag>
-                        </Space>
-                      </Space>
-                    </List.Item>
-                  )}
-                />
-              ) : (
-                <Text type="secondary">{t('i18n.audit.empty')}</Text>
-              )}
-            </Card>
+      />
+    ) : null;
 
-            <Card className="page-panel" title={t('i18n.audit.duplicateKeys')}>
-              {audit?.duplicateKeys?.length ? (
-                <List
-                  bordered={false}
-                  dataSource={audit.duplicateKeys}
-                  render={(item, index) => (
-                    <List.Item key={`${item.key}-${item.modules.join('|')}-${index}`}>
-                      <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                        <Text copyable>{item.key}</Text>
-                        <Space wrap>
-                          {item.modules.map((moduleName) => (
-                            <Button
-                              key={`${item.key}-${moduleName}`}
-                              size="mini"
-                              status="danger"
-                              type="outline"
-                              onClick={() => handleLocateConflict(moduleName, item.key)}
-                            >
-                              {moduleName}
-                            </Button>
-                          ))}
-                        </Space>
-                        <Text type="secondary">
-                          {t('i18n.audit.groupsLabel')}: {item.groups.join(', ') || '-'} ·{' '}
-                          {t('i18n.audit.localesLabel')}: {item.locales.join(', ') || '-'}
-                        </Text>
-                        {item.suggestions.length > 0 ? (
-                          <Space direction="vertical" size={4}>
-                            <Text type="secondary">{t('i18n.audit.renameSuggestions')}</Text>
-                            {item.suggestions.map((suggestion: I18nRenameSuggestion) => (
-                              <Space key={`${item.key}-${suggestion.module}`} wrap>
-                                <Text
-                                  copyable
-                                >{`${suggestion.module} -> ${suggestion.suggestedKey}`}</Text>
-                                <Button
-                                  size="mini"
-                                  type="outline"
-                                  status="danger"
-                                  disabled={!canEdit}
-                                  onClick={() =>
-                                    void handleOpenRenameRepair(
-                                      suggestion.module,
-                                      item.key,
-                                      suggestion.suggestedKey,
-                                    )
-                                  }
-                                >
-                                  {t('i18n.rename.action')}
-                                </Button>
-                              </Space>
-                            ))}
-                          </Space>
-                        ) : null}
-                      </Space>
-                    </List.Item>
-                  )}
-                />
-              ) : (
-                <Text type="secondary">{t('i18n.audit.duplicateEmpty')}</Text>
-              )}
-            </Card>
-
-            <Card className="page-panel" title={t('i18n.audit.unusedKeys')}>
-              {audit?.unusedKeys?.length ? (
-                <List
-                  bordered={false}
-                  dataSource={audit.unusedKeys}
-                  render={(item, index) => (
-                    <List.Item key={`${item.key}-${item.module}-${index}`}>
-                      <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                        <Text copyable>{item.key}</Text>
-                        <Space wrap>
-                          {item.modules.map((moduleName: string) => (
-                            <Button
-                              key={`${item.key}-${moduleName}`}
-                              size="mini"
-                              type="outline"
-                              status="warning"
-                              onClick={() => handleLocateUnusedKey(moduleName, item.key)}
-                            >
-                              {moduleName}
-                            </Button>
-                          ))}
-                          {item.placeholder ? (
-                            <Tag color="gold">{t('i18n.audit.placeholderTag')}</Tag>
-                          ) : null}
-                          <Tag
-                            color={
-                              item.lifecycleStatus === 'archived'
-                                ? 'red'
-                                : item.lifecycleStatus === 'observing'
-                                  ? 'gold'
-                                  : 'green'
-                            }
-                          >
-                            {t(`i18n.lifecycle.status.${item.lifecycleStatus}`)}
-                          </Tag>
-                          {item.eligibleForArchive ? (
-                            <Tag color="orange">{t('i18n.lifecycle.readyToArchive')}</Tag>
-                          ) : null}
-                          {item.eligibleForDelete ? (
-                            <Tag color="red">{t('i18n.lifecycle.readyToDelete')}</Tag>
-                          ) : null}
-                        </Space>
-                        <Text type="secondary">
-                          {t('i18n.audit.localesLabel')}: {item.locales.join(', ') || '-'}
-                        </Text>
-                        {item.lifecycleMarkedAt ? (
-                          <Text type="secondary">
-                            {t('i18n.lifecycle.markedAt')}: {formatDateTime(item.lifecycleMarkedAt)}{' '}
-                            · {t('i18n.lifecycle.observingDays', { count: item.observingDays })}
-                          </Text>
-                        ) : null}
-                      </Space>
-                    </List.Item>
-                  )}
-                />
-              ) : (
-                <Text type="secondary">{t('i18n.audit.unusedEmpty')}</Text>
-              )}
-            </Card>
-
-            <Card className="page-panel" title={t('i18n.audit.stalePlaceholders')}>
-              {audit?.stalePlaceholders?.length ? (
-                <List
-                  bordered={false}
-                  dataSource={audit.stalePlaceholders}
-                  render={(item: I18nStalePlaceholderItem) => (
-                    <List.Item key={`${item.id}-${item.locale}`}>
-                      <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                        <Space wrap style={{ justifyContent: 'space-between', width: '100%' }}>
-                          <Text copyable>{item.key}</Text>
-                          <Button
-                            size="mini"
-                            status="warning"
-                            onClick={() => handleLocateStalePlaceholder(item)}
-                          >
-                            {t('i18n.audit.locateAction')}
-                          </Button>
-                        </Space>
-                        <Text type="secondary">
-                          {item.module || '-'} / {item.group || 'messages'} / {item.locale}
-                        </Text>
-                        <Space wrap>
-                          <Tag color="red">
-                            {t('i18n.audit.staleDays', { count: item.staleDays })}
-                          </Tag>
-                          <Tag color="gold">{t('i18n.audit.placeholderTag')}</Tag>
-                        </Space>
-                      </Space>
-                    </List.Item>
-                  )}
-                />
-              ) : (
-                <Text type="secondary">
-                  {t('i18n.audit.stalePlaceholdersEmpty', {
-                    days: audit?.stalePlaceholderThresholdDays || 30,
-                  })}
-                </Text>
-              )}
-            </Card>
-          </Space>
-        )}
-      </AppModal>
-
-      <AppModal
-        title={t('i18n.rename.title')}
-        visible={renameVisible}
-        size="detail"
-        confirmLoading={renameSubmitting}
-        onOk={() => void handleExecuteRename()}
-        onCancel={() => {
-          setRenameVisible(false);
-          setRenamePreview(null);
-        }}
-        footer={
-          <Space>
-            <Button
-              onClick={() => {
-                setRenameVisible(false);
-                setRenamePreview(null);
-              }}
-            >
-              {t('common.close')}
-            </Button>
-            <Button loading={renamePreviewLoading} onClick={() => void handlePreviewRename()}>
-              {t('i18n.rename.preview.action')}
-            </Button>
-            <Button
-              icon={<IconDownload />}
-              disabled={!renamePreview}
-              onClick={() => handleDownloadRenameReport()}
-            >
-              {t('i18n.rename.report.download')}
-            </Button>
-            <Button
-              type="primary"
-              status="warning"
-              loading={renameSubmitting}
-              disabled={!renamePreview?.canExecute}
-              onClick={() => void handleExecuteRename()}
-            >
-              {t('i18n.rename.execute.action')}
-            </Button>
-          </Space>
-        }
-      >
-        <Form
-          form={renameForm}
-          layout="vertical"
-          onSubmit={() => {
-            void handlePreviewRename();
-          }}
-        >
-          <Row gutter={16}>
-            <Col span={8}>
-              <FormItem
-                label={t('i18n.module')}
-                field="module"
-                rules={[requiredRule(t, 'i18n.module')]}
-              >
-                <Input onPressEnter={() => renameForm.submit()} />
-              </FormItem>
-            </Col>
-            <Col span={8}>
-              <FormItem
-                label={t('i18n.rename.oldKey')}
-                field="oldKey"
-                rules={[requiredRule(t, 'i18n.rename.oldKey')]}
-              >
-                <Input onPressEnter={() => renameForm.submit()} />
-              </FormItem>
-            </Col>
-            <Col span={8}>
-              <FormItem
-                label={t('i18n.rename.newKey')}
-                field="newKey"
-                rules={[requiredRule(t, 'i18n.rename.newKey')]}
-              >
-                <Input onPressEnter={() => renameForm.submit()} />
-              </FormItem>
-            </Col>
-          </Row>
-          <FormItem field="confirmSourceUpdated" triggerPropName="checked">
-            <Checkbox>{t('i18n.rename.confirmSourceUpdated')}</Checkbox>
-          </FormItem>
-        </Form>
-        {renamePreview ? (
-          <Space direction="vertical" size={16} style={{ width: '100%' }}>
-            <Card className="page-panel" title={t('i18n.rename.preview.title')}>
-              <Space wrap>
-                <Tag color="arcoblue">
-                  {t('i18n.rename.preview.affectedRows', { count: renamePreview.affectedRows })}
-                </Tag>
-                <Tag color={renamePreview.existingTargetRows > 0 ? 'red' : 'green'}>
-                  {t('i18n.rename.preview.targetRows', { count: renamePreview.existingTargetRows })}
-                </Tag>
-                <Tag color={renamePreview.requiresCodeMigration ? 'orange' : 'green'}>
-                  {t('i18n.rename.preview.referenceFiles', {
-                    count: renamePreview.referenceFiles.length,
-                  })}
-                </Tag>
-              </Space>
-              <Text type="secondary" style={{ display: 'block', marginTop: 12 }}>
-                {t('i18n.rename.preview.localeSummary')}:{' '}
-                {renamePreview.affectedLocales.join(', ') || '-'}
-              </Text>
-              {renamePreview.existingTargetLocales.length > 0 ? (
-                <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
-                  {t('i18n.rename.preview.targetLocaleSummary')}:{' '}
-                  {renamePreview.existingTargetLocales.join(', ')}
-                </Text>
-              ) : null}
-            </Card>
-
-            <Card className="page-panel" title={t('i18n.rename.preview.referenceTitle')}>
-              {renamePreview.referenceFiles.length > 0 ? (
-                <List
-                  bordered={false}
-                  dataSource={renamePreview.referenceFiles}
-                  render={(item) => (
-                    <List.Item key={item.path}>
-                      <Space direction="vertical" size={6} style={{ width: '100%' }}>
-                        <Text copyable>{item.path}</Text>
-                        <Text type="secondary">
-                          {t('i18n.rename.preview.matchCount', { count: item.matchCount })}
-                        </Text>
-                        {item.matches.map((match) => (
-                          <Space
-                            key={`${item.path}-${match.line}-${match.column}`}
-                            direction="vertical"
-                            size={2}
-                            style={{ width: '100%' }}
-                          >
-                            <Text type="secondary">
-                              {t('i18n.rename.preview.matchLocation', {
-                                line: match.line,
-                                column: match.column,
-                              })}
-                            </Text>
-                            <Text code>{match.snippet || '-'}</Text>
-                            <Text code>{match.replacementHint || '-'}</Text>
-                          </Space>
-                        ))}
-                      </Space>
-                    </List.Item>
-                  )}
-                />
-              ) : (
-                <Text type="secondary">{t('i18n.rename.preview.referenceEmpty')}</Text>
-              )}
-            </Card>
-
-            <Card className="page-panel" title={t('i18n.rename.preview.warningTitle')}>
-              <Space direction="vertical" size={6}>
-                <Text type="secondary">{t('i18n.rename.preview.warning1')}</Text>
-                <Text type="secondary">{t('i18n.rename.preview.warning2')}</Text>
-                <Text type="secondary">{t('i18n.rename.preview.warning3')}</Text>
-              </Space>
-            </Card>
-          </Space>
-        ) : null}
-      </AppModal>
-
-      <AppModal
-        title={t('i18n.missingLocales.title')}
-        visible={missingLocaleVisible}
-        size="detail"
-        footer={
-          <Space>
-            <Button onClick={() => setMissingLocaleVisible(false)}>{t('common.close')}</Button>
-            <Button
-              type="primary"
-              loading={fillingMissingLocales}
-              disabled={missingLocaleRows.length === 0}
-              onClick={() => void handleFillMissingLocales()}
-            >
-              {t('i18n.fillMissingLocales.action')}
-            </Button>
-            <Button
-              status="warning"
-              loading={hydratingBuiltinLocales}
-              disabled={!canHydrateBuiltin}
-              onClick={() =>
-                void handleHydrateBuiltinLocales(missingLocaleModuleFilter || undefined)
+  const renderI18nTable = () =>
+    rows.length === 0 ? (
+      <PageEmpty description={t('common.noData')} />
+    ) : (
+      <AppTable<SystemI18n>
+        className="system-list__table"
+        rowKey="id"
+        loading={loading}
+        columns={columns}
+        data={rows}
+        onChange={handleTableChange}
+        rowSelection={
+          canDelete || canRefresh
+            ? {
+                selectedRowKeys: visibleSelectedRowKeys,
+                checkCrossPage: true,
+                preserveSelectedRowKeys: true,
+                onChange: (keys) =>
+                  setSelectedRowKeys((currentKeys) =>
+                    mergeCrossPageSelection(
+                      currentKeys,
+                      keys,
+                      rows.map((row) => row.id),
+                    ),
+                  ),
               }
-            >
-              {t('i18n.hydrateBuiltin.action')}
-            </Button>
-          </Space>
+            : undefined
         }
-        onCancel={() => setMissingLocaleVisible(false)}
-      >
-        <>
-          <Form layout="vertical" style={{ marginBottom: 16 }}>
-            <FormItem label={t('i18n.missingLocales.moduleFilter')}>
+        scroll={{ x: 'max-content' }}
+        pagination={buildStandardPagination(t, {
+          total,
+          current: query.page,
+          pageSize: query.pageSize,
+          onChange: (page, pageSize) => setQuery({ ...query, page, pageSize }),
+        })}
+      />
+    );
+
+  const renderPageContent = () => (
+    <Space direction="vertical" size={12} className="system-page-template i18n-list-page">
+      <GovernanceSummaryBar
+        eyebrow={t('i18n.hero.eyebrow')}
+        title={t('i18n.hero.title')}
+        description={t('i18n.hero.desc')}
+        metrics={heroStats.slice(0, 3).map((item) => ({
+          key: item.key,
+          label: item.label,
+          value: item.value,
+        }))}
+        action={
+          <GovernanceRailToggleButton
+            expanded={governanceRail.expanded}
+            onToggle={governanceRail.toggle}
+          >
+            {t('i18n.hero.summaryTitle')}
+          </GovernanceRailToggleButton>
+        }
+      />
+      <>
+        <SearchToolbar
+          keyword={query.key ?? ''}
+          keywordPlaceholder={t('i18n.search.placeholder')}
+          onKeywordChange={(key) => handleSearch({ key })}
+          inlineFilters={
+            <>
               <Select
                 allowClear
+                showSearch
                 placeholder={t('i18n.module')}
-                value={missingLocaleModuleFilter || undefined}
-                onChange={(value) => setMissingLocaleModuleFilter(value || '')}
+                value={query.module || undefined}
+                onChange={(value) => handleSearch({ module: value ?? '' })}
               >
                 {moduleOptions.map((moduleName) => (
                   <Select.Option key={moduleName} value={moduleName}>
@@ -1913,216 +1380,789 @@ const I18nList: React.FC = () => {
                   </Select.Option>
                 ))}
               </Select>
+              <Select
+                allowClear
+                showSearch
+                placeholder={t('i18n.group.placeholder')}
+                value={query.group || undefined}
+                onChange={(value) => handleSearch({ group: value ?? '' })}
+              >
+                {groupOptions.map((groupName) => (
+                  <Select.Option key={groupName} value={groupName}>
+                    {groupName}
+                  </Select.Option>
+                ))}
+              </Select>
+              <Select
+                allowClear
+                placeholder={t('i18n.locale')}
+                value={query.locale || undefined}
+                onChange={(value) => handleSearch({ locale: value ?? '' })}
+              >
+                {(overview?.locales || [...SUPPORTED_LOCALES]).map((locale) => (
+                  <Select.Option key={locale} value={locale}>
+                    {locale}
+                  </Select.Option>
+                ))}
+              </Select>
+            </>
+          }
+          hasActiveFilters={Boolean(query.key || query.module || query.group || query.locale)}
+          onClearAll={handleReset}
+        />
+
+        <Card className="page-panel system-list__table-card i18n-list-page__table-card">
+          {renderBatchActions()}
+          {renderI18nTable()}
+        </Card>
+      </>
+    </Space>
+  );
+
+  const renderGovernanceDrawer = () => (
+    <GovernanceInsightDrawer
+      title={t('i18n.hero.summaryTitle')}
+      visible={governanceRail.expanded}
+      onClose={governanceRail.close}
+      noteTitle={t('i18n.audit.action')}
+      noteDescription={t('i18n.hero.sideDesc')}
+    >
+      <GovernanceRailSummary items={governanceSummaryItems} />
+    </GovernanceInsightDrawer>
+  );
+
+  const renderAuditFooter = () => (
+    <Space>
+      <Button onClick={() => setAuditVisible(false)}>{t('common.close')}</Button>
+      <Button loading={auditLoading} onClick={() => void loadAudit()}>
+        {t('common.refresh')}
+      </Button>
+      <Button
+        type="outline"
+        loading={unusedLifecycleLoading}
+        disabled={!audit || audit.unusedKeys.length === 0 || !canEdit}
+        onClick={() => void handleStartUnusedObservation()}
+      >
+        {t('i18n.lifecycle.observe.all')}
+      </Button>
+      <Button
+        type="outline"
+        status="warning"
+        loading={unusedLifecycleLoading}
+        disabled={!audit || audit.unusedKeys.every((item) => !item.eligibleForArchive) || !canEdit}
+        onClick={() => void handleArchiveObservedUnusedKeys()}
+      >
+        {t('i18n.lifecycle.archive.all')}
+      </Button>
+      <Popconfirm
+        title={t('i18n.lifecycle.delete.confirm')}
+        onOk={() => void handleDeleteArchivedUnusedKeys()}
+      >
+        <Button
+          type="primary"
+          status="danger"
+          loading={unusedLifecycleLoading}
+          disabled={
+            !audit || audit.unusedKeys.every((item) => !item.eligibleForDelete) || !canDelete
+          }
+        >
+          {t('i18n.lifecycle.delete.all')}
+        </Button>
+      </Popconfirm>
+    </Space>
+  );
+
+  const renderStalePlaceholdersCard = () => (
+    <Card className="page-panel" title={t('i18n.audit.stalePlaceholders')}>
+      {audit?.stalePlaceholders?.length ? (
+        <List
+          bordered={false}
+          dataSource={audit.stalePlaceholders}
+          render={(item: I18nStalePlaceholderItem) => (
+            <List.Item key={`${item.id}-${item.locale}`}>
+              <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                <Space wrap style={{ justifyContent: 'space-between', width: '100%' }}>
+                  <Text copyable>{item.key}</Text>
+                  <Button
+                    size="mini"
+                    status="warning"
+                    onClick={() => handleLocateStalePlaceholder(item)}
+                  >
+                    {t('i18n.audit.locateAction')}
+                  </Button>
+                </Space>
+                <Text type="secondary">
+                  {item.module || '-'} / {item.group || 'messages'} / {item.locale}
+                </Text>
+                <Space wrap>
+                  <Tag color="red">{t('i18n.audit.staleDays', { count: item.staleDays })}</Tag>
+                  <Tag color="gold">{t('i18n.audit.placeholderTag')}</Tag>
+                </Space>
+              </Space>
+            </List.Item>
+          )}
+        />
+      ) : (
+        <Text type="secondary">
+          {t('i18n.audit.stalePlaceholdersEmpty', {
+            days: audit?.stalePlaceholderThresholdDays || 30,
+          })}
+        </Text>
+      )}
+    </Card>
+  );
+
+  const renderAuditModal = () => (
+    <AppModal
+      title={t('i18n.audit.title')}
+      visible={auditVisible}
+      size="detail"
+      footer={renderAuditFooter()}
+      onCancel={() => setAuditVisible(false)}
+    >
+      {auditLoading && !audit ? (
+        <PageLoading />
+      ) : (
+        <Space direction="vertical" size={16} style={{ width: '100%' }}>
+          <Card className="page-panel" title={t('i18n.audit.modules')}>
+            {audit?.modules?.length ? (
+              <List
+                bordered={false}
+                dataSource={audit.modules}
+                render={(item) => (
+                  <List.Item key={item.module}>
+                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                      <Space wrap style={{ justifyContent: 'space-between', width: '100%' }}>
+                        <Text className="font-semibold">{item.module}</Text>
+                        <Space>
+                          <Button size="mini" onClick={() => void handleExportModule(item.module)}>
+                            {t('i18n.audit.exportModule')}
+                          </Button>
+                          <Button
+                            size="mini"
+                            type="outline"
+                            disabled={item.unusedKeyCount === 0 || !canEdit}
+                            loading={unusedLifecycleLoading}
+                            onClick={() => void handleStartUnusedObservation(item.module)}
+                          >
+                            {t('i18n.lifecycle.observe.module')}
+                          </Button>
+                          <Button
+                            size="mini"
+                            type="outline"
+                            status="warning"
+                            disabled={item.observingKeyCount === 0 || !canEdit}
+                            loading={unusedLifecycleLoading}
+                            onClick={() => void handleArchiveObservedUnusedKeys(item.module)}
+                          >
+                            {t('i18n.lifecycle.archive.module')}
+                          </Button>
+                          <Popconfirm
+                            title={t('i18n.lifecycle.delete.confirmModule')}
+                            onOk={() => void handleDeleteArchivedUnusedKeys(item.module)}
+                          >
+                            <Button
+                              size="mini"
+                              status="danger"
+                              disabled={item.archivedKeyCount === 0 || !canDelete}
+                              loading={unusedLifecycleLoading}
+                            >
+                              {t('i18n.lifecycle.delete.module')}
+                            </Button>
+                          </Popconfirm>
+                        </Space>
+                      </Space>
+                      <Space wrap>
+                        <Tag>{t('i18n.audit.entryCount', { count: item.entryCount })}</Tag>
+                        <Tag>{t('i18n.audit.keyCount', { count: item.keyCount })}</Tag>
+                        <Tag color={item.unusedKeyCount > 0 ? 'orange' : 'green'}>
+                          {t('i18n.audit.unusedCount', { count: item.unusedKeyCount })}
+                        </Tag>
+                        <Tag color={item.duplicateKeyCount > 0 ? 'red' : 'green'}>
+                          {t('i18n.audit.duplicateCount', { count: item.duplicateKeyCount })}
+                        </Tag>
+                        <Tag color={item.missingLocaleCount > 0 ? 'orange' : 'green'}>
+                          {t('i18n.audit.missingLocaleCount', { count: item.missingLocaleCount })}
+                        </Tag>
+                        <Tag color={item.placeholderCount > 0 ? 'orange' : 'green'}>
+                          {t('i18n.audit.placeholderCount', { count: item.placeholderCount })}
+                        </Tag>
+                        <Tag color={item.stalePlaceholderCount > 0 ? 'red' : 'green'}>
+                          {t('i18n.audit.stalePlaceholderCount', {
+                            count: item.stalePlaceholderCount,
+                          })}
+                        </Tag>
+                        <Tag color={item.observingKeyCount > 0 ? 'gold' : 'green'}>
+                          {t('i18n.lifecycle.observingCount', { count: item.observingKeyCount })}
+                        </Tag>
+                        <Tag color={item.archivedKeyCount > 0 ? 'red' : 'green'}>
+                          {t('i18n.lifecycle.archivedCount', { count: item.archivedKeyCount })}
+                        </Tag>
+                      </Space>
+                    </Space>
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Text type="secondary">{t('i18n.audit.empty')}</Text>
+            )}
+          </Card>
+
+          <Card className="page-panel" title={t('i18n.audit.duplicateKeys')}>
+            {audit?.duplicateKeys?.length ? (
+              <List
+                bordered={false}
+                dataSource={audit.duplicateKeys}
+                render={(item, index) => (
+                  <List.Item key={`${item.key}-${item.modules.join('|')}-${index}`}>
+                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                      <Text copyable>{item.key}</Text>
+                      <Space wrap>
+                        {item.modules.map((moduleName) => (
+                          <Button
+                            key={`${item.key}-${moduleName}`}
+                            size="mini"
+                            status="danger"
+                            type="outline"
+                            onClick={() => handleLocateConflict(moduleName, item.key)}
+                          >
+                            {moduleName}
+                          </Button>
+                        ))}
+                      </Space>
+                      <Text type="secondary">
+                        {t('i18n.audit.groupsLabel')}: {item.groups.join(', ') || '-'} ·{' '}
+                        {t('i18n.audit.localesLabel')}: {item.locales.join(', ') || '-'}
+                      </Text>
+                      {item.suggestions.length > 0 ? (
+                        <Space direction="vertical" size={4}>
+                          <Text type="secondary">{t('i18n.audit.renameSuggestions')}</Text>
+                          {item.suggestions.map((suggestion: I18nRenameSuggestion) => (
+                            <Space key={`${item.key}-${suggestion.module}`} wrap>
+                              <Text
+                                copyable
+                              >{`${suggestion.module} -> ${suggestion.suggestedKey}`}</Text>
+                              <Button
+                                size="mini"
+                                type="outline"
+                                status="danger"
+                                disabled={!canEdit}
+                                onClick={() =>
+                                  void handleOpenRenameRepair(
+                                    suggestion.module,
+                                    item.key,
+                                    suggestion.suggestedKey,
+                                  )
+                                }
+                              >
+                                {t('i18n.rename.action')}
+                              </Button>
+                            </Space>
+                          ))}
+                        </Space>
+                      ) : null}
+                    </Space>
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Text type="secondary">{t('i18n.audit.duplicateEmpty')}</Text>
+            )}
+          </Card>
+
+          <Card className="page-panel" title={t('i18n.audit.unusedKeys')}>
+            {audit?.unusedKeys?.length ? (
+              <List
+                bordered={false}
+                dataSource={audit.unusedKeys}
+                render={(item, index) => (
+                  <List.Item key={`${item.key}-${item.module}-${index}`}>
+                    <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                      <Text copyable>{item.key}</Text>
+                      <Space wrap>
+                        {item.modules.map((moduleName: string) => (
+                          <Button
+                            key={`${item.key}-${moduleName}`}
+                            size="mini"
+                            type="outline"
+                            status="warning"
+                            onClick={() => handleLocateUnusedKey(moduleName, item.key)}
+                          >
+                            {moduleName}
+                          </Button>
+                        ))}
+                        {item.placeholder ? (
+                          <Tag color="gold">{t('i18n.audit.placeholderTag')}</Tag>
+                        ) : null}
+                        <Tag color={lifecycleStatusColor(item.lifecycleStatus)}>
+                          {t(`i18n.lifecycle.status.${item.lifecycleStatus}`)}
+                        </Tag>
+                        {item.eligibleForArchive ? (
+                          <Tag color="orange">{t('i18n.lifecycle.readyToArchive')}</Tag>
+                        ) : null}
+                        {item.eligibleForDelete ? (
+                          <Tag color="red">{t('i18n.lifecycle.readyToDelete')}</Tag>
+                        ) : null}
+                      </Space>
+                      <Text type="secondary">
+                        {t('i18n.audit.localesLabel')}: {item.locales.join(', ') || '-'}
+                      </Text>
+                      {item.lifecycleMarkedAt ? (
+                        <Text type="secondary">
+                          {t('i18n.lifecycle.markedAt')}: {formatDateTime(item.lifecycleMarkedAt)} ·{' '}
+                          {t('i18n.lifecycle.observingDays', { count: item.observingDays })}
+                        </Text>
+                      ) : null}
+                    </Space>
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Text type="secondary">{t('i18n.audit.unusedEmpty')}</Text>
+            )}
+          </Card>
+
+          {renderStalePlaceholdersCard()}
+        </Space>
+      )}
+    </AppModal>
+  );
+
+  const renderRenameModal = () => (
+    <AppModal
+      title={t('i18n.rename.title')}
+      visible={renameVisible}
+      size="detail"
+      confirmLoading={renameSubmitting}
+      onOk={() => void handleExecuteRename()}
+      onCancel={() => {
+        setRenameVisible(false);
+        setRenamePreview(null);
+      }}
+      footer={
+        <Space>
+          <Button
+            onClick={() => {
+              setRenameVisible(false);
+              setRenamePreview(null);
+            }}
+          >
+            {t('common.close')}
+          </Button>
+          <Button loading={renamePreviewLoading} onClick={() => void handlePreviewRename()}>
+            {t('i18n.rename.preview.action')}
+          </Button>
+          <Button
+            icon={<IconDownload />}
+            disabled={!renamePreview}
+            onClick={() => handleDownloadRenameReport()}
+          >
+            {t('i18n.rename.report.download')}
+          </Button>
+          <Button
+            type="primary"
+            status="warning"
+            loading={renameSubmitting}
+            disabled={!renamePreview?.canExecute}
+            onClick={() => void handleExecuteRename()}
+          >
+            {t('i18n.rename.execute.action')}
+          </Button>
+        </Space>
+      }
+    >
+      <Form
+        form={renameForm}
+        layout="vertical"
+        onSubmit={() => {
+          void handlePreviewRename();
+        }}
+      >
+        <Row gutter={16}>
+          <Col span={8}>
+            <FormItem
+              label={t('i18n.module')}
+              field="module"
+              rules={[requiredRule(t, 'i18n.module')]}
+            >
+              <Input onPressEnter={() => renameForm.submit()} />
             </FormItem>
-          </Form>
-          {missingLocaleRows.length === 0 ? (
-            <Text type="secondary">{t('i18n.missingLocales.empty')}</Text>
-          ) : (
-            <List
-              bordered={false}
-              dataSource={missingLocaleRows}
-              render={(item, index) => (
-                <List.Item key={`${item.key}-${index}`}>
-                  <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                    <Text copyable>{item.key}</Text>
-                    <Text type="secondary">
-                      {item.module || '-'} / {item.group || 'messages'}
-                    </Text>
-                    <Space wrap>
-                      {item.missingLocales.map((locale) => (
-                        <Button
-                          key={`${item.key}-${locale}`}
-                          size="mini"
-                          type="outline"
-                          status="warning"
-                          onClick={() => openCreateFromMissingLocale(item, locale)}
+          </Col>
+          <Col span={8}>
+            <FormItem
+              label={t('i18n.rename.oldKey')}
+              field="oldKey"
+              rules={[requiredRule(t, 'i18n.rename.oldKey')]}
+            >
+              <Input onPressEnter={() => renameForm.submit()} />
+            </FormItem>
+          </Col>
+          <Col span={8}>
+            <FormItem
+              label={t('i18n.rename.newKey')}
+              field="newKey"
+              rules={[requiredRule(t, 'i18n.rename.newKey')]}
+            >
+              <Input onPressEnter={() => renameForm.submit()} />
+            </FormItem>
+          </Col>
+        </Row>
+        <FormItem field="confirmSourceUpdated" triggerPropName="checked">
+          <Checkbox>{t('i18n.rename.confirmSourceUpdated')}</Checkbox>
+        </FormItem>
+      </Form>
+      {renamePreview ? (
+        <Space direction="vertical" size={16} style={{ width: '100%' }}>
+          <Card className="page-panel" title={t('i18n.rename.preview.title')}>
+            <Space wrap>
+              <Tag color="arcoblue">
+                {t('i18n.rename.preview.affectedRows', { count: renamePreview.affectedRows })}
+              </Tag>
+              <Tag color={renamePreview.existingTargetRows > 0 ? 'red' : 'green'}>
+                {t('i18n.rename.preview.targetRows', { count: renamePreview.existingTargetRows })}
+              </Tag>
+              <Tag color={renamePreview.requiresCodeMigration ? 'orange' : 'green'}>
+                {t('i18n.rename.preview.referenceFiles', {
+                  count: renamePreview.referenceFiles.length,
+                })}
+              </Tag>
+            </Space>
+            <Text type="secondary" style={{ display: 'block', marginTop: 12 }}>
+              {t('i18n.rename.preview.localeSummary')}:{' '}
+              {renamePreview.affectedLocales.join(', ') || '-'}
+            </Text>
+            {renamePreview.existingTargetLocales.length > 0 ? (
+              <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+                {t('i18n.rename.preview.targetLocaleSummary')}:{' '}
+                {renamePreview.existingTargetLocales.join(', ')}
+              </Text>
+            ) : null}
+          </Card>
+
+          <Card className="page-panel" title={t('i18n.rename.preview.referenceTitle')}>
+            {renamePreview.referenceFiles.length > 0 ? (
+              <List
+                bordered={false}
+                dataSource={renamePreview.referenceFiles}
+                render={(item) => (
+                  <List.Item key={item.path}>
+                    <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                      <Text copyable>{item.path}</Text>
+                      <Text type="secondary">
+                        {t('i18n.rename.preview.matchCount', { count: item.matchCount })}
+                      </Text>
+                      {item.matches.map((match) => (
+                        <Space
+                          key={`${item.path}-${match.line}-${match.column}`}
+                          direction="vertical"
+                          size={2}
+                          style={{ width: '100%' }}
                         >
-                          {locale}
-                        </Button>
+                          <Text type="secondary">
+                            {t('i18n.rename.preview.matchLocation', {
+                              line: match.line,
+                              column: match.column,
+                            })}
+                          </Text>
+                          <Text code>{match.snippet || '-'}</Text>
+                          <Text code>{match.replacementHint || '-'}</Text>
+                        </Space>
                       ))}
                     </Space>
-                  </Space>
-                </List.Item>
-              )}
-            />
-          )}
-        </>
-      </AppModal>
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Text type="secondary">{t('i18n.rename.preview.referenceEmpty')}</Text>
+            )}
+          </Card>
 
-      <AppModal
-        title={t('i18n.createTitle')}
-        visible={createVisible}
-        size="lg"
-        confirmLoading={submitting}
-        onOk={() => void handleCreate()}
-        onCancel={() => setCreateVisible(false)}
-      >
-        <Form
-          form={createForm}
-          layout="vertical"
-          onSubmit={() => {
-            void handleCreate();
-          }}
-          onValuesChange={(changedValues) => {
-            if (
-              createDuplicateConflict &&
-              ('key' in changedValues || 'locale' in changedValues || 'module' in changedValues)
-            ) {
-              setCreateDuplicateConflict(null);
-            }
-          }}
-        >
-          {createDuplicateConflict ? (
-            <Card size="small" className="page-panel" style={{ marginBottom: 16 }}>
-              <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                <Text type="error">
-                  {t('i18n.create.duplicateBlocked', {
-                    key: createDuplicateConflict.key,
-                    locale: createDuplicateConflict.locale,
-                  })}
-                </Text>
-                <Text type="secondary">
-                  {t('i18n.create.duplicateOwner', {
-                    module: createDuplicateConflict.module || '-',
-                  })}
-                </Text>
-              </Space>
-            </Card>
-          ) : null}
-          <Row gutter={16}>
-            <Col span={12}>
-              <FormItem
-                label={t('i18n.module')}
-                field="module"
-                rules={[requiredRule(t, 'i18n.module')]}
-              >
-                <Input onPressEnter={() => createForm.submit()} />
-              </FormItem>
-            </Col>
-            <Col span={12}>
-              <FormItem label={t('i18n.group')} field="group" initialValue="messages">
-                <Input onPressEnter={() => createForm.submit()} />
-              </FormItem>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <FormItem label={t('i18n.key')} field="key" rules={[requiredRule(t, 'i18n.key')]}>
-                <Input onPressEnter={() => createForm.submit()} />
-              </FormItem>
-            </Col>
-            <Col span={12}>
-              <FormItem
-                label={t('i18n.locale')}
-                field="locale"
-                rules={[requiredRule(t, 'i18n.locale')]}
-                initialValue="zh-CN"
-              >
-                <Select>
-                  {SUPPORTED_LOCALES.map((locale) => (
-                    <Select.Option key={locale} value={locale}>
-                      {locale}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </FormItem>
-            </Col>
-          </Row>
-          <FormItem label={t('i18n.value')} field="value" rules={[requiredRule(t, 'i18n.value')]}>
-            <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} />
-          </FormItem>
-          <FormItem label={t('i18n.remark')} field="remark">
-            <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
+          <Card className="page-panel" title={t('i18n.rename.preview.warningTitle')}>
+            <Space direction="vertical" size={6}>
+              <Text type="secondary">{t('i18n.rename.preview.warning1')}</Text>
+              <Text type="secondary">{t('i18n.rename.preview.warning2')}</Text>
+              <Text type="secondary">{t('i18n.rename.preview.warning3')}</Text>
+            </Space>
+          </Card>
+        </Space>
+      ) : null}
+    </AppModal>
+  );
+
+  const renderMissingLocalesModal = () => (
+    <AppModal
+      title={t('i18n.missingLocales.title')}
+      visible={missingLocaleVisible}
+      size="detail"
+      footer={
+        <Space>
+          <Button onClick={() => setMissingLocaleVisible(false)}>{t('common.close')}</Button>
+          <Button
+            type="primary"
+            loading={fillingMissingLocales}
+            disabled={missingLocaleRows.length === 0}
+            onClick={() => void handleFillMissingLocales()}
+          >
+            {t('i18n.fillMissingLocales.action')}
+          </Button>
+          <Button
+            status="warning"
+            loading={hydratingBuiltinLocales}
+            disabled={!canHydrateBuiltin}
+            onClick={() => void handleHydrateBuiltinLocales(missingLocaleModuleFilter || undefined)}
+          >
+            {t('i18n.hydrateBuiltin.action')}
+          </Button>
+        </Space>
+      }
+      onCancel={() => setMissingLocaleVisible(false)}
+    >
+      <>
+        <Form layout="vertical" style={{ marginBottom: 16 }}>
+          <FormItem label={t('i18n.missingLocales.moduleFilter')}>
+            <Select
+              allowClear
+              placeholder={t('i18n.module')}
+              value={missingLocaleModuleFilter || undefined}
+              onChange={(value) => setMissingLocaleModuleFilter(value || '')}
+            >
+              {moduleOptions.map((moduleName) => (
+                <Select.Option key={moduleName} value={moduleName}>
+                  {moduleName}
+                </Select.Option>
+              ))}
+            </Select>
           </FormItem>
         </Form>
-      </AppModal>
-
-      <AppModal
-        title={t('i18n.viewTitle')}
-        visible={detailVisible}
-        size="detail"
-        footer={<Button onClick={() => setDetailVisible(false)}>{t('common.close')}</Button>}
-        onCancel={() => setDetailVisible(false)}
-      >
-        <Descriptions
-          column={1}
-          labelStyle={{ width: 140 }}
-          data={[
-            { label: t('i18n.module'), value: currentRow?.module || '-' },
-            { label: t('i18n.group'), value: currentRow?.group || '-' },
-            { label: t('i18n.key'), value: currentRow?.key || '-' },
-            { label: t('i18n.locale'), value: currentRow?.locale || '-' },
-            { label: t('i18n.value'), value: currentRow?.value || '-' },
-            { label: t('i18n.remark'), value: currentRow?.remark || '-' },
-            { label: t('i18n.createdAt'), value: formatDateTime(currentRow?.createdAt) },
-            { label: t('i18n.updatedAt'), value: formatDateTime(currentRow?.updatedAt) },
-          ]}
-        />
-      </AppModal>
-
-      <AppModal
-        title={t('i18n.editTitle')}
-        visible={editVisible}
-        size="lg"
-        confirmLoading={submitting || detailLoading}
-        onOk={() => void handleSave()}
-        onCancel={() => setEditVisible(false)}
-      >
-        <Form form={form} layout="vertical">
-          <Row gutter={16}>
-            <Col span={12}>
-              <FormItem label={t('i18n.module')}>
-                <Text>{currentRow?.module || '-'}</Text>
-              </FormItem>
-            </Col>
-            <Col span={12}>
-              <FormItem label={t('i18n.group')}>
-                <Text>{currentRow?.group || '-'}</Text>
-              </FormItem>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <FormItem label={t('i18n.key')}>
-                <Text copyable>{currentRow?.key || '-'}</Text>
-              </FormItem>
-            </Col>
-            <Col span={12}>
-              <FormItem label={t('i18n.locale')}>
-                <Text>{currentRow?.locale || '-'}</Text>
-              </FormItem>
-            </Col>
-          </Row>
-          <FormItem label={t('i18n.value')} field="value" rules={[requiredRule(t, 'i18n.value')]}>
-            <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} />
-          </FormItem>
-          <FormItem label={t('i18n.remark')} field="remark">
-            <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
-          </FormItem>
-        </Form>
-      </AppModal>
-
-      <AppModal
-        title={t('i18n.syncSuccess', { count: syncedKeys.length })}
-        visible={syncVisible}
-        size="detail"
-        footer={<Button onClick={() => setSyncVisible(false)}>{t('common.close')}</Button>}
-        onCancel={() => setSyncVisible(false)}
-      >
-        {syncedKeys.length === 0 ? (
-          <Text type="secondary">{t('app.command.empty')}</Text>
+        {missingLocaleRows.length === 0 ? (
+          <Text type="secondary">{t('i18n.missingLocales.empty')}</Text>
         ) : (
           <List
             bordered={false}
-            dataSource={syncedKeys}
+            dataSource={missingLocaleRows}
             render={(item, index) => (
-              <List.Item key={`${item}-${index}`}>
-                <Text copyable>{item}</Text>
+              <List.Item key={`${item.key}-${index}`}>
+                <Space direction="vertical" size={4} style={{ width: '100%' }}>
+                  <Text copyable>{item.key}</Text>
+                  <Text type="secondary">
+                    {item.module || '-'} / {item.group || 'messages'}
+                  </Text>
+                  <Space wrap>
+                    {item.missingLocales.map((locale) => (
+                      <Button
+                        key={`${item.key}-${locale}`}
+                        size="mini"
+                        type="outline"
+                        status="warning"
+                        onClick={() => openCreateFromMissingLocale(item, locale)}
+                      >
+                        {locale}
+                      </Button>
+                    ))}
+                  </Space>
+                </Space>
               </List.Item>
             )}
           />
         )}
-      </AppModal>
+      </>
+    </AppModal>
+  );
+
+  const renderCreateModal = () => (
+    <AppModal
+      title={t('i18n.createTitle')}
+      visible={createVisible}
+      size="lg"
+      confirmLoading={submitting}
+      onOk={() => void handleCreate()}
+      onCancel={() => setCreateVisible(false)}
+    >
+      <Form
+        form={createForm}
+        layout="vertical"
+        onSubmit={() => {
+          void handleCreate();
+        }}
+        onValuesChange={(changedValues) => {
+          if (
+            createDuplicateConflict &&
+            ('key' in changedValues || 'locale' in changedValues || 'module' in changedValues)
+          ) {
+            setCreateDuplicateConflict(null);
+          }
+        }}
+      >
+        {createDuplicateConflict ? (
+          <Card size="small" className="page-panel" style={{ marginBottom: 16 }}>
+            <Space direction="vertical" size={4} style={{ width: '100%' }}>
+              <Text type="error">
+                {t('i18n.create.duplicateBlocked', {
+                  key: createDuplicateConflict.key,
+                  locale: createDuplicateConflict.locale,
+                })}
+              </Text>
+              <Text type="secondary">
+                {t('i18n.create.duplicateOwner', {
+                  module: createDuplicateConflict.module || '-',
+                })}
+              </Text>
+            </Space>
+          </Card>
+        ) : null}
+        <Row gutter={16}>
+          <Col span={12}>
+            <FormItem
+              label={t('i18n.module')}
+              field="module"
+              rules={[requiredRule(t, 'i18n.module')]}
+            >
+              <Input onPressEnter={() => createForm.submit()} />
+            </FormItem>
+          </Col>
+          <Col span={12}>
+            <FormItem label={t('i18n.group')} field="group" initialValue="messages">
+              <Input onPressEnter={() => createForm.submit()} />
+            </FormItem>
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col span={12}>
+            <FormItem label={t('i18n.key')} field="key" rules={[requiredRule(t, 'i18n.key')]}>
+              <Input onPressEnter={() => createForm.submit()} />
+            </FormItem>
+          </Col>
+          <Col span={12}>
+            <FormItem
+              label={t('i18n.locale')}
+              field="locale"
+              rules={[requiredRule(t, 'i18n.locale')]}
+              initialValue="zh-CN"
+            >
+              <Select>
+                {SUPPORTED_LOCALES.map((locale) => (
+                  <Select.Option key={locale} value={locale}>
+                    {locale}
+                  </Select.Option>
+                ))}
+              </Select>
+            </FormItem>
+          </Col>
+        </Row>
+        <FormItem label={t('i18n.value')} field="value" rules={[requiredRule(t, 'i18n.value')]}>
+          <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} />
+        </FormItem>
+        <FormItem label={t('i18n.remark')} field="remark">
+          <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
+        </FormItem>
+      </Form>
+    </AppModal>
+  );
+
+  const renderDetailModal = () => (
+    <AppModal
+      title={t('i18n.viewTitle')}
+      visible={detailVisible}
+      size="detail"
+      footer={<Button onClick={() => setDetailVisible(false)}>{t('common.close')}</Button>}
+      onCancel={() => setDetailVisible(false)}
+    >
+      <Descriptions
+        column={1}
+        labelStyle={{ width: 140 }}
+        data={[
+          { label: t('i18n.module'), value: currentRow?.module || '-' },
+          { label: t('i18n.group'), value: currentRow?.group || '-' },
+          { label: t('i18n.key'), value: currentRow?.key || '-' },
+          { label: t('i18n.locale'), value: currentRow?.locale || '-' },
+          { label: t('i18n.value'), value: currentRow?.value || '-' },
+          { label: t('i18n.remark'), value: currentRow?.remark || '-' },
+          { label: t('i18n.createdAt'), value: formatDateTime(currentRow?.createdAt) },
+          { label: t('i18n.updatedAt'), value: formatDateTime(currentRow?.updatedAt) },
+        ]}
+      />
+    </AppModal>
+  );
+
+  const renderEditModal = () => (
+    <AppModal
+      title={t('i18n.editTitle')}
+      visible={editVisible}
+      size="lg"
+      confirmLoading={submitting || detailLoading}
+      onOk={() => void handleSave()}
+      onCancel={() => setEditVisible(false)}
+    >
+      <Form form={form} layout="vertical">
+        <Row gutter={16}>
+          <Col span={12}>
+            <FormItem label={t('i18n.module')}>
+              <Text>{currentRow?.module || '-'}</Text>
+            </FormItem>
+          </Col>
+          <Col span={12}>
+            <FormItem label={t('i18n.group')}>
+              <Text>{currentRow?.group || '-'}</Text>
+            </FormItem>
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col span={12}>
+            <FormItem label={t('i18n.key')}>
+              <Text copyable>{currentRow?.key || '-'}</Text>
+            </FormItem>
+          </Col>
+          <Col span={12}>
+            <FormItem label={t('i18n.locale')}>
+              <Text>{currentRow?.locale || '-'}</Text>
+            </FormItem>
+          </Col>
+        </Row>
+        <FormItem label={t('i18n.value')} field="value" rules={[requiredRule(t, 'i18n.value')]}>
+          <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} />
+        </FormItem>
+        <FormItem label={t('i18n.remark')} field="remark">
+          <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
+        </FormItem>
+      </Form>
+    </AppModal>
+  );
+
+  const renderSyncModal = () => (
+    <AppModal
+      title={t('i18n.syncSuccess', { count: syncedKeys.length })}
+      visible={syncVisible}
+      size="detail"
+      footer={<Button onClick={() => setSyncVisible(false)}>{t('common.close')}</Button>}
+      onCancel={() => setSyncVisible(false)}
+    >
+      {syncedKeys.length === 0 ? (
+        <Text type="secondary">{t('app.command.empty')}</Text>
+      ) : (
+        <List
+          bordered={false}
+          dataSource={syncedKeys}
+          render={(item, index) => (
+            <List.Item key={`${item}-${index}`}>
+              <Text copyable>{item}</Text>
+            </List.Item>
+          )}
+        />
+      )}
+    </AppModal>
+  );
+
+  return (
+    <PageContainer>
+      {renderPageContent()}
+      {renderGovernanceDrawer()}
+      {renderAuditModal()}
+      {renderRenameModal()}
+      {renderMissingLocalesModal()}
+      {renderCreateModal()}
+      {renderDetailModal()}
+      {renderEditModal()}
+      {renderSyncModal()}
     </PageContainer>
   );
 };

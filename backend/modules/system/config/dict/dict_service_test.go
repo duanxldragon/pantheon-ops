@@ -153,17 +153,20 @@ func TestDictService_ImportTemplateAndExport(t *testing.T) {
 	db := setupDictTestDB(t)
 	service := NewDictService(db)
 
+	assertDictTypeImportFlow(t, service)
+	assertDictItemImportFlow(t, service)
+	assertDictExports(t, service)
+}
+
+func assertDictTypeImportFlow(t *testing.T, service *DictService) {
+	t.Helper()
 	typeTemplate := service.BuildDictTypeImportTemplate()
-	if len(typeTemplate.Rows) == 0 || !strings.HasPrefix(typeTemplate.Rows[0][0], "#") {
-		t.Fatalf("expected dict type template instructions, got %+v", typeTemplate.Rows)
-	}
+	assertDictTemplateInstructions(t, "type", typeTemplate.Rows)
 	typeTemplateResult, err := service.ImportDictTypes(append([][]string{typeTemplate.Headers}, typeTemplate.Rows...))
 	if err != nil {
 		t.Fatalf("import type template comments: %v", err)
 	}
-	if !typeTemplateResult.Applied || typeTemplateResult.Created != 0 || typeTemplateResult.Failed != 0 {
-		t.Fatalf("expected type template comments to be ignored, got %+v", typeTemplateResult)
-	}
+	assertDictImportResult(t, "type template comments", typeTemplateResult.Applied, typeTemplateResult.Created, typeTemplateResult.Failed, 0)
 
 	typeResult, err := service.ImportDictTypes([][]string{
 		typeTemplate.Headers,
@@ -172,21 +175,18 @@ func TestDictService_ImportTemplateAndExport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("import dict type: %v", err)
 	}
-	if !typeResult.Applied || typeResult.Created != 1 || typeResult.Failed != 0 {
-		t.Fatalf("unexpected type import result: %+v", typeResult)
-	}
+	assertDictImportResult(t, "dict type", typeResult.Applied, typeResult.Created, typeResult.Failed, 1)
+}
 
+func assertDictItemImportFlow(t *testing.T, service *DictService) {
+	t.Helper()
 	itemTemplate := service.BuildDictItemImportTemplate()
-	if len(itemTemplate.Rows) == 0 || !strings.HasPrefix(itemTemplate.Rows[0][0], "#") {
-		t.Fatalf("expected dict item template instructions, got %+v", itemTemplate.Rows)
-	}
+	assertDictTemplateInstructions(t, "item", itemTemplate.Rows)
 	itemTemplateResult, err := service.ImportDictItems(append([][]string{itemTemplate.Headers}, itemTemplate.Rows...))
 	if err != nil {
 		t.Fatalf("import item template comments: %v", err)
 	}
-	if !itemTemplateResult.Applied || itemTemplateResult.Created != 0 || itemTemplateResult.Failed != 0 {
-		t.Fatalf("expected item template comments to be ignored, got %+v", itemTemplateResult)
-	}
+	assertDictImportResult(t, "item template comments", itemTemplateResult.Applied, itemTemplateResult.Created, itemTemplateResult.Failed, 0)
 
 	itemResult, err := service.ImportDictItems([][]string{
 		itemTemplate.Headers,
@@ -195,10 +195,11 @@ func TestDictService_ImportTemplateAndExport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("import dict item: %v", err)
 	}
-	if !itemResult.Applied || itemResult.Created != 1 || itemResult.Failed != 0 {
-		t.Fatalf("unexpected item import result: %+v", itemResult)
-	}
+	assertDictImportResult(t, "dict item", itemResult.Applied, itemResult.Created, itemResult.Failed, 1)
+}
 
+func assertDictExports(t *testing.T, service *DictService) {
+	t.Helper()
 	exportedTypes, err := service.ExportDictTypes(&DictTypeListQuery{DictCode: "biz_status"})
 	if err != nil {
 		t.Fatalf("export dict type: %v", err)
@@ -213,6 +214,20 @@ func TestDictService_ImportTemplateAndExport(t *testing.T) {
 	}
 	if len(exportedItems.Rows) != 1 || exportedItems.Rows[0][0] != "biz_status" || exportedItems.Rows[0][2] != "enabled" {
 		t.Fatalf("unexpected item export rows: %+v", exportedItems.Rows)
+	}
+}
+
+func assertDictTemplateInstructions(t *testing.T, kind string, rows [][]string) {
+	t.Helper()
+	if len(rows) == 0 || !strings.HasPrefix(rows[0][0], "#") {
+		t.Fatalf("expected dict %s template instructions, got %+v", kind, rows)
+	}
+}
+
+func assertDictImportResult(t *testing.T, action string, applied bool, created, failed, wantCreated int) {
+	t.Helper()
+	if !applied || created != wantCreated || failed != 0 {
+		t.Fatalf("unexpected %s import result: applied=%v created=%d failed=%d", action, applied, created, failed)
 	}
 }
 

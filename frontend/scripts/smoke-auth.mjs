@@ -15,6 +15,28 @@ export function extractCookieValue(setCookieHeader, name) {
   return match?.[1] ?? null;
 }
 
+export function collectSetCookieHeader(response) {
+  if (typeof response?.headers?.getSetCookie === 'function') {
+    return response.headers.getSetCookie().join(', ');
+  }
+  return response?.headers?.get?.('set-cookie') ?? '';
+}
+
+export function attachCookieTokens(response, payload) {
+  const setCookieHeader = collectSetCookieHeader(response);
+  const data = payload?.data ?? {};
+  return {
+    ...payload,
+    data: {
+      ...data,
+      accessToken:
+        data.accessToken ?? extractCookieValue(setCookieHeader, 'pantheon_access_token'),
+      refreshToken:
+        data.refreshToken ?? extractCookieValue(setCookieHeader, 'pantheon_refresh_token'),
+    },
+  };
+}
+
 export function parseDsn(dsn) {
   const trimmed = String(dsn || '').trim();
   const marker = '@tcp(';
@@ -238,7 +260,7 @@ export async function loginWithOptionalMfa(apiBaseUrl, { username, password }) {
   if (!loginResponse.ok) {
     throw new Error(`Login failed: HTTP ${loginResponse.status}`);
   }
-  const loginPayload = await loginResponse.json();
+  const loginPayload = attachCookieTokens(loginResponse, await loginResponse.json());
   if (loginPayload.code !== 200) {
     throw new Error(`Login failed: code ${loginPayload.code}`);
   }
@@ -248,7 +270,7 @@ export async function loginWithOptionalMfa(apiBaseUrl, { username, password }) {
       accessToken: loginData.accessToken,
       refreshToken: loginData.refreshToken,
       csrfToken:
-        extractCookieValue(loginResponse.headers.get('set-cookie'), 'pantheon_csrf_token') ??
+        extractCookieValue(collectSetCookieHeader(loginResponse), 'pantheon_csrf_token') ??
         `pantheon-smoke-csrf-${Date.now()}`,
     };
   }
@@ -270,7 +292,7 @@ export async function loginWithOptionalMfa(apiBaseUrl, { username, password }) {
   if (!verifyResponse.ok) {
     throw new Error(`MFA verify failed: HTTP ${verifyResponse.status}`);
   }
-  const verifyPayload = await verifyResponse.json();
+  const verifyPayload = attachCookieTokens(verifyResponse, await verifyResponse.json());
   if (verifyPayload.code !== 200) {
     throw new Error(`MFA verify failed: code ${verifyPayload.code}`);
   }
@@ -278,8 +300,8 @@ export async function loginWithOptionalMfa(apiBaseUrl, { username, password }) {
     accessToken: verifyPayload.data.accessToken,
     refreshToken: verifyPayload.data.refreshToken,
     csrfToken:
-      extractCookieValue(verifyResponse.headers.get('set-cookie'), 'pantheon_csrf_token') ??
-      extractCookieValue(loginResponse.headers.get('set-cookie'), 'pantheon_csrf_token') ??
+      extractCookieValue(collectSetCookieHeader(verifyResponse), 'pantheon_csrf_token') ??
+      extractCookieValue(collectSetCookieHeader(loginResponse), 'pantheon_csrf_token') ??
       `pantheon-smoke-csrf-${Date.now()}`,
   };
 }

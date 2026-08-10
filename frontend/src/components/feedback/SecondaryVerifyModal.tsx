@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Form, Input } from '@arco-design/web-react';
 import { message } from './message';
 import { useTranslation } from 'react-i18next';
-import { verifyOperationPassword } from '../../modules/auth/api';
-import AppModal from '../patterns/AppModal';
+import { verifyOperationPassword } from '../../modules/auth/security/api';
+import AppModal from '../patterns/modals/AppModal';
 
 interface SecondaryVerifyModalProps {
   visible: boolean;

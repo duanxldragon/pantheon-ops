@@ -1,0 +1,41 @@
+目标仓库：pantheon-ops
+层级：business/deploy
+任务模式：implement
+
+先读：
+- pantheon-ops/AGENTS.md
+- pantheon-ops/docs/PROJECT_INHERITANCE.md
+- pantheon-base/DESIGN.md
+- pantheon-base/AGENTS.md
+- pantheon-base/docs/README.md
+- pantheon-ops/docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.md
+- pantheon-ops/docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md
+
+实现范围：
+- 收口 deploy task 主流程的 canonical business error semantics
+- 对齐 task create / update / delete / start / detail / cancel / taskHost result 语义
+- 补齐 task 草稿态、删除能力、任务级动作、详情页状态流转与针对性 smoke
+- 同步 deploy 模块 i18n、设计文档与 smoke 断言
+
+不处理：
+- deploy package / template 自身 CRUD 的历史错误 key 统一
+- 共享 platform / system 逻辑回流与 foundation release 升级
+- 当前仓库其他脏改动引出的全仓前端类型问题和共享分页契约整改
+
+同步要求：
+- 仅本仓业务改动
+- 不在 ops 本地 override base 行为
+- 发现共享问题时单独回 base 修，不在本批次扩 scope
+
+验证方式：
+- Backend: `go test -race ./backend/modules/business/deploy`
+- Frontend: `npm run i18n:generate-module`、`npm run check:i18n-missing-keys`、`npm run check:menu-contract`、`npm run check:base-sync`
+- Governance: `npm run check:inheritance`
+- Smoke: 当前只补 request-only api smoke 与 deploy 页面 smoke 断言，未在本地取得完整渲染/运行证据
+- UI 证据：本轮无本地渲染截图，运行态验证依赖 GitHub Actions pull_request workflow
+
+停点：
+- 不改 base version
+- 不删除 inherited override
+- 不改业务数据库结构
+- 不回流共享逻辑到 base

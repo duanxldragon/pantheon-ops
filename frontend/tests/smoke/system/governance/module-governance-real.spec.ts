@@ -128,7 +128,7 @@ async function formItem(page: Page, label: string) {
 }
 
 async function cleanupModule(request: APIRequestContext, login: BrowserLoginResult, operationToken: string) {
-  const response = await request.delete(`${apiBaseUrl}/system/dynamic-modules/${moduleKey}?dropTable=false&purgeSource=true`, {
+  const response = await request.delete(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}?dropTable=false&purgeSource=true`, {
     headers: {
       ...apiRequestHeaders(login),
       'X-Operation-Token': operationToken,
@@ -180,7 +180,7 @@ test('real module governance flow can generate register and purge a temporary bu
   await expect(page.getByRole('heading', { name: '预览与接入' })).toBeVisible();
   await expect(page.getByText('共生成 10 个文件', { exact: true })).toBeVisible();
 
-  const generateResponse = await page.request.post(`${apiBaseUrl}/system/dynamic-modules/generate`, {
+  const generateResponse = await page.request.post(`${apiBaseUrl}/lowcode/dynamic-modules/generate`, {
     headers: {
       ...apiRequestHeaders(login),
       'X-Operation-Token': operationToken,
@@ -195,7 +195,7 @@ test('real module governance flow can generate register and purge a temporary bu
   expect(generatePayload.data?.summary?.routePath).toBe(moduleRoute);
 
   await expect.poll(async () => {
-    const response = await page.request.get(`${apiBaseUrl}/system/dynamic-modules/${moduleKey}`, {
+    const response = await page.request.get(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}`, {
       headers: apiRequestHeaders(login),
     });
     const payload = await response.json();
@@ -241,7 +241,7 @@ test('real module governance flow can generate register and purge a temporary bu
   await expect(row).toBeVisible();
   await expect(row.getByText(/已接入|待激活/).first()).toBeVisible();
 
-  const cleanupResponse = await page.request.delete(`${apiBaseUrl}/system/dynamic-modules/${moduleKey}?dropTable=false&purgeSource=true`, {
+  const cleanupResponse = await page.request.delete(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}?dropTable=false&purgeSource=true`, {
     headers: {
       ...apiRequestHeaders(login),
       'X-Operation-Token': operationToken,
@@ -252,7 +252,7 @@ test('real module governance flow can generate register and purge a temporary bu
   expect(cleanupPayload.code).toBe(200);
 
   await expect.poll(async () => {
-    const response = await page.request.get(`${apiBaseUrl}/system/dynamic-modules/${moduleKey}`, {
+    const response = await page.request.get(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}`, {
       headers: apiRequestHeaders(login),
     });
     const payload = await response.json();

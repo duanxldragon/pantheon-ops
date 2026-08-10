@@ -16,43 +16,53 @@ function defineRegistryEntry(loader: ComponentLoader): RegistryEntry {
 }
 
 const staticComponentRegistry = {
-  'dashboard': defineRegistryEntry(() => import('../../modules/dashboard/Dashboard')),
-  'auth/SecurityCenter': defineRegistryEntry(() => import('../../modules/auth/SecurityCenter')),
-  'auth/LoginLogList': defineRegistryEntry(() => import('../../modules/auth/LoginLogList')),
-  'auth/SecurityEventList': defineRegistryEntry(
-    () => import('../../modules/auth/SecurityEventList'),
+  'dashboard': defineRegistryEntry(() => import('../../modules/platform/Dashboard')),
+  'auth/SecurityCenter': defineRegistryEntry(
+    () => import('../../modules/auth/security/components/SecurityCenter'),
   ),
-  'auth/SessionList': defineRegistryEntry(() => import('../../modules/auth/SessionList')),
+  'auth/LoginLogList': defineRegistryEntry(
+    () => import('../../modules/auth/security/components/LoginLogList'),
+  ),
+  'auth/SecurityEventList': defineRegistryEntry(
+    () => import('../../modules/auth/security/components/SecurityEventList'),
+  ),
+  'auth/SessionList': defineRegistryEntry(() => import('../../modules/auth/session/components/SessionList')),
   'system/profile/ProfileCenter': defineRegistryEntry(
     () => import('../../modules/system/profile/ProfileCenter'),
   ),
-  'system/dict/DictPage': defineRegistryEntry(() => import('../../modules/system/dict/DictPage')),
+  'system/config/dict/DictPage': defineRegistryEntry(() => import('../../modules/system/config/dict/DictPage')),
   'system/i18n/I18nList': defineRegistryEntry(() => import('../../modules/system/i18n/I18nList')),
-  'system/dept/DeptList': defineRegistryEntry(() => import('../../modules/system/dept/DeptList')),
-  'system/menu/MenuList': defineRegistryEntry(() => import('../../modules/system/menu/MenuList')),
-  'system/permission/PermissionList': defineRegistryEntry(
-    () => import('../../modules/system/permission/PermissionList'),
+  'system/org/dept/DeptList': defineRegistryEntry(() => import('../../modules/system/org/dept/DeptList')),
+  'system/iam/menu/MenuList': defineRegistryEntry(() => import('../../modules/system/iam/menu/MenuList')),
+  'system/iam/permission/PermissionList': defineRegistryEntry(
+    () => import('../../modules/system/iam/permission/PermissionList'),
   ),
-  'system/post/PostList': defineRegistryEntry(() => import('../../modules/system/post/PostList')),
-  'system/role/RoleList': defineRegistryEntry(() => import('../../modules/system/role/RoleList')),
-  'system/setting/SettingOverviewPage': defineRegistryEntry(
-    () => import('../../modules/system/setting/SettingOverviewPage'),
+  'system/org/post/PostList': defineRegistryEntry(() => import('../../modules/system/org/post/PostList')),
+  'system/iam/role/RoleList': defineRegistryEntry(() => import('../../modules/system/iam/role/RoleList')),
+  'system/config/setting/SettingOverviewPage': defineRegistryEntry(
+    () => import('../../modules/system/config/setting/SettingOverviewPage'),
   ),
-  'system/setting/SettingGroupPage': defineRegistryEntry(
-    () => import('../../modules/system/setting/SettingGroupPage'),
+  'system/config/setting/SettingGroupPage': defineRegistryEntry(
+    () => import('../../modules/system/config/setting/SettingGroupPage'),
   ),
-  'system/user/UserList': defineRegistryEntry(() => import('../../modules/system/user/UserList')),
-  'system/user/UserDetail': defineRegistryEntry(
-    () => import('../../modules/system/user/UserDetail'),
+  'system/iam/user/UserList': defineRegistryEntry(() => import('../../modules/system/iam/user/UserList')),
+  'system/iam/user/UserDetail': defineRegistryEntry(
+    () => import('../../modules/system/iam/user/UserDetail'),
   ),
   'system/audit/OperationLogList': defineRegistryEntry(
     () => import('../../modules/system/audit/OperationLogList'),
   ),
   'system/dynamicmodule/ModuleManager': defineRegistryEntry(
-    () => import('../../modules/system/dynamicmodule/ModuleManager'),
+    () => import('../../modules/lowcode/dynamicmodule/ModuleManager'),
+  ),
+  'lowcode/dynamicmodule/ModuleManager': defineRegistryEntry(
+    () => import('../../modules/lowcode/dynamicmodule/ModuleManager'),
   ),
   'system/generator/ModuleWizard': defineRegistryEntry(
-    () => import('../../modules/system/generator/pages/ModuleWizard'),
+    () => import('../../modules/lowcode/generator/pages/ModuleWizard'),
+  ),
+  'lowcode/generator/ModuleWizard': defineRegistryEntry(
+    () => import('../../modules/lowcode/generator/pages/ModuleWizard'),
   ),
   'business/cmdb/host/CmdbHostList': defineRegistryEntry(
     () => import('../../modules/business/cmdb/host/CmdbHostList'),
@@ -65,6 +75,12 @@ const staticComponentRegistry = {
   ),
   'business/cmdb/label/CmdbLabelSchemaList': defineRegistryEntry(
     () => import('../../modules/business/cmdb/label/CmdbLabelSchemaList'),
+  ),
+  'business/bizscope/BizScopeList': defineRegistryEntry(
+    () => import('../../modules/business/bizscope/BizScopeList'),
+  ),
+  'business/bizscope/BizScopeDetail': defineRegistryEntry(
+    () => import('../../modules/business/bizscope/BizScopeDetail'),
   ),
   'business/deploy/package/DeployPackageList': defineRegistryEntry(
     () => import('../../modules/business/deploy/package/DeployPackageList'),

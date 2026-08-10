@@ -2,7 +2,7 @@
 
 English version: [PLATFORM_SRE_EVOLUTION_PLAN.en.md](./PLATFORM_SRE_EVOLUTION_PLAN.en.md)
 
-更新时间：2026-05-11
+更新时间：2026-07-17
 
 类型：Design (Roadmap)
 归属层：platform
@@ -24,15 +24,15 @@ English version: [PLATFORM_SRE_EVOLUTION_PLAN.en.md](./PLATFORM_SRE_EVOLUTION_PL
 | CMDB 主机/分组/标签管理 | `backend/modules/business/cmdb/` | 生产可用 |
 | 部署任务编排（状态机、目标解析、标签条件引擎） | `backend/modules/business/deploy/` | 编排层可用 |
 | 4 层权限模型 + Casbin | `backend/pkg/database/casbin.go` | 成熟 |
-| 低代码模块生成器 | `backend/modules/system/generator/` | 可扩展 |
-| 动态模块生命周期 | `backend/modules/system/dynamicmodule/` | 可扩展 |
-| DSL 条件表达式引擎（AND/OR + eq/neq/in/notIn） | `deploy_service.go:583-642` | 可用，后续迁至 K8s label selector |
+| 低代码模块生成器 | `backend/modules/lowcode/generator/` | 可扩展 |
+| 动态模块生命周期 | `backend/modules/lowcode/dynamicmodule/` | 可扩展 |
+| DSL 条件表达式引擎（AND/OR + eq/neq/in/notIn） | `deploy_service.go` | 可用，后续迁至 K8s label selector |
 
 ### 1.2 能力缺口
 
 | 缺口 | 当前状态 | 目标 |
 |---|---|---|
-| 真实执行引擎 | `StartTask` 只改状态，未真正执行 | SSH / Agent / K8s Job 三模式执行 |
+| 真实执行引擎 | SSH 执行闭环已在 `business/deploy/deploy_service.go` 内联实现：`ssh.Dial` 真实执行并自动回写结果 | 抽出独立 `backend/pkg/executor/` 包，并补 Agent / K8s Job 执行模式 |
 | Agent 通信 | `ExecutorTypeAgent` 枚举已定义，无实现 | Agent Sidecar 拉取任务并回写结果 |
 | K8s 原生集成 | 无 `client-go` 依赖，无 kubeconfig | Operator + CRD + Webhook |
 | 可观测性 | 无 metrics 端点，无结构化日志 | Prometheus exporter + Loki + 链路追踪 |
@@ -45,7 +45,7 @@ English version: [PLATFORM_SRE_EVOLUTION_PLAN.en.md](./PLATFORM_SRE_EVOLUTION_PL
 
 ### 阶段一：真实执行引擎（SSH + Agent 通信）
 
-**目标**：`POST /tasks/:id/start` 不再只改状态，而是真正在远程机器上执行命令。
+**目标**：在现有内联 SSH 真实执行闭环基础上抽离执行器边界，并补齐 Agent 通信。
 
 **对应能力缺口**：真实执行引擎、Agent 通信基础
 
@@ -53,9 +53,9 @@ English version: [PLATFORM_SRE_EVOLUTION_PLAN.en.md](./PLATFORM_SRE_EVOLUTION_PL
 
 | 步骤 | 文件/模块 | 工作内容 | 习得能力 |
 |---|---|---|---|
-| 1.1 | `backend/pkg/executor/ssh_executor.go` | 新建 SSH 执行器：从 CMDB host 读取 IP/SSH 端口，建立连接，执行 `InstallCommand`，返回 stdout/stderr | Go SSH 编程、连接池、超时控制 |
+| 1.1 | `backend/pkg/executor/ssh_executor.go` | 已以内联方式实现，待从 `deploy_service.go` 重构抽包：读取 CMDB 目标快照、建立 SSH 连接、执行命令并返回 stdout/stderr | Go SSH 编程、连接池、超时控制 |
 | 1.2 | `backend/pkg/executor/agent_executor.go` | 新建 Agent 执行器：通过 HTTP POST 向 Agent 下发任务 | HTTP client 设计、重试、幂等 |
-| 1.3 | `backend/modules/business/deploy/deploy_service.go` | 改造 `StartTask`：根据 `executor_type` 选择执行器，goroutine 并发执行多主机，结果自动回写 `DeployTaskHost` | 并发模型、`context.Context` 取消、`sync.WaitGroup` |
+| 1.3 | `backend/modules/business/deploy/deploy_service.go` | SSH 选择、执行与结果回写已以内联方式实现，待重构为统一 executor 调度；Agent 模式接入后再统一并发与取消语义 | 并发模型、`context.Context` 取消、`sync.WaitGroup` |
 | 1.4 | `backend/modules/business/deploy/deploy_service.go` | `MarkHostResult` 增加来源区分（人工标记 vs 执行器上报） | 审计完整性 |
 
 **关键 Go 知识点（边写边查）**：
@@ -250,32 +250,32 @@ pantheon-operator/
 
 | 阶段 | 预估周数 | 启动条件 |
 |---|---|---|
-| 阶段一：执行引擎 | 3-4 周 | 立即 |
+| 阶段一：执行引擎 | 1-2 周 | 已在 2026-06 Deploy 闭环轮部分完成，剩余以执行器抽包和 Agent 为主 |
 | 阶段二：Agent Sidecar | 4-5 周 | 阶段一完成 |
 | 阶段三：K8s Operator | 5-6 周 | 阶段二完成 |
 | 阶段四：可观测性 | 3-4 周 | 阶段二完成（与阶段三可并行） |
 | 阶段五：打包部署 | 2 周 | 阶段三+四完成 |
 
-总计：每日 2 小时 → 约 5-6 个月完成全路线。
+阶段一已部分完成（2026-06 Deploy 闭环轮）；后续工作重点转向 executor 抽包和 Agent 开发。
 
 ---
 
 ## 5. 立即启动（阶段一第一步）
 
-**目标**：100 行 Go 代码打通 SSH 远程执行。
+**目标**：把已经在 `deploy_service.go` 跑通的 SSH 远程执行抽成独立、可测试的 executor。
 
-**新建文件**：`backend/pkg/executor/ssh_executor.go`
+**目标文件**：`backend/pkg/executor/ssh_executor.go`
 
 **核心逻辑**：
 ```go
 package executor
 
-// SSHExecutor 连接远程主机执行命令，返回 stdout/stderr/exitCode
-// 依赖 golang.org/x/crypto/ssh
-// 配置来源：CMDB Host（IP + SSHPort）+ 凭据（第一阶段可硬编码测试）
+// SSHExecutor 从现有 deploy_service.go 内联实现中抽离，
+// 连接远程主机执行命令并返回 stdout/stderr/exitCode。
+// 配置来源：CMDB 目标快照（IP + SSHPort）+ 请求期凭据。
 ```
 
-**这 100 行是从 "Web CRUD 开发者" 到 "SRE 工程师" 的质变点。**
+抽包不得回退现有主机指纹校验、请求期凭据、结果回写和错误 key 语义。
 
 ---
 

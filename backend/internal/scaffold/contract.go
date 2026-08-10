@@ -1,44 +1,69 @@
 package scaffold
 
 import (
-	"errors"
+	"pantheon-ops/backend/pkg/common"
 	"regexp"
 	"strings"
 )
 
 var moduleRelationFieldPattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_]*$`)
 
+const msgInvalidDependency = "module.generate.invalid_dependency"
+
 func validateGovernanceContract(req *RegisterGeneratedModuleRequest) error {
-	templateVersion := strings.TrimSpace(req.Schema.TemplateVersion)
-	if templateVersion != "" && templateVersion != "v1" {
-		return errors.New("module.generate.invalid_template_version")
+	if err := validateTemplateAndDataScope(req.Schema); err != nil {
+		return err
 	}
-
-	dataScopeMode := strings.TrimSpace(req.Schema.DataScopeMode)
-	if dataScopeMode != "" && !isValidDataScopeMode(dataScopeMode) {
-		return errors.New("module.generate.invalid_data_scope")
+	if err := validateRelationMetadata(req.Schema.Metadata); err != nil {
+		return err
 	}
-
-	moduleName := strings.TrimSpace(req.Schema.Name)
-	seenDependencies := make(map[string]struct{}, len(req.Schema.Dependencies))
-	for _, dependency := range req.Schema.Dependencies {
-		dependencyModule := strings.TrimSpace(dependency.Module)
-		if !isValidModulePath(dependencyModule, true) {
-			return errors.New("module.generate.invalid_dependency")
-		}
-		if dependencyModule == moduleName {
-			return errors.New("module.generate.invalid_dependency")
-		}
-		if _, ok := seenDependencies[dependencyModule]; ok {
-			return errors.New("module.generate.invalid_dependency")
-		}
-		seenDependencies[dependencyModule] = struct{}{}
+	if err := validateDependencies(req.Schema.Name, req.Schema.Dependencies); err != nil {
+		return err
 	}
-
 	for _, relation := range req.Schema.Relations {
 		if !isValidRelationContract(req.Schema.Scope, relation) {
-			return errors.New("module.generate.invalid_relation")
+			return common.NewBadRequest("module.generate.invalid_relation")
 		}
+	}
+	return nil
+}
+
+func validateTemplateAndDataScope(schema ModuleSchema) error {
+	templateVersion := strings.TrimSpace(schema.TemplateVersion)
+	if templateVersion != "" && templateVersion != "v1" {
+		return common.NewBadRequest("module.generate.invalid_template_version")
+	}
+	dataScopeMode := strings.TrimSpace(schema.DataScopeMode)
+	if dataScopeMode != "" && !isValidDataScopeMode(dataScopeMode) {
+		return common.NewBadRequest("module.generate.invalid_data_scope")
+	}
+	return nil
+}
+
+func validateRelationMetadata(metadata ModuleMetadata) error {
+	for _, field := range []string{
+		metadata.RelationFromField,
+		metadata.RelationToField,
+	} {
+		if field != "" && (field != strings.TrimSpace(field) || !moduleRelationFieldPattern.MatchString(field)) {
+			return common.NewBadRequest("module.generate.invalid_relation")
+		}
+	}
+	return nil
+}
+
+func validateDependencies(name string, dependencies []ModuleDependency) error {
+	moduleName := strings.TrimSpace(name)
+	seenDependencies := make(map[string]struct{}, len(dependencies))
+	for _, dependency := range dependencies {
+		dependencyModule := strings.TrimSpace(dependency.Module)
+		if !isValidModulePath(dependencyModule, true) || dependencyModule == moduleName {
+			return common.NewBadRequest(msgInvalidDependency)
+		}
+		if _, ok := seenDependencies[dependencyModule]; ok {
+			return common.NewBadRequest(msgInvalidDependency)
+		}
+		seenDependencies[dependencyModule] = struct{}{}
 	}
 	return nil
 }

@@ -1,9 +1,8 @@
 package middleware
 
 import (
-	"strings"
-
 	"pantheon-ops/backend/pkg/common"
+	commonhttp "pantheon-ops/backend/pkg/common/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,19 +13,19 @@ var safeMethods = map[string]bool{
 	"OPTIONS": true,
 }
 
-var csrfExemptPaths = []string{
-	"/api/v1/auth/login",
-	"/api/v1/auth/refresh",
-	"/api/v1/auth/mfa/verify",
+// csrfExemptPaths 使用精确路径匹配（非前缀匹配），
+// 防止未来在这些前缀下新增的 POST 路由被静默豁免 CSRF 校验。
+var csrfExemptPaths = map[string]bool{
+	"/api/v1/auth/login":      true,
+	"/api/v1/auth/refresh":    true,
+	"/api/v1/auth/mfa/verify": true,
+	// legacy 双入口（与 /auth/* 同 handler），保留至旧路由下线。
+	"/api/v1/system/login":   true,
+	"/api/v1/system/refresh": true,
 }
 
 func isCSRFExempt(path string) bool {
-	for _, prefix := range csrfExemptPaths {
-		if strings.HasPrefix(path, prefix) {
-			return true
-		}
-	}
-	return false
+	return csrfExemptPaths[path]
 }
 
 func CSRFMiddleware() gin.HandlerFunc {
@@ -36,7 +35,7 @@ func CSRFMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		csrfCookie, err := c.Cookie(common.CookieCSRFToken)
+		csrfCookie, err := c.Cookie(commonhttp.CookieCSRFToken)
 		if err != nil || csrfCookie == "" {
 			common.Fail(c, common.CodeForbidden, "csrf.missing")
 			c.Abort()

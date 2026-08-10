@@ -5,12 +5,13 @@ import { spawn } from 'node:child_process';
 import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import net from 'node:net';
+import { fileURLToPath } from 'node:url';
 
-const frontendRoot = process.cwd();
+const frontendRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const runnerScript = path.join(frontendRoot, 'scripts', 'run-smoke-suite.mjs');
 const fixtureServerScript = path.join(frontendRoot, 'scripts', 'test-fixtures', 'bind-ready-server.mjs');
 const fakePlaywrightCli = path.join(frontendRoot, 'scripts', 'test-fixtures', 'fake-playwright-cli.mjs');
-const fakeSetupScript = path.join(frontendRoot, 'scripts', 'test-fixtures', 'fake-setup-script.mjs');
+const cleanupRecorderScript = path.join(frontendRoot, 'scripts', 'test-fixtures', 'record-cleanup.mjs');
 const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-smoke-runner-'));
 
 after(() => {
@@ -77,7 +78,6 @@ function startOccupantServer(port) {
 test('run-smoke-suite waits for its own ready signal before invoking playwright', async () => {
   const port = await getFreePort();
   const markerPath = path.join(tmpRoot, `marker-${port}.json`);
-  const setupMarkerPath = path.join(tmpRoot, `setup-marker-${port}.json`);
   const configPath = path.join(tmpRoot, `config-${port}.txt`);
   fs.writeFileSync(configPath, 'placeholder');
 
@@ -91,8 +91,6 @@ test('run-smoke-suite waits for its own ready signal before invoking playwright'
     '10000',
     '--server-script',
     fixtureServerScript,
-    '--setup',
-    fakeSetupScript,
     '--playwright-cli',
     fakePlaywrightCli,
     '--config',
@@ -103,18 +101,13 @@ test('run-smoke-suite waits for its own ready signal before invoking playwright'
     env: {
       ...process.env,
       PANTHEON_FAKE_PLAYWRIGHT_MARKER: markerPath,
-      PANTHEON_FAKE_SETUP_MARKER: setupMarkerPath,
     },
   });
 
   assert.equal(result.code, 0, `${result.stderr}\n${result.stdout}`);
   assert.equal(fs.existsSync(markerPath), true);
-  assert.equal(fs.existsSync(setupMarkerPath), true);
   const payload = JSON.parse(fs.readFileSync(markerPath, 'utf8'));
-  const setupPayload = JSON.parse(fs.readFileSync(setupMarkerPath, 'utf8'));
   assert.equal(payload.baseUrl, `http://127.0.0.1:${port}`);
-  assert.match(payload.outputDir ?? '', /pantheon-playwright[\\/]+smoke-run-/);
-  assert.deepEqual(setupPayload, ['up', 'down']);
   assert.match(result.stdout, /Fixture ready at http:\/\/127\.0\.0\.1:/);
   assert.doesNotMatch(result.stdout, /__PANTHEON_SMOKE_VITE_READY__/);
 });
@@ -164,4 +157,148 @@ test('run-smoke-suite fails fast when the target port is already occupied', asyn
       });
     });
   }
+});
+
+test('run-smoke-suite cleans generated modules before and after execution and fixtures around opted-in runs', async () => {
+  const port = await getFreePort();
+  const markerPath = path.join(tmpRoot, `cleanup-${port}.jsonl`);
+  const configPath = path.join(tmpRoot, `config-cleanup-${port}.txt`);
+  fs.writeFileSync(configPath, 'placeholder');
+
+  const result = await spawnCommand(process.execPath, [
+    runnerScript,
+    '--host',
+    '127.0.0.1',
+    '--port',
+    String(port),
+    '--timeout',
+    '10000',
+    '--server-script',
+    fixtureServerScript,
+    '--playwright-cli',
+    fakePlaywrightCli,
+    '--generated-cleanup-script',
+    cleanupRecorderScript,
+    '--fixture-cleanup-script',
+    cleanupRecorderScript,
+    '--cleanup-fixtures',
+    'all',
+    '--config',
+    configPath,
+    '--',
+    'tests/smoke/fake.spec.ts',
+  ], {
+    env: {
+      ...process.env,
+      PANTHEON_CLEANUP_MARKER: markerPath,
+    },
+  });
+
+  assert.equal(result.code, 0, `${result.stderr}\n${result.stdout}`);
+  const entries = fs
+    .readFileSync(markerPath, 'utf8')
+    .trim()
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+  assert.deepEqual(
+    entries.map((entry) => entry.args),
+    [
+      ['--kind', 'generated', '--phase', 'pre'],
+      ['--kind', 'fixture', '--phase', 'pre', '--scope', 'all'],
+      ['--kind', 'fixture', '--phase', 'post', '--scope', 'all'],
+      ['--kind', 'generated', '--phase', 'post'],
+    ],
+  );
+});
+
+test('run-smoke-suite skips fixture cleanup in preserve mode but still cleans generated modules', async () => {
+  const port = await getFreePort();
+  const markerPath = path.join(tmpRoot, `cleanup-preserve-${port}.jsonl`);
+  const configPath = path.join(tmpRoot, `config-cleanup-preserve-${port}.txt`);
+  fs.writeFileSync(configPath, 'placeholder');
+
+  const result = await spawnCommand(process.execPath, [
+    runnerScript,
+    '--host',
+    '127.0.0.1',
+    '--port',
+    String(port),
+    '--timeout',
+    '10000',
+    '--server-script',
+    fixtureServerScript,
+    '--playwright-cli',
+    fakePlaywrightCli,
+    '--generated-cleanup-script',
+    cleanupRecorderScript,
+    '--fixture-cleanup-script',
+    cleanupRecorderScript,
+    '--cleanup-fixtures',
+    'all',
+    '--config',
+    configPath,
+    '--',
+    'tests/smoke/fake.spec.ts',
+  ], {
+    env: {
+      ...process.env,
+      PANTHEON_CLEANUP_MARKER: markerPath,
+      PANTHEON_SMOKE_PRESERVE_FIXTURES: '1',
+    },
+  });
+
+  assert.equal(result.code, 0, `${result.stderr}\n${result.stdout}`);
+  const entries = fs
+    .readFileSync(markerPath, 'utf8')
+    .trim()
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+  assert.deepEqual(
+    entries.map((entry) => entry.args),
+    [
+      ['--kind', 'generated', '--phase', 'pre'],
+      ['--kind', 'generated', '--phase', 'post'],
+    ],
+  );
+});
+
+test('run-smoke-suite propagates a pre-cleanup failure and does not invoke playwright', async () => {
+  const port = await getFreePort();
+  const cleanupMarkerPath = path.join(tmpRoot, `cleanup-failure-${port}.jsonl`);
+  const playwrightMarkerPath = path.join(tmpRoot, `playwright-failure-${port}.json`);
+  const configPath = path.join(tmpRoot, `config-cleanup-failure-${port}.txt`);
+  fs.writeFileSync(configPath, 'placeholder');
+
+  const result = await spawnCommand(process.execPath, [
+    runnerScript,
+    '--host',
+    '127.0.0.1',
+    '--port',
+    String(port),
+    '--timeout',
+    '10000',
+    '--server-script',
+    fixtureServerScript,
+    '--playwright-cli',
+    fakePlaywrightCli,
+    '--generated-cleanup-script',
+    cleanupRecorderScript,
+    '--config',
+    configPath,
+    '--',
+    'tests/smoke/fake.spec.ts',
+  ], {
+    env: {
+      ...process.env,
+      PANTHEON_CLEANUP_MARKER: cleanupMarkerPath,
+      PANTHEON_CLEANUP_FAIL_ON: 'generated:pre',
+      PANTHEON_FAKE_PLAYWRIGHT_MARKER: playwrightMarkerPath,
+    },
+  });
+
+  assert.equal(result.code, 7, `${result.stderr}\n${result.stdout}`);
+  assert.equal(fs.existsSync(playwrightMarkerPath), false);
+  assert.match(result.stderr, /generated cleanup exited with code 7/);
 });

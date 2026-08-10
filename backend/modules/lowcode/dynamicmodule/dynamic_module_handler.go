@@ -1,0 +1,269 @@
+package dynamicmodule
+
+import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"pantheon-ops/backend/internal/scaffold"
+	"pantheon-ops/backend/pkg/common"
+
+	"github.com/gin-gonic/gin"
+)
+
+const msgParamInvalid = "param.invalid"
+const msgModuleInvalidName = "module.invalid_name"
+
+type DynamicModuleHandler struct {
+	service *DynamicModuleService
+}
+
+func NewDynamicModuleHandler(s *DynamicModuleService) *DynamicModuleHandler {
+	return &DynamicModuleHandler{service: s}
+}
+
+// RegisterModule 注册模块
+func (h *DynamicModuleHandler) RegisterModule(c *gin.Context) {
+	common.SetAuditMetadata(c, "module.register.title", common.BusinessInsert)
+
+	var req struct {
+		Name string `json:"name" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+
+	registration, err := h.service.RegisterManagedModule(req.Name)
+	if err != nil {
+		code := common.CodeError
+		switch err.Error() {
+		case msgModuleInvalidName, "module.register.source_missing", msgModuleSchemaInvalid:
+			code = common.CodeParamInvalid
+		}
+		common.FailWithError(c, code, err, "module.register.error")
+		return
+	}
+
+	common.Success(c, gin.H{
+		"registered": true,
+		"module":     registration,
+		"message":    "module.register.success",
+	})
+}
+
+func (h *DynamicModuleHandler) GenerateAndRegisterModule(c *gin.Context) {
+	common.SetAuditMetadata(c, "module.generate_register.title", common.BusinessInsert)
+
+	rawBody, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	c.Request.Body = io.NopCloser(bytes.NewReader(rawBody))
+
+	var input struct {
+		Schema    scaffold.ModuleSchema `json:"schema"`
+		Overwrite bool                  `json:"overwrite"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	applyGenerateSchemaRawMetadata(rawBody, &input.Schema)
+
+	req := scaffold.RegisterGeneratedModuleRequest{
+		Schema:    input.Schema,
+		Overwrite: input.Overwrite,
+	}
+
+	registration, writtenFiles, summary, err := h.service.RegisterGeneratedModule(&req)
+	if err != nil {
+		code := common.CodeError
+		if isGenerateValidationError(err) {
+			code = common.CodeParamInvalid
+		}
+		common.FailWithError(c, code, err, "module.generate.error")
+		return
+	}
+
+	common.Success(c, gin.H{
+		"module":                registration,
+		"summary":               summary,
+		"writtenFiles":          writtenFiles,
+		"requiresRestart":       true,
+		"requiresFrontendBuild": true,
+		"message":               "module.generate.success",
+	})
+}
+
+// UnregisterModule 卸载模块
+func (h *DynamicModuleHandler) UnregisterModule(c *gin.Context) {
+	common.SetAuditMetadata(c, "module.uninstall.title", common.BusinessDelete)
+
+	moduleName := c.Param("name")
+	dropTable := c.Query("dropTable") == "true"
+	purgeSource := c.Query("purgeSource") == "true"
+
+	lifecycle, err := h.service.UnregisterModule(moduleName, dropTable, purgeSource)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "module.unregister.error")
+		return
+	}
+
+	common.Success(c, gin.H{
+		"unregistered":  true,
+		"message":       "module.unregistered",
+		"i18nLifecycle": lifecycle,
+	})
+}
+
+func (h *DynamicModuleHandler) DeleteModuleRecord(c *gin.Context) {
+	common.SetAuditMetadata(c, "module.record.delete.title", common.BusinessDelete)
+
+	if err := h.service.DeleteModuleRecord(c.Param("name")); err != nil {
+		common.FailWithError(c, common.CodeError, err, "module.delete_record.error")
+		return
+	}
+	common.Success(c, gin.H{
+		"deleted": true,
+		"message": "module.record.deleted",
+	})
+}
+
+func (h *DynamicModuleHandler) PurgeModule(c *gin.Context) {
+	common.SetAuditMetadata(c, "module.purge.title", common.BusinessDelete)
+
+	moduleName := c.Param("name")
+	dropTable := c.Query("dropTable") == "true"
+	purgeSource := c.Query("purgeSource") != "false"
+
+	lifecycle, err := h.service.PurgeModule(moduleName, dropTable, purgeSource)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "module.purge.error")
+		return
+	}
+	common.Success(c, gin.H{
+		"deleted":       true,
+		"message":       "module.deleted",
+		"i18nLifecycle": lifecycle,
+	})
+}
+
+func (h *DynamicModuleHandler) RepairRegistries(c *gin.Context) {
+	common.SetAuditMetadata(c, "module.registry.repair.title", common.BusinessUpdate)
+
+	summary, err := h.service.AuditAndRepairGeneratedRegistries()
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "module.registry.repair.error")
+		return
+	}
+	common.Success(c, gin.H{
+		"repaired": true,
+		"summary":  summary,
+		"message":  "module.registry.repaired",
+	})
+}
+
+func (h *DynamicModuleHandler) AuditPendingActivations(c *gin.Context) {
+	common.SetAuditMetadata(c, "module.activation.check.title", common.BusinessOther)
+
+	summary, err := h.service.AuditPendingGeneratedModuleActivations()
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "module.activation.audit.error")
+		return
+	}
+	common.Success(c, gin.H{
+		"audited": true,
+		"summary": summary,
+		"message": "module.activation.audit.success",
+	})
+}
+
+func (h *DynamicModuleHandler) GetModuleSchema(c *gin.Context) {
+	moduleName := c.Query("module")
+	if moduleName == "" {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+
+	schema, err := h.service.GetManagedModuleSchema(moduleName)
+	if err != nil {
+		code := common.CodeError
+		switch err.Error() {
+		case msgModuleInvalidName, "module.register.source_missing", msgModuleSchemaInvalid:
+			code = common.CodeParamInvalid
+		}
+		common.FailWithError(c, code, err, "module.schema.error")
+		return
+	}
+
+	common.Success(c, schema)
+}
+
+// ListModules 获取模块列表
+func (h *DynamicModuleHandler) ListModules(c *gin.Context) {
+	modules, err := h.service.ListRegisteredModules()
+	if err != nil {
+		common.Fail(c, common.CodeError, "module.list.error")
+		return
+	}
+
+	common.Success(c, modules)
+}
+
+// GetModuleStatus 获取模块状态
+func (h *DynamicModuleHandler) GetModuleStatus(c *gin.Context) {
+	moduleName := c.Param("name")
+
+	module, err := h.service.GetModuleStatus(moduleName)
+	if err != nil {
+		common.Fail(c, common.CodeError, "module.status.error")
+		return
+	}
+
+	common.Success(c, module)
+}
+
+func applyGenerateSchemaRawMetadata(rawBody []byte, schema *scaffold.ModuleSchema) {
+	if schema == nil || len(rawBody) == 0 {
+		return
+	}
+
+	var raw struct {
+		Schema struct {
+			Metadata map[string]json.RawMessage `json:"metadata"`
+		} `json:"schema"`
+	}
+	if err := json.Unmarshal(rawBody, &raw); err != nil {
+		return
+	}
+
+	if encoded, ok := raw.Schema.Metadata["autoRecycle"]; ok {
+		var autoRecycle bool
+		if err := json.Unmarshal(encoded, &autoRecycle); err == nil {
+			schema.Metadata.AutoRecycle = autoRecycle
+		}
+	}
+}
+
+func isGenerateValidationError(err error) bool {
+	switch err.Error() {
+	case "module.generate.invalid_payload",
+		"module.generate.invalid_name",
+		"module.generate.invalid_scope",
+		"module.generate.display_name_required",
+		"module.generate.table_name_required",
+		"module.generate.invalid_table_name",
+		"module.generate.empty_files",
+		"module.generate.invalid_path",
+		"module.generate.duplicate_file",
+		"module.generate.file_exists",
+		"module.generate.already_exists",
+		"module.generate.business_only",
+		msgModuleInvalidName:
+		return true
+	default:
+		return false
+	}
+}

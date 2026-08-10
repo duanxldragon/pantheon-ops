@@ -2,11 +2,11 @@
 
 Chinese version: [README.zh.md](./README.zh.md)
 
-Pantheon Ops keeps repository-local Codex skills here.
+Pantheon Ops keeps repository-local agent skills here.
 
 Shared template source:
 
-- `harness-engineering/.agents/skills/README.md` at the workspace level
+- `pantheon-harness/config/agents/skills/` at the workspace level
 
 Available skills:
 

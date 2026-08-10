@@ -31,7 +31,7 @@ Pantheon Ops 是基于 Pantheon Platform 底座拆出的运维管理平台，用
 | --- | --- |
 | 后端 | Go、Gin、GORM、Casbin、JWT、MySQL、Redis |
 | 前端 | React、TypeScript、Vite、Arco Design、Zustand、i18next |
-| 工程 | Docker Compose、Playwright、GitHub Actions、gstack QA 流程 |
+| 工程 | Docker Compose、Playwright、GitHub Actions、QA 流程 |
 
 ## 目录结构
 
@@ -124,6 +124,9 @@ npm run test:smoke:impexp
 # 后台 UI smoke
 npm run test:smoke:backoffice-ui
 
+# 安装当前锁定的 foundation release artifact
+npm run foundation:install
+
 # 规划消费某个 foundation release
 npm run upgrade:foundation:plan -- --manifest <bundle-root>\\manifest.json --bundle <bundle-root>
 
@@ -157,8 +160,9 @@ Pantheon Platform 将权限拆成四层：
 - [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md)：先看继承关系、版本锁定与本地业务范围。
 - [docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md)：业务域治理、主机绑定与部署信任边界设计。
 - `docs/PROJECT_INHERITANCE.md` 中的 `Base release line + Base version` 是当前 consumer 版本锚点。
+- `foundation-release.lock.json` 是默认共享校验的 machine-readable 锚点；`check:base-sync` 对已安装的 locked release artifact 负责，`check:base-sync:workspace` 才用于观察 base 最近是否有待同步变化。
 - `upgrade:foundation:apply` 会保留 ops 本地 menu/generator/workspace overlay，重写共享 backend import 到 `pantheon-ops`，并补跑 frontend base-sync + menu-contract。
-- [.agents/skills/README.zh.md](./.agents/skills/README.zh.md)：本仓库的 repo-local Codex skills 入口，覆盖继承校验、PR 收口、GitHub comments 自动处理与 CI 红灯排查。
+- [.agents/skills/README.zh.md](./.agents/skills/README.zh.md)：本仓库的 repo-local agent skills 入口，覆盖继承校验、PR 收口、GitHub comments 自动处理与 CI 红灯排查。
 - [DESIGN.md](./DESIGN.md)：再看仓库级设计边界。
 - [CONTRIBUTING.md](./CONTRIBUTING.md) / [SECURITY.md](./SECURITY.md)：协作与安全规则。
 - `pantheon-base/docs/designs/QUALITY_AND_SECURITY_STRATEGY.md`：质量与安全治理策略主文档。

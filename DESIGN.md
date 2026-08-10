@@ -349,7 +349,7 @@ Source Sans 3 通过 Google Fonts 加载，`index.html` 中引入。
 开始任何设计或开发前，建议按以下顺序理解项目：
 
 1. `DESIGN.md`
-2. `AGENTS.md` / `agent.md`
+2. `AGENTS.md`
 3. `docs/README.md`
 4. `docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md`
 5. `docs/contracts/DOCUMENT_METADATA_AND_STATUS.md`

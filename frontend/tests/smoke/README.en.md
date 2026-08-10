@@ -59,6 +59,7 @@ Pantheon smoke tests are grouped by ownership boundary.
 - `test:smoke:system:module-governance-host` -> `system/governance/module-governance-host-real.spec.ts`
 - `test:smoke:system:api` -> `system/api/system-import-export.spec.ts`, `system/api/system-batch-delete.spec.ts`
 - `test:smoke:business:cmdb` -> `business/cmdb/cmdb-pages.spec.ts`
+- `test:smoke:business:deploy:api` -> `business/deploy/deploy-api.spec.ts`
 - `test:smoke:business:deploy` -> `business/deploy/deploy-pages.spec.ts`
 - `test:smoke:business:master-detail` -> `system/governance/module-master-detail-real.spec.ts`
 - `test:smoke:business:many-to-many` -> `system/governance/module-many-to-many-real.spec.ts`
@@ -85,7 +86,8 @@ Pantheon smoke tests are grouped by ownership boundary.
 | system batch delete | Batch delete remove/report behavior across user, role, dept, post, dict, permission | `system/api/system-batch-delete.spec.ts` |
 | system import/export | Templates, user, dept, post, permission, dict, role, login log, operation log | `system/api/system-import-export.spec.ts` |
 | business/cmdb | Host list/detail, group tree and empty state, create/filter/status/delete flows | `business/cmdb/cmdb-pages.spec.ts` |
-| business/deploy | Deploy package/task pages and related user-facing route flows | `business/deploy/deploy-pages.spec.ts` |
+| business/deploy api | Deploy task lifecycle update/delete guards, manual execution closure, and uploaded source trace capture | `business/deploy/deploy-api.spec.ts` |
+| business/deploy ui | Deploy package/task pages and related user-facing route flows | `business/deploy/deploy-pages.spec.ts` |
 | generated master-detail | Generated business detail page child-row create/edit interaction | `system/governance/module-master-detail-real.spec.ts` |
 | generated many-to-many | Generated business detail page relation bind/unbind interaction | `system/governance/module-many-to-many-real.spec.ts` |
 | generated auto-recycle | Temporary generated business table auto-recycle on purge | `system/governance/module-auto-recycle-real.spec.ts` |

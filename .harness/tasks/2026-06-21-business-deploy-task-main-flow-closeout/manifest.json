@@ -1,0 +1,102 @@
+{
+  "taskId": "2026-06-21-business-deploy-task-main-flow-closeout",
+  "title": "2026-06-21-business-deploy-task-main-flow-closeout",
+  "goal": "Close canonical business error semantics and task-state behavior for the business/deploy task main flow in pantheon-ops without widening into package/template CRUD cleanup or base-sync work.",
+  "primaryLayer": "business/deploy",
+  "taskDoc": "docs/harness/tasks/2026-06-21-business-deploy-task-main-flow-closeout.task.md",
+  "scope": {
+    "in": [
+      "align deploy task create, update, delete, start, detail, cancel and task-host result semantics to business.deploy.task.* keys",
+      "close draft-state, delete-state and task-level package/template lookup behavior",
+      "sync deploy module i18n, design docs and smoke assertions for task-flow changes",
+      "ship the deploy-related frontend actions and detail/list UX needed by the new task behavior"
+    ],
+    "out": [
+      "deploy package or template CRUD legacy-key cleanup outside task entry points",
+      "pantheon-base shared-path fixes or foundation release upgrades",
+      "repo-wide frontend type-check cleanup for unrelated dirty-tree drift"
+    ]
+  },
+  "implementationNotes": [
+    "Landing side stays in pantheon-ops because the behavior is confined to business/deploy task flow and its business docs/locales/smoke coverage.",
+    "Task-flow canonicalization intentionally keeps defensive mapping branches for legacy package/template errors without widening CRUD semantics in this batch."
+  ],
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "../pantheon-base/AGENTS.md",
+    "docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.md",
+    "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-06-21-business-deploy-task-main-flow-closeout.task.md",
+      ".harness/tasks/2026-06-21-business-deploy-task-main-flow-closeout/manifest.json",
+      ".harness/evidence/2026-06-21-business-deploy-task-main-flow-closeout/commands.json",
+      ".harness/evidence/2026-06-21-business-deploy-task-main-flow-closeout/summary.md",
+      ".harness/evidence/2026-06-21-business-deploy-task-main-flow-closeout/review.md",
+      ".harness/evidence/2026-06-21-business-deploy-task-main-flow-closeout/pr-body.md"
+    ],
+    "modify": [
+      "backend/modules/business/deploy/*",
+      "frontend/src/modules/business/deploy/*",
+      "frontend/tests/smoke/business/deploy/*",
+      "docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.md",
+      "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md",
+      "frontend/src/i18n/resources/generated/*"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "backend/modules/system/**",
+      "frontend/src/modules/system/**"
+    ]
+  },
+  "harnessProfile": {
+    "template": "pantheon-ops custom",
+    "overlay": "none",
+    "qualityProfile": "business-delivery",
+    "portableFailureClass": "repo-quality-gate",
+    "ownerLayer": "business-domain",
+    "coverageDimensions": [
+      "business-correctness",
+      "inheritance-discipline",
+      "smoke-regression"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "go test -race ./backend/modules/business/deploy",
+      "npm run i18n:generate-module",
+      "npm run check:i18n-missing-keys",
+      "npm run check:menu-contract",
+      "npm run check:base-sync",
+      "npm run check:inheritance"
+    ],
+    "runtimeEvidence": [
+      "GitHub pull_request workflows for quality and security gates",
+      "deploy api smoke spec and deploy page smoke assertions in repository",
+      "local runtime gap note for missing clean full-repo frontend/backend baseline"
+    ]
+  },
+  "runtimeSensitive": true,
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-06-21-business-deploy-task-main-flow-closeout/",
+    "reviewFile": ".harness/evidence/2026-06-21-business-deploy-task-main-flow-closeout/review.md",
+    "summaryFile": ".harness/evidence/2026-06-21-business-deploy-task-main-flow-closeout/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "evidenceRequired": [
+    "backend package test output",
+    "frontend i18n and menu contract outputs",
+    "inheritance check output",
+    "runtime gap statement for local smoke/render coverage"
+  ],
+  "completionChecklist": [
+    "landing side declared",
+    "deploy task main-flow semantics closed",
+    "verification run or gap recorded",
+    "PR governance artifacts prepared",
+    "review summary recorded"
+  ]
+}

@@ -2,6 +2,7 @@ package deploy
 
 import (
 	"strconv"
+	"strings"
 
 	"pantheon-ops/backend/pkg/common"
 
@@ -31,6 +32,7 @@ func (h *DeployHandler) RegisterRoutes(r gin.IRoutes) {
 	r.POST("/tasks", h.CreateTask)
 	r.GET("/tasks/:id", h.GetTask)
 	r.PUT("/tasks/:id", h.UpdateTask)
+	r.DELETE("/tasks/:id", h.DeleteTask)
 	r.POST("/tasks/:id/start", h.StartTask)
 	r.POST("/tasks/:id/cancel", h.CancelTask)
 	r.POST("/task-hosts/:id/result", h.MarkHostResult)
@@ -191,7 +193,7 @@ func (h *DeployHandler) ListTasks(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
 		return
 	}
-	resp, err := h.svc.ListTasks(query)
+	resp, err := h.svc.ListTasks(query, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "deploytask.list_failed")
 		return
@@ -208,7 +210,7 @@ func (h *DeployHandler) CreateTask(c *gin.Context) {
 	}
 	resp, err := h.svc.CreateTask(req, currentActor(c), common.GetDataScope(c))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "deploytask.create_failed")
+		failDeployTaskError(c, err, "deploytask.create_failed")
 		return
 	}
 	common.Success(c, resp)
@@ -219,9 +221,16 @@ func (h *DeployHandler) GetTask(c *gin.Context) {
 	if !ok {
 		return
 	}
-	resp, err := h.svc.GetTask(id)
+	resp, err := h.svc.GetTask(id, common.GetDataScope(c))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "deploytask.not_found")
+		switch {
+		case isDeployTaskForbidden(err):
+			common.FailWithCode(c, common.CodeForbidden, err.Error())
+		case isDeployTaskNotFound(err):
+			common.FailWithCode(c, common.CodeNotFound, err.Error())
+		default:
+			common.FailWithError(c, common.CodeError, err, "deploytask.not_found")
+		}
 		return
 	}
 	common.Success(c, resp)
@@ -238,12 +247,25 @@ func (h *DeployHandler) UpdateTask(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
 		return
 	}
-	resp, err := h.svc.UpdateTask(id, req, currentActor(c))
+	resp, err := h.svc.UpdateTask(id, req, currentActor(c), common.GetDataScope(c))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "deploytask.update_failed")
+		failDeployTaskError(c, err, "deploytask.update_failed")
 		return
 	}
 	common.Success(c, resp)
+}
+
+func (h *DeployHandler) DeleteTask(c *gin.Context) {
+	common.SetAuditMetadata(c, "删除部署任务", common.BusinessDelete)
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	if err := h.svc.DeleteTask(id, currentActor(c), common.GetDataScope(c)); err != nil {
+		failDeployTaskError(c, err, "deploytask.delete_failed")
+		return
+	}
+	common.Success(c, nil)
 }
 
 func (h *DeployHandler) StartTask(c *gin.Context) {
@@ -261,7 +283,7 @@ func (h *DeployHandler) StartTask(c *gin.Context) {
 	}
 	resp, err := h.svc.StartTask(id, req, currentActor(c), common.GetDataScope(c))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "deploytask.start_failed")
+		failDeployTaskError(c, err, "deploytask.start_failed")
 		return
 	}
 	common.Success(c, resp)
@@ -273,9 +295,9 @@ func (h *DeployHandler) CancelTask(c *gin.Context) {
 	if !ok {
 		return
 	}
-	resp, err := h.svc.CancelTask(id, currentActor(c))
+	resp, err := h.svc.CancelTask(id, currentActor(c), common.GetDataScope(c))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "deploytask.cancel_failed")
+		failDeployTaskError(c, err, "deploytask.cancel_failed")
 		return
 	}
 	common.Success(c, resp)
@@ -292,12 +314,88 @@ func (h *DeployHandler) MarkHostResult(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
 		return
 	}
-	resp, err := h.svc.MarkHostResult(id, req, currentActor(c))
+	resp, err := h.svc.MarkHostResult(id, req, currentActor(c), common.GetDataScope(c))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "deploytask.result_failed")
+		failDeployTaskHostError(c, err, "deploytask.result_failed")
 		return
 	}
 	common.Success(c, resp)
+}
+
+func failDeployTaskError(c *gin.Context, err error, fallback string) {
+	switch {
+	case isDeployTaskForbidden(err):
+		common.FailWithCode(c, common.CodeForbidden, err.Error())
+	case isDeployTaskNotFound(err):
+		common.FailWithCode(c, common.CodeNotFound, err.Error())
+	case deployTaskConflictError(err):
+		common.FailWithCode(c, 409, err.Error())
+	case deployTaskValidationError(err):
+		common.FailWithCode(c, common.CodeParamInvalid, err.Error())
+	default:
+		common.FailWithError(c, common.CodeError, err, fallback)
+	}
+}
+
+func failDeployTaskHostError(c *gin.Context, err error, fallback string) {
+	switch {
+	case strings.TrimSpace(errorText(err)) == "business.deploy.taskHost.notFound":
+		common.FailWithCode(c, common.CodeNotFound, err.Error())
+	case strings.TrimSpace(errorText(err)) == "business.deploy.taskHost.invalidResultState":
+		common.FailWithCode(c, 409, err.Error())
+	case strings.TrimSpace(errorText(err)) == "business.deploy.taskHost.markFailed.reasonRequired":
+		common.FailWithCode(c, common.CodeParamInvalid, err.Error())
+	default:
+		failDeployTaskError(c, err, fallback)
+	}
+}
+
+func deployTaskConflictError(err error) bool {
+	switch strings.TrimSpace(errorText(err)) {
+	case "business.deploy.task.invalidStartState",
+		"business.deploy.task.invalidCancelState",
+		errDeployTaskInvalidUpdateState,
+		errDeployTaskInvalidDeleteState:
+		return true
+	default:
+		return false
+	}
+}
+
+func deployTaskValidationError(err error) bool {
+	switch strings.TrimSpace(errorText(err)) {
+	case "business.deploy.task.nameRequired",
+		"business.deploy.task.packageRequired",
+		"business.deploy.task.packageDisabled",
+		"business.deploy.task.scopeRequired",
+		"business.deploy.task.scopeInvalid",
+		"business.deploy.task.targetRequired",
+		"business.deploy.task.invalidTargetType",
+		"business.deploy.task.targetOutOfScope",
+		"business.deploy.task.invalidExecutorType",
+		"business.deploy.task.invalidAction",
+		"business.deploy.task.targetStatusMismatch",
+		errDeployTaskTemplateNotFound,
+		errDeployTaskTemplateDisabled,
+		errDeployTaskPackageNotFound,
+		"business.deploy.task.emptyResolvedTargets",
+		errDeployTaskTemplateParamsInvalid,
+		errDeployTaskTemplateInvalid,
+		errDeployTaskInstallCommandRequired,
+		errDeployTaskUninstallCommandRequired,
+		errDeployTaskPackageSourceMissing,
+		errDeployTaskSSHHostKeyRequired,
+		errDeployTaskSSHUserRequired,
+		errDeployTaskSSHPasswordRequired,
+		errDeployTaskSSHPrivateKeyRequired:
+		return true
+	case errDeployTaskSSHHostKeyMismatch,
+		errDeployTaskSSHAuthFailed,
+		errDeployTaskSSHConnectFailed:
+		return true
+	default:
+		return false
+	}
 }
 
 func parseIDParam(c *gin.Context) (uint64, bool) {

@@ -29,6 +29,7 @@ English version: [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.
 实现范围：
 - 明确是业务功能闭环，还是共享后台同步
 - 明确本轮不处理的业务域或平台域问题
+- 先应用最小复杂度阶梯：不做 / 复用 base 或 ops 现有能力 / 标准库 / 平台原生 / 已安装依赖 / 一条局部表达式 / 最小新增代码
 
 同步要求：
 - 仅本仓业务改动

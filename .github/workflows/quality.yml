@@ -44,8 +44,11 @@ jobs:
               - 'go.mod'
               - 'go.sum'
             inheritance_sensitive:
+              - 'foundation-release.lock.json'
               - 'scripts/check-base-backend-sync.mjs'
               - 'scripts/check-inheritance-contract.mjs'
+              - 'scripts/foundation-release/**'
+              - 'frontend/scripts/sync-base-shared.mjs'
 
   docs-governance:
     name: Docs Governance
@@ -69,8 +72,28 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install locked foundation release
+        env:
+          GH_TOKEN: ${{ secrets.PANTHEON_BASE_RELEASE_TOKEN || github.token }}
+        run: npm run foundation:install -- --if-exists
+
       - name: Check docs frontmatter
         run: npm run check:docs-frontmatter
+
+      - name: Check encoding integrity
+        # Blocking even on PRs: invalid UTF-8 in tracked text files is always
+        # corruption (e.g. a tool writing back with a non-UTF-8 codepage),
+        # never a false positive. Ratchet from the 2026-06/07 mojibake incident.
+        run: npm run check:encoding
+
+      - name: Check structure contract
+        # Blocking even on PRs: file placement and naming against base
+        # REPOSITORY_LAYOUT.md — misplaced files only get harder to move later.
+        run: npm run check:structure
 
       - name: Check task packet template
         run: npm run check:task-packet-template
@@ -83,7 +106,6 @@ jobs:
         run: node scripts/check-pr-governance.mjs --event "$GITHUB_EVENT_PATH"
 
       - name: Check inheritance contract
-        if: ${{ github.event_name != 'pull_request' || needs.change-scope.outputs.inheritance_sensitive == 'true' }}
         run: npm run check:inheritance
 
       - name: Check generated modules
@@ -108,6 +130,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false
+
+      - name: Install locked foundation release
+        env:
+          GH_TOKEN: ${{ secrets.PANTHEON_BASE_RELEASE_TOKEN || github.token }}
+        run: npm run foundation:install -- --if-exists
 
       - name: Install frontend dependencies
         working-directory: frontend

@@ -107,7 +107,7 @@ export async function requestJson(apiBaseUrl, path, options = {}) {
 }
 
 export async function generateModule(apiBaseUrl, schema, accessToken, csrfToken, operationToken) {
-  return requestJson(apiBaseUrl, '/system/dynamic-modules/generate', {
+  return requestJson(apiBaseUrl, '/lowcode/dynamic-modules/generate', {
     method: 'POST',
     headers: {
       ...buildVerifiedHeaders({ accessToken, csrfToken }, operationToken),
@@ -125,7 +125,7 @@ export async function purgeModule(
   operationToken,
 ) {
   const response = await fetch(
-    `${apiBaseUrl}/system/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`,
+    `${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}/purge?dropTable=false&purgeSource=true`,
     {
       method: 'DELETE',
       headers: buildVerifiedHeaders({ accessToken, csrfToken }, operationToken),

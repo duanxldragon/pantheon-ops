@@ -90,7 +90,7 @@ type DeployTask struct {
 	ExecutorType      string         `gorm:"size:32;default:manual;index" json:"executorType"`
 	ExecutionMode     string         `gorm:"size:32;default:fixed;index" json:"executionMode"`
 	TemplateParams    datatypes.JSON `gorm:"type:json" json:"templateParams"`
-	Status            string         `gorm:"size:32;default:pending;index" json:"status"`
+	Status            string         `gorm:"size:32;default:draft;index" json:"status"`
 	Remark            string         `gorm:"size:512" json:"remark"`
 	ExternalTaskID    string         `gorm:"size:128" json:"externalTaskId"`
 	StartedAt         *time.Time     `json:"startedAt"`

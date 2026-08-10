@@ -534,10 +534,12 @@ export default function DeployTemplateList() {
                 current: page,
                 pageSize,
                 total,
-                onChange: (nextPage) => setPage(nextPage || 1),
-                onPageSizeChange: (nextPageSize) => {
-                  setPageSize(nextPageSize || pageSize);
-                  setPage(1);
+                onChange: (nextPage, nextPageSize) => {
+                  setPage(nextPage || 1);
+                  if (nextPageSize && nextPageSize !== pageSize) {
+                    setPageSize(nextPageSize);
+                    setPage(1);
+                  }
                 },
                 pageSizeChangeResetCurrent: true,
               })}
@@ -736,7 +738,7 @@ export default function DeployTemplateList() {
                       <div
                         key={field.key}
                         style={{
-                          border: '1px solid var(--color-border-2)',
+                          border: '1px solid var(--panel-border)',
                           borderRadius: 8,
                           padding: 12,
                         }}
@@ -746,13 +748,19 @@ export default function DeployTemplateList() {
                             <Typography.Text style={{ fontWeight: 600 }}>
                               {t('business.deploy.template.stepTitle', { index: index + 1 })}
                             </Typography.Text>
-                            <Button
-                              type="text"
-                              status="danger"
-                              icon={<IconDelete />}
-                              onClick={() => remove(index)}
+                            <Popconfirm
+                              title={t('common.deleteConfirm')}
+                              onOk={() => remove(index)}
                               disabled={fields.length === 1}
-                            />
+                            >
+                              <Button
+                                type="text"
+                                status="danger"
+                                icon={<IconDelete />}
+                                disabled={fields.length === 1}
+                                aria-label={t('common.delete')}
+                              />
+                            </Popconfirm>
                           </Space>
                           <Form.Item field={`steps[${index}].stepName`} label={t('business.deploy.template.stepName')}>
                             <Input />

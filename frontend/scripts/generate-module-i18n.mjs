@@ -9,6 +9,7 @@ const currentFilePath = fileURLToPath(import.meta.url);
 const frontendRoot = path.resolve(path.dirname(currentFilePath), '..');
 const modulesRoot = path.join(frontendRoot, 'src', 'modules');
 const generatedResourcesRoot = path.join(frontendRoot, 'src', 'i18n', 'resources', 'generated');
+const foundationResourcesRoot = path.join(frontendRoot, 'src', 'i18n', 'resources', 'foundation');
 const locales = ['zh-CN', 'en-US', 'ja-JP', 'ko-KR', 'fr-FR'];
 const checkOnly = process.argv.includes('--check');
 
@@ -54,11 +55,24 @@ function loadExistingGeneratedResources(rootDir = generatedResourcesRoot, active
   );
 }
 
+function loadFoundationResources(rootDir = foundationResourcesRoot, activeLocales = locales) {
+  return Object.fromEntries(
+    activeLocales.map((locale) => [
+      locale,
+      readLocaleJson(path.join(rootDir, `${locale}.json`)),
+    ]),
+  );
+}
+
 export function loadModuleLocales(options = {}) {
   const activeLocales = options.locales ?? locales;
   const activeModulesRoot = options.modulesRoot ?? modulesRoot;
   const activeGeneratedRoot = options.generatedResourcesRoot ?? generatedResourcesRoot;
-  const resources = Object.fromEntries(activeLocales.map((locale) => [locale, {}]));
+  const activeFoundationRoot = options.foundationResourcesRoot ?? foundationResourcesRoot;
+  const foundationResources = loadFoundationResources(activeFoundationRoot, activeLocales);
+  const resources = Object.fromEntries(
+    activeLocales.map((locale) => [locale, { ...foundationResources[locale] }]),
+  );
   const existingResources = loadExistingGeneratedResources(activeGeneratedRoot, activeLocales);
   const files = walkLocaleFiles(activeModulesRoot).sort((left, right) => left.localeCompare(right));
   const allKeys = new Set();
@@ -122,6 +136,17 @@ function serializeResource(locale, resource) {
   return `const ${variableName} = {\n${body}${body ? '\n' : ''}};\n\nexport default ${variableName};\n`;
 }
 
+function readOptionalTextFile(filePath) {
+  try {
+    return fs.readFileSync(filePath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return '';
+    }
+    throw error;
+  }
+}
+
 export function generateModuleI18n(options = {}) {
   const activeLocales = options.locales ?? locales;
   const activeGeneratedRoot = options.generatedResourcesRoot ?? generatedResourcesRoot;
@@ -132,7 +157,7 @@ export function generateModuleI18n(options = {}) {
   for (const locale of activeLocales) {
     const nextContent = serializeResource(locale, resources[locale]);
     const outputPath = path.join(activeGeneratedRoot, `${locale}.ts`);
-    const currentContent = fs.existsSync(outputPath) ? fs.readFileSync(outputPath, 'utf8') : '';
+    const currentContent = readOptionalTextFile(outputPath);
 
     if (currentContent !== nextContent) {
       changes.push(path.relative(frontendRoot, outputPath));
