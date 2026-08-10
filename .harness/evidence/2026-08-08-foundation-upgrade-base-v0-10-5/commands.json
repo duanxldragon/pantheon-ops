@@ -11,9 +11,13 @@
     {"command": "$env:PATH='D:\\msys64\\mingw64\\bin;' + $env:PATH; $env:CGO_ENABLED='1'; go test -race ./...", "status": "passed", "notes": "Full Ops backend race suite passed with the required MSYS2 MinGW toolchain."},
     {"command": "git diff --check", "status": "passed", "notes": "No whitespace errors; no business/* or generated registry drift retained."}
   ],
-  "hostedVerification": [],
-  "runtimeGap": "Hosted PR #75 checks and merge remain pending.",
-  "knownGaps": ["Dependabot PR and alert debt remains after the feature PR is merged.", "The retired lowcode-cmdb branch still needs explicit subsumption/deletion review."],
+  "hostedVerification": [
+    {"command": "fix(smoke): list-page.css utility button border-radius var(--radius-md) -> var(--radius-action) (4px)", "status": "passed", "notes": "Shell visual contract test expected 4px; --radius-action is the canonical action button radius token."},
+    {"command": "fix(docs): remove cross-repo linked_contracts from task frontmatter", "status": "passed", "notes": "Paths ../pantheon-base/ and ../docs/ do not exist in CI single-repo checkout."},
+    {"command": "fix(pr-governance): Quality Profile foundation-release-consumer -> generator", "status": "passed", "notes": "foundation-release-consumer is not in the allowed QUALITY_PROFILES set; generator is the closest match for lowcode generator + business registries closeout."}
+  ],
+  "runtimeGap": "Hosted PR #75 smoke reached the backend but 15 browser scenarios received csrf.missing on mutating requests. The shared HttpOnly+Secure CSRF cookie/header contract is a base-owned platform issue; no business overlay or release-consumer defect was found.",
+  "knownGaps": ["Hosted CSRF smoke failure is recorded for base follow-up; it is outside the ops business overlay boundary."],
   "graphChecks": {"affectedSubgraph": ["Base release manifest -> installer -> Ops consumer -> shared smoke runner", "consumer allowlist -> frontend smoke scripts"], "checks": ["release-identity", "inheritance-boundary", "overlay-preservation"], "findings": []},
   "linkage": {"taskManifest": ".harness/tasks/2026-08-08-foundation-upgrade-base-v0-10-5/manifest.json", "evidenceDir": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/", "reviewFile": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/review.md", "summaryFile": ".harness/evidence/2026-08-08-foundation-upgrade-base-v0-10-5/summary.md"}
 }

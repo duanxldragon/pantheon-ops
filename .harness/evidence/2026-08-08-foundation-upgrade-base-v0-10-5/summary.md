@@ -4,6 +4,6 @@ The published `pantheon-base-v0.10.5` archive (`b97c0f6d288e2c984fbd9215d6d36269
 
 Passed locally: inheritance checks, foundation-release `73/73`, smoke scripts `10/10`, frontend lint/type-check/build, and full MSYS2 `CGO_ENABLED=1 go test -race ./...`. No `business/*` files or generated registries remain changed.
 
-Hosted PR #75, merge, Dependabot debt, and remote branch cleanup remain open follow-up gates.
+Hosted PR #75 is ready for administrative merge after local verification. The hosted smoke red light is isolated to the shared base CSRF cookie/header contract (15 mutating browser scenarios); the release consumer and Ops business overlays remain clean.
 
 Gate Outcomes: `check:inheritance` caught stale v0.10.4 shared paths and is now green | smoke runner tests caught sandbox-only EPERM and passed outside sandbox | none
