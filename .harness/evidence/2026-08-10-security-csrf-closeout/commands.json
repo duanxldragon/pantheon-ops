@@ -1,0 +1,31 @@
+{
+  "taskId": "2026-08-10-security-csrf-closeout",
+  "status": "in-progress",
+  "commands": [
+    {
+      "command": "npm audit --registry=https://registry.npmjs.org --audit-level=high",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "0 vulnerabilities reported."
+    },
+    {
+      "command": "npm run type-check && npm run build",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "TypeScript and Vite production build passed against pantheon-base-v0.10.7."
+    },
+    {
+      "command": "npm run check:inheritance",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Shared backend and frontend are aligned with pantheon-base-v0.10.7 (5d6760a...)."
+    },
+    {
+      "command": "go test -race ./...",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Passed with CGO_ENABLED=1 and D:\\msys64\\mingw64\\bin on PATH."
+    }
+  ],
+  "hostedVerification": []
+}

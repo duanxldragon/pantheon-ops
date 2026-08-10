@@ -6,6 +6,4 @@ import (
 )
 
 func InitGeneratedBusinessModules(r *gin.RouterGroup, db *gorm.DB) {
-	_ = r
-	_ = db
 }

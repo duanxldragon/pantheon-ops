@@ -51,7 +51,7 @@ test.describe('module governance smoke', () => {
     let listState = 'uninstalled';
     let registerCalled = false;
 
-    await page.route(/\/api\/v1\/system\/dynamic-modules$/, async (route) => {
+    await page.route(/\/api\/v1\/lowcode\/dynamic-modules(?:\?.*)?$/, async (route) => {
       if (route.request().method() === 'POST') {
         const payload = route.request().postDataJSON() as { name?: string };
         expect(payload.name).toBe('business.asset');
@@ -127,7 +127,7 @@ test.describe('module governance smoke', () => {
     await installClientSession(page, tokens);
 
     let submitCount = 0;
-    await page.route(/\/api\/v1\/system\/generator\/tables(?:\?.*)?$/, async (route) => {
+    await page.route(/\/api\/v1\/lowcode\/generator\/tables(?:\?.*)?$/, async (route) => {
       await fulfillJson(route, {
         code: 200,
         data: [
@@ -141,7 +141,7 @@ test.describe('module governance smoke', () => {
       });
     });
 
-    await page.route(/\/api\/v1\/system\/generator\/table-schema(?:\?.*)?$/, async (route) => {
+    await page.route(/\/api\/v1\/lowcode\/generator\/table-schema(?:\?.*)?$/, async (route) => {
       await fulfillJson(route, {
         code: 200,
         data: {
@@ -169,7 +169,7 @@ test.describe('module governance smoke', () => {
       });
     });
 
-    await page.route(/\/api\/v1\/system\/dynamic-modules\/generate$/, async (route) => {
+    await page.route(/\/api\/v1\/lowcode\/dynamic-modules\/generate$/, async (route) => {
       submitCount += 1;
       const payload = route.request().postDataJSON() as { overwrite?: boolean; schema?: { metadata?: { sourceMode?: string; sourceTable?: string } } };
       expect(payload.schema?.metadata?.sourceMode).toBe('database');
@@ -268,7 +268,7 @@ test.describe('module governance smoke', () => {
 
     let submitCount = 0;
 
-    await page.route(/\/api\/v1\/system\/generator\/datasources$/, async (route) => {
+    await page.route(/\/api\/v1\/lowcode\/generator\/datasources(?:\?.*)?$/, async (route) => {
       await fulfillJson(route, {
         code: 200,
         data: [

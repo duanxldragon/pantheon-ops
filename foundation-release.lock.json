@@ -2,16 +2,16 @@
   "schemaVersion": 1,
   "baseRepo": "../pantheon-base",
   "releaseLine": "release/0.10",
-  "releaseVersion": "pantheon-base-v0.10.5",
-  "baseCommit": "b97c0f6d288e2c984fbd9215d6d3626929f68d85",
+  "releaseVersion": "pantheon-base-v0.10.10",
+  "baseCommit": "a95e6e52eee8ae9aeb4fd115d18c7c37609290f6",
   "consumerMode": "foundation-release-consumer",
   "releaseArtifact": {
     "githubRepo": "duanxldragon/pantheon-base",
-    "assetName": "foundation-release-pantheon-base-v0.10.5.tgz",
-    "localPath": ".foundation/releases/pantheon-base-v0.10.5",
-    "checksum": "a49457b96ec1ff18bd716c149708433798e5e99db8698fa686f6346c26f555f0"
+    "assetName": "foundation-release-pantheon-base-v0.10.10.tgz",
+    "localPath": ".foundation/releases/pantheon-base-v0.10.10",
+    "checksum": "b2c1b8dc61e2bf32957125b43a0f06fa7cc158e1507b0613a335cb01d9b48cfb"
   },
-  "lockedAt": "2026-08-07T23:23:51.071Z",
+  "lockedAt": "2026-08-10T04:22:46.456Z",
   "lockedBy": "xiaolong",
   "sharedPaths": {
     "backend": [
@@ -21,6 +21,8 @@
       "backend/pkg"
     ],
     "frontend": [
+      "frontend/src/api/request.ts",
+      "frontend/src/api/requestErrorUtils.ts",
       "frontend/src/components",
       "frontend/src/core",
       "frontend/src/store",
