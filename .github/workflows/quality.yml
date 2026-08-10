@@ -198,7 +198,7 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
         with:
           go-version-file: ${{ env.GO_VERSION_FILE }}
-          cache: true
+          cache: false
 
       - name: Compute golangci-lint scope
         id: lint-scope
