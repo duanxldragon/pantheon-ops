@@ -1,0 +1,23 @@
+{
+  "taskId": "2026-08-10-security-csrf-closeout",
+  "title": "Close Dependabot security debt and consume shared CSRF foundation fix",
+  "goal": "Remediate open dependency alerts and consume the Base foundation release that fixes the shared CSRF contract.",
+  "primaryLayer": "inheritance-sync",
+  "qualityProfiles": ["auth-security", "ci-workflow"],
+  "scope": {
+    "in": ["Go dependency remediation", "Frontend dependency remediation", "Base foundation upgrade", "Hosted smoke"],
+    "out": ["New Ops business functionality"]
+  },
+  "ratchetDecision": "no-repeat-observed",
+  "runtimeSensitive": true,
+  "linkage": {
+    "taskId": "2026-08-10-security-csrf-closeout",
+    "changeRef": "none",
+    "taskPacket": "docs/harness/tasks/2026-08-10-security-csrf-closeout.task.md",
+    "evidenceDir": ".harness/evidence/2026-08-10-security-csrf-closeout/",
+    "reviewFile": ".harness/evidence/2026-08-10-security-csrf-closeout/review.md",
+    "summaryFile": ".harness/evidence/2026-08-10-security-csrf-closeout/summary.md",
+    "planRefs": ["docs/harness/tasks/2026-08-10-security-csrf-closeout.task.md"]
+  },
+  "syncExpectation": "Consume the immutable Base foundation release before merging this Ops closeout."
+}
