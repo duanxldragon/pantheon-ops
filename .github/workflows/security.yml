@@ -86,7 +86,8 @@ jobs:
           # OSV returns non-zero for all findings, including Go advisories it has
           # proven unreachable. Keep it blocking for any finding without a
           # `called:false` result, but do not fail an unreachable import path.
-          jq -e '[.results[]?.packages[]?.groups[]?.experimental_analysis[]? | select(.called != false)] | length == 0' \
+          # OSV v2.3.3 stores analyses in an advisory-ID keyed object.
+          jq -e '[.results[]?.packages[]?.groups[]?.experimental_analysis? // {} | to_entries[]? | select(.value.called != false)] | length == 0' \
             security-reports/osv-scanner.json
 
       - name: Enforce dependency vulnerability gate
