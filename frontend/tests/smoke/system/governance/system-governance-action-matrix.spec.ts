@@ -219,7 +219,7 @@ async function prepareOperationCleanup(page: Page) {
 }
 
 async function prepareModuleUnregister(page: Page) {
-  await page.route(/\/api\/v1\/system\/dynamic-modules$/, async (route) => {
+  await page.route(/\/api\/v1\/lowcode\/dynamic-modules(?:\?.*)?$/, async (route) => {
     await fulfillJson(route, 200, {
       code: 200,
       data: [
