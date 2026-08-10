@@ -9,9 +9,9 @@
     "githubRepo": "duanxldragon/pantheon-base",
     "assetName": "foundation-release-pantheon-base-v0.10.6.tgz",
     "localPath": ".foundation/releases/pantheon-base-v0.10.6",
-    "checksum": "ddcc2c127ec3f17ed1ee1fad6df634a625eea329015a75ee245c2128ee8e6f18"
+    "checksum": "3d484e49f18d85810345969dc91232f7d0f3c3a3a341f5c1219c9ba1c0951f7e"
   },
-  "lockedAt": "2026-08-07T23:23:51.071Z",
+  "lockedAt": "2026-08-10T01:56:37.795Z",
   "lockedBy": "xiaolong",
   "sharedPaths": {
     "backend": [
@@ -21,6 +21,8 @@
       "backend/pkg"
     ],
     "frontend": [
+      "frontend/src/api/request.ts",
+      "frontend/src/api/requestErrorUtils.ts",
       "frontend/src/components",
       "frontend/src/core",
       "frontend/src/store",
