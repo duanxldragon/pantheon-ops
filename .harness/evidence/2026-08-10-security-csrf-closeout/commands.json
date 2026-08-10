@@ -51,10 +51,10 @@
       "notes": "No vulnerabilities are reachable from Ops code; one required module vulnerability is unreachable."
     },
     {
-      "command": "go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.4.0 scan --recursive --call-analysis=go --format json .",
+      "command": "go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.3.3 scan --recursive --call-analysis=go --format json .",
       "cwd": ".",
-      "status": "passed",
-      "notes": "GO-2026-5932 is limited to golang.org/x/crypto/openpgp and call analysis reports called:false; Ops imports bcrypt only."
+      "status": "failed",
+      "notes": "Local re-run could not download v2.3.3 because configured goproxy.cn is unreachable. Version metadata confirms its Go 1.25.7 requirement; hosted Security revalidation is required. The previous v2.4.0 result established that GO-2026-5932 is called:false."
     },
     {
       "command": "go run github.com/zricethezav/gitleaks/v8@v8.30.1 detect --source . --redact",

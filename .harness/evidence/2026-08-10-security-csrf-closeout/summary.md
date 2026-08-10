@@ -1,6 +1,6 @@
 # Evidence Summary
 
-Dependency remediation is complete locally: the Go upgrade is recorded in `go.mod` and `go.sum`; `govulncheck` reports zero reachable vulnerabilities; and OSV call analysis reports the only remaining advisory, `GO-2026-5932`, as `called:false` because Ops imports `bcrypt`, not `openpgp`. The workflow pins OSV Scanner to v2.4.0 because v2.5.0 requires Go 1.26.5, then enables Go call analysis so the uncallable advisory does not fail the hosted gate.
+Dependency remediation is complete locally: the Go upgrade is recorded in `go.mod` and `go.sum`; `govulncheck` reports zero reachable vulnerabilities; and the prior OSV call analysis reports the only remaining advisory, `GO-2026-5932`, as `called:false` because Ops imports `bcrypt`, not `openpgp`. The workflow pins OSV Scanner to v2.3.3 because v2.4.0 requires Go 1.26.4, then enables Go call analysis so the uncallable advisory does not fail the hosted gate. Local revalidation of v2.3.3 is blocked by the configured Go proxy; hosted Security is required for its final evidence.
 
 Ops consumes immutable `pantheon-base-v0.10.10` (`a95e6e52`), whose shared cookie implementation sets `HttpOnly`, `Secure`, and `SameSite=Strict`, including the CSRF response-header contract. All eight historical CodeQL alerts are dismissed with individual evidence: the retired cookie and system paths no longer exist; current upload and generated-module paths normalize, restrict, and contain user-controlled values. Dependabot and CodeQL both report zero open alerts.
 
