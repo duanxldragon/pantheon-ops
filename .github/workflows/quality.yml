@@ -3,7 +3,15 @@ name: Code Quality Gates
 on:
   workflow_dispatch:
   pull_request:
+  push:
+    branches:
+      - main
+      - release/**
   merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -102,7 +110,7 @@ jobs:
         run: npm run check:pr-governance
 
       - name: Validate PR governance body
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
         run: node scripts/check-pr-governance.mjs --event "$GITHUB_EVENT_PATH"
 
       - name: Check inheritance contract
@@ -173,6 +181,66 @@ jobs:
 
       - name: Test backend
         run: go test -race ./...
+
+  go-lint:
+    name: Go Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version-file: ${{ env.GO_VERSION_FILE }}
+          cache: false
+
+      - name: Compute golangci-lint scope
+        id: lint-scope
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha }}
+        run: |
+          if [ "${EVENT_NAME}" = "pull_request" ] && [ -n "${PR_BASE_SHA}" ]; then
+            echo "args=--new-from-rev=${PR_BASE_SHA} ./..." >> "$GITHUB_OUTPUT"
+          elif [ "${EVENT_NAME}" = "merge_group" ] && [ -n "${MERGE_GROUP_BASE_SHA}" ]; then
+            echo "args=--new-from-rev=${MERGE_GROUP_BASE_SHA} ./..." >> "$GITHUB_OUTPUT"
+          else
+            echo "args=./..." >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run golangci-lint
+        id: golangci-lint
+        continue-on-error: true
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a
+        with:
+          version: v2.6.2
+          args: ${{ steps.lint-scope.outputs.args }}
+          install-mode: goinstall
+          verify: false
+
+      - name: Enforce Go lint gate
+        if: always()
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          GOLANGCI_LINT_RESULT: ${{ steps.golangci-lint.outcome }}
+        run: |
+          echo "golangci-lint: ${GOLANGCI_LINT_RESULT}"
+          if [ "${EVENT_NAME}" = "push" ]; then
+            echo "Full-repository lint is report-only on main and release pushes."
+            exit 0
+          fi
+          if [ "${GOLANGCI_LINT_RESULT}" != "success" ]; then
+            exit 1
+          fi
 
   duplication:
     name: Duplication Gate
@@ -339,6 +407,7 @@ jobs:
       - docs-governance
       - frontend-contract
       - backend-tests
+      - go-lint
       - duplication
       - smoke-sanity
     if: always()
@@ -355,6 +424,7 @@ jobs:
           DOCS_GOVERNANCE_RESULT: ${{ needs.docs-governance.result }}
           FRONTEND_CONTRACT_RESULT: ${{ needs.frontend-contract.result }}
           BACKEND_TESTS_RESULT: ${{ needs.backend-tests.result }}
+          GO_LINT_RESULT: ${{ needs.go-lint.result }}
           DUPLICATION_RESULT: ${{ needs.duplication.result }}
           SMOKE_SANITY_RESULT: ${{ needs.smoke-sanity.result }}
         run: |
@@ -369,6 +439,7 @@ jobs:
           echo "Docs Governance: ${DOCS_GOVERNANCE_RESULT}"
           echo "Frontend Contract: ${FRONTEND_CONTRACT_RESULT}"
           echo "Backend Tests: ${BACKEND_TESTS_RESULT}"
+          echo "Go Lint: ${GO_LINT_RESULT}"
           echo "Duplication Gate: ${DUPLICATION_RESULT}"
           echo "Smoke Sanity: ${SMOKE_SANITY_RESULT}"
           echo "Frontend Contract Required: ${FRONTEND_CONTRACT_REQUIRED}"
@@ -379,6 +450,9 @@ jobs:
             exit 1
           fi
           if [ "${FRONTEND_CONTRACT_REQUIRED}" = "true" ] && [ "${FRONTEND_CONTRACT_RESULT}" != "success" ]; then
+            exit 1
+          fi
+          if [ "${EVENT_NAME}" != "push" ] && [ "${GO_LINT_RESULT}" != "success" ]; then
             exit 1
           fi
           if [ "${SMOKE_SANITY_REQUIRED}" = "true" ] && [ "${SMOKE_SANITY_RESULT}" != "success" ]; then
