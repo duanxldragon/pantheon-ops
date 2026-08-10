@@ -12,7 +12,7 @@ updated_at: 2026-08-10
 
 ## Goal
 
-Remediate the 29 open Dependabot alerts and consume the Base release that fixes the HttpOnly CSRF cookie/header contract exposed by hosted smoke.
+Remediate the Dependabot security backlog, consume the Base release that fixes the HttpOnly CSRF cookie/header contract exposed by hosted smoke, and close the remaining CodeQL and quality-gate debt.
 
 ## Scope
 
@@ -20,7 +20,9 @@ Remediate the 29 open Dependabot alerts and consume the Base release that fixes 
 
 - Upgrade vulnerable Go and frontend dependencies to patched versions.
 - Consume the next immutable `pantheon-base` foundation release.
-- Run inheritance, build, race, audit, and hosted smoke validation.
+- Remediate the remaining CodeQL allocation-size-overflow finding in `business/deploy`.
+- Apply Base-derived Ops quality controls for stale-run cancellation and Go new-code linting.
+- Run inheritance, build, race, audit, CodeQL, and hosted smoke validation.
 
 ### Out
 
