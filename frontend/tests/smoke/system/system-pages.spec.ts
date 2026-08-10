@@ -22,6 +22,7 @@ import { runOptionalSmokeCleanup } from '../helpers/fixture-policy';
 import { installSharedPageReadCache, type CachedReadResponse } from '../helpers/shared-read-cache';
 import { expectPagePathname } from '../helpers/url-pattern';
 import { registerSystemWorkspaceTaskDepthSmokeTests } from './system-workspace-task-depth';
+import { listRegisteredComponentKeys } from '../../../src/core/router/componentRegistry';
 const pageErrorTitles = ['加载失败', '网络异常', '请求超时'];
 const pageEmptyTexts = [
   '暂无数据',
@@ -35,6 +36,9 @@ const pageEmptyTexts = [
   '暂无会话数据',
 ];
 const reactElementRefWarningPattern = /Accessing element\.ref was removed in React 19/i;
+const menuComponentKey =
+  listRegisteredComponentKeys().find((key) => key.endsWith('/menu/MenuList')) ??
+  'system/menu/MenuList';
 type SettingItem = { settingKey: string; settingValue: string };
 type UserPlatformPreferences = {
   theme?: string;
@@ -924,7 +928,7 @@ test('menu smoke: create child action preselects clicked parent', async ({ page 
     await dialog
       .getByPlaceholder('例如：/system/example')
       .fill(`/system/menu-child-${uniqueSuffix}`);
-    await dialog.getByPlaceholder('例如：business/cmdb/CMDBTypeList').fill('system/menu/MenuList');
+    await dialog.getByPlaceholder('例如：business/cmdb/CMDBTypeList').fill(menuComponentKey);
     await dialog.getByPlaceholder('例如：system-example').fill(`system-menu-child-${uniqueSuffix}`);
     await dialog
       .getByPlaceholder('例如：system.iam / system.auth / platform / business.order')
