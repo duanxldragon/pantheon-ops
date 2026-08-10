@@ -1,5 +1,5 @@
 import fs from 'node:fs/promises';
-import { test, type Page, type Route } from '@playwright/test';
+import { expect, test, type Page, type Route } from '@playwright/test';
 import { installOperationToken, signInAsAdmin } from '../../helpers/auth';
 
 type CleanupCase = {

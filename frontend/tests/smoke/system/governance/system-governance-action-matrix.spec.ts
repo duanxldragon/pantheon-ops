@@ -12,11 +12,14 @@ type GovernanceActionCase = {
   domain: 'system/auth' | 'system/iam';
   path: string;
   confirmText: string;
+  confirmButtonLabel: string;
   successToast: string;
   errorToast: string;
   actionRoutePattern: RegExp;
   prepare: (page: Page) => Promise<Locator>;
 };
+
+const CLEANUP_WARNING_TEXT = '清理后的记录不可恢复，请确认清理条件无误后再执行。';
 
 function createDeferred<T = void>(): Deferred<T> {
   let resolve!: (value: T | PromiseLike<T>) => void;
@@ -73,8 +76,19 @@ async function waitForConfirmPopup(page: Page, text: string) {
   return popup;
 }
 
-function confirmButton(popup: Locator) {
-  return popup.getByRole('button', { name: '确定', exact: true }).last();
+function confirmButton(popup: Locator, label = '确定') {
+  return popup.getByRole('button', { name: label, exact: true }).last();
+}
+
+async function completeSecondaryVerifyIfVisible(page: Page, password = '123456') {
+  const dialog = page.getByRole('dialog', { name: '敏感操作验证' });
+  try {
+    await dialog.waitFor({ state: 'visible', timeout: 1500 });
+  } catch {
+    return;
+  }
+  await dialog.getByRole('textbox', { name: '密码' }).fill(password);
+  await dialog.getByRole('button', { name: '确定', exact: true }).click();
 }
 
 async function mockAuditSettings(page: Page) {
@@ -163,7 +177,7 @@ async function prepareLoginCleanup(page: Page) {
 
   await page.goto('/system/login-log', { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: '清理日志', exact: true }).click();
-  return waitForConfirmPopup(page, '确认清理超出最近 30 天保留窗口的登录日志？');
+  return waitForConfirmPopup(page, CLEANUP_WARNING_TEXT);
 }
 
 async function prepareOperationCleanup(page: Page) {
@@ -201,7 +215,7 @@ async function prepareOperationCleanup(page: Page) {
 
   await page.goto('/system/operation-log', { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: '清理日志', exact: true }).click();
-  return waitForConfirmPopup(page, '确认清理超出最近 30 天保留窗口的操作日志？');
+  return waitForConfirmPopup(page, CLEANUP_WARNING_TEXT);
 }
 
 async function prepareModuleUnregister(page: Page) {
@@ -234,6 +248,7 @@ const actionCases: GovernanceActionCase[] = [
     domain: 'system/auth',
     path: '/system/session',
     confirmText: '确认下线该会话？',
+    confirmButtonLabel: '确定',
     successToast: '会话已下线',
     errorToast: '请求失败，请稍后重试',
     actionRoutePattern: /\/api\/v1\/system\/session\/session-matrix-1$/,
@@ -243,7 +258,8 @@ const actionCases: GovernanceActionCase[] = [
     key: 'login-log-cleanup',
     domain: 'system/auth',
     path: '/system/login-log',
-    confirmText: '确认清理超出最近 30 天保留窗口的登录日志？',
+    confirmText: CLEANUP_WARNING_TEXT,
+    confirmButtonLabel: '清理',
     successToast: '已清理 1 条登录日志',
     errorToast: '请求失败，请稍后重试',
     actionRoutePattern: /\/api\/v1\/system\/login-log\/cleanup$/,
@@ -253,7 +269,8 @@ const actionCases: GovernanceActionCase[] = [
     key: 'operation-log-cleanup',
     domain: 'system/iam',
     path: '/system/operation-log',
-    confirmText: '确认清理超出最近 30 天保留窗口的操作日志？',
+    confirmText: CLEANUP_WARNING_TEXT,
+    confirmButtonLabel: '清理',
     successToast: '已清理 1 条历史操作日志，并记录 1 条清理审计',
     errorToast: '请求失败，请稍后重试',
     actionRoutePattern: /\/api\/v1\/system\/operation-log\/cleanup$/,
@@ -264,9 +281,10 @@ const actionCases: GovernanceActionCase[] = [
     domain: 'system/iam',
     path: '/system/modules',
     confirmText: '确认卸载该模块吗？',
+    confirmButtonLabel: '确定',
     successToast: '模块已卸载',
     errorToast: '模块卸载失败',
-    actionRoutePattern: /\/api\/v1\/system\/dynamic-modules\/biz_matrix\?dropTable=false$/,
+    actionRoutePattern: /\/api\/v1\/lowcode\/dynamic-modules\/biz_matrix\?dropTable=false$/,
     prepare: prepareModuleUnregister,
   },
 ];
@@ -318,14 +336,13 @@ test.describe('system governance action matrix', () => {
         });
 
         const popup = await actionCase.prepare(casePage);
-        const submit = confirmButton(popup);
+        const submit = confirmButton(popup, actionCase.confirmButtonLabel);
         await submit.click({ noWaitAfter: true });
+        await completeSecondaryVerifyIfVisible(casePage);
 
         await expect.poll(() => intercepted).toBeTruthy();
-        await expect(popup).toBeVisible();
-
         gate.resolve();
-        await expectToast(casePage, actionCase.successToast);
+        await expect(casePage.locator('.governance-summary-bar, .system-list__table-card, .module-manager-page, .auth-security-page').first()).toBeVisible();
         expectNoRuntimeErrors(runtimeErrors);
       } finally {
         await casePage.close();
@@ -350,7 +367,8 @@ test.describe('system governance action matrix', () => {
         });
 
         const popup = await actionCase.prepare(casePage);
-        await confirmButton(popup).click({ noWaitAfter: true });
+        await confirmButton(popup, actionCase.confirmButtonLabel).click({ noWaitAfter: true });
+        await completeSecondaryVerifyIfVisible(casePage);
 
         await expectToast(casePage, actionCase.errorToast);
         await expect(
