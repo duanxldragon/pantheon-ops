@@ -924,7 +924,9 @@ test('menu smoke: create child action preselects clicked parent', async ({ page 
     await dialog
       .getByPlaceholder('例如：/system/example')
       .fill(`/system/menu-child-${uniqueSuffix}`);
-    await dialog.getByPlaceholder('例如：business/cmdb/CMDBTypeList').fill('system/menu/MenuList');
+    await dialog
+      .getByPlaceholder('例如：business/cmdb/CMDBTypeList')
+      .fill('system/iam/menu/MenuList');
     await dialog.getByPlaceholder('例如：system-example').fill(`system-menu-child-${uniqueSuffix}`);
     await dialog
       .getByPlaceholder('例如：system.iam / system.auth / platform / business.order')
