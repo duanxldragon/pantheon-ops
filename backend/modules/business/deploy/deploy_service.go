@@ -1657,7 +1657,7 @@ func (s *DeployService) resolveExecutionPackage(packageID uint64, fallbackPackag
 }
 
 func mergeDeployTemplateParams(base map[string]any, override map[string]any) map[string]any {
-	result := make(map[string]any, len(base)+len(override))
+	result := make(map[string]any)
 	for key, value := range base {
 		result[key] = value
 	}

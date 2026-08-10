@@ -1865,6 +1865,25 @@ func TestDeployTemplateTaskSSHExecutorRunsAllTemplateSteps(t *testing.T) {
 	}
 }
 
+func TestMergeDeployTemplateParamsPrefersTaskOverrides(t *testing.T) {
+	base := map[string]any{
+		"installRoot": "/srv/app",
+		"serviceName": "nginx",
+	}
+	override := map[string]any{
+		"serviceName": "api",
+		"port":        "8080",
+	}
+
+	merged := mergeDeployTemplateParams(base, override)
+	if len(merged) != 3 {
+		t.Fatalf("expected three merged parameters, got %#v", merged)
+	}
+	if merged["installRoot"] != "/srv/app" || merged["serviceName"] != "api" || merged["port"] != "8080" {
+		t.Fatalf("unexpected merged parameters: %#v", merged)
+	}
+}
+
 func TestDeployTemplateTaskSSHExecutorRunsScriptStepsWithChecks(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
