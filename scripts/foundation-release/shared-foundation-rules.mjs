@@ -299,9 +299,15 @@ export function readFoundationReleaseManifest(releaseRoot, lock) {
 export function resolveFoundationReleasePaths(opsRoot, lock = readFoundationLock(opsRoot)) {
   const releaseRoot = resolveFoundationReleaseRoot(opsRoot, lock);
   const manifest = readFoundationReleaseManifest(releaseRoot, lock);
+  const verificationMarker = readVerifiedReleaseMarker(
+    releaseRoot,
+    manifest,
+    lock.releaseArtifact?.checksum,
+  );
   return {
     releaseRoot,
     manifest,
+    verificationMarker,
     bundleRoot: path.join(releaseRoot, 'bundle'),
     sharedBackendRoot: path.join(releaseRoot, 'bundle', 'shared-backend', 'backend'),
     sharedFrontendRoot: path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src'),

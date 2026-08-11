@@ -187,7 +187,13 @@ function installArchive(archivePath, releaseRoot, expectedSha256, lock) {
   let installedMoved = false;
 
   try {
-    runCommand('tar', ['-xzf', archivePath, '-C', temporaryRoot], `extract ${archivePath}`);
+    const archiveArgument = path.relative(releasesRoot, archivePath).split(path.sep).join('/');
+    runCommand(
+      'tar',
+      ['--force-local', '-xzf', archiveArgument, '-C', path.basename(temporaryRoot)],
+      `extract ${archivePath}`,
+      { cwd: releasesRoot },
+    );
     const manifest = readFoundationReleaseManifest(temporaryRoot, lock);
     writeVerificationMarker(temporaryRoot, manifest, archivePath, archiveSha256);
 

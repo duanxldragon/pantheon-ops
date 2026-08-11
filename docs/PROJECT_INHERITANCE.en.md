@@ -76,10 +76,10 @@ It should not mean continuously tracking `main`.
 
 The recommended path is now release artifact installation plus the release consumer instead of manual tree copies:
 
-- `npm run foundation:install`: download and install the release artifact pinned by `foundation-release.lock.json`
-- `npm run foundation:install -- --archive <foundation-release-version>.tgz`: install the release artifact from a local archive
-- `npm run upgrade:foundation:apply -- --manifest <bundle-root>\manifest.json --bundle <bundle-root>`
-- if `pantheon-base/releases/<version>/manifest.json` already exists locally, ops can build the bundle and consume it directly via `npm run upgrade:foundation:local-plan -- --release-version <version>` or `npm run upgrade:foundation:local-apply -- --release-version <version>`
+- `npm run foundation:install`: download, verify, and install the release artifact pinned by `foundation-release.lock.json`; installation writes a verification marker bound to the archive, manifest, and release tree
+- `npm run foundation:install -- --archive <foundation-release-version>.tgz`: install a local archive; the installer handles Windows/MSYS tar paths
+- `npm run upgrade:foundation:apply -- --manifest <release-root>\manifest.json --bundle <release-root> --expected-checksum <sha256>`: bind an explicitly supplied release root to the target archive checksum
+- if `pantheon-base/releases/<version>/manifest.json` already exists locally, ops can build the bundle and consume it directly via `npm run upgrade:foundation:local-plan -- --release-version <version>` or `npm run upgrade:foundation:local-apply -- --release-version <version>`; the local wrapper passes the verified archive checksum automatically
 - the command syncs shared backend/frontend files, preserves ops-local overlays such as menu registries and generator workspace files, rewrites shared backend imports to the `pantheon-ops` module path, and re-runs frontend `base-sync` plus `menu-contract`
 - during normal feature work, `npm run check:base-sync` validates only against the release artifact pinned in `foundation-release.lock.json`; use `npm run check:base-sync:workspace` explicitly when you want to compare ops against the current `pantheon-base` worktree and decide whether to start a new upgrade pass
 

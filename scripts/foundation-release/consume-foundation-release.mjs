@@ -55,6 +55,10 @@ function parseArgs(argv) {
       if (!value) throw new Error('--bundle requires a path');
       options.bundleRoot = path.resolve(value);
       index += 1;
+    } else if (arg === '--expected-checksum') {
+      if (!value) throw new Error('--expected-checksum requires a SHA-256 value');
+      options.expectedChecksum = value.toLowerCase();
+      index += 1;
     } else if (arg === '--apply-shared-backend') {
       options.applySharedBackend = true;
     } else if (arg === '--apply-shared-frontend') {
@@ -90,6 +94,9 @@ function validateOptions(options) {
   }
   if (!options.bundleRoot) {
     throw new Error('bundle is required');
+  }
+  if (options.expectedChecksum && !/^[a-f0-9]{64}$/u.test(options.expectedChecksum)) {
+    throw new Error('--expected-checksum must be a 64-character SHA-256 value');
   }
   if (
     (options.applySharedBackend || options.applySharedFrontend || options.updateInheritanceDocs)
@@ -602,7 +609,11 @@ export function consumeFoundationRelease(options) {
   if (path.resolve(options.manifestPath) !== path.resolve(releaseRoot, 'manifest.json')) {
     throw new Error('manifest must belong to the supplied verified foundation release root');
   }
-  const verificationMarker = readVerifiedReleaseMarker(releaseRoot, manifest);
+  const verificationMarker = readVerifiedReleaseMarker(
+    releaseRoot,
+    manifest,
+    options.expectedChecksum,
+  );
   const compatibilitySummary = validateConsumerCompatibility(
     options.opsRoot,
     manifest,
@@ -791,6 +802,7 @@ function printHelp() {
 
 Options:
   --ops-root <path>
+  --expected-checksum <sha256> bind an explicit release root to its verified archive
   --apply-shared-backend
   --apply-shared-frontend
   --update-inheritance-docs
