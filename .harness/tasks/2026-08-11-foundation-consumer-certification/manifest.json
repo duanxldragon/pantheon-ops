@@ -19,7 +19,7 @@
   "runtimeSensitive": true,
   "linkage": {
     "taskId": "2026-08-11-foundation-consumer-certification",
-    "changeRef": "https://github.com/duanxldragon/pantheon-ops/pull/101",
+    "changeRef": "https://github.com/duanxldragon/pantheon-ops/pull/102",
     "taskPacket": "docs/harness/tasks/2026-08-11-foundation-consumer-certification.task.md",
     "evidenceDir": ".harness/evidence/2026-08-11-foundation-consumer-certification/",
     "reviewFile": ".harness/evidence/2026-08-11-foundation-consumer-certification/review.md",
