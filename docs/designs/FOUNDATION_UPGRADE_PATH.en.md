@@ -12,14 +12,36 @@ This is the rolling upgrade record for the `pantheon-base` foundation releases c
 
 ## Current Baseline
 
-- `foundation-release.lock.json` is locked to `pantheon-base-v0.10.10`
-- Base commit: `a95e6e52eee8ae9aeb4fd115d18c7c37609290f6`
+- `foundation-release.lock.json` is locked to `pantheon-base-v0.10.11`
+- Base commit: `48c7ca5dcb8fd3c7235055dbeec57fb5b165b13e`
 - Consumer mode: `foundation-release-consumer`
-- Local release artifact: `.foundation/releases/pantheon-base-v0.10.10`
+- Local release artifact: `.foundation/releases/pantheon-base-v0.10.11`
 
-The historical upgrades from `base-v0.8.5` through `base-v0.8.11` remain below. Ops then completed release-consumer upgrades through `pantheon-base-v0.10.1` to `pantheon-base-v0.10.10`. The lock file is the machine-readable source of truth for the current asset, checksum, and commit; every future real upgrade must append its version, commit, scope, verification, and rollback information here.
+The historical upgrades from `base-v0.8.5` through `base-v0.8.11` remain below. Ops then completed release-consumer upgrades through `pantheon-base-v0.10.1` to `pantheon-base-v0.10.11`. The lock file is the machine-readable source of truth for the current asset, checksum, and commit; every future real upgrade must append its version, commit, scope, verification, and rollback information here.
 
 ## Historical Upgrade Records
+
+### pantheon-base-v0.10.10 -> pantheon-base-v0.10.11
+
+#### Basic Information
+
+| Field | Value |
+|---|---|
+| From | `pantheon-base-v0.10.10` |
+| To | `pantheon-base-v0.10.11` (`48c7ca5dcb8fd3c7235055dbeec57fb5b165b13e`) |
+| Published | 2026-08-11 |
+| Consumer Mode | `foundation-release-consumer` |
+| Change Summary | Upgrade shared frontend tooling to `js-yaml@3.15.1` and `nanoid@3.3.17` to clear high-severity npm audit findings |
+
+#### Scope and Verification
+
+- The release archive was installed from the GitHub release asset with SHA-256 `b4412bba12a7dc6392f381902ea16c0d612461f53f8d091eab94532e7940de7e`.
+- This release updates shared tooling dependencies only. The existing CSRF cookie/header and hosted-smoke contracts are unchanged.
+- Ops verification passed: the installed-artifact consumer check, `check:inheritance`, locked/workspace base-sync, documentation/encoding/structure checks, and foundation-release tests.
+
+#### Current Conclusion
+
+Shared backend/frontend paths match the base workspace HEAD and `business/*` overlays were not overwritten. Future shared changes remain base-first: publish an immutable foundation release before Ops consumes it.
 
 ### pantheon-base-v0.10.9 -> pantheon-base-v0.10.10
 

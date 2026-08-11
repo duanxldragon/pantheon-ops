@@ -11,7 +11,7 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
 - Base repository：当前继承源是 `../pantheon-base`
 - Base release line：当前跟随 `release/0.10`
-- Base version：当前锁定到 `pantheon-base-v0.10.10`（`a95e6e52eee8ae9aeb4fd115d18c7c37609290f6`）
+- Base version：当前锁定到 `pantheon-base-v0.10.11`（`48c7ca5dcb8fd3c7235055dbeec57fb5b165b13e`）
 - Inheritance mode：`foundation-release-consumer`
 
 ### 1.1 版本号命名规则

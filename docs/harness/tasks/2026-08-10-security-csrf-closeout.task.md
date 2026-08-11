@@ -2,7 +2,7 @@
 title: Close Dependabot security debt and consume shared CSRF foundation fix
 doc_type: Remediation
 layer: inheritance-sync
-status: Complete
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
 updated_at: 2026-08-11

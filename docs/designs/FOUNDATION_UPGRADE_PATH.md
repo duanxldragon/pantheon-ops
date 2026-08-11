@@ -12,14 +12,36 @@ English version: [FOUNDATION_UPGRADE_PATH.en.md](./FOUNDATION_UPGRADE_PATH.en.md
 
 ## 当前基线
 
-- `foundation-release.lock.json` 当前锁定 `pantheon-base-v0.10.10`
-- base commit：`a95e6e52eee8ae9aeb4fd115d18c7c37609290f6`
+- `foundation-release.lock.json` 当前锁定 `pantheon-base-v0.10.11`
+- base commit：`48c7ca5dcb8fd3c7235055dbeec57fb5b165b13e`
 - 消费模式：`foundation-release-consumer`
-- 本地 release 产物：`.foundation/releases/pantheon-base-v0.10.10`
+- 本地 release 产物：`.foundation/releases/pantheon-base-v0.10.11`
 
-`base-v0.8.5` 到 `base-v0.8.11` 的历史升级仍保留在下文；随后 ops 已通过 `pantheon-base-v0.10.1` 至 `pantheon-base-v0.10.10` 完成 release consumer 升级。当前锁定版本的资产、校验和与 commit 以 `foundation-release.lock.json` 为唯一机器可读来源；后续每次真实升级必须在本文档追加版本、commit、变更范围、验证与回滚信息。
+`base-v0.8.5` 到 `base-v0.8.11` 的历史升级仍保留在下文；随后 ops 已通过 `pantheon-base-v0.10.1` 至 `pantheon-base-v0.10.11` 完成 release consumer 升级。当前锁定版本的资产、校验和与 commit 以 `foundation-release.lock.json` 为唯一机器可读来源；后续每次真实升级必须在本文档追加版本、commit、变更范围、验证与回滚信息。
 
 ## 历史升级记录
+
+### pantheon-base-v0.10.10 → pantheon-base-v0.10.11
+
+#### 基本信息
+
+| 字段 | 值 |
+|---|---|
+| 从 | `pantheon-base-v0.10.10` |
+| 到 | `pantheon-base-v0.10.11`（`48c7ca5dcb8fd3c7235055dbeec57fb5b165b13e`）|
+| 发布日期 | 2026-08-11 |
+| 升级模式 | `foundation-release-consumer` |
+| 变更摘要 | 共享前端工具链升级 `js-yaml@3.15.1` 和 `nanoid@3.3.17`，清除高危 npm 审计项 |
+
+#### 变更范围与验证
+
+- release archive 由 GitHub 正式资产安装，SHA-256 为 `b4412bba12a7dc6392f381902ea16c0d612461f53f8d091eab94532e7940de7e`。
+- 本次仅更新共享工具链依赖，没有新的共享运行时契约；既有 CSRF cookie/header 和 hosted smoke 契约保持不变。
+- Ops 验证：正式 artifact consumer check、`check:inheritance`、locked/workspace base-sync、文档/编码/结构检查和 foundation-release tests 均通过。
+
+#### 当前结论
+
+共享 backend/frontend 与 base workspace HEAD 一致，`business/*` overlay 未被覆盖。后续共享改动继续遵循 base-first：先发布不可变 foundation release，再由 Ops 消费。
 
 ### pantheon-base-v0.10.9 → pantheon-base-v0.10.10
 
