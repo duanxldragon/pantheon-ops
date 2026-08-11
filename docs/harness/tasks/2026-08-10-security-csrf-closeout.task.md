@@ -2,10 +2,10 @@
 title: Close Dependabot security debt and consume shared CSRF foundation fix
 doc_type: Remediation
 layer: inheritance-sync
-status: Active
+status: Archived
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-08-10
+updated_at: 2026-08-11
 ---
 
 # Task Packet: 2026-08-10-security-csrf-closeout
@@ -34,3 +34,10 @@ Remediate the Dependabot security backlog, consume the Base release that fixes t
 - Task Manifest: `.harness/tasks/2026-08-10-security-csrf-closeout/manifest.json`
 - Evidence Directory: `.harness/evidence/2026-08-10-security-csrf-closeout/`
 - Review File: `.harness/evidence/2026-08-10-security-csrf-closeout/review.md`
+
+## Closeout
+
+- Dependabot and CodeQL open alerts: `0`.
+- Immutable foundation release consumed: `pantheon-base-v0.10.10` (`a95e6e52eee8ae9aeb4fd115d18c7c37609290f6`).
+- Hosted Security run `31445476446`, Quality run `31445476431`, and Smoke job `93638664396`: passed.
+- Local release, workspace-head, inheritance, i18n, overlay, structure, encoding, and foundation-release checks: passed.

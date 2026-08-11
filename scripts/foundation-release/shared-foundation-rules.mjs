@@ -529,5 +529,7 @@ export function stripTreePrefix(filePath, treePrefix) {
 function spawnGit(repoRoot, args) {
   return spawnSync('git', ['-C', repoRoot, ...args], {
     encoding: 'utf8',
+    // Shared locale snapshots can exceed Node's default 1 MiB spawn buffer.
+    maxBuffer: 16 * 1024 * 1024,
   });
 }

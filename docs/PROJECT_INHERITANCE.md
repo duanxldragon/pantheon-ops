@@ -11,7 +11,7 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
 - Base repository：当前继承源是 `../pantheon-base`
 - Base release line：当前跟随 `release/0.10`
-- Base version：当前锁定到 `pantheon-base-v0.10.10`（`a95e6e52eee8ae9aeb4fd115d18c7c37609290f6`）
+- Base version：当前锁定到 `pantheon-base-v0.10.11`（`48c7ca5dcb8fd3c7235055dbeec57fb5b165b13e`）
 - Inheritance mode：`foundation-release-consumer`
 
 ### 1.1 版本号命名规则
@@ -183,8 +183,8 @@ npm run check:base-sync:workspace
 6. 如果 workspace 对比确认需要升级，优先先在 `pantheon-base` 切新 release，再让 ops 消费该 release，而不是手搓文件覆盖
 
 ```powershell
-npm run upgrade:foundation:local-plan -- --release-version base-v0.8.10
-npm run upgrade:foundation:local-apply -- --release-version base-v0.8.10
+npm run upgrade:foundation:local-plan -- --release-version <release-version>
+npm run upgrade:foundation:local-apply -- --release-version <release-version>
 ```
 
 7. 如需同步共享后端路径，按文件级方式同步，不覆盖 `business/*`
