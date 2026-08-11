@@ -42,7 +42,9 @@
 - `pantheon-base` now declares `frontend/src/App.tsx`, `frontend/src/main.tsx`, `frontend/src/vite-env.d.ts`, `frontend/src/api`, and `frontend/src/hooks` in its release manifest and rejects a bundle when an existing required surface is unowned.
 - `pantheon-ops` now reports `UNOWNED` generic frontend sources, verifies its lock path set against an installed release manifest, and requires the same path coverage in `check:inheritance`.
 - Focused verification passed: 13 base manifest/bundle/cut tests; 31 ops sync, inheritance-contract, and release-consumer tests; `git diff --check` passed for both repositories.
-- No base commit, release tag, GitHub release, archive publication, ops lock upgrade, push, or hosted SonarCloud run has been performed. Those operations require a committed base revision and a separate outward-facing authorization.
+- Local release validation completed: base commit `ac62d71581865d4649691095ae46216f07726681` was cut into the local-only `pantheon-base-v0.10.13` archive; ops consumed it and now pins that release in `foundation-release.lock.json`.
+- Post-upgrade verification passed: `npm run check:inheritance`, all 81 `test:foundation-release` tests, and `frontend` production build. The build preflight includes shell visual-contract and UI-contract checks; no rendered browser evidence was produced because this was an inherited shell/runtime update rather than a visual redesign.
+- No tag, GitHub release, archive publication, push, or hosted SonarCloud run has been performed. Those operations remain outward-facing and require separate authorization.
 
 ## Raw Inputs
 

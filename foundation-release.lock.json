@@ -2,16 +2,16 @@
   "schemaVersion": 1,
   "baseRepo": "../pantheon-base",
   "releaseLine": "release/0.10",
-  "releaseVersion": "pantheon-base-v0.10.12",
-  "baseCommit": "16918771e2650f8c045b0e086144eb290e774704",
+  "releaseVersion": "pantheon-base-v0.10.13",
+  "baseCommit": "ac62d71581865d4649691095ae46216f07726681",
   "consumerMode": "foundation-release-consumer",
   "releaseArtifact": {
     "githubRepo": "duanxldragon/pantheon-base",
-    "assetName": "foundation-release-pantheon-base-v0.10.12.tgz",
-    "localPath": ".foundation/releases/pantheon-base-v0.10.12",
-    "checksum": "42a62f08881abe0a1680f721e1da9aa7ee50f0ffbf7a1ad2ccb65350f960fb21"
+    "assetName": "foundation-release-pantheon-base-v0.10.13.tgz",
+    "localPath": ".foundation/releases/pantheon-base-v0.10.13",
+    "checksum": "1f35d01c1fc101b9170380be825bafbdd3c03b432bf1bea4719457beaf66d70a"
   },
-  "lockedAt": "2026-08-11T06:17:55.620Z",
+  "lockedAt": "2026-08-11T08:39:04.194Z",
   "lockedBy": "xiaolong",
   "sharedPaths": {
     "backend": [
@@ -21,8 +21,11 @@
       "backend/pkg"
     ],
     "frontend": [
-      "frontend/src/api/request.ts",
-      "frontend/src/api/requestErrorUtils.ts",
+      "frontend/src/App.tsx",
+      "frontend/src/main.tsx",
+      "frontend/src/vite-env.d.ts",
+      "frontend/src/api",
+      "frontend/src/hooks",
       "frontend/src/components",
       "frontend/src/core",
       "frontend/src/store",
