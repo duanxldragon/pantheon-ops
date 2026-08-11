@@ -104,7 +104,16 @@ export function verifyAndMarkLocalRelease({ baseRoot, bundleRoot, manifestPath, 
 
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   const headCommit = runGit(baseRoot, ['rev-parse', 'HEAD']);
-  if (manifest.releaseVersion !== releaseVersion || manifest.baseCommit !== headCommit) {
+  let resolvedBaseCommit;
+  try {
+    resolvedBaseCommit = runGit(baseRoot, ['rev-parse', `${manifest.baseCommit}^{commit}`]);
+    runGit(baseRoot, ['merge-base', '--is-ancestor', resolvedBaseCommit, headCommit]);
+  } catch {
+    throw new Error(
+      `local foundation identity mismatch: release=${manifest.releaseVersion} baseCommit=${manifest.baseCommit} HEAD=${headCommit}`,
+    );
+  }
+  if (manifest.releaseVersion !== releaseVersion || resolvedBaseCommit !== manifest.baseCommit) {
     throw new Error(
       `local foundation identity mismatch: release=${manifest.releaseVersion} baseCommit=${manifest.baseCommit} HEAD=${headCommit}`,
     );

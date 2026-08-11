@@ -61,6 +61,22 @@ test('local foundation verification writes a commit- and checksum-bound marker',
   }
 });
 
+test('local foundation verification allows metadata-only commits after baseCommit', () => {
+  const fixture = createFixture();
+  try {
+    const manifest = JSON.parse(fs.readFileSync(fixture.manifestPath, 'utf8'));
+    fs.writeFileSync(path.join(fixture.baseRoot, 'RELEASE.md'), '# Release metadata\n', 'utf8');
+    runGit(fixture.baseRoot, 'add', 'RELEASE.md');
+    runGit(fixture.baseRoot, 'commit', '-m', 'release metadata');
+
+    const marker = verifyAndMarkLocalRelease(fixture);
+    assert.equal(marker.baseCommit, manifest.baseCommit);
+    assert.notEqual(marker.baseCommit, runGit(fixture.baseRoot, 'rev-parse', 'HEAD'));
+  } finally {
+    fs.rmSync(fixture.root, { recursive: true, force: true });
+  }
+});
+
 test('local foundation verification rejects dirty, mismatched, and corrupt sources', () => {
   const dirty = createFixture();
   try {

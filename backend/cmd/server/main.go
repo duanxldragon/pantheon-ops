@@ -21,6 +21,7 @@ import (
 	"pantheon-ops/backend/pkg/database"
 	"pantheon-ops/backend/pkg/logging"
 	"pantheon-ops/backend/pkg/telemetry"
+	"pantheon-ops/backend/pkg/version"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -33,7 +34,7 @@ func main() {
 	defer logging.Sync()
 
 	logging.Info("Starting Pantheon Base",
-		zap.String("version", "0.8.3"),
+		zap.String("version", version.Version),
 		zap.String("environment", env),
 	)
 
