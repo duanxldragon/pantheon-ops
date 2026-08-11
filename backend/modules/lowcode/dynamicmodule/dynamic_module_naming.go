@@ -73,7 +73,7 @@ func resolveGeneratedParentMenu(scope, name, explicitParent string) (string, str
 	if scope == "business" {
 		segments := strings.Split(strings.Trim(name, "/"), "/")
 		if len(segments) > 1 {
-			return "/operations/" + segments[0], "inferred"
+			return "/business/" + segments[0], "inferred"
 		}
 	}
 	return "", "top_level"
