@@ -6,10 +6,16 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
+import {
+  computeFileSha256,
+  computeReleaseTreeSha256,
+} from '../../scripts/foundation-release/shared-foundation-rules.mjs';
+
 const currentFilePath = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(currentFilePath), '..', '..');
 const sourceSyncScript = path.join(repoRoot, 'frontend', 'scripts', 'sync-base-shared.mjs');
 const sourceRulesScript = path.join(repoRoot, 'scripts', 'foundation-release', 'shared-foundation-rules.mjs');
+const lockedArchiveChecksum = 'a'.repeat(64);
 
 function withTempDir(callback) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-sync-base-shared-'));
@@ -23,6 +29,24 @@ function withTempDir(callback) {
 function writeText(filePath, value) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, value, 'utf8');
+}
+
+function writeVerificationMarker(releaseRoot, archiveSha256 = lockedArchiveChecksum) {
+  const manifestPath = path.join(releaseRoot, 'manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  writeText(
+    path.join(releaseRoot, '.foundation-release-verified.json'),
+    `${JSON.stringify({
+      schemaVersion: 1,
+      releaseVersion: manifest.releaseVersion,
+      baseCommit: manifest.baseCommit,
+      archiveAssetName: `foundation-release-${manifest.releaseVersion}.tgz`,
+      archiveSha256,
+      manifestSha256: computeFileSha256(manifestPath),
+      releaseTreeSha256: computeReleaseTreeSha256(releaseRoot),
+      verifiedAt: '2026-08-11T00:00:00.000Z',
+    }, null, 2)}\n`,
+  );
 }
 
 function copyFixtureScripts(opsRoot) {
@@ -42,6 +66,10 @@ function copyFixtureScripts(opsRoot) {
       releaseVersion: 'base-vtest',
       baseCommit: 'HEAD',
       consumerMode: 'foundation-release-consumer',
+      releaseArtifact: {
+        localPath: '.foundation/releases/base-vtest',
+        checksum: lockedArchiveChecksum,
+      },
       sharedPaths: {
         frontend: [
           'frontend/src/components',
@@ -156,6 +184,7 @@ test('sync-base-shared uses the installed release artifact by default', () => {
       system: 'export const releaseSystem = true;\n',
       indexCss: 'body { color: green; }\n',
     });
+    writeVerificationMarker(releaseRoot);
     createSharedFrontendTree(opsRoot, {
       components: 'export const oldComponent = true;\n',
       core: 'export const oldCore = true;\n',
@@ -181,6 +210,55 @@ test('sync-base-shared uses the installed release artifact by default', () => {
       fs.readFileSync(path.join(opsRoot, 'frontend', 'src', 'index.css'), 'utf8'),
       'body { color: green; }\n',
     );
+  });
+});
+
+test('sync-base-shared rejects unverified, checksum-mismatched, and modified locked releases', () => {
+  withTempDir((root) => {
+    const releaseRoot = path.join(root, 'release-root');
+    const opsRoot = path.join(root, 'ops-worktree-fixture');
+    const syncScriptPath = copyFixtureScripts(opsRoot);
+    const manifestPath = path.join(releaseRoot, 'manifest.json');
+
+    writeText(
+      manifestPath,
+      `${JSON.stringify({
+        schemaVersion: 1,
+        releaseVersion: 'base-vtest',
+        releaseLine: 'release/test',
+        baseCommit: 'HEAD',
+        sourceRepo: 'pantheon-base',
+        consumerMode: 'foundation-release-consumer',
+        sharedPaths: { frontend: ['frontend/src/components'] },
+      }, null, 2)}\n`,
+    );
+    writeText(
+      path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'components', 'index.ts'),
+      'export const releaseComponent = true;\n',
+    );
+    writeText(
+      path.join(opsRoot, 'frontend', 'src', 'components', 'index.ts'),
+      'export const releaseComponent = true;\n',
+    );
+
+    const env = { PANTHEON_FOUNDATION_RELEASE_ROOT: releaseRoot };
+    const unverified = runSync(syncScriptPath, opsRoot, env, ['--check']);
+    assert.notEqual(unverified.status, 0);
+    assert.match(unverified.stderr, /verification marker not found/);
+
+    writeVerificationMarker(releaseRoot, 'b'.repeat(64));
+    const checksumMismatch = runSync(syncScriptPath, opsRoot, env, ['--check']);
+    assert.notEqual(checksumMismatch.status, 0);
+    assert.match(checksumMismatch.stderr, /checksum mismatch/);
+
+    writeVerificationMarker(releaseRoot);
+    writeText(
+      path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'components', 'index.ts'),
+      'export const modifiedReleaseComponent = true;\n',
+    );
+    const modified = runSync(syncScriptPath, opsRoot, env, ['--check']);
+    assert.notEqual(modified.status, 0);
+    assert.match(modified.stderr, /contents changed after verification/);
   });
 });
 
@@ -235,6 +313,7 @@ test('sync-base-shared checks and applies all allowlisted frontend tooling from 
         `release:${toolingEntry}\n`,
       );
     }
+    writeVerificationMarker(releaseRoot);
     writeText(
       path.join(opsRoot, 'frontend', 'src', 'components', 'index.ts'),
       'export const component = true;\n',
