@@ -26,5 +26,5 @@
     "summaryFile": ".harness/evidence/2026-08-11-foundation-consumer-certification/summary.md",
     "planRefs": ["docs/harness/tasks/2026-08-11-foundation-consumer-certification.task.md"]
   },
-  "syncExpectation": "Consume and lock the next certified immutable pantheon-base patch release."
+  "syncExpectation": "Locked to the verified immutable pantheon-base-v0.10.12 release."
 }

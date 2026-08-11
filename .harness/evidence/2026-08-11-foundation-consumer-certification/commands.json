@@ -21,10 +21,16 @@
       "notes": "Branch cleanup and PR automation workflow contracts passed."
     },
     {
+      "command": "node scripts/foundation-release/install-foundation-release.mjs && npm run upgrade:foundation:apply",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Downloaded the immutable v0.10.12 GitHub Release, verified SHA-256 42a62f08881abe0a1680f721e1da9aa7ee50f0ffbf7a1ad2ccb65350f960fb21, wrote the verification marker, and synchronized the locked shared tree with rollback protection."
+    },
+    {
       "command": "npm run check:inheritance",
       "cwd": ".",
       "status": "passed",
-      "notes": "Locked artifact integrity, backend/frontend sync, i18n, and overlay compile checks passed."
+      "notes": "Locked v0.10.12 artifact integrity, backend/frontend sync, i18n, and overlay compile checks passed."
     },
     {
       "command": "PATH=\"/d/msys64/mingw64/bin:/d/msys64/usr/bin:$PATH\" CC=\"D:/msys64/mingw64/bin/gcc.exe\" CGO_ENABLED=1 go test -race ./...",
@@ -33,10 +39,10 @@
       "notes": "Full Windows/MSYS race suite passed with cgo and the user-provided GCC toolchain."
     },
     {
-      "command": "npm --prefix frontend run build && npm --prefix frontend run lint",
+      "command": "npm --prefix frontend run lint && npm --prefix frontend run type-check && npm --prefix frontend run build",
       "cwd": ".",
       "status": "passed",
-      "notes": "Frontend inheritance contracts, TypeScript compilation, production Vite build, and ESLint passed."
+      "notes": "Frontend inheritance contracts, TypeScript compilation, production Vite build, and ESLint passed against v0.10.12."
     },
     {
       "command": "npm run check:docs-frontmatter && npm run check:encoding && npm run check:structure && npm run check:task-packet-template && git diff --check",
@@ -47,6 +53,9 @@
   ],
   "foundationUpgrade": {
     "target": "pantheon-base-v0.10.12",
-    "status": "pending-base-release"
+    "baseCommit": "16918771e2650f8c045b0e086144eb290e774704",
+    "archiveSha256": "42a62f08881abe0a1680f721e1da9aa7ee50f0ffbf7a1ad2ccb65350f960fb21",
+    "releaseUrl": "https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.10.12",
+    "status": "verified-and-locked"
   }
 }

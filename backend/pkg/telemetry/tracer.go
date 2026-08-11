@@ -15,6 +15,8 @@ import (
 	"os"
 	"time"
 
+	"pantheon-ops/backend/pkg/version"
+
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -59,7 +61,7 @@ func InitTracer(serviceName, otlpEndpoint string) (*trace.TracerProvider, error)
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
 			semconv.ServiceName(serviceName),
-			semconv.ServiceVersion("0.8.3"),
+			semconv.ServiceVersion(version.Version),
 		),
 	)
 	if err != nil {
