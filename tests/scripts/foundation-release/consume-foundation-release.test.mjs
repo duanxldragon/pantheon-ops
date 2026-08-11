@@ -916,6 +916,30 @@ test('consumer rejects an unverified or modified release root', () => {
   });
 });
 
+test('consumer binds explicit release roots to the expected archive checksum', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    const args = ['--ops-root', opsRoot, '--manifest', manifestPath, '--bundle', bundleRoot, '--dry-run'];
+    writeVerificationMarker(bundleRoot);
+    const marker = JSON.parse(
+      fs.readFileSync(path.join(bundleRoot, '.foundation-release-verified.json'), 'utf8'),
+    );
+
+    const mismatched = runRawScript(
+      [...args, '--expected-checksum', '0'.repeat(64)],
+      repoRoot,
+    );
+    assert.notEqual(mismatched.status, 0);
+    assert.match(mismatched.stderr, /checksum mismatch/);
+
+    const verified = runRawScript(
+      [...args, '--expected-checksum', marker.archiveSha256],
+      repoRoot,
+    );
+    assert.equal(verified.status, 0, verified.stderr || verified.stdout || verified.error?.message);
+  });
+});
+
 test('the formal npm apply entry executes with rollback protection', () => {
   withTempDir((root) => {
     const { manifestPath, bundleRoot, opsRoot } = createFixture(root);

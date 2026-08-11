@@ -162,7 +162,7 @@ function main() {
     summary.push(`Target local foundation release: ${options.releaseVersion}`);
 
     runNodeScript(options.baseRoot, buildScriptPath, ['--release-version', options.releaseVersion]);
-    verifyAndMarkLocalRelease(options);
+    const verificationMarker = verifyAndMarkLocalRelease(options);
     summary.push(`Built local base bundle: ${options.bundleRoot}`);
 
     const consumeArgs = [
@@ -172,6 +172,8 @@ function main() {
       options.manifestPath,
       '--bundle',
       options.bundleRoot,
+      '--expected-checksum',
+      verificationMarker.archiveSha256,
     ];
 
     if (options.planOnly) {

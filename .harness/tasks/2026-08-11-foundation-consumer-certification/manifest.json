@@ -1,0 +1,30 @@
+{
+  "taskId": "2026-08-11-foundation-consumer-certification",
+  "title": "Certify Pantheon Ops foundation consumer integrity",
+  "goal": "Fail closed on unverified or modified foundation artifacts and certify Ops for the next Base release.",
+  "primaryLayer": "ci-workflow",
+  "qualityProfiles": ["ci-workflow"],
+  "scope": {
+    "in": [
+      "locked release marker and checksum validation",
+      "explicit upgrade checksum binding",
+      "Windows MSYS archive extraction",
+      "workflow runtime and action pin baseline",
+      "inheritance documentation",
+      "Windows MSYS race verification"
+    ],
+    "out": ["Product UI", "Business-domain behavior", "Database schema"]
+  },
+  "ratchetDecision": "gate-updated",
+  "runtimeSensitive": true,
+  "linkage": {
+    "taskId": "2026-08-11-foundation-consumer-certification",
+    "changeRef": "pending-pr",
+    "taskPacket": "docs/harness/tasks/2026-08-11-foundation-consumer-certification.task.md",
+    "evidenceDir": ".harness/evidence/2026-08-11-foundation-consumer-certification/",
+    "reviewFile": ".harness/evidence/2026-08-11-foundation-consumer-certification/review.md",
+    "summaryFile": ".harness/evidence/2026-08-11-foundation-consumer-certification/summary.md",
+    "planRefs": ["docs/harness/tasks/2026-08-11-foundation-consumer-certification.task.md"]
+  },
+  "syncExpectation": "Consume and lock the next certified immutable pantheon-base patch release."
+}

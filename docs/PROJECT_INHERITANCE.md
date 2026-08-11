@@ -107,10 +107,10 @@ Current business-domain overrides that stay local to `pantheon-ops`:
 
 当前推荐直接通过 release artifact + release consumer 执行同步，而不是人工整目录覆盖：
 
-- `npm run foundation:install`：按 `foundation-release.lock.json` 下载并安装已锁定的 release artifact
-- `npm run foundation:install -- --archive <foundation-release-version>.tgz`：从本地 archive 安装 release artifact
-- `npm run upgrade:foundation:apply -- --manifest <bundle-root>\manifest.json --bundle <bundle-root>`
-- 如果本地已有 `pantheon-base/releases/<version>/manifest.json`，可以直接让 ops 本地生成 bundle 并消费：`npm run upgrade:foundation:local-plan -- --release-version <version>` 或 `npm run upgrade:foundation:local-apply -- --release-version <version>`
+- `npm run foundation:install`：按 `foundation-release.lock.json` 下载并校验已锁定的 release artifact，安装时写入绑定 archive、manifest 与 release tree 的 verification marker
+- `npm run foundation:install -- --archive <foundation-release-version>.tgz`：从本地 archive 安装 release artifact；Windows/MSYS tar 路径由 installer 统一处理
+- `npm run upgrade:foundation:apply -- --manifest <release-root>\manifest.json --bundle <release-root> --expected-checksum <sha256>`：显式消费 release root 时把 verification marker 绑定到目标 archive checksum
+- 如果本地已有 `pantheon-base/releases/<version>/manifest.json`，可以直接让 ops 本地生成 bundle 并消费：`npm run upgrade:foundation:local-plan -- --release-version <version>` 或 `npm run upgrade:foundation:local-apply -- --release-version <version>`；local wrapper 会自动传递已验证的 archive checksum
 - 该命令会同步共享 backend/frontend、保留 ops 本地 overlay（如 menu registry、generator workspace、frontend generated registry）、把共享 backend import 重写到 `pantheon-ops` 模块名，并补跑 frontend `base-sync` + `menu-contract`
 - 日常开发时，`npm run check:base-sync` 只检查当前工作树是否仍符合 `foundation-release.lock.json` 锁定的 foundation release artifact；只有显式执行 `npm run check:base-sync:workspace` 时，才对比 `pantheon-base` 当前工作树，作为“是否需要发起新一轮 upgrade”的预演信号
 
@@ -239,11 +239,12 @@ npm run build
 - task packet 模板完整性
 - 继承契约文档关键标记
 - `foundation-release.lock.json` 结构合法性
-- 共享 backend 文件级对齐（本地有 base 仓库时）
-- 共享 frontend 文件级对齐（本地有 base 仓库时）
-- lock 文件新鲜度检查（base 仓库可用时自动计算落后 HEAD 的 commit 数）
+- 已安装 release 的 verification marker、lock checksum、manifest hash 与 release tree hash 完整性
+- 共享 backend 文件级对齐
+- 共享 frontend 文件级对齐
+- 显式 workspace 预演时的 base HEAD 漂移信号
 
-CI 环境中 base 仓库不可用时，backend 检查自动跳过而非报错，由第二层兜底。
+CI 会先安装 lock 指定的 immutable artifact；产物缺失、marker 缺失、checksum 不匹配或 release tree 被修改都会 fail closed，不再回退到未校验的工作树。
 
 ### 第二层：每周定时漂移检测
 
