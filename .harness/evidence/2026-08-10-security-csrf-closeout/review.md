@@ -11,24 +11,21 @@
 
 ## Residual Risk
 
-- Hosted Quality and Security runs for the new PR remain required, including hosted smoke. The current Windows workstation cannot reach npm's audit advisory endpoint; that external connectivity gap is not treated as an audit pass.
+- Local npm advisory access was unavailable on the Windows workstation, but hosted Security and Quality supplied the authoritative audit evidence. Security run `31445476446`, Quality run `31445476431`, and hosted Smoke job `93638664396` all passed.
 
 ## Machine Readable
 
 ```json
 {
   "taskId": "2026-08-10-security-csrf-closeout",
-  "verdict": "awaiting-hosted-validation",
+  "verdict": "complete",
   "findings": [],
   "structuralReview": {
     "status": "CLEAR",
     "checks": ["foundation-release-alignment", "workflow-gate-scope", "csrf-cookie-contract", "workspace-containment"],
     "findings": []
   },
-  "residualRisks": [
-    "Hosted Quality and Security gates, including smoke, have not run for this PR.",
-    "Local npm advisory API access is unavailable; hosted audit is the authority."
-  ],
+  "residualRisks": [],
   "linkage": {
     "taskManifest": ".harness/tasks/2026-08-10-security-csrf-closeout/manifest.json",
     "evidence": ".harness/evidence/2026-08-10-security-csrf-closeout/commands.json",

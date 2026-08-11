@@ -183,8 +183,8 @@ npm run check:base-sync:workspace
 6. 如果 workspace 对比确认需要升级，优先先在 `pantheon-base` 切新 release，再让 ops 消费该 release，而不是手搓文件覆盖
 
 ```powershell
-npm run upgrade:foundation:local-plan -- --release-version base-v0.8.10
-npm run upgrade:foundation:local-apply -- --release-version base-v0.8.10
+npm run upgrade:foundation:local-plan -- --release-version <release-version>
+npm run upgrade:foundation:local-apply -- --release-version <release-version>
 ```
 
 7. 如需同步共享后端路径，按文件级方式同步，不覆盖 `business/*`

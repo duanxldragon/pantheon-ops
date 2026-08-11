@@ -148,8 +148,8 @@ npm run check:base-sync:workspace
 6. once the workspace comparison says an upgrade is warranted, cut a new `pantheon-base` release first and then consume that release instead of hand-copying files
 
 ```powershell
-npm run upgrade:foundation:local-plan -- --release-version base-v0.8.10
-npm run upgrade:foundation:local-apply -- --release-version base-v0.8.10
+npm run upgrade:foundation:local-plan -- --release-version <release-version>
+npm run upgrade:foundation:local-apply -- --release-version <release-version>
 ```
 
 7. if shared backend files must be synced, sync them file-by-file and do not overwrite `business/*`

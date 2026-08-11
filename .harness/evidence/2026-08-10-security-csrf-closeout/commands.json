@@ -1,6 +1,6 @@
 {
   "taskId": "2026-08-10-security-csrf-closeout",
-  "status": "awaiting-hosted-validation",
+  "status": "complete",
   "commands": [
     {
       "command": "npm audit --registry=https://registry.npmjs.org --audit-level=high",
@@ -53,8 +53,8 @@
     {
       "command": "go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.3.3 scan --recursive --call-analysis=go --format json .",
       "cwd": ".",
-      "status": "failed",
-      "notes": "Local re-run could not download v2.3.3 because configured goproxy.cn is unreachable. Version metadata confirms its Go 1.25.7 requirement; hosted Security revalidation is required. The previous v2.4.0 result established that GO-2026-5932 is called:false."
+      "status": "hosted-passed",
+      "notes": "Hosted Security run 31445476446 passed; the call-analysis gate reports no reachable vulnerability."
     },
     {
       "command": "go run github.com/zricethezav/gitleaks/v8@v8.30.1 detect --source . --redact",
@@ -69,5 +69,21 @@
       "notes": "Backend, frontend, i18n, and overlay checks align with pantheon-base-v0.10.10 (a95e6e52...)."
     }
   ],
-  "hostedVerification": []
+  "hostedVerification": [
+    {
+      "workflow": "Security",
+      "runId": "31445476446",
+      "status": "passed"
+    },
+    {
+      "workflow": "Quality",
+      "runId": "31445476431",
+      "status": "passed"
+    },
+    {
+      "workflow": "Hosted Smoke",
+      "jobId": "93638664396",
+      "status": "passed"
+    }
+  ]
 }
