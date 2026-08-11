@@ -6,9 +6,6 @@ on:
     - cron: '57 8 * * 1'
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 env:
   NODE_VERSION: "24"
 
@@ -45,7 +42,7 @@ jobs:
 
       - name: Install ops dependencies
         working-directory: pantheon-ops
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Check backend sync against base workspace HEAD
         id: backend-drift

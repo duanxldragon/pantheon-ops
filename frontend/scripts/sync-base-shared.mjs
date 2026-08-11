@@ -10,6 +10,7 @@ import {
   listFilesFromGitCommit,
   readFileFromGitCommit,
   readFoundationLock,
+  requiredSharedFrontendEntries,
   resolveFoundationReleasePaths,
   resolveBaseRepoRoot,
   rewriteFrontendBaseSource,
@@ -104,6 +105,7 @@ function resolveSharedSource() {
   const releasePaths = resolveFoundationReleasePaths(opsRoot, foundationLock);
   return {
     releaseRoot: releasePaths.releaseRoot,
+    manifest: releasePaths.manifest,
     sourceRoot: releasePaths.sharedFrontendRoot,
     frontendTreeRoot: releasePaths.sharedFrontendTreeRoot,
     targetCommit: foundationLock.baseCommit,
@@ -125,6 +127,35 @@ function readSharedToolingSource(repoRelativePath) {
 }
 
 const sharedSource = resolveSharedSource();
+
+function normalizeSharedPath(entry) {
+  return toRepoPath(entry).replace(/\/+$/u, '');
+}
+
+function assertVerifiedManifestMatchesLock() {
+  if (!sharedSource.manifest) {
+    return;
+  }
+  const lockEntries = (foundationLock.sharedPaths?.frontend || [])
+    .map(normalizeSharedPath)
+    .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
+  const manifestEntries = (sharedSource.manifest.sharedPaths?.frontend || [])
+    .map(normalizeSharedPath)
+    .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
+  if (lockEntries.join('\n') !== manifestEntries.join('\n')) {
+    throw new Error('foundation-release.lock.json frontend paths do not match the verified release manifest');
+  }
+}
+
+function collectUnownedGenericFrontendFiles() {
+  const sharedEntries = new Set(sharedFrontendEntriesFromLock(foundationLock));
+  return requiredSharedFrontendEntries.filter((entry) => {
+    const absolutePath = path.join(opsSrcRoot, entry);
+    return fs.existsSync(absolutePath) && !sharedEntries.has(entry);
+  });
+}
+
+assertVerifiedManifestMatchesLock();
 
 function readRewrittenBaseSource(relativePath) {
   const originalRelativePath = toOriginalFrontendPath(relativePath);
@@ -283,9 +314,10 @@ function main() {
   }
 
   const opsOnlyFiles = collectSharedOpsOnlyFiles();
+  const unownedFiles = collectUnownedGenericFrontendFiles();
 
   if (checkMode) {
-    if (missingFiles.length === 0 && driftFiles.length === 0 && opsOnlyFiles.length === 0) {
+    if (missingFiles.length === 0 && driftFiles.length === 0 && opsOnlyFiles.length === 0 && unownedFiles.length === 0) {
       console.log(`OK shared frontend is aligned with ${sharedSource.sourceLabel}`);
       return;
     }
@@ -299,6 +331,9 @@ function main() {
     }
     for (const relativePath of opsOnlyFiles) {
       console.error(`OPS_ONLY ${relativePath}`);
+    }
+    for (const relativePath of unownedFiles) {
+      console.error(`UNOWNED ${relativePath}`);
     }
     process.exit(1);
   }

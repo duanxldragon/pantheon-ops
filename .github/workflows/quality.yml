@@ -78,11 +78,11 @@ jobs:
           package-manager-cache: false
 
       - name: Install root dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Install locked foundation release
         env:
@@ -146,7 +146,7 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Check menu contract
         working-directory: frontend
@@ -260,7 +260,7 @@ jobs:
           package-manager-cache: false
 
       - name: Install root dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Run duplication scan
         id: duplication
@@ -353,7 +353,7 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Install Playwright browsers
         working-directory: frontend

@@ -18,6 +18,14 @@ const requiredFiles = [
   'docs/PROJECT_INHERITANCE.en.md',
 ];
 
+const requiredSharedFrontendPaths = [
+  'frontend/src/App.tsx',
+  'frontend/src/main.tsx',
+  'frontend/src/vite-env.d.ts',
+  'frontend/src/api',
+  'frontend/src/hooks',
+];
+
 const requiredMarkers = {
   'AGENTS.md': [
     'pantheon-base',
@@ -26,7 +34,6 @@ const requiredMarkers = {
   ],
   'foundation-release.lock.json': [
     '"consumerMode": "foundation-release-consumer"',
-    '"frontend/src/store"',
   ],
   'docs/README.md': [
     'PROJECT_INHERITANCE.md',
@@ -92,6 +99,12 @@ for (const relativePath of requiredFiles) {
     if (foundationLock?.releaseVersion && foundationLock.releaseArtifact?.localPath
       !== `.foundation/releases/${foundationLock.releaseVersion}`) {
       findings.push(`${relativePath}: releaseArtifact.localPath must match releaseVersion`);
+    }
+    const sharedFrontendPaths = new Set(foundationLock?.sharedPaths?.frontend || []);
+    for (const requiredPath of requiredSharedFrontendPaths) {
+      if (!sharedFrontendPaths.has(requiredPath)) {
+        findings.push(`${relativePath}: sharedPaths.frontend must include ${requiredPath}`);
+      }
     }
   }
 

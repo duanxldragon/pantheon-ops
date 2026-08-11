@@ -7,12 +7,22 @@ export const verifiedReleaseMarkerName = '.foundation-release-verified.json';
 
 export const sharedBackendEntries = ['cmd', 'internal', 'modules', 'pkg'];
 
+export const requiredSharedFrontendEntries = [
+  'App.tsx',
+  'main.tsx',
+  'vite-env.d.ts',
+  'api',
+  'hooks',
+];
+
 export const sharedFrontendEntries = [
+  ...requiredSharedFrontendEntries,
   'components',
   'core',
   'store',
   'modules/auth',
-  'modules/dashboard',
+  'modules/lowcode',
+  'modules/platform',
   'modules/system',
   'index.css',
 ];
@@ -130,7 +140,7 @@ export function computeReleaseTreeSha256(releaseRoot) {
   const digest = crypto.createHash('sha256');
   const files = collectFiles(releaseRoot)
     .filter((relativePath) => relativePath !== verifiedReleaseMarkerName)
-    .sort();
+    .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
 
   for (const relativePath of files) {
     const content = fs.readFileSync(path.join(releaseRoot, relativePath));

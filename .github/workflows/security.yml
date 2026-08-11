@@ -52,7 +52,7 @@ jobs:
         id: npm-audit-root
         continue-on-error: true
         run: |
-          npm ci
+          npm ci --ignore-scripts
           npm audit --registry=https://registry.npmjs.org --json --audit-level=high > security-reports/npm-audit-root.json
 
       - name: Report frontend npm vulnerabilities
@@ -60,7 +60,7 @@ jobs:
         continue-on-error: true
         working-directory: frontend
         run: |
-          npm ci
+          npm ci --ignore-scripts
           npm audit --registry=https://registry.npmjs.org --json --audit-level=high > ../security-reports/npm-audit-frontend.json
 
       - name: Report OSV vulnerabilities

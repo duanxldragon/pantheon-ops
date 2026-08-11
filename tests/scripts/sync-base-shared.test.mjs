@@ -72,6 +72,11 @@ function copyFixtureScripts(opsRoot) {
       },
       sharedPaths: {
         frontend: [
+          'frontend/src/App.tsx',
+          'frontend/src/main.tsx',
+          'frontend/src/vite-env.d.ts',
+          'frontend/src/api',
+          'frontend/src/hooks',
           'frontend/src/components',
           'frontend/src/core',
           'frontend/src/store',
@@ -87,6 +92,11 @@ function copyFixtureScripts(opsRoot) {
 }
 
 function createSharedFrontendTree(rootPath, contents) {
+  writeText(path.join(rootPath, 'frontend', 'src', 'App.tsx'), contents.app ?? 'export const app = true;\n');
+  writeText(path.join(rootPath, 'frontend', 'src', 'main.tsx'), contents.main ?? 'export const main = true;\n');
+  writeText(path.join(rootPath, 'frontend', 'src', 'vite-env.d.ts'), contents.viteEnv ?? '/// <reference types="vite/client" />\n');
+  writeText(path.join(rootPath, 'frontend', 'src', 'api', 'file.ts'), contents.fileApi ?? 'export const fileApi = true;\n');
+  writeText(path.join(rootPath, 'frontend', 'src', 'hooks', 'usePermission.ts'), contents.permissionHook ?? 'export const usePermission = true;\n');
   writeText(path.join(rootPath, 'frontend', 'src', 'components', 'index.ts'), contents.components);
   writeText(path.join(rootPath, 'frontend', 'src', 'core', 'layout.ts'), contents.core);
   writeText(path.join(rootPath, 'frontend', 'src', 'modules', 'auth', 'index.ts'), contents.auth);
@@ -156,6 +166,43 @@ test('sync-base-shared respects PANTHEON_BASE_REPO_ROOT and the current ops work
   });
 });
 
+test('sync-base-shared reports generic frontend files omitted from the lock', () => {
+  withTempDir((root) => {
+    const baseRoot = path.join(root, 'pantheon-base-fixture');
+    const opsRoot = path.join(root, 'ops-worktree-fixture');
+    const syncScriptPath = copyFixtureScripts(opsRoot);
+    createSharedFrontendTree(baseRoot, {
+      components: 'export const baseComponent = true;\n',
+      core: 'export const baseCore = true;\n',
+      auth: 'export const baseAuth = true;\n',
+      dashboard: 'export const baseDashboard = true;\n',
+      system: 'export const baseSystem = true;\n',
+      indexCss: 'body { color: black; }\n',
+    });
+    createSharedFrontendTree(opsRoot, {
+      components: 'export const opsComponent = true;\n',
+      core: 'export const opsCore = true;\n',
+      auth: 'export const opsAuth = true;\n',
+      dashboard: 'export const opsDashboard = true;\n',
+      system: 'export const opsSystem = true;\n',
+      indexCss: 'body { color: black; }\n',
+    });
+    const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
+    const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+    lock.sharedPaths.frontend = lock.sharedPaths.frontend.filter((entry) => entry !== 'frontend/src/App.tsx');
+    writeText(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
+
+    const result = runSync(
+      syncScriptPath,
+      opsRoot,
+      { PANTHEON_BASE_REPO_ROOT: baseRoot },
+      ['--workspace-head', '--check'],
+    );
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /UNOWNED App\.tsx/);
+  });
+});
+
 test('sync-base-shared uses the installed release artifact by default', () => {
   withTempDir((root) => {
     const releaseRoot = path.join(root, 'release-root');
@@ -172,7 +219,20 @@ test('sync-base-shared uses the installed release artifact by default', () => {
         sourceRepo: 'pantheon-base',
         consumerMode: 'foundation-release-consumer',
         sharedPaths: {
-          frontend: ['frontend/src/components', 'frontend/src/index.css'],
+          frontend: [
+            'frontend/src/App.tsx',
+            'frontend/src/main.tsx',
+            'frontend/src/vite-env.d.ts',
+            'frontend/src/api',
+            'frontend/src/hooks',
+            'frontend/src/components',
+            'frontend/src/core',
+            'frontend/src/store',
+            'frontend/src/modules/auth',
+            'frontend/src/modules/dashboard',
+            'frontend/src/modules/system',
+            'frontend/src/index.css',
+          ],
         },
       }, null, 2)}\n`,
     );
@@ -229,7 +289,22 @@ test('sync-base-shared rejects unverified, checksum-mismatched, and modified loc
         baseCommit: 'HEAD',
         sourceRepo: 'pantheon-base',
         consumerMode: 'foundation-release-consumer',
-        sharedPaths: { frontend: ['frontend/src/components'] },
+        sharedPaths: {
+          frontend: [
+            'frontend/src/App.tsx',
+            'frontend/src/main.tsx',
+            'frontend/src/vite-env.d.ts',
+            'frontend/src/api',
+            'frontend/src/hooks',
+            'frontend/src/components',
+            'frontend/src/core',
+            'frontend/src/store',
+            'frontend/src/modules/auth',
+            'frontend/src/modules/dashboard',
+            'frontend/src/modules/system',
+            'frontend/src/index.css',
+          ],
+        },
       }, null, 2)}\n`,
     );
     writeText(
@@ -288,7 +363,21 @@ test('sync-base-shared checks and applies all allowlisted frontend tooling from 
     ];
     const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
     const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
-    lock.sharedPaths.frontend = ['frontend/src/components', ...toolingEntries];
+    lock.sharedPaths.frontend = [
+      'frontend/src/App.tsx',
+      'frontend/src/main.tsx',
+      'frontend/src/vite-env.d.ts',
+      'frontend/src/api',
+      'frontend/src/hooks',
+      'frontend/src/components',
+      'frontend/src/core',
+      'frontend/src/store',
+      'frontend/src/modules/auth',
+      'frontend/src/modules/dashboard',
+      'frontend/src/modules/system',
+      'frontend/src/index.css',
+      ...toolingEntries,
+    ];
     writeText(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
 
     writeText(
@@ -300,13 +389,33 @@ test('sync-base-shared checks and applies all allowlisted frontend tooling from 
         baseCommit: 'HEAD',
         sourceRepo: 'pantheon-base',
         consumerMode: 'foundation-release-consumer',
-        sharedPaths: { frontend: ['frontend/src/components', ...toolingEntries] },
+        sharedPaths: {
+          frontend: [
+            'frontend/src/App.tsx',
+            'frontend/src/main.tsx',
+            'frontend/src/vite-env.d.ts',
+            'frontend/src/api',
+            'frontend/src/hooks',
+            'frontend/src/components',
+            'frontend/src/core',
+            'frontend/src/store',
+            'frontend/src/modules/auth',
+            'frontend/src/modules/dashboard',
+            'frontend/src/modules/system',
+            'frontend/src/index.css',
+            ...toolingEntries,
+          ],
+        },
       }, null, 2)}\n`,
     );
-    writeText(
-      path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'src', 'components', 'index.ts'),
-      'export const component = true;\n',
-    );
+    createSharedFrontendTree(path.join(releaseRoot, 'bundle', 'shared-frontend'), {
+      components: 'export const component = true;\n',
+      core: 'export const core = true;\n',
+      auth: 'export const auth = true;\n',
+      dashboard: 'export const dashboard = true;\n',
+      system: 'export const system = true;\n',
+      indexCss: 'body { color: black; }\n',
+    });
     for (const toolingEntry of toolingEntries) {
       writeText(
         path.join(releaseRoot, 'bundle', 'shared-frontend', toolingEntry),
