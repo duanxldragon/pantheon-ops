@@ -17,4 +17,4 @@
 ## Residual Gates
 
 - Hosted GitHub checks must pass on the Ops pull request.
-- Ops must consume and lock the next certified Base release after publication.
+- No release-consumption gap remains: Ops is locked to the verified immutable v0.10.12 archive.
