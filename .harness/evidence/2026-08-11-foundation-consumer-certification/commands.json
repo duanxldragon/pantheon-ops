@@ -3,10 +3,16 @@
   "status": "in-progress",
   "commands": [
     {
+      "command": "node --test tests/scripts/foundation-release/upgrade-from-local-base-release.test.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "3 local upgrade wrapper tests passed, including metadata-only HEAD advancement after the manifest baseCommit."
+    },
+    {
       "command": "npm run test:foundation-release",
       "cwd": ".",
       "status": "passed",
-      "notes": "77 release, workflow, governance, encoding, and consumer tests passed."
+      "notes": "78 release, workflow, governance, encoding, and consumer tests passed."
     },
     {
       "command": "npm run test:branch-hygiene && npm run test:pr-automation-workflow",
