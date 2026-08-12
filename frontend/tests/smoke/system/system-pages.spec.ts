@@ -1382,20 +1382,22 @@ test('i18n smoke: import csv creates updates and downloads error file', async ({
   ].join('\n');
 
   await page.goto('/system/i18n', { waitUntil: 'networkidle' });
+  const importButton = page.getByRole('button', { name: '导入', exact: true });
+  await expect(importButton).toBeVisible();
+  const successFileChooserPromise = page.waitForEvent('filechooser');
+  await importButton.click();
+  const successFileChooser = await successFileChooserPromise;
   await Promise.all([
     waitForOkApiResponse(
       page,
       (response) =>
         response.url().includes('/system/i18n/import') && response.request().method() === 'POST',
     ),
-    page
-      .locator('input[type="file"]')
-      .first()
-      .setInputFiles({
-        name: 'system-i18n-import.csv',
-        mimeType: 'text/csv',
-        buffer: Buffer.from(`\uFEFF${successCsv}`, 'utf8'),
-      }),
+    successFileChooser.setFiles({
+      name: 'system-i18n-import.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from(`\uFEFF${successCsv}`, 'utf8'),
+    }),
   ]);
   await dismissVisibleSuccessDialog(page);
 
@@ -1429,20 +1431,20 @@ test('i18n smoke: import csv creates updates and downloads error file', async ({
   ].join('\n');
 
   const downloadPromise = page.waitForEvent('download');
+  const invalidFileChooserPromise = page.waitForEvent('filechooser');
+  await importButton.click();
+  const invalidFileChooser = await invalidFileChooserPromise;
   await Promise.all([
     waitForOkApiResponse(
       page,
       (response) =>
         response.url().includes('/system/i18n/import') && response.request().method() === 'POST',
     ),
-    page
-      .locator('input[type="file"]')
-      .first()
-      .setInputFiles({
-        name: 'system-i18n-import-invalid.csv',
-        mimeType: 'text/csv',
-        buffer: Buffer.from(`\uFEFF${invalidCsv}`, 'utf8'),
-      }),
+    invalidFileChooser.setFiles({
+      name: 'system-i18n-import-invalid.csv',
+      mimeType: 'text/csv',
+      buffer: Buffer.from(`\uFEFF${invalidCsv}`, 'utf8'),
+    }),
   ]);
 
   const errorDownload = await downloadPromise;

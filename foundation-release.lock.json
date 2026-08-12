@@ -2,16 +2,16 @@
   "schemaVersion": 1,
   "baseRepo": "../pantheon-base",
   "releaseLine": "release/0.10",
-  "releaseVersion": "pantheon-base-v0.10.17",
-  "baseCommit": "d9de00b3e720b141cd0934a18c6f0ebd270eed18",
+  "releaseVersion": "pantheon-base-v0.10.18",
+  "baseCommit": "d887812025b16ec0944f27b202586e2c7abc6eca",
   "consumerMode": "foundation-release-consumer",
   "releaseArtifact": {
     "githubRepo": "duanxldragon/pantheon-base",
-    "assetName": "foundation-release-pantheon-base-v0.10.17.tgz",
-    "localPath": ".foundation/releases/pantheon-base-v0.10.17",
-    "checksum": "f0d2adfa4237068e818c1424742ed772a380b6c89d1be8d95b8155e8545dc510"
+    "assetName": "foundation-release-pantheon-base-v0.10.18.tgz",
+    "localPath": ".foundation/releases/pantheon-base-v0.10.18",
+    "checksum": "4f9c187cbf0c8b3e349e1da2e27bfeb76bbc9ad915d274e598fdc84422516d8b"
   },
-  "lockedAt": "2026-08-12T08:24:00.000Z",
+  "lockedAt": "2026-08-12T10:17:03.3048461Z",
   "lockedBy": "xiaolong",
   "sharedPaths": {
     "backend": [
@@ -34,6 +34,7 @@
       "frontend/src/modules/platform",
       "frontend/src/modules/system",
       "frontend/src/index.css",
+      "frontend/package.json",
       "frontend/playwright.api.config.ts",
       "frontend/playwright.config.ts",
       "frontend/playwright.full-system.config.ts",
@@ -42,6 +43,7 @@
       "frontend/playwright.master-detail.config.ts",
       "frontend/scripts/cleanup-generated-modules.mjs",
       "frontend/scripts/cleanup-smoke-fixtures.mjs",
+      "frontend/scripts/check-smoke-web-base.mjs",
       "frontend/scripts/database-import-qa-setup.mjs",
       "frontend/scripts/export-generated-module.mjs",
       "frontend/scripts/lib/auth-cookie-session.mjs",
@@ -62,7 +64,8 @@
       "frontend/tests/smoke/business/generated",
       "frontend/tests/smoke/helpers",
       "frontend/tests/smoke/platform",
-      "frontend/tests/smoke/system"
+      "frontend/tests/smoke/system",
+      "frontend/tests/smoke/README.md"
     ],
     "docs": [
       "docs/designs/FOUNDATION_RELEASE_MODEL.md",
