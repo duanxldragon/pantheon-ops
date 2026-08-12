@@ -10,6 +10,7 @@ const GENERATED_PATHS = {
   backendBusinessDir: path.join(repoRoot, 'backend', 'modules', 'business'),
   frontendBusinessDir: path.join(repoRoot, 'frontend', 'src', 'modules', 'business'),
   schemaBusinessDir: path.join(repoRoot, 'schema', 'generated', 'business'),
+  featureLedger: path.join(repoRoot, 'schema', 'generated', 'feature-ledger.json'),
   i18nDir: path.join(repoRoot, 'frontend', 'src', 'i18n', 'resources', 'generated'),
 };
 
@@ -229,6 +230,16 @@ export function checkDirty(
   trackedFiles = readTrackedFiles(repoBase),
 ) {
   const dirty = [];
+  const featureLedgerRelative = normalizePath(path.relative(repoBase, paths.featureLedger));
+  if (trackedFiles.has(featureLedgerRelative)) {
+    const featureLedgerBaseline = readIndexBaseline(paths.featureLedger, repoBase, true);
+    const featureLedgerCurrent = fs.existsSync(paths.featureLedger)
+      ? fs.readFileSync(paths.featureLedger, 'utf8')
+      : null;
+    if (featureLedgerCurrent !== featureLedgerBaseline) {
+      dirty.push('feature ledger differs from tracked baseline');
+    }
+  }
 
   appendDirtyIfFileMatches(
     dirty,
@@ -314,6 +325,17 @@ export function cleanup(
     repoBase,
     trackedFiles,
   );
+
+  const featureLedgerRelative = normalizePath(path.relative(repoBase, paths.featureLedger));
+  const featureLedgerBaseline = readIndexBaseline(
+    paths.featureLedger,
+    repoBase,
+    trackedFiles.has(featureLedgerRelative),
+  );
+  if (featureLedgerBaseline !== null) {
+    writeFile(paths.featureLedger, featureLedgerBaseline);
+    summary.schemas++;
+  }
 
   for (const [key, filePath] of Object.entries(registryFiles)) {
     const relative = normalizePath(path.relative(repoBase, filePath));

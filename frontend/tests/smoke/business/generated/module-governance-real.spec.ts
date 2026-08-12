@@ -12,6 +12,7 @@ import {
   loginByApi,
   type BrowserLoginResult,
 } from '../../helpers/auth';
+import { readGoModulePath } from '../../helpers/go-module';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = path.resolve(currentDir, '../../../../..');
@@ -24,6 +25,7 @@ const schemaFile = path.join(workspaceRoot, 'schema', 'generated', 'business', `
 const backendRegistry = path.join(workspaceRoot, 'backend', 'modules', 'business', 'generated_registry.go');
 const frontendRegistry = path.join(workspaceRoot, 'frontend', 'src', 'modules', 'generated', 'business.ts');
 const componentRegistry = path.join(workspaceRoot, 'frontend', 'src', 'core', 'router', 'generatedComponentRegistry.ts');
+const backendModuleImport = `${await readGoModulePath(workspaceRoot)}/modules/business/${moduleName}`;
 
 function buildGenerateRequest() {
   return {
@@ -175,7 +177,7 @@ test('real module governance flow can generate register and purge a temporary bu
     const content = await fs.readFile(backendRegistry, 'utf8');
     // Registry imports the module by Go import path (module path moved off
     // the old backend/modules/... directory-style string long ago).
-    return content.includes(`pantheon-base/modules/business/${moduleName}`);
+    return content.includes(backendModuleImport);
   }).toBe(true);
   await expect.poll(async () => {
     const content = await fs.readFile(frontendRegistry, 'utf8');
@@ -218,7 +220,7 @@ test('real module governance flow can generate register and purge a temporary bu
 
   await expect.poll(async () => {
     const content = await fs.readFile(backendRegistry, 'utf8');
-    return content.includes(`pantheon-base/modules/business/${moduleName}`);
+    return content.includes(backendModuleImport);
   }).toBe(false);
   await expect.poll(async () => {
     const content = await fs.readFile(frontendRegistry, 'utf8');
