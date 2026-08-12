@@ -126,6 +126,64 @@ function readSharedToolingSource(repoRelativePath) {
   );
 }
 
+function collectSharedToolingFiles() {
+  const files = new Set();
+  for (const entry of sharedFrontendToolingEntriesFromLock(foundationLock)) {
+    if (sharedSource.frontendTreeRoot) {
+      const entryPath = path.join(
+        sharedSource.frontendTreeRoot,
+        stripTreePrefix(entry, 'frontend'),
+      );
+      const stats = statIfPresent(entryPath);
+      if (!stats) {
+        files.add(toRepoPath(entry));
+        continue;
+      }
+      if (!stats.isDirectory()) {
+        files.add(toRepoPath(entry));
+        continue;
+      }
+      for (const filePath of collectFiles(sharedSource.frontendTreeRoot, entryPath)) {
+        files.add(`frontend/${filePath}`);
+      }
+      continue;
+    }
+
+    const gitFiles = listFilesFromGitCommit(
+      sharedSource.baseRepoRoot,
+      sharedSource.targetCommit,
+      entry,
+    );
+    if (gitFiles.length === 0) {
+      files.add(toRepoPath(entry));
+      continue;
+    }
+    for (const filePath of gitFiles) {
+      files.add(toRepoPath(filePath));
+    }
+  }
+  return [...files].sort((left, right) => left.localeCompare(right));
+}
+
+function collectSharedToolingOpsOnlyFiles(sharedToolingFiles) {
+  const expectedFiles = new Set(sharedToolingFiles);
+  const extraFiles = [];
+  for (const entry of sharedFrontendToolingEntriesFromLock(foundationLock)) {
+    const absolutePath = path.join(opsRoot, entry);
+    const stats = statIfPresent(absolutePath);
+    if (!stats?.isDirectory()) {
+      continue;
+    }
+    for (const relativePath of collectFiles(opsRoot, absolutePath)) {
+      const repoRelativePath = toRepoPath(relativePath);
+      if (!expectedFiles.has(repoRelativePath)) {
+        extraFiles.push(repoRelativePath);
+      }
+    }
+  }
+  return extraFiles.sort((left, right) => left.localeCompare(right));
+}
+
 const sharedSource = resolveSharedSource();
 
 function normalizeSharedPath(entry) {
@@ -237,6 +295,7 @@ function collectSharedOpsOnlyFiles() {
 
 function main() {
   const sharedFiles = collectSharedBaseFiles();
+  const sharedToolingFiles = collectSharedToolingFiles();
   const changedFiles = [];
   const driftFiles = [];
   const missingFiles = [];
@@ -278,7 +337,7 @@ function main() {
     changedFiles.push(relativePath);
   }
 
-  for (const repoRelativePath of sharedFrontendToolingEntriesFromLock(foundationLock)) {
+  for (const repoRelativePath of sharedToolingFiles) {
     const opsFilePath = path.join(opsRoot, repoRelativePath);
     const baseSource = readSharedToolingSource(repoRelativePath);
     let opsSource = null;
@@ -314,10 +373,17 @@ function main() {
   }
 
   const opsOnlyFiles = collectSharedOpsOnlyFiles();
+  const opsOnlyToolingFiles = collectSharedToolingOpsOnlyFiles(sharedToolingFiles);
   const unownedFiles = collectUnownedGenericFrontendFiles();
 
   if (checkMode) {
-    if (missingFiles.length === 0 && driftFiles.length === 0 && opsOnlyFiles.length === 0 && unownedFiles.length === 0) {
+    if (
+      missingFiles.length === 0
+      && driftFiles.length === 0
+      && opsOnlyFiles.length === 0
+      && opsOnlyToolingFiles.length === 0
+      && unownedFiles.length === 0
+    ) {
       console.log(`OK shared frontend is aligned with ${sharedSource.sourceLabel}`);
       return;
     }
@@ -332,6 +398,9 @@ function main() {
     for (const relativePath of opsOnlyFiles) {
       console.error(`OPS_ONLY ${relativePath}`);
     }
+    for (const relativePath of opsOnlyToolingFiles) {
+      console.error(`OPS_ONLY ${relativePath}`);
+    }
     for (const relativePath of unownedFiles) {
       console.error(`UNOWNED ${relativePath}`);
     }
@@ -341,6 +410,10 @@ function main() {
   for (const relativePath of opsOnlyFiles) {
     fs.rmSync(path.join(opsSrcRoot, relativePath), { force: true });
     changedFiles.push(relativePath);
+  }
+  for (const repoRelativePath of opsOnlyToolingFiles) {
+    fs.rmSync(path.join(opsRoot, repoRelativePath), { force: true });
+    changedFiles.push(repoRelativePath);
   }
 
   console.log(

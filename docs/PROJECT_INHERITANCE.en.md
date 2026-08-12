@@ -187,7 +187,7 @@ At minimum, record:
 Common local command:
 
 - `npm run foundation:install`: install the release artifact pinned by `foundation-release.lock.json`
-- `npm run check:inheritance`: one-shot check for task-packet template linkage, inheritance markers, foundation lock, and shared backend/frontend alignment
+- `npm run check:inheritance`: one-shot check for task-packet template linkage, inheritance markers, foundation lock, shared backend/frontend alignment, and full frontend product-source ownership
 - `npm run check:base-sync`: shared backend and frontend alignment check against the release artifact pinned by `foundation-release.lock.json`
 - `npm run check:base-sync:workspace`: explicit check against the current `pantheon-base` worktree to decide whether a new upgrade pass is needed
 

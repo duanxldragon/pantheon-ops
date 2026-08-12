@@ -361,6 +361,7 @@ test('sync-base-shared checks and applies all allowlisted frontend tooling from 
       'frontend/tests/smoke/system/system-pages.spec.ts',
       'frontend/tests/smoke/system/system-workspace-task-depth.ts',
     ];
+    const toolingDirectory = 'frontend/tests/smoke/system';
     const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
     const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
     lock.sharedPaths.frontend = [
@@ -377,6 +378,7 @@ test('sync-base-shared checks and applies all allowlisted frontend tooling from 
       'frontend/src/modules/system',
       'frontend/src/index.css',
       ...toolingEntries,
+      toolingDirectory,
     ];
     writeText(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
 
@@ -404,6 +406,7 @@ test('sync-base-shared checks and applies all allowlisted frontend tooling from 
             'frontend/src/modules/system',
             'frontend/src/index.css',
             ...toolingEntries,
+            toolingDirectory,
           ],
         },
       }, null, 2)}\n`,
@@ -422,6 +425,12 @@ test('sync-base-shared checks and applies all allowlisted frontend tooling from 
         `release:${toolingEntry}\n`,
       );
     }
+    const currentSharedSpec = `${toolingDirectory}/governance/current.spec.ts`;
+    const obsoleteSharedSpec = `${toolingDirectory}/governance/legacy.spec.ts`;
+    writeText(
+      path.join(releaseRoot, 'bundle', 'shared-frontend', currentSharedSpec),
+      'release:current shared spec\n',
+    );
     writeVerificationMarker(releaseRoot);
     writeText(
       path.join(opsRoot, 'frontend', 'src', 'components', 'index.ts'),
@@ -434,15 +443,20 @@ test('sync-base-shared checks and applies all allowlisted frontend tooling from 
     for (const toolingEntry of toolingEntries) {
       assert.match(missingResult.stderr, new RegExp(`MISSING ${toolingEntry.replaceAll('.', '\\.')}`));
     }
+    assert.match(missingResult.stderr, /MISSING frontend\/tests\/smoke\/system\/governance\/current\.spec\.ts/);
 
     for (const toolingEntry of toolingEntries) {
       writeText(path.join(opsRoot, toolingEntry), `stale:${toolingEntry}\n`);
     }
+    writeText(path.join(opsRoot, currentSharedSpec), 'stale:current shared spec\n');
+    writeText(path.join(opsRoot, obsoleteSharedSpec), 'stale:obsolete shared spec\n');
     const driftResult = runSync(syncScriptPath, opsRoot, env, ['--check']);
     assert.notEqual(driftResult.status, 0);
     for (const toolingEntry of toolingEntries) {
       assert.match(driftResult.stderr, new RegExp(`DIFF ${toolingEntry.replaceAll('.', '\\.')}`));
     }
+    assert.match(driftResult.stderr, /DIFF frontend\/tests\/smoke\/system\/governance\/current\.spec\.ts/);
+    assert.match(driftResult.stderr, /OPS_ONLY frontend\/tests\/smoke\/system\/governance\/legacy\.spec\.ts/);
 
     const applyResult = runSync(syncScriptPath, opsRoot, env, []);
     assert.equal(applyResult.status, 0, applyResult.stderr || applyResult.stdout || applyResult.error?.message);
@@ -452,6 +466,8 @@ test('sync-base-shared checks and applies all allowlisted frontend tooling from 
         `release:${toolingEntry}\n`,
       );
     }
+    assert.equal(fs.readFileSync(path.join(opsRoot, currentSharedSpec), 'utf8'), 'release:current shared spec\n');
+    assert.equal(fs.existsSync(path.join(opsRoot, obsoleteSharedSpec)), false);
 
     const checkResult = runSync(syncScriptPath, opsRoot, env, ['--check']);
     assert.equal(checkResult.status, 0, checkResult.stderr || checkResult.stdout || checkResult.error?.message);

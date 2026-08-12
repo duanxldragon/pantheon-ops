@@ -787,7 +787,10 @@ test('allowlisted shared frontend tooling is reported by dry-run and applied fro
       'frontend/tests/smoke/system/system-pages.spec.ts',
       'frontend/tests/smoke/system/system-workspace-task-depth.ts',
     ];
-    manifest.sharedPaths.frontend = toolingPaths;
+    const toolingDirectory = 'frontend/tests/smoke/system';
+    const currentSharedSpec = `${toolingDirectory}/governance/current.spec.ts`;
+    const obsoleteSharedSpec = `${toolingDirectory}/governance/legacy.spec.ts`;
+    manifest.sharedPaths.frontend = [...toolingPaths, toolingDirectory];
     writeJson(manifestPath, manifest);
     for (const toolingPath of toolingPaths) {
       writeText(
@@ -796,6 +799,12 @@ test('allowlisted shared frontend tooling is reported by dry-run and applied fro
       );
       writeText(path.join(opsRoot, toolingPath), `stale:${toolingPath}\n`);
     }
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-frontend', currentSharedSpec),
+      'release:current shared spec\n',
+    );
+    writeText(path.join(opsRoot, currentSharedSpec), 'stale:current shared spec\n');
+    writeText(path.join(opsRoot, obsoleteSharedSpec), 'stale:obsolete shared spec\n');
 
     const dryRun = runScript(
       ['--ops-root', opsRoot, '--manifest', manifestPath, '--bundle', bundleRoot, '--dry-run'],
@@ -807,6 +816,8 @@ test('allowlisted shared frontend tooling is reported by dry-run and applied fro
       assert.match(dryRun.stdout, new RegExp(`REWRITE ${outputPath}`));
       assert.equal(fs.readFileSync(path.join(opsRoot, toolingPath), 'utf8'), `stale:${toolingPath}\n`);
     }
+    assert.match(dryRun.stdout, /REWRITE frontend[\\/]tests[\\/]smoke[\\/]system[\\/]governance[\\/]current\.spec\.ts/);
+    assert.match(dryRun.stdout, /DELETE frontend[\\/]tests[\\/]smoke[\\/]system[\\/]governance[\\/]legacy\.spec\.ts/);
 
     const applyResult = runScript(
       [
@@ -825,6 +836,8 @@ test('allowlisted shared frontend tooling is reported by dry-run and applied fro
     for (const toolingPath of toolingPaths) {
       assert.equal(fs.readFileSync(path.join(opsRoot, toolingPath), 'utf8'), `release:${toolingPath}\n`);
     }
+    assert.equal(fs.readFileSync(path.join(opsRoot, currentSharedSpec), 'utf8'), 'release:current shared spec\n');
+    assert.equal(fs.existsSync(path.join(opsRoot, obsoleteSharedSpec)), false);
   });
 });
 

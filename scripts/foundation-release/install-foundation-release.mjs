@@ -190,7 +190,7 @@ function installArchive(archivePath, releaseRoot, expectedSha256, lock) {
     const archiveArgument = path.relative(releasesRoot, archivePath).split(path.sep).join('/');
     runCommand(
       'tar',
-      ['--force-local', '-xzf', archiveArgument, '-C', path.basename(temporaryRoot)],
+      ['-xzf', archiveArgument, '-C', path.basename(temporaryRoot)],
       `extract ${archivePath}`,
       { cwd: releasesRoot },
     );

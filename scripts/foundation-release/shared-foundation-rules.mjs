@@ -28,11 +28,26 @@ export const sharedFrontendEntries = [
 ];
 
 export const sharedFrontendToolingPaths = new Set([
+  'frontend/playwright.api.config.ts',
+  'frontend/playwright.config.ts',
+  'frontend/playwright.full-system.config.ts',
+  'frontend/playwright.auto-recycle.config.ts',
+  'frontend/playwright.many-to-many.config.ts',
+  'frontend/playwright.master-detail.config.ts',
+  'frontend/scripts/cleanup-generated-modules.mjs',
+  'frontend/scripts/cleanup-smoke-fixtures.mjs',
+  'frontend/scripts/database-import-qa-setup.mjs',
   'frontend/scripts/export-generated-module.mjs',
   'frontend/scripts/lib/auth-cookie-session.mjs',
+  'frontend/scripts/lib/cleanup-fixture-cache.mjs',
+  'frontend/scripts/lib/cleanup-fixture-query-plan.mjs',
+  'frontend/scripts/lib/cleanup-http.mjs',
   'frontend/scripts/lib/css-declarations.mjs',
+  'frontend/scripts/many-to-many-qa-setup.mjs',
+  'frontend/scripts/master-detail-qa-setup.mjs',
   'frontend/scripts/run-smoke-suite.mjs',
   'frontend/scripts/run-smoke-suite.test.mjs',
+  'frontend/scripts/start-smoke-vite.mjs',
   'frontend/scripts/test-fixtures/bind-ready-server.mjs',
   'frontend/scripts/test-fixtures/fake-playwright-cli.mjs',
   'frontend/scripts/test-fixtures/record-cleanup.mjs',
@@ -45,6 +60,10 @@ export const sharedFrontendToolingPaths = new Set([
   'frontend/tests/smoke/platform/shell-visual-contract.spec.ts',
   'frontend/tests/smoke/system/system-pages.spec.ts',
   'frontend/tests/smoke/system/system-workspace-task-depth.ts',
+  'frontend/tests/smoke/business/generated',
+  'frontend/tests/smoke/helpers',
+  'frontend/tests/smoke/platform',
+  'frontend/tests/smoke/system',
 ]);
 
 export const backendOverlayPaths = new Set([
