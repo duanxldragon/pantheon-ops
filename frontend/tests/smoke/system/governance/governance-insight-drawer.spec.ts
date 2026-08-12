@@ -6,21 +6,19 @@ import { signInAsAdmin } from '../../helpers/auth';
 import { expectPagePathname } from '../../helpers/url-pattern';
 
 const mainContentSelectors = [
-  'main',
-  'main .app-shell__content-inner',
-  'main .system-page-template',
-  'main .system-list__table-card',
-  'main .filter-panel',
-  'main .permission-workbench__tabs',
-  'main .page-panel',
-  'main .i18n-list-page',
-];
+  '.system-page-template',
+  '.system-list__table-card',
+  '.filter-panel',
+  '.permission-workbench__tabs',
+  '.page-panel',
+].map((selector) => `main ${selector}`);
 
 const pageIdentitySelectors = [
   '.governance-summary-bar',
   '.system-list__table-card',
   '.permission-workbench__tabs',
   '.dict-workbench',
+  '.setting-overview-page',
   '.setting-group-page',
   '.module-manager-page',
   '.generator-wizard-card',

@@ -1,7 +1,14 @@
+import fs from 'node:fs';
 import { spawn } from 'node:child_process';
+import path from 'node:path';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
 const fixtureTableName = 'biz_cmdb_host';
+const documentedDevMysqlPasswords = ['DHCCroot@2025', 'dev_password_change_me'];
+const scriptPath = fileURLToPath(import.meta.url);
+const scriptDir = path.dirname(scriptPath);
+const repoRoot = path.resolve(scriptDir, '../..');
 
 function parseArgs() {
   return {
@@ -9,7 +16,16 @@ function parseArgs() {
   };
 }
 
-function parseDsn(dsn) {
+function firstNonEmpty(...values) {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim() !== '') {
+      return value.trim();
+    }
+  }
+  return '';
+}
+
+export function parseDsn(dsn) {
   const trimmed = String(dsn || '').trim();
   const marker = '@tcp(';
   const markerIndex = trimmed.indexOf(marker);
@@ -48,16 +64,88 @@ function parseDsn(dsn) {
   };
 }
 
-function resolveMysqlConfig() {
-  const parsedDsn = parseDsn(process.env.PANTHEON_DSN);
+export function readEnvFile(envFilePath) {
+  if (!envFilePath || !fs.existsSync(envFilePath)) {
+    return {};
+  }
+
+  const content = fs.readFileSync(envFilePath, 'utf8');
+  const values = {};
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) {
+      continue;
+    }
+    const separatorIndex = rawLine.indexOf('=');
+    if (separatorIndex <= 0) {
+      continue;
+    }
+    const key = rawLine.slice(0, separatorIndex).trim();
+    let value = rawLine.slice(separatorIndex + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"'))
+      || (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    values[key] = value;
+  }
+  return values;
+}
+
+export function resolveMysqlConfig(env = process.env, options = {}) {
+  const localEnv = options.localEnv ?? readEnvFile(path.join(options.repoRoot ?? repoRoot, '.env'));
+  const parsedDsn = parseDsn(firstNonEmpty(env.PANTHEON_DSN, localEnv.PANTHEON_DSN));
+  const explicitPassword = firstNonEmpty(
+    env.PANTHEON_SMOKE_MYSQL_PASSWORD,
+    env.MYSQL_ROOT_PASSWORD,
+    localEnv.PANTHEON_SMOKE_MYSQL_PASSWORD,
+    localEnv.MYSQL_ROOT_PASSWORD,
+    parsedDsn?.password,
+  );
   return {
-    host: process.env.PANTHEON_SMOKE_MYSQL_HOST || parsedDsn?.host || '127.0.0.1',
-    port: Number(process.env.PANTHEON_SMOKE_MYSQL_PORT || parsedDsn?.port || 3306),
-    username: process.env.PANTHEON_SMOKE_MYSQL_USER || parsedDsn?.username || 'root',
-    password: process.env.PANTHEON_SMOKE_MYSQL_PASSWORD || parsedDsn?.password || '',
-    database: process.env.PANTHEON_SMOKE_MYSQL_DATABASE || parsedDsn?.database || 'pantheon_base',
-    mysqlBin: process.env.PANTHEON_SMOKE_MYSQL_BIN || 'mysql',
+    host: firstNonEmpty(
+      env.PANTHEON_SMOKE_MYSQL_HOST,
+      localEnv.PANTHEON_SMOKE_MYSQL_HOST,
+      parsedDsn?.host,
+      '127.0.0.1',
+    ),
+    port: Number(
+      firstNonEmpty(
+        env.PANTHEON_SMOKE_MYSQL_PORT,
+        localEnv.PANTHEON_SMOKE_MYSQL_PORT,
+        parsedDsn?.port ? String(parsedDsn.port) : '',
+        '3306',
+      ),
+    ),
+    username: firstNonEmpty(
+      env.PANTHEON_SMOKE_MYSQL_USER,
+      localEnv.PANTHEON_SMOKE_MYSQL_USER,
+      parsedDsn?.username,
+      'root',
+    ),
+    password: explicitPassword,
+    database: firstNonEmpty(
+      env.PANTHEON_SMOKE_MYSQL_DATABASE,
+      localEnv.PANTHEON_SMOKE_MYSQL_DATABASE,
+      parsedDsn?.database,
+      'pantheon_base',
+    ),
+    mysqlBin: firstNonEmpty(
+      env.PANTHEON_SMOKE_MYSQL_BIN,
+      localEnv.PANTHEON_SMOKE_MYSQL_BIN,
+      'mysql',
+    ),
+    hasExplicitPassword: explicitPassword !== '',
   };
+}
+
+export function buildMysqlPasswordCandidates(config) {
+  if (config.hasExplicitPassword) {
+    return [config.password];
+  }
+
+  return Array.from(new Set([...documentedDevMysqlPasswords, '']));
 }
 
 function buildSetupSql() {
@@ -92,7 +180,11 @@ SELECT 1;
 `;
 }
 
-function runMysql(sql, config) {
+function isAuthFailure(result) {
+  return /ERROR 1045|Access denied/i.test(result.stderr);
+}
+
+function executeMysql(sql, config, password) {
   return new Promise((resolve, reject) => {
     const child = spawn(
       config.mysqlBin,
@@ -107,23 +199,52 @@ function runMysql(sql, config) {
         sql,
       ],
       {
-        stdio: 'inherit',
+        stdio: ['ignore', 'pipe', 'pipe'],
         shell: false,
-        env: {
-          ...process.env,
-          MYSQL_PWD: config.password,
-        },
+        env: password === '' ? process.env : { ...process.env, MYSQL_PWD: password },
       },
     );
+    let stdout = '';
+    let stderr = '';
+    child.stdout?.setEncoding('utf8');
+    child.stderr?.setEncoding('utf8');
+    child.stdout?.on('data', (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr?.on('data', (chunk) => {
+      stderr += chunk;
+    });
     child.once('error', reject);
     child.once('exit', (code) => {
-      if (code === 0) {
-        resolve();
-        return;
-      }
-      reject(new Error(`mysql exited with code ${code ?? 'unknown'}`));
+      resolve({
+        code: code ?? 0,
+        stdout,
+        stderr,
+      });
     });
   });
+}
+
+async function runMysql(sql, config) {
+  let lastResult = null;
+  for (const password of buildMysqlPasswordCandidates(config)) {
+    const result = await executeMysql(sql, config, password);
+    if (result.code === 0) {
+      if (result.stdout.trim()) {
+        process.stdout.write(result.stdout);
+      }
+      return;
+    }
+    lastResult = result;
+    if (!isAuthFailure(result)) {
+      break;
+    }
+  }
+
+  if (lastResult?.stderr.trim()) {
+    process.stderr.write(lastResult.stderr);
+  }
+  throw new Error(`mysql exited with code ${lastResult?.code ?? 'unknown'}`);
 }
 
 async function main() {
@@ -136,7 +257,9 @@ async function main() {
   await runMysql(buildSetupSql(), mysqlConfig);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === scriptPath) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}

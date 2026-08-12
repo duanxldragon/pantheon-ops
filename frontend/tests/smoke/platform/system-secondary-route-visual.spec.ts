@@ -1,7 +1,9 @@
-import { expect, test, type Page } from '@playwright/test';
+import { test } from '../../fixtures/coverage';
+import { expect, type Page } from '@playwright/test';
 import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { signInAsAdmin } from '../helpers/auth';
+import { expectOnlyAllowedRuntimeErrors } from '../helpers/runtime-errors';
 import { expectPagePathname } from '../helpers/url-pattern';
 
 const artifactDir = join(process.cwd(), 'test-results', 'backoffice-ui');
@@ -154,13 +156,6 @@ function collectRuntimeErrors(page: Page) {
   });
 
   return runtimeErrors;
-}
-
-function expectOnlyAllowedRuntimeErrors(runtimeErrors: string[], allowedPatterns: RegExp[] = []) {
-  const unexpectedErrors = runtimeErrors.filter(
-    (message) => !allowedPatterns.some((pattern) => pattern.test(message)),
-  );
-  expect(unexpectedErrors).toEqual([]);
 }
 
 async function expectNoPageError(page: Page) {

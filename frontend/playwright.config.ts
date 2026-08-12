@@ -1,15 +1,10 @@
-import os from 'node:os';
-import path from 'node:path';
 import { defineConfig } from '@playwright/test';
 
 const externalWebServer = process.env.PANTHEON_EXTERNAL_WEB_SERVER === '1';
 const webBaseUrl = process.env.PANTHEON_WEB_BASE_URL ?? 'http://127.0.0.1:5173';
-const outputDir = process.env.PANTHEON_PLAYWRIGHT_OUTPUT_DIR ?? path.join(os.tmpdir(), 'pantheon-playwright', 'default');
-const chromiumExecutablePath = process.env.PANTHEON_CHROMIUM_EXECUTABLE_PATH;
 
 export default defineConfig({
   testDir: './tests/smoke',
-  outputDir,
   timeout: 30_000,
   workers: process.env.CI ? 2 : 1,
   expect: {
@@ -22,13 +17,6 @@ export default defineConfig({
   use: {
     baseURL: webBaseUrl,
     trace: 'retain-on-failure',
-    ...(chromiumExecutablePath
-      ? {
-          launchOptions: {
-            executablePath: chromiumExecutablePath,
-          },
-        }
-      : {}),
   },
   ...(externalWebServer
     ? {}
