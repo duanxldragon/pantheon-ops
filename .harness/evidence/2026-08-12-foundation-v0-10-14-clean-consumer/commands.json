@@ -1,0 +1,7 @@
+{
+  "taskId": "2026-08-12-foundation-v0-10-14-clean-consumer",
+  "commands": [],
+  "knownGaps": [
+    "Base v0.10.14 publication is pending exact-commit Full Smoke and Release Gate completion."
+  ]
+}

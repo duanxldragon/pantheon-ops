@@ -1,0 +1,33 @@
+{
+  "taskId": "2026-08-12-foundation-v0-10-14-clean-consumer",
+  "title": "Consume and certify foundation v0.10.14",
+  "goal": "Upgrade Ops to the immutable Base v0.10.14 release and prove that only business code and explicit overlays remain outside the foundation tree.",
+  "primaryLayer": "inheritance-sync",
+  "qualityProfiles": ["ci-workflow", "ui-runtime"],
+  "scope": {
+    "in": [
+      "immutable foundation v0.10.14 consumption",
+      "business and overlay preservation",
+      "clean consumer tree comparison",
+      "SonarCloud scope and hosted analysis verification"
+    ],
+    "out": [
+      "new business features",
+      "database schema changes",
+      "local shared-platform fixes",
+      "destructive replacement without evidence"
+    ]
+  },
+  "ratchetDecision": "gate-updated",
+  "runtimeSensitive": true,
+  "linkage": {
+    "taskId": "2026-08-12-foundation-v0-10-14-clean-consumer",
+    "changeRef": "https://github.com/duanxldragon/pantheon-ops/pulls",
+    "taskPacket": "docs/harness/tasks/2026-08-12-foundation-v0-10-14-clean-consumer.task.md",
+    "evidenceDir": ".harness/evidence/2026-08-12-foundation-v0-10-14-clean-consumer/",
+    "reviewFile": ".harness/evidence/2026-08-12-foundation-v0-10-14-clean-consumer/review.md",
+    "summaryFile": ".harness/evidence/2026-08-12-foundation-v0-10-14-clean-consumer/summary.md",
+    "planRefs": ["docs/harness/tasks/2026-08-12-foundation-v0-10-14-clean-consumer.task.md"]
+  },
+  "syncExpectation": "Consume published pantheon-base-v0.10.14; preserve business/* and only documented consumer overlays."
+}
