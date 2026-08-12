@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 
 export const verifiedReleaseMarkerName = '.foundation-release-verified.json';
+export const opsBusinessSmokeOverlayPath = 'docs/designs/BUSINESS_SMOKE_OVERLAY.md';
 
 export const sharedBackendEntries = ['cmd', 'internal', 'modules', 'pkg'];
 
@@ -67,6 +68,63 @@ export const sharedFrontendToolingPaths = new Set([
   'frontend/tests/smoke/system',
   'frontend/tests/smoke/README.md',
 ]);
+
+function isOpsBusinessSmokeScript([name, command]) {
+  return name.startsWith('test:smoke:business:')
+    && command.includes('tests/smoke/business/')
+    && !command.includes('tests/smoke/business/generated/');
+}
+
+function isFoundationSmokeScript(name) {
+  return name.startsWith('test:smoke:') || name.startsWith('smoke:');
+}
+
+export function mergeFrontendPackageJson(baseSource, opsSource) {
+  const basePackage = JSON.parse(baseSource);
+  const opsPackage = JSON.parse(opsSource);
+  const baseScripts = basePackage.scripts ?? {};
+  const opsScripts = opsPackage.scripts ?? {};
+  const opsBusinessScripts = Object.entries(opsScripts).filter(isOpsBusinessSmokeScript);
+  const opsBusinessScriptNames = new Set(opsBusinessScripts.map(([name]) => name));
+  const nextScripts = Object.fromEntries(
+    Object.entries(opsScripts).filter(([name]) => !isFoundationSmokeScript(name)),
+  );
+
+  for (const [name, command] of Object.entries(baseScripts)) {
+    if (isFoundationSmokeScript(name)) {
+      nextScripts[name] = command;
+    }
+  }
+  for (const [name, command] of opsBusinessScripts) {
+    nextScripts[name] = command;
+  }
+
+  const genericBusinessCommand = baseScripts['test:smoke:business'];
+  if (genericBusinessCommand) {
+    const baseBusinessCommands = genericBusinessCommand
+      .split('&&')
+      .map((command) => command.trim())
+      .filter(Boolean)
+      .filter((command) => {
+        const match = command.match(/^npm run\s+(.+)$/u);
+        return !match || !opsBusinessScriptNames.has(match[1].trim());
+      });
+    nextScripts['test:smoke:business'] = [
+      ...opsBusinessScripts.map(([name]) => `npm run ${name}`),
+      ...baseBusinessCommands,
+    ].join(' && ');
+  }
+
+  return `${JSON.stringify({ ...opsPackage, scripts: nextScripts }, null, 2)}\n`;
+}
+
+export function mergeSmokeReadme(baseSource, opsRoot) {
+  const overlayPath = path.join(opsRoot, opsBusinessSmokeOverlayPath);
+  if (!fs.existsSync(overlayPath)) {
+    return baseSource;
+  }
+  return `${baseSource.trimEnd()}\n\n## Ops Business Smoke Overlay\n\n${fs.readFileSync(overlayPath, 'utf8').trim()}\n`;
+}
 
 export const backendOverlayPaths = new Set([
   'internal/scaffold/workspace.go',

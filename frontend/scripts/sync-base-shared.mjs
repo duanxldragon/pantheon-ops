@@ -8,6 +8,8 @@ import {
   ensureDir,
   frontendOverlayPaths,
   listFilesFromGitCommit,
+  mergeFrontendPackageJson,
+  mergeSmokeReadme,
   readFileFromGitCommit,
   readFoundationLock,
   requiredSharedFrontendEntries,
@@ -114,16 +116,27 @@ function resolveSharedSource() {
 }
 
 function readSharedToolingSource(repoRelativePath) {
+  let baseSource;
   if (sharedSource.frontendTreeRoot) {
-    return readFile(
+    baseSource = readFile(
       path.join(sharedSource.frontendTreeRoot, stripTreePrefix(repoRelativePath, 'frontend')),
     );
+  } else {
+    baseSource = readFileFromGitCommit(
+      sharedSource.baseRepoRoot,
+      sharedSource.targetCommit,
+      repoRelativePath,
+    );
   }
-  return readFileFromGitCommit(
-    sharedSource.baseRepoRoot,
-    sharedSource.targetCommit,
-    repoRelativePath,
-  );
+
+  const opsFilePath = path.join(opsRoot, repoRelativePath);
+  if (repoRelativePath === 'frontend/package.json' && fs.existsSync(opsFilePath)) {
+    return mergeFrontendPackageJson(baseSource, readFile(opsFilePath));
+  }
+  if (repoRelativePath === 'frontend/tests/smoke/README.md') {
+    return mergeSmokeReadme(baseSource, opsRoot);
+  }
+  return baseSource;
 }
 
 function collectSharedToolingFiles() {

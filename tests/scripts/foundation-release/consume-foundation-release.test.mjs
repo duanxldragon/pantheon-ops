@@ -853,9 +853,9 @@ test('shared smoke contracts preserve Ops business suites while updating Base en
 
     writeJson(path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'package.json'), {
       scripts: {
-        'test:smoke:business': 'npm run test:smoke:business:cmdb && npm run test:smoke:business:generated',
-        'test:smoke:business:cmdb': 'playwright test tests/smoke/business/generated/base-cmdb.spec.ts',
+        'test:smoke:business': 'npm run test:smoke:business:generated && npm run test:smoke:business:database-import',
         'test:smoke:business:generated': 'playwright test tests/smoke/business/generated/module.spec.ts',
+        'test:smoke:business:database-import': 'playwright test tests/smoke/business/generated/import.spec.ts',
         'test:smoke:system': 'playwright test tests/smoke/system/system.spec.ts',
       },
     });
@@ -864,6 +864,7 @@ test('shared smoke contracts preserve Ops business suites while updating Base en
         build: 'vite build',
         'test:smoke:business': 'stale aggregate',
         'test:smoke:business:cmdb': 'playwright test tests/smoke/business/cmdb/cmdb.spec.ts',
+        'test:smoke:business:deploy:api': 'playwright test tests/smoke/business/deploy/deploy-api.spec.ts',
         'test:smoke:business:deploy': 'playwright test tests/smoke/business/deploy/deploy.spec.ts',
         'test:smoke:business:master-detail': 'playwright test tests/smoke/system/legacy.spec.ts',
         'test:smoke:role-auth': 'stale alias',
@@ -905,10 +906,11 @@ test('shared smoke contracts preserve Ops business suites while updating Base en
     assert.equal(nextPackage.scripts.build, 'vite build');
     assert.equal(
       nextPackage.scripts['test:smoke:business'],
-      'npm run test:smoke:business:cmdb && npm run test:smoke:business:deploy && npm run test:smoke:business:generated',
+      'npm run test:smoke:business:cmdb && npm run test:smoke:business:deploy:api && npm run test:smoke:business:deploy && npm run test:smoke:business:generated && npm run test:smoke:business:database-import',
     );
     assert.match(nextPackage.scripts['test:smoke:business:generated'], /business\/generated/);
     assert.match(nextPackage.scripts['test:smoke:business:cmdb'], /business\/cmdb/);
+    assert.match(nextPackage.scripts['test:smoke:business:deploy:api'], /business\/deploy/);
     assert.match(nextPackage.scripts['test:smoke:business:deploy'], /business\/deploy/);
     assert.equal(nextPackage.scripts['test:smoke:business:master-detail'], undefined);
     assert.equal(nextPackage.scripts['test:smoke:role-auth'], undefined);

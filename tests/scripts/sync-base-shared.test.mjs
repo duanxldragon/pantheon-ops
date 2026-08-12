@@ -474,3 +474,94 @@ test('sync-base-shared checks and applies all allowlisted frontend tooling from 
     assert.match(checkResult.stdout, /OK shared frontend is aligned/);
   });
 });
+
+test('sync-base-shared projects Base smoke contracts without erasing Ops business suites', () => {
+  withTempDir((root) => {
+    const releaseRoot = path.join(root, 'release-root');
+    const opsRoot = path.join(root, 'ops-worktree-fixture');
+    const syncScriptPath = copyFixtureScripts(opsRoot);
+    const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
+    const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+    lock.sharedPaths.frontend.push(
+      'frontend/package.json',
+      'frontend/tests/smoke/README.md',
+    );
+    writeText(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
+
+    writeText(
+      path.join(releaseRoot, 'manifest.json'),
+      `${JSON.stringify({
+        schemaVersion: 1,
+        releaseVersion: 'base-vtest',
+        releaseLine: 'release/test',
+        baseCommit: 'HEAD',
+        sourceRepo: 'pantheon-base',
+        consumerMode: 'foundation-release-consumer',
+        sharedPaths: lock.sharedPaths,
+      }, null, 2)}\n`,
+    );
+    createSharedFrontendTree(path.join(releaseRoot, 'bundle', 'shared-frontend'), {
+      components: 'export const component = true;\n',
+      core: 'export const core = true;\n',
+      auth: 'export const auth = true;\n',
+      dashboard: 'export const dashboard = true;\n',
+      system: 'export const system = true;\n',
+      indexCss: 'body { color: black; }\n',
+    });
+    createSharedFrontendTree(opsRoot, {
+      components: 'export const component = true;\n',
+      core: 'export const core = true;\n',
+      auth: 'export const auth = true;\n',
+      dashboard: 'export const dashboard = true;\n',
+      system: 'export const system = true;\n',
+      indexCss: 'body { color: black; }\n',
+    });
+    writeText(
+      path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'package.json'),
+      `${JSON.stringify({ scripts: {
+        'test:smoke:business': 'npm run test:smoke:business:generated && npm run test:smoke:business:database-import',
+        'test:smoke:business:generated': 'playwright test tests/smoke/business/generated/module.spec.ts',
+        'test:smoke:business:database-import': 'playwright test tests/smoke/business/generated/import.spec.ts',
+      } }, null, 2)}\n`,
+    );
+    writeText(
+      path.join(releaseRoot, 'bundle', 'shared-frontend', 'frontend', 'tests', 'smoke', 'README.md'),
+      '# Base Smoke Matrix\n',
+    );
+    writeText(
+      path.join(opsRoot, 'frontend', 'package.json'),
+      `${JSON.stringify({ scripts: {
+        build: 'vite build',
+        'test:smoke:business': 'stale aggregate',
+        'test:smoke:business:cmdb': 'playwright test tests/smoke/business/cmdb/cmdb.spec.ts',
+        'test:smoke:business:deploy:api': 'playwright test tests/smoke/business/deploy/deploy-api.spec.ts',
+        'test:smoke:business:deploy': 'playwright test tests/smoke/business/deploy/deploy.spec.ts',
+      } }, null, 2)}\n`,
+    );
+    writeText(
+      path.join(opsRoot, 'docs', 'designs', 'BUSINESS_SMOKE_OVERLAY.md'),
+      '`business/cmdb/cmdb.spec.ts`\n',
+    );
+    writeVerificationMarker(releaseRoot);
+
+    const env = { PANTHEON_FOUNDATION_RELEASE_ROOT: releaseRoot };
+    const applyResult = runSync(syncScriptPath, opsRoot, env, []);
+    assert.equal(applyResult.status, 0, applyResult.stderr || applyResult.stdout || applyResult.error?.message);
+
+    const nextPackage = JSON.parse(fs.readFileSync(path.join(opsRoot, 'frontend', 'package.json'), 'utf8'));
+    assert.equal(nextPackage.scripts.build, 'vite build');
+    assert.equal(
+      nextPackage.scripts['test:smoke:business'],
+      'npm run test:smoke:business:cmdb && npm run test:smoke:business:deploy:api && npm run test:smoke:business:deploy && npm run test:smoke:business:generated && npm run test:smoke:business:database-import',
+    );
+    assert.match(nextPackage.scripts['test:smoke:business:cmdb'], /business\/cmdb/);
+    assert.match(nextPackage.scripts['test:smoke:business:deploy:api'], /business\/deploy/);
+    assert.match(nextPackage.scripts['test:smoke:business:deploy'], /business\/deploy/);
+    const readme = fs.readFileSync(path.join(opsRoot, 'frontend', 'tests', 'smoke', 'README.md'), 'utf8');
+    assert.match(readme, /Base Smoke Matrix/);
+    assert.match(readme, /Ops Business Smoke Overlay/);
+
+    const checkResult = runSync(syncScriptPath, opsRoot, env, ['--check']);
+    assert.equal(checkResult.status, 0, checkResult.stderr || checkResult.stdout || checkResult.error?.message);
+  });
+});
