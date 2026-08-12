@@ -841,6 +841,88 @@ test('allowlisted shared frontend tooling is reported by dry-run and applied fro
   });
 });
 
+test('shared smoke contracts preserve Ops business suites while updating Base entrypoints', () => {
+  withTempDir((root) => {
+    const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.sharedPaths.frontend = [
+      'frontend/package.json',
+      'frontend/tests/smoke/README.md',
+    ];
+    writeJson(manifestPath, manifest);
+
+    writeJson(path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'package.json'), {
+      scripts: {
+        'test:smoke:business': 'npm run test:smoke:business:cmdb && npm run test:smoke:business:generated',
+        'test:smoke:business:cmdb': 'playwright test tests/smoke/business/generated/base-cmdb.spec.ts',
+        'test:smoke:business:generated': 'playwright test tests/smoke/business/generated/module.spec.ts',
+        'test:smoke:system': 'playwright test tests/smoke/system/system.spec.ts',
+      },
+    });
+    writeJson(path.join(opsRoot, 'frontend', 'package.json'), {
+      scripts: {
+        build: 'vite build',
+        'test:smoke:business': 'stale aggregate',
+        'test:smoke:business:cmdb': 'playwright test tests/smoke/business/cmdb/cmdb.spec.ts',
+        'test:smoke:business:deploy': 'playwright test tests/smoke/business/deploy/deploy.spec.ts',
+        'test:smoke:business:master-detail': 'playwright test tests/smoke/system/legacy.spec.ts',
+        'test:smoke:role-auth': 'stale alias',
+      },
+      dependencies: { react: '^18.3.1' },
+    });
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'tests', 'smoke', 'README.md'),
+      '# Base Smoke Matrix\n\n`business/generated/module.spec.ts`\n',
+    );
+    writeText(
+      path.join(opsRoot, 'docs', 'designs', 'BUSINESS_SMOKE_OVERLAY.md'),
+      '`business/cmdb/cmdb.spec.ts`\n',
+    );
+    writeText(
+      path.join(opsRoot, 'frontend', 'tests', 'smoke', 'README.md'),
+      '# Stale Ops Matrix\n',
+    );
+
+    const result = runScript(
+      [
+        '--ops-root',
+        opsRoot,
+        '--manifest',
+        manifestPath,
+        '--bundle',
+        bundleRoot,
+        '--apply-shared-frontend',
+        '--rollback-on-error',
+      ],
+      repoRoot,
+    );
+    assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
+
+    const nextPackage = JSON.parse(
+      fs.readFileSync(path.join(opsRoot, 'frontend', 'package.json'), 'utf8'),
+    );
+    assert.equal(nextPackage.dependencies.react, '^18.3.1');
+    assert.equal(nextPackage.scripts.build, 'vite build');
+    assert.equal(
+      nextPackage.scripts['test:smoke:business'],
+      'npm run test:smoke:business:cmdb && npm run test:smoke:business:deploy && npm run test:smoke:business:generated',
+    );
+    assert.match(nextPackage.scripts['test:smoke:business:generated'], /business\/generated/);
+    assert.match(nextPackage.scripts['test:smoke:business:cmdb'], /business\/cmdb/);
+    assert.match(nextPackage.scripts['test:smoke:business:deploy'], /business\/deploy/);
+    assert.equal(nextPackage.scripts['test:smoke:business:master-detail'], undefined);
+    assert.equal(nextPackage.scripts['test:smoke:role-auth'], undefined);
+
+    const readme = fs.readFileSync(
+      path.join(opsRoot, 'frontend', 'tests', 'smoke', 'README.md'),
+      'utf8',
+    );
+    assert.match(readme, /Base Smoke Matrix/);
+    assert.match(readme, /Ops Business Smoke Overlay/);
+    assert.match(readme, /business\/cmdb\/cmdb\.spec\.ts/);
+  });
+});
+
 test('apply mode writes lockedAt and lockedBy to foundation-release.lock.json', () => {
   withTempDir((root) => {
     const { manifestPath, bundleRoot, opsRoot } = createFixture(root);

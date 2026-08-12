@@ -28,6 +28,7 @@ export const sharedFrontendEntries = [
 ];
 
 export const sharedFrontendToolingPaths = new Set([
+  'frontend/package.json',
   'frontend/playwright.api.config.ts',
   'frontend/playwright.config.ts',
   'frontend/playwright.full-system.config.ts',
@@ -64,6 +65,7 @@ export const sharedFrontendToolingPaths = new Set([
   'frontend/tests/smoke/helpers',
   'frontend/tests/smoke/platform',
   'frontend/tests/smoke/system',
+  'frontend/tests/smoke/README.md',
 ]);
 
 export const backendOverlayPaths = new Set([

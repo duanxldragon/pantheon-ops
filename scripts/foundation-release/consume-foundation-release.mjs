@@ -25,6 +25,7 @@ import {
 } from './shared-foundation-rules.mjs';
 
 const DEFAULT_OPS_ROOT = process.cwd();
+const OPS_BUSINESS_SMOKE_OVERLAY = 'docs/designs/BUSINESS_SMOKE_OVERLAY.md';
 
 function parseArgs(argv) {
   const options = {
@@ -426,9 +427,14 @@ function computeSharedToolingChange(repoRelativePath, sourceRoot, opsRoot) {
   }
 
   const targetPath = path.join(opsRoot, repoRelativePath);
-  const nextSource = readUtf8(sourcePath);
+  let nextSource = readUtf8(sourcePath);
   const targetExists = fs.existsSync(targetPath);
   const targetContent = targetExists ? readUtf8(targetPath) : null;
+  if (repoRelativePath === 'frontend/package.json' && targetExists) {
+    nextSource = mergeFrontendPackageJson(nextSource, targetContent);
+  } else if (repoRelativePath === 'frontend/tests/smoke/README.md') {
+    nextSource = mergeSmokeReadme(nextSource, opsRoot);
+  }
   if (
     targetExists
     && normalizeLineEndings(nextSource) === normalizeLineEndings(targetContent)
@@ -443,6 +449,63 @@ function computeSharedToolingChange(repoRelativePath, sourceRoot, opsRoot) {
     newContent: nextSource,
     oldContent: targetContent,
   };
+}
+
+function isOpsBusinessSmokeScript([name, command]) {
+  return name.startsWith('test:smoke:business:')
+    && command.includes('tests/smoke/business/')
+    && !command.includes('tests/smoke/business/generated/');
+}
+
+function isFoundationSmokeScript(name) {
+  return name.startsWith('test:smoke:') || name.startsWith('smoke:');
+}
+
+function mergeFrontendPackageJson(baseSource, opsSource) {
+  const basePackage = JSON.parse(baseSource);
+  const opsPackage = JSON.parse(opsSource);
+  const baseScripts = basePackage.scripts ?? {};
+  const opsScripts = opsPackage.scripts ?? {};
+  const opsBusinessScripts = Object.entries(opsScripts).filter(isOpsBusinessSmokeScript);
+  const opsBusinessScriptNames = new Set(opsBusinessScripts.map(([name]) => name));
+  const nextScripts = Object.fromEntries(
+    Object.entries(opsScripts).filter(([name]) => !isFoundationSmokeScript(name)),
+  );
+
+  for (const [name, command] of Object.entries(baseScripts)) {
+    if (isFoundationSmokeScript(name)) {
+      nextScripts[name] = command;
+    }
+  }
+  for (const [name, command] of opsBusinessScripts) {
+    nextScripts[name] = command;
+  }
+
+  const genericBusinessCommand = baseScripts['test:smoke:business'];
+  if (genericBusinessCommand) {
+    const baseBusinessCommands = genericBusinessCommand
+      .split('&&')
+      .map((command) => command.trim())
+      .filter((command) => command.length > 0)
+      .filter((command) => {
+        const match = command.match(/^npm run\s+(.+)$/);
+        return !match || !opsBusinessScriptNames.has(match[1].trim());
+      });
+    nextScripts['test:smoke:business'] = [
+      ...opsBusinessScripts.map(([name]) => `npm run ${name}`),
+      ...baseBusinessCommands,
+    ].join(' && ');
+  }
+
+  return `${JSON.stringify({ ...opsPackage, scripts: nextScripts }, null, 2)}\n`;
+}
+
+function mergeSmokeReadme(baseSource, opsRoot) {
+  const overlayPath = path.join(opsRoot, OPS_BUSINESS_SMOKE_OVERLAY);
+  if (!fs.existsSync(overlayPath)) {
+    return baseSource;
+  }
+  return `${baseSource.trimEnd()}\n\n## Ops Business Smoke Overlay\n\n${readUtf8(overlayPath).trim()}\n`;
 }
 
 function collectSharedToolingFiles(sourceRoot, entries) {
