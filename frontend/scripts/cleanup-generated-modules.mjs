@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(import.meta.dirname, '..', '..');
@@ -86,15 +87,38 @@ function removeDir(dir) {
   return false;
 }
 
-function removeSubdirs(parentDir) {
+function normalizePath(targetPath) {
+  return targetPath.replaceAll('\\', '/');
+}
+
+function readTrackedFiles(repoBase) {
+  const output = execFileSync('git', ['-C', repoBase, 'ls-files', '-z'], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'ignore'],
+  });
+  return new Set(output.split('\0').filter(Boolean).map(normalizePath));
+}
+
+function hasTrackedDescendant(targetPath, repoBase, trackedFiles) {
+  const relative = normalizePath(path.relative(repoBase, targetPath));
+  const prefix = `${relative}/`;
+  return Array.from(trackedFiles).some((trackedPath) => trackedPath.startsWith(prefix));
+}
+
+function removeGeneratedSubdirs(parentDir, repoBase, trackedFiles) {
   let removed = 0;
   if (!fs.existsSync(parentDir)) {
     return removed;
   }
   for (const entry of fs.readdirSync(parentDir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      removeDir(path.join(parentDir, entry.name));
-      removed++;
+      const targetPath = path.join(parentDir, entry.name);
+      if (hasTrackedDescendant(targetPath, repoBase, trackedFiles)) {
+        removed += removeGeneratedSubdirs(targetPath, repoBase, trackedFiles);
+      } else {
+        removeDir(targetPath);
+        removed++;
+      }
     }
   }
   return removed;
@@ -104,16 +128,23 @@ function relativePath(repoBase, targetPath) {
   return path.relative(repoBase, targetPath).replaceAll('\\', '/');
 }
 
-function removeFilesByGlob(dir, pattern) {
+function removeFilesByGlob(dir, pattern, repoBase, trackedFiles) {
   let removed = 0;
   if (!fs.existsSync(dir)) {
     return removed;
   }
   const re = new RegExp(pattern);
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.isFile() && re.test(entry.name)) {
+    const targetPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      removed += removeFilesByGlob(targetPath, pattern, repoBase, trackedFiles);
+    } else if (entry.isFile() && re.test(entry.name)) {
+      const relative = normalizePath(path.relative(repoBase, targetPath));
+      if (trackedFiles.has(relative)) {
+        continue;
+      }
       try {
-        fs.rmSync(path.join(dir, entry.name), { force: true });
+        fs.rmSync(targetPath, { force: true });
       } catch (error) {
         if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
           continue;
@@ -159,29 +190,44 @@ function appendDirtyIfFileMatches(dirty, filePath, message, patterns) {
   }
 }
 
-function appendDirtyDirectories(dirty, parentDir, repoBase, label) {
+function appendDirtyDirectories(dirty, parentDir, repoBase, label, trackedFiles) {
   if (!fs.existsSync(parentDir)) {
     return;
   }
   for (const entry of fs.readdirSync(parentDir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      dirty.push(`${label}: ${relativePath(repoBase, path.join(parentDir, entry.name))}`);
+      const targetPath = path.join(parentDir, entry.name);
+      if (hasTrackedDescendant(targetPath, repoBase, trackedFiles)) {
+        appendDirtyDirectories(dirty, targetPath, repoBase, label, trackedFiles);
+      } else {
+        dirty.push(`${label}: ${relativePath(repoBase, targetPath)}`);
+      }
     }
   }
 }
 
-function appendDirtyGeneratedSchemaFiles(dirty, schemaDir, repoBase) {
+function appendDirtyGeneratedSchemaFiles(dirty, schemaDir, repoBase, trackedFiles) {
   if (!fs.existsSync(schemaDir)) {
     return;
   }
   for (const entry of fs.readdirSync(schemaDir, { withFileTypes: true })) {
-    if (entry.isFile()) {
-      dirty.push(`generated schema file still present: ${relativePath(repoBase, path.join(schemaDir, entry.name))}`);
+    const targetPath = path.join(schemaDir, entry.name);
+    if (entry.isDirectory()) {
+      appendDirtyGeneratedSchemaFiles(dirty, targetPath, repoBase, trackedFiles);
+    } else if (entry.isFile()) {
+      if (!trackedFiles.has(normalizePath(path.relative(repoBase, targetPath)))) {
+        dirty.push(`generated schema file still present: ${relativePath(repoBase, targetPath)}`);
+      }
     }
   }
 }
 
-export function checkDirty(paths = GENERATED_PATHS, registryFiles = REGISTRY_FILES, repoBase = repoRoot) {
+export function checkDirty(
+  paths = GENERATED_PATHS,
+  registryFiles = REGISTRY_FILES,
+  repoBase = repoRoot,
+  trackedFiles = readTrackedFiles(repoBase),
+) {
   const dirty = [];
 
   appendDirtyIfFileMatches(
@@ -219,29 +265,62 @@ export function checkDirty(paths = GENERATED_PATHS, registryFiles = REGISTRY_FIL
   }
 
   for (const dir of [paths.backendBusinessDir, paths.frontendBusinessDir]) {
-    appendDirtyDirectories(dirty, dir, repoBase, 'generated module dir still present');
+    appendDirtyDirectories(dirty, dir, repoBase, 'generated module dir still present', trackedFiles);
   }
 
-  appendDirtyDirectories(dirty, paths.schemaBusinessDir, repoBase, 'generated schema dir still present');
-  appendDirtyGeneratedSchemaFiles(dirty, paths.schemaBusinessDir, repoBase);
+  appendDirtyDirectories(
+    dirty,
+    paths.schemaBusinessDir,
+    repoBase,
+    'generated schema dir still present',
+    trackedFiles,
+  );
+  appendDirtyGeneratedSchemaFiles(dirty, paths.schemaBusinessDir, repoBase, trackedFiles);
 
   return dirty;
 }
 
-export function cleanup(paths = GENERATED_PATHS, registryFiles = REGISTRY_FILES) {
+function readIndexBaseline(filePath, repoBase, required = false) {
+  const relative = normalizePath(path.relative(repoBase, filePath));
+  try {
+    return execFileSync('git', ['-C', repoBase, 'show', `:${relative}`], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+  } catch {
+    if (required) {
+      throw new Error(`Unable to read tracked cleanup baseline from Git index: ${relative}`);
+    }
+    return null;
+  }
+}
+
+export function cleanup(
+  paths = GENERATED_PATHS,
+  registryFiles = REGISTRY_FILES,
+  repoBase = repoRoot,
+  trackedFiles = readTrackedFiles(repoBase),
+) {
   const summary = { modules: 0, schemas: 0, registries: 0, i18n: 0 };
 
-  const backendRemoved = removeSubdirs(paths.backendBusinessDir);
-  const frontendRemoved = removeSubdirs(paths.frontendBusinessDir);
-  const schemaRemoved = removeSubdirs(paths.schemaBusinessDir);
+  const backendRemoved = removeGeneratedSubdirs(paths.backendBusinessDir, repoBase, trackedFiles);
+  const frontendRemoved = removeGeneratedSubdirs(paths.frontendBusinessDir, repoBase, trackedFiles);
+  const schemaRemoved = removeGeneratedSubdirs(paths.schemaBusinessDir, repoBase, trackedFiles);
   summary.modules = backendRemoved + frontendRemoved + schemaRemoved;
 
-  summary.schemas = removeFilesByGlob(paths.schemaBusinessDir, String.raw`\.json$`);
+  summary.schemas = removeFilesByGlob(
+    paths.schemaBusinessDir,
+    String.raw`\.json$`,
+    repoBase,
+    trackedFiles,
+  );
 
   for (const [key, filePath] of Object.entries(registryFiles)) {
-    const template = REGISTRY_TEMPLATES[key];
-    if (template) {
-      writeFile(filePath, template);
+    const relative = normalizePath(path.relative(repoBase, filePath));
+    const baseline = readIndexBaseline(filePath, repoBase, trackedFiles.has(relative))
+      ?? REGISTRY_TEMPLATES[key];
+    if (baseline) {
+      writeFile(filePath, baseline);
       summary.registries++;
     }
   }
@@ -258,7 +337,11 @@ export function cleanup(paths = GENERATED_PATHS, registryFiles = REGISTRY_FILES)
     const filePath = path.join(paths.i18nDir, `${locale}.ts`);
     const varName = i18nVarNames[locale];
     if (varName) {
-      writeFile(filePath, i18nTemplate(varName));
+      const relative = normalizePath(path.relative(repoBase, filePath));
+      writeFile(
+        filePath,
+        readIndexBaseline(filePath, repoBase, trackedFiles.has(relative)) ?? i18nTemplate(varName),
+      );
       summary.i18n++;
     }
   }
