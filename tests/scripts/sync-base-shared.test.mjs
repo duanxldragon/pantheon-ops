@@ -343,6 +343,7 @@ test('sync-base-shared checks and applies all allowlisted frontend tooling from 
     const opsRoot = path.join(root, 'ops-worktree-fixture');
     const syncScriptPath = copyFixtureScripts(opsRoot);
     const toolingEntries = [
+      'frontend/scripts/check-smoke-web-base.mjs',
       'frontend/scripts/export-generated-module.mjs',
       'frontend/scripts/lib/auth-cookie-session.mjs',
       'frontend/scripts/lib/css-declarations.mjs',

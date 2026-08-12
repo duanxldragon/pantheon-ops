@@ -769,6 +769,7 @@ test('allowlisted shared frontend tooling is reported by dry-run and applied fro
     const { manifestPath, bundleRoot, opsRoot } = createFixture(root);
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
     const toolingPaths = [
+      'frontend/scripts/check-smoke-web-base.mjs',
       'frontend/scripts/export-generated-module.mjs',
       'frontend/scripts/lib/auth-cookie-session.mjs',
       'frontend/scripts/lib/css-declarations.mjs',
