@@ -33,7 +33,7 @@ English version: [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.
 
 同步要求：
 - 仅本仓业务改动
-- 或 Base 快照 + business overlay 重建
+- 或 `base -> ops` 同步（Base 快照 + business overlay 重建）
 - 如果发现根因属于共享壳层或系统域，回 base 修，不在 ops 本地 override
 
 验证方式：
@@ -48,7 +48,7 @@ English version: [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.
 
 同步类任务额外要求：
 
-- 写清 Base commit
+- 写清 base commit
 - 写清 `business-overlay.json` 是否变化
 - 写清业务资产比对、生成注册表和幂等重建结果
 - 写清暂存树的 backend、frontend、business smoke 和 SonarCloud 结果
