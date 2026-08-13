@@ -349,6 +349,13 @@ jobs:
         working-directory: frontend
         run: npm ci --ignore-scripts
 
+      - name: Patch Arco for React 19
+        # `npm ci --ignore-scripts` skips the frontend `postinstall` hook that
+        # would otherwise run this; without it, Arco's `element.ref` reads emit
+        # React 19 deprecation console.errors that fail the form state matrix.
+        working-directory: frontend
+        run: npm run patch:arco-react19
+
       - name: Install Playwright browsers
         working-directory: frontend
         run: npx playwright install --with-deps chromium
