@@ -55,25 +55,51 @@ function readLock(opsRoot) {
   return JSON.parse(fs.readFileSync(lockPath, 'utf8'));
 }
 
+// Ops consumes Base only from the published GitHub release, never from a sibling
+// ../pantheon-base working tree. When the snapshot is not already cached under
+// releaseArtifact.localPath, download it from the locked GitHub release and rely
+// on the lock's repoSnapshot.sha256 for integrity.
+function downloadRepoSnapshot(lock, releaseDir) {
+  const repo = lock.releaseArtifact?.githubRepo;
+  const tag = lock.releaseVersion;
+  const assetName = lock.repoSnapshot?.assetName ?? 'repo.tar';
+  if (!repo || !tag) {
+    throw new Error(
+      'Lock is missing releaseArtifact.githubRepo or releaseVersion; ' +
+      'cannot download the Base snapshot from GitHub.',
+    );
+  }
+  fs.mkdirSync(releaseDir, { recursive: true });
+  const result = spawnSync(
+    'gh',
+    ['release', 'download', tag, '--repo', repo, '--pattern', assetName, '--dir', releaseDir],
+    { encoding: 'utf8' },
+  );
+  if (result.status !== 0) {
+    throw new Error(
+      result.stderr.trim() || `failed to download ${assetName} from GitHub release ${repo}@${tag}`,
+    );
+  }
+  return path.join(releaseDir, assetName);
+}
+
 function resolveBaseFromLock(opsRoot) {
   const lock = readLock(opsRoot);
   if (!lock?.repoSnapshot || !lock?.releaseArtifact?.localPath) return null;
   const releaseDir = path.resolve(opsRoot, lock.releaseArtifact.localPath);
   const repoDir = path.join(releaseDir, 'repo');
-  const repoTar = path.join(releaseDir, lock.repoSnapshot.assetName ?? 'repo.tar');
-  if (!fs.existsSync(repoDir) && fs.existsSync(repoTar)) {
+  let repoTar = path.join(releaseDir, lock.repoSnapshot.assetName ?? 'repo.tar');
+  if (!fs.existsSync(repoTar)) {
+    repoTar = downloadRepoSnapshot(lock, releaseDir);
+  }
+  if (!fs.existsSync(repoDir)) {
     fs.mkdirSync(repoDir, { recursive: true });
     const result = spawnSync('tar', ['-xf', repoTar, '-C', repoDir], { encoding: 'utf8' });
     if (result.status !== 0) {
       throw new Error(result.stderr.trim() || `failed to extract ${repoTar}`);
     }
   }
-  if (!fs.existsSync(repoDir)) {
-    throw new Error(
-      `Base snapshot missing: ${repoDir}. Generate it with: git -C ../pantheon-base archive ${lock.baseCommit} -o ${repoTar} && tar -xf ${repoTar} -C ${releaseDir}`,
-    );
-  }
-  if (fs.existsSync(repoTar) && lock.repoSnapshot.sha256) {
+  if (lock.repoSnapshot.sha256) {
     const actual = sha256FileHex(repoTar);
     if (actual !== lock.repoSnapshot.sha256) {
       throw new Error(`repo.tar sha256 mismatch: expected ${lock.repoSnapshot.sha256}, got ${actual}`);
@@ -447,12 +473,14 @@ export function rebuildFromBase({ opsRoot = defaultOpsRoot, baseRoot, targetRoot
     resolvedBase = path.resolve(opsRoot, baseRoot);
   } else {
     const fromLock = resolveBaseFromLock(opsRoot);
-    if (fromLock) {
-      resolvedBase = fromLock.baseRoot;
-      lockedBaseCommit = fromLock.baseCommit;
-    } else {
-      resolvedBase = path.resolve(opsRoot, manifest.base.source);
+    if (!fromLock) {
+      throw new Error(
+        'No locked Base snapshot found (foundation-release.lock.json). Ops consumes Base only from ' +
+        'the published GitHub release, not a local ../pantheon-base working tree.',
+      );
     }
+    resolvedBase = fromLock.baseRoot;
+    lockedBaseCommit = fromLock.baseCommit;
   }
 
   const resolvedTarget = path.resolve(opsRoot, targetRoot ?? '.tmp/business-overlay-rebuild');

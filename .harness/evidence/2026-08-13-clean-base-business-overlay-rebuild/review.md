@@ -5,7 +5,7 @@ Findings-first review of the clean-base + business-overlay rebuild.
 ## Findings and resolutions
 
 1. **#1 (blocker) Lock↔rebuild-source disconnect — RESOLVED.**
-   `rebuild-from-base.mjs` read the live `../pantheon-base` working tree and never verified the locked artifact. Now resolves Base from `foundation-release.lock.json` → `repoSnapshot` (`repo.tar`, sha256-verified), falling back to `manifest.base.source` only when no lock is present.
+   `rebuild-from-base.mjs` read the live `../pantheon-base` working tree and never verified the locked artifact. Now resolves Base only from `foundation-release.lock.json` → `repoSnapshot` (`repo.tar`, sha256-verified). There is no local-tree fallback: when the snapshot is not cached, it is downloaded from the locked GitHub release (`gh release download <releaseVersion> -p repo.tar --repo <githubRepo>`); when no lock is present, the rebuild hard-fails rather than consuming `../pantheon-base`.
 
 2. **#2 (blocker) Uncommitted business source — RESOLVED (Phase 0).**
    Business view refactors + smoke specs + manifest + tool + tests committed before the rebuild, so `git ls-files` is the reproducible source of truth.

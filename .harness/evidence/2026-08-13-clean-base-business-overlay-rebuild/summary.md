@@ -61,6 +61,19 @@ rename detection for the Go-module and system-module restructure). Key outcomes:
 - ~85 historical shared-source drift files retired (old nested `system/*`, `iam/*`,
   `org/*`, `foundation/*.json` i18n, `list-page.css`, ops QA scripts).
 
+## GitHub-only consumption
+
+`rebuild-from-base.mjs` no longer consumes a sibling `../pantheon-base` working
+tree. Base resolves only from `foundation-release.lock.json` → `repoSnapshot`:
+
+- Cached `repo.tar` under `releaseArtifact.localPath` is sha256-verified and used.
+- Missing snapshot → downloaded from the locked GitHub release
+  (`gh release download <releaseVersion> -p repo.tar --repo <githubRepo>`).
+- No lock → hard-fail with a "published GitHub release, not a local working tree" message.
+
+`business-overlay.json` dropped `base.source`; the lock's `baseRepo` now points at
+`duanxldragon/pantheon-base`.
+
 ## Remaining
 
 - Workstream A: base-side `repo.tar` packaging for v0.10.21+ releases

@@ -1,7 +1,6 @@
 {
   "schemaVersion": 1,
   "base": {
-    "source": "../pantheon-base",
     "module": "pantheon-base"
   },
   "sourceModule": "pantheon-ops/backend",

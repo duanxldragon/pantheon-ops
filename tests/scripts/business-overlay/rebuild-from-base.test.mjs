@@ -196,3 +196,26 @@ test('rejects a manifest that claims a generic product path', () => {
     fs.rmSync(temp, { recursive: true, force: true });
   }
 });
+
+test('refuses to consume a live base tree when no lock snapshot is present', () => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-overlay-nolock-'));
+  const opsRoot = path.join(temp, 'ops');
+  try {
+    fixtureRepository(opsRoot, {
+      'business-overlay.json': JSON.stringify({
+        schemaVersion: 1,
+        base: { module: 'pantheon-base' },
+        sourceModule: 'pantheon-ops/backend',
+        businessPaths: [],
+        repositoryOverlayPaths: [],
+        backendModules: [], frontendModules: [], components: [], businessSmokeScripts: [],
+      }),
+    });
+    assert.throws(
+      () => rebuildFromBase({ opsRoot }),
+      /published GitHub release, not a local/u,
+    );
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+});

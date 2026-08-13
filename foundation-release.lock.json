@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "baseRepo": "../pantheon-base",
+  "baseRepo": "duanxldragon/pantheon-base",
   "releaseLine": "release/0.10",
   "releaseVersion": "pantheon-base-v0.10.20",
   "baseCommit": "6358791ca34d7622e8c5bb583e605d892ffdadfd",
