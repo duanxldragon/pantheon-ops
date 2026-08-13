@@ -62,6 +62,8 @@
     "docs/README.md",
     "docs/TASK_PACKET_OPS_TEMPLATE.en.md",
     "docs/TASK_PACKET_OPS_TEMPLATE.md",
+    "docs/designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md",
+    "docs/designs/PLATFORM_SRE_EVOLUTION_PLAN.md",
     "docs/harness",
     "scripts/address-github-feedback.mjs",
     "scripts/business-overlay",

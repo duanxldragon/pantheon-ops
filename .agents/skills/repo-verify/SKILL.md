@@ -5,20 +5,20 @@ description: Use when finishing a Pantheon Ops change or choosing the minimum lo
 
 # Repo Verify
 
-In Pantheon Ops, inheritance checks are part of verification. Do not verify business code while ignoring base-sync drift.
+In Pantheon Ops, the consumer tree is rebuilt from a locked Base snapshot. Do not verify business code while ignoring the business-overlay contract.
 
 ## Use This Matrix
 
-- Inheritance or shared-path sync work:
-  - `npm run check:inheritance`
-  - `npm run check:base-sync` when frontend or shared business mounts changed
+- Business overlay, manifest, or rebuild work:
+  - `npm run check:business-overlay`
+  - `npm run test:business-overlay`
+  - `npm run rebuild:from-base` when the manifest or business source changed
 - Docs or root governance scripts:
   - `npm run check:docs-frontmatter`
   - `npm run check:task-packet-template`
   - `npm run check:generated-modules` when generated-module files changed
 - Frontend code, menus, i18n, routes, shared business integration:
   - `cd frontend`
-  - `npm run check:base-sync`
   - `npm run lint`
   - `npm run type-check`
   - `npm run build`

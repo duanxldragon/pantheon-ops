@@ -227,7 +227,7 @@ function createAutoContextCommands(taskId) {
         notes: 'PR automation workflow regression tests passed.',
       },
       {
-        command: 'npm run check:inheritance',
+        command: 'npm run check:business-overlay',
         cwd: canonicalRepoName,
         status: 'failed',
         durationMs: 0,

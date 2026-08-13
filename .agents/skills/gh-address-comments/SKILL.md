@@ -60,7 +60,7 @@ Do not sweep unrelated repository comments.
 ## Pantheon Ops Rules
 
 - Run the landing-side check first when comments touch shared platform, `system/*`, shared shell, menu, permission, i18n, upload, audit, or other inherited paths. If the real fix belongs in `pantheon-base`, do not hide it with an ops-only workaround.
-- Run `npm run check:inheritance` when feedback may reflect shared-path drift, release-upgrade fallout, or inherited workflow behavior.
+- Run `npm run check:business-overlay` when feedback may reflect a base-release lock change, manifest change, or inherited workflow behavior.
 - If a comment is really about hosted CI behavior, use `repo-ci-triage` first and `gh-fix-ci` only when local reproduction is green or inconclusive.
 - For business-only comments, keep the fix local to `business/*` and verify the smallest affected business surface.
 
