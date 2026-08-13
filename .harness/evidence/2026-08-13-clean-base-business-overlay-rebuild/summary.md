@@ -8,11 +8,11 @@
 
 ## Status
 
-Phases 0–5 are complete. The clean rebuild is wired to the locked Base
+Phases 0–6 are complete. The clean rebuild is wired to the locked Base
 snapshot, verified end-to-end (backend build/vet/test, frontend tsc/vite/eslint,
-contract checks, unit tests, and business Playwright smoke), and all six gaps
-from the plan are closed. The current Ops product tree remains unchanged until
-the atomic replace (Phase 6).
+contract checks, unit tests, business Playwright smoke), and all six gaps from
+the plan are closed. The Ops product tree has been atomically replaced with the
+rebuilt tree (Phase 6).
 
 ## Commits on `feat/clean-base-business-overlay-rebuild`
 
@@ -21,6 +21,7 @@ the atomic replace (Phase 6).
 - `7611320` fix(overlay): stop overwriting base retired_modules hook (gap #4)
 - `1799a11` refactor(overlay): retire file-by-file sync toolchain (gap #5)
 - `7a1ecfe` docs(overlay): findings-first review + evidence summary (gap #6)
+- `dd752d4` feat(overlay): atomically replace Ops tree with clean-base rebuild
 
 ## Phase 4 — business smoke (green)
 
@@ -44,7 +45,22 @@ Runtime notes (environment, not code):
   isolated run used the root `node_modules` playwright 1.61.1 (chromium-1228
   already cached) — version-only substitution, no test or app code changed.
 
+## Phase 6 — atomic replace (done)
+
+Commit `dd752d4` replaces the Ops product tree with the rebuilt tree in a single
+atomic commit (481 files changed: 176 added, 240 modified, 20 deleted, plus
+rename detection for the Go-module and system-module restructure). Key outcomes:
+
+- Root `go.mod` → `backend/go.mod` (`module pantheon-base`); multi-module layout adopted.
+- Base repository layout preserved (`config/`, `grafana/`, `openspec/`, `releases/`,
+  `Dockerfile`, `VERSION`, `SHELL_VERSION.json`, `CHANGELOG.md`).
+- Business overlay (`bizscope`/`cmdb`/`deploy`) + generated registries + i18n fallbacks.
+- `foundation-release.lock.json`, `frontend/README.en.md`, and the
+  `check-encoding`/`workflow-baseline` tests added to `repositoryOverlayPaths`
+  so a clean rebuild reproduces the full consumer tree.
+- ~85 historical shared-source drift files retired (old nested `system/*`, `iam/*`,
+  `org/*`, `foundation/*.json` i18n, `list-page.css`, ops QA scripts).
+
 ## Remaining
 
-- Phase 6: atomic replace of the Ops tree with the rebuilt tree
 - Workstream A: base-side `repo.tar` packaging for v0.10.21+ releases
