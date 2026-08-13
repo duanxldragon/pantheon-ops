@@ -37,7 +37,8 @@
     "prepare": "husky",
     "rebuild:from-base": "node scripts/business-overlay/rebuild-from-base.mjs",
     "check:business-overlay": "node scripts/business-overlay/check-business-overlay.mjs",
-    "test:business-overlay": "node --test tests/scripts/business-overlay/*.test.mjs"
+    "test:business-overlay": "node --test tests/scripts/business-overlay/*.test.mjs",
+    "check:encoding": "node scripts/check-encoding.mjs --strict"
   },
   "lint-staged": {
     "frontend/src/**/*.{ts,tsx}": [

@@ -364,6 +364,8 @@ function mergePackages(baseRoot, opsRoot, targetRoot, manifest) {
     'rebuild:from-base': 'node scripts/business-overlay/rebuild-from-base.mjs',
     'check:business-overlay': 'node scripts/business-overlay/check-business-overlay.mjs',
     'test:business-overlay': 'node --test tests/scripts/business-overlay/*.test.mjs',
+    // Ops-owned root scripts (repositoryOverlayPaths) that Base does not ship.
+    'check:encoding': 'node scripts/check-encoding.mjs --strict',
   };
   for (const scriptName of Object.keys(basePackage.scripts)) {
     if (scriptName.startsWith('release:foundation') || scriptName === 'test:foundation-release') {
