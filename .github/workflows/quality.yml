@@ -300,13 +300,13 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: DHCCroot@2025
+          MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: pantheon_ops
           TZ: Asia/Shanghai
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pDHCCroot@2025"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=12
@@ -320,8 +320,8 @@ jobs:
           --health-timeout=5s
           --health-retries=12
     env:
-      PANTHEON_DSN: root:DHCCroot@2025@tcp(127.0.0.1:3306)/pantheon_ops?charset=utf8mb4&parseTime=True&loc=UTC
-      PANTHEON_TEST_DSN: root:DHCCroot@2025@tcp(127.0.0.1:3306)/pantheon_ops?charset=utf8mb4&parseTime=True&loc=UTC
+      PANTHEON_DSN: root:root@tcp(127.0.0.1:3306)/pantheon_ops?charset=utf8mb4&parseTime=True&loc=UTC
+      PANTHEON_TEST_DSN: root:root@tcp(127.0.0.1:3306)/pantheon_ops?charset=utf8mb4&parseTime=True&loc=UTC
       PANTHEON_REDIS_ADDR: 127.0.0.1:6379
       PANTHEON_WORKSPACE_ROOT: ${{ github.workspace }}
       PANTHEON_PORT: "8080"
@@ -358,7 +358,7 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: frontend
-        run: npx playwright install --with-deps chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium
 
       - name: Start backend
         working-directory: backend
