@@ -145,6 +145,32 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
   }
 });
 
+test('rejects a business path that overwrites a Base hook file', () => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-overlay-overwrite-'));
+  const baseRoot = path.join(temp, 'base');
+  const opsRoot = path.join(temp, 'ops');
+  try {
+    fixtureRepository(baseRoot, {
+      'backend/modules/business/hook.go': 'package business\nvar hookBase = true\n',
+    });
+    const manifest = {
+      schemaVersion: 1,
+      base: { source: '../base', module: 'pantheon-base' },
+      sourceModule: 'pantheon-ops/backend',
+      businessPaths: ['backend/modules/business/hook.go'],
+      repositoryOverlayPaths: [],
+      backendModules: [], frontendModules: [], components: [], businessSmokeScripts: [],
+    };
+    fixtureRepository(opsRoot, {
+      'business-overlay.json': `${JSON.stringify(manifest)}\n`,
+      'backend/modules/business/hook.go': 'package business\nvar hookOps = false\n',
+    });
+    assert.throws(() => rebuildFromBase({ opsRoot, baseRoot }), /Business overlay overwrites Base files/u);
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+});
+
 test('rejects a manifest that claims a generic product path', () => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-overlay-reject-'));
   const baseRoot = path.join(temp, 'base');

@@ -102,6 +102,45 @@ function copyDeclaredPath(sourceRoot, targetRoot, declaredPath, sourceTracked) {
   return files;
 }
 
+// Business overlay 不得覆盖 Base 的 hook/源文件（如 backend/modules/business/{business.go,
+// retired_modules.go, generated_registry.go}）。若 businessPaths 声明了与 Base 同名且内容
+// 不同的文件，说明把 Base 的 hook 层当作业务文件重写了 —— 改为用独立 overlay 文件注入
+// （见 retired_modules_overlay.go 的 init() 追加模式）。repositoryOverlayPaths 的覆盖（如
+// AGENTS.md/CLAUDE.md）是刻意的仓库级替换，不受此约束。
+function assertBusinessPathsDoNotOverwriteBase(opsRoot, baseRoot, baseTracked, businessPaths) {
+  const baseFiles = new Set(baseTracked);
+  const conflicts = [];
+  for (const declaredPath of businessPaths) {
+    const normalized = repoPath(declaredPath);
+    const source = path.join(opsRoot, normalized);
+    if (!fs.existsSync(source)) continue;
+    const files = [];
+    const stat = fs.statSync(source);
+    const visit = (directory) => {
+      for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+        if (entry.name === '.git') continue;
+        const absolute = path.join(directory, entry.name);
+        if (entry.isDirectory()) visit(absolute);
+        else files.push(repoPath(path.relative(opsRoot, absolute)));
+      }
+    };
+    if (stat.isDirectory()) visit(source);
+    else files.push(normalized);
+    for (const file of files) {
+      if (!baseFiles.has(file)) continue;
+      const baseContent = fs.readFileSync(path.join(baseRoot, file), 'utf8');
+      const opsContent = fs.readFileSync(path.join(opsRoot, file), 'utf8');
+      if (baseContent !== opsContent) conflicts.push(file);
+    }
+  }
+  if (conflicts.length > 0) {
+    throw new Error(
+      `Business overlay overwrites Base files: ${conflicts.join(', ')}. ` +
+      'Remove them from businessPaths and inject data via a dedicated overlay file instead.',
+    );
+  }
+}
+
 function assertSafeManifest(manifest) {
   if (manifest.schemaVersion !== 1) throw new Error('Unsupported business overlay schema');
   const productRoots = ['backend', 'frontend/src', 'frontend/tests/smoke', 'database', 'schema'];
@@ -428,6 +467,7 @@ export function rebuildFromBase({ opsRoot = defaultOpsRoot, baseRoot, targetRoot
   const baseCommit = lockedBaseCommit ?? runGit(resolvedBase, ['rev-parse', 'HEAD']);
   for (const file of baseTracked) copyFile(resolvedBase, resolvedTarget, file);
   pruneBaseRepositoryOverlay(resolvedTarget, manifest);
+  assertBusinessPathsDoNotOverwriteBase(opsRoot, resolvedBase, baseTracked, manifest.businessPaths ?? []);
   const opsTracked = trackedFiles(opsRoot);
   const copiedBusiness = manifest.businessPaths.flatMap((entry) => copyDeclaredPath(opsRoot, resolvedTarget, entry, opsTracked));
   const copiedRepository = manifest.repositoryOverlayPaths.flatMap((entry) => copyDeclaredPath(opsRoot, resolvedTarget, entry, opsTracked));
