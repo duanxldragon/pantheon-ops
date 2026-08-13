@@ -8,6 +8,13 @@ run:
   modules-download-mode: readonly
 
 linters:
+  exclusions:
+    # internal/scaffold carries Base-owned generator code (broad file/process
+    # permissions, uncommented exports). Base accepts this debt by only linting
+    # new code via --new-from-rev; the Ops baseline replacement makes the whole
+    # tree "new", so exclude the scaffold rather than forking Base source.
+    paths:
+      - internal/scaffold
   enable:
     # Default + extras
     - errcheck      # unchecked errors

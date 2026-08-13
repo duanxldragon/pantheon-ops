@@ -25,7 +25,7 @@ English version: [README.en.md](./README.en.md)
 | [designs/PLATFORM_SRE_EVOLUTION_PLAN.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.md) / [designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md) | SRE 演进路线图：从 Web 平台到 K8s-native 的五阶段计划 |
 | [../DESIGN.md](../DESIGN.md) / [../DESIGN.en.md](../DESIGN.en.md) | 仓库级总体设计与继承的基座设计立场 |
 | [../frontend/README.md](../frontend/README.md) / [../frontend/README.en.md](../frontend/README.en.md) | 前端工作区说明 |
-| [../frontend/tests/smoke/README.md](../frontend/tests/smoke/README.md) / [../frontend/tests/smoke/README.en.md](../frontend/tests/smoke/README.en.md) | smoke 测试布局与覆盖边界 |
+| [../frontend/tests/smoke/README.md](../frontend/tests/smoke/README.md) | smoke 测试布局与覆盖边界 |
 | [../CONTRIBUTING.md](../CONTRIBUTING.md) / [../CONTRIBUTING.en.md](../CONTRIBUTING.en.md) | 协作规范、提交格式与验证要求 |
 | [../SECURITY.md](../SECURITY.md) / [../SECURITY.en.md](../SECURITY.en.md) | 安全问题报告范围与披露规则 |
 

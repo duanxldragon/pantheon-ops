@@ -246,7 +246,15 @@ function generateRegistries(targetRoot, manifest) {
     .join('\n');
   const components = `import { lazy, type LazyExoticComponent, type ComponentType } from 'react';\n\ntype ComponentLoader = () => Promise<{ default: ComponentType }>;\n\ninterface RegistryEntry {\n  component: LazyExoticComponent<ComponentType>;\n  preload: ComponentLoader;\n}\n\nfunction defineRegistryEntry(loader: ComponentLoader): RegistryEntry {\n  return { component: lazy(loader), preload: loader };\n}\n\nexport const businessOverlayComponentRegistry = {\n${componentEntries}\n} satisfies Record<string, RegistryEntry>;\n`;
 
-  const menuEntries = manifest.components.map((entry) => `\t"${entry.key}": {},`).join('\n');
+  // Align the `{}` values so the emitted map literal is gofmt-clean on first write.
+  const menuKeyPrefixes = manifest.components.map((entry) => `"${entry.key}":`);
+  const maxMenuKeyPrefixLen = Math.max(...menuKeyPrefixes.map((prefix) => prefix.length));
+  const menuEntries = manifest.components
+    .map((entry) => {
+      const prefix = `"${entry.key}":`;
+      return `\t${prefix}${' '.repeat(maxMenuKeyPrefixLen - prefix.length + 1)}{},`;
+    })
+    .join('\n');
   const menu = `package iam\n\nvar businessOverlayMenuComponentKeys = map[string]struct{}{\n${menuEntries}\n}\n`;
 
   const outputs = new Map([

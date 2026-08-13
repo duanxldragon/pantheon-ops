@@ -8,22 +8,24 @@ const currentFilePath = fileURLToPath(import.meta.url);
 const workspaceRoot = path.resolve(path.dirname(currentFilePath), '..', '..');
 const frontendModulesRoot = path.join(workspaceRoot, 'frontend', 'src', 'modules');
 const backendModulesRoot = path.join(workspaceRoot, 'backend', 'modules');
-const frontendRegistryFiles = [
-  path.join(workspaceRoot, 'frontend', 'src', 'core', 'router', 'componentRegistry.ts'),
-  path.join(workspaceRoot, 'frontend', 'src', 'core', 'router', 'generatedComponentRegistry.ts'),
-];
-const backendRegistryFiles = [
-  path.join(workspaceRoot, 'backend', 'modules', 'system', 'iam', 'menu', 'component_registry.go'),
-  path.join(
-    workspaceRoot,
-    'backend',
-    'modules',
-    'system',
-    'iam',
-    'menu',
-    'generated_component_registry.go',
-  ),
-];
+// Registry files are discovered by name convention instead of being hardcoded, so
+// downstream consumers (e.g. pantheon-ops) can inject an overlay component registry
+// (businessOverlayComponentRegistry.ts / business_overlay_component_registry.go)
+// without this gate silently dropping its keys.
+function listRegistryFiles(dir, pattern) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
+    .filter((name) => pattern.test(name))
+    .map((name) => path.join(dir, name));
+}
+const frontendRegistryFiles = listRegistryFiles(
+  path.join(workspaceRoot, 'frontend', 'src', 'core', 'router'),
+  /Registry\.ts$/,
+);
+const backendRegistryFiles = listRegistryFiles(
+  path.join(workspaceRoot, 'backend', 'modules', 'system', 'iam', 'menu'),
+  /registry\.go$/,
+);
 const frontendI18nFiles = new Map([
   ['zh-CN', path.join(workspaceRoot, 'frontend', 'src', 'i18n', 'resources', 'zh-CN.ts')],
   ['en-US', path.join(workspaceRoot, 'frontend', 'src', 'i18n', 'resources', 'en-US.ts')],
