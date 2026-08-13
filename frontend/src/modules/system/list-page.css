@@ -1,2 +1,0 @@
-/* Legacy compatibility shim for modules that still import the old system list page path. */
-@import './components/shared/list-page.css';

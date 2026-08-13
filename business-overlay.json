@@ -56,6 +56,8 @@
     "SECURITY.en.md",
     "SECURITY.md",
     "docker-compose.yml",
+    "foundation-release.lock.json",
+    "frontend/README.en.md",
     "docs/PROJECT_INHERITANCE.en.md",
     "docs/PROJECT_INHERITANCE.md",
     "docs/README.en.md",
@@ -79,7 +81,9 @@
     "scripts/run-github-feedback-loop.mjs",
     "scripts/task-manifest.mjs",
     "tests/fixtures",
-    "tests/scripts/business-overlay"
+    "tests/scripts/business-overlay",
+    "tests/scripts/check-encoding.test.mjs",
+    "tests/scripts/workflow-baseline.test.mjs"
   ],
   "backendModules": [
     {

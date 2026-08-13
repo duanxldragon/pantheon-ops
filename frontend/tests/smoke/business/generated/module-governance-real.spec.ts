@@ -12,7 +12,7 @@ import {
   loginByApi,
   type BrowserLoginResult,
 } from '../../helpers/auth';
-import { readGoModulePath } from '../../helpers/go-module';
+import { readGoBackendImportPrefix } from '../../helpers/go-module';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = path.resolve(currentDir, '../../../../..');
@@ -25,7 +25,7 @@ const schemaFile = path.join(workspaceRoot, 'schema', 'generated', 'business', `
 const backendRegistry = path.join(workspaceRoot, 'backend', 'modules', 'business', 'generated_registry.go');
 const frontendRegistry = path.join(workspaceRoot, 'frontend', 'src', 'modules', 'generated', 'business.ts');
 const componentRegistry = path.join(workspaceRoot, 'frontend', 'src', 'core', 'router', 'generatedComponentRegistry.ts');
-const backendModuleImport = `${await readGoModulePath(workspaceRoot)}/modules/business/${moduleName}`;
+const backendModuleImport = `${await readGoBackendImportPrefix(workspaceRoot)}/modules/business/${moduleName}`;
 
 function buildGenerateRequest() {
   return {

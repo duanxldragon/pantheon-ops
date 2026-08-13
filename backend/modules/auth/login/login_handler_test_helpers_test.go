@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	commonhttp "pantheon-ops/backend/pkg/common/http"
+	commonhttp "pantheon-base/pkg/common/http"
 )
 
 type authResponseEnvelope[T any] struct {

@@ -1,12 +1,13 @@
 import path from 'node:path';
 import process from 'node:process';
 import fs from 'node:fs';
+import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
-import { loadResourceModule } from './lib/load-resource-module.mjs';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const frontendRoot = path.resolve(path.dirname(currentFilePath), '..');
 const resourcesRoot = path.join(frontendRoot, 'src', 'i18n', 'resources');
+const overrideResourcesRoot = path.join(resourcesRoot, 'overrides');
 const generatedResourcesRoot = path.join(resourcesRoot, 'generated');
 
 const LOCALES = ['zh-CN', 'en-US', 'ja-JP', 'ko-KR', 'fr-FR'];
@@ -57,12 +58,45 @@ function shouldIgnoreSameAsEnglish(key, value) {
   return SAME_AS_ENGLISH_ALLOWLIST.some((pattern) => pattern.test(key));
 }
 
+function loadResourceModule(modulePath, cache = new Map()) {
+  const resolvedPath = path.resolve(modulePath);
+  if (cache.has(resolvedPath)) {
+    return cache.get(resolvedPath);
+  }
+
+  const source = fs.readFileSync(resolvedPath, 'utf8');
+  const importMatches = [...source.matchAll(/import\s+([A-Za-z0-9_$]+)\s+from\s+['"](.+?)['"];?/g)];
+  const importedBindings = {};
+
+  for (const [, localName, specifier] of importMatches) {
+    const nextPath = path.resolve(path.dirname(resolvedPath), `${specifier}.ts`);
+    importedBindings[localName] = loadResourceModule(nextPath, cache);
+  }
+
+  const sanitized = source
+    .replace(/import\s+[A-Za-z0-9_$]+\s+from\s+['"].+?['"];?\s*/g, '')
+    .replace(/export default\s+([A-Za-z0-9_$]+);?\s*$/m, 'module.exports = $1;');
+
+  const context = {
+    module: { exports: {} },
+    exports: {},
+    ...importedBindings,
+  };
+
+  vm.runInNewContext(sanitized, context, { filename: resolvedPath }); // NOSONAR — build-only script, controlled source
+  cache.set(resolvedPath, context.module.exports);
+  return context.module.exports;
+}
+
 function loadLocale(locale) {
   const base = loadResourceModule(path.join(resourcesRoot, `${locale}.ts`));
+  const overridePath = path.join(overrideResourcesRoot, `${locale}.ts`);
+  const override = fs.existsSync(overridePath) ? loadResourceModule(overridePath) : {};
   const generatedPath = path.join(generatedResourcesRoot, `${locale}.ts`);
   const generated = fs.existsSync(generatedPath) ? loadResourceModule(generatedPath) : {};
   return {
     ...base,
+    ...override,
     ...generated,
   };
 }
@@ -104,12 +138,18 @@ async function main() {
   for (const locale of LOCALES) {
     const resource = resources[locale];
     const keys = new Set(Object.keys(resource));
-    const missingKeys = [...baseKeys].filter((key) => !keys.has(key)).sort((a, b) => a.localeCompare(b));
-    const extraKeys = [...keys].filter((key) => !baseKeys.has(key)).sort((a, b) => a.localeCompare(b));
+    const missingKeys = [...baseKeys]
+      .filter((key) => !keys.has(key))
+      .sort((a, b) => a.localeCompare(b));
+    const extraKeys = [...keys]
+      .filter((key) => !baseKeys.has(key))
+      .sort((a, b) => a.localeCompare(b));
     const emptyKeys = findEmptyKeys(resource);
     const sameAsEnglishKeys = findSameAsEnglishKeys(locale, resource, englishResource);
 
-    console.log(`[${locale}] keys=${keys.size} missing=${missingKeys.length} extra=${extraKeys.length} empty=${emptyKeys.length} sameAsEn=${sameAsEnglishKeys.length}`);
+    console.log(
+      `[${locale}] keys=${keys.size} missing=${missingKeys.length} extra=${extraKeys.length} empty=${emptyKeys.length} sameAsEn=${sameAsEnglishKeys.length}`,
+    );
 
     if (missingKeys.length > 0) {
       hasIssue = true;

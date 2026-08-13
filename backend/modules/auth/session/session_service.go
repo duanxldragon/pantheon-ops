@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-ops/backend/pkg/authsession"
-	"pantheon-ops/backend/pkg/authtoken"
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/database"
-	"pantheon-ops/backend/pkg/logging"
+	"pantheon-base/pkg/authsession"
+	"pantheon-base/pkg/authtoken"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/database"
+	"pantheon-base/pkg/logging"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"

@@ -1,0 +1,61 @@
+# Prometheus 配置文件
+# 用于采集 Pantheon Base 的指标
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'pantheon-base'
+    environment: 'production'
+
+# 告警管理器配置（可选）
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            # - alertmanager:9093
+
+# 告警规则文件
+rule_files:
+  - "/etc/prometheus/rules/*.yml"
+
+# 采集配置
+scrape_configs:
+  # Pantheon Base 应用
+  - job_name: 'pantheon-base'
+    static_configs:
+      - targets: ['localhost:8080']
+        labels:
+          app: 'pantheon-base'
+          component: 'backend'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  # Prometheus 自身监控
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          app: 'prometheus'
+
+  # Node Exporter（系统指标）
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+        labels:
+          app: 'node-exporter'
+
+  # MySQL Exporter（可选）
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['localhost:9104']
+        labels:
+          app: 'mysql-exporter'
+
+  # Redis Exporter（可选）
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['localhost:9121']
+        labels:
+          app: 'redis-exporter'

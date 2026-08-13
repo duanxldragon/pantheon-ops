@@ -1,0 +1,117 @@
+# Pantheon Base — golangci-lint configuration
+# Run (from backend/): golangci-lint run ./...
+version: "2"
+
+run:
+  go: "1.25"
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    # Default + extras
+    - errcheck      # unchecked errors
+    - govet         # go vet
+    - ineffassign   # ineffectual assignments
+    - staticcheck   # static analysis (includes gosimple + stylecheck in v2)
+    - unused        # unused variables/imports
+    - copyloopvar   # loop variable aliasing (Go 1.22+ fix)
+    - gosec         # security checks
+    - goconst       # repeated string literals → constants
+    - revive        # drop-in golint replacement
+    - misspell      # spelling in comments
+    - unconvert     # unnecessary type conversions
+    - prealloc      # slice preallocation
+    - depguard      # import boundary enforcement
+  disable:
+    # Disable noisy/redundant linters
+    - dupl          # handled by project-level check-duplication.mjs
+    - nestif        # manageable
+    - cyclop        # covered by gocyclo analysis
+    - testpackage   # test files live next to source
+  settings:
+    depguard:
+      rules:
+        business-boundary:
+          files:
+            - "**/modules/business/**"
+          deny:
+            - pkg: pantheon-base/modules/system
+              desc: use pantheon-base/pkg/contracts instead
+            - pkg: pantheon-base/modules/auth
+              desc: use pantheon-base/pkg/contracts instead
+            - pkg: pantheon-base/modules/platform
+              desc: use pantheon-base/pkg/contracts instead
+    gosec:
+      severity: medium
+      excludes:
+        - G104  # errcheck already handles unchecked errors
+        - G404  # crypto/rand not needed for non-secure random
+    goconst:
+      min-len: 5
+      min-occurrences: 3
+      ignore-tests: true
+    revive:
+      severity: warning
+      rules:
+        - name: exported
+          severity: warning
+          disabled: false
+        - name: context-as-argument
+          severity: warning
+          disabled: false
+          arguments:
+            - allowTypesBefore: "*"
+        - name: early-return
+          severity: warning
+        - name: indent-error-flow
+          severity: warning
+        - name: error-naming
+          severity: warning
+        - name: error-strings
+          severity: warning
+    errcheck:
+      check-type-assertions: true
+      # check-blank:false — idiomatic `_ = err` for deliberately ignored errors is
+      # allowed (cleanup/best-effort paths). Avoids no-op ignoreError() helpers.
+      check-blank: false
+      exclude-functions:
+        - (*database/sql/Rows).Close
+        - (*database/sql/Stmt).Close
+        - (*net/http.ResponseWriter).Write
+        - (net/http.ResponseWriter).Write
+
+formatters:
+  enable:
+    - gofmt         # format check
+  settings:
+    gofmt:
+      simplify: true
+
+issues:
+  max-issues-per-linter: 50
+  max-same-issues: 10
+  exclusions:
+    rules:
+      # Exclude test files from certain rules
+      - path: _test\.go
+        linters:
+          - gosec
+          - goconst
+          - errcheck
+      # Exclude generated code
+      - path: generated_.*\.go
+        linters:
+          - all
+      # Exclude migrations
+      - path: migrate\.go
+        linters:
+          - gosec
+
+output:
+  formats:
+    text:
+      path: stdout
+      print-issued-lines: true
+      print-linter-name: true
+  sort-results: true

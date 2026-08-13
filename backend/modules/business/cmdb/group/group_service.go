@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/database"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/database"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

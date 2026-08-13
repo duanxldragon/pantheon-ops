@@ -3,7 +3,7 @@ package middleware
 import (
 	"time"
 
-	"pantheon-ops/backend/pkg/logging"
+	"pantheon-base/pkg/logging"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

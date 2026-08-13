@@ -78,7 +78,7 @@ func TestMenuMetaPredicates(t *testing.T) {
 	}
 
 	// isComponentInvalid 依赖组件注册表（确定性静态数据）。
-	if isComponentInvalid("C", "system.iam", "system/iam/user/UserList") {
+	if isComponentInvalid("C", "system.iam", "system/user/UserList") {
 		t.Error("registered component key should be valid")
 	}
 	if !isComponentInvalid("C", "system.iam", "not/a/real/component") {

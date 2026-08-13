@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	cmdbgroup "pantheon-ops/backend/modules/business/cmdb/group"
-	cmdbhost "pantheon-ops/backend/modules/business/cmdb/host"
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/database"
+	cmdbgroup "pantheon-base/modules/business/cmdb/group"
+	cmdbhost "pantheon-base/modules/business/cmdb/host"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/database"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

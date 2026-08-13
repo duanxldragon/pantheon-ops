@@ -1,0 +1,148 @@
+{
+  "dashboard": {
+    "title": "Pantheon Base - Business Metrics",
+    "tags": ["pantheon", "business", "metrics"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "1m",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Login Attempts (Last 24h)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(increase(pantheon_auth_login_attempts_total{status=\"success\"}[1h]))",
+            "legendFormat": "Successful Logins",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(increase(pantheon_auth_login_attempts_total{status=\"failed\"}[1h]))",
+            "legendFormat": "Failed Logins",
+            "refId": "B"
+          },
+          {
+            "expr": "sum(increase(pantheon_auth_login_attempts_total{status=\"locked\"}[1h]))",
+            "legendFormat": "Account Locked",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"label": "attempts", "format": "short"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Login Success Rate",
+        "type": "gauge",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(rate(pantheon_auth_login_attempts_total{status=\"success\"}[5m])) / sum(rate(pantheon_auth_login_attempts_total[5m])) * 100",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "min": 0,
+          "max": 100,
+          "thresholds": [
+            {"value": 0, "color": "red"},
+            {"value": 80, "color": "yellow"},
+            {"value": 95, "color": "green"}
+          ]
+        },
+        "alert": {
+          "name": "Low Login Success Rate",
+          "conditions": [
+            {
+              "evaluator": {"params": [80], "type": "lt"},
+              "query": {"params": ["A", "10m", "now"]},
+              "type": "query"
+            }
+          ],
+          "frequency": "1m",
+          "handler": 1,
+          "message": "Login success rate below 80%"
+        }
+      },
+      {
+        "id": 3,
+        "title": "Active Sessions",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "pantheon_active_sessions",
+            "legendFormat": "Active Sessions",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"label": "sessions", "format": "short"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Current Active Users",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {
+            "expr": "pantheon_active_sessions",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "reduceOptions": {
+            "values": false,
+            "fields": "",
+            "calcs": ["lastNotNull"]
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Login Failure Reasons (Last 1h)",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "targets": [
+          {
+            "expr": "sum(increase(pantheon_auth_login_attempts_total{status=~\"failed|locked\"}[1h])) by (status)",
+            "legendFormat": "{{status}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Peak Active Sessions (24h)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 16},
+        "targets": [
+          {
+            "expr": "max_over_time(pantheon_active_sessions[24h])",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Total Logins Today",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 16},
+        "targets": [
+          {
+            "expr": "sum(increase(pantheon_auth_login_attempts_total{status=\"success\"}[24h]))",
+            "refId": "A"
+          }
+        ]
+      }
+    ]
+  }
+}

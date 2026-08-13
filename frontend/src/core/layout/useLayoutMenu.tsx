@@ -1,6 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
 import { Menu } from '@arco-design/web-react';
-import { type MenuNode, findFirstNavigableMenuPath } from '../../modules/system/iam/menu/api';
+import { type MenuNode, findFirstNavigableMenuPath } from '../../modules/system/menu/api';
 import { renderMenuIcon } from '../menu/icon';
 import { findRouteByPath } from '../router/modules';
 import { preloadRouteComponent } from '../router/prefetch';

@@ -74,6 +74,20 @@ const REGISTRY_TEMPLATES = {
   ].join('\n'),
 };
 
+
+const BUSINESS_OVERLAY_REPORT = path.join(repoRoot, '.business-overlay-report.json');
+const BUSINESS_OVERLAY_OWNED_FILES = new Set(
+  fs.existsSync(BUSINESS_OVERLAY_REPORT)
+    ? JSON.parse(fs.readFileSync(BUSINESS_OVERLAY_REPORT, 'utf8')).ownedFiles.map((entry) => entry.path)
+    : [],
+);
+function hasBusinessOverlayOwnedDescendant(targetPath) {
+  const relative = path.relative(repoRoot, targetPath).replaceAll('\\', '/');
+  const prefix = `${relative}/`;
+  return BUSINESS_OVERLAY_OWNED_FILES.has(relative)
+    || Array.from(BUSINESS_OVERLAY_OWNED_FILES).some((entry) => entry.startsWith(prefix));
+}
+
 const I18N_LOCALES = ['zh-CN', 'en-US', 'ko-KR', 'ja-JP', 'fr-FR'];
 
 function i18nTemplate(variableName) {
@@ -114,7 +128,7 @@ function removeGeneratedSubdirs(parentDir, repoBase, trackedFiles) {
   for (const entry of fs.readdirSync(parentDir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
       const targetPath = path.join(parentDir, entry.name);
-      if (hasTrackedDescendant(targetPath, repoBase, trackedFiles)) {
+      if (hasBusinessOverlayOwnedDescendant(targetPath) || hasTrackedDescendant(targetPath, repoBase, trackedFiles)) {
         removed += removeGeneratedSubdirs(targetPath, repoBase, trackedFiles);
       } else {
         removeDir(targetPath);
@@ -198,7 +212,7 @@ function appendDirtyDirectories(dirty, parentDir, repoBase, label, trackedFiles)
   for (const entry of fs.readdirSync(parentDir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
       const targetPath = path.join(parentDir, entry.name);
-      if (hasTrackedDescendant(targetPath, repoBase, trackedFiles)) {
+      if (hasBusinessOverlayOwnedDescendant(targetPath) || hasTrackedDescendant(targetPath, repoBase, trackedFiles)) {
         appendDirtyDirectories(dirty, targetPath, repoBase, label, trackedFiles);
       } else {
         dirty.push(`${label}: ${relativePath(repoBase, targetPath)}`);

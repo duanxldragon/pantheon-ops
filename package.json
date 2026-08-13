@@ -3,26 +3,61 @@
   "scripts": {
     "apply:github-feedback": "node scripts/address-github-feedback.mjs",
     "run:github-feedback-loop": "node scripts/run-github-feedback-loop.mjs",
-    "test:branch-hygiene": "node --test tests/scripts/cleanup-github-branches.test.mjs tests/scripts/branch-hygiene-workflow.test.mjs",
+    "test:branch-hygiene": "node --test tests/scripts/cleanup-github-branches.test.mjs",
+    "check:docs-frontmatter": "node scripts/frontmatter-check.mjs",
+    "check:docs-frontmatter:legacy": "node scripts/frontmatter-check.mjs --report-legacy",
     "check:duplication": "node scripts/check-duplication.mjs",
     "check:github-feedback": "node scripts/fetch-github-feedback.mjs --check",
-    "check:docs-frontmatter": "node scripts/frontmatter-check.mjs",
-    "check:encoding": "node scripts/check-encoding.mjs --root . --strict",
-    "check:structure": "node scripts/check-structure-contract.mjs --root . --strict",
     "check:pr-governance": "node scripts/check-pr-governance.mjs",
+    "check:harness-method": "node scripts/harness/check-method-health.mjs --root . --strict",
+    "check:harness-adoption": "node scripts/harness/check-adoption.mjs --root . --strict",
+    "check:harness-template": "node scripts/harness/check-template-health.mjs --root . --strict",
+    "check:harness-docs": "node scripts/harness/check-doc-links.mjs --root . --strict",
+    "check:harness-inventory": "node scripts/harness/check-doc-inventory.mjs --root . --strict",
+    "check:harness-sync": "node scripts/harness/check-sync-drift.mjs --root . --strict",
+    "check:harness-encoding": "node scripts/harness/check-encoding.mjs --root . --strict",
+    "check:harness-visual": "node scripts/harness/check-visual-evidence.mjs --root . --strict",
+    "check:structure": "node scripts/harness/check-structure-contract.mjs --root . --strict",
+    "test:structure-contract": "node --test tests/scripts/harness-check-structure-contract.test.mjs",
     "check:task-packet-template": "node scripts/check-task-packet-template.mjs",
+    "check:failure-registry": "node scripts/harness/check-failure-registry.mjs --root . --strict",
     "check:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs --check",
-    "rebuild:from-base": "node scripts/business-overlay/rebuild-from-base.mjs",
-    "check:business-overlay": "node scripts/business-overlay/check-business-overlay.mjs",
-    "test:business-overlay": "node --test tests/scripts/business-overlay/*.test.mjs",
+    "cleanup:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs",
+    "test:docs-frontmatter": "node --test tests/docs/frontmatter-check.test.mjs",
+    "test:search-toolbar-contract": "node --test tests/scripts/check-search-toolbar-contract.test.mjs",
     "test:address-github-feedback": "node --test tests/scripts/address-github-feedback.test.mjs",
     "test:github-feedback": "node --test tests/scripts/fetch-github-feedback.test.mjs",
     "test:github-feedback-loop": "node --test tests/scripts/run-github-feedback-loop.test.mjs",
-    "test:pr-automation-workflow": "node --test tests/scripts/pr-automation-workflow.test.mjs",
+    "test:create-pr": "node --test tests/scripts/create-pr.test.mjs",
     "test:pr-governance": "node --test tests/scripts/check-pr-governance.test.mjs",
-    "test:duplication": "node --test tests/scripts/check-duplication.test.mjs"
+    "test:pr-automation-workflow": "node --test tests/scripts/pr-automation-workflow.test.mjs tests/scripts/ci-workflow-dispatch.test.mjs",
+    "test:security-workflow": "node --test tests/scripts/security-workflow.test.mjs",
+    "test:quality-workflow": "node --test tests/scripts/quality-workflow.test.mjs",
+    "test:release-gate-workflow": "node --test tests/scripts/release-gate-workflow.test.mjs",
+    "prepare": "husky",
+    "rebuild:from-base": "node scripts/business-overlay/rebuild-from-base.mjs",
+    "check:business-overlay": "node scripts/business-overlay/check-business-overlay.mjs",
+    "test:business-overlay": "node --test tests/scripts/business-overlay/*.test.mjs"
+  },
+  "lint-staged": {
+    "frontend/src/**/*.{ts,tsx}": [
+      "node scripts/run-frontend-typecheck.mjs",
+      "npx --prefix frontend eslint --fix"
+    ],
+    "frontend/src/**/*.{css,scss}": [
+      "npx --prefix frontend prettier --write"
+    ],
+    "backend/**/*.go": [
+      "gofmt -w"
+    ],
+    "**/*.md": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
-    "playwright": "^1.60.0"
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0",
+    "playwright": "^1.62.1",
+    "prettier": "^3.9.6"
   }
 }

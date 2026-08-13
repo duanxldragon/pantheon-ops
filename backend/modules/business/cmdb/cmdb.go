@@ -1,10 +1,10 @@
 package cmdb
 
 import (
-	"pantheon-ops/backend/modules/business/cmdb/group"
-	"pantheon-ops/backend/modules/business/cmdb/host"
-	"pantheon-ops/backend/modules/business/cmdb/label"
-	"pantheon-ops/backend/pkg/contracts"
+	"pantheon-base/modules/business/cmdb/group"
+	"pantheon-base/modules/business/cmdb/host"
+	"pantheon-base/modules/business/cmdb/label"
+	"pantheon-base/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

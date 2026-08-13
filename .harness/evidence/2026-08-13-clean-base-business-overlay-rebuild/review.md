@@ -32,7 +32,7 @@ Findings-first review of the clean-base + business-overlay rebuild.
 
 ## Residual risk
 
-- Business Playwright smoke (`test:smoke:business`) has not run — requires a live MySQL + backend + frontend + browsers; deferred to Phase 4 (runtime infra).
+- Business Playwright smoke is **green** — cmdb 9/9, deploy-api 4/4, deploy-pages 10/10 (Phase 4, isolated stack `:8081`; see `summary.md`).
 - `go test -race` not run — requires cgo/gcc, unavailable on this machine; plain `go test` used instead.
 - The `repo.tar` snapshot was generated locally via `git archive <lock.baseCommit>`; Workstream A (base publishing `repo.tar` in the release `.tgz`) is still pending for v0.10.21+.
 
@@ -51,7 +51,6 @@ Findings-first review of the clean-base + business-overlay rebuild.
     {"id": "#6", "severity": "structural", "title": "Go module identity switch", "state": "recorded"}
   ],
   "residualRisk": [
-    "Business Playwright smoke pending live infra (Phase 4)",
     "go test -race unavailable (no cgo)",
     "Base-side repo.tar packaging pending (Workstream A)"
   ]

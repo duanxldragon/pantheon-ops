@@ -1,24 +1,22 @@
 import type { ModuleConfig } from './types';
 import { AuthModule } from '../../modules/auth';
 import { PlatformModule } from '../../modules/platform';
-import { GeneratorModule } from '../../modules/lowcode/generator';
-import { UserModule } from '../../modules/system/iam/user';
-import { RoleModule } from '../../modules/system/iam/role';
-import { MenuModule } from '../../modules/system/iam/menu';
-import { PermissionModule } from '../../modules/system/iam/permission';
-import { DeptModule } from '../../modules/system/org/dept';
-import { PostModule } from '../../modules/system/org/post';
-import { DictModule } from '../../modules/system/config/dict';
-import { SettingModule } from '../../modules/system/config/setting';
-import { I18nModule } from '../../modules/system/i18n';
-import { DynamicModuleModule } from '../../modules/lowcode/dynamicmodule';
-import { AuditModule } from '../../modules/system/audit';
+import { DictModule } from '../../modules/system/dict';
+import { DeptModule } from '../../modules/system/dept';
+import { MenuModule } from '../../modules/system/menu';
+import { PermissionModule } from '../../modules/system/permission';
 import { ProfileModule } from '../../modules/system/profile';
+import { PostModule } from '../../modules/system/post';
+import { RoleModule } from '../../modules/system/role';
+import { SettingModule } from '../../modules/system/setting';
+import { AuditModule } from '../../modules/system/audit';
+import { I18nModule } from '../../modules/system/i18n';
+import { UserModule } from '../../modules/system/user';
+import { GeneratorModule } from '../../modules/lowcode/generator';
+import { DynamicModuleModule } from '../../modules/lowcode/dynamicmodule';
 import { generatedSystemModules } from '../../modules/generated/system';
-import { CmdbModule } from '../../modules/business/cmdb';
-import { BizScopeModule } from '../../modules/business/bizscope';
-import { DeployModule } from '../../modules/business/deploy';
 import { generatedBusinessModules } from '../../modules/generated/business';
+import { overlayBusinessModules } from '../../modules/businessOverlay';
 
 export const systemModules: ModuleConfig[] = [
   PlatformModule,
@@ -40,10 +38,8 @@ export const systemModules: ModuleConfig[] = [
 ];
 
 export const businessModules: ModuleConfig[] = [
-  CmdbModule,
-  BizScopeModule,
+  ...overlayBusinessModules,
   ...generatedBusinessModules,
-  DeployModule,
 ];
 
 export const registeredModules: ModuleConfig[] = [...systemModules, ...businessModules];

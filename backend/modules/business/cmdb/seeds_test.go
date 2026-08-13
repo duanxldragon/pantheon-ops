@@ -3,7 +3,7 @@ package cmdb
 import (
 	"testing"
 
-	"pantheon-ops/backend/pkg/testmysql"
+	"pantheon-base/pkg/testmysql"
 
 	"gorm.io/gorm"
 )

@@ -4,12 +4,12 @@ package dynamicmodule
 import (
 	"errors"
 	"log/slog"
-	"pantheon-ops/backend/pkg/common"
+	"pantheon-base/pkg/common"
 	"strings"
 	"time"
 
-	"pantheon-ops/backend/internal/scaffold"
-	systemi18n "pantheon-ops/backend/modules/system/i18n"
+	"pantheon-base/internal/scaffold"
+	systemi18n "pantheon-base/modules/system/i18n"
 
 	"gorm.io/gorm"
 )
@@ -286,17 +286,9 @@ func (s *DynamicModuleService) FinalizeUnregister(moduleName string, purgeSource
 	if scope != "business" {
 		return nil, common.NewForbidden(msgModuleBuiltinForbidden)
 	}
-	// Remove registry references while the source files still exist. This keeps
-	// Vite and Go file watchers from observing imports that point at a directory
-	// which has already been removed.
-	if _, err := s.refreshGeneratedWorkspaceArtifactsIfAvailable(); err != nil {
-		return nil, err
-	}
 	if err := scaffold.RemoveGeneratedModuleSource(s.workspaceRoot, scope, shortName); err != nil {
 		return nil, err
 	}
-	// Refresh again after deleting the schema so the feature ledger reflects
-	// the final workspace state.
 	if _, err := s.refreshGeneratedWorkspaceArtifactsIfAvailable(); err != nil {
 		return nil, err
 	}

@@ -104,16 +104,8 @@ Pantheon smoke tests are grouped by ownership boundary.
 
 Delete a smoke test only when its ownership is retired or another active smoke test covers the same user-facing risk with the same or better assertions. Prefer moving and renaming over deleting when the test is still valid but misplaced.
 
-## Ops Business Smoke Overlay
-
-The following smoke suites are owned by Pantheon Ops and are composed with the Base-generated business smoke closure:
+## Ops Business Overlay
 
 - `test:smoke:business:cmdb` -> `business/cmdb/cmdb-pages.spec.ts`
-- `test:smoke:business:deploy:api` -> `business/deploy/deploy-api.spec.ts`
 - `test:smoke:business:deploy` -> `business/deploy/deploy-pages.spec.ts`
-
-| Area | Feature points | Test file |
-| :--- | :--- | :--- |
-| business/cmdb | Host list/detail, group tree and empty state, create/filter/status/delete flows | `business/cmdb/cmdb-pages.spec.ts` |
-| business/deploy api | Deploy task lifecycle update/delete guards, manual execution closure, and uploaded source trace capture | `business/deploy/deploy-api.spec.ts` |
-| business/deploy ui | Deploy package/task pages and related user-facing route flows | `business/deploy/deploy-pages.spec.ts` |
+- `test:smoke:business:deploy:api` -> `business/deploy/deploy-api.spec.ts`
