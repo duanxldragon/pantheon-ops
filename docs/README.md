@@ -4,7 +4,7 @@ English version: [README.en.md](./README.en.md)
 
 `pantheon-ops` 是 Pantheon 平台的运维域业务仓库，从 `pantheon-base` 继承底座架构、契约和验收标准。
 
-默认继承方式已经调整为消费 `pantheon-base` 的 foundation release，而不是直接追随 `main`。
+默认继承方式是完整 Base 快照加声明式 business overlay；升级通过临时重建完成，不追踪逐文件共享漂移。
 
 本目录只承载本仓库**自有的业务文档**。架构、契约、UI 规范、通用验收等基座级文档全部由 `pantheon-base/docs/` 提供，不在 ops 复制副本。
 
@@ -15,14 +15,13 @@ English version: [README.en.md](./README.en.md)
 | 文档 | 用途 |
 |---|---|
 | [README.md](./README.md) / [README.en.md](./README.en.md) | 仓库入口与推荐阅读顺序 |
-| [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) / [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md) | 与 `pantheon-base` 的继承关系、版本锁定、本地业务范围与 override 边界 |
+| [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) / [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md) | 完整 Base 快照、business overlay、本地业务范围与升级边界 |
 | [../.agents/skills/README.zh.md](../.agents/skills/README.zh.md) / [../.agents/skills/README.md](../.agents/skills/README.md) | repo-local agent skills：继承校验、PR 收口、GitHub comments 自动处理、CI 红灯排查 |
 | [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) / [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.md) | `pantheon-ops` 业务开发与 `base -> ops` 同步的最小任务包模板 |
 | [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md) / [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md) | 业务域模块设计：业务域台账、主机绑定边界与 Deploy 信任来源 |
 | [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) / [designs/BUSINESS_CMDB_MODULE_DESIGN.en.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.en.md) | CMDB 业务模块完整设计（含数据模型、API、UI、字典依赖、验收） |
 | [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) / [designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md) | 安装部署业务模块完整设计 |
 | [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md) / [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md) | ops 业务模块 canonical 错误 key 语义附录 |
-| [designs/FOUNDATION_UPGRADE_PATH.md](./designs/FOUNDATION_UPGRADE_PATH.md) / [designs/FOUNDATION_UPGRADE_PATH.en.md](./designs/FOUNDATION_UPGRADE_PATH.en.md) | Foundation release 当前基线与滚动升级记录（含历史变更范围、升级步骤与回滚说明）|
 | [designs/PLATFORM_SRE_EVOLUTION_PLAN.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.md) / [designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md) | SRE 演进路线图：从 Web 平台到 K8s-native 的五阶段计划 |
 | [../DESIGN.md](../DESIGN.md) / [../DESIGN.en.md](../DESIGN.en.md) | 仓库级总体设计与继承的基座设计立场 |
 | [../frontend/README.md](../frontend/README.md) / [../frontend/README.en.md](../frontend/README.en.md) | 前端工作区说明 |

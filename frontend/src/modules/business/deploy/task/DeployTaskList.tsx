@@ -20,7 +20,7 @@ import { IconClose, IconDelete, IconEdit, IconEye, IconPlayArrow, IconPlus, Icon
 import {
   AppModal,
   AppTable,
-  FilterPanel,
+  SearchToolbar,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
@@ -57,7 +57,7 @@ import {
 } from '../api';
 import { buildDeployTemplateDefaultParameters, getDeployFixedTemplateCatalogEntry } from '../catalog';
 import { formatDateTime } from '../../../../core/format/dateTime';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../deploy.css';
 
 type TaskFormValues = {
@@ -99,8 +99,6 @@ export default function DeployTaskList() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const [keyword, setKeyword] = useState('');
-  const [status, setStatus] = useState('');
   const [queryKeyword, setQueryKeyword] = useState('');
   const [queryStatus, setQueryStatus] = useState('');
   const [page, setPage] = useState(1);
@@ -709,43 +707,38 @@ export default function DeployTaskList() {
             </GovernanceRailToggleButton>
           }
         />
-        <FilterPanel>
-          <Form layout="inline">
-            <Form.Item label={t('common.keyword')}><Input value={keyword} onChange={setKeyword} allowClear /></Form.Item>
-            <Form.Item label={t('business.deploy.task.status')}>
-              <Select value={status} onChange={setStatus} allowClear style={{ width: 150 }}>
-                {['draft', 'pending', 'running', 'success', 'failed', 'canceled'].map((item) => (
-                  <Select.Option key={item} value={item}>{t(`business.deploy.task.status.${item}`)}</Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item>
-              <Space>
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    setQueryKeyword(keyword);
-                    setQueryStatus(status);
-                    setPage(1);
-                  }}
-                >
-                  {t('common.search')}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setKeyword('');
-                    setStatus('');
-                    setQueryKeyword('');
-                    setQueryStatus('');
-                    setPage(1);
-                  }}
-                >
-                  {t('common.reset')}
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </FilterPanel>
+        <SearchToolbar
+          keyword={queryKeyword}
+          keywordPlaceholder={t('common.keyword')}
+          onKeywordChange={(value) => {
+            setQueryKeyword(value);
+            setSelectedRowKeys([]);
+            setPage(1);
+          }}
+          inlineFilters={
+            <Select
+              value={queryStatus || undefined}
+              onChange={(value) => {
+                setQueryStatus(value || '');
+                setSelectedRowKeys([]);
+                setPage(1);
+              }}
+              placeholder={t('business.deploy.task.status')}
+              allowClear
+            >
+              {['draft', 'pending', 'running', 'success', 'failed', 'canceled'].map((item) => (
+                <Select.Option key={item} value={item}>{t(`business.deploy.task.status.${item}`)}</Select.Option>
+              ))}
+            </Select>
+          }
+          hasActiveFilters={Boolean(queryKeyword || queryStatus)}
+          onClearAll={() => {
+            setQueryKeyword('');
+            setQueryStatus('');
+            setSelectedRowKeys([]);
+            setPage(1);
+          }}
+        />
         <TableBatchActionBar
           selectedCount={selectedRowKeys.length}
           selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
