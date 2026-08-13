@@ -86,7 +86,7 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
       businessPaths: ['backend/modules/business/cmdb', 'frontend/src/modules/business/cmdb'],
       repositoryOverlayPaths: ['scripts/business-overlay'],
       backendModules: [{ alias: 'cmdb', importPath: 'pantheon-base/modules/business/cmdb', init: 'InitCmdbModule' }],
-      frontendModules: [{ export: 'CmdbModule', importPath: '../business/cmdb' }],
+      frontendModules: [{ export: 'CmdbModule', importPath: './business/cmdb' }],
       components: [{ key: 'business/cmdb/CmdbList', importPath: '../../modules/business/cmdb/CmdbList' }],
       businessSmokeScripts: ['test:smoke:business:cmdb'],
     };
@@ -110,6 +110,9 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
     const firstReport = fs.readFileSync(path.join(targetRoot, '.business-overlay-report.json'), 'utf8');
     assert.match(fs.readFileSync(path.join(targetRoot, 'backend/modules/business/cmdb/module.go'), 'utf8'), /pantheon-base\/pkg\/contracts/u);
     assert.match(fs.readFileSync(path.join(targetRoot, 'backend/modules/business/business_overlay_registry.go'), 'utf8'), /cmdb\.InitCmdbModule/u);
+    const businessOverlay = fs.readFileSync(path.join(targetRoot, 'frontend/src/modules/businessOverlay.ts'), 'utf8');
+    assert.match(businessOverlay, /from '\.\.\/core\/router\/types'/u);
+    assert.match(businessOverlay, /from '\.\/business\/cmdb'/u);
     assert.match(fs.readFileSync(path.join(targetRoot, 'frontend/src/core/router/businessOverlayComponentRegistry.ts'), 'utf8'), /business\/cmdb\/CmdbList/u);
     assert.match(fs.readFileSync(path.join(targetRoot, 'frontend/src/i18n/resources/business/zh-CN.ts'), 'utf8'), /business\.cmdb\.title/u);
     assert.match(fs.readFileSync(path.join(targetRoot, 'frontend/src/i18n/resources/zh-CN.ts'), 'utf8'), /\.\.\.businessFallback/u);

@@ -100,15 +100,15 @@
   "frontendModules": [
     {
       "export": "BizScopeModule",
-      "importPath": "../business/bizscope"
+      "importPath": "./business/bizscope"
     },
     {
       "export": "CmdbModule",
-      "importPath": "../business/cmdb"
+      "importPath": "./business/cmdb"
     },
     {
       "export": "DeployModule",
-      "importPath": "../business/deploy"
+      "importPath": "./business/deploy"
     }
   ],
   "components": [

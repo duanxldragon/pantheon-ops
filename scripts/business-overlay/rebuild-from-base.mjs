@@ -31,6 +31,60 @@ function trackedFiles(root) {
     .map(repoPath);
 }
 
+function snapshotFiles(root) {
+  const results = [];
+  const visit = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      if (entry.name === '.git') continue;
+      const absolute = path.join(directory, entry.name);
+      if (entry.isDirectory()) visit(absolute);
+      else if (entry.isFile()) results.push(repoPath(path.relative(root, absolute)));
+    }
+  };
+  visit(root);
+  return results.sort();
+}
+
+function sha256FileHex(filePath) {
+  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+}
+
+function readLock(opsRoot) {
+  const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
+  if (!fs.existsSync(lockPath)) return null;
+  return JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+}
+
+function resolveBaseFromLock(opsRoot) {
+  const lock = readLock(opsRoot);
+  if (!lock?.repoSnapshot || !lock?.releaseArtifact?.localPath) return null;
+  const releaseDir = path.resolve(opsRoot, lock.releaseArtifact.localPath);
+  const repoDir = path.join(releaseDir, 'repo');
+  const repoTar = path.join(releaseDir, lock.repoSnapshot.assetName ?? 'repo.tar');
+  if (!fs.existsSync(repoDir) && fs.existsSync(repoTar)) {
+    fs.mkdirSync(repoDir, { recursive: true });
+    const result = spawnSync('tar', ['-xf', repoTar, '-C', repoDir], { encoding: 'utf8' });
+    if (result.status !== 0) {
+      throw new Error(result.stderr.trim() || `failed to extract ${repoTar}`);
+    }
+  }
+  if (!fs.existsSync(repoDir)) {
+    throw new Error(
+      `Base snapshot missing: ${repoDir}. Generate it with: git -C ../pantheon-base archive ${lock.baseCommit} -o ${repoTar} && tar -xf ${repoTar} -C ${releaseDir}`,
+    );
+  }
+  if (fs.existsSync(repoTar) && lock.repoSnapshot.sha256) {
+    const actual = sha256FileHex(repoTar);
+    if (actual !== lock.repoSnapshot.sha256) {
+      throw new Error(`repo.tar sha256 mismatch: expected ${lock.repoSnapshot.sha256}, got ${actual}`);
+    }
+  }
+  if (lock.repoSnapshot.baseCommit && lock.repoSnapshot.baseCommit !== lock.baseCommit) {
+    throw new Error(`repoSnapshot.baseCommit ${lock.repoSnapshot.baseCommit} != lock.baseCommit ${lock.baseCommit}`);
+  }
+  return { baseRoot: repoDir, baseCommit: lock.baseCommit };
+}
+
 function copyFile(sourceRoot, targetRoot, relativePath) {
   const source = path.join(sourceRoot, relativePath);
   const target = path.join(targetRoot, relativePath);
@@ -114,7 +168,7 @@ function generateRegistries(targetRoot, manifest) {
     .map((entry) => `import { ${entry.export} } from '${entry.importPath}';`)
     .join('\n');
   const frontendEntries = manifest.frontendModules.map((entry) => `  ${entry.export},`).join('\n');
-  const frontendModules = `import type { ModuleConfig } from '../../core/router/types';\n${frontendImports}\n\nexport const overlayBusinessModules: ModuleConfig[] = [\n${frontendEntries}\n];\n`;
+  const frontendModules = `import type { ModuleConfig } from '../core/router/types';\n${frontendImports}\n\nexport const overlayBusinessModules: ModuleConfig[] = [\n${frontendEntries}\n];\n`;
 
   const componentEntries = manifest.components
     .map((entry) => `  '${entry.key}': defineRegistryEntry(() => import('${entry.importPath}')),`)
@@ -329,11 +383,11 @@ function fileHash(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
 
-function writeReport(targetRoot, baseRoot, copiedBusiness, copiedRepository, rewritten, generated) {
+function writeReport(targetRoot, baseCommit, copiedBusiness, copiedRepository, rewritten, generated) {
   const owned = [...new Set([...copiedBusiness, ...copiedRepository, ...generated])].sort();
   const report = {
     schemaVersion: 1,
-    baseCommit: runGit(baseRoot, ['rev-parse', 'HEAD']),
+    baseCommit,
     ownedFiles: owned.map((file) => ({ path: file, sha256: fileHash(path.join(targetRoot, file)) })),
     rewrittenGoImports: rewritten,
     generatedFiles: generated.sort(),
@@ -347,7 +401,21 @@ export function rebuildFromBase({ opsRoot = defaultOpsRoot, baseRoot, targetRoot
   const resolvedManifest = manifestPath ?? path.join(opsRoot, 'business-overlay.json');
   const manifest = JSON.parse(fs.readFileSync(resolvedManifest, 'utf8'));
   assertSafeManifest(manifest);
-  const resolvedBase = path.resolve(opsRoot, baseRoot ?? manifest.base.source);
+
+  let resolvedBase;
+  let lockedBaseCommit = null;
+  if (baseRoot) {
+    resolvedBase = path.resolve(opsRoot, baseRoot);
+  } else {
+    const fromLock = resolveBaseFromLock(opsRoot);
+    if (fromLock) {
+      resolvedBase = fromLock.baseRoot;
+      lockedBaseCommit = fromLock.baseCommit;
+    } else {
+      resolvedBase = path.resolve(opsRoot, manifest.base.source);
+    }
+  }
+
   const resolvedTarget = path.resolve(opsRoot, targetRoot ?? '.tmp/business-overlay-rebuild');
   if (resolvedTarget === path.resolve(opsRoot) || resolvedTarget === resolvedBase) {
     throw new Error('Refusing to rebuild over a source repository');
@@ -355,7 +423,9 @@ export function rebuildFromBase({ opsRoot = defaultOpsRoot, baseRoot, targetRoot
   fs.rmSync(resolvedTarget, { recursive: true, force: true });
   fs.mkdirSync(resolvedTarget, { recursive: true });
 
-  const baseTracked = trackedFiles(resolvedBase);
+  const baseIsGit = fs.existsSync(path.join(resolvedBase, '.git'));
+  const baseTracked = baseIsGit ? trackedFiles(resolvedBase) : snapshotFiles(resolvedBase);
+  const baseCommit = lockedBaseCommit ?? runGit(resolvedBase, ['rev-parse', 'HEAD']);
   for (const file of baseTracked) copyFile(resolvedBase, resolvedTarget, file);
   pruneBaseRepositoryOverlay(resolvedTarget, manifest);
   const opsTracked = trackedFiles(opsRoot);
@@ -375,7 +445,7 @@ export function rebuildFromBase({ opsRoot = defaultOpsRoot, baseRoot, targetRoot
   generated.push('package.json', 'frontend/package.json');
   generated.push(...wireBusinessSmokeCoverage(opsRoot, resolvedTarget, manifest));
   generated.push(...protectBusinessOverlayFromGeneratedCleanup(resolvedTarget, manifest));
-  const report = writeReport(resolvedTarget, resolvedBase, copiedBusiness, copiedRepository, rewritten, generated);
+  const report = writeReport(resolvedTarget, baseCommit, copiedBusiness, copiedRepository, rewritten, generated);
   return { targetRoot: resolvedTarget, report };
 }
 
