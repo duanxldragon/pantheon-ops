@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"pantheon-ops/backend/internal/scaffold"
-	"pantheon-ops/backend/pkg/common"
+	"pantheon-base/internal/scaffold"
+	"pantheon-base/pkg/common"
 
 	"github.com/gin-gonic/gin"
 )

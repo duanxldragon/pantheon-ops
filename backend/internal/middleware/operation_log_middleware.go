@@ -13,8 +13,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/metrics"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/metrics"
 
 	"gorm.io/gorm"
 

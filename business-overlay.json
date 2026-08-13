@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "base": {
+    "module": "pantheon-base"
+  },
+  "sourceModule": "pantheon-ops/backend",
+  "goDependencies": {
+    "gorm.io/datatypes": "v1.2.7"
+  },
+  "replaceRoots": [
+    ".agents",
+    ".github",
+    ".harness",
+    "docs"
+  ],
+  "baseExcludedPaths": [
+    "scripts/foundation-release",
+    "tests/scripts/foundation-release"
+  ],
+  "businessPaths": [
+    "backend/modules/business/bizscope",
+    "backend/modules/business/cmdb",
+    "backend/modules/business/deploy",
+    "backend/modules/business/retired_modules_overlay.go",
+    "frontend/src/modules/business",
+    "frontend/tests/smoke/business/cmdb",
+    "frontend/tests/smoke/business/deploy",
+    "docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md",
+    "docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md",
+    "docs/designs/BUSINESS_CMDB_MODULE_DESIGN.en.md",
+    "docs/designs/BUSINESS_CMDB_MODULE_DESIGN.md",
+    "docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md",
+    "docs/designs/BUSINESS_DEPLOY_MODULE_DESIGN.md",
+    "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md",
+    "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md",
+    "docs/designs/BUSINESS_SMOKE_OVERLAY.md"
+  ],
+  "repositoryOverlayPaths": [
+    ".agents",
+    ".github",
+    ".githooks",
+    ".gitignore",
+    ".gitleaks.toml",
+    ".gitmessage",
+    ".sonarcloud.properties",
+    ".harness",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "CONTRIBUTING.en.md",
+    "CONTRIBUTING.md",
+    "DESIGN.en.md",
+    "DESIGN.md",
+    "README.en.md",
+    "README.md",
+    "SECURITY.en.md",
+    "SECURITY.md",
+    "docker-compose.yml",
+    "foundation-release.lock.json",
+    "frontend/README.en.md",
+    "docs/PROJECT_INHERITANCE.en.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/README.en.md",
+    "docs/README.md",
+    "docs/TASK_PACKET_OPS_TEMPLATE.en.md",
+    "docs/TASK_PACKET_OPS_TEMPLATE.md",
+    "docs/designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md",
+    "docs/designs/PLATFORM_SRE_EVOLUTION_PLAN.md",
+    "docs/harness",
+    "scripts/address-github-feedback.mjs",
+    "scripts/business-overlay",
+    "scripts/check-duplication.mjs",
+    "scripts/check-encoding.mjs",
+    "scripts/check-pr-governance.mjs",
+    "scripts/check-structure-contract.mjs",
+    "scripts/check-task-packet-template.mjs",
+    "scripts/cleanup-github-branches.mjs",
+    "scripts/fetch-github-feedback.mjs",
+    "scripts/frontmatter-check.mjs",
+    "scripts/migrate-task-manifests.mjs",
+    "scripts/run-github-feedback-loop.mjs",
+    "scripts/task-manifest.mjs",
+    "tests/fixtures",
+    "tests/scripts/business-overlay",
+    "tests/scripts/check-encoding.test.mjs",
+    "tests/scripts/workflow-baseline.test.mjs"
+  ],
+  "backendModules": [
+    {
+      "alias": "bizscope",
+      "importPath": "pantheon-base/modules/business/bizscope",
+      "init": "InitBizScopeModule"
+    },
+    {
+      "alias": "cmdb",
+      "importPath": "pantheon-base/modules/business/cmdb",
+      "init": "InitCmdbModule"
+    },
+    {
+      "alias": "deploy",
+      "importPath": "pantheon-base/modules/business/deploy",
+      "init": "InitDeployModule"
+    }
+  ],
+  "frontendModules": [
+    {
+      "export": "BizScopeModule",
+      "importPath": "./business/bizscope"
+    },
+    {
+      "export": "CmdbModule",
+      "importPath": "./business/cmdb"
+    },
+    {
+      "export": "DeployModule",
+      "importPath": "./business/deploy"
+    }
+  ],
+  "components": [
+    { "key": "business/bizscope/BizScopeList", "importPath": "../../modules/business/bizscope/BizScopeList" },
+    { "key": "business/bizscope/BizScopeDetail", "importPath": "../../modules/business/bizscope/BizScopeDetail" },
+    { "key": "business/cmdb/host/CmdbHostList", "importPath": "../../modules/business/cmdb/host/CmdbHostList" },
+    { "key": "business/cmdb/host/CmdbHostDetail", "importPath": "../../modules/business/cmdb/host/CmdbHostDetail" },
+    { "key": "business/cmdb/group/CmdbGroupList", "importPath": "../../modules/business/cmdb/group/CmdbGroupList" },
+    { "key": "business/cmdb/label/CmdbLabelSchemaList", "importPath": "../../modules/business/cmdb/label/CmdbLabelSchemaList" },
+    { "key": "business/deploy/package/DeployPackageList", "importPath": "../../modules/business/deploy/package/DeployPackageList" },
+    { "key": "business/deploy/template/DeployTemplateList", "importPath": "../../modules/business/deploy/template/DeployTemplateList" },
+    { "key": "business/deploy/task/DeployTaskList", "importPath": "../../modules/business/deploy/task/DeployTaskList" },
+    { "key": "business/deploy/task/DeployTaskDetail", "importPath": "../../modules/business/deploy/task/DeployTaskDetail" }
+  ],
+  "businessSmokeScripts": [
+    "test:smoke:business",
+    "test:smoke:business:cmdb",
+    "test:smoke:business:deploy",
+    "test:smoke:business:deploy:api"
+  ]
+}

@@ -33,7 +33,12 @@ function propertyNameToString(node, filePath) {
 }
 
 function evaluateExpression(node, state) {
-  if (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) || ts.isSatisfiesExpression(node) || ts.isNonNullExpression(node)) {
+  if (
+    ts.isParenthesizedExpression(node) ||
+    ts.isAsExpression(node) ||
+    ts.isSatisfiesExpression(node) ||
+    ts.isNonNullExpression(node)
+  ) {
     return evaluateExpression(node.expression, state);
   }
   if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
@@ -55,7 +60,10 @@ function evaluateExpression(node, state) {
     const value = {};
     for (const property of node.properties) {
       if (ts.isPropertyAssignment(property)) {
-        value[propertyNameToString(property.name, state.filePath)] = evaluateExpression(property.initializer, state);
+        value[propertyNameToString(property.name, state.filePath)] = evaluateExpression(
+          property.initializer,
+          state,
+        );
         continue;
       }
       if (ts.isShorthandPropertyAssignment(property)) {
@@ -107,7 +115,13 @@ export function loadResourceModule(modulePath, cache = new Map(), loading = new 
   loading.add(resolvedPath);
   try {
     const source = fs.readFileSync(resolvedPath, 'utf8');
-    const sourceFile = ts.createSourceFile(resolvedPath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+    const sourceFile = ts.createSourceFile(
+      resolvedPath,
+      source,
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.TS,
+    );
     const state = {
       declarations: new Map(),
       filePath: resolvedPath,

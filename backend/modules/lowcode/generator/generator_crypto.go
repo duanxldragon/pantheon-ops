@@ -8,8 +8,8 @@ import (
 	"io"
 	"strings"
 
-	"pantheon-ops/backend/pkg/common"
-	commonsecurity "pantheon-ops/backend/pkg/common/security"
+	"pantheon-base/pkg/common"
+	commonsecurity "pantheon-base/pkg/common/security"
 )
 
 const generatorEncryptedPrefix = "enc:v1:"

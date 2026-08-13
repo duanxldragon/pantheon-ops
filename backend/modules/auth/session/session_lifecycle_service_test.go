@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-ops/backend/pkg/authtoken"
-	"pantheon-ops/backend/pkg/database"
-	"pantheon-ops/backend/pkg/testmysql"
-	"pantheon-ops/backend/pkg/testredis"
+	"pantheon-base/pkg/authtoken"
+	"pantheon-base/pkg/database"
+	"pantheon-base/pkg/testmysql"
+	"pantheon-base/pkg/testredis"
 )
 
 func setupLifecycleTestDB(t *testing.T) *LifecycleService {

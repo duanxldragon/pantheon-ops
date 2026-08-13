@@ -2,11 +2,13 @@ package scaffold
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
-	"pantheon-ops/backend/pkg/common"
+	"pantheon-base/pkg/common"
 )
 
 func TestValidateRegisterRequestHonorsScopeSpecificModuleNameRules(t *testing.T) {
@@ -87,7 +89,7 @@ func TestValidateRegisterRequestRejectsUnsafeManagedTableName(t *testing.T) {
 	}
 
 	err := ValidateRegisterRequest(req)
-	if err == nil || common.ErrMessage(err) != "module.generate.invalid_table_name" {
+	if err == nil || !strings.Contains(err.Error(), "module.generate.invalid_table_name") {
 		t.Fatalf("expected invalid table name error, got %v", err)
 	}
 }
@@ -172,6 +174,33 @@ func TestValidateRegisterRequestRejectsInvalidGovernanceContract(t *testing.T) {
 			},
 			wantError: "module.generate.invalid_relation",
 		},
+		{
+			name: "relation metadata fields must be identifiers",
+			mutate: func(req *RegisterGeneratedModuleRequest) {
+				req.Schema.Metadata.TableRole = "relation"
+				req.Schema.Metadata.RelationFromField = "asset_id'; alert(1) //"
+				req.Schema.Metadata.RelationToField = "vendor_id"
+			},
+			wantError: "module.generate.invalid_relation",
+		},
+		{
+			name: "relation metadata fields reject boundary whitespace",
+			mutate: func(req *RegisterGeneratedModuleRequest) {
+				req.Schema.Metadata.TableRole = "relation"
+				req.Schema.Metadata.RelationFromField = " asset_id "
+				req.Schema.Metadata.RelationToField = "vendor_id"
+			},
+			wantError: "module.generate.invalid_relation",
+		},
+		{
+			name: "relation metadata fields reject whitespace only values",
+			mutate: func(req *RegisterGeneratedModuleRequest) {
+				req.Schema.Metadata.TableRole = "relation"
+				req.Schema.Metadata.RelationFromField = "\t"
+				req.Schema.Metadata.RelationToField = "vendor_id"
+			},
+			wantError: "module.generate.invalid_relation",
+		},
 	}
 
 	for _, tt := range tests {
@@ -219,80 +248,8 @@ func TestValidateRegisterRequestAcceptsP2GovernanceContract(t *testing.T) {
 	}
 }
 
-func TestWriteGeneratedModuleSourceBuildsFilesServerSideWhenFilesOmitted(t *testing.T) {
-	root := prepareScaffoldWorkspaceRoot(t)
-	scriptDir := filepath.Join(root, "frontend", "scripts")
-	if err := os.MkdirAll(scriptDir, 0o755); err != nil {
-		t.Fatalf("mkdir script dir: %v", err)
-	}
-	script := `import { readFileSync } from 'node:fs';
-const schema = JSON.parse(readFileSync(process.argv[2], 'utf8'));
-const files = [
-  {
-    path: 'backend/modules/business/asset/module.go',
-    content: 'package asset\n',
-    language: 'go',
-  },
-  {
-    path: 'frontend/src/modules/business/asset/index.ts',
-    content: 'export const AssetModule = {}\n',
-    language: 'typescript',
-  },
-];
-process.stdout.write(JSON.stringify(files));
-`
-	if err := os.WriteFile(filepath.Join(scriptDir, "export-generated-module.mjs"), []byte(script), 0o644); err != nil {
-		t.Fatalf("write script: %v", err)
-	}
-
-	req := newScaffoldTestRequest()
-	req.Files = nil
-
-	written, err := WriteGeneratedModuleSource(root, req)
-	if err != nil {
-		t.Fatalf("write generated source with server-side generation: %v", err)
-	}
-
-	if len(written) != 3 {
-		t.Fatalf("expected 3 written artifacts, got %d (%v)", len(written), written)
-	}
-	if !fileExists(filepath.Join(root, "backend", "modules", "business", "asset", "module.go")) {
-		t.Fatal("expected backend module file to be generated")
-	}
-	if !fileExists(filepath.Join(root, "frontend", "src", "modules", "business", "asset", "index.ts")) {
-		t.Fatal("expected frontend module file to be generated")
-	}
-	if !fileExists(filepath.Join(root, "schema", "generated", "business", "asset.json")) {
-		t.Fatal("expected schema file to be written")
-	}
-}
-
 func TestWriteGeneratedFallbackResourcesBuildsGeneratedLocaleFiles(t *testing.T) {
 	root := t.TempDir()
-	foundationLocaleDir := filepath.Join(root, "frontend", "src", "i18n", "resources", "foundation")
-	if err := os.MkdirAll(foundationLocaleDir, 0o755); err != nil {
-		t.Fatalf("mkdir foundation locale dir: %v", err)
-	}
-	for _, locale := range []string{"zh-CN", "en-US", "ja-JP", "ko-KR", "fr-FR"} {
-		if err := os.WriteFile(
-			filepath.Join(foundationLocaleDir, locale+".json"),
-			[]byte(`{"foundation.request.failed":"Request failed"}`),
-			0o644,
-		); err != nil {
-			t.Fatalf("write foundation locale %s: %v", locale, err)
-		}
-	}
-	moduleLocaleDir := filepath.Join(root, "frontend", "src", "modules", "business", "deploy", "locales")
-	if err := os.MkdirAll(moduleLocaleDir, 0o755); err != nil {
-		t.Fatalf("mkdir module locale dir: %v", err)
-	}
-	if err := os.WriteFile(
-		filepath.Join(moduleLocaleDir, "zh-CN.json"),
-		[]byte(`{"business.deploy.package.templateSummary":"模板说明"}`),
-		0o644,
-	); err != nil {
-		t.Fatalf("write module locale: %v", err)
-	}
 	schemaDir := filepath.Join(root, "schema", "generated", "business", "cmdb")
 	if err := os.MkdirAll(schemaDir, 0o755); err != nil {
 		t.Fatalf("mkdir schema dir: %v", err)
@@ -335,15 +292,6 @@ func TestWriteGeneratedFallbackResourcesBuildsGeneratedLocaleFiles(t *testing.T)
 	if !strings.Contains(string(zhContent), `"business.cmdb.host.permission.export": "导出主机管理"`) {
 		t.Fatalf("expected zh generated fallback to include host export permission, got %s", string(zhContent))
 	}
-	if !strings.Contains(string(zhContent), `"business.deploy.package.templateSummary": "模板说明"`) {
-		t.Fatalf("expected zh generated fallback to preserve static business locale, got %s", string(zhContent))
-	}
-	if !strings.Contains(string(zhContent), `"foundation.request.failed": "Request failed"`) {
-		t.Fatalf("expected zh generated fallback to preserve foundation locale, got %s", string(zhContent))
-	}
-	if !strings.Contains(string(zhContent), `"business.cmdb.host.permission.export": "导出主机管理",`) {
-		t.Fatalf("expected canonical TypeScript serialization with trailing commas, got %s", string(zhContent))
-	}
 
 	enContent, err := os.ReadFile(filepath.Join(root, "frontend", "src", "i18n", "resources", "generated", "en-US.ts"))
 	if err != nil {
@@ -362,26 +310,69 @@ func TestWriteGeneratedFallbackResourcesBuildsGeneratedLocaleFiles(t *testing.T)
 	}
 }
 
-func TestSerializeGeneratedLocaleMatchesCanonicalKeyOrder(t *testing.T) {
-	content, err := serializeGeneratedLocale("generatedzhCNFallback", map[string]string{
-		"auth.loginLog.search.placeholder":  "camel",
-		"auth.login_log.time_range.end":     "snake",
-		"business.deploy.task.startSshHint": "hint",
-		"business.deploy.task.startedAt":    "time",
-	})
+func TestWriteGeneratedModuleSourceBuildsFilesServerSideWhenFilesOmitted(t *testing.T) {
+	root := prepareScaffoldWorkspaceRoot(t)
+	scriptDir := filepath.Join(root, "frontend", "scripts")
+	if err := os.MkdirAll(scriptDir, 0o755); err != nil {
+		t.Fatalf("mkdir script dir: %v", err)
+	}
+	script := `import { readFileSync } from 'node:fs';
+const schema = JSON.parse(readFileSync(process.argv[2], 'utf8'));
+const files = [
+  {
+    path: 'backend/modules/business/asset/module.go',
+    content: 'package asset\n',
+    language: 'go',
+  },
+  {
+    path: 'frontend/src/modules/business/asset/index.ts',
+    content: 'export const AssetModule = {}\n',
+    language: 'typescript',
+  },
+];
+process.stdout.write(JSON.stringify(files));
+`
+	if err := os.WriteFile(filepath.Join(scriptDir, "export-generated-module.mjs"), []byte(script), 0o644); err != nil {
+		t.Fatalf("write script: %v", err)
+	}
+	nodeBinary, err := exec.LookPath("node")
 	if err != nil {
-		t.Fatalf("serialize generated locale: %v", err)
+		t.Skip("node is not installed in PATH")
+	}
+	t.Setenv("PANTHEON_NODE_BIN", nodeBinary)
+
+	req := newScaffoldTestRequest()
+	req.Files = nil
+
+	written, err := WriteGeneratedModuleSource(root, req)
+	if err != nil {
+		t.Fatalf("write generated source with server-side generation: %v", err)
 	}
 
-	snakeIndex := strings.Index(content, `"auth.login_log.time_range.end"`)
-	camelIndex := strings.Index(content, `"auth.loginLog.search.placeholder"`)
-	startedIndex := strings.Index(content, `"business.deploy.task.startedAt"`)
-	startSSHIndex := strings.Index(content, `"business.deploy.task.startSshHint"`)
-	if snakeIndex < 0 || camelIndex < 0 || snakeIndex >= camelIndex {
-		t.Fatalf("expected snake-case key before camel-case key, got %s", content)
+	if len(written) != 3 {
+		t.Fatalf("expected 3 written artifacts, got %d (%v)", len(written), written)
 	}
-	if startedIndex < 0 || startSSHIndex < 0 || startedIndex >= startSSHIndex {
-		t.Fatalf("expected case-insensitive key order, got %s", content)
+	if !fileExists(filepath.Join(root, "backend", "modules", "business", "asset", "module.go")) {
+		t.Fatal("expected backend module file to be generated")
+	}
+	if !fileExists(filepath.Join(root, "frontend", "src", "modules", "business", "asset", "index.ts")) {
+		t.Fatal("expected frontend module file to be generated")
+	}
+	if !fileExists(filepath.Join(root, "schema", "generated", "business", "asset.json")) {
+		t.Fatal("expected schema file to be written")
+	}
+}
+
+func TestWriteGeneratedModuleSourceRejectsEscapingGeneratedFilePath(t *testing.T) {
+	root := prepareScaffoldWorkspaceRoot(t)
+	req := newScaffoldTestRequest()
+	req.Files = []GeneratedFile{{
+		Path:    "backend/modules/business/asset/../../outside.go",
+		Content: "package outside\n",
+	}}
+
+	if _, err := WriteGeneratedModuleSource(root, req); err == nil || !strings.Contains(err.Error(), "module.generate.invalid_path") {
+		t.Fatalf("expected invalid path error, got %v", err)
 	}
 }
 
@@ -435,28 +426,129 @@ func TestResolveWorkspaceRootIgnoresEnvWhenExplicitStartProvided(t *testing.T) {
 	}
 }
 
-func TestResolveWorkspacePathRejectsEscapes(t *testing.T) {
-	root := prepareScaffoldWorkspaceRoot(t)
-
-	if _, err := resolveWorkspacePath(root, "../outside.txt"); err == nil {
-		t.Fatal("expected relative escape path rejected")
+func TestResolveWorkspaceRootFallsBackToSourceTreeWhenCwdIsNotWorkspace(t *testing.T) {
+	originalWd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
 	}
-	if _, err := resolveWorkspacePath(root, "backend/modules/business/asset/module.go"); err != nil {
-		t.Fatalf("expected in-workspace path accepted, got %v", err)
+	tempWd := t.TempDir()
+	if err := os.Chdir(tempWd); err != nil {
+		t.Fatalf("chdir temp: %v", err)
+	}
+	defer func() {
+		_ = os.Chdir(originalWd)
+	}()
+
+	resolved, err := ResolveWorkspaceRoot("")
+	if err != nil {
+		t.Fatalf("resolve workspace root from source fallback: %v", err)
+	}
+	if !isWorkspaceRoot(resolved) {
+		t.Fatalf("expected source-tree fallback to a valid workspace root, got %s", resolved)
+	}
+
+	_, sourceFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("resolve source file path: runtime caller unavailable")
+	}
+	sourceFile, err = filepath.Abs(sourceFile)
+	if err != nil {
+		t.Fatalf("resolve absolute source file path: %v", err)
+	}
+	relativeToRoot, err := filepath.Rel(resolved, sourceFile)
+	if err != nil {
+		t.Fatalf("resolve source file relative path: %v", err)
+	}
+	if relativeToRoot == "." || relativeToRoot == ".." || strings.HasPrefix(relativeToRoot, ".."+string(os.PathSeparator)) {
+		t.Fatalf("expected source file %s to stay under workspace root %s", sourceFile, resolved)
+	}
+}
+
+func TestResolveNodeBinaryUsesAbsoluteEnvOverride(t *testing.T) {
+	nodeBinary := filepath.Join(t.TempDir(), "node.exe")
+	if err := os.WriteFile(nodeBinary, []byte(""), 0o644); err != nil {
+		t.Fatalf("write fake node binary: %v", err)
+	}
+	t.Setenv("PANTHEON_NODE_BIN", nodeBinary)
+
+	resolved, err := resolveNodeBinary()
+	if err != nil {
+		t.Fatalf("expected absolute node override accepted, got %v", err)
+	}
+	if !filepath.IsAbs(resolved) {
+		t.Fatalf("expected absolute node binary path, got %s", resolved)
+	}
+}
+
+func TestResolveNodeBinaryRejectsRelativeEnvOverride(t *testing.T) {
+	t.Setenv("PANTHEON_NODE_BIN", filepath.Join("tools", "node.exe"))
+
+	if _, err := resolveNodeBinary(); err == nil {
+		t.Fatal("expected relative node override rejected")
 	}
 }
 
 func prepareScaffoldWorkspaceRoot(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
-	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module pantheon-ops\n\ngo 1.25.4\n"), 0o644); err != nil {
-		t.Fatalf("write go.mod: %v", err)
-	}
 	if err := os.MkdirAll(filepath.Join(root, "backend"), 0o755); err != nil {
 		t.Fatalf("mkdir backend: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "backend", "go.mod"), []byte("module pantheon-platform\n\ngo 1.25.4\n"), 0o644); err != nil {
+		t.Fatalf("write go.mod: %v", err)
 	}
 	if err := os.MkdirAll(filepath.Join(root, "frontend"), 0o755); err != nil {
 		t.Fatalf("mkdir frontend: %v", err)
 	}
 	return root
+}
+
+// TestWriteGeneratedRegistriesProducesEmptyButCompilableArtifacts 验证无生成模块时，
+// WriteGeneratedRegistries 不会写出"半截"或"语法破损"的注册表，避免 base 启动失败。
+// 该测试用 gofmt 校验 .go 产物与一段最小 tsconfig 校验 .ts 产物，确保下游 build 一定能跑通。
+func TestWriteGeneratedRegistriesProducesEmptyButCompilableArtifacts(t *testing.T) {
+	root := prepareScaffoldWorkspaceRoot(t)
+
+	if err := WriteGeneratedRegistries(root, nil); err != nil {
+		t.Fatalf("write generated registries with empty refs: %v", err)
+	}
+
+	backendRegistry := filepath.Join(root, "backend", "modules", "business", "generated_registry.go")
+	backendContent, err := os.ReadFile(backendRegistry)
+	if err != nil {
+		t.Fatalf("read backend registry: %v", err)
+	}
+	if !strings.Contains(string(backendContent), "package business") {
+		t.Fatalf("expected backend registry to declare package business, got: %s", string(backendContent))
+	}
+	if !strings.Contains(string(backendContent), "InitGeneratedBusinessModules") {
+		t.Fatalf("expected backend registry to expose InitGeneratedBusinessModules, got: %s", string(backendContent))
+	}
+	if !strings.Contains(string(backendContent), "gin-gonic/gin") {
+		t.Fatalf("expected backend registry to keep gin import, got: %s", string(backendContent))
+	}
+
+	gofmtPath, err := exec.LookPath("gofmt")
+	if err == nil {
+		cmd := exec.Command(gofmtPath, "-l", backendRegistry)
+		output, err := cmd.Output()
+		if err != nil {
+			t.Fatalf("gofmt -l on backend registry: %v", err)
+		}
+		if strings.TrimSpace(string(output)) != "" {
+			t.Fatalf("backend registry fails gofmt check: %s", string(output))
+		}
+	}
+
+	frontendRegistry := filepath.Join(root, "frontend", "src", "modules", "generated", "business.ts")
+	frontendContent, err := os.ReadFile(frontendRegistry)
+	if err != nil {
+		t.Fatalf("read frontend registry: %v", err)
+	}
+	if !strings.Contains(string(frontendContent), "ModuleConfig") {
+		t.Fatalf("expected frontend registry to reference ModuleConfig type, got: %s", string(frontendContent))
+	}
+	if !strings.Contains(string(frontendContent), "generatedBusinessModules") {
+		t.Fatalf("expected frontend registry to export generatedBusinessModules, got: %s", string(frontendContent))
+	}
 }

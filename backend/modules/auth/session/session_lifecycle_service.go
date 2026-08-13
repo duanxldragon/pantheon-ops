@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"pantheon-ops/backend/pkg/authtoken"
-	"pantheon-ops/backend/pkg/database"
+	"pantheon-base/pkg/authtoken"
+	"pantheon-base/pkg/database"
 
 	"gorm.io/gorm"
 )

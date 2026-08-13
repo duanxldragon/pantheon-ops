@@ -1,0 +1,46 @@
+{
+  "$schema": "internal — Claude reads this file to resolve the codex -m and reasoning flags",
+  "description": "Model tiers for codex exec. Edit here when models iterate; CLAUDE.md references tier names only.",
+  "updated_at": "2026-06-08",
+
+  "tiers": {
+    "quick": {
+      "model": "gpt-5.4-mini",
+      "reasoning": "medium",
+      "sandbox": "read-only",
+      "usage": "Read-only exploration: codegraph searches, reading files, locating symbols, doc-only changes, trivial text fixes."
+    },
+    "standard": {
+      "model": "gpt-5.4",
+      "reasoning": "high",
+      "sandbox": "read-write",
+      "usage": "Default for any task that writes code: features, bug fixes, UI pages, CRUD, tests, smoke specs, config changes."
+    },
+    "deep": {
+      "model": "gpt-5.5",
+      "reasoning": "xhigh",
+      "sandbox": "read-write",
+      "usage": "Complex or dangerous: auth/security, permission model, schema migrations, cross-module refactors, generator/dynamic-module, import/export, middleware, pkg/common."
+    }
+  },
+
+  "autoSelect": {
+    "quick": [
+      "task is read-only exploration",
+      "doc-only or trivial text changes"
+    ],
+    "deep": [
+      "touches auth / login / session / MFA / security policy",
+      "touches permission model / Casbin / role authorization",
+      "touches database schema / migrations / seed data",
+      "touches middleware / request pipeline",
+      "touches generator / dynamic-module / scaffold / lowcode",
+      "touches pkg/common or pkg/contracts",
+      "touches import / export",
+      "cross-module refactor spanning 3+ packages"
+    ],
+    "standard": [
+      "anything not matching quick or deep — the default"
+    ]
+  }
+}

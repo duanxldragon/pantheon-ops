@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/testmysql"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/testmysql"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

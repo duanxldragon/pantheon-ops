@@ -72,15 +72,11 @@ function assertOmitsDashboardWidget(source: string) {
   assert.doesNotMatch(source, /registrationOwner:/);
 }
 
-test('includes dashboard widget for default business main-table schema', () => {
+test('includes dashboard widget only for business main tables with widget enabled', () => {
   assertHasDashboardWidget(generateIndex(createSchema()));
-});
 
-test('omits dashboard widget when includeDashboardWidget=false', () => {
   assertOmitsDashboardWidget(generateIndex(createSchema({ includeDashboardWidget: false })));
-});
 
-test('omits dashboard widget for relation table role', () => {
   assertOmitsDashboardWidget(generateIndex(createSchema({
     includeDashboardWidget: true,
     metadata: {

@@ -8,6 +8,7 @@ import {
   verifiedApiHeaders,
   type BrowserLoginResult,
 } from '../../helpers/auth';
+import { runOptionalSmokeCleanup } from '../../helpers/fixture-policy';
 
 type ResponseEnvelope<T> = {
   code: number;
@@ -102,7 +103,7 @@ const smokePermissionPath = '/api/v1/system/user/list';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const fixtureDir = path.resolve(__dirname, '../../../../../tests/fixtures/system-import-export');
+const fixtureDir = path.resolve(__dirname, '../../../fixtures/system-import-export');
 
 test.describe.serial('system import/export api smoke', () => {
   let apiContext: APIRequestContext;
@@ -126,7 +127,9 @@ test.describe.serial('system import/export api smoke', () => {
   });
 
   test.afterAll(async () => {
-    await cleanupSmokeFixtures(apiContext, login);
+    await runOptionalSmokeCleanup('system-api:import-export-fixtures', async () => {
+      await cleanupSmokeFixtures(apiContext, login);
+    });
     await apiContext.dispose();
   });
 

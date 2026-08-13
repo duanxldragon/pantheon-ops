@@ -1,0 +1,3 @@
+deptPath,postCode,postName,sort,status,remark
+#说明：保留第一行表头；deptPath 使用部门导出的完整路径；postCode 是稳定唯一编码；status 使用 1=启用、2=禁用。,,,,,
+Pantheon Base/研发中心,developer,研发工程师,10,1,负责研发交付

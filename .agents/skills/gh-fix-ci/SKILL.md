@@ -10,7 +10,7 @@ This is the Pantheon Ops adaptation of CI-fix workflow for GitHub Actions.
 ## Before Using
 
 - Reproduce locally first with `repo-ci-triage`.
-- Run `npm run check:inheritance` when the patch may involve shared paths or a recent base sync.
+- Run `npm run check:business-overlay` when the patch may involve the manifest or a recent base-release lock change.
 - Do not use CI debugging as a substitute for local red tests.
 
 ## Minimal Loop

@@ -2,14 +2,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
-  Grid,
   Card,
   Button,
   Tag,
   Space,
   Popconfirm,
-  Form,
-  Input,
   Select,
   Message,
   Descriptions,
@@ -28,7 +25,7 @@ import {
   AppModal,
   AppTable,
   buildStandardPagination,
-  FilterPanel,
+  SearchToolbar,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
@@ -47,11 +44,8 @@ import { getBizScopeOptions, type BizScopeOptionItem } from '../../bizscope/api'
 import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
 import CmdbHostForm from './CmdbHostForm';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../cmdb.css';
-
-const Row = Grid.Row;
-const Col = Grid.Col;
 
 const statusColorMap: Record<string, string> = {
   pending: 'gray',
@@ -79,10 +73,6 @@ export default function CmdbHostList() {
   const [visible, setVisible] = useState(false);
   const [editing, setEditing] = useState<HostRow | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [keyword, setKeyword] = useState('');
-  const [filterStatus, setFilterStatus] = useState<string>('');
-  const [filterOS, setFilterOS] = useState<string>('');
-  const [filterBusinessScopeId, setFilterBusinessScopeId] = useState<number | undefined>();
   const [scopeOptions, setScopeOptions] = useState<BizScopeOptionItem[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string | number>>([]);
   const [error, setError] = useState<unknown>(null);
@@ -130,23 +120,16 @@ export default function CmdbHostList() {
     });
   }, []);
 
-  const handleSearch = () => {
+  const updateQuery = (patch: Partial<HostListQuery>) => {
     setSelectedRowKeys([]);
     setQuery((prev) => ({
       ...prev,
       page: 1,
-      keyword,
-      status: filterStatus,
-      os: filterOS,
-      businessScopeId: filterBusinessScopeId,
+      ...patch,
     }));
   };
 
   const handleReset = () => {
-    setKeyword('');
-    setFilterStatus('');
-    setFilterOS('');
-    setFilterBusinessScopeId(undefined);
     setSelectedRowKeys([]);
     setQuery({ page: 1, pageSize: 10 });
   };
@@ -468,80 +451,54 @@ export default function CmdbHostList() {
             </GovernanceRailToggleButton>
           }
         />
-        <FilterPanel>
-          <Form layout="vertical" onSubmit={handleSearch}>
-            <Row gutter={16}>
-              <Col xs={24} md={12} lg={8}>
-                <Form.Item label={t('common.keyword')}>
-                  <Input
-                    value={keyword}
-                    onChange={setKeyword}
-                    placeholder={t('common.keyword')}
-                    allowClear
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12} lg={4}>
-                <Form.Item label={t('business.cmdb.host.status')}>
-                  <Select
-                    value={filterStatus}
-                    onChange={setFilterStatus}
-                    placeholder={t('common.all')}
-                    allowClear
-                  >
-                    {['pending', 'assigned', 'online', 'offline', 'maintenance'].map((s) => (
-                      <Select.Option key={s} value={s}>
-                        {t(`business.cmdb.host.status.${s}`)}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12} lg={4}>
-                <Form.Item label={t('business.cmdb.host.os')}>
-                  <Select
-                    value={filterOS}
-                    onChange={setFilterOS}
-                    placeholder={t('common.all')}
-                    allowClear
-                  >
-                    {['linux', 'windows'].map((o) => (
-                      <Select.Option key={o} value={o}>
-                        {t(`business.cmdb.host.os.${o}`)}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12} lg={4}>
-                <Form.Item label={t('business.cmdb.host.businessScope')}>
-                  <Select
-                    value={filterBusinessScopeId}
-                    onChange={(value) => setFilterBusinessScopeId(value || undefined)}
-                    placeholder={t('common.all')}
-                    allowClear
-                  >
-                    {scopeOptions.map((item) => (
-                      <Select.Option key={item.id} value={item.id}>
-                        {item.name}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12} lg={8}>
-                <Form.Item className="filter-panel__action-item">
-                  <Space>
-                    <Button type="primary" onClick={handleSearch}>
-                      {t('common.search')}
-                    </Button>
-                    <Button onClick={handleReset}>{t('common.reset')}</Button>
-                  </Space>
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
-        </FilterPanel>
+        <SearchToolbar
+          keyword={query.keyword || ''}
+          keywordPlaceholder={t('common.keyword')}
+          onKeywordChange={(value) => updateQuery({ keyword: value })}
+          inlineFilters={
+            <>
+              <Select
+                value={query.status || undefined}
+                onChange={(value) => {
+                  updateQuery({ status: value || '' });
+                }}
+                placeholder={t('business.cmdb.host.status')}
+                allowClear
+              >
+                {['pending', 'assigned', 'online', 'offline', 'maintenance'].map((s) => (
+                  <Select.Option key={s} value={s}>{t(`business.cmdb.host.status.${s}`)}</Select.Option>
+                ))}
+              </Select>
+              <Select
+                value={query.os || undefined}
+                onChange={(value) => {
+                  updateQuery({ os: value || '' });
+                }}
+                placeholder={t('business.cmdb.host.os')}
+                allowClear
+              >
+                {['linux', 'windows'].map((o) => (
+                  <Select.Option key={o} value={o}>{t(`business.cmdb.host.os.${o}`)}</Select.Option>
+                ))}
+              </Select>
+            </>
+          }
+          advancedFilters={
+            <Select
+              value={query.businessScopeId}
+              onChange={(value) => {
+                updateQuery({ businessScopeId: value || undefined });
+              }}
+              placeholder={t('business.cmdb.host.businessScope')}
+              allowClear
+            >
+              {scopeOptions.map((item) => <Select.Option key={item.id} value={item.id}>{item.name}</Select.Option>)}
+            </Select>
+          }
+          advancedActiveCount={Number(query.businessScopeId !== undefined)}
+          hasActiveFilters={Boolean(query.keyword || query.status || query.os || query.businessScopeId)}
+          onClearAll={handleReset}
+        />
         <TableBatchActionBar
           selectedCount={selectedRowKeys.length}
           selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}

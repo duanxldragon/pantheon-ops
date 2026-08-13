@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	cmdbgroup "pantheon-ops/backend/modules/business/cmdb/group"
-	cmdbhost "pantheon-ops/backend/modules/business/cmdb/host"
+	cmdbgroup "pantheon-base/modules/business/cmdb/group"
+	cmdbhost "pantheon-base/modules/business/cmdb/host"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

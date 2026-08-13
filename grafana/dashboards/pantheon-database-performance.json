@@ -1,0 +1,129 @@
+{
+  "dashboard": {
+    "title": "Pantheon Base - Database Performance",
+    "tags": ["pantheon", "database", "mysql"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Database Connection Pool - Active Connections",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "pantheon_db_connections_active",
+            "legendFormat": "Active Connections",
+            "refId": "A"
+          },
+          {
+            "expr": "pantheon_db_connections_idle",
+            "legendFormat": "Idle Connections",
+            "refId": "B"
+          },
+          {
+            "expr": "pantheon_db_connections_open",
+            "legendFormat": "Total Open Connections",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"label": "connections", "format": "short"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Connection Pool Usage (%)",
+        "type": "gauge",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "(pantheon_db_connections_active / 100) * 100",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "min": 0,
+          "max": 100,
+          "thresholds": [
+            {"value": 0, "color": "green"},
+            {"value": 70, "color": "yellow"},
+            {"value": 85, "color": "red"}
+          ]
+        },
+        "alert": {
+          "name": "High DB Connection Usage",
+          "conditions": [
+            {
+              "evaluator": {"params": [80], "type": "gt"},
+              "query": {"params": ["A", "5m", "now"]},
+              "type": "query"
+            }
+          ],
+          "frequency": "1m",
+          "handler": 1,
+          "message": "Database connection pool usage exceeds 80%"
+        }
+      },
+      {
+        "id": 3,
+        "title": "Connection Trends (24h)",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "avg_over_time(pantheon_db_connections_active[1h])",
+            "legendFormat": "Avg Active (1h window)",
+            "refId": "A"
+          },
+          {
+            "expr": "max_over_time(pantheon_db_connections_active[1h])",
+            "legendFormat": "Max Active (1h window)",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"label": "connections", "format": "short"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Redis Connection Status",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 12, "x": 0, "y": 16},
+        "targets": [
+          {
+            "expr": "pantheon_redis_connections_active",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 5,
+        "title": "Redis Connection Pool",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "targets": [
+          {
+            "expr": "pantheon_redis_connections_active",
+            "legendFormat": "Active",
+            "refId": "A"
+          },
+          {
+            "expr": "pantheon_redis_connections_idle",
+            "legendFormat": "Idle",
+            "refId": "B"
+          }
+        ]
+      }
+    ]
+  }
+}

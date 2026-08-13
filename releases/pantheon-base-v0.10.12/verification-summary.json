@@ -1,0 +1,14 @@
+{
+  "releaseVersion": "pantheon-base-v0.10.12",
+  "releaseLine": "release/0.10",
+  "baseCommit": "16918771e2650f8c045b0e086144eb290e774704",
+  "generatedAt": "2026-08-11T05:44:44.216Z",
+  "requiredChecks": [
+    "CI Summary",
+    "Quality Gates",
+    "Security Gates",
+    "Actionlint",
+    "Full Smoke",
+    "SonarCloud Code Analysis"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "taskId": "2026-08-13-clean-base-business-overlay-rebuild",
+  "title": "Rebuild Ops from a clean Base snapshot",
+  "goal": "Replace the historical file-by-file foundation consumer with a deterministic clean rebuild: a complete Pantheon Base snapshot plus an explicitly declared Ops business overlay.",
+  "primaryLayer": "inheritance-sync",
+  "qualityProfiles": ["ci-workflow", "ui-runtime"],
+  "scope": {
+    "in": [
+      "preserve business/{bizscope,cmdb,deploy}, business smoke, business design docs, and Ops repository governance",
+      "keep Base repository layout and Go module identity in the rebuilt product tree",
+      "generate backend/frontend module, component, menu component, and business fallback registries from one manifest",
+      "prove the rebuild is deterministic and contains no undeclared generic product overlay",
+      "validate in a temporary tree before replacing the current Ops baseline"
+    ],
+    "out": [
+      "new business behavior, schema, or UI design",
+      "Base product changes or another Base patch release",
+      "retaining historical shared-source drift merely because it exists in the old Ops tree"
+    ]
+  },
+  "ratchetDecision": "adapter-updated",
+  "runtimeSensitive": true,
+  "linkage": {
+    "taskId": "2026-08-13-clean-base-business-overlay-rebuild",
+    "changeRef": "https://github.com/duanxldragon/pantheon-ops/pulls",
+    "taskPacket": "docs/harness/tasks/2026-08-13-clean-base-business-overlay-rebuild.task.md",
+    "evidenceDir": ".harness/evidence/2026-08-13-clean-base-business-overlay-rebuild/",
+    "reviewFile": ".harness/evidence/2026-08-13-clean-base-business-overlay-rebuild/review.md",
+    "summaryFile": ".harness/evidence/2026-08-13-clean-base-business-overlay-rebuild/summary.md",
+    "planRefs": ["docs/harness/tasks/2026-08-13-clean-base-business-overlay-rebuild.task.md"]
+  },
+  "syncExpectation": "Consume the locked pantheon-base snapshot plus business-overlay.json; the rebuilt tree must be byte-for-byte reproducible and free of undeclared generic product overlay."
+}

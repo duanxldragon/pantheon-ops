@@ -3,7 +3,7 @@ package system
 import (
 	"strings"
 
-	"pantheon-ops/backend/pkg/rbacbind"
+	"pantheon-base/pkg/rbacbind"
 
 	"gorm.io/gorm"
 )
@@ -104,7 +104,7 @@ var obsoleteMenuRules = []obsoleteMenuRule{
 		TitleKeys:  []string{"system.menu-matrix", "system.menu.matrix"},
 		Paths:      []string{"/system/menu-matrix"},
 		RouteNames: []string{"system-menu-matrix"},
-		Components: []string{"system/iam/menu/MenuMatrix"},
+		Components: []string{"system/menu/MenuMatrix"},
 		PagePerms:  []string{"system:menu:matrix"},
 		Perms:      []string{"system:menu:matrix"},
 		Cascade:    true,
@@ -195,7 +195,7 @@ func coreMenuSeeds() []menuSeed {
 			ParentKey: "access",
 			TitleKey:  "system.menu.user",
 			Path:      "/system/user",
-			Component: "system/iam/user/UserList",
+			Component: "system/user/UserList",
 			PagePerm:  "system:user:list",
 			Perms:     "",
 			Type:      "C",
@@ -209,7 +209,7 @@ func coreMenuSeeds() []menuSeed {
 			ParentKey: "access",
 			TitleKey:  "system.menu.role",
 			Path:      "/system/role",
-			Component: "system/iam/role/RoleList",
+			Component: "system/role/RoleList",
 			PagePerm:  "system:role:list",
 			Perms:     "",
 			Type:      "C",
@@ -223,7 +223,7 @@ func coreMenuSeeds() []menuSeed {
 			ParentKey: "access",
 			TitleKey:  "system.menu.menu",
 			Path:      "/system/menu",
-			Component: "system/iam/menu/MenuList",
+			Component: "system/menu/MenuList",
 			PagePerm:  "system:menu:list",
 			Perms:     "",
 			Type:      "C",
@@ -242,7 +242,7 @@ func deptMenuSeeds() []menuSeed {
 			ParentKey: "org",
 			TitleKey:  "system.menu.dept",
 			Path:      "/system/dept",
-			Component: "system/org/dept/DeptList",
+			Component: "system/dept/DeptList",
 			PagePerm:  "system:dept:list",
 			Perms:     "",
 			Type:      "C",
@@ -268,7 +268,7 @@ func postMenuSeeds() []menuSeed {
 			ParentKey: "org",
 			TitleKey:  "system.menu.post",
 			Path:      "/system/post",
-			Component: "system/org/post/PostList",
+			Component: "system/post/PostList",
 			PagePerm:  "system:post:list",
 			Perms:     "",
 			Type:      "C",
@@ -294,7 +294,7 @@ func permissionMenuSeeds() []menuSeed {
 			ParentKey: "access",
 			TitleKey:  "system.menu.permission",
 			Path:      "/system/permission",
-			Component: "system/iam/permission/PermissionList",
+			Component: "system/permission/PermissionList",
 			PagePerm:  "system:permission:list",
 			Perms:     "",
 			Type:      "C",
@@ -338,7 +338,7 @@ func settingMenuSeeds() []menuSeed {
 			ParentKey: "config",
 			TitleKey:  "system.menu.setting",
 			Path:      "/system/setting",
-			Component: "system/config/setting/SettingOverviewPage",
+			Component: "system/setting/SettingOverviewPage",
 			PagePerm:  "system:setting:list",
 			Perms:     "",
 			Type:      "C",
@@ -399,7 +399,7 @@ func dictMenuSeeds() []menuSeed {
 			ParentKey: "config",
 			TitleKey:  "system.menu.dict",
 			Path:      "/system/dict",
-			Component: "system/config/dict/DictPage",
+			Component: "system/dict/DictPage",
 			PagePerm:  "system:dict:list",
 			Perms:     "",
 			Type:      "C",

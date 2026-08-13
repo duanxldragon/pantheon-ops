@@ -38,7 +38,7 @@ import {
   type SecurityEventQuery,
   type SecurityEventRow,
 } from '../api';
-import { getSettingGroup, type SettingGroup } from '../../../system/config/setting/api';
+import { getSettingGroup, type SettingGroup } from '../../../system/setting/api';
 import { loadRetentionSetting } from '../../../system/audit/retentionSetting';
 import '../../auth.css';
 import '../../../system/components/shared/list-page.css';

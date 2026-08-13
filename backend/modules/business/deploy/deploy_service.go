@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-ops/backend/modules/business/cmdb"
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/database"
+	"pantheon-base/modules/business/cmdb"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/database"
 
 	"golang.org/x/crypto/ssh"
 	"gorm.io/datatypes"

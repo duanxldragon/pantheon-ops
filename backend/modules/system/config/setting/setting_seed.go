@@ -1,7 +1,7 @@
 package config
 
 import (
-	"pantheon-ops/backend/pkg/common"
+	"pantheon-base/pkg/common"
 	// Required for the go:embed seed_data.yaml directive below.
 	_ "embed"
 	"encoding/json"

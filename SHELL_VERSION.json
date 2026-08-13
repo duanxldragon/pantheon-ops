@@ -1,0 +1,7 @@
+{
+  "name": "pantheon-harness-consumer-shell",
+  "version": "1.4.0",
+  "releasedAt": "2026-07-15",
+  "compatibleMethodKit": "1.4.0",
+  "minimumNode": "24"
+}

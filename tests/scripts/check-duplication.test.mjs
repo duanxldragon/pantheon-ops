@@ -7,7 +7,7 @@ import test from 'node:test';
 import { analyzeDuplication, evaluateDuplication } from '../../scripts/check-duplication.mjs';
 
 function withFixtureRepo(callback) {
-  const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-ops-duplication-'));
+  const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-duplication-'));
   try {
     fs.mkdirSync(path.join(repoRoot, 'backend'), { recursive: true });
     fs.mkdirSync(path.join(repoRoot, 'frontend', 'src'), { recursive: true });

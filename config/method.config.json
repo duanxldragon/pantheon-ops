@@ -1,0 +1,17 @@
+{
+  "templateId": "pantheon-base",
+  "pantheonHarnessRoot": "../pantheon-harness",
+  "taskPacketDir": "docs/harness/tasks",
+  "evidenceDir": ".harness/evidence",
+  "openSpecChangesDir": "openspec/changes",
+  "implementationRoots": [
+    "backend/",
+    "frontend/",
+    "docs/contracts/",
+    "docs/designs/",
+    "docs/acceptances/"
+  ],
+  "syncMirrors": [
+    ["../pantheon-harness/scripts/harness/check-doc-frontmatter.mjs", "scripts/harness/check-doc-frontmatter.mjs"]
+  ]
+}

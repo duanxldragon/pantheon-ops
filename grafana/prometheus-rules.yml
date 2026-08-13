@@ -1,0 +1,115 @@
+# Prometheus 告警规则
+# 用于 Pantheon Base 的关键指标告警
+
+groups:
+  - name: pantheon_api_alerts
+    interval: 30s
+    rules:
+      - alert: HighAPIErrorRate
+        expr: sum(rate(pantheon_http_requests_total{status=~"5.."}[5m])) / sum(rate(pantheon_http_requests_total[5m])) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "High API error rate detected"
+          description: "API 5xx error rate is {{ $value | humanize }}% (threshold: 5%)"
+
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, sum(rate(pantheon_http_request_duration_seconds_bucket[5m])) by (le, path)) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API latency detected"
+          description: "API P95 latency for {{ $labels.path }} is {{ $value | humanize }}s (threshold: 0.5s)"
+
+      - alert: HighAPITraffic
+        expr: sum(rate(pantheon_http_requests_total[5m])) > 1000
+        for: 5m
+        labels:
+          severity: info
+          component: api
+        annotations:
+          summary: "High API traffic"
+          description: "API requests per second: {{ $value | humanize }} (threshold: 1000)"
+
+  - name: pantheon_database_alerts
+    interval: 30s
+    rules:
+      - alert: HighDatabaseConnectionUsage
+        expr: (pantheon_db_connections_active / 100) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High database connection pool usage"
+          description: "Database connection usage is {{ $value | humanize }}% (threshold: 80%)"
+
+      - alert: CriticalDatabaseConnectionUsage
+        expr: (pantheon_db_connections_active / 100) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Critical database connection pool usage"
+          description: "Database connection usage is {{ $value | humanize }}% (threshold: 95%)"
+
+  - name: pantheon_business_alerts
+    interval: 1m
+    rules:
+      - alert: LowLoginSuccessRate
+        expr: sum(rate(pantheon_auth_login_attempts_total{status="success"}[5m])) / sum(rate(pantheon_auth_login_attempts_total[5m])) * 100 < 80
+        for: 10m
+        labels:
+          severity: warning
+          component: auth
+        annotations:
+          summary: "Low login success rate"
+          description: "Login success rate is {{ $value | humanize }}% (threshold: 80%)"
+
+      - alert: HighLoginFailureRate
+        expr: sum(rate(pantheon_auth_login_attempts_total{status="failed"}[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          component: auth
+        annotations:
+          summary: "High login failure rate"
+          description: "Login failures per second: {{ $value | humanize }} (threshold: 10)"
+
+      - alert: AccountLockoutSpike
+        expr: sum(rate(pantheon_auth_login_attempts_total{status="locked"}[5m])) > 5
+        for: 2m
+        labels:
+          severity: critical
+          component: auth
+        annotations:
+          summary: "Account lockout spike detected"
+          description: "Account lockouts per second: {{ $value | humanize }} (threshold: 5)"
+
+  - name: pantheon_infrastructure_alerts
+    interval: 30s
+    rules:
+      - alert: RedisDown
+        expr: absent(pantheon_redis_connections_active)
+        for: 2m
+        labels:
+          severity: critical
+          component: redis
+        annotations:
+          summary: "Redis is down"
+          description: "Redis connection metrics are missing for 2 minutes"
+
+      - alert: HighRedisConnectionUsage
+        expr: pantheon_redis_connections_active > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "High Redis connection usage"
+          description: "Redis active connections: {{ $value | humanize }} (threshold: 80)"

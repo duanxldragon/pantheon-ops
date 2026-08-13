@@ -42,7 +42,7 @@ import {
 } from '../../../../components';
 import { formatClientSummary } from '../clientInfo';
 import SessionDetailModal from './SessionDetailModal';
-import { getSettingGroup, type SettingGroup } from '../../../system/config/setting/api';
+import { getSettingGroup, type SettingGroup } from '../../../system/setting/api';
 import { loadRetentionSetting } from '../../../system/audit/retentionSetting';
 import '../../../system/components/shared/list-page.css';
 import '../../auth.css';

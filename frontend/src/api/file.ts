@@ -14,11 +14,11 @@ function parseFilename(contentDisposition?: string, fallbackName?: string) {
   if (!contentDisposition) {
     return fallbackName || 'download.csv';
   }
-  const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+  const utf8Match = /filename\*=UTF-8''([^;]+)/i.exec(contentDisposition);
   if (utf8Match?.[1]) {
     return decodeURIComponent(utf8Match[1]);
   }
-  const plainMatch = contentDisposition.match(/filename="?([^"]+)"?/i);
+  const plainMatch = /filename="?([^"]+)"?/i.exec(contentDisposition);
   if (plainMatch?.[1]) {
     return plainMatch[1];
   }
@@ -34,15 +34,31 @@ function saveBlob(blob: Blob, filename: string) {
   anchor.download = filename;
   document.body.appendChild(anchor);
   anchor.click();
-  document.body.removeChild(anchor);
+  anchor.remove();
   globalThis.URL.revokeObjectURL(url);
+}
+
+// 与后端 impexp.sanitizeCSVCell 对齐：以 = + - @ 或制表符/回车开头的非数值
+// 单元格在 Excel 中会被当作公式执行（日志里的用户名等字段可被攻击者写入），
+// 统一前置单引号中和；合法数值（-5、+3.14）保持原样。
+function neutralizeCsvFormula(value: string) {
+  if (!value) {
+    return value;
+  }
+  if (!/^[=+\-@\t\r]/.test(value)) {
+    return value;
+  }
+  if (!Number.isNaN(Number(value))) {
+    return value;
+  }
+  return `'${value}`;
 }
 
 export function downloadCsvFile(filename: string, headers: string[], rows: string[][]) {
   const escaped = (value: string) => {
-    const normalized = String(value ?? '');
+    const normalized = neutralizeCsvFormula(String(value ?? ''));
     if (/[",\r\n]/.test(normalized)) {
-      return `"${normalized.replace(/"/g, '""')}"`;
+      return `"${normalized.replaceAll('"', '""')}"`;
     }
     return normalized;
   };
@@ -70,7 +86,13 @@ export async function downloadFile(options: DownloadFileOptions) {
     validateStatus: () => true,
   });
 
-  const contentType = String(response.headers['content-type'] || '');
+  const contentTypeHeader = response.headers['content-type'];
+  let contentType = '';
+  if (Array.isArray(contentTypeHeader)) {
+    contentType = contentTypeHeader.join(',');
+  } else if (typeof contentTypeHeader === 'string') {
+    contentType = contentTypeHeader;
+  }
   if (response.status >= 400 || contentType.includes('application/json')) {
     try {
       const text = await response.data.text();
@@ -83,7 +105,7 @@ export async function downloadFile(options: DownloadFileOptions) {
       if (error instanceof Error) {
         throw error;
       }
-      throw new Error('request.failed');
+      throw new Error('request.failed', { cause: error });
     }
   }
 

@@ -38,13 +38,13 @@
 ## 边界说明
 
 - [ ] 本次改动仅涉及 `business/*`
-- [ ] 本次改动涉及 foundation 继承，已说明 Base-first 边界和消费方式
+- [ ] 本次改动涉及 Base 重建，已说明 Base-first 边界和 business overlay 兼容性
 
-> 如果跨层，请说明 Base 与 Ops 各自职责、foundation release 身份，以及是否影响菜单/权限/i18n/审计。
+> 如果跨层，请说明 Base 与 Ops 各自职责、Base commit、overlay 变化，以及是否影响菜单/权限/i18n/审计。
 
 ## 验证记录
 
-- [ ] `npm run check:inheritance`
+- [ ] `npm run check:business-overlay && npm run test:business-overlay`
 - [ ] `go test ./...`
 - [ ] `cd frontend && npm run lint && npm run type-check && npm run build`
 - [ ] 业务 smoke 或明确 runtime gap
@@ -65,7 +65,7 @@
 
 ## 检查清单
 
-- [ ] 已明确本次改动归属 `business/*` 或 foundation inheritance adapter
+- [ ] 已明确本次改动归属 `business/*` 或 clean Base rebuild adapter
 - [ ] 通用平台/系统域问题已在 Base-first 边界处理
 - [ ] 前端新增展示文案已使用 i18n
 - [ ] 菜单、权限、接口、审计和 seed/smoke 在范围内同步

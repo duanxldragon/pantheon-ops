@@ -1,0 +1,3 @@
+username,password,nickname,email,phone,deptPath,postCode,status,roleKeys
+#说明：保留第一行表头；status 使用 1=启用、2=禁用；roleKeys 多角色用 | 分隔；deptPath 使用部门导出的完整路径；postCode 使用岗位编码；导入新用户 password 必填。,,,,,,,,
+sample_user,ChangeMe123,示例用户,sample@example.com,13800138000,,,1,test

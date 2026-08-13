@@ -165,7 +165,7 @@ function createAutoContextManifest(taskId) {
     taskId,
     title: 'GitHub feedback automation governance',
     goal: 'Tighten the GitHub governance automation so feedback can be closed without manual triage.',
-    primaryLayer: 'business/deploy',
+    primaryLayer: 'platform',
     scope: {
       in: [
         'Update the GitHub feedback automation scripts and writeback flow.',
@@ -185,6 +185,7 @@ function createAutoContextManifest(taskId) {
       reviewFile: `.harness/evidence/${taskId}/review.md`,
       changeRef: 'none',
       planRefs: [],
+      summaryFile: `.harness/evidence/${taskId}/summary.md`,
     },
     verificationPlan: {
       commands: [
@@ -260,13 +261,6 @@ Closes #12
 `;
 }
 
-function createAutoContextSnapshotFixture(taskId) {
-  const snapshot = createSnapshotFixture();
-  snapshot.repoFullName = 'acme/pantheon-ops';
-  snapshot.pullRequest.body = createAutoContextPullRequestBody(taskId);
-  return snapshot;
-}
-
 function writeAutoContextArtifacts(rootDir) {
   const taskId = createAutoContextTaskId();
   const evidenceDir = path.join(rootDir, '.harness', 'evidence', taskId);
@@ -320,7 +314,8 @@ test('deriveFeedbackContext pulls change, verification, ownership, and close int
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-feedback-context-'));
   try {
     const { taskId } = writeAutoContextArtifacts(tempDir);
-    const snapshot = createAutoContextSnapshotFixture(taskId);
+    const snapshot = createSnapshotFixture();
+    snapshot.pullRequest.body = createAutoContextPullRequestBody(taskId);
 
     const context = deriveFeedbackContext(snapshot, { repoRoot: tempDir });
 
@@ -390,7 +385,8 @@ test('run-github-feedback-loop dry run derives context automatically when no con
   try {
     const { taskId } = writeAutoContextArtifacts(tempDir);
     const snapshotPath = path.join(tempDir, 'snapshot.json');
-    const snapshot = createAutoContextSnapshotFixture(taskId);
+    const snapshot = createSnapshotFixture();
+    snapshot.pullRequest.body = createAutoContextPullRequestBody(taskId);
     fs.writeFileSync(snapshotPath, JSON.stringify(snapshot, null, 2));
 
     const stdout = execFileSync(

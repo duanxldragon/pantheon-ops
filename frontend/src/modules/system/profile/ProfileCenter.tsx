@@ -22,7 +22,7 @@ import {
   updateProfile,
   type UserProfile,
   type UserProfileUpdatePayload,
-} from '../iam/user/api';
+} from '../user/api';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { FormSection, PageContainer, PageLoading, SubmitBar } from '../../../components';

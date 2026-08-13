@@ -6,7 +6,7 @@ import test from 'node:test';
 const workflowPath = path.resolve('.github/workflows/pr-automation.yml');
 const workflowSource = fs.readFileSync(workflowPath, 'utf8');
 
-test('pr automation validates governance and GitHub feedback before enabling auto-merge', () => {
+test('pr automation validates PR governance before enabling auto-merge', () => {
   assert.match(
     workflowSource,
     /governance-prereq:\s*\n[\s\S]*name:\s*PR Governance Prereq/i,
@@ -16,6 +16,26 @@ test('pr automation validates governance and GitHub feedback before enabling aut
     workflowSource,
     /Validate PR governance body[\s\S]*node scripts\/check-pr-governance\.mjs --event "\$GITHUB_EVENT_PATH"/i,
     'pr automation should validate the pull request body against repository governance rules',
+  );
+  assert.match(
+    workflowSource,
+    /Validate PR governance body[\s\S]*if:\s*github\.event\.pull_request\.user\.login\s*!=\s*'dependabot\[bot\]'/i,
+    'pr automation should exempt Dependabot from the PR body ceremony it cannot preserve',
+  );
+  assert.match(
+    workflowSource,
+    /pr_body_ready:\s*\$\{\{\s*github\.event\.pull_request\.user\.login\s*==\s*'dependabot\[bot\]'\s*\|\|\s*steps\.pr-body-ready\.outcome\s*==\s*'success'\s*\}\}/i,
+    'Dependabot should satisfy the governance prerequisite output without blocking auto-merge',
+  );
+  assert.match(
+    workflowSource,
+    /automate-solo-pr:[\s\S]*needs:[\s\S]*-\s*governance-prereq/i,
+    'auto-merge job should depend on the governance prerequisite job',
+  );
+  assert.match(
+    workflowSource,
+    /needs\.governance-prereq\.outputs\.pr_body_ready == 'true'/i,
+    'auto-merge should only be considered after the PR governance prerequisite succeeds',
   );
   assert.match(
     workflowSource,
@@ -34,13 +54,8 @@ test('pr automation validates governance and GitHub feedback before enabling aut
   );
   assert.match(
     workflowSource,
-    /automate-solo-pr:[\s\S]*needs:[\s\S]*-\s*governance-prereq[\s\S]*-\s*feedback-prereq/i,
-    'auto-merge job should depend on governance and GitHub feedback prerequisites',
-  );
-  assert.match(
-    workflowSource,
-    /needs\.governance-prereq\.outputs\.pr_body_ready == 'true'/i,
-    'auto-merge should only be considered after the governance prerequisite succeeds',
+    /automate-solo-pr:[\s\S]*needs:[\s\S]*-\s*feedback-prereq/i,
+    'auto-merge job should depend on the GitHub feedback prerequisite job',
   );
   assert.match(
     workflowSource,
@@ -51,6 +66,26 @@ test('pr automation validates governance and GitHub feedback before enabling aut
     workflowSource,
     /gh pr merge "\$PR_NUMBER" --repo "\$GH_REPO" --auto --squash --delete-branch/i,
     'auto-merge should request GitHub to delete the branch as part of the merge operation',
+  );
+  assert.match(
+    workflowSource,
+    /Enable squash auto-merge[\s\S]*GH_TOKEN:\s*\$\{\{\s*secrets\.RELEASE_GATE_TOKEN\s*\}\}[\s\S]*gh pr merge/i,
+    'auto-merge should prefer the release gate token so the merge triggers push workflows',
+  );
+  assert.match(
+    workflowSource,
+    /if \[ -z "\$\{GH_TOKEN:-\}" \]; then[\s\S]*RELEASE_GATE_TOKEN is required[\s\S]*exit 1/i,
+    'auto-merge should fail closed when the release gate token is unavailable',
+  );
+  assert.doesNotMatch(
+    workflowSource,
+    /Enable squash auto-merge[\s\S]*GH_TOKEN:\s*\$\{\{[\s\S]*github\.token/i,
+    'auto-merge should not fall back to github.token because it suppresses push workflows',
+  );
+  assert.doesNotMatch(
+    workflowSource,
+    /if gh pr merge[\s\S]*Unable to enable auto-merge/i,
+    'auto-merge failures should fail the workflow instead of being reported as success',
   );
 });
 

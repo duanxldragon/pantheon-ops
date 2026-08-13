@@ -30,7 +30,7 @@ test('workflow actions and Node runtime match the certified Base baseline', () =
   assert.match(workflowSource, /dorny\/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d/u);
 });
 
-test('inheritance drift workflow checks sibling Base and Ops worktrees', () => {
+test('base compatibility workflow rebuilds Ops on the current Base snapshot', () => {
   const source = fs.readFileSync(
     path.join(workflowsRoot, 'inheritance-drift-detection.yml'),
     'utf8',
@@ -38,6 +38,7 @@ test('inheritance drift workflow checks sibling Base and Ops worktrees', () => {
   assert.match(source, /path:\s*pantheon-ops/u);
   assert.match(source, /path:\s*pantheon-base/u);
   assert.match(source, /working-directory:\s*pantheon-ops/u);
-  assert.match(source, /check:base-sync:backend:workspace/u);
-  assert.match(source, /check:base-sync:frontend:workspace/u);
+  assert.match(source, /test:business-overlay/u);
+  assert.match(source, /rebuild:from-base/u);
+  assert.match(source, /check-business-overlay\.mjs/u);
 });

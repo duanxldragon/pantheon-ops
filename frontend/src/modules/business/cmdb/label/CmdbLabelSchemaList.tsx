@@ -17,7 +17,7 @@ import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import {
   AppModal,
   AppTable,
-  FilterPanel,
+  SearchToolbar,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
@@ -42,7 +42,7 @@ import {
   type LabelSchemaRow,
 } from './api';
 import { labelCategoryOptions, labelPresetOptions } from './catalog';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../cmdb.css';
 
 type LabelFormValues = LabelSchemaPayload & {
@@ -62,9 +62,6 @@ export default function CmdbLabelSchemaList() {
   const [editing, setEditing] = useState<LabelSchemaRow | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string | number>>([]);
-  const [keyword, setKeyword] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
   const [queryKeyword, setQueryKeyword] = useState('');
   const [queryStatus, setQueryStatus] = useState('');
   const [queryCategory, setQueryCategory] = useState('');
@@ -372,58 +369,52 @@ export default function CmdbLabelSchemaList() {
             </GovernanceRailToggleButton>
           }
         />
-        <FilterPanel>
-          <Form layout="inline">
-            <Form.Item label={t('common.keyword')}>
-              <Input value={keyword} onChange={setKeyword} allowClear />
-            </Form.Item>
-            <Form.Item label={t('business.cmdb.label.schema.category')}>
-              <Select value={filterCategory} onChange={setFilterCategory} allowClear style={{ width: 160 }}>
-                {labelCategoryOptions.map((item) => (
-                  <Select.Option key={item.value} value={item.value}>
-                    {t(item.i18nKey)}
-                  </Select.Option>
-                ))}
+        <SearchToolbar
+          keyword={queryKeyword}
+          keywordPlaceholder={t('common.keyword')}
+          onKeywordChange={(value) => {
+            setQueryKeyword(value);
+            setSelectedRowKeys([]);
+            setPage(1);
+          }}
+          inlineFilters={
+            <>
+              <Select
+                value={queryCategory || undefined}
+                onChange={(value) => {
+                  setQueryCategory(value || '');
+                  setSelectedRowKeys([]);
+                  setPage(1);
+                }}
+                placeholder={t('business.cmdb.label.schema.category')}
+                allowClear
+              >
+                {labelCategoryOptions.map((item) => <Select.Option key={item.value} value={item.value}>{t(item.i18nKey)}</Select.Option>)}
               </Select>
-            </Form.Item>
-            <Form.Item label={t('business.cmdb.label.schema.status')}>
-              <Select value={filterStatus} onChange={setFilterStatus} allowClear style={{ width: 160 }}>
+              <Select
+                value={queryStatus || undefined}
+                onChange={(value) => {
+                  setQueryStatus(value || '');
+                  setSelectedRowKeys([]);
+                  setPage(1);
+                }}
+                placeholder={t('business.cmdb.label.schema.status')}
+                allowClear
+              >
                 <Select.Option value="enabled">{t('business.cmdb.label.status.enabled')}</Select.Option>
                 <Select.Option value="disabled">{t('business.cmdb.label.status.disabled')}</Select.Option>
               </Select>
-            </Form.Item>
-            <Form.Item>
-              <Space>
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    setQueryKeyword(keyword);
-                    setQueryCategory(filterCategory);
-                    setQueryStatus(filterStatus);
-                    setSelectedRowKeys([]);
-                    setPage(1);
-                  }}
-                >
-                  {t('common.search')}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setKeyword('');
-                    setFilterCategory('');
-                    setFilterStatus('');
-                    setQueryKeyword('');
-                    setQueryCategory('');
-                    setQueryStatus('');
-                    setSelectedRowKeys([]);
-                    setPage(1);
-                  }}
-                >
-                  {t('common.reset')}
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </FilterPanel>
+            </>
+          }
+          hasActiveFilters={Boolean(queryKeyword || queryCategory || queryStatus)}
+          onClearAll={() => {
+            setQueryKeyword('');
+            setQueryCategory('');
+            setQueryStatus('');
+            setSelectedRowKeys([]);
+            setPage(1);
+          }}
+        />
         <TableBatchActionBar
           selectedCount={selectedRowKeys.length}
           selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}

@@ -23,11 +23,11 @@ interface ImportResultOptions {
 }
 
 function translateImportMessage(message: string, t: TFunction) {
-  const duplicateMatch = message.match(/^import\.duplicate\.row\.(\d+)$/);
+  const duplicateMatch = /^import\.duplicate\.row\.(\d+)$/.exec(message);
   if (duplicateMatch?.[1]) {
     return t('import.duplicate.row', { row: Number(duplicateMatch[1]) });
   }
-  const ownerConflictMatch = message.match(/^import\.conflict\.owner\.(.+)$/);
+  const ownerConflictMatch = /^import\.conflict\.owner\.(.+)$/.exec(message);
   if (ownerConflictMatch?.[1]) {
     return t('import.conflict.owner', { module: ownerConflictMatch[1] });
   }
@@ -44,6 +44,7 @@ export function uploadImportFile(url: string, file: File) {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    timeout: 30000,
   });
 }
 
@@ -55,7 +56,7 @@ function downloadTextFile(filename: string, content: string) {
   anchor.download = filename;
   document.body.appendChild(anchor);
   anchor.click();
-  document.body.removeChild(anchor);
+  anchor.remove();
   globalThis.URL.revokeObjectURL(url);
 }
 
@@ -67,7 +68,7 @@ export function downloadImportErrors(
   if (!result.errors.length) {
     return;
   }
-  const escapeCSV = (value: string | number) => `"${String(value).replace(/"/g, '""')}"`;
+  const escapeCSV = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`;
   const rows = [
     [
       t('common.importErrorRow'),

@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-ops/backend/internal/middleware"
-	"pantheon-ops/backend/modules/auth/login"
-	"pantheon-ops/backend/pkg/contracts"
-	"pantheon-ops/backend/pkg/database"
+	"pantheon-base/internal/middleware"
+	"pantheon-base/modules/auth/login"
+	"pantheon-base/pkg/contracts"
+	"pantheon-base/pkg/database"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

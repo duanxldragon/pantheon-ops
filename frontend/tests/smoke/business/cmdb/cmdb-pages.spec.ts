@@ -163,8 +163,7 @@ test.describe('CMDB Host Management', () => {
 
       await page.goto('/operations/cmdb/host', { waitUntil: 'networkidle' });
       await expect(page).toHaveURL(/\/operations\/cmdb\/host$/);
-      await page.locator('.filter-panel input').first().fill(token);
-      await page.getByRole('button', { name: '搜索' }).click();
+      await page.locator('.search-toolbar input').first().fill(token);
 
       const row = page.getByRole('row').filter({ hasText: host.hostname }).first();
       await expect(row).toBeVisible();

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { getPublicSettingList } from '../../modules/system/config/setting/api';
+import { getPublicSettingList } from '../../modules/system/setting/api';
 import {
   clearExplicitLanguagePreference as clearExplicitLanguagePreferenceBase,
   syncDefaultLanguagePreference as syncDefaultLanguagePreferenceBase,

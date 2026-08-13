@@ -50,21 +50,20 @@ Do not fix platform or system-domain drift locally in pantheon-ops. If the behav
 
 ## Sync discipline
 
+pantheon-ops consumes pantheon-base as a **locked release snapshot**, not a file-by-file sync. The consumer tree is rebuilt deterministically from the locked Base snapshot (`foundation-release.lock.json`) plus the declared business overlay (`business-overlay.json`).
+
 Before any non-trivial PR:
 
 ```powershell
 # run from pantheon-ops repo root
-node scripts/check-inheritance-contract.mjs
-node ../pantheon-base/scripts/harness/triage-base-drift.mjs --root .. --business pantheon-ops --json
+node scripts/business-overlay/check-business-overlay.mjs
+node scripts/business-overlay/rebuild-from-base.mjs --target .tmp/business-overlay-rebuild
 ```
 
-Use drift categories as the decision gate:
-
-- `generic drift`: backport to `pantheon-base` or record why it cannot be backported.
-- `pseudo-drift`: do not expand it with ops-only edits.
-- `business mount`: keep only as a narrow business integration point.
-- `business-specific drift` and `business-only`: allowed when they stay inside the operations business scope.
-- `base-only`: review during base upgrade.
+- `check-business-overlay.mjs` verifies the overlay contract: every declared `businessPaths` exists and no business file still imports the old `pantheon-ops/backend` module path.
+- `rebuild-from-base.mjs` deterministically produces the consumer tree from the locked snapshot; at the locked `baseCommit` it must be byte-for-byte reproducible (`.business-overlay-report.json`).
+- The business overlay must not overwrite Base hook/source files (enforced by `assertBusinessPathsDoNotOverwriteBase`). To extend Base business semantics, inject via a dedicated overlay file — see `backend/modules/business/retired_modules_overlay.go`.
+- To upgrade: update `foundation-release.lock.json` to the new release, re-lock the `repoSnapshot`, then re-run `rebuild-from-base.mjs`.
 
 ## Design system
 

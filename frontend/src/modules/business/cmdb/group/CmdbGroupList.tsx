@@ -3,8 +3,6 @@ import { useTranslation } from 'react-i18next';
 import {
   Card,
   Button,
-  Form,
-  Input,
   Tag,
   Space,
   Popconfirm,
@@ -25,7 +23,7 @@ import {
   AppDrawer,
   AppModal,
   AppTable,
-  FilterPanel,
+  SearchToolbar,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
@@ -43,7 +41,7 @@ import { getGroupList, getGroupMembers, createGroup, updateGroup, deleteGroup } 
 import type { CreateGroupPayload, GroupRow, GroupMemberResp, GroupMemberRow } from './api';
 import CmdbGroupForm from './CmdbGroupForm';
 import { usePermission } from '../../../../hooks/usePermission';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../cmdb.css';
 
 function flattenGroups(groups: GroupRow[]): GroupRow[] {
@@ -113,7 +111,6 @@ export default function CmdbGroupList() {
   const [error, setError] = useState<unknown>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [initialParentId, setInitialParentId] = useState<number | null>(null);
-  const [keyword, setKeyword] = useState('');
   const [queryKeyword, setQueryKeyword] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -480,35 +477,21 @@ export default function CmdbGroupList() {
             </GovernanceRailToggleButton>
           }
         />
-        <FilterPanel>
-          <Form layout="inline">
-            <Form.Item label={t('common.keyword')}>
-              <Input value={keyword} onChange={setKeyword} allowClear />
-            </Form.Item>
-            <Form.Item>
-              <Space>
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    setQueryKeyword(keyword);
-                    setPage(1);
-                  }}
-                >
-                  {t('common.search')}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setKeyword('');
-                    setQueryKeyword('');
-                    setPage(1);
-                  }}
-                >
-                  {t('common.reset')}
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </FilterPanel>
+        <SearchToolbar
+          keyword={queryKeyword}
+          keywordPlaceholder={t('common.keyword')}
+          onKeywordChange={(value) => {
+            setQueryKeyword(value);
+            setPage(1);
+            setSelectedRowKeys([]);
+          }}
+          hasActiveFilters={Boolean(queryKeyword)}
+          onClearAll={() => {
+            setQueryKeyword('');
+            setPage(1);
+            setSelectedRowKeys([]);
+          }}
+        />
         <TableBatchActionBar
           selectedCount={selectedRowKeys.length}
           selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}

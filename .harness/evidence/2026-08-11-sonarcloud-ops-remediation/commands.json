@@ -1,0 +1,16 @@
+{
+  "baseline": {
+    "opsProject": "duanxldragon_pantheon-ops",
+    "baseProject": "duanxldragon_pantheon-base",
+    "branch": "main",
+    "opsAnalysisRevision": "69c59f8151f3f0c856ab0897af6717c0a475a4e5",
+    "opsWorkspaceRevision": "4604ea48ed01550919f856e39c3029ed024d9b9c",
+    "baseReleaseVersion": "pantheon-base-v0.10.12",
+    "baseReleaseCommit": "16918771e2650f8c045b0e086144eb290e774704"
+  },
+  "queries": [
+    "https://sonarcloud.io/api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&resolved=false&types=BUG,VULNERABILITY,CODE_SMELL&ps=500",
+    "https://sonarcloud.io/api/issues/search?componentKeys=duanxldragon_pantheon-base&branch=main&resolved=false&types=BUG,VULNERABILITY,CODE_SMELL&ps=500",
+    "https://sonarcloud.io/api/hotspots/search?projectKey=duanxldragon_pantheon-ops&branch=main&status=TO_REVIEW&ps=500"
+  ]
+}

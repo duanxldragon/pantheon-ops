@@ -1,3 +1,4 @@
+import { spawn } from 'node:child_process';
 import path from 'node:path';
 import process from 'node:process';
 import { createServer } from 'vite';
@@ -10,8 +11,26 @@ function readArg(flag, fallback = '') {
   return process.argv[index + 1];
 }
 
+function runSetupScript(setupScript) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [setupScript, 'up'], {
+      stdio: 'inherit',
+      env: process.env,
+    });
+    child.once('error', reject);
+    child.once('exit', (code) => {
+      if (code === 0) {
+        resolve();
+        return;
+      }
+      reject(new Error(`setup script exited with code ${code ?? 'unknown'}`));
+    });
+  });
+}
+
 const host = readArg('--host', '127.0.0.1');
 const port = Number(readArg('--port', '5173'));
+const setupScript = readArg('--setup');
 const proxyTarget = readArg('--proxy-target');
 const readyToken = process.env.PANTHEON_SMOKE_READY_TOKEN ?? '';
 
@@ -20,9 +39,13 @@ if (proxyTarget) {
   process.env.PANTHEON_API_PROXY_TARGET = proxyTarget;
 }
 
+if (setupScript) {
+  const resolvedSetup = path.resolve(process.cwd(), setupScript);
+  await runSetupScript(resolvedSetup);
+}
+
 const server = await createServer({
   clearScreen: false,
-  configLoader: 'runner',
   server: {
     host,
     port,

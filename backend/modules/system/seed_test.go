@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"gorm.io/gorm"
-	"pantheon-ops/backend/pkg/testmysql"
+	"pantheon-base/pkg/testmysql"
 )
 
 func TestEnsureMenuSeedsReparentsLegacyFlatMenus(t *testing.T) {
@@ -19,8 +19,8 @@ func TestEnsureMenuSeedsReparentsLegacyFlatMenus(t *testing.T) {
 	if err := db.Exec(`
 INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
 VALUES
-(100, 0, 'system.menu.user', '/system/user', 'system/iam/user/UserList', 'system:user:list', '', 'C', 'user', 'system-user', 'system', 2, 1, 0, 0, '', 0),
-(101, 0, 'system.menu.dict', '/system/dict', 'system/config/dict/DictPage', 'system:dict:list', '', 'C', 'list', 'system-dict', 'system', 11, 1, 1, 0, '', 0),
+(100, 0, 'system.menu.user', '/system/user', 'system/user/UserList', 'system:user:list', '', 'C', 'user', 'system-user', 'system', 2, 1, 0, 0, '', 0),
+(101, 0, 'system.menu.dict', '/system/dict', 'system/dict/DictPage', 'system:dict:list', '', 'C', 'list', 'system-dict', 'system', 11, 1, 1, 0, '', 0),
 (102, 0, 'system.menu.modules', '/system/modules', 'system/dynamicmodule/ModuleManager', 'system:module:list', '', 'C', 'apps', 'system-modules', 'system', 12, 1, 0, 0, '', 0),
 (103, 0, 'system.menu.generator', '/system/generator', 'system/generator/ModuleWizard', 'system:generator:use', '', 'C', 'code', 'system-generator', 'system', 13, 1, 0, 0, '', 0)
 `).Error; err != nil {
@@ -94,9 +94,9 @@ func TestOrgAccessControlSeedContract(t *testing.T) {
 		t.Fatalf("ensure seeds: %v", err)
 	}
 
-	assertPageMenuContract(t, db, "/system/dept", "/system/org", "system.org", "system:dept:list", "system/org/dept/DeptList")
-	assertPageMenuContract(t, db, "/system/post", "/system/org", "system.org", "system:post:list", "system/org/post/PostList")
-	assertPageMenuContract(t, db, "/system/user", "/system/access", "system.iam", "system:user:list", "system/iam/user/UserList")
+	assertPageMenuContract(t, db, "/system/dept", "/system/org", "system.org", "system:dept:list", "system/dept/DeptList")
+	assertPageMenuContract(t, db, "/system/post", "/system/org", "system.org", "system:post:list", "system/post/PostList")
+	assertPageMenuContract(t, db, "/system/user", "/system/access", "system.iam", "system:user:list", "system/user/UserList")
 
 	assertActionPermissionContract(t, db, "system:post:create", "/system/post")
 	assertActionPermissionContract(t, db, "system:post:update", "/system/post")
@@ -116,7 +116,7 @@ func TestEnsureMenuSeedsCleansObsoleteMenuMatrixEntries(t *testing.T) {
 	if err := db.Exec(`
 INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
 VALUES
-(200, 0, 'system.menu-matrix', '/system/menu-matrix', 'system/iam/menu/MenuMatrix', 'system:menu:matrix', '', 'C', 'menu', 'system-menu-matrix', 'system.iam', 99, 1, 0, 0, '', 0),
+(200, 0, 'system.menu-matrix', '/system/menu-matrix', 'system/menu/MenuMatrix', 'system:menu:matrix', '', 'C', 'menu', 'system-menu-matrix', 'system.iam', 99, 1, 0, 0, '', 0),
 (201, 200, 'system.permission.menu.matrix.export', '', '', '', 'system:menu:matrix', 'F', '', '', 'system.iam', 1, 1, 0, 0, '', 0)
 `).Error; err != nil {
 		t.Fatalf("seed obsolete menu matrix: %v", err)
@@ -498,7 +498,7 @@ func TestCleanupDuplicateMenusRemovesDuplicatesByPerms(t *testing.T) {
 	if err := db.Exec(`
 INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
 VALUES
-(600, 0, 'system.menu.user', '/system/user', 'system/iam/user/UserList', 'system:user:list', '', 'C', 'user', 'system-user', 'system.iam', 10, 1, 0, 0, '', 0)
+(600, 0, 'system.menu.user', '/system/user', 'system/user/UserList', 'system:user:list', '', 'C', 'user', 'system-user', 'system.iam', 10, 1, 0, 0, '', 0)
 `).Error; err != nil {
 		t.Fatalf("seed parent menu: %v", err)
 	}
@@ -551,7 +551,7 @@ func TestCleanupDuplicateMenusIsIdempotent(t *testing.T) {
 INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
 VALUES
 (700, 0, 'system.menu.config', '/system/config', '', '', '', 'M', 'settings', 'system-config', 'system.config', 50, 1, 0, 0, '', 0),
-(701, 0, 'system.menu.dict', '/system/dict', 'system/config/dict/DictPage', 'system:dict:list', '', 'C', 'list', 'system-dict', 'system.config', 10, 1, 1, 0, '', 0)
+(701, 0, 'system.menu.dict', '/system/dict', 'system/dict/DictPage', 'system:dict:list', '', 'C', 'list', 'system-dict', 'system.config', 10, 1, 1, 0, '', 0)
 `).Error; err != nil {
 		t.Fatalf("seed menus: %v", err)
 	}

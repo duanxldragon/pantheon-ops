@@ -3,7 +3,15 @@ package login
 import (
 	"strings"
 
+	"pantheon-base/pkg/rbacbind"
+
 	"gorm.io/gorm"
+)
+
+const (
+	menuKeyLoginLog      = "login-log"
+	menuKeySecurityEvent = "security-event"
+	menuModuleSystemAuth = "system.auth"
 )
 
 type menuSeed struct {
@@ -29,7 +37,54 @@ func SeedAuthModuleMenus(db *gorm.DB) error {
 }
 
 func authMenuSeeds() []menuSeed {
-	return authMenuSeedContracts
+	return []menuSeed{
+		{
+			Key:       menuKeyLoginLog,
+			ParentKey: "security",
+			TitleKey:  "system.menu.loginLog",
+			Path:      "/system/login-log",
+			Component: "auth/LoginLogList",
+			PagePerm:  "system:login-log:list",
+			Type:      "C",
+			Icon:      "clock",
+			RouteName: "system-login-log",
+			Module:    menuModuleSystemAuth,
+			Sort:      10,
+		},
+		{
+			Key:       "session",
+			ParentKey: "security",
+			TitleKey:  "system.menu.session",
+			Path:      "/system/session",
+			Component: "auth/SessionList",
+			PagePerm:  "system:session:list",
+			Type:      "C",
+			Icon:      "desktop",
+			RouteName: "system-session",
+			Module:    menuModuleSystemAuth,
+			Sort:      20,
+		},
+		{
+			Key:       menuKeySecurityEvent,
+			ParentKey: "security",
+			TitleKey:  "system.menu.securityEvent",
+			Path:      "/system/security-event",
+			Component: "auth/SecurityEventList",
+			PagePerm:  "system:security-event:list",
+			Type:      "C",
+			Icon:      "safe",
+			RouteName: "system-security-event",
+			Module:    menuModuleSystemAuth,
+			Sort:      30,
+		},
+		{Key: "login-log-export", ParentKey: menuKeyLoginLog, TitleKey: "system.permission.login_log.export", Perms: "system:login-log:export", Type: "F", Sort: 1},
+		{Key: "login-log-clear", ParentKey: menuKeyLoginLog, TitleKey: "system.permission.login_log.clear", Perms: "system:login-log:clear", Type: "F", Sort: 2},
+		{Key: "login-log-delete", ParentKey: menuKeyLoginLog, TitleKey: "system.permission.login_log.delete", Perms: "system:login-log:delete", Type: "F", Sort: 3},
+		{Key: "session-delete", ParentKey: "session", TitleKey: "system.permission.session.delete", Perms: "system:session:delete", Type: "F", Sort: 1},
+		{Key: "session-clear", ParentKey: "session", TitleKey: "system.permission.session.clear", Perms: "system:session:clear", Type: "F", Sort: 2},
+		{Key: "security-event-acknowledge", ParentKey: menuKeySecurityEvent, TitleKey: "system.permission.security_event.acknowledge", Perms: "system:security-event:acknowledge", Type: "F", Sort: 1},
+		{Key: "security-event-clear", ParentKey: menuKeySecurityEvent, TitleKey: "system.permission.security_event.clear", Perms: "system:security-event:clear", Type: "F", Sort: 2},
+	}
 }
 
 func ensureMenuSeeds(db *gorm.DB, seeds []menuSeed) error {
@@ -117,14 +172,7 @@ func ensureAdminRoleMenuBinding(db *gorm.DB, menuID uint64) error {
 		return err
 	}
 
-	var count int64
-	if err := db.Table("system_role_menu").Where("role_id = ? AND menu_id = ?", adminRoleID, menuID).Count(&count).Error; err != nil {
-		return err
-	}
-	if count == 0 {
-		return db.Exec("INSERT INTO system_role_menu (role_id, menu_id) VALUES (?, ?)", adminRoleID, menuID).Error
-	}
-	return nil
+	return rbacbind.EnsureRoleMenu(db, adminRoleID, menuID)
 }
 
 func lookupAdminRoleID(db *gorm.DB) (uint64, error) {
@@ -140,10 +188,10 @@ func resolveMenuParentID(db *gorm.DB, parentKey string) (uint64, error) {
 		return 0, nil
 	}
 	parentPaths := map[string]string{
-		"security":       "/system/security",
-		"login-log":      "/system/login-log",
-		"session":        "/system/session",
-		"security-event": "/system/security-event",
+		"security":           "/system/security",
+		menuKeyLoginLog:      "/system/login-log",
+		"session":            "/system/session",
+		menuKeySecurityEvent: "/system/security-event",
 	}
 	parentPath, ok := parentPaths[parentKey]
 	if !ok {

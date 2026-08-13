@@ -31,7 +31,7 @@ import {
 } from '../../../../api/request';
 import { login, type LoginPayload, type LoginResp } from '../api';
 import { verifyMFA } from '../../mfa/api';
-import { findFirstNavigableMenuPath } from '../../../system/iam/menu/api';
+import { findFirstNavigableMenuPath } from '../../../system/menu/api';
 import { useAuthStore } from '../../../../store/useAuthStore';
 import { useMenuStore } from '../../../../store/useMenuStore';
 import ThemeSwitcher from '../../../../core/theme/ThemeSwitcher';

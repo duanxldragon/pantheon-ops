@@ -31,7 +31,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
         with:
-          go-version-file: go.mod
+          go-version-file: backend/go.mod
           cache: false
 
       - name: Setup Node
@@ -46,13 +46,16 @@ jobs:
       - name: Report Go vulnerabilities
         id: govulncheck
         continue-on-error: true
-        run: go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 -json ./... > security-reports/govulncheck.json
+        # go.mod lives in backend/, not the repo root; running from the root
+        # made govulncheck exit with "no go.mod file" on every main push.
+        working-directory: backend
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 -json ./... > ../security-reports/govulncheck.json
 
       - name: Report root npm vulnerabilities
         id: npm-audit-root
         continue-on-error: true
         run: |
-          npm ci
+          npm ci --ignore-scripts
           npm audit --registry=https://registry.npmjs.org --json --audit-level=high > security-reports/npm-audit-root.json
 
       - name: Report frontend npm vulnerabilities
@@ -60,7 +63,7 @@ jobs:
         continue-on-error: true
         working-directory: frontend
         run: |
-          npm ci
+          npm ci --ignore-scripts
           npm audit --registry=https://registry.npmjs.org --json --audit-level=high > ../security-reports/npm-audit-frontend.json
 
       - name: Report OSV vulnerabilities
@@ -125,7 +128,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
         with:
-          go-version-file: go.mod
+          go-version-file: backend/go.mod
           cache: false
 
       - name: Prepare report directory

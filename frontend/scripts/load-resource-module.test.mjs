@@ -2,45 +2,42 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import test from 'node:test';
+import { after, test } from 'node:test';
 import { loadResourceModule } from './lib/load-resource-module.mjs';
 
-function writeModule(filePath, content) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, content, 'utf8');
-}
+const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-load-resource-'));
 
-test('loadResourceModule resolves imported default objects and spread assignments', () => {
-  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-resource-loader-'));
-  const runtimePath = path.join(tmpRoot, 'runtime-fixes.zh-CN.ts');
-  const localePath = path.join(tmpRoot, 'zh-CN.ts');
+after(() => {
+  fs.rmSync(tmpRoot, { recursive: true, force: true });
+});
 
-  writeModule(
-    runtimePath,
-    "const runtimeFixes = {\n  'auth.login.error': '登录失败',\n};\n\nexport default runtimeFixes;\n",
+test('loadResourceModule resolves imported and spread resources without executing code', () => {
+  const nestedPath = path.join(tmpRoot, 'nested.ts');
+  const basePath = path.join(tmpRoot, 'base.ts');
+  const entryPath = path.join(tmpRoot, 'entry.ts');
+
+  fs.writeFileSync(nestedPath, "const nested = { gamma: 'three' };\nexport default nested;\n", 'utf8');
+  fs.writeFileSync(
+    basePath,
+    "import nested from './nested';\nconst base = { alpha: 'one', ...nested };\nexport default base;\n",
+    'utf8',
   );
-  writeModule(
-    localePath,
-    "import runtimeFixes from './runtime-fixes.zh-CN';\n\nconst locale = {\n  'app.name': 'Pantheon Base',\n  ...runtimeFixes,\n};\n\nexport default locale;\n",
+  fs.writeFileSync(
+    entryPath,
+    "import base from './base';\nconst resource = { ...base, beta: 'two' };\nexport default resource;\n",
+    'utf8',
   );
 
-  assert.deepEqual(loadResourceModule(localePath), {
-    'app.name': 'Pantheon Base',
-    'auth.login.error': '登录失败',
+  assert.deepEqual(loadResourceModule(entryPath), {
+    alpha: 'one',
+    beta: 'two',
+    gamma: 'three',
   });
 });
 
-test('loadResourceModule rejects executable expressions', () => {
-  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-resource-loader-'));
-  const invalidPath = path.join(tmpRoot, 'invalid.ts');
+test('loadResourceModule rejects unsupported expressions', () => {
+  const entryPath = path.join(tmpRoot, 'bad.ts');
+  fs.writeFileSync(entryPath, "export default (() => ({ alpha: 'one' }))();\n", 'utf8');
 
-  writeModule(
-    invalidPath,
-    "const locale = buildLocale();\n\nexport default locale;\n",
-  );
-
-  assert.throws(
-    () => loadResourceModule(invalidPath),
-    /Unsupported expression CallExpression/,
-  );
+  assert.throws(() => loadResourceModule(entryPath), /Unsupported expression/);
 });

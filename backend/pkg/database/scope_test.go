@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"gorm.io/gorm"
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/testmysql"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/testmysql"
 )
 
 type dataScopeTestRow struct {

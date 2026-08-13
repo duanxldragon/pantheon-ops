@@ -2,7 +2,7 @@ package dynamicmodule
 
 import (
 	"fmt"
-	"pantheon-ops/backend/internal/scaffold"
+	"pantheon-base/internal/scaffold"
 	"path/filepath"
 	"strings"
 )
@@ -46,7 +46,7 @@ func (s *DynamicModuleService) buildGeneratedModuleSummary(req *scaffold.Registe
 			// The registry imports the module by Go import path; the old
 			// "backend/modules/<scope>/<name>" fragment predates the module
 			// path move and never matches, so the check always warned.
-			fmt.Sprintf("pantheon-ops/backend/modules/%s/%s", scope, name),
+			fmt.Sprintf("pantheon-base/modules/%s/%s", scope, name),
 			fmt.Sprintf("Init%sModule", toGeneratedPascal(name)),
 		),
 		s.verifyRegistryFile(

@@ -9,7 +9,7 @@ English version: [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.
 - `business/cmdb`
 - `business/deploy`
 - `business/bizscope`
-- `base -> ops` 继承同步
+- Base 快照 + business overlay 重建
 
 直接复制后补全即可：
 
@@ -27,13 +27,13 @@ English version: [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.
 - 对应 BUSINESS_* 文档
 
 实现范围：
-- 明确是业务功能闭环，还是共享后台同步
+- 明确是业务功能闭环，还是完整 Base 快照重建
 - 明确本轮不处理的业务域或平台域问题
 - 先应用最小复杂度阶梯：不做 / 复用 base 或 ops 现有能力 / 标准库 / 平台原生 / 已安装依赖 / 一条局部表达式 / 最小新增代码
 
 同步要求：
 - 仅本仓业务改动
-- 或 `base -> ops` 同步
+- 或 `base -> ops` 同步（Base 快照 + business overlay 重建）
 - 如果发现根因属于共享壳层或系统域，回 base 修，不在 ops 本地 override
 
 验证方式：
@@ -49,6 +49,6 @@ English version: [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.
 同步类任务额外要求：
 
 - 写清 base commit
-- 写清共享路径哪些同步、哪些故意未同步
-- 写清 `business/*` 路径是否保持原样
-- 写清 base 和 ops 各自的最小验证结果
+- 写清 `business-overlay.json` 是否变化
+- 写清业务资产比对、生成注册表和幂等重建结果
+- 写清暂存树的 backend、frontend、business smoke 和 SonarCloud 结果

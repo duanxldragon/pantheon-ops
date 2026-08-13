@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-ops/backend/pkg/contracts"
+	"pantheon-base/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

@@ -1,0 +1,3 @@
+roleKey,path,method
+#说明：保留第一行表头；只导入 Casbin 接口策略；roleKey 必须已存在；method 支持 GET/POST/PUT/PATCH/DELETE。,,
+admin,/api/v1/system/user/list,GET

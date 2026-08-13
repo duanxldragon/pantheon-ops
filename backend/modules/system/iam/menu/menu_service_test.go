@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"gorm.io/gorm"
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/testmysql"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/testmysql"
 )
 
 func setupMenuTestDB(t *testing.T) *gorm.DB {
@@ -33,7 +33,7 @@ func TestMenuServiceCreateMenuBindsAdminRole(t *testing.T) {
 	menu, err := service.CreateMenu(&MenuCreateReq{
 		TitleKey:   "system.menu.user",
 		Path:       "/system/user-smoke",
-		Component:  "system/iam/user/UserList",
+		Component:  "system/user/UserList",
 		PagePerm:   "system:user:list",
 		Type:       "C",
 		RouteName:  "system-user-smoke",
@@ -142,7 +142,7 @@ func TestMenuServiceValidateMenuMetaAcceptsRegisteredComponent(t *testing.T) {
 	err := service.validateMenuMeta(0, &MenuCreateReq{
 		TitleKey:   "system.menu.user",
 		Path:       "/system/user",
-		Component:  "system/iam/user/UserList",
+		Component:  "system/user/UserList",
 		PagePerm:   "system:user:list",
 		Type:       "C",
 		RouteName:  "system-user",

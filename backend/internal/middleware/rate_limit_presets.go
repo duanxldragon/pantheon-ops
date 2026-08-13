@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"github.com/ulule/limiter/v3"
-	"pantheon-ops/backend/pkg/ratelimit"
+	"pantheon-base/pkg/ratelimit"
 )
 
 // LoginRateLimitMiddleware 登录端点速率限制：每IP每分钟最多5次

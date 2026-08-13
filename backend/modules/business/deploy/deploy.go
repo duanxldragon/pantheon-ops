@@ -1,8 +1,8 @@
 package deploy
 
 import (
-	"pantheon-ops/backend/modules/business/cmdb"
-	"pantheon-ops/backend/pkg/contracts"
+	"pantheon-base/modules/business/cmdb"
+	"pantheon-base/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

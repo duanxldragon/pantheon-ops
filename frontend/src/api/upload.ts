@@ -20,5 +20,6 @@ export function uploadSystemFile(file: File, scope = 'general') {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    timeout: 30000,
   });
 }

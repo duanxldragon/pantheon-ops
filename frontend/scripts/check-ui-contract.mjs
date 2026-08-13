@@ -93,19 +93,7 @@ function walk(dir) {
   return out;
 }
 
-// ops-only temporary exemption (added 2026-07-17): these are base-owned
-// shared files whose ops copies are stale; base's copies already pass this
-// gate. Hand-copying base files into ops is forbidden (root AGENTS.md), so
-// they are skipped until the next foundation-release sync overwrites them.
-// REMOVE this list when `npm run upgrade:foundation:apply` lands a release
-// at or after base commit ea2f4779.
-const DRIFT_PENDING_SYNC = new Set(
-  ['modules/platform/dashboard.css', 'modules/system/components/shared/list-page.css'].map((p) =>
-    path.join(srcRoot, ...p.split('/')),
-  ),
-);
-
-const files = walk(srcRoot).filter((file) => !DRIFT_PENDING_SYNC.has(file));
+const files = walk(srcRoot);
 const findings = [];
 
 for (const file of files) {

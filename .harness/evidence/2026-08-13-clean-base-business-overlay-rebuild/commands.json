@@ -1,0 +1,38 @@
+{
+  "taskId": "2026-08-13-clean-base-business-overlay-rebuild",
+  "commands": [
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "Overlay contract verified: every declared businessPath exists and no business file imports the old pantheon-ops/backend module path."
+    },
+    {
+      "command": "node scripts/business-overlay/rebuild-from-base.mjs --target .tmp/business-overlay-rebuild",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "Deterministic clean rebuild from foundation-release.lock.json → repoSnapshot (repo.tar, sha256-verified); no local-tree fallback."
+    },
+    {
+      "command": "go build ./... && go vet ./... && go test ./modules/business/...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "Rebuilt backend compiles, vets clean, and business module tests pass."
+    },
+    {
+      "command": "tsc -b && vite build && eslint src",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "Rebuilt frontend type-checks, builds, and lints clean; menu-contract gate includes the Ops overlay registries."
+    },
+    {
+      "command": "npm run test:business-overlay && npm run check:business-overlay",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "Overlay unit tests and checks green in the staged tree."
+    }
+  ],
+  "knownGaps": [
+    "SonarCloud hosted analysis for the Ops repository and PR merge remain pending; the atomic baseline replacement (Phase 6) has already landed on this branch."
+  ]
+}
