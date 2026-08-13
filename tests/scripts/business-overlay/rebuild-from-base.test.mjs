@@ -93,7 +93,7 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
     fixtureRepository(opsRoot, {
       'business-overlay.json': `${JSON.stringify(manifest)}\n`,
       'package.json': '{"scripts":{}}\n',
-      'go.sum': 'gorm.io/datatypes v1.2.7 h1:test\ngorm.io/datatypes v1.2.7/go.mod h1:testmod\n',
+      'backend/go.sum': 'gorm.io/datatypes v1.2.7 h1:test\ngorm.io/datatypes v1.2.7/go.mod h1:testmod\n',
       'frontend/package.json': '{"scripts":{"test:smoke:business:cmdb":"playwright test tests/smoke/business/cmdb/pages.spec.ts"}}\n',
       'backend/modules/business/cmdb/module.go': 'package cmdb\nimport "pantheon-ops/backend/pkg/contracts"\n',
       'backend/modules/business/generated_registry.go': 'package business\n',

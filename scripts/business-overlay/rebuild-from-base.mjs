@@ -94,7 +94,13 @@ function resolveBaseFromLock(opsRoot) {
   }
   if (!fs.existsSync(repoDir)) {
     fs.mkdirSync(repoDir, { recursive: true });
-    const result = spawnSync('tar', ['-xf', repoTar, '-C', repoDir], { encoding: 'utf8' });
+    // GNU tar treats a drive-letter path (`D:\...`) as the `host:file` remote-archive
+    // syntax. Run with relative paths under `cwd` to avoid the colon entirely, so this
+    // works on both GNU tar (Git Bash) and BSD tar (Windows built-in).
+    const result = spawnSync('tar', ['-xf', path.basename(repoTar), '-C', path.basename(repoDir)], {
+      encoding: 'utf8',
+      cwd: releaseDir,
+    });
     if (result.status !== 0) {
       throw new Error(result.stderr.trim() || `failed to extract ${repoTar}`);
     }
@@ -431,7 +437,7 @@ function mergeGoDependencies(opsRoot, targetRoot, manifest) {
     });
     if (result.status !== 0) throw new Error(result.stderr.trim() || `Cannot add ${modulePath}@${version}`);
   }
-  const sourceSum = fs.readFileSync(path.join(opsRoot, 'go.sum'), 'utf8').split(/\r?\n/u);
+  const sourceSum = fs.readFileSync(path.join(opsRoot, 'backend', 'go.sum'), 'utf8').split(/\r?\n/u);
   const targetSumPath = path.join(targetRoot, 'backend', 'go.sum');
   const targetLines = fs.readFileSync(targetSumPath, 'utf8').split(/\r?\n/u).filter(Boolean);
   for (const [modulePath, version] of dependencies) {
