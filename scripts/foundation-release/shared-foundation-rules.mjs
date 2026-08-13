@@ -41,6 +41,7 @@ export const sharedFrontendToolingPaths = new Set([
   'frontend/scripts/check-smoke-web-base.mjs',
   'frontend/scripts/database-import-qa-setup.mjs',
   'frontend/scripts/export-generated-module.mjs',
+  'frontend/scripts/go-module.test.mjs',
   'frontend/scripts/lib/auth-cookie-session.mjs',
   'frontend/scripts/lib/cleanup-fixture-cache.mjs',
   'frontend/scripts/lib/cleanup-fixture-query-plan.mjs',

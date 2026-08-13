@@ -1,5 +1,5 @@
 ---
-title: Consume and certify foundation v0.10.16
+title: Consume and certify foundation v0.10.21
 doc_type: Remediation
 layer: inheritance-sync
 status: Active
@@ -13,7 +13,7 @@ linked_contracts:
 
 ## Goal
 
-Consume the immutable `pantheon-base-v0.10.16` artifact and independently prove that Ops contains no unauthorized historical shared-source residuals. The task ID retains the originally planned v0.10.14 name; final certification advances to v0.10.16 because v0.10.14 exposed missing smoke source ownership and v0.10.15 exposed missing smoke entrypoint ownership.
+Consume the immutable `pantheon-base-v0.10.21` artifact and independently prove that Ops contains no unauthorized historical shared-source residuals. The task ID retains the originally planned v0.10.14 name. Successive immutable patches exposed and closed missing smoke source ownership, entrypoint ownership, consumer portability, and package-referenced script distribution before the final v0.10.21 certification.
 
 ## Scope
 

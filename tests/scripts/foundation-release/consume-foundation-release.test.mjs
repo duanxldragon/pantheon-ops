@@ -771,6 +771,7 @@ test('allowlisted shared frontend tooling is reported by dry-run and applied fro
     const toolingPaths = [
       'frontend/scripts/check-smoke-web-base.mjs',
       'frontend/scripts/export-generated-module.mjs',
+      'frontend/scripts/go-module.test.mjs',
       'frontend/scripts/lib/auth-cookie-session.mjs',
       'frontend/scripts/lib/css-declarations.mjs',
       'frontend/scripts/run-smoke-suite.mjs',
@@ -848,6 +849,7 @@ test('shared smoke contracts preserve Ops business suites while updating Base en
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
     manifest.sharedPaths.frontend = [
       'frontend/package.json',
+      'frontend/scripts/go-module.test.mjs',
       'frontend/tests/smoke/README.md',
     ];
     writeJson(manifestPath, manifest);
@@ -857,9 +859,14 @@ test('shared smoke contracts preserve Ops business suites while updating Base en
         'test:smoke:business': 'npm run test:smoke:business:generated && npm run test:smoke:business:database-import',
         'test:smoke:business:generated': 'playwright test tests/smoke/business/generated/module.spec.ts',
         'test:smoke:business:database-import': 'playwright test tests/smoke/business/generated/import.spec.ts',
+        'test:smoke:scripts': 'node --test scripts/go-module.test.mjs',
         'test:smoke:system': 'playwright test tests/smoke/system/system.spec.ts',
       },
     });
+    writeText(
+      path.join(bundleRoot, 'bundle', 'shared-frontend', 'frontend', 'scripts', 'go-module.test.mjs'),
+      "import test from 'node:test';\n",
+    );
     writeJson(path.join(opsRoot, 'frontend', 'package.json'), {
       scripts: {
         build: 'vite build',
@@ -913,6 +920,8 @@ test('shared smoke contracts preserve Ops business suites while updating Base en
     assert.match(nextPackage.scripts['test:smoke:business:cmdb'], /business\/cmdb/);
     assert.match(nextPackage.scripts['test:smoke:business:deploy:api'], /business\/deploy/);
     assert.match(nextPackage.scripts['test:smoke:business:deploy'], /business\/deploy/);
+    assert.equal(nextPackage.scripts['test:smoke:scripts'], 'node --test scripts/go-module.test.mjs');
+    assert.equal(fs.existsSync(path.join(opsRoot, 'frontend', 'scripts', 'go-module.test.mjs')), true);
     assert.equal(nextPackage.scripts['test:smoke:business:master-detail'], undefined);
     assert.equal(nextPackage.scripts['test:smoke:role-auth'], undefined);
 
