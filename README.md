@@ -21,7 +21,7 @@ Pantheon Ops 是基于 Pantheon Platform 底座拆出的运维管理平台，用
 - **组织管理**：部门、岗位、用户组织归属，以及组织架构视图。
 - **配置治理**：系统设置、字典管理、缓存刷新、敏感配置保护。
 - **审计能力**：登录日志、操作日志、关键写操作审计。
-- **动态菜单**：菜单 seed、前端 manifest、组件注册表和构建期契约检查。
+- **动态菜单**：菜单 seed、前端 manifest、组件注册表和构建期契约检查；Base 的注册表按命名约定发现，Ops 注入的 `businessOverlayComponentRegistry.ts` / `business_overlay_component_registry.go` 会被门禁自动纳入校验。
 - **CMDB**：主机资源、分组、标签规范和一次性采集。
 - **Deploy**：部署包、部署任务、目标选择和任务快照。
 

@@ -24,6 +24,8 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
 重建器只在 Base 的聚合入口接入这些静态注册表。Base 的 `generated_*` 注册表仍由低代码生成器独占，可以反复生成和 purge，不得存放 Ops 内置业务注册。菜单、权限、数据库 migration、seed、运行态 i18n 和 API 路由由各业务模块负责。
 
+Base 的菜单契约门禁（`check-menu-contract.mjs`）按命名约定发现组件注册表文件（前端 `*Registry.ts`、后端 `*registry.go`），因此 `businessOverlayComponentRegistry.ts` / `business_overlay_component_registry.go` 会被门禁自动纳入一致性校验，无需在 base 侧登记文件清单。
+
 ## 3. 升级流程
 
 ```powershell
