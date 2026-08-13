@@ -35,7 +35,7 @@ jobs:
           package-manager-cache: false
 
       - name: Install root dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Validate PR governance body
         id: pr-body-ready
@@ -62,7 +62,7 @@ jobs:
           package-manager-cache: false
 
       - name: Install root dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Check GitHub feedback gate
         id: feedback-gate

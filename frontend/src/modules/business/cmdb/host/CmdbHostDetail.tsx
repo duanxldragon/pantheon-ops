@@ -23,7 +23,7 @@ import { getHostDetail, collectHostConfig } from './api';
 import type { HostRow } from './api';
 import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../cmdb.css';
 
 export default function CmdbHostDetail() {

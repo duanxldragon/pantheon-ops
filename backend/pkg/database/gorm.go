@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-	"pantheon-ops/backend/pkg/metrics"
+	"pantheon-base/pkg/metrics"
 )
 
 var DB *gorm.DB

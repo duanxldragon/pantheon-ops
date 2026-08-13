@@ -19,6 +19,8 @@ type GovernanceActionCase = {
   prepare: (page: Page) => Promise<Locator>;
 };
 
+// Log/session cleanup now opens a dialog with a shared irreversible-action
+// warning (common.cleanupIrreversibleWarning) instead of an inline Popconfirm.
 const CLEANUP_WARNING_TEXT = '清理后的记录不可恢复，请确认清理条件无误后再执行。';
 
 function createDeferred<T = void>(): Deferred<T> {
@@ -311,7 +313,7 @@ test.describe('system governance action matrix', () => {
     }
   });
 
-  test('submitting matrix shows deterministic loading feedback for governance actions', async ({ page }) => {
+  test('submitting matrix dismisses confirms and keeps governance pages stable', async ({ page }) => {
     for (const actionCase of actionCases) {
       const casePage = await page.context().newPage();
       const runtimeErrors = collectRuntimeErrors(casePage);
@@ -341,8 +343,15 @@ test.describe('system governance action matrix', () => {
         await completeSecondaryVerifyIfVisible(casePage);
 
         await expect.poll(() => intercepted).toBeTruthy();
+
         gate.resolve();
-        await expect(casePage.locator('.governance-summary-bar, .system-list__table-card, .module-manager-page, .auth-security-page').first()).toBeVisible();
+        await expect(
+          casePage
+            .locator(
+              '.governance-summary-bar, .system-list__table-card, .module-manager-page, .auth-security-page',
+            )
+            .first(),
+        ).toBeVisible();
         expectNoRuntimeErrors(runtimeErrors);
       } finally {
         await casePage.close();

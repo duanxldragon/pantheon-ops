@@ -1,4 +1,5 @@
 import { useAuthStore } from '../store/useAuthStore';
+import { checkPermission } from '../core/permissions/checkPermission';
 
 export const usePermission = () => {
   const { userInfo } = useAuthStore();
@@ -6,8 +7,7 @@ export const usePermission = () => {
 
   return {
     isAdmin,
-    hasPerm: (perm: string) => isAdmin || userInfo?.perms?.includes(perm) || false,
-    hasAnyPerm: (perms: string[]) =>
-      isAdmin || perms.some((perm) => userInfo?.perms?.includes(perm)),
+    hasPerm: (perm: string) => checkPermission(userInfo, perm),
+    hasAnyPerm: (perms: string[]) => perms.some((perm) => checkPermission(userInfo, perm)),
   };
 };

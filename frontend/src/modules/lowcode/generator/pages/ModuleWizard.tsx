@@ -28,7 +28,7 @@ import {
 import { usePermission } from '../../../../hooks/usePermission';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { auditPendingActivations, getModuleStatus } from '../../dynamicmodule/api';
+import { auditPendingActivations, getModuleStatus } from '../../../lowcode/dynamicmodule/api';
 
 import {
   createGeneratorDatasource,

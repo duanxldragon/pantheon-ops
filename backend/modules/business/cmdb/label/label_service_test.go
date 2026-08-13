@@ -4,9 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	cmdbgroup "pantheon-ops/backend/modules/business/cmdb/group"
-	cmdbhost "pantheon-ops/backend/modules/business/cmdb/host"
-	"pantheon-ops/backend/pkg/testmysql"
+	cmdbgroup "pantheon-base/modules/business/cmdb/group"
+	cmdbhost "pantheon-base/modules/business/cmdb/host"
+	"pantheon-base/pkg/testmysql"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

@@ -6,6 +6,7 @@ import {
   verifiedApiHeaders,
   type BrowserLoginResult,
 } from '../../helpers/auth';
+import { runOptionalSmokeCleanup } from '../../helpers/fixture-policy';
 
 type ResponseEnvelope<T> = {
   code: number;
@@ -90,7 +91,9 @@ test.describe.serial('system batch delete api smoke', () => {
   });
 
   test.afterAll(async () => {
-    await cleanupBatchDeleteFixtures(apiContext, operationHeaders);
+    await runOptionalSmokeCleanup('system-api:batch-delete-fixtures', async () => {
+      await cleanupBatchDeleteFixtures(apiContext, operationHeaders);
+    });
     await apiContext.dispose();
   });
 

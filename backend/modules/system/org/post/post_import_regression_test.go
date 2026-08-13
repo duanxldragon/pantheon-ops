@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"pantheon-ops/backend/pkg/impexp"
+	"pantheon-base/pkg/impexp"
 )
 
 // 以下回归测试用于锁定 ImportPosts 的事务边界、逐行校验、重复处理以及

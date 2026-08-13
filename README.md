@@ -6,7 +6,7 @@ Pantheon Ops 是基于 Pantheon Platform 底座拆出的运维管理平台，用
 
 该仓库保留平台底座能力作为业务运行基础，但演进重点放在 `business/bizscope`、`business/cmdb`、`business/deploy` 及后续运维业务模块；通用后台能力的持续演进应回到 `pantheon-platform` 仓库。
 
-默认协作模型已经调整为：`pantheon-ops` 消费 `pantheon-base` 的 foundation release，而不是直接跟随 `pantheon-base/main`。
+默认协作模型是：以完整 `pantheon-base` 快照作为产品基线，再通过 `business-overlay.json` 注入和组装 Ops 业务资产。升级不会在旧树上逐文件打补丁。
 
 ## 项目定位
 
@@ -21,7 +21,7 @@ Pantheon Ops 是基于 Pantheon Platform 底座拆出的运维管理平台，用
 - **组织管理**：部门、岗位、用户组织归属，以及组织架构视图。
 - **配置治理**：系统设置、字典管理、缓存刷新、敏感配置保护。
 - **审计能力**：登录日志、操作日志、关键写操作审计。
-- **动态菜单**：菜单 seed、前端 manifest、组件注册表和构建期契约检查。
+- **动态菜单**：菜单 seed、前端 manifest、组件注册表和构建期契约检查；Base 的注册表按命名约定发现，Ops 注入的 `businessOverlayComponentRegistry.ts` / `business_overlay_component_registry.go` 会被门禁自动纳入校验。
 - **CMDB**：主机资源、分组、标签规范和一次性采集。
 - **Deploy**：部署包、部署任务、目标选择和任务快照。
 
@@ -75,7 +75,8 @@ PowerShell 示例：
 $env:PANTHEON_DSN='root:DHCCroot@2025@tcp(127.0.0.1:3306)/pantheon_ops?charset=utf8mb4&parseTime=True&loc=Local'
 $env:PANTHEON_REDIS_ADDR='127.0.0.1:6379'
 $env:PANTHEON_REDIS_PASSWORD='DHCCdhcc2025'
-go run ./backend/cmd/server
+Set-Location backend
+go run ./cmd/server
 ```
 
 后端默认监听 `http://127.0.0.1:8080`。
@@ -106,7 +107,8 @@ npm run dev
 
 ```bash
 # 后端测试
-go test ./backend/modules/auth ./backend/modules/system/...
+cd backend
+go test ./...
 
 # 前端构建与菜单契约检查
 cd frontend
@@ -124,14 +126,11 @@ npm run test:smoke:impexp
 # 后台 UI smoke
 npm run test:smoke:backoffice-ui
 
-# 安装当前锁定的 foundation release artifact
-npm run foundation:install
+# 从完整 Base 快照生成临时 Ops 树
+npm run rebuild:from-base -- --base ..\\pantheon-base --target .tmp\\clean-base-overlay
 
-# 规划消费某个 foundation release
-npm run upgrade:foundation:plan -- --manifest <bundle-root>\\manifest.json --bundle <bundle-root>
-
-# 应用共享 backend/frontend、保留 ops overlay，并更新继承锚点
-npm run upgrade:foundation:apply -- --manifest <bundle-root>\\manifest.json --bundle <bundle-root>
+# 校验业务 overlay 清单和生成注册表
+node scripts/business-overlay/check-business-overlay.mjs --root .tmp\\clean-base-overlay
 ```
 
 ## 代码质量与安全门禁
@@ -157,11 +156,10 @@ Pantheon Platform 将权限拆成四层：
 ## 文档入口
 
 - [docs/README.md](./docs/README.md)：中文主索引。
-- [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md)：先看继承关系、版本锁定与本地业务范围。
+- [docs/PROJECT_INHERITANCE.md](./docs/PROJECT_INHERITANCE.md)：先看完整 Base 快照、业务 overlay 和升级边界。
 - [docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./docs/designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md)：业务域治理、主机绑定与部署信任边界设计。
-- `docs/PROJECT_INHERITANCE.md` 中的 `Base release line + Base version` 是当前 consumer 版本锚点。
-- `foundation-release.lock.json` 是默认共享校验的 machine-readable 锚点；`check:base-sync` 对已安装的 locked release artifact 负责，`check:base-sync:workspace` 才用于观察 base 最近是否有待同步变化。
-- `upgrade:foundation:apply` 会保留 ops 本地 menu/generator/workspace overlay，重写共享 backend import 到 `pantheon-ops`，并补跑 frontend base-sync + menu-contract。
+- `business-overlay.json` 是唯一 machine-readable 业务资产和装配清单。
+- 每次升级先在临时目录重建并输出 `.business-overlay-report.json`；验证通过后才替换当前 Ops 基线。
 - [.agents/skills/README.zh.md](./.agents/skills/README.zh.md)：本仓库的 repo-local agent skills 入口，覆盖继承校验、PR 收口、GitHub comments 自动处理与 CI 红灯排查。
 - [DESIGN.md](./DESIGN.md)：再看仓库级设计边界。
 - [CONTRIBUTING.md](./CONTRIBUTING.md) / [SECURITY.md](./SECURITY.md)：协作与安全规则。

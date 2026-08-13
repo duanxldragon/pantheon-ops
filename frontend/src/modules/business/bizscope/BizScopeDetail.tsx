@@ -34,7 +34,7 @@ import {
   type BizScopeDetail as BizScopeDetailType,
   type BizScopeHostRow,
 } from './api';
-import '../../system/list-page.css';
+import '../../system/components/shared/list-page.css';
 import '../cmdb/cmdb.css';
 
 function bizScopeHostStatusColor(status: string) {

@@ -2,7 +2,7 @@
   {
     "path": "/system/user",
     "title": "用户管理",
-    "sourceFile": "src/modules/system/iam/user/UserList.tsx",
+    "sourceFile": "src/modules/system/user/UserList.tsx",
     "narrative": "task-first-list",
     "governanceDrawer": "allowed",
     "governanceButtonText": "治理摘要",
@@ -12,32 +12,21 @@
   {
     "path": "/system/setting",
     "title": "系统设置",
-    "sourceFile": "src/modules/system/config/setting/SettingOverviewPage.tsx",
+    "sourceFile": "src/modules/system/setting/SettingOverviewPage.tsx",
     "narrative": "config-overview",
-    "identitySelectors": [
-      ".setting-overview-page"
-    ],
+    "identitySelectors": [".setting-overview-page"],
     "requiredSmokeAssertions": [
       {
         "file": "tests/smoke/system/system-pages.spec.ts",
-        "tokens": [
-          "/system/setting",
-          ".setting-overview-page"
-        ]
+        "tokens": ["/system/setting", ".setting-overview-page"]
       },
       {
         "file": "tests/smoke/platform/backoffice-ui-visual.spec.ts",
-        "tokens": [
-          "/system/setting",
-          "系统设置"
-        ]
+        "tokens": ["/system/setting", "系统设置"]
       },
       {
         "file": "tests/smoke/platform/shell-visual-contract.spec.ts",
-        "tokens": [
-          "/system/setting",
-          ".setting-overview-page"
-        ]
+        "tokens": ["/system/setting", ".setting-overview-page"]
       }
     ],
     "governanceDrawer": "forbidden",
@@ -46,32 +35,21 @@
   {
     "path": "/system/setting/:groupKey",
     "title": "系统设置",
-    "sourceFile": "src/modules/system/config/setting/SettingGroupPage.tsx",
+    "sourceFile": "src/modules/system/setting/SettingGroupPage.tsx",
     "narrative": "config-group",
-    "identitySelectors": [
-      ".setting-group-page"
-    ],
+    "identitySelectors": [".setting-group-page"],
     "requiredSmokeAssertions": [
       {
         "file": "tests/smoke/system/system-pages.spec.ts",
-        "tokens": [
-          "/system/setting/security",
-          ".setting-group-page"
-        ]
+        "tokens": ["/system/setting/security", ".setting-group-page"]
       },
       {
         "file": "tests/smoke/platform/system-secondary-route-visual.spec.ts",
-        "tokens": [
-          "/system/setting/basic",
-          ".setting-group-page"
-        ]
+        "tokens": ["/system/setting/basic", ".setting-group-page"]
       },
       {
         "file": "tests/smoke/platform/shell-visual-contract.spec.ts",
-        "tokens": [
-          "/system/setting/basic",
-          ".setting-group-page"
-        ]
+        "tokens": ["/system/setting/basic", ".setting-group-page"]
       }
     ],
     "governanceDrawer": "forbidden",
@@ -80,7 +58,7 @@
   {
     "path": "/system/role",
     "title": "角色管理",
-    "sourceFile": "src/modules/system/iam/role/RoleList.tsx",
+    "sourceFile": "src/modules/system/role/RoleList.tsx",
     "narrative": "governance-workbench",
     "governanceDrawer": "allowed",
     "governanceButtonText": "授权摘要",
@@ -90,7 +68,7 @@
   {
     "path": "/system/menu",
     "title": "菜单管理",
-    "sourceFile": "src/modules/system/iam/menu/MenuList.tsx",
+    "sourceFile": "src/modules/system/menu/MenuList.tsx",
     "narrative": "governance-workbench",
     "governanceDrawer": "allowed",
     "governanceButtonText": "元数据摘要",
@@ -100,7 +78,7 @@
   {
     "path": "/system/permission",
     "title": "权限管理",
-    "sourceFile": "src/modules/system/iam/permission/PermissionList.tsx",
+    "sourceFile": "src/modules/system/permission/PermissionList.tsx",
     "narrative": "governance-workbench",
     "governanceDrawer": "allowed",
     "governanceButtonText": "治理摘要",
@@ -110,7 +88,7 @@
   {
     "path": "/system/dept",
     "title": "部门管理",
-    "sourceFile": "src/modules/system/org/dept/DeptList.tsx",
+    "sourceFile": "src/modules/system/dept/DeptList.tsx",
     "narrative": "governance-workbench",
     "governanceDrawer": "allowed",
     "governanceButtonText": "治理视角",
@@ -120,7 +98,7 @@
   {
     "path": "/system/post",
     "title": "岗位管理",
-    "sourceFile": "src/modules/system/org/post/PostList.tsx",
+    "sourceFile": "src/modules/system/post/PostList.tsx",
     "narrative": "governance-workbench",
     "governanceDrawer": "allowed",
     "governanceButtonText": "治理摘要",
@@ -130,7 +108,7 @@
   {
     "path": "/system/dict",
     "title": "字典管理",
-    "sourceFile": "src/modules/system/config/dict/DictPage.tsx",
+    "sourceFile": "src/modules/system/dict/DictPage.tsx",
     "narrative": "governance-workbench",
     "governanceDrawer": "allowed",
     "governanceButtonText": "治理摘要",
@@ -175,6 +153,16 @@
     "governanceDrawer": "allowed",
     "governanceButtonText": "审计摘要",
     "governanceDrawerTitle": "审计摘要",
+    "hero": "forbidden"
+  },
+  {
+    "path": "/system/security-event",
+    "title": "安全事件",
+    "sourceFile": "src/modules/auth/security/components/SecurityEventList.tsx",
+    "narrative": "audit-console",
+    "governanceDrawer": "allowed",
+    "governanceButtonText": "治理摘要",
+    "governanceDrawerTitle": "治理摘要",
     "hero": "forbidden"
   },
   {

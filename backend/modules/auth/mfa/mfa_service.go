@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-ops/backend/pkg/authtoken"
-	"pantheon-ops/backend/pkg/common"
+	"pantheon-base/pkg/authtoken"
+	"pantheon-base/pkg/common"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

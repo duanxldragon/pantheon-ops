@@ -182,10 +182,9 @@ test.describe('Deploy business module smoke', () => {
 
       await page.goto('/operations/deploy/task', { waitUntil: 'networkidle' });
       await expect(page).toHaveURL(/\/operations\/deploy\/task$/);
-      const taskKeywordInput = page.locator('.filter-panel input').first();
+      const taskKeywordInput = page.locator('.search-toolbar input').first();
       await expect(taskKeywordInput).toBeVisible();
       await taskKeywordInput.fill(token);
-      await page.getByRole('button', { name: '搜索' }).click();
 
       const row = page.getByRole('row').filter({ hasText: `${token}-task` }).first();
       await expect(row).toBeVisible();
@@ -306,10 +305,9 @@ test.describe('Deploy business module smoke', () => {
     try {
       await page.goto('/operations/deploy/template', { waitUntil: 'networkidle' });
       await expect(page).toHaveURL(/\/operations\/deploy\/template$/);
-      const templateKeywordInput = page.locator('.filter-panel input').first();
+      const templateKeywordInput = page.locator('.search-toolbar input').first();
       await expect(templateKeywordInput).toBeVisible();
       await templateKeywordInput.fill(token);
-      await page.getByRole('button', { name: '搜索' }).click();
 
       const row = page.getByRole('row').filter({ hasText: token }).first();
       await expect(row).toBeVisible();
@@ -593,8 +591,7 @@ test.describe('Deploy business module smoke', () => {
 
     try {
       await page.goto('/operations/deploy/template', { waitUntil: 'networkidle' });
-      await page.locator('.filter-panel input').first().fill(token);
-      await page.locator('.filter-panel .arco-btn-primary').first().click();
+      await page.locator('.search-toolbar input').first().fill(token);
       await expect(page.getByText(token, { exact: true }).first()).toBeVisible();
       await page.screenshot({ path: testInfo.outputPath('deploy-script-template-list.png'), fullPage: true });
 
@@ -676,13 +673,7 @@ test.describe('Deploy business module smoke', () => {
       await page.getByRole('button', { name: '编辑' }).click();
 
       await expect(page).toHaveURL(new RegExp(`/operations/deploy/task\\?editId=${task.id}$`));
-      let modal = page.locator('.arco-modal:visible').last();
-      if ((await modal.count()) === 0) {
-        const row = page.getByRole('row').filter({ hasText: `${token}-task` }).first();
-        await expect(row).toBeVisible();
-        await row.getByRole('button', { name: '编辑' }).click();
-        modal = page.locator('.arco-modal:visible').last();
-      }
+      const modal = page.locator('.arco-modal').last();
       await expect(modal).toBeVisible();
       await expect(modal).toContainText('编辑任务');
       await expect(modal.locator('input').first()).toHaveValue(`${token}-task`);

@@ -18,7 +18,7 @@ import { IconCode, IconDelete, IconEdit, IconEye, IconPlus } from '@arco-design/
 import {
   AppModal,
   AppTable,
-  FilterPanel,
+  SearchToolbar,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
@@ -48,7 +48,7 @@ import {
   buildDeployTemplateDefaultParameters,
   getDeployFixedTemplateCatalogEntry,
 } from '../catalog';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../deploy.css';
 
 type TemplateFormValues = {
@@ -94,8 +94,6 @@ export default function DeployTemplateList() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const [keyword, setKeyword] = useState('');
-  const [status, setStatus] = useState('');
   const [queryKeyword, setQueryKeyword] = useState('');
   const [queryStatus, setQueryStatus] = useState('');
   const [page, setPage] = useState(1);
@@ -434,46 +432,37 @@ export default function DeployTemplateList() {
             </GovernanceRailToggleButton>
           )}
         />
-        <FilterPanel>
-          <Form layout="inline">
-            <Form.Item label={t('common.keyword')}>
-              <Input value={keyword} onChange={setKeyword} allowClear />
-            </Form.Item>
-            <Form.Item label={t('business.deploy.template.status')}>
-              <Select value={status} onChange={setStatus} allowClear style={{ width: 140 }}>
-                <Select.Option value="enabled">{t('business.deploy.package.status.enabled')}</Select.Option>
-                <Select.Option value="disabled">{t('business.deploy.package.status.disabled')}</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item>
-              <Space>
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    setQueryKeyword(keyword);
-                    setQueryStatus(status);
-                    setSelectedRowKeys([]);
-                    setPage(1);
-                  }}
-                >
-                  {t('common.search')}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setKeyword('');
-                    setStatus('');
-                    setQueryKeyword('');
-                    setQueryStatus('');
-                    setSelectedRowKeys([]);
-                    setPage(1);
-                  }}
-                >
-                  {t('common.reset')}
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </FilterPanel>
+        <SearchToolbar
+          keyword={queryKeyword}
+          keywordPlaceholder={t('common.keyword')}
+          onKeywordChange={(value) => {
+            setQueryKeyword(value);
+            setSelectedRowKeys([]);
+            setPage(1);
+          }}
+          inlineFilters={
+            <Select
+              value={queryStatus || undefined}
+              onChange={(value) => {
+                setQueryStatus(value || '');
+                setSelectedRowKeys([]);
+                setPage(1);
+              }}
+              placeholder={t('business.deploy.template.status')}
+              allowClear
+            >
+              <Select.Option value="enabled">{t('business.deploy.package.status.enabled')}</Select.Option>
+              <Select.Option value="disabled">{t('business.deploy.package.status.disabled')}</Select.Option>
+            </Select>
+          }
+          hasActiveFilters={Boolean(queryKeyword || queryStatus)}
+          onClearAll={() => {
+            setQueryKeyword('');
+            setQueryStatus('');
+            setSelectedRowKeys([]);
+            setPage(1);
+          }}
+        />
         <TableBatchActionBar
           selectedCount={selectedRowKeys.length}
           selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}

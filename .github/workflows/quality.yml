@@ -18,7 +18,7 @@ permissions:
 
 env:
   NODE_VERSION: "24"
-  GO_VERSION_FILE: go.mod
+  GO_VERSION_FILE: backend/go.mod
 
 jobs:
   change-scope:
@@ -30,7 +30,7 @@ jobs:
     outputs:
       frontend_contract: ${{ steps.scope.outputs.frontend_contract || 'false' }}
       smoke_sanity: ${{ steps.scope.outputs.smoke_sanity || 'false' }}
-      inheritance_sensitive: ${{ steps.scope.outputs.inheritance_sensitive || 'false' }}
+      overlay_sensitive: ${{ steps.scope.outputs.overlay_sensitive || 'false' }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -51,12 +51,11 @@ jobs:
               - 'frontend/**'
               - 'go.mod'
               - 'go.sum'
-            inheritance_sensitive:
-              - 'foundation-release.lock.json'
-              - 'scripts/check-base-backend-sync.mjs'
-              - 'scripts/check-inheritance-contract.mjs'
-              - 'scripts/foundation-release/**'
-              - 'frontend/scripts/sync-base-shared.mjs'
+            overlay_sensitive:
+              - 'business-overlay.json'
+              - 'scripts/business-overlay/**'
+              - 'backend/modules/business/**'
+              - 'frontend/src/modules/business/**'
 
   docs-governance:
     name: Docs Governance
@@ -78,16 +77,11 @@ jobs:
           package-manager-cache: false
 
       - name: Install root dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
-
-      - name: Install locked foundation release
-        env:
-          GH_TOKEN: ${{ secrets.PANTHEON_BASE_RELEASE_TOKEN || github.token }}
-        run: npm run foundation:install -- --if-exists
+        run: npm ci --ignore-scripts
 
       - name: Check docs frontmatter
         run: npm run check:docs-frontmatter
@@ -113,8 +107,11 @@ jobs:
         if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
         run: node scripts/check-pr-governance.mjs --event "$GITHUB_EVENT_PATH"
 
-      - name: Check inheritance contract
-        run: npm run check:inheritance
+      - name: Check business overlay contract
+        run: npm run check:business-overlay
+
+      - name: Test business overlay rebuild
+        run: npm run test:business-overlay
 
       - name: Check generated modules
         run: npm run check:generated-modules
@@ -139,14 +136,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false
 
-      - name: Install locked foundation release
-        env:
-          GH_TOKEN: ${{ secrets.PANTHEON_BASE_RELEASE_TOKEN || github.token }}
-        run: npm run foundation:install -- --if-exists
-
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Check menu contract
         working-directory: frontend
@@ -180,6 +172,7 @@ jobs:
           cache: false
 
       - name: Test backend
+        working-directory: backend
         run: go test -race ./...
 
   go-lint:
@@ -222,6 +215,7 @@ jobs:
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a
         with:
           version: v2.6.2
+          working-directory: backend
           args: ${{ steps.lint-scope.outputs.args }}
           install-mode: goinstall
           verify: false
@@ -260,7 +254,7 @@ jobs:
           package-manager-cache: false
 
       - name: Install root dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Run duplication scan
         id: duplication
@@ -353,16 +347,24 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
+        run: npm ci --ignore-scripts
+
+      - name: Patch Arco for React 19
+        # `npm ci --ignore-scripts` skips the frontend `postinstall` hook that
+        # would otherwise run this; without it, Arco's `element.ref` reads emit
+        # React 19 deprecation console.errors that fail the form state matrix.
+        working-directory: frontend
+        run: npm run patch:arco-react19
 
       - name: Install Playwright browsers
         working-directory: frontend
         run: npx playwright install --with-deps chromium
 
       - name: Start backend
+        working-directory: backend
         shell: bash
         run: |
-          nohup go run ./backend/cmd/server >"$RUNNER_TEMP/pantheon-ops-backend.log" 2>&1 &
+          nohup go run ./cmd/server >"$RUNNER_TEMP/pantheon-ops-backend.log" 2>&1 &
           echo $! >"$RUNNER_TEMP/pantheon-ops-backend.pid"
 
       - name: Wait for backend health

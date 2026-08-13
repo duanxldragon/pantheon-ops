@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"pantheon-ops/backend/pkg/testmysql"
+	"pantheon-base/pkg/testmysql"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

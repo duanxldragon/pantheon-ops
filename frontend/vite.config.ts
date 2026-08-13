@@ -1,22 +1,28 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-
-const apiProxyTarget = process.env.PANTHEON_API_PROXY_TARGET ?? 'http://127.0.0.1:8080'
+import istanbul from 'vite-plugin-istanbul'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    ...(process.env.PANTHEON_COLLECT_COVERAGE === '1'
+      ? [istanbul({
+          include: 'src/*',
+          exclude: ['src/modules/generated/**', 'node_modules/**'],
+          extension: ['.ts', '.tsx'],
+          cypress: true,
+        })]
+      : []),
+    react(),
+  ],
   server: {
-    host: '0.0.0.0',
+    hmr: process.env.PANTHEON_SMOKE === '1' ? { overlay: false } : undefined,
     proxy: {
       '/api': {
-        target: apiProxyTarget,
+        target: process.env.PANTHEON_API_PROXY_TARGET || 'http://127.0.0.1:8080',
         changeOrigin: true,
       },
     },
-  },
-  preview: {
-    host: '0.0.0.0',
   },
   build: {
     rolldownOptions: {
@@ -71,10 +77,6 @@ export default defineConfig({
             {
               name: 'platform-builder',
               test: /frontend[\\/]src[\\/](modules[\\/](generator|system[\\/]dynamicmodule)|generator[\\/])|node_modules[\\/]jszip[\\/]/,
-            },
-            {
-              name: 'business-cmdb',
-              test: /frontend[\\/]src[\\/]modules[\\/]business[\\/]cmdb[\\/]/,
             },
           ],
         },
