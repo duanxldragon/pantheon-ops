@@ -210,8 +210,8 @@ export default function CmdbHostDetail() {
           <FormSection title={t('business.cmdb.host.labels')}>
             {host.labelValues?.length ? (
               <Space wrap>
-                {host.labelValues.map((l, i) => (
-                  <Tag key={i}>
+                {host.labelValues.map((l) => (
+                  <Tag key={`${l.key}-${l.val}`}>
                     {l.key}={l.val}
                   </Tag>
                 ))}
@@ -225,8 +225,8 @@ export default function CmdbHostDetail() {
           <FormSection title={t('business.cmdb.host.installedComponents')}>
             {host.installedComponents?.length ? (
               <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                {host.installedComponents.map((c, i) => (
-                  <Card key={i} className="page-panel" style={{ padding: 12 }}>
+                {host.installedComponents.map((c) => (
+                  <Card key={`${c.name}-${c.version}`} className="page-panel" style={{ padding: 12 }}>
                     <Space direction="vertical" size={4}>
                       <Space>
                         <Tag color="arcoblue">

@@ -8,12 +8,12 @@ import { isFreeValueLabel, labelValueOptions } from '../label/options';
 import SubmitBar from '../../../../components/patterns/actions/SubmitBar';
 
 interface Props {
-  editing: GroupRow | null;
-  initialParentId?: number | null;
-  groupOptions: GroupRow[];
-  onSubmit: (values: CreateGroupPayload) => void;
-  onCancel: () => void;
-  submitting: boolean;
+  readonly editing: GroupRow | null;
+  readonly initialParentId?: number | null;
+  readonly groupOptions: GroupRow[];
+  readonly onSubmit: (values: CreateGroupPayload) => void;
+  readonly onCancel: () => void;
+  readonly submitting: boolean;
 }
 
 type GroupFormValues = {

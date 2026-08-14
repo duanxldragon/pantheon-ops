@@ -10,6 +10,12 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	cmdbRoutePath = "/business/cmdb"
+	idWhereClause = "id = ?"
+	idAscOrder    = "id ASC"
+)
+
 func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB) {
 	hostSvc := host.NewHostService(db)
 	hostHandler := host.NewHostHandler(hostSvc)
@@ -27,7 +33,7 @@ func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB) {
 			SeedMenusFunc: seedHostMenus,
 			SeedI18nFunc:  seedHostI18n,
 			Register: func(r *gin.RouterGroup) {
-				cmdb := contracts.DataScopedGroup(r, "/business/cmdb", db)
+				cmdb := contracts.DataScopedGroup(r, cmdbRoutePath, db)
 				hostHandler.RegisterRoutes(cmdb)
 			},
 		},
@@ -37,7 +43,7 @@ func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB) {
 			SeedMenusFunc: seedGroupMenus,
 			SeedI18nFunc:  seedGroupI18n,
 			Register: func(r *gin.RouterGroup) {
-				cmdb := contracts.DataScopedGroup(r, "/business/cmdb", db)
+				cmdb := contracts.DataScopedGroup(r, cmdbRoutePath, db)
 				groupHandler.RegisterRoutes(cmdb)
 			},
 		},
@@ -47,7 +53,7 @@ func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB) {
 			SeedMenusFunc: seedLabelMenus,
 			SeedI18nFunc:  seedLabelI18n,
 			Register: func(r *gin.RouterGroup) {
-				cmdb := contracts.ProtectedGroup(r, "/business/cmdb")
+				cmdb := contracts.ProtectedGroup(r, cmdbRoutePath)
 				labelHandler.RegisterRoutes(cmdb)
 			},
 		},

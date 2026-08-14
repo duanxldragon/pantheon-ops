@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useSearchParams } from 'react-router-dom';
 import {
   Button,
@@ -16,6 +17,7 @@ import {
   Typography,
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
+import type { FormInstance } from '@arco-design/web-react/es/Form';
 import { IconClose, IconDelete, IconEdit, IconEye, IconPlayArrow, IconPlus, IconTool } from '@arco-design/web-react/icon';
 import {
   AppModal,
@@ -279,10 +281,13 @@ export default function DeployTaskList() {
   const targetOptions = useMemo(
     () =>
       targetType === 'host'
-        ? hosts.map((item) => ({
-            id: item.id,
-            label: `${item.hostname} ${item.ip} · ${t(`business.cmdb.host.status.${item.status}`)}`,
-          }))
+        ? hosts.map((item) => {
+            const statusKey = `business.cmdb.host.status.${item.status}`;
+            return {
+              id: item.id,
+              label: `${item.hostname} ${item.ip} · ${t(statusKey)}`,
+            };
+          })
         : groups.map((item) => ({ id: item.id, label: item.name })),
     [groups, hosts, t, targetType],
   );
@@ -574,7 +579,262 @@ export default function DeployTaskList() {
     }
   };
 
-  const columns: ColumnProps<DeployTaskRow>[] = [
+  const columns = buildTaskColumns({
+    t,
+    canDetail,
+    canUpdate,
+    canStart,
+    canCancel,
+    canDelete,
+    openDetail,
+    openEdit,
+    openStart,
+    handleCancel,
+    handleDelete,
+  });
+
+  const batchCancelDisabled = useMemo(
+    () =>
+      selectedRowKeys.length === 0 ||
+      !data.some(
+        (item) =>
+          selectedRowKeys.includes(item.id) &&
+          ['pending', 'running'].includes(item.status),
+      ) ||
+      submitting,
+    [data, selectedRowKeys, submitting],
+  );
+
+  return (
+    <PageContainer>
+      <AsyncContentState
+        loading={loading && data.length === 0}
+        error={data.length === 0 ? error : null}
+        empty={false}
+        emptyText=""
+        failedText={t('common.loadFailedDesc')}
+        onRetry={loadData}
+      >
+      <Space direction="vertical" size={16} className="system-page-template">
+        <GovernanceSummaryBar
+          icon={<IconTool />}
+          eyebrow={t('business.deploy.task.hero.eyebrow')}
+          title={t('operations.deploy.task.menu')}
+          description={t('business.deploy.task.hero.title')}
+          metrics={heroStats.map((item) => ({ key: item.key, label: item.label, value: item.value }))}
+          action={
+            <GovernanceRailToggleButton
+              expanded={governanceRail.expanded}
+              onToggle={governanceRail.toggle}
+            >
+              {t('business.deploy.task.hero.summaryTitle')}
+            </GovernanceRailToggleButton>
+          }
+        />
+        <SearchToolbar
+          keyword={queryKeyword}
+          keywordPlaceholder={t('common.keyword')}
+          onKeywordChange={(value) => {
+            setQueryKeyword(value);
+            setSelectedRowKeys([]);
+            setPage(1);
+          }}
+          inlineFilters={
+            <Select
+              value={queryStatus || undefined}
+              onChange={(value) => {
+                setQueryStatus(value || '');
+                setSelectedRowKeys([]);
+                setPage(1);
+              }}
+              placeholder={t('business.deploy.task.status')}
+              allowClear
+            >
+              {['draft', 'pending', 'running', 'success', 'failed', 'canceled'].map((item) => (
+                <Select.Option key={item} value={item}>{t(`business.deploy.task.status.${item}`)}</Select.Option>
+              ))}
+            </Select>
+          }
+          hasActiveFilters={Boolean(queryKeyword || queryStatus)}
+          onClearAll={() => {
+            setQueryKeyword('');
+            setQueryStatus('');
+            setSelectedRowKeys([]);
+            setPage(1);
+          }}
+        />
+        <TableBatchActionBar
+          selectedCount={selectedRowKeys.length}
+          selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
+          clearText={t('common.clearSelection')}
+          clearSuccessText={t('common.clearSelectionSuccess')}
+          onClear={() => setSelectedRowKeys([])}
+          prefixActions={
+            canCreate ? (
+              <ListHeaderActions
+                primary={
+                  <Button type="primary" icon={<IconPlus />} onClick={() => openCreate()}>
+                    {t('common.add')}
+                  </Button>
+                }
+              />
+            ) : undefined
+          }
+          actions={
+            canCancel ? (
+              <Popconfirm
+                title={t('business.deploy.task.cancelConfirm')}
+                onOk={() => {
+                  handleBatchCancel();
+                }}
+                disabled={batchCancelDisabled}
+              >
+                <Button
+                  status="danger"
+                  icon={<IconClose />}
+                  disabled={batchCancelDisabled}
+                  loading={submitting}
+                >
+                  {t('business.deploy.task.cancel')}
+                </Button>
+              </Popconfirm>
+            ) : undefined
+          }
+        />
+        <Card className="page-panel system-list__table-card">
+          {data.length === 0 ? (
+            <PageEmpty description={t('business.deploy.task.empty')} />
+          ) : (
+            <AppTable
+              rowKey="id"
+              className="system-list__table"
+              loading={loading}
+              columns={columns}
+              data={data}
+              rowSelection={{
+                type: 'checkbox',
+                selectedRowKeys,
+                checkCrossPage: true,
+                preserveSelectedRowKeys: true,
+                onChange: (rowKeys) => setSelectedRowKeys(rowKeys),
+              }}
+              pagination={buildStandardPagination(t, {
+                current: page,
+                pageSize,
+                total,
+                onChange: (nextPage, nextPageSize) => {
+                  setPage(nextPage || 1);
+                  if (nextPageSize && nextPageSize !== pageSize) {
+                    setPageSize(nextPageSize);
+                    setPage(1);
+                  }
+                },
+                pageSizeChangeResetCurrent: true,
+              })}
+            />
+          )}
+        </Card>
+      </Space>
+      <GovernanceInsightDrawer
+        title={t('business.deploy.task.hero.summaryTitle')}
+        visible={governanceRail.expanded}
+        onClose={governanceRail.close}
+        noteTitle={t('business.deploy.task.hero.sideLead')}
+        noteDescription={t('business.deploy.task.hero.sideDesc')}
+      >
+        <GovernanceRailSummary items={governanceSummaryItems} />
+      </GovernanceInsightDrawer>
+      <DeployTaskDetailModal
+        t={t}
+        visible={detailVisible}
+        loading={detailLoading}
+        task={detailTask}
+        onClose={() => {
+          setDetailVisible(false);
+          setDetailTask(null);
+        }}
+      />
+      <DeployTaskFormModal
+        t={t}
+        visible={visible}
+        editingTask={editingTask}
+        form={form}
+        onClose={closeTaskModal}
+        onSubmit={handleSubmit}
+        submitting={submitting}
+        sourceKind={sourceKind}
+        setSourceKind={setSourceKind}
+        setSelectedTemplate={setSelectedTemplate}
+        setSelectedPackage={setSelectedPackage}
+        setTaskAction={setTaskAction}
+        templates={templates}
+        resolveTemplatePackage={resolveTemplatePackage}
+        packages={packages}
+        selectedRuntimePackage={selectedRuntimePackage}
+        selectedTemplate={selectedTemplate}
+        runtimeParameterSchema={runtimeParameterSchema}
+        selectedRuntimeIsNginxTemplate={selectedRuntimeIsNginxTemplate}
+        taskAction={taskAction}
+        targetType={targetType}
+        setTargetType={setTargetType}
+        setSelectedBusinessScopeId={setSelectedBusinessScopeId}
+        setHosts={setHosts}
+        loadScopedHosts={loadScopedHosts}
+        scopeOptions={scopeOptions}
+        selectedBusinessScopeId={selectedBusinessScopeId}
+        targetOptions={targetOptions}
+        executorTypeDisabled={Boolean(selectedRuntimeTemplateEntry)}
+      />
+      <DeployTaskStartModal
+        t={t}
+        visible={startVisible}
+        form={startForm}
+        task={startingTask}
+        submitting={startSubmitting}
+        onClose={() => {
+          setStartVisible(false);
+          setStartingTask(null);
+          startForm.resetFields();
+        }}
+        onCancel={() => {
+          setStartVisible(false);
+          setStartingTask(null);
+        }}
+        onSubmit={submitStart}
+      />
+      </AsyncContentState>
+    </PageContainer>
+  );
+}
+
+interface BuildTaskColumnsOptions {
+  t: TFunction;
+  canDetail: boolean;
+  canUpdate: boolean;
+  canStart: boolean;
+  canCancel: boolean;
+  canDelete: boolean;
+  openDetail: (id: number) => void;
+  openEdit: (row: DeployTaskRow) => void;
+  openStart: (row: DeployTaskRow) => void;
+  handleCancel: (id: number) => void;
+  handleDelete: (id: number) => void;
+}
+
+function buildTaskColumns({
+  t,
+  canDetail,
+  canUpdate,
+  canStart,
+  canCancel,
+  canDelete,
+  openDetail,
+  openEdit,
+  openStart,
+  handleCancel,
+  handleDelete,
+}: BuildTaskColumnsOptions): ColumnProps<DeployTaskRow>[] {
+  return [
     { title: t('business.deploy.task.name'), dataIndex: 'name', width: 180 },
     {
       title: t('business.deploy.task.source'),
@@ -681,558 +941,520 @@ export default function DeployTaskList() {
       ),
     },
   ];
+}
 
-  if (loading && data.length === 0) {
-    return <PageContainer><PageLoading /></PageContainer>;
-  }
-  if (error && data.length === 0) {
-    return <PageContainer><PageError description={t('common.loadFailedDesc')} onRetry={loadData} /></PageContainer>;
-  }
+interface AsyncContentStateProps {
+  readonly loading: boolean;
+  readonly error: unknown;
+  readonly empty: boolean;
+  readonly emptyText: string;
+  readonly failedText: string;
+  readonly onRetry: () => void;
+  readonly children: ReactNode;
+}
 
+function AsyncContentState({ loading, error, empty, emptyText, failedText, onRetry, children }: AsyncContentStateProps) {
+  if (loading) {
+    return <PageLoading />;
+  }
+  if (error) {
+    return <PageError description={failedText} onRetry={onRetry} />;
+  }
+  if (empty) {
+    return <PageEmpty description={emptyText} />;
+  }
+  return <>{children}</>;
+}
+
+interface DeployTaskDetailModalProps {
+  t: TFunction;
+  visible: boolean;
+  loading: boolean;
+  task: DeployTaskRow | null;
+  onClose: () => void;
+}
+
+function DeployTaskDetailModal({ t, visible, loading, task, onClose }: DeployTaskDetailModalProps) {
   return (
-    <PageContainer>
-      <Space direction="vertical" size={16} className="system-page-template">
-        <GovernanceSummaryBar
-          icon={<IconTool />}
-          eyebrow={t('business.deploy.task.hero.eyebrow')}
-          title={t('operations.deploy.task.menu')}
-          description={t('business.deploy.task.hero.title')}
-          metrics={heroStats.map((item) => ({ key: item.key, label: item.label, value: item.value }))}
-          action={
-            <GovernanceRailToggleButton
-              expanded={governanceRail.expanded}
-              onToggle={governanceRail.toggle}
-            >
-              {t('business.deploy.task.hero.summaryTitle')}
-            </GovernanceRailToggleButton>
-          }
-        />
-        <SearchToolbar
-          keyword={queryKeyword}
-          keywordPlaceholder={t('common.keyword')}
-          onKeywordChange={(value) => {
-            setQueryKeyword(value);
-            setSelectedRowKeys([]);
-            setPage(1);
-          }}
-          inlineFilters={
+    <AppModal
+      title={task?.name || t('operations.deploy.task.detail')}
+      visible={visible}
+      footer={null}
+      size="detail"
+      onCancel={onClose}
+    >
+      {loading ? <PageLoading /> : null}
+      {!loading && !task ? (
+        <PageEmpty description={t('common.loadFailedDesc')} />
+      ) : null}
+      {!loading && task ? (
+        <Space direction="vertical" size={16} style={{ width: '100%' }}>
+          <Descriptions
+            column={2}
+            data={[
+              {
+                label: t('business.deploy.task.source'),
+                value: task.templateName
+                  ? `${task.templateName} ${task.templateVersion}`
+                  : t('business.deploy.task.sourcePackage'),
+              },
+              {
+                label: t('business.deploy.task.package'),
+                value: `${task.packageName} ${task.packageVersion}`,
+              },
+              {
+                label: t('business.deploy.task.action'),
+                value: t(`business.deploy.task.action.${task.action || 'install'}`),
+              },
+              {
+                label: t('business.deploy.task.status'),
+                value: t(`business.deploy.task.status.${task.status}`),
+              },
+              {
+                label: t('business.deploy.task.targetType'),
+                value: t(`business.deploy.task.targetType.${task.targetType}`),
+              },
+              {
+                label: t('business.deploy.task.businessScope'),
+                value: task.businessScopeName || '-',
+              },
+              {
+                label: t('business.deploy.task.executorType'),
+                value: t(`business.deploy.task.executorType.${task.executorType}`),
+              },
+              {
+                label: t('business.deploy.task.startedAt'),
+                value: task.startedAt || '-',
+              },
+              {
+                label: t('business.deploy.task.finishedAt'),
+                value: task.finishedAt || '-',
+              },
+              {
+                label: t('business.deploy.task.duration'),
+                value: task.durationSeconds ? `${task.durationSeconds}s` : '-',
+              },
+              { label: t('business.deploy.task.hostCount'), value: task.hostCount || 0 },
+              { label: t('business.deploy.task.remark'), value: task.remark || '-' },
+            ]}
+          />
+          {(task.hosts || []).length > 0 ? (
+            task.hosts.map((host) => (
+              <Card key={host.id} className="page-panel">
+                <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                    <Space direction="vertical" size={2}>
+                      <Typography.Text style={{ fontWeight: 600 }}>{host.hostname}</Typography.Text>
+                      <Typography.Text type="secondary">
+                        {host.hostIp}
+                        {host.startedAt ? ` / ${formatDateTime(host.startedAt)}` : ''}
+                        {host.durationSeconds ? ` / ${host.durationSeconds}s` : ''}
+                      </Typography.Text>
+                    </Space>
+                    <Tag color={statusColorMap[host.status] || 'gray'}>
+                      {t(`business.deploy.task.hostStatus.${host.status}`)}
+                    </Tag>
+                  </div>
+                  <AppTable
+                    rowKey={(item) => `${host.id}-${item.phase || ''}-${item.at || ''}`}
+                    columns={[
+                      {
+                        title: t('business.deploy.task.step'),
+                        width: 220,
+                        render: (_: unknown, row: Record<string, string | undefined>) => (
+                          <Space direction="vertical" size={2}>
+                            <span>{row.stepName || row.packageName || '-'}</span>
+                            <Typography.Text type="secondary">
+                              {row.action ? t(`business.deploy.task.action.${row.action}`) : '-'}
+                            </Typography.Text>
+                          </Space>
+                        ),
+                      },
+                      {
+                        title: t('business.deploy.task.phase'),
+                        dataIndex: 'phase',
+                        width: 120,
+                        render: (value: unknown) =>
+                          value ? <Tag>{t(`business.deploy.task.phase.${stringifyValue(value, '')}`)}</Tag> : '-',
+                      },
+                      {
+                        title: t('business.deploy.task.startedAt'),
+                        dataIndex: 'at',
+                        width: 180,
+                        render: (value: unknown) =>
+                          value ? formatDateTime(stringifyValue(value, '')) : '-',
+                      },
+                      { title: t('business.deploy.task.message'), dataIndex: 'message', ellipsis: true },
+                    ]}
+                    data={host.traceSteps || []}
+                    pagination={false}
+                    size="small"
+                  />
+                  <Divider style={{ margin: '0' }} />
+                  <Descriptions
+                    column={1}
+                    data={[
+                      {
+                        label: t('business.deploy.task.stdout'),
+                        value: (
+                          <Typography.Paragraph className="deploy-page__log" copyable={Boolean(host.stdout)}>
+                            {host.stdout || '-'}
+                          </Typography.Paragraph>
+                        ),
+                      },
+                      {
+                        label: t('business.deploy.task.stderr'),
+                        value: (
+                          <Typography.Paragraph className="deploy-page__log" copyable={Boolean(host.stderr)}>
+                            {host.stderr || '-'}
+                          </Typography.Paragraph>
+                        ),
+                      },
+                    ]}
+                  />
+                </Space>
+              </Card>
+            ))
+          ) : (
+            <PageEmpty description={t('business.deploy.task.hostEmpty')} />
+          )}
+        </Space>
+      ) : null}
+    </AppModal>
+  );
+}
+
+interface DeployTaskFormModalProps {
+  t: TFunction;
+  visible: boolean;
+  editingTask: DeployTaskRow | null;
+  form: FormInstance<TaskFormValues>;
+  onClose: () => void;
+  onSubmit: () => void;
+  submitting: boolean;
+  sourceKind: 'template' | 'package';
+  setSourceKind: (kind: 'template' | 'package') => void;
+  setSelectedTemplate: (template: DeployTemplateRow | null) => void;
+  setSelectedPackage: (pkg: DeployPackageRow | null) => void;
+  setTaskAction: (action: 'install' | 'uninstall' | 'upgrade' | 'reinstall') => void;
+  templates: DeployTemplateRow[];
+  resolveTemplatePackage: (template?: DeployTemplateRow | null) => DeployPackageRow | null;
+  packages: DeployPackageRow[];
+  selectedRuntimePackage: DeployPackageRow | null;
+  selectedTemplate: DeployTemplateRow | null;
+  runtimeParameterSchema: Record<string, unknown>;
+  selectedRuntimeIsNginxTemplate: boolean;
+  taskAction: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+  targetType: 'host' | 'group';
+  setTargetType: (type: 'host' | 'group') => void;
+  setSelectedBusinessScopeId: (id: number | undefined) => void;
+  setHosts: (hosts: HostRow[]) => void;
+  loadScopedHosts: (businessScopeId?: number) => Promise<void>;
+  scopeOptions: BizScopeOptionItem[];
+  selectedBusinessScopeId: number | undefined;
+  targetOptions: Array<{ id: number; label: string }>;
+  executorTypeDisabled: boolean;
+}
+
+function DeployTaskFormModal({
+  t,
+  visible,
+  editingTask,
+  form,
+  onClose,
+  onSubmit,
+  submitting,
+  sourceKind,
+  setSourceKind,
+  setSelectedTemplate,
+  setSelectedPackage,
+  setTaskAction,
+  templates,
+  resolveTemplatePackage,
+  packages,
+  selectedRuntimePackage,
+  selectedTemplate,
+  runtimeParameterSchema,
+  selectedRuntimeIsNginxTemplate,
+  taskAction,
+  targetType,
+  setTargetType,
+  setSelectedBusinessScopeId,
+  setHosts,
+  loadScopedHosts,
+  scopeOptions,
+  selectedBusinessScopeId,
+  targetOptions,
+  executorTypeDisabled,
+}: DeployTaskFormModalProps) {
+  return (
+    <AppModal
+      title={editingTask ? t('business.deploy.task.editTitle') : t('business.deploy.task.createTitle')}
+      visible={visible}
+      footer={null}
+      onCancel={onClose}
+    >
+      <Form form={form} layout="vertical">
+        <Form.Item field="name" label={t('business.deploy.task.name')} rules={[{ required: true }]}>
+          <Input />
+        </Form.Item>
+        <Form.Item field="sourceKind" label={t('business.deploy.task.source')} initialValue="template">
+          <Select
+            onChange={(value) => {
+              const nextSource = value as 'template' | 'package';
+              setSourceKind(nextSource);
+              setSelectedTemplate(null);
+              setSelectedPackage(null);
+              form.setFieldValue('templateId', undefined);
+              form.setFieldValue('packageId', undefined);
+              form.setFieldValue('templateParams', {});
+              form.setFieldValue('executorType', 'manual');
+              form.setFieldValue('action', 'install');
+              setTaskAction('install');
+            }}
+          >
+            <Select.Option value="template">{t('business.deploy.task.sourceTemplate')}</Select.Option>
+            <Select.Option value="package">{t('business.deploy.task.sourcePackage')}</Select.Option>
+          </Select>
+        </Form.Item>
+        {sourceKind === 'template' ? (
+          <Form.Item field="templateId" label={t('operations.deploy.template.menu')} rules={[{ required: true }]}>
             <Select
-              value={queryStatus || undefined}
-              onChange={(value) => {
-                setQueryStatus(value || '');
-                setSelectedRowKeys([]);
-                setPage(1);
-              }}
-              placeholder={t('business.deploy.task.status')}
+              showSearch
               allowClear
-            >
-              {['draft', 'pending', 'running', 'success', 'failed', 'canceled'].map((item) => (
-                <Select.Option key={item} value={item}>{t(`business.deploy.task.status.${item}`)}</Select.Option>
-              ))}
-            </Select>
-          }
-          hasActiveFilters={Boolean(queryKeyword || queryStatus)}
-          onClearAll={() => {
-            setQueryKeyword('');
-            setQueryStatus('');
-            setSelectedRowKeys([]);
-            setPage(1);
-          }}
-        />
-        <TableBatchActionBar
-          selectedCount={selectedRowKeys.length}
-          selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
-          clearText={t('common.clearSelection')}
-          clearSuccessText={t('common.clearSelectionSuccess')}
-          onClear={() => setSelectedRowKeys([])}
-          prefixActions={
-            canCreate ? (
-              <ListHeaderActions
-                primary={
-                  <Button type="primary" icon={<IconPlus />} onClick={() => openCreate()}>
-                    {t('common.add')}
-                  </Button>
-                }
-              />
-            ) : undefined
-          }
-          actions={
-            canCancel ? (
-              <Popconfirm
-                title={t('business.deploy.task.cancelConfirm')}
-                onOk={() => {
-                  handleBatchCancel();
-                }}
-                disabled={
-                  selectedRowKeys.length === 0 ||
-                  !data.some(
-                    (item) =>
-                      selectedRowKeys.includes(item.id) &&
-                      ['pending', 'running'].includes(item.status),
-                  ) ||
-                  submitting
-                }
-              >
-                <Button
-                  status="danger"
-                  icon={<IconClose />}
-                  disabled={
-                    selectedRowKeys.length === 0 ||
-                    !data.some(
-                      (item) =>
-                        selectedRowKeys.includes(item.id) &&
-                        ['pending', 'running'].includes(item.status),
-                    ) ||
-                    submitting
-                  }
-                  loading={submitting}
-                >
-                  {t('business.deploy.task.cancel')}
-                </Button>
-              </Popconfirm>
-            ) : undefined
-          }
-        />
-        <Card className="page-panel system-list__table-card">
-          {data.length === 0 ? (
-            <PageEmpty description={t('business.deploy.task.empty')} />
-          ) : (
-            <AppTable
-              rowKey="id"
-              className="system-list__table"
-              loading={loading}
-              columns={columns}
-              data={data}
-              rowSelection={{
-                type: 'checkbox',
-                selectedRowKeys,
-                checkCrossPage: true,
-                preserveSelectedRowKeys: true,
-                onChange: (rowKeys) => setSelectedRowKeys(rowKeys),
-              }}
-              pagination={buildStandardPagination(t, {
-                current: page,
-                pageSize,
-                total,
-                onChange: (nextPage, nextPageSize) => {
-                  setPage(nextPage || 1);
-                  if (nextPageSize && nextPageSize !== pageSize) {
-                    setPageSize(nextPageSize);
-                    setPage(1);
-                  }
-                },
-                pageSizeChangeResetCurrent: true,
-              })}
-            />
-          )}
-        </Card>
-      </Space>
-      <GovernanceInsightDrawer
-        title={t('business.deploy.task.hero.summaryTitle')}
-        visible={governanceRail.expanded}
-        onClose={governanceRail.close}
-        noteTitle={t('business.deploy.task.hero.sideLead')}
-        noteDescription={t('business.deploy.task.hero.sideDesc')}
-      >
-        <GovernanceRailSummary items={governanceSummaryItems} />
-      </GovernanceInsightDrawer>
-      <AppModal
-        title={detailTask?.name || t('operations.deploy.task.detail')}
-        visible={detailVisible}
-        footer={null}
-        size="detail"
-        onCancel={() => {
-          setDetailVisible(false);
-          setDetailTask(null);
-        }}
-      >
-        {detailLoading ? <PageLoading /> : null}
-        {!detailLoading && !detailTask ? (
-          <PageEmpty description={t('common.loadFailedDesc')} />
-        ) : null}
-        {!detailLoading && detailTask ? (
-          <Space direction="vertical" size={16} style={{ width: '100%' }}>
-            <Descriptions
-              column={2}
-              data={[
-                {
-                  label: t('business.deploy.task.source'),
-                  value: detailTask.templateName
-                    ? `${detailTask.templateName} ${detailTask.templateVersion}`
-                    : t('business.deploy.task.sourcePackage'),
-                },
-                {
-                  label: t('business.deploy.task.package'),
-                  value: `${detailTask.packageName} ${detailTask.packageVersion}`,
-                },
-                {
-                  label: t('business.deploy.task.action'),
-                  value: t(`business.deploy.task.action.${detailTask.action || 'install'}`),
-                },
-                {
-                  label: t('business.deploy.task.status'),
-                  value: t(`business.deploy.task.status.${detailTask.status}`),
-                },
-                {
-                  label: t('business.deploy.task.targetType'),
-                  value: t(`business.deploy.task.targetType.${detailTask.targetType}`),
-                },
-                {
-                  label: t('business.deploy.task.businessScope'),
-                  value: detailTask.businessScopeName || '-',
-                },
-                {
-                  label: t('business.deploy.task.executorType'),
-                  value: t(`business.deploy.task.executorType.${detailTask.executorType}`),
-                },
-                {
-                  label: t('business.deploy.task.startedAt'),
-                  value: detailTask.startedAt || '-',
-                },
-                {
-                  label: t('business.deploy.task.finishedAt'),
-                  value: detailTask.finishedAt || '-',
-                },
-                {
-                  label: t('business.deploy.task.duration'),
-                  value: detailTask.durationSeconds ? `${detailTask.durationSeconds}s` : '-',
-                },
-                { label: t('business.deploy.task.hostCount'), value: detailTask.hostCount || 0 },
-                { label: t('business.deploy.task.remark'), value: detailTask.remark || '-' },
-              ]}
-            />
-            {(detailTask.hosts || []).length > 0 ? (
-              detailTask.hosts.map((host) => (
-                <Card key={host.id} className="page-panel">
-                  <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                      <Space direction="vertical" size={2}>
-                        <Typography.Text style={{ fontWeight: 600 }}>{host.hostname}</Typography.Text>
-                        <Typography.Text type="secondary">
-                          {host.hostIp}
-                          {host.startedAt ? ` / ${formatDateTime(host.startedAt)}` : ''}
-                          {host.durationSeconds ? ` / ${host.durationSeconds}s` : ''}
-                        </Typography.Text>
-                      </Space>
-                      <Tag color={statusColorMap[host.status] || 'gray'}>
-                        {t(`business.deploy.task.hostStatus.${host.status}`)}
-                      </Tag>
-                    </div>
-                    <AppTable
-                      rowKey={(item) => `${host.id}-${item.phase || ''}-${item.at || ''}`}
-                      columns={[
-                        {
-                          title: t('business.deploy.task.step'),
-                          width: 220,
-                          render: (_: unknown, row: Record<string, string | undefined>) => (
-                            <Space direction="vertical" size={2}>
-                              <span>{row.stepName || row.packageName || '-'}</span>
-                              <Typography.Text type="secondary">
-                                {row.action ? t(`business.deploy.task.action.${row.action}`) : '-'}
-                              </Typography.Text>
-                            </Space>
-                          ),
-                        },
-                        {
-                          title: t('business.deploy.task.phase'),
-                          dataIndex: 'phase',
-                          width: 120,
-                          render: (value: unknown) =>
-                            value ? <Tag>{t(`business.deploy.task.phase.${String(value)}`)}</Tag> : '-',
-                        },
-                        {
-                          title: t('business.deploy.task.startedAt'),
-                          dataIndex: 'at',
-                          width: 180,
-                          render: (value: unknown) =>
-                            value ? formatDateTime(String(value)) : '-',
-                        },
-                        { title: t('business.deploy.task.message'), dataIndex: 'message', ellipsis: true },
-                      ]}
-                      data={host.traceSteps || []}
-                      pagination={false}
-                      size="small"
-                    />
-                    <Divider style={{ margin: '0' }} />
-                    <Descriptions
-                      column={1}
-                      data={[
-                        {
-                          label: t('business.deploy.task.stdout'),
-                          value: (
-                            <Typography.Paragraph className="deploy-page__log" copyable={Boolean(host.stdout)}>
-                              {host.stdout || '-'}
-                            </Typography.Paragraph>
-                          ),
-                        },
-                        {
-                          label: t('business.deploy.task.stderr'),
-                          value: (
-                            <Typography.Paragraph className="deploy-page__log" copyable={Boolean(host.stderr)}>
-                              {host.stderr || '-'}
-                            </Typography.Paragraph>
-                          ),
-                        },
-                      ]}
-                    />
-                  </Space>
-                </Card>
-              ))
-            ) : (
-              <PageEmpty description={t('business.deploy.task.hostEmpty')} />
-            )}
-          </Space>
-        ) : null}
-      </AppModal>
-      <AppModal
-        title={editingTask ? t('business.deploy.task.editTitle') : t('business.deploy.task.createTitle')}
-        visible={visible}
-        footer={null}
-        onCancel={closeTaskModal}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item field="name" label={t('business.deploy.task.name')} rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item field="sourceKind" label={t('business.deploy.task.source')} initialValue="template">
-            <Select
               onChange={(value) => {
-                const nextSource = value as 'template' | 'package';
-                setSourceKind(nextSource);
-                setSelectedTemplate(null);
+                const nextTemplate = templates.find((item) => item.id === value) || null;
+                const nextPackage = resolveTemplatePackage(nextTemplate);
+                setSelectedTemplate(nextTemplate);
                 setSelectedPackage(null);
-                form.setFieldValue('templateId', undefined);
-                form.setFieldValue('packageId', undefined);
-                form.setFieldValue('templateParams', {});
-                form.setFieldValue('executorType', 'manual');
-                form.setFieldValue('action', 'install');
-                setTaskAction('install');
+                form.setFieldValue('action', nextTemplate?.defaultAction || 'install');
+                form.setFieldValue('executorType', nextPackage?.templateCode === 'nginx_systemd' ? 'ssh' : 'manual');
+                form.setFieldValue('templateParams', buildInitialTaskTemplateParams(nextTemplate?.parameterSchema || {}));
+                setTaskAction((nextTemplate?.defaultAction as TaskFormValues['action']) || 'install');
               }}
             >
-              <Select.Option value="template">{t('business.deploy.task.sourceTemplate')}</Select.Option>
-              <Select.Option value="package">{t('business.deploy.task.sourcePackage')}</Select.Option>
-            </Select>
-          </Form.Item>
-          {sourceKind === 'template' ? (
-            <Form.Item field="templateId" label={t('operations.deploy.template.menu')} rules={[{ required: true }]}>
-              <Select
-                showSearch
-                allowClear
-                onChange={(value) => {
-                  const nextTemplate = templates.find((item) => item.id === value) || null;
-                  const nextPackage = resolveTemplatePackage(nextTemplate);
-                  setSelectedTemplate(nextTemplate);
-                  setSelectedPackage(null);
-                  form.setFieldValue('action', nextTemplate?.defaultAction || 'install');
-                  form.setFieldValue('executorType', nextPackage?.templateCode === 'nginx_systemd' ? 'ssh' : 'manual');
-                  form.setFieldValue('templateParams', buildInitialTaskTemplateParams(nextTemplate?.parameterSchema || {}));
-                  setTaskAction((nextTemplate?.defaultAction as TaskFormValues['action']) || 'install');
-                }}
-              >
-                {templates.map((item) => (
-                  <Select.Option key={item.id} value={item.id}>
-                    {item.name} {item.version}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-          ) : (
-            <Form.Item field="packageId" label={t('business.deploy.task.package')} rules={[{ required: true }]}>
-              <Select
-                showSearch
-                allowClear
-                onChange={(value) => {
-                  const nextPackage = packages.find((item) => item.id === value) || null;
-                  setSelectedPackage(nextPackage);
-                  setSelectedTemplate(null);
-                  const nextTemplateEntry = getDeployFixedTemplateCatalogEntry(nextPackage?.templateCode);
-                  if (nextTemplateEntry) {
-                    form.setFieldValue('executorType', 'ssh');
-                    form.setFieldValue('templateParams', buildInitialTaskTemplateParams(buildDeployTemplateDefaultParameters(nextTemplateEntry.code)));
-                  } else {
-                    form.setFieldValue('executorType', 'manual');
-                    form.setFieldValue('templateParams', {});
-                  }
-                }}
-              >
-                {packages.map((item) => (
-                  <Select.Option key={item.id} value={item.id}>{item.name} {item.version}</Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-          )}
-          {selectedRuntimePackage ? (
-            <div style={{ marginBottom: 16, padding: 12, borderRadius: 6, background: 'var(--panel-muted)' }}>
-              <Space direction="vertical" size={4}>
-                <Typography.Text style={{ fontWeight: 500 }}>
-                  {`${selectedRuntimePackage.name} ${selectedRuntimePackage.version}`}
-                </Typography.Text>
-                <Typography.Text type="secondary">
-                  {sourceKind === 'template'
-                    ? t('business.deploy.task.templateSourceHint', { count: selectedTemplate?.stepCount || 0 })
-                    : t('business.deploy.task.packageSourceHint')}
-                </Typography.Text>
-              </Space>
-            </div>
-          ) : null}
-          <Form.Item field="action" label={t('business.deploy.task.action')} initialValue="install">
-            <Select
-              onChange={(value) => {
-                const nextAction = value as TaskFormValues['action'];
-                setTaskAction(nextAction);
-              }}
-            >
-              <Select.Option value="install">{t('business.deploy.task.action.install')}</Select.Option>
-              <Select.Option value="uninstall">{t('business.deploy.task.action.uninstall')}</Select.Option>
-              <Select.Option value="upgrade">{t('business.deploy.task.action.upgrade')}</Select.Option>
-              <Select.Option value="reinstall">{t('business.deploy.task.action.reinstall')}</Select.Option>
-            </Select>
-          </Form.Item>
-          {Object.keys(runtimeParameterSchema).length > 0 ? (
-            <>
-              <div style={{ marginBottom: 16, padding: 12, borderRadius: 6, background: 'var(--panel-muted)', color: 'var(--text-tertiary)', fontSize: 12 }}>
-                {selectedRuntimeIsNginxTemplate
-                  ? t('business.deploy.task.templateParams.nginxHint')
-                  : t('business.deploy.task.templateParams.dynamicHint')}
-              </div>
-              {Object.entries(runtimeParameterSchema).map(([key, value]) => (
-                <Form.Item
-                  key={key}
-                  field={`templateParams.${key}`}
-                  label={buildTemplateParamLabel(t, key)}
-                  rules={taskAction === 'uninstall' ? [] : [{ required: true }]}
-                >
-                  <Input placeholder={String(value || '')} />
-                </Form.Item>
-              ))}
-            </>
-          ) : null}
-          <Form.Item field="targetType" label={t('business.deploy.task.targetType')} initialValue="host">
-            <Select
-              onChange={(value) => {
-                const nextType = value as 'host' | 'group';
-                setTargetType(nextType);
-                setSelectedBusinessScopeId(undefined);
-                setHosts([]);
-                form.setFieldValue('businessScopeId', undefined);
-                form.setFieldValue('targetIds', []);
-              }}
-            >
-              <Select.Option value="host">{t('business.deploy.task.targetType.host')}</Select.Option>
-              <Select.Option value="group">{t('business.deploy.task.targetType.group')}</Select.Option>
-            </Select>
-          </Form.Item>
-          {targetType === 'host' ? (
-            <Form.Item
-              field="businessScopeId"
-              label={t('business.deploy.task.businessScope')}
-              rules={[{ required: true }]}
-            >
-              <Select
-                allowClear
-                placeholder={t('business.deploy.task.businessScopePlaceholder')}
-                onChange={(value) => {
-                  const nextScopeId = value || undefined;
-                  setSelectedBusinessScopeId(nextScopeId);
-                  form.setFieldValue('targetIds', []);
-                  loadScopedHosts(nextScopeId);
-                }}
-              >
-                {scopeOptions.map((item) => (
-                  <Select.Option key={item.id} value={item.id}>
-                    {item.name}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-          ) : null}
-          <Form.Item field="targetIds" label={t('business.deploy.task.targets')} rules={[{ required: true }]}>
-            <Select
-              mode="multiple"
-              disabled={targetType === 'host' && !selectedBusinessScopeId}
-              placeholder={
-                targetType === 'host' && !selectedBusinessScopeId
-                  ? t('business.deploy.task.targetsPlaceholder')
-                  : undefined
-              }
-            >
-              {targetOptions.map((item) => (
+              {templates.map((item) => (
                 <Select.Option key={item.id} value={item.id}>
-                  {item.label}
+                  {item.name} {item.version}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item field="executorType" label={t('business.deploy.task.executorType')} initialValue="manual">
-            <Select disabled={Boolean(selectedRuntimeTemplateEntry)}>
-              <Select.Option value="manual">{t('business.deploy.task.executorType.manual')}</Select.Option>
-              <Select.Option value="simulated">{t('business.deploy.task.executorType.simulated')}</Select.Option>
-              <Select.Option value="agent">{t('business.deploy.task.executorType.agent')}</Select.Option>
-              <Select.Option value="ssh">{t('business.deploy.task.executorType.ssh')}</Select.Option>
+        ) : (
+          <Form.Item field="packageId" label={t('business.deploy.task.package')} rules={[{ required: true }]}>
+            <Select
+              showSearch
+              allowClear
+              onChange={(value) => {
+                const nextPackage = packages.find((item) => item.id === value) || null;
+                setSelectedPackage(nextPackage);
+                setSelectedTemplate(null);
+                const nextTemplateEntry = getDeployFixedTemplateCatalogEntry(nextPackage?.templateCode);
+                if (nextTemplateEntry) {
+                  form.setFieldValue('executorType', 'ssh');
+                  form.setFieldValue('templateParams', buildInitialTaskTemplateParams(buildDeployTemplateDefaultParameters(nextTemplateEntry.code)));
+                } else {
+                  form.setFieldValue('executorType', 'manual');
+                  form.setFieldValue('templateParams', {});
+                }
+              }}
+            >
+              {packages.map((item) => (
+                <Select.Option key={item.id} value={item.id}>{item.name} {item.version}</Select.Option>
+              ))}
             </Select>
           </Form.Item>
-          <Form.Item field="remark" label={t('business.deploy.task.remark')}>
-            <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
-          </Form.Item>
-          <SubmitBar loading={submitting} onCancel={closeTaskModal} onSubmit={handleSubmit} />
-        </Form>
-      </AppModal>
-      <AppModal
-        title={t('business.deploy.task.startSshTitle')}
-        visible={startVisible}
-        footer={null}
-        onCancel={() => {
-          setStartVisible(false);
-          setStartingTask(null);
-          startForm.resetFields();
-        }}
-      >
-        <Form form={startForm} layout="vertical">
-          <div style={{ color: 'var(--text-tertiary)', marginBottom: 16 }}>
-            {t('business.deploy.task.startSshHint')}
+        )}
+        {selectedRuntimePackage ? (
+          <div style={{ marginBottom: 16, padding: 12, borderRadius: 6, background: 'var(--panel-muted)' }}>
+            <Space direction="vertical" size={4}>
+              <Typography.Text style={{ fontWeight: 500 }}>
+                {`${selectedRuntimePackage.name} ${selectedRuntimePackage.version}`}
+              </Typography.Text>
+              <Typography.Text type="secondary">
+                {sourceKind === 'template'
+                  ? t('business.deploy.task.templateSourceHint', { count: selectedTemplate?.stepCount || 0 })
+                  : t('business.deploy.task.packageSourceHint')}
+              </Typography.Text>
+            </Space>
           </div>
-          {startingTask?.templateParams && Object.keys(startingTask.templateParams).length > 0 ? (
-            <div style={{ color: 'var(--text-tertiary)', marginBottom: 16 }}>
-              {t('business.deploy.task.startSshTemplateHint')}
+        ) : null}
+        <Form.Item field="action" label={t('business.deploy.task.action')} initialValue="install">
+          <Select
+            onChange={(value) => {
+              const nextAction = value as TaskFormValues['action'];
+              setTaskAction(nextAction);
+            }}
+          >
+            <Select.Option value="install">{t('business.deploy.task.action.install')}</Select.Option>
+            <Select.Option value="uninstall">{t('business.deploy.task.action.uninstall')}</Select.Option>
+            <Select.Option value="upgrade">{t('business.deploy.task.action.upgrade')}</Select.Option>
+            <Select.Option value="reinstall">{t('business.deploy.task.action.reinstall')}</Select.Option>
+          </Select>
+        </Form.Item>
+        {Object.keys(runtimeParameterSchema).length > 0 ? (
+          <>
+            <div style={{ marginBottom: 16, padding: 12, borderRadius: 6, background: 'var(--panel-muted)', color: 'var(--text-tertiary)', fontSize: 12 }}>
+              {selectedRuntimeIsNginxTemplate
+                ? t('business.deploy.task.templateParams.nginxHint')
+                : t('business.deploy.task.templateParams.dynamicHint')}
             </div>
-          ) : null}
-          <Form.Item field="sshUser" label={t('business.deploy.task.sshUser')} rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item field="authMode" label={t('business.deploy.task.authMode')} rules={[{ required: true }]}>
-            <Select>
-              <Select.Option value="password">{t('business.deploy.task.authMode.password')}</Select.Option>
-              <Select.Option value="private_key">{t('business.deploy.task.authMode.privateKey')}</Select.Option>
+            {Object.entries(runtimeParameterSchema).map(([key, value]) => (
+              <Form.Item
+                key={key}
+                field={`templateParams.${key}`}
+                label={buildTemplateParamLabel(t, key)}
+                rules={taskAction === 'uninstall' ? [] : [{ required: true }]}
+              >
+                <Input placeholder={stringifyValue(value, '')} />
+              </Form.Item>
+            ))}
+          </>
+        ) : null}
+        <Form.Item field="targetType" label={t('business.deploy.task.targetType')} initialValue="host">
+          <Select
+            onChange={(value) => {
+              const nextType = value as 'host' | 'group';
+              setTargetType(nextType);
+              setSelectedBusinessScopeId(undefined);
+              setHosts([]);
+              form.setFieldValue('businessScopeId', undefined);
+              form.setFieldValue('targetIds', []);
+            }}
+          >
+            <Select.Option value="host">{t('business.deploy.task.targetType.host')}</Select.Option>
+            <Select.Option value="group">{t('business.deploy.task.targetType.group')}</Select.Option>
+          </Select>
+        </Form.Item>
+        {targetType === 'host' ? (
+          <Form.Item
+            field="businessScopeId"
+            label={t('business.deploy.task.businessScope')}
+            rules={[{ required: true }]}
+          >
+            <Select
+              allowClear
+              placeholder={t('business.deploy.task.businessScopePlaceholder')}
+              onChange={(value) => {
+                const nextScopeId = value || undefined;
+                setSelectedBusinessScopeId(nextScopeId);
+                form.setFieldValue('targetIds', []);
+                loadScopedHosts(nextScopeId);
+              }}
+            >
+              {scopeOptions.map((item) => (
+                <Select.Option key={item.id} value={item.id}>
+                  {item.name}
+                </Select.Option>
+              ))}
             </Select>
           </Form.Item>
-          <Form.Item field="hostFingerprint" label={t('business.deploy.task.hostFingerprint')} rules={[{ required: true }]}>
-            <Input placeholder={t('business.deploy.task.hostFingerprintPlaceholder')} />
-          </Form.Item>
-          <Form.Item noStyle shouldUpdate={(prev, next) => prev.authMode !== next.authMode}>
-            {(values) =>
-              values.authMode === 'private_key' ? (
-                <Form.Item field="sshPrivateKey" label={t('business.deploy.task.privateKey')} rules={[{ required: true }]}>
-                  <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} />
-                </Form.Item>
-              ) : (
-                <Form.Item field="sshPassword" label={t('business.deploy.task.sshPassword')} rules={[{ required: true }]}>
-                  <Input.Password />
-                </Form.Item>
-              )
+        ) : null}
+        <Form.Item field="targetIds" label={t('business.deploy.task.targets')} rules={[{ required: true }]}>
+          <Select
+            mode="multiple"
+            disabled={targetType === 'host' && !selectedBusinessScopeId}
+            placeholder={
+              targetType === 'host' && !selectedBusinessScopeId
+                ? t('business.deploy.task.targetsPlaceholder')
+                : undefined
             }
-          </Form.Item>
-          <SubmitBar
-            loading={startSubmitting}
-            onCancel={() => {
-              setStartVisible(false);
-              setStartingTask(null);
-            }}
-            onSubmit={submitStart}
-          />
-        </Form>
-      </AppModal>
-    </PageContainer>
+          >
+            {targetOptions.map((item) => (
+              <Select.Option key={item.id} value={item.id}>
+                {item.label}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+        <Form.Item field="executorType" label={t('business.deploy.task.executorType')} initialValue="manual">
+          <Select disabled={executorTypeDisabled}>
+            <Select.Option value="manual">{t('business.deploy.task.executorType.manual')}</Select.Option>
+            <Select.Option value="simulated">{t('business.deploy.task.executorType.simulated')}</Select.Option>
+            <Select.Option value="agent">{t('business.deploy.task.executorType.agent')}</Select.Option>
+            <Select.Option value="ssh">{t('business.deploy.task.executorType.ssh')}</Select.Option>
+          </Select>
+        </Form.Item>
+        <Form.Item field="remark" label={t('business.deploy.task.remark')}>
+          <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
+        </Form.Item>
+        <SubmitBar loading={submitting} onCancel={onClose} onSubmit={onSubmit} />
+      </Form>
+    </AppModal>
   );
+}
+
+interface DeployTaskStartModalProps {
+  t: TFunction;
+  visible: boolean;
+  form: FormInstance<StartDeployTaskPayload>;
+  task: DeployTaskRow | null;
+  submitting: boolean;
+  onClose: () => void;
+  onCancel: () => void;
+  onSubmit: () => void;
+}
+
+function DeployTaskStartModal({ t, visible, form, task, submitting, onClose, onCancel, onSubmit }: DeployTaskStartModalProps) {
+  return (
+    <AppModal
+      title={t('business.deploy.task.startSshTitle')}
+      visible={visible}
+      footer={null}
+      onCancel={onClose}
+    >
+      <Form form={form} layout="vertical">
+        <div style={{ color: 'var(--text-tertiary)', marginBottom: 16 }}>
+          {t('business.deploy.task.startSshHint')}
+        </div>
+        {task?.templateParams && Object.keys(task.templateParams).length > 0 ? (
+          <div style={{ color: 'var(--text-tertiary)', marginBottom: 16 }}>
+            {t('business.deploy.task.startSshTemplateHint')}
+          </div>
+        ) : null}
+        <Form.Item field="sshUser" label={t('business.deploy.task.sshUser')} rules={[{ required: true }]}>
+          <Input />
+        </Form.Item>
+        <Form.Item field="authMode" label={t('business.deploy.task.authMode')} rules={[{ required: true }]}>
+          <Select>
+            <Select.Option value="password">{t('business.deploy.task.authMode.password')}</Select.Option>
+            <Select.Option value="private_key">{t('business.deploy.task.authMode.privateKey')}</Select.Option>
+          </Select>
+        </Form.Item>
+        <Form.Item field="hostFingerprint" label={t('business.deploy.task.hostFingerprint')} rules={[{ required: true }]}>
+          <Input placeholder={t('business.deploy.task.hostFingerprintPlaceholder')} />
+        </Form.Item>
+        <Form.Item noStyle shouldUpdate={(prev, next) => prev.authMode !== next.authMode}>
+          {(values) =>
+            values.authMode === 'private_key' ? (
+              <Form.Item field="sshPrivateKey" label={t('business.deploy.task.privateKey')} rules={[{ required: true }]}>
+                <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} />
+              </Form.Item>
+            ) : (
+              <Form.Item field="sshPassword" label={t('business.deploy.task.sshPassword')} rules={[{ required: true }]}>
+                <Input.Password />
+              </Form.Item>
+            )
+          }
+        </Form.Item>
+        <SubmitBar
+          loading={submitting}
+          onCancel={onCancel}
+          onSubmit={onSubmit}
+        />
+      </Form>
+    </AppModal>
+  );
+}
+
+function stringifyValue(value: unknown, fallback: string): string {
+  if (value == null) {
+    return fallback;
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value) ?? fallback;
+  }
+  return String(value);
 }
 
 function buildInitialTaskTemplateParams(schema: Record<string, unknown>) {
@@ -1241,7 +1463,7 @@ function buildInitialTaskTemplateParams(schema: Record<string, unknown>) {
     if (value == null) {
       return;
     }
-    result[key] = String(value);
+    result[key] = stringifyValue(value, '');
   });
   return result;
 }
@@ -1257,8 +1479,11 @@ function buildTaskTemplateParams(
       result[key] = currentValue.trim();
       return;
     }
-    if (value != null && String(value).trim()) {
-      result[key] = String(value).trim();
+    if (value != null) {
+      const trimmed = stringifyValue(value, '').trim();
+      if (trimmed) {
+        result[key] = trimmed;
+      }
     }
   });
   return result;

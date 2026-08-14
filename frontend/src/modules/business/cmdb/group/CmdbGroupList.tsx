@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
@@ -94,6 +94,37 @@ function filterGroupTree(groups: GroupRow[], keyword: string): GroupRow[] {
     }
     return acc;
   }, []);
+}
+
+interface AsyncContentStateProps {
+  readonly loading: boolean;
+  readonly error: unknown;
+  readonly empty: boolean;
+  readonly emptyText: string;
+  readonly failedText: string;
+  readonly onRetry: () => void;
+  readonly children: ReactNode;
+}
+
+function AsyncContentState({
+  loading,
+  error,
+  empty,
+  emptyText,
+  failedText,
+  onRetry,
+  children,
+}: AsyncContentStateProps) {
+  if (loading) {
+    return <PageLoading />;
+  }
+  if (error) {
+    return <PageError description={failedText} onRetry={onRetry} />;
+  }
+  if (empty) {
+    return <PageEmpty description={emptyText} />;
+  }
+  return <>{children}</>;
 }
 
 export default function CmdbGroupList() {
@@ -361,8 +392,8 @@ export default function CmdbGroupList() {
       render: (_: unknown, row: GroupRow) =>
         row.conditions?.rules?.length ? (
           <Space wrap size={4}>
-            {row.conditions.rules.map((r, i) => (
-              <Tag key={i} size="small">
+            {row.conditions.rules.map((r) => (
+              <Tag key={`${r.key}-${r.op}-${r.val}`} size="small">
                 {r.key} {r.op} {r.val}
               </Tag>
             ))}
@@ -543,14 +574,14 @@ export default function CmdbGroupList() {
             <Typography.Text className="cmdb-page__side-title">
               {t('business.cmdb.group.tree.title')}
             </Typography.Text>
-            {loading && data.length === 0 ? <PageLoading /> : null}
-            {!loading && error && data.length === 0 ? (
-              <PageError description={t('common.loadFailedDesc')} onRetry={loadData} />
-            ) : null}
-            {!loading && !error && filteredTreeData.length === 0 ? (
-              <PageEmpty description={t('business.cmdb.group.empty')} />
-            ) : null}
-            {!loading && !(error && data.length === 0) && filteredTreeData.length > 0 ? (
+            <AsyncContentState
+              loading={loading && data.length === 0}
+              error={data.length === 0 ? error : null}
+              empty={filteredTreeData.length === 0}
+              emptyText={t('business.cmdb.group.empty')}
+              failedText={t('common.loadFailedDesc')}
+              onRetry={loadData}
+            >
               <Tree
                 blockNode
                 showLine
@@ -566,18 +597,18 @@ export default function CmdbGroupList() {
                   }
                 }}
               />
-            ) : null}
+            </AsyncContentState>
           </Card>
           <div className="cmdb-page__content-stack">
             <Card className="page-panel system-list__table-card cmdb-page__group-table-card">
-              {loading && data.length === 0 ? <PageLoading /> : null}
-              {!loading && error && data.length === 0 ? (
-                <PageError description={t('common.loadFailedDesc')} onRetry={loadData} />
-              ) : null}
-              {!loading && !error && filteredFlatData.length === 0 ? (
-                <PageEmpty description={t('business.cmdb.group.empty')} />
-              ) : null}
-              {!loading && !(error && data.length === 0) && filteredFlatData.length > 0 ? (
+              <AsyncContentState
+                loading={loading && data.length === 0}
+                error={data.length === 0 ? error : null}
+                empty={filteredFlatData.length === 0}
+                emptyText={t('business.cmdb.group.empty')}
+                failedText={t('common.loadFailedDesc')}
+                onRetry={loadData}
+              >
                 <AppTable
                   columns={columns}
                   data={pagedFlatData}
@@ -607,7 +638,7 @@ export default function CmdbGroupList() {
                     record.id === selectedGroupId ? 'cmdb-page__group-row--active' : ''
                   }
                 />
-              ) : null}
+              </AsyncContentState>
             </Card>
           </div>
         </div>

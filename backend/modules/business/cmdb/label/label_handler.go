@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const msgParamInvalid = "common.param_invalid"
+
 type LabelHandler struct {
 	svc *LabelService
 }
@@ -27,7 +29,7 @@ func (h *LabelHandler) RegisterRoutes(r gin.IRoutes) {
 func (h *LabelHandler) List(c *gin.Context) {
 	var query LabelSchemaQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	items, err := h.svc.List(query)
@@ -41,7 +43,7 @@ func (h *LabelHandler) List(c *gin.Context) {
 func (h *LabelHandler) ListOptions(c *gin.Context) {
 	var query LabelSchemaQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	items, err := h.svc.ListOptions(query)
@@ -55,7 +57,7 @@ func (h *LabelHandler) ListOptions(c *gin.Context) {
 func (h *LabelHandler) Create(c *gin.Context) {
 	var req CreateLabelSchemaRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.Create(req)
@@ -69,12 +71,12 @@ func (h *LabelHandler) Create(c *gin.Context) {
 func (h *LabelHandler) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	var req UpdateLabelSchemaRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.Update(id, req)
@@ -88,7 +90,7 @@ func (h *LabelHandler) Update(c *gin.Context) {
 func (h *LabelHandler) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	if err := h.svc.Delete(id); err != nil {

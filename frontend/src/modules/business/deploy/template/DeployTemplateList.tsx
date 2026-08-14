@@ -232,9 +232,9 @@ export default function DeployTemplateList() {
             packageId: step.packageId || undefined,
             action: step.action,
             parameterValues: buildInitialTemplateValues(step.templateParams || row.parameterSchema || {}),
-            scriptContent: String(step.stepConfig?.script || ''),
-            precheckCommand: String(step.stepConfig?.precheckCommand || ''),
-            postcheckCommand: String(step.stepConfig?.postcheckCommand || ''),
+            scriptContent: stringifyValue(step.stepConfig?.script, ''),
+            precheckCommand: stringifyValue(step.stepConfig?.precheckCommand, ''),
+            postcheckCommand: stringifyValue(step.stepConfig?.postcheckCommand, ''),
           }))
         : [{ stepName: row.name, stepType: 'package', action: row.defaultAction || 'install', packageId: row.packageId || undefined }],
     });
@@ -545,94 +545,14 @@ export default function DeployTemplateList() {
       >
         <GovernanceRailSummary items={governanceSummaryItems} />
       </GovernanceInsightDrawer>
-      <AppModal
-        title={detailRecord?.name || t('business.deploy.template.detailTitle')}
+      <TemplateDetailModal
+        record={detailRecord}
         visible={detailVisible}
-        footer={null}
-        size="detail"
-        onCancel={() => {
+        onClose={() => {
           setDetailVisible(false);
           setDetailRecord(null);
         }}
-      >
-        {!detailRecord ? (
-          <PageEmpty description={t('common.loadFailedDesc')} />
-        ) : (
-          <Space direction="vertical" size={16} style={{ width: '100%' }}>
-            <Descriptions
-              column={2}
-              data={[
-                { label: t('business.deploy.template.name'), value: detailRecord.name },
-                { label: t('business.deploy.template.version'), value: detailRecord.version },
-                { label: t('business.deploy.template.category'), value: detailRecord.category || '-' },
-                { label: t('business.deploy.template.status'), value: t(`business.deploy.package.status.${detailRecord.status}`) },
-                { label: t('business.deploy.template.mode'), value: t(`business.deploy.package.executionMode.${detailRecord.executionMode}`) },
-                { label: t('business.deploy.template.defaultAction'), value: t(`business.deploy.task.action.${detailRecord.defaultAction}`) },
-                {
-                  label: t('business.deploy.template.package'),
-                  value: detailRecord.packageName ? `${detailRecord.packageName} ${detailRecord.packageVersion}` : '-',
-                },
-                { label: t('business.deploy.template.steps'), value: t('business.deploy.template.stepCountValue', { count: detailRecord.stepCount || 0 }) },
-              ]}
-            />
-            <Card className="page-panel">
-              <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.template.description')}</Typography.Text>
-                <Typography.Paragraph style={{ marginBottom: 0 }}>
-                  {detailRecord.description || '-'}
-                </Typography.Paragraph>
-              </Space>
-            </Card>
-            <Card className="page-panel">
-              <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.template.defaultParams')}</Typography.Text>
-                {Object.keys(detailRecord.parameterSchema || {}).length ? (
-                  <Descriptions
-                    column={1}
-                    data={Object.entries(detailRecord.parameterSchema || {}).map(([key, value]) => ({
-                      label: key,
-                      value: String(value ?? '-'),
-                    }))}
-                  />
-                ) : (
-                  <PageEmpty description={t('business.deploy.template.detailParamsEmpty')} />
-                )}
-              </Space>
-            </Card>
-            <Card className="page-panel">
-              <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.template.steps')}</Typography.Text>
-                {(detailRecord.steps || []).length ? (
-                  (detailRecord.steps || []).map((step) => (
-                    <Card key={`${detailRecord.id}-${step.id || step.stepCode}`} className="page-panel" style={{ padding: 12 }}>
-                      <Space direction="vertical" size={6} style={{ width: '100%' }}>
-                        <Space wrap>
-                          <Tag color={templateStepTypeColorMap[(step.stepType || 'package') as 'package' | 'script'] || 'gray'}>
-                            {t(`business.deploy.template.stepType.${step.stepType || 'package'}`)}
-                          </Tag>
-                          <Tag color="arcoblue">{t(`business.deploy.task.action.${step.action || detailRecord.defaultAction}`)}</Tag>
-                          <Tag>{step.stepCode || '-'}</Tag>
-                        </Space>
-                        <Typography.Text style={{ fontWeight: 500 }}>{step.stepName || '-'}</Typography.Text>
-                        <Typography.Text type="secondary">
-                          {step.packageName ? `${step.packageName} ${step.packageVersion}` : '-'}
-                        </Typography.Text>
-                        {step.stepType === 'script' && step.stepConfig ? (
-                          <Typography.Paragraph className="deploy-page__log" style={{ marginBottom: 0 }}>
-                            {String(step.stepConfig.script || '-')}
-                          </Typography.Paragraph>
-                        ) : null}
-                      </Space>
-                    </Card>
-                  ))
-                ) : (
-                  <PageEmpty description={t('business.deploy.template.empty')} />
-                )}
-              </Space>
-            </Card>
-          </Space>
-        )}
-      </AppModal>
+      />
       <AppModal
         title={editing ? t('business.deploy.template.editTitle') : t('business.deploy.template.createTitle')}
         visible={visible}
@@ -710,9 +630,8 @@ export default function DeployTemplateList() {
               {(fields, { add, remove }) => (
                 <Space direction="vertical" size={12} style={{ width: '100%' }}>
                   {fields.map((field, index) => {
-                    const currentStepType = String(
-                      (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${index}].stepType`) || 'package',
-                    ) as 'package' | 'script';
+                    const rawStepType = (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${index}].stepType`);
+                    const currentStepType = ((typeof rawStepType === 'string' && rawStepType) || 'package') as 'package' | 'script';
                     const currentPackageId = Number(
                       (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${index}].packageId`) ||
                         form.getFieldValue('packageId') ||
@@ -849,6 +768,115 @@ export default function DeployTemplateList() {
   );
 }
 
+function stringifyValue(value: unknown, fallback: string): string {
+  if (value == null) {
+    return fallback;
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value) ?? fallback;
+  }
+  return String(value);
+}
+
+function TemplateDetailModal({
+  record,
+  visible,
+  onClose,
+}: {
+  record: DeployTemplateRow | null;
+  visible: boolean;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <AppModal
+      title={record?.name || t('business.deploy.template.detailTitle')}
+      visible={visible}
+      footer={null}
+      size="detail"
+      onCancel={onClose}
+    >
+      {!record ? (
+        <PageEmpty description={t('common.loadFailedDesc')} />
+      ) : (
+        <Space direction="vertical" size={16} style={{ width: '100%' }}>
+          <Descriptions
+            column={2}
+            data={[
+              { label: t('business.deploy.template.name'), value: record.name },
+              { label: t('business.deploy.template.version'), value: record.version },
+              { label: t('business.deploy.template.category'), value: record.category || '-' },
+              { label: t('business.deploy.template.status'), value: t(`business.deploy.package.status.${record.status}`) },
+              { label: t('business.deploy.template.mode'), value: t(`business.deploy.package.executionMode.${record.executionMode}`) },
+              { label: t('business.deploy.template.defaultAction'), value: t(`business.deploy.task.action.${record.defaultAction}`) },
+              {
+                label: t('business.deploy.template.package'),
+                value: record.packageName ? `${record.packageName} ${record.packageVersion}` : '-',
+              },
+              { label: t('business.deploy.template.steps'), value: t('business.deploy.template.stepCountValue', { count: record.stepCount || 0 }) },
+            ]}
+          />
+          <Card className="page-panel">
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.template.description')}</Typography.Text>
+              <Typography.Paragraph style={{ marginBottom: 0 }}>
+                {record.description || '-'}
+              </Typography.Paragraph>
+            </Space>
+          </Card>
+          <Card className="page-panel">
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.template.defaultParams')}</Typography.Text>
+              {Object.keys(record.parameterSchema || {}).length ? (
+                <Descriptions
+                  column={1}
+                  data={Object.entries(record.parameterSchema || {}).map(([key, value]) => ({
+                    label: key,
+                    value: stringifyValue(value, '-'),
+                  }))}
+                />
+              ) : (
+                <PageEmpty description={t('business.deploy.template.detailParamsEmpty')} />
+              )}
+            </Space>
+          </Card>
+          <Card className="page-panel">
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.template.steps')}</Typography.Text>
+              {(record.steps || []).length ? (
+                (record.steps || []).map((step) => (
+                  <Card key={`${record.id}-${step.id || step.stepCode}`} className="page-panel" style={{ padding: 12 }}>
+                    <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                      <Space wrap>
+                        <Tag color={templateStepTypeColorMap[(step.stepType || 'package') as 'package' | 'script'] || 'gray'}>
+                          {t(`business.deploy.template.stepType.${step.stepType || 'package'}`)}
+                        </Tag>
+                        <Tag color="arcoblue">{t(`business.deploy.task.action.${step.action || record.defaultAction}`)}</Tag>
+                        <Tag>{step.stepCode || '-'}</Tag>
+                      </Space>
+                      <Typography.Text style={{ fontWeight: 500 }}>{step.stepName || '-'}</Typography.Text>
+                      <Typography.Text type="secondary">
+                        {step.packageName ? `${step.packageName} ${step.packageVersion}` : '-'}
+                      </Typography.Text>
+                      {step.stepType === 'script' && step.stepConfig ? (
+                        <Typography.Paragraph className="deploy-page__log" style={{ marginBottom: 0 }}>
+                          {String(step.stepConfig.script || '-')}
+                        </Typography.Paragraph>
+                      ) : null}
+                    </Space>
+                  </Card>
+                ))
+              ) : (
+                <PageEmpty description={t('business.deploy.template.empty')} />
+              )}
+            </Space>
+          </Card>
+        </Space>
+      )}
+    </AppModal>
+  );
+}
+
 function buildTemplateDefaultParams(values?: Record<string, string>) {
   const result: Record<string, unknown> = {};
   Object.entries(values || {}).forEach(([key, value]) => {
@@ -906,7 +934,7 @@ function buildInitialTemplateValues(values: Record<string, unknown>) {
     if (value == null) {
       return;
     }
-    result[key] = String(value);
+    result[key] = stringifyValue(value, '');
   });
   return result;
 }

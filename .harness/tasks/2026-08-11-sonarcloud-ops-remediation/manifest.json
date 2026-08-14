@@ -1,0 +1,31 @@
+{
+  "taskId": "2026-08-11-sonarcloud-ops-remediation",
+  "title": "Clear SonarCloud code smells in business modules and reduce duplication",
+  "goal": "Drive pantheon-ops SonarCloud findings to zero and code duplication below 3% by remediating in-scope business-module code smells and configuring CPD/coverage exclusions, without touching base-inherited scaffold or shared-source drift.",
+  "primaryLayer": "business",
+  "qualityProfiles": ["ci-workflow"],
+  "scope": {
+    "in": [
+      "backend/modules/business/** Go code smells (string-literal dedup, high-arity, cognitive complexity, sensitive-file permissions)",
+      "frontend/src/modules/business/** TypeScript/CSS code smells (unknown-object stringification, arrow-fn-as-Number, nested ternary, redundant CSS)",
+      "sonar-project.properties CPD and coverage exclusion configuration",
+      ".github/workflows permission scoping"
+    ],
+    "out": [
+      "base-inherited scaffold, frontend/src/api, frontend/src/core, frontend/src/main.tsx, frontend/src/modules/system, index.html",
+      "new business behavior, schema, or UI design",
+      "platform or system-domain changes"
+    ]
+  },
+  "ratchetDecision": "gate-updated",
+  "runtimeSensitive": false,
+  "linkage": {
+    "taskId": "2026-08-11-sonarcloud-ops-remediation",
+    "changeRef": "https://github.com/duanxldragon/pantheon-ops/pull/107",
+    "evidenceDir": ".harness/evidence/2026-08-11-sonarcloud-ops-remediation/",
+    "reviewFile": ".harness/evidence/2026-08-11-sonarcloud-ops-remediation/review.md",
+    "summaryFile": ".harness/evidence/2026-08-11-sonarcloud-ops-remediation/summary.md",
+    "planRefs": []
+  },
+  "syncExpectation": "Ops-only business code smell remediation; no base-inherited file changed, so base drift remains zero and the business overlay contract is unaffected."
+}

@@ -7,11 +7,11 @@ import type { BizScopePayload } from './api';
 const FormItem = Form.Item;
 
 export interface BizScopeFormProps {
-  initialValues?: Partial<BizScopePayload>;
-  mode: 'create' | 'update';
-  submitting?: boolean;
-  onSubmit: (values: BizScopePayload) => void | Promise<void>;
-  onCancel: () => void;
+  readonly initialValues?: Partial<BizScopePayload>;
+  readonly mode: 'create' | 'update';
+  readonly submitting?: boolean;
+  readonly onSubmit: (values: BizScopePayload) => void | Promise<void>;
+  readonly onCancel: () => void;
 }
 
 export default function BizScopeForm({

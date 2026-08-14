@@ -55,7 +55,7 @@ function normalizeLabelSchemaRow(row: Partial<LabelSchemaRow>): LabelSchemaRow {
     category: String(row.category || 'base'),
     valueMode: (row.valueMode || 'free') as LabelValueMode,
     dictCode: String(row.dictCode || ''),
-    options: Array.isArray(row.options) ? row.options.map((item) => String(item)) : [],
+    options: Array.isArray(row.options) ? row.options.map(String) : [],
     required: Boolean(row.required),
     status: (row.status || 'enabled') as LabelSchemaStatus,
     description: String(row.description || ''),
@@ -81,15 +81,18 @@ export async function getLabelSchemaList(params?: LabelSchemaQuery): Promise<Lab
       pageSize: currentPageSize,
     };
   }
-  return {
-    items: Array.isArray(result.items) ? result.items.map((item) => normalizeLabelSchemaRow(item)) : [],
-    total: typeof result.total === 'number' ? result.total : Array.isArray(result.items) ? result.items.length : 0,
-    page: typeof result.page === 'number' ? result.page : params?.page || 1,
-    pageSize:
-      typeof result.pageSize === 'number'
-        ? result.pageSize
-        : params?.pageSize || (Array.isArray(result.items) ? result.items.length || 10 : 10),
-  };
+  const items = Array.isArray(result.items) ? result.items.map((item) => normalizeLabelSchemaRow(item)) : [];
+  const total = typeof result.total === 'number' ? result.total : items.length;
+  const page = typeof result.page === 'number' ? result.page : params?.page || 1;
+  let pageSize: number;
+  if (typeof result.pageSize === 'number') {
+    pageSize = result.pageSize;
+  } else if (params?.pageSize) {
+    pageSize = params.pageSize;
+  } else {
+    pageSize = items.length || 10;
+  }
+  return { items, total, page, pageSize };
 }
 
 export function getLabelSchemaOptions(params?: Pick<LabelSchemaQuery, 'status' | 'category'>) {
