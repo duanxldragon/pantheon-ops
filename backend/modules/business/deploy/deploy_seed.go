@@ -50,6 +50,14 @@ type deployMenuSeed struct {
 	Sort      int
 }
 
+type i18nSeed struct {
+	Module string
+	Locale string
+	Group  string
+	Key    string
+	Value  string
+}
+
 func seedDeployMenus(db *gorm.DB) error {
 	return ensureDeployMenuSeeds(db, []deployMenuSeed{
 		{Key: "operations-deploy", ParentKey: "operations", TitleKey: deployMenuTitleKey, Path: "/operations/deploy", Type: "M", Module: deployModuleKey, Icon: "tool", RouteName: "deploy", Sort: 3},
@@ -184,58 +192,71 @@ func seedDeployI18n(db *gorm.DB) error {
 	if db == nil {
 		return nil
 	}
-	entries := []map[string]interface{}{
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "menu", "key": deployMenuTitleKey, "value": "安装部署", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "menu", "key": deployMenuTitleKey, "value": "Deployment", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "menu", "key": deployPackageMenuTitleKey, "value": "软件组件", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "menu", "key": deployPackageMenuTitleKey, "value": "Software", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "menu", "key": deployTemplateMenuTitleKey, "value": "任务模板", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "menu", "key": deployTemplateMenuTitleKey, "value": "Task Templates", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "menu", "key": deployTaskMenuTitleKey, "value": "部署任务", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "menu", "key": deployTaskMenuTitleKey, "value": "Tasks", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "page", "key": "operations.deploy.task.detail", "value": "任务详情", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "page", "key": "operations.deploy.task.detail", "value": "Task Detail", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "permission", "key": deployPackagePermCreateKey, "value": "新增软件组件", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "permission", "key": deployPackagePermCreateKey, "value": "Create software components", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "permission", "key": deployPackagePermUpdateKey, "value": "编辑软件组件", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "permission", "key": deployPackagePermUpdateKey, "value": "Update software components", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "permission", "key": deployPackagePermDeleteKey, "value": "删除软件组件", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "permission", "key": deployPackagePermDeleteKey, "value": "Delete software components", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "permission", "key": deployTemplatePermCreateKey, "value": "新增任务模板", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "permission", "key": deployTemplatePermCreateKey, "value": "Create task templates", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "permission", "key": deployTemplatePermUpdateKey, "value": "编辑任务模板", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "permission", "key": deployTemplatePermUpdateKey, "value": "Update task templates", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "permission", "key": deployTemplatePermDeleteKey, "value": "删除任务模板", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "permission", "key": deployTemplatePermDeleteKey, "value": "Delete task templates", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "permission", "key": deployTaskPermDetailKey, "value": "查看任务详情", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "permission", "key": deployTaskPermDetailKey, "value": "View task detail", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "permission", "key": deployTaskPermCreateKey, "value": "新增部署任务", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "permission", "key": deployTaskPermCreateKey, "value": "Create deployment tasks", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "permission", "key": deployTaskPermUpdateKey, "value": "编辑部署任务", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "permission", "key": deployTaskPermUpdateKey, "value": "Update deployment tasks", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "permission", "key": deployTaskPermDeleteKey, "value": "删除部署任务", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "permission", "key": deployTaskPermDeleteKey, "value": "Delete deployment tasks", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "permission", "key": deployTaskPermStartKey, "value": "启动部署任务", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "permission", "key": deployTaskPermStartKey, "value": "Start deployment tasks", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "permission", "key": deployTaskPermCancelKey, "value": "取消部署任务", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "permission", "key": deployTaskPermCancelKey, "value": "Cancel deployment tasks", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "zh-CN", "group_name": "permission", "key": deployTaskPermMarkResultKey, "value": "标记执行结果", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": deployModuleKey, "locale": "en-US", "group_name": "permission", "key": deployTaskPermMarkResultKey, "value": "Mark execution result", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+	entries := []i18nSeed{
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "menu", Key: deployMenuTitleKey, Value: "安装部署"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "menu", Key: deployMenuTitleKey, Value: "Deployment"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "menu", Key: deployPackageMenuTitleKey, Value: "软件组件"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "menu", Key: deployPackageMenuTitleKey, Value: "Software"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "menu", Key: deployTemplateMenuTitleKey, Value: "任务模板"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "menu", Key: deployTemplateMenuTitleKey, Value: "Task Templates"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "menu", Key: deployTaskMenuTitleKey, Value: "部署任务"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "menu", Key: deployTaskMenuTitleKey, Value: "Tasks"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "page", Key: "operations.deploy.task.detail", Value: "任务详情"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "page", Key: "operations.deploy.task.detail", Value: "Task Detail"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployPackagePermCreateKey, Value: "新增软件组件"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployPackagePermCreateKey, Value: "Create software components"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployPackagePermUpdateKey, Value: "编辑软件组件"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployPackagePermUpdateKey, Value: "Update software components"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployPackagePermDeleteKey, Value: "删除软件组件"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployPackagePermDeleteKey, Value: "Delete software components"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTemplatePermCreateKey, Value: "新增任务模板"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTemplatePermCreateKey, Value: "Create task templates"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTemplatePermUpdateKey, Value: "编辑任务模板"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTemplatePermUpdateKey, Value: "Update task templates"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTemplatePermDeleteKey, Value: "删除任务模板"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTemplatePermDeleteKey, Value: "Delete task templates"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermDetailKey, Value: "查看任务详情"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermDetailKey, Value: "View task detail"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermCreateKey, Value: "新增部署任务"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermCreateKey, Value: "Create deployment tasks"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermUpdateKey, Value: "编辑部署任务"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermUpdateKey, Value: "Update deployment tasks"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermDeleteKey, Value: "删除部署任务"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermDeleteKey, Value: "Delete deployment tasks"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermStartKey, Value: "启动部署任务"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermStartKey, Value: "Start deployment tasks"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermCancelKey, Value: "取消部署任务"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermCancelKey, Value: "Cancel deployment tasks"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermMarkResultKey, Value: "标记执行结果"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermMarkResultKey, Value: "Mark execution result"},
 	}
-	for _, record := range entries {
+	for _, seed := range entries {
 		var existingID uint64
-		if err := db.Table("system_i18n").Select("id").Where("`key` = ? AND locale = ?", record["key"], record["locale"]).Limit(1).Pluck("id", &existingID).Error; err != nil {
+		if err := db.Table("system_i18n").Select("id").Where("`key` = ? AND locale = ?", seed.Key, seed.Locale).Limit(1).Pluck("id", &existingID).Error; err != nil {
 			return err
 		}
-		if existingID == 0 {
-			if err := db.Table("system_i18n").Create(record).Error; err != nil {
+		if existingID > 0 {
+			update := map[string]interface{}{
+				"value":      seed.Value,
+				"module":     seed.Module,
+				"updated_at": time.Now(),
+			}
+			if err := db.Table("system_i18n").Where(idWhereClause, existingID).Updates(update).Error; err != nil {
 				return err
 			}
-		} else if err := db.Table("system_i18n").Where(idWhereClause, existingID).Updates(map[string]interface{}{
-			"value":      record["value"],
-			"module":     record["module"],
-			"updated_at": record["updated_at"],
-		}).Error; err != nil {
+			continue
+		}
+		payload := map[string]interface{}{
+			"module":           seed.Module,
+			"group_name":       seed.Group,
+			"key":              seed.Key,
+			"locale":           seed.Locale,
+			"value":            seed.Value,
+			"lifecycle_status": "active",
+			"created_at":       time.Now(),
+			"updated_at":       time.Now(),
+		}
+		if err := db.Table("system_i18n").Create(payload).Error; err != nil {
 			return err
 		}
 	}
