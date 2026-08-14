@@ -772,7 +772,7 @@ function stringifyValue(value: unknown, fallback: string): string {
   if (value == null) {
     return fallback;
   }
-  if (typeof value === 'object') {
+  if (typeof value === 'object' || typeof value === 'function') {
     return JSON.stringify(value) ?? fallback;
   }
   return String(value);
@@ -782,11 +782,11 @@ function TemplateDetailModal({
   record,
   visible,
   onClose,
-}: {
+}: Readonly<{
   record: DeployTemplateRow | null;
   visible: boolean;
   onClose: () => void;
-}) {
+}>) {
   const { t } = useTranslation();
   return (
     <AppModal
@@ -860,7 +860,7 @@ function TemplateDetailModal({
                       </Typography.Text>
                       {step.stepType === 'script' && step.stepConfig ? (
                         <Typography.Paragraph className="deploy-page__log" style={{ marginBottom: 0 }}>
-                          {String(step.stepConfig.script || '-')}
+                          {step.stepConfig.script ? stringifyValue(step.stepConfig.script, '-') : '-'}
                         </Typography.Paragraph>
                       ) : null}
                     </Space>
