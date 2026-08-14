@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	msgParamInvalid       = "param.invalid"
+	msgParamInvalid        = "param.invalid"
 	bizScopeAuditUpdateKey = "business.bizscope.audit.update"
 )
 
