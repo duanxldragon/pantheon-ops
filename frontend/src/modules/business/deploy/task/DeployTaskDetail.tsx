@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Button,
@@ -17,7 +19,7 @@ import {
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { IconDelete, IconEdit, IconLeft } from '@arco-design/web-react/icon';
 import { isForbiddenRequestError, isRequestError } from '../../../../api/request';
-import { AppModal, PageEmpty, PageForbidden, PageLoading, PageNotFound, PageRequestError } from '../../../../components';
+import { AppModal, PageEmpty, PageError, PageForbidden, PageLoading, PageNotFound, PageRequestError } from '../../../../components';
 import AppTable from '../../../../components/data-display/AppTable';
 import PageContainer from '../../../../components/patterns/layout/PageContainer';
 import BusinessPageHeader from '../../shared/BusinessPageHeader';
@@ -95,6 +97,220 @@ function resolveDeployMessage(t: (key: string) => string, value?: string) {
     return '-';
   }
   return value.startsWith('business.deploy.') ? t(value) : value;
+}
+
+interface AsyncContentStateProps {
+  readonly loading: boolean;
+  readonly error: unknown;
+  readonly empty: boolean;
+  readonly emptyText: string;
+  readonly failedText: string;
+  readonly onRetry: () => void;
+  readonly children: ReactNode;
+}
+
+function AsyncContentState({ loading, error, empty, emptyText, failedText, onRetry, children }: AsyncContentStateProps) {
+  if (loading) {
+    return <PageLoading />;
+  }
+  if (error) {
+    return <PageError description={failedText} onRetry={onRetry} />;
+  }
+  if (empty) {
+    return <PageEmpty description={emptyText} />;
+  }
+  return <>{children}</>;
+}
+
+function renderLoadErrorState(args: {
+  loading: boolean;
+  error: unknown;
+  t: TFunction;
+  loadData: () => void;
+}): ReactNode {
+  if (args.loading) {
+    return <PageContainer><PageLoading /></PageContainer>;
+  }
+  if (args.error) {
+    if (isForbiddenRequestError(args.error)) {
+      return <PageContainer><PageForbidden /></PageContainer>;
+    }
+    if (isTaskNotFoundError(args.error)) {
+      return <PageContainer><PageNotFound /></PageContainer>;
+    }
+    return <PageContainer><PageRequestError error={args.error} onRetry={args.loadData} description={args.t('common.loadFailedDesc')} /></PageContainer>;
+  }
+  return null;
+}
+
+interface BuildTaskHostColumnsOptions {
+  readonly t: TFunction;
+  readonly canMark: boolean;
+  readonly submitting: boolean;
+  readonly submitResult: (host: DeployTaskHostRow, payload: { status: 'success' | 'failed' | 'skipped' }) => void;
+  readonly openResult: (row: DeployTaskHostRow) => void;
+}
+
+function buildTaskHostColumns({ t, canMark, submitting, submitResult, openResult }: BuildTaskHostColumnsOptions): ColumnProps<DeployTaskHostRow>[] {
+  return [
+    { title: t('business.deploy.task.host'), dataIndex: 'hostname', width: 180 },
+    { title: t('business.deploy.task.hostIp'), dataIndex: 'hostIp', width: 140 },
+    {
+      title: t('business.deploy.task.status'),
+      dataIndex: 'status',
+      width: 120,
+      render: (_: unknown, row) => (
+        <Tag color={statusColorMap[row.status] || 'gray'}>{t(`business.deploy.task.hostStatus.${row.status}`)}</Tag>
+      ),
+    },
+    {
+      title: t('business.deploy.task.startedAt'),
+      dataIndex: 'startedAt',
+      width: 180,
+      render: (_: unknown, row) => row.startedAt ? formatDateTime(row.startedAt) : '-',
+    },
+    {
+      title: t('business.deploy.task.finishedAt'),
+      dataIndex: 'finishedAt',
+      width: 180,
+      render: (_: unknown, row) => row.finishedAt ? formatDateTime(row.finishedAt) : '-',
+    },
+    {
+      title: t('business.deploy.task.duration'),
+      dataIndex: 'durationSeconds',
+      width: 100,
+      render: (_: unknown, row) => row.durationSeconds ? `${row.durationSeconds}s` : '-',
+    },
+    {
+      title: t('business.deploy.task.errorMessage'),
+      dataIndex: 'errorMessage',
+      ellipsis: true,
+      render: (_: unknown, row) => resolveDeployMessage(t, row.errorMessage),
+    },
+    {
+      title: t('common.action'),
+      fixed: 'right',
+      width: 180,
+      render: (_: unknown, row) => (
+        <Space className="system-list__actions">
+          {canMark && ['pending', 'running'].includes(row.status) && (
+            <>
+              <Popconfirm
+                title={t('business.deploy.task.markSuccessConfirm')}
+                onOk={() => {
+                  void submitResult(row, { status: 'success' });
+                }}
+              >
+                <Button type="text" size="small" loading={submitting}>
+                  {t('business.deploy.task.markSuccessAction')}
+                </Button>
+              </Popconfirm>
+              <Button type="text" size="small" status="danger" onClick={() => openResult(row)}>
+                {t('business.deploy.task.markFailedAction')}
+              </Button>
+            </>
+          )}
+        </Space>
+      ),
+    },
+  ];
+}
+
+function buildTaskDetailItems(task: DeployTaskRow, t: TFunction) {
+  return [
+    { label: t('business.deploy.task.source'), value: task.templateName ? `${task.templateName} ${task.templateVersion}` : t('business.deploy.task.sourcePackage') },
+    { label: t('business.deploy.task.package'), value: `${task.packageName} ${task.packageVersion}` },
+    { label: t('business.deploy.task.action'), value: t(`business.deploy.task.action.${task.action || 'install'}`) },
+    { label: t('business.deploy.package.executionMode'), value: t(`business.deploy.package.executionMode.${task.executionMode}`) },
+    { label: t('business.deploy.task.templateParams'), value: task.templateParams && Object.keys(task.templateParams).length > 0 ? t('business.deploy.task.templateParams.present') : '-' },
+    { label: t('business.deploy.task.status'), value: t(`business.deploy.task.status.${task.status}`) },
+    { label: t('business.deploy.task.targetType'), value: t(`business.deploy.task.targetType.${task.targetType}`) },
+    { label: t('business.deploy.task.businessScope'), value: task.businessScopeName || '-' },
+    { label: t('business.deploy.task.executorType'), value: t(`business.deploy.task.executorType.${task.executorType}`) },
+    { label: t('business.deploy.task.externalTaskId'), value: task.externalTaskId || '-' },
+    { label: t('business.deploy.task.startedAt'), value: task.startedAt ? formatDateTime(task.startedAt) : '-' },
+    { label: t('business.deploy.task.finishedAt'), value: task.finishedAt ? formatDateTime(task.finishedAt) : '-' },
+    { label: t('business.deploy.task.duration'), value: task.durationSeconds ? `${task.durationSeconds}s` : '-' },
+    { label: t('business.deploy.task.hostCount'), value: task.hostCount || 0 },
+    { label: t('business.deploy.task.successCount'), value: task.successCount || 0 },
+    { label: t('business.deploy.task.failedCount'), value: task.failedCount || 0 },
+    { label: t('business.deploy.task.runningCount'), value: task.runningCount || 0 },
+    { label: t('business.deploy.task.skippedCount'), value: task.skippedCount || 0 },
+    { label: t('business.deploy.task.remark'), value: task.remark || '-' },
+  ];
+}
+
+interface TaskActionsCardProps {
+  readonly task: DeployTaskRow;
+  readonly t: TFunction;
+  readonly navigate: (path: string) => void;
+  readonly canEditTask: boolean;
+  readonly canStartTask: boolean;
+  readonly canCancelTask: boolean;
+  readonly canDeleteTask: boolean;
+  readonly startSubmitting: boolean;
+  readonly submitting: boolean;
+  readonly openStart: () => void;
+  readonly handleCancelTask: () => void;
+  readonly handleDeleteTask: () => void;
+}
+
+function TaskActionsCard({ task, t, navigate, canEditTask, canStartTask, canCancelTask, canDeleteTask, startSubmitting, submitting, openStart, handleCancelTask, handleDeleteTask }: TaskActionsCardProps) {
+  const startAction = task.executorType === 'ssh' ? (
+    <Button type="primary" loading={startSubmitting} onClick={() => openStart()}>
+      {t('business.deploy.task.start')}
+    </Button>
+  ) : (
+    <Popconfirm title={t('business.deploy.task.startConfirm')} onOk={() => openStart()}>
+      <Button type="primary" loading={startSubmitting}>
+        {t('business.deploy.task.start')}
+      </Button>
+    </Popconfirm>
+  );
+  return (
+    <Card className="page-panel">
+      <Space direction="vertical" size={12} style={{ width: '100%' }}>
+        <Typography.Text style={{ fontWeight: 600 }}>
+          {t('business.deploy.task.taskActionsTitle')}
+        </Typography.Text>
+        <div className="deploy-page__action-panel">
+          <div className="deploy-page__action-copy">
+            <Typography.Text>{t('business.deploy.task.taskActionsHint')}</Typography.Text>
+            <Typography.Text type="secondary">
+              {task.executorType === 'ssh'
+                ? t('business.deploy.task.startSshTemplateHint')
+                : t('business.deploy.task.statusFlowHint')}
+            </Typography.Text>
+          </div>
+          <Space wrap>
+            {canEditTask ? (
+              <Button
+                icon={<IconEdit />}
+                onClick={() => navigate(`/operations/deploy/task?editId=${task.id}`)}
+              >
+                {t('common.edit')}
+              </Button>
+            ) : null}
+            {canStartTask ? startAction : null}
+            {canCancelTask ? (
+              <Popconfirm title={t('business.deploy.task.cancelConfirm')} onOk={() => void handleCancelTask()}>
+                <Button status="danger" loading={submitting}>
+                  {t('business.deploy.task.cancel')}
+                </Button>
+              </Popconfirm>
+            ) : null}
+            {canDeleteTask ? (
+              <Popconfirm title={t('business.deploy.task.deleteConfirm')} onOk={() => void handleDeleteTask()}>
+                <Button status="danger" icon={<IconDelete />} loading={submitting}>
+                  {t('common.delete')}
+                </Button>
+              </Popconfirm>
+            ) : null}
+          </Space>
+        </div>
+      </Space>
+    </Card>
+  );
 }
 
 export default function DeployTaskDetail() {
@@ -318,68 +534,7 @@ export default function DeployTaskDetail() {
     }
   }, [navigate, t, task]);
 
-  const columns: ColumnProps<DeployTaskHostRow>[] = [
-    { title: t('business.deploy.task.host'), dataIndex: 'hostname', width: 180 },
-    { title: t('business.deploy.task.hostIp'), dataIndex: 'hostIp', width: 140 },
-    {
-      title: t('business.deploy.task.status'),
-      dataIndex: 'status',
-      width: 120,
-      render: (_: unknown, row) => (
-        <Tag color={statusColorMap[row.status] || 'gray'}>{t(`business.deploy.task.hostStatus.${row.status}`)}</Tag>
-      ),
-    },
-    {
-      title: t('business.deploy.task.startedAt'),
-      dataIndex: 'startedAt',
-      width: 180,
-      render: (_: unknown, row) => row.startedAt ? formatDateTime(row.startedAt) : '-',
-    },
-    {
-      title: t('business.deploy.task.finishedAt'),
-      dataIndex: 'finishedAt',
-      width: 180,
-      render: (_: unknown, row) => row.finishedAt ? formatDateTime(row.finishedAt) : '-',
-    },
-    {
-      title: t('business.deploy.task.duration'),
-      dataIndex: 'durationSeconds',
-      width: 100,
-      render: (_: unknown, row) => row.durationSeconds ? `${row.durationSeconds}s` : '-',
-    },
-    {
-      title: t('business.deploy.task.errorMessage'),
-      dataIndex: 'errorMessage',
-      ellipsis: true,
-      render: (_: unknown, row) => resolveDeployMessage(t, row.errorMessage),
-    },
-    {
-      title: t('common.action'),
-      fixed: 'right',
-      width: 180,
-      render: (_: unknown, row) => (
-        <Space className="system-list__actions">
-          {canMark && ['pending', 'running'].includes(row.status) && (
-            <>
-              <Popconfirm
-                title={t('business.deploy.task.markSuccessConfirm')}
-                onOk={() => {
-                  void submitResult(row, { status: 'success' });
-                }}
-              >
-                <Button type="text" size="small" loading={submitting}>
-                  {t('business.deploy.task.markSuccessAction')}
-                </Button>
-              </Popconfirm>
-              <Button type="text" size="small" status="danger" onClick={() => openResult(row)}>
-                {t('business.deploy.task.markFailedAction')}
-              </Button>
-            </>
-          )}
-        </Space>
-      ),
-    },
-  ];
+  const columns = buildTaskHostColumns({ t, canMark, submitting, submitResult, openResult });
 
   const processColumns: ColumnProps<{
     at?: string;
@@ -436,17 +591,9 @@ export default function DeployTaskDetail() {
     },
   ];
 
-  if (loading) {
-    return <PageContainer><PageLoading /></PageContainer>;
-  }
-  if (error) {
-    if (isForbiddenRequestError(error)) {
-      return <PageContainer><PageForbidden /></PageContainer>;
-    }
-    if (isTaskNotFoundError(error)) {
-      return <PageContainer><PageNotFound /></PageContainer>;
-    }
-    return <PageContainer><PageRequestError error={error} onRetry={loadData} description={t('common.loadFailedDesc')} /></PageContainer>;
+  const loadErrorState = renderLoadErrorState({ loading, error, t, loadData });
+  if (loadErrorState) {
+    return loadErrorState;
   }
   if (!task) {
     return <PageContainer><PageNotFound /></PageContainer>;
@@ -495,11 +642,10 @@ export default function DeployTaskDetail() {
             <Typography.Text style={{ fontWeight: 600 }}>
               {t('business.deploy.task.statusFlowTitle')}
             </Typography.Text>
-            <div className="deploy-page__status-flow" role="list" aria-label={t('business.deploy.task.statusFlowTitle')}>
+            <ul className="deploy-page__status-flow" style={{ listStyle: 'none', margin: 0, padding: 0 }} aria-label={t('business.deploy.task.statusFlowTitle')}>
               {taskFlowItems.map((item) => (
-                <div
+                <li
                   key={item.key}
-                  role="listitem"
                   className={[
                     'deploy-page__status-step',
                     item.active ? 'is-active' : '',
@@ -510,92 +656,32 @@ export default function DeployTaskDetail() {
                 >
                   <span className="deploy-page__status-dot" />
                   <span className="deploy-page__status-label">{t(`business.deploy.task.status.${item.key}`)}</span>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
             <Typography.Text type="secondary">
               {t('business.deploy.task.statusFlowHint')}
             </Typography.Text>
           </Space>
         </Card>
-        <Card className="page-panel">
-          <Space direction="vertical" size={12} style={{ width: '100%' }}>
-            <Typography.Text style={{ fontWeight: 600 }}>
-              {t('business.deploy.task.taskActionsTitle')}
-            </Typography.Text>
-            <div className="deploy-page__action-panel">
-              <div className="deploy-page__action-copy">
-                <Typography.Text>{t('business.deploy.task.taskActionsHint')}</Typography.Text>
-                <Typography.Text type="secondary">
-                  {task.executorType === 'ssh'
-                    ? t('business.deploy.task.startSshTemplateHint')
-                    : t('business.deploy.task.statusFlowHint')}
-                </Typography.Text>
-              </div>
-              <Space wrap>
-                {canEditTask ? (
-                  <Button
-                    icon={<IconEdit />}
-                    onClick={() => navigate(`/operations/deploy/task?editId=${task.id}`)}
-                  >
-                    {t('common.edit')}
-                  </Button>
-                ) : null}
-                {canStartTask ? (
-                  task.executorType === 'ssh' ? (
-                    <Button type="primary" loading={startSubmitting} onClick={() => openStart()}>
-                      {t('business.deploy.task.start')}
-                    </Button>
-                  ) : (
-                    <Popconfirm title={t('business.deploy.task.startConfirm')} onOk={() => openStart()}>
-                      <Button type="primary" loading={startSubmitting}>
-                        {t('business.deploy.task.start')}
-                      </Button>
-                    </Popconfirm>
-                  )
-                ) : null}
-                {canCancelTask ? (
-                  <Popconfirm title={t('business.deploy.task.cancelConfirm')} onOk={() => void handleCancelTask()}>
-                    <Button status="danger" loading={submitting}>
-                      {t('business.deploy.task.cancel')}
-                    </Button>
-                  </Popconfirm>
-                ) : null}
-                {canDeleteTask ? (
-                  <Popconfirm title={t('business.deploy.task.deleteConfirm')} onOk={() => void handleDeleteTask()}>
-                    <Button status="danger" icon={<IconDelete />} loading={submitting}>
-                      {t('common.delete')}
-                    </Button>
-                  </Popconfirm>
-                ) : null}
-              </Space>
-            </div>
-          </Space>
-        </Card>
+        <TaskActionsCard
+          task={task}
+          t={t}
+          navigate={navigate}
+          canEditTask={canEditTask}
+          canStartTask={canStartTask}
+          canCancelTask={canCancelTask}
+          canDeleteTask={canDeleteTask}
+          startSubmitting={startSubmitting}
+          submitting={submitting}
+          openStart={openStart}
+          handleCancelTask={handleCancelTask}
+          handleDeleteTask={handleDeleteTask}
+        />
         <Card className="page-panel">
           <Descriptions
             column={2}
-            data={[
-              { label: t('business.deploy.task.source'), value: task.templateName ? `${task.templateName} ${task.templateVersion}` : t('business.deploy.task.sourcePackage') },
-              { label: t('business.deploy.task.package'), value: `${task.packageName} ${task.packageVersion}` },
-              { label: t('business.deploy.task.action'), value: t(`business.deploy.task.action.${task.action || 'install'}`) },
-              { label: t('business.deploy.package.executionMode'), value: t(`business.deploy.package.executionMode.${task.executionMode}`) },
-              { label: t('business.deploy.task.templateParams'), value: task.templateParams && Object.keys(task.templateParams).length > 0 ? t('business.deploy.task.templateParams.present') : '-' },
-              { label: t('business.deploy.task.status'), value: t(`business.deploy.task.status.${task.status}`) },
-              { label: t('business.deploy.task.targetType'), value: t(`business.deploy.task.targetType.${task.targetType}`) },
-              { label: t('business.deploy.task.businessScope'), value: task.businessScopeName || '-' },
-              { label: t('business.deploy.task.executorType'), value: t(`business.deploy.task.executorType.${task.executorType}`) },
-              { label: t('business.deploy.task.externalTaskId'), value: task.externalTaskId || '-' },
-              { label: t('business.deploy.task.startedAt'), value: task.startedAt ? formatDateTime(task.startedAt) : '-' },
-              { label: t('business.deploy.task.finishedAt'), value: task.finishedAt ? formatDateTime(task.finishedAt) : '-' },
-              { label: t('business.deploy.task.duration'), value: task.durationSeconds ? `${task.durationSeconds}s` : '-' },
-              { label: t('business.deploy.task.hostCount'), value: task.hostCount || 0 },
-              { label: t('business.deploy.task.successCount'), value: task.successCount || 0 },
-              { label: t('business.deploy.task.failedCount'), value: task.failedCount || 0 },
-              { label: t('business.deploy.task.runningCount'), value: task.runningCount || 0 },
-              { label: t('business.deploy.task.skippedCount'), value: task.skippedCount || 0 },
-              { label: t('business.deploy.task.remark'), value: task.remark || '-' },
-            ]}
+            data={buildTaskDetailItems(task, t)}
           />
         </Card>
         {templateParamItems.length > 0 ? (
@@ -627,11 +713,16 @@ export default function DeployTaskDetail() {
                 </div>
               ))}
             </div>
-            {task.hosts?.length ? (
+            <AsyncContentState
+              loading={false}
+              error={null}
+              empty={!task.hosts?.length}
+              emptyText={t('business.deploy.task.hostEmpty')}
+              failedText={t('common.loadFailedDesc')}
+              onRetry={() => void loadData()}
+            >
               <AppTable rowKey="id" className="system-list__table" columns={columns} data={task.hosts} pagination={false} />
-            ) : (
-              <PageEmpty description={t('business.deploy.task.hostEmpty')} />
-            )}
+            </AsyncContentState>
           </Space>
         </Card>
         {task.hosts?.length ? (

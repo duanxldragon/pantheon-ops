@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useNavigate } from 'react-router-dom';
 import {
   Card,
@@ -59,6 +61,204 @@ const osColorMap: Record<string, string> = {
   linux: 'blue',
   windows: 'arcoblue',
 };
+
+interface BuildHostColumnsOptions {
+  t: TFunction;
+  canUpdate: boolean;
+  canDelete: boolean;
+  canCollect: boolean;
+  openDetail: (id: number) => void;
+  handleEdit: (row: HostRow) => void;
+  handleDelete: (id: number) => void;
+  navigate: (to: string) => void;
+}
+
+function buildHostColumns({
+  t,
+  canUpdate,
+  canDelete,
+  canCollect,
+  openDetail,
+  handleEdit,
+  handleDelete,
+  navigate,
+}: BuildHostColumnsOptions): ColumnProps<HostRow>[] {
+  return [
+    {
+      title: t('business.cmdb.host.hostname'),
+      dataIndex: 'hostname',
+      width: 150,
+    },
+    {
+      title: t('business.cmdb.host.ip'),
+      dataIndex: 'ip',
+      width: 140,
+    },
+    {
+      title: t('business.cmdb.host.cpuCores'),
+      dataIndex: 'cpuCores',
+      width: 80,
+      render: (_: unknown, row: HostRow) => (row.cpuCores ? row.cpuCores : '-'),
+    },
+    {
+      title: t('business.cmdb.host.memoryGb'),
+      dataIndex: 'memoryGb',
+      width: 100,
+      render: (_: unknown, row: HostRow) => (row.memoryGb ? row.memoryGb : '-'),
+    },
+    {
+      title: t('business.cmdb.host.diskGb'),
+      dataIndex: 'diskGb',
+      width: 100,
+      render: (_: unknown, row: HostRow) => (row.diskGb ? row.diskGb : '-'),
+    },
+    {
+      title: t('business.cmdb.host.os'),
+      dataIndex: 'os',
+      width: 180,
+      render: (_: unknown, row: HostRow) => (
+        <Space direction="vertical" size={2}>
+          <Tag color={osColorMap[row.os] || 'gray'}>
+            {t(`business.cmdb.host.os.${row.os}`)}
+          </Tag>
+          <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>
+            {row.osVersion || '-'}
+          </span>
+        </Space>
+      ),
+    },
+    {
+      title: t('business.cmdb.host.status'),
+      dataIndex: 'status',
+      width: 100,
+      render: (_: unknown, row: HostRow) => (
+        <Tag color={statusColorMap[row.status] || 'gray'}>
+          {t(`business.cmdb.host.status.${row.status}`)}
+        </Tag>
+      ),
+    },
+    {
+      title: t('business.cmdb.host.businessScope'),
+      dataIndex: 'businessScopeName',
+      width: 180,
+      render: (_: unknown, row: HostRow) =>
+        row.businessScopeName ? (
+          <Space direction="vertical" size={2}>
+            <span>{row.businessScopeName}</span>
+            <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>
+              {row.businessScopeCode || '-'}
+            </span>
+          </Space>
+        ) : (
+          '-'
+        ),
+    },
+    {
+      title: t('business.cmdb.host.matchedGroups'),
+      dataIndex: 'matchedGroups',
+      width: 220,
+      render: (_: unknown, row: HostRow) =>
+        row.matchedGroups?.length ? (
+          <Space wrap size={4}>
+            {row.matchedGroups.slice(0, 3).map((group) => (
+              <Tag key={group.id} color="arcoblue">
+                {group.name}
+              </Tag>
+            ))}
+            {row.matchedGroups.length > 3 ? (
+              <Tag color="gray">+{row.matchedGroups.length - 3}</Tag>
+            ) : null}
+          </Space>
+        ) : (
+          '-'
+        ),
+    },
+    {
+      title: t('business.cmdb.host.labels'),
+      dataIndex: 'labelValues',
+      width: 200,
+      render: (_: unknown, row: HostRow) =>
+        row.labelValues?.length ? (
+          <Space wrap size={4}>
+            {row.labelValues.map((l) => (
+              <Tag key={`${l.key}-${l.val}`} size="small">
+                {l.key}={l.val}
+              </Tag>
+            ))}
+          </Space>
+        ) : (
+          '-'
+        ),
+    },
+    {
+      title: t('common.action'),
+      key: 'action',
+      fixed: 'right',
+      width: 220,
+      render: (_: unknown, row: HostRow) => (
+        <Space>
+          <Button
+            type="text"
+            size="small"
+            icon={<IconEye />}
+            onClick={() => {
+              openDetail(row.id);
+            }}
+          >
+            {t('common.detail')}
+          </Button>
+          {canUpdate && (
+            <Button
+              type="text"
+              size="small"
+              icon={<IconEdit />}
+              onClick={() => handleEdit(row)}
+            >
+              {t('common.edit')}
+            </Button>
+          )}
+          {canCollect && row.os === 'linux' && (
+            <Button
+              type="text"
+              size="small"
+              icon={<IconCode />}
+              onClick={() => navigate(`/operations/cmdb/host/${row.id}?collect=1`)}
+            >
+              {t('business.cmdb.host.collect')}
+            </Button>
+          )}
+          {canDelete && (
+            <Popconfirm
+              title={t('business.cmdb.host.deleteConfirm')}
+              onOk={() => handleDelete(row.id)}
+            >
+              <Button type="text" size="small" status="danger" icon={<IconDelete />}>
+                {t('common.delete')}
+              </Button>
+            </Popconfirm>
+          )}
+        </Space>
+      ),
+    },
+  ];
+}
+
+interface AsyncContentStateProps {
+  readonly loading: boolean;
+  readonly error: unknown;
+  readonly empty: boolean;
+  readonly emptyText: string;
+  readonly failedText: string;
+  readonly onRetry: () => void;
+  readonly children: ReactNode;
+}
+
+function AsyncContentState({ loading, error, empty, emptyText, failedText, onRetry, children }: AsyncContentStateProps) {
+  if (loading) { return <PageLoading />; }
+  if (error) { return <PageError description={failedText} onRetry={onRetry} />; }
+  if (empty) { return <PageEmpty description={emptyText} />; }
+  return <>{children}</>;
+}
 
 export default function CmdbHostList() {
   const { t } = useTranslation();
@@ -270,164 +470,16 @@ export default function CmdbHostList() {
     }
   };
 
-  const columns: ColumnProps<HostRow>[] = [
-    {
-      title: t('business.cmdb.host.hostname'),
-      dataIndex: 'hostname',
-      width: 150,
-    },
-    {
-      title: t('business.cmdb.host.ip'),
-      dataIndex: 'ip',
-      width: 140,
-    },
-    {
-      title: t('business.cmdb.host.cpuCores'),
-      dataIndex: 'cpuCores',
-      width: 80,
-      render: (_: unknown, row: HostRow) => (row.cpuCores ? row.cpuCores : '-'),
-    },
-    {
-      title: t('business.cmdb.host.memoryGb'),
-      dataIndex: 'memoryGb',
-      width: 100,
-      render: (_: unknown, row: HostRow) => (row.memoryGb ? row.memoryGb : '-'),
-    },
-    {
-      title: t('business.cmdb.host.diskGb'),
-      dataIndex: 'diskGb',
-      width: 100,
-      render: (_: unknown, row: HostRow) => (row.diskGb ? row.diskGb : '-'),
-    },
-    {
-      title: t('business.cmdb.host.os'),
-      dataIndex: 'os',
-      width: 180,
-      render: (_: unknown, row: HostRow) => (
-        <Space direction="vertical" size={2}>
-          <Tag color={osColorMap[row.os] || 'gray'}>
-            {t(`business.cmdb.host.os.${row.os}`)}
-          </Tag>
-          <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>
-            {row.osVersion || '-'}
-          </span>
-        </Space>
-      ),
-    },
-    {
-      title: t('business.cmdb.host.status'),
-      dataIndex: 'status',
-      width: 100,
-      render: (_: unknown, row: HostRow) => (
-        <Tag color={statusColorMap[row.status] || 'gray'}>
-          {t(`business.cmdb.host.status.${row.status}`)}
-        </Tag>
-      ),
-    },
-    {
-      title: t('business.cmdb.host.businessScope'),
-      dataIndex: 'businessScopeName',
-      width: 180,
-      render: (_: unknown, row: HostRow) =>
-        row.businessScopeName ? (
-          <Space direction="vertical" size={2}>
-            <span>{row.businessScopeName}</span>
-            <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>
-              {row.businessScopeCode || '-'}
-            </span>
-          </Space>
-        ) : (
-          '-'
-        ),
-    },
-    {
-      title: t('business.cmdb.host.matchedGroups'),
-      dataIndex: 'matchedGroups',
-      width: 220,
-      render: (_: unknown, row: HostRow) =>
-        row.matchedGroups?.length ? (
-          <Space wrap size={4}>
-            {row.matchedGroups.slice(0, 3).map((group) => (
-              <Tag key={group.id} color="arcoblue">
-                {group.name}
-              </Tag>
-            ))}
-            {row.matchedGroups.length > 3 ? (
-              <Tag color="gray">+{row.matchedGroups.length - 3}</Tag>
-            ) : null}
-          </Space>
-        ) : (
-          '-'
-        ),
-    },
-    {
-      title: t('business.cmdb.host.labels'),
-      dataIndex: 'labelValues',
-      width: 200,
-      render: (_: unknown, row: HostRow) =>
-        row.labelValues?.length ? (
-          <Space wrap size={4}>
-            {row.labelValues.map((l, i) => (
-              <Tag key={i} size="small">
-                {l.key}={l.val}
-              </Tag>
-            ))}
-          </Space>
-        ) : (
-          '-'
-        ),
-    },
-    {
-      title: t('common.action'),
-      key: 'action',
-      fixed: 'right',
-      width: 220,
-      render: (_: unknown, row: HostRow) => (
-        <Space>
-          <Button
-            type="text"
-            size="small"
-            icon={<IconEye />}
-            onClick={() => {
-              openDetail(row.id);
-            }}
-          >
-            {t('common.detail')}
-          </Button>
-          {canUpdate && (
-            <Button
-              type="text"
-              size="small"
-              icon={<IconEdit />}
-              onClick={() => handleEdit(row)}
-            >
-              {t('common.edit')}
-            </Button>
-          )}
-          {canCollect && row.os === 'linux' && (
-            <Button
-              type="text"
-              size="small"
-              icon={<IconCode />}
-              onClick={() => navigate(`/operations/cmdb/host/${row.id}?collect=1`)}
-            >
-              {t('business.cmdb.host.collect')}
-            </Button>
-          )}
-          {canDelete && (
-            <Popconfirm
-              title={t('business.cmdb.host.deleteConfirm')}
-              onOk={() => handleDelete(row.id)}
-            >
-              <Button type="text" size="small" status="danger" icon={<IconDelete />}>
-                {t('common.delete')}
-              </Button>
-            </Popconfirm>
-          )}
-        </Space>
-      ),
-    },
-  ];
+  const columns = buildHostColumns({
+    t,
+    canUpdate,
+    canDelete,
+    canCollect,
+    openDetail,
+    handleEdit,
+    handleDelete,
+    navigate,
+  });
 
   return (
     <PageContainer>
@@ -538,17 +590,14 @@ export default function CmdbHostList() {
           }
         />
         <Card className="page-panel system-list__table-card">
-          {loading && data.length === 0 ? <PageLoading /> : null}
-          {!loading && error && data.length === 0 ? (
-            <PageError
-              description={t('common.loadFailedDesc')}
-              onRetry={() => loadData(query)}
-            />
-          ) : null}
-          {!loading && !error && data.length === 0 ? (
-            <PageEmpty description={t('business.cmdb.host.empty')} />
-          ) : null}
-          {!loading && !(error && data.length === 0) && data.length > 0 ? (
+          <AsyncContentState
+            loading={loading && data.length === 0}
+            error={data.length === 0 ? error : null}
+            empty={data.length === 0}
+            emptyText={t('business.cmdb.host.empty')}
+            failedText={t('common.loadFailedDesc')}
+            onRetry={() => loadData(query)}
+          >
             <AppTable
               columns={columns}
               data={data}
@@ -580,7 +629,7 @@ export default function CmdbHostList() {
               rowKey="id"
               scroll={{ x: 'max-content' }}
             />
-          ) : null}
+          </AsyncContentState>
         </Card>
       </Space>
       <GovernanceInsightDrawer

@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
   Button,
   Card,
+  Descriptions,
   Form,
   Input,
   Message,
@@ -34,7 +36,6 @@ import {
   buildStandardPagination,
   useGovernanceRail,
 } from '../../../../components';
-import { Descriptions } from '@arco-design/web-react';
 import { usePermission } from '../../../../hooks/usePermission';
 import {
   createDeployPackage,
@@ -47,6 +48,145 @@ import {
 import { deployFixedTemplateCatalog, getDeployFixedTemplateCatalogEntry } from '../catalog';
 import '../../../system/components/shared/list-page.css';
 import '../deploy.css';
+
+function PackageDetailContent({ record }: { record: DeployPackageRow }) {
+  const { t } = useTranslation();
+  return (
+    <Space direction="vertical" size={16} style={{ width: '100%' }}>
+      <Descriptions
+        column={2}
+        data={[
+          { label: t('business.deploy.package.name'), value: record.name },
+          { label: t('business.deploy.package.version'), value: record.version },
+          { label: t('business.deploy.package.executionMode'), value: t(`business.deploy.package.executionMode.${record.executionMode}`) },
+          { label: t('business.deploy.package.status'), value: t(`business.deploy.package.status.${record.status}`) },
+          { label: t('business.deploy.package.latestDeployedAt'), value: record.latestDeployedAt ? formatDateTime(record.latestDeployedAt) : '-' },
+          { label: t('business.deploy.package.latestTask'), value: record.latestTaskName || '-' },
+          { label: t('business.deploy.package.sourceFile'), value: record.sourceFileName || '-' },
+          { label: t('business.deploy.package.sourceUrl'), value: record.sourceUrl || '-' },
+        ]}
+      />
+      <Card className="page-panel">
+        <Space direction="vertical" size={8} style={{ width: '100%' }}>
+          <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.package.description')}</Typography.Text>
+          <Typography.Paragraph style={{ marginBottom: 0 }}>
+            {record.description || '-'}
+          </Typography.Paragraph>
+        </Space>
+      </Card>
+      {record.executionMode === 'fixed' ? (
+        <Card className="page-panel">
+          <Space direction="vertical" size={8} style={{ width: '100%' }}>
+            <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.package.templateSummary')}</Typography.Text>
+            <Typography.Text type="secondary">{t(`business.deploy.package.templateCode.${record.templateCode || 'nginx_systemd'}`)}</Typography.Text>
+          </Space>
+        </Card>
+      ) : null}
+      <Card className="page-panel">
+        <Space direction="vertical" size={8} style={{ width: '100%' }}>
+          <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.package.installCommand')}</Typography.Text>
+          <Typography.Paragraph className="deploy-page__log" copyable={Boolean(record.installCommand)} style={{ marginBottom: 0 }}>
+            {record.installCommand || '-'}
+          </Typography.Paragraph>
+        </Space>
+      </Card>
+    </Space>
+  );
+}
+
+function buildPackageColumns({
+  t,
+  canUpdate,
+  canDelete,
+  openDetail,
+  openEdit,
+  handleDelete,
+}: {
+  t: TFunction;
+  canUpdate: boolean;
+  canDelete: boolean;
+  openDetail: (row: DeployPackageRow) => void;
+  openEdit: (row: DeployPackageRow) => void;
+  handleDelete: (id: number) => void;
+}): ColumnProps<DeployPackageRow>[] {
+  return [
+    { title: t('business.deploy.package.name'), dataIndex: 'name', width: 160 },
+    { title: t('business.deploy.package.version'), dataIndex: 'version', width: 120 },
+    {
+      title: t('business.deploy.package.executionMode'),
+      dataIndex: 'executionMode',
+      width: 220,
+      render: (_: unknown, row) => (
+        <Space size={8} wrap>
+          <Tag>{t(`business.deploy.package.executionMode.${row.executionMode}`)}</Tag>
+          {row.templateCode ? (
+            <Tag color="arcoblue">
+              {t(`business.deploy.package.templateCode.${row.templateCode}`)}
+            </Tag>
+          ) : null}
+          {row.sourceFileName ? <Tag color="green">{row.sourceFileName}</Tag> : null}
+        </Space>
+      ),
+    },
+    {
+      title: t('business.deploy.package.status'),
+      dataIndex: 'status',
+      width: 100,
+      render: (_: unknown, row) => (
+        <Tag color={row.status === 'enabled' ? 'green' : 'gray'}>
+          {t(`business.deploy.package.status.${row.status}`)}
+        </Tag>
+      ),
+    },
+    {
+      title: t('business.deploy.package.latestDeployedAt'),
+      dataIndex: 'latestDeployedAt',
+      width: 180,
+      render: (_: unknown, row) => row.latestDeployedAt ? formatDateTime(row.latestDeployedAt) : '-',
+    },
+    {
+      title: t('business.deploy.package.latestTask'),
+      dataIndex: 'latestTaskName',
+      width: 200,
+      render: (_: unknown, row) =>
+        row.latestTaskName ? (
+          <Space direction="vertical" size={2}>
+            <span>{row.latestTaskName}</span>
+            <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>
+              {row.latestTaskStatus || '-'} · {row.latestHostCount || 0}/{row.latestSuccessCount || 0}
+            </span>
+          </Space>
+        ) : (
+          '-'
+        ),
+    },
+    { title: t('business.deploy.package.description'), dataIndex: 'description', ellipsis: true },
+    {
+      title: t('common.action'),
+      fixed: 'right',
+      width: 150,
+      render: (_: unknown, row) => (
+        <Space className="system-list__actions">
+          <Button type="text" size="small" icon={<IconEye />} onClick={() => openDetail(row)}>
+            {t('common.detail')}
+          </Button>
+          {canUpdate && (
+            <Button type="text" size="small" icon={<IconEdit />} onClick={() => openEdit(row)}>
+              {t('common.edit')}
+            </Button>
+          )}
+          {canDelete && (
+            <Popconfirm title={t('business.deploy.package.deleteConfirm')} onOk={() => handleDelete(row.id)}>
+              <Button type="text" size="small" status="danger" icon={<IconDelete />}>
+                {t('common.delete')}
+              </Button>
+            </Popconfirm>
+          )}
+        </Space>
+      ),
+    },
+  ];
+}
 
 export default function DeployPackageList() {
   const { t } = useTranslation();
@@ -237,83 +377,7 @@ export default function DeployPackageList() {
     }
   };
 
-  const columns: ColumnProps<DeployPackageRow>[] = [
-    { title: t('business.deploy.package.name'), dataIndex: 'name', width: 160 },
-    { title: t('business.deploy.package.version'), dataIndex: 'version', width: 120 },
-    {
-      title: t('business.deploy.package.executionMode'),
-      dataIndex: 'executionMode',
-      width: 220,
-      render: (_: unknown, row) => (
-        <Space size={8} wrap>
-          <Tag>{t(`business.deploy.package.executionMode.${row.executionMode}`)}</Tag>
-          {row.templateCode ? (
-            <Tag color="arcoblue">
-              {t(`business.deploy.package.templateCode.${row.templateCode}`)}
-            </Tag>
-          ) : null}
-          {row.sourceFileName ? <Tag color="green">{row.sourceFileName}</Tag> : null}
-        </Space>
-      ),
-    },
-    {
-      title: t('business.deploy.package.status'),
-      dataIndex: 'status',
-      width: 100,
-      render: (_: unknown, row) => (
-        <Tag color={row.status === 'enabled' ? 'green' : 'gray'}>
-          {t(`business.deploy.package.status.${row.status}`)}
-        </Tag>
-      ),
-    },
-    {
-      title: t('business.deploy.package.latestDeployedAt'),
-      dataIndex: 'latestDeployedAt',
-      width: 180,
-      render: (_: unknown, row) => row.latestDeployedAt ? formatDateTime(row.latestDeployedAt) : '-',
-    },
-    {
-      title: t('business.deploy.package.latestTask'),
-      dataIndex: 'latestTaskName',
-      width: 200,
-      render: (_: unknown, row) =>
-        row.latestTaskName ? (
-          <Space direction="vertical" size={2}>
-            <span>{row.latestTaskName}</span>
-            <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>
-              {row.latestTaskStatus || '-'} · {row.latestHostCount || 0}/{row.latestSuccessCount || 0}
-            </span>
-          </Space>
-        ) : (
-          '-'
-        ),
-    },
-    { title: t('business.deploy.package.description'), dataIndex: 'description', ellipsis: true },
-    {
-      title: t('common.action'),
-      fixed: 'right',
-      width: 150,
-      render: (_: unknown, row) => (
-        <Space className="system-list__actions">
-          <Button type="text" size="small" icon={<IconEye />} onClick={() => openDetail(row)}>
-            {t('common.detail')}
-          </Button>
-          {canUpdate && (
-            <Button type="text" size="small" icon={<IconEdit />} onClick={() => openEdit(row)}>
-              {t('common.edit')}
-            </Button>
-          )}
-          {canDelete && (
-            <Popconfirm title={t('business.deploy.package.deleteConfirm')} onOk={() => handleDelete(row.id)}>
-              <Button type="text" size="small" status="danger" icon={<IconDelete />}>
-                {t('common.delete')}
-              </Button>
-            </Popconfirm>
-          )}
-        </Space>
-      ),
-    },
-  ];
+  const columns = buildPackageColumns({ t, canUpdate, canDelete, openDetail, openEdit, handleDelete });
 
   if (loading && data.length === 0) {
     return <PageContainer><PageLoading /></PageContainer>;
@@ -465,45 +529,7 @@ export default function DeployPackageList() {
         }}
       >
         {!detailRecord ? <PageEmpty description={t('common.loadFailedDesc')} /> : (
-          <Space direction="vertical" size={16} style={{ width: '100%' }}>
-            <Descriptions
-              column={2}
-              data={[
-                { label: t('business.deploy.package.name'), value: detailRecord.name },
-                { label: t('business.deploy.package.version'), value: detailRecord.version },
-                { label: t('business.deploy.package.executionMode'), value: t(`business.deploy.package.executionMode.${detailRecord.executionMode}`) },
-                { label: t('business.deploy.package.status'), value: t(`business.deploy.package.status.${detailRecord.status}`) },
-                { label: t('business.deploy.package.latestDeployedAt'), value: detailRecord.latestDeployedAt ? formatDateTime(detailRecord.latestDeployedAt) : '-' },
-                { label: t('business.deploy.package.latestTask'), value: detailRecord.latestTaskName || '-' },
-                { label: t('business.deploy.package.sourceFile'), value: detailRecord.sourceFileName || '-' },
-                { label: t('business.deploy.package.sourceUrl'), value: detailRecord.sourceUrl || '-' },
-              ]}
-            />
-            <Card className="page-panel">
-              <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.package.description')}</Typography.Text>
-                <Typography.Paragraph style={{ marginBottom: 0 }}>
-                  {detailRecord.description || '-'}
-                </Typography.Paragraph>
-              </Space>
-            </Card>
-            {detailRecord.executionMode === 'fixed' ? (
-              <Card className="page-panel">
-                <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                  <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.package.templateSummary')}</Typography.Text>
-                  <Typography.Text type="secondary">{t(`business.deploy.package.templateCode.${detailRecord.templateCode || 'nginx_systemd'}`)}</Typography.Text>
-                </Space>
-              </Card>
-            ) : null}
-            <Card className="page-panel">
-              <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.package.installCommand')}</Typography.Text>
-                <Typography.Paragraph className="deploy-page__log" copyable={Boolean(detailRecord.installCommand)} style={{ marginBottom: 0 }}>
-                  {detailRecord.installCommand || '-'}
-                </Typography.Paragraph>
-              </Space>
-            </Card>
-          </Space>
+          <PackageDetailContent record={detailRecord} />
         )}
       </AppModal>
       <AppModal
