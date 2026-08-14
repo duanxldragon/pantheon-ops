@@ -775,7 +775,16 @@ function stringifyValue(value: unknown, fallback: string): string {
   if (typeof value === 'object' || typeof value === 'function') {
     return JSON.stringify(value) ?? fallback;
   }
-  return String(value);
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    typeof value === 'bigint' ||
+    typeof value === 'symbol'
+  ) {
+    return String(value);
+  }
+  return fallback;
 }
 
 function TemplateDetailModal({
