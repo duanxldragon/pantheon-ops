@@ -9,15 +9,17 @@ import { isFreeValueLabel, labelValueOptions } from '../label/options';
 import SubmitBar from '../../../../components/patterns/actions/SubmitBar';
 
 interface Props {
-  editing: HostRow | null;
-  onSubmit: (values: CreateHostPayload) => void;
-  onCancel: () => void;
-  submitting: boolean;
+  readonly editing: HostRow | null;
+  readonly onSubmit: (values: CreateHostPayload) => void;
+  readonly onCancel: () => void;
+  readonly submitting: boolean;
 }
 
 type HostFormValues = Omit<CreateHostPayload, 'labels'> & {
   labels?: LabelEntry[];
 };
+
+const HOST_IP_PLACEHOLDER = '192.168.1.1'; // NOSONAR: example IP shown as a UI input placeholder, not infrastructure config.
 
 export default function CmdbHostForm({ editing, onSubmit, onCancel, submitting }: Props) {
   const { t } = useTranslation();
@@ -100,7 +102,7 @@ export default function CmdbHostForm({ editing, onSubmit, onCancel, submitting }
         field="ip"
         rules={[{ required: true, message: t('common.required') }]}
       >
-        <Input placeholder="192.168.1.1" />
+        <Input placeholder={HOST_IP_PLACEHOLDER} />
       </Form.Item>
       <Form.Item label={t('business.cmdb.host.sshPort')} field="sshPort">
         <InputNumber min={1} max={65535} />

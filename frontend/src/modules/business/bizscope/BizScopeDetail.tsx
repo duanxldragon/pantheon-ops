@@ -10,6 +10,7 @@ import {
   Space,
   Tag,
   Typography,
+  type TableProps,
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { IconLeft, IconLink } from '@arco-design/web-react/icon';
@@ -48,6 +49,49 @@ function bizScopeHostStatusColor(status: string) {
     default:
       return 'gray';
   }
+}
+
+interface HostTableSectionProps {
+  readonly loading: boolean;
+  readonly error: unknown;
+  readonly emptyText: string;
+  readonly failedText: string;
+  readonly onRetry: () => void;
+  readonly columns: ColumnProps<BizScopeHostRow>[];
+  readonly data: BizScopeHostRow[];
+  readonly rowSelection?: TableProps<BizScopeHostRow>['rowSelection'];
+}
+
+function HostTableSection({
+  loading,
+  error,
+  emptyText,
+  failedText,
+  onRetry,
+  columns,
+  data,
+  rowSelection,
+}: HostTableSectionProps) {
+  if (loading) {
+    return <PageLoading />;
+  }
+  if (error) {
+    return <PageError description={failedText} onRetry={onRetry} />;
+  }
+  if (data.length === 0) {
+    return <PageEmpty description={emptyText} />;
+  }
+  return (
+    <AppTable
+      rowKey="id"
+      className="system-list__table"
+      columns={columns}
+      data={data}
+      pagination={false}
+      scroll={{ x: 'max-content' }}
+      rowSelection={rowSelection}
+    />
+  );
 }
 
 export default function BizScopeDetail() {
@@ -144,7 +188,7 @@ export default function BizScopeDetail() {
     try {
       await bindBizScopeHosts(
         scopeId,
-        selectedAvailableHostIds.map((item) => Number(item)),
+        selectedAvailableHostIds.map(Number),
       );
       Message.success(t('business.bizscope.bindSuccess'));
       setBindDrawerVisible(false);
@@ -393,28 +437,15 @@ export default function BizScopeDetail() {
           }
         >
           <Space direction="vertical" size={12} style={{ width: '100%' }}>
-            {hostsLoading ? <PageLoading /> : null}
-            {!hostsLoading && hostsError ? (
-              <PageError
-                description={t('business.bizscope.hostsLoadFailed')}
-                onRetry={() => {
-                  void loadHosts();
-                }}
-              />
-            ) : null}
-            {!hostsLoading && !hostsError && hosts.length === 0 ? (
-              <PageEmpty description={t('business.bizscope.boundHostsEmpty')} />
-            ) : null}
-            {!hostsLoading && !hostsError && hosts.length > 0 ? (
-              <AppTable
-                rowKey="id"
-                className="system-list__table"
-                columns={hostColumns}
-                data={hosts}
-                pagination={false}
-                scroll={{ x: 'max-content' }}
-              />
-            ) : null}
+            <HostTableSection
+              loading={hostsLoading}
+              error={hostsError}
+              emptyText={t('business.bizscope.boundHostsEmpty')}
+              failedText={t('business.bizscope.hostsLoadFailed')}
+              onRetry={loadHosts}
+              columns={hostColumns}
+              data={hosts}
+            />
           </Space>
         </Card>
       </Space>
@@ -453,33 +484,20 @@ export default function BizScopeDetail() {
           <Typography.Text type="secondary">
             {t('business.bizscope.availableHostsLead')}
           </Typography.Text>
-          {availableHostsLoading ? <PageLoading /> : null}
-          {!availableHostsLoading && availableHostsError ? (
-            <PageError
-              description={t('business.bizscope.availableHostsLoadFailed')}
-              onRetry={() => {
-                void loadAvailableHosts();
-              }}
-            />
-          ) : null}
-          {!availableHostsLoading && !availableHostsError && availableHosts.length === 0 ? (
-            <PageEmpty description={t('business.bizscope.availableHostsEmpty')} />
-          ) : null}
-          {!availableHostsLoading && !availableHostsError && availableHosts.length > 0 ? (
-            <AppTable
-              rowKey="id"
-              className="system-list__table"
-              columns={availableHostColumns}
-              data={availableHosts}
-              pagination={false}
-              scroll={{ x: 'max-content' }}
-              rowSelection={{
-                type: 'checkbox',
-                selectedRowKeys: selectedAvailableHostIds,
-                onChange: (rowKeys) => setSelectedAvailableHostIds(rowKeys),
-              }}
-            />
-          ) : null}
+          <HostTableSection
+            loading={availableHostsLoading}
+            error={availableHostsError}
+            emptyText={t('business.bizscope.availableHostsEmpty')}
+            failedText={t('business.bizscope.availableHostsLoadFailed')}
+            onRetry={loadAvailableHosts}
+            columns={availableHostColumns}
+            data={availableHosts}
+            rowSelection={{
+              type: 'checkbox',
+              selectedRowKeys: selectedAvailableHostIds,
+              onChange: (rowKeys) => setSelectedAvailableHostIds(rowKeys),
+            }}
+          />
         </Space>
       </AppDrawer>
     </PageContainer>

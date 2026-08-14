@@ -233,7 +233,7 @@ func (s *GroupService) toResponse(g *Group, hosts []Host, conditionChain []datat
 	}
 }
 
-func (s *GroupService) validateParent(currentID uint64, parentID uint64) error {
+func (s *GroupService) validateParent(currentID, parentID uint64) error {
 	if parentID == 0 {
 		return nil
 	}
@@ -312,40 +312,41 @@ func buildGroupTree(items []GroupResponse, indexByID map[uint64]int) []GroupResp
 		item.Children = nil
 		childrenByParent[item.ParentID] = append(childrenByParent[item.ParentID], item)
 	}
-	var attach func(GroupResponse) GroupResponse
-	attach = func(item GroupResponse) GroupResponse {
-		children := childrenByParent[item.ID]
-		if len(children) > 0 {
-			item.Children = make([]GroupResponse, 0, len(children))
-			aggregateMemberIDs := make(map[uint64]struct{}, len(item.memberIDs))
-			for id := range item.memberIDs {
-				aggregateMemberIDs[id] = struct{}{}
-			}
-			for _, child := range children {
-				attachedChild := attach(child)
-				item.Children = append(item.Children, attachedChild)
-				item.DescendantGroupCount += 1 + attachedChild.DescendantGroupCount
-				for id := range attachedChild.memberIDs {
-					aggregateMemberIDs[id] = struct{}{}
-				}
-			}
-			item.ChildCount = len(item.Children)
-			item.AggregateMemberCount = len(aggregateMemberIDs)
-			item.memberIDs = aggregateMemberIDs
-		}
-		return item
-	}
 	roots := make([]GroupResponse, 0)
 	for _, item := range items {
 		if item.ParentID == 0 {
-			roots = append(roots, attach(item))
+			roots = append(roots, attachGroupChildren(item, childrenByParent))
 			continue
 		}
 		if _, ok := indexByID[item.ParentID]; !ok {
-			roots = append(roots, attach(item))
+			roots = append(roots, attachGroupChildren(item, childrenByParent))
 		}
 	}
 	return roots
+}
+
+func attachGroupChildren(item GroupResponse, childrenByParent map[uint64][]GroupResponse) GroupResponse {
+	children := childrenByParent[item.ID]
+	if len(children) == 0 {
+		return item
+	}
+	item.Children = make([]GroupResponse, 0, len(children))
+	aggregateMemberIDs := make(map[uint64]struct{}, len(item.memberIDs))
+	for id := range item.memberIDs {
+		aggregateMemberIDs[id] = struct{}{}
+	}
+	for _, child := range children {
+		attachedChild := attachGroupChildren(child, childrenByParent)
+		item.Children = append(item.Children, attachedChild)
+		item.DescendantGroupCount += 1 + attachedChild.DescendantGroupCount
+		for id := range attachedChild.memberIDs {
+			aggregateMemberIDs[id] = struct{}{}
+		}
+	}
+	item.ChildCount = len(item.Children)
+	item.AggregateMemberCount = len(aggregateMemberIDs)
+	item.memberIDs = aggregateMemberIDs
+	return item
 }
 
 func (s *GroupService) scopedHosts(dataScope *common.DataScopeReq) ([]Host, error) {

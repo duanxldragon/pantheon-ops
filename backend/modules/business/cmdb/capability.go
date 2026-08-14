@@ -99,72 +99,16 @@ func (c *deployCMDBCapability) WriteDeployHostResult(req DeployHostWritebackRequ
 			if status != "" {
 				updates["status"] = status
 			}
-			if err := tx.Table("biz_cmdb_host").Where("id = ?", req.HostID).Updates(updates).Error; err != nil {
-				return err
-			}
-			return nil
+			return tx.Table("biz_cmdb_host").Where(idWhereClause, req.HostID).Updates(updates).Error
 		}
-		var snapshot struct {
-			InstalledComponents datatypes.JSON `gorm:"column:installed_components"`
-		}
-		if err := tx.Table("biz_cmdb_host").Select("installed_components").Where("id = ?", req.HostID).Take(&snapshot).Error; err != nil {
+		components, err := loadInstalledComponents(tx, req.HostID)
+		if err != nil {
 			return err
 		}
-		var components []cmdbhost.ComponentEntry
-		if len(snapshot.InstalledComponents) > 0 {
-			_ = json.Unmarshal(snapshot.InstalledComponents, &components)
-		}
-		if components == nil {
-			components = []cmdbhost.ComponentEntry{}
-		}
-		if len(req.RemovedComponentNames) > 0 {
-			removed := make(map[string]struct{}, len(req.RemovedComponentNames))
-			for _, name := range req.RemovedComponentNames {
-				if trimmed := strings.TrimSpace(name); trimmed != "" {
-					removed[strings.ToLower(trimmed)] = struct{}{}
-				}
-			}
-			filtered := make([]cmdbhost.ComponentEntry, 0, len(components))
-			for _, component := range components {
-				if _, ok := removed[strings.ToLower(strings.TrimSpace(component.Name))]; ok {
-					continue
-				}
-				filtered = append(filtered, component)
-			}
-			components = filtered
-		}
-		for _, item := range req.InstalledComponents {
-			updated := false
-			for index := range components {
-				if strings.EqualFold(strings.TrimSpace(components[index].Name), strings.TrimSpace(item.Name)) {
-					components[index].Version = item.Version
-					components[index].DeployedAt = item.DeployedAt.Format(time.RFC3339)
-					components[index].DeployTaskID = item.DeployTaskID
-					components[index].DeployTaskName = item.DeployTaskName
-					components[index].ExecutorType = item.ExecutorType
-					updated = true
-					break
-				}
-			}
-			if updated {
-				continue
-			}
-			components = append(components, cmdbhost.ComponentEntry{
-				Name:           item.Name,
-				Version:        item.Version,
-				DeployedAt:     item.DeployedAt.Format(time.RFC3339),
-				DeployTaskID:   item.DeployTaskID,
-				DeployTaskName: item.DeployTaskName,
-				ExecutorType:   item.ExecutorType,
-			})
-		}
+		components = removeComponentsByName(components, req.RemovedComponentNames)
+		components = upsertComponents(components, req.InstalledComponents)
+		status = reconcileHostStatus(status, len(components))
 		payload, _ := json.Marshal(components)
-		if status == "assigned" && len(components) > 0 {
-			status = "online"
-		}
-		if status == "online" && len(components) == 0 {
-			status = "assigned"
-		}
 		updates := map[string]any{
 			"installed_components": datatypes.JSON(payload),
 			"updated_by":           req.Actor,
@@ -173,8 +117,84 @@ func (c *deployCMDBCapability) WriteDeployHostResult(req DeployHostWritebackRequ
 		if status != "" {
 			updates["status"] = status
 		}
-		return tx.Table("biz_cmdb_host").Where("id = ?", req.HostID).Updates(updates).Error
+		return tx.Table("biz_cmdb_host").Where(idWhereClause, req.HostID).Updates(updates).Error
 	})
+}
+
+func loadInstalledComponents(tx *gorm.DB, hostID uint64) ([]cmdbhost.ComponentEntry, error) {
+	var snapshot struct {
+		InstalledComponents datatypes.JSON `gorm:"column:installed_components"`
+	}
+	if err := tx.Table("biz_cmdb_host").Select("installed_components").Where(idWhereClause, hostID).Take(&snapshot).Error; err != nil {
+		return nil, err
+	}
+	var components []cmdbhost.ComponentEntry
+	if len(snapshot.InstalledComponents) > 0 {
+		_ = json.Unmarshal(snapshot.InstalledComponents, &components)
+	}
+	if components == nil {
+		components = []cmdbhost.ComponentEntry{}
+	}
+	return components, nil
+}
+
+func removeComponentsByName(components []cmdbhost.ComponentEntry, names []string) []cmdbhost.ComponentEntry {
+	if len(names) == 0 {
+		return components
+	}
+	removed := make(map[string]struct{}, len(names))
+	for _, name := range names {
+		if trimmed := strings.TrimSpace(name); trimmed != "" {
+			removed[strings.ToLower(trimmed)] = struct{}{}
+		}
+	}
+	filtered := make([]cmdbhost.ComponentEntry, 0, len(components))
+	for _, component := range components {
+		if _, ok := removed[strings.ToLower(strings.TrimSpace(component.Name))]; ok {
+			continue
+		}
+		filtered = append(filtered, component)
+	}
+	return filtered
+}
+
+func upsertComponents(components []cmdbhost.ComponentEntry, items []InstalledComponentUpsert) []cmdbhost.ComponentEntry {
+	for _, item := range items {
+		updated := false
+		for index := range components {
+			if strings.EqualFold(strings.TrimSpace(components[index].Name), strings.TrimSpace(item.Name)) {
+				components[index].Version = item.Version
+				components[index].DeployedAt = item.DeployedAt.Format(time.RFC3339)
+				components[index].DeployTaskID = item.DeployTaskID
+				components[index].DeployTaskName = item.DeployTaskName
+				components[index].ExecutorType = item.ExecutorType
+				updated = true
+				break
+			}
+		}
+		if updated {
+			continue
+		}
+		components = append(components, cmdbhost.ComponentEntry{
+			Name:           item.Name,
+			Version:        item.Version,
+			DeployedAt:     item.DeployedAt.Format(time.RFC3339),
+			DeployTaskID:   item.DeployTaskID,
+			DeployTaskName: item.DeployTaskName,
+			ExecutorType:   item.ExecutorType,
+		})
+	}
+	return components
+}
+
+func reconcileHostStatus(status string, componentCount int) string {
+	if status == "assigned" && componentCount > 0 {
+		return "online"
+	}
+	if status == "online" && componentCount == 0 {
+		return "assigned"
+	}
+	return status
 }
 
 func (c *deployCMDBCapability) resolveHostTargets(businessScopeID uint64, targetIDs []uint64, dataScope *common.DataScopeReq) ([]DeployHostTarget, error) {
@@ -183,7 +203,7 @@ func (c *deployCMDBCapability) resolveHostTargets(businessScopeID uint64, target
 		query = query.Where("business_scope_id = ?", businessScopeID)
 	}
 	var rows []cmdbhost.Host
-	if err := query.Order("id ASC").Find(&rows).Error; err != nil {
+	if err := query.Order(idAscOrder).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	items := make([]DeployHostTarget, 0, len(rows))
@@ -210,7 +230,7 @@ func (c *deployCMDBCapability) resolveGroupTargets(targetIDs []uint64, dataScope
 		return nil, err
 	}
 	var allGroups []cmdbgroup.Group
-	if err := c.db.Order("id ASC").Find(&allGroups).Error; err != nil {
+	if err := c.db.Order(idAscOrder).Find(&allGroups).Error; err != nil {
 		return nil, err
 	}
 	groupsByID := make(map[uint64]cmdbgroup.Group, len(allGroups))
@@ -218,7 +238,7 @@ func (c *deployCMDBCapability) resolveGroupTargets(targetIDs []uint64, dataScope
 		groupsByID[group.ID] = group
 	}
 	var hosts []cmdbhost.Host
-	if err := c.db.Model(&cmdbhost.Host{}).Scopes(database.WithDataScope(dataScope)).Order("id ASC").Find(&hosts).Error; err != nil {
+	if err := c.db.Model(&cmdbhost.Host{}).Scopes(database.WithDataScope(dataScope)).Order(idAscOrder).Find(&hosts).Error; err != nil {
 		return nil, err
 	}
 	result := make([]DeployHostTarget, 0)
@@ -277,7 +297,7 @@ func groupConditionChainMatchesHost(conditionChain []datatypes.JSON, labelJSON d
 	return len(conditionChain) > 0
 }
 
-func groupMatchesHost(conditionJSON datatypes.JSON, labelJSON datatypes.JSON) bool {
+func groupMatchesHost(conditionJSON, labelJSON datatypes.JSON) bool {
 	var condition struct {
 		Operator string `json:"operator"`
 		Rules    []struct {
@@ -317,7 +337,7 @@ func groupMatchesHost(conditionJSON datatypes.JSON, labelJSON datatypes.JSON) bo
 	return matched
 }
 
-func labelRuleMatches(actual string, op string, raw string) bool {
+func labelRuleMatches(actual, op, raw string) bool {
 	switch strings.TrimSpace(op) {
 	case "eq":
 		return actual == raw

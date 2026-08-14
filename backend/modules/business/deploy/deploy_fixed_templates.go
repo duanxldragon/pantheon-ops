@@ -9,6 +9,8 @@ import (
 	"gorm.io/datatypes"
 )
 
+const pkgDirVar = "$PKG_DIR"
+
 func validateFixedTemplateDefinition(templateCode string) error {
 	switch strings.TrimSpace(templateCode) {
 	case "", TemplateCodeNginxSystemd, TemplateCodeMySQLSystemd, TemplateCodeRedisSystemd, TemplateCodeMinIOSystemd, TemplateCodeHarborOffline:
@@ -68,7 +70,7 @@ func renderFixedTemplateScript(pkg DeployPackage, task DeployTask) (string, erro
 	}
 }
 
-func buildServiceStopAndDrainScript(serviceName string, processPattern string) string {
+func buildServiceStopAndDrainScript(serviceName, processPattern string) string {
 	serviceName = strings.TrimSpace(serviceName)
 	processPattern = strings.TrimSpace(processPattern)
 	lines := []string{
@@ -118,7 +120,7 @@ getent group mysql >/dev/null 2>&1 && groupdel mysql || true
 echo "MySQL uninstall completed"
 `, serviceName, installRoot, dataRoot), nil
 	}
-	archiveName, downloadScript, err := buildSourceFetchScript(pkg, "", "$PKG_DIR")
+	archiveName, downloadScript, err := buildSourceFetchScript(pkg, "", pkgDirVar)
 	if err != nil {
 		return "", err
 	}
@@ -215,7 +217,7 @@ id redis >/dev/null 2>&1 && userdel redis || true
 echo "Redis uninstall completed"
 `, serviceName, installRoot, dataRoot), nil
 	}
-	archiveName, downloadScript, err := buildSourceFetchScript(pkg, fmt.Sprintf("https://download.redis.io/releases/redis-%s.tar.gz", pkg.Version), "$PKG_DIR")
+	archiveName, downloadScript, err := buildSourceFetchScript(pkg, fmt.Sprintf("https://download.redis.io/releases/redis-%s.tar.gz", pkg.Version), pkgDirVar)
 	if err != nil {
 		return "", err
 	}
@@ -309,7 +311,7 @@ id minio >/dev/null 2>&1 && userdel minio || true
 echo "MinIO uninstall completed"
 `, serviceName, installRoot, dataRoot), nil
 	}
-	archiveName, downloadScript, err := buildSourceFetchScript(pkg, "https://dl.minio.org.cn/server/minio/release/linux-amd64/minio", "$PKG_DIR")
+	archiveName, downloadScript, err := buildSourceFetchScript(pkg, "https://dl.minio.org.cn/server/minio/release/linux-amd64/minio", pkgDirVar)
 	if err != nil {
 		return "", err
 	}
@@ -383,7 +385,7 @@ rm -rf "$INSTALL_ROOT" "$DATA_ROOT"
 echo "Harbor uninstall completed"
 `, installRoot, dataRoot), nil
 	}
-	archiveName, downloadScript, err := buildSourceFetchScript(pkg, "", "$PKG_DIR")
+	archiveName, downloadScript, err := buildSourceFetchScript(pkg, "", pkgDirVar)
 	if err != nil {
 		return "", err
 	}
