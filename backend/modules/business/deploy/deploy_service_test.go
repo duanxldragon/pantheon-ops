@@ -1389,7 +1389,7 @@ func TestUpsertHostInstalledComponentHandlesExistingJSONColumn(t *testing.T) {
 	}
 
 	now := time.Now()
-	if err := svc.upsertHostInstalledComponent(host.ID, 99, "安装 Nginx", ExecutorTypeSSH, "nginx", "1.30.2", "1", now); err != nil {
+	if err := svc.upsertHostInstalledComponent(host.ID, 99, "安装 Nginx", ExecutorTypeSSH, deployPackageRef{name: "nginx", version: "1.30.2"}, "1", now); err != nil {
 		t.Fatalf("upsert host installed component: %v", err)
 	}
 

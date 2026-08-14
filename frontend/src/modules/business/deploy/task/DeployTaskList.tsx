@@ -51,6 +51,7 @@ import {
   getDeployTemplateList,
   startDeployTask,
   updateDeployTask,
+  type DeployAction,
   type DeployPackageRow,
   type DeployTaskPayload,
   type DeployTaskRow,
@@ -67,7 +68,7 @@ type TaskFormValues = {
   sourceKind: 'template' | 'package';
   templateId?: number;
   packageId?: number;
-  action: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+  action: DeployAction;
   targetType: 'host' | 'group';
   businessScopeId?: number;
   targetIds: number[];
@@ -112,7 +113,7 @@ export default function DeployTaskList() {
   const [startSubmitting, setStartSubmitting] = useState(false);
   const [startingTask, setStartingTask] = useState<DeployTaskRow | null>(null);
   const [targetType, setTargetType] = useState<'host' | 'group'>('host');
-  const [taskAction, setTaskAction] = useState<'install' | 'uninstall' | 'upgrade' | 'reinstall'>('install');
+  const [taskAction, setTaskAction] = useState<DeployAction>('install');
   const [sourceKind, setSourceKind] = useState<'template' | 'package'>('template');
   const [selectedBusinessScopeId, setSelectedBusinessScopeId] = useState<number | undefined>();
   const [selectedPackage, setSelectedPackage] = useState<DeployPackageRow | null>(null);
@@ -910,7 +911,7 @@ function buildTaskColumns({
             </Button>
           )}
           {canUpdate && ['draft', 'pending'].includes(row.status) && (
-            <Button type="text" size="small" icon={<IconEdit />} onClick={() => void openEdit(row)}>
+            <Button type="text" size="small" icon={<IconEdit />} onClick={() => openEdit(row)}>
               {t('common.edit')}
             </Button>
           )}
@@ -974,7 +975,7 @@ interface DeployTaskDetailModalProps {
   onClose: () => void;
 }
 
-function DeployTaskDetailModal({ t, visible, loading, task, onClose }: DeployTaskDetailModalProps) {
+function DeployTaskDetailModal({ t, visible, loading, task, onClose }: Readonly<DeployTaskDetailModalProps>) {
   return (
     <AppModal
       title={task?.name || t('operations.deploy.task.detail')}
@@ -1136,7 +1137,7 @@ interface DeployTaskFormModalProps {
   setSourceKind: (kind: 'template' | 'package') => void;
   setSelectedTemplate: (template: DeployTemplateRow | null) => void;
   setSelectedPackage: (pkg: DeployPackageRow | null) => void;
-  setTaskAction: (action: 'install' | 'uninstall' | 'upgrade' | 'reinstall') => void;
+  setTaskAction: (action: DeployAction) => void;
   templates: DeployTemplateRow[];
   resolveTemplatePackage: (template?: DeployTemplateRow | null) => DeployPackageRow | null;
   packages: DeployPackageRow[];
@@ -1144,7 +1145,7 @@ interface DeployTaskFormModalProps {
   selectedTemplate: DeployTemplateRow | null;
   runtimeParameterSchema: Record<string, unknown>;
   selectedRuntimeIsNginxTemplate: boolean;
-  taskAction: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+  taskAction: DeployAction;
   targetType: 'host' | 'group';
   setTargetType: (type: 'host' | 'group') => void;
   setSelectedBusinessScopeId: (id: number | undefined) => void;
@@ -1186,7 +1187,7 @@ function DeployTaskFormModal({
   selectedBusinessScopeId,
   targetOptions,
   executorTypeDisabled,
-}: DeployTaskFormModalProps) {
+}: Readonly<DeployTaskFormModalProps>) {
   return (
     <AppModal
       title={editingTask ? t('business.deploy.task.editTitle') : t('business.deploy.task.createTitle')}
@@ -1395,7 +1396,7 @@ interface DeployTaskStartModalProps {
   onSubmit: () => void;
 }
 
-function DeployTaskStartModal({ t, visible, form, task, submitting, onClose, onCancel, onSubmit }: DeployTaskStartModalProps) {
+function DeployTaskStartModal({ t, visible, form, task, submitting, onClose, onCancel, onSubmit }: Readonly<DeployTaskStartModalProps>) {
   return (
     <AppModal
       title={t('business.deploy.task.startSshTitle')}
@@ -1451,7 +1452,7 @@ function stringifyValue(value: unknown, fallback: string): string {
   if (value == null) {
     return fallback;
   }
-  if (typeof value === 'object') {
+  if (typeof value === 'object' || typeof value === 'function') {
     return JSON.stringify(value) ?? fallback;
   }
   return String(value);
