@@ -49,7 +49,7 @@ import { deployFixedTemplateCatalog, getDeployFixedTemplateCatalogEntry } from '
 import '../../../system/components/shared/list-page.css';
 import '../deploy.css';
 
-function PackageDetailContent({ record }: { record: DeployPackageRow }) {
+function PackageDetailContent({ record }: Readonly<{ record: DeployPackageRow }>) {
   const { t } = useTranslation();
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
