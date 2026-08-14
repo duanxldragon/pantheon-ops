@@ -19,6 +19,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const idWhereClause = "id = ?"
+
 func hostKeyCallback(expectedFingerprint string) ssh.HostKeyCallback {
 	return func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 		if strings.TrimSpace(ssh.FingerprintSHA256(key)) != strings.TrimSpace(expectedFingerprint) {
@@ -176,6 +178,24 @@ func (s *HostService) Create(req CreateHostRequest, createdBy string) (*HostResp
 }
 
 func (s *HostService) Update(id uint64, req UpdateHostRequest, updatedBy string, dataScope *common.DataScopeReq) (*HostResponse, error) {
+	host, err := s.findHostForUpdate(id, dataScope)
+	if err != nil {
+		return nil, err
+	}
+	updates, err := s.buildHostUpdates(id, req, host.Status)
+	if err != nil {
+		return nil, err
+	}
+	updates["updated_by"] = updatedBy
+	updates["updated_at"] = time.Now()
+
+	if err := s.db.Model(host).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+	return s.finishHostResponse(host, id, dataScope)
+}
+
+func (s *HostService) findHostForUpdate(id uint64, dataScope *common.DataScopeReq) (*Host, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
 	}
@@ -186,16 +206,61 @@ func (s *HostService) Update(id uint64, req UpdateHostRequest, updatedBy string,
 		}
 		return nil, err
 	}
+	return &host, nil
+}
 
+func (s *HostService) buildHostUpdates(id uint64, req UpdateHostRequest, currentStatus string) (map[string]interface{}, error) {
 	updates := map[string]interface{}{}
+	if err := s.applyHostIPUpdate(updates, req, id); err != nil {
+		return nil, err
+	}
+	if err := s.applyHostScopeUpdate(updates, req, currentStatus); err != nil {
+		return nil, err
+	}
+	applyHostScalarUpdates(updates, req)
+	return updates, nil
+}
+
+func (s *HostService) applyHostIPUpdate(updates map[string]interface{}, req UpdateHostRequest, id uint64) error {
+	if req.IP == nil {
+		return nil
+	}
+	if s.ipExists(*req.IP, id) {
+		return errors.New("cmdbhost.ip_exists")
+	}
+	updates["ip"] = *req.IP
+	return nil
+}
+
+func (s *HostService) applyHostScopeUpdate(updates map[string]interface{}, req UpdateHostRequest, currentStatus string) error {
+	if req.BusinessScopeID == nil {
+		return nil
+	}
+	if *req.BusinessScopeID == 0 {
+		updates["business_scope_id"] = uint64(0)
+		updates["business_scope_code"] = ""
+		updates["business_scope_name"] = ""
+		if currentStatus == "assigned" {
+			updates["status"] = "pending"
+		}
+		return nil
+	}
+	scopeRecord, err := s.getBusinessScope(*req.BusinessScopeID)
+	if err != nil {
+		return err
+	}
+	updates["business_scope_id"] = scopeRecord.ID
+	updates["business_scope_code"] = scopeRecord.Code
+	updates["business_scope_name"] = scopeRecord.Name
+	if currentStatus == "pending" || currentStatus == "" {
+		updates["status"] = "assigned"
+	}
+	return nil
+}
+
+func applyHostScalarUpdates(updates map[string]interface{}, req UpdateHostRequest) {
 	if req.Hostname != nil {
 		updates["hostname"] = *req.Hostname
-	}
-	if req.IP != nil {
-		if s.ipExists(*req.IP, id) {
-			return nil, errors.New("cmdbhost.ip_exists")
-		}
-		updates["ip"] = *req.IP
 	}
 	if req.SSHPort != nil {
 		updates["ssh_port"] = *req.SSHPort
@@ -219,27 +284,6 @@ func (s *HostService) Update(id uint64, req UpdateHostRequest, updatedBy string,
 		labelsJSON, _ := json.Marshal(*req.Labels)
 		updates["label_values"] = datatypes.JSON(labelsJSON)
 	}
-	if req.BusinessScopeID != nil {
-		if *req.BusinessScopeID == 0 {
-			updates["business_scope_id"] = uint64(0)
-			updates["business_scope_code"] = ""
-			updates["business_scope_name"] = ""
-			if host.Status == "assigned" {
-				updates["status"] = "pending"
-			}
-		} else {
-			scopeRecord, err := s.getBusinessScope(*req.BusinessScopeID)
-			if err != nil {
-				return nil, err
-			}
-			updates["business_scope_id"] = scopeRecord.ID
-			updates["business_scope_code"] = scopeRecord.Code
-			updates["business_scope_name"] = scopeRecord.Name
-			if host.Status == "pending" || host.Status == "" {
-				updates["status"] = "assigned"
-			}
-		}
-	}
 	if req.DeptID != nil {
 		updates["dept_id"] = *req.DeptID
 	}
@@ -249,20 +293,17 @@ func (s *HostService) Update(id uint64, req UpdateHostRequest, updatedBy string,
 	if req.Remark != nil {
 		updates["remark"] = *req.Remark
 	}
-	updates["updated_by"] = updatedBy
-	updates["updated_at"] = time.Now()
+}
 
-	if err := s.db.Model(&host).Updates(updates).Error; err != nil {
-		return nil, err
-	}
-	if err := s.hostQuery(dataScope).First(&host, id).Error; err != nil {
+func (s *HostService) finishHostResponse(host *Host, id uint64, dataScope *common.DataScopeReq) (*HostResponse, error) {
+	if err := s.hostQuery(dataScope).First(host, id).Error; err != nil {
 		return nil, err
 	}
 	groupIndex, err := s.loadGroupIndex()
 	if err != nil {
 		return nil, err
 	}
-	resp := hostToResponse(&host, groupIndex)
+	resp := hostToResponse(host, groupIndex)
 	return &resp, nil
 }
 
@@ -270,7 +311,7 @@ func (s *HostService) Delete(id uint64, dataScope *common.DataScopeReq) error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
-	result := s.hostQuery(dataScope).Where("id = ?", id).Delete(&Host{})
+	result := s.hostQuery(dataScope).Where(idWhereClause, id).Delete(&Host{})
 	if result.Error != nil {
 		return result.Error
 	}
@@ -349,7 +390,7 @@ func (s *HostService) UpdateStatus(id uint64, status string, dataScope *common.D
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
-	result := s.hostQuery(dataScope).Where("id = ?", id).Update("status", status)
+	result := s.hostQuery(dataScope).Where(idWhereClause, id).Update("status", status)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -606,7 +647,7 @@ func hostGroupConditionChainMatchesLabel(group hostGroupSnapshot, groupsByID map
 	return len(chain) > 0
 }
 
-func hostGroupMatchesLabel(conditionJSON datatypes.JSON, labelJSON datatypes.JSON) bool {
+func hostGroupMatchesLabel(conditionJSON, labelJSON datatypes.JSON) bool {
 	var condition struct {
 		Operator string `json:"operator"`
 		Rules    []struct {
@@ -646,7 +687,7 @@ func hostGroupMatchesLabel(conditionJSON datatypes.JSON, labelJSON datatypes.JSO
 	return matched
 }
 
-func hostLabelRuleMatches(actual string, op string, raw string) bool {
+func hostLabelRuleMatches(actual, op, raw string) bool {
 	switch strings.TrimSpace(op) {
 	case "eq":
 		return actual == raw
@@ -695,7 +736,7 @@ func (s *HostService) getBusinessScope(id uint64) (*bizscope.BizScope, error) {
 		return nil, errors.New("business.bizscope.notFound")
 	}
 	var item bizscope.BizScope
-	if err := s.db.Where("id = ?", id).First(&item).Error; err != nil {
+	if err := s.db.Where(idWhereClause, id).First(&item).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("business.bizscope.notFound")
 		}

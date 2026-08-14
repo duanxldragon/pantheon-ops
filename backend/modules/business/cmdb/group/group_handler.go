@@ -9,6 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	msgParamInvalid = "common.param_invalid"
+	groupIDRoute    = "/groups/:id"
+)
+
 type GroupHandler struct {
 	svc *GroupService
 }
@@ -19,11 +24,11 @@ func NewGroupHandler(svc *GroupService) *GroupHandler {
 
 func (h *GroupHandler) RegisterRoutes(r gin.IRoutes) {
 	r.GET("/groups", h.List)
-	r.GET("/groups/:id", h.GetByID)
+	r.GET(groupIDRoute, h.GetByID)
 	r.GET("/groups/:id/members", h.GetMembers)
 	r.POST("/groups", h.Create)
-	r.PUT("/groups/:id", h.Update)
-	r.DELETE("/groups/:id", h.Delete)
+	r.PUT(groupIDRoute, h.Update)
+	r.DELETE(groupIDRoute, h.Delete)
 }
 
 func (h *GroupHandler) List(c *gin.Context) {
@@ -38,7 +43,7 @@ func (h *GroupHandler) List(c *gin.Context) {
 func (h *GroupHandler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.GetByID(id, common.GetDataScope(c))
@@ -52,7 +57,7 @@ func (h *GroupHandler) GetByID(c *gin.Context) {
 func (h *GroupHandler) GetMembers(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	members, group, err := h.svc.GetMembers(id, common.GetDataScope(c))
@@ -70,7 +75,7 @@ func (h *GroupHandler) GetMembers(c *gin.Context) {
 func (h *GroupHandler) Create(c *gin.Context) {
 	var req CreateGroupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.Create(req, common.GetDataScope(c))
@@ -84,12 +89,12 @@ func (h *GroupHandler) Create(c *gin.Context) {
 func (h *GroupHandler) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	var req UpdateGroupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.Update(id, req, common.GetDataScope(c))
@@ -103,7 +108,7 @@ func (h *GroupHandler) Update(c *gin.Context) {
 func (h *GroupHandler) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	if err := h.svc.Delete(id); err != nil {

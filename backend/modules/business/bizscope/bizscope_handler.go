@@ -8,6 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	msgParamInvalid       = "param.invalid"
+	bizScopeAuditUpdateKey = "business.bizscope.audit.update"
+)
+
 type Handler struct {
 	service *Service
 }
@@ -19,7 +24,7 @@ func NewHandler(service *Service) *Handler {
 func (h *Handler) List(c *gin.Context) {
 	var query BizScopeListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	items, err := h.service.List(&query, common.GetDataScope(c))
@@ -42,7 +47,7 @@ func (h *Handler) Options(c *gin.Context) {
 func (h *Handler) Detail(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	item, serviceErr := h.service.Get(id, common.GetDataScope(c))
@@ -56,7 +61,7 @@ func (h *Handler) Detail(c *gin.Context) {
 func (h *Handler) Hosts(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	items, serviceErr := h.service.ListBoundHosts(id, common.GetDataScope(c))
@@ -70,7 +75,7 @@ func (h *Handler) Hosts(c *gin.Context) {
 func (h *Handler) AvailableHosts(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	items, serviceErr := h.service.ListAvailableHosts(id, common.GetDataScope(c))
@@ -82,15 +87,15 @@ func (h *Handler) AvailableHosts(c *gin.Context) {
 }
 
 func (h *Handler) BindHosts(c *gin.Context) {
-	common.SetAuditMetadata(c, "business.bizscope.audit.update", common.BusinessUpdate)
+	common.SetAuditMetadata(c, bizScopeAuditUpdateKey, common.BusinessUpdate)
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	var req BindBizScopeHostsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	if serviceErr := h.service.BindHosts(id, req.HostIDs, common.GetDataScope(c)); serviceErr != nil {
@@ -101,15 +106,15 @@ func (h *Handler) BindHosts(c *gin.Context) {
 }
 
 func (h *Handler) UnbindHost(c *gin.Context) {
-	common.SetAuditMetadata(c, "business.bizscope.audit.update", common.BusinessUpdate)
+	common.SetAuditMetadata(c, bizScopeAuditUpdateKey, common.BusinessUpdate)
 	scopeID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	hostID, err := strconv.ParseUint(c.Param("hostId"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	if serviceErr := h.service.UnbindHost(scopeID, hostID, common.GetDataScope(c)); serviceErr != nil {
@@ -123,7 +128,7 @@ func (h *Handler) Create(c *gin.Context) {
 	common.SetAuditMetadata(c, "business.bizscope.audit.create", common.BusinessInsert)
 	var req CreateBizScopeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	item, serviceErr := h.service.Create(&req)
@@ -135,15 +140,15 @@ func (h *Handler) Create(c *gin.Context) {
 }
 
 func (h *Handler) Update(c *gin.Context) {
-	common.SetAuditMetadata(c, "business.bizscope.audit.update", common.BusinessUpdate)
+	common.SetAuditMetadata(c, bizScopeAuditUpdateKey, common.BusinessUpdate)
 	var req UpdateBizScopeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	item, serviceErr := h.service.Update(id, &req)
@@ -158,7 +163,7 @@ func (h *Handler) Delete(c *gin.Context) {
 	common.SetAuditMetadata(c, "business.bizscope.audit.delete", common.BusinessDelete)
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "param.invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	if serviceErr := h.service.Delete(id); serviceErr != nil {
@@ -174,7 +179,7 @@ func failBizScopeError(c *gin.Context, err error) {
 
 func resolveBizScopeErrorKey(err error) string {
 	switch message := common.ErrMessage(err); message {
-	case bizScopeCodeExistsKey, bizScopeInUseKey, bizScopeNotFoundKey, "param.invalid":
+	case bizScopeCodeExistsKey, bizScopeInUseKey, bizScopeNotFoundKey, msgParamInvalid:
 		return message
 	default:
 		return "request.failed"

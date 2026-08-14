@@ -8,6 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	msgParamInvalid = "common.param_invalid"
+	hostIDRoute     = "/hosts/:id"
+)
+
 type HostHandler struct {
 	svc *HostService
 }
@@ -18,10 +23,10 @@ func NewHostHandler(svc *HostService) *HostHandler {
 
 func (h *HostHandler) RegisterRoutes(r gin.IRoutes) {
 	r.GET("/hosts", h.List)
-	r.GET("/hosts/:id", h.GetByID)
+	r.GET(hostIDRoute, h.GetByID)
 	r.POST("/hosts", h.Create)
-	r.PUT("/hosts/:id", h.Update)
-	r.DELETE("/hosts/:id", h.Delete)
+	r.PUT(hostIDRoute, h.Update)
+	r.DELETE(hostIDRoute, h.Delete)
 	r.POST("/hosts/:id/collect", h.Collect)
 	r.PATCH("/hosts/:id/status", h.UpdateStatus)
 }
@@ -29,7 +34,7 @@ func (h *HostHandler) RegisterRoutes(r gin.IRoutes) {
 func (h *HostHandler) List(c *gin.Context) {
 	var query HostListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.List(query, common.GetDataScope(c))
@@ -43,7 +48,7 @@ func (h *HostHandler) List(c *gin.Context) {
 func (h *HostHandler) GetByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.GetByID(id, common.GetDataScope(c))
@@ -57,7 +62,7 @@ func (h *HostHandler) GetByID(c *gin.Context) {
 func (h *HostHandler) Create(c *gin.Context) {
 	var req CreateHostRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	if req.DeptID == 0 {
@@ -77,12 +82,12 @@ func (h *HostHandler) Create(c *gin.Context) {
 func (h *HostHandler) Update(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	var req UpdateHostRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	updatedBy := strconv.FormatUint(common.GetUserID(c), 10)
@@ -97,7 +102,7 @@ func (h *HostHandler) Update(c *gin.Context) {
 func (h *HostHandler) Delete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	if err := h.svc.Delete(id, common.GetDataScope(c)); err != nil {
@@ -112,12 +117,12 @@ func (h *HostHandler) Collect(c *gin.Context) {
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	var req CollectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.Collect(id, req, common.GetDataScope(c))
@@ -133,12 +138,12 @@ func (h *HostHandler) UpdateStatus(c *gin.Context) {
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	var req UpdateStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	if err := h.svc.UpdateStatus(id, req.Status, common.GetDataScope(c)); err != nil {
