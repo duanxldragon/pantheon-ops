@@ -1475,7 +1475,7 @@ func (s *DeployService) executeTaskStep(task DeployTask, target cmdbHostSnapshot
 		return true
 	}
 	s.appendStepTrace(task, taskHost, step, "step_start", fmt.Sprintf("%s started", stepLabel))
-	if s.runTaskStepCheck(task, target, taskHost, runner, step, execution, "precheckCommand", "precheck", stepLabel) {
+	if s.runTaskStepCheck(task, target, taskHost, runner, step, execution, taskStepCheckConfig{configKey: "precheckCommand", phase: "precheck", stepLabel: stepLabel}) {
 		return true
 	}
 	s.appendStepTrace(task, taskHost, step, "script", fmt.Sprintf("%s script rendered", stepLabel))
@@ -1486,7 +1486,7 @@ func (s *DeployService) executeTaskStep(task DeployTask, target cmdbHostSnapshot
 		s.appendStepTrace(task, taskHost, step, "step_failed", execErr.Error())
 		return true
 	}
-	if s.runTaskStepCheck(task, target, taskHost, runner, step, execution, "postcheckCommand", "postcheck", stepLabel) {
+	if s.runTaskStepCheck(task, target, taskHost, runner, step, execution, taskStepCheckConfig{configKey: "postcheckCommand", phase: "postcheck", stepLabel: stepLabel}) {
 		return true
 	}
 	s.appendStepTrace(task, taskHost, step, "step_success", fmt.Sprintf("%s completed", stepLabel))
@@ -1494,23 +1494,31 @@ func (s *DeployService) executeTaskStep(task DeployTask, target cmdbHostSnapshot
 	return false
 }
 
+// taskStepCheckConfig bundles the per-check rendering parameters shared by the
+// precheck and postcheck passes of a host step.
+type taskStepCheckConfig struct {
+	configKey string
+	phase     string
+	stepLabel string
+}
+
 // runTaskStepCheck renders and runs an optional precheck/postcheck snippet,
 // returning true when the host loop must stop.
-func (s *DeployService) runTaskStepCheck(task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, runner deploySSHRunner, step deployExecutionStep, execution *taskHostExecution, configKey, phase, stepLabel string) bool {
-	script, hasCheck, checkErr := renderDeployCheckSnippet(step, task, target, configKey)
+func (s *DeployService) runTaskStepCheck(task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, runner deploySSHRunner, step deployExecutionStep, execution *taskHostExecution, check taskStepCheckConfig) bool {
+	script, hasCheck, checkErr := renderDeployCheckSnippet(step, task, target, check.configKey)
 	if checkErr != nil {
 		execution.executionErr = mapDeployTaskExecutionPlanError(checkErr)
-		s.appendStepTrace(task, taskHost, step, phase+"_render_failed", checkErr.Error())
+		s.appendStepTrace(task, taskHost, step, check.phase+"_render_failed", checkErr.Error())
 		return true
 	}
 	if !hasCheck {
 		return false
 	}
-	s.appendStepTrace(task, taskHost, step, phase, fmt.Sprintf("%s %s started", stepLabel, phase))
+	s.appendStepTrace(task, taskHost, step, check.phase, fmt.Sprintf("%s %s started", check.stepLabel, check.phase))
 	stdout, stderr, execErr := runner.RunScript(script)
-	execution.recordOutput(step, phase, stdout, stderr)
+	execution.recordOutput(step, check.phase, stdout, stderr)
 	if execErr != nil {
-		execution.executionErr = fmt.Errorf("%s %s failed: %w", stepLabel, phase, execErr)
+		execution.executionErr = fmt.Errorf("%s %s failed: %w", check.stepLabel, check.phase, execErr)
 		s.appendStepTrace(task, taskHost, step, "step_failed", execution.executionErr.Error())
 		return true
 	}
@@ -1853,8 +1861,14 @@ func normalizeDeployStringValues(values []string) []string {
 	return result
 }
 
-func (s *DeployService) upsertHostInstalledComponent(hostID, taskID uint64, taskName, executorType, packageName, packageVersion, actor string, now time.Time) error {
-	if strings.TrimSpace(packageName) == "" {
+// deployPackageRef names a package for host installed-component bookkeeping.
+type deployPackageRef struct {
+	name    string
+	version string
+}
+
+func (s *DeployService) upsertHostInstalledComponent(hostID, taskID uint64, taskName, executorType string, pkg deployPackageRef, actor string, now time.Time) error {
+	if strings.TrimSpace(pkg.name) == "" {
 		return nil
 	}
 	var snapshot struct {
@@ -1873,8 +1887,8 @@ func (s *DeployService) upsertHostInstalledComponent(hostID, taskID uint64, task
 	}
 	updated := false
 	for index := range components {
-		if strings.EqualFold(strings.TrimSpace(components[index].Name), strings.TrimSpace(packageName)) {
-			components[index].Version = packageVersion
+		if strings.EqualFold(strings.TrimSpace(components[index].Name), strings.TrimSpace(pkg.name)) {
+			components[index].Version = pkg.version
 			components[index].DeployedAt = now.Format(time.RFC3339)
 			components[index].DeployTaskID = taskID
 			components[index].DeployTaskName = taskName
@@ -1885,8 +1899,8 @@ func (s *DeployService) upsertHostInstalledComponent(hostID, taskID uint64, task
 	}
 	if !updated {
 		components = append(components, deployInstalledComponent{
-			Name:           packageName,
-			Version:        packageVersion,
+			Name:           pkg.name,
+			Version:        pkg.version,
 			DeployedAt:     now.Format(time.RFC3339),
 			DeployTaskID:   taskID,
 			DeployTaskName: taskName,

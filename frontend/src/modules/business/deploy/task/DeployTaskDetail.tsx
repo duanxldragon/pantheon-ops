@@ -198,7 +198,7 @@ function buildTaskHostColumns({ t, canMark, submitting, submitResult, openResult
               <Popconfirm
                 title={t('business.deploy.task.markSuccessConfirm')}
                 onOk={() => {
-                  void submitResult(row, { status: 'success' });
+                  submitResult(row, { status: 'success' });
                 }}
               >
                 <Button type="text" size="small" loading={submitting}>
@@ -293,14 +293,14 @@ function TaskActionsCard({ task, t, navigate, canEditTask, canStartTask, canCanc
             ) : null}
             {canStartTask ? startAction : null}
             {canCancelTask ? (
-              <Popconfirm title={t('business.deploy.task.cancelConfirm')} onOk={() => void handleCancelTask()}>
+              <Popconfirm title={t('business.deploy.task.cancelConfirm')} onOk={() => handleCancelTask()}>
                 <Button status="danger" loading={submitting}>
                   {t('business.deploy.task.cancel')}
                 </Button>
               </Popconfirm>
             ) : null}
             {canDeleteTask ? (
-              <Popconfirm title={t('business.deploy.task.deleteConfirm')} onOk={() => void handleDeleteTask()}>
+              <Popconfirm title={t('business.deploy.task.deleteConfirm')} onOk={() => handleDeleteTask()}>
                 <Button status="danger" icon={<IconDelete />} loading={submitting}>
                   {t('common.delete')}
                 </Button>
