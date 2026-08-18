@@ -1799,17 +1799,6 @@ func (s *DeployService) executeSSHTask(task DeployTask, hosts []cmdbHostSnapshot
 			return err
 		}
 	}
-	if _, err := s.markHostResultWithSummary(taskHost.ID, MarkHostResultRequest{
-		Status:     TaskHostStatusSuccess,
-		Stdout:     combinedStdout,
-		Stderr:     combinedStderr,
-		ExecutorID: fmt.Sprintf("ssh:%s", hostIP),
-	}, actor, nil, execution.summary); err != nil {
-		return err
-	}
-	_ = s.appendTaskHostTrace(task.ID, taskHost.ID, []map[string]any{
-		{"at": time.Now().Format(time.RFC3339), "phase": "writeback", "message": fmt.Sprintf("Host marked %s", hostStatusForAction(task.Action))},
-	})
 	return nil
 }
 
