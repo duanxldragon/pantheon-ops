@@ -1,0 +1,4 @@
+Applied 000012_business_schema.down.sql, then reapplied the up migration on
+MySQL 8.0.36. Both commands exited 0 and recreated the same 11 business tables.
+The generated active-key unique indexes and task-host unique index were
+recreated with the same names.

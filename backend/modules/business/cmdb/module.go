@@ -16,15 +16,21 @@ const (
 	cmdbHostPermDeleteKey  = "business.cmdb.host.permission.delete"
 	cmdbHostPermCollectKey = "business.cmdb.host.permission.collect"
 	cmdbHostPermStatusKey  = "business.cmdb.host.permission.status"
+	cmdbHostPermExportKey  = "business.cmdb.host.permission.export"
+	cmdbHostPermImportKey  = "business.cmdb.host.permission.import"
 	cmdbGroupMenuKey       = "operations.cmdb.group.menu"
 	cmdbGroupPermDetailKey = "business.cmdb.group.permission.detail"
 	cmdbGroupPermCreateKey = "business.cmdb.group.permission.create"
 	cmdbGroupPermUpdateKey = "business.cmdb.group.permission.update"
 	cmdbGroupPermDeleteKey = "business.cmdb.group.permission.delete"
+	cmdbGroupPermExportKey = "business.cmdb.group.permission.export"
+	cmdbGroupPermImportKey = "business.cmdb.group.permission.import"
 	cmdbLabelMenuKey       = "operations.cmdb.label.menu"
 	cmdbLabelPermCreateKey = "business.cmdb.label.permission.create"
 	cmdbLabelPermUpdateKey = "business.cmdb.label.permission.update"
 	cmdbLabelPermDeleteKey = "business.cmdb.label.permission.delete"
+	cmdbLabelPermExportKey = "business.cmdb.label.permission.export"
+	cmdbLabelPermImportKey = "business.cmdb.label.permission.import"
 	cmdbMenuKey            = "operations.cmdb.menu"
 	cmdbHostListRoute      = "cmdb-host-list"
 	cmdbGroupListRoute     = "cmdb-group-list"
@@ -61,10 +67,11 @@ func hostMenuSeeds() []cmdbMenuSeed {
 			Key:       "operations-cmdb-host",
 			ParentKey: "cmdb",
 			TitleKey:  cmdbHostMenuKey,
-			Path:      "/operations/cmdb/host",
+			Path:      "/business/cmdb/host",
 			Component: "business/cmdb/host/CmdbHostList",
 			PagePerm:  "business:cmdb:host:view",
 			Type:      "C",
+			Icon:      "cloud",
 			Module:    cmdbModuleKey,
 			RouteName: cmdbHostListRoute,
 			Sort:      1,
@@ -75,14 +82,17 @@ func hostMenuSeeds() []cmdbMenuSeed {
 		{Key: "operations-cmdb-host-delete", ParentKey: cmdbHostListRoute, TitleKey: cmdbHostPermDeleteKey, Perms: "business:cmdb:host:delete", Type: "F", Module: cmdbModuleKey, Sort: 4},
 		{Key: "operations-cmdb-host-collect", ParentKey: cmdbHostListRoute, TitleKey: cmdbHostPermCollectKey, Perms: "business:cmdb:host:collect", Type: "F", Module: cmdbModuleKey, Sort: 5},
 		{Key: "operations-cmdb-host-status", ParentKey: cmdbHostListRoute, TitleKey: cmdbHostPermStatusKey, Perms: "business:cmdb:host:status", Type: "F", Module: cmdbModuleKey, Sort: 6},
+		{Key: "operations-cmdb-host-export", ParentKey: cmdbHostListRoute, TitleKey: cmdbHostPermExportKey, Perms: "business:cmdb:host:export", Type: "F", Module: cmdbModuleKey, Sort: 7},
+		{Key: "operations-cmdb-host-import", ParentKey: cmdbHostListRoute, TitleKey: cmdbHostPermImportKey, Perms: "business:cmdb:host:import", Type: "F", Module: cmdbModuleKey, Sort: 8},
 		{
 			Key:       "operations-cmdb-group",
 			ParentKey: "cmdb",
 			TitleKey:  cmdbGroupMenuKey,
-			Path:      "/operations/cmdb/group",
+			Path:      "/business/cmdb/group",
 			Component: "business/cmdb/group/CmdbGroupList",
 			PagePerm:  "business:cmdb:group:view",
 			Type:      "C",
+			Icon:      "apps",
 			Module:    cmdbModuleKey,
 			RouteName: cmdbGroupListRoute,
 			Sort:      2,
@@ -91,14 +101,17 @@ func hostMenuSeeds() []cmdbMenuSeed {
 		{Key: "operations-cmdb-group-create", ParentKey: cmdbGroupListRoute, TitleKey: cmdbGroupPermCreateKey, Perms: "business:cmdb:group:create", Type: "F", Module: cmdbModuleKey, Sort: 2},
 		{Key: "operations-cmdb-group-update", ParentKey: cmdbGroupListRoute, TitleKey: cmdbGroupPermUpdateKey, Perms: "business:cmdb:group:update", Type: "F", Module: cmdbModuleKey, Sort: 3},
 		{Key: "operations-cmdb-group-delete", ParentKey: cmdbGroupListRoute, TitleKey: cmdbGroupPermDeleteKey, Perms: "business:cmdb:group:delete", Type: "F", Module: cmdbModuleKey, Sort: 4},
+		{Key: "operations-cmdb-group-export", ParentKey: cmdbGroupListRoute, TitleKey: cmdbGroupPermExportKey, Perms: "business:cmdb:group:export", Type: "F", Module: cmdbModuleKey, Sort: 5},
+		{Key: "operations-cmdb-group-import", ParentKey: cmdbGroupListRoute, TitleKey: cmdbGroupPermImportKey, Perms: "business:cmdb:group:import", Type: "F", Module: cmdbModuleKey, Sort: 6},
 		{
 			Key:       "operations-cmdb-label",
 			ParentKey: "cmdb",
 			TitleKey:  cmdbLabelMenuKey,
-			Path:      "/operations/cmdb/label",
+			Path:      "/business/cmdb/label",
 			Component: "business/cmdb/label/CmdbLabelSchemaList",
 			PagePerm:  "business:cmdb:label:view",
 			Type:      "C",
+			Icon:      "tags",
 			Module:    cmdbModuleKey,
 			RouteName: cmdbLabelListRoute,
 			Sort:      3,
@@ -106,6 +119,8 @@ func hostMenuSeeds() []cmdbMenuSeed {
 		{Key: "operations-cmdb-label-create", ParentKey: cmdbLabelListRoute, TitleKey: cmdbLabelPermCreateKey, Perms: "business:cmdb:label:create", Type: "F", Module: cmdbModuleKey, Sort: 1},
 		{Key: "operations-cmdb-label-update", ParentKey: cmdbLabelListRoute, TitleKey: cmdbLabelPermUpdateKey, Perms: "business:cmdb:label:update", Type: "F", Module: cmdbModuleKey, Sort: 2},
 		{Key: "operations-cmdb-label-delete", ParentKey: cmdbLabelListRoute, TitleKey: cmdbLabelPermDeleteKey, Perms: "business:cmdb:label:delete", Type: "F", Module: cmdbModuleKey, Sort: 3},
+		{Key: "operations-cmdb-label-export", ParentKey: cmdbLabelListRoute, TitleKey: cmdbLabelPermExportKey, Perms: "business:cmdb:label:export", Type: "F", Module: cmdbModuleKey, Sort: 4},
+		{Key: "operations-cmdb-label-import", ParentKey: cmdbLabelListRoute, TitleKey: cmdbLabelPermImportKey, Perms: "business:cmdb:label:import", Type: "F", Module: cmdbModuleKey, Sort: 5},
 	}
 }
 
@@ -113,9 +128,9 @@ func topLevelMenuSeeds() []cmdbMenuSeed {
 	return []cmdbMenuSeed{
 		{
 			Key:       "operations-cmdb",
-			ParentKey: "operations",
+			ParentKey: "",
 			TitleKey:  cmdbMenuKey,
-			Path:      "/operations/cmdb",
+			Path:      "/business/cmdb",
 			Type:      "M",
 			Module:    cmdbModuleKey,
 			Icon:      "storage",
@@ -389,6 +404,10 @@ func seedHostI18n(db *gorm.DB) error {
 		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbHostPermCollectKey, Value: "Collect host config"},
 		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbHostPermStatusKey, Value: "更新主机状态"},
 		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbHostPermStatusKey, Value: "Update host status"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbHostPermExportKey, Value: "导出主机资产"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbHostPermExportKey, Value: "Export host assets"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbHostPermImportKey, Value: "导入主机"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbHostPermImportKey, Value: "Import hosts"},
 		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbGroupPermDetailKey, Value: "查看主机分组"},
 		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbGroupPermDetailKey, Value: "View host groups"},
 		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbGroupPermCreateKey, Value: "新增主机分组"},
@@ -397,6 +416,10 @@ func seedHostI18n(db *gorm.DB) error {
 		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbGroupPermUpdateKey, Value: "Update host groups"},
 		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbGroupPermDeleteKey, Value: "删除主机分组"},
 		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbGroupPermDeleteKey, Value: "Delete host groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbGroupPermExportKey, Value: "导出主机分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbGroupPermExportKey, Value: "Export host groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbGroupPermImportKey, Value: "导入主机分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbGroupPermImportKey, Value: "Import host groups"},
 		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.label.schema.title", Value: "标签管理"},
 		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.label.schema.title", Value: "Label Management"},
 		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.label.hero.eyebrow", Value: "运维平台 / 标签管理"},
@@ -409,6 +432,10 @@ func seedHostI18n(db *gorm.DB) error {
 		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbLabelPermUpdateKey, Value: "Update labels"},
 		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbLabelPermDeleteKey, Value: "删除标签"},
 		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbLabelPermDeleteKey, Value: "Delete labels"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbLabelPermExportKey, Value: "导出标签"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbLabelPermExportKey, Value: "Export labels"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbLabelPermImportKey, Value: "导入标签"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbLabelPermImportKey, Value: "Import labels"},
 		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.key_exists", Value: "标签键已存在"},
 		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.key_exists", Value: "Label key already exists"},
 		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.invalid", Value: "标签配置无效"},
@@ -423,6 +450,48 @@ func seedHostI18n(db *gorm.DB) error {
 		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbgroup.parent_cycle", Value: "The parent group cannot be itself or a descendant group."},
 		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbgroup.parent_not_found", Value: "上级分组不存在"},
 		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbgroup.parent_not_found", Value: "Parent group does not exist."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbgroup.export_failed", Value: "导出主机分组失败"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbgroup.export_failed", Value: "Failed to export host groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbgroup.import_failed", Value: "导入主机分组失败"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbgroup.import_failed", Value: "Failed to import host groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "business.cmdb.group.name_required", Value: "分组名称不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "business.cmdb.group.name_required", Value: "Group name is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "business.cmdb.group.conditions_invalid_json", Value: "筛选条件不是有效的 JSON"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "business.cmdb.group.conditions_invalid_json", Value: "Conditions must be valid JSON"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.key_required", Value: "标签键不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.key_required", Value: "Label key is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.name_required", Value: "标签名称不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.name_required", Value: "Label name is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.category_required", Value: "分类不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.category_required", Value: "Category is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.valueMode_required", Value: "值模式不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.valueMode_required", Value: "Value mode is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.category.invalid", Value: "分类值无效（base/network/business/custom）"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.category.invalid", Value: "Invalid category (base/network/business/custom)"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.valueMode.invalid", Value: "值模式无效（free/enum/dict）"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.valueMode.invalid", Value: "Invalid value mode (free/enum/dict)"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.status.invalid", Value: "状态值无效（enabled/disabled）"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.status.invalid", Value: "Invalid status (enabled/disabled)"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.options_required_for_enum", Value: "枚举模式下选项不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.options_required_for_enum", Value: "Options are required for enum mode"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.dictCode_required_for_dict", Value: "字典模式下字典编码不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.dictCode_required_for_dict", Value: "Dict code is required for dict mode"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.export_failed", Value: "导出标签失败"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.export_failed", Value: "Failed to export labels"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.import_failed", Value: "导入标签失败"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.import_failed", Value: "Failed to import labels"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbhost.hostname_required", Value: "主机名不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbhost.hostname_required", Value: "Hostname is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbhost.ip_required", Value: "IP 地址不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbhost.ip_required", Value: "IP address is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbhost.os_required", Value: "操作系统不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbhost.os_required", Value: "Operating system is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbhost.status.invalid", Value: "主机状态无效"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbhost.status.invalid", Value: "Host status is invalid"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbhost.export_failed", Value: "导出主机资产失败"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbhost.export_failed", Value: "Failed to export host assets"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbhost.import_failed", Value: "导入主机失败"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbhost.import_failed", Value: "Failed to import hosts"},
 	}
 	return seedCmdbRecords(db, i18nEntries)
 }

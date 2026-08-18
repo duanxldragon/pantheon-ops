@@ -1,0 +1,37 @@
+{
+  "taskId": "ops-bizscope-datascope-ownership",
+  "baselineCommit": "ee213508a32ebdf27685128e0c719e9036272de5",
+  "commands": [
+    {
+      "command": "PANTHEON_TEST_DSN=... go test -count=1 ./modules/business/bizscope/... ./modules/business/cmdb/...",
+      "result": "passed",
+      "note": "MySQL 8.0.36 at 127.0.0.1:3306; bizscope, cmdb, cmdb/group, cmdb/host, cmdb/label all pass."
+    },
+    {
+      "command": "PANTHEON_TEST_DSN=... go test -count=1 ./...",
+      "result": "passed_except_preexisting",
+      "note": "Full backend suite passes except TestPurgeModuleAllowsBusinessStaticModuleWithoutTable in modules/lowcode/dynamicmodule, which fails identically at the clean base commit ee21350 (verified via a throwaway worktree) and is outside this task's scope."
+    },
+    {
+      "command": "PATH=D:/msys64/mingw64/bin:$PATH CC=gcc CGO_ENABLED=1 PANTHEON_TEST_DSN=... go test -race -count=1 ./modules/business/bizscope/... ./modules/business/cmdb/...",
+      "result": "passed",
+      "note": "Race detector compiled with the native MinGW GCC toolchain; all bizscope/cmdb packages pass, including the advisory-lock single-winner concurrent bind test."
+    },
+    {
+      "command": "PATH=D:/msys64/mingw64/bin:$PATH CC=gcc CGO_ENABLED=1 PANTHEON_TEST_DSN=... go test -race -count=1 ./modules/business/deploy/...",
+      "result": "passed"
+    },
+    {
+      "command": "go vet ./...",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/check-business-module-boundaries.mjs",
+      "result": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ]
+}

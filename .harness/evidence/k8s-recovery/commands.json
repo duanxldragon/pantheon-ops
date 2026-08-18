@@ -1,0 +1,39 @@
+{
+  "taskId": "k8s-recovery",
+  "commands": [
+    {
+      "command": "go get -buildvcs=false k8s.io/client-go@v0.36.3 k8s.io/api@v0.36.3 k8s.io/apimachinery@v0.36.3 github.com/gorilla/websocket@v1.5.3 && go mod tidy",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "Pinned deps to the versions already present in the module cache (evidence the recovered module was originally built against these). go mod tidy backfilled the transitive go.sum entries."
+    },
+    {
+      "command": "go build -buildvcs=false ./...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "Backend compiles end-to-end with the k8s module registered in business_overlay_registry.go."
+    },
+    {
+      "command": "go test -buildvcs=false ./...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "Full backend suite green."
+    },
+    {
+      "command": "node ./node_modules/typescript/bin/tsc -b && node ./node_modules/eslint/bin/eslint.js src && node ./node_modules/vite/bin/vite.js build",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "k8s pages (ClusterList/ClusterForm/ReleaseList/WorkloadList) type-check, lint, and build after import-depth/icon/MenuIconKey fixes and module mounting in businessOverlay.ts + component registry."
+    },
+    {
+      "command": "node ./scripts/check-menu-contract.mjs",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "26 menus / 34 routes / 151 permissions / 34 component keys consistent, including the k8s component keys and ReleaseList governance-bar fix."
+    }
+  ],
+  "knownGaps": [
+    "No live-cluster verification: the recovered module is compile + test verified only.",
+    "go test -race not run (no cgo/gcc)."
+  ]
+}

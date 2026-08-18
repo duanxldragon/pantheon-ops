@@ -94,10 +94,10 @@ Deploy 允许消费的最小能力面建议固定为：
 
 | 菜单 key | 路径 | titleKey | routeName | module | component key | pagePermission | activeMenu | 类型 | 说明 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `business.deploy.package` | `/operations/deploy/package` | `operations.deploy.package.menu` | `deploy-package-list` | `business.deploy` | `business/deploy/package/DeployPackageList` | `business:deploy:package:view` | — | `C` | 软件组件列表 |
-| `business.deploy.template` | `/operations/deploy/template` | `operations.deploy.template.menu` | `deploy-template-list` | `business.deploy` | `business/deploy/template/DeployTemplateList` | `business:deploy:template:list` | — | `C` | 任务模板列表 |
-| `business.deploy.task` | `/operations/deploy/task` | `operations.deploy.task.menu` | `deploy-task-list` | `business.deploy` | `business/deploy/task/DeployTaskList` | `business:deploy:task:view` | — | `C` | 部署任务列表 |
-| `business.deploy.task.detail` | `/operations/deploy/task/:id` | `operations.deploy.task.detail` | `deploy-task-detail` | `business.deploy` | `business/deploy/task/DeployTaskDetail` | `business:deploy:task:detail` | `/operations/deploy/task` | `C` | 任务详情页，不进侧边菜单 |
+| `business.deploy.package` | `/business/deploy/package` | `operations.deploy.package.menu` | `deploy-package-list` | `business.deploy` | `business/deploy/package/DeployPackageList` | `business:deploy:package:view` | — | `C` | 软件组件列表 |
+| `business.deploy.template` | `/business/deploy/template` | `operations.deploy.template.menu` | `deploy-template-list` | `business.deploy` | `business/deploy/template/DeployTemplateList` | `business:deploy:template:list` | — | `C` | 任务模板列表 |
+| `business.deploy.task` | `/business/deploy/task` | `operations.deploy.task.menu` | `deploy-task-list` | `business.deploy` | `business/deploy/task/DeployTaskList` | `business:deploy:task:view` | — | `C` | 部署任务列表 |
+| `business.deploy.task.detail` | `/business/deploy/task/:id` | `operations.deploy.task.detail` | `deploy-task-detail` | `business.deploy` | `business/deploy/task/DeployTaskDetail` | `business:deploy:task:detail` | `/business/deploy/task` | `C` | 任务详情页，不进侧边菜单 |
 
 约束：
 

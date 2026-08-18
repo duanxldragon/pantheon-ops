@@ -27,6 +27,11 @@ const (
 	TaskActionUninstall = "uninstall"
 	TaskActionUpgrade   = "upgrade"
 	TaskActionReinstall = "reinstall"
+	TaskActionStart     = "start"
+	TaskActionHealth    = "health"
+	TaskActionStop      = "stop"
+	TaskActionRollback  = "rollback"
+	TaskActionRetire    = "retire"
 
 	TaskStatusDraft    = "draft"
 	TaskStatusPending  = "pending"
@@ -74,32 +79,39 @@ type DeployPackage struct {
 func (DeployPackage) TableName() string { return "biz_deploy_package" }
 
 type DeployTask struct {
-	ID                uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name              string         `gorm:"size:128;not null" json:"name"`
-	TemplateID        uint64         `gorm:"index" json:"templateId"`
-	TemplateName      string         `gorm:"size:128" json:"templateName"`
-	TemplateVersion   string         `gorm:"size:64" json:"templateVersion"`
-	PackageID         uint64         `gorm:"not null;index" json:"packageId"`
-	PackageName       string         `gorm:"size:128" json:"packageName"`
-	PackageVersion    string         `gorm:"size:64" json:"packageVersion"`
-	BusinessScopeID   uint64         `gorm:"column:business_scope_id;index" json:"businessScopeId"`
-	BusinessScopeName string         `gorm:"column:business_scope_name;size:128" json:"businessScopeName"`
-	Action            string         `gorm:"size:32;default:install;index" json:"action"`
-	TargetType        string         `gorm:"size:32;not null;index" json:"targetType"`
-	TargetIDs         datatypes.JSON `gorm:"type:json" json:"targetIds"`
-	ExecutorType      string         `gorm:"size:32;default:manual;index" json:"executorType"`
-	ExecutionMode     string         `gorm:"size:32;default:fixed;index" json:"executionMode"`
-	TemplateParams    datatypes.JSON `gorm:"type:json" json:"templateParams"`
-	Status            string         `gorm:"size:32;default:draft;index" json:"status"`
-	Remark            string         `gorm:"size:512" json:"remark"`
-	ExternalTaskID    string         `gorm:"size:128" json:"externalTaskId"`
-	StartedAt         *time.Time     `json:"startedAt"`
-	FinishedAt        *time.Time     `json:"finishedAt"`
-	CreatedAt         time.Time      `json:"createdAt"`
-	UpdatedAt         time.Time      `json:"updatedAt"`
-	CreatedBy         string         `gorm:"size:64" json:"createdBy"`
-	UpdatedBy         string         `gorm:"size:64" json:"updatedBy"`
-	DeletedAt         gorm.DeletedAt `gorm:"index" json:"-"`
+	ID                  uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name                string         `gorm:"size:128;not null" json:"name"`
+	TemplateID          uint64         `gorm:"index" json:"templateId"`
+	TemplateName        string         `gorm:"size:128" json:"templateName"`
+	TemplateVersion     string         `gorm:"size:64" json:"templateVersion"`
+	PackageID           uint64         `gorm:"not null;index" json:"packageId"`
+	PackageName         string         `gorm:"size:128" json:"packageName"`
+	PackageVersion      string         `gorm:"size:64" json:"packageVersion"`
+	BusinessScopeID     uint64         `gorm:"column:business_scope_id;index" json:"businessScopeId"`
+	BusinessScopeName   string         `gorm:"column:business_scope_name;size:128" json:"businessScopeName"`
+	ServiceID           uint64         `gorm:"column:service_id;index" json:"serviceId"`
+	ServiceInstanceID   uint64         `gorm:"column:service_instance_id;index" json:"serviceInstanceId"`
+	ServiceName         string         `gorm:"column:service_name;size:255" json:"serviceName"`
+	ServiceInstanceName string         `gorm:"column:service_instance_name;size:255" json:"serviceInstanceName"`
+	Action              string         `gorm:"size:32;default:install;index" json:"action"`
+	TargetType          string         `gorm:"size:32;not null;index" json:"targetType"`
+	TargetIDs           datatypes.JSON `gorm:"type:json" json:"targetIds"`
+	ExecutorType        string         `gorm:"size:32;default:manual;index" json:"executorType"`
+	ExecutionMode       string         `gorm:"size:32;default:fixed;index" json:"executionMode"`
+	TemplateParams      datatypes.JSON `gorm:"type:json" json:"templateParams"`
+	ExecutionSnapshot   datatypes.JSON `gorm:"type:json" json:"executionSnapshot"`
+	TargetSnapshot      datatypes.JSON `gorm:"type:json" json:"targetSnapshot"`
+	StartRequestKey     string         `gorm:"size:128" json:"startRequestKey"`
+	Status              string         `gorm:"size:32;default:draft;index" json:"status"`
+	Remark              string         `gorm:"size:512" json:"remark"`
+	ExternalTaskID      string         `gorm:"size:128" json:"externalTaskId"`
+	StartedAt           *time.Time     `json:"startedAt"`
+	FinishedAt          *time.Time     `json:"finishedAt"`
+	CreatedAt           time.Time      `json:"createdAt"`
+	UpdatedAt           time.Time      `json:"updatedAt"`
+	CreatedBy           string         `gorm:"size:64" json:"createdBy"`
+	UpdatedBy           string         `gorm:"size:64" json:"updatedBy"`
+	DeletedAt           gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 func (DeployTask) TableName() string { return "biz_deploy_task" }
@@ -149,27 +161,47 @@ type DeployTemplateStep struct {
 func (DeployTemplateStep) TableName() string { return "biz_deploy_template_step" }
 
 type DeployTaskHost struct {
-	ID           uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	TaskID       uint64         `gorm:"not null;index" json:"taskId"`
-	HostID       uint64         `gorm:"not null;index" json:"hostId"`
-	Hostname     string         `gorm:"size:128" json:"hostname"`
-	HostIP       string         `gorm:"size:45" json:"hostIp"`
-	OS           string         `gorm:"size:32" json:"os"`
-	Status       string         `gorm:"size:32;default:pending;index" json:"status"`
-	Stdout       string         `gorm:"type:text" json:"stdout"`
-	Stderr       string         `gorm:"type:text" json:"stderr"`
-	ErrorMessage string         `gorm:"size:512" json:"errorMessage"`
-	ExecutorID   string         `gorm:"size:128" json:"executorId"`
-	TraceSteps   datatypes.JSON `gorm:"type:json" json:"traceSteps"`
-	StartedAt    *time.Time     `json:"startedAt"`
-	FinishedAt   *time.Time     `json:"finishedAt"`
-	ReportedAt   *time.Time     `json:"reportedAt"`
-	CreatedAt    time.Time      `json:"createdAt"`
-	UpdatedAt    time.Time      `json:"updatedAt"`
-	UpdatedBy    string         `gorm:"size:64" json:"updatedBy"`
+	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TaskID          uint64         `gorm:"not null;index;uniqueIndex:uk_deploy_task_host" json:"taskId"`
+	HostID          uint64         `gorm:"not null;index;uniqueIndex:uk_deploy_task_host" json:"hostId"`
+	Hostname        string         `gorm:"size:128" json:"hostname"`
+	HostIP          string         `gorm:"size:45" json:"hostIp"`
+	SSHPort         int            `gorm:"default:22" json:"sshPort"`
+	OS              string         `gorm:"size:32" json:"os"`
+	BusinessScopeID uint64         `gorm:"column:business_scope_id;index" json:"businessScopeId"`
+	Status          string         `gorm:"size:32;default:pending;index" json:"status"`
+	Stdout          string         `gorm:"type:text" json:"stdout"`
+	Stderr          string         `gorm:"type:text" json:"stderr"`
+	ErrorMessage    string         `gorm:"size:512" json:"errorMessage"`
+	ExecutorID      string         `gorm:"size:128" json:"executorId"`
+	ReportKey       string         `gorm:"size:128" json:"reportKey"`
+	TraceSteps      datatypes.JSON `gorm:"type:json" json:"traceSteps"`
+	StartedAt       *time.Time     `json:"startedAt"`
+	FinishedAt      *time.Time     `json:"finishedAt"`
+	ReportedAt      *time.Time     `json:"reportedAt"`
+	ResolvedAt      *time.Time     `json:"resolvedAt"`
+	CreatedAt       time.Time      `json:"createdAt"`
+	UpdatedAt       time.Time      `json:"updatedAt"`
+	UpdatedBy       string         `gorm:"size:64" json:"updatedBy"`
 }
 
 func (DeployTaskHost) TableName() string { return "biz_deploy_task_host" }
+
+// DeployHostLease records the active execution lease for a deployment host.
+//
+//nolint:revive // Public model names retain the deploy domain prefix for API clarity.
+type DeployHostLease struct {
+	ID        uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	HostID    uint64    `gorm:"not null;uniqueIndex:uk_deploy_host_lease_host" json:"hostId"`
+	TaskID    uint64    `gorm:"not null;index" json:"taskId"`
+	Owner     string    `gorm:"size:128;not null" json:"owner"`
+	ExpiresAt time.Time `gorm:"index" json:"expiresAt"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// TableName returns the deployment host lease table name.
+func (DeployHostLease) TableName() string { return "biz_deploy_host_lease" }
 
 type cmdbHostSnapshot struct {
 	ID                uint64         `gorm:"column:id"`
@@ -189,4 +221,59 @@ type cmdbGroupSnapshot struct {
 	ParentID   uint64         `gorm:"column:parent_id"`
 	Name       string         `gorm:"column:name"`
 	Conditions datatypes.JSON `gorm:"column:conditions"`
+}
+
+// deployPackageSnapshot is the immutable execution-definition view of a package
+// captured at task creation. It never reads the live package row at run time.
+type deployPackageSnapshot struct {
+	ID               uint64         `json:"id"`
+	Name             string         `json:"name"`
+	Version          string         `json:"version"`
+	InstallCommand   string         `json:"installCommand"`
+	UninstallCommand string         `json:"uninstallCommand"`
+	ExecutionMode    string         `json:"executionMode"`
+	TemplateCode     string         `json:"templateCode"`
+	TemplateConfig   map[string]any `json:"templateConfig"`
+	SourceObjectKey  string         `json:"sourceObjectKey"`
+	SourceFileName   string         `json:"sourceFileName"`
+	SourceURL        string         `json:"sourceUrl"`
+}
+
+// deployStepSnapshot is a frozen template step with its fully resolved package.
+type deployStepSnapshot struct {
+	StepCode       string                `json:"stepCode"`
+	StepName       string                `json:"stepName"`
+	StepType       string                `json:"stepType"`
+	Action         string                `json:"action"`
+	Package        deployPackageSnapshot `json:"package"`
+	TemplateParams map[string]any        `json:"templateParams"`
+	StepConfig     map[string]any        `json:"stepConfig"`
+}
+
+// deployExecutionSnapshot is the immutable execution intent persisted on a task.
+type deployExecutionSnapshot struct {
+	TemplateID      uint64               `json:"templateId"`
+	TemplateName    string               `json:"templateName"`
+	TemplateVersion string               `json:"templateVersion"`
+	Steps           []deployStepSnapshot `json:"steps"`
+}
+
+// deployTargetHostSnapshot is a frozen host connection fact captured at Start.
+type deployTargetHostSnapshot struct {
+	HostID            uint64 `json:"hostId"`
+	Hostname          string `json:"hostname"`
+	IP                string `json:"ip"`
+	SSHPort           int    `json:"sshPort"`
+	OS                string `json:"os"`
+	BusinessScopeID   uint64 `json:"businessScopeId"`
+	BusinessScopeName string `json:"businessScopeName"`
+	DeptID            uint64 `json:"deptId"`
+	Status            string `json:"status"`
+}
+
+// deployTargetSnapshot is the immutable target intent frozen at Start.
+type deployTargetSnapshot struct {
+	TargetType string                     `json:"targetType"`
+	ResolvedAt string                     `json:"resolvedAt"`
+	Hosts      []deployTargetHostSnapshot `json:"hosts"`
 }

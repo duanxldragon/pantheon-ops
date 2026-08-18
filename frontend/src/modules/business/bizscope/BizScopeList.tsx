@@ -12,7 +12,7 @@ import {
   Tag,
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
-import { IconDelete, IconEdit, IconEye, IconPlus } from '@arco-design/web-react/icon';
+import { IconDelete, IconEdit, IconEye, IconPlus, IconDownload } from '@arco-design/web-react/icon';
 import {
   AppModal,
   AppTable,
@@ -27,6 +27,7 @@ import {
   PageError,
   PageLoading,
   TableBatchActionBar,
+  ImportCsvButton,
   TABLE_ACTION_COLUMN_WIDTH,
   buildStandardPagination,
   useGovernanceRail,
@@ -37,6 +38,9 @@ import {
   deleteBizScope,
   getBizScopeList,
   updateBizScope,
+  exportBizScopes,
+  downloadBizScopeImportTemplate,
+  importBizScopes,
   type BizScopeListQuery,
   type BizScopePayload,
   type BizScopeRow,
@@ -73,6 +77,8 @@ export default function BizScopeList() {
   const canUpdate = hasPerm('business:bizscope:update');
   const canDelete = hasPerm('business:bizscope:delete');
   const canView = hasPerm('business:bizscope:view');
+  const canExport = hasPerm('business:bizscope:export');
+  const canImport = hasPerm('business:bizscope:import');
 
   const loadData = useCallback(async (nextQuery: BizScopeListQuery = query) => {
     setLoading(true);
@@ -175,6 +181,40 @@ export default function BizScopeList() {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      await exportBizScopes({ keyword: query.name, environment: query.environment, status: query.status });
+      Message.success(t('common.exportSuccess'));
+    } catch {
+      Message.error(t('common.exportFailed'));
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      await downloadBizScopeImportTemplate();
+      Message.success(t('common.downloadSuccess'));
+    } catch {
+      Message.error(t('common.downloadFailed'));
+    }
+  };
+
+  const handleImport = async (file: File) => {
+    try {
+      const result = await importBizScopes(file);
+      Message.success(
+        t('common.importSuccess', {
+          created: result.created,
+          updated: result.updated,
+          failed: result.failed,
+        })
+      );
+      await loadData(query);
+    } catch {
+      Message.error(t('common.importFailed'));
+    }
+  };
+
   const columns = useMemo<ColumnProps<BizScopeRow>[]>(
     () => [
       {
@@ -226,7 +266,7 @@ export default function BizScopeList() {
                 type="text"
                 size="small"
                 icon={<IconEye />}
-                onClick={() => navigate(`/operations/business-scope/${row.id}`)}
+                onClick={() => navigate(`/business/business-scope/${row.id}`)}
               >
                 {t('common.detail')}
               </Button>
@@ -357,6 +397,25 @@ export default function BizScopeList() {
                   >
                     {t('common.add')}
                   </Button>
+                }
+                utility={
+                  <>
+                    {canExport && (
+                      <Button icon={<IconDownload />} onClick={handleExport}>
+                        {t('common.export')}
+                      </Button>
+                    )}
+                    {canImport && (
+                      <>
+                        <Button icon={<IconDownload />} onClick={handleDownloadTemplate}>
+                          {t('common.downloadTemplate')}
+                        </Button>
+                        <ImportCsvButton disabled={!canImport} onSelect={handleImport}>
+                          {t('common.import')}
+                        </ImportCsvButton>
+                      </>
+                    )}
+                  </>
                 }
               />
             ) : undefined

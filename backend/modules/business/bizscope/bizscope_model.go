@@ -13,6 +13,7 @@ type BizScope struct {
 	Owner       string         `gorm:"size:255" json:"owner"`
 	Environment string         `gorm:"not null;size:50" json:"environment"`
 	Status      string         `gorm:"not null;size:50" json:"status"`
+	DeptID      uint64         `gorm:"column:dept_id;index" json:"deptId"`
 	Remark      string         `gorm:"type:text" json:"remark"`
 	CreatedAt   time.Time      `json:"createdAt"`
 	UpdatedAt   time.Time      `json:"updatedAt"`

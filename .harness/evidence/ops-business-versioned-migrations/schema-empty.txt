@@ -1,0 +1,8 @@
+MySQL 8.0.36, database pantheon_ops_migration_tmp.
+Applied 000012_business_schema.up.sql to an empty database.
+Created tables: biz_business_scope, biz_cmdb_group, biz_cmdb_host,
+biz_cmdb_label_schema, biz_deploy_package, biz_deploy_task,
+biz_deploy_task_host, biz_deploy_template, biz_deploy_template_step,
+biz_k8s_cluster, biz_k8s_release.
+Unique generated active keys were present for scope code, host IP, label key,
+package name/version, template name/version, and cluster code.

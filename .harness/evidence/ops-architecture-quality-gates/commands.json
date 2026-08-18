@@ -1,0 +1,26 @@
+{
+  "taskId": "ops-architecture-quality-gates",
+  "recordedAt": "2026-08-18",
+  "commands": [
+    {"command": "node --test tests/scripts/check-business-module-boundaries.test.mjs", "status": "passed"},
+    {"command": "node scripts/check-business-module-boundaries.mjs", "status": "passed"},
+    {"command": "npm run check:business-overlay", "status": "passed"},
+    {"command": "node frontend/scripts/cleanup-generated-modules.mjs --check", "status": "passed"},
+    {"command": "node --test frontend/scripts/cleanup-generated-modules.test.mjs", "status": "passed"},
+    {"command": "go test -count=1 ./modules/business/...", "status": "passed"},
+    {"command": "go test -race ./modules/business/...", "status": "passed"},
+    {"command": "golangci-lint run --new-from-rev origin/main ./...", "status": "passed"},
+    {"command": "go vet ./...", "status": "passed"},
+    {"command": "npx eslint src", "status": "passed"},
+    {"command": "npm run type-check", "status": "passed"},
+    {"command": "npm run build", "status": "passed"},
+    {"command": "npm run test:business-overlay", "status": "passed"},
+    {"command": "npm run check:pr-governance", "status": "passed"},
+    {"command": "npm run test:smoke:scripts", "status": "passed"},
+    {"command": "git diff --check", "status": "passed"}
+  ],
+  "notRun": [
+    "credentialed browser smoke requiring a running backend and external test session",
+    "live Kubernetes cluster mutation"
+  ]
+}

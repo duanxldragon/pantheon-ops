@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "taskId": "ops-k8s-release-reliability",
+  "title": "Make Kubernetes Release intent durable and rollout-aware",
+  "status": "complete",
+  "priority": "P0",
+  "deliveryTier": "L2",
+  "taskDoc": "docs/harness/tasks/2026-08-17-ops-k8s-release-reliability.task.md",
+  "handoffDoc": ".harness/tasks/ops-k8s-release-reliability/HANDOFF.md",
+  "statusDoc": ".harness/tasks/ops-k8s-release-reliability/STATUS.md",
+  "dependsOn": ["ops-cross-module-capability-boundaries"],
+  "coordinatesWith": [
+    "ops-business-versioned-migrations",
+    "ops-bizscope-datascope-ownership",
+    "ops-service-instance-foundation"
+  ],
+  "blocks": ["ops-architecture-quality-gates"],
+  "scope": {
+    "in": [
+      "durable Release intent",
+      "rollout observation",
+      "failure/reconciliation states",
+      "idempotent create/rollback",
+      "Cluster reference protection",
+      "BizScope provider auth",
+      "fine-grained permissions",
+      "K8s type-check/UI/design truth"
+    ],
+    "out": [
+      "K8s object copy into CMDB",
+      "VM/K8s executor merge",
+      "plaintext secrets",
+      "unapproved Namespace ownership",
+      "GitOps/Helm controller",
+      "base redesign",
+      "external production mutation"
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      "K8s release migration SQL",
+      "rollout/reconciliation tests",
+      "K8s design update",
+      ".harness/evidence/ops-k8s-release-reliability/commands.json",
+      ".harness/evidence/ops-k8s-release-reliability/summary.md",
+      ".harness/evidence/ops-k8s-release-reliability/review.md"
+    ],
+    "modify": [
+      "backend/modules/business/k8s/release/release_model.go",
+      "backend/modules/business/k8s/release/release_dto.go",
+      "backend/modules/business/k8s/release/release_service.go",
+      "backend/modules/business/k8s/release/release_handler.go",
+      "backend/modules/business/k8s/cluster/cluster_service.go",
+      "backend/modules/business/k8s/k8s_seed.go",
+      "backend/modules/business/k8s/k8s.go",
+      "frontend/src/modules/business/k8s/api.ts",
+      "frontend/src/modules/business/k8s/cluster/ClusterList.tsx",
+      "frontend/src/modules/business/k8s/release/ReleaseList.tsx",
+      "frontend/src/modules/business/k8s/workload/WorkloadList.tsx",
+      "frontend/src/i18n/resources/*"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "backend/modules/business/cmdb/host/**",
+      "backend/modules/business/deploy/**",
+      "frontend/src/modules/system/**"
+    ]
+  },
+  "contractAnchors": [
+    "docs/business-module-review-summary.md §9",
+    "backend/modules/business/k8s/release/release_service.go",
+    "backend/modules/business/k8s/cluster/cluster_service.go",
+    "Kubernetes Deployment/StatefulSet/DaemonSet status conditions"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -count=1 ./modules/business/k8s/...",
+      "go test -race ./modules/business/k8s/...",
+      "go vet ./...",
+      "npm run type-check",
+      "npm run build"
+    ],
+    "runtimeEvidence": [
+      "intent-before-apply",
+      "apply ambiguity reconciliation",
+      "rollout success/failure/timeout",
+      "idempotent rollback",
+      "delete/reference race",
+      "permissions",
+      "desktop/mobile rendered UI or explicit gap"
+    ]
+  },
+  "runtimeSensitive": true,
+  "costProfile": "high; strong K8s/backend owner; low-cost frontend lane after release DTO freeze; external cluster requires human gate",
+  "linkage": {
+    "evidenceDir": ".harness/evidence/ops-k8s-release-reliability/",
+    "reviewFile": ".harness/evidence/ops-k8s-release-reliability/review.md",
+    "summaryFile": ".harness/evidence/ops-k8s-release-reliability/summary.md"
+  },
+  "maintainerGates": [
+    "base IAM/secret change",
+    "external cluster mutation",
+    "unapproved Namespace ownership",
+    "unbounded wait",
+    "public API break",
+    "dirty-tree overlap"
+  ],
+  "evidenceRequired": [
+    "release state schema",
+    "rollout/reconciliation tests",
+    "authorization and permission matrix",
+    "cluster reference proof",
+    "type-check/build/UI evidence",
+    "findings-first review"
+  ],
+  "completionChecklist": [
+    "intent precedes mutation",
+    "rollout decides success",
+    "all failures persist",
+    "create/rollback idempotent",
+    "cluster delete protected",
+    "scope/permissions enforced",
+    "frontend and docs match behavior"
+  ]
+}

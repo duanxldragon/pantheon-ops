@@ -51,7 +51,7 @@
     "test:smoke:system:iam-authz": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --cleanup-fixtures all --config playwright.config.ts -- tests/smoke/system/role-authorization.spec.ts",
     "test:smoke:system:governance": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --cleanup-fixtures all --config playwright.config.ts -- tests/smoke/system/governance/system-governance-action-matrix.spec.ts tests/smoke/system/governance/governance-insight-drawer.spec.ts tests/smoke/system/governance/permission-workbench-remediation.spec.ts tests/smoke/system/governance/permission-workbench-remediation-real.spec.ts tests/smoke/system/governance/module-governance.spec.ts tests/smoke/system/governance/cleanup-range-ui.spec.ts --workers=1",
     "test:smoke:system:api": "playwright test tests/smoke/system/api/system-import-export.spec.ts tests/smoke/system/api/system-batch-delete.spec.ts --config=playwright.api.config.ts",
-    "test:smoke:business": "npm run test:smoke:business:cmdb && npm run test:smoke:business:deploy:api && npm run test:smoke:business:deploy && npm run test:smoke:business:generated && npm run test:smoke:business:database-import && npm run test:smoke:business:master-detail && npm run test:smoke:business:many-to-many && npm run test:smoke:business:auto-recycle",
+    "test:smoke:business": "npm run test:smoke:business:cmdb && npm run test:smoke:business:deploy:api && npm run test:smoke:business:deploy && npm run test:smoke:business:service && npm run test:smoke:business:k8s && npm run test:smoke:business:generated && npm run test:smoke:business:database-import && npm run test:smoke:business:master-detail && npm run test:smoke:business:many-to-many && npm run test:smoke:business:auto-recycle",
     "test:smoke:business:generated": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --cleanup-fixtures all --config playwright.config.ts -- tests/smoke/business/generated/module-governance-real.spec.ts",
     "test:smoke:business:database-import": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --cleanup-fixtures all --setup scripts/database-import-qa-setup.mjs --config playwright.config.ts -- tests/smoke/business/generated/module-governance-host-real.spec.ts",
     "test:smoke:business:master-detail": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5174 --cleanup-fixtures all --setup scripts/master-detail-qa-setup.mjs --config playwright.master-detail.config.ts -- tests/smoke/business/generated/module-master-detail-real.spec.ts",
@@ -70,7 +70,9 @@
     "test:api:unit": "node ./scripts/run-api-unit-tests.mjs",
     "test:smoke:business:cmdb": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/cmdb/cmdb-pages.spec.ts",
     "test:smoke:business:deploy": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/deploy/deploy-pages.spec.ts",
-    "test:smoke:business:deploy:api": "playwright test tests/smoke/business/deploy/deploy-api.spec.ts --config=playwright.api.config.ts"
+    "test:smoke:business:deploy:api": "playwright test tests/smoke/business/deploy/deploy-api.spec.ts --config=playwright.api.config.ts",
+    "test:smoke:business:service": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/service/service-pages.spec.ts",
+    "test:smoke:business:k8s": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/k8s/k8s-pages.spec.ts"
   },
   "dependencies": {
     "@arco-design/web-react": "2.66.16",

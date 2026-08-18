@@ -15,7 +15,7 @@ import {
   Typography,
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
-import { IconApps, IconDelete, IconEdit, IconEye, IconPlus, IconUpload } from '@arco-design/web-react/icon';
+import { IconDelete, IconEdit, IconEye, IconPlus, IconUpload } from '@arco-design/web-react/icon';
 import { uploadSystemFile } from '../../../../api/upload';
 import { formatDateTime } from '../../../../core/format/dateTime';
 import {
@@ -391,7 +391,6 @@ export default function DeployPackageList() {
     <PageContainer>
       <Space direction="vertical" size={16} className="system-page-template">
         <GovernanceSummaryBar
-          icon={<IconApps />}
           eyebrow={t('business.deploy.package.hero.eyebrow')}
           title={t('operations.deploy.package.menu')}
           description={t('business.deploy.package.hero.title')}

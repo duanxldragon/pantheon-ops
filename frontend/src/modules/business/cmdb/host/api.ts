@@ -1,4 +1,6 @@
 import { apiRequest } from '../../../../api/request';
+import { downloadFile } from '../../../../api/file';
+import { uploadImportFile } from '../../../../api/importExport';
 
 export interface LabelEntry {
   key: string;
@@ -152,4 +154,25 @@ export function collectHostConfig(id: number, data: CollectPayload) {
     method: 'post',
     data,
   });
+}
+
+export function exportHosts(params?: HostListQuery) {
+  return downloadFile({
+    url: '/business/cmdb/hosts/export',
+    method: 'get',
+    params: params as Record<string, unknown> | undefined,
+    filename: 'cmdb-host-export.csv',
+  });
+}
+
+export function downloadHostImportTemplate() {
+  return downloadFile({
+    url: '/business/cmdb/hosts/import-template',
+    method: 'get',
+    filename: 'cmdb-host-import-template.csv',
+  });
+}
+
+export function importHosts(file: File) {
+  return uploadImportFile('/business/cmdb/hosts/import', file);
 }

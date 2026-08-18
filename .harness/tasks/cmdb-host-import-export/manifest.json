@@ -1,0 +1,111 @@
+{
+  "taskId": "cmdb-host-import-export",
+  "title": "CMDB host CSV import and export",
+  "goal": "Add Excel-compatible CSV import, template download, and scoped asset export to business/cmdb host management by reusing pantheon-base import/export contracts.",
+  "primaryLayer": "business/cmdb",
+  "taskDoc": ".harness/tasks/cmdb-host-import-export/plan.md",
+  "scope": {
+    "in": [
+      "CMDB host export, import template, and transactional import backend flow",
+      "business/cmdb host import and export permissions, menu seeds, runtime i18n, and tests",
+      "CMDB host list utility actions using shared frontend import/export components",
+      "business overlay, backend, frontend, and CMDB runtime verification"
+    ],
+    "out": [
+      "pantheon-base shared import/export changes",
+      "database schema changes",
+      "native XLSX parsing or excelize",
+      "unrelated dirty-tree business, system, or platform changes"
+    ]
+  },
+  "implementationNotes": [
+    "Landing side remains pantheon-ops because the change is confined to the business/cmdb host slice.",
+    "The minimum viable approach reuses pkg/impexp CSVFile, WriteCSV, ReadCSV, ImportResult, and shared frontend import/export utilities.",
+    "CSV remains the repository-wide Excel-compatible format; no new dependency is introduced."
+  ],
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "../pantheon-base/DESIGN.md",
+    "../pantheon-base/AGENTS.md",
+    "../pantheon-base/docs/README.md",
+    "docs/designs/BUSINESS_CMDB_MODULE_DESIGN.md",
+    "docs/designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "backend/modules/business/cmdb/host/host_import_export.go",
+      "backend/modules/business/cmdb/host/host_import_export_test.go",
+      ".harness/tasks/cmdb-host-import-export/manifest.json",
+      ".harness/evidence/cmdb-host-import-export/commands.json",
+      ".harness/evidence/cmdb-host-import-export/summary.md",
+      ".harness/evidence/cmdb-host-import-export/review.md"
+    ],
+    "modify": [
+      "backend/modules/business/cmdb/host/host_handler.go",
+      "backend/modules/business/cmdb/module.go",
+      "backend/modules/business/cmdb/seeds_test.go",
+      "frontend/src/modules/business/cmdb/host/api.ts",
+      "frontend/src/modules/business/cmdb/host/CmdbHostList.tsx"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "backend/modules/system/**",
+      "frontend/src/modules/system/**",
+      "backend/modules/business/k8s/**"
+    ]
+  },
+  "harnessProfile": {
+    "template": "pantheon-ops custom",
+    "overlay": "business/cmdb",
+    "qualityProfile": "business-delivery",
+    "portableFailureClass": "repo-quality-gate",
+    "ownerLayer": "business-domain",
+    "coverageDimensions": [
+      "business-correctness",
+      "authorization-and-data-scope",
+      "inheritance-discipline",
+      "runtime-and-visual-evidence"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "go build ./...",
+      "go test ./modules/business/cmdb/...",
+      "npm run type-check",
+      "npx eslint src/modules/business/cmdb/",
+      "npx vite build",
+      "node scripts/business-overlay/check-business-overlay.mjs",
+      "npm run test:smoke:business:cmdb"
+    ],
+    "runtimeEvidence": [
+      "CMDB business smoke screenshots at desktop and mobile viewports when the local runtime is available",
+      "explicit runtime gap if database-backed smoke cannot start"
+    ]
+  },
+  "runtimeSensitive": true,
+  "linkage": {
+    "evidenceDir": ".harness/evidence/cmdb-host-import-export/",
+    "reviewFile": ".harness/evidence/cmdb-host-import-export/review.md",
+    "summaryFile": ".harness/evidence/cmdb-host-import-export/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/cmdb-host-import-export/plan.md"
+    ]
+  },
+  "evidenceRequired": [
+    "backend build and CMDB package test output",
+    "frontend type-check, lint, and production build output",
+    "business overlay contract output",
+    "rendered CMDB host-list evidence or an explicit runtime gap",
+    "findings-first self-review"
+  ],
+  "completionChecklist": [
+    "landing side declared",
+    "backend and frontend import/export flow implemented",
+    "permissions and i18n seeded",
+    "targeted tests and repository gates recorded",
+    "runtime or visual evidence recorded",
+    "review summary recorded"
+  ]
+}

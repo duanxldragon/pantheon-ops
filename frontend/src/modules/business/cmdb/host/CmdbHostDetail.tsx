@@ -146,7 +146,7 @@ export default function CmdbHostDetail() {
                 {t('business.cmdb.host.collect')}
               </Button>
             )}
-            <Button icon={<IconLeft />} onClick={() => navigate('/operations/cmdb/host')}>
+        <Button icon={<IconLeft />} onClick={() => navigate('/business/cmdb/host')}>
               {t('common.back')}
             </Button>
           </Space>

@@ -147,8 +147,8 @@ Current menu and route anchors:
 | Item | Value |
 | :--- | :--- |
 | menu title key | `operations.bizscope.menu` |
-| list route | `/operations/business-scope` |
-| detail route | `/operations/business-scope/:id` |
+| list route | `/business/business-scope` |
+| detail route | `/business/business-scope/:id` |
 | list component key | `business/bizscope/BizScopeList` |
 | detail component key | `business/bizscope/BizScopeDetail` |
 | module name | `business.bizscope` |

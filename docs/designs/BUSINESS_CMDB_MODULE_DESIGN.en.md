@@ -191,9 +191,9 @@ Label permissions cover `view`, `list`, `create`, `update`, and `delete`.
 
 | Menu key | Path | Component key | Page permission |
 | :--- | :--- | :--- | :--- |
-| `operations.cmdb.host` | `/operations/cmdb/host` | `business/cmdb/host/CmdbHostList` | `business:cmdb:host:view` |
-| `operations.cmdb.group` | `/operations/cmdb/group` | `business/cmdb/group/CmdbGroupList` | `business:cmdb:group:view` |
-| `operations.cmdb.label` | `/operations/cmdb/label` | `business/cmdb/label/CmdbLabelSchemaList` | `business:cmdb:label:view` |
+| `operations.cmdb.host` | `/business/cmdb/host` | `business/cmdb/host/CmdbHostList` | `business:cmdb:host:view` |
+| `operations.cmdb.group` | `/business/cmdb/group` | `business/cmdb/group/CmdbGroupList` | `business:cmdb:group:view` |
+| `operations.cmdb.label` | `/business/cmdb/label` | `business/cmdb/label/CmdbLabelSchemaList` | `business:cmdb:label:view` |
 
 Detail/edit routes are reached from list pages. Menu titles use i18n keys, and component keys must be registered in frontend and backend allowlists.
 

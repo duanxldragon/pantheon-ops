@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/impexp"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,6 +22,9 @@ func NewLabelHandler(svc *LabelService) *LabelHandler {
 func (h *LabelHandler) RegisterRoutes(r gin.IRoutes) {
 	r.GET("/labels", h.List)
 	r.GET("/labels/options", h.ListOptions)
+	r.GET("/labels/export", h.Export)
+	r.GET("/labels/import-template", h.DownloadImportTemplate)
+	r.POST("/labels/import", h.Import)
 	r.POST("/labels", h.Create)
 	r.PUT("/labels/:id", h.Update)
 	r.DELETE("/labels/:id", h.Delete)
@@ -98,4 +102,56 @@ func (h *LabelHandler) Delete(c *gin.Context) {
 		return
 	}
 	common.Success(c, nil)
+}
+
+// Export writes visible CMDB label schemas as CSV.
+func (h *LabelHandler) Export(c *gin.Context) {
+	common.SetAuditMetadata(c, "cmdb.label.export.title", common.BusinessExport)
+
+	var query LabelSchemaQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+
+	file, err := h.svc.Export(query, common.GetDataScope(c))
+	if err != nil {
+		common.Fail(c, common.CodeError, "cmdblabel.export_failed")
+		return
+	}
+	_ = impexp.WriteCSV(c, *file)
+}
+
+// DownloadImportTemplate writes the CMDB label import template.
+func (h *LabelHandler) DownloadImportTemplate(c *gin.Context) {
+	file := h.svc.BuildImportTemplate()
+	_ = impexp.WriteCSV(c, *file)
+}
+
+// Import creates or updates CMDB label schemas from an uploaded CSV.
+func (h *LabelHandler) Import(c *gin.Context) {
+	common.SetAuditMetadata(c, "cmdb.label.import.title", common.BusinessImport)
+
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, "import.file.required")
+		return
+	}
+	file, err := fileHeader.Open()
+	if err != nil {
+		common.Fail(c, common.CodeError, "import.file.read.error")
+		return
+	}
+	records, err := impexp.ReadCSV(file)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, "import.file.invalid_csv")
+		return
+	}
+	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
+	result, err := h.svc.Import(records, createdBy)
+	if err != nil {
+		common.Fail(c, common.CodeError, "cmdblabel.import_failed")
+		return
+	}
+	common.Success(c, result)
 }

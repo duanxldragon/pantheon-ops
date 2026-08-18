@@ -1,4 +1,5 @@
 import { apiRequest } from '../../../../api/request';
+import { downloadFile, uploadImportFile } from '../../../../api/importExport';
 
 export interface ConditionRule {
   key: string;
@@ -95,4 +96,29 @@ export function deleteGroup(id: number) {
     url: `/business/cmdb/groups/${id}`,
     method: 'delete',
   });
+}
+
+export interface GroupListQuery {
+  keyword?: string;
+}
+
+export function exportGroups(params?: GroupListQuery) {
+  return downloadFile({
+    url: '/business/cmdb/groups/export',
+    method: 'get',
+    params: params as Record<string, unknown> | undefined,
+    filename: 'cmdb-group-export.csv',
+  });
+}
+
+export function downloadGroupImportTemplate() {
+  return downloadFile({
+    url: '/business/cmdb/groups/import-template',
+    method: 'get',
+    filename: 'cmdb-group-import-template.csv',
+  });
+}
+
+export function importGroups(file: File) {
+  return uploadImportFile('/business/cmdb/groups/import', file);
 }

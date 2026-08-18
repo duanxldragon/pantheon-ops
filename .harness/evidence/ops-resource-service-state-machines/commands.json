@@ -1,0 +1,42 @@
+{
+  "taskId": "ops-resource-service-state-machines",
+  "runAt": "2026-08-18",
+  "commands": [
+    {
+      "command": "go test -count=1 ./modules/business/cmdb/... ./modules/business/service/... ./modules/business/deploy/...",
+      "cwd": "backend",
+      "status": "passed"
+    },
+    {
+      "command": "go test -race ./modules/business/cmdb/... ./modules/business/service/... ./modules/business/deploy/...",
+      "cwd": "backend",
+      "status": "passed",
+      "environment": "CGO_ENABLED=1; MinGW64"
+    },
+    {
+      "command": "go vet ./...",
+      "cwd": "backend",
+      "status": "passed"
+    },
+    {
+      "command": "npm run type-check",
+      "cwd": "frontend",
+      "status": "passed"
+    },
+    {
+      "command": "npm run build",
+      "cwd": "frontend",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/check-business-module-boundaries.mjs",
+      "cwd": ".",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "cwd": ".",
+      "status": "passed"
+    }
+  ]
+}

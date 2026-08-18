@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "taskId": "ops-business-versioned-migrations",
+  "title": "Business versioned migrations and production schema gate",
+  "status": "planned",
+  "priority": "P0",
+  "deliveryTier": "L2",
+  "taskDoc": "docs/harness/tasks/2026-08-17-ops-business-versioned-migrations.task.md",
+  "handoffDoc": ".harness/tasks/ops-business-versioned-migrations/HANDOFF.md",
+  "statusDoc": ".harness/tasks/ops-business-versioned-migrations/STATUS.md",
+  "dependsOn": [],
+  "blocks": [
+    "ops-deploy-immutability-idempotency",
+    "ops-service-instance-foundation",
+    "ops-k8s-release-reliability"
+  ],
+  "scope": {
+    "in": [
+      "Versioned business schema migrations",
+      "owner-table constraints and indexes",
+      "production migration path",
+      "empty/upgrade/repeat/failure tests"
+    ],
+    "out": [
+      "pantheon-base changes",
+      "business behavior changes",
+      "ServiceInstance implementation",
+      "cross-module foreign-key redesign",
+      "frontend changes"
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      "backend/pkg/database/migrations/0000XX_business_*.up.sql",
+      "backend/pkg/database/migrations/0000XX_business_*.down.sql",
+      ".harness/evidence/ops-business-versioned-migrations/commands.json",
+      ".harness/evidence/ops-business-versioned-migrations/summary.md",
+      ".harness/evidence/ops-business-versioned-migrations/review.md"
+    ],
+    "modify": [
+      "backend/pkg/database/migrate.go (only if Ops-owned)",
+      "backend/pkg/database/migrate_test.go",
+      "backend/modules/business/*/module.go (only to remove production AutoMigrate reliance)"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "backend/modules/system/**",
+      "frontend/**",
+      "backend/modules/business/deploy/deploy_service.go",
+      "backend/modules/business/k8s/**"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/business-module-review-summary.md",
+    "backend/pkg/database/migrations/",
+    "backend/pkg/database/migrate.go"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -count=1 ./pkg/database/...",
+      "go test -count=1 ./modules/business/...",
+      "go test -race ./pkg/database/...",
+      "go vet ./..."
+    ],
+    "runtimeEvidence": [
+      "empty schema",
+      "upgrade schema",
+      "repeat run",
+      "failure recovery",
+      "explicit gap if MySQL is unavailable"
+    ]
+  },
+  "runtimeSensitive": true,
+  "costProfile": "high; strong backend/database executor; one owner for migration sequence",
+  "linkage": {
+    "evidenceDir": ".harness/evidence/ops-business-versioned-migrations/",
+    "reviewFile": ".harness/evidence/ops-business-versioned-migrations/review.md",
+    "summaryFile": ".harness/evidence/ops-business-versioned-migrations/summary.md"
+  },
+  "maintainerGates": [
+    "base-owned migration runner",
+    "destructive migration or outage",
+    "ambiguous status/data conversion",
+    "forward-only migration without approval",
+    "collision with existing migration edits"
+  ],
+  "evidenceRequired": [
+    "migration command output",
+    "schema snapshots",
+    "repeat/failure behavior",
+    "findings-first review",
+    "dirty-tree collision record"
+  ],
+  "completionChecklist": [
+    "baseline recorded",
+    "migration numbering collision checked",
+    "empty/upgrade/repeat/failure cases recorded",
+    "production AutoMigrate policy recorded",
+    "review and residual risk recorded"
+  ]
+}

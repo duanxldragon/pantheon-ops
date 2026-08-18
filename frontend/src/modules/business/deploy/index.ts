@@ -5,28 +5,28 @@ export const DeployModule = defineModule({
   scope: 'business',
   routes: [
     {
-      path: 'operations/deploy/package',
+      path: 'business/deploy/package',
       routeName: 'deploy-package-list',
       titleKey: 'operations.deploy.package.menu',
       componentKey: 'business/deploy/package/DeployPackageList',
       pagePermission: 'business:deploy:package:view',
     },
     {
-      path: 'operations/deploy/template',
+      path: 'business/deploy/template',
       routeName: 'deploy-template-list',
       titleKey: 'operations.deploy.template.menu',
       componentKey: 'business/deploy/template/DeployTemplateList',
       pagePermission: 'business:deploy:template:list',
     },
     {
-      path: 'operations/deploy/task',
+      path: 'business/deploy/task',
       routeName: 'deploy-task-list',
       titleKey: 'operations.deploy.task.menu',
       componentKey: 'business/deploy/task/DeployTaskList',
       pagePermission: 'business:deploy:task:view',
     },
     {
-      path: 'operations/deploy/task/:id',
+      path: 'business/deploy/task/:id',
       routeName: 'deploy-task-detail',
       titleKey: 'operations.deploy.task.detail',
       componentKey: 'business/deploy/task/DeployTaskDetail',
@@ -35,21 +35,21 @@ export const DeployModule = defineModule({
   ],
   menus: [
     {
-      path: '/operations/deploy/package',
+      path: '/business/deploy/package',
       titleKey: 'operations.deploy.package.menu',
       icon: 'apps',
       routeName: 'deploy-package-list',
       module: 'business.deploy',
     },
     {
-      path: '/operations/deploy/template',
+      path: '/business/deploy/template',
       titleKey: 'operations.deploy.template.menu',
       icon: 'code',
       routeName: 'deploy-template-list',
       module: 'business.deploy',
     },
     {
-      path: '/operations/deploy/task',
+      path: '/business/deploy/task',
       titleKey: 'operations.deploy.task.menu',
       icon: 'tool',
       routeName: 'deploy-task-list',

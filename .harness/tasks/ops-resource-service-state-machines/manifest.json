@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "taskId": "ops-resource-service-state-machines",
+  "title": "Separate and enforce Host and ServiceInstance lifecycle state machines",
+  "status": "complete",
+  "priority": "P0",
+  "deliveryTier": "L2",
+  "taskDoc": "docs/harness/tasks/2026-08-17-ops-resource-service-state-machines.task.md",
+  "handoffDoc": ".harness/tasks/ops-resource-service-state-machines/HANDOFF.md",
+  "statusDoc": ".harness/tasks/ops-resource-service-state-machines/STATUS.md",
+  "dependsOn": [
+    "ops-deploy-immutability-idempotency",
+    "ops-service-instance-foundation"
+  ],
+  "blocks": ["ops-architecture-quality-gates"],
+  "scope": {
+    "in": [
+      "Host lifecycle/connectivity separation",
+      "Service desired/observed/health state",
+      "transition CAS",
+      "VM install/start/health/stop/upgrade/rollback/retire orchestration",
+      "stale callback protection",
+      "reconciliation surface",
+      "UI and authorization"
+    ],
+    "out": [
+      "K8s state implementation",
+      "generic workflow engine",
+      "event sourcing",
+      "monitoring platform",
+      "automatic Host retirement",
+      "base/system changes"
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      "state migration SQL",
+      "ServiceInstance transition service/tests",
+      ".harness/evidence/ops-resource-service-state-machines/commands.json",
+      ".harness/evidence/ops-resource-service-state-machines/summary.md",
+      ".harness/evidence/ops-resource-service-state-machines/review.md"
+    ],
+    "modify": [
+      "backend/modules/business/cmdb/host/host_model.go",
+      "backend/modules/business/cmdb/host/host_dto.go",
+      "backend/modules/business/cmdb/host/host_service.go",
+      "backend/modules/business/cmdb/host/host_handler.go",
+      "backend/modules/business/service/**",
+      "backend/modules/business/deploy/deploy_model.go",
+      "backend/modules/business/deploy/deploy_dto.go",
+      "backend/modules/business/deploy/deploy_service.go",
+      "frontend/src/modules/business/cmdb/host/**",
+      "frontend/src/modules/business/service/**",
+      "frontend/src/modules/business/deploy/**",
+      "frontend/src/i18n/resources/*"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "backend/modules/business/k8s/**",
+      "backend/modules/system/** except overlay registration",
+      "backend/modules/business/cmdb/group/**",
+      "backend/modules/business/cmdb/label/**"
+    ]
+  },
+  "contractAnchors": [
+    "docs/business-module-review-summary.md §8",
+    "backend/modules/business/cmdb/host/host_service.go UpdateStatus",
+    "backend/modules/business/cmdb/capability.go",
+    "backend/modules/business/deploy/deploy_service.go"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -count=1 ./modules/business/cmdb/... ./modules/business/service/... ./modules/business/deploy/...",
+      "go test -race ./modules/business/cmdb/... ./modules/business/service/... ./modules/business/deploy/...",
+      "go vet ./...",
+      "npm run type-check",
+      "npm run test:smoke:business:cmdb",
+      "npm run test:smoke:business:deploy:api",
+      "npm run test:smoke:business:deploy"
+    ],
+    "runtimeEvidence": [
+      "transition matrix",
+      "concurrent/stale callback tests",
+      "full VM action chain",
+      "health-gated upgrade/rollback",
+      "reconciliation",
+      "desktop/mobile rendered UI"
+    ]
+  },
+  "runtimeSensitive": true,
+  "costProfile": "very high; strong single owner for state model; lower-cost UI/test lanes only after transition matrix freeze",
+  "linkage": {
+    "evidenceDir": ".harness/evidence/ops-resource-service-state-machines/",
+    "reviewFile": ".harness/evidence/ops-resource-service-state-machines/review.md",
+    "summaryFile": ".harness/evidence/ops-resource-service-state-machines/summary.md"
+  },
+  "maintainerGates": [
+    "unsafe legacy status mapping",
+    "published API conflict",
+    "base workflow requirement",
+    "unfrozen dependency contract",
+    "destructive migration",
+    "dirty-tree overlap"
+  ],
+  "evidenceRequired": [
+    "state contract",
+    "migration mapping",
+    "transition/concurrency tests",
+    "VM workflow smoke",
+    "authorization and UI evidence",
+    "findings-first review"
+  ],
+  "completionChecklist": [
+    "state owners separated",
+    "all transitions explicit",
+    "CAS/stale protection active",
+    "VM lifecycle actions closed",
+    "health gates upgrade",
+    "reconciliation proven",
+    "UI and evidence complete"
+  ]
+}

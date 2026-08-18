@@ -1,4 +1,5 @@
 import { apiRequest } from '../../../../api/request';
+import { downloadFile, uploadImportFile } from '../../../../api/importExport';
 
 export type LabelValueMode = 'free' | 'enum' | 'dict';
 export type LabelSchemaStatus = 'enabled' | 'disabled';
@@ -124,4 +125,25 @@ export function deleteLabelSchema(id: number) {
     url: `/business/cmdb/labels/${id}`,
     method: 'delete',
   });
+}
+
+export function exportLabelSchemas(params?: LabelSchemaQuery) {
+  return downloadFile({
+    url: '/business/cmdb/labels/export',
+    method: 'get',
+    params: params as Record<string, unknown> | undefined,
+    filename: 'cmdb-labels-export.csv',
+  });
+}
+
+export function downloadLabelSchemaImportTemplate() {
+  return downloadFile({
+    url: '/business/cmdb/labels/import-template',
+    method: 'get',
+    filename: 'cmdb-labels-import-template.csv',
+  });
+}
+
+export function importLabelSchemas(file: File) {
+  return uploadImportFile('/business/cmdb/labels/import', file);
 }

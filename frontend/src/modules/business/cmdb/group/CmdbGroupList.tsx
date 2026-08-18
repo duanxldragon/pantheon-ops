@@ -16,6 +16,7 @@ import {
   IconDelete,
   IconEye,
   IconBranch,
+  IconDownload,
 } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import type { TreeDataType } from '@arco-design/web-react/es/Tree/interface';
@@ -34,10 +35,20 @@ import {
   PageError,
   PageLoading,
   TableBatchActionBar,
+  ImportCsvButton,
   buildStandardPagination,
   useGovernanceRail,
 } from '../../../../components';
-import { getGroupList, getGroupMembers, createGroup, updateGroup, deleteGroup } from './api';
+import {
+  getGroupList,
+  getGroupMembers,
+  createGroup,
+  updateGroup,
+  deleteGroup,
+  exportGroups,
+  downloadGroupImportTemplate,
+  importGroups,
+} from './api';
 import type { CreateGroupPayload, GroupRow, GroupMemberResp, GroupMemberRow } from './api';
 import CmdbGroupForm from './CmdbGroupForm';
 import { usePermission } from '../../../../hooks/usePermission';
@@ -151,6 +162,8 @@ export default function CmdbGroupList() {
   const canUpdate = hasPerm('business:cmdb:group:update');
   const canDelete = hasPerm('business:cmdb:group:delete');
   const canDetail = hasPerm('business:cmdb:group:detail');
+  const canExport = hasPerm('business:cmdb:group:export');
+  const canImport = hasPerm('business:cmdb:group:import');
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -247,6 +260,37 @@ export default function CmdbGroupList() {
     const result = await getGroupMembers(row.id);
     setMemberData(result);
     setMembersDrawer(true);
+  };
+
+  const handleExport = async () => {
+    try {
+      await exportGroups({
+        keyword: queryKeyword,
+      });
+      Message.success(t('common.exportSuccess'));
+    } catch {
+      Message.error(t('common.exportFailed'));
+    }
+  };
+
+  const handleImport = async (file: File) => {
+    try {
+      await importGroups(file);
+      Message.success(t('common.importSuccess'));
+      await loadData();
+    } catch (err) {
+      Message.error(t('common.importFailed'));
+      throw err;
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      await downloadGroupImportTemplate();
+      Message.success(t('common.downloadSuccess'));
+    } catch {
+      Message.error(t('common.downloadFailed'));
+    }
   };
 
   const selectedGroup = useMemo(
@@ -545,6 +589,25 @@ export default function CmdbGroupList() {
                     {t('common.add')}
                   </Button>
                 )}
+                utility={
+                  <>
+                    {canExport ? (
+                      <Button icon={<IconDownload />} onClick={handleExport}>
+                        {t('common.export')}
+                      </Button>
+                    ) : null}
+                    {canImport ? (
+                      <>
+                        <Button icon={<IconDownload />} onClick={handleDownloadTemplate}>
+                          {t('common.downloadTemplate')}
+                        </Button>
+                        <ImportCsvButton disabled={!canImport} onSelect={handleImport}>
+                          {t('common.import')}
+                        </ImportCsvButton>
+                      </>
+                    ) : null}
+                  </>
+                }
               />
             ) : undefined
           }

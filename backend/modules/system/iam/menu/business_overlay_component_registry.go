@@ -11,4 +11,9 @@ var businessOverlayMenuComponentKeys = map[string]struct{}{
 	"business/deploy/template/DeployTemplateList": {},
 	"business/deploy/task/DeployTaskList":         {},
 	"business/deploy/task/DeployTaskDetail":       {},
+	"business/k8s/cluster/ClusterList":            {},
+	"business/k8s/cluster/ClusterDetail":          {},
+	"business/k8s/workload/WorkloadList":          {},
+	"business/k8s/release/ReleaseList":            {},
+	"business/service/ServiceList":                {},
 }

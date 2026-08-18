@@ -72,7 +72,7 @@ test.describe('Deploy business module smoke', () => {
       }
     });
 
-    await page.goto('/operations/deploy/package', { waitUntil: 'networkidle' });
+    await page.goto('/business/deploy/package', { waitUntil: 'networkidle' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect(page.locator('.governance-summary-bar__title-row')).toBeVisible();
     await expect(page.locator('.governance-summary-bar__icon')).toBeVisible();
@@ -84,7 +84,7 @@ test.describe('Deploy business module smoke', () => {
     await expect(page.locator('.system-list__table-card')).toBeVisible();
     await page.screenshot({ path: testInfo.outputPath('deploy-package-list.png'), fullPage: true });
 
-    await page.goto('/operations/deploy/template', { waitUntil: 'networkidle' });
+    await page.goto('/business/deploy/template', { waitUntil: 'networkidle' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect(page.locator('.governance-summary-bar__title-row')).toBeVisible();
     await expect(page.locator('.governance-summary-bar__icon')).toBeVisible();
@@ -96,7 +96,7 @@ test.describe('Deploy business module smoke', () => {
     await expect(page.locator('.system-list__table-card')).toBeVisible();
     await page.screenshot({ path: testInfo.outputPath('deploy-template-list.png'), fullPage: true });
 
-    await page.goto('/operations/deploy/task', { waitUntil: 'networkidle' });
+    await page.goto('/business/deploy/task', { waitUntil: 'networkidle' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect(page.locator('.governance-summary-bar__title-row')).toBeVisible();
     await expect(page.locator('.governance-summary-bar__icon')).toBeVisible();
@@ -180,7 +180,7 @@ test.describe('Deploy business module smoke', () => {
         }),
       );
 
-      await page.goto('/operations/deploy/task', { waitUntil: 'networkidle' });
+      await page.goto('/business/deploy/task', { waitUntil: 'networkidle' });
       await expect(page).toHaveURL(/\/operations\/deploy\/task$/);
       const taskKeywordInput = page.locator('.search-toolbar input').first();
       await expect(taskKeywordInput).toBeVisible();
@@ -227,7 +227,7 @@ test.describe('Deploy business module smoke', () => {
     );
 
     try {
-      await page.goto('/operations/deploy/package', { waitUntil: 'networkidle' });
+      await page.goto('/business/deploy/package', { waitUntil: 'networkidle' });
       await expect(page).toHaveURL(/\/operations\/deploy\/package$/);
       const row = page.getByRole('row').filter({ hasText: token }).first();
       await expect(row).toBeVisible();
@@ -303,7 +303,7 @@ test.describe('Deploy business module smoke', () => {
     );
 
     try {
-      await page.goto('/operations/deploy/template', { waitUntil: 'networkidle' });
+      await page.goto('/business/deploy/template', { waitUntil: 'networkidle' });
       await expect(page).toHaveURL(/\/operations\/deploy\/template$/);
       const templateKeywordInput = page.locator('.search-toolbar input').first();
       await expect(templateKeywordInput).toBeVisible();
@@ -385,7 +385,7 @@ test.describe('Deploy business module smoke', () => {
     );
 
     try {
-      await page.goto(`/operations/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
+      await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
       await expect(page.locator('.page-container')).toBeVisible();
       await expect(page.locator('.system-page-hero')).toBeVisible();
       await expect(page.locator('.system-list__table-card')).toBeVisible();
@@ -465,7 +465,7 @@ test.describe('Deploy business module smoke', () => {
       );
       expect(started.hosts).toHaveLength(1);
 
-      await page.goto(`/operations/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
+      await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
       await expect(page.getByRole('button', { name: '标记失败' }).first()).toBeVisible();
       await page.getByRole('button', { name: '标记失败' }).first().click();
 
@@ -590,12 +590,12 @@ test.describe('Deploy business module smoke', () => {
     );
 
     try {
-      await page.goto('/operations/deploy/template', { waitUntil: 'networkidle' });
+      await page.goto('/business/deploy/template', { waitUntil: 'networkidle' });
       await page.locator('.search-toolbar input').first().fill(token);
       await expect(page.getByText(token, { exact: true }).first()).toBeVisible();
       await page.screenshot({ path: testInfo.outputPath('deploy-script-template-list.png'), fullPage: true });
 
-      await page.goto(`/operations/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
+      await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
       await expect(page.getByText('configRoot', { exact: true })).toBeVisible();
       await expect(page.getByText('/data/nginx-custom/conf', { exact: true })).toBeVisible();
       await expect(page.getByText('/data/nginx-custom', { exact: true })).toBeVisible();
@@ -668,11 +668,11 @@ test.describe('Deploy business module smoke', () => {
     expect(task.status).toBe('draft');
 
     try {
-      await page.goto(`/operations/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
+      await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
       await expect(page.getByText('任务级操作', { exact: true })).toBeVisible();
       await page.getByRole('button', { name: '编辑' }).click();
 
-      await expect(page).toHaveURL(new RegExp(`/operations/deploy/task\\?editId=${task.id}$`));
+      await expect(page).toHaveURL(new RegExp(`/business/deploy/task\\?editId=${task.id}$`));
       const modal = page.locator('.arco-modal').last();
       await expect(modal).toBeVisible();
       await expect(modal).toContainText('编辑任务');
@@ -680,7 +680,7 @@ test.describe('Deploy business module smoke', () => {
       await modal.locator('textarea').fill('detail edit smoke updated');
       await modal.getByRole('button', { name: '保存' }).click();
       await expect(modal).toBeHidden();
-      await expect(page).toHaveURL(/\/operations\/deploy\/task$/);
+      await expect(page).toHaveURL(/\/business\/deploy\/task$/);
 
       const detail = await expectSuccess<TaskRow>(
         await request.get(`${apiBaseUrl}/business/deploy/tasks/${task.id}`, { headers }),
@@ -807,7 +807,7 @@ test.describe('Deploy business module smoke', () => {
       expect.arrayContaining(['start', 'result', 'error']),
     );
 
-    await page.goto(`/operations/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
+    await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
     await expect(page.locator('.page-container')).toBeVisible();
     await expect(page.locator('.system-page-hero')).toContainText('目标主机');
     await expect(page.getByRole('cell', { name: '业务域' })).toBeVisible();
@@ -832,7 +832,7 @@ test.describe('Deploy business module smoke', () => {
   test('deploy pages stay within a phone viewport', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 390, height: 844 });
 
-    await page.goto('/operations/deploy/package', { waitUntil: 'networkidle' });
+    await page.goto('/business/deploy/package', { waitUntil: 'networkidle' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect
       .poll(async () =>
@@ -841,7 +841,7 @@ test.describe('Deploy business module smoke', () => {
       .toBe(true);
     await page.screenshot({ path: testInfo.outputPath('deploy-package-list-mobile.png'), fullPage: true });
 
-    await page.goto('/operations/deploy/template', { waitUntil: 'networkidle' });
+    await page.goto('/business/deploy/template', { waitUntil: 'networkidle' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect
       .poll(async () =>
@@ -850,7 +850,7 @@ test.describe('Deploy business module smoke', () => {
       .toBe(true);
     await page.screenshot({ path: testInfo.outputPath('deploy-template-list-mobile.png'), fullPage: true });
 
-    await page.goto('/operations/deploy/task', { waitUntil: 'networkidle' });
+    await page.goto('/business/deploy/task', { waitUntil: 'networkidle' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect
       .poll(async () =>

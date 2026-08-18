@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
-import { IconCode, IconDelete, IconEdit, IconEye, IconPlus } from '@arco-design/web-react/icon';
+import { IconDelete, IconEdit, IconEye, IconPlus } from '@arco-design/web-react/icon';
 import {
   AppModal,
   AppTable,
@@ -421,7 +421,6 @@ export default function DeployTemplateList() {
     <PageContainer>
       <Space direction="vertical" size={16} className="system-page-template">
         <GovernanceSummaryBar
-          icon={<IconCode />}
           eyebrow={t('business.deploy.template.hero.eyebrow')}
           title={t('operations.deploy.template.menu')}
           description={t('business.deploy.template.hero.title')}
