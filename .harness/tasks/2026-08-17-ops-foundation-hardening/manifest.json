@@ -5,7 +5,24 @@
   "status": "complete",
   "priority": "P0-P1",
   "deliveryTier": "L2",
+  "primaryLayer": "business-foundation",
+  "qualityProfiles": ["permission-policy", "ui-runtime", "generator"],
   "goal": "Close the minimum architecture, authorization, consistency, lifecycle, and quality gaps required for VM service lifecycle and reliable Kubernetes management.",
+  "scope": {
+    "in": [
+      "business module ownership and cross-module typed capability boundaries",
+      "BizScope data-domain enforcement and CMDB ownership",
+      "Deploy idempotency, leases, callbacks, and service-instance state transitions",
+      "Kubernetes release reliability and resource state-machine contracts",
+      "architecture, overlay, frontend, and evidence quality gates"
+    ],
+    "out": [
+      "generic platform/system capability changes in pantheon-base",
+      "production legacy-table migration SQL",
+      "credentialed live-cluster/browser smoke execution",
+      "copying all Kubernetes objects into CMDB"
+    ]
+  },
   "taskDoc": "docs/harness/tasks/2026-08-17-ops-foundation-hardening.task.md",
   "handoffDoc": ".harness/tasks/2026-08-17-ops-foundation-hardening/HANDOFF.md",
   "executionQueueDoc": ".harness/tasks/2026-08-17-ops-foundation-hardening/EXECUTION_QUEUE.md",
@@ -52,9 +69,13 @@
     "node scripts/business-overlay/check-business-overlay.mjs"
   ],
   "linkage": {
+    "taskId": "2026-08-17-ops-foundation-hardening",
+    "changeRef": "https://github.com/duanxldragon/pantheon-ops/pulls",
+    "taskPacket": "docs/harness/tasks/2026-08-17-ops-foundation-hardening.task.md",
     "evidenceDir": ".harness/evidence/2026-08-17-ops-foundation-hardening/",
     "reviewFile": ".harness/evidence/2026-08-17-ops-foundation-hardening/review.md",
-    "summaryFile": ".harness/evidence/2026-08-17-ops-foundation-hardening/summary.md"
+    "summaryFile": ".harness/evidence/2026-08-17-ops-foundation-hardening/summary.md",
+    "planRefs": ["docs/harness/tasks/2026-08-17-ops-foundation-hardening.task.md"]
   },
   "maintainerGates": [
     "pantheon-base ownership or foundation version change",
