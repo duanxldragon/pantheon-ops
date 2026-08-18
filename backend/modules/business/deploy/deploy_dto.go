@@ -12,59 +12,59 @@ type PackageQuery struct {
 }
 
 type CreatePackageRequest struct {
-	Name             string `json:"name" binding:"required"`
-	Version          string `json:"version" binding:"required"`
-	Description      string `json:"description"`
-	InstallCommand   string `json:"installCommand"`
-	UninstallCommand string `json:"uninstallCommand"`
-	ExecutionMode    string `json:"executionMode"`
-	TemplateCode     string `json:"templateCode"`
+	Name             string         `json:"name" binding:"required"`
+	Version          string         `json:"version" binding:"required"`
+	Description      string         `json:"description"`
+	InstallCommand   string         `json:"installCommand"`
+	UninstallCommand string         `json:"uninstallCommand"`
+	ExecutionMode    string         `json:"executionMode"`
+	TemplateCode     string         `json:"templateCode"`
 	TemplateConfig   map[string]any `json:"templateConfig"`
-	SourceObjectKey  string `json:"sourceObjectKey"`
-	SourceFileName   string `json:"sourceFileName"`
-	SourceURL        string `json:"sourceUrl"`
-	Status           string `json:"status"`
+	SourceObjectKey  string         `json:"sourceObjectKey"`
+	SourceFileName   string         `json:"sourceFileName"`
+	SourceURL        string         `json:"sourceUrl"`
+	Status           string         `json:"status"`
 }
 
 type UpdatePackageRequest struct {
-	Name             *string `json:"name"`
-	Version          *string `json:"version"`
-	Description      *string `json:"description"`
-	InstallCommand   *string `json:"installCommand"`
-	UninstallCommand *string `json:"uninstallCommand"`
-	ExecutionMode    *string `json:"executionMode"`
-	TemplateCode     *string `json:"templateCode"`
+	Name             *string         `json:"name"`
+	Version          *string         `json:"version"`
+	Description      *string         `json:"description"`
+	InstallCommand   *string         `json:"installCommand"`
+	UninstallCommand *string         `json:"uninstallCommand"`
+	ExecutionMode    *string         `json:"executionMode"`
+	TemplateCode     *string         `json:"templateCode"`
 	TemplateConfig   *map[string]any `json:"templateConfig"`
-	SourceObjectKey  *string `json:"sourceObjectKey"`
-	SourceFileName   *string `json:"sourceFileName"`
-	SourceURL        *string `json:"sourceUrl"`
-	Status           *string `json:"status"`
+	SourceObjectKey  *string         `json:"sourceObjectKey"`
+	SourceFileName   *string         `json:"sourceFileName"`
+	SourceURL        *string         `json:"sourceUrl"`
+	Status           *string         `json:"status"`
 }
 
 type PackageResponse struct {
-	ID               uint64    `json:"id"`
-	Name             string    `json:"name"`
-	Version          string    `json:"version"`
-	Description      string    `json:"description"`
-	InstallCommand   string    `json:"installCommand"`
-	UninstallCommand string    `json:"uninstallCommand"`
-	ExecutionMode    string    `json:"executionMode"`
-	TemplateCode     string    `json:"templateCode"`
-	TemplateConfig   map[string]any `json:"templateConfig"`
-	SourceObjectKey  string    `json:"sourceObjectKey"`
-	SourceFileName   string    `json:"sourceFileName"`
-	SourceURL        string    `json:"sourceUrl"`
-	Status           string    `json:"status"`
-	LatestDeployedAt *time.Time `json:"latestDeployedAt,omitempty"`
-	LatestTaskID     uint64    `json:"latestTaskId"`
-	LatestTaskName   string    `json:"latestTaskName"`
-	LatestTaskStatus string    `json:"latestTaskStatus"`
-	LatestHostCount  int       `json:"latestHostCount"`
-	LatestSuccessCount int     `json:"latestSuccessCount"`
-	CreatedAt        time.Time `json:"createdAt"`
-	UpdatedAt        time.Time `json:"updatedAt"`
-	CreatedBy        string    `json:"createdBy"`
-	UpdatedBy        string    `json:"updatedBy"`
+	ID                 uint64         `json:"id"`
+	Name               string         `json:"name"`
+	Version            string         `json:"version"`
+	Description        string         `json:"description"`
+	InstallCommand     string         `json:"installCommand"`
+	UninstallCommand   string         `json:"uninstallCommand"`
+	ExecutionMode      string         `json:"executionMode"`
+	TemplateCode       string         `json:"templateCode"`
+	TemplateConfig     map[string]any `json:"templateConfig"`
+	SourceObjectKey    string         `json:"sourceObjectKey"`
+	SourceFileName     string         `json:"sourceFileName"`
+	SourceURL          string         `json:"sourceUrl"`
+	Status             string         `json:"status"`
+	LatestDeployedAt   *time.Time     `json:"latestDeployedAt,omitempty"`
+	LatestTaskID       uint64         `json:"latestTaskId"`
+	LatestTaskName     string         `json:"latestTaskName"`
+	LatestTaskStatus   string         `json:"latestTaskStatus"`
+	LatestHostCount    int            `json:"latestHostCount"`
+	LatestSuccessCount int            `json:"latestSuccessCount"`
+	CreatedAt          time.Time      `json:"createdAt"`
+	UpdatedAt          time.Time      `json:"updatedAt"`
+	CreatedBy          string         `json:"createdBy"`
+	UpdatedBy          string         `json:"updatedBy"`
 }
 
 type PackageListResponse struct {
@@ -184,32 +184,37 @@ type TaskQuery struct {
 }
 
 type CreateTaskRequest struct {
-	Name            string   `json:"name" binding:"required"`
-	TemplateID      uint64   `json:"templateId"`
-	PackageID       uint64   `json:"packageId"`
-	BusinessScopeID uint64   `json:"businessScopeId"`
-	Action          string   `json:"action"`
-	TargetType      string   `json:"targetType" binding:"required"`
-	TargetIDs       []uint64 `json:"targetIds" binding:"required"`
-	ExecutorType    string   `json:"executorType"`
-	TemplateParams  map[string]any `json:"templateParams"`
-	Remark          string   `json:"remark"`
+	Name              string         `json:"name" binding:"required"`
+	TemplateID        uint64         `json:"templateId"`
+	PackageID         uint64         `json:"packageId"`
+	BusinessScopeID   uint64         `json:"businessScopeId"`
+	ServiceID         uint64         `json:"serviceId"`
+	ServiceInstanceID uint64         `json:"serviceInstanceId"`
+	Action            string         `json:"action"`
+	TargetType        string         `json:"targetType" binding:"required"`
+	TargetIDs         []uint64       `json:"targetIds" binding:"required"`
+	ExecutorType      string         `json:"executorType"`
+	TemplateParams    map[string]any `json:"templateParams"`
+	Remark            string         `json:"remark"`
 }
 
 type UpdateTaskRequest struct {
-	Name            *string  `json:"name"`
-	TemplateID      *uint64  `json:"templateId"`
-	PackageID       *uint64  `json:"packageId"`
-	BusinessScopeID *uint64  `json:"businessScopeId"`
-	Action          *string  `json:"action"`
-	TargetType      *string  `json:"targetType"`
-	TargetIDs       []uint64 `json:"targetIds"`
-	ExecutorType    *string  `json:"executorType"`
-	TemplateParams  *map[string]any `json:"templateParams"`
-	Remark          *string  `json:"remark"`
+	Name              *string         `json:"name"`
+	TemplateID        *uint64         `json:"templateId"`
+	PackageID         *uint64         `json:"packageId"`
+	BusinessScopeID   *uint64         `json:"businessScopeId"`
+	ServiceID         *uint64         `json:"serviceId"`
+	ServiceInstanceID *uint64         `json:"serviceInstanceId"`
+	Action            *string         `json:"action"`
+	TargetType        *string         `json:"targetType"`
+	TargetIDs         []uint64        `json:"targetIds"`
+	ExecutorType      *string         `json:"executorType"`
+	TemplateParams    *map[string]any `json:"templateParams"`
+	Remark            *string         `json:"remark"`
 }
 
 type StartTaskRequest struct {
+	IdempotencyKey  string `json:"idempotencyKey"`
 	SSHUser         string `json:"sshUser"`
 	SSHPassword     string `json:"sshPassword"`
 	SSHPrivateKey   string `json:"sshPrivateKey"`
@@ -218,67 +223,80 @@ type StartTaskRequest struct {
 }
 
 type MarkHostResultRequest struct {
-	Status       string `json:"status" binding:"required"`
-	Stdout       string `json:"stdout"`
-	Stderr       string `json:"stderr"`
-	ErrorMessage string `json:"errorMessage"`
-	ExecutorID   string `json:"executorId"`
+	Status         string `json:"status" binding:"required"`
+	Stdout         string `json:"stdout"`
+	Stderr         string `json:"stderr"`
+	ErrorMessage   string `json:"errorMessage"`
+	ExecutorID     string `json:"executorId"`
+	ReportKey      string `json:"reportKey"`
+	HealthState    string `json:"healthState"`
+	HealthMessage  string `json:"healthMessage"`
+	HealthRevision string `json:"healthRevision"`
 }
 
 type TaskResponse struct {
-	ID                uint64             `json:"id"`
-	Name              string             `json:"name"`
-	TemplateID        uint64             `json:"templateId"`
-	TemplateName      string             `json:"templateName"`
-	TemplateVersion   string             `json:"templateVersion"`
-	PackageID         uint64             `json:"packageId"`
-	PackageName       string             `json:"packageName"`
-	PackageVersion    string             `json:"packageVersion"`
-	BusinessScopeID   uint64             `json:"businessScopeId"`
-	BusinessScopeName string             `json:"businessScopeName"`
-	Action            string             `json:"action"`
-	TargetType        string             `json:"targetType"`
-	TargetIDs         []uint64           `json:"targetIds"`
-	ExecutorType      string             `json:"executorType"`
-	ExecutionMode     string             `json:"executionMode"`
-	TemplateParams    map[string]any     `json:"templateParams"`
-	Status            string             `json:"status"`
-	Remark            string             `json:"remark"`
-	ExternalTaskID    string             `json:"externalTaskId"`
-	StartedAt         *time.Time         `json:"startedAt"`
-	FinishedAt        *time.Time         `json:"finishedAt"`
-	HostCount         int                `json:"hostCount"`
-	SuccessCount      int                `json:"successCount"`
-	FailedCount       int                `json:"failedCount"`
-	RunningCount      int                `json:"runningCount"`
-	SkippedCount      int                `json:"skippedCount"`
-	DurationSeconds   int64              `json:"durationSeconds"`
-	CreatedAt         time.Time          `json:"createdAt"`
-	UpdatedAt         time.Time          `json:"updatedAt"`
-	CreatedBy         string             `json:"createdBy"`
-	UpdatedBy         string             `json:"updatedBy"`
-	Hosts             []TaskHostResponse `json:"hosts"`
+	ID                  uint64             `json:"id"`
+	Name                string             `json:"name"`
+	TemplateID          uint64             `json:"templateId"`
+	TemplateName        string             `json:"templateName"`
+	TemplateVersion     string             `json:"templateVersion"`
+	PackageID           uint64             `json:"packageId"`
+	PackageName         string             `json:"packageName"`
+	PackageVersion      string             `json:"packageVersion"`
+	BusinessScopeID     uint64             `json:"businessScopeId"`
+	BusinessScopeName   string             `json:"businessScopeName"`
+	ServiceID           uint64             `json:"serviceId"`
+	ServiceInstanceID   uint64             `json:"serviceInstanceId"`
+	ServiceName         string             `json:"serviceName"`
+	ServiceInstanceName string             `json:"serviceInstanceName"`
+	Action              string             `json:"action"`
+	TargetType          string             `json:"targetType"`
+	TargetIDs           []uint64           `json:"targetIds"`
+	ExecutorType        string             `json:"executorType"`
+	ExecutionMode       string             `json:"executionMode"`
+	TemplateParams      map[string]any     `json:"templateParams"`
+	Status              string             `json:"status"`
+	Remark              string             `json:"remark"`
+	ExternalTaskID      string             `json:"externalTaskId"`
+	StartRequestReused  bool               `json:"startRequestReused"`
+	StartedAt           *time.Time         `json:"startedAt"`
+	FinishedAt          *time.Time         `json:"finishedAt"`
+	HostCount           int                `json:"hostCount"`
+	SuccessCount        int                `json:"successCount"`
+	FailedCount         int                `json:"failedCount"`
+	RunningCount        int                `json:"runningCount"`
+	SkippedCount        int                `json:"skippedCount"`
+	DurationSeconds     int64              `json:"durationSeconds"`
+	CreatedAt           time.Time          `json:"createdAt"`
+	UpdatedAt           time.Time          `json:"updatedAt"`
+	CreatedBy           string             `json:"createdBy"`
+	UpdatedBy           string             `json:"updatedBy"`
+	Hosts               []TaskHostResponse `json:"hosts"`
 }
 
 type TaskHostResponse struct {
-	ID           uint64     `json:"id"`
-	TaskID       uint64     `json:"taskId"`
-	HostID       uint64     `json:"hostId"`
-	Hostname     string     `json:"hostname"`
-	HostIP       string     `json:"hostIp"`
-	OS           string     `json:"os"`
-	Status       string     `json:"status"`
-	Stdout       string     `json:"stdout"`
-	Stderr       string     `json:"stderr"`
-	ErrorMessage string     `json:"errorMessage"`
-	ExecutorID   string     `json:"executorId"`
-	TraceSteps   []map[string]any `json:"traceSteps"`
-	StartedAt    *time.Time `json:"startedAt"`
-	FinishedAt   *time.Time `json:"finishedAt"`
-	ReportedAt   *time.Time `json:"reportedAt"`
-	DurationSeconds int64   `json:"durationSeconds"`
-	UpdatedAt    time.Time  `json:"updatedAt"`
-	UpdatedBy    string     `json:"updatedBy"`
+	ID              uint64           `json:"id"`
+	TaskID          uint64           `json:"taskId"`
+	HostID          uint64           `json:"hostId"`
+	Hostname        string           `json:"hostname"`
+	HostIP          string           `json:"hostIp"`
+	SSHPort         int              `json:"sshPort"`
+	OS              string           `json:"os"`
+	BusinessScopeID uint64           `json:"businessScopeId"`
+	Status          string           `json:"status"`
+	Stdout          string           `json:"stdout"`
+	Stderr          string           `json:"stderr"`
+	ErrorMessage    string           `json:"errorMessage"`
+	ExecutorID      string           `json:"executorId"`
+	ReportKey       string           `json:"reportKey"`
+	TraceSteps      []map[string]any `json:"traceSteps"`
+	StartedAt       *time.Time       `json:"startedAt"`
+	FinishedAt      *time.Time       `json:"finishedAt"`
+	ReportedAt      *time.Time       `json:"reportedAt"`
+	ResolvedAt      *time.Time       `json:"resolvedAt"`
+	DurationSeconds int64            `json:"durationSeconds"`
+	UpdatedAt       time.Time        `json:"updatedAt"`
+	UpdatedBy       string           `json:"updatedBy"`
 }
 
 type TaskListResponse struct {

@@ -1,0 +1,44 @@
+[
+  {
+    "command": "go test -count=1 ./pkg/database/...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "pkg/database tests passed"
+  },
+  {
+    "command": "go test -count=1 ./modules/business/...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "all business packages passed"
+  },
+  {
+    "command": "go vet ./...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "no findings"
+  },
+  {
+    "command": "mysql 8.0.36: apply 000012 up to temporary empty database",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "11 business tables created"
+  },
+  {
+    "command": "mysql 8.0.36: duplicate active scope and duplicate task-host inserts",
+    "workdir": "pantheon-ops",
+    "exitCode": 1,
+    "timestamp": "2026-08-17",
+    "output": "duplicate rejected with MySQL 1062"
+  },
+  {
+    "command": "mysql 8.0.36: apply down then apply up again",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "rollback and repeat-up succeeded"
+  }
+]

@@ -1,11 +1,14 @@
 package cmdb
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
+	bizcap "pantheon-base/modules/business/capability"
 	cmdbgroup "pantheon-base/modules/business/cmdb/group"
 	cmdbhost "pantheon-base/modules/business/cmdb/host"
 	"pantheon-base/pkg/common"
@@ -53,16 +56,49 @@ type DeployHostWritebackRequest struct {
 }
 
 type DeployCMDBCapability interface {
+	bizcap.CMDBHostReader
+	bizcap.CMDBOwnershipCommand
 	ResolveDeployTargets(req DeployHostResolveRequest) ([]DeployHostTarget, error)
 	WriteDeployHostResult(req DeployHostWritebackRequest) error
 }
 
 type deployCMDBCapability struct {
-	db *gorm.DB
+	db             *gorm.DB
+	bizScopeReader bizcap.BizScopeReader
 }
 
-func NewDeployCMDBCapability(db *gorm.DB) DeployCMDBCapability {
-	return &deployCMDBCapability{db: db}
+// NewDeployCMDBCapability creates the CMDB capability consumed by deploy and bizscope.
+func NewDeployCMDBCapability(db *gorm.DB, readers ...bizcap.BizScopeReader) *deployCMDBCapability {
+	capability := &deployCMDBCapability{db: db}
+	if len(readers) > 0 {
+		capability.bizScopeReader = readers[0]
+	}
+	return capability
+}
+
+func (c *deployCMDBCapability) SetBizScopeReader(reader bizcap.BizScopeReader) {
+	c.bizScopeReader = reader
+}
+
+var _ bizcap.CMDBHostReader = (*deployCMDBCapability)(nil)
+var _ bizcap.CMDBOwnershipCommand = (*deployCMDBCapability)(nil)
+
+func (c *deployCMDBCapability) GetByIDs(ctx context.Context, req bizcap.HostIDsQuery) (bizcap.HostPage, error) {
+	if c.db == nil {
+		return bizcap.HostPage{}, errors.New("database.not_initialized")
+	}
+	ids := common.NormalizeUint64IDs(req.HostIDs)
+	if len(ids) == 0 {
+		return bizcap.HostPage{Items: []bizcap.HostRef{}}, nil
+	}
+	query := c.db.WithContext(ctx).Model(&cmdbhost.Host{}).
+		Scopes(database.WithDataScope(req.DataScope)).
+		Where("id IN ?", ids)
+	var rows []cmdbhost.Host
+	if err := query.Order("id ASC").Find(&rows).Error; err != nil {
+		return bizcap.HostPage{}, err
+	}
+	return bizcap.HostPage{Items: mapCapabilityHostRefs(rows), Total: int64(len(rows))}, nil
 }
 
 func (c *deployCMDBCapability) ResolveDeployTargets(req DeployHostResolveRequest) ([]DeployHostTarget, error) {
@@ -121,6 +157,202 @@ func (c *deployCMDBCapability) WriteDeployHostResult(req DeployHostWritebackRequ
 	})
 }
 
+func (c *deployCMDBCapability) ListByBusinessScope(ctx context.Context, req bizcap.HostScopeQuery) (bizcap.HostPage, error) {
+	if c.db == nil {
+		return bizcap.HostPage{}, errors.New("database.not_initialized")
+	}
+	query := c.db.WithContext(ctx).Model(&cmdbhost.Host{}).
+		Scopes(database.WithDataScope(req.DataScope)).
+		Where("business_scope_id = ?", req.BusinessScopeID)
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return bizcap.HostPage{}, err
+	}
+	var rows []cmdbhost.Host
+	if err := query.Order("id DESC").Find(&rows).Error; err != nil {
+		return bizcap.HostPage{}, err
+	}
+	return bizcap.HostPage{Items: mapCapabilityHostRefs(rows), Total: total}, nil
+}
+
+func (c *deployCMDBCapability) ListAvailable(ctx context.Context, req bizcap.AvailableHostQuery) (bizcap.HostPage, error) {
+	if c.db == nil {
+		return bizcap.HostPage{}, errors.New("database.not_initialized")
+	}
+	query := c.db.WithContext(ctx).Model(&cmdbhost.Host{}).
+		Scopes(database.WithDataScope(req.DataScope)).
+		Where("(business_scope_id = 0 OR business_scope_id IS NULL)")
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return bizcap.HostPage{}, err
+	}
+	var rows []cmdbhost.Host
+	if err := query.Order("id DESC").Find(&rows).Error; err != nil {
+		return bizcap.HostPage{}, err
+	}
+	return bizcap.HostPage{Items: mapCapabilityHostRefs(rows), Total: total}, nil
+}
+
+func (c *deployCMDBCapability) HasBusinessScopeReferences(ctx context.Context, businessScopeID uint64) (bool, error) {
+	if c.db == nil {
+		return false, errors.New("database.not_initialized")
+	}
+	var count int64
+	if err := c.db.WithContext(ctx).Model(&cmdbhost.Host{}).Where("business_scope_id = ?", businessScopeID).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func (c *deployCMDBCapability) Bind(ctx context.Context, req bizcap.BindOwnershipRequest) error {
+	if c.db == nil {
+		return errors.New("database.not_initialized")
+	}
+	hostIDs := common.NormalizeUint64IDs(req.HostIDs)
+	if len(hostIDs) == 0 {
+		return errors.New("param.invalid")
+	}
+	if req.BusinessScopeID == 0 {
+		return errors.New("business.bizscope.notFound")
+	}
+	return c.WithBusinessScopeOwnershipLock(ctx, req.BusinessScopeID, func() error {
+		if c.bizScopeReader == nil {
+			return errors.New("business.bizscope.readerNotConfigured")
+		}
+		if _, err := c.bizScopeReader.GetActive(ctx, req.BusinessScopeID, req.DataScope); err != nil {
+			return err
+		}
+		return c.bindUnlocked(ctx, req, hostIDs)
+	})
+}
+
+func (c *deployCMDBCapability) bindUnlocked(ctx context.Context, req bizcap.BindOwnershipRequest, hostIDs []uint64) error {
+	return c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var found int64
+		if err := tx.Model(&cmdbhost.Host{}).
+			Scopes(database.WithDataScope(req.DataScope)).
+			Where("id IN ?", hostIDs).
+			Count(&found).Error; err != nil {
+			return err
+		}
+		if found != int64(len(hostIDs)) {
+			return errors.New("cmdbhost.not_found")
+		}
+		var owned int64
+		if err := tx.Model(&cmdbhost.Host{}).
+			Scopes(database.WithDataScope(req.DataScope)).
+			Where("id IN ?", hostIDs).
+			Where("business_scope_id <> 0").
+			Count(&owned).Error; err != nil {
+			return err
+		}
+		if owned > 0 {
+			return errors.New("cmdbhost.ownership_conflict")
+		}
+		updates := map[string]any{
+			"business_scope_id":   req.BusinessScopeID,
+			"business_scope_code": strings.TrimSpace(req.BusinessScopeCode),
+			"business_scope_name": strings.TrimSpace(req.BusinessScopeName),
+			"status":              "assigned",
+			"updated_by":          strings.TrimSpace(req.Actor),
+			"updated_at":          time.Now(),
+		}
+		result := tx.Model(&cmdbhost.Host{}).
+			Scopes(database.WithDataScope(req.DataScope)).
+			Where("id IN ?", hostIDs).
+			Where("business_scope_id = 0").
+			Updates(updates)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == int64(len(hostIDs)) {
+			return nil
+		}
+		return classifyOwnershipBindFailure(tx, req.DataScope, hostIDs)
+	})
+}
+
+func (c *deployCMDBCapability) WithBusinessScopeOwnershipLock(ctx context.Context, businessScopeID uint64, action func() error) error {
+	if c.db == nil {
+		return errors.New("database.not_initialized")
+	}
+	if businessScopeID == 0 {
+		return errors.New("business.bizscope.notFound")
+	}
+	if c.db.Name() != "mysql" {
+		return action()
+	}
+	lockName := fmt.Sprintf("pantheon:bizscope:%d", businessScopeID)
+	return c.db.WithContext(ctx).Connection(func(conn *gorm.DB) error {
+		var acquired int
+		if err := conn.Raw("SELECT GET_LOCK(?, 10)", lockName).Scan(&acquired).Error; err != nil {
+			return err
+		}
+		if acquired != 1 {
+			return errors.New("cmdbhost.ownership_lock_timeout")
+		}
+		defer func() {
+			_ = conn.Exec("SELECT RELEASE_LOCK(?)", lockName).Error
+		}()
+		return action()
+	})
+}
+
+func (c *deployCMDBCapability) Unbind(ctx context.Context, req bizcap.UnbindOwnershipRequest) error {
+	if c.db == nil {
+		return errors.New("database.not_initialized")
+	}
+	return c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		updates := map[string]any{
+			"business_scope_id":   uint64(0),
+			"business_scope_code": "",
+			"business_scope_name": "",
+			"status":              gorm.Expr("CASE WHEN status = ? THEN ? ELSE status END", "assigned", "pending"),
+			"updated_by":          strings.TrimSpace(req.Actor),
+			"updated_at":          time.Now(),
+		}
+		result := tx.Model(&cmdbhost.Host{}).
+			Scopes(database.WithDataScope(req.DataScope)).
+			Where("id = ? AND business_scope_id = ?", req.HostID, req.BusinessScopeID).
+			Updates(updates)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return classifyOwnershipUnbindFailure(tx, req)
+		}
+		return nil
+	})
+}
+
+func classifyOwnershipBindFailure(tx *gorm.DB, dataScope *common.DataScopeReq, hostIDs []uint64) error {
+	var found int64
+	if err := tx.Model(&cmdbhost.Host{}).
+		Scopes(database.WithDataScope(dataScope)).
+		Where("id IN ?", hostIDs).
+		Count(&found).Error; err != nil {
+		return err
+	}
+	if found != int64(len(hostIDs)) {
+		return errors.New("cmdbhost.not_found")
+	}
+	return errors.New("cmdbhost.ownership_conflict")
+}
+
+func classifyOwnershipUnbindFailure(tx *gorm.DB, req bizcap.UnbindOwnershipRequest) error {
+	var found int64
+	if err := tx.Model(&cmdbhost.Host{}).
+		Scopes(database.WithDataScope(req.DataScope)).
+		Where("id = ?", req.HostID).
+		Count(&found).Error; err != nil {
+		return err
+	}
+	if found == 0 {
+		return errors.New("cmdbhost.not_found")
+	}
+	return errors.New("cmdbhost.ownership_conflict")
+}
+
 func loadInstalledComponents(tx *gorm.DB, hostID uint64) ([]cmdbhost.ComponentEntry, error) {
 	var snapshot struct {
 		InstalledComponents datatypes.JSON `gorm:"column:installed_components"`
@@ -136,6 +368,26 @@ func loadInstalledComponents(tx *gorm.DB, hostID uint64) ([]cmdbhost.ComponentEn
 		components = []cmdbhost.ComponentEntry{}
 	}
 	return components, nil
+}
+
+func mapCapabilityHostRefs(rows []cmdbhost.Host) []bizcap.HostRef {
+	items := make([]bizcap.HostRef, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, bizcap.HostRef{
+			ID:                row.ID,
+			Hostname:          row.Hostname,
+			IP:                row.IP,
+			SSHPort:           row.SSHPort,
+			OS:                row.OS,
+			Status:            row.Status,
+			BusinessScopeID:   row.BusinessScopeID,
+			BusinessScopeCode: row.BusinessScopeCode,
+			BusinessScopeName: row.BusinessScopeName,
+			LabelValues:       row.LabelValues,
+			DeptID:            row.DeptID,
+		})
+	}
+	return items
 }
 
 func removeComponentsByName(components []cmdbhost.ComponentEntry, names []string) []cmdbhost.ComponentEntry {

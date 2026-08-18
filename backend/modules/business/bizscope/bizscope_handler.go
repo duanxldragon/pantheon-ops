@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/impexp"
 
 	"github.com/gin-gonic/gin"
 )
@@ -131,7 +132,7 @@ func (h *Handler) Create(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	item, serviceErr := h.service.Create(&req)
+	item, serviceErr := h.service.Create(&req, common.GetDataScope(c))
 	if serviceErr != nil {
 		failBizScopeError(c, serviceErr)
 		return
@@ -151,7 +152,7 @@ func (h *Handler) Update(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	item, serviceErr := h.service.Update(id, &req)
+	item, serviceErr := h.service.Update(id, &req, common.GetDataScope(c))
 	if serviceErr != nil {
 		failBizScopeError(c, serviceErr)
 		return
@@ -166,11 +167,62 @@ func (h *Handler) Delete(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	if serviceErr := h.service.Delete(id); serviceErr != nil {
+	if serviceErr := h.service.Delete(id, common.GetDataScope(c)); serviceErr != nil {
 		failBizScopeError(c, serviceErr)
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})
+}
+
+// Export writes visible business scopes as CSV.
+func (h *Handler) Export(c *gin.Context) {
+	common.SetAuditMetadata(c, "bizscope.export.title", common.BusinessExport)
+
+	var query BizScopeListQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	file, err := h.service.Export(query, common.GetDataScope(c))
+	if err != nil {
+		common.Fail(c, common.CodeError, "bizscope.export_failed")
+		return
+	}
+	_ = impexp.WriteCSV(c, *file)
+}
+
+// DownloadImportTemplate writes the business-scope import template.
+func (h *Handler) DownloadImportTemplate(c *gin.Context) {
+	file := h.service.BuildImportTemplate()
+	_ = impexp.WriteCSV(c, *file)
+}
+
+// Import creates or updates business scopes from an uploaded CSV.
+func (h *Handler) Import(c *gin.Context) {
+	common.SetAuditMetadata(c, "bizscope.import.title", common.BusinessImport)
+
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, "import.file.required")
+		return
+	}
+	file, err := fileHeader.Open()
+	if err != nil {
+		common.Fail(c, common.CodeError, "import.file.read.error")
+		return
+	}
+	records, err := impexp.ReadCSV(file)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, "import.file.invalid_csv")
+		return
+	}
+	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
+	result, err := h.service.Import(records, createdBy)
+	if err != nil {
+		common.Fail(c, common.CodeError, "bizscope.import_failed")
+		return
+	}
+	common.Success(c, result)
 }
 
 func failBizScopeError(c *gin.Context, err error) {

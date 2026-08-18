@@ -12,7 +12,7 @@ import {
   Switch,
   Tag,
 } from '@arco-design/web-react';
-import { IconDelete, IconEdit, IconPlus, IconTags } from '@arco-design/web-react/icon';
+import { IconDelete, IconDownload, IconEdit, IconPlus, IconTags } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import {
   AppModal,
@@ -22,6 +22,7 @@ import {
   GovernanceRailSummary,
   GovernanceRailToggleButton,
   GovernanceSummaryBar,
+  ImportCsvButton,
   ListHeaderActions,
   PageContainer,
   PageEmpty,
@@ -36,7 +37,10 @@ import { usePermission } from '../../../../hooks/usePermission';
 import {
   createLabelSchema,
   deleteLabelSchema,
+  downloadLabelSchemaImportTemplate,
+  exportLabelSchemas,
   getLabelSchemaList,
+  importLabelSchemas,
   updateLabelSchema,
   type LabelSchemaPayload,
   type LabelSchemaRow,
@@ -71,6 +75,8 @@ export default function CmdbLabelSchemaList() {
   const canCreate = hasPerm('business:cmdb:label:create');
   const canUpdate = hasPerm('business:cmdb:label:update');
   const canDelete = hasPerm('business:cmdb:label:delete');
+  const canExport = hasPerm('business:cmdb:label:export');
+  const canImport = hasPerm('business:cmdb:label:import');
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -179,6 +185,39 @@ export default function CmdbLabelSchemaList() {
       await loadData();
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      await exportLabelSchemas({
+        keyword: queryKeyword,
+        status: queryStatus,
+        category: queryCategory,
+      });
+      Message.success(t('common.exportSuccess'));
+    } catch {
+      Message.error(t('common.exportFailed'));
+    }
+  };
+
+  const handleImport = async (file: File) => {
+    try {
+      await importLabelSchemas(file);
+      Message.success(t('common.importSuccess'));
+      await loadData();
+    } catch (err) {
+      Message.error(t('common.importFailed'));
+      throw err;
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      await downloadLabelSchemaImportTemplate();
+      Message.success(t('common.downloadSuccess'));
+    } catch {
+      Message.error(t('common.downloadFailed'));
     }
   };
 
@@ -435,6 +474,25 @@ export default function CmdbLabelSchemaList() {
                   >
                     {t('common.add')}
                   </Button>
+                }
+                utility={
+                  <>
+                    {canExport ? (
+                      <Button icon={<IconDownload />} onClick={handleExport}>
+                        {t('common.export')}
+                      </Button>
+                    ) : null}
+                    {canImport ? (
+                      <>
+                        <Button icon={<IconDownload />} onClick={handleDownloadTemplate}>
+                          {t('common.downloadTemplate')}
+                        </Button>
+                        <ImportCsvButton disabled={!canImport} onSelect={handleImport}>
+                          {t('common.import')}
+                        </ImportCsvButton>
+                      </>
+                    ) : null}
+                  </>
                 }
               />
             ) : undefined

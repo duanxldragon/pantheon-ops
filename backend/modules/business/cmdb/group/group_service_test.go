@@ -24,7 +24,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func seedTestHost(t *testing.T, db *gorm.DB, ip string, labelsJSON string) {
 	t.Helper()
-	if err := db.Exec("INSERT INTO biz_cmdb_host (hostname, ip, os, label_values, status, created_at, updated_at) VALUES (?, ?, 'linux', ?, 'online', NOW(), NOW())", "host-"+ip, ip, labelsJSON).Error; err != nil {
+	// Columns must match the package-local Host model (no created_at/updated_at).
+	if err := db.Exec("INSERT INTO biz_cmdb_host (hostname, ip, os, label_values, status) VALUES (?, ?, 'linux', ?, 'online')", "host-"+ip, ip, labelsJSON).Error; err != nil {
 		t.Fatalf("seed host %s: %v", ip, err)
 	}
 }

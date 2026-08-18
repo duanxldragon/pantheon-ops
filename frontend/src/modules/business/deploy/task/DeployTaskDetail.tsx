@@ -286,7 +286,7 @@ function TaskActionsCard({ task, t, navigate, canEditTask, canStartTask, canCanc
             {canEditTask ? (
               <Button
                 icon={<IconEdit />}
-                onClick={() => navigate(`/operations/deploy/task?editId=${task.id}`)}
+                onClick={() => navigate(`/business/deploy/task?editId=${task.id}`)}
               >
                 {t('common.edit')}
               </Button>
@@ -528,7 +528,7 @@ export default function DeployTaskDetail() {
     try {
       await deleteDeployTask(task.id);
       Message.success(t('common.deleteSuccess'));
-      navigate('/operations/deploy/task');
+      navigate('/business/deploy/task');
     } finally {
       setSubmitting(false);
     }
@@ -606,7 +606,7 @@ export default function DeployTaskDetail() {
         subtitle={t('operations.deploy.task.detail')}
         extra={(
           <Space wrap>
-            <Button icon={<IconLeft />} onClick={() => navigate('/operations/deploy/task')}>{t('common.back')}</Button>
+            <Button icon={<IconLeft />} onClick={() => navigate('/business/deploy/task')}>{t('common.back')}</Button>
           </Space>
         )}
       />

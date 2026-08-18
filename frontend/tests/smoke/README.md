@@ -63,6 +63,8 @@ Pantheon smoke tests are grouped by ownership boundary.
 - `test:smoke:business:master-detail` -> `business/generated/module-master-detail-real.spec.ts`
 - `test:smoke:business:many-to-many` -> `business/generated/module-many-to-many-real.spec.ts`
 - `test:smoke:business:auto-recycle` -> `business/generated/module-auto-recycle-real.spec.ts`
+- `test:smoke:business:k8s` -> `business/k8s/k8s-pages.spec.ts`
+- `test:smoke:business:service` -> `business/service/service-pages.spec.ts`
 
 ## Coverage Matrix
 
@@ -109,3 +111,5 @@ Delete a smoke test only when its ownership is retired or another active smoke t
 - `test:smoke:business:cmdb` -> `business/cmdb/cmdb-pages.spec.ts`
 - `test:smoke:business:deploy` -> `business/deploy/deploy-pages.spec.ts`
 - `test:smoke:business:deploy:api` -> `business/deploy/deploy-api.spec.ts`
+- `test:smoke:business:k8s` -> `business/k8s/k8s-pages.spec.ts`
+- `test:smoke:business:service` -> `business/service/service-pages.spec.ts`

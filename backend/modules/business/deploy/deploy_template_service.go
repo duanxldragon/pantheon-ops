@@ -128,6 +128,13 @@ func (s *DeployService) UpdateTemplate(id uint64, req UpdateTemplateRequest, act
 	if err != nil {
 		return nil, err
 	}
+	referenced, err := s.isTemplateReferenced(id)
+	if err != nil {
+		return nil, err
+	}
+	if referenced && updateTemplateChangesExecutionDefinition(req) {
+		return nil, errors.New(errDeployTemplateImmutable)
+	}
 	next, err := s.mergeTemplateUpdate(current, req, id)
 	if err != nil {
 		return nil, err

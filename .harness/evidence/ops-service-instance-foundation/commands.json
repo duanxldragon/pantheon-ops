@@ -1,0 +1,59 @@
+[
+  {
+    "command": "go test -count=1 ./modules/business/service/...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-18",
+    "output": "service foundation tests passed"
+  },
+  {
+    "command": "PATH=D:/msys64/mingw64/bin;$PATH CGO_ENABLED=1 go test -race ./modules/business/service/...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-18",
+    "output": "service foundation race tests passed"
+  },
+  {
+    "command": "go vet ./...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-18",
+    "output": "no findings"
+  },
+  {
+    "command": "npm run type-check",
+    "workdir": "pantheon-ops/frontend",
+    "exitCode": 0,
+    "timestamp": "2026-08-18",
+    "output": "frontend type-check passed"
+  },
+  {
+    "command": "npm run build",
+    "workdir": "pantheon-ops/frontend",
+    "exitCode": 0,
+    "timestamp": "2026-08-18",
+    "output": "frontend build passed, including menu/i18n/static gates"
+  },
+  {
+    "command": "npm run check:menu-contract",
+    "workdir": "pantheon-ops/frontend",
+    "exitCode": 0,
+    "timestamp": "2026-08-18",
+    "output": "manifest / menu seed consistency passed"
+  },
+  {
+    "command": "node scripts/check-business-module-boundaries.mjs",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-18",
+    "output": "business module boundary check passed"
+  },
+  {
+    "command": "git diff --check",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-18",
+    "output": "no whitespace errors"
+  }
+]
+

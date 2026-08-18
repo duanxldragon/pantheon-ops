@@ -350,6 +350,8 @@ func failDeployTaskHostError(c *gin.Context, err error, fallback string) {
 		common.FailWithCode(c, common.CodeNotFound, err.Error())
 	case strings.TrimSpace(errorText(err)) == "business.deploy.taskHost.invalidResultState":
 		common.FailWithCode(c, 409, err.Error())
+	case strings.TrimSpace(errorText(err)) == errDeployTaskHostStaleReport:
+		common.FailWithCode(c, 409, err.Error())
 	case strings.TrimSpace(errorText(err)) == "business.deploy.taskHost.markFailed.reasonRequired":
 		common.FailWithCode(c, common.CodeParamInvalid, err.Error())
 	default:
@@ -362,7 +364,12 @@ func deployTaskConflictError(err error) bool {
 	case "business.deploy.task.invalidStartState",
 		"business.deploy.task.invalidCancelState",
 		errDeployTaskInvalidUpdateState,
-		errDeployTaskInvalidDeleteState:
+		errDeployTaskInvalidDeleteState,
+		errDeployTaskAlreadyRunning,
+		errDeployTaskLeaseConflict,
+		errDeployTaskHostStaleReport,
+		errDeployPackageImmutable,
+		errDeployTemplateImmutable:
 		return true
 	default:
 		return false
@@ -386,6 +393,7 @@ func deployTaskValidationError(err error) bool {
 		errDeployTaskTemplateDisabled,
 		errDeployTaskPackageNotFound,
 		"business.deploy.task.emptyResolvedTargets",
+		errDeployTaskSnapshotMissing,
 		errDeployTaskTemplateParamsInvalid,
 		errDeployTaskTemplateInvalid,
 		errDeployTaskInstallCommandRequired,
