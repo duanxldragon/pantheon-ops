@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "taskId": "ops-cross-module-capability-boundaries",
+  "title": "Enforce provider-owned cross-module capability APIs",
+  "status": "planned",
+  "priority": "P0",
+  "deliveryTier": "L2",
+  "taskDoc": "docs/harness/tasks/2026-08-17-ops-cross-module-capability-boundaries.task.md",
+  "handoffDoc": ".harness/tasks/ops-cross-module-capability-boundaries/HANDOFF.md",
+  "statusDoc": ".harness/tasks/ops-cross-module-capability-boundaries/STATUS.md",
+  "dependsOn": [],
+  "blocks": [
+    "ops-bizscope-datascope-ownership",
+    "ops-deploy-immutability-idempotency",
+    "ops-service-instance-foundation",
+    "ops-k8s-release-reliability"
+  ],
+  "scope": {
+    "in": [
+      "typed Reader/Capability/Command DTOs",
+      "dependency injection wiring",
+      "removal of runtime direct-table access",
+      "architecture and provider contract tests"
+    ],
+    "out": [
+      "HTTP loopback",
+      "base/system changes",
+      "full authorization implementation",
+      "Deploy lease implementation",
+      "ServiceInstance implementation",
+      "universal resource API"
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      "business capability contract or DTO-only package",
+      "architecture checker and tests",
+      ".harness/evidence/ops-cross-module-capability-boundaries/commands.json",
+      ".harness/evidence/ops-cross-module-capability-boundaries/summary.md",
+      ".harness/evidence/ops-cross-module-capability-boundaries/review.md"
+    ],
+    "modify": [
+      "backend/modules/business/cmdb/capability.go",
+      "backend/modules/business/bizscope/bizscope_service.go",
+      "backend/modules/business/cmdb/host/host_service.go",
+      "backend/modules/business/cmdb/host/host_import_export.go",
+      "backend/modules/business/deploy/deploy_service.go",
+      "backend/modules/business/k8s/cluster/cluster_service.go",
+      "backend/modules/business/*/module.go",
+      "backend/modules/business/business.go"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "backend/modules/system/**",
+      "frontend/src/modules/business/k8s/**",
+      "migration SQL except approved contract columns"
+    ]
+  },
+  "contractAnchors": [
+    "docs/business-module-review-summary.md §3",
+    "backend/modules/business/cmdb/capability.go",
+    "backend/modules/business/business.go",
+    "backend/modules/business/deploy/deploy.go"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -count=1 ./modules/business/...",
+      "go test -race ./modules/business/...",
+      "go vet ./...",
+      "node scripts/check-business-module-boundaries.mjs (or documented equivalent)"
+    ],
+    "runtimeEvidence": [
+      "direct-access scan",
+      "provider contract output",
+      "BizScope-CMDB-Deploy denied-scope smoke"
+    ]
+  },
+  "runtimeSensitive": true,
+  "costProfile": "high; strong architecture/backend executor; single contract owner",
+  "linkage": {
+    "evidenceDir": ".harness/evidence/ops-cross-module-capability-boundaries/",
+    "reviewFile": ".harness/evidence/ops-cross-module-capability-boundaries/review.md",
+    "summaryFile": ".harness/evidence/ops-cross-module-capability-boundaries/summary.md"
+  },
+  "maintainerGates": [
+    "base-owned auth contract",
+    "unresolvable package cycle",
+    "need for generic cross-module query API",
+    "public REST response break",
+    "dirty-tree overlap"
+  ],
+  "evidenceRequired": [
+    "forbidden-access scan",
+    "contract tests",
+    "dependency/injection diagram",
+    "cross-module smoke",
+    "findings-first review"
+  ],
+  "completionChecklist": [
+    "all audit violations revalidated",
+    "Reader/Command DTOs stable",
+    "direct paths removed",
+    "provider auth rechecked",
+    "architecture gate added",
+    "evidence and residual risk recorded"
+  ]
+}

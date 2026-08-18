@@ -1,10 +1,12 @@
 package bizscope
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"time"
 
+	bizcap "pantheon-base/modules/business/capability"
 	"pantheon-base/pkg/common"
 	"pantheon-base/pkg/database"
 
@@ -15,24 +17,27 @@ const (
 	bizScopeCodeExistsKey = "business.bizscope.codeExists"
 	bizScopeInUseKey      = "business.bizscope.inUse"
 	bizScopeNotFoundKey   = "business.bizscope.notFound"
+	cmdbCapabilityMissing = "business.cmdb.capability.notConfigured"
 )
 
-type bizScopeHostSnapshot struct {
-	ID                uint64 `gorm:"column:id"`
-	Hostname          string `gorm:"column:hostname"`
-	IP                string `gorm:"column:ip"`
-	OS                string `gorm:"column:os"`
-	Status            string `gorm:"column:status"`
-	BusinessScopeID   uint64 `gorm:"column:business_scope_id"`
-	BusinessScopeName string `gorm:"column:business_scope_name"`
-}
-
 type Service struct {
-	db *gorm.DB
+	db               *gorm.DB
+	hostReader       bizcap.CMDBHostReader
+	ownershipCommand bizcap.CMDBOwnershipCommand
 }
 
-func NewService(db *gorm.DB) *Service {
-	return &Service{db: db}
+type ServiceDependencies struct {
+	HostReader       bizcap.CMDBHostReader
+	OwnershipCommand bizcap.CMDBOwnershipCommand
+}
+
+func NewService(db *gorm.DB, dependencies ...ServiceDependencies) *Service {
+	service := &Service{db: db}
+	if len(dependencies) > 0 {
+		service.hostReader = dependencies[0].HostReader
+		service.ownershipCommand = dependencies[0].OwnershipCommand
+	}
+	return service
 }
 
 func (s *Service) Migrate() error {
@@ -40,6 +45,42 @@ func (s *Service) Migrate() error {
 		return errors.New("database.not_initialized")
 	}
 	return s.db.AutoMigrate(&BizScope{})
+}
+
+func (s *Service) GetActive(ctx context.Context, id uint64, dataScope *common.DataScopeReq) (bizcap.BizScopeRef, error) {
+	if s.db == nil {
+		return bizcap.BizScopeRef{}, errors.New("database.not_initialized")
+	}
+	if id == 0 {
+		return bizcap.BizScopeRef{}, errors.New(bizScopeNotFoundKey)
+	}
+	var row BizScope
+	if err := s.db.WithContext(ctx).Model(&BizScope{}).Scopes(database.WithDataScope(dataScope)).Where("id = ? AND status = ?", id, "active").First(&row).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return bizcap.BizScopeRef{}, errors.New(bizScopeNotFoundKey)
+		}
+		return bizcap.BizScopeRef{}, err
+	}
+	return toBizScopeRef(row), nil
+}
+
+func (s *Service) ResolveActiveByCodes(ctx context.Context, codes []string, dataScope *common.DataScopeReq) (map[string]bizcap.BizScopeRef, error) {
+	if s.db == nil {
+		return nil, errors.New("database.not_initialized")
+	}
+	normalized := normalizeBizScopeCodes(codes)
+	if len(normalized) == 0 {
+		return map[string]bizcap.BizScopeRef{}, nil
+	}
+	var rows []BizScope
+	if err := s.db.WithContext(ctx).Model(&BizScope{}).Scopes(database.WithDataScope(dataScope)).Where("code IN ? AND status = ?", normalized, "active").Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	result := make(map[string]bizcap.BizScopeRef, len(rows))
+	for _, row := range rows {
+		result[row.Code] = toBizScopeRef(row)
+	}
+	return result, nil
 }
 
 func (s *Service) List(query *BizScopeListQuery, dataScope *common.DataScopeReq) (*BizScopeListPageResp, error) {
@@ -69,6 +110,10 @@ func (s *Service) List(query *BizScopeListQuery, dataScope *common.DataScopeReq)
 	if query.Status != "" {
 		db = db.Where("status = ?", query.Status)
 	}
+	if query.DeptID > 0 {
+		db = db.Where("dept_id = ?", query.DeptID)
+	}
+	db = db.Scopes(database.WithDataScope(dataScope))
 
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
@@ -94,46 +139,60 @@ func (s *Service) List(query *BizScopeListQuery, dataScope *common.DataScopeReq)
 
 func (s *Service) ListOptions(dataScope *common.DataScopeReq) ([]BizScopeOptionItem, error) {
 	var rows []BizScope
-	query := s.db.Model(&BizScope{}).Where("status = ?", "active")
-	if dataScope != nil && !dataScope.IsAdmin {
-		query = query.Where("EXISTS (?)", s.scopedHostsQuery(dataScope).
-			Select("1").
-			Where("biz_cmdb_host.business_scope_id = biz_business_scope.id"))
-	}
+	query := s.db.Model(&BizScope{}).Scopes(database.WithDataScope(dataScope)).Where("status = ?", "active")
 	if err := query.Order("id desc").Limit(100).Find(&rows).Error; err != nil {
 		return nil, err
 	}
-	items := make([]BizScopeOptionItem, len(rows))
-	for index, row := range rows {
-		items[index] = BizScopeOptionItem{
+	items := make([]BizScopeOptionItem, 0, len(rows))
+	for _, row := range rows {
+		if requiresScopedHostVisibility(dataScope) {
+			page, err := s.cmdbHosts().ListByBusinessScope(context.Background(), bizcap.HostScopeQuery{
+				BusinessScopeID: row.ID,
+				DataScope:       dataScope,
+			})
+			if err != nil {
+				return nil, err
+			}
+			if page.Total == 0 {
+				continue
+			}
+		}
+		items = append(items, BizScopeOptionItem{
 			Label: row.Name,
 			Value: row.ID,
 			ID:    row.ID,
 			Name:  row.Name,
-		}
+		})
 	}
 	return items, nil
 }
 
 func (s *Service) Get(id uint64, dataScope *common.DataScopeReq) (*BizScopeDetailResp, error) {
 	var row BizScope
-	if err := s.db.First(&row, id).Error; err != nil {
+	if err := s.db.Model(&BizScope{}).Scopes(database.WithDataScope(dataScope)).First(&row, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New(bizScopeNotFoundKey)
 		}
 		return nil, err
 	}
-	var hostCount int64
-	if err := s.scopedHostsQuery(dataScope).Where("biz_cmdb_host.business_scope_id = ?", id).Count(&hostCount).Error; err != nil {
+	page, err := s.cmdbHosts().ListByBusinessScope(context.Background(), bizcap.HostScopeQuery{
+		BusinessScopeID: id,
+		DataScope:       dataScope,
+	})
+	if err != nil {
 		return nil, err
 	}
-	resp := toDetailRespWithHostCount(row, hostCount)
+	resp := toDetailRespWithHostCount(row, page.Total)
 	return &resp, nil
 }
 
-func (s *Service) Create(req *CreateBizScopeRequest) (*BizScopeListResp, error) {
+func (s *Service) Create(req *CreateBizScopeRequest, dataScopes ...*common.DataScopeReq) (*BizScopeListResp, error) {
 	if s.codeExists(req.Code, 0) {
 		return nil, errors.New(bizScopeCodeExistsKey)
+	}
+	deptID, err := validateBizScopeDept(req.DeptID, firstDataScope(dataScopes))
+	if err != nil {
+		return nil, err
 	}
 	row := BizScope{
 		Code:        strings.TrimSpace(req.Code),
@@ -141,6 +200,7 @@ func (s *Service) Create(req *CreateBizScopeRequest) (*BizScopeListResp, error) 
 		Owner:       strings.TrimSpace(req.Owner),
 		Environment: strings.TrimSpace(req.Environment),
 		Status:      strings.TrimSpace(req.Status),
+		DeptID:      deptID,
 		Remark:      strings.TrimSpace(req.Remark),
 	}
 	if err := s.db.Create(&row).Error; err != nil {
@@ -150,9 +210,13 @@ func (s *Service) Create(req *CreateBizScopeRequest) (*BizScopeListResp, error) 
 	return &resp, nil
 }
 
-func (s *Service) Update(id uint64, req *UpdateBizScopeRequest) (*BizScopeListResp, error) {
+func (s *Service) Update(id uint64, req *UpdateBizScopeRequest, dataScopes ...*common.DataScopeReq) (*BizScopeListResp, error) {
 	var row BizScope
-	if err := s.db.First(&row, id).Error; err != nil {
+	var dataScope *common.DataScopeReq
+	if len(dataScopes) > 0 {
+		dataScope = dataScopes[0]
+	}
+	if err := s.db.Model(&BizScope{}).Scopes(database.WithDataScope(dataScope)).First(&row, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New(bizScopeNotFoundKey)
 		}
@@ -181,6 +245,13 @@ func (s *Service) Update(id uint64, req *UpdateBizScopeRequest) (*BizScopeListRe
 	if req.Remark != nil {
 		row.Remark = strings.TrimSpace(*req.Remark)
 	}
+	if req.DeptID != nil {
+		deptID, err := validateBizScopeDept(*req.DeptID, dataScope)
+		if err != nil {
+			return nil, err
+		}
+		row.DeptID = deptID
+	}
 	if err := s.db.Save(&row).Error; err != nil {
 		return nil, err
 	}
@@ -188,22 +259,67 @@ func (s *Service) Update(id uint64, req *UpdateBizScopeRequest) (*BizScopeListRe
 	return &resp, nil
 }
 
-func (s *Service) Delete(id uint64) error {
-	var hostCount int64
-	if err := s.db.Table("biz_cmdb_host").Where("business_scope_id = ? AND deleted_at IS NULL", id).Count(&hostCount).Error; err != nil {
-		return err
+func firstDataScope(dataScopes []*common.DataScopeReq) *common.DataScopeReq {
+	if len(dataScopes) == 0 {
+		return nil
 	}
-	if hostCount > 0 {
-		return errors.New(bizScopeInUseKey)
+	return dataScopes[0]
+}
+
+func validateBizScopeDept(requested uint64, dataScope *common.DataScopeReq) (uint64, error) {
+	if dataScope == nil || dataScope.IsAdmin || dataScope.Mode == "" || dataScope.Mode == common.DataScopeModeAll {
+		return requested, nil
 	}
-	result := s.db.Delete(&BizScope{}, id)
-	if result.Error != nil {
-		return result.Error
+	allowed := dataScope.DeptIDs
+	if len(allowed) == 0 && dataScope.DeptID > 0 {
+		allowed = []uint64{dataScope.DeptID}
 	}
-	if result.RowsAffected == 0 {
-		return errors.New(bizScopeNotFoundKey)
+	if len(allowed) == 0 {
+		return 0, errors.New("permission.denied")
 	}
-	return nil
+	if requested == 0 {
+		if dataScope.Mode == common.DataScopeModeDept {
+			return dataScope.DeptID, nil
+		}
+		return 0, errors.New("permission.denied")
+	}
+	for _, deptID := range allowed {
+		if requested == deptID {
+			return requested, nil
+		}
+	}
+	return 0, errors.New("permission.denied")
+}
+
+func (s *Service) Delete(id uint64, dataScopes ...*common.DataScopeReq) error {
+	var dataScope *common.DataScopeReq
+	if len(dataScopes) > 0 {
+		dataScope = dataScopes[0]
+	}
+	return s.cmdbOwnership().WithBusinessScopeOwnershipLock(context.Background(), id, func() error {
+		var scope BizScope
+		if err := s.db.Model(&BizScope{}).Scopes(database.WithDataScope(dataScope)).First(&scope, id).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New(bizScopeNotFoundKey)
+			}
+			return err
+		}
+		hasReferences, err := s.cmdbHosts().HasBusinessScopeReferences(context.Background(), id)
+		if err != nil {
+			return err
+		}
+		if hasReferences {
+			return errors.New(bizScopeInUseKey)
+		}
+		result := s.db.Delete(&BizScope{}, id)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return errors.New(bizScopeNotFoundKey)
+		}
+		return nil
+	})
 }
 
 func (s *Service) codeExists(code string, excludeID uint64) bool {
@@ -225,6 +341,7 @@ func toListResp(row BizScope) BizScopeListResp {
 		Environment: row.Environment,
 		Status:      row.Status,
 		Remark:      row.Remark,
+		DeptID:      row.DeptID,
 		CreatedAt:   row.CreatedAt.Format(time.RFC3339),
 	}
 }
@@ -238,6 +355,7 @@ func toDetailRespWithHostCount(row BizScope, hostCount int64) BizScopeDetailResp
 		Environment: row.Environment,
 		Status:      row.Status,
 		Remark:      row.Remark,
+		DeptID:      row.DeptID,
 		HostCount:   hostCount,
 		CreatedAt:   row.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:   row.UpdatedAt.Format(time.RFC3339),
@@ -245,22 +363,18 @@ func toDetailRespWithHostCount(row BizScope, hostCount int64) BizScopeDetailResp
 }
 
 func (s *Service) ListBoundHosts(scopeID uint64, dataScope *common.DataScopeReq) (*BizScopeHostListResp, error) {
-	var scope BizScope
-	if err := s.db.First(&scope, scopeID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New(bizScopeNotFoundKey)
-		}
+	if _, err := s.GetActive(context.Background(), scopeID, dataScope); err != nil {
 		return nil, err
 	}
-	var rows []bizScopeHostSnapshot
-	if err := s.scopedHostsQuery(dataScope).
-		Where("biz_cmdb_host.business_scope_id = ?", scopeID).
-		Order("id DESC").
-		Find(&rows).Error; err != nil {
+	page, err := s.cmdbHosts().ListByBusinessScope(context.Background(), bizcap.HostScopeQuery{
+		BusinessScopeID: scopeID,
+		DataScope:       dataScope,
+	})
+	if err != nil {
 		return nil, err
 	}
-	items := make([]BizScopeHostItem, len(rows))
-	for index, row := range rows {
+	items := make([]BizScopeHostItem, len(page.Items))
+	for index, row := range page.Items {
 		items[index] = BizScopeHostItem{
 			ID:                row.ID,
 			Hostname:          row.Hostname,
@@ -271,26 +385,19 @@ func (s *Service) ListBoundHosts(scopeID uint64, dataScope *common.DataScopeReq)
 			BusinessScopeName: row.BusinessScopeName,
 		}
 	}
-	return &BizScopeHostListResp{Items: items, Total: int64(len(items))}, nil
+	return &BizScopeHostListResp{Items: items, Total: page.Total}, nil
 }
 
 func (s *Service) ListAvailableHosts(scopeID uint64, dataScope *common.DataScopeReq) (*BizScopeHostListResp, error) {
-	var scope BizScope
-	if err := s.db.First(&scope, scopeID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New(bizScopeNotFoundKey)
-		}
+	if _, err := s.GetActive(context.Background(), scopeID, dataScope); err != nil {
 		return nil, err
 	}
-	var rows []bizScopeHostSnapshot
-	if err := s.scopedHostsQuery(dataScope).
-		Where("(biz_cmdb_host.business_scope_id = 0 OR biz_cmdb_host.business_scope_id IS NULL)").
-		Order("id DESC").
-		Find(&rows).Error; err != nil {
+	page, err := s.cmdbHosts().ListAvailable(context.Background(), bizcap.AvailableHostQuery{DataScope: dataScope})
+	if err != nil {
 		return nil, err
 	}
-	items := make([]BizScopeHostItem, len(rows))
-	for index, row := range rows {
+	items := make([]BizScopeHostItem, len(page.Items))
+	for index, row := range page.Items {
 		items[index] = BizScopeHostItem{
 			ID:                row.ID,
 			Hostname:          row.Hostname,
@@ -301,15 +408,12 @@ func (s *Service) ListAvailableHosts(scopeID uint64, dataScope *common.DataScope
 			BusinessScopeName: row.BusinessScopeName,
 		}
 	}
-	return &BizScopeHostListResp{Items: items, Total: int64(len(items))}, nil
+	return &BizScopeHostListResp{Items: items, Total: page.Total}, nil
 }
 
 func (s *Service) BindHosts(scopeID uint64, hostIDs []uint64, dataScope *common.DataScopeReq) error {
-	var scope BizScope
-	if err := s.db.First(&scope, scopeID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New(bizScopeNotFoundKey)
-		}
+	scope, err := s.GetActive(context.Background(), scopeID, dataScope)
+	if err != nil {
 		return err
 	}
 	if len(hostIDs) == 0 {
@@ -319,60 +423,102 @@ func (s *Service) BindHosts(scopeID uint64, hostIDs []uint64, dataScope *common.
 	if len(normalizedHostIDs) == 0 {
 		return errors.New("param.invalid")
 	}
-	result := s.scopedHostsQuery(dataScope).
-		Where("biz_cmdb_host.id IN ?", normalizedHostIDs).
-		Updates(map[string]any{
-			"business_scope_id":   scope.ID,
-			"business_scope_code": scope.Code,
-			"business_scope_name": scope.Name,
-			"status":              "assigned",
-			"updated_at":          time.Now(),
-		})
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected != int64(len(normalizedHostIDs)) {
-		return errors.New(bizScopeNotFoundKey)
-	}
-	return nil
+	return s.cmdbOwnership().Bind(context.Background(), bizcap.BindOwnershipRequest{
+		BusinessScopeID:   scope.ID,
+		BusinessScopeCode: scope.Code,
+		BusinessScopeName: scope.Name,
+		HostIDs:           normalizedHostIDs,
+		DataScope:         dataScope,
+	})
 }
 
 func (s *Service) UnbindHost(scopeID uint64, hostID uint64, dataScope *common.DataScopeReq) error {
-	var scope BizScope
-	if err := s.db.First(&scope, scopeID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New(bizScopeNotFoundKey)
-		}
+	if _, err := s.GetActive(context.Background(), scopeID, dataScope); err != nil {
 		return err
 	}
-	updates := map[string]any{
-		"business_scope_id":   uint64(0),
-		"business_scope_code": "",
-		"business_scope_name": "",
-		"updated_at":          time.Now(),
-	}
-	var row bizScopeHostSnapshot
-	if err := s.scopedHostsQuery(dataScope).Where("biz_cmdb_host.id = ?", hostID).Take(&row).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New(bizScopeNotFoundKey)
-		}
-		return err
-	}
-	if row.Status == "assigned" {
-		updates["status"] = "pending"
-	}
-	result := s.scopedHostsQuery(dataScope).
-		Where("biz_cmdb_host.id = ? AND biz_cmdb_host.business_scope_id = ?", hostID, scopeID).
-		Updates(updates)
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return errors.New(bizScopeNotFoundKey)
-	}
-	return nil
+	return s.cmdbOwnership().Unbind(context.Background(), bizcap.UnbindOwnershipRequest{
+		BusinessScopeID: scopeID,
+		HostID:          hostID,
+		DataScope:       dataScope,
+	})
 }
 
-func (s *Service) scopedHostsQuery(dataScope *common.DataScopeReq) *gorm.DB {
-	return s.db.Table("biz_cmdb_host").Scopes(database.WithDataScope(dataScope)).Where("biz_cmdb_host.deleted_at IS NULL")
+func (s *Service) cmdbHosts() bizcap.CMDBHostReader {
+	if s.hostReader != nil {
+		return s.hostReader
+	}
+	return missingCMDBCapability{}
+}
+
+func (s *Service) cmdbOwnership() bizcap.CMDBOwnershipCommand {
+	if s.ownershipCommand != nil {
+		return s.ownershipCommand
+	}
+	return missingCMDBCapability{}
+}
+
+type missingCMDBCapability struct{}
+
+func (missingCMDBCapability) GetByIDs(context.Context, bizcap.HostIDsQuery) (bizcap.HostPage, error) {
+	return bizcap.HostPage{}, errors.New(cmdbCapabilityMissing)
+}
+
+func (missingCMDBCapability) ListByBusinessScope(context.Context, bizcap.HostScopeQuery) (bizcap.HostPage, error) {
+	return bizcap.HostPage{}, errors.New(cmdbCapabilityMissing)
+}
+
+func (missingCMDBCapability) ListAvailable(context.Context, bizcap.AvailableHostQuery) (bizcap.HostPage, error) {
+	return bizcap.HostPage{}, errors.New(cmdbCapabilityMissing)
+}
+
+func (missingCMDBCapability) HasBusinessScopeReferences(context.Context, uint64) (bool, error) {
+	return false, errors.New(cmdbCapabilityMissing)
+}
+
+func (missingCMDBCapability) Bind(context.Context, bizcap.BindOwnershipRequest) error {
+	return errors.New(cmdbCapabilityMissing)
+}
+
+func (missingCMDBCapability) Unbind(context.Context, bizcap.UnbindOwnershipRequest) error {
+	return errors.New(cmdbCapabilityMissing)
+}
+
+func (missingCMDBCapability) WithBusinessScopeOwnershipLock(context.Context, uint64, func() error) error {
+	return errors.New(cmdbCapabilityMissing)
+}
+
+func toBizScopeRef(row BizScope) bizcap.BizScopeRef {
+	return bizcap.BizScopeRef{
+		ID:          row.ID,
+		Code:        row.Code,
+		Name:        row.Name,
+		Environment: row.Environment,
+		Status:      row.Status,
+		DeptID:      row.DeptID,
+	}
+}
+
+func normalizeBizScopeCodes(codes []string) []string {
+	result := make([]string, 0, len(codes))
+	seen := make(map[string]struct{}, len(codes))
+	for _, code := range codes {
+		code = strings.TrimSpace(code)
+		if code == "" {
+			continue
+		}
+		if _, ok := seen[code]; ok {
+			continue
+		}
+		seen[code] = struct{}{}
+		result = append(result, code)
+	}
+	return result
+}
+
+func requiresScopedHostVisibility(dataScope *common.DataScopeReq) bool {
+	if dataScope == nil || dataScope.IsAdmin {
+		return false
+	}
+	mode := strings.TrimSpace(dataScope.Mode)
+	return mode != "" && mode != common.DataScopeModeAll
 }

@@ -1,6 +1,7 @@
 package host
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/modules/business/bizscope"
+	bizcap "pantheon-base/modules/business/capability"
 	"pantheon-base/pkg/common"
 	"pantheon-base/pkg/database"
 
@@ -31,11 +32,21 @@ func hostKeyCallback(expectedFingerprint string) ssh.HostKeyCallback {
 }
 
 type HostService struct {
-	db *gorm.DB
+	db             *gorm.DB
+	bizScopeReader bizcap.BizScopeReader
+	serviceRefs    bizcap.ServiceInstanceReferenceReader
 }
 
-func NewHostService(db *gorm.DB) *HostService {
-	return &HostService{db: db}
+func NewHostService(db *gorm.DB, readers ...bizcap.BizScopeReader) *HostService {
+	service := &HostService{db: db}
+	if len(readers) > 0 {
+		service.bizScopeReader = readers[0]
+	}
+	return service
+}
+
+func (s *HostService) SetServiceInstanceReferenceReader(reader bizcap.ServiceInstanceReferenceReader) {
+	s.serviceRefs = reader
 }
 
 func (s *HostService) Migrate() error {
@@ -159,6 +170,8 @@ func (s *HostService) Create(req CreateHostRequest, createdBy string) (*HostResp
 		Owner:             req.Owner,
 		Remark:            req.Remark,
 		Status:            status,
+		LifecycleState:    status,
+		ConnectivityState: HostConnectivityUnknown,
 		CreatedBy:         createdBy,
 		UpdatedBy:         createdBy,
 	}
@@ -178,6 +191,9 @@ func (s *HostService) Create(req CreateHostRequest, createdBy string) (*HostResp
 }
 
 func (s *HostService) Update(id uint64, req UpdateHostRequest, updatedBy string, dataScope *common.DataScopeReq) (*HostResponse, error) {
+	if req.BusinessScopeID != nil {
+		return nil, errors.New("cmdbhost.ownership_command_required")
+	}
 	host, err := s.findHostForUpdate(id, dataScope)
 	if err != nil {
 		return nil, err
@@ -390,7 +406,43 @@ func (s *HostService) UpdateStatus(id uint64, status string, dataScope *common.D
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
-	result := s.hostQuery(dataScope).Where(idWhereClause, id).Update("status", status)
+	status = strings.TrimSpace(status)
+	if !oneOfHostState(status, "pending", "assigned", "online", "offline", "maintenance", "retired") {
+		return errors.New(errHostStateInvalid)
+	}
+	var row Host
+	if err := s.hostQuery(dataScope).First(&row, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("cmdbhost.not_found")
+		}
+		return err
+	}
+	normalizeHostState(&row)
+	lifecycle, connectivity := row.LifecycleState, row.ConnectivityState
+	switch status {
+	case "pending":
+		lifecycle, connectivity = HostLifecyclePending, HostConnectivityUnknown
+	case "assigned":
+		lifecycle, connectivity = HostLifecycleAssigned, HostConnectivityUnknown
+	case "online":
+		lifecycle, connectivity = HostLifecycleAssigned, HostConnectivityReachable
+	case "offline":
+		lifecycle = HostLifecycleAssigned
+		connectivity = HostConnectivityUnreachable
+	case "maintenance":
+		lifecycle = HostLifecycleMaintenance
+		connectivity = HostConnectivityUnknown
+	case "retired":
+		lifecycle = HostLifecycleRetired
+		connectivity = HostConnectivityUnknown
+	}
+	result := s.hostQuery(dataScope).Where(idWhereClause, id).Updates(map[string]any{
+		"status":             status,
+		"lifecycle_state":    lifecycle,
+		"connectivity_state": connectivity,
+		"state_version":      gorm.Expr("state_version + 1"),
+		"updated_at":         time.Now(),
+	})
 	if result.Error != nil {
 		return result.Error
 	}
@@ -535,6 +587,7 @@ type hostGroupIndex struct {
 }
 
 func hostToResponse(h *Host, groupIndex hostGroupIndex) HostResponse {
+	normalizeHostState(h)
 	var labels []LabelEntry
 	if len(h.LabelValues) > 0 {
 		json.Unmarshal(h.LabelValues, &labels)
@@ -551,30 +604,34 @@ func hostToResponse(h *Host, groupIndex hostGroupIndex) HostResponse {
 	}
 	matchedGroups := resolveMatchedGroups(h.LabelValues, groupIndex)
 	return HostResponse{
-		ID:                  h.ID,
-		Hostname:            h.Hostname,
-		IP:                  h.IP,
-		SSHPort:             h.SSHPort,
-		OS:                  h.OS,
-		OSVersion:           h.OSVersion,
-		CPUCores:            h.CPUCores,
-		MemoryGB:            h.MemoryGB,
-		DiskGB:              h.DiskGB,
-		LabelValues:         labels,
-		InstalledComponents: components,
-		MatchedGroups:       matchedGroups,
-		MatchedGroupCount:   len(matchedGroups),
-		Status:              h.Status,
-		BusinessScopeID:     h.BusinessScopeID,
-		BusinessScopeCode:   h.BusinessScopeCode,
-		BusinessScopeName:   h.BusinessScopeName,
-		DeptID:              h.DeptID,
-		Owner:               h.Owner,
-		Remark:              h.Remark,
-		CreatedAt:           h.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:           h.UpdatedAt.Format(time.RFC3339),
-		CreatedBy:           h.CreatedBy,
-		UpdatedBy:           h.UpdatedBy,
+		ID:                     h.ID,
+		Hostname:               h.Hostname,
+		IP:                     h.IP,
+		SSHPort:                h.SSHPort,
+		OS:                     h.OS,
+		OSVersion:              h.OSVersion,
+		CPUCores:               h.CPUCores,
+		MemoryGB:               h.MemoryGB,
+		DiskGB:                 h.DiskGB,
+		LabelValues:            labels,
+		InstalledComponents:    components,
+		MatchedGroups:          matchedGroups,
+		MatchedGroupCount:      len(matchedGroups),
+		Status:                 h.Status,
+		LifecycleState:         h.LifecycleState,
+		ConnectivityState:      h.ConnectivityState,
+		ConnectivityObservedAt: formatOptionalTime(h.ConnectivityObservedAt),
+		StateVersion:           h.StateVersion,
+		BusinessScopeID:        h.BusinessScopeID,
+		BusinessScopeCode:      h.BusinessScopeCode,
+		BusinessScopeName:      h.BusinessScopeName,
+		DeptID:                 h.DeptID,
+		Owner:                  h.Owner,
+		Remark:                 h.Remark,
+		CreatedAt:              h.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:              h.UpdatedAt.Format(time.RFC3339),
+		CreatedBy:              h.CreatedBy,
+		UpdatedBy:              h.UpdatedBy,
 	}
 }
 
@@ -731,16 +788,12 @@ func hostGroupPath(group hostGroupSnapshot, groupsByID map[uint64]hostGroupSnaps
 	return strings.Join(names, " / ")
 }
 
-func (s *HostService) getBusinessScope(id uint64) (*bizscope.BizScope, error) {
+func (s *HostService) getBusinessScope(id uint64) (bizcap.BizScopeRef, error) {
 	if id == 0 {
-		return nil, errors.New("business.bizscope.notFound")
+		return bizcap.BizScopeRef{}, errors.New("business.bizscope.notFound")
 	}
-	var item bizscope.BizScope
-	if err := s.db.Where(idWhereClause, id).First(&item).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("business.bizscope.notFound")
-		}
-		return nil, err
+	if s.bizScopeReader == nil {
+		return bizcap.BizScopeRef{}, errors.New("business.bizscope.readerNotConfigured")
 	}
-	return &item, nil
+	return s.bizScopeReader.GetActive(context.Background(), id, nil)
 }

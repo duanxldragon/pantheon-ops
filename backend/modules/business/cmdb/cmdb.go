@@ -1,6 +1,7 @@
 package cmdb
 
 import (
+	bizcap "pantheon-base/modules/business/capability"
 	"pantheon-base/modules/business/cmdb/group"
 	"pantheon-base/modules/business/cmdb/host"
 	"pantheon-base/modules/business/cmdb/label"
@@ -16,8 +17,12 @@ const (
 	idAscOrder    = "id ASC"
 )
 
-func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB) {
-	hostSvc := host.NewHostService(db)
+func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB, readers ...bizcap.BizScopeReader) *host.HostService {
+	var bizScopeReader bizcap.BizScopeReader
+	if len(readers) > 0 {
+		bizScopeReader = readers[0]
+	}
+	hostSvc := host.NewHostService(db, bizScopeReader)
 	hostHandler := host.NewHostHandler(hostSvc)
 
 	groupSvc := group.NewGroupService(db)
@@ -60,4 +65,5 @@ func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB) {
 	}
 
 	contracts.RegisterBackendModules(r, db, modules...)
+	return hostSvc
 }

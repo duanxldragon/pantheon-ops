@@ -147,8 +147,8 @@ handler 不再返回 `bizscope.<action>.error` 流水 key：service 已给出稳
 | 项 | 值 |
 | :--- | :--- |
 | 菜单标题 key | `operations.bizscope.menu` |
-| 列表路由 | `/operations/business-scope` |
-| 详情路由 | `/operations/business-scope/:id` |
+| 列表路由 | `/business/business-scope` |
+| 详情路由 | `/business/business-scope/:id` |
 | 列表组件键 | `business/bizscope/BizScopeList` |
 | 详情组件键 | `business/bizscope/BizScopeDetail` |
 | 模块名 | `business.bizscope` |

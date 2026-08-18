@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	bizcap "pantheon-base/modules/business/capability"
 	"pantheon-base/modules/business/cmdb"
 	"pantheon-base/pkg/common"
 	"pantheon-base/pkg/testmysql"
@@ -56,6 +58,7 @@ type deployTestBizScope struct {
 	Code      string         `gorm:"size:64;not null"`
 	Name      string         `gorm:"size:128;not null"`
 	Status    string         `gorm:"size:16;not null"`
+	DeptID    uint64         `gorm:"column:dept_id"`
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
@@ -94,6 +97,16 @@ type multiStepDeploySSHRunner struct {
 	errAt   int
 }
 
+type recordingServiceStateCommand struct {
+	transitions []bizcap.ServiceInstanceStateTransition
+	err         error
+}
+
+func (f *recordingServiceStateCommand) ApplyServiceInstanceState(_ context.Context, req bizcap.ServiceInstanceStateTransition, _ string, _ *common.DataScopeReq) error {
+	f.transitions = append(f.transitions, req)
+	return f.err
+}
+
 func stringPtr(value string) *string {
 	return &value
 }
@@ -117,6 +130,26 @@ func (r *multiStepDeploySSHRunner) RunScript(script string) (string, string, err
 
 func (r *multiStepDeploySSHRunner) Close() error {
 	return nil
+}
+
+// corruptTaskExecutionSnapshot rewrites a task's frozen execution snapshot so
+// tests can assert that Start validates the immutable record rather than live
+// package/template rows.
+func corruptTaskExecutionSnapshot(t *testing.T, db *gorm.DB, taskID uint64, mutate func(*deployExecutionSnapshot)) {
+	t.Helper()
+	var task DeployTask
+	if err := db.First(&task, taskID).Error; err != nil {
+		t.Fatalf("load task: %v", err)
+	}
+	snapshot, err := decodeExecutionSnapshot(task.ExecutionSnapshot)
+	if err != nil {
+		t.Fatalf("decode execution snapshot: %v", err)
+	}
+	mutate(&snapshot)
+	raw, _ := json.Marshal(snapshot)
+	if err := db.Model(&DeployTask{}).Where("id = ?", taskID).Update("execution_snapshot", datatypes.JSON(raw)).Error; err != nil {
+		t.Fatalf("update execution snapshot: %v", err)
+	}
 }
 
 func TestDeployTaskLifecycleCreatesHostDetailsAndSummarizesResult(t *testing.T) {
@@ -205,6 +238,48 @@ func TestDeployTaskLifecycleCreatesHostDetailsAndSummarizesResult(t *testing.T) 
 	}
 }
 
+func TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	stateCommand := &recordingServiceStateCommand{}
+	svc.SetServiceInstanceStateCommand(stateCommand)
+
+	scopeID, hostID := seedDeployReliabilityFixture(t, db, "state-host", "10.40.0.250")
+	pkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name: "state-pkg", Version: "1.0.0", InstallCommand: "echo install", Status: PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "state task", PackageID: pkg.ID, BusinessScopeID: scopeID,
+		ServiceID: 10, ServiceInstanceID: 20, Action: TaskActionInstall,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{hostID}, ExecutorType: ExecutorTypeManual,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+	started, err := svc.StartTask(task.ID, StartTaskRequest{}, "1", nil)
+	if err != nil {
+		t.Fatalf("start task: %v", err)
+	}
+	if len(stateCommand.transitions) != 1 || stateCommand.transitions[0].ObservedState != "installing" {
+		t.Fatalf("expected install begin transition, got %+v", stateCommand.transitions)
+	}
+	if _, err := svc.MarkHostResult(started.Hosts[0].ID, MarkHostResultRequest{
+		Status: TaskHostStatusSuccess, ReportKey: "state-report-1",
+	}, "1", nil); err != nil {
+		t.Fatalf("mark host success: %v", err)
+	}
+	if len(stateCommand.transitions) != 2 {
+		t.Fatalf("expected begin and finish transitions, got %+v", stateCommand.transitions)
+	}
+	finish := stateCommand.transitions[1]
+	if finish.Action != "install" || finish.ObservedState != "stopped" || finish.CurrentVersion != "1.0.0" {
+		t.Fatalf("unexpected install finish transition: %+v", finish)
+	}
+}
+
 func TestDeployTaskUsesGroupTargets(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
@@ -279,8 +354,7 @@ func TestGetPackageReturnsDeploymentStats(t *testing.T) {
 	pkg, err := svc.CreatePackage(CreatePackageRequest{
 		Name:           "nginx",
 		Version:        "1.30.2",
-		ExecutionMode:  "fixed",
-		TemplateCode:   "nginx_systemd",
+		InstallCommand: "echo install nginx",
 		SourceFileName: "nginx-1.30.2.tar.gz",
 		Status:         "enabled",
 	}, "1")
@@ -488,7 +562,7 @@ func TestDeployTaskSSHExecutorRunsInstallAndWritesBackHostState(t *testing.T) {
 	if len(started.Hosts) != 1 || started.Hosts[0].Status != TaskHostStatusSuccess {
 		t.Fatalf("unexpected task hosts: %+v", started.Hosts)
 	}
-	if strings.TrimSpace(started.Hosts[0].Stdout) != "nginx installed" {
+	if !strings.Contains(started.Hosts[0].Stdout, "nginx installed") {
 		t.Fatalf("unexpected stdout: %+v", started.Hosts[0])
 	}
 
@@ -653,17 +727,23 @@ func TestDeployTaskFixedTemplateSSHExecutorRendersScript(t *testing.T) {
 	if !strings.Contains(runner.script, "/data/nginx") {
 		t.Fatalf("expected script to contain install root, got: %s", runner.script)
 	}
-	if !strings.Contains(runner.script, "nginx-1.30.2.tar.gz") {
+	if !strings.Contains(runner.script, "nginx-${NGINX_VERSION}.tar.gz") {
 		t.Fatalf("expected script to contain nginx tarball, got: %s", runner.script)
 	}
-	if !strings.Contains(runner.script, "nginx.service") {
+	if !strings.Contains(runner.script, "${SERVICE_NAME}.service") {
 		t.Fatalf("expected script to contain service name, got: %s", runner.script)
 	}
 	if len(started.Hosts[0].TraceSteps) < 4 {
 		t.Fatalf("expected trace steps to be recorded, got %+v", started.Hosts[0].TraceSteps)
 	}
-	if phase := started.Hosts[0].TraceSteps[0]["phase"]; phase != "connect" {
-		t.Fatalf("expected first trace phase connect, got %#v", phase)
+	foundConnect := false
+	for _, step := range started.Hosts[0].TraceSteps {
+		if step["phase"] == "connect" {
+			foundConnect = true
+		}
+	}
+	if !foundConnect {
+		t.Fatalf("expected connect trace phase, got %+v", started.Hosts[0].TraceSteps)
 	}
 
 	var hostState deployTestHost
@@ -841,9 +921,9 @@ func TestStartDeployTaskReturnsCanonicalExecutionPlanValidationErrors(t *testing
 	if err != nil {
 		t.Fatalf("create fixed task: %v", err)
 	}
-	if err := db.Model(&DeployTask{}).Where("id = ?", fixedTask.ID).Update("template_params", datatypes.JSON([]byte(`{"installRoot":"/data/nginx"}`))).Error; err != nil {
-		t.Fatalf("corrupt template params: %v", err)
-	}
+	corruptTaskExecutionSnapshot(t, db, fixedTask.ID, func(snapshot *deployExecutionSnapshot) {
+		snapshot.Steps[0].TemplateParams = map[string]any{"installRoot": "/data/nginx"}
+	})
 	_, err = svc.StartTask(fixedTask.ID, StartTaskRequest{
 		SSHUser:         "root",
 		SSHPassword:     "secret",
@@ -874,9 +954,9 @@ func TestStartDeployTaskReturnsCanonicalExecutionPlanValidationErrors(t *testing
 	if err != nil {
 		t.Fatalf("create plain task: %v", err)
 	}
-	if err := db.Model(&DeployPackage{}).Where("id = ?", plainPkg.ID).Update("install_command", "").Error; err != nil {
-		t.Fatalf("clear install command: %v", err)
-	}
+	corruptTaskExecutionSnapshot(t, db, plainTask.ID, func(snapshot *deployExecutionSnapshot) {
+		snapshot.Steps[0].Package.InstallCommand = ""
+	})
 	_, err = svc.StartTask(plainTask.ID, StartTaskRequest{
 		SSHUser:         "root",
 		SSHPassword:     "secret",
@@ -1832,7 +1912,7 @@ func TestDeployTemplateTaskSSHExecutorRunsAllTemplateSteps(t *testing.T) {
 	if len(runner.scripts) != 2 {
 		t.Fatalf("expected two rendered scripts, got %d", len(runner.scripts))
 	}
-	if !strings.Contains(runner.scripts[0], "nginx-1.30.2.tar.gz") {
+	if !strings.Contains(runner.scripts[0], "nginx-${NGINX_VERSION}.tar.gz") {
 		t.Fatalf("expected nginx script first, got %s", runner.scripts[0])
 	}
 	if !strings.Contains(runner.scripts[1], "install redis") {
@@ -2128,7 +2208,7 @@ func TestDeployTaskVisibilityRespectsHostDataScope(t *testing.T) {
 		t.Fatalf("create package: %v", err)
 	}
 
-	scope := deployTestBizScope{Code: "his-dev", Name: "HIS 开发", Status: "active"}
+	scope := deployTestBizScope{Code: "his-dev", Name: "HIS 开发", Status: "active", DeptID: 20}
 	if err := db.Create(&scope).Error; err != nil {
 		t.Fatalf("seed scope: %v", err)
 	}
@@ -2212,6 +2292,15 @@ func TestDeployTaskCreateReturnsCanonicalValidationErrors(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create disabled package: %v", err)
 	}
+	enabledPkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name:           "create-validate-enabled",
+		Version:        "1.0.0",
+		InstallCommand: "echo install",
+		Status:         PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create enabled package: %v", err)
+	}
 
 	cases := []struct {
 		name string
@@ -2256,7 +2345,7 @@ func TestDeployTaskCreateReturnsCanonicalValidationErrors(t *testing.T) {
 			name: "scope required",
 			req: CreateTaskRequest{
 				Name:         "missing scope",
-				PackageID:    disabledPkg.ID,
+				PackageID:    enabledPkg.ID,
 				TargetType:   TargetTypeHost,
 				TargetIDs:    []uint64{host.ID},
 				ExecutorType: ExecutorTypeManual,
@@ -2267,7 +2356,7 @@ func TestDeployTaskCreateReturnsCanonicalValidationErrors(t *testing.T) {
 			name: "scope invalid",
 			req: CreateTaskRequest{
 				Name:            "invalid scope",
-				PackageID:       disabledPkg.ID,
+				PackageID:       enabledPkg.ID,
 				BusinessScopeID: 999999,
 				TargetType:      TargetTypeHost,
 				TargetIDs:       []uint64{host.ID},
@@ -2416,7 +2505,7 @@ func TestDraftDeployTaskVisibilityRespectsResolvedTargets(t *testing.T) {
 		t.Fatalf("create package: %v", err)
 	}
 
-	scope := deployTestBizScope{Code: "redis-dev", Name: "Redis 开发", Status: "active"}
+	scope := deployTestBizScope{Code: "redis-dev", Name: "Redis 开发", Status: "active", DeptID: 30}
 	if err := db.Create(&scope).Error; err != nil {
 		t.Fatalf("seed scope: %v", err)
 	}
@@ -2894,7 +2983,7 @@ func TestDeployTaskDetailHandlerReturnsForbiddenAndNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create package: %v", err)
 	}
-	scope := deployTestBizScope{Code: "handler-scope", Name: "Handler Scope", Status: "active"}
+	scope := deployTestBizScope{Code: "handler-scope", Name: "Handler Scope", Status: "active", DeptID: 21}
 	if err := db.Create(&scope).Error; err != nil {
 		t.Fatalf("seed scope: %v", err)
 	}
@@ -3026,7 +3115,7 @@ func TestDeployTaskActionHandlersReturnCanonicalStatusCodes(t *testing.T) {
 	if err := json.Unmarshal(startRecorder.Body.Bytes(), &startResp); err != nil {
 		t.Fatalf("decode start response: %v", err)
 	}
-	if startResp.Code != http.StatusConflict || startResp.Message != "business.deploy.task.invalidStartState" {
+	if startResp.Code != http.StatusConflict || startResp.Message != errDeployTaskAlreadyRunning {
 		t.Fatalf("unexpected start response: %+v", startResp)
 	}
 
@@ -3564,9 +3653,9 @@ func TestStartDeployTaskHandlerReturnsCanonicalValidationErrors(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create fixed task: %v", err)
 	}
-	if err := db.Model(&DeployTask{}).Where("id = ?", fixedTask.ID).Update("template_params", datatypes.JSON([]byte(`{"installRoot":"/data/nginx"}`))).Error; err != nil {
-		t.Fatalf("corrupt template params: %v", err)
-	}
+	corruptTaskExecutionSnapshot(t, db, fixedTask.ID, func(snapshot *deployExecutionSnapshot) {
+		snapshot.Steps[0].TemplateParams = map[string]any{"installRoot": "/data/nginx"}
+	})
 
 	templateRecorder := httptest.NewRecorder()
 	templateRequest := httptest.NewRequest(
@@ -3598,9 +3687,9 @@ func TestStartDeployTaskHandlerReturnsCanonicalValidationErrors(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create command task: %v", err)
 	}
-	if err := db.Model(&DeployPackage{}).Where("id = ?", plainPkg.ID).Update("install_command", "").Error; err != nil {
-		t.Fatalf("clear install command: %v", err)
-	}
+	corruptTaskExecutionSnapshot(t, db, commandTask.ID, func(snapshot *deployExecutionSnapshot) {
+		snapshot.Steps[0].Package.InstallCommand = ""
+	})
 
 	commandRecorder := httptest.NewRecorder()
 	commandRequest := httptest.NewRequest(

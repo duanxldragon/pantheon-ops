@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-08-17-ops-foundation-hardening",
+  "title": "Pantheon Ops foundation hardening program",
+  "status": "complete",
+  "priority": "P0-P1",
+  "deliveryTier": "L2",
+  "goal": "Close the minimum architecture, authorization, consistency, lifecycle, and quality gaps required for VM service lifecycle and reliable Kubernetes management.",
+  "taskDoc": "docs/harness/tasks/2026-08-17-ops-foundation-hardening.task.md",
+  "handoffDoc": ".harness/tasks/2026-08-17-ops-foundation-hardening/HANDOFF.md",
+  "executionQueueDoc": ".harness/tasks/2026-08-17-ops-foundation-hardening/EXECUTION_QUEUE.md",
+  "statusDoc": ".harness/tasks/2026-08-17-ops-foundation-hardening/STATUS.md",
+  "auditSource": "docs/business-module-review-summary.md",
+  "ownerLayer": "business/*",
+  "children": [
+    "ops-business-versioned-migrations",
+    "ops-cross-module-capability-boundaries",
+    "ops-bizscope-datascope-ownership",
+    "ops-deploy-immutability-idempotency",
+    "ops-service-instance-foundation",
+    "ops-resource-service-state-machines",
+    "ops-k8s-release-reliability",
+    "ops-architecture-quality-gates"
+  ],
+  "executionBatches": [
+    [
+      "ops-business-versioned-migrations",
+      "ops-cross-module-capability-boundaries"
+    ],
+    [
+      "ops-bizscope-datascope-ownership",
+      "ops-deploy-immutability-idempotency",
+      "ops-k8s-release-reliability"
+    ],
+    ["ops-service-instance-foundation"],
+    ["ops-resource-service-state-machines"],
+    ["ops-architecture-quality-gates"]
+  ],
+  "globalRules": [
+    "Business modules access only tables they own.",
+    "Cross-module reads use provider-owned Reader or Capability APIs.",
+    "Cross-module writes use provider-owned Command APIs.",
+    "Cross-module DTOs never expose GORM models.",
+    "Same-process boundaries use typed Go interfaces; HTTP or gRPC is reserved for deployment boundaries.",
+    "Existing dirty-tree changes must be preserved."
+  ],
+  "verification": [
+    "go test -count=1 ./modules/business/...",
+    "go test -race ./modules/business/...",
+    "go vet ./...",
+    "npm run type-check",
+    "node scripts/business-overlay/check-business-overlay.mjs"
+  ],
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-08-17-ops-foundation-hardening/",
+    "reviewFile": ".harness/evidence/2026-08-17-ops-foundation-hardening/review.md",
+    "summaryFile": ".harness/evidence/2026-08-17-ops-foundation-hardening/summary.md"
+  },
+  "maintainerGates": [
+    "pantheon-base ownership or foundation version change",
+    "destructive or outage-requiring migration",
+    "incompatible public contracts between child tasks",
+    "unresolvable collision with pre-existing worktree edits"
+  ]
+}

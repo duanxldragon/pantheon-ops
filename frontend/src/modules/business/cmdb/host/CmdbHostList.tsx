@@ -19,9 +19,9 @@ import {
   IconPlus,
   IconEdit,
   IconDelete,
+  IconDownload,
   IconCode,
   IconEye,
-  IconStorage,
 } from '@arco-design/web-react/icon';
 import {
   AppModal,
@@ -32,6 +32,7 @@ import {
   GovernanceRailSummary,
   GovernanceRailToggleButton,
   GovernanceSummaryBar,
+  ImportCsvButton,
   ListHeaderActions,
   PageContainer,
   PageEmpty,
@@ -40,9 +41,19 @@ import {
   TableBatchActionBar,
   useGovernanceRail,
 } from '../../../../components';
-import { createHost, deleteHost, getHostDetail, getHostList, updateHost } from './api';
+import {
+  createHost,
+  deleteHost,
+  downloadHostImportTemplate,
+  exportHosts,
+  getHostDetail,
+  getHostList,
+  importHosts,
+  updateHost,
+} from './api';
 import type { CreateHostPayload, HostRow, HostListQuery } from './api';
 import { getBizScopeOptions, type BizScopeOptionItem } from '../../bizscope/api';
+import { showImportResult } from '../../../../api/importExport';
 import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
 import CmdbHostForm from './CmdbHostForm';
@@ -222,7 +233,7 @@ function buildHostColumns({
               type="text"
               size="small"
               icon={<IconCode />}
-              onClick={() => navigate(`/operations/cmdb/host/${row.id}?collect=1`)}
+              onClick={() => navigate(`/business/cmdb/host/${row.id}?collect=1`)}
             >
               {t('business.cmdb.host.collect')}
             </Button>
@@ -284,6 +295,8 @@ export default function CmdbHostList() {
   const canUpdate = hasPerm('business:cmdb:host:update');
   const canDelete = hasPerm('business:cmdb:host:delete');
   const canCollect = hasPerm('business:cmdb:host:collect');
+  const canExport = hasPerm('business:cmdb:host:export');
+  const canImport = hasPerm('business:cmdb:host:import');
 
   const loadData = useCallback(
     async (nextQuery = query) => {
@@ -455,6 +468,22 @@ export default function CmdbHostList() {
     setVisible(true);
   };
 
+  const handleExport = async () => {
+    await exportHosts(query);
+  };
+
+  const handleDownloadTemplate = async () => {
+    await downloadHostImportTemplate();
+  };
+
+  const handleImport = async (file: File) => {
+    const result = await importHosts(file);
+    showImportResult(result, t);
+    if (result.applied) {
+      loadData(query);
+    }
+  };
+
   const handleCreate = () => {
     setEditing(null);
     setVisible(true);
@@ -485,7 +514,6 @@ export default function CmdbHostList() {
     <PageContainer>
       <Space direction="vertical" size={16} className="system-page-template">
         <GovernanceSummaryBar
-          icon={<IconStorage />}
           eyebrow={t('business.cmdb.host.hero.eyebrow')}
           title={t('business.cmdb.host.title')}
           description={t('business.cmdb.host.hero.title')}
@@ -558,15 +586,28 @@ export default function CmdbHostList() {
           clearSuccessText={t('common.clearSelectionSuccess')}
           onClear={() => setSelectedRowKeys([])}
           prefixActions={
-            canCreate ? (
-              <ListHeaderActions
-                primary={
+            <ListHeaderActions
+              utility={
+                <>
+                  <Button icon={<IconDownload />} onClick={handleExport} disabled={!canExport}>
+                    {t('common.export')}
+                  </Button>
+                  <Button onClick={handleDownloadTemplate} disabled={!canImport}>
+                    {t('common.downloadTemplate')}
+                  </Button>
+                  <ImportCsvButton disabled={!canImport} onSelect={handleImport}>
+                    {t('common.import')}
+                  </ImportCsvButton>
+                </>
+              }
+              primary={
+                canCreate ? (
                   <Button type="primary" icon={<IconPlus />} onClick={handleCreate}>
                     {t('common.add')}
                   </Button>
-                }
-              />
-            ) : undefined
+                ) : undefined
+              }
+            />
           }
           actions={
             canDelete ? (

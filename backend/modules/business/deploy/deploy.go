@@ -1,6 +1,8 @@
 package deploy
 
 import (
+	bizscope "pantheon-base/modules/business/bizscope"
+	bizcap "pantheon-base/modules/business/capability"
 	"pantheon-base/modules/business/cmdb"
 	"pantheon-base/pkg/contracts"
 
@@ -8,8 +10,24 @@ import (
 	"gorm.io/gorm"
 )
 
-func InitDeployModule(r *gin.RouterGroup, db *gorm.DB) {
-	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+func InitDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, readers ...bizcap.BizScopeReader) {
+	initDeployModule(r, db, cmdbCapability, nil, readers...)
+}
+
+func InitDeployModuleWithServiceState(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, stateCommand bizcap.ServiceInstanceStateCommand, readers ...bizcap.BizScopeReader) {
+	initDeployModule(r, db, cmdbCapability, stateCommand, readers...)
+}
+
+func initDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, stateCommand bizcap.ServiceInstanceStateCommand, readers ...bizcap.BizScopeReader) {
+	var bizScopeReader bizcap.BizScopeReader
+	if len(readers) > 0 {
+		bizScopeReader = readers[0]
+	}
+	if bizScopeReader == nil {
+		bizScopeReader = bizscope.NewService(db)
+	}
+	svc := NewDeployService(db, cmdbCapability, bizScopeReader)
+	svc.SetServiceInstanceStateCommand(stateCommand)
 	handler := NewDeployHandler(svc)
 
 	modules := []contracts.BackendModule{

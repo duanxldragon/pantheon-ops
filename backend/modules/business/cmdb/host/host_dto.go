@@ -6,12 +6,12 @@ type LabelEntry struct {
 }
 
 type ComponentEntry struct {
-	Name         string `json:"name"`
-	Version      string `json:"version"`
-	DeployedAt   string `json:"deployedAt,omitempty"`
-	DeployTaskID uint64 `json:"deployTaskId,omitempty"`
+	Name           string `json:"name"`
+	Version        string `json:"version"`
+	DeployedAt     string `json:"deployedAt,omitempty"`
+	DeployTaskID   uint64 `json:"deployTaskId,omitempty"`
 	DeployTaskName string `json:"deployTaskName,omitempty"`
-	ExecutorType string `json:"executorType,omitempty"`
+	ExecutorType   string `json:"executorType,omitempty"`
 }
 
 type MatchedGroupEntry struct {
@@ -75,31 +75,42 @@ type UpdateStatusRequest struct {
 	Status string `json:"status" binding:"required"`
 }
 
+type HostStateTransitionRequest struct {
+	Action               string  `json:"action" binding:"required"`
+	ExpectedStateVersion uint64  `json:"expectedStateVersion"`
+	ConnectivityState    string  `json:"connectivityState"`
+	ObservedAt           *string `json:"observedAt"`
+}
+
 type HostResponse struct {
-	ID                  uint64           `json:"id"`
-	Hostname            string           `json:"hostname"`
-	IP                  string           `json:"ip"`
-	SSHPort             int              `json:"sshPort"`
-	OS                  string           `json:"os"`
-	OSVersion           string           `json:"osVersion"`
-	CPUCores            int              `json:"cpuCores"`
-	MemoryGB            float64          `json:"memoryGb"`
-	DiskGB              float64          `json:"diskGb"`
-	LabelValues         []LabelEntry     `json:"labelValues"`
-	InstalledComponents []ComponentEntry `json:"installedComponents"`
-	MatchedGroups       []MatchedGroupEntry `json:"matchedGroups"`
-	MatchedGroupCount   int              `json:"matchedGroupCount"`
-	Status              string           `json:"status"`
-	BusinessScopeID     uint64           `json:"businessScopeId"`
-	BusinessScopeCode   string           `json:"businessScopeCode"`
-	BusinessScopeName   string           `json:"businessScopeName"`
-	DeptID              uint64           `json:"deptId"`
-	Owner               string           `json:"owner"`
-	Remark              string           `json:"remark"`
-	CreatedAt           string           `json:"createdAt"`
-	UpdatedAt           string           `json:"updatedAt"`
-	CreatedBy           string           `json:"createdBy"`
-	UpdatedBy           string           `json:"updatedBy"`
+	ID                     uint64              `json:"id"`
+	Hostname               string              `json:"hostname"`
+	IP                     string              `json:"ip"`
+	SSHPort                int                 `json:"sshPort"`
+	OS                     string              `json:"os"`
+	OSVersion              string              `json:"osVersion"`
+	CPUCores               int                 `json:"cpuCores"`
+	MemoryGB               float64             `json:"memoryGb"`
+	DiskGB                 float64             `json:"diskGb"`
+	LabelValues            []LabelEntry        `json:"labelValues"`
+	InstalledComponents    []ComponentEntry    `json:"installedComponents"`
+	MatchedGroups          []MatchedGroupEntry `json:"matchedGroups"`
+	MatchedGroupCount      int                 `json:"matchedGroupCount"`
+	Status                 string              `json:"status"`
+	LifecycleState         string              `json:"lifecycleState"`
+	ConnectivityState      string              `json:"connectivityState"`
+	ConnectivityObservedAt string              `json:"connectivityObservedAt"`
+	StateVersion           uint64              `json:"stateVersion"`
+	BusinessScopeID        uint64              `json:"businessScopeId"`
+	BusinessScopeCode      string              `json:"businessScopeCode"`
+	BusinessScopeName      string              `json:"businessScopeName"`
+	DeptID                 uint64              `json:"deptId"`
+	Owner                  string              `json:"owner"`
+	Remark                 string              `json:"remark"`
+	CreatedAt              string              `json:"createdAt"`
+	UpdatedAt              string              `json:"updatedAt"`
+	CreatedBy              string              `json:"createdBy"`
+	UpdatedBy              string              `json:"updatedBy"`
 }
 
 type HostListResponse struct {

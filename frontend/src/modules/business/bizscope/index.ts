@@ -5,7 +5,7 @@ export const BizScopeModule = defineModule({
   scope: 'business',
   routes: [
     {
-      path: 'operations/business-scope',
+      path: 'business/business-scope',
       routeName: 'bizscope-list',
       titleKey: 'operations.bizscope.menu',
       icon: 'apps',
@@ -13,17 +13,17 @@ export const BizScopeModule = defineModule({
       componentKey: 'business/bizscope/BizScopeList',
     },
     {
-      path: 'operations/business-scope/:id',
+      path: 'business/business-scope/:id',
       routeName: 'bizscope-detail',
       titleKey: 'operations.bizscope.detail',
       pagePermission: 'business:bizscope:view',
-      activeMenu: '/operations/business-scope',
+      activeMenu: '/business/business-scope',
       componentKey: 'business/bizscope/BizScopeDetail',
     },
   ],
   menus: [
     {
-      path: '/operations/business-scope',
+      path: '/business/business-scope',
       titleKey: 'operations.bizscope.menu',
       icon: 'apps',
       routeName: 'bizscope-list',
@@ -36,6 +36,8 @@ export const BizScopeModule = defineModule({
     'business:bizscope:create',
     'business:bizscope:update',
     'business:bizscope:delete',
+    'business:bizscope:export',
+    'business:bizscope:import',
   ],
   i18nNamespaces: ['business.bizscope'],
 });

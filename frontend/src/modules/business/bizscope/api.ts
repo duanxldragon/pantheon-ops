@@ -1,4 +1,5 @@
 import { apiRequest } from '../../../api/request';
+import { downloadFile, uploadImportFile } from '../../../api/importExport';
 
 export interface BizScopeRow {
   id: number;
@@ -138,4 +139,31 @@ export function deleteBizScope(id: number) {
     url: `/business/bizscope/${id}`,
     method: 'delete',
   });
+}
+
+export interface BizScopeQuery {
+  keyword?: string;
+  environment?: string;
+  status?: string;
+}
+
+export function exportBizScopes(params?: BizScopeQuery) {
+  return downloadFile({
+    url: '/business/bizscope/export',
+    method: 'get',
+    params: params as Record<string, unknown> | undefined,
+    filename: 'bizscope-export.csv',
+  });
+}
+
+export function downloadBizScopeImportTemplate() {
+  return downloadFile({
+    url: '/business/bizscope/import-template',
+    method: 'get',
+    filename: 'bizscope-import-template.csv',
+  });
+}
+
+export function importBizScopes(file: File) {
+  return uploadImportFile('/business/bizscope/import', file);
 }

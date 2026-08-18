@@ -178,6 +178,37 @@ test('cleanup removes generated leftovers and restores clean registry templates'
   }
 });
 
+test('cleanup never removes untracked directories declared by business-overlay.json', () => {
+  const { repoRoot, generatedPaths, registryFiles } = createFixtureRepo();
+  const declaredBackend = path.join(generatedPaths.backendBusinessDir, 'k8s');
+  const declaredFrontend = path.join(generatedPaths.frontendBusinessDir, 'service');
+  const generatedBackend = path.join(generatedPaths.backendBusinessDir, 'mdqa-order');
+  const generatedFrontend = path.join(generatedPaths.frontendBusinessDir, 'mdqa-order');
+
+  try {
+    writeFileSync(
+      path.join(repoRoot, 'business-overlay.json'),
+      JSON.stringify({
+        businessPaths: ['backend/modules/business/k8s', 'frontend/src/modules/business/service'],
+      }),
+      'utf8',
+    );
+    mkdirSync(path.join(declaredBackend, 'cluster'), { recursive: true });
+    mkdirSync(path.join(declaredFrontend, 'nested'), { recursive: true });
+    mkdirSync(generatedBackend, { recursive: true });
+    mkdirSync(generatedFrontend, { recursive: true });
+
+    cleanup(generatedPaths, registryFiles, repoRoot, new Set());
+
+    assert.equal(existsSync(declaredBackend), true);
+    assert.equal(existsSync(declaredFrontend), true);
+    assert.equal(existsSync(generatedBackend), false);
+    assert.equal(existsSync(generatedFrontend), false);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
 test('cleanup tolerates schema files disappearing during removal', () => {
   const { repoRoot, generatedPaths, registryFiles } = createFixtureRepo();
   const generatedSchemaPath = path.join(generatedPaths.schemaBusinessDir, 'mdqa-order.json');

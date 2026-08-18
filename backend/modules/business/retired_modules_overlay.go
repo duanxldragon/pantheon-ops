@@ -45,4 +45,35 @@ func init() {
 			"business/cmdb/label/CmdbLabelSchemaList",
 		},
 	})
+	retiredBusinessModules = append(retiredBusinessModules,
+		retiredModuleSpec{
+			MenuPaths: []string{
+				"/operations/business-scope",
+				"/operations/business-scope/:id",
+			},
+		},
+		retiredModuleSpec{
+			MenuPaths: []string{
+				"/operations/deploy",
+				"/operations/deploy/package",
+				"/operations/deploy/template",
+				"/operations/deploy/task",
+				"/operations/deploy/task/:id",
+			},
+		},
+		retiredModuleSpec{
+			MenuPaths: []string{
+				"/operations/k8s",
+				"/operations/k8s/cluster",
+				"/operations/k8s/cluster/:id",
+				"/operations/k8s/workload",
+				"/operations/k8s/release",
+			},
+		},
+		retiredModuleSpec{
+			MenuPaths: []string{
+				"/operations/service",
+			},
+		},
+	)
 }
