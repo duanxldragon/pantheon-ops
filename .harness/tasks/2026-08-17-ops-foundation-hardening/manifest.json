@@ -7,6 +7,7 @@
   "deliveryTier": "L2",
   "primaryLayer": "business-foundation",
   "qualityProfiles": ["permission-policy", "ui-runtime", "generator"],
+  "ratchetDecision": "gate-updated",
   "goal": "Close the minimum architecture, authorization, consistency, lifecycle, and quality gaps required for VM service lifecycle and reliable Kubernetes management.",
   "scope": {
     "in": [
