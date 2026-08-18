@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Handler exposes the application, service, and instance HTTP endpoints.
 type Handler struct {
 	manager *Manager
 }
@@ -32,8 +33,10 @@ func (h *Handler) reconcileInstanceState(c *gin.Context) {
 	common.Success(c, ref)
 }
 
+// NewHandler creates the service module HTTP handler.
 func NewHandler(manager *Manager) *Handler { return &Handler{manager: manager} }
 
+// RegisterRoutes registers the service module endpoints.
 func (h *Handler) RegisterRoutes(r gin.IRoutes) {
 	r.GET("/applications", h.listApplications)
 	r.GET("/applications/options", h.applicationOptions)

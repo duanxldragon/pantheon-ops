@@ -17,6 +17,7 @@ const (
 	idAscOrder    = "id ASC"
 )
 
+// InitCmdbModule registers CMDB owner-module routes and capabilities.
 func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB, readers ...bizcap.BizScopeReader) *host.HostService {
 	var bizScopeReader bizcap.BizScopeReader
 	if len(readers) > 0 {

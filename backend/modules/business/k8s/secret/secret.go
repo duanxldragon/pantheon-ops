@@ -22,6 +22,9 @@ const (
 	opTimeout       = 30 * time.Second
 )
 
+// SecretItem summarizes a Kubernetes Secret without exposing values.
+//
+//nolint:revive // DTO names retain the secret domain prefix for generated API clarity.
 type SecretItem struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
@@ -29,11 +32,17 @@ type SecretItem struct {
 	KeyCount  int    `json:"keyCount"`
 }
 
+// SecretListResponse contains Kubernetes Secret summaries.
+//
+//nolint:revive // DTO names retain the secret domain prefix for generated API clarity.
 type SecretListResponse struct {
 	Items []SecretItem `json:"items"`
 	Total int          `json:"total"`
 }
 
+// SecretDetail contains Secret metadata and key names, never values.
+//
+//nolint:revive // DTO names retain the secret domain prefix for generated API clarity.
 type SecretDetail struct {
 	Name      string   `json:"name"`
 	Namespace string   `json:"namespace"`
@@ -41,20 +50,26 @@ type SecretDetail struct {
 	Keys      []string `json:"keys"`
 }
 
+// CreateSecretRequest contains fields accepted when creating a Secret.
 type CreateSecretRequest struct {
 	Name string            `json:"name" binding:"required"`
 	Type string            `json:"type"`
 	Data map[string]string `json:"data"`
 }
 
+// SecretService manages live Kubernetes Secrets through client-go.
+//
+//nolint:revive // Service names retain the secret domain prefix for module wiring clarity.
 type SecretService struct {
 	clusterSvc *cluster.ClusterService
 }
 
+// NewSecretService creates a Kubernetes Secret service.
 func NewSecretService(clusterSvc *cluster.ClusterService) *SecretService {
 	return &SecretService{clusterSvc: clusterSvc}
 }
 
+// List returns Secret metadata visible in a namespace.
 func (s *SecretService) List(clusterID uint64, namespace string, dataScope *common.DataScopeReq) (*SecretListResponse, error) {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
@@ -75,6 +90,7 @@ func (s *SecretService) List(clusterID uint64, namespace string, dataScope *comm
 	return &SecretListResponse{Items: items, Total: len(items)}, nil
 }
 
+// Get returns Secret metadata and key names without values.
 func (s *SecretService) Get(clusterID uint64, namespace, name string, dataScope *common.DataScopeReq) (*SecretDetail, error) {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
@@ -94,6 +110,7 @@ func (s *SecretService) Get(clusterID uint64, namespace, name string, dataScope 
 	return &SecretDetail{Name: sc.Name, Namespace: sc.Namespace, Type: string(sc.Type), Keys: keys}, nil
 }
 
+// Create creates a Secret and returns metadata plus key names.
 func (s *SecretService) Create(clusterID uint64, namespace string, req CreateSecretRequest, dataScope *common.DataScopeReq) (*SecretDetail, error) {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
@@ -127,6 +144,7 @@ func (s *SecretService) Create(clusterID uint64, namespace string, req CreateSec
 	return &SecretDetail{Name: created.Name, Namespace: created.Namespace, Type: string(created.Type), Keys: keys}, nil
 }
 
+// Delete removes a Secret from a namespace.
 func (s *SecretService) Delete(clusterID uint64, namespace, name string, dataScope *common.DataScopeReq) error {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
@@ -141,23 +159,29 @@ func (s *SecretService) Delete(clusterID uint64, namespace, name string, dataSco
 	return nil
 }
 
+// SecretHandler exposes Kubernetes Secret routes.
+//
+//nolint:revive // Handler names retain the secret domain prefix for module wiring clarity.
 type SecretHandler struct {
 	svc *SecretService
 }
 
+// NewSecretHandler creates a Secret route handler.
 func NewSecretHandler(svc *SecretService) *SecretHandler {
 	return &SecretHandler{svc: svc}
 }
 
+// RegisterRoutes registers Secret endpoints.
 func (h *SecretHandler) RegisterRoutes(r gin.IRoutes) {
-	r.GET("/clusters/:clusterId/secrets", h.List)
-	r.POST("/clusters/:clusterId/secrets", h.Create)
-	r.GET("/clusters/:clusterId/secrets/:name", h.Get)
-	r.DELETE("/clusters/:clusterId/secrets/:name", h.Delete)
+	r.GET("/clusters/:id/secrets", h.List)
+	r.POST("/clusters/:id/secrets", h.Create)
+	r.GET("/clusters/:id/secrets/:name", h.Get)
+	r.DELETE("/clusters/:id/secrets/:name", h.Delete)
 }
 
+// List handles Secret metadata listing.
 func (h *SecretHandler) List(c *gin.Context) {
-	clusterID, err := strconv.ParseUint(c.Param("clusterId"), 10, 64)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
@@ -170,8 +194,9 @@ func (h *SecretHandler) List(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// Get handles Secret metadata lookup.
 func (h *SecretHandler) Get(c *gin.Context) {
-	clusterID, err := strconv.ParseUint(c.Param("clusterId"), 10, 64)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
@@ -184,10 +209,11 @@ func (h *SecretHandler) Get(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// Create handles Secret creation.
 func (h *SecretHandler) Create(c *gin.Context) {
 	common.SetAuditMetadata(c, "k8s.secret.audit.create", common.BusinessInsert)
 
-	clusterID, err := strconv.ParseUint(c.Param("clusterId"), 10, 64)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
@@ -210,10 +236,11 @@ func (h *SecretHandler) Create(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// Delete handles Secret deletion.
 func (h *SecretHandler) Delete(c *gin.Context) {
 	common.SetAuditMetadata(c, "k8s.secret.audit.delete", common.BusinessDelete)
 
-	clusterID, err := strconv.ParseUint(c.Param("clusterId"), 10, 64)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return

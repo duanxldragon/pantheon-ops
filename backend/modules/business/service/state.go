@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// TransitionAction constants identify service-instance state-machine operations.
 const (
 	TransitionActionInstall  = "install"
 	TransitionActionStart    = "start"
@@ -25,6 +26,7 @@ const (
 	errStateStale   = "business.service.state_stale"
 )
 
+// TransitionState applies a validated service-instance state transition.
 func (m *Manager) TransitionState(ctx context.Context, req InstanceStateTransitionRequest, actor string, scope *common.DataScopeReq) (InstanceRef, error) {
 	row, err := m.findInstance(req.InstanceID, scope)
 	if err != nil {
@@ -99,6 +101,7 @@ func applyRollbackTarget(current, next *ServiceInstance, action string) {
 	}
 }
 
+// ReconcileInstanceState marks stale in-flight transitions as failed.
 func (m *Manager) ReconcileInstanceState(ctx context.Context, id uint64, req ReconcileInstanceRequest, actor string, scope *common.DataScopeReq) (InstanceRef, error) {
 	row, err := m.findInstance(id, scope)
 	if err != nil {

@@ -67,6 +67,7 @@ type deployCMDBCapability struct {
 	bizScopeReader bizcap.BizScopeReader
 }
 
+// NewDeployCMDBCapability creates the CMDB capability consumed by deploy and bizscope.
 func NewDeployCMDBCapability(db *gorm.DB, readers ...bizcap.BizScopeReader) *deployCMDBCapability {
 	capability := &deployCMDBCapability{db: db}
 	if len(readers) > 0 {
@@ -278,7 +279,7 @@ func (c *deployCMDBCapability) WithBusinessScopeOwnershipLock(ctx context.Contex
 	if businessScopeID == 0 {
 		return errors.New("business.bizscope.notFound")
 	}
-	if c.db.Dialector.Name() != "mysql" {
+	if c.db.Name() != "mysql" {
 		return action()
 	}
 	lockName := fmt.Sprintf("pantheon:bizscope:%d", businessScopeID)

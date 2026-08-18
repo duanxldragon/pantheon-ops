@@ -43,7 +43,9 @@ export default function ServiceList() {
   }, [query]);
 
   useEffect(() => {
-    void load();
+    queueMicrotask(() => {
+      void load();
+    });
   }, [load]);
 
   const loadInstances = useCallback(async () => {
@@ -59,7 +61,9 @@ export default function ServiceList() {
   }, [t]);
 
   useEffect(() => {
-    void loadInstances();
+    queueMicrotask(() => {
+      void loadInstances();
+    });
   }, [loadInstances]);
 
   const instanceColumns = useMemo<ColumnProps<ServiceInstanceRow>[]>(

@@ -75,6 +75,9 @@ type UpdateStatusRequest struct {
 	Status string `json:"status" binding:"required"`
 }
 
+// HostStateTransitionRequest describes an optimistic-concurrency host transition.
+//
+//nolint:revive // retained as part of the public CMDB request contract.
 type HostStateTransitionRequest struct {
 	Action               string  `json:"action" binding:"required"`
 	ExpectedStateVersion uint64  `json:"expectedStateVersion"`

@@ -15,12 +15,21 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-const syncTimeout = 30 * time.Second
+const (
+	syncTimeout             = 30 * time.Second
+	workloadKindDeployment  = "deployment"
+	workloadKindStatefulSet = "statefulset"
+	workloadKindDaemonSet   = "daemonset"
+)
 
+// WorkloadService reads and mutates Kubernetes workloads through client-go.
+//
+//nolint:revive // retained as the public service name for this package.
 type WorkloadService struct {
 	clusterSvc *cluster.ClusterService
 }
 
+// NewWorkloadService creates a Kubernetes workload service.
 func NewWorkloadService(clusterSvc *cluster.ClusterService) *WorkloadService {
 	return &WorkloadService{clusterSvc: clusterSvc}
 }
@@ -44,7 +53,7 @@ func (s *WorkloadService) List(query WorkloadListQuery, dataScope *common.DataSc
 
 	items := make([]WorkloadItem, 0)
 	switch normalizeKind(query.Kind) {
-	case "deployment":
+	case workloadKindDeployment:
 		list, err := clientset.AppsV1().Deployments(ns).List(ctx, metav1.ListOptions{})
 		if err != nil {
 			return nil, errors.New("k8s.workload.list_failed")
@@ -62,7 +71,7 @@ func (s *WorkloadService) List(query WorkloadListQuery, dataScope *common.DataSc
 				Age:           age(d.CreationTimestamp),
 			})
 		}
-	case "statefulset":
+	case workloadKindStatefulSet:
 		list, err := clientset.AppsV1().StatefulSets(ns).List(ctx, metav1.ListOptions{})
 		if err != nil {
 			return nil, errors.New("k8s.workload.list_failed")
@@ -80,7 +89,7 @@ func (s *WorkloadService) List(query WorkloadListQuery, dataScope *common.DataSc
 				Age:           age(st.CreationTimestamp),
 			})
 		}
-	case "daemonset":
+	case workloadKindDaemonSet:
 		list, err := clientset.AppsV1().DaemonSets(ns).List(ctx, metav1.ListOptions{})
 		if err != nil {
 			return nil, errors.New("k8s.workload.list_failed")
@@ -183,7 +192,7 @@ func (s *WorkloadService) GetPods(clusterID uint64, namespace, kind, name string
 			Status:    string(p.Status.Phase),
 			NodeName:  p.Spec.NodeName,
 			Restarts:  podRestarts(p),
-			CreatedAt: p.CreationTimestamp.Time.Format(time.RFC3339),
+			CreatedAt: p.CreationTimestamp.Format(time.RFC3339),
 		})
 	}
 	return &PodListResponse{Items: items, Total: len(items)}, nil
@@ -200,7 +209,7 @@ func (s *WorkloadService) Scale(clusterID uint64, namespace, kind, name string, 
 	defer cancel()
 
 	switch normalizeKind(kind) {
-	case "statefulset":
+	case workloadKindStatefulSet:
 		st, err := clientset.AppsV1().StatefulSets(namespace).Get(ctx, name, metav1.GetOptions{})
 		if err != nil {
 			return errors.New("k8s.workload.not_found")
@@ -238,7 +247,7 @@ func (s *WorkloadService) Restart(clusterID uint64, namespace, kind, name string
 	patch := fmt.Sprintf(`{"spec":{"template":{"metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt":"%s"}}}}}`, time.Now().UTC().Format(time.RFC3339))
 
 	switch normalizeKind(kind) {
-	case "statefulset":
+	case workloadKindStatefulSet:
 		_, err = clientset.AppsV1().StatefulSets(namespace).Patch(ctx, name, types.StrategicMergePatchType, []byte(patch), metav1.PatchOptions{})
 	default:
 		_, err = clientset.AppsV1().Deployments(namespace).Patch(ctx, name, types.StrategicMergePatchType, []byte(patch), metav1.PatchOptions{})
@@ -251,13 +260,13 @@ func (s *WorkloadService) Restart(clusterID uint64, namespace, kind, name string
 
 func (s *WorkloadService) workloadSelector(ctx context.Context, clientset kubernetes.Interface, namespace, kind, name string) (string, error) {
 	switch normalizeKind(kind) {
-	case "statefulset":
+	case workloadKindStatefulSet:
 		st, err := clientset.AppsV1().StatefulSets(namespace).Get(ctx, name, metav1.GetOptions{})
 		if err != nil {
 			return "", errors.New("k8s.workload.not_found")
 		}
 		return metav1.FormatLabelSelector(st.Spec.Selector), nil
-	case "daemonset":
+	case workloadKindDaemonSet:
 		ds, err := clientset.AppsV1().DaemonSets(namespace).Get(ctx, name, metav1.GetOptions{})
 		if err != nil {
 			return "", errors.New("k8s.workload.not_found")
@@ -274,12 +283,12 @@ func (s *WorkloadService) workloadSelector(ctx context.Context, clientset kubern
 
 func normalizeKind(kind string) string {
 	switch kind {
-	case "deployment", "Deployment":
-		return "deployment"
-	case "statefulset", "StatefulSet":
-		return "statefulset"
-	case "daemonset", "DaemonSet":
-		return "daemonset"
+	case workloadKindDeployment, "Deployment":
+		return workloadKindDeployment
+	case workloadKindStatefulSet, "StatefulSet":
+		return workloadKindStatefulSet
+	case workloadKindDaemonSet, "DaemonSet":
+		return workloadKindDaemonSet
 	default:
 		return ""
 	}

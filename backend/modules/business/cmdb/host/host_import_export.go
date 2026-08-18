@@ -425,9 +425,9 @@ func (s *HostService) applyHostImportRows(result *impexp.ImportResult, rows []ho
 
 			status := rows[i].Status
 			if status == "" {
-				status = "pending"
+				status = HostLifecyclePending
 				if rows[i].BusinessScopeID > 0 {
-					status = "assigned"
+					status = HostLifecycleAssigned
 				}
 			}
 			host := Host{

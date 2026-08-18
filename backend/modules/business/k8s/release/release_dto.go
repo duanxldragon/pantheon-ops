@@ -1,5 +1,6 @@
 package release
 
+// CreateReleaseRequest describes a Kubernetes workload release.
 type CreateReleaseRequest struct {
 	Name                string `json:"name" binding:"required"`
 	ClusterID           uint64 `json:"clusterId" binding:"required"`
@@ -16,10 +17,14 @@ type CreateReleaseRequest struct {
 	IdempotencyKey      string `json:"idempotencyKey"`
 }
 
+// RollbackReleaseRequest requests a release rollback.
 type RollbackReleaseRequest struct {
 	IdempotencyKey string `json:"idempotencyKey"`
 }
 
+// ReleaseListQuery filters and paginates Kubernetes releases.
+//
+//nolint:revive // retained as the public release query contract.
 type ReleaseListQuery struct {
 	Page         int    `form:"page" json:"page"`
 	PageSize     int    `form:"pageSize" json:"pageSize"`
@@ -30,6 +35,9 @@ type ReleaseListQuery struct {
 	Status       string `form:"status" json:"status"`
 }
 
+// ReleaseResponse is the API representation of a Kubernetes release.
+//
+//nolint:revive // retained as the public release response contract.
 type ReleaseResponse struct {
 	ID                  uint64 `json:"id"`
 	Name                string `json:"name"`
@@ -66,6 +74,9 @@ type ReleaseResponse struct {
 	CreatedAt           string `json:"createdAt"`
 }
 
+// ReleaseListResponse contains a paginated release result.
+//
+//nolint:revive // retained as the public release response contract.
 type ReleaseListResponse struct {
 	Items    []ReleaseResponse `json:"items"`
 	Total    int64             `json:"total"`

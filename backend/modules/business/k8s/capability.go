@@ -20,6 +20,7 @@ type targetReader struct {
 	}
 }
 
+// NewTargetReader creates the Kubernetes target reader capability.
 func NewTargetReader(clusters *cluster.ClusterService) bizcap.K8sTargetReader {
 	return &targetReader{clusters: clusters}
 }

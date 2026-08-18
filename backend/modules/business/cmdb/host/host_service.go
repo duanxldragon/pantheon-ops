@@ -37,6 +37,7 @@ type HostService struct {
 	serviceRefs    bizcap.ServiceInstanceReferenceReader
 }
 
+// NewHostService creates the CMDB host service with its optional BizScope reader.
 func NewHostService(db *gorm.DB, readers ...bizcap.BizScopeReader) *HostService {
 	service := &HostService{db: db}
 	if len(readers) > 0 {
@@ -45,6 +46,7 @@ func NewHostService(db *gorm.DB, readers ...bizcap.BizScopeReader) *HostService 
 	return service
 }
 
+// SetServiceInstanceReferenceReader configures the owner-module reader used before host retirement.
 func (s *HostService) SetServiceInstanceReferenceReader(reader bizcap.ServiceInstanceReferenceReader) {
 	s.serviceRefs = reader
 }
@@ -420,19 +422,19 @@ func (s *HostService) UpdateStatus(id uint64, status string, dataScope *common.D
 	normalizeHostState(&row)
 	lifecycle, connectivity := row.LifecycleState, row.ConnectivityState
 	switch status {
-	case "pending":
+	case HostLifecyclePending:
 		lifecycle, connectivity = HostLifecyclePending, HostConnectivityUnknown
-	case "assigned":
+	case HostLifecycleAssigned:
 		lifecycle, connectivity = HostLifecycleAssigned, HostConnectivityUnknown
-	case "online":
+	case hostStatusOnline:
 		lifecycle, connectivity = HostLifecycleAssigned, HostConnectivityReachable
-	case "offline":
+	case hostStatusOffline:
 		lifecycle = HostLifecycleAssigned
 		connectivity = HostConnectivityUnreachable
-	case "maintenance":
+	case HostLifecycleMaintenance:
 		lifecycle = HostLifecycleMaintenance
 		connectivity = HostConnectivityUnknown
-	case "retired":
+	case HostLifecycleRetired:
 		lifecycle = HostLifecycleRetired
 		connectivity = HostConnectivityUnknown
 	}

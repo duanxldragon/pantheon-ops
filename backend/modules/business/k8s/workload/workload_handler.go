@@ -10,22 +10,28 @@ import (
 
 const msgParamInvalid = "common.param_invalid"
 
+// WorkloadHandler exposes Kubernetes workload HTTP endpoints.
+//
+//nolint:revive // retained as the public handler name for this package.
 type WorkloadHandler struct {
 	svc *WorkloadService
 }
 
+// NewWorkloadHandler creates the Kubernetes workload HTTP handler.
 func NewWorkloadHandler(svc *WorkloadService) *WorkloadHandler {
 	return &WorkloadHandler{svc: svc}
 }
 
+// RegisterRoutes registers Kubernetes workload endpoints.
 func (h *WorkloadHandler) RegisterRoutes(r gin.IRoutes) {
 	r.GET("/workloads", h.List)
-	r.GET("/clusters/:clusterId/workloads/:namespace/:kind/:name/pods", h.GetPods)
-	r.POST("/clusters/:clusterId/workloads/:namespace/:kind/:name/scale", h.Scale)
-	r.POST("/clusters/:clusterId/workloads/:namespace/:kind/:name/restart", h.Restart)
-	r.GET("/clusters/:clusterId/pods/:namespace/:podName/logs", h.PodLogs)
+	r.GET("/clusters/:id/workloads/:namespace/:kind/:name/pods", h.GetPods)
+	r.POST("/clusters/:id/workloads/:namespace/:kind/:name/scale", h.Scale)
+	r.POST("/clusters/:id/workloads/:namespace/:kind/:name/restart", h.Restart)
+	r.GET("/clusters/:id/pods/:namespace/:podName/logs", h.PodLogs)
 }
 
+// List returns workloads visible through a Kubernetes cluster.
 func (h *WorkloadHandler) List(c *gin.Context) {
 	var query WorkloadListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -40,6 +46,7 @@ func (h *WorkloadHandler) List(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetPods returns pods selected by a workload.
 func (h *WorkloadHandler) GetPods(c *gin.Context) {
 	clusterID, namespace, kind, name, ok := parseWorkloadParams(c)
 	if !ok {
@@ -54,6 +61,7 @@ func (h *WorkloadHandler) GetPods(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// Scale changes a deployment or statefulset replica count.
 func (h *WorkloadHandler) Scale(c *gin.Context) {
 	common.SetAuditMetadata(c, "k8s.workload.audit.scale", common.BusinessUpdate)
 
@@ -74,6 +82,7 @@ func (h *WorkloadHandler) Scale(c *gin.Context) {
 	common.Success(c, nil)
 }
 
+// Restart triggers a workload restart.
 func (h *WorkloadHandler) Restart(c *gin.Context) {
 	common.SetAuditMetadata(c, "k8s.workload.audit.restart", common.BusinessUpdate)
 
@@ -90,7 +99,7 @@ func (h *WorkloadHandler) Restart(c *gin.Context) {
 }
 
 func parseWorkloadParams(c *gin.Context) (uint64, string, string, string, bool) {
-	clusterID, err := strconv.ParseUint(c.Param("clusterId"), 10, 64)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		return 0, "", "", "", false
 	}

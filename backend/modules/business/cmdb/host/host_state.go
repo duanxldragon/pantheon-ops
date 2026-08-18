@@ -12,6 +12,12 @@ import (
 )
 
 const (
+	hostStatusOnline  = "online"
+	hostStatusOffline = "offline"
+)
+
+// Host lifecycle, connectivity, and transition constants define the CMDB host state machine.
+const (
 	HostLifecyclePending     = "pending"
 	HostLifecycleAssigned    = "assigned"
 	HostLifecycleMaintenance = "maintenance"
@@ -30,6 +36,7 @@ const (
 	errHostStateStale   = "cmdbhost.state.stale"
 )
 
+// TransitionState applies one validated host lifecycle or connectivity transition.
 func (s *HostService) TransitionState(id uint64, req HostStateTransitionRequest, actor string, dataScope *common.DataScopeReq) (*HostResponse, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
@@ -120,11 +127,11 @@ func (s *HostService) TransitionState(id uint64, req HostStateTransitionRequest,
 func normalizeHostState(row *Host) {
 	if row.LifecycleState == "" {
 		switch row.Status {
-		case "assigned", "online", "offline":
+		case HostLifecycleAssigned, hostStatusOnline, hostStatusOffline:
 			row.LifecycleState = HostLifecycleAssigned
-		case "maintenance":
+		case HostLifecycleMaintenance:
 			row.LifecycleState = HostLifecycleMaintenance
-		case "retired":
+		case HostLifecycleRetired:
 			row.LifecycleState = HostLifecycleRetired
 		default:
 			row.LifecycleState = HostLifecyclePending
@@ -132,9 +139,9 @@ func normalizeHostState(row *Host) {
 	}
 	if row.ConnectivityState == "" {
 		switch row.Status {
-		case "online":
+		case hostStatusOnline:
 			row.ConnectivityState = HostConnectivityReachable
-		case "offline":
+		case hostStatusOffline:
 			row.ConnectivityState = HostConnectivityUnreachable
 		default:
 			row.ConnectivityState = HostConnectivityUnknown
@@ -145,20 +152,20 @@ func normalizeHostState(row *Host) {
 func hostStatusFromState(lifecycle, connectivity string) string {
 	switch lifecycle {
 	case HostLifecycleMaintenance:
-		return "maintenance"
+		return HostLifecycleMaintenance
 	case HostLifecycleRetired:
-		return "retired"
+		return HostLifecycleRetired
 	case HostLifecycleAssigned:
 		switch connectivity {
 		case HostConnectivityReachable:
-			return "online"
+			return hostStatusOnline
 		case HostConnectivityUnreachable:
-			return "offline"
+			return hostStatusOffline
 		default:
-			return "assigned"
+			return HostLifecycleAssigned
 		}
 	default:
-		return "pending"
+		return HostLifecyclePending
 	}
 }
 

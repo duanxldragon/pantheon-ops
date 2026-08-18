@@ -13,6 +13,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const ownershipConflictError = "cmdbhost.ownership_conflict"
+
 type activeBizScopeReader struct{}
 
 func (activeBizScopeReader) GetActive(_ context.Context, id uint64, _ *common.DataScopeReq) (bizcap.BizScopeRef, error) {
@@ -40,7 +42,7 @@ func TestOwnershipBindRejectsAlreadyOwnedHost(t *testing.T) {
 	}
 	command := NewDeployCMDBCapability(db, activeBizScopeReader{})
 	err := command.Bind(context.Background(), bizcap.BindOwnershipRequest{BusinessScopeID: 12, HostIDs: []uint64{host.ID}})
-	if err == nil || err.Error() != "cmdbhost.ownership_conflict" {
+	if err == nil || err.Error() != ownershipConflictError {
 		t.Fatalf("expected ownership conflict, got %v", err)
 	}
 }

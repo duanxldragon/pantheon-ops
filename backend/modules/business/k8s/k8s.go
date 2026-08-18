@@ -35,6 +35,7 @@ const (
 
 const k8sRoutePath = "/business/k8s"
 
+// InitK8sModule registers Kubernetes business modules and returns target capabilities.
 func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, readers ...bizcap.BizScopeReader) bizcap.K8sTargetReader {
 	clusterSvc := cluster.NewClusterService(db, readers...)
 	clusterHandler := cluster.NewClusterHandler(clusterSvc)

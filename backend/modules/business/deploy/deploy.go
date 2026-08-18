@@ -10,10 +10,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// InitDeployModule registers the deploy business module.
 func InitDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, readers ...bizcap.BizScopeReader) {
 	initDeployModule(r, db, cmdbCapability, nil, readers...)
 }
 
+// InitDeployModuleWithServiceState registers deploy with service-instance state callbacks.
 func InitDeployModuleWithServiceState(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, stateCommand bizcap.ServiceInstanceStateCommand, readers ...bizcap.BizScopeReader) {
 	initDeployModule(r, db, cmdbCapability, stateCommand, readers...)
 }

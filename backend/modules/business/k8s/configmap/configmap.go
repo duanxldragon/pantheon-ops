@@ -20,36 +20,51 @@ const (
 	opTimeout       = 30 * time.Second
 )
 
+// ConfigMapItem summarizes a Kubernetes ConfigMap.
+//
+//nolint:revive // retained as the public ConfigMap DTO name.
 type ConfigMapItem struct {
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
 	KeyCount  int    `json:"keyCount"`
 }
 
+// ConfigMapListResponse contains ConfigMap summaries.
+//
+//nolint:revive // retained as the public ConfigMap DTO name.
 type ConfigMapListResponse struct {
 	Items []ConfigMapItem `json:"items"`
 	Total int             `json:"total"`
 }
 
+// ConfigMapDetail contains a Kubernetes ConfigMap payload.
+//
+//nolint:revive // retained as the public ConfigMap DTO name.
 type ConfigMapDetail struct {
 	Name      string            `json:"name"`
 	Namespace string            `json:"namespace"`
 	Data      map[string]string `json:"data"`
 }
 
+// CreateConfigMapRequest contains ConfigMap creation fields.
 type CreateConfigMapRequest struct {
 	Name string            `json:"name" binding:"required"`
 	Data map[string]string `json:"data"`
 }
 
+// ConfigMapService manages Kubernetes ConfigMaps through client-go.
+//
+//nolint:revive // retained as the public service name for this package.
 type ConfigMapService struct {
 	clusterSvc *cluster.ClusterService
 }
 
+// NewConfigMapService creates a ConfigMap service.
 func NewConfigMapService(clusterSvc *cluster.ClusterService) *ConfigMapService {
 	return &ConfigMapService{clusterSvc: clusterSvc}
 }
 
+// List returns ConfigMaps in a namespace.
 func (s *ConfigMapService) List(clusterID uint64, namespace string, dataScope *common.DataScopeReq) (*ConfigMapListResponse, error) {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
@@ -70,6 +85,7 @@ func (s *ConfigMapService) List(clusterID uint64, namespace string, dataScope *c
 	return &ConfigMapListResponse{Items: items, Total: len(items)}, nil
 }
 
+// Get returns one ConfigMap.
 func (s *ConfigMapService) Get(clusterID uint64, namespace, name string, dataScope *common.DataScopeReq) (*ConfigMapDetail, error) {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
@@ -85,6 +101,7 @@ func (s *ConfigMapService) Get(clusterID uint64, namespace, name string, dataSco
 	return &ConfigMapDetail{Name: cm.Name, Namespace: cm.Namespace, Data: cm.Data}, nil
 }
 
+// Create creates a ConfigMap.
 func (s *ConfigMapService) Create(clusterID uint64, namespace string, req CreateConfigMapRequest, dataScope *common.DataScopeReq) (*ConfigMapDetail, error) {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
@@ -104,6 +121,7 @@ func (s *ConfigMapService) Create(clusterID uint64, namespace string, req Create
 	return &ConfigMapDetail{Name: created.Name, Namespace: created.Namespace, Data: created.Data}, nil
 }
 
+// Delete removes a ConfigMap.
 func (s *ConfigMapService) Delete(clusterID uint64, namespace, name string, dataScope *common.DataScopeReq) error {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
@@ -118,23 +136,29 @@ func (s *ConfigMapService) Delete(clusterID uint64, namespace, name string, data
 	return nil
 }
 
+// ConfigMapHandler exposes ConfigMap HTTP endpoints.
+//
+//nolint:revive // retained as the public handler name for this package.
 type ConfigMapHandler struct {
 	svc *ConfigMapService
 }
 
+// NewConfigMapHandler creates the ConfigMap HTTP handler.
 func NewConfigMapHandler(svc *ConfigMapService) *ConfigMapHandler {
 	return &ConfigMapHandler{svc: svc}
 }
 
+// RegisterRoutes registers ConfigMap endpoints.
 func (h *ConfigMapHandler) RegisterRoutes(r gin.IRoutes) {
-	r.GET("/clusters/:clusterId/configmaps", h.List)
-	r.POST("/clusters/:clusterId/configmaps", h.Create)
-	r.GET("/clusters/:clusterId/configmaps/:name", h.Get)
-	r.DELETE("/clusters/:clusterId/configmaps/:name", h.Delete)
+	r.GET("/clusters/:id/configmaps", h.List)
+	r.POST("/clusters/:id/configmaps", h.Create)
+	r.GET("/clusters/:id/configmaps/:name", h.Get)
+	r.DELETE("/clusters/:id/configmaps/:name", h.Delete)
 }
 
+// List handles ConfigMap listing.
 func (h *ConfigMapHandler) List(c *gin.Context) {
-	clusterID, err := strconv.ParseUint(c.Param("clusterId"), 10, 64)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
@@ -147,8 +171,9 @@ func (h *ConfigMapHandler) List(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// Get handles ConfigMap retrieval.
 func (h *ConfigMapHandler) Get(c *gin.Context) {
-	clusterID, err := strconv.ParseUint(c.Param("clusterId"), 10, 64)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
@@ -161,10 +186,11 @@ func (h *ConfigMapHandler) Get(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// Create handles ConfigMap creation.
 func (h *ConfigMapHandler) Create(c *gin.Context) {
 	common.SetAuditMetadata(c, "k8s.configmap.audit.create", common.BusinessInsert)
 
-	clusterID, err := strconv.ParseUint(c.Param("clusterId"), 10, 64)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
@@ -187,10 +213,11 @@ func (h *ConfigMapHandler) Create(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// Delete handles ConfigMap deletion.
 func (h *ConfigMapHandler) Delete(c *gin.Context) {
 	common.SetAuditMetadata(c, "k8s.configmap.audit.delete", common.BusinessDelete)
 
-	clusterID, err := strconv.ParseUint(c.Param("clusterId"), 10, 64)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return

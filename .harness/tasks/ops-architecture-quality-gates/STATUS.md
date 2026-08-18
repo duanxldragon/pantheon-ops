@@ -17,6 +17,9 @@
   generated-module cleanup.
 - Backend business tests, race tests, vet, frontend type-check/build, overlay
   contract, generated-module check, and smoke-script tests pass.
+- Scope lint is clean with
+  `golangci-lint run --new-from-rev origin/main ./...`; frontend
+  `npx eslint src`, PR governance, and `git diff --check` also pass.
 
 ## Decisions
 
@@ -30,9 +33,8 @@
 
 ## Next Atomic Action
 
-No remaining implementation action in this child. Credential-dependent browser
-smoke against a running backend and rendered screenshots remain runtime
-follow-ups.
+Commit and push the verified gate cleanup. Credential-dependent browser smoke
+against a running backend and rendered screenshots remain runtime follow-ups.
 
 ## Blockers
 

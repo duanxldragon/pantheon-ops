@@ -71,7 +71,7 @@ func TestHostStateTransitionsUseCompatibilityProjectionAndCAS(t *testing.T) {
 	if err != nil {
 		t.Fatalf("assign host: %v", err)
 	}
-	if assigned.LifecycleState != HostLifecycleAssigned || assigned.Status != "assigned" {
+	if assigned.LifecycleState != HostLifecycleAssigned || assigned.Status != HostLifecycleAssigned {
 		t.Fatalf("unexpected assigned state: %+v", assigned)
 	}
 
@@ -89,7 +89,7 @@ func TestHostStateTransitionsUseCompatibilityProjectionAndCAS(t *testing.T) {
 	if err != nil {
 		t.Fatalf("set connectivity: %v", err)
 	}
-	if reachable.Status != "online" || reachable.LifecycleState != HostLifecycleAssigned || reachable.ConnectivityState != HostConnectivityReachable {
+	if reachable.Status != hostStatusOnline || reachable.LifecycleState != HostLifecycleAssigned || reachable.ConnectivityState != HostConnectivityReachable {
 		t.Fatalf("unexpected connectivity projection: %+v", reachable)
 	}
 

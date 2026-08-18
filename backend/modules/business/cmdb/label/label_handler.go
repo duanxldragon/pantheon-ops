@@ -104,6 +104,7 @@ func (h *LabelHandler) Delete(c *gin.Context) {
 	common.Success(c, nil)
 }
 
+// Export writes visible CMDB label schemas as CSV.
 func (h *LabelHandler) Export(c *gin.Context) {
 	common.SetAuditMetadata(c, "cmdb.label.export.title", common.BusinessExport)
 
@@ -121,11 +122,13 @@ func (h *LabelHandler) Export(c *gin.Context) {
 	_ = impexp.WriteCSV(c, *file)
 }
 
+// DownloadImportTemplate writes the CMDB label import template.
 func (h *LabelHandler) DownloadImportTemplate(c *gin.Context) {
 	file := h.svc.BuildImportTemplate()
 	_ = impexp.WriteCSV(c, *file)
 }
 
+// Import creates or updates CMDB label schemas from an uploaded CSV.
 func (h *LabelHandler) Import(c *gin.Context) {
 	common.SetAuditMetadata(c, "cmdb.label.import.title", common.BusinessImport)
 

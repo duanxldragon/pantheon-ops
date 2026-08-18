@@ -2,6 +2,7 @@ package service
 
 import "time"
 
+// ApplicationQuery filters and paginates applications.
 type ApplicationQuery struct {
 	Page     int    `form:"page"`
 	PageSize int    `form:"pageSize"`
@@ -9,10 +10,12 @@ type ApplicationQuery struct {
 	Status   string `form:"status"`
 }
 
+// ReconcileInstanceRequest controls stale service-instance reconciliation.
 type ReconcileInstanceRequest struct {
 	MaxAgeSeconds int `json:"maxAgeSeconds"`
 }
 
+// CreateApplicationRequest contains application creation fields.
 type CreateApplicationRequest struct {
 	Code            string `json:"code" binding:"required"`
 	Name            string `json:"name" binding:"required"`
@@ -22,6 +25,7 @@ type CreateApplicationRequest struct {
 	Remark          string `json:"remark"`
 }
 
+// UpdateApplicationRequest contains mutable application fields.
 type UpdateApplicationRequest struct {
 	Name   *string `json:"name"`
 	Status *string `json:"status"`
@@ -29,6 +33,7 @@ type UpdateApplicationRequest struct {
 	Remark *string `json:"remark"`
 }
 
+// ApplicationResponse is the API representation of an application.
 type ApplicationResponse struct {
 	ID                uint64    `json:"id"`
 	Code              string    `json:"code"`
@@ -44,6 +49,7 @@ type ApplicationResponse struct {
 	UpdatedAt         time.Time `json:"updatedAt"`
 }
 
+// ApplicationListResponse contains a paginated application result.
 type ApplicationListResponse struct {
 	Items    []ApplicationResponse `json:"items"`
 	Total    int64                 `json:"total"`
@@ -51,6 +57,9 @@ type ApplicationListResponse struct {
 	PageSize int                   `json:"pageSize"`
 }
 
+// ServiceQuery filters and paginates services.
+//
+//nolint:revive // retained as the public service query contract.
 type ServiceQuery struct {
 	Page          int    `form:"page"`
 	PageSize      int    `form:"pageSize"`
@@ -59,6 +68,7 @@ type ServiceQuery struct {
 	Status        string `form:"status"`
 }
 
+// CreateServiceRequest contains service creation fields.
 type CreateServiceRequest struct {
 	ApplicationID uint64 `json:"applicationId" binding:"required"`
 	Code          string `json:"code" binding:"required"`
@@ -68,6 +78,7 @@ type CreateServiceRequest struct {
 	Status        string `json:"status"`
 }
 
+// UpdateServiceRequest contains mutable service fields.
 type UpdateServiceRequest struct {
 	Name        *string `json:"name"`
 	RuntimeType *string `json:"runtimeType"`
@@ -75,6 +86,9 @@ type UpdateServiceRequest struct {
 	Status      *string `json:"status"`
 }
 
+// ServiceResponse is the API representation of a service.
+//
+//nolint:revive // retained as the public service response contract.
 type ServiceResponse struct {
 	ID              uint64    `json:"id"`
 	ApplicationID   uint64    `json:"applicationId"`
@@ -91,6 +105,9 @@ type ServiceResponse struct {
 	UpdatedAt       time.Time `json:"updatedAt"`
 }
 
+// ServiceListResponse contains a paginated service result.
+//
+//nolint:revive // retained as the public service response contract.
 type ServiceListResponse struct {
 	Items    []ServiceResponse `json:"items"`
 	Total    int64             `json:"total"`
@@ -98,6 +115,7 @@ type ServiceListResponse struct {
 	PageSize int               `json:"pageSize"`
 }
 
+// InstanceQuery filters and paginates service instances.
 type InstanceQuery struct {
 	Page       int    `form:"page"`
 	PageSize   int    `form:"pageSize"`
@@ -106,6 +124,7 @@ type InstanceQuery struct {
 	Status     string `form:"status"`
 }
 
+// CreateInstanceRequest contains service-instance creation fields.
 type CreateInstanceRequest struct {
 	ServiceID      uint64 `json:"serviceId" binding:"required"`
 	Environment    string `json:"environment" binding:"required"`
@@ -119,12 +138,14 @@ type CreateInstanceRequest struct {
 	Status         string `json:"status"`
 }
 
+// UpdateInstanceRequest contains mutable service-instance fields.
 type UpdateInstanceRequest struct {
 	DesiredVersion *string `json:"desiredVersion"`
 	CurrentVersion *string `json:"currentVersion"`
 	Status         *string `json:"status"`
 }
 
+// InstanceStateTransitionRequest describes a service-instance state transition.
 type InstanceStateTransitionRequest struct {
 	InstanceID               uint64 `json:"instanceId"`
 	Action                   string `json:"action" binding:"required"`
@@ -140,6 +161,7 @@ type InstanceStateTransitionRequest struct {
 	CorrelationID            string `json:"correlationId"`
 }
 
+// InstanceResponse is the API representation of a service instance.
 type InstanceResponse struct {
 	ID               uint64     `json:"id"`
 	ServiceID        uint64     `json:"serviceId"`
@@ -173,6 +195,7 @@ type InstanceResponse struct {
 	UpdatedAt        time.Time  `json:"updatedAt"`
 }
 
+// InstanceListResponse contains a paginated service-instance result.
 type InstanceListResponse struct {
 	Items    []InstanceResponse `json:"items"`
 	Total    int64              `json:"total"`
@@ -180,6 +203,7 @@ type InstanceListResponse struct {
 	PageSize int                `json:"pageSize"`
 }
 
+// OptionItem is a generic service-module select option.
 type OptionItem struct {
 	ID    uint64 `json:"id"`
 	Code  string `json:"code"`

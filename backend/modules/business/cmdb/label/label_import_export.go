@@ -14,6 +14,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const labelStatusEnabled = "enabled"
+
 var maxLabelExportRows = 10000
 
 var labelValidCategories = map[string]struct{}{
@@ -274,7 +276,7 @@ func parseLabelImportRow(
 	}
 
 	if row.Status == "" {
-		row.Status = "enabled"
+		row.Status = labelStatusEnabled
 	}
 
 	return row

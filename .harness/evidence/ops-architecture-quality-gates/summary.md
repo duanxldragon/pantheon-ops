@@ -14,10 +14,10 @@ Cluster owner lock and release reference checker.
 
 ## Validation
 
-All commands listed in `commands.json` passed, including MinGW CGO race tests,
-frontend contract gates, and production frontend build. Browser smoke against a
-credentialed running backend and live-cluster mutation were intentionally not
-run.
+All commands listed in `commands.json` passed, including scope lint, MinGW CGO
+race tests, frontend contract gates, generated-module checks, and production
+frontend build. Browser smoke against a credentialed running backend and
+live-cluster mutation were intentionally not run.
 
 ## Residual Risk
 

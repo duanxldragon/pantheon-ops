@@ -174,6 +174,7 @@ func (h *Handler) Delete(c *gin.Context) {
 	common.Success(c, gin.H{"deleted": true})
 }
 
+// Export writes visible business scopes as CSV.
 func (h *Handler) Export(c *gin.Context) {
 	common.SetAuditMetadata(c, "bizscope.export.title", common.BusinessExport)
 
@@ -190,11 +191,13 @@ func (h *Handler) Export(c *gin.Context) {
 	_ = impexp.WriteCSV(c, *file)
 }
 
+// DownloadImportTemplate writes the business-scope import template.
 func (h *Handler) DownloadImportTemplate(c *gin.Context) {
 	file := h.service.BuildImportTemplate()
 	_ = impexp.WriteCSV(c, *file)
 }
 
+// Import creates or updates business scopes from an uploaded CSV.
 func (h *Handler) Import(c *gin.Context) {
 	common.SetAuditMetadata(c, "bizscope.import.title", common.BusinessImport)
 

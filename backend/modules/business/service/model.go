@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Service status, target, desired-state, observed-state, and health-state constants.
 const (
 	StatusActive   = "active"
 	StatusInactive = "inactive"
@@ -37,6 +38,7 @@ const (
 	HealthStateUnhealthy = "unhealthy"
 )
 
+// Application is a deployable application registered in the service module.
 type Application struct {
 	ID                uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
 	Code              string         `gorm:"size:128;not null" json:"code"`
@@ -54,8 +56,10 @@ type Application struct {
 	DeletedAt         gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the application table name.
 func (Application) TableName() string { return "biz_application" }
 
+// Service is a runtime service belonging to an application.
 type Service struct {
 	ID            uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
 	ApplicationID uint64         `gorm:"column:application_id;not null;index" json:"applicationId"`
@@ -71,8 +75,13 @@ type Service struct {
 	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the service table name.
 func (Service) TableName() string { return "biz_service" }
 
+// ServiceInstance is a concrete service deployment target.
+// ServiceInstance is a concrete service deployment target.
+//
+//nolint:revive // retained as the domain model name in the service package.
 type ServiceInstance struct {
 	ID               uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
 	ServiceID        uint64         `gorm:"column:service_id;not null;index" json:"serviceId"`
@@ -104,4 +113,5 @@ type ServiceInstance struct {
 	DeletedAt        gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the service-instance table name.
 func (ServiceInstance) TableName() string { return "biz_service_instance" }

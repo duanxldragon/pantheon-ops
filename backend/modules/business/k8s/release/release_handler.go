@@ -12,14 +12,19 @@ import (
 
 const msgParamInvalid = "common.param_invalid"
 
+// ReleaseHandler exposes Kubernetes release HTTP endpoints.
+//
+//nolint:revive // retained as the public handler name for this package.
 type ReleaseHandler struct {
 	svc *ReleaseService
 }
 
+// NewReleaseHandler creates the Kubernetes release HTTP handler.
 func NewReleaseHandler(svc *ReleaseService) *ReleaseHandler {
 	return &ReleaseHandler{svc: svc}
 }
 
+// RegisterRoutes registers release endpoints.
 func (h *ReleaseHandler) RegisterRoutes(r gin.IRoutes) {
 	r.GET("/releases", h.List)
 	r.POST("/releases", h.Create)
@@ -27,6 +32,7 @@ func (h *ReleaseHandler) RegisterRoutes(r gin.IRoutes) {
 	r.POST("/releases/:id/reconcile", h.Reconcile)
 }
 
+// List handles release listing.
 func (h *ReleaseHandler) List(c *gin.Context) {
 	var query ReleaseListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -41,6 +47,7 @@ func (h *ReleaseHandler) List(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// Create handles release creation.
 func (h *ReleaseHandler) Create(c *gin.Context) {
 	common.SetAuditMetadata(c, "k8s.release.audit.create", common.BusinessUpdate)
 
@@ -58,6 +65,7 @@ func (h *ReleaseHandler) Create(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// Rollback handles release rollback.
 func (h *ReleaseHandler) Rollback(c *gin.Context) {
 	common.SetAuditMetadata(c, "k8s.release.audit.rollback", common.BusinessUpdate)
 
@@ -80,6 +88,7 @@ func (h *ReleaseHandler) Rollback(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// Reconcile handles release observation reconciliation.
 func (h *ReleaseHandler) Reconcile(c *gin.Context) {
 	common.SetAuditMetadata(c, "k8s.release.audit.reconcile", common.BusinessUpdate)
 

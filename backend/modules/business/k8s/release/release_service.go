@@ -85,6 +85,9 @@ type workloadObservation struct {
 	RolloutFailed     bool
 }
 
+// ReleaseService manages Kubernetes release intents and observation.
+//
+//nolint:revive // retained as the public service name for this package.
 type ReleaseService struct {
 	db               *gorm.DB
 	clusterSvc       *cluster.ClusterService
@@ -93,6 +96,7 @@ type ReleaseService struct {
 	pollInterval     time.Duration
 }
 
+// NewReleaseService creates the Kubernetes release service.
 func NewReleaseService(db *gorm.DB, clusterSvc *cluster.ClusterService) *ReleaseService {
 	service := &ReleaseService{
 		db:               db,
@@ -139,6 +143,7 @@ func releaseDurationFromEnv(name string, fallback, maximum time.Duration) time.D
 	return parsed
 }
 
+// Migrate creates or upgrades the Kubernetes release schema.
 func (s *ReleaseService) Migrate() error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
@@ -168,6 +173,7 @@ func (s *ReleaseService) Create(req CreateReleaseRequest, createdBy string, data
 	return s.responseByID(record.ID, dataScope)
 }
 
+// List returns releases visible in the supplied data scope.
 func (s *ReleaseService) List(query ReleaseListQuery, dataScope *common.DataScopeReq) (*ReleaseListResponse, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
@@ -707,14 +713,20 @@ func normalizeCreateRequest(req CreateReleaseRequest) (releaseRequestSnapshot, e
 	return snapshot, nil
 }
 
+const (
+	releaseWorkloadDeployment  = "deployment"
+	releaseWorkloadStatefulSet = "statefulset"
+	releaseWorkloadDaemonSet   = "daemonset"
+)
+
 func normalizeWorkloadType(value string) string {
 	switch strings.ToLower(strings.TrimSpace(value)) {
-	case "deployment":
-		return "deployment"
-	case "statefulset":
-		return "statefulset"
-	case "daemonset":
-		return "daemonset"
+	case releaseWorkloadDeployment:
+		return releaseWorkloadDeployment
+	case releaseWorkloadStatefulSet:
+		return releaseWorkloadStatefulSet
+	case releaseWorkloadDaemonSet:
+		return releaseWorkloadDaemonSet
 	default:
 		return ""
 	}

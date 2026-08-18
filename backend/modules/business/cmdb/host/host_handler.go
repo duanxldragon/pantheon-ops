@@ -50,6 +50,7 @@ func (h *HostHandler) List(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// Export writes visible CMDB hosts as CSV.
 func (h *HostHandler) Export(c *gin.Context) {
 	common.SetAuditMetadata(c, "cmdb.host.export.title", common.BusinessExport)
 
@@ -66,11 +67,13 @@ func (h *HostHandler) Export(c *gin.Context) {
 	_ = impexp.WriteCSV(c, *file)
 }
 
+// DownloadImportTemplate writes the CMDB host import template.
 func (h *HostHandler) DownloadImportTemplate(c *gin.Context) {
 	file := h.svc.BuildImportTemplate()
 	_ = impexp.WriteCSV(c, *file)
 }
 
+// Import creates or updates CMDB hosts from an uploaded CSV.
 func (h *HostHandler) Import(c *gin.Context) {
 	common.SetAuditMetadata(c, "cmdb.host.import.title", common.BusinessImport)
 
@@ -206,6 +209,7 @@ func (h *HostHandler) UpdateStatus(c *gin.Context) {
 	common.Success(c, nil)
 }
 
+// TransitionState applies a host lifecycle or connectivity transition.
 func (h *HostHandler) TransitionState(c *gin.Context) {
 	common.SetAuditMetadata(c, "cmdb.host.state.update.title", common.BusinessUpdate)
 

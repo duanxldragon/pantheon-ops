@@ -122,6 +122,7 @@ func (h *GroupHandler) Delete(c *gin.Context) {
 	common.Success(c, nil)
 }
 
+// Export writes the visible CMDB groups as CSV.
 func (h *GroupHandler) Export(c *gin.Context) {
 	common.SetAuditMetadata(c, "cmdb.group.export.title", common.BusinessExport)
 
@@ -133,6 +134,7 @@ func (h *GroupHandler) Export(c *gin.Context) {
 	_ = impexp.WriteCSV(c, *file)
 }
 
+// Import creates or updates CMDB groups from an uploaded CSV.
 func (h *GroupHandler) Import(c *gin.Context) {
 	common.SetAuditMetadata(c, "cmdb.group.import.title", common.BusinessImport)
 
@@ -160,6 +162,7 @@ func (h *GroupHandler) Import(c *gin.Context) {
 	common.Success(c, result)
 }
 
+// DownloadImportTemplate writes the CMDB group import template.
 func (h *GroupHandler) DownloadImportTemplate(c *gin.Context) {
 	file := h.svc.BuildImportTemplate()
 	_ = impexp.WriteCSV(c, *file)

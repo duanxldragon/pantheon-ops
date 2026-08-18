@@ -38,6 +38,7 @@ type Cluster struct {
 	DeletedAt           gorm.DeletedAt `gorm:"index:uk_k8s_cluster_code,unique" json:"-"`
 }
 
+// TableName returns the Kubernetes cluster table name.
 func (Cluster) TableName() string {
 	return "biz_k8s_cluster"
 }

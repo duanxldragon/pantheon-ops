@@ -187,6 +187,9 @@ type DeployTaskHost struct {
 
 func (DeployTaskHost) TableName() string { return "biz_deploy_task_host" }
 
+// DeployHostLease records the active execution lease for a deployment host.
+//
+//nolint:revive // Public model names retain the deploy domain prefix for API clarity.
 type DeployHostLease struct {
 	ID        uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
 	HostID    uint64    `gorm:"not null;uniqueIndex:uk_deploy_host_lease_host" json:"hostId"`
@@ -197,6 +200,7 @@ type DeployHostLease struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+// TableName returns the deployment host lease table name.
 func (DeployHostLease) TableName() string { return "biz_deploy_host_lease" }
 
 type cmdbHostSnapshot struct {

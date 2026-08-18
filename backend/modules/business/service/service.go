@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -29,6 +28,7 @@ const (
 	errScopeInvalid         = "business.service.scope_invalid"
 )
 
+// Manager owns application, service, and service-instance persistence operations.
 type Manager struct {
 	db         *gorm.DB
 	bizScope   bizcap.BizScopeReader
@@ -36,6 +36,7 @@ type Manager struct {
 	k8sReader  bizcap.K8sTargetReader
 }
 
+// NewManager creates the service domain manager with its cross-module readers.
 func NewManager(db *gorm.DB, deps Dependencies) *Manager {
 	return &Manager{
 		db:         db,
@@ -45,6 +46,7 @@ func NewManager(db *gorm.DB, deps Dependencies) *Manager {
 	}
 }
 
+// Migrate creates or upgrades the service domain schema.
 func (m *Manager) Migrate() error {
 	if m.db == nil {
 		return errors.New(errNotInitialized)
@@ -52,6 +54,7 @@ func (m *Manager) Migrate() error {
 	return m.db.AutoMigrate(&Application{}, &Service{}, &ServiceInstance{})
 }
 
+// ListApplications returns applications visible in the supplied data scope.
 func (m *Manager) ListApplications(q ApplicationQuery, scope *common.DataScopeReq) (*ApplicationListResponse, error) {
 	if m.db == nil {
 		return nil, errors.New(errNotInitialized)
@@ -84,6 +87,7 @@ func (m *Manager) ListApplications(q ApplicationQuery, scope *common.DataScopeRe
 	return &ApplicationListResponse{Items: items, Total: total, Page: q.Page, PageSize: q.PageSize}, nil
 }
 
+// ListApplicationOptions returns active application options visible in the supplied data scope.
 func (m *Manager) ListApplicationOptions(scope *common.DataScopeReq) ([]OptionItem, error) {
 	var rows []Application
 	if err := m.db.Model(&Application{}).Scopes(database.WithDataScope(scope)).
@@ -97,6 +101,7 @@ func (m *Manager) ListApplicationOptions(scope *common.DataScopeReq) ([]OptionIt
 	return items, nil
 }
 
+// CreateApplication creates an application under an active business scope.
 func (m *Manager) CreateApplication(req CreateApplicationRequest, actor string, scope *common.DataScopeReq) (*ApplicationResponse, error) {
 	if m.db == nil {
 		return nil, errors.New(errNotInitialized)
@@ -136,6 +141,7 @@ func (m *Manager) CreateApplication(req CreateApplicationRequest, actor string, 
 	return &resp, err
 }
 
+// GetApplication returns an application reference visible in the supplied data scope.
 func (m *Manager) GetApplication(ctx context.Context, id uint64, scope *common.DataScopeReq) (ApplicationRef, error) {
 	var row Application
 	if err := m.db.WithContext(ctx).Model(&Application{}).Scopes(database.WithDataScope(scope)).First(&row, id).Error; err != nil {
@@ -147,6 +153,7 @@ func (m *Manager) GetApplication(ctx context.Context, id uint64, scope *common.D
 	return ApplicationRef{ID: row.ID, Code: row.Code, Name: row.Name, BusinessScopeID: row.BusinessScopeID, DeptID: row.DeptID, Status: row.Status}, nil
 }
 
+// UpdateApplication updates an application visible in the supplied data scope.
 func (m *Manager) UpdateApplication(id uint64, req UpdateApplicationRequest, actor string, scope *common.DataScopeReq) (*ApplicationResponse, error) {
 	row, err := m.findApplication(id, scope)
 	if err != nil {
@@ -176,6 +183,7 @@ func (m *Manager) UpdateApplication(id uint64, req UpdateApplicationRequest, act
 	return &resp, err
 }
 
+// DeleteApplication deletes an application when it is not referenced by a service.
 func (m *Manager) DeleteApplication(id uint64, scope *common.DataScopeReq) error {
 	row, err := m.findApplication(id, scope)
 	if err != nil {
@@ -196,6 +204,7 @@ func (m *Manager) DeleteApplication(id uint64, scope *common.DataScopeReq) error
 	return nil
 }
 
+// ListServices returns services visible in the supplied data scope.
 func (m *Manager) ListServices(q ServiceQuery, scope *common.DataScopeReq) (*ServiceListResponse, error) {
 	if m.db == nil {
 		return nil, errors.New(errNotInitialized)
@@ -231,6 +240,7 @@ func (m *Manager) ListServices(q ServiceQuery, scope *common.DataScopeReq) (*Ser
 	return &ServiceListResponse{Items: items, Total: total, Page: q.Page, PageSize: q.PageSize}, nil
 }
 
+// ListServiceOptions returns active service options for an application.
 func (m *Manager) ListServiceOptions(applicationID uint64, scope *common.DataScopeReq) ([]OptionItem, error) {
 	db := m.serviceQuery(scope).Where("status = ?", StatusActive)
 	if applicationID > 0 {
@@ -247,6 +257,7 @@ func (m *Manager) ListServiceOptions(applicationID uint64, scope *common.DataSco
 	return items, nil
 }
 
+// CreateService creates a service for an application.
 func (m *Manager) CreateService(req CreateServiceRequest, actor string, scope *common.DataScopeReq) (*ServiceResponse, error) {
 	req.Code, req.Name, req.RuntimeType = strings.TrimSpace(req.Code), strings.TrimSpace(req.Name), strings.TrimSpace(req.RuntimeType)
 	if req.ApplicationID == 0 || req.Code == "" || req.Name == "" || req.RuntimeType == "" {
@@ -275,6 +286,7 @@ func (m *Manager) CreateService(req CreateServiceRequest, actor string, scope *c
 	return &resp, err
 }
 
+// GetService returns a service reference visible in the supplied data scope.
 func (m *Manager) GetService(ctx context.Context, id uint64, scope *common.DataScopeReq) (ServiceRef, error) {
 	var row Service
 	if err := m.serviceQuery(scope).WithContext(ctx).First(&row, id).Error; err != nil {
@@ -290,6 +302,7 @@ func (m *Manager) GetService(ctx context.Context, id uint64, scope *common.DataS
 	return ServiceRef{ID: row.ID, ApplicationID: row.ApplicationID, Code: row.Code, Name: row.Name, RuntimeType: row.RuntimeType, BusinessScopeID: app.BusinessScopeID, DeptID: app.DeptID, Status: row.Status}, nil
 }
 
+// UpdateService updates a service visible in the supplied data scope.
 func (m *Manager) UpdateService(id uint64, req UpdateServiceRequest, actor string, scope *common.DataScopeReq) (*ServiceResponse, error) {
 	row, err := m.findService(id, scope)
 	if err != nil {
@@ -315,6 +328,7 @@ func (m *Manager) UpdateService(id uint64, req UpdateServiceRequest, actor strin
 	return &resp, err
 }
 
+// DeleteService deletes a service when it has no service instances.
 func (m *Manager) DeleteService(id uint64, scope *common.DataScopeReq) error {
 	row, err := m.findService(id, scope)
 	if err != nil {
@@ -330,6 +344,7 @@ func (m *Manager) DeleteService(id uint64, scope *common.DataScopeReq) error {
 	return m.db.Delete(row).Error
 }
 
+// ListInstances returns service instances visible in the supplied data scope.
 func (m *Manager) ListInstances(q InstanceQuery, scope *common.DataScopeReq) (*InstanceListResponse, error) {
 	if m.db == nil {
 		return nil, errors.New(errNotInitialized)
@@ -364,6 +379,7 @@ func (m *Manager) ListInstances(q InstanceQuery, scope *common.DataScopeReq) (*I
 	return &InstanceListResponse{Items: items, Total: total, Page: q.Page, PageSize: q.PageSize}, nil
 }
 
+// CreateInstance creates a VM or Kubernetes-targeted service instance.
 func (m *Manager) CreateInstance(ctx context.Context, req CreateInstanceRequest, actor string, scope *common.DataScopeReq) (InstanceRef, error) {
 	serviceRef, err := m.GetService(ctx, req.ServiceID, scope)
 	if err != nil {
@@ -400,6 +416,7 @@ func (m *Manager) CreateInstance(ctx context.Context, req CreateInstanceRequest,
 	return m.instanceRef(&row, serviceRef), nil
 }
 
+// UpdateInstance updates a service instance visible in the supplied data scope.
 func (m *Manager) UpdateInstance(id uint64, req UpdateInstanceRequest, actor string, scope *common.DataScopeReq) (*InstanceResponse, error) {
 	row, err := m.findInstance(id, scope)
 	if err != nil {
@@ -422,6 +439,7 @@ func (m *Manager) UpdateInstance(id uint64, req UpdateInstanceRequest, actor str
 	return &resp, err
 }
 
+// GetInstance returns a service instance reference visible in the supplied data scope.
 func (m *Manager) GetInstance(ctx context.Context, id uint64, scope *common.DataScopeReq) (InstanceRef, error) {
 	row, err := m.findInstance(id, scope)
 	if err != nil {
@@ -434,6 +452,7 @@ func (m *Manager) GetInstance(ctx context.Context, id uint64, scope *common.Data
 	return m.instanceRef(row, svc), nil
 }
 
+// DeleteInstance deletes a service instance visible in the supplied data scope.
 func (m *Manager) DeleteInstance(id uint64, scope *common.DataScopeReq) error {
 	row, err := m.findInstance(id, scope)
 	if err != nil {
@@ -614,13 +633,6 @@ func bizScopeDeptID(ref bizcap.BizScopeRef, scope *common.DataScopeReq) uint64 {
 		return scope.DeptID
 	}
 	return 0
-}
-
-func errorWithContext(prefix string, err error) error {
-	if err == nil {
-		return nil
-	}
-	return fmt.Errorf("%s: %w", prefix, err)
 }
 
 var _ Reader = (*Manager)(nil)

@@ -217,6 +217,7 @@ var legacyBizScopeI18nKeys = []string{
 	"bizscope.not_found",
 }
 
+// InitBizScopeModule registers the business-scope module and returns its owner service.
 func InitBizScopeModule(r *gin.RouterGroup, db *gorm.DB, dependencies ...ServiceDependencies) *Service {
 	service := NewService(db, dependencies...)
 	handler := NewHandler(service)

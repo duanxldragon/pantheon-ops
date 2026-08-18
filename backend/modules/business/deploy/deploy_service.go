@@ -79,6 +79,8 @@ const (
 
 const (
 	defaultHostLeaseDuration = 30 * time.Minute
+	observedStateUnknown     = "unknown"
+	observedStateStopped     = "stopped"
 )
 
 const (
@@ -88,6 +90,7 @@ const (
 	statusWhereClause = "status = ?"
 )
 
+// NewDeployService creates the deployment service with owner-module capabilities.
 func NewDeployService(db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, readers ...bizcap.BizScopeReader) *DeployService {
 	var bizScopeReader bizcap.BizScopeReader
 	if len(readers) > 0 {
@@ -106,6 +109,7 @@ func NewDeployService(db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, rea
 	}
 }
 
+// SetServiceInstanceStateCommand configures service-instance state writeback.
 func (s *DeployService) SetServiceInstanceStateCommand(command bizcap.ServiceInstanceStateCommand) {
 	s.serviceState = command
 }
@@ -1202,15 +1206,15 @@ func (s *DeployService) finishServiceInstanceState(task DeployTask, result MarkH
 func deployStateBegin(rawAction string) (action, observed, desired string, ok bool) {
 	switch normalizeTaskAction(rawAction) {
 	case TaskActionInstall, TaskActionReinstall:
-		return "install", "installing", "stopped", true
+		return TaskActionInstall, "installing", observedStateStopped, true
 	case TaskActionUpgrade:
-		return "upgrade", "upgrading", "", true
+		return TaskActionUpgrade, "upgrading", "", true
 	case TaskActionRollback:
-		return "rollback", "upgrading", "", true
+		return TaskActionRollback, "upgrading", "", true
 	case TaskActionStart:
-		return "start", "starting", "running", true
+		return TaskActionStart, "starting", TaskStatusRunning, true
 	case TaskActionStop, TaskActionUninstall:
-		return "stop", "stopping", "stopped", true
+		return TaskActionStop, "stopping", observedStateStopped, true
 	default:
 		return "", "", "", false
 	}
@@ -1221,49 +1225,49 @@ func deployStateFinish(rawAction, taskStatus, packageVersion, reportedHealth str
 	switch normalizeTaskAction(rawAction) {
 	case TaskActionInstall, TaskActionReinstall:
 		if success {
-			return "install", "stopped", "stopped", "unknown", strings.TrimSpace(packageVersion), true
+			return TaskActionInstall, observedStateStopped, observedStateStopped, observedStateUnknown, strings.TrimSpace(packageVersion), true
 		}
-		return "install", "failed", "stopped", "unknown", "", true
+		return TaskActionInstall, TaskStatusFailed, observedStateStopped, observedStateUnknown, "", true
 	case TaskActionUpgrade:
 		if success {
 			health = strings.TrimSpace(reportedHealth)
 			if health == "" {
-				health = "unknown"
+				health = observedStateUnknown
 			}
-			return "upgrade", "running", "running", health, strings.TrimSpace(packageVersion), true
+			return TaskActionUpgrade, TaskStatusRunning, TaskStatusRunning, health, strings.TrimSpace(packageVersion), true
 		}
-		return "upgrade", "failed", "", "unknown", "", true
+		return TaskActionUpgrade, TaskStatusFailed, "", observedStateUnknown, "", true
 	case TaskActionRollback:
 		if success {
 			health = strings.TrimSpace(reportedHealth)
 			if health == "" {
-				health = "unknown"
+				health = observedStateUnknown
 			}
-			return "rollback", "running", "running", health, strings.TrimSpace(packageVersion), true
+			return TaskActionRollback, TaskStatusRunning, TaskStatusRunning, health, strings.TrimSpace(packageVersion), true
 		}
-		return "rollback", "failed", "", "unknown", "", true
+		return TaskActionRollback, TaskStatusFailed, "", observedStateUnknown, "", true
 	case TaskActionStart:
 		if success {
-			return "start", "running", "running", "unknown", "", true
+			return TaskActionStart, TaskStatusRunning, TaskStatusRunning, observedStateUnknown, "", true
 		}
-		return "start", "failed", "running", "unknown", "", true
+		return TaskActionStart, TaskStatusFailed, TaskStatusRunning, observedStateUnknown, "", true
 	case TaskActionHealth:
 		if success {
 			health = strings.TrimSpace(reportedHealth)
 			if health == "" {
-				health = "unknown"
+				health = observedStateUnknown
 			}
-			return "health", "running", "", health, "", true
+			return TaskActionHealth, TaskStatusRunning, "", health, "", true
 		}
-		return "health", "running", "", "unhealthy", "", true
+		return TaskActionHealth, TaskStatusRunning, "", "unhealthy", "", true
 	case TaskActionStop, TaskActionUninstall:
 		if success {
-			return "stop", "stopped", "stopped", "unknown", "", true
+			return TaskActionStop, observedStateStopped, observedStateStopped, observedStateUnknown, "", true
 		}
-		return "stop", "failed", "stopped", "unknown", "", true
+		return TaskActionStop, TaskStatusFailed, "stopped", observedStateUnknown, "", true
 	case TaskActionRetire:
 		if success {
-			return "retire", "retired", "retired", "unknown", "", true
+			return TaskActionRetire, "retired", "retired", observedStateUnknown, "", true
 		}
 		return "", "", "", "", "", false
 	default:

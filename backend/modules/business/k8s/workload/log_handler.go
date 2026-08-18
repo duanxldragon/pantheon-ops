@@ -33,9 +33,9 @@ var logUpgrader = websocket.Upgrader{
 // PodLogs streams a pod's logs over WebSocket. It uses the client-go pod log
 // API with Follow=true to tail new lines until the connection closes.
 //
-// Route: GET /clusters/:clusterId/pods/:namespace/:podName/logs
+// Route: GET /clusters/:id/pods/:namespace/:podName/logs
 func (h *WorkloadHandler) PodLogs(c *gin.Context) {
-	clusterID, err := strconv.ParseUint(c.Param("clusterId"), 10, 64)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
@@ -58,9 +58,11 @@ func (h *WorkloadHandler) PodLogs(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
-	conn.SetReadDeadline(time.Now().Add(logPongWait))
+	_ = conn.SetReadDeadline(time.Now().Add(logPongWait))
 	conn.SetPongHandler(func(string) error {
 		_ = conn.SetReadDeadline(time.Now().Add(logPongWait))
 		return nil
@@ -109,7 +111,9 @@ func streamPodLogs(conn *websocket.Conn, clientset kubernetes.Interface, namespa
 		_ = conn.WriteMessage(websocket.TextMessage, []byte("failed to open pod log stream: "+err.Error()))
 		return
 	}
-	defer stream.Close()
+	defer func() {
+		_ = stream.Close()
+	}()
 
 	scanner := bufio.NewScanner(stream)
 	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)

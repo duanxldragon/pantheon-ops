@@ -10,22 +10,28 @@ import (
 
 const msgParamInvalid = "common.param_invalid"
 
+// NamespaceHandler exposes Kubernetes namespace HTTP endpoints.
+//
+//nolint:revive // retained as the public handler name for this package.
 type NamespaceHandler struct {
 	svc *NamespaceService
 }
 
+// NewNamespaceHandler creates the namespace HTTP handler.
 func NewNamespaceHandler(svc *NamespaceService) *NamespaceHandler {
 	return &NamespaceHandler{svc: svc}
 }
 
+// RegisterRoutes registers namespace endpoints.
 func (h *NamespaceHandler) RegisterRoutes(r gin.IRoutes) {
-	r.GET("/clusters/:clusterId/namespaces", h.List)
-	r.POST("/clusters/:clusterId/namespaces", h.Create)
-	r.DELETE("/clusters/:clusterId/namespaces/:name", h.Delete)
+	r.GET("/clusters/:id/namespaces", h.List)
+	r.POST("/clusters/:id/namespaces", h.Create)
+	r.DELETE("/clusters/:id/namespaces/:name", h.Delete)
 }
 
+// List handles namespace listing.
 func (h *NamespaceHandler) List(c *gin.Context) {
-	clusterID, err := strconv.ParseUint(c.Param("clusterId"), 10, 64)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
@@ -38,10 +44,11 @@ func (h *NamespaceHandler) List(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// Create handles namespace creation.
 func (h *NamespaceHandler) Create(c *gin.Context) {
 	common.SetAuditMetadata(c, "k8s.namespace.audit.create", common.BusinessInsert)
 
-	clusterID, err := strconv.ParseUint(c.Param("clusterId"), 10, 64)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
@@ -59,10 +66,11 @@ func (h *NamespaceHandler) Create(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// Delete handles namespace deletion.
 func (h *NamespaceHandler) Delete(c *gin.Context) {
 	common.SetAuditMetadata(c, "k8s.namespace.audit.delete", common.BusinessDelete)
 
-	clusterID, err := strconv.ParseUint(c.Param("clusterId"), 10, 64)
+	clusterID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return

@@ -24,16 +24,21 @@ const (
 	syncTimeout   = 30 * time.Second
 )
 
+// ClusterService manages registered Kubernetes clusters and their clients.
+//
+//nolint:revive // retained as the public service name for this package.
 type ClusterService struct {
 	db               *gorm.DB
 	referenceChecker ReferenceChecker
 	bizScopeReader   bizcap.BizScopeReader
 }
 
+// ReferenceChecker checks whether a cluster is referenced by another business resource.
 type ReferenceChecker interface {
 	HasReferences(ctx context.Context, tx *gorm.DB, clusterID uint64) (bool, error)
 }
 
+// NewClusterService creates the Kubernetes cluster service.
 func NewClusterService(db *gorm.DB, readers ...bizcap.BizScopeReader) *ClusterService {
 	service := &ClusterService{db: db}
 	if len(readers) > 0 {
@@ -42,14 +47,17 @@ func NewClusterService(db *gorm.DB, readers ...bizcap.BizScopeReader) *ClusterSe
 	return service
 }
 
+// SetReferenceChecker configures the owner-module reference checker used before deletion.
 func (s *ClusterService) SetReferenceChecker(checker ReferenceChecker) {
 	s.referenceChecker = checker
 }
 
+// SetBizScopeReader configures the business-scope reader used during cluster updates.
 func (s *ClusterService) SetBizScopeReader(reader bizcap.BizScopeReader) {
 	s.bizScopeReader = reader
 }
 
+// Migrate creates or upgrades the Kubernetes cluster schema.
 func (s *ClusterService) Migrate() error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
@@ -61,6 +69,7 @@ func (s *ClusterService) clusterQuery(dataScope *common.DataScopeReq) *gorm.DB {
 	return s.db.Model(&Cluster{}).Scopes(database.WithDataScope(dataScope))
 }
 
+// List returns Kubernetes clusters visible in the supplied data scope.
 func (s *ClusterService) List(query ClusterListQuery, dataScope *common.DataScopeReq) (*ClusterListResponse, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
@@ -105,6 +114,7 @@ func (s *ClusterService) List(query ClusterListQuery, dataScope *common.DataScop
 	return &ClusterListResponse{Items: items, Total: total, Page: query.Page, PageSize: query.PageSize}, nil
 }
 
+// GetByID returns one Kubernetes cluster visible in the supplied data scope.
 func (s *ClusterService) GetByID(id uint64, dataScope *common.DataScopeReq) (*ClusterResponse, error) {
 	cluster, err := s.findCluster(id, dataScope)
 	if err != nil {
@@ -114,6 +124,7 @@ func (s *ClusterService) GetByID(id uint64, dataScope *common.DataScopeReq) (*Cl
 	return &resp, nil
 }
 
+// Create registers a Kubernetes cluster after validating and encrypting its kubeconfig.
 func (s *ClusterService) Create(req CreateClusterRequest, createdBy string, deptID uint64) (*ClusterResponse, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
@@ -162,6 +173,7 @@ func (s *ClusterService) Create(req CreateClusterRequest, createdBy string, dept
 	return &resp, nil
 }
 
+// Update changes a Kubernetes cluster registration.
 func (s *ClusterService) Update(id uint64, req UpdateClusterRequest, updatedBy string, dataScope *common.DataScopeReq) (*ClusterResponse, error) {
 	cluster, err := s.findCluster(id, dataScope)
 	if err != nil {
@@ -209,6 +221,7 @@ func (s *ClusterService) Update(id uint64, req UpdateClusterRequest, updatedBy s
 	return s.GetByID(id, dataScope)
 }
 
+// Delete removes a Kubernetes cluster when no owner-module references remain.
 func (s *ClusterService) Delete(id uint64, dataScope *common.DataScopeReq) error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
@@ -255,7 +268,7 @@ func (s *ClusterService) WithClusterLock(id uint64, dataScope *common.DataScopeR
 
 		lockName := fmt.Sprintf("pantheon:k8s:cluster:%d", id)
 		locked := false
-		if tx.Dialector.Name() == "mysql" {
+		if tx.Name() == "mysql" {
 			var acquired int
 			if err := tx.Raw("SELECT GET_LOCK(?, 10)", lockName).Scan(&acquired).Error; err != nil {
 				return err

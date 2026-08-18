@@ -9,6 +9,7 @@ import (
 
 const serviceModuleKey = "business.service"
 
+// InitServiceModule registers the service business module and returns its reader capability.
 func InitServiceModule(r *gin.RouterGroup, db *gorm.DB, deps Dependencies) Reader {
 	manager := NewManager(db, deps)
 	handler := NewHandler(manager)

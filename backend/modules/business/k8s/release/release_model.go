@@ -52,6 +52,7 @@ type Release struct {
 	DeletedAt           gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the Kubernetes release table name.
 func (Release) TableName() string {
 	return "biz_k8s_release"
 }

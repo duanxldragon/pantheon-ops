@@ -1,5 +1,8 @@
 package cluster
 
+// ClusterListQuery filters and paginates Kubernetes clusters.
+//
+//nolint:revive // the exported DTO name is part of the cluster package contract.
 type ClusterListQuery struct {
 	Page            int    `form:"page" json:"page"`
 	PageSize        int    `form:"pageSize" json:"pageSize"`
@@ -9,6 +12,7 @@ type ClusterListQuery struct {
 	BusinessScopeID uint64 `form:"businessScopeId" json:"businessScopeId"`
 }
 
+// CreateClusterRequest contains the fields required to register a Kubernetes cluster.
 type CreateClusterRequest struct {
 	Code            string `json:"code" binding:"required"`
 	Name            string `json:"name" binding:"required"`
@@ -18,6 +22,7 @@ type CreateClusterRequest struct {
 	Remark          string `json:"remark"`
 }
 
+// UpdateClusterRequest contains mutable Kubernetes cluster fields.
 type UpdateClusterRequest struct {
 	Name            *string `json:"name"`
 	Environment     *string `json:"environment"`
@@ -26,6 +31,9 @@ type UpdateClusterRequest struct {
 	Remark          *string `json:"remark"`
 }
 
+// ClusterResponse is the API representation of a Kubernetes cluster.
+//
+//nolint:revive // the exported DTO name is part of the cluster package contract.
 type ClusterResponse struct {
 	ID                uint64  `json:"id"`
 	Code              string  `json:"code"`
@@ -53,6 +61,9 @@ type ClusterResponse struct {
 	UpdatedBy         string  `json:"updatedBy"`
 }
 
+// ClusterListResponse contains a paginated cluster result.
+//
+//nolint:revive // the exported DTO name is part of the cluster package contract.
 type ClusterListResponse struct {
 	Items    []ClusterResponse `json:"items"`
 	Total    int64             `json:"total"`
@@ -60,6 +71,7 @@ type ClusterListResponse struct {
 	PageSize int               `json:"pageSize"`
 }
 
+// NodeListResponse contains Kubernetes node summaries for a cluster.
 type NodeListResponse struct {
 	Items []NodeSnapshot `json:"items"`
 	Total int            `json:"total"`

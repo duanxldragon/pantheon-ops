@@ -14,14 +14,19 @@ import (
 
 const syncTimeout = 30 * time.Second
 
+// NamespaceService manages Kubernetes namespaces through client-go.
+//
+//nolint:revive // Service names retain the namespace domain prefix for module wiring clarity.
 type NamespaceService struct {
 	clusterSvc *cluster.ClusterService
 }
 
+// NewNamespaceService creates a namespace service.
 func NewNamespaceService(clusterSvc *cluster.ClusterService) *NamespaceService {
 	return &NamespaceService{clusterSvc: clusterSvc}
 }
 
+// List returns namespaces visible through a Kubernetes cluster.
 func (s *NamespaceService) List(clusterID uint64, dataScope *common.DataScopeReq) (*NamespaceListResponse, error) {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
@@ -43,6 +48,7 @@ func (s *NamespaceService) List(clusterID uint64, dataScope *common.DataScopeReq
 	return &NamespaceListResponse{Items: items, Total: len(items)}, nil
 }
 
+// Create creates a Kubernetes namespace.
 func (s *NamespaceService) Create(clusterID uint64, req CreateNamespaceRequest, dataScope *common.DataScopeReq) (*NamespaceItem, error) {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
@@ -66,6 +72,7 @@ func (s *NamespaceService) Create(clusterID uint64, req CreateNamespaceRequest, 
 	return &item, nil
 }
 
+// Delete removes a Kubernetes namespace.
 func (s *NamespaceService) Delete(clusterID uint64, name string, dataScope *common.DataScopeReq) error {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
@@ -84,7 +91,7 @@ func (s *NamespaceService) Delete(clusterID uint64, name string, dataScope *comm
 func toNamespaceItem(ns *corev1.Namespace) NamespaceItem {
 	created := ""
 	if !ns.CreationTimestamp.IsZero() {
-		created = ns.CreationTimestamp.Time.Format(time.RFC3339)
+		created = ns.CreationTimestamp.Format(time.RFC3339)
 	}
 	return NamespaceItem{
 		Name:              ns.Name,

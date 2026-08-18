@@ -20,17 +20,20 @@ const (
 	cmdbCapabilityMissing = "business.cmdb.capability.notConfigured"
 )
 
+// Service owns business-scope persistence and cross-module capability calls.
 type Service struct {
 	db               *gorm.DB
 	hostReader       bizcap.CMDBHostReader
 	ownershipCommand bizcap.CMDBOwnershipCommand
 }
 
+// ServiceDependencies contains owner-module capabilities required by Service.
 type ServiceDependencies struct {
 	HostReader       bizcap.CMDBHostReader
 	OwnershipCommand bizcap.CMDBOwnershipCommand
 }
 
+// NewService creates the business-scope service.
 func NewService(db *gorm.DB, dependencies ...ServiceDependencies) *Service {
 	service := &Service{db: db}
 	if len(dependencies) > 0 {
@@ -47,6 +50,7 @@ func (s *Service) Migrate() error {
 	return s.db.AutoMigrate(&BizScope{})
 }
 
+// GetActive returns one active business scope through the capability projection.
 func (s *Service) GetActive(ctx context.Context, id uint64, dataScope *common.DataScopeReq) (bizcap.BizScopeRef, error) {
 	if s.db == nil {
 		return bizcap.BizScopeRef{}, errors.New("database.not_initialized")
@@ -64,6 +68,7 @@ func (s *Service) GetActive(ctx context.Context, id uint64, dataScope *common.Da
 	return toBizScopeRef(row), nil
 }
 
+// ResolveActiveByCodes resolves active business scopes by code.
 func (s *Service) ResolveActiveByCodes(ctx context.Context, codes []string, dataScope *common.DataScopeReq) (map[string]bizcap.BizScopeRef, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
@@ -186,6 +191,7 @@ func (s *Service) Get(id uint64, dataScope *common.DataScopeReq) (*BizScopeDetai
 	return &resp, nil
 }
 
+// Create adds a business scope after validating its data-scope ownership.
 func (s *Service) Create(req *CreateBizScopeRequest, dataScopes ...*common.DataScopeReq) (*BizScopeListResp, error) {
 	if s.codeExists(req.Code, 0) {
 		return nil, errors.New(bizScopeCodeExistsKey)
@@ -210,6 +216,7 @@ func (s *Service) Create(req *CreateBizScopeRequest, dataScopes ...*common.DataS
 	return &resp, nil
 }
 
+// Update changes a business scope within the supplied data scope.
 func (s *Service) Update(id uint64, req *UpdateBizScopeRequest, dataScopes ...*common.DataScopeReq) (*BizScopeListResp, error) {
 	var row BizScope
 	var dataScope *common.DataScopeReq
@@ -291,6 +298,7 @@ func validateBizScopeDept(requested uint64, dataScope *common.DataScopeReq) (uin
 	return 0, errors.New("permission.denied")
 }
 
+// Delete removes an unreferenced business scope under the ownership lock.
 func (s *Service) Delete(id uint64, dataScopes ...*common.DataScopeReq) error {
 	var dataScope *common.DataScopeReq
 	if len(dataScopes) > 0 {

@@ -143,7 +143,7 @@ func TestHostServiceImportCreatesAndUpdatesByIP(t *testing.T) {
 	if err := db.Where("ip = ?", "10.0.1.2").First(&created).Error; err != nil {
 		t.Fatalf("load created host: %v", err)
 	}
-	if created.Status != "assigned" || created.BusinessScopeID != 7 || created.BusinessScopeCode != "scope-prod" {
+	if created.Status != HostLifecycleAssigned || created.BusinessScopeID != 7 || created.BusinessScopeCode != "scope-prod" {
 		t.Fatalf("unexpected created host scope/status: %+v", created)
 	}
 	if created.SSHPort != 2222 || created.CreatedBy != "99" || created.UpdatedBy != "99" {

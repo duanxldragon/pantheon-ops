@@ -275,7 +275,7 @@ func TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand(t *testing.T) {
 		t.Fatalf("expected begin and finish transitions, got %+v", stateCommand.transitions)
 	}
 	finish := stateCommand.transitions[1]
-	if finish.Action != "install" || finish.ObservedState != "stopped" || finish.CurrentVersion != "1.0.0" {
+	if finish.Action != "install" || finish.ObservedState != observedStateStopped || finish.CurrentVersion != "1.0.0" {
 		t.Fatalf("unexpected install finish transition: %+v", finish)
 	}
 }

@@ -23,8 +23,10 @@
 ## Known Baseline
 
 - Backend audit baseline: `go test -count=1 ./modules/business/...` passed.
-- Frontend audit baseline was stale after overlay recovery; current
-  `npm run type-check` and `npm run build` pass.
+- Current verification after lint/remediation cleanup:
+  `golangci-lint run --new-from-rev origin/main ./...`, business tests,
+  `go vet`, frontend ESLint/type-check/build, overlay checks, generated-module
+  checks, smoke-script tests, and `git diff --check` pass.
 - The repository already has unrelated modified/untracked files. Child owners must
   record collisions and preserve those changes.
 
@@ -50,9 +52,9 @@
 
 ## Next Atomic Action
 
-No remaining in-scope child task. Production model-generated legacy-table
-migrations and credentialed live-cluster/browser smoke remain explicit
-follow-ups.
+Commit and push the verified cleanup, then wait for PR checks before merging.
+Production model-generated legacy-table migrations and credentialed
+live-cluster/browser smoke remain explicit follow-ups.
 
 ## Blockers
 

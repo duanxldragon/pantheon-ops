@@ -6,6 +6,8 @@ import (
 	"pantheon-base/pkg/impexp"
 )
 
+const activeStatus = "active"
+
 func TestBizScopeServiceExportHonorsRowCap(t *testing.T) {
 	db := setupBizScopeTestDB(t)
 	svc := NewService(db)
@@ -64,7 +66,7 @@ func TestBizScopeServiceImportCreatesAndUpdatesByCode(t *testing.T) {
 
 	records := [][]string{
 		bizscopeImportExportHeaders(),
-		{"his-prod", "HIS 生产", "ops", "prod", "active", "更新后的备注"},
+		{"his-prod", "HIS 生产", "ops", "prod", activeStatus, "更新后的备注"},
 		{"his-dev", "HIS 开发", "ops", "dev", "", "开发环境"},
 	}
 
@@ -80,7 +82,7 @@ func TestBizScopeServiceImportCreatesAndUpdatesByCode(t *testing.T) {
 	if err := db.Where("code = ?", "his-prod").First(&updated).Error; err != nil {
 		t.Fatalf("load updated scope: %v", err)
 	}
-	if updated.Name != "HIS 生产" || updated.Status != "active" || updated.Remark != "更新后的备注" {
+	if updated.Name != "HIS 生产" || updated.Status != activeStatus || updated.Remark != "更新后的备注" {
 		t.Fatalf("unexpected updated scope: %+v", updated)
 	}
 
@@ -88,7 +90,7 @@ func TestBizScopeServiceImportCreatesAndUpdatesByCode(t *testing.T) {
 	if err := db.Where("code = ?", "his-dev").First(&created).Error; err != nil {
 		t.Fatalf("load created scope: %v", err)
 	}
-	if created.Status != "active" || created.Environment != "dev" {
+	if created.Status != activeStatus || created.Environment != "dev" {
 		t.Fatalf("unexpected created scope (default status): %+v", created)
 	}
 }
