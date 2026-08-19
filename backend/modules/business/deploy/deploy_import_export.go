@@ -206,7 +206,9 @@ func (s *DeployService) ImportTemplates(records [][]string, actor string) (*impe
 				result.Created++
 			}
 			if len(steps) > 0 {
-				_ = tx.Where("template_id = ?", item.ID).Delete(&DeployTemplateStep{})
+				if err := tx.Where("template_id = ?", item.ID).Delete(&DeployTemplateStep{}).Error; err != nil {
+					return err
+				}
 				for i := range steps {
 					tx.Create(&DeployTemplateStep{TemplateID: item.ID, StepCode: steps[i].StepCode, StepName: steps[i].StepName, StepType: steps[i].StepType, Action: steps[i].Action, PackageID: steps[i].PackageID, PackageName: steps[i].PackageName, PackageVersion: steps[i].PackageVersion, TemplateCode: steps[i].TemplateCode, Sort: steps[i].Sort})
 				}
