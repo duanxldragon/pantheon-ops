@@ -157,6 +157,7 @@ func requireHeaders(result *impexp.ImportResult, index map[string]int, headers [
 	return ok
 }
 
+// ImportTemplates validates and applies template CSV records transactionally.
 func (s *DeployService) ImportTemplates(records [][]string, actor string) (*impexp.ImportResult, error) {
 	result := &impexp.ImportResult{Errors: []impexp.ImportError{}}
 	if len(records) == 0 {
