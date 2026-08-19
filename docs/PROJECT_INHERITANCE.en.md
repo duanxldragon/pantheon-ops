@@ -6,7 +6,7 @@ Chinese version: [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
 
 - Base repository: `../pantheon-base`
 - Base release line: `release/0.10`
-- Base version: `pantheon-base-v0.10.13` (`ac62d71581865d4649691095ae46216f07726681`)
+- Base version: `pantheon-base-v0.10.19` (`61e52f6b5755809382007a15837e6004c9a002ab`)
 - Inheritance mode: `foundation-release-consumer`
 
 This repository no longer treats `base/main` as the default consumer surface. `main` may continue to absorb optimization and governance work, while ops upgrades only to explicit foundation releases or tags by default.
@@ -187,7 +187,7 @@ At minimum, record:
 Common local command:
 
 - `npm run foundation:install`: install the release artifact pinned by `foundation-release.lock.json`
-- `npm run check:inheritance`: one-shot check for task-packet template linkage, inheritance markers, foundation lock, and shared backend/frontend alignment
+- `npm run check:inheritance`: one-shot check for task-packet template linkage, inheritance markers, foundation lock, shared backend/frontend alignment, and full frontend product-source ownership
 - `npm run check:base-sync`: shared backend and frontend alignment check against the release artifact pinned by `foundation-release.lock.json`
 - `npm run check:base-sync:workspace`: explicit check against the current `pantheon-base` worktree to decide whether a new upgrade pass is needed
 

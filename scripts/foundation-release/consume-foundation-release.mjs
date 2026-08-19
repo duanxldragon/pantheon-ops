@@ -14,6 +14,8 @@ import {
   isFrontendBusinessPath,
   isFrontendOverlayPath,
   mergeBuiltinLocaleResources,
+  mergeFrontendPackageJson,
+  mergeSmokeReadme,
   readFoundationLock,
   readVerifiedReleaseMarker,
   readGoModuleName,
@@ -426,9 +428,14 @@ function computeSharedToolingChange(repoRelativePath, sourceRoot, opsRoot) {
   }
 
   const targetPath = path.join(opsRoot, repoRelativePath);
-  const nextSource = readUtf8(sourcePath);
+  let nextSource = readUtf8(sourcePath);
   const targetExists = fs.existsSync(targetPath);
   const targetContent = targetExists ? readUtf8(targetPath) : null;
+  if (repoRelativePath === 'frontend/package.json' && targetExists) {
+    nextSource = mergeFrontendPackageJson(nextSource, targetContent);
+  } else if (repoRelativePath === 'frontend/tests/smoke/README.md') {
+    nextSource = mergeSmokeReadme(nextSource, opsRoot);
+  }
   if (
     targetExists
     && normalizeLineEndings(nextSource) === normalizeLineEndings(targetContent)
@@ -443,6 +450,41 @@ function computeSharedToolingChange(repoRelativePath, sourceRoot, opsRoot) {
     newContent: nextSource,
     oldContent: targetContent,
   };
+}
+
+function collectSharedToolingFiles(sourceRoot, entries) {
+  const files = new Set();
+  for (const entry of entries) {
+    const sourcePath = path.join(sourceRoot, entry);
+    if (!fs.existsSync(sourcePath)) {
+      throw new Error(`shared frontend tooling asset is missing from the release bundle: ${entry}`);
+    }
+    if (!fs.statSync(sourcePath).isDirectory()) {
+      files.add(entry);
+      continue;
+    }
+    for (const relativePath of collectFiles(sourceRoot, sourcePath)) {
+      files.add(relativePath);
+    }
+  }
+  return [...files].sort((left, right) => left.localeCompare(right));
+}
+
+function collectObsoleteSharedToolingFiles(opsRoot, entries, expectedFiles) {
+  const expected = new Set(expectedFiles);
+  const obsolete = [];
+  for (const entry of entries) {
+    const targetPath = path.join(opsRoot, entry);
+    if (!fs.existsSync(targetPath) || !fs.statSync(targetPath).isDirectory()) {
+      continue;
+    }
+    for (const relativePath of collectFiles(opsRoot, targetPath)) {
+      if (!expected.has(relativePath)) {
+        obsolete.push(relativePath);
+      }
+    }
+  }
+  return obsolete.sort((left, right) => left.localeCompare(right));
 }
 
 function applySharedBackendBundle(bundleRoot, opsRoot, manifest, dryRun = false, rollbackState = null) {
@@ -521,9 +563,10 @@ function applySharedFrontendToolingBundle(
 ) {
   const sourceRoot = path.join(resolveBundleRoot(bundleRoot), 'shared-frontend');
   const entries = sharedFrontendToolingEntriesFromLock(manifest);
+  const toolingFiles = collectSharedToolingFiles(sourceRoot, entries);
   const changes = [];
 
-  for (const repoRelativePath of entries) {
+  for (const repoRelativePath of toolingFiles) {
     const change = computeSharedToolingChange(repoRelativePath, sourceRoot, opsRoot);
     if (!change) {
       continue;
@@ -537,10 +580,27 @@ function applySharedFrontendToolingBundle(
     }
   }
 
+  for (const repoRelativePath of collectObsoleteSharedToolingFiles(opsRoot, entries, toolingFiles)) {
+    const targetPath = path.join(opsRoot, repoRelativePath);
+    const change = {
+      action: 'DELETE',
+      path: repoRelativePath,
+      targetPath,
+      newContent: '',
+      oldContent: readUtf8(targetPath),
+    };
+    if (dryRun) {
+      changes.push(change);
+    } else {
+      rollbackState?.captureFile(targetPath);
+      fs.rmSync(targetPath, { force: true });
+    }
+  }
+
   if (dryRun) {
     return { skipped: 0, applied: changes.length, changes, dryRun };
   }
-  return { skipped: 0, applied: entries.length, dryRun };
+  return { skipped: 0, applied: toolingFiles.length, dryRun };
 }
 
 function runCheckScript(opsRoot, scriptName) {
@@ -725,6 +785,12 @@ export function consumeFoundationRelease(options) {
       // sync-base-shared also removes obsolete files inside Base-owned paths.
       // Snapshot the whole tree because that cleanup can delete files the bundle no longer contains.
       rollbackState.captureDirectory(path.join(options.opsRoot, 'frontend', 'src'));
+      for (const entry of sharedFrontendToolingEntriesFromLock(manifest)) {
+        const targetPath = path.join(options.opsRoot, entry);
+        if (fs.existsSync(targetPath) && fs.statSync(targetPath).isDirectory()) {
+          rollbackState.captureDirectory(targetPath);
+        }
+      }
       const frontendResult = applySharedFrontendBundle(options.bundleRoot, options.opsRoot, false, rollbackState);
       const frontendToolingResult = applySharedFrontendToolingBundle(
         options.bundleRoot,

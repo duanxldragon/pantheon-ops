@@ -1,15 +1,14 @@
 import process from 'node:process';
-import {
-  buildAuthHeaders,
-  buildVerifiedHeaders,
-  getOperationToken,
-  loginWithOptionalMfa,
-} from './smoke-auth.mjs';
+import { createCleanupFixtureCache } from './lib/cleanup-fixture-cache.mjs';
+import { fetchCleanupJson, getCleanupGetRetryOptions } from './lib/cleanup-http.mjs';
+import { buildCleanupI18nQueries } from './lib/cleanup-fixture-query-plan.mjs';
+import { readAuthCookieSession } from './lib/auth-cookie-session.mjs';
 
-const apiOrigin = process.env.PANTHEON_API_PROXY_TARGET ?? 'http://127.0.0.1:8080';
-const apiBaseUrl = process.env.PANTHEON_API_BASE_URL ?? `${apiOrigin}/api/v1`;
+const apiBaseUrl = process.env.PANTHEON_API_BASE_URL ?? 'http://127.0.0.1:8080/api/v1';
 const adminUsername = process.env.PANTHEON_SMOKE_ADMIN_USERNAME ?? 'admin';
 const adminPassword = process.env.PANTHEON_SMOKE_ADMIN_PASSWORD ?? '123456';
+const cleanupPhase = readArg('--phase', '');
+const fixtureCache = createCleanupFixtureCache();
 
 const entityPatterns = {
   roles: {
@@ -59,8 +58,15 @@ const entityPatterns = {
     exacts: ['smoke_biz_status'],
   },
   i18nKeys: {
-    prefixes: ['i18n.enter.', 'i18n.smoke.', 'i18n.import.'],
-    exacts: [],
+    prefixes: [
+      'i18n.enter.',
+      'i18n.smoke.',
+      'i18n.import.',
+      'i18n.sync.',
+      'dict.smoke_biz_status.',
+      'dict.smoke_batch_delete_dict_.',
+    ],
+    exacts: ['system.smoke'],
   },
   permissionPaths: {
     prefixes: ['/api/v1/system/permission/enter-smoke-', '/api/v1/system/smoke-batch-delete/'],
@@ -80,12 +86,57 @@ function matchesPattern(value, pattern) {
   return pattern.exacts.includes(value) || pattern.prefixes.some((prefix) => value.startsWith(prefix));
 }
 
+async function login() {
+  const response = await fetch(`${apiBaseUrl}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: adminUsername, password: adminPassword }),
+  });
+  if (!response.ok) {
+    throw new Error(`Login failed: HTTP ${response.status}`);
+  }
+  const payload = await response.json();
+  if (payload.code !== 200) {
+    throw new Error(`Login failed: code ${payload.code}`);
+  }
+  return readAuthCookieSession(response.headers, {
+    includeRefreshToken: false,
+    csrfFallback: `pantheon-smoke-csrf-${Date.now()}`,
+  });
+}
+
+async function getOperationToken(session) {
+  const response = await fetch(`${apiBaseUrl}/auth/operation-verify`, {
+    method: 'POST',
+    headers: {
+      ...authHeaders(session),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ password: adminPassword }),
+  });
+  if (!response.ok) {
+    throw new Error(`Operation verify failed: HTTP ${response.status}`);
+  }
+  const payload = await response.json();
+  if (payload.code !== 200) {
+    throw new Error(`Operation verify failed: code ${payload.code}`);
+  }
+  return payload.data.operationToken;
+}
+
 function authHeaders(session) {
-  return buildAuthHeaders(session);
+  return {
+    Authorization: `Bearer ${session.accessToken}`,
+    'X-CSRF-Token': session.csrfToken,
+    Cookie: `pantheon_csrf_token=${session.csrfToken}`,
+  };
 }
 
 function verifiedHeaders(session, operationToken) {
-  return buildVerifiedHeaders(session, operationToken);
+  return {
+    ...authHeaders(session),
+    'X-Operation-Token': operationToken,
+  };
 }
 
 async function apiGet(session, path, params = {}) {
@@ -93,17 +144,11 @@ async function apiGet(session, path, params = {}) {
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, String(value));
   }
-  const response = await fetch(url, {
+  return fetchCleanupJson(fetch, url, {
+    path,
     headers: authHeaders(session),
+    ...getCleanupGetRetryOptions(cleanupPhase),
   });
-  if (!response.ok) {
-    throw new Error(`GET ${path} failed: HTTP ${response.status}`);
-  }
-  const payload = await response.json();
-  if (payload.code !== 200) {
-    throw new Error(`GET ${path} failed: code ${payload.code}`);
-  }
-  return payload.data;
 }
 
 async function apiDelete(session, operationToken, path) {
@@ -181,7 +226,7 @@ async function cleanupDepts(session, operationToken) {
 }
 
 async function cleanupDictTypes(session, operationToken) {
-  const data = await apiGet(session, '/system/dict/type/list', {});
+  const data = await fixtureCache.getDictTypes(() => apiGet(session, '/system/dict/type/list', {}));
   const items = Array.isArray(data) ? data : [];
   let deleted = 0;
   for (const item of items) {
@@ -190,11 +235,14 @@ async function cleanupDictTypes(session, operationToken) {
       deleted += 1;
     }
   }
+  if (deleted > 0) {
+    fixtureCache.clearDictTypes();
+  }
   return deleted;
 }
 
 async function cleanupDictItems(session, operationToken) {
-  const typeData = await apiGet(session, '/system/dict/type/list', {});
+  const typeData = await fixtureCache.getDictTypes(() => apiGet(session, '/system/dict/type/list', {}));
   const types = Array.isArray(typeData) ? typeData : [];
   let deleted = 0;
   for (const type of types) {
@@ -214,14 +262,21 @@ async function cleanupDictItems(session, operationToken) {
 
 async function cleanupI18n(session, operationToken) {
   let deleted = 0;
-  for (const prefix of entityPatterns.i18nKeys.prefixes) {
-    const data = await apiGet(session, '/system/i18n/list', { key: prefix, page: 1, pageSize: 500 });
+  const queries = buildCleanupI18nQueries(entityPatterns.i18nKeys);
+  for (const keyQuery of queries) {
+    const data = await fixtureCache.getI18nList(
+      keyQuery,
+      () => apiGet(session, '/system/i18n/list', { key: keyQuery, page: 1, pageSize: 500 }),
+    );
     const items = Array.isArray(data.items) ? data.items : [];
     for (const item of items) {
       if (matchesPattern(String(item.key || ''), entityPatterns.i18nKeys)) {
         await apiDelete(session, operationToken, `/system/i18n/${item.id}`);
         deleted += 1;
       }
+    }
+    if (items.length > 0) {
+      fixtureCache.clearI18nList(keyQuery);
     }
   }
   return deleted;
@@ -261,11 +316,8 @@ async function cleanupPermissions(session, operationToken) {
 
 async function main() {
   const scope = readArg('--scope', 'all');
-  const session = await loginWithOptionalMfa(apiBaseUrl, {
-    username: adminUsername,
-    password: adminPassword,
-  });
-  const operationToken = await getOperationToken(apiBaseUrl, session, adminPassword);
+  const session = await login();
+  const operationToken = await getOperationToken(session);
   const summary = {
     users: 0,
     roles: 0,

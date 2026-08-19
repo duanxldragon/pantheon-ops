@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 
 export const verifiedReleaseMarkerName = '.foundation-release-verified.json';
+export const opsBusinessSmokeOverlayPath = 'docs/designs/BUSINESS_SMOKE_OVERLAY.md';
 
 export const sharedBackendEntries = ['cmd', 'internal', 'modules', 'pkg'];
 
@@ -28,11 +29,29 @@ export const sharedFrontendEntries = [
 ];
 
 export const sharedFrontendToolingPaths = new Set([
+  'frontend/package.json',
+  'frontend/playwright.api.config.ts',
+  'frontend/playwright.config.ts',
+  'frontend/playwright.full-system.config.ts',
+  'frontend/playwright.auto-recycle.config.ts',
+  'frontend/playwright.many-to-many.config.ts',
+  'frontend/playwright.master-detail.config.ts',
+  'frontend/scripts/cleanup-generated-modules.mjs',
+  'frontend/scripts/cleanup-smoke-fixtures.mjs',
+  'frontend/scripts/check-smoke-web-base.mjs',
+  'frontend/scripts/database-import-qa-setup.mjs',
   'frontend/scripts/export-generated-module.mjs',
+  'frontend/scripts/go-module.test.mjs',
   'frontend/scripts/lib/auth-cookie-session.mjs',
+  'frontend/scripts/lib/cleanup-fixture-cache.mjs',
+  'frontend/scripts/lib/cleanup-fixture-query-plan.mjs',
+  'frontend/scripts/lib/cleanup-http.mjs',
   'frontend/scripts/lib/css-declarations.mjs',
+  'frontend/scripts/many-to-many-qa-setup.mjs',
+  'frontend/scripts/master-detail-qa-setup.mjs',
   'frontend/scripts/run-smoke-suite.mjs',
   'frontend/scripts/run-smoke-suite.test.mjs',
+  'frontend/scripts/start-smoke-vite.mjs',
   'frontend/scripts/test-fixtures/bind-ready-server.mjs',
   'frontend/scripts/test-fixtures/fake-playwright-cli.mjs',
   'frontend/scripts/test-fixtures/record-cleanup.mjs',
@@ -45,7 +64,69 @@ export const sharedFrontendToolingPaths = new Set([
   'frontend/tests/smoke/platform/shell-visual-contract.spec.ts',
   'frontend/tests/smoke/system/system-pages.spec.ts',
   'frontend/tests/smoke/system/system-workspace-task-depth.ts',
+  'frontend/tests/smoke/business/generated',
+  'frontend/tests/smoke/helpers',
+  'frontend/tests/smoke/platform',
+  'frontend/tests/smoke/system',
+  'frontend/tests/smoke/README.md',
 ]);
+
+function isOpsBusinessSmokeScript([name, command]) {
+  return name.startsWith('test:smoke:business:')
+    && command.includes('tests/smoke/business/')
+    && !command.includes('tests/smoke/business/generated/');
+}
+
+function isFoundationSmokeScript(name) {
+  return name.startsWith('test:smoke:') || name.startsWith('smoke:');
+}
+
+export function mergeFrontendPackageJson(baseSource, opsSource) {
+  const basePackage = JSON.parse(baseSource);
+  const opsPackage = JSON.parse(opsSource);
+  const baseScripts = basePackage.scripts ?? {};
+  const opsScripts = opsPackage.scripts ?? {};
+  const opsBusinessScripts = Object.entries(opsScripts).filter(isOpsBusinessSmokeScript);
+  const opsBusinessScriptNames = new Set(opsBusinessScripts.map(([name]) => name));
+  const nextScripts = Object.fromEntries(
+    Object.entries(opsScripts).filter(([name]) => !isFoundationSmokeScript(name)),
+  );
+
+  for (const [name, command] of Object.entries(baseScripts)) {
+    if (isFoundationSmokeScript(name)) {
+      nextScripts[name] = command;
+    }
+  }
+  for (const [name, command] of opsBusinessScripts) {
+    nextScripts[name] = command;
+  }
+
+  const genericBusinessCommand = baseScripts['test:smoke:business'];
+  if (genericBusinessCommand) {
+    const baseBusinessCommands = genericBusinessCommand
+      .split('&&')
+      .map((command) => command.trim())
+      .filter(Boolean)
+      .filter((command) => {
+        const match = command.match(/^npm run\s+(.+)$/u);
+        return !match || !opsBusinessScriptNames.has(match[1].trim());
+      });
+    nextScripts['test:smoke:business'] = [
+      ...opsBusinessScripts.map(([name]) => `npm run ${name}`),
+      ...baseBusinessCommands,
+    ].join(' && ');
+  }
+
+  return `${JSON.stringify({ ...opsPackage, scripts: nextScripts }, null, 2)}\n`;
+}
+
+export function mergeSmokeReadme(baseSource, opsRoot) {
+  const overlayPath = path.join(opsRoot, opsBusinessSmokeOverlayPath);
+  if (!fs.existsSync(overlayPath)) {
+    return baseSource;
+  }
+  return `${baseSource.trimEnd()}\n\n## Ops Business Smoke Overlay\n\n${fs.readFileSync(overlayPath, 'utf8').trim()}\n`;
+}
 
 export const backendOverlayPaths = new Set([
   'internal/scaffold/workspace.go',

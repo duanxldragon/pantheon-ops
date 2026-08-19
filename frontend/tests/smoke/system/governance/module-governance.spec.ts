@@ -15,7 +15,10 @@ async function fulfillJson(route: Route, body: Record<string, unknown>) {
 }
 
 function formItem(page: Page, label: string) {
-  return page.locator('.arco-form-item').filter({ has: page.getByText(label, { exact: true }) }).first();
+  return page
+    .locator('.arco-form-item')
+    .filter({ has: page.getByText(label, { exact: true }) })
+    .first();
 }
 
 async function openFormSelect(page: Page, label: string) {
@@ -101,13 +104,19 @@ test.describe('module governance smoke', () => {
     });
 
     await page.goto('/system/modules', { waitUntil: 'networkidle' });
-    await expect(page.getByText('模块注册表', { exact: false }).filter({ visible: true }).first()).toBeVisible();
-    await expect(page.locator('.module-manager-page, .system-list__table-card').first()).toBeVisible();
+    await expect(
+      page.getByText('模块注册表', { exact: false }).filter({ visible: true }).first(),
+    ).toBeVisible();
+    await expect(
+      page.locator('.module-manager-page, .system-list__table-card').first(),
+    ).toBeVisible();
     await expect(page.locator('.system-page-hero')).toHaveCount(0);
     await expect(page.locator('.system-list__hero')).toHaveCount(0);
     await expect(page.locator('.module-manager-page__intro')).toHaveCount(0);
     await expect(page.locator('.module-manager-page__stats')).toHaveCount(0);
-    await expect(page.locator('.module-manager-page__header-actions .arco-btn-primary')).toBeVisible();
+    await expect(
+      page.locator('.module-manager-page__header-actions .arco-btn-primary'),
+    ).toBeVisible();
 
     const targetRow = page.getByRole('row', { name: /business\.asset/ }).first();
     await expect(targetRow).toBeVisible();
@@ -117,11 +126,15 @@ test.describe('module governance smoke', () => {
     await completeSecondaryVerify(page);
 
     await expect.poll(() => registerCalled).toBeTruthy();
-    await expect(page.locator('.arco-message').getByText('模块已重新接入，等待激活', { exact: true }).last()).toBeVisible();
+    await expect(
+      page.locator('.arco-message').getByText('模块已重新接入，等待激活', { exact: true }).last(),
+    ).toBeVisible();
     await expect(targetRow.getByText('待激活', { exact: true })).toBeVisible();
   });
 
-  test('generator requires overwrite confirmation before replacing an existing module', async ({ page }) => {
+  test('generator requires overwrite confirmation before replacing an existing module', async ({
+    page,
+  }) => {
     const tokens = await loginByApi(page.request, { username: 'admin', password: '123456' });
     const accessToken = tokens.accessToken;
     await installClientSession(page, tokens);
@@ -171,7 +184,10 @@ test.describe('module governance smoke', () => {
 
     await page.route(/\/api\/v1\/lowcode\/dynamic-modules\/generate$/, async (route) => {
       submitCount += 1;
-      const payload = route.request().postDataJSON() as { overwrite?: boolean; schema?: { metadata?: { sourceMode?: string; sourceTable?: string } } };
+      const payload = route.request().postDataJSON() as {
+        overwrite?: boolean;
+        schema?: { metadata?: { sourceMode?: string; sourceTable?: string } };
+      };
       expect(payload.schema?.metadata?.sourceMode).toBe('database');
       expect(payload.schema?.metadata?.sourceTable).toBe('biz_vendor');
       if (submitCount === 1) {
@@ -228,8 +244,28 @@ test.describe('module governance smoke', () => {
       });
     });
 
+    await page.route(/\/api\/v1\/lowcode\/generator\/preview-files$/, async (route) => {
+      await fulfillJson(route, {
+        code: 200,
+        data: {
+          files: [
+            {
+              path: 'backend/modules/business/cmdb/vendor/vendor_model.go',
+              content: 'package vendor\n',
+              language: 'go',
+            },
+          ],
+        },
+      });
+    });
+
     await page.goto('/system/generator', { waitUntil: 'networkidle' });
-    await expect(page.getByText(/模块生成(?:器|向导)/).filter({ visible: true }).first()).toBeVisible();
+    await expect(
+      page
+        .getByText(/模块生成(?:器|向导)/)
+        .filter({ visible: true })
+        .first(),
+    ).toBeVisible();
     await expect(page.locator('.system-page-hero')).toHaveCount(0);
     await expect(page.locator('.system-list__hero')).toHaveCount(0);
     await expect(page.locator('.generator-wizard-card')).toBeVisible();
@@ -253,17 +289,24 @@ test.describe('module governance smoke', () => {
     await completeSecondaryVerifyIfVisible(page);
     await expect.poll(() => submitCount).toBe(1);
 
-    const confirmDialog = page.getByRole('dialog').filter({ has: page.getByText('检测到同名模块', { exact: true }) });
+    const confirmDialog = page
+      .getByRole('dialog')
+      .filter({ has: page.getByText('检测到同名模块', { exact: true }) });
     await expect(confirmDialog).toBeVisible();
     await confirmDialog.getByRole('button', { name: '确定', exact: true }).click();
+    await completeSecondaryVerifyIfVisible(page);
 
     await expect.poll(() => submitCount).toBe(2);
-    await expect(page.locator('.arco-message').getByText('模块源码已写入，等待激活', { exact: true }).last()).toBeVisible();
+    await expect(
+      page.locator('.arco-message').getByText('模块源码已写入，等待激活', { exact: true }).last(),
+    ).toBeVisible();
     await expect(page.getByText(/模块标识:\s*business\.cmdb\.vendor/)).toBeVisible();
     await expect(page.getByText(/路由路径:\s*\/business\/cmdb\/vendor/)).toBeVisible();
   });
 
-  test('generator validates system scope module name before submit and shows a single error hint', async ({ page }) => {
+  test('generator validates system scope module name before submit and shows a single error hint', async ({
+    page,
+  }) => {
     await signInAsAdmin(page);
 
     let submitCount = 0;
@@ -284,7 +327,7 @@ test.describe('module governance smoke', () => {
       });
     });
 
-    await page.route(/\/api\/v1\/system\/dynamic-modules\/generate$/, async (route) => {
+    await page.route(/\/api\/v1\/lowcode\/dynamic-modules\/generate$/, async (route) => {
       submitCount += 1;
       await fulfillJson(route, {
         code: 400,
@@ -293,7 +336,12 @@ test.describe('module governance smoke', () => {
     });
 
     await page.goto('/system/generator', { waitUntil: 'networkidle' });
-    await expect(page.getByText(/模块生成(?:器|向导)/).filter({ visible: true }).first()).toBeVisible();
+    await expect(
+      page
+        .getByText(/模块生成(?:器|向导)/)
+        .filter({ visible: true })
+        .first(),
+    ).toBeVisible();
     await expect(page.locator('.generator-wizard-card')).toBeVisible();
     await expect(page.locator('.system-list__work-actions .arco-btn')).toBeVisible();
 
@@ -304,14 +352,31 @@ test.describe('module governance smoke', () => {
     await page.getByRole('button', { name: '下一步', exact: true }).click();
 
     await expect.poll(() => submitCount).toBe(0);
-    await expect(formItem(page, '模块名').getByText('模块名格式不正确', { exact: true })).toBeVisible();
-    await expect(page.locator('.arco-message').getByText('模块名格式不正确', { exact: true })).toHaveCount(0);
+    await expect(
+      formItem(page, '模块名').getByText('模块名格式不正确', { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.locator('.arco-message').getByText('模块名格式不正确', { exact: true }),
+    ).toHaveCount(0);
   });
 
-  test('generator workbench entry follows business toggle and relation table role', async ({ page }) => {
-    await signInAsAdmin(page);
+  test('datasource manager keeps zh placeholders and surfaces translated save failures', async ({
+    page,
+  }) => {
+    const accessToken = await signInAsAdmin(page);
+    await installOperationToken(page, accessToken);
+    let createAttempts = 0;
 
-    await page.route(/\/api\/v1\/system\/generator\/datasources$/, async (route) => {
+    await page.route(/\/api\/v1\/lowcode\/generator\/datasources(?:\?.*)?$/, async (route) => {
+      if (route.request().method() === 'POST') {
+        createAttempts += 1;
+        await fulfillJson(route, {
+          code: 400,
+          message: 'generator.datasource.host_invalid',
+        });
+        return;
+      }
+
       await fulfillJson(route, {
         code: 200,
         data: [
@@ -328,7 +393,73 @@ test.describe('module governance smoke', () => {
     });
 
     await page.goto('/system/generator', { waitUntil: 'networkidle' });
-    await expect(page.getByText(/模块生成(?:器|向导)/).filter({ visible: true }).first()).toBeVisible();
+    await openFormSelect(page, '建模来源');
+    await chooseOption(page, '从数据库表导入');
+    await page.getByRole('button', { name: '管理数据源', exact: true }).click();
+
+    const dialog = page.getByRole('dialog', { name: '受管数据源' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByPlaceholder('例如：运维主库')).toBeVisible();
+    await expect(dialog.getByPlaceholder('例如：127.0.0.1')).toBeVisible();
+    await expect(dialog.getByPlaceholder('例如：pantheon_ops')).toBeVisible();
+    await expect(dialog.getByPlaceholder('例如：pantheon_readonly')).toBeVisible();
+    await expect(dialog.getByPlaceholder('请输入只读账号密码')).toBeVisible();
+
+    await dialog.getByPlaceholder('例如：运维主库').fill('测试数据源');
+    await dialog.getByPlaceholder('例如：127.0.0.1').fill('db/internal');
+    await dialog.getByPlaceholder('例如：pantheon_ops').fill('pantheon_ops');
+    await dialog.getByPlaceholder('例如：pantheon_readonly').fill('pantheon_readonly');
+    await dialog.getByPlaceholder('请输入只读账号密码').fill('readonly-secret');
+    await dialog.getByRole('button', { name: '新增', exact: true }).click();
+    await completeSecondaryVerifyIfVisible(page);
+
+    await expect.poll(() => createAttempts).toBe(1);
+    await expect(dialog).toBeVisible();
+  });
+
+  test('generator workbench entry follows business toggle and relation table role', async ({
+    page,
+  }) => {
+    await signInAsAdmin(page);
+
+    const previewedSchemas: Array<{
+      listLayout?: { governance?: boolean };
+      metadata?: { relationFromField?: string; relationToField?: string };
+    }> = [];
+
+    await page.route(/\/api\/v1\/lowcode\/generator\/preview-files$/, async (route) => {
+      const payload = route.request().postDataJSON() as {
+        schema?: (typeof previewedSchemas)[number];
+      };
+      if (payload.schema) {
+        previewedSchemas.push(payload.schema);
+      }
+      await fulfillJson(route, { code: 200, data: { files: [] } });
+    });
+
+    await page.route(/\/api\/v1\/lowcode\/generator\/datasources(?:\?.*)?$/, async (route) => {
+      await fulfillJson(route, {
+        code: 200,
+        data: [
+          {
+            id: 'current',
+            name: '当前平台库',
+            driver: 'mysql',
+            databaseName: 'pantheon',
+            status: 1,
+            isCurrent: true,
+          },
+        ],
+      });
+    });
+
+    await page.goto('/system/generator', { waitUntil: 'networkidle' });
+    await expect(
+      page
+        .getByText(/模块生成(?:器|向导)/)
+        .filter({ visible: true })
+        .first(),
+    ).toBeVisible();
     await expect(page.locator('.generator-wizard-card')).toBeVisible();
     await expect(page.locator('.system-list__work-actions .arco-btn')).toBeVisible();
 
@@ -354,10 +485,32 @@ test.describe('module governance smoke', () => {
     await chooseOption(page, '启用');
     await openFormSelect(page, '表角色');
     await chooseOption(page, '关系表');
-    await expect(formItem(page, '平台工作台入口').locator('.arco-select').first()).toHaveClass(/arco-select-disabled/);
+    await page.getByPlaceholder('来源字段，例如 host_id').fill('asset_id');
+    await page.getByPlaceholder('目标字段，例如 group_id').fill('vendor_id');
+    await openFormSelect(page, '治理面板');
+    await chooseOption(page, '禁用');
+    await expect(formItem(page, '平台工作台入口').locator('.arco-select').first()).toHaveClass(
+      /arco-select-disabled/,
+    );
     await page.getByRole('button', { name: '下一步', exact: true }).click();
     await page.getByRole('button', { name: '下一步', exact: true }).click();
     await expect(page.getByText('关系表', { exact: true })).toBeVisible();
     await expect(page.getByText('工作台入口未接入', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: '生成代码', exact: true }).click();
+    await expect.poll(() => previewedSchemas.length).toBe(1);
+    expect(previewedSchemas[0]?.listLayout?.governance).toBe(false);
+    expect(previewedSchemas[0]?.metadata?.relationFromField).toBe('asset_id');
+    expect(previewedSchemas[0]?.metadata?.relationToField).toBe('vendor_id');
+
+    await page.getByRole('button', { name: '上一步', exact: true }).click();
+    await page.getByRole('button', { name: '上一步', exact: true }).click();
+    await page.getByRole('button', { name: '上一步', exact: true }).click();
+    await openFormSelect(page, '治理面板');
+    await chooseOption(page, '启用');
+    await page.getByRole('button', { name: '下一步', exact: true }).click();
+    await page.getByRole('button', { name: '下一步', exact: true }).click();
+    await page.getByRole('button', { name: '生成代码', exact: true }).click();
+    await expect.poll(() => previewedSchemas.length).toBe(2);
+    expect(previewedSchemas[1]?.listLayout?.governance).toBe(true);
   });
 });

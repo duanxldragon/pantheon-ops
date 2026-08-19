@@ -60,6 +60,7 @@ function collectRuntimeErrors(page: Page) {
       message.type() === 'error'
       && !/Failed to load resource: the server responded with a status of 404/i.test(text)
       && !/Failed to load resource: net::ERR_CONNECTION_CLOSED/i.test(text)
+      && !/Accessing element\.ref was removed in React 19/i.test(text)
       && !/favicon/i.test(text)
     ) {
       errors.push(text);

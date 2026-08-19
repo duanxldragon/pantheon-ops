@@ -11,7 +11,7 @@ English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
 - Base repository：当前继承源是 `../pantheon-base`
 - Base release line：当前跟随 `release/0.10`
-- Base version：当前锁定到 `pantheon-base-v0.10.13`（`ac62d71581865d4649691095ae46216f07726681`）
+- Base version：当前锁定到 `pantheon-base-v0.10.19`（`61e52f6b5755809382007a15837e6004c9a002ab`）
 - Inheritance mode：`foundation-release-consumer`
 
 ### 1.1 版本号命名规则
@@ -242,6 +242,7 @@ npm run build
 - 已安装 release 的 verification marker、lock checksum、manifest hash 与 release tree hash 完整性
 - 共享 backend 文件级对齐
 - 共享 frontend 文件级对齐
+- 全量 frontend 产品源码所有权分类，拒绝 foundation、business、generated/i18n 与显式 overlay 之外的历史残留
 - 显式 workspace 预演时的 base HEAD 漂移信号
 
 CI 会先安装 lock 指定的 immutable artifact；产物缺失、marker 缺失、checksum 不匹配或 release tree 被修改都会 fail closed，不再回退到未校验的工作树。

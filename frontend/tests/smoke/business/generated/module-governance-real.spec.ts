@@ -12,55 +12,20 @@ import {
   loginByApi,
   type BrowserLoginResult,
 } from '../../helpers/auth';
+import { readGoModulePath } from '../../helpers/go-module';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(currentDir, '../../../../..');
-const platformWorkspaceRoot = path.resolve(repoRoot, '..');
+const workspaceRoot = path.resolve(currentDir, '../../../../..');
 const moduleName = 'orderqa';
 const moduleKey = `business.${moduleName}`;
-const moduleRoute = `/business/${moduleName}`;
-const backendModuleRelativePath = path.join('backend', 'modules', 'business', moduleName);
-const frontendModuleRelativePath = path.join('frontend', 'src', 'modules', 'business', moduleName);
-const schemaRelativePath = path.join('schema', 'generated', 'business', `${moduleName}.json`);
-const backendRegistryRelativePath = path.join('backend', 'modules', 'business', 'generated_registry.go');
-const frontendRegistryRelativePath = path.join('frontend', 'src', 'modules', 'generated', 'business.ts');
-const componentRegistryRelativePath = path.join(
-  'frontend',
-  'src',
-  'core',
-  'router',
-  'generatedComponentRegistry.ts',
-);
-
-async function listCandidateRepoRoots() {
-  const entries = await fs.readdir(platformWorkspaceRoot, { withFileTypes: true });
-  const repoRoots = entries
-    .filter((entry) => entry.isDirectory() && entry.name.startsWith('pantheon-'))
-    .map((entry) => path.join(platformWorkspaceRoot, entry.name));
-  return Array.from(new Set([repoRoot, ...repoRoots]));
-}
-
-async function hasTarget(target: string) {
-  try {
-    await fs.stat(target);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function locateGeneratedRepo(relativePaths: string[]) {
-  const candidateRoots = await listCandidateRepoRoots();
-  for (const candidateRoot of candidateRoots) {
-    const results = await Promise.all(
-      relativePaths.map((relativePath) => hasTarget(path.join(candidateRoot, relativePath))),
-    );
-    if (results.every(Boolean)) {
-      return candidateRoot;
-    }
-  }
-  return null;
-}
+const modulePageRoute = `/business/${moduleName}`;
+const backendModuleDir = path.join(workspaceRoot, 'backend', 'modules', 'business', moduleName);
+const frontendModuleDir = path.join(workspaceRoot, 'frontend', 'src', 'modules', 'business', moduleName);
+const schemaFile = path.join(workspaceRoot, 'schema', 'generated', 'business', `${moduleName}.json`);
+const backendRegistry = path.join(workspaceRoot, 'backend', 'modules', 'business', 'generated_registry.go');
+const frontendRegistry = path.join(workspaceRoot, 'frontend', 'src', 'modules', 'generated', 'business.ts');
+const componentRegistry = path.join(workspaceRoot, 'frontend', 'src', 'core', 'router', 'generatedComponentRegistry.ts');
+const backendModuleImport = `${await readGoModulePath(workspaceRoot)}/modules/business/${moduleName}`;
 
 function buildGenerateRequest() {
   return {
@@ -123,6 +88,10 @@ function buildGenerateRequest() {
   };
 }
 
+function isRuntimeGeneratedModuleReady(status: unknown) {
+  return status === 1 || status === 3;
+}
+
 async function formItem(page: Page, label: string) {
   return page.locator('.arco-form-item').filter({ has: page.getByText(label, { exact: true }) }).first();
 }
@@ -177,8 +146,10 @@ test('real module governance flow can generate register and purge a temporary bu
   await expect(page.getByText('默认权限', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: '生成代码', exact: true }).click();
 
-  await expect(page.getByRole('heading', { name: '预览与接入' })).toBeVisible();
   await expect(page.getByText('共生成 10 个文件', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '一键生成并注册', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '下载源码包', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '预览代码', exact: true })).toBeVisible();
 
   const generateResponse = await page.request.post(`${apiBaseUrl}/lowcode/dynamic-modules/generate`, {
     headers: {
@@ -191,41 +162,22 @@ test('real module governance flow can generate register and purge a temporary bu
   const generatePayload = await generateResponse.json();
   expect(generatePayload.code).toBe(200);
   expect(generatePayload.data?.module?.name).toBe(moduleKey);
-  expect([1, 3]).toContain(generatePayload.data?.module?.status);
-  expect(generatePayload.data?.summary?.routePath).toBe(moduleRoute);
+  expect(isRuntimeGeneratedModuleReady(generatePayload.data?.module?.status)).toBe(true);
+  expect(generatePayload.data?.summary?.routePath).toBe(modulePageRoute);
 
   await expect.poll(async () => {
     const response = await page.request.get(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}`, {
       headers: apiRequestHeaders(login),
     });
     const payload = await response.json();
-    return payload.data?.status === 1 || payload.data?.status === 3;
+    return isRuntimeGeneratedModuleReady(payload.data?.status);
   }).toBe(true);
 
   await expect.poll(async () => {
-    return locateGeneratedRepo([
-      backendModuleRelativePath,
-      frontendModuleRelativePath,
-      schemaRelativePath,
-    ]);
-  }).toBeTruthy();
-  const generatedRepoRoot = await locateGeneratedRepo([
-    backendModuleRelativePath,
-    frontendModuleRelativePath,
-    schemaRelativePath,
-  ]);
-  expect(generatedRepoRoot).toBeTruthy();
-
-  const backendModuleDir = path.join(generatedRepoRoot!, backendModuleRelativePath);
-  const frontendModuleDir = path.join(generatedRepoRoot!, frontendModuleRelativePath);
-  const schemaFile = path.join(generatedRepoRoot!, schemaRelativePath);
-  const backendRegistry = path.join(generatedRepoRoot!, backendRegistryRelativePath);
-  const frontendRegistry = path.join(generatedRepoRoot!, frontendRegistryRelativePath);
-  const componentRegistry = path.join(generatedRepoRoot!, componentRegistryRelativePath);
-
-  await expect.poll(async () => {
     const content = await fs.readFile(backendRegistry, 'utf8');
-    return content.includes(`backend/modules/business/${moduleName}`);
+    // Registry imports the module by Go import path (module path moved off
+    // the old backend/modules/... directory-style string long ago).
+    return content.includes(backendModuleImport);
   }).toBe(true);
   await expect.poll(async () => {
     const content = await fs.readFile(frontendRegistry, 'utf8');
@@ -236,10 +188,13 @@ test('real module governance flow can generate register and purge a temporary bu
     return content.includes(`business/${moduleName}/OrderqaList`);
   }).toBe(true);
 
-  await page.goto('/system/modules', { waitUntil: 'networkidle' });
+  await expect(async () => {
+    await page.goto('/system/modules', { waitUntil: 'networkidle' });
+    await expect(page).toHaveURL(/\/system\/modules(?:\?|$)/);
+  }).toPass({ timeout: 20_000 });
   const row = page.getByRole('row', { name: new RegExp(moduleKey) }).first();
   await expect(row).toBeVisible();
-  await expect(row.getByText(/已接入|待激活/).first()).toBeVisible();
+  await expect(row.getByText(/待激活|已接入/).first()).toBeVisible();
 
   const cleanupResponse = await page.request.delete(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}?dropTable=false&purgeSource=true`, {
     headers: {
@@ -265,7 +220,7 @@ test('real module governance flow can generate register and purge a temporary bu
 
   await expect.poll(async () => {
     const content = await fs.readFile(backendRegistry, 'utf8');
-    return content.includes(`backend/modules/business/${moduleName}`);
+    return content.includes(backendModuleImport);
   }).toBe(false);
   await expect.poll(async () => {
     const content = await fs.readFile(frontendRegistry, 'utf8');

@@ -57,7 +57,7 @@ function createArchive(root, releaseVersion) {
   const archivePath = path.join(root, `foundation-release-${releaseVersion}.tgz`);
   const result = spawnSync(
     'tar',
-    ['--force-local', '-czf', archivePath, '-C', releaseRoot, 'manifest.json', 'bundle'],
+    ['-czf', archivePath, '-C', releaseRoot, 'manifest.json', 'bundle'],
     { encoding: 'utf8' },
   );
   assert.equal(result.status, 0, result.stderr || result.stdout || result.error?.message);
