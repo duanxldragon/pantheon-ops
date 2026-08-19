@@ -223,6 +223,7 @@ type DeployTaskAttempt struct {
 	UpdatedAt      time.Time  `json:"updatedAt"`
 }
 
+// TableName returns the deployment task attempt table name.
 func (DeployTaskAttempt) TableName() string { return "biz_deploy_task_attempt" }
 
 // DeployCredentialRef holds an encrypted SSH secret. The plaintext is never
@@ -240,6 +241,7 @@ type DeployCredentialRef struct {
 	DeletedAt       gorm.DeletedAt `gorm:"index:uk_deploy_credential_name_deleted" json:"-"`
 }
 
+// TableName returns the deployment credential reference table name.
 func (DeployCredentialRef) TableName() string { return "biz_deploy_credential_ref" }
 
 type cmdbHostSnapshot struct {
