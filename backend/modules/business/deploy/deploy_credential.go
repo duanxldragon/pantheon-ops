@@ -41,6 +41,7 @@ func credentialResponse(item *DeployCredentialRef) DeployCredentialResponse {
 	return DeployCredentialResponse{ID: item.ID, Name: item.Name, Username: item.Username, AuthMode: item.AuthMode, Version: item.Version, Status: item.Status, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 
+// ListCredentials returns redacted credential metadata without secret material.
 func (s *DeployService) ListCredentials() ([]DeployCredentialResponse, error) {
 	var items []DeployCredentialRef
 	if err := s.db.Order("id DESC").Find(&items).Error; err != nil {
@@ -53,6 +54,7 @@ func (s *DeployService) ListCredentials() ([]DeployCredentialResponse, error) {
 	return result, nil
 }
 
+// CreateCredential encrypts and stores a deploy credential, returning metadata only.
 func (s *DeployService) CreateCredential(req CreateDeployCredentialRequest, actor string) (*DeployCredentialResponse, error) {
 	if req.AuthMode != "password" && req.AuthMode != "private_key" {
 		return nil, errors.New("business.deploy.credential.auth_mode_invalid")
@@ -69,6 +71,7 @@ func (s *DeployService) CreateCredential(req CreateDeployCredentialRequest, acto
 	return &resp, nil
 }
 
+// UpdateCredential changes deploy credential metadata or rotates its encrypted secret.
 func (s *DeployService) UpdateCredential(id uint64, req UpdateDeployCredentialRequest, actor string) (*DeployCredentialResponse, error) {
 	var item DeployCredentialRef
 	if err := s.db.First(&item, id).Error; err != nil {
@@ -114,6 +117,7 @@ func (s *DeployService) UpdateCredential(id uint64, req UpdateDeployCredentialRe
 	return &resp, nil
 }
 
+// DeleteCredential removes a deploy credential reference by ID.
 func (s *DeployService) DeleteCredential(id uint64) error {
 	result := s.db.Delete(&DeployCredentialRef{}, id)
 	if result.Error != nil {
