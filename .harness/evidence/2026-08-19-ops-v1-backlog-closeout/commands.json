@@ -1,0 +1,254 @@
+{
+  "taskId": "2026-08-19-ops-v1-backlog-closeout",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": ".agents/adapters/codex.md"
+  },
+  "commands": [
+    {
+      "command": "go test ./pkg/database -run TestRunMigrations -count=1",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "legacy generated-key upgrade and repeat-run tests passed"
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "21 declared paths, rebuilt tree"
+    },
+    {
+      "command": "node scripts/check-business-module-boundaries.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "business module boundary check passed"
+    },
+    {
+      "command": "go test ./modules/business/... ./pkg/database",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "business modules, Deploy import-export, NamespaceBinding, and migrations passed"
+    },
+    {
+      "command": "go vet ./modules/business/deploy ./modules/business/k8s/... ./pkg/database",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "passed"
+    },
+    {
+      "command": "npm run type-check",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "TypeScript build passed"
+    },
+    {
+      "command": "go test ./modules/business/deploy ./modules/business/k8s/... ./pkg/database; go vet ./modules/business/deploy ./modules/business/k8s/... ./pkg/database",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Deploy, K8s and database targeted suites plus vet passed"
+    },
+    {
+      "command": "go test ./modules/business/deploy -run 'TestCredentialReferenceRequestRejectsInlineSecrets|TestRunDeployScriptPropagatesCancellation|TestNormalizeDeployExecutionTimeoutBounds' -count=1",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "CredentialRef strictness, context cancellation and timeout bounds passed"
+    },
+    {
+      "command": "go test ./... -count=1",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "full backend suite passed"
+    },
+    {
+      "command": "go vet ./...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "full backend vet passed"
+    },
+    {
+      "command": "$env:PATH='D:\\msys64\\mingw64\\bin;' + $env:PATH; $env:CGO_ENABLED='1'; go test -race ./...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Windows CGO race gate passed"
+    },
+    {
+      "command": "node --test tests/scripts/check-business-module-boundaries.test.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "boundary checker regression tests passed"
+    },
+    {
+      "command": "npm run test:business-overlay",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "deterministic overlay tests passed"
+    },
+    {
+      "command": "npm run build",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "frontend contracts, type-check, and Vite production build passed"
+    },
+    {
+      "command": "go build -trimpath -ldflags '-s -w' -o .tmp/f-release-rehearsal/backend/pantheon-ops-server.exe ./cmd/server",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "isolated backend release artifact built; sha256 C5B5AE18C8ED454D8DC28619A96415A8CBAD7AD9A18FDB635BEC3EAB5BB84B3F"
+    },
+    {
+      "command": "npx playwright test tests/smoke/business/deploy/deploy-pages.spec.ts -g 'deploy pages load under operations platform' --config=playwright.config.ts --workers=1",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "authenticated Deploy desktop smoke passed and produced three screenshots"
+    },
+    {
+      "command": "Playwright chromium viewport 390x844; login admin; navigate /business/deploy/package; screenshot; assert body.scrollWidth == clientWidth",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "mobile Deploy rendering passed; screenshot captured; no horizontal overflow"
+    },
+    {
+      "command": "PANTHEON_TEST_DSN=<isolated temporary schema>; go test ./pkg/database -run TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts -count=1",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "isolated MySQL 8 up migration rehearsal passed; temporary schema removed"
+    },
+    {
+      "command": "npm run check:harness-method && npm run check:harness-adoption",
+      "cwd": "pantheon-ops",
+      "status": "not-run",
+      "durationMs": 0,
+      "notes": "blocked by missing shared Base Harness landing/adaptor files; Base-first gap recorded"
+    },
+    {
+      "command": "go test ./modules/business/... ./pkg/database -count=1",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "all business and database tests passed in the available local test configuration"
+    },
+    {
+      "command": "kubectl --kubeconfig config/kubeconfig.yaml get namespaces --request-timeout=10s --no-headers",
+      "cwd": "pantheon-ops",
+      "status": "not-run",
+      "durationMs": 0,
+      "notes": "read-only runtime smoke blocked by certificate SAN mismatch for 115.190.251.143; no mutation attempted"
+    },
+    {
+      "command": "kubectl --kubeconfig config/kubeconfig.yaml --insecure-skip-tls-verify=true version --request-timeout=10s --output=json; kubectl --kubeconfig config/kubeconfig.yaml --insecure-skip-tls-verify=true get namespaces --request-timeout=10s -o name; kubectl --kubeconfig config/kubeconfig.yaml --insecure-skip-tls-verify=true get nodes --request-timeout=10s",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 0,
+      "notes": "Kubernetes API v1.34.5+k3s1 reachable; six namespaces listed; node k3s Ready; read-only only"
+    },
+    {
+      "command": "mysqldump --single-transaction --routines --triggers --events pantheon_ops -> isolated schema pantheon_ops_f_final_rehearsal; inspect version/rows/indexes; drop isolated schema",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 5400,
+      "notes": "MySQL 8.0.36 full dump/restore rehearsal passed; source schema was read-only and isolated schema was removed"
+    },
+    {
+      "command": "node scripts/business-overlay/rebuild-from-base.mjs --target .tmp/f-final-overlay-fixed; node scripts/harness/check-method-health.mjs --root .tmp/f-final-overlay-fixed --method-root ../pantheon-harness --strict",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 2400,
+      "notes": "clean foundation-release overlay preserves Base Harness docs; strict method health 0 findings/0 warnings"
+    },
+    {
+      "command": "plink -batch -ssh -hostkey <verified-ed25519-fingerprint> root@115.190.251.143 \"id -u; uname -s; date -u\"",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 900,
+      "notes": "SSH read-only acceptance passed as uid 0 on Linux; no remote mutation"
+    },
+    {
+      "command": "PANTHEON_SNAPSHOT_REHEARSAL_DSN=<isolated production snapshot>; go test -run TestProductionSnapshotRollbackAndReapply -count=1 -v ./pkg/database",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 1169,
+      "notes": "actual golang-migrate engine completed snapshot 21->22->16->22; exact core business row counts unchanged; isolated database removed"
+    },
+    {
+      "command": "PANTHEON_TEST_DSN=<local MySQL 8.0.36>; go test -count=1 ./pkg/database/...; go vet ./pkg/database/...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 33800,
+      "notes": "database regression suite and vet passed after skipped-migration/bootstrap rollback repair"
+    },
+    {
+      "command": "go test -count=1 ./...; go vet ./...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 74800,
+      "notes": "full backend regression suite and vet passed after migration runner changes"
+    }
+  ],
+  "graphChecks": {
+    "usedCodeGraph": false,
+    "affectedSubgraph": [
+      "migration runner -> business schema",
+      "Deploy handler -> worker -> executor",
+      "K8s owner checks -> client-go",
+      "business list UI -> APIs"
+    ],
+    "checks": [
+      "cycle",
+      "call-depth",
+      "sensitive-flow"
+    ],
+    "findings": [],
+    "notes": "F-stage verification reviewed business boundaries, credential handling, migration state, and browser smoke."
+  },
+  "browserEvidence": [
+    {
+      "viewport": "desktop 1280x720",
+      "url": "http://127.0.0.1:5173/business/deploy/package",
+      "screenshot": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/screenshots/deploy-package-list.png",
+      "consoleErrors": []
+    },
+    {
+      "viewport": "mobile 390x844",
+      "url": "http://127.0.0.1:5173/business/deploy/package",
+      "screenshot": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/screenshots/deploy-mobile-package.png",
+      "consoleErrors": []
+    }
+  ],
+  "runtimeSensitive": true,
+  "knownGaps": [
+    "direct live-database rollback requires an operator change window",
+    "live Kubernetes mutation and deployment",
+    "live SSH mutation"
+  ],
+  "linkage": {
+    "summaryFile": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/summary.md",
+    "reviewFile": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/designs/BUSINESS_DEVELOPMENT_PLAN.md",
+      "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md",
+      "docs/designs/BUSINESS_TEST_PLAN.md"
+    ],
+    "taskManifest": ".harness/tasks/2026-08-19-ops-v1-backlog-closeout/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout"
+  }
+}

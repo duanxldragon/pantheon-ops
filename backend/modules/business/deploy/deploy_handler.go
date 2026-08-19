@@ -1,10 +1,13 @@
 package deploy
 
 import (
+	"errors"
+	"mime/multipart"
 	"strconv"
 	"strings"
 
 	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/impexp"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,11 +33,19 @@ func (h *DeployHandler) RegisterRoutes(r gin.IRoutes) {
 	r.GET(packageIDRoute, h.GetPackage)
 	r.PUT(packageIDRoute, h.UpdatePackage)
 	r.DELETE(packageIDRoute, h.DeletePackage)
+	r.GET("/packages/export", h.ExportPackages)
+	r.POST("/packages/import", h.ImportPackages)
 	r.GET("/templates", h.ListTemplates)
 	r.POST("/templates", h.CreateTemplate)
 	r.GET(templateIDRoute, h.GetTemplate)
 	r.PUT(templateIDRoute, h.UpdateTemplate)
 	r.DELETE(templateIDRoute, h.DeleteTemplate)
+	r.GET("/templates/export", h.ExportTemplates)
+	r.POST("/templates/import", h.ImportTemplates)
+	r.GET("/credentials", h.ListCredentials)
+	r.POST("/credentials", h.CreateCredential)
+	r.PUT("/credentials/:id", h.UpdateCredential)
+	r.DELETE("/credentials/:id", h.DeleteCredential)
 	r.GET("/tasks", h.ListTasks)
 	r.POST("/tasks", h.CreateTask)
 	r.GET(taskIDRoute, h.GetTask)
@@ -42,8 +53,148 @@ func (h *DeployHandler) RegisterRoutes(r gin.IRoutes) {
 	r.DELETE(taskIDRoute, h.DeleteTask)
 	r.POST("/tasks/:id/start", h.StartTask)
 	r.POST("/tasks/:id/cancel", h.CancelTask)
+	r.GET("/tasks/export", h.ExportTasks)
 	r.POST("/task-hosts/:id/result", h.MarkHostResult)
 	r.POST("/task-hosts/:id/report", h.MarkHostResult)
+}
+
+func (h *DeployHandler) ListCredentials(c *gin.Context) {
+	items, err := h.svc.ListCredentials()
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploycredential.list_failed")
+		return
+	}
+	common.Success(c, items)
+}
+
+func (h *DeployHandler) CreateCredential(c *gin.Context) {
+	var req CreateDeployCredentialRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	item, err := h.svc.CreateCredential(req, currentActor(c))
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploycredential.create_failed")
+		return
+	}
+	common.Success(c, item)
+}
+
+func (h *DeployHandler) UpdateCredential(c *gin.Context) {
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	var req UpdateDeployCredentialRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	item, err := h.svc.UpdateCredential(id, req, currentActor(c))
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploycredential.update_failed")
+		return
+	}
+	common.Success(c, item)
+}
+
+func (h *DeployHandler) DeleteCredential(c *gin.Context) {
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	if err := h.svc.DeleteCredential(id); err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploycredential.delete_failed")
+		return
+	}
+	common.Success(c, nil)
+}
+
+func (h *DeployHandler) ExportPackages(c *gin.Context) {
+	var query PackageQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	file, err := h.svc.ExportPackages(query)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploypackage.export_failed")
+		return
+	}
+	_ = impexp.WriteCSV(c, *file)
+}
+
+func (h *DeployHandler) ImportPackages(c *gin.Context) {
+	file, err := multipartFile(c)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, err.Error())
+		return
+	}
+	records, err := impexp.ReadCSV(file)
+	if err != nil {
+		common.FailWithError(c, common.CodeParamInvalid, err, "deploypackage.import_failed")
+		return
+	}
+	result, err := h.svc.ImportPackages(records, currentActor(c))
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploypackage.import_failed")
+		return
+	}
+	common.Success(c, result)
+}
+
+func (h *DeployHandler) ExportTemplates(c *gin.Context) {
+	var query TemplateQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	file, err := h.svc.ExportTemplates(query)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploytemplate.export_failed")
+		return
+	}
+	_ = impexp.WriteCSV(c, *file)
+}
+func (h *DeployHandler) ImportTemplates(c *gin.Context) {
+	file, err := multipartFile(c)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, err.Error())
+		return
+	}
+	records, err := impexp.ReadCSV(file)
+	if err != nil {
+		common.FailWithError(c, common.CodeParamInvalid, err, "deploytemplate.import_failed")
+		return
+	}
+	result, err := h.svc.ImportTemplates(records, currentActor(c))
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploytemplate.import_failed")
+		return
+	}
+	common.Success(c, result)
+}
+func (h *DeployHandler) ExportTasks(c *gin.Context) {
+	var query TaskQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	file, err := h.svc.ExportTasks(query, common.GetDataScope(c))
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploytask.export_failed")
+		return
+	}
+	_ = impexp.WriteCSV(c, *file)
+}
+
+func multipartFile(c *gin.Context) (multipart.File, error) {
+	file, _, err := c.Request.FormFile("file")
+	if err != nil {
+		return nil, errors.New("import.file.required")
+	}
+	return file, nil
 }
 
 func (h *DeployHandler) ListTemplates(c *gin.Context) {

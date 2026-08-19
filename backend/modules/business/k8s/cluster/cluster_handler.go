@@ -34,6 +34,42 @@ func (h *ClusterHandler) RegisterRoutes(r gin.IRoutes) {
 	r.DELETE(clusterIDRoute, h.Delete)
 	r.POST("/clusters/:id/sync", h.Sync)
 	r.GET("/clusters/:id/nodes", h.GetNodes)
+	r.GET("/clusters/:id/credential", h.GetCredential)
+	r.POST("/clusters/:id/credential/rotate", h.RotateCredential)
+}
+
+func (h *ClusterHandler) GetCredential(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	resp, err := h.svc.GetCredential(id, common.GetDataScope(c))
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "k8s.cluster.credential_not_found")
+		return
+	}
+	common.Success(c, resp)
+}
+
+func (h *ClusterHandler) RotateCredential(c *gin.Context) {
+	common.SetAuditMetadata(c, "k8s.cluster.audit.credential_rotate", common.BusinessUpdate)
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	var req RotateClusterCredentialRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	resp, err := h.svc.RotateCredential(id, req, strconv.FormatUint(common.GetUserID(c), 10), common.GetDataScope(c))
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "k8s.cluster.credential_rotate_failed")
+		return
+	}
+	common.Success(c, resp)
 }
 
 // List returns Kubernetes clusters visible in the request scope.

@@ -1,18 +1,18 @@
 # Business 模块导入导出功能实施进度
 
-**更新时间**: 2026-08-16  
-**任务状态**: 进行中
+**更新时间**: 2026-08-19
+**任务状态**: 部分完成，见 `2026-08-19-ops-v1-backlog-closeout` task packet
 
 ## 总体进度
 
 | 模块 | 优先级 | 状态 | 完成度 | 备注 |
 |------|--------|------|--------|------|
-| CMDB Label | P0 | 🔄 实施中 | 90% | Codex 正在执行 |
-| BizScope | P1 | 📋 规范已完成 | 10% | 等待 Label 完成 |
-| CMDB Group | P0 | 📝 待规划 | 0% | 树形结构复杂 |
-| Deploy Package | P1 | 📝 待规划 | 0% | - |
-| Deploy Template | P2 | 📝 待规划 | 0% | JSON 结构复杂 |
-| Deploy Task | P2 | 📝 待规划 | 0% | 只读导出 |
+| CMDB Label | P0 | 已完成 | 100% | 已有 CSV 导入导出 |
+| BizScope | P1 | 已完成 | 100% | 已有 CSV 导入导出 |
+| CMDB Group | P0 | 已完成 | 100% | 已有 CSV 导入导出 |
+| Deploy Package | P1 | 后端完成 | 80% | API 和 typed client 已实现，UI 按钮待补 |
+| Deploy Template | P2 | 后端完成 | 75% | API 支持 steps JSON，UI 按钮待补 |
+| Deploy Task | P2 | 后端完成 | 80% | 只读导出 API 和 typed client 已实现，UI 按钮待补 |
 
 ## 当前正在执行
 

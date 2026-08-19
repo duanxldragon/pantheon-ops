@@ -1,0 +1,2 @@
+-- The migration runner repairs Ops objects that were skipped by the legacy
+-- runtime-schema bootstrap before this durable marker is applied.

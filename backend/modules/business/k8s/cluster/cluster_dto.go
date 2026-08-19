@@ -59,6 +59,22 @@ type ClusterResponse struct {
 	UpdatedAt         string  `json:"updatedAt"`
 	CreatedBy         string  `json:"createdBy"`
 	UpdatedBy         string  `json:"updatedBy"`
+	CredentialRefID   uint64  `json:"credentialRefId"`
+	CredentialVersion uint64  `json:"credentialVersion"`
+	CredentialStatus  string  `json:"credentialStatus"`
+}
+
+// ClusterCredentialResponse exposes credential metadata only. Kubeconfig
+// content is intentionally absent from every response shape.
+type ClusterCredentialResponse struct {
+	ID        uint64 `json:"id"`
+	ClusterID uint64 `json:"clusterId"`
+	Version   uint64 `json:"version"`
+	Status    string `json:"status"`
+}
+
+type RotateClusterCredentialRequest struct {
+	Kubeconfig string `json:"kubeconfig" binding:"required"`
 }
 
 // ClusterListResponse contains a paginated cluster result.
