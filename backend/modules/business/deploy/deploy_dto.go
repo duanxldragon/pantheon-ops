@@ -224,6 +224,7 @@ type StartTaskRequest struct {
 	AuthMode        string `json:"authMode"`
 }
 
+// CreateDeployCredentialRequest contains the secret material used to create a credential reference.
 type CreateDeployCredentialRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Username string `json:"username" binding:"required"`
@@ -231,6 +232,7 @@ type CreateDeployCredentialRequest struct {
 	Secret   string `json:"secret" binding:"required"`
 }
 
+// UpdateDeployCredentialRequest contains optional credential metadata or secret rotation fields.
 type UpdateDeployCredentialRequest struct {
 	Name     *string `json:"name"`
 	Username *string `json:"username"`
@@ -239,6 +241,7 @@ type UpdateDeployCredentialRequest struct {
 	Status   *string `json:"status"`
 }
 
+// DeployCredentialResponse exposes redacted credential reference metadata.
 type DeployCredentialResponse struct {
 	ID        uint64    `json:"id"`
 	Name      string    `json:"name"`
