@@ -1262,7 +1262,9 @@ func (s *DeployService) CancelTask(id uint64, actor string, dataScope *common.Da
 		return nil, err
 	}
 	if cancel, ok := s.taskCancels.Load(id); ok {
-		cancel.(context.CancelFunc)()
+		if cancelFunc, ok := cancel.(context.CancelFunc); ok {
+			cancelFunc()
+		}
 	}
 	return s.GetTask(id, dataScope)
 }
