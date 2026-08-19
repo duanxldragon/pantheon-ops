@@ -242,6 +242,7 @@ type UpdateDeployCredentialRequest struct {
 }
 
 // DeployCredentialResponse exposes redacted credential reference metadata.
+//nolint:revive // API name is retained for compatibility with the deploy module contract.
 type DeployCredentialResponse struct {
 	ID        uint64    `json:"id"`
 	Name      string    `json:"name"`
