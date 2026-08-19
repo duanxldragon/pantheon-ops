@@ -58,6 +58,7 @@ func (h *DeployHandler) RegisterRoutes(r gin.IRoutes) {
 	r.POST("/task-hosts/:id/report", h.MarkHostResult)
 }
 
+// ListCredentials handles the credential reference metadata list endpoint.
 func (h *DeployHandler) ListCredentials(c *gin.Context) {
 	items, err := h.svc.ListCredentials()
 	if err != nil {
@@ -67,6 +68,7 @@ func (h *DeployHandler) ListCredentials(c *gin.Context) {
 	common.Success(c, items)
 }
 
+// CreateCredential handles credential reference creation.
 func (h *DeployHandler) CreateCredential(c *gin.Context) {
 	var req CreateDeployCredentialRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -81,6 +83,7 @@ func (h *DeployHandler) CreateCredential(c *gin.Context) {
 	common.Success(c, item)
 }
 
+// UpdateCredential handles credential reference metadata updates and rotations.
 func (h *DeployHandler) UpdateCredential(c *gin.Context) {
 	id, ok := parseIDParam(c)
 	if !ok {
@@ -99,6 +102,7 @@ func (h *DeployHandler) UpdateCredential(c *gin.Context) {
 	common.Success(c, item)
 }
 
+// DeleteCredential handles credential reference deletion.
 func (h *DeployHandler) DeleteCredential(c *gin.Context) {
 	id, ok := parseIDParam(c)
 	if !ok {
@@ -111,6 +115,7 @@ func (h *DeployHandler) DeleteCredential(c *gin.Context) {
 	common.Success(c, nil)
 }
 
+// ExportPackages handles CSV export for deploy packages.
 func (h *DeployHandler) ExportPackages(c *gin.Context) {
 	var query PackageQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -122,7 +127,9 @@ func (h *DeployHandler) ExportPackages(c *gin.Context) {
 		common.FailWithError(c, common.CodeError, err, "deploypackage.export_failed")
 		return
 	}
-	_ = impexp.WriteCSV(c, *file)
+	if err := impexp.WriteCSV(c, *file); err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploypackage.export_failed")
+	}
 }
 
 func (h *DeployHandler) ImportPackages(c *gin.Context) {
@@ -155,7 +162,9 @@ func (h *DeployHandler) ExportTemplates(c *gin.Context) {
 		common.FailWithError(c, common.CodeError, err, "deploytemplate.export_failed")
 		return
 	}
-	_ = impexp.WriteCSV(c, *file)
+	if err := impexp.WriteCSV(c, *file); err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploytemplate.export_failed")
+	}
 }
 func (h *DeployHandler) ImportTemplates(c *gin.Context) {
 	file, err := multipartFile(c)
@@ -186,7 +195,9 @@ func (h *DeployHandler) ExportTasks(c *gin.Context) {
 		common.FailWithError(c, common.CodeError, err, "deploytask.export_failed")
 		return
 	}
-	_ = impexp.WriteCSV(c, *file)
+	if err := impexp.WriteCSV(c, *file); err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploytask.export_failed")
+	}
 }
 
 func multipartFile(c *gin.Context) (multipart.File, error) {
