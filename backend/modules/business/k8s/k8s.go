@@ -38,10 +38,10 @@ const (
 	k8sConfigMapPermCreateKey  = "business.k8s.configmap.permission.create"
 	k8sConfigMapPermUpdateKey  = "business.k8s.configmap.permission.update"
 	k8sConfigMapPermDeleteKey  = "business.k8s.configmap.permission.delete"
-	k8sSecretPermViewKey       = "business.k8s.secret.permission.view"
-	k8sSecretPermCreateKey     = "business.k8s.secret.permission.create"
-	k8sSecretPermUpdateKey     = "business.k8s.secret.permission.update"
-	k8sSecretPermDeleteKey     = "business.k8s.secret.permission.delete"
+	k8sSecretPermViewKey       = "business.k8s.secret.permission.view"   //nolint:gosec // permission key, not secret material
+	k8sSecretPermCreateKey     = "business.k8s.secret.permission.create" //nolint:gosec // permission key, not secret material
+	k8sSecretPermUpdateKey     = "business.k8s.secret.permission.update" //nolint:gosec // permission key, not secret material
+	k8sSecretPermDeleteKey     = "business.k8s.secret.permission.delete" //nolint:gosec // permission key, not secret material
 	k8sReleasePermViewKey      = "business.k8s.release.permission.view"
 	k8sReleasePermCreateKey    = "business.k8s.release.permission.create"
 	k8sReleasePermRollbackKey  = "business.k8s.release.permission.rollback"
