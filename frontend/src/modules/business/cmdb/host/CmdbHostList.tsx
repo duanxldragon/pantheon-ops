@@ -50,6 +50,10 @@ import CmdbHostForm from './CmdbHostForm';
 import '../../../system/list-page.css';
 import '../cmdb.css';
 
+function getLabelValueKey(label: HostRow['labelValues'][number]) {
+  return `${label.key}:${label.val}`;
+}
+
 const Row = Grid.Row;
 const Col = Grid.Col;
 
@@ -384,8 +388,8 @@ export default function CmdbHostList() {
       render: (_: unknown, row: HostRow) =>
         row.labelValues?.length ? (
           <Space wrap size={4}>
-            {row.labelValues.map((l, i) => (
-              <Tag key={i} size="small">
+            {row.labelValues.map((l) => (
+              <Tag key={getLabelValueKey(l)} size="small">
                 {l.key}={l.val}
               </Tag>
             ))}

@@ -98,6 +98,10 @@ function filterGroupTree(groups: GroupRow[], keyword: string): GroupRow[] {
   }, []);
 }
 
+function getConditionRuleKey(rule: GroupRow['conditions']['rules'][number]) {
+  return `${rule.key}:${rule.op}:${rule.val}`;
+}
+
 export default function CmdbGroupList() {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
@@ -364,8 +368,8 @@ export default function CmdbGroupList() {
       render: (_: unknown, row: GroupRow) =>
         row.conditions?.rules?.length ? (
           <Space wrap size={4}>
-            {row.conditions.rules.map((r, i) => (
-              <Tag key={i} size="small">
+            {row.conditions.rules.map((r) => (
+              <Tag key={getConditionRuleKey(r)} size="small">
                 {r.key} {r.op} {r.val}
               </Tag>
             ))}

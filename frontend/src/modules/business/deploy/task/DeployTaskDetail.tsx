@@ -220,6 +220,28 @@ export default function DeployTaskDetail() {
   const canEditTask = Boolean(task && canUpdate && ['draft', 'pending'].includes(task.status));
   const canDeleteTask = Boolean(task && canDelete && ['draft', 'pending'].includes(task.status));
 
+  const renderStartAction = () => {
+    if (!canStartTask || !task) {
+      return null;
+    }
+
+    const startButton = (
+      <Button type="primary" loading={startSubmitting} onClick={() => openStart()}>
+        {t('business.deploy.task.start')}
+      </Button>
+    );
+
+    if (task.executorType === 'ssh') {
+      return startButton;
+    }
+
+    return (
+      <Popconfirm title={t('business.deploy.task.startConfirm')} onOk={() => openStart()}>
+        {startButton}
+      </Popconfirm>
+    );
+  };
+
   const openResult = (row: DeployTaskHostRow) => {
     setSelectedHost(row);
     form.resetFields();
@@ -541,19 +563,7 @@ export default function DeployTaskDetail() {
                     {t('common.edit')}
                   </Button>
                 ) : null}
-                {canStartTask ? (
-                  task.executorType === 'ssh' ? (
-                    <Button type="primary" loading={startSubmitting} onClick={() => openStart()}>
-                      {t('business.deploy.task.start')}
-                    </Button>
-                  ) : (
-                    <Popconfirm title={t('business.deploy.task.startConfirm')} onOk={() => openStart()}>
-                      <Button type="primary" loading={startSubmitting}>
-                        {t('business.deploy.task.start')}
-                      </Button>
-                    </Popconfirm>
-                  )
-                ) : null}
+                {renderStartAction()}
                 {canCancelTask ? (
                   <Popconfirm title={t('business.deploy.task.cancelConfirm')} onOk={() => void handleCancelTask()}>
                     <Button status="danger" loading={submitting}>
