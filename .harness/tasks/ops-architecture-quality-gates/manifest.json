@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "taskId": "ops-architecture-quality-gates",
+  "title": "Automate architecture, migration, contract, lifecycle, and frontend gates",
+  "status": "complete",
+  "priority": "P0-closeout/P1-hardening",
+  "deliveryTier": "L2",
+  "taskDoc": "docs/harness/tasks/2026-08-17-ops-architecture-quality-gates.task.md",
+  "handoffDoc": ".harness/tasks/ops-architecture-quality-gates/HANDOFF.md",
+  "statusDoc": ".harness/tasks/ops-architecture-quality-gates/STATUS.md",
+  "dependsOn": [
+    "ops-business-versioned-migrations",
+    "ops-cross-module-capability-boundaries",
+    "ops-bizscope-datascope-ownership",
+    "ops-deploy-immutability-idempotency",
+    "ops-service-instance-foundation",
+    "ops-resource-service-state-machines",
+    "ops-k8s-release-reliability"
+  ],
+  "bootstrapAfter": ["ops-cross-module-capability-boundaries"],
+  "blocks": ["2026-08-17-ops-foundation-hardening complete"],
+  "scope": {
+    "in": [
+      "business architecture checker",
+      "migration/contract/invariant test aggregation",
+      "cross-module smoke",
+      "frontend type/build/overlay gates",
+      "visual evidence policy",
+      "docs/evidence linkage"
+    ],
+    "out": [
+      "product behavior changes",
+      "base CI fork",
+      "external production operations",
+      "new test framework",
+      "broad refactor",
+      "credential-dependent CI"
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      "scripts/check-business-module-boundaries.mjs",
+      "tests/scripts/check-business-module-boundaries.test.mjs",
+      "business integration/smoke tests",
+      ".harness/evidence/ops-architecture-quality-gates/commands.json",
+      ".harness/evidence/ops-architecture-quality-gates/summary.md",
+      ".harness/evidence/ops-architecture-quality-gates/review.md"
+    ],
+    "modify": [
+      "package.json",
+      "backend/modules/business/**/*_test.go",
+      "frontend/package.json",
+      "frontend/tests/smoke/business/**",
+      "docs/designs/** (truth only)",
+      ".harness/tasks/**/STATUS.md"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "backend/modules/system/**",
+      "frontend/src/modules/system/**",
+      ".github/workflows/quality.yml without base-first task",
+      "production service/model predicates without owner handoff"
+    ]
+  },
+  "contractAnchors": [
+    "docs/business-module-review-summary.md §10.6 and §14",
+    "scripts/check-structure-contract.mjs",
+    "scripts/business-overlay/check-business-overlay.mjs",
+    "frontend/package.json",
+    ".github/workflows/quality.yml"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "node --test tests/scripts/check-business-module-boundaries.test.mjs",
+      "node scripts/check-business-module-boundaries.mjs",
+      "npm run check:business-overlay",
+      "npm run test:business-overlay",
+      "go test -count=1 ./modules/business/...",
+      "go test -race ./modules/business/...",
+      "go test -count=1 ./pkg/database/...",
+      "go vet ./...",
+      "npm run type-check",
+      "npm run build",
+      "business smoke aggregate"
+    ],
+    "runtimeEvidence": [
+      "positive/negative architecture fixtures",
+      "migration matrix",
+      "cross-module denied-scope smoke",
+      "VM/K8s failure paths",
+      "desktop/mobile visual evidence or explicit gap"
+    ]
+  },
+  "runtimeSensitive": true,
+  "costProfile": "medium; lower-cost executors for deterministic scripts/tests/docs; strong reviewer required for exclusions and final acceptance",
+  "linkage": {
+    "evidenceDir": ".harness/evidence/ops-architecture-quality-gates/",
+    "reviewFile": ".harness/evidence/ops-architecture-quality-gates/review.md",
+    "summaryFile": ".harness/evidence/ops-architecture-quality-gates/summary.md"
+  },
+  "maintainerGates": [
+    "shared base CI change",
+    "credentialed external operation",
+    "broad allowlist/exclusion",
+    "product behavior mismatch",
+    "dirty-tree overlap"
+  ],
+  "evidenceRequired": [
+    "checker fixture output",
+    "all child invariant results",
+    "type/build/overlay output",
+    "cross-module smoke",
+    "visual evidence inventory",
+    "findings-first strong review"
+  ],
+  "completionChecklist": [
+    "boundary checker reliable",
+    "migration and contract gates wired",
+    "cross-module smoke passes",
+    "frontend green",
+    "evidence links complete",
+    "strong review approves exclusions",
+    "parent status updated"
+  ]
+}

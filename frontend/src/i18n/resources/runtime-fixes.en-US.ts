@@ -1,9 +1,11 @@
 const enUSRuntimeFixes = {
   'admin.initial_password_required': 'Initial password is required',
-  'admin.initial_password_too_short': 'Initial password is shorter than the current security policy allows',
+  'admin.initial_password_too_short':
+    'Initial password is shorter than the current security policy allows',
   'audit.login_log_retention_days': 'Login Log Retention Days',
   'audit.login_log_retention_options': 'Login Log Retention Options',
-  'audit.operation_log.cleanup.range_invalid': 'The selected operation log cleanup range is invalid',
+  'audit.operation_log.cleanup.range_invalid':
+    'The selected operation log cleanup range is invalid',
   'audit.operation_log.export.error': 'Failed to export operation logs',
   'audit.operation_log.list.error': 'Failed to load operation logs',
   'audit.operation_log_retention_days': 'Operation Log Retention Days',
@@ -39,8 +41,10 @@ const enUSRuntimeFixes = {
   'auth.role.list.error': 'Failed to load role list',
   'auth.security.overview.error': 'Failed to load security overview',
   'auth.security_event.acknowledge.error': 'Failed to acknowledge the security event',
+  'auth.security_event.acknowledge.ids_required': 'Select the security events to acknowledge first',
   'auth.security_event.acknowledge.note_required': 'Acknowledgement note is required',
   'auth.security_event.acknowledge.title': 'Acknowledge Security Event',
+  'auth.security_event.batch_acknowledge.title': 'Batch Acknowledge Security Events',
   'auth.security_event.list.error': 'Failed to load security events',
   'auth.session.cleanup.days_invalid': 'The session cleanup day value is invalid',
   'auth.session.cleanup.error': 'Failed to clean up sessions',
@@ -57,7 +61,8 @@ const enUSRuntimeFixes = {
   'auth.session.touch.error': 'Failed to update session activity',
   'auth.session.touch.title': 'Update Session Activity',
   'common.comingSoon': 'Coming soon',
-  'common.exportCurrentPageSelectionOnly': 'Export selected data on current page only',
+  'common.exportCurrentPageSelectionOnly':
+    'Selection includes rows from other pages; switch to that page before exporting.',
   'common.importSuccess': 'Import successful',
   'common.module': 'Module',
   'common.required': 'Required',
@@ -77,7 +82,8 @@ const enUSRuntimeFixes = {
   'dict.cache.refresh.error': 'Failed to refresh dictionary cache',
   'dict.item.batch.empty': 'Select dictionary items first',
   'dict.item.batch.not_found': 'Selected dictionary items do not exist',
-  'dict.item.delete.error.archive_value_conflict': 'The archived dictionary already contains the same item value',
+  'dict.item.delete.error.archive_value_conflict':
+    'The archived dictionary already contains the same item value',
   'dict.item.export.error': 'Failed to export dictionary items',
   'dict.item.import.error': 'Failed to import dictionary items',
   'dict.item.import.template.error': 'Failed to download the dictionary item import template',
@@ -86,7 +92,8 @@ const enUSRuntimeFixes = {
   'dict.options.error': 'Failed to load dictionary options',
   'dict.type.batch.empty': 'Select dictionary types first',
   'dict.type.batch.not_found': 'Selected dictionary types do not exist',
-  'dict.type.delete.error.archive_code_conflict': 'The archived dictionary already contains the same dictionary code',
+  'dict.type.delete.error.archive_code_conflict':
+    'The archived dictionary already contains the same dictionary code',
   'dict.type.export.error': 'Failed to export dictionary types',
   'dict.type.import.error': 'Failed to import dictionary types',
   'dict.type.import.template.error': 'Failed to download the dictionary type import template',

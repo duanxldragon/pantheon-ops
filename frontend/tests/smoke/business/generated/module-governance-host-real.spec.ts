@@ -27,7 +27,7 @@ import {
   loginByApi,
   type BrowserLoginResult,
 } from '../../helpers/auth';
-import { readGoModulePath } from '../../helpers/go-module';
+import { readGoBackendImportPrefix } from '../../helpers/go-module';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(currentDir, '../../../../..');
@@ -325,7 +325,7 @@ test('cmdb host database-import flow generates a temporary module without droppi
   const backendRegistry = path.join(generatedRepoRoot!, backendRegistryRelativePath);
   const frontendRegistry = path.join(generatedRepoRoot!, frontendRegistryRelativePath);
   const componentRegistry = path.join(generatedRepoRoot!, componentRegistryRelativePath);
-  const backendModuleImport = `${await readGoModulePath(generatedRepoRoot!)}/modules/business/${moduleName}`;
+  const backendModuleImport = `${await readGoBackendImportPrefix(generatedRepoRoot!)}/modules/business/${moduleName}`;
 
   // Registry imports the module by Go import path, not the directory path.
   await expect.poll(async () => readFileContains(backendRegistry, backendModuleImport)).toBe(true);

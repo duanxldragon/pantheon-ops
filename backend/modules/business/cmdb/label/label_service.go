@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	cmdbgroup "pantheon-ops/backend/modules/business/cmdb/group"
-	cmdbhost "pantheon-ops/backend/modules/business/cmdb/host"
+	cmdbgroup "pantheon-base/modules/business/cmdb/group"
+	cmdbhost "pantheon-base/modules/business/cmdb/host"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -236,10 +236,37 @@ func (s *LabelService) Delete(id uint64) error {
 }
 
 func (s *LabelService) isLabelKeyInUse(key string) (bool, error) {
-	var hosts []cmdbhost.Host
-	if err := s.db.Model(&cmdbhost.Host{}).Find(&hosts).Error; err != nil {
+	hosts, err := s.loadHostsForLabelCheck()
+	if err != nil {
 		return false, err
 	}
+	if hostLabelsUseKey(hosts, key) {
+		return true, nil
+	}
+	groups, err := s.loadGroupsForLabelCheck()
+	if err != nil {
+		return false, err
+	}
+	return groupConditionsUseKey(groups, key), nil
+}
+
+func (s *LabelService) loadHostsForLabelCheck() ([]cmdbhost.Host, error) {
+	var hosts []cmdbhost.Host
+	if err := s.db.Model(&cmdbhost.Host{}).Find(&hosts).Error; err != nil {
+		return nil, err
+	}
+	return hosts, nil
+}
+
+func (s *LabelService) loadGroupsForLabelCheck() ([]cmdbgroup.Group, error) {
+	var groups []cmdbgroup.Group
+	if err := s.db.Model(&cmdbgroup.Group{}).Find(&groups).Error; err != nil {
+		return nil, err
+	}
+	return groups, nil
+}
+
+func hostLabelsUseKey(hosts []cmdbhost.Host, key string) bool {
 	for _, h := range hosts {
 		var labels []struct {
 			Key string `json:"key"`
@@ -248,15 +275,15 @@ func (s *LabelService) isLabelKeyInUse(key string) (bool, error) {
 		if len(h.LabelValues) > 0 && json.Unmarshal(h.LabelValues, &labels) == nil {
 			for _, label := range labels {
 				if label.Key == key {
-					return true, nil
+					return true
 				}
 			}
 		}
 	}
-	var groups []cmdbgroup.Group
-	if err := s.db.Model(&cmdbgroup.Group{}).Find(&groups).Error; err != nil {
-		return false, err
-	}
+	return false
+}
+
+func groupConditionsUseKey(groups []cmdbgroup.Group, key string) bool {
 	for _, g := range groups {
 		var expr struct {
 			Rules []struct {
@@ -266,15 +293,15 @@ func (s *LabelService) isLabelKeyInUse(key string) (bool, error) {
 		if len(g.Conditions) > 0 && json.Unmarshal(g.Conditions, &expr) == nil {
 			for _, rule := range expr.Rules {
 				if rule.Key == key {
-					return true, nil
+					return true
 				}
 			}
 		}
 	}
-	return false, nil
+	return false
 }
 
-func validateValueMode(mode string, dictCode string) error {
+func validateValueMode(mode, dictCode string) error {
 	normalized := normalizeValueMode(mode)
 	switch normalized {
 	case "free", "enum", "dict":

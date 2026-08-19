@@ -1,0 +1,51 @@
+[
+  {
+    "command": "go build ./...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "backend builds cleanly"
+  },
+  {
+    "command": "go vet ./...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "no findings"
+  },
+  {
+    "command": "PANTHEON_TEST_DSN=... GIN_MODE=release go test -count=1 ./modules/business/deploy/...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "ok pantheon-base/modules/business/deploy (MySQL 8.0.36)"
+  },
+  {
+    "command": "node scripts/check-business-module-boundaries.mjs",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "business module boundary check passed"
+  },
+  {
+    "command": "git diff --check",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "no whitespace errors"
+  },
+  {
+    "command": "mysql 8.0.36: apply 000013 up after 000012 to a temporary empty database",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "execution_snapshot/target_snapshot/start_request_key, ssh_port/business_scope_id/report_key/resolved_at, and biz_deploy_host_lease created"
+  },
+  {
+    "command": "mysql 8.0.36: apply 000013 down then drop temporary database",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-08-17",
+    "output": "biz_deploy_host_lease dropped and columns rolled back"
+  }
+]

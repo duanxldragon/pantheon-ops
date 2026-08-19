@@ -3,7 +3,7 @@ package cmdb
 import (
 	"testing"
 
-	"pantheon-ops/backend/pkg/testmysql"
+	"pantheon-base/pkg/testmysql"
 
 	"gorm.io/gorm"
 )
@@ -19,20 +19,32 @@ func TestSeedHostMenusCreatesCmdbPagesAndActionPermissions(t *testing.T) {
 		t.Fatalf("seed cmdb menus: %v", err)
 	}
 
-	assertCmdbRecordCount(t, db, "system_menu", "path = '/operations/cmdb/host' AND page_perm = 'business:cmdb:host:view'", 1)
-	assertCmdbRecordCount(t, db, "system_menu", "path = '/operations/cmdb/group' AND page_perm = 'business:cmdb:group:view'", 1)
-	assertCmdbRecordCount(t, db, "system_menu", "path = '/operations/cmdb/label' AND page_perm = 'business:cmdb:label:view'", 1)
+	assertCmdbRecordCount(t, db, "system_menu", "path = '/business/cmdb/host' AND page_perm = 'business:cmdb:host:view'", 1)
+	assertCmdbRecordCount(t, db, "system_menu", "path = '/business/cmdb/group' AND page_perm = 'business:cmdb:group:view'", 1)
+	assertCmdbRecordCount(t, db, "system_menu", "path = '/business/cmdb/label' AND page_perm = 'business:cmdb:label:view'", 1)
 	assertCmdbRecordCount(t, db, "system_menu", "perms = 'business:cmdb:host:create' AND type = 'F'", 1)
 	assertCmdbRecordCount(t, db, "system_menu", "perms = 'business:cmdb:host:collect' AND type = 'F'", 1)
+	assertCmdbRecordCount(t, db, "system_menu", "perms = 'business:cmdb:host:export' AND type = 'F'", 1)
+	assertCmdbRecordCount(t, db, "system_menu", "perms = 'business:cmdb:host:import' AND type = 'F'", 1)
 	assertCmdbRecordCount(t, db, "system_menu", "perms = 'business:cmdb:group:delete' AND type = 'F'", 1)
+	assertCmdbRecordCount(t, db, "system_menu", "perms = 'business:cmdb:group:export' AND type = 'F'", 1)
+	assertCmdbRecordCount(t, db, "system_menu", "perms = 'business:cmdb:group:import' AND type = 'F'", 1)
 	assertCmdbRecordCount(t, db, "system_menu", "perms = 'business:cmdb:label:delete' AND type = 'F'", 1)
+	assertCmdbRecordCount(t, db, "system_menu", "perms = 'business:cmdb:label:export' AND type = 'F'", 1)
+	assertCmdbRecordCount(t, db, "system_menu", "perms = 'business:cmdb:label:import' AND type = 'F'", 1)
 	assertCmdbRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key = 'business:cmdb:host:view'", 1)
 	assertCmdbRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key = 'business:cmdb:group:view'", 1)
 	assertCmdbRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key = 'business:cmdb:label:view'", 1)
 	assertCmdbRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key = 'business:cmdb:host:create'", 1)
+	assertCmdbRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key = 'business:cmdb:host:export'", 1)
+	assertCmdbRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key = 'business:cmdb:host:import'", 1)
 	assertCmdbRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key = 'business:cmdb:group:delete'", 1)
+	assertCmdbRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key = 'business:cmdb:group:export'", 1)
+	assertCmdbRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key = 'business:cmdb:group:import'", 1)
 	assertCmdbRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key = 'business:cmdb:label:delete'", 1)
-	assertCmdbRecordCount(t, db, "system_role_menu", "role_id = 1", 5)
+	assertCmdbRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key = 'business:cmdb:label:export'", 1)
+	assertCmdbRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key = 'business:cmdb:label:import'", 1)
+	assertCmdbRecordCount(t, db, "system_role_menu", "role_id = 1", 4)
 	assertCmdbRecordCount(t, db, "biz_cmdb_label_schema", "`key` = 'env' AND value_mode = 'dict'", 1)
 	assertCmdbRecordCount(t, db, "biz_cmdb_label_schema", "`key` = 'region' AND JSON_CONTAINS(options, '\"cn-east-1\"')", 1)
 	assertCmdbRecordCount(t, db, "biz_cmdb_label_schema", "`key` = 'env' AND category = 'environment'", 1)
@@ -63,16 +75,16 @@ VALUES
 	assertCmdbRecordCount(t, db, "biz_cmdb_label_schema", "`key` = 'env' AND JSON_CONTAINS(options, '\"dev\"')", 1)
 }
 
-func TestSeedHostMenusPrioritizesBusinessOperationsEntry(t *testing.T) {
+func TestSeedHostMenusCreatesBusinessRootEntry(t *testing.T) {
 	topSeeds := topLevelMenuSeeds()
-	if len(topSeeds) == 0 || topSeeds[0].Path != "/operations/cmdb" {
-		t.Fatalf("expected first top-level CMDB seed to be /operations/cmdb, got %+v", topSeeds)
+	if len(topSeeds) == 0 || topSeeds[0].Path != "/business/cmdb" {
+		t.Fatalf("expected first top-level CMDB seed to be /business/cmdb, got %+v", topSeeds)
 	}
-	if topSeeds[0].ParentKey != "operations" {
-		t.Fatalf("expected /operations/cmdb to attach to operations, got parent %q", topSeeds[0].ParentKey)
+	if topSeeds[0].ParentKey != "" {
+		t.Fatalf("expected /business/cmdb to be a business root, got parent %q", topSeeds[0].ParentKey)
 	}
 	if topSeeds[0].Sort != 1 {
-		t.Fatalf("expected /operations/cmdb sort to be 1 under operations, got %d", topSeeds[0].Sort)
+		t.Fatalf("expected /business/cmdb sort to be 1, got %d", topSeeds[0].Sort)
 	}
 
 	db := testmysql.Open(t)
@@ -120,12 +132,12 @@ VALUES
 	}
 	if err := db.Table("system_menu").
 		Select("path, parent_id, sort").
-		Where("path = ?", "/operations/cmdb").
+		Where("path = ?", "/business/cmdb").
 		Scan(&cmdbRow).Error; err != nil {
 		t.Fatalf("query cmdb menu: %v", err)
 	}
-	if cmdbRow.Path != "/operations/cmdb" || cmdbRow.Sort != 1 {
-		t.Fatalf("expected /operations/cmdb seeded under operations with sort 1, got %+v", cmdbRow)
+	if cmdbRow.Path != "/business/cmdb" || cmdbRow.ParentID != 0 || cmdbRow.Sort != 1 {
+		t.Fatalf("expected /business/cmdb as a root menu with sort 1, got %+v", cmdbRow)
 	}
 }
 

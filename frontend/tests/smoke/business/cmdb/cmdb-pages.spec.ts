@@ -109,7 +109,7 @@ test.describe('CMDB Host Management', () => {
         consoleErrors.push(msg.text());
       }
     });
-    await page.goto('/operations/cmdb/host', { waitUntil: 'networkidle' });
+    await page.goto('/business/cmdb/host', { waitUntil: 'networkidle' });
     await expect(page.locator('.page-container')).toBeVisible();
     const operationsMenuLabel = page.locator('.app-shell__menu-entry-label', {
       hasText: '运维平台',
@@ -161,10 +161,9 @@ test.describe('CMDB Host Management', () => {
         }),
       );
 
-      await page.goto('/operations/cmdb/host', { waitUntil: 'networkidle' });
-      await expect(page).toHaveURL(/\/operations\/cmdb\/host$/);
-      await page.locator('.filter-panel input').first().fill(token);
-      await page.getByRole('button', { name: '搜索' }).click();
+      await page.goto('/business/cmdb/host', { waitUntil: 'networkidle' });
+      await expect(page).toHaveURL(/\/business\/cmdb\/host$/);
+      await page.locator('.search-toolbar input').first().fill(token);
 
       const row = page.getByRole('row').filter({ hasText: host.hostname }).first();
       await expect(row).toBeVisible();
@@ -175,7 +174,7 @@ test.describe('CMDB Host Management', () => {
       await expect(modal).toContainText(host.hostname);
       await expect(modal).toContainText(host.ip);
       await expect(modal).toContainText('已装组件');
-      await expect(page).toHaveURL(/\/operations\/cmdb\/host$/);
+      await expect(page).toHaveURL(/\/business\/cmdb\/host$/);
       await page.screenshot({ path: testInfo.outputPath('cmdb-host-detail-modal.png'), fullPage: true });
     } finally {
       await cleanupCmdbFixture(request, headers, token);
@@ -183,7 +182,7 @@ test.describe('CMDB Host Management', () => {
   });
 
   test('host detail loads by ID', async ({ page }, testInfo) => {
-    await page.goto('/operations/cmdb/host/1', { waitUntil: 'networkidle' });
+    await page.goto('/business/cmdb/host/1', { waitUntil: 'networkidle' });
     await expect(page.locator('.page-container')).toBeVisible();
     await expect(
       page.getByRole('heading', { name: /主机详情|加载失败/ }),
@@ -207,7 +206,7 @@ test.describe('CMDB Host Management', () => {
         consoleErrors.push(msg.text());
       }
     });
-    await page.goto('/operations/cmdb/group', { waitUntil: 'networkidle' });
+    await page.goto('/business/cmdb/group', { waitUntil: 'networkidle' });
     await expect(page.locator('.page-container')).toBeVisible();
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect(page.locator('.cmdb-page__side-panel')).toBeVisible();
@@ -232,7 +231,7 @@ test.describe('CMDB Host Management', () => {
         consoleErrors.push(msg.text());
       }
     });
-    await page.goto('/operations/business-scope', { waitUntil: 'networkidle' });
+    await page.goto('/business/business-scope', { waitUntil: 'networkidle' });
     await expect(page.locator('.page-container')).toBeVisible();
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect(page.locator('.governance-summary-bar')).toContainText('业务域');
@@ -310,7 +309,7 @@ test.describe('CMDB Host Management', () => {
       );
       createdHostIds.push(secondHost.id);
 
-      await page.goto(`/operations/business-scope/${createdScopeId}`, { waitUntil: 'networkidle' });
+      await page.goto(`/business/business-scope/${createdScopeId}`, { waitUntil: 'networkidle' });
       await expect(page.locator('.cmdb-page__hero-title')).toHaveText(scope.name);
       await expect(page.locator('.cmdb-page__hero-grid')).toContainText('0');
 
@@ -370,7 +369,7 @@ test.describe('CMDB Host Management', () => {
         consoleErrors.push(msg.text());
       }
     });
-    await page.goto('/operations/cmdb/label', { waitUntil: 'networkidle' });
+    await page.goto('/business/cmdb/label', { waitUntil: 'networkidle' });
     await expect(page.locator('.page-container')).toBeVisible();
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await page.locator('.governance-summary-bar .arco-btn').click();
@@ -383,7 +382,7 @@ test.describe('CMDB Host Management', () => {
 
   test('cmdb pages stay within a phone viewport', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/operations/cmdb/host', { waitUntil: 'networkidle' });
+    await page.goto('/business/cmdb/host', { waitUntil: 'networkidle' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect(page.getByRole('button', { name: '新增' })).toBeVisible();
     await expect
@@ -393,15 +392,15 @@ test.describe('CMDB Host Management', () => {
       .toBe(true);
     await page.screenshot({ path: testInfo.outputPath('cmdb-host-list-mobile.png'), fullPage: true });
 
-    await page.goto('/operations/cmdb/group', { waitUntil: 'networkidle' });
+    await page.goto('/business/cmdb/group', { waitUntil: 'networkidle' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await page.screenshot({ path: testInfo.outputPath('cmdb-group-list-mobile.png'), fullPage: true });
 
-    await page.goto('/operations/cmdb/label', { waitUntil: 'networkidle' });
+    await page.goto('/business/cmdb/label', { waitUntil: 'networkidle' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await page.screenshot({ path: testInfo.outputPath('cmdb-label-management-list-mobile.png'), fullPage: true });
 
-    await page.goto('/operations/business-scope', { waitUntil: 'networkidle' });
+    await page.goto('/business/business-scope', { waitUntil: 'networkidle' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await page.screenshot({ path: testInfo.outputPath('bizscope-list-mobile.png'), fullPage: true });
   });

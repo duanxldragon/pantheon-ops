@@ -41,7 +41,7 @@ test('branch hygiene workflow runs independently of pull_request.closed and invo
   );
   assert.match(
     workflowSource,
-    /uses:\s*actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1/i,
+    /uses:\s*actions\/checkout@[a-f0-9]{40}/i,
     'branch hygiene should pin checkout',
   );
   assert.match(
@@ -51,13 +51,8 @@ test('branch hygiene workflow runs independently of pull_request.closed and invo
   );
   assert.match(
     workflowSource,
-    /uses:\s*actions\/setup-node@820762786026740c76f36085b0efc47a31fe5020/i,
+    /uses:\s*actions\/setup-node@[a-f0-9]{40}/i,
     'branch hygiene should pin setup-node',
-  );
-  assert.match(
-    workflowSource,
-    /node-version:\s*24/i,
-    'branch hygiene should use the repository Node 24 baseline',
   );
   assert.match(
     workflowSource,

@@ -7,6 +7,36 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	cmdbModuleKey          = "business.cmdb"
+	cmdbHostMenuKey        = "operations.cmdb.host.menu"
+	cmdbHostPermDetailKey  = "business.cmdb.host.permission.detail"
+	cmdbHostPermCreateKey  = "business.cmdb.host.permission.create"
+	cmdbHostPermUpdateKey  = "business.cmdb.host.permission.update"
+	cmdbHostPermDeleteKey  = "business.cmdb.host.permission.delete"
+	cmdbHostPermCollectKey = "business.cmdb.host.permission.collect"
+	cmdbHostPermStatusKey  = "business.cmdb.host.permission.status"
+	cmdbHostPermExportKey  = "business.cmdb.host.permission.export"
+	cmdbHostPermImportKey  = "business.cmdb.host.permission.import"
+	cmdbGroupMenuKey       = "operations.cmdb.group.menu"
+	cmdbGroupPermDetailKey = "business.cmdb.group.permission.detail"
+	cmdbGroupPermCreateKey = "business.cmdb.group.permission.create"
+	cmdbGroupPermUpdateKey = "business.cmdb.group.permission.update"
+	cmdbGroupPermDeleteKey = "business.cmdb.group.permission.delete"
+	cmdbGroupPermExportKey = "business.cmdb.group.permission.export"
+	cmdbGroupPermImportKey = "business.cmdb.group.permission.import"
+	cmdbLabelMenuKey       = "operations.cmdb.label.menu"
+	cmdbLabelPermCreateKey = "business.cmdb.label.permission.create"
+	cmdbLabelPermUpdateKey = "business.cmdb.label.permission.update"
+	cmdbLabelPermDeleteKey = "business.cmdb.label.permission.delete"
+	cmdbLabelPermExportKey = "business.cmdb.label.permission.export"
+	cmdbLabelPermImportKey = "business.cmdb.label.permission.import"
+	cmdbMenuKey            = "operations.cmdb.menu"
+	cmdbHostListRoute      = "cmdb-host-list"
+	cmdbGroupListRoute     = "cmdb-group-list"
+	cmdbLabelListRoute     = "cmdb-label-list"
+)
+
 type cmdbMenuSeed struct {
 	Key       string
 	ParentKey string
@@ -23,57 +53,74 @@ type cmdbMenuSeed struct {
 	IsCache   int
 }
 
+type i18nSeed struct {
+	Module string
+	Locale string
+	Group  string
+	Key    string
+	Value  string
+}
+
 func hostMenuSeeds() []cmdbMenuSeed {
 	return []cmdbMenuSeed{
 		{
 			Key:       "operations-cmdb-host",
 			ParentKey: "cmdb",
-			TitleKey:  "operations.cmdb.host.menu",
-			Path:      "/operations/cmdb/host",
+			TitleKey:  cmdbHostMenuKey,
+			Path:      "/business/cmdb/host",
 			Component: "business/cmdb/host/CmdbHostList",
 			PagePerm:  "business:cmdb:host:view",
 			Type:      "C",
-			Module:    "business.cmdb",
-			RouteName: "cmdb-host-list",
+			Icon:      "cloud",
+			Module:    cmdbModuleKey,
+			RouteName: cmdbHostListRoute,
 			Sort:      1,
 		},
-		{Key: "operations-cmdb-host-detail", ParentKey: "cmdb-host-list", TitleKey: "business.cmdb.host.permission.detail", Perms: "business:cmdb:host:detail", Type: "F", Module: "business.cmdb", Sort: 1},
-		{Key: "operations-cmdb-host-create", ParentKey: "cmdb-host-list", TitleKey: "business.cmdb.host.permission.create", Perms: "business:cmdb:host:create", Type: "F", Module: "business.cmdb", Sort: 2},
-		{Key: "operations-cmdb-host-update", ParentKey: "cmdb-host-list", TitleKey: "business.cmdb.host.permission.update", Perms: "business:cmdb:host:update", Type: "F", Module: "business.cmdb", Sort: 3},
-		{Key: "operations-cmdb-host-delete", ParentKey: "cmdb-host-list", TitleKey: "business.cmdb.host.permission.delete", Perms: "business:cmdb:host:delete", Type: "F", Module: "business.cmdb", Sort: 4},
-		{Key: "operations-cmdb-host-collect", ParentKey: "cmdb-host-list", TitleKey: "business.cmdb.host.permission.collect", Perms: "business:cmdb:host:collect", Type: "F", Module: "business.cmdb", Sort: 5},
-		{Key: "operations-cmdb-host-status", ParentKey: "cmdb-host-list", TitleKey: "business.cmdb.host.permission.status", Perms: "business:cmdb:host:status", Type: "F", Module: "business.cmdb", Sort: 6},
+		{Key: "operations-cmdb-host-detail", ParentKey: cmdbHostListRoute, TitleKey: cmdbHostPermDetailKey, Perms: "business:cmdb:host:detail", Type: "F", Module: cmdbModuleKey, Sort: 1},
+		{Key: "operations-cmdb-host-create", ParentKey: cmdbHostListRoute, TitleKey: cmdbHostPermCreateKey, Perms: "business:cmdb:host:create", Type: "F", Module: cmdbModuleKey, Sort: 2},
+		{Key: "operations-cmdb-host-update", ParentKey: cmdbHostListRoute, TitleKey: cmdbHostPermUpdateKey, Perms: "business:cmdb:host:update", Type: "F", Module: cmdbModuleKey, Sort: 3},
+		{Key: "operations-cmdb-host-delete", ParentKey: cmdbHostListRoute, TitleKey: cmdbHostPermDeleteKey, Perms: "business:cmdb:host:delete", Type: "F", Module: cmdbModuleKey, Sort: 4},
+		{Key: "operations-cmdb-host-collect", ParentKey: cmdbHostListRoute, TitleKey: cmdbHostPermCollectKey, Perms: "business:cmdb:host:collect", Type: "F", Module: cmdbModuleKey, Sort: 5},
+		{Key: "operations-cmdb-host-status", ParentKey: cmdbHostListRoute, TitleKey: cmdbHostPermStatusKey, Perms: "business:cmdb:host:status", Type: "F", Module: cmdbModuleKey, Sort: 6},
+		{Key: "operations-cmdb-host-export", ParentKey: cmdbHostListRoute, TitleKey: cmdbHostPermExportKey, Perms: "business:cmdb:host:export", Type: "F", Module: cmdbModuleKey, Sort: 7},
+		{Key: "operations-cmdb-host-import", ParentKey: cmdbHostListRoute, TitleKey: cmdbHostPermImportKey, Perms: "business:cmdb:host:import", Type: "F", Module: cmdbModuleKey, Sort: 8},
 		{
 			Key:       "operations-cmdb-group",
 			ParentKey: "cmdb",
-			TitleKey:  "operations.cmdb.group.menu",
-			Path:      "/operations/cmdb/group",
+			TitleKey:  cmdbGroupMenuKey,
+			Path:      "/business/cmdb/group",
 			Component: "business/cmdb/group/CmdbGroupList",
 			PagePerm:  "business:cmdb:group:view",
 			Type:      "C",
-			Module:    "business.cmdb",
-			RouteName: "cmdb-group-list",
+			Icon:      "apps",
+			Module:    cmdbModuleKey,
+			RouteName: cmdbGroupListRoute,
 			Sort:      2,
 		},
-		{Key: "operations-cmdb-group-detail", ParentKey: "cmdb-group-list", TitleKey: "business.cmdb.group.permission.detail", Perms: "business:cmdb:group:detail", Type: "F", Module: "business.cmdb", Sort: 1},
-		{Key: "operations-cmdb-group-create", ParentKey: "cmdb-group-list", TitleKey: "business.cmdb.group.permission.create", Perms: "business:cmdb:group:create", Type: "F", Module: "business.cmdb", Sort: 2},
-		{Key: "operations-cmdb-group-update", ParentKey: "cmdb-group-list", TitleKey: "business.cmdb.group.permission.update", Perms: "business:cmdb:group:update", Type: "F", Module: "business.cmdb", Sort: 3},
-		{Key: "operations-cmdb-group-delete", ParentKey: "cmdb-group-list", TitleKey: "business.cmdb.group.permission.delete", Perms: "business:cmdb:group:delete", Type: "F", Module: "business.cmdb", Sort: 4},
+		{Key: "operations-cmdb-group-detail", ParentKey: cmdbGroupListRoute, TitleKey: cmdbGroupPermDetailKey, Perms: "business:cmdb:group:detail", Type: "F", Module: cmdbModuleKey, Sort: 1},
+		{Key: "operations-cmdb-group-create", ParentKey: cmdbGroupListRoute, TitleKey: cmdbGroupPermCreateKey, Perms: "business:cmdb:group:create", Type: "F", Module: cmdbModuleKey, Sort: 2},
+		{Key: "operations-cmdb-group-update", ParentKey: cmdbGroupListRoute, TitleKey: cmdbGroupPermUpdateKey, Perms: "business:cmdb:group:update", Type: "F", Module: cmdbModuleKey, Sort: 3},
+		{Key: "operations-cmdb-group-delete", ParentKey: cmdbGroupListRoute, TitleKey: cmdbGroupPermDeleteKey, Perms: "business:cmdb:group:delete", Type: "F", Module: cmdbModuleKey, Sort: 4},
+		{Key: "operations-cmdb-group-export", ParentKey: cmdbGroupListRoute, TitleKey: cmdbGroupPermExportKey, Perms: "business:cmdb:group:export", Type: "F", Module: cmdbModuleKey, Sort: 5},
+		{Key: "operations-cmdb-group-import", ParentKey: cmdbGroupListRoute, TitleKey: cmdbGroupPermImportKey, Perms: "business:cmdb:group:import", Type: "F", Module: cmdbModuleKey, Sort: 6},
 		{
 			Key:       "operations-cmdb-label",
 			ParentKey: "cmdb",
-			TitleKey:  "operations.cmdb.label.menu",
-			Path:      "/operations/cmdb/label",
+			TitleKey:  cmdbLabelMenuKey,
+			Path:      "/business/cmdb/label",
 			Component: "business/cmdb/label/CmdbLabelSchemaList",
 			PagePerm:  "business:cmdb:label:view",
 			Type:      "C",
-			Module:    "business.cmdb",
-			RouteName: "cmdb-label-list",
+			Icon:      "tags",
+			Module:    cmdbModuleKey,
+			RouteName: cmdbLabelListRoute,
 			Sort:      3,
 		},
-		{Key: "operations-cmdb-label-create", ParentKey: "cmdb-label-list", TitleKey: "business.cmdb.label.permission.create", Perms: "business:cmdb:label:create", Type: "F", Module: "business.cmdb", Sort: 1},
-		{Key: "operations-cmdb-label-update", ParentKey: "cmdb-label-list", TitleKey: "business.cmdb.label.permission.update", Perms: "business:cmdb:label:update", Type: "F", Module: "business.cmdb", Sort: 2},
-		{Key: "operations-cmdb-label-delete", ParentKey: "cmdb-label-list", TitleKey: "business.cmdb.label.permission.delete", Perms: "business:cmdb:label:delete", Type: "F", Module: "business.cmdb", Sort: 3},
+		{Key: "operations-cmdb-label-create", ParentKey: cmdbLabelListRoute, TitleKey: cmdbLabelPermCreateKey, Perms: "business:cmdb:label:create", Type: "F", Module: cmdbModuleKey, Sort: 1},
+		{Key: "operations-cmdb-label-update", ParentKey: cmdbLabelListRoute, TitleKey: cmdbLabelPermUpdateKey, Perms: "business:cmdb:label:update", Type: "F", Module: cmdbModuleKey, Sort: 2},
+		{Key: "operations-cmdb-label-delete", ParentKey: cmdbLabelListRoute, TitleKey: cmdbLabelPermDeleteKey, Perms: "business:cmdb:label:delete", Type: "F", Module: cmdbModuleKey, Sort: 3},
+		{Key: "operations-cmdb-label-export", ParentKey: cmdbLabelListRoute, TitleKey: cmdbLabelPermExportKey, Perms: "business:cmdb:label:export", Type: "F", Module: cmdbModuleKey, Sort: 4},
+		{Key: "operations-cmdb-label-import", ParentKey: cmdbLabelListRoute, TitleKey: cmdbLabelPermImportKey, Perms: "business:cmdb:label:import", Type: "F", Module: cmdbModuleKey, Sort: 5},
 	}
 }
 
@@ -81,11 +128,11 @@ func topLevelMenuSeeds() []cmdbMenuSeed {
 	return []cmdbMenuSeed{
 		{
 			Key:       "operations-cmdb",
-			ParentKey: "operations",
-			TitleKey:  "operations.cmdb.menu",
-			Path:      "/operations/cmdb",
+			ParentKey: "",
+			TitleKey:  cmdbMenuKey,
+			Path:      "/business/cmdb",
 			Type:      "M",
-			Module:    "business.cmdb",
+			Module:    cmdbModuleKey,
 			Icon:      "storage",
 			RouteName: "cmdb",
 			Sort:      1,
@@ -176,7 +223,7 @@ func ensureCmdbMenuSeeds(db *gorm.DB, seeds []cmdbMenuSeed) error {
 				"updated_at": time.Now(),
 			}
 			updates["path"] = seed.Path
-			if err := db.Table("system_menu").Where("id = ?", menuID).Updates(updates).Error; err != nil {
+			if err := db.Table("system_menu").Where(idWhereClause, menuID).Updates(updates).Error; err != nil {
 				return err
 			}
 		}
@@ -244,155 +291,209 @@ func seedHostI18n(db *gorm.DB) error {
 	if db == nil {
 		return nil
 	}
-	i18nEntries := []map[string]interface{}{
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "menu", "key": "operations.menu", "value": "运维平台", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "menu", "key": "operations.menu", "value": "Operations", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "menu", "key": "operations.cmdb.menu", "value": "CMDB", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "menu", "key": "operations.cmdb.menu", "value": "CMDB", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "menu", "key": "operations.cmdb.host.menu", "value": "主机管理", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "menu", "key": "operations.cmdb.host.menu", "value": "Host Management", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "operations.cmdb.host.detail", "value": "主机详情", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "operations.cmdb.host.detail", "value": "Host Detail", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "menu", "key": "operations.cmdb.group.menu", "value": "主机分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "menu", "key": "operations.cmdb.group.menu", "value": "Host Groups", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "menu", "key": "operations.cmdb.label.menu", "value": "标签管理", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "menu", "key": "operations.cmdb.label.menu", "value": "Label Management", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.title", "value": "主机管理", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.title", "value": "Host Management", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.eyebrow", "value": "运维平台 / 主机台账", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.eyebrow", "value": "Operations / Host Inventory", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.title", "value": "在统一视图中管理主机、标签与配置采集", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.title", "value": "Manage hosts, labels, and collection in one view", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.total", "value": "主机总数", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.total", "value": "Total Hosts", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.totalHint", "value": "当前筛选条件下的主机总量。", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.totalHint", "value": "Total hosts under the current filter.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.online", "value": "可运维主机", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.online", "value": "Operable Hosts", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.onlineHint", "value": "运维状态为可运维的主机数量。", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.onlineHint", "value": "Hosts whose operations status is operable.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.maintenance", "value": "维护中", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.maintenance", "value": "Under Maintenance", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.maintenanceHint", "value": "状态为维护中的主机数量。", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.maintenanceHint", "value": "Hosts whose status is maintenance.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.scope", "value": "数据范围", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.scope", "value": "Data Scope", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.scopeValue", "value": "按当前登录主体可见数据", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.scopeValue", "value": "Visible to the current login context", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.scopeHint", "value": "主机列表和详情遵循系统域数据范围。", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.scopeHint", "value": "Host lists and details follow the system data scope.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.statusHint", "value": "当前主机运维状态，不代表实时连通性。", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.statusHint", "value": "Current operations status, not real-time connectivity.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.osHint", "value": "当前操作系统类型。", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.osHint", "value": "Current operating system type.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.osSummary", "value": "操作系统分布", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.osSummary", "value": "OS Distribution", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.osSummaryHint", "value": "当前页主机的 Linux / Windows 数量。", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.osSummaryHint", "value": "Linux / Windows count on the current page.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.labelsHint", "value": "当前主机标签数量。", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.labelsHint", "value": "Current host label count.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.hero.componentsHint", "value": "当前主机已装组件数量。", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.hero.componentsHint", "value": "Installed component count on the current host.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.baseInfo", "value": "基础信息", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.baseInfo", "value": "Base Information", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.systemConfig", "value": "系统配置", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.systemConfig", "value": "System Configuration", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.labelsEmpty", "value": "暂无标签", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.labelsEmpty", "value": "No labels", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.componentsEmpty", "value": "暂无已装组件", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.componentsEmpty", "value": "No installed components", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.collectSshUserPlaceholder", "value": "root", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.collectSshUserPlaceholder", "value": "root", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.host.collectPrivateKeyPlaceholder", "value": "粘贴 SSH 私钥内容", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.host.collectPrivateKeyPlaceholder", "value": "Paste SSH private key content", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "menu", "key": "business.cmdb.host.os.linux", "value": "Linux", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "menu", "key": "business.cmdb.host.os.linux", "value": "Linux", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "menu", "key": "business.cmdb.host.os.windows", "value": "Windows", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "menu", "key": "business.cmdb.host.os.windows", "value": "Windows", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "menu", "key": "business.cmdb.host.status.maintenance", "value": "维护中", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "menu", "key": "business.cmdb.host.status.maintenance", "value": "Maintenance", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.hero.eyebrow", "value": "运维平台 / 主机分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.hero.eyebrow", "value": "Operations / Host Groups", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.hero.title", "value": "通过标签条件管理可复用的主机集合", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.hero.title", "value": "Manage reusable host sets with label conditions", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.hero.total", "value": "分组总数", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.hero.total", "value": "Total Groups", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.hero.totalHint", "value": "当前可见的主机分组数量。", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.hero.totalHint", "value": "All visible host groups under the current scope.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.hero.members", "value": "选中分组成员", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.hero.members", "value": "Selected Group Members", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.hero.membersHint", "value": "当前选中分组的成员数量。", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.hero.membersHint", "value": "Member count of the selected group.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.hero.scope", "value": "数据范围", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.hero.scope", "value": "Data Scope", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.hero.scopeValue", "value": "按当前登录主体可见数据", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.hero.scopeValue", "value": "Visible to the current login context", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.hero.scopeHint", "value": "成员计算遵循当前请求的数据范围。", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.hero.scopeHint", "value": "Member computation follows the current request scope.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.hero.rules", "value": "筛选规则", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.hero.rules", "value": "Filter Rules", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.hero.rulesHint", "value": "当前选中分组的规则条数。", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.hero.rulesHint", "value": "Rule count of the selected group.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.tree.title", "value": "分组树", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.tree.title", "value": "Group Tree", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.parent", "value": "上级分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.parent", "value": "Parent Group", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.noParent", "value": "无上级分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.noParent", "value": "No Parent Group", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.createChild", "value": "新增子分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.createChild", "value": "Add Subgroup", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.childCount", "value": "子分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.childCount", "value": "Subgroups", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.group.condition.ruleIndex", "value": "条件 {{count}}", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.group.condition.ruleIndex", "value": "Condition {{count}}", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.host.permission.detail", "value": "查看主机详情", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.host.permission.detail", "value": "View host detail", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.host.permission.create", "value": "新增主机", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.host.permission.create", "value": "Create hosts", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.host.permission.update", "value": "编辑主机", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.host.permission.update", "value": "Update hosts", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.host.permission.delete", "value": "删除主机", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.host.permission.delete", "value": "Delete hosts", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.host.permission.collect", "value": "采集主机配置", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.host.permission.collect", "value": "Collect host config", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.host.permission.status", "value": "更新主机状态", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.host.permission.status", "value": "Update host status", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.group.permission.detail", "value": "查看主机分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.group.permission.detail", "value": "View host groups", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.group.permission.create", "value": "新增主机分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.group.permission.create", "value": "Create host groups", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.group.permission.update", "value": "编辑主机分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.group.permission.update", "value": "Update host groups", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.group.permission.delete", "value": "删除主机分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.group.permission.delete", "value": "Delete host groups", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.label.schema.title", "value": "标签管理", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.label.schema.title", "value": "Label Management", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.label.hero.eyebrow", "value": "运维平台 / 标签管理", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.label.hero.eyebrow", "value": "Operations / Label Management", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "page", "key": "business.cmdb.label.hero.title", "value": "按分组治理主机标签键和值模板，确保分组和后续运维目标稳定", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "page", "key": "business.cmdb.label.hero.title", "value": "Govern host labels by category and presets so groups and operations targets stay reliable", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.label.permission.create", "value": "新增标签", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.label.permission.create", "value": "Create labels", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.label.permission.update", "value": "编辑标签", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.label.permission.update", "value": "Update labels", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "permission", "key": "business.cmdb.label.permission.delete", "value": "删除标签", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "permission", "key": "business.cmdb.label.permission.delete", "value": "Delete labels", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdblabel.key_exists", "value": "标签键已存在", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdblabel.key_exists", "value": "Label key already exists", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdblabel.invalid", "value": "标签配置无效", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdblabel.invalid", "value": "Label configuration is invalid", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdblabel.in_use", "value": "该标签已被主机或分组引用，不能删除", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdblabel.in_use", "value": "This label is used by hosts or groups and cannot be deleted.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdblabel.not_found", "value": "标签不存在", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdblabel.not_found", "value": "Label does not exist", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdbgroup.has_children", "value": "该分组存在子分组，不能删除", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdbgroup.has_children", "value": "Delete subgroups before deleting this group.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdbgroup.parent_cycle", "value": "上级分组不能选择自身或下级分组", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdbgroup.parent_cycle", "value": "The parent group cannot be itself or a descendant group.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "zh-CN", "group_name": "error", "key": "cmdbgroup.parent_not_found", "value": "上级分组不存在", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
-		{"module": "business.cmdb", "locale": "en-US", "group_name": "error", "key": "cmdbgroup.parent_not_found", "value": "Parent group does not exist.", "lifecycle_status": "active", "created_at": time.Now(), "updated_at": time.Now()},
+	i18nEntries := []i18nSeed{
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "menu", Key: "operations.menu", Value: "运维平台"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "menu", Key: "operations.menu", Value: "Operations"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "menu", Key: cmdbMenuKey, Value: "CMDB"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "menu", Key: cmdbMenuKey, Value: "CMDB"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "menu", Key: cmdbHostMenuKey, Value: "主机管理"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "menu", Key: cmdbHostMenuKey, Value: "Host Management"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "operations.cmdb.host.detail", Value: "主机详情"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "operations.cmdb.host.detail", Value: "Host Detail"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "menu", Key: cmdbGroupMenuKey, Value: "主机分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "menu", Key: cmdbGroupMenuKey, Value: "Host Groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "menu", Key: cmdbLabelMenuKey, Value: "标签管理"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "menu", Key: cmdbLabelMenuKey, Value: "Label Management"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.title", Value: "主机管理"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.title", Value: "Host Management"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.eyebrow", Value: "运维平台 / 主机台账"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.eyebrow", Value: "Operations / Host Inventory"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.title", Value: "在统一视图中管理主机、标签与配置采集"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.title", Value: "Manage hosts, labels, and collection in one view"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.total", Value: "主机总数"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.total", Value: "Total Hosts"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.totalHint", Value: "当前筛选条件下的主机总量。"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.totalHint", Value: "Total hosts under the current filter."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.online", Value: "可运维主机"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.online", Value: "Operable Hosts"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.onlineHint", Value: "运维状态为可运维的主机数量。"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.onlineHint", Value: "Hosts whose operations status is operable."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.maintenance", Value: "维护中"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.maintenance", Value: "Under Maintenance"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.maintenanceHint", Value: "状态为维护中的主机数量。"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.maintenanceHint", Value: "Hosts whose status is maintenance."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.scope", Value: "数据范围"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.scope", Value: "Data Scope"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.scopeValue", Value: "按当前登录主体可见数据"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.scopeValue", Value: "Visible to the current login context"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.scopeHint", Value: "主机列表和详情遵循系统域数据范围。"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.scopeHint", Value: "Host lists and details follow the system data scope."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.statusHint", Value: "当前主机运维状态，不代表实时连通性。"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.statusHint", Value: "Current operations status, not real-time connectivity."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.osHint", Value: "当前操作系统类型。"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.osHint", Value: "Current operating system type."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.osSummary", Value: "操作系统分布"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.osSummary", Value: "OS Distribution"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.osSummaryHint", Value: "当前页主机的 Linux / Windows 数量。"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.osSummaryHint", Value: "Linux / Windows count on the current page."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.labelsHint", Value: "当前主机标签数量。"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.labelsHint", Value: "Current host label count."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.hero.componentsHint", Value: "当前主机已装组件数量。"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.hero.componentsHint", Value: "Installed component count on the current host."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.baseInfo", Value: "基础信息"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.baseInfo", Value: "Base Information"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.systemConfig", Value: "系统配置"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.systemConfig", Value: "System Configuration"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.labelsEmpty", Value: "暂无标签"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.labelsEmpty", Value: "No labels"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.componentsEmpty", Value: "暂无已装组件"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.componentsEmpty", Value: "No installed components"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.collectSshUserPlaceholder", Value: "root"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.collectSshUserPlaceholder", Value: "root"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.host.collectPrivateKeyPlaceholder", Value: "粘贴 SSH 私钥内容"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.host.collectPrivateKeyPlaceholder", Value: "Paste SSH private key content"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "menu", Key: "business.cmdb.host.os.linux", Value: "Linux"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "menu", Key: "business.cmdb.host.os.linux", Value: "Linux"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "menu", Key: "business.cmdb.host.os.windows", Value: "Windows"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "menu", Key: "business.cmdb.host.os.windows", Value: "Windows"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "menu", Key: "business.cmdb.host.status.maintenance", Value: "维护中"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "menu", Key: "business.cmdb.host.status.maintenance", Value: "Maintenance"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.hero.eyebrow", Value: "运维平台 / 主机分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.hero.eyebrow", Value: "Operations / Host Groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.hero.title", Value: "通过标签条件管理可复用的主机集合"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.hero.title", Value: "Manage reusable host sets with label conditions"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.hero.total", Value: "分组总数"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.hero.total", Value: "Total Groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.hero.totalHint", Value: "当前可见的主机分组数量。"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.hero.totalHint", Value: "All visible host groups under the current scope."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.hero.members", Value: "选中分组成员"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.hero.members", Value: "Selected Group Members"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.hero.membersHint", Value: "当前选中分组的成员数量。"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.hero.membersHint", Value: "Member count of the selected group."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.hero.scope", Value: "数据范围"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.hero.scope", Value: "Data Scope"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.hero.scopeValue", Value: "按当前登录主体可见数据"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.hero.scopeValue", Value: "Visible to the current login context"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.hero.scopeHint", Value: "成员计算遵循当前请求的数据范围。"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.hero.scopeHint", Value: "Member computation follows the current request scope."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.hero.rules", Value: "筛选规则"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.hero.rules", Value: "Filter Rules"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.hero.rulesHint", Value: "当前选中分组的规则条数。"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.hero.rulesHint", Value: "Rule count of the selected group."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.tree.title", Value: "分组树"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.tree.title", Value: "Group Tree"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.parent", Value: "上级分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.parent", Value: "Parent Group"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.noParent", Value: "无上级分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.noParent", Value: "No Parent Group"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.createChild", Value: "新增子分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.createChild", Value: "Add Subgroup"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.childCount", Value: "子分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.childCount", Value: "Subgroups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.group.condition.ruleIndex", Value: "条件 {{count}}"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.group.condition.ruleIndex", Value: "Condition {{count}}"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbHostPermDetailKey, Value: "查看主机详情"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbHostPermDetailKey, Value: "View host detail"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbHostPermCreateKey, Value: "新增主机"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbHostPermCreateKey, Value: "Create hosts"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbHostPermUpdateKey, Value: "编辑主机"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbHostPermUpdateKey, Value: "Update hosts"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbHostPermDeleteKey, Value: "删除主机"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbHostPermDeleteKey, Value: "Delete hosts"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbHostPermCollectKey, Value: "采集主机配置"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbHostPermCollectKey, Value: "Collect host config"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbHostPermStatusKey, Value: "更新主机状态"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbHostPermStatusKey, Value: "Update host status"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbHostPermExportKey, Value: "导出主机资产"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbHostPermExportKey, Value: "Export host assets"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbHostPermImportKey, Value: "导入主机"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbHostPermImportKey, Value: "Import hosts"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbGroupPermDetailKey, Value: "查看主机分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbGroupPermDetailKey, Value: "View host groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbGroupPermCreateKey, Value: "新增主机分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbGroupPermCreateKey, Value: "Create host groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbGroupPermUpdateKey, Value: "编辑主机分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbGroupPermUpdateKey, Value: "Update host groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbGroupPermDeleteKey, Value: "删除主机分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbGroupPermDeleteKey, Value: "Delete host groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbGroupPermExportKey, Value: "导出主机分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbGroupPermExportKey, Value: "Export host groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbGroupPermImportKey, Value: "导入主机分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbGroupPermImportKey, Value: "Import host groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.label.schema.title", Value: "标签管理"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.label.schema.title", Value: "Label Management"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.label.hero.eyebrow", Value: "运维平台 / 标签管理"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.label.hero.eyebrow", Value: "Operations / Label Management"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "page", Key: "business.cmdb.label.hero.title", Value: "按分组治理主机标签键和值模板，确保分组和后续运维目标稳定"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "page", Key: "business.cmdb.label.hero.title", Value: "Govern host labels by category and presets so groups and operations targets stay reliable"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbLabelPermCreateKey, Value: "新增标签"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbLabelPermCreateKey, Value: "Create labels"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbLabelPermUpdateKey, Value: "编辑标签"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbLabelPermUpdateKey, Value: "Update labels"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbLabelPermDeleteKey, Value: "删除标签"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbLabelPermDeleteKey, Value: "Delete labels"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbLabelPermExportKey, Value: "导出标签"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbLabelPermExportKey, Value: "Export labels"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "permission", Key: cmdbLabelPermImportKey, Value: "导入标签"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "permission", Key: cmdbLabelPermImportKey, Value: "Import labels"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.key_exists", Value: "标签键已存在"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.key_exists", Value: "Label key already exists"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.invalid", Value: "标签配置无效"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.invalid", Value: "Label configuration is invalid"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.in_use", Value: "该标签已被主机或分组引用，不能删除"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.in_use", Value: "This label is used by hosts or groups and cannot be deleted."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.not_found", Value: "标签不存在"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.not_found", Value: "Label does not exist"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbgroup.has_children", Value: "该分组存在子分组，不能删除"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbgroup.has_children", Value: "Delete subgroups before deleting this group."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbgroup.parent_cycle", Value: "上级分组不能选择自身或下级分组"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbgroup.parent_cycle", Value: "The parent group cannot be itself or a descendant group."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbgroup.parent_not_found", Value: "上级分组不存在"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbgroup.parent_not_found", Value: "Parent group does not exist."},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbgroup.export_failed", Value: "导出主机分组失败"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbgroup.export_failed", Value: "Failed to export host groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbgroup.import_failed", Value: "导入主机分组失败"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbgroup.import_failed", Value: "Failed to import host groups"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "business.cmdb.group.name_required", Value: "分组名称不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "business.cmdb.group.name_required", Value: "Group name is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "business.cmdb.group.conditions_invalid_json", Value: "筛选条件不是有效的 JSON"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "business.cmdb.group.conditions_invalid_json", Value: "Conditions must be valid JSON"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.key_required", Value: "标签键不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.key_required", Value: "Label key is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.name_required", Value: "标签名称不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.name_required", Value: "Label name is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.category_required", Value: "分类不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.category_required", Value: "Category is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.valueMode_required", Value: "值模式不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.valueMode_required", Value: "Value mode is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.category.invalid", Value: "分类值无效（base/network/business/custom）"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.category.invalid", Value: "Invalid category (base/network/business/custom)"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.valueMode.invalid", Value: "值模式无效（free/enum/dict）"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.valueMode.invalid", Value: "Invalid value mode (free/enum/dict)"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.status.invalid", Value: "状态值无效（enabled/disabled）"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.status.invalid", Value: "Invalid status (enabled/disabled)"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.options_required_for_enum", Value: "枚举模式下选项不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.options_required_for_enum", Value: "Options are required for enum mode"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.dictCode_required_for_dict", Value: "字典模式下字典编码不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.dictCode_required_for_dict", Value: "Dict code is required for dict mode"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.export_failed", Value: "导出标签失败"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.export_failed", Value: "Failed to export labels"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdblabel.import_failed", Value: "导入标签失败"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdblabel.import_failed", Value: "Failed to import labels"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbhost.hostname_required", Value: "主机名不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbhost.hostname_required", Value: "Hostname is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbhost.ip_required", Value: "IP 地址不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbhost.ip_required", Value: "IP address is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbhost.os_required", Value: "操作系统不能为空"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbhost.os_required", Value: "Operating system is required"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbhost.status.invalid", Value: "主机状态无效"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbhost.status.invalid", Value: "Host status is invalid"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbhost.export_failed", Value: "导出主机资产失败"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbhost.export_failed", Value: "Failed to export host assets"},
+		{Module: cmdbModuleKey, Locale: "zh-CN", Group: "error", Key: "cmdbhost.import_failed", Value: "导入主机失败"},
+		{Module: cmdbModuleKey, Locale: "en-US", Group: "error", Key: "cmdbhost.import_failed", Value: "Failed to import hosts"},
 	}
-	return seedCmdbRecords(db, "system_i18n", i18nEntries)
+	return seedCmdbRecords(db, i18nEntries)
 }
 
 func seedGroupI18n(db *gorm.DB) error { return nil }
@@ -402,10 +503,10 @@ func seedCmdbDicts(db *gorm.DB) error {
 		return nil
 	}
 	dictTypes := []map[string]interface{}{
-		{"dict_code": "cmdb_host_status", "dict_name": "主机状态", "module": "business.cmdb", "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
-		{"dict_code": "cmdb_os_type", "dict_name": "操作系统类型", "module": "business.cmdb", "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
-		{"dict_code": "cmdb_label_key", "dict_name": "预置标签键", "module": "business.cmdb", "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
-		{"dict_code": "cmdb_env", "dict_name": "CMDB 环境", "module": "business.cmdb", "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
+		{"dict_code": "cmdb_host_status", "dict_name": "主机状态", "module": cmdbModuleKey, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
+		{"dict_code": "cmdb_os_type", "dict_name": "操作系统类型", "module": cmdbModuleKey, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
+		{"dict_code": "cmdb_label_key", "dict_name": "预置标签键", "module": cmdbModuleKey, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
+		{"dict_code": "cmdb_env", "dict_name": "CMDB 环境", "module": cmdbModuleKey, "status": 1, "created_at": time.Now(), "updated_at": time.Now()},
 	}
 	for _, dt := range dictTypes {
 		var count int64
@@ -441,7 +542,7 @@ func seedCmdbDicts(db *gorm.DB) error {
 			if err := db.Table("system_dict_item").Create(di).Error; err != nil {
 				return err
 			}
-		} else if err := db.Table("system_dict_item").Where("id = ?", existingID).Updates(map[string]interface{}{
+		} else if err := db.Table("system_dict_item").Where(idWhereClause, existingID).Updates(map[string]interface{}{
 			"item_label_key": di["item_label_key"],
 			"sort":           di["sort"],
 			"status":         di["status"],
@@ -480,7 +581,7 @@ func seedCmdbLabelSchemas(db *gorm.DB) error {
 			if err := db.Table("biz_cmdb_label_schema").Create(schema).Error; err != nil {
 				return err
 			}
-		} else if err := db.Table("biz_cmdb_label_schema").Where("id = ?", existingID).Updates(map[string]interface{}{
+		} else if err := db.Table("biz_cmdb_label_schema").Where(idWhereClause, existingID).Updates(map[string]interface{}{
 			"name":        schema["name"],
 			"category":    schema["category"],
 			"value_mode":  schema["value_mode"],
@@ -496,24 +597,36 @@ func seedCmdbLabelSchemas(db *gorm.DB) error {
 	return nil
 }
 
-func seedCmdbRecords(db *gorm.DB, table string, records []map[string]interface{}) error {
-	for _, record := range records {
+func seedCmdbRecords(db *gorm.DB, records []i18nSeed) error {
+	for _, seed := range records {
 		var existingID uint64
-		db.Table(table).Select("id").Where("`key` = ? AND locale = ?",
-			record["key"], record["locale"]).Limit(1).Pluck("id", &existingID)
+		if err := db.Table("system_i18n").Select("id").Where("`key` = ? AND locale = ?",
+			seed.Key, seed.Locale).Limit(1).Pluck("id", &existingID).Error; err != nil {
+			return err
+		}
 		if existingID > 0 {
 			update := map[string]interface{}{
-				"value":      record["value"],
-				"module":     record["module"],
-				"updated_at": record["updated_at"],
+				"value":      seed.Value,
+				"module":     seed.Module,
+				"updated_at": time.Now(),
 			}
-			if err := db.Table(table).Where("id = ?", existingID).Updates(update).Error; err != nil {
+			if err := db.Table("system_i18n").Where(idWhereClause, existingID).Updates(update).Error; err != nil {
 				return err
 			}
-		} else {
-			if err := db.Table(table).Create(record).Error; err != nil {
-				return err
-			}
+			continue
+		}
+		payload := map[string]interface{}{
+			"module":           seed.Module,
+			"group_name":       seed.Group,
+			"key":              seed.Key,
+			"locale":           seed.Locale,
+			"value":            seed.Value,
+			"lifecycle_status": "active",
+			"created_at":       time.Now(),
+			"updated_at":       time.Now(),
+		}
+		if err := db.Table("system_i18n").Create(payload).Error; err != nil {
+			return err
 		}
 	}
 	return nil

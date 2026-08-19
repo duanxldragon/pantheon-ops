@@ -4,8 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Button,
   Card,
-  Form,
-  Grid,
   Input,
   Message,
   Popconfirm,
@@ -14,11 +12,11 @@ import {
   Tag,
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
-import { IconDelete, IconEdit, IconEye, IconPlus } from '@arco-design/web-react/icon';
+import { IconDelete, IconEdit, IconEye, IconPlus, IconDownload } from '@arco-design/web-react/icon';
 import {
   AppModal,
   AppTable,
-  FilterPanel,
+  SearchToolbar,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
@@ -29,6 +27,7 @@ import {
   PageError,
   PageLoading,
   TableBatchActionBar,
+  ImportCsvButton,
   TABLE_ACTION_COLUMN_WIDTH,
   buildStandardPagination,
   useGovernanceRail,
@@ -39,14 +38,15 @@ import {
   deleteBizScope,
   getBizScopeList,
   updateBizScope,
+  exportBizScopes,
+  downloadBizScopeImportTemplate,
+  importBizScopes,
   type BizScopeListQuery,
   type BizScopePayload,
   type BizScopeRow,
 } from './api';
 import BizScopeForm from './BizScopeForm';
-import '../../system/list-page.css';
-
-const { Row, Col } = Grid;
+import '../../system/components/shared/list-page.css';
 
 const emptyQuery: BizScopeListQuery = {
   code: '',
@@ -62,7 +62,6 @@ export default function BizScopeList() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPerm } = usePermission();
-  const [queryForm] = Form.useForm<BizScopeListQuery>();
   const [data, setData] = useState<BizScopeRow[]>([]);
   const [query, setQuery] = useState<BizScopeListQuery>(emptyQuery);
   const [total, setTotal] = useState(0);
@@ -78,6 +77,8 @@ export default function BizScopeList() {
   const canUpdate = hasPerm('business:bizscope:update');
   const canDelete = hasPerm('business:bizscope:delete');
   const canView = hasPerm('business:bizscope:view');
+  const canExport = hasPerm('business:bizscope:export');
+  const canImport = hasPerm('business:bizscope:import');
 
   const loadData = useCallback(async (nextQuery: BizScopeListQuery = query) => {
     setLoading(true);
@@ -142,23 +143,9 @@ export default function BizScopeList() {
     [data, t, total],
   );
 
-  const search = () => {
-    const values = queryForm.getFieldsValue();
-    const nextQuery = {
-      ...query,
-      ...values,
-      page: 1,
-    };
+  const updateQuery = (patch: Partial<BizScopeListQuery>) => {
     setSelectedRowKeys([]);
-    setQuery(nextQuery);
-    loadData(nextQuery);
-  };
-
-  const reset = () => {
-    queryForm.setFieldsValue(emptyQuery);
-    setSelectedRowKeys([]);
-    setQuery(emptyQuery);
-    loadData(emptyQuery);
+    setQuery((current) => ({ ...current, ...patch, page: 1 }));
   };
 
   const handleSubmit = async (values: BizScopePayload) => {
@@ -191,6 +178,40 @@ export default function BizScopeList() {
       await loadData(query);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      await exportBizScopes({ keyword: query.name, environment: query.environment, status: query.status });
+      Message.success(t('common.exportSuccess'));
+    } catch {
+      Message.error(t('common.exportFailed'));
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      await downloadBizScopeImportTemplate();
+      Message.success(t('common.downloadSuccess'));
+    } catch {
+      Message.error(t('common.downloadFailed'));
+    }
+  };
+
+  const handleImport = async (file: File) => {
+    try {
+      const result = await importBizScopes(file);
+      Message.success(
+        t('common.importSuccess', {
+          created: result.created,
+          updated: result.updated,
+          failed: result.failed,
+        })
+      );
+      await loadData(query);
+    } catch {
+      Message.error(t('common.importFailed'));
     }
   };
 
@@ -245,7 +266,7 @@ export default function BizScopeList() {
                 type="text"
                 size="small"
                 icon={<IconEye />}
-                onClick={() => navigate(`/operations/business-scope/${row.id}`)}
+                onClick={() => navigate(`/business/business-scope/${row.id}`)}
               >
                 {t('common.detail')}
               </Button>
@@ -301,59 +322,61 @@ export default function BizScopeList() {
             </GovernanceRailToggleButton>
           )}
         />
-        <FilterPanel>
-          <Form form={queryForm} layout="vertical" onSubmit={search}>
-            <Row gutter={16}>
-              <Col xs={24} md={6}>
-                <Form.Item label={t('business.bizscope.field.code')} field="code">
-                  <Input allowClear onPressEnter={() => queryForm.submit()} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item label={t('business.bizscope.field.name')} field="name">
-                  <Input allowClear onPressEnter={() => queryForm.submit()} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item label={t('business.bizscope.field.owner')} field="owner">
-                  <Input allowClear onPressEnter={() => queryForm.submit()} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item label={t('business.bizscope.field.environment')} field="environment">
-                  <Select allowClear>
-                    {['dev', 'test', 'prod'].map((item) => (
-                      <Select.Option key={item} value={item}>
-                        {t(`business.bizscope.environment.${item}`)}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item label={t('business.bizscope.field.status')} field="status">
-                  <Select allowClear>
-                    {['active', 'inactive'].map((item) => (
-                      <Select.Option key={item} value={item}>
-                        {t(`business.bizscope.status.${item}`)}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={6}>
-                <Form.Item className="filter-panel__action-item">
-                  <Space>
-                    <Button type="primary" htmlType="submit">
-                      {t('common.search')}
-                    </Button>
-                    <Button onClick={reset}>{t('common.reset')}</Button>
-                  </Space>
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
-        </FilterPanel>
+        <SearchToolbar
+          keyword={query.code ?? ''}
+          keywordPlaceholder={t('business.bizscope.field.code')}
+          onKeywordChange={(code) => updateQuery({ code })}
+          inlineFilters={
+            <>
+              <Select
+                allowClear
+                placeholder={t('business.bizscope.field.environment')}
+                value={query.environment || undefined}
+                onChange={(environment) => updateQuery({ environment: environment || '' })}
+              >
+                {['dev', 'test', 'prod'].map((item) => (
+                  <Select.Option key={item} value={item}>
+                    {t(`business.bizscope.environment.${item}`)}
+                  </Select.Option>
+                ))}
+              </Select>
+              <Select
+                allowClear
+                placeholder={t('business.bizscope.field.status')}
+                value={query.status || undefined}
+                onChange={(status) => updateQuery({ status: status || '' })}
+              >
+                {['active', 'inactive'].map((item) => (
+                  <Select.Option key={item} value={item}>
+                    {t(`business.bizscope.status.${item}`)}
+                  </Select.Option>
+                ))}
+              </Select>
+            </>
+          }
+          advancedFilters={
+            <Space direction="vertical" size={12} style={{ width: '100%' }}>
+              <Input
+                allowClear
+                placeholder={t('business.bizscope.field.name')}
+                value={query.name}
+                onChange={(name) => updateQuery({ name })}
+              />
+              <Input
+                allowClear
+                placeholder={t('business.bizscope.field.owner')}
+                value={query.owner}
+                onChange={(owner) => updateQuery({ owner })}
+              />
+            </Space>
+          }
+          advancedActiveCount={Number(Boolean(query.name)) + Number(Boolean(query.owner))}
+          hasActiveFilters={Boolean(query.code || query.name || query.owner || query.environment || query.status)}
+          onClearAll={() => {
+            setSelectedRowKeys([]);
+            setQuery(emptyQuery);
+          }}
+        />
         <TableBatchActionBar
           selectedCount={selectedRowKeys.length}
           selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
@@ -374,6 +397,25 @@ export default function BizScopeList() {
                   >
                     {t('common.add')}
                   </Button>
+                }
+                utility={
+                  <>
+                    {canExport && (
+                      <Button icon={<IconDownload />} onClick={handleExport}>
+                        {t('common.export')}
+                      </Button>
+                    )}
+                    {canImport && (
+                      <>
+                        <Button icon={<IconDownload />} onClick={handleDownloadTemplate}>
+                          {t('common.downloadTemplate')}
+                        </Button>
+                        <ImportCsvButton disabled={!canImport} onSelect={handleImport}>
+                          {t('common.import')}
+                        </ImportCsvButton>
+                      </>
+                    )}
+                  </>
                 }
               />
             ) : undefined

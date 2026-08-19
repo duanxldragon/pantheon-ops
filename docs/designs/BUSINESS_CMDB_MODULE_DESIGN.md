@@ -440,10 +440,10 @@ CMDB 归属一级导航"运维平台"（`operations`），作为运维平台第�
 | 菜单 key | 路径 | 标题 key | routeName | module | 组件键 | pagePermission | activeMenu | 类型 |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `operations` | `/operations` | `operations.menu` | `operations-root` | `platform.operations` | — | — | — | `D` |
-| `operations.cmdb` | `/operations/cmdb` | `operations.cmdb.menu` | `operations-cmdb-root` | `business.cmdb` | — | — | — | `M` |
-| `operations.cmdb.host` | `/operations/cmdb/host` | `operations.cmdb.host.menu` | `operations-cmdb-host-list` | `business.cmdb` | `business/cmdb/host/CmdbHostList` | `business:cmdb:host:view` | — | `C` |
-| `operations.cmdb.group` | `/operations/cmdb/group` | `operations.cmdb.group.menu` | `operations-cmdb-group-list` | `business.cmdb` | `business/cmdb/group/CmdbGroupList` | `business:cmdb:group:view` | — | `C` |
-| `operations.cmdb.label` | `/operations/cmdb/label` | `operations.cmdb.label.menu` | `operations-cmdb-label-list` | `business.cmdb` | `business/cmdb/label/CmdbLabelSchemaList` | `business:cmdb:label:view` | — | `C` |
+| `operations.cmdb` | `/business/cmdb` | `operations.cmdb.menu` | `operations-cmdb-root` | `business.cmdb` | — | — | — | `M` |
+| `operations.cmdb.host` | `/business/cmdb/host` | `operations.cmdb.host.menu` | `operations-cmdb-host-list` | `business.cmdb` | `business/cmdb/host/CmdbHostList` | `business:cmdb:host:view` | — | `C` |
+| `operations.cmdb.group` | `/business/cmdb/group` | `operations.cmdb.group.menu` | `operations-cmdb-group-list` | `business.cmdb` | `business/cmdb/group/CmdbGroupList` | `business:cmdb:group:view` | — | `C` |
+| `operations.cmdb.label` | `/business/cmdb/label` | `operations.cmdb.label.menu` | `operations-cmdb-label-list` | `business.cmdb` | `business/cmdb/label/CmdbLabelSchemaList` | `business:cmdb:label:view` | — | `C` |
 
 - 一级 `operations` 是目录（`D`），不绑定组件。
 - 主机详情页/编辑页不作为侧边栏菜单，从列表页内跳转。
@@ -671,7 +671,7 @@ CMDB 模块需要以下 seed：
 ### 15.5 浏览器 smoke
 
 - 命令：`cd frontend && npm run test:smoke:business:cmdb`
-- 覆盖：登录后访问 `/operations/cmdb/host`、`/operations/cmdb/host/1`、`/operations/cmdb/group`。
+- 覆盖：登录后访问 `/business/cmdb/host`、`/business/cmdb/host/1`、`/business/cmdb/group`。
 - 断言：侧栏 `operations.cmdb.menu` 显示为 `CMDB`，主机页存在 hero 与筛选区，分组页存在左侧分组树容器；当无分组数据时展示空状态而不是隐藏业务入口。
 - 证据截图：`tmp/cmdb-qa/cmdb-host-list.png`、`tmp/cmdb-qa/cmdb-host-detail.png`、`tmp/cmdb-qa/cmdb-group-list.png`。
 

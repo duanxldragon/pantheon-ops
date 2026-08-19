@@ -1,6 +1,7 @@
 package host
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,14 +11,16 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-ops/backend/modules/business/bizscope"
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/database"
+	bizcap "pantheon-base/modules/business/capability"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/database"
 
 	"golang.org/x/crypto/ssh"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
+
+const idWhereClause = "id = ?"
 
 func hostKeyCallback(expectedFingerprint string) ssh.HostKeyCallback {
 	return func(hostname string, remote net.Addr, key ssh.PublicKey) error {
@@ -29,11 +32,23 @@ func hostKeyCallback(expectedFingerprint string) ssh.HostKeyCallback {
 }
 
 type HostService struct {
-	db *gorm.DB
+	db             *gorm.DB
+	bizScopeReader bizcap.BizScopeReader
+	serviceRefs    bizcap.ServiceInstanceReferenceReader
 }
 
-func NewHostService(db *gorm.DB) *HostService {
-	return &HostService{db: db}
+// NewHostService creates the CMDB host service with its optional BizScope reader.
+func NewHostService(db *gorm.DB, readers ...bizcap.BizScopeReader) *HostService {
+	service := &HostService{db: db}
+	if len(readers) > 0 {
+		service.bizScopeReader = readers[0]
+	}
+	return service
+}
+
+// SetServiceInstanceReferenceReader configures the owner-module reader used before host retirement.
+func (s *HostService) SetServiceInstanceReferenceReader(reader bizcap.ServiceInstanceReferenceReader) {
+	s.serviceRefs = reader
 }
 
 func (s *HostService) Migrate() error {
@@ -157,6 +172,8 @@ func (s *HostService) Create(req CreateHostRequest, createdBy string) (*HostResp
 		Owner:             req.Owner,
 		Remark:            req.Remark,
 		Status:            status,
+		LifecycleState:    status,
+		ConnectivityState: HostConnectivityUnknown,
 		CreatedBy:         createdBy,
 		UpdatedBy:         createdBy,
 	}
@@ -176,6 +193,27 @@ func (s *HostService) Create(req CreateHostRequest, createdBy string) (*HostResp
 }
 
 func (s *HostService) Update(id uint64, req UpdateHostRequest, updatedBy string, dataScope *common.DataScopeReq) (*HostResponse, error) {
+	if req.BusinessScopeID != nil {
+		return nil, errors.New("cmdbhost.ownership_command_required")
+	}
+	host, err := s.findHostForUpdate(id, dataScope)
+	if err != nil {
+		return nil, err
+	}
+	updates, err := s.buildHostUpdates(id, req, host.Status)
+	if err != nil {
+		return nil, err
+	}
+	updates["updated_by"] = updatedBy
+	updates["updated_at"] = time.Now()
+
+	if err := s.db.Model(host).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+	return s.finishHostResponse(host, id, dataScope)
+}
+
+func (s *HostService) findHostForUpdate(id uint64, dataScope *common.DataScopeReq) (*Host, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
 	}
@@ -186,16 +224,61 @@ func (s *HostService) Update(id uint64, req UpdateHostRequest, updatedBy string,
 		}
 		return nil, err
 	}
+	return &host, nil
+}
 
+func (s *HostService) buildHostUpdates(id uint64, req UpdateHostRequest, currentStatus string) (map[string]interface{}, error) {
 	updates := map[string]interface{}{}
+	if err := s.applyHostIPUpdate(updates, req, id); err != nil {
+		return nil, err
+	}
+	if err := s.applyHostScopeUpdate(updates, req, currentStatus); err != nil {
+		return nil, err
+	}
+	applyHostScalarUpdates(updates, req)
+	return updates, nil
+}
+
+func (s *HostService) applyHostIPUpdate(updates map[string]interface{}, req UpdateHostRequest, id uint64) error {
+	if req.IP == nil {
+		return nil
+	}
+	if s.ipExists(*req.IP, id) {
+		return errors.New("cmdbhost.ip_exists")
+	}
+	updates["ip"] = *req.IP
+	return nil
+}
+
+func (s *HostService) applyHostScopeUpdate(updates map[string]interface{}, req UpdateHostRequest, currentStatus string) error {
+	if req.BusinessScopeID == nil {
+		return nil
+	}
+	if *req.BusinessScopeID == 0 {
+		updates["business_scope_id"] = uint64(0)
+		updates["business_scope_code"] = ""
+		updates["business_scope_name"] = ""
+		if currentStatus == "assigned" {
+			updates["status"] = "pending"
+		}
+		return nil
+	}
+	scopeRecord, err := s.getBusinessScope(*req.BusinessScopeID)
+	if err != nil {
+		return err
+	}
+	updates["business_scope_id"] = scopeRecord.ID
+	updates["business_scope_code"] = scopeRecord.Code
+	updates["business_scope_name"] = scopeRecord.Name
+	if currentStatus == "pending" || currentStatus == "" {
+		updates["status"] = "assigned"
+	}
+	return nil
+}
+
+func applyHostScalarUpdates(updates map[string]interface{}, req UpdateHostRequest) {
 	if req.Hostname != nil {
 		updates["hostname"] = *req.Hostname
-	}
-	if req.IP != nil {
-		if s.ipExists(*req.IP, id) {
-			return nil, errors.New("cmdbhost.ip_exists")
-		}
-		updates["ip"] = *req.IP
 	}
 	if req.SSHPort != nil {
 		updates["ssh_port"] = *req.SSHPort
@@ -219,27 +302,6 @@ func (s *HostService) Update(id uint64, req UpdateHostRequest, updatedBy string,
 		labelsJSON, _ := json.Marshal(*req.Labels)
 		updates["label_values"] = datatypes.JSON(labelsJSON)
 	}
-	if req.BusinessScopeID != nil {
-		if *req.BusinessScopeID == 0 {
-			updates["business_scope_id"] = uint64(0)
-			updates["business_scope_code"] = ""
-			updates["business_scope_name"] = ""
-			if host.Status == "assigned" {
-				updates["status"] = "pending"
-			}
-		} else {
-			scopeRecord, err := s.getBusinessScope(*req.BusinessScopeID)
-			if err != nil {
-				return nil, err
-			}
-			updates["business_scope_id"] = scopeRecord.ID
-			updates["business_scope_code"] = scopeRecord.Code
-			updates["business_scope_name"] = scopeRecord.Name
-			if host.Status == "pending" || host.Status == "" {
-				updates["status"] = "assigned"
-			}
-		}
-	}
 	if req.DeptID != nil {
 		updates["dept_id"] = *req.DeptID
 	}
@@ -249,20 +311,17 @@ func (s *HostService) Update(id uint64, req UpdateHostRequest, updatedBy string,
 	if req.Remark != nil {
 		updates["remark"] = *req.Remark
 	}
-	updates["updated_by"] = updatedBy
-	updates["updated_at"] = time.Now()
+}
 
-	if err := s.db.Model(&host).Updates(updates).Error; err != nil {
-		return nil, err
-	}
-	if err := s.hostQuery(dataScope).First(&host, id).Error; err != nil {
+func (s *HostService) finishHostResponse(host *Host, id uint64, dataScope *common.DataScopeReq) (*HostResponse, error) {
+	if err := s.hostQuery(dataScope).First(host, id).Error; err != nil {
 		return nil, err
 	}
 	groupIndex, err := s.loadGroupIndex()
 	if err != nil {
 		return nil, err
 	}
-	resp := hostToResponse(&host, groupIndex)
+	resp := hostToResponse(host, groupIndex)
 	return &resp, nil
 }
 
@@ -270,7 +329,7 @@ func (s *HostService) Delete(id uint64, dataScope *common.DataScopeReq) error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
-	result := s.hostQuery(dataScope).Where("id = ?", id).Delete(&Host{})
+	result := s.hostQuery(dataScope).Where(idWhereClause, id).Delete(&Host{})
 	if result.Error != nil {
 		return result.Error
 	}
@@ -349,7 +408,43 @@ func (s *HostService) UpdateStatus(id uint64, status string, dataScope *common.D
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
-	result := s.hostQuery(dataScope).Where("id = ?", id).Update("status", status)
+	status = strings.TrimSpace(status)
+	if !oneOfHostState(status, "pending", "assigned", "online", "offline", "maintenance", "retired") {
+		return errors.New(errHostStateInvalid)
+	}
+	var row Host
+	if err := s.hostQuery(dataScope).First(&row, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("cmdbhost.not_found")
+		}
+		return err
+	}
+	normalizeHostState(&row)
+	lifecycle, connectivity := row.LifecycleState, row.ConnectivityState
+	switch status {
+	case HostLifecyclePending:
+		lifecycle, connectivity = HostLifecyclePending, HostConnectivityUnknown
+	case HostLifecycleAssigned:
+		lifecycle, connectivity = HostLifecycleAssigned, HostConnectivityUnknown
+	case hostStatusOnline:
+		lifecycle, connectivity = HostLifecycleAssigned, HostConnectivityReachable
+	case hostStatusOffline:
+		lifecycle = HostLifecycleAssigned
+		connectivity = HostConnectivityUnreachable
+	case HostLifecycleMaintenance:
+		lifecycle = HostLifecycleMaintenance
+		connectivity = HostConnectivityUnknown
+	case HostLifecycleRetired:
+		lifecycle = HostLifecycleRetired
+		connectivity = HostConnectivityUnknown
+	}
+	result := s.hostQuery(dataScope).Where(idWhereClause, id).Updates(map[string]any{
+		"status":             status,
+		"lifecycle_state":    lifecycle,
+		"connectivity_state": connectivity,
+		"state_version":      gorm.Expr("state_version + 1"),
+		"updated_at":         time.Now(),
+	})
 	if result.Error != nil {
 		return result.Error
 	}
@@ -494,6 +589,7 @@ type hostGroupIndex struct {
 }
 
 func hostToResponse(h *Host, groupIndex hostGroupIndex) HostResponse {
+	normalizeHostState(h)
 	var labels []LabelEntry
 	if len(h.LabelValues) > 0 {
 		json.Unmarshal(h.LabelValues, &labels)
@@ -510,30 +606,34 @@ func hostToResponse(h *Host, groupIndex hostGroupIndex) HostResponse {
 	}
 	matchedGroups := resolveMatchedGroups(h.LabelValues, groupIndex)
 	return HostResponse{
-		ID:                  h.ID,
-		Hostname:            h.Hostname,
-		IP:                  h.IP,
-		SSHPort:             h.SSHPort,
-		OS:                  h.OS,
-		OSVersion:           h.OSVersion,
-		CPUCores:            h.CPUCores,
-		MemoryGB:            h.MemoryGB,
-		DiskGB:              h.DiskGB,
-		LabelValues:         labels,
-		InstalledComponents: components,
-		MatchedGroups:       matchedGroups,
-		MatchedGroupCount:   len(matchedGroups),
-		Status:              h.Status,
-		BusinessScopeID:     h.BusinessScopeID,
-		BusinessScopeCode:   h.BusinessScopeCode,
-		BusinessScopeName:   h.BusinessScopeName,
-		DeptID:              h.DeptID,
-		Owner:               h.Owner,
-		Remark:              h.Remark,
-		CreatedAt:           h.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:           h.UpdatedAt.Format(time.RFC3339),
-		CreatedBy:           h.CreatedBy,
-		UpdatedBy:           h.UpdatedBy,
+		ID:                     h.ID,
+		Hostname:               h.Hostname,
+		IP:                     h.IP,
+		SSHPort:                h.SSHPort,
+		OS:                     h.OS,
+		OSVersion:              h.OSVersion,
+		CPUCores:               h.CPUCores,
+		MemoryGB:               h.MemoryGB,
+		DiskGB:                 h.DiskGB,
+		LabelValues:            labels,
+		InstalledComponents:    components,
+		MatchedGroups:          matchedGroups,
+		MatchedGroupCount:      len(matchedGroups),
+		Status:                 h.Status,
+		LifecycleState:         h.LifecycleState,
+		ConnectivityState:      h.ConnectivityState,
+		ConnectivityObservedAt: formatOptionalTime(h.ConnectivityObservedAt),
+		StateVersion:           h.StateVersion,
+		BusinessScopeID:        h.BusinessScopeID,
+		BusinessScopeCode:      h.BusinessScopeCode,
+		BusinessScopeName:      h.BusinessScopeName,
+		DeptID:                 h.DeptID,
+		Owner:                  h.Owner,
+		Remark:                 h.Remark,
+		CreatedAt:              h.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:              h.UpdatedAt.Format(time.RFC3339),
+		CreatedBy:              h.CreatedBy,
+		UpdatedBy:              h.UpdatedBy,
 	}
 }
 
@@ -606,7 +706,7 @@ func hostGroupConditionChainMatchesLabel(group hostGroupSnapshot, groupsByID map
 	return len(chain) > 0
 }
 
-func hostGroupMatchesLabel(conditionJSON datatypes.JSON, labelJSON datatypes.JSON) bool {
+func hostGroupMatchesLabel(conditionJSON, labelJSON datatypes.JSON) bool {
 	var condition struct {
 		Operator string `json:"operator"`
 		Rules    []struct {
@@ -646,7 +746,7 @@ func hostGroupMatchesLabel(conditionJSON datatypes.JSON, labelJSON datatypes.JSO
 	return matched
 }
 
-func hostLabelRuleMatches(actual string, op string, raw string) bool {
+func hostLabelRuleMatches(actual, op, raw string) bool {
 	switch strings.TrimSpace(op) {
 	case "eq":
 		return actual == raw
@@ -690,16 +790,12 @@ func hostGroupPath(group hostGroupSnapshot, groupsByID map[uint64]hostGroupSnaps
 	return strings.Join(names, " / ")
 }
 
-func (s *HostService) getBusinessScope(id uint64) (*bizscope.BizScope, error) {
+func (s *HostService) getBusinessScope(id uint64) (bizcap.BizScopeRef, error) {
 	if id == 0 {
-		return nil, errors.New("business.bizscope.notFound")
+		return bizcap.BizScopeRef{}, errors.New("business.bizscope.notFound")
 	}
-	var item bizscope.BizScope
-	if err := s.db.Where("id = ?", id).First(&item).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("business.bizscope.notFound")
-		}
-		return nil, err
+	if s.bizScopeReader == nil {
+		return bizcap.BizScopeRef{}, errors.New("business.bizscope.readerNotConfigured")
 	}
-	return &item, nil
+	return s.bizScopeReader.GetActive(context.Background(), id, nil)
 }

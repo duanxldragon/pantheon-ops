@@ -1,10 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
   Button,
-  Form,
-  Input,
   Tag,
   Space,
   Popconfirm,
@@ -18,6 +16,7 @@ import {
   IconDelete,
   IconEye,
   IconBranch,
+  IconDownload,
 } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import type { TreeDataType } from '@arco-design/web-react/es/Tree/interface';
@@ -25,7 +24,7 @@ import {
   AppDrawer,
   AppModal,
   AppTable,
-  FilterPanel,
+  SearchToolbar,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
@@ -36,14 +35,24 @@ import {
   PageError,
   PageLoading,
   TableBatchActionBar,
+  ImportCsvButton,
   buildStandardPagination,
   useGovernanceRail,
 } from '../../../../components';
-import { getGroupList, getGroupMembers, createGroup, updateGroup, deleteGroup } from './api';
+import {
+  getGroupList,
+  getGroupMembers,
+  createGroup,
+  updateGroup,
+  deleteGroup,
+  exportGroups,
+  downloadGroupImportTemplate,
+  importGroups,
+} from './api';
 import type { CreateGroupPayload, GroupRow, GroupMemberResp, GroupMemberRow } from './api';
 import CmdbGroupForm from './CmdbGroupForm';
 import { usePermission } from '../../../../hooks/usePermission';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../cmdb.css';
 
 function flattenGroups(groups: GroupRow[]): GroupRow[] {
@@ -98,8 +107,35 @@ function filterGroupTree(groups: GroupRow[], keyword: string): GroupRow[] {
   }, []);
 }
 
-function getConditionRuleKey(rule: GroupRow['conditions']['rules'][number]) {
-  return `${rule.key}:${rule.op}:${rule.val}`;
+interface AsyncContentStateProps {
+  readonly loading: boolean;
+  readonly error: unknown;
+  readonly empty: boolean;
+  readonly emptyText: string;
+  readonly failedText: string;
+  readonly onRetry: () => void;
+  readonly children: ReactNode;
+}
+
+function AsyncContentState({
+  loading,
+  error,
+  empty,
+  emptyText,
+  failedText,
+  onRetry,
+  children,
+}: AsyncContentStateProps) {
+  if (loading) {
+    return <PageLoading />;
+  }
+  if (error) {
+    return <PageError description={failedText} onRetry={onRetry} />;
+  }
+  if (empty) {
+    return <PageEmpty description={emptyText} />;
+  }
+  return <>{children}</>;
 }
 
 export default function CmdbGroupList() {
@@ -117,7 +153,6 @@ export default function CmdbGroupList() {
   const [error, setError] = useState<unknown>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [initialParentId, setInitialParentId] = useState<number | null>(null);
-  const [keyword, setKeyword] = useState('');
   const [queryKeyword, setQueryKeyword] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -127,6 +162,8 @@ export default function CmdbGroupList() {
   const canUpdate = hasPerm('business:cmdb:group:update');
   const canDelete = hasPerm('business:cmdb:group:delete');
   const canDetail = hasPerm('business:cmdb:group:detail');
+  const canExport = hasPerm('business:cmdb:group:export');
+  const canImport = hasPerm('business:cmdb:group:import');
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -223,6 +260,37 @@ export default function CmdbGroupList() {
     const result = await getGroupMembers(row.id);
     setMemberData(result);
     setMembersDrawer(true);
+  };
+
+  const handleExport = async () => {
+    try {
+      await exportGroups({
+        keyword: queryKeyword,
+      });
+      Message.success(t('common.exportSuccess'));
+    } catch {
+      Message.error(t('common.exportFailed'));
+    }
+  };
+
+  const handleImport = async (file: File) => {
+    try {
+      await importGroups(file);
+      Message.success(t('common.importSuccess'));
+      await loadData();
+    } catch (err) {
+      Message.error(t('common.importFailed'));
+      throw err;
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      await downloadGroupImportTemplate();
+      Message.success(t('common.downloadSuccess'));
+    } catch {
+      Message.error(t('common.downloadFailed'));
+    }
   };
 
   const selectedGroup = useMemo(
@@ -369,7 +437,7 @@ export default function CmdbGroupList() {
         row.conditions?.rules?.length ? (
           <Space wrap size={4}>
             {row.conditions.rules.map((r) => (
-              <Tag key={getConditionRuleKey(r)} size="small">
+              <Tag key={`${r.key}-${r.op}-${r.val}`} size="small">
                 {r.key} {r.op} {r.val}
               </Tag>
             ))}
@@ -484,35 +552,21 @@ export default function CmdbGroupList() {
             </GovernanceRailToggleButton>
           }
         />
-        <FilterPanel>
-          <Form layout="inline">
-            <Form.Item label={t('common.keyword')}>
-              <Input value={keyword} onChange={setKeyword} allowClear />
-            </Form.Item>
-            <Form.Item>
-              <Space>
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    setQueryKeyword(keyword);
-                    setPage(1);
-                  }}
-                >
-                  {t('common.search')}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setKeyword('');
-                    setQueryKeyword('');
-                    setPage(1);
-                  }}
-                >
-                  {t('common.reset')}
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </FilterPanel>
+        <SearchToolbar
+          keyword={queryKeyword}
+          keywordPlaceholder={t('common.keyword')}
+          onKeywordChange={(value) => {
+            setQueryKeyword(value);
+            setPage(1);
+            setSelectedRowKeys([]);
+          }}
+          hasActiveFilters={Boolean(queryKeyword)}
+          onClearAll={() => {
+            setQueryKeyword('');
+            setPage(1);
+            setSelectedRowKeys([]);
+          }}
+        />
         <TableBatchActionBar
           selectedCount={selectedRowKeys.length}
           selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
@@ -535,6 +589,25 @@ export default function CmdbGroupList() {
                     {t('common.add')}
                   </Button>
                 )}
+                utility={
+                  <>
+                    {canExport ? (
+                      <Button icon={<IconDownload />} onClick={handleExport}>
+                        {t('common.export')}
+                      </Button>
+                    ) : null}
+                    {canImport ? (
+                      <>
+                        <Button icon={<IconDownload />} onClick={handleDownloadTemplate}>
+                          {t('common.downloadTemplate')}
+                        </Button>
+                        <ImportCsvButton disabled={!canImport} onSelect={handleImport}>
+                          {t('common.import')}
+                        </ImportCsvButton>
+                      </>
+                    ) : null}
+                  </>
+                }
               />
             ) : undefined
           }
@@ -564,14 +637,14 @@ export default function CmdbGroupList() {
             <Typography.Text className="cmdb-page__side-title">
               {t('business.cmdb.group.tree.title')}
             </Typography.Text>
-            {loading && data.length === 0 ? <PageLoading /> : null}
-            {!loading && error && data.length === 0 ? (
-              <PageError description={t('common.loadFailedDesc')} onRetry={loadData} />
-            ) : null}
-            {!loading && !error && filteredTreeData.length === 0 ? (
-              <PageEmpty description={t('business.cmdb.group.empty')} />
-            ) : null}
-            {!loading && !(error && data.length === 0) && filteredTreeData.length > 0 ? (
+            <AsyncContentState
+              loading={loading && data.length === 0}
+              error={data.length === 0 ? error : null}
+              empty={filteredTreeData.length === 0}
+              emptyText={t('business.cmdb.group.empty')}
+              failedText={t('common.loadFailedDesc')}
+              onRetry={loadData}
+            >
               <Tree
                 blockNode
                 showLine
@@ -587,18 +660,18 @@ export default function CmdbGroupList() {
                   }
                 }}
               />
-            ) : null}
+            </AsyncContentState>
           </Card>
           <div className="cmdb-page__content-stack">
             <Card className="page-panel system-list__table-card cmdb-page__group-table-card">
-              {loading && data.length === 0 ? <PageLoading /> : null}
-              {!loading && error && data.length === 0 ? (
-                <PageError description={t('common.loadFailedDesc')} onRetry={loadData} />
-              ) : null}
-              {!loading && !error && filteredFlatData.length === 0 ? (
-                <PageEmpty description={t('business.cmdb.group.empty')} />
-              ) : null}
-              {!loading && !(error && data.length === 0) && filteredFlatData.length > 0 ? (
+              <AsyncContentState
+                loading={loading && data.length === 0}
+                error={data.length === 0 ? error : null}
+                empty={filteredFlatData.length === 0}
+                emptyText={t('business.cmdb.group.empty')}
+                failedText={t('common.loadFailedDesc')}
+                onRetry={loadData}
+              >
                 <AppTable
                   columns={columns}
                   data={pagedFlatData}
@@ -628,7 +701,7 @@ export default function CmdbGroupList() {
                     record.id === selectedGroupId ? 'cmdb-page__group-row--active' : ''
                   }
                 />
-              ) : null}
+              </AsyncContentState>
             </Card>
           </div>
         </div>

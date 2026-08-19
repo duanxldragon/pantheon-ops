@@ -1,9 +1,9 @@
 package login
 
 import (
-	"pantheon-ops/backend/modules/auth/mfa"
-	"pantheon-ops/backend/modules/auth/security"
-	"pantheon-ops/backend/modules/auth/session"
+	"pantheon-base/modules/auth/mfa"
+	"pantheon-base/modules/auth/security"
+	"pantheon-base/modules/auth/session"
 )
 
 type UserInfoResp = security.UserInfoResp

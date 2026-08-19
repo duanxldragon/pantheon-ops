@@ -46,10 +46,10 @@ Every result must obey `DataScopeReq`, and Deploy receives only task-required sn
 
 | Menu key | Path | Component key | Page permission |
 | :--- | :--- | :--- | :--- |
-| `business.deploy.package` | `/operations/deploy/package` | `business/deploy/package/DeployPackageList` | `business:deploy:package:view` |
-| `business.deploy.template` | `/operations/deploy/template` | `business/deploy/template/DeployTemplateList` | `business:deploy:template:list` |
-| `business.deploy.task` | `/operations/deploy/task` | `business/deploy/task/DeployTaskList` | `business:deploy:task:view` |
-| `business.deploy.task.detail` | `/operations/deploy/task/:id` | `business/deploy/task/DeployTaskDetail` | `business:deploy:task:detail` |
+| `business.deploy.package` | `/business/deploy/package` | `business/deploy/package/DeployPackageList` | `business:deploy:package:view` |
+| `business.deploy.template` | `/business/deploy/template` | `business/deploy/template/DeployTemplateList` | `business:deploy:template:list` |
+| `business.deploy.task` | `/business/deploy/task` | `business/deploy/task/DeployTaskList` | `business:deploy:task:view` |
+| `business.deploy.task.detail` | `/business/deploy/task/:id` | `business/deploy/task/DeployTaskDetail` | `business:deploy:task:detail` |
 
 The module name is `business.deploy`. List and detail permissions are separate. Templates use a real header-plus-steps model; packages remain reusable execution assets.
 

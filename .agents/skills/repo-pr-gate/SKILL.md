@@ -45,8 +45,8 @@ High-risk scope in this repo includes:
   - attach rendered evidence or a concrete runtime gap
 - Runtime-sensitive or security-sensitive change:
   - run `security-diff-scan`
-- Inheritance-sensitive change:
-  - include `npm run check:inheritance` result in the PR summary
+- Business-overlay or lock change:
+  - include `npm run check:business-overlay` result in the PR summary
 
 ## PR Body Minimum
 

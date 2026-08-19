@@ -1,13 +1,16 @@
 package bizscope
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http/httptest"
 	"testing"
 
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/testmysql"
+	bizcap "pantheon-base/modules/business/capability"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/database"
+	"pantheon-base/pkg/testmysql"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -43,9 +46,9 @@ func setupBizScopeTestDB(t *testing.T) *gorm.DB {
 
 func TestBizScopeDetailHostCountRespectsDataScope(t *testing.T) {
 	db := setupBizScopeTestDB(t)
-	svc := NewService(db)
+	svc := newBizScopeServiceWithCMDB(t, db)
 
-	scope := BizScope{Code: "his-dev", Name: "HIS 开发", Environment: "dev", Status: "active"}
+	scope := BizScope{Code: "his-dev", Name: "HIS 开发", Environment: "dev", Status: "active", DeptID: 10}
 	if err := db.Create(&scope).Error; err != nil {
 		t.Fatalf("seed scope: %v", err)
 	}
@@ -62,6 +65,37 @@ func TestBizScopeDetailHostCountRespectsDataScope(t *testing.T) {
 	}
 	if detail.HostCount != 1 {
 		t.Fatalf("expected scoped host count 1, got %d", detail.HostCount)
+	}
+}
+
+func TestBizScopeListRespectsDataScope(t *testing.T) {
+	db := setupBizScopeTestDB(t)
+	svc := NewService(db)
+	if err := db.Create(&[]BizScope{
+		{Code: "dept-10", Name: "Dept 10", Environment: "dev", Status: "active", DeptID: 10},
+		{Code: "dept-20", Name: "Dept 20", Environment: "dev", Status: "active", DeptID: 20},
+	}).Error; err != nil {
+		t.Fatalf("seed scopes: %v", err)
+	}
+
+	page, err := svc.List(&BizScopeListQuery{}, &common.DataScopeReq{Mode: common.DataScopeModeDept, DeptID: 10})
+	if err != nil {
+		t.Fatalf("list scoped scopes: %v", err)
+	}
+	if page.Total != 1 || len(page.Items) != 1 || page.Items[0].DeptID != 10 {
+		t.Fatalf("expected only dept 10 scope, got %+v", page)
+	}
+}
+
+func TestBizScopeCreateUsesCurrentDepartment(t *testing.T) {
+	db := setupBizScopeTestDB(t)
+	svc := NewService(db)
+	item, err := svc.Create(&CreateBizScopeRequest{Code: "dept-create", Name: "Dept Create", Environment: "dev", Status: "active"}, &common.DataScopeReq{Mode: common.DataScopeModeDept, DeptID: 10})
+	if err != nil {
+		t.Fatalf("create scoped scope: %v", err)
+	}
+	if item.DeptID != 10 {
+		t.Fatalf("expected department 10, got %d", item.DeptID)
 	}
 }
 
@@ -117,7 +151,7 @@ func TestResolveBizScopeErrorKey(t *testing.T) {
 
 func TestBizScopeCanonicalBusinessErrors(t *testing.T) {
 	db := setupBizScopeTestDB(t)
-	svc := NewService(db)
+	svc := newBizScopeServiceWithCMDB(t, db)
 
 	scope := BizScope{Code: "canonical-scope", Name: "Canonical Scope", Environment: "prod", Status: "active"}
 	if err := db.Create(&scope).Error; err != nil {
@@ -152,6 +186,110 @@ func TestBizScopeCanonicalBusinessErrors(t *testing.T) {
 	if _, err := svc.Get(scope.ID+999999, nil); err == nil || err.Error() != bizScopeNotFoundKey {
 		t.Fatalf("expected %s, got %v", bizScopeNotFoundKey, err)
 	}
+}
+
+// testCMDBHostReader is a hermetic CMDB host reader backed by the test-local
+// bizScopeTestHost fixture table. It mirrors the dept data-scope filtering the
+// real CMDB capability applies, so scoped Get/Delete flows can be exercised
+// without pulling the cmdb package into this test binary.
+type testCMDBHostReader struct {
+	db *gorm.DB
+}
+
+func (r testCMDBHostReader) GetByIDs(ctx context.Context, req bizcap.HostIDsQuery) (bizcap.HostPage, error) {
+	ids := common.NormalizeUint64IDs(req.HostIDs)
+	if len(ids) == 0 {
+		return bizcap.HostPage{Items: []bizcap.HostRef{}}, nil
+	}
+	var rows []bizScopeTestHost
+	if err := r.db.WithContext(ctx).Model(&bizScopeTestHost{}).
+		Scopes(database.WithDataScope(req.DataScope)).
+		Where("id IN ?", ids).
+		Order("id ASC").
+		Find(&rows).Error; err != nil {
+		return bizcap.HostPage{}, err
+	}
+	return bizcap.HostPage{Items: mapTestHostRefs(rows), Total: int64(len(rows))}, nil
+}
+
+func (r testCMDBHostReader) ListByBusinessScope(ctx context.Context, req bizcap.HostScopeQuery) (bizcap.HostPage, error) {
+	query := r.db.WithContext(ctx).Model(&bizScopeTestHost{}).
+		Scopes(database.WithDataScope(req.DataScope)).
+		Where("business_scope_id = ?", req.BusinessScopeID)
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return bizcap.HostPage{}, err
+	}
+	var rows []bizScopeTestHost
+	if err := query.Order("id DESC").Find(&rows).Error; err != nil {
+		return bizcap.HostPage{}, err
+	}
+	return bizcap.HostPage{Items: mapTestHostRefs(rows), Total: total}, nil
+}
+
+func (r testCMDBHostReader) ListAvailable(ctx context.Context, req bizcap.AvailableHostQuery) (bizcap.HostPage, error) {
+	query := r.db.WithContext(ctx).Model(&bizScopeTestHost{}).
+		Scopes(database.WithDataScope(req.DataScope)).
+		Where("(business_scope_id = 0 OR business_scope_id IS NULL)")
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return bizcap.HostPage{}, err
+	}
+	var rows []bizScopeTestHost
+	if err := query.Order("id DESC").Find(&rows).Error; err != nil {
+		return bizcap.HostPage{}, err
+	}
+	return bizcap.HostPage{Items: mapTestHostRefs(rows), Total: total}, nil
+}
+
+func (r testCMDBHostReader) HasBusinessScopeReferences(ctx context.Context, businessScopeID uint64) (bool, error) {
+	var count int64
+	if err := r.db.WithContext(ctx).Model(&bizScopeTestHost{}).
+		Where("business_scope_id = ?", businessScopeID).
+		Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+type testCMDBOwnershipCommand struct{}
+
+func (testCMDBOwnershipCommand) Bind(context.Context, bizcap.BindOwnershipRequest) error {
+	return nil
+}
+
+func (testCMDBOwnershipCommand) Unbind(context.Context, bizcap.UnbindOwnershipRequest) error {
+	return nil
+}
+
+func (testCMDBOwnershipCommand) WithBusinessScopeOwnershipLock(_ context.Context, _ uint64, action func() error) error {
+	return action()
+}
+
+func mapTestHostRefs(rows []bizScopeTestHost) []bizcap.HostRef {
+	items := make([]bizcap.HostRef, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, bizcap.HostRef{
+			ID:                row.ID,
+			Hostname:          row.Hostname,
+			IP:                row.IP,
+			OS:                row.OS,
+			Status:            row.Status,
+			BusinessScopeID:   row.BusinessScopeID,
+			BusinessScopeCode: row.BusinessScopeCode,
+			BusinessScopeName: row.BusinessScopeName,
+			DeptID:            row.DeptID,
+		})
+	}
+	return items
+}
+
+func newBizScopeServiceWithCMDB(t *testing.T, db *gorm.DB) *Service {
+	t.Helper()
+	return NewService(db, ServiceDependencies{
+		HostReader:       testCMDBHostReader{db: db},
+		OwnershipCommand: testCMDBOwnershipCommand{},
+	})
 }
 func TestFailBizScopeErrorReturnsCanonicalOrGenericKey(t *testing.T) {
 	gin.SetMode(gin.TestMode)

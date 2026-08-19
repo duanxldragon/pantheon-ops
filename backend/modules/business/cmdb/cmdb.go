@@ -1,17 +1,29 @@
 package cmdb
 
 import (
-	"pantheon-ops/backend/modules/business/cmdb/group"
-	"pantheon-ops/backend/modules/business/cmdb/host"
-	"pantheon-ops/backend/modules/business/cmdb/label"
-	"pantheon-ops/backend/pkg/contracts"
+	bizcap "pantheon-base/modules/business/capability"
+	"pantheon-base/modules/business/cmdb/group"
+	"pantheon-base/modules/business/cmdb/host"
+	"pantheon-base/modules/business/cmdb/label"
+	"pantheon-base/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB) {
-	hostSvc := host.NewHostService(db)
+const (
+	cmdbRoutePath = "/business/cmdb"
+	idWhereClause = "id = ?"
+	idAscOrder    = "id ASC"
+)
+
+// InitCmdbModule registers CMDB owner-module routes and capabilities.
+func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB, readers ...bizcap.BizScopeReader) *host.HostService {
+	var bizScopeReader bizcap.BizScopeReader
+	if len(readers) > 0 {
+		bizScopeReader = readers[0]
+	}
+	hostSvc := host.NewHostService(db, bizScopeReader)
 	hostHandler := host.NewHostHandler(hostSvc)
 
 	groupSvc := group.NewGroupService(db)
@@ -27,7 +39,7 @@ func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB) {
 			SeedMenusFunc: seedHostMenus,
 			SeedI18nFunc:  seedHostI18n,
 			Register: func(r *gin.RouterGroup) {
-				cmdb := contracts.DataScopedGroup(r, "/business/cmdb", db)
+				cmdb := contracts.DataScopedGroup(r, cmdbRoutePath, db)
 				hostHandler.RegisterRoutes(cmdb)
 			},
 		},
@@ -37,7 +49,7 @@ func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB) {
 			SeedMenusFunc: seedGroupMenus,
 			SeedI18nFunc:  seedGroupI18n,
 			Register: func(r *gin.RouterGroup) {
-				cmdb := contracts.DataScopedGroup(r, "/business/cmdb", db)
+				cmdb := contracts.DataScopedGroup(r, cmdbRoutePath, db)
 				groupHandler.RegisterRoutes(cmdb)
 			},
 		},
@@ -47,11 +59,12 @@ func InitCmdbModule(r *gin.RouterGroup, db *gorm.DB) {
 			SeedMenusFunc: seedLabelMenus,
 			SeedI18nFunc:  seedLabelI18n,
 			Register: func(r *gin.RouterGroup) {
-				cmdb := contracts.ProtectedGroup(r, "/business/cmdb")
+				cmdb := contracts.ProtectedGroup(r, cmdbRoutePath)
 				labelHandler.RegisterRoutes(cmdb)
 			},
 		},
 	}
 
 	contracts.RegisterBackendModules(r, db, modules...)
+	return hostSvc
 }

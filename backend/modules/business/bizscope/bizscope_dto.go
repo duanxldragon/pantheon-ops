@@ -7,6 +7,7 @@ type BizScopeListResp struct {
 	Owner       string `json:"owner"`
 	Environment string `json:"environment"`
 	Status      string `json:"status"`
+	DeptID      uint64 `json:"deptId"`
 	Remark      string `json:"remark"`
 	CreatedAt   string `json:"createdAt"`
 }
@@ -26,9 +27,10 @@ type BizScopeDetailResp struct {
 	Environment string `json:"environment"`
 	Status      string `json:"status"`
 	Remark      string `json:"remark"`
-	HostCount    int64  `json:"hostCount"`
+	HostCount   int64  `json:"hostCount"`
 	CreatedAt   string `json:"createdAt"`
 	UpdatedAt   string `json:"updatedAt"`
+	DeptID      uint64 `json:"deptId"`
 }
 
 type BizScopeListQuery struct {
@@ -37,6 +39,7 @@ type BizScopeListQuery struct {
 	Owner       string `form:"owner" json:"owner"`
 	Environment string `form:"environment" json:"environment"`
 	Status      string `form:"status" json:"status"`
+	DeptID      uint64 `form:"deptId" json:"deptId"`
 	Page        int    `form:"page" json:"page"`
 	PageSize    int    `form:"pageSize" json:"pageSize"`
 	SortField   string `form:"sortField" json:"sortField"`
@@ -50,6 +53,7 @@ type CreateBizScopeRequest struct {
 	Environment string `json:"environment" binding:"required"`
 	Status      string `json:"status" binding:"required"`
 	Remark      string `json:"remark"`
+	DeptID      uint64 `json:"deptId"`
 }
 
 type UpdateBizScopeRequest struct {
@@ -59,6 +63,7 @@ type UpdateBizScopeRequest struct {
 	Environment *string `json:"environment"`
 	Status      *string `json:"status"`
 	Remark      *string `json:"remark"`
+	DeptID      *uint64 `json:"deptId"`
 }
 
 type BizScopeOptionItem struct {

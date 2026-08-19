@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/database"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/database"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"

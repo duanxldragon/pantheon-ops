@@ -1,5 +1,7 @@
 import { apiRequest } from '../../../api/request';
 
+export type DeployAction = 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+
 export interface DeployPackageRow {
   id: number;
   name: string;
@@ -52,7 +54,7 @@ export interface DeployTemplateStepRow {
   stepCode: string;
   stepName: string;
   stepType: 'package' | 'script';
-  action: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+  action: DeployAction;
   packageId: number;
   packageName: string;
   packageVersion: string;
@@ -71,7 +73,7 @@ export interface DeployTemplateRow {
   description: string;
   category: string;
   executionMode: 'fixed' | 'orchestrated';
-  defaultAction: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+  defaultAction: DeployAction;
   packageId: number;
   packageName: string;
   packageVersion: string;
@@ -93,7 +95,7 @@ export interface DeployTemplatePayload {
   description?: string;
   category?: string;
   executionMode?: 'fixed' | 'orchestrated';
-  defaultAction?: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+  defaultAction?: DeployAction;
   packageId?: number;
   templateCode?: string;
   templateConfig?: Record<string, unknown>;
@@ -103,7 +105,7 @@ export interface DeployTemplatePayload {
     stepCode: string;
     stepName: string;
     stepType: 'package' | 'script';
-    action: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+    action: DeployAction;
     packageId?: number;
     packageName?: string;
     packageVersion?: string;
@@ -154,7 +156,7 @@ export interface DeployTaskRow {
   packageVersion: string;
   businessScopeId: number;
   businessScopeName: string;
-  action: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+  action: DeployAction;
   targetType: 'host' | 'group';
   targetIds: number[];
   executorType: 'manual' | 'simulated' | 'agent' | 'ssh';
@@ -188,7 +190,7 @@ export interface DeployTaskPayload {
   templateId?: number;
   packageId?: number;
   businessScopeId?: number;
-  action?: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+  action?: DeployAction;
   targetType: 'host' | 'group';
   targetIds: number[];
   executorType: 'manual' | 'simulated' | 'agent' | 'ssh';

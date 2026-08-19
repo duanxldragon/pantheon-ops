@@ -1,4 +1,5 @@
 import { apiRequest } from '../../../../api/request';
+import { downloadFile, uploadImportFile } from '../../../../api/importExport';
 
 export type LabelValueMode = 'free' | 'enum' | 'dict';
 export type LabelSchemaStatus = 'enabled' | 'disabled';
@@ -55,24 +56,13 @@ function normalizeLabelSchemaRow(row: Partial<LabelSchemaRow>): LabelSchemaRow {
     category: String(row.category || 'base'),
     valueMode: (row.valueMode || 'free') as LabelValueMode,
     dictCode: String(row.dictCode || ''),
-    options: Array.isArray(row.options) ? row.options.map((item) => String(item)) : [],
+    options: Array.isArray(row.options) ? row.options.map(String) : [],
     required: Boolean(row.required),
     status: (row.status || 'enabled') as LabelSchemaStatus,
     description: String(row.description || ''),
     createdAt: String(row.createdAt || ''),
     updatedAt: String(row.updatedAt || ''),
   };
-}
-
-function resolveLabelSchemaPageSize(
-  responsePageSize: unknown,
-  requestPageSize: number | undefined,
-  itemCount: number,
-) {
-  if (typeof responsePageSize === 'number') {
-    return responsePageSize;
-  }
-  return requestPageSize || itemCount || 10;
 }
 
 export async function getLabelSchemaList(params?: LabelSchemaQuery): Promise<LabelSchemaListResp> {
@@ -92,15 +82,18 @@ export async function getLabelSchemaList(params?: LabelSchemaQuery): Promise<Lab
       pageSize: currentPageSize,
     };
   }
-  const normalizedItems = Array.isArray(result.items)
-    ? result.items.map((item) => normalizeLabelSchemaRow(item))
-    : [];
-  return {
-    items: normalizedItems,
-    total: typeof result.total === 'number' ? result.total : Array.isArray(result.items) ? result.items.length : 0,
-    page: typeof result.page === 'number' ? result.page : params?.page || 1,
-    pageSize: resolveLabelSchemaPageSize(result.pageSize, params?.pageSize, normalizedItems.length),
-  };
+  const items = Array.isArray(result.items) ? result.items.map((item) => normalizeLabelSchemaRow(item)) : [];
+  const total = typeof result.total === 'number' ? result.total : items.length;
+  const page = typeof result.page === 'number' ? result.page : params?.page || 1;
+  let pageSize: number;
+  if (typeof result.pageSize === 'number') {
+    pageSize = result.pageSize;
+  } else if (params?.pageSize) {
+    pageSize = params.pageSize;
+  } else {
+    pageSize = items.length || 10;
+  }
+  return { items, total, page, pageSize };
 }
 
 export function getLabelSchemaOptions(params?: Pick<LabelSchemaQuery, 'status' | 'category'>) {
@@ -132,4 +125,25 @@ export function deleteLabelSchema(id: number) {
     url: `/business/cmdb/labels/${id}`,
     method: 'delete',
   });
+}
+
+export function exportLabelSchemas(params?: LabelSchemaQuery) {
+  return downloadFile({
+    url: '/business/cmdb/labels/export',
+    method: 'get',
+    params: params as Record<string, unknown> | undefined,
+    filename: 'cmdb-labels-export.csv',
+  });
+}
+
+export function downloadLabelSchemaImportTemplate() {
+  return downloadFile({
+    url: '/business/cmdb/labels/import-template',
+    method: 'get',
+    filename: 'cmdb-labels-import-template.csv',
+  });
+}
+
+export function importLabelSchemas(file: File) {
+  return uploadImportFile('/business/cmdb/labels/import', file);
 }

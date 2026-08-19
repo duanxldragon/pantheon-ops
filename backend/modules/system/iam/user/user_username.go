@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-ops/backend/pkg/common"
-	commonsecurity "pantheon-ops/backend/pkg/common/security"
-	"pantheon-ops/backend/pkg/rbacbind"
+	"pantheon-base/pkg/common"
+	commonsecurity "pantheon-base/pkg/common/security"
+	"pantheon-base/pkg/rbacbind"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"

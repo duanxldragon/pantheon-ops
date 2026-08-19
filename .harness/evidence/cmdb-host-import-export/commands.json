@@ -1,0 +1,69 @@
+{
+  "taskId": "cmdb-host-import-export",
+  "commands": [
+    {
+      "command": "go build -buildvcs=false ./...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "Backend compiles end-to-end, including the recovered k8s module (k8s.io/client-go v0.36.3, gorilla/websocket v1.5.3 added to go.mod/go.sum)."
+    },
+    {
+      "command": "go test -buildvcs=false ./...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "Full backend suite green. CMDB packages: cmdb, cmdb/group, cmdb/host, cmdb/label, bizscope all ok (includes host_import_export_test and the newly added group/label/bizscope import-export tests)."
+    },
+    {
+      "command": "go test -buildvcs=false ./modules/business/cmdb/... ./modules/business/bizscope/...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "Targeted re-run for the evidence record; all 5 packages ok."
+    },
+    {
+      "command": "node ./node_modules/typescript/bin/tsc -b",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "Frontend type-check green (exit 0)."
+    },
+    {
+      "command": "node ./node_modules/eslint/bin/eslint.js src",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "Frontend src lint green (exit 0). The only lint error in the repo lives in .tmp/ generator scaffolding, unrelated to this task."
+    },
+    {
+      "command": "node ./node_modules/vite/bin/vite.js build",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "Production build green (built in 671ms)."
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "OK business overlay contract (16 declared paths, rebuilt tree)."
+    },
+    {
+      "command": "node ./scripts/check-menu-contract.mjs",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "manifest / menu seed consistency: 26 menus, 34 routes, 151 permissions, 34 component keys."
+    },
+    {
+      "command": "prebuild contract chain (check-i18n-hardcode, check-smoke-coverage, etc.)",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "Full 13-check contract chain green after adding group/label/bizscope i18n keys and moving ReleaseList create action to TableBatchActionBar."
+    },
+    {
+      "command": "npm run test:smoke:business:cmdb",
+      "cwd": "pantheon-ops/frontend",
+      "status": "skipped",
+      "notes": "Explicit runtime gap: the DB-backed smoke stack requires MySQL root credentials that are not available in this environment (PANTHEON_SMOKE_MYSQL_* / MYSQL_ROOT_PASSWORD unset, no .env). Unit tests + contract gates cover the import/export flows."
+    }
+  ],
+  "knownGaps": [
+    "Runtime/visual smoke for the new import/export buttons (desktop + mobile screenshots) not executed — MySQL credentials unavailable. The Aug 13 rebuild evidence recorded cmdb-pages.spec.ts 9/9 green against an isolated stack; the import/export additions are covered by unit tests and the contract chain instead.",
+    "go test -race not run (requires cgo/gcc, unavailable on this machine)."
+  ]
+}

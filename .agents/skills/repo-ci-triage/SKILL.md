@@ -5,7 +5,7 @@ description: Use when Pantheon Ops GitHub Actions is red and the failure must be
 
 # Repo CI Triage
 
-Start from the failing workflow, job, and step. In Pantheon Ops, check inheritance drift before assuming the failure is a pure app regression.
+Start from the failing workflow, job, and step. In Pantheon Ops, check the business-overlay contract before assuming the failure is a pure app regression.
 
 ## Gather First
 
@@ -34,9 +34,10 @@ Start from the failing workflow, job, and step. In Pantheon Ops, check inheritan
   - usually not fully reproducible locally
   - first fix compile, sink/control, and trust-boundary issues
   - if the diff is risky, run `security-diff-scan`
-- inheritance-related red flags not named directly in CI:
-  - `npm run check:inheritance`
-  - `npm run check:base-sync`
+- business-overlay / rebuild red flags not named directly in CI:
+  - `npm run check:business-overlay`
+  - `npm run test:business-overlay`
+  - `npm run rebuild:from-base`
 - `security.yml` -> dependency reports
   - `go run golang.org/x/vuln/cmd/govulncheck@latest ./...`
   - `go run github.com/google/osv-scanner/v2/cmd/osv-scanner@latest scan --recursive .`
@@ -51,7 +52,7 @@ Start from the failing workflow, job, and step. In Pantheon Ops, check inheritan
 ## Ops-Specific Notes
 
 - `security.yml` is largely report-oriented. Vulnerability findings may need remediation, but they are not the same as a broken workflow run.
-- If CI red follows a base upgrade or shared-path sync, reproduce `npm run check:inheritance` before deeper debugging.
+- If CI red follows a base upgrade or lock change, reproduce `npm run rebuild:from-base` before deeper debugging.
 - If the failure is in module i18n generation, keep the generated output and the business module changes in the same patch.
 
 ## Exit Condition

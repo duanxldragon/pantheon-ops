@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-ops/backend/internal/middleware"
+	"pantheon-base/internal/middleware"
 )
 
 func TestAuditService_ListOperationLogsKeywordMatchesMultipleFields(t *testing.T) {

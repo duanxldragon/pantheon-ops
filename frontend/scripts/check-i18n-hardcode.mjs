@@ -57,7 +57,16 @@ function isNaturalLanguage(text) {
   if (/^\/[a-z0-9/_:-]+$/i.test(value)) {
     return false;
   }
-  return /[\p{Script=Han}]|[A-Za-z]{3,}\s+[A-Za-z]{2,}/u.test(value);
+  if (/\p{Script=Han}/u.test(value)) {
+    return true;
+  }
+  const words = value.split(/\s+/).filter(Boolean);
+  for (let index = 0; index < words.length - 1; index += 1) {
+    if (/^[A-Za-z]{3,}$/.test(words[index]) && /^[A-Za-z]{2,}$/.test(words[index + 1])) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function lineNumberAt(source, index) {

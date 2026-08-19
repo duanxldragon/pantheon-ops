@@ -23,22 +23,8 @@ import { getHostDetail, collectHostConfig } from './api';
 import type { HostRow } from './api';
 import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../cmdb.css';
-
-function getLabelValueKey(label: HostRow['labelValues'][number]) {
-  return `${label.key}:${label.val}`;
-}
-
-function getInstalledComponentKey(component: HostRow['installedComponents'][number]) {
-  return [
-    component.name,
-    component.version,
-    component.deployTaskId ?? component.deployTaskName ?? '',
-    component.deployedAt ?? '',
-    component.executorType ?? '',
-  ].join(':');
-}
 
 export default function CmdbHostDetail() {
   const { id } = useParams<{ id: string }>();
@@ -160,7 +146,7 @@ export default function CmdbHostDetail() {
                 {t('business.cmdb.host.collect')}
               </Button>
             )}
-            <Button icon={<IconLeft />} onClick={() => navigate('/operations/cmdb/host')}>
+        <Button icon={<IconLeft />} onClick={() => navigate('/business/cmdb/host')}>
               {t('common.back')}
             </Button>
           </Space>
@@ -225,7 +211,7 @@ export default function CmdbHostDetail() {
             {host.labelValues?.length ? (
               <Space wrap>
                 {host.labelValues.map((l) => (
-                  <Tag key={getLabelValueKey(l)}>
+                  <Tag key={`${l.key}-${l.val}`}>
                     {l.key}={l.val}
                   </Tag>
                 ))}
@@ -240,7 +226,7 @@ export default function CmdbHostDetail() {
             {host.installedComponents?.length ? (
               <Space direction="vertical" size={8} style={{ width: '100%' }}>
                 {host.installedComponents.map((c) => (
-                  <Card key={getInstalledComponentKey(c)} className="page-panel" style={{ padding: 12 }}>
+                  <Card key={`${c.name}-${c.version}`} className="page-panel" style={{ padding: 12 }}>
                     <Space direction="vertical" size={4}>
                       <Space>
                         <Tag color="arcoblue">

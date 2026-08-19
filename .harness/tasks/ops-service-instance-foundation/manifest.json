@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "taskId": "ops-service-instance-foundation",
+  "title": "Add minimal Application, Service, and ServiceInstance foundation",
+  "status": "complete",
+  "priority": "P0-model/P1-delivery",
+  "deliveryTier": "L2",
+  "taskDoc": "docs/harness/tasks/2026-08-17-ops-service-instance-foundation.task.md",
+  "handoffDoc": ".harness/tasks/ops-service-instance-foundation/HANDOFF.md",
+  "statusDoc": ".harness/tasks/ops-service-instance-foundation/STATUS.md",
+  "dependsOn": [
+    "ops-business-versioned-migrations",
+    "ops-cross-module-capability-boundaries",
+    "ops-bizscope-datascope-ownership"
+  ],
+  "coordinatesWith": ["ops-deploy-immutability-idempotency"],
+  "blocks": ["ops-resource-service-state-machines"],
+  "scope": {
+    "in": [
+      "Application/Service/ServiceInstance schema and business module",
+      "provider target validation",
+      "Deploy/K8s stable service references",
+      "legacy installed_components retirement",
+      "overlay/API/frontend minimum workflow"
+    ],
+    "out": [
+      "tenant/project hierarchy",
+      "universal CMDB",
+      "lifecycle actions",
+      "executor merge",
+      "auto-discovery",
+      "base/system duplication",
+      "K8s object copy"
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      "backend/modules/business/service/*.go",
+      "backend/modules/business/service/*_test.go",
+      "service migration SQL",
+      "frontend/src/modules/business/service/**",
+      "docs/designs/BUSINESS_SERVICE_MODULE_DESIGN.md",
+      ".harness/evidence/ops-service-instance-foundation/commands.json",
+      ".harness/evidence/ops-service-instance-foundation/summary.md",
+      ".harness/evidence/ops-service-instance-foundation/review.md"
+    ],
+    "modify": [
+      "backend/modules/business/business.go",
+      "backend/modules/business/business_overlay_registry.go",
+      "backend/modules/business/deploy/deploy_model.go",
+      "backend/modules/business/deploy/deploy_dto.go",
+      "backend/modules/business/deploy/deploy_service.go",
+      "backend/modules/business/k8s/release/*",
+      "backend/modules/system/iam/menu/business_overlay_component_registry.go (registry only)",
+      "frontend/src/core/router/businessOverlayComponentRegistry.ts",
+      "frontend/src/modules/businessOverlay.ts",
+      "frontend/src/i18n/resources/en-US.ts",
+      "frontend/src/i18n/resources/zh-CN.ts"
+    ],
+    "doNotTouch": [
+      "../pantheon-base/**",
+      "backend/modules/system/** except existing overlay registries",
+      "frontend/src/modules/system/**",
+      "backend/modules/business/cmdb/group/**",
+      "backend/modules/business/cmdb/label/**"
+    ]
+  },
+  "contractAnchors": [
+    "docs/business-module-review-summary.md §8 and §12",
+    "backend/modules/business/business.go",
+    "backend/modules/business/cmdb/capability.go",
+    "backend/modules/business/deploy/deploy_model.go"
+  ],
+  "verificationPlan": {
+    "commands": [
+      "go test -count=1 ./modules/business/service/... ./modules/business/deploy/... ./modules/business/k8s/...",
+      "go test -race ./modules/business/service/...",
+      "go vet ./...",
+      "npm run type-check",
+      "node scripts/business-overlay/check-business-overlay.mjs"
+    ],
+    "runtimeEvidence": [
+      "BizScope-CMDB-Service-Deploy smoke",
+      "K8s linkage contract",
+      "legacy JSON migration",
+      "permission/menu/i18n checks",
+      "rendered UI or gap"
+    ]
+  },
+  "runtimeSensitive": true,
+  "costProfile": "very high; architect/strong single owner; isolated UI/test lanes only after schema/API freeze",
+  "linkage": {
+    "evidenceDir": ".harness/evidence/ops-service-instance-foundation/",
+    "reviewFile": ".harness/evidence/ops-service-instance-foundation/review.md",
+    "summaryFile": ".harness/evidence/ops-service-instance-foundation/summary.md"
+  },
+  "maintainerGates": [
+    "more than minimum three-entity model",
+    "base/system ownership",
+    "non-deterministic legacy data migration",
+    "cross-module GORM association",
+    "public workflow compatibility break",
+    "dirty-tree overlap"
+  ],
+  "evidenceRequired": [
+    "schema and migration",
+    "provider contract tests",
+    "end-to-end workflow",
+    "legacy JSON decision",
+    "overlay and UI evidence",
+    "findings-first review"
+  ],
+  "completionChecklist": [
+    "bounded context registered",
+    "scope/target authorization enforced",
+    "stable service identity in history",
+    "legacy JSON no longer authoritative",
+    "permissions/menu/i18n/audit complete",
+    "integration and UI evidence recorded"
+  ]
+}

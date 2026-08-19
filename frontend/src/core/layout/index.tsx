@@ -38,7 +38,7 @@ import {
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { beginLogoutTransition, endLogoutTransition } from '../../api/request';
-import { type MenuNode } from '../../modules/system/iam/menu/api';
+import { type MenuNode } from '../../modules/system/menu/api';
 import { logout as logoutApi, reportActivity } from '../../modules/auth/session/api';
 import {
   updateCurrentUserPreferences,

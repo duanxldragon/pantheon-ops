@@ -1,8 +1,8 @@
 package iam
 
 import (
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/rbacbind"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/rbacbind"
 
 	"gorm.io/gorm"
 )

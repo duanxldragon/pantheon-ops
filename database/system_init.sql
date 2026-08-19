@@ -1,4 +1,20 @@
--- Pantheon Base 数据库初始化脚本
+-- ⚠️ 已废弃 / DEPRECATED — 非权威 schema 来源，请勿用于初始化生产库
+-- ============================================================================
+-- 唯一权威的 schema 来源是版本化迁移：backend/pkg/database/migrations/*.sql
+-- 应用启动默认执行 golang-migrate（见 backend/cmd/server/main.go），
+-- 仅当 PANTHEON_AUTO_MIGRATE=true（开发模式）才走 GORM AutoMigrate。
+--
+-- 本文件已落后于迁移，缺失以下表（会导致后端认证/安全模块无法运行）：
+--   system_auth_factor、system_auth_mfa_challenge、system_auth_security_event、
+--   system_login_throttle、system_user_password_history、system_role_data_scope、
+--   system_refresh_version、system_setting_audit_log、module_registration、
+--   permission_role_data_scope_policy、permission_workbench_remediation_event、
+--   system_user_profile_ext、system_generator_datasource
+-- 并且部分列的类型/默认值与迁移不一致。仅作历史参考，切勿据此建库。
+-- 初始化请执行：`migrate up`（迁移）后再运行 seed。
+-- ============================================================================
+--
+-- Pantheon Base 数据库初始化脚本（历史遗留）
 -- 引擎：MySQL / PostgreSQL (兼容建议使用 MySQL 8.0+)
 -- 模块：System (系统管理)
 -- 前缀：system_
@@ -429,7 +445,7 @@ INSERT INTO `system_setting` (`setting_key`, `setting_value`, `value_type`, `gro
 ('ui.enable_tab_bar', 'true', 'boolean', 'ui', 'system', 1, 0, 'system.setting.remark.ui.enable_tab_bar', NOW(), NOW()),
 ('upload.storage_driver', 'local', 'string', 'upload', 'system', 0, 0, 'system.setting.remark.upload.storage_driver', NOW(), NOW()),
 ('upload.max_file_size', '20', 'number', 'upload', 'system', 0, 0, 'system.setting.remark.upload.max_file_size', NOW(), NOW()),
-('upload.allowed_types', '["jpg","jpeg","png","pdf","doc","docx","xls","xlsx"]', 'json', 'upload', 'system', 0, 0, 'system.setting.remark.upload.allowed_types', NOW(), NOW()),
+('upload.allowed_types', '["jpg","jpeg","png","webp","gif","pdf","doc","docx","xls","xlsx","zip","gz","tgz","tar"]', 'json', 'upload', 'system', 0, 0, 'system.setting.remark.upload.allowed_types', NOW(), NOW()),
 ('upload.local_path', './uploads', 'string', 'upload', 'system', 0, 0, 'system.setting.remark.upload.local_path', NOW(), NOW()),
 ('upload.public_base_url', '', 'string', 'upload', 'system', 0, 0, 'system.setting.remark.upload.public_base_url', NOW(), NOW()),
 ('upload.s3_endpoint', '', 'string', 'upload', 'system', 0, 0, 'system.setting.remark.upload.s3_endpoint', NOW(), NOW()),

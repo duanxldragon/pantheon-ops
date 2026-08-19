@@ -4,9 +4,16 @@ import (
 	"strconv"
 	"strings"
 
-	"pantheon-ops/backend/pkg/common"
+	"pantheon-base/pkg/common"
 
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	msgParamInvalid = "common.param_invalid"
+	packageIDRoute  = "/packages/:id"
+	templateIDRoute = "/templates/:id"
+	taskIDRoute     = "/tasks/:id"
 )
 
 type DeployHandler struct {
@@ -20,19 +27,19 @@ func NewDeployHandler(svc *DeployService) *DeployHandler {
 func (h *DeployHandler) RegisterRoutes(r gin.IRoutes) {
 	r.GET("/packages", h.ListPackages)
 	r.POST("/packages", h.CreatePackage)
-	r.GET("/packages/:id", h.GetPackage)
-	r.PUT("/packages/:id", h.UpdatePackage)
-	r.DELETE("/packages/:id", h.DeletePackage)
+	r.GET(packageIDRoute, h.GetPackage)
+	r.PUT(packageIDRoute, h.UpdatePackage)
+	r.DELETE(packageIDRoute, h.DeletePackage)
 	r.GET("/templates", h.ListTemplates)
 	r.POST("/templates", h.CreateTemplate)
-	r.GET("/templates/:id", h.GetTemplate)
-	r.PUT("/templates/:id", h.UpdateTemplate)
-	r.DELETE("/templates/:id", h.DeleteTemplate)
+	r.GET(templateIDRoute, h.GetTemplate)
+	r.PUT(templateIDRoute, h.UpdateTemplate)
+	r.DELETE(templateIDRoute, h.DeleteTemplate)
 	r.GET("/tasks", h.ListTasks)
 	r.POST("/tasks", h.CreateTask)
-	r.GET("/tasks/:id", h.GetTask)
-	r.PUT("/tasks/:id", h.UpdateTask)
-	r.DELETE("/tasks/:id", h.DeleteTask)
+	r.GET(taskIDRoute, h.GetTask)
+	r.PUT(taskIDRoute, h.UpdateTask)
+	r.DELETE(taskIDRoute, h.DeleteTask)
 	r.POST("/tasks/:id/start", h.StartTask)
 	r.POST("/tasks/:id/cancel", h.CancelTask)
 	r.POST("/task-hosts/:id/result", h.MarkHostResult)
@@ -42,7 +49,7 @@ func (h *DeployHandler) RegisterRoutes(r gin.IRoutes) {
 func (h *DeployHandler) ListTemplates(c *gin.Context) {
 	var query TemplateQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.ListTemplates(query)
@@ -57,7 +64,7 @@ func (h *DeployHandler) CreateTemplate(c *gin.Context) {
 	common.SetAuditMetadata(c, "新增任务模板", common.BusinessInsert)
 	var req CreateTemplateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.CreateTemplate(req, currentActor(c))
@@ -89,7 +96,7 @@ func (h *DeployHandler) UpdateTemplate(c *gin.Context) {
 	}
 	var req UpdateTemplateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.UpdateTemplate(id, req, currentActor(c))
@@ -116,7 +123,7 @@ func (h *DeployHandler) DeleteTemplate(c *gin.Context) {
 func (h *DeployHandler) ListPackages(c *gin.Context) {
 	var query PackageQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.ListPackages(query)
@@ -131,7 +138,7 @@ func (h *DeployHandler) CreatePackage(c *gin.Context) {
 	common.SetAuditMetadata(c, "新增软件组件", common.BusinessInsert)
 	var req CreatePackageRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.CreatePackage(req, currentActor(c))
@@ -163,7 +170,7 @@ func (h *DeployHandler) UpdatePackage(c *gin.Context) {
 	}
 	var req UpdatePackageRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.UpdatePackage(id, req, currentActor(c))
@@ -190,7 +197,7 @@ func (h *DeployHandler) DeletePackage(c *gin.Context) {
 func (h *DeployHandler) ListTasks(c *gin.Context) {
 	var query TaskQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.ListTasks(query, common.GetDataScope(c))
@@ -205,7 +212,7 @@ func (h *DeployHandler) CreateTask(c *gin.Context) {
 	common.SetAuditMetadata(c, "新增部署任务", common.BusinessInsert)
 	var req CreateTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.CreateTask(req, currentActor(c), common.GetDataScope(c))
@@ -244,7 +251,7 @@ func (h *DeployHandler) UpdateTask(c *gin.Context) {
 	}
 	var req UpdateTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.UpdateTask(id, req, currentActor(c), common.GetDataScope(c))
@@ -277,7 +284,7 @@ func (h *DeployHandler) StartTask(c *gin.Context) {
 	var req StartTaskRequest
 	if c.Request.ContentLength > 0 {
 		if err := c.ShouldBindJSON(&req); err != nil {
-			common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+			common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 			return
 		}
 	}
@@ -311,7 +318,7 @@ func (h *DeployHandler) MarkHostResult(c *gin.Context) {
 	}
 	var req MarkHostResultRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.svc.MarkHostResult(id, req, currentActor(c), common.GetDataScope(c))
@@ -343,6 +350,8 @@ func failDeployTaskHostError(c *gin.Context, err error, fallback string) {
 		common.FailWithCode(c, common.CodeNotFound, err.Error())
 	case strings.TrimSpace(errorText(err)) == "business.deploy.taskHost.invalidResultState":
 		common.FailWithCode(c, 409, err.Error())
+	case strings.TrimSpace(errorText(err)) == errDeployTaskHostStaleReport:
+		common.FailWithCode(c, 409, err.Error())
 	case strings.TrimSpace(errorText(err)) == "business.deploy.taskHost.markFailed.reasonRequired":
 		common.FailWithCode(c, common.CodeParamInvalid, err.Error())
 	default:
@@ -355,7 +364,12 @@ func deployTaskConflictError(err error) bool {
 	case "business.deploy.task.invalidStartState",
 		"business.deploy.task.invalidCancelState",
 		errDeployTaskInvalidUpdateState,
-		errDeployTaskInvalidDeleteState:
+		errDeployTaskInvalidDeleteState,
+		errDeployTaskAlreadyRunning,
+		errDeployTaskLeaseConflict,
+		errDeployTaskHostStaleReport,
+		errDeployPackageImmutable,
+		errDeployTemplateImmutable:
 		return true
 	default:
 		return false
@@ -379,6 +393,7 @@ func deployTaskValidationError(err error) bool {
 		errDeployTaskTemplateDisabled,
 		errDeployTaskPackageNotFound,
 		"business.deploy.task.emptyResolvedTargets",
+		errDeployTaskSnapshotMissing,
 		errDeployTaskTemplateParamsInvalid,
 		errDeployTaskTemplateInvalid,
 		errDeployTaskInstallCommandRequired,
@@ -401,7 +416,7 @@ func deployTaskValidationError(err error) bool {
 func parseIDParam(c *gin.Context) (uint64, bool) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return 0, false
 	}
 	return id, true

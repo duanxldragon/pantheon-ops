@@ -1,0 +1,8 @@
+Boundary scan: node scripts/check-business-module-boundaries.mjs
+Result: business module boundary check passed.
+
+The checker scans production Go files under business/bizscope, business/cmdb,
+business/deploy, and business/k8s. It excludes owner models, seeds, and tests;
+it rejects cross-owner table names, provider GORM model identifiers, and direct
+cross-owner joins. Provider capability implementations remain the only place
+where CMDB-owned host tables are accessed for cross-module commands/readers.

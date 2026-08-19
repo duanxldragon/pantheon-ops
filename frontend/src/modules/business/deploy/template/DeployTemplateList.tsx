@@ -14,11 +14,11 @@ import {
   Typography,
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
-import { IconCode, IconDelete, IconEdit, IconEye, IconPlus } from '@arco-design/web-react/icon';
+import { IconDelete, IconEdit, IconEye, IconPlus } from '@arco-design/web-react/icon';
 import {
   AppModal,
   AppTable,
-  FilterPanel,
+  SearchToolbar,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
@@ -48,7 +48,7 @@ import {
   buildDeployTemplateDefaultParameters,
   getDeployFixedTemplateCatalogEntry,
 } from '../catalog';
-import '../../../system/list-page.css';
+import '../../../system/components/shared/list-page.css';
 import '../deploy.css';
 
 type TemplateFormValues = {
@@ -84,16 +84,6 @@ const templateStepTypeColorMap: Record<'package' | 'script', string> = {
   script: 'purple',
 };
 
-function toScalarString(value: unknown): string | undefined {
-  if (typeof value === 'string') {
-    return value;
-  }
-  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
-    return String(value);
-  }
-  return undefined;
-}
-
 export default function DeployTemplateList() {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
@@ -104,8 +94,6 @@ export default function DeployTemplateList() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const [keyword, setKeyword] = useState('');
-  const [status, setStatus] = useState('');
   const [queryKeyword, setQueryKeyword] = useState('');
   const [queryStatus, setQueryStatus] = useState('');
   const [page, setPage] = useState(1);
@@ -244,9 +232,9 @@ export default function DeployTemplateList() {
             packageId: step.packageId || undefined,
             action: step.action,
             parameterValues: buildInitialTemplateValues(step.templateParams || row.parameterSchema || {}),
-            scriptContent: toScalarString(step.stepConfig?.script) ?? '',
-            precheckCommand: toScalarString(step.stepConfig?.precheckCommand) ?? '',
-            postcheckCommand: toScalarString(step.stepConfig?.postcheckCommand) ?? '',
+            scriptContent: stringifyValue(step.stepConfig?.script, ''),
+            precheckCommand: stringifyValue(step.stepConfig?.precheckCommand, ''),
+            postcheckCommand: stringifyValue(step.stepConfig?.postcheckCommand, ''),
           }))
         : [{ stepName: row.name, stepType: 'package', action: row.defaultAction || 'install', packageId: row.packageId || undefined }],
     });
@@ -433,7 +421,6 @@ export default function DeployTemplateList() {
     <PageContainer>
       <Space direction="vertical" size={16} className="system-page-template">
         <GovernanceSummaryBar
-          icon={<IconCode />}
           eyebrow={t('business.deploy.template.hero.eyebrow')}
           title={t('operations.deploy.template.menu')}
           description={t('business.deploy.template.hero.title')}
@@ -444,46 +431,37 @@ export default function DeployTemplateList() {
             </GovernanceRailToggleButton>
           )}
         />
-        <FilterPanel>
-          <Form layout="inline">
-            <Form.Item label={t('common.keyword')}>
-              <Input value={keyword} onChange={setKeyword} allowClear />
-            </Form.Item>
-            <Form.Item label={t('business.deploy.template.status')}>
-              <Select value={status} onChange={setStatus} allowClear style={{ width: 140 }}>
-                <Select.Option value="enabled">{t('business.deploy.package.status.enabled')}</Select.Option>
-                <Select.Option value="disabled">{t('business.deploy.package.status.disabled')}</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item>
-              <Space>
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    setQueryKeyword(keyword);
-                    setQueryStatus(status);
-                    setSelectedRowKeys([]);
-                    setPage(1);
-                  }}
-                >
-                  {t('common.search')}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setKeyword('');
-                    setStatus('');
-                    setQueryKeyword('');
-                    setQueryStatus('');
-                    setSelectedRowKeys([]);
-                    setPage(1);
-                  }}
-                >
-                  {t('common.reset')}
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        </FilterPanel>
+        <SearchToolbar
+          keyword={queryKeyword}
+          keywordPlaceholder={t('common.keyword')}
+          onKeywordChange={(value) => {
+            setQueryKeyword(value);
+            setSelectedRowKeys([]);
+            setPage(1);
+          }}
+          inlineFilters={
+            <Select
+              value={queryStatus || undefined}
+              onChange={(value) => {
+                setQueryStatus(value || '');
+                setSelectedRowKeys([]);
+                setPage(1);
+              }}
+              placeholder={t('business.deploy.template.status')}
+              allowClear
+            >
+              <Select.Option value="enabled">{t('business.deploy.package.status.enabled')}</Select.Option>
+              <Select.Option value="disabled">{t('business.deploy.package.status.disabled')}</Select.Option>
+            </Select>
+          }
+          hasActiveFilters={Boolean(queryKeyword || queryStatus)}
+          onClearAll={() => {
+            setQueryKeyword('');
+            setQueryStatus('');
+            setSelectedRowKeys([]);
+            setPage(1);
+          }}
+        />
         <TableBatchActionBar
           selectedCount={selectedRowKeys.length}
           selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
@@ -566,94 +544,14 @@ export default function DeployTemplateList() {
       >
         <GovernanceRailSummary items={governanceSummaryItems} />
       </GovernanceInsightDrawer>
-      <AppModal
-        title={detailRecord?.name || t('business.deploy.template.detailTitle')}
+      <TemplateDetailModal
+        record={detailRecord}
         visible={detailVisible}
-        footer={null}
-        size="detail"
-        onCancel={() => {
+        onClose={() => {
           setDetailVisible(false);
           setDetailRecord(null);
         }}
-      >
-        {!detailRecord ? (
-          <PageEmpty description={t('common.loadFailedDesc')} />
-        ) : (
-          <Space direction="vertical" size={16} style={{ width: '100%' }}>
-            <Descriptions
-              column={2}
-              data={[
-                { label: t('business.deploy.template.name'), value: detailRecord.name },
-                { label: t('business.deploy.template.version'), value: detailRecord.version },
-                { label: t('business.deploy.template.category'), value: detailRecord.category || '-' },
-                { label: t('business.deploy.template.status'), value: t(`business.deploy.package.status.${detailRecord.status}`) },
-                { label: t('business.deploy.template.mode'), value: t(`business.deploy.package.executionMode.${detailRecord.executionMode}`) },
-                { label: t('business.deploy.template.defaultAction'), value: t(`business.deploy.task.action.${detailRecord.defaultAction}`) },
-                {
-                  label: t('business.deploy.template.package'),
-                  value: detailRecord.packageName ? `${detailRecord.packageName} ${detailRecord.packageVersion}` : '-',
-                },
-                { label: t('business.deploy.template.steps'), value: t('business.deploy.template.stepCountValue', { count: detailRecord.stepCount || 0 }) },
-              ]}
-            />
-            <Card className="page-panel">
-              <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.template.description')}</Typography.Text>
-                <Typography.Paragraph style={{ marginBottom: 0 }}>
-                  {detailRecord.description || '-'}
-                </Typography.Paragraph>
-              </Space>
-            </Card>
-            <Card className="page-panel">
-              <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.template.defaultParams')}</Typography.Text>
-                {Object.keys(detailRecord.parameterSchema || {}).length ? (
-                  <Descriptions
-                    column={1}
-                    data={Object.entries(detailRecord.parameterSchema || {}).map(([key, value]) => ({
-                      label: key,
-                      value: toScalarString(value) ?? '-',
-                    }))}
-                  />
-                ) : (
-                  <PageEmpty description={t('business.deploy.template.detailParamsEmpty')} />
-                )}
-              </Space>
-            </Card>
-            <Card className="page-panel">
-              <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.template.steps')}</Typography.Text>
-                {(detailRecord.steps || []).length ? (
-                  (detailRecord.steps || []).map((step) => (
-                    <Card key={`${detailRecord.id}-${step.id || step.stepCode}`} className="page-panel" style={{ padding: 12 }}>
-                      <Space direction="vertical" size={6} style={{ width: '100%' }}>
-                        <Space wrap>
-                          <Tag color={templateStepTypeColorMap[(step.stepType || 'package') as 'package' | 'script'] || 'gray'}>
-                            {t(`business.deploy.template.stepType.${step.stepType || 'package'}`)}
-                          </Tag>
-                          <Tag color="arcoblue">{t(`business.deploy.task.action.${step.action || detailRecord.defaultAction}`)}</Tag>
-                          <Tag>{step.stepCode || '-'}</Tag>
-                        </Space>
-                        <Typography.Text style={{ fontWeight: 500 }}>{step.stepName || '-'}</Typography.Text>
-                        <Typography.Text type="secondary">
-                          {step.packageName ? `${step.packageName} ${step.packageVersion}` : '-'}
-                        </Typography.Text>
-                        {step.stepType === 'script' && step.stepConfig ? (
-                          <Typography.Paragraph className="deploy-page__log" style={{ marginBottom: 0 }}>
-                            {toScalarString(step.stepConfig.script) ?? '-'}
-                          </Typography.Paragraph>
-                        ) : null}
-                      </Space>
-                    </Card>
-                  ))
-                ) : (
-                  <PageEmpty description={t('business.deploy.template.empty')} />
-                )}
-              </Space>
-            </Card>
-          </Space>
-        )}
-      </AppModal>
+      />
       <AppModal
         title={editing ? t('business.deploy.template.editTitle') : t('business.deploy.template.createTitle')}
         visible={visible}
@@ -731,10 +629,8 @@ export default function DeployTemplateList() {
               {(fields, { add, remove }) => (
                 <Space direction="vertical" size={12} style={{ width: '100%' }}>
                   {fields.map((field, index) => {
-                    const rawStepType =
-                      (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${index}].stepType`);
-                    const currentStepType =
-                      toScalarString(rawStepType) === 'script' ? 'script' : 'package';
+                    const rawStepType = (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${index}].stepType`);
+                    const currentStepType = ((typeof rawStepType === 'string' && rawStepType) || 'package') as 'package' | 'script';
                     const currentPackageId = Number(
                       (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${index}].packageId`) ||
                         form.getFieldValue('packageId') ||
@@ -871,6 +767,124 @@ export default function DeployTemplateList() {
   );
 }
 
+function stringifyValue(value: unknown, fallback: string): string {
+  if (value == null) {
+    return fallback;
+  }
+  if (typeof value === 'object' || typeof value === 'function') {
+    return JSON.stringify(value) ?? fallback;
+  }
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    typeof value === 'bigint' ||
+    typeof value === 'symbol'
+  ) {
+    return String(value);
+  }
+  return fallback;
+}
+
+function TemplateDetailModal({
+  record,
+  visible,
+  onClose,
+}: Readonly<{
+  record: DeployTemplateRow | null;
+  visible: boolean;
+  onClose: () => void;
+}>) {
+  const { t } = useTranslation();
+  return (
+    <AppModal
+      title={record?.name || t('business.deploy.template.detailTitle')}
+      visible={visible}
+      footer={null}
+      size="detail"
+      onCancel={onClose}
+    >
+      {!record ? (
+        <PageEmpty description={t('common.loadFailedDesc')} />
+      ) : (
+        <Space direction="vertical" size={16} style={{ width: '100%' }}>
+          <Descriptions
+            column={2}
+            data={[
+              { label: t('business.deploy.template.name'), value: record.name },
+              { label: t('business.deploy.template.version'), value: record.version },
+              { label: t('business.deploy.template.category'), value: record.category || '-' },
+              { label: t('business.deploy.template.status'), value: t(`business.deploy.package.status.${record.status}`) },
+              { label: t('business.deploy.template.mode'), value: t(`business.deploy.package.executionMode.${record.executionMode}`) },
+              { label: t('business.deploy.template.defaultAction'), value: t(`business.deploy.task.action.${record.defaultAction}`) },
+              {
+                label: t('business.deploy.template.package'),
+                value: record.packageName ? `${record.packageName} ${record.packageVersion}` : '-',
+              },
+              { label: t('business.deploy.template.steps'), value: t('business.deploy.template.stepCountValue', { count: record.stepCount || 0 }) },
+            ]}
+          />
+          <Card className="page-panel">
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.template.description')}</Typography.Text>
+              <Typography.Paragraph style={{ marginBottom: 0 }}>
+                {record.description || '-'}
+              </Typography.Paragraph>
+            </Space>
+          </Card>
+          <Card className="page-panel">
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.template.defaultParams')}</Typography.Text>
+              {Object.keys(record.parameterSchema || {}).length ? (
+                <Descriptions
+                  column={1}
+                  data={Object.entries(record.parameterSchema || {}).map(([key, value]) => ({
+                    label: key,
+                    value: stringifyValue(value, '-'),
+                  }))}
+                />
+              ) : (
+                <PageEmpty description={t('business.deploy.template.detailParamsEmpty')} />
+              )}
+            </Space>
+          </Card>
+          <Card className="page-panel">
+            <Space direction="vertical" size={8} style={{ width: '100%' }}>
+              <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.template.steps')}</Typography.Text>
+              {(record.steps || []).length ? (
+                (record.steps || []).map((step) => (
+                  <Card key={`${record.id}-${step.id || step.stepCode}`} className="page-panel" style={{ padding: 12 }}>
+                    <Space direction="vertical" size={6} style={{ width: '100%' }}>
+                      <Space wrap>
+                        <Tag color={templateStepTypeColorMap[(step.stepType || 'package') as 'package' | 'script'] || 'gray'}>
+                          {t(`business.deploy.template.stepType.${step.stepType || 'package'}`)}
+                        </Tag>
+                        <Tag color="arcoblue">{t(`business.deploy.task.action.${step.action || record.defaultAction}`)}</Tag>
+                        <Tag>{step.stepCode || '-'}</Tag>
+                      </Space>
+                      <Typography.Text style={{ fontWeight: 500 }}>{step.stepName || '-'}</Typography.Text>
+                      <Typography.Text type="secondary">
+                        {step.packageName ? `${step.packageName} ${step.packageVersion}` : '-'}
+                      </Typography.Text>
+                      {step.stepType === 'script' && step.stepConfig ? (
+                        <Typography.Paragraph className="deploy-page__log" style={{ marginBottom: 0 }}>
+                          {step.stepConfig.script ? stringifyValue(step.stepConfig.script, '-') : '-'}
+                        </Typography.Paragraph>
+                      ) : null}
+                    </Space>
+                  </Card>
+                ))
+              ) : (
+                <PageEmpty description={t('business.deploy.template.empty')} />
+              )}
+            </Space>
+          </Card>
+        </Space>
+      )}
+    </AppModal>
+  );
+}
+
 function buildTemplateDefaultParams(values?: Record<string, string>) {
   const result: Record<string, unknown> = {};
   Object.entries(values || {}).forEach(([key, value]) => {
@@ -925,11 +939,10 @@ function buildTemplateStepConfig(
 function buildInitialTemplateValues(values: Record<string, unknown>) {
   const result: Record<string, string> = {};
   Object.entries(values || {}).forEach(([key, value]) => {
-    const text = toScalarString(value);
-    if (text === undefined) {
+    if (value == null) {
       return;
     }
-    result[key] = text;
+    result[key] = stringifyValue(value, '');
   });
   return result;
 }

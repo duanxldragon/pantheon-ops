@@ -1,19 +1,34 @@
 package host
 
 import (
+	"context"
 	"strings"
 	"testing"
 
-	"pantheon-ops/backend/pkg/common"
-	"pantheon-ops/backend/pkg/testmysql"
+	cmdbgroup "pantheon-base/modules/business/cmdb/group"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/testmysql"
 
 	"gorm.io/gorm"
 )
+
+type activeServiceReferenceReader struct {
+	active bool
+}
+
+func (r activeServiceReferenceReader) HasActiveHostReferences(context.Context, uint64, *common.DataScopeReq) (bool, error) {
+	return r.active, nil
+}
 
 func setupTestDB(t *testing.T) *gorm.DB {
 	db := testmysql.Open(t)
 	if err := db.AutoMigrate(&Host{}); err != nil {
 		t.Fatalf("migrate: %v", err)
+	}
+	// Host read paths resolve matched groups from biz_cmdb_group, so the
+	// table must exist for Create/List/GetByID/Update to succeed.
+	if err := db.AutoMigrate(&cmdbgroup.Group{}); err != nil {
+		t.Fatalf("migrate group table: %v", err)
 	}
 	return db
 }
@@ -36,6 +51,67 @@ func TestCreateHost(t *testing.T) {
 	}
 	if resp.Status != "pending" {
 		t.Errorf("expected status pending, got %s", resp.Status)
+	}
+	if resp.LifecycleState != HostLifecyclePending || resp.ConnectivityState != HostConnectivityUnknown {
+		t.Fatalf("expected split initial state, got %+v", resp)
+	}
+}
+
+func TestHostStateTransitionsUseCompatibilityProjectionAndCAS(t *testing.T) {
+	db := setupTestDB(t)
+	svc := NewHostService(db)
+	created, err := svc.Create(CreateHostRequest{Hostname: "state-host", IP: "10.0.0.90", OS: "linux"}, "1")
+	if err != nil {
+		t.Fatalf("create host: %v", err)
+	}
+
+	assigned, err := svc.TransitionState(created.ID, HostStateTransitionRequest{
+		Action: HostTransitionAssign, ExpectedStateVersion: created.StateVersion,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("assign host: %v", err)
+	}
+	if assigned.LifecycleState != HostLifecycleAssigned || assigned.Status != HostLifecycleAssigned {
+		t.Fatalf("unexpected assigned state: %+v", assigned)
+	}
+
+	_, err = svc.TransitionState(created.ID, HostStateTransitionRequest{
+		Action: HostTransitionRetire, ExpectedStateVersion: created.StateVersion,
+	}, "1", nil)
+	if err == nil || err.Error() != errHostStateStale {
+		t.Fatalf("expected stale retire rejection, got %v", err)
+	}
+
+	reachable, err := svc.TransitionState(created.ID, HostStateTransitionRequest{
+		Action: HostTransitionConnectivity, ExpectedStateVersion: assigned.StateVersion,
+		ConnectivityState: HostConnectivityReachable,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("set connectivity: %v", err)
+	}
+	if reachable.Status != hostStatusOnline || reachable.LifecycleState != HostLifecycleAssigned || reachable.ConnectivityState != HostConnectivityReachable {
+		t.Fatalf("unexpected connectivity projection: %+v", reachable)
+	}
+
+	if _, err := svc.TransitionState(created.ID, HostStateTransitionRequest{
+		Action: HostTransitionRetire, ExpectedStateVersion: reachable.StateVersion,
+	}, "1", nil); err == nil || err.Error() != errHostStateInvalid {
+		t.Fatalf("expected assigned host retire rejection, got %v", err)
+	}
+}
+
+func TestHostRetirementRejectsActiveServiceReferences(t *testing.T) {
+	db := setupTestDB(t)
+	svc := NewHostService(db)
+	svc.SetServiceInstanceReferenceReader(activeServiceReferenceReader{active: true})
+	created, err := svc.Create(CreateHostRequest{Hostname: "referenced-host", IP: "10.0.0.60", OS: "linux"}, "1")
+	if err != nil {
+		t.Fatalf("create host: %v", err)
+	}
+	if _, err := svc.TransitionState(created.ID, HostStateTransitionRequest{
+		Action: HostTransitionRetire, ExpectedStateVersion: created.StateVersion,
+	}, "1", nil); err == nil || err.Error() != "cmdbhost.active_service_reference" {
+		t.Fatalf("expected active service reference rejection, got %v", err)
 	}
 }
 
@@ -113,6 +189,19 @@ func TestUpdateHost(t *testing.T) {
 	resp, _ := svc.GetByID(created.ID, nil)
 	if resp.Hostname != "h1-updated" {
 		t.Errorf("expected h1-updated, got %s", resp.Hostname)
+	}
+}
+
+func TestUpdateHostRejectsBusinessScopeOwnership(t *testing.T) {
+	db := setupTestDB(t)
+	svc := NewHostService(db)
+	created, err := svc.Create(CreateHostRequest{Hostname: "ownership", IP: "10.0.0.31", OS: "linux"}, "1")
+	if err != nil {
+		t.Fatalf("create host: %v", err)
+	}
+	scopeID := uint64(7)
+	if _, err := svc.Update(created.ID, UpdateHostRequest{BusinessScopeID: &scopeID}, "1", nil); err == nil || err.Error() != "cmdbhost.ownership_command_required" {
+		t.Fatalf("expected ownership command error, got %v", err)
 	}
 }
 
