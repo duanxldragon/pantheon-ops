@@ -64,6 +64,17 @@ function normalizeLabelSchemaRow(row: Partial<LabelSchemaRow>): LabelSchemaRow {
   };
 }
 
+function resolveLabelSchemaPageSize(
+  responsePageSize: unknown,
+  requestPageSize: number | undefined,
+  itemCount: number,
+) {
+  if (typeof responsePageSize === 'number') {
+    return responsePageSize;
+  }
+  return requestPageSize || itemCount || 10;
+}
+
 export async function getLabelSchemaList(params?: LabelSchemaQuery): Promise<LabelSchemaListResp> {
   const result = await apiRequest<LabelSchemaListApiResp>({
     url: '/business/cmdb/labels',
@@ -81,14 +92,14 @@ export async function getLabelSchemaList(params?: LabelSchemaQuery): Promise<Lab
       pageSize: currentPageSize,
     };
   }
+  const normalizedItems = Array.isArray(result.items)
+    ? result.items.map((item) => normalizeLabelSchemaRow(item))
+    : [];
   return {
-    items: Array.isArray(result.items) ? result.items.map((item) => normalizeLabelSchemaRow(item)) : [],
+    items: normalizedItems,
     total: typeof result.total === 'number' ? result.total : Array.isArray(result.items) ? result.items.length : 0,
     page: typeof result.page === 'number' ? result.page : params?.page || 1,
-    pageSize:
-      typeof result.pageSize === 'number'
-        ? result.pageSize
-        : params?.pageSize || (Array.isArray(result.items) ? result.items.length || 10 : 10),
+    pageSize: resolveLabelSchemaPageSize(result.pageSize, params?.pageSize, normalizedItems.length),
   };
 }
 

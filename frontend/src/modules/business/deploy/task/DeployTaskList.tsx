@@ -83,6 +83,16 @@ const statusColorMap: Record<string, string> = {
   canceled: 'orange',
 };
 
+function toScalarString(value: unknown): string | undefined {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+    return String(value);
+  }
+  return undefined;
+}
+
 export default function DeployTaskList() {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
@@ -944,15 +954,19 @@ export default function DeployTaskList() {
                           title: t('business.deploy.task.phase'),
                           dataIndex: 'phase',
                           width: 120,
-                          render: (value: unknown) =>
-                            value ? <Tag>{t(`business.deploy.task.phase.${String(value)}`)}</Tag> : '-',
+                          render: (value: unknown) => {
+                            const phase = toScalarString(value);
+                            return phase ? <Tag>{t(`business.deploy.task.phase.${phase}`)}</Tag> : '-';
+                          },
                         },
                         {
                           title: t('business.deploy.task.startedAt'),
                           dataIndex: 'at',
                           width: 180,
-                          render: (value: unknown) =>
-                            value ? formatDateTime(String(value)) : '-',
+                          render: (value: unknown) => {
+                            const startedAt = toScalarString(value);
+                            return startedAt ? formatDateTime(startedAt) : '-';
+                          },
                         },
                         { title: t('business.deploy.task.message'), dataIndex: 'message', ellipsis: true },
                       ]}
@@ -1109,7 +1123,7 @@ export default function DeployTaskList() {
                   label={buildTemplateParamLabel(t, key)}
                   rules={taskAction === 'uninstall' ? [] : [{ required: true }]}
                 >
-                  <Input placeholder={String(value || '')} />
+                  <Input placeholder={toScalarString(value) ?? ''} />
                 </Form.Item>
               ))}
             </>
@@ -1245,10 +1259,11 @@ export default function DeployTaskList() {
 function buildInitialTaskTemplateParams(schema: Record<string, unknown>) {
   const result: Record<string, string> = {};
   Object.entries(schema || {}).forEach(([key, value]) => {
-    if (value == null) {
+    const text = toScalarString(value);
+    if (text === undefined) {
       return;
     }
-    result[key] = String(value);
+    result[key] = text;
   });
   return result;
 }
@@ -1264,8 +1279,9 @@ function buildTaskTemplateParams(
       result[key] = currentValue.trim();
       return;
     }
-    if (value != null && String(value).trim()) {
-      result[key] = String(value).trim();
+    const fallbackValue = toScalarString(value);
+    if (fallbackValue?.trim()) {
+      result[key] = fallbackValue.trim();
     }
   });
   return result;

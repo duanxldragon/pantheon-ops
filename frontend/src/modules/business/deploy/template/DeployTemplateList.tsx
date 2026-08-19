@@ -84,6 +84,16 @@ const templateStepTypeColorMap: Record<'package' | 'script', string> = {
   script: 'purple',
 };
 
+function toScalarString(value: unknown): string | undefined {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+    return String(value);
+  }
+  return undefined;
+}
+
 export default function DeployTemplateList() {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
@@ -234,9 +244,9 @@ export default function DeployTemplateList() {
             packageId: step.packageId || undefined,
             action: step.action,
             parameterValues: buildInitialTemplateValues(step.templateParams || row.parameterSchema || {}),
-            scriptContent: String(step.stepConfig?.script || ''),
-            precheckCommand: String(step.stepConfig?.precheckCommand || ''),
-            postcheckCommand: String(step.stepConfig?.postcheckCommand || ''),
+            scriptContent: toScalarString(step.stepConfig?.script) ?? '',
+            precheckCommand: toScalarString(step.stepConfig?.precheckCommand) ?? '',
+            postcheckCommand: toScalarString(step.stepConfig?.postcheckCommand) ?? '',
           }))
         : [{ stepName: row.name, stepType: 'package', action: row.defaultAction || 'install', packageId: row.packageId || undefined }],
     });
@@ -602,7 +612,7 @@ export default function DeployTemplateList() {
                     column={1}
                     data={Object.entries(detailRecord.parameterSchema || {}).map(([key, value]) => ({
                       label: key,
-                      value: String(value ?? '-'),
+                      value: toScalarString(value) ?? '-',
                     }))}
                   />
                 ) : (
@@ -630,7 +640,7 @@ export default function DeployTemplateList() {
                         </Typography.Text>
                         {step.stepType === 'script' && step.stepConfig ? (
                           <Typography.Paragraph className="deploy-page__log" style={{ marginBottom: 0 }}>
-                            {String(step.stepConfig.script || '-')}
+                            {toScalarString(step.stepConfig.script) ?? '-'}
                           </Typography.Paragraph>
                         ) : null}
                       </Space>
@@ -721,9 +731,10 @@ export default function DeployTemplateList() {
               {(fields, { add, remove }) => (
                 <Space direction="vertical" size={12} style={{ width: '100%' }}>
                   {fields.map((field, index) => {
-                    const currentStepType = String(
-                      (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${index}].stepType`) || 'package',
-                    ) as 'package' | 'script';
+                    const rawStepType =
+                      (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${index}].stepType`);
+                    const currentStepType =
+                      toScalarString(rawStepType) === 'script' ? 'script' : 'package';
                     const currentPackageId = Number(
                       (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${index}].packageId`) ||
                         form.getFieldValue('packageId') ||
@@ -914,10 +925,11 @@ function buildTemplateStepConfig(
 function buildInitialTemplateValues(values: Record<string, unknown>) {
   const result: Record<string, string> = {};
   Object.entries(values || {}).forEach(([key, value]) => {
-    if (value == null) {
+    const text = toScalarString(value);
+    if (text === undefined) {
       return;
     }
-    result[key] = String(value);
+    result[key] = text;
   });
   return result;
 }

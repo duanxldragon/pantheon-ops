@@ -26,6 +26,20 @@ import { formatDateTime } from '../../../../core/format/dateTime';
 import '../../../system/list-page.css';
 import '../cmdb.css';
 
+function getLabelValueKey(label: HostRow['labelValues'][number]) {
+  return `${label.key}:${label.val}`;
+}
+
+function getInstalledComponentKey(component: HostRow['installedComponents'][number]) {
+  return [
+    component.name,
+    component.version,
+    component.deployTaskId ?? component.deployTaskName ?? '',
+    component.deployedAt ?? '',
+    component.executorType ?? '',
+  ].join(':');
+}
+
 export default function CmdbHostDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -210,8 +224,8 @@ export default function CmdbHostDetail() {
           <FormSection title={t('business.cmdb.host.labels')}>
             {host.labelValues?.length ? (
               <Space wrap>
-                {host.labelValues.map((l, i) => (
-                  <Tag key={i}>
+                {host.labelValues.map((l) => (
+                  <Tag key={getLabelValueKey(l)}>
                     {l.key}={l.val}
                   </Tag>
                 ))}
@@ -225,8 +239,8 @@ export default function CmdbHostDetail() {
           <FormSection title={t('business.cmdb.host.installedComponents')}>
             {host.installedComponents?.length ? (
               <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                {host.installedComponents.map((c, i) => (
-                  <Card key={i} className="page-panel" style={{ padding: 12 }}>
+                {host.installedComponents.map((c) => (
+                  <Card key={getInstalledComponentKey(c)} className="page-panel" style={{ padding: 12 }}>
                     <Space direction="vertical" size={4}>
                       <Space>
                         <Tag color="arcoblue">
