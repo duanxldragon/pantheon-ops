@@ -1253,12 +1253,14 @@ func (s *DeployService) CancelTask(id uint64, actor string, dataScope *common.Da
 	}).Error; err != nil {
 		return nil, err
 	}
-	_ = s.db.Model(&DeployTaskHost{}).Where("task_id = ? AND status IN ?", id, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]interface{}{
+	if err := s.db.Model(&DeployTaskHost{}).Where("task_id = ? AND status IN ?", id, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]interface{}{
 		"status":      TaskHostStatusSkipped,
 		"finished_at": &now,
 		"updated_by":  actor,
 		"updated_at":  now,
-	}).Error
+	}).Error; err != nil {
+		return nil, err
+	}
 	if cancel, ok := s.taskCancels.Load(id); ok {
 		cancel.(context.CancelFunc)()
 	}
