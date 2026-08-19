@@ -2,6 +2,7 @@ package deploy
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ var deployPackageCSVHeaders = []string{"name", "version", "description", "instal
 var deployTemplateCSVHeaders = []string{"name", "version", "description", "category", "executionMode", "defaultAction", "packageId", "templateCode", "templateConfig", "parameterSchema", "status", "steps"}
 var deployTaskCSVHeaders = []string{"id", "name", "templateName", "templateVersion", "packageName", "packageVersion", "businessScopeName", "serviceName", "serviceInstanceName", "action", "targetType", "executorType", "status", "startedAt", "finishedAt", "remark"}
 
+// ExportPackages builds a CSV file for deploy packages.
 func (s *DeployService) ExportPackages(query PackageQuery) (*impexp.CSVFile, error) {
 	list, err := s.ListPackages(query)
 	if err != nil {
@@ -28,6 +30,7 @@ func (s *DeployService) ExportPackages(query PackageQuery) (*impexp.CSVFile, err
 	return &impexp.CSVFile{Filename: "deploy-packages.csv", Headers: deployPackageCSVHeaders, Rows: rows}, nil
 }
 
+// ExportTemplates builds a CSV file for deploy templates.
 func (s *DeployService) ExportTemplates(query TemplateQuery) (*impexp.CSVFile, error) {
 	list, err := s.ListTemplates(query)
 	if err != nil {
@@ -43,6 +46,7 @@ func (s *DeployService) ExportTemplates(query TemplateQuery) (*impexp.CSVFile, e
 	return &impexp.CSVFile{Filename: "deploy-templates.csv", Headers: deployTemplateCSVHeaders, Rows: rows}, nil
 }
 
+// ExportTasks builds a CSV file for deploy tasks.
 func (s *DeployService) ExportTasks(query TaskQuery, scope *common.DataScopeReq) (*impexp.CSVFile, error) {
 	list, err := s.ListTasks(query, scope)
 	if err != nil {
@@ -62,6 +66,7 @@ func formatDeployTime(value *time.Time) string {
 	return value.Format(time.RFC3339)
 }
 
+// ImportPackages validates and applies package CSV records transactionally.
 func (s *DeployService) ImportPackages(records [][]string, actor string) (*impexp.ImportResult, error) {
 	result := &impexp.ImportResult{Errors: []impexp.ImportError{}}
 	if len(records) == 0 {
@@ -192,7 +197,7 @@ func (s *DeployService) ImportTemplates(records [][]string, actor string) (*impe
 					return err
 				}
 				result.Updated++
-			} else if err == gorm.ErrRecordNotFound {
+			} else if errors.Is(err, gorm.ErrRecordNotFound) {
 				item = DeployTemplate{Name: name, Version: version, Description: values["description"].(string), Category: values["category"].(string), ExecutionMode: values["execution_mode"].(string), DefaultAction: values["default_action"].(string), TemplateCode: values["template_code"].(string), Status: values["status"].(string), CreatedBy: actor, UpdatedBy: actor}
 				if item.ExecutionMode == "" {
 					item.ExecutionMode = ExecutionModeFixed
@@ -204,6 +209,8 @@ func (s *DeployService) ImportTemplates(records [][]string, actor string) (*impe
 					return err
 				}
 				result.Created++
+			} else {
+				return err
 			}
 			if len(steps) > 0 {
 				if err := tx.Where("template_id = ?", item.ID).Delete(&DeployTemplateStep{}).Error; err != nil {
