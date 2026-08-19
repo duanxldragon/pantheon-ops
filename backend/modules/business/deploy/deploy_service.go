@@ -43,12 +43,16 @@ const (
 
 // DeployExecutor is the provider boundary for remote task execution. Providers
 // receive a frozen task/host request and must never persist secret material.
+//
+//nolint:revive // Public API name retained for compatibility.
 type DeployExecutor interface {
 	ExecuteHost(context.Context, DeployExecutionHostRequest) error
 }
 
 // DeployExecutionHostRequest is the persisted execution context supplied to a
 // provider. Credential contains decrypted material only in process memory.
+//
+//nolint:revive // Public API name retained for compatibility.
 type DeployExecutionHostRequest struct {
 	Task       DeployTask
 	TaskHost   TaskHostResponse
