@@ -132,6 +132,7 @@ func (h *DeployHandler) ExportPackages(c *gin.Context) {
 	}
 }
 
+// ImportPackages handles CSV import for deploy packages.
 func (h *DeployHandler) ImportPackages(c *gin.Context) {
 	file, err := multipartFile(c)
 	if err != nil {
@@ -151,6 +152,7 @@ func (h *DeployHandler) ImportPackages(c *gin.Context) {
 	common.Success(c, result)
 }
 
+// ExportTemplates handles CSV export for deploy templates.
 func (h *DeployHandler) ExportTemplates(c *gin.Context) {
 	var query TemplateQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -166,6 +168,7 @@ func (h *DeployHandler) ExportTemplates(c *gin.Context) {
 		common.FailWithError(c, common.CodeError, err, "deploytemplate.export_failed")
 	}
 }
+// ImportTemplates handles CSV import for deploy templates.
 func (h *DeployHandler) ImportTemplates(c *gin.Context) {
 	file, err := multipartFile(c)
 	if err != nil {
@@ -184,6 +187,7 @@ func (h *DeployHandler) ImportTemplates(c *gin.Context) {
 	}
 	common.Success(c, result)
 }
+// ExportTasks handles CSV export for deploy tasks.
 func (h *DeployHandler) ExportTasks(c *gin.Context) {
 	var query TaskQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
