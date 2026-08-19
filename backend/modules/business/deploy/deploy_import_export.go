@@ -210,7 +210,9 @@ func (s *DeployService) ImportTemplates(records [][]string, actor string) (*impe
 					return err
 				}
 				for i := range steps {
-					tx.Create(&DeployTemplateStep{TemplateID: item.ID, StepCode: steps[i].StepCode, StepName: steps[i].StepName, StepType: steps[i].StepType, Action: steps[i].Action, PackageID: steps[i].PackageID, PackageName: steps[i].PackageName, PackageVersion: steps[i].PackageVersion, TemplateCode: steps[i].TemplateCode, Sort: steps[i].Sort})
+					if err := tx.Create(&DeployTemplateStep{TemplateID: item.ID, StepCode: steps[i].StepCode, StepName: steps[i].StepName, StepType: steps[i].StepType, Action: steps[i].Action, PackageID: steps[i].PackageID, PackageName: steps[i].PackageName, PackageVersion: steps[i].PackageVersion, TemplateCode: steps[i].TemplateCode, Sort: steps[i].Sort}).Error; err != nil {
+						return err
+					}
 				}
 			}
 		}
