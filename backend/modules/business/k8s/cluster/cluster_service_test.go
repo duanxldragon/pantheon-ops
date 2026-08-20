@@ -1,12 +1,46 @@
 package cluster
 
 import (
+	"context"
+	"errors"
+	"sync"
 	"testing"
 	"time"
+
+	bizcap "pantheon-base/modules/business/capability"
+	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/testmysql"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
+
+type blockingBizScopeReader struct {
+	refs      map[uint64]bizcap.BizScopeRef
+	blockID   uint64
+	entered   chan struct{}
+	release   chan struct{}
+	enterOnce sync.Once
+}
+
+func (r *blockingBizScopeReader) GetActive(_ context.Context, id uint64, scope *common.DataScopeReq) (bizcap.BizScopeRef, error) {
+	ref, ok := r.refs[id]
+	if !ok {
+		return bizcap.BizScopeRef{}, errors.New("business.bizscope.notFound")
+	}
+	if id == r.blockID {
+		r.enterOnce.Do(func() { close(r.entered) })
+		<-r.release
+	}
+	if scope != nil && !scope.IsAdmin && scope.Mode == common.DataScopeModeDept && scope.DeptID != ref.DeptID {
+		return bizcap.BizScopeRef{}, errors.New("business.bizscope.notFound")
+	}
+	return ref, nil
+}
+
+func (r *blockingBizScopeReader) ResolveActiveByCodes(context.Context, []string, *common.DataScopeReq) (map[string]bizcap.BizScopeRef, error) {
+	return nil, nil
+}
 
 func TestQuantityToCores(t *testing.T) {
 	if got := quantityToCores(nil); got != 0 {
@@ -119,5 +153,60 @@ func TestToNodeSnapshot(t *testing.T) {
 	snap := toNodeSnapshot(node)
 	if snap.InternalIP != "10.0.0.10" || snap.Status != "ready" || snap.PodCapacity != 110 || snap.AllocatablePods != 100 {
 		t.Fatalf("unexpected node snapshot: %+v", snap)
+	}
+}
+
+func TestClusterUpdateRejectsConcurrentStaleScopeMutation(t *testing.T) {
+	db := testmysql.Open(t)
+	if err := db.AutoMigrate(&Cluster{}); err != nil {
+		t.Fatalf("migrate cluster: %v", err)
+	}
+
+	cluster := Cluster{Code: "concurrent-owner", Name: "Owned by A", Environment: "test", BusinessScopeID: 1, BusinessScopeName: "Scope A", DeptID: 10, Status: "unknown"}
+	if err := db.Create(&cluster).Error; err != nil {
+		t.Fatalf("create cluster: %v", err)
+	}
+
+	reader := &blockingBizScopeReader{
+		refs: map[uint64]bizcap.BizScopeRef{
+			2: {ID: 2, Code: "scope-b", Name: "Scope B", Status: "active", DeptID: 20},
+		},
+		blockID: 2,
+		entered: make(chan struct{}),
+		release: make(chan struct{}),
+	}
+	service := NewClusterService(db, reader)
+	moveScope := &common.DataScopeReq{Mode: common.DataScopeModeCustom, DeptIDs: []uint64{10, 20}}
+	staleScope := &common.DataScopeReq{Mode: common.DataScopeModeDept, DeptID: 10}
+	targetScopeID := uint64(2)
+	staleName := "stale overwrite"
+
+	moveResult := make(chan error, 1)
+	go func() {
+		_, err := service.Update(cluster.ID, UpdateClusterRequest{BusinessScopeID: &targetScopeID}, "owner-move", moveScope)
+		moveResult <- err
+	}()
+	<-reader.entered
+
+	staleResult := make(chan error, 1)
+	go func() {
+		_, err := service.Update(cluster.ID, UpdateClusterRequest{Name: &staleName}, "stale-writer", staleScope)
+		staleResult <- err
+	}()
+	close(reader.release)
+
+	if err := <-moveResult; err != nil {
+		t.Fatalf("move cluster ownership: %v", err)
+	}
+	if err := <-staleResult; err == nil || err.Error() != "k8s.cluster.not_found" {
+		t.Fatalf("expected stale scoped update to be rejected, got %v", err)
+	}
+
+	var reloaded Cluster
+	if err := db.First(&reloaded, cluster.ID).Error; err != nil {
+		t.Fatalf("reload cluster: %v", err)
+	}
+	if reloaded.BusinessScopeID != 2 || reloaded.BusinessScopeName != "Scope B" || reloaded.DeptID != 20 || reloaded.Name != "Owned by A" {
+		t.Fatalf("unexpected concurrent update result: %+v", reloaded)
 	}
 }
