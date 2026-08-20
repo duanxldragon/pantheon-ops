@@ -30,6 +30,7 @@ func NewNamespaceService(clusterSvc *cluster.ClusterService, db *gorm.DB) *Names
 	return &NamespaceService{clusterSvc: clusterSvc, db: db}
 }
 
+// Migrate creates or updates namespace binding tables.
 func (s *NamespaceService) Migrate() error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
