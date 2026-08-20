@@ -233,6 +233,7 @@ func (s *WorkloadService) Scale(clusterID uint64, namespace, kind, name string, 
 	return s.ScaleWithResourceVersion(clusterID, namespace, kind, name, replicas, "", dataScope)
 }
 
+// ScaleWithResourceVersion scales a workload when its resource version matches.
 func (s *WorkloadService) ScaleWithResourceVersion(clusterID uint64, namespace, kind, name string, replicas int32, expectedResourceVersion string, dataScope *common.DataScopeReq) error {
 	if s.namespaceSvc == nil {
 		return errors.New("k8s.namespace.binding_required")
@@ -291,6 +292,7 @@ func (s *WorkloadService) Restart(clusterID uint64, namespace, kind, name string
 	return s.RestartWithResourceVersion(clusterID, namespace, kind, name, "", dataScope)
 }
 
+// RestartWithResourceVersion restarts a workload when its resource version matches.
 func (s *WorkloadService) RestartWithResourceVersion(clusterID uint64, namespace, kind, name, expectedResourceVersion string, dataScope *common.DataScopeReq) error {
 	if s.namespaceSvc == nil {
 		return errors.New("k8s.namespace.binding_required")
