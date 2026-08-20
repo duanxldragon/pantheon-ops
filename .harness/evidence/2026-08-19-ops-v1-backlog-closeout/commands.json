@@ -201,6 +201,41 @@
       "status": "passed",
       "durationMs": 74800,
       "notes": "full backend regression suite and vet passed after migration runner changes"
+    },
+    {
+      "command": "$env:PANTHEON_TEST_DSN='<local MySQL>'; go test -count=1 ./modules/business/k8s/cluster",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 6200,
+      "notes": "concurrent stale-scope writer was rejected and ownership/dept fields remained atomic"
+    },
+    {
+      "command": "$env:PANTHEON_SNAPSHOT_REHEARSAL_DSN='<isolated restored snapshot>'; go test ./pkg/database -run TestProductionSnapshotRollbackAndReapply -count=1 -v",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "durationMs": 1475,
+      "notes": "zero active-key duplicates; generated expressions and six named unique indexes verified before/after 22->16->22; schema removed"
+    },
+    {
+      "command": "kubectl --kubeconfig config/kubeconfig.yaml --insecure-skip-tls-verify=true create/patch/replace/delete temporary namespace",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 19300,
+      "notes": "ConfigMap resourceVersion 4369819->4369820; stale replace Conflict; Secret rotated without recording data; namespace deleted"
+    },
+    {
+      "command": "plink -batch -ssh -hostkey <verified-ed25519-fingerprint> root@192.168.56.12 '<temporary marker write/hash/delete>'",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 16300,
+      "notes": "isolated marker hash verified and file cleanup confirmed; credentials omitted"
+    },
+    {
+      "command": "npm run rebuild:from-base -- --target .tmp/v1-final-overlay; PANTHEON_HARNESS_ROOT=<workspace>/pantheon-harness node scripts/harness/check-method-health.mjs --root .tmp/v1-final-overlay --strict; node scripts/harness/check-adoption.mjs --root .tmp/v1-final-overlay --strict",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "durationMs": 1600,
+      "notes": "clean Base overlay strict method/adoption findings=0; root consumer check remains blocked by locked release/Base Release Gate"
     }
   ],
   "graphChecks": {
@@ -234,10 +269,11 @@
     }
   ],
   "runtimeSensitive": true,
+  "runtimeGap": "External runtime signals were collected from isolated MySQL, K3s API/resourceVersion responses, and SSH command output; production logs/metrics/traces were intentionally not collected because direct production mutation remains operator-gated.",
   "knownGaps": [
     "direct live-database rollback requires an operator change window",
-    "live Kubernetes mutation and deployment",
-    "live SSH mutation"
+    "Base foundation release publication: locked v0.10.22 predates the shell landing contract and Base Release Gate is red due to 156 pre-existing SonarCloud issues",
+    "direct live-database rollback remains operator-gated"
   ],
   "linkage": {
     "summaryFile": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/summary.md",

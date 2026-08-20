@@ -3,11 +3,11 @@
 更新时间：2026-08-18  
 类型：Plan  
 归属层：business  
-状态：Proposed  
+状态：Complete with explicit external gates
 基线：[BUSINESS_ARCHITECTURE_REVIEW.md](./BUSINESS_ARCHITECTURE_REVIEW.md)  
 目标设计：[BUSINESS_TARGET_ARCHITECTURE_DESIGN.md](./BUSINESS_TARGET_ARCHITECTURE_DESIGN.md)
 
-本文把架构评审结论转换为可排期的业务开发计划。时间按连续 8 个开发周估算，实际开始日期以 clean release 和维护者质量门禁决定为准；角色是责任边界，不预设具体人员。
+本文把架构评审结论转换为可排期的业务开发计划。V1 代码、隔离验收和回滚演练已完成；消费仓根 Harness 严格门禁等待 Base 发布一个通过 Release Gate 的 foundation release。时间按连续 8 个开发周估算，角色是责任边界，不预设具体人员。
 
 ## 1. 目标和范围
 

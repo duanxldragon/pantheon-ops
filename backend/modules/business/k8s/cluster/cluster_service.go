@@ -147,7 +147,7 @@ func (s *ClusterService) Create(req CreateClusterRequest, createdBy string, dept
 
 	businessScopeName := ""
 	if req.BusinessScopeID > 0 {
-		scope, err := s.getBusinessScope(req.BusinessScopeID)
+		scope, err := s.getBusinessScope(req.BusinessScopeID, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -187,34 +187,11 @@ func (s *ClusterService) Create(req CreateClusterRequest, createdBy string, dept
 
 // Update changes a Kubernetes cluster registration.
 func (s *ClusterService) Update(id uint64, req UpdateClusterRequest, updatedBy string, dataScope *common.DataScopeReq) (*ClusterResponse, error) {
-	cluster, err := s.findCluster(id, dataScope)
-	if err != nil {
-		return nil, err
+	if s.db == nil {
+		return nil, errors.New("database.not_initialized")
 	}
 
-	updates := map[string]interface{}{"updated_by": updatedBy, "updated_at": time.Now()}
-	if req.Name != nil {
-		updates["name"] = *req.Name
-	}
-	if req.Environment != nil {
-		updates["environment"] = *req.Environment
-	}
-	if req.Remark != nil {
-		updates["remark"] = *req.Remark
-	}
-	if req.BusinessScopeID != nil {
-		if *req.BusinessScopeID == 0 {
-			updates["business_scope_id"] = uint64(0)
-			updates["business_scope_name"] = ""
-		} else {
-			scope, err := s.getBusinessScope(*req.BusinessScopeID)
-			if err != nil {
-				return nil, err
-			}
-			updates["business_scope_id"] = scope.ID
-			updates["business_scope_name"] = scope.Name
-		}
-	}
+	var encryptedCredential string
 	if req.Kubeconfig != nil && *req.Kubeconfig != "" {
 		if _, err := k8spkg.NewClientFromKubeconfig(*req.Kubeconfig); err != nil {
 			return nil, err
@@ -223,14 +200,37 @@ func (s *ClusterService) Update(id uint64, req UpdateClusterRequest, updatedBy s
 		if err != nil {
 			return nil, err
 		}
-		updates["api_server"] = k8spkg.ExtractAPIServer(*req.Kubeconfig)
-		updates["credential_encrypted"] = encrypted
+		encryptedCredential = encrypted
 	}
 
-	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		if encrypted, ok := updates["credential_encrypted"].(string); ok {
-			delete(updates, "credential_encrypted")
-			if err := s.rotateCredentialInTransaction(tx, cluster, encrypted, updates); err != nil {
+	if err := s.WithClusterLock(id, dataScope, func(tx *gorm.DB, cluster *Cluster) error {
+		updates := map[string]interface{}{"updated_by": updatedBy, "updated_at": time.Now()}
+		if req.Name != nil {
+			updates["name"] = *req.Name
+		}
+		if req.Environment != nil {
+			updates["environment"] = *req.Environment
+		}
+		if req.Remark != nil {
+			updates["remark"] = *req.Remark
+		}
+		if req.BusinessScopeID != nil {
+			if *req.BusinessScopeID == 0 {
+				updates["business_scope_id"] = uint64(0)
+				updates["business_scope_name"] = ""
+			} else {
+				scope, err := s.getBusinessScope(*req.BusinessScopeID, dataScope)
+				if err != nil {
+					return err
+				}
+				updates["business_scope_id"] = scope.ID
+				updates["business_scope_name"] = scope.Name
+				updates["dept_id"] = scope.DeptID
+			}
+		}
+		if encryptedCredential != "" {
+			updates["api_server"] = k8spkg.ExtractAPIServer(*req.Kubeconfig)
+			if err := s.rotateCredentialInTransaction(tx, cluster, encryptedCredential, updates); err != nil {
 				return err
 			}
 		}
@@ -513,14 +513,14 @@ func (s *ClusterService) codeExists(code string, excludeID uint64) bool {
 	return count > 0
 }
 
-func (s *ClusterService) getBusinessScope(id uint64) (bizcap.BizScopeRef, error) {
+func (s *ClusterService) getBusinessScope(id uint64, dataScope *common.DataScopeReq) (bizcap.BizScopeRef, error) {
 	if id == 0 {
 		return bizcap.BizScopeRef{}, errors.New("business.bizscope.notFound")
 	}
 	if s.bizScopeReader == nil {
 		return bizcap.BizScopeRef{}, errors.New("business.bizscope.readerNotConfigured")
 	}
-	return s.bizScopeReader.GetActive(context.Background(), id, nil)
+	return s.bizScopeReader.GetActive(context.Background(), id, dataScope)
 }
 
 func toResponse(c *Cluster) ClusterResponse {

@@ -2,18 +2,17 @@
 
 ## Findings
 
-1. **Residual production risk**: legacy generated-key/index conversion still
-   needs duplicate-data review against a production snapshot.
-2. **Harness inheritance gap**: strict method/adoption checks are blocked by
-   missing shared Base landing/adaptor files; no Ops copy was added.
-3. **Mutation gate**: K8s and SSH write operations remain intentionally
-   unexecuted pending explicit human acceptance.
+1. **Base release gate**: the clean rebuilt overlay passes strict Harness method
+   and adoption checks, but the consumer-root checks cannot close until Base
+   publishes a green foundation release. Base commit `303c6bdb` currently has
+   156 pre-existing unresolved SonarCloud issues and a failed Release Gate.
 
 ## Verdict
 
-Pass for code, isolated-MySQL verification, authenticated desktop/mobile
-visual smoke, release artifacts, and read-only K8s runtime smoke; production
-migration and mutation gates remain explicit.
+Pass for code, isolated-MySQL verification, authenticated desktop/mobile visual
+smoke, duplicate/index snapshot rehearsal, concurrent ownership validation,
+isolated K8s/SSH mutation, and release artifacts. Base foundation publication is
+the only remaining external gate.
 
 ## Machine Readable
 
@@ -23,7 +22,7 @@ migration and mutation gates remain explicit.
   "batch": "legacy-migration-deploy-k8s-import-export-slices",
   "verdict": "approved with documented P2 follow-up",
   "blockingFindings": 0,
-  "residualRisks": ["legacy duplicate data and index conversion require production rehearsal", "shared Base Harness landing/adaptor files missing", "live mutation gate not executed"],
+  "residualRisks": ["Base foundation release gate is red because of 156 pre-existing unresolved SonarCloud issues"],
   "structuralReview": {
     "affectedSubgraph": ["migration runner -> business schema", "Deploy handler -> worker -> executor", "K8s owner checks -> client-go", "business list UI -> APIs"],
     "checks": ["cycle", "call-depth", "sensitive-flow"],

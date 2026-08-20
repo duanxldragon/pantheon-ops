@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "taskId": "2026-08-19-ops-v1-backlog-closeout",
   "title": "Close Pantheon Ops V1 backlog",
-  "status": "complete",
+  "status": "complete-with-explicit-gates",
   "priority": "P0-P1",
   "deliveryTier": "L2",
   "primaryLayer": "business/*",
@@ -27,7 +27,8 @@
     "deploy-worker-lifecycle",
     "k8s-ownership-credentials-permissions",
     "deploy-import-export",
-    "release-evidence-closeout"
+    "release-evidence-closeout",
+    "v1-high-risk-gates"
   ],
   "externalHumanGates": [
     "production database mutation",

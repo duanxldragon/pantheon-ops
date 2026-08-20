@@ -1,14 +1,14 @@
 # Status: Pantheon Ops V1 Backlog Closeout
 
 - Status: `complete-with-explicit-gates`
-- Updated: `2026-08-19`
+- Updated: `2026-08-20`
 - Executor: Codex `/root`
-- Baseline: `759d0a3313043dd02defdff008fea95d3e43105a`
+- Baseline: `a20dc7915bac4c49452982a92c39c7fa2806d6ec`
 - Worktree preflight: clean, `main...origin/main`
 
 ## Current Batch
 
-`deploy-k8s-import-export` (code complete; external runtime gate recorded)
+`v1-high-risk-gates` (code and isolated external gates complete; Base release gate remains external)
 
 ## Completed
 
@@ -48,6 +48,18 @@
   semantics.
 - Wired Deploy import/export API helpers into existing Arco list controls and
   added their dedicated permissions.
+- Closed P0-AUTH-03 with a MySQL concurrency regression covering ownership move,
+  cluster row locking, atomic scope/department update, and stale scoped writes.
+- Extended production-style snapshot rehearsal to assert zero active-key
+  duplicates, generated-key expressions, unique index names/columns, and
+  rollback/reapply row-count preservation.
+- Completed reversible isolated Kubernetes ConfigMap/Secret writes with stale
+  `resourceVersion` conflict verification and namespace cleanup.
+- Completed reversible isolated SSH marker-file write, hash verification, and
+  cleanup using a verified ED25519 host key.
+- Rebuilt a clean Base overlay and recorded strict Harness method/adoption
+  results; consumer-root strict checks remain blocked until Base publishes a
+  release whose Release Gate is green.
 
 ## Decisions
 
@@ -57,7 +69,8 @@
 
 ## Evidence
 
-Migration, targeted test, frontend, and read-only K8s evidence is recorded in
+Migration, targeted test, frontend, MySQL snapshot, K8s/SSH mutation, and
+Harness inheritance evidence is recorded in
 `.harness/evidence/2026-08-19-ops-v1-backlog-closeout/`.
 
 ## Next Atomic Action
@@ -78,8 +91,8 @@ local F-stage closeout.
 
 ## F-stage Outcome
 
-- F-01: all locally executable P0 checks pass; P1 checks have code/test evidence
-  or are explicitly deferred where they require live SSH/K8s mutation.
+- F-01: all locally executable P0 checks pass; P1 checks have code/test and
+  isolated runtime evidence, with direct production mutation separately gated.
 - F-02: backend `go test ./...`, Windows CGO `go test -race ./...`, `go vet ./...`,
   frontend build, overlay/boundary tests, isolated MySQL migration tests, and
   authenticated Deploy desktop/mobile smoke pass.
@@ -90,10 +103,12 @@ local F-stage closeout.
 
 ## Explicit Gates
 
-- Production database duplicate/index conversion rehearsal requires maintainer
-  approval and a production snapshot.
-- Production/live Kubernetes and SSH mutation scenarios remain gated. The
-  isolated acceptance host was explicitly authorized and is documented in
-  `k8s-install-acceptance.md`.
-- Harness strict method/adoption checks remain blocked by missing shared Base
-  landing/adaptor files; this is a Base-first inheritance gap, not copied into Ops.
+- Direct production database mutation remains operator-gated; the supplied
+  `pantheon_ops` schema was only dumped/read and the rehearsal schema was
+  deleted after verification.
+- The provided isolated K3s host and isolated SSH host were authorized for
+  reversible writes; no production/live service was mutated.
+- Clean overlay Harness method/adoption checks pass. Consumer-root strict checks
+  remain blocked by the locked Base release age and Base's red Release Gate
+  (SonarCloud reports 156 pre-existing unresolved issues); Ops did not copy
+  generic Harness files into a local fork.

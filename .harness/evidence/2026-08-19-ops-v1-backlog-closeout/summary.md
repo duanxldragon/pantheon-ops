@@ -3,20 +3,21 @@
 ## Current Outcome
 
 Legacy migration compatibility, Deploy credentials/retry handling, CSV UI APIs,
-NamespaceBinding, and K8s concurrency controls are implemented and targeted
-verification passes. K8s read-only runtime acceptance also passes with the
-provided kubeconfig when TLS verification is explicitly skipped.
+NamespaceBinding, K8s concurrency controls, and the five remaining V1 high-risk
+gates are implemented and verified. Isolated K8s and SSH mutations pass with
+cleanup; the provided kubeconfig was used with TLS verification explicitly
+skipped.
 
-F-01, F-02 and F-03 are complete for all locally executable gates; external
-mutation and production snapshot gates remain explicit human acceptance steps.
+F-01, F-02 and F-03 are complete for all locally executable and authorized
+isolated gates; direct production mutation remains an explicit operator gate.
 
 ## F-stage Acceptance Matrix
 
 | Task | Result | Evidence |
 |---|---|---|
-| F-01 QA acceptance issue set | Pass with explicit gates | Backend/race/vet, boundary, migration, Deploy smoke and K8s read-only results |
+| F-01 QA acceptance issue set | Pass with explicit gates | Backend/race/vet, boundary, migration, Deploy smoke, concurrency, and isolated mutation results |
 | F-02 test plan and business smoke | Pass | Gate A/B/C commands, isolated MySQL rehearsal, authenticated desktop/mobile screenshots |
-| F-03 clean release and rollback rehearsal | Pass with explicit gates | Backend/frontend artifacts, checksums, isolated migration rehearsal, rollback SQL review |
+| F-03 clean release and rollback rehearsal | Pass with explicit gates | Backend/frontend artifacts, checksums, duplicate/index assertions, isolated migration rehearsal, rollback SQL review |
 
 ## Verification Results
 
@@ -27,6 +28,10 @@ mutation and production snapshot gates remain explicit human acceptance steps.
   `pantheon_ops` dump was restored into `pantheon_ops_f_final_rehearsal`, the
   schema reached version 21/clean, row counts and active-key unique indexes
   matched the source, and the rehearsal schema was dropped afterward.
+- The production-style snapshot gate additionally found zero active-key
+  duplicates across business scope, CMDB host/label, Deploy package/template,
+  and K8s cluster tables; generated columns and named unique indexes matched the
+  migration contract before and after `22 -> 16 -> 22`.
 - Authenticated Deploy package/template/task desktop smoke passed and produced
   three screenshots. Mobile 390x844 package rendering passed with no horizontal
   overflow; screenshots are in `screenshots/`.
@@ -72,17 +77,23 @@ mutation and production snapshot gates remain explicit human acceptance steps.
   DSN; the user `pantheon_ops` schema was not changed.
 - Read-only K8s smoke with `--insecure-skip-tls-verify=true` passed: API server
   v1.34.5+k3s1, six namespaces listed, and node `k3s` reported Ready.
-- No live K8s or SSH mutation was attempted.
+- Isolated K3s ConfigMap/Secret writes passed: a stale ConfigMap
+  `resourceVersion` returned Conflict and the namespace was deleted afterward.
+- Isolated SSH marker-file write/hash/delete passed on `192.168.56.12` using a
+  verified ED25519 host key; no remote residue remained.
 - Authenticated frontend/backend runtime was started locally for visual smoke;
   desktop and mobile evidence is captured under `screenshots/`.
 
-- Historical duplicate data and legacy index-name conversion still require a
-  production snapshot rehearsal and maintainer gate.
-- Clean foundation-release overlay rebuild now preserves Base `docs/harness`
-  method files while overlaying only Ops-owned task/evidence paths; strict
-  method health reports 0 findings and 0 warnings (method kit/repo shell 1.4.0).
+- Historical duplicate data and legacy index-name conversion are closed on an
+  isolated full snapshot; direct production mutation remains operator-gated.
+- Clean foundation-release overlay rebuild preserves Base `docs/harness` method
+  files and adapters; strict method health and adoption report 0 findings. The
+  consumer-root checks remain blocked until Base publishes a green foundation
+  release; the current Base commit has 156 pre-existing unresolved SonarCloud
+  issues and a failed Release Gate.
 - SSH read-only acceptance passed with the supplied credentials (`uid=0`,
-  Linux host, UTC date); no remote mutation was attempted.
+  Linux host, UTC date), followed by an authorized isolated marker-file
+  mutation and cleanup.
 - A full production-style snapshot copy completed `21 -> 22 -> 16 -> 22` with
   the real migration engine. Exact core business row counts were unchanged,
   all Ops objects were restored, and the isolated snapshot database was
