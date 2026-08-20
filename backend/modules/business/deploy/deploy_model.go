@@ -79,39 +79,43 @@ type DeployPackage struct {
 func (DeployPackage) TableName() string { return "biz_deploy_package" }
 
 type DeployTask struct {
-	ID                  uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name                string         `gorm:"size:128;not null" json:"name"`
-	TemplateID          uint64         `gorm:"index" json:"templateId"`
-	TemplateName        string         `gorm:"size:128" json:"templateName"`
-	TemplateVersion     string         `gorm:"size:64" json:"templateVersion"`
-	PackageID           uint64         `gorm:"not null;index" json:"packageId"`
-	PackageName         string         `gorm:"size:128" json:"packageName"`
-	PackageVersion      string         `gorm:"size:64" json:"packageVersion"`
-	BusinessScopeID     uint64         `gorm:"column:business_scope_id;index" json:"businessScopeId"`
-	BusinessScopeName   string         `gorm:"column:business_scope_name;size:128" json:"businessScopeName"`
-	ServiceID           uint64         `gorm:"column:service_id;index" json:"serviceId"`
-	ServiceInstanceID   uint64         `gorm:"column:service_instance_id;index" json:"serviceInstanceId"`
-	ServiceName         string         `gorm:"column:service_name;size:255" json:"serviceName"`
-	ServiceInstanceName string         `gorm:"column:service_instance_name;size:255" json:"serviceInstanceName"`
-	Action              string         `gorm:"size:32;default:install;index" json:"action"`
-	TargetType          string         `gorm:"size:32;not null;index" json:"targetType"`
-	TargetIDs           datatypes.JSON `gorm:"type:json" json:"targetIds"`
-	ExecutorType        string         `gorm:"size:32;default:manual;index" json:"executorType"`
-	ExecutionMode       string         `gorm:"size:32;default:fixed;index" json:"executionMode"`
-	TemplateParams      datatypes.JSON `gorm:"type:json" json:"templateParams"`
-	ExecutionSnapshot   datatypes.JSON `gorm:"type:json" json:"executionSnapshot"`
-	TargetSnapshot      datatypes.JSON `gorm:"type:json" json:"targetSnapshot"`
-	StartRequestKey     string         `gorm:"size:128" json:"startRequestKey"`
-	Status              string         `gorm:"size:32;default:draft;index" json:"status"`
-	Remark              string         `gorm:"size:512" json:"remark"`
-	ExternalTaskID      string         `gorm:"size:128" json:"externalTaskId"`
-	StartedAt           *time.Time     `json:"startedAt"`
-	FinishedAt          *time.Time     `json:"finishedAt"`
-	CreatedAt           time.Time      `json:"createdAt"`
-	UpdatedAt           time.Time      `json:"updatedAt"`
-	CreatedBy           string         `gorm:"size:64" json:"createdBy"`
-	UpdatedBy           string         `gorm:"size:64" json:"updatedBy"`
-	DeletedAt           gorm.DeletedAt `gorm:"index" json:"-"`
+	ID                      uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name                    string         `gorm:"size:128;not null" json:"name"`
+	TemplateID              uint64         `gorm:"index" json:"templateId"`
+	TemplateName            string         `gorm:"size:128" json:"templateName"`
+	TemplateVersion         string         `gorm:"size:64" json:"templateVersion"`
+	PackageID               uint64         `gorm:"not null;index" json:"packageId"`
+	PackageName             string         `gorm:"size:128" json:"packageName"`
+	PackageVersion          string         `gorm:"size:64" json:"packageVersion"`
+	BusinessScopeID         uint64         `gorm:"column:business_scope_id;index" json:"businessScopeId"`
+	BusinessScopeName       string         `gorm:"column:business_scope_name;size:128" json:"businessScopeName"`
+	ServiceID               uint64         `gorm:"column:service_id;index" json:"serviceId"`
+	ServiceInstanceID       uint64         `gorm:"column:service_instance_id;index" json:"serviceInstanceId"`
+	ServiceName             string         `gorm:"column:service_name;size:255" json:"serviceName"`
+	ServiceInstanceName     string         `gorm:"column:service_instance_name;size:255" json:"serviceInstanceName"`
+	Action                  string         `gorm:"size:32;default:install;index" json:"action"`
+	TargetType              string         `gorm:"size:32;not null;index" json:"targetType"`
+	TargetIDs               datatypes.JSON `gorm:"type:json" json:"targetIds"`
+	ExecutorType            string         `gorm:"size:32;default:manual;index" json:"executorType"`
+	ExecutionMode           string         `gorm:"size:32;default:fixed;index" json:"executionMode"`
+	TemplateParams          datatypes.JSON `gorm:"type:json" json:"templateParams"`
+	ExecutionSnapshot       datatypes.JSON `gorm:"type:json" json:"executionSnapshot"`
+	TargetSnapshot          datatypes.JSON `gorm:"type:json" json:"targetSnapshot"`
+	StartRequestKey         string         `gorm:"size:128" json:"startRequestKey"`
+	CredentialRefID         uint64         `gorm:"column:credential_ref_id;index" json:"credentialRefId"`
+	CredentialRefVersion    uint64         `gorm:"column:credential_ref_version" json:"credentialRefVersion"`
+	SSHHostFingerprint      string         `gorm:"column:ssh_host_fingerprint;size:255" json:"-"`
+	ExecutionTimeoutSeconds int            `gorm:"column:execution_timeout_seconds;default:1800" json:"executionTimeoutSeconds"`
+	Status                  string         `gorm:"size:32;default:draft;index" json:"status"`
+	Remark                  string         `gorm:"size:512" json:"remark"`
+	ExternalTaskID          string         `gorm:"size:128" json:"externalTaskId"`
+	StartedAt               *time.Time     `json:"startedAt"`
+	FinishedAt              *time.Time     `json:"finishedAt"`
+	CreatedAt               time.Time      `json:"createdAt"`
+	UpdatedAt               time.Time      `json:"updatedAt"`
+	CreatedBy               string         `gorm:"size:64" json:"createdBy"`
+	UpdatedBy               string         `gorm:"size:64" json:"updatedBy"`
+	DeletedAt               gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 func (DeployTask) TableName() string { return "biz_deploy_task" }
@@ -202,6 +206,47 @@ type DeployHostLease struct {
 
 // TableName returns the deployment host lease table name.
 func (DeployHostLease) TableName() string { return "biz_deploy_host_lease" }
+
+// DeployTaskAttempt records one durable worker execution claim per host.
+//
+//nolint:revive // Public model name retains the deploy domain prefix for compatibility.
+type DeployTaskAttempt struct {
+	ID             uint64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	TaskID         uint64     `gorm:"not null;index" json:"taskId"`
+	TaskHostID     uint64     `gorm:"not null;index" json:"taskHostId"`
+	AttemptNo      int        `gorm:"not null" json:"attemptNo"`
+	Status         string     `gorm:"size:32;not null;index" json:"status"`
+	WorkerID       string     `gorm:"size:128" json:"workerId"`
+	LeaseExpiresAt *time.Time `gorm:"index" json:"leaseExpiresAt"`
+	StartedAt      *time.Time `json:"startedAt"`
+	FinishedAt     *time.Time `json:"finishedAt"`
+	ErrorMessage   string     `gorm:"size:512" json:"errorMessage"`
+	CreatedAt      time.Time  `json:"createdAt"`
+	UpdatedAt      time.Time  `json:"updatedAt"`
+}
+
+// TableName returns the deployment task attempt table name.
+func (DeployTaskAttempt) TableName() string { return "biz_deploy_task_attempt" }
+
+// DeployCredentialRef holds an encrypted SSH secret. The plaintext is never
+// serialized and a task stores only this immutable reference id/version.
+//
+//nolint:revive // Public model name retains the deploy domain prefix for compatibility.
+type DeployCredentialRef struct {
+	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name            string         `gorm:"size:128;not null;uniqueIndex:uk_deploy_credential_name_deleted" json:"name"`
+	Username        string         `gorm:"size:128;not null" json:"username"`
+	AuthMode        string         `gorm:"size:32;not null" json:"authMode"`
+	SecretEncrypted string         `gorm:"type:text;not null" json:"-"`
+	Version         uint64         `gorm:"not null;default:1" json:"version"`
+	Status          string         `gorm:"size:32;not null;default:active" json:"status"`
+	CreatedAt       time.Time      `json:"createdAt"`
+	UpdatedAt       time.Time      `json:"updatedAt"`
+	DeletedAt       gorm.DeletedAt `gorm:"index:uk_deploy_credential_name_deleted" json:"-"`
+}
+
+// TableName returns the deployment credential reference table name.
+func (DeployCredentialRef) TableName() string { return "biz_deploy_credential_ref" }
 
 type cmdbHostSnapshot struct {
 	ID                uint64         `gorm:"column:id"`

@@ -8,10 +8,12 @@ import (
 	"time"
 
 	"pantheon-base/modules/business/k8s/cluster"
+	"pantheon-base/modules/business/k8s/namespace"
 	"pantheon-base/pkg/common"
 
 	"github.com/gin-gonic/gin"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -20,30 +22,52 @@ const (
 	opTimeout       = 30 * time.Second
 )
 
+func normalizeListLimit(limit int64) int64 {
+	if limit <= 0 {
+		return 100
+	}
+	if limit > 500 {
+		return 500
+	}
+	return limit
+}
+
 // ConfigMapItem summarizes a Kubernetes ConfigMap.
 //
 //nolint:revive // retained as the public ConfigMap DTO name.
 type ConfigMapItem struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	KeyCount  int    `json:"keyCount"`
+	Name            string `json:"name"`
+	Namespace       string `json:"namespace"`
+	KeyCount        int    `json:"keyCount"`
+	ResourceVersion string `json:"resourceVersion"`
 }
 
 // ConfigMapListResponse contains ConfigMap summaries.
 //
 //nolint:revive // retained as the public ConfigMap DTO name.
 type ConfigMapListResponse struct {
-	Items []ConfigMapItem `json:"items"`
-	Total int             `json:"total"`
+	Items         []ConfigMapItem `json:"items"`
+	Total         int             `json:"total"`
+	ContinueToken string          `json:"continueToken"`
 }
 
 // ConfigMapDetail contains a Kubernetes ConfigMap payload.
 //
 //nolint:revive // retained as the public ConfigMap DTO name.
 type ConfigMapDetail struct {
-	Name      string            `json:"name"`
-	Namespace string            `json:"namespace"`
-	Data      map[string]string `json:"data"`
+	Name            string            `json:"name"`
+	Namespace       string            `json:"namespace"`
+	Data            map[string]string `json:"data"`
+	ResourceVersion string            `json:"resourceVersion"`
+}
+
+// ConfigMapListQuery contains pagination and namespace filters.
+//
+//nolint:revive // Public DTO name is retained for compatibility.
+type ConfigMapListQuery struct {
+	Namespace     string `form:"namespace"`
+	Limit         int64  `form:"limit"`
+	ContinueToken string `form:"continue"`
 }
 
 // CreateConfigMapRequest contains ConfigMap creation fields.
@@ -56,16 +80,17 @@ type CreateConfigMapRequest struct {
 //
 //nolint:revive // retained as the public service name for this package.
 type ConfigMapService struct {
-	clusterSvc *cluster.ClusterService
+	clusterSvc   *cluster.ClusterService
+	namespaceSvc *namespace.NamespaceService
 }
 
 // NewConfigMapService creates a ConfigMap service.
-func NewConfigMapService(clusterSvc *cluster.ClusterService) *ConfigMapService {
-	return &ConfigMapService{clusterSvc: clusterSvc}
+func NewConfigMapService(clusterSvc *cluster.ClusterService, namespaceSvc *namespace.NamespaceService) *ConfigMapService {
+	return &ConfigMapService{clusterSvc: clusterSvc, namespaceSvc: namespaceSvc}
 }
 
 // List returns ConfigMaps in a namespace.
-func (s *ConfigMapService) List(clusterID uint64, namespace string, dataScope *common.DataScopeReq) (*ConfigMapListResponse, error) {
+func (s *ConfigMapService) List(clusterID uint64, query ConfigMapListQuery, dataScope *common.DataScopeReq) (*ConfigMapListResponse, error) {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
 		return nil, err
@@ -73,16 +98,16 @@ func (s *ConfigMapService) List(clusterID uint64, namespace string, dataScope *c
 	ctx, cancel := context.WithTimeout(context.Background(), opTimeout)
 	defer cancel()
 
-	list, err := clientset.CoreV1().ConfigMaps(namespace).List(ctx, metav1.ListOptions{})
+	list, err := clientset.CoreV1().ConfigMaps(query.Namespace).List(ctx, metav1.ListOptions{Limit: normalizeListLimit(query.Limit), Continue: query.ContinueToken})
 	if err != nil {
 		return nil, errors.New("k8s.configmap.list_failed")
 	}
 	items := make([]ConfigMapItem, 0, len(list.Items))
 	for i := range list.Items {
 		cm := &list.Items[i]
-		items = append(items, ConfigMapItem{Name: cm.Name, Namespace: cm.Namespace, KeyCount: len(cm.Data)})
+		items = append(items, ConfigMapItem{Name: cm.Name, Namespace: cm.Namespace, KeyCount: len(cm.Data), ResourceVersion: cm.ResourceVersion})
 	}
-	return &ConfigMapListResponse{Items: items, Total: len(items)}, nil
+	return &ConfigMapListResponse{Items: items, Total: len(items), ContinueToken: list.Continue}, nil
 }
 
 // Get returns one ConfigMap.
@@ -98,11 +123,17 @@ func (s *ConfigMapService) Get(clusterID uint64, namespace, name string, dataSco
 	if err != nil {
 		return nil, errors.New("k8s.configmap.not_found")
 	}
-	return &ConfigMapDetail{Name: cm.Name, Namespace: cm.Namespace, Data: cm.Data}, nil
+	return &ConfigMapDetail{Name: cm.Name, Namespace: cm.Namespace, Data: cm.Data, ResourceVersion: cm.ResourceVersion}, nil
 }
 
 // Create creates a ConfigMap.
 func (s *ConfigMapService) Create(clusterID uint64, namespace string, req CreateConfigMapRequest, dataScope *common.DataScopeReq) (*ConfigMapDetail, error) {
+	if s.namespaceSvc == nil {
+		return nil, errors.New("k8s.namespace.binding_required")
+	}
+	if err := s.namespaceSvc.RequireWrite(clusterID, namespace, "configmap:create"); err != nil {
+		return nil, err
+	}
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
 		return nil, err
@@ -118,11 +149,22 @@ func (s *ConfigMapService) Create(clusterID uint64, namespace string, req Create
 	if err != nil {
 		return nil, errors.New("k8s.configmap.create_failed")
 	}
-	return &ConfigMapDetail{Name: created.Name, Namespace: created.Namespace, Data: created.Data}, nil
+	return &ConfigMapDetail{Name: created.Name, Namespace: created.Namespace, Data: created.Data, ResourceVersion: created.ResourceVersion}, nil
 }
 
 // Delete removes a ConfigMap.
 func (s *ConfigMapService) Delete(clusterID uint64, namespace, name string, dataScope *common.DataScopeReq) error {
+	return s.DeleteWithResourceVersion(clusterID, namespace, name, "", dataScope)
+}
+
+// DeleteWithResourceVersion deletes a ConfigMap when its resource version matches.
+func (s *ConfigMapService) DeleteWithResourceVersion(clusterID uint64, namespace, name, expectedResourceVersion string, dataScope *common.DataScopeReq) error {
+	if s.namespaceSvc == nil {
+		return errors.New("k8s.namespace.binding_required")
+	}
+	if err := s.namespaceSvc.RequireWrite(clusterID, namespace, "configmap:delete"); err != nil {
+		return err
+	}
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
 		return err
@@ -130,7 +172,14 @@ func (s *ConfigMapService) Delete(clusterID uint64, namespace, name string, data
 	ctx, cancel := context.WithTimeout(context.Background(), opTimeout)
 	defer cancel()
 
-	if err := clientset.CoreV1().ConfigMaps(namespace).Delete(ctx, name, metav1.DeleteOptions{}); err != nil {
+	options := metav1.DeleteOptions{}
+	if expectedResourceVersion != "" {
+		options.Preconditions = &metav1.Preconditions{ResourceVersion: &expectedResourceVersion}
+	}
+	if err := clientset.CoreV1().ConfigMaps(namespace).Delete(ctx, name, options); err != nil {
+		if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
+			return common.NewConflict("k8s.configmap.resource_version_conflict")
+		}
 		return errors.New("k8s.configmap.delete_failed")
 	}
 	return nil
@@ -163,7 +212,12 @@ func (h *ConfigMapHandler) List(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.svc.List(clusterID, c.Query("namespace"), common.GetDataScope(c))
+	var query ConfigMapListQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	resp, err := h.svc.List(clusterID, query, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.configmap.list_failed")
 		return
@@ -222,7 +276,7 @@ func (h *ConfigMapHandler) Delete(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	if err := h.svc.Delete(clusterID, c.Query("namespace"), c.Param("name"), common.GetDataScope(c)); err != nil {
+	if err := h.svc.DeleteWithResourceVersion(clusterID, c.Query("namespace"), c.Param("name"), c.Query("resourceVersion"), common.GetDataScope(c)); err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.configmap.delete_failed")
 		return
 	}

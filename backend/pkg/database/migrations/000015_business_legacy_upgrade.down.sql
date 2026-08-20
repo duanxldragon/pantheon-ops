@@ -1,0 +1,2 @@
+-- Generated-key repair is intentionally non-reversible because the columns
+-- may have existed before this compatibility marker was applied.

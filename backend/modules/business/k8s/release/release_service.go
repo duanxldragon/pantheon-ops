@@ -17,10 +17,12 @@ import (
 	"gorm.io/gorm"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 
 	"pantheon-base/modules/business/k8s/cluster"
+	"pantheon-base/modules/business/k8s/namespace"
 	"pantheon-base/pkg/common"
 	"pantheon-base/pkg/database"
 )
@@ -91,13 +93,14 @@ type workloadObservation struct {
 type ReleaseService struct {
 	db               *gorm.DB
 	clusterSvc       *cluster.ClusterService
+	namespaceSvc     *namespace.NamespaceService
 	clientProvider   releaseClientProvider
 	operationTimeout time.Duration
 	pollInterval     time.Duration
 }
 
 // NewReleaseService creates the Kubernetes release service.
-func NewReleaseService(db *gorm.DB, clusterSvc *cluster.ClusterService) *ReleaseService {
+func NewReleaseService(db *gorm.DB, clusterSvc *cluster.ClusterService, bindings ...*namespace.NamespaceService) *ReleaseService {
 	service := &ReleaseService{
 		db:               db,
 		clusterSvc:       clusterSvc,
@@ -108,6 +111,9 @@ func NewReleaseService(db *gorm.DB, clusterSvc *cluster.ClusterService) *Release
 		service.clientProvider = func(clusterID uint64, dataScope *common.DataScopeReq) (kubernetes.Interface, error) {
 			return clusterSvc.GetClientset(clusterID, dataScope)
 		}
+	}
+	if len(bindings) > 0 {
+		service.namespaceSvc = bindings[0]
 	}
 	return service
 }
@@ -157,6 +163,11 @@ func (s *ReleaseService) Create(req CreateReleaseRequest, createdBy string, data
 	intent, err := normalizeCreateRequest(req)
 	if err != nil {
 		return nil, err
+	}
+	if s.namespaceSvc != nil {
+		if err := s.namespaceSvc.RequireWrite(intent.ClusterID, intent.Namespace, "release:create"); err != nil {
+			return nil, err
+		}
 	}
 	record, replay, err := s.persistIntentWithKey(intent, req.IdempotencyKey, createdBy, dataScope)
 	if err != nil {
@@ -832,6 +843,9 @@ func applyImage(ctx context.Context, clientset kubernetes.Interface, workloadTyp
 		}
 		updated, err := clientset.AppsV1().Deployments(namespace).Update(ctx, item, metav1.UpdateOptions{})
 		if err != nil {
+			if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
+				return workloadObservation{}, common.NewConflict("k8s.release.resource_version_conflict")
+			}
 			return workloadObservation{}, err
 		}
 		target, err := observeDeployment(updated, containerName)
@@ -848,6 +862,9 @@ func applyImage(ctx context.Context, clientset kubernetes.Interface, workloadTyp
 		}
 		updated, err := clientset.AppsV1().StatefulSets(namespace).Update(ctx, item, metav1.UpdateOptions{})
 		if err != nil {
+			if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
+				return workloadObservation{}, common.NewConflict("k8s.release.resource_version_conflict")
+			}
 			return workloadObservation{}, err
 		}
 		target, err := observeStatefulSet(updated, containerName)
@@ -864,6 +881,9 @@ func applyImage(ctx context.Context, clientset kubernetes.Interface, workloadTyp
 		}
 		updated, err := clientset.AppsV1().DaemonSets(namespace).Update(ctx, item, metav1.UpdateOptions{})
 		if err != nil {
+			if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
+				return workloadObservation{}, common.NewConflict("k8s.release.resource_version_conflict")
+			}
 			return workloadObservation{}, err
 		}
 		target, err := observeDaemonSet(updated, containerName)

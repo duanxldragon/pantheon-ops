@@ -1,4 +1,5 @@
 import { apiRequest } from '../../../api/request';
+import { downloadFile, uploadImportFile } from '../../../api/importExport';
 
 export type DeployAction = 'install' | 'uninstall' | 'upgrade' | 'reinstall';
 
@@ -199,6 +200,7 @@ export interface DeployTaskPayload {
 }
 
 export interface StartDeployTaskPayload {
+	credentialRefId?: number;
   sshUser?: string;
   sshPassword?: string;
   sshPrivateKey?: string;
@@ -254,6 +256,14 @@ export function deleteDeployPackage(id: number) {
   });
 }
 
+export function exportDeployPackages(params?: ListQuery) {
+  return downloadFile({ url: '/business/deploy/packages/export', method: 'get', params, filename: 'deploy-packages.csv' });
+}
+
+export function importDeployPackages(file: File) {
+  return uploadImportFile('/business/deploy/packages/import', file);
+}
+
 export function getDeployTemplateList(params?: ListQuery) {
   return apiRequest<{ items: DeployTemplateRow[]; total: number; page: number; pageSize: number }>({
     url: '/business/deploy/templates',
@@ -285,12 +295,24 @@ export function deleteDeployTemplate(id: number) {
   });
 }
 
+export function exportDeployTemplates(params?: ListQuery) {
+  return downloadFile({ url: '/business/deploy/templates/export', method: 'get', params, filename: 'deploy-templates.csv' });
+}
+
+export function importDeployTemplates(file: File) {
+  return uploadImportFile('/business/deploy/templates/import', file);
+}
+
 export function getDeployTaskList(params?: ListQuery) {
   return apiRequest<DeployTaskListResp>({
     url: '/business/deploy/tasks',
     method: 'get',
     params,
   });
+}
+
+export function exportDeployTasks(params?: ListQuery) {
+  return downloadFile({ url: '/business/deploy/tasks/export', method: 'get', params, filename: 'deploy-tasks.csv' });
 }
 
 export function getDeployTaskDetail(id: number) {

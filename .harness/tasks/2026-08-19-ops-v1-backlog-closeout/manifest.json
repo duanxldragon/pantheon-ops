@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-08-19-ops-v1-backlog-closeout",
+  "title": "Close Pantheon Ops V1 backlog",
+  "status": "complete",
+  "priority": "P0-P1",
+  "deliveryTier": "L2",
+  "primaryLayer": "business/*",
+  "taskDoc": "docs/harness/tasks/2026-08-19-ops-v1-backlog-closeout.task.md",
+  "statusDoc": ".harness/tasks/2026-08-19-ops-v1-backlog-closeout/STATUS.md",
+  "evidenceDir": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/",
+  "reviewFile": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/review.md",
+  "goal": "Close the remaining Pantheon Ops V1 business-domain delivery and release acceptance tasks.",
+  "scope": {
+    "in": ["F-01 QA acceptance", "F-02 test plan and business smoke", "F-03 release and rollback rehearsal"],
+    "out": ["pantheon-base changes", "production or live-cluster mutation"]
+  },
+  "linkage": {
+    "taskDoc": "docs/harness/tasks/2026-08-19-ops-v1-backlog-closeout.task.md",
+    "evidenceDir": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/",
+    "reviewFile": ".harness/evidence/2026-08-19-ops-v1-backlog-closeout/review.md",
+    "changeRef": "none",
+    "planRefs": ["docs/designs/BUSINESS_DEVELOPMENT_PLAN.md", "docs/designs/BUSINESS_QA_ACCEPTANCE_PLAN.md", "docs/designs/BUSINESS_TEST_PLAN.md"]
+  },
+  "batches": [
+    "legacy-business-migration",
+    "deploy-worker-lifecycle",
+    "k8s-ownership-credentials-permissions",
+    "deploy-import-export",
+    "release-evidence-closeout"
+  ],
+  "externalHumanGates": [
+    "production database mutation",
+    "live Kubernetes mutation",
+    "credentialed production SSH or browser execution"
+  ]
+}

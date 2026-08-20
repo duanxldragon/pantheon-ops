@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "taskId": "ops-business-versioned-migrations",
   "title": "Business versioned migrations and production schema gate",
-  "status": "planned",
+  "status": "complete",
   "priority": "P0",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-08-17-ops-business-versioned-migrations.task.md",

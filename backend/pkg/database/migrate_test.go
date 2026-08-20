@@ -96,6 +96,82 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 	assertCurrentRuntimeWritesSucceed(t, db)
 }
 
+func TestRunMigrationsRepairsLegacyBusinessGeneratedKeys(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+
+	if err := db.Exec(`
+CREATE TABLE biz_business_scope (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  environment VARCHAR(50) NOT NULL,
+  status VARCHAR(50) NOT NULL,
+  deleted_at DATETIME(3) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`).Error; err != nil {
+		t.Fatalf("seed legacy business scope table: %v", err)
+	}
+	if err := db.Exec("INSERT INTO biz_business_scope (code, name, environment, status) VALUES ('legacy', 'Legacy', 'prod', 'active')").Error; err != nil {
+		t.Fatalf("seed legacy business scope row: %v", err)
+	}
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations on legacy business schema: %v", err)
+	}
+
+	assertMigrationColumnExists(t, db, "biz_business_scope", "active_code")
+	var activeCode string
+	if err := db.Raw("SELECT active_code FROM biz_business_scope WHERE code = 'legacy'").Scan(&activeCode).Error; err != nil {
+		t.Fatalf("read repaired active code: %v", err)
+	}
+	if activeCode != "legacy" {
+		t.Fatalf("expected generated active code legacy, got %q", activeCode)
+	}
+	assertLatestMigrationVersion(t, db)
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("repeat migrations on repaired legacy schema: %v", err)
+	}
+}
+
+func TestRunMigrationsRepairsOpsObjectsSkippedByLegacyBootstrap(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run initial migrations: %v", err)
+	}
+	statements := []string{
+		"DROP TABLE biz_deploy_task_attempt",
+		"DROP TABLE biz_k8s_namespace_binding",
+		"DROP TABLE biz_deploy_credential_ref",
+		"DROP TABLE biz_k8s_cluster_credential_ref",
+		"DROP INDEX idx_deploy_task_credential_ref ON biz_deploy_task",
+		"ALTER TABLE biz_deploy_task DROP COLUMN execution_timeout_seconds, DROP COLUMN ssh_host_fingerprint, DROP COLUMN credential_ref_version, DROP COLUMN credential_ref_id",
+		"DROP INDEX idx_k8s_cluster_credential_ref ON biz_k8s_cluster",
+		"ALTER TABLE biz_k8s_cluster DROP COLUMN kubeconfig_credential_ref_id",
+	}
+	for _, statement := range statements {
+		if err := db.Exec(statement).Error; err != nil {
+			t.Fatalf("simulate skipped ops migration: %v", err)
+		}
+	}
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("repair skipped ops migrations: %v", err)
+	}
+	for _, table := range []string{"biz_deploy_task_attempt", "biz_k8s_namespace_binding", "biz_deploy_credential_ref", "biz_k8s_cluster_credential_ref"} {
+		assertMigrationTableExists(t, db, table)
+	}
+	for _, column := range []string{"credential_ref_id", "credential_ref_version", "ssh_host_fingerprint", "execution_timeout_seconds"} {
+		assertMigrationColumnExists(t, db, "biz_deploy_task", column)
+	}
+	assertMigrationColumnExists(t, db, "biz_k8s_cluster", "kubeconfig_credential_ref_id")
+	assertMigrationIndexExists(t, db, "biz_deploy_task", "idx_deploy_task_credential_ref")
+	assertMigrationIndexExists(t, db, "biz_k8s_cluster", "idx_k8s_cluster_credential_ref")
+	assertLatestMigrationVersion(t, db)
+}
+
 func TestRunMigrationsBootstrapsExistingCurrentSchema(t *testing.T) {
 	db := testmysql.Open(t)
 	dsn := migrationTestDSN(t, db)
@@ -190,6 +266,17 @@ func assertLatestMigrationVersion(t *testing.T, db *gorm.DB) {
 		t.Fatalf("resolve latest migration version: %v", err)
 	}
 	assertMigrationVersion(t, db, latestVersion)
+}
+
+func assertMigrationTableExists(t *testing.T, db *gorm.DB, table string) {
+	t.Helper()
+	var count int64
+	if err := db.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?", table).Scan(&count).Error; err != nil {
+		t.Fatalf("check table %s: %v", table, err)
+	}
+	if count != 1 {
+		t.Fatalf("expected table %s to exist", table)
+	}
 }
 
 func dropMigrationColumnIfExists(t *testing.T, db *gorm.DB, table string, column string) {

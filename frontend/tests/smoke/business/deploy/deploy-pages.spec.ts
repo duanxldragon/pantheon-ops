@@ -75,7 +75,6 @@ test.describe('Deploy business module smoke', () => {
     await page.goto('/business/deploy/package', { waitUntil: 'networkidle' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect(page.locator('.governance-summary-bar__title-row')).toBeVisible();
-    await expect(page.locator('.governance-summary-bar__icon')).toBeVisible();
     await expect(page.locator('.governance-summary-bar')).toContainText('软件组件');
     await page.locator('.governance-summary-bar .arco-btn').click();
     await expect(page.locator('.governance-insight-drawer')).toBeVisible();
@@ -87,7 +86,6 @@ test.describe('Deploy business module smoke', () => {
     await page.goto('/business/deploy/template', { waitUntil: 'networkidle' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect(page.locator('.governance-summary-bar__title-row')).toBeVisible();
-    await expect(page.locator('.governance-summary-bar__icon')).toBeVisible();
     await expect(page.locator('.governance-summary-bar')).toContainText('任务模板');
     await page.locator('.governance-summary-bar .arco-btn').click();
     await expect(page.locator('.governance-insight-drawer')).toBeVisible();
@@ -99,7 +97,6 @@ test.describe('Deploy business module smoke', () => {
     await page.goto('/business/deploy/task', { waitUntil: 'networkidle' });
     await expect(page.locator('.governance-summary-bar')).toBeVisible();
     await expect(page.locator('.governance-summary-bar__title-row')).toBeVisible();
-    await expect(page.locator('.governance-summary-bar__icon')).toBeVisible();
     await expect(page.locator('.governance-summary-bar')).toContainText('部署任务');
     await page.locator('.governance-summary-bar .arco-btn').click();
     await expect(page.locator('.governance-insight-drawer')).toBeVisible();

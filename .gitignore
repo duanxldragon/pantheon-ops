@@ -10,6 +10,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+config/kubeconfig.yaml
 
 # Logs
 *.log

@@ -21,10 +21,14 @@ const (
 	deployTemplatePermCreateKey = "business.deploy.template.permission.create"
 	deployTemplatePermUpdateKey = "business.deploy.template.permission.update"
 	deployTemplatePermDeleteKey = "business.deploy.template.permission.delete"
+	deployTemplatePermExportKey = "business.deploy.template.permission.export"
+	deployTemplatePermImportKey = "business.deploy.template.permission.import"
 
 	deployPackagePermCreateKey = "business.deploy.package.permission.create"
 	deployPackagePermUpdateKey = "business.deploy.package.permission.update"
 	deployPackagePermDeleteKey = "business.deploy.package.permission.delete"
+	deployPackagePermExportKey = "business.deploy.package.permission.export"
+	deployPackagePermImportKey = "business.deploy.package.permission.import"
 
 	deployTaskPermDetailKey     = "business.deploy.task.permission.detail"
 	deployTaskPermCreateKey     = "business.deploy.task.permission.create"
@@ -33,6 +37,7 @@ const (
 	deployTaskPermStartKey      = "business.deploy.task.permission.start"
 	deployTaskPermCancelKey     = "business.deploy.task.permission.cancel"
 	deployTaskPermMarkResultKey = "business.deploy.task.permission.markResult"
+	deployTaskPermExportKey     = "business.deploy.task.permission.export"
 )
 
 type deployMenuSeed struct {
@@ -66,9 +71,13 @@ func seedDeployMenus(db *gorm.DB) error {
 		{Key: "operations-deploy-template-create", ParentKey: deployTemplateListRoute, TitleKey: deployTemplatePermCreateKey, Perms: "business:deploy:template:create", Type: "F", Module: deployModuleKey, Sort: 1},
 		{Key: "operations-deploy-template-update", ParentKey: deployTemplateListRoute, TitleKey: deployTemplatePermUpdateKey, Perms: "business:deploy:template:update", Type: "F", Module: deployModuleKey, Sort: 2},
 		{Key: "operations-deploy-template-delete", ParentKey: deployTemplateListRoute, TitleKey: deployTemplatePermDeleteKey, Perms: "business:deploy:template:delete", Type: "F", Module: deployModuleKey, Sort: 3},
+		{Key: "operations-deploy-template-export", ParentKey: deployTemplateListRoute, TitleKey: deployTemplatePermExportKey, Perms: "business:deploy:template:export", Type: "F", Module: deployModuleKey, Sort: 4},
+		{Key: "operations-deploy-template-import", ParentKey: deployTemplateListRoute, TitleKey: deployTemplatePermImportKey, Perms: "business:deploy:template:import", Type: "F", Module: deployModuleKey, Sort: 5},
 		{Key: "operations-deploy-package-create", ParentKey: deployPackageListRoute, TitleKey: deployPackagePermCreateKey, Perms: "business:deploy:package:create", Type: "F", Module: deployModuleKey, Sort: 1},
 		{Key: "operations-deploy-package-update", ParentKey: deployPackageListRoute, TitleKey: deployPackagePermUpdateKey, Perms: "business:deploy:package:update", Type: "F", Module: deployModuleKey, Sort: 2},
 		{Key: "operations-deploy-package-delete", ParentKey: deployPackageListRoute, TitleKey: deployPackagePermDeleteKey, Perms: "business:deploy:package:delete", Type: "F", Module: deployModuleKey, Sort: 3},
+		{Key: "operations-deploy-package-export", ParentKey: deployPackageListRoute, TitleKey: deployPackagePermExportKey, Perms: "business:deploy:package:export", Type: "F", Module: deployModuleKey, Sort: 4},
+		{Key: "operations-deploy-package-import", ParentKey: deployPackageListRoute, TitleKey: deployPackagePermImportKey, Perms: "business:deploy:package:import", Type: "F", Module: deployModuleKey, Sort: 5},
 		{Key: "business-deploy-task", ParentKey: "deploy", TitleKey: deployTaskMenuTitleKey, Path: "/business/deploy/task", Component: "business/deploy/task/DeployTaskList", PagePerm: "business:deploy:task:view", Type: "C", Icon: "clock", Module: deployModuleKey, RouteName: deployTaskListRoute, Sort: 4},
 		{Key: "operations-deploy-task-detail", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermDetailKey, Perms: "business:deploy:task:detail", Type: "F", Module: deployModuleKey, Sort: 1},
 		{Key: "operations-deploy-task-create", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermCreateKey, Perms: "business:deploy:task:create", Type: "F", Module: deployModuleKey, Sort: 2},
@@ -77,6 +86,7 @@ func seedDeployMenus(db *gorm.DB) error {
 		{Key: "operations-deploy-task-start", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermStartKey, Perms: "business:deploy:task:start", Type: "F", Module: deployModuleKey, Sort: 5},
 		{Key: "operations-deploy-task-cancel", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermCancelKey, Perms: "business:deploy:task:cancel", Type: "F", Module: deployModuleKey, Sort: 6},
 		{Key: "operations-deploy-task-mark-result", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermMarkResultKey, Perms: "business:deploy:task:mark-result", Type: "F", Module: deployModuleKey, Sort: 7},
+		{Key: "operations-deploy-task-export", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermExportKey, Perms: "business:deploy:task:export", Type: "F", Module: deployModuleKey, Sort: 8},
 	})
 }
 
@@ -229,6 +239,16 @@ func seedDeployI18n(db *gorm.DB) error {
 		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermCancelKey, Value: "Cancel deployment tasks"},
 		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermMarkResultKey, Value: "标记执行结果"},
 		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermMarkResultKey, Value: "Mark execution result"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTemplatePermExportKey, Value: "导出任务模板"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTemplatePermExportKey, Value: "Export deployment templates"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTemplatePermImportKey, Value: "导入任务模板"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTemplatePermImportKey, Value: "Import deployment templates"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployPackagePermExportKey, Value: "导出部署包"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployPackagePermExportKey, Value: "Export deployment packages"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployPackagePermImportKey, Value: "导入部署包"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployPackagePermImportKey, Value: "Import deployment packages"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermExportKey, Value: "导出部署任务"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermExportKey, Value: "Export deployment tasks"},
 	}
 	for _, seed := range entries {
 		var existingID uint64

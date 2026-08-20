@@ -81,7 +81,7 @@ type fakeDeploySSHRunner struct {
 	err    error
 }
 
-func (r *fakeDeploySSHRunner) RunScript(script string) (string, string, error) {
+func (r *fakeDeploySSHRunner) RunScript(_ context.Context, script string) (string, string, error) {
 	r.script = script
 	return r.stdout, r.stderr, r.err
 }
@@ -115,7 +115,7 @@ func uint64Ptr(value uint64) *uint64 {
 	return &value
 }
 
-func (r *multiStepDeploySSHRunner) RunScript(script string) (string, string, error) {
+func (r *multiStepDeploySSHRunner) RunScript(_ context.Context, script string) (string, string, error) {
 	r.scripts = append(r.scripts, script)
 	index := len(r.scripts) - 1
 	stdout := ""

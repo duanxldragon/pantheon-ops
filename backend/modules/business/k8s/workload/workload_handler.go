@@ -75,7 +75,7 @@ func (h *WorkloadHandler) Scale(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	if err := h.svc.Scale(clusterID, namespace, kind, name, req.Replicas, common.GetDataScope(c)); err != nil {
+	if err := h.svc.ScaleWithResourceVersion(clusterID, namespace, kind, name, req.Replicas, req.ResourceVersion, common.GetDataScope(c)); err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.workload.scale_failed")
 		return
 	}
@@ -91,7 +91,7 @@ func (h *WorkloadHandler) Restart(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	if err := h.svc.Restart(clusterID, namespace, kind, name, common.GetDataScope(c)); err != nil {
+	if err := h.svc.RestartWithResourceVersion(clusterID, namespace, kind, name, c.Query("resourceVersion"), common.GetDataScope(c)); err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.workload.restart_failed")
 		return
 	}

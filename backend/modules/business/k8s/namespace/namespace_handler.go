@@ -76,7 +76,7 @@ func (h *NamespaceHandler) Delete(c *gin.Context) {
 		return
 	}
 	name := c.Param("name")
-	if err := h.svc.Delete(clusterID, name, common.GetDataScope(c)); err != nil {
+	if err := h.svc.Delete(clusterID, name, c.Query("resourceVersion"), common.GetDataScope(c)); err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.namespace.delete_failed")
 		return
 	}
