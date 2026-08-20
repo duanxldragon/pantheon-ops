@@ -61,6 +61,9 @@ type ConfigMapDetail struct {
 	ResourceVersion string            `json:"resourceVersion"`
 }
 
+// ConfigMapListQuery contains pagination and namespace filters.
+//
+//nolint:revive // Public DTO name is retained for compatibility.
 type ConfigMapListQuery struct {
 	Namespace     string `form:"namespace"`
 	Limit         int64  `form:"limit"`
@@ -154,6 +157,7 @@ func (s *ConfigMapService) Delete(clusterID uint64, namespace, name string, data
 	return s.DeleteWithResourceVersion(clusterID, namespace, name, "", dataScope)
 }
 
+// DeleteWithResourceVersion deletes a ConfigMap when its resource version matches.
 func (s *ConfigMapService) DeleteWithResourceVersion(clusterID uint64, namespace, name, expectedResourceVersion string, dataScope *common.DataScopeReq) error {
 	if s.namespaceSvc == nil {
 		return errors.New("k8s.namespace.binding_required")
