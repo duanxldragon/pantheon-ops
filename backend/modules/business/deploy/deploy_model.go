@@ -208,6 +208,8 @@ type DeployHostLease struct {
 func (DeployHostLease) TableName() string { return "biz_deploy_host_lease" }
 
 // DeployTaskAttempt records one durable worker execution claim per host.
+//
+//nolint:revive // Public model name retains the deploy domain prefix for compatibility.
 type DeployTaskAttempt struct {
 	ID             uint64     `gorm:"primaryKey;autoIncrement" json:"id"`
 	TaskID         uint64     `gorm:"not null;index" json:"taskId"`
@@ -228,6 +230,8 @@ func (DeployTaskAttempt) TableName() string { return "biz_deploy_task_attempt" }
 
 // DeployCredentialRef holds an encrypted SSH secret. The plaintext is never
 // serialized and a task stores only this immutable reference id/version.
+//
+//nolint:revive // Public model name retains the deploy domain prefix for compatibility.
 type DeployCredentialRef struct {
 	ID              uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
 	Name            string         `gorm:"size:128;not null;uniqueIndex:uk_deploy_credential_name_deleted" json:"name"`
