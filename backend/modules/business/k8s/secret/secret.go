@@ -65,6 +65,9 @@ type SecretDetail struct {
 	ResourceVersion string   `json:"resourceVersion"`
 }
 
+// SecretListQuery contains pagination and namespace filters.
+//
+//nolint:revive // Public DTO name is retained for compatibility.
 type SecretListQuery struct {
 	Namespace     string `form:"namespace"`
 	Limit         int64  `form:"limit"`
@@ -177,6 +180,7 @@ func (s *SecretService) Delete(clusterID uint64, namespace, name string, dataSco
 	return s.DeleteWithResourceVersion(clusterID, namespace, name, "", dataScope)
 }
 
+// DeleteWithResourceVersion deletes a Secret when its resource version matches.
 func (s *SecretService) DeleteWithResourceVersion(clusterID uint64, namespace, name, expectedResourceVersion string, dataScope *common.DataScopeReq) error {
 	if s.namespaceSvc == nil {
 		return errors.New("k8s.namespace.binding_required")
