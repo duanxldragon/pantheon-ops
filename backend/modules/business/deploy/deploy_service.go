@@ -1165,14 +1165,6 @@ func (s *DeployService) failQueuedTask(taskID uint64, actor string, reason error
 	_ = s.db.Model(&DeployTask{}).Where("id = ? AND status = ?", taskID, TaskStatusRunning).Updates(map[string]any{"status": TaskStatusFailed, "finished_at": &now, "updated_by": actor, "updated_at": now}).Error
 }
 
-func mustExecutionPlan(s *DeployService, task DeployTask) []deployExecutionStep {
-	plan, err := s.resolveTaskExecutionPlan(task)
-	if err != nil {
-		return nil
-	}
-	return plan
-}
-
 func (s *DeployService) taskCanceled(taskID uint64) bool {
 	var task DeployTask
 	return s.db.Select("status").First(&task, taskID).Error == nil && task.Status == TaskStatusCanceled
