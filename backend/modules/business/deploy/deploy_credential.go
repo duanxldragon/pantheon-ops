@@ -16,6 +16,8 @@ import (
 )
 
 const deployCredentialKeyEnv = "PANTHEON_DEPLOY_CREDENTIAL_KEY"
+const deployCredentialAuthModePassword = "password"
+const deployCredentialAuthModePrivateKey = "private_key"
 
 func encryptDeployCredential(value string) (string, error) {
 	key, err := deployCredentialKey()
@@ -56,7 +58,7 @@ func (s *DeployService) ListCredentials() ([]DeployCredentialResponse, error) {
 
 // CreateCredential encrypts and stores a deploy credential, returning metadata only.
 func (s *DeployService) CreateCredential(req CreateDeployCredentialRequest, actor string) (*DeployCredentialResponse, error) {
-	if req.AuthMode != "password" && req.AuthMode != "private_key" {
+	if req.AuthMode != deployCredentialAuthModePassword && req.AuthMode != deployCredentialAuthModePrivateKey {
 		return nil, errors.New("business.deploy.credential.auth_mode_invalid")
 	}
 	secret, err := encryptDeployCredential(req.Secret)
@@ -88,7 +90,7 @@ func (s *DeployService) UpdateCredential(id uint64, req UpdateDeployCredentialRe
 		updates["username"] = strings.TrimSpace(*req.Username)
 	}
 	if req.AuthMode != nil {
-		if *req.AuthMode != "password" && *req.AuthMode != "private_key" {
+		if *req.AuthMode != deployCredentialAuthModePassword && *req.AuthMode != deployCredentialAuthModePrivateKey {
 			return nil, errors.New("business.deploy.credential.auth_mode_invalid")
 		}
 		updates["auth_mode"] = *req.AuthMode
@@ -188,7 +190,7 @@ func (s *DeployService) resolveStartCredential(req StartTaskRequest) (StartTaskR
 		return req, 0, err
 	}
 	req.SSHUser, req.AuthMode = ref.Username, ref.AuthMode
-	if ref.AuthMode == "private_key" {
+	if ref.AuthMode == deployCredentialAuthModePrivateKey {
 		req.SSHPrivateKey = secret
 	} else {
 		req.SSHPassword = secret
