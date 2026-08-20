@@ -574,7 +574,74 @@ const generatedenUSFallback = {
   "business.deploy.task.sshAuthFailed": "SSH authentication failed",
   "business.deploy.task.sshConnectFailed": "SSH connection failed",
   "business.deploy.task.templateParamsInvalid": "The deployment template parameters are incomplete or invalid",
-  "business.deploy.task.templateInvalid": "The deployment template is invalid"
+  "business.deploy.task.templateInvalid": "The deployment template is invalid",
+
+  // Observability Module
+  "operations.observability.menu": "Observability",
+  "operations.observability.metrics.sources.menu": "Metric Sources",
+  "operations.observability.alerts.rules.menu": "Alert Rules",
+  "operations.observability.alerts.records.menu": "Alert History",
+  "operations.observability.alerts.active.menu": "Active Alerts",
+  "operations.observability.alerts.channels.menu": "Notification Channels",
+
+  "business.observability.hero.eyebrow": "Operations Platform / Observability",
+  "business.observability.hero.title": "Unified metrics, alerts, and notification management",
+  "business.observability.hero.metricSources": "Metric Sources",
+  "business.observability.hero.alertRules": "Alert Rules",
+  "business.observability.hero.activeAlerts": "Active Alerts",
+  "business.observability.hero.channels": "Channels",
+
+  "business.observability.field.name": "Name",
+  "business.observability.field.type": "Type",
+  "business.observability.field.endpoint": "Endpoint",
+  "business.observability.field.status": "Status",
+  "business.observability.field.businessScope": "Business Scope",
+  "business.observability.field.environment": "Environment",
+  "business.observability.field.severity": "Severity",
+  "business.observability.field.promql": "PromQL",
+  "business.observability.field.duration": "Duration",
+  "business.observability.field.firedAt": "Fired At",
+  "business.observability.field.resolvedAt": "Resolved At",
+  "business.observability.field.channels": "Channels",
+  "business.observability.field.keywordPlaceholder": "Search keywords",
+
+  "business.observability.status.active": "Active",
+  "business.observability.status.inactive": "Inactive",
+  "business.observability.status.enabled": "Enabled",
+  "business.observability.status.disabled": "Disabled",
+
+  "business.observability.severity.critical": "Critical",
+  "business.observability.severity.warning": "Warning",
+  "business.observability.severity.info": "Info",
+
+  "business.observability.type.prometheus": "Prometheus",
+  "business.observability.type.victoria-metrics": "VictoriaMetrics",
+  "business.observability.type.email": "Email",
+  "business.observability.type.dingtalk": "DingTalk",
+  "business.observability.type.wechat": "WeChat Work",
+  "business.observability.type.slack": "Slack",
+
+  "business.observability.action.create": "Create",
+  "business.observability.action.edit": "Edit",
+  "business.observability.action.delete": "Delete",
+  "business.observability.action.enable": "Enable",
+  "business.observability.action.disable": "Disable",
+  "business.observability.action.test": "Test",
+  "business.observability.action.validate": "Validate",
+
+  "business.observability.permission.metric_source.view": "View metric sources",
+  "business.observability.permission.metric_source.create": "Create metric sources",
+  "business.observability.permission.metric_source.update": "Update metric sources",
+  "business.observability.permission.metric_source.delete": "Delete metric sources",
+  "business.observability.permission.alert_rule.view": "View alert rules",
+  "business.observability.permission.alert_rule.create": "Create alert rules",
+  "business.observability.permission.alert_rule.update": "Update alert rules",
+  "business.observability.permission.alert_rule.delete": "Delete alert rules",
+  "business.observability.permission.alert_record.view": "View alert records",
+  "business.observability.permission.notification_channel.view": "View notification channels",
+  "business.observability.permission.notification_channel.create": "Create notification channels",
+  "business.observability.permission.notification_channel.update": "Update notification channels",
+  "business.observability.permission.notification_channel.delete": "Delete notification channels"
 };
 
 export default generatedenUSFallback;

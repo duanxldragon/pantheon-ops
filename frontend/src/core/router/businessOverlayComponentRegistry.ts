@@ -27,4 +27,9 @@ export const businessOverlayComponentRegistry = {
   'business/k8s/workload/WorkloadList': defineRegistryEntry(() => import('../../modules/business/k8s/workload/WorkloadList')),
   'business/k8s/release/ReleaseList': defineRegistryEntry(() => import('../../modules/business/k8s/release/ReleaseList')),
   'business/service/ServiceList': defineRegistryEntry(() => import('../../modules/business/service/ServiceList')),
+  'business/observability/MetricSourceList': defineRegistryEntry(() => import('../../modules/business/observability/views/MetricSourceList')),
+  'business/observability/AlertRuleList': defineRegistryEntry(() => import('../../modules/business/observability/views/AlertRuleList')),
+  'business/observability/AlertRecordList': defineRegistryEntry(() => import('../../modules/business/observability/views/AlertRecordList')),
+  'business/observability/ActiveAlertList': defineRegistryEntry(() => import('../../modules/business/observability/views/ActiveAlertList')),
+  'business/observability/NotificationChannelList': defineRegistryEntry(() => import('../../modules/business/observability/views/NotificationChannelList')),
 } satisfies Record<string, RegistryEntry>;

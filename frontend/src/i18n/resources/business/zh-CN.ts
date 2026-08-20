@@ -579,7 +579,74 @@ const generatedzhCNFallback = {
   "business.deploy.task.sshAuthFailed": "SSH 认证失败",
   "business.deploy.task.sshConnectFailed": "SSH 连接失败",
   "business.deploy.task.templateParamsInvalid": "部署模板参数不完整或模板变量无效",
-  "business.deploy.task.templateInvalid": "部署模板配置无效"
+  "business.deploy.task.templateInvalid": "部署模板配置无效",
+
+  // Observability Module
+  "operations.observability.menu": "可观测性",
+  "operations.observability.metrics.sources.menu": "指标源",
+  "operations.observability.alerts.rules.menu": "告警规则",
+  "operations.observability.alerts.records.menu": "告警历史",
+  "operations.observability.alerts.active.menu": "活跃告警",
+  "operations.observability.alerts.channels.menu": "通知渠道",
+
+  "business.observability.hero.eyebrow": "运维平台 / 可观测性",
+  "business.observability.hero.title": "统一的指标、告警与通知管理",
+  "business.observability.hero.metricSources": "指标源",
+  "business.observability.hero.alertRules": "告警规则",
+  "business.observability.hero.activeAlerts": "活跃告警",
+  "business.observability.hero.channels": "通知渠道",
+
+  "business.observability.field.name": "名称",
+  "business.observability.field.type": "类型",
+  "business.observability.field.endpoint": "端点",
+  "business.observability.field.status": "状态",
+  "business.observability.field.businessScope": "业务域",
+  "business.observability.field.environment": "环境",
+  "business.observability.field.severity": "严重性",
+  "business.observability.field.promql": "PromQL",
+  "business.observability.field.duration": "持续时间",
+  "business.observability.field.firedAt": "触发时间",
+  "business.observability.field.resolvedAt": "恢复时间",
+  "business.observability.field.channels": "通知渠道",
+  "business.observability.field.keywordPlaceholder": "搜索关键词",
+
+  "business.observability.status.active": "启用",
+  "business.observability.status.inactive": "停用",
+  "business.observability.status.enabled": "启用",
+  "business.observability.status.disabled": "停用",
+
+  "business.observability.severity.critical": "严重",
+  "business.observability.severity.warning": "警告",
+  "business.observability.severity.info": "信息",
+
+  "business.observability.type.prometheus": "Prometheus",
+  "business.observability.type.victoria-metrics": "VictoriaMetrics",
+  "business.observability.type.email": "邮件",
+  "business.observability.type.dingtalk": "钉钉",
+  "business.observability.type.wechat": "企业微信",
+  "business.observability.type.slack": "Slack",
+
+  "business.observability.action.create": "新建",
+  "business.observability.action.edit": "编辑",
+  "business.observability.action.delete": "删除",
+  "business.observability.action.enable": "启用",
+  "business.observability.action.disable": "停用",
+  "business.observability.action.test": "测试",
+  "business.observability.action.validate": "验证",
+
+  "business.observability.permission.metric_source.view": "查看指标源",
+  "business.observability.permission.metric_source.create": "创建指标源",
+  "business.observability.permission.metric_source.update": "编辑指标源",
+  "business.observability.permission.metric_source.delete": "删除指标源",
+  "business.observability.permission.alert_rule.view": "查看告警规则",
+  "business.observability.permission.alert_rule.create": "创建告警规则",
+  "business.observability.permission.alert_rule.update": "编辑告警规则",
+  "business.observability.permission.alert_rule.delete": "删除告警规则",
+  "business.observability.permission.alert_record.view": "查看告警记录",
+  "business.observability.permission.notification_channel.view": "查看通知渠道",
+  "business.observability.permission.notification_channel.create": "创建通知渠道",
+  "business.observability.permission.notification_channel.update": "编辑通知渠道",
+  "business.observability.permission.notification_channel.delete": "删除通知渠道"
 };
 
 export default generatedzhCNFallback;
