@@ -26,6 +26,7 @@ English version: [README.en.md](./README.en.md)
 | [designs/BUSINESS_ARCHITECTURE_REVIEW.md](./designs/BUSINESS_ARCHITECTURE_REVIEW.md) / [designs/BUSINESS_ARCHITECTURE_REVIEW.en.md](./designs/BUSINESS_ARCHITECTURE_REVIEW.en.md) | 当前工作树的正式业务架构评审、评分、P0/P1/P2 和最终判断 |
 | [designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.md](./designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.md) / [designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.en.md](./designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.en.md) | CMDB、业务目录、变更执行、Kubernetes 和可观测性事实源的目标设计 |
 | [designs/BUSINESS_DEVELOPMENT_PLAN.md](./designs/BUSINESS_DEVELOPMENT_PLAN.md) / [designs/BUSINESS_DEVELOPMENT_PLAN.en.md](./designs/BUSINESS_DEVELOPMENT_PLAN.en.md) | V1 交付工作包、8 周排期、依赖、停点和 V2-V4 后续路线 |
+| [assessments/ARCHITECTURE_REVIEW_REPORT_2026_08_20.md](./assessments/ARCHITECTURE_REVIEW_REPORT_2026_08_20.md) | **2026-08-20 架构评审报告**：资深 SRE 架构师全面评审，综合评分 7.3/10，发现 3 个 P0 阻断问题 |
 | [designs/BUSINESS_QA_ACCEPTANCE_PLAN.md](./designs/BUSINESS_QA_ACCEPTANCE_PLAN.md) / [designs/BUSINESS_QA_ACCEPTANCE_PLAN.en.md](./designs/BUSINESS_QA_ACCEPTANCE_PLAN.en.md) | P0/P1/P2 QA 验收问题、准入矩阵和发布退出条件 |
 | [designs/BUSINESS_TEST_PLAN.md](./designs/BUSINESS_TEST_PLAN.md) / [designs/BUSINESS_TEST_PLAN.en.md](./designs/BUSINESS_TEST_PLAN.en.md) | 单元、契约、不变量、跨模块 smoke、MySQL/K8s/SSH 外部验收测试计划 |
 | [../DESIGN.md](../DESIGN.md) / [../DESIGN.en.md](../DESIGN.en.md) | 仓库级总体设计与继承的基座设计立场 |

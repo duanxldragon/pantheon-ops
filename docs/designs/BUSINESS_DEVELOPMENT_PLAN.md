@@ -1,13 +1,17 @@
 # pantheon-ops 业务开发计划
 
-更新时间：2026-08-18  
+更新时间：2026-08-20  
 类型：Plan  
 归属层：business  
-状态：Complete with explicit external gates
+状态：V1 Complete - V2 Planning Required  
 基线：[BUSINESS_ARCHITECTURE_REVIEW.md](./BUSINESS_ARCHITECTURE_REVIEW.md)  
-目标设计：[BUSINESS_TARGET_ARCHITECTURE_DESIGN.md](./BUSINESS_TARGET_ARCHITECTURE_DESIGN.md)
+目标设计：[BUSINESS_TARGET_ARCHITECTURE_DESIGN.md](./BUSINESS_TARGET_ARCHITECTURE_DESIGN.md)  
+架构评审：[ARCHITECTURE_REVIEW_REPORT_2026_08_20.md](../assessments/ARCHITECTURE_REVIEW_REPORT_2026_08_20.md)
 
-本文把架构评审结论转换为可排期的业务开发计划。V1 代码、隔离验收和回滚演练已完成；消费仓根 Harness 严格门禁等待 Base 发布一个通过 Release Gate 的 foundation release。时间按连续 8 个开发周估算，角色是责任边界，不预设具体人员。
+本文把架构评审结论转换为可排期的业务开发计划。V1 代码、隔离验收和回滚演练已完成；消费仓根 Harness 严格门禁等待 Base 发布一个通过 Release Gate 的 foundation release。
+
+**2026-08-20 架构评审更新:**  
+外部架构评审发现 3 个 P0 阻断问题,V1 需补齐后才能进入生产级交付。V2 开发计划需重新调整优先级,可观测性模块必须前置。详见 [架构评审报告](../assessments/ARCHITECTURE_REVIEW_REPORT_2026_08_20.md)。
 
 ## 1. 目标和范围
 

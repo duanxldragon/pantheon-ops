@@ -2,11 +2,12 @@
 
 English version: [BUSINESS_CMDB_MODULE_DESIGN.en.md](./BUSINESS_CMDB_MODULE_DESIGN.en.md)
 
-更新时间：2026-07-17
+更新时间：2026-08-20
 
 类型：Design
 归属层：business/cmdb
-状态：Active
+状态：Active - Boundary Cleanup Required
+架构评审影响：[ARCHITECTURE_REVIEW_REPORT_2026_08_20.md](../assessments/ARCHITECTURE_REVIEW_REPORT_2026_08_20.md) P0-2
 
 本文定义运维平台 CMDB（轻量级配置管理数据库）模块设计，替代此前已退役的 `business/cmdb` 低代码验证样本设计。
 
@@ -21,6 +22,39 @@ CMDB 是运维平台的第一个子系统，负责主机资源台账、标签体
 独立业务模块：
 
 - `business/bizscope`：业务域管理。业务域不属于 CMDB 子模块，但与 CMDB 主机关联，作为主机分配和后续部署的信任来源。
+- `business/service`：服务与服务实例管理。**2026-08-20 新增**，作为 P0 阻断问题的修复，详见 [Service 模块设计](./BUSINESS_SERVICE_MODULE_DESIGN.md)。
+
+---
+
+## 0. 架构评审更新 (2026-08-20)
+
+**P0-2 职责边界污染问题:**
+
+`biz_cmdb_host` 表的 `installed_components` 和 `status` 字段由 Deploy 模块回写，违反了"CMDB 只负责资源台账，不负责运行态"的设计原则。
+
+**边界收敛计划 (1周内完成):**
+
+1. **已装组件迁移:**
+   - `biz_cmdb_host.installed_components` 字段标记为 **deprecated**
+   - 数据迁移到 `biz_service_instance.installed_packages`
+   - Deploy 模块停止回写 `installed_components`
+
+2. **状态简化:**
+   - `biz_cmdb_host.status` 简化为 `pending` / `assigned` 两种台账状态
+   - 运行态状态由 `biz_service_instance.deployment_status` 表达
+   - 原 `online` / `offline` / `maintenance` 语义迁移到 ServiceInstance
+
+3. **新增连通性状态:**
+   - 新增 `biz_cmdb_host.connectivity_status` 字段表达网络可达性
+   - 取值：`reachable` / `unreachable` / `unknown`
+   - 由监控模块或 Agent 回写，CMDB 不主动探测
+
+**迁移后的职责边界:**
+- **CMDB:** 资源身份台账（IP/主机名/配置/标签/业务域归属）
+- **ServiceInstance:** 服务实例运行态（已装组件/部署状态/健康状态）
+- **监控模块:** 连通性探测（网络可达/Agent 心跳）
+
+详见: [Service 模块设计](./BUSINESS_SERVICE_MODULE_DESIGN.md)
 
 ---
 
@@ -60,8 +94,8 @@ CMDB 是业务模块，属于运维平台能力域。它负责承载基础资源
 跨模块约束：
 
 - 下游子系统（部署管理、监控告警等）通过 API 读取 CMDB 主机信息，不允许直接访问 CMDB 数据库。
-- 主机状态（`status`）和已装组件（`installed_components`）由下游子系统通过 API 更新，CMDB 不主动探测。
-- `assigned` 表示主机已绑定业务域，处于部署前置态；`online` 表示部署完成后进入可运维态。
+- **已废弃:** ~~主机状态（`status`）和已装组件（`installed_components`）由下游子系统通过 API 更新。~~ **2026-08-20 架构评审:** 运行态数据迁移到 `biz_service_instance`，CMDB 只保留台账状态。
+- `assigned` 表示主机已绑定业务域，处于部署前置态；部署相关状态由 ServiceInstance 管理。
 
 ## 3. 核心业务对象
 
@@ -189,31 +223,36 @@ LabelSchema 可以维护 `options` 作为 CMDB 业务域内的常用值清单。
 - `childCount`：直接子分组数量。
 - `descendantGroupCount`：所有层级下级分组数量。
 
-### 4.3 主机状态流转
+### 4.3 主机状态流转（已简化 - 2026-08-20）
+
+**新状态模型（台账状态）:**
 
 ```
-pending（待上线） → assigned（已分配） → online（可运维）
-                                         ↘ offline（已下线）
-                                         ↘ maintenance（维护中）
+pending（待分配） → assigned（已分配业务域）
 ```
 
 - 新录入主机默认 `pending`。
 - 绑定业务域后置为 `assigned`。
-- 部署完成后由部署模块回写为 `online`，表示该主机已进入可运维目标集合。
-- 状态由下游子系统（监控告警、部署管理）通过 API 更新。
-- CMDB 自身不做存活检测。
+- **运行态状态已迁移:** 原 `online/offline/maintenance` 状态迁移到 `biz_service_instance.deployment_status`。
 
-`status` 表示运维状态，不表示实时网络连通性：
+**连通性状态（独立字段 - V2 补充）:**
 
-| status | 展示语义 | 运维含义 |
+- `connectivity_status`: `reachable` / `unreachable` / `unknown`
+- `last_reachable_at`: 最后可达时间
+- `last_check_at`: 最后检查时间
+- `last_check_error`: 最后检查错误信息
+
+| status | 展示语义 | CMDB 职责 |
 | :--- | :--- | :--- |
-| `pending` | 待上线 | 已录入但尚未纳入正式运维目标 |
-| `assigned` | 已分配 | 已绑定业务域，等待安装部署 |
-| `online` | 可运维 | 部署完成，可作为常规运维任务目标 |
-| `offline` | 已下线 | 不应作为常规运维任务目标 |
-| `maintenance` | 维护中 | 默认排除自动化批量任务，除非显式选择 |
+| `pending` | 待分配 | 已录入但尚未绑定业务域 |
+| `assigned` | 已分配 | 已绑定业务域，等待部署服务实例 |
 
-实时连通性应由后续监控、Agent 或连接探测能力维护，建议独立字段为 `connectivity_status`、`last_reachable_at`、`last_check_at`、`last_check_error`。不要把 `online/offline` 当作 SSH 是否可连接的判断。
+**已废弃状态（迁移到 ServiceInstance）:**
+- ~~`online`~~ → `ServiceInstance.deployment_status = deployed`
+- ~~`offline`~~ → `ServiceInstance.deployment_status = stopped`
+- ~~`maintenance`~~ → `ServiceInstance.deployment_status = maintenance`
+
+实时连通性由监控模块或 Agent 维护 `connectivity_status`，不要把台账状态当作 SSH 是否可连接的判断。
 
 ## 5. 数据模型设计
 
@@ -234,8 +273,9 @@ pending（待上线） → assigned（已分配） → online（可运维）
 | `memory_gb` | decimal(8,1) | 内存 (GB) | 采集或手动填写 |
 | `disk_gb` | decimal(10,1) | 磁盘总容量 (GB) | 采集或手动填写 |
 | `label_values` | json | 标签键值对 | `[{"key":"env","val":"production"}]` |
-| `installed_components` | json | 已装组件 | `[{"name":"mysql","version":"8.0.35"}]` |
-| `status` | varchar(32) | 主机状态 | DEFAULT `pending`，`online`/`offline`/`maintenance` |
+| `installed_components` | json | **[DEPRECATED 2026-08-20]** 已装组件，迁移到 `biz_service_instance.installed_packages` | 停止使用，仅保留历史数据 |
+| `status` | varchar(32) | **[简化 2026-08-20]** 台账状态：`pending` / `assigned` | DEFAULT `pending` |
+| `connectivity_status` | varchar(32) | **[新增 V2]** 连通性状态：`reachable` / `unreachable` / `unknown` | 监控模块回写 |
 | `business_scope_id` | bigint | 绑定的业务域 ID 快照 | INDEX |
 | `business_scope_code` | varchar(64) | 绑定的业务域编码快照 | 可选 |
 | `business_scope_name` | varchar(128) | 绑定的业务域名称快照 | 可选 |

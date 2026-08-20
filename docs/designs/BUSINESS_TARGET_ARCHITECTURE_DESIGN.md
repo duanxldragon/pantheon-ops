@@ -1,12 +1,30 @@
 # pantheon-ops 目标业务架构设计
 
-更新时间：2026-08-18  
+更新时间：2026-08-20  
 类型：Design  
 归属层：business  
-状态：Proposed  
-关联评审：[BUSINESS_ARCHITECTURE_REVIEW.md](./BUSINESS_ARCHITECTURE_REVIEW.md)
+状态：Proposed - Under Review  
+关联评审：[BUSINESS_ARCHITECTURE_REVIEW.md](./BUSINESS_ARCHITECTURE_REVIEW.md)  
+最新评审：[ARCHITECTURE_REVIEW_REPORT_2026_08_20.md](../assessments/ARCHITECTURE_REVIEW_REPORT_2026_08_20.md)
 
 本文定义 pantheon-ops 从当前模块化单体演进到企业级 SRE 平台的业务目标架构。它只规定 ops 业务域的边界、对象和交互；平台壳层、IAM、组织、审计、工作流、配置和通用 UI 仍以 `pantheon-base` 为唯一来源。
+
+## 0. 架构评审结论 (2026-08-20)
+
+**综合评分:** 7.3/10  
+**评审状态:** 架构设计优秀,但存在 3 个 P0 阻断问题
+
+**关键发现:**
+1. **P0 阻断:** ServiceInstance 抽象层完全缺失 - 无法建立业务视图
+2. **P0 阻断:** CMDB 职责边界污染 - `installed_components` 和 `status` 由 Deploy 回写
+3. **P0 阻断:** 可观测性完全缺失 - Metrics/Logs/Tracing 未实现
+
+**立即行动:**
+- 补齐 `business/service` 模块 (2周)
+- 收敛 CMDB/Deploy 边界 (1周)  
+- 启动 Observability 模块集成 Prometheus (4周)
+
+详见: [完整架构评审报告](../assessments/ARCHITECTURE_REVIEW_REPORT_2026_08_20.md)
 
 ## 1. 设计原则
 
