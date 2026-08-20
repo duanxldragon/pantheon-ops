@@ -41,6 +41,8 @@ type Cluster struct {
 
 // ClusterCredentialRef stores encrypted kubeconfig material separately from
 // cluster metadata. Secret material never crosses the API DTO boundary.
+//
+//nolint:revive // Public model name retains the cluster domain prefix for compatibility.
 type ClusterCredentialRef struct {
 	ID        uint64 `gorm:"primaryKey;autoIncrement"`
 	ClusterID uint64 `gorm:"not null;index"`
@@ -51,6 +53,7 @@ type ClusterCredentialRef struct {
 	UpdatedAt time.Time
 }
 
+// TableName returns the Kubernetes cluster credential reference table name.
 func (ClusterCredentialRef) TableName() string { return "biz_k8s_cluster_credential_ref" }
 
 // TableName returns the Kubernetes cluster table name.
