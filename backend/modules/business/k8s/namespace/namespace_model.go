@@ -2,6 +2,9 @@ package namespace
 
 import "time"
 
+// NamespaceBinding maps a cluster namespace to a business scope.
+//
+//nolint:revive // Public model name is retained for compatibility.
 type NamespaceBinding struct {
 	ID              uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
 	ClusterID       uint64    `gorm:"not null;uniqueIndex:uk_k8s_namespace_binding" json:"clusterId"`
@@ -15,4 +18,5 @@ type NamespaceBinding struct {
 	UpdatedAt       time.Time `json:"updatedAt"`
 }
 
+// TableName returns the namespace binding table name.
 func (NamespaceBinding) TableName() string { return "biz_k8s_namespace_binding" }
