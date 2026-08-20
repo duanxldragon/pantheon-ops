@@ -1,8 +1,6 @@
 package observability
 
 import (
-	"pantheon-ops/backend/internal/models/common"
-
 	"gorm.io/gorm"
 )
 

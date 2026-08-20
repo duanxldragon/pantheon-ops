@@ -228,7 +228,7 @@ func (s *Service) GetNotificationChannel(id uint64) (*NotificationChannel, error
 }
 
 // ListNotificationChannels retrieves notification channels with pagination.
-func (s *Service) ListNotificationChannels(page, pageSize int, filters map[string]interface) ([]*NotificationChannel, int64, error) {
+func (s *Service) ListNotificationChannels(page, pageSize int, filters map[string]interface{}) ([]*NotificationChannel, int64, error) {
 	if page < 1 {
 		page = 1
 	}
