@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 	"os"
 	"testing"
 
@@ -63,28 +62,27 @@ func TestProductionSnapshotRollbackAndReapply(t *testing.T) {
 }
 
 type businessUniqueKeySpec struct {
-	table               string
-	activeExpression    string
-	generatedColumn     string
-	generatedExpression string
-	index               string
+	table           string
+	duplicateQuery  string
+	generatedQuery  string
+	generatedColumn string
+	index           string
 }
 
 var businessUniqueKeySpecs = []businessUniqueKeySpec{
-	{table: "biz_business_scope", activeExpression: "`code`", generatedColumn: "active_code", generatedExpression: "IF(`deleted_at` IS NULL, `code`, NULL)", index: "uk_business_scope_code_active"},
-	{table: "biz_cmdb_host", activeExpression: "`ip`", generatedColumn: "active_ip", generatedExpression: "IF(`deleted_at` IS NULL, `ip`, NULL)", index: "uk_cmdb_host_ip_active"},
-	{table: "biz_cmdb_label_schema", activeExpression: "`key`", generatedColumn: "active_key", generatedExpression: "IF(`deleted_at` IS NULL, `key`, NULL)", index: "uk_cmdb_label_schema_key_active"},
-	{table: "biz_deploy_package", activeExpression: "CONCAT(`name`, '#', `version`)", generatedColumn: "active_name_version", generatedExpression: "IF(`deleted_at` IS NULL, CONCAT(`name`, '#', `version`), NULL)", index: "uk_deploy_package_name_version_active"},
-	{table: "biz_deploy_template", activeExpression: "CONCAT(`name`, '#', `version`)", generatedColumn: "active_name_version", generatedExpression: "IF(`deleted_at` IS NULL, CONCAT(`name`, '#', `version`), NULL)", index: "uk_deploy_template_name_version_active"},
-	{table: "biz_k8s_cluster", activeExpression: "`code`", generatedColumn: "active_code", generatedExpression: "IF(`deleted_at` IS NULL, `code`, NULL)", index: "uk_k8s_cluster_code_active"},
+	{table: "biz_business_scope", duplicateQuery: "SELECT COUNT(*) FROM (SELECT `code` FROM `biz_business_scope` WHERE `deleted_at` IS NULL GROUP BY `code` HAVING COUNT(*) > 1) duplicate_keys", generatedQuery: "SELECT COUNT(*) FROM `biz_business_scope` WHERE NOT (`active_code` <=> IF(`deleted_at` IS NULL, `code`, NULL))", generatedColumn: "active_code", index: "uk_business_scope_code_active"},
+	{table: "biz_cmdb_host", duplicateQuery: "SELECT COUNT(*) FROM (SELECT `ip` FROM `biz_cmdb_host` WHERE `deleted_at` IS NULL GROUP BY `ip` HAVING COUNT(*) > 1) duplicate_keys", generatedQuery: "SELECT COUNT(*) FROM `biz_cmdb_host` WHERE NOT (`active_ip` <=> IF(`deleted_at` IS NULL, `ip`, NULL))", generatedColumn: "active_ip", index: "uk_cmdb_host_ip_active"},
+	{table: "biz_cmdb_label_schema", duplicateQuery: "SELECT COUNT(*) FROM (SELECT `key` FROM `biz_cmdb_label_schema` WHERE `deleted_at` IS NULL GROUP BY `key` HAVING COUNT(*) > 1) duplicate_keys", generatedQuery: "SELECT COUNT(*) FROM `biz_cmdb_label_schema` WHERE NOT (`active_key` <=> IF(`deleted_at` IS NULL, `key`, NULL))", generatedColumn: "active_key", index: "uk_cmdb_label_schema_key_active"},
+	{table: "biz_deploy_package", duplicateQuery: "SELECT COUNT(*) FROM (SELECT CONCAT(`name`, '#', `version`) FROM `biz_deploy_package` WHERE `deleted_at` IS NULL GROUP BY CONCAT(`name`, '#', `version`) HAVING COUNT(*) > 1) duplicate_keys", generatedQuery: "SELECT COUNT(*) FROM `biz_deploy_package` WHERE NOT (`active_name_version` <=> IF(`deleted_at` IS NULL, CONCAT(`name`, '#', `version`), NULL))", generatedColumn: "active_name_version", index: "uk_deploy_package_name_version_active"},
+	{table: "biz_deploy_template", duplicateQuery: "SELECT COUNT(*) FROM (SELECT CONCAT(`name`, '#', `version`) FROM `biz_deploy_template` WHERE `deleted_at` IS NULL GROUP BY CONCAT(`name`, '#', `version`) HAVING COUNT(*) > 1) duplicate_keys", generatedQuery: "SELECT COUNT(*) FROM `biz_deploy_template` WHERE NOT (`active_name_version` <=> IF(`deleted_at` IS NULL, CONCAT(`name`, '#', `version`), NULL))", generatedColumn: "active_name_version", index: "uk_deploy_template_name_version_active"},
+	{table: "biz_k8s_cluster", duplicateQuery: "SELECT COUNT(*) FROM (SELECT `code` FROM `biz_k8s_cluster` WHERE `deleted_at` IS NULL GROUP BY `code` HAVING COUNT(*) > 1) duplicate_keys", generatedQuery: "SELECT COUNT(*) FROM `biz_k8s_cluster` WHERE NOT (`active_code` <=> IF(`deleted_at` IS NULL, `code`, NULL))", generatedColumn: "active_code", index: "uk_k8s_cluster_code_active"},
 }
 
 func assertNoActiveBusinessKeyDuplicates(t *testing.T, db *sql.DB) {
 	t.Helper()
 	for _, spec := range businessUniqueKeySpecs {
-		query := fmt.Sprintf("SELECT COUNT(*) FROM (SELECT %s FROM `%s` WHERE `deleted_at` IS NULL GROUP BY %s HAVING COUNT(*) > 1) duplicate_keys", spec.activeExpression, spec.table, spec.activeExpression)
 		var count int64
-		if err := db.QueryRow(query).Scan(&count); err != nil {
+		if err := db.QueryRow(spec.duplicateQuery).Scan(&count); err != nil {
 			t.Fatalf("scan active duplicate keys for %s: %v", spec.table, err)
 		}
 		if count != 0 {
@@ -96,9 +94,8 @@ func assertNoActiveBusinessKeyDuplicates(t *testing.T, db *sql.DB) {
 func assertBusinessGeneratedKeysAndIndexes(t *testing.T, db *sql.DB) {
 	t.Helper()
 	for _, spec := range businessUniqueKeySpecs {
-		query := fmt.Sprintf("SELECT COUNT(*) FROM `%s` WHERE NOT (`%s` <=> %s)", spec.table, spec.generatedColumn, spec.generatedExpression)
 		var mismatches int64
-		if err := db.QueryRow(query).Scan(&mismatches); err != nil {
+		if err := db.QueryRow(spec.generatedQuery).Scan(&mismatches); err != nil {
 			t.Fatalf("validate generated key for %s.%s: %v", spec.table, spec.generatedColumn, err)
 		}
 		if mismatches != 0 {
