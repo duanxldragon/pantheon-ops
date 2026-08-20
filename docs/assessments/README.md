@@ -12,10 +12,15 @@
 
 ### 2026-08-20 评审待办事项
 
+**2026-08-20 更新: V1 状态重新评估完成，P0-1 误判已修正**
+
 **P0 阻断问题 (必须解决):**
-- [ ] P0-1: 补齐 ServiceInstance 抽象层 (预计2周)
-- [ ] P0-2: 收敛 CMDB 与 Deploy 边界 (预计1周)
-- [ ] P0-3: 启动 Observability 模块集成 Prometheus (预计4周)
+- [x] P0-1: 补齐 ServiceInstance 抽象层 ~~(预计2周)~~ - **已完成，评审误判**
+  - Service 模块已完整实现（Application/Service/ServiceInstance 三层模型）
+  - 包含完整状态机（desired/observed/health）
+  - 前后端已实现
+- [ ] P0-2: 收敛 CMDB 与 Deploy 边界 (预计1周) - **V2 Sprint 2**
+- [ ] P0-3: 启动 Observability 模块集成 Prometheus (预计4周) - **V2 Sprint 1 进行中**
 
 **P1 优化建议:**
 - [ ] P1-1: 收敛 Execution Center
@@ -27,23 +32,33 @@
 - ✅ [BUSINESS_TARGET_ARCHITECTURE_DESIGN.md](../designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.md) - 已更新状态和评审链接
 - ✅ [BUSINESS_DEVELOPMENT_PLAN.md](../designs/BUSINESS_DEVELOPMENT_PLAN.md) - 已添加评审影响说明
 - ✅ [BUSINESS_CMDB_MODULE_DESIGN.md](../designs/BUSINESS_CMDB_MODULE_DESIGN.md) - 已添加边界清理计划
-- ✅ [BUSINESS_SERVICE_MODULE_DESIGN.md](../designs/BUSINESS_SERVICE_MODULE_DESIGN.md) - 新增 P0 模块设计
+- ✅ [BUSINESS_SERVICE_MODULE_DESIGN.md](../designs/BUSINESS_SERVICE_MODULE_DESIGN.md) - Service 模块已实现（评审误判）
 - ✅ [README.md](../README.md) - 已添加评审报告入口
+
+**新增文档:**
+- ✅ [V1_STATUS_ASSESSMENT.md](../V1_STATUS_ASSESSMENT.md) - V1 状态重新评估（完成度 92%）
+- ✅ [V2_DEVELOPMENT_PLAN.md](../V2_DEVELOPMENT_PLAN.md) - V2 开发计划（10周，3个Sprint）
 
 ## 下一步行动
 
-根据 2026-08-20 架构评审报告，V2 开发计划需调整优先级：
+**V1 状态评估结论 (2026-08-20):**
+- V1 实际完成度：**92%**（而非评审报告的 85%）
+- Service 模块已完整实现，P0-1 问题不存在
+- 唯一真正的 P0 阻断：**可观测性模块完全缺失**
 
-**第一冲刺 (4周):**
-1. Week 1-2: 补齐 Service/ServiceInstance 模块
-2. Week 2: 收敛 CMDB 边界，迁移 installed_components
-3. Week 3-4: 集成 Prometheus，配置至少 10 条告警规则
+**V2 Sprint 1 已启动 (Week 1-4):**
+1. Week 1: Observability 模块骨架和数据模型
+2. Week 2: Prometheus 集成（HTTP API 客户端）
+3. Week 3: 告警规则管理（CRUD + 验证）
+4. Week 4: 告警通知（邮件/钉钉/企业微信）
 
 **验收标准:**
-- ✅ 能回答"HIS 系统有哪些服务实例"
-- ✅ 能在 Grafana 看到主机/容器 CPU/内存指标
-- ✅ 能收到告警通知(邮件/钉钉)
-- ✅ 所有 P0 问题关闭
+- ✅ Prometheus 集成可用
+- ✅ 至少 10 条预置告警规则生效
+- ✅ 邮件和钉钉通知可用
+- ✅ 前端可视化配置告警规则
+
+详见 [V2_DEVELOPMENT_PLAN.md](../V2_DEVELOPMENT_PLAN.md)
 
 ---
 
