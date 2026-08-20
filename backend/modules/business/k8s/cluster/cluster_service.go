@@ -407,6 +407,7 @@ func clusterCredentialResponse(ref *ClusterCredentialRef) ClusterCredentialRespo
 	return ClusterCredentialResponse{ID: ref.ID, ClusterID: ref.ClusterID, Version: ref.Version, Status: ref.Status}
 }
 
+// GetCredential returns redacted credential reference metadata for an authorized cluster.
 func (s *ClusterService) GetCredential(id uint64, dataScope *common.DataScopeReq) (*ClusterCredentialResponse, error) {
 	cluster, err := s.findCluster(id, dataScope)
 	if err != nil {
@@ -423,6 +424,7 @@ func (s *ClusterService) GetCredential(id uint64, dataScope *common.DataScopeReq
 	return &result, nil
 }
 
+// RotateCredential replaces encrypted kubeconfig material for an authorized cluster.
 func (s *ClusterService) RotateCredential(id uint64, req RotateClusterCredentialRequest, actor string, dataScope *common.DataScopeReq) (*ClusterCredentialResponse, error) {
 	if _, err := k8spkg.NewClientFromKubeconfig(req.Kubeconfig); err != nil {
 		return nil, err
