@@ -66,6 +66,8 @@ type ClusterResponse struct {
 
 // ClusterCredentialResponse exposes credential metadata only. Kubeconfig
 // content is intentionally absent from every response shape.
+//
+//nolint:revive // Public DTO name retains the cluster domain prefix for compatibility.
 type ClusterCredentialResponse struct {
 	ID        uint64 `json:"id"`
 	ClusterID uint64 `json:"clusterId"`
@@ -73,6 +75,7 @@ type ClusterCredentialResponse struct {
 	Status    string `json:"status"`
 }
 
+// RotateClusterCredentialRequest contains replacement kubeconfig material.
 type RotateClusterCredentialRequest struct {
 	Kubeconfig string `json:"kubeconfig" binding:"required"`
 }
