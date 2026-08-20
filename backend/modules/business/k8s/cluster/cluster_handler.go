@@ -38,6 +38,7 @@ func (h *ClusterHandler) RegisterRoutes(r gin.IRoutes) {
 	r.POST("/clusters/:id/credential/rotate", h.RotateCredential)
 }
 
+// GetCredential returns redacted credential reference metadata for a cluster.
 func (h *ClusterHandler) GetCredential(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -52,6 +53,7 @@ func (h *ClusterHandler) GetCredential(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// RotateCredential replaces a cluster kubeconfig without returning secret material.
 func (h *ClusterHandler) RotateCredential(c *gin.Context) {
 	common.SetAuditMetadata(c, "k8s.cluster.audit.credential_rotate", common.BusinessUpdate)
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
