@@ -14,14 +14,16 @@ func TestProductionSnapshotRollbackAndReapply(t *testing.T) {
 	if dsn == "" {
 		t.Skip("PANTHEON_SNAPSHOT_REHEARSAL_DSN is not configured")
 	}
-	if err := RunMigrations(dsn); err != nil {
-		t.Fatalf("upgrade restored snapshot: %v", err)
-	}
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		t.Fatalf("open restored snapshot: %v", err)
 	}
 	defer func() { _ = db.Close() }()
+	assertNoActiveBusinessKeyDuplicates(t, db)
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("upgrade restored snapshot: %v", err)
+	}
+	assertBusinessGeneratedKeysAndIndexes(t, db)
 	before := snapshotBusinessRowCounts(t, db)
 
 	source, err := iofs.New(migrationFS, "migrations")
@@ -52,14 +54,73 @@ func TestProductionSnapshotRollbackAndReapply(t *testing.T) {
 			t.Fatalf("row count changed for %s: before=%d after=%d", table, count, after[table])
 		}
 	}
+	assertNoActiveBusinessKeyDuplicates(t, db)
+	assertBusinessGeneratedKeysAndIndexes(t, db)
 	for _, table := range []string{"biz_deploy_task_attempt", "biz_k8s_namespace_binding", "biz_deploy_credential_ref", "biz_k8s_cluster_credential_ref"} {
 		assertSQLTableExists(t, db, table)
 	}
 }
 
+type businessUniqueKeySpec struct {
+	table           string
+	duplicateQuery  string
+	generatedQuery  string
+	generatedColumn string
+	index           string
+}
+
+var businessUniqueKeySpecs = []businessUniqueKeySpec{
+	{table: "biz_business_scope", duplicateQuery: "SELECT COUNT(*) FROM (SELECT `code` FROM `biz_business_scope` WHERE `deleted_at` IS NULL GROUP BY `code` HAVING COUNT(*) > 1) duplicate_keys", generatedQuery: "SELECT COUNT(*) FROM `biz_business_scope` WHERE NOT (`active_code` <=> IF(`deleted_at` IS NULL, `code`, NULL))", generatedColumn: "active_code", index: "uk_business_scope_code_active"},
+	{table: "biz_cmdb_host", duplicateQuery: "SELECT COUNT(*) FROM (SELECT `ip` FROM `biz_cmdb_host` WHERE `deleted_at` IS NULL GROUP BY `ip` HAVING COUNT(*) > 1) duplicate_keys", generatedQuery: "SELECT COUNT(*) FROM `biz_cmdb_host` WHERE NOT (`active_ip` <=> IF(`deleted_at` IS NULL, `ip`, NULL))", generatedColumn: "active_ip", index: "uk_cmdb_host_ip_active"},
+	{table: "biz_cmdb_label_schema", duplicateQuery: "SELECT COUNT(*) FROM (SELECT `key` FROM `biz_cmdb_label_schema` WHERE `deleted_at` IS NULL GROUP BY `key` HAVING COUNT(*) > 1) duplicate_keys", generatedQuery: "SELECT COUNT(*) FROM `biz_cmdb_label_schema` WHERE NOT (`active_key` <=> IF(`deleted_at` IS NULL, `key`, NULL))", generatedColumn: "active_key", index: "uk_cmdb_label_schema_key_active"},
+	{table: "biz_deploy_package", duplicateQuery: "SELECT COUNT(*) FROM (SELECT CONCAT(`name`, '#', `version`) FROM `biz_deploy_package` WHERE `deleted_at` IS NULL GROUP BY CONCAT(`name`, '#', `version`) HAVING COUNT(*) > 1) duplicate_keys", generatedQuery: "SELECT COUNT(*) FROM `biz_deploy_package` WHERE NOT (`active_name_version` <=> IF(`deleted_at` IS NULL, CONCAT(`name`, '#', `version`), NULL))", generatedColumn: "active_name_version", index: "uk_deploy_package_name_version_active"},
+	{table: "biz_deploy_template", duplicateQuery: "SELECT COUNT(*) FROM (SELECT CONCAT(`name`, '#', `version`) FROM `biz_deploy_template` WHERE `deleted_at` IS NULL GROUP BY CONCAT(`name`, '#', `version`) HAVING COUNT(*) > 1) duplicate_keys", generatedQuery: "SELECT COUNT(*) FROM `biz_deploy_template` WHERE NOT (`active_name_version` <=> IF(`deleted_at` IS NULL, CONCAT(`name`, '#', `version`), NULL))", generatedColumn: "active_name_version", index: "uk_deploy_template_name_version_active"},
+	{table: "biz_k8s_cluster", duplicateQuery: "SELECT COUNT(*) FROM (SELECT `code` FROM `biz_k8s_cluster` WHERE `deleted_at` IS NULL GROUP BY `code` HAVING COUNT(*) > 1) duplicate_keys", generatedQuery: "SELECT COUNT(*) FROM `biz_k8s_cluster` WHERE NOT (`active_code` <=> IF(`deleted_at` IS NULL, `code`, NULL))", generatedColumn: "active_code", index: "uk_k8s_cluster_code_active"},
+}
+
+func assertNoActiveBusinessKeyDuplicates(t *testing.T, db *sql.DB) {
+	t.Helper()
+	for _, spec := range businessUniqueKeySpecs {
+		var count int64
+		if err := db.QueryRow(spec.duplicateQuery).Scan(&count); err != nil {
+			t.Fatalf("scan active duplicate keys for %s: %v", spec.table, err)
+		}
+		if count != 0 {
+			t.Fatalf("found %d duplicate active keys in %s", count, spec.table)
+		}
+	}
+}
+
+func assertBusinessGeneratedKeysAndIndexes(t *testing.T, db *sql.DB) {
+	t.Helper()
+	for _, spec := range businessUniqueKeySpecs {
+		var mismatches int64
+		if err := db.QueryRow(spec.generatedQuery).Scan(&mismatches); err != nil {
+			t.Fatalf("validate generated key for %s.%s: %v", spec.table, spec.generatedColumn, err)
+		}
+		if mismatches != 0 {
+			t.Fatalf("found %d generated-key mismatches in %s.%s", mismatches, spec.table, spec.generatedColumn)
+		}
+
+		var nonUnique int
+		var columns string
+		if err := db.QueryRow(`
+SELECT MIN(non_unique), GROUP_CONCAT(column_name ORDER BY seq_in_index)
+FROM information_schema.statistics
+WHERE table_schema = DATABASE() AND table_name = ? AND index_name = ?
+GROUP BY index_name
+`, spec.table, spec.index).Scan(&nonUnique, &columns); err != nil {
+			t.Fatalf("validate unique index %s.%s: %v", spec.table, spec.index, err)
+		}
+		if nonUnique != 0 || columns != spec.generatedColumn {
+			t.Fatalf("unexpected unique index %s.%s: nonUnique=%d columns=%s", spec.table, spec.index, nonUnique, columns)
+		}
+	}
+}
+
 func snapshotBusinessRowCounts(t *testing.T, db *sql.DB) map[string]int64 {
 	t.Helper()
-	tables := []string{"biz_cmdb_group", "biz_cmdb_host", "biz_cmdb_label_schema", "biz_deploy_package", "biz_deploy_template"}
+	tables := []string{"biz_business_scope", "biz_cmdb_group", "biz_cmdb_host", "biz_cmdb_label_schema", "biz_deploy_package", "biz_deploy_template", "biz_k8s_cluster"}
 	counts := make(map[string]int64, len(tables))
 	for _, table := range tables {
 		var count int64
