@@ -192,14 +192,20 @@ func (s *DeployService) ImportTemplates(records [][]string, actor string) (*impe
 			}
 			var item DeployTemplate
 			err := tx.Where("name = ? AND version = ?", name, version).First(&item).Error
-			values := map[string]any{"description": impexp.ReadCSVField(record, index, "description"), "category": impexp.ReadCSVField(record, index, "category"), "execution_mode": impexp.ReadCSVField(record, index, "executionMode"), "default_action": impexp.ReadCSVField(record, index, "defaultAction"), "template_code": impexp.ReadCSVField(record, index, "templateCode"), "status": impexp.ReadCSVField(record, index, "status"), "updated_by": actor}
+			description := impexp.ReadCSVField(record, index, "description")
+			category := impexp.ReadCSVField(record, index, "category")
+			executionMode := impexp.ReadCSVField(record, index, "executionMode")
+			defaultAction := impexp.ReadCSVField(record, index, "defaultAction")
+			templateCode := impexp.ReadCSVField(record, index, "templateCode")
+			status := impexp.ReadCSVField(record, index, "status")
+			values := map[string]any{"description": description, "category": category, "execution_mode": executionMode, "default_action": defaultAction, "template_code": templateCode, "status": status, "updated_by": actor}
 			if err == nil {
 				if err := tx.Model(&item).Updates(values).Error; err != nil {
 					return err
 				}
 				result.Updated++
 			} else if errors.Is(err, gorm.ErrRecordNotFound) {
-				item = DeployTemplate{Name: name, Version: version, Description: values["description"].(string), Category: values["category"].(string), ExecutionMode: values["execution_mode"].(string), DefaultAction: values["default_action"].(string), TemplateCode: values["template_code"].(string), Status: values["status"].(string), CreatedBy: actor, UpdatedBy: actor}
+				item = DeployTemplate{Name: name, Version: version, Description: description, Category: category, ExecutionMode: executionMode, DefaultAction: defaultAction, TemplateCode: templateCode, Status: status, CreatedBy: actor, UpdatedBy: actor}
 				if item.ExecutionMode == "" {
 					item.ExecutionMode = ExecutionModeFixed
 				}
