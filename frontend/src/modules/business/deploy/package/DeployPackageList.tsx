@@ -15,7 +15,7 @@ import {
   Typography,
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
-import { IconDelete, IconEdit, IconEye, IconPlus, IconUpload } from '@arco-design/web-react/icon';
+import { IconDelete, IconDownload, IconEdit, IconEye, IconPlus, IconUpload } from '@arco-design/web-react/icon';
 import { uploadSystemFile } from '../../../../api/upload';
 import { formatDateTime } from '../../../../core/format/dateTime';
 import {
@@ -26,6 +26,7 @@ import {
   GovernanceRailSummary,
   GovernanceRailToggleButton,
   GovernanceSummaryBar,
+  ImportCsvButton,
   ListHeaderActions,
   PageContainer,
   PageEmpty,
@@ -42,6 +43,8 @@ import {
   deleteDeployPackage,
   getDeployPackageList,
   updateDeployPackage,
+  exportDeployPackages,
+  importDeployPackages,
   type DeployPackagePayload,
   type DeployPackageRow,
 } from '../api';
@@ -216,6 +219,8 @@ export default function DeployPackageList() {
   );
 
   const canCreate = hasPerm('business:deploy:package:create');
+  const canExport = hasPerm('business:deploy:package:export');
+  const canImport = hasPerm('business:deploy:package:import');
   const canUpdate = hasPerm('business:deploy:package:update');
   const canDelete = hasPerm('business:deploy:package:delete');
 
@@ -361,6 +366,8 @@ export default function DeployPackageList() {
     }
   };
 
+  const handleImport = async (file: File) => { const result = await importDeployPackages(file); Message.success(t('common.importSummary', { created: result.created, updated: result.updated, failed: result.failed })); await loadData(); };
+
   const handleUploadSource = async (file?: File | null) => {
     if (!file) {
       return;
@@ -444,6 +451,12 @@ export default function DeployPackageList() {
           prefixActions={
             canCreate ? (
               <ListHeaderActions
+                utility={(
+                  <Space>
+                    <Button icon={<IconDownload />} disabled={!canExport} onClick={() => { void exportDeployPackages({ keyword: queryKeyword, status: queryStatus }); }}>{t('common.export')}</Button>
+                    <ImportCsvButton disabled={!canImport} onSelect={(file) => { void handleImport(file); }}>{t('common.import')}</ImportCsvButton>
+                  </Space>
+                )}
                 primary={(
                   <Button type="primary" icon={<IconPlus />} onClick={openCreate}>
                     {t('common.add')}

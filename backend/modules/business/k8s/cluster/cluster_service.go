@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	bizcap "pantheon-base/modules/business/capability"
@@ -62,7 +63,7 @@ func (s *ClusterService) Migrate() error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
-	return s.db.AutoMigrate(&Cluster{})
+	return s.db.AutoMigrate(&Cluster{}, &ClusterCredentialRef{})
 }
 
 func (s *ClusterService) clusterQuery(dataScope *common.DataScopeReq) *gorm.DB {
@@ -110,6 +111,7 @@ func (s *ClusterService) List(query ClusterListQuery, dataScope *common.DataScop
 	items := make([]ClusterResponse, len(clusters))
 	for i, c := range clusters {
 		items[i] = toResponse(&c)
+		s.enrichCredentialMetadata(&items[i], c.KubeconfigCredentialRefID)
 	}
 	return &ClusterListResponse{Items: items, Total: total, Page: query.Page, PageSize: query.PageSize}, nil
 }
@@ -121,6 +123,7 @@ func (s *ClusterService) GetByID(id uint64, dataScope *common.DataScopeReq) (*Cl
 		return nil, err
 	}
 	resp := toResponse(cluster)
+	s.enrichCredentialMetadata(&resp, cluster.KubeconfigCredentialRefID)
 	return &resp, nil
 }
 
@@ -152,21 +155,30 @@ func (s *ClusterService) Create(req CreateClusterRequest, createdBy string, dept
 	}
 
 	cluster := Cluster{
-		Code:                req.Code,
-		Name:                req.Name,
-		Environment:         req.Environment,
-		BusinessScopeID:     req.BusinessScopeID,
-		BusinessScopeName:   businessScopeName,
-		DeptID:              deptID,
-		APIServer:           k8spkg.ExtractAPIServer(req.Kubeconfig),
-		KubeconfigEncrypted: encrypted,
-		Status:              "unknown",
-		Remark:              req.Remark,
-		CreatedBy:           createdBy,
-		UpdatedBy:           createdBy,
+		Code:              req.Code,
+		Name:              req.Name,
+		Environment:       req.Environment,
+		BusinessScopeID:   req.BusinessScopeID,
+		BusinessScopeName: businessScopeName,
+		DeptID:            deptID,
+		APIServer:         k8spkg.ExtractAPIServer(req.Kubeconfig),
+		Status:            "unknown",
+		Remark:            req.Remark,
+		CreatedBy:         createdBy,
+		UpdatedBy:         createdBy,
 	}
 
-	if err := s.db.Create(&cluster).Error; err != nil {
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&cluster).Error; err != nil {
+			return err
+		}
+		ref := ClusterCredentialRef{ClusterID: cluster.ID, Encrypted: encrypted, Version: 1, Status: "active", CreatedAt: time.Now(), UpdatedAt: time.Now()}
+		if err := tx.Create(&ref).Error; err != nil {
+			return err
+		}
+		cluster.KubeconfigCredentialRefID = ref.ID
+		return tx.Model(&cluster).Update("kubeconfig_credential_ref_id", ref.ID).Error
+	}); err != nil {
 		return nil, err
 	}
 	resp := toResponse(&cluster)
@@ -211,11 +223,19 @@ func (s *ClusterService) Update(id uint64, req UpdateClusterRequest, updatedBy s
 		if err != nil {
 			return nil, err
 		}
-		updates["kubeconfig_encrypted"] = encrypted
 		updates["api_server"] = k8spkg.ExtractAPIServer(*req.Kubeconfig)
+		updates["credential_encrypted"] = encrypted
 	}
 
-	if err := s.db.Model(cluster).Updates(updates).Error; err != nil {
+	if err := s.db.Transaction(func(tx *gorm.DB) error {
+		if encrypted, ok := updates["credential_encrypted"].(string); ok {
+			delete(updates, "credential_encrypted")
+			if err := s.rotateCredentialInTransaction(tx, cluster, encrypted, updates); err != nil {
+				return err
+			}
+		}
+		return tx.Model(cluster).Updates(updates).Error
+	}); err != nil {
 		return nil, err
 	}
 	return s.GetByID(id, dataScope)
@@ -258,8 +278,8 @@ func (s *ClusterService) WithClusterLock(id uint64, dataScope *common.DataScopeR
 		var item Cluster
 		query := tx.Model(&Cluster{}).Scopes(database.WithDataScope(dataScope)).
 			Clauses(clause.Locking{Strength: "UPDATE"}).
-			Where(idWhereClause)
-		if err := query.First(&item, id).Error; err != nil {
+			Where(idWhereClause, id)
+		if err := query.First(&item).Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return errors.New("k8s.cluster.not_found")
 			}
@@ -298,7 +318,7 @@ func (s *ClusterService) Sync(id uint64, dataScope *common.DataScopeReq) (*Clust
 	ctx, cancel := context.WithTimeout(context.Background(), syncTimeout)
 	defer cancel()
 
-	clientset, err := k8spkg.NewClientFromEncrypted(cluster.KubeconfigEncrypted)
+	clientset, err := s.clientsetForCluster(cluster)
 	if err != nil {
 		s.markUnreachable(cluster)
 		return nil, err
@@ -341,7 +361,7 @@ func (s *ClusterService) GetNodes(id uint64, dataScope *common.DataScopeReq) (*N
 	ctx, cancel := context.WithTimeout(context.Background(), syncTimeout)
 	defer cancel()
 
-	clientset, err := k8spkg.NewClientFromEncrypted(cluster.KubeconfigEncrypted)
+	clientset, err := s.clientsetForCluster(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -367,7 +387,88 @@ func (s *ClusterService) GetClientset(id uint64, dataScope *common.DataScopeReq)
 	if err != nil {
 		return nil, err
 	}
+	return s.clientsetForCluster(cluster)
+}
+
+func (s *ClusterService) clientsetForCluster(cluster *Cluster) (*kubernetes.Clientset, error) {
+	if cluster.KubeconfigCredentialRefID > 0 {
+		var ref ClusterCredentialRef
+		if err := s.db.First(&ref, cluster.KubeconfigCredentialRefID).Error; err == nil && ref.Status == "active" {
+			return k8spkg.NewClientFromEncrypted(ref.Encrypted)
+		}
+	}
+	if strings.TrimSpace(cluster.KubeconfigEncrypted) == "" {
+		return nil, errors.New("k8s.cluster.credential_not_found")
+	}
 	return k8spkg.NewClientFromEncrypted(cluster.KubeconfigEncrypted)
+}
+
+func clusterCredentialResponse(ref *ClusterCredentialRef) ClusterCredentialResponse {
+	return ClusterCredentialResponse{ID: ref.ID, ClusterID: ref.ClusterID, Version: ref.Version, Status: ref.Status}
+}
+
+// GetCredential returns redacted credential reference metadata for an authorized cluster.
+func (s *ClusterService) GetCredential(id uint64, dataScope *common.DataScopeReq) (*ClusterCredentialResponse, error) {
+	cluster, err := s.findCluster(id, dataScope)
+	if err != nil {
+		return nil, err
+	}
+	if cluster.KubeconfigCredentialRefID == 0 {
+		return nil, errors.New("k8s.cluster.credential_not_found")
+	}
+	var ref ClusterCredentialRef
+	if err := s.db.First(&ref, cluster.KubeconfigCredentialRefID).Error; err != nil {
+		return nil, errors.New("k8s.cluster.credential_not_found")
+	}
+	result := clusterCredentialResponse(&ref)
+	return &result, nil
+}
+
+// RotateCredential replaces encrypted kubeconfig material for an authorized cluster.
+func (s *ClusterService) RotateCredential(id uint64, req RotateClusterCredentialRequest, actor string, dataScope *common.DataScopeReq) (*ClusterCredentialResponse, error) {
+	if _, err := k8spkg.NewClientFromKubeconfig(req.Kubeconfig); err != nil {
+		return nil, err
+	}
+	encrypted, err := k8spkg.EncryptKubeconfig(req.Kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+	var response ClusterCredentialResponse
+	err = s.WithClusterLock(id, dataScope, func(tx *gorm.DB, cluster *Cluster) error {
+		updates := map[string]interface{}{"api_server": k8spkg.ExtractAPIServer(req.Kubeconfig), "updated_by": actor, "updated_at": time.Now()}
+		if err := s.rotateCredentialInTransaction(tx, cluster, encrypted, updates); err != nil {
+			return err
+		}
+		if err := tx.Model(cluster).Updates(updates).Error; err != nil {
+			return err
+		}
+		var ref ClusterCredentialRef
+		if err := tx.First(&ref, cluster.KubeconfigCredentialRefID).Error; err != nil {
+			return err
+		}
+		response = clusterCredentialResponse(&ref)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &response, nil
+}
+
+func (s *ClusterService) rotateCredentialInTransaction(tx *gorm.DB, cluster *Cluster, encrypted string, updates map[string]interface{}) error {
+	// Update is wrapped by the caller's transaction. The active reference is
+	// versioned in place so queued operations can detect a rotated credential.
+	var ref ClusterCredentialRef
+	if cluster.KubeconfigCredentialRefID > 0 && tx.First(&ref, cluster.KubeconfigCredentialRefID).Error == nil {
+		return tx.Model(&ref).Updates(map[string]any{"encrypted": encrypted, "version": ref.Version + 1, "status": "active", "updated_at": time.Now()}).Error
+	}
+	ref = ClusterCredentialRef{ClusterID: cluster.ID, Encrypted: encrypted, Version: 1, Status: "active", CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	if err := tx.Create(&ref).Error; err != nil {
+		return err
+	}
+	cluster.KubeconfigCredentialRefID = ref.ID
+	updates["kubeconfig_credential_ref_id"] = ref.ID
+	return nil
 }
 
 // GetMeta returns the business scope and department ids for a cluster after
@@ -427,7 +528,7 @@ func toResponse(c *Cluster) ClusterResponse {
 	if c.LastSyncedAt != nil {
 		lastSynced = c.LastSyncedAt.Format(time.RFC3339)
 	}
-	return ClusterResponse{
+	response := ClusterResponse{
 		ID:                c.ID,
 		Code:              c.Code,
 		Name:              c.Name,
@@ -452,6 +553,19 @@ func toResponse(c *Cluster) ClusterResponse {
 		UpdatedAt:         c.UpdatedAt.Format(time.RFC3339),
 		CreatedBy:         c.CreatedBy,
 		UpdatedBy:         c.UpdatedBy,
+		CredentialRefID:   c.KubeconfigCredentialRefID,
+	}
+	return response
+}
+
+func (s *ClusterService) enrichCredentialMetadata(response *ClusterResponse, refID uint64) {
+	if refID == 0 || s.db == nil {
+		return
+	}
+	var ref ClusterCredentialRef
+	if s.db.Select("id", "version", "status").First(&ref, refID).Error == nil {
+		response.CredentialVersion = ref.Version
+		response.CredentialStatus = ref.Status
 	}
 }
 

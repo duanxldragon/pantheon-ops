@@ -165,6 +165,23 @@ var seeds = []menuSeed{
 	},
 }
 
+func init() {
+	for _, item := range []struct{ key, perm string }{
+		{"k8s-cluster-sync", "business:k8s:cluster:sync"}, {"k8s-cluster-nodes", "business:k8s:cluster:nodes"},
+		{"k8s-workload-scale", "business:k8s:workload:scale"}, {"k8s-workload-restart", "business:k8s:workload:restart"}, {"k8s-workload-logs", "business:k8s:workload:logs"},
+		{"k8s-namespace-view", "business:k8s:namespace:view"}, {"k8s-namespace-create", "business:k8s:namespace:create"}, {"k8s-namespace-delete", "business:k8s:namespace:delete"},
+		{"k8s-configmap-view", "business:k8s:configmap:view"}, {"k8s-configmap-create", "business:k8s:configmap:create"}, {"k8s-configmap-update", "business:k8s:configmap:update"}, {"k8s-configmap-delete", "business:k8s:configmap:delete"},
+		{"k8s-secret-view", "business:k8s:secret:view"}, {"k8s-secret-create", "business:k8s:secret:create"}, {"k8s-secret-update", "business:k8s:secret:update"}, {"k8s-secret-delete", "business:k8s:secret:delete"},
+	} {
+		titleKey := strings.ReplaceAll(item.perm, ":", ".") + ".permission"
+		seeds = append(seeds, menuSeed{Key: item.key, ParentKey: "k8s", TitleKey: titleKey, Perms: item.perm, Type: "F", Module: k8sModuleKey, Sort: 100})
+		i18nSeeds = append(i18nSeeds,
+			i18nSeed{Module: k8sModuleKey, Locale: "zh-CN", Group: "permission", Key: titleKey, Value: item.perm},
+			i18nSeed{Module: k8sModuleKey, Locale: "en-US", Group: "permission", Key: titleKey, Value: item.perm},
+		)
+	}
+}
+
 type i18nSeed struct {
 	Module string
 	Locale string

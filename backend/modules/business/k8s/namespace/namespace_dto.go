@@ -20,6 +20,10 @@ type NamespaceListResponse struct {
 
 // CreateNamespaceRequest contains namespace creation fields.
 type CreateNamespaceRequest struct {
-	Name   string            `json:"name" binding:"required"`
-	Labels map[string]string `json:"labels"`
+	Name            string            `json:"name" binding:"required"`
+	Labels          map[string]string `json:"labels"`
+	BusinessScopeID uint64            `json:"businessScopeId" binding:"required"`
+	Environment     string            `json:"environment" binding:"required"`
+	AllowedActions  []string          `json:"allowedActions"`
+	ResourceVersion string            `json:"resourceVersion"`
 }

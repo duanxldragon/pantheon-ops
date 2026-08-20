@@ -24,6 +24,7 @@ var migrationFS embed.FS
 const migrationsTableName = "schema_migrations"
 const menuHideInNavCompatMigrationVersion = 6
 const moduleRegistrationCompatMigrationVersion = 8
+const opsSchemaRepairMigrationVersion = 16
 
 type schemaColumnMarker struct {
 	table  string
@@ -69,6 +70,12 @@ func RunMigrations(dsn string) error {
 	if err := bootstrapExistingCurrentSchema(dsn); err != nil {
 		return fmt.Errorf("failed to bootstrap existing current schema: %w", err)
 	}
+	if err := repairLegacyBusinessSchema(dsn); err != nil {
+		return fmt.Errorf("failed to repair legacy business schema: %w", err)
+	}
+	if err := repairSkippedOpsMigrations(dsn); err != nil {
+		return fmt.Errorf("failed to repair skipped ops migrations: %w", err)
+	}
 
 	d, err := iofs.New(migrationFS, "migrations")
 	if err != nil {
@@ -99,6 +106,146 @@ func RunMigrations(dsn string) error {
 	return nil
 }
 
+// repairSkippedOpsMigrations repairs databases that were incorrectly advanced
+// to the latest version by the legacy runtime-schema bootstrap. It only repairs
+// objects whose recorded version says they should already exist.
+func repairSkippedOpsMigrations(dsn string) error {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return fmt.Errorf("open mysql connection: %w", err)
+	}
+	defer func() { _ = db.Close() }()
+
+	version, _, recorded, err := recordedMigrationVersion(db)
+	if err != nil || !recorded || version < opsSchemaRepairMigrationVersion {
+		return err
+	}
+
+	statements := []struct {
+		version int
+		sql     string
+	}{
+		{16, "CREATE TABLE IF NOT EXISTS `biz_deploy_task_attempt` (`id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, `task_id` BIGINT UNSIGNED NOT NULL, `task_host_id` BIGINT UNSIGNED NOT NULL, `attempt_no` INT NOT NULL, `status` VARCHAR(32) NOT NULL DEFAULT 'running', `worker_id` VARCHAR(128) DEFAULT '', `lease_expires_at` DATETIME(3) DEFAULT NULL, `started_at` DATETIME(3) DEFAULT NULL, `finished_at` DATETIME(3) DEFAULT NULL, `error_message` VARCHAR(512) DEFAULT '', `created_at` DATETIME(3) DEFAULT NULL, `updated_at` DATETIME(3) DEFAULT NULL, PRIMARY KEY (`id`), KEY `idx_deploy_attempt_task_host` (`task_host_id`), KEY `idx_deploy_attempt_task_status` (`task_id`, `status`), KEY `idx_deploy_attempt_lease` (`lease_expires_at`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"},
+		{17, "CREATE TABLE IF NOT EXISTS `biz_k8s_namespace_binding` (`id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, `cluster_id` BIGINT UNSIGNED NOT NULL, `namespace` VARCHAR(255) NOT NULL, `business_scope_id` BIGINT UNSIGNED NOT NULL, `environment` VARCHAR(32) NOT NULL, `allowed_actions` TEXT, `created_by` VARCHAR(64) DEFAULT '', `updated_by` VARCHAR(64) DEFAULT '', `created_at` DATETIME(3) DEFAULT NULL, `updated_at` DATETIME(3) DEFAULT NULL, PRIMARY KEY (`id`), UNIQUE KEY `uk_k8s_namespace_binding` (`cluster_id`, `namespace`), KEY `idx_k8s_namespace_binding_scope` (`business_scope_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"},
+		{18, "CREATE TABLE IF NOT EXISTS `biz_deploy_credential_ref` (`id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, `name` VARCHAR(128) NOT NULL, `username` VARCHAR(128) NOT NULL, `auth_mode` VARCHAR(32) NOT NULL, `secret_encrypted` TEXT NOT NULL, `version` BIGINT UNSIGNED NOT NULL DEFAULT 1, `status` VARCHAR(32) NOT NULL DEFAULT 'active', `created_at` DATETIME(3) DEFAULT NULL, `updated_at` DATETIME(3) DEFAULT NULL, `deleted_at` DATETIME(3) DEFAULT NULL, PRIMARY KEY (`id`), UNIQUE KEY `uk_deploy_credential_name_deleted` (`name`, `deleted_at`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"},
+		{19, "CREATE TABLE IF NOT EXISTS `biz_k8s_cluster_credential_ref` (`id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, `cluster_id` BIGINT UNSIGNED NOT NULL, `encrypted` TEXT NOT NULL, `version` BIGINT UNSIGNED NOT NULL DEFAULT 1, `status` VARCHAR(32) NOT NULL DEFAULT 'active', `created_at` DATETIME(3) DEFAULT NULL, `updated_at` DATETIME(3) DEFAULT NULL, PRIMARY KEY (`id`), KEY `idx_k8s_cluster_credential_cluster` (`cluster_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"},
+	}
+	for _, statement := range statements {
+		if version >= statement.version {
+			if _, err := db.Exec(statement.sql); err != nil {
+				return fmt.Errorf("repair ops migration %d: %w", statement.version, err)
+			}
+		}
+	}
+	if version >= 19 {
+		if err := ensureColumnAndIndex(db, "biz_k8s_cluster", "kubeconfig_credential_ref_id", "BIGINT UNSIGNED NOT NULL DEFAULT 0", "idx_k8s_cluster_credential_ref", "(`kubeconfig_credential_ref_id`)"); err != nil {
+			return err
+		}
+	}
+	if version >= 20 {
+		columns := []struct{ name, definition string }{
+			{"credential_ref_id", "BIGINT UNSIGNED NOT NULL DEFAULT 0"},
+			{"credential_ref_version", "BIGINT UNSIGNED NOT NULL DEFAULT 0"},
+			{"ssh_host_fingerprint", "VARCHAR(255) NOT NULL DEFAULT ''"},
+			{"execution_timeout_seconds", "INT NOT NULL DEFAULT 1800"},
+		}
+		for _, column := range columns {
+			if err := ensureColumnAndIndex(db, "biz_deploy_task", column.name, column.definition, "", ""); err != nil {
+				return err
+			}
+		}
+		if err := ensureColumnAndIndex(db, "biz_deploy_task", "credential_ref_id", "BIGINT UNSIGNED NOT NULL DEFAULT 0", "idx_deploy_task_credential_ref", "(`credential_ref_id`)"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func ensureColumnAndIndex(db *sql.DB, table, column, definition, index, indexDefinition string) error {
+	exists, err := tableExists(db, table)
+	if err != nil || !exists {
+		return err
+	}
+	columnPresent, err := columnExists(db, table, column)
+	if err != nil {
+		return err
+	}
+	if !columnPresent {
+		if _, err := db.Exec("ALTER TABLE `" + table + "` ADD COLUMN `" + column + "` " + definition); err != nil {
+			return fmt.Errorf("add %s.%s: %w", table, column, err)
+		}
+	}
+	if index == "" {
+		return nil
+	}
+	indexPresent, err := indexExists(db, table, index)
+	if err != nil {
+		return err
+	}
+	if !indexPresent {
+		if _, err := db.Exec("CREATE INDEX `" + index + "` ON `" + table + "` " + indexDefinition); err != nil {
+			return fmt.Errorf("add index %s.%s: %w", table, index, err)
+		}
+	}
+	return nil
+}
+
+// repairLegacyBusinessSchema handles tables created by the historical
+// AutoMigrate path. The generated keys are already part of migration 000012
+// for a clean install, so this repair is conditional and only touches missing
+// columns/indexes on older tables. Keeping the check in Go avoids MySQL's lack
+// of ALTER TABLE ... ADD COLUMN IF NOT EXISTS support and keeps migration SQL
+// portable across the supported 8.0 releases.
+func repairLegacyBusinessSchema(dsn string) error {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return fmt.Errorf("open mysql connection: %w", err)
+	}
+	defer func() { _ = db.Close() }()
+	if err := db.Ping(); err != nil {
+		return fmt.Errorf("ping mysql connection: %w", err)
+	}
+	type repair struct {
+		table, column, definition, index, indexDefinition string
+	}
+	repairs := []repair{
+		{"biz_business_scope", "active_code", "VARCHAR(255) GENERATED ALWAYS AS (IF(`deleted_at` IS NULL, `code`, NULL)) STORED", "uk_business_scope_code_active", "(`active_code`)"},
+		{"biz_cmdb_host", "active_ip", "VARCHAR(45) GENERATED ALWAYS AS (IF(`deleted_at` IS NULL, `ip`, NULL)) STORED", "uk_cmdb_host_ip_active", "(`active_ip`)"},
+		{"biz_cmdb_label_schema", "active_key", "VARCHAR(64) GENERATED ALWAYS AS (IF(`deleted_at` IS NULL, `key`, NULL)) STORED", "uk_cmdb_label_schema_key_active", "(`active_key`)"},
+		{"biz_deploy_package", "active_name_version", "VARCHAR(255) GENERATED ALWAYS AS (IF(`deleted_at` IS NULL, CONCAT(`name`, '#', `version`), NULL)) STORED", "uk_deploy_package_name_version_active", "(`active_name_version`)"},
+		{"biz_deploy_template", "active_name_version", "VARCHAR(255) GENERATED ALWAYS AS (IF(`deleted_at` IS NULL, CONCAT(`name`, '#', `version`), NULL)) STORED", "uk_deploy_template_name_version_active", "(`active_name_version`)"},
+		{"biz_k8s_cluster", "active_code", "VARCHAR(128) GENERATED ALWAYS AS (IF(`deleted_at` IS NULL, `code`, NULL)) STORED", "uk_k8s_cluster_code_active", "(`active_code`)"},
+	}
+	for _, item := range repairs {
+		exists, err := tableExists(db, item.table)
+		if err != nil || !exists {
+			if err != nil {
+				return err
+			}
+			continue
+		}
+		column, err := columnExists(db, item.table, item.column)
+		if err != nil {
+			return err
+		}
+		if !column {
+			if _, err := db.Exec("ALTER TABLE `" + item.table + "` ADD COLUMN `" + item.column + "` " + item.definition); err != nil {
+				return fmt.Errorf("add %s.%s: %w", item.table, item.column, err)
+			}
+		}
+		idx, err := indexExists(db, item.table, item.index)
+		if err != nil {
+			return err
+		}
+		if !idx {
+			if _, err := db.Exec("CREATE UNIQUE INDEX `" + item.index + "` ON `" + item.table + "` " + item.indexDefinition); err != nil {
+				return fmt.Errorf("add index %s.%s: %w", item.table, item.index, err)
+			}
+		}
+	}
+	return nil
+}
+
 func bootstrapExistingCurrentSchema(dsn string) error {
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
@@ -108,6 +255,13 @@ func bootstrapExistingCurrentSchema(dsn string) error {
 
 	if err := db.Ping(); err != nil {
 		return fmt.Errorf("ping mysql connection: %w", err)
+	}
+	_, dirty, versionRecorded, err := recordedMigrationVersion(db)
+	if err != nil {
+		return err
+	}
+	if versionRecorded && !dirty {
+		return nil
 	}
 
 	latestVersion, err := latestMigrationVersion()

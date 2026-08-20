@@ -29,7 +29,11 @@ func initDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.Deplo
 		bizScopeReader = bizscope.NewService(db)
 	}
 	svc := NewDeployService(db, cmdbCapability, bizScopeReader)
+	svc.SetAsyncExecution(true)
 	svc.SetServiceInstanceStateCommand(stateCommand)
+	// Recover leases and queued work from a prior process before accepting new
+	// deploy starts. Each host is still claimed atomically by the worker.
+	go func() { _, _ = svc.ReconcileDeployQueue("system") }()
 	handler := NewDeployHandler(svc)
 
 	modules := []contracts.BackendModule{

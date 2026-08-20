@@ -64,16 +64,18 @@ CREATE TABLE IF NOT EXISTS `biz_service_instance` (
   KEY `idx_biz_service_instance_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-ALTER TABLE `biz_deploy_task`
-  ADD COLUMN `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER `business_scope_name`,
-  ADD COLUMN `service_instance_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER `service_id`,
-  ADD COLUMN `service_name` VARCHAR(255) DEFAULT '' AFTER `service_instance_id`,
-  ADD COLUMN `service_instance_name` VARCHAR(255) DEFAULT '' AFTER `service_name`,
-  ADD KEY `idx_deploy_task_service_instance` (`service_instance_id`);
+ALTER TABLE `biz_deploy_task` ADD COLUMN `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER `business_scope_name`;
+ALTER TABLE `biz_deploy_task` ADD COLUMN `service_instance_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER `service_id`;
+ALTER TABLE `biz_deploy_task` ADD COLUMN `service_name` VARCHAR(255) DEFAULT '' AFTER `service_instance_id`;
+ALTER TABLE `biz_deploy_task` ADD COLUMN `service_instance_name` VARCHAR(255) DEFAULT '' AFTER `service_name`;
 
-ALTER TABLE `biz_k8s_release`
-  ADD COLUMN `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER `dept_id`,
-  ADD COLUMN `service_instance_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER `service_id`,
-  ADD COLUMN `service_name` VARCHAR(255) DEFAULT '' AFTER `service_instance_id`,
-  ADD COLUMN `service_instance_name` VARCHAR(255) DEFAULT '' AFTER `service_name`,
-  ADD KEY `idx_k8s_release_service_instance` (`service_instance_id`);
+ALTER TABLE `biz_k8s_release` ADD COLUMN `service_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER `dept_id`;
+ALTER TABLE `biz_k8s_release` ADD COLUMN `service_instance_id` BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER `service_id`;
+ALTER TABLE `biz_k8s_release` ADD COLUMN `service_name` VARCHAR(255) DEFAULT '' AFTER `service_instance_id`;
+ALTER TABLE `biz_k8s_release` ADD COLUMN `service_instance_name` VARCHAR(255) DEFAULT '' AFTER `service_name`;
+
+CREATE INDEX `idx_deploy_task_service_instance`
+  ON `biz_deploy_task` (`service_instance_id`);
+
+CREATE INDEX `idx_k8s_release_service_instance`
+  ON `biz_k8s_release` (`service_instance_id`);

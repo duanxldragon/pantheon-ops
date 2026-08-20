@@ -1,0 +1,3 @@
+-- Legacy generated-key repair is performed by the migration runner after an
+-- information_schema existence check. This version remains as the durable
+-- migration marker for installations that previously used AutoMigrate.

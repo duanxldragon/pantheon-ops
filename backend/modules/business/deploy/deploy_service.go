@@ -9,6 +9,7 @@ import (
 	"net"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	bizscope "pantheon-base/modules/business/bizscope"
@@ -28,6 +29,42 @@ type DeployService struct {
 	hostReader       bizcap.CMDBHostReader
 	serviceState     bizcap.ServiceInstanceStateCommand
 	sshRunnerFactory func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error)
+	executor         DeployExecutor
+	asyncExecution   bool
+	taskCancels      sync.Map
+}
+
+const deployAttemptMax = 3
+
+const (
+	defaultDeployExecutionTimeout = 30 * time.Minute
+	maxDeployExecutionTimeout     = 24 * time.Hour
+)
+
+// DeployExecutor is the provider boundary for remote task execution. Providers
+// receive a frozen task/host request and must never persist secret material.
+//
+//nolint:revive // Public API name retained for compatibility.
+type DeployExecutor interface {
+	ExecuteHost(context.Context, DeployExecutionHostRequest) error
+}
+
+// DeployExecutionHostRequest is the persisted execution context supplied to a
+// provider. Credential contains decrypted material only in process memory.
+//
+//nolint:revive // Public API name retained for compatibility.
+type DeployExecutionHostRequest struct {
+	Task       DeployTask
+	TaskHost   TaskHostResponse
+	Credential StartTaskRequest
+	Actor      string
+}
+
+type sshDeployExecutor struct{ service *DeployService }
+
+func (e *sshDeployExecutor) ExecuteHost(ctx context.Context, req DeployExecutionHostRequest) error {
+	target := cmdbHostSnapshot{ID: req.TaskHost.HostID, Hostname: req.TaskHost.Hostname, IP: req.TaskHost.HostIP, SSHPort: req.TaskHost.SSHPort, OS: req.TaskHost.OS, BusinessScopeID: req.TaskHost.BusinessScopeID}
+	return e.service.executeSSHHost(ctx, req.Task, target, req.TaskHost, req.Credential, req.Actor)
 }
 
 type deployExecutionStep struct {
@@ -100,13 +137,28 @@ func NewDeployService(db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, rea
 		bizScopeReader = bizscope.NewService(db)
 	}
 	hostReader, _ := cmdbCapability.(bizcap.CMDBHostReader)
-	return &DeployService{
+	service := &DeployService{
 		db:               db,
 		cmdbCapability:   cmdbCapability,
 		bizScopeReader:   bizScopeReader,
 		hostReader:       hostReader,
 		sshRunnerFactory: newDeploySSHRunner,
 	}
+	service.executor = &sshDeployExecutor{service: service}
+	return service
+}
+
+// SetAsyncExecution enables the same-process durable worker used by production
+// module wiring. Tests can leave it disabled to exercise execution inline.
+func (s *DeployService) SetAsyncExecution(enabled bool) { s.asyncExecution = enabled }
+
+// SetExecutor replaces the remote execution provider. A nil provider restores
+// the SSH provider used by this module.
+func (s *DeployService) SetExecutor(executor DeployExecutor) {
+	if executor == nil {
+		executor = &sshDeployExecutor{service: s}
+	}
+	s.executor = executor
 }
 
 // SetServiceInstanceStateCommand configures service-instance state writeback.
@@ -118,7 +170,7 @@ func (s *DeployService) Migrate() error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
-	return s.db.AutoMigrate(&DeployPackage{}, &DeployTemplate{}, &DeployTemplateStep{}, &DeployTask{}, &DeployTaskHost{}, &DeployHostLease{})
+	return s.db.AutoMigrate(&DeployPackage{}, &DeployTemplate{}, &DeployTemplateStep{}, &DeployTask{}, &DeployTaskHost{}, &DeployHostLease{}, &DeployTaskAttempt{}, &DeployCredentialRef{})
 }
 
 func (s *DeployService) CreatePackage(req CreatePackageRequest, actor string) (*PackageResponse, error) {
@@ -885,6 +937,7 @@ func (s *DeployService) StartTask(id uint64, req StartTaskRequest, actor string,
 	if err != nil {
 		return nil, err
 	}
+	credentialVersion := uint64(0)
 	key := strings.TrimSpace(req.IdempotencyKey)
 
 	// Reject or replay non-draft/pending states before attempting any claim.
@@ -896,6 +949,16 @@ func (s *DeployService) StartTask(id uint64, req StartTaskRequest, actor string,
 		return nil, errors.New(errDeployTaskAlreadyRunning)
 	case TaskStatusSuccess, TaskStatusFailed, TaskStatusCanceled:
 		return nil, errors.New("business.deploy.task.invalidStartState")
+	}
+	if task.ExecutorType == ExecutorTypeSSH {
+		if err := validateCredentialReferenceRequest(req); err != nil {
+			return nil, err
+		}
+		resolvedReq, version, err := s.resolveStartCredential(req)
+		if err != nil {
+			return nil, err
+		}
+		req, credentialVersion = resolvedReq, version
 	}
 
 	// Validate the frozen execution snapshot before mutating anything.
@@ -919,17 +982,22 @@ func (s *DeployService) StartTask(id uint64, req StartTaskRequest, actor string,
 	}
 
 	now := time.Now()
+	timeout := normalizeDeployExecutionTimeout(req.TimeoutSeconds)
 	leaseOwner := deployHostLeaseOwner(task.ID)
 	claimErr := s.db.Transaction(func(tx *gorm.DB) error {
 		result := tx.Model(&DeployTask{}).
 			Where(idWhereClause, task.ID).
 			Where("status IN ?", []string{TaskStatusDraft, TaskStatusPending}).
 			Updates(map[string]interface{}{
-				"status":            TaskStatusRunning,
-				"started_at":        &now,
-				"start_request_key": key,
-				"updated_by":        actor,
-				"updated_at":        now,
+				"status":                    TaskStatusRunning,
+				"started_at":                &now,
+				"start_request_key":         key,
+				"credential_ref_id":         req.CredentialRefID,
+				"credential_ref_version":    credentialVersion,
+				"ssh_host_fingerprint":      strings.TrimSpace(req.HostFingerprint),
+				"execution_timeout_seconds": int(timeout.Seconds()),
+				"updated_by":                actor,
+				"updated_at":                now,
 			})
 		if result.Error != nil {
 			return result.Error
@@ -995,11 +1063,173 @@ func (s *DeployService) StartTask(id uint64, req StartTaskRequest, actor string,
 		return nil, err
 	}
 	if task.ExecutorType == ExecutorTypeSSH {
-		if err := s.executeSSHTask(*task, hosts, req, actor); err != nil {
+		if s.asyncExecution {
+			go s.runAsyncTask(task.ID, actor)
+		} else if err := s.executeSSHTask(*task, hosts, req, actor); err != nil {
 			return nil, err
 		}
 	}
 	return s.GetTask(id, dataScope)
+}
+
+func (s *DeployService) runAsyncTask(taskID uint64, actor string) {
+	workerID := fmt.Sprintf("deploy-worker:%d", time.Now().UnixNano())
+	_, _ = s.ReconcileDeployAttempts(time.Now())
+	var task DeployTask
+	if err := s.db.First(&task, taskID).Error; err != nil {
+		return
+	}
+	req, err := s.startRequestForTask(task)
+	if err != nil {
+		s.failQueuedTask(taskID, actor, err)
+		return
+	}
+	var hosts []DeployTaskHost
+	if err := s.db.Where("task_id = ?", taskID).Order("id ASC").Find(&hosts).Error; err != nil {
+		return
+	}
+	for _, host := range hosts {
+		if s.taskCanceled(taskID) {
+			_ = releaseHostLease(s.db, host.HostID, deployHostLeaseOwner(taskID))
+			return
+		}
+		for attemptNo := 0; attemptNo < deployAttemptMax; attemptNo++ {
+			attempt := s.claimAttempt(taskID, host.ID, workerID)
+			if attempt == nil {
+				break
+			}
+			target := cmdbHostSnapshot{ID: host.HostID, Hostname: host.Hostname, IP: host.HostIP, SSHPort: host.SSHPort, OS: host.OS, BusinessScopeID: host.BusinessScopeID}
+			ctx, cancel := context.WithTimeout(context.Background(), deployExecutionTimeout(task))
+			s.taskCancels.Store(taskID, cancel)
+			err := s.executeTaskHostContext(ctx, task, target, taskHostToResponse(&host), req, actor)
+			cancel()
+			s.taskCancels.Delete(taskID)
+			var completed DeployTaskHost
+			if loadErr := s.db.First(&completed, host.ID).Error; loadErr != nil {
+				err = loadErr
+			} else if completed.Status == TaskHostStatusFailed {
+				err = errors.New(completed.ErrorMessage)
+			} else if completed.Status == TaskHostStatusSkipped {
+				err = errors.New("business.deploy.task.canceled")
+			}
+			if err == nil {
+				s.finishAttempt(attempt.ID, workerID, nil)
+				break
+			}
+			s.finishAttempt(attempt.ID, workerID, err)
+			if attemptNo+1 < deployAttemptMax && !s.taskCanceled(taskID) {
+				_ = s.db.Model(&DeployTaskHost{}).Where("id = ?", host.ID).Updates(map[string]any{"status": TaskHostStatusRunning, "error_message": "", "finished_at": nil, "reported_at": nil, "updated_at": time.Now()}).Error
+				continue
+			}
+		}
+		_ = releaseHostLease(s.db, host.HostID, deployHostLeaseOwner(taskID))
+	}
+	_ = s.recomputeTaskStatus(taskID, actor)
+}
+
+func normalizeDeployExecutionTimeout(seconds int) time.Duration {
+	if seconds <= 0 {
+		return defaultDeployExecutionTimeout
+	}
+	duration := time.Duration(seconds) * time.Second
+	if duration > maxDeployExecutionTimeout {
+		return maxDeployExecutionTimeout
+	}
+	return duration
+}
+
+func deployExecutionTimeout(task DeployTask) time.Duration {
+	return normalizeDeployExecutionTimeout(task.ExecutionTimeoutSeconds)
+}
+
+func (s *DeployService) startRequestForTask(task DeployTask) (StartTaskRequest, error) {
+	if task.ExecutorType != ExecutorTypeSSH {
+		return StartTaskRequest{}, nil
+	}
+	if task.CredentialRefID == 0 || strings.TrimSpace(task.SSHHostFingerprint) == "" {
+		return StartTaskRequest{}, errors.New("business.deploy.task.execution_snapshot_missing")
+	}
+	req, version, err := s.resolveStartCredential(StartTaskRequest{CredentialRefID: task.CredentialRefID, HostFingerprint: task.SSHHostFingerprint, TimeoutSeconds: task.ExecutionTimeoutSeconds})
+	if err != nil {
+		return StartTaskRequest{}, err
+	}
+	if version != task.CredentialRefVersion {
+		return StartTaskRequest{}, errors.New("business.deploy.credential.version_changed")
+	}
+	return req, nil
+}
+
+func (s *DeployService) failQueuedTask(taskID uint64, actor string, reason error) {
+	now := time.Now()
+	_ = s.db.Model(&DeployTaskHost{}).Where("task_id = ? AND status IN ?", taskID, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]any{"status": TaskHostStatusFailed, "error_message": truncateDeployLog(reason.Error(), 480), "finished_at": &now, "updated_by": actor, "updated_at": now}).Error
+	_ = s.db.Model(&DeployTask{}).Where("id = ? AND status = ?", taskID, TaskStatusRunning).Updates(map[string]any{"status": TaskStatusFailed, "finished_at": &now, "updated_by": actor, "updated_at": now}).Error
+}
+
+func (s *DeployService) taskCanceled(taskID uint64) bool {
+	var task DeployTask
+	return s.db.Select("status").First(&task, taskID).Error == nil && task.Status == TaskStatusCanceled
+}
+
+func (s *DeployService) claimAttempt(taskID, taskHostID uint64, workerID string) *DeployTaskAttempt {
+	now := time.Now()
+	lease := now.Add(5 * time.Minute)
+	var attempt DeployTaskAttempt
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		var active int64
+		if err := tx.Model(&DeployTaskAttempt{}).Where("task_host_id = ? AND status = ? AND lease_expires_at > ?", taskHostID, "running", now).Count(&active).Error; err != nil {
+			return err
+		}
+		if active > 0 {
+			return errors.New("business.deploy.attempt.active")
+		}
+		var count int64
+		if err := tx.Model(&DeployTaskAttempt{}).Where("task_host_id = ?", taskHostID).Count(&count).Error; err != nil {
+			return err
+		}
+		if count >= deployAttemptMax {
+			return errors.New("business.deploy.attempt.exhausted")
+		}
+		attempt = DeployTaskAttempt{TaskID: taskID, TaskHostID: taskHostID, AttemptNo: int(count) + 1, Status: "running", WorkerID: workerID, LeaseExpiresAt: &lease, StartedAt: &now, CreatedAt: now, UpdatedAt: now}
+		return tx.Create(&attempt).Error
+	})
+	if err != nil {
+		return nil
+	}
+	return &attempt
+}
+
+// ReconcileDeployAttempts makes abandoned worker claims visible to the next
+// worker. It is safe to call periodically or during worker startup.
+func (s *DeployService) ReconcileDeployAttempts(now time.Time) (int64, error) {
+	result := s.db.Model(&DeployTaskAttempt{}).Where("status = ? AND lease_expires_at IS NOT NULL AND lease_expires_at < ?", "running", now).Updates(map[string]any{"status": "retryable", "error_message": "worker lease expired", "finished_at": now, "lease_expires_at": nil, "updated_at": now})
+	return result.RowsAffected, result.Error
+}
+
+// ReconcileDeployQueue resumes durable running tasks after a worker restart.
+// Claims remain protected by attempt leases, so concurrent process startup is
+// safe and at most one worker can execute a task host at a time.
+func (s *DeployService) ReconcileDeployQueue(actor string) (int, error) {
+	if _, err := s.ReconcileDeployAttempts(time.Now()); err != nil {
+		return 0, err
+	}
+	var tasks []DeployTask
+	if err := s.db.Where("status = ? AND executor_type = ?", TaskStatusRunning, ExecutorTypeSSH).Find(&tasks).Error; err != nil {
+		return 0, err
+	}
+	for _, task := range tasks {
+		go s.runAsyncTask(task.ID, actor)
+	}
+	return len(tasks), nil
+}
+
+func (s *DeployService) finishAttempt(id uint64, workerID string, runErr error) {
+	now := time.Now()
+	updates := map[string]any{"status": "success", "finished_at": &now, "updated_at": now, "lease_expires_at": nil}
+	if runErr != nil {
+		updates["status"] = "failed"
+		updates["error_message"] = truncateDeployLog(runErr.Error(), 480)
+	}
+	_ = s.db.Model(&DeployTaskAttempt{}).Where("id = ? AND worker_id = ?", id, workerID).Updates(updates).Error
 }
 
 func (s *DeployService) CancelTask(id uint64, actor string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
@@ -1019,12 +1249,19 @@ func (s *DeployService) CancelTask(id uint64, actor string, dataScope *common.Da
 	}).Error; err != nil {
 		return nil, err
 	}
-	_ = s.db.Model(&DeployTaskHost{}).Where("task_id = ? AND status IN ?", id, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]interface{}{
+	if err := s.db.Model(&DeployTaskHost{}).Where("task_id = ? AND status IN ?", id, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]interface{}{
 		"status":      TaskHostStatusSkipped,
 		"finished_at": &now,
 		"updated_by":  actor,
 		"updated_at":  now,
-	}).Error
+	}).Error; err != nil {
+		return nil, err
+	}
+	if cancel, ok := s.taskCancels.Load(id); ok {
+		if cancelFunc, ok := cancel.(context.CancelFunc); ok {
+			cancelFunc()
+		}
+	}
 	return s.GetTask(id, dataScope)
 }
 
@@ -1685,7 +1922,7 @@ func sameTaskHostReport(host DeployTaskHost, req MarkHostResultRequest, reportKe
 }
 
 type deploySSHRunner interface {
-	RunScript(script string) (stdout string, stderr string, err error)
+	RunScript(ctx context.Context, script string) (stdout string, stderr string, err error)
 	Close() error
 }
 
@@ -1693,7 +1930,7 @@ type deploySSHClient struct {
 	client *ssh.Client
 }
 
-func (c *deploySSHClient) RunScript(script string) (string, string, error) {
+func (c *deploySSHClient) RunScript(ctx context.Context, script string) (string, string, error) {
 	session, err := c.client.NewSession()
 	if err != nil {
 		return "", "", err
@@ -1705,8 +1942,22 @@ func (c *deploySSHClient) RunScript(script string) (string, string, error) {
 	session.Stdout = &stdout
 	session.Stderr = &stderr
 	session.Stdin = strings.NewReader(script)
-	err = session.Run("/bin/bash -se")
+	done := make(chan error, 1)
+	go func() { done <- session.Run("/bin/bash -se") }()
+	select {
+	case err = <-done:
+	case <-ctx.Done():
+		_ = session.Close()
+		err = ctx.Err()
+	}
 	return stdout.String(), stderr.String(), err
+}
+
+func runDeployScript(ctx context.Context, runner deploySSHRunner, script string) (string, string, error) {
+	if err := ctx.Err(); err != nil {
+		return "", "", err
+	}
+	return runner.RunScript(ctx, script)
 }
 
 func (c *deploySSHClient) Close() error {
@@ -1784,8 +2035,7 @@ type deployInstalledComponent struct {
 }
 
 func (s *DeployService) executeSSHTask(task DeployTask, hosts []cmdbHostSnapshot, req StartTaskRequest, actor string) error {
-	plan, err := s.resolveTaskExecutionPlan(task)
-	if err != nil {
+	if _, err := s.resolveTaskExecutionPlan(task); err != nil {
 		return mapDeployTaskExecutionPlanError(err)
 	}
 	taskDetail, err := s.GetTask(task.ID, nil)
@@ -1799,7 +2049,7 @@ func (s *DeployService) executeSSHTask(task DeployTask, hosts []cmdbHostSnapshot
 	}
 
 	for _, target := range hosts {
-		if err := s.executeTaskHost(task, target, taskHostsByID, plan, req, actor); err != nil {
+		if err := s.executeTaskHostContext(context.Background(), task, target, taskHostsByID[target.ID], req, actor); err != nil {
 			return err
 		}
 	}
@@ -1844,10 +2094,17 @@ func (e *taskHostExecution) recordComponent(step deployExecutionStep, task Deplo
 
 // executeTaskHost executes the full plan against one target host and persists
 // the host result, returning a fatal error only when result persistence fails.
-func (s *DeployService) executeTaskHost(task DeployTask, target cmdbHostSnapshot, taskHostsByID map[uint64]TaskHostResponse, plan []deployExecutionStep, req StartTaskRequest, actor string) error {
-	taskHost, ok := taskHostsByID[target.ID]
-	if !ok {
-		return nil
+func (s *DeployService) executeTaskHostContext(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, req StartTaskRequest, actor string) error {
+	if s.executor == nil {
+		s.executor = &sshDeployExecutor{service: s}
+	}
+	return s.executor.ExecuteHost(ctx, DeployExecutionHostRequest{Task: task, TaskHost: taskHost, Credential: req, Actor: actor})
+}
+
+func (s *DeployService) executeSSHHost(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, req StartTaskRequest, actor string) error {
+	plan, err := s.resolveTaskExecutionPlan(task)
+	if err != nil {
+		return mapDeployTaskExecutionPlanError(err)
 	}
 	runner, runnerErr := s.sshRunnerFactory(target, req)
 	if runnerErr != nil {
@@ -1872,15 +2129,15 @@ func (s *DeployService) executeTaskHost(task DeployTask, target cmdbHostSnapshot
 			RemovedComponentNames: make([]string, 0, len(plan)),
 		},
 	}
-	s.runTaskExecutionSteps(task, target, taskHost, runner, plan, execution)
+	s.runTaskExecutionSteps(ctx, task, target, taskHost, runner, plan, execution)
 	return s.finalizeTaskHostExecution(task, taskHost, runner, execution, target.IP, actor)
 }
 
 // runTaskExecutionSteps runs the plan steps for one host, stopping at the first
 // unrecoverable step failure.
-func (s *DeployService) runTaskExecutionSteps(task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, runner deploySSHRunner, plan []deployExecutionStep, execution *taskHostExecution) {
+func (s *DeployService) runTaskExecutionSteps(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, runner deploySSHRunner, plan []deployExecutionStep, execution *taskHostExecution) {
 	for _, step := range plan {
-		if s.executeTaskStep(task, target, taskHost, runner, step, execution) {
+		if s.executeTaskStep(ctx, task, target, taskHost, runner, step, execution) {
 			break
 		}
 	}
@@ -1888,7 +2145,7 @@ func (s *DeployService) runTaskExecutionSteps(task DeployTask, target cmdbHostSn
 
 // executeTaskStep runs a single plan step and records its trace. It returns
 // true when the host loop must stop on an unrecoverable failure.
-func (s *DeployService) executeTaskStep(task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, runner deploySSHRunner, step deployExecutionStep, execution *taskHostExecution) bool {
+func (s *DeployService) executeTaskStep(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, runner deploySSHRunner, step deployExecutionStep, execution *taskHostExecution) bool {
 	stepLabel := buildDeployStepLabel(step)
 	script, renderErr := s.renderExecutionStepScript(step, task, target)
 	if renderErr != nil {
@@ -1897,18 +2154,18 @@ func (s *DeployService) executeTaskStep(task DeployTask, target cmdbHostSnapshot
 		return true
 	}
 	s.appendStepTrace(task, taskHost, step, "step_start", fmt.Sprintf("%s started", stepLabel))
-	if s.runTaskStepCheck(task, target, taskHost, runner, step, execution, taskStepCheckConfig{configKey: "precheckCommand", phase: "precheck", stepLabel: stepLabel}) {
+	if s.runTaskStepCheck(ctx, task, target, taskHost, runner, step, execution, taskStepCheckConfig{configKey: "precheckCommand", phase: "precheck", stepLabel: stepLabel}) {
 		return true
 	}
 	s.appendStepTrace(task, taskHost, step, "script", fmt.Sprintf("%s script rendered", stepLabel))
-	stdout, stderr, execErr := runner.RunScript(script)
+	stdout, stderr, execErr := runDeployScript(ctx, runner, script)
 	execution.recordOutput(step, "script", stdout, stderr)
 	if execErr != nil {
 		execution.executionErr = execErr
 		s.appendStepTrace(task, taskHost, step, "step_failed", execErr.Error())
 		return true
 	}
-	if s.runTaskStepCheck(task, target, taskHost, runner, step, execution, taskStepCheckConfig{configKey: "postcheckCommand", phase: "postcheck", stepLabel: stepLabel}) {
+	if s.runTaskStepCheck(ctx, task, target, taskHost, runner, step, execution, taskStepCheckConfig{configKey: "postcheckCommand", phase: "postcheck", stepLabel: stepLabel}) {
 		return true
 	}
 	s.appendStepTrace(task, taskHost, step, "step_success", fmt.Sprintf("%s completed", stepLabel))
@@ -1926,7 +2183,7 @@ type taskStepCheckConfig struct {
 
 // runTaskStepCheck renders and runs an optional precheck/postcheck snippet,
 // returning true when the host loop must stop.
-func (s *DeployService) runTaskStepCheck(task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, runner deploySSHRunner, step deployExecutionStep, execution *taskHostExecution, check taskStepCheckConfig) bool {
+func (s *DeployService) runTaskStepCheck(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, runner deploySSHRunner, step deployExecutionStep, execution *taskHostExecution, check taskStepCheckConfig) bool {
 	script, hasCheck, checkErr := renderDeployCheckSnippet(step, task, target, check.configKey)
 	if checkErr != nil {
 		execution.executionErr = mapDeployTaskExecutionPlanError(checkErr)
@@ -1937,7 +2194,7 @@ func (s *DeployService) runTaskStepCheck(task DeployTask, target cmdbHostSnapsho
 		return false
 	}
 	s.appendStepTrace(task, taskHost, step, check.phase, fmt.Sprintf("%s %s started", check.stepLabel, check.phase))
-	stdout, stderr, execErr := runner.RunScript(script)
+	stdout, stderr, execErr := runDeployScript(ctx, runner, script)
 	execution.recordOutput(step, check.phase, stdout, stderr)
 	if execErr != nil {
 		execution.executionErr = fmt.Errorf("%s %s failed: %w", check.stepLabel, check.phase, execErr)
@@ -2446,42 +2703,44 @@ func taskToResponse(task *DeployTask, hosts []TaskHostResponse) TaskResponse {
 	}
 	durationSeconds := computeDurationSeconds(task.StartedAt, task.FinishedAt)
 	return TaskResponse{
-		ID:                  task.ID,
-		Name:                task.Name,
-		TemplateID:          task.TemplateID,
-		TemplateName:        task.TemplateName,
-		TemplateVersion:     task.TemplateVersion,
-		PackageID:           task.PackageID,
-		PackageName:         task.PackageName,
-		PackageVersion:      task.PackageVersion,
-		BusinessScopeID:     task.BusinessScopeID,
-		BusinessScopeName:   task.BusinessScopeName,
-		ServiceID:           task.ServiceID,
-		ServiceInstanceID:   task.ServiceInstanceID,
-		ServiceName:         task.ServiceName,
-		ServiceInstanceName: task.ServiceInstanceName,
-		Action:              normalizeTaskAction(task.Action),
-		TargetType:          task.TargetType,
-		TargetIDs:           parseUint64JSON(task.TargetIDs),
-		ExecutorType:        task.ExecutorType,
-		ExecutionMode:       task.ExecutionMode,
-		TemplateParams:      decodeJSONMap(task.TemplateParams),
-		Status:              task.Status,
-		Remark:              task.Remark,
-		ExternalTaskID:      task.ExternalTaskID,
-		StartedAt:           task.StartedAt,
-		FinishedAt:          task.FinishedAt,
-		HostCount:           hostCount,
-		SuccessCount:        successCount,
-		FailedCount:         failedCount,
-		RunningCount:        runningCount,
-		SkippedCount:        skippedCount,
-		DurationSeconds:     durationSeconds,
-		CreatedAt:           task.CreatedAt,
-		UpdatedAt:           task.UpdatedAt,
-		CreatedBy:           task.CreatedBy,
-		UpdatedBy:           task.UpdatedBy,
-		Hosts:               hosts,
+		ID:                   task.ID,
+		Name:                 task.Name,
+		TemplateID:           task.TemplateID,
+		TemplateName:         task.TemplateName,
+		TemplateVersion:      task.TemplateVersion,
+		PackageID:            task.PackageID,
+		PackageName:          task.PackageName,
+		PackageVersion:       task.PackageVersion,
+		BusinessScopeID:      task.BusinessScopeID,
+		BusinessScopeName:    task.BusinessScopeName,
+		ServiceID:            task.ServiceID,
+		ServiceInstanceID:    task.ServiceInstanceID,
+		ServiceName:          task.ServiceName,
+		ServiceInstanceName:  task.ServiceInstanceName,
+		Action:               normalizeTaskAction(task.Action),
+		TargetType:           task.TargetType,
+		TargetIDs:            parseUint64JSON(task.TargetIDs),
+		ExecutorType:         task.ExecutorType,
+		ExecutionMode:        task.ExecutionMode,
+		CredentialRefID:      task.CredentialRefID,
+		CredentialRefVersion: task.CredentialRefVersion,
+		TemplateParams:       decodeJSONMap(task.TemplateParams),
+		Status:               task.Status,
+		Remark:               task.Remark,
+		ExternalTaskID:       task.ExternalTaskID,
+		StartedAt:            task.StartedAt,
+		FinishedAt:           task.FinishedAt,
+		HostCount:            hostCount,
+		SuccessCount:         successCount,
+		FailedCount:          failedCount,
+		RunningCount:         runningCount,
+		SkippedCount:         skippedCount,
+		DurationSeconds:      durationSeconds,
+		CreatedAt:            task.CreatedAt,
+		UpdatedAt:            task.UpdatedAt,
+		CreatedBy:            task.CreatedBy,
+		UpdatedBy:            task.UpdatedBy,
+		Hosts:                hosts,
 	}
 }
 

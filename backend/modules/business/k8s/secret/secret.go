@@ -10,10 +10,12 @@ import (
 	"time"
 
 	"pantheon-base/modules/business/k8s/cluster"
+	"pantheon-base/modules/business/k8s/namespace"
 	"pantheon-base/pkg/common"
 
 	"github.com/gin-gonic/gin"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -22,32 +24,54 @@ const (
 	opTimeout       = 30 * time.Second
 )
 
+func normalizeListLimit(limit int64) int64 {
+	if limit <= 0 {
+		return 100
+	}
+	if limit > 500 {
+		return 500
+	}
+	return limit
+}
+
 // SecretItem summarizes a Kubernetes Secret without exposing values.
 //
 //nolint:revive // DTO names retain the secret domain prefix for generated API clarity.
 type SecretItem struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	Type      string `json:"type"`
-	KeyCount  int    `json:"keyCount"`
+	Name            string `json:"name"`
+	Namespace       string `json:"namespace"`
+	Type            string `json:"type"`
+	KeyCount        int    `json:"keyCount"`
+	ResourceVersion string `json:"resourceVersion"`
 }
 
 // SecretListResponse contains Kubernetes Secret summaries.
 //
 //nolint:revive // DTO names retain the secret domain prefix for generated API clarity.
 type SecretListResponse struct {
-	Items []SecretItem `json:"items"`
-	Total int          `json:"total"`
+	Items         []SecretItem `json:"items"`
+	Total         int          `json:"total"`
+	ContinueToken string       `json:"continueToken"`
 }
 
 // SecretDetail contains Secret metadata and key names, never values.
 //
 //nolint:revive // DTO names retain the secret domain prefix for generated API clarity.
 type SecretDetail struct {
-	Name      string   `json:"name"`
-	Namespace string   `json:"namespace"`
-	Type      string   `json:"type"`
-	Keys      []string `json:"keys"`
+	Name            string   `json:"name"`
+	Namespace       string   `json:"namespace"`
+	Type            string   `json:"type"`
+	Keys            []string `json:"keys"`
+	ResourceVersion string   `json:"resourceVersion"`
+}
+
+// SecretListQuery contains pagination and namespace filters.
+//
+//nolint:revive // Public DTO name is retained for compatibility.
+type SecretListQuery struct {
+	Namespace     string `form:"namespace"`
+	Limit         int64  `form:"limit"`
+	ContinueToken string `form:"continue"`
 }
 
 // CreateSecretRequest contains fields accepted when creating a Secret.
@@ -61,16 +85,17 @@ type CreateSecretRequest struct {
 //
 //nolint:revive // Service names retain the secret domain prefix for module wiring clarity.
 type SecretService struct {
-	clusterSvc *cluster.ClusterService
+	clusterSvc   *cluster.ClusterService
+	namespaceSvc *namespace.NamespaceService
 }
 
 // NewSecretService creates a Kubernetes Secret service.
-func NewSecretService(clusterSvc *cluster.ClusterService) *SecretService {
-	return &SecretService{clusterSvc: clusterSvc}
+func NewSecretService(clusterSvc *cluster.ClusterService, namespaceSvc *namespace.NamespaceService) *SecretService {
+	return &SecretService{clusterSvc: clusterSvc, namespaceSvc: namespaceSvc}
 }
 
 // List returns Secret metadata visible in a namespace.
-func (s *SecretService) List(clusterID uint64, namespace string, dataScope *common.DataScopeReq) (*SecretListResponse, error) {
+func (s *SecretService) List(clusterID uint64, query SecretListQuery, dataScope *common.DataScopeReq) (*SecretListResponse, error) {
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
 		return nil, err
@@ -78,16 +103,16 @@ func (s *SecretService) List(clusterID uint64, namespace string, dataScope *comm
 	ctx, cancel := context.WithTimeout(context.Background(), opTimeout)
 	defer cancel()
 
-	list, err := clientset.CoreV1().Secrets(namespace).List(ctx, metav1.ListOptions{})
+	list, err := clientset.CoreV1().Secrets(query.Namespace).List(ctx, metav1.ListOptions{Limit: normalizeListLimit(query.Limit), Continue: query.ContinueToken})
 	if err != nil {
 		return nil, errors.New("k8s.secret.list_failed")
 	}
 	items := make([]SecretItem, 0, len(list.Items))
 	for i := range list.Items {
 		sc := &list.Items[i]
-		items = append(items, SecretItem{Name: sc.Name, Namespace: sc.Namespace, Type: string(sc.Type), KeyCount: len(sc.Data)})
+		items = append(items, SecretItem{Name: sc.Name, Namespace: sc.Namespace, Type: string(sc.Type), KeyCount: len(sc.Data), ResourceVersion: sc.ResourceVersion})
 	}
-	return &SecretListResponse{Items: items, Total: len(items)}, nil
+	return &SecretListResponse{Items: items, Total: len(items), ContinueToken: list.Continue}, nil
 }
 
 // Get returns Secret metadata and key names without values.
@@ -107,11 +132,17 @@ func (s *SecretService) Get(clusterID uint64, namespace, name string, dataScope 
 	for k := range sc.Data {
 		keys = append(keys, k)
 	}
-	return &SecretDetail{Name: sc.Name, Namespace: sc.Namespace, Type: string(sc.Type), Keys: keys}, nil
+	return &SecretDetail{Name: sc.Name, Namespace: sc.Namespace, Type: string(sc.Type), Keys: keys, ResourceVersion: sc.ResourceVersion}, nil
 }
 
 // Create creates a Secret and returns metadata plus key names.
 func (s *SecretService) Create(clusterID uint64, namespace string, req CreateSecretRequest, dataScope *common.DataScopeReq) (*SecretDetail, error) {
+	if s.namespaceSvc == nil {
+		return nil, errors.New("k8s.namespace.binding_required")
+	}
+	if err := s.namespaceSvc.RequireWrite(clusterID, namespace, "secret:create"); err != nil {
+		return nil, err
+	}
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
 		return nil, err
@@ -141,11 +172,22 @@ func (s *SecretService) Create(clusterID uint64, namespace string, req CreateSec
 	for k := range created.Data {
 		keys = append(keys, k)
 	}
-	return &SecretDetail{Name: created.Name, Namespace: created.Namespace, Type: string(created.Type), Keys: keys}, nil
+	return &SecretDetail{Name: created.Name, Namespace: created.Namespace, Type: string(created.Type), Keys: keys, ResourceVersion: created.ResourceVersion}, nil
 }
 
 // Delete removes a Secret from a namespace.
 func (s *SecretService) Delete(clusterID uint64, namespace, name string, dataScope *common.DataScopeReq) error {
+	return s.DeleteWithResourceVersion(clusterID, namespace, name, "", dataScope)
+}
+
+// DeleteWithResourceVersion deletes a Secret when its resource version matches.
+func (s *SecretService) DeleteWithResourceVersion(clusterID uint64, namespace, name, expectedResourceVersion string, dataScope *common.DataScopeReq) error {
+	if s.namespaceSvc == nil {
+		return errors.New("k8s.namespace.binding_required")
+	}
+	if err := s.namespaceSvc.RequireWrite(clusterID, namespace, "secret:delete"); err != nil {
+		return err
+	}
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
 	if err != nil {
 		return err
@@ -153,7 +195,14 @@ func (s *SecretService) Delete(clusterID uint64, namespace, name string, dataSco
 	ctx, cancel := context.WithTimeout(context.Background(), opTimeout)
 	defer cancel()
 
-	if err := clientset.CoreV1().Secrets(namespace).Delete(ctx, name, metav1.DeleteOptions{}); err != nil {
+	options := metav1.DeleteOptions{}
+	if expectedResourceVersion != "" {
+		options.Preconditions = &metav1.Preconditions{ResourceVersion: &expectedResourceVersion}
+	}
+	if err := clientset.CoreV1().Secrets(namespace).Delete(ctx, name, options); err != nil {
+		if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
+			return common.NewConflict("k8s.secret.resource_version_conflict")
+		}
 		return errors.New("k8s.secret.delete_failed")
 	}
 	return nil
@@ -186,7 +235,12 @@ func (h *SecretHandler) List(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.svc.List(clusterID, c.Query("namespace"), common.GetDataScope(c))
+	var query SecretListQuery
+	if err := c.ShouldBindQuery(&query); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	resp, err := h.svc.List(clusterID, query, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.secret.list_failed")
 		return
@@ -245,7 +299,7 @@ func (h *SecretHandler) Delete(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	if err := h.svc.Delete(clusterID, c.Query("namespace"), c.Param("name"), common.GetDataScope(c)); err != nil {
+	if err := h.svc.DeleteWithResourceVersion(clusterID, c.Query("namespace"), c.Param("name"), c.Query("resourceVersion"), common.GetDataScope(c)); err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.secret.delete_failed")
 		return
 	}

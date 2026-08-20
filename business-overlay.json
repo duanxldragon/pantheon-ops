@@ -8,10 +8,8 @@
     "gorm.io/datatypes": "v1.2.7"
   },
   "replaceRoots": [
-    ".agents",
     ".github",
-    ".harness",
-    "docs"
+    ".harness"
   ],
   "baseExcludedPaths": [
     "scripts/foundation-release",
@@ -70,7 +68,8 @@
     "docs/TASK_PACKET_OPS_TEMPLATE.md",
     "docs/designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md",
     "docs/designs/PLATFORM_SRE_EVOLUTION_PLAN.md",
-    "docs/harness",
+    "docs/harness/failure-registry.md",
+    "docs/harness/tasks",
     "scripts/address-github-feedback.mjs",
     "scripts/business-overlay",
     "scripts/check-duplication.mjs",

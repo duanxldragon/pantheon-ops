@@ -18,7 +18,7 @@ import {
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import type { FormInstance } from '@arco-design/web-react/es/Form';
-import { IconClose, IconDelete, IconEdit, IconEye, IconPlayArrow, IconPlus, IconTool } from '@arco-design/web-react/icon';
+import { IconClose, IconDelete, IconDownload, IconEdit, IconEye, IconPlayArrow, IconPlus, IconTool } from '@arco-design/web-react/icon';
 import {
   AppModal,
   AppTable,
@@ -51,6 +51,7 @@ import {
   getDeployTemplateList,
   startDeployTask,
   updateDeployTask,
+  exportDeployTasks,
   type DeployAction,
   type DeployPackageRow,
   type DeployTaskPayload,
@@ -126,6 +127,7 @@ export default function DeployTaskList() {
   const [routeEditHandledId, setRouteEditHandledId] = useState<number | null>(null);
 
   const canCreate = hasPerm('business:deploy:task:create');
+  const canExport = hasPerm('business:deploy:task:export');
   const canDetail = hasPerm('business:deploy:task:detail');
   const canUpdate = hasPerm('business:deploy:task:update');
   const canDelete = hasPerm('business:deploy:task:delete');
@@ -673,6 +675,9 @@ export default function DeployTaskList() {
           prefixActions={
             canCreate ? (
               <ListHeaderActions
+                utility={(
+                  <Button icon={<IconDownload />} disabled={!canExport} onClick={() => { void exportDeployTasks({ keyword: queryKeyword, status: queryStatus }); }}>{t('common.export')}</Button>
+                )}
                 primary={
                   <Button type="primary" icon={<IconPlus />} onClick={() => openCreate()}>
                     {t('common.add')}
