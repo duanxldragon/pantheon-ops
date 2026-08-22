@@ -59,6 +59,40 @@ function readLock(opsRoot) {
 // ../pantheon-base working tree. When the snapshot is not already cached under
 // releaseArtifact.localPath, download it from the locked GitHub release and rely
 // on the lock's repoSnapshot.sha256 for integrity.
+function downloadReleaseBundle(lock, releaseDir) {
+  const repo = lock.releaseArtifact?.githubRepo;
+  const tag = lock.releaseVersion;
+  const bundleAssetName = lock.releaseArtifact?.assetName;
+  if (!repo || !tag || !bundleAssetName) {
+    throw new Error(
+      'Lock is missing releaseArtifact.githubRepo, releaseVersion, or releaseArtifact.assetName; ' +
+      'cannot download the Base release bundle from GitHub.',
+    );
+  }
+  fs.mkdirSync(releaseDir, { recursive: true });
+  const result = spawnSync(
+    'gh',
+    ['release', 'download', tag, '--repo', repo, '--pattern', bundleAssetName, '--dir', releaseDir],
+    { encoding: 'utf8' },
+  );
+  if (result.status !== 0) {
+    throw new Error(
+      result.stderr.trim() || `failed to download ${bundleAssetName} from GitHub release ${repo}@${tag}`,
+    );
+  }
+  return path.join(releaseDir, bundleAssetName);
+}
+
+export function validateReleaseBundleChecksum(bundlePath, expectedChecksum) {
+  if (!expectedChecksum) return;
+  const actualChecksum = sha256FileHex(bundlePath);
+  if (actualChecksum !== expectedChecksum) {
+    throw new Error(
+      `release bundle checksum mismatch: expected ${expectedChecksum}, got ${actualChecksum} (${path.basename(bundlePath)})`,
+    );
+  }
+}
+
 function downloadRepoSnapshot(lock, releaseDir) {
   const repo = lock.releaseArtifact?.githubRepo;
   const tag = lock.releaseVersion;
@@ -88,6 +122,17 @@ function resolveBaseFromLock(opsRoot) {
   if (!lock?.repoSnapshot || !lock?.releaseArtifact?.localPath) return null;
   const releaseDir = path.resolve(opsRoot, lock.releaseArtifact.localPath);
   const repoDir = path.join(releaseDir, 'repo');
+
+  // Validate the release bundle (.tgz) integrity if available or downloadable.
+  const bundleAssetName = lock.releaseArtifact?.assetName;
+  if (bundleAssetName) {
+    let bundlePath = path.join(releaseDir, bundleAssetName);
+    if (!fs.existsSync(bundlePath)) {
+      bundlePath = downloadReleaseBundle(lock, releaseDir);
+    }
+    validateReleaseBundleChecksum(bundlePath, lock.releaseArtifact?.checksum);
+  }
+
   let repoTar = path.join(releaseDir, lock.repoSnapshot.assetName ?? 'repo.tar');
   if (!fs.existsSync(repoTar)) {
     repoTar = downloadRepoSnapshot(lock, releaseDir);
