@@ -3,7 +3,9 @@ package business
 import (
 	bizscope "pantheon-base/modules/business/bizscope"
 	bizcap "pantheon-base/modules/business/capability"
-	cicd "pantheon-base/modules/business/cicd"
+	// ArgoCD (CICD) module is disabled in v1.0 (shell implementation); the
+	// import stays commented until the v1.2 real integration lands.
+	// cicd "pantheon-base/modules/business/cicd"
 	cmdb "pantheon-base/modules/business/cmdb"
 	deploy "pantheon-base/modules/business/deploy"
 	filedist "pantheon-base/modules/business/filedist"
@@ -45,8 +47,11 @@ func initOverlayBusinessModules(r *gin.RouterGroup, db *gorm.DB) {
 	}
 	observabilityModule.RegisterRoutes(r)
 
-	// Initialize CICD module
-	_ = cicd.InitCICDModule(r, db)
+	// ArgoCD (CICD) module is disabled in v1.0: the current implementation is
+	// a shell (sync fakes Succeeded, connection test always returns true). It
+	// ships as code for the v1.2 real integration (BUSINESS_ARGOCD_MODULE_DESIGN.md)
+	// but its menu, routes and permission seeds are removed until then.
+	// _ = cicd.InitCICDModule(r, db)
 
 	// Initialize file distribution module
 	fileDistModule := filedist.InitFileDistModule(r, db, "./uploads")

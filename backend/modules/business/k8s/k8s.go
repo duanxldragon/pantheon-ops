@@ -4,7 +4,9 @@ import (
 	bizcap "pantheon-base/modules/business/capability"
 	"pantheon-base/modules/business/cmdb/host"
 	"pantheon-base/modules/business/k8s/cluster"
-	"pantheon-base/modules/business/k8s/backup"
+	// Velero backup module is disabled in v1.0 (shell implementation); the
+	// import stays commented until the v1.2 real integration lands.
+	// "pantheon-base/modules/business/k8s/backup"
 	"pantheon-base/modules/business/k8s/configmap"
 	"pantheon-base/modules/business/k8s/helm"
 	"pantheon-base/modules/business/k8s/ingress"
@@ -60,15 +62,17 @@ const (
 	k8sIngressPermUpdateKey    = "business.k8s.ingress.permission.update"
 	k8sIngressPermDeleteKey    = "business.k8s.ingress.permission.delete"
 	operationsK8sStorageMenu   = "operations.k8s.storage.menu"
-	operationsK8sBackupMenu    = "operations.k8s.backup.menu"
 	k8sStoragePermViewKey      = "business.k8s.storage.permission.view"
 	k8sStoragePermCreateKey    = "business.k8s.storage.permission.create"
 	k8sStoragePermUpdateKey    = "business.k8s.storage.permission.update"
 	k8sStoragePermDeleteKey    = "business.k8s.storage.permission.delete"
-	k8sBackupPermViewKey       = "business.k8s.backup.permission.view"
-	k8sBackupPermCreateKey     = "business.k8s.backup.permission.create"
-	k8sBackupPermDeleteKey     = "business.k8s.backup.permission.delete"
-	menuPathWhereClause        = "path = ?"
+	// Velero backup module is disabled in v1.0; the menu/permission keys are
+	// retained as constants for the v1.2 re-enablement (unused in v1.0).
+	operationsK8sBackupMenu = "operations.k8s.backup.menu"
+	k8sBackupPermViewKey    = "business.k8s.backup.permission.view"
+	k8sBackupPermCreateKey  = "business.k8s.backup.permission.create"
+	k8sBackupPermDeleteKey  = "business.k8s.backup.permission.delete"
+	menuPathWhereClause     = "path = ?"
 )
 
 const k8sRoutePath = "/business/k8s"
@@ -96,8 +100,11 @@ func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, hostService *host.HostServic
 	// Initialize K8s Install module
 	installSvc := install.InitInstallModule(r, db, hostService)
 
-	// Initialize Velero Backup module
-	_ = backup.InitBackupModule(r, db, clusterSvc, namespaceSvc)
+	// Velero Backup module is disabled in v1.0: the current implementation is
+	// a shell (no CRD creation, status never reconciled). It ships as code in
+	// the repository for the v1.2 real integration (BUSINESS_BACKUP_MODULE_DESIGN.md)
+	// but its menu, routes and permission seeds are removed until then.
+	// _ = backup.InitBackupModule(r, db, clusterSvc, namespaceSvc)
 
 	// Initialize RBAC module
 	rbacSvc := rbac.InitK8sRBACModule(r, db, clusterSvc)

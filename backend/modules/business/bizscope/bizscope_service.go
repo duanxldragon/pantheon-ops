@@ -319,6 +319,27 @@ func (s *Service) Delete(id uint64, dataScopes ...*common.DataScopeReq) error {
 		if hasReferences {
 			return errors.New(bizScopeInUseKey)
 		}
+		// References beyond CMDB hosts: applications, Kubernetes clusters and
+		// deploy tasks (including drafts) must also block deletion, otherwise
+		// those resources would dangle with a deleted business scope.
+		for _, resource := range []struct {
+			table string
+			label string
+		}{
+			{"biz_application", "application"},
+			{"biz_k8s_cluster", "k8s_cluster"},
+			{"biz_deploy_task", "deploy_task"},
+		} {
+			var refCount int64
+			if err := s.db.Table(resource.table).
+				Where("business_scope_id = ?", id).
+				Count(&refCount).Error; err != nil {
+				return err
+			}
+			if refCount > 0 {
+				return errors.New(bizScopeInUseKey)
+			}
+		}
 		result := s.db.Delete(&BizScope{}, id)
 		if result.Error != nil {
 			return result.Error

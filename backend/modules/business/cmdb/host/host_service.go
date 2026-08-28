@@ -418,7 +418,11 @@ func (s *HostService) UpdateStatus(id uint64, status string, dataScope *common.D
 		return errors.New("database.not_initialized")
 	}
 	status = strings.TrimSpace(status)
-	if !oneOfHostState(status, "pending", "assigned", "online", "offline", "maintenance", "retired") {
+	// retired is intentionally rejected here: retiring a host must go through
+	// TransitionState (HostTransitionRetire) which enforces the active
+	// service-instance reference check. Direct status writes must not bypass
+	// the lifecycle state machine.
+	if !oneOfHostState(status, "pending", "assigned", "online", "offline", "maintenance") {
 		return errors.New(errHostStateInvalid)
 	}
 	var row Host
@@ -442,9 +446,6 @@ func (s *HostService) UpdateStatus(id uint64, status string, dataScope *common.D
 		connectivity = HostConnectivityUnreachable
 	case HostLifecycleMaintenance:
 		lifecycle = HostLifecycleMaintenance
-		connectivity = HostConnectivityUnknown
-	case HostLifecycleRetired:
-		lifecycle = HostLifecycleRetired
 		connectivity = HostConnectivityUnknown
 	}
 	result := s.hostQuery(dataScope).Where(idWhereClause, id).Updates(map[string]any{

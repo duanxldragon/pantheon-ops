@@ -52,14 +52,6 @@ export const K8sModule = defineModule({
       pagePermission: 'business:k8s:storage:list',
       componentKey: 'business/k8s/storage/StorageList',
     },
-    {
-      path: 'business/k8s/backup',
-      routeName: 'k8s-backup-list',
-      titleKey: 'operations.k8s.backup.menu',
-      icon: 'clock',
-      pagePermission: 'business:k8s:backup:list',
-      componentKey: 'business/k8s/backup/BackupList',
-    },
   ],
   menus: [
     {
@@ -97,13 +89,6 @@ export const K8sModule = defineModule({
       routeName: 'k8s-storage-list',
       module: 'business.k8s',
     },
-    {
-      path: '/business/k8s/backup',
-      titleKey: 'operations.k8s.backup.menu',
-      icon: 'clock',
-      routeName: 'k8s-backup-list',
-      module: 'business.k8s',
-    },
   ],
   permissions: [
     'business:k8s:cluster:list',
@@ -129,10 +114,6 @@ export const K8sModule = defineModule({
     'business:k8s:storage:create',
     'business:k8s:storage:update',
     'business:k8s:storage:delete',
-    'business:k8s:backup:list',
-    'business:k8s:backup:view',
-    'business:k8s:backup:create',
-    'business:k8s:backup:delete',
   ],
   i18nNamespaces: ['business.k8s'],
 });

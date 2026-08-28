@@ -13,6 +13,7 @@ const generatedzhCNFallback = {
   'business.observability.metricSource.empty': '暂无指标数据源。',
   'business.observability.alertRule.empty': '暂无告警规则。',
   'business.observability.alertRecord.empty': '暂无告警记录。',
+  'business.observability.planning': '功能规划中',
   'common.active': '启用',
   'common.inactive': '停用',
   'common.required': '此字段为必填项',
@@ -799,6 +800,7 @@ const generatedzhCNFallback = {
   'business.k8s.ingress.field.hosts': '域名',
   'business.k8s.ingress.field.ingressClass': 'Ingress Class',
   'business.k8s.ingress.field.status': '状态',
+  'business.k8s.ingress.field.createdAt': '创建时间',
   'business.k8s.ingress.field.cluster': '集群',
   'business.k8s.ingress.field.namespacePlaceholder': '输入命名空间',
   'business.k8s.ingress.selectClusterHint': '请先选择集群',
@@ -813,6 +815,7 @@ const generatedzhCNFallback = {
   'business.k8s.ingress.permission.create': '创建 Ingress',
   'business.k8s.ingress.permission.update': '编辑 Ingress',
   'business.k8s.ingress.permission.delete': '删除 Ingress',
+  'business.k8s.ingress.permission.sync': '同步 Ingress',
 
   // Storage
   'business.k8s.storage.hero.eyebrow': '运维平台 / 存储管理',
@@ -854,22 +857,6 @@ const generatedzhCNFallback = {
   'business.k8s.storage.sc.field.allowVolumeExpansion': '允许扩容',
   'business.k8s.storage.sc.field.isDefault': '默认',
   'business.k8s.storage.sc.empty': '暂无 StorageClass',
-
-  // Mdqaorder
-  'business.mdqaorder.title': '订单管理',
-  'business.mdqaorder.permission.list': '查看订单列表',
-  'business.mdqaorder.permission.view': '查看订单',
-  'business.mdqaorder.permission.create': '创建订单',
-  'business.mdqaorder.permission.update': '编辑订单',
-  'business.mdqaorder.permission.delete': '删除订单',
-
-  // Mdqaorderitem
-  'business.mdqaorderitem.title': '订单项管理',
-  'business.mdqaorderitem.permission.list': '查看订单项列表',
-  'business.mdqaorderitem.permission.view': '查看订单项',
-  'business.mdqaorderitem.permission.create': '创建订单项',
-  'business.mdqaorderitem.permission.update': '编辑订单项',
-  'business.mdqaorderitem.permission.delete': '删除订单项',
 
   // Velero Backup
   'operations.k8s.backup.menu': 'Velero 备份',

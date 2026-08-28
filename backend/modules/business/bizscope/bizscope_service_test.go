@@ -368,3 +368,48 @@ func TestSeedI18nReplacesLegacyBizScopeKeys(t *testing.T) {
 		t.Fatalf("expected 6 canonical zh-CN/en-US rows, got %d", canonicalCount)
 	}
 }
+
+// fixtureScopeRefTable is a minimal table with a business_scope_id column used
+// to prove that Delete rejects scopes referenced by non-CMDB resources.
+type fixtureScopeRefTable struct {
+	ID              uint64 `gorm:"primaryKey;autoIncrement"`
+	BusinessScopeID uint64 `gorm:"column:business_scope_id;index"`
+}
+
+func (fixtureScopeRefTable) TableName() string { return "biz_application" }
+
+var _ = fixtureScopeRefTable{}
+
+func TestBizScopeDeleteRejectsNonCMDBReferences(t *testing.T) {
+	for _, ref := range []struct {
+		table string
+		name  string
+	}{
+		{"biz_application", "application"},
+		{"biz_k8s_cluster", "k8s_cluster"},
+		{"biz_deploy_task", "deploy_task"},
+	} {
+		t.Run(ref.name, func(t *testing.T) {
+			db := setupBizScopeTestDB(t)
+			// Create the referenced table with a business_scope_id column.
+			model := &struct {
+				ID              uint64 `gorm:"primaryKey;autoIncrement"`
+				BusinessScopeID uint64 `gorm:"column:business_scope_id;index"`
+			}{}
+			if err := db.Table(ref.table).Migrator().CreateTable(model); err != nil {
+				t.Fatalf("create %s table: %v", ref.table, err)
+			}
+			svc := NewService(db)
+			scope := BizScope{Code: "ref-" + ref.name, Name: "Ref " + ref.name, Environment: "dev", Status: "active"}
+			if err := db.Create(&scope).Error; err != nil {
+				t.Fatalf("seed scope: %v", err)
+			}
+			if err := db.Table(ref.table).Create(map[string]any{"business_scope_id": scope.ID}).Error; err != nil {
+				t.Fatalf("seed %s reference: %v", ref.table, err)
+			}
+			if err := svc.Delete(scope.ID); err == nil || err.Error() != bizScopeInUseKey {
+				t.Fatalf("expected %s for %s reference, got %v", bizScopeInUseKey, ref.table, err)
+			}
+		})
+	}
+}

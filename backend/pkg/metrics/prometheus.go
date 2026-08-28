@@ -97,4 +97,104 @@ var (
 			Help: "Current depth of the operation log async queue",
 		},
 	)
+
+	// HostOperationsTotal 主机（CMDB）写操作计数。
+	HostOperationsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pantheon_host_operations_total",
+			Help: "Total number of CMDB host operations",
+		},
+		[]string{"operation", "status"},
+	)
+
+	// HostsTotal 主机生命周期状态分布。
+	HostsTotal = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "pantheon_hosts_total",
+			Help: "Number of CMDB hosts by lifecycle state",
+		},
+		[]string{"state"},
+	)
+
+	// HostConnectivity 主机连通性状态分布。
+	HostConnectivity = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "pantheon_host_connectivity",
+			Help: "Number of CMDB hosts by connectivity state",
+		},
+		[]string{"connectivity"},
+	)
+
+	// HostAttributes 主机资源量（按 IP 区分，避免高基数标签）。
+	HostAttributes = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "pantheon_host_attributes",
+			Help: "CMDB host resource attributes (cpu cores, memory GB, disk GB)",
+		},
+		[]string{"ip", "attribute"},
+	)
+
+	// DeployTaskStepsTotal 部署步骤执行结果分布。
+	DeployTaskStepsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pantheon_deploy_task_steps_total",
+			Help: "Total number of deploy task step executions",
+		},
+		[]string{"status"},
+	)
+
+	// DeployTasksTotal 部署任务终态分布。
+	DeployTasksTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pantheon_deploy_tasks_total",
+			Help: "Total number of deploy tasks reaching a terminal state",
+		},
+		[]string{"status"},
+	)
+
+	// DeployTaskHostsTotal 部署任务主机结果分布。
+	DeployTaskHostsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pantheon_deploy_task_hosts_total",
+			Help: "Total number of deploy task host results",
+		},
+		[]string{"status"},
+	)
+
+	// ClusterStatusTotal 集群状态分布。
+	ClusterStatusTotal = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "pantheon_k8s_cluster_status",
+			Help: "Number of Kubernetes clusters by status",
+		},
+		[]string{"status"},
+	)
+
+	// ClusterCapacity 集群容量指标。
+	ClusterCapacity = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "pantheon_k8s_cluster_capacity",
+			Help: "Kubernetes cluster node and capacity metrics",
+		},
+		[]string{"metric"},
+	)
+
+	// ClusterSyncErrors 集群同步失败计数。
+	ClusterSyncErrors = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pantheon_k8s_cluster_sync_errors_total",
+			Help: "Kubernetes cluster sync failures by cluster and phase",
+		},
+		[]string{"cluster", "phase"},
+	)
+
+	// ClusterSyncDuration 集群同步耗时分布。
+	ClusterSyncDuration = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "pantheon_k8s_cluster_sync_duration_seconds",
+			Help:    "Kubernetes cluster sync duration in seconds",
+			Buckets: []float64{0.1, 0.5, 1, 2, 5, 10, 30},
+		},
+		[]string{"cluster", "result"},
+	)
 )

@@ -233,6 +233,32 @@ func TestUpdateStatus(t *testing.T) {
 	}
 }
 
+func TestUpdateStatusRejectsRetired(t *testing.T) {
+	db := setupTestDB(t)
+	svc := NewHostService(db)
+	created, _ := svc.Create(CreateHostRequest{Hostname: "h1-retire-bypass", IP: "10.0.0.51", OS: "linux"}, "1")
+
+	// Direct status writes must not bypass the lifecycle state machine: the
+	// retired transition is only reachable through TransitionState, which
+	// enforces the active service-instance reference check.
+	if err := svc.UpdateStatus(created.ID, "retired", nil); err == nil {
+		t.Fatal("expected UpdateStatus(retired) to be rejected")
+	}
+	resp, err := svc.GetByID(created.ID, nil)
+	if err != nil {
+		t.Fatalf("get host: %v", err)
+	}
+	if resp.LifecycleState == "retired" || resp.Status == "retired" {
+		t.Fatalf("host must not be retired via UpdateStatus, got lifecycle=%s status=%s", resp.LifecycleState, resp.Status)
+	}
+	// The legitimate path still works when there are no active references.
+	if _, err := svc.TransitionState(created.ID, HostStateTransitionRequest{
+		Action: HostTransitionRetire, ExpectedStateVersion: resp.StateVersion,
+	}, "1", nil); err != nil {
+		t.Fatalf("expected retire via TransitionState to succeed, got %v", err)
+	}
+}
+
 func TestParseSystemInfoOutput(t *testing.T) {
 	output := strings.Join([]string{
 		"os=linux",

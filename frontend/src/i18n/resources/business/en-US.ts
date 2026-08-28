@@ -13,6 +13,7 @@ const generatedenUSFallback = {
   'business.observability.metricSource.empty': 'No metric sources.',
   'business.observability.alertRule.empty': 'No alert rules.',
   'business.observability.alertRecord.empty': 'No alert records.',
+  'business.observability.planning': 'Feature planned',
   'common.active': 'Active',
   'common.inactive': 'Inactive',
   'common.required': 'This field is required',
@@ -836,6 +837,7 @@ const generatedenUSFallback = {
   'business.k8s.ingress.field.hosts': 'Hosts',
   'business.k8s.ingress.field.ingressClass': 'Ingress Class',
   'business.k8s.ingress.field.status': 'Status',
+  'business.k8s.ingress.field.createdAt': 'Created',
   'business.k8s.ingress.field.cluster': 'Cluster',
   'business.k8s.ingress.field.namespacePlaceholder': 'Enter namespace',
   'business.k8s.ingress.selectClusterHint': 'Select a cluster first',
@@ -850,6 +852,7 @@ const generatedenUSFallback = {
   'business.k8s.ingress.permission.create': 'Create Ingress',
   'business.k8s.ingress.permission.update': 'Update Ingress',
   'business.k8s.ingress.permission.delete': 'Delete Ingress',
+  'business.k8s.ingress.permission.sync': 'Sync Ingress',
 
   // Storage
   'business.k8s.storage.hero.eyebrow': 'Operations / Storage Management',
@@ -891,22 +894,6 @@ const generatedenUSFallback = {
   'business.k8s.storage.sc.field.allowVolumeExpansion': 'Allow Volume Expansion',
   'business.k8s.storage.sc.field.isDefault': 'Default',
   'business.k8s.storage.sc.empty': 'No StorageClasses',
-
-  // Mdqaorder
-  'business.mdqaorder.title': 'Order Management',
-  'business.mdqaorder.permission.list': 'View order list',
-  'business.mdqaorder.permission.view': 'View order',
-  'business.mdqaorder.permission.create': 'Create order',
-  'business.mdqaorder.permission.update': 'Update order',
-  'business.mdqaorder.permission.delete': 'Delete order',
-
-  // Mdqaorderitem
-  'business.mdqaorderitem.title': 'Order Item Management',
-  'business.mdqaorderitem.permission.list': 'View order item list',
-  'business.mdqaorderitem.permission.view': 'View order item',
-  'business.mdqaorderitem.permission.create': 'Create order item',
-  'business.mdqaorderitem.permission.update': 'Update order item',
-  'business.mdqaorderitem.permission.delete': 'Delete order item',
 
   // Velero Backup
   'operations.k8s.backup.menu': 'Velero Backup',
