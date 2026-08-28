@@ -24,6 +24,8 @@ func TestSeedDeployMenusCreatesTemplateActionPermissions(t *testing.T) {
 	assertDeployRecordCount(t, db, "system_menu", "perms = 'business:deploy:template:delete' AND title_key = 'business.deploy.template.permission.delete' AND type = 'F'", 1)
 	assertDeployRecordCount(t, db, "system_menu", "parent_id = (SELECT id FROM (SELECT id FROM system_menu WHERE route_name = 'deploy-template-list' LIMIT 1) AS template_menu) AND perms IN ('business:deploy:template:create', 'business:deploy:template:update', 'business:deploy:template:delete')", 3)
 	assertDeployRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key IN ('business:deploy:template:create', 'business:deploy:template:update', 'business:deploy:template:delete')", 3)
+	assertDeployRecordCount(t, db, "system_menu", "perms IN ('business:deploy:task:pause', 'business:deploy:task:resume', 'business:deploy:task:retry') AND type = 'F'", 3)
+	assertDeployRecordCount(t, db, "system_role_permission", "role_id = 1 AND permission_key IN ('business:deploy:task:pause', 'business:deploy:task:resume', 'business:deploy:task:retry')", 3)
 }
 
 func TestSeedDeployI18nCreatesTemplatePermissionTranslations(t *testing.T) {
@@ -36,6 +38,8 @@ func TestSeedDeployI18nCreatesTemplatePermissionTranslations(t *testing.T) {
 
 	assertDeployRecordCount(t, db, "system_i18n", "`key` IN ('business.deploy.template.permission.create', 'business.deploy.template.permission.update', 'business.deploy.template.permission.delete') AND locale = 'zh-CN' AND group_name = 'permission' AND lifecycle_status = 'active'", 3)
 	assertDeployRecordCount(t, db, "system_i18n", "`key` IN ('business.deploy.template.permission.create', 'business.deploy.template.permission.update', 'business.deploy.template.permission.delete') AND locale = 'en-US' AND group_name = 'permission' AND lifecycle_status = 'active'", 3)
+	assertDeployRecordCount(t, db, "system_i18n", "`key` IN ('business.deploy.task.permission.pause', 'business.deploy.task.permission.resume', 'business.deploy.task.permission.retry') AND locale = 'zh-CN' AND group_name = 'permission' AND lifecycle_status = 'active'", 3)
+	assertDeployRecordCount(t, db, "system_i18n", "`key` IN ('business.deploy.task.permission.pause', 'business.deploy.task.permission.resume', 'business.deploy.task.permission.retry') AND locale = 'en-US' AND group_name = 'permission' AND lifecycle_status = 'active'", 3)
 }
 
 func mustCreateDeploySeedTables(t *testing.T, db *gorm.DB) {

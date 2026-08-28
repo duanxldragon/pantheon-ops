@@ -34,6 +34,7 @@ import {
   PageLoading,
   SubmitBar,
   TableBatchActionBar,
+  TABLE_ACTION_COLUMN_WIDTH,
   buildStandardPagination,
   useGovernanceRail,
 } from '../../../../components';
@@ -81,7 +82,7 @@ function PackageDetailContent({ record }: Readonly<{ record: DeployPackageRow }>
         <Card className="page-panel">
           <Space direction="vertical" size={8} style={{ width: '100%' }}>
             <Typography.Text style={{ fontWeight: 600 }}>{t('business.deploy.package.templateSummary')}</Typography.Text>
-            <Typography.Text type="secondary">{t(`business.deploy.package.templateCode.${record.templateCode || 'nginx_systemd'}`)}</Typography.Text>
+            <Typography.Text type="secondary">{record.templateCode ? t(`business.deploy.package.templateCode.${record.templateCode}`) : t('business.deploy.package.templateCode.custom')}</Typography.Text>
           </Space>
         </Card>
       ) : null}
@@ -167,7 +168,7 @@ function buildPackageColumns({
     {
       title: t('common.action'),
       fixed: 'right',
-      width: 150,
+      width: TABLE_ACTION_COLUMN_WIDTH.wide,
       render: (_: unknown, row) => (
         <Space className="system-list__actions">
           <Button type="text" size="small" icon={<IconEye />} onClick={() => openDetail(row)}>
@@ -208,8 +209,8 @@ export default function DeployPackageList() {
   const [editing, setEditing] = useState<DeployPackageRow | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string | number>>([]);
-  const [executionMode, setExecutionMode] = useState<'fixed' | 'orchestrated'>('fixed');
-  const [templateCode, setTemplateCode] = useState('nginx_systemd');
+  const [executionMode, setExecutionMode] = useState<'fixed' | 'orchestrated'>('orchestrated');
+  const [templateCode, setTemplateCode] = useState('');
   const [uploadingSource, setUploadingSource] = useState(false);
   const [detailVisible, setDetailVisible] = useState(false);
   const [detailRecord, setDetailRecord] = useState<DeployPackageRow | null>(null);
@@ -287,13 +288,13 @@ export default function DeployPackageList() {
 
   const openCreate = () => {
     setEditing(null);
-    setExecutionMode('fixed');
-    setTemplateCode('nginx_systemd');
+    setExecutionMode('orchestrated');
+    setTemplateCode('');
     form.setFieldsValue({
       status: 'enabled',
-      executionMode: 'fixed',
-      templateCode: 'nginx_systemd',
-      templateConfig: buildDefaultTemplateConfig('nginx_systemd'),
+      executionMode: 'orchestrated',
+      templateCode: '',
+      templateConfig: {},
     });
     setVisible(true);
   };
@@ -301,12 +302,12 @@ export default function DeployPackageList() {
   const openEdit = (row: DeployPackageRow) => {
     setEditing(row);
     setExecutionMode(row.executionMode || 'fixed');
-    setTemplateCode(row.templateCode || 'nginx_systemd');
+    setTemplateCode(row.templateCode || '');
     form.setFieldsValue({
       ...row,
       templateConfig: row.templateConfig && Object.keys(row.templateConfig).length > 0
         ? row.templateConfig
-        : buildDefaultTemplateConfig((row.templateCode as string) || 'nginx_systemd'),
+        : row.templateCode ? buildDefaultTemplateConfig(row.templateCode) : {},
     });
     setVisible(true);
   };
@@ -331,8 +332,8 @@ export default function DeployPackageList() {
         Message.success(t('common.createSuccess'));
       }
       setVisible(false);
-      setExecutionMode('fixed');
-      setTemplateCode('nginx_systemd');
+      setExecutionMode('orchestrated');
+      setTemplateCode('');
       form.resetFields();
       await loadData();
     } finally {
@@ -550,8 +551,8 @@ export default function DeployPackageList() {
         footer={null}
         onCancel={() => {
           setVisible(false);
-          setExecutionMode('fixed');
-          setTemplateCode('nginx_systemd');
+          setExecutionMode('orchestrated');
+          setTemplateCode('');
         }}
       >
         <Form form={form} layout="vertical">
@@ -573,11 +574,11 @@ export default function DeployPackageList() {
                 const nextMode = value as 'fixed' | 'orchestrated';
                 setExecutionMode(nextMode);
                 if (value === 'fixed') {
-                  setTemplateCode((form.getFieldValue('templateCode') as string) || 'nginx_systemd');
-                  form.setFieldValue('templateCode', form.getFieldValue('templateCode') || 'nginx_systemd');
+                  setTemplateCode((form.getFieldValue('templateCode') as string) || '');
+                  form.setFieldValue('templateCode', form.getFieldValue('templateCode') || '');
                   form.setFieldValue(
                     'templateConfig',
-                    form.getFieldValue('templateConfig') || buildDefaultTemplateConfig((form.getFieldValue('templateCode') as string) || 'nginx_systemd'),
+                    form.getFieldValue('templateConfig') || {},
                   );
                 } else {
                   setTemplateCode('');

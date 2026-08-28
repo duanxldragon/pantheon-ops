@@ -43,9 +43,9 @@ Defaults:
 ### 2. Start backend
 
 ```powershell
-$env:PANTHEON_DSN='root:DHCCroot@2025@tcp(127.0.0.1:3306)/pantheon_ops?charset=utf8mb4&parseTime=True&loc=Local'
+$env:PANTHEON_DSN='root:<your-mysql-password>@tcp(127.0.0.1:3306)/pantheon_ops?charset=utf8mb4&parseTime=True&loc=Local'
 $env:PANTHEON_REDIS_ADDR='127.0.0.1:6379'
-$env:PANTHEON_REDIS_PASSWORD='DHCCdhcc2025'
+$env:PANTHEON_REDIS_PASSWORD='<your-redis-password>'
 go run ./backend/cmd/server
 ```
 

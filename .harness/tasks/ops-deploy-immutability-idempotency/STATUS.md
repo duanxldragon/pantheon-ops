@@ -1,12 +1,13 @@
 # Status: Deploy Reliability
 
 - Status: `complete`
-- Updated: `2026-08-18`
-- Executor: Codex `/root` (Buffy takeover)
+- Updated: `2026-08-22`
+- Executor: Buffy (Freebuff session 2026-08-22, following Codex `/root` baseline)
 - Baseline commit: `ee213508a32ebdf27685128e0c719e9036272de5`
 - Dirty-file collisions: `backend/modules/business/deploy/deploy.go`,
-  `deploy_seed.go`, and `deploy_service.go` are existing dirty changes from the
-  capability-boundary child. Preserved and extended in place; no reset/restore.
+  `deploy_seed.go`, `deploy_service.go`, `deploy_service_test.go`, and
+  `deploy_reliability_test.go` are existing dirty changes. Preserved and
+  extended in place; no reset/restore.
 
 ## Completed
 

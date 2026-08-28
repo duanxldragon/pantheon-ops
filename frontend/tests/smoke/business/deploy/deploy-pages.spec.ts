@@ -178,7 +178,7 @@ test.describe('Deploy business module smoke', () => {
       );
 
       await page.goto('/business/deploy/task', { waitUntil: 'networkidle' });
-      await expect(page).toHaveURL(/\/operations\/deploy\/task$/);
+      await expect(page).toHaveURL(/\/business\/deploy\/task$/);
       const taskKeywordInput = page.locator('.search-toolbar input').first();
       await expect(taskKeywordInput).toBeVisible();
       await taskKeywordInput.fill(token);
@@ -193,7 +193,7 @@ test.describe('Deploy business module smoke', () => {
       await expect(modal).toContainText(token);
       await expect(modal).toContainText(`${token}-host`);
       await expect(modal).toContainText('installed via modal smoke');
-      await expect(page).toHaveURL(/\/operations\/deploy\/task$/);
+      await expect(page).toHaveURL(/\/business\/deploy\/task$/);
       await page.screenshot({ path: testInfo.outputPath('deploy-task-detail-modal.png'), fullPage: true });
     } finally {
       await request.delete(`${apiBaseUrl}/business/cmdb/hosts/${host.id}`, { headers }).catch(() => undefined);
@@ -225,7 +225,7 @@ test.describe('Deploy business module smoke', () => {
 
     try {
       await page.goto('/business/deploy/package', { waitUntil: 'networkidle' });
-      await expect(page).toHaveURL(/\/operations\/deploy\/package$/);
+      await expect(page).toHaveURL(/\/business\/deploy\/package$/);
       const row = page.getByRole('row').filter({ hasText: token }).first();
       await expect(row).toBeVisible();
       await row.getByRole('button', { name: '详情' }).click();
@@ -235,7 +235,7 @@ test.describe('Deploy business module smoke', () => {
       await expect(modal).toContainText(token);
       await expect(modal).toContainText('nginx-1.30.2.tar.gz');
       await expect(modal).toContainText('模板说明');
-      await expect(page).toHaveURL(/\/operations\/deploy\/package$/);
+      await expect(page).toHaveURL(/\/business\/deploy\/package$/);
       await page.screenshot({ path: testInfo.outputPath('deploy-package-detail-modal.png'), fullPage: true });
     } finally {
       await request.delete(`${apiBaseUrl}/business/deploy/packages/${pkg.id}`, { headers }).catch(() => undefined);
@@ -301,7 +301,7 @@ test.describe('Deploy business module smoke', () => {
 
     try {
       await page.goto('/business/deploy/template', { waitUntil: 'networkidle' });
-      await expect(page).toHaveURL(/\/operations\/deploy\/template$/);
+      await expect(page).toHaveURL(/\/business\/deploy\/template$/);
       const templateKeywordInput = page.locator('.search-toolbar input').first();
       await expect(templateKeywordInput).toBeVisible();
       await templateKeywordInput.fill(token);
@@ -316,7 +316,7 @@ test.describe('Deploy business module smoke', () => {
       await expect(modal).toContainText('准备目录');
       await expect(modal).toContainText('安装组件');
       await expect(modal).toContainText('/data/nginx');
-      await expect(page).toHaveURL(/\/operations\/deploy\/template$/);
+      await expect(page).toHaveURL(/\/business\/deploy\/template$/);
       await page.screenshot({ path: testInfo.outputPath('deploy-template-detail-modal.png'), fullPage: true });
     } finally {
       await request.delete(`${apiBaseUrl}/business/deploy/templates/${template.id}`, { headers }).catch(() => undefined);
@@ -462,7 +462,7 @@ test.describe('Deploy business module smoke', () => {
       );
       expect(started.hosts).toHaveLength(1);
 
-      await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
+      await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'domcontentloaded' });
       await expect(page.getByRole('button', { name: '标记失败' }).first()).toBeVisible();
       await page.getByRole('button', { name: '标记失败' }).first().click();
 
@@ -715,8 +715,8 @@ test.describe('Deploy business module smoke', () => {
         headers,
         data: {
           hostname: `${token}-host`,
-          ip: `10.246.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}`,
-          sshPort: 22,
+          ip: '127.0.0.1',
+          sshPort: 1,
           os: 'linux',
           businessScopeId: scope.id,
           labels: [
@@ -781,30 +781,44 @@ test.describe('Deploy business module smoke', () => {
     );
     expect(task.status).toBe('draft');
 
-    const started = await expectSuccess<TaskRow>(
-      await request.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`, {
+    const credential = await expectSuccess<{ id: number }>(
+      await request.post(`${apiBaseUrl}/business/deploy/credentials`, {
         headers,
         data: {
-          sshUser: 'root',
-          sshPassword: 'smoke-secret',
-          hostFingerprint: 'SHA256:test',
+          name: `${token}-credential`,
+          username: 'root',
           authMode: 'password',
+          secret: 'smoke-secret',
         },
       }),
     );
-    expect(started.status).toBe('failed');
-    expect(started.businessScopeName).toContain(token);
-    expect(started.hosts).toHaveLength(1);
-    expect(started.hosts[0].traceSteps?.length || 0).toBeGreaterThan(0);
+
+    await expectSuccess<TaskRow>(
+      await request.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`, {
+        headers,
+        data: {
+          credentialRefId: credential.id,
+          hostFingerprint: 'SHA256:test',
+        },
+      }),
+    );
+    await expect.poll(async () => {
+      const response = await request.get(`${apiBaseUrl}/business/deploy/tasks/${task.id}`, { headers });
+      const payload = await response.json() as ApiEnvelope<TaskRow>;
+      return payload.data.status;
+    }, { timeout: 10_000 }).toBe('failed');
 
     const detail = await expectSuccess<TaskRow>(
       await request.get(`${apiBaseUrl}/business/deploy/tasks/${task.id}`, { headers }),
     );
+    expect(detail.businessScopeName).toContain(token);
+    expect(detail.hosts).toHaveLength(1);
+    expect(detail.hosts[0].traceSteps?.length || 0).toBeGreaterThan(0);
     expect(detail.hosts[0].traceSteps?.map((step) => step.phase)).toEqual(
       expect.arrayContaining(['start', 'result', 'error']),
     );
 
-    await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'networkidle' });
+    await page.goto(`/business/deploy/task/${task.id}`, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.page-container')).toBeVisible();
     await expect(page.locator('.system-page-hero')).toContainText('目标主机');
     await expect(page.getByRole('cell', { name: '业务域' })).toBeVisible();
@@ -824,6 +838,7 @@ test.describe('Deploy business module smoke', () => {
     await request.delete(`${apiBaseUrl}/business/cmdb/hosts/${host.id}`, { headers }).catch(() => undefined);
     await request.delete(`${apiBaseUrl}/business/bizscope/${scope.id}`, { headers }).catch(() => undefined);
     await request.delete(`${apiBaseUrl}/business/deploy/packages/${pkg.id}`, { headers }).catch(() => undefined);
+    await request.delete(`${apiBaseUrl}/business/deploy/credentials/${credential.id}`, { headers }).catch(() => undefined);
   });
 
   test('deploy pages stay within a phone viewport', async ({ page }, testInfo) => {

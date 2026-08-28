@@ -45,6 +45,7 @@ import {
   cancelDeployTask,
   createDeployTask,
   deleteDeployTask,
+  getDeployCredentialList,
   getDeployTaskDetail,
   getDeployPackageList,
   getDeployTaskList,
@@ -53,6 +54,7 @@ import {
   updateDeployTask,
   exportDeployTasks,
   type DeployAction,
+  type DeployCredentialRow,
   type DeployPackageRow,
   type DeployTaskPayload,
   type DeployTaskRow,
@@ -113,6 +115,7 @@ export default function DeployTaskList() {
   const [startVisible, setStartVisible] = useState(false);
   const [startSubmitting, setStartSubmitting] = useState(false);
   const [startingTask, setStartingTask] = useState<DeployTaskRow | null>(null);
+  const [credentials, setCredentials] = useState<DeployCredentialRow[]>([]);
   const [targetType, setTargetType] = useState<'host' | 'group'>('host');
   const [taskAction, setTaskAction] = useState<DeployAction>('install');
   const [sourceKind, setSourceKind] = useState<'template' | 'package'>('template');
@@ -192,8 +195,8 @@ export default function DeployTaskList() {
 
   const loadOptions = useCallback(async () => {
     const [packageResp, templateResp, scopeResp, groupResp] = await Promise.all([
-      getDeployPackageList({ page: 1, pageSize: 200, status: 'enabled' }),
-      getDeployTemplateList({ page: 1, pageSize: 200, status: 'enabled' }),
+      getDeployPackageList({ page: 1, pageSize: 100, status: 'enabled' }),
+      getDeployTemplateList({ page: 1, pageSize: 100, status: 'enabled' }),
       getBizScopeOptions(),
       getGroupList(),
     ]);
@@ -520,8 +523,10 @@ export default function DeployTaskList() {
     }
     setStartingTask(row);
     startForm.resetFields();
-    startForm.setFieldsValue({ authMode: 'password' });
     setStartVisible(true);
+    void getDeployCredentialList()
+      .then(setCredentials)
+      .catch(() => setCredentials([]));
   };
 
   const submitStart = async () => {
@@ -796,6 +801,7 @@ export default function DeployTaskList() {
         visible={startVisible}
         form={startForm}
         task={startingTask}
+        credentials={credentials}
         submitting={startSubmitting}
         onClose={() => {
           setStartVisible(false);
@@ -1395,13 +1401,14 @@ interface DeployTaskStartModalProps {
   visible: boolean;
   form: FormInstance<StartDeployTaskPayload>;
   task: DeployTaskRow | null;
+  credentials: DeployCredentialRow[];
   submitting: boolean;
   onClose: () => void;
   onCancel: () => void;
   onSubmit: () => void;
 }
 
-function DeployTaskStartModal({ t, visible, form, task, submitting, onClose, onCancel, onSubmit }: Readonly<DeployTaskStartModalProps>) {
+function DeployTaskStartModal({ t, visible, form, task, credentials, submitting, onClose, onCancel, onSubmit }: Readonly<DeployTaskStartModalProps>) {
   return (
     <AppModal
       title={t('business.deploy.task.startSshTitle')}
@@ -1418,30 +1425,19 @@ function DeployTaskStartModal({ t, visible, form, task, submitting, onClose, onC
             {t('business.deploy.task.startSshTemplateHint')}
           </div>
         ) : null}
-        <Form.Item field="sshUser" label={t('business.deploy.task.sshUser')} rules={[{ required: true }]}>
-          <Input />
-        </Form.Item>
-        <Form.Item field="authMode" label={t('business.deploy.task.authMode')} rules={[{ required: true }]}>
-          <Select>
-            <Select.Option value="password">{t('business.deploy.task.authMode.password')}</Select.Option>
-            <Select.Option value="private_key">{t('business.deploy.task.authMode.privateKey')}</Select.Option>
+        <Form.Item field="credentialRefId" label={t('business.deploy.task.credentialRefId')} rules={[{ required: true, message: t('business.deploy.task.credentialRefIdRequired') }]}>
+          <Select placeholder={t('business.deploy.task.credentialRefIdPlaceholder')}>
+            {credentials
+              .filter((item) => item.status === 'active')
+              .map((item) => (
+                <Select.Option key={item.id} value={item.id}>
+                  {item.name}（{item.username} · {item.authMode === 'private_key' ? t('business.deploy.task.authMode.privateKey') : t('business.deploy.task.authMode.password')}）
+                </Select.Option>
+              ))}
           </Select>
         </Form.Item>
         <Form.Item field="hostFingerprint" label={t('business.deploy.task.hostFingerprint')} rules={[{ required: true }]}>
           <Input placeholder={t('business.deploy.task.hostFingerprintPlaceholder')} />
-        </Form.Item>
-        <Form.Item noStyle shouldUpdate={(prev, next) => prev.authMode !== next.authMode}>
-          {(values) =>
-            values.authMode === 'private_key' ? (
-              <Form.Item field="sshPrivateKey" label={t('business.deploy.task.privateKey')} rules={[{ required: true }]}>
-                <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} />
-              </Form.Item>
-            ) : (
-              <Form.Item field="sshPassword" label={t('business.deploy.task.sshPassword')} rules={[{ required: true }]}>
-                <Input.Password />
-              </Form.Item>
-            )
-          }
         </Form.Item>
         <SubmitBar
           loading={submitting}

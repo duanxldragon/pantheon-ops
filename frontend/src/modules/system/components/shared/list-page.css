@@ -21,6 +21,8 @@
 }
 
 .system-list__actions {
+  flex-wrap: nowrap;
+  white-space: nowrap;
   row-gap: 4px;
   column-gap: 6px;
 }

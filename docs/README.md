@@ -12,27 +12,31 @@ English version: [README.en.md](./README.en.md)
 
 ## 1. 本仓库自有文档（中文主入口 + 英文 companion）
 
-| 文档 | 用途 |
-|---|---|
-| [README.md](./README.md) / [README.en.md](./README.en.md) | 仓库入口与推荐阅读顺序 |
-| [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) / [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md) | 完整 Base 快照、business overlay、本地业务范围与升级边界 |
-| [../.agents/skills/README.zh.md](../.agents/skills/README.zh.md) / [../.agents/skills/README.md](../.agents/skills/README.md) | repo-local agent skills：继承校验、PR 收口、GitHub comments 自动处理、CI 红灯排查 |
-| [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) / [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.md) | `pantheon-ops` 业务开发与 `base -> ops` 同步的最小任务包模板 |
-| [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md) / [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md) | 业务域模块设计：业务域台账、主机绑定边界与 Deploy 信任来源 |
-| [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) / [designs/BUSINESS_CMDB_MODULE_DESIGN.en.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.en.md) | CMDB 业务模块完整设计（含数据模型、API、UI、字典依赖、验收） |
-| [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) / [designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md) | 安装部署业务模块完整设计 |
-| [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md) / [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md) | ops 业务模块 canonical 错误 key 语义附录 |
-| [designs/PLATFORM_SRE_EVOLUTION_PLAN.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.md) / [designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md) | 方向性 SRE 演进路线图（旧代码基线）；当前评审与执行以本页新增 BUSINESS 文档为准 |
-| [designs/BUSINESS_ARCHITECTURE_REVIEW.md](./designs/BUSINESS_ARCHITECTURE_REVIEW.md) / [designs/BUSINESS_ARCHITECTURE_REVIEW.en.md](./designs/BUSINESS_ARCHITECTURE_REVIEW.en.md) | 当前工作树的正式业务架构评审、评分、P0/P1/P2 和最终判断 |
-| [designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.md](./designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.md) / [designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.en.md](./designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.en.md) | CMDB、业务目录、变更执行、Kubernetes 和可观测性事实源的目标设计 |
-| [designs/BUSINESS_DEVELOPMENT_PLAN.md](./designs/BUSINESS_DEVELOPMENT_PLAN.md) / [designs/BUSINESS_DEVELOPMENT_PLAN.en.md](./designs/BUSINESS_DEVELOPMENT_PLAN.en.md) | V1 交付工作包、8 周排期、依赖、停点和 V2-V4 后续路线 |
-| [designs/BUSINESS_QA_ACCEPTANCE_PLAN.md](./designs/BUSINESS_QA_ACCEPTANCE_PLAN.md) / [designs/BUSINESS_QA_ACCEPTANCE_PLAN.en.md](./designs/BUSINESS_QA_ACCEPTANCE_PLAN.en.md) | P0/P1/P2 QA 验收问题、准入矩阵和发布退出条件 |
-| [designs/BUSINESS_TEST_PLAN.md](./designs/BUSINESS_TEST_PLAN.md) / [designs/BUSINESS_TEST_PLAN.en.md](./designs/BUSINESS_TEST_PLAN.en.md) | 单元、契约、不变量、跨模块 smoke、MySQL/K8s/SSH 外部验收测试计划 |
-| [../DESIGN.md](../DESIGN.md) / [../DESIGN.en.md](../DESIGN.en.md) | 仓库级总体设计与继承的基座设计立场 |
-| [../frontend/README.md](../frontend/README.md) / [../frontend/README.en.md](../frontend/README.en.md) | 前端工作区说明 |
-| [../frontend/tests/smoke/README.md](../frontend/tests/smoke/README.md) | smoke 测试布局与覆盖边界 |
-| [../CONTRIBUTING.md](../CONTRIBUTING.md) / [../CONTRIBUTING.en.md](../CONTRIBUTING.en.md) | 协作规范、提交格式与验证要求 |
-| [../SECURITY.md](../SECURITY.md) / [../SECURITY.en.md](../SECURITY.en.md) | 安全问题报告范围与披露规则 |
+| 文档                                                                                                                                                                                                          | 用途                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| [README.md](./README.md) / [README.en.md](./README.en.md)                                                                                                                                                     | 仓库入口与推荐阅读顺序                                                            |
+| [../DESIGN.md](../DESIGN.md) / [../DESIGN.en.md](../DESIGN.en.md)                                                                                                                                             | Ops 仓库级产品、体验、边界和发布设计契约                                          |
+| [designs/BUSINESS_FUNCTIONAL_DESIGN.md](./designs/BUSINESS_FUNCTIONAL_DESIGN.md) / [designs/BUSINESS_FUNCTIONAL_DESIGN.en.md](./designs/BUSINESS_FUNCTIONAL_DESIGN.en.md)                                     | 全局功能设计：能力地图、跨模块流程、状态机、安全、UI 和 V1 追溯                   |
+| [V1_RELEASE_CHECKLIST.md](./V1_RELEASE_CHECKLIST.md)                                                                                                                                                          | V1 发布状态、阻断项、自动门禁和外部运行证据的唯一事实源                           |
+| [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) / [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)                                                                                                 | 完整 Base 快照、business overlay、本地业务范围与升级边界                          |
+| [../.agents/skills/README.zh.md](../.agents/skills/README.zh.md) / [../.agents/skills/README.md](../.agents/skills/README.md)                                                                                 | repo-local agent skills：继承校验、PR 收口、GitHub comments 自动处理、CI 红灯排查 |
+| [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) / [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.md)                                                                             | `pantheon-ops` 业务开发与 `base -> ops` 同步的最小任务包模板                      |
+| [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md) / [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md)                 | 业务域模块设计：业务域台账、主机绑定边界与 Deploy 信任来源                        |
+| [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) / [designs/BUSINESS_CMDB_MODULE_DESIGN.en.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.en.md)                                 | CMDB 业务模块完整设计（含数据模型、API、UI、字典依赖、验收）                      |
+| [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) / [designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md)                         | 安装部署业务模块完整设计                                                          |
+| [designs/BUSINESS_SERVICE_MODULE_DESIGN.md](./designs/BUSINESS_SERVICE_MODULE_DESIGN.md) / [designs/BUSINESS_SERVICE_MODULE_DESIGN.en.md](./designs/BUSINESS_SERVICE_MODULE_DESIGN.en.md)                     | 应用、服务、服务实例、VM/K8s target 与状态调和设计                                |
+| [designs/BUSINESS_K8S_MODULE_DESIGN.md](./designs/BUSINESS_K8S_MODULE_DESIGN.md) / [designs/BUSINESS_K8S_MODULE_DESIGN.en.md](./designs/BUSINESS_K8S_MODULE_DESIGN.en.md)                                     | Kubernetes 集群、NamespaceBinding、运行态资源、Release 和 V1 Service 设计         |
+| [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md) / [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md)         | ops 业务模块 canonical 错误 key 语义附录                                          |
+| [designs/PLATFORM_SRE_EVOLUTION_PLAN.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.md) / [designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md)                                 | 方向性 SRE 演进路线图（旧代码基线）；当前评审与执行以本页新增 BUSINESS 文档为准   |
+| [designs/BUSINESS_ARCHITECTURE_REVIEW.md](./designs/BUSINESS_ARCHITECTURE_REVIEW.md) / [designs/BUSINESS_ARCHITECTURE_REVIEW.en.md](./designs/BUSINESS_ARCHITECTURE_REVIEW.en.md)                             | 当前工作树的正式业务架构评审、评分、P0/P1/P2 和最终判断                           |
+| [designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.md](./designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.md) / [designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.en.md](./designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.en.md) | CMDB、业务目录、变更执行、Kubernetes 和可观测性事实源的目标设计                   |
+| [designs/BUSINESS_DEVELOPMENT_PLAN.md](./designs/BUSINESS_DEVELOPMENT_PLAN.md) / [designs/BUSINESS_DEVELOPMENT_PLAN.en.md](./designs/BUSINESS_DEVELOPMENT_PLAN.en.md)                                         | 历史 8 周估算与路线参考；V1 执行已由冻结任务包接管                                |
+| [designs/BUSINESS_QA_ACCEPTANCE_PLAN.md](./designs/BUSINESS_QA_ACCEPTANCE_PLAN.md) / [designs/BUSINESS_QA_ACCEPTANCE_PLAN.en.md](./designs/BUSINESS_QA_ACCEPTANCE_PLAN.en.md)                                 | P0/P1/P2 QA 验收问题、准入矩阵和发布退出条件                                      |
+| [designs/BUSINESS_TEST_PLAN.md](./designs/BUSINESS_TEST_PLAN.md) / [designs/BUSINESS_TEST_PLAN.en.md](./designs/BUSINESS_TEST_PLAN.en.md)                                                                     | 单元、契约、不变量、跨模块 smoke、MySQL/K8s/SSH 外部验收测试计划                  |
+| [../frontend/README.md](../frontend/README.md) / [../frontend/README.en.md](../frontend/README.en.md)                                                                                                         | 前端工作区说明                                                                    |
+| [../frontend/tests/smoke/README.md](../frontend/tests/smoke/README.md)                                                                                                                                        | smoke 测试布局与覆盖边界                                                          |
+| [../CONTRIBUTING.md](../CONTRIBUTING.md) / [../CONTRIBUTING.en.md](../CONTRIBUTING.en.md)                                                                                                                     | 协作规范、提交格式与验证要求                                                      |
+| [../SECURITY.md](../SECURITY.md) / [../SECURITY.en.md](../SECURITY.en.md)                                                                                                                                     | 安全问题报告范围与披露规则                                                        |
 
 说明：
 
@@ -44,10 +48,12 @@ English version: [README.en.md](./README.en.md)
 建议实际阅读时先看：
 
 1. [README.md](../README.md)
-2. [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
-3. [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md)
-4. [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md)
-5. `designs/BUSINESS_*`
+2. [../DESIGN.md](../DESIGN.md)
+3. [designs/BUSINESS_FUNCTIONAL_DESIGN.md](./designs/BUSINESS_FUNCTIONAL_DESIGN.md)
+4. [V1_RELEASE_CHECKLIST.md](./V1_RELEASE_CHECKLIST.md)
+5. [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
+6. 与任务相关的 `designs/BUSINESS_*_MODULE_DESIGN.md`
+7. 对应 task packet、evidence 与 review
 
 ---
 
@@ -56,6 +62,7 @@ English version: [README.en.md](./README.en.md)
 以下文档**不要在 ops 复制副本**。读时直接看 base 仓库：
 
 ### 2.1 项目入口与文档治理
+
 - `../../pantheon-base/DESIGN.md`
 - `../../pantheon-base/AGENTS.md`
 - `../../pantheon-base/docs/README.md`（base 文档总索引）
@@ -63,6 +70,7 @@ English version: [README.en.md](./README.en.md)
 - `../../pantheon-base/docs/contracts/DOCUMENT_METADATA_AND_STATUS.md`
 
 ### 2.2 契约（系统域 API 与协议）
+
 - `../../pantheon-base/docs/contracts/PLATFORM_CONTRACT.md`
 - `../../pantheon-base/docs/contracts/SYSTEM_AUTH_CONTRACT.md`
 - `../../pantheon-base/docs/contracts/SYSTEM_IAM_CONTRACT.md`
@@ -70,6 +78,7 @@ English version: [README.en.md](./README.en.md)
 - `../../pantheon-base/docs/contracts/SYSTEM_CONFIG_CONTRACT.md`
 
 ### 2.3 架构与规范
+
 - `../../pantheon-base/docs/designs/BACKEND.md` 总体架构与后端规范
 - `../../pantheon-base/docs/designs/FRONTEND.md` 前端架构与模块接入
 - `../../pantheon-base/docs/designs/FRONTEND_UI_SPEC.md` 前端 UI 详细规范
@@ -82,6 +91,7 @@ English version: [README.en.md](./README.en.md)
 - `../../pantheon-base/docs/designs/BUSINESS_MODULE_TEMPLATE.md` 业务模块设计模板（写 ops 业务模块时套用）
 
 ### 2.4 系统域设计（base 自有）
+
 - `../../pantheon-base/docs/designs/AUTH_MODULE_DESIGN.md`
 - `../../pantheon-base/docs/designs/SYSTEM_ORG_DESIGN.md`
 - `../../pantheon-base/docs/designs/DICT_AND_SETTING_DESIGN.md`
@@ -105,6 +115,7 @@ English version: [README.en.md](./README.en.md)
 - `../../pantheon-base/docs/designs/WORKFLOW.md`
 
 ### 2.5 验收
+
 - `../../pantheon-base/docs/acceptances/ACCEPTANCE_CHECKLIST.md`
 - `../../pantheon-base/docs/acceptances/BUSINESS_MODULE_ACCEPTANCE_MATRIX.md`
 - `../../pantheon-base/docs/acceptances/CODE_REVIEW_STANDARD.md`
@@ -116,9 +127,22 @@ English version: [README.en.md](./README.en.md)
 - `../../pantheon-base/docs/acceptances/PLATFORM_SHELL_PR_CHECKLIST_SNIPPET.md`
 
 ### 2.6 历史基线与样例
-- `../../pantheon-base/docs/archive/`
-- `../../pantheon-base/docs/assessments/`
-- `../../pantheon-base/docs/remediations/`
+
+- `../../pantheon-base/archive/2026-08-security/`
+- `../archive/2026-08-process/`
+
+### 2.7 Harness 方法源
+
+Harness 方法论由 workspace sibling `pantheon-harness` 统一维护，Ops 不复制方法正文：
+
+- `../../pantheon-harness/patterns/README.md`
+- `../../pantheon-harness/patterns/harness-core-model.md`
+- `../../pantheon-harness/patterns/harness-coverage-model.md`
+- `../../pantheon-harness/patterns/harness-template-taxonomy.md`
+- `../../pantheon-harness/patterns/tool-adapter-matrix.md`
+- `../../pantheon-harness/patterns/method-playbook.md`
+- `../../pantheon-harness/patterns/execution-guardrails.md`
+- `../../pantheon-harness/patterns/context-engineering-protocol.md`
 
 ---
 
@@ -131,3 +155,12 @@ English version: [README.en.md](./README.en.md)
 - 本仓库可以维护 `PROJECT_INHERITANCE.md` 锁定的 base 版本和本地业务范围
 - 非 trivial 的业务实现或 `base -> ops` 同步，优先先写一份 `TASK_PACKET_OPS_TEMPLATE` 风格的最小任务包
 - `docs/harness/tasks/` 仅保留 task packet 实例与 evidence linkage，不作为业务文档主索引；对应任务若被稳定设计文档完全吸收，应在后续文档治理中清理
+
+### 3.1 Harness 与 `.harness` 的职责边界
+
+- `docs/harness/` 是可审阅的 Harness 方法、合同和 task packet 规范；它被任务包和文档门禁直接引用。
+- `.harness/` 是机器可读的 manifest、状态、执行证据和运行产物。
+- 两者不是重复副本，不能通过删除 `docs/harness/` 来合并；删除会使 `check-task-packet`、`check-method-health` 等门禁失效。
+- 仓库 shell 的入口指针位于 `docs/harness/HARNESS_ENGINEERING_CONTRACT.md`、`TRIVIALITY_CLASSIFICATION_POLICY.md`、`VISUAL_EVIDENCE_PROMOTION_POLICY.md` 和 `FAILURE_REGISTRY_PROMOTION_POLICY.md`，正文仍由 base 或 `pantheon-harness` 提供。
+
+本轮一次性过程文档已移入 `../archive/2026-08-process/`。归档材料只用于追溯，不覆盖当前业务设计、V1 freeze checklist 或 `.harness/evidence/` 中的事实证据。

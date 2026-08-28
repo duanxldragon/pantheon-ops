@@ -11,17 +11,21 @@ This directory contains only repository-owned business documents. Architecture, 
 ## Repository-Owned Documents
 
 - [README.md](./README.md) / [README.en.md](./README.en.md): repo entry and reading order
+- [../DESIGN.md](../DESIGN.md) / [../DESIGN.en.md](../DESIGN.en.md): repository-level product, experience, boundary, and release contract
+- [designs/BUSINESS_FUNCTIONAL_DESIGN.md](./designs/BUSINESS_FUNCTIONAL_DESIGN.md) / [designs/BUSINESS_FUNCTIONAL_DESIGN.en.md](./designs/BUSINESS_FUNCTIONAL_DESIGN.en.md): global capability map, flows, state, security, UI, and V1 traceability
+- [V1_RELEASE_CHECKLIST.md](./V1_RELEASE_CHECKLIST.md): only source of truth for V1 release state, blockers, gates, and runtime evidence
 - [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) / [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md): inheritance relationship, version pin, local business scope, and override boundaries
 - [../.agents/skills/README.zh.md](../.agents/skills/README.zh.md) / [../.agents/skills/README.md](../.agents/skills/README.md): repo-local agent skills for inheritance checks, PR closure, GitHub comment automation, and CI triage
 - [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) / [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.md): minimum task-packet template for business work and `base -> ops` sync
 - [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md) / [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md): business-scope module design for scope governance, host assignment boundaries, and deploy trust source
 - [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) / [designs/BUSINESS_CMDB_MODULE_DESIGN.en.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.en.md): CMDB business-module design
 - [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) / [designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md): deploy business-module design
+- [designs/BUSINESS_SERVICE_MODULE_DESIGN.md](./designs/BUSINESS_SERVICE_MODULE_DESIGN.md) / [designs/BUSINESS_SERVICE_MODULE_DESIGN.en.md](./designs/BUSINESS_SERVICE_MODULE_DESIGN.en.md): application, service, instance, VM/K8s target, and reconciliation design
+- [designs/BUSINESS_K8S_MODULE_DESIGN.md](./designs/BUSINESS_K8S_MODULE_DESIGN.md) / [designs/BUSINESS_K8S_MODULE_DESIGN.en.md](./designs/BUSINESS_K8S_MODULE_DESIGN.en.md): cluster, NamespaceBinding, runtime resources, Release, and V1 Service design
 - [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md) / [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md): canonical business error-key appendix
 - [designs/PLATFORM_SRE_EVOLUTION_PLAN.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.md) / [designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md): SRE evolution roadmap
-- [../DESIGN.md](../DESIGN.md) / [../DESIGN.en.md](../DESIGN.en.md): repo-level design stance
 - [../frontend/README.md](../frontend/README.md) / [../frontend/README.en.md](../frontend/README.en.md): frontend workspace notes
-- [../frontend/tests/smoke/README.md](../frontend/tests/smoke/README.md) / [../frontend/tests/smoke/README.en.md](../frontend/tests/smoke/README.en.md): smoke-test layout and coverage boundaries
+- [../frontend/tests/smoke/README.md](../frontend/tests/smoke/README.md): smoke-test layout and coverage boundaries
 - [../CONTRIBUTING.md](../CONTRIBUTING.md) / [../CONTRIBUTING.en.md](../CONTRIBUTING.en.md): collaboration and verification rules
 - [../SECURITY.md](../SECURITY.md) / [../SECURITY.en.md](../SECURITY.en.md): security reporting policy
 
@@ -31,19 +35,23 @@ Chinese `.md` files remain the primary reading surface for this repository, whil
 For actual onboarding, start with:
 
 1. [../README.md](../README.md)
-2. [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
-3. [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md)
-4. [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md)
-5. the `designs/BUSINESS_*` documents
+2. [../DESIGN.md](../DESIGN.md)
+3. [designs/BUSINESS_FUNCTIONAL_DESIGN.md](./designs/BUSINESS_FUNCTIONAL_DESIGN.md)
+4. [V1_RELEASE_CHECKLIST.md](./V1_RELEASE_CHECKLIST.md)
+5. [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
+6. the relevant `designs/BUSINESS_*_MODULE_DESIGN.md`
+7. the linked task packet, evidence, and review
 
 ## Recommended Reading Order
 
 For Chinese-first onboarding, read:
 
 1. [README.md](./README.md)
-2. [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
-3. [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md)
-4. [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md)
+2. [../DESIGN.md](../DESIGN.md)
+3. [designs/BUSINESS_FUNCTIONAL_DESIGN.md](./designs/BUSINESS_FUNCTIONAL_DESIGN.md)
+4. [V1_RELEASE_CHECKLIST.md](./V1_RELEASE_CHECKLIST.md)
+5. [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
+6. the relevant module design
 
 Then read foundation docs directly in `pantheon-base`:
 
@@ -59,3 +67,5 @@ Then read foundation docs directly in `pantheon-base`:
 - if a generic rule needs to change, open the change in base first and then upgrade ops
 - for non-trivial business implementation or `base -> ops` sync work, prefer creating a minimal task packet first
 - `docs/harness/tasks/` is reserved for task-packet instances and evidence linkage only; it is not part of the business-doc primary index
+
+`docs/harness/` is the reviewable Harness contract and task-packet layer, while `.harness/` stores machine-readable state and evidence. They intentionally remain separate because repository checkers consume both paths. Superseded process documents are retained under `../archive/2026-08-process/` for traceability only.

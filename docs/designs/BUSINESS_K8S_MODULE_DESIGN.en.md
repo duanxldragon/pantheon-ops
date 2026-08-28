@@ -1,5 +1,10 @@
 # Kubernetes Business Module Design
 
+- Updated: 2026-08-24
+- Status: Active; Service CRUD and the external runtime matrix are V1 freeze targets
+
+The [global functional design](./BUSINESS_FUNCTIONAL_DESIGN.en.md) and [V1 checklist](../V1_RELEASE_CHECKLIST.md) govern implementation and release status.
+
 This document defines the `business/k8s` ownership boundary and delivery
 contract. Authentication, Casbin, DataScope, audit, menus, i18n, and secret
 protection remain Base system capabilities and are not duplicated here.
@@ -8,7 +13,7 @@ protection remain Base system capabilities and are not duplicated here.
 
 - `Cluster` is the stable registered identity of a Kubernetes cluster.
 - The Kubernetes API is the runtime source of truth for Namespace, Node,
-  Workload, ConfigMap, and Secret objects. The module returns live DTOs and
+  Workload, Service, ConfigMap, and Secret objects. The module returns live DTOs and
   does not mirror those objects into CMDB.
 - `Release` is an immutable image-change intent and rollout observation record,
   not a Workload copy.
@@ -21,6 +26,16 @@ K8s validates business-scope ownership only through the provider-owned
 `business/capability.BizScopeReader` typed interface. Cluster deletion asks the
 K8s-owned Release reference capability while holding the same Cluster row lock
 used by Release intent creation, closing the create/delete race.
+
+`NamespaceBinding` explicitly binds cluster/namespace to BizScope, environment, and allowed actions. Every namespace mutation validates Token, Casbin, DataScope, Cluster ownership, and this binding before calling Kubernetes.
+
+## V1 Freeze Additions
+
+- ClientPool never writes under `RLock`, keeps slow parsing/network work outside the global write lock, and coordinates replace/rotation/cleanup consistently.
+- Kubernetes Service supports structured list/get/create/update/delete with type, selectors, and ports.
+- Service update/delete requires `resourceVersion`; stale writes return HTTP 409 with a stable error key.
+- Secret reads expose keys and metadata only, never values.
+- The isolated Nginx/Redis external matrix records authorization failures, conflicts, timeouts, and cleanup.
 
 ## Release Lifecycle
 

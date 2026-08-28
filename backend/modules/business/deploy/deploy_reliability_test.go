@@ -75,6 +75,7 @@ func TestDeployPackageImmutableAfterTaskReference(t *testing.T) {
 func TestDeployTaskExecutionSnapshotFrozenAgainstLiveMutation(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	credID := setupDeployTestCredential(t, svc)
 
 	runner := &fakeDeploySSHRunner{stdout: "ok"}
 	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
@@ -108,10 +109,8 @@ func TestDeployTaskExecutionSnapshotFrozenAgainstLiveMutation(t *testing.T) {
 	}
 
 	if _, err := svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil); err != nil {
 		t.Fatalf("start task: %v", err)
 	}

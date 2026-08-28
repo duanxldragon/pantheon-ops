@@ -28,7 +28,9 @@ test('workspace dashboard visual baseline', async ({ page }) => {
     mask: [
       page.locator('.dashboard-stat-card__value'),
       page.locator('.dashboard-stat-card--users .arco-tag'),
-      page.locator('.dashboard-focus-item__value'),
+      // Dashboard attention/todo content is backed by live governance data.
+      page.locator('.dashboard-panel-card--todo .arco-card-body'),
+      page.locator('.dashboard-focus-stack'),
       page.locator('.dashboard-domain-card__summary'),
       page.locator('.dashboard-login-table .app-table tbody tr'),
     ],
@@ -46,6 +48,7 @@ test('system user list visual baseline', async ({ page }) => {
     mask: [
       page.locator('.governance-summary-bar__metric-value'),
       page.locator('.system-list__table-card .app-table tbody tr'),
+      page.locator('.system-user-list__table .arco-pagination'),
     ],
   });
 });

@@ -109,7 +109,9 @@ export default function BizScopeDetail() {
   const [availableHostsLoading, setAvailableHostsLoading] = useState(false);
   const [availableHostsError, setAvailableHostsError] = useState<unknown>(null);
   const [bindDrawerVisible, setBindDrawerVisible] = useState(false);
-  const [selectedAvailableHostIds, setSelectedAvailableHostIds] = useState<Array<string | number>>([]);
+  const [selectedAvailableHostIds, setSelectedAvailableHostIds] = useState<Array<string | number>>(
+    [],
+  );
   const [binding, setBinding] = useState(false);
   const [unbindingHostId, setUnbindingHostId] = useState<number | null>(null);
 
@@ -186,10 +188,7 @@ export default function BizScopeDetail() {
     }
     setBinding(true);
     try {
-      await bindBizScopeHosts(
-        scopeId,
-        selectedAvailableHostIds.map(Number),
-      );
+      await bindBizScopeHosts(scopeId, selectedAvailableHostIds.map(Number));
       Message.success(t('business.bizscope.bindSuccess'));
       setBindDrawerVisible(false);
       setSelectedAvailableHostIds([]);
@@ -249,65 +248,57 @@ export default function BizScopeDetail() {
     [detail, t],
   );
 
-  const hostColumns = useMemo<ColumnProps<BizScopeHostRow>[]>(
-    () => {
-      const columns: ColumnProps<BizScopeHostRow>[] = [
-        {
-          title: t('business.cmdb.host.hostname'),
-          dataIndex: 'hostname',
-          width: 180,
-        },
-        {
-          title: t('business.cmdb.host.ip'),
-          dataIndex: 'ip',
-          width: 160,
-        },
-        {
-          title: t('business.cmdb.host.os'),
-          dataIndex: 'os',
-          width: 120,
-          render: (_: unknown, row) => t(`business.cmdb.host.os.${row.os}`),
-        },
-        {
-          title: t('business.cmdb.host.status'),
-          dataIndex: 'status',
-          width: 120,
-          render: (_: unknown, row) => (
-            <Tag color={bizScopeHostStatusColor(row.status)}>
-              {t(`business.cmdb.host.status.${row.status}`)}
-            </Tag>
-          ),
-        },
-      ];
-      if (canUpdate) {
-        columns.push({
-          title: t('common.action'),
-          dataIndex: 'action',
-          width: 120,
-          fixed: 'right',
-          render: (_: unknown, row) => (
-            <Popconfirm
-              title={t('business.bizscope.unbindConfirm', { hostname: row.hostname })}
-              onOk={() => {
-                void handleUnbindHost(row.id);
-              }}
-            >
-              <Button
-                type="text"
-                size="small"
-                status="danger"
-                loading={unbindingHostId === row.id}
-              >
-                {t('business.bizscope.unbindAction')}
-              </Button>
-            </Popconfirm>
-          ),
-        });
-      }
-      return columns;
-    },
-    [canUpdate, handleUnbindHost, t, unbindingHostId],
-  );
+  const hostColumns = useMemo<ColumnProps<BizScopeHostRow>[]>(() => {
+    const columns: ColumnProps<BizScopeHostRow>[] = [
+      {
+        title: t('business.cmdb.host.hostname'),
+        dataIndex: 'hostname',
+        width: 180,
+      },
+      {
+        title: t('business.cmdb.host.ip'),
+        dataIndex: 'ip',
+        width: 160,
+      },
+      {
+        title: t('business.cmdb.host.os'),
+        dataIndex: 'os',
+        width: 120,
+        render: (_: unknown, row) => t(`business.cmdb.host.os.${row.os}`),
+      },
+      {
+        title: t('business.cmdb.host.status'),
+        dataIndex: 'status',
+        width: 120,
+        render: (_: unknown, row) => (
+          <Tag color={bizScopeHostStatusColor(row.status)}>
+            {t(`business.cmdb.host.status.${row.status}`)}
+          </Tag>
+        ),
+      },
+    ];
+    if (canUpdate) {
+      columns.push({
+        title: t('common.action'),
+        dataIndex: 'action',
+        width: 120,
+        fixed: 'right',
+        render: (_: unknown, row) => (
+          <Popconfirm
+            title={t('business.bizscope.unbindConfirm', { hostname: row.hostname })}
+            onOk={() => {
+              void handleUnbindHost(row.id);
+            }}
+          >
+            <Button type="text" size="small" status="danger" loading={unbindingHostId === row.id}>
+              {t('business.bizscope.unbindAction')}
+            </Button>
+          </Popconfirm>
+        ),
+      });
+    }
+    return columns;
+  }, [canUpdate, handleUnbindHost, t, unbindingHostId]);
 
   const availableHostColumns = useMemo<ColumnProps<BizScopeHostRow>[]>(
     () => [
@@ -369,7 +360,7 @@ export default function BizScopeDetail() {
                 {t('business.bizscope.bindHosts')}
               </Button>
             ) : null}
-        <Button icon={<IconLeft />} onClick={() => navigate('/business/business-scope')}>
+            <Button icon={<IconLeft />} onClick={() => navigate('/business/business-scope')}>
               {t('common.back')}
             </Button>
           </Space>
@@ -379,8 +370,13 @@ export default function BizScopeDetail() {
         <Card className="page-panel system-page-hero cmdb-page__hero">
           <div className="system-page-hero__top">
             <div className="system-page-hero__copy">
-              <span className="system-page-hero__eyebrow">{t('business.bizscope.hero.eyebrow')}</span>
-              <Typography.Title heading={5} className="system-page-hero__title cmdb-page__hero-title">
+              <span className="system-page-hero__eyebrow">
+                {t('business.bizscope.hero.eyebrow')}
+              </span>
+              <Typography.Title
+                heading={5}
+                className="system-page-hero__title cmdb-page__hero-title"
+              >
                 {detail.name}
               </Typography.Title>
               <Typography.Text type="secondary" className="system-page-hero__desc">
@@ -401,7 +397,7 @@ export default function BizScopeDetail() {
         <Card className="page-panel">
           <FormSection title={t('business.bizscope.summaryTitle')}>
             <Descriptions
-              column={2}
+              column={{ xs: 1, md: 2 }}
               data={[
                 { label: t('business.bizscope.field.code'), value: detail.code },
                 { label: t('business.bizscope.field.name'), value: detail.name },

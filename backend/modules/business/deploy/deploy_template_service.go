@@ -12,6 +12,17 @@ import (
 
 const templateIDWhereClause = "template_id = ?"
 
+func cloneDeployConfig(values map[string]any) map[string]any {
+	if len(values) == 0 {
+		return map[string]any{}
+	}
+	result := make(map[string]any, len(values))
+	for key, value := range values {
+		result[key] = value
+	}
+	return result
+}
+
 func (s *DeployService) CreateTemplate(req CreateTemplateRequest, actor string) (*TemplateResponse, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
@@ -255,18 +266,23 @@ func (s *DeployService) resolveTemplateSteps(req UpdateTemplateRequest, id uint6
 	}
 	steps := make([]TemplateStepPayload, 0, len(existingSteps[id]))
 	for _, step := range existingSteps[id] {
+		config := cloneDeployConfig(step.StepConfig)
 		steps = append(steps, TemplateStepPayload{
-			StepCode:       step.StepCode,
-			StepName:       step.StepName,
-			StepType:       step.StepType,
-			Action:         step.Action,
-			PackageID:      step.PackageID,
-			PackageName:    step.PackageName,
-			PackageVersion: step.PackageVersion,
-			TemplateCode:   step.TemplateCode,
-			TemplateParams: step.TemplateParams,
-			StepConfig:     step.StepConfig,
-			Sort:           step.Sort,
+			StepCode:              step.StepCode,
+			StepName:              step.StepName,
+			StepType:              step.StepType,
+			Action:                step.Action,
+			PackageID:             step.PackageID,
+			PackageName:           step.PackageName,
+			PackageVersion:        step.PackageVersion,
+			TemplateCode:          step.TemplateCode,
+			TemplateParams:        step.TemplateParams,
+			StepConfig:            config,
+			ContinueOnHostFailure: step.ContinueOnHostFailure,
+			Dependencies:          stringSliceConfig(config, "dependencies"),
+			Condition:             mapConfig(config, "condition"),
+			FailurePolicy:         stringConfig(config, "failurePolicy"),
+			Sort:                  step.Sort,
 		})
 	}
 	return steps, nil
@@ -416,7 +432,7 @@ func (s *DeployService) resolveTemplateStep(step TemplateStepPayload, req Create
 	if stepType == "" {
 		stepType = TemplateStepTypePackage
 	}
-	if stepType != TemplateStepTypePackage && stepType != TemplateStepTypeScript {
+	if !validStepType(stepType) {
 		return DeployTemplateStep{}, errors.New("deploytemplate.invalid")
 	}
 	action := normalizeTaskAction(step.Action)
@@ -444,20 +460,31 @@ func (s *DeployService) resolveTemplateStep(step TemplateStepPayload, req Create
 	if sortValue <= 0 {
 		sortValue = index + 1
 	}
+	stepConfig := cloneDeployConfig(step.StepConfig)
+	if step.Dependencies != nil {
+		stepConfig["dependencies"] = normalizeDeployStringValues(step.Dependencies)
+	}
+	if step.Condition != nil {
+		stepConfig["condition"] = step.Condition
+	}
+	if strings.TrimSpace(step.FailurePolicy) != "" {
+		stepConfig["failurePolicy"] = strings.TrimSpace(step.FailurePolicy)
+	}
 	templateParamsJSON, _ := json.Marshal(step.TemplateParams)
-	stepConfigJSON, _ := json.Marshal(step.StepConfig)
+	stepConfigJSON, _ := json.Marshal(stepConfig)
 	return DeployTemplateStep{
-		StepCode:       stepCode,
-		StepName:       stepName,
-		StepType:       stepType,
-		Action:         action,
-		PackageID:      packageIDForStep,
-		PackageName:    packageNameForStep,
-		PackageVersion: packageVersionForStep,
-		TemplateCode:   templateCodeForStep,
-		TemplateParams: datatypes.JSON(templateParamsJSON),
-		StepConfig:     datatypes.JSON(stepConfigJSON),
-		Sort:           sortValue,
+		StepCode:              stepCode,
+		StepName:              stepName,
+		StepType:              stepType,
+		Action:                action,
+		PackageID:             packageIDForStep,
+		PackageName:           packageNameForStep,
+		PackageVersion:        packageVersionForStep,
+		TemplateCode:          templateCodeForStep,
+		TemplateParams:        datatypes.JSON(templateParamsJSON),
+		StepConfig:            datatypes.JSON(stepConfigJSON),
+		ContinueOnHostFailure: step.ContinueOnHostFailure,
+		Sort:                  sortValue,
 	}, nil
 }
 
@@ -466,6 +493,9 @@ func (s *DeployService) resolveTemplateStepPackage(step TemplateStepPayload, ste
 	packageNameForStep := strings.TrimSpace(step.PackageName)
 	packageVersionForStep := strings.TrimSpace(step.PackageVersion)
 	templateCodeForStep := strings.TrimSpace(step.TemplateCode)
+	if isComponentType(stepType) && templateCodeForStep == "" {
+		templateCodeForStep = componentTypeToTemplateCode[stepType]
+	}
 	if packageIDForStep > 0 {
 		var pkg DeployPackage
 		if err := s.db.First(&pkg, packageIDForStep).Error; err != nil {
@@ -478,7 +508,7 @@ func (s *DeployService) resolveTemplateStepPackage(step TemplateStepPayload, ste
 		}
 		return packageIDForStep, packageNameForStep, packageVersionForStep, templateCodeForStep, nil
 	}
-	if stepType == TemplateStepTypePackage && base.ID > 0 {
+	if (stepType == TemplateStepTypePackage || isComponentType(stepType)) && base.ID > 0 {
 		packageIDForStep = base.ID
 		packageNameForStep = base.Name
 		packageVersionForStep = base.Version
@@ -530,22 +560,27 @@ func templateToResponse(item *DeployTemplate, steps []TemplateStepResponse) Temp
 }
 
 func templateStepToResponse(step *DeployTemplateStep) TemplateStepResponse {
+	config := cloneDeployConfig(decodeJSONMap(step.StepConfig))
 	return TemplateStepResponse{
-		ID:             step.ID,
-		TemplateID:     step.TemplateID,
-		StepCode:       step.StepCode,
-		StepName:       step.StepName,
-		StepType:       step.StepType,
-		Action:         step.Action,
-		PackageID:      step.PackageID,
-		PackageName:    step.PackageName,
-		PackageVersion: step.PackageVersion,
-		TemplateCode:   step.TemplateCode,
-		TemplateParams: decodeJSONMap(step.TemplateParams),
-		StepConfig:     decodeJSONMap(step.StepConfig),
-		Sort:           step.Sort,
-		CreatedAt:      step.CreatedAt,
-		UpdatedAt:      step.UpdatedAt,
+		ID:                    step.ID,
+		TemplateID:            step.TemplateID,
+		StepCode:              step.StepCode,
+		StepName:              step.StepName,
+		StepType:              step.StepType,
+		Action:                step.Action,
+		PackageID:             step.PackageID,
+		PackageName:           step.PackageName,
+		PackageVersion:        step.PackageVersion,
+		TemplateCode:          step.TemplateCode,
+		TemplateParams:        decodeJSONMap(step.TemplateParams),
+		StepConfig:            config,
+		ContinueOnHostFailure: step.ContinueOnHostFailure,
+		Dependencies:          stringSliceConfig(config, "dependencies"),
+		Condition:             mapConfig(config, "condition"),
+		FailurePolicy:         stringConfig(config, "failurePolicy"),
+		Sort:                  step.Sort,
+		CreatedAt:             step.CreatedAt,
+		UpdatedAt:             step.UpdatedAt,
 	}
 }
 

@@ -39,11 +39,15 @@ func (s *NamespaceService) Migrate() error {
 }
 
 func (s *NamespaceService) binding(clusterID uint64, name string) (*NamespaceBinding, error) {
+	return s.bindingWithContext(context.Background(), clusterID, name)
+}
+
+func (s *NamespaceService) bindingWithContext(ctx context.Context, clusterID uint64, name string) (*NamespaceBinding, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
 	}
 	var item NamespaceBinding
-	if err := s.db.Where("cluster_id = ? AND namespace = ?", clusterID, name).First(&item).Error; err != nil {
+	if err := s.db.WithContext(ctx).Where("cluster_id = ? AND namespace = ?", clusterID, name).First(&item).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("k8s.namespace.binding_required")
 		}
@@ -55,7 +59,13 @@ func (s *NamespaceService) binding(clusterID uint64, name string) (*NamespaceBin
 // RequireWrite verifies that a namespace has an explicit ownership binding and
 // the requested mutation action. Empty action lists deliberately deny writes.
 func (s *NamespaceService) RequireWrite(clusterID uint64, name, action string) error {
-	binding, err := s.binding(clusterID, name)
+	return s.RequireWriteWithContext(context.Background(), clusterID, name, action)
+}
+
+// RequireWriteWithContext verifies namespace ownership with the caller's
+// cancellation and database deadline.
+func (s *NamespaceService) RequireWriteWithContext(ctx context.Context, clusterID uint64, name, action string) error {
+	binding, err := s.bindingWithContext(ctx, clusterID, name)
 	if err != nil {
 		return err
 	}

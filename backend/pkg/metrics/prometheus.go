@@ -5,6 +5,9 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
+// Namespace is the Prometheus namespace for all pantheon metrics
+const Namespace = "pantheon"
+
 var (
 	// HTTP 请求总数
 	HTTPRequestsTotal = promauto.NewCounterVec(

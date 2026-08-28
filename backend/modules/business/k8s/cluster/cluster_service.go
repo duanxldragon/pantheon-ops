@@ -23,15 +23,14 @@ import (
 const (
 	idWhereClause = "id = ?"
 	syncTimeout   = 30 * time.Second
-)
-
-// ClusterService manages registered Kubernetes clusters and their clients.
+) // ClusterService manages registered Kubernetes clusters and their clients.
 //
 //nolint:revive // retained as the public service name for this package.
 type ClusterService struct {
 	db               *gorm.DB
 	referenceChecker ReferenceChecker
 	bizScopeReader   bizcap.BizScopeReader
+	clientPool       *k8spkg.ClientPool // Thread-safe client pool
 }
 
 // ReferenceChecker checks whether a cluster is referenced by another business resource.
@@ -41,7 +40,10 @@ type ReferenceChecker interface {
 
 // NewClusterService creates the Kubernetes cluster service.
 func NewClusterService(db *gorm.DB, readers ...bizcap.BizScopeReader) *ClusterService {
-	service := &ClusterService{db: db}
+	service := &ClusterService{
+		db:         db,
+		clientPool: k8spkg.NewClientPool(30 * time.Second), // Initialize client pool
+	}
 	if len(readers) > 0 {
 		service.bizScopeReader = readers[0]
 	}
@@ -113,6 +115,10 @@ func (s *ClusterService) List(query ClusterListQuery, dataScope *common.DataScop
 		items[i] = toResponse(&c)
 		s.enrichCredentialMetadata(&items[i], c.KubeconfigCredentialRefID)
 	}
+
+	// 更新集群状态统计 metrics
+	UpdateClusterStatusMetrics(clusters)
+
 	return &ClusterListResponse{Items: items, Total: total, Page: query.Page, PageSize: query.PageSize}, nil
 }
 
@@ -181,6 +187,10 @@ func (s *ClusterService) Create(req CreateClusterRequest, createdBy string, dept
 	}); err != nil {
 		return nil, err
 	}
+
+	// 记录集群创建 metrics
+	RecordClusterMetrics(&cluster)
+
 	resp := toResponse(&cluster)
 	return &resp, nil
 }
@@ -310,6 +320,7 @@ func (s *ClusterService) WithClusterLock(id uint64, dataScope *common.DataScopeR
 // and aggregate resource capacity. On any failure the cluster status is marked
 // unreachable but the cluster record itself is preserved.
 func (s *ClusterService) Sync(id uint64, dataScope *common.DataScopeReq) (*ClusterResponse, error) {
+	startTime := time.Now()
 	cluster, err := s.findCluster(id, dataScope)
 	if err != nil {
 		return nil, err
@@ -321,12 +332,16 @@ func (s *ClusterService) Sync(id uint64, dataScope *common.DataScopeReq) (*Clust
 	clientset, err := s.clientsetForCluster(cluster)
 	if err != nil {
 		s.markUnreachable(cluster)
+		k8sClusterSyncErrors.WithLabelValues(cluster.Code, "connection_failed").Inc()
+		k8sClusterSyncDuration.WithLabelValues(cluster.Code, "failed").Observe(time.Since(startTime).Seconds())
 		return nil, err
 	}
 
 	info, err := collectClusterInfo(ctx, clientset)
 	if err != nil {
 		s.markUnreachable(cluster)
+		k8sClusterSyncErrors.WithLabelValues(cluster.Code, "collect_failed").Inc()
+		k8sClusterSyncDuration.WithLabelValues(cluster.Code, "failed").Observe(time.Since(startTime).Seconds())
 		return nil, errors.New("k8s.cluster.sync_failed")
 	}
 
@@ -348,6 +363,18 @@ func (s *ClusterService) Sync(id uint64, dataScope *common.DataScopeReq) (*Clust
 	if err := s.db.Model(cluster).Updates(updates).Error; err != nil {
 		return nil, err
 	}
+
+	// 更新集群的最新指标
+	cluster.Status = "healthy"
+	cluster.TotalNodes = info.TotalNodes
+	cluster.TotalPods = info.TotalPods
+	cluster.CPUCapacity = info.CPUCapacity
+	cluster.MemoryCapacity = info.MemoryCapacity
+	RecordClusterMetrics(cluster)
+
+	// 记录同步成功
+	k8sClusterSyncDuration.WithLabelValues(cluster.Code, "success").Observe(time.Since(startTime).Seconds())
+
 	return s.GetByID(id, dataScope)
 }
 
@@ -383,24 +410,46 @@ func (s *ClusterService) GetNodes(id uint64, dataScope *common.DataScopeReq) (*N
 // release) reuse this to operate on the cluster without re-implementing
 // kubeconfig decryption and access control.
 func (s *ClusterService) GetClientset(id uint64, dataScope *common.DataScopeReq) (*kubernetes.Clientset, error) {
-	cluster, err := s.findCluster(id, dataScope)
+	return s.GetClientsetWithContext(context.Background(), id, dataScope)
+}
+
+// GetClientsetWithContext returns a live Kubernetes clientset while preserving
+// the caller's cancellation and database query deadline.
+func (s *ClusterService) GetClientsetWithContext(ctx context.Context, id uint64, dataScope *common.DataScopeReq) (*kubernetes.Clientset, error) {
+	cluster, err := s.findClusterWithContext(ctx, id, dataScope)
 	if err != nil {
 		return nil, err
 	}
-	return s.clientsetForCluster(cluster)
+	return s.clientsetForClusterWithContext(ctx, cluster)
 }
 
 func (s *ClusterService) clientsetForCluster(cluster *Cluster) (*kubernetes.Clientset, error) {
+	return s.clientsetForClusterWithContext(context.Background(), cluster)
+}
+
+func (s *ClusterService) clientsetForClusterWithContext(ctx context.Context, cluster *Cluster) (*kubernetes.Clientset, error) {
+	var encrypted string
 	if cluster.KubeconfigCredentialRefID > 0 {
 		var ref ClusterCredentialRef
-		if err := s.db.First(&ref, cluster.KubeconfigCredentialRefID).Error; err == nil && ref.Status == "active" {
-			return k8spkg.NewClientFromEncrypted(ref.Encrypted)
+		if err := s.db.WithContext(ctx).First(&ref, cluster.KubeconfigCredentialRefID).Error; err == nil && ref.Status == "active" {
+			encrypted = ref.Encrypted
 		}
 	}
-	if strings.TrimSpace(cluster.KubeconfigEncrypted) == "" {
+	if encrypted == "" {
+		encrypted = cluster.KubeconfigEncrypted
+	}
+	if strings.TrimSpace(encrypted) == "" {
 		return nil, errors.New("k8s.cluster.credential_not_found")
 	}
-	return k8spkg.NewClientFromEncrypted(cluster.KubeconfigEncrypted)
+
+	// Decrypt kubeconfig
+	kubeconfig, err := k8spkg.DecryptKubeconfig(encrypted)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use client pool for thread-safe access
+	return s.clientPool.GetOrCreate(cluster.ID, kubeconfig)
 }
 
 func clusterCredentialResponse(ref *ClusterCredentialRef) ClusterCredentialResponse {
@@ -490,11 +539,15 @@ func (s *ClusterService) markUnreachable(cluster *Cluster) {
 }
 
 func (s *ClusterService) findCluster(id uint64, dataScope *common.DataScopeReq) (*Cluster, error) {
+	return s.findClusterWithContext(context.Background(), id, dataScope)
+}
+
+func (s *ClusterService) findClusterWithContext(ctx context.Context, id uint64, dataScope *common.DataScopeReq) (*Cluster, error) {
 	if s.db == nil {
 		return nil, errors.New("database.not_initialized")
 	}
 	var cluster Cluster
-	if err := s.clusterQuery(dataScope).First(&cluster, id).Error; err != nil {
+	if err := s.clusterQuery(dataScope).WithContext(ctx).First(&cluster, id).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("k8s.cluster.not_found")
 		}

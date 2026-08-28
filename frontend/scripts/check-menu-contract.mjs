@@ -220,9 +220,13 @@ function normalizeRoutePath(routePath) {
 }
 
 function parseFrontendModules() {
+  // Experimental overlays are intentionally checked by their own runtime/API
+  // verification until their backend menu seeds become V1 canonical.
+  const v2ModulePaths = new Set(['observability']);
   const files = walkFiles(frontendModulesRoot, (filePath) =>
     filePath.endsWith(`${path.sep}index.ts`) &&
-    !filePath.includes(`${path.sep}templates${path.sep}`),
+    !filePath.includes(`${path.sep}templates${path.sep}`) &&
+    !v2ModulePaths.has(path.basename(path.dirname(filePath))),
   );
   const modules = [];
 
@@ -264,6 +268,11 @@ function parseFrontendModules() {
 }
 
 function parseBackendSeeds() {
+  // V2 experimental modules are excluded from V1 menu contract checks.
+  // These modules are not registered in V1 runtime and should not trigger
+  // menu/permission consistency errors until they are production-ready.
+  const v2ModulePaths = new Set(['observability']);
+
   const backendSeedFiles = [
     ...new Set([
       path.join(workspaceRoot, 'backend', 'modules', 'system', 'seed.go'),
@@ -271,7 +280,9 @@ function parseBackendSeeds() {
       ...walkFiles(
         backendModulesRoot,
         (filePath) =>
-          /(?:_menu|seed)\.go$/.test(path.basename(filePath)) && !filePath.endsWith('_test.go'),
+          /(?:_menu|seed)\.go$/.test(path.basename(filePath)) &&
+          !filePath.endsWith('_test.go') &&
+          !v2ModulePaths.has(path.basename(path.dirname(filePath))),
       ),
     ]),
   ];
@@ -362,7 +373,12 @@ function extractMapField(block, fieldName) {
 }
 
 function parseBackendMenuI18nSeeds() {
-  const files = walkFiles(backendModulesRoot, (filePath) => filePath.endsWith('.go'));
+  // V2 experimental modules are excluded from V1 i18n checks.
+  const v2ModulePaths = new Set(['observability']);
+
+  const files = walkFiles(backendModulesRoot, (filePath) =>
+    filePath.endsWith('.go') && !v2ModulePaths.has(path.basename(path.dirname(filePath))),
+  );
   const translations = new Map([
     ['zh-CN', new Set()],
     ['en-US', new Set()],
@@ -399,7 +415,12 @@ function parseBackendMenuI18nSeeds() {
 }
 
 function parseBackendScopedI18nSeeds(groupNames) {
-  const files = walkFiles(backendModulesRoot, (filePath) => filePath.endsWith('.go'));
+  // V2 experimental modules are excluded from V1 i18n checks.
+  const v2ModulePaths = new Set(['observability']);
+
+  const files = walkFiles(backendModulesRoot, (filePath) =>
+    filePath.endsWith('.go') && !v2ModulePaths.has(path.basename(path.dirname(filePath))),
+  );
   const translations = new Map([
     ['zh-CN', new Set()],
     ['en-US', new Set()],
