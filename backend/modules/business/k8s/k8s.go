@@ -2,11 +2,19 @@ package k8s
 
 import (
 	bizcap "pantheon-base/modules/business/capability"
+	"pantheon-base/modules/business/cmdb/host"
 	"pantheon-base/modules/business/k8s/cluster"
+	"pantheon-base/modules/business/k8s/backup"
 	"pantheon-base/modules/business/k8s/configmap"
+	"pantheon-base/modules/business/k8s/helm"
+	"pantheon-base/modules/business/k8s/ingress"
+	"pantheon-base/modules/business/k8s/install"
 	"pantheon-base/modules/business/k8s/namespace"
+	"pantheon-base/modules/business/k8s/rbac"
 	"pantheon-base/modules/business/k8s/release"
 	"pantheon-base/modules/business/k8s/secret"
+	"pantheon-base/modules/business/k8s/service"
+	"pantheon-base/modules/business/k8s/storage"
 	"pantheon-base/modules/business/k8s/workload"
 	"pantheon-base/pkg/contracts"
 
@@ -46,30 +54,66 @@ const (
 	k8sReleasePermCreateKey    = "business.k8s.release.permission.create"
 	k8sReleasePermRollbackKey  = "business.k8s.release.permission.rollback"
 	k8sReleasePermReconcileKey = "business.k8s.release.permission.reconcile"
+	operationsK8sIngressMenu   = "operations.k8s.ingress.menu"
+	k8sIngressPermViewKey      = "business.k8s.ingress.permission.view"
+	k8sIngressPermCreateKey    = "business.k8s.ingress.permission.create"
+	k8sIngressPermUpdateKey    = "business.k8s.ingress.permission.update"
+	k8sIngressPermDeleteKey    = "business.k8s.ingress.permission.delete"
+	operationsK8sStorageMenu   = "operations.k8s.storage.menu"
+	operationsK8sBackupMenu    = "operations.k8s.backup.menu"
+	k8sStoragePermViewKey      = "business.k8s.storage.permission.view"
+	k8sStoragePermCreateKey    = "business.k8s.storage.permission.create"
+	k8sStoragePermUpdateKey    = "business.k8s.storage.permission.update"
+	k8sStoragePermDeleteKey    = "business.k8s.storage.permission.delete"
+	k8sBackupPermViewKey       = "business.k8s.backup.permission.view"
+	k8sBackupPermCreateKey     = "business.k8s.backup.permission.create"
+	k8sBackupPermDeleteKey     = "business.k8s.backup.permission.delete"
 	menuPathWhereClause        = "path = ?"
 )
 
 const k8sRoutePath = "/business/k8s"
 
 // InitK8sModule registers Kubernetes business modules and returns target capabilities.
-func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, readers ...bizcap.BizScopeReader) bizcap.K8sTargetReader {
+func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, hostService *host.HostService, readers ...bizcap.BizScopeReader) bizcap.K8sTargetReader {
 	clusterSvc := cluster.NewClusterService(db, readers...)
 	clusterHandler := cluster.NewClusterHandler(clusterSvc)
 	namespaceSvc := namespace.NewNamespaceService(clusterSvc, db)
 	namespaceHandler := namespace.NewNamespaceHandler(namespaceSvc)
 	workloadSvc := workload.NewWorkloadService(clusterSvc, namespaceSvc)
-	workloadHandler := workload.NewWorkloadHandler(workloadSvc)
 	releaseSvc := release.NewReleaseService(db, clusterSvc, namespaceSvc)
 	clusterSvc.SetReferenceChecker(releaseSvc)
 	releaseHandler := release.NewReleaseHandler(releaseSvc)
 	configMapSvc := configmap.NewConfigMapService(clusterSvc, namespaceSvc)
-	configMapHandler := configmap.NewConfigMapHandler(configMapSvc)
 	secretSvc := secret.NewSecretService(clusterSvc, namespaceSvc)
-	secretHandler := secret.NewSecretHandler(secretSvc)
+	serviceSvc := service.NewServiceService(clusterSvc, namespaceSvc)
+
+	helmSvc := helm.NewHelmService(db)
+	helmHandler := helm.NewHelmHandler(helmSvc)
+
+	ingressSvc := ingress.NewIngressService(db, clusterSvc, namespaceSvc)
+	storageSvc := storage.NewStorageService(db, clusterSvc, namespaceSvc)
+
+	// Initialize K8s Install module
+	installSvc := install.InitInstallModule(r, db, hostService)
+
+	// Initialize Velero Backup module
+	_ = backup.InitBackupModule(r, db, clusterSvc, namespaceSvc)
+
+	// Initialize RBAC module
+	rbacSvc := rbac.InitK8sRBACModule(r, db, clusterSvc)
+
+	workloadHandler := workload.NewWorkloadHandler(workloadSvc, rbacSvc)
+	configMapHandler := configmap.NewConfigMapHandler(configMapSvc, rbacSvc)
+	secretHandler := secret.NewSecretHandler(secretSvc, rbacSvc)
+	serviceHandler := service.NewServiceHandler(serviceSvc, rbacSvc)
+	ingressHandler := ingress.NewIngressHandler(ingressSvc, rbacSvc)
+	storageHandler := storage.NewStorageHandler(storageSvc, rbacSvc)
 
 	contracts.RegisterBackendModules(r, db, contracts.FuncModule{
-		ModuleName:    k8sModuleKey,
-		MigrateFunc:   func(_ *gorm.DB) error { return migrateAll(db, clusterSvc, namespaceSvc, releaseSvc) },
+		ModuleName: k8sModuleKey,
+		MigrateFunc: func(_ *gorm.DB) error {
+			return migrateAll(db, clusterSvc, namespaceSvc, releaseSvc, helmSvc, ingressSvc, storageSvc, rbacSvc, installSvc)
+		},
 		SeedMenusFunc: seedMenus,
 		SeedI18nFunc:  seedI18n,
 		Register: func(r *gin.RouterGroup) {
@@ -80,6 +124,11 @@ func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, readers ...bizcap.BizScopeRe
 			releaseHandler.RegisterRoutes(k8s)
 			configMapHandler.RegisterRoutes(k8s)
 			secretHandler.RegisterRoutes(k8s)
+			serviceHandler.RegisterRoutes(k8s)
+			helmHandler.RegisterRoutes(k8s)
+			ingressHandler.RegisterRoutes(k8s)
+			storageHandler.RegisterRoutes(k8s)
+			// Install and RBAC routes are already registered in their Init functions
 		},
 	})
 	return NewTargetReader(clusterSvc)
