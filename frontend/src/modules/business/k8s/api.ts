@@ -396,3 +396,365 @@ export function deleteK8sSecret(clusterId: number, namespace: string, name: stri
     params: { namespace },
   });
 }
+
+// --- Ingress ---
+
+export interface K8sIngressRulePath {
+  path: string;
+  pathType: string;
+  serviceName: string;
+  servicePort: number;
+}
+
+export interface K8sIngressRule {
+  host: string;
+  paths: K8sIngressRulePath[];
+}
+
+export interface K8sIngressTLS {
+  hosts: string[];
+  secretName: string;
+}
+
+export interface K8sIngressRow {
+  id: number;
+  name: string;
+  namespace: string;
+  clusterId: number;
+  clusterName?: string;
+  ingressClass?: string;
+  rules: K8sIngressRule[];
+  tls?: K8sIngressTLS[];
+  annotations?: Record<string, string>;
+  status: string;
+  loadBalancerIp?: string;
+  hosts: string[];
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+}
+
+export interface K8sIngressListQuery {
+  clusterId: number;
+  namespace?: string;
+  name?: string;
+  host?: string;
+}
+
+export interface K8sIngressListResp {
+  items: K8sIngressRow[];
+  total: number;
+}
+
+export function getK8sIngressList(params: K8sIngressListQuery) {
+  return apiRequest<K8sIngressListResp>({
+    url: '/business/k8s/ingresses',
+    method: 'get',
+    params,
+  });
+}
+
+export function syncK8sIngress(id: number) {
+  return apiRequest<{ synced: boolean }>({
+    url: `/business/k8s/ingresses/${id}/sync`,
+    method: 'post',
+  });
+}
+
+export function deleteK8sIngress(id: number) {
+  return apiRequest<{ deleted: boolean }>({
+    url: `/business/k8s/ingresses/${id}`,
+    method: 'delete',
+  });
+}
+
+// --- Storage (PV/PVC/StorageClass) ---
+
+export interface K8sPVRow {
+  id: number;
+  name: string;
+  clusterId: number;
+  clusterName?: string;
+  capacity: string;
+  storageClass?: string;
+  accessModes: string[];
+  reclaimPolicy: string;
+  status: string;
+  claimRef?: string;
+  volumeMode?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface K8sPVListQuery {
+  clusterId: number;
+  storageClass?: string;
+  status?: string;
+  name?: string;
+}
+
+export interface K8sPVCRow {
+  id: number;
+  name: string;
+  namespace: string;
+  clusterId: number;
+  clusterName?: string;
+  pvName?: string;
+  storageClass?: string;
+  requestStorage: string;
+  accessModes: string[];
+  volumeMode?: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface K8sPVCListQuery {
+  clusterId: number;
+  namespace?: string;
+  storageClass?: string;
+  status?: string;
+  name?: string;
+}
+
+export interface K8sStorageClassRow {
+  id: number;
+  name: string;
+  clusterId: number;
+  clusterName?: string;
+  provisioner: string;
+  reclaimPolicy: string;
+  volumeBindingMode: string;
+  allowVolumeExpansion: boolean;
+  isDefault: boolean;
+}
+
+export interface K8sStorageClassListQuery {
+  clusterId: number;
+  name?: string;
+}
+
+export interface K8sStorageListResp<T> {
+  items: T[];
+  total: number;
+}
+
+export function getK8sPVList(params: K8sPVListQuery) {
+  return apiRequest<K8sStorageListResp<K8sPVRow>>({
+    url: '/business/k8s/storage/pvs',
+    method: 'get',
+    params,
+  });
+}
+
+export function syncK8sPVs(clusterId: number) {
+  return apiRequest<{ synced: number }>({
+    url: '/business/k8s/storage/pvs/sync',
+    method: 'post',
+    data: { clusterId },
+  });
+}
+
+export function deleteK8sPV(id: number) {
+  return apiRequest<{ deleted: boolean }>({
+    url: `/business/k8s/storage/pvs/${id}`,
+    method: 'delete',
+  });
+}
+
+export function getK8sPVCList(params: K8sPVCListQuery) {
+  return apiRequest<K8sStorageListResp<K8sPVCRow>>({
+    url: '/business/k8s/storage/pvcs',
+    method: 'get',
+    params,
+  });
+}
+
+export function syncK8sPVCs(clusterId: number) {
+  return apiRequest<{ synced: number }>({
+    url: '/business/k8s/storage/pvcs/sync',
+    method: 'post',
+    data: { clusterId },
+  });
+}
+
+export function deleteK8sPVC(id: number) {
+  return apiRequest<{ deleted: boolean }>({
+    url: `/business/k8s/storage/pvcs/${id}`,
+    method: 'delete',
+  });
+}
+
+export function getK8sStorageClassList(params: K8sStorageClassListQuery) {
+  return apiRequest<K8sStorageListResp<K8sStorageClassRow>>({
+    url: '/business/k8s/storage/storage-classes',
+    method: 'get',
+    params,
+  });
+}
+
+export function syncK8sStorageClasses(clusterId: number) {
+  return apiRequest<{ synced: number }>({
+    url: '/business/k8s/storage/storage-classes/sync',
+    method: 'post',
+    data: { clusterId },
+  });
+}
+
+// --- Velero Backup ---
+
+export interface K8sBackupRow {
+  id: number;
+  name: string;
+  clusterId: number;
+  backupType: string;
+  includedNamespaces?: string[];
+  excludedNamespaces?: string[];
+  labelSelector?: string;
+  includePvs: boolean;
+  ttl: number;
+  status: string;
+  phase?: string;
+  startTime?: string;
+  completionTime?: string;
+  expiration?: string;
+  errors: number;
+  warnings: number;
+  backupSize?: number;
+  storageLocation?: string;
+  volumeSnapshotsCount: number;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface K8sBackupListResp {
+  items: K8sBackupRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface K8sScheduleRow {
+  id: number;
+  name: string;
+  clusterId: number;
+  cronExpression: string;
+  enabled: boolean;
+  backupTemplate?: Record<string, unknown>;
+  lastBackupTime?: string;
+  nextBackupTime?: string;
+  lastBackupStatus?: string;
+  phase?: string;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface K8sScheduleListResp {
+  items: K8sScheduleRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface K8sRestoreRow {
+  id: number;
+  name: string;
+  clusterId: number;
+  backupName: string;
+  restorePvs: boolean;
+  status: string;
+  phase?: string;
+  startTime?: string;
+  completionTime?: string;
+  errors: number;
+  warnings: number;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface K8sRestoreListResp {
+  items: K8sRestoreRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface K8sStorageLocationRow {
+  id: number;
+  name: string;
+  provider: string;
+  bucket: string;
+  region?: string;
+  endpoint?: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface K8sVeleroStatus {
+  installed: boolean;
+  version?: string;
+  namespace?: string;
+  runningPods: number;
+  storageLocations: number;
+}
+
+export function getK8sBackupList(params: { clusterId: number; status?: string; backupType?: string; page?: number; pageSize?: number }) {
+  return apiRequest<K8sBackupListResp>({ url: '/business/k8s/backup/backups', method: 'get', params });
+}
+
+export function createK8sBackup(data: { name: string; clusterId: number; backupType: string; includedNamespaces?: string[]; labelSelector?: string; includePvs: boolean; ttl: number; storageLocation?: string }) {
+  return apiRequest<K8sBackupRow>({ url: '/business/k8s/backup/backups', method: 'post', data });
+}
+
+export function deleteK8sBackup(id: number) {
+  return apiRequest<{ deleted: boolean }>({ url: `/business/k8s/backup/backups/${id}`, method: 'delete' });
+}
+
+export function getK8sScheduleList(params: { clusterId: number; page?: number; pageSize?: number }) {
+  return apiRequest<K8sScheduleListResp>({ url: '/business/k8s/backup/schedules', method: 'get', params });
+}
+
+export function createK8sSchedule(data: { name: string; clusterId: number; cronExpression: string; enabled: boolean; backupTemplate: Record<string, unknown> }) {
+  return apiRequest<K8sScheduleRow>({ url: '/business/k8s/backup/schedules', method: 'post', data });
+}
+
+export function deleteK8sSchedule(id: number) {
+  return apiRequest<{ deleted: boolean }>({ url: `/business/k8s/backup/schedules/${id}`, method: 'delete' });
+}
+
+export function pauseK8sSchedule(id: number) {
+  return apiRequest<{ paused: boolean }>({ url: `/business/k8s/backup/schedules/${id}/pause`, method: 'post' });
+}
+
+export function resumeK8sSchedule(id: number) {
+  return apiRequest<{ resumed: boolean }>({ url: `/business/k8s/backup/schedules/${id}/resume`, method: 'post' });
+}
+
+export function getK8sRestoreList(params: { clusterId: number; status?: string; page?: number; pageSize?: number }) {
+  return apiRequest<K8sRestoreListResp>({ url: '/business/k8s/backup/restores', method: 'get', params });
+}
+
+export function createK8sRestore(data: { name: string; clusterId: number; backupName: string; restorePvs: boolean }) {
+  return apiRequest<K8sRestoreRow>({ url: '/business/k8s/backup/restores', method: 'post', data });
+}
+
+export function deleteK8sRestore(id: number) {
+  return apiRequest<{ deleted: boolean }>({ url: `/business/k8s/backup/restores/${id}`, method: 'delete' });
+}
+
+export function getK8sVeleroStatus(clusterId: number) {
+  return apiRequest<K8sVeleroStatus>({ url: '/business/k8s/backup/velero/status', method: 'get', params: { clusterId } });
+}
+
+export function getK8sStorageLocationList() {
+  return apiRequest<K8sStorageLocationRow[]>({ url: '/business/k8s/backup/locations', method: 'get' });
+}
+
+export function createK8sStorageLocation(data: { name: string; provider: string; bucket: string; region?: string; endpoint?: string; accessKeyId?: string; secretAccessKey?: string; isDefault: boolean }) {
+  return apiRequest<K8sStorageLocationRow>({ url: '/business/k8s/backup/locations', method: 'post', data });
+}
+
+export function deleteK8sStorageLocation(id: number) {
+  return apiRequest<{ deleted: boolean }>({ url: `/business/k8s/backup/locations/${id}`, method: 'delete' });
+}
