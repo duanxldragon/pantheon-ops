@@ -20,24 +20,29 @@
 
 ## 2. 迁移与数据
 
-- [ ] 版本化迁移在隔离 schema 演练通过（基线版本 22）
+- [ ] 版本化迁移在隔离 schema 演练通过（基线版本 22→25；2026-08-28 已在开发库实测应用 23/24/25，隔离重演待补）
 - [ ] 生产快照回滚/重放演练（22→16→22 模式）
 - [ ] 活跃键唯一索引零重复（business scope / cmdb host+label / deploy package+template / k8s cluster）
-- [ ] system_init.sql 与 gorm tag 与 migrations 三方一致性抽查
+- [ ] system_init.sql 与 gorm tag 与 migrations 三方一致性抽查（2026-08-28 已全量比对核心表模型-数据库列，修复 3 处漂移：rollback 列 / step.changed / task_secret 结构）
 
 ## 3. 功能门禁（真机验收，参照评审报告 14 步流程）
 
-- [ ] CMDB 添加主机（115.190.251.143 或等效隔离主机）
-- [ ] 创建业务域并绑定主机
-- [ ] 安装 JDK / Nginx / Redis（fixed 模板）
-- [ ] 任务日志与步骤事件可查（SSE/轮询）
-- [ ] 卸载→重装（幂等验证：已安装组件跳过）
-- [ ] 制造失败→断点续跑（失败 step 重试，已成功 step 不重跑）
-- [ ] K8s 集群纳管（kubeconfig 加密入库、连通性探测）
-- [ ] Release 镜像发布与回滚
-- [ ] ~~ArgoCD 应用发布~~（v1.0 下架，移 v1.2，见 `designs/BUSINESS_ARGOCD_MODULE_DESIGN.md`）
-- [ ] ~~Velero 备份恢复~~（v1.0 下架，移 v1.2，见 `designs/BUSINESS_BACKUP_MODULE_DESIGN.md`）
-- [ ] 平台自监控（/metrics + Prometheus 抓取正常）
+- [x] CMDB 添加主机（115.190.251.143 已在 CMDB，host 111，2026-08-28 R1）
+- [x] 创建业务域并绑定主机（scope 161 创建 + host 111 绑定，2026-08-28 R1）
+- [x] 安装 Nginx / Redis（源码编译方式，2026-08-28 R2：nginx 1.24 任务 136 success / redis 7.2.4 任务 140 success）
+- [ ] 安装 JDK（fixed 模板）——2026-08-28 R1/R2：执行链路全通，**真机外网带宽受限导致 180MB 包下载超时（curl 28）**，建议内网镜像源或离线包后补验
+- [x] 任务日志与步骤事件可查（2026-08-28 R1：trace 步骤 + 日志流 API 实测）
+- [x] 卸载→重装幂等（2026-08-28 R2：任务 137 重复安装 nginx success 且无脏数据、任务 138 卸载 success）
+- [x] 制造失败→断点续跑（2026-08-28 R2：3 步模板任务 139，step1/step2 成功后 step3 失败，重试 **只重跑 step3**，checkpoint 生效）
+- [ ] K8s 集群纳管（kubeconfig 加密入库、连通性探测）——6443 端口可达，但真机无 kubeconfig 文件，**需用户提供后补验**
+- [ ] Release 镜像发布与回滚（依赖 K8s 纳管）
+- [x] ~~ArgoCD 应用发布~~（v1.0 下架，移 v1.2，见 `designs/BUSINESS_ARGOCD_MODULE_DESIGN.md`）
+- [x] ~~Velero 备份恢复~~（v1.0 下架，移 v1.2，见 `designs/BUSINESS_BACKUP_MODULE_DESIGN.md`）
+- [x] 平台自监控（2026-08-28 R2：8090 `/metrics` 返回 212 条 `pantheon_*` 指标；业务指标实时准确——`pantheon_deploy_task_hosts_total{status="success"} 5` 与真机执行记录吻合；`pantheon_hosts_total{state="pending"}` / `pantheon_host_connectivity` 正常输出）
+
+> 真机验收证据：
+> - `.harness/evidence/2026-08-28-v1-real-acceptance-r1/summary.md`（R1：部署引擎真实链路 10 项全通）
+> - `.harness/evidence/2026-08-28-v1-real-acceptance-r2/summary.md`（R2：源码编译安装 / 幂等 / 卸载 / 断点续跑 四项全通）
 
 ## 4. 安全门禁
 

@@ -49,11 +49,21 @@
 
 目标：恢复 8/22 基线等效的验证强度，形成 v1.0 发布物。
 
+进度（2026-08-28 R1+R2）：1-1 ✅ 全绿（build/vet/test 51 包/前端 tsc+build；race 待跑）；1-3 ✅ 已建立；**1-2 大部分完成**——
+
+- **R1**：部署引擎真实链路 10 项实测全通（认证→凭据解密→SSH 指纹校验→脚本渲染→远程执行→日志回传→步骤追踪），证据 `.harness/evidence/2026-08-28-v1-real-acceptance-r1/`
+- **R2**：运维生命周期语义 4 项实测全通，证据 `.harness/evidence/2026-08-28-v1-real-acceptance-r2/`
+  - 源码编译安装：nginx 1.24（任务 136，35s）/ redis 7.2.4（任务 140，63s）均 success
+  - 幂等性：任务 137 对已装 nginx 主机重复 install，success 且无脏数据
+  - 卸载：任务 138 success
+  - 断点续跑：3 步模板任务 139（step1 ✅ step2 ✅ step3 ❌），重试**只重跑 step3**，checkpoint 真实生效
+- **阻塞**：K8s 纳管需用户提供 kubeconfig（真机 6443 可达但无 kubeconfig 文件）；Release 发布依赖纳管；JDK 因真机外网带宽（curl 28 超时）改用小组件验证，建议内网镜像源补验
+
 | # | 任务 | 说明 | 验收标准 |
 |---|---|---|---|
-| 1-1 | 三件套回归 | `go test ./... -count=1`、`go vet ./...`、`go test -race ./...`（Windows CGO）、前端 `npm run build` | 全绿 |
-| 1-2 | 真机 14 步全链路验收 | 按评审报告第 9 节流程：CMDB 添加主机(115.190.251.143)→创建业务域→装 JDK→装 Nginx→装 Redis→查日志→卸载→重装（验证幂等）→制造失败→断点续跑→K8s 纳管→Release 发布→（ArgoCD/Velero 步骤跳过，已下架）→Prometheus 自监控确认 | 每步截图/日志留 `.harness/evidence/` |
-| 1-3 | 建立 V1_RELEASE_CHECKLIST | 补齐 deploy 设计引用的缺失文档 `docs/V1_RELEASE_CHECKLIST.md`（本计划随附产出） | 文档存在且门禁全过 |
+| 1-1 | 三件套回归 | `go test ./... -count=1`、`go vet ./...`、`go test -race ./...`（Windows CGO）、前端 `npm run build` | 全绿（build/vet/test 51 包 ✅；race 待跑） |
+| 1-2 | 真机 14 步全链路验收 | 按评审报告第 9 节流程：CMDB 添加主机(115.190.251.143)→创建业务域→装 JDK→装 Nginx→装 Redis→查日志→卸载→重装（验证幂等）→制造失败→断点续跑→K8s 纳管→Release 发布→（ArgoCD/Velero 步骤跳过，已下架）→Prometheus 自监控确认 | 每步截图/日志留 `.harness/evidence/`（R1 已留；R2 补 JDK 结果 + 幂等/断点/K8s） |
+| 1-3 | 建立 V1_RELEASE_CHECKLIST | 补齐 deploy 设计引用的缺失文档 `docs/V1_RELEASE_CHECKLIST.md`（本计划随附产出） | ✅ 文档存在且门禁勾选推进中 |
 | 1-4 | 打 tag `v1.0.0` | 发布物（二进制+dist）带 SHA-256，迁移基线 schema 版本号固化 | tag 存在，checksum 记录在 release notes |
 
 ## 4. Phase 2 — v1.0.x 补丁（P1，冻结后 1–2 周）
@@ -68,6 +78,9 @@
 | 2-6 | 前端 service 表单 | P1 | Application/Service 创建编辑表单（API 已齐） |
 | 2-7 | setting_crypto 弱密钥拒绝 | P1 | 不足 32 字节直接报错而非零填充 |
 | 2-8 | 分组/标签查询下推 SQL | P2 | 消除全表内存过滤；service 列表 N+1 |
+| 2-9 | 建包时前置校验 sourceUrl | P1 | `executionMode=fixed` 的包在 `CreatePackage` 时校验必带 `sourceUrl`+`sourceFileName`。R2 实测：缺 sourceUrl 时到执行阶段才 `curl (22) 404`，排查成本高 |
+| 2-10 | curl 退出码映射提示 | P1 | 22(404)/28(超时)/7(连接失败) 当前均表现为 `Process exited with status N`，运维无法判断是网络还是源问题 |
+| 2-11 | 模板克隆入口 | P2 | 模板/包 immutable 导致"修正失败步骤后原地续跑"需手工重建模板，人工介入成本偏高 |
 
 ## 5. Phase 3 — v1.1 商业基础（预估 2–3 周）
 
