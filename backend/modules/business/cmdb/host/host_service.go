@@ -111,6 +111,9 @@ func (s *HostService) List(query HostListQuery, dataScope *common.DataScopeReq) 
 		items[i] = hostToResponse(&h, groupIndex)
 	}
 
+	// 更新主机状态统计 metrics
+	UpdateHostStatusMetrics(hosts)
+
 	return &HostListResponse{Items: items, Total: total, Page: query.Page, PageSize: query.PageSize}, nil
 }
 
@@ -182,8 +185,14 @@ func (s *HostService) Create(req CreateHostRequest, createdBy string) (*HostResp
 	}
 
 	if err := s.db.Create(&host).Error; err != nil {
+		RecordHostOperation("create", "failed")
 		return nil, err
 	}
+
+	// 记录创建成功和主机指标
+	RecordHostOperation("create", "success")
+	RecordHostMetrics(&host)
+
 	groupIndex, err := s.loadGroupIndex()
 	if err != nil {
 		return nil, err

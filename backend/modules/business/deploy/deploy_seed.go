@@ -35,6 +35,9 @@ const (
 	deployTaskPermUpdateKey     = "business.deploy.task.permission.update"
 	deployTaskPermDeleteKey     = "business.deploy.task.permission.delete"
 	deployTaskPermStartKey      = "business.deploy.task.permission.start"
+	deployTaskPermPauseKey      = "business.deploy.task.permission.pause"
+	deployTaskPermResumeKey     = "business.deploy.task.permission.resume"
+	deployTaskPermRetryKey      = "business.deploy.task.permission.retry"
 	deployTaskPermCancelKey     = "business.deploy.task.permission.cancel"
 	deployTaskPermMarkResultKey = "business.deploy.task.permission.markResult"
 	deployTaskPermExportKey     = "business.deploy.task.permission.export"
@@ -84,9 +87,12 @@ func seedDeployMenus(db *gorm.DB) error {
 		{Key: "operations-deploy-task-update", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermUpdateKey, Perms: "business:deploy:task:update", Type: "F", Module: deployModuleKey, Sort: 3},
 		{Key: "operations-deploy-task-delete", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermDeleteKey, Perms: "business:deploy:task:delete", Type: "F", Module: deployModuleKey, Sort: 4},
 		{Key: "operations-deploy-task-start", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermStartKey, Perms: "business:deploy:task:start", Type: "F", Module: deployModuleKey, Sort: 5},
-		{Key: "operations-deploy-task-cancel", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermCancelKey, Perms: "business:deploy:task:cancel", Type: "F", Module: deployModuleKey, Sort: 6},
-		{Key: "operations-deploy-task-mark-result", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermMarkResultKey, Perms: "business:deploy:task:mark-result", Type: "F", Module: deployModuleKey, Sort: 7},
-		{Key: "operations-deploy-task-export", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermExportKey, Perms: "business:deploy:task:export", Type: "F", Module: deployModuleKey, Sort: 8},
+		{Key: "operations-deploy-task-pause", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermPauseKey, Perms: "business:deploy:task:pause", Type: "F", Module: deployModuleKey, Sort: 6},
+		{Key: "operations-deploy-task-resume", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermResumeKey, Perms: "business:deploy:task:resume", Type: "F", Module: deployModuleKey, Sort: 7},
+		{Key: "operations-deploy-task-retry", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermRetryKey, Perms: "business:deploy:task:retry", Type: "F", Module: deployModuleKey, Sort: 8},
+		{Key: "operations-deploy-task-cancel", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermCancelKey, Perms: "business:deploy:task:cancel", Type: "F", Module: deployModuleKey, Sort: 9},
+		{Key: "operations-deploy-task-mark-result", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermMarkResultKey, Perms: "business:deploy:task:mark-result", Type: "F", Module: deployModuleKey, Sort: 10},
+		{Key: "operations-deploy-task-export", ParentKey: deployTaskListRoute, TitleKey: deployTaskPermExportKey, Perms: "business:deploy:task:export", Type: "F", Module: deployModuleKey, Sort: 11},
 	})
 }
 
@@ -235,6 +241,12 @@ func seedDeployI18n(db *gorm.DB) error {
 		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermDeleteKey, Value: "Delete deployment tasks"},
 		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermStartKey, Value: "启动部署任务"},
 		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermStartKey, Value: "Start deployment tasks"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermPauseKey, Value: "暂停部署任务"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermPauseKey, Value: "Pause deployment tasks"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermResumeKey, Value: "恢复部署任务"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermResumeKey, Value: "Resume deployment tasks"},
+		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermRetryKey, Value: "重试部署任务"},
+		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermRetryKey, Value: "Retry deployment tasks"},
 		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermCancelKey, Value: "取消部署任务"},
 		{Module: deployModuleKey, Locale: "en-US", Group: "permission", Key: deployTaskPermCancelKey, Value: "Cancel deployment tasks"},
 		{Module: deployModuleKey, Locale: "zh-CN", Group: "permission", Key: deployTaskPermMarkResultKey, Value: "标记执行结果"},

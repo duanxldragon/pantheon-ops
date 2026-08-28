@@ -22,6 +22,7 @@ import {
   IconDownload,
   IconCode,
   IconEye,
+  IconDesktop,
 } from '@arco-design/web-react/icon';
 import {
   AppModal,
@@ -39,6 +40,7 @@ import {
   PageError,
   PageLoading,
   TableBatchActionBar,
+  TABLE_ACTION_COLUMN_WIDTH,
   useGovernanceRail,
 } from '../../../../components';
 import {
@@ -205,9 +207,9 @@ function buildHostColumns({
       title: t('common.action'),
       key: 'action',
       fixed: 'right',
-      width: 220,
+      width: TABLE_ACTION_COLUMN_WIDTH.wide,
       render: (_: unknown, row: HostRow) => (
-        <Space>
+        <Space className="system-list__actions">
           <Button
             type="text"
             size="small"
@@ -514,6 +516,7 @@ export default function CmdbHostList() {
     <PageContainer>
       <Space direction="vertical" size={16} className="system-page-template">
         <GovernanceSummaryBar
+          icon={<IconDesktop />}
           eyebrow={t('business.cmdb.host.hero.eyebrow')}
           title={t('business.cmdb.host.title')}
           description={t('business.cmdb.host.hero.title')}

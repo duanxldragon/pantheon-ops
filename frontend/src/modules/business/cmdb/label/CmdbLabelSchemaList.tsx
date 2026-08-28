@@ -30,6 +30,7 @@ import {
   PageLoading,
   SubmitBar,
   TableBatchActionBar,
+  TABLE_ACTION_COLUMN_WIDTH,
   buildStandardPagination,
   useGovernanceRail,
 } from '../../../../components';
@@ -353,9 +354,9 @@ export default function CmdbLabelSchemaList() {
         title: t('common.action'),
         key: 'action',
         fixed: 'right',
-        width: 170,
+        width: TABLE_ACTION_COLUMN_WIDTH.compact,
         render: (_: unknown, row) => (
-          <Space>
+          <Space className="system-list__actions">
             {canUpdate ? (
               <Button
                 type="text"

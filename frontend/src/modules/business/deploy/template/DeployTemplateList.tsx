@@ -10,6 +10,7 @@ import {
   Popconfirm,
   Select,
   Space,
+  Switch,
   Tag,
   Typography,
 } from '@arco-design/web-react';
@@ -31,6 +32,7 @@ import {
   PageLoading,
   SubmitBar,
   TableBatchActionBar,
+  TABLE_ACTION_COLUMN_WIDTH,
   buildStandardPagination,
   useGovernanceRail,
 } from '../../../../components';
@@ -49,10 +51,16 @@ import {
 } from '../api';
 import {
   buildDeployTemplateDefaultParameters,
+  deployComponentStepTypes,
+  getDeployComponentTemplateEntry,
   getDeployFixedTemplateCatalogEntry,
+  isDeployComponentStepType,
+  type DeployComponentStepType,
 } from '../catalog';
 import '../../../system/components/shared/list-page.css';
 import '../deploy.css';
+
+type TemplateStepType = 'package' | 'script' | DeployComponentStepType;
 
 type TemplateFormValues = {
   name: string;
@@ -64,16 +72,24 @@ type TemplateFormValues = {
   packageId?: number;
   description?: string;
   parameterValues?: Record<string, string>;
+  parameterSchemaJson?: string;
   steps?: Array<{
     stepCode?: string;
     stepName?: string;
-    stepType?: 'package' | 'script';
+    stepType?: TemplateStepType;
     packageId?: number;
     action?: 'install' | 'uninstall' | 'upgrade' | 'reinstall';
     parameterValues?: Record<string, string>;
     scriptContent?: string;
     precheckCommand?: string;
     postcheckCommand?: string;
+    dependencies?: string[];
+    conditionType?: string;
+    conditionParamKey?: string;
+    conditionParamValue?: string;
+    failurePolicy?: string;
+    continueOnHostFailure?: boolean;
+    platformScriptsJson?: string;
   }>;
 };
 
@@ -82,9 +98,16 @@ const templateStatusColorMap: Record<string, string> = {
   disabled: 'gray',
 };
 
-const templateStepTypeColorMap: Record<'package' | 'script', string> = {
+const templateStepTypeColorMap: Record<string, string> = {
   package: 'arcoblue',
   script: 'purple',
+  nginx: 'green',
+  redis: 'green',
+  jdk: 'green',
+  mysql: 'green',
+  minio: 'green',
+  harbor: 'green',
+  prometheus: 'green',
 };
 
 export default function DeployTemplateList() {
@@ -92,6 +115,10 @@ export default function DeployTemplateList() {
   const { hasPerm } = usePermission();
   const governanceRail = useGovernanceRail();
   const [form] = Form.useForm<TemplateFormValues>();
+  // Reactively track the step list so the per-step editor re-renders when a
+  // step's `stepType` (or package) changes — Form.List alone only re-renders on
+  // structural add/remove, not nested value edits.
+  const watchedSteps = Form.useWatch('steps', form);
   const [data, setData] = useState<DeployTemplateRow[]>([]);
   const [packages, setPackages] = useState<DeployPackageRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -208,10 +235,11 @@ export default function DeployTemplateList() {
     form.resetFields();
     form.setFieldsValue({
       status: 'enabled',
-      executionMode: 'fixed',
+      executionMode: 'orchestrated',
       defaultAction: 'install',
       parameterValues: {},
-      steps: [{ stepName: '', stepType: 'package', action: 'install' }],
+      parameterSchemaJson: '{}',
+      steps: [{ stepName: '', stepCode: 'step_1', stepType: 'script', action: 'install', dependencies: [], failurePolicy: 'fail_fast', continueOnHostFailure: false }],
     });
     setVisible(true);
   };
@@ -229,6 +257,7 @@ export default function DeployTemplateList() {
       packageId: row.packageId || undefined,
       description: row.description,
       parameterValues: buildInitialTemplateValues(row.parameterSchema || {}),
+      parameterSchemaJson: JSON.stringify(row.parameterSchema || {}, null, 2),
       steps: row.steps?.length
         ? row.steps.map((step) => ({
             stepCode: step.stepCode,
@@ -240,6 +269,13 @@ export default function DeployTemplateList() {
             scriptContent: stringifyValue(step.stepConfig?.script, ''),
             precheckCommand: stringifyValue(step.stepConfig?.precheckCommand, ''),
             postcheckCommand: stringifyValue(step.stepConfig?.postcheckCommand, ''),
+            dependencies: step.dependencies || stringArrayValue(step.stepConfig?.dependencies),
+            conditionType: stringifyValue(readConfigField(step.condition || step.stepConfig?.condition, 'type'), 'always'),
+            conditionParamKey: stringifyValue(readConfigField(step.condition || step.stepConfig?.condition, 'key'), ''),
+            conditionParamValue: stringifyValue(readConfigField(step.condition || step.stepConfig?.condition, 'value'), ''),
+            failurePolicy: step.failurePolicy || stringifyValue(step.stepConfig?.failurePolicy, 'fail_fast'),
+            continueOnHostFailure: Boolean(step.continueOnHostFailure),
+            platformScriptsJson: stringifyValue(step.stepConfig?.platformScripts, ''),
           }))
         : [{ stepName: row.name, stepType: 'package', action: row.defaultAction || 'install', packageId: row.packageId || undefined }],
     });
@@ -248,7 +284,10 @@ export default function DeployTemplateList() {
 
   const handleSubmit = async () => {
     const values = await form.validate();
-    const parameterSchema = buildTemplateDefaultParams(values.parameterValues);
+    const parameterSchema = {
+      ...parseTemplateVariables(values.parameterSchemaJson),
+      ...buildTemplateDefaultParams(values.parameterValues),
+    };
     const payload: DeployTemplatePayload = {
       name: values.name,
       version: values.version,
@@ -269,6 +308,10 @@ export default function DeployTemplateList() {
           action: step.action || values.defaultAction,
           packageId: stepType === 'package' ? (step.packageId || values.packageId) : step.packageId,
           templateParams: buildTemplateStepParams(step, stepPackage, parameterSchema),
+          dependencies: step.dependencies || [],
+          condition: buildTemplateStepCondition(step),
+          failurePolicy: step.failurePolicy || 'fail_fast',
+          continueOnHostFailure: Boolean(step.continueOnHostFailure),
           stepConfig: buildTemplateStepConfig(step, stepType),
           sort: index + 1,
         };
@@ -351,7 +394,7 @@ export default function DeployTemplateList() {
               row.steps.map((step) => (
                 <Tag
                   key={`${row.id}-${step.id || step.stepCode}`}
-                  color={templateStepTypeColorMap[(step.stepType || 'package') as 'package' | 'script'] || 'gray'}
+                  color={templateStepTypeColorMap[step.stepType || 'package'] || 'gray'}
                 >
                   {(step.stepName || step.packageName || '-') + ' / ' + t(`business.deploy.template.stepType.${step.stepType || 'package'}`)}
                 </Tag>
@@ -392,7 +435,7 @@ export default function DeployTemplateList() {
     { title: t('business.deploy.template.description'), dataIndex: 'description', ellipsis: true },
     {
       title: t('common.action'),
-      width: 150,
+      width: TABLE_ACTION_COLUMN_WIDTH.wide,
       fixed: 'right',
       render: (_: unknown, row) => (
         <Space className="system-list__actions">
@@ -590,7 +633,7 @@ export default function DeployTemplateList() {
               <Select.Option value="disabled">{t('business.deploy.package.status.disabled')}</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item field="executionMode" label={t('business.deploy.template.mode')} initialValue="fixed">
+          <Form.Item field="executionMode" label={t('business.deploy.template.mode')} initialValue="orchestrated">
             <Select>
               <Select.Option value="fixed">{t('business.deploy.package.executionMode.fixed')}</Select.Option>
               <Select.Option value="orchestrated">{t('business.deploy.package.executionMode.orchestrated')}</Select.Option>
@@ -604,7 +647,7 @@ export default function DeployTemplateList() {
               <Select.Option value="reinstall">{t('business.deploy.task.action.reinstall')}</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item field="packageId" label={t('business.deploy.template.package')} rules={[{ required: true }]}>
+          <Form.Item field="packageId" label={t('business.deploy.template.package')}>
             <Select
               allowClear
               showSearch
@@ -634,6 +677,13 @@ export default function DeployTemplateList() {
               </Space>
             </Form.Item>
           ) : null}
+          <Form.Item
+            field="parameterSchemaJson"
+            label={t('business.deploy.template.variables')}
+            extra={t('business.deploy.template.variablesHint')}
+          >
+            <Input.TextArea autoSize={{ minRows: 5, maxRows: 12 }} placeholder='{"appPort":"8080","installRoot":"/opt/app"}' />
+          </Form.Item>
           <Form.Item field="description" label={t('business.deploy.template.description')}>
             <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
           </Form.Item>
@@ -642,18 +692,24 @@ export default function DeployTemplateList() {
               {(fields, { add, remove }) => (
                 <Space direction="vertical" size={12} style={{ width: '100%' }}>
                   {fields.map((field, index) => {
-                    const rawStepType = (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${index}].stepType`);
-                    const currentStepType = ((typeof rawStepType === 'string' && rawStepType) || 'package') as 'package' | 'script';
+                    const watchedStep = watchedSteps?.[index];
+                    const rawStepType =
+                      watchedStep?.stepType ??
+                      (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${index}].stepType`);
+                    const currentStepType = ((typeof rawStepType === 'string' && rawStepType) || 'package') as TemplateStepType;
                     const currentPackageId = Number(
-                      (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${index}].packageId`) ||
+                      watchedStep?.packageId ||
+                        (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${index}].packageId`) ||
                         form.getFieldValue('packageId') ||
                         0,
                     );
                     const stepPackage = packageMap.get(currentPackageId);
-                    const isPackageStep = currentStepType === 'package';
-                    const stepTemplateEntry = isPackageStep
-                      ? getDeployFixedTemplateCatalogEntry(stepPackage?.templateCode)
-                      : null;
+                    const isComponentStep = isDeployComponentStepType(currentStepType);
+                    const stepTemplateEntry = isComponentStep
+                      ? getDeployComponentTemplateEntry(currentStepType)
+                      : currentStepType === 'package'
+                        ? getDeployFixedTemplateCatalogEntry(stepPackage?.templateCode)
+                        : null;
                     return (
                       <div
                         key={field.key}
@@ -692,6 +748,11 @@ export default function DeployTemplateList() {
                             <Select>
                               <Select.Option value="package">{t('business.deploy.template.stepType.package')}</Select.Option>
                               <Select.Option value="script">{t('business.deploy.template.stepType.script')}</Select.Option>
+                              {deployComponentStepTypes.map((item) => (
+                                <Select.Option key={item} value={item}>
+                                  {t(`business.deploy.template.stepType.${item}`)}
+                                </Select.Option>
+                              ))}
                             </Select>
                           </Form.Item>
                           <Form.Item field={`steps[${index}].packageId`} label={t('business.deploy.template.stepPackage')}>
@@ -713,6 +774,51 @@ export default function DeployTemplateList() {
                                 </Select.Option>
                               ))}
                             </Select>
+                          </Form.Item>
+                          <Form.Item field={`steps[${index}].dependencies`} label={t('business.deploy.template.stepDependencies')}>
+                            <Select mode="multiple" allowClear placeholder={t('business.deploy.template.stepDependenciesPlaceholder')}>
+                              {fields.map((_, candidateIndex) => {
+                                if (candidateIndex === index) return null;
+                                const code = (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${candidateIndex}].stepCode`);
+                                return code ? <Select.Option key={String(code)} value={String(code)}>{String(code)}</Select.Option> : null;
+                              })}
+                            </Select>
+                          </Form.Item>
+                          <Form.Item field={`steps[${index}].conditionType`} label={t('business.deploy.template.stepCondition')} initialValue="always">
+                            <Select>
+                              <Select.Option value="always">always</Select.Option>
+                              <Select.Option value="on_success">on_success</Select.Option>
+                              <Select.Option value="on_failure">on_failure</Select.Option>
+                              <Select.Option value="on_changed">on_changed</Select.Option>
+                              <Select.Option value="param_equals">param_equals</Select.Option>
+                            </Select>
+                          </Form.Item>
+                          <Space style={{ width: '100%' }}>
+                            <Form.Item field={`steps[${index}].conditionParamKey`} label={t('business.deploy.template.stepConditionKey')}>
+                              <Input placeholder="variable" />
+                            </Form.Item>
+                            <Form.Item field={`steps[${index}].conditionParamValue`} label={t('business.deploy.template.stepConditionValue')}>
+                              <Input placeholder="value" />
+                            </Form.Item>
+                          </Space>
+                          <Form.Item field={`steps[${index}].failurePolicy`} label={t('business.deploy.template.stepFailurePolicy')} initialValue="fail_fast">
+                            <Select>
+                              <Select.Option value="fail_fast">fail_fast</Select.Option>
+                              <Select.Option value="continue_hosts">continue_hosts</Select.Option>
+                              <Select.Option value="continue_steps">continue_steps</Select.Option>
+                            </Select>
+                          </Form.Item>
+                          <Form.Item
+                            field={`steps[${index}].continueOnHostFailure`}
+                            label={t('business.deploy.template.continueOnHostFailure')}
+                            tooltip={t('business.deploy.template.continueOnHostFailure.tooltip')}
+                            triggerPropName="checked"
+                            initialValue={false}
+                          >
+                            <Switch />
+                            <Typography.Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>
+                              {t('business.deploy.template.continueOnHostFailure.hint')}
+                            </Typography.Text>
                           </Form.Item>
                           <Form.Item field={`steps[${index}].action`} label={t('business.deploy.template.stepAction')}>
                             <Select>
@@ -743,6 +849,13 @@ export default function DeployTemplateList() {
                               >
                                 <Input.TextArea autoSize={{ minRows: 2, maxRows: 5 }} />
                               </Form.Item>
+                              <Form.Item
+                                field={`steps[${index}].platformScriptsJson`}
+                                label={t('business.deploy.template.stepPlatformScripts')}
+                                extra={t('business.deploy.template.stepPlatformScriptsHint')}
+                              >
+                                <Input.TextArea autoSize={{ minRows: 3, maxRows: 8 }} placeholder='{"linux":"...","redhat":"...","debian":"..."}' />
+                              </Form.Item>
                             </>
                           ) : null}
                           {stepTemplateEntry ? (
@@ -765,7 +878,7 @@ export default function DeployTemplateList() {
                   <Button
                     type="dashed"
                     icon={<IconPlus />}
-                    onClick={() => add({ stepName: '', stepType: 'package', action: form.getFieldValue('defaultAction') || 'install' })}
+                    onClick={() => add({ stepName: '', stepCode: `step_${fields.length + 1}`, stepType: 'script', action: form.getFieldValue('defaultAction') || 'install', dependencies: [], failurePolicy: 'fail_fast', continueOnHostFailure: false })}
                   >
                     {t('business.deploy.template.addStep')}
                   </Button>
@@ -869,7 +982,7 @@ function TemplateDetailModal({
                   <Card key={`${record.id}-${step.id || step.stepCode}`} className="page-panel" style={{ padding: 12 }}>
                     <Space direction="vertical" size={6} style={{ width: '100%' }}>
                       <Space wrap>
-                        <Tag color={templateStepTypeColorMap[(step.stepType || 'package') as 'package' | 'script'] || 'gray'}>
+                        <Tag color={templateStepTypeColorMap[step.stepType || 'package'] || 'gray'}>
                           {t(`business.deploy.template.stepType.${step.stepType || 'package'}`)}
                         </Tag>
                         <Tag color="arcoblue">{t(`business.deploy.task.action.${step.action || record.defaultAction}`)}</Tag>
@@ -908,15 +1021,34 @@ function buildTemplateDefaultParams(values?: Record<string, string>) {
   return result;
 }
 
+function parseTemplateVariables(value?: string): Record<string, unknown> {
+  const raw = (value || '').trim();
+  if (!raw) {
+    return {};
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    return {};
+  }
+  return {};
+}
+
 function buildTemplateStepParams(
   step: NonNullable<TemplateFormValues['steps']>[number],
   pkg: DeployPackageRow | undefined,
   defaults: Record<string, unknown>,
 ) {
-  if ((step.stepType || 'package') === 'script') {
+  const stepType = step.stepType || 'package';
+  if (stepType === 'script') {
     return { ...defaults };
   }
-  const entry = getDeployFixedTemplateCatalogEntry(pkg?.templateCode);
+  const entry = isDeployComponentStepType(stepType)
+    ? getDeployComponentTemplateEntry(stepType)
+    : getDeployFixedTemplateCatalogEntry(pkg?.templateCode);
   if (!entry) {
     return {};
   }
@@ -931,7 +1063,7 @@ function buildTemplateStepParams(
 
 function buildTemplateStepConfig(
   step: NonNullable<TemplateFormValues['steps']>[number],
-  stepType: 'package' | 'script',
+  stepType: TemplateStepType,
 ) {
   if (stepType !== 'script') {
     return {};
@@ -946,7 +1078,38 @@ function buildTemplateStepConfig(
   if ((step.postcheckCommand || '').trim()) {
     result.postcheckCommand = step.postcheckCommand?.trim();
   }
+  if ((step.platformScriptsJson || '').trim()) {
+    try {
+      const parsed = JSON.parse(step.platformScriptsJson || '{}');
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        result.platformScripts = parsed;
+      }
+    } catch {
+      result.platformScripts = { _invalid: step.platformScriptsJson?.trim() };
+    }
+  }
   return result;
+}
+
+function buildTemplateStepCondition(step: NonNullable<TemplateFormValues['steps']>[number]) {
+  const type = (step.conditionType || 'always').trim();
+  const condition: Record<string, unknown> = { type };
+  if (type === 'param_equals') {
+    condition.key = (step.conditionParamKey || '').trim();
+    condition.value = (step.conditionParamValue || '').trim();
+  }
+  return condition;
+}
+
+function stringArrayValue(value: unknown): string[] {
+  return Array.isArray(value) ? value.map((item) => String(item)).filter(Boolean) : [];
+}
+
+function readConfigField(value: unknown, key: string): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined;
+  }
+  return (value as Record<string, unknown>)[key];
 }
 
 function buildInitialTemplateValues(values: Record<string, unknown>) {

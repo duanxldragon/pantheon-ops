@@ -93,8 +93,12 @@ type TemplateStepPayload struct {
 	PackageVersion string         `json:"packageVersion"`
 	TemplateCode   string         `json:"templateCode"`
 	TemplateParams map[string]any `json:"templateParams"`
-	StepConfig     map[string]any `json:"stepConfig"`
-	Sort           int            `json:"sort"`
+	StepConfig              map[string]any `json:"stepConfig"`
+	ContinueOnHostFailure   bool           `json:"continueOnHostFailure"`
+	Dependencies            []string       `json:"dependencies,omitempty"`
+	Condition               map[string]any `json:"condition,omitempty"`
+	FailurePolicy           string         `json:"failurePolicy,omitempty"`
+	Sort                    int            `json:"sort"`
 }
 
 type CreateTemplateRequest struct {
@@ -139,10 +143,14 @@ type TemplateStepResponse struct {
 	PackageVersion string         `json:"packageVersion"`
 	TemplateCode   string         `json:"templateCode"`
 	TemplateParams map[string]any `json:"templateParams"`
-	StepConfig     map[string]any `json:"stepConfig"`
-	Sort           int            `json:"sort"`
-	CreatedAt      time.Time      `json:"createdAt"`
-	UpdatedAt      time.Time      `json:"updatedAt"`
+	StepConfig              map[string]any `json:"stepConfig"`
+	ContinueOnHostFailure   bool           `json:"continueOnHostFailure"`
+	Dependencies            []string       `json:"dependencies,omitempty"`
+	Condition               map[string]any `json:"condition,omitempty"`
+	FailurePolicy           string         `json:"failurePolicy,omitempty"`
+	Sort                    int            `json:"sort"`
+	CreatedAt               time.Time      `json:"createdAt"`
+	UpdatedAt               time.Time      `json:"updatedAt"`
 }
 
 type TemplateResponse struct {
@@ -184,44 +192,53 @@ type TaskQuery struct {
 }
 
 type CreateTaskRequest struct {
-	Name              string         `json:"name" binding:"required"`
-	TemplateID        uint64         `json:"templateId"`
-	PackageID         uint64         `json:"packageId"`
-	BusinessScopeID   uint64         `json:"businessScopeId"`
-	ServiceID         uint64         `json:"serviceId"`
-	ServiceInstanceID uint64         `json:"serviceInstanceId"`
-	Action            string         `json:"action"`
-	TargetType        string         `json:"targetType" binding:"required"`
-	TargetIDs         []uint64       `json:"targetIds" binding:"required"`
-	ExecutorType      string         `json:"executorType"`
-	TemplateParams    map[string]any `json:"templateParams"`
-	Remark            string         `json:"remark"`
+	Name              string            `json:"name" binding:"required"`
+	TemplateID        uint64            `json:"templateId"`
+	PackageID         uint64            `json:"packageId"`
+	BusinessScopeID   uint64            `json:"businessScopeId"`
+	ServiceID         uint64            `json:"serviceId"`
+	ServiceInstanceID uint64            `json:"serviceInstanceId"`
+	Action            string            `json:"action"`
+	TargetType        string            `json:"targetType" binding:"required"`
+	TargetIDs         []uint64          `json:"targetIds" binding:"required"`
+	ExecutorType      string            `json:"executorType"`
+	TemplateParams    map[string]any    `json:"templateParams"`
+	SecretParams      map[string]string `json:"secretParams"`
+	Remark            string            `json:"remark"`
 }
 
 type UpdateTaskRequest struct {
-	Name              *string         `json:"name"`
-	TemplateID        *uint64         `json:"templateId"`
-	PackageID         *uint64         `json:"packageId"`
-	BusinessScopeID   *uint64         `json:"businessScopeId"`
-	ServiceID         *uint64         `json:"serviceId"`
-	ServiceInstanceID *uint64         `json:"serviceInstanceId"`
-	Action            *string         `json:"action"`
-	TargetType        *string         `json:"targetType"`
-	TargetIDs         []uint64        `json:"targetIds"`
-	ExecutorType      *string         `json:"executorType"`
-	TemplateParams    *map[string]any `json:"templateParams"`
-	Remark            *string         `json:"remark"`
+	Name              *string            `json:"name"`
+	TemplateID        *uint64            `json:"templateId"`
+	PackageID         *uint64            `json:"packageId"`
+	BusinessScopeID   *uint64            `json:"businessScopeId"`
+	ServiceID         *uint64            `json:"serviceId"`
+	ServiceInstanceID *uint64            `json:"serviceInstanceId"`
+	Action            *string            `json:"action"`
+	TargetType        *string            `json:"targetType"`
+	TargetIDs         []uint64           `json:"targetIds"`
+	ExecutorType      *string            `json:"executorType"`
+	TemplateParams    *map[string]any    `json:"templateParams"`
+	SecretParams      *map[string]string `json:"secretParams"`
+	Remark            *string            `json:"remark"`
 }
 
+// StartTaskRequest is the public Start API contract. It accepts only a
+// credential reference and execution bounds. SSH secrets and the idempotency
+// key are never bound from JSON: the idempotency key arrives via the
+// X-Idempotency-Key header, and SSH material is resolved server-side from the
+// credential reference. The json:"-" fields are internal-only and populated
+// after credential resolution for the executor.
 type StartTaskRequest struct {
-	IdempotencyKey  string `json:"idempotencyKey"`
 	CredentialRefID uint64 `json:"credentialRefId"`
 	TimeoutSeconds  int    `json:"timeoutSeconds"`
-	SSHUser         string `json:"sshUser"`
-	SSHPassword     string `json:"sshPassword"`
-	SSHPrivateKey   string `json:"sshPrivateKey"`
 	HostFingerprint string `json:"hostFingerprint"`
-	AuthMode        string `json:"authMode"`
+
+	IdempotencyKey string `json:"-"`
+	SSHUser        string `json:"-"`
+	SSHPassword    string `json:"-"`
+	SSHPrivateKey  string `json:"-"`
+	AuthMode       string `json:"-"`
 }
 
 // CreateDeployCredentialRequest contains the secret material used to create a credential reference.
@@ -268,45 +285,51 @@ type MarkHostResultRequest struct {
 }
 
 type TaskResponse struct {
-	ID                   uint64             `json:"id"`
-	Name                 string             `json:"name"`
-	TemplateID           uint64             `json:"templateId"`
-	TemplateName         string             `json:"templateName"`
-	TemplateVersion      string             `json:"templateVersion"`
-	PackageID            uint64             `json:"packageId"`
-	PackageName          string             `json:"packageName"`
-	PackageVersion       string             `json:"packageVersion"`
-	BusinessScopeID      uint64             `json:"businessScopeId"`
-	BusinessScopeName    string             `json:"businessScopeName"`
-	ServiceID            uint64             `json:"serviceId"`
-	ServiceInstanceID    uint64             `json:"serviceInstanceId"`
-	ServiceName          string             `json:"serviceName"`
-	ServiceInstanceName  string             `json:"serviceInstanceName"`
-	Action               string             `json:"action"`
-	TargetType           string             `json:"targetType"`
-	TargetIDs            []uint64           `json:"targetIds"`
-	ExecutorType         string             `json:"executorType"`
-	ExecutionMode        string             `json:"executionMode"`
-	CredentialRefID      uint64             `json:"credentialRefId"`
-	CredentialRefVersion uint64             `json:"credentialRefVersion"`
-	TemplateParams       map[string]any     `json:"templateParams"`
-	Status               string             `json:"status"`
-	Remark               string             `json:"remark"`
-	ExternalTaskID       string             `json:"externalTaskId"`
-	StartRequestReused   bool               `json:"startRequestReused"`
-	StartedAt            *time.Time         `json:"startedAt"`
-	FinishedAt           *time.Time         `json:"finishedAt"`
-	HostCount            int                `json:"hostCount"`
-	SuccessCount         int                `json:"successCount"`
-	FailedCount          int                `json:"failedCount"`
-	RunningCount         int                `json:"runningCount"`
-	SkippedCount         int                `json:"skippedCount"`
-	DurationSeconds      int64              `json:"durationSeconds"`
-	CreatedAt            time.Time          `json:"createdAt"`
-	UpdatedAt            time.Time          `json:"updatedAt"`
-	CreatedBy            string             `json:"createdBy"`
-	UpdatedBy            string             `json:"updatedBy"`
-	Hosts                []TaskHostResponse `json:"hosts"`
+	ID                   uint64               `json:"id"`
+	Name                 string               `json:"name"`
+	TemplateID           uint64               `json:"templateId"`
+	TemplateName         string               `json:"templateName"`
+	TemplateVersion      string               `json:"templateVersion"`
+	PackageID            uint64               `json:"packageId"`
+	PackageName          string               `json:"packageName"`
+	PackageVersion       string               `json:"packageVersion"`
+	BusinessScopeID      uint64               `json:"businessScopeId"`
+	BusinessScopeName    string               `json:"businessScopeName"`
+	ServiceID            uint64               `json:"serviceId"`
+	ServiceInstanceID    uint64               `json:"serviceInstanceId"`
+	ServiceName          string               `json:"serviceName"`
+	ServiceInstanceName  string               `json:"serviceInstanceName"`
+	Action               string               `json:"action"`
+	TargetType           string               `json:"targetType"`
+	TargetIDs            []uint64             `json:"targetIds"`
+	ExecutorType         string               `json:"executorType"`
+	ExecutionMode        string               `json:"executionMode"`
+	CredentialRefID      uint64               `json:"credentialRefId"`
+	CredentialRefVersion uint64               `json:"credentialRefVersion"`
+	TemplateParams       map[string]any       `json:"templateParams"`
+	SecretPresence       []SecretPresenceItem `json:"secretPresence"`
+	Status               string               `json:"status"`
+	Remark               string               `json:"remark"`
+	ExternalTaskID       string               `json:"externalTaskId"`
+	RollbackEnabled      bool                 `json:"rollbackEnabled"`
+	RollbackTaskID       *uint64              `json:"rollbackTaskId,omitempty"`
+	SourceTaskID         *uint64              `json:"sourceTaskId,omitempty"`
+	RollbackStrategy     string               `json:"rollbackStrategy,omitempty"`
+	CanRollback          bool                 `json:"canRollback"`
+	StartRequestReused   bool                 `json:"startRequestReused"`
+	StartedAt            *time.Time           `json:"startedAt"`
+	FinishedAt           *time.Time           `json:"finishedAt"`
+	HostCount            int                  `json:"hostCount"`
+	SuccessCount         int                  `json:"successCount"`
+	FailedCount          int                  `json:"failedCount"`
+	RunningCount         int                  `json:"runningCount"`
+	SkippedCount         int                  `json:"skippedCount"`
+	DurationSeconds      int64                `json:"durationSeconds"`
+	CreatedAt            time.Time            `json:"createdAt"`
+	UpdatedAt            time.Time            `json:"updatedAt"`
+	CreatedBy            string               `json:"createdBy"`
+	UpdatedBy            string               `json:"updatedBy"`
+	Hosts                []TaskHostResponse   `json:"hosts"`
 }
 
 type TaskHostResponse struct {
@@ -339,4 +362,15 @@ type TaskListResponse struct {
 	Total    int64          `json:"total"`
 	Page     int            `json:"page"`
 	PageSize int            `json:"pageSize"`
+}
+
+type RollbackTaskRequest struct {
+	SourceTaskID uint64 `json:"sourceTaskId" binding:"required"`
+	AutoStart    bool   `json:"autoStart"`
+}
+
+type RollbackTaskResponse struct {
+	RollbackTask *TaskResponse `json:"rollbackTask"`
+	SourceTask   *TaskResponse `json:"sourceTask"`
+	Message      string        `json:"message"`
 }

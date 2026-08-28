@@ -155,10 +155,10 @@ func seedHostMenus(db *gorm.DB) error {
 
 func seedHostPermissions(db *gorm.DB) error { return nil }
 
-func seedGroupMenus(db *gorm.DB) error       { return nil }
-func seedGroupPermissions(db *gorm.DB) error { return nil }
-func seedLabelMenus(db *gorm.DB) error       { return nil }
-func seedLabelI18n(db *gorm.DB) error        { return nil }
+func seedGroupMenus(db *gorm.DB) error { return nil }
+
+func seedLabelMenus(db *gorm.DB) error { return nil }
+func seedLabelI18n(db *gorm.DB) error  { return nil }
 
 func ensureCmdbMenuSeeds(db *gorm.DB, seeds []cmdbMenuSeed) error {
 	for _, seed := range seeds {

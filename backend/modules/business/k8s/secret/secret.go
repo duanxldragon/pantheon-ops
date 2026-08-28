@@ -11,6 +11,7 @@ import (
 
 	"pantheon-base/modules/business/k8s/cluster"
 	"pantheon-base/modules/business/k8s/namespace"
+	"pantheon-base/modules/business/k8s/rbac"
 	"pantheon-base/pkg/common"
 
 	"github.com/gin-gonic/gin"
@@ -212,12 +213,13 @@ func (s *SecretService) DeleteWithResourceVersion(clusterID uint64, namespace, n
 //
 //nolint:revive // Handler names retain the secret domain prefix for module wiring clarity.
 type SecretHandler struct {
-	svc *SecretService
+	svc     *SecretService
+	rbacSvc *rbac.K8sRBACService
 }
 
 // NewSecretHandler creates a Secret route handler.
-func NewSecretHandler(svc *SecretService) *SecretHandler {
-	return &SecretHandler{svc: svc}
+func NewSecretHandler(svc *SecretService, rbacSvc *rbac.K8sRBACService) *SecretHandler {
+	return &SecretHandler{svc: svc, rbacSvc: rbacSvc}
 }
 
 // RegisterRoutes registers Secret endpoints.
@@ -282,6 +284,10 @@ func (h *SecretHandler) Create(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
+	if h.rbacSvc != nil && !h.rbacSvc.CheckHandlerPermission(c, clusterID, namespace, rbac.ResourceTypeSecret, rbac.ActionCreate) {
+		common.Fail(c, common.CodeForbidden, "k8s.rbac.permission_denied")
+		return
+	}
 	resp, err := h.svc.Create(clusterID, namespace, req, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.secret.create_failed")
@@ -299,7 +305,16 @@ func (h *SecretHandler) Delete(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	if err := h.svc.DeleteWithResourceVersion(clusterID, c.Query("namespace"), c.Param("name"), c.Query("resourceVersion"), common.GetDataScope(c)); err != nil {
+	namespace := c.Query("namespace")
+	if namespace == "" {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	if h.rbacSvc != nil && !h.rbacSvc.CheckHandlerPermission(c, clusterID, namespace, rbac.ResourceTypeSecret, rbac.ActionDelete) {
+		common.Fail(c, common.CodeForbidden, "k8s.rbac.permission_denied")
+		return
+	}
+	if err := h.svc.DeleteWithResourceVersion(clusterID, namespace, c.Param("name"), c.Query("resourceVersion"), common.GetDataScope(c)); err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.secret.delete_failed")
 		return
 	}

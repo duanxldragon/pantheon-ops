@@ -3,6 +3,17 @@ import { downloadFile, uploadImportFile } from '../../../api/importExport';
 
 export type DeployAction = 'install' | 'uninstall' | 'upgrade' | 'reinstall';
 
+export type DeployStepType =
+  | 'package'
+  | 'script'
+  | 'nginx'
+  | 'redis'
+  | 'jdk'
+  | 'mysql'
+  | 'minio'
+  | 'harbor'
+  | 'prometheus';
+
 export interface DeployPackageRow {
   id: number;
   name: string;
@@ -54,7 +65,7 @@ export interface DeployTemplateStepRow {
   templateId: number;
   stepCode: string;
   stepName: string;
-  stepType: 'package' | 'script';
+  stepType: DeployStepType;
   action: DeployAction;
   packageId: number;
   packageName: string;
@@ -62,6 +73,10 @@ export interface DeployTemplateStepRow {
   templateCode?: string;
   templateParams?: Record<string, unknown>;
   stepConfig?: Record<string, unknown>;
+  dependencies?: string[];
+  condition?: Record<string, unknown>;
+  failurePolicy?: 'fail_fast' | 'continue_hosts' | 'continue_steps' | string;
+  continueOnHostFailure?: boolean;
   sort: number;
   createdAt: string;
   updatedAt: string;
@@ -105,7 +120,7 @@ export interface DeployTemplatePayload {
   steps?: Array<{
     stepCode: string;
     stepName: string;
-    stepType: 'package' | 'script';
+    stepType: DeployStepType;
     action: DeployAction;
     packageId?: number;
     packageName?: string;
@@ -113,6 +128,10 @@ export interface DeployTemplatePayload {
     templateCode?: string;
     templateParams?: Record<string, unknown>;
     stepConfig?: Record<string, unknown>;
+    dependencies?: string[];
+    condition?: Record<string, unknown>;
+    failurePolicy?: 'fail_fast' | 'continue_hosts' | 'continue_steps' | string;
+    continueOnHostFailure?: boolean;
     sort: number;
   }>;
 }
@@ -135,7 +154,7 @@ export interface DeployTaskHostRow {
     message?: string;
     stepCode?: string;
     stepName?: string;
-    stepType?: 'package' | 'script';
+    stepType?: DeployStepType;
     action?: string;
     packageName?: string;
   }>;
@@ -199,13 +218,25 @@ export interface DeployTaskPayload {
   remark?: string;
 }
 
+export interface DeployCredentialRow {
+  id: number;
+  name: string;
+  username: string;
+  authMode: 'password' | 'private_key';
+  version: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// StartDeployTaskPayload is the CredentialRef-only Start contract. The SSH
+// material is resolved server-side from the credential reference and must never
+// be sent from the client. The idempotency key is generated per user submission
+// and transported via the X-Idempotency-Key header.
 export interface StartDeployTaskPayload {
-	credentialRefId?: number;
-  sshUser?: string;
-  sshPassword?: string;
-  sshPrivateKey?: string;
+  credentialRefId?: number;
+  timeoutSeconds?: number;
   hostFingerprint?: string;
-  authMode?: 'password' | 'private_key';
 }
 
 export interface MarkHostResultPayload {
@@ -257,7 +288,12 @@ export function deleteDeployPackage(id: number) {
 }
 
 export function exportDeployPackages(params?: ListQuery) {
-  return downloadFile({ url: '/business/deploy/packages/export', method: 'get', params, filename: 'deploy-packages.csv' });
+  return downloadFile({
+    url: '/business/deploy/packages/export',
+    method: 'get',
+    params,
+    filename: 'deploy-packages.csv',
+  });
 }
 
 export function importDeployPackages(file: File) {
@@ -296,7 +332,12 @@ export function deleteDeployTemplate(id: number) {
 }
 
 export function exportDeployTemplates(params?: ListQuery) {
-  return downloadFile({ url: '/business/deploy/templates/export', method: 'get', params, filename: 'deploy-templates.csv' });
+  return downloadFile({
+    url: '/business/deploy/templates/export',
+    method: 'get',
+    params,
+    filename: 'deploy-templates.csv',
+  });
 }
 
 export function importDeployTemplates(file: File) {
@@ -312,7 +353,12 @@ export function getDeployTaskList(params?: ListQuery) {
 }
 
 export function exportDeployTasks(params?: ListQuery) {
-  return downloadFile({ url: '/business/deploy/tasks/export', method: 'get', params, filename: 'deploy-tasks.csv' });
+  return downloadFile({
+    url: '/business/deploy/tasks/export',
+    method: 'get',
+    params,
+    filename: 'deploy-tasks.csv',
+  });
 }
 
 export function getDeployTaskDetail(id: number) {
@@ -323,6 +369,10 @@ export function getDeployTaskDetail(id: number) {
   });
 }
 
+export function getDeployTaskEventStreamUrl(id: number) {
+  return `/api/v1/business/deploy/tasks/${id}/events`;
+}
+
 export function createDeployTask(data: DeployTaskPayload) {
   return apiRequest<DeployTaskRow>({
     url: '/business/deploy/tasks',
@@ -331,7 +381,10 @@ export function createDeployTask(data: DeployTaskPayload) {
   });
 }
 
-export function updateDeployTask(id: number, data: Partial<DeployTaskPayload> & { templateId?: number; packageId?: number }) {
+export function updateDeployTask(
+  id: number,
+  data: Partial<DeployTaskPayload> & { templateId?: number; packageId?: number },
+) {
   return apiRequest<DeployTaskRow>({
     url: `/business/deploy/tasks/${id}`,
     method: 'put',
@@ -351,6 +404,16 @@ export function startDeployTask(id: number, data?: StartDeployTaskPayload) {
     url: `/business/deploy/tasks/${id}/start`,
     method: 'post',
     data,
+    headers: {
+      'X-Idempotency-Key': crypto.randomUUID(),
+    },
+  });
+}
+
+export function getDeployCredentialList() {
+  return apiRequest<DeployCredentialRow[]>({
+    url: '/business/deploy/credentials',
+    method: 'get',
   });
 }
 
@@ -358,8 +421,21 @@ export function cancelDeployTask(id: number) {
   return apiRequest<DeployTaskRow>({
     url: `/business/deploy/tasks/${id}/cancel`,
     method: 'post',
+    headers: { 'X-Idempotency-Key': crypto.randomUUID() },
   });
 }
+
+function controlDeployTask(id: number, action: 'pause' | 'resume' | 'retry') {
+  return apiRequest<DeployTaskRow>({
+    url: `/business/deploy/tasks/${id}/${action}`,
+    method: 'post',
+    headers: { 'X-Idempotency-Key': crypto.randomUUID() },
+  });
+}
+
+export const pauseDeployTask = (id: number) => controlDeployTask(id, 'pause');
+export const resumeDeployTask = (id: number) => controlDeployTask(id, 'resume');
+export const retryDeployTask = (id: number) => controlDeployTask(id, 'retry');
 
 export function markDeployHostResult(id: number, data: MarkHostResultPayload) {
   return apiRequest<DeployTaskHostRow>({

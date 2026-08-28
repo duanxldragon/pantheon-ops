@@ -1,10 +1,12 @@
 # pantheon-ops Target Business Architecture
 
-Updated: 2026-08-18  
-Type: Design  
-Status: Proposed
+- Updated: 2026-08-24
+- Type: Design
+- Status: Active target; V1/P1/P2 boundaries follow the freeze checklist and global functional design
 
 Normative design: [BUSINESS_TARGET_ARCHITECTURE_DESIGN.md](./BUSINESS_TARGET_ARCHITECTURE_DESIGN.md).
+
+The current V1 release is blocked. Generic Resource models, Observability, Agent, GitOps, and broad provider expansion are post-V1 targets and must not be presented as implemented V1 behavior.
 
 The target architecture keeps a logical modular monolith first and postpones physical service decomposition. The business domains are:
 

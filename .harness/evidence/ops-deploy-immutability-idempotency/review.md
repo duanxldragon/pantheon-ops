@@ -48,6 +48,10 @@ Task: `ops-deploy-immutability-idempotency`.
 
 ## Remaining gap
 
-- `go test -race` unproven in this environment (Cygwin GCC vs MinGW CGO). The
-  conditional-update and unique-key semantics are exercised, but the race
-  detector gate remains open until a MinGW toolchain is available.
+- `go test -race` is now proven with MinGW CGO (`D:\msys64\mingw64\bin`).
+- Pre-existing CMDB host state-transition test failure is unrelated to deploy.
+- Frontend type-check is K8s-scope, not deploy-scope.
+- Credential-reference fixtures were updated in this session to match the
+  `validateCredentialReferenceRequest` contract (CredentialRefID required,
+  inline SSH fields forbidden). All 12 SSH executor tests plus the handler
+  validation test pass against MySQL 8.0.36.

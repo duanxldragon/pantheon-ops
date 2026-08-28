@@ -1,15 +1,19 @@
 package deploy
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"mime/multipart"
 	"strconv"
 	"strings"
+	"time"
 
 	"pantheon-base/pkg/common"
 	"pantheon-base/pkg/impexp"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 const (
@@ -52,10 +56,18 @@ func (h *DeployHandler) RegisterRoutes(r gin.IRoutes) {
 	r.PUT(taskIDRoute, h.UpdateTask)
 	r.DELETE(taskIDRoute, h.DeleteTask)
 	r.POST("/tasks/:id/start", h.StartTask)
+	r.POST("/tasks/:id/pause", h.PauseTask)
+	r.POST("/tasks/:id/resume", h.ResumeTask)
+	r.POST("/tasks/:id/retry", h.RetryTask)
 	r.POST("/tasks/:id/cancel", h.CancelTask)
+	r.POST("/tasks/:id/rollback", h.RollbackTask)
+	r.GET("/tasks/:id/rollback", h.GetRollbackInfo)
 	r.GET("/tasks/export", h.ExportTasks)
 	r.POST("/task-hosts/:id/result", h.MarkHostResult)
 	r.POST("/task-hosts/:id/report", h.MarkHostResult)
+	r.GET("/tasks/:id/events", h.StreamTaskEvents)
+	r.GET("/tasks/:id/events/history", h.ListTaskEvents)
+	r.GET("/tasks/:id/logs", h.ListTaskLogs)
 }
 
 // ListCredentials handles the credential reference metadata list endpoint.
@@ -456,9 +468,52 @@ func (h *DeployHandler) StartTask(c *gin.Context) {
 			return
 		}
 	}
+	req.IdempotencyKey = strings.TrimSpace(c.GetHeader("X-Idempotency-Key"))
 	resp, err := h.svc.StartTask(id, req, currentActor(c), common.GetDataScope(c))
 	if err != nil {
 		failDeployTaskError(c, err, "deploytask.start_failed")
+		return
+	}
+	common.Success(c, resp)
+}
+
+func (h *DeployHandler) PauseTask(c *gin.Context) {
+	common.SetAuditMetadata(c, "暂停部署任务", common.BusinessUpdate)
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	resp, err := h.svc.PauseTask(id, currentActor(c), common.GetDataScope(c))
+	if err != nil {
+		failDeployTaskError(c, err, "deploytask.pause_failed")
+		return
+	}
+	common.Success(c, resp)
+}
+
+func (h *DeployHandler) ResumeTask(c *gin.Context) {
+	common.SetAuditMetadata(c, "恢复部署任务", common.BusinessUpdate)
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	resp, err := h.svc.ResumeTask(id, currentActor(c), common.GetDataScope(c))
+	if err != nil {
+		failDeployTaskError(c, err, "deploytask.resume_failed")
+		return
+	}
+	common.Success(c, resp)
+}
+
+func (h *DeployHandler) RetryTask(c *gin.Context) {
+	common.SetAuditMetadata(c, "重试部署任务", common.BusinessUpdate)
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	resp, err := h.svc.RetryTask(id, currentActor(c), common.GetDataScope(c))
+	if err != nil {
+		failDeployTaskError(c, err, "deploytask.retry_failed")
 		return
 	}
 	common.Success(c, resp)
@@ -537,7 +592,10 @@ func deployTaskConflictError(err error) bool {
 		errDeployTaskLeaseConflict,
 		errDeployTaskHostStaleReport,
 		errDeployPackageImmutable,
-		errDeployTemplateImmutable:
+		errDeployTemplateImmutable,
+		errDeployTaskInvalidPauseState,
+		errDeployTaskInvalidResumeState,
+		errDeployTaskInvalidRetryState:
 		return true
 	default:
 		return false
@@ -570,7 +628,17 @@ func deployTaskValidationError(err error) bool {
 		errDeployTaskSSHHostKeyRequired,
 		errDeployTaskSSHUserRequired,
 		errDeployTaskSSHPasswordRequired,
-		errDeployTaskSSHPrivateKeyRequired:
+		errDeployTaskSSHPrivateKeyRequired,
+		"business.deploy.credential.required",
+		"business.deploy.credential.not_found",
+		"business.deploy.credential.inactive",
+		"business.deploy.credential.inline_forbidden",
+		"business.deploy.credential.version_changed",
+		"business.deploy.credential.auth_mode_invalid",
+		"business.deploy.credential.key_missing",
+		"business.deploy.credential.key_invalid",
+		"business.deploy.credential.malformed",
+		"business.deploy.credential.tampered":
 		return true
 	case errDeployTaskSSHHostKeyMismatch,
 		errDeployTaskSSHAuthFailed,
@@ -592,4 +660,218 @@ func parseIDParam(c *gin.Context) (uint64, bool) {
 
 func currentActor(c *gin.Context) string {
 	return strconv.FormatUint(common.GetUserID(c), 10)
+}
+
+// --- FZ-04: Event and log endpoints ---
+
+// TaskEventItem is a JSON-serializable event record.
+type TaskEventItem struct {
+	ID         uint64 `json:"id"`
+	Sequence   uint64 `json:"sequence"`
+	EventType  string `json:"eventType"`
+	FromStatus string `json:"fromStatus"`
+	ToStatus   string `json:"toStatus"`
+	Actor      string `json:"actor"`
+	RequestID  string `json:"requestId"`
+	Reason     string `json:"reason"`
+	CreatedAt  string `json:"createdAt"`
+}
+
+// TaskLogItem is a JSON-serializable log chunk record.
+type TaskLogItem struct {
+	ID        uint64 `json:"id"`
+	Sequence  uint64 `json:"sequence"`
+	Stream    string `json:"stream"`
+	Content   string `json:"content"`
+	CreatedAt string `json:"createdAt"`
+}
+
+// ListTaskEvents handles event log retrieval for a task.
+func (h *DeployHandler) ListTaskEvents(c *gin.Context) {
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	if _, err := h.svc.loadVisibleTask(id, common.GetDataScope(c)); err != nil {
+		failDeployTaskError(c, err, "deploytask.events_failed")
+		return
+	}
+	var after uint64
+	if v := c.Query("after"); v != "" {
+		parsed, err := strconv.ParseUint(v, 10, 64)
+		if err != nil {
+			common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+			return
+		}
+		after = parsed
+	}
+	events, err := h.svc.loadTaskEvents(id, after)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploytask.events_failed")
+		return
+	}
+	items := make([]TaskEventItem, 0, len(events))
+	for _, e := range events {
+		items = append(items, TaskEventItem{
+			ID: e.ID, Sequence: e.Sequence, EventType: e.EventType,
+			FromStatus: e.FromStatus, ToStatus: e.ToStatus,
+			Actor: e.Actor, RequestID: e.RequestID, Reason: e.Reason,
+			CreatedAt: e.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		})
+	}
+	common.Success(c, map[string]any{"items": items, "total": len(items)})
+}
+
+// ListTaskLogs handles log chunk retrieval for a task.
+func (h *DeployHandler) ListTaskLogs(c *gin.Context) {
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	if _, err := h.svc.loadVisibleTask(id, common.GetDataScope(c)); err != nil {
+		failDeployTaskError(c, err, "deploytask.logs_failed")
+		return
+	}
+	var after uint64
+	if v := c.Query("after"); v != "" {
+		parsed, err := strconv.ParseUint(v, 10, 64)
+		if err != nil {
+			common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+			return
+		}
+		after = parsed
+	}
+	chunks, err := h.svc.loadLogChunks(id, after)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploytask.logs_failed")
+		return
+	}
+	items := make([]TaskLogItem, 0, len(chunks))
+	for _, chunk := range chunks {
+		items = append(items, TaskLogItem{
+			ID: chunk.ID, Sequence: chunk.Sequence, Stream: chunk.Stream,
+			Content:   chunk.Content,
+			CreatedAt: chunk.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		})
+	}
+	common.Success(c, map[string]any{"items": items, "total": len(items)})
+}
+
+// StreamTaskEvents streams authenticated, data-scoped task events with replay.
+func (h *DeployHandler) StreamTaskEvents(c *gin.Context) {
+	id, ok := parseIDParam(c)
+	if !ok {
+		return
+	}
+	if _, err := h.svc.loadVisibleTask(id, common.GetDataScope(c)); err != nil {
+		failDeployTaskError(c, err, "deploytask.events_failed")
+		return
+	}
+	after, err := parseEventSequence(c)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
+	c.Header("X-Accel-Buffering", "no")
+
+	pollTicker := time.NewTicker(time.Second)
+	heartbeatTicker := time.NewTicker(15 * time.Second)
+	defer pollTicker.Stop()
+	defer heartbeatTicker.Stop()
+
+	writeEvents := func() error {
+		events, loadErr := h.svc.loadTaskEvents(id, after)
+		if loadErr != nil {
+			return loadErr
+		}
+		for _, event := range events {
+			payload, marshalErr := json.Marshal(event)
+			if marshalErr != nil {
+				return marshalErr
+			}
+			if _, writeErr := fmt.Fprintf(c.Writer, "id: %d\nevent: task\ndata: %s\n\n", event.Sequence, payload); writeErr != nil {
+				return writeErr
+			}
+			after = event.Sequence
+		}
+		c.Writer.Flush()
+		return nil
+	}
+
+	if err := writeEvents(); err != nil {
+		return
+	}
+	for {
+		select {
+		case <-c.Request.Context().Done():
+			return
+		case <-heartbeatTicker.C:
+			if _, err := fmt.Fprintf(c.Writer, ": heartbeat %d\n\n", time.Now().Unix()); err != nil {
+				return
+			}
+			c.Writer.Flush()
+		case <-pollTicker.C:
+			if err := writeEvents(); err != nil {
+				return
+			}
+		}
+	}
+}
+
+func parseEventSequence(c *gin.Context) (uint64, error) {
+	value := strings.TrimSpace(c.Query("after"))
+	if value == "" {
+		value = strings.TrimSpace(c.GetHeader("Last-Event-ID"))
+	}
+	if value == "" {
+		return 0, nil
+	}
+	return strconv.ParseUint(value, 10, 64)
+}
+
+// RollbackTask 创建回滚任务
+func (h *DeployHandler) RollbackTask(c *gin.Context) {
+	taskIDStr := c.Param("id")
+	taskID, err := strconv.ParseUint(taskIDStr, 10, 64)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+
+	common.SetAuditMetadata(c, "创建回滚任务", common.BusinessInsert)
+
+	userID := strconv.FormatUint(common.GetUserID(c), 10)
+
+	rollbackTask, err := h.svc.RollbackTask(c.Request.Context(), taskID, userID)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "deploy.rollback_failed")
+		return
+	}
+
+	common.Success(c, rollbackTask)
+}
+
+// GetRollbackInfo 获取任务的回滚信息
+func (h *DeployHandler) GetRollbackInfo(c *gin.Context) {
+	taskIDStr := c.Param("id")
+	taskID, err := strconv.ParseUint(taskIDStr, 10, 64)
+	if err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+
+	rollbackTask, err := h.svc.GetRollbackTask(c.Request.Context(), taskID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			common.Success(c, nil)
+			return
+		}
+		common.FailWithError(c, common.CodeError, err, "deploy.get_rollback_failed")
+		return
+	}
+
+	common.Success(c, rollbackTask)
 }
