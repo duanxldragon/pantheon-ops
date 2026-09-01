@@ -696,6 +696,8 @@ test.describe('Deploy business module smoke', () => {
     await installClientSession(page, login);
     const headers = apiRequestHeaders(login);
     const token = `deploy-closed-loop-${Date.now()}`;
+    // Keep the synthetic SSH target unique across retries; CMDB enforces IP uniqueness.
+    const smokeIp = `127.0.0.${Math.floor(Math.random() * 200) + 20}`;
     const sourceBuffer = Buffer.from('fake nginx source archive for smoke', 'utf8');
 
     const scope = await expectSuccess<BizScopeRow>(
@@ -715,7 +717,7 @@ test.describe('Deploy business module smoke', () => {
         headers,
         data: {
           hostname: `${token}-host`,
-          ip: '127.0.0.1',
+          ip: smokeIp,
           sshPort: 1,
           os: 'linux',
           businessScopeId: scope.id,

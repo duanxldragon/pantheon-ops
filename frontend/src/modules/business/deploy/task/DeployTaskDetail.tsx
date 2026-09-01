@@ -662,7 +662,9 @@ export default function DeployTaskDetail() {
   const canResumeTask = Boolean(task && canResume && task.status === 'paused');
   const canRetryTask = Boolean(task && canRetry && task.status === 'failed');
   const canEditTask = Boolean(task && canUpdate && ['draft', 'pending'].includes(task.status));
-  const canDeleteTask = Boolean(task && canDelete && ['draft', 'pending'].includes(task.status));
+  const canDeleteTask = Boolean(
+    task && canDelete && !['running', 'pause_requested', 'cancel_requested'].includes(task.status),
+  );
 
   const openResult = (row: DeployTaskHostRow) => {
     setSelectedHost(row);

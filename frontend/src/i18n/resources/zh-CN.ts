@@ -1371,6 +1371,8 @@ const zhCNFallback = {
   'operations.k8s.cluster.menu': 'K8s 集群',
   'operations.k8s.workload.menu': '工作负载',
   'operations.k8s.release.menu': '应用发布',
+  'operations.k8s.service.menu': '服务',
+  'operations.k8s.backup.menu': 'Velero 备份',
   'operations.service.menu': '服务目录',
   'business.k8s.cluster.detail': '集群详情',
   'business.k8s.cluster.permission.view': '查看集群',

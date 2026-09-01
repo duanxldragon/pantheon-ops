@@ -91,7 +91,7 @@ export default function MetricSourceList() {
       { title: t('observability.metric_source.name'), dataIndex: 'targetName', width: 200 },
       { title: t('observability.metric_source.type'), dataIndex: 'targetType', width: 130 },
       { title: t('observability.metric_source.endpoint'), dataIndex: 'endpoint', width: 240 },
-      { title: 'Metrics Path', dataIndex: 'metricsPath', width: 140 },
+      { title: t('business.observability.metricSource.metricsPath'), dataIndex: 'metricsPath', width: 140 },
       {
         title: t('observability.metric_source.status'),
         dataIndex: 'status',

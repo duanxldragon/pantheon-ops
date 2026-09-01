@@ -942,7 +942,7 @@ function buildTaskColumns({
               <Button type="text" size="small" status="danger" icon={<IconClose />}>{t('business.deploy.task.cancel')}</Button>
             </Popconfirm>
           )}
-          {canDelete && ['draft', 'pending'].includes(row.status) && (
+          {canDelete && !['running', 'pause_requested', 'cancel_requested'].includes(row.status) && (
             <Popconfirm title={t('business.deploy.task.deleteConfirm')} onOk={() => handleDelete(row.id)}>
               <Button type="text" size="small" status="danger" icon={<IconDelete />}>
                 {t('common.delete')}
@@ -1506,6 +1506,9 @@ function buildTemplateParamLabel(t: (key: string) => string, key: string) {
   }
   if (key === 'serviceName') {
     return t('business.deploy.task.templateParams.serviceName');
+  }
+  if (key === 'version') {
+    return t('business.deploy.task.templateParams.version');
   }
   return key;
 }

@@ -1,6 +1,8 @@
 package backup
 
 import (
+	"context"
+
 	"pantheon-base/modules/business/k8s/cluster"
 	"pantheon-base/modules/business/k8s/namespace"
 
@@ -8,8 +10,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// InitBackupModule initializes the Velero Backup module.
-func InitBackupModule(r *gin.RouterGroup, db *gorm.DB, clusterService *cluster.ClusterService, namespaceService *namespace.NamespaceService) *BackupService {
+// InitBackupModule initializes the Velero Backup module. The routes argument
+// must be a DataScopedGroup (token + Casbin + data-scope middleware); the
+// module must never register on a raw router group.
+func InitBackupModule(r gin.IRoutes, db *gorm.DB, clusterService *cluster.ClusterService, namespaceService *namespace.NamespaceService) *BackupService {
 	service := NewBackupService(db, clusterService, namespaceService)
 	handler := NewBackupHandler(service)
 
@@ -20,6 +24,9 @@ func InitBackupModule(r *gin.RouterGroup, db *gorm.DB, clusterService *cluster.C
 
 	// Register routes
 	handler.RegisterRoutes(r)
+
+	// Start the Velero state reconciler + expired-backup cleanup.
+	StartAll(context.Background(), db, clusterService)
 
 	return service
 }

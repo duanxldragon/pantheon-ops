@@ -1,5 +1,43 @@
 import { apiRequest } from '../../../api/request';
 
+export interface ApplicationRow {
+  id: number;
+  code: string;
+  name: string;
+  businessScopeId: number;
+  businessScopeName: string;
+  deptId: number;
+  status: string;
+  owner: string;
+  remark: string;
+  serviceCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApplicationListResponse {
+  items: ApplicationRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export function getApplicationList(params?: { keyword?: string; status?: string; page?: number; pageSize?: number }) {
+  return apiRequest<ApplicationListResponse>({ url: '/business/service/applications', method: 'get', params });
+}
+
+export function createApplication(data: { code: string; name: string; businessScopeId: number; status?: string; owner?: string; remark?: string }) {
+  return apiRequest<ApplicationRow>({ url: '/business/service/applications', method: 'post', data });
+}
+
+export function updateApplication(id: number, data: { name?: string; status?: string; owner?: string; remark?: string }) {
+  return apiRequest<ApplicationRow>({ url: `/business/service/applications/${id}`, method: 'put', data });
+}
+
+export function deleteApplication(id: number) {
+  return apiRequest<{ deleted: boolean }>({ url: `/business/service/applications/${id}`, method: 'delete' });
+}
+
 export interface ServiceRow {
   id: number;
   applicationId: number;
@@ -86,6 +124,18 @@ export function getServiceList(params?: ServiceListQuery) {
   });
 }
 
+export function createService(data: { applicationId: number; code: string; name: string; runtimeType: string; description?: string; status?: string }) {
+  return apiRequest<ServiceRow>({ url: '/business/service/services', method: 'post', data });
+}
+
+export function updateService(id: number, data: { name?: string; runtimeType?: string; description?: string; status?: string }) {
+  return apiRequest<ServiceRow>({ url: `/business/service/services/${id}`, method: 'put', data });
+}
+
+export function deleteService(id: number) {
+  return apiRequest<{ deleted: boolean }>({ url: `/business/service/services/${id}`, method: 'delete' });
+}
+
 export interface ServiceOption {
   id: number;
   code: string;
@@ -100,4 +150,23 @@ export function getServiceOptions(applicationId?: number) {
     method: 'get',
     params: applicationId ? { applicationId } : undefined,
   });
+}
+
+export function createServiceInstance(data: {
+  serviceId: number;
+  environment: string;
+  targetType: 'vm' | 'k8s';
+  hostId?: number;
+  k8sClusterId?: number;
+  namespace?: string;
+  workloadKind?: string;
+  workloadName?: string;
+  desiredVersion?: string;
+  status?: string;
+}) {
+  return apiRequest<ServiceInstanceRow>({ url: '/business/service/instances', method: 'post', data });
+}
+
+export function deleteServiceInstance(id: number) {
+  return apiRequest<{ deleted: boolean }>({ url: `/business/service/instances/${id}`, method: 'delete' });
 }

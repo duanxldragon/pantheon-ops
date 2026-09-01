@@ -98,8 +98,8 @@ type VeleroStorageLocation struct {
 	Bucket          string         `gorm:"size:128;not null" json:"bucket"`
 	Region          string         `gorm:"size:64" json:"region,omitempty"`
 	Endpoint        string         `gorm:"size:256" json:"endpoint,omitempty"` // MinIO/S3 endpoint
-	AccessKeyID     string         `gorm:"size:128" json:"accessKeyId,omitempty"`
-	SecretAccessKey string         `gorm:"size:256" json:"-"` // 不返回，加密存储
+	AccessKeyID     string         `gorm:"size:128" json:"-"` // 加密存储，不返回
+	SecretAccessKey string         `gorm:"size:256" json:"-"` // 加密存储，不返回
 	Config          datatypes.JSON `gorm:"type:json" json:"config,omitempty"`
 	IsDefault       bool           `gorm:"default:false" json:"isDefault"`
 	CreatedAt       time.Time      `json:"createdAt"`

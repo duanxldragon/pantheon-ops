@@ -1497,6 +1497,8 @@ const enUSFallback = {
   'operations.k8s.cluster.menu': 'K8s Clusters',
   'operations.k8s.workload.menu': 'Workloads',
   'operations.k8s.release.menu': 'Releases',
+  'operations.k8s.service.menu': 'Services',
+  'operations.k8s.backup.menu': 'Velero Backup',
   'operations.service.menu': 'Service Catalog',
   'business.k8s.cluster.detail': 'Cluster Detail',
   'business.k8s.cluster.permission.view': 'View cluster',

@@ -214,6 +214,9 @@ func renderRedisSystemdScript(pkg DeployPackage, task DeployTask) (string, error
 	serviceName := templateParamString(params, "serviceName", "redis")
 	port := templateParamString(params, "port", "6379")
 	requirePassword := templateParamString(params, "requirePassword", "")
+	// The version is a task-level variable (templateParams.version) so the same
+	// template can install any redis release; pkg.Version is only the fallback.
+	version := templateParamString(params, "version", pkg.Version)
 	if action == TaskActionUninstall {
 		return fmt.Sprintf(`set -e
 SERVICE_NAME="%s"
@@ -228,7 +231,7 @@ id redis >/dev/null 2>&1 && userdel redis || true
 echo "Redis uninstall completed"
 `, serviceName, installRoot, dataRoot), nil
 	}
-	archiveName, downloadScript, err := buildSourceFetchScript(pkg, fmt.Sprintf("https://download.redis.io/releases/redis-%s.tar.gz", pkg.Version), pkgDirVar)
+	archiveName, downloadScript, err := buildSourceFetchScript(pkg, fmt.Sprintf("https://download.redis.io/releases/redis-%s.tar.gz", version), pkgDirVar)
 	if err != nil {
 		return "", err
 	}
@@ -295,8 +298,9 @@ systemctl daemon-reload
 systemctl enable "${SERVICE_NAME}"
 systemctl restart "${SERVICE_NAME}"
 systemctl status "${SERVICE_NAME}" --no-pager
+rm -rf "$PKG_DIR"
 echo "Redis installed at $INSTALL_ROOT"
-`, pkg.Version, installRoot, dataRoot, serviceName, port, archiveName, downloadScript, buildServiceStopAndDrainScript(serviceName, filepath.ToSlash(filepath.Join(installRoot, "bin", "redis-server"))), port, dataRoot, installRoot, passwordLine, installRoot, installRoot), nil
+`, version, installRoot, dataRoot, serviceName, port, archiveName, downloadScript, buildServiceStopAndDrainScript(serviceName, filepath.ToSlash(filepath.Join(installRoot, "bin", "redis-server"))), port, dataRoot, installRoot, passwordLine, installRoot, installRoot), nil
 }
 
 func renderMinIOSystemdScript(pkg DeployPackage, task DeployTask) (string, error) {
@@ -374,6 +378,7 @@ systemctl daemon-reload
 systemctl enable "${SERVICE_NAME}"
 systemctl restart "${SERVICE_NAME}"
 systemctl status "${SERVICE_NAME}" --no-pager
+rm -rf "$PKG_DIR"
 echo "MinIO installed at $INSTALL_ROOT"
 `, installRoot, dataRoot, serviceName, apiPort, consolePort, rootUser, shellQuoteSingle(rootPassword), serviceName, archiveName, downloadScript, extractScript, buildServiceStopAndDrainScript(serviceName, filepath.ToSlash(filepath.Join(installRoot, "bin", "minio"))), dataRoot, apiPort, consolePort, serviceName, installRoot), nil
 }
@@ -539,6 +544,7 @@ export JAVA_HOME=%s
 export PATH=\$JAVA_HOME/bin:\$PATH
 EOF
 source /etc/profile.d/jdk.sh
+rm -rf "$PKG_DIR" "$PKG_DIR/extract"
 echo "JDK installed at $INSTALL_ROOT"
 java -version 2>&1 || true
 `, shellQuoteSingle(installRoot), shellQuoteSingle(archiveName), downloadScript, shellQuoteSingle(installRoot)), nil
@@ -584,6 +590,7 @@ systemctl daemon-reload
 systemctl enable "${SERVICE_NAME}"
 systemctl restart "${SERVICE_NAME}"
 systemctl status "${SERVICE_NAME}" --no-pager
+rm -rf "$PKG_DIR" "$PKG_DIR/extract"
 echo "JDK installed at $INSTALL_ROOT"
 java -version 2>&1 || true
 	`, shellQuoteSingle(installRoot), shellQuoteSingle(serviceName), shellQuoteSingle(archiveName), downloadScript, shellQuoteSingle(installRoot), javaCommand, installRoot), nil
@@ -676,6 +683,7 @@ systemctl daemon-reload
 systemctl enable "${SERVICE_NAME}"
 systemctl restart "${SERVICE_NAME}"
 systemctl status "${SERVICE_NAME}" --no-pager
+rm -rf "$PKG_DIR" "$PKG_DIR/extract"
 echo "Prometheus installed at $INSTALL_ROOT, listening on port %s"
 `, shellQuoteSingle(installRoot), shellQuoteSingle(dataRoot), shellQuoteSingle(serviceName), shellQuoteSingle(webPort), shellQuoteSingle(storageRetentionPolicy), shellQuoteSingle(configFile), shellQuoteSingle(archiveName), downloadScript, shellQuoteSingle(configFile), installRoot, configFile, dataRoot, storageRetentionPolicy, webPort, webPort), nil
 }

@@ -996,7 +996,37 @@ func (s *DeployService) DeleteTask(id uint64, actor string, dataScope *common.Da
 	if err != nil {
 		return err
 	}
-	if task.Status != TaskStatusDraft && task.Status != TaskStatusPending {
+	// A process crash can leave a task in running with only expired leases.
+	// Reconcile that orphaned execution before applying the normal delete
+	// guard; otherwise the task can never be cleaned up from the Web UI.
+	if task.Status == TaskStatusRunning && task.UpdatedAt.Before(time.Now().Add(-5*time.Minute)) {
+		now := time.Now()
+		var activeAttempts int64
+		if err := s.db.Model(&DeployTaskAttempt{}).
+			Where("task_id = ? AND status = ? AND (lease_expires_at IS NULL OR lease_expires_at > ?)", task.ID, "running", now).
+			Count(&activeAttempts).Error; err != nil {
+			return err
+		}
+		var activeLeases int64
+		if err := s.db.Model(&DeployHostLease{}).
+			Where("task_id = ? AND expires_at > ?", task.ID, now).
+			Count(&activeLeases).Error; err != nil {
+			return err
+		}
+		if activeAttempts == 0 && activeLeases == 0 {
+			if err := s.db.Model(&DeployTask{}).Where("id = ? AND status = ?", task.ID, TaskStatusRunning).Updates(map[string]any{
+				"status": TaskStatusFailed, "finished_at": now, "updated_by": actor, "updated_at": now,
+			}).Error; err != nil {
+				return err
+			}
+			task.Status = TaskStatusFailed
+			s.appendTaskEvent(task.ID, 0, 0, "task.reconciled_stale", TaskStatusRunning, TaskStatusFailed, actor, "", "worker lease expired")
+		}
+	}
+	// A task may be cleaned up after it reaches a terminal state. Running and
+	// transition states remain protected so a worker cannot race a soft delete.
+	if task.Status == TaskStatusRunning || task.Status == TaskStatusPauseRequested ||
+		task.Status == TaskStatusCancelRequested {
 		return errors.New(errDeployTaskInvalidDeleteState)
 	}
 	return s.db.Transaction(func(tx *gorm.DB) error {
@@ -1291,8 +1321,8 @@ func (s *DeployService) ensureTaskHostLeases(task DeployTask, hosts []DeployTask
 func (s *DeployService) releaseInactiveTaskHostLeases(taskID uint64, hosts []DeployTaskHost) {
 	owner := deployHostLeaseOwner(taskID)
 	for _, host := range hosts {
-		var active int64
-		if err := s.db.Model(&DeployTaskAttempt{}).Where("task_host_id = ? AND status = ? AND lease_expires_at > ?", host.ID, "running", time.Now()).Count(&active).Error; err == nil && active == 0 {
+		active, err := s.hasActiveTaskAttempt(taskID, host.ID, time.Now())
+		if err == nil && !active {
 			_ = releaseHostLease(s.db, host.HostID, owner)
 		}
 	}
@@ -1936,7 +1966,16 @@ func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostRes
 			return nil, err
 		}
 	}
-	_ = releaseHostLease(s.db, host.HostID, deployHostLeaseOwner(host.TaskID))
+	// An async worker persists the host result before it closes its attempt. Keep
+	// the host lease until that attempt is finished so a retry cannot race a
+	// terminal task status or a competing task claim.
+	activeAttempt, attemptErr := s.hasActiveTaskAttempt(host.TaskID, host.ID, time.Now())
+	if attemptErr != nil {
+		return nil, attemptErr
+	}
+	if !activeAttempt {
+		_ = releaseHostLease(s.db, host.HostID, deployHostLeaseOwner(host.TaskID))
+	}
 	if err := s.db.First(&host, hostID).Error; err != nil {
 		return nil, err
 	}
@@ -2291,6 +2330,13 @@ func (s *DeployService) recomputeTaskStatus(taskID uint64, actor string) error {
 	if !allDone {
 		return nil
 	}
+	activeAttempt, err := s.hasActiveTaskAttempt(taskID, 0, time.Now())
+	if err != nil {
+		return err
+	}
+	if activeAttempt {
+		return nil
+	}
 	status := TaskStatusSuccess
 	if hasFailed {
 		status = TaskStatusFailed
@@ -2299,7 +2345,7 @@ func (s *DeployService) recomputeTaskStatus(taskID uint64, actor string) error {
 		status = TaskStatusCanceled
 	}
 	now := time.Now()
-	err := s.db.Model(&DeployTask{}).Where(idWhereClause, taskID).Updates(map[string]interface{}{
+	err = s.db.Model(&DeployTask{}).Where(idWhereClause, taskID).Updates(map[string]interface{}{
 		"status":      status,
 		"finished_at": &now,
 		"updated_by":  actor,
@@ -2330,6 +2376,21 @@ func (s *DeployService) recomputeTaskStatus(taskID uint64, actor string) error {
 		}
 	}
 	return err
+}
+
+// hasActiveTaskAttempt reports whether a worker currently owns a non-expired
+// attempt. A zero taskHostID checks every host under the task.
+func (s *DeployService) hasActiveTaskAttempt(taskID, taskHostID uint64, now time.Time) (bool, error) {
+	db := s.db.Model(&DeployTaskAttempt{}).
+		Where("task_id = ? AND status = ? AND (lease_expires_at IS NULL OR lease_expires_at > ?)", taskID, "running", now)
+	if taskHostID > 0 {
+		db = db.Where("task_host_id = ?", taskHostID)
+	}
+	var active int64
+	if err := db.Count(&active).Error; err != nil {
+		return false, err
+	}
+	return active > 0, nil
 }
 
 func (s *DeployService) packageExists(name string, version string, excludeID uint64) bool {
@@ -3912,7 +3973,7 @@ echo "Uninstall completed for ${SERVICE_NAME}"
 	if action == TaskActionReinstall {
 		action = TaskActionUpgrade
 	}
-	version := strings.TrimSpace(pkg.Version)
+	version := templateParamString(params, "version", pkg.Version)
 	if version == "" {
 		return "", errors.New(errDeployTaskTemplateInvalid)
 	}
@@ -3979,6 +4040,7 @@ if [ "%s" = "upgrade" ]; then
 fi
 systemctl restart "${SERVICE_NAME}"
 systemctl status "${SERVICE_NAME}" --no-pager
+rm -rf "$PKG_DIR"
 `, version, installRoot, serviceName, sourceDownload, installRoot, installRoot, installRoot, installRoot, installRoot, action)
 	return script, nil
 }

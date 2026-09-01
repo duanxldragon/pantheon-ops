@@ -338,6 +338,15 @@ func (s *HostService) Delete(id uint64, dataScope *common.DataScopeReq) error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
+	if s.serviceRefs != nil {
+		active, err := s.serviceRefs.HasActiveHostReferences(context.Background(), id, dataScope)
+		if err != nil {
+			return err
+		}
+		if active {
+			return errors.New("cmdbhost.active_service_reference")
+		}
+	}
 	result := s.hostQuery(dataScope).Where(idWhereClause, id).Delete(&Host{})
 	if result.Error != nil {
 		return result.Error
@@ -466,7 +475,10 @@ func (s *HostService) UpdateStatus(id uint64, status string, dataScope *common.D
 
 func (s *HostService) ipExists(ip string, excludeID uint64) bool {
 	var count int64
-	q := s.db.Model(&Host{}).Where("ip = ?", ip)
+	// Soft-deleted hosts no longer occupy an address in the active CMDB. The
+	// composite database index includes deleted_at, so a cleared host can be
+	// recreated with the same experiment-machine IP.
+	q := s.db.Model(&Host{}).Where("ip = ? AND deleted_at IS NULL", ip)
 	if excludeID > 0 {
 		q = q.Where("id != ?", excludeID)
 	}

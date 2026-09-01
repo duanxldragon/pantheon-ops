@@ -219,6 +219,21 @@ func TestDeleteHost(t *testing.T) {
 	}
 }
 
+func TestDeleteHostRejectsActiveServiceReferences(t *testing.T) {
+	db := setupTestDB(t)
+	svc := NewHostService(db)
+	svc.SetServiceInstanceReferenceReader(activeServiceReferenceReader{active: true})
+	created, err := svc.Create(CreateHostRequest{Hostname: "del-referenced", IP: "10.0.0.41", OS: "linux"}, "1")
+	if err != nil {
+		t.Fatalf("create host: %v", err)
+	}
+	// Deleting an in-use host must be rejected to avoid orphaning service
+	// instances, mirroring the retire path reference check.
+	if err := svc.Delete(created.ID, nil); err == nil || err.Error() != "cmdbhost.active_service_reference" {
+		t.Fatalf("expected active service reference rejection on delete, got %v", err)
+	}
+}
+
 func TestUpdateStatus(t *testing.T) {
 	db := setupTestDB(t)
 	svc := NewHostService(db)

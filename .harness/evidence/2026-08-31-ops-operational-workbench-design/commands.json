@@ -1,0 +1,64 @@
+{
+  "taskId": "2026-08-31-ops-operational-workbench-design",
+  "repo": "pantheon-ops",
+  "status": "approved-with-gaps",
+  "evidenceState": "design-outcome-supported",
+  "agent": {
+    "tool": "codex",
+    "adapter": "repository AGENTS.md"
+  },
+  "commands": [
+    {
+      "command": "node scripts/harness/check-task-packet.mjs --root . docs/harness/tasks/2026-08-31-ops-operational-workbench-design.task.md",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "Target task packet passed; the initial review-link warning is cleared after creating this evidence package."
+    },
+    {
+      "command": "npm run check:harness-docs",
+      "cwd": "pantheon-ops",
+      "status": "failed",
+      "notes": "Strict scan found 9 pre-existing missing targets in unrelated audit, English design, development plan and README files; none points to a file added by this task."
+    },
+    {
+      "command": "npm run check:harness-inventory",
+      "cwd": "pantheon-ops",
+      "status": "failed",
+      "notes": "Strict scan found 8 pre-existing missing upstream method inventory entries in user-modified docs/README.md."
+    },
+    {
+      "command": "git diff --check",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "No whitespace errors in the working tree diff."
+    }
+  ],
+  "methodReadiness": {
+    "ownerLayer": "consumer-repository",
+    "ratchetDecision": "guide-updated",
+    "deferredCodeIssues": [
+      "O1-O6 wait for immutable Base component releases",
+      "O7 waits for the CMDB relationship maturity gate",
+      "existing Ops documentation link and inventory debt is outside this task"
+    ]
+  },
+  "browserEvidence": [],
+  "runtimeSensitive": false,
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-08-31-ops-operational-workbench-design/manifest.json",
+    "taskPacket": "docs/harness/tasks/2026-08-31-ops-operational-workbench-design.task.md",
+    "evidenceDir": ".harness/evidence/2026-08-31-ops-operational-workbench-design/",
+    "reviewFile": ".harness/evidence/2026-08-31-ops-operational-workbench-design/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-08-31-ops-operational-workbench-design/EXECUTION_QUEUE.md"
+    ]
+  },
+  "knownGaps": [
+    "No target workbench was implemented or rendered in this docs-only design task.",
+    "O1-O6 are blocked until their Base dependencies are released and locked.",
+    "O7 is deferred until the CMDB relationship maturity gate passes.",
+    "The full Ops docs link and inventory gates have 17 unrelated pre-existing findings."
+  ],
+  "completedAt": "2026-08-31T00:00:00+08:00"
+}

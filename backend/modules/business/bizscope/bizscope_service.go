@@ -332,7 +332,7 @@ func (s *Service) Delete(id uint64, dataScopes ...*common.DataScopeReq) error {
 		} {
 			var refCount int64
 			if err := s.db.Table(resource.table).
-				Where("business_scope_id = ?", id).
+				Where("business_scope_id = ? AND deleted_at IS NULL", id).
 				Count(&refCount).Error; err != nil {
 				return err
 			}

@@ -1,11 +1,9 @@
-// Package observability provides the basic observability module: monitoring
-// target registration and a lightweight metric view. The V1 scope is a
-// scaffolding module that records monitoring targets per business scope and
-// exposes a health endpoint; Prometheus scraping configuration and PromQL
-// proxying are planned for v1.1 (see BUSINESS_OBSERVABILITY_MODULE_DESIGN.md).
+// Package observability provides monitoring targets, metrics data sources,
+// alerting, log search, and trace search for the operations business domain.
 package observability
 
 import (
+	"context"
 	"errors"
 	"strconv"
 	"strings"
@@ -13,6 +11,8 @@ import (
 
 	"pantheon-base/modules/business/bizscope"
 	"pantheon-base/pkg/common"
+	"pantheon-base/pkg/contracts"
+	"pantheon-base/pkg/database"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -28,19 +28,20 @@ const (
 // MonitoringTarget is a DB-recorded monitoring target bound to a business
 // scope. It is the seed for file_sd generation in v1.1.
 type MonitoringTarget struct {
-	ID               uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
-	BusinessScopeID  uint64    `gorm:"column:business_scope_id;index" json:"businessScopeId"`
-	TargetType       string    `gorm:"size:32;not null" json:"targetType"`
-	TargetName       string    `gorm:"size:128;not null" json:"targetName"`
-	Endpoint         string    `gorm:"size:255" json:"endpoint"`
-	MetricsPath      string    `gorm:"size:255;default:/metrics" json:"metricsPath"`
-	Enabled          bool      `gorm:"not null;default:true" json:"enabled"`
-	Status           string    `gorm:"size:32;default:pending" json:"status"`
-	LastScrapedAt    *time.Time `gorm:"column:last_scraped_at" json:"lastScrapedAt,omitempty"`
-	Remark           string    `gorm:"size:512" json:"remark"`
-	CreatedAt        time.Time `json:"createdAt"`
-	UpdatedAt        time.Time `json:"updatedAt"`
-	CreatedBy        string    `gorm:"size:64" json:"createdBy"`
+	ID              uint64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	BusinessScopeID uint64     `gorm:"column:business_scope_id;index" json:"businessScopeId"`
+	DeptID          uint64     `gorm:"column:dept_id;index" json:"deptId"`
+	TargetType      string     `gorm:"size:32;not null" json:"targetType"`
+	TargetName      string     `gorm:"size:128;not null" json:"targetName"`
+	Endpoint        string     `gorm:"size:255" json:"endpoint"`
+	MetricsPath     string     `gorm:"size:255;default:/metrics" json:"metricsPath"`
+	Enabled         bool       `gorm:"not null;default:true" json:"enabled"`
+	Status          string     `gorm:"size:32;default:pending" json:"status"`
+	LastScrapedAt   *time.Time `gorm:"column:last_scraped_at" json:"lastScrapedAt,omitempty"`
+	Remark          string     `gorm:"size:512" json:"remark"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+	CreatedBy       string     `gorm:"size:64" json:"createdBy"`
 }
 
 // TableName returns the monitoring target table name.
@@ -74,29 +75,63 @@ type CreateTargetRequest struct {
 
 // ObservabilityModule is the module facade exposed to the overlay registry.
 type ObservabilityModule struct {
-	db            *gorm.DB
-	bizScopeSvc   *bizscope.Service
+	db                  *gorm.DB
+	bizScopeSvc         *bizscope.Service
+	datasourceService   *DatasourceService
+	alertRuleService    *AlertRuleService
+	notificationService *NotificationService
+	alertEvaluator      *AlertEvaluator
+	handler             *ObservabilityHandler
 }
 
 // InitObservabilityModule creates the observability module.
 func InitObservabilityModule(r *gin.RouterGroup, db *gorm.DB, bizScopeSvc *bizscope.Service) *ObservabilityModule {
-	return &ObservabilityModule{db: db, bizScopeSvc: bizScopeSvc}
+	datasourceService := NewDatasourceService(db)
+	alertRuleService := NewAlertRuleService(db)
+	notificationService := NewNotificationService(db)
+	alertEvaluator := NewAlertEvaluator(db, datasourceService, alertRuleService, notificationService)
+	// Align the backend menu tree with the frontend routes and grant admin the
+	// list permission (also removes stale plural-path menu rows).
+	if err := SeedMenus(db); err != nil {
+		panic(err)
+	}
+	return &ObservabilityModule{
+		db:                  db,
+		bizScopeSvc:         bizScopeSvc,
+		datasourceService:   datasourceService,
+		alertRuleService:    alertRuleService,
+		notificationService: notificationService,
+		alertEvaluator:      alertEvaluator,
+		handler:             NewObservabilityHandler(datasourceService, alertRuleService, notificationService, alertEvaluator),
+	}
 }
 
 // Migrate creates the monitoring target table.
 func (m *ObservabilityModule) Migrate(db *gorm.DB) error {
-	return db.AutoMigrate(&MonitoringTarget{})
+	if err := db.AutoMigrate(&MonitoringTarget{}); err != nil {
+		return err
+	}
+	if err := m.datasourceService.Migrate(); err != nil {
+		return err
+	}
+	if err := m.alertRuleService.Migrate(); err != nil {
+		return err
+	}
+	return m.notificationService.Migrate()
 }
 
 // RegisterRoutes registers observability endpoints on the given router group.
+// All routes are mounted under DataScopedGroup so token + Casbin + data-scope
+// middleware apply.
 func (m *ObservabilityModule) RegisterRoutes(r *gin.RouterGroup) {
-	group := r.Group("/business/observability")
+	canonical := contracts.DataScopedGroup(r, "/business/observability", m.db)
+	alias := contracts.DataScopedGroup(r, "/observability", m.db)
+	m.handler.RegisterRoutes(canonical, alias)
+	group := contracts.DataScopedGroup(r, "/business/observability", m.db)
 	group.GET("/targets", m.ListTargets)
 	group.POST("/targets", m.CreateTarget)
 	group.DELETE("/targets/:id", m.DeleteTarget)
-	group.GET("/health", func(c *gin.Context) {
-		common.Success(c, gin.H{"status": "ok"})
-	})
+	m.alertEvaluator.Start(context.Background())
 }
 
 // ListTargets returns monitoring targets visible in the caller's data scope.
@@ -117,7 +152,7 @@ func (m *ObservabilityModule) ListTargets(c *gin.Context) {
 	if pageSize > 100 {
 		pageSize = 100
 	}
-	db := m.db.Model(&MonitoringTarget{})
+	db := m.db.Model(&MonitoringTarget{}).Scopes(database.WithDataScope(common.GetDataScope(c)))
 	if query.BusinessScopeID > 0 {
 		db = db.Where("business_scope_id = ?", query.BusinessScopeID)
 	}
@@ -154,8 +189,17 @@ func (m *ObservabilityModule) CreateTarget(c *gin.Context) {
 		req.MetricsPath = "/metrics"
 	}
 	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
+	var businessScope bizscope.BizScope
+	if err := m.db.Model(&bizscope.BizScope{}).
+		Scopes(database.WithDataScope(common.GetDataScope(c))).
+		Where("id = ? AND status = ?", req.BusinessScopeID, "active").
+		First(&businessScope).Error; err != nil {
+		common.FailWithError(c, common.CodeForbidden, err, "observability.business_scope_forbidden")
+		return
+	}
 	target := MonitoringTarget{
 		BusinessScopeID: req.BusinessScopeID,
+		DeptID:          businessScope.DeptID,
 		TargetType:      req.TargetType,
 		TargetName:      strings.TrimSpace(req.TargetName),
 		Endpoint:        strings.TrimSpace(req.Endpoint),
@@ -180,7 +224,7 @@ func (m *ObservabilityModule) DeleteTarget(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
 		return
 	}
-	result := m.db.Where("id = ?", id).Delete(&MonitoringTarget{})
+	result := m.db.Scopes(database.WithDataScope(common.GetDataScope(c))).Where("id = ?", id).Delete(&MonitoringTarget{})
 	if result.Error != nil {
 		common.FailWithError(c, common.CodeError, result.Error, "observability.delete_failed")
 		return

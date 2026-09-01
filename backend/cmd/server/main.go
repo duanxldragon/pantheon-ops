@@ -123,7 +123,7 @@ func buildRouter(env string) *gin.Engine {
 	r := gin.Default()
 	r.Use(middleware.SecurityHeadersMiddleware())
 	r.Use(middleware.CSPMiddleware())
-	r.Use(middleware.BodySizeLimit(middleware.DefaultMaxBodyBytes))
+	r.Use(middleware.BodySizeLimit(middleware.ResolveMaxBodyBytes()))
 	r.Use(middleware.CORSMiddleware())
 	r.Use(otelgin.Middleware("pantheon-base"))
 	r.Use(middleware.PrometheusMiddleware())

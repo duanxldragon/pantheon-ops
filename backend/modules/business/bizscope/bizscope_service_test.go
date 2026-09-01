@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	bizcap "pantheon-base/modules/business/capability"
 	"pantheon-base/pkg/common"
@@ -393,8 +394,9 @@ func TestBizScopeDeleteRejectsNonCMDBReferences(t *testing.T) {
 			db := setupBizScopeTestDB(t)
 			// Create the referenced table with a business_scope_id column.
 			model := &struct {
-				ID              uint64 `gorm:"primaryKey;autoIncrement"`
-				BusinessScopeID uint64 `gorm:"column:business_scope_id;index"`
+				ID              uint64         `gorm:"primaryKey;autoIncrement"`
+				BusinessScopeID uint64         `gorm:"column:business_scope_id;index"`
+				DeletedAt       gorm.DeletedAt `gorm:"index"`
 			}{}
 			if err := db.Table(ref.table).Migrator().CreateTable(model); err != nil {
 				t.Fatalf("create %s table: %v", ref.table, err)
@@ -411,5 +413,31 @@ func TestBizScopeDeleteRejectsNonCMDBReferences(t *testing.T) {
 				t.Fatalf("expected %s for %s reference, got %v", bizScopeInUseKey, ref.table, err)
 			}
 		})
+	}
+}
+
+func TestBizScopeDeleteIgnoresSoftDeletedReferences(t *testing.T) {
+	db := setupBizScopeTestDB(t)
+	for _, table := range []string{"biz_application", "biz_k8s_cluster", "biz_deploy_task"} {
+		model := &struct {
+			ID              uint64         `gorm:"primaryKey;autoIncrement"`
+			BusinessScopeID uint64         `gorm:"column:business_scope_id;index"`
+			DeletedAt       gorm.DeletedAt `gorm:"index"`
+		}{}
+		if err := db.Table(table).Migrator().CreateTable(model); err != nil {
+			t.Fatalf("create %s table: %v", table, err)
+		}
+	}
+	scope := BizScope{Code: "soft-deleted-ref", Name: "Soft deleted ref", Environment: "dev", Status: "active"}
+	if err := db.Create(&scope).Error; err != nil {
+		t.Fatalf("seed scope: %v", err)
+	}
+	for _, table := range []string{"biz_application", "biz_k8s_cluster", "biz_deploy_task"} {
+		if err := db.Table(table).Create(map[string]any{"business_scope_id": scope.ID, "deleted_at": time.Now()}).Error; err != nil {
+			t.Fatalf("seed %s reference: %v", table, err)
+		}
+	}
+	if err := NewService(db).Delete(scope.ID); err != nil {
+		t.Fatalf("delete scope with only soft-deleted references: %v", err)
 	}
 }

@@ -2946,6 +2946,79 @@ func TestDeleteDeployTaskRejectsRunningTask(t *testing.T) {
 	}
 }
 
+func TestDeleteDeployTaskReconcilesStaleRunningTask(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+
+	scope := deployTestBizScope{Code: "delete-stale-scope", Name: "陈旧任务作用域", Status: "active"}
+	if err := db.Create(&scope).Error; err != nil {
+		t.Fatalf("seed scope: %v", err)
+	}
+	host := deployTestHost{Hostname: "delete-stale-host", IP: "10.40.0.133", OS: "linux", Status: "assigned", BusinessScopeID: scope.ID, BusinessScopeName: scope.Name}
+	if err := db.Create(&host).Error; err != nil {
+		t.Fatalf("seed host: %v", err)
+	}
+	pkg, err := svc.CreatePackage(CreatePackageRequest{Name: "delete-stale-pkg", Version: "1.0.0", InstallCommand: "echo install", Status: PackageStatusEnabled}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{Name: "陈旧运行任务", PackageID: pkg.ID, BusinessScopeID: scope.ID, TargetType: TargetTypeHost, TargetIDs: []uint64{host.ID}, ExecutorType: ExecutorTypeManual}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+	if _, err := svc.StartTask(task.ID, StartTaskRequest{}, "1", nil); err != nil {
+		t.Fatalf("start task: %v", err)
+	}
+	staleAt := time.Now().Add(-6 * time.Minute)
+	if err := db.Model(&DeployTask{}).Where("id = ?", task.ID).Update("updated_at", staleAt).Error; err != nil {
+		t.Fatalf("age task: %v", err)
+	}
+	if err := svc.DeleteTask(task.ID, "1", nil); err != nil {
+		t.Fatalf("delete stale task: %v", err)
+	}
+	if _, err := svc.GetTask(task.ID, nil); err == nil || !isDeployTaskNotFound(err) {
+		t.Fatalf("expected stale task to be deleted, got %v", err)
+	}
+}
+
+func TestDeleteDeployTaskAllowsTerminalTask(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+
+	scope := deployTestBizScope{Code: "delete-terminal-scope", Name: "删除终态作用域", Status: "active"}
+	if err := db.Create(&scope).Error; err != nil {
+		t.Fatalf("seed scope: %v", err)
+	}
+	host := deployTestHost{Hostname: "delete-terminal-host", IP: "10.40.0.134", OS: "linux", Status: "assigned", BusinessScopeID: scope.ID, BusinessScopeName: scope.Name}
+	if err := db.Create(&host).Error; err != nil {
+		t.Fatalf("seed host: %v", err)
+	}
+	pkg, err := svc.CreatePackage(CreatePackageRequest{Name: "delete-terminal-pkg", Version: "1.0.0", InstallCommand: "echo install", Status: PackageStatusEnabled}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{Name: "可清理终态任务", PackageID: pkg.ID, BusinessScopeID: scope.ID, TargetType: TargetTypeHost, TargetIDs: []uint64{host.ID}, ExecutorType: ExecutorTypeManual}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+	if _, err := svc.StartTask(task.ID, StartTaskRequest{}, "1", nil); err != nil {
+		t.Fatalf("start task: %v", err)
+	}
+	var taskHost DeployTaskHost
+	if err := db.Where("task_id = ?", task.ID).First(&taskHost).Error; err != nil {
+		t.Fatalf("load task host: %v", err)
+	}
+	if _, err := svc.MarkHostResult(taskHost.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess, Stdout: "done"}, "1", nil); err != nil {
+		t.Fatalf("mark task success: %v", err)
+	}
+	if err := svc.DeleteTask(task.ID, "1", nil); err != nil {
+		t.Fatalf("delete terminal task: %v", err)
+	}
+	if _, err := svc.GetTask(task.ID, nil); err == nil || !isDeployTaskNotFound(err) {
+		t.Fatalf("expected terminal task to be deleted, got %v", err)
+	}
+}
+
 func TestStartDeployTaskAllowsDraftTask(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))

@@ -96,7 +96,10 @@ function hasBusinessOverlayOwnedDescendant(targetPath, repoBase, declaredPaths) 
   return BUSINESS_OVERLAY_OWNED_FILES.has(relative)
     || Array.from(BUSINESS_OVERLAY_OWNED_FILES).some((entry) => entry.startsWith(prefix))
     || Array.from(declaredPaths).some(
-      (entry) => entry === relative || entry.startsWith(prefix) || relative.startsWith(`${entry}/`),
+      // A declaration protects the directory itself and any descendants, but
+      // must not protect unrelated generated siblings beneath a broad parent
+      // such as frontend/src/modules/business.
+      (entry) => entry === relative || entry.startsWith(prefix),
     );
 }
 

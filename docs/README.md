@@ -1,171 +1,150 @@
-# pantheon-ops 文档索引
+# Pantheon-Ops 文档目录
 
-English version: [README.en.md](./README.en.md)
-
-`pantheon-ops` 是 Pantheon 平台的运维域业务仓库，从 `pantheon-base` 继承底座架构、契约和验收标准。
-
-默认继承方式是完整 Base 快照加声明式 business overlay；升级通过临时重建完成，不追踪逐文件共享漂移。
-
-本目录只承载本仓库**自有的业务文档**。架构、契约、UI 规范、通用验收等基座级文档全部由 `pantheon-base/docs/` 提供，不在 ops 复制副本。
+本目录包含 Pantheon-Ops 项目的所有文档。
 
 ---
 
-## 1. 本仓库自有文档（中文主入口 + 英文 companion）
+## 📚 文档结构
 
-| 文档                                                                                                                                                                                                          | 用途                                                                              |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| [README.md](./README.md) / [README.en.md](./README.en.md)                                                                                                                                                     | 仓库入口与推荐阅读顺序                                                            |
-| [../DESIGN.md](../DESIGN.md) / [../DESIGN.en.md](../DESIGN.en.md)                                                                                                                                             | Ops 仓库级产品、体验、边界和发布设计契约                                          |
-| [designs/BUSINESS_FUNCTIONAL_DESIGN.md](./designs/BUSINESS_FUNCTIONAL_DESIGN.md) / [designs/BUSINESS_FUNCTIONAL_DESIGN.en.md](./designs/BUSINESS_FUNCTIONAL_DESIGN.en.md)                                     | 全局功能设计：能力地图、跨模块流程、状态机、安全、UI 和 V1 追溯                   |
-| [V1_RELEASE_CHECKLIST.md](./V1_RELEASE_CHECKLIST.md)                                                                                                                                                          | V1 发布状态、阻断项、自动门禁和外部运行证据的唯一事实源                           |
-| [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) / [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)                                                                                                 | 完整 Base 快照、business overlay、本地业务范围与升级边界                          |
-| [../.agents/skills/README.zh.md](../.agents/skills/README.zh.md) / [../.agents/skills/README.md](../.agents/skills/README.md)                                                                                 | repo-local agent skills：继承校验、PR 收口、GitHub comments 自动处理、CI 红灯排查 |
-| [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) / [TASK_PACKET_OPS_TEMPLATE.en.md](./TASK_PACKET_OPS_TEMPLATE.en.md)                                                                             | `pantheon-ops` 业务开发与 `base -> ops` 同步的最小任务包模板                      |
-| [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.md) / [designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md](./designs/BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md)                 | 业务域模块设计：业务域台账、主机绑定边界与 Deploy 信任来源                        |
-| [designs/BUSINESS_CMDB_MODULE_DESIGN.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.md) / [designs/BUSINESS_CMDB_MODULE_DESIGN.en.md](./designs/BUSINESS_CMDB_MODULE_DESIGN.en.md)                                 | CMDB 业务模块完整设计（含数据模型、API、UI、字典依赖、验收）                      |
-| [designs/BUSINESS_DEPLOY_MODULE_DESIGN.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.md) / [designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./designs/BUSINESS_DEPLOY_MODULE_DESIGN.en.md)                         | 安装部署业务模块完整设计                                                          |
-| [designs/BUSINESS_SERVICE_MODULE_DESIGN.md](./designs/BUSINESS_SERVICE_MODULE_DESIGN.md) / [designs/BUSINESS_SERVICE_MODULE_DESIGN.en.md](./designs/BUSINESS_SERVICE_MODULE_DESIGN.en.md)                     | 应用、服务、服务实例、VM/K8s target 与状态调和设计                                |
-| [designs/BUSINESS_K8S_MODULE_DESIGN.md](./designs/BUSINESS_K8S_MODULE_DESIGN.md) / [designs/BUSINESS_K8S_MODULE_DESIGN.en.md](./designs/BUSINESS_K8S_MODULE_DESIGN.en.md)                                     | Kubernetes 集群、NamespaceBinding、运行态资源、Release 和 V1 Service 设计         |
-| [designs/V1_FREEZE_REMEDIATION_DEV_PLAN.md](./designs/V1_FREEZE_REMEDIATION_DEV_PLAN.md)                                                                                                                       | V1.0 冻结修复开发计划：P0/P1/P2 按优先级排序的 Phase 0–4 任务与验收（2026-08-28 评审产出） |
-| [designs/BUSINESS_ARGOCD_MODULE_DESIGN.md](./designs/BUSINESS_ARGOCD_MODULE_DESIGN.md)                                                                                                                         | ArgoCD GitOps 集成设计：真实 API 集成要求、状态同步、安全约束（v1.2 目标，当前伪实现已下架） |
-| [designs/BUSINESS_BACKUP_MODULE_DESIGN.md](./designs/BUSINESS_BACKUP_MODULE_DESIGN.md)                                                                                                                         | Velero 备份恢复设计：CRD 集成、恢复能力矩阵、业务关联（v1.2 目标，当前伪实现已下架） |
-| [designs/BUSINESS_OBSERVABILITY_MODULE_DESIGN.md](./designs/BUSINESS_OBSERVABILITY_MODULE_DESIGN.md)                                                                                                           | 可观测性分阶段设计：主机监控（v1.1 免费版）与监控对象管理（v1.2）                 |
-| [designs/BUSINESS_MODULE_LICENSING_DESIGN.md](./designs/BUSINESS_MODULE_LICENSING_DESIGN.md)                                                                                                                   | 模块开关与 License 设计：三层裁剪 + ed25519 离线签名（商业化技术基础，v1.1）      |
-| [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.md) / [designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./designs/BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md)         | ops 业务模块 canonical 错误 key 语义附录                                          |
-| [designs/PLATFORM_SRE_EVOLUTION_PLAN.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.md) / [designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md](./designs/PLATFORM_SRE_EVOLUTION_PLAN.en.md)                                 | 方向性 SRE 演进路线图（旧代码基线）；当前评审与执行以本页新增 BUSINESS 文档为准   |
-| [designs/BUSINESS_ARCHITECTURE_REVIEW.md](./designs/BUSINESS_ARCHITECTURE_REVIEW.md) / [designs/BUSINESS_ARCHITECTURE_REVIEW.en.md](./designs/BUSINESS_ARCHITECTURE_REVIEW.en.md)                             | 当前工作树的正式业务架构评审、评分、P0/P1/P2 和最终判断                           |
-| [designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.md](./designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.md) / [designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.en.md](./designs/BUSINESS_TARGET_ARCHITECTURE_DESIGN.en.md) | CMDB、业务目录、变更执行、Kubernetes 和可观测性事实源的目标设计                   |
-| [designs/BUSINESS_DEVELOPMENT_PLAN.md](./designs/BUSINESS_DEVELOPMENT_PLAN.md) / [designs/BUSINESS_DEVELOPMENT_PLAN.en.md](./designs/BUSINESS_DEVELOPMENT_PLAN.en.md)                                         | 历史 8 周估算与路线参考；V1 执行已由冻结任务包接管                                |
-| [designs/BUSINESS_QA_ACCEPTANCE_PLAN.md](./designs/BUSINESS_QA_ACCEPTANCE_PLAN.md) / [designs/BUSINESS_QA_ACCEPTANCE_PLAN.en.md](./designs/BUSINESS_QA_ACCEPTANCE_PLAN.en.md)                                 | P0/P1/P2 QA 验收问题、准入矩阵和发布退出条件                                      |
-| [designs/BUSINESS_TEST_PLAN.md](./designs/BUSINESS_TEST_PLAN.md) / [designs/BUSINESS_TEST_PLAN.en.md](./designs/BUSINESS_TEST_PLAN.en.md)                                                                     | 单元、契约、不变量、跨模块 smoke、MySQL/K8s/SSH 外部验收测试计划                  |
-| [../frontend/README.md](../frontend/README.md) / [../frontend/README.en.md](../frontend/README.en.md)                                                                                                         | 前端工作区说明                                                                    |
-| [../frontend/tests/smoke/README.md](../frontend/tests/smoke/README.md)                                                                                                                                        | smoke 测试布局与覆盖边界                                                          |
-| [../CONTRIBUTING.md](../CONTRIBUTING.md) / [../CONTRIBUTING.en.md](../CONTRIBUTING.en.md)                                                                                                                     | 协作规范、提交格式与验证要求                                                      |
-| [../SECURITY.md](../SECURITY.md) / [../SECURITY.en.md](../SECURITY.en.md)                                                                                                                                     | 安全问题报告范围与披露规则                                                        |
-
-说明：
-
-- 中文 `.md` 仍是本仓库主阅读面。
-- `.en.md` companion 用于国际协作、外部分享和后续扩展。
-- `PROJECT_INHERITANCE` 已切换到与其余文档一致的模式：`PROJECT_INHERITANCE.md` 为中文主入口，`PROJECT_INHERITANCE.en.md` 为英文 companion。
-- GitHub 协作默认走原生 PR 自动化：`Quality Gates`、`Security Gates`、Copilot review 请求（可用时）与 squash auto-merge，不再依赖 Sonar/Codacy/OCR 门禁。
-
-建议实际阅读时先看：
-
-1. [README.md](../README.md)
-2. [../DESIGN.md](../DESIGN.md)
-3. [designs/BUSINESS_FUNCTIONAL_DESIGN.md](./designs/BUSINESS_FUNCTIONAL_DESIGN.md)
-4. [V1_RELEASE_CHECKLIST.md](./V1_RELEASE_CHECKLIST.md)
-5. [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
-6. 与任务相关的 `designs/BUSINESS_*_MODULE_DESIGN.md`
-7. 对应 task packet、evidence 与 review
+```
+docs/
+├── README.md                          # 本文件 - 文档索引
+├── README.en.md                       # 英文文档索引
+│
+├── designs/                           # 设计文档
+│   ├── V1.2_COMPLETE_DESIGN.md       # V1.2 完整设计方案（第1部分）
+│   ├── V1.2_COMPLETE_DESIGN_PART2.md # V1.2 完整设计方案（第2部分）
+│   ├── V1.2_COMPLETE_DESIGN_PART3.md # V1.2 完整设计方案（第3部分）
+│   └── ... (其他设计文档)
+│
+├── audits/                            # 审计报告
+│   └── v1.0/                          # V1.0 审计归档
+│       ├── pantheon-ops_v1.0冻结前综合评审报告.md
+│       ├── pantheon-ops_v1.0业务模块关联性与闭环检查报告.md
+│       └── fix-report.md              # 修复报告
+│
+├── reviews/                           # 评审文档
+│   └── (评审记录)
+│
+├── PROJECT_INHERITANCE.md             # 项目继承说明
+├── PROJECT_INHERITANCE.en.md          # 项目继承说明（英文）
+├── TASK_PACKET_OPS_TEMPLATE.md       # 任务包模板
+├── TASK_PACKET_OPS_TEMPLATE.en.md    # 任务包模板（英文）
+└── V1_RELEASE_CHECKLIST.md            # V1.0 发布检查表
+```
 
 ---
 
-## 2. 基座文档（去 pantheon-base 看）
+## 📖 快速导航
 
-以下文档**不要在 ops 复制副本**。读时直接看 base 仓库：
+### 核心文档
 
-### 2.1 项目入口与文档治理
+| 文档 | 描述 | 状态 |
+|------|------|------|
+| [V1_RELEASE_CHECKLIST.md](./V1_RELEASE_CHECKLIST.md) | V1.0 发布检查表 | ✅ 最新 |
+| [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) | 项目继承说明 | ✅ 最新 |
+| [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) | 任务包模板 | ✅ 最新 |
 
-- `../../pantheon-base/DESIGN.md`
-- `../../pantheon-base/AGENTS.md`
-- `../../pantheon-base/docs/README.md`（base 文档总索引）
-- `../../pantheon-base/docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md`
-- `../../pantheon-base/docs/contracts/DOCUMENT_METADATA_AND_STATUS.md`
+### V1.2 设计文档
 
-### 2.2 契约（系统域 API 与协议）
+| 文档 | 描述 | 状态 |
+|------|------|------|
+| [designs/V1.2_COMPLETE_DESIGN.md](./designs/V1.2_COMPLETE_DESIGN.md) | V1.2 完整设计（第1部分）| ✅ 已完成 |
+| [designs/V1.2_COMPLETE_DESIGN_PART2.md](./designs/V1.2_COMPLETE_DESIGN_PART2.md) | V1.2 完整设计（第2部分）| ✅ 已完成 |
+| [designs/V1.2_COMPLETE_DESIGN_PART3.md](./designs/V1.2_COMPLETE_DESIGN_PART3.md) | V1.2 完整设计（第3部分）| ✅ 已完成 |
 
-- `../../pantheon-base/docs/contracts/PLATFORM_CONTRACT.md`
-- `../../pantheon-base/docs/contracts/SYSTEM_AUTH_CONTRACT.md`
-- `../../pantheon-base/docs/contracts/SYSTEM_IAM_CONTRACT.md`
-- `../../pantheon-base/docs/contracts/SYSTEM_ORG_CONTRACT.md`
-- `../../pantheon-base/docs/contracts/SYSTEM_CONFIG_CONTRACT.md`
+**V1.2 核心模块**:
+- ArgoCD GitOps 集成
+- Velero 备份恢复
+- 告警规则引擎
+- 文件分发系统
 
-### 2.3 架构与规范
+### V1.0 审计报告
 
-- `../../pantheon-base/docs/designs/BACKEND.md` 总体架构与后端规范
-- `../../pantheon-base/docs/designs/FRONTEND.md` 前端架构与模块接入
-- `../../pantheon-base/docs/designs/FRONTEND_UI_SPEC.md` 前端 UI 详细规范
-- `../../pantheon-base/docs/designs/FRONTEND_PAGE_TEMPLATES.md` 前端页面模板规范
-- `../../pantheon-base/docs/designs/FRONTEND_COMPONENT_PLAN.md` 前端组件规划
-- `../../pantheon-base/docs/designs/BACKOFFICE_STYLE_CONSTRAINTS.md` 后台风格硬约束
-- `../../pantheon-base/docs/designs/NAVIGATION_IA_STRATEGY.md` 导航信息架构
-- `../../pantheon-base/docs/designs/PERMISSION_MODEL.md` 权限模型设计
-- `../../pantheon-base/docs/designs/MODULE_CONTRACT.md` 模块契约设计
-- `../../pantheon-base/docs/designs/BUSINESS_MODULE_TEMPLATE.md` 业务模块设计模板（写 ops 业务模块时套用）
-
-### 2.4 系统域设计（base 自有）
-
-- `../../pantheon-base/docs/designs/AUTH_MODULE_DESIGN.md`
-- `../../pantheon-base/docs/designs/SYSTEM_ORG_DESIGN.md`
-- `../../pantheon-base/docs/designs/DICT_AND_SETTING_DESIGN.md`
-- `../../pantheon-base/docs/designs/I18N_MODULE_DESIGN.md`
-- `../../pantheon-base/docs/designs/UPLOAD_AND_STORAGE_DESIGN.md`
-- `../../pantheon-base/docs/designs/DYNAMIC_MODULE_GOVERNANCE_DESIGN.md`
-- `../../pantheon-base/docs/designs/GENERATOR_MODULE_DESIGN.md`
-- `../../pantheon-base/docs/designs/BUSINESS_DICT_INTEGRATION_GUIDE.md` 业务字典接入通用指南
-- `../../pantheon-base/docs/designs/ERROR_CODE_AND_I18N.md`
-- `../../pantheon-base/docs/designs/DATA_PERMISSION_HOOK.md`
-- `../../pantheon-base/docs/designs/SECURITY_CENTER_DESIGN.md`
-- `../../pantheon-base/docs/designs/SECURITY_POLICY_ROADMAP.md`
-- `../../pantheon-base/docs/designs/SSO_OIDC_DESIGN.md`
-- `../../pantheon-base/docs/designs/PERMISSION_WORKBENCH_GOVERNANCE_DESIGN.md`
-- `../../pantheon-base/docs/designs/SYSTEM_CONFIG_EXTENDED_DESIGN.md`
-- `../../pantheon-base/docs/designs/PLATFORM_DASHBOARD_DESIGN.md`
-- `../../pantheon-base/docs/designs/LOWCODE_GENERATOR_GUIDE.md`
-- `../../pantheon-base/docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md`
-- `../../pantheon-base/docs/designs/BUSINESS_MODELING_REVIEW_CHECKLIST.md`
-- `../../pantheon-base/docs/designs/P2_SCALE_ROADMAP.md`
-- `../../pantheon-base/docs/designs/WORKFLOW.md`
-
-### 2.5 验收
-
-- `../../pantheon-base/docs/acceptances/ACCEPTANCE_CHECKLIST.md`
-- `../../pantheon-base/docs/acceptances/BUSINESS_MODULE_ACCEPTANCE_MATRIX.md`
-- `../../pantheon-base/docs/acceptances/CODE_REVIEW_STANDARD.md`
-- `../../pantheon-base/docs/acceptances/SYSTEM_CONFIG_GOVERNANCE_ACCEPTANCE.md`
-- `../../pantheon-base/docs/acceptances/SYSTEM_IMPORT_EXPORT_SMOKE_GUIDE.md`
-- `../../pantheon-base/docs/acceptances/PLATFORM_ACCEPTANCE_MATRIX_20260430_UI_MIGRATION.md`
-- `../../pantheon-base/docs/acceptances/PLATFORM_SHELL_DUAL_MODE_ACCEPTANCE_TEMPLATE.md`
-- `../../pantheon-base/docs/acceptances/PLATFORM_SHELL_PR_TEMPLATE.md`
-- `../../pantheon-base/docs/acceptances/PLATFORM_SHELL_PR_CHECKLIST_SNIPPET.md`
-
-### 2.6 历史基线与样例
-
-- `../../pantheon-base/archive/2026-08-security/`
-- `../archive/2026-08-process/`
-
-### 2.7 Harness 方法源
-
-Harness 方法论由 workspace sibling `pantheon-harness` 统一维护，Ops 不复制方法正文：
-
-- `../../pantheon-harness/patterns/README.md`
-- `../../pantheon-harness/patterns/harness-core-model.md`
-- `../../pantheon-harness/patterns/harness-coverage-model.md`
-- `../../pantheon-harness/patterns/harness-template-taxonomy.md`
-- `../../pantheon-harness/patterns/tool-adapter-matrix.md`
-- `../../pantheon-harness/patterns/method-playbook.md`
-- `../../pantheon-harness/patterns/execution-guardrails.md`
-- `../../pantheon-harness/patterns/context-engineering-protocol.md`
+| 文档 | 描述 | 日期 |
+|------|------|------|
+| [audits/v1.0/pantheon-ops_v1.0冻结前综合评审报告.md](./audits/v1.0/pantheon-ops_v1.0冻结前综合评审报告.md) | V1.0 综合评审报告 | 2026-08-28 |
+| [audits/v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md](./audits/v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md) | 业务模块闭环检查 | 2026-08-28 |
+| [audits/v1.0/fix-report.md](./audits/v1.0/fix-report.md) | 修复报告 | 2026-08-28 |
 
 ---
 
-## 3. 文档治理约束
+## 🎯 按版本查看
 
-参见 `AGENTS.md` 中「文档所有权」章节。简单规则：
+### V1.0 (Current)
+- ✅ 核心闭环完成
+- ✅ CMDB + 部署 + K8s
+- ⚠️ 服务实例/监控骨架存在
+- ❌ ArgoCD/Velero 已下架
 
-- 本仓库**只能新增** `designs/BUSINESS_*` 命名的业务模块设计文档
-- 本仓库**禁止**新增非业务文档；如需修改架构、契约、UI 规范，开 PR 到 `pantheon-base`
-- 本仓库可以维护 `PROJECT_INHERITANCE.md` 锁定的 base 版本和本地业务范围
-- 非 trivial 的业务实现或 `base -> ops` 同步，优先先写一份 `TASK_PACKET_OPS_TEMPLATE` 风格的最小任务包
-- `docs/harness/tasks/` 仅保留 task packet 实例与 evidence linkage，不作为业务文档主索引；对应任务若被稳定设计文档完全吸收，应在后续文档治理中清理
+**相关文档**:
+- [V1.0 发布检查表](./V1_RELEASE_CHECKLIST.md)
+- [V1.0 综合评审报告](./audits/v1.0/pantheon-ops_v1.0冻结前综合评审报告.md)
+- [V1.0 闭环检查报告](./audits/v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md)
 
-### 3.1 Harness 与 `.harness` 的职责边界
+### V1.2 (Planning)
+- 📐 ArgoCD 真实集成
+- 📐 Velero 真实集成
+- 📐 告警规则引擎
+- 📐 文件分发系统
 
-- `docs/harness/` 是可审阅的 Harness 方法、合同和 task packet 规范；它被任务包和文档门禁直接引用。
-- `.harness/` 是机器可读的 manifest、状态、执行证据和运行产物。
-- 两者不是重复副本，不能通过删除 `docs/harness/` 来合并；删除会使 `check-task-packet`、`check-method-health` 等门禁失效。
-- 仓库 shell 的入口指针位于 `docs/harness/HARNESS_ENGINEERING_CONTRACT.md`、`TRIVIALITY_CLASSIFICATION_POLICY.md`、`VISUAL_EVIDENCE_PROMOTION_POLICY.md` 和 `FAILURE_REGISTRY_PROMOTION_POLICY.md`，正文仍由 base 或 `pantheon-harness` 提供。
+**相关文档**:
+- [V1.2 完整设计方案](./designs/V1.2_COMPLETE_DESIGN.md)
 
-本轮一次性过程文档已移入 `../archive/2026-08-process/`。归档材料只用于追溯，不覆盖当前业务设计、V1 freeze checklist 或 `.harness/evidence/` 中的事实证据。
+---
+
+## 📝 文档类型说明
+
+### 设计文档 (designs/)
+包含系统架构、模块设计、API 设计等技术规格文档。
+
+### 审计报告 (audits/)
+包含版本审计、评审报告、修复记录等质量保证文档。
+
+### 评审文档 (reviews/)
+包含代码评审、设计评审等过程记录文档。
+
+---
+
+## 🔍 搜索指南
+
+### 查找特定主题
+- **部署相关**: `grep -r "部署" docs/`
+- **K8s相关**: `grep -r "kubernetes\|k8s" docs/`
+- **告警相关**: `grep -r "告警\|alert" docs/`
+
+### 查找特定版本
+- **V1.0 文档**: `docs/audits/v1.0/`
+- **V1.2 文档**: `docs/designs/V1.2*`
+
+---
+
+## 📌 维护说明
+
+### 添加新文档
+1. 确定文档类型（设计/审计/评审）
+2. 放入对应目录
+3. 更新本索引文件
+
+### 归档旧文档
+1. 按版本创建归档目录
+2. 移动过时文档到归档目录
+3. 更新索引中的状态标记
+
+### 文档命名规范
+- 设计文档: `模块名_DESIGN.md`
+- 审计报告: `项目名_版本_审计类型.md`
+- 评审记录: `评审日期_评审主题.md`
+
+---
+
+## 📮 联系方式
+
+- **项目负责人**: [待定]
+- **技术架构**: Claude
+- **文档维护**: [待定]
+
+---
+
+**最后更新**: 2026-08-28
+**文档版本**: v1.0

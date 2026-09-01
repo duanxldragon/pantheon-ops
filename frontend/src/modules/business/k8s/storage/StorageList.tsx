@@ -298,6 +298,7 @@ export default function StorageList() {
           metrics={heroMetrics}
         />
         <SearchToolbar
+          onClearAll={() => setClusterId(undefined)}
           inlineFilters={
             <>
               <Select

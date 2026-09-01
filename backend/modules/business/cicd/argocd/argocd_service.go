@@ -36,11 +36,17 @@ func (s *ArgoCDService) Migrate() error {
 // --- Server ---
 
 func (s *ArgoCDService) AddServer(req AddServerRequest, createdBy string) (*ServerResponse, error) {
+	// Encrypt auth token before storing
+	encryptedToken, err := EncryptSecret(req.AuthToken)
+	if err != nil {
+		return nil, fmt.Errorf("encryption_failed: %w", err)
+	}
+
 	record := &ArgoCDServer{
 		Name:      req.Name,
 		ClusterID: req.ClusterID,
 		Endpoint:  req.Endpoint,
-		AuthToken: req.AuthToken,
+		AuthToken: encryptedToken,
 		Status:    ArgoCDStatusUnknown,
 		CreatedBy: createdBy,
 	}
@@ -76,7 +82,11 @@ func (s *ArgoCDService) UpdateServer(id uint64, req UpdateServerRequest) error {
 		"endpoint": req.Endpoint,
 	}
 	if req.AuthToken != "" {
-		updates["auth_token"] = req.AuthToken
+		encryptedToken, err := EncryptSecret(req.AuthToken)
+		if err != nil {
+			return fmt.Errorf("encryption_failed: %w", err)
+		}
+		updates["auth_token"] = encryptedToken
 	}
 	return s.db.Model(&ArgoCDServer{}).Where("id = ?", id).Updates(updates).Error
 }
@@ -90,12 +100,36 @@ func (s *ArgoCDService) TestServerConnection(id uint64) (bool, error) {
 	if err := s.db.First(&record, id).Error; err != nil {
 		return false, err
 	}
-	// Best-effort HTTP check to the ArgoCD API
+
+	// Decrypt auth token
+	authToken, err := DecryptSecret(record.AuthToken)
+	if err != nil {
+		return false, fmt.Errorf("decryption_failed: %w", err)
+	}
+
+	// Create ArgoCD client and test connection
+	client := NewArgoCDClient(record.Endpoint, authToken, true)
 	opCtx, cancel := database.WithCustomTimeout(nil, 10*time.Second)
-	_ = opCtx
-	_ = cancel
-	_ = record
-	// TODO: real ArgoCD API ping when HTTP client is wired
+	defer cancel()
+
+	if err := client.TestConnection(opCtx); err != nil {
+		// Update server status to disconnected
+		_ = s.db.Model(&record).Updates(map[string]interface{}{
+			"status":       ArgoCDStatusDisconnected,
+			"last_checked": time.Now(),
+		}).Error
+		return false, err
+	}
+
+	// Update server status and version
+	version, _ := client.GetVersion(opCtx)
+	_ = s.db.Model(&record).Updates(map[string]interface{}{
+		"status":       ArgoCDStatusConnected,
+		"version":      version,
+		"installed":    true,
+		"last_checked": time.Now(),
+	}).Error
+
 	return true, nil
 }
 
@@ -124,16 +158,26 @@ func (s *ArgoCDService) AddRepository(req AddRepositoryRequest, createdBy string
 	}
 	_ = server
 
+	// Encrypt sensitive fields
+	encryptedPassword, err := EncryptSecret(req.Password)
+	if err != nil {
+		return nil, fmt.Errorf("encryption_failed: %w", err)
+	}
+	encryptedSSHKey, err := EncryptSecret(req.SSHKey)
+	if err != nil {
+		return nil, fmt.Errorf("encryption_failed: %w", err)
+	}
+
 	record := &ArgoCDRepository{
-		ServerID: req.ServerID,
-		RepoURL:  req.RepoURL,
-		Name:     req.Name,
-		Branch:   req.Branch,
-		Type:     req.Type,
-		Username: req.Username,
-		Password: req.Password,
-		SSHKey:   req.SSHKey,
-		Status:   ArgoCDStatusUnknown,
+		ServerID:  req.ServerID,
+		RepoURL:   req.RepoURL,
+		Name:      req.Name,
+		Branch:    req.Branch,
+		Type:      req.Type,
+		Username:  req.Username,
+		Password:  encryptedPassword,
+		SSHKey:    encryptedSSHKey,
+		Status:    ArgoCDStatusUnknown,
 		CreatedBy: createdBy,
 	}
 	if err := s.db.Create(record).Error; err != nil {
@@ -177,10 +221,18 @@ func (s *ArgoCDService) UpdateRepository(id uint64, req AddRepositoryRequest) er
 		updates["username"] = req.Username
 	}
 	if req.Password != "" {
-		updates["password"] = req.Password
+		encrypted, err := EncryptSecret(req.Password)
+		if err != nil {
+			return fmt.Errorf("encryption_failed: %w", err)
+		}
+		updates["password"] = encrypted
 	}
 	if req.SSHKey != "" {
-		updates["ssh_key"] = req.SSHKey
+		encrypted, err := EncryptSecret(req.SSHKey)
+		if err != nil {
+			return fmt.Errorf("encryption_failed: %w", err)
+		}
+		updates["ssh_key"] = encrypted
 	}
 	return s.db.Model(&ArgoCDRepository{}).Where("id = ?", id).Updates(updates).Error
 }
@@ -211,10 +263,35 @@ func (s *ArgoCDService) CreateApplication(req CreateApplicationRequest, createdB
 	if err := s.db.First(&server, req.ServerID).Error; err != nil {
 		return nil, fmt.Errorf("server.not_found: %w", err)
 	}
-	_ = server
+
+	authToken, err := DecryptSecret(server.AuthToken)
+	if err != nil {
+		return nil, fmt.Errorf("decryption_failed: %w", err)
+	}
 
 	if req.Project == "" {
 		req.Project = "default"
+	}
+	if req.DestinationServer == "" {
+		req.DestinationServer = "https://kubernetes.default.svc"
+	}
+
+	// Create the application on the remote ArgoCD server first; the local
+	// record is only persisted once the remote create succeeds.
+	payload := &CreateApplicationPayload{}
+	payload.Metadata.Name = req.Name
+	payload.Spec.Project = req.Project
+	payload.Spec.Source.RepoURL = req.SourceRepoURL
+	payload.Spec.Source.Path = req.SourcePath
+	payload.Spec.Source.TargetRevision = req.SourceTargetRev
+	payload.Spec.Destination.Server = req.DestinationServer
+	payload.Spec.Destination.Namespace = req.DestinationNS
+
+	client := NewArgoCDClient(server.Endpoint, authToken, true)
+	opCtx, cancel := database.WithCustomTimeout(nil, 10*time.Second)
+	defer cancel()
+	if err := client.CreateApplication(opCtx, payload); err != nil {
+		return nil, fmt.Errorf("argocd.create_failed: %w", err)
 	}
 
 	record := &ArgoCDApplication{
@@ -288,53 +365,153 @@ func (s *ArgoCDService) UpdateApplication(id uint64, req UpdateApplicationReques
 }
 
 func (s *ArgoCDService) DeleteApplication(id uint64) error {
+	var record ArgoCDApplication
+	if err := s.db.First(&record, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("app.not_found")
+		}
+		return err
+	}
+
+	var server ArgoCDServer
+	if err := s.db.First(&server, record.ServerID).Error; err != nil {
+		return fmt.Errorf("server.not_found: %w", err)
+	}
+	authToken, err := DecryptSecret(server.AuthToken)
+	if err != nil {
+		return fmt.Errorf("decryption_failed: %w", err)
+	}
+
+	// Delete on the remote server first so local and remote state stay
+	// consistent; the local record is only removed after the remote delete
+	// succeeds.
+	client := NewArgoCDClient(server.Endpoint, authToken, true)
+	opCtx, cancel := database.WithCustomTimeout(nil, 10*time.Second)
+	defer cancel()
+	if err := client.DeleteApplication(opCtx, record.Name, false); err != nil {
+		return fmt.Errorf("argocd.delete_failed: %w", err)
+	}
 	return s.db.Delete(&ArgoCDApplication{}, id).Error
 }
 
-// SyncApplication triggers a sync for the given application (records history).
+// SyncApplication triggers a real sync on the remote ArgoCD server and
+// records the outcome in the sync history.
 func (s *ArgoCDService) SyncApplication(id uint64, revision string) (*SyncHistoryResponse, error) {
 	var record ArgoCDApplication
 	if err := s.db.First(&record, id).Error; err != nil {
 		return nil, err
 	}
 
+	var server ArgoCDServer
+	if err := s.db.First(&server, record.ServerID).Error; err != nil {
+		return nil, fmt.Errorf("server.not_found: %w", err)
+	}
+	authToken, err := DecryptSecret(server.AuthToken)
+	if err != nil {
+		return nil, fmt.Errorf("decryption_failed: %w", err)
+	}
+
 	now := time.Now()
 	history := &ArgoCDSyncHistory{
 		ApplicationID: id,
 		Revision:      revision,
-		Status:        "Succeeded",
+		Status:        "Running",
 		StartedAt:     now,
-		FinishedAt:    &now,
 	}
 	if err := s.db.Create(history).Error; err != nil {
 		return nil, err
 	}
 
-	// Update app sync status
-	_ = s.db.Model(&record).Updates(map[string]interface{}{
-		"status":         AppStatusSynced,
-		"sync_status":    "Synced",
-		"last_synced_at": now,
+	client := NewArgoCDClient(server.Endpoint, authToken, true)
+	opCtx, cancel := database.WithCustomTimeout(nil, 30*time.Second)
+	defer cancel()
+
+	finished := time.Now()
+	status := "Succeeded"
+	var message string
+	if err := client.SyncApplication(opCtx, record.Name, revision); err != nil {
+		status = "Failed"
+		message = err.Error()
+	}
+	history.Status = status
+	history.Message = message
+	history.FinishedAt = &finished
+	_ = s.db.Model(history).Updates(map[string]interface{}{
+		"status": status, "message": message, "finished_at": finished,
 	}).Error
 
+	updates := map[string]interface{}{"last_synced_at": finished}
+	if status == "Succeeded" {
+		updates["status"] = AppStatusSynced
+		updates["sync_status"] = "Synced"
+	} else {
+		updates["status"] = AppStatusError
+		updates["sync_status"] = "OutOfSync"
+		updates["last_error"] = message
+	}
+	_ = s.db.Model(&record).Updates(updates).Error
+
+	if err != nil {
+		return nil, err
+	}
 	return &SyncHistoryResponse{
 		ID:         history.ID,
 		Revision:   history.Revision,
 		Status:     history.Status,
+		Message:    history.Message,
 		StartedAt:  history.StartedAt,
 		FinishedAt: history.FinishedAt,
 	}, nil
 }
 
-// RefreshApplication updates the app status from the remote (best-effort).
+// RefreshApplication updates the app status from the remote.
 func (s *ArgoCDService) RefreshApplication(id uint64) error {
 	var record ArgoCDApplication
 	if err := s.db.First(&record, id).Error; err != nil {
 		return err
 	}
-	_ = record
-	// TODO: call ArgoCD API to refresh when HTTP client is available
-	return nil
+
+	// Get server info
+	var server ArgoCDServer
+	if err := s.db.First(&server, record.ServerID).Error; err != nil {
+		return fmt.Errorf("server.not_found: %w", err)
+	}
+
+	// Decrypt auth token
+	authToken, err := DecryptSecret(server.AuthToken)
+	if err != nil {
+		return fmt.Errorf("decryption_failed: %w", err)
+	}
+
+	// Create client and refresh
+	client := NewArgoCDClient(server.Endpoint, authToken, true)
+	opCtx, cancel := database.WithCustomTimeout(nil, 10*time.Second)
+	defer cancel()
+
+	if err := client.RefreshApplication(opCtx, record.Name); err != nil {
+		return err
+	}
+
+	// Get updated status
+	status, err := client.GetApplicationStatus(opCtx, record.Name)
+	if err != nil {
+		return err
+	}
+
+	// Update database
+	updates := map[string]interface{}{
+		"health_status": status.Health.Status,
+		"sync_status":   status.Sync.Status,
+	}
+
+	if status.OperationState != nil {
+		updates["status"] = status.OperationState.Phase
+		if status.OperationState.Message != "" {
+			updates["last_error"] = status.OperationState.Message
+		}
+	}
+
+	return s.db.Model(&record).Updates(updates).Error
 }
 
 // RollbackApplication records a rollback sync event.

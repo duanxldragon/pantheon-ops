@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
@@ -66,4 +67,13 @@ func firstClusterServer(cfg *clientcmdapi.Config) string {
 		return cl.Server
 	}
 	return ""
+}
+
+// RESTConfigFromKubeconfig creates a REST config from kubeconfig string.
+// This is used for creating dynamic clients for CRD access (e.g., Velero).
+func RESTConfigFromKubeconfig(kubeconfig string) (*rest.Config, error) {
+	if kubeconfig == "" {
+		return nil, errKubeconfigInvalid
+	}
+	return clientcmd.RESTConfigFromKubeConfig([]byte(kubeconfig))
 }

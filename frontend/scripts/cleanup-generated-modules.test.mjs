@@ -209,6 +209,46 @@ test('cleanup never removes untracked directories declared by business-overlay.j
   }
 });
 
+test('cleanup preserves an explicitly declared nested overlay under a tracked parent', () => {
+  const { repoRoot, generatedPaths, registryFiles } = createFixtureRepo();
+  const trackedK8sFile = path.join(generatedPaths.frontendBusinessDir, 'k8s', 'index.ts');
+  const declaredServiceFile = path.join(
+    generatedPaths.frontendBusinessDir,
+    'k8s',
+    'service',
+    'ServiceList.tsx',
+  );
+  const generatedSibling = path.join(generatedPaths.frontendBusinessDir, 'k8s', 'generated-smoke');
+  const trackedFiles = new Set([
+    path.relative(repoRoot, trackedK8sFile).replaceAll('\\', '/'),
+  ]);
+
+  try {
+    writeFileSync(
+      path.join(repoRoot, 'business-overlay.json'),
+      JSON.stringify({
+        businessPaths: [
+          'frontend/src/modules/business',
+          'frontend/src/modules/business/k8s/service',
+        ],
+      }),
+      'utf8',
+    );
+    mkdirSync(path.dirname(trackedK8sFile), { recursive: true });
+    writeFileSync(trackedK8sFile, 'export default {};\n', 'utf8');
+    mkdirSync(path.dirname(declaredServiceFile), { recursive: true });
+    writeFileSync(declaredServiceFile, 'export default function ServiceList() {}\n', 'utf8');
+    mkdirSync(generatedSibling, { recursive: true });
+
+    cleanup(generatedPaths, registryFiles, repoRoot, trackedFiles);
+
+    assert.equal(existsSync(declaredServiceFile), true);
+    assert.equal(existsSync(generatedSibling), false);
+  } finally {
+    rmSync(repoRoot, { recursive: true, force: true });
+  }
+});
+
 test('cleanup tolerates schema files disappearing during removal', () => {
   const { repoRoot, generatedPaths, registryFiles } = createFixtureRepo();
   const generatedSchemaPath = path.join(generatedPaths.schemaBusinessDir, 'mdqa-order.json');

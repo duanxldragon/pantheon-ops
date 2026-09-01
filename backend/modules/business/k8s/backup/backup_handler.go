@@ -187,7 +187,7 @@ func (h *BackupHandler) GetBackup(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
 		return
 	}
-	resp, err := h.service.GetBackup(id)
+	resp, err := h.service.GetBackup(id, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.backup.get_failed")
 		return
@@ -203,7 +203,7 @@ func (h *BackupHandler) DeleteBackup(c *gin.Context) {
 	}
 	common.SetAuditMetadata(c, "删除 Velero 备份", common.BusinessDelete)
 
-	if err := h.service.DeleteBackup(id); err != nil {
+	if err := h.service.DeleteBackup(id, common.GetDataScope(c)); err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.backup.delete_failed")
 		return
 	}
@@ -251,7 +251,7 @@ func (h *BackupHandler) GetSchedule(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
 		return
 	}
-	resp, err := h.service.GetSchedule(id)
+	resp, err := h.service.GetSchedule(id, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.backup.schedule_get_failed")
 		return
@@ -287,7 +287,7 @@ func (h *BackupHandler) DeleteSchedule(c *gin.Context) {
 	}
 	common.SetAuditMetadata(c, "删除定时备份", common.BusinessDelete)
 
-	if err := h.service.DeleteSchedule(id); err != nil {
+	if err := h.service.DeleteSchedule(id, common.GetDataScope(c)); err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.backup.schedule_delete_failed")
 		return
 	}
@@ -365,7 +365,7 @@ func (h *BackupHandler) GetRestore(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
 		return
 	}
-	resp, err := h.service.GetRestore(id)
+	resp, err := h.service.GetRestore(id, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.backup.restore_get_failed")
 		return
@@ -381,7 +381,7 @@ func (h *BackupHandler) DeleteRestore(c *gin.Context) {
 	}
 	common.SetAuditMetadata(c, "删除恢复记录", common.BusinessDelete)
 
-	if err := h.service.DeleteRestore(id); err != nil {
+	if err := h.service.DeleteRestore(id, common.GetDataScope(c)); err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.backup.restore_delete_failed")
 		return
 	}

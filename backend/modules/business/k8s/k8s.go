@@ -3,10 +3,8 @@ package k8s
 import (
 	bizcap "pantheon-base/modules/business/capability"
 	"pantheon-base/modules/business/cmdb/host"
+	"pantheon-base/modules/business/k8s/backup"
 	"pantheon-base/modules/business/k8s/cluster"
-	// Velero backup module is disabled in v1.0 (shell implementation); the
-	// import stays commented until the v1.2 real integration lands.
-	// "pantheon-base/modules/business/k8s/backup"
 	"pantheon-base/modules/business/k8s/configmap"
 	"pantheon-base/modules/business/k8s/helm"
 	"pantheon-base/modules/business/k8s/ingress"
@@ -30,6 +28,7 @@ const (
 	operationsK8sClusterMenu   = "operations.k8s.cluster.menu"
 	operationsK8sWorkloadMenu  = "operations.k8s.workload.menu"
 	operationsK8sReleaseMenu   = "operations.k8s.release.menu"
+	operationsK8sServiceMenu   = "operations.k8s.service.menu"
 	k8sClusterPermViewKey      = "business.k8s.cluster.permission.view"
 	k8sClusterPermCreateKey    = "business.k8s.cluster.permission.create"
 	k8sClusterPermUpdateKey    = "business.k8s.cluster.permission.update"
@@ -100,11 +99,10 @@ func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, hostService *host.HostServic
 	// Initialize K8s Install module
 	installSvc := install.InitInstallModule(r, db, hostService)
 
-	// Velero Backup module is disabled in v1.0: the current implementation is
-	// a shell (no CRD creation, status never reconciled). It ships as code in
-	// the repository for the v1.2 real integration (BUSINESS_BACKUP_MODULE_DESIGN.md)
-	// but its menu, routes and permission seeds are removed until then.
-	// _ = backup.InitBackupModule(r, db, clusterSvc, namespaceSvc)
+	// Velero Backup module (v1.2 real integration: CRD create/delete, status
+	// reconciler, DataScope on reads). Routes are registered under the
+	// DataScopedGroup so token + Casbin + data-scope middleware apply.
+	backup.InitBackupModule(contracts.DataScopedGroup(r, k8sRoutePath, db), db, clusterSvc, namespaceSvc)
 
 	// Initialize RBAC module
 	rbacSvc := rbac.InitK8sRBACModule(r, db, clusterSvc)

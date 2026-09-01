@@ -91,13 +91,13 @@ export default function ArgoCDList() {
     async (row: ArgoCDApplicationRow) => {
       try {
         await syncArgoCDApplication(row.id);
-        Message.success('Application synced');
+        Message.success(t('business.cicd.argocd.syncSuccess'));
         await loadData();
       } catch {
-        Message.error('Sync failed');
+        Message.error(t('business.cicd.argocd.syncFailed'));
       }
     },
-    [loadData],
+    [loadData, t],
   );
 
 
@@ -314,6 +314,7 @@ export default function ArgoCDList() {
           metrics={heroMetrics}
         />
         <SearchToolbar
+          onClearAll={() => undefined}
           inlineFilters={
             <Button icon={<IconSync />} onClick={() => void loadData()} disabled={loading}>
               {t('business.k8s.storage.sync')}

@@ -25,6 +25,7 @@ export const deployFixedTemplateCatalog: DeployTemplateCatalogEntry[] = [
     code: 'nginx_systemd',
     summaryKey: 'business.deploy.package.templateSummary.nginx_systemd',
     parameters: [
+      { key: 'version', labelKey: 'business.deploy.task.templateParams.version', defaultValue: '1.24.0' },
       { key: 'installRoot', labelKey: 'business.deploy.task.templateParams.installRoot', defaultValue: '/data/nginx' },
       { key: 'serviceName', labelKey: 'business.deploy.task.templateParams.serviceName', defaultValue: 'nginx' },
     ],
@@ -44,6 +45,7 @@ export const deployFixedTemplateCatalog: DeployTemplateCatalogEntry[] = [
     code: 'redis_systemd',
     summaryKey: 'business.deploy.package.templateSummary.redis_systemd',
     parameters: [
+      { key: 'version', labelKey: 'business.deploy.task.templateParams.version', defaultValue: '7.2.4' },
       { key: 'installRoot', labelKey: 'business.deploy.task.templateParams.installRoot', defaultValue: '/data/redis' },
       { key: 'dataRoot', labelKey: 'business.deploy.task.templateParams.dataRoot', defaultValue: '/data/redis/data' },
       { key: 'serviceName', labelKey: 'business.deploy.task.templateParams.serviceName', defaultValue: 'redis' },

@@ -3,28 +3,92 @@ package backup
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 )
 
+// normalizeUnstructuredJSONValue converts common Go collection values (for
+// example []string) to the JSON-native shapes required by Kubernetes
+// unstructured objects. The dynamic fake client deep-copies objects using the
+// same constraints as a real API server, so keeping this boundary normalized
+// avoids runtime panics in both tests and production requests.
+func normalizeUnstructuredJSONValue(value interface{}) interface{} {
+	if value == nil {
+		return nil
+	}
+	switch typed := value.(type) {
+	case map[string]interface{}:
+		result := make(map[string]interface{}, len(typed))
+		for key, item := range typed {
+			result[key] = normalizeUnstructuredJSONValue(item)
+		}
+		return result
+	case []interface{}:
+		result := make([]interface{}, len(typed))
+		for index, item := range typed {
+			result[index] = normalizeUnstructuredJSONValue(item)
+		}
+		return result
+	}
+
+	rv := reflect.ValueOf(value)
+	if rv.Kind() == reflect.Slice || rv.Kind() == reflect.Array {
+		result := make([]interface{}, rv.Len())
+		for index := 0; index < rv.Len(); index++ {
+			result[index] = normalizeUnstructuredJSONValue(rv.Index(index).Interface())
+		}
+		return result
+	}
+	return value
+}
+
 const veleroNamespace = "velero"
 
-// VeleroClient 封装对 K8s 集群中 Velero 的访问。
-// Velero 通过 CRD（backups.velero.io、schedules.velero.io、restores.velero.io、
-// backupstoragelocations.velero.io）工作。CRD 的实际创建/查询依赖 dynamic client，
-// 这里先提供安装检测能力；CRD 操作通过后续扩展 cluster service 的 dynamic client 接入。
+var (
+	// Velero CRD GroupVersionResource definitions
+	backupGVR = schema.GroupVersionResource{
+		Group:    "velero.io",
+		Version:  "v1",
+		Resource: "backups",
+	}
+	scheduleGVR = schema.GroupVersionResource{
+		Group:    "velero.io",
+		Version:  "v1",
+		Resource: "schedules",
+	}
+	restoreGVR = schema.GroupVersionResource{
+		Group:    "velero.io",
+		Version:  "v1",
+		Resource: "restores",
+	}
+	backupStorageLocationGVR = schema.GroupVersionResource{
+		Group:    "velero.io",
+		Version:  "v1",
+		Resource: "backupstoragelocations",
+	}
+)
+
+// VeleroClient wraps access to Velero resources in a K8s cluster.
 type VeleroClient struct {
-	clientset kubernetes.Interface
+	clientset     kubernetes.Interface
+	dynamicClient dynamic.Interface
 }
 
-// NewVeleroClient 创建 Velero 客户端
-func NewVeleroClient(clientset kubernetes.Interface) *VeleroClient {
-	return &VeleroClient{clientset: clientset}
+// NewVeleroClient creates a Velero client with both standard and dynamic clients.
+func NewVeleroClient(clientset kubernetes.Interface, dynamicClient dynamic.Interface) *VeleroClient {
+	return &VeleroClient{
+		clientset:     clientset,
+		dynamicClient: dynamicClient,
+	}
 }
 
-// IsInstalled 检查 Velero 是否已安装（通过检测 velero namespace 是否存在）
+// IsInstalled checks if Velero is installed by checking the velero namespace.
 func (c *VeleroClient) IsInstalled(ctx context.Context) (bool, error) {
 	if c.clientset == nil {
 		return false, fmt.Errorf("clientset is nil")
@@ -39,7 +103,7 @@ func (c *VeleroClient) IsInstalled(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-// GetVersion 获取 Velero 版本（从 velero namespace 的 deployment 标签读取）
+// GetVersion retrieves Velero version from the velero deployment.
 func (c *VeleroClient) GetVersion(ctx context.Context) (string, error) {
 	if c.clientset == nil {
 		return "", fmt.Errorf("clientset is nil")
@@ -50,7 +114,6 @@ func (c *VeleroClient) GetVersion(ctx context.Context) (string, error) {
 	}
 	for _, d := range deployments.Items {
 		if d.Name == "velero" {
-			// 版本通常在镜像 tag 中
 			image := d.Spec.Template.Spec.Containers[0].Image
 			return image, nil
 		}
@@ -58,7 +121,7 @@ func (c *VeleroClient) GetVersion(ctx context.Context) (string, error) {
 	return "", nil
 }
 
-// GetRunningPods 获取 velero namespace 中运行中的 Pod 数量
+// GetRunningPods returns the count of running Velero pods.
 func (c *VeleroClient) GetRunningPods(ctx context.Context) (int, error) {
 	if c.clientset == nil {
 		return 0, fmt.Errorf("clientset is nil")
@@ -79,10 +142,154 @@ func (c *VeleroClient) GetRunningPods(ctx context.Context) (int, error) {
 	return running, nil
 }
 
-// NOTE: 以下 CRD 操作方法（CreateBackup、CreateSchedule、CreateRestore、
-// ListBackups 等）需要 dynamic client 来操作 velero.io/v1 资源。
-// 当前 cluster service 仅暴露 *kubernetes.Clientset，未暴露 dynamic.Interface。
-// 待 cluster service 增加 GetDynamicClient 方法后，在此补充完整的 CRD 操作实现。
-//
-// 数据库层（biz_velero_backup 等表）已完成完整的 CRUD，可在 API 层闭环；
-// 真正的 Velero K8s 资源创建需要通过后续集成。
+// CreateBackup creates a Velero Backup CRD.
+func (c *VeleroClient) CreateBackup(ctx context.Context, name string, spec map[string]interface{}) error {
+	if c.dynamicClient == nil {
+		return fmt.Errorf("dynamic client is nil")
+	}
+
+	backup := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "velero.io/v1",
+			"kind":       "Backup",
+			"metadata": map[string]interface{}{
+				"name":      name,
+				"namespace": veleroNamespace,
+			},
+			"spec": normalizeUnstructuredJSONValue(spec),
+		},
+	}
+
+	_, err := c.dynamicClient.Resource(backupGVR).Namespace(veleroNamespace).Create(ctx, backup, metav1.CreateOptions{})
+	return err
+}
+
+// GetBackup retrieves a Velero Backup CRD status.
+func (c *VeleroClient) GetBackup(ctx context.Context, name string) (*unstructured.Unstructured, error) {
+	if c.dynamicClient == nil {
+		return nil, fmt.Errorf("dynamic client is nil")
+	}
+	return c.dynamicClient.Resource(backupGVR).Namespace(veleroNamespace).Get(ctx, name, metav1.GetOptions{})
+}
+
+// ListBackups lists all Velero Backup CRDs.
+func (c *VeleroClient) ListBackups(ctx context.Context) (*unstructured.UnstructuredList, error) {
+	if c.dynamicClient == nil {
+		return nil, fmt.Errorf("dynamic client is nil")
+	}
+	return c.dynamicClient.Resource(backupGVR).Namespace(veleroNamespace).List(ctx, metav1.ListOptions{})
+}
+
+// DeleteBackup deletes a Velero Backup CRD.
+func (c *VeleroClient) DeleteBackup(ctx context.Context, name string) error {
+	if c.dynamicClient == nil {
+		return fmt.Errorf("dynamic client is nil")
+	}
+	return c.dynamicClient.Resource(backupGVR).Namespace(veleroNamespace).Delete(ctx, name, metav1.DeleteOptions{})
+}
+
+// CreateSchedule creates a Velero Schedule CRD.
+func (c *VeleroClient) CreateSchedule(ctx context.Context, name string, spec map[string]interface{}) error {
+	if c.dynamicClient == nil {
+		return fmt.Errorf("dynamic client is nil")
+	}
+
+	schedule := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "velero.io/v1",
+			"kind":       "Schedule",
+			"metadata": map[string]interface{}{
+				"name":      name,
+				"namespace": veleroNamespace,
+			},
+			"spec": normalizeUnstructuredJSONValue(spec),
+		},
+	}
+
+	_, err := c.dynamicClient.Resource(scheduleGVR).Namespace(veleroNamespace).Create(ctx, schedule, metav1.CreateOptions{})
+	return err
+}
+
+// GetSchedule retrieves a Velero Schedule CRD.
+func (c *VeleroClient) GetSchedule(ctx context.Context, name string) (*unstructured.Unstructured, error) {
+	if c.dynamicClient == nil {
+		return nil, fmt.Errorf("dynamic client is nil")
+	}
+	return c.dynamicClient.Resource(scheduleGVR).Namespace(veleroNamespace).Get(ctx, name, metav1.GetOptions{})
+}
+
+// DeleteSchedule deletes a Velero Schedule CRD.
+func (c *VeleroClient) DeleteSchedule(ctx context.Context, name string) error {
+	if c.dynamicClient == nil {
+		return fmt.Errorf("dynamic client is nil")
+	}
+	return c.dynamicClient.Resource(scheduleGVR).Namespace(veleroNamespace).Delete(ctx, name, metav1.DeleteOptions{})
+}
+
+// CreateRestore creates a Velero Restore CRD.
+func (c *VeleroClient) CreateRestore(ctx context.Context, name string, spec map[string]interface{}) error {
+	if c.dynamicClient == nil {
+		return fmt.Errorf("dynamic client is nil")
+	}
+
+	restore := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "velero.io/v1",
+			"kind":       "Restore",
+			"metadata": map[string]interface{}{
+				"name":      name,
+				"namespace": veleroNamespace,
+			},
+			"spec": normalizeUnstructuredJSONValue(spec),
+		},
+	}
+
+	_, err := c.dynamicClient.Resource(restoreGVR).Namespace(veleroNamespace).Create(ctx, restore, metav1.CreateOptions{})
+	return err
+}
+
+// GetRestore retrieves a Velero Restore CRD status.
+func (c *VeleroClient) GetRestore(ctx context.Context, name string) (*unstructured.Unstructured, error) {
+	if c.dynamicClient == nil {
+		return nil, fmt.Errorf("dynamic client is nil")
+	}
+	return c.dynamicClient.Resource(restoreGVR).Namespace(veleroNamespace).Get(ctx, name, metav1.GetOptions{})
+}
+
+// DeleteRestore deletes a Velero Restore CRD.
+func (c *VeleroClient) DeleteRestore(ctx context.Context, name string) error {
+	if c.dynamicClient == nil {
+		return fmt.Errorf("dynamic client is nil")
+	}
+	return c.dynamicClient.Resource(restoreGVR).Namespace(veleroNamespace).Delete(ctx, name, metav1.DeleteOptions{})
+}
+
+// CreateBackupStorageLocation creates a Velero BackupStorageLocation CRD.
+func (c *VeleroClient) CreateBackupStorageLocation(ctx context.Context, name string, spec map[string]interface{}) error {
+	if c.dynamicClient == nil {
+		return fmt.Errorf("dynamic client is nil")
+	}
+
+	bsl := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "velero.io/v1",
+			"kind":       "BackupStorageLocation",
+			"metadata": map[string]interface{}{
+				"name":      name,
+				"namespace": veleroNamespace,
+			},
+			"spec": normalizeUnstructuredJSONValue(spec),
+		},
+	}
+
+	_, err := c.dynamicClient.Resource(backupStorageLocationGVR).Namespace(veleroNamespace).Create(ctx, bsl, metav1.CreateOptions{})
+	return err
+}
+
+// GetBackupStorageLocation retrieves a BackupStorageLocation CRD.
+func (c *VeleroClient) GetBackupStorageLocation(ctx context.Context, name string) (*unstructured.Unstructured, error) {
+	if c.dynamicClient == nil {
+		return nil, fmt.Errorf("dynamic client is nil")
+	}
+	return c.dynamicClient.Resource(backupStorageLocationGVR).Namespace(veleroNamespace).Get(ctx, name, metav1.GetOptions{})
+}

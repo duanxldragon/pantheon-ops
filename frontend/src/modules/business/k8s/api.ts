@@ -397,6 +397,51 @@ export function deleteK8sSecret(clusterId: number, namespace: string, name: stri
   });
 }
 
+// --- Service ---
+
+export interface K8sServicePort {
+  name?: string;
+  port: number;
+  targetPort: number;
+  nodePort?: number;
+  protocol: string;
+}
+
+export interface K8sServiceRow {
+  name: string;
+  namespace: string;
+  type: string;
+  clusterIP: string;
+  ports: K8sServicePort[];
+  selector: Record<string, string>;
+  loadBalancerIP?: string;
+}
+
+export function getK8sServiceList(clusterId: number, params?: { namespace?: string; name?: string }) {
+  return apiRequest<{ items: K8sServiceRow[]; total: number }>({
+    url: `/business/k8s/clusters/${clusterId}/services`,
+    method: 'get',
+    params,
+  });
+}
+
+export function createK8sService(clusterId: number, namespace: string, data: { name: string; type: string; ports: K8sServicePort[]; selector: Record<string, string> }) {
+  return apiRequest<K8sServiceRow>({
+    url: `/business/k8s/clusters/${clusterId}/services`,
+    method: 'post',
+    params: { namespace },
+    data,
+  });
+}
+
+export function deleteK8sService(clusterId: number, namespace: string, name: string) {
+  return apiRequest<void>({
+    url: `/business/k8s/clusters/${clusterId}/services/${encodeURIComponent(name)}`,
+    method: 'delete',
+    params: { namespace },
+  });
+}
+
 // --- Ingress ---
 
 export interface K8sIngressRulePath {

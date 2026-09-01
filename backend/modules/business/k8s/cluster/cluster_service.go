@@ -17,6 +17,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -450,6 +451,50 @@ func (s *ClusterService) clientsetForClusterWithContext(ctx context.Context, clu
 
 	// Use client pool for thread-safe access
 	return s.clientPool.GetOrCreate(cluster.ID, kubeconfig)
+}
+
+// GetDynamicClient returns a dynamic client for accessing CRDs (e.g., Velero resources).
+func (s *ClusterService) GetDynamicClient(id uint64, dataScope *common.DataScopeReq) (dynamic.Interface, error) {
+	return s.GetDynamicClientWithContext(context.Background(), id, dataScope)
+}
+
+// GetDynamicClientWithContext returns a dynamic client with context support.
+func (s *ClusterService) GetDynamicClientWithContext(ctx context.Context, id uint64, dataScope *common.DataScopeReq) (dynamic.Interface, error) {
+	cluster, err := s.findClusterWithContext(ctx, id, dataScope)
+	if err != nil {
+		return nil, err
+	}
+	return s.dynamicClientForCluster(cluster)
+}
+
+func (s *ClusterService) dynamicClientForCluster(cluster *Cluster) (dynamic.Interface, error) {
+	var encrypted string
+	if cluster.KubeconfigCredentialRefID > 0 {
+		var ref ClusterCredentialRef
+		if err := s.db.First(&ref, cluster.KubeconfigCredentialRefID).Error; err == nil && ref.Status == "active" {
+			encrypted = ref.Encrypted
+		}
+	}
+	if encrypted == "" {
+		encrypted = cluster.KubeconfigEncrypted
+	}
+	if strings.TrimSpace(encrypted) == "" {
+		return nil, errors.New("k8s.cluster.credential_not_found")
+	}
+
+	// Decrypt kubeconfig
+	kubeconfig, err := k8spkg.DecryptKubeconfig(encrypted)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create dynamic client from kubeconfig
+	restConfig, err := k8spkg.RESTConfigFromKubeconfig(kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return dynamic.NewForConfig(restConfig)
 }
 
 func clusterCredentialResponse(ref *ClusterCredentialRef) ClusterCredentialResponse {

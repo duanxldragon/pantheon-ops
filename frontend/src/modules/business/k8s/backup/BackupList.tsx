@@ -234,7 +234,7 @@ export default function BackupList() {
           <Tag color={v ? 'green' : 'gray'}>{v ? 'Active' : 'Paused'}</Tag>
         ),
       },
-      { title: 'Last Backup', dataIndex: 'lastBackupStatus', width: 120 },
+      { title: t('business.k8s.backup.lastBackup'), dataIndex: 'lastBackupStatus', width: 120 },
       {
         title: t('common.action'),
         width: 100,
@@ -392,6 +392,7 @@ export default function BackupList() {
           metrics={heroMetrics}
         />
         <SearchToolbar
+          onClearAll={() => setClusterId(undefined)}
           inlineFilters={
             <>
               <Select

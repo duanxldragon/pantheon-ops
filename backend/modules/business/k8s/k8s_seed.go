@@ -115,6 +115,19 @@ var seeds = []menuSeed{
 		Sort:      2,
 	},
 	{
+		Key:       "k8s-service",
+		ParentKey: "k8s",
+		TitleKey:  operationsK8sServiceMenu,
+		Path:      "/business/k8s/service",
+		Component: "business/k8s/service/ServiceList",
+		PagePerm:  "business:k8s:service:list",
+		Type:      "C",
+		Icon:      "link",
+		RouteName: "k8s-service-list",
+		Module:    k8sModuleKey,
+		Sort:      5,
+	},
+	{
 		Key:       "k8s-release",
 		ParentKey: "k8s",
 		TitleKey:  operationsK8sReleaseMenu,
@@ -125,7 +138,7 @@ var seeds = []menuSeed{
 		Icon:      "code",
 		RouteName: "k8s-release-list",
 		Module:    k8sModuleKey,
-		Sort:      5,
+		Sort:      6,
 	},
 	{
 		Key:       "k8s-release-view",
@@ -174,7 +187,7 @@ var seeds = []menuSeed{
 		Icon:      "link",
 		RouteName: "k8s-ingress-list",
 		Module:    k8sModuleKey,
-		Sort:      6,
+		Sort:      7,
 	},
 	{
 		Key:       "k8s-ingress-view",
@@ -223,7 +236,7 @@ var seeds = []menuSeed{
 		Icon:      "storage",
 		RouteName: "k8s-storage-list",
 		Module:    k8sModuleKey,
-		Sort:      7,
+		Sort:      8,
 	},
 	{
 		Key:       "k8s-storage-view",
@@ -261,6 +274,19 @@ var seeds = []menuSeed{
 		Module:    k8sModuleKey,
 		Sort:      4,
 	},
+	{
+		Key:       "k8s-backup",
+		ParentKey: "k8s",
+		TitleKey:  operationsK8sBackupMenu,
+		Path:      "/business/k8s/backup",
+		Component: "business/k8s/backup/BackupList",
+		PagePerm:  "business:k8s:backup:list",
+		Type:      "C",
+		Icon:      "clock",
+		RouteName: "k8s-backup-list",
+		Module:    k8sModuleKey,
+		Sort:      9,
+	},
 }
 
 func init() {
@@ -273,7 +299,11 @@ func init() {
 		{"k8s-service-view", "business:k8s:service:view"}, {"k8s-service-create", "business:k8s:service:create"}, {"k8s-service-update", "business:k8s:service:update"}, {"k8s-service-delete", "business:k8s:service:delete"},
 	} {
 		titleKey := strings.ReplaceAll(item.perm, ":", ".") + ".permission"
-		seeds = append(seeds, menuSeed{Key: item.key, ParentKey: "k8s", TitleKey: titleKey, Perms: item.perm, Type: "F", Module: k8sModuleKey, Sort: 100})
+		parentKey := "k8s"
+		if strings.HasPrefix(item.key, "k8s-service-") {
+			parentKey = "k8s-service"
+		}
+		seeds = append(seeds, menuSeed{Key: item.key, ParentKey: parentKey, TitleKey: titleKey, Perms: item.perm, Type: "F", Module: k8sModuleKey, Sort: 100})
 		i18nSeeds = append(i18nSeeds,
 			i18nSeed{Module: k8sModuleKey, Locale: "zh-CN", Group: "permission", Key: titleKey, Value: item.perm},
 			i18nSeed{Module: k8sModuleKey, Locale: "en-US", Group: "permission", Key: titleKey, Value: item.perm},
@@ -302,6 +332,8 @@ var i18nSeeds = []i18nSeed{
 	{Module: k8sModuleKey, Locale: "en-US", Group: "menu", Key: operationsK8sWorkloadMenu, Value: "Workloads"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "menu", Key: operationsK8sReleaseMenu, Value: "应用发布"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "menu", Key: operationsK8sReleaseMenu, Value: "Releases"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "menu", Key: operationsK8sServiceMenu, Value: "服务"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "menu", Key: operationsK8sServiceMenu, Value: "Services"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "menu", Key: operationsK8sIngressMenu, Value: "Ingress"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "menu", Key: operationsK8sIngressMenu, Value: "Ingress"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "menu", Key: operationsK8sStorageMenu, Value: "存储管理"},
@@ -762,8 +794,43 @@ var i18nSeeds = []i18nSeed{
 	{Module: k8sModuleKey, Locale: "en-US", Group: "permission", Key: k8sStoragePermDeleteKey, Value: "Delete storage"},
 
 	// Backup menu & permissions
-	// Velero Backup menu & permissions are removed for v1.0 (module disabled,
-	// shell implementation). They return with the v1.2 real integration.
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "menu", Key: operationsK8sBackupMenu, Value: "Velero 备份"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "menu", Key: operationsK8sBackupMenu, Value: "Velero Backup"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "permission", Key: k8sBackupPermViewKey, Value: "查看备份"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "permission", Key: k8sBackupPermViewKey, Value: "View backup"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "permission", Key: k8sBackupPermCreateKey, Value: "创建备份"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "permission", Key: k8sBackupPermCreateKey, Value: "Create backup"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "permission", Key: k8sBackupPermDeleteKey, Value: "删除备份"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "permission", Key: k8sBackupPermDeleteKey, Value: "Delete backup"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.hero.eyebrow", Value: "运维平台 / Velero 备份"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.hero.eyebrow", Value: "Operations / Velero Backup"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.hero.title", Value: "管理集群备份、定时备份与恢复策略"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.hero.title", Value: "Manage cluster backups, scheduled backups, and restore policies"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.veleroStatus", Value: "Velero 状态"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.veleroStatus", Value: "Velero Status"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.selectClusterHint", Value: "请先选择集群"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.selectClusterHint", Value: "Select a cluster first"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.tab.backups", Value: "备份"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.tab.backups", Value: "Backups"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.tab.schedules", Value: "定时备份"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.tab.schedules", Value: "Schedules"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.tab.restores", Value: "恢复"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.tab.restores", Value: "Restores"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.tab.locations", Value: "存储位置"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.tab.locations", Value: "Storage Locations"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.field.name", Value: "名称"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.field.name", Value: "Name"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.field.type", Value: "类型"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.field.type", Value: "Type"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.field.status", Value: "状态"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.field.status", Value: "Status"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.createSuccess", Value: "备份创建成功"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.createSuccess", Value: "Backup created successfully"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.deleteSuccess", Value: "备份已删除"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.deleteSuccess", Value: "Backup deleted"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.empty", Value: "暂无备份记录"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.empty", Value: "No backup records"},
+
 	// Audit
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "audit", Key: "k8s.cluster.audit.create", Value: "注册集群"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "audit", Key: "k8s.cluster.audit.create", Value: "Create cluster"},

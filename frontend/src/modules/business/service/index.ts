@@ -10,7 +10,7 @@ export const ServiceModule = defineModule({
       titleKey: 'operations.service.menu',
       icon: 'apps',
       pagePermission: 'business:service:list',
-      componentKey: 'business/service/ServiceList',
+      componentKey: 'business/service/ServiceCatalog',
     },
   ],
   menus: [
