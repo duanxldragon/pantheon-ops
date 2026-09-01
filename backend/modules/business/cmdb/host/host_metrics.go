@@ -1,6 +1,6 @@
 package host
 
-import "pantheon-base/pkg/metrics"
+import "pantheon-base/modules/business/metrics"
 
 // UpdateHostStatusMetrics refreshes the lifecycle and connectivity gauges from
 // the current host set. It is cheap to call after list operations.

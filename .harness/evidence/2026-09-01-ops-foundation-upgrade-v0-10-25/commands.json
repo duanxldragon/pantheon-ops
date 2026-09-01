@@ -1,0 +1,66 @@
+[
+  {
+    "name": "download",
+    "command": "gh release download pantheon-base-v0.10.25 --repo duanxldragon/pantheon-base --pattern foundation-release-pantheon-base-v0.10.25.tgz --pattern repo.tar --dir .foundation/releases/pantheon-base-v0.10.25"
+  },
+  {
+    "name": "verify-tar",
+    "command": "tar -tf .foundation/releases/pantheon-base-v0.10.25/repo.tar | wc -l (1823 entries, no EOF)"
+  },
+  {
+    "name": "verify-manifest",
+    "command": "asset manifest.json baseCommit == e7bd96466eb006bd4b4fbddd6a1df2c4ec98263c"
+  },
+  {
+    "name": "sha256",
+    "command": "c8b8a3df... tgz / db417381... repo.tar"
+  },
+  {
+    "name": "lock-update",
+    "command": "foundation-release.lock.json -> v0.10.25"
+  },
+  {
+    "name": "rebuild",
+    "command": "npm run rebuild:from-base (x3, deterministic)"
+  },
+  {
+    "name": "overlay-check",
+    "command": "node scripts/business-overlay/check-business-overlay.mjs --root .tmp/business-overlay-rebuild -> OK 53 paths"
+  },
+  {
+    "name": "backend-build",
+    "command": "cd .tmp/business-overlay-rebuild/backend && go mod tidy && go build ./... -> pass"
+  },
+  {
+    "name": "backend-test",
+    "command": "go test -count=1 ./modules/business/... -> 18 ok 0 fail"
+  },
+  {
+    "name": "frontend-typecheck",
+    "command": "npm run type-check -> pass"
+  },
+  {
+    "name": "frontend-build",
+    "command": "npm run build (all prebuild gates + vite) -> pass"
+  },
+  {
+    "name": "menu-contract",
+    "command": "37 menus / 47 routes / 208 permissions / 49 component keys"
+  },
+  {
+    "name": "docs-frontmatter",
+    "command": "pass (305 docs staged; 80 docs source)"
+  },
+  {
+    "name": "business-boundaries",
+    "command": "pass"
+  },
+  {
+    "name": "business-foundation",
+    "command": "8/8 tests pass"
+  },
+  {
+    "name": "encoding",
+    "command": "0 findings"
+  }
+]

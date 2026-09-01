@@ -126,7 +126,7 @@
   "business.deploy.template.stepConditionKey": "参数名",
   "business.deploy.template.stepConditionValue": "参数值",
   "business.deploy.template.stepPlatformScripts": "平台脚本",
-  "business.deploy.template.stepPlatformScriptsHint": 'JSON 格式，key 为平台标识（如 linux、redhat），value 为脚本内容',
+  "business.deploy.template.stepPlatformScriptsHint": "JSON 格式，key 为平台标识（如 linux、redhat），value 为脚本内容",
   "business.deploy.template.variables": "变量定义",
   "business.deploy.template.variablesHint": "JSON 格式，定义模板默认变量值",
   "business.deploy.template.addStep": "新增步骤",

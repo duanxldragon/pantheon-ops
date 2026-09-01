@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/metrics"
+	"pantheon-base/modules/business/metrics"
 )
 
 // errDeployTaskSecretParamInvalid rejects empty secret parameter values.

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"pantheon-base/pkg/database"
 
 	"gorm.io/gorm"
 )
@@ -109,7 +108,7 @@ func (s *ArgoCDService) TestServerConnection(id uint64) (bool, error) {
 
 	// Create ArgoCD client and test connection
 	client := NewArgoCDClient(record.Endpoint, authToken, true)
-	opCtx, cancel := database.WithCustomTimeout(nil, 10*time.Second)
+	opCtx, cancel := withCustomTimeout(nil, 10*time.Second)
 	defer cancel()
 
 	if err := client.TestConnection(opCtx); err != nil {
@@ -288,7 +287,7 @@ func (s *ArgoCDService) CreateApplication(req CreateApplicationRequest, createdB
 	payload.Spec.Destination.Namespace = req.DestinationNS
 
 	client := NewArgoCDClient(server.Endpoint, authToken, true)
-	opCtx, cancel := database.WithCustomTimeout(nil, 10*time.Second)
+	opCtx, cancel := withCustomTimeout(nil, 10*time.Second)
 	defer cancel()
 	if err := client.CreateApplication(opCtx, payload); err != nil {
 		return nil, fmt.Errorf("argocd.create_failed: %w", err)
@@ -386,7 +385,7 @@ func (s *ArgoCDService) DeleteApplication(id uint64) error {
 	// consistent; the local record is only removed after the remote delete
 	// succeeds.
 	client := NewArgoCDClient(server.Endpoint, authToken, true)
-	opCtx, cancel := database.WithCustomTimeout(nil, 10*time.Second)
+	opCtx, cancel := withCustomTimeout(nil, 10*time.Second)
 	defer cancel()
 	if err := client.DeleteApplication(opCtx, record.Name, false); err != nil {
 		return fmt.Errorf("argocd.delete_failed: %w", err)
@@ -423,7 +422,7 @@ func (s *ArgoCDService) SyncApplication(id uint64, revision string) (*SyncHistor
 	}
 
 	client := NewArgoCDClient(server.Endpoint, authToken, true)
-	opCtx, cancel := database.WithCustomTimeout(nil, 30*time.Second)
+	opCtx, cancel := withCustomTimeout(nil, 30*time.Second)
 	defer cancel()
 
 	finished := time.Now()
@@ -485,7 +484,7 @@ func (s *ArgoCDService) RefreshApplication(id uint64) error {
 
 	// Create client and refresh
 	client := NewArgoCDClient(server.Endpoint, authToken, true)
-	opCtx, cancel := database.WithCustomTimeout(nil, 10*time.Second)
+	opCtx, cancel := withCustomTimeout(nil, 10*time.Second)
 	defer cancel()
 
 	if err := client.RefreshApplication(opCtx, record.Name); err != nil {

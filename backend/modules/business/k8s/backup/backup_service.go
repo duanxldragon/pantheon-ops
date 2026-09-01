@@ -11,6 +11,7 @@ import (
 	"pantheon-base/modules/business/k8s/cluster"
 	"pantheon-base/modules/business/k8s/namespace"
 	"pantheon-base/modules/business/secrets"
+	"pantheon-base/modules/business/shared"
 	"pantheon-base/pkg/common"
 	"pantheon-base/pkg/database"
 
@@ -164,15 +165,15 @@ func (s *BackupService) CreateBackup(ctx context.Context, req CreateBackupReques
 	}
 
 	record := &VeleroBackup{
-		Name:              req.Name,
-		ClusterID:         req.ClusterID,
-		BackupType:        req.BackupType,
-		IncludePVs:        req.IncludePVs,
-		TTL:               req.TTL,
-		LabelSelector:     req.LabelSelector,
-		StorageLocation:   req.StorageLocation,
-		Status:            StatusNew,
-		CreatedBy:         createdBy,
+		Name:            req.Name,
+		ClusterID:       req.ClusterID,
+		BackupType:      req.BackupType,
+		IncludePVs:      req.IncludePVs,
+		TTL:             req.TTL,
+		LabelSelector:   req.LabelSelector,
+		StorageLocation: req.StorageLocation,
+		Status:          StatusNew,
+		CreatedBy:       createdBy,
 	}
 	if len(req.IncludedNamespaces) > 0 {
 		b, _ := json.Marshal(req.IncludedNamespaces)
@@ -325,12 +326,12 @@ func (s *BackupService) CreateSchedule(ctx context.Context, req CreateScheduleRe
 
 	tplJSON, _ := json.Marshal(req.BackupTemplate)
 	record := &VeleroSchedule{
-		Name:             req.Name,
-		ClusterID:        req.ClusterID,
-		CronExpression:   req.CronExpression,
-		Enabled:          req.Enabled,
-		BackupTemplate:   datatypes.JSON(tplJSON),
-		CreatedBy:        createdBy,
+		Name:           req.Name,
+		ClusterID:      req.ClusterID,
+		CronExpression: req.CronExpression,
+		Enabled:        req.Enabled,
+		BackupTemplate: datatypes.JSON(tplJSON),
+		CreatedBy:      createdBy,
 	}
 	if err := s.db.Create(record).Error; err != nil {
 		return nil, err
@@ -398,10 +399,10 @@ func (s *BackupService) GetSchedule(id uint64, dataScope *common.DataScopeReq) (
 func (s *BackupService) UpdateSchedule(id uint64, req CreateScheduleRequest) error {
 	tplJSON, _ := json.Marshal(req.BackupTemplate)
 	return s.db.Model(&VeleroSchedule{}).Where("id = ?", id).Updates(map[string]interface{}{
-		"name":             req.Name,
-		"cron_expression":  req.CronExpression,
-		"enabled":          req.Enabled,
-		"backup_template":  tplJSON,
+		"name":            req.Name,
+		"cron_expression": req.CronExpression,
+		"enabled":         req.Enabled,
+		"backup_template": tplJSON,
 	}).Error
 }
 
@@ -465,12 +466,12 @@ func (s *BackupService) CreateRestore(ctx context.Context, req CreateRestoreRequ
 	_ = backup
 
 	record := &VeleroRestore{
-		Name:         req.Name,
-		ClusterID:    req.ClusterID,
-		BackupName:   req.BackupName,
-		RestorePVs:   req.RestorePVs,
-		Status:       StatusNew,
-		CreatedBy:    createdBy,
+		Name:       req.Name,
+		ClusterID:  req.ClusterID,
+		BackupName: req.BackupName,
+		RestorePVs: req.RestorePVs,
+		Status:     StatusNew,
+		CreatedBy:  createdBy,
 	}
 	if len(req.NamespaceMapping) > 0 {
 		b, _ := json.Marshal(req.NamespaceMapping)
@@ -583,19 +584,19 @@ func (s *BackupService) DeleteRestore(id uint64, dataScope *common.DataScopeReq)
 
 func (s *BackupService) toRestoreResponse(r *VeleroRestore) *RestoreResponse {
 	resp := &RestoreResponse{
-		ID:               r.ID,
-		Name:             r.Name,
-		ClusterID:        r.ClusterID,
-		BackupName:       r.BackupName,
-		RestorePVs:       r.RestorePVs,
-		Status:           r.Status,
-		Phase:            r.Phase,
-		StartTime:        r.StartTime,
-		CompletionTime:   r.CompletionTime,
-		Errors:           r.Errors,
-		Warnings:         r.Warnings,
-		CreatedAt:        r.CreatedAt,
-		CreatedBy:        r.CreatedBy,
+		ID:             r.ID,
+		Name:           r.Name,
+		ClusterID:      r.ClusterID,
+		BackupName:     r.BackupName,
+		RestorePVs:     r.RestorePVs,
+		Status:         r.Status,
+		Phase:          r.Phase,
+		StartTime:      r.StartTime,
+		CompletionTime: r.CompletionTime,
+		Errors:         r.Errors,
+		Warnings:       r.Warnings,
+		CreatedAt:      r.CreatedAt,
+		CreatedBy:      r.CreatedBy,
 	}
 	_ = json.Unmarshal(r.NamespaceMapping, &resp.NamespaceMapping)
 	_ = json.Unmarshal(r.IncludedNamespaces, &resp.IncludedNamespaces)
@@ -613,7 +614,7 @@ func (s *BackupService) GetVeleroStatus(ctx context.Context, clusterID uint64, d
 		return nil, err
 	}
 
-	opCtx, cancel := database.WithCustomTimeout(ctx, backupOpTimeout)
+	opCtx, cancel := shared.WithCustomTimeout(ctx, backupOpTimeout)
 	defer cancel()
 
 	// Get dynamic client for Velero CRD operations
@@ -707,12 +708,12 @@ func scheduleCRDSpec(req CreateScheduleRequest) map[string]interface{} {
 // restoreCRDSpec builds the Velero Restore CRD spec from the request.
 func restoreCRDSpec(req CreateRestoreRequest) map[string]interface{} {
 	spec := map[string]interface{}{
-		"backupName":           req.BackupName,
-		"restorePVs":           req.RestorePVs,
-		"includedNamespaces":   req.IncludedNamespaces,
-		"excludedNamespaces":   req.ExcludedNamespaces,
-		"includedResources":    req.IncludedResources,
-		"excludedResources":    req.ExcludedResources,
+		"backupName":              req.BackupName,
+		"restorePVs":              req.RestorePVs,
+		"includedNamespaces":      req.IncludedNamespaces,
+		"excludedNamespaces":      req.ExcludedNamespaces,
+		"includedResources":       req.IncludedResources,
+		"excludedResources":       req.ExcludedResources,
 		"includeClusterResources": true,
 	}
 	if len(req.NamespaceMapping) > 0 {
@@ -727,7 +728,7 @@ func (s *BackupService) createBackupCRD(ctx context.Context, req CreateBackupReq
 	if err != nil {
 		return err
 	}
-	opCtx, cancel := database.WithCustomTimeout(ctx, backupOpTimeout)
+	opCtx, cancel := shared.WithCustomTimeout(ctx, backupOpTimeout)
 	defer cancel()
 	return vc.CreateBackup(opCtx, req.Name, backupCRDSpec(req))
 }
@@ -738,7 +739,7 @@ func (s *BackupService) createScheduleCRD(ctx context.Context, req CreateSchedul
 	if err != nil {
 		return err
 	}
-	opCtx, cancel := database.WithCustomTimeout(ctx, backupOpTimeout)
+	opCtx, cancel := shared.WithCustomTimeout(ctx, backupOpTimeout)
 	defer cancel()
 	return vc.CreateSchedule(opCtx, req.Name, scheduleCRDSpec(req))
 }
@@ -749,7 +750,7 @@ func (s *BackupService) createRestoreCRD(ctx context.Context, req CreateRestoreR
 	if err != nil {
 		return err
 	}
-	opCtx, cancel := database.WithCustomTimeout(ctx, backupOpTimeout)
+	opCtx, cancel := shared.WithCustomTimeout(ctx, backupOpTimeout)
 	defer cancel()
 	return vc.CreateRestore(opCtx, req.Name, restoreCRDSpec(req))
 }
@@ -760,7 +761,7 @@ func (s *BackupService) deleteBackupCRD(ctx context.Context, clusterID uint64, n
 	if err != nil {
 		return err
 	}
-	opCtx, cancel := database.WithCustomTimeout(ctx, backupOpTimeout)
+	opCtx, cancel := shared.WithCustomTimeout(ctx, backupOpTimeout)
 	defer cancel()
 	return vc.DeleteBackup(opCtx, name)
 }
@@ -771,7 +772,7 @@ func (s *BackupService) deleteScheduleCRD(ctx context.Context, clusterID uint64,
 	if err != nil {
 		return err
 	}
-	opCtx, cancel := database.WithCustomTimeout(ctx, backupOpTimeout)
+	opCtx, cancel := shared.WithCustomTimeout(ctx, backupOpTimeout)
 	defer cancel()
 	return vc.DeleteSchedule(opCtx, name)
 }
@@ -782,7 +783,7 @@ func (s *BackupService) deleteRestoreCRD(ctx context.Context, clusterID uint64, 
 	if err != nil {
 		return err
 	}
-	opCtx, cancel := database.WithCustomTimeout(ctx, backupOpTimeout)
+	opCtx, cancel := shared.WithCustomTimeout(ctx, backupOpTimeout)
 	defer cancel()
 	return vc.DeleteRestore(opCtx, name)
 }

@@ -124,7 +124,7 @@
   "business.deploy.template.stepConditionKey": "Param Key",
   "business.deploy.template.stepConditionValue": "Param Value",
   "business.deploy.template.stepPlatformScripts": "Platform Scripts",
-  "business.deploy.template.stepPlatformScriptsHint": 'JSON format, keys are platform identifiers (e.g. linux, redhat), values are script content',
+  "business.deploy.template.stepPlatformScriptsHint": "JSON format, keys are platform identifiers (e.g. linux, redhat), values are script content",
   "business.deploy.template.variables": "Variable Definitions",
   "business.deploy.template.variablesHint": "JSON format, defines default variable values for the template",
   "business.deploy.template.addStep": "Add Step",

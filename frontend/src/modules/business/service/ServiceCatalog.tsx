@@ -216,11 +216,11 @@ export default function ServiceCatalog() {
 
   const selectedService = services.find((item) => item.id === selectedServiceId);
   const visibleHosts = selectedService ? hosts.filter((item) => item.businessScopeId === selectedService.businessScopeId) : hosts;
-  const allowedTargetTypes = selectedService?.runtimeType === 'vm'
-    ? ['vm'] as const
+  const allowedTargetTypes: Array<'vm' | 'k8s'> = selectedService?.runtimeType === 'vm'
+    ? ['vm']
     : selectedService?.runtimeType === 'k8s'
-      ? ['k8s'] as const
-      : ['vm', 'k8s'] as const;
+      ? ['k8s']
+      : ['vm', 'k8s'];
 
   const handleServiceChange = (serviceId: number) => {
     const service = services.find((item) => item.id === serviceId);

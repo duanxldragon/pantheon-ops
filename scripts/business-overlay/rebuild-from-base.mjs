@@ -24,11 +24,40 @@ function runGit(root, args) {
   return result.stdout.trim();
 }
 
+// git quotes non-ASCII paths as C-style octal escapes when core.quotepath is
+// enabled (the default). Decode them so business overlay paths with Chinese
+// names (e.g. docs/audits/v1.0/*.md) resolve to real filesystem paths.
+function decodeGitPath(rawPath) {
+  if (rawPath.length < 2 || !rawPath.startsWith('"') || !rawPath.endsWith('"')) {
+    return rawPath;
+  }
+  const inner = rawPath.slice(1, -1);
+  if (!/\\[0-7]{3}/u.test(inner)) return inner;
+  const bytes = [];
+  for (let i = 0; i < inner.length; i += 1) {
+    const ch = inner[i];
+    if (ch === '\\' && /^[0-7]{3}/u.test(inner.slice(i + 1, i + 4))) {
+      bytes.push(Number.parseInt(inner.slice(i + 1, i + 4), 8));
+      i += 3;
+    } else if (ch === '\\' && inner[i + 1] === '"') {
+      bytes.push(0x22);
+      i += 1;
+    } else if (ch === '\\' && inner[i + 1] === '\\') {
+      bytes.push(0x5c);
+      i += 1;
+    } else {
+      // Non-escaped characters are UTF-8 code units of the raw output.
+      for (const b of Buffer.from(ch, 'utf8')) bytes.push(b);
+    }
+  }
+  return Buffer.from(bytes).toString('utf8');
+}
+
 function trackedFiles(root) {
   return runGit(root, ['ls-files', '--cached', '--others', '--exclude-standard'])
     .split(/\r?\n/u)
     .filter(Boolean)
-    .map(repoPath);
+    .map((file) => repoPath(decodeGitPath(file)));
 }
 
 function snapshotFiles(root) {
@@ -404,6 +433,7 @@ function wireBusinessFallbacks(targetRoot) {
 
 function mergePackages(baseRoot, opsRoot, targetRoot, manifest) {
   const basePackage = JSON.parse(fs.readFileSync(path.join(baseRoot, 'package.json'), 'utf8'));
+  const opsPackage = JSON.parse(fs.readFileSync(path.join(opsRoot, 'package.json'), 'utf8'));
   basePackage.scripts = {
     ...basePackage.scripts,
     'rebuild:from-base': 'node scripts/business-overlay/rebuild-from-base.mjs',
@@ -412,6 +442,18 @@ function mergePackages(baseRoot, opsRoot, targetRoot, manifest) {
     // Ops-owned root scripts (repositoryOverlayPaths) that Base does not ship.
     'check:encoding': 'node scripts/check-encoding.mjs --strict',
   };
+  // Ops-only governance scripts: base may not ship them, but their script
+  // files are ops repository overlays, so the entries must survive the merge.
+  const opsOnlyScripts = [
+    'check:business-boundaries',
+    'test:business-boundaries',
+    'check:business-foundation',
+  ];
+  for (const scriptName of opsOnlyScripts) {
+    if (opsPackage.scripts?.[scriptName] && !basePackage.scripts[scriptName]) {
+      basePackage.scripts[scriptName] = opsPackage.scripts[scriptName];
+    }
+  }
   for (const scriptName of Object.keys(basePackage.scripts)) {
     if (scriptName.startsWith('release:foundation') || scriptName === 'test:foundation-release') {
       delete basePackage.scripts[scriptName];

@@ -1,6 +1,6 @@
 package deploy
 
-import "pantheon-base/pkg/metrics"
+import "pantheon-base/modules/business/metrics"
 
 // recordStepResult records a deploy task step outcome metric.
 func recordStepResult(checkpoint *DeployTaskStep) {

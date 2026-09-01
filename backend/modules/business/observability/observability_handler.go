@@ -83,28 +83,28 @@ func (h *ObservabilityHandler) CreateDatasource(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.datasource.audit.create", common.BusinessInsert)
 	var dto DatasourceDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
-		common.ResponseError(c, http.StatusBadRequest, "invalid_request", err.Error())
+		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
 
-	createdBy := common.GetUsernameFromContext(c)
+	createdBy := c.GetString("username")
 	resp, err := h.datasourceService.Create(dto, createdBy, common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "create_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "create_failed")
 		return
 	}
 
-	common.ResponseSuccess(c, resp)
+	common.Success(c, resp)
 }
 
 func (h *ObservabilityHandler) ListDatasources(c *gin.Context) {
 	resp, err := h.datasourceService.List(common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "list_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "list_failed")
 		return
 	}
 
-	common.ResponseSuccess(c, resp)
+	common.Success(c, resp)
 }
 
 func (h *ObservabilityHandler) GetDatasource(c *gin.Context) {
@@ -112,11 +112,11 @@ func (h *ObservabilityHandler) GetDatasource(c *gin.Context) {
 
 	resp, err := h.datasourceService.GetByID(id, common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusNotFound, "not_found", err.Error())
+		common.FailWithCode(c, http.StatusNotFound, "not_found")
 		return
 	}
 
-	common.ResponseSuccess(c, resp)
+	common.Success(c, resp)
 }
 
 func (h *ObservabilityHandler) UpdateDatasource(c *gin.Context) {
@@ -125,16 +125,16 @@ func (h *ObservabilityHandler) UpdateDatasource(c *gin.Context) {
 
 	var dto DatasourceDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
-		common.ResponseError(c, http.StatusBadRequest, "invalid_request", err.Error())
+		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
 
 	if err := h.datasourceService.Update(id, dto, common.GetDataScope(c)); err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "update_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "update_failed")
 		return
 	}
 
-	common.ResponseSuccess(c, gin.H{"message": "updated"})
+	common.Success(c, gin.H{"message": "updated"})
 }
 
 func (h *ObservabilityHandler) DeleteDatasource(c *gin.Context) {
@@ -142,11 +142,11 @@ func (h *ObservabilityHandler) DeleteDatasource(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
 	if err := h.datasourceService.Delete(id, common.GetDataScope(c)); err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "delete_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "delete_failed")
 		return
 	}
 
-	common.ResponseSuccess(c, gin.H{"message": "deleted"})
+	common.Success(c, gin.H{"message": "deleted"})
 }
 
 func (h *ObservabilityHandler) TestDatasourceConnection(c *gin.Context) {
@@ -155,11 +155,11 @@ func (h *ObservabilityHandler) TestDatasourceConnection(c *gin.Context) {
 
 	healthy, err := h.datasourceService.TestConnection(id, common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "test_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "test_failed")
 		return
 	}
 
-	common.ResponseSuccess(c, gin.H{"healthy": healthy})
+	common.Success(c, gin.H{"healthy": healthy})
 }
 
 // QueryDatasource proxies a PromQL instant query to the data source.
@@ -167,17 +167,17 @@ func (h *ObservabilityHandler) QueryDatasource(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	query := c.Query("query")
 	if query == "" {
-		common.ResponseError(c, http.StatusBadRequest, "invalid_request", "query is required")
+		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
 
 	result, err := h.datasourceService.Query(id, query, common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "query_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "query_failed")
 		return
 	}
 
-	common.ResponseSuccess(c, result)
+	common.Success(c, result)
 }
 
 // QueryLogs proxies a Loki LogQL range query.
@@ -185,16 +185,16 @@ func (h *ObservabilityHandler) QueryLogs(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	query := strings.TrimSpace(c.Query("query"))
 	if id == 0 || query == "" {
-		common.ResponseError(c, http.StatusBadRequest, "invalid_request", "query is required")
+		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "500"))
 	result, err := h.datasourceService.QueryLogs(id, query, c.Query("start"), c.Query("end"), limit, common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusBadGateway, "query_failed", err.Error())
+		common.FailWithCode(c, http.StatusBadGateway, "query_failed")
 		return
 	}
-	common.ResponseSuccess(c, result)
+	common.Success(c, result)
 }
 
 // SearchTraces proxies a Tempo TraceQL search.
@@ -202,31 +202,31 @@ func (h *ObservabilityHandler) SearchTraces(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	query := strings.TrimSpace(c.Query("query"))
 	if id == 0 || query == "" {
-		common.ResponseError(c, http.StatusBadRequest, "invalid_request", "query is required")
+		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
 	result, err := h.datasourceService.SearchTraces(id, query, c.Query("start"), c.Query("end"), limit, common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusBadGateway, "query_failed", err.Error())
+		common.FailWithCode(c, http.StatusBadGateway, "query_failed")
 		return
 	}
-	common.ResponseSuccess(c, result)
+	common.Success(c, result)
 }
 
 // GetTrace proxies one Tempo trace lookup.
 func (h *ObservabilityHandler) GetTrace(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	if id == 0 {
-		common.ResponseError(c, http.StatusBadRequest, "invalid_request", "invalid datasource id")
+		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
 	result, err := h.datasourceService.GetTrace(id, c.Param("traceId"), common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusBadGateway, "query_failed", err.Error())
+		common.FailWithCode(c, http.StatusBadGateway, "query_failed")
 		return
 	}
-	common.ResponseSuccess(c, result)
+	common.Success(c, result)
 }
 
 // Alert Rule handlers
@@ -235,14 +235,14 @@ func (h *ObservabilityHandler) CreateAlertRule(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.alert_rule.audit.create", common.BusinessInsert)
 	var dto AlertRuleDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
-		common.ResponseError(c, http.StatusBadRequest, "invalid_request", err.Error())
+		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
 
-	createdBy := common.GetUsernameFromContext(c)
+	createdBy := c.GetString("username")
 	resp, err := h.alertRuleService.Create(dto, createdBy, common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "create_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "create_failed")
 		return
 	}
 
@@ -252,23 +252,23 @@ func (h *ObservabilityHandler) CreateAlertRule(c *gin.Context) {
 		h.alertEvaluator.AddRule(&rule)
 	}
 
-	common.ResponseSuccess(c, resp)
+	common.Success(c, resp)
 }
 
 func (h *ObservabilityHandler) ListAlertRules(c *gin.Context) {
 	var query AlertRuleListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.ResponseError(c, http.StatusBadRequest, "invalid_request", err.Error())
+		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
 
 	resp, err := h.alertRuleService.List(query, common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "list_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "list_failed")
 		return
 	}
 
-	common.ResponseSuccess(c, resp)
+	common.Success(c, resp)
 }
 
 func (h *ObservabilityHandler) GetAlertRule(c *gin.Context) {
@@ -276,11 +276,11 @@ func (h *ObservabilityHandler) GetAlertRule(c *gin.Context) {
 
 	resp, err := h.alertRuleService.GetByID(id, common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusNotFound, "not_found", err.Error())
+		common.FailWithCode(c, http.StatusNotFound, "not_found")
 		return
 	}
 
-	common.ResponseSuccess(c, resp)
+	common.Success(c, resp)
 }
 
 func (h *ObservabilityHandler) UpdateAlertRule(c *gin.Context) {
@@ -289,12 +289,12 @@ func (h *ObservabilityHandler) UpdateAlertRule(c *gin.Context) {
 
 	var dto AlertRuleDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
-		common.ResponseError(c, http.StatusBadRequest, "invalid_request", err.Error())
+		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
 
 	if err := h.alertRuleService.Update(id, dto, common.GetDataScope(c)); err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "update_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "update_failed")
 		return
 	}
 
@@ -307,7 +307,7 @@ func (h *ObservabilityHandler) UpdateAlertRule(c *gin.Context) {
 		}
 	}
 
-	common.ResponseSuccess(c, gin.H{"message": "updated"})
+	common.Success(c, gin.H{"message": "updated"})
 }
 
 func (h *ObservabilityHandler) DeleteAlertRule(c *gin.Context) {
@@ -315,12 +315,12 @@ func (h *ObservabilityHandler) DeleteAlertRule(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
 	if err := h.alertRuleService.Delete(id, common.GetDataScope(c)); err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "delete_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "delete_failed")
 		return
 	}
 	h.alertEvaluator.RemoveRule(id)
 
-	common.ResponseSuccess(c, gin.H{"message": "deleted"})
+	common.Success(c, gin.H{"message": "deleted"})
 }
 
 func (h *ObservabilityHandler) ToggleAlertRule(c *gin.Context) {
@@ -331,12 +331,12 @@ func (h *ObservabilityHandler) ToggleAlertRule(c *gin.Context) {
 		Enabled bool `json:"enabled"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
-		common.ResponseError(c, http.StatusBadRequest, "invalid_request", err.Error())
+		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
 
 	if err := h.alertRuleService.ToggleEnabled(id, body.Enabled, common.GetDataScope(c)); err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "update_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "update_failed")
 		return
 	}
 
@@ -349,7 +349,7 @@ func (h *ObservabilityHandler) ToggleAlertRule(c *gin.Context) {
 		}
 	}
 
-	common.ResponseSuccess(c, gin.H{"message": "updated"})
+	common.Success(c, gin.H{"message": "updated"})
 }
 
 // Alert Event handlers
@@ -357,17 +357,17 @@ func (h *ObservabilityHandler) ToggleAlertRule(c *gin.Context) {
 func (h *ObservabilityHandler) ListAlertEvents(c *gin.Context) {
 	var query AlertEventListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.ResponseError(c, http.StatusBadRequest, "invalid_request", err.Error())
+		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
 
 	resp, err := h.alertRuleService.ListEvents(query, common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "list_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "list_failed")
 		return
 	}
 
-	common.ResponseSuccess(c, resp)
+	common.Success(c, resp)
 }
 
 func (h *ObservabilityHandler) GetAlertEvent(c *gin.Context) {
@@ -375,12 +375,12 @@ func (h *ObservabilityHandler) GetAlertEvent(c *gin.Context) {
 
 	var event AlertEvent
 	if err := h.alertRuleService.db.Scopes(database.WithDataScope(common.GetDataScope(c))).First(&event, id).Error; err != nil {
-		common.ResponseError(c, http.StatusNotFound, "not_found", err.Error())
+		common.FailWithCode(c, http.StatusNotFound, "not_found")
 		return
 	}
 
 	resp := h.alertRuleService.toEventResponse(&event)
-	common.ResponseSuccess(c, resp)
+	common.Success(c, resp)
 }
 
 // Notification Channel handlers
@@ -389,28 +389,28 @@ func (h *ObservabilityHandler) CreateNotificationChannel(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.notification.audit.create", common.BusinessInsert)
 	var dto NotificationChannelDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
-		common.ResponseError(c, http.StatusBadRequest, "invalid_request", err.Error())
+		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
 
-	createdBy := common.GetUsernameFromContext(c)
+	createdBy := c.GetString("username")
 	resp, err := h.notificationService.CreateChannel(dto, createdBy, common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "create_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "create_failed")
 		return
 	}
 
-	common.ResponseSuccess(c, resp)
+	common.Success(c, resp)
 }
 
 func (h *ObservabilityHandler) ListNotificationChannels(c *gin.Context) {
 	resp, err := h.notificationService.ListChannels(common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "list_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "list_failed")
 		return
 	}
 
-	common.ResponseSuccess(c, resp)
+	common.Success(c, resp)
 }
 
 func (h *ObservabilityHandler) GetNotificationChannel(c *gin.Context) {
@@ -418,11 +418,11 @@ func (h *ObservabilityHandler) GetNotificationChannel(c *gin.Context) {
 
 	resp, err := h.notificationService.GetChannelByID(id, common.GetDataScope(c))
 	if err != nil {
-		common.ResponseError(c, http.StatusNotFound, "not_found", err.Error())
+		common.FailWithCode(c, http.StatusNotFound, "not_found")
 		return
 	}
 
-	common.ResponseSuccess(c, resp)
+	common.Success(c, resp)
 }
 
 func (h *ObservabilityHandler) UpdateNotificationChannel(c *gin.Context) {
@@ -431,16 +431,16 @@ func (h *ObservabilityHandler) UpdateNotificationChannel(c *gin.Context) {
 
 	var dto NotificationChannelDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
-		common.ResponseError(c, http.StatusBadRequest, "invalid_request", err.Error())
+		common.FailWithCode(c, http.StatusBadRequest, "invalid_request")
 		return
 	}
 
 	if err := h.notificationService.UpdateChannel(id, dto, common.GetDataScope(c)); err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "update_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "update_failed")
 		return
 	}
 
-	common.ResponseSuccess(c, gin.H{"message": "updated"})
+	common.Success(c, gin.H{"message": "updated"})
 }
 
 func (h *ObservabilityHandler) DeleteNotificationChannel(c *gin.Context) {
@@ -448,9 +448,9 @@ func (h *ObservabilityHandler) DeleteNotificationChannel(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
 	if err := h.notificationService.DeleteChannel(id, common.GetDataScope(c)); err != nil {
-		common.ResponseError(c, http.StatusInternalServerError, "delete_failed", err.Error())
+		common.FailWithCode(c, http.StatusInternalServerError, "delete_failed")
 		return
 	}
 
-	common.ResponseSuccess(c, gin.H{"message": "deleted"})
+	common.Success(c, gin.H{"message": "deleted"})
 }

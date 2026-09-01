@@ -12,16 +12,12 @@ docs/
 ├── README.en.md                       # 英文文档索引
 │
 ├── designs/                           # 设计文档
-│   ├── V1.2_COMPLETE_DESIGN.md       # V1.2 完整设计方案（第1部分）
-│   ├── V1.2_COMPLETE_DESIGN_PART2.md # V1.2 完整设计方案（第2部分）
-│   ├── V1.2_COMPLETE_DESIGN_PART3.md # V1.2 完整设计方案（第3部分）
 │   └── ... (其他设计文档)
 │
 ├── audits/                            # 审计报告
 │   └── v1.0/                          # V1.0 审计归档
 │       ├── pantheon-ops_v1.0冻结前综合评审报告.md
 │       ├── pantheon-ops_v1.0业务模块关联性与闭环检查报告.md
-│       └── fix-report.md              # 修复报告
 │
 ├── reviews/                           # 评审文档
 │   └── (评审记录)
@@ -49,9 +45,9 @@ docs/
 
 | 文档 | 描述 | 状态 |
 |------|------|------|
-| [designs/V1.2_COMPLETE_DESIGN.md](./designs/V1.2_COMPLETE_DESIGN.md) | V1.2 完整设计（第1部分）| ✅ 已完成 |
-| [designs/V1.2_COMPLETE_DESIGN_PART2.md](./designs/V1.2_COMPLETE_DESIGN_PART2.md) | V1.2 完整设计（第2部分）| ✅ 已完成 |
-| [designs/V1.2_COMPLETE_DESIGN_PART3.md](./designs/V1.2_COMPLETE_DESIGN_PART3.md) | V1.2 完整设计（第3部分）| ✅ 已完成 |
+| [designs/V1.2_COMPLETE_DESIGN.md](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN.md) | V1.2 完整设计（第1部分）| ✅ 已完成 |
+| [designs/V1.2_COMPLETE_DESIGN_PART2.md](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN_PART2.md) | V1.2 完整设计（第2部分）| ✅ 已完成 |
+| [designs/V1.2_COMPLETE_DESIGN_PART3.md](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN_PART3.md) | V1.2 完整设计（第3部分）| ✅ 已完成 |
 
 **V1.2 核心模块**:
 - ArgoCD GitOps 集成
@@ -65,7 +61,6 @@ docs/
 |------|------|------|
 | [audits/v1.0/pantheon-ops_v1.0冻结前综合评审报告.md](./audits/v1.0/pantheon-ops_v1.0冻结前综合评审报告.md) | V1.0 综合评审报告 | 2026-08-28 |
 | [audits/v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md](./audits/v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md) | 业务模块闭环检查 | 2026-08-28 |
-| [audits/v1.0/fix-report.md](./audits/v1.0/fix-report.md) | 修复报告 | 2026-08-28 |
 
 ---
 
@@ -89,7 +84,7 @@ docs/
 - 📐 文件分发系统
 
 **相关文档**:
-- [V1.2 完整设计方案](./designs/V1.2_COMPLETE_DESIGN.md)
+- [V1.2 完整设计方案](../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN.md)
 
 ---
 

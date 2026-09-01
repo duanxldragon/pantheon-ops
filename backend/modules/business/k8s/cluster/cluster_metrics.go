@@ -3,7 +3,7 @@ package cluster
 import (
 	"time"
 
-	"pantheon-base/pkg/metrics"
+	"pantheon-base/modules/business/metrics"
 )
 
 // k8sClusterSyncErrors is a shorthand for the cluster sync error counter.
