@@ -118,6 +118,11 @@ func initMySQL(dsn string) {
 
 	// 启动后台协程采集数据库连接池指标
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				slog.Error("db metrics goroutine panic", "panic", r)
+			}
+		}()
 		ticker := time.NewTicker(10 * time.Second)
 		defer ticker.Stop()
 		for range ticker.C {

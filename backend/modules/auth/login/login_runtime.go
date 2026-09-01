@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"sort"
 	"strconv"
 	"strings"
@@ -688,15 +689,28 @@ func (s *Runtime) WatchSettings() {
 	if database.RDB == nil {
 		return
 	}
-	pubsub := database.RDB.Subscribe(context.TODO(), "settings:refresh")
 	go func() {
 		defer func() {
-			_ = pubsub.Close()
+			if r := recover(); r != nil {
+				slog.Error("settings watcher goroutine panic", "panic", r)
+			}
 		}()
-		for range pubsub.Channel() {
+		s.watchSettingsLoop()
+	}()
+}
+
+func (s *Runtime) watchSettingsLoop() {
+	for {
+		pubsub := database.RDB.Subscribe(context.TODO(), "settings:refresh")
+		for msg := range pubsub.Channel() {
+			_ = msg // consume message
 			_ = s.ReloadSettings()
 		}
-	}()
+		// Channel closed (Redis disconnect or timeout), reconnect after delay
+		_ = pubsub.Close()
+		slog.Warn("settings pubsub channel closed, reconnecting in 5s")
+		time.Sleep(5 * time.Second)
+	}
 }
 
 func (s *Runtime) getAuthRuntimePolicy() authRuntimePolicy {

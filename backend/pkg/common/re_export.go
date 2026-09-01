@@ -47,16 +47,6 @@ func SuccessWithStatus(c *gin.Context, httpStatus int, data interface{}) {
 	commonhttp.SuccessWithStatus(c, httpStatus, data)
 }
 
-// ResponseSuccess and ResponseError are compatibility helpers for business
-// handlers that use the response naming convention from the overlay modules.
-func ResponseSuccess(c *gin.Context, data interface{}) {
-	Success(c, data)
-}
-
-func ResponseError(c *gin.Context, httpStatus int, code, _ string) {
-	commonhttp.FailWithCode(c, httpStatus, code)
-}
-
 func Fail(c *gin.Context, code int, message string) {
 	commonhttp.Fail(c, code, message)
 }
@@ -89,10 +79,6 @@ func SetCSRFCookie(w http.ResponseWriter) (string, error) {
 // Request context functions
 func GetRequestID(c *gin.Context) string {
 	return commonhttp.GetRequestID(c)
-}
-
-func GetUsernameFromContext(c *gin.Context) string {
-	return c.GetString("username")
 }
 
 // ── Re-exports from security package ──────────────────────────────────

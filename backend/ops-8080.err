@@ -1,0 +1,79 @@
+2026-08-30T22:14:17.530+0800	[34mINFO[0m	server/main.go:38	Starting Pantheon Base	{"version": "dev", "environment": "development"}
+2026/08/30 22:14:17 INFO Database connection successful driver=mysql
+2026/08/30 22:14:17 INFO PANTHEON_AUTO_MIGRATE=true: using GORM AutoMigrate (dev mode)
+2026/08/30 22:14:17 INFO Redis connection successful
+2026-08-30T22:14:23.260+0800	[34mINFO[0m	backup/reconciler.go:42	Velero reconciler started	{"interval": "1m0s"}
+2026/08/30 22:14:27 INFO starting server port=8080
+2026-08-30T22:18:42.362+0800	[31mERROR[0m	http/response.go:92	request failed with unclassified error	{"code": 401, "requestId": "3587d64c-4b77-4472-bde7-42ee757188bc", "error": "unauthorized"}
+pantheon-base/pkg/common/http.FailWithError
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/pkg/common/http/response.go:92
+pantheon-base/pkg/common.FailWithError
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/pkg/common/re_export.go:65
+pantheon-base/modules/auth/login.(*AuthHandler).RefreshTokenHandler
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/modules/auth/login/login_handler.go:218
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+pantheon-base/modules/auth.InitAuthModule.RateLimiter.func8
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/internal/middleware/rate_limit_middleware.go:61
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+main.registerAPIRoutes.RateLimiter.func2
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/internal/middleware/rate_limit_middleware.go:61
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+main.buildRouter.(*IdempotencyMiddleware).Handle.func8
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/internal/middleware/idempotency_middleware.go:42
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+main.buildRouter.CSRFMiddleware.func7
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/internal/middleware/csrf_middleware.go:34
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+pantheon-base/internal/middleware.OperationLogMiddleware.func1
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/internal/middleware/operation_log_middleware.go:217
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+main.buildRouter.RequestContextMiddleware.func6
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/internal/middleware/request_context_middleware.go:39
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+main.buildRouter.PrometheusMiddleware.func5
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/internal/middleware/prometheus_middleware.go:16
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin.Middleware.func1
+	D:/cache/go/pkg/mod/go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin@v0.69.0/gin.go:112
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+main.buildRouter.CORSMiddleware.func4
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/internal/middleware/cors_middleware.go:68
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+main.buildRouter.BodySizeLimit.func3
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/internal/middleware/body_limit_middleware.go:53
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+main.buildRouter.CSPMiddleware.func2
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/internal/middleware/csp_middleware.go:16
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+main.buildRouter.SecurityHeadersMiddleware.func1
+	D:/workspace/go/pantheon-platform/pantheon-ops/backend/internal/middleware/security_headers_middleware.go:19
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+github.com/gin-gonic/gin.CustomRecoveryWithWriter.func1
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/recovery.go:90
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+github.com/gin-gonic/gin.LoggerWithConfig.func1
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/logger.go:282
+github.com/gin-gonic/gin.(*Context).Next
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/context.go:192
+github.com/gin-gonic/gin.(*Engine).handleHTTPRequest
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/gin.go:722
+github.com/gin-gonic/gin.(*Engine).ServeHTTP
+	D:/cache/go/pkg/mod/github.com/gin-gonic/gin@v1.12.0/gin.go:672
+net/http.serverHandler.ServeHTTP
+	D:/Go/src/net/http/server.go:3311
+net/http.(*conn).serve
+	D:/Go/src/net/http/server.go:2073

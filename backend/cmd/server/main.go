@@ -23,8 +23,6 @@ import (
 	"pantheon-base/pkg/telemetry"
 	"pantheon-base/pkg/version"
 
-	"github.com/redis/go-redis/v9"
-
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
@@ -103,11 +101,6 @@ func initInfrastructure() {
 	database.InitCasbin(database.DB)
 }
 
-// getRedisClient returns the Redis client if available, or nil.
-func getRedisClient() *redis.Client {
-	return database.RDB
-}
-
 func runDatabaseMigrations(dsn string) {
 	if database.ShouldAutoMigrate() {
 		slog.Info("PANTHEON_AUTO_MIGRATE=true: using GORM AutoMigrate (dev mode)")
@@ -123,22 +116,12 @@ func buildRouter(env string) *gin.Engine {
 	r := gin.Default()
 	r.Use(middleware.SecurityHeadersMiddleware())
 	r.Use(middleware.CSPMiddleware())
-	r.Use(middleware.BodySizeLimit(middleware.ResolveMaxBodyBytes()))
+	r.Use(middleware.BodySizeLimit(middleware.DefaultMaxBodyBytes))
 	r.Use(middleware.CORSMiddleware())
 	r.Use(otelgin.Middleware("pantheon-base"))
 	r.Use(middleware.PrometheusMiddleware())
 	r.Use(middleware.RequestContextMiddleware(), middleware.OperationLogMiddleware(database.DB))
 	r.Use(middleware.CSRFMiddleware())
-
-	// 添加静态文件服务（用于本地部署包下载）
-	r.Static("/uploads", "../uploads")
-
-	// 注册幂等性中间件（如果 Redis 可用）
-	if redisClient := getRedisClient(); redisClient != nil {
-		idempotencyMW := middleware.NewIdempotencyMiddleware(redisClient)
-		r.Use(idempotencyMW.Handle())
-	}
-
 	registerMetricsRoute(r, env)
 	registerAPIRoutes(r)
 	return r

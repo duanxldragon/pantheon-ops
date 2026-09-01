@@ -1,2 +1,0 @@
--- Legacy encrypted kubeconfig is retained only as a read fallback, so this
--- migration has no destructive rollback.

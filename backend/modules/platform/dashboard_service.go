@@ -2,6 +2,7 @@
 package platform
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -269,6 +270,13 @@ func (s *DashboardService) loadSummaryCounts(resp *SummaryResp, params summaryCo
 		wg.Add(1)
 		go func(j summaryCountJob) {
 			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					mu.Lock()
+					errs = append(errs, fmt.Errorf("dashboard query panic: %v", r))
+					mu.Unlock()
+				}
+			}()
 			count, err := j.count()
 			if err != nil {
 				mu.Lock()

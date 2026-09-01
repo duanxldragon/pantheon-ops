@@ -33,6 +33,11 @@ func InitRedis(addr string, password string, db int) {
 
 	// 启动后台协程采集 Redis 连接池指标
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				slog.Error("redis metrics goroutine panic", "panic", r)
+			}
+		}()
 		ticker := time.NewTicker(10 * time.Second)
 		defer ticker.Stop()
 		for range ticker.C {
