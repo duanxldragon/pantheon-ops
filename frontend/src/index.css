@@ -805,9 +805,139 @@ a {
 
 .submit-bar {
   display: flex;
+  align-items: flex-start;
   justify-content: flex-end;
+  gap: 12px;
   width: 100%;
   padding-top: 4px;
+}
+
+.operational-visual-fixture {
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--page-bg);
+}
+
+.operational-visual-fixture__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.operational-visual-fixture__grid > .operational-primitive,
+.operational-visual-fixture__grid > .arco-card {
+  min-width: 0;
+}
+
+.operational-visual-fixture__registry .arco-card-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.operational-visual-fixture__registry [data-dashboard-slot] {
+  padding: 6px 8px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .operational-visual-fixture {
+    padding: 16px;
+  }
+
+  .operational-visual-fixture__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.submit-bar__state {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.submit-bar__status {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.submit-bar__error {
+  max-width: 720px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--color-error) 18%, var(--panel-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-error-bg) 56%, var(--surface-lift));
+  color: var(--color-error);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.submit-bar__actions {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
+
+.submit-bar__actions .arco-space-item {
+  min-width: 0;
+}
+
+.submit-bar[data-sticky='true'] {
+  position: sticky;
+  z-index: 10;
+  bottom: max(0px, env(safe-area-inset-bottom));
+  align-items: center;
+  min-height: 58px;
+  margin-top: 16px;
+  padding: 10px 0 max(10px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--panel-border);
+  background: color-mix(in srgb, var(--panel-bg-solid) 96%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.submit-bar[data-status='dirty'] .submit-bar__status {
+  color: var(--brand-primary);
+}
+
+.submit-bar[data-status='success'] .submit-bar__status {
+  color: var(--color-success);
+}
+
+.submit-bar[data-status='error'] .submit-bar__status,
+.submit-bar[data-status='conflict'] .submit-bar__status {
+  color: var(--color-error);
+}
+
+@media (max-width: 768px) {
+  .submit-bar {
+    align-items: stretch;
+  }
+
+  .submit-bar[data-sticky='true'] {
+    flex-direction: column;
+    align-items: stretch;
+    padding-inline: 0;
+  }
+
+  .submit-bar__actions {
+    width: 100%;
+  }
+
+  .submit-bar__actions.arco-space-horizontal {
+    justify-content: flex-end;
+  }
+
+  .submit-bar__actions .arco-btn-primary {
+    min-width: min(172px, 48vw);
+  }
+
+  .submit-bar__overflow {
+    width: 36px;
+    padding-inline: 0;
+  }
 }
 
 .page-empty,
@@ -2719,6 +2849,49 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
+.app-table__view-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.app-table__view-menu {
+  min-width: 260px;
+}
+
+.app-table__view-menu-row,
+.app-table__view-column {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.app-table__view-column .arco-checkbox {
+  min-width: 0;
+}
+
+.app-table__view-column .arco-checkbox-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-table__view-column-order {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.app-table-shell--density-compact {
+  --shell-table-cell-padding-y: 6px;
+}
+
+.app-table-shell--density-comfortable {
+  --shell-table-cell-padding-y: 12px;
+}
+
 .app-table .arco-table-th {
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -3110,6 +3283,21 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 @media (max-width: 1280px) {
   .app-table .app-table__col--hide-lg {
     display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-table__view-toolbar {
+    justify-content: stretch;
+  }
+
+  .app-table__view-toolbar .arco-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .app-table__view-menu {
+    min-width: min(320px, calc(100vw - 32px));
   }
 }
 

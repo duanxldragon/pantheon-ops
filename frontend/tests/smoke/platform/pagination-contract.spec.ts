@@ -367,7 +367,7 @@ test('standard pager shell stays visible on representative paginated surfaces', 
     await fulfillPagedRoute(route, buildOperationLogRows(total));
   });
 
-  await page.goto('/system/user', { waitUntil: 'networkidle' });
+  await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
   await expectBoundaryNavigationWorks(page);
   await expectTotalSummaryVisible(page, total);
   await expectPaginationControlsAligned(page);
@@ -448,7 +448,7 @@ test('standard pager shell stays visible on representative paginated surfaces', 
     });
   });
 
-  await page.goto('/system/permission', { waitUntil: 'networkidle' });
+  await page.goto('/system/permission', { waitUntil: 'domcontentloaded' });
   const permissionTabs = page.locator('.permission-workbench__tabs .arco-tabs-header-title');
   await expect(permissionTabs).toHaveCount(3);
   await expect(page.getByText('权限角色1', { exact: true })).toBeVisible();
@@ -462,7 +462,7 @@ test('standard pager shell stays visible on representative paginated surfaces', 
   await expect(page.getByText('/api/v1/mock/resource/1', { exact: true })).toBeVisible();
   await expectBoundaryNavigationWorks(page);
 
-  await page.goto('/system/menu', { waitUntil: 'networkidle' });
+  await page.goto('/system/menu', { waitUntil: 'domcontentloaded' });
   await expect(
     page.locator('.system-list__table').getByText('system.menu.pagination.1', { exact: true }),
   ).toBeVisible();
@@ -470,13 +470,13 @@ test('standard pager shell stays visible on representative paginated surfaces', 
   await expectTotalSummaryVisible(page, total);
   await expectPaginationControlsAligned(page);
 
-  await page.goto('/system/login-log', { waitUntil: 'networkidle' });
+  await page.goto('/system/login-log', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText('pagination-login-1', { exact: true })).toBeVisible();
   await expectBoundaryNavigationWorks(page);
   await expectTotalSummaryVisible(page, total);
   await expectPaginationControlsAligned(page);
 
-  await page.goto('/system/operation-log', { waitUntil: 'networkidle' });
+  await page.goto('/system/operation-log', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText('分页操作-1', { exact: true })).toBeVisible();
   await expectBoundaryNavigationWorks(page);
   await expectTotalSummaryVisible(page, total);
@@ -495,11 +495,11 @@ test('standard pager shell wraps cleanly on narrow mobile surfaces', async ({ pa
     await fulfillPagedRoute(route, buildOperationLogRows(total));
   });
 
-  await page.goto('/system/login-log', { waitUntil: 'networkidle' });
+  await page.goto('/system/login-log', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText('pagination-login-1', { exact: true })).toBeVisible();
   await expectPaginationResponsiveMobile(page);
 
-  await page.goto('/system/operation-log', { waitUntil: 'networkidle' });
+  await page.goto('/system/operation-log', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText('分页操作-1', { exact: true })).toBeVisible();
   await expectPaginationResponsiveMobile(page);
 });

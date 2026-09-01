@@ -436,7 +436,7 @@ test.describe('backoffice UI visual acceptance', () => {
 
     await installExplicitZhCNPreference(page);
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/login', { waitUntil: 'networkidle' });
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.auth-login-page')).toBeVisible();
     await expect(page.locator('.auth-login-card')).toBeVisible();
@@ -459,7 +459,7 @@ test.describe('backoffice UI visual acceptance', () => {
     await page.screenshot({ path: join(artifactDir, 'login-desktop.png'), fullPage: true });
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/login', { waitUntil: 'networkidle' });
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.auth-login-card')).toBeVisible();
     await expect(page.getByRole('button', { name: '登录' })).toBeVisible();
     await page.screenshot({ path: join(artifactDir, 'login-mobile.png'), fullPage: true });
@@ -472,7 +472,7 @@ test.describe('backoffice UI visual acceptance', () => {
   }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await installExplicitZhCNPreference(page);
-    await page.goto('/login', { waitUntil: 'networkidle' });
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
 
     const motion = await page.getByRole('button', { name: '登录' }).evaluate((node) => {
       const style = globalThis.getComputedStyle(node);
@@ -498,7 +498,7 @@ test.describe('backoffice UI visual acceptance', () => {
 
     await installExplicitZhCNPreference(page);
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/login', { waitUntil: 'networkidle' });
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
 
     const baselineChrome = await readFieldChrome(page.getByPlaceholder(/请输入用户名|username/i));
     const loginPasswordChrome = await readFieldChrome(
@@ -510,7 +510,7 @@ test.describe('backoffice UI visual acceptance', () => {
     expectMatchingFieldChrome(loginPasswordChrome, baselineChrome);
 
     await signInAsAdmin(page);
-    await page.goto('/system/user', { waitUntil: 'networkidle' });
+    await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: '新增', exact: true }).click();
 
     const createDialog = page
@@ -574,7 +574,7 @@ test.describe('backoffice UI visual acceptance', () => {
     });
     await page.setViewportSize({ width: 1440, height: 900 });
     try {
-      await page.goto('/system/user', { waitUntil: 'networkidle' });
+      await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
       await page.getByRole('button', { name: '新增', exact: true }).click();
       const userDialog = page
         .getByRole('dialog')
@@ -696,7 +696,7 @@ test.describe('backoffice UI visual acceptance', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     let seededPost: { id: number; postCode: string } | null = null;
     try {
-      await page.goto('/system/user', { waitUntil: 'networkidle' });
+      await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
       await page.getByRole('button', { name: '新增', exact: true }).click();
       const createDialog = page
         .getByRole('dialog')
@@ -785,7 +785,7 @@ test.describe('backoffice UI visual acceptance', () => {
       await signInAsAdmin(page);
 
       await page.setViewportSize({ width: 1440, height: 900 });
-      await page.goto(pageMeta.path, { waitUntil: 'networkidle' });
+      await page.goto(pageMeta.path, { waitUntil: 'domcontentloaded' });
 
       expectPagePathname(page, pageMeta.path);
       await expectPageIdentity(page, pageMeta.identityTitle ?? pageMeta.title);
@@ -803,7 +803,7 @@ test.describe('backoffice UI visual acceptance', () => {
       await signInAsAdmin(page);
 
       await page.setViewportSize({ width: 1280, height: 900 });
-      await page.goto(pageMeta.path, { waitUntil: 'networkidle' });
+      await page.goto(pageMeta.path, { waitUntil: 'domcontentloaded' });
 
       expectPagePathname(page, pageMeta.path);
       await expectPageIdentity(page, pageMeta.identityTitle ?? pageMeta.title);
@@ -821,7 +821,7 @@ test.describe('backoffice UI visual acceptance', () => {
   test('platform dashboard does not hard-code business module cards', async ({ page }) => {
     await signInAsAdmin(page);
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
     const dashboardContent = page.locator('.dashboard-page');
     await expect(dashboardContent).toBeVisible();
@@ -844,7 +844,7 @@ test.describe('backoffice UI visual acceptance', () => {
       await installShellPreferences(page, { layoutMode: 'horizontal', densityMode: 'compact' });
 
       await page.setViewportSize({ width: 1440, height: 900 });
-      await page.goto('/dashboard', { waitUntil: 'networkidle' });
+      await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
       await expect(page.locator('html')).toHaveAttribute('data-pantheon-density', 'compact');
       await expect(page.locator('.app-shell--horizontal')).toBeVisible();
       await expect(page.locator('.app-shell__tabs--horizontal')).toBeVisible();
@@ -868,7 +868,7 @@ test.describe('backoffice UI visual acceptance', () => {
         fullPage: true,
       });
 
-      await page.goto('/system/user', { waitUntil: 'networkidle' });
+      await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
       await expect(page.locator('html')).toHaveAttribute('data-pantheon-density', 'compact');
       await expect(page.locator('.app-shell--horizontal')).toBeVisible();
       await expect(page.locator('.app-table')).toBeVisible();
@@ -890,7 +890,7 @@ test.describe('backoffice UI visual acceptance', () => {
     await signInAsAdmin(page);
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/system/user', { waitUntil: 'networkidle' });
+    await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.filter-panel')).toBeVisible();
     await expect(page.locator('.app-table')).toBeVisible();
     await expect(page.locator('.app-table__mobile-hint')).toBeVisible();
@@ -898,7 +898,7 @@ test.describe('backoffice UI visual acceptance', () => {
     await page.screenshot({ path: join(artifactDir, 'system-user-phone.png'), fullPage: true });
 
     await page.setViewportSize({ width: 768, height: 1024 });
-    await page.goto('/system/user', { waitUntil: 'networkidle' });
+    await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.filter-panel')).toBeVisible();
     await expect(page.locator('.app-table')).toBeVisible();
     await page.screenshot({
@@ -907,7 +907,7 @@ test.describe('backoffice UI visual acceptance', () => {
     });
 
     await page.setViewportSize({ width: 1024, height: 768 });
-    await page.goto('/system/user', { waitUntil: 'networkidle' });
+    await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.filter-panel')).toBeVisible();
     await expect(page.locator('.app-table')).toBeVisible();
     await page.screenshot({
@@ -925,7 +925,7 @@ test.describe('backoffice UI visual acceptance', () => {
     await signInAsAdmin(page);
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/system/setting', { waitUntil: 'networkidle' });
+    await page.goto('/system/setting', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.setting-overview-page')).toBeVisible();
     await expect(page.locator('.setting-overview-page__anchor-strip')).toBeVisible();
     await expect(page.locator('.setting-group-workspace').first()).toBeVisible();
@@ -961,7 +961,7 @@ test.describe('backoffice UI visual acceptance', () => {
       fullPage: true,
     });
 
-    await page.goto('/system/setting/basic', { waitUntil: 'networkidle' });
+    await page.goto('/system/setting/basic', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.setting-group-page')).toBeVisible();
     await expect(page.locator('.setting-page__group-nav-grid')).toBeVisible();
     await expect(page.locator('.setting-page__config-card')).toBeVisible();
@@ -1006,7 +1006,7 @@ test.describe('backoffice UI visual acceptance', () => {
     await signInAsAdmin(page);
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/system/generator', { waitUntil: 'networkidle' });
+    await page.goto('/system/generator', { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('.generator-wizard-card')).toBeVisible();
     await expect(page.locator('.generator-wizard__steps')).toBeVisible();
@@ -1052,7 +1052,7 @@ test.describe('backoffice UI visual acceptance', () => {
     await signInAsAdmin(page);
 
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/system/setting/basic', { waitUntil: 'networkidle' });
+    await page.goto('/system/setting/basic', { waitUntil: 'domcontentloaded' });
     await page.locator('.submit-bar').getByRole('button', { name: '保存' }).click();
 
     const verifyDialog = page
@@ -1080,7 +1080,7 @@ test.describe('backoffice UI visual acceptance', () => {
     await signInAsAdmin(page);
 
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/system/i18n', { waitUntil: 'networkidle' });
+    await page.goto('/system/i18n', { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: '新增' }).click();
 
     const createDialog = page

@@ -1,0 +1,51 @@
+sequenceDiagram
+    autonumber
+    participant Dev as 维护者(小龙)
+    participant Plan as ModuleRenamePlan
+    participant Edit as 批量编辑脚本
+    participant FS as 文件系统
+    participant Go as Go 工具链
+    participant FE as 前端测试
+    participant CI as GitHub Actions
+
+    Note over Dev,CI: 阶段 1 — module 声明 + Go 源码批量改写
+    Dev->>Plan: 加载 rename 配置<br/>(old=pantheon-platform, new=pantheon-base)
+    Plan->>Edit: 生成 FileEdit 列表
+    Edit->>FS: 修改 backend/go.mod module 声明
+    Edit->>FS: 批量替换 142 个 .go 文件 import<br/>"pantheon-platform/" → "pantheon-base/"
+    Edit->>Go: gofmt -w backend/
+    Go-->>Edit: 格式 OK
+    Edit->>Go: go mod tidy
+    Go-->>Edit: 依赖一致
+    Edit->>Go: go build ./... && go vet ./...
+    Go-->>Dev: 编译通过
+
+    Note over Dev,CI: 阶段 2 — 代码生成器模板
+    Dev->>FS: 编辑 backendGenerator.ts<br/>5 处模板 import 字符串改写
+    Dev->>FE: npx tsc --noEmit
+    FE-->>Dev: 类型检查通过
+
+    Note over Dev,CI: 阶段 3 — 测试断言 + 清理脚本 + drift 脚本
+    Dev->>FS: 更新 module-governance*.spec.ts 断言<br/>pantheon-base/modules/business/*
+    Dev->>FS: 修复 cleanup-generated-modules.mjs 正则<br/>pantheon-base/modules/business/
+    Dev->>FS: 更新 cleanup-generated-modules.test.mjs fixture
+    Dev->>FS: 调整 triage-base-drift.mjs normalizeModuleName<br/>pantheon-base/backend → MODNAME/backend
+    Dev->>FE: node cleanup-generated-modules.test.mjs
+    FE-->>Dev: 单测通过
+
+    Note over Dev,CI: 阶段 4 — 边界门禁 + MFA 基线 + 覆盖率门禁
+    Dev->>FS: backend/.golangci.yml 添加 depguard 规则<br/>deny modules/system 非 contracts 包
+    Dev->>FS: scripts/harness/check-boundaries.mjs<br/>默认 --strict
+    Dev->>FS: .github/workflows/ci.yml 追加<br/>boundary-gate + coverage-gate jobs
+    Dev->>FS: docs/DEPLOYMENT_GUIDE.md 添加<br/>生产基线 mfa_enabled=1
+    Dev->>CI: 推送 release/v0.9.0 分支
+    CI->>CI: fast-checks / unit-tests / go-lint
+    CI->>CI: boundary-gate (check-boundaries --strict)
+    CI->>CI: coverage-gate (go test -coverprofile + 阈值)
+    CI-->>Dev: 全部门禁通过 ✅
+
+    Note over Dev,CI: 验证清单
+    Dev->>FS: rg "pantheon-platform" backend/<br/>frontend/src frontend/scripts frontend/tests
+    FS-->>Dev: 0 残留
+    Dev->>FS: rg "pantheon-platform/backend" 全仓库
+    FS-->>Dev: 仅 docs/ + .harness/evidence/ 历史记录

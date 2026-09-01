@@ -14,3 +14,12 @@ frontend and backend runtime expected by the smoke tests.
 
 Never blind-update baselines to make a failing visual gate pass. Baseline updates are only for
 reviewed, intentional visual changes.
+
+The config has three named projects:
+
+- `desktop-light`: existing `1440x900` page baselines.
+- `mobile-light`: `390x844` tests marked `@mobile`.
+- `desktop-dark`: `1440x900` tests marked `@dark`.
+
+Every new shared UI surface must add the smallest meaningful state set to these projects and keep
+interaction, permission, accessibility, and runtime assertions outside screenshot comparisons.

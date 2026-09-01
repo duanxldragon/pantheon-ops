@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "owner": "pantheon-base",
+  "canonicalDocument": "docs/designs/OPERATIONAL_WORKBENCH_COMPONENTS_DESIGN.md",
+  "adoption": {
+    "designSystem": "Arco Design with Pantheon tokens",
+    "externalRuntimeDependency": false,
+    "visualSkinCopied": false
+  },
+  "officialReferences": [
+    {
+      "articleId": 32,
+      "title": "Design values",
+      "url": "https://bkdesign.bk.tencent.com/design/32",
+      "adoptedAs": ["efficiency", "clarity", "consistency"]
+    },
+    {
+      "articleId": 4,
+      "title": "Compatibility",
+      "url": "https://bkdesign.bk.tencent.com/design/4",
+      "adoptedAs": ["responsive-layout", "modern-browser-compatibility"]
+    },
+    {
+      "articleId": 23,
+      "title": "Copywriting",
+      "url": "https://bkdesign.bk.tencent.com/design/23",
+      "adoptedAs": ["precise-copy", "consistent-terminology"]
+    },
+    {
+      "articleId": 33,
+      "title": "Form",
+      "url": "https://bkdesign.bk.tencent.com/design/33",
+      "adoptedAs": ["immediate-validation", "recoverable-form-flow"]
+    },
+    {
+      "articleId": 35,
+      "title": "Table",
+      "url": "https://bkdesign.bk.tencent.com/design/35",
+      "adoptedAs": ["scanable-table", "intentional-overflow"]
+    },
+    {
+      "articleId": 9,
+      "title": "Button",
+      "url": "https://bkdesign.bk.tencent.com/design/9",
+      "adoptedAs": ["single-primary-action", "duplicate-submit-prevention"]
+    },
+    {
+      "articleId": 138,
+      "title": "Loading",
+      "url": "https://bkdesign.bk.tencent.com/design/138",
+      "adoptedAs": ["context-preserving-loading", "loading-scope"]
+    },
+    {
+      "articleId": 158,
+      "title": "Test steps",
+      "url": "https://bkdesign.bk.tencent.com/design/158",
+      "adoptedAs": ["explicit-test-state", "stale-result-invalidation"]
+    },
+    {
+      "articleId": 164,
+      "title": "Task log",
+      "url": "https://bkdesign.bk.tencent.com/design/164",
+      "adoptedAs": ["log-navigation", "incremental-loading"]
+    },
+    {
+      "articleId": 169,
+      "title": "Log search",
+      "url": "https://bkdesign.bk.tencent.com/design/169",
+      "adoptedAs": ["query-to-raw-log-traceability"]
+    },
+    {
+      "articleId": 173,
+      "title": "Time filter",
+      "url": "https://bkdesign.bk.tencent.com/design/173",
+      "adoptedAs": ["relative-and-absolute-time", "explicit-timezone"]
+    },
+    {
+      "articleId": 177,
+      "title": "Condition filter",
+      "url": "https://bkdesign.bk.tencent.com/design/177",
+      "adoptedAs": ["typed-condition", "explicit-boolean-groups"]
+    },
+    {
+      "articleId": 180,
+      "title": "Diff",
+      "url": "https://bkdesign.bk.tencent.com/design/180",
+      "adoptedAs": ["version-context", "difference-navigation"]
+    }
+  ],
+  "principles": [
+    {
+      "id": "efficiency",
+      "rule": "Prefer defaults, selection and shorter repeatable workflows over manual re-entry."
+    },
+    {
+      "id": "clarity",
+      "rule": "Use precise copy, visible state, explicit feedback and one dominant task per page region."
+    },
+    {
+      "id": "consistency",
+      "rule": "Reuse Pantheon components, tokens, terminology and interaction semantics."
+    },
+    {
+      "id": "recoverability",
+      "rule": "Keep failure, stale state and recovery actions visible without discarding valid context."
+    }
+  ],
+  "requiredMatrix": {
+    "viewports": ["1440x900", "390x844"],
+    "themes": ["light", "dark"],
+    "baselineStates": ["loading", "empty", "error", "forbidden"],
+    "operationalStates": ["stale", "partial-failure"],
+    "accessibility": [
+      "keyboard-path",
+      "visible-focus",
+      "screen-reader-name",
+      "zoom-200",
+      "reduced-motion",
+      "non-color-status"
+    ],
+    "contentStress": ["long-zh-CN", "long-en-US"]
+  },
+  "interactionContracts": {
+    "actions": {
+      "onePrimaryPerActionArea": true,
+      "loadingPreventsDuplicateAction": true
+    },
+    "forms": {
+      "immediateValidation": true,
+      "errorRecoveryPreservesInput": true,
+      "complexFlowsMayBeSplit": true
+    },
+    "tables": {
+      "preferredVisibleColumnRange": [5, 9],
+      "lowFrequencyColumnsConfigurable": true,
+      "stableWidths": true,
+      "intentionalHorizontalScroll": true
+    },
+    "loading": {
+      "scopes": ["page", "component", "action"],
+      "preserveContextWhenPossible": true
+    }
+  },
+  "copyContract": {
+    "terminology": ["consistent-nouns", "consistent-verbs", "concise", "accurate", "professional-friendly"],
+    "destructiveAction": ["object", "count-or-scope", "consequence", "recoverability", "recovery-action"]
+  },
+  "taskAdmission": {
+    "effectiveTaskDate": "2026-08-31",
+    "qualityProfiles": ["ui-runtime", "frontend-ui-l2"],
+    "requiredVisualPlanFields": ["viewports", "themes", "states", "routes", "accessibility"],
+    "governanceExemption": {
+      "scope": "governance-only",
+      "requiresNoRenderedSurfaceChange": true,
+      "requiresHumanApproval": true
+    }
+  },
+  "enforcement": {
+    "existingStaticChecks": [
+      "frontend/scripts/check-shell-visual-contract.mjs",
+      "frontend/scripts/check-ui-contract.mjs",
+      "frontend/scripts/check-contrast.mjs",
+      "frontend/scripts/check-important-budget.mjs"
+    ],
+    "visualEvidenceChecker": "scripts/harness/check-visual-evidence.mjs",
+    "visualConfig": "frontend/playwright.visual.config.ts",
+    "visualProjects": ["desktop-light", "mobile-light", "desktop-dark"],
+    "visualSuite": "frontend/tests/visual/visual-baseline.spec.ts",
+    "visualReviewGuide": "frontend/tests/visual/README.md",
+    "humanGate": {
+      "owner": "maintainer",
+      "requiredFor": ["intentional-baseline-change", "final-visual-acceptance"],
+      "screenshotsDoNotReplace": ["functional-test", "permission-test", "runtime-test"]
+    }
+  },
+  "rejectedGuidance": [
+    "IE9 compatibility",
+    "fixed 460px modal sizing",
+    "BK Design package dependency",
+    "BK Design visual skin copying"
+  ]
+}

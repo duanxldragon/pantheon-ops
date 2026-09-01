@@ -764,7 +764,7 @@ for (const pageMeta of systemPages) {
       }
     });
 
-    await page.goto(pageMeta.path, { waitUntil: 'networkidle' });
+    await page.goto(pageMeta.path, { waitUntil: 'domcontentloaded' });
     expectPagePathname(page, pageMeta.path);
     await expectVisiblePageTitle(page, pageMeta.title);
     await expectNoPageError(page);
@@ -775,7 +775,7 @@ for (const pageMeta of systemPages) {
 
 for (const pageMeta of workspacePages) {
   test(`workspace smoke: ${pageMeta.path} is reachable`, async ({ page }) => {
-    await page.goto(pageMeta.path, { waitUntil: 'networkidle' });
+    await page.goto(pageMeta.path, { waitUntil: 'domcontentloaded' });
     expectPagePathname(page, pageMeta.path);
     if ('title' in pageMeta && pageMeta.title) {
       await expectVisiblePageTitle(page, pageMeta.title);
@@ -786,7 +786,7 @@ for (const pageMeta of workspacePages) {
 }
 
 test('user page keeps list workflow primary without governance drawer entry', async ({ page }) => {
-  await page.goto('/system/user', { waitUntil: 'networkidle' });
+  await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
 
   await expectVisiblePageTitle(page, '用户管理');
   await expect(page.locator('.system-user-list__hero')).toHaveCount(0);
@@ -820,7 +820,7 @@ test('user page keeps list workflow primary without governance drawer entry', as
 test('setting page shows audit table only in audit group and removes governance drawer entry', async ({
   page,
 }) => {
-  await page.goto('/system/setting', { waitUntil: 'networkidle' });
+  await page.goto('/system/setting', { waitUntil: 'domcontentloaded' });
 
   await expectVisiblePageTitle(page, '系统设置');
   await expect(page.getByRole('button', { name: '治理摘要' })).toHaveCount(0);
@@ -839,7 +839,7 @@ test('setting page shows audit table only in audit group and removes governance 
 });
 
 test('setting route lands in a single visible group workspace', async ({ page }) => {
-  await page.goto('/system/setting', { waitUntil: 'networkidle' });
+  await page.goto('/system/setting', { waitUntil: 'domcontentloaded' });
 
   await expectVisiblePageTitle(page, '系统设置');
   await expect(page.locator('.setting-overview-page')).toBeVisible();
@@ -852,7 +852,7 @@ test('setting route lands in a single visible group workspace', async ({ page })
 });
 
 test('setting group route isolates one group context per route', async ({ page }) => {
-  await page.goto('/system/setting/security', { waitUntil: 'networkidle' });
+  await page.goto('/system/setting/security', { waitUntil: 'domcontentloaded' });
 
   await expectVisiblePageTitle(page, '系统设置');
   await expect(page.locator('.setting-group-page')).toBeVisible();
@@ -886,7 +886,7 @@ test('governance and audit pages remove hero-heavy main-area blocks', async ({ p
 
 test('menu smoke: create dialog uses tree parent selector', async ({ page }) => {
   await signInAsAdmin(page);
-  await page.goto('/system/menu', { waitUntil: 'networkidle' });
+  await page.goto('/system/menu', { waitUntil: 'domcontentloaded' });
 
   await page.getByRole('button', { name: '新增', exact: true }).click();
   const dialog = page
@@ -906,7 +906,7 @@ test('menu smoke: create child action preselects clicked parent', async ({ page 
 
   let createdMenuId: number | null = null;
   try {
-    await page.goto('/system/menu', { waitUntil: 'networkidle' });
+    await page.goto('/system/menu', { waitUntil: 'domcontentloaded' });
 
     const parentRow = page
       .locator('.arco-table-tr')
@@ -959,7 +959,7 @@ test('config high-sensitivity pages keep one summary container and no hero wall'
   page,
 }) => {
   test.setTimeout(60000);
-  await page.goto('/system/modules', { waitUntil: 'networkidle' });
+  await page.goto('/system/modules', { waitUntil: 'domcontentloaded' });
   await expectVisiblePageTitle(page, '模块注册表');
   await expect(page.locator('.system-page-hero')).toHaveCount(0);
   await expect(page.locator('.system-list__hero')).toHaveCount(0);
@@ -970,7 +970,7 @@ test('config high-sensitivity pages keep one summary container and no hero wall'
   ).toBeVisible();
   await expect(page.getByText('临时模块', { exact: true }).first()).toBeVisible();
 
-  await page.goto('/system/generator', { waitUntil: 'networkidle' });
+  await page.goto('/system/generator', { waitUntil: 'domcontentloaded' });
   await expectVisiblePageTitle(page, /模块生成(?:器|向导)/);
   await expect(page.locator('.system-page-hero')).toHaveCount(0);
   await expect(page.locator('.system-list__hero')).toHaveCount(0);
@@ -978,7 +978,7 @@ test('config high-sensitivity pages keep one summary container and no hero wall'
   await expect(page.locator('.generator-wizard__steps')).toBeVisible();
   await expect(page.locator('.generator-wizard__lifecycle-card')).toBeVisible();
 
-  await page.goto('/system/i18n', { waitUntil: 'networkidle' });
+  await page.goto('/system/i18n', { waitUntil: 'domcontentloaded' });
   await expectVisiblePageTitle(page, '国际化管理');
   await expect(page.locator('.governance-summary-bar')).toBeVisible();
   await expect(page.locator('.system-page-hero')).toHaveCount(0);
@@ -1009,7 +1009,7 @@ test('owning domain label smoke: post dict and module manager surface the correc
         localStorage.setItem('pantheon_lang_explicit', '1');
       }, pageMeta.locale);
     }
-    await page.goto(pageMeta.path, { waitUntil: 'networkidle' });
+    await page.goto(pageMeta.path, { waitUntil: 'domcontentloaded' });
     await expectVisiblePageTitle(page, pageMeta.title);
     await expect(page.locator('.governance-summary-bar__eyebrow')).toContainText(pageMeta.eyebrow);
     for (const metricLabel of pageMeta.metricLabels ?? []) {
@@ -1025,7 +1025,7 @@ test('owning domain label smoke: post dict and module manager surface the correc
 test('module generator smoke: governance summary shows low-code ownership and progress metrics', async ({
   page,
 }) => {
-  await page.goto('/system/generator', { waitUntil: 'networkidle' });
+  await page.goto('/system/generator', { waitUntil: 'domcontentloaded' });
 
   await expectVisiblePageTitle(page, /模块生成(?:器|向导)/);
   await expect(page.locator('.governance-summary-bar__eyebrow')).toContainText('系统域 / 低代码');
@@ -1042,7 +1042,7 @@ test('module generator smoke: governance summary shows low-code ownership and pr
 test('dict workspace keeps the governance summary outside one tabbed task surface', async ({
   page,
 }) => {
-  await page.goto('/system/dict', { waitUntil: 'networkidle' });
+  await page.goto('/system/dict', { waitUntil: 'domcontentloaded' });
 
   await expectVisiblePageTitle(page, '字典管理');
   const governanceBar = page.locator('.dict-page__governance-bar');
@@ -1086,7 +1086,7 @@ test('dict workspace keeps the governance summary outside one tabbed task surfac
 test('i18n workspace keeps translation work primary and utility actions subordinate', async ({
   page,
 }) => {
-  await page.goto('/system/i18n', { waitUntil: 'networkidle' });
+  await page.goto('/system/i18n', { waitUntil: 'domcontentloaded' });
 
   await expectVisiblePageTitle(page, '国际化管理');
   const summaryBar = page.locator('.governance-summary-bar');
@@ -1132,7 +1132,7 @@ test('i18n workspace keeps translation work primary and utility actions subordin
 test('setting workspace keeps group navigation and config primary while audit stays secondary', async ({
   page,
 }) => {
-  await page.goto('/system/setting/audit', { waitUntil: 'networkidle' });
+  await page.goto('/system/setting/audit', { waitUntil: 'domcontentloaded' });
 
   await expectVisiblePageTitle(page, '系统设置');
   const groupNav = page.locator('.setting-page__group-nav-grid');
@@ -1186,7 +1186,7 @@ test('setting smoke: site name updates public brand display', async ({ page }) =
     const updatePayload = await updateResponse.json();
     expect(updatePayload.code).toBe(200);
 
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await expect(shellBrandTextLocator(page)).toHaveText(nextSiteName);
     await expect(page).toHaveTitle(nextSiteName);
   } finally {
@@ -1212,7 +1212,7 @@ test('i18n smoke: detail edit create and delete dialogs work', async ({ page }) 
   const createPayload = await createResponse.json();
   expect(createPayload.code).toBe(200);
 
-  await page.goto('/system/i18n', { waitUntil: 'networkidle' });
+  await page.goto('/system/i18n', { waitUntil: 'domcontentloaded' });
   const i18nToolbar = page.locator('.search-toolbar');
   await i18nToolbar.getByPlaceholder(/搜索/).fill(seedKey);
   await i18nToolbar.getByPlaceholder(/搜索/).press('Enter');
@@ -1381,7 +1381,7 @@ test('i18n smoke: import csv creates updates and downloads error file', async ({
     `system.config,messages,${createKey},zh-CN,批量新增值,created by smoke`,
   ].join('\n');
 
-  await page.goto('/system/i18n', { waitUntil: 'networkidle' });
+  await page.goto('/system/i18n', { waitUntil: 'domcontentloaded' });
   const importButton = page.getByRole('button', { name: '导入', exact: true });
   await expect(importButton).toBeVisible();
   const successFileChooserPromise = page.waitForEvent('filechooser');
@@ -1493,7 +1493,7 @@ test('setting smoke: security policy saves through setting page UI', async ({ pa
   const nextValue = originalValue === '6' ? '7' : '6';
 
   try {
-    await page.goto('/system/setting/security', { waitUntil: 'networkidle' });
+    await page.goto('/system/setting/security', { waitUntil: 'domcontentloaded' });
     await installOperationToken(page, accessToken);
     await page.locator('input[role="spinbutton"]').first().fill(nextValue);
     await page.locator('.submit-bar button').last().click();
@@ -1539,7 +1539,7 @@ test('setting smoke: setting audit row opens unified operation log detail', asyn
     const updateResponse = await updateSettingGroup(page, accessToken, 'audit', nextItems);
     expect(updateResponse.ok()).toBeTruthy();
 
-    await page.goto('/system/setting/audit', { waitUntil: 'networkidle' });
+    await page.goto('/system/setting/audit', { waitUntil: 'domcontentloaded' });
     const auditCard = page.locator('.setting-page__audit-card');
     await expect(auditCard).toBeVisible();
     const viewAuditButton = auditCard.getByRole('button', { name: '查看统一审计' }).first();
@@ -1571,7 +1571,7 @@ test('setting smoke: login policy saves through setting page UI', async ({ page 
   const nextValue = originalValue === '5' ? '6' : '5';
 
   try {
-    await page.goto('/system/setting/login', { waitUntil: 'networkidle' });
+    await page.goto('/system/setting/login', { waitUntil: 'domcontentloaded' });
     await installOperationToken(page, accessToken);
     await page.locator('input[role="spinbutton"]').first().fill(nextValue);
     await page.locator('.submit-bar button').last().click();
@@ -1609,7 +1609,7 @@ test('setting smoke: upload storage driver can be selected through setting page 
   const nextLabel = nextValue === 's3' ? 'S3 兼容对象存储' : '本地存储';
 
   try {
-    await page.goto('/system/setting/upload', { waitUntil: 'networkidle' });
+    await page.goto('/system/setting/upload', { waitUntil: 'domcontentloaded' });
     await installOperationToken(page, accessToken);
     await page.locator('.arco-select-view').first().click();
     await page.locator('.arco-select-option').filter({ hasText: nextLabel }).first().click();
@@ -1662,8 +1662,8 @@ test('setting smoke: default language applies when there is no explicit choice',
       localStorage.removeItem('pantheon_lang');
       localStorage.removeItem('pantheon_lang_explicit');
     });
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
+    await page.reload({ waitUntil: 'domcontentloaded' });
 
     await expect(page.getByRole('heading', { name: 'Workbench' }).first()).toBeVisible();
   } finally {
@@ -1690,7 +1690,7 @@ test('setting smoke: default language can be selected through setting page UI', 
   const nextLabel = nextValue === 'en-US' ? 'English' : '中文';
 
   try {
-    await page.goto('/system/setting/i18n', { waitUntil: 'networkidle' });
+    await page.goto('/system/setting/i18n', { waitUntil: 'domcontentloaded' });
     await installOperationToken(page, accessToken);
     await page.locator('.arco-select-view').first().click();
     await page.locator('.arco-select-option').filter({ hasText: nextLabel }).first().click();
@@ -1740,12 +1740,12 @@ test('setting smoke: login page language choice overrides saved preference and s
     expect(updateResponse.ok()).toBeTruthy();
 
     await page.context().clearCookies();
-    await page.goto('/login', { waitUntil: 'networkidle' });
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
     await page.evaluate(() => {
       localStorage.clear();
       sessionStorage.clear();
     });
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'domcontentloaded' });
 
     await page.locator('.auth-login-page__tools .arco-select-view').click();
     await page.locator('.arco-select-option').filter({ hasText: 'English' }).first().click();
@@ -1801,7 +1801,7 @@ test('setting smoke: logout clears explicit language and falls back to default l
     const updateResponse = await updateSettingGroup(page, accessToken, 'i18n', nextItems);
     expect(updateResponse.ok()).toBeTruthy();
 
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await openUserMenu(page);
     await page.getByRole('menuitem', { name: '退出登录' }).click();
 
@@ -1859,7 +1859,7 @@ test('auth smoke: logout sends revoke request without stale invalid-session prom
     }
   });
 
-  await page.goto('/dashboard', { waitUntil: 'networkidle' });
+  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
   captureAuthFailures = true;
   const logoutResponsePromise = page.waitForResponse((response) =>
     response.url().includes('/api/v1/auth/logout'),
@@ -1872,7 +1872,7 @@ test('auth smoke: logout sends revoke request without stale invalid-session prom
   // Wait for the login page to settle (all in-flight requests done) so any
   // stray auth-failure message would have been rendered before the negative
   // assertions below — replaces a fixed 1s delay.
-  await page.waitForLoadState('networkidle').catch(() => {});
+  await page.waitForLoadState('domcontentloaded').catch(() => {});
   expect(logoutPayload.code).toBe(200);
   await expect(
     page.locator('.arco-message').filter({ hasText: /无效会话|session\.invalid|token\./i }),
@@ -1898,7 +1898,7 @@ test('platform smoke: lock screen keeps current route and opened tabs', async ({
     const updateResponse = await updateSettingGroup(page, accessToken, 'ui', nextItems);
     expect(updateResponse.ok()).toBeTruthy();
 
-    await page.goto('/system/user', { waitUntil: 'networkidle' });
+    await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
     await expectPageIdentityReady(page, '用户管理');
     await expect(page.locator('.app-shell__tabs [role="tab"]')).toHaveCount(2);
 
@@ -1925,10 +1925,10 @@ test('platform smoke: lock screen refreshes activity timestamp and blocks comman
 }) => {
   await signInAsAdmin(page);
 
-  await page.goto('/auth/security', { waitUntil: 'networkidle' });
+  await page.goto('/auth/security', { waitUntil: 'domcontentloaded' });
   await expectVisiblePageTitle(page, '安全中心');
 
-  await page.goto('/system/profile', { waitUntil: 'networkidle' });
+  await page.goto('/system/profile', { waitUntil: 'domcontentloaded' });
   await expectVisiblePageTitle(page, '个人中心');
 
   const beforeLockActivity = await page.evaluate(() =>
@@ -1959,17 +1959,30 @@ test('platform smoke: lock screen refreshes activity timestamp and blocks comman
 });
 
 test('auth smoke: login page shows idle-timeout notice once', async ({ page }) => {
-  await page.goto('/login', { waitUntil: 'networkidle' });
+  test.setTimeout(20000);
+  await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  
+  // Wait for i18n to load
+  await expect(page.getByRole('button', { name: '登录' })).toBeVisible({ timeout: 10000 });
+  
   await page.evaluate(() => {
     sessionStorage.setItem('pantheon_login_notice', 'session.idle_timeout');
   });
 
-  await page.reload({ waitUntil: 'networkidle' });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  
+  // Wait for i18n to load after reload
+  await expect(page.getByRole('button', { name: '登录' })).toBeVisible({ timeout: 10000 });
+  
   await expect(
     page.getByText('当前账号因超过会话空闲时长被自动退出，请重新登录继续操作。', { exact: true }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 10000 });
 
-  await page.reload({ waitUntil: 'networkidle' });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  
+  // Wait for i18n to load after second reload
+  await expect(page.getByRole('button', { name: '登录' })).toBeVisible({ timeout: 10000 });
+  
   await expect(
     page.getByText('当前账号因超过会话空闲时长被自动退出，请重新登录继续操作。', { exact: true }),
   ).toHaveCount(0);
@@ -1980,7 +1993,7 @@ test('platform + system/auth smoke: locked session times out, relogin notice app
 }) => {
   test.setTimeout(60_000);
 
-  await page.goto('/system/profile', { waitUntil: 'networkidle' });
+  await page.goto('/system/profile', { waitUntil: 'domcontentloaded' });
   await expectVisiblePageTitle(page, '个人中心');
 
   await openUserMenu(page);
@@ -1992,7 +2005,7 @@ test('platform + system/auth smoke: locked session times out, relogin notice app
     sessionStorage.setItem('pantheon_shell_last_activity_at', String(Date.now() - 31 * 60 * 1000));
   });
 
-  await page.reload({ waitUntil: 'networkidle' });
+  await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('dialog')).toContainText(/会话已锁定|Session Locked/);
   await expect(page).toHaveURL(/\/login$/, { timeout: 25_000 });
   await expect(
@@ -2004,7 +2017,7 @@ test('platform + system/auth smoke: locked session times out, relogin notice app
   await signInWithUi(page, adminCredentials);
   await expect(page).toHaveURL(/\/dashboard$/);
 
-  await page.goto('/auth/security', { waitUntil: 'networkidle' });
+  await page.goto('/auth/security', { waitUntil: 'domcontentloaded' });
   await expectVisiblePageTitle(page, '安全中心');
   await expect(page.getByText('在线会话', { exact: true })).toBeVisible();
   await expect(page.getByText('最近登录', { exact: true })).toBeVisible();
@@ -2042,7 +2055,7 @@ test('setting smoke: logout clears explicit theme and falls back to default them
     const updateResponse = await updateSettingGroup(page, accessToken, 'ui', nextItems);
     expect(updateResponse.ok()).toBeTruthy();
 
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.evaluate(() => {
       localStorage.setItem('pantheon_theme', 'slate');
       document.documentElement.dataset.pantheonTheme = 'slate';
@@ -2094,7 +2107,7 @@ test('setting smoke: tab bar visibility follows ui preference', async ({ page })
     const updateResponse = await updateSettingGroup(page, accessToken, 'ui', nextItems);
     expect(updateResponse.ok()).toBeTruthy();
 
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app-shell__tabs')).toHaveCount(0);
   } finally {
     await updateSettingGroup(page, accessToken, 'ui', originalItems);
@@ -2130,11 +2143,11 @@ test('setting smoke: default theme applies when explicit theme preference is cle
     const updateResponse = await updateSettingGroup(page, accessToken, 'ui', nextItems);
     expect(updateResponse.ok()).toBeTruthy();
 
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.evaluate(() => {
       localStorage.removeItem('pantheon_theme');
     });
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'domcontentloaded' });
 
     await expect
       .poll(async () => page.evaluate(() => document.documentElement.dataset.pantheonTheme))
@@ -2239,7 +2252,7 @@ test('operation log smoke: failed reason and detail summary are visible', async 
   expect(failedUploadPayload.code).not.toBe(200);
   expect(failedUploadPayload.message).toBe('upload.file.type_not_allowed');
 
-  await page.goto('/system/operation-log', { waitUntil: 'networkidle' });
+  await page.goto('/system/operation-log', { waitUntil: 'domcontentloaded' });
   // SearchToolbar：关键词 + 行内下拉即时触发；低频筛选在“筛选”弹层内。
   // keyword 按存储值匹配（title 列存 i18n key、oper_name、request_id），
   // 所以这里用操作人 admin 覆盖关键词交互，行定位仍用渲染后的中文标题。
@@ -2329,7 +2342,7 @@ test('setting permission smoke: list-only role can view page but cannot save or 
 
     try {
       await installClientSession(viewerPage, viewerTokens);
-      await viewerPage.goto('/system/setting/basic', { waitUntil: 'networkidle' });
+      await viewerPage.goto('/system/setting/basic', { waitUntil: 'domcontentloaded' });
       await expectPageIdentityReady(viewerPage, '系统设置');
       await expectNoPageError(viewerPage);
 
@@ -2410,7 +2423,7 @@ test('dict permission smoke: list-only role can view page but cannot mutate conf
 
     try {
       await installClientSession(viewerPage, viewerTokens);
-      await viewerPage.goto('/system/dict', { waitUntil: 'networkidle' });
+      await viewerPage.goto('/system/dict', { waitUntil: 'domcontentloaded' });
       await expectPageIdentityReady(viewerPage, '字典管理');
       await expectNoPageError(viewerPage);
 
@@ -2490,7 +2503,7 @@ test('i18n permission smoke: list-only role can view page but cannot mutate tran
 
     try {
       await installClientSession(viewerPage, viewerTokens);
-      await viewerPage.goto('/system/i18n', { waitUntil: 'networkidle' });
+      await viewerPage.goto('/system/i18n', { waitUntil: 'domcontentloaded' });
       await expectPageIdentityReady(viewerPage, '国际化管理');
       await expectNoPageError(viewerPage);
 
@@ -2570,7 +2583,7 @@ test('login-log permission smoke: list-only role can view page but cannot clear,
 
     try {
       await installClientSession(viewerPage, viewerTokens);
-      await viewerPage.goto('/system/login-log', { waitUntil: 'networkidle' });
+      await viewerPage.goto('/system/login-log', { waitUntil: 'domcontentloaded' });
       await expectPageIdentityReady(viewerPage, '登录日志');
       await expectNoPageError(viewerPage);
 
@@ -2640,7 +2653,7 @@ test('session permission smoke: list-only role can view page but cannot revoke o
 
     try {
       await installClientSession(viewerPage, viewerTokens);
-      await viewerPage.goto('/system/session', { waitUntil: 'networkidle' });
+      await viewerPage.goto('/system/session', { waitUntil: 'domcontentloaded' });
       await expectPageIdentityReady(viewerPage, '会话管理');
       await expectNoPageError(viewerPage);
 
@@ -2717,7 +2730,7 @@ test('operation-log permission smoke: list-only role can view page but cannot cl
 
     try {
       await installClientSession(viewerPage, viewerTokens);
-      await viewerPage.goto('/system/operation-log', { waitUntil: 'networkidle' });
+      await viewerPage.goto('/system/operation-log', { waitUntil: 'domcontentloaded' });
       await expectPageIdentityReady(viewerPage, '操作日志');
       await expectNoPageError(viewerPage);
 
@@ -2787,7 +2800,7 @@ test('module permission smoke: list-only role can view registry but cannot regis
 
     try {
       await installClientSession(viewerPage, viewerTokens);
-      await viewerPage.goto('/system/modules', { waitUntil: 'networkidle' });
+      await viewerPage.goto('/system/modules', { waitUntil: 'domcontentloaded' });
       await expectPageIdentityReady(viewerPage, '模块注册表');
       await expectNoPageError(viewerPage);
 
@@ -2834,7 +2847,7 @@ test('module manager smoke: auto-recycle module shows explicit lifecycle and pur
     });
   });
 
-  await page.goto('/system/modules', { waitUntil: 'networkidle' });
+  await page.goto('/system/modules', { waitUntil: 'domcontentloaded' });
   await expectPageIdentityReady(page, '模块注册表');
   await expectNoPageError(page);
 
@@ -2867,7 +2880,7 @@ test('login-log governance smoke: selecting rows enables batch delete affordance
   page,
 }) => {
   await signInAsAdmin(page);
-  await page.goto('/system/login-log', { waitUntil: 'networkidle' });
+  await page.goto('/system/login-log', { waitUntil: 'domcontentloaded' });
   await expectPageIdentityReady(page, '登录日志');
   await expectNoPageError(page);
 
@@ -2916,7 +2929,7 @@ test('login-log governance smoke: pager exposes first and last page controls', a
     });
   });
 
-  await page.goto('/system/login-log', { waitUntil: 'networkidle' });
+  await page.goto('/system/login-log', { waitUntil: 'domcontentloaded' });
   await expectPageIdentityReady(page, '登录日志');
   await expectNoPageError(page);
 
@@ -2987,7 +3000,7 @@ test('login-log governance smoke: single-page data keeps boundary pager controls
     });
   });
 
-  await page.goto('/system/login-log', { waitUntil: 'networkidle' });
+  await page.goto('/system/login-log', { waitUntil: 'domcontentloaded' });
   await expectPageIdentityReady(page, '登录日志');
   await expectNoPageError(page);
 
@@ -3080,7 +3093,7 @@ test('security-center smoke: client-side AppTable pagination exposes shared boun
     });
   });
 
-  await page.goto('/auth/security', { waitUntil: 'networkidle' });
+  await page.goto('/auth/security', { waitUntil: 'domcontentloaded' });
   await expectVisiblePageTitle(page, '安全中心');
   await expectNoPageError(page);
   await expect(page.locator('.page-split-layout--with-rail')).toBeVisible();
@@ -3121,7 +3134,7 @@ test('operation-log governance smoke: selecting rows enables batch delete afford
   page,
 }) => {
   await signInAsAdmin(page);
-  await page.goto('/system/operation-log', { waitUntil: 'networkidle' });
+  await page.goto('/system/operation-log', { waitUntil: 'domcontentloaded' });
   await expectPageIdentityReady(page, '操作日志');
   await expectNoPageError(page);
 
@@ -3159,7 +3172,7 @@ test('user governance smoke: cross-page selection keeps the full selected set', 
       });
     }
 
-    await page.goto('/system/user', { waitUntil: 'networkidle' });
+    await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
     await expectPageIdentityReady(page, '用户管理');
     await expectNoPageError(page);
 
@@ -3280,7 +3293,7 @@ test('user smoke: edit and detail work through the UI', async ({ page }) => {
       roleIds: [(await getFirstActiveRole(page, accessToken)).id],
     });
 
-    await page.goto('/system/user', { waitUntil: 'networkidle' });
+    await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
     await installOperationToken(page, accessToken);
     await expectVisiblePageTitle(page, '用户管理');
     await expect(page.locator('.system-list__table-card')).toBeVisible({ timeout: 30000 });
@@ -3367,7 +3380,7 @@ test('user and role smoke: role binding can be deferred to role management and r
     expect(role).toBeTruthy();
     createdRoleId = role?.id ?? null;
 
-    await page.goto('/system/user', { waitUntil: 'networkidle' });
+    await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
     await installOperationToken(page, accessToken);
     await expectVisiblePageTitle(page, '用户管理');
     await page.getByRole('button', { name: '新增' }).click();
@@ -3399,7 +3412,7 @@ test('user and role smoke: role binding can be deferred to role management and r
     const userDetailBeforePayload = await userDetailBeforeResponse.json();
     expect(userDetailBeforePayload.data.roleIds).toEqual([]);
 
-    await page.goto('/system/role', { waitUntil: 'networkidle' });
+    await page.goto('/system/role', { waitUntil: 'domcontentloaded' });
     await expectVisiblePageTitle(page, '角色管理');
     {
       const toolbarKeyword = page.locator('.search-toolbar').getByPlaceholder(/搜索/);
@@ -3495,7 +3508,7 @@ test('user smoke: batch disable enable and delete stay stable through the UI', a
       roleIds: [(await getFirstActiveRole(page, accessToken)).id],
     });
 
-    await page.goto('/system/user', { waitUntil: 'networkidle' });
+    await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
     await installOperationToken(page, accessToken);
     await expectVisiblePageTitle(page, '用户管理');
     const tableCard = page.locator('.system-list__table-card');
@@ -3580,7 +3593,7 @@ test('user smoke: batch disable enable and delete stay stable through the UI', a
 
 test('dept smoke: create dialog and root edit are reachable through the UI', async ({ page }) => {
   const accessToken = await signInAsAdmin(page);
-  await page.goto('/system/dept', { waitUntil: 'networkidle' });
+  await page.goto('/system/dept', { waitUntil: 'domcontentloaded' });
   await installOperationToken(page, accessToken);
   await expectVisiblePageTitle(page, '部门管理');
   await expect(page.locator('.system-list__table-card')).toBeVisible({ timeout: 30000 });
@@ -3687,7 +3700,7 @@ test('post smoke: edit through UI and blocked delete through API are covered', a
       remark: 'post smoke',
     });
 
-    await page.goto('/system/post', { waitUntil: 'networkidle' });
+    await page.goto('/system/post', { waitUntil: 'domcontentloaded' });
     await installOperationToken(page, accessToken);
     await expectVisiblePageTitle(page, '岗位管理');
     await expect(page.locator('.system-list__table-card')).toBeVisible({ timeout: 30000 });
@@ -3793,7 +3806,7 @@ test('session governance smoke: revocation uses the shared table batch bar', asy
       }),
     });
   });
-  await page.goto('/system/session', { waitUntil: 'networkidle' });
+  await page.goto('/system/session', { waitUntil: 'domcontentloaded' });
   await expectPageIdentityReady(page, '会话管理');
   await expectNoPageError(page);
 
@@ -3868,7 +3881,7 @@ test('security-event governance smoke: pending event can be acknowledged with a 
     });
   });
 
-  await page.goto('/system/security-event', { waitUntil: 'networkidle' });
+  await page.goto('/system/security-event', { waitUntil: 'domcontentloaded' });
   await expectPageIdentityReady(page, '安全事件');
   await expectNoPageError(page);
 
@@ -3911,7 +3924,7 @@ test('refresh sync smoke: setting page auto-updates across isolated contexts', a
   try {
     await installClientSession(syncPage, adminLogin);
     const refreshBootstrap = waitForRefreshBootstrap(syncPage);
-    await syncPage.goto('/system/setting/basic', { waitUntil: 'networkidle' });
+    await syncPage.goto('/system/setting/basic', { waitUntil: 'domcontentloaded' });
     const siteNameInput = formItem(syncPage, '站点名称').locator('input').first();
     await expect(siteNameInput).toHaveValue(originalSiteName);
     await refreshBootstrap;
@@ -3944,7 +3957,7 @@ test('refresh sync smoke: dict page auto-updates across isolated contexts', asyn
   try {
     await installClientSession(syncPage, adminLogin);
     const refreshBootstrap = waitForRefreshBootstrap(syncPage);
-    await syncPage.goto('/system/dict', { waitUntil: 'networkidle' });
+    await syncPage.goto('/system/dict', { waitUntil: 'domcontentloaded' });
     {
       const toolbarKeyword = syncPage.locator('.search-toolbar').getByPlaceholder(/搜索/).first();
       await toolbarKeyword.fill(dictCode);
@@ -3996,7 +4009,7 @@ test('refresh sync smoke: i18n page auto-updates across isolated contexts', asyn
 
   try {
     await installClientSession(syncPage, adminLogin);
-    await syncPage.goto('/system/i18n', { waitUntil: 'networkidle' });
+    await syncPage.goto('/system/i18n', { waitUntil: 'domcontentloaded' });
     {
       const toolbarKeyword = syncPage.locator('.search-toolbar').getByPlaceholder(/搜索/).first();
       await toolbarKeyword.fill(i18nKey);

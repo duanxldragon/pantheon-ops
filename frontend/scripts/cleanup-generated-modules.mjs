@@ -81,26 +81,11 @@ const BUSINESS_OVERLAY_OWNED_FILES = new Set(
     ? JSON.parse(fs.readFileSync(BUSINESS_OVERLAY_REPORT, 'utf8')).ownedFiles.map((entry) => entry.path)
     : [],
 );
-function readDeclaredBusinessPaths(repoBase) {
-  const manifestPath = path.join(repoBase, 'business-overlay.json');
-  if (!fs.existsSync(manifestPath)) {
-    return new Set();
-  }
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  return new Set((manifest.businessPaths ?? []).map(normalizePath));
-}
-
-function hasBusinessOverlayOwnedDescendant(targetPath, repoBase, declaredPaths) {
-  const relative = path.relative(repoBase, targetPath).replaceAll('\\', '/');
+function hasBusinessOverlayOwnedDescendant(targetPath) {
+  const relative = path.relative(repoRoot, targetPath).replaceAll('\\', '/');
   const prefix = `${relative}/`;
   return BUSINESS_OVERLAY_OWNED_FILES.has(relative)
-    || Array.from(BUSINESS_OVERLAY_OWNED_FILES).some((entry) => entry.startsWith(prefix))
-    || Array.from(declaredPaths).some(
-      // A declaration protects the directory itself and any descendants, but
-      // must not protect unrelated generated siblings beneath a broad parent
-      // such as frontend/src/modules/business.
-      (entry) => entry === relative || entry.startsWith(prefix),
-    );
+    || Array.from(BUSINESS_OVERLAY_OWNED_FILES).some((entry) => entry.startsWith(prefix));
 }
 
 const I18N_LOCALES = ['zh-CN', 'en-US', 'ko-KR', 'ja-JP', 'fr-FR'];
@@ -135,7 +120,7 @@ function hasTrackedDescendant(targetPath, repoBase, trackedFiles) {
   return Array.from(trackedFiles).some((trackedPath) => trackedPath.startsWith(prefix));
 }
 
-function removeGeneratedSubdirs(parentDir, repoBase, trackedFiles, declaredPaths) {
+function removeGeneratedSubdirs(parentDir, repoBase, trackedFiles) {
   let removed = 0;
   if (!fs.existsSync(parentDir)) {
     return removed;
@@ -143,8 +128,8 @@ function removeGeneratedSubdirs(parentDir, repoBase, trackedFiles, declaredPaths
   for (const entry of fs.readdirSync(parentDir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
       const targetPath = path.join(parentDir, entry.name);
-      if (hasBusinessOverlayOwnedDescendant(targetPath, repoBase, declaredPaths) || hasTrackedDescendant(targetPath, repoBase, trackedFiles)) {
-        removed += removeGeneratedSubdirs(targetPath, repoBase, trackedFiles, declaredPaths);
+      if (hasBusinessOverlayOwnedDescendant(targetPath) || hasTrackedDescendant(targetPath, repoBase, trackedFiles)) {
+        removed += removeGeneratedSubdirs(targetPath, repoBase, trackedFiles);
       } else {
         removeDir(targetPath);
         removed++;
@@ -220,15 +205,15 @@ function appendDirtyIfFileMatches(dirty, filePath, message, patterns) {
   }
 }
 
-function appendDirtyDirectories(dirty, parentDir, repoBase, label, trackedFiles, declaredPaths) {
+function appendDirtyDirectories(dirty, parentDir, repoBase, label, trackedFiles) {
   if (!fs.existsSync(parentDir)) {
     return;
   }
   for (const entry of fs.readdirSync(parentDir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
       const targetPath = path.join(parentDir, entry.name);
-      if (hasBusinessOverlayOwnedDescendant(targetPath, repoBase, declaredPaths) || hasTrackedDescendant(targetPath, repoBase, trackedFiles)) {
-        appendDirtyDirectories(dirty, targetPath, repoBase, label, trackedFiles, declaredPaths);
+      if (hasBusinessOverlayOwnedDescendant(targetPath) || hasTrackedDescendant(targetPath, repoBase, trackedFiles)) {
+        appendDirtyDirectories(dirty, targetPath, repoBase, label, trackedFiles);
       } else {
         dirty.push(`${label}: ${relativePath(repoBase, targetPath)}`);
       }
@@ -259,7 +244,6 @@ export function checkDirty(
   trackedFiles = readTrackedFiles(repoBase),
 ) {
   const dirty = [];
-  const declaredPaths = readDeclaredBusinessPaths(repoBase);
   const featureLedgerRelative = normalizePath(path.relative(repoBase, paths.featureLedger));
   if (trackedFiles.has(featureLedgerRelative)) {
     const featureLedgerBaseline = readIndexBaseline(paths.featureLedger, repoBase, true);
@@ -306,7 +290,7 @@ export function checkDirty(
   }
 
   for (const dir of [paths.backendBusinessDir, paths.frontendBusinessDir]) {
-    appendDirtyDirectories(dirty, dir, repoBase, 'generated module dir still present', trackedFiles, declaredPaths);
+    appendDirtyDirectories(dirty, dir, repoBase, 'generated module dir still present', trackedFiles);
   }
 
   appendDirtyDirectories(
@@ -315,7 +299,6 @@ export function checkDirty(
     repoBase,
     'generated schema dir still present',
     trackedFiles,
-    declaredPaths,
   );
   appendDirtyGeneratedSchemaFiles(dirty, paths.schemaBusinessDir, repoBase, trackedFiles);
 
@@ -344,11 +327,10 @@ export function cleanup(
   trackedFiles = readTrackedFiles(repoBase),
 ) {
   const summary = { modules: 0, schemas: 0, registries: 0, i18n: 0 };
-  const declaredPaths = readDeclaredBusinessPaths(repoBase);
 
-  const backendRemoved = removeGeneratedSubdirs(paths.backendBusinessDir, repoBase, trackedFiles, declaredPaths);
-  const frontendRemoved = removeGeneratedSubdirs(paths.frontendBusinessDir, repoBase, trackedFiles, declaredPaths);
-  const schemaRemoved = removeGeneratedSubdirs(paths.schemaBusinessDir, repoBase, trackedFiles, declaredPaths);
+  const backendRemoved = removeGeneratedSubdirs(paths.backendBusinessDir, repoBase, trackedFiles);
+  const frontendRemoved = removeGeneratedSubdirs(paths.frontendBusinessDir, repoBase, trackedFiles);
+  const schemaRemoved = removeGeneratedSubdirs(paths.schemaBusinessDir, repoBase, trackedFiles);
   summary.modules = backendRemoved + frontendRemoved + schemaRemoved;
 
   summary.schemas = removeFilesByGlob(

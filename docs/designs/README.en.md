@@ -1,0 +1,91 @@
+---
+title: Design Document Index
+doc_type: Design
+layer: platform
+status: Active
+linked_contracts:
+  - docs/contracts/PLATFORM_CONTRACT.md
+updated_at: 2026-06-27
+---
+
+# Design Document Index
+
+Chinese version: [README.md](./README.md)
+
+This is the entry point for `docs/designs/`.
+
+The Chinese index remains the primary reading surface for local development. This English index exists to help international collaborators locate the main design anchors quickly.
+
+## Recommended Reading Order
+
+For Chinese-first onboarding, start with:
+
+1. [PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md](./PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md)
+2. [REPOSITORY_LAYOUT.en.md](./REPOSITORY_LAYOUT.en.md)
+3. [BACKEND.md](./BACKEND.md)
+4. [FRONTEND.md](./FRONTEND.md)
+5. [FRONTEND_UI_SPEC.md](./FRONTEND_UI_SPEC.md)
+6. [MODULE_CONTRACT.md](./MODULE_CONTRACT.md)
+7. [PERMISSION_MODEL.md](./PERMISSION_MODEL.md)
+8. [WORKFLOW.md](./WORKFLOW.md)
+9. [QUALITY_AND_SECURITY_STRATEGY.md](./QUALITY_AND_SECURITY_STRATEGY.md)
+
+## Platform and Frontend
+
+- [FRONTEND_PAGE_TEMPLATES.md](./FRONTEND_PAGE_TEMPLATES.md)
+- [FRONTEND_COMPONENT_PLAN.md](./FRONTEND_COMPONENT_PLAN.md)
+- [NAVIGATION_IA_STRATEGY.md](./NAVIGATION_IA_STRATEGY.md)
+- [EMPTY_LOADING_ERROR_STATES.md](./EMPTY_LOADING_ERROR_STATES.md)
+- [MOBILE_RESPONSIVE_BREAKPOINTS.md](./MOBILE_RESPONSIVE_BREAKPOINTS.md)
+- [THEME_TOKENS_REFERENCE.md](./THEME_TOKENS_REFERENCE.md)
+- [DARK_MODE_DESIGN.md](./DARK_MODE_DESIGN.md)
+- [BACKOFFICE_STYLE_CONSTRAINTS.md](./BACKOFFICE_STYLE_CONSTRAINTS.md)
+- [ACCESSIBILITY.md](./ACCESSIBILITY.md)
+- [PLATFORM_DASHBOARD_DESIGN.md](./PLATFORM_DASHBOARD_DESIGN.md)
+
+## system/auth
+
+- [AUTH_MODULE_DESIGN.md](./AUTH_MODULE_DESIGN.md)
+- [SECURITY_CENTER_DESIGN.md](./SECURITY_CENTER_DESIGN.md)
+- [AUTH_PROVIDER_ABSTRACTION.md](./AUTH_PROVIDER_ABSTRACTION.md)
+- [SECURITY_POLICY_ROADMAP.md](./SECURITY_POLICY_ROADMAP.md)
+- [SSO_OIDC_DESIGN.md](./SSO_OIDC_DESIGN.md)
+
+## system/iam and Navigation Governance
+
+- [PERMISSION_WORKBENCH_GOVERNANCE_DESIGN.md](./PERMISSION_WORKBENCH_GOVERNANCE_DESIGN.md)
+- [DATA_PERMISSION_HOOK.md](./DATA_PERMISSION_HOOK.md)
+
+## system/config
+
+- [DICT_AND_SETTING_DESIGN.md](./DICT_AND_SETTING_DESIGN.md)
+- [SYSTEM_CONFIG_EXTENDED_DESIGN.md](./SYSTEM_CONFIG_EXTENDED_DESIGN.md)
+- [I18N_MODULE_DESIGN.md](./I18N_MODULE_DESIGN.md)
+- [UPLOAD_AND_STORAGE_DESIGN.md](./UPLOAD_AND_STORAGE_DESIGN.md)
+- [DYNAMIC_MODULE_GOVERNANCE_DESIGN.md](./DYNAMIC_MODULE_GOVERNANCE_DESIGN.md)
+- [GENERATOR_MODULE_DESIGN.md](./GENERATOR_MODULE_DESIGN.md)
+- [LOWCODE_GENERATOR_GUIDE.md](./LOWCODE_GENERATOR_GUIDE.md)
+- [BUSINESS_DICT_INTEGRATION_GUIDE.md](./BUSINESS_DICT_INTEGRATION_GUIDE.md)
+
+## Business Modules and Templates
+
+- [BUSINESS_MODULE_TEMPLATE.md](./BUSINESS_MODULE_TEMPLATE.md)
+- [BUSINESS_MODELING_REVIEW_CHECKLIST.md](./BUSINESS_MODELING_REVIEW_CHECKLIST.md)
+- [TENANT_READY_SINGLE_TENANT_DESIGN.md](./TENANT_READY_SINGLE_TENANT_DESIGN.md)
+- [BUSINESS_RESOURCE_LIST_PATTERN.md](./BUSINESS_RESOURCE_LIST_PATTERN.md)
+- [BUSINESS_LIFECYCLE_DETAIL_PATTERN.md](./BUSINESS_LIFECYCLE_DETAIL_PATTERN.md)
+- [APPROVAL_WORKFLOW_DESIGN.md](./APPROVAL_WORKFLOW_DESIGN.md)
+
+## Foundational Rules and References
+
+- [REPOSITORY_LAYOUT.en.md](./REPOSITORY_LAYOUT.en.md)
+- [DATABASE.md](./DATABASE.md)
+- [ERROR_CODE_AND_I18N.md](./ERROR_CODE_AND_I18N.md)
+- [QUALITY_AND_SECURITY_STRATEGY.md](./QUALITY_AND_SECURITY_STRATEGY.md)
+- [P2_SCALE_ROADMAP.md](./P2_SCALE_ROADMAP.md)
+
+## Notes
+
+- Chinese `.md` files remain the primary reading entry.
+- Each design document in this directory now has a `.en.md` companion, and the Chinese primary file links to it at the top.
+- The Chinese-first navigation model remains unchanged, while the English companions support international collaboration and future expansion.

@@ -88,6 +88,7 @@ test('governance-only changes can skip runtime gates without failing Quality Gat
     'scripts/cleanup-github-branches.mjs',
     'scripts/collect-merge-targets.mjs',
     'scripts/execute-merge.mjs',
+    'config/ui-quality-gate.json',
   ]) {
     assert.match(
       workflowSource,
@@ -95,6 +96,19 @@ test('governance-only changes can skip runtime gates without failing Quality Gat
       `${governancePath} should be classified as governance-only`,
     );
   }
+});
+
+test('docs governance blocks policy drift in the UI quality gate', () => {
+  assert.match(
+    workflowSource,
+    /Enforce UI quality gate\s*\n\s*run:\s*npm run check:ui-quality-gate/i,
+    'docs governance should run the strict UI quality gate without advisory continue-on-error handling',
+  );
+  assert.doesNotMatch(
+    workflowSource,
+    /Enforce UI quality gate[\s\S]{0,120}continue-on-error:\s*true/i,
+    'UI quality policy drift must block the workflow',
+  );
 });
 
 test('go lint scopes pull requests and merge groups to new code', () => {

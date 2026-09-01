@@ -163,7 +163,7 @@ test('auto-recycle governance flow purges managed table through real UI and back
   await installOperationToken(page, login.accessToken);
 
   try {
-    await page.goto(`${appBaseUrl}/system/modules`, { waitUntil: 'networkidle' });
+    await page.goto(`${appBaseUrl}/system/modules`, { waitUntil: 'domcontentloaded' });
     const row = page.locator('.arco-table-tr').filter({ hasText: moduleKey }).first();
     await expect(row).toBeVisible();
 

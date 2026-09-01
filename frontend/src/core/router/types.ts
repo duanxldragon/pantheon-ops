@@ -18,8 +18,38 @@ export type DashboardWidgetSourceDomain =
 export type DashboardWidgetCleanupPolicy =
   'platform_owned' | 'hide_when_forbidden' | 'remove_with_source_module';
 
-export type DashboardWidgetSlot = 'quick-action' | 'domain-overview';
+export type DashboardWidgetSlot =
+  | 'quick-action'
+  | 'domain-overview'
+  | 'status-summary'
+  | 'attention-queue'
+  | 'trend-snapshot'
+  | 'recent-activity';
 export type DashboardWidgetNavigationSource = 'menu' | 'direct';
+export type DashboardWidgetFreshnessPolicy = 'static' | 'snapshot' | 'near_realtime';
+
+export interface DashboardWidgetQueryBudget {
+  maxRequestsPerMinute: number;
+  maxItems: number;
+  maxRenderItems?: number;
+}
+
+export interface DashboardWidgetFreshness {
+  policy: DashboardWidgetFreshnessPolicy;
+  maxAgeMs?: number;
+  refreshIntervalMs?: number;
+  timeRangeKey?: string;
+}
+
+export interface DashboardWidgetOperationalMetadata {
+  owner: string;
+  cleanupPolicy: DashboardWidgetCleanupPolicy;
+  freshness: DashboardWidgetFreshness;
+  queryBudget: DashboardWidgetQueryBudget;
+  emptyStateKey: string;
+  errorStateKey: string;
+  errorIsolation: 'widget';
+}
 
 export interface DashboardSummarySnapshot {
   totalUsers?: number;
@@ -47,6 +77,7 @@ interface DashboardWidgetBase {
   cleanupPolicy: DashboardWidgetCleanupPolicy;
   navigationSource?: DashboardWidgetNavigationSource;
   registrationOwner?: string;
+  metadata?: DashboardWidgetOperationalMetadata;
 }
 
 export interface DashboardQuickActionWidget extends DashboardWidgetBase {
@@ -59,7 +90,30 @@ export interface DashboardDomainOverviewWidget extends DashboardWidgetBase {
   summary: (summary: DashboardSummarySnapshot | null, t: TFunction) => string;
 }
 
-export type DashboardWidgetDefinition = DashboardQuickActionWidget | DashboardDomainOverviewWidget;
+export interface DashboardStatusSummaryWidget extends DashboardWidgetBase {
+  slot: 'status-summary';
+}
+
+export interface DashboardAttentionQueueWidget extends DashboardWidgetBase {
+  slot: 'attention-queue';
+}
+
+export interface DashboardTrendSnapshotWidget extends DashboardWidgetBase {
+  slot: 'trend-snapshot';
+}
+
+export interface DashboardRecentActivityWidget extends DashboardWidgetBase {
+  slot: 'recent-activity';
+}
+
+export type DashboardOperationalWidget =
+  | DashboardStatusSummaryWidget
+  | DashboardAttentionQueueWidget
+  | DashboardTrendSnapshotWidget
+  | DashboardRecentActivityWidget;
+
+export type DashboardWidgetDefinition =
+  DashboardQuickActionWidget | DashboardDomainOverviewWidget | DashboardOperationalWidget;
 
 export interface RouteDataWarmer {
   path: string;

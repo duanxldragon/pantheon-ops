@@ -271,8 +271,7 @@ function parseBackendSeeds() {
       ...walkFiles(
         backendModulesRoot,
         (filePath) =>
-          /(?:_menu|seed)\.go$/.test(path.basename(filePath)) &&
-          !filePath.endsWith('_test.go'),
+          /(?:_menu|seed)\.go$/.test(path.basename(filePath)) && !filePath.endsWith('_test.go'),
       ),
     ]),
   ];

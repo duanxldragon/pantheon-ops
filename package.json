@@ -16,14 +16,12 @@
     "check:harness-inventory": "node scripts/harness/check-doc-inventory.mjs --root . --strict",
     "check:harness-sync": "node scripts/harness/check-sync-drift.mjs --root . --strict",
     "check:harness-encoding": "node scripts/harness/check-encoding.mjs --root . --strict",
+    "check:ui-quality-gate": "node scripts/harness/check-ui-quality-gate.mjs --root . --strict",
     "check:harness-visual": "node scripts/harness/check-visual-evidence.mjs --root . --strict",
     "check:structure": "node scripts/harness/check-structure-contract.mjs --root . --strict",
     "test:structure-contract": "node --test tests/scripts/harness-check-structure-contract.test.mjs",
     "check:task-packet-template": "node scripts/check-task-packet-template.mjs",
     "check:failure-registry": "node scripts/harness/check-failure-registry.mjs --root . --strict",
-    "check:business-boundaries": "node scripts/check-business-module-boundaries.mjs",
-    "test:business-boundaries": "node --test tests/scripts/check-business-module-boundaries.test.mjs",
-    "check:business-foundation": "npm run check:business-boundaries && npm run check:business-overlay && npm run test:business-boundaries && npm run test:business-overlay",
     "check:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs --check",
     "cleanup:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs",
     "test:docs-frontmatter": "node --test tests/docs/frontmatter-check.test.mjs",
@@ -36,12 +34,16 @@
     "test:pr-automation-workflow": "node --test tests/scripts/pr-automation-workflow.test.mjs tests/scripts/ci-workflow-dispatch.test.mjs",
     "test:security-workflow": "node --test tests/scripts/security-workflow.test.mjs",
     "test:quality-workflow": "node --test tests/scripts/quality-workflow.test.mjs",
+    "test:ui-quality-gate": "node --test tests/scripts/check-ui-quality-gate.test.mjs",
     "test:release-gate-workflow": "node --test tests/scripts/release-gate-workflow.test.mjs",
     "prepare": "husky",
     "rebuild:from-base": "node scripts/business-overlay/rebuild-from-base.mjs",
     "check:business-overlay": "node scripts/business-overlay/check-business-overlay.mjs",
     "test:business-overlay": "node --test tests/scripts/business-overlay/*.test.mjs",
-    "check:encoding": "node scripts/check-encoding.mjs --strict"
+    "check:encoding": "node scripts/check-encoding.mjs --strict",
+    "check:business-boundaries": "node scripts/check-business-module-boundaries.mjs",
+    "test:business-boundaries": "node --test tests/scripts/check-business-module-boundaries.test.mjs",
+    "check:business-foundation": "npm run check:business-boundaries && npm run check:business-overlay && npm run test:business-boundaries && npm run test:business-overlay"
   },
   "lint-staged": {
     "frontend/src/**/*.{ts,tsx}": [
@@ -60,7 +62,7 @@
   },
   "devDependencies": {
     "husky": "^9.1.7",
-    "lint-staged": "^17.3.0",
+    "lint-staged": "^17.4.1",
     "playwright": "^1.62.1",
     "prettier": "^3.9.6"
   }

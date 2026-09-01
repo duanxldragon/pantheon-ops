@@ -195,7 +195,7 @@ test.describe('full page audit', () => {
     await installClientSession(page, tokens);
     await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
     await page.locator('.app-shell .arco-layout-sider').waitFor({ state: 'visible' });
-    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
 
     const geo = await page.evaluate(() => {
       const shell = document.querySelector('.app-shell');
@@ -263,7 +263,7 @@ test.describe('full page audit', () => {
 
       await page.goto(ap.path, { waitUntil: 'domcontentloaded' });
       // let async data settle
-      await page.waitForLoadState('networkidle').catch(() => notes.push('networkidle timeout'));
+      await page.waitForLoadState('domcontentloaded').catch(() => notes.push('domcontentloaded timeout'));
 
       const titleVisible = await page
         .getByText(ap.title, { exact: false })

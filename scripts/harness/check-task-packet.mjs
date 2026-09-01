@@ -39,6 +39,21 @@ const VALID_PRIMARY_LAYERS = new Set([
   'system/config',
   'business/*',
   'app',
+  'inheritance-sync',
+]);
+
+const VALID_REPOSITORY_ROLES = new Set([
+  'method-source',
+  'foundation-source',
+  'business-consumer',
+  'standalone',
+]);
+const VALID_SYNC_EXPECTATIONS = new Set(['none', 'not-required', 'deferred', 'required', 'completed']);
+const VALID_RELEASE_REQUIREMENTS = new Set([
+  'none',
+  'method-release',
+  'foundation-release',
+  'consumer-lock-update',
 ]);
 
 const VALID_HARNESS_TEMPLATES = new Set([
@@ -219,6 +234,7 @@ function validateTaskPacket(filePath, root) {
   }
 
   validatePrimaryLayer(content, headings, result);
+  validateWorkspaceContext(content, headings, result);
   validateHarnessProfile(content, headings, result);
   validateContractAnchors(content, headings, result, root);
   validateScope(content, headings, result);
@@ -231,6 +247,55 @@ function validateTaskPacket(filePath, root) {
   validateChecklist(content, headings, result);
 
   return result;
+}
+
+function validateWorkspaceContext(content, headings, result) {
+  const primaryLayerSection = findSection(headings, 'Primary Layer');
+  const primaryLayer = primaryLayerSection
+    ? stripBackticks(getFirstMeaningfulLine(getSectionContent(content, headings, primaryLayerSection)) || '')
+    : '';
+  const required = primaryLayer === 'inheritance-sync';
+  const section = findSection(headings, 'Workspace Context');
+
+  if (!section) {
+    if (required) {
+      result.errors.push('Primary layer "inheritance-sync" requires section "## Workspace Context".');
+    }
+    return;
+  }
+
+  const items = parseLinkageItems(getSectionContent(content, headings, section));
+  const requiredItems = [
+    'Target Repository',
+    'Repository Role',
+    'Upstream Dependencies',
+    'Downstream Consumers',
+    'Sync Expectation',
+    'Release Requirement',
+  ];
+
+  for (const item of requiredItems) {
+    if (!items.has(item) || stripBackticks(items.get(item) || '') === '') {
+      result.errors.push(`Section "## Workspace Context" must include "- ${item}: <value>".`);
+    }
+  }
+
+  validateWorkspaceEnum(items, 'Repository Role', VALID_REPOSITORY_ROLES, result);
+  validateWorkspaceEnum(items, 'Sync Expectation', VALID_SYNC_EXPECTATIONS, result);
+  validateWorkspaceEnum(items, 'Release Requirement', VALID_RELEASE_REQUIREMENTS, result);
+}
+
+function validateWorkspaceEnum(items, key, allowed, result) {
+  if (!items.has(key)) {
+    return;
+  }
+
+  const value = stripBackticks(items.get(key) || '');
+  if (value !== '' && !allowed.has(value)) {
+    result.errors.push(
+      `Workspace Context ${key} "${value}" must be one of: ${Array.from(allowed).join(', ')}.`,
+    );
+  }
 }
 
 function validateHarnessProfile(content, headings, result) {

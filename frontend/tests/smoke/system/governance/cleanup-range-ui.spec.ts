@@ -196,7 +196,7 @@ test.describe('cleanup range governance smoke', () => {
       page,
     }) => {
       const accessToken = await signInAsAdmin(page);
-      await page.goto('/dashboard', { waitUntil: 'networkidle' });
+      await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
       await installOperationToken(page, accessToken);
 
       await mockAuditSetting(page, cleanupCase.settingKey);
@@ -216,7 +216,7 @@ test.describe('cleanup range governance smoke', () => {
         });
       });
 
-      await page.goto(cleanupCase.path, { waitUntil: 'networkidle' });
+      await page.goto(cleanupCase.path, { waitUntil: 'domcontentloaded' });
 
       const bar = cleanupBar(page, cleanupCase.cleanupButtonName);
       await expect(bar).toBeVisible();
@@ -265,7 +265,7 @@ test.describe('cleanup range governance smoke', () => {
   }, testInfo) => {
     const loginLogCase = cleanupCases[0];
     const accessToken = await signInAsAdmin(page);
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await installOperationToken(page, accessToken);
 
     await mockAuditSetting(page, loginLogCase.settingKey);
@@ -276,7 +276,7 @@ test.describe('cleanup range governance smoke', () => {
       });
     });
 
-    await page.goto(loginLogCase.path, { waitUntil: 'networkidle' });
+    await page.goto(loginLogCase.path, { waitUntil: 'domcontentloaded' });
 
     // Login-log filters render inside the shared SearchToolbar inline slot and
     // use the shared TimeRangeFilter component (the page-local
@@ -392,7 +392,7 @@ test.describe('cleanup range governance smoke', () => {
     page,
   }, testInfo) => {
     const accessToken = await signInAsAdmin(page);
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await installOperationToken(page, accessToken);
 
     await mockAuditSetting(page, 'audit.login_log_retention_options');
@@ -437,7 +437,7 @@ test.describe('cleanup range governance smoke', () => {
       await fulfillJson(route, 500, { code: 500, message: 'should.not.call' });
     });
 
-    await page.goto('/system/login-log', { waitUntil: 'networkidle' });
+    await page.goto('/system/login-log', { waitUntil: 'domcontentloaded' });
     const firstRow = page.locator('.arco-table tbody tr').first();
     await expect(firstRow).toBeVisible();
     await firstRow.locator('label.arco-checkbox').click();
@@ -460,7 +460,7 @@ test.describe('cleanup range governance smoke', () => {
     page,
   }, testInfo) => {
     const accessToken = await signInAsAdmin(page);
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await installOperationToken(page, accessToken);
 
     await mockAuditSetting(page, 'audit.operation_log_retention_options');
@@ -519,7 +519,7 @@ test.describe('cleanup range governance smoke', () => {
       await fulfillJson(route, 500, { code: 500, message: 'should.not.call' });
     });
 
-    await page.goto('/system/operation-log', { waitUntil: 'networkidle' });
+    await page.goto('/system/operation-log', { waitUntil: 'domcontentloaded' });
     const firstRow = page.locator('.arco-table tbody tr').first();
     await expect(firstRow).toBeVisible();
     await firstRow.locator('label.arco-checkbox').click();

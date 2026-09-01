@@ -30,6 +30,7 @@ node scripts/harness/check-task-packet.mjs --root .
 node scripts/harness/check-evidence.mjs --root . --strict
 node scripts/harness/check-failure-registry.mjs --root . --strict
 node scripts/harness/check-boundaries.mjs --root .
+node scripts/harness/check-ui-quality-gate.mjs --root . --strict
 node scripts/harness/check-visual-evidence.mjs --root .
 node scripts/harness/check-feature-ledger.mjs --root . --strict
 ```
@@ -55,6 +56,7 @@ The following scripts are repo-specific and not part of the portable method:
 - `check-coverage.mjs` - unit-test coverage gate (Go cover profile / vitest coverage-summary via `--format json`).
 - `check-inheritance-contract.mjs` - base-to-ops inheritance validation.
 - `check-structure-contract.mjs` - file placement + naming against REPOSITORY_LAYOUT.md (complements check-boundaries import rules).
+- `check-ui-quality-gate.mjs` - validates the canonical UI policy, CI integration, and post-adoption UI task evidence declarations.
 - `check-permission-contract.mjs` - permission model contract checks.
 - `triage-base-drift.mjs` - base drift triage.
 

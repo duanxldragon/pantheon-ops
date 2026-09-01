@@ -41,7 +41,7 @@ function expectBoxInsideViewport(page: import('@playwright/test').Page, box: Box
 test('shell top panels keep readable desktop widths', async ({ page }, testInfo) => {
   await signInAsAdmin(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/dashboard', { waitUntil: 'networkidle' });
+  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
   const noticeTrigger = page.getByRole('button', { name: /通知中心|Notification Center/ });
   await expect(noticeTrigger).toBeVisible();
@@ -69,7 +69,7 @@ test('shell top panels and profile page stay contained on narrow viewports', asy
 }, testInfo) => {
   await signInAsAdmin(page);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/dashboard', { waitUntil: 'networkidle' });
+  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
   const searchTrigger = page.locator('.app-shell__search-trigger');
   await expect(searchTrigger).toBeVisible();
@@ -98,7 +98,7 @@ test('shell top panels and profile page stay contained on narrow viewports', asy
   await expect(await readWidth(preferencePanel)).toBeLessThanOrEqual(358);
   await expectNoViewportOverflow(page);
 
-  await page.goto('/system/profile', { waitUntil: 'networkidle' });
+  await page.goto('/system/profile', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.submit-bar')).toBeVisible();
   await expect(page.locator('.arco-form')).toBeVisible();
   await expectNoViewportOverflow(page);

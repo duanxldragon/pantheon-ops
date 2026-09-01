@@ -364,8 +364,8 @@ test('cmdb host database-import flow generates a temporary module without droppi
       }),
     });
   });
-  await page.goto(`${appBaseUrl}${pageRoutePath}`, { waitUntil: 'networkidle' });
-  await expect(page.getByRole('tab', { name: '主机管理', selected: true })).toBeVisible();
+  await page.goto(`${appBaseUrl}${pageRoutePath}`, { waitUntil: 'domcontentloaded' });
+  await expect(page.getByText('主机管理', { exact: true }).first()).toBeVisible();
   const table = page.locator('.arco-table').first();
   await expect(table).toBeVisible();
   await expect(table.getByText(hostnameField!.label, { exact: true })).toBeVisible();

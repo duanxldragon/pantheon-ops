@@ -337,7 +337,7 @@ test('permission workbench shows clean roles on first load for role-based browsi
     });
   });
 
-  await page.goto('/system/permission', { waitUntil: 'networkidle' });
+  await page.goto('/system/permission', { waitUntil: 'domcontentloaded' });
 
   const roleRow = page.locator('.arco-table-tr').filter({ hasText: roleName }).first();
   await expect(roleRow).toBeVisible();
@@ -549,7 +549,7 @@ test('permission workbench remediation retries through secondary verify and clos
     });
   });
 
-  await page.goto('/system/permission', { waitUntil: 'networkidle' });
+  await page.goto('/system/permission', { waitUntil: 'domcontentloaded' });
 
   await expect(page.getByText('待整改角色', { exact: true })).toBeVisible();
   await expect(page.getByText('整改任务台', { exact: false })).toBeVisible();

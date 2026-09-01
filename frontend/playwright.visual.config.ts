@@ -18,14 +18,38 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: 0,
   reporter: 'list',
+  snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}-{platform}{ext}',
   use: {
     baseURL: webBaseUrl,
-    viewport: {
-      width: 1440,
-      height: 900,
-    },
     trace: 'retain-on-failure',
   },
+  projects: [
+    {
+      name: 'desktop-light',
+      grepInvert: /@(mobile|dark)/,
+      use: {
+        colorScheme: 'light',
+        viewport: { width: 1440, height: 900 },
+      },
+    },
+    {
+      name: 'mobile-light',
+      grep: /@mobile/,
+      use: {
+        colorScheme: 'light',
+        isMobile: true,
+        viewport: { width: 390, height: 844 },
+      },
+    },
+    {
+      name: 'desktop-dark',
+      grep: /@dark/,
+      use: {
+        colorScheme: 'dark',
+        viewport: { width: 1440, height: 900 },
+      },
+    },
+  ],
   ...(externalWebServer
     ? {}
     : {

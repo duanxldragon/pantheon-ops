@@ -1,0 +1,116 @@
+classDiagram
+    direction TB
+
+    class GoModule {
+        +modulePath: string
+        +goVersion: string
+        +requires: Package[]
+        +resolveImport(localPkg) string
+    }
+
+    class ImportPath {
+        <<value object>>
+        +raw: string
+        +isThirdParty: bool
+        +isInternal: bool
+        +normalize(newModule) string
+    }
+
+    class ModuleRenamePlan {
+        +oldModule: string
+        +newModule: string
+        +fileGlobs: string[]
+        +verify() bool
+    }
+
+    class FileEdit {
+        +path: string
+        +kind: EditKind
+        +replacements: Replacement[]
+    }
+
+    class Replacement {
+        +line: int
+        +before: string
+        +after: string
+    }
+
+    class EditKind {
+        <<enumeration>>
+        GO_MOD
+        GO_SOURCE
+        GENERATOR_TEMPLATE
+        SMOKE_ASSERTION
+        CLEANUP_REGEX
+        DRIFT_NORMALIZER
+        LINT_CONFIG
+        CI_WORKFLOW
+        DOC
+    }
+
+    class BoundaryRule {
+        +scope: string
+        +denyPrefixes: string[]
+        +allowPrefixes: string[]
+        +matches(importPath) bool
+    }
+
+    class DepguardConfig {
+        +rules: BoundaryRule[]
+        +renderYaml() string
+    }
+
+    class CoverageGate {
+        +packages: string[]
+        +threshold: float
+        +baseline: float
+        +ratchetStep: float
+        +evaluate(profile) GateResult
+    }
+
+    class GateResult {
+        +passed: bool
+        +actualCoverage: float
+        +failingPkgs: string[]
+    }
+
+    class CiWorkflow {
+        +jobs: Job[]
+        +addJob(job) void
+    }
+
+    class Job {
+        +name: string
+        +needs: string[]
+        +steps: Step[]
+    }
+
+    class GeneratorTemplate {
+        +file: string
+        +importBlocks: string[]
+        +rewriteImports(newModule) string
+    }
+
+    class CleanupScript {
+        +patterns: RegExp[]
+        +normalizePatterns(newModule) void
+    }
+
+    class DriftTriageScript {
+        +normalizers: Replacement[]
+        +syncWithModule(newModule) void
+    }
+
+    ModuleRenamePlan "1" *-- "many" FileEdit : produces
+    FileEdit "1" *-- "many" Replacement : contains
+    FileEdit ..> EditKind : typed by
+    GoModule "1" --> "many" ImportPath : governs
+    ModuleRenamePlan ..> GoModule : renames
+    GeneratorTemplate ..> ImportPath : embeds stale
+    CleanupScript ..> ImportPath : matches stale
+    DriftTriageScript ..> Replacement : normalizes
+    DepguardConfig "1" *-- "many" BoundaryRule : enforces
+    CoverageGate ..> GateResult : emits
+    CiWorkflow "1" *-- "many" Job : orchestrates
+    Job ..> DepguardConfig : runs
+    Job ..> CoverageGate : runs

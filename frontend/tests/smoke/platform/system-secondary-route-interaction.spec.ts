@@ -142,7 +142,7 @@ test.describe('system secondary route interaction states', () => {
 
       try {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        await page.goto('/system/profile', { waitUntil: 'networkidle' });
+        await page.goto('/system/profile', { waitUntil: 'domcontentloaded' });
 
         await expectRouteShell(page);
         await expectNoPageError(page);
@@ -179,7 +179,7 @@ test.describe('system secondary route interaction states', () => {
       await signInAsAdmin(page);
 
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      await page.goto('/system/user/1', { waitUntil: 'networkidle' });
+      await page.goto('/system/user/1', { waitUntil: 'domcontentloaded' });
 
       await expectRouteShell(page);
       await expectNoPageError(page);
@@ -205,7 +205,7 @@ test.describe('system secondary route interaction states', () => {
       await signInAsAdmin(page);
 
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      await page.goto('/system/setting', { waitUntil: 'networkidle' });
+      await page.goto('/system/setting', { waitUntil: 'domcontentloaded' });
 
       await expectRouteShell(page);
       await expectNoPageError(page);
@@ -264,7 +264,7 @@ test.describe('system secondary route interaction states', () => {
       try {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
         await installOperationToken(page, accessToken);
-        await page.goto('/system/setting/security', { waitUntil: 'networkidle' });
+        await page.goto('/system/setting/security', { waitUntil: 'domcontentloaded' });
 
         await expectRouteShell(page);
         await expectNoPageError(page);

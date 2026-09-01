@@ -271,7 +271,7 @@ test.describe('system secondary route permission and readonly states', () => {
 
       try {
         await viewerPage.setViewportSize({ width: viewport.width, height: viewport.height });
-        await viewerPage.goto('/system/setting/basic', { waitUntil: 'networkidle' });
+        await viewerPage.goto('/system/setting/basic', { waitUntil: 'domcontentloaded' });
 
         await expect(viewerPage).toHaveURL(/\/system\/setting\/basic$/);
         await expectRouteShell(viewerPage);
@@ -329,7 +329,7 @@ test.describe('system secondary route permission and readonly states', () => {
 
       try {
         await viewerPage.setViewportSize({ width: viewport.width, height: viewport.height });
-        await viewerPage.goto('/system/user/1', { waitUntil: 'networkidle' });
+        await viewerPage.goto('/system/user/1', { waitUntil: 'domcontentloaded' });
 
         await expect(viewerPage).toHaveURL(/\/system\/user\/1$/);
         await expectRouteShell(viewerPage);

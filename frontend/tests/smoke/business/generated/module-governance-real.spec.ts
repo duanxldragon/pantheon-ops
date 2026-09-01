@@ -127,7 +127,7 @@ test('real module governance flow can generate register and purge a temporary bu
   await installClientSession(page, login);
   await installOperationToken(page, login.accessToken);
 
-  await page.goto('/system/generator', { waitUntil: 'networkidle' });
+  await page.goto('/system/generator', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText(/模块生成(?:器|向导)/).filter({ visible: true }).first()).toBeVisible();
   await expect(page.locator('.generator-wizard-card')).toBeVisible();
   await expect(page.locator('.system-list__work-actions .arco-btn')).toBeVisible();
@@ -189,7 +189,7 @@ test('real module governance flow can generate register and purge a temporary bu
   }).toBe(true);
 
   await expect(async () => {
-    await page.goto('/system/modules', { waitUntil: 'networkidle' });
+    await page.goto('/system/modules', { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(/\/system\/modules(?:\?|$)/);
   }).toPass({ timeout: 20_000 });
   const row = page.getByRole('row', { name: new RegExp(moduleKey) }).first();

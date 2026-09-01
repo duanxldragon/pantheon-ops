@@ -28,7 +28,7 @@ const pageIdentitySelectors = [
 
 async function navigateInShell(page: Page, path: string) {
   if (page.url() === 'about:blank') {
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
   }
   await page.evaluate((nextPath) => {
     globalThis.history.pushState({}, '', nextPath);

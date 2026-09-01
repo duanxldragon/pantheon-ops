@@ -103,7 +103,7 @@ test.describe('module governance smoke', () => {
       });
     });
 
-    await page.goto('/system/modules', { waitUntil: 'networkidle' });
+    await page.goto('/system/modules', { waitUntil: 'domcontentloaded' });
     await expect(
       page.getByText('模块注册表', { exact: false }).filter({ visible: true }).first(),
     ).toBeVisible();
@@ -259,7 +259,7 @@ test.describe('module governance smoke', () => {
       });
     });
 
-    await page.goto('/system/generator', { waitUntil: 'networkidle' });
+    await page.goto('/system/generator', { waitUntil: 'domcontentloaded' });
     await expect(
       page
         .getByText(/模块生成(?:器|向导)/)
@@ -335,7 +335,7 @@ test.describe('module governance smoke', () => {
       });
     });
 
-    await page.goto('/system/generator', { waitUntil: 'networkidle' });
+    await page.goto('/system/generator', { waitUntil: 'domcontentloaded' });
     await expect(
       page
         .getByText(/模块生成(?:器|向导)/)
@@ -392,7 +392,7 @@ test.describe('module governance smoke', () => {
       });
     });
 
-    await page.goto('/system/generator', { waitUntil: 'networkidle' });
+    await page.goto('/system/generator', { waitUntil: 'domcontentloaded' });
     await openFormSelect(page, '建模来源');
     await chooseOption(page, '从数据库表导入');
     await page.getByRole('button', { name: '管理数据源', exact: true }).click();
@@ -453,7 +453,7 @@ test.describe('module governance smoke', () => {
       });
     });
 
-    await page.goto('/system/generator', { waitUntil: 'networkidle' });
+    await page.goto('/system/generator', { waitUntil: 'domcontentloaded' });
     await expect(
       page
         .getByText(/模块生成(?:器|向导)/)

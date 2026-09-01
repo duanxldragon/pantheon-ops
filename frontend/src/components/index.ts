@@ -65,6 +65,21 @@ export {
 } from './table/standardPagination';
 export { default as FormSection } from './patterns/feedback/FormSection';
 export { default as SubmitBar } from './patterns/actions/SubmitBar';
+export {
+  ChangeDiff,
+  ConditionBuilder,
+  ContextSelector,
+  ExecutionStepRail,
+  TaskLogViewer,
+} from './operational';
+export type {
+  ChangeDiffLine,
+  ConditionAstNode,
+  ConditionFieldOption,
+  ContextSelectorOption,
+  ExecutionStep,
+  TaskLogChunk,
+} from './operational';
 export { default as AppModal } from './patterns/modals/AppModal';
 export {
   showAppModalConfirm,

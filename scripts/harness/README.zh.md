@@ -24,6 +24,7 @@ node scripts/harness/check-doc-links.mjs --root . --strict
 node scripts/harness/check-doc-inventory.mjs --root . --strict
 node scripts/harness/check-sync-drift.mjs --root . --strict
 node scripts/harness/check-encoding.mjs --root . --strict
+node scripts/harness/check-ui-quality-gate.mjs --root . --strict
 ```
 
 ## 共享工具
@@ -39,5 +40,6 @@ node scripts/harness/check-encoding.mjs --root . --strict
 - `check-coverage.mjs`（单测覆盖率门禁，支持 Go cover profile 与 vitest coverage-summary `--format json`）
 - `check-inheritance-contract.mjs`
 - `check-structure-contract.mjs`（目录放置 + 命名门禁，契约源 REPOSITORY_LAYOUT.md；与 check-boundaries 的 import 边界互补）
+- `check-ui-quality-gate.mjs`（校验 UI 政策、CI 接线与新 UI 任务的证据声明）
 - `check-permission-contract.mjs`
 - `triage-base-drift.mjs`

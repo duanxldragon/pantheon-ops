@@ -49,7 +49,7 @@ function authorizationCard(page: Page, title: string) {
 }
 
 async function openCreateRoleModal(page: Page) {
-  await page.goto('/system/role', { waitUntil: 'networkidle' });
+  await page.goto('/system/role', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText('角色管理', { exact: false }).filter({ visible: true }).first()).toBeVisible();
   await expect(page.locator('.governance-summary-bar, .system-list__table-card').first()).toBeVisible();
   await page
@@ -88,7 +88,7 @@ test('built-in admin role stays localized in role management without mutating st
   expect(adminRoleBefore).toBeTruthy();
   expect(adminRoleBefore.roleName).toBe('role.admin.name');
 
-  await page.goto('/system/role', { waitUntil: 'networkidle' });
+  await page.goto('/system/role', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText('角色管理', { exact: false }).filter({ visible: true }).first()).toBeVisible();
   // SearchToolbar：单一关键词框即时查询，旧的“角色标识 + 搜索按钮”表单已移除。
   const roleKeyword = page.locator('.search-toolbar input').first();
@@ -135,7 +135,7 @@ test('built-in admin role stays localized in role management without mutating st
 test('built-in admin role stays localized in user management surfaces', async ({ page }) => {
   await signInAsAdmin(page);
 
-  await page.goto('/system/user', { waitUntil: 'networkidle' });
+  await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
   await expect(page.getByText('用户管理', { exact: false }).filter({ visible: true }).first()).toBeVisible();
 
   // SearchToolbar：关键词即时查询（keyword=），旧的“用户名 + 搜索按钮”表单已移除。

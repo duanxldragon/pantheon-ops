@@ -63,8 +63,6 @@ Pantheon smoke tests are grouped by ownership boundary.
 - `test:smoke:business:master-detail` -> `business/generated/module-master-detail-real.spec.ts`
 - `test:smoke:business:many-to-many` -> `business/generated/module-many-to-many-real.spec.ts`
 - `test:smoke:business:auto-recycle` -> `business/generated/module-auto-recycle-real.spec.ts`
-- `test:smoke:business:k8s` -> `business/k8s/k8s-pages.spec.ts`
-- `test:smoke:business:service` -> `business/service/service-pages.spec.ts`
 
 ## Coverage Matrix
 
@@ -92,8 +90,6 @@ Pantheon smoke tests are grouped by ownership boundary.
 | system batch delete       | Batch delete remove/report behavior across user, role, dept, post, dict, permission                                                                                                 | `system/api/system-batch-delete.spec.ts`                                                                                                                                                                         |
 | business generated module | `test:smoke:business:generated`, login, generate/register temporary business module, module registry cleanup                                                                        | `business/generated/module-governance-real.spec.ts`                                                                                                                                                              |
 | business database-import  | `test:smoke:business:database-import`, bootstrap `biz_cmdb_host`, import source table, register generated business module, open generated page, purge without dropping source table | `business/generated/module-governance-host-real.spec.ts`                                                                                                                                                         |
-| business deploy FZ-07     | `test:smoke:business:deploy:fz07`, component-step editor desktop/mobile visual acceptance                                                                                         | `business/deploy/fz07-visual-acceptance.spec.ts`                                                                                                                                                                 |
-| business observability/file distribution | `test:smoke:business:observability`, observability target/datasource/rule lifecycle, file upload/task cleanup, 115 experiment host visibility, and observability menu navigation | `business/observability-filedist-pages.spec.ts`, `business/observability-menu.spec.ts` |
 | business master-detail    | `test:smoke:business:master-detail`, login, generated business detail page child-row create/edit                                                                                    | `business/generated/module-master-detail-real.spec.ts`                                                                                                                                                           |
 | business many-to-many     | `test:smoke:business:many-to-many`, login, generated business detail page relation bind/unbind                                                                                      | `business/generated/module-many-to-many-real.spec.ts`                                                                                                                                                            |
 | business auto-recycle     | `test:smoke:business:auto-recycle`, login, module purge with managed business table auto-recycle                                                                                    | `business/generated/module-auto-recycle-real.spec.ts`                                                                                                                                                            |
@@ -112,8 +108,7 @@ Delete a smoke test only when its ownership is retired or another active smoke t
 
 - `test:smoke:business:cmdb` -> `business/cmdb/cmdb-pages.spec.ts`
 - `test:smoke:business:deploy` -> `business/deploy/deploy-pages.spec.ts`
-- `test:smoke:business:deploy:fz07` -> `business/deploy/fz07-visual-acceptance.spec.ts`
 - `test:smoke:business:deploy:api` -> `business/deploy/deploy-api.spec.ts`
 - `test:smoke:business:observability` -> `business/observability-filedist-pages.spec.ts`, `business/observability-menu.spec.ts`
-- `test:smoke:business:k8s` -> `business/k8s/k8s-pages.spec.ts`
 - `test:smoke:business:service` -> `business/service/service-pages.spec.ts`
+- `test:smoke:business:k8s` -> `business/k8s/k8s-pages.spec.ts`

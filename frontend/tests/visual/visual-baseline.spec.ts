@@ -2,24 +2,54 @@ import { expect, test, type Page } from '@playwright/test';
 import { primeChineseLocale, signInAsAdmin } from '../smoke/helpers/auth';
 
 async function waitForVisualStability(page: Page) {
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   await page.evaluate(async () => {
     await document.fonts.ready;
   });
 }
 
+async function primeColorMode(page: Page, mode: 'light' | 'dark') {
+  await page.addInitScript((colorMode) => {
+    globalThis.localStorage?.setItem('pantheon_color_mode', colorMode);
+  }, mode);
+}
+
 test('login page visual baseline', async ({ page }) => {
+  await primeColorMode(page, 'light');
   await primeChineseLocale(page);
-  await page.goto('/login', { waitUntil: 'networkidle' });
+  await page.goto('/login', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.auth-login-page')).toBeVisible();
   await waitForVisualStability(page);
 
   await expect(page).toHaveScreenshot('login.png');
 });
 
+test('@mobile login page visual baseline', async ({ page }) => {
+  await primeColorMode(page, 'light');
+  await primeChineseLocale(page);
+  await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.auth-login-page')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode', 'light');
+  await waitForVisualStability(page);
+
+  await expect(page).toHaveScreenshot('login-mobile.png');
+});
+
+test('@dark login page visual baseline', async ({ page }) => {
+  await primeColorMode(page, 'dark');
+  await primeChineseLocale(page);
+  await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('.auth-login-page')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-color-mode', 'dark');
+  await expect(page.locator('body')).toHaveAttribute('arco-theme', 'dark');
+  await waitForVisualStability(page);
+
+  await expect(page).toHaveScreenshot('login-dark.png');
+});
+
 test('workspace dashboard visual baseline', async ({ page }) => {
   await signInAsAdmin(page);
-  await page.goto('/dashboard', { waitUntil: 'networkidle' });
+  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.dashboard-hero-card')).toBeVisible();
   await expect(page.locator('.dashboard-stat-card').first()).toBeVisible();
   await waitForVisualStability(page);
@@ -28,9 +58,7 @@ test('workspace dashboard visual baseline', async ({ page }) => {
     mask: [
       page.locator('.dashboard-stat-card__value'),
       page.locator('.dashboard-stat-card--users .arco-tag'),
-      // Dashboard attention/todo content is backed by live governance data.
-      page.locator('.dashboard-panel-card--todo .arco-card-body'),
-      page.locator('.dashboard-focus-stack'),
+      page.locator('.dashboard-focus-item__value'),
       page.locator('.dashboard-domain-card__summary'),
       page.locator('.dashboard-login-table .app-table tbody tr'),
     ],
@@ -39,7 +67,7 @@ test('workspace dashboard visual baseline', async ({ page }) => {
 
 test('system user list visual baseline', async ({ page }) => {
   await signInAsAdmin(page);
-  await page.goto('/system/user', { waitUntil: 'networkidle' });
+  await page.goto('/system/user', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.system-list__table-card')).toBeVisible();
   await expect(page.locator('.app-table')).toBeVisible();
   await waitForVisualStability(page);
@@ -48,7 +76,6 @@ test('system user list visual baseline', async ({ page }) => {
     mask: [
       page.locator('.governance-summary-bar__metric-value'),
       page.locator('.system-list__table-card .app-table tbody tr'),
-      page.locator('.system-user-list__table .arco-pagination'),
     ],
   });
 });

@@ -77,7 +77,7 @@ export async function signInWithUi(
   credentials: LoginCredentials,
 ) {
   await primeChineseLocale(page);
-  await page.goto('/login', { waitUntil: 'networkidle' });
+  await page.goto('/login', { waitUntil: 'domcontentloaded' });
   await page.getByPlaceholder(/请输入用户名|username/i).fill(credentials.username);
   await page.getByPlaceholder(/请输入密码|password/i).fill(credentials.password);
   const loginResponse = page.waitForResponse((response) =>
@@ -88,7 +88,7 @@ export async function signInWithUi(
   expect(response.ok()).toBeTruthy();
   const payload = await response.json();
   expect(payload.code).toBe(200);
-  await page.goto('/dashboard', { waitUntil: 'networkidle' });
+  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('.app-shell__header')).toBeVisible();
   return COOKIE_TOKEN_PLACEHOLDER;
 }
