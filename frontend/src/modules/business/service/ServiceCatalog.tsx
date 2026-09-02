@@ -13,7 +13,7 @@ import {
   PageLoading,
   SearchToolbar,
 } from '../../../components';
-import { usePermission } from '../../../hooks/usePermission';
+import { usePermission } from '@duanxldragon/pantheon-base-ui';
 import { getBizScopeOptions, type BizScopeOptionItem } from '../bizscope/api';
 import { getHostList, type HostRow } from '../cmdb/host/api';
 import { getK8sClusterList, type K8sClusterRow } from '../k8s/api';

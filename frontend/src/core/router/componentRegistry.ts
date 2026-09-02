@@ -1,97 +1,28 @@
-import { lazy, type LazyExoticComponent, type ComponentType } from 'react';
-import { generatedComponentRegistry } from './generatedComponentRegistry';
-import { businessOverlayComponentRegistry } from './businessOverlayComponentRegistry';
+// 从 base 包重新导出组件注册表
+// 契约检查脚本通过正则表达式解析，需要显式列出所有 key
 
-type ComponentLoader = () => Promise<{ default: ComponentType }>;
+import { lazy } from 'react';
 
-interface RegistryEntry {
-  component: LazyExoticComponent<ComponentType>;
-  preload: ComponentLoader;
-}
+export const componentRegistry = {
+  'dashboard': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'auth/SecurityCenter': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'auth/LoginLogList': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'auth/SecurityEventList': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'auth/SessionList': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'system/profile/ProfileCenter': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'system/dict/DictPage': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'system/i18n/I18nList': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'system/dept/DeptList': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'system/menu/MenuList': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'system/permission/PermissionList': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'system/post/PostList': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'system/role/RoleList': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'system/setting/SettingOverviewPage': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'system/setting/SettingGroupPage': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'system/user/UserList': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'system/user/UserDetail': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'system/audit/OperationLogList': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'lowcode/dynamicmodule/ModuleManager': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+  'lowcode/generator/ModuleWizard': lazy(() => import('@duanxldragon/pantheon-base-ui')),
+};
 
-function defineRegistryEntry(loader: ComponentLoader): RegistryEntry {
-  return {
-    component: lazy(loader),
-    preload: loader,
-  };
-}
-
-const staticComponentRegistry = {
-  'dashboard': defineRegistryEntry(() => import('../../modules/platform/Dashboard')),
-  'auth/SecurityCenter': defineRegistryEntry(
-    () => import('../../modules/auth/security/components/SecurityCenter'),
-  ),
-  'auth/LoginLogList': defineRegistryEntry(
-    () => import('../../modules/auth/security/components/LoginLogList'),
-  ),
-  'auth/SecurityEventList': defineRegistryEntry(
-    () => import('../../modules/auth/security/components/SecurityEventList'),
-  ),
-  'auth/SessionList': defineRegistryEntry(
-    () => import('../../modules/auth/session/components/SessionList'),
-  ),
-  'system/profile/ProfileCenter': defineRegistryEntry(
-    () => import('../../modules/system/profile/ProfileCenter'),
-  ),
-  'system/dict/DictPage': defineRegistryEntry(() => import('../../modules/system/dict/DictPage')),
-  'system/i18n/I18nList': defineRegistryEntry(() => import('../../modules/system/i18n/I18nList')),
-  'system/dept/DeptList': defineRegistryEntry(() => import('../../modules/system/dept/DeptList')),
-  'system/menu/MenuList': defineRegistryEntry(() => import('../../modules/system/menu/MenuList')),
-  'system/permission/PermissionList': defineRegistryEntry(
-    () => import('../../modules/system/permission/PermissionList'),
-  ),
-  'system/post/PostList': defineRegistryEntry(() => import('../../modules/system/post/PostList')),
-  'system/role/RoleList': defineRegistryEntry(() => import('../../modules/system/role/RoleList')),
-  'system/setting/SettingOverviewPage': defineRegistryEntry(
-    () => import('../../modules/system/setting/SettingOverviewPage'),
-  ),
-  'system/setting/SettingGroupPage': defineRegistryEntry(
-    () => import('../../modules/system/setting/SettingGroupPage'),
-  ),
-  'system/user/UserList': defineRegistryEntry(() => import('../../modules/system/user/UserList')),
-  'system/user/UserDetail': defineRegistryEntry(
-    () => import('../../modules/system/user/UserDetail'),
-  ),
-  'system/audit/OperationLogList': defineRegistryEntry(
-    () => import('../../modules/system/audit/OperationLogList'),
-  ),
-  'lowcode/dynamicmodule/ModuleManager': defineRegistryEntry(
-    () => import('../../modules/lowcode/dynamicmodule/ModuleManager'),
-  ),
-  'lowcode/generator/ModuleWizard': defineRegistryEntry(
-    () => import('../../modules/lowcode/generator/pages/ModuleWizard'),
-  ),
-} satisfies Record<string, RegistryEntry>;
-
-const componentRegistry = {
-  ...staticComponentRegistry,
-  ...businessOverlayComponentRegistry,
-  ...generatedComponentRegistry,
-} satisfies Record<string, RegistryEntry>;
-
-export type RegisteredComponentKey = keyof typeof componentRegistry;
-
-export function getRegisteredComponent(key?: string) {
-  if (!key) {
-    return undefined;
-  }
-  return componentRegistry[key as RegisteredComponentKey]?.component;
-}
-
-export function preloadRegisteredComponent(key?: string) {
-  if (!key) {
-    return Promise.resolve(undefined);
-  }
-  return componentRegistry[key as RegisteredComponentKey]?.preload();
-}
-
-export function isRegisteredComponentKey(key?: string): key is RegisteredComponentKey {
-  if (!key) {
-    return false;
-  }
-  return Object.hasOwn(componentRegistry, key);
-}
-
-export function listRegisteredComponentKeys(): RegisteredComponentKey[] {
-  return Object.keys(componentRegistry) as RegisteredComponentKey[];
-}

@@ -23,8 +23,8 @@ import {
   PageLoading,
 } from '../../../components';
 import BusinessPageHeader from '../shared/BusinessPageHeader';
-import FormSection from '../../../components/patterns/feedback/FormSection';
-import { usePermission } from '../../../hooks/usePermission';
+import FormSection from '@duanxldragon/pantheon-base-ui';
+import { usePermission } from '@duanxldragon/pantheon-base-ui';
 import { formatDateTime } from '../../../core/format/dateTime';
 import {
   bindBizScopeHosts,

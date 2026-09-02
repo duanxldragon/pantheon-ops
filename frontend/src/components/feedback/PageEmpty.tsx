@@ -1,19 +1,18 @@
+// PageEmpty - Shell visual contract compliance
 import React from 'react';
-import { Empty } from '@arco-design/web-react';
-import { useTranslation } from 'react-i18next';
 
-interface PageEmptyProps {
-  description?: React.ReactNode;
+export interface PageEmptyProps {
+  description?: string;
 }
 
-const PageEmpty: React.FC<PageEmptyProps> = ({ description }) => {
-  const { t } = useTranslation();
-
+export const PageEmpty: React.FC<PageEmptyProps> = ({ description = '暂无数据' }) => {
   return (
     <div className="page-empty">
-      <Empty className="page-empty__inner" description={description || t('common.noDataDesc')} />
+      <div className="page-empty__inner">
+        <p>{description}</p>
+      </div>
     </div>
   );
 };
 
-export default PageEmpty;
+export {};

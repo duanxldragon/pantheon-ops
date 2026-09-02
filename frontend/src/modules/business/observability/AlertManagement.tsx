@@ -20,7 +20,7 @@ import {
   PageError,
   PageLoading,
 } from '../../../components';
-import { usePermission } from '../../../hooks/usePermission';
+import { usePermission } from '@duanxldragon/pantheon-base-ui';
 import {
   getDatasourceList,
   getAlertRuleList,

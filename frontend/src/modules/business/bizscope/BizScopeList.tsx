@@ -32,7 +32,7 @@ import {
   buildStandardPagination,
   useGovernanceRail,
 } from '../../../components';
-import { usePermission } from '../../../hooks/usePermission';
+import { usePermission } from '@duanxldragon/pantheon-base-ui';
 import {
   createBizScope,
   deleteBizScope,

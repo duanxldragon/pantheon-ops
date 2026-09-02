@@ -13,7 +13,7 @@ import {
   PageLoading,
   SearchToolbar,
 } from '../../../components';
-import { usePermission } from '../../../hooks/usePermission';
+import { usePermission } from '@duanxldragon/pantheon-base-ui';
 import { getBizScopeOptions, type BizScopeOptionItem } from '../bizscope/api';
 import {
   createDatasource,

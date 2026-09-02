@@ -1,5 +1,5 @@
-import { apiRequest } from '../../../api/request';
-import { downloadFile, uploadImportFile } from '../../../api/importExport';
+import { apiRequest } from '@duanxldragon/pantheon-base-ui';
+import { downloadFile, uploadImportFile } from '@duanxldragon/pantheon-base-ui';
 
 export type DeployAction = 'install' | 'uninstall' | 'upgrade' | 'reinstall';
 

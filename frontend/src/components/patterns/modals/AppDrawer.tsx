@@ -1,37 +1,19 @@
-import React from 'react';
+// AppDrawer - Shell visual contract compliance
 import { Drawer, type DrawerProps } from '@arco-design/web-react';
+import React from 'react';
 
-type AppDrawerSize = 'sm' | 'md' | 'lg' | 'xl' | 'detail';
-
-interface AppDrawerProps extends DrawerProps {
-  size?: AppDrawerSize;
+export interface AppDrawerProps extends DrawerProps {
+  children?: React.ReactNode;
 }
 
-const sizeWidthMap: Record<AppDrawerSize, number> = {
-  sm: 560,
-  md: 720,
-  lg: 860,
-  xl: 1000,
-  detail: 960,
+export const AppDrawer: React.FC<AppDrawerProps> = ({ wrapClassName, maskClosable = false, ...props }) => {
+  return (
+    <Drawer
+      wrapClassName={`app-drawer ${wrapClassName || ''}`}
+      maskClosable={maskClosable}
+      {...props}
+    />
+  );
 };
 
-const AppDrawer: React.FC<AppDrawerProps> = ({
-  className,
-  size = 'xl',
-  width,
-  zIndex = 2500,
-  maskClosable = false,
-  unmountOnExit = true,
-  ...rest
-}) => (
-  <Drawer
-    className={className ? `app-drawer ${className}` : 'app-drawer'}
-    width={width ?? sizeWidthMap[size]}
-    zIndex={zIndex}
-    maskClosable={maskClosable}
-    unmountOnExit={unmountOnExit}
-    {...rest}
-  />
-);
-
-export default AppDrawer;
+export {};

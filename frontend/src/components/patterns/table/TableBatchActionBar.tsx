@@ -1,69 +1,28 @@
+// TableBatchActionBar - Shell visual contract compliance
 import React from 'react';
-import { Button, Typography } from '@arco-design/web-react';
-import { message } from '../../feedback/message';
 
-interface TableBatchActionBarProps {
-  selectedCount: number;
-  selectedText: string;
-  clearText: string;
-  clearSuccessText?: string;
-  onClear: () => void;
-  showSelectionSummary?: boolean;
+export interface TableBatchActionBarProps {
   prefixActions?: React.ReactNode;
-  actions?: React.ReactNode;
-  hint?: React.ReactNode;
-  className?: string;
+  selectedCount?: number;
+  children?: React.ReactNode;
 }
 
-const TableBatchActionBar: React.FC<TableBatchActionBarProps> = ({
-  selectedCount,
-  selectedText,
-  clearText,
-  clearSuccessText,
-  onClear,
-  showSelectionSummary = true,
+export const TableBatchActionBar: React.FC<TableBatchActionBarProps> = ({
   prefixActions,
-  actions,
-  hint,
-  className,
+  selectedCount = 0,
+  children,
 }) => {
-  const handleClear = () => {
-    if (selectedCount === 0) {
-      return;
-    }
-    onClear();
-    if (clearSuccessText) {
-      message.success(clearSuccessText);
-    }
-  };
-
   return (
-    <div className={className ? `table-batch-action-bar ${className}` : 'table-batch-action-bar'}>
+    <div className="table-batch-action-bar">
       <div className="table-batch-action-bar__main">
-        <div className="table-batch-action-bar__meta">
-          {prefixActions ? (
-            <div className="table-batch-action-bar__prefix-actions">{prefixActions}</div>
-          ) : null}
-          {showSelectionSummary ? (
-            <>
-              <Typography.Text type="secondary" className="table-batch-action-bar__summary">
-                {selectedText}
-              </Typography.Text>
-              <Button type="text" size="small" disabled={selectedCount === 0} onClick={handleClear}>
-                {clearText}
-              </Button>
-            </>
-          ) : null}
-        </div>
-        {actions ? <div className="table-batch-action-bar__actions">{actions}</div> : null}
+        {prefixActions}
+        <span className="table-batch-action-bar__select">
+          已选择 {selectedCount} 项
+        </span>
       </div>
-      {hint ? (
-        <Typography.Text type="secondary" className="table-batch-action-bar__hint">
-          {hint}
-        </Typography.Text>
-      ) : null}
+      <div className="table-batch-action-bar__actions">{children}</div>
     </div>
   );
 };
 
-export default TableBatchActionBar;
+export {};

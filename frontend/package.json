@@ -1,7 +1,7 @@
 {
-  "name": "frontend",
+  "name": "pantheon-ops-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -77,6 +77,7 @@
   },
   "dependencies": {
     "@arco-design/web-react": "2.66.16",
+    "@duanxldragon/pantheon-base-ui": "file:../../pantheon-base/frontend/duanxldragon-pantheon-base-ui-0.10.25.tgz",
     "axios": "^1.20.0",
     "i18next": "26.4.0",
     "qrcode.react": "^4.2.0",

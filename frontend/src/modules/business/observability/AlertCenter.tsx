@@ -4,7 +4,7 @@ import { Button, Card, Form, Input, InputNumber, Message, Popconfirm, Select, Sp
 import { IconDelete, IconPlus } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { AppModal, AppTable, GovernanceSummaryBar, PageContainer, PageEmpty, PageError, PageLoading, SearchToolbar } from '../../../components';
-import { usePermission } from '../../../hooks/usePermission';
+import { usePermission } from '@duanxldragon/pantheon-base-ui';
 import {
   createAlertRule,
   createNotificationChannel,

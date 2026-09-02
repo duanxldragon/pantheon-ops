@@ -1,4 +1,4 @@
-import { apiRequest } from '../../../api/request';
+import { apiRequest } from '@duanxldragon/pantheon-base-ui';
 
 export interface DatasourceRow {
   id: number;

@@ -1,0 +1,115 @@
+.cmdb-page__hero-title {
+  margin: 0;
+}
+
+.cmdb-page__hero-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cmdb-page__hero-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: var(--panel-bg-solid);
+}
+
+.cmdb-page__hero-label {
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.cmdb-page__hero-value {
+  color: var(--text-primary);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.cmdb-page__hero-hint {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.cmdb-page__split {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.cmdb-page__side-panel {
+  min-width: 0;
+}
+
+.cmdb-page__side-panel .arco-tree {
+  background: transparent;
+}
+
+.cmdb-page__side-panel .arco-tree-node-title {
+  width: 100%;
+}
+
+.cmdb-page__tree-node {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+}
+
+.cmdb-page__tree-node-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cmdb-page__tree-node-title {
+  overflow: hidden;
+  color: var(--text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.cmdb-page__tree-node-subtitle {
+  overflow: hidden;
+  color: var(--text-tertiary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.cmdb-page__content-stack {
+  min-width: 0;
+}
+
+.cmdb-page__group-table-card {
+  min-height: 520px;
+}
+
+.cmdb-page__group-row--active .arco-table-td {
+  background: color-mix(in srgb, var(--brand-primary) 6%, #fff);
+}
+
+.cmdb-page__group-row--active:hover .arco-table-td {
+  background: color-mix(in srgb, var(--brand-primary) 10%, #fff);
+}
+
+@media (max-width: 1280px) {
+  .cmdb-page__split {
+    grid-template-columns: 1fr;
+  }
+
+  .cmdb-page__hero-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

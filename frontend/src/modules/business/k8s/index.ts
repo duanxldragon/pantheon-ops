@@ -1,4 +1,4 @@
-import { defineModule } from '../../../core/router/types';
+import { defineModule } from '@duanxldragon/pantheon-base-ui';
 
 export const K8sModule = defineModule({
   name: 'k8s',

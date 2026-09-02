@@ -1,10 +1,13 @@
-import React from 'react';
+// PageLoading - Shell visual contract compliance
 import { Spin } from '@arco-design/web-react';
+import React from 'react';
 
-const PageLoading: React.FC = () => (
-  <div className="page-loading">
-    <Spin loading />
-  </div>
-);
+export const PageLoading: React.FC = () => {
+  return (
+    <div className="page-loading">
+      <Spin />
+    </div>
+  );
+};
 
-export default PageLoading;
+export {};
