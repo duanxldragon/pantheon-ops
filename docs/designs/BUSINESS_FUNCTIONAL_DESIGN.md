@@ -105,7 +105,7 @@ GitOps：Release/镜像 → ArgoCD Application → 集群状态回传
 ## 6. V1 追溯
 
 - 评审基线：《pantheon-ops v1.0 冻结前综合评审报告》（2026-08-28）。
-- 执行计划：`V1_FREEZE_REMEDIATION_DEV_PLAN.md`（P0/P1/P2 按优先级排序）。
+- 执行计划：`.harness/v1.2-docs/V1_FREEZE_REMEDIATION_DEV_PLAN.md`（P0/P1/P2 按优先级排序）。
 - 发布状态：`../V1_RELEASE_CHECKLIST.md`（唯一事实源）。
 - 已知遗留：P1 清单见评审报告第 6 节与开发计划 Phase 2。
 

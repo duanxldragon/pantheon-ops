@@ -2,6 +2,8 @@
   "schemaVersion": 1,
   "taskId": "ops-business-versioned-migrations",
   "title": "Business versioned migrations and production schema gate",
+  "goal": "Version Ops business schema changes and require evidence gates before production migration execution.",
+  "primaryLayer": "business/*",
   "status": "complete",
   "priority": "P0",
   "deliveryTier": "L2",
@@ -75,6 +77,8 @@
   "runtimeSensitive": true,
   "costProfile": "high; strong backend/database executor; one owner for migration sequence",
   "linkage": {
+    "changeRef": "none",
+    "planRefs": ["docs/harness/tasks/2026-08-17-ops-business-versioned-migrations.task.md"],
     "evidenceDir": ".harness/evidence/ops-business-versioned-migrations/",
     "reviewFile": ".harness/evidence/ops-business-versioned-migrations/review.md",
     "summaryFile": ".harness/evidence/ops-business-versioned-migrations/summary.md"

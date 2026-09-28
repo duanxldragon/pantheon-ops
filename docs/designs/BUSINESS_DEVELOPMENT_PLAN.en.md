@@ -6,7 +6,7 @@
 
 Normative plan: [BUSINESS_DEVELOPMENT_PLAN.md](./BUSINESS_DEVELOPMENT_PLAN.md).
 
-This file remains an estimation and roadmap reference. The [V1 checklist](../V1_RELEASE_CHECKLIST.md), [freeze task](../harness/tasks/2026-08-24-ops-v1-freeze-remediation.task.md), and [global functional design](./BUSINESS_FUNCTIONAL_DESIGN.en.md) now govern V1 order, priority, evidence, and stop conditions.
+This file remains an estimation and roadmap reference. The [V1 checklist](../V1_RELEASE_CHECKLIST.md) and [global functional design (Chinese canonical)](./BUSINESS_FUNCTIONAL_DESIGN.md) govern V1 order, priority, evidence, and stop conditions.
 
 The eight-week V1 plan is ordered as follows:
 

@@ -2,6 +2,8 @@
   "schemaVersion": 1,
   "taskId": "ops-architecture-quality-gates",
   "title": "Automate architecture, migration, contract, lifecycle, and frontend gates",
+  "goal": "Automate repeatable architecture, migration, contract, lifecycle, and frontend quality checks for Ops business modules.",
+  "primaryLayer": "business/*",
   "status": "complete",
   "priority": "P0-closeout/P1-hardening",
   "deliveryTier": "L2",
@@ -94,6 +96,8 @@
   "runtimeSensitive": true,
   "costProfile": "medium; lower-cost executors for deterministic scripts/tests/docs; strong reviewer required for exclusions and final acceptance",
   "linkage": {
+    "changeRef": "none",
+    "planRefs": ["docs/harness/tasks/2026-08-17-ops-architecture-quality-gates.task.md"],
     "evidenceDir": ".harness/evidence/ops-architecture-quality-gates/",
     "reviewFile": ".harness/evidence/ops-architecture-quality-gates/review.md",
     "summaryFile": ".harness/evidence/ops-architecture-quality-gates/summary.md"

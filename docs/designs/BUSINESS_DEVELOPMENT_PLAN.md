@@ -9,7 +9,7 @@
 
 本文把架构评审结论转换为可排期的业务开发计划。时间按连续 8 个开发周估算，实际开始日期以 clean release 和维护者质量门禁决定为准；角色是责任边界，不预设具体人员。
 
-> 本文保留为阶段估算与路线参考。2026-08-24 起，V1 实际执行顺序、P0/P1 分类、完成证据和停止条件由 [V1 冻结检查表](../V1_RELEASE_CHECKLIST.md)、[冻结整改任务包](../harness/tasks/2026-08-24-ops-v1-freeze-remediation.task.md) 和 [全局功能设计](./BUSINESS_FUNCTIONAL_DESIGN.md) 接管；本文不得覆盖其中任何红灯。
+> 本文保留为阶段估算与路线参考。V1 实际执行顺序、P0/P1 分类、完成证据和停止条件由 [V1 冻结检查表](../V1_RELEASE_CHECKLIST.md) 和 [全局功能设计](./BUSINESS_FUNCTIONAL_DESIGN.md) 接管；本文不得覆盖其中任何红灯。
 
 ## 1. 目标和范围
 

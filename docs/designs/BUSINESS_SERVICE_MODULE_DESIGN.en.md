@@ -3,7 +3,7 @@
 - Updated: 2026-08-24
 - Status: Active V1 business identity layer
 
-The Chinese document is normative. See the [global functional design](./BUSINESS_FUNCTIONAL_DESIGN.en.md) and [V1 checklist](../V1_RELEASE_CHECKLIST.md) for cross-module and release status.
+The Chinese document is normative. See the [global functional design](./BUSINESS_FUNCTIONAL_DESIGN.md) and [V1 checklist](../V1_RELEASE_CHECKLIST.md) for cross-module and release status.
 
 ## Goal
 

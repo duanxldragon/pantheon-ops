@@ -1,0 +1,44 @@
+{
+  "taskId": "2026-09-28-ops-delivery-readiness-gap-closure",
+  "repo": "pantheon-ops",
+  "agent": {"tool": "codex", "adapter": "default"},
+  "commands": [
+    {"command": "go test -count=1 ./...", "cwd": "backend", "status": "passed", "notes": "All backend packages passed."},
+    {"command": "go vet ./...", "cwd": "backend", "status": "passed"},
+    {"command": "PATH=D:\\msys64\\mingw64\\bin; CGO_ENABLED=1; go test -race ./...", "cwd": "backend", "status": "passed", "notes": "Windows CGO race gate passed."},
+    {"command": "npm run type-check", "cwd": "frontend", "status": "passed"},
+    {"command": "npm run lint", "cwd": "frontend", "status": "passed"},
+    {"command": "npm run build", "cwd": "frontend", "status": "passed", "notes": "All frontend contract checks and Vite build passed."},
+    {"command": "npm run check:business-foundation", "cwd": ".", "status": "passed", "notes": "Boundary, overlay, and business overlay tests passed; overlay reports 53 declared paths."},
+    {"command": "npm run check:harness-method", "cwd": ".", "status": "passed"},
+    {"command": "node scripts/harness/check-evidence.mjs --root . --strict .harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure/commands.json", "cwd": ".", "status": "passed"},
+    {"command": "node scripts/harness/check-review.mjs --root . --strict .harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure/review.md", "cwd": ".", "status": "passed"},
+    {"command": "npm run check:harness-adoption", "cwd": ".", "status": "passed", "notes": "0 findings after linking the generated-system ownership decision to this parent task/evidence; the marker-versus-generator decision remains D5 scope."},
+    {"command": "npm run check:harness-docs", "cwd": ".", "status": "failed", "notes": "13 missing internal link targets."},
+    {"command": "npm run check:harness-inventory", "cwd": ".", "status": "failed", "notes": "10 docs inventory findings."},
+    {"command": "npm run check:harness-sync", "cwd": ".", "status": "passed"},
+    {"command": "npm run check:harness-encoding", "cwd": ".", "status": "passed", "notes": "1839 files scanned."},
+    {"command": "npm run check:structure", "cwd": ".", "status": "passed", "notes": "2013 tracked files scanned."},
+    {"command": "npm run check:ui-quality-gate", "cwd": ".", "status": "failed", "notes": "2 findings: workbench visual plan missing and quality workflow UI step missing."},
+    {"command": "npm run check:harness-visual", "cwd": ".", "status": "failed", "notes": "0 active UI tasks and 8 warnings from legacy unreadable manifests."},
+    {"command": "node scripts/harness/check-task-packet.mjs docs/harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure.task.md", "cwd": ".", "status": "passed", "notes": "The active parent packet passes with 0 errors and 0 warnings."},
+    {"command": "node scripts/harness/check-task-packet.mjs --root .", "cwd": ".", "status": "failed", "notes": "62 files, 558 errors, 95 warnings; the count increase is this new packet, while failures remain mostly historical packet/schema drift."},
+    {"command": "real Prometheus/VictoriaMetrics, Loki, Tempo, Kubernetes, ArgoCD, and Velero acceptance", "cwd": ".", "status": "not-run", "notes": "External endpoints and production-like credentials were not available."},
+    {"command": "tenant migration G2/G3 production evidence", "cwd": ".", "status": "not-run", "notes": "Runbook records G2 and G3 OPEN; production backup and scale evidence are required."}
+  ],
+  "knownGaps": [
+    "Direct production delivery remains unapproved until D1-D3 are closed.",
+    "Tenant migration remains blocked at G2/G3 and is a separate release decision.",
+    "Historical Harness packet/link debt is not equivalent to a runtime product defect and needs bounded triage.",
+    "No secrets, credentials, kubeconfig, or raw production data are stored in this evidence directory."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/manifest.json",
+    "taskPacket": "docs/harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure.task.md",
+    "evidenceDir": ".harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure/",
+    "reviewFile": ".harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure/review.md",
+    "changeRef": "none",
+    "planRefs": [".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/EXECUTION_QUEUE.md"]
+  },
+  "completedAt": "2026-09-28"
+}

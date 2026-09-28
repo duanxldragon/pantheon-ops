@@ -12,7 +12,7 @@ This directory contains only repository-owned business documents. Architecture, 
 
 - [README.md](./README.md) / [README.en.md](./README.en.md): repo entry and reading order
 - [../DESIGN.md](../DESIGN.md) / [../DESIGN.en.md](../DESIGN.en.md): repository-level product, experience, boundary, and release contract
-- [designs/BUSINESS_FUNCTIONAL_DESIGN.md](./designs/BUSINESS_FUNCTIONAL_DESIGN.md) / [designs/BUSINESS_FUNCTIONAL_DESIGN.en.md](./designs/BUSINESS_FUNCTIONAL_DESIGN.en.md): global capability map, flows, state, security, UI, and V1 traceability
+- [designs/BUSINESS_FUNCTIONAL_DESIGN.md](./designs/BUSINESS_FUNCTIONAL_DESIGN.md): global capability map, flows, state, security, UI, and V1 traceability (Chinese canonical)
 - [V1_RELEASE_CHECKLIST.md](./V1_RELEASE_CHECKLIST.md): only source of truth for V1 release state, blockers, gates, and runtime evidence
 - [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) / [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md): inheritance relationship, version pin, local business scope, and override boundaries
 - [../.agents/skills/README.zh.md](../.agents/skills/README.zh.md) / [../.agents/skills/README.md](../.agents/skills/README.md): repo-local agent skills for inheritance checks, PR closure, GitHub comment automation, and CI triage

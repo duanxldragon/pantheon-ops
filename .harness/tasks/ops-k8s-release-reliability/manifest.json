@@ -2,6 +2,8 @@
   "schemaVersion": 1,
   "taskId": "ops-k8s-release-reliability",
   "title": "Make Kubernetes Release intent durable and rollout-aware",
+  "goal": "Persist Kubernetes Release intent and track rollout outcomes through reconciliation.",
+  "primaryLayer": "business/*",
   "status": "complete",
   "priority": "P0",
   "deliveryTier": "L2",
@@ -93,6 +95,8 @@
   "runtimeSensitive": true,
   "costProfile": "high; strong K8s/backend owner; low-cost frontend lane after release DTO freeze; external cluster requires human gate",
   "linkage": {
+    "changeRef": "none",
+    "planRefs": ["docs/harness/tasks/2026-08-17-ops-k8s-release-reliability.task.md"],
     "evidenceDir": ".harness/evidence/ops-k8s-release-reliability/",
     "reviewFile": ".harness/evidence/ops-k8s-release-reliability/review.md",
     "summaryFile": ".harness/evidence/ops-k8s-release-reliability/summary.md"

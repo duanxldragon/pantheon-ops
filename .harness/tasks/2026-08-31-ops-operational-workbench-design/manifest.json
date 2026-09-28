@@ -43,6 +43,15 @@
       ".harness/tasks/2026-08-31-ops-operational-workbench-design/EXECUTION_QUEUE.md"
     ]
   },
+  "verificationPlan": {
+    "visualEvidence": null,
+    "visualEvidenceExemption": {
+      "scope": "governance-only",
+      "reason": "This packet defines design and implementation work packages; it does not change or render a UI surface. Each implementation packet must declare its own rendered evidence plan.",
+      "noRenderedSurfaceChanged": true,
+      "humanApprovalRequired": true
+    }
+  },
   "maintainerGates": [
     "Base foundation lock update",
     "new schema or public contract",

@@ -62,6 +62,21 @@ docs/
 | [audits/v1.0/pantheon-ops_v1.0冻结前综合评审报告.md](./audits/v1.0/pantheon-ops_v1.0冻结前综合评审报告.md) | V1.0 综合评审报告 | 2026-08-28 |
 | [audits/v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md](./audits/v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md) | 业务模块闭环检查 | 2026-08-28 |
 
+### Harness 方法与合同
+
+| 文档 | 用途 |
+|------|------|
+| [HARNESS_ENGINEERING_CONTRACT.md](./harness/HARNESS_ENGINEERING_CONTRACT.md) | 本仓库 Harness 执行合同 |
+| [HARNESS_METHOD_PLAYBOOK.md](./harness/HARNESS_METHOD_PLAYBOOK.md) | 任务执行顺序与证据要求 |
+| [Harness patterns README](../../pantheon-harness/patterns/README.md) | 上游方法资产入口 |
+| [Harness core model](../../pantheon-harness/patterns/harness-core-model.md) | 方法核心模型 |
+| [Harness coverage model](../../pantheon-harness/patterns/harness-coverage-model.md) | 方法覆盖检查模型 |
+| [Harness template taxonomy](../../pantheon-harness/patterns/harness-template-taxonomy.md) | 模板分类 |
+| [Tool adapter matrix](../../pantheon-harness/patterns/tool-adapter-matrix.md) | 工具适配能力矩阵 |
+| [Method playbook](../../pantheon-harness/patterns/method-playbook.md) | 上游执行手册 |
+| [Execution guardrails](../../pantheon-harness/patterns/execution-guardrails.md) | 执行安全边界 |
+| [Context engineering protocol](../../pantheon-harness/patterns/context-engineering-protocol.md) | 上下文读取与隐私边界 |
+
 ---
 
 ## 🎯 按版本查看

@@ -17,7 +17,7 @@ English version: [BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./BUSINESS_DEPLOY_MODULE_
 - 视觉 token 数值以 `pantheon-base/docs/designs/THEME_TOKENS_REFERENCE.md` 为准
 - 响应式断点与退化行为以 `pantheon-base/docs/designs/MOBILE_RESPONSIVE_BREAKPOINTS.md` 为准
 
-本文同时吸收 `2026-08-24-ops-v1-freeze-remediation` 的 FZ-01 至 FZ-04 合同。下文标注的 V1 冻结目标不代表已经实现；与历史“第一版”描述冲突时，以冻结目标和 V1 检查表为准。
+本文同时吸收 `.harness/v1.2-docs/V1_FREEZE_REMEDIATION_DEV_PLAN.md` 的 FZ-01 至 FZ-04 合同。下文标注的 V1 冻结目标不代表已经实现；与历史“第一版”描述冲突时，以冻结目标和 V1 检查表为准。
 
 ## 1. 模块概述
 

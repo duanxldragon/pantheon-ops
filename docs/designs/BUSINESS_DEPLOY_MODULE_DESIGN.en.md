@@ -8,7 +8,7 @@ Type: Design
 Layer: `business/deploy`
 Status: Active V1 target; implementation and release remain governed by the freeze checklist
 
-> V1 freeze overlay: SSH Start accepts `CredentialRef` only; component secrets are write-only references; task/host/attempt/step/event/log records are persisted; task transitions use CAS; pause/resume/cancel/retry and worker recovery are required; execution uses registered providers with validated DAG/failure policy; redacted append-only logs stream through authenticated reconnectable SSE. Historical statements below that describe raw credentials, mutable stdout/stderr, polling-first UI, or manual result marking as the V1 completion contract are superseded by the [global functional design](./BUSINESS_FUNCTIONAL_DESIGN.en.md) and [V1 checklist](../V1_RELEASE_CHECKLIST.md).
+> V1 freeze overlay: SSH Start accepts `CredentialRef` only; component secrets are write-only references; task/host/attempt/step/event/log records are persisted; task transitions use CAS; pause/resume/cancel/retry and worker recovery are required; execution uses registered providers with validated DAG/failure policy; redacted append-only logs stream through authenticated reconnectable SSE. Historical statements below that describe raw credentials, mutable stdout/stderr, polling-first UI, or manual result marking as the V1 completion contract are superseded by the [global functional design (Chinese canonical)](./BUSINESS_FUNCTIONAL_DESIGN.md) and [V1 checklist](../V1_RELEASE_CHECKLIST.md).
 
 This document defines the Deploy business module, a peer of `business/cmdb` and `business/bizscope`. It turns software, targets, execution state, and per-host results into traceable deployment tasks and preserves the boundary for later Agent execution.
 

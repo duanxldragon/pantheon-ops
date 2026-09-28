@@ -248,7 +248,7 @@ Executor 统一抽象为 `SSH / Agent / Ansible / Terraform / Helm / GitOps`。H
 
 - 底座（认证/RBAC/审计/加密）与部署引擎仍为真实实现且质量高于平均；K8s 核心集成真实。
 - 新增 P0：恢复可编译（revert 破坏性提交）、下架伪实现、CMDB `UpdateStatus` 绕过 retire 引用检查、业务域删除引用检查不全、backup/cicd 裸路由。
-- 完整评审见《pantheon-ops v1.0 冻结前综合评审报告》（WorkBuddy 会话产出，2026-08-28）；执行顺序见 [V1_FREEZE_REMEDIATION_DEV_PLAN.md](./V1_FREEZE_REMEDIATION_DEV_PLAN.md)；能力地图与 V1 状态见 [BUSINESS_FUNCTIONAL_DESIGN.md](./BUSINESS_FUNCTIONAL_DESIGN.md)。
+- 完整评审见《pantheon-ops v1.0 冻结前综合评审报告》（WorkBuddy 会话产出，2026-08-28）；执行顺序见 [V1 冻结整改计划](../../.harness/v1.2-docs/V1_FREEZE_REMEDIATION_DEV_PLAN.md)；能力地图与 V1 状态见 [BUSINESS_FUNCTIONAL_DESIGN.md](./BUSINESS_FUNCTIONAL_DESIGN.md)。
 
 ### 14.3 流程治理要求（新增）
 

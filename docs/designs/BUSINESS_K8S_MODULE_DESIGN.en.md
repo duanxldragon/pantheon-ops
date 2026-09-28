@@ -3,7 +3,7 @@
 - Updated: 2026-08-24
 - Status: Active; Service CRUD and the external runtime matrix are V1 freeze targets
 
-The [global functional design](./BUSINESS_FUNCTIONAL_DESIGN.en.md) and [V1 checklist](../V1_RELEASE_CHECKLIST.md) govern implementation and release status.
+The [global functional design (Chinese canonical)](./BUSINESS_FUNCTIONAL_DESIGN.md) and [V1 checklist](../V1_RELEASE_CHECKLIST.md) govern implementation and release status.
 
 This document defines the `business/k8s` ownership boundary and delivery
 contract. Authentication, Casbin, DataScope, audit, menus, i18n, and secret

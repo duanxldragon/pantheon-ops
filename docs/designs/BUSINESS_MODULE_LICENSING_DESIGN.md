@@ -3,7 +3,7 @@
 更新时间：2026-08-28
 类型：Design
 归属层：system/config + 全模块
-状态：Draft（v1.1 目标；当前**不存在**任何模块启停与 License 机制，见 `V1_FREEZE_REMEDIATION_DEV_PLAN.md` Phase 3）
+状态：Draft（v1.1 目标；当前**不存在**任何模块启停与 License 机制，见 `.harness/v1.2-docs/V1_FREEZE_REMEDIATION_DEV_PLAN.md` Phase 3）
 
 2026-08-28 评审确认：`capability.go` 是跨模块接口契约（端口/适配器），不是商业开关；模块集合由编译期 overlay（business-overlay.json + 注册表）决定，运行时不可裁剪。本文设计运行时模块启停与 License 校验。
 

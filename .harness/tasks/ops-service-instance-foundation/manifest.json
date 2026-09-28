@@ -2,6 +2,8 @@
   "schemaVersion": 1,
   "taskId": "ops-service-instance-foundation",
   "title": "Add minimal Application, Service, and ServiceInstance foundation",
+  "goal": "Establish the minimum business-owned Application, Service, and ServiceInstance model and consumer linkage.",
+  "primaryLayer": "business/*",
   "status": "complete",
   "priority": "P0-model/P1-delivery",
   "deliveryTier": "L2",
@@ -90,6 +92,8 @@
   "runtimeSensitive": true,
   "costProfile": "very high; architect/strong single owner; isolated UI/test lanes only after schema/API freeze",
   "linkage": {
+    "changeRef": "none",
+    "planRefs": ["docs/harness/tasks/2026-08-17-ops-service-instance-foundation.task.md"],
     "evidenceDir": ".harness/evidence/ops-service-instance-foundation/",
     "reviewFile": ".harness/evidence/ops-service-instance-foundation/review.md",
     "summaryFile": ".harness/evidence/ops-service-instance-foundation/summary.md"

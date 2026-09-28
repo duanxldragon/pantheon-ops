@@ -2,6 +2,8 @@
   "schemaVersion": 1,
   "taskId": "ops-resource-service-state-machines",
   "title": "Separate and enforce Host and ServiceInstance lifecycle state machines",
+  "goal": "Enforce separate Host and ServiceInstance lifecycle state machines and safe state transitions.",
+  "primaryLayer": "business/*",
   "status": "complete",
   "priority": "P0",
   "deliveryTier": "L2",
@@ -90,6 +92,8 @@
   "runtimeSensitive": true,
   "costProfile": "very high; strong single owner for state model; lower-cost UI/test lanes only after transition matrix freeze",
   "linkage": {
+    "changeRef": "none",
+    "planRefs": ["docs/harness/tasks/2026-08-17-ops-resource-service-state-machines.task.md"],
     "evidenceDir": ".harness/evidence/ops-resource-service-state-machines/",
     "reviewFile": ".harness/evidence/ops-resource-service-state-machines/review.md",
     "summaryFile": ".harness/evidence/ops-resource-service-state-machines/summary.md"

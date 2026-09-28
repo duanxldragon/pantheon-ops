@@ -12,7 +12,6 @@ audits/
 └── v1.0/              # V1.0 版本审计归档
     ├── pantheon-ops_v1.0冻结前综合评审报告.md
     ├── pantheon-ops_v1.0业务模块关联性与闭环检查报告.md
-    └── fix-report.md
 ```
 
 ---
@@ -53,17 +52,6 @@ audits/
 - ArgoCD/Velero 已下架，V1.2 重做 ❌
 
 ---
-
-### 修复报告
-**文件**: `v1.0/fix-report.md`  
-**日期**: 2026-08-28  
-**状态**: 已修复  
-
-**修复内容**:
-- CMDB 引用检查 ✅
-- 业务域引用检查 ✅
-- ArgoCD/Velero 下架 ✅
-- 编译门禁通过 ✅
 
 ---
 
@@ -145,8 +133,8 @@ audits/
 3. 重点关注"关键集成缺口"和"缺失闭环补充设计"
 
 ### 对于开发人员
-1. 阅读 [修复报告](./v1.0/fix-report.md) 了解修复内容
-2. 阅读 [闭环检查报告](./v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md) 的"技术根因"章节
+1. 阅读 [闭环检查报告](./v1.0/pantheon-ops_v1.0业务模块关联性与闭环检查报告.md) 的"技术根因"章节
+2. 按 [V1.0 发布检查表](../V1_RELEASE_CHECKLIST.md) 核对当前整改状态
 3. 查看 V1.1/V1.2 的修复方案
 
 ---
@@ -172,7 +160,7 @@ audits/
 ## 🔗 相关链接
 
 - [主文档索引](../README.md)
-- [V1.2 设计文档](../designs/V1.2_COMPLETE_DESIGN.md)
+- [V1.2 设计文档](../../.harness/v1.2-docs/V1.2_COMPLETE_DESIGN.md)
 - [V1.0 发布检查表](../V1_RELEASE_CHECKLIST.md)
 
 ---
