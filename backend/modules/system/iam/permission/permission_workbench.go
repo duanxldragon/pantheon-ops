@@ -1,12 +1,12 @@
 package iam
 
 import (
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"sort"
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"gorm.io/gorm/clause"
 )
@@ -543,11 +543,30 @@ func diffMissingAPIPolicies(required []permissionRequiredAPIPolicy, actual []Per
 	return missing
 }
 
+// RequiredAPIRouteEntry is one "METHOD path" pair required by a permission key.
+type RequiredAPIRouteEntry struct {
+	Method string
+	Path   string
+}
+
+// requiredAPIRoutesByPermission binds permission keys to the API routes the
+// Casbin middleware actually protects for them. It is the single binding
+// source for the workbench remediation flow ("受控补齐" creates policies from
+// these entries).
+//
+// Governance contract:
+//   - Every entry MUST match a route registered on the live engine (path uses
+//     gin :param syntax, same as the route registration).
+//   - Drift is enforced by TestRequiredAPIRoutesExistOnEngine
+//     (permission_workbench_routes_test.go), which builds the real route
+//     table and fails on any stale entry — remediation must never create
+//     policies pointing at routes that do not exist.
+//
 // Entries stay one-line "METHOD path" strings so this data table remains
 // below copy-paste-detection token thresholds.
 var requiredAPIRoutesByPermission = map[string][]string{
 	"system:user:list":                   {"GET /api/v1/system/user/list"},
-	"system:user:create":                 {"POST /api/v1/system/user/create"},
+	"system:user:create":                 {"POST /api/v1/system/user"},
 	"system:security-event:list":         {"GET /api/v1/system/security-event/list"},
 	"system:security-event:acknowledge":  {"POST /api/v1/system/security-event/:id/acknowledge", "POST /api/v1/system/security-event/batch-acknowledge"},
 	"system:security-event:clear":        {"POST /api/v1/system/security-event/cleanup"},
@@ -558,6 +577,21 @@ var requiredAPIRoutesByPermission = map[string][]string{
 	"system:module:purge":                {"DELETE /api/v1/lowcode/dynamic-modules/:name/purge"},
 	"system:module:generate":             {"POST /api/v1/lowcode/dynamic-modules/generate"},
 	"system:generator:datasource:manage": {"POST /api/v1/lowcode/generator/datasources", "PUT /api/v1/lowcode/generator/datasources/:id", "DELETE /api/v1/lowcode/generator/datasources/:id", "POST /api/v1/lowcode/generator/datasources/:id/test"},
+}
+
+// RequiredAPIRoutesByPermission exposes the permission→route binding table for
+// drift checks (tests) without allowing callers to mutate the workbench view.
+func RequiredAPIRoutesByPermission() map[string][]RequiredAPIRouteEntry {
+	out := make(map[string][]RequiredAPIRouteEntry, len(requiredAPIRoutesByPermission))
+	for key, routes := range requiredAPIRoutesByPermission {
+		entries := make([]RequiredAPIRouteEntry, 0, len(routes))
+		for _, route := range routes {
+			method, path, _ := strings.Cut(route, " ")
+			entries = append(entries, RequiredAPIRouteEntry{Method: method, Path: path})
+		}
+		out[key] = entries
+	}
+	return out
 }
 
 func requiredAPIPoliciesByPermissionKey(permissionKey string) []permissionRequiredAPIPolicy {

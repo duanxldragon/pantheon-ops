@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"

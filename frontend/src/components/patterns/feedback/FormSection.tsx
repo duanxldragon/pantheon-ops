@@ -1,18 +1,26 @@
-// FormSection - Shell visual contract compliance
 import React from 'react';
+import { Space, Typography } from '@arco-design/web-react';
 
-export interface FormSectionProps {
-  title?: string;
-  children?: React.ReactNode;
+interface FormSectionProps {
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  children: React.ReactNode;
 }
 
-export const FormSection: React.FC<FormSectionProps> = ({ title, children }) => {
-  return (
-    <div className="form-section">
-      {title && <h3>{title}</h3>}
-      {children}
-    </div>
-  );
-};
+const FormSection: React.FC<FormSectionProps> = ({ title, description, children }) => (
+  <Space direction="vertical" size={12} className="form-section">
+    {title ? (
+      <Space direction="vertical" size={2} className="form-section__header">
+        <Typography.Text className="form-section__title">{title}</Typography.Text>
+        {description ? (
+          <Typography.Text type="secondary" className="form-section__description">
+            {description}
+          </Typography.Text>
+        ) : null}
+      </Space>
+    ) : null}
+    {children}
+  </Space>
+);
 
-export {};
+export default FormSection;

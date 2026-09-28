@@ -131,6 +131,8 @@ If `upload.public_base_url` is configured, it may be used to assemble the final 
 
 ## 6. S3-Compatible Storage Design
 
+Any S3-compatible implementation can be plugged in with zero code changes, purely via the `upload.s3_*` settings. Verified implementations include: AWS S3, MinIO, RustFS, and OSS-compatible gateways. For local development, RustFS or MinIO provide a single-binary S3 API (endpoint like `http://127.0.0.1:9000` — the `http://` prefix is mandatory, otherwise the endpoint is parsed as an HTTPS domain).
+
 ### 6.1 Required Configuration
 
 - endpoint

@@ -104,6 +104,10 @@ const zhCNFallback = {
   'auth.login.consoleTitle': '身份验证',
   'auth.login.securityNotice':
     '请使用管理员分配的账号登录。系统会记录登录时间、设备与来源 IP 用于安全审计。',
+  'auth.login.tenant.title': '选择工作租户',
+  'auth.login.tenant.hint': '该账号属于多个租户，请选择本次登录的工作范围。',
+  'auth.login.tenant.placeholder': '请选择租户',
+  'auth.login.tenant.back': '返回重新输入',
   'auth.login.idleTimeoutNotice': '当前账号因超过会话空闲时长被自动退出，请重新登录继续操作。',
   'auth.login.feature.modules': '模块化单体',
   'auth.login.feature.security': '安全会话',
@@ -1075,7 +1079,6 @@ const zhCNFallback = {
   'generator.wizard.dataScopeMode': '数据权限模式',
   'generator.wizard.dataScopeMode.dept': '部门级',
   'generator.wizard.dataScopeMode.owner': '本人级',
-  'generator.wizard.dataScopeMode.tenant': '租户级',
   'generator.wizard.dataScopeMode.custom': '自定义',
   'generator.wizard.dataScope.enabledTag': '数据权限已启用',
   'generator.wizard.dataScope.disabledTag': '数据权限未启用',
@@ -1833,6 +1836,8 @@ const zhCNFallback = {
   'user.login.error.password_wrong': '用户名或密码错误',
   'user.login.error.disabled': '账号已被禁用，请联系管理员',
   'auth.login.error.source_blocked': '当前来源登录失败次数过多，请稍后再试',
+  'auth.login.error.tenant_forbidden': '当前账号无法登录所选租户，请联系平台管理员',
+  'auth.login.error.tenant_suspended': '所属租户已被停用，请联系平台管理员',
   'user.batch.empty': '请先选择用户',
   'user.batch.not_found': '存在已不存在的用户，请刷新后重试',
   'role.admin.name': '系统管理员',
@@ -2487,6 +2492,8 @@ const zhCNFallback = {
   'system.setting.remark.site.logo': '站点 Logo 地址，允许为空。',
   'system.setting.remark.platform.app_mode':
     'enterprise 面向企业后台；consumer 面向 C 端账号；hybrid 用于同时兼容两类应用。',
+  'system.setting.remark.platform.tenant_mode':
+    'compat 保持单租户行为（默认）；multi 启用租户 canary 切片（字典资源隔离），切换前请阅读租户迁移 Runbook。',
   'system.setting.remark.org.enabled':
     '关闭后导航和用户表单隐藏部门、岗位能力，但不会删除组织数据。',
   'system.setting.remark.org.required_for_user':
@@ -2529,13 +2536,13 @@ const zhCNFallback = {
     '已确认安全事件的自动保留天数。仅清理已确认事件，待确认事件始终保留。默认 180 天。',
   'system.setting.audit.retentionDaysOption': '自动保留 {{count}} 天',
   'system.setting.remark.upload.storage_driver':
-    '当前支持 local / s3-compatible，可接 MinIO、AWS S3、OSS 兼容网关。',
+    '当前支持 local / s3-compatible，可接 RustFS、MinIO、AWS S3、OSS 兼容网关。',
   'system.setting.remark.upload.max_file_size': '单文件最大上传体积，单位 MB。',
   'system.setting.remark.upload.allowed_types': '使用 JSON 数组维护允许上传的扩展名白名单。',
   'system.setting.remark.upload.local_path': '本地存储模式下的上传根目录。',
   'system.setting.remark.upload.public_base_url': '文件对外访问域名或基础路径，可留空。',
   'system.setting.remark.upload.s3_endpoint':
-    '对象存储服务地址，例如 AWS S3 / MinIO / OSS 兼容网关。',
+    '对象存储服务地址，例如 RustFS / AWS S3 / MinIO / OSS 兼容网关。',
   'system.setting.remark.upload.s3_bucket': '对象存储 Bucket 名称。',
   'system.setting.remark.upload.s3_region': '对象存储 Region，默认 us-east-1。',
   'system.setting.remark.upload.s3_access_key_id': '对象存储访问 Key ID，按敏感配置加密保存。',

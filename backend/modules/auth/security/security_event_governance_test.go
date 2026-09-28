@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-base/pkg/testmysql"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 )
 
 func newSecurityEventFixture(t *testing.T) *Service {
@@ -118,7 +118,13 @@ func TestListSecurityEventsAggregates(t *testing.T) {
 	}
 }
 
-func TestEnsureAutomaticSecurityEventRetention(t *testing.T) {
+// TestRunSecurityEventRetention verifies the maintenance entry point for the
+// security-event retention sweep. Throttling/overlap is the maintenance
+// registry's responsibility and is covered in pkg/maintenance, so this only
+// pins the sweep semantics. It also replaces the old read-path assertion: the
+// list handler no longer runs retention at all (task
+// 2026-09-22-request-path-maintenance).
+func TestRunSecurityEventRetention(t *testing.T) {
 	svc := newSecurityEventFixture(t)
 	old := time.Now().AddDate(0, 0, -200)
 	recent := time.Now().Add(-time.Hour)
@@ -133,8 +139,18 @@ func TestEnsureAutomaticSecurityEventRetention(t *testing.T) {
 		Username: "recent-acked", AcknowledgedAt: &recent, CreatedAt: recent,
 	})
 
+	// List is a read path: it must leave every row in place.
+	if _, err := svc.ListSecurityEvents(&SecurityEventQuery{Page: 1, PageSize: 50}); err != nil {
+		t.Fatalf("list security events: %v", err)
+	}
+	if count := countSecurityEvents(t, svc); count != 3 {
+		t.Fatalf("list request must not purge: expected 3 events, got %d", count)
+	}
+
 	// No system_setting table in this fixture: retention falls back to 180 days.
-	svc.ensureAutomaticSecurityEventRetention()
+	if err := svc.RunSecurityEventRetention(); err != nil {
+		t.Fatalf("run security event retention: %v", err)
+	}
 
 	var remaining []uint64
 	if err := svc.db.Model(&SystemAuthSecurityEvent{}).Pluck("id", &remaining).Error; err != nil {
@@ -153,21 +169,13 @@ func TestEnsureAutomaticSecurityEventRetention(t *testing.T) {
 	if !seen[recentAcked] {
 		t.Fatal("acknowledged event within retention must be kept")
 	}
+}
 
-	// Second call within the throttle window must be a no-op even if we age a row.
-	agedAgain := time.Now().AddDate(0, 0, -300)
-	if err := svc.db.Model(&SystemAuthSecurityEvent{}).
-		Where("id = ?", recentAcked).
-		Updates(map[string]any{"created_at": agedAgain, "acknowledged_at": agedAgain}).Error; err != nil {
-		t.Fatalf("age remaining event: %v", err)
-	}
-	svc.ensureAutomaticSecurityEventRetention()
+func countSecurityEvents(t *testing.T, svc *Service) int64 {
+	t.Helper()
 	var count int64
-	if err := svc.db.Model(&SystemAuthSecurityEvent{}).
-		Where("id = ?", recentAcked).Count(&count).Error; err != nil {
-		t.Fatalf("count throttled row: %v", err)
+	if err := svc.db.Model(&SystemAuthSecurityEvent{}).Count(&count).Error; err != nil {
+		t.Fatalf("count security events: %v", err)
 	}
-	if count != 1 {
-		t.Fatal("retention must be throttled: second immediate run should not delete")
-	}
+	return count
 }

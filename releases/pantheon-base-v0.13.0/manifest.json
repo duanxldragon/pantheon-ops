@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "releaseVersion": "pantheon-base-v0.13.0",
+  "releaseStatus": "candidate-not-published",
+  "releaseLine": "release/0.13",
+  "baseCommit": "c4819c7d2514901a26fd780d8cf2f4b8ead095f8",
+  "createdAt": "2026-09-27T00:00:00Z",
+  "sourceRepo": "pantheon-base",
+  "consumerMode": "foundation-release-consumer",
+  "releaseArtifact": {
+    "assetName": "foundation-release-pantheon-base-v0.13.0.tgz"
+  },
+  "repoSnapshot": {
+    "assetName": "repo.tar",
+    "generatedFrom": "git-archive"
+  },
+  "bundleExclusions": [
+    "backend/cmd/server/uploads",
+    "backend/uploads",
+    "uploads"
+  ],
+  "verification": {
+    "summaryFile": "verification-summary.json",
+    "requiredChecks": [
+      "CI Summary",
+      "Quality Gates",
+      "Security Gates",
+      "Actionlint",
+      "Full Smoke",
+      "SonarCloud Code Analysis"
+    ],
+    "localEvidence": "../../.harness/evidence/2026-09-25-task-archiving-and-v0130-prep/"
+  },
+  "consumerCompatibility": {
+    "pantheon-ops": {
+      "minimumCurrentRelease": "release/0.13",
+      "notesFile": "consumer-impact.md"
+    }
+  }
+}

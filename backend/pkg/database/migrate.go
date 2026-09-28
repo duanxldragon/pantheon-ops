@@ -58,9 +58,34 @@ var preModuleRegistrationRuntimeSchemaMarkers = append(
 var currentRuntimeSchemaMarkers = append(
 	[]schemaColumnMarker{
 		{table: "system_module_registration", column: "table_name"},
+		// Migration 000019 adds system_i18n.updated_by. The marker is required:
+		// looksLikeCurrentRuntimeSchema otherwise judges every marker-complete
+		// database as fully current and bootstraps schema_migrations to latest,
+		// which would skip 000019 forever and leave the runtime
+		// "UPDATE system_i18n SET updated_by = ?" failing on every existing DB.
+		// A DB missing this marker fails the current-check, falls through to the
+		// preModuleRegistration check (whose markers it still has) and rewinds to
+		// v7, replaying 8..19 — every file in that window is guarded, with 000012
+		// hardened in the same change precisely because of this replay.
+		{table: "system_i18n", column: "updated_by"},
 	},
 	preModuleRegistrationRuntimeSchemaMarkers...,
 )
+
+// MigrationsHealthy reports whether the startup migration step completed
+// successfully, so the health/readiness endpoint can reflect migration state
+// instead of only process liveness. Checked lazily from the schema_migrations
+// table so restarts and multi-instance deployments stay accurate.
+func MigrationsHealthy(db *gorm.DB) bool {
+	if db == nil {
+		return false
+	}
+	var count int64
+	if err := db.Table(migrationsTableName).Count(&count).Error; err != nil {
+		return false
+	}
+	return count > 0
+}
 
 // RunMigrations executes all pending database migrations.
 // It uses the golang-migrate library with embedded SQL files.

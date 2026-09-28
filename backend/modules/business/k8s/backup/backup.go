@@ -3,8 +3,8 @@ package backup
 import (
 	"context"
 
-	"pantheon-base/modules/business/k8s/cluster"
-	"pantheon-base/modules/business/k8s/namespace"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/namespace"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

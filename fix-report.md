@@ -1,7 +1,7 @@
 # Pantheon Base 代码审查修复报告 (fix-report)
 
 - **日期**: 2026-07-15
-- **审查依据**: `docs/PANTHEON_BASE_CODE_REVIEW_CHECKLIST.md`
+- **审查依据**: `docs/archive/baselines/PANTHEON_BASE_CODE_REVIEW_CHECKLIST.md`（原 `docs/PANTHEON_BASE_CODE_REVIEW_CHECKLIST.md`，已被 `docs/acceptances/CODE_REVIEW_STANDARD.md` 取代）
 - **分支**: `main`（未提交，工作区变更待人工确认后提交）
 - **变更规模**: 40 文件修改 + 4 新增文件，+590 / -150 行
 
@@ -140,6 +140,18 @@ UI 变更说明（impeccable 门禁）：本轮 4 处 CSS 修复均为「硬编�
     新增 `pantheon:sessref:<sessionID>` 反向索引（与 refresh token 同 TTL，轮换时 Set 覆盖指向最新 token）。`RevokeSessionRefresh` 级联删除 token+索引，幂等。接入全部四条吊销路径：logout/管理员强制下线（`RevokeSession`）、用户自助下线（`RevokeOwnedSession`）、批量强制下线（`BatchRevokeSessions`）、改密踢出其他会话（`RevokeOtherSessionsForUser`，事务提交后收集 sessionID 级联）。Redis 删除失败仅记 Warn——DB 侧 `revoked_at` 已生效，refresh 路径仍被 session 状态校验兜底，属双保险而非单点。新增 2 个测试覆盖级联删除、幂等性与轮换后索引指向。
 30. **生成器私网数据源默认拒绝** — `generator_datasource_service.go`、`docs/DEPLOYMENT_GUIDE.md`
     默认值翻转为拒绝 RFC1918 私网地址（SSRF 最小面原则），需 `PANTHEON_GENERATOR_DATASOURCE_ALLOW_PRIVATE=true` 显式放行；环境变量已写入部署指南可选配置表。测试同步更新：默认拒绝 + opt-in 放行两个用例。
+
+### 关闭状态（2026-09-24 更新）
+
+| # | 人工介入项 | 状态 | 关闭依据 |
+| --- | --- | --- | --- |
+| 1 | 【P1-架构】`business/*` 边界静态阻断门禁 | ✅ 已关闭 | `2026-09-22-layer-boundary-gate`：`ci.yml:389` 以 `check-boundaries --strict --repo pantheon-base --baseline config/boundary-baseline.json` 阻断，stale 基线条目同镜失败；depguard 由 `check-boundaries` 的 import 规则替代 |
+| 2 | 【P1-产品】生产 `mfa_enabled=1` 部署基线 | ✅ 已关闭 | `2026-09-24-fix-report-residual-closeout`：`docs/DEPLOYMENT_GUIDE.md` 第 4 节将 `login.mfa_enabled=true` 列为生产必选项，第 7 节发布验证新增第 9 项强制核验；种子默认 `false` 保留给开发环境 |
+| 3 | 【P2-工程】测试覆盖率门禁 | ✅ 已关闭 | `ci.yml:431` `check-coverage.mjs --threshold 50`（2026-09-10 对账 DB-backed 55.6% 后设定，实测 overall 56.0%） |
+| 4 | 【P2-工程】四主题截图基线 | ✅ 已关闭 | `2026-09-24-fix-report-residual-closeout`：`frontend/tests/visual/theme-baseline.spec.ts` 覆盖 indigo/emerald/violet/slate 四主题登录页截图基线；2026-09-24 维护者触点③验收通过（`.harness/evidence/2026-09-24-fix-report-residual-closeout/visual-acceptance.md`） |
+| 5 | 【P3-治理】`system_i18n` 无 `updated_by` | ✅ 已关闭 | `2026-09-24-fix-report-residual-closeout`：迁移 `000019_i18n_updated_by`（含 `currentRuntimeSchemaMarkers` 接入与 `000012` 回放幂等加固）+ 模型/响应字段 + Create/Update/Import/SyncMissingKeys 审计写入 + DB 测试 |
+
+逐项证据见 `.harness/evidence/2026-09-24-fix-report-residual-closeout/`。
 
 ### 建议 roadmap
 

@@ -1,0 +1,20 @@
+.profile-center-page__stack {
+  width: 100%;
+  max-width: 1040px;
+  margin-inline: auto;
+}
+
+.profile-center-page__hero .arco-card-body {
+  padding-block: 18px;
+}
+
+.profile-center-page__hero .arco-descriptions {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .profile-center-page__stack {
+    width: 100%;
+    max-width: none;
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "ops-dashboard-undefined-vars": {
+    "varColorFillBg": "(empty)",
+    "varColorFillBg1": "(empty)",
+    "varColorFillBg3": "(empty)",
+    "dashboardEl": "[object SVGAnimatedString]",
+    "dashboardBgImage": "none",
+    "dashboardBgColor": "rgba(0, 0, 0, 0)"
+  },
+  "ops-user-filter-ui": {
+    "hasSearchToolbar": false,
+    "hasFilterPanel": true,
+    "explicitSearchButtons": [
+      "收起",
+      "搜索",
+      "重置"
+    ]
+  },
+  "ops-dark-mode-available": {
+    "bodyBgWithDarkAttr": "rgb(247, 248, 250)",
+    "appBgVarWithDarkAttr": "#f7f8fa"
+  }
+}

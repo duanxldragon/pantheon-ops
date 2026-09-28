@@ -11,16 +11,16 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-base/internal/middleware"
-	auditmod "pantheon-base/modules/system/audit"
-	settingmod "pantheon-base/modules/system/config/setting"
-	rolemod "pantheon-base/modules/system/iam/role"
-	user "pantheon-base/modules/system/iam/user"
-	"pantheon-base/pkg/authtoken"
-	"pantheon-base/pkg/contracts"
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/testmysql"
-	"pantheon-base/pkg/testredis"
+	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
+	auditmod "github.com/duanxldragon/pantheon-base/backend/modules/system/audit"
+	settingmod "github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
+	rolemod "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/role"
+	user "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testredis"
 
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
@@ -59,6 +59,19 @@ func seedSettings(t *testing.T, db *gorm.DB, values map[string]string) {
 	}
 }
 
+func createPasswordUser(t *testing.T, db *gorm.DB, username, password string) user.SystemUser {
+	t.Helper()
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		t.Fatalf("hash test password: %v", err)
+	}
+	testUser := user.SystemUser{Username: username, Password: string(hash), Status: 1}
+	if err := db.Create(&testUser).Error; err != nil {
+		t.Fatalf("seed user: %v", err)
+	}
+	return testUser
+}
+
 func boolPtr(value bool) *bool {
 	return &value
 }
@@ -76,16 +89,10 @@ func setupTestRedis(t *testing.T) *redis.Client {
 
 func TestRuntime_MFAChallengeSetupAndVerify(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 	setupTestRedis(t)
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "mfa_user",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	testUser := createPasswordUser(t, db, "mfa_user", "123456")
 	seedSettings(t, db, map[string]string{"login.mfa_enabled": "true"})
 	_ = s.ReloadSettings()
 
@@ -127,19 +134,13 @@ func TestRuntime_MFAChallengeSetupAndVerify(t *testing.T) {
 
 func TestRuntime_MFARejectsInvalidCode(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "mfa_invalid_user",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	testUser := createPasswordUser(t, db, "mfa_invalid_user", "123456")
 	seedSettings(t, db, map[string]string{"login.mfa_enabled": "true"})
 	_ = s.ReloadSettings()
 
-	challenge, err := s.CreateMFAChallenge(&testUser)
+	challenge, err := s.CreateMFAChallenge(loadAuthUser(t, db, testUser.ID))
 	if err != nil {
 		t.Fatalf("create mfa challenge: %v", err)
 	}
@@ -157,7 +158,7 @@ func TestRuntime_ReloadsMFASettingAfterSettingUpdate(t *testing.T) {
 		t.Fatalf("migrate setting: %v", err)
 	}
 
-	authSvc := NewRuntime(db)
+	authSvc := NewRuntime(db, testCredentialRepo(db))
 	if authSvc.getAuthRuntimePolicy().MFAEnabled {
 		t.Fatalf("expected MFA to start disabled")
 	}
@@ -177,18 +178,10 @@ func TestRuntime_ReloadsMFASettingAfterSettingUpdate(t *testing.T) {
 
 func TestRuntime_Authenticate(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
 	password := "123456"
-	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-
-	// 创建测试用户
-	testUser := user.SystemUser{
-		Username: "testuser",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	testUser := createPasswordUser(t, db, "testuser", password)
 
 	// 1. 成功登录
 	u, err := s.Authenticate(&LoginReq{
@@ -233,15 +226,9 @@ func TestRuntime_Authenticate(t *testing.T) {
 
 func TestRuntime_AuthenticateTrimsUsername(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "trim_user",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	createPasswordUser(t, db, "trim_user", "123456")
 
 	u, err := s.Authenticate(&LoginReq{
 		Username: "  trim_user  ",
@@ -257,16 +244,10 @@ func TestRuntime_AuthenticateTrimsUsername(t *testing.T) {
 
 func TestRuntime_VerifyPasswordForOperationBindsSession(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 	rdb := setupTestRedis(t)
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "verify_user",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	testUser := createPasswordUser(t, db, "verify_user", "123456")
 
 	token, err := s.VerifyPasswordForOperation(testUser.ID, "session-verify-1", "123456")
 	if err != nil {
@@ -286,18 +267,11 @@ func TestRuntime_VerifyPasswordForOperationBindsSession(t *testing.T) {
 
 func TestRuntime_UpdatePassword(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
 	oldPassword := "oldpassword"
 	newPassword := "newpassword"
-	hash, _ := bcrypt.GenerateFromPassword([]byte(oldPassword), bcrypt.DefaultCost)
-
-	testUser := user.SystemUser{
-		Username: "testpwd",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	testUser := createPasswordUser(t, db, "testpwd", oldPassword)
 
 	// 1. 成功修改密码
 	err := s.UpdatePassword(testUser.ID, "session123", &PasswordUpdateReq{
@@ -346,15 +320,9 @@ func TestRuntime_UpdatePassword(t *testing.T) {
 
 func TestRuntime_AuthenticateLocksUserByConfiguredPolicy(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "locked_user",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	testUser := createPasswordUser(t, db, "locked_user", "123456")
 	seedSettings(t, db, map[string]string{
 		"login.max_failed_attempts": "2",
 		"login.lock_minutes":        "10",
@@ -381,15 +349,9 @@ func TestRuntime_AuthenticateLocksUserByConfiguredPolicy(t *testing.T) {
 
 func TestRuntime_LoginWithSourceBlocksSourceAfterConfiguredFailures(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "source_locked_user",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	createPasswordUser(t, db, "source_locked_user", "123456")
 	seedSettings(t, db, map[string]string{
 		"login.source_max_failed_attempts": "2",
 		"login.source_window_minutes":      "15",
@@ -413,15 +375,9 @@ func TestRuntime_LoginWithSourceBlocksSourceAfterConfiguredFailures(t *testing.T
 
 func TestRuntime_LoginWithSourceRecordsSecurityEventWhenSourceBlocked(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "risk_user",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	createPasswordUser(t, db, "risk_user", "123456")
 	seedSettings(t, db, map[string]string{
 		"login.source_max_failed_attempts": "1",
 		"login.source_window_minutes":      "15",
@@ -453,15 +409,9 @@ func TestRuntime_LoginWithSourceRecordsSecurityEventWhenSourceBlocked(t *testing
 
 func TestRuntime_LoginWithSourceRecordsSecurityEventWhenPasswordWrong(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "wrong_password_user",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	createPasswordUser(t, db, "wrong_password_user", "123456")
 	_ = s.ReloadSettings()
 
 	_, err := s.LoginWithSource(&LoginReq{Username: "wrong_password_user", Password: "wrong"}, "ip:10.0.0.8")
@@ -491,7 +441,7 @@ func TestRuntime_LoginWithSourceRecordsSecurityEventWhenPasswordWrong(t *testing
 
 func TestRuntime_AcknowledgeSecurityEventPersistsAuditFields(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
 	event := SystemAuthSecurityEvent{
 		UserID:     11,
@@ -529,15 +479,9 @@ func TestRuntime_AcknowledgeSecurityEventPersistsAuditFields(t *testing.T) {
 
 func TestRuntime_UpdatePasswordUsesConfiguredMinLength(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("oldpassword"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "policy_user",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	testUser := createPasswordUser(t, db, "policy_user", "oldpassword")
 	seedSettings(t, db, map[string]string{"security.password_min_length": "8"})
 	_ = s.ReloadSettings()
 
@@ -552,15 +496,9 @@ func TestRuntime_UpdatePasswordUsesConfiguredMinLength(t *testing.T) {
 
 func TestRuntime_UpdatePasswordUsesConfiguredComplexity(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("oldpassword"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "complexity_user",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	testUser := createPasswordUser(t, db, "complexity_user", "oldpassword")
 	seedSettings(t, db, map[string]string{
 		"security.password_require_digit":     "true",
 		"security.password_require_uppercase": "true",
@@ -586,15 +524,9 @@ func TestRuntime_UpdatePasswordUsesConfiguredComplexity(t *testing.T) {
 
 func TestRuntime_UpdatePasswordRejectsRecentPasswordReuse(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("oldpassword"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "history_user",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	testUser := createPasswordUser(t, db, "history_user", "oldpassword")
 	seedSettings(t, db, map[string]string{"security.password_history_limit": "2"})
 	_ = s.ReloadSettings()
 
@@ -613,17 +545,12 @@ func TestRuntime_UpdatePasswordRejectsRecentPasswordReuse(t *testing.T) {
 
 func TestRuntime_UpdateCurrentUserPreferencesReturnsNormalizedPayload(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username:       "preference_user",
-		Password:       string(hash),
-		Status:         1,
-		PreferenceJSON: `{"theme":"emerald","layout":"vertical","lang":"zh-CN"}`,
-	}
-	if err := db.Create(&testUser).Error; err != nil {
-		t.Fatalf("seed user: %v", err)
+	testUser := createPasswordUser(t, db, "preference_user", "123456")
+	testUser.PreferenceJSON = `{"theme":"emerald","layout":"vertical","lang":"zh-CN"}`
+	if err := db.Save(&testUser).Error; err != nil {
+		t.Fatalf("update user preferences: %v", err)
 	}
 
 	result, err := s.UpdateCurrentUserPreferences(testUser.ID, &UserPlatformPreferenceUpdateReq{
@@ -656,7 +583,7 @@ func TestRuntime_UpdateCurrentUserPreferencesReturnsNormalizedPayload(t *testing
 
 func TestRuntime_CleanupLoginLogsUsesConfiguredRetentionOptions(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
 	now := time.Now().UTC()
 	if err := db.Create(&[]SystemLogLogin{
@@ -683,7 +610,7 @@ func TestRuntime_CleanupLoginLogsUsesConfiguredRetentionOptions(t *testing.T) {
 
 func TestRuntime_CleanupLoginLogsSupportsExplicitTimeRange(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
 	now := time.Now().UTC()
 	inRange := now.Add(-4 * time.Hour)
@@ -704,9 +631,12 @@ func TestRuntime_CleanupLoginLogsSupportsExplicitTimeRange(t *testing.T) {
 	}
 }
 
-func TestRuntime_ListLoginLogsAppliesAutomaticRetention(t *testing.T) {
+// TestRuntime_ListLoginLogsDoesNotPurge pins the request-path contract of task
+// 2026-09-22-request-path-maintenance: listing login logs must not delete
+// anything, even when expired rows are present.
+func TestRuntime_ListLoginLogsDoesNotPurge(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
 	seedSettings(t, db, map[string]string{"audit.login_log_retention_days": "3"})
 	_ = s.ReloadSettings()
@@ -723,14 +653,54 @@ func TestRuntime_ListLoginLogsAppliesAutomaticRetention(t *testing.T) {
 	if err != nil {
 		t.Fatalf("list login logs: %v", err)
 	}
+	if resp.Total != 2 {
+		t.Fatalf("list request must not purge: expected both logs, got total=%d", resp.Total)
+	}
+
+	var remaining int64
+	if err := db.Model(&SystemLogLogin{}).Count(&remaining).Error; err != nil {
+		t.Fatalf("count login logs: %v", err)
+	}
+	if remaining != 2 {
+		t.Fatalf("list request purged login logs: %d rows left", remaining)
+	}
+}
+
+// TestRuntime_RunLoginLogRetentionDeletesExpiredAndReports verifies the
+// maintenance entry point still enforces the configured retention window.
+func TestRuntime_RunLoginLogRetentionDeletesExpiredAndReports(t *testing.T) {
+	db := setupTestDB(t)
+	s := NewRuntime(db, testCredentialRepo(db))
+
+	seedSettings(t, db, map[string]string{"audit.login_log_retention_days": "3"})
+	if err := s.ReloadSettings(); err != nil {
+		t.Fatalf("reload settings: %v", err)
+	}
+
+	now := time.Now().UTC()
+	if err := db.Create(&[]SystemLogLogin{
+		{Username: "legacy-user", Status: 1, LoginTime: now.AddDate(0, 0, -10)},
+		{Username: "recent-user", Status: 1, LoginTime: now.AddDate(0, 0, -1)},
+	}).Error; err != nil {
+		t.Fatalf("seed login logs: %v", err)
+	}
+
+	if err := s.loginSvc.RunLoginLogRetention(); err != nil {
+		t.Fatalf("run login log retention: %v", err)
+	}
+
+	resp, err := s.ListLoginLogs(&LoginLogQuery{Page: 1, PageSize: 10})
+	if err != nil {
+		t.Fatalf("list login logs: %v", err)
+	}
 	if resp.Total != 1 || len(resp.Items) != 1 || resp.Items[0].Username != "recent-user" {
-		t.Fatalf("expected only retained login log, got %+v", resp)
+		t.Fatalf("expected only retained login log after maintenance, got %+v", resp)
 	}
 }
 
 func TestRuntime_CleanupHistoricSessionsUsesConfiguredRetentionOptions(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 	now := time.Now().UTC()
 	oldRevokedAt := now.AddDate(0, 0, -12)
 	recentRevokedAt := now.AddDate(0, 0, -2)
@@ -777,7 +747,7 @@ func TestRuntime_CleanupHistoricSessionsUsesConfiguredRetentionOptions(t *testin
 
 func TestRuntime_CleanupHistoricSessionsSupportsExplicitTimeRange(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 	now := time.Now().UTC()
 	oldRevokedAt := now.Add(-48 * time.Hour)
 	recentRevokedAt := now.Add(-2 * time.Hour)
@@ -818,7 +788,7 @@ func TestRuntime_CleanupHistoricSessionsSupportsExplicitTimeRange(t *testing.T) 
 
 func TestRuntime_BatchRevokeSessionsSkipsCurrentSessionBoundary(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 	now := time.Now().UTC()
 	testUser := user.SystemUser{Username: "batch-revoke-user", Status: 1}
 	if err := db.Create(&testUser).Error; err != nil {
@@ -869,7 +839,7 @@ func TestRuntime_BatchRevokeSessionsSkipsCurrentSessionBoundary(t *testing.T) {
 
 func TestRuntime_ListSessionsOnlyReturnsActiveSessions(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 	now := time.Now()
 	revokedAt := now.Add(-time.Hour)
 
@@ -928,7 +898,7 @@ func TestRuntime_ListSessionsOnlyReturnsActiveSessions(t *testing.T) {
 
 func TestRuntime_TouchSessionActivityUpdatesSanitizedFields(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
 	session := SystemUserSession{
 		SessionID:        "touch-session",
@@ -962,16 +932,13 @@ func TestRuntime_TouchSessionActivityUpdatesSanitizedFields(t *testing.T) {
 
 func TestRuntime_GetSecurityOverviewIncludesRuntimePolicy(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("12345678"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "security_user",
-		Nickname: "Security User",
-		Password: string(hash),
-		Status:   1,
+	testUser := createPasswordUser(t, db, "security_user", "12345678")
+	testUser.Nickname = "Security User"
+	if err := db.Save(&testUser).Error; err != nil {
+		t.Fatalf("update test user: %v", err)
 	}
-	db.Create(&testUser)
 
 	now := time.Now()
 	if err := db.Create(&SystemUserSession{
@@ -1027,15 +994,9 @@ func TestRuntime_GetSecurityOverviewIncludesRuntimePolicy(t *testing.T) {
 
 func TestRuntime_GetSecurityOverviewReportsPasswordExpiration(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("12345678"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "expired_password_user",
-		Password: string(hash),
-		Status:   1,
-	}
-	db.Create(&testUser)
+	testUser := createPasswordUser(t, db, "expired_password_user", "12345678")
 	changedAt := time.Now().AddDate(0, 0, -40)
 	if err := db.Create(&SystemUserPasswordHistory{
 		UserID:       testUser.ID,
@@ -1061,7 +1022,7 @@ func TestRuntime_GetSecurityOverviewReportsPasswordExpiration(t *testing.T) {
 
 func TestRuntime_ListAllSessionsSupportsAdminFilters(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 	now := time.Now()
 	revokedAt := now.Add(-30 * time.Minute)
 
@@ -1138,9 +1099,12 @@ func TestRuntime_ListAllSessionsSupportsAdminFilters(t *testing.T) {
 	}
 }
 
-func TestRuntime_ListAllSessionsCleansExpiredAndIdleSessions(t *testing.T) {
+// TestRuntime_MaintenanceCleansExpiredAndIdleSessions pins that expired and
+// idle sessions are revoked by the maintenance entry point, not by the admin
+// session list (task 2026-09-22-request-path-maintenance).
+func TestRuntime_MaintenanceCleansExpiredAndIdleSessions(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 	now := time.Now()
 
 	seedSettings(t, db, map[string]string{"login.session_idle_minutes": "30"})
@@ -1190,12 +1154,25 @@ func TestRuntime_ListAllSessionsCleansExpiredAndIdleSessions(t *testing.T) {
 		t.Fatalf("seed sessions: %v", err)
 	}
 
+	// Read path: the list must not revoke anything.
 	resp, err := s.ListAllSessions(&AdminSessionQuery{Page: 1, PageSize: 20})
 	if err != nil {
 		t.Fatalf("list all sessions: %v", err)
 	}
+	if resp.ActiveCount != 3 || resp.RevokedCount != 0 {
+		t.Fatalf("list request must not clean sessions, got active=%d revoked=%d", resp.ActiveCount, resp.RevokedCount)
+	}
+
+	// Maintenance entry point performs the sweep.
+	if err := s.sessionSvc.RunSessionInventoryGovernance(); err != nil {
+		t.Fatalf("run session inventory governance: %v", err)
+	}
+	resp, err = s.ListAllSessions(&AdminSessionQuery{Page: 1, PageSize: 20})
+	if err != nil {
+		t.Fatalf("list all sessions after governance: %v", err)
+	}
 	if resp.ActiveCount != 1 || resp.RevokedCount != 2 {
-		t.Fatalf("expected active=1 revoked=2, got active=%d revoked=%d", resp.ActiveCount, resp.RevokedCount)
+		t.Fatalf("expected active=1 revoked=2 after maintenance, got active=%d revoked=%d", resp.ActiveCount, resp.RevokedCount)
 	}
 
 	var revokedRows int64
@@ -1211,19 +1188,11 @@ func TestRuntime_ListAllSessionsCleansExpiredAndIdleSessions(t *testing.T) {
 
 func TestRuntime_CreateSessionRevokesOlderActiveSessionsByConfiguredLimit(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 	setupTestRedis(t)
 	now := time.Now()
 
-	hash, _ := bcrypt.GenerateFromPassword([]byte("12345678"), bcrypt.DefaultCost)
-	testUser := user.SystemUser{
-		Username: "single-session-user",
-		Password: string(hash),
-		Status:   1,
-	}
-	if err := db.Create(&testUser).Error; err != nil {
-		t.Fatalf("seed user: %v", err)
-	}
+	testUser := createPasswordUser(t, db, "single-session-user", "12345678")
 	seedSettings(t, db, map[string]string{
 		"login.max_active_sessions_per_user": "1",
 		"audit.session_retention_days":       "90",
@@ -1278,9 +1247,12 @@ func TestRuntime_CreateSessionRevokesOlderActiveSessionsByConfiguredLimit(t *tes
 	}
 }
 
-func TestRuntime_ListAllSessionsPurgesHistoricSessions(t *testing.T) {
+// TestRuntime_ListAllSessionsDoesNotPurgeHistoricSessions pins the read-path
+// contract: the admin session list must not run the inventory sweep, and the
+// maintenance entry point must still purge expired history.
+func TestRuntime_ListAllSessionsDoesNotPurgeHistoricSessions(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 	now := time.Now()
 	oldRevokedAt := now.AddDate(0, 0, -120)
 
@@ -1318,8 +1290,12 @@ func TestRuntime_ListAllSessionsPurgesHistoricSessions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("list sessions: %v", err)
 	}
-	if resp.Total != 1 || resp.ActiveCount != 1 {
-		t.Fatalf("expected only current active session to remain, got total=%d active=%d", resp.Total, resp.ActiveCount)
+	// Both rows are visible: the read path must not have purged the historic
+	// revoked session (acceptance: list requests do not purge). The default
+	// admin scope still reports exactly one active session.
+	if resp.Total != 2 || resp.ActiveCount != 1 || resp.RevokedCount != 1 {
+		t.Fatalf("list request unexpectedly mutated inventory, got total=%d active=%d revoked=%d",
+			resp.Total, resp.ActiveCount, resp.RevokedCount)
 	}
 
 	var historicCount int64
@@ -1328,14 +1304,27 @@ func TestRuntime_ListAllSessionsPurgesHistoricSessions(t *testing.T) {
 		Count(&historicCount).Error; err != nil {
 		t.Fatalf("count historic session: %v", err)
 	}
+	if historicCount != 1 {
+		t.Fatalf("list request must not purge historic sessions, got %d rows", historicCount)
+	}
+
+	// The maintenance entry point still enforces retention.
+	if err := s.sessionSvc.RunSessionInventoryGovernance(); err != nil {
+		t.Fatalf("run session inventory governance: %v", err)
+	}
+	if err := db.Model(&SystemUserSession{}).
+		Where("session_id = ?", "historic-revoked").
+		Count(&historicCount).Error; err != nil {
+		t.Fatalf("count historic session after governance: %v", err)
+	}
 	if historicCount != 0 {
-		t.Fatalf("expected historic revoked session to be purged, got %d", historicCount)
+		t.Fatalf("maintenance must purge historic revoked session, got %d", historicCount)
 	}
 }
 
 func TestRuntime_CleanupHistoricSessionsDeletesRevokedHistoryOnly(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 	now := time.Now()
 	revokedAt := now.AddDate(0, 0, -2)
 
@@ -1383,7 +1372,7 @@ func TestRuntime_CleanupHistoricSessionsDeletesRevokedHistoryOnly(t *testing.T) 
 
 func TestRuntime_ExportLoginLogs(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
 	if err := db.Create(&SystemLogLogin{
 		Username:  "tester",
@@ -1408,7 +1397,7 @@ func TestRuntime_ExportLoginLogs(t *testing.T) {
 
 func TestRuntime_ExportLoginLogsCapsRows(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
 	rows := make([]SystemLogLogin, 0, maxLoginLogExportRows+1)
 	now := time.Now()
@@ -1457,7 +1446,7 @@ func TestAuditService_ExportOperationLogs(t *testing.T) {
 		t.Fatalf("seed operation log: %v", err)
 	}
 
-	exported, err := s.ExportOperationLogs(&auditmod.OperationLogQuery{Title: "导出用户"})
+	exported, err := s.ExportOperationLogs(&auditmod.OperationLogQuery{Title: "导出用户"}, nil)
 	if err != nil {
 		t.Fatalf("export operation logs: %v", err)
 	}

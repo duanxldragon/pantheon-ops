@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"pantheon-base/pkg/authtoken"
-	"pantheon-base/pkg/common"
-	commonhttp "pantheon-base/pkg/common/http"
-	"pantheon-base/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	commonhttp "github.com/duanxldragon/pantheon-base/backend/pkg/common/http"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -98,18 +98,7 @@ var (
 
 // extractToken extracts the access token from Authorization header or cookie.
 func extractToken(c *gin.Context) string {
-	if token, err := c.Cookie(commonhttp.CookieAccessToken); err == nil && token != "" {
-		return token
-	}
-	authHeader := c.GetHeader("Authorization")
-	if authHeader == "" {
-		return ""
-	}
-	parts := strings.SplitN(authHeader, " ", 2)
-	if len(parts) != 2 || parts[0] != "Bearer" {
-		return ""
-	}
-	return parts[1]
+	return commonhttp.ExtractAccessToken(c.Request)
 }
 
 // resolveTokenSession 解析 token 对应的会话：优先命中本地缓存（未过期），
@@ -135,7 +124,10 @@ func resolveTokenSession(ctx context.Context, c *gin.Context, rdb *redis.Client,
 	return sessionData, false
 }
 
-// checkTokenBlacklist 检查用户是否被强制拉黑；命中则直接 401 中断并返回 true。
+// checkTokenBlacklist 检查用户是否被强制拉黑，以及会话是否被管理员/属主撤销；
+// 命中任一黑名单则直接 401 中断并返回 true。会话黑名单覆盖撤销后 access token
+// 仍在 TTL 内可用的窗口，错误时不放行（Redis 异常按 token.invalid 处理），
+// 不允许静默形成安全假象。
 func checkTokenBlacklist(ctx context.Context, c *gin.Context, rdb *redis.Client, token string, sessionData *authtoken.SessionData) bool {
 	if rdb == nil {
 		return false
@@ -143,6 +135,24 @@ func checkTokenBlacklist(ctx context.Context, c *gin.Context, rdb *redis.Client,
 	blacklistKey := authtoken.BlacklistUserKey(sessionData.UserID)
 	val, err := rdb.Get(ctx, blacklistKey).Result()
 	if err == nil && val != "" {
+		invalidateTokenSessionCache(token)
+		common.Fail(c, common.CodeUnauthorized, "token.expired.force")
+		c.Abort()
+		return true
+	}
+	sessionBlacklistKey := authtoken.BlacklistSessionKey(sessionData.SessionID)
+	val, err = rdb.Get(ctx, sessionBlacklistKey).Result()
+	if err == redis.Nil {
+		return false
+	}
+	if err != nil {
+		// Redis 故障时按无效 token 处理，禁止因基础设施错误旁路撤销语义。
+		invalidateTokenSessionCache(token)
+		common.Fail(c, common.CodeUnauthorized, "token.invalid")
+		c.Abort()
+		return true
+	}
+	if val != "" {
 		invalidateTokenSessionCache(token)
 		common.Fail(c, common.CodeUnauthorized, "token.expired.force")
 		c.Abort()
@@ -185,6 +195,11 @@ func applyTokenContext(c *gin.Context, sessionData *authtoken.SessionData) {
 	c.Set("username", sessionData.Username)
 	c.Set("roleKeys", sessionData.RoleKeys)
 	c.Set("sessionId", sessionData.SessionID)
+	// Trusted tenant claim from the auth session (contract §3.1 source 2).
+	// 0 = no claim (compat population / platform-only user); the tenant
+	// middleware resolves it after this middleware. Sessions issued before
+	// the claim existed decode as 0 — deny-by-default covers multi mode.
+	c.Set("tenantId", sessionData.TenantID)
 	if len(sessionData.RoleKeys) > 0 {
 		c.Set("roleKey", sessionData.RoleKeys[0])
 	}

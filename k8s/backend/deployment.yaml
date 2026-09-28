@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pantheon-backend
+  namespace: pantheon
+  labels:
+    app: pantheon-backend
+    component: backend
+    version: v1
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: pantheon-backend
+  template:
+    metadata:
+      labels:
+        app: pantheon-backend
+        component: backend
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Pod 不调用 Kubernetes API，禁用 service account token 自动挂载
+      # (SonarCloud kubernetes:S6865)。
+      automountServiceAccountToken: false
+      containers:
+      - name: backend
+        image: ghcr.io/duanxldragon/pantheon-base/backend:v0.12.0 # SonarCloud kubernetes:S6596: 禁用 latest 标签
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        envFrom:
+        - configMapRef:
+            name: pantheon-config
+        - secretRef:
+            name: pantheon-secret
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+            # SonarCloud kubernetes:S6897: 容器需声明存储请求。
+            ephemeral-storage: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 10"]
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      # Optional: Node affinity for specific node pools
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: workload-type
+      #           operator: In
+      #           values:
+      #           - app

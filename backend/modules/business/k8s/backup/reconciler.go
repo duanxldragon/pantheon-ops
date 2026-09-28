@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"pantheon-base/modules/business/k8s/cluster"
-	"pantheon-base/pkg/logging"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
 	"go.uber.org/zap"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

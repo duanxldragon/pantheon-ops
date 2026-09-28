@@ -1,17 +1,24 @@
-// PageError - Shell visual contract compliance
-import { Result } from '@arco-design/web-react';
 import React from 'react';
+import { Button, Result } from '@arco-design/web-react';
+import { useTranslation } from 'react-i18next';
 
-export interface PageErrorProps {
-  message?: string;
+interface PageErrorProps {
+  description?: React.ReactNode;
+  onRetry?: () => void;
 }
 
-export const PageError: React.FC<PageErrorProps> = ({ message = '加载失败' }) => {
+const PageError: React.FC<PageErrorProps> = ({ description, onRetry }) => {
+  const { t } = useTranslation();
+
   return (
-    <div className="page-result">
-      <Result status="error" title={message} />
-    </div>
+    <Result
+      className="page-result"
+      status="error"
+      title={t('common.loadFailed')}
+      subTitle={description || t('common.loadFailedDesc')}
+      extra={onRetry ? <Button onClick={onRetry}>{t('common.retry')}</Button> : null}
+    />
   );
 };
 
-export {};
+export default PageError;

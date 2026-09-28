@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/authtoken"
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -27,6 +27,7 @@ type IdentityProvider interface {
 // SessionCreator abstracts session creation after MFA verification.
 type SessionCreator interface {
 	CreateSessionWithContext(ctx context.Context, userID uint64, roles []string, ip, userAgent string) (*authtoken.Pair, error)
+	CreateSessionForTenantWithContext(ctx context.Context, userID uint64, roles []string, ip, userAgent string, tenantChoice uint64) (*authtoken.Pair, error)
 }
 
 // MFAVerifyResult is the result of a successful MFA challenge verification.
@@ -47,6 +48,10 @@ type MFAVerifyResult struct {
 type MFAVerifyReq struct {
 	ChallengeID string `json:"challengeId" binding:"required"`
 	Code        string `json:"code" binding:"required"`
+	// TenantId carries the explicit tenant choice through the MFA challenge
+	// (slice 2: multi-membership login). 0 = auto-discovery. The choice is
+	// validated by the session-issuance gate regardless of source.
+	TenantId uint64 `json:"tenantId" binding:"omitempty,min=1"`
 }
 
 // MFAChallengeResp is the response when MFA is required before session creation.
@@ -57,6 +62,7 @@ type MFAChallengeResp struct {
 	TOTPSecret       string `json:"totpSecret,omitempty"`
 	TOTPProvisionURI string `json:"totpProvisionUri,omitempty"`
 	ExpiresAt        string `json:"expiresAt"`
+	TenantId         uint64 `json:"tenantId,omitempty"`
 }
 
 // Service handles TOTP MFA challenge lifecycle.
@@ -74,6 +80,12 @@ func NewService(db *gorm.DB, policy PolicyProvider, creator SessionCreator, iden
 
 // CreateChallenge initiates an MFA challenge for a user.
 func (s *Service) CreateChallenge(currentUser *UserRecord) (*MFAChallengeResp, error) {
+	return s.CreateChallengeForTenant(currentUser, 0)
+}
+
+// CreateChallengeForTenant issues an MFA challenge bound to the given tenant
+// (tenantID 0 = compat/global).
+func (s *Service) CreateChallengeForTenant(currentUser *UserRecord, tenantID uint64) (*MFAChallengeResp, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
@@ -108,6 +120,7 @@ func (s *Service) CreateChallenge(currentUser *UserRecord) (*MFAChallengeResp, e
 	challenge := SystemAuthMFAChallenge{
 		ChallengeID:     uuid.NewString(),
 		UserID:          currentUser.ID,
+		TenantID:        tenantID,
 		Purpose:         "login",
 		SecretEncrypted: encryptedSecret,
 		SetupRequired:   boolToInt(setupRequired),
@@ -122,6 +135,7 @@ func (s *Service) CreateChallenge(currentUser *UserRecord) (*MFAChallengeResp, e
 		ChallengeID:   challenge.ChallengeID,
 		SetupRequired: setupRequired,
 		ExpiresAt:     expiresAt.Format(time.RFC3339),
+		TenantId:      tenantID,
 	}
 	if setupRequired {
 		resp.TOTPSecret = secret
@@ -168,6 +182,14 @@ func (s *Service) VerifyChallengeWithContext(ctx context.Context, req *MFAVerify
 		return nil, errors.New("user.login.error.disabled")
 	}
 
+	if challenge.TenantID != 0 && req.TenantId != 0 && req.TenantId != challenge.TenantID {
+		return nil, errors.New("tenant.forbidden")
+	}
+	if challenge.TenantID != 0 {
+		req.TenantId = challenge.TenantID
+	} else if req.TenantId != 0 {
+		return nil, errors.New("tenant.forbidden")
+	}
 	if err := s.finalizeChallenge(ctx, *challenge, secret, now); err != nil {
 		return nil, err
 	}
@@ -176,7 +198,7 @@ func (s *Service) VerifyChallengeWithContext(ctx context.Context, req *MFAVerify
 	if err != nil {
 		return nil, err
 	}
-	tokenPair, err := s.creator.CreateSessionWithContext(ctx, currentUser.ID, roles, ip, userAgent)
+	tokenPair, err := s.creator.CreateSessionForTenantWithContext(ctx, currentUser.ID, roles, ip, userAgent, req.TenantId)
 	if err != nil {
 		return nil, err
 	}

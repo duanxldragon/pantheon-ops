@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	bizcap "pantheon-base/modules/business/capability"
-	k8spkg "pantheon-base/modules/business/k8s/pkg"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	k8spkg "github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/pkg"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

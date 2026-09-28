@@ -71,6 +71,8 @@ Targets:
 
 GitHub Actions is the primary gate for backend tests, frontend lint/build, contract checks, documentation checks, menu checks, i18n checks, and generated-module checks. Branch Protection should require only GitHub-native checks. Do not add Codacy or other external scanner checks to required checks.
 
+As of 2026-09-08, the ruleset targeting `main` (`solo dev merge rules`) requires both `Quality Gates` and `Security Gates` as required status checks; PRs failing `Security Gates` cannot merge, so security gating is no longer limited to push/scheduled-scan phases.
+
 CodeQL is the primary code-security signal. In `pantheon-base`, CodeQL findings block by default unless they are documented false positives. In `pantheon-ops`, business-domain findings can be risk-tiered, but high-risk foundation areas still follow the base standard.
 
 A successful CodeQL analysis job does not prove there are zero open alerts. `Security Gates` must record an open-alert report. Existing high/critical baseline alerts are report-only for PR and merge queue, then enforced on protected-branch push, scheduled security review, or manual security review.

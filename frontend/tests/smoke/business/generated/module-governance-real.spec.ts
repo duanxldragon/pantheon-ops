@@ -121,6 +121,14 @@ async function expectPathMissing(target: string) {
 }
 
 test('real module governance flow can generate register and purge a temporary business module', async ({ page }) => {
+  // Budget: this is a real generate→register→purge cycle, so the config-level
+  // 30s test timeout can never contain it (stabilization #246/#284); same
+  // pattern as tenant-hostile-browser-matrix.spec.ts.
+  //
+  // The /system/modules navigation below gets a 120s retry window and the row
+  // assertion a separate 60s one, so the test budget has to hold both plus the
+  // generate/cleanup cycle around them.
+  test.setTimeout(240_000);
   const login = await loginByApi(page.request, adminCredentials);
   const operationToken = await getApiOperationToken(page.request, login);
   await cleanupModule(page.request, login, operationToken);
@@ -188,12 +196,35 @@ test('real module governance flow can generate register and purge a temporary bu
     return content.includes(`business/${moduleName}/OrderqaList`);
   }).toBe(true);
 
+  // Retry only the navigation, then assert the row on its own budget.
+  //
+  // Two separate conditions used to share one 60s predicate window here, which
+  // is why the first attempt was never able to pass:
+  //
+  // 1. The generator rewrites the generated registries and i18n resources, and
+  //    Vite answers a write to the i18n bundle with a full page reload. When that
+  //    reload lands during our navigation, the browser reloads the generator
+  //    document and aborts ours outright:
+  //      page.goto: Navigation to ".../system/modules" is interrupted by
+  //      another navigation to ".../system/generator"
+  //    This is why the attempt burned its budget on a single `goto` and why the
+  //    failure snapshot still showed the generator wizard.
+  // 2. The first successful navigation must also transform the freshly generated
+  //    module tree on demand, which on a cold runner is slower than a single
+  //    navigation timeout.
+  //
+  // So: retry the navigation (covering 1, and warming 2 for the retry), then wait
+  // for the row separately. The module is already listed by the API above, so the
+  // row wait does not need to absorb a compile.
   await expect(async () => {
-    await page.goto('/system/modules', { waitUntil: 'domcontentloaded' });
+    await page.goto('/system/modules', { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await expect(page).toHaveURL(/\/system\/modules(?:\?|$)/);
-  }).toPass({ timeout: 20_000 });
+  }).toPass({ timeout: 120_000, intervals: [500, 1_000, 2_000, 5_000] });
+
   const row = page.getByRole('row', { name: new RegExp(moduleKey) }).first();
-  await expect(row).toBeVisible();
+  await expect(async () => {
+    await expect(row).toBeVisible({ timeout: 5_000 });
+  }).toPass({ timeout: 60_000, intervals: [1_000, 2_000, 5_000] });
   await expect(row.getByText(/待激活|已接入/).first()).toBeVisible();
 
   const cleanupResponse = await page.request.delete(`${apiBaseUrl}/lowcode/dynamic-modules/${moduleKey}?dropTable=false&purgeSource=true`, {

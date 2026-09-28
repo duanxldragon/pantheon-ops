@@ -1,0 +1,66 @@
+{
+  "s4666-user-computed": {
+    "filterPanel": {
+      "background-color": "rgb(255, 255, 255)",
+      "box-shadow": "rgba(15, 23, 42, 0.04) 0px 1px 2px 0px, rgba(15, 23, 42, 0.03) 0px 8px 18px 0px",
+      "border-color": "rgba(229, 230, 235, 0.82)",
+      "border-radius": "6px"
+    },
+    "tableContainer": {
+      "border-radius": "0px",
+      "background-color": "rgba(0, 0, 0, 0)"
+    },
+    "tableHeader": null,
+    "pagePanel": {
+      "border-radius": "6px",
+      "background-color": "color(srgb 0.984941 0.986824 0.990588)"
+    }
+  },
+  "dialog-content-bg": "color(srgb 0.975529 0.978588 0.984706)",
+  "hero-desc-role": null,
+  "drawer-content-bg": "rgb(255, 255, 255)",
+  "hero-desc-menu": null,
+  "menu-route-name-cell": null,
+  "hero-desc-operation-log": null,
+  "session-current-account-tags": {
+    "totalTags": 0,
+    "currentAccountTags": 0,
+    "rows": 0,
+    "headers": [
+      "",
+      "用户名",
+      "昵称",
+      "登录 IP",
+      "最近活动",
+      "状态",
+      "操作"
+    ]
+  },
+  "security-overview-clip": [
+    {
+      "cls": "arco-card arco-card-size-default arco-card-bordered page-pan",
+      "scrollH": 403,
+      "clientH": 403,
+      "clipped": false
+    },
+    {
+      "cls": "arco-card arco-card-size-default arco-card-bordered page-pan",
+      "scrollH": 2037,
+      "clientH": 2037,
+      "clipped": false
+    },
+    {
+      "cls": "arco-card arco-card-size-default arco-card-bordered page-pan",
+      "scrollH": 152,
+      "clientH": 152,
+      "clipped": false
+    }
+  ],
+  "security-event-overflow": {
+    "page": {
+      "scrollW": 1440,
+      "clientW": 1440
+    },
+    "tableContainer": null
+  }
+}

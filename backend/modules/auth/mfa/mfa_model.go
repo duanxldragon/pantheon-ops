@@ -21,6 +21,7 @@ type SystemAuthMFAChallenge struct {
 	ID              uint64     `gorm:"primaryKey;autoIncrement;column:id"`
 	ChallengeID     string     `gorm:"uniqueIndex;size:64;not null;column:challenge_id"`
 	UserID          uint64     `gorm:"index;not null;column:user_id"`
+	TenantID        uint64     `gorm:"not null;default:0;index;column:tenant_id"`
 	Purpose         string     `gorm:"size:32;not null;column:purpose"`
 	SecretEncrypted string     `gorm:"size:512;column:secret_encrypted"`
 	SetupRequired   int        `gorm:"not null;default:0;column:setup_required"`

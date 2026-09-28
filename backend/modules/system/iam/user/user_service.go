@@ -4,8 +4,9 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common/security"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -311,7 +312,7 @@ func (s *UserService) CreateUser(req *UserCreateReq) (*UserListResp, error) {
 		return nil, err
 	}
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), security.GetBcryptCost())
 	if err != nil {
 		return nil, err
 	}
@@ -515,7 +516,7 @@ func (s *UserService) ResetPassword(userID uint64, newPassword string) (int64, e
 		return 0, err
 	}
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(trimmedPassword), bcrypt.DefaultCost)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(trimmedPassword), security.GetBcryptCost())
 	if err != nil {
 		return 0, err
 	}

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/modules/business/cmdb/host"
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/host"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

@@ -1,7 +1,7 @@
 package scaffold
 
 import (
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"regexp"
 	"strings"
 )
@@ -68,9 +68,14 @@ func validateDependencies(name string, dependencies []ModuleDependency) error {
 	return nil
 }
 
+// isValidDataScopeMode validates the scaffold data-scope contract.
+// The runtime truth source is backend/pkg/common/data_scope.go
+// (all / self / dept / dept_and_children / custom mapped to generator modes);
+// "tenant" is intentionally rejected: tenant isolation has no runtime
+// implementation yet (see TENANT_EVOLUTION_MASTER_PLAN_20260910.md, task 0).
 func isValidDataScopeMode(mode string) bool {
 	switch strings.TrimSpace(mode) {
-	case "none", "owner", "dept", "tenant", "custom":
+	case "none", "owner", "dept", "custom":
 		return true
 	default:
 		return false

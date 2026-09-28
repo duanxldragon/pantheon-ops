@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"pantheon-base/modules/business/secrets"
-	"pantheon-base/pkg/testmysql"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/secrets"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 )
 
 func TestNotificationSecretsAreEncryptedAndRedacted(t *testing.T) {

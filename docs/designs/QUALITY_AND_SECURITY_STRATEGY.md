@@ -109,6 +109,8 @@ GitHub Actions 是主门禁，负责：
 
 Branch Protection 只要求 GitHub-native checks。不要把 Codacy 或其他外部扫描器的 check 加入 required checks。
 
+作用于 `main` 的 ruleset（`solo dev merge rules`）自 2026-09-08 起同时要求 `Quality Gates` 与 `Security Gates` 两个 required status checks；`Security Gates` 失败的 PR 不能合并，安全门禁不再只是 push/定期扫描阶段的信号。
+
 ### 3.2 CodeQL
 
 CodeQL 是主安全信号，负责代码级安全分析。

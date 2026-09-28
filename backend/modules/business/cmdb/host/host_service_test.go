@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	cmdbgroup "pantheon-base/modules/business/cmdb/group"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/testmysql"
+	cmdbgroup "github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/group"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"gorm.io/gorm"
 )

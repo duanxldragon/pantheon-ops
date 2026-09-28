@@ -1,6 +1,6 @@
 package iam
 
-import "pantheon-base/pkg/platformprefs"
+import "github.com/duanxldragon/pantheon-base/backend/pkg/platformprefs"
 
 type UserPlatformPreferenceResp = platformprefs.PlatformPreference
 

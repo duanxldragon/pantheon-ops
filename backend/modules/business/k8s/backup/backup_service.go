@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/modules/business/k8s/cluster"
-	"pantheon-base/modules/business/k8s/namespace"
-	"pantheon-base/modules/business/secrets"
-	"pantheon-base/modules/business/shared"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/namespace"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/secrets"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/shared"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

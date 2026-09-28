@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/testmysql"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"gorm.io/gorm"
 )
@@ -237,7 +237,7 @@ func TestPermissionService_GetWorkbenchIntegrityFilter(t *testing.T) {
 
 	if err := db.Create(&[]database.CasbinRule{
 		{PType: "p", V0: "clean_role", V1: "/api/v1/system/user/list", V2: "GET"},
-		{PType: "p", V0: "dirty_role", V1: "/api/v1/system/user/create", V2: "POST"},
+		{PType: "p", V0: "dirty_role", V1: "/api/v1/system/user", V2: "POST"},
 	}).Error; err != nil {
 		t.Fatalf("seed policies: %v", err)
 	}
@@ -308,7 +308,7 @@ func TestPermissionService_GetWorkbenchCoverageFilter(t *testing.T) {
 	}
 	if err := db.Create(&[]database.CasbinRule{
 		{PType: "p", V0: "complete_role", V1: "/api/v1/system/user/list", V2: "GET"},
-		{PType: "p", V0: "complete_role", V1: "/api/v1/system/user/create", V2: "POST"},
+		{PType: "p", V0: "complete_role", V1: "/api/v1/system/user", V2: "POST"},
 	}).Error; err != nil {
 		t.Fatalf("seed casbin rules: %v", err)
 	}
@@ -644,12 +644,12 @@ func TestPermissionWorkbenchRequiresSecurityEventActionPolicies(t *testing.T) {
 		t.Fatalf("unexpected batch acknowledge policy: %+v", acknowledge[1])
 	}
 
-	clear := requiredAPIPoliciesByPermissionKey("system:security-event:clear")
-	if len(clear) != 1 {
-		t.Fatalf("expected one required clear policy, got %+v", clear)
+	policies := requiredAPIPoliciesByPermissionKey("system:security-event:clear")
+	if len(policies) != 1 {
+		t.Fatalf("expected one required clear policy, got %+v", policies)
 	}
-	if clear[0].Path != "/api/v1/system/security-event/cleanup" || clear[0].Method != "POST" {
-		t.Fatalf("unexpected clear policy: %+v", clear[0])
+	if policies[0].Path != "/api/v1/system/security-event/cleanup" || policies[0].Method != "POST" {
+		t.Fatalf("unexpected clear policy: %+v", policies[0])
 	}
 }
 

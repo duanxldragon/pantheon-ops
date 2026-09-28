@@ -3,7 +3,7 @@ package rbacbind
 import (
 	"testing"
 
-	"pantheon-base/pkg/testmysql"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 )
 
 // TestEnsureBindingsAreIdempotent verifies the Ensure* helpers insert once and

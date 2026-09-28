@@ -1,41 +1,29 @@
-// AppModal - Shell visual contract compliance
-import { Modal, type ModalProps } from '@arco-design/web-react';
 import React from 'react';
+import { Modal } from '@arco-design/web-react';
+import { appModalSizeWidthMap, mergeDialogClassName, type AppModalProps } from './AppModal.shared';
 
-export interface AppModalProps extends ModalProps {
-  children?: React.ReactNode;
-}
+const AppModal: React.FC<AppModalProps> = ({
+  className,
+  size = 'lg',
+  style,
+  wrapStyle,
+  maskClosable = false,
+  unmountOnExit = true,
+  ...rest
+}) => {
+  const width = style?.width ?? appModalSizeWidthMap[size];
+  const overlayZIndex = wrapStyle?.zIndex ?? style?.zIndex ?? 2500;
 
-export const AppModal: React.FC<AppModalProps> = ({ wrapClassName, maskClosable = false, ...props }) => {
   return (
     <Modal
-      wrapClassName={`app-dialog ${wrapClassName || ''}`}
+      className={mergeDialogClassName('app-dialog', className)}
+      style={{ ...style, width }}
+      wrapStyle={{ ...wrapStyle, zIndex: overlayZIndex }}
       maskClosable={maskClosable}
-      {...props}
+      unmountOnExit={unmountOnExit}
+      {...rest}
     />
   );
 };
 
-export const showAppModalConfirm = (config: any) => {
-  return Modal.confirm({
-    ...config,
-    wrapClassName: `app-dialog ${config?.wrapClassName || ''}`,
-  });
-};
-
-export const showAppModalSuccess = (config: any) => {
-  return Modal.success({
-    ...config,
-    wrapClassName: `app-dialog ${config?.wrapClassName || ''}`,
-  });
-};
-
-export const showAppModalError = (config: any) => {
-  return Modal.error({
-    ...config,
-    wrapClassName: `app-dialog ${config?.wrapClassName || ''}`,
-  });
-};
-
-export {};
-
+export default AppModal;

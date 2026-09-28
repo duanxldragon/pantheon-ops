@@ -1,7 +1,7 @@
 package business
 
 import (
-	opsinit "pantheon-base/modules/business/opsinit"
+	opsinit "github.com/duanxldragon/pantheon-base/backend/modules/business/opsinit"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

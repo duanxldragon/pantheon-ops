@@ -6,17 +6,17 @@
 package opsinit
 
 import (
-	bizscope "pantheon-base/modules/business/bizscope"
-	bizcap "pantheon-base/modules/business/capability"
-	cicd "pantheon-base/modules/business/cicd"
-	cmdb "pantheon-base/modules/business/cmdb"
-	deploy "pantheon-base/modules/business/deploy"
-	filedist "pantheon-base/modules/business/filedist"
-	k8s "pantheon-base/modules/business/k8s"
-	observability "pantheon-base/modules/business/observability"
-	opsservice "pantheon-base/modules/business/service"
+	bizscope "github.com/duanxldragon/pantheon-base/backend/modules/business/bizscope"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	cicd "github.com/duanxldragon/pantheon-base/backend/modules/business/cicd"
+	cmdb "github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
+	deploy "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy"
+	filedist "github.com/duanxldragon/pantheon-base/backend/modules/business/filedist"
+	k8s "github.com/duanxldragon/pantheon-base/backend/modules/business/k8s"
+	observability "github.com/duanxldragon/pantheon-base/backend/modules/business/observability"
+	opsservice "github.com/duanxldragon/pantheon-base/backend/modules/business/service"
 
-	"pantheon-base/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

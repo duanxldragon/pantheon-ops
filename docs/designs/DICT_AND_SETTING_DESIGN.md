@@ -299,7 +299,7 @@ ui.default_theme
 
 - `upload.storage_driver`
   - 当前支持值：`local`、`s3`
-  - `s3` 表示接入 S3 兼容对象存储（如 MinIO / AWS S3 / OSS 兼容网关）
+  - `s3` 表示接入 S3 兼容对象存储（如 RustFS / MinIO / AWS S3 / OSS 兼容网关）
 - `upload.max_file_size`
   - 单文件最大体积，单位 MB
   - 已接入 `/api/v1/system/upload`
@@ -314,7 +314,7 @@ ui.default_theme
   - 为空时默认回退到平台内置文件访问路径
 - `upload.s3_endpoint`
   - 对象存储 Endpoint
-  - 支持 `http(s)://host[:port]` 或裸 `host[:port]`
+  - 支持 `http(s)://host[:port]` 或裸 `host[:port]`（裸 host 默认按 HTTPS 处理，本地 RustFS/MinIO 必须写 `http://127.0.0.1:9000`）
 - `upload.s3_bucket`
   - 对象存储 Bucket 名称
 - `upload.s3_region`

@@ -17,7 +17,7 @@ const listPageCssPath = path.join(
   'shared',
   'list-page.css',
 );
-const dashboardCssPath = path.join(frontendRoot, 'src', 'modules', 'platform', 'dashboard.css');
+const dashboardCssPath = path.join(frontendRoot, 'src', 'modules', 'platform', 'Dashboard.css');
 const loginCssPath = path.join(
   frontendRoot,
   'src',

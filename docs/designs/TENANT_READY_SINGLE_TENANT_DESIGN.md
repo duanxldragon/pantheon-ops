@@ -7,6 +7,7 @@ linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_AUTH_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
+  - docs/contracts/TENANT_CONTRACT_V1.md
 updated_at: 2026-05-04
 ---
 

@@ -13,8 +13,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/metrics"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/metrics"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"gorm.io/gorm"
 
@@ -68,6 +69,7 @@ func (b *operationLogBuffer) Write(data []byte) (int, error) {
 
 type SystemLogOper struct {
 	ID              uint64    `gorm:"primaryKey;autoIncrement"`
+	TenantID        uint64    `gorm:"not null;default:0;index:idx_system_log_oper_tenant"` // tenant of the acted-on context (0 = platform/global; contract §3.3)
 	RequestID       string    `gorm:"size:64;index:idx_system_log_oper_request_id"`
 	Title           string    `gorm:"size:64"`
 	BusinessType    int       `gorm:"default:0"`
@@ -239,6 +241,11 @@ func OperationLogMiddleware(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		log := SystemLogOper{
+			// Stamp the tenant of the acted-on context (queue-5 audit slice):
+			// built AFTER c.Next() so TenantContextMiddleware has already resolved
+			// and stored the context. Routes without tenant middleware (or compat)
+			// stamp 0 = platform population. Ownership never comes from the request.
+			TenantID:        tenantIDForOperationLog(c),
 			RequestID:       strings.TrimSpace(common.GetRequestID(c)),
 			Title:           readOperationLogTitle(c),
 			BusinessType:    readOperationLogBusinessType(c),
@@ -259,6 +266,19 @@ func OperationLogMiddleware(db *gorm.DB) gin.HandlerFunc {
 
 		store.enqueue(log)
 	}
+}
+
+// tenantIDForOperationLog returns the tenant of the acted-on context for the
+// audit row (queue-5 audit slice). The value is read exclusively from the
+// resolved tenant context set by TenantContextMiddleware — never from the
+// request — so a spoofed header/claim cannot forge audit ownership beyond
+// what the trusted resolution already authorized (contract §3.3).
+// Compat mode and routes without the middleware yield 0 (platform population).
+func tenantIDForOperationLog(c *gin.Context) uint64 {
+	if ctx := tenant.FromGin(c); ctx != nil && ctx.IsMulti() {
+		return ctx.TenantID
+	}
+	return tenant.PlatformGlobalTenantID
 }
 
 func readOperationLogTitle(c *gin.Context) string {

@@ -3,8 +3,8 @@ package org
 import (
 	"strconv"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
 
 	"github.com/gin-gonic/gin"
 )
@@ -229,6 +229,9 @@ func (h *DeptHandler) ImportDepts(c *gin.Context) {
 		common.Fail(c, common.CodeError, "import.file.read.error")
 		return
 	}
+	// 显式接管 multipart part 的生命周期：ReadCSV 内部也会关闭，
+	// 这里 defer 保证所有权清晰，且覆盖未来提前 return 的路径。
+	defer func() { _ = file.Close() }()
 	records, err := impexp.ReadCSV(file)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, "import.file.invalid_csv")

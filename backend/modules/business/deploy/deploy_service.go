@@ -15,12 +15,12 @@ import (
 	"time"
 	"unicode/utf8"
 
-	bizscope "pantheon-base/modules/business/bizscope"
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/modules/business/cmdb"
-	executorprovider "pantheon-base/modules/business/deploy/executor"
-	deployorchestrator "pantheon-base/modules/business/deploy/orchestrator"
-	"pantheon-base/pkg/common"
+	bizscope "github.com/duanxldragon/pantheon-base/backend/modules/business/bizscope"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
+	executorprovider "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy/executor"
+	deployorchestrator "github.com/duanxldragon/pantheon-base/backend/modules/business/deploy/orchestrator"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"golang.org/x/crypto/ssh"
 	"gorm.io/datatypes"

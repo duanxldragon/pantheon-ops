@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"pantheon-base/modules/business/k8s/cluster"
-	"pantheon-base/pkg/logging"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
 	"go.uber.org/zap"
 
 	corev1 "k8s.io/api/core/v1"

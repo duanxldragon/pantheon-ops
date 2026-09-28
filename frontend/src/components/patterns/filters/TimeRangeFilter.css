@@ -1,0 +1,194 @@
+.time-range-filter__trigger,
+.time-range-filter__trigger.arco-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 136px;
+  min-width: 136px;
+  min-height: 32px;
+  padding-inline: 12px;
+  color: var(--text-primary);
+  border-color: var(--panel-border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg-solid);
+  box-shadow: none;
+}
+
+.time-range-filter__trigger:not(.arco-btn-disabled):hover,
+.time-range-filter__trigger:not(.arco-btn-disabled):focus {
+  border-color: color-mix(in srgb, var(--brand-primary) 24%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--panel-bg-solid));
+}
+
+.time-range-filter__trigger-label {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.time-range-filter__trigger-icon {
+  flex: 0 0 auto;
+  color: var(--text-tertiary);
+}
+
+.time-range-filter__popup .arco-picker-range-container {
+  width: 100%;
+}
+
+/* 增强选中日期的视觉反馈：加粗字体（背景色由 Arco 主题 token --primary-6 提供） */
+.time-range-filter__popup .arco-picker-cell-in-range .arco-picker-date-value,
+.time-range-filter__popup .arco-picker-cell-range-start .arco-picker-date-value,
+.time-range-filter__popup .arco-picker-cell-range-end .arco-picker-date-value {
+  font-weight: 600;
+}
+
+.time-range-filter__shell {
+  display: flex;
+  /* 壳宽以双月日历（2×256px + 边框）为准，快捷按钮自动换行，避免右侧留白 */
+  width: min(542px, calc(100vw - 48px));
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px 12px;
+  box-sizing: border-box;
+}
+
+.time-range-filter__shortcuts {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.time-range-filter__shortcut-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.time-range-filter__shortcut,
+.time-range-filter__shortcut.arco-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  min-width: 0;
+  padding: 0 10px;
+  color: var(--text-primary);
+  border-color: var(--panel-border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg-solid);
+  box-shadow: none;
+}
+
+.time-range-filter__shortcut:not(.time-range-filter__shortcut--active):not(
+    .arco-btn-disabled
+  ):hover,
+.time-range-filter__shortcut:not(.time-range-filter__shortcut--active):not(
+    .arco-btn-disabled
+  ):focus {
+  border-color: color-mix(in srgb, var(--brand-primary) 24%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--panel-bg-solid));
+}
+
+.time-range-filter__shortcut--active,
+.time-range-filter__shortcut--active:hover,
+.time-range-filter__shortcut--active:focus {
+  color: var(--brand-primary);
+  border-color: color-mix(in srgb, var(--brand-primary) 30%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--panel-bg-solid));
+}
+
+.time-range-filter__summary {
+  display: grid;
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-muted);
+}
+
+.time-range-filter__summary-item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.time-range-filter__summary-item--end {
+  justify-content: flex-end;
+}
+
+.time-range-filter__summary-label {
+  flex: 0 0 auto;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.time-range-filter__summary-value {
+  display: block;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.time-range-filter__summary-separator {
+  justify-self: center;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.time-range-filter__panel-body {
+  min-width: 0;
+}
+
+.time-range-filter__popup .arco-picker-footer {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px 12px;
+  box-sizing: border-box;
+}
+
+.time-range-filter__popup .arco-picker-footer-extra-wrapper {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  border-top: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.time-range-filter__popup .arco-picker-footer-btn-wrapper {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  border-top: 0;
+  padding: 0;
+}
+
+.time-range-filter__popup .arco-picker-btn-select-time,
+.time-range-filter__popup .arco-picker-btn-confirm {
+  margin: 0;
+}
+
+.time-range-filter__popup .arco-picker-btn-select-time {
+  margin-right: 8px;
+}

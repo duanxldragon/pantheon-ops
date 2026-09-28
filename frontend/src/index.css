@@ -1,261 +1,3667 @@
-/* Global styles - Shell visual contract compliance */
-
-:root {
-  /* Platform UI tokens - required by shell contract */
-  --shell-table-card-padding: 16px;
+:root,
+:root[data-pantheon-theme='indigo'] {
+  color: #1f2329;
+  background: #f4f7fb;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'Microsoft YaHei',
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --radius-xs: 4px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-overlay: 8px;
+  --radius-control: var(--radius-md);
+  --radius-action: var(--radius-sm);
+  --radius-pill: 999px;
+  --app-bg: #f7f8fa;
+  --app-shell-overlay: #ffffff;
+  --panel-bg: #ffffff;
+  --panel-bg-solid: #ffffff;
+  --panel-muted: #f7f8fa;
+  --control-bg: #ffffff;
+  /* surface-lift = the "elevate toward" color used by color-mix surfaces.
+     #ffffff in light (zero change) → a lifted dark surface in dark mode. */
+  --surface-lift: #ffffff;
+  --panel-border: rgba(229, 230, 235, 0.82);
+  --panel-border-strong: rgba(209, 213, 219, 0.78);
+  --panel-shadow: 0 12px 28px rgba(15, 23, 42, 0.055);
+  --panel-shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 18px rgba(15, 23, 42, 0.03);
+  --panel-shadow-strong: 0 18px 42px rgba(15, 23, 42, 0.14);
+  --text-primary: #1f2329;
+  --text-secondary: #4e5969;
+  --text-tertiary: #86909c;
+  --brand-primary: #165dff;
+  --brand-primary-soft: rgba(22, 93, 255, 0.12);
+  --brand-primary-muted: rgba(22, 93, 255, 0.08);
+  --shell-sider-bg: #162033;
+  --shell-sider-elevated: #1d2940;
+  --shell-sider-border: rgba(255, 255, 255, 0.1);
+  --shell-sider-text: rgba(255, 255, 255, 0.92);
+  --shell-sider-text-muted: rgba(255, 255, 255, 0.72);
+  --shell-sider-active-bg: rgba(255, 255, 255, 0.14);
+  --shell-sider-hover-bg: rgba(255, 255, 255, 0.1);
+  --shell-sider-menu-surface: color-mix(
+    in srgb,
+    var(--shell-sider-bg) 78%,
+    var(--surface-lift) 22%
+  );
+  --shell-sider-menu-nested-surface: color-mix(
+    in srgb,
+    var(--shell-sider-bg) 86%,
+    var(--surface-lift) 14%
+  );
+  --shell-sider-menu-divider: rgba(255, 255, 255, 0.08);
+  --color-success: #00b42a;
+  --color-success-bg: rgba(0, 180, 42, 0.12);
+  --color-warning: #ff7d00;
+  --color-warning-bg: rgba(255, 125, 0, 0.12);
+  --color-error: #f53f3f;
+  --color-error-bg: rgba(245, 63, 63, 0.12);
+  --color-info: #3491fa;
+  --color-info-bg: rgba(52, 145, 250, 0.12);
+  --danger-soft: var(--color-error-bg);
+  --danger-border: color-mix(in srgb, var(--color-error) 32%, transparent);
+  --status-success-soft: var(--color-success-bg);
+  --status-warning-soft: var(--color-warning-bg);
+  --primary-1: 232, 243, 255;
+  --primary-2: 190, 218, 255;
+  --primary-3: 148, 191, 255;
+  --primary-4: 106, 161, 255;
+  --primary-5: 64, 128, 255;
+  --primary-6: 22, 93, 255;
+  --primary-7: 14, 66, 210;
+  --primary-8: 7, 44, 166;
+  --primary-9: 3, 26, 121;
+  --primary-10: 0, 13, 77;
+  --pantheon-primary-1: 232, 243, 255;
+  --pantheon-primary-2: 190, 218, 255;
+  --pantheon-primary-3: 148, 191, 255;
+  --pantheon-primary-4: 106, 161, 255;
+  --pantheon-primary-5: 64, 128, 255;
+  --pantheon-primary-6: 22, 93, 255;
+  --pantheon-primary-7: 14, 66, 210;
+  --pantheon-primary-8: 7, 44, 166;
+  --pantheon-primary-9: 3, 26, 121;
+  --pantheon-primary-10: 0, 13, 77;
+  --shell-page-gap: 16px;
+  --shell-page-header-gap: 12px;
+  --shell-panel-body-padding: 18px;
+  --shell-panel-head-min-height: 56px;
+  --shell-page-split-gap: 16px;
+  --shell-page-main-gap: 16px;
+  --shell-page-side-gap: 12px;
+  --shell-table-cell-padding-y: 10px;
+  --shell-table-cell-padding-x: 14px;
+  --shell-table-card-padding: 12px 14px 6px;
+  --shell-table-pagination-padding: 12px 14px 2px;
+  --shell-table-action-min-height: 32px;
   --shell-control-min-height: 32px;
-  --shell-filter-body-padding: 16px;
-  --shell-filter-control-min-height: 32px;
-  --shell-filter-form-item-margin-bottom: 16px;
-  --shell-filter-label-padding-bottom: 8px;
-  --shell-list-actions-gap: 8px;
-  --shell-action-bar-gap: 8px;
-  --shell-action-bar-min-height: 40px;
-  --shell-table-head-gap: 12px;
+  --shell-filter-body-padding: 14px 16px 6px;
+  --shell-filter-control-min-height: 34px;
+  --shell-filter-form-item-margin-bottom: 12px;
+  --shell-filter-label-padding-bottom: 4px;
+  --shell-list-actions-gap: 8px 12px;
+  --shell-action-bar-gap: 8px 12px;
+  --shell-action-bar-min-height: 32px;
+  --shell-table-head-gap: 8px 12px;
   --shell-governance-select-width: 200px;
+  /* P2-2 通用阶梯 token —— 供浮层与业务页优先消费；壳层专用变量继续保留 */
+  --space-2xs: 2px;
+  --space-3xs: 3px;
+  --space-xs: 4px;
+  --space-xs-plus: 6px;
+  --space-sm: 8px;
+  --space-sm-alt: 9px;
+  --space-sm-plus: 10px;
+  --space-sm-large: 11px;
+  --space-md: 12px;
+  --space-md-alt: 13px;
+  --space-md-plus: 14px;
+  --space-lg: 16px;
+  --space-lg-alt: 18px;
+  --space-lg-plus: 20px;
+  --space-lg-large: 22px;
+  --space-xl: 24px;
+  --space-xl-alt: 26px;
+  --space-xl-plus: 28px;
+  --space-2xl: 32px;
+  --space-2xl-alt: 34px;
+  --space-2xl-plus: 36px;
+  --space-3xl: 48px;
+  --space-3xl-alt: 56px;
+  --space-3xl-plus: 64px;
+  --space-4xl: 84px;
+  --space-4xl-plus: 88px;
+  --font-size-caption: 12px;
+  --font-size-body-sm: 13px;
+  --font-size-body: 14px;
+  --font-size-body-lg: 16px;
+  --font-size-heading-sm: 18px;
+  --font-size-heading: 20px;
+  --font-size-display: 24px;
+  --line-height-tight: 1.3;
+  --line-height-base: 1.5;
+  --line-height-relaxed: 1.7;
+  --motion-duration-fast: 120ms;
+  --motion-duration-base: 200ms;
+  --motion-duration-slow: 320ms;
+  --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --z-base: 1;
+  --z-sticky: 100;
+  --z-dropdown: 1000;
+  --z-overlay: 1200;
+  --z-modal: 1300;
+  --z-notification: 1400;
+  /* 容器分类 - 交互容器（需要用户操作的元素） */
+  --container-interactive-bg: var(--panel-bg-solid);
+  --container-interactive-border: var(--panel-border);
+  --container-interactive-hover-bg: rgba(var(--primary-1), 0.5);
+  --container-interactive-focus-border: var(--brand-primary);
+  /* 容器分类 - 展示容器（信息展示、分组容器） */
+  --container-display-bg: var(--panel-muted);
+  --container-display-border: rgba(0, 0, 0, 0.06);
+  --container-display-separator: rgba(0, 0, 0, 0.04);
+  --container-display-elevated: var(--panel-bg-solid);
 }
 
-/* Keyboard navigation - accessibility */
-*:focus-visible {
-  outline: 2px solid var(--color-primary-6);
+:root[data-pantheon-theme='emerald'] {
+  --app-bg: #f6faf8;
+  --brand-primary: #00a870;
+  --brand-primary-soft: rgba(0, 168, 112, 0.13);
+  --brand-primary-muted: rgba(0, 168, 112, 0.08);
+  --shell-sider-bg: #143126;
+  --shell-sider-elevated: #1a3d32;
+  --primary-1: 232, 255, 248;
+  --primary-2: 173, 245, 224;
+  --primary-3: 113, 232, 200;
+  --primary-4: 64, 214, 177;
+  --primary-5: 25, 191, 151;
+  --primary-6: 0, 168, 112;
+  --primary-7: 0, 135, 94;
+  --primary-8: 0, 102, 76;
+  --primary-9: 0, 71, 57;
+  --primary-10: 0, 41, 37;
+  --pantheon-primary-1: 232, 255, 248;
+  --pantheon-primary-2: 173, 245, 224;
+  --pantheon-primary-3: 113, 232, 200;
+  --pantheon-primary-4: 64, 214, 177;
+  --pantheon-primary-5: 25, 191, 151;
+  --pantheon-primary-6: 0, 168, 112;
+  --pantheon-primary-7: 0, 135, 94;
+  --pantheon-primary-8: 0, 102, 76;
+  --pantheon-primary-9: 0, 71, 57;
+  --pantheon-primary-10: 0, 41, 37;
+}
+
+:root[data-pantheon-theme='violet'] {
+  --app-bg: #f7f6fb;
+  --brand-primary: #722ed1;
+  --brand-primary-soft: rgba(114, 46, 209, 0.13);
+  --brand-primary-muted: rgba(114, 46, 209, 0.08);
+  --shell-sider-bg: #22193b;
+  --shell-sider-elevated: #2c2350;
+  --primary-1: 247, 237, 255;
+  --primary-2: 229, 198, 255;
+  --primary-3: 209, 158, 255;
+  --primary-4: 186, 119, 255;
+  --primary-5: 151, 82, 247;
+  --primary-6: 114, 46, 209;
+  --primary-7: 85, 29, 166;
+  --primary-8: 59, 16, 122;
+  --primary-9: 37, 6, 77;
+  --primary-10: 20, 0, 46;
+  --pantheon-primary-1: 247, 237, 255;
+  --pantheon-primary-2: 229, 198, 255;
+  --pantheon-primary-3: 209, 158, 255;
+  --pantheon-primary-4: 186, 119, 255;
+  --pantheon-primary-5: 151, 82, 247;
+  --pantheon-primary-6: 114, 46, 209;
+  --pantheon-primary-7: 85, 29, 166;
+  --pantheon-primary-8: 59, 16, 122;
+  --pantheon-primary-9: 37, 6, 77;
+  --pantheon-primary-10: 20, 0, 46;
+}
+
+:root[data-pantheon-theme='slate'] {
+  --app-bg: #f6f8fb;
+  --brand-primary: #334155;
+  --brand-primary-soft: rgba(51, 65, 85, 0.12);
+  --brand-primary-muted: rgba(51, 65, 85, 0.08);
+  --shell-sider-bg: #182235;
+  --shell-sider-elevated: #243148;
+  --primary-1: 241, 245, 249;
+  --primary-2: 226, 232, 240;
+  --primary-3: 203, 213, 225;
+  --primary-4: 148, 163, 184;
+  --primary-5: 100, 116, 139;
+  --primary-6: 51, 65, 85;
+  --primary-7: 30, 41, 59;
+  --primary-8: 15, 23, 42;
+  --primary-9: 8, 15, 29;
+  --primary-10: 2, 6, 23;
+  --pantheon-primary-1: 241, 245, 249;
+  --pantheon-primary-2: 226, 232, 240;
+  --pantheon-primary-3: 203, 213, 225;
+  --pantheon-primary-4: 148, 163, 184;
+  --pantheon-primary-5: 100, 116, 139;
+  --pantheon-primary-6: 51, 65, 85;
+  --pantheon-primary-7: 30, 41, 59;
+  --pantheon-primary-8: 15, 23, 42;
+  --pantheon-primary-9: 8, 15, 29;
+  --pantheon-primary-10: 2, 6, 23;
+}
+
+/* ===========================================================================
+   P3-1 暗色模式 —— 语义角色重定义（非机械反色）
+   仅覆盖中性 surface/text/shadow/软背景等 token；品牌色按主题在下方提亮。
+   Arco 组件通过 body[arco-theme='dark'] 联动，二者由 colorMode.ts 同步设置。
+   =========================================================================== */
+:root[data-color-mode='dark'] {
+  color: #e5e8ee;
+  background: #0d1118;
+  --app-bg: #0f141c;
+  --app-shell-overlay: #171e28;
+  --panel-bg: #171e28;
+  --panel-bg-solid: #171e28;
+  --panel-muted: #1b2530;
+  --panel-border: rgba(255, 255, 255, 0.1);
+  --panel-border-strong: rgba(255, 255, 255, 0.18);
+  --panel-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  --panel-shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 18px rgba(0, 0, 0, 0.32);
+  --panel-shadow-strong: 0 18px 42px rgba(0, 0, 0, 0.58);
+  --text-primary: #e5e8ee;
+  --text-secondary: #a9b2c0;
+  --text-tertiary: #727d8f;
+  --control-bg: #10161e;
+  --surface-lift: #26313f;
+  /* 软背景在暗色下略提高透明度，保证语义色可辨 */
+  --color-success-bg: rgba(0, 180, 42, 0.2);
+  --color-warning-bg: rgba(255, 125, 0, 0.2);
+  --color-error-bg: rgba(245, 63, 63, 0.2);
+  --color-info-bg: rgba(52, 145, 250, 0.2);
+  /* 侧栏在暗色下与内容区统一为深表面，弱化边界差 */
+  --shell-sider-bg: #12161f;
+  --shell-sider-elevated: #1a212c;
+  --shell-sider-border: rgba(255, 255, 255, 0.08);
+  /* 容器分类 - 暗色模式 */
+  --container-interactive-bg: var(--panel-bg-solid);
+  --container-interactive-border: var(--panel-border);
+  --container-interactive-hover-bg: rgba(91, 136, 255, 0.1);
+  --container-interactive-focus-border: var(--brand-primary);
+  --container-display-bg: var(--panel-muted);
+  --container-display-border: rgba(255, 255, 255, 0.08);
+  --container-display-separator: rgba(255, 255, 255, 0.04);
+  --container-display-elevated: var(--panel-bg-solid);
+}
+
+/* 品牌色在暗色下提亮、略降饱和、保持色相 */
+:root[data-color-mode='dark'][data-pantheon-theme='indigo'],
+:root[data-color-mode='dark']:not([data-pantheon-theme]) {
+  --brand-primary: #5b88ff;
+  --brand-primary-soft: rgba(91, 136, 255, 0.22);
+  --brand-primary-muted: rgba(91, 136, 255, 0.14);
+}
+
+:root[data-color-mode='dark'][data-pantheon-theme='emerald'] {
+  --brand-primary: #1fc78f;
+  --brand-primary-soft: rgba(31, 199, 143, 0.22);
+  --brand-primary-muted: rgba(31, 199, 143, 0.14);
+}
+
+:root[data-color-mode='dark'][data-pantheon-theme='violet'] {
+  --brand-primary: #9a6cf0;
+  --brand-primary-soft: rgba(154, 108, 240, 0.22);
+  --brand-primary-muted: rgba(154, 108, 240, 0.14);
+}
+
+:root[data-color-mode='dark'][data-pantheon-theme='slate'] {
+  --brand-primary: #7c8ba3;
+  --brand-primary-soft: rgba(124, 139, 163, 0.24);
+  --brand-primary-muted: rgba(124, 139, 163, 0.16);
+}
+
+:root[data-pantheon-density='compact'] {
+  --shell-page-gap: 12px;
+  --shell-page-header-gap: 10px;
+  --shell-panel-body-padding: 14px;
+  --shell-panel-head-min-height: 52px;
+  --shell-page-split-gap: 12px;
+  --shell-page-main-gap: 12px;
+  --shell-page-side-gap: 10px;
+  --shell-table-cell-padding-y: 8px;
+  --shell-table-cell-padding-x: 12px;
+  --shell-table-card-padding: 10px 12px 2px;
+  --shell-table-pagination-padding: 8px 12px 0;
+  --shell-table-action-min-height: 28px;
+  --shell-control-min-height: 30px;
+  --shell-filter-body-padding: 12px 14px 4px;
+  --shell-filter-control-min-height: 32px;
+  --shell-filter-form-item-margin-bottom: 10px;
+  --shell-filter-label-padding-bottom: 2px;
+  --shell-list-actions-gap: 6px 10px;
+  --shell-action-bar-gap: 6px 10px;
+  --shell-action-bar-min-height: 28px;
+  --shell-table-head-gap: 6px 10px;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100dvh;
+  margin: 0;
+}
+
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'Microsoft YaHei',
+    sans-serif;
+  background: var(--app-bg);
+  color: var(--text-primary);
+  font-feature-settings: 'tnum' 1;
+  /* Arco 组件的 --primary-* 定义在 body 上，:root 的主题梯度会被覆盖；
+     这里用 :root 侧透传的 --pantheon-primary-* 把主题色同步给 Arco。 */
+  --primary-1: var(--pantheon-primary-1);
+  --primary-2: var(--pantheon-primary-2);
+  --primary-3: var(--pantheon-primary-3);
+  --primary-4: var(--pantheon-primary-4);
+  --primary-5: var(--pantheon-primary-5);
+  --primary-6: var(--pantheon-primary-6);
+  --primary-7: var(--pantheon-primary-7);
+  --primary-8: var(--pantheon-primary-8);
+  --primary-9: var(--pantheon-primary-9);
+  --primary-10: var(--pantheon-primary-10);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+}
+
+:where(
+  a,
+  button,
+  [role='button'],
+  [tabindex]:not([tabindex='-1']),
+  input,
+  textarea,
+  select,
+  .arco-btn,
+  .arco-input-inner-wrapper,
+  .arco-input,
+  .arco-select-view,
+  .arco-tree-select-view,
+  .arco-picker,
+  .arco-checkbox,
+  .arco-radio,
+  .arco-switch
+):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--brand-primary) 58%, #ffffff);
   outline-offset: 2px;
 }
 
-/* Reduced motion preference */
+:where(
+  .arco-input-inner-wrapper,
+  .arco-input-password,
+  .arco-input-number,
+  input.arco-input,
+  .arco-select-view,
+  .arco-tree-select-view,
+  .arco-picker,
+  .arco-textarea-wrapper,
+  textarea.arco-textarea,
+  .arco-input-tag
+):focus-visible {
+  outline: 0;
+}
+
+/* ===========================================================================
+   交互容器样式 - 使用 --container-interactive-* token
+   应用于需要用户操作的元素：输入框、选择器、可点击卡片
+   =========================================================================== */
+.arco-input-inner-wrapper,
+.arco-input-password,
+.arco-input-number,
+input.arco-input,
+.arco-select-view,
+.arco-tree-select-view,
+.arco-picker,
+.arco-textarea-wrapper {
+  background-color: var(--container-interactive-bg);
+  border-color: var(--container-interactive-border);
+}
+
+.arco-input-inner-wrapper:hover,
+.arco-select-view:hover,
+.arco-tree-select-view:hover,
+.arco-picker:hover {
+  background-color: var(--container-interactive-hover-bg);
+}
+
+.arco-input-inner-wrapper:focus-within,
+.arco-input-inner-wrapper.arco-input-focus,
+.arco-select-view.arco-select-view-focus,
+.arco-tree-select-view.arco-tree-select-view-focus,
+.arco-picker.arco-picker-focused {
+  border-color: var(--container-interactive-focus-border);
+  background-color: var(--container-interactive-bg);
+}
+
+/* ===========================================================================
+   展示容器样式 - 使用 --container-display-* token
+   应用于只读展示的元素：卡片、描述列表、统计面板、信息展示区
+   =========================================================================== */
+.arco-card {
+  background-color: var(--container-display-elevated);
+  border-color: var(--container-display-border);
+}
+
+.arco-descriptions {
+  background-color: var(--container-display-bg);
+  border-radius: var(--radius-md);
+}
+
+.arco-table {
+  background-color: var(--container-display-elevated);
+}
+
+.arco-table-th,
+.arco-table-td {
+  border-color: var(--container-display-border);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  :root[data-pantheon-theme][data-pantheon-theme] *,
+  :root[data-pantheon-theme][data-pantheon-theme] *::before,
+  :root[data-pantheon-theme][data-pantheon-theme] *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    scroll-behavior: auto;
+    transition-duration: 0.01ms;
   }
 }
 
-/* Arco Button base styles */
-.arco-btn {
-  min-height: var(--shell-control-min-height);
-  line-height: 20px;
+.page-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--shell-page-gap);
 }
 
-.arco-btn-icon-only {
-  padding: 0;
-  width: var(--shell-control-min-height);
-  height: var(--shell-control-min-height);
-  min-height: var(--shell-control-min-height);
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--shell-page-header-gap);
+  padding: 0 0 2px;
 }
 
-/* Arco Input controls */
-.arco-input-wrapper,
-.arco-select-view,
-.arco-picker {
-  min-height: var(--shell-control-min-height);
+.page-header__meta {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
 }
 
-.arco-input-inner-wrapper .arco-input {
-  line-height: 20px;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  outline: none;
+.page-header__extra {
+  flex-shrink: 0;
 }
 
-.arco-input-number .arco-input-inner-wrapper {
-  min-height: var(--shell-control-min-height);
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  outline: none;
+.page-actions {
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.arco-input-inner-wrapper .arco-input:focus {
-  outline: none;
-  border: none;
-  box-shadow: none;
-  background: transparent;
+.setting-page__form-stack {
+  width: 100%;
 }
 
-
-
-/* Arco color tokens through Pantheon semantic tokens */
-.arco-btn-primary {
-  background-color: rgb(var(--primary-6));
-  border-color: rgb(var(--primary-6));
+.setting-page__field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
 }
 
-.arco-btn-primary:hover {
-  background-color: rgb(var(--primary-5));
-  border-color: rgb(var(--primary-5));
+.menu-list-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
 }
 
-.arco-input-wrapper:focus-within {
-  border-color: rgb(var(--primary-6));
+.setting-page__field {
+  margin-bottom: 0;
 }
 
-/* Arco Table */
-.arco-table-th {
-  font-weight: 600;
-  background: var(--panel-muted);
+.menu-list-form__grid .arco-form-item {
+  margin-bottom: 0;
 }
 
-.app-table .arco-table-container {
-  border-radius: 0;
+.menu-list-form__grid .arco-form-item-content {
+  min-width: 0;
 }
 
-.app-table .arco-table-col-fixed-left-last::after {
-  display: none;
+.menu-list-form__grid .arco-form-item-control,
+.menu-list-form__grid .arco-form-item-control-children,
+.menu-list-form__grid .arco-tree-select,
+.menu-list-form__grid .arco-select,
+.menu-list-form__grid .arco-auto-complete,
+.menu-list-form__grid .arco-input-number {
+  width: 100%;
+  min-width: 0;
 }
 
-
-.app-table .arco-table-pagination {
-  padding: 16px;
-  border-top: 1px solid var(--panel-border);
-  background: var(--panel-muted);
+.menu-list-form__grid .arco-form-item-label-col {
+  padding-bottom: 2px;
 }
 
-.app-table .arco-pagination-item-active {
-  background: rgb(var(--primary-6));
-  border-color: rgb(var(--primary-6));
-  color: white;
+.menu-list-form__field--full {
+  grid-column: 1 / -1;
 }
 
-/* Arco Tabs */
-.arco-tabs-header-nav::before {
-  border-bottom: 1px solid var(--color-border-2);
+.setting-page__field--full {
+  grid-column: 1 / -1;
 }
 
-.arco-tabs-header-nav-rounded .arco-tabs-header-title {
-  border-radius: 4px 4px 0 0;
+.setting-page__field .arco-form-item-extra {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
-.arco-tabs-header-nav-rounded .arco-tabs-header-title-active {
-  background: var(--color-bg-2);
+.setting-page__field .arco-form-item-label-col {
+  padding-bottom: 2px;
 }
 
-/* Table Batch Action Bar */
-.table-batch-action-bar {
+.setting-page__field .arco-form-item-content {
+  min-width: 0;
+}
+
+.setting-page__save-hint {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.setting-page__actions {
   display: flex;
   align-items: center;
-  gap: var(--shell-action-bar-gap);
-  min-height: var(--shell-action-bar-min-height);
-  padding: 8px 16px;
-  background: var(--panel-muted);
-  border-radius: var(--radius-md);
+  justify-content: space-between;
+  gap: 8px 12px;
+  flex-wrap: wrap;
 }
 
-.table-batch-action-bar__main {
+.setting-page__meta-actions {
+  gap: 8px;
+  margin-right: auto;
+}
+
+.setting-page__actions .submit-bar {
+  width: auto;
+  padding-top: 0;
+}
+
+.setting-page__audit-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.setting-page__governance-stack {
+  display: grid;
+  gap: 12px;
+}
+
+/* 4 metric cards with descriptions: a fixed 2x2 grid avoids the 3+1 auto-fit hole. */
+.setting-page__governance-bar .governance-summary-bar__metrics {
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+}
+
+.setting-page__group-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.setting-page__group-nav-item {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  min-height: 82px;
+  padding: 10px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: var(--panel-bg-solid);
+  text-align: left;
+  transition:
+    border-color var(--motion-duration-base) ease,
+    background-color var(--motion-duration-base) ease;
+  cursor: pointer;
+}
+
+.setting-page__group-nav-item:hover,
+.setting-page__group-nav-item:focus-visible {
+  border-color: color-mix(in srgb, var(--brand-primary) 26%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 3%, var(--surface-lift));
+  outline: none;
+}
+
+.setting-page__group-nav-item--active {
+  border-color: color-mix(in srgb, var(--brand-primary) 34%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 5%, var(--surface-lift));
+}
+
+.setting-page__group-nav-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.setting-page__group-nav-title {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.setting-page__group-nav-desc,
+.setting-page__group-nav-meta {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.setting-page__group-nav-desc {
+  display: -webkit-box;
+  min-height: 34px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.setting-page__runtime-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: var(--panel-bg-solid);
+  font-size: 12px;
+}
+
+.dict-page__governance-bar,
+.setting-page__governance-bar {
+  width: 100%;
+}
+
+.dict-page__tabs .arco-tabs-header {
+  margin-bottom: 10px;
+}
+
+.dict-page__tabs .arco-tabs-content {
+  min-width: 0;
+}
+
+.setting-page__runtime-strip .arco-typography {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.setting-overview-page__layout {
+  width: 100%;
+}
+
+.setting-overview-page__anchor-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--panel-border);
+  margin-bottom: -1px;
+}
+
+.setting-overview-page__anchor-item {
+  position: relative;
+  display: grid;
+  flex: 1 1 168px;
+  gap: 3px;
+  min-width: 0;
+  min-height: 72px;
+  margin-bottom: -1px;
+  padding: 10px 14px 11px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-duration-base) ease,
+    background-color var(--motion-duration-base) ease,
+    color var(--motion-duration-base) ease;
+}
+
+.setting-overview-page__anchor-item:hover,
+.setting-overview-page__anchor-item:focus-visible {
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
+  outline: none;
+}
+
+.setting-overview-page__anchor-item:focus-visible {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 28%, transparent);
+}
+
+.setting-overview-page__anchor-item--active {
+  z-index: var(--z-base);
+  border-color: color-mix(in srgb, var(--brand-primary) 22%, var(--panel-border));
+  background: var(--panel-bg-solid);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--brand-primary) 10%, transparent);
+}
+
+.setting-overview-page__anchor-item--active::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  background: var(--panel-bg-solid);
+}
+
+.setting-overview-page__anchor-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.setting-overview-page__anchor-title {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.setting-overview-page__anchor-desc,
+.setting-overview-page__anchor-meta {
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.setting-overview-page__anchor-desc {
+  display: -webkit-box;
+  min-height: 16px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.setting-overview-page__anchor-meta {
+  font-weight: 500;
+}
+
+.setting-overview-page__anchor-item .arco-tag {
+  margin-left: auto;
+}
+
+.setting-overview-page__anchor-item--active .setting-overview-page__anchor-title {
+  color: color-mix(in srgb, var(--brand-primary) 70%, var(--text-primary));
+}
+
+.setting-overview-page__workspace {
+  position: relative;
+}
+
+.setting-overview-page__workspace-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.setting-group-workspace {
+  scroll-margin-top: 88px;
+}
+
+.setting-overview-page__rail {
+  gap: 12px;
+}
+
+.setting-overview-page__risk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting-overview-page__risk-item {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-xs);
+  background: var(--panel-bg-solid);
+}
+
+.setting-overview-page__risk-item--warning {
+  border-color: color-mix(in srgb, var(--color-warning-bg) 58%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-warning-bg) 18%, var(--surface-lift));
+}
+
+.setting-overview-page__risk-item--critical {
+  border-color: color-mix(in srgb, var(--color-error-bg) 62%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-error-bg) 14%, var(--surface-lift));
+}
+
+.setting-overview-page__risk-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.setting-overview-page__risk-header .arco-btn {
+  padding-inline: 0;
+}
+
+.setting-overview-page__risk-title {
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.setting-overview-page__risk-desc {
+  display: block;
+  line-height: 1.6;
+}
+
+.submit-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+  padding-top: 4px;
+}
+
+.operational-visual-fixture {
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--page-bg);
+}
+
+.operational-visual-fixture__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.operational-visual-fixture__grid > .operational-primitive,
+.operational-visual-fixture__grid > .arco-card {
+  min-width: 0;
+}
+
+.operational-visual-fixture__registry .arco-card-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.operational-visual-fixture__registry [data-dashboard-slot] {
+  padding: 6px 8px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .operational-visual-fixture {
+    padding: 16px;
+  }
+
+  .operational-visual-fixture__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.submit-bar__state {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.submit-bar__status {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.submit-bar__error {
+  max-width: 720px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--color-error) 18%, var(--panel-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-error-bg) 56%, var(--surface-lift));
+  color: var(--color-error);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.submit-bar__actions {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
+
+.submit-bar__actions .arco-space-item {
+  min-width: 0;
+}
+
+.submit-bar[data-sticky='true'] {
+  position: sticky;
+  z-index: 10;
+  bottom: max(0px, env(safe-area-inset-bottom));
+  align-items: center;
+  min-height: 58px;
+  margin-top: 16px;
+  padding: 10px 0 max(10px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--panel-border);
+  background: color-mix(in srgb, var(--panel-bg-solid) 96%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.submit-bar[data-status='dirty'] .submit-bar__status {
+  color: var(--brand-primary);
+}
+
+.submit-bar[data-status='success'] .submit-bar__status {
+  color: var(--color-success);
+}
+
+.submit-bar[data-status='error'] .submit-bar__status,
+.submit-bar[data-status='conflict'] .submit-bar__status {
+  color: var(--color-error);
+}
+
+@media (max-width: 768px) {
+  .submit-bar {
+    align-items: stretch;
+  }
+
+  .submit-bar[data-sticky='true'] {
+    flex-direction: column;
+    align-items: stretch;
+    padding-inline: 0;
+  }
+
+  .submit-bar__actions {
+    width: 100%;
+  }
+
+  .submit-bar__actions.arco-space-horizontal {
+    justify-content: flex-end;
+  }
+
+  .submit-bar__actions .arco-btn-primary {
+    min-width: min(172px, 48vw);
+  }
+
+  .submit-bar__overflow {
+    width: 36px;
+    padding-inline: 0;
+  }
+}
+
+.page-empty,
+.page-loading {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-empty {
+  min-height: 220px;
+  padding: 16px 0;
+}
+
+.page-loading {
+  min-height: 240px;
+}
+
+.page-panel {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: var(--panel-bg-solid);
+  box-shadow: var(--panel-shadow-soft);
+}
+
+.side-rail-panel.side-rail-panel {
+  position: relative;
+  overflow: hidden;
+  border-color: var(--panel-border);
+  background: var(--panel-bg-solid);
+}
+
+.side-rail-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: var(--brand-primary);
+  opacity: 0.54;
+}
+
+.page-panel .arco-card-head {
+  min-height: var(--shell-panel-head-min-height);
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.page-panel .arco-card-body {
+  padding: var(--shell-panel-body-padding);
+}
+
+.page-panel--split {
+  height: 100%;
+}
+
+.page-panel--soft {
+  border-color: var(--panel-border-strong);
+  background: var(--panel-bg-solid);
+}
+
+.page-split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.35fr) minmax(236px, 272px);
+  align-items: start;
+  gap: var(--shell-page-split-gap);
+  min-width: 0;
+  width: 100%;
+}
+
+.page-split-layout--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.page-split-layout--focus-main {
+  grid-template-columns: minmax(0, 2.8fr) minmax(220px, 248px);
+}
+
+.page-main-column,
+.page-side-column {
+  min-width: 0;
+}
+
+.page-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--shell-page-main-gap);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.page-side-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--shell-page-side-gap);
+  position: sticky;
+  top: 0;
+  /* 侧栏高于视口时允许内部滚动，避免 sticky 钉住后底部内容不可达 */
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+/* 侧栏卡片不参与 flex 收缩，超出部分交给侧栏自身滚动，避免卡片内容被截断 */
+.page-side-column > * {
+  flex-shrink: 0;
+}
+
+.side-rail-panel .arco-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 16px 16px;
+}
+
+.side-rail-panel .arco-card-head {
+  min-height: auto;
+  padding: 14px 16px 0;
+  border-bottom: none;
+  background: transparent;
+}
+
+.side-rail-panel .arco-card-header-title {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.side-rail-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.side-rail-panel__title {
+  display: block;
+  color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+
+.side-rail-panel__extra {
+  flex-shrink: 0;
+}
+
+.side-rail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.side-rail-item {
+  padding: 11px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--panel-muted) 76%, var(--surface-lift));
+}
+
+.side-rail-item--warning {
+  border-color: color-mix(in srgb, var(--color-warning-bg) 58%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-warning-bg) 20%, var(--surface-lift));
+}
+
+.side-rail-item--danger {
+  border-color: color-mix(in srgb, var(--color-error-bg) 62%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-error-bg) 18%, var(--surface-lift));
+}
+
+.side-rail-item__label {
+  display: block;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  margin-bottom: 7px;
+  line-height: 1.5;
+}
+
+.side-rail-item__value {
+  display: block;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.side-rail-item__desc {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.side-rail-note {
+  padding: 13px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--panel-muted) 72%, var(--surface-lift));
+}
+
+.side-rail-note--warning {
+  border-color: color-mix(in srgb, var(--color-warning-bg) 58%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-warning-bg) 20%, var(--surface-lift));
+}
+
+.side-rail-note--danger {
+  border-color: color-mix(in srgb, var(--color-error-bg) 62%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-error-bg) 18%, var(--surface-lift));
+}
+
+.side-rail-note__title {
+  display: block;
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.side-rail-note__desc {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.governance-insight-drawer .arco-drawer-body {
+  background: var(--app-bg);
+}
+
+.governance-insight-drawer__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.governance-insight-drawer__summary,
+.governance-insight-drawer__note-panel {
+  box-shadow: none;
+}
+
+.system-page-template {
+  width: 100%;
+}
+
+.system-page-hero {
+  overflow: hidden;
+  background: var(--panel-bg-solid);
+}
+
+.system-page-hero .arco-card-body {
+  padding: 16px 18px;
+}
+
+.system-page-hero__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 10px;
+}
+
+.system-page-hero__copy {
+  max-width: 720px;
+}
+
+.system-page-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
+  color: var(--brand-primary);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.system-page-hero .system-page-hero__title {
+  margin: 8px 0 6px;
+  font-size: 24px;
+  line-height: 1.08;
+}
+
+.system-page-hero .system-page-hero__desc {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  max-width: 64ch;
+}
+
+.system-page-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.system-page-kpi {
+  padding: 12px 14px;
+  border: 1px solid var(--panel-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--panel-bg-solid);
+}
+
+.system-page-kpi__label {
+  display: block;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.system-page-kpi__value {
+  display: block;
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.system-page-kpi__hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.governance-workbench {
+  width: 100%;
+}
+
+.governance-workbench__summary .arco-card-body {
+  padding: 18px 20px;
+}
+
+.governance-workbench__task-title {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.governance-workbench__task-desc {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.post-governance__action-text {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.form-section {
+  width: 100%;
+}
+
+.form-section + .form-section {
+  margin-top: 4px;
+}
+
+.form-section__header {
+  padding-bottom: 8px;
+}
+
+.form-section__title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.form-section__description {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.app-dialog {
+  display: flex;
+  flex-direction: column;
+  z-index: 2500;
+  background: var(--panel-bg-solid);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-overlay);
+  box-shadow: var(--panel-shadow-strong);
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: hidden;
+}
+
+.app-dialog.app-dialog.zoomModal-appear,
+.app-dialog.app-dialog.zoomModal-appear-active,
+.app-dialog.app-dialog.zoomModal-enter,
+.app-dialog.app-dialog.zoomModal-enter-active,
+.app-dialog.app-dialog.zoomModal-exit,
+.app-dialog.app-dialog.zoomModal-exit-active {
+  animation-name: app-dialog-no-scale;
+  animation-duration: 1ms;
+  animation-timing-function: linear;
+  transform: none;
+}
+
+@keyframes app-dialog-no-scale {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.app-dialog.app-dialog .arco-modal-header.arco-modal-header {
+  height: 64px;
+  min-height: 64px;
+  padding: 16px 24px;
+  background: var(--panel-bg-solid);
+  border-bottom: 1px solid var(--panel-border-strong);
+}
+
+.app-dialog .arco-modal-content {
+  width: 100%;
+  max-height: calc(100dvh - 32px - 64px - 74px);
+  padding: 20px 24px 24px;
+  background: color-mix(in srgb, var(--panel-muted) 78%, var(--surface-lift));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.app-dialog .arco-modal-footer {
+  padding: 16px 24px 20px;
+  background: var(--panel-bg-solid);
+  border-top: 1px solid var(--panel-border-strong);
+}
+
+.app-dialog .arco-modal-title {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.app-dialog .arco-modal-close-icon {
+  border-radius: var(--radius-sm);
+}
+
+.app-dialog .arco-modal-close-icon:hover {
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
+}
+
+.app-dialog .arco-modal-header,
+.app-dialog .arco-modal-footer {
+  flex: 0 0 auto;
+}
+
+.app-dialog .arco-form-item:last-child {
+  margin-bottom: 0;
+}
+
+.app-dialog.app-dialog .arco-input-password,
+.app-dialog.app-dialog .arco-select-view,
+.app-dialog.app-dialog .arco-tree-select-view,
+.app-dialog.app-dialog .arco-picker,
+.app-dialog.app-dialog .arco-textarea-wrapper,
+.app-dialog.app-dialog .arco-input-tag {
+  border: 1px solid var(--panel-border-strong);
+  background: var(--control-bg);
+  box-shadow: none;
+}
+
+.app-dialog .arco-input-inner-wrapper {
+  border: 1px solid var(--panel-border-strong);
+  background: var(--control-bg);
+  box-shadow: none;
+}
+
+.app-dialog input.arco-input,
+.app-dialog textarea.arco-textarea {
+  border: 1px solid var(--panel-border-strong);
+  background: var(--control-bg);
+  box-shadow: none;
+}
+
+.app-dialog .arco-input-number {
+  border: 1px solid var(--panel-border-strong);
+  background: var(--control-bg);
+  box-shadow: none;
+}
+
+.app-dialog.app-dialog .arco-select-view,
+.app-dialog.app-dialog .arco-tree-select-view,
+.app-dialog.app-dialog .arco-picker {
+  background: var(--control-bg);
+}
+
+.app-dialog .arco-input-inner-wrapper .arco-input,
+.app-dialog .arco-input-password .arco-input,
+.app-dialog .arco-input-password .arco-input-group,
+.app-dialog .arco-input-password .arco-input-inner-wrapper,
+.app-dialog .arco-input-number .arco-input-inner-wrapper,
+.app-dialog .arco-input-number .arco-input,
+.app-dialog .arco-textarea-wrapper .arco-textarea {
+  min-height: auto;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+.app-dialog.app-dialog .arco-input-password .arco-input,
+.app-dialog.app-dialog .arco-input-number .arco-input,
+.app-dialog.app-dialog .arco-textarea-wrapper .arco-textarea {
+  border-width: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+.app-dialog.app-dialog .arco-input-password .arco-input-group,
+.app-dialog.app-dialog .arco-input-password .arco-input-inner-wrapper,
+.app-dialog.app-dialog .arco-input-number .arco-input-inner-wrapper {
+  border-width: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+.app-dialog.app-dialog .arco-input-inner-wrapper.arco-input-focus,
+.app-dialog.app-dialog .arco-input-password.arco-input-focus,
+.app-dialog.app-dialog .arco-input-password:focus-within,
+.app-dialog.app-dialog .arco-input-number.arco-input-focus,
+.app-dialog.app-dialog .arco-input-number:focus-within,
+.app-dialog.app-dialog .arco-select-focused .arco-select-view,
+.app-dialog.app-dialog .arco-select-open .arco-select-view,
+.app-dialog.app-dialog .arco-select-view.arco-select-view-focus,
+.app-dialog.app-dialog .arco-tree-select.arco-tree-select-focused .arco-tree-select-view,
+.app-dialog.app-dialog .arco-picker-focused,
+.app-dialog.app-dialog .arco-textarea-wrapper-focus,
+.app-dialog.app-dialog .arco-input-tag.arco-input-tag-focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 14%, transparent);
+}
+
+.app-drawer .arco-drawer-header {
+  min-height: 64px;
+  padding-left: 24px;
+  padding-right: 24px;
+  border-bottom: 1px solid var(--panel-border-strong);
+  background: var(--panel-bg-solid);
+}
+
+.app-drawer .arco-drawer-title {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.app-drawer .arco-drawer-body,
+.app-drawer .arco-drawer-content {
+  /* 抽屉体与弹窗体（.app-dialog .arco-modal-content）共用同一 muted 表面比例。 */
+  padding: 20px 24px 24px;
+  background: color-mix(in srgb, var(--panel-muted) 78%, var(--surface-lift));
+}
+
+.app-drawer .arco-drawer-footer {
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--panel-border-strong);
+  background: var(--panel-bg-solid);
+}
+
+.app-drawer .arco-drawer-close-btn {
+  border-radius: var(--radius-sm);
+}
+
+.app-drawer .arco-drawer-close-btn:hover {
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
+}
+
+.app-drawer.arco-drawer {
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-overlay);
+  background: var(--panel-bg-solid);
+  box-shadow: var(--panel-shadow-strong);
+}
+
+.app-drawer.arco-drawer .arco-drawer-content {
+  overflow-y: auto;
+}
+
+.app-drawer.app-drawer .arco-input-password,
+.app-drawer.app-drawer .arco-input-number,
+.app-drawer.app-drawer .arco-select-view,
+.app-drawer.app-drawer .arco-tree-select-view,
+.app-drawer.app-drawer .arco-picker,
+.app-drawer.app-drawer .arco-textarea-wrapper,
+.app-drawer.app-drawer .arco-input-tag {
+  border: 1px solid var(--panel-border-strong);
+  background: var(--control-bg);
+  box-shadow: none;
+}
+
+.app-drawer .arco-input-inner-wrapper {
+  border: 1px solid var(--panel-border-strong);
+  background: var(--control-bg);
+  box-shadow: none;
+}
+
+.app-drawer input.arco-input,
+.app-drawer textarea.arco-textarea {
+  border: 1px solid var(--panel-border-strong);
+  background: var(--control-bg);
+  box-shadow: none;
+}
+
+.app-drawer .arco-input-number {
+  border: 1px solid var(--panel-border-strong);
+  background: var(--control-bg);
+  box-shadow: none;
+}
+
+.app-drawer .arco-input-inner-wrapper .arco-input,
+.app-drawer .arco-input-password .arco-input,
+.app-drawer .arco-input-password .arco-input-group,
+.app-drawer .arco-input-password .arco-input-inner-wrapper,
+.app-drawer .arco-input-number .arco-input-inner-wrapper,
+.app-drawer .arco-input-number .arco-input,
+.app-drawer .arco-textarea-wrapper .arco-textarea {
+  min-height: auto;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+.app-drawer.app-drawer .arco-input-password .arco-input,
+.app-drawer.app-drawer .arco-input-number .arco-input,
+.app-drawer.app-drawer .arco-textarea-wrapper .arco-textarea {
+  border-width: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+.app-drawer.app-drawer .arco-input-password .arco-input-group,
+.app-drawer.app-drawer .arco-input-password .arco-input-inner-wrapper,
+.app-drawer.app-drawer .arco-input-number .arco-input-inner-wrapper {
+  border-width: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+.app-drawer .arco-input-inner-wrapper.arco-input-focus,
+.app-drawer .arco-input-password.arco-input-focus,
+.app-drawer .arco-input-password:focus-within,
+.app-drawer .arco-input-number.arco-input-focus,
+.app-drawer .arco-input-number:focus-within,
+.app-drawer .arco-select-focused .arco-select-view,
+.app-drawer .arco-select-open .arco-select-view,
+.app-drawer .arco-select-view.arco-select-view-focus,
+.app-drawer .arco-tree-select.arco-tree-select-focused .arco-tree-select-view,
+.app-drawer .arco-picker-focused,
+.app-drawer .arco-textarea-wrapper-focus,
+.app-drawer .arco-input-tag.arco-input-tag-focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 14%, transparent);
+}
+
+.dialog-form-stack,
+.detail-stack {
+  width: 100%;
+}
+
+.dialog-grid-card,
+.detail-panel-card,
+.page-stat-panel {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+}
+
+.dialog-grid-card.dialog-grid-card {
+  height: 100%;
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
+}
+
+.dialog-grid-card--danger.dialog-grid-card--danger {
+  background: color-mix(in srgb, var(--color-error-bg) 60%, var(--surface-lift));
+}
+
+.detail-panel-card {
+  background: var(--panel-bg-solid);
+}
+
+.app-dialog.app-dialog .dialog-grid-card,
+.app-dialog.app-dialog .detail-panel-card {
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--panel-border) 92%, transparent);
+  border-radius: var(--radius-md);
+  background: var(--panel-bg-solid);
+  box-shadow: none;
+}
+
+.app-dialog.app-dialog .dialog-grid-card--danger,
+.app-dialog.app-dialog .detail-panel-card--danger {
+  border-color: color-mix(in srgb, var(--color-error) 32%, transparent);
+  background: color-mix(in srgb, var(--color-error-bg) 24%, var(--surface-lift));
+}
+
+.app-dialog .dialog-grid-card .arco-card-head,
+.app-dialog .detail-panel-card .arco-card-head {
+  min-height: 44px;
+  border-bottom-color: var(--panel-border);
+  background: color-mix(in srgb, var(--panel-muted) 86%, var(--surface-lift));
+}
+
+.app-dialog .dialog-grid-card .arco-card-header-title {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.app-dialog.app-dialog .dialog-grid-card .arco-card-header-title .arco-space.arco-space {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.app-dialog .dialog-grid-card .arco-card-header-title .arco-space-item:first-child {
+  min-width: 0;
+}
+
+.app-dialog .dialog-grid-card .arco-card-header-title .arco-typography {
+  white-space: nowrap;
+  line-height: 22px;
+}
+
+.app-dialog .dialog-grid-card .arco-card-header-title .arco-tag {
+  flex: 0 0 auto;
+}
+
+.app-dialog .dialog-grid-card .arco-card-body,
+.app-dialog .detail-panel-card .arco-card-body {
+  padding: 14px 16px;
+}
+
+.role-member-drawer__stack {
+  width: 100%;
+}
+
+.role-member-drawer__title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.role-member-drawer__title-main {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.role-member-drawer__title-sub {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.role-member-drawer__summary-card .arco-card-body {
+  display: grid;
+  gap: 14px;
+}
+
+.role-member-drawer__summary,
+.role-member-drawer__toolbar,
+.role-member-drawer__filter-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex: 1;
+  min-width: 0;
 }
 
-.table-batch-action-bar__actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+.role-member-drawer__summary {
+  justify-content: space-between;
 }
 
-.table-batch-action-bar__select {
-  color: var(--text-secondary);
+.role-member-drawer__summary-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.role-member-drawer__summary-title {
+  color: var(--text-primary);
   font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
-.table-batch-action-bar .arco-btn {
+.role-member-drawer__summary-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.role-member-drawer__toolbar .arco-input-wrapper,
+.role-member-drawer__toolbar .arco-select,
+.role-member-drawer__filter-row .arco-input-wrapper,
+.role-member-drawer__filter-row .arco-select {
+  min-width: 0;
+}
+
+.role-member-drawer__toolbar .arco-input-wrapper,
+.role-member-drawer__toolbar .arco-select {
+  flex: 1 1 360px;
+}
+
+.role-member-drawer__candidate-list {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   min-height: 32px;
 }
 
-.table-batch-action-bar .arco-btn-text {
-  color: var(--text-primary);
-  background: transparent;
+.role-member-drawer__candidate-pill {
+  max-width: 100%;
 }
 
+.role-member-drawer__candidate-pill .arco-btn-content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
+.role-member-drawer__candidate-pill.role-member-drawer__candidate-pill .arco-btn-content > * {
+  pointer-events: none;
+}
 
+.role-member-drawer__candidate-pill--selected {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+}
 
-/* System List */
-.system-list__table-head {
+.role-member-drawer__candidate-empty {
+  line-height: 32px;
+}
+
+.role-member-drawer__nickname-text {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: normal;
+}
+
+.role-member-drawer__filter-row {
+  margin-bottom: 12px;
+}
+
+.role-member-drawer__filter-row .arco-input-wrapper {
+  flex: 1 1 240px;
+}
+
+.role-member-drawer__filter-row .arco-select {
+  flex: 0 0 160px;
+}
+
+.app-dialog .detail-stack,
+.app-dialog .dialog-form-stack {
   display: flex;
-  align-items: center;
-  gap: var(--shell-table-head-gap);
-  margin-bottom: 16px;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.system-list__table-card {
-  border-radius: var(--radius-lg);
+.app-dialog .detail-stack .arco-space-item,
+.app-dialog .dialog-form-stack .arco-space-item {
+  width: 100%;
 }
 
-.system-list__table-card > .arco-card-body {
+.page-stat-panel .arco-card-body {
+  padding: 18px 20px;
+}
+
+.page-stat-panel .arco-typography {
+  display: block;
+}
+
+.filter-panel .arco-card-body {
   padding: 0;
 }
 
-.system-list__work-actions {
-  display: flex;
-  gap: var(--shell-list-actions-gap);
-}
-
-/* List Header Actions */
-.list-header-actions {
-  display: flex;
-  gap: var(--shell-list-actions-gap);
-}
-
-.list-header-actions .arco-btn {
-  min-height: var(--shell-control-min-height);
-}
-
-
-
-/* Filter Panel */
 .filter-panel {
-  padding: var(--shell-filter-body-padding);
-  background: var(--panel-bg);
-  border-radius: var(--radius-md);
+  /* 单一真相块：与 :root[data-pantheon-theme] .arco-card 的实际渲染一致
+     （SearchToolbar/FilterPanel 均为 Card，卡片规则本就以更高特异性生效）。 */
+  min-width: 0;
   border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: var(--panel-bg-solid);
+  box-shadow: var(--panel-shadow-soft);
+}
+
+.filter-panel__header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.filter-panel__title {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.filter-panel__toggle {
+  min-height: 32px;
+  color: var(--text-secondary);
 }
 
 .filter-panel__body {
   padding: var(--shell-filter-body-padding);
+  box-sizing: border-box;
+}
+
+.filter-panel .arco-row {
+  align-items: flex-end;
+  row-gap: 2px;
+}
+
+.filter-panel .arco-col,
+.filter-panel .arco-form-item-control,
+.filter-panel .arco-form-item-control-children {
+  min-width: 0;
 }
 
 .filter-panel .arco-form-item {
   margin-bottom: var(--shell-filter-form-item-margin-bottom);
 }
 
-.filter-panel .arco-form-item-label-col > label {
+.filter-panel .filter-panel__action-item {
+  margin-bottom: var(--shell-filter-form-item-margin-bottom);
+}
+
+.filter-panel .arco-form-item-label-col {
   padding-bottom: var(--shell-filter-label-padding-bottom);
+}
+
+.filter-panel .arco-form-item-label-col > label {
+  min-height: 20px;
   color: var(--text-secondary);
+  font-size: 12px;
   font-weight: 500;
+  line-height: 1.45;
 }
 
-.filter-panel .arco-input-inner-wrapper {
+.filter-panel .arco-input-inner-wrapper,
+.filter-panel input.arco-input,
+.filter-panel .arco-input-password,
+.filter-panel .arco-input-number,
+.filter-panel .arco-select-view,
+.filter-panel .arco-tree-select-view,
+.filter-panel .arco-picker,
+.filter-panel .arco-textarea-wrapper {
   min-height: var(--shell-filter-control-min-height);
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--panel-border-strong) 82%, var(--surface-lift));
+  border-radius: var(--radius-control);
+  background: var(--panel-bg-solid);
+  box-shadow: none;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease;
 }
 
-.filter-panel .arco-input-inner-wrapper:hover {
-  border-color: rgba(var(--primary-6), 0.3);
+.filter-panel .arco-input-inner-wrapper:hover,
+.filter-panel input.arco-input:hover,
+.filter-panel .arco-input-password:hover,
+.filter-panel .arco-input-number:hover,
+.filter-panel .arco-select-view:hover,
+.filter-panel .arco-tree-select-view:hover,
+.filter-panel .arco-picker:hover,
+.filter-panel .arco-textarea-wrapper:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 34%, var(--panel-border-strong));
+  background: var(--control-bg);
 }
 
-.filter-panel .arco-input-inner-wrapper:focus-within {
-  border-color: rgb(var(--primary-6));
-  box-shadow: 0 0 0 2px rgba(var(--primary-6), 0.15);
+.filter-panel .arco-input-focus,
+.filter-panel .arco-input-inner-wrapper:focus-within,
+.filter-panel .arco-input-password:focus-within,
+.filter-panel .arco-input-number:focus-within,
+.filter-panel .arco-select-focused .arco-select-view,
+.filter-panel .arco-select-open .arco-select-view,
+.filter-panel .arco-tree-select.arco-tree-select-focused .arco-tree-select-view,
+.filter-panel .arco-picker-focused,
+.filter-panel .arco-textarea-wrapper-focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  background: var(--control-bg);
+}
+
+.filter-panel .arco-select-view input.arco-input,
+.filter-panel .arco-tree-select-view input.arco-input,
+.filter-panel .arco-picker input.arco-input {
+  width: 100%;
+  min-width: 100%;
+}
+
+.filter-panel .arco-space {
+  gap: 8px;
+}
+
+.filter-panel__action-item .arco-form-item-control,
+.filter-panel__action-item .arco-form-item-content,
+.filter-panel__action-item .arco-form-item-control-children {
+  align-items: flex-end;
+}
+
+.filter-panel .filter-panel__action-item .arco-space {
+  justify-content: flex-end;
+  width: 100%;
+  flex-wrap: nowrap;
+  gap: 10px;
 }
 
 .filter-panel__action-item .arco-btn {
   min-height: var(--shell-filter-control-min-height);
+  padding-inline: 16px;
+  border-radius: var(--radius-action);
+  white-space: nowrap;
 }
 
+.filter-panel__action-item .arco-btn:not(.arco-btn-primary) {
+  border-color: color-mix(in srgb, var(--panel-border-strong) 92%, var(--surface-lift));
+  background: var(--panel-bg-solid);
+}
 
-/* App Dialog */
-.app-dialog {
+@media (min-width: 1280px) {
+  .filter-panel.filter-panel .arco-row > .arco-col {
+    flex: 1 1 180px;
+    min-width: 160px;
+    max-width: 208px;
+  }
+
+  .filter-panel.filter-panel .arco-row > .arco-col:last-child {
+    flex: 0 0 auto;
+    min-width: auto;
+    max-width: none;
+    margin-left: auto;
+  }
+
+  .filter-panel__action-item .arco-space {
+    width: auto;
+    flex-wrap: nowrap;
+  }
+
+  .filter-panel__action-item .arco-btn {
+    min-width: 84px;
+  }
+}
+
+/* SearchToolbar：单行搜索工具栏（关键词 + 行内筛选 + 弹层筛选 + 清空） */
+.search-toolbar .filter-panel__body,
+.search-toolbar .search-toolbar__body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: var(--shell-filter-body-padding);
+  padding-bottom: calc(var(--shell-filter-form-item-margin-bottom) + 2px);
+}
+
+.search-toolbar__keyword {
+  flex: 1 1 260px;
+  min-width: 200px;
+  max-width: 560px;
+}
+
+/* Arco input-group wrapper 默认按行内内容撑高，收紧为控件实际高度。 */
+.search-toolbar__keyword .arco-input-group {
+  display: flex;
+}
+
+/* 外层 group wrapper 只做布局：边框由内层 inner-wrapper 承担，避免双边框叠高。 */
+.search-toolbar .search-toolbar__keyword.arco-input-group-wrapper {
+  min-height: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* 工具栏内所有控件对齐同一控件规格：高度与页面输入控件一致。
+   边框/hover/focus 交由全局 .arco-* 控件规则接管，避免高特异性覆盖交互态。 */
+.search-toolbar .search-toolbar__keyword .arco-input-inner-wrapper,
+.search-toolbar .search-toolbar__inline .arco-select-view,
+.search-toolbar .search-toolbar__inline .arco-tree-select-view,
+.search-toolbar .search-toolbar__inline .arco-picker {
+  height: var(--shell-filter-control-min-height);
+  min-height: var(--shell-filter-control-min-height);
+  box-sizing: border-box;
+}
+
+.search-toolbar .search-toolbar__inline .arco-btn,
+.search-toolbar .search-toolbar__advanced-trigger {
+  height: var(--shell-filter-control-min-height);
+  min-height: var(--shell-filter-control-min-height);
+  border: 1px solid var(--panel-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--control-bg);
+  box-sizing: border-box;
+}
+
+.search-toolbar__inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.search-toolbar__inline .arco-select,
+.search-toolbar__inline .arco-tree-select,
+.search-toolbar__inline .arco-picker {
+  width: 168px;
+}
+
+.search-toolbar .arco-form-item {
+  margin-bottom: 0;
+}
+
+.search-toolbar__advanced-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--shell-filter-control-min-height);
+  border-color: color-mix(in srgb, var(--panel-border-strong) 92%, var(--surface-lift));
+  border-radius: var(--radius-control);
+  background: var(--panel-bg-solid);
+  white-space: nowrap;
+}
+
+.search-toolbar__badge .arco-badge-number {
+  background: var(--brand-primary);
+  box-shadow: none;
+}
+
+.search-toolbar__clear {
+  min-height: var(--shell-filter-control-min-height);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.search-toolbar__clear:hover {
+  color: var(--text-primary);
+}
+
+.search-toolbar__extra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.search-toolbar__popover {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 264px;
+  max-width: min(320px, calc(100vw - 48px));
+  padding: 4px 2px;
+}
+
+.search-toolbar__popover .arco-form-item {
+  margin-bottom: 0;
+}
+
+.search-toolbar__popover .arco-select,
+.search-toolbar__popover .arco-tree-select,
+.search-toolbar__popover .arco-picker,
+.search-toolbar__popover .arco-input-inner-wrapper,
+.search-toolbar__popover input.arco-input {
+  width: 100%;
+  min-height: var(--shell-filter-control-min-height);
+}
+
+.search-toolbar__popover-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.search-toolbar__popover-field > label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+@media (max-width: 768px) {
+  .search-toolbar .filter-panel__body,
+  .search-toolbar .search-toolbar__body {
+    gap: 8px;
+  }
+
+  .search-toolbar__keyword {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .search-toolbar__extra {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .role-member-drawer__summary,
+  .role-member-drawer__toolbar,
+  .role-member-drawer__filter-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .role-member-drawer__summary-meta {
+    justify-content: flex-start;
+  }
+
+  .role-member-drawer__toolbar .arco-input-wrapper,
+  .role-member-drawer__toolbar .arco-select,
+  .role-member-drawer__candidate-list,
+  .role-member-drawer__filter-row .arco-input-wrapper,
+  .role-member-drawer__filter-row .arco-select,
+  .role-member-drawer__toolbar .arco-btn,
+  .role-member-drawer__filter-row .arco-btn {
+    width: 100%;
+  }
+}
+
+.pantheon-theme-menu__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.pantheon-theme-menu__swatch {
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.pantheon-theme-menu__copy {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pantheon-theme-menu__title {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pantheon-theme-menu__desc {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.arco-btn {
+  min-height: var(--shell-control-min-height);
+  border-radius: var(--radius-action);
+  line-height: 20px;
+}
+
+.arco-btn-icon-only {
+  min-width: var(--shell-control-min-height);
+}
+
+.arco-input-inner-wrapper,
+.arco-input-password,
+.arco-input-password .arco-input-inner-wrapper,
+.arco-input-number,
+.arco-input-group-wrapper,
+input.arco-input,
+.arco-select-view,
+.arco-tree-select-view,
+.arco-picker,
+.arco-textarea-wrapper,
+textarea.arco-textarea,
+.arco-input-tag {
+  border-radius: var(--radius-control);
+}
+
+.arco-card,
+.arco-drawer-content,
+.arco-popover-content,
+.arco-dropdown-menu,
+.arco-trigger-popup {
+  border-radius: var(--radius-md);
+}
+
+.arco-modal {
   border-radius: var(--radius-overlay);
 }
 
-.app-dialog.zoomModal-appear {
-  animation: app-dialog-no-scale 0.2s ease-out;
+:root[data-pantheon-theme] .arco-card {
+  overflow: hidden;
+  border-color: var(--panel-border);
+  background: var(--panel-bg-solid);
+  box-shadow: var(--panel-shadow-soft);
 }
 
-@keyframes app-dialog-no-scale {
+.arco-card-head {
+  border-bottom-color: var(--panel-border);
+}
+
+.arco-form-item-label-col > label {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.arco-form-item-extra,
+.arco-form-item-help {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.arco-form-item-error .arco-input-inner-wrapper,
+.arco-form-item-error .arco-input-password,
+.arco-form-item-error .arco-input-number,
+.arco-form-item-error .arco-select-view,
+.arco-form-item-error .arco-picker,
+.arco-form-item-error .arco-textarea-wrapper,
+.arco-form-item-error .arco-input-tag {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-error-bg) 62%, transparent);
+}
+
+.arco-input-inner-wrapper,
+.arco-input-password,
+.arco-input-number,
+.arco-input-group-wrapper,
+input.arco-input,
+.arco-select-view,
+.arco-tree-select-view,
+.arco-picker,
+.arco-textarea-wrapper,
+.arco-input-tag {
+  min-height: var(--shell-control-min-height);
+  border: 1px solid var(--panel-border-strong);
+  background: var(--control-bg);
+  box-shadow: none;
+  transition:
+    border-color var(--motion-duration-base) ease,
+    box-shadow var(--motion-duration-base) ease,
+    background var(--motion-duration-base) ease;
+}
+
+.arco-input-inner-wrapper:hover,
+.arco-input-password:hover,
+.arco-input-number:hover,
+.arco-input-group-wrapper:hover,
+input.arco-input:hover,
+.arco-select-view:hover,
+.arco-tree-select:hover .arco-tree-select-view,
+.arco-picker:hover,
+.arco-textarea-wrapper:hover,
+textarea.arco-textarea:hover,
+.arco-input-tag:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 28%, var(--panel-border-strong));
+}
+
+.arco-input-inner-wrapper.arco-input-focus,
+.arco-input-password.arco-input-focus,
+.arco-input-password:focus-within,
+.arco-input-number.arco-input-focus,
+.arco-input-number:focus-within,
+.arco-input-group-wrapper:focus-within,
+input.arco-input:focus,
+.arco-select-focused .arco-select-view,
+.arco-select-open .arco-select-view,
+.arco-select-view.arco-select-view-focus,
+.arco-tree-select.arco-tree-select-focused .arco-tree-select-view,
+.arco-picker-focused,
+.arco-textarea-wrapper-focus,
+textarea.arco-textarea:focus,
+.arco-input-tag.arco-input-tag-focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 14%, transparent);
+  background: var(--control-bg);
+}
+
+.arco-input-inner-wrapper .arco-input,
+.arco-input-password .arco-input-group,
+.arco-input-password .arco-input,
+.arco-input-password .arco-input-inner-wrapper,
+.arco-input-number .arco-input-inner-wrapper,
+.arco-input-number .arco-input-inner-wrapper .arco-input,
+.arco-textarea-wrapper .arco-textarea {
+  min-height: auto;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+html .arco-input-inner-wrapper .arco-input,
+html .arco-input-password .arco-input-group,
+html .arco-input-password .arco-input,
+html .arco-input-password .arco-input-inner-wrapper,
+html .arco-input-number .arco-input-inner-wrapper,
+html .arco-input-number .arco-input-inner-wrapper .arco-input {
+  min-height: auto;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+.arco-input-inner-wrapper .arco-input:focus,
+.arco-input-inner-wrapper .arco-input:focus-visible,
+.arco-input-password .arco-input:focus,
+.arco-input-password .arco-input:focus-visible,
+.arco-input-number .arco-input-inner-wrapper:focus,
+.arco-input-number .arco-input-inner-wrapper:focus-visible,
+.arco-input-number .arco-input-inner-wrapper .arco-input:focus,
+.arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible,
+.arco-textarea-wrapper .arco-textarea:focus,
+.arco-textarea-wrapper .arco-textarea:focus-visible {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+html .arco-input-inner-wrapper .arco-input:focus,
+html .arco-input-inner-wrapper .arco-input:focus-visible,
+html .arco-input-password .arco-input:focus,
+html .arco-input-password .arco-input:focus-visible,
+html .arco-input-number .arco-input-inner-wrapper .arco-input:focus,
+html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: 0;
+}
+
+.arco-input-password,
+.arco-input-password .arco-input-group,
+.arco-input-password .arco-input-inner-wrapper,
+.arco-input-password .arco-input {
+  border-radius: var(--radius-control);
+}
+
+.arco-input-password .arco-input-group,
+.arco-input-password .arco-input-inner-wrapper {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.arco-input-group > .arco-input-inner-wrapper:only-child,
+.arco-input-group > .arco-input-inner-wrapper.arco-input-inner-wrapper-focus:only-child {
+  border-radius: var(--radius-control);
+}
+
+.arco-input-disabled,
+.arco-input-disabled:hover {
+  border-color: var(--panel-border);
+  background: var(--panel-muted);
+}
+
+.arco-input-number,
+.arco-input-number .arco-input-inner-wrapper,
+.arco-input-number .arco-input-group {
+  border-radius: var(--radius-control);
+}
+
+.arco-input-number-step-button {
+  border-radius: var(--radius-control);
+}
+
+.arco-input-number-mode-embed .arco-input-number-step-layer .arco-input-number-step-button {
+  background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-lift));
+}
+
+.arco-input-number-mode-embed
+  .arco-input-inner-wrapper:not(.arco-input-inner-wrapper-focus)
+  .arco-input-number-step-button:not(.arco-input-number-step-button-disabled):hover {
+  background: color-mix(in srgb, var(--brand-primary) 12%, var(--surface-lift));
+}
+
+.arco-tree-select .arco-tree-select-view {
+  border-radius: var(--radius-control);
+  border-color: var(--panel-border-strong);
+  background: var(--control-bg);
+  transition:
+    border-color var(--motion-duration-base) ease,
+    box-shadow var(--motion-duration-base) ease,
+    background var(--motion-duration-base) ease;
+}
+
+.arco-tree-node-title:hover {
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
+}
+
+.arco-tree-node-selected .arco-tree-node-title {
+  color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 10%, var(--surface-lift));
+}
+
+.arco-select-view-value,
+.arco-input,
+.arco-textarea,
+.arco-picker input {
+  color: var(--text-primary);
+}
+
+.arco-select-view-placeholder,
+.arco-input::placeholder,
+.arco-textarea::placeholder,
+.arco-picker input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.arco-switch {
+  border-radius: var(--radius-pill);
+}
+
+.arco-alert {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--panel-shadow-soft);
+}
+
+.arco-alert-info {
+  border-color: color-mix(in srgb, var(--color-info) 18%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-info) 7%, var(--surface-lift));
+}
+
+.arco-alert-success {
+  border-color: color-mix(in srgb, var(--color-success-bg) 85%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-success-bg) 48%, var(--surface-lift));
+}
+
+.arco-alert-warning {
+  border-color: color-mix(in srgb, var(--color-warning-bg) 85%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-warning-bg) 48%, var(--surface-lift));
+}
+
+.arco-alert-error {
+  border-color: color-mix(in srgb, var(--color-error-bg) 92%, var(--panel-border));
+  background: color-mix(in srgb, var(--color-error-bg) 52%, var(--surface-lift));
+}
+
+.arco-alert-title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.arco-alert-content {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.arco-btn-primary {
+  background: var(--brand-primary);
+  box-shadow: none;
+}
+
+.arco-btn-primary:not(.arco-btn-disabled):hover,
+.arco-btn-primary:not(.arco-btn-disabled):focus {
+  background: color-mix(in srgb, var(--brand-primary) 88%, #000);
+  filter: none;
+  box-shadow: none;
+}
+
+.arco-btn-primary:not(.arco-btn-disabled):active {
+  background: color-mix(in srgb, var(--brand-primary) 82%, #000);
+}
+
+.arco-modal-header,
+.arco-drawer-header {
+  padding-top: 20px;
+  padding-bottom: 16px;
+  border-bottom-color: var(--panel-border);
+}
+
+.arco-modal-footer,
+.arco-drawer-footer {
+  border-top-color: var(--panel-border);
+}
+
+.arco-modal-content,
+.arco-drawer-content {
+  border: none;
+  box-shadow: none;
+}
+
+.arco-message {
+  padding: 12px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-bg-solid);
+  box-shadow: var(--panel-shadow-soft);
+}
+
+.arco-message-content {
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.arco-message-info {
+  border-color: color-mix(in srgb, var(--color-info) 18%, var(--panel-border));
+}
+
+.arco-message-success {
+  border-color: color-mix(in srgb, var(--color-success-bg) 85%, var(--panel-border));
+}
+
+.arco-message-warning {
+  border-color: color-mix(in srgb, var(--color-warning-bg) 85%, var(--panel-border));
+}
+
+.arco-message-error {
+  border-color: color-mix(in srgb, var(--color-error-bg) 95%, var(--panel-border));
+}
+
+.arco-message-close-btn {
+  border-radius: 10px;
+}
+
+.arco-message-close-btn:hover {
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
+}
+
+.arco-notification {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: var(--panel-bg-solid);
+  box-shadow: var(--panel-shadow);
+}
+
+.arco-notification-title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.arco-notification-content {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.arco-notification-info {
+  border-color: color-mix(in srgb, var(--color-info) 18%, var(--panel-border));
+}
+
+.arco-notification-success {
+  border-color: color-mix(in srgb, var(--color-success-bg) 85%, var(--panel-border));
+}
+
+.arco-notification-warning {
+  border-color: color-mix(in srgb, var(--color-warning-bg) 85%, var(--panel-border));
+}
+
+.arco-notification-error {
+  border-color: color-mix(in srgb, var(--color-error-bg) 95%, var(--panel-border));
+}
+
+.arco-notification .arco-notification-close-btn {
+  border-radius: 10px;
+}
+
+.arco-notification .arco-notification-close-btn:hover {
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-lift));
+}
+
+.arco-popconfirm-content {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: var(--panel-bg-solid);
+  box-shadow: var(--panel-shadow-soft);
+}
+
+.arco-popconfirm-title {
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.arco-popconfirm-inner-content {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.arco-popconfirm-title-icon .arco-icon-exclamation-circle-fill {
+  color: var(--color-warning);
+}
+
+.arco-popconfirm .arco-popconfirm-btn {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.arco-popconfirm .arco-popconfirm-btn > button {
+  margin-left: 0;
+}
+
+:root[data-pantheon-theme] .arco-table-container,
+:root[data-pantheon-theme] .arco-table-border .arco-table-container,
+:root[data-pantheon-theme] .arco-table-th,
+:root[data-pantheon-theme] .arco-table-td {
+  border-color: var(--panel-border-strong);
+}
+
+.arco-table-th {
+  background: var(--panel-muted);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.arco-table-tr:hover .arco-table-td {
+  background: var(--panel-muted);
+}
+
+:root[data-pantheon-theme] .arco-tabs-header-nav::before,
+:root[data-pantheon-theme] .arco-tabs-header-nav::after {
+  border-bottom-color: var(--panel-border-strong);
+}
+
+.arco-tabs-header-title {
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.arco-tabs-header-title:hover {
+  color: var(--text-primary);
+}
+
+.arco-tabs-header-title-active,
+.arco-tabs-header-title-active:hover {
+  color: var(--brand-primary);
+}
+
+.arco-tabs-header-nav-rounded .arco-tabs-header-title {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-pill);
+}
+
+.arco-tabs-header-nav-rounded .arco-tabs-header-title-active,
+.arco-tabs-header-nav-rounded .arco-tabs-header-title-active:hover {
+  border-color: var(--panel-border-strong);
+  background: color-mix(in srgb, var(--brand-primary) 10%, var(--surface-lift));
+  box-shadow: none;
+}
+
+.arco-descriptions-item-label {
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.arco-descriptions-item-value {
+  color: var(--text-primary);
+}
+
+.arco-descriptions-table {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+:root[data-pantheon-theme] .arco-descriptions-bordered .arco-descriptions-item-label,
+:root[data-pantheon-theme] .arco-descriptions-bordered .arco-descriptions-item-value {
+  border-color: var(--panel-border);
+}
+
+.arco-tag {
+  min-height: 24px;
+  padding-inline: 10px;
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+  line-height: 22px;
+  border-color: color-mix(in srgb, var(--panel-border) 92%, transparent);
+}
+
+.arco-empty-icon,
+.arco-result-icon {
+  color: var(--brand-primary);
+}
+
+.page-empty .page-empty__inner {
+  width: min(100%, 420px);
+  padding: 30px 22px;
+  border: 1px dashed color-mix(in srgb, var(--brand-primary) 14%, var(--panel-border));
+  border-radius: var(--radius-md);
+  background: var(--panel-muted);
+}
+
+.page-empty .arco-empty-image {
+  margin-bottom: 12px;
+}
+
+.page-empty .arco-empty-description {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.page-result {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: var(--panel-muted);
+  box-shadow: var(--panel-shadow-soft);
+}
+
+.page-result .arco-result {
+  padding-top: 36px;
+  padding-bottom: 32px;
+}
+
+.page-result .arco-result-title {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.page-result .arco-result-subtitle {
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.page-result .arco-result-extra {
+  margin-top: 24px;
+}
+
+.page-result .arco-result-extra .arco-btn {
+  min-width: 96px;
+}
+
+.page-panel,
+.app-table-shell {
+  width: 100%;
+  min-width: 0;
+}
+
+.app-table__mobile-hint {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--brand-primary) 4%, var(--surface-lift));
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.app-table .arco-table-td,
+.app-table .arco-table-th {
+  padding-top: var(--shell-table-cell-padding-y);
+  padding-bottom: var(--shell-table-cell-padding-y);
+  line-height: 1.45;
+}
+
+.app-table {
+  font-variant-numeric: tabular-nums;
+}
+
+.app-table__view-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.app-table__view-menu {
+  min-width: 260px;
+}
+
+.app-table__view-menu-row,
+.app-table__view-column {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.app-table__view-column .arco-checkbox {
+  min-width: 0;
+}
+
+.app-table__view-column .arco-checkbox-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-table__view-column-order {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.app-table-shell--density-compact {
+  --shell-table-cell-padding-y: 6px;
+}
+
+.app-table-shell--density-comfortable {
+  --shell-table-cell-padding-y: 12px;
+}
+
+.app-table .arco-table-th {
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.app-table .arco-table-th .arco-table-th-item,
+.app-table .arco-table-th .arco-table-th-item-title {
+  min-width: 0;
+}
+
+.app-table .arco-table-th .arco-table-th-item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-table .arco-table-container {
+  /* 单一真相块：表格容器直角（外层 page-panel 的 radius-md 承担轮廓圆角）。 */
+  overflow: auto hidden;
+  border-radius: 0;
+  background: var(--panel-bg-solid);
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-table.app-table .arco-table-content-scroll.arco-table-content-scroll::before,
+.app-table.app-table .arco-table-content-scroll.arco-table-content-scroll::after,
+.app-table.app-table .arco-table-col-fixed-left-first::after,
+.app-table.app-table .arco-table-col-fixed-left-last::after,
+.app-table.app-table .arco-table-col-fixed-right-first::after,
+.app-table.app-table .arco-table-col-fixed-right-last::after {
+  box-shadow: none;
+}
+
+.app-table .arco-table-th.arco-table-col-fixed-left,
+.app-table .arco-table-th.arco-table-col-fixed-right {
+  background: var(--panel-muted);
+}
+
+.app-table .arco-table-td.arco-table-col-fixed-left,
+.app-table .arco-table-td.arco-table-col-fixed-right {
+  background: var(--panel-bg-solid);
+}
+
+.app-table .arco-table-th.arco-table-checkbox,
+.app-table .arco-table-td.arco-table-checkbox {
+  padding-left: 0;
+  padding-right: 0;
+  text-align: center;
+  border-inline-start: 1px solid var(--panel-border-strong);
+  border-inline-end: none;
+}
+
+.app-table .arco-table-th.arco-table-checkbox.arco-table-col-fixed-left,
+.app-table .arco-table-td.arco-table-checkbox.arco-table-col-fixed-left {
+  border-inline-end: none;
+}
+
+.app-table .arco-table-th.arco-table-checkbox .arco-table-cell,
+.app-table .arco-table-td.arco-table-checkbox .arco-table-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-table .arco-table-th.arco-table-checkbox.arco-table-col-fixed-left-last,
+.app-table .arco-table-td.arco-table-checkbox.arco-table-col-fixed-left-last {
+  border-inline-end: none;
+}
+
+.app-table .arco-table-col-fixed-left-last,
+.app-table .arco-table-col-fixed-right-first {
+  border-inline-end: 1px solid var(--panel-border);
+}
+
+.app-table .arco-table-tr:hover .arco-table-td.arco-table-col-fixed-left,
+.app-table .arco-table-tr:hover .arco-table-td.arco-table-col-fixed-right {
+  background: var(--panel-muted);
+}
+
+.app-table .arco-table-header {
+  border-radius: 0;
+}
+
+.app-table .arco-table-content-scroll::before,
+.app-table .arco-table-content-scroll::after {
+  border-radius: 0;
+}
+
+.app-table table thead tr:first-child th:first-child,
+.app-table table thead tr:first-child th:last-child {
+  border-radius: 0;
+}
+
+.app-table .arco-table-th:first-child,
+.app-table .arco-table-td:first-child {
+  padding-left: var(--shell-table-cell-padding-x);
+}
+
+.app-table .arco-table-th:last-child,
+.app-table .arco-table-td:last-child {
+  padding-right: var(--shell-table-cell-padding-x);
+}
+
+.app-table .arco-table-td {
+  color: var(--text-primary);
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.app-table .arco-table-tbody .arco-table-tr:nth-child(even) .arco-table-td {
+  background: var(--panel-bg-solid);
+}
+
+.app-table .arco-table-cell .arco-space {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
+.app-table .arco-table-cell .arco-btn,
+.app-table .arco-table-cell .arco-tag {
+  white-space: nowrap;
+}
+
+.app-table .arco-table-pagination {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--panel-border) 88%, transparent);
+  padding: var(--shell-table-pagination-padding);
+  gap: 8px;
+}
+
+.app-table__pagination-shell {
+  display: inline-flex;
+  width: auto;
+  max-width: 100%;
+  margin-left: auto;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  row-gap: 8px;
+}
+
+.app-table__pagination-native {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.app-table__pagination-native .arco-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  width: auto;
+  max-width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+  row-gap: 8px;
+}
+
+.app-table__pagination-boundary-group {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+}
+
+.app-table__pagination-boundary-list {
+  display: inline-flex;
+  align-items: center;
+}
+
+.app-table__pagination-step-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-table__pagination-step-origin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-table .arco-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.app-table .arco-pagination-list {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 30px;
+}
+
+.app-table .arco-pagination-item,
+.app-table .arco-pagination-item-link,
+.app-table .arco-pagination-item-prev,
+.app-table .arco-pagination-item-next,
+.app-table__pagination-item-first,
+.app-table__pagination-item-last {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 82%, transparent);
+  border-radius: 9px;
+  background: var(--panel-bg-solid);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.app-table .arco-pagination-item-prev,
+.app-table .arco-pagination-item-next,
+.app-table__pagination-item-first,
+.app-table__pagination-item-last {
+  color: var(--text-tertiary);
+}
+
+.app-table__pagination-item-first,
+.app-table__pagination-item-last {
+  background: var(--panel-bg-solid);
+}
+
+.app-table__pagination-item-first[disabled],
+.app-table__pagination-item-last[disabled] {
+  color: var(--text-quaternary);
+  background: var(--panel-muted);
+  border-color: color-mix(in srgb, var(--panel-border) 70%, transparent);
+  opacity: 1;
+}
+
+.app-table__pagination-boundary-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.arco-pagination {
+  color: var(--text-secondary);
+}
+
+.arco-pagination-item,
+.arco-pagination-item-prev,
+.arco-pagination-item-next,
+.arco-pagination-item-jumper {
+  min-height: 28px;
+  border-radius: 9px;
+  transition: all var(--motion-duration-base) ease;
+}
+
+.app-table .arco-pagination-option,
+.app-table .arco-pagination-options,
+.app-table .arco-pagination-jumper {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  font-size: 12px;
+  line-height: 1.2;
+  min-height: 30px;
+}
+
+.app-table .arco-pagination-jumper input,
+.app-table .arco-pagination-option .arco-select-view,
+.app-table .arco-pagination-options .arco-select-view {
+  min-height: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-radius: 10px;
+}
+
+.app-table .arco-pagination-total,
+.app-table .arco-pagination-item-jumper,
+.app-table .arco-pagination-option .arco-select-view-selector,
+.app-table .arco-pagination-options .arco-select-view-selector,
+.app-table .arco-pagination-option .arco-select-suffix,
+.app-table .arco-pagination-options .arco-select-suffix,
+.app-table .arco-pagination-option .arco-select-arrow-icon,
+.app-table .arco-pagination-options .arco-select-arrow-icon,
+.app-table .arco-pagination-options .arco-select-view-value,
+.app-table .arco-pagination-options .arco-select-view-single,
+.app-table .arco-pagination-option .arco-select-view-value,
+.app-table .arco-pagination-option .arco-select-view-single,
+.app-table .arco-pagination-jumper-prepend,
+.app-table .arco-pagination-jumper-append {
+  display: inline-flex;
+  align-items: center;
+}
+
+.app-table .arco-pagination-total {
+  min-height: 30px;
+  align-self: center;
+}
+
+.app-table__pagination-total-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.app-table__pagination-total-text strong {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.app-table .arco-pagination-jumper {
+  gap: 6px;
+}
+
+.arco-pagination-item:hover,
+.arco-pagination-item-prev:hover,
+.arco-pagination-item-next:hover {
+  border-color: color-mix(in srgb, var(--brand-primary) 28%, var(--panel-border));
+  background: color-mix(in srgb, var(--brand-primary) 6%, var(--surface-lift));
+  color: var(--brand-primary);
+}
+
+.app-table .arco-pagination-item-active {
+  border-color: color-mix(in srgb, var(--brand-primary) 24%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 12%, var(--surface-lift));
+  color: var(--brand-primary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-primary) 16%, transparent);
+}
+
+.arco-pagination-item-jumper input {
+  border-radius: 9px;
+}
+
+.app-table .arco-pagination-item-jumper input {
+  width: 42px;
+  height: 30px;
+  min-height: 30px;
+  padding-inline: 8px;
+  border-radius: 9px;
+  text-align: center;
+}
+
+.app-table .arco-pagination-option .arco-select-view,
+.app-table .arco-pagination-options .arco-select-view {
+  padding-inline: 10px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 82%, transparent);
+  background: var(--panel-bg-solid);
+}
+
+.app-table .arco-pagination-option .arco-select-view-selector,
+.app-table .arco-pagination-options .arco-select-view-selector,
+.app-table .arco-pagination-option .arco-select-suffix,
+.app-table .arco-pagination-options .arco-select-suffix {
+  min-height: 100%;
+}
+
+.app-table .arco-pagination-option .arco-select-view-value,
+.app-table .arco-pagination-options .arco-select-view-value {
+  line-height: 1;
+}
+
+.app-table .arco-btn-size-small {
+  border-radius: 10px;
+  min-height: var(--shell-table-action-min-height);
+}
+
+@media (max-width: 1280px) {
+  .app-table .app-table__col--hide-lg {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-table__view-toolbar {
+    justify-content: stretch;
+  }
+
+  .app-table__view-toolbar .arco-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .app-table__view-menu {
+    min-width: min(320px, calc(100vw - 32px));
+  }
+}
+
+@media (max-width: 1280px) {
+  .app-table .app-table__col--hide-md {
+    display: none;
+  }
+
+  .page-split-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .page-side-column {
+    max-width: 100%;
+    position: static;
+  }
+
+  .system-page-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .setting-page .page-main-column {
+    gap: 12px;
+  }
+
+  .setting-page__side-column {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .setting-page__audit-card .app-table .arco-table-td,
+  .setting-page__audit-card .app-table .arco-table-th {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .setting-page__audit-card .app-table .arco-table-pagination {
+    padding-top: 10px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .system-page-hero__top {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .setting-page__field-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .menu-list-form__grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .setting-page__group-nav-grid {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(164px, 76vw);
+    grid-template-columns: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 4px;
+    scroll-snap-type: x proximity;
+  }
+
+  .setting-page__side-column {
+    grid-template-columns: 1fr;
+  }
+
+  .setting-overview-page__anchor-strip {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(164px, 76vw);
+    grid-template-columns: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 0 0 4px;
+    scroll-snap-type: x proximity;
+  }
+
+  .setting-page__group-nav-item,
+  .setting-overview-page__anchor-item {
+    min-height: 72px;
+    border-bottom: none;
+    scroll-snap-align: start;
+  }
+
+  .setting-page__group-nav-desc,
+  .setting-overview-page__anchor-desc {
+    min-height: auto;
+    -webkit-line-clamp: 1;
+  }
+
+  .setting-page__runtime-strip {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 4px;
+  }
+
+  .setting-page__runtime-strip .arco-typography {
+    white-space: nowrap;
+  }
+
+  .setting-overview-page__risk-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .setting-page__actions {
+    align-items: stretch;
+  }
+
+  .setting-page__meta-actions,
+  .setting-page__actions .submit-bar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .setting-page__config-card .arco-card-body {
+    padding: 12px;
+  }
+
+  .app-dialog.app-dialog {
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    margin: 12px auto;
+  }
+
+  .app-dialog .arco-modal-content {
+    max-height: calc(100dvh - 24px - 64px - 74px);
+  }
+
+  .app-dialog.app-dialog .arco-modal-header.arco-modal-header,
+  .app-dialog.app-dialog .arco-modal-content.arco-modal-content,
+  .app-dialog.app-dialog .arco-modal-footer.arco-modal-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .filter-panel__header {
+    display: flex;
+  }
+
+  .filter-panel__body {
+    padding: 12px 12px 2px;
+  }
+
+  .filter-panel--collapsed .arco-card-body {
+    padding-bottom: 0;
+  }
+
+  .filter-panel.filter-panel .arco-row {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .filter-panel.filter-panel .arco-col {
+    flex: 0 0 100%;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .filter-panel__action-item .arco-form-item-control,
+  .filter-panel__action-item .arco-form-item-control-children,
+  .filter-panel__action-item .arco-space,
+  .filter-panel__action-item .arco-space-item,
+  .filter-panel__action-item .arco-btn {
+    width: 100%;
+  }
+
+  .filter-panel .filter-panel__action-item .arco-space {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .app-table__mobile-hint {
+    display: flex;
+  }
+
+  .app-table .arco-table-pagination {
+    align-items: center;
+    justify-content: flex-start;
+    overflow-x: visible;
+    padding-bottom: 8px;
+  }
+
+  .app-table__pagination-shell {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) 30px;
+    align-items: center;
+    width: 100%;
+    margin-left: 0;
+    column-gap: 6px;
+    row-gap: 8px;
+  }
+
+  .app-table__pagination-native {
+    grid-column: 2;
+    justify-content: center;
+  }
+
+  .app-table__pagination-native .arco-pagination {
+    justify-content: center;
+  }
+
+  .app-table__pagination-boundary-group:first-child {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .app-table__pagination-boundary-group:last-child {
+    grid-column: 3;
+    justify-self: end;
+  }
+
+  .system-page-hero .arco-card-body {
+    padding: 14px;
+  }
+
+  .system-page-hero .system-page-hero__title {
+    font-size: 20px;
+  }
+
+  .system-page-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===========================================================================
+   P3-3 移动端抽屉式侧栏 —— ≤768px 时 sider 变为覆盖式抽屉（点击 toggle 弹出）。
+   桌面端结构不受影响；仅在移动断点内改变定位与位移。
+   =========================================================================== */
+@media (max-width: 768px) {
+  .app-shell--vertical .app-shell__sider {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100dvh;
+    z-index: var(--z-overlay);
+    transform: translateX(-100%);
+    transition: transform var(--motion-duration-base) var(--motion-ease-standard);
+    box-shadow: var(--panel-shadow-strong);
+  }
+
+  .app-shell--vertical.app-shell--mobile-open .app-shell__sider {
+    transform: translateX(0);
+  }
+
+  .app-shell__mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-overlay) - 1);
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.45);
+    animation: appShellBackdropIn var(--motion-duration-fast) var(--motion-ease-standard);
+  }
+}
+
+@keyframes appShellBackdropIn {
   from {
     opacity: 0;
   }
@@ -263,186 +3669,3 @@
     opacity: 1;
   }
 }
-
-.app-dialog .arco-modal-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--panel-border);
-}
-
-.app-dialog .arco-modal-content {
-  padding: 24px;
-}
-
-.app-dialog .arco-modal-footer {
-  padding: 16px 24px;
-  border-top: 1px solid var(--panel-border);
-}
-
-.app-dialog .arco-input-inner-wrapper {
-  min-height: var(--shell-control-min-height);
-  border: 1px solid var(--panel-border);
-  background: var(--control-bg);
-  box-shadow: none;
-}
-
-.app-dialog .arco-input-inner-wrapper .arco-input {
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  outline: none;
-}
-
-.app-dialog .arco-input-number {
-  border: 1px solid var(--panel-border);
-}
-
-.app-dialog .arco-input-number .arco-input-inner-wrapper {
-  border: none;
-  background: transparent;
-  box-shadow: none;
-}
-
-.app-dialog .arco-select-open .arco-select-view {
-  border-color: rgb(var(--primary-6));
-  box-shadow: 0 0 0 2px rgba(var(--primary-6), 0.15);
-}
-
-.app-dialog .dialog-grid-card .arco-card-header-title .arco-typography {
-  font-weight: 600;
-}
-
-.app-dialog .dialog-grid-card .arco-card-header-title .arco-space {
-  gap: 8px;
-}
-
-.app-dialog .detail-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.dialog-grid-card .arco-card-header-title {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-
-
-/* App Drawer */
-.app-drawer .arco-input-inner-wrapper {
-  min-height: var(--shell-control-min-height);
-  border: 1px solid var(--panel-border);
-  background: var(--control-bg);
-}
-
-.app-drawer .arco-input-inner-wrapper .arco-input {
-  line-height: 20px;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  outline: none;
-}
-
-.app-drawer .arco-input-number .arco-input-inner-wrapper {
-  min-height: var(--shell-control-min-height);
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  outline: none;
-}
-
-
-
-
-
-/* Form Section */
-.form-section {
-  margin-bottom: 24px;
-}
-
-.form-section__title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: var(--text-primary);
-}
-
-
-/* Submit Bar */
-.submit-bar {
-  display: flex;
-  gap: 8px;
-  padding: 16px;
-  border-top: 1px solid var(--panel-border);
-  background: var(--panel-bg);
-  justify-content: flex-end;
-}
-
-
-/* Page States */
-.page-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 220px;
-  padding: 32px 0;
-}
-
-.page-empty__inner {
-  text-align: center;
-  color: var(--text-secondary);
-  max-width: 400px;
-}
-
-.page-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 240px;
-}
-
-.page-result {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 240px;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 32px;
-}
-
-
-
-/* Auth Login */
-.auth-login-card .arco-input-inner-wrapper {
-  min-height: 40px;
-}
-
-.auth-login-card .arco-input-inner-wrapper .arco-input {
-  font-size: 14px;
-  line-height: 20px;
-}
-
-.auth-login-card .arco-input-password .arco-input {
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: 0.5px;
-}
-
-/* Arco Tabs */
-.arco-tabs-header-nav::before {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--panel-border);
-}
-
-
-
-
-
-

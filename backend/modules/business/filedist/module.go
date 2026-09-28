@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"pantheon-base/pkg/contracts"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

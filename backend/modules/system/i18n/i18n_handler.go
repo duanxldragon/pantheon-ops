@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/impexp"
 )
 
 const (
@@ -271,6 +271,8 @@ func (h *I18nHandler) Create(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
+	// 操作者追溯：token middleware 已将 username 写入上下文；json:"-" 阻止客户端伪造。
+	req.UpdatedBy = strings.TrimSpace(c.GetString("username"))
 	resp, err := h.service.Create(&req)
 	if err != nil {
 		switch err.Error() {
@@ -301,6 +303,8 @@ func (h *I18nHandler) Update(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
+	// 操作者追溯：同 Create，从认证上下文注入而非信任请求体。
+	req.UpdatedBy = strings.TrimSpace(c.GetString("username"))
 
 	if err := h.service.Update(id, &req); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -386,12 +390,15 @@ func (h *I18nHandler) Import(c *gin.Context) {
 		common.Fail(c, common.CodeError, "import.file.read.error")
 		return
 	}
+	// 显式接管 multipart part 的生命周期：ReadCSV 内部也会关闭，
+	// 这里 defer 保证所有权清晰，且覆盖未来提前 return 的路径。
+	defer func() { _ = file.Close() }()
 	records, err := impexp.ReadCSV(file)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, "import.file.invalid_csv")
 		return
 	}
-	result, err := h.service.Import(records)
+	result, err := h.service.Import(records, strings.TrimSpace(c.GetString("username")))
 	if err != nil {
 		common.Fail(c, common.CodeError, "i18n.import.error")
 		return
@@ -403,7 +410,7 @@ func (h *I18nHandler) Import(c *gin.Context) {
 func (h *I18nHandler) SyncMissingKeys(c *gin.Context) {
 	common.SetAuditMetadata(c, "i18n.sync_missing_keys.title", common.BusinessInsert)
 
-	resp, err := h.service.SyncMissingKeys()
+	resp, err := h.service.SyncMissingKeys(strings.TrimSpace(c.GetString("username")))
 	if err != nil {
 		common.Fail(c, common.CodeError, "i18n.sync.error")
 		return

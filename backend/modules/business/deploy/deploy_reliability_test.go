@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-base/modules/business/cmdb"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
 
 	"gorm.io/gorm"
 )

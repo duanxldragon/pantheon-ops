@@ -30,12 +30,20 @@ type PermissionPolicyCreateReq struct {
 	RoleKey string `json:"roleKey" binding:"required"`
 	Path    string `json:"path" binding:"required"`
 	Method  string `json:"method" binding:"required"`
+	// TenantId optionally scopes the policy to a tenant (contract §4:
+	// subject form role:<key>@tenant:<id>). 0/absent = global policy.
+	// Platform-scoped writes only: the request context must carry the
+	// platform tenant override (X-Tenant-Id path) or be platform-global.
+	TenantId uint64 `json:"tenantId" binding:"omitempty,min=1"`
 }
 
 type PermissionPolicyUpdateReq struct {
 	RoleKey string `json:"roleKey" binding:"required"`
 	Path    string `json:"path" binding:"required"`
 	Method  string `json:"method" binding:"required"`
+	// TenantId follows the same rules as on create; changing it moves the
+	// policy between the global and tenant-scoped namespaces.
+	TenantId uint64 `json:"tenantId" binding:"omitempty,min=1"`
 }
 
 type PermissionWorkbenchQuery struct {

@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common/security"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -363,7 +364,7 @@ func (s *UserService) applyUserImportUpdate(tx *gorm.DB, row importRow, result *
 
 // applyUserImportCreate persists the creation of a new user.
 func (s *UserService) applyUserImportCreate(tx *gorm.DB, row importRow, result *impexp.ImportResult) error {
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(row.Create.Password), bcrypt.DefaultCost)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(row.Create.Password), security.GetBcryptCost())
 	if err != nil {
 		return err
 	}

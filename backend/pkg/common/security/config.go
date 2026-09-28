@@ -6,6 +6,16 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"golang.org/x/crypto/bcrypt"
+)
+
+const (
+	// BcryptCostProduction defines the bcrypt cost for production environments.
+	// Cost 12 provides better resistance against GPU-accelerated brute-force attacks
+	// while maintaining acceptable hash times (~200-300ms on modern CPUs).
+	// Development environments continue to use bcrypt.DefaultCost (10) for faster tests.
+	BcryptCostProduction = 12
 )
 
 // DefaultDevSecrets holds fallback secrets for development only.
@@ -98,4 +108,13 @@ func InitSecurityConfig() error {
 	}
 
 	return nil
+}
+
+// GetBcryptCost returns the appropriate bcrypt cost for the current environment.
+// Production uses BcryptCostProduction (12), development uses bcrypt.DefaultCost (10).
+func GetBcryptCost() int {
+	if IsProductionEnv() {
+		return BcryptCostProduction
+	}
+	return bcrypt.DefaultCost
 }

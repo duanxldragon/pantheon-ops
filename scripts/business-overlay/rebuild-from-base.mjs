@@ -290,7 +290,12 @@ function rewriteBusinessGoImports(targetRoot, sourceModule, targetModule) {
       if (entry.isDirectory()) visit(absolute);
       else if (entry.name.endsWith('.go')) {
         const before = fs.readFileSync(absolute, 'utf8');
-        const after = before.replaceAll(`${sourceModule}/`, `${targetModule}/`);
+        // Business sources from the pre-foundation migration may still carry the
+        // historical local module prefix. Normalize both forms at the assembly
+        // seam so the rebuilt tree always compiles against the locked Base module.
+        const after = before
+          .replaceAll(`${sourceModule}/`, `${targetModule}/`)
+          .replaceAll('"pantheon-base/', `"${targetModule}/`);
         if (after !== before) {
           fs.writeFileSync(absolute, after, 'utf8');
           changed.push(repoPath(path.relative(targetRoot, absolute)));
@@ -302,9 +307,17 @@ function rewriteBusinessGoImports(targetRoot, sourceModule, targetModule) {
   return changed.sort();
 }
 
-function generateRegistries(targetRoot, manifest) {
+function readGoModule(targetRoot) {
+  const goMod = path.join(targetRoot, 'backend', 'go.mod');
+  const content = fs.readFileSync(goMod, 'utf8');
+  const match = content.match(/^module\s+([^\s]+)\s*$/mu);
+  if (!match) throw new Error(`Cannot determine Go module from ${goMod}`);
+  return match[1];
+}
+
+function generateRegistries(targetRoot, manifest, targetModule) {
   const imports = manifest.backendModules
-    .map((entry) => `\t${entry.alias} "${entry.importPath}"`)
+    .map((entry) => `\t${entry.alias} "${entry.importPath.replace(/^pantheon-base\//u, `${targetModule}/`)}"`)
     .join('\n');
   const calls = manifest.backendModules.map((entry) => `\t${entry.alias}.${entry.init}(r, db)`).join('\n');
   const backend = `package business\n\nimport (\n${imports}\n\n\t"github.com/gin-gonic/gin"\n\t"gorm.io/gorm"\n)\n\nfunc initOverlayBusinessModules(r *gin.RouterGroup, db *gorm.DB) {\n${calls}\n}\n`;
@@ -467,6 +480,21 @@ function mergePackages(baseRoot, opsRoot, targetRoot, manifest) {
     if (!opsFrontend.scripts[scriptName]) throw new Error(`Missing business smoke script: ${scriptName}`);
     baseFrontend.scripts[scriptName] = opsFrontend.scripts[scriptName];
   }
+  // Ops-only frontend dependencies (e.g. the local file: tarball binding the
+  // Base UI package) must survive the Base package.json overwrite, otherwise
+  // the rebuilt tree cannot resolve '@duanxldragon/pantheon-base-ui' imports.
+  for (const [depName, depSpec] of Object.entries(opsFrontend.dependencies ?? {})) {
+    if (!baseFrontend.dependencies?.[depName]) {
+      baseFrontend.dependencies ??= {};
+      baseFrontend.dependencies[depName] = depSpec;
+    }
+  }
+  // The rebuilt tree is an assembled whole (Base framework + business overlay),
+  // so the Base package name may self-reference via npm package.json
+  // "exports" self-reference; keep the ops declaration if Base lacks it.
+  if (!baseFrontend.exports && opsFrontend.exports) {
+    baseFrontend.exports = opsFrontend.exports;
+  }
   fs.writeFileSync(path.join(targetRoot, 'frontend', 'package.json'), `${JSON.stringify(baseFrontend, null, 2)}\n`, 'utf8');
 }
 
@@ -605,8 +633,10 @@ export function rebuildFromBase({ opsRoot = defaultOpsRoot, baseRoot, targetRoot
   copyFile(opsRoot, resolvedTarget, 'business-overlay.json');
   copiedRepository.push('business-overlay.json');
 
-  const rewritten = rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, `${manifest.base.module}`);
-  const generated = generateRegistries(resolvedTarget, manifest);
+  const targetModule = readGoModule(resolvedTarget);
+  const rewritten = rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, targetModule);
+  const generated = generateRegistries(resolvedTarget, manifest, targetModule);
+  rewritten.push(...rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, targetModule));
   generated.push(...wireBusinessRegistries(resolvedTarget));
   generated.push(...mergeGoDependencies(opsRoot, resolvedTarget, manifest));
   generateBusinessFallbacks(resolvedTarget);

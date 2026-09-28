@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/modules/business/secrets"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/secrets"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"gorm.io/gorm"
 )

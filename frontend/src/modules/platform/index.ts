@@ -1,5 +1,5 @@
-// Platform 模块定义 - 从 base 导入
-import { defineModule } from '@duanxldragon/pantheon-base-ui';
+import { defineModule } from '../../core/router/types';
+import { getDashboardSummary } from './api';
 
 export const PlatformModule = defineModule({
   name: 'platform',
@@ -21,6 +21,20 @@ export const PlatformModule = defineModule({
       icon: 'dashboard',
       routeName: 'dashboard',
       module: 'platform',
+    },
+  ],
+  routeDataWarmers: [{ path: '/dashboard', key: 'summary', load: () => getDashboardSummary() }],
+  dashboardWidgets: [
+    {
+      key: 'platform.security',
+      slot: 'quick-action',
+      sourceDomain: 'system/auth',
+      titleKey: 'auth.security.title',
+      descriptionKey: 'dashboard.quickAction.security',
+      path: '/auth/security',
+      icon: 'safe',
+      cleanupPolicy: 'platform_owned',
+      navigationSource: 'direct',
     },
   ],
   permissions: ['platform:dashboard:view'],

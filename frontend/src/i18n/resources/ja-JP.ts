@@ -85,6 +85,10 @@ const jaJPFallback = {
   'auth.login.consoleTitle': '本人確認',
   'auth.login.securityNotice':
     '管理者が割り当てたアカウントでサインインしてください。ログイン時刻、端末、送信元 IP はセキュリティ監査のため記録されます。',
+  'auth.login.tenant.title': 'ワークスペーステナントを選択',
+  'auth.login.tenant.hint': 'このアカウントは複数のテナントに所属しています。今回のログイン範囲を選択してください。',
+  'auth.login.tenant.placeholder': 'テナントを選択',
+  'auth.login.tenant.back': '認証情報に戻る',
   'auth.login.idleTimeoutNotice':
     '長時間操作がなかったため自動的にサインアウトされました。続行するには再度サインインしてください。',
   'auth.login.feature.modules': 'モジュラーモノリス',
@@ -1164,6 +1168,10 @@ const jaJPFallback = {
   'user.login.error.disabled': 'このアカウントは無効です。管理者に連絡してください。',
   'auth.login.error.source_blocked':
     'この送信元からのログイン失敗が多すぎます。しばらくしてから再試行してください。',
+  'auth.login.error.tenant_forbidden':
+    'このアカウントは選択されたテナントにログインできません。プラットフォーム管理者に連絡してください。',
+  'auth.login.error.tenant_suspended':
+    'このアカウントのテナントは停止されています。プラットフォーム管理者に連絡してください。',
   'user.batch.empty': '先にユーザーを選択してください',
   'user.batch.not_found': '一部のユーザーは存在しなくなりました。更新して再試行してください',
   'system.dict.subtitle':
@@ -1805,7 +1813,6 @@ const jaJPFallback = {
   'generator.wizard.dataScopeMode': 'データ権限モード',
   'generator.wizard.dataScopeMode.dept': '部門',
   'generator.wizard.dataScopeMode.owner': '本人',
-  'generator.wizard.dataScopeMode.tenant': 'テナント',
   'generator.wizard.dataScopeMode.custom': 'カスタム',
   'generator.wizard.dataScope.enabledTag': 'データ権限有効',
   'generator.wizard.dataScope.disabledTag': 'データ権限無効',
@@ -2397,6 +2404,8 @@ const jaJPFallback = {
   'system.setting.remark.site.name': 'ログインページ、ブラウザータイトル、公開設定で使用します。',
   'system.setting.remark.platform.app_mode':
     'enterprise は管理画面向け、consumer は C 向けアカウント、hybrid は両方をサポートします。',
+  'system.setting.remark.platform.tenant_mode':
+    'compat はシングルテナント動作を維持し（デフォルト）、multi はテナントカナリースライス（辞書リソース分離）を有効化します。切替前にテナント移行 Runbook を確認してください。',
   'system.setting.remark.org.enabled':
     '無効にすると部門と役職をナビゲーションとユーザーフォームから隠しますが、組織データは削除しません。',
   'system.setting.remark.org.required_for_user':
@@ -2430,7 +2439,7 @@ const jaJPFallback = {
     '操作ログを自動保持する日数です。超過後は節流付き自動クリーンアップが実行されます。既定値は 180 日です。',
   'system.setting.audit.retentionDaysOption': '{{count}} 日を自動保持',
   'system.setting.remark.upload.storage_driver':
-    '現在は local / s3-compatible をサポートし、MinIO、AWS S3、OSS 互換ゲートウェイに接続できます。',
+    '現在は local / s3-compatible をサポートし、RustFS、MinIO、AWS S3、OSS 互換ゲートウェイに接続できます。',
   'system.setting.remark.upload.max_file_size': '単一ファイルの最大アップロードサイズ（MB）です。',
   'system.setting.remark.upload.allowed_types':
     '許可する拡張子ホワイトリストを JSON 配列で管理します。',
@@ -2439,7 +2448,7 @@ const jaJPFallback = {
   'system.setting.remark.upload.public_base_url':
     'ファイル公開アクセス用ドメインまたはベースパスです。空欄可。',
   'system.setting.remark.upload.s3_endpoint':
-    'AWS S3 / MinIO / OSS 互換ゲートウェイなどのオブジェクトストレージエンドポイントです。',
+    'RustFS / AWS S3 / MinIO / OSS 互換ゲートウェイなどのオブジェクトストレージエンドポイントです。',
   'system.setting.remark.upload.s3_bucket': 'オブジェクトストレージの Bucket 名です。',
   'system.setting.remark.upload.s3_region':
     'オブジェクトストレージの Region です。既定は us-east-1 です。',

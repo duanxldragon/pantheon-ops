@@ -2,7 +2,7 @@ package generator
 
 import (
 	"errors"
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"regexp"
 	"strings"
 

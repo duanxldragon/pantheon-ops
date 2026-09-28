@@ -46,7 +46,7 @@ const entityPatterns = {
     exacts: ['smoke_impexp_user'],
   },
   depts: {
-    prefixes: ['烟测用户部门-', '烟测部门-', '烟测岗位部门-', '视觉巡检部门-', 'smoke_batch_delete_dept_'],
+    prefixes: ['烟测用户部门-', '烟测部门-', '烟测部门_Core_', '烟测岗位部门-', '视觉巡检部门-', 'smoke_batch_delete_dept_'],
     exacts: ['烟测研发中心'],
   },
   posts: {

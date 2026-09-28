@@ -3,7 +3,7 @@ package system
 import (
 	"strings"
 
-	"pantheon-base/pkg/rbacbind"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/rbacbind"
 
 	"gorm.io/gorm"
 )

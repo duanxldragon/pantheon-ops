@@ -101,6 +101,27 @@ English version: [AUTH_MODULE_DESIGN.en.md](./AUTH_MODULE_DESIGN.en.md)
 
 同时，`system/iam` 中的用户创建与管理员重置密码也已消费 `security.password_min_length`，确保系统管理内部策略一致。`system_auth_security_event` 和 `system_user_password_history` 属于 `system/auth`，不应下沉到 `iam/user`。
 
+#### 保留策略的维护模型
+
+保留策略（`audit.session_retention_days`、`audit.login_log_retention_days`、
+`audit.security_event_retention_days`、`audit.operation_log_retention_days`）不再由
+列表/导出读请求同步触发，而是注册到后台维护器 `backend/pkg/maintenance`：
+
+- `cmd/server` 启动时按 `PANTHEON_MAINTENANCE_INTERVAL_SECONDS`（默认 900 秒）扫描，
+  每个任务按自身 interval 节流，同一任务单飞（禁止重入），单个任务失败不影响其他任务；
+  可用 `PANTHEON_MAINTENANCE_ENABLED=false` 关闭。
+- 已注册任务：`auth.session_inventory`、`auth.login_log_retention`、
+  `auth.security_event_retention`、`audit.operation_log_retention`。
+- 可观测性：`pantheon_maintenance_runs_total{task,outcome}`（outcome =
+  succeeded / failed / skipped / overlap）与 `pantheon_maintenance_duration_seconds{task}`；
+  失败同时写入日志。
+- 显式维护入口保持不变：`POST /api/v1/system/session/cleanup`、`/login-log/cleanup`、
+  `/security-event/cleanup`、`/operation-log/cleanup`，可带保留天数或时间窗口手动执行。
+- 读请求不再 purge：维护失败不会伪装成列表为空，而是记日志、计数，列表只读。
+
+职责边界：`backend/pkg/maintenance` 只负责调度、节流、单飞和可观测；每个域自己实现
+purge 语义并暴露 `RunSessionInventoryGovernance` / `Run*Retention` 入口。
+
 ### 4.2 `auth` 不负责
 
 `auth` 不负责：

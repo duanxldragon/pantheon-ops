@@ -1,6 +1,7 @@
 package system
 
 type OperationLogResp struct {
+	TenantID        uint64 `json:"tenantId"`
 	ID              uint64 `json:"id"`
 	RequestID       string `json:"requestId"`
 	Title           string `json:"title"`
@@ -32,6 +33,10 @@ type OperationLogPageResp struct {
 }
 
 type OperationLogQuery struct {
+	// TenantIDFilter narrows results to one tenant (platform-ops cross-tenant
+	// query, contract §7). Never bound from a tenant-subject request — the
+	// handler enforces the authorization rule below.
+	TenantIDFilter  uint64 `json:"tenantIdFilter,omitempty"`
 	Keyword         string `form:"keyword" json:"keyword"`
 	Title           string `form:"title" json:"title"`
 	RequestID       string `form:"requestId" json:"requestId"`

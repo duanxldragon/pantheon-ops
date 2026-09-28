@@ -5,7 +5,7 @@ layer: platform
 status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-08-04
+updated_at: 2026-09-01
 ---
 
 # Foundation Release Model
@@ -37,7 +37,7 @@ consumer repo -> consume base foundation release
 
 ### 2.1 `main` 不是消费接口
 
-`pantheon-base/main` 是持续开发线，不是下游业务仓库的默认继承接口。
+`pantheon-base/main` 是持续开发线，也是唯一保留的 Git 分支；它不是下游业务仓库的默认继承接口。
 
 允许在 `main` 上发生的事情包括：
 
@@ -52,13 +52,12 @@ consumer repo -> consume base foundation release
 
 ### 2.2 release 才是消费接口
 
-`pantheon-ops` 和未来其他业务仓默认只消费以下之一：
+`pantheon-ops` 和未来其他业务仓默认只消费不可变 tag：
 
 - 显式 tag，例如 `pantheon-base-v0.10.0`
-- 显式 release line，例如 `release/0.10`
 - 紧急例外下的显式 commit，但必须带原因
 
-默认不允许写成“跟随 `main`”。
+`release/0.10` 是 release manifest 中的兼容性元数据，不是需要长期维护的 Git 分支，也不能替代具体 tag。默认不允许写成“跟随 `main`”。
 
 ### 2.3 base 负责发布，consumer 负责升级
 
@@ -68,6 +67,12 @@ consumer repo -> consume base foundation release
 - `pantheon-ops` 负责把本地业务 overlay 升级到某个 foundation release
 
 这不是“同步代码”，而是“升级所消费的 foundation 版本”。
+
+### 2.4 当前 release 与分支策略
+
+- 当前发布版本：[`pantheon-base-v0.10.26`](https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.10.26)。
+- 当前 release line：`release/0.10`，仅用于 manifest、兼容性说明和 consumer 记录。
+- Git 分支策略：本地与远端仅保留 `main`；release 的稳定性由不可变 tag 和发布资产提供，而不是由 release 分支提供。
 
 ## 3. 资产分层
 
@@ -151,7 +156,7 @@ consumer repo -> consume base foundation release
 消费仓升级时，默认顺序是：
 
 1. 选择目标 foundation release tag
-2. 更新 `docs/PROJECT_INHERITANCE.md` 中的 base version / release line
+2. 将 `docs/PROJECT_INHERITANCE.md` 中的 base version 固定为目标 tag，并记录其 release line 元数据
 3. 运行 inheritance / sync / drift checks
 4. 只修复业务 overlay 与新 foundation release 的真实断点
 5. 运行业务仓的最小验证集
@@ -183,15 +188,15 @@ consumer repo -> consume base foundation release
 
 ## 8. 对 `pantheon-ops` 的直接要求
 
-`pantheon-ops` 后续默认应写成：
+`pantheon-ops` 后续默认应记录：
 
-- Base branch / release line：`release/<x.y>` 或相应稳定线
-- Base version：`pantheon-base-v<x.y.z>`
+- Base version：不可变 tag，例如 `pantheon-base-v0.10.26`
+- Release line：`release/<x.y>`（兼容性元数据，不是 Git 分支）
 - Inheritance mode：`foundation-release-consumer`
 
 而不是：
 
-- Base branch：`main`
+- Base branch：`main` 作为跟随目标
 - Base version：临时 commit
 
 只有紧急例外才允许消费未发布 commit，并且必须留下原因、回滚边界和后续并入正式 release 的计划。

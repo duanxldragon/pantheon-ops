@@ -6,13 +6,16 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-const condIDIn = "id IN ?"
+const (
+	condIDIn     = "id IN ?"
+	condIDEquals = "id = ?"
+)
 
 type DeptService struct {
 	db *gorm.DB
@@ -299,7 +302,7 @@ func (s *DeptService) resolveDeptLeaderUpdate(dept SystemDept, item DeptBatchLea
 func applyDeptLeaderUpdates(tx *gorm.DB, updates []deptLeaderUpdate) error {
 	for _, item := range updates {
 		if err := tx.Model(&SystemDept{}).
-			Where("id = ?", item.deptID).
+			Where(condIDEquals, item.deptID).
 			Updates(map[string]any{
 				"leader_user_id": item.leaderUserID,
 				"leader":         item.leader,
@@ -393,7 +396,7 @@ func (s *DeptService) ensureDeptParentExists(parentID uint64) error {
 	}
 
 	var count int64
-	if err := s.db.Model(&SystemDept{}).Where("id = ?", parentID).Count(&count).Error; err != nil {
+	if err := s.db.Model(&SystemDept{}).Where(condIDEquals, parentID).Count(&count).Error; err != nil {
 		return err
 	}
 	if count == 0 {
@@ -408,7 +411,9 @@ func (s *DeptService) ensureDeptParentNotDescendant(deptID, parentID uint64) err
 	}
 
 	var parent SystemDept
-	if err := s.db.First(&parent, parentID).Error; err != nil {
+	// 使用条件查询而非主键直查: SonarCloud gosecurity:S3649 将 uint64 主键直查
+	// 误判为 SQL 注入污点汇; 显式 Where 条件对分析器可追踪。
+	if err := s.db.Where(condIDEquals, parentID).First(&parent).Error; err != nil {
 		return err
 	}
 	ancestors := splitAncestors(parent.Ancestors)
@@ -430,7 +435,8 @@ func (s *DeptService) buildAncestorsWithDB(db *gorm.DB, parentID uint64) (string
 	}
 
 	var parent SystemDept
-	if err := db.First(&parent, parentID).Error; err != nil {
+	// 同上: 显式条件查询替代主键直查 (gosecurity:S3649 污点误报)。
+	if err := db.Where(condIDEquals, parentID).First(&parent).Error; err != nil {
 		return "", err
 	}
 	if parent.Ancestors == "" {

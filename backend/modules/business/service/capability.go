@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/pkg/common"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 )
 
 // ApplicationRef is the minimal application projection exposed to other modules.

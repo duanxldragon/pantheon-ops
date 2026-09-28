@@ -1,6 +1,6 @@
 package dynamicmodule
 
-import systemi18n "pantheon-base/modules/system/i18n"
+import systemi18n "github.com/duanxldragon/pantheon-base/backend/modules/system/i18n"
 
 type ModuleI18nLifecycleSummary struct {
 	Module                         string   `json:"module"`

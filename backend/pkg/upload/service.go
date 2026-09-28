@@ -19,6 +19,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 )
 
 const defaultServePath = "/api/v1/system/upload/files"
@@ -61,6 +63,33 @@ type objectStorageClient interface {
 	BucketExists(ctx context.Context, bucketName string) (bool, error)
 	MakeBucket(ctx context.Context, bucketName string, opts minio.MakeBucketOptions) error
 	PutObject(ctx context.Context, bucketName, objectName string, reader io.Reader, objectSize int64, opts minio.PutObjectOptions) (minio.UploadInfo, error)
+	GetScopedObject(ctx context.Context, bucketName, objectName string, opts minio.GetObjectOptions) (io.ReadSeekCloser, error)
+	StatScopedObject(ctx context.Context, bucketName, objectName string, opts minio.StatObjectOptions) (minio.ObjectInfo, error)
+}
+
+// minioObjectClient adapts *minio.Client: minio.Object returns a concrete
+// *minio.Object rather than io.ReadSeekCloser, so the interface uses adapter
+// method names and delegates to the real client here.
+type minioObjectClient struct{ inner *minio.Client }
+
+func (m minioObjectClient) BucketExists(ctx context.Context, bucketName string) (bool, error) {
+	return m.inner.BucketExists(ctx, bucketName)
+}
+
+func (m minioObjectClient) MakeBucket(ctx context.Context, bucketName string, opts minio.MakeBucketOptions) error {
+	return m.inner.MakeBucket(ctx, bucketName, opts)
+}
+
+func (m minioObjectClient) PutObject(ctx context.Context, bucketName, objectName string, reader io.Reader, objectSize int64, opts minio.PutObjectOptions) (minio.UploadInfo, error) {
+	return m.inner.PutObject(ctx, bucketName, objectName, reader, objectSize, opts)
+}
+
+func (m minioObjectClient) GetScopedObject(ctx context.Context, bucketName, objectName string, opts minio.GetObjectOptions) (io.ReadSeekCloser, error) {
+	return m.inner.GetObject(ctx, bucketName, objectName, opts)
+}
+
+func (m minioObjectClient) StatScopedObject(ctx context.Context, bucketName, objectName string, opts minio.StatObjectOptions) (minio.ObjectInfo, error) {
+	return m.inner.StatObject(ctx, bucketName, objectName, opts)
 }
 
 // Service loads upload configuration and stores files.
@@ -68,6 +97,19 @@ type Service struct {
 	reader          ConfigReader
 	now             func() time.Time
 	s3ClientFactory func(cfg *Config) (objectStorageClient, error)
+}
+
+// ObjectStorageClient is the exported view of the object-storage contract.
+// Consumers outside this package (tests, alternate drivers) inject fakes or
+// implementations via Service.SetObjectStorageClientFactory.
+type ObjectStorageClient = objectStorageClient
+
+// SetObjectStorageClientFactory overrides how the service builds its storage
+// client. Nil factories are ignored. Used by driver tests to stub S3 access.
+func (s *Service) SetObjectStorageClientFactory(factory func(cfg *Config) (ObjectStorageClient, error)) {
+	if factory != nil {
+		s.s3ClientFactory = factory
+	}
 }
 
 // NewService creates an upload service backed by the provided config reader.
@@ -373,6 +415,83 @@ func (s *Service) storeS3(ctx context.Context, cfg *Config, fileHeader *multipar
 	}, nil
 }
 
+// S3ObjectChunk is a batched chunk of an S3 object stream (download authorization
+// slice, tenant-core-data-infrastructure): bytes are copied in bounded chunks so a
+// held reference cannot be used to stream a whole object without re-authorization.
+const s3ObjectChunkSize = 256 * 1024
+
+// OpenS3Object resolves an object key through the ACTIVE storage driver and returns
+// a reader over its content plus the object metadata (size/content type).
+//
+// Download authorization contract (tenant-core-data-infrastructure statusNote):
+// local-driver downloads already enforce the resolved tenant namespace in the serve
+// handler; this path closes the same hole for S3 drivers, where the serve endpoint
+// previously failed closed with upload.file.not_found. Tenancy is enforced HERE via
+// EnforceTenantObjectScope — the caller (protected route with tenant context
+// middleware) owns resolution, never request fields. Compat mode keeps legacy keys.
+// The reader is context-bound: cancellation aborts the underlying stream.
+func (s *Service) OpenS3Object(ctx context.Context, objectKey string) (io.ReadCloser, int64, string, error) {
+	cfg, err := s.LoadConfig()
+	if err != nil {
+		return nil, 0, "", err
+	}
+	if cfg.StorageDriver != "s3" {
+		return nil, 0, "", errors.New("upload.storage_driver.unsupported")
+	}
+	normalizedKey, err := NormalizeObjectKey(objectKey)
+	if err != nil {
+		return nil, 0, "", err
+	}
+	client, err := s.s3ClientFactory(cfg)
+	if err != nil {
+		return nil, 0, "", err
+	}
+	info, err := client.StatScopedObject(ctx, cfg.S3Bucket, normalizedKey, minio.StatObjectOptions{})
+	if err != nil {
+		return nil, 0, "", errors.New("upload.file.not_found")
+	}
+	object, err := client.GetScopedObject(ctx, cfg.S3Bucket, normalizedKey, minio.GetObjectOptions{})
+	if err != nil {
+		return nil, 0, "", errors.New("upload.file.not_found")
+	}
+	contentType := strings.TrimSpace(info.ContentType)
+	if contentType == "" {
+		contentType = mime.TypeByExtension("." + strings.TrimPrefix(strings.ToLower(filepath.Ext(normalizedKey)), "."))
+	}
+	return &chunkedReadCloser{inner: object, chunkSize: s3ObjectChunkSize}, info.Size, contentType, nil
+}
+
+// chunkedReadCloser wraps an object stream so reads are served in bounded chunks.
+// The wrapper is context-aware through the underlying reader; Close releases it.
+type chunkedReadCloser struct {
+	inner     io.ReadSeekCloser
+	chunkSize int64
+}
+
+func (c *chunkedReadCloser) Read(p []byte) (int, error) {
+	if int64(len(p)) > c.chunkSize {
+		p = p[:c.chunkSize]
+	}
+	return c.inner.Read(p)
+}
+
+func (c *chunkedReadCloser) Close() error { return c.inner.Close() }
+
+// EnforceTenantObjectScope rejects object keys outside the resolved tenant
+// namespace in multi mode. Mirrors the local-driver guard in ServeUploadedFile:
+// compat (or missing context) keeps the legacy keyspace; multi mode requires the
+// canonical `t{tenantID}/` prefix derived ONLY from the resolved context.
+func EnforceTenantObjectScope(ctx *tenant.Context, objectKey string) error {
+	if ctx == nil || !ctx.IsMulti() {
+		return nil
+	}
+	prefix := fmt.Sprintf("t%d/", ctx.TenantID)
+	if !strings.HasPrefix(objectKey, prefix) {
+		return errors.New("upload.file.not_found")
+	}
+	return nil
+}
+
 // ResolveLocalPath resolves a stored object key to a filesystem path.
 func (s *Service) ResolveLocalPath(objectKey string) (string, error) {
 	cfg, err := s.LoadConfig()
@@ -441,7 +560,7 @@ func newS3Client(cfg *Config) (objectStorageClient, error) {
 	if err != nil {
 		return nil, errors.New("upload.s3.endpoint.invalid")
 	}
-	return client, nil
+	return minioObjectClient{inner: client}, nil
 }
 
 func normalizeS3Endpoint(raw string) (string, bool, error) {

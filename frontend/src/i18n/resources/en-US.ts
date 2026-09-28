@@ -112,6 +112,10 @@ const enUSFallback = {
   'auth.login.consoleTitle': 'Identity verification',
   'auth.login.securityNotice':
     'Sign in with an administrator-assigned account. Login time, device, and source IP are recorded for security audit.',
+  'auth.login.tenant.title': 'Choose a workspace tenant',
+  'auth.login.tenant.hint': 'This account belongs to multiple tenants. Choose the scope for this sign-in.',
+  'auth.login.tenant.placeholder': 'Select a tenant',
+  'auth.login.tenant.back': 'Back to credentials',
   'auth.login.idleTimeoutNotice':
     'This account was signed out automatically after being idle for too long. Sign in again to continue.',
   'auth.login.feature.modules': 'Modular Monolith',
@@ -1162,7 +1166,6 @@ const enUSFallback = {
   'generator.wizard.dataScopeMode': 'Data Scope Mode',
   'generator.wizard.dataScopeMode.dept': 'Department',
   'generator.wizard.dataScopeMode.owner': 'Owner',
-  'generator.wizard.dataScopeMode.tenant': 'Tenant',
   'generator.wizard.dataScopeMode.custom': 'Custom',
   'generator.wizard.dataScope.enabledTag': 'Data scope enabled',
   'generator.wizard.dataScope.disabledTag': 'Data scope disabled',
@@ -1978,6 +1981,10 @@ const enUSFallback = {
   'user.login.error.disabled': 'This account is disabled. Please contact an administrator.',
   'auth.login.error.source_blocked':
     'Too many failed sign-in attempts from this source. Please try again later.',
+  'auth.login.error.tenant_forbidden':
+    'This account cannot sign in to the selected tenant. Please contact a platform administrator.',
+  'auth.login.error.tenant_suspended':
+    'The tenant for this account has been suspended. Please contact a platform administrator.',
   'user.batch.empty': 'Please select users first',
   'user.batch.not_found': 'Some users no longer exist. Please refresh and try again',
   'role.admin.name': 'Administrator',
@@ -2701,6 +2708,8 @@ const enUSFallback = {
   'system.setting.remark.site.logo': 'Site logo URL. Leave empty when not configured.',
   'system.setting.remark.platform.app_mode':
     'enterprise targets back-office systems; consumer targets C-end accounts; hybrid supports both application styles.',
+  'system.setting.remark.platform.tenant_mode':
+    'compat keeps single-tenant behavior (default); multi enables the tenant canary slice (dict resource isolation). Review the tenant migration runbook before switching.',
   'system.setting.remark.org.enabled':
     'When disabled, navigation and user forms hide departments and posts without deleting existing organization data.',
   'system.setting.remark.org.required_for_user':
@@ -2743,7 +2752,7 @@ const enUSFallback = {
     'How many days acknowledged security events are kept before throttled automatic cleanup. Pending events are always retained. Defaults to 180 days.',
   'system.setting.audit.retentionDaysOption': 'Auto retain {{count}} day(s)',
   'system.setting.remark.upload.storage_driver':
-    'Currently supports local / s3-compatible, including MinIO, AWS S3, and OSS-compatible gateways.',
+    'Currently supports local / s3-compatible, including RustFS, MinIO, AWS S3, and OSS-compatible gateways.',
   'system.setting.remark.upload.max_file_size': 'Maximum upload size per file in MB.',
   'system.setting.remark.upload.allowed_types':
     'Use a JSON array to maintain the allowed file extension whitelist.',
@@ -2751,7 +2760,7 @@ const enUSFallback = {
   'system.setting.remark.upload.public_base_url':
     'Public base URL used to access uploaded files. Can be empty.',
   'system.setting.remark.upload.s3_endpoint':
-    'Object storage service endpoint, such as AWS S3 / MinIO / OSS compatible gateway.',
+    'Object storage service endpoint, such as RustFS / AWS S3 / MinIO / OSS compatible gateway.',
   'system.setting.remark.upload.s3_bucket': 'Object storage bucket name.',
   'system.setting.remark.upload.s3_region': 'Object storage region. Defaults to us-east-1.',
   'system.setting.remark.upload.s3_access_key_id':

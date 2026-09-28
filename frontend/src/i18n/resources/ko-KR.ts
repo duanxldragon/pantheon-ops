@@ -84,6 +84,10 @@ const koKRFallback = {
   'auth.login.consoleTitle': '신원 확인',
   'auth.login.securityNotice':
     '관리자가 할당한 계정으로 로그인하세요. 로그인 시간, 장치, 출처 IP 는 보안 감사를 위해 기록됩니다.',
+  'auth.login.tenant.title': '작업 테넌트 선택',
+  'auth.login.tenant.hint': '이 계정은 여러 테넌트에 속해 있습니다. 이번 로그인 범위를 선택하세요.',
+  'auth.login.tenant.placeholder': '테넌트 선택',
+  'auth.login.tenant.back': '자격 증명으로 돌아가기',
   'auth.login.idleTimeoutNotice':
     '오랫동안 활동이 없어 자동 로그아웃되었습니다. 계속하려면 다시 로그인하세요.',
   'auth.login.feature.modules': '모듈형 모놀리스',
@@ -1108,6 +1112,10 @@ const koKRFallback = {
   'user.login.error.disabled': '이 계정은 비활성화되었습니다. 관리자에게 문의하세요.',
   'auth.login.error.source_blocked':
     '이 출처에서 로그인 실패가 너무 많습니다. 잠시 후 다시 시도하세요.',
+  'auth.login.error.tenant_forbidden':
+    '이 계정은 선택한 테넌트에 로그인할 수 없습니다. 플랫폼 관리자에게 문의하세요.',
+  'auth.login.error.tenant_suspended':
+    '이 계정의 테넌트가 중지되었습니다. 플랫폼 관리자에게 문의하세요.',
   'user.batch.empty': '먼저 사용자를 선택하세요',
   'user.batch.not_found': '일부 사용자가 더 이상 존재하지 않습니다. 새로고침 후 다시 시도하세요',
   'system.dict.subtitle':
@@ -1738,7 +1746,6 @@ const koKRFallback = {
   'generator.wizard.dataScopeMode': '데이터 권한 모드',
   'generator.wizard.dataScopeMode.dept': '부서',
   'generator.wizard.dataScopeMode.owner': '본인',
-  'generator.wizard.dataScopeMode.tenant': '테넌트',
   'generator.wizard.dataScopeMode.custom': '사용자 지정',
   'generator.wizard.dataScope.enabledTag': '데이터 권한 활성화',
   'generator.wizard.dataScope.disabledTag': '데이터 권한 비활성화',
@@ -2370,6 +2377,8 @@ const koKRFallback = {
   'system.setting.remark.site.name': '로그인 페이지, 브라우저 제목, 공개 설정에 사용됩니다.',
   'system.setting.remark.platform.app_mode':
     'enterprise는 기업 관리자용, consumer는 C엔드 계정용, hybrid는 두 유형을 함께 지원합니다.',
+  'system.setting.remark.platform.tenant_mode':
+    'compat는 단일 테넌트 동작을 유지하고(기본값), multi는 테넌트 카나리 슬라이스(사전 리소스 격리)를 활성화합니다. 전환 전 테넌트 마이그레이션 Runbook을 확인하세요.',
   'system.setting.remark.org.enabled':
     '끄면 부서와 직책을 내비게이션 및 사용자 폼에서 숨기지만 기존 조직 데이터는 삭제하지 않습니다.',
   'system.setting.remark.org.required_for_user':
@@ -2403,7 +2412,7 @@ const koKRFallback = {
     '작업 로그를 자동 보관하는 일수입니다. 기간이 지나면 시스템이 스로틀링된 자동 정리를 수행합니다. 기본값은 180일입니다.',
   'system.setting.audit.retentionDaysOption': '{{count}}일 자동 보관',
   'system.setting.remark.upload.storage_driver':
-    '현재 local / s3-compatible 을 지원하며 MinIO, AWS S3, OSS 호환 게이트웨이에 연결할 수 있습니다.',
+    '현재 local / s3-compatible 을 지원하며 RustFS, MinIO, AWS S3, OSS 호환 게이트웨이에 연결할 수 있습니다.',
   'system.setting.remark.upload.max_file_size': '단일 파일 최대 업로드 크기(MB)입니다.',
   'system.setting.remark.upload.allowed_types':
     '허용 확장자 화이트리스트를 JSON 배열로 관리합니다.',
@@ -2411,7 +2420,7 @@ const koKRFallback = {
   'system.setting.remark.upload.public_base_url':
     '파일 공개 접근 도메인 또는 기본 경로이며 비워둘 수 있습니다.',
   'system.setting.remark.upload.s3_endpoint':
-    'AWS S3 / MinIO / OSS 호환 게이트웨이 등의 객체 저장소 엔드포인트입니다.',
+    'RustFS / AWS S3 / MinIO / OSS 호환 게이트웨이 등의 객체 저장소 엔드포인트입니다.',
   'system.setting.remark.upload.s3_bucket': '객체 저장소 Bucket 이름입니다.',
   'system.setting.remark.upload.s3_region': '객체 저장소 Region 이며 기본값은 us-east-1 입니다.',
   'system.setting.remark.upload.s3_access_key_id':

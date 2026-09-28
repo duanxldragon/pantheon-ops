@@ -1,8 +1,8 @@
 package lowcode
 
 import (
-	"pantheon-base/modules/lowcode/dynamicmodule"
-	"pantheon-base/modules/lowcode/generator"
+	"github.com/duanxldragon/pantheon-base/backend/modules/lowcode/dynamicmodule"
+	"github.com/duanxldragon/pantheon-base/backend/modules/lowcode/generator"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

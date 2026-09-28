@@ -1,7 +1,7 @@
 package config
 
 import (
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	// Required for the go:embed seed_data.yaml directive below.
 	_ "embed"
 	"encoding/json"
@@ -39,6 +39,7 @@ var defaultSettingSeeds = []defaultSettingSeed{
 	{SettingKey: "site.name", SettingValue: "Pantheon Base", ValueType: "string", GroupKey: "basic", Module: "system", IsPublic: 1, Remark: "system.setting.remark.site.name"},
 	{SettingKey: "site.logo", SettingValue: "", ValueType: "string", GroupKey: "basic", Module: "system", IsPublic: 1, Remark: "system.setting.remark.site.logo"},
 	{SettingKey: "platform.app_mode", SettingValue: "enterprise", ValueType: "string", GroupKey: "platform", Module: "platform", IsPublic: 1, Remark: "system.setting.remark.platform.app_mode"},
+	{SettingKey: "platform.tenant_mode", SettingValue: "compat", ValueType: "string", GroupKey: "platform", Module: "platform", IsPublic: 0, Remark: "system.setting.remark.platform.tenant_mode"},
 	{SettingKey: "org.enabled", SettingValue: "true", ValueType: "boolean", GroupKey: "platform", Module: "system.org", IsPublic: 1, Remark: "system.setting.remark.org.enabled"},
 	{SettingKey: "org.required_for_user", SettingValue: "false", ValueType: "boolean", GroupKey: "platform", Module: "system.org", IsPublic: 1, Remark: "system.setting.remark.org.required_for_user"},
 	{SettingKey: "security.password_min_length", SettingValue: "6", ValueType: "number", GroupKey: "security", Module: "system", IsPublic: 0, Remark: "system.setting.remark.security.password_min_length"},
@@ -146,11 +147,15 @@ var (
 		"consumer":   {},
 		"hybrid":     {},
 	}
+	allowedTenantModeValues = map[string]struct{}{
+		"compat": {},
+		"multi":  {},
+	}
 )
 
 func (s *SettingService) normalizeLegacySettingValue(settingKey string) error {
 	var row SystemSetting
-	if err := s.db.Where("setting_key = ?", settingKey).First(&row).Error; err != nil {
+	if err := s.db.Where("setting_key = ? AND tenant_id = 0", settingKey).First(&row).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
 		}
@@ -171,7 +176,7 @@ func (s *SettingService) normalizeLegacySettingValue(settingKey string) error {
 
 func (s *SettingService) migrateLegacySettingValue(settingKey, legacyValue, nextValue string) error {
 	var row SystemSetting
-	if err := s.db.Where("setting_key = ?", settingKey).First(&row).Error; err != nil {
+	if err := s.db.Where("setting_key = ? AND tenant_id = 0", settingKey).First(&row).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil
 		}
@@ -208,26 +213,38 @@ func normalizeSettingGroups(groupKeys []string) []string {
 }
 
 func (s *SettingService) invalidateSettingCache() {
-	s.cacheMu.Lock()
-	defer s.cacheMu.Unlock()
-	s.listCache = make(map[string][]SettingResp)
-	s.groupCache = make(map[string]*SettingGroupResp)
-	s.publicCache = nil
+	s.cache.mu.Lock()
+	defer s.cache.mu.Unlock()
+	s.cache.listCache = make(map[string][]SettingResp)
+	s.cache.groupCache = make(map[string]*SettingGroupResp)
+	s.cache.publicCache = make(map[string]*PublicSettingResp)
 }
 
 // invalidateSettingCacheForGroup invalidates only the cache entries
 // related to a specific group, preserving the rest.
 func (s *SettingService) invalidateSettingCacheForGroup(groupKey string) {
-	s.cacheMu.Lock()
-	defer s.cacheMu.Unlock()
-	// Remove the specific group cache
-	delete(s.groupCache, groupKey)
+	s.cache.mu.Lock()
+	defer s.cache.mu.Unlock()
+	// Remove the specific group cache (tenant-namespaced key when bound;
+	// a full clear below covers the remaining namespaces safely).
+	delete(s.cache.groupCache, s.settingGroupCacheKey(groupKey))
 	// Remove list cache entries that may contain this group's settings.
 	// Since listCache may be keyed by various criteria, safest to clear it all
 	// (listCache is typically small and rebuilt quickly on demand).
-	s.listCache = make(map[string][]SettingResp)
-	// If the group contains public settings, publicCache must also be invalidated
-	s.publicCache = nil
+	s.cache.listCache = make(map[string][]SettingResp)
+	// If the group contains public settings, every tenant-namespaced public
+	// cache entry must be invalidated (the group key does not tell us which
+	// tenants hold overrides).
+	s.cache.publicCache = make(map[string]*PublicSettingResp)
+}
+
+// settingGroupCacheKey namespaces the group cache per tenant (multi mode) so
+// two tenants never collide through the process cache (canary pattern).
+func (s *SettingService) settingGroupCacheKey(groupKey string) string {
+	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+		return groupKey
+	}
+	return "t" + strconv.FormatUint(s.tenantCtx.TenantID, 10) + ":" + groupKey
 }
 
 func appendSettingOverviewIssue(issues []SettingOverviewIssueResp, seen map[string]struct{}, issue SettingOverviewIssueResp) []SettingOverviewIssueResp {
@@ -366,6 +383,16 @@ var settingNormalizers = map[string]SettingNormalizer{
 			trimmed = "enterprise"
 		}
 		if _, ok := allowedAppModeValues[trimmed]; !ok {
+			return "", errors.New(settingErrInvalidOption)
+		}
+		return trimmed, nil
+	},
+	"platform.tenant_mode": func(value string) (string, error) {
+		trimmed := strings.TrimSpace(value)
+		if trimmed == "" {
+			trimmed = "compat"
+		}
+		if _, ok := allowedTenantModeValues[trimmed]; !ok {
 			return "", errors.New(settingErrInvalidOption)
 		}
 		return trimmed, nil

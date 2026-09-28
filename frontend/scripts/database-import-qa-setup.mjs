@@ -5,7 +5,11 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 const fixtureTableName = 'biz_cmdb_host';
-const documentedDevMysqlPasswords = ['DHCCroot@2025', 'dev_password_change_me'];
+// Only the documented placeholder lives here. Real local passwords must never be
+// committed: keep them in the environment and list them via
+// PANTHEON_SMOKE_MYSQL_PASSWORD_CANDIDATES (comma separated) if the fallback
+// probe needs more than one guess.
+const documentedDevMysqlPasswords = ['dev_password_change_me'];
 const scriptPath = fileURLToPath(import.meta.url);
 const scriptDir = path.dirname(scriptPath);
 const repoRoot = path.resolve(scriptDir, '../..');
@@ -137,6 +141,14 @@ export function resolveMysqlConfig(env = process.env, options = {}) {
       'mysql',
     ),
     hasExplicitPassword: explicitPassword !== '',
+    // Extra probe passwords supplied out-of-band; never hardcode credentials.
+    passwordCandidates: firstNonEmpty(
+      env.PANTHEON_SMOKE_MYSQL_PASSWORD_CANDIDATES,
+      localEnv.PANTHEON_SMOKE_MYSQL_PASSWORD_CANDIDATES,
+    )
+      .split(',')
+      .map((candidate) => candidate.trim())
+      .filter((candidate) => candidate !== ''),
   };
 }
 
@@ -145,7 +157,8 @@ export function buildMysqlPasswordCandidates(config) {
     return [config.password];
   }
 
-  return Array.from(new Set([...documentedDevMysqlPasswords, '']));
+  const configured = Array.isArray(config.passwordCandidates) ? config.passwordCandidates : [];
+  return Array.from(new Set([...configured, ...documentedDevMysqlPasswords, '']));
 }
 
 function buildSetupSql() {

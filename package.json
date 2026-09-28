@@ -20,8 +20,11 @@
     "check:harness-visual": "node scripts/harness/check-visual-evidence.mjs --root . --strict",
     "check:structure": "node scripts/harness/check-structure-contract.mjs --root . --strict",
     "test:structure-contract": "node --test tests/scripts/harness-check-structure-contract.test.mjs",
+    "test:generated-marker": "node --test tests/scripts/generated-marker-consistency.test.mjs",
     "check:task-packet-template": "node scripts/check-task-packet-template.mjs",
+    "check:task-packet": "node scripts/harness/check-task-packet.mjs --root .",
     "check:failure-registry": "node scripts/harness/check-failure-registry.mjs --root . --strict",
+    "check:generated": "node scripts/harness/check-generated.mjs --root . --strict",
     "check:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs --check",
     "cleanup:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs",
     "test:docs-frontmatter": "node --test tests/docs/frontmatter-check.test.mjs",
@@ -36,6 +39,8 @@
     "test:quality-workflow": "node --test tests/scripts/quality-workflow.test.mjs",
     "test:ui-quality-gate": "node --test tests/scripts/check-ui-quality-gate.test.mjs",
     "test:release-gate-workflow": "node --test tests/scripts/release-gate-workflow.test.mjs",
+    "test:ci-bench-perf-smoke-workflow": "node --test tests/scripts/ci-bench-perf-smoke-workflow.test.mjs",
+    "test:scripts": "node --test tests/scripts/*.test.mjs",
     "prepare": "husky",
     "rebuild:from-base": "node scripts/business-overlay/rebuild-from-base.mjs",
     "check:business-overlay": "node scripts/business-overlay/check-business-overlay.mjs",
@@ -62,8 +67,8 @@
   },
   "devDependencies": {
     "husky": "^9.1.7",
-    "lint-staged": "^17.4.1",
-    "playwright": "^1.62.1",
-    "prettier": "^3.9.6"
+    "lint-staged": "^17.5.1",
+    "playwright": "^1.63.0",
+    "prettier": "^3.9.8"
   }
 }

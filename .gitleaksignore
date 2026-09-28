@@ -38,3 +38,7 @@ d489c8db33773db68aeb24bc503621cff5a22087:.github/workflows/release-gate.yml:curl
 d489c8db33773db68aeb24bc503621cff5a22087:.github/workflows/release-gate.yml:curl-auth-user:116
 77885a052bb3d748a67c76b47f658ff8bf65b512:.github/workflows/release-gate.yml:curl-auth-user:185
 77885a052bb3d748a67c76b47f658ff8bf65b512:.github/workflows/release-gate.yml:curl-auth-user:202
+178756dde9507912664d595b4bb4f6beb23e39e1:.harness/tasks/2026-09-08-p1-k8s-manifests/task.md:curl-auth-header:448
+178756dde9507912664d595b4bb4f6beb23e39e1:k8s/README.md:curl-auth-header:208
+b2e907916c1a4b29942e9d44f6ff5f29fceda4ac:.harness/tasks/2026-09-08-p1-k8s-manifests/task.md:curl-auth-header:448
+b2e907916c1a4b29942e9d44f6ff5f29fceda4ac:k8s/README.md:curl-auth-header:208

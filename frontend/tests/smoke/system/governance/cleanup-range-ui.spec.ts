@@ -534,7 +534,7 @@ test.describe('cleanup range governance smoke', () => {
     await download.saveAs(filePath);
     const csv = await fs.readFile(filePath, 'utf8');
     expect(csv).toContain(
-      'requestId,title,businessType,sourceDomain,sourcePage,method,operName,operUrl,operIp,status,failureCategory,errorMsg,operTime,costTime',
+      'requestId,title,businessType,sourceDomain,sourcePage,method,operName,operUrl,operIp,status,failureCategory,errorMsg,operTime,costTime,tenantId',
     );
     expect(csv).toContain('system.user.create');
     expect(csv).toContain('export_admin');

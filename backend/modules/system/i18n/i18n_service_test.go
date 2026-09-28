@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 	"gorm.io/gorm"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/testmysql"
 )
 
 func newI18nTestDB(t *testing.T) *gorm.DB {
@@ -216,7 +216,7 @@ func TestI18nService_SyncMissingKeysReturnsCreatedKeys(t *testing.T) {
 		t.Fatalf("migrate: %v", err)
 	}
 
-	resp, err := service.SyncMissingKeys()
+	resp, err := service.SyncMissingKeys("admin")
 	if err != nil {
 		t.Fatalf("sync keys: %v", err)
 	}
@@ -228,12 +228,12 @@ func TestI18nService_SyncMissingKeysReturnsCreatedKeys(t *testing.T) {
 	}
 	for _, key := range resp.Keys {
 		for _, locale := range []string{"zh-CN", "en-US", "ja-JP", "ko-KR", "fr-FR"} {
-			var count int64
-			if err := db.Model(&SystemI18n{}).Where("`key` = ? AND locale = ?", key, locale).Count(&count).Error; err != nil {
-				t.Fatalf("count %s/%s: %v", key, locale, err)
+			var row SystemI18n
+			if err := db.Where("`key` = ? AND locale = ?", key, locale).First(&row).Error; err != nil {
+				t.Fatalf("load synchronized key %s/%s: %v", key, locale, err)
 			}
-			if count == 0 {
-				t.Fatalf("expected synchronized key %s to exist for locale %s", key, locale)
+			if row.UpdatedBy != "admin" {
+				t.Fatalf("expected synchronized key %s/%s to record updated_by=admin, got %q", key, locale, row.UpdatedBy)
 			}
 		}
 	}
@@ -694,7 +694,7 @@ func TestI18nService_ImportTemplateAndImport(t *testing.T) {
 		t.Fatalf("unexpected template: %#v", template)
 	}
 
-	templateResult, err := service.Import(append([][]string{template.Headers}, template.Rows...))
+	templateResult, err := service.Import(append([][]string{template.Headers}, template.Rows...), "importer")
 	if err != nil {
 		t.Fatalf("import template rows: %v", err)
 	}
@@ -706,7 +706,7 @@ func TestI18nService_ImportTemplateAndImport(t *testing.T) {
 		{"module", "group", "key", "locale", "value", "remark"},
 		{"system.config", "messages", "i18n.bulk.created", "zh-CN", "批量新增", "created"},
 		{"system.config", "messages", "i18n.sample.key", "zh-CN", "示例文案已更新", "updated"},
-	})
+	}, "importer")
 	if err != nil {
 		t.Fatalf("import rows: %v", err)
 	}
@@ -747,7 +747,7 @@ func TestI18nService_ImportBlocksCrossModuleOwnershipConflict(t *testing.T) {
 	result, err := service.Import([][]string{
 		{"module", "group", "key", "locale", "value", "remark"},
 		{"system.config", "menu", "system.menu.access", "en-US", "Platform Access", "translator"},
-	})
+	}, "importer")
 	if err != nil {
 		t.Fatalf("import rows: %v", err)
 	}
@@ -781,7 +781,7 @@ func TestI18nService_ImportRejectsInvalidRows(t *testing.T) {
 		{"module", "group", "key", "locale", "value", "remark"},
 		{"system.config", "messages", "i18n.invalid", "zh-CN", "", "missing value"},
 		{"system.config", "messages", "i18n.invalid", "zh-CN", "重复", "duplicate"},
-	})
+	}, "importer")
 	if err != nil {
 		t.Fatalf("import invalid rows: %v", err)
 	}

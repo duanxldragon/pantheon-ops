@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

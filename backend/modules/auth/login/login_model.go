@@ -5,6 +5,7 @@ import "time"
 // SystemLogLogin 登录日志模型
 type SystemLogLogin struct {
 	ID            uint64 `gorm:"primaryKey;autoIncrement"`
+	TenantID      uint64 `gorm:"not null;index"`
 	RequestID     string `gorm:"size:64;index"`
 	Username      string `gorm:"size:64"`
 	Ipaddr        string `gorm:"size:128"`

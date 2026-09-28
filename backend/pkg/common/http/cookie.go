@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -48,6 +49,22 @@ func ClearTokenCookies(w http.ResponseWriter) {
 	setCookie(w, CookieRefreshToken, "", -1, http.SameSiteStrictMode)
 	setCookie(w, CookieCSRFToken, "", -1, http.SameSiteStrictMode)
 	w.Header().Del("X-CSRF-Token")
+}
+
+// ExtractAccessToken resolves the access token from the request using the same
+// cookie-first precedence as the authentication middleware.
+func ExtractAccessToken(r *http.Request) string {
+	if r == nil {
+		return ""
+	}
+	if cookie, err := r.Cookie(CookieAccessToken); err == nil && cookie.Value != "" {
+		return cookie.Value
+	}
+	parts := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return ""
+	}
+	return parts[1]
 }
 
 func SetCSRFCookie(w http.ResponseWriter) (string, error) {

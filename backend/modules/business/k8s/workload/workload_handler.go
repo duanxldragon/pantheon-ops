@@ -3,8 +3,8 @@ package workload
 import (
 	"strconv"
 
-	"pantheon-base/modules/business/k8s/rbac"
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/rbac"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"github.com/gin-gonic/gin"
 )

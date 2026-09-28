@@ -1,14 +1,46 @@
 {
-  "name": "pantheon-ops-frontend",
-  "private": true,
-  "version": "1.2.0",
+  "name": "@duanxldragon/pantheon-base-ui",
+  "version": "0.11.2",
+  "description": "Pantheon Base - Universal Admin UI Framework",
+  "license": "MIT",
   "type": "module",
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.esm.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "scripts/patch-arco-react19.mjs"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "keywords": [
+    "admin",
+    "dashboard",
+    "react",
+    "typescript",
+    "arco-design",
+    "pantheon"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/duanxldragon/pantheon-base.git",
+    "directory": "frontend"
+  },
+  "peerDependencies": {
+    "@arco-design/web-react": "^2.60.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4"
+  },
   "scripts": {
     "dev": "vite",
     "predev": "npm run patch:arco-react19",
-    "prebuild": "npm run patch:arco-react19 && npm run check:menu-contract && npm run check:i18n-hardcode && npm run check:i18n-generated-scope && npm run check:system-datetime-presentation && npm run check:shell-visual-contract && npm run check:ui-contract && npm run check:search-toolbar-contract && npm run check:important-budget && npm run check:system-page-admission && npm run check:smoke-web-base && npm run check:smoke-coverage-contract",
+    "prebuild": "npm run patch:arco-react19 && npm run check:menu-contract && npm run check:i18n-hardcode && npm run check:i18n-generated-scope && npm run check:system-datetime-presentation && npm run check:shell-visual-contract && npm run check:ui-contract && npm run check:search-toolbar-contract && npm run check:important-budget && npm run check:system-page-admission && npm run check:smoke-web-base && npm run check:smoke-coverage-contract && npm run check:import-path-case",
     "build": "tsc -b && vite build",
-    "postinstall": "npm run patch:arco-react19",
+    "build:lib": "cross-env BUILD_MODE=library tsc -b && cross-env BUILD_MODE=library vite build",
     "patch:arco-react19": "node ./scripts/patch-arco-react19.mjs",
     "check:menu-contract": "node ./scripts/check-menu-contract.mjs",
     "check:i18n-hardcode": "node ./scripts/check-i18n-hardcode.mjs",
@@ -20,6 +52,7 @@
     "check:system-page-admission": "node ./scripts/check-system-page-admission.mjs",
     "check:smoke-web-base": "node ./scripts/check-smoke-web-base.mjs",
     "check:smoke-coverage-contract": "node ./scripts/check-smoke-coverage-contract.mjs",
+    "check:import-path-case": "node ./scripts/check-import-path-case.mjs",
     "test:smoke:scripts": "node --test ./scripts/run-smoke-suite.test.mjs ./scripts/load-resource-module.test.mjs ./scripts/patch-arco-react19.test.mjs ./scripts/export-generated-module.test.mjs ./scripts/cleanup-generated-modules.test.mjs ./scripts/database-import-qa-setup.test.mjs ./scripts/go-module.test.mjs",
     "test:generator:dashboard-widget": "node ./scripts/run-generator-dashboard-widget-test.mjs",
     "test:generator:quality": "node ./scripts/run-generator-quality-contract-test.mjs",
@@ -58,6 +91,9 @@
     "test:smoke:business:many-to-many": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5174 --cleanup-fixtures all --setup scripts/many-to-many-qa-setup.mjs --config playwright.many-to-many.config.ts -- tests/smoke/business/generated/module-many-to-many-real.spec.ts",
     "test:smoke:business:auto-recycle": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5174 --cleanup-fixtures all --config playwright.auto-recycle.config.ts -- tests/smoke/business/generated/module-auto-recycle-real.spec.ts",
     "test:smoke:all": "npm run test:smoke:platform && npm run test:smoke:system && npm run test:smoke:business",
+    "test:smoke:core": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --cleanup-fixtures all --config playwright.config.ts -- tests/smoke-core/auth-login-logout.spec.ts tests/smoke-core/auth-tenant-picker.spec.ts tests/smoke-core/business-generated-basic.spec.ts tests/smoke-core/platform-shell-critical.spec.ts tests/smoke-core/system-dept-operations.spec.ts tests/smoke-core/system-import-export.spec.ts tests/smoke-core/system-menu-permission.spec.ts tests/smoke-core/system-role-authz.spec.ts tests/smoke-core/system-user-crud.spec.ts --workers=1",
+    "test:smoke:tenant": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --setup scripts/tenant-matrix-fixture-setup.mjs --config playwright.config.ts -- tests/smoke-core/tenant-hostile-browser-matrix.spec.ts tests/smoke-core/tenant-hostile-browser-matrix-phase2.spec.ts tests/smoke-core/tenant-protected-resources.spec.ts --workers=1",
+    "test:smoke:full": "npm run test:smoke:all",
     "smoke:preserve": "npm run smoke:preserve:system-pages",
     "smoke:cleanup": "node scripts/cleanup-smoke-fixtures.mjs",
     "smoke:cleanup:iam": "node scripts/cleanup-smoke-fixtures.mjs --scope iam",
@@ -76,42 +112,49 @@
     "test:smoke:business:k8s": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 5173 --config playwright.config.ts -- tests/smoke/business/k8s/k8s-pages.spec.ts"
   },
   "dependencies": {
-    "@arco-design/web-react": "2.66.16",
-    "@duanxldragon/pantheon-base-ui": "file:../../pantheon-base/frontend/duanxldragon-pantheon-base-ui-0.10.25.tgz",
+    "@arco-design/web-react": "^2.60.0",
     "axios": "^1.20.0",
-    "i18next": "26.4.0",
+    "i18next": "26.4.2",
     "qrcode.react": "^4.2.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "react-i18next": "17.0.12",
-    "react-router-dom": "7.18.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-i18next": "17.0.14",
+    "react-router-dom": "^7.18.4",
     "zustand": "5.0.15"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.62.1",
+    "@playwright/test": "^1.63.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/jszip": "^3.4.1",
-    "@types/node": "^26.4.0",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.5",
-    "@vitejs/plugin-react": "^6.1.0",
-    "@vitest/coverage-v8": "^4.1.11",
-    "eslint": "^10.9.1",
+    "@types/node": "^26.6.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/coverage-v8": "^5.0.1",
+    "cross-env": "^10.1.0",
+    "eslint": "^10.10.0",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.5",
-    "globals": "^17.11.0",
-    "js-yaml": "^5.4.1",
-    "jsdom": "^30.0.1",
-    "jszip": "^3.10.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.12.0",
+    "js-yaml": "^5.4.2",
+    "jsdom": "^30.1.0",
+    "jszip": "^3.10.2",
     "nanoid": "^6.0.1",
     "nyc": "^18.0.0",
-    "prettier": "^3.9.6",
+    "prettier": "^3.9.8",
     "typescript": "~6.0.2",
-    "typescript-eslint": "^8.68.0",
-    "vite": "^8.2.2",
+    "typescript-eslint": "^8.70.0",
+    "vite": "^8.3.0",
+    "vite-plugin-dts": "^5.1.0",
     "vite-plugin-istanbul": "^9.0.1",
-    "vitest": "^4.1.10"
+    "vitest": "^5.0.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
   }
 }

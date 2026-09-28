@@ -3,13 +3,13 @@ package iam
 import (
 	"errors"
 	"fmt"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"log/slog"
-	"pantheon-base/pkg/common"
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/rbacbind"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/rbacbind"
 
 	"gorm.io/gorm"
 )

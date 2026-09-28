@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/modules/business/secrets"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/secrets"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

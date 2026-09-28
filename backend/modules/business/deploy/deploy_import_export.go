@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
 )
 
 var deployPackageCSVHeaders = []string{"name", "version", "description", "installCommand", "uninstallCommand", "executionMode", "templateCode", "templateConfig", "sourceObjectKey", "sourceFileName", "sourceUrl", "status"}

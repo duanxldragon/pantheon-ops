@@ -7,11 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/authsession"
-	"pantheon-base/pkg/authtoken"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/logging"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/authsession"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/maintenance"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -53,11 +55,40 @@ func NewService(db *gorm.DB, policy PolicyProvider, loader UserRoleLoader, issue
 	return &Service{db: db, policy: policy, loader: loader, issuer: issuer}
 }
 
-func (s *Service) governSessionInventory(now time.Time, policy AuthRuntimePolicy) error {
+// SessionInventoryGovernanceTaskName is the maintenance registry key for the
+// periodic session inventory sweep (idle-session revocation + retention
+// purge). It is the only automatic caller of this work.
+const SessionInventoryGovernanceTaskName = "auth.session_inventory"
+
+// RunSessionInventoryGovernance revokes idle sessions and purges sessions past
+// the configured retention window.
+//
+// It is a maintenance entry point: callers are the background maintenance
+// runner and explicitly-triggered maintenance, never list/read handlers
+// (task 2026-09-22-request-path-maintenance). Failures are returned so the
+// runner can log and count them instead of them hiding inside a read request.
+func (s *Service) RunSessionInventoryGovernance() error {
+	if s.db == nil {
+		return common.ErrDatabaseNotInitialized
+	}
+	now := time.Now()
+	policy := s.policy.GetSessionPolicy()
 	if err := authsession.CleanupInactiveSessions(s.db, now, policy.SessionIdleMinutes); err != nil {
 		return err
 	}
 	return authsession.PurgeHistoricSessions(s.db, now, policy.SessionRetentionDays)
+}
+
+// RegisterMaintenanceTasks registers the session inventory sweep with the
+// background maintenance registry.
+func (s *Service) RegisterMaintenanceTasks(reg *maintenance.Registry) {
+	reg.Register(maintenance.Task{
+		Name:     SessionInventoryGovernanceTaskName,
+		Interval: maintenance.DefaultInterval,
+		Run: func(context.Context) error {
+			return s.RunSessionInventoryGovernance()
+		},
+	})
 }
 
 // RefreshSession refreshes an active session and issues a new token pair.
@@ -81,6 +112,17 @@ func (s *Service) RefreshSessionWithContext(ctx context.Context, sessionID strin
 	}
 	if sess.RevokedAt != nil || sess.RefreshExpiresAt.Before(time.Now()) {
 		return nil, common.ErrUnauthorized
+	}
+
+	// Tenant refresh gate (contract §2.2/§5, task packet risk node "stale
+	// membership"): a session must not outlive its membership. Compat mode
+	// and claim-less sessions pass unchanged (flag-off regression guarantee).
+	if err := tenant.GateSessionRefresh(db, tenant.RefreshCheckInput{
+		Mode:     tenant.NormalizeMode(tenant.FeatureFlagSettingKeyReader(db)),
+		UserID:   sess.UserID,
+		TenantID: sess.TenantID,
+	}); err != nil {
+		return nil, err
 	}
 
 	u, err := s.loader.GetUserByID(userID)
@@ -116,12 +158,32 @@ func (s *Service) RevokeSession(sessionID string) error {
 		Updates(map[string]interface{}{"revoked_at": &now}).Error; err != nil {
 		return err
 	}
-	CascadeRevokeSessionRefresh(sessionID)
+	return RevokeSessionArtifacts(sessionID)
+}
+
+// RevokeSessionArtifacts 使会话在 Redis 侧的三条失效路径同时生效：access
+// token 黑名单（每请求校验，立即阻断存量 access token）、refresh token 级联
+// 删除、以及 middleware 本地会话缓存无法感知的失效窗口。DB revoked_at 已由
+// 调用方写入；这里任一写失败都必须返回错误——access 路径没有 DB 兜底，
+// 静默失败会形成“已撤销仍可用”的安全假象。
+func RevokeSessionArtifacts(sessionID string) error {
+	if err := authtoken.BlacklistSession(context.Background(), database.RDB, sessionID); err != nil {
+		logging.Warn("blacklist session access token failed",
+			zap.String("session_id", sessionID), zap.Error(err))
+		return err
+	}
+	if err := authtoken.RevokeSessionRefresh(context.Background(), database.RDB, sessionID); err != nil {
+		logging.Warn("cascade revoke session refresh token failed",
+			zap.String("session_id", sessionID), zap.Error(err))
+		return err
+	}
 	return nil
 }
 
 // CascadeRevokeSessionRefresh 级联删除会话绑定的 refresh token（Redis）。
 // 失败仅记日志不回滚：DB 侧 revoked_at 已生效，refresh 路径仍会被 session 状态校验拦截。
+// 仅用于已删除会话行等无法逐会话返回错误的批量场景；显式撤销路径请使用
+// RevokeSessionArtifacts 以获得 fail-fast 语义。
 func CascadeRevokeSessionRefresh(sessionIDs ...string) {
 	for _, sid := range sessionIDs {
 		if strings.TrimSpace(sid) == "" {
@@ -155,11 +217,10 @@ func (s *Service) ListSessions(userID uint64, currentSessionID string) ([]Sessio
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
+	// Read path: no inventory purge here. Idle/expired sessions are swept by
+	// the registered maintenance task, not while serving this list.
 	now := time.Now()
 	policy := s.policy.GetSessionPolicy()
-	if err := s.governSessionInventory(now, policy); err != nil {
-		return nil, err
-	}
 
 	var sessions []SystemUserSession
 	if err := authsession.ApplyActiveScope(s.db, "", now, policy.SessionIdleMinutes).
@@ -209,8 +270,7 @@ func (s *Service) RevokeOwnedSession(userID uint64, currentSessionID, targetSess
 		Updates(map[string]interface{}{"revoked_at": &now}).Error; err != nil {
 		return err
 	}
-	CascadeRevokeSessionRefresh(targetSessionID)
-	return nil
+	return RevokeSessionArtifacts(targetSessionID)
 }
 
 // CleanupHistoricSessions removes expired session records.
@@ -224,9 +284,6 @@ func (s *Service) CleanupHistoricSessions(retentionDays int, startedAt, endedAt 
 	}
 	now := time.Now()
 	policy := s.policy.GetSessionPolicy()
-	if err := s.governSessionInventory(now, policy); err != nil {
-		return 0, err
-	}
 	db := s.db.Table("system_user_session").Where("revoked_at IS NOT NULL")
 	if window != nil {
 		db = db.Where("revoked_at >= ? AND revoked_at <= ?", window.StartedAt, window.EndedAt)
@@ -267,58 +324,79 @@ func (s *Service) BatchRevokeSessions(currentSessionID string, sessionIDs []stri
 	if result.Error != nil {
 		return result.RowsAffected, result.Error
 	}
-	CascadeRevokeSessionRefresh(normalized...)
+	for _, sid := range normalized {
+		if err := RevokeSessionArtifacts(sid); err != nil {
+			return result.RowsAffected, err
+		}
+	}
 	return result.RowsAffected, nil
 }
 
 // ListAllSessions returns paginated session records for admin use.
+// Filters (including browser/OS/device, derived from user_agent) are pushed
+// down to SQL; COUNT and LIMIT/OFFSET run in the database — no full-scan
+// into memory pagination (task 2026-09-22-export-and-session-pagination).
 func (s *Service) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPageResp, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
+	// Read path: the session inventory sweep is a registered maintenance task
+	// (RunSessionInventoryGovernance), deliberately not part of this query.
 	now := time.Now()
 	policy := s.policy.GetSessionPolicy()
-	if err := s.governSessionInventory(now, policy); err != nil {
+
+	page, pageSize := normalizePageQuery(queryPageFromAdminSession(query), queryPageSizeFromAdminSession(query))
+
+	base := func() *gorm.DB {
+		db := s.db.Table("system_user_session").
+			Joins("LEFT JOIN system_user ON system_user.id = system_user_session.user_id")
+		return applyAdminSessionFilters(db, query, now, policy)
+	}
+	// Browser/OS/device filters become user_agent LIKE conditions so the
+	// whole filtered set lives in SQL and counts match pages exactly.
+	db := applyAdminSessionClientFilters(base(), query)
+
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
 		return nil, err
 	}
 
-	page, pageSize := normalizePageQuery(queryPageFromAdminSession(query), queryPageSizeFromAdminSession(query))
-	db := s.db.Table("system_user_session").
-		Select("system_user_session.session_id, system_user_session.user_id, system_user.username, system_user.nickname, system_user_session.last_ip, system_user_session.user_agent, system_user_session.refresh_expires_at, system_user_session.last_refresh_at, system_user_session.last_activity_at, system_user_session.revoked_at, system_user_session.created_at").
-		Joins("LEFT JOIN system_user ON system_user.id = system_user_session.user_id")
-	db = applyAdminSessionFilters(db, query, now, policy)
+	// Whole-filtered-set aggregates so active/revoked counts match the
+	// paginated result exactly (both derive from the same SQL filter).
+	var activeCount, revokedCount int64
+	counts := struct {
+		ActiveCount  *int64
+		RevokedCount *int64
+	}{}
+	if err := base().Session(&gorm.Session{}).
+		Select("SUM(CASE WHEN system_user_session.revoked_at IS NULL THEN 1 ELSE 0 END) AS active_count, " +
+			"SUM(CASE WHEN system_user_session.revoked_at IS NOT NULL THEN 1 ELSE 0 END) AS revoked_count").
+		Scan(&counts).Error; err != nil {
+		return nil, err
+	}
+	if counts.ActiveCount != nil {
+		activeCount = *counts.ActiveCount
+	}
+	if counts.RevokedCount != nil {
+		revokedCount = *counts.RevokedCount
+	}
 
 	var rows []adminSessionRow
-	if err := db.Order("system_user_session.created_at desc").Scan(&rows).Error; err != nil {
+	if err := base().Session(&gorm.Session{}).
+		Select("system_user_session.session_id, system_user_session.user_id, system_user.username, system_user.nickname, system_user_session.last_ip, system_user_session.user_agent, system_user_session.refresh_expires_at, system_user_session.last_refresh_at, system_user_session.last_activity_at, system_user_session.revoked_at, system_user_session.created_at").
+		Order("system_user_session.created_at desc").
+		Offset((page - 1) * pageSize).Limit(pageSize).
+		Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 
 	items := make([]AdminSessionResp, 0, len(rows))
-	var activeCount, revokedCount int64
 	for _, row := range rows {
-		clientInfo := ParseClientInfo(row.UserAgent)
-		if !matchesAdminSessionFilters(query, clientInfo) {
-			continue
-		}
-		if row.RevokedAt == nil {
-			activeCount++
-		} else {
-			revokedCount++
-		}
-		items = append(items, buildAdminSessionResp(row, clientInfo))
+		items = append(items, buildAdminSessionResp(row, ParseClientInfo(row.UserAgent)))
 	}
 
-	total := int64(len(items))
-	start := (page - 1) * pageSize
-	if start > len(items) {
-		start = len(items)
-	}
-	end := start + pageSize
-	if end > len(items) {
-		end = len(items)
-	}
 	return &AdminSessionPageResp{
-		Items:        items[start:end],
+		Items:        items,
 		Total:        total,
 		ActiveCount:  activeCount,
 		RevokedCount: revokedCount,
@@ -339,7 +417,13 @@ func (s *Service) RevokeAnySession(currentSessionID, targetSessionID string) err
 		return common.ErrUnauthorized
 	}
 	now := time.Now()
-	return s.db.Model(&SystemUserSession{}).
+	if err := s.db.Model(&SystemUserSession{}).
 		Where("session_id = ? AND revoked_at IS NULL", targetSessionID).
-		Updates(map[string]interface{}{"revoked_at": &now}).Error
+		Updates(map[string]interface{}{"revoked_at": &now}).Error; err != nil {
+		return err
+	}
+	// 与 RevokeSession/RevokeOwnedSession 保持同一失效语义：DB revoked_at、
+	// refresh token 删除、access token 黑名单三路同时生效，管理员撤销后
+	// 存量 access token 不允许继续使用到 TTL 结束。
+	return RevokeSessionArtifacts(targetSessionID)
 }

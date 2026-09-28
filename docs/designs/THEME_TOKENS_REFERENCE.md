@@ -243,5 +243,5 @@ English version: [THEME_TOKENS_REFERENCE.en.md](./THEME_TOKENS_REFERENCE.en.md)
 - 4 个主题都能在同一套壳层里正常渲染
 - Dashboard、列表页、row actions、状态提示都消费语义 token
 - 业务代码不再新增 `--pantheon-*` 运行时引用
-- `dashboard.css` 已纳入 shell visual contract 检查
+- `Dashboard.css` 已纳入 shell visual contract 检查
 - 暗色模式不再被当成已交付能力描述

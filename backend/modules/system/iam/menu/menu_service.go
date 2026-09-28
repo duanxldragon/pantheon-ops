@@ -2,11 +2,11 @@ package iam
 
 import (
 	"fmt"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/capability"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/rbacbind"
 	"log/slog"
 	"net/url"
-	"pantheon-base/pkg/capability"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/rbacbind"
 	"strings"
 
 	"gorm.io/gorm"

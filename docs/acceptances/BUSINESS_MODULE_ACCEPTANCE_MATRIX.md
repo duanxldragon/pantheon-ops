@@ -5,7 +5,7 @@ layer: business/*
 status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-05-23
+updated_at: 2026-09-10
 ---
 
 # business/* 业务模块验收矩阵
@@ -29,6 +29,22 @@ English version: [BUSINESS_MODULE_ACCEPTANCE_MATRIX.en.md](./BUSINESS_MODULE_ACC
 | i18n | locale key 是否完整且无硬编码 | `check:i18n-hardcode` / locale audit |
 | 审计 | 新增、编辑、删除、导入、导出等关键动作是否审计 | 操作日志记录 |
 | 回归 | 是否有固定自动化或手工验收记录 | smoke / 测试报告 |
+
+### 1.1 租户就绪必答四项（2026-09-10 新增，配合 DDL 评审）
+
+依据 [单租户先行、租户就绪设计](../designs/TENANT_READY_SINGLE_TENANT_DESIGN.md) 与
+[租户资源 scope 矩阵](../designs/TENANT_RESOURCE_SCOPE_MATRIX.md)，任何新业务模块 / DDL 评审
+在通过前必须显式回答以下四项，并把结论写入设计文档；不得留空或默认放行：
+
+| # | 必答项 | 判断问题 | 不满足时的处置 |
+| :--- | :--- | :--- | :--- |
+| 1 | tenant 字段 | 该表未来是否可能租户化？可能则第一版是否加了 `tenant_id`（或记录明确的“不会租户化”理由） | 补 `tenant_id` 或在设计文档写明“不会租户化”理由，二者必居其一 |
+| 2 | 租户内唯一 | 每个唯一键是平台全局唯一还是租户内唯一？业务单据编号默认按租户内唯一评估 | 唯一键设计错误时必须在 DDL 评审退回，禁止先按全局唯一上线 |
+| 3 | 查询/导出/统计过滤 | 列表、详情、批量、导出、统计是否都走统一 scope 注入点（`DataScopeReq + WithDataScope`），未来可叠加 tenant 过滤 | 散落 SQL 必须收敛到统一注入点后才能通过 |
+| 4 | 审计维度 | 审计记录未来是否需要按租户检索？业务域写操作审计是否保留可切分维度 | 补审计维度说明或记录 gap |
+
+> 注意：当前运行态仍是单租户，生成器的 `tenant` 数据范围选项已下线（runtime 真相源为
+> `backend/pkg/common/data_scope.go`）。上述四项是评审必答题，不是实现要求。
 
 ## 2. 业务模块准入
 

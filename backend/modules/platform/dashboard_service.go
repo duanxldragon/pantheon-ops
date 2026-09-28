@@ -6,8 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"pantheon-base/pkg/authsession"
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/authsession"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"gorm.io/gorm"
 )
@@ -44,6 +45,13 @@ type DashboardServiceOption func(*DashboardService)
 type DashboardService struct {
 	db                      *gorm.DB
 	orgGovernanceTaskLoader OrgGovernanceTaskLoader
+	tenantCtx               *tenant.Context
+}
+
+func (s *DashboardService) WithTenantContext(ctx *tenant.Context) *DashboardService {
+	clone := *s
+	clone.tenantCtx = ctx
+	return &clone
 }
 
 func WithOrgGovernanceTaskLoader(loader OrgGovernanceTaskLoader) DashboardServiceOption {
@@ -103,7 +111,7 @@ func (s *DashboardService) GetSummary() (*SummaryResp, error) {
 
 func (s *DashboardService) loadLoginActivity(resp *SummaryResp, since time.Time) error {
 	var lastSuccessfulLoginAt time.Time
-	if err := s.db.Table("system_log_login").
+	if err := s.scopedTable("system_log_login").
 		Select("login_time").
 		Where("status = ?", 1).
 		Order("login_time desc").
@@ -126,7 +134,7 @@ func (s *DashboardService) loadLoginActivity(resp *SummaryResp, since time.Time)
 		LoginTime time.Time `gorm:"column:login_time"`
 	}
 	var recentLoginsRaw []rawLoginRow
-	if err := s.db.Table("system_log_login").
+	if err := s.scopedTable("system_log_login").
 		Select("id, username, ipaddr, browser, os, status, msg, login_time").
 		Where("login_time >= ?", since).
 		Order("login_time desc").
@@ -299,7 +307,7 @@ func (s *DashboardService) loadSummaryCounts(resp *SummaryResp, params summaryCo
 
 func (s *DashboardService) countTable(tableName string, where string, args ...interface{}) (int64, error) {
 	var count int64
-	query := s.db.Table(tableName)
+	query := s.scopedTable(tableName)
 	if where != "" {
 		query = query.Where(where, args...)
 	}
@@ -307,6 +315,15 @@ func (s *DashboardService) countTable(tableName string, where string, args ...in
 		return 0, err
 	}
 	return count, nil
+}
+
+func (s *DashboardService) scopedTable(tableName string) *gorm.DB {
+	q := s.db.Table(tableName)
+	switch tableName {
+	case "system_log_login", authSecurityEventTableName, operationLogTableName, "system_setting":
+		q = q.Scopes(tenant.WithTenantScope(s.tenantCtx))
+	}
+	return q
 }
 
 func countQuery(q *gorm.DB) (int64, error) {

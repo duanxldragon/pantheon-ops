@@ -1,31 +1,33 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import '@arco-design/web-react/es/_util/react-19-adapter.js';
 import { BrowserRouter } from 'react-router-dom';
-import { I18nextProvider } from 'react-i18next';
-import { ConfigProvider } from '@arco-design/web-react';
-import enUS from '@arco-design/web-react/es/locale/en-US';
-import zhCN from '@arco-design/web-react/es/locale/zh-CN';
+import './core/arco/style';
+import './index.css';
+import App from './App';
+import { initI18n } from './i18n';
+import { initializePantheonTheme } from './core/theme/theme';
+import { initializePantheonColorMode } from './core/theme/colorMode';
+import { initializePublicSettings } from './core/settings/publicSettings';
+import OperationalWorkbenchVisualFixture from './components/operational/OperationalWorkbenchVisualFixture';
 
-// 从 npm 包导入 base
-import { App as BaseApp } from '@duanxldragon/pantheon-base-ui';
+initializePantheonColorMode();
 
-// 导入 ops 特有内容
-import i18n from './i18n';
-import { businessModules } from './modules/business';
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 
-// TODO: 导入 base 样式
-// import '@duanxldragon/pantheon-base-ui/dist/index.css';
-
-const locale = i18n.language === 'en-US' ? enUS : zhCN;
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <ConfigProvider locale={locale}>
-        <I18nextProvider i18n={i18n}>
-          <BaseApp additionalModules={businessModules} />
-        </I18nextProvider>
-      </ConfigProvider>
-    </BrowserRouter>
-  </StrictMode>
-);
+await Promise.allSettled([initializePublicSettings(), initializePantheonTheme()]);
+try {
+  await initI18n();
+} finally {
+  const content =
+    import.meta.env.DEV && globalThis.location.pathname === '/__visual/operational-workbench' ? (
+      <OperationalWorkbenchVisualFixture />
+    ) : (
+      <App />
+    );
+  root.render(
+    <React.StrictMode>
+      <BrowserRouter>{content}</BrowserRouter>
+    </React.StrictMode>,
+  );
+}

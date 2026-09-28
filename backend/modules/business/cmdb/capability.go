@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	bizcap "pantheon-base/modules/business/capability"
-	cmdbgroup "pantheon-base/modules/business/cmdb/group"
-	cmdbhost "pantheon-base/modules/business/cmdb/host"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	cmdbgroup "github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/group"
+	cmdbhost "github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/host"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

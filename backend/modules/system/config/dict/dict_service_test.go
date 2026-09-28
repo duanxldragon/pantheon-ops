@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 	"gorm.io/gorm"
-	"pantheon-base/pkg/testmysql"
 )
 
 func setupDictTestDB(t *testing.T) *gorm.DB {

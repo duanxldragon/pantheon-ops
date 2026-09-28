@@ -8,6 +8,7 @@ linked_contracts:
   - docs/contracts/SYSTEM_AUTH_CONTRACT.md
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
+  - docs/contracts/TENANT_CONTRACT_V1.md
 updated_at: 2026-05-05
 ---
 
@@ -150,6 +151,10 @@ P2 不应做成一轮“大爆炸重构”。
 - 单租户先行。
 - 租户就绪。
 - 不实现真实 tenant model。
+
+> **2026-09-11 更新**：租户合同 V1 已冻结 — 见 [TENANT_CONTRACT_V1](../contracts/TENANT_CONTRACT_V1.md)（共享 schema MVP：tenants/memberships、tenant context、Casbin domain `tenant:<id>`、compat 模式）。
+> 迁移程序见 [TENANT_MIGRATION_RUNBOOK](../runbooks/TENANT_MIGRATION_RUNBOOK.md)（副本演练已通过，生产执行待 G1–G4 gate）。
+> canary 切片（dict 资源，feature flag `platform.tenant_mode`）为首个运行态验证。
 
 进入真实多租户前必须先完成：
 

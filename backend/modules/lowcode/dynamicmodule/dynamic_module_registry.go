@@ -3,12 +3,12 @@ package dynamicmodule
 import (
 	"encoding/json"
 	"errors"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"os"
-	"pantheon-base/pkg/common"
 	"path/filepath"
 	"strings"
 
-	"pantheon-base/internal/scaffold"
+	"github.com/duanxldragon/pantheon-base/backend/internal/scaffold"
 )
 
 const msgModuleSchemaInvalid = "module.register.schema_invalid"
@@ -131,6 +131,29 @@ func resolveGeneratedWorkspacePath(workspaceRoot, relativePath string) (string, 
 	return target, true
 }
 
+// openWorkspaceRoot opens the workspace directory through os.Root, the
+// kernel-backed traversal-safe API (Go 1.24+): lookups are anchored at the
+// root and cannot escape it, so request-controlled relative paths passed to
+// Root.ReadFile cannot address files outside the workspace regardless of
+// their content (".." segments, absolute paths, symlinks). This makes the
+// containment guarantee structural instead of relying on path validation
+// only, and keeps gosecurity:S2083 from reporting a traversal flow.
+func openWorkspaceRoot(workspaceRoot string) (*os.Root, bool) {
+	root := filepath.Clean(strings.TrimSpace(workspaceRoot))
+	if root == "" {
+		return nil, false
+	}
+	info, err := os.Stat(root)
+	if err != nil || !info.IsDir() {
+		return nil, false
+	}
+	workspace, err := os.OpenRoot(root)
+	if err != nil {
+		return nil, false
+	}
+	return workspace, true
+}
+
 func generatedPathExists(workspaceRoot, relativePath string) bool {
 	path, ok := resolveGeneratedWorkspacePath(workspaceRoot, relativePath)
 	if !ok {
@@ -150,11 +173,16 @@ func generatedDirExists(workspaceRoot, relativePath string) bool {
 }
 
 func generatedFileContainsAll(workspaceRoot string, relativePath string, fragments ...string) bool {
-	path, ok := resolveGeneratedWorkspacePath(workspaceRoot, relativePath)
+	root, ok := openWorkspaceRoot(workspaceRoot)
 	if !ok {
 		return false
 	}
-	content, err := os.ReadFile(path)
+	defer func() { _ = root.Close() }()
+	normalizedRelative := filepath.ToSlash(strings.TrimSpace(relativePath))
+	if normalizedRelative == "" || strings.Contains(normalizedRelative, "..") || !filepath.IsLocal(normalizedRelative) {
+		return false
+	}
+	content, err := root.ReadFile(normalizedRelative)
 	if err != nil {
 		return false
 	}

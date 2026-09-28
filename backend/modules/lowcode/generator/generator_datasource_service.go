@@ -3,9 +3,9 @@ package generator
 import (
 	"errors"
 	"fmt"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"net/netip"
 	"os"
-	"pantheon-base/pkg/common"
 	"regexp"
 	"strconv"
 	"strings"

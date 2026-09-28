@@ -3,9 +3,9 @@ package iam
 import (
 	"testing"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 	"gorm.io/gorm"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/testmysql"
 )
 
 func setupMenuTestDB(t *testing.T) *gorm.DB {
@@ -20,6 +20,23 @@ func setupMenuTestDB(t *testing.T) *gorm.DB {
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role_permission (role_id BIGINT, permission_key VARCHAR(128))")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_setting (setting_key VARCHAR(128) PRIMARY KEY, setting_value TEXT)")
 	return db
+}
+
+func seedPlatformWorkspaceMenus(t *testing.T, db *gorm.DB, workspaceType string, includeOperations bool) {
+	t.Helper()
+	menus := []SystemMenu{
+		{ID: 1, TitleKey: "app.workspace", Path: "/workspace", Type: workspaceType, Icon: "dashboard", RouteName: "workspace", Module: "platform", Sort: 10, IsVisible: 1},
+		{ID: 2, ParentID: 1, TitleKey: "system.menu.dashboard", Path: "/dashboard", Type: "C", Icon: "dashboard", RouteName: "dashboard", Module: "platform", Sort: 1, IsVisible: 1},
+	}
+	if includeOperations {
+		menus = append(menus,
+			SystemMenu{ID: 3, ParentID: 1, TitleKey: "operations.menu", Path: "/operations", Type: "M", Icon: "desktop", RouteName: "operations", Module: "platform", Sort: 20, IsVisible: 1},
+			SystemMenu{ID: 4, ParentID: 3, TitleKey: "business.ticket.menu", Path: "/operations/ticket", Component: "business/ticket/TicketList", PagePerm: "business:ticket:list", Type: "C", Icon: "file", RouteName: "business-ticket", Module: "business.ticket", Sort: 1, IsVisible: 1},
+		)
+	}
+	if err := db.Create(&menus).Error; err != nil {
+		t.Fatalf("seed workspace menus: %v", err)
+	}
 }
 
 func TestMenuServiceCreateMenuBindsAdminRole(t *testing.T) {
@@ -209,63 +226,7 @@ func TestMenuServiceNavigationFlattensPlatformWorkspaceMenus(t *testing.T) {
 	db := setupMenuTestDB(t)
 	service := NewMenuService(db)
 
-	if err := db.Create(&SystemMenu{
-		ID:        1,
-		TitleKey:  "app.workspace",
-		Path:      "/workspace",
-		Type:      "M",
-		Icon:      "dashboard",
-		RouteName: "workspace",
-		Module:    "platform",
-		Sort:      10,
-		IsVisible: 1,
-	}).Error; err != nil {
-		t.Fatalf("seed workspace menu: %v", err)
-	}
-	if err := db.Create(&SystemMenu{
-		ID:        2,
-		ParentID:  1,
-		TitleKey:  "system.menu.dashboard",
-		Path:      "/dashboard",
-		Type:      "C",
-		Icon:      "dashboard",
-		RouteName: "dashboard",
-		Module:    "platform",
-		Sort:      1,
-		IsVisible: 1,
-	}).Error; err != nil {
-		t.Fatalf("seed dashboard menu: %v", err)
-	}
-	if err := db.Create(&SystemMenu{
-		ID:        3,
-		ParentID:  1,
-		TitleKey:  "operations.menu",
-		Path:      "/operations",
-		Type:      "M",
-		Icon:      "desktop",
-		RouteName: "operations",
-		Module:    "platform",
-		Sort:      20,
-		IsVisible: 1,
-	}).Error; err != nil {
-		t.Fatalf("seed operations menu: %v", err)
-	}
-	if err := db.Create(&SystemMenu{
-		ID:        4,
-		ParentID:  3,
-		TitleKey:  "business.ticket.menu",
-		Path:      "/operations/ticket",
-		Component: "business/ticket/TicketList",
-		PagePerm:  "business:ticket:list",
-		Type:      "C",
-		Icon:      "file",
-		RouteName: "business-ticket",
-		Module:    "business.ticket",
-		Sort:      1,
-		IsVisible: 1,
-	}).Error; err != nil {
-		t.Fatalf("seed operations child menu: %v", err)
-	}
+	seedPlatformWorkspaceMenus(t, db, "M", true)
 
 	tree, err := service.GetMenuTree(&MenuListQuery{Scope: "nav"}, []string{"admin"})
 	if err != nil {
@@ -294,33 +255,7 @@ func TestMenuServiceManageTreeHidesWorkspaceContainer(t *testing.T) {
 	db := setupMenuTestDB(t)
 	service := NewMenuService(db)
 
-	if err := db.Create(&SystemMenu{
-		ID:        1,
-		TitleKey:  "app.workspace",
-		Path:      "/workspace",
-		Type:      "D",
-		Icon:      "dashboard",
-		RouteName: "workspace",
-		Module:    "platform",
-		Sort:      10,
-		IsVisible: 1,
-	}).Error; err != nil {
-		t.Fatalf("seed workspace menu: %v", err)
-	}
-	if err := db.Create(&SystemMenu{
-		ID:        2,
-		ParentID:  1,
-		TitleKey:  "system.menu.dashboard",
-		Path:      "/dashboard",
-		Type:      "C",
-		Icon:      "dashboard",
-		RouteName: "dashboard",
-		Module:    "platform",
-		Sort:      1,
-		IsVisible: 1,
-	}).Error; err != nil {
-		t.Fatalf("seed dashboard menu: %v", err)
-	}
+	seedPlatformWorkspaceMenus(t, db, "D", false)
 
 	tree, err := service.GetMenuTree(&MenuListQuery{Scope: "manage"}, []string{"admin"})
 	if err != nil {

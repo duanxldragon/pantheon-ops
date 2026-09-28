@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-base/internal/middleware"
+	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
 )
 
 const auditBenchmarkRowCount = 20000
@@ -22,7 +22,7 @@ func BenchmarkAuditServiceListOperationLogs_Unfiltered(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		page, err := service.ListOperationLogs(query)
+		page, err := service.ListOperationLogs(query, nil)
 		if err != nil {
 			b.Fatalf("list operation logs: %v", err)
 		}
@@ -44,7 +44,7 @@ func BenchmarkAuditServiceListOperationLogs_FilterBySourceDomainPage(b *testing.
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		page, err := service.ListOperationLogs(query)
+		page, err := service.ListOperationLogs(query, nil)
 		if err != nil {
 			b.Fatalf("list operation logs with source filters: %v", err)
 		}
@@ -65,7 +65,7 @@ func BenchmarkAuditServiceListOperationLogs_FilterByFailureCategory(b *testing.B
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		page, err := service.ListOperationLogs(query)
+		page, err := service.ListOperationLogs(query, nil)
 		if err != nil {
 			b.Fatalf("list operation logs with failure filter: %v", err)
 		}

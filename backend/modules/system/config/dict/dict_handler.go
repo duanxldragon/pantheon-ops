@@ -4,8 +4,9 @@ import (
 	"strconv"
 	"strings"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,13 +22,20 @@ func NewDictHandler(service *DictService) *DictHandler {
 	return &DictHandler{service: service}
 }
 
+// boundService returns the service view bound to the request tenant context
+// (canary: TenantContextMiddleware runs before the protected routes). Under
+// compat the shared service is returned unchanged.
+func (h *DictHandler) boundService(c *gin.Context) *DictService {
+	return h.service.WithTenantContext(tenant.FromGin(c))
+}
+
 func (h *DictHandler) GetDictTypeList(c *gin.Context) {
 	var query DictTypeListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	rows, err := h.service.ListDictTypes(&query)
+	rows, err := h.boundService(c).ListDictTypes(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dict.type.list.error")
 		return
@@ -42,7 +50,7 @@ func (h *DictHandler) CreateDictType(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	row, err := h.service.CreateDictType(&req)
+	row, err := h.boundService(c).CreateDictType(&req)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -62,7 +70,7 @@ func (h *DictHandler) UpdateDictType(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	row, err := h.service.UpdateDictType(typeID, &req)
+	row, err := h.boundService(c).UpdateDictType(typeID, &req)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -77,7 +85,7 @@ func (h *DictHandler) DeleteDictType(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	if err := h.service.DeleteDictType(typeID); err != nil {
+	if err := h.boundService(c).DeleteDictType(typeID); err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
@@ -91,7 +99,7 @@ func (h *DictHandler) BatchUpdateDictTypeStatus(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	updatedCount, err := h.service.BatchUpdateDictTypeStatus(req.TypeIDs, req.Status)
+	updatedCount, err := h.boundService(c).BatchUpdateDictTypeStatus(req.TypeIDs, req.Status)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -106,7 +114,7 @@ func (h *DictHandler) BatchDeleteDictTypes(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	resp := common.BatchDelete(req.IDs, h.service.DeleteDictType)
+	resp := common.BatchDelete(req.IDs, h.boundService(c).DeleteDictType)
 	common.Success(c, resp)
 }
 
@@ -116,7 +124,7 @@ func (h *DictHandler) GetDictItemList(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	rows, err := h.service.ListDictItems(&query)
+	rows, err := h.boundService(c).ListDictItems(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dict.item.list.error")
 		return
@@ -130,7 +138,7 @@ func (h *DictHandler) AnalyzeDictUsage(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	resp, err := h.service.AnalyzeDictUsage(dictCode)
+	resp, err := h.boundService(c).AnalyzeDictUsage(dictCode)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dict.usage.error")
 		return
@@ -145,7 +153,7 @@ func (h *DictHandler) CreateDictItem(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	row, err := h.service.CreateDictItem(&req)
+	row, err := h.boundService(c).CreateDictItem(&req)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -165,7 +173,7 @@ func (h *DictHandler) UpdateDictItem(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	row, err := h.service.UpdateDictItem(itemID, &req)
+	row, err := h.boundService(c).UpdateDictItem(itemID, &req)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -180,7 +188,7 @@ func (h *DictHandler) DeleteDictItem(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	if err := h.service.DeleteDictItem(itemID); err != nil {
+	if err := h.boundService(c).DeleteDictItem(itemID); err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
@@ -194,7 +202,7 @@ func (h *DictHandler) BatchUpdateDictItemStatus(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	updatedCount, err := h.service.BatchUpdateDictItemStatus(req.ItemIDs, req.Status)
+	updatedCount, err := h.boundService(c).BatchUpdateDictItemStatus(req.ItemIDs, req.Status)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -209,7 +217,7 @@ func (h *DictHandler) BatchDeleteDictItems(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	resp := common.BatchDelete(req.IDs, h.service.DeleteDictItem)
+	resp := common.BatchDelete(req.IDs, h.boundService(c).DeleteDictItem)
 	common.Success(c, resp)
 }
 
@@ -225,7 +233,7 @@ func (h *DictHandler) ReorderDictItem(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	row, err := h.service.ReorderDictItem(itemID, req.Direction)
+	row, err := h.boundService(c).ReorderDictItem(itemID, req.Direction)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -239,7 +247,7 @@ func (h *DictHandler) GetDictOptions(c *gin.Context) {
 		common.Success(c, DictOptionMapResp{})
 		return
 	}
-	rows, err := h.service.GetDictOptions(strings.Split(rawCodes, ","))
+	rows, err := h.boundService(c).GetDictOptions(strings.Split(rawCodes, ","))
 	if err != nil {
 		common.Fail(c, common.CodeError, "dict.options.error")
 		return
@@ -254,7 +262,7 @@ func (h *DictHandler) RefreshDictOptionsCache(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	resp, err := h.service.RefreshDictOptionsCache(req.Codes)
+	resp, err := h.boundService(c).RefreshDictOptionsCache(req.Codes)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dict.cache.refresh.error")
 		return
@@ -270,7 +278,7 @@ func (h *DictHandler) ExportDictTypes(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	file, err := h.service.ExportDictTypes(&query)
+	file, err := h.boundService(c).ExportDictTypes(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dict.type.export.error")
 		return
@@ -300,12 +308,15 @@ func (h *DictHandler) ImportDictTypes(c *gin.Context) {
 		common.Fail(c, common.CodeError, "import.file.read.error")
 		return
 	}
+	// 显式接管 multipart part 的生命周期：ReadCSV 内部也会关闭，
+	// 这里 defer 保证所有权清晰，且覆盖未来提前 return 的路径。
+	defer func() { _ = file.Close() }()
 	records, err := impexp.ReadCSV(file)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, "import.file.invalid_csv")
 		return
 	}
-	result, err := h.service.ImportDictTypes(records)
+	result, err := h.boundService(c).ImportDictTypes(records)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dict.type.import.error")
 		return
@@ -321,7 +332,7 @@ func (h *DictHandler) ExportDictItems(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	file, err := h.service.ExportDictItems(&query)
+	file, err := h.boundService(c).ExportDictItems(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dict.item.export.error")
 		return
@@ -351,12 +362,15 @@ func (h *DictHandler) ImportDictItems(c *gin.Context) {
 		common.Fail(c, common.CodeError, "import.file.read.error")
 		return
 	}
+	// 显式接管 multipart part 的生命周期：ReadCSV 内部也会关闭，
+	// 这里 defer 保证所有权清晰，且覆盖未来提前 return 的路径。
+	defer func() { _ = file.Close() }()
 	records, err := impexp.ReadCSV(file)
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, "import.file.invalid_csv")
 		return
 	}
-	result, err := h.service.ImportDictItems(records)
+	result, err := h.boundService(c).ImportDictItems(records)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dict.item.import.error")
 		return

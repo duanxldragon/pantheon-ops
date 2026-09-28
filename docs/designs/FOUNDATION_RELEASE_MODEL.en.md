@@ -5,7 +5,7 @@ layer: platform
 status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-08-04
+updated_at: 2026-09-01
 ---
 
 # Foundation Release Model
@@ -37,17 +37,16 @@ consumer repo -> consume base foundation release
 
 ### 2.1 `main` is not the consumer interface
 
-`pantheon-base/main` is the continuous development line, not the default inheritance surface for downstream business repositories.
+`pantheon-base/main` is the continuous development line and the only retained Git branch; it is not the default inheritance surface for downstream business repositories.
 
 ### 2.2 release is the consumer interface
 
-Downstream repositories should consume one of:
+Downstream repositories should consume an immutable tag:
 
 - an explicit tag such as `pantheon-base-v0.10.0`
-- an explicit release line such as `release/0.10`
 - an emergency exception commit with a documented reason
 
-Tracking `main` should not be the default.
+`release/0.10` is compatibility metadata in the release manifest, not a Git branch to maintain or a substitute for a concrete tag. Tracking `main` should not be the default.
 
 ### 2.3 base publishes, consumers upgrade
 
@@ -55,6 +54,12 @@ Tracking `main` should not be the default.
 - `pantheon-ops` upgrades its local business overlay to that release
 
 This is an upgrade model, not an informal file-sync model.
+
+### 2.4 Current release and branch policy
+
+- Current published version: [`pantheon-base-v0.10.26`](https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.10.26).
+- Current release line: `release/0.10`, used only for manifest, compatibility, and consumer records.
+- Git branch policy: retain only `main` locally and remotely; immutable tags and published assets, not release branches, provide release stability.
 
 ## 3. Asset Layers
 
@@ -135,7 +140,7 @@ The consumer impact must be made explicit when the release changes:
 Recommended downstream sequence:
 
 1. choose the target foundation release tag
-2. update `docs/PROJECT_INHERITANCE.md`
+2. pin the base version in `docs/PROJECT_INHERITANCE.md` to the target tag and record its release-line metadata
 3. run inheritance, sync, and drift checks
 4. repair only real overlay breakpoints
 5. run the downstream minimum verification set
@@ -162,15 +167,15 @@ Even before a full packaging model exists, the minimum standard should be:
 
 ## 8. Direct Requirement For `pantheon-ops`
 
-`pantheon-ops` should move toward:
+`pantheon-ops` should record:
 
-- Base branch or release line: `release/<x.y>`
-- Base version: `pantheon-base-v<x.y.z>`
+- Base version: an immutable tag such as `pantheon-base-v0.10.26`
+- Release line: `release/<x.y>` (compatibility metadata, not a Git branch)
 - Inheritance mode: `foundation-release-consumer`
 
 instead of:
 
-- Base branch: `main`
+- Base branch: `main` as a tracking target
 - Base version: temporary commit pin
 
 An unpublished commit should be an emergency exception only, with rollback and later-release reconciliation documented.

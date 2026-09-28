@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pantheon-config
+  namespace: pantheon
+  labels:
+    app: pantheon-base
+data:
+  PANTHEON_ENV: "production"
+  PANTHEON_PORT: "8080"
+  PANTHEON_AUTO_MIGRATE: "false"
+  PANTHEON_METRICS_ENABLED: "true"
+  PANTHEON_METRICS_PUBLIC: "false"
+  PANTHEON_API_RATE_LIMIT_ENABLED: "true"
+  PANTHEON_API_RATE_LIMIT_MAX: "6000"
+  PANTHEON_API_RATE_LIMIT_WINDOW_SECONDS: "60"
+  PANTHEON_SHUTDOWN_TIMEOUT_SECONDS: "15"
+  # Optional: OpenTelemetry endpoint
+  # OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+  # Optional: CSP violation reporting
+  # CSP_REPORT_URI: "https://csp-report.example.com/report"

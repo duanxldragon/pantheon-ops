@@ -5,9 +5,9 @@ import (
 	"errors"
 	"strings"
 
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/modules/business/k8s/cluster"
-	"pantheon-base/pkg/common"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"

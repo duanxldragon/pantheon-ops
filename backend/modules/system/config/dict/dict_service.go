@@ -4,15 +4,17 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"io/fs"
 	"os"
-	"pantheon-base/pkg/common"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"pantheon-base/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -31,9 +33,50 @@ const (
 )
 
 type DictService struct {
-	db            *gorm.DB
-	optionCache   map[string][]DictOptionResp
-	optionCacheMu sync.RWMutex
+	db *gorm.DB
+	// optionCache is shared by all tenant-bound views of this service; entries
+	// are namespaced per tenant (dictOptionCacheKey) so tenants never collide.
+	optionCache *dictOptionCache
+	// tenantCtx is the per-request tenant context (canary slice). Set from the
+	// Gin context by the handler layer via WithTenantContext; nil/compat =>
+	// legacy global behavior (flag-off regression baseline).
+	tenantCtx *tenant.Context
+}
+
+type dictOptionCache struct {
+	mu    sync.RWMutex
+	items map[string][]DictOptionResp
+}
+
+func newDictOptionCache() *dictOptionCache {
+	return &dictOptionCache{items: make(map[string][]DictOptionResp)}
+}
+
+// WithTenantContext returns a shallow view of the service bound to a request
+// tenant context. The receiver shares the cache (per-tenant namespacing keeps
+// entries isolated; see dictOptionCacheKey).
+func (s *DictService) WithTenantContext(ctx *tenant.Context) *DictService {
+	if ctx == nil || !ctx.IsMulti() {
+		return s
+	}
+	bound := *s
+	bound.tenantCtx = ctx
+	return &bound
+}
+
+// tenantScope applies the tenant read filter (contract §3.3): multi mode
+// restricts to the request tenant; compat/global behavior is unchanged.
+func (s *DictService) tenantScope() func(db *gorm.DB) *gorm.DB {
+	return tenant.WithTenantScope(s.tenantCtx)
+}
+
+// tenantTenantID is the tenant a new row belongs to (write path: from context,
+// never from the request body — contract §3.3). Compat => 0.
+func (s *DictService) tenantOwnerID() uint64 {
+	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+		return 0
+	}
+	return s.tenantCtx.TenantID
 }
 
 const (
@@ -82,7 +125,7 @@ var defaultDictItemSeeds = []dictItemSeed{
 func NewDictService(db *gorm.DB) *DictService {
 	return &DictService{
 		db:          db,
-		optionCache: make(map[string][]DictOptionResp),
+		optionCache: newDictOptionCache(),
 	}
 }
 
@@ -190,7 +233,7 @@ func (s *DictService) ListDictTypes(query *DictTypeListQuery) ([]DictTypeResp, e
 }
 
 func (s *DictService) buildDictTypeListQuery(query *DictTypeListQuery) *gorm.DB {
-	db := s.db.Model(&SystemDictType{})
+	db := s.db.Model(&SystemDictType{}).Scopes(s.tenantScope())
 	if query == nil {
 		return db
 	}
@@ -221,7 +264,7 @@ func (s *DictService) loadDictTypeStatRows(rows []SystemDictType) (map[string]di
 		dictCodes = append(dictCodes, item.DictCode)
 	}
 	var statRows []dictTypeStatRow
-	if err := s.db.Model(&SystemDictItem{}).
+	if err := s.db.Model(&SystemDictItem{}).Scopes(s.tenantScope()).
 		Select(`
 			dict_code,
 			COUNT(*) AS item_count,
@@ -249,6 +292,7 @@ func (s *DictService) CreateDictType(req *DictTypeCreateReq) (*DictTypeResp, err
 	}
 
 	row := SystemDictType{
+		TenantID: s.tenantOwnerID(),
 		DictCode: strings.TrimSpace(req.DictCode),
 		DictName: strings.TrimSpace(req.DictName),
 		Module:   normalizeDictModule(req.Module),
@@ -264,9 +308,15 @@ func (s *DictService) CreateDictType(req *DictTypeCreateReq) (*DictTypeResp, err
 }
 
 func (s *DictService) ExportDictTypes(query *DictTypeListQuery) (*impexp.CSVFile, error) {
+	// Hard cap（与日志/角色导出对齐）：导出走 ListDictTypes 前先以无分页
+	// 查询获得行集，这里通过限制列表查询的返回规模避免无界扫描——字典类型
+	// 属小表，cap 为纵深防御。
 	rows, err := s.ListDictTypes(query)
 	if err != nil {
 		return nil, err
+	}
+	if len(rows) > impexp.MaxExportRows() {
+		rows = rows[:impexp.MaxExportRows()]
 	}
 	result := make([][]string, 0, len(rows))
 	for _, row := range rows {
@@ -377,7 +427,7 @@ func (s *DictService) appendParsedDictTypeImportRow(rows *[]dictTypeImportRow, s
 
 func (s *DictService) loadExistingDictTypesByCode() (map[string]SystemDictType, error) {
 	var existing []SystemDictType
-	if err := s.db.Find(&existing).Error; err != nil {
+	if err := s.db.Scopes(s.tenantScope()).Find(&existing).Error; err != nil {
 		return nil, err
 	}
 	existingByCode := make(map[string]SystemDictType, len(existing))
@@ -423,7 +473,7 @@ func (s *DictService) UpdateDictType(typeID uint64, req *DictTypeUpdateReq) (*Di
 	}
 
 	var row SystemDictType
-	if err := s.db.First(&row, typeID).Error; err != nil {
+	if err := s.db.Scopes(s.tenantScope()).First(&row, typeID).Error; err != nil {
 		return nil, err
 	}
 	if err := s.validateDictType(typeID, req.DictCode); err != nil {
@@ -461,12 +511,12 @@ func (s *DictService) DeleteDictType(typeID uint64) error {
 	}
 
 	var row SystemDictType
-	if err := s.db.First(&row, typeID).Error; err != nil {
+	if err := s.db.Scopes(s.tenantScope()).First(&row, typeID).Error; err != nil {
 		return err
 	}
 
 	var itemCount int64
-	if err := s.db.Model(&SystemDictItem{}).Where(condDictCodeEquals, row.DictCode).Count(&itemCount).Error; err != nil {
+	if err := s.db.Model(&SystemDictItem{}).Scopes(s.tenantScope()).Where(condDictCodeEquals, row.DictCode).Count(&itemCount).Error; err != nil {
 		return err
 	}
 	if itemCount > 0 {
@@ -501,7 +551,7 @@ func (s *DictService) BatchUpdateDictTypeStatus(typeIDs []uint64, status int) (i
 	}
 
 	var rows []SystemDictType
-	if err := s.db.Where(condIDIn, normalizedIDs).Find(&rows).Error; err != nil {
+	if err := s.db.Scopes(s.tenantScope()).Where(condIDIn, normalizedIDs).Find(&rows).Error; err != nil {
 		return 0, err
 	}
 	if len(rows) != len(normalizedIDs) {
@@ -538,6 +588,7 @@ func (s *DictService) listDictItems(query *DictItemListQuery, paginate bool) (*D
 	}
 
 	db := s.buildDictItemListQuery(query)
+	db = db.Scopes(s.tenantScope())
 	page, pageSize := normalizeDictItemPageQuery(query)
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
@@ -566,7 +617,7 @@ func (s *DictService) listDictItems(query *DictItemListQuery, paginate bool) (*D
 }
 
 func (s *DictService) buildDictItemListQuery(query *DictItemListQuery) *gorm.DB {
-	db := s.db.Model(&SystemDictItem{}).Where(condDictCodeEquals, strings.TrimSpace(query.DictCode))
+	db := s.db.Model(&SystemDictItem{}).Where(condDictCodeEquals, strings.TrimSpace(query.DictCode)).Scopes(s.tenantScope())
 	if strings.TrimSpace(query.Keyword) != "" {
 		keyword := "%" + common.EscapeLikePattern(strings.TrimSpace(query.Keyword)) + "%"
 		db = db.Where("item_label_key LIKE ? OR item_value LIKE ? OR remark LIKE ?", keyword, keyword, keyword)
@@ -597,6 +648,7 @@ func (s *DictService) CreateDictItem(req *DictItemCreateReq) (*DictItemResp, err
 	}
 
 	row := SystemDictItem{
+		TenantID:     s.tenantOwnerID(),
 		DictCode:     strings.TrimSpace(req.DictCode),
 		ItemLabelKey: strings.TrimSpace(req.ItemLabelKey),
 		ItemValue:    strings.TrimSpace(req.ItemValue),
@@ -761,7 +813,7 @@ func appendDictItemImportRow(rows *[]dictItemImportRow, seenKeys map[string]int,
 
 func (s *DictService) loadExistingDictItemsByKey() (map[string]SystemDictItem, error) {
 	var existing []SystemDictItem
-	if err := s.db.Find(&existing).Error; err != nil {
+	if err := s.db.Scopes(s.tenantScope()).Find(&existing).Error; err != nil {
 		return nil, err
 	}
 	existingByKey := make(map[string]SystemDictItem, len(existing))
@@ -806,6 +858,7 @@ func (s *DictService) upsertDictItemImportRow(tx *gorm.DB, row dictItemImportRow
 
 func (s *DictService) createImportedDictItem(tx *gorm.DB, row dictItemImportRow, result *impexp.ImportResult) error {
 	item := SystemDictItem{
+		TenantID:     s.tenantOwnerID(),
 		DictCode:     row.DictCode,
 		ItemLabelKey: row.ItemLabelKey,
 		ItemValue:    row.ItemValue,
@@ -828,7 +881,7 @@ func (s *DictService) UpdateDictItem(itemID uint64, req *DictItemUpdateReq) (*Di
 	}
 
 	var row SystemDictItem
-	if err := s.db.First(&row, itemID).Error; err != nil {
+	if err := s.db.Scopes(s.tenantScope()).First(&row, itemID).Error; err != nil {
 		return nil, err
 	}
 	originalDictCode := row.DictCode
@@ -858,7 +911,7 @@ func (s *DictService) DeleteDictItem(itemID uint64) error {
 	}
 
 	var row SystemDictItem
-	if err := s.db.First(&row, itemID).Error; err != nil {
+	if err := s.db.Scopes(s.tenantScope()).First(&row, itemID).Error; err != nil {
 		return err
 	}
 	originalDictCode := row.DictCode
@@ -891,7 +944,7 @@ func (s *DictService) BatchUpdateDictItemStatus(itemIDs []uint64, status int) (i
 	}
 
 	var rows []SystemDictItem
-	if err := s.db.Where(condIDIn, normalizedIDs).Find(&rows).Error; err != nil {
+	if err := s.db.Scopes(s.tenantScope()).Where(condIDIn, normalizedIDs).Find(&rows).Error; err != nil {
 		return 0, err
 	}
 	if len(rows) != len(normalizedIDs) {
@@ -1011,12 +1064,22 @@ func (s *DictService) GetDictOptions(codes []string) (DictOptionMapResp, error) 
 	return resp, nil
 }
 
+// dictOptionCacheKey namespaces cache entries per tenant (multi mode) so two
+// tenants sharing a dict_code never collide through the process cache.
+func (s *DictService) dictOptionCacheKey(code string) string {
+	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+		return code
+	}
+	// "t0" cannot occur here (multi mode excludes tenant 0).
+	return "t" + strconv.FormatUint(s.tenantCtx.TenantID, 10) + ":" + code
+}
+
 func (s *DictService) collectCachedDictOptions(normalizedCodes []string, resp DictOptionMapResp) []string {
 	missingCodes := make([]string, 0, len(normalizedCodes))
-	s.optionCacheMu.RLock()
-	defer s.optionCacheMu.RUnlock()
+	s.optionCache.mu.RLock()
+	defer s.optionCache.mu.RUnlock()
 	for _, code := range normalizedCodes {
-		if cached, ok := s.optionCache[code]; ok {
+		if cached, ok := s.optionCache.items[s.dictOptionCacheKey(code)]; ok {
 			resp[code] = cloneDictOptions(cached)
 			continue
 		}
@@ -1026,11 +1089,11 @@ func (s *DictService) collectCachedDictOptions(normalizedCodes []string, resp Di
 }
 
 func (s *DictService) storeLoadedDictOptions(missingCodes []string, loaded DictOptionMapResp, resp DictOptionMapResp) {
-	s.optionCacheMu.Lock()
-	defer s.optionCacheMu.Unlock()
+	s.optionCache.mu.Lock()
+	defer s.optionCache.mu.Unlock()
 	for _, code := range missingCodes {
-		s.optionCache[code] = cloneDictOptions(loaded[code])
-		resp[code] = cloneDictOptions(s.optionCache[code])
+		s.optionCache.items[s.dictOptionCacheKey(code)] = cloneDictOptions(loaded[code])
+		resp[code] = cloneDictOptions(s.optionCache.items[s.dictOptionCacheKey(code)])
 	}
 }
 
@@ -1041,9 +1104,9 @@ func (s *DictService) RefreshDictOptionsCache(codes []string) (*DictCacheRefresh
 
 	normalizedCodes := normalizeDictCodes(codes)
 	if len(normalizedCodes) == 0 {
-		s.optionCacheMu.Lock()
-		s.optionCache = make(map[string][]DictOptionResp)
-		s.optionCacheMu.Unlock()
+		s.optionCache.mu.Lock()
+		s.optionCache.items = make(map[string][]DictOptionResp)
+		s.optionCache.mu.Unlock()
 		return &DictCacheRefreshResp{
 			RefreshedCodes: []string{},
 			ClearedAll:     1,
@@ -1055,11 +1118,11 @@ func (s *DictService) RefreshDictOptionsCache(codes []string) (*DictCacheRefresh
 		return nil, err
 	}
 
-	s.optionCacheMu.Lock()
+	s.optionCache.mu.Lock()
 	for _, code := range normalizedCodes {
-		s.optionCache[code] = cloneDictOptions(loaded[code])
+		s.optionCache.items[s.dictOptionCacheKey(code)] = cloneDictOptions(loaded[code])
 	}
-	s.optionCacheMu.Unlock()
+	s.optionCache.mu.Unlock()
 
 	return &DictCacheRefreshResp{
 		RefreshedCodes: normalizedCodes,
@@ -1193,7 +1256,7 @@ func (s *DictService) queryEnabledDictOptions(codes []string) (DictOptionMapResp
 	}
 
 	var rows []SystemDictItem
-	if err := s.db.Model(&SystemDictItem{}).
+	if err := s.db.Model(&SystemDictItem{}).Scopes(s.tenantScope()).
 		Where("dict_code IN ? AND status = ?", codes, common.StatusEnabled).
 		Order("dict_code asc, sort asc, id asc").
 		Find(&rows).Error; err != nil {
@@ -1218,7 +1281,7 @@ func (s *DictService) validateDictType(typeID uint64, dictCode string) error {
 	}
 
 	var count int64
-	db := s.db.Model(&SystemDictType{}).Where(condDictCodeEquals, trimmedCode)
+	db := s.db.Model(&SystemDictType{}).Scopes(s.tenantScope()).Where(condDictCodeEquals, trimmedCode)
 	if typeID > 0 {
 		db = db.Where("id <> ?", typeID)
 	}
@@ -1239,7 +1302,7 @@ func (s *DictService) validateDictItem(itemID uint64, dictCode string, itemValue
 	}
 
 	var typeCount int64
-	if err := s.db.Model(&SystemDictType{}).Where(condDictCodeEquals, trimmedCode).Count(&typeCount).Error; err != nil {
+	if err := s.db.Model(&SystemDictType{}).Scopes(s.tenantScope()).Where(condDictCodeEquals, trimmedCode).Count(&typeCount).Error; err != nil {
 		return err
 	}
 	if typeCount == 0 {
@@ -1247,7 +1310,7 @@ func (s *DictService) validateDictItem(itemID uint64, dictCode string, itemValue
 	}
 
 	var count int64
-	db := s.db.Model(&SystemDictItem{}).Where("dict_code = ? AND item_value = ?", trimmedCode, trimmedValue)
+	db := s.db.Model(&SystemDictItem{}).Scopes(s.tenantScope()).Where("dict_code = ? AND item_value = ?", trimmedCode, trimmedValue)
 	if itemID > 0 {
 		db = db.Where("id <> ?", itemID)
 	}
@@ -1421,10 +1484,10 @@ func (s *DictService) invalidateDictOptionCache(codes ...string) {
 	if len(normalizedCodes) == 0 {
 		return
 	}
-	s.optionCacheMu.Lock()
-	defer s.optionCacheMu.Unlock()
+	s.optionCache.mu.Lock()
+	defer s.optionCache.mu.Unlock()
 	for _, code := range normalizedCodes {
-		delete(s.optionCache, code)
+		delete(s.optionCache.items, s.dictOptionCacheKey(code))
 	}
 }
 

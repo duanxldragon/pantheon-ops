@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/authsession"
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/authsession"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"gorm.io/gorm"
 )
@@ -168,20 +168,85 @@ func parseSessionFilterTime(value string) (time.Time, bool) {
 	return time.Time{}, false
 }
 
-func matchesAdminSessionFilters(query *AdminSessionQuery, clientInfo ClientInfoResp) bool {
+const (
+	// sessionUserAgentLowerExpr is the lower-cased user_agent expression every
+	// client-side filter matches against.
+	sessionUserAgentLowerExpr     = "LOWER(system_user_session.user_agent)"
+	sessionUserAgentLikeClause    = sessionUserAgentLowerExpr + " LIKE ?"
+	sessionUserAgentNotLikeClause = sessionUserAgentLowerExpr + " NOT LIKE ?"
+	mobileTokenPattern            = "%mobile%"
+	androidTokenPattern           = "%android%"
+)
+
+// applyAdminSessionClientFilters pushes the browser/OS/device filters into
+// SQL as user_agent LIKE conditions. The detection tokens mirror
+// DetectBrowser/DetectOS/DetectDevice in session_user_agent.go (lowercase
+// substring probes), so SQL-side matching stays consistent with the client
+// info rendered on each row and counts cannot drift from pages.
+func applyAdminSessionClientFilters(db *gorm.DB, query *AdminSessionQuery) *gorm.DB {
 	if query == nil {
-		return true
+		return db
 	}
-	if strings.TrimSpace(query.Browser) != "" && !strings.EqualFold(strings.TrimSpace(query.Browser), clientInfo.Browser) {
-		return false
+	if browser := strings.ToLower(strings.TrimSpace(query.Browser)); browser != "" && browser != "unknown" {
+		if token, ok := browserDetectionTokens[browser]; ok {
+			db = db.Where(sessionUserAgentLikeClause, "%"+common.EscapeLikePattern(token)+"%")
+		} else {
+			db = db.Where(sessionUserAgentLikeClause, "%"+common.EscapeLikePattern(browser)+"%")
+		}
 	}
-	if strings.TrimSpace(query.OS) != "" && !strings.EqualFold(strings.TrimSpace(query.OS), clientInfo.OS) {
-		return false
+	if os := strings.ToLower(strings.TrimSpace(query.OS)); os != "" && os != "unknown" {
+		if token, ok := osDetectionTokens[os]; ok {
+			db = db.Where(sessionUserAgentLikeClause, "%"+common.EscapeLikePattern(token)+"%")
+		} else {
+			db = db.Where(sessionUserAgentLikeClause, "%"+common.EscapeLikePattern(os)+"%")
+		}
 	}
-	if strings.TrimSpace(query.Device) != "" && !strings.EqualFold(strings.TrimSpace(query.Device), clientInfo.Device) {
-		return false
+	if device := strings.ToLower(strings.TrimSpace(query.Device)); device != "" {
+		db = applyAdminSessionDeviceFilter(db, device)
 	}
-	return true
+	return db
+}
+
+// applyAdminSessionDeviceFilter maps the device filter to the same logic as
+// DetectDevice: Android Phone requires android+mobile, Android Tablet
+// requires android without mobile, Desktop requires no mobile token.
+func applyAdminSessionDeviceFilter(db *gorm.DB, device string) *gorm.DB {
+	switch device {
+	case "android phone":
+		return db.Where(sessionUserAgentLikeClause+" AND "+sessionUserAgentLikeClause, androidTokenPattern, mobileTokenPattern)
+	case "android tablet":
+		return db.Where(sessionUserAgentLikeClause+" AND "+sessionUserAgentNotLikeClause, androidTokenPattern, mobileTokenPattern)
+	case "mobile":
+		return db.Where(sessionUserAgentLikeClause, mobileTokenPattern)
+	case "desktop":
+		return db.Where(sessionUserAgentNotLikeClause, mobileTokenPattern)
+	case "ipad", "iphone":
+		return db.Where(sessionUserAgentLikeClause, "%"+common.EscapeLikePattern(device)+"%")
+	default:
+		return db.Where(sessionUserAgentLikeClause, "%"+common.EscapeLikePattern(device)+"%")
+	}
+}
+
+// browserDetectionTokens maps the public browser filter values to the first
+// detection token DetectBrowser would match (keep in sync with
+// session_user_agent.go).
+var browserDetectionTokens = map[string]string{
+	"chrome":  "chrome/",
+	"edge":    "edg/",
+	"opera":   "opr/",
+	"firefox": "firefox/",
+	"safari":  "version/",
+	"wechat":  "micromessenger",
+}
+
+// osDetectionTokens maps the public OS filter values to detection tokens
+// (keep in sync with DetectOS).
+var osDetectionTokens = map[string]string{
+	"windows": "windows",
+	"macos":   "mac os x",
+	"ios":     "iphone",
+	"android": "android",
+	"linux":   "linux",
 }
 
 func buildAdminSessionResp(row adminSessionRow, clientInfo ClientInfoResp) AdminSessionResp {

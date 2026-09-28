@@ -28,6 +28,9 @@ type SystemI18n struct {
 	LifecycleMarkedAt *time.Time `json:"lifecycleMarkedAt"`
 	CreatedAt         time.Time  `json:"createdAt"`
 	UpdatedAt         time.Time  `json:"updatedAt"`
+	// UpdatedBy 记录最后一次动态写入（Create/Update/Import/SyncMissingKeys）的操作者，
+	// 由 handler 从认证上下文注入；旧行为 NULL/空串。
+	UpdatedBy string `json:"updatedBy"`
 }
 
 type I18nResp struct {
@@ -42,6 +45,7 @@ type I18nResp struct {
 	LifecycleMarkedAt *time.Time `json:"lifecycleMarkedAt"`
 	CreatedAt         time.Time  `json:"createdAt"`
 	UpdatedAt         time.Time  `json:"updatedAt"`
+	UpdatedBy         string     `json:"updatedBy"`
 }
 
 func toI18nResp(item SystemI18n) I18nResp {
@@ -76,6 +80,9 @@ type I18nPageResp struct {
 type I18nUpdateReq struct {
 	Value  string `json:"value" binding:"required"`
 	Remark string `json:"remark"`
+	// UpdatedBy 由 handler 从认证上下文（token middleware 写入的 username）注入；
+	// json:"-" 确保客户端无法提交该字段。
+	UpdatedBy string `json:"-"`
 }
 
 type I18nCreateReq struct {
@@ -85,6 +92,8 @@ type I18nCreateReq struct {
 	Locale string `json:"locale" binding:"required"`
 	Value  string `json:"value" binding:"required"`
 	Remark string `json:"remark"`
+	// UpdatedBy 同 I18nUpdateReq：仅由 handler 注入，不接受客户端提交。
+	UpdatedBy string `json:"-"`
 }
 
 type I18nBatchDeleteReq struct {

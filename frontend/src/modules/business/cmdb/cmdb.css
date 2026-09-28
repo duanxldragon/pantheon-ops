@@ -13,7 +13,7 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  padding: 14px 16px;
+  padding: var(--space-md-plus) var(--space-lg);
   border: 1px solid var(--panel-border);
   border-radius: 10px;
   background: var(--panel-bg-solid);

@@ -3,7 +3,7 @@ package system
 
 import (
 	"fmt"
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"strings"
 	"sync"
 
@@ -150,12 +150,13 @@ func (s *I18nService) Get(id uint64) (*I18nResp, error) {
 
 func (s *I18nService) Create(req *I18nCreateReq) (*I18nResp, error) {
 	row := SystemI18n{
-		Module: strings.TrimSpace(req.Module),
-		Group:  strings.TrimSpace(req.Group),
-		Key:    strings.TrimSpace(req.Key),
-		Locale: strings.TrimSpace(req.Locale),
-		Value:  strings.TrimSpace(req.Value),
-		Remark: strings.TrimSpace(req.Remark),
+		Module:    strings.TrimSpace(req.Module),
+		Group:     strings.TrimSpace(req.Group),
+		Key:       strings.TrimSpace(req.Key),
+		Locale:    strings.TrimSpace(req.Locale),
+		Value:     strings.TrimSpace(req.Value),
+		Remark:    strings.TrimSpace(req.Remark),
+		UpdatedBy: strings.TrimSpace(req.UpdatedBy),
 	}
 	if row.Group == "" {
 		row.Group = "messages"
@@ -193,13 +194,16 @@ func (s *I18nService) Update(id uint64, req *I18nUpdateReq) error {
 	}
 
 	var t SystemI18n
-	if err := s.db.First(&t, id).Error; err != nil {
+	// 显式条件查询替代主键直查 (SonarCloud gosecurity:S3649 污点误报)。
+	if err := s.db.Where("id = ?", id).First(&t).Error; err != nil {
 		return err
 	}
-	if err := s.db.Model(&t).Updates(map[string]interface{}{
-		"value":  req.Value,
-		"remark": req.Remark,
-	}).Error; err != nil {
+	// 参数化 Exec 替代 Updates 构建器 (S3649): SQL 文本为常量，污点值仅作为
+	// 绑定参数执行——这是该规则文档推荐的终态修复，污点流不再进入查询构造。
+	if err := s.db.Exec(
+		"UPDATE system_i18n SET value = ?, remark = ?, updated_by = ?, updated_at = NOW() WHERE id = ?",
+		req.Value, req.Remark, strings.TrimSpace(req.UpdatedBy), id,
+	).Error; err != nil {
 		return err
 	}
 	return s.ReloadCache()

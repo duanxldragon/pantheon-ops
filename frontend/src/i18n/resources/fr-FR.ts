@@ -88,6 +88,10 @@ const frFRFallback = {
   'auth.login.consoleTitle': "Vérification d'identité",
   'auth.login.securityNotice':
     "Connectez-vous avec un compte attribué par un administrateur. L'heure de connexion, l'appareil et l'IP source sont enregistrés pour l'audit de sécurité.",
+  'auth.login.tenant.title': 'Choisir le locataire de travail',
+  'auth.login.tenant.hint': 'Ce compte appartient à plusieurs locataires. Choisissez le périmètre de cette connexion.',
+  'auth.login.tenant.placeholder': 'Sélectionner un locataire',
+  'auth.login.tenant.back': 'Retour aux identifiants',
   'auth.login.idleTimeoutNotice':
     'Ce compte a été déconnecté automatiquement après une trop longue inactivité. Reconnectez-vous pour continuer.',
   'auth.login.feature.modules': 'Monolithe modulaire',
@@ -1196,6 +1200,10 @@ const frFRFallback = {
   'user.login.error.disabled': 'Ce compte est désactivé. Veuillez contacter un administrateur.',
   'auth.login.error.source_blocked':
     'Trop de tentatives de connexion échouées depuis cette source. Veuillez réessayer plus tard.',
+  'auth.login.error.tenant_forbidden':
+    'Ce compte ne peut pas se connecter au tenant sélectionné. Veuillez contacter un administrateur de la plateforme.',
+  'auth.login.error.tenant_suspended':
+    'Le tenant de ce compte a été suspendu. Veuillez contacter un administrateur de la plateforme.',
   'user.batch.empty': 'Veuillez d’abord sélectionner des utilisateurs',
   'user.batch.not_found': 'Certains utilisateurs n’existent plus. Actualisez puis réessayez',
   'system.dict.subtitle':
@@ -1876,7 +1884,6 @@ const frFRFallback = {
   'generator.wizard.dataScopeMode': 'Mode de périmètre de données',
   'generator.wizard.dataScopeMode.dept': 'Département',
   'generator.wizard.dataScopeMode.owner': 'Propriétaire',
-  'generator.wizard.dataScopeMode.tenant': 'Locataire',
   'generator.wizard.dataScopeMode.custom': 'Personnalisé',
   'generator.wizard.dataScope.enabledTag': 'Périmètre de données activé',
   'generator.wizard.dataScope.disabledTag': 'Périmètre de données désactivé',
@@ -2542,6 +2549,8 @@ const frFRFallback = {
     'Utilisé pour la page de connexion, le titre du navigateur et la configuration publique.',
   'system.setting.remark.platform.app_mode':
     'enterprise cible le back-office, consumer les comptes C-end, hybrid prend en charge les deux modes.',
+  'system.setting.remark.platform.tenant_mode':
+    'compat conserve le comportement mono-locataire (par défaut) ; multi active la tranche canari locataire (isolation des ressources de dictionnaire). Consultez le runbook de migration locataire avant de basculer.',
   'system.setting.remark.org.enabled':
     'Désactivé, les départements et postes sont masqués dans la navigation et les formulaires sans supprimer les données.',
   'system.setting.remark.org.required_for_user':
@@ -2575,7 +2584,7 @@ const frFRFallback = {
     'Nombre de jours de conservation automatique des journaux d’opération avant qu’un nettoyage automatique cadencé ne soit exécuté. Valeur par défaut : 180 jours.',
   'system.setting.audit.retentionDaysOption': 'Auto-conserver {{count}} jours',
   'system.setting.remark.upload.storage_driver':
-    'Prend actuellement en charge local / s3-compatible, utilisable avec MinIO, AWS S3 et passerelles compatibles OSS.',
+    'Prend actuellement en charge local / s3-compatible, utilisable avec RustFS, MinIO, AWS S3 et passerelles compatibles OSS.',
   'system.setting.remark.upload.max_file_size': 'Taille maximale d’un fichier téléversé, en Mo.',
   'system.setting.remark.upload.allowed_types':
     'La liste blanche des extensions autorisées est maintenue via un tableau JSON.',
@@ -2584,7 +2593,7 @@ const frFRFallback = {
   'system.setting.remark.upload.public_base_url':
     'Domaine ou chemin de base d’accès public aux fichiers, pouvant être vide.',
   'system.setting.remark.upload.s3_endpoint':
-    'Adresse du service objet, par exemple AWS S3, MinIO ou passerelle compatible OSS.',
+    'Adresse du service objet, par exemple RustFS, AWS S3, MinIO ou passerelle compatible OSS.',
   'system.setting.remark.upload.s3_bucket': 'Nom du bucket de stockage objet.',
   'system.setting.remark.upload.s3_region': 'Région du stockage objet, par défaut `us-east-1`.',
   'system.setting.remark.upload.s3_access_key_id':

@@ -4,7 +4,7 @@ const externalWebServer = process.env.PANTHEON_EXTERNAL_WEB_SERVER === '1';
 const webBaseUrl = process.env.PANTHEON_WEB_BASE_URL ?? 'http://127.0.0.1:5173';
 
 export default defineConfig({
-  testDir: './tests/smoke',
+  testDir: './tests',
   timeout: 30_000,
   workers: process.env.CI ? 2 : 1,
   expect: {

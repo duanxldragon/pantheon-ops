@@ -1,8 +1,8 @@
 package dynamicmodule
 
 import (
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"os"
-	"pantheon-base/pkg/common"
 	"path/filepath"
 	"strings"
 	"time"

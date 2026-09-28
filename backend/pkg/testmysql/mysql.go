@@ -20,43 +20,51 @@ import (
 // Open creates an isolated MySQL database for the current test.
 func Open(t *testing.T) *gorm.DB {
 	t.Helper()
+	return OpenTB(t)
+}
+
+// OpenTB is the testing.TB form of Open so benchmarks (testing.B) can also
+// create isolated per-run databases. It shares Open's DSN resolution, naming,
+// and cleanup behavior.
+func OpenTB(tb testing.TB) *gorm.DB {
+	tb.Helper()
 
 	dsn := strings.TrimSpace(os.Getenv("PANTHEON_TEST_DSN"))
 	if dsn == "" {
 		dsn = strings.TrimSpace(os.Getenv("PANTHEON_DSN"))
 	}
 	if dsn == "" {
-		t.Skip("mysql test dsn is not configured")
+		tb.Skip("mysql test dsn is not configured")
 	}
 
 	cfg, err := mysqlDriver.ParseDSN(dsn)
 	if err != nil {
-		t.Fatalf("parse mysql dsn: %v", err)
+		tb.Fatalf("parse mysql dsn: %v", err)
 	}
 	if strings.TrimSpace(cfg.DBName) == "" {
-		t.Fatalf("mysql test dsn must include database name")
+		tb.Fatalf("mysql test dsn must include database name")
 	}
 
 	adminCfg := *cfg
 	adminCfg.DBName = ""
 	adminDB, err := sql.Open("mysql", adminCfg.FormatDSN())
 	if err != nil {
-		t.Fatalf("open mysql admin connection: %v", err)
+		tb.Fatalf("open mysql admin connection: %v", err)
 	}
-	t.Cleanup(func() {
+	tb.Cleanup(func() {
 		_ = adminDB.Close()
 	})
 
-	testDBName, err := buildTestDBName(cfg.DBName, t.Name())
+	testDBName, err := buildTestDBName(cfg.DBName, tb.Name())
 	if err != nil {
-		t.Fatalf("build test database name: %v", err)
+		tb.Fatalf("build test database name: %v", err)
 	}
 	createDatabaseStatement := buildCreateDatabaseStatement(testDBName)
 	if _, err := adminDB.Exec(createDatabaseStatement); err != nil { // NOSONAR — test helper, controlled input
-		t.Fatalf("create test database %s: %v", testDBName, err)
+		tb.Fatalf("create test database %s: %v", testDBName, err)
 	}
 	dropDatabaseStatement := buildDropDatabaseStatement(testDBName)
-	t.Cleanup(func() {
+	tb.Cleanup(func() {
 		_, _ = adminDB.Exec(dropDatabaseStatement) // NOSONAR — test helper, controlled input
 	})
 
@@ -77,14 +85,14 @@ func Open(t *testing.T) *gorm.DB {
 		NamingStrategy: schema.NamingStrategy{SingularTable: true},
 	})
 	if err != nil {
-		t.Fatalf("open gorm mysql connection: %v", err)
+		tb.Fatalf("open gorm mysql connection: %v", err)
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		t.Fatalf("resolve sql db: %v", err)
+		tb.Fatalf("resolve sql db: %v", err)
 	}
-	t.Cleanup(func() {
+	tb.Cleanup(func() {
 		_ = sqlDB.Close()
 	})
 	return db

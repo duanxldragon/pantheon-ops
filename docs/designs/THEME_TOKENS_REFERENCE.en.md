@@ -243,5 +243,5 @@ That means:
 - all 4 themes render correctly under the same shell contract
 - Dashboard, list pages, row actions, and status hints consume semantic tokens
 - no new runtime references to `--pantheon-*`
-- `dashboard.css` is covered by the shell visual contract checker
+- `Dashboard.css` is covered by the shell visual contract checker
 - dark mode is not described as an already-delivered feature

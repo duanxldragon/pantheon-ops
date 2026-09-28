@@ -1,10 +1,13 @@
 package generator
 
 import (
-	"pantheon-base/internal/middleware"
-	"pantheon-base/modules/lowcode/dynamicmodule"
-	"pantheon-base/pkg/contracts"
-	"pantheon-base/pkg/database"
+	"time"
+
+	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
+	"github.com/duanxldragon/pantheon-base/backend/modules/lowcode/dynamicmodule"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -14,6 +17,16 @@ func InitGeneratorModule(r *gin.RouterGroup, db *gorm.DB) {
 	// AutoMigrate handled by versioned migrations or contracts system
 	service := NewGeneratorService(db)
 	handler := NewGeneratorHandler(service)
+	tenantModeLoader := tenant.NewModeLoader(func() string {
+		if db == nil {
+			return tenant.ModeCompat
+		}
+		var value string
+		if err := db.Table("system_setting").Where("setting_key = ?", "platform.tenant_mode").Pluck("setting_value", &value).Error; err != nil {
+			return tenant.ModeCompat
+		}
+		return value
+	}, 5*time.Second.Nanoseconds())
 
 	contracts.RegisterBackendModules(r, db, contracts.FuncModule{
 		ModuleName: "generator",
@@ -21,6 +34,7 @@ func InitGeneratorModule(r *gin.RouterGroup, db *gorm.DB) {
 			tokenMiddleware := middleware.TokenAuthMiddleware(database.RDB)
 			readAPI := r.Group("/lowcode/generator").
 				Use(tokenMiddleware).
+				Use(middleware.TenantContextMiddleware(tenantModeLoader, db)).
 				Use(middleware.CasbinMiddleware())
 			{
 				readAPI.GET("/datasources", handler.ListDatasources)
@@ -32,6 +46,7 @@ func InitGeneratorModule(r *gin.RouterGroup, db *gorm.DB) {
 
 			writeAPI := r.Group("/lowcode/generator").
 				Use(tokenMiddleware).
+				Use(middleware.TenantContextMiddleware(tenantModeLoader, db)).
 				Use(middleware.CasbinMiddleware()).
 				Use(middleware.SecureActionMiddleware())
 			{

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-base/pkg/authtoken"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
 )
 
 func TestLoadTokenSessionCacheTTL(t *testing.T) {

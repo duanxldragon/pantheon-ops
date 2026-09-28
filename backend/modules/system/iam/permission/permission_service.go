@@ -4,14 +4,15 @@ package iam
 import (
 	"fmt"
 	"log/slog"
-	"pantheon-base/pkg/common"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -20,8 +21,9 @@ import (
 const permissionPtypeClause = "ptype = ?"
 
 const (
-	errPermissionPolicyExists = "permission.policy.exists"
-	errPermissionRoleInvalid  = "permission.role.invalid"
+	errPermissionPolicyExists  = "permission.policy.exists"
+	errPermissionRoleInvalid   = "permission.role.invalid"
+	errPermissionTenantInvalid = "permission.tenant.invalid"
 )
 
 const (
@@ -162,10 +164,14 @@ func (s *PermissionService) CreatePolicy(operatorRoleKeys []string, req *Permiss
 	if err != nil {
 		return nil, err
 	}
+	subject, err := s.resolvePolicySubject(roleKey, req.TenantId)
+	if err != nil {
+		return nil, err
+	}
 
 	policy := database.CasbinRule{
 		PType: "p",
-		V0:    roleKey,
+		V0:    subject,
 		V1:    path,
 		V2:    method,
 	}
@@ -198,9 +204,13 @@ func (s *PermissionService) UpdatePolicy(operatorRoleKeys []string, policyID uin
 	if err != nil {
 		return nil, err
 	}
+	subject, err := s.resolvePolicySubject(roleKey, req.TenantId)
+	if err != nil {
+		return nil, err
+	}
 
 	policy.PType = "p"
-	policy.V0 = roleKey
+	policy.V0 = subject
 	policy.V1 = path
 	policy.V2 = method
 	policy.V3 = ""
@@ -727,6 +737,26 @@ func (s *PermissionService) validatePolicyPayload(policyID uint64, operatorRoleK
 		return "", "", "", err
 	}
 	return roleKey, path, method, nil
+}
+
+// resolvePolicySubject maps (roleKey, tenantId) to the stored Casbin subject:
+// global policies keep the plain role key; tenant-scoped policies store the
+// contract §4 form `role:<key>@tenant:<id>`. The tenant must exist and be
+// active (a policy for a suspended/archived tenant would silently grant
+// nothing but still pollute the namespace), and the tenant row itself is
+// owned by system/org — this is a read-only existence check (contract §7).
+func (s *PermissionService) resolvePolicySubject(roleKey string, tenantID uint64) (string, error) {
+	if tenantID == 0 {
+		return tenant.GlobalRoleSubject(roleKey), nil
+	}
+	var row tenant.Tenant
+	if err := s.db.Select("id", "status").Where("id = ?", tenantID).First(&row).Error; err != nil {
+		return "", common.NewBadRequest(errPermissionTenantInvalid)
+	}
+	if row.Status != tenant.TenantStatusActive {
+		return "", common.NewBadRequest(errPermissionTenantInvalid)
+	}
+	return tenant.RoleSubject(roleKey, tenantID), nil
 }
 
 func (s *PermissionService) ensureRoleKeyExists(roleKey string) error {

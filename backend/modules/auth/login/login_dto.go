@@ -4,6 +4,10 @@ package login
 type LoginReq struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
+	// TenantId is the optional explicit tenant choice for multi-membership
+	// users (contract §3.1 source 2). 0/absent = auto-discovery. Validated
+	// against active membership before any claim is stamped (slice 2).
+	TenantId uint64 `json:"tenantId" binding:"omitempty,min=1"`
 }
 
 // RefreshTokenReq 刷新令牌请求 DTO

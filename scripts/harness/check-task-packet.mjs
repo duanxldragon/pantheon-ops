@@ -83,22 +83,53 @@ const REQUIRED_CHECKLIST_ITEMS = [
 
 function printHelp() {
   console.log(`Usage:
-  node scripts/harness/check-task-packet.mjs [--json] [--root <path>] [task-file ...]
+  node scripts/harness/check-task-packet.mjs [--json] [--root <path>] [--legacy <path>]
+                                         [--include-legacy] [task-file ...]
 
 Defaults:
   Scans <root>/docs/harness/tasks/*.task.md when no task files are provided.
+  Docs listed in the legacy allowlist (default <root>/config/task-packet-legacy-docs.json)
+  are skipped, so a plain run reports whether current-format packets comply.
+  A legacy entry that no longer exists is an error: the allowlist must shrink as
+  docs are migrated, and it must never absorb a doc written to the template.
 
 Examples:
   node scripts/harness/check-task-packet.mjs
   node scripts/harness/check-task-packet.mjs --json
   node scripts/harness/check-task-packet.mjs --root /tmp/fixture
+  node scripts/harness/check-task-packet.mjs --include-legacy
   node scripts/harness/check-task-packet.mjs docs/harness/tasks/example.task.md`);
+}
+
+const DEFAULT_LEGACY_CONFIG = 'config/task-packet-legacy-docs.json';
+
+// Legacy docs predate the section-based template. They are skipped by name so a
+// plain run answers "do current packets comply?" instead of failing on history.
+function loadLegacyDocs(configPath) {
+  // A missing allowlist simply means "nothing is legacy": check every doc. That
+  // keeps the checker usable against a bare fixture root, and deleting the file
+  // re-exposes legacy docs loudly instead of hiding them.
+  if (!fs.existsSync(configPath)) {
+    return [];
+  }
+
+  const payload = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  const entries = Array.isArray(payload.entries) ? payload.entries : [];
+  for (const entry of entries) {
+    if (typeof entry !== 'string' || entry.trim() === '') {
+      throw new Error(`legacy allowlist entries must be non-empty strings: ${JSON.stringify(entry)}`);
+    }
+  }
+
+  return entries.map((entry) => entry.replaceAll('\\', '/'));
 }
 
 function parseArgs(argv) {
   const options = {
     json: false,
     help: false,
+    includeLegacy: false,
+    legacyConfig: null,
     files: [],
     root: DEFAULT_ROOT,
   };
@@ -107,6 +138,8 @@ function parseArgs(argv) {
     const arg = argv[index];
     if (arg === '--json') {
       options.json = true;
+    } else if (arg === '--include-legacy') {
+      options.includeLegacy = true;
     } else if (arg === '--help' || arg === '-h') {
       options.help = true;
     } else if (arg === '--root') {
@@ -115,6 +148,13 @@ function parseArgs(argv) {
         throw new Error('--root requires a path');
       }
       options.root = path.resolve(value);
+      index += 1;
+    } else if (arg === '--legacy') {
+      const value = argv[index + 1];
+      if (!value) {
+        throw new Error('--legacy requires a path');
+      }
+      options.legacyConfig = value;
       index += 1;
     } else {
       options.files.push(arg);
@@ -654,11 +694,51 @@ function validateChecklist(content, headings, result) {
   }
 }
 
-function printTextReport(results) {
+function toRepoRelative(file, root) {
+  return path.relative(root, file).replaceAll(path.sep, '/');
+}
+
+function resultsFor(files, root) {
+  return files.map((file) => validateTaskPacket(file, root));
+}
+
+function report(results, { legacySkippedCount, root, configPath, json }) {
+  const errorCount = results.reduce((count, result) => count + result.errors.length, 0);
+  const warningCount = results.reduce((count, result) => count + result.warnings.length, 0);
+
+  if (json) {
+    console.log(
+      JSON.stringify(
+        {
+          results,
+          errorCount,
+          warningCount,
+          legacySkippedCount,
+          legacyConfig: configPath ? path.relative(root, configPath).replaceAll(path.sep, '/') : null,
+        },
+        null,
+        2,
+      ),
+    );
+  } else {
+    printTextReport(results, { legacySkippedCount, root, configPath });
+  }
+
+  // Exit semantics are unchanged from before the allowlist existed: any error
+  // fails the run, so a caller cannot mistake a red report for a pass.
+  return errorCount > 0 ? 1 : 0;
+}
+
+function printTextReport(results, { legacySkippedCount = 0, root = DEFAULT_ROOT, configPath = null } = {}) {
   const errorCount = results.reduce((count, result) => count + result.errors.length, 0);
   const warningCount = results.reduce((count, result) => count + result.warnings.length, 0);
 
   console.log(`Task packet check: ${results.length} file(s), ${errorCount} error(s), ${warningCount} warning(s)`);
+  if (legacySkippedCount > 0 && configPath) {
+    console.log(
+      `${legacySkippedCount} legacy doc(s) skipped via ${path.relative(root, configPath).replaceAll(path.sep, '/')} (use --include-legacy to check them)`,
+    );
+  }
 
   for (const result of results) {
     const status = result.errors.length > 0 ? 'FAIL' : 'PASS';
@@ -689,10 +769,54 @@ function main() {
   }
 
   const root = options.root;
-  const files =
-    options.files.length > 0
-      ? options.files.map((file) => normalizeInputFile(file, root))
-      : discoverTaskFiles(root);
+  const explicitFiles = options.files.length > 0;
+  const files = explicitFiles
+    ? options.files.map((file) => normalizeInputFile(file, root))
+    : discoverTaskFiles(root);
+
+  // An explicit file argument always gets checked, so a single legacy doc can
+  // still be inspected by name.
+  let legacyAllowlist = [];
+  let skippedLegacy = [];
+  if (!explicitFiles && !options.includeLegacy) {
+    const configPath = options.legacyConfig
+      ? normalizeInputFile(options.legacyConfig, root)
+      : path.join(root, DEFAULT_LEGACY_CONFIG);
+    try {
+      legacyAllowlist = loadLegacyDocs(configPath);
+    } catch (error) {
+      console.error(error.message);
+      return 1;
+    }
+
+    const legacySet = new Set(legacyAllowlist);
+    skippedLegacy = files.filter((file) => legacySet.has(toRepoRelative(file, root)));
+    const checkedFiles = files.filter((file) => !legacySet.has(toRepoRelative(file, root)));
+
+    // A stale entry means the allowlist is drifting out of date; fail on it so the
+    // exemption list cannot quietly outlive the docs it excuses.
+    const discoveredKeys = new Set(files.map((file) => toRepoRelative(file, root)));
+    const staleLegacy = legacyAllowlist.filter((entry) => !discoveredKeys.has(entry));
+    if (staleLegacy.length > 0) {
+      const messages = staleLegacy.map((entry) => `legacy allowlist entry no longer exists (remove it): ${entry}`);
+      if (options.json) {
+        console.log(JSON.stringify({ errorCount: messages.length, warningCount: 0, legacySkippedCount: 0, results: messages.map((message) => ({ file: configPath, errors: [message], warnings: [] })) }, null, 2));
+      } else {
+        console.error(`Task packet check: ${messages.length} stale legacy allowlist entr(ies) in ${path.relative(root, configPath).replaceAll(path.sep, '/')}`);
+        for (const message of messages) {
+          console.error(`  error: ${message}`);
+        }
+      }
+      return 1;
+    }
+
+    return report(resultsFor(checkedFiles, root), {
+      legacySkippedCount: skippedLegacy.length,
+      root,
+      configPath,
+      json: options.json,
+    });
+  }
 
   if (files.length === 0) {
     const result = {
@@ -711,17 +835,12 @@ function main() {
     return 1;
   }
 
-  const results = files.map((file) => validateTaskPacket(file, root));
-  const errorCount = results.reduce((count, result) => count + result.errors.length, 0);
-  const warningCount = results.reduce((count, result) => count + result.warnings.length, 0);
-
-  if (options.json) {
-    console.log(JSON.stringify({ results, errorCount, warningCount }, null, 2));
-  } else {
-    printTextReport(results);
-  }
-
-  return errorCount > 0 ? 1 : 0;
+  return report(resultsFor(files, root), {
+    legacySkippedCount: 0,
+    root,
+    configPath: null,
+    json: options.json,
+  });
 }
 
 process.exitCode = main();

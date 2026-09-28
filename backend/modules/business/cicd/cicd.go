@@ -1,8 +1,8 @@
 package cicd
 
 import (
-	"pantheon-base/modules/business/cicd/argocd"
-	"pantheon-base/pkg/contracts"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cicd/argocd"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

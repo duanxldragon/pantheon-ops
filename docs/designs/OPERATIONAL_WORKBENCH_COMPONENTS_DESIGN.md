@@ -2,7 +2,7 @@
 title: Operational Workbench Components Design
 doc_type: Design
 layer: platform
-status: Draft
+status: Active
 updated_at: 2026-08-31
 linked_contracts:
   - DESIGN.md
@@ -28,7 +28,7 @@ Pantheon Base 已经具备克制、统一的后台视觉基线，但共享能力
 - `SearchToolbar` 已处理关键词、行内/高级筛选和移动端弹层，可作为复杂查询入口的基础。
 - `SubmitBar` 目前是普通右对齐按钮行，长表单滚动后无法持续暴露提交状态和主操作。
 - Dashboard widget registry 目前只有 `quick-action` 与 `domain-overview` 两类语义槽位。
-- Playwright visual baseline 只覆盖 `1440x900` 下的登录、Dashboard 和用户列表，缺少移动端与关键状态。
+- Playwright visual baseline 已覆盖登录、Dashboard、用户列表及开发态运维工作台 fixture，并覆盖桌面/移动、明/暗主题；生产 consumer 页面仍需维护者验收。
 
 ### 2.2 BK Design 参考
 
@@ -217,4 +217,4 @@ Base 实现完成的必要条件：
 
 ## 12. 本设计的证据边界
 
-本轮只产出设计与执行包。现有截图证明当前 Base 视觉基线可用，但没有渲染未来组件，因此不得把本文状态表述为“UI 已完成”或“视觉已验收”。最终视觉验收属于各实现包的人类 gate。
+B1-B5 已在 Base 完成实现、单元/类型/构建门禁和确定性 Playwright fixture 验证。现有 Dashboard 与用户列表基线使用固定 API fixture，避免可变数据库数据造成漂移。本文不替代维护者对首个真实 consumer 页面的最终视觉/功能验收，也不替代 foundation release 与 Ops consumer 同步。

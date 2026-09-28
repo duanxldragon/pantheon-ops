@@ -2,12 +2,12 @@ package iam
 
 import (
 	"fmt"
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/rbacbind"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/rbacbind"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -160,6 +160,17 @@ func (s *RoleService) loadRoleListAssociations(roles []SystemRole) (roleListAsso
 func buildRoleListItems(roles []SystemRole, associations roleListAssociations) []RoleListResp {
 	items := make([]RoleListResp, 0, len(roles))
 	for _, item := range roles {
+		// 关联查询按角色 ID 聚合, 无关联记录的角色拿到的切片为 nil,
+		// 若直接序列化会得到 null, 与前端 "menuIds: number[]" 契约不符
+		// (RoleRow.menuIds.map 在 null 上直接抛错), 这里统一归一化为空切片。
+		menuIDs := associations.menus[item.ID]
+		if menuIDs == nil {
+			menuIDs = make([]uint64, 0)
+		}
+		permissionKeys := associations.permissions[item.ID]
+		if permissionKeys == nil {
+			permissionKeys = make([]string, 0)
+		}
 		items = append(items, RoleListResp{
 			ID:             item.ID,
 			RoleName:       item.RoleName,
@@ -167,8 +178,8 @@ func buildRoleListItems(roles []SystemRole, associations roleListAssociations) [
 			Sort:           item.Sort,
 			Status:         item.Status,
 			CreatedAt:      item.CreatedAt.Format(time.RFC3339),
-			MenuIDs:        associations.menus[item.ID],
-			PermissionKeys: associations.permissions[item.ID],
+			MenuIDs:        menuIDs,
+			PermissionKeys: permissionKeys,
 			DataScope:      associations.dataScopes[item.ID],
 		})
 	}

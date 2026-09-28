@@ -2,9 +2,14 @@ package config
 
 import "time"
 
+// SystemSetting is the platform/global setting row (tenant_id = 0) or a
+// tenant override row (tenant_id > 0). Uniqueness is (tenant_id, setting_key)
+// per the tenant resource scope matrix ("tenant-overridable: 组合键候选"):
+// the legacy global-unique index is replaced by the composite one in Migrate.
 type SystemSetting struct {
 	ID           uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
-	SettingKey   string    `gorm:"size:128;not null;uniqueIndex" json:"settingKey"`
+	TenantID     uint64    `gorm:"not null;default:0;uniqueIndex:uk_system_setting_tenant_key,priority:1;index" json:"tenantId"`
+	SettingKey   string    `gorm:"size:128;not null;uniqueIndex:uk_system_setting_tenant_key,priority:2" json:"settingKey"`
 	SettingValue string    `gorm:"type:text" json:"settingValue"`
 	ValueType    string    `gorm:"size:16;not null;default:string" json:"valueType"`
 	GroupKey     string    `gorm:"size:32;not null;index" json:"groupKey"`

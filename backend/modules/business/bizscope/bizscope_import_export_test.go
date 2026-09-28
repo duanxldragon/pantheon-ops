@@ -3,7 +3,7 @@ package bizscope
 import (
 	"testing"
 
-	"pantheon-base/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
 )
 
 const activeStatus = "active"

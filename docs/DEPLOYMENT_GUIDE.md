@@ -11,6 +11,7 @@
 | --- | --- | --- |
 | MySQL | 8.0+ | `pantheon_base` 主数据库 |
 | Redis | 7.0+ | 认证会话、令牌吊销、限流与 Casbin watcher |
+| 对象存储 | 可选，S3 兼容 | `upload.storage_driver=s3` 时的文件存储（AWS S3 / MinIO / RustFS / OSS 兼容网关） |
 | OTLP 后端 | 可选 | OpenTelemetry traces |
 
 仓库根目录的 `docker-compose.yml` 只启动 MySQL 与 Redis，供本地开发和验证使用；它不是完整生产编排文件。仓库当前也不提供可直接应用的 Kubernetes manifests。生产平台应基于本指南维护自己的 Secret、Deployment、Service、Ingress、备份和告警配置。
@@ -50,8 +51,9 @@ Dockerfile 使用 Node.js 24 构建前端、Go 1.26.5 构建后端，最终进�
 | --- | --- |
 | `PANTHEON_ENV` | 固定为 `production` |
 | `PANTHEON_DSN` | 指向独占的 `pantheon_base` 数据库 |
-| `PANTHEON_REDIS_ADDR` | Redis 地址；认证链依赖 Redis |
+| `PANTHEON_REDIS_ADDR` | Redis 地址；认证链依赖 Redis。生产缺地址或连接失败时启动直接失败（fail-fast） |
 | `PANTHEON_REDIS_PASSWORD` | Redis 密码 |
+| `PANTHEON_REDIS_REQUIRED` | 可选；设为 `true` 时非生产环境也强制 Redis fail-fast（默认仅生产强制） |
 | `PANTHEON_INITIAL_ADMIN_PASSWORD` | 首次 seed 使用，至少 12 位 |
 | `PANTHEON_ACCESS_TOKEN_SECRET` | 至少 32 字节 |
 | `PANTHEON_REFRESH_TOKEN_SECRET` | 至少 32 字节 |
@@ -60,6 +62,12 @@ Dockerfile 使用 Node.js 24 构建前端、Go 1.26.5 构建后端，最终进�
 | `PANTHEON_MFA_SECRET` | 至少 32 字节 |
 | `PANTHEON_ALLOWED_ORIGINS` | 明确列出生产前端 origin |
 | `PANTHEON_ENABLE_DYNAMIC_MODULES` | 固定为 `false` |
+
+生产环境还必须在**系统设置**（非环境变量）中开启登录二次验证基线：
+
+| 设置键 | 生产要求 | 说明 |
+| --- | --- | --- |
+| `login.mfa_enabled` | 必须为 `true`（即 `mfa_enabled=1`） | 种子默认值 `false` 仅供开发环境；生产部署基线要求显式开启 TOTP 二次验证（见第 7 节发布验证第 9 项）。未开启视为发布不通过。 |
 
 可从 `.env.example` 复制变量名，但必须通过集群 Secret、Vault 或等价密钥系统注入真实值。不要提交生产 `.env`、DSN、密码或 token。
 
@@ -141,7 +149,9 @@ curl --fail https://<host>/api/v1/health
 4. Redis 中断会被监控捕获；
 5. `/metrics` 未匿名暴露；
 6. 动态模块注册在 production 被拒绝；
-7. 操作日志 dropped counter 未持续增长。
+7. 操作日志 dropped counter 未持续增长；
+8. `GET /api/v1/health` 返回 200 且 `database`/`migrations`/`redis` 三个依赖均为 ok（`migrations` 检查 `schema_migrations` 可读，readiness 不再只反映进程存活）；
+9. 系统设置中 `login.mfa_enabled` 为 `true`（生产 MFA 部署基线，见第 4 节）；若为 `false`，必须在本次发布内开启或记录经批准的豁免。
 
 ## 8. 备份与恢复
 

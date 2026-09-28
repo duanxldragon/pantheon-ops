@@ -9,7 +9,7 @@ import (
 	mysqlDriver "github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 
-	"pantheon-base/pkg/testmysql"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 )
 
 func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
@@ -31,7 +31,7 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 			"is_root", "leader", "phone", "email",
 		},
 		"system_user_session": {
-			"refresh_expires_at", "last_refresh_at", "last_activity_at", "last_ip", "revoked_at",
+			"refresh_expires_at", "last_refresh_at", "last_activity_at", "last_ip", "revoked_at", "tenant_id",
 		},
 		"system_log_login": {
 			"ipaddr", "login_location", "login_time",
@@ -52,7 +52,7 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 			"module", "is_encrypted", "remark",
 		},
 		"system_i18n": {
-			"key", "remark", "lifecycle_status", "lifecycle_marked_at",
+			"key", "remark", "lifecycle_status", "lifecycle_marked_at", "updated_by",
 		},
 		"system_dict_type": {
 			"module",
@@ -61,7 +61,7 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 			"item_color",
 		},
 		"system_log_oper": {
-			"business_type", "oper_name", "oper_url", "oper_ip", "source_domain", "source_page", "json_result", "error_msg", "oper_time", "cost_time", "failure_category",
+			"business_type", "oper_name", "oper_url", "oper_ip", "source_domain", "source_page", "json_result", "error_msg", "oper_time", "cost_time", "failure_category", "tenant_id",
 		},
 		"system_refresh_version": {
 			"created_at",
@@ -89,6 +89,8 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 	assertMigrationIndexExists(t, db, "system_log_oper", "idx_system_log_oper_source_domain_page")
 	assertMigrationIndexExists(t, db, "system_log_oper", "idx_system_log_oper_source_page")
 	assertMigrationIndexExists(t, db, "system_log_oper", "idx_system_log_oper_failure_category")
+	assertMigrationIndexExists(t, db, "system_user_session", "idx_system_user_session_tenant_id")
+	assertMigrationIndexExists(t, db, "system_log_oper", "idx_system_log_oper_tenant")
 	assertMigrationIndexDoesNotExist(t, db, "system_dept", "idx_system_dept_dept_code")
 	assertLegacyColumnDoesNotBlockRuntimeWrites(t, db, "system_user_session", "expires_at")
 	assertLegacyColumnDoesNotBlockRuntimeWrites(t, db, "system_i18n", "locale_key")
@@ -161,6 +163,148 @@ func TestRunMigrationsAppliesLatestCompatWhenBootstrappedSchemaMissesSystemModul
 	assertMigrationColumnExists(t, db, "system_module_registration", "table_name")
 	assertMigrationColumnExists(t, db, "system_module_registration", "last_verification_result")
 	assertLatestMigrationVersion(t, db)
+}
+
+// TestRunMigrationsReplaysToBackfillI18nUpdatedBy pins the marker contract for
+// migration 000019: a database that is current except for the new
+// system_i18n.updated_by marker must fail the current-check, rewind to the
+// pre-module-registration compat window and replay 8..latest, receiving the
+// column while every guarded file in the window stays idempotent.
+//
+// The runtime-write assertion is deliberately scoped to system_i18n: the
+// bootstrap fixture models the minimal marker set, not the full 000001 schema
+// (it has no system_dept), so the full assertCurrentRuntimeWritesSucceed suite
+// only belongs to the fresh-database test above.
+func TestRunMigrationsReplaysToBackfillI18nUpdatedBy(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+
+	seedCurrentSchemaBootstrapMarkers(t, db)
+	dropMigrationColumnIfExists(t, db, "system_i18n", "updated_by")
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations on current schema missing i18n updated_by: %v", err)
+	}
+
+	assertMigrationColumnExists(t, db, "system_i18n", "updated_by")
+	assertLatestMigrationVersion(t, db)
+
+	// The replayed schema must accept both statement shapes the i18n runtime
+	// writes attribution with: the parameterised UPDATE from I18nService.Update
+	// and a row INSERT carrying updated_by.
+	if err := db.Exec(`UPDATE system_i18n SET updated_by = 'replay-probe' WHERE id = 0`).Error; err != nil {
+		t.Fatalf("runtime updated_by UPDATE on replayed schema: %v", err)
+	}
+	if err := db.Exec(`
+INSERT INTO system_i18n (
+	module, group_name, `+"`key`"+`, locale, value, updated_by
+) VALUES (?, ?, ?, ?, ?, ?)
+`, "system.config", "menu", "replay.updated_by", "zh-CN", "回放写入", "replay-probe").Error; err != nil {
+		t.Fatalf("insert i18n row with updated_by on replayed schema: %v", err)
+	}
+}
+
+// TestRunMigrationsReplaysLegacyModuleRegistrationCopyAcrossCollations pins the
+// 000008 collation guard: real legacy databases carry module_registration under
+// the pre-8.0 utf8mb4_general_ci default while system_module_registration
+// inherits utf8mb4_0900_ai_ci, and the marker-driven replay (which rewinds real
+// databases to v7) must not die on Error 1267 Illegal mix of collations.
+func TestRunMigrationsReplaysLegacyModuleRegistrationCopyAcrossCollations(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+
+	seedCurrentSchemaBootstrapMarkers(t, db)
+	dropMigrationColumnIfExists(t, db, "system_i18n", "updated_by")
+
+	// Legacy table pinned to the old default collation; target table pinned to
+	// the 8.0 default so the pair differs regardless of the server default.
+	if err := db.Exec(`
+CREATE TABLE module_registration (
+	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+	name VARCHAR(64) DEFAULT '',
+	display_name VARCHAR(128) DEFAULT '',
+	module_type VARCHAR(32) DEFAULT '',
+	status INT DEFAULT 1,
+	registered_at DATETIME DEFAULT NULL,
+	PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci`).Error; err != nil {
+		t.Fatalf("create legacy module_registration: %v", err)
+	}
+	if err := db.Exec("ALTER TABLE system_module_registration CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci").Error; err != nil {
+		t.Fatalf("pin target table collation: %v", err)
+	}
+	if err := db.Exec(`
+INSERT INTO module_registration (name, display_name, module_type, status, registered_at)
+VALUES ('business.legacy', 'Legacy', 'business', 1, '2026-01-01 00:00:00')`).Error; err != nil {
+		t.Fatalf("seed legacy registration row: %v", err)
+	}
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations with legacy module_registration present: %v", err)
+	}
+
+	assertMigrationColumnExists(t, db, "system_i18n", "updated_by")
+	assertLatestMigrationVersion(t, db)
+
+	var copied int64
+	if err := db.Table("system_module_registration").Where("name = ?", "business.legacy").Count(&copied).Error; err != nil {
+		t.Fatalf("count copied registration: %v", err)
+	}
+	if copied != 1 {
+		t.Fatalf("expected legacy registration copied across collations, got %d", copied)
+	}
+}
+
+func TestRunMigrationsAdoptsDevSeededGlobalTenantPlaceholder(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+
+	seedCurrentSchemaBootstrapMarkers(t, db)
+	dropMigrationColumnIfExists(t, db, "system_i18n", "updated_by")
+
+	// Dev-era seed inserted the `__global__` placeholder through auto-increment
+	// (id=1), so the compat id=0 slot is free while the unique code is taken.
+	// A naive insert-if-missing on id=0 collides on idx_tenants_code (1062).
+	if err := db.Exec(`
+CREATE TABLE tenants (
+	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+	code VARCHAR(64) NOT NULL,
+	name VARCHAR(128) NOT NULL,
+	status VARCHAR(16) NOT NULL DEFAULT 'active',
+	plan VARCHAR(32) NOT NULL DEFAULT '',
+	created_at DATETIME(3) DEFAULT NULL,
+	updated_at DATETIME(3) DEFAULT NULL,
+	deleted_at DATETIME(3) DEFAULT NULL,
+	PRIMARY KEY (id),
+	UNIQUE INDEX idx_tenants_code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`).Error; err != nil {
+		t.Fatalf("create tenants table: %v", err)
+	}
+	if err := db.Exec("INSERT INTO `tenants` (code, name, status) VALUES ('__global__', 'Platform Global', 'archived')").Error; err != nil {
+		t.Fatalf("seed dev-seeded placeholder: %v", err)
+	}
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations with dev-seeded placeholder present: %v", err)
+	}
+
+	assertMigrationColumnExists(t, db, "system_i18n", "updated_by")
+	assertLatestMigrationVersion(t, db)
+
+	var placeholderRows int64
+	if err := db.Raw("SELECT COUNT(*) FROM tenants WHERE id = 0 AND code = '__global__'").Scan(&placeholderRows).Error; err != nil {
+		t.Fatalf("count adopted placeholder: %v", err)
+	}
+	if placeholderRows != 1 {
+		t.Fatalf("expected the dev-seeded row adopted onto id=0, got %d matching rows", placeholderRows)
+	}
+	var totalRows int64
+	if err := db.Raw("SELECT COUNT(*) FROM tenants").Scan(&totalRows).Error; err != nil {
+		t.Fatalf("count tenants: %v", err)
+	}
+	if totalRows != 1 {
+		t.Fatalf("expected adoption instead of a second row, got %d rows", totalRows)
+	}
 }
 
 func TestRunMigrationsRepairsDirtyCurrentSchemaVersion(t *testing.T) {
@@ -513,6 +657,7 @@ func seedCurrentSchemaBootstrapMarkers(t *testing.T, db *gorm.DB) {
 			"\tlifecycle_marked_at DATETIME(3) DEFAULT NULL,\n" +
 			"\tcreated_at DATETIME(3) DEFAULT NULL,\n" +
 			"\tupdated_at DATETIME(3) DEFAULT NULL,\n" +
+			"\tupdated_by VARCHAR(64) DEFAULT NULL,\n" +
 			"\tPRIMARY KEY (id)\n" +
 			") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 		`CREATE TABLE system_dict_type (
@@ -525,7 +670,8 @@ func seedCurrentSchemaBootstrapMarkers(t *testing.T, db *gorm.DB) {
 			created_at DATETIME(3) DEFAULT NULL,
 			updated_at DATETIME(3) DEFAULT NULL,
 			deleted_at DATETIME(3) DEFAULT NULL,
-			PRIMARY KEY (id)
+			PRIMARY KEY (id),
+			UNIQUE KEY idx_system_dict_type_dict_code (dict_code)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 		`CREATE TABLE system_log_oper (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -608,6 +754,18 @@ func seedCurrentSchemaBootstrapMarkers(t *testing.T, db *gorm.DB) {
 			last_verification_result TEXT,
 			PRIMARY KEY (id),
 			UNIQUE INDEX idx_system_module_registration_name (name)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+		`CREATE TABLE casbin_rule (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			ptype VARCHAR(100) DEFAULT '',
+			v0 VARCHAR(100) DEFAULT '',
+			v1 VARCHAR(100) DEFAULT '',
+			v2 VARCHAR(100) DEFAULT '',
+			v3 VARCHAR(100) DEFAULT '',
+			v4 VARCHAR(100) DEFAULT '',
+			v5 VARCHAR(100) DEFAULT '',
+			PRIMARY KEY (id),
+			UNIQUE INDEX idx_casbin_rule (ptype, v0, v1, v2, v3, v4, v5)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 	}
 

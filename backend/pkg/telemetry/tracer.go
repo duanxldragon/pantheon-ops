@@ -15,7 +15,7 @@ import (
 	"os"
 	"time"
 
-	"pantheon-base/pkg/version"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/version"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"

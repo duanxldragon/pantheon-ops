@@ -1,1 +1,105 @@
-/* 占位文件 - 实际样式在 @duanxldragon/pantheon-base-ui 中 */
+.auth-filter-grid {
+  width: 100%;
+}
+
+.auth-form-grid {
+  width: 100%;
+}
+
+.auth-section-stack,
+.auth-table-stack,
+.auth-detail-stack {
+  width: 100%;
+}
+
+.auth-inline-note,
+.auth-detail-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: var(--space-md) var(--space-lg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: var(--panel-muted);
+}
+
+.auth-inline-note__copy,
+.auth-detail-summary__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.auth-inline-note__title,
+.auth-detail-summary__title,
+.auth-device-summary {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.auth-inline-note__desc,
+.auth-detail-summary__desc,
+.auth-device-summary__meta {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.auth-device-summary,
+.auth-device-summary__meta {
+  display: block;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-page-stat-card__time {
+  display: inline-flex;
+}
+
+.auth-login-log-page__hero {
+  margin-bottom: 0;
+}
+
+.auth-login-log-page__filter-grid,
+.auth-security-event-page__filter-grid {
+  width: 100%;
+}
+
+.auth-login-log-page__filter-actions,
+.auth-security-event-page__filter-actions {
+  margin-bottom: 0;
+}
+
+.auth-login-log-page__table-card,
+.auth-security-event-page__table-card {
+  overflow: hidden;
+}
+
+.auth-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.auth-detail-user-agent {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+  .auth-inline-note,
+  .auth-detail-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .auth-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

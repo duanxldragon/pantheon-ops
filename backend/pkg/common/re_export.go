@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	commonhttp "pantheon-base/pkg/common/http"
-	"pantheon-base/pkg/common/security"
+	commonhttp "github.com/duanxldragon/pantheon-base/backend/pkg/common/http"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common/security"
 )
 
 // ── Re-exports from http package ─────────────────────────────────────
@@ -49,6 +49,12 @@ func SuccessWithStatus(c *gin.Context, httpStatus int, data interface{}) {
 
 func Fail(c *gin.Context, code int, message string) {
 	commonhttp.Fail(c, code, message)
+}
+
+// FailWithData writes a business-failure response carrying an optional data
+// payload (re-export of pkg/common/http).
+func FailWithData(c *gin.Context, code int, message string, data interface{}) {
+	commonhttp.FailWithData(c, code, message, data)
 }
 
 func FailWithError(c *gin.Context, code int, err error, fallback string) {

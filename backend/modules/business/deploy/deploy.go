@@ -4,10 +4,10 @@ import (
 	"log/slog"
 	"runtime/debug"
 
-	bizscope "pantheon-base/modules/business/bizscope"
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/modules/business/cmdb"
-	"pantheon-base/pkg/contracts"
+	bizscope "github.com/duanxldragon/pantheon-base/backend/modules/business/bizscope"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

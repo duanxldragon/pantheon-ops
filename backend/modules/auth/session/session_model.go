@@ -7,14 +7,23 @@ type SystemUserSession struct {
 	SessionID        string     `gorm:"primaryKey;size:64" json:"sessionId"`
 	UserID           uint64     `gorm:"index;not null" json:"userId"`
 	RefreshJTI       string     `gorm:"size:64;not null" json:"refreshJti"`
-	RefreshExpiresAt time.Time  `json:"refreshExpiresAt"`
+	RefreshExpiresAt time.Time  `gorm:"index" json:"refreshExpiresAt"`
 	LastRefreshAt    *time.Time `json:"lastRefreshAt"`
 	LastActivityAt   *time.Time `json:"lastActivityAt"`
 	LastIP           string     `gorm:"size:128" json:"lastIp"`
 	UserAgent        string     `gorm:"size:255" json:"userAgent"`
-	RevokedAt        *time.Time `json:"revokedAt"`
-	CreatedAt        time.Time  `json:"createdAt"`
-	UpdatedAt        time.Time  `json:"updatedAt"`
+	// RevokedAt/RefreshExpiresAt/CreatedAt are indexed because the admin
+	// session list (ListAllSessions) filters on revoked_at status, active
+	// scope (refresh_expires_at > now) and orders by created_at desc — the
+	// pagination task (2026-09-22) pushed all of these into SQL.
+	RevokedAt *time.Time `gorm:"index" json:"revokedAt"`
+	CreatedAt time.Time  `gorm:"index" json:"createdAt"`
+	UpdatedAt time.Time  `json:"updatedAt"`
+	// TenantID is the tenant claim this session was issued under
+	// (contract §3.1 source 2). 0 = platform-global / compat. AutoMigrate
+	// adds the column with the default below; existing rows read as 0,
+	// which keeps them on the compat resolution path.
+	TenantID uint64 `gorm:"not null;default:0" json:"tenantId"`
 }
 
 func (SystemUserSession) TableName() string {

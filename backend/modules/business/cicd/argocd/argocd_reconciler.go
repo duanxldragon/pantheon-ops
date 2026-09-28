@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"pantheon-base/pkg/logging"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
 	"go.uber.org/zap"
 
 	"gorm.io/gorm"

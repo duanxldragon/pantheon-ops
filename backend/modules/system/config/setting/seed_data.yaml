@@ -23,6 +23,14 @@ settings:
     isPublic: 1
     isEncrypted: 0
     remark: "system.setting.remark.platform.app_mode"
+  - settingKey: "platform.tenant_mode"
+    settingValue: "compat"
+    valueType: "string"
+    groupKey: "platform"
+    module: "platform"
+    isPublic: 0
+    isEncrypted: 0
+    remark: "system.setting.remark.platform.tenant_mode"
   - settingKey: "org.enabled"
     settingValue: "true"
     valueType: "boolean"

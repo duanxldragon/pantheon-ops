@@ -1,0 +1,71 @@
+{
+  "header-anatomy": {
+    "container": {
+      "display": "flex",
+      "flexWrap": "wrap",
+      "justifyContent": "space-between",
+      "gap": "6px",
+      "width": 358
+    },
+    "headerRect": {
+      "w": 390,
+      "h": 107
+    },
+    "kids": [
+      {
+        "cls": "arco-space-item",
+        "rect": {
+          "x": 16,
+          "y": 60,
+          "w": 186,
+          "h": 36
+        },
+        "flex": "1 1 0px",
+        "minWidth": "0px",
+        "marginRight": "12px",
+        "display": "block"
+      },
+      {
+        "cls": "arco-space-item",
+        "rect": {
+          "x": 220,
+          "y": 60,
+          "w": 36,
+          "h": 36
+        },
+        "flex": "0 1 auto",
+        "minWidth": "auto",
+        "marginRight": "12px",
+        "display": "block"
+      },
+      {
+        "cls": "arco-space-item",
+        "rect": {
+          "x": 274,
+          "y": 60,
+          "w": 36,
+          "h": 36
+        },
+        "flex": "0 1 auto",
+        "minWidth": "auto",
+        "marginRight": "12px",
+        "display": "block"
+      },
+      {
+        "cls": "arco-space-item",
+        "rect": {
+          "x": 328,
+          "y": 60,
+          "w": 46,
+          "h": 36
+        },
+        "flex": "0 1 auto",
+        "minWidth": "auto",
+        "marginRight": "0px",
+        "display": "block"
+      }
+    ]
+  },
+  "session-api-status": 404,
+  "session-api-body": "404 page not found"
+}

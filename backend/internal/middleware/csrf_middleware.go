@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"pantheon-base/pkg/common"
-	commonhttp "pantheon-base/pkg/common/http"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	commonhttp "github.com/duanxldragon/pantheon-base/backend/pkg/common/http"
 
 	"github.com/gin-gonic/gin"
 )

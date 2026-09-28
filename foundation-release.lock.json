@@ -1,24 +1,24 @@
 {
   "schemaVersion": 1,
   "baseRepo": "duanxldragon/pantheon-base",
-  "releaseLine": "release/0.10",
-  "releaseVersion": "pantheon-base-v0.10.25",
-  "baseCommit": "e7bd96466eb006bd4b4fbddd6a1df2c4ec98263c",
+  "releaseLine": "release/0.13",
+  "releaseVersion": "pantheon-base-v0.13.0",
+  "baseCommit": "c254e4c8c63f4409d49752eedb097291627d0b82",
   "consumerMode": "foundation-release-consumer",
   "releaseArtifact": {
     "githubRepo": "duanxldragon/pantheon-base",
-    "assetName": "foundation-release-pantheon-base-v0.10.25.tgz",
-    "localPath": ".foundation/releases/pantheon-base-v0.10.25",
-    "checksum": "c8b8a3df8701795c1f1b4d7f97a13175182b1c6ed924515e615fb972ff3c50df"
+    "assetName": "foundation-release-pantheon-base-v0.13.0.tgz",
+    "localPath": ".foundation/releases/pantheon-base-v0.13.0",
+    "checksum": "3ae620534c7fa60948e126257d89ea72a02cc487c4e44b322578605b12e15f32"
   },
   "repoSnapshot": {
     "assetName": "repo.tar",
-    "sha256": "db4173819341e0b4c32c44a3345b5119b744da38ed18e227f1afc4a15b55a0b5",
-    "baseCommit": "e7bd96466eb006bd4b4fbddd6a1df2c4ec98263c",
+    "sha256": "339d7f80562600b78044742140437e2f21c0ddf9cab48822ec439f95d3153ca8",
+    "baseCommit": "c254e4c8c63f4409d49752eedb097291627d0b82",
     "generatedFrom": "git-archive"
   },
-  "lockedAt": "2026-09-01T04:35:43.527Z",
-  "lockedBy": "xiaolong",
+  "lockedAt": "2026-09-28T00:40:23.6167972Z",
+  "lockedBy": "codex",
   "sharedPaths": {
     "backend": [
       "backend/cmd",
@@ -52,6 +52,7 @@
       "frontend/scripts/check-smoke-web-base.mjs",
       "frontend/scripts/database-import-qa-setup.mjs",
       "frontend/scripts/export-generated-module.mjs",
+      "frontend/scripts/go-module.test.mjs",
       "frontend/scripts/lib/auth-cookie-session.mjs",
       "frontend/scripts/lib/cleanup-fixture-cache.mjs",
       "frontend/scripts/lib/cleanup-fixture-query-plan.mjs",

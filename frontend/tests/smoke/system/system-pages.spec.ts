@@ -702,26 +702,31 @@ async function expectNoPageError(page: Page) {
 }
 
 async function expectPageBodyReady(page: Page) {
-  const table = page.locator('.arco-table');
-  const empty = page.locator('.arco-empty');
-  const settingGroupNav = page.locator('.setting-page__group-nav-grid');
-  const settingConfigCard = page.locator('.setting-page__config-card');
-  const generatorSteps = page.locator('.generator-wizard__steps');
+  const readySelector = [
+    '.arco-table',
+    '.arco-empty',
+    '.setting-page__group-nav-grid',
+    '.setting-page__config-card',
+    '.generator-wizard__steps',
+  ].join(', '); // keep in sync with the original per-indicator locators
 
-  const hasTable = (await table.count()) > 0;
-  const hasEmpty = (await empty.count()) > 0;
-  const hasSettingGroupNav = (await settingGroupNav.count()) > 0;
-  const hasSettingConfigCard = (await settingConfigCard.count()) > 0;
-  const hasGeneratorSteps = (await generatorSteps.count()) > 0;
+  // Body readiness must retry while the page settles: one-shot count()
+  // snapshots race table/empty mounting on slow environments and turn the
+  // system-pages smoke loop flaky.
+  await expect(page.locator(readySelector).filter({ visible: true }).first()).toBeVisible();
 
-  expect(
-    hasTable || hasEmpty || hasSettingGroupNav || hasSettingConfigCard || hasGeneratorSteps,
-  ).toBeTruthy();
-
-  if (hasEmpty) {
-    const emptyText = await empty.first().innerText();
+  // When an empty state is on screen, its message must be a known per-page
+  // empty text. Sample visibility and text inside toPass so an empty that
+  // resolves into a table between sampling and reading text cannot stall the
+  // locator on a detached element.
+  await expect(async () => {
+    const emptyNode = page.locator('.arco-empty').first();
+    if (!(await emptyNode.isVisible())) {
+      return;
+    }
+    const emptyText = await emptyNode.innerText();
     expect(pageEmptyTexts.some((text) => emptyText.includes(text))).toBeTruthy();
-  }
+  }).toPass();
 }
 
 async function expectVisiblePageTitle(page: Page, title: string | RegExp) {

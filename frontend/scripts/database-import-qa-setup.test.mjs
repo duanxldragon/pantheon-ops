@@ -93,12 +93,34 @@ test('resolveMysqlConfig prefers explicit smoke env over local defaults', () => 
   assert.equal(config.hasExplicitPassword, true);
 });
 
-test('buildMysqlPasswordCandidates falls back to documented dev passwords when no password is configured', () => {
+test('buildMysqlPasswordCandidates falls back to the documented placeholder only', () => {
   assert.deepEqual(
     buildMysqlPasswordCandidates({
       hasExplicitPassword: false,
       password: '',
     }),
-    ['DHCCroot@2025', 'dev_password_change_me', ''],
+    ['dev_password_change_me', ''],
   );
+});
+
+test('buildMysqlPasswordCandidates prefers env-provided candidates over the placeholder', () => {
+  assert.deepEqual(
+    buildMysqlPasswordCandidates({
+      hasExplicitPassword: false,
+      password: '',
+      passwordCandidates: ['local_only_secret'],
+    }),
+    ['local_only_secret', 'dev_password_change_me', ''],
+  );
+});
+
+test('resolveMysqlConfig reads probe candidates from the environment, never from source', () => {
+  const config = resolveMysqlConfig(
+    {
+      PANTHEON_SMOKE_MYSQL_PASSWORD_CANDIDATES: ' one , two ,',
+    },
+    { repoRoot: tmpRoot, localEnv: {} },
+  );
+  assert.deepEqual(config.passwordCandidates, ['one', 'two']);
+  assert.equal(config.hasExplicitPassword, false);
 });

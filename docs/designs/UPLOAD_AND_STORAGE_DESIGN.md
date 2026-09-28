@@ -153,6 +153,8 @@ English version: [UPLOAD_AND_STORAGE_DESIGN.en.md](./UPLOAD_AND_STORAGE_DESIGN.e
 
 ## 6. S3-compatible 存储设计
 
+任意 S3 兼容实现均可接入，无需代码变更，仅靠 `upload.s3_*` 配置切换。已验证的兼容实现包括：AWS S3、MinIO、RustFS、OSS 兼容网关。本地开发可用 RustFS 或 MinIO 单二进制快速起一个 S3 API（endpoint 形如 `http://127.0.0.1:9000`，必须带 `http://` 前缀，否则会被解析为 HTTPS 域名）。
+
 ### 6.1 需要的配置
 
 - endpoint
