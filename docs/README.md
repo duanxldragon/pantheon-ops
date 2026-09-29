@@ -39,7 +39,7 @@ docs/
 |------|------|------|
 | [V1_RELEASE_CHECKLIST.md](./V1_RELEASE_CHECKLIST.md) | V1.0 发布检查表 | ✅ 最新 |
 | [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md) | 项目继承说明 | ✅ 最新 |
-| [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) | 任务包模板 | ✅ 最新 |
+| [TASK_PACKET_OPS_TEMPLATE.md](./TASK_PACKET_OPS_TEMPLATE.md) | 任务包模板（业务任务与 `base -> ops` 同步） | ✅ 最新 |
 
 ### V1.2 设计文档
 
