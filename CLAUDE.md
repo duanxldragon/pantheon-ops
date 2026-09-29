@@ -57,10 +57,14 @@ Before any non-trivial PR:
 ```powershell
 # run from pantheon-ops repo root
 node scripts/business-overlay/check-business-overlay.mjs
+node scripts/business-overlay/check-shared-drift.mjs --base ../pantheon-base
 node scripts/business-overlay/rebuild-from-base.mjs --target .tmp/business-overlay-rebuild
+npm run check:docs-governance
 ```
 
 - `check-business-overlay.mjs` verifies the overlay contract: every declared `businessPaths` exists and no business file still imports the old `pantheon-ops/backend` module path.
+- `check-shared-drift.mjs` compares every `sharedPaths` file against base HEAD by sha256. Business overlay paths are skipped; any remaining difference must be declared with a reason in `.foundation/allowed-drift.json`, so generic drift cannot hide behind a stale allowlist entry. Fix real drift in base first, then re-sync.
+- `check:docs-governance` runs the full CI docs-governance job locally (frontmatter, encoding, structure contract, task-packet template, PR governance, business overlay, generated modules) so doc metadata drift fails before the PR does.
 - `rebuild-from-base.mjs` deterministically produces the consumer tree from the locked snapshot; at the locked `baseCommit` it must be byte-for-byte reproducible (`.business-overlay-report.json`).
 - The business overlay must not overwrite Base hook/source files (enforced by `assertBusinessPathsDoNotOverwriteBase`). To extend Base business semantics, inject via a dedicated overlay file — see `backend/modules/business/retired_modules_overlay.go`.
 - To upgrade: update `foundation-release.lock.json` to the new release, re-lock the `repoSnapshot`, then re-run `rebuild-from-base.mjs`.

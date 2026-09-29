@@ -49,7 +49,8 @@
     "check:encoding": "node scripts/check-encoding.mjs --strict",
     "check:business-boundaries": "node scripts/check-business-module-boundaries.mjs",
     "test:business-boundaries": "node --test tests/scripts/check-business-module-boundaries.test.mjs",
-    "check:business-foundation": "npm run check:business-boundaries && npm run check:business-overlay && npm run test:business-boundaries && npm run test:business-overlay"
+    "check:business-foundation": "npm run check:business-boundaries && npm run check:business-overlay && npm run test:business-boundaries && npm run test:business-overlay",
+    "check:docs-governance": "npm run check:docs-frontmatter && npm run check:encoding && npm run check:structure && npm run check:task-packet-template && npm run check:pr-governance && npm run check:business-overlay && npm run test:business-overlay && npm run check:generated-modules"
   },
   "lint-staged": {
     "frontend/src/**/*.{ts,tsx}": [
