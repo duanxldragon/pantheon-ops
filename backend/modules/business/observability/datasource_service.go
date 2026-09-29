@@ -384,10 +384,7 @@ func (s *DatasourceService) proxyJSON(record *PrometheusDatasource, requestPath 
 	baseURL.RawQuery = values.Encode()
 
 	// SSRF Protection: Use validator's HTTP client with redirect protection
-	client, err := s.ssrfValidator.CreateHTTPClient()
-	if err != nil {
-		return nil, err
-	}
+	client := s.ssrfValidator.CreateHTTPClient(30 * time.Second)
 	client.Timeout = time.Duration(timeout) * time.Second
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL.String(), nil)
@@ -458,11 +455,7 @@ func testDatasourceConnection(datasourceType, rawURL, username, password, bearer
 	applyDatasourceAuth(req, username, password, bearerToken)
 
 	// SSRF Protection: Use validator's HTTP client with redirect protection
-	client, err := validator.CreateHTTPClient()
-	if err != nil {
-		return false, err
-	}
-	client.Timeout = time.Duration(timeout) * time.Second
+	client := validator.CreateHTTPClient(time.Duration(timeout) * time.Second)
 
 	resp, err := client.Do(req)
 	if err != nil {

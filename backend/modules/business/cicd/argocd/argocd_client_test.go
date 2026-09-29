@@ -2,14 +2,45 @@ package argocd
 
 import (
 	"context"
+	"crypto/tls"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/security/ssrf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// newTestArgoCDClient creates a client with relaxed SSRF validation for testing
+func newTestArgoCDClient(endpoint, authToken string, insecureSkipVerify bool) (*ArgoCDClient, error) {
+	validator := ssrf.DefaultValidator()
+	validator.AllowedPorts = []int{}       // Allow all ports for testing
+	validator.BlockPrivateIPs = false      // Allow localhost for testing
+	validator.DNSRebindProtection = false  // Disable DNS rebind check for testing
+
+	if err := validator.ValidateURL(endpoint); err != nil {
+		return nil, err
+	}
+
+	httpClient := validator.CreateHTTPClient(30 * time.Second)
+	if insecureSkipVerify {
+		if t, ok := httpClient.Transport.(*http.Transport); ok {
+			if t.TLSClientConfig == nil {
+				t.TLSClientConfig = &tls.Config{}
+			}
+			t.TLSClientConfig.InsecureSkipVerify = true
+		}
+	}
+
+	return &ArgoCDClient{
+		endpoint:      endpoint,
+		authToken:     authToken,
+		httpClient:    httpClient,
+		ssrfValidator: validator,
+	}, nil
+}
 
 func TestArgoCDClient_TestConnection(t *testing.T) {
 	tests := []struct {
@@ -46,7 +77,7 @@ func TestArgoCDClient_TestConnection(t *testing.T) {
 			}))
 			defer server.Close()
 
-			client, err := NewArgoCDClient(server.URL, "test-token", true)
+			client, err := newTestArgoCDClient(server.URL, "test-token", true)
 			require.NoError(t, err)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
@@ -69,7 +100,7 @@ func TestArgoCDClient_GetVersion(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := NewArgoCDClient(server.URL, "test-token", true)
+	client, err := newTestArgoCDClient(server.URL, "test-token", true)
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -92,7 +123,7 @@ func TestArgoCDClient_GetApplicationStatus(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := NewArgoCDClient(server.URL, "test-token", true)
+	client, err := newTestArgoCDClient(server.URL, "test-token", true)
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -112,7 +143,7 @@ func TestArgoCDClient_SyncApplication(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := NewArgoCDClient(server.URL, "test-token", true)
+	client, err := newTestArgoCDClient(server.URL, "test-token", true)
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -129,7 +160,7 @@ func TestArgoCDClient_RefreshApplication(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := NewArgoCDClient(server.URL, "test-token", true)
+	client, err := newTestArgoCDClient(server.URL, "test-token", true)
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -145,7 +176,7 @@ func TestArgoCDClient_Timeout(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := NewArgoCDClient(server.URL, "test-token", true)
+	client, err := newTestArgoCDClient(server.URL, "test-token", true)
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()

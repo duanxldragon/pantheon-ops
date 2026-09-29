@@ -30,12 +30,6 @@ func NewArgoCDClient(endpoint, authToken string, insecureSkipVerify bool) (*Argo
 		return nil, fmt.Errorf("cicd.argocd_invalid_endpoint: %w", err)
 	}
 
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: insecureSkipVerify,
-		},
-	}
-
 	httpClient := validator.CreateHTTPClient(30 * time.Second)
 	if insecureSkipVerify {
 		if t, ok := httpClient.Transport.(*http.Transport); ok {
