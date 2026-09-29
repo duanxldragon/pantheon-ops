@@ -1,9 +1,9 @@
 ---
 title: Close Ops delivery readiness gaps
-doc_type: Task
+doc_type: Remediation
 layer: business/*
-status: Planned
-updated_at: 2026-09-28
+status: Active
+updated_at: 2026-09-29
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
   - docs/runbooks/TENANT_MIGRATION_RUNBOOK.md
