@@ -1295,9 +1295,7 @@ const OperationLogList: React.FC = () => {
       const selectedRows = data.filter((item) => selectedRowKeys.includes(item.id));
       if (selectedRows.length !== selectedRowKeys.length) {
         message.warning(
-          t('common.exportCurrentPageSelectionOnly', {
-            defaultValue: '已选记录包含跨页项，请切回对应页面后再导出。',
-          }),
+          t('common.exportCurrentPageSelectionOnly'),
         );
         return;
       }

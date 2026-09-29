@@ -1776,7 +1776,9 @@ const BaseLayout: React.FC = () => {
             >
               <IconSearch />
               <span className="app-shell__search-placeholder">{t('app.command.placeholder')}</span>
-              <kbd className="app-shell__search-shortcut">Ctrl K</kbd>
+              <kbd className="app-shell__search-shortcut">
+                {navigator.platform.toLowerCase().includes('mac') ? '⌘ K' : 'Ctrl K'}
+              </kbd>
             </button>
             <ShellNoticeCenter
               entries={noticeEntries}

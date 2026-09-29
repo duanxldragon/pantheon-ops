@@ -1,0 +1,13 @@
+{
+  "$comment": "Allowlisted drift between ops shared files and pantheon-base HEAD, verified by scripts/business-overlay/check-shared-drift.mjs. Every entry must state why the drift is intentional. Generic drift (should live in base) is NOT allowlisted — it must flow back to base via base-first.",
+  "backend/modules/business/business.go": "overlay hook: initOverlayBusinessModules call is the ops business-module extension point reserved by base",
+  "backend/modules/business/business_overlay_registry.go": "ops-only overlay registry file required by the business-overlay contract",
+  "backend/modules/system/iam/menu/component_registry.go": "overlay hook: mergeMenuComponentKeys with businessOverlayMenuComponentKeys, extension point reserved by base",
+  "backend/modules/system/iam/menu/business_overlay_component_registry.go": "ops-only overlay registry file required by the business-overlay contract",
+  "frontend/src/core/router/businessOverlayComponentRegistry.ts": "ops-only overlay registry file required by the business-overlay contract",
+  "frontend/src/core/router/componentRegistry.ts": "overlay hook: businessOverlayComponentRegistry import/merge, extension point reserved by base",
+  "frontend/src/core/router/modules.ts": "overlay hook: overlayBusinessModules import, extension point reserved by base",
+  "frontend/package.json": "overlay scripts: business smoke suites (test:smoke:business:*) declared by ops only",
+  "frontend/scripts/cleanup-generated-modules.mjs": "overlay: preserve business-overlay-owned files during generated-module cleanup",
+  "frontend/tests/smoke/README.md": "overlay docs: ops business smoke suite index appended below base content"
+}

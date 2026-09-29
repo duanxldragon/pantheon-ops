@@ -103,7 +103,6 @@ func (v *Validator) CreateHTTPClient(timeout time.Duration) *http.Client {
 	if timeout > 0 {
 		v.Timeout = timeout
 	}
-
 	transport := &http.Transport{
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			// Extract hostname from addr (format: "host:port")

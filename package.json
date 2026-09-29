@@ -44,6 +44,7 @@
     "prepare": "husky",
     "rebuild:from-base": "node scripts/business-overlay/rebuild-from-base.mjs",
     "check:business-overlay": "node scripts/business-overlay/check-business-overlay.mjs",
+    "check:shared-drift": "node scripts/business-overlay/check-shared-drift.mjs --base ../pantheon-base",
     "test:business-overlay": "node --test tests/scripts/business-overlay/*.test.mjs",
     "check:encoding": "node scripts/check-encoding.mjs --strict",
     "check:business-boundaries": "node scripts/check-business-module-boundaries.mjs",

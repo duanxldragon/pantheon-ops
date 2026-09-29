@@ -136,7 +136,7 @@ function MFAChallengeFields({ challenge, t, onSubmit }: Readonly<MFAChallengeFie
         <div className="auth-login-mfa-setup">
           {challenge.totpProvisionUri ? (
             <div className="auth-login-mfa-qr">
-              <div className="auth-login-mfa-qr__image" aria-label={t('auth.mfa.scanQr')}>
+              <div className="auth-login-mfa-qr__image" role="img" aria-label={t('auth.mfa.scanQr')}>
                 <QRCodeSVG value={challenge.totpProvisionUri} size={168} level="M" includeMargin />
               </div>
               <Typography.Text className="auth-login-mfa-qr__hint">
@@ -172,6 +172,8 @@ function MFAChallengeFields({ challenge, t, onSubmit }: Readonly<MFAChallengeFie
           placeholder={t('auth.mfa.codePlaceholder')}
           size="large"
           maxLength={6}
+          autoComplete="one-time-code"
+          inputMode="numeric"
           onPressEnter={onSubmit}
         />
       </FormItem>
@@ -403,6 +405,7 @@ export function LoginPageComponent() {
                 prefix={<IconUser />}
                 placeholder={t('auth.usernamePlaceholder')}
                 size="large"
+                autoComplete="username"
                 onPressEnter={() => form.submit()}
               />
             </FormItem>
@@ -438,6 +441,7 @@ export function LoginPageComponent() {
                 prefix={<IconLock />}
                 placeholder={t('auth.passwordPlaceholder')}
                 size="large"
+                autoComplete="current-password"
                 onPressEnter={() => form.submit()}
               />
             </FormItem>

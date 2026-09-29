@@ -35,6 +35,11 @@ npm run rebuild:from-base -- --base ..\pantheon-base --target .tmp\clean-base-ov
 # 2. 验证声明和生成结果
 node scripts/business-overlay/check-business-overlay.mjs --root .tmp\clean-base-overlay
 
+# 2b. 共享文件哈希漂移检测（对比 base HEAD，business-overlay.json 声明的
+#     业务路径自动跳过；其余差异必须在 .foundation/allowed-drift.json
+#     声明理由，否则失败）
+node scripts/business-overlay/check-shared-drift.mjs --base ..\pantheon-base
+
 # 3. 在暂存树运行 backend、frontend、业务 smoke 和 SonarCloud 门禁
 
 # 4. 只有全部通过后，才以暂存树替换 Ops 工作树

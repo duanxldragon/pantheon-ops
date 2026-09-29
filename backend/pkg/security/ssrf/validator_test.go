@@ -3,6 +3,7 @@ package ssrf
 import (
 	"net"
 	"testing"
+	"time"
 )
 
 func TestDefaultValidator(t *testing.T) {
@@ -180,6 +181,25 @@ func TestCreateHTTPClient(t *testing.T) {
 
 	if client.Timeout != v.Timeout {
 		t.Errorf("Expected timeout %v, got %v", v.Timeout, client.Timeout)
+	}
+}
+
+func TestCreateHTTPClientTimeoutOverride(t *testing.T) {
+	v := DefaultValidator()
+
+	client := v.CreateHTTPClient(30 * time.Second)
+	if client.Timeout != 30*time.Second {
+		t.Errorf("Expected timeout 30s, got %v", client.Timeout)
+	}
+	if v.Timeout != 30*time.Second {
+		t.Errorf("Expected validator timeout to be updated to 30s, got %v", v.Timeout)
+	}
+
+	v2 := DefaultValidator()
+	original := v2.Timeout
+	client2 := v2.CreateHTTPClient(0)
+	if client2.Timeout != original {
+		t.Errorf("Expected zero timeout to keep default %v, got %v", original, client2.Timeout)
 	}
 }
 

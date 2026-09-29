@@ -35,6 +35,10 @@ jobs:
         working-directory: pantheon-ops
         run: npm run test:business-overlay
 
+      - name: Check shared-file drift against base HEAD
+        working-directory: pantheon-ops
+        run: npm run check:shared-drift -- --base ../pantheon-base
+
       - name: Rebuild clean consumer
         working-directory: pantheon-ops
         run: npm run rebuild:from-base -- --base ../pantheon-base --target .tmp/base-compatibility
