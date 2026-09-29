@@ -1,12 +1,16 @@
+---
+title: CMDB 业务模块设计
+doc_type: Design
+layer: business/cmdb
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-07-17
+---
+
 # CMDB 业务模块设计
 
 English version: [BUSINESS_CMDB_MODULE_DESIGN.en.md](./BUSINESS_CMDB_MODULE_DESIGN.en.md)
-
-更新时间：2026-07-17
-
-类型：Design
-归属层：business/cmdb
-状态：Active
 
 本文定义运维平台 CMDB（轻量级配置管理数据库）模块设计，替代此前已退役的 `business/cmdb` 低代码验证样本设计。
 

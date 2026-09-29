@@ -1,8 +1,12 @@
-# Document Frontmatter Spec
+---
+title: Document Frontmatter Spec
+doc_type: Contract
+layer: platform
+status: Active
+updated_at: 2026-09-01
+---
 
-Type: Contract
-Layer: platform
-Status: Active
+# Document Frontmatter Spec
 
 This document defines the portable YAML frontmatter convention for repository-level governance docs used by Harness Engineering.
 

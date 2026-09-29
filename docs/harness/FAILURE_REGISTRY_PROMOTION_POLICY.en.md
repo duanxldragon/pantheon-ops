@@ -1,10 +1,14 @@
+---
+title: Failure Registry Promotion Policy
+doc_type: Contract
+layer: platform
+status: Active
+updated_at: 2026-06-08
+---
+
 # Failure Registry Promotion Policy
 
 Chinese version: [FAILURE_REGISTRY_PROMOTION_POLICY.md](./FAILURE_REGISTRY_PROMOTION_POLICY.md)
-
-Type: Policy
-Layer: platform
-Status: Active
 
 This policy defines when the failure registry should move from “recommended” to “required landing file”.
 

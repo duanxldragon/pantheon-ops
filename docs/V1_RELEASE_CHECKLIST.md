@@ -1,9 +1,15 @@
+---
+title: Pantheon-Ops V1 发布检查表
+doc_type: Acceptance
+layer: platform
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-28
+---
+
 # Pantheon-Ops V1 发布检查表
 
-更新时间：2026-08-28
-类型：Checklist
-归属层：platform
-状态：Active
 依据：`.harness/evidence/2026-08-19-ops-v1-backlog-closeout/`（2026-08-22 基线 `ee21350` 全部通过）
 
 本文是 v1.0 冻结与发布的唯一状态口径。业务模块设计文档（`designs/BUSINESS_*`）标注的"V1 冻结目标"不代表已实现，以本文勾选状态为准。

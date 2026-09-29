@@ -1,13 +1,17 @@
+---
+title: Pantheon-Ops SRE Evolution Plan
+doc_type: Design
+layer: platform
+status: Active
+author: duanxldragon
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-07-17
+---
+
 # Pantheon-Ops SRE Evolution Plan
 
 Chinese version: [PLATFORM_SRE_EVOLUTION_PLAN.md](./PLATFORM_SRE_EVOLUTION_PLAN.md)
-
-Updated: 2026-07-17
-
-Type: Design (Roadmap)
-Layer: `platform`
-Status: Active
-Author: duanxldragon
 
 This roadmap evolves `pantheon-ops` from a web operations console into a Kubernetes-native SRE platform. It reflects the current implementation truth and continues the Agent/SSH direction reserved by the Deploy design.
 

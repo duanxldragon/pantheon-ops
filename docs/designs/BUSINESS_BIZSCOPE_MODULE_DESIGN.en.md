@@ -1,12 +1,16 @@
+---
+title: Business Scope Module Design
+doc_type: Design
+layer: business/bizscope
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-07-18
+---
+
 # Business Scope Module Design
 
 Chinese version: [BUSINESS_BIZSCOPE_MODULE_DESIGN.md](./BUSINESS_BIZSCOPE_MODULE_DESIGN.md)
-
-Updated: 2026-07-18
-
-Type: Design
-Layer: business/bizscope
-Status: Active
 
 This document defines the `business/bizscope` module in `pantheon-ops`, including business boundary, data model, API, UI surface, and acceptance expectations. The module governs business scopes themselves and acts as the canonical trust source for CMDB host assignment and Deploy task scope selection.
 

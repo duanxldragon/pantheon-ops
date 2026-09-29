@@ -1,12 +1,18 @@
+---
+title: 安装部署业务模块设计
+doc_type: Design
+layer: business/deploy
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-24
+---
+
 # 安装部署业务模块设计
 
 English version: [BUSINESS_DEPLOY_MODULE_DESIGN.en.md](./BUSINESS_DEPLOY_MODULE_DESIGN.en.md)
 
-更新时间：2026-08-24
-
-类型：Design
-归属层：business/deploy
-状态：Active（V1 冻结目标；实现和发布状态以 `../V1_RELEASE_CHECKLIST.md` 为准）
+> 状态说明：Active（V1 冻结目标；实现和发布状态以 `../V1_RELEASE_CHECKLIST.md` 为准）
 
 本文定义运维平台第二个业务模块：安装部署（Deploy）。它与 `business/cmdb`、`business/bizscope` 平级，挂在“工作台 / 运维平台”菜单下，用 CMDB 主机和业务域作为目标来源，为后续 Agent 执行、软件安装、任务编排、凭据托管和变更审计打基础。
 

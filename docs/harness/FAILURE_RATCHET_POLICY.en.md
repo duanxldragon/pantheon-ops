@@ -1,10 +1,14 @@
+---
+title: Failure Ratchet Policy
+doc_type: Contract
+layer: platform
+status: Active
+updated_at: 2026-06-08
+---
+
 # Failure Ratchet Policy
 
 Chinese version: [FAILURE_RATCHET_POLICY.md](./FAILURE_RATCHET_POLICY.md)
-
-Type: Policy
-Layer: platform
-Status: Active
 
 This policy defines how a repeated failure should move from a one-off problem into a repository-owned method asset.
 

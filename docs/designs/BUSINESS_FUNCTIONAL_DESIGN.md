@@ -1,9 +1,16 @@
+---
+title: Pantheon-Ops 全局功能设计
+doc_type: Design
+layer: business
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-28
+---
+
 # Pantheon-Ops 全局功能设计
 
-更新时间：2026-08-28
-类型：Design
-归属层：business（全局）
-状态：Active（V1 冻结基线；各模块实现状态以 `../V1_RELEASE_CHECKLIST.md` 为准）
+> 状态说明：Active（V1 冻结基线；各模块实现状态以 `../V1_RELEASE_CHECKLIST.md` 为准）
 
 本文是 pantheon-ops 的全局功能视图：能力地图、跨模块流程、状态机、安全模型与 V1 能力追溯。此前本文档在 `docs/README.md` 索引中存在悬空引用，本文为 2026-08-28 评审后补建版本，结论与《pantheon-ops v1.0 冻结前综合评审报告》一致。
 

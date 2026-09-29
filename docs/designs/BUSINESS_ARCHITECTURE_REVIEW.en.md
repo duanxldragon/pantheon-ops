@@ -1,8 +1,14 @@
-# pantheon-ops Business Architecture Review
+---
+title: pantheon-ops Business Architecture Review
+doc_type: Assessment
+layer: business
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-18
+---
 
-Updated: 2026-08-18  
-Type: Review  
-Status: Active
+# pantheon-ops Business Architecture Review
 
 This is the English summary of the normative Chinese review: [BUSINESS_ARCHITECTURE_REVIEW.md](./BUSINESS_ARCHITECTURE_REVIEW.md).
 

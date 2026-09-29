@@ -1,10 +1,15 @@
+---
+title: Verification Evidence Spec
+doc_type: Contract
+layer: platform
+status: Active
+updated_at: 2026-06-26
+version: v1.1
+---
+
 # Verification Evidence Spec
 
 Chinese version: [VERIFICATION_EVIDENCE_SPEC.md](./VERIFICATION_EVIDENCE_SPEC.md)
-
-Type: Contract
-Layer: platform
-Status: Active
 
 This document defines the format for Pantheon task verification evidence. The evidence format must be tool-agnostic.
 

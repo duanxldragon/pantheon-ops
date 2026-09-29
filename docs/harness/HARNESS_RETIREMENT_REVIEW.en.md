@@ -1,10 +1,14 @@
+---
+title: Harness Retirement Review
+doc_type: Contract
+layer: platform
+status: Active
+updated_at: 2026-06-08
+---
+
 # Harness Retirement Review
 
 Chinese version: [HARNESS_RETIREMENT_REVIEW.md](./HARNESS_RETIREMENT_REVIEW.md)
-
-Type: Policy
-Layer: platform
-Status: Active
 
 This policy defines when harness constraints should be downgraded, replaced, or removed instead of accumulating forever.
 

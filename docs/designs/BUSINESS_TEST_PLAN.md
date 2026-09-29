@@ -1,9 +1,15 @@
+---
+title: pantheon-ops 业务测试计划
+doc_type: Acceptance
+layer: business
+status: Draft
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-18
+---
+
 # pantheon-ops 业务测试计划
 
-更新时间：2026-08-18  
-类型：Test Plan  
-归属层：business  
-状态：Proposed  
 关联评审：[BUSINESS_ARCHITECTURE_REVIEW.md](./BUSINESS_ARCHITECTURE_REVIEW.md)  
 关联验收：[BUSINESS_QA_ACCEPTANCE_PLAN.md](./BUSINESS_QA_ACCEPTANCE_PLAN.md)
 

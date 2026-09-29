@@ -1,10 +1,14 @@
+---
+title: Harness Method Playbook
+doc_type: Contract
+layer: platform
+status: Active
+updated_at: 2026-06-24
+---
+
 # Harness Method Playbook
 
 Chinese version: [HARNESS_METHOD_PLAYBOOK.md](./HARNESS_METHOD_PLAYBOOK.md)
-
-Type: Playbook
-Layer: platform
-Status: Active
 
 This file no longer carries the full method definition.
 

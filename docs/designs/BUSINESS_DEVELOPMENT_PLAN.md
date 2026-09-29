@@ -1,9 +1,18 @@
+---
+title: pantheon-ops 业务开发计划
+doc_type: Design
+layer: business
+status: Superseded
+superseded_by: docs/V1_RELEASE_CHECKLIST.md
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-24
+---
+
 # pantheon-ops 业务开发计划
 
-- 更新时间：2026-08-24
-- 类型：Plan
-- 归属层：business
-- 状态：Superseded for V1 execution
+> 状态说明：Superseded（V1 执行口径由 V1 冻结检查表与全局功能设计接管；本文保留为阶段估算与路线参考）
+
 - 基线：[BUSINESS_ARCHITECTURE_REVIEW.md](./BUSINESS_ARCHITECTURE_REVIEW.md)
 - 目标设计：[BUSINESS_TARGET_ARCHITECTURE_DESIGN.md](./BUSINESS_TARGET_ARCHITECTURE_DESIGN.md)
 

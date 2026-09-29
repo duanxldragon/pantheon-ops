@@ -1,9 +1,16 @@
+---
+title: ArgoCD GitOps 集成业务模块设计
+doc_type: Design
+layer: business/cicd/argocd
+status: Draft
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-28
+---
+
 # ArgoCD GitOps 集成业务模块设计
 
-更新时间：2026-08-28
-类型：Design
-归属层：business/cicd/argocd
-状态：Draft（v1.2 目标；当前代码为壳级实现，菜单与路由在 V1 冻结版下架，见 `.harness/v1.2-docs/V1_FREEZE_REMEDIATION_DEV_PLAN.md` Phase 0-2）
+> 状态说明：Draft（v1.2 目标；当前代码为壳级实现，菜单与路由在 V1 冻结版下架，见 `.harness/v1.2-docs/V1_FREEZE_REMEDIATION_DEV_PLAN.md` Phase 0-2）
 
 本文定义 pantheon-ops 与 ArgoCD 的集成设计。核心原则沿用 `BUSINESS_DEPLOY_MODULE_DESIGN.md` §1：**扩展点不提供伪成功实现**——2026-08-28 评审确认当前代码违反了该原则（`SyncApplication` 未调用 ArgoCD API 即写入 Succeeded 历史并被判定为 P0 缺陷），本文是整改后的目标设计。
 

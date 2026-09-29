@@ -1,12 +1,18 @@
+---
+title: Deploy Business Module Design
+doc_type: Design
+layer: business/deploy
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-24
+---
+
 # Deploy Business Module Design
 
 Chinese version: [BUSINESS_DEPLOY_MODULE_DESIGN.md](./BUSINESS_DEPLOY_MODULE_DESIGN.md)
 
-Updated: 2026-08-24
-
-Type: Design
-Layer: `business/deploy`
-Status: Active V1 target; implementation and release remain governed by the freeze checklist
+> Status note: Active V1 target; implementation and release remain governed by the freeze checklist
 
 > V1 freeze overlay: SSH Start accepts `CredentialRef` only; component secrets are write-only references; task/host/attempt/step/event/log records are persisted; task transitions use CAS; pause/resume/cancel/retry and worker recovery are required; execution uses registered providers with validated DAG/failure policy; redacted append-only logs stream through authenticated reconnectable SSE. Historical statements below that describe raw credentials, mutable stdout/stderr, polling-first UI, or manual result marking as the V1 completion contract are superseded by the [global functional design (Chinese canonical)](./BUSINESS_FUNCTIONAL_DESIGN.md) and [V1 checklist](../V1_RELEASE_CHECKLIST.md).
 

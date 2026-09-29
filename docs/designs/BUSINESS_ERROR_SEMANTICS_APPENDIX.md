@@ -1,12 +1,16 @@
+---
+title: 运维域业务错误语义附录
+doc_type: Design
+layer: business/*
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-07-18
+---
+
 # 运维域业务错误语义附录
 
 English version: [BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md](./BUSINESS_ERROR_SEMANTICS_APPENDIX.en.md)
-
-更新时间：2026-07-18
-
-类型：Design
-归属层：business/*
-状态：Active
 
 本文是 `pantheon-ops` 业务模块在真实实现阶段的**错误 key canonical 附录**。
 

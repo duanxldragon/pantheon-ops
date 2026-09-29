@@ -1,9 +1,17 @@
+---
+title: pantheon-ops 目标业务架构设计
+doc_type: Design
+layer: business
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-24
+---
+
 # pantheon-ops 目标业务架构设计
 
-- 更新时间：2026-08-24
-- 类型：Design
-- 归属层：business
-- 状态：Active Target（V1/P1/P2 边界以冻结检查表和全局功能设计为准）
+> 状态说明：Active Target（V1/P1/P2 边界以冻结检查表和全局功能设计为准）
+
 - 关联评审：[BUSINESS_ARCHITECTURE_REVIEW.md](./BUSINESS_ARCHITECTURE_REVIEW.md)
 
 本文定义 pantheon-ops 从当前模块化单体演进到企业级 SRE 平台的业务目标架构。它只规定 ops 业务域的边界、对象和交互；平台壳层、IAM、组织、审计、工作流、配置和通用 UI 仍以 `pantheon-base` 为唯一来源。

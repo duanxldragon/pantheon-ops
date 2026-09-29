@@ -1,10 +1,14 @@
+---
+title: Review Loop Spec
+doc_type: Contract
+layer: platform
+status: Active
+updated_at: 2026-06-23
+---
+
 # Review Loop Spec
 
 Chinese version: [REVIEW_LOOP_SPEC.md](./REVIEW_LOOP_SPEC.md)
-
-Type: Contract
-Layer: platform
-Status: Active
 
 This document defines the tool-agnostic review loop used by Pantheon. Implementers and reviewers may use different tools or be human, but the output format must remain consistent.
 

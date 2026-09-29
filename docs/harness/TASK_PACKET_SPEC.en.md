@@ -1,10 +1,15 @@
+---
+title: Task Packet Spec
+doc_type: Contract
+layer: platform
+status: Active
+updated_at: 2026-06-26
+version: v1.1
+---
+
 # Task Packet Spec
 
 Chinese version: [TASK_PACKET_SPEC.md](./TASK_PACKET_SPEC.md)
-
-Type: Contract
-Layer: platform
-Status: Active
 
 A task packet is the tool-agnostic input format for non-trivial work. It lets various agent tools and human engineers share the same task boundary.
 

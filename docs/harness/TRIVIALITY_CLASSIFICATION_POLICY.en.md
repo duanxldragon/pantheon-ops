@@ -1,10 +1,14 @@
+---
+title: Triviality Classification Policy
+doc_type: Contract
+layer: platform
+status: Active
+updated_at: 2026-06-08
+---
+
 # Triviality Classification Policy
 
 Chinese version: [TRIVIALITY_CLASSIFICATION_POLICY.md](./TRIVIALITY_CLASSIFICATION_POLICY.md)
-
-Type: Policy
-Layer: platform
-Status: Active
 
 This policy defines how work is classified as `trivial` or `non-trivial` so the repository does not rely on personal judgment alone when deciding whether task packets, evidence, and review artifacts are required.
 

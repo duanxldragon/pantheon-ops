@@ -1,9 +1,16 @@
+---
+title: 可观测性业务模块设计（主机监控优先）
+doc_type: Design
+layer: business/observability
+status: Draft
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-28
+---
+
 # 可观测性业务模块设计（主机监控优先）
 
-更新时间：2026-08-28
-类型：Design
-归属层：business/observability
-状态：Draft（v1.1 起；当前仅平台自监控静态配置，属免费版价值兑现的关键缺口，见 `.harness/v1.2-docs/V1_FREEZE_REMEDIATION_DEV_PLAN.md` Phase 3-3）
+> 状态说明：Draft（v1.1 起；当前仅平台自监控静态配置，属免费版价值兑现的关键缺口，见 `.harness/v1.2-docs/V1_FREEZE_REMEDIATION_DEV_PLAN.md` Phase 3-3）
 
 本文定义 pantheon-ops 的可观测能力演进。2026-08-28 评审确认：`grafana/` 目录下 prometheus.yml 仅覆盖平台自身（localhost 静态目标），**无监控对象管理、无 PromQL 查询 API、无 CMDB→Prometheus 配置生成**，registry 引用的 observability 模块目录不存在。本文给出分阶段目标。
 

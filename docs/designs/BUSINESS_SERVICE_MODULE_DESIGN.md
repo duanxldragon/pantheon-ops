@@ -1,11 +1,18 @@
+---
+title: 服务目录业务模块设计
+doc_type: Design
+layer: business/service
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-24
+---
+
 # 服务目录业务模块设计
 
 English version: [BUSINESS_SERVICE_MODULE_DESIGN.en.md](./BUSINESS_SERVICE_MODULE_DESIGN.en.md)
 
-- 更新时间：2026-08-24
-- 类型：Design
-- 归属层：`business/service`
-- 状态：Active（V1 业务身份层）
+> 状态说明：Active（V1 业务身份层）
 
 ## 1. 目标
 

@@ -1,9 +1,16 @@
+---
+title: Velero 备份恢复业务模块设计
+doc_type: Design
+layer: business/k8s/backup
+status: Draft
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-28
+---
+
 # Velero 备份恢复业务模块设计
 
-更新时间：2026-08-28
-类型：Design
-归属层：business/k8s/backup
-状态：Draft（v1.2 目标；当前代码为壳级实现，菜单与路由在 V1 冻结版下架，见 `.harness/v1.2-docs/V1_FREEZE_REMEDIATION_DEV_PLAN.md` Phase 0-2）
+> 状态说明：Draft（v1.2 目标；当前代码为壳级实现，菜单与路由在 V1 冻结版下架，见 `.harness/v1.2-docs/V1_FREEZE_REMEDIATION_DEV_PLAN.md` Phase 0-2）
 
 本文定义基于 Velero 的 Kubernetes 备份恢复设计。2026-08-28 评审确认当前代码未操作任何 Velero CRD（`tryCreateVeleroBackupCRD` 为空函数、状态永远停在 New），属 P0 伪实现，本文是整改后的目标设计。
 

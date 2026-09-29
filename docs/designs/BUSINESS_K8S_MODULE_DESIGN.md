@@ -1,11 +1,18 @@
+---
+title: Kubernetes 业务模块设计
+doc_type: Design
+layer: business/k8s
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-24
+---
+
 # Kubernetes 业务模块设计
 
 English version: [BUSINESS_K8S_MODULE_DESIGN.en.md](./BUSINESS_K8S_MODULE_DESIGN.en.md)
 
-- 更新时间：2026-08-24
-- 类型：Design
-- 归属层：`business/k8s`
-- 状态：Active（Service CRUD 和外部运行矩阵为 V1 冻结目标）
+> 状态说明：Active（Service CRUD 和外部运行矩阵为 V1 冻结目标）
 
 ## 1. 目标与事实源
 

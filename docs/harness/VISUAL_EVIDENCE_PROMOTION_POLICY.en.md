@@ -1,10 +1,14 @@
+---
+title: Visual Evidence Promotion Policy
+doc_type: Contract
+layer: platform
+status: Active
+updated_at: 2026-06-08
+---
+
 # Visual Evidence Promotion Policy
 
 Chinese version: [VISUAL_EVIDENCE_PROMOTION_POLICY.md](./VISUAL_EVIDENCE_PROMOTION_POLICY.md)
-
-Type: Policy
-Layer: platform
-Status: Active
 
 This policy defines when `check-visual-evidence.mjs --strict` should move from an observational gate to a blocking gate.
 

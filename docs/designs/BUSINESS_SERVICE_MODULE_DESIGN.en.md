@@ -1,9 +1,18 @@
+---
+title: Business Service Module Design
+doc_type: Design
+layer: business/service
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-24
+---
+
 # Business Service Module Design
 
-- Updated: 2026-08-24
-- Status: Active V1 business identity layer
-
 The Chinese document is normative. See the [global functional design](./BUSINESS_FUNCTIONAL_DESIGN.md) and [V1 checklist](../V1_RELEASE_CHECKLIST.md) for cross-module and release status.
+
+> Status note: Active V1 business identity layer
 
 ## Goal
 

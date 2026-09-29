@@ -1,10 +1,14 @@
+---
+title: Harness Engineering Contract
+doc_type: Contract
+layer: platform
+status: Active
+updated_at: 2026-06-23
+---
+
 # Harness Engineering Contract
 
 Chinese version: [HARNESS_ENGINEERING_CONTRACT.md](./HARNESS_ENGINEERING_CONTRACT.md)
-
-Type: Contract
-Layer: platform
-Status: Active
 
 This document defines the tool-agnostic Harness Engineering protocol for the Pantheon workspace. It constrains how all AI agents, automation tools, and human engineers receive tasks, read context, modify code, verify results, record evidence, and enter review.
 

@@ -1,8 +1,14 @@
-# pantheon-ops Business Test Plan
+---
+title: pantheon-ops Business Test Plan
+doc_type: Acceptance
+layer: business
+status: Draft
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-18
+---
 
-Updated: 2026-08-18  
-Type: Test Plan  
-Status: Proposed
+# pantheon-ops Business Test Plan
 
 Normative test plan: [BUSINESS_TEST_PLAN.md](./BUSINESS_TEST_PLAN.md).
 
