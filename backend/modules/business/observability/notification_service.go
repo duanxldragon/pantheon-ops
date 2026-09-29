@@ -16,6 +16,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/secrets"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/security/ssrf"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -25,12 +26,18 @@ var notificationSecretFields = []string{"password", "secret", "webhookUrl"}
 
 // NotificationService manages notification channels and sends alerts.
 type NotificationService struct {
-	db *gorm.DB
+	db            *gorm.DB
+	ssrfValidator *ssrf.Validator
 }
 
 // NewNotificationService creates a new NotificationService.
 func NewNotificationService(db *gorm.DB) *NotificationService {
-	return &NotificationService{db: db}
+	validator := ssrf.DefaultValidator()
+	validator.AllowedPorts = []int{80, 443, 8080, 9090}
+	return &NotificationService{
+		db:            db,
+		ssrfValidator: validator,
+	}
 }
 
 // Migrate creates or updates database schema.
@@ -237,6 +244,11 @@ func (s *NotificationService) sendWebhook(config map[string]interface{}, ruleNam
 	if url == "" {
 		return fmt.Errorf("missing webhook url")
 	}
+
+	if err := s.ssrfValidator.ValidateURL(url); err != nil {
+		return fmt.Errorf("observability.webhook_invalid_url: %w", err)
+	}
+
 	if method == "" {
 		method = "POST"
 	}
@@ -266,7 +278,7 @@ func (s *NotificationService) sendWebhook(config map[string]interface{}, ruleNam
 		}
 	}
 
-	client := &http.Client{Timeout: time.Duration(timeout) * time.Second}
+	client := s.ssrfValidator.CreateHTTPClient(time.Duration(timeout) * time.Second)
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -288,6 +300,10 @@ func (s *NotificationService) sendSlack(config map[string]interface{}, ruleName,
 
 	if webhookURL == "" {
 		return fmt.Errorf("missing slack webhook url")
+	}
+
+	if err := s.ssrfValidator.ValidateURL(webhookURL); err != nil {
+		return fmt.Errorf("observability.slack_invalid_url: %w", err)
 	}
 
 	color := "warning"
@@ -324,6 +340,10 @@ func (s *NotificationService) sendDingTalk(config map[string]interface{}, ruleNa
 		return fmt.Errorf("missing dingtalk webhook url")
 	}
 
+	if err := s.ssrfValidator.ValidateURL(webhookURL); err != nil {
+		return fmt.Errorf("observability.dingtalk_invalid_url: %w", err)
+	}
+
 	timestamp := time.Now().UnixMilli()
 	sign := ""
 	if secret != "" {
@@ -353,6 +373,10 @@ func (s *NotificationService) sendFeishu(config map[string]interface{}, ruleName
 
 	if webhookURL == "" {
 		return fmt.Errorf("missing feishu webhook url")
+	}
+
+	if err := s.ssrfValidator.ValidateURL(webhookURL); err != nil {
+		return fmt.Errorf("observability.feishu_invalid_url: %w", err)
 	}
 
 	timestamp := time.Now().Unix()

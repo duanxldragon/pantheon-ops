@@ -1,0 +1,53 @@
+{
+  "id": "2026-09-29-ops-ssrf-protection-integration",
+  "title": "Integrate SSRF Protection in pantheon-ops",
+  "created": "2026-09-29T00:00:00Z",
+  "status": "blocked",
+  "priority": "P0",
+  "parent": "2026-09-28-ops-delivery-readiness-gap-closure",
+  "assignee": "claude",
+  "tags": ["security", "ssrf", "D2"],
+  "description": "Integrate pantheon-base v0.13.1 SSRF protection across all 5 attack surfaces in pantheon-ops: observability datasource proxy, notification webhooks, ArgoCD API client, Kubernetes API client, and SMTP email.",
+  "acceptance": [
+    "SSRF validator integrated in datasource_service.go (URL validation + HTTP client)",
+    "SSRF validator integrated in notification_service.go (webhook/Slack/DingTalk/Feishu)",
+    "SSRF validator integrated in ArgoCD client (endpoint validation)",
+    "SSRF validator integrated in K8s client factory (API server validation)",
+    "All NewArgoCDClient call sites updated to handle error return",
+    "Code compiles and tests pass after pantheon-base v0.13.1 available"
+  ],
+  "blocked_by": "pantheon-base v0.13.1 release (SSRF package available in main but not yet tagged/released)",
+  "scope": {
+    "in": [
+      "backend/modules/business/observability/datasource_service.go",
+      "backend/modules/business/observability/notification_service.go",
+      "backend/modules/business/cicd/argocd/argocd_client.go",
+      "backend/modules/business/cicd/argocd/argocd_service.go",
+      "backend/modules/business/cicd/argocd/argocd_reconciler.go",
+      "backend/modules/business/cicd/argocd/argocd_client_test.go",
+      "backend/modules/business/k8s/pkg/client_factory.go"
+    ],
+    "out": [
+      "Unit tests (deferred until base v0.13.1 available)",
+      "API documentation updates",
+      "Frontend error handling (separate task)",
+      "Foundation lock upgrade to v0.13.1"
+    ]
+  },
+  "verification": {
+    "manual": [
+      "Code review: SSRF validation present at all 5 attack surfaces",
+      "Error handling: All NewArgoCDClient calls handle error return"
+    ],
+    "automated": [
+      "go build compiles successfully (blocked on base v0.13.1)",
+      "go test passes (blocked on base v0.13.1)"
+    ]
+  },
+  "notes": [
+    "SSRF protection package exists in pantheon-base main branch (PR #357)",
+    "Code integration completed but cannot compile until base releases v0.13.1",
+    "All 5 attack surfaces from D2 analysis document are covered",
+    "Allowed ports configured per service type: datasource (8080,9090,3000,3100,16686), notifications (80,443,8080,9090), ArgoCD (80,443,8080), K8s (443,6443,8443,16443)"
+  ]
+}

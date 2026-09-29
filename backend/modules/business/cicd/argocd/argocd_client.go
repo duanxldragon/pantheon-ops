@@ -9,30 +9,46 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/duanxldragon/pantheon-base/backend/pkg/security/ssrf"
 )
 
 // ArgoCDClient wraps HTTP client for ArgoCD API communication.
 type ArgoCDClient struct {
-	endpoint   string
-	authToken  string
-	httpClient *http.Client
+	endpoint      string
+	authToken     string
+	httpClient    *http.Client
+	ssrfValidator *ssrf.Validator
 }
 
 // NewArgoCDClient creates a new ArgoCD API client.
-func NewArgoCDClient(endpoint, authToken string, insecureSkipVerify bool) *ArgoCDClient {
+func NewArgoCDClient(endpoint, authToken string, insecureSkipVerify bool) (*ArgoCDClient, error) {
+	validator := ssrf.DefaultValidator()
+	validator.AllowedPorts = []int{80, 443, 8080}
+
+	if err := validator.ValidateURL(endpoint); err != nil {
+		return nil, fmt.Errorf("cicd.argocd_invalid_endpoint: %w", err)
+	}
+
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: insecureSkipVerify,
 		},
 	}
-	return &ArgoCDClient{
-		endpoint:   endpoint,
-		authToken:  authToken,
-		httpClient: &http.Client{
-			Timeout:   30 * time.Second,
-			Transport: transport,
-		},
+
+	httpClient := validator.CreateHTTPClient(30 * time.Second)
+	if insecureSkipVerify {
+		if t, ok := httpClient.Transport.(*http.Transport); ok {
+			t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		}
 	}
+
+	return &ArgoCDClient{
+		endpoint:      endpoint,
+		authToken:     authToken,
+		httpClient:    httpClient,
+		ssrfValidator: validator,
+	}, nil
 }
 
 // TestConnection tests connectivity to ArgoCD server.

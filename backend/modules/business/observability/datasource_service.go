@@ -16,18 +16,28 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/modules/business/secrets"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/security/ssrf"
 
 	"gorm.io/gorm"
 )
 
 // DatasourceService manages metric, log, and trace data sources.
 type DatasourceService struct {
-	db *gorm.DB
+	db            *gorm.DB
+	ssrfValidator *ssrf.Validator
 }
 
 // NewDatasourceService creates a new DatasourceService.
 func NewDatasourceService(db *gorm.DB) *DatasourceService {
-	return &DatasourceService{db: db}
+	// Configure SSRF validator for observability datasources
+	// Allow common observability ports: 80, 443, 8080, 9090 (Prometheus), 3000 (Loki/Grafana)
+	validator := ssrf.DefaultValidator()
+	validator.AllowedPorts = []int{80, 443, 8080, 9090, 3000, 3100, 16686} // Added 3100 for Loki, 16686 for Tempo/Jaeger
+
+	return &DatasourceService{
+		db:            db,
+		ssrfValidator: validator,
+	}
 }
 
 // Migrate creates or updates database schema.
@@ -41,6 +51,12 @@ func (s *DatasourceService) Migrate() error {
 // Create adds an observability data source.
 func (s *DatasourceService) Create(dto DatasourceDTO, createdBy string, scopes ...*common.DataScopeReq) (*DatasourceResponse, error) {
 	scope := firstDataScope(scopes)
+
+	// SSRF Protection: Validate URL before creating datasource
+	if err := s.ssrfValidator.ValidateURL(dto.URL); err != nil {
+		return nil, fmt.Errorf("observability.datasource_invalid_url: %w", err)
+	}
+
 	// Encrypt sensitive fields
 	encryptedPassword, err := secrets.Encrypt(dto.Password)
 	if err != nil {
@@ -120,6 +136,12 @@ func (s *DatasourceService) GetByID(id uint64, scopes ...*common.DataScopeReq) (
 // Update modifies an existing data source.
 func (s *DatasourceService) Update(id uint64, dto DatasourceDTO, scopes ...*common.DataScopeReq) error {
 	scope := firstDataScope(scopes)
+
+	// SSRF Protection: Validate URL before updating datasource
+	if err := s.ssrfValidator.ValidateURL(dto.URL); err != nil {
+		return fmt.Errorf("observability.datasource_invalid_url: %w", err)
+	}
+
 	updates := map[string]interface{}{
 		"name":        dto.Name,
 		"type":        dto.Type,
@@ -337,6 +359,11 @@ func ownedDeptID(scope *common.DataScopeReq) uint64 {
 }
 
 func (s *DatasourceService) proxyJSON(record *PrometheusDatasource, requestPath string, values url.Values) (map[string]interface{}, error) {
+	// SSRF Protection: Re-validate URL before proxying (defense in depth)
+	if err := s.ssrfValidator.ValidateURL(record.URL); err != nil {
+		return nil, fmt.Errorf("observability.datasource_invalid_url: %w", err)
+	}
+
 	password, err := secrets.Decrypt(record.Password)
 	if err != nil {
 		return nil, err
@@ -355,12 +382,20 @@ func (s *DatasourceService) proxyJSON(record *PrometheusDatasource, requestPath 
 	}
 	baseURL.Path = path.Join(baseURL.Path, requestPath)
 	baseURL.RawQuery = values.Encode()
+
+	// SSRF Protection: Use validator's HTTP client with redirect protection
+	client, err := s.ssrfValidator.CreateHTTPClient()
+	if err != nil {
+		return nil, err
+	}
+	client.Timeout = time.Duration(timeout) * time.Second
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
 	applyDatasourceAuth(req, record.Username, password, bearerToken)
-	resp, err := (&http.Client{Timeout: time.Duration(timeout) * time.Second}).Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -394,6 +429,13 @@ func applyDatasourceAuth(req *http.Request, username, password, bearerToken stri
 }
 
 func testDatasourceConnection(datasourceType, rawURL, username, password, bearerToken string, timeout int) (bool, error) {
+	// SSRF Protection: Validate URL before testing connection
+	validator := ssrf.DefaultValidator()
+	validator.AllowedPorts = []int{80, 443, 8080, 9090, 3000, 3100, 16686}
+	if err := validator.ValidateURL(rawURL); err != nil {
+		return false, fmt.Errorf("observability.datasource_invalid_url: %w", err)
+	}
+
 	timeout = normalizeTimeout(timeout)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
@@ -415,7 +457,13 @@ func testDatasourceConnection(datasourceType, rawURL, username, password, bearer
 
 	applyDatasourceAuth(req, username, password, bearerToken)
 
-	client := &http.Client{Timeout: time.Duration(timeout) * time.Second}
+	// SSRF Protection: Use validator's HTTP client with redirect protection
+	client, err := validator.CreateHTTPClient()
+	if err != nil {
+		return false, err
+	}
+	client.Timeout = time.Duration(timeout) * time.Second
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return false, err

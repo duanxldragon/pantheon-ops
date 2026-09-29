@@ -107,7 +107,10 @@ func (s *ArgoCDService) TestServerConnection(id uint64) (bool, error) {
 	}
 
 	// Create ArgoCD client and test connection
-	client := NewArgoCDClient(record.Endpoint, authToken, true)
+	client, err := NewArgoCDClient(record.Endpoint, authToken, true)
+	if err != nil {
+		return false, err
+	}
 	opCtx, cancel := withCustomTimeout(nil, 10*time.Second)
 	defer cancel()
 
@@ -286,7 +289,10 @@ func (s *ArgoCDService) CreateApplication(req CreateApplicationRequest, createdB
 	payload.Spec.Destination.Server = req.DestinationServer
 	payload.Spec.Destination.Namespace = req.DestinationNS
 
-	client := NewArgoCDClient(server.Endpoint, authToken, true)
+	client, err := NewArgoCDClient(server.Endpoint, authToken, true)
+	if err != nil {
+		return nil, err
+	}
 	opCtx, cancel := withCustomTimeout(nil, 10*time.Second)
 	defer cancel()
 	if err := client.CreateApplication(opCtx, payload); err != nil {
@@ -384,7 +390,10 @@ func (s *ArgoCDService) DeleteApplication(id uint64) error {
 	// Delete on the remote server first so local and remote state stay
 	// consistent; the local record is only removed after the remote delete
 	// succeeds.
-	client := NewArgoCDClient(server.Endpoint, authToken, true)
+	client, err := NewArgoCDClient(server.Endpoint, authToken, true)
+	if err != nil {
+		return err
+	}
 	opCtx, cancel := withCustomTimeout(nil, 10*time.Second)
 	defer cancel()
 	if err := client.DeleteApplication(opCtx, record.Name, false); err != nil {
@@ -421,7 +430,10 @@ func (s *ArgoCDService) SyncApplication(id uint64, revision string) (*SyncHistor
 		return nil, err
 	}
 
-	client := NewArgoCDClient(server.Endpoint, authToken, true)
+	client, err := NewArgoCDClient(server.Endpoint, authToken, true)
+	if err != nil {
+		return nil, err
+	}
 	opCtx, cancel := withCustomTimeout(nil, 30*time.Second)
 	defer cancel()
 
@@ -483,7 +495,10 @@ func (s *ArgoCDService) RefreshApplication(id uint64) error {
 	}
 
 	// Create client and refresh
-	client := NewArgoCDClient(server.Endpoint, authToken, true)
+	client, err := NewArgoCDClient(server.Endpoint, authToken, true)
+	if err != nil {
+		return err
+	}
 	opCtx, cancel := withCustomTimeout(nil, 10*time.Second)
 	defer cancel()
 

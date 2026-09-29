@@ -46,11 +46,12 @@ func TestArgoCDClient_TestConnection(t *testing.T) {
 			}))
 			defer server.Close()
 
-			client := NewArgoCDClient(server.URL, "test-token", true)
+			client, err := NewArgoCDClient(server.URL, "test-token", true)
+			require.NoError(t, err)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
-			err := client.TestConnection(ctx)
+			err = client.TestConnection(ctx)
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {
@@ -68,7 +69,8 @@ func TestArgoCDClient_GetVersion(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewArgoCDClient(server.URL, "test-token", true)
+	client, err := NewArgoCDClient(server.URL, "test-token", true)
+	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -90,7 +92,8 @@ func TestArgoCDClient_GetApplicationStatus(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewArgoCDClient(server.URL, "test-token", true)
+	client, err := NewArgoCDClient(server.URL, "test-token", true)
+	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -109,11 +112,12 @@ func TestArgoCDClient_SyncApplication(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewArgoCDClient(server.URL, "test-token", true)
+	client, err := NewArgoCDClient(server.URL, "test-token", true)
+	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := client.SyncApplication(ctx, "test-app", "main")
+	err = client.SyncApplication(ctx, "test-app", "main")
 	assert.NoError(t, err)
 }
 
@@ -125,11 +129,12 @@ func TestArgoCDClient_RefreshApplication(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewArgoCDClient(server.URL, "test-token", true)
+	client, err := NewArgoCDClient(server.URL, "test-token", true)
+	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := client.RefreshApplication(ctx, "test-app")
+	err = client.RefreshApplication(ctx, "test-app")
 	assert.NoError(t, err)
 }
 
@@ -140,11 +145,12 @@ func TestArgoCDClient_Timeout(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewArgoCDClient(server.URL, "test-token", true)
+	client, err := NewArgoCDClient(server.URL, "test-token", true)
+	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 
-	err := client.TestConnection(ctx)
+	err = client.TestConnection(ctx)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "context deadline exceeded")
 }
