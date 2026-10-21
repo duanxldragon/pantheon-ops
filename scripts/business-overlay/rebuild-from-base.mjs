@@ -315,6 +315,26 @@ function readGoModule(targetRoot) {
   return match[1];
 }
 
+// Overlay registry files are injected into an existing Base package directory, so
+// they must declare that directory's package name. Base owns the package (it
+// renamed the iam/menu package from `iam` to `menu`), so read the name from the
+// copied Base tree instead of hardcoding one that silently stops matching after
+// a Base rename.
+function readHostGoPackage(targetRoot, relativeDirectory) {
+  const directory = path.join(targetRoot, relativeDirectory);
+  if (!fs.existsSync(directory)) return null;
+  const candidates = fs
+    .readdirSync(directory)
+    .filter((name) => name.endsWith('.go') && !name.endsWith('_test.go'))
+    .sort();
+  for (const name of candidates) {
+    const source = fs.readFileSync(path.join(directory, name), 'utf8');
+    const match = source.match(/^package\s+([A-Za-z_][A-Za-z0-9_]*)/mu);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 function generateRegistries(targetRoot, manifest, targetModule) {
   const imports = manifest.backendModules
     .map((entry) => `\t${entry.alias} "${entry.importPath.replace(/^pantheon-base\//u, `${targetModule}/`)}"`)
@@ -342,13 +362,15 @@ function generateRegistries(targetRoot, manifest, targetModule) {
       return `\t${prefix}${' '.repeat(maxMenuKeyPrefixLen - prefix.length + 1)}{},`;
     })
     .join('\n');
-  const menu = `package iam\n\nvar businessOverlayMenuComponentKeys = map[string]struct{}{\n${menuEntries}\n}\n`;
+  const menuDirectory = 'backend/modules/system/iam/menu';
+  const menuPackage = readHostGoPackage(targetRoot, menuDirectory) ?? 'menu';
+  const menu = `package ${menuPackage}\n\nvar businessOverlayMenuComponentKeys = map[string]struct{}{\n${menuEntries}\n}\n`;
 
   const outputs = new Map([
     ['backend/modules/business/business_overlay_registry.go', backend],
     ['frontend/src/modules/businessOverlay.ts', frontendModules],
     ['frontend/src/core/router/businessOverlayComponentRegistry.ts', components],
-    ['backend/modules/system/iam/menu/business_overlay_component_registry.go', menu],
+    [`${menuDirectory}/business_overlay_component_registry.go`, menu],
   ]);
   for (const [relativePath, content] of outputs) {
     const target = path.join(targetRoot, relativePath);
