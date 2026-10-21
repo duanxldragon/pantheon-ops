@@ -48,6 +48,25 @@ type Service struct {
 	policy PolicyProvider
 	loader UserRoleLoader
 	issuer TokenIssuer
+	// tenantCtx is the resolved tenant of the acted-on request (contract §3.2).
+	// Nil (or compat mode) = platform scope; multi mode restricts admin reads
+	// and revocations to the active tenant (F03).
+	tenantCtx *tenant.Context
+}
+
+// WithTenantContext returns a request-scoped facade that applies the tenant
+// scope of the resolved context to admin session operations (F03). The same
+// clone pattern is used by LoginService and security.Service.
+func (s *Service) WithTenantContext(ctx *tenant.Context) *Service {
+	clone := *s
+	clone.tenantCtx = ctx
+	return &clone
+}
+
+// scoped restricts tenant-bound session rows. Compat mode (and a nil context)
+// stays unfiltered; multi mode reads only the active tenant's rows.
+func (s *Service) scoped(db *gorm.DB) *gorm.DB {
+	return db.Scopes(tenant.WithTenantScope(s.tenantCtx))
 }
 
 // NewService creates a SessionService.
@@ -317,14 +336,26 @@ func (s *Service) BatchRevokeSessions(currentSessionID string, sessionIDs []stri
 			return 0, errors.New("auth.session.current_revoke_forbidden")
 		}
 	}
+	// F03: candidate IDs are resolved inside the tenant scope first, so a
+	// tenant-scoped manager can neither revoke another tenant's sessions nor
+	// blacklist their tokens via RevokeSessionArtifacts.
+	var scopedIDs []string
+	if err := s.scoped(s.db.Model(&SystemUserSession{})).
+		Where("session_id IN ? AND revoked_at IS NULL", normalized).
+		Pluck("session_id", &scopedIDs).Error; err != nil {
+		return 0, err
+	}
+	if len(scopedIDs) == 0 {
+		return 0, nil
+	}
 	now := time.Now()
 	result := s.db.Model(&SystemUserSession{}).
-		Where("session_id IN ? AND revoked_at IS NULL", normalized).
+		Where("session_id IN ? AND revoked_at IS NULL", scopedIDs).
 		Updates(map[string]interface{}{"revoked_at": &now})
 	if result.Error != nil {
 		return result.RowsAffected, result.Error
 	}
-	for _, sid := range normalized {
+	for _, sid := range scopedIDs {
 		if err := RevokeSessionArtifacts(sid); err != nil {
 			return result.RowsAffected, err
 		}
@@ -350,6 +381,9 @@ func (s *Service) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPageRe
 	base := func() *gorm.DB {
 		db := s.db.Table("system_user_session").
 			Joins("LEFT JOIN system_user ON system_user.id = system_user_session.user_id")
+		// F03: tenant-scoped managers only see their tenant's sessions;
+		// compat/platform context keeps the unfiltered view.
+		db = s.scoped(db)
 		return applyAdminSessionFilters(db, query, now, policy)
 	}
 	// Browser/OS/device filters become user_agent LIKE conditions so the
@@ -417,10 +451,17 @@ func (s *Service) RevokeAnySession(currentSessionID, targetSessionID string) err
 		return common.ErrUnauthorized
 	}
 	now := time.Now()
-	if err := s.db.Model(&SystemUserSession{}).
+	// F03: the revoke itself is tenant-scoped; a tenant-scoped manager cannot
+	// revoke another tenant's session and artifacts are only invalidated for
+	// rows this operator actually revoked.
+	result := s.scoped(s.db.Model(&SystemUserSession{})).
 		Where("session_id = ? AND revoked_at IS NULL", targetSessionID).
-		Updates(map[string]interface{}{"revoked_at": &now}).Error; err != nil {
-		return err
+		Updates(map[string]interface{}{"revoked_at": &now})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil
 	}
 	// 与 RevokeSession/RevokeOwnedSession 保持同一失效语义：DB revoked_at、
 	// refresh token 删除、access token 黑名单三路同时生效，管理员撤销后

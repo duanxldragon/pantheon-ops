@@ -1,4 +1,4 @@
-package iam
+package permission
 
 type PermissionPolicyResp struct {
 	ID      uint64 `json:"id"`

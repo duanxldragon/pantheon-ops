@@ -66,7 +66,7 @@ $env:PANTHEON_DSN="root:dev_password_change_me@tcp(localhost:3306)/pantheon_base
 
 # 启动后端
 cd d:\workspace\go\pantheon-platform\pantheon-base
-go run ./backend/cmd/server/main.go
+go run ./backend/cmd/server
 ```
 
 #### Windows CMD
@@ -76,7 +76,7 @@ set PANTHEON_AUTO_MIGRATE=true
 set PANTHEON_ENV=development
 set PANTHEON_DSN=root:dev_password_change_me@tcp(localhost:3306)/pantheon_base?charset=utf8mb4^&parseTime=True^&loc=Local
 cd d:\workspace\go\pantheon-platform\pantheon-base
-go run .\backend\cmd\server\main.go
+go run .\backend\cmd\server
 ```
 
 #### Linux/Mac
@@ -86,7 +86,7 @@ export PANTHEON_AUTO_MIGRATE=true
 export PANTHEON_ENV=development
 export PANTHEON_DSN='root:dev_password_change_me@tcp(localhost:3306)/pantheon_base?charset=utf8mb4&parseTime=True&loc=Local'
 cd /path/to/pantheon-base/pantheon-base
-go run ./backend/cmd/server/main.go
+go run ./backend/cmd/server
 ```
 
 #### 使用提供的启动脚本

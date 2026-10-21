@@ -1,4 +1,4 @@
-package iam
+package role
 
 import (
 	"encoding/json"

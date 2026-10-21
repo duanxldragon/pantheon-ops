@@ -1,4 +1,4 @@
-package iam
+package user
 
 import "github.com/duanxldragon/pantheon-base/backend/pkg/platformprefs"
 

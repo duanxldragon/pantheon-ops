@@ -9,7 +9,7 @@
  * 优先级: P1 (权限系统基础)
  * 预估耗时: ~2分钟
  *
- * 选择器基准 (与 modules/system/menu/MenuList.tsx 对齐):
+ * 选择器基准 (与 modules/system/iam/menu/MenuList.tsx 对齐):
  * - 菜单节点以 titleKey 标识; 表格默认展示顶层树, 新节点需用搜索框定位
  * - 表单: 父级 TreeSelect / 标题键 (必填) / 路径 / 组件键 / 模块
  *   - 服务端校验: type=C 必须携带已注册组件键, module 需在注册域内

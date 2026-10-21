@@ -1,4 +1,4 @@
-package iam
+package role
 
 type SystemRoleMenu struct {
 	RoleID uint64 `gorm:"primaryKey;autoIncrement:false" json:"roleId"`

@@ -47,7 +47,7 @@ import {
   TABLE_ACTION_COLUMN_WIDTH,
 } from '../../../../components';
 import SessionDetailModal from '../../session/components/SessionDetailModal';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 import '../../auth.css';
 
 const FormItem = Form.Item;
@@ -439,6 +439,8 @@ const SecurityCenter: React.FC = () => {
       passwordForm.resetFields();
       message.success(t('system.profile.passwordSuccess'));
       await loadSecurityContext();
+    } catch {
+      message.error(t('common.actionFailed'));
     } finally {
       setSavingPassword(false);
     }
@@ -450,6 +452,8 @@ const SecurityCenter: React.FC = () => {
       await revokeSession(sessionId);
       message.success(t('auth.session.revokeSuccess'));
       await loadSecurityContext();
+    } catch {
+      message.error(t('common.actionFailed'));
     } finally {
       setRevokingSessionId(null);
     }

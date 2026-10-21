@@ -43,9 +43,9 @@ import {
 } from '../../../../components';
 import { formatClientSummary } from '../clientInfo';
 import SessionDetailModal from './SessionDetailModal';
-import { getSettingGroup, type SettingGroup } from '../../../system/setting/api';
+import { getSettingGroup, type SettingGroup } from '../../../system/config/setting/api';
 import { loadRetentionSetting } from '../../../system/audit/retentionSetting';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 import '../../auth.css';
 
 const defaultRetentionOptions = [1, 7, 30];
@@ -180,7 +180,9 @@ const SessionList: React.FC = () => {
     });
   };
 
+  const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
   const removeSession = async (row: AdminSessionRow) => {
+    setRevokingSessionId(row.sessionId);
     try {
       await revokeAdminSession(row.sessionId);
       message.success(t('auth.session.revokeSuccess'));
@@ -188,6 +190,8 @@ const SessionList: React.FC = () => {
       await loadData(query, { silent: true });
     } catch {
       message.error(t('common.actionFailed'));
+    } finally {
+      setRevokingSessionId(null);
     }
   };
 
@@ -375,6 +379,7 @@ const SessionList: React.FC = () => {
                 size="small"
                 status="danger"
                 icon={<IconDelete />}
+                loading={revokingSessionId === row.sessionId}
                 disabled={!canDelete || isSelf || !!row.revokedAt}
               >
                 {t('auth.session.revoke')}

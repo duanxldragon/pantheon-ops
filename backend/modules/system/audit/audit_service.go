@@ -1,4 +1,4 @@
-package system
+package audit
 
 import (
 	"context"
@@ -529,42 +529,96 @@ func operationLogToResp(row middleware.SystemLogOper) OperationLogResp {
 	}
 }
 
+// Backfill batching limits: rows are processed in bounded keyset batches with
+// a per-run cap, so a large legacy table neither balloons memory on bootstrap
+// nor blocks startup for an unbounded number of single-row UPDATEs. The next
+// bootstrap run resumes from the remaining rows.
+const (
+	operationLogBackfillBatchSize = 500
+	operationLogBackfillRunCap    = 10000
+)
+
 func (s *AuditService) backfillOperationLogDerivedFields() error {
 	if s.db == nil {
 		return common.ErrDatabaseNotInitialized
 	}
 
-	var rows []middleware.SystemLogOper
-	if err := s.db.
-		Where("COALESCE(source_domain, '') = '' OR COALESCE(source_page, '') = '' OR (status = ? AND COALESCE(failure_category, '') = '')", common.OperationStatusFailure).
-		Find(&rows).Error; err != nil {
-		return err
-	}
+	lastID := uint64(0)
+	processed := 0
+	for processed < operationLogBackfillRunCap {
+		batchLimit := nextBackfillBatchLimit(processed)
 
-	for _, row := range rows {
-		sourceDomain := strings.TrimSpace(row.SourceDomain)
-		if sourceDomain == "" {
-			sourceDomain = detectOperationLogSourceDomain(row.OperURL)
-		}
-		sourcePage := strings.TrimSpace(row.SourcePage)
-		if sourcePage == "" {
-			sourcePage = detectOperationLogSourcePage(row.OperURL)
-		}
-		failureCategory := strings.TrimSpace(row.FailureCategory)
-		if failureCategory == "" {
-			failureCategory = detectOperationLogFailureCategory(row.Status, row.ErrorMsg, row.JsonResult)
-		}
-		if err := s.db.Model(&middleware.SystemLogOper{}).
-			Where("id = ?", row.ID).
-			Updates(map[string]any{
-				"source_domain":    sourceDomain,
-				"source_page":      sourcePage,
-				"failure_category": failureCategory,
-			}).Error; err != nil {
+		var rows []middleware.SystemLogOper
+		err := s.db.
+			Where("id > ?", lastID).
+			Where("COALESCE(source_domain, '') = '' OR COALESCE(source_page, '') = '' OR (status = ? AND COALESCE(failure_category, '') = '')", common.OperationStatusFailure).
+			Order("id ASC").
+			Limit(batchLimit).
+			Find(&rows).Error
+		if err != nil {
 			return err
+		}
+		if len(rows) == 0 {
+			break
+		}
+
+		if err := s.applyBackfillBatch(rows); err != nil {
+			return err
+		}
+
+		lastID = rows[len(rows)-1].ID
+		processed += len(rows)
+		if len(rows) < batchLimit {
+			break
 		}
 	}
 	return nil
+}
+
+// nextBackfillBatchLimit clamps the batch size to the remaining per-run cap.
+func nextBackfillBatchLimit(processed int) int {
+	if remaining := operationLogBackfillRunCap - processed; remaining < operationLogBackfillBatchSize {
+		return remaining
+	}
+	return operationLogBackfillBatchSize
+}
+
+// applyBackfillBatch derives and writes the missing audit fields for one batch
+// inside a single transaction, so a batch either lands fully or not at all.
+func (s *AuditService) applyBackfillBatch(rows []middleware.SystemLogOper) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		for _, row := range rows {
+			sourceDomain, sourcePage, failureCategory := deriveBackfillFields(row)
+			if err := tx.Model(&middleware.SystemLogOper{}).
+				Where("id = ?", row.ID).
+				Updates(map[string]any{
+					"source_domain":    sourceDomain,
+					"source_page":      sourcePage,
+					"failure_category": failureCategory,
+				}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+// deriveBackfillFields fills missing audit dimensions for one row, falling
+// back to the same detectors the request path uses.
+func deriveBackfillFields(row middleware.SystemLogOper) (sourceDomain, sourcePage, failureCategory string) {
+	sourceDomain = strings.TrimSpace(row.SourceDomain)
+	if sourceDomain == "" {
+		sourceDomain = detectOperationLogSourceDomain(row.OperURL)
+	}
+	sourcePage = strings.TrimSpace(row.SourcePage)
+	if sourcePage == "" {
+		sourcePage = detectOperationLogSourcePage(row.OperURL)
+	}
+	failureCategory = strings.TrimSpace(row.FailureCategory)
+	if failureCategory == "" {
+		failureCategory = detectOperationLogFailureCategory(row.Status, row.ErrorMsg, row.JsonResult)
+	}
+	return sourceDomain, sourcePage, failureCategory
 }
 
 func normalizeAuditLogIDs(ids []uint64) []uint64 {

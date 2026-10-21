@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md
-updated_at: 2026-09-23
+updated_at: 2026-10-11
 ---
 
 # 仓库布局、命名与分层边界规范
@@ -108,6 +108,7 @@ backend/uploads/
 ### 5.1 后端 Go
 
 - 文件名一律 snake_case，正则 `^[a-z0-9_]+\.go$`：禁止 PascalCase、连字符、空格。
+- **包名必须等于所在目录名**（`package <dirname>`）。这是 `go doc`、编译器报错、IDE 跳转和 import 路径能与目录树对上的前提；两者不一致会强迫每个调用方写 import 别名，等于承认"目录名才是真身份"。唯一例外是 `backend/cmd/*`：可执行入口必须 `package main`，不参与目录名比较；外部测试包 `foo_test`（位于 `foo/`）同样视为合规。门禁规则 `go-package-dir-match`。
 - 测试文件 `*_test.go` 与被测文件同包同目录；纯函数回归测试用 `_pure_test.go` 与 DB-backed 测试区分。
 - 职责后缀词汇表：
 
@@ -130,25 +131,48 @@ backend/uploads/
 
 ### 5.2 前端 TypeScript / TSX
 
+判定只看一件事：**这个文件声明组件吗？** 声明组件 → PascalCase `*.tsx`；不声明组件 → camelCase（后缀取 `.ts`，含 JSX 时取 `.tsx`）。门禁 `frontend-file-naming` 按此规则校验 `frontend/src/modules/**` 与 `frontend/src/core/**`。
+
 | 类别 | 命名 | 位置 | 示例 |
 | --- | --- | --- | --- |
-| 组件 | PascalCase `*.tsx` | `frontend/src/components/<group>/`、`frontend/src/modules/**/components/` | `PageEmpty.tsx` |
-| Hook | `use<PascalCase>.ts(x)` | `frontend/src/hooks/` | `usePermission.ts` |
+| 组件 | PascalCase `*.tsx` | `frontend/src/components/<group>/`、`frontend/src/modules/**`（见下"组件放置"） | `PageEmpty.tsx`、`UserList.tsx` |
+| Hook | `use<PascalCase>.ts(x)` | `frontend/src/hooks/`、`frontend/src/core/**`、模块目录 | `usePermission.ts`、`useLayoutMenu.tsx` |
 | 非组件模块 | camelCase `*.ts` | 与消费者同目录 | `tablePreferences.ts` |
+| 非组件 JSX 模块 | camelCase `*.tsx` | 与消费者同目录 | `icon.tsx`、`clientInfo.tsx`、`widgets.tsx` |
 | 测试 | `*.test.ts(x)` | `frontend/tests/`（禁止在 `frontend/src/`） | `router.test.ts` |
 | API | camelCase `*.ts` | `frontend/src/api/` | `file.ts` |
 | i18n 资源 | locale 命名 | `frontend/src/i18n/resources/` | `zh-CN.ts` |
 | 生成注册表 | 固定名 | `frontend/src/modules/generated/`、`frontend/src/core/router/` | `business.ts`、`generatedComponentRegistry.ts` |
 | 生成模块 | 业务模块名 | `frontend/src/modules/business/<module>/` | 生成器产物 |
 | 组件样式 | 与被修饰组件同名（`ComponentName.css`），与组件同目录 | 组件目录 | `TimeRangeFilter.css` |
-| 分组 / 模块级共享样式 | 以**所在目录名**命名（`<dir>.css`），或放在显式 `shared/` 子目录 | 分组目录 | `auth.css`、`components/shared/list-page.css` |
-| 跨模块 / 全局共享样式 | 集中在 `frontend/src/assets/` 或全局 `index.css` | shared | `index.css` |
+| 分组 / 模块级共享样式 | 以**所在目录名**命名（`<dir>.css`），或放在显式 `shared/` 子目录 | 分组目录 | `auth.css` |
+| 跨模块 / 全局共享样式 | 集中在 `frontend/src/assets/` 或全局 `index.css` | shared | `assets/list-page.css`、`index.css` |
 
 样式分三层：**组件专属**样式文件名必须等于组件名（不是 BEM 块名、也不是目录名）；
-**分组/模块级**共享样式以目录名命名或在 `shared/` 下；**跨模块**共享样式必须有显式共享位置。
+**分组/模块级**共享样式以目录名命名或在 `shared/` 下；**跨模块**共享样式必须有显式共享位置——
+被两个及以上 `modules/<domain>/` 引用的样式表属于跨模块共享，必须落在 `frontend/src/assets/`，
+不得寄居在某个模块内部（否则引用方要跨域 import 该模块，与 §8.2 冲突）。
 BEM 类名（`.time-range-filter__x`）不随文件名变化。
 
-`index.ts` 仅用于 barrel 再导出，不放实现。
+**非组件 JSX 模块**：文件含 JSX 所以后缀是 `.tsx`，但导出的是 render 函数、数据或类型而不是组件
+（`renderMenuIcon()`、`renderClientInfo()`、widget 定义表）。这类文件用 camelCase；
+**一旦声明组件就必须改成 PascalCase**——门禁通过 `React.FC` / `React.memo` / `React.forwardRef` /
+`ComponentType` 等组件类型标记，以及 PascalCase 的 `const`/`function`/`class` 声明来判定。
+
+**组件放置**：同一个模块内二选一，不要混用——组件数量少（1–3 个）时直接放模块根
+（`modules/system/iam/user/UserList.tsx`）；模块有成组的组件时统一收进 `components/` 子目录
+（`modules/auth/login/components/Login.tsx`）。这条是团队约定而非门禁项：门禁只校验命名，
+不校验放置位置，因为搬动组件目录不影响可读性却会制造大量无意义 diff。
+
+**`index.ts` / `index.tsx` 仅用于 barrel 再导出，不放实现**（门禁 `barrel-only`）。
+被门禁覆盖的范围是 `frontend/src/{core,components,hooks}/**/index.ts(x)`——这些层的约定就是 barrel。
+两类合法例外：`frontend/src/modules/**/index.ts` 是模块描述符（`defineModule({...})`），
+`frontend/src/i18n/index.ts` 是 locale 表，二者都不是 barrel，不参与该规则。
+
+**路径别名**：跨模块 import 用 `@/`（`@/core/...`、`@/components/...`），
+配置在 `frontend/tsconfig.app.json` 的 `paths`、`frontend/vite.config.ts` 与 `frontend/vitest.config.ts` 的
+`resolve.alias`，三处必须同步。既有的相对 import 属于存量、允许保留，后续按需迁移；
+新增的跨模块 import 应使用别名——相对路径一旦目录调整就要全量重写。
 
 ### 5.3 文档命名
 
@@ -218,16 +242,32 @@ BEM 类名（`.time-range-filter__x`）不随文件名变化。
 
 - ✅ 允许；⚠️ 允许但只经 public contract / adapter / 读模型，不得 import 对方 Service / Repository / Handler；❌ 禁止。
 - 前端遵循同一矩阵：`business` 不得 import `modules/system|auth|platform` 内部；`system` 子域之间只经 `frontend/src/api` 或公开组件契约。
+- **前端 `system/*` 子域的"public contract" = 对方的 `api` 模块**（`modules/system/<sub>/<leaf>/api.ts`）。
+  子域 A 可以 `import` 子域 B 的 `api`，不得直接 import B 的组件 / hook / 工具文件；
+  需要复用 B 的渲染器时，由 B 在自己的 `api` 模块里再导出（如 `iam/user/api.ts` 再导出
+  `UserDetailContent`），这就构成"公开组件契约"，调用方仍只依赖 `api`。
+  门禁 `system/*` 的 ts 规则按**解析后的目标路径**判定，而不是按 import 字面量——
+  因为 `../../../../i18n`（顶层 `frontend/src/i18n`）与 `../../i18n`（`system/i18n` 子域）
+  末段同名，只看字面量无法区分。
 
 ### 8.3 违规基线与收口
 
-- 门禁 `scripts/harness/check-boundaries.mjs` 现已覆盖 `business`、`platform`、`auth` 三类生产代码；`_test.go` 与 `*.test.*` / `*.spec.*` 显式豁免（测试可跨域装配，生产代码不可）。
+- 门禁 `scripts/harness/check-boundaries.mjs` 现已覆盖 `business`、`platform`、`auth` 三类生产代码，**以及每个 `system/*` 子域**；`_test.go` 与 `*.test.*` / `*.spec.*` 显式豁免（测试可跨域装配，生产代码不可）。
+- **仓库根定位（2026-10-11 加固）**：`scanRepository` 原先只要目录名等于仓库名就采信，导致本地一个遗留空壳目录
+  `pantheon-base/pantheon-base/`（只含一个空的 `docs/`）被当成 checkout——**所有层扫描读了 0 个文件，
+  门禁在"什么都没扫"的状态下报告 no findings**。现在根定位要求候选目录真的含 `backend/` 或 `frontend/`；
+  定位失败时 `--strict` 直接失败，不允许"扫不到也算通过"。
 - `platform -> system/org/dept` 已按 §8.2 修复：adapter 移入组合根 `backend/cmd/server/platform_org_governance.go`，platform 模块不再直接 import system 实现。
+- `system/*` 子域的 ts 规则（2026-10-11 补齐）：此前 `systemDomainRules()` 的 `ts: []` 是空规则，
+  即使目录存在也等于不检查。现按 §8.2 校验"跨子域只能走对方 `api`"。
 - 其余已知违规冻结在 `config/boundary-baseline.json`（逐条带 `reason` 与 `reviewBy=2026-12-31`）。CI 以 `--baseline` 放行已知项、阻断新增项：
-  - `frontend/src/modules/platform/widgets.tsx` 对 `system/menu/api` 的**类型**依赖；
-  - `auth/login`、`auth/login/login_runtime.go`、`auth/security/security_service.go` 对 `system/iam/user` 的直接依赖；
-  - 4 个 auth 页面 import `system/components/shared/list-page.css`。
+  - `frontend/src/modules/platform/widgets.tsx` 对 `system/iam/menu/api` 的**类型**依赖（唯一剩余项）。
+- **已按期收口（2026-10-11）**：4 个 auth 页面 import `system/components/shared/list-page.css` 的基线条目已删除——
+  按条目自带的 ratchet 把该样式表提升到 `frontend/src/assets/list-page.css`，auth 不再跨域 import system 模块，
+  名不符实的 `modules/system/components/` 目录随之消失。基线从 5 条缩到 1 条。
+  （更早的 3 条 `backend/modules/auth/* -> modules/system/iam/user` 已于 2026-09-23 随 `pkg/contracts/authuser` 端口落地而删除。）
 - 基线是**有期限的受控例外**，到期必须重审或修复；不得把新违规写进基线来消音。
+  条目的 ratchet 描述就是它的修复方案：条件具备时应当**执行** ratchet 并删除条目，而不是续期。
 - 测试文件与生成文件的跨域依赖单独处理，豁免必须有注释和证据，不能与生产代码混为一谈。
 
 ## 9. 受控例外
@@ -241,6 +281,13 @@ BEM 类名（`.time-range-filter__x`）不随文件名变化。
 | `frontend/src/modules/generated` | 生成目录 | platform | 生成注册表需要稳定固定路径，按域白名单纳入 | 生成治理任务复核 |
 | `backend/tests/`、`frontend/tests/` | 顶层测试目录 | platform | 测试与运行时代码物理分离，便于白名单与门禁 | 结构门禁变更时复核 |
 | `config/`、`database/`、`grafana/`、`openspec/`、`schema/generated/` | 根级稳定入口 | platform | 见 §4，被脚本 / compose / 治理流程直接引用 | 引用方变更时复核 |
+| `frontend/src/modules/system/profile` | 单侧独有（仅前端） | system/auth | 个人中心页面后端无同名包，逻辑散在 `auth/security/profile_dto.go` 与 `system/iam/user/user_preferences.go`；它是页面聚合而非领域包 | 后端聚合 `profile` 包或前端并入 `iam/user` 时复核 |
+| `backend/modules/system/iam/tenant` | 单侧独有（仅后端） | system/iam | 租户模块无前端对应：租户切换逻辑在 `auth/login`（登录期选择租户），运行期无独立租户页面 | 前端补租户切换入口时复核 |
+| `frontend` 缺 `auth/oidc` 对应 | 单侧独有（仅后端） | system/auth | SSO/OIDC 在前端走浏览器跳转，没有独立前端模块；`auth/index.ts` 已注释说明 | auth 合同变更时复核 |
+| 空的 `frontend/src/modules/business/` | 生成容器 | platform | 与 `backend/modules/business/*` 对应，HEAD 无生成产物属正常（产物随生成任务出现） | 生成治理任务复核 |
+
+前三条同时由门禁 `domain-correspondence` 登记在 `scripts/harness/check-structure-contract.mjs` 的
+`CORRESPONDENCE_EXCEPTIONS`：单侧独有的子域只有在此登记后才不算违规，未登记的单侧目录会直接失败。
 
 例外不是“白名单扩容”。把违规目录塞进例外表而不修复，等同掩盖问题。
 
@@ -250,13 +297,26 @@ BEM 类名（`.time-range-filter__x`）不随文件名变化。
 
 | 规则区域 | 强制器 | 命令 | CI |
 | --- | --- | --- | --- |
-| §2 放置规则 + §5 命名 | `scripts/harness/check-structure-contract.mjs` | `npm run check:structure` | `quality.yml`（阻塞） |
-| §8.2 `business` / `platform` / `auth` 跨层 import | `scripts/harness/check-boundaries.mjs` | `node scripts/harness/check-boundaries.mjs --strict --repo pantheon-base --baseline config/boundary-baseline.json` | `ci.yml`（阻塞；已知欠债见 §8.3 基线） |
+| §2 放置规则 + §5.1 Go 命名 + §5.2 前端命名/barrel + §11 域对应 | `scripts/harness/check-structure-contract.mjs` | `npm run check:structure` | `quality.yml`（阻塞） |
+| §8.2 `business` / `platform` / `auth` / 各 `system/*` 子域跨层 import | `scripts/harness/check-boundaries.mjs` | `node scripts/harness/check-boundaries.mjs --strict --repo pantheon-base --baseline config/boundary-baseline.json` | `ci.yml`（阻塞；已知欠债见 §8.3 基线） |
 | §6 文档 frontmatter / 类型 / 合同关联 | `scripts/frontmatter-check.mjs`、`scripts/harness/check-doc-frontmatter.mjs` | `npm run check:docs-frontmatter` | `quality.yml` |
 | §6 文档内部链接 | `scripts/harness/check-doc-links.mjs` | `npm run check:harness-docs` | harness 检查 |
 | §7 生成标记与产物存在性 | `scripts/harness/check-generated.mjs` | `npm run check:generated` | `quality.yml`（阻塞） |
 | §7 生成模块漂移 | `frontend/scripts/cleanup-generated-modules.mjs` | `npm run check:generated-modules` | `quality.yml` |
 | §7 生成注册表存在性与非空（旧） | `scripts/check-arch-boundaries.mjs`（`checkGeneratedRegistry`） | 未接入 npm/CI | **gap** |
+
+`check-structure-contract.mjs` 的规则清单（全部落在 0 findings，新规则同样必须落在 0）：
+
+| 规则 | 覆盖 |
+| --- | --- |
+| `go-placement` / `go-file-naming` | Go 文件位置与 snake_case 文件名 |
+| `go-package-dir-match` | §5.1 包名 == 目录名（`cmd/*` 豁免） |
+| `frontend-file-naming` | §5.2 `modules/**`、`core/**` 的 `.ts`/`.tsx` 命名 |
+| `barrel-only` | §5.2 `core|components|hooks/**/index.ts(x)` 仅再导出 |
+| `component-naming` / `hook-naming` | 共享 `components/**` 与 `hooks/**` |
+| `domain-correspondence` | §11 前后端子域对应（含 §9 例外登记） |
+| `frontend-root` / `frontend-src-root` / `frontend-module-domain` / `backend-root` / `backend-module-domain` | §2 放置白名单 |
+| `no-tests-in-src` / `no-tracked-binaries` | §2.2 测试位置、禁止提交二进制 |
 
 ### 10.2 变更流程（先规范，后门禁）
 
@@ -269,3 +329,68 @@ BEM 类名（`.time-range-filter__x`）不随文件名变化。
 5. 补或更新对应测试（`tests/scripts/**`），并运行 §10.1 的验证命令。
 
 只改文档不改门禁，或只扩白名单不修根因，都不算完成。
+
+## 11. 前后端域对应表
+
+本节是"前端叶子 ↔ 后端路径 ↔ `module` 值 ↔ componentKey ↔ API 前缀"的**单一事实源**。
+在它出现之前，对应关系只能靠人对比目录深度来猜，每次审查都要重新解释一遍。
+
+- **物理路径**：前端 `frontend/src/modules/<domain>/…`，后端 `backend/modules/<domain>/…`，`<domain>` 两侧同名（`auth`/`business`/`lowcode`/`platform`/`system`）。
+- **叶子名**：业务叶子两侧一致（`user`/`role`/`menu`/`permission`/`dept`/`post`/`dict`/`setting`/`audit`/`i18n`）。
+- **聚合层**：后端在 `system` 下多一层 `iam`/`org`/`config`；前端**物理上同样保留这一层**
+  （`frontend/src/modules/system/iam/user/`），因此两侧目录深度一致、可以直接对照。
+- **`module` 值**：菜单/权限分组用的逻辑标识（如 `system.iam`），**不等于**物理路径。
+  它由后端 `backend/modules/system/seed.go` 的 `Module` 字段定义，前端模块描述符必须与之一致，
+  由 `frontend/scripts/check-menu-contract.mjs` 校验。
+- **componentKey**：菜单指向的前端组件，是**字面量字符串**（如 `system/user/UserList`），
+  不是由路径推导。后端 seed 的 `Component`、前端 `componentRegistry.ts`、路由 `componentKey`
+  三处必须逐字一致，由 `check:menu-contract` 校验。
+- **API 前缀**：REST 资源名，可能与目录名不同（见下"审计"一行）。
+
+### 11.1 `system` 底座
+
+| 概念 | 前端路径 | 后端路径 | `module` 值 | componentKey | API 前缀 |
+| --- | --- | --- | --- | --- | --- |
+| 用户 | `system/iam/user` | `system/iam/user` | `system.iam` | `system/user/UserList`、`system/user/UserDetail` | `/system/user` |
+| 角色 | `system/iam/role` | `system/iam/role` | `system.iam` | `system/role/RoleList` | `/system/role` |
+| 菜单 | `system/iam/menu` | `system/iam/menu` | `system.iam` | `system/menu/MenuList` | `/system/menu` |
+| 权限 | `system/iam/permission` | `system/iam/permission` | `system.iam` | `system/permission/PermissionList` | `/system/permission` |
+| 租户 | **无**（§9 例外） | `system/iam/tenant` | — | — | （仅后端） |
+| 部门 | `system/org/dept` | `system/org/dept` | `system.org` | `system/dept/DeptList` | `/system/dept` |
+| 岗位 | `system/org/post` | `system/org/post` | `system.org` | `system/post/PostList` | `/system/post` |
+| 字典 | `system/config/dict` | `system/config/dict` | `system.config` | `system/dict/DictPage` | `/system/dict` |
+| 设置 | `system/config/setting` | `system/config/setting` | `system.config` | `system/setting/SettingOverviewPage`、`system/setting/SettingGroupPage` | `/system/setting` |
+| 国际化 | `system/i18n` | `system/i18n` | `system.config` | `system/i18n/I18nList` | `/system/i18n` |
+| 审计 | `system/audit` | `system/audit` | `system.audit` | `system/audit/OperationLogList` | `/system/operation-log` |
+| 个人中心 | `system/profile` | **无**（§9 例外） | （无 `module` 值） | `system/profile/ProfileCenter` | `/system/profile` |
+
+两处"看着不一致但属既定分层"，不要按目录名去"修正"：
+
+- **国际化**的物理包是 `system/i18n`（与 `config` 平级），但它挂在 **config 菜单组**下，
+  所以 `module` 值是 `system.config`、seed 里 `ParentKey: "config"`。后端 seed 与前端描述符一致，
+  这是菜单信息架构，不是漂移。
+- **审计**是"模块名 vs REST 资源名"两层词汇：目录 / 包 / `module` 值用 `audit`，
+  路由 / API / 权限码用 `operation-log`（`system:operation-log:*`）。**两侧对两层名字的取值完全一致**，
+  所以它不是"同一功能四个名字"。统一词汇会改动 API 路由、权限码与存量菜单数据，
+  违反 `.harness/NAMING_AND_BOUNDARIES_REMEDIATION_PLAN_2026-09-22.md` 的非目标
+  "不改变 API、数据库、权限或运行时行为"，因此**保留为分层**并由本节固化。
+- **个人中心**没有 `module` 值和菜单项（`menus: []`、`permissions: []`），它是路由级页面而非菜单模块，
+  入口在用户头像下拉里——这正是它登记为受控例外的原因。
+
+### 11.2 `auth` 与其它域
+
+| 概念 | 前端路径 | 后端路径 | `module` 值 | 说明 |
+| --- | --- | --- | --- | --- |
+| 登录 | `auth/login` | `auth/login` | `system.auth` | 租户选择也在此 |
+| MFA | `auth/mfa` | `auth/mfa` | `system.auth` | |
+| SSO / OIDC | **无**（§9 例外） | `auth/oidc` | — | 前端走浏览器跳转，无独立模块 |
+| 安全中心 | `auth/security` | `auth/security` | `system.auth` | componentKey `auth/SecurityCenter` 等 |
+| 会话 | `auth/session` | `auth/session` | `system.auth` | componentKey `auth/SessionList` |
+| 平台仪表盘 | `platform/{Dashboard,widgets,api}` | `platform/{dashboard_*,health,routes}` | `platform` | `health`/`routes` 无前端对应属正常 |
+| 动态模块 | `lowcode/dynamicmodule` | `lowcode/dynamicmodule` | `system.lowcode` | UI 挂 `/system/modules` |
+| 生成器 | `lowcode/generator` | `lowcode/generator` | `system.lowcode` | 前端多一层 `pages/` |
+| 业务生成模块 | `business/<module>`（生成） | `business/<module>`（生成） | 业务模块名 | 生成产物，HEAD 为空属正常 |
+
+门禁 `domain-correspondence` 只校验 `system` 底座的前两层子域（见 §10.1）；
+`auth`/`platform`/`lowcode`/`business` 的对应关系由本节作为文档事实源，
+新增单侧目录时应同步更新本节，并说明是补对侧还是登记 §9 例外。

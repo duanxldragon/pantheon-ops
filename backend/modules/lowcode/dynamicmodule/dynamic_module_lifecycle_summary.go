@@ -1,6 +1,6 @@
 package dynamicmodule
 
-import systemi18n "github.com/duanxldragon/pantheon-base/backend/modules/system/i18n"
+import "github.com/duanxldragon/pantheon-base/backend/modules/system/i18n"
 
 type ModuleI18nLifecycleSummary struct {
 	Module                         string   `json:"module"`
@@ -15,14 +15,14 @@ type ModuleI18nLifecycleSummary struct {
 	ArchivedRetentionThresholdDays int64    `json:"archivedRetentionThresholdDays"`
 }
 
-func buildModuleI18nLifecycleSummary(moduleName string, triggered bool, resp *systemi18n.I18nUnusedLifecycleAdvanceResp) *ModuleI18nLifecycleSummary {
+func buildModuleI18nLifecycleSummary(moduleName string, triggered bool, resp *i18n.I18nUnusedLifecycleAdvanceResp) *ModuleI18nLifecycleSummary {
 	summary := &ModuleI18nLifecycleSummary{
 		Module:                         moduleName,
 		Triggered:                      triggered,
 		ObservedKeys:                   make([]string, 0),
 		ArchivedKeys:                   make([]string, 0),
 		DeletedKeys:                    make([]string, 0),
-		ArchivedRetentionThresholdDays: systemi18n.I18nArchivedRetentionThresholdDays,
+		ArchivedRetentionThresholdDays: i18n.I18nArchivedRetentionThresholdDays,
 	}
 	if resp == nil {
 		return summary

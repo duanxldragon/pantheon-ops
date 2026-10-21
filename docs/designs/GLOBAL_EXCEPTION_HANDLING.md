@@ -5,12 +5,14 @@ layer: platform
 status: Draft
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-06-26
+updated_at: 2026-09-30
 ---
 
 # 全局异常处理设计
 
 English version: [GLOBAL_EXCEPTION_HANDLING.en.md](./GLOBAL_EXCEPTION_HANDLING.en.md)
+
+> 路径说明：本文为 Draft，文中 pkg/errors、pkg/response、internal/middleware/recovery 等路径是当时的设计目标路径，尚未落地；实施前需按现行布局调整为 backend/pkg/...、backend/internal/...。
 
 ## 1. 背景与目标
 
@@ -218,14 +220,14 @@ func Error(c *gin.Context, err error) {
 
 ### Phase 1: 中间件基础设施
 
-- [ ] 创建 `pkg/errors/errors.go`
-- [ ] 创建 `internal/middleware/recovery.go`
-- [ ] 创建 `internal/middleware/error_handler.go`
+- [ ] 创建 backend/pkg/errors/errors.go
+- [ ] 创建 backend/internal/middleware/recovery.go
+- [ ] 创建 backend/internal/middleware/error_handler.go
 - [ ] 在 `main.go` 注册中间件
 
 ### Phase 2: 统一响应
 
-- [ ] 创建 `pkg/response/response.go`
+- [ ] 创建 backend/pkg/response/response.go
 - [ ] 改造现有 handler 返回方式
 
 ### Phase 3: i18n 集成
@@ -253,10 +255,10 @@ func Error(c *gin.Context, err error) {
 
 | 文件                                   | 作用         |
 | -------------------------------------- | ------------ |
-| `pkg/errors/errors.go`                 | 错误类型定义 |
-| `internal/middleware/recovery.go`      | Panic 恢复   |
-| `internal/middleware/error_handler.go` | 错误处理     |
-| `pkg/response/response.go`             | 响应格式化   |
+| backend/pkg/errors/errors.go                 | 错误类型定义 |
+| backend/internal/middleware/recovery.go      | Panic 恢复   |
+| backend/internal/middleware/error_handler.go | 错误处理     |
+| backend/pkg/response/response.go             | 响应格式化   |
 | `backend/cmd/server/main.go`           | 中间件注册   |
 
 ---

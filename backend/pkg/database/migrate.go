@@ -25,6 +25,11 @@ const migrationsTableName = "schema_migrations"
 const menuHideInNavCompatMigrationVersion = 6
 const moduleRegistrationCompatMigrationVersion = 8
 
+// currentRuntimeSchemaVersion is the migration baseline represented by the
+// current-schema compatibility markers. Keep it ahead of data-only migrations
+// so existing runtime schemas still execute those migrations once.
+const currentRuntimeSchemaVersion = 20
+
 type schemaColumnMarker struct {
 	table  string
 	column string
@@ -145,7 +150,11 @@ func bootstrapExistingCurrentSchema(dsn string) error {
 		return err
 	}
 	if looksCurrent {
-		return bootstrapMigrationVersion(db, latestVersion)
+		bootstrapVersion := currentRuntimeSchemaVersion
+		if latestVersion < bootstrapVersion {
+			bootstrapVersion = latestVersion
+		}
+		return bootstrapMigrationVersion(db, bootstrapVersion)
 	}
 
 	looksPreModuleRegistration, err := looksLikePreModuleRegistrationRuntimeSchema(db)
@@ -173,6 +182,9 @@ func bootstrapMigrationVersion(db *sql.DB, targetVersion int) error {
 		return err
 	}
 	if versionRecorded && !dirty && version == targetVersion {
+		return nil
+	}
+	if versionRecorded && !dirty && version > targetVersion {
 		return nil
 	}
 

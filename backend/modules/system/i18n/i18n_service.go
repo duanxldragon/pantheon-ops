@@ -1,5 +1,5 @@
 //nolint:revive // I18n service intentionally exposes a broad administrative facade.
-package system
+package i18n
 
 import (
 	"fmt"

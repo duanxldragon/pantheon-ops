@@ -25,6 +25,13 @@ export default defineConfig({
         })]
       : []),
   ],
+  // Path alias: canonical form for cross-module imports (REPOSITORY_LAYOUT §5.2).
+  // Must stay in sync with the `paths` entry in tsconfig.app.json and vitest.config.ts.
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
   server: {
     hmr: process.env.PANTHEON_SMOKE === '1' ? { overlay: false } : undefined,
     proxy: {

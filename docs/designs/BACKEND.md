@@ -19,7 +19,7 @@ English version: [BACKEND.en.md](./BACKEND.en.md)
 
 ## 2. 功能开发模式：垂直切片 (Vertical Slices)
 
-每个功能包（如 `user`）必须自包含所有层级逻辑，严禁在 `modules/` 目录下进行“水平切包”（如把所有 service 放在一个 service 文件夹）。
+每个功能包（如 `user`）必须自包含所有层级逻辑，严禁在 `backend/modules/` 目录下进行“水平切包”（如把所有 service 放在一个 service 文件夹）。
 
 ### 2.1 垂直切片文件构成 (以 user 为例)
 
@@ -259,6 +259,6 @@ English version: [BACKEND.en.md](./BACKEND.en.md)
 
 ## 6. 解耦准则
 
-- **业务开发**: 只能在 `modules/business/` 下创建新包。
+- **业务开发**: 只能在 `backend/modules/business/` 下创建新包。
 - **Context 注入**: 模块间禁止直接 import 对方 service。身份信息（UserID, Role）必须从 `gin.Context` 中获取。
 - **模块装配**: 后端已新增 `pkg/contracts.BackendModule` 契约，系统模块通过 `RegisterBackendModules` 统一执行 migrate、seed 与路由注册；后续新增模块必须显式声明 `Name / Migrate / RegisterRoutes / SeedMenus / SeedPerms / SeedI18n`。

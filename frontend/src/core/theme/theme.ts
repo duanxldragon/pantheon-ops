@@ -92,16 +92,16 @@ export function applyPantheonDefaultTheme(theme: PantheonThemeKey) {
   }
 }
 
-export async function initializePantheonTheme() {
+export function initializePantheonTheme(): Promise<string> {
   const localTheme = readStoredTheme(PANTHEON_THEME_STORAGE_KEY);
   if (localTheme) {
     applyPantheonTheme(localTheme);
-    return localTheme;
+    return Promise.resolve(localTheme);
   }
 
   const defaultTheme = readStoredTheme(PANTHEON_DEFAULT_THEME_KEY) || 'indigo';
   applyPantheonDefaultTheme(defaultTheme);
-  return defaultTheme;
+  return Promise.resolve(defaultTheme);
 }
 
 export function clearPantheonThemePreference() {

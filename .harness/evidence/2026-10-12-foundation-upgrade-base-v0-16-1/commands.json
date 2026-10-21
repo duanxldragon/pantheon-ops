@@ -1,0 +1,128 @@
+[
+  {
+    "command": "gh release download pantheon-base-v0.16.1 --repo duanxldragon/pantheon-base --dir .foundation/releases/pantheon-base-v0.16.1",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "downloaded foundation-release-pantheon-base-v0.16.1.tgz (18,500,303 B), its .sha256 sidecar, repo.tar (31,477,760 B) and repo.tar.sha256"
+  },
+  {
+    "command": "sha256sum foundation-release-pantheon-base-v0.16.1.tgz repo.tar",
+    "workdir": "pantheon-ops/.foundation/releases/pantheon-base-v0.16.1",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "bundle f22305e1136dc29d18dce93d54df3b6cbcdefae543e7b5a1863f77ad05e7b9f3 and repo.tar daf8c89003422c4474848afaa38746a41426ab69ca274d1f99701ecd7b4ccf20 match both published sidecars and the GitHub release asset digests"
+  },
+  {
+    "command": "compare repo.tar extraction against base tree at tag c83f8e4c by sha256",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "2250 of 2252 tracked files byte-identical; the only two differences are .bat/.ps1 files that .gitattributes marks eol=crlf, so git-archive normalises them"
+  },
+  {
+    "command": "compare sharedPaths of the root lock, the v0.13.0 manifest and the v0.16.1 manifest",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "IDENTICAL: 52 entries (backend 4, frontend 46, docs 2); only version, base commit and digests changed"
+  },
+  {
+    "command": "node scripts/business-overlay/rebuild-from-base.mjs --target .tmp/upgrade-v0161-c",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "OK rebuilt clean Ops tree; Base commit c83f8e4c865b19ecd5351ecefac4106ec416e0bc; 719 declared/generated Ops files"
+  },
+  {
+    "command": "node scripts/business-overlay/check-business-overlay.mjs --root .tmp/upgrade-v0161-c",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "OK business overlay contract (53 declared paths, rebuilt tree)"
+  },
+  {
+    "command": "node scripts/business-overlay/check-shared-drift.mjs --root .tmp/upgrade-v0161-c --base <materialized v0.16.1 snapshot>",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "OK: 704 shared files identical to base, 10 allowlisted drift, 160 business-overlay files skipped"
+  },
+  {
+    "command": "go mod tidy && go build ./...",
+    "workdir": "pantheon-ops/.tmp/upgrade-v0161-c/backend",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "merged module graph finalised; whole backend builds"
+  },
+  {
+    "command": "npm ci --ignore-scripts && npm run type-check",
+    "workdir": "pantheon-ops/.tmp/upgrade-v0161-c/frontend",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "tsc -b clean on the rebuilt frontend"
+  },
+  {
+    "command": "baseline swap: remove tracked files, copy the verified assembly over the ops working tree, git add -A",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "381 files changed (~16.4k insertions, ~10.1k deletions); the 23 deletions are 13 root-level completion/report artifacts, release-push scripts, templates base dropped and openspec placeholders. No business module, page, permission, menu, i18n or migration file changed"
+  },
+  {
+    "command": "npm run check:business-overlay && npm run test:business-overlay",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "overlay contract OK (53 declared paths); 13/13 contract tests pass"
+  },
+  {
+    "command": "node scripts/business-overlay/check-shared-drift.mjs --base <materialized v0.16.1 snapshot>",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "OK: 704 shared files identical to base, 10 allowlisted drift, 160 business-overlay files skipped"
+  },
+  {
+    "command": "go build ./... && go vet ./modules/business/... ./modules/system/iam/menu/...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "build clean; vet reports no findings"
+  },
+  {
+    "command": "go test ./modules/business/... ./modules/system/iam/menu/...",
+    "workdir": "pantheon-ops/backend",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "all business packages plus system/iam/menu pass"
+  },
+  {
+    "command": "npm ci --ignore-scripts && npm run type-check",
+    "workdir": "pantheon-ops/frontend",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "frontend dependency graph reinstalled from the swapped lock; tsc -b clean"
+  },
+  {
+    "command": "npm run check:business-boundaries",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "business module boundary check passed"
+  },
+  {
+    "command": "npm run check:docs-frontmatter && npm run check:encoding && npm run check:structure",
+    "workdir": "pantheon-ops",
+    "exitCode": 0,
+    "timestamp": "2026-10-21",
+    "output": "392 docs checked (269 with frontmatter); 0 encoding findings across 1903 files; 0 structure findings across 2076 tracked files"
+  },
+  {
+    "command": "node scripts/harness/check-task-packet.mjs --root . (current tree and a detached worktree of the pre-swap commit 06436d1)",
+    "workdir": "pantheon-ops",
+    "exitCode": 1,
+    "timestamp": "2026-10-21",
+    "output": "identical on both trees: 59 pre-existing failing legacy task packets (invalid primary layer/template values, missing manifests). Not introduced by this upgrade; the upgraded task packet itself passes"
+  }
+]

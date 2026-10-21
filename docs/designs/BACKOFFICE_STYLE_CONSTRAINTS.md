@@ -111,7 +111,7 @@ English version: [BACKOFFICE_STYLE_CONSTRAINTS.en.md](./BACKOFFICE_STYLE_CONSTRA
 - 系统列表表格面板：`page-panel system-list__table-card`
 - 系统列表表格容器：`.app-table .arco-table-container` 使用 `radius-md`
 - 系统列表表格面板留白：统一使用 `--shell-table-card-padding`
-- 系统列表筛选面板：统一使用 `FilterPanel` 与 `--shell-filter-*` token
+- 系统列表筛选区：统一使用 `SearchToolbar`；交互契约以 `DESIGN.md` §7.2 为准
 - 系统列表页头动作：统一使用 `ListHeaderActions` 与 `--shell-list-actions-gap`
 - 系统列表批量/治理动作：统一使用 `TableBatchActionBar` / `GovernanceSummaryBar` + `TimeRangeFilter` 与 `--shell-action-bar-*` token
 
@@ -140,10 +140,10 @@ English version: [BACKOFFICE_STYLE_CONSTRAINTS.en.md](./BACKOFFICE_STYLE_CONSTRA
 
 用户、角色、权限、菜单、部门、岗位、字典、国际化、会话管理、登录日志、操作日志等系统域页面必须共享同一套筛选与操作契约：
 
-- 筛选区一律由 `FilterPanel` 渲染，body 留白来自 `--shell-filter-body-padding`
-- 筛选控件高度来自 `--shell-filter-control-min-height`，不得出现 32px、34px、自由高度混用
-- 筛选项底部节奏来自 `--shell-filter-form-item-margin-bottom` 和 `--shell-filter-label-padding-bottom`
-- 查询/重置按钮通过 `filter-panel__action-item` 与输入控件底线对齐
+- 筛选区一律由 `SearchToolbar` 渲染；关键词防抖、高频筛选即时查询，低频筛选进入弹层，窄屏行内筛选并入弹层
+- 筛选控件继承全局 `.arco-*` 控件规则，不重声明边框或背景；`--shell-filter-*` token 仅保留历史样式兼容，不作为新页面契约
+
+
 - 页头操作条通过 `ListHeaderActions` 分离次级动作和主动作，gap 来自 `--shell-list-actions-gap`
 - 批量操作条通过 `TableBatchActionBar`，治理摘要/筛选条通过 `GovernanceSummaryBar` + `TimeRangeFilter`
 - 治理清理条的保留期选择宽度来自 `--shell-governance-select-width`，额外动作统一靠右
@@ -178,7 +178,7 @@ English version: [BACKOFFICE_STYLE_CONSTRAINTS.en.md](./BACKOFFICE_STYLE_CONSTRA
 ### 5.1 页面布局
 
 - 双列页：`PageSplitLayout`
-- 单列页：`PageContainer + PageHeader + FilterPanel + AppTable`
+- 单列页：`PageContainer + PageHeader + SearchToolbar + AppTable`
 - 右栏说明：`SideRailPanel + SideRailNote`
 - 右栏摘要：`SideRailPanel + SideRailStack + SideRailItem`
 - 右栏摘要数据结构：`GovernanceRailSummary` 与 `StandardRailSummary` 必须共用 `RailSummaryItem`

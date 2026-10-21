@@ -1,5 +1,5 @@
 //nolint:revive // This model file intentionally exports a large DTO surface.
-package system
+package i18n
 
 import (
 	"time"

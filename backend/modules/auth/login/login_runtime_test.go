@@ -12,10 +12,10 @@ import (
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
-	auditmod "github.com/duanxldragon/pantheon-base/backend/modules/system/audit"
-	settingmod "github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
-	rolemod "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/role"
-	user "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/audit"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/role"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
@@ -33,7 +33,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 	// 迁移模型
 	_ = db.AutoMigrate(&user.SystemUser{}, &SystemUserSession{}, &SystemLogLogin{}, &SystemLoginThrottle{}, &SystemAuthFactor{}, &SystemAuthMFAChallenge{}, &SystemAuthSecurityEvent{}, &SystemUserPasswordHistory{})
-	_ = db.AutoMigrate(&settingmod.SystemSetting{}, &rolemod.SystemRole{}, &user.SystemUserRole{}, &rolemod.SystemRolePermission{})
+	_ = db.AutoMigrate(&setting.SystemSetting{}, &role.SystemRole{}, &user.SystemUserRole{}, &role.SystemRolePermission{})
 	return db
 }
 
@@ -46,14 +46,14 @@ func seedSettings(t *testing.T, db *gorm.DB, values map[string]string) {
 			groupKey = prefix
 		}
 
-		setting := settingmod.SystemSetting{SettingKey: key}
-		if err := db.Where("setting_key = ?", key).Assign(settingmod.SystemSetting{
+		settingRow := setting.SystemSetting{SettingKey: key}
+		if err := db.Where("setting_key = ?", key).Assign(setting.SystemSetting{
 			SettingKey:   key,
 			SettingValue: value,
 			ValueType:    "string",
 			GroupKey:     groupKey,
 			Module:       "system",
-		}).FirstOrCreate(&setting).Error; err != nil {
+		}).FirstOrCreate(&settingRow).Error; err != nil {
 			t.Fatalf("seed setting %s: %v", key, err)
 		}
 	}
@@ -153,7 +153,7 @@ func TestRuntime_MFARejectsInvalidCode(t *testing.T) {
 func TestRuntime_ReloadsMFASettingAfterSettingUpdate(t *testing.T) {
 	db := testmysql.Open(t)
 	_ = db.AutoMigrate(&user.SystemUser{}, &SystemUserSession{}, &SystemLogLogin{}, &SystemLoginThrottle{}, &SystemAuthFactor{}, &SystemAuthMFAChallenge{})
-	settingSvc := settingmod.NewSettingService(db)
+	settingSvc := setting.NewSettingService(db)
 	if err := settingSvc.Migrate(); err != nil {
 		t.Fatalf("migrate setting: %v", err)
 	}
@@ -165,7 +165,7 @@ func TestRuntime_ReloadsMFASettingAfterSettingUpdate(t *testing.T) {
 	unregister := contracts.RegisterRuntimeSettingReloader("test/system-auth-mfa", authSvc.ReloadSettings)
 	defer unregister()
 
-	if _, err := settingSvc.UpdateGroup("login", &settingmod.SettingGroupUpdateReq{Items: []settingmod.SettingUpdateItemReq{
+	if _, err := settingSvc.UpdateGroup("login", &setting.SettingGroupUpdateReq{Items: []setting.SettingUpdateItemReq{
 		{SettingKey: "login.mfa_enabled", SettingValue: "true"},
 	}}); err != nil {
 		t.Fatalf("update MFA setting: %v", err)
@@ -1430,7 +1430,7 @@ func TestAuditService_ExportOperationLogs(t *testing.T) {
 	if err := db.AutoMigrate(&middleware.SystemLogOper{}); err != nil {
 		t.Fatalf("migrate operation log: %v", err)
 	}
-	s := auditmod.NewAuditService(db)
+	s := audit.NewAuditService(db)
 
 	if err := db.Create(&middleware.SystemLogOper{
 		Title:        "导出用户",
@@ -1446,7 +1446,7 @@ func TestAuditService_ExportOperationLogs(t *testing.T) {
 		t.Fatalf("seed operation log: %v", err)
 	}
 
-	exported, err := s.ExportOperationLogs(&auditmod.OperationLogQuery{Title: "导出用户"}, nil)
+	exported, err := s.ExportOperationLogs(&audit.OperationLogQuery{Title: "导出用户"}, nil)
 	if err != nil {
 		t.Fatalf("export operation logs: %v", err)
 	}

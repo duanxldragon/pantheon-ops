@@ -31,7 +31,7 @@ import {
 } from '../../../../api/request';
 import { login, type LoginPayload, type LoginResp, type LoginTenantCandidate } from '../api';
 import { verifyMFA } from '../../mfa/api';
-import { findFirstNavigableMenuPath } from '../../../system/menu/api';
+import { findFirstNavigableMenuPath } from '../../../system/iam/menu/api';
 import { useAuthStore } from '../../../../store/useAuthStore';
 import { useMenuStore } from '../../../../store/useMenuStore';
 import ThemeSwitcher from '../../../../core/theme/ThemeSwitcher';
@@ -40,8 +40,9 @@ import {
   getBrandInitial,
   setExplicitLanguagePreference,
   usePublicSettings,
-} from '../../../../core/settings/publicSettings';
+} from '../../../../core/setting/publicSettings';
 import { COOKIE_TOKEN_PLACEHOLDER } from '../../../../core/auth/sessionSnapshot';
+import { resolveDefaultAuthedPath } from '../../../../core/router/defaultPath';
 import { SUPPORTED_LOCALES, switchI18nLanguage, type SupportedLocale } from '../../../../i18n';
 import './Login.css';
 
@@ -49,16 +50,6 @@ const FormItem = Form.Item;
 const LOGIN_NOTICE_MESSAGE_KEY_MAP: Record<string, string> = {
   'session.idle_timeout': 'auth.login.idleTimeoutNotice',
 };
-
-function resolvePostLoginPath(hasDashboardPermission: boolean, fallbackMenuPath: string | null) {
-  if (hasDashboardPermission) {
-    return '/dashboard';
-  }
-  if (fallbackMenuPath) {
-    return fallbackMenuPath;
-  }
-  return '/dashboard';
-}
 
 function resolveLoginErrorKey(error: unknown, fallbackKey: string) {
   if (!isRequestError(error)) {
@@ -245,7 +236,7 @@ export function LoginPageComponent() {
     setUserInfo(res.user);
     const menuTree = await fetchMenuTree();
     const fallbackMenuPath = findFirstNavigableMenuPath(menuTree);
-    const nextPath = resolvePostLoginPath(canEnterPlatformDashboard(res.user), fallbackMenuPath);
+    const nextPath = resolveDefaultAuthedPath(canEnterPlatformDashboard(res.user), fallbackMenuPath);
     message.success(t('auth.loginSuccess'));
     navigate(nextPath, { replace: true });
   };

@@ -1,4 +1,4 @@
-package config
+package setting
 
 import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"

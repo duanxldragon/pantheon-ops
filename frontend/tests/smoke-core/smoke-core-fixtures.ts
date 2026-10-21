@@ -32,16 +32,17 @@ async function deleteUserByUsername(page: Page, login: BrowserLoginResult, usern
 
   const payload = await response.json();
   const users = Array.isArray(payload.data?.items) ? payload.data.items : [];
-  for (const user of users as UserListItem[]) {
-    if (user.username === username) {
+  const matches = (users as UserListItem[]).filter((user) => user.username === username);
+  await Promise.all(
+    matches.map(async (user) => {
       // User deletion requires CSRF + operation-token verification on the backend.
       await page.request
         .delete(`${apiBaseUrl}/system/user/${user.id}`, {
           headers: await verifiedApiHeaders(page.request, login),
         })
         .catch(() => undefined);
-    }
-  }
+    }),
+  );
 }
 
 async function deleteTreeItemByName(
@@ -63,23 +64,29 @@ async function deleteTreeItemByName(
   const payload = await response.json();
   const items = Array.isArray(payload.data) ? payload.data : [];
 
-  const walk = async (nodes: TreeListItem[]) => {
+  const targets: TreeListItem[] = [];
+  const walk = (nodes: TreeListItem[]) => {
     for (const node of nodes) {
       if (getName(node as unknown as Record<string, unknown>) === keyName) {
-        // Tree deletion requires CSRF + operation-token verification on the backend.
-        await page.request
-          .delete(`${apiBaseUrl}${deletePath}/${node.id}`, {
-            headers: await verifiedApiHeaders(page.request, login),
-          })
-          .catch(() => undefined);
+        targets.push(node);
       }
       if (Array.isArray(node.children)) {
-        await walk(node.children as TreeListItem[]);
+        walk(node.children as TreeListItem[]);
       }
     }
   };
+  walk(items as TreeListItem[]);
 
-  await walk(items as TreeListItem[]);
+  await Promise.all(
+    targets.map(async (node) => {
+      // Tree deletion requires CSRF + operation-token verification on the backend.
+      await page.request
+        .delete(`${apiBaseUrl}${deletePath}/${node.id}`, {
+          headers: await verifiedApiHeaders(page.request, login),
+        })
+        .catch(() => undefined);
+    }),
+  );
 }
 
 async function deleteRoleByKey(page: Page, login: BrowserLoginResult, roleKey: string) {
@@ -94,16 +101,19 @@ async function deleteRoleByKey(page: Page, login: BrowserLoginResult, roleKey: s
 
   const payload = await response.json();
   const roles = Array.isArray(payload.data?.items) ? payload.data.items : [];
-  for (const role of roles as Array<{ id: number; roleKey: string }>) {
-    if (role.roleKey === roleKey && role.roleKey !== 'admin') {
+  const matches = (roles as Array<{ id: number; roleKey: string }>).filter(
+    (role) => role.roleKey === roleKey && role.roleKey !== 'admin',
+  );
+  await Promise.all(
+    matches.map(async (role) => {
       // Role deletion requires CSRF + operation-token verification on the backend.
       await page.request
         .delete(`${apiBaseUrl}/system/role/${role.id}`, {
           headers: await verifiedApiHeaders(page.request, login),
         })
         .catch(() => undefined);
-    }
-  }
+    }),
+  );
 }
 
 export async function prepareUserSmokeFixture(page: Page, username: string) {

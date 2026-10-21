@@ -671,8 +671,7 @@ biz_ticket_priority
 
 下一份建议补：
 
-- `docs/designs/BUSINESS_MODULE_TEMPLATE.md`
-- `docs/business/ORDER_MODULE_DESIGN.md`
+- `docs/designs/BUSINESS_MODULE_TEMPLATE.md`（业务模块设计文档母版；业务模块设计统一存放于 `docs/designs/`）
 
 因为配置底座设计完成后，下一步就可以：
 

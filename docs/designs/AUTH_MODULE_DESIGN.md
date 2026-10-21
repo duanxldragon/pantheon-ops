@@ -569,7 +569,7 @@ LoginPage
 
 ### Phase 3：前端模块拆分
 
-- `Login.tsx` 移到 `modules/auth/`
+- `Login.tsx` 移到 `frontend/src/modules/auth/`
 - 新增 `SecurityCenter.tsx`
 - 新增 `SessionList.tsx`
 - `ProfileCenter` 只保留资料维护

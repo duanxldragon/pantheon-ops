@@ -106,6 +106,8 @@ func (s *Runtime) WithTenantContext(ctx *tenant.Context) *Runtime {
 	clone.tenantCtx = ctx
 	clone.loginSvc = s.loginSvc.WithTenantContext(ctx)
 	clone.securitySvc = s.securitySvc.WithTenantContext(ctx)
+	// F03: admin session reads/revocations are tenant-scoped too.
+	clone.sessionSvc = s.sessionSvc.WithTenantContext(ctx)
 	clone.loginSvc.recorder = &clone
 	return &clone
 }

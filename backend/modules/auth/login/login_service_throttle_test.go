@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/auth/security"
-	user "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 

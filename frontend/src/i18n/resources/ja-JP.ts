@@ -196,6 +196,7 @@ const jaJPFallback = {
   'common.basicInfo': '基本情報',
   'common.accessControl': 'アクセスと権限',
   'common.back': '戻る',
+  'common.backHome': 'ホームへ戻る',
   'common.detail': '詳細',
   'common.selected': '選択済み',
   'common.selectedCount': '{{count}} 件選択中',

@@ -1,4 +1,4 @@
-package iam
+package menu
 
 var businessOverlayMenuComponentKeys = map[string]struct{}{
 	"business/bizscope/BizScopeList":              {},

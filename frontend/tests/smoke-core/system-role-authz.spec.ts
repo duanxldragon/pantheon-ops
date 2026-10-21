@@ -9,7 +9,7 @@
  * 优先级: P0 (权限系统核心)
  * 预估耗时: ~3分钟
  *
- * 选择器基准 (与 modules/system/role/RoleList.tsx 对齐):
+ * 选择器基准 (与 modules/system/iam/role/RoleList.tsx 对齐):
  * - 对话框标题: 新增角色 / 编辑角色; 字段: 角色名称 / 角色标识
  * - 菜单权限 (PermissionTreeSelector) 就在创建/编辑对话框内 (menuIds 字段)
  * - 模态底部 .submit-bar: 创建=新增 / 编辑=保存

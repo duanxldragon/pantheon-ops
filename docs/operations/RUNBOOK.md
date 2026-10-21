@@ -333,7 +333,7 @@ go test -short ./...
 
 ### Redis-backed tests
 
-`pkg/testredis.Open` accepts three address variables, in priority order:
+`backend/pkg/testredis.Open` accepts three address variables, in priority order:
 `PANTHEON_TEST_REDIS_ADDR`, then `PANTHEON_REDIS_ADDR` (the runtime variable the
 server itself reads), then `REDIS_ADDR`; the password resolves the same way over
 `PANTHEON_TEST_REDIS_PASSWORD` / `PANTHEON_REDIS_PASSWORD` / `REDIS_PASSWORD`.
@@ -351,7 +351,7 @@ PANTHEON_TEST_REDIS_REQUIRED: "true"
 ```
 
 A resolved address that refuses the connection always fails (never skips), and
-`pkg/testredis/redis_test.go` pins both the accepted variable names and the
+`backend/pkg/testredis/redis_test.go` pins both the accepted variable names and the
 fail/skip decision, so dropping a name or the required-flag check breaks a test.
 ```
 

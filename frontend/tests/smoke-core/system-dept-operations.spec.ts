@@ -9,7 +9,7 @@
  * 优先级: P1 (树形结构操作)
  * 预估耗时: ~2分钟
  *
- * 选择器基准 (与 modules/system/dept/DeptList.tsx 对齐):
+ * 选择器基准 (与 modules/system/org/dept/DeptList.tsx 对齐):
  * - 对话框标题: 新增部门 / 编辑部门; 字段: 上级部门(TreeSelect, 默认 Pantheon Base) / 部门名称
  * - 模态底部 .submit-bar: 创建=新增 / 编辑=保存
  * - 行内操作: 编辑 / 删除 (Popconfirm "确认删除该部门？...")

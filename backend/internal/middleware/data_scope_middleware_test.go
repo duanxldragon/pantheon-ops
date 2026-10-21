@@ -54,6 +54,50 @@ func TestDataScopeMiddlewareInjectsRoleDeptScope(t *testing.T) {
 	}
 }
 
+// TestDataScopeCacheKeysAreScopedPerConnection 守护曾经的主干偶发失败：
+// 数据范围缓存过去以连接池指针地址作命名空间，连接池关闭回收后 Go 可能把同一地址
+// 分配给新的连接池，使新测试库继承旧库的缓存结论（策略表「已存在」），
+// MigrateDataScopePolicy 因此跳过建表，后续 INSERT 报 Error 1146。
+func TestDataScopeCacheKeysAreScopedPerConnection(t *testing.T) {
+	tableName := (&SystemRoleDataScope{}).TableName()
+	first := testmysql.Open(t)
+	firstTableKey := buildTableExistCacheKey(first, tableName)
+	firstUserKey := buildUserDeptCacheKey(first, 7)
+
+	second := testmysql.Open(t)
+
+	if firstTableKey == buildTableExistCacheKey(second, tableName) {
+		t.Fatal("distinct connections must not share a table-existence cache key")
+	}
+	if firstUserKey == buildUserDeptCacheKey(second, 7) {
+		t.Fatal("distinct connections must not share a user-dept cache key")
+	}
+	// Re-deriving the key for the same connection must not drift, otherwise the
+	// cache would miss forever and the early-exit it exists for would be lost.
+	if firstTableKey != buildTableExistCacheKey(first, tableName) {
+		t.Fatal("cache key must be stable for the same connection")
+	}
+}
+
+// TestMigrateDataScopePolicyIgnoresForeignCachedVerdict 复现 CI 上的失败序列：
+// fail-closed 套件先在旧连接上建了结构损坏的同名策略表并把「表已存在」写进缓存，
+// 随后的新连接仍必须自建自己的策略表。
+func TestMigrateDataScopePolicyIgnoresForeignCachedVerdict(t *testing.T) {
+	poisoned := testmysql.Open(t)
+	if err := poisoned.Exec("CREATE TABLE system_role_data_scope (unrelated_col BIGINT)").Error; err != nil {
+		t.Fatalf("create broken policy table: %v", err)
+	}
+	storeCachedTableExistence(poisoned, (&SystemRoleDataScope{}).TableName(), true)
+
+	fresh := testmysql.Open(t)
+	if err := MigrateDataScopePolicy(fresh); err != nil {
+		t.Fatalf("migrate data scope policy: %v", err)
+	}
+	if err := fresh.Create(&SystemRoleDataScope{RoleKey: "dept_role", Mode: common.DataScopeModeDept}).Error; err != nil {
+		t.Fatalf("fresh connection must create its own policy table: %v", err)
+	}
+}
+
 func TestDataScopeMiddlewareMergesMultipleRolePoliciesDeterministically(t *testing.T) {
 	db := testmysql.Open(t)
 	if err := db.Exec("CREATE TABLE system_user (id BIGINT PRIMARY KEY, dept_id BIGINT)").Error; err != nil {

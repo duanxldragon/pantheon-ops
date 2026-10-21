@@ -477,7 +477,7 @@ grep -r "var(--color-" frontend/src --include="*.css"
 - `DESIGN.md`：总体设计文档
 - `COMPONENT_STYLING_GUIDE.md`：组件样式规范
 - `UI_PATTERN_LIBRARY.md`：UI 模式库
-- `frontend/docs/FRONTEND_UI_SPEC.md`：前端 UI 规范
+- `docs/designs/FRONTEND_UI_SPEC.md`：前端 UI 规范
 
 ### 9.2 外部参考
 

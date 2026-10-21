@@ -18,8 +18,8 @@ const fallbackLoaders: Record<SupportedLocale, () => Promise<FallbackResourceMap
 };
 
 const overrideFallbackLoaders: Record<SupportedLocale, () => Promise<FallbackResourceMap>> = {
-  'zh-CN': async () => ({}),
-  'en-US': async () => ({}),
+  'zh-CN': () => Promise.resolve({}),
+  'en-US': () => Promise.resolve({}),
   'ja-JP': async () => (await import('./resources/overrides/ja-JP')).default,
   'ko-KR': async () => (await import('./resources/overrides/ko-KR')).default,
   'fr-FR': async () => (await import('./resources/overrides/fr-FR')).default,

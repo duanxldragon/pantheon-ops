@@ -126,8 +126,8 @@ test('go lint scopes pull requests and merge groups to new code', () => {
   );
   assert.match(
     goLintSource,
-    /if \[ "\$\{EVENT_NAME\}" = "push" \]; then[\s\S]*?Full-repo lint is report-only on push/,
-    'only push events may retain the advisory full-repository lint path',
+    /if \[ "\$\{EVENT_NAME\}" = "push" \] \|\| \[ "\$\{EVENT_NAME\}" = "workflow_dispatch" \]; then[\s\S]*?Full-repo lint is report-only on push\/workflow_dispatch/,
+    'only push and workflow_dispatch events may retain the advisory full-repository lint path',
   );
 });
 

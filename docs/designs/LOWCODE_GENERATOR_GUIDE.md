@@ -297,7 +297,7 @@ npm install --save-dev @types/jszip
 
 ### 3. 添加国际化翻译
 
-在 `frontend/src/locales/zh.json` 中添加:
+在 `frontend/src/i18n/resources/zh-CN.ts` 中添加:
 
 ```json
 {
@@ -590,14 +590,14 @@ npm run dev
 ## 📚 相关文件
 
 ### 核心实现
-- `frontend/src/modules/generator/schema.ts` - 模块描述Schema
-- `frontend/src/modules/generator/type-mapping.ts` - 类型映射
-- `frontend/src/modules/generator/backend-generator.ts` - 后端生成器
-- `frontend/src/modules/generator/frontend-generator.ts` - 前端生成器
-- `frontend/src/modules/generator/exporter.ts` - 代码导出器
-- `frontend/src/modules/generator/pages/ModuleWizard.tsx` - 配置向导
-- `frontend/src/modules/generator/components/FieldEditor.tsx` - 字段编辑器
-- `frontend/src/modules/generator/components/CodePreview.tsx` - 代码预览
+- `frontend/src/modules/lowcode/generator/schema.ts` - 模块描述Schema
+- `frontend/src/modules/lowcode/generator/typeMapping.ts` - 类型映射
+- `frontend/src/modules/lowcode/generator/backendGenerator.ts` - 后端生成器
+- `frontend/src/modules/lowcode/generator/frontendGenerator.ts` - 前端生成器
+- `frontend/src/modules/lowcode/generator/exporter.ts` - 代码导出器
+- `frontend/src/modules/lowcode/generator/pages/ModuleWizard.tsx` - 配置向导
+- `frontend/src/modules/lowcode/components/FieldEditor.tsx` - 字段编辑器
+- `frontend/src/modules/lowcode/components/CodePreview.tsx` - 代码预览
 
 ### 动态模块管理
 - `backend/modules/lowcode/dynamicmodule/dynamic_module_service.go` - 服务层

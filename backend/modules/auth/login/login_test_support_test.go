@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	iamuser "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts/authuser"
 
 	"gorm.io/gorm"
@@ -15,7 +15,7 @@ import (
 // into the auth module. Tests may import the system module; production code may
 // not — scripts/harness/check-boundaries.mjs exempts *_test.go by construction.
 func testCredentialRepo(db *gorm.DB) authuser.Repository {
-	return iamuser.NewCredentialRepository(db)
+	return user.NewCredentialRepository(db)
 }
 
 // loadAuthUser hands a test the credential projection the runtime actually

@@ -196,7 +196,10 @@ func (s *LoginService) ListLoginLogs(query *LoginLogQuery) (*LoginLogPageResp, e
 func (s *LoginService) scopedLoginLogQuery(query *LoginLogQuery, filterUsername string) *gorm.DB {
 	db := s.scoped(s.db.Model(&SystemLogLogin{}))
 	if filterUsername != "" {
-		db = db.Where(usernameLikeWhereClause, "%"+filterUsername+"%")
+		// F04: the own-log path is driven by the authenticated subject, so the
+		// identity filter is an exact match — a substring match would expose
+		// login IPs, devices and timestamps of similar usernames.
+		db = db.Where("username = ?", filterUsername)
 	} else if query != nil && strings.TrimSpace(query.Username) != "" {
 		db = db.Where(usernameLikeWhereClause, "%"+strings.TrimSpace(query.Username)+"%")
 	}

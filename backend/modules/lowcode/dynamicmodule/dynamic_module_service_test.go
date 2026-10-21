@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	systemi18n "github.com/duanxldragon/pantheon-base/backend/modules/system/i18n"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/i18n"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 	"github.com/gin-gonic/gin"
@@ -549,25 +549,25 @@ func TestPurgeManagedModuleAdvancesI18nLifecycle(t *testing.T) {
 		`export const assetI18nProof = "business.asset.title"`+"\n",
 	)
 
-	i18nService := systemi18n.NewI18nService(db)
-	if err := i18nService.BatchInsert([]systemi18n.SystemI18n{
+	i18nService := i18n.NewI18nService(db)
+	if err := i18nService.BatchInsert([]i18n.SystemI18n{
 		{Module: "business.asset", Group: "messages", Key: "business.asset.title", Locale: "zh-CN", Value: "资产管理"},
 		{Module: "business.asset", Group: "messages", Key: "business.asset.title", Locale: "en-US", Value: "Asset Management"},
-		{Module: "business.asset", Group: "messages", Key: "business.asset.orphan", Locale: "zh-CN", Value: "遗留翻译", LifecycleStatus: systemi18n.I18nLifecycleStatusObserving},
-		{Module: "business.asset", Group: "messages", Key: "business.asset.orphan", Locale: "en-US", Value: "Legacy translation", LifecycleStatus: systemi18n.I18nLifecycleStatusObserving},
-		{Module: "business.asset", Group: "messages", Key: "business.asset.expired", Locale: "zh-CN", Value: "待清理归档", LifecycleStatus: systemi18n.I18nLifecycleStatusArchived},
-		{Module: "business.asset", Group: "messages", Key: "business.asset.expired", Locale: "en-US", Value: "Expired archived", LifecycleStatus: systemi18n.I18nLifecycleStatusArchived},
+		{Module: "business.asset", Group: "messages", Key: "business.asset.orphan", Locale: "zh-CN", Value: "遗留翻译", LifecycleStatus: i18n.I18nLifecycleStatusObserving},
+		{Module: "business.asset", Group: "messages", Key: "business.asset.orphan", Locale: "en-US", Value: "Legacy translation", LifecycleStatus: i18n.I18nLifecycleStatusObserving},
+		{Module: "business.asset", Group: "messages", Key: "business.asset.expired", Locale: "zh-CN", Value: "待清理归档", LifecycleStatus: i18n.I18nLifecycleStatusArchived},
+		{Module: "business.asset", Group: "messages", Key: "business.asset.expired", Locale: "en-US", Value: "Expired archived", LifecycleStatus: i18n.I18nLifecycleStatusArchived},
 	}); err != nil {
 		t.Fatalf("seed i18n rows: %v", err)
 	}
 	if err := db.Table("system_i18n").
 		Where("module = ? AND `key` = ?", "business.asset", "business.asset.orphan").
-		Update("lifecycle_marked_at", time.Now().AddDate(0, 0, -(systemi18n.I18nUnusedObservationThresholdDays+1))).Error; err != nil {
+		Update("lifecycle_marked_at", time.Now().AddDate(0, 0, -(i18n.I18nUnusedObservationThresholdDays+1))).Error; err != nil {
 		t.Fatalf("age observing rows: %v", err)
 	}
 	if err := db.Table("system_i18n").
 		Where("module = ? AND `key` = ?", "business.asset", "business.asset.expired").
-		Update("lifecycle_marked_at", time.Now().AddDate(0, 0, -(systemi18n.I18nArchivedRetentionThresholdDays+1))).Error; err != nil {
+		Update("lifecycle_marked_at", time.Now().AddDate(0, 0, -(i18n.I18nArchivedRetentionThresholdDays+1))).Error; err != nil {
 		t.Fatalf("age archived rows: %v", err)
 	}
 
@@ -588,14 +588,14 @@ func TestPurgeManagedModuleAdvancesI18nLifecycle(t *testing.T) {
 		t.Fatalf("expected 2 deleted rows, got %d", summary.DeletedRows)
 	}
 
-	assertDynamicModuleI18nRows(t, db, "business.asset", "business.asset.title", 2, systemi18n.I18nLifecycleStatusObserving, true)
-	assertDynamicModuleI18nRows(t, db, "business.asset", "business.asset.orphan", 2, systemi18n.I18nLifecycleStatusArchived, true)
+	assertDynamicModuleI18nRows(t, db, "business.asset", "business.asset.title", 2, i18n.I18nLifecycleStatusObserving, true)
+	assertDynamicModuleI18nRows(t, db, "business.asset", "business.asset.orphan", 2, i18n.I18nLifecycleStatusArchived, true)
 	assertDynamicModuleI18nRowCount(t, db, "business.asset", "business.asset.expired", 0)
 }
 
 func assertDynamicModuleI18nRows(t *testing.T, db *gorm.DB, module, key string, wantCount int, wantStatus string, wantMarked bool) {
 	t.Helper()
-	var rows []systemi18n.SystemI18n
+	var rows []i18n.SystemI18n
 	if err := db.Where("module = ? AND `key` = ?", module, key).Find(&rows).Error; err != nil {
 		t.Fatalf("load %s rows: %v", key, err)
 	}
@@ -612,7 +612,7 @@ func assertDynamicModuleI18nRows(t *testing.T, db *gorm.DB, module, key string, 
 func assertDynamicModuleI18nRowCount(t *testing.T, db *gorm.DB, module, key string, want int64) {
 	t.Helper()
 	var count int64
-	if err := db.Model(&systemi18n.SystemI18n{}).
+	if err := db.Model(&i18n.SystemI18n{}).
 		Where("module = ? AND `key` = ?", module, key).
 		Count(&count).Error; err != nil {
 		t.Fatalf("count %s rows: %v", key, err)
@@ -645,8 +645,8 @@ func TestUnregisterManagedModulePreservesI18nLifecycleWhenSourceRemains(t *testi
 		`export const assetI18nProof = "business.asset.title"`+"\n",
 	)
 
-	i18nService := systemi18n.NewI18nService(db)
-	if err := i18nService.BatchInsert([]systemi18n.SystemI18n{
+	i18nService := i18n.NewI18nService(db)
+	if err := i18nService.BatchInsert([]i18n.SystemI18n{
 		{Module: "business.asset", Group: "messages", Key: "business.asset.title", Locale: "zh-CN", Value: "资产管理"},
 		{Module: "business.asset", Group: "messages", Key: "business.asset.title", Locale: "en-US", Value: "Asset Management"},
 	}); err != nil {
@@ -661,7 +661,7 @@ func TestUnregisterManagedModulePreservesI18nLifecycleWhenSourceRemains(t *testi
 		t.Fatal("expected i18n lifecycle summary to stay idle when source remains")
 	}
 
-	var rows []systemi18n.SystemI18n
+	var rows []i18n.SystemI18n
 	if err := db.Where("module = ? AND `key` = ?", "business.asset", "business.asset.title").Find(&rows).Error; err != nil {
 		t.Fatalf("load i18n rows: %v", err)
 	}
@@ -669,7 +669,7 @@ func TestUnregisterManagedModulePreservesI18nLifecycleWhenSourceRemains(t *testi
 		t.Fatalf("expected title rows preserved, got %d", len(rows))
 	}
 	for _, row := range rows {
-		if row.LifecycleStatus != systemi18n.I18nLifecycleStatusActive {
+		if row.LifecycleStatus != i18n.I18nLifecycleStatusActive {
 			t.Fatalf("expected active lifecycle when source remains, got %s", row.LifecycleStatus)
 		}
 		if row.LifecycleMarkedAt != nil {
@@ -1075,8 +1075,8 @@ func TestPurgeModuleAllowsBusinessStaticModuleWithoutTable(t *testing.T) {
 	if err := db.Exec(`INSERT INTO system_menu (path, type, module) VALUES ('/business/cmdb', 'M', 'business.cmdb')`).Error; err != nil {
 		t.Fatalf("seed menu: %v", err)
 	}
-	i18nService := systemi18n.NewI18nService(db)
-	if err := i18nService.BatchInsert([]systemi18n.SystemI18n{
+	i18nService := i18n.NewI18nService(db)
+	if err := i18nService.BatchInsert([]i18n.SystemI18n{
 		{Module: "business.cmdb", Group: "messages", Key: "business.cmdb.title", Locale: "zh-CN", Value: "配置中心"},
 		{Module: "business.cmdb", Group: "messages", Key: "business.cmdb.title", Locale: "en-US", Value: "CMDB"},
 		{Module: "system.config", Group: "messages", Key: "business.cmdb.host.title", Locale: "zh-CN", Value: "主机管理"},
@@ -1103,8 +1103,8 @@ func TestPurgeModuleAllowsBusinessStaticModuleWithoutTable(t *testing.T) {
 
 	assertDynamicModuleTableCount(t, db.Model(&ModuleRegistration{}).Where("name = ?", "business.cmdb"), 0, "registration")
 	assertDynamicModuleTableCount(t, db.Table("system_menu").Where("module = ?", "business.cmdb"), 0, "menu")
-	assertDynamicModuleI18nModuleRows(t, db, "business.cmdb", 2, systemi18n.I18nLifecycleStatusObserving)
-	assertDynamicModuleI18nRows(t, db, "system.config", "business.cmdb.host.title", 2, systemi18n.I18nLifecycleStatusObserving, true)
+	assertDynamicModuleI18nModuleRows(t, db, "business.cmdb", 2, i18n.I18nLifecycleStatusObserving)
+	assertDynamicModuleI18nRows(t, db, "system.config", "business.cmdb.host.title", 2, i18n.I18nLifecycleStatusObserving, true)
 }
 
 func assertDynamicModuleTableCount(t *testing.T, query *gorm.DB, want int64, label string) {
@@ -1120,7 +1120,7 @@ func assertDynamicModuleTableCount(t *testing.T, query *gorm.DB, want int64, lab
 
 func assertDynamicModuleI18nModuleRows(t *testing.T, db *gorm.DB, module string, wantCount int, wantStatus string) {
 	t.Helper()
-	var rows []systemi18n.SystemI18n
+	var rows []i18n.SystemI18n
 	if err := db.Where("module = ?", module).Find(&rows).Error; err != nil {
 		t.Fatalf("load %s i18n rows: %v", module, err)
 	}
@@ -1368,7 +1368,7 @@ func mustCreateSystemI18nTable(t *testing.T, db *gorm.DB) {
 
 func mustMigrateSystemI18n(t *testing.T, db *gorm.DB) {
 	t.Helper()
-	service := systemi18n.NewI18nService(db)
+	service := i18n.NewI18nService(db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate system_i18n: %v", err)
 	}
@@ -1438,7 +1438,7 @@ func mustWriteGeneratedRegistryStubs(t *testing.T, root string) {
 	t.Helper()
 	mustWriteFile(t, filepath.Join(root, "backend", "modules", "business", "generated_registry.go"), "package business\n")
 	mustWriteFile(t, filepath.Join(root, "backend", "modules", "system", "generated_registry.go"), "package system\n")
-	mustWriteFile(t, filepath.Join(root, "backend", "modules", "system", "iam", "menu", "generated_component_registry.go"), "package iam\n")
+	mustWriteFile(t, filepath.Join(root, "backend", "modules", "system", "iam", "menu", "generated_component_registry.go"), "package menu\n")
 	mustWriteFile(t, filepath.Join(root, "frontend", "src", "modules", "generated", "business.ts"), "export const generatedBusinessModules = []\n")
 	mustWriteFile(t, filepath.Join(root, "frontend", "src", "modules", "generated", "system.ts"), "export const generatedSystemModules = []\n")
 	mustWriteFile(t, filepath.Join(root, "frontend", "src", "core", "router", "generatedComponentRegistry.ts"), "export const generatedComponentRegistry = {}\n")

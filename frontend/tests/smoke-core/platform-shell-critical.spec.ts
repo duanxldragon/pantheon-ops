@@ -20,6 +20,7 @@
 
 import { test, expect } from '@playwright/test';
 import { signInAsAdmin } from '../smoke/helpers/auth';
+import { readElementWidth, settleElementLayout } from '../smoke/helpers/layout-settle';
 
 /**
  * 从工作台 "高频管理入口" 快捷按钮导航 (v0.12.0 IA 的确定性入口)。
@@ -67,24 +68,27 @@ test.describe('Platform Shell Critical @priority:critical @smoke:core', () => {
     // 验证按钮存在
     await expect(toggleButton).toBeVisible();
 
-    // 记录初始状态
+    // 记录初始状态（先等布局稳定，避免读到过渡动画中间值）
     const sidebar = page.locator('.app-shell__sider').first();
-    const initialWidth = await sidebar.boundingBox().then(box => box?.width ?? 0);
+    await settleElementLayout(sidebar);
+    const initialWidth = await readElementWidth(sidebar);
 
-    // 点击折叠
+    // 点击折叠：先确认 Arco 的折叠状态类已生效，再等宽度过渡动画结束
     await toggleButton.click();
-    await expect(sidebar).toBeVisible({ timeout: 3000 });
+    await expect(sidebar).toHaveClass(/arco-layout-sider-collapsed/);
+    await settleElementLayout(sidebar);
 
     // 验证宽度变化
-    const collapsedWidth = await sidebar.boundingBox().then(box => box?.width ?? 0);
+    const collapsedWidth = await readElementWidth(sidebar);
     expect(collapsedWidth).toBeLessThan(initialWidth);
 
     // 再次点击展开
     await toggleButton.click();
-    await expect(sidebar).toBeVisible({ timeout: 3000 });
+    await expect(sidebar).not.toHaveClass(/arco-layout-sider-collapsed/);
+    await settleElementLayout(sidebar);
 
     // 验证恢复
-    const expandedWidth = await sidebar.boundingBox().then(box => box?.width ?? 0);
+    const expandedWidth = await readElementWidth(sidebar);
     expect(expandedWidth).toBeGreaterThan(collapsedWidth);
   });
 

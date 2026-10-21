@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"fmt"
 	"log/slog"
+	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -23,11 +23,6 @@ var (
 	userDeptCache   = make(map[string]userDeptEntry)
 	userDeptTTL     = 5 * time.Minute
 
-	// Role policy cache: roleKey hash -> policies
-	rolePolicyCacheMu sync.RWMutex
-	rolePolicyCache   = make(map[string]rolePolicyEntry)
-	rolePolicyTTL     = 5 * time.Minute
-
 	// Table existence cache (avoid DDL metadata queries per request)
 	tableExistCacheMu sync.RWMutex
 	tableExistCache   = make(map[string]bool)
@@ -35,11 +30,6 @@ var (
 
 type userDeptEntry struct {
 	deptID   uint64
-	cachedAt time.Time
-}
-
-type rolePolicyEntry struct {
-	policies []SystemRoleDataScope
 	cachedAt time.Time
 }
 
@@ -63,22 +53,22 @@ func MigrateDataScopePolicy(db *gorm.DB) error {
 			return err
 		}
 		storeCachedTableExistence(db, (&SystemRoleDataScope{}).TableName(), true)
-		return nil
-	}
-	if cachedHasTable(db, &SystemRoleDataScope{}) {
-		return nil
-	}
-	if err := db.Exec(`
+	} else if !cachedHasTable(db, &SystemRoleDataScope{}) {
+		if err := db.Exec(`
 CREATE TABLE IF NOT EXISTS system_role_data_scope (
 	id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 	role_key VARCHAR(64) NOT NULL,
 	mode VARCHAR(32) NOT NULL DEFAULT 'all',
 	dept_ids TEXT NULL,
 	UNIQUE KEY idx_system_role_data_scope_role_key (role_key)
-)`).Error; err != nil {
-		return err
+		)`).Error; err != nil {
+			return err
+		}
+		storeCachedTableExistence(db, (&SystemRoleDataScope{}).TableName(), true)
 	}
-	storeCachedTableExistence(db, (&SystemRoleDataScope{}).TableName(), true)
+	// Existing roles are backfilled by the versioned database migration. Do not
+	// repeat that repair on every startup: doing so would resurrect a policy
+	// that an operator intentionally deleted. Runtime reads fail closed instead.
 	return nil
 }
 
@@ -96,13 +86,29 @@ func DataScopeMiddleware(db *gorm.DB) gin.HandlerFunc {
 		if db != nil && userID > 0 {
 			scope.DeptID = loadCurrentUserDeptID(db, userID)
 		}
+		// 策略读取失败时 fail-closed：非管理员必须拒绝，绝不能按 all 放行全量数据。
 		if db != nil && !scope.IsAdmin {
-			applyRoleDataScopePolicy(db, scope)
+			if applyRoleDataScopePolicy(db, scope) {
+				slog.Warn("data scope: policy lookup failed, denying request", "roles", strings.Join(roleKeys, ","))
+				if clientAcceptsJSON(c) {
+					common.Fail(c, common.CodeError, "common.serverError")
+				} else {
+					c.String(http.StatusInternalServerError, "data scope policy unavailable")
+				}
+				c.Abort()
+				return
+			}
 		}
 
 		c.Set(common.DataScopeContextKey, scope)
 		c.Next()
 	}
+}
+
+// clientAcceptsJSON 判断客户端是否能解析统一 JSON 错误响应；导出等二进制下载走纯文本。
+func clientAcceptsJSON(c *gin.Context) bool {
+	accept := strings.ToLower(c.GetHeader("Accept"))
+	return accept == "" || strings.Contains(accept, "json") || strings.Contains(accept, "*/*") || strings.Contains(accept, "html")
 }
 
 func loadCurrentUserDeptID(db *gorm.DB, userID uint64) uint64 {
@@ -137,18 +143,45 @@ func loadCurrentUserDeptID(db *gorm.DB, userID uint64) uint64 {
 	return deptID
 }
 
-func applyRoleDataScopePolicy(db *gorm.DB, scope *common.DataScopeReq) {
-	if scope == nil || len(scope.RoleKeys) == 0 || !cachedHasTable(db, &SystemRoleDataScope{}) {
-		return
+// applyRoleDataScopePolicy 加载角色数据范围策略并写入 scope。
+// 返回 true 表示策略读取失败（fail-closed），调用方必须拒绝本次请求。
+func applyRoleDataScopePolicy(db *gorm.DB, scope *common.DataScopeReq) bool {
+	if scope == nil {
+		return true
 	}
+	if len(scope.RoleKeys) == 0 {
+		return false
+	}
+	for _, roleKey := range scope.RoleKeys {
+		if strings.TrimSpace(roleKey) == "" {
+			scope.Mode = common.DataScopeModeCustom
+			scope.DeptIDs = nil
+			return true
+		}
+	}
+	// Query the policy table directly. A missing table or metadata lookup failure
+	// must be treated like any other policy read failure, never as mode=all.
 
 	policies, ok := loadRoleDataScopePolicies(db, scope.RoleKeys)
 	if !ok {
-		return
+		// 读取失败时按 custom + 空 dept 集合处理：即使调用方忽略返回值，
+		// WithDataScope 也会因空集合拒绝所有行，绝不能退回 all。
+		scope.Mode = common.DataScopeModeCustom
+		scope.DeptIDs = nil
+		return true
 	}
 
-	if len(policies) == 0 {
-		return
+	if !rolePoliciesCoverAll(scope.RoleKeys, policies) {
+		scope.Mode = common.DataScopeModeCustom
+		scope.DeptIDs = nil
+		return true
+	}
+	for _, policy := range policies {
+		if !isValidDataScopePolicyMode(policy.Mode) {
+			scope.Mode = common.DataScopeModeCustom
+			scope.DeptIDs = nil
+			return true
+		}
 	}
 
 	scope.Mode = resolveDataScopeMode(policies)
@@ -162,36 +195,30 @@ func applyRoleDataScopePolicy(db *gorm.DB, scope *common.DataScopeReq) {
 	case common.DataScopeModeAll:
 		scope.DeptIDs = nil
 	}
+	return false
 }
 
 func loadRoleDataScopePolicies(db *gorm.DB, roleKeys []string) ([]SystemRoleDataScope, bool) {
-	cacheKey := buildRolePolicyCacheKey(db, roleKeys)
-	rolePolicyCacheMu.RLock()
-	if entry, ok := rolePolicyCache[cacheKey]; ok && time.Since(entry.cachedAt) < rolePolicyTTL {
-		rolePolicyCacheMu.RUnlock()
-		return entry.policies, true
-	}
-	rolePolicyCacheMu.RUnlock()
-
 	var policies []SystemRoleDataScope
 	if err := db.Where("role_key IN ?", roleKeys).Find(&policies).Error; err != nil {
 		slog.Warn("data scope: failed to load role policies", "roles", strings.Join(roleKeys, ","), "error", err)
 		return nil, false
 	}
+	return policies, true
+}
 
-	rolePolicyCacheMu.Lock()
-	rolePolicyCache[cacheKey] = rolePolicyEntry{policies: policies, cachedAt: time.Now()}
-	if len(rolePolicyCache) > 1000 {
-		now := time.Now()
-		for k, v := range rolePolicyCache {
-			if now.Sub(v.cachedAt) > rolePolicyTTL {
-				delete(rolePolicyCache, k)
-			}
+func rolePoliciesCoverAll(roleKeys []string, policies []SystemRoleDataScope) bool {
+	covered := make(map[string]bool, len(policies))
+	for _, policy := range policies {
+		covered[policy.RoleKey] = true
+	}
+	for _, key := range roleKeys {
+		key = strings.TrimSpace(key)
+		if key == "" || !covered[key] {
+			return false
 		}
 	}
-	rolePolicyCacheMu.Unlock()
-
-	return policies, true
+	return true
 }
 
 // cachedHasTable caches the result of db.Migrator().HasTable() to avoid
@@ -231,23 +258,17 @@ func buildUserDeptCacheKey(db *gorm.DB, userID uint64) string {
 	return buildDatabaseCacheNamespace(db) + ":user:" + strconv.FormatUint(userID, 10)
 }
 
-func buildRolePolicyCacheKey(db *gorm.DB, roleKeys []string) string {
-	return buildDatabaseCacheNamespace(db) + ":roles:" + strings.Join(roleKeys, ",")
-}
-
 func buildTableExistCacheKey(db *gorm.DB, tableName string) string {
 	return buildDatabaseCacheNamespace(db) + ":table:" + tableName
 }
 
+// buildDatabaseCacheNamespace 为每个逻辑数据库生成缓存命名空间。
+// 命名空间必须来自连接身份（DSN 的 host + 库名）而不是连接池指针：
+// 连接池被关闭并回收后，Go 运行时可能把同一地址分配给新的连接池，
+// 使无关连接继承上一个库的缓存结论（历史上曾让 MigrateDataScopePolicy
+// 误判策略表已存在而跳过建表）。详见 database.ConnectionCacheNamespace。
 func buildDatabaseCacheNamespace(db *gorm.DB) string {
-	if db == nil {
-		return "nil"
-	}
-	sqlDB, err := db.DB()
-	if err == nil && sqlDB != nil {
-		return fmt.Sprintf("%p", sqlDB)
-	}
-	return fmt.Sprintf("%p", db)
+	return database.ConnectionCacheNamespace(db)
 }
 
 func loadDeptAndChildrenIDs(db *gorm.DB, deptID uint64) []uint64 {
@@ -298,13 +319,15 @@ func resolveDataScopeMode(policies []SystemRoleDataScope) string {
 	hasSelf := false
 	hasDept := false
 	hasDeptAndChildren := false
+	hasCustom := false
 	customDeptIDs := 0
 
 	for _, policy := range policies {
 		switch strings.TrimSpace(policy.Mode) {
-		case "", common.DataScopeModeAll:
+		case common.DataScopeModeAll:
 			return common.DataScopeModeAll
 		case common.DataScopeModeCustom:
+			hasCustom = true
 			customDeptIDs += len(parseDataScopeDeptIDs(policy.DeptIDs))
 		case common.DataScopeModeDeptAndChildren:
 			hasDeptAndChildren = true
@@ -324,8 +347,23 @@ func resolveDataScopeMode(policies []SystemRoleDataScope) string {
 		return common.DataScopeModeDept
 	case hasSelf:
 		return common.DataScopeModeSelf
+	case hasCustom:
+		return common.DataScopeModeCustom
 	default:
-		return common.DataScopeModeAll
+		return common.DataScopeModeCustom
+	}
+}
+
+func isValidDataScopePolicyMode(mode string) bool {
+	switch strings.TrimSpace(strings.ToLower(mode)) {
+	case common.DataScopeModeAll,
+		common.DataScopeModeSelf,
+		common.DataScopeModeDept,
+		common.DataScopeModeDeptAndChildren,
+		common.DataScopeModeCustom:
+		return true
+	default:
+		return false
 	}
 }
 

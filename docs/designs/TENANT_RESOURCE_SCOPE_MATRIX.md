@@ -16,7 +16,7 @@ English version: [TENANT_RESOURCE_SCOPE_MATRIX.en.md](./TENANT_RESOURCE_SCOPE_MA
 
 本文是 `2026-09-10-tenant-ready-guardrails` 任务 0 的交付物，落实
 [单租户先行、租户就绪设计](./TENANT_READY_SINGLE_TENANT_DESIGN.md) 第 5 节的规则，
-为后续 [租户合同 V1](../contracts/TENANT_CONTRACT_V1.md)
+为后续 [租户合同设计](../../.harness/archive/2026-09/tasks/2026-09-10-tenant-contract-design/task.md)
 提供资源分类模板和唯一键登记入口。
 
 > 当前运行态是单租户。本文是治理模板，不是多租户实现承诺；

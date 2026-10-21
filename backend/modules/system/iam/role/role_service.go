@@ -1,4 +1,4 @@
-package iam
+package role
 
 import (
 	"fmt"
@@ -354,6 +354,7 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 		return nil, err
 	}
 
+	oldRoleKey := role.RoleKey
 	role.RoleName = strings.TrimSpace(req.RoleName)
 	role.RoleKey = strings.TrimSpace(req.RoleKey)
 	role.Sort = req.Sort
@@ -363,7 +364,7 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 	dataScope := normalizeRoleDataScope(req.DataScope)
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		return s.updateRoleInTransaction(tx, &role, menuIDs, permissionKeys, dataScope)
+		return s.updateRoleInTransaction(tx, &role, oldRoleKey, menuIDs, permissionKeys, dataScope)
 	}); err != nil {
 		return nil, err
 	}
@@ -371,7 +372,7 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 	return buildRoleListResp(role, menuIDs, permissionKeys, dataScope), nil
 }
 
-func (s *RoleService) updateRoleInTransaction(tx *gorm.DB, role *SystemRole, menuIDs []uint64, permissionKeys []string, dataScope string) error {
+func (s *RoleService) updateRoleInTransaction(tx *gorm.DB, role *SystemRole, oldRoleKey string, menuIDs []uint64, permissionKeys []string, dataScope string) error {
 	if err := tx.Save(role).Error; err != nil {
 		return err
 	}
@@ -381,7 +382,50 @@ func (s *RoleService) updateRoleInTransaction(tx *gorm.DB, role *SystemRole, men
 	if err := s.replaceRolePermissions(tx, role.ID, permissionKeys); err != nil {
 		return err
 	}
-	return s.upsertRoleDataScopePolicy(tx, role.RoleKey, dataScope)
+	return s.upsertRoleDataScopePolicyPreservingCustomDepts(tx, oldRoleKey, role.RoleKey, dataScope)
+}
+
+// upsertRoleDataScopePolicyPreservingCustomDepts 在角色常规编辑时保留已配置的自定义部门集合。
+// 角色表单只提交 dataScope 模式，不携带 deptIds；若此处清空 dept_ids，
+// 会破坏 permission 模块配置的自定义数据范围（F06）。
+func (s *RoleService) upsertRoleDataScopePolicyPreservingCustomDepts(tx *gorm.DB, oldRoleKey, newRoleKey, dataScope string) error {
+	mode := normalizeRoleDataScope(dataScope)
+	if !isValidRoleDataScopeMode(mode) {
+		return common.NewBadRequest("permission.data_scope.mode_invalid")
+	}
+
+	var existing roleDataScopePolicy
+	err := tx.Where("role_key = ?", oldRoleKey).Limit(1).Find(&existing).Error
+	if err != nil {
+		return err
+	}
+
+	deptIDs := ""
+	if mode == common.DataScopeModeCustom {
+		// 保留既有部门集合；若原策略不存在或模式不同（如从 all 切到 custom），
+		// 复用 permission 模块的写入语义：要求通过数据范围配置入口显式提交部门。
+		if existing.ID != 0 && strings.TrimSpace(existing.Mode) == common.DataScopeModeCustom {
+			deptIDs = existing.DeptIDs
+		}
+	}
+
+	if existing.ID != 0 {
+		return tx.Model(&existing).Updates(map[string]any{
+			"role_key": newRoleKey,
+			"mode":     mode,
+			"dept_ids": deptIDs,
+		}).Error
+	}
+
+	policy := roleDataScopePolicy{
+		RoleKey: newRoleKey,
+		Mode:    mode,
+		DeptIDs: deptIDs,
+	}
+	return tx.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "role_key"}},
+		DoUpdates: clause.AssignmentColumns([]string{"mode", "dept_ids"}),
+	}).Create(&policy).Error
 }
 
 func buildRoleListResp(role SystemRole, menuIDs []uint64, permissionKeys []string, dataScope string) *RoleListResp {

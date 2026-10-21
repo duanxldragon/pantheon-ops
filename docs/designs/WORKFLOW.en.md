@@ -67,7 +67,7 @@ Primary documents must at least declare type, layer, and status.
 
 ### Phase 2: Backend
 
-- create the module under `modules/business/`
+- create the module under `backend/modules/business/`
 - generate `model`, `dto`, `repo`, and `service` slices
 - keep core business flow in the service layer
 - register routes through the explicit backend-module assembly contract

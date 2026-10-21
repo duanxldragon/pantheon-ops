@@ -1,15 +1,17 @@
 {
   "releaseVersion": "pantheon-base-v0.13.0",
-  "status": "candidate",
+  "status": "published",
+  "publishedAt": "2026-09-27T17:27:02Z",
+  "tag": "pantheon-base-v0.13.0",
+  "sourceCommit": "c254e4c8c63f4409d49752eedb097291627d0b82",
   "localChecks": {
     "productionReadinessAudit": "passed-with-documented-release-and-runtime-gaps",
     "taskArchiveAndGovernance": "passed",
     "backendAndFrontendFullSuite": "passed-in-2026-09-24-audit"
   },
-  "pendingReleaseGates": [
-    "fresh hosted required checks on the release commit",
-    "immutable tag and GitHub Release publication",
-    "pantheon-ops clean-worktree consumption and smoke evidence"
+  "pendingConsumerFollowUps": [
+    "pantheon-ops lock update",
+    "pantheon-ops clean-worktree snapshot and business smoke evidence"
   ],
   "evidence": [
     ".harness/evidence/2026-09-24-production-readiness-audit/summary.md",

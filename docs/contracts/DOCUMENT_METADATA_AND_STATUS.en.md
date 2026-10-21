@@ -132,7 +132,7 @@ Exceptions are allowed when an assessment is still operationally required or whe
 
 Recommended directory-to-index mapping:
 
-- `docs/superpowers/specs/`
+- `openspec/specs/`
   - usually `Design`
   - usually `Active` or `Superseded`
   - `index_group: superpowers-specs`

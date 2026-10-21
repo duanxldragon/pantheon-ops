@@ -73,13 +73,68 @@ test('exempts Go test files from production boundary rules', () => {
 
 test('allows auth to use system api modules but flags internal component imports', () => {
   const { root, write } = createRepo();
-  write('frontend/src/modules/auth/security/usesApi.ts', "import { getSettingGroup } from '../../../system/setting/api';\n");
-  write('frontend/src/modules/auth/security/usesCss.ts', "import '../../../system/components/shared/list-page.css';\n");
+  write('frontend/src/modules/auth/security/usesApi.ts', "import { getSettingGroup } from '../../../system/config/setting/api';\n");
+  write('frontend/src/modules/auth/security/usesCss.ts', "import '../../../system/iam/user/components/UserList';\n");
   const result = run(root);
   assert.equal(result.status, 1, result.stdout);
   const body = parse(result);
   assert.equal(body.findingCount, 1);
   assert.match(body.results[0].findings[0].file, /usesCss\.ts$/);
+});
+
+// system/* subdomains may cross into a sibling only through that sibling's api
+// contract (REPOSITORY_LAYOUT §8.2). The rule resolves relative specifiers first,
+// so it can tell a sibling subdomain from a same-named top-level directory.
+test('allows a system subdomain to reach a sibling api contract', () => {
+  const { root, write } = createRepo();
+  write(
+    'frontend/src/modules/system/iam/user/usesOrgApi.ts',
+    "import { getDeptTree } from '../../org/dept/api';\n",
+  );
+  const result = run(root);
+  assert.equal(result.status, 0, result.stdout);
+  assert.equal(parse(result).findingCount, 0);
+});
+
+test('flags a system subdomain reaching a sibling internal', () => {
+  const { root, write } = createRepo();
+  write(
+    'frontend/src/modules/system/iam/user/usesOrgInternal.ts',
+    "import DeptList from '../../org/dept/DeptList';\n",
+  );
+  const result = run(root);
+  assert.equal(result.status, 1, result.stdout);
+  const body = parse(result);
+  assert.equal(body.findingCount, 1);
+  assert.match(body.results[0].findings[0].reason, /system\/iam frontend must not reach into another system subdomain/);
+});
+
+// Regression guard: `../../../../i18n` from system/config/setting points at the
+// GLOBAL frontend/src/i18n, not the system i18n subdomain. Matching the raw
+// specifier cannot tell them apart, which is why the rule resolves paths.
+test('does not mistake a same-named top-level directory for a sibling subdomain', () => {
+  const { root, write } = createRepo();
+  write(
+    'frontend/src/modules/system/config/setting/usesGlobalI18n.ts',
+    "import '../../../../i18n';\n",
+  );
+  write('frontend/src/i18n/index.ts', 'export const framework = true;\n');
+  const result = run(root);
+  assert.equal(result.status, 0, result.stdout);
+  assert.equal(parse(result).findingCount, 0);
+});
+
+// A gate that cannot locate the checkout reads zero files. Reporting a clean pass
+// in that state is the failure mode this guards against.
+test('an unresolvable repository root fails strict mode instead of passing silently', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'boundary-check-noroot-'));
+  fs.writeFileSync(path.join(root, 'README.md'), '# not a checkout\n');
+  const result = run(root);
+  assert.equal(result.status, 1, result.stdout);
+  const body = parse(result);
+  assert.equal(body.findingCount, 0);
+  assert.equal(body.unresolvedCount, 1);
+  assert.match(body.results[0].warnings.join('\n'), /Repository root not found/);
 });
 
 test('a baselined finding does not fail strict mode', () => {

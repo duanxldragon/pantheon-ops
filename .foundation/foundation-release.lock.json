@@ -1,41 +1,41 @@
 {
   "schemaVersion": 1,
   "consumer": "pantheon-ops",
-  "lockedRelease": "pantheon-base-v0.13.1",
-  "releaseLine": "release/0.13",
-  "baseCommit": "807cb4e7f8e9c5d012345678901234567890abcd",
-  "supersedes": "pantheon-base-v0.12.1",
-  "lockedAt": "2026-09-29T00:00:00Z",
-  "source": "https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.13.1",
+  "lockedRelease": "pantheon-base-v0.16.1",
+  "releaseLine": "release/0.16",
+  "baseCommit": "c83f8e4c865b19ecd5351ecefac4106ec416e0bc",
+  "supersedes": "pantheon-base-v0.13.0",
+  "lockedAt": "2026-10-21T00:00:00Z",
+  "source": "https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.16.1",
   "verification": {
-    "tgzChecksumVerified": false,
-    "repoTarChecksumVerified": false,
-    "releaseGateSummary": "pending",
-    "sonarCloudUnresolvedIssues": 0,
-    "materializedLayoutMatchesPriorReleases": false
+    "tgzChecksumVerified": true,
+    "repoTarChecksumVerified": true,
+    "releaseGateSummary": "declared-required-checks",
+    "sonarCloudUnresolvedIssues": null,
+    "materializedLayoutMatchesPriorReleases": true
   },
   "materialization": {
-    "releasesDir": ".foundation/releases/pantheon-base-v0.13.1",
+    "releasesDir": ".foundation/releases/pantheon-base-v0.16.1",
     "bundle": "bundle/",
     "manifest": "manifest.json",
     "checksums": [
-      "foundation-release-pantheon-base-v0.13.1.tgz.sha256",
+      "foundation-release-pantheon-base-v0.16.1.tgz.sha256",
       "repo.tar.sha256"
     ]
   },
   "pendingWork": [
     {
       "item": "baseline-swap",
-      "description": "Apply bundle/shared-backend + shared-frontend to the ops source tree",
+      "description": "Apply the rebuilt v0.16.1 assembly to the ops source tree",
       "blockedBy": "none",
       "status": "done"
     },
     {
       "item": "post-swap-verification",
-      "description": "Run backend build/vet/-short tests, frontend type-check after baseline swap",
+      "description": "Run business-overlay gates, shared-drift hash check, backend build/test and frontend type-check after the baseline swap",
       "blockedBy": "baseline-swap",
       "status": "done"
     }
   ],
-  "notes": "Lock v0.13.1 to consume SSRF protection package. Supersedes v0.12.1. SSRF validator integrated across 5 attack surfaces in ops overlay. 2026-09-29: baseline-swap verified via shared-drift hash check (675 shared files identical to base HEAD, 10 allowlisted overlay hooks), backend go test/vet and frontend tsc/eslint green."
+  "notes": "v0.14.0, v0.15.0 and v0.16.0 were published without assets, so v0.16.1 is the first consumable release after v0.13.0. Asset digests f22305e1 (bundle) and daf8c890 (repo.tar) were verified against the published .sha256 sidecars and against GitHub's own release digest; repo.tar matches the tag tree byte-for-byte apart from the two gitattributes eol=crlf files. The bundle's verification-summary.json declares the six required checks without per-check results, so no SonarCloud issue count is asserted here. 2026-10-21: baseline swap executed from the unchanged release snapshot and verified by shared-drift hash check (704 shared files identical to the release snapshot, 10 allowlisted overlay hooks), business-overlay contract and 13/13 tests, backend build/vet/test, frontend type-check. Base main is 13 commits ahead of the release tag, so the against-main drift gate stays red until the next base release."
 }

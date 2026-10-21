@@ -5,16 +5,16 @@ import (
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
-	login "github.com/duanxldragon/pantheon-base/backend/modules/auth/login"
-	security "github.com/duanxldragon/pantheon-base/backend/modules/auth/security"
-	session "github.com/duanxldragon/pantheon-base/backend/modules/auth/session"
-	dictcfg "github.com/duanxldragon/pantheon-base/backend/modules/system/config/dict"
-	settingcfg "github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
-	menu "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/menu"
-	role "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/role"
-	user "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
-	dept "github.com/duanxldragon/pantheon-base/backend/modules/system/org/dept"
-	post "github.com/duanxldragon/pantheon-base/backend/modules/system/org/post"
+	"github.com/duanxldragon/pantheon-base/backend/modules/auth/login"
+	"github.com/duanxldragon/pantheon-base/backend/modules/auth/security"
+	"github.com/duanxldragon/pantheon-base/backend/modules/auth/session"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/config/dict"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/menu"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/role"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/org/dept"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/org/post"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"gorm.io/gorm"
@@ -27,8 +27,8 @@ func migrateDashboardRuntimeSchema(t *testing.T, db *gorm.DB) {
 		&role.SystemRole{},
 		&dept.SystemDept{},
 		&post.SystemPost{},
-		&dictcfg.SystemDictType{},
-		&settingcfg.SystemSetting{},
+		&dict.SystemDictType{},
+		&setting.SystemSetting{},
 		&menu.SystemMenu{},
 		&session.SystemUserSession{},
 		&login.SystemLogLogin{},
@@ -53,10 +53,10 @@ func TestDashboardServiceGetSummaryUsesCurrentRuntimeSchema(t *testing.T) {
 	if err := db.Create(&dept.SystemDept{DeptName: "Root", IsRoot: 1, Status: 1}).Error; err != nil {
 		t.Fatalf("seed dept: %v", err)
 	}
-	if err := db.Create(&dictcfg.SystemDictType{DictName: "yes/no", DictCode: "system_yes_no", Module: "system", Status: 1}).Error; err != nil {
+	if err := db.Create(&dict.SystemDictType{DictName: "yes/no", DictCode: "system_yes_no", Module: "system", Status: 1}).Error; err != nil {
 		t.Fatalf("seed dict type: %v", err)
 	}
-	if err := db.Create(&settingcfg.SystemSetting{SettingKey: "login.session_idle_minutes", SettingValue: "30", GroupKey: "login", Module: "system"}).Error; err != nil {
+	if err := db.Create(&setting.SystemSetting{SettingKey: "login.session_idle_minutes", SettingValue: "30", GroupKey: "login", Module: "system"}).Error; err != nil {
 		t.Fatalf("seed setting: %v", err)
 	}
 	if err := db.Create(&middleware.SystemLogOper{

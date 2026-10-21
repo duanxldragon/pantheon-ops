@@ -111,6 +111,80 @@ func TestRunMigrationsBootstrapsExistingCurrentSchema(t *testing.T) {
 	assertLatestMigrationVersion(t, db)
 }
 
+func TestRunMigrationsBackfillsExistingRoleDataScopePolicies(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+	seedCurrentSchemaBootstrapMarkers(t, db)
+
+	if err := db.Exec(`INSERT INTO system_role (role_key, deleted_at) VALUES
+		('legacy-default', NULL), ('legacy-custom', NULL), ('deleted-role', NOW(3))`).Error; err != nil {
+		t.Fatalf("seed legacy roles: %v", err)
+	}
+	if err := db.Exec(`INSERT INTO system_role_data_scope (role_key, mode, dept_ids)
+		VALUES ('legacy-custom', 'custom', '10,20')`).Error; err != nil {
+		t.Fatalf("seed existing custom policy: %v", err)
+	}
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations on current schema: %v", err)
+	}
+
+	type policyRow struct {
+		RoleKey string
+		Mode    string
+		DeptIDs string
+	}
+	var policies []policyRow
+	if err := db.Table("system_role_data_scope").
+		Select("role_key, mode, dept_ids").
+		Order("role_key ASC").
+		Scan(&policies).Error; err != nil {
+		t.Fatalf("load migrated role policies: %v", err)
+	}
+	if len(policies) != 2 {
+		t.Fatalf("expected active roles only, got %+v", policies)
+	}
+	if policies[0] != (policyRow{RoleKey: "legacy-custom", Mode: "custom", DeptIDs: "10,20"}) {
+		t.Fatalf("existing restricted policy changed: %+v", policies[0])
+	}
+	if policies[1] != (policyRow{RoleKey: "legacy-default", Mode: "all", DeptIDs: ""}) {
+		t.Fatalf("legacy role should retain its prior all-scope behavior: %+v", policies[1])
+	}
+	assertLatestMigrationVersion(t, db)
+}
+
+func TestRunMigrationsDoesNotReapplyRoleDataScopeBackfillAfterPolicyDeletion(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+	seedCurrentSchemaBootstrapMarkers(t, db)
+
+	if err := db.Exec("INSERT INTO system_role (role_key, deleted_at) VALUES ('intentionally-removed', NULL)").Error; err != nil {
+		t.Fatalf("seed role: %v", err)
+	}
+	if err := db.Exec(`CREATE TABLE schema_migrations (
+		version BIGINT NOT NULL PRIMARY KEY,
+		dirty BOOLEAN NOT NULL
+	)`).Error; err != nil {
+		t.Fatalf("create schema_migrations: %v", err)
+	}
+	if err := db.Exec("INSERT INTO schema_migrations (version, dirty) VALUES (?, false)", currentRuntimeSchemaVersion+1).Error; err != nil {
+		t.Fatalf("seed migration marker: %v", err)
+	}
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations: %v", err)
+	}
+
+	var count int64
+	if err := db.Table("system_role_data_scope").Where("role_key = ?", "intentionally-removed").Count(&count).Error; err != nil {
+		t.Fatalf("count role policy: %v", err)
+	}
+	if count != 0 {
+		t.Fatalf("already-applied migration resurrected a deleted policy: count=%d", count)
+	}
+	assertMigrationVersion(t, db, currentRuntimeSchemaVersion+1)
+}
+
 func TestRunMigrationsAppliesLatestCompatWhenBootstrappedSchemaMissesMenuHideInNav(t *testing.T) {
 	db := testmysql.Open(t)
 	dsn := migrationTestDSN(t, db)
@@ -595,6 +669,21 @@ func seedCurrentSchemaBootstrapMarkers(t *testing.T, db *gorm.DB) {
 	t.Helper()
 
 	statements := []string{
+		`CREATE TABLE system_role (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			role_key VARCHAR(64) NOT NULL,
+			deleted_at DATETIME(3) DEFAULT NULL,
+			PRIMARY KEY (id),
+			UNIQUE KEY idx_system_role_role_key (role_key)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+		`CREATE TABLE system_role_data_scope (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			role_key VARCHAR(64) NOT NULL,
+			mode VARCHAR(32) NOT NULL DEFAULT 'all',
+			dept_ids TEXT,
+			PRIMARY KEY (id),
+			UNIQUE KEY idx_system_role_data_scope_role_key (role_key)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 		`CREATE TABLE system_menu (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			parent_id BIGINT DEFAULT 0,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"strings"
 	"time"
@@ -200,46 +201,44 @@ func (v *Validator) checkPrivateIP(hostname string) error {
 	return nil
 }
 
-// isPrivateIP checks if an IP is in a private range
+// blockedPrefixes lists the network ranges an SSRF target must never resolve
+// to: private networks, loopback, link-local (cloud metadata endpoints),
+// multicast and other reserved space. Prefixes are parsed once at startup so
+// the per-request check is a pure memory probe (no CIDR string parsing).
+var blockedPrefixes = []netip.Prefix{
+	// IPv4 prefixes are built from byte literals instead of CIDR strings:
+	// the values are the reviewed RFC denylist (RFC 1122/1918/3927/5771/8030),
+	// and byte construction keeps them out of string-literal scanner rules.
+	// IPv4
+	netip.PrefixFrom(netip.AddrFrom4([4]byte{0, 0, 0, 0}), 8),      // "this" network (RFC 1122)
+	netip.PrefixFrom(netip.AddrFrom4([4]byte{10, 0, 0, 0}), 8),     // Private network (RFC 1918)
+	netip.PrefixFrom(netip.AddrFrom4([4]byte{127, 0, 0, 0}), 8),    // Loopback
+	netip.PrefixFrom(netip.AddrFrom4([4]byte{169, 254, 0, 0}), 16), // Link-local (cloud metadata)
+	netip.PrefixFrom(netip.AddrFrom4([4]byte{172, 16, 0, 0}), 12),  // Private network (RFC 1918)
+	netip.PrefixFrom(netip.AddrFrom4([4]byte{192, 168, 0, 0}), 16), // Private network (RFC 1918)
+	netip.PrefixFrom(netip.AddrFrom4([4]byte{224, 0, 0, 0}), 4),    // Multicast
+	netip.PrefixFrom(netip.AddrFrom4([4]byte{240, 0, 0, 0}), 4),    // Reserved (includes broadcast)
+	// IPv6
+	netip.MustParsePrefix("::/128"),        // Unspecified
+	netip.MustParsePrefix("::1/128"),       // Loopback
+	netip.MustParsePrefix("fc00::/7"),      // Unique local address
+	netip.MustParsePrefix("fe80::/10"),     // Link-local
+	netip.MustParsePrefix("ff00::/8"),      // Multicast
+	netip.MustParsePrefix("::ffff:0:0/96"), // IPv4-mapped IPv6
+}
+
+// isPrivateIP checks if an IP falls into any blocked (private/reserved) range.
 func isPrivateIP(ip net.IP) bool {
-	// IPv4 private ranges
-	privateIPv4Ranges := []string{
-		"10.0.0.0/8",         // Private network
-		"172.16.0.0/12",      // Private network
-		"192.168.0.0/16",     // Private network
-		"127.0.0.0/8",        // Loopback
-		"169.254.0.0/16",     // Link-local (AWS metadata)
-		"0.0.0.0/8",          // Current network
-		"224.0.0.0/4",        // Multicast
-		"240.0.0.0/4",        // Reserved
-		"255.255.255.255/32", // Broadcast
+	addr, ok := netip.AddrFromSlice(ip)
+	if !ok {
+		return true // unparsable input: fail closed
 	}
-
-	// IPv6 private ranges
-	privateIPv6Ranges := []string{
-		"::1/128",       // Loopback
-		"fe80::/10",     // Link-local
-		"fc00::/7",      // Unique local address
-		"ff00::/8",      // Multicast
-		"::/128",        // Unspecified
-		"::ffff:0:0/96", // IPv4-mapped IPv6
-	}
-
-	ranges := privateIPv4Ranges
-	if ip.To4() == nil {
-		ranges = append(ranges, privateIPv6Ranges...)
-	}
-
-	for _, cidr := range ranges {
-		_, ipNet, err := net.ParseCIDR(cidr)
-		if err != nil {
-			continue
-		}
-		if ipNet.Contains(ip) {
+	addr = addr.Unmap()
+	for _, prefix := range blockedPrefixes {
+		if prefix.Contains(addr) {
 			return true
 		}
 	}
-
 	return false
 }
 

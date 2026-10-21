@@ -3,7 +3,7 @@ title: Document Frontmatter Spec
 doc_type: Contract
 layer: platform
 status: Active
-updated_at: 2026-09-01
+updated_at: 2026-07-16
 ---
 
 # Document Frontmatter Spec

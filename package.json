@@ -7,6 +7,7 @@
     "check:docs-frontmatter": "node scripts/frontmatter-check.mjs",
     "check:docs-frontmatter:legacy": "node scripts/frontmatter-check.mjs --report-legacy",
     "check:duplication": "node scripts/check-duplication.mjs",
+    "check:release-assets": "node scripts/foundation-release/check-release-assets.mjs",
     "check:github-feedback": "node scripts/fetch-github-feedback.mjs --check",
     "check:pr-governance": "node scripts/check-pr-governance.mjs",
     "check:harness-method": "node scripts/harness/check-method-health.mjs --root . --strict",
@@ -44,13 +45,11 @@
     "prepare": "husky",
     "rebuild:from-base": "node scripts/business-overlay/rebuild-from-base.mjs",
     "check:business-overlay": "node scripts/business-overlay/check-business-overlay.mjs",
-    "check:shared-drift": "node scripts/business-overlay/check-shared-drift.mjs --base ../pantheon-base",
     "test:business-overlay": "node --test tests/scripts/business-overlay/*.test.mjs",
     "check:encoding": "node scripts/check-encoding.mjs --strict",
     "check:business-boundaries": "node scripts/check-business-module-boundaries.mjs",
     "test:business-boundaries": "node --test tests/scripts/check-business-module-boundaries.test.mjs",
-    "check:business-foundation": "npm run check:business-boundaries && npm run check:business-overlay && npm run test:business-boundaries && npm run test:business-overlay",
-    "check:docs-governance": "npm run check:docs-frontmatter && npm run check:encoding && npm run check:structure && npm run check:task-packet-template && npm run check:pr-governance && npm run check:business-overlay && npm run test:business-overlay && npm run check:generated-modules"
+    "check:business-foundation": "npm run check:business-boundaries && npm run check:business-overlay && npm run test:business-boundaries && npm run test:business-overlay"
   },
   "lint-staged": {
     "frontend/src/**/*.{ts,tsx}": [
@@ -69,8 +68,8 @@
   },
   "devDependencies": {
     "husky": "^9.1.7",
-    "lint-staged": "^17.5.1",
+    "lint-staged": "^17.6.0",
     "playwright": "^1.63.0",
-    "prettier": "^3.9.8"
+    "prettier": "^3.9.9"
   }
 }

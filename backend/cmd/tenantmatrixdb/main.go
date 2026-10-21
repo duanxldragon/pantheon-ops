@@ -264,14 +264,22 @@ func cmdDown(db *sql.DB) error {
 		return fmt.Errorf("cleanup verification failed: tagged=%d memberships=%d", tagged, memberships)
 	}
 
-	// 4. Roll migrations 16..13 back so the schema matches the pre-run state
-	//    (the dev DB was on version 12 before the matrix run).
-	for _, version := range []int{16, 15, 14, 13} {
-		if err := rollbackMigration(db, version); err != nil {
-			return fmt.Errorf("rollback migration %d: %w", version, err)
-		}
+	// 4. Roll back only when this database is still inside the tenant migration
+	//    window. A newer schema must never be rewound to v12 by this rehearsal.
+	currentVersion, err := migrationVersion(db)
+	if err != nil {
+		return err
 	}
-	fmt.Println("tenant-matrix down: fixtures removed, flag=compat, migrations rolled back to 12")
+	if currentVersion <= 16 {
+		for _, version := range []int{16, 15, 14, 13} {
+			if err := rollbackMigration(db, version); err != nil {
+				return fmt.Errorf("rollback migration %d: %w", version, err)
+			}
+		}
+		fmt.Println("tenant-matrix down: fixtures removed, flag=compat, migrations rolled back to 12")
+	} else {
+		fmt.Printf("tenant-matrix down: fixtures removed, flag=compat, schema version %d preserved\\n", currentVersion)
+	}
 	return nil
 }
 
@@ -476,22 +484,26 @@ func findMigrationFile(version int, suffix string) ([]string, error) {
 }
 
 func splitSQLStatements(content string) []string {
-	// The guarded tenant migration files never contain DELIMITER blocks or
-	// semicolons inside string literals (verified by review); split on ';'.
+	// Tenant migration files do not use DELIMITER blocks or semicolons inside
+	// string literals. Split on every semicolon, including multiple statements
+	// written on one line.
 	var statements []string
 	var current strings.Builder
 	for _, line := range strings.Split(content, "\n") {
-		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "--") {
+		if strings.HasPrefix(strings.TrimSpace(line), "--") {
 			continue
 		}
-		current.WriteString(line)
-		current.WriteString("\n")
-		if strings.HasSuffix(trimmed, ";") {
-			statement := strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(current.String()), ";"))
-			current.Reset()
-			if statement != "" && statement != "SELECT 1" {
-				statements = append(statements, statement+";")
+		parts := strings.Split(line, ";")
+		for i, part := range parts {
+			current.WriteString(part)
+			if i < len(parts)-1 {
+				statement := strings.TrimSpace(current.String())
+				current.Reset()
+				if statement != "" && statement != "SELECT 1" {
+					statements = append(statements, statement+";")
+				}
+			} else {
+				current.WriteString("\n")
 			}
 		}
 	}
@@ -500,7 +512,6 @@ func splitSQLStatements(content string) []string {
 	}
 	return statements
 }
-
 func truncate(value string, n int) string {
 	if len(value) <= n {
 		return value

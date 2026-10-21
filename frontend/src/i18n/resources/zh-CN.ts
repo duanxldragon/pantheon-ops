@@ -496,6 +496,7 @@ const zhCNFallback = {
   'common.basicInfo': '基础信息',
   'common.accessControl': '访问与授权',
   'common.back': '返回',
+  'common.backHome': '返回首页',
   'common.detail': '详情',
   'common.selected': '已选择',
   'common.selectedCount': '已选 {{count}} 条',

@@ -62,7 +62,10 @@ const AUTH_RULES = {
     { pattern: /(?:^|\/)modules\/platform(?:\/|$)/, reason: 'auth frontend must not import platform module internals directly' },
     { pattern: /(?:^|\/)\.\.\/business(?:\/|$)/, reason: 'auth frontend must not reach into sibling business modules' },
     { pattern: /(?:^|\/)\.\.\/platform(?:\/|$)/, reason: 'auth frontend must not reach into sibling platform modules' },
-    { pattern: /system\/(components|hooks|utils)(?:\/|$)/, reason: 'auth frontend must not import system internal components/hooks/utils directly (system api contracts are allowed)' },
+    // `system/**` is matched at any depth: a subdomain keeps its internals in its own
+    // components/hooks/utils directories (e.g. system/iam/user/components/), so the
+    // segment is not necessarily adjacent to `system/`.
+    { pattern: /(?:^|\/)system\/(?:[^'"]*\/)?(components|hooks|utils)(?:\/|$)/, reason: 'auth frontend must not import system internal components/hooks/utils directly (import the subdomain api contract instead)' },
   ],
 };
 
@@ -71,6 +74,14 @@ const AUTH_RULES = {
 // subdomain's packages creates a hidden coupling that the contract docs
 // (docs/contracts/SYSTEM_*_CONTRACT.md) do not sanction.
 const SYSTEM_DOMAINS = ['audit', 'config', 'i18n', 'iam', 'org'];
+
+// A system subdomain reaching a sibling is only legal through the sibling's public
+// api contract (REPOSITORY_LAYOUT §8.2: "跨子域仅 public contract"). Any other entry
+// point — a component, a hook, a store helper, a raw sub-path — is a hidden coupling.
+// Matched against the RESOLVED target so that a top-level directory whose name
+// happens to equal a subdomain (frontend/src/i18n vs modules/system/i18n) is not
+// mistaken for a cross-subdomain reach.
+const SYSTEM_PUBLIC_CONTRACT = /\/api(?:\/index(?:\.tsx?)?)?$/;
 
 function systemDomainRules(domain) {
   const others = SYSTEM_DOMAINS.filter((candidate) => candidate !== domain);
@@ -81,7 +92,15 @@ function systemDomainRules(domain) {
         reason: `system/${domain} must not import another system subdomain's packages (wire them at backend/modules/system/system_modules.go instead)`,
       },
     ],
-    ts: [],
+    ts: [
+      {
+        matchResolved: true,
+        pattern: new RegExp(`(?:^|/)frontend/src/modules/system/(?:${others.join('|')})(?:/|$)`),
+        // Sibling api contracts are the sanctioned cross-subdomain surface.
+        unless: SYSTEM_PUBLIC_CONTRACT,
+        reason: `system/${domain} frontend must not reach into another system subdomain's internals (import the sibling's api contract instead)`,
+      },
+    ],
   };
 }
 
@@ -114,10 +133,14 @@ function printHelp() {
 Default behavior:
   Report findings and exit 0.  Use --strict to exit 1 when unbaselined findings exist.
   Scanned layers: business, platform, auth and each system/* subdomain.
+  Within system/*, a subdomain may only reach a sibling through that sibling's api
+  contract; any other cross-subdomain path is a finding.
   Use --repo <name> to scan only one repository (default scans all).
   Use --baseline <path> to treat recorded, review-dated findings as known debt.
   Under --strict, a baseline entry that no longer matches any finding (stale)
   fails: remove it so it cannot whitelist a reintroduced import.
+  Under --strict, an unresolvable repository root also fails: the gate refuses to
+  report a clean pass when it could not actually read any files.
 
 Examples:
   node scripts/harness/check-boundaries.mjs
@@ -205,7 +228,19 @@ function collectImports(content, importPattern) {
   return imports;
 }
 
-function scanFile(filePath, root, rules, language) {
+// Relative specifiers are the only reliable way to tell "the sibling subdomain" from
+// "a same-named top-level directory": `../../../../i18n` from system/config/setting
+// points at frontend/src/i18n (the global i18n framework), while `../../i18n` from
+// system/iam/user points at the system i18n subdomain. Both end in the segment
+// `i18n`, so a rule that only reads the raw specifier cannot separate them.
+function resolveImportPath(filePath, importPath, repoRoot) {
+  if (!importPath.startsWith('.')) return null;
+  const absolute = path.normalize(path.join(path.dirname(filePath), importPath));
+  const relative = path.relative(repoRoot, absolute).replaceAll(path.sep, '/');
+  return relative.startsWith('..') ? null : relative;
+}
+
+function scanFile(filePath, repoRoot, rules, language) {
   const content = fs.readFileSync(filePath, 'utf8');
   const importPattern =
     language === 'go'
@@ -214,14 +249,21 @@ function scanFile(filePath, root, rules, language) {
   const findings = [];
 
   for (const importPath of collectImports(content, importPattern)) {
+    const resolvedPath = resolveImportPath(filePath, importPath, repoRoot);
     for (const rule of rules) {
-      if (rule.pattern.test(importPath)) {
-        findings.push({
-          file: toRepoPath(filePath, root),
-          importPath,
-          reason: rule.reason,
-        });
-      }
+      // `matchResolved` rules ask "where does this point?", so they are evaluated
+      // against the repo-relative target; everything else keeps matching the raw
+      // specifier, which is what the pre-existing rules were written against.
+      const subject = rule.matchResolved ? resolvedPath : importPath;
+      if (subject === null || !rule.pattern.test(subject)) continue;
+      // A rule may carve out a sanctioned sub-case of its own pattern (for example
+      // "another system subdomain" minus "that subdomain's api contract").
+      if (rule.unless && rule.unless.test(subject)) continue;
+      findings.push({
+        file: toRepoPath(filePath, repoRoot),
+        importPath,
+        reason: rule.reason,
+      });
     }
   }
 
@@ -280,20 +322,34 @@ function scanLayer(layerScan, repoRoot, root) {
   return { findings, warnings };
 }
 
+// A directory is only a repository checkout if it actually holds a backend/ or
+// frontend/ tree. Without this test, a stray same-named directory under the
+// invocation root (e.g. a leftover `pantheon-base/pantheon-base/`) is mistaken for
+// the checkout and every layer scan silently finds nothing — a gate that reports
+// "no findings" while reading zero files is worse than no gate at all.
+function looksLikeRepoRoot(dir) {
+  return fs.existsSync(path.join(dir, 'backend')) || fs.existsSync(path.join(dir, 'frontend'));
+}
+
 function scanRepository(repoName, root, baseline) {
   const warnings = [];
   const findings = [];
   // 约定 root 为 workspace 根（含各仓库目录）。但当 root 本身就是目标仓库
   // （例如 CI 在仓库内 checkout 后 cwd = 仓库根，其目录名 == repoName），
   // 直接使用 root 作为仓库根，避免 path.join(root, repoName) 找不到。
-  let repoRoot = path.join(root, repoName);
-  if (!fs.existsSync(repoRoot) && path.basename(root) === repoName) {
+  const nested = path.join(root, repoName);
+  let repoRoot = null;
+  if (looksLikeRepoRoot(nested)) {
+    repoRoot = nested;
+  } else if (looksLikeRepoRoot(root)) {
     repoRoot = root;
   }
 
-  if (!fs.existsSync(repoRoot)) {
-    warnings.push(`Repository root not found: ${repoName}`);
-    return { repo: repoName, findings, baselined: [], warnings };
+  if (repoRoot === null) {
+    warnings.push(
+      `Repository root not found: ${repoName} (neither ${toRepoPath(nested, root)} nor the invocation root contains backend/ or frontend/); scanned 0 files`,
+    );
+    return { repo: repoName, findings, baselined: [], staleBaseline: [], warnings, unresolved: true };
   }
 
   const scans = LAYER_SCANS[repoName] ?? [];
@@ -331,7 +387,7 @@ function scanRepository(repoName, root, baseline) {
     }
   }
 
-  return { repo: repoName, findings: remaining, baselined, staleBaseline, warnings };
+  return { repo: repoName, findings: remaining, baselined, staleBaseline, warnings, unresolved: false };
 }
 
 function printTextReport(results, strict, baseline) {
@@ -339,9 +395,12 @@ function printTextReport(results, strict, baseline) {
   const baselinedCount = results.reduce((count, result) => count + (result.baselined?.length ?? 0), 0);
   const staleCount = results.reduce((count, result) => count + (result.staleBaseline?.length ?? 0), 0);
   const warningCount = results.reduce((count, result) => count + result.warnings.length, 0);
+  const unresolvedCount = results.filter((result) => result.unresolved).length;
   const mode = strict ? 'strict' : 'report-only';
 
-  console.log(`Boundary check (${mode}): ${findingCount} finding(s), ${baselinedCount} baselined, ${staleCount} stale baselined, ${warningCount} warning(s)`);
+  console.log(
+    `Boundary check (${mode}): ${findingCount} finding(s), ${baselinedCount} baselined, ${staleCount} stale baselined, ${unresolvedCount} unresolved repo root(s), ${warningCount} warning(s)`,
+  );
   if (baseline.reviewBy) {
     console.log(`Baseline review-by: ${baseline.reviewBy}`);
   }
@@ -349,7 +408,9 @@ function printTextReport(results, strict, baseline) {
   for (const result of results) {
     console.log(`\n${result.repo}`);
 
-    if (result.findings.length === 0 && (result.baselined?.length ?? 0) === 0) {
+    if (result.unresolved) {
+      console.log('  NOT SCANNED: repository root could not be resolved, so 0 files were read');
+    } else if (result.findings.length === 0 && (result.baselined?.length ?? 0) === 0) {
       console.log('  no findings');
     }
 
@@ -405,6 +466,7 @@ function main() {
   const baselinedCount = results.reduce((count, result) => count + (result.baselined?.length ?? 0), 0);
   const staleCount = results.reduce((count, result) => count + (result.staleBaseline?.length ?? 0), 0);
   const warningCount = results.reduce((count, result) => count + result.warnings.length, 0);
+  const unresolvedCount = results.filter((result) => result.unresolved).length;
 
   if (options.json) {
     console.log(
@@ -416,6 +478,7 @@ function main() {
           baselinedCount,
           staleCount,
           warningCount,
+          unresolvedCount,
           results,
         },
         null,
@@ -426,9 +489,11 @@ function main() {
     printTextReport(results, options.strict, baseline);
   }
 
-  // --strict fails on new violations AND on stale baseline entries. A stale entry
-  // must be removed (not kept) so it cannot mask a reintroduced import later.
-  return options.strict && (findingCount > 0 || staleCount > 0) ? 1 : 0;
+  // --strict fails on new violations, on stale baseline entries, and on an
+  // unresolvable repository root. The last case matters most: a gate that cannot
+  // find the checkout reads zero files and would otherwise report a clean pass.
+  // A stale entry must be removed (not kept) so it cannot mask a reintroduced import.
+  return options.strict && (findingCount > 0 || staleCount > 0 || unresolvedCount > 0) ? 1 : 0;
 }
 
 process.exitCode = main();

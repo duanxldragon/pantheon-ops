@@ -2,42 +2,14 @@
   "schemaVersion": 1,
   "contract": "docs/designs/REPOSITORY_LAYOUT.md §8.3",
   "reviewBy": "2026-12-31",
-  "description": "Frozen cross-layer boundary findings from the 2026-09-22 layer-boundary-gate task. Each entry is known, reviewed debt with a stated ratchet; the gate (scripts/harness/check-boundaries.mjs --strict --baseline config/boundary-baseline.json) blocks any NEW violation but lets these stay tracked until they are refactored or re-approved. Do not add an entry to silence a new finding — fix it or get explicit maintainer approval. Entries must keep matching a real finding: the gate fails --strict on stale entries (2026-09-23) so they cannot whitelist a reintroduced import. The three backend/modules/auth/* -> modules/system/iam/user entries were removed on 2026-09-23 once the pkg/contracts/authuser port landed and production code stopped importing the iam model.",
+  "description": "Frozen cross-layer boundary findings from the 2026-09-22 layer-boundary-gate task. Each entry is known, reviewed debt with a stated ratchet; the gate (scripts/harness/check-boundaries.mjs --strict --baseline config/boundary-baseline.json) blocks any NEW violation but lets these stay tracked until they are refactored or re-approved. Do not add an entry to silence a new finding — fix it or get explicit maintainer approval. Entries must keep matching a real finding: the gate fails --strict on stale entries (2026-09-23) so they cannot whitelist a reintroduced import. The three backend/modules/auth/* -> modules/system/iam/user entries were removed on 2026-09-23 once the pkg/contracts/authuser port landed and production code stopped importing the iam model. The four auth -> system/components/shared/list-page.css entries were removed on 2026-10-11 by executing their own ratchet: the stylesheet was promoted to frontend/src/assets/list-page.css, so auth pages no longer reach into the system module for a shared style and the misleading modules/system/components/ directory is gone.",
   "entries": [
     {
       "file": "frontend/src/modules/platform/widgets.tsx",
-      "importPath": "../system/menu/api",
+      "importPath": "../system/iam/menu/api",
       "layer": "platform",
       "reviewBy": "2026-12-31",
       "reason": "Type-only import of the menu contract type MenuNode. Ratchet: promote MenuNode to a shared contract type (frontend/src/api) so the platform module stops importing the system/menu module path."
-    },
-    {
-      "file": "frontend/src/modules/auth/security/components/LoginLogList.tsx",
-      "importPath": "../../../system/components/shared/list-page.css",
-      "layer": "auth",
-      "reviewBy": "2026-12-31",
-      "reason": "auth list pages reuse the system shared list-page stylesheet. Ratchet: promote list-page.css to a shared component style location (frontend/src/assets or components/) that both auth and system import."
-    },
-    {
-      "file": "frontend/src/modules/auth/security/components/SecurityCenter.tsx",
-      "importPath": "../../../system/components/shared/list-page.css",
-      "layer": "auth",
-      "reviewBy": "2026-12-31",
-      "reason": "auth list pages reuse the system shared list-page stylesheet. Same ratchet as LoginLogList.tsx."
-    },
-    {
-      "file": "frontend/src/modules/auth/security/components/SecurityEventList.tsx",
-      "importPath": "../../../system/components/shared/list-page.css",
-      "layer": "auth",
-      "reviewBy": "2026-12-31",
-      "reason": "auth list pages reuse the system shared list-page stylesheet. Same ratchet as LoginLogList.tsx."
-    },
-    {
-      "file": "frontend/src/modules/auth/session/components/SessionList.tsx",
-      "importPath": "../../../system/components/shared/list-page.css",
-      "layer": "auth",
-      "reviewBy": "2026-12-31",
-      "reason": "auth list pages reuse the system shared list-page stylesheet. Same ratchet as LoginLogList.tsx."
     }
   ]
 }

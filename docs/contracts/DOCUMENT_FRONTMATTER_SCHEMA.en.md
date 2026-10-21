@@ -19,7 +19,7 @@ It supplements [DOCUMENT_GOVERNANCE_CONTRACT.md](./DOCUMENT_GOVERNANCE_CONTRACT.
 This convention solves three problems:
 
 - lets AI and scripts read document type, status, linked contracts, and index groups reliably
-- makes the retention logic for `docs/superpowers/specs/` and `docs/archive/*` truly machine-readable
+- makes the retention logic for `openspec/specs/` and `docs/archive/*` truly machine-readable
 - creates stable input for later lint, drift checks, and linkage checks
 
 The current goal is not to rewrite the whole `docs/` tree at once. The goal is to establish a unified format for new docs and already-governed directories first.
@@ -72,9 +72,9 @@ Principle:
 - `linked_contracts`
   - expected for `Design / Assessment / Remediation / Acceptance / specs / archive` docs
 - `index_group`
-  - required for `docs/superpowers/specs/` and `docs/archive/*`
+  - required for `openspec/specs/` and `docs/archive/*`
 - `retention_reason`
-  - required for `docs/superpowers/specs/` and `docs/archive/*`
+  - required for `openspec/specs/` and `docs/archive/*`
 
 ### 3.3 Optional Fields
 
@@ -136,7 +136,7 @@ Add new enums only when directories really expand. Do not pre-allocate empty cat
 
 ## 6. Directory Mapping Rules
 
-### 6.1 `docs/superpowers/specs/`
+### 6.1 `openspec/specs/`
 
 - usually `doc_type: Design`
 - usually `status: Approved` or `Superseded`
@@ -172,7 +172,7 @@ Use progressive migration, not a hard cutover.
 Phase 1:
 
 - new docs use YAML frontmatter first
-- `docs/superpowers/specs/` and `docs/archive/*` migrate first
+- `openspec/specs/` and `docs/archive/*` migrate first
 
 Phase 2:
 
@@ -256,7 +256,7 @@ Current checks include:
 
 - full `docs/*.md` scan
 - base field requirements for docs already using frontmatter
-- directory-specific rules for `docs/superpowers/specs/` and `docs/archive/*`
+- directory-specific rules for `openspec/specs/` and `docs/archive/*`
 - `index_group` vs directory-semantic consistency
 - allowed `status` values by directory
 - `linked_contracts` array validity and target existence

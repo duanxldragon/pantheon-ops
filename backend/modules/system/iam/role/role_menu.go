@@ -1,4 +1,4 @@
-package iam
+package role
 
 import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"

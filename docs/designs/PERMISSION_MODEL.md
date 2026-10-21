@@ -313,14 +313,16 @@ business:deploy:task:start
 
 页面权限决定用户能不能进入某个路由。
 
-当前前端主要只有 token 守卫，还缺统一页面级权限守卫。
+**当前唯一权威规则**：每个路由配置通过 `pagePermission` 声明页面权限点，由 `src/core/router/RoutePermissionGuard.tsx` 统一做页面级拦截并渲染 403（见 `FRONTEND.md` “页面权限”）。token 守卫只负责登录态，不承担页面权限判断。
 
-## 8.2 建议目标
+历史说明：早期版本只有 token 守卫、缺统一页面级权限守卫；该缺口已由 `RoutePermissionGuard` 收口，本节仅保留历史记录，不要再按旧口径描述页面守卫。
 
-每个路由配置都允许声明：
+## 8.2 路由声明
+
+每个路由配置允许声明：
 
 ```ts
-requiredPerm?: string
+pagePermission?: string
 ```
 
 例如：
@@ -329,7 +331,7 @@ requiredPerm?: string
 {
   path: 'system/user',
   titleKey: 'system.menu.user',
-  requiredPerm: 'system:user:view',
+  pagePermission: 'system:user:view',
   component: lazy(() => import('./UserList'))
 }
 ```

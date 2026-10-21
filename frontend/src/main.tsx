@@ -8,7 +8,7 @@ import App from './App';
 import { initI18n } from './i18n';
 import { initializePantheonTheme } from './core/theme/theme';
 import { initializePantheonColorMode } from './core/theme/colorMode';
-import { initializePublicSettings } from './core/settings/publicSettings';
+import { initializePublicSettings } from './core/setting/publicSettings';
 import OperationalWorkbenchVisualFixture from './components/operational/OperationalWorkbenchVisualFixture';
 
 initializePantheonColorMode();

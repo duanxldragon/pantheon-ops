@@ -5,7 +5,7 @@ layer: platform
 status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-04-17
+updated_at: 2026-09-30
 ---
 
 # 业务模块设计模板
@@ -40,11 +40,7 @@ English version: [BUSINESS_MODULE_TEMPLATE.en.md](./BUSINESS_MODULE_TEMPLATE.en.
 
 - `docs/designs/BUSINESS_MODELING_REVIEW_CHECKLIST.md`
 
-它适合作为每个业务模块设计文档的母版，例如：
-
-- `docs/business/ORDER_MODULE_DESIGN.md`
-- `docs/business/PROJECT_MODULE_DESIGN.md`
-- `docs/business/TICKET_MODULE_DESIGN.md`
+它适合作为每个业务模块设计文档的母版（业务模块设计文档存放于 docs/designs/；docs/business/ 已随仓库清理退役，不再是有效目录）：
 
 ## 2. 模块设计文档标准目录
 

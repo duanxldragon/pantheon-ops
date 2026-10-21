@@ -1,4 +1,4 @@
-package iam
+package permission
 
 import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"

@@ -36,3 +36,16 @@ func TestMatrixModeRejectsUnknownValue(t *testing.T) {
 		t.Fatal("matrixMode(staging) returned nil error")
 	}
 }
+
+func TestSplitSQLStatementsSplitsMultipleStatementsOnSameLine(t *testing.T) {
+	got := splitSQLStatements("SET @s := 1; SET @q := 'DROP INDEX'; PREPARE x FROM @q; EXECUTE x;")
+	want := []string{"SET @s := 1;", "SET @q := 'DROP INDEX';", "PREPARE x FROM @q;", "EXECUTE x;"}
+	if len(got) != len(want) {
+		t.Fatalf("splitSQLStatements() = %#v, want %#v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("splitSQLStatements()[%d] = %q, want %q", i, got[i], want[i])
+		}
+	}
+}

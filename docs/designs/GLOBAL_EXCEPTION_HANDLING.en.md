@@ -12,6 +12,8 @@ updated_at: 2026-06-26
 
 Chinese version: [GLOBAL_EXCEPTION_HANDLING.md](./GLOBAL_EXCEPTION_HANDLING.md)
 
+> Path note: this is a Draft; pkg/errors, pkg/response, internal/middleware/recovery etc. below are the design-time target paths, not yet landed. Before implementation, adjust them to the current layout (backend/pkg/..., backend/internal/...).
+
 ## 1. Background & Goals
 
 Current backend lacks unified exception handling:
@@ -90,7 +92,7 @@ type ErrorResponse struct {
 
 | Phase   | Tasks                                           |
 | ------- | ----------------------------------------------- |
-| Phase 1 | Create `pkg/errors/errors.go`, middleware files |
+| Phase 1 | Create backend/pkg/errors/errors.go, middleware files |
 | Phase 2 | Unified response package                        |
 | Phase 3 | i18n integration                                |
 | Phase 4 | Monitoring & alerting                           |

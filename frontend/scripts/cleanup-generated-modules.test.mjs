@@ -57,7 +57,7 @@ test('checkDirty returns no issues for clean generated artifacts', () => {
   const { repoRoot, generatedPaths, registryFiles } = createFixtureRepo();
   try {
     writeFileSync(registryFiles.backendRegistry, 'package business\n', 'utf8');
-    writeFileSync(registryFiles.backendMenuRegistry, 'package iam\n', 'utf8');
+    writeFileSync(registryFiles.backendMenuRegistry, 'package menu\n', 'utf8');
     writeFileSync(registryFiles.frontendBusinessRegistry, 'export const generatedBusinessModules = [];\n', 'utf8');
     writeFileSync(registryFiles.frontendComponentRegistry, 'export const generatedComponentRegistry = {};\n', 'utf8');
     writeFileSync(path.join(generatedPaths.i18nDir, 'zh-CN.ts'), 'const generatedzhCNFallback = {};\n', 'utf8');

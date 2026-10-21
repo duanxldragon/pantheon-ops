@@ -8,15 +8,7 @@ const currentFilePath = fileURLToPath(import.meta.url);
 const frontendRoot = path.resolve(path.dirname(currentFilePath), '..');
 const layoutCssPath = path.join(frontendRoot, 'src', 'core', 'layout', 'index.css');
 const globalCssPath = path.join(frontendRoot, 'src', 'index.css');
-const listPageCssPath = path.join(
-  frontendRoot,
-  'src',
-  'modules',
-  'system',
-  'components',
-  'shared',
-  'list-page.css',
-);
+const listPageCssPath = path.join(frontendRoot, 'src', 'assets', 'list-page.css');
 const dashboardCssPath = path.join(frontendRoot, 'src', 'modules', 'platform', 'Dashboard.css');
 const loginCssPath = path.join(
   frontendRoot,
@@ -58,7 +50,7 @@ const appModalActionsPath = path.join(
   'components',
   'patterns',
   'modals',
-  'AppModalActions.ts',
+  'appModalActions.ts',
 );
 const formSectionPath = path.join(
   frontendRoot,
@@ -79,7 +71,7 @@ const submitBarPath = path.join(
 const pageEmptyPath = path.join(frontendRoot, 'src', 'components', 'feedback', 'PageEmpty.tsx');
 const pageLoadingPath = path.join(frontendRoot, 'src', 'components', 'feedback', 'PageLoading.tsx');
 const pageErrorPath = path.join(frontendRoot, 'src', 'components', 'feedback', 'PageError.tsx');
-const userListPath = path.join(frontendRoot, 'src', 'modules', 'system', 'user', 'UserList.tsx');
+const userListPath = path.join(frontendRoot, 'src', 'modules', 'system', 'iam', 'user', 'UserList.tsx');
 const source = fs.readFileSync(layoutCssPath, 'utf8');
 const globalSource = fs.readFileSync(globalCssPath, 'utf8');
 const listPageSource = fs.readFileSync(listPageCssPath, 'utf8');
@@ -96,19 +88,19 @@ const pageLoadingSource = fs.readFileSync(pageLoadingPath, 'utf8');
 const pageErrorSource = fs.readFileSync(pageErrorPath, 'utf8');
 const userListSource = fs.readFileSync(userListPath, 'utf8');
 const dictTypeTabSource = fs.readFileSync(
-  path.join(frontendRoot, 'src', 'modules', 'system', 'dict', 'DictTypeTab.tsx'),
+  path.join(frontendRoot, 'src', 'modules', 'system', 'config', 'dict', 'DictTypeTab.tsx'),
   'utf8',
 );
 const dictItemTabSource = fs.readFileSync(
-  path.join(frontendRoot, 'src', 'modules', 'system', 'dict', 'DictItemTab.tsx'),
+  path.join(frontendRoot, 'src', 'modules', 'system', 'config', 'dict', 'DictItemTab.tsx'),
   'utf8',
 );
 const dictPageSource = fs.readFileSync(
-  path.join(frontendRoot, 'src', 'modules', 'system', 'dict', 'DictPage.tsx'),
+  path.join(frontendRoot, 'src', 'modules', 'system', 'config', 'dict', 'DictPage.tsx'),
   'utf8',
 );
 const settingGroupPageSource = fs.readFileSync(
-  path.join(frontendRoot, 'src', 'modules', 'system', 'setting', 'SettingGroupPage.tsx'),
+  path.join(frontendRoot, 'src', 'modules', 'system', 'config', 'setting', 'SettingGroupPage.tsx'),
   'utf8',
 );
 

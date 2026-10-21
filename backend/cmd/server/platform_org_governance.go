@@ -1,8 +1,8 @@
 package main
 
 import (
-	platform "github.com/duanxldragon/pantheon-base/backend/modules/platform"
-	dept "github.com/duanxldragon/pantheon-base/backend/modules/system/org/dept"
+	"github.com/duanxldragon/pantheon-base/backend/modules/platform"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/org/dept"
 	"gorm.io/gorm"
 )
 

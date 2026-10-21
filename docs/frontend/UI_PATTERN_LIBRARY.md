@@ -2,6 +2,12 @@
 
 ## 1. 列表页模式
 
+> **规范口径（当前唯一权威规则）**：系统域列表页的筛选与操作区必须遵循
+> `docs/designs/BACKOFFICE_STYLE_CONSTRAINTS.md` §3.5——筛选区一律由
+> `SearchToolbar` 渲染，页面骨架用
+> `PageContainer + PageHeader + FilterPanel + AppTable`。本节的
+> `SearchToolbar` 示例仅作为历史兼容模式保留，不得在系统域新增页面使用。
+
 ### 1.1 标准列表页结构
 
 ```tsx
@@ -789,10 +795,9 @@ const columns = [
 
 ### 12.1 页面结构
 
-1. 使用 `.page-container` 作为页面根容器
-2. 使用 `.page-header` 包含标题和操作按钮
-3. 筛选工具栏使用 `SearchToolbar` 组件
-4. 数据表格包裹在 `Card` 中
+1. 系统域页面根容器用 `PageContainer`，页头用 `PageHeader`
+2. 筛选工具栏一律用 `SearchToolbar`（交互契约见 `DESIGN.md` §7.2）
+3. 数据表格统一用 `AppTable`
 
 ### 12.2 样式约定
 

@@ -1,4 +1,4 @@
-package system
+package i18n
 
 import (
 	"testing"

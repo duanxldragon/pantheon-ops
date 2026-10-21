@@ -3,7 +3,7 @@ title: 文档 Frontmatter Schema 约定
 doc_type: Contract
 layer: platform
 status: Active
-updated_at: 2026-05-18
+updated_at: 2026-09-30
 ---
 
 # 文档 Frontmatter Schema 约定
@@ -21,7 +21,7 @@ English version: [DOCUMENT_FRONTMATTER_SCHEMA.en.md](./DOCUMENT_FRONTMATTER_SCHE
 本约定解决三个问题：
 
 - 让 AI 与脚本能稳定读取文档类型、状态、关联合同、索引分组；
-- 让 `docs/superpowers/specs/` 与 `docs/archive/*` 的保留逻辑真正 machine-readable；
+- 让 `openspec/specs/` 与 `docs/archive/*` 的保留逻辑真正 machine-readable；
 - 为后续补 `lint / drift check / linkage check` 提供固定输入结构。
 
 本轮目标不是一次性改造整个 `docs/` 目录，而是先为新文档和已治理目录建立统一格式。
@@ -83,9 +83,9 @@ frontmatter 后仍保留正文标题：
 - `linked_contracts`
   - 对 `Design / Assessment / Remediation / Acceptance / specs / archive` 文档应填写
 - `index_group`
-  - 对 `docs/superpowers/specs/` 与 `docs/archive/*` 文档必填
+  - 对 `openspec/specs/` 与 `docs/archive/*` 文档必填
 - `retention_reason`
-  - 对 `docs/superpowers/specs/` 与 `docs/archive/*` 文档必填
+  - 对 `openspec/specs/` 与 `docs/archive/*` 文档必填
 
 ### 3.3 可选字段
 
@@ -158,7 +158,7 @@ frontmatter 后仍保留正文标题：
 
 说明：
 
-- `Approved` 主要用于仍处于设计锚点角色、但未直接并入正式主设计目录的 `docs/superpowers/specs/`；
+- `Approved` 主要用于仍处于设计锚点角色、但未直接并入正式主设计目录的 `openspec/specs/`；
 - 长期看可再评估是否与 `Active` 合并，但本轮先保留兼容。
 
 ### 5.3 `index_group`
@@ -176,7 +176,7 @@ frontmatter 后仍保留正文标题：
 
 ## 6. 目录映射规则
 
-### 6.1 `docs/superpowers/specs/`
+### 6.1 `openspec/specs/`
 
 - `doc_type` 通常为 `Design`
 - `status` 通常为 `Approved` 或 `Superseded`
@@ -214,7 +214,7 @@ frontmatter 后仍保留正文标题：
 ### 第一阶段
 
 - 新增文档优先使用 YAML frontmatter
-- `docs/superpowers/specs/` 与 `docs/archive/*` 率先迁移
+- `openspec/specs/` 与 `docs/archive/*` 率先迁移
 
 ### 第二阶段
 
@@ -306,7 +306,7 @@ npm run check:docs-frontmatter:legacy
 
 - 全仓 `docs/*.md` 扫描
 - 已采用 frontmatter 的文档是否满足基础字段约束
-- `docs/superpowers/specs/` 与 `docs/archive/*` 是否满足目录专属约束
+- `openspec/specs/` 与 `docs/archive/*` 是否满足目录专属约束
 - `index_group` 是否与目录语义匹配
 - `status` 是否符合该目录允许值
 - `linked_contracts` 是否为数组且目标文件存在

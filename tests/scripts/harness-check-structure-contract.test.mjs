@@ -20,7 +20,7 @@ function createFixture() {
   };
   track('backend/modules/system/iam/user/user_service.go', 'package user\n');
   track('backend/go.mod', 'module example\n');
-  track('frontend/src/modules/system/user/UserList.tsx');
+  track('frontend/src/modules/system/iam/user/UserList.tsx');
   track('frontend/src/components/patterns/table/TableToolbar.tsx');
   track('frontend/src/hooks/usePagination.ts');
   track('frontend/package.json', '{}\n');
@@ -119,4 +119,89 @@ test('report-only mode exits 0 even with findings', () => {
   const result = spawnSync(process.execPath, [SCRIPT, '--root', root], { encoding: 'utf8' });
   assert.equal(result.status, 0);
   assert.match(result.stdout, /finding\(s\)/);
+});
+
+// --- §5.2 naming for frontend/src/modules and frontend/src/core ---
+
+test('flags a PascalCase .ts module file', () => {
+  const { root, track } = createFixture();
+  track('frontend/src/modules/system/iam/user/UserHelper.ts', 'export const helper = 1;\n');
+  const result = run(root);
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /frontend-file-naming/);
+});
+
+test('flags a camelCase .tsx that declares a component', () => {
+  const { root, track } = createFixture();
+  track('frontend/src/modules/system/iam/user/userCard.tsx', 'const userCard: React.FC = () => null;\nexport default userCard;\n');
+  const result = run(root);
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /frontend-file-naming/);
+});
+
+test('allows a camelCase .tsx that declares no component', () => {
+  const { root, track } = createFixture();
+  track('frontend/src/modules/system/iam/user/renderUserBadge.tsx', 'export function renderUserBadge() { return null; }\n');
+  const result = run(root);
+  assert.equal(result.status, 0, result.stdout);
+});
+
+test('allows a use-prefixed .tsx hook', () => {
+  const { root, track } = createFixture();
+  track('frontend/src/core/layout/useLayoutThing.tsx', 'export function useLayoutThing() { return null; }\n');
+  const result = run(root);
+  assert.equal(result.status, 0, result.stdout);
+});
+
+// --- §5.1 Go package name must equal its directory name ---
+
+test('flags a Go package that does not match its directory', () => {
+  const { root, track } = createFixture();
+  track('backend/modules/system/iam/role/role_service.go', 'package iam\n');
+  const result = run(root);
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /go-package-dir-match/);
+});
+
+test('allows package main under backend/cmd', () => {
+  const { root, track } = createFixture();
+  track('backend/cmd/server/main.go', 'package main\n');
+  const result = run(root);
+  assert.equal(result.status, 0, result.stdout);
+});
+
+// --- §5.2 barrel files ---
+
+test('flags implementation inside a barrel index module', () => {
+  const { root, track } = createFixture();
+  track('frontend/src/components/index.ts', 'export const Helper = 1;\n');
+  const result = run(root);
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /barrel-only/);
+});
+
+test('allows a barrel index module that only re-exports', () => {
+  const { root, track } = createFixture();
+  track('frontend/src/components/index.ts', "export { A } from './a';\nexport type * from './types';\n");
+  const result = run(root);
+  assert.equal(result.status, 0, result.stdout);
+});
+
+// --- §11 frontend/backend domain correspondence ---
+
+test('flags a system subdomain that exists on only one side', () => {
+  const { root, track } = createFixture();
+  track('frontend/src/modules/system/orphan/OrphanPage.tsx');
+  const result = run(root);
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /domain-correspondence/);
+});
+
+test('allows the registered correspondence exceptions', () => {
+  const { root, track } = createFixture();
+  // §9 exceptions: frontend-only system/profile and backend-only system/iam/tenant.
+  track('frontend/src/modules/system/profile/ProfileCenter.tsx');
+  track('backend/modules/system/iam/tenant/tenant_service.go', 'package tenant\n');
+  const result = run(root);
+  assert.equal(result.status, 0, result.stdout);
 });

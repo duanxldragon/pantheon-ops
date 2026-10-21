@@ -1,4 +1,4 @@
-package system
+package audit
 
 type OperationLogResp struct {
 	TenantID        uint64 `json:"tenantId"`

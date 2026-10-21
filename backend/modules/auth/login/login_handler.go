@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	authsessiondomain "github.com/duanxldragon/pantheon-base/backend/modules/auth/session"
+	"github.com/duanxldragon/pantheon-base/backend/modules/auth/session"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	commonhttp "github.com/duanxldragon/pantheon-base/backend/pkg/common/http"
@@ -115,7 +115,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 
 	ip := c.ClientIP()
 	userAgent := c.GetHeader(headerUserAgent)
-	clientInfo := authsessiondomain.ParseClientInfo(userAgent)
+	clientInfo := session.ParseClientInfo(userAgent)
 
 	sourceKey := buildLoginSourceKey(ip)
 	currentUser, err := service.LoginWithSource(&req, sourceKey)
@@ -203,7 +203,7 @@ func (h *AuthHandler) VerifyMFAHandler(c *gin.Context) {
 
 	ip := c.ClientIP()
 	userAgent := c.GetHeader(headerUserAgent)
-	clientInfo := authsessiondomain.ParseClientInfo(userAgent)
+	clientInfo := session.ParseClientInfo(userAgent)
 	resp, err := service.VerifyMFAChallengeWithContext(c.Request.Context(), &req, ip, userAgent)
 	if err != nil {
 		// Tenant gates (explicit choice rejected at MFA-final session issuance)
@@ -516,7 +516,7 @@ func (h *AuthHandler) BatchRevokeSessions(c *gin.Context) {
 		return
 	}
 
-	revokedCount, err := h.service.BatchRevokeSessions(c.GetString("sessionId"), req.SessionIDs)
+	revokedCount, err := h.service.WithTenantContext(tenant.FromGin(c)).BatchRevokeSessions(c.GetString("sessionId"), req.SessionIDs)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "auth.session.revoke.error")
 		return
@@ -546,7 +546,7 @@ func (h *AuthHandler) GetSessionList(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	resp, err := h.service.ListAllSessions(&query)
+	resp, err := h.service.WithTenantContext(tenant.FromGin(c)).ListAllSessions(&query)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "auth.session.list.error")
 		return
@@ -556,7 +556,7 @@ func (h *AuthHandler) GetSessionList(c *gin.Context) {
 func (h *AuthHandler) RevokeAnySession(c *gin.Context) {
 	common.SetAuditMetadata(c, "auth.session.revoke.title", common.BusinessForce)
 
-	if err := h.service.RevokeAnySession(c.GetString("sessionId"), strings.TrimSpace(c.Param("id"))); err != nil {
+	if err := h.service.WithTenantContext(tenant.FromGin(c)).RevokeAnySession(c.GetString("sessionId"), strings.TrimSpace(c.Param("id"))); err != nil {
 		common.FailWithError(c, common.CodeError, err, "auth.session.revoke.error")
 		return
 	}
@@ -633,7 +633,10 @@ func (h *AuthHandler) GetSessions(c *gin.Context) {
 func (h *AuthHandler) RevokeSession(c *gin.Context) {
 	common.SetAuditMetadata(c, "auth.session.revoke_self.title", common.BusinessForce)
 
-	if err := h.service.RevokeSession(strings.TrimSpace(c.Param("id"))); err != nil {
+	// F02: self-service revocation must verify session ownership and must not
+	// hit the current session (that path is /logout). RevokeOwnedSession
+	// enforces both and rejects other users' session IDs.
+	if err := h.service.RevokeOwnedSession(common.GetUserID(c), c.GetString("sessionId"), strings.TrimSpace(c.Param("id"))); err != nil {
 		common.FailWithError(c, common.CodeError, err, "auth.session.revoke_self.error")
 		return
 	}

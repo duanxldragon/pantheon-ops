@@ -1,5 +1,5 @@
 //nolint:goconst // repeated assertion literals are intentional in this integration test file.
-package iam
+package permission
 
 import (
 	"errors"

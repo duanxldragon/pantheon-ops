@@ -18,7 +18,8 @@
   ],
   "baseExcludedPaths": [
     "scripts/foundation-release",
-    "tests/scripts/foundation-release"
+    "tests/scripts/foundation-release",
+    "docs/harness/tasks"
   ],
   "businessPaths": [
     "backend/modules/business/bizscope",
@@ -84,6 +85,7 @@
     ".gitmessage",
     ".sonarcloud.properties",
     ".harness",
+    ".foundation",
     "AGENTS.md",
     "CLAUDE.md",
     "CONTRIBUTING.en.md",

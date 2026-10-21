@@ -1,5 +1,5 @@
 //nolint:revive // Permission service intentionally exposes a broad administrative facade.
-package iam
+package permission
 
 import (
 	"fmt"

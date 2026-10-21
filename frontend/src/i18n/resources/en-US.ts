@@ -539,6 +539,7 @@ const enUSFallback = {
   'common.basicInfo': 'Basic Information',
   'common.accessControl': 'Access & Permissions',
   'common.back': 'Back',
+  'common.backHome': 'Back to home',
   'common.detail': 'Detail',
   'common.selected': 'Selected',
   'common.selectedCount': '{{count}} selected',

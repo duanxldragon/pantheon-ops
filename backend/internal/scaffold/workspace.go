@@ -765,7 +765,7 @@ export const generatedComponentRegistry = {
 {{- end }}
 `
 
-const generatedBackendComponentRegistryTemplate = `package iam
+const generatedBackendComponentRegistryTemplate = `package menu
 
 var generatedMenuComponentKeys = map[string]struct{}{
 {{- range .Entries }}

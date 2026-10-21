@@ -17,7 +17,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/modules/lowcode"
 	"github.com/duanxldragon/pantheon-base/backend/modules/platform"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system"
-	iamuser "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
@@ -161,7 +161,7 @@ func registerAPIRoutes(r *gin.Engine) {
 	// pkg/contracts/authuser port, implemented by the module that owns the
 	// system_user table. Neither module imports the other.
 	// Boundary rule: docs/designs/REPOSITORY_LAYOUT.md §8.2.
-	auth.InitAuthModule(api, database.DB, iamuser.NewCredentialRepository(database.DB))
+	auth.InitAuthModule(api, database.DB, user.NewCredentialRepository(database.DB))
 	business.InitBusinessModules(api, database.DB)
 }
 

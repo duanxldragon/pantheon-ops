@@ -1,4 +1,4 @@
-package org
+package dept
 
 type DeptTreeResp struct {
 	ID             uint64          `json:"id"`

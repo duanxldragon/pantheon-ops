@@ -2,7 +2,7 @@
 
 本 runbook 是 `2026-09-10-tenant-migration-runbook` 任务的冻结交付物，为 [租户合同 V1](../contracts/TENANT_CONTRACT_V1.md) 定义的共享 schema MVP 提供可演练、可回滚的迁移程序。
 
-> **生产执行禁令**：本 runbook 记录了副本环境的三类演练（成功 / 冲突 / 失败回滚）；归档任务总结见 [租户任务最终执行报告](../history/2026-09/tasks-summaries/TENANT_TASKS_FINAL_EXECUTION_REPORT.md)。仓库当前不含原始 rehearsal-log，副本演练不构成生产恢复证明，
+> **生产执行禁令**：本 runbook 已在副本完成三类演练（成功 / 冲突 / 失败回滚，见 [演练日志](../../.harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/rehearsal-log.md)），
 > 但 **任何生产 DDL、回填、NOT NULL/唯一索引变更都必须等待 human gate 放行**
 > （备份 RPO/RTO 确认 + 生产维护窗口审批，见本文 §8）。在此之前只允许副本/预发执行。
 
@@ -99,9 +99,9 @@
 
 ### 2.3 直接查询入口（scope 注入点）
 
-数据访问统一经过 `pkg/database/scope.go` 的 GORM scope 机制：
+数据访问统一经过 `backend/pkg/database/scope.go` 的 GORM scope 机制：
 
-- `WithDataScope(req *common.DataScopeReq)`（pkg/database/scope.go:12）— 现有 dept/self/custom 数据scope
+- `WithDataScope(req *common.DataScopeReq)`（backend/pkg/database/scope.go:12）— 现有 dept/self/custom 数据scope
 - `applyDataScopeMode`（scope.go:21）— 按 `DataScopeReq.Mode` 分派
 
 **租户注入点决策**：在 `applyDataScopeMode` 同层增加 tenant scope（platform 层，合同 §7 所有者），业务 handler 不手写 `WHERE tenant_id`。canary 任务交付该 helper；本 runbook 只约束迁移侧。
@@ -126,7 +126,7 @@
 
 | 路径 | 位置 | 租户化注意 |
 |------|------|-----------|
-| 操作日志中间件 | `internal/middleware/operation_log_middleware.go` | 异步落库时必须携带请求租户上下文，禁止落库时回读全局状态 |
+| 操作日志中间件 | `backend/internal/middleware/operation_log_middleware.go` | 异步落库时必须携带请求租户上下文，禁止落库时回读全局状态 |
 | 登录/安全事件 | `system_log_login` / `system_auth_security_event` | 行级带 tenant_id |
 | 导出/报表 | 经 platform 层专用通道（合同 §3.3）| 迁移窗口内禁止执行跨租户导出任务 |
 
@@ -245,9 +245,8 @@ CREATE TABLE tenant_memberships ( ... ); -- 合同 §2.2, UK(tenant_id,user_id)
 
 ### 6.3 演练证据
 
-三类演练（成功 / 冲突 / 失败回滚）据归档总结记载已完成于副本 `tenant_rehearsal`；摘要见
-[租户任务最终执行报告](../history/2026-09/tasks-summaries/TENANT_TASKS_FINAL_EXECUTION_REPORT.md)。原始 rehearsal-log 当前不在仓库中，
-因此该历史说明不替代可复现的 production-backup G2 证据。
+三类演练（成功 / 冲突 / 失败回滚）已完成于副本 `tenant_rehearsal`，
+完整日志与恢复验证见 [rehearsal-log.md](../../.harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/rehearsal-log.md)。
 
 ---
 

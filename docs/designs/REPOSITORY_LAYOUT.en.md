@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md
-updated_at: 2026-09-23
+updated_at: 2026-10-11
 ---
 
 # Repository Layout, Naming, and Layer Boundaries
@@ -108,6 +108,7 @@ The vocabulary in this section is the canonical source for file suffixes. Gates 
 ### 5.1 Backend Go
 
 - File names are snake_case, matching `^[a-z0-9_]+\.go$`: no PascalCase, hyphens, or spaces.
+- **The package name must equal its directory name** (`package <dirname>`). This is what makes `go doc`, compiler errors, IDE navigation, and import paths line up with the directory tree; when they disagree every caller is forced to write an import alias, which amounts to admitting the directory name is the real identity. The only exception is `backend/cmd/*`: an executable entrypoint must be `package main` and is not compared against the directory name. An external test package `foo_test` (in `foo/`) is likewise compliant. Gate rule: `go-package-dir-match`.
 - Test files `*_test.go` live in the same package and directory as the code under test; pure-function regressions use `_pure_test.go` to stay distinct from DB-backed tests.
 - Responsibility suffix vocabulary:
 
@@ -130,26 +131,54 @@ The vocabulary in this section is the canonical source for file suffixes. Gates 
 
 ### 5.2 Frontend TypeScript / TSX
 
+The judgement is a single question: **does this file declare a component?** Declares a component → PascalCase `*.tsx`; does not → camelCase (suffix `.ts`, or `.tsx` when it contains JSX). The `frontend-file-naming` gate applies this to `frontend/src/modules/**` and `frontend/src/core/**`.
+
 | Category | Naming | Location | Example |
 | --- | --- | --- | --- |
-| Component | PascalCase `*.tsx` | `frontend/src/components/<group>/`, `frontend/src/modules/**/components/` | `PageEmpty.tsx` |
-| Hook | `use<PascalCase>.ts(x)` | `frontend/src/hooks/` | `usePermission.ts` |
+| Component | PascalCase `*.tsx` | `frontend/src/components/<group>/`, `frontend/src/modules/**` (see "Component placement") | `PageEmpty.tsx`, `UserList.tsx` |
+| Hook | `use<PascalCase>.ts(x)` | `frontend/src/hooks/`, `frontend/src/core/**`, module dirs | `usePermission.ts`, `useLayoutMenu.tsx` |
 | Non-component module | camelCase `*.ts` | alongside its consumer | `tablePreferences.ts` |
+| Non-component JSX module | camelCase `*.tsx` | alongside its consumer | `icon.tsx`, `clientInfo.tsx`, `widgets.tsx` |
 | Test | `*.test.ts(x)` | `frontend/tests/` (not `frontend/src/`) | `router.test.ts` |
 | API | camelCase `*.ts` | `frontend/src/api/` | `file.ts` |
 | i18n resource | locale-named | `frontend/src/i18n/resources/` | `zh-CN.ts` |
 | Generated registry | fixed names | `frontend/src/modules/generated/`, `frontend/src/core/router/` | `business.ts`, `generatedComponentRegistry.ts` |
 | Generated module | business module name | `frontend/src/modules/business/<module>/` | generator output |
 | Component style | same name as the component it styles (`ComponentName.css`), same directory | component dir | `TimeRangeFilter.css` |
-| Group / module-level shared style | named after its **directory** (`<dir>.css`) or placed under an explicit `shared/` subdir | group dir | `auth.css`, `components/shared/list-page.css` |
-| Cross-module / global shared style | centralized in `frontend/src/assets/` or global `index.css` | shared | `index.css` |
+| Group / module-level shared style | named after its **directory** (`<dir>.css`) or placed under an explicit `shared/` subdir | group dir | `auth.css` |
+| Cross-module / global shared style | centralized in `frontend/src/assets/` or global `index.css` | shared | `assets/list-page.css`, `index.css` |
 
 Styles have three tiers: a **component-specific** stylesheet's filename must equal the component
 name (not the BEM block name, not the directory name); a **group/module-level** shared stylesheet
 is named after its directory or lives under `shared/`; a **cross-module** shared stylesheet needs
-an explicit shared location. BEM class names (`.time-range-filter__x`) do not change with the filename.
+an explicit shared location — a stylesheet imported by two or more `modules/<domain>/` trees is
+cross-module by definition and must live in `frontend/src/assets/`, not inside one module (otherwise
+every consumer has to import across a domain boundary, which conflicts with 8.2).
+BEM class names (`.time-range-filter__x`) do not change with the filename.
 
-`index.ts` is for barrel re-exports only; it holds no implementation.
+**Non-component JSX module**: the file contains JSX so its suffix is `.tsx`, but it exports render
+functions, data, or types rather than a component (`renderMenuIcon()`, `renderClientInfo()`, a widget
+definition table). Such files use camelCase; **as soon as one declares a component it must be renamed
+to PascalCase** — the gate detects components through component type markers (`React.FC`, `React.memo`,
+`React.forwardRef`, `ComponentType`) and PascalCase `const`/`function`/`class` declarations.
+
+**Component placement**: pick one per module and do not mix — with few components (1–3) put them
+directly at the module root (`modules/system/iam/user/UserList.tsx`); a module with a group of
+components keeps them all under a `components/` subdirectory (`modules/auth/login/components/Login.tsx`).
+This is a team convention rather than a gate rule: the gate checks naming only, because relocating
+component directories does not improve readability but does generate a large, meaningless diff.
+
+**`index.ts` / `index.tsx` is for barrel re-exports only; it holds no implementation** (gate `barrel-only`).
+The enforced scope is `frontend/src/{core,components,hooks}/**/index.ts(x)` — those layers use barrels by
+convention. Two legal exceptions: `frontend/src/modules/**/index.ts` is a module descriptor
+(`defineModule({...})`) and `frontend/src/i18n/index.ts` is the locale table; neither is a barrel and
+neither is subject to this rule.
+
+**Path alias**: use `@/` for cross-module imports (`@/core/...`, `@/components/...`), configured in
+`paths` in `frontend/tsconfig.app.json` and `resolve.alias` in both `frontend/vite.config.ts` and
+`frontend/vitest.config.ts` — all three must stay in sync. Existing relative imports are grandfathered
+and may be migrated opportunistically; new cross-module imports should use the alias, because a relative
+path has to be rewritten wholesale the moment a directory moves.
 
 ### 5.3 Documentation Naming
 
@@ -219,16 +248,26 @@ The mapping from logical layers to physical directories is in [DESIGN.md — lay
 
 - ✅ allowed; ⚠️ allowed only through a public contract / adapter / read model, never by importing the other side's Service / Repository / Handler; ❌ forbidden.
 - The frontend follows the same matrix: `business` must not import `modules/system|auth|platform` internals; `system` subdomains depend on each other only through `frontend/src/api` or a public component contract.
+- **For frontend `system/*` subdomains the "public contract" is the sibling's `api` module**
+  (`modules/system/<sub>/<leaf>/api.ts`). Subdomain A may import B's `api` but must not import B's
+  component, hook, or utility files directly; when A needs B's renderer, B re-exports it from its own
+  `api` module (as `iam/user/api.ts` re-exports `UserDetailContent`), which is what makes it a
+  "public component contract" — the caller still depends only on `api`.
+  The `system/*` ts rules are matched against the **resolved target path**, not the import literal,
+  because `../../../../i18n` (the top-level `frontend/src/i18n`) and `../../i18n` (the `system/i18n`
+  subdomain) share a final segment and cannot be told apart from the literal alone.
 
 ### 8.3 Violation Baseline and Closure
 
-- The gate `scripts/harness/check-boundaries.mjs` now covers `business`, `platform`, and `auth` production code; `_test.go` and `*.test.*` / `*.spec.*` are explicitly exempt (tests may wire modules together, production code may not).
+- The gate `scripts/harness/check-boundaries.mjs` now covers `business`, `platform`, and `auth` production code **plus every `system/*` subdomain**; `_test.go` and `*.test.*` / `*.spec.*` are explicitly exempt (tests may wire modules together, production code may not).
+- **Repository root resolution (hardened 2026-10-11)**: `scanRepository` used to trust any directory whose name matched the repository, so a leftover local shell
+  `pantheon-base/pantheon-base/` (holding a single empty `docs/`) was mistaken for the checkout — **every layer scan read zero files and the gate reported "no findings" while scanning nothing**. Root resolution now requires the candidate to actually contain `backend/` or `frontend/`, and an unresolvable root fails `--strict` instead of passing quietly.
 - `platform -> system/org/dept` is fixed per 8.2: the adapter moved to the composition root `backend/cmd/server/platform_org_governance.go`, and the platform module no longer imports the system implementation.
+- `system/*` subdomain ts rules (added 2026-10-11): `systemDomainRules()` previously returned `ts: []`, so even once the frontend directories existed the scan applied no rules. Cross-subdomain imports are now checked per 8.2 — a sibling is reachable only through its `api`.
 - The remaining known violations are frozen in `config/boundary-baseline.json` (each with a `reason` and `reviewBy=2026-12-31`). CI passes `--baseline` so known items are allowed and any new item is blocked:
-  - a **type-only** dependency from `frontend/src/modules/platform/widgets.tsx` on `system/menu/api`;
-  - direct `system/iam/user` dependencies in `auth/login`, `auth/login/login_runtime.go`, and `auth/security/security_service.go`;
-  - four auth pages importing `system/components/shared/list-page.css`.
-- The baseline is a **time-boxed controlled exception**; it must be re-reviewed or fixed at expiry, and a new violation must never be silenced by adding it to the baseline.
+  - a **type-only** dependency from `frontend/src/modules/platform/widgets.tsx` on `system/iam/menu/api` (the only entry left).
+- **Closed on schedule (2026-10-11)**: the four baselined auth entries importing `system/components/shared/list-page.css` were removed — their own ratchet was executed by promoting the stylesheet to `frontend/src/assets/list-page.css`, so auth no longer imports across into the system module, and the misleading `modules/system/components/` directory is gone. The baseline shrank from 5 entries to 1. (The earlier three `backend/modules/auth/* -> modules/system/iam/user` entries were removed on 2026-09-23 when the `pkg/contracts/authuser` port landed.)
+- The baseline is a **time-boxed controlled exception**; it must be re-reviewed or fixed at expiry, and a new violation must never be silenced by adding it to the baseline. An entry's ratchet text *is* its fix plan: when the conditions are met, **execute** the ratchet and delete the entry rather than renewing it.
 - Test-file and generated-file cross-domain dependencies are handled separately; an exemption needs an explicit comment and evidence and must not be conflated with production code.
 
 ## 9. Controlled Exceptions
@@ -242,6 +281,14 @@ The physical layouts below are existing exceptions. They are **allowed to exist,
 | `frontend/src/modules/generated` | generated directory | platform | generated registries need a stable fixed path and are admitted by the domain whitelist | review by the generated-artifact governance task |
 | `backend/tests/`, `frontend/tests/` | top-level test directories | platform | tests are physically separate from runtime code for whitelisting and gating | review on structure-gate changes |
 | `config/`, `database/`, `grafana/`, `openspec/`, `schema/generated/` | stable root entries | platform | see section 4; referenced directly by scripts/compose/governance flows | review when the referencing party changes |
+| `frontend/src/modules/system/profile` | one-sided (frontend only) | system/auth | the profile page has no backend package of the same name; its logic is split across `auth/security/profile_dto.go` and `system/iam/user/user_preferences.go`. It is a page composition, not a domain package | review when the backend gains a `profile` package or the frontend merges it into `iam/user` |
+| `backend/modules/system/iam/tenant` | one-sided (backend only) | system/iam | the tenant module has no frontend counterpart: tenant switching happens in `auth/login` (chosen at sign-in), and there is no standalone runtime tenant page | review when the frontend gains a tenant-switching entry |
+| frontend has no `auth/oidc` counterpart | one-sided (backend only) | system/auth | SSO/OIDC uses a browser redirect on the frontend and has no standalone module; `auth/index.ts` carries a comment saying so | review on auth contract changes |
+| the empty `frontend/src/modules/business/` | generation container | platform | corresponds to `backend/modules/business/*`; having no artifacts at HEAD is normal (they appear with a generation task) | review by the generated-artifact governance task |
+
+The first three are also registered in `CORRESPONDENCE_EXCEPTIONS` in
+`scripts/harness/check-structure-contract.mjs`: a one-sided subdomain is only legal once registered
+there — an unregistered one-sided directory fails the `domain-correspondence` gate outright.
 
 An exception is not a whitelist expansion. Shoving a violating directory into the exception table instead of fixing it is the same as hiding the problem.
 
@@ -251,13 +298,26 @@ An exception is not a whitelist expansion. Shoving a violating directory into th
 
 | Rule area | Enforcer | Command | CI |
 | --- | --- | --- | --- |
-| §2 placement + §5 naming | `scripts/harness/check-structure-contract.mjs` | `npm run check:structure` | `quality.yml` (blocking) |
-| §8.2 `business` / `platform` / `auth` cross-layer imports | `scripts/harness/check-boundaries.mjs` | `node scripts/harness/check-boundaries.mjs --strict --repo pantheon-base --baseline config/boundary-baseline.json` | `ci.yml` (blocking; known debt in the 8.3 baseline) |
+| §2 placement + §5.1 Go naming + §5.2 frontend naming/barrels + §11 domain correspondence | `scripts/harness/check-structure-contract.mjs` | `npm run check:structure` | `quality.yml` (blocking) |
+| §8.2 `business` / `platform` / `auth` / each `system/*` subdomain cross-layer imports | `scripts/harness/check-boundaries.mjs` | `node scripts/harness/check-boundaries.mjs --strict --repo pantheon-base --baseline config/boundary-baseline.json` | `ci.yml` (blocking; known debt in the 8.3 baseline) |
 | §6 doc frontmatter / type / contract linkage | `scripts/frontmatter-check.mjs`, `scripts/harness/check-doc-frontmatter.mjs` | `npm run check:docs-frontmatter` | `quality.yml` |
 | §6 internal doc links | `scripts/harness/check-doc-links.mjs` | `npm run check:harness-docs` | harness checks |
 | §7 generated marker and artifact existence | `scripts/harness/check-generated.mjs` | `npm run check:generated` | `quality.yml` (blocking) |
 | §7 generated module drift | `frontend/scripts/cleanup-generated-modules.mjs` | `npm run check:generated-modules` | `quality.yml` |
 | §7 generated registry existence/non-emptiness (legacy) | `scripts/check-arch-boundaries.mjs` (`checkGeneratedRegistry`) | not wired into npm/CI | **gap** |
+
+Rule inventory of `check-structure-contract.mjs` (all at zero findings, and a new rule must land at zero too):
+
+| Rule | Covers |
+| --- | --- |
+| `go-placement` / `go-file-naming` | Go file placement and snake_case file names |
+| `go-package-dir-match` | §5.1 package name == directory name (`cmd/*` exempt) |
+| `frontend-file-naming` | §5.2 `.ts`/`.tsx` naming under `modules/**` and `core/**` |
+| `barrel-only` | §5.2 `core|components|hooks/**/index.ts(x)` re-export only |
+| `component-naming` / `hook-naming` | shared `components/**` and `hooks/**` |
+| `domain-correspondence` | §11 frontend/backend subdomain correspondence (with §9 exceptions) |
+| `frontend-root` / `frontend-src-root` / `frontend-module-domain` / `backend-root` / `backend-module-domain` | §2 placement whitelist |
+| `no-tests-in-src` / `no-tracked-binaries` | §2.2 test placement, no committed binaries |
 
 ### 10.2 Change Procedure (standard first, gates second)
 
@@ -270,3 +330,74 @@ When adding or adjusting a directory, file suffix, exception, or dependency dire
 5. Add or update the matching tests (`tests/scripts/**`) and run the verification commands in 10.1.
 
 Changing only the document without the gate, or widening the whitelist without fixing the root cause, does not count as done.
+
+## 11. Frontend/Backend Domain Correspondence
+
+This section is the **single source of truth** for "frontend leaf ↔ backend path ↔ `module` value ↔
+componentKey ↔ API prefix". Before it existed, correspondence could only be guessed by comparing
+directory depth, and every review had to re-explain the same mapping.
+
+- **Physical paths**: frontend `frontend/src/modules/<domain>/…`, backend `backend/modules/<domain>/…`,
+  with the same `<domain>` on both sides (`auth`/`business`/`lowcode`/`platform`/`system`).
+- **Leaf names**: business leaves match on both sides (`user`/`role`/`menu`/`permission`/`dept`/`post`/`dict`/`setting`/`audit`/`i18n`).
+- **Aggregation layer**: the backend has an extra `iam`/`org`/`config` level under `system`, and the
+  frontend **physically keeps that same level** (`frontend/src/modules/system/iam/user/`), so both trees
+  have equal depth and can be read side by side.
+- **`module` value**: the logical identifier used for menu/permission grouping (e.g. `system.iam`), which
+  is **not** the physical path. It is defined by the `Module` field in `backend/modules/system/seed.go`,
+  and the frontend module descriptor must agree with it; `frontend/scripts/check-menu-contract.mjs` verifies this.
+- **componentKey**: the frontend component a menu points at, as a **literal string** (e.g. `system/user/UserList`),
+  not derived from any path. The backend seed's `Component`, the frontend `componentRegistry.ts`, and the
+  route's `componentKey` must match character for character; `check:menu-contract` verifies this.
+- **API prefix**: the REST resource name, which may differ from the directory name (see the audit row).
+
+### 11.1 The `system` foundation
+
+| Concept | Frontend path | Backend path | `module` value | componentKey | API prefix |
+| --- | --- | --- | --- | --- | --- |
+| User | `system/iam/user` | `system/iam/user` | `system.iam` | `system/user/UserList`, `system/user/UserDetail` | `/system/user` |
+| Role | `system/iam/role` | `system/iam/role` | `system.iam` | `system/role/RoleList` | `/system/role` |
+| Menu | `system/iam/menu` | `system/iam/menu` | `system.iam` | `system/menu/MenuList` | `/system/menu` |
+| Permission | `system/iam/permission` | `system/iam/permission` | `system.iam` | `system/permission/PermissionList` | `/system/permission` |
+| Tenant | **none** (§9 exception) | `system/iam/tenant` | — | — | (backend only) |
+| Dept | `system/org/dept` | `system/org/dept` | `system.org` | `system/dept/DeptList` | `/system/dept` |
+| Post | `system/org/post` | `system/org/post` | `system.org` | `system/post/PostList` | `/system/post` |
+| Dictionary | `system/config/dict` | `system/config/dict` | `system.config` | `system/dict/DictPage` | `/system/dict` |
+| Settings | `system/config/setting` | `system/config/setting` | `system.config` | `system/setting/SettingOverviewPage`, `system/setting/SettingGroupPage` | `/system/setting` |
+| i18n | `system/i18n` | `system/i18n` | `system.config` | `system/i18n/I18nList` | `/system/i18n` |
+| Audit | `system/audit` | `system/audit` | `system.audit` | `system/audit/OperationLogList` | `/system/operation-log` |
+| Profile | `system/profile` | **none** (§9 exception) | (no `module` value) | `system/profile/ProfileCenter` | `/system/profile` |
+
+Two cases that look inconsistent but are settled layering — do not "fix" them by directory name:
+
+- **i18n**'s physical package is `system/i18n` (a sibling of `config`), but it hangs under the **config
+  menu group**, so its `module` value is `system.config` and the seed uses `ParentKey: "config"`. The
+  backend seed and the frontend descriptor agree; this is menu information architecture, not drift.
+- **Audit** is two layers of vocabulary: directory / package / `module` value use `audit`, while route /
+  API / permission codes use `operation-log` (`system:operation-log:*`). **Both sides take identical
+  values for both layers**, so this is not "one feature with four names". Unifying the vocabulary would
+  change the API route, the permission codes, and existing menu data, violating the explicit non-goal of
+  `.harness/NAMING_AND_BOUNDARIES_REMEDIATION_PLAN_2026-09-22.md` ("do not change API, database,
+  permissions, or runtime behavior"), so it is kept as layering and pinned down here.
+- **Profile** has no `module` value and no menu entry (`menus: []`, `permissions: []`): it is a route-level
+  page rather than a menu module, reachable from the user avatar dropdown — which is exactly why it is a
+  registered controlled exception.
+
+### 11.2 `auth` and the other domains
+
+| Concept | Frontend path | Backend path | `module` value | Note |
+| --- | --- | --- | --- | --- |
+| Login | `auth/login` | `auth/login` | `system.auth` | tenant selection also lives here |
+| MFA | `auth/mfa` | `auth/mfa` | `system.auth` | |
+| SSO / OIDC | **none** (§9 exception) | `auth/oidc` | — | browser redirect on the frontend, no standalone module |
+| Security center | `auth/security` | `auth/security` | `system.auth` | componentKeys `auth/SecurityCenter` etc. |
+| Session | `auth/session` | `auth/session` | `system.auth` | componentKey `auth/SessionList` |
+| Platform dashboard | `platform/{Dashboard,widgets,api}` | `platform/{dashboard_*,health,routes}` | `platform` | `health`/`routes` having no frontend counterpart is normal |
+| Dynamic module | `lowcode/dynamicmodule` | `lowcode/dynamicmodule` | `system.lowcode` | UI mounted at `/system/modules` |
+| Generator | `lowcode/generator` | `lowcode/generator` | `system.lowcode` | frontend has an extra `pages/` level |
+| Business generated module | `business/<module>` (generated) | `business/<module>` (generated) | business module name | generated artifact; empty at HEAD is normal |
+
+The `domain-correspondence` gate checks only the first two levels of the `system` foundation (see 10.1);
+for `auth`/`platform`/`lowcode`/`business` this section is the documentary source of truth. When adding a
+one-sided directory, update this section and state whether the other side will be added or a §9 exception
+is being registered.

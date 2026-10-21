@@ -194,6 +194,7 @@ const koKRFallback = {
   'common.basicInfo': '기본 정보',
   'common.accessControl': '접근 및 권한',
   'common.back': '뒤로',
+  'common.backHome': '홈으로 이동',
   'common.detail': '상세',
   'common.selected': '선택됨',
   'common.selectedCount': '{{count}}개 선택됨',

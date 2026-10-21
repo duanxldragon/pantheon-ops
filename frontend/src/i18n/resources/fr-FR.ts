@@ -202,6 +202,7 @@ const frFRFallback = {
   'common.basicInfo': 'Informations de base',
   'common.accessControl': 'Accès et permissions',
   'common.back': 'Retour',
+  'common.backHome': "Retour à l'accueil",
   'common.detail': 'Détail',
   'common.selected': 'Sélectionné',
   'common.selectedCount': '{{count}} sélectionnés',

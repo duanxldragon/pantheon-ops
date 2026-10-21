@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
-	settingmod "github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
-	user "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
@@ -30,7 +30,7 @@ func setupPreferenceContractRouter(t *testing.T) (*gin.Engine, *gorm.DB) {
 		&SystemLogLogin{},
 		&SystemLoginThrottle{},
 		&middleware.SystemLogOper{},
-		&settingmod.SystemSetting{},
+		&setting.SystemSetting{},
 	); err != nil {
 		t.Fatalf("migrate auth preference contract tables: %v", err)
 	}

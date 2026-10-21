@@ -1,0 +1,2 @@
+-- Intentionally retain backfilled policy rows on down: deleting them could
+-- remove changes made after the migration. The up migration is idempotent.

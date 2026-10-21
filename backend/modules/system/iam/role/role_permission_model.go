@@ -1,4 +1,4 @@
-package iam
+package role
 
 type SystemRolePermission struct {
 	ID            uint64 `gorm:"primaryKey;autoIncrement" json:"id"`

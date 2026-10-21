@@ -56,7 +56,7 @@ const REGISTRY_TEMPLATES = {
   ]),
 
   backendMenuRegistry: markTemplate([
-    'package iam',
+    'package menu',
     '',
     'var generatedMenuComponentKeys = map[string]struct{}{}',
     '',

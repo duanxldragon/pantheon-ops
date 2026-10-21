@@ -1,4 +1,4 @@
-package iam
+package permission
 
 type PermissionRoleDataScopePolicy struct {
 	ID      uint64 `gorm:"primaryKey;autoIncrement"`

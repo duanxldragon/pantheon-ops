@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	settingmod "github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
-	user "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
@@ -23,7 +23,7 @@ func TestAuthHandler_LoginReturnsTenantPickerAfterPasswordVerification(t *testin
 		&SystemUserSession{},
 		&SystemLogLogin{},
 		&SystemLoginThrottle{},
-		&settingmod.SystemSetting{},
+		&setting.SystemSetting{},
 		&tenant.Tenant{},
 		&tenant.Membership{},
 	); err != nil {
@@ -53,7 +53,7 @@ func TestAuthHandler_LoginReturnsTenantPickerAfterPasswordVerification(t *testin
 			t.Fatalf("create membership: %v", err)
 		}
 	}
-	if err := db.Create(&settingmod.SystemSetting{
+	if err := db.Create(&setting.SystemSetting{
 		SettingKey:   tenant.FeatureFlagSettingKey,
 		SettingValue: tenant.ModeMulti,
 		ValueType:    "string",
@@ -106,7 +106,7 @@ func TestAuthHandler_LoginDoesNotExposeTenantPickerOnPasswordFailure(t *testing.
 		&user.SystemUser{},
 		&SystemLogLogin{},
 		&SystemLoginThrottle{},
-		&settingmod.SystemSetting{},
+		&setting.SystemSetting{},
 		&tenant.Tenant{},
 		&tenant.Membership{},
 	); err != nil {
@@ -136,7 +136,7 @@ func TestAuthHandler_LoginDoesNotExposeTenantPickerOnPasswordFailure(t *testing.
 			t.Fatalf("create membership: %v", err)
 		}
 	}
-	if err := db.Create(&settingmod.SystemSetting{
+	if err := db.Create(&setting.SystemSetting{
 		SettingKey:   tenant.FeatureFlagSettingKey,
 		SettingValue: tenant.ModeMulti,
 		ValueType:    "string",

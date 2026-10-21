@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	settingmod "github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
-	rolemod "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/role"
-	user "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/role"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
@@ -27,9 +27,9 @@ func setupHandlerTestDB(t *testing.T) *gorm.DB {
 	_ = db.AutoMigrate(
 		&user.SystemUser{},
 		&user.SystemUserRole{},
-		&rolemod.SystemRole{},
-		&rolemod.SystemRolePermission{},
-		&settingmod.SystemSetting{},
+		&role.SystemRole{},
+		&role.SystemRolePermission{},
+		&setting.SystemSetting{},
 		&SystemUserSession{},
 		&SystemLogLogin{},
 		&SystemLoginThrottle{},
@@ -550,6 +550,11 @@ func TestAuthHandler_RevokeSession(t *testing.T) {
 
 	c, recorder := newHandlerTestContext(t)
 	c.Params = gin.Params{{Key: "id", Value: "self-session"}}
+	// F02: the self-service path now verifies ownership and rejects the
+	// current session, so the caller identity and a distinct current session
+	// must be present.
+	c.Set("userID", u.ID)
+	c.Set("sessionId", "other-current-session")
 	h.RevokeSession(c)
 
 	code, data := decodeHandlerResponse(t, recorder)

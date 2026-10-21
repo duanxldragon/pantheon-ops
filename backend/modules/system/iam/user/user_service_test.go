@@ -1,4 +1,4 @@
-package iam
+package user
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	authsession "github.com/duanxldragon/pantheon-base/backend/modules/auth/session"
+	"github.com/duanxldragon/pantheon-base/backend/modules/auth/session"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 	"golang.org/x/crypto/bcrypt"
@@ -40,7 +40,7 @@ func setupUserTestDB(t *testing.T) *gorm.DB {
 
 func newUserServiceWithSessionLifecycle(db *gorm.DB) *UserService {
 	return NewUserService(db, WithSessionLifecycle(func(db *gorm.DB) SessionLifecycle {
-		return authsession.NewLifecycleService(db)
+		return session.NewLifecycleService(db)
 	}))
 }
 

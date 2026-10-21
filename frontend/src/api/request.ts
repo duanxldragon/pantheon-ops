@@ -11,7 +11,7 @@ import {
 } from './requestErrorUtils';
 import { useAuthStore } from '../store/useAuthStore';
 import { clearShellSessionState, persistLoginNotice } from '../core/shellState';
-import { clearExplicitLanguagePreference } from '../core/settings/languagePreference';
+import { clearExplicitLanguagePreference } from '../core/setting/languagePreference';
 import { clearPantheonThemePreference } from '../core/theme/theme';
 import { showSecondaryVerify } from '../components/feedback/secondaryVerifyController';
 import { switchI18nLanguage } from '../i18n';

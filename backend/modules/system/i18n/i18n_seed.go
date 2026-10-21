@@ -1,4 +1,4 @@
-package system
+package i18n
 
 import (
 	// Blank import enables the //go:embed directives that load the builtin seed resources.

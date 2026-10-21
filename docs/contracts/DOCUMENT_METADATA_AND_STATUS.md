@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md
   - docs/contracts/DOCUMENT_FRONTMATTER_SCHEMA.md
-updated_at: 2026-04-30
+updated_at: 2026-09-30
 ---
 
 # 文档类型与状态说明
@@ -70,7 +70,7 @@ English version: [DOCUMENT_METADATA_AND_STATUS.en.md](./DOCUMENT_METADATA_AND_ST
 - 不要求第一轮为所有历史文档一次性补齐全部扩展字段；
 - 但从现在开始新增或重写的主文档，应至少补 `类型 / 归属层 / 状态`。
 
-如果文档位于 `docs/superpowers/specs/` 或 `docs/archive/*`，建议进一步补充：
+如果文档位于 `openspec/specs/` 或 `docs/archive/*`，建议进一步补充：
 
 - `索引分组`
   - 可选值：`superpowers-specs`、`archive/examples`、`archive/baselines`、`archive/upgrade`
@@ -261,9 +261,9 @@ English version: [DOCUMENT_METADATA_AND_STATUS.en.md](./DOCUMENT_METADATA_AND_ST
 
 ### 6.4 目录与索引分组映射
 
-为避免后续再次堆回 `docs/archive/` 或 `docs/superpowers/specs/`，建议固定使用以下映射：
+为避免后续再次堆回 `docs/archive/` 或 `openspec/specs/`，建议固定使用以下映射：
 
-- `docs/superpowers/specs/`
+- `openspec/specs/`
   - `类型` 通常为 `Design`
   - `状态` 通常为 `Active` 或 `Superseded`
   - `索引分组` 固定写 `superpowers-specs`
@@ -299,4 +299,4 @@ English version: [DOCUMENT_METADATA_AND_STATUS.en.md](./DOCUMENT_METADATA_AND_ST
 1. 为首批平台级合同建立统一模板
 2. 为 `README` 中的一线主文档逐步补齐元信息
 3. 对仍保留的历史样例文档补 `状态：Archived`
-4. 为 `docs/superpowers/specs/` 与 `docs/archive/*` 文档逐步补 `索引分组 / 保留原因`
+4. 为 `openspec/specs/` 与 `docs/archive/*` 文档逐步补 `索引分组 / 保留原因`

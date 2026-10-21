@@ -113,6 +113,6 @@ npm run test:smoke:core -- --grep @cleanup
 
 ## 相关文档
 
-- [测试优化完整方案](../../docs/testing-strategy-optimization.md)
-- [快速启动指南](../../docs/testing-quick-start.md)
+- [测试优化完整方案](../../../docs/testing-strategy-optimization.md)
+- [快速启动指南](../../../docs/testing-quick-start.md)
 - [完整冒烟测试](../smoke/README.md)

@@ -25,6 +25,28 @@ Pantheon smoke tests are grouped by ownership boundary.
 - Do not add compatibility aliases such as `test:smoke:role-auth` or `test:smoke:impexp`; keep names aligned to ownership and actual surface.
 - Add each new business module or business-runtime variant as `test:smoke:business:<module>` and include it in `test:smoke:business`.
 
+## Test Tiers
+
+Smoke runs in tiers so a change only pays for the depth it can actually affect. The tier is chosen
+from the **changed paths**, not from a manual label.
+
+| Tier | Command | Scope | Gate |
+| :--- | :--- | :--- | :--- |
+| L0 static | `npm run test:smoke:l0` | Smoke wiring contracts only (`check:smoke-coverage-contract`, `check:smoke-web-base`, `check:system-page-admission`). No browser, no server. | part of `npm run prebuild` |
+| L1 critical path | `npm run test:smoke:l1` | `platform:contracts` + `system:routes` — shell/pagination contract plus every system route reachable. | **blocking on every PR** |
+| L2 module | `npm run test:smoke:module:<module>` | One business module suite. `<module>` is `iam`, `config`, `i18n`, `audit`, `org` or `platform`. | **blocking, but only for touched modules** |
+| L2 all | `npm run test:smoke:l2` | Every module suite plus platform surfaces and business flows. | manual / pre-release |
+| L3 full | `npm run test:smoke:all` | Everything, including the PC/tablet/phone viewport matrix (`platform:full`). | report-only / pre-release |
+
+Path-driven module selection lives in `scripts/resolve-smoke-modules.mjs`. The Quality Gates
+workflow maps a PR's changed files to module suites and runs only those. **Any change that is not
+unambiguously inside one module resolves to every module** — the default is deliberately the safe
+one, so a shared-core edit can never silently skip a module's suite.
+
+The per-module spec files were split out of the former `system/system-pages.spec.ts` monolith.
+Shared scaffolding for them lives in `system/system-pages-helpers.ts`; that is a non-spec module, so
+it is not a smoke entrypoint and is exempt from the coverage contract.
+
 ## Fixture Control
 
 - Default behavior stays unchanged: browser smoke cleans generated modules before and after the run, and opted-in fixture scopes are cleaned automatically.
@@ -35,9 +57,9 @@ Pantheon smoke tests are grouped by ownership boundary.
 - Convenience entries:
   - `npm run smoke:preserve`
   - `npm run smoke:preserve:platform-shell`
-  - `npm run smoke:preserve:system-pages`
+  - `npm run smoke:preserve:system`
   - `npm run test:smoke:platform:shell:preserve`
-  - `npm run test:smoke:system:pages:preserve`
+  - `npm run test:smoke:system:preserve`
 - Manual cleanup entries:
   - `npm run smoke:cleanup`
   - `npm run smoke:cleanup:iam`
@@ -52,8 +74,13 @@ Pantheon smoke tests are grouped by ownership boundary.
 - `test:smoke:platform:surfaces` -> `platform/platform-shell.spec.ts`, `platform/backoffice-ui-visual.spec.ts`, `platform/shell-top-panels.spec.ts`, `platform/system-layout-contract.spec.ts`, `platform/system-secondary-route-visual.spec.ts`, `platform/system-secondary-route-interaction.spec.ts`, `platform/system-secondary-route-failure.spec.ts`, `platform/system-secondary-route-permission.spec.ts`
 - `test:smoke:platform:shell:preserve` -> `platform/platform-shell.spec.ts`
 - `test:smoke:platform:full` -> `platform/full-system-pages.spec.ts`, `platform/full-page-audit.spec.ts`
-- `test:smoke:system:pages` -> `system/system-pages.spec.ts`
-- `test:smoke:system:pages:preserve` -> `system/system-pages.spec.ts`
+- `test:smoke:system:routes` -> `system/system-routes.spec.ts`
+- `test:smoke:system:iam` -> `system/system-iam.spec.ts`
+- `test:smoke:system:config` -> `system/system-config.spec.ts`
+- `test:smoke:system:i18n` -> `system/system-i18n.spec.ts`
+- `test:smoke:system:audit` -> `system/system-audit.spec.ts`
+- `test:smoke:system:org` -> `system/system-org.spec.ts`
+- `test:smoke:system:platform` -> `system/system-platform.spec.ts`
 - `test:smoke:system:forms` -> `system/system-form-state-matrix.spec.ts`
 - `test:smoke:system:iam-authz` -> `system/role-authorization.spec.ts`
 - `test:smoke:system:governance` -> `system/governance/system-governance-action-matrix.spec.ts`, `system/governance/governance-insight-drawer.spec.ts`, `system/governance/permission-workbench-remediation.spec.ts`, `system/governance/permission-workbench-remediation-real.spec.ts`, `system/governance/module-governance.spec.ts`, `system/governance/cleanup-range-ui.spec.ts`
@@ -77,11 +104,14 @@ Pantheon smoke tests are grouped by ownership boundary.
 | platform secondary routes | Secondary route visuals, interaction states, failure states, permission fallback                                                                                                    | `platform/system-secondary-route-visual.spec.ts`, `platform/system-secondary-route-interaction.spec.ts`, `platform/system-secondary-route-failure.spec.ts`, `platform/system-secondary-route-permission.spec.ts` |
 | platform full pass        | Login and platform/system pages across PC, tablet, phone viewports                                                                                                                  | `platform/full-system-pages.spec.ts`                                                                                                                                                                             |
 | platform full-page audit  | Per-page screenshots, console errors, broken-state, overflow, create-dialog checks, and the sidebar-beside-content layout regression guard                                          | `platform/full-page-audit.spec.ts`                                                                                                                                                                               |
-| system/auth               | Login/logout, idle timeout, session lock, login log, session list permissions                                                                                                       | `system/system-pages.spec.ts`                                                                                                                                                                                    |
-| system/iam                | User, role, menu, permission page reachability and list-only permission behavior                                                                                                    | `system/system-pages.spec.ts`, `system/role-authorization.spec.ts`                                                                                                                                               |
-| system/org                | Department and post page reachability, form state, import/export                                                                                                                    | `system/system-pages.spec.ts`, `system/api/system-import-export.spec.ts`                                                                                                                                         |
-| system/config             | Dict, setting, i18n, dynamic module, generator page flows and permission boundaries                                                                                                 | `system/system-pages.spec.ts`, `system/governance/*.spec.ts`                                                                                                                                                     |
-| system/audit              | Login log, session, operation log export/cleanup and list-only permissions                                                                                                          | `system/system-pages.spec.ts`, `system/governance/cleanup-range-ui.spec.ts`, `system/api/system-import-export.spec.ts`                                                                                           |
+| system routes             | Every system and workspace route reachable, page title, no page error, console-clean bootstrap                                                                                      | `system/system-routes.spec.ts`                                                                                                                                                                                   |
+| system/auth               | Login/logout, idle timeout, session lock, login log, session list permissions                                                                                                       | `system/system-iam.spec.ts`, `system/system-audit.spec.ts`, `system/system-platform.spec.ts`                                                                                                                     |
+| system/iam                | User, role, menu, permission page reachability and list-only permission behavior                                                                                                    | `system/system-iam.spec.ts`, `system/role-authorization.spec.ts`                                                                                                                                                 |
+| system/org                | Department and post page reachability, form state, import/export                                                                                                                    | `system/system-org.spec.ts`, `system/api/system-import-export.spec.ts`                                                                                                                                           |
+| system/config             | Dict, setting, UI preference, dynamic module, generator page flows and permission boundaries                                                                                        | `system/system-config.spec.ts`, `system/governance/*.spec.ts`                                                                                                                                                    |
+| system/i18n               | i18n workspace, detail/edit/create/delete dialogs, CSV import, permission boundary, refresh sync                                                                                    | `system/system-i18n.spec.ts`                                                                                                                                                                                     |
+| system/audit              | Login log, session, operation log export/cleanup and list-only permissions                                                                                                          | `system/system-audit.spec.ts`, `system/governance/cleanup-range-ui.spec.ts`, `system/api/system-import-export.spec.ts`                                                                                           |
+| system/platform           | Lock screen, module registry lifecycle, cross-cutting page admission and ownership labels                                                                                           | `system/system-platform.spec.ts`                                                                                                                                                                                 |
 | system forms              | Required state, format state, submitting state, server error recovery                                                                                                               | `system/system-form-state-matrix.spec.ts`                                                                                                                                                                        |
 | system governance         | Confirm copy, submitting state, server error recovery for governance actions                                                                                                        | `system/governance/system-governance-action-matrix.spec.ts`                                                                                                                                                      |
 | permission governance     | Workbench drawer, recommended API remediation, secondary verify retry                                                                                                               | `system/governance/governance-insight-drawer.spec.ts`, `system/governance/permission-workbench-remediation.spec.ts`, `system/governance/permission-workbench-remediation-real.spec.ts`                           |

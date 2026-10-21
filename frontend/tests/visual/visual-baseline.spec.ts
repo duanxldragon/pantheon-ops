@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import type { MenuNode } from '../../src/modules/system/menu/api';
+import type { MenuNode } from '../../src/modules/system/iam/menu/api';
 import { primeChineseLocale, signInAsAdmin } from '../smoke/helpers/auth';
 
 function createVisualMenuNode(

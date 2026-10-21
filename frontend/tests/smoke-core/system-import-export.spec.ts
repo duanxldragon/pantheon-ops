@@ -9,7 +9,7 @@
  * 优先级: P1 (数据批量操作)
  * 预估耗时: ~2分钟
  *
- * 行为基准 (与 modules/system/user/UserList.tsx、src/api/file.ts 对齐):
+ * 行为基准 (与 modules/system/iam/user/UserList.tsx、src/api/file.ts 对齐):
  * - 导出/下载模板/导入均通过 downloadFile 走浏览器 blob 下载,
  *   不弹对话框、不产生可见页面导航 → 断言 Playwright download 事件
  * - 用户导出文件名: system-user-export.csv; 模板: system-user-import-template.csv

@@ -1,8 +1,15 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import path from 'node:path'
 
 export default defineConfig({
   plugins: [react()],
+  // Keeps the `@/` alias from tsconfig.app.json / vite.config.ts working in tests.
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
@@ -14,10 +21,10 @@ export default defineConfig({
       include: [
         'src/core/arco/**/*.{ts,tsx}',
         'src/core/format/**/*.{ts,tsx}',
-        'src/core/permissions/**/*.{ts,tsx}',
+        'src/core/permission/**/*.{ts,tsx}',
         'src/core/refresh/**/*.{ts,tsx}',
         'src/core/runtime/**/*.{ts,tsx}',
-        'src/core/settings/**/*.{ts,tsx}',
+        'src/core/setting/**/*.{ts,tsx}',
         'src/core/theme/**/*.{ts,tsx}',
         'src/hooks/**/*.{ts,tsx}',
       ],
@@ -32,7 +39,7 @@ export default defineConfig({
         // React hooks/components with heavy external deps — covered by e2e
         'src/core/theme/ThemeSwitcher.tsx',
         'src/core/theme/theme.ts',
-        'src/core/settings/publicSettings.ts',
+        'src/core/setting/publicSettings.ts',
         // Hooks with HTTP/Zustand deps — integration-level, not unit-testable
         'src/core/refresh/refreshBus.ts',
         // Re-export barrels — no logic to test

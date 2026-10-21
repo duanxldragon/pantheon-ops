@@ -82,7 +82,7 @@ Contract
 4.  在 `database/` 下记录 DDL 脚本。
 
 ### 第二阶段：后端逻辑 (Backend Phase)
-1.  在 `modules/business/` 下创建包（例如 `order`）。
+1.  在 `backend/modules/business/` 下创建包（例如 `order`）。
 2.  生成 `order_model.go`, `order_dto.go`, `order_repo.go` 模板。
 3.  在 `order_service.go` 中编写核心业务，调用底座提供的公共能力（如 ID 生成、Context 取用户信息）。
 4.  在对应模块装配文件中注册路由；后端统一通过 `pkg/contracts.BackendModule` 与模块装配文件显式注册，不再依赖“大一统 system.go”思维。

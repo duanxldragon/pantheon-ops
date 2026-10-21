@@ -4,17 +4,17 @@ import (
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
-	authsession "github.com/duanxldragon/pantheon-base/backend/modules/auth/session"
-	audit "github.com/duanxldragon/pantheon-base/backend/modules/system/audit"
-	dict "github.com/duanxldragon/pantheon-base/backend/modules/system/config/dict"
-	setting "github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
-	i18n "github.com/duanxldragon/pantheon-base/backend/modules/system/i18n"
-	menu "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/menu"
-	permission "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/permission"
-	role "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/role"
-	user "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
-	dept "github.com/duanxldragon/pantheon-base/backend/modules/system/org/dept"
-	post "github.com/duanxldragon/pantheon-base/backend/modules/system/org/post"
+	"github.com/duanxldragon/pantheon-base/backend/modules/auth/session"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/audit"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/config/dict"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/i18n"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/menu"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/permission"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/role"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/org/dept"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/org/post"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/maintenance"
@@ -78,7 +78,7 @@ func newSystemModuleDependencies(db *gorm.DB) *systemModuleDependencies {
 	refreshSyncSvc := NewRefreshSyncService(db)
 
 	userSvc := user.NewUserService(db, user.WithSessionLifecycle(func(db *gorm.DB) user.SessionLifecycle {
-		return authsession.NewLifecycleService(db)
+		return session.NewLifecycleService(db)
 	}))
 	menuSvc := menu.NewMenuService(db)
 	roleSvc := role.NewRoleService(db)

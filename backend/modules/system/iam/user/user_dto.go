@@ -1,4 +1,4 @@
-package iam
+package user
 
 type UserProfileResp struct {
 	ID          uint64                      `json:"id"`

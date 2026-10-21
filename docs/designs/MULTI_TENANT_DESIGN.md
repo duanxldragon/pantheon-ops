@@ -549,7 +549,7 @@ func (s *TenantService) GetSettings(tenantID string) (*TenantSettings, error) {
 
 ### Branding Customization
 
-**File**: `backend/modules/tenant/branding.go`
+**File**: backend/modules/tenant/branding.go（Phase 2 设计目标路径，尚未实现；现行租户实现在 backend/modules/system/iam/tenant/ 与 backend/pkg/tenant/）
 
 ```go
 type TenantBranding struct {

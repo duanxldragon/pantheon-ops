@@ -78,9 +78,7 @@ export function useRequest<T>(
     [defaultParams, onSuccess, onError, onFinally],
   );
 
-  const refresh = useCallback(async (): Promise<T | undefined> => {
-    return run();
-  }, [run]);
+  const refresh = useCallback((): Promise<T | undefined> => run(), [run]);
 
   const reset = useCallback(() => {
     setData(undefined);

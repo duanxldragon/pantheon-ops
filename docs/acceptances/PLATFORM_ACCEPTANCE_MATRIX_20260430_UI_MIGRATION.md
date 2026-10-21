@@ -116,11 +116,11 @@ English version: [PLATFORM_ACCEPTANCE_MATRIX_20260430_UI_MIGRATION.en.md](./PLAT
 
 | 文件 | 归属层 | 当前状态 | 当前实现 | 平台判断 | 备注 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `frontend/src/modules/system/dynamicmodule/ModuleManager.tsx` | `system/config` | `Target` | `AppModal` | 可继续复制 | 危险治理浮层已收口 |
+| `frontend/src/modules/lowcode/dynamicmodule/ModuleManager.tsx` | `system/config` | `Target` | `AppModal` | 可继续复制 | 危险治理浮层已收口 |
 | `frontend/src/components/feedback/SecondaryVerifyModal.tsx` | `platform` | `Target` | `AppModal` | 可继续复制 | 二次验证浮层已收口 |
-| `frontend/src/modules/generator/pages/ModuleWizard.tsx` | 低代码辅助链路 | `Target` | `AppModal` + `showAppModalConfirm` | 可继续复制 | 静态确认已收口到平台入口 |
-| `frontend/src/modules/generator/components/FieldEditor.tsx` | 低代码辅助链路 | `Target` | `AppModal` + `showAppModalConfirm` | 可继续复制 | 静态确认已收口到平台入口 |
-| `frontend/src/modules/generator/components/CodePreview.tsx` | 低代码辅助链路 | `Target` | `AppDrawer` | 可继续复制 | Drawer 已纳入平台壳 |
+| `frontend/src/modules/lowcode/generator/pages/ModuleWizard.tsx` | 低代码辅助链路 | `Target` | `AppModal` + `showAppModalConfirm` | 可继续复制 | 静态确认已收口到平台入口 |
+| `frontend/src/modules/lowcode/components/FieldEditor.tsx` | 低代码辅助链路 | `Target` | `AppModal` + `showAppModalConfirm` | 可继续复制 | 静态确认已收口到平台入口 |
+| `frontend/src/modules/lowcode/components/CodePreview.tsx` | 低代码辅助链路 | `Target` | `AppDrawer` | 可继续复制 | Drawer 已纳入平台壳 |
 | `frontend/src/components/patterns/AppModal.tsx` | `platform` | `Target` | 统一弹窗模式 | 作为后续平台弹窗基线继续演进 | 基线 |
 | `frontend/src/components/patterns/AppDrawer.tsx` | `platform` | `Target` | 统一抽屉模式 | 作为后续平台抽屉基线继续演进 | 基线 |
 

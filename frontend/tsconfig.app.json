@@ -15,6 +15,12 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path alias: canonical form for cross-module imports (REPOSITORY_LAYOUT §5.2).
+       Existing relative imports are grandfathered; migrate opportunistically. */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,

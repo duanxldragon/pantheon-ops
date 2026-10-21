@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, Dropdown, Menu, Popconfirm, Space } from '@arco-design/web-react';
 import { IconMore } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
-import { showAppModalConfirm } from './modals/AppModalActions';
+import { showAppModalConfirm } from './modals/appModalActions';
 
 type SystemRowActionConfirm = {
   title?: React.ReactNode;

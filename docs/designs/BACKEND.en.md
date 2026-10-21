@@ -84,7 +84,7 @@ Keep the Chinese primary document as the authoritative endpoint inventory.
 
 ## 6. Decoupling Rules
 
-- New business packages must live under `modules/business/`.
+- New business packages must live under `backend/modules/business/`.
 - Modules may not import each other's services directly.
 - Identity and role context must come from `gin.Context`.
 - Backend modules must register through the shared `pkg/contracts.BackendModule` contract and declare `Name`, `Migrate`, `RegisterRoutes`, `SeedMenus`, `SeedPerms`, and `SeedI18n`.

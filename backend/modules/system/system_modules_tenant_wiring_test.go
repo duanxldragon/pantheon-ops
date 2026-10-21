@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
-	audit "github.com/duanxldragon/pantheon-base/backend/modules/system/audit"
-	setting "github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/audit"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"

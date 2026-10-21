@@ -1,4 +1,4 @@
-package iam
+package user
 
 type SystemUserRole struct {
 	UserID uint64 `gorm:"column:user_id;not null;index:idx_system_user_role_user"`

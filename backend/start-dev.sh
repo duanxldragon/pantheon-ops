@@ -31,7 +31,7 @@ echo "Starting backend server..."
 echo ""
 
 # Start the backend server
-go run ./cmd/server/main.go
+go run ./cmd/server
 
 if [[ $? -ne 0 ]]; then
     echo ""
