@@ -71,3 +71,11 @@ node scripts/business-overlay/check-shared-drift.mjs --base ..\pantheon-base
 - SonarCloud revision、代码量和重复率复核
 
 当前仓库替换属于 L2 human gate：暂存验证通过后才能执行最终基线替换。
+
+## 7. 继承锚点
+
+> 以下英文 marker 供 `../pantheon-base/scripts/harness/check-inheritance-contract.mjs` 机械校验，请勿翻译或删除；版本变化时必须与 `foundation-release.lock.json` 同步更新。
+
+- Base repository: `../pantheon-base`
+- Base version: `pantheon-base-v0.16.1` (`c83f8e4c865b19ecd5351ecefac4106ec416e0bc`)
+- If a foundation rule must change, update `pantheon-base` first

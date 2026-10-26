@@ -34,6 +34,10 @@
 - inheritance contract:
 - base drift:
 - Base/ops inheritance:
+- Base version checked: `foundation-release.lock.json` releaseVersion / baseCommit =
+- generic drift: handled in `pantheon-base` first (yes / no / not-applicable)
+- pseudo-drift: excluded as line-count or formatting noise without contract break (yes / no)
+- business-only:
 
 ## 边界说明
 
