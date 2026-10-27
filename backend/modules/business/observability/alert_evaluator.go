@@ -260,7 +260,7 @@ func (e *AlertEvaluator) executeQuery(ds *DatasourceResponse, query string, look
 	if err != nil {
 		return 0, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -283,7 +283,7 @@ func (e *AlertEvaluator) executeQuery(ds *DatasourceResponse, query string, look
 		return 0, err
 	}
 
-	if result.Status != "success" {
+	if result.Status != queryStatusSuccess {
 		return 0, fmt.Errorf("query failed: %s", result.Status)
 	}
 

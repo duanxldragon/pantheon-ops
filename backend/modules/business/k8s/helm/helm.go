@@ -19,6 +19,8 @@ import (
 const msgParamInvalid = "common.param_invalid"
 
 // HelmRelease is the DB record of a Helm release.
+//
+//nolint:revive // the exported type name keeps the Helm domain prefix for API clarity.
 type HelmRelease struct {
 	ID        uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
 	Name      string    `gorm:"size:255;not null;index" json:"name"`

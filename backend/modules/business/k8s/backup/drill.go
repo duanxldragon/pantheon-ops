@@ -35,6 +35,7 @@ type DisasterRecoveryDrill struct {
 	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the biz_velero_drill table name.
 func (DisasterRecoveryDrill) TableName() string {
 	return "biz_velero_drill"
 }
@@ -201,7 +202,7 @@ func (s *DrillService) executeDrill(drill *DisasterRecoveryDrill) {
 	}
 	phase, restoreErrors := s.waitForRestore(ctx, vc, restore.Name)
 
-	if phase != "Completed" || restoreErrors > 0 {
+	if phase != StatusCompleted || restoreErrors > 0 {
 		s.failDrill(drill, fmt.Sprintf("restore did not complete: phase=%s errors=%d", phase, restoreErrors))
 		return
 	}
@@ -237,7 +238,7 @@ func (s *DrillService) waitForRestore(ctx context.Context, vc *VeleroClient, nam
 		}
 		errorsCount, _, _ := unstructured.NestedInt64(obj.Object, "status", "errors")
 		switch phase {
-		case "Completed", "Failed", "PartiallyFailed":
+		case StatusCompleted, StatusFailed, "PartiallyFailed":
 			return phase, errorsCount
 		}
 		time.Sleep(5 * time.Second)
@@ -262,7 +263,7 @@ func (s *DrillService) failDrill(drill *DisasterRecoveryDrill, reason string) {
 // generateDrillReport generates an honest drill report reflecting the phases
 // that actually ran.
 func (s *DrillService) generateDrillReport(drill *DisasterRecoveryDrill, backup *VeleroBackup, restore *RestoreResponse, startedAt time.Time, phase string, errorsCount int64) string {
-	restoreOK := phase == "Completed" && errorsCount == 0
+	restoreOK := phase == StatusCompleted && errorsCount == 0
 	return fmt.Sprintf(`# 灾难恢复演练报告
 
 ## 基本信息

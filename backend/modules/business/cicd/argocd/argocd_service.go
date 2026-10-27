@@ -1,6 +1,7 @@
 package argocd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -9,6 +10,8 @@ import (
 )
 
 // ArgoCDService manages ArgoCD resources.
+//
+//nolint:revive // the exported service name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDService struct {
 	db *gorm.DB
 }
@@ -33,6 +36,7 @@ func (s *ArgoCDService) Migrate() error {
 
 // --- Server ---
 
+// AddServer stores an Argo CD server, keeping its auth token encrypted at rest.
 func (s *ArgoCDService) AddServer(req AddServerRequest, createdBy string) (*ServerResponse, error) {
 	// Encrypt auth token before storing
 	encryptedToken, err := EncryptSecret(req.AuthToken)
@@ -54,6 +58,7 @@ func (s *ArgoCDService) AddServer(req AddServerRequest, createdBy string) (*Serv
 	return s.toServerResponse(record), nil
 }
 
+// ListServers returns every registered Argo CD server.
 func (s *ArgoCDService) ListServers() (*ServerListResponse, error) {
 	var records []ArgoCDServer
 	if err := s.db.Order("created_at DESC").Find(&records).Error; err != nil {
@@ -66,6 +71,7 @@ func (s *ArgoCDService) ListServers() (*ServerListResponse, error) {
 	return &ServerListResponse{Items: items, Total: int64(len(items))}, nil
 }
 
+// GetServer returns the Argo CD server identified by id.
 func (s *ArgoCDService) GetServer(id uint64) (*ServerResponse, error) {
 	var record ArgoCDServer
 	if err := s.db.First(&record, id).Error; err != nil {
@@ -74,6 +80,7 @@ func (s *ArgoCDService) GetServer(id uint64) (*ServerResponse, error) {
 	return s.toServerResponse(&record), nil
 }
 
+// UpdateServer applies req to the Argo CD server identified by id.
 func (s *ArgoCDService) UpdateServer(id uint64, req UpdateServerRequest) error {
 	updates := map[string]interface{}{
 		"name":     req.Name,
@@ -89,10 +96,12 @@ func (s *ArgoCDService) UpdateServer(id uint64, req UpdateServerRequest) error {
 	return s.db.Model(&ArgoCDServer{}).Where("id = ?", id).Updates(updates).Error
 }
 
+// DeleteServer removes the Argo CD server identified by id.
 func (s *ArgoCDService) DeleteServer(id uint64) error {
 	return s.db.Delete(&ArgoCDServer{}, id).Error
 }
 
+// TestServerConnection reaches the stored server and records whether the probe succeeded.
 func (s *ArgoCDService) TestServerConnection(id uint64) (bool, error) {
 	var record ArgoCDServer
 	if err := s.db.First(&record, id).Error; err != nil {
@@ -110,7 +119,7 @@ func (s *ArgoCDService) TestServerConnection(id uint64) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	opCtx, cancel := withCustomTimeout(nil, 10*time.Second)
+	opCtx, cancel := withCustomTimeout(context.TODO(), 10*time.Second)
 	defer cancel()
 
 	if err := client.TestConnection(opCtx); err != nil {
@@ -151,6 +160,7 @@ func (s *ArgoCDService) toServerResponse(r *ArgoCDServer) *ServerResponse {
 
 // --- Repository ---
 
+// AddRepository registers a Git repository both in Argo CD and in the local registry.
 func (s *ArgoCDService) AddRepository(req AddRepositoryRequest, createdBy string) (*RepositoryResponse, error) {
 	// Verify server exists
 	var server ArgoCDServer
@@ -187,6 +197,7 @@ func (s *ArgoCDService) AddRepository(req AddRepositoryRequest, createdBy string
 	return s.toRepositoryResponse(record), nil
 }
 
+// ListRepositories reads the repositories configured on the remote Argo CD server.
 func (s *ArgoCDService) ListRepositories(serverID uint64) (*RepositoryListResponse, error) {
 	var records []ArgoCDRepository
 	db := s.db
@@ -203,6 +214,7 @@ func (s *ArgoCDService) ListRepositories(serverID uint64) (*RepositoryListRespon
 	return &RepositoryListResponse{Items: items, Total: int64(len(items))}, nil
 }
 
+// GetRepository returns the Argo CD repository identified by id.
 func (s *ArgoCDService) GetRepository(id uint64) (*RepositoryResponse, error) {
 	var record ArgoCDRepository
 	if err := s.db.First(&record, id).Error; err != nil {
@@ -211,6 +223,7 @@ func (s *ArgoCDService) GetRepository(id uint64) (*RepositoryResponse, error) {
 	return s.toRepositoryResponse(&record), nil
 }
 
+// UpdateRepository re-registers the repository identified by id with the values of req.
 func (s *ArgoCDService) UpdateRepository(id uint64, req AddRepositoryRequest) error {
 	updates := map[string]interface{}{
 		"repo_url": req.RepoURL,
@@ -238,6 +251,7 @@ func (s *ArgoCDService) UpdateRepository(id uint64, req AddRepositoryRequest) er
 	return s.db.Model(&ArgoCDRepository{}).Where("id = ?", id).Updates(updates).Error
 }
 
+// DeleteRepository removes the repository from Argo CD and from the local registry.
 func (s *ArgoCDService) DeleteRepository(id uint64) error {
 	return s.db.Delete(&ArgoCDRepository{}, id).Error
 }
@@ -259,6 +273,7 @@ func (s *ArgoCDService) toRepositoryResponse(r *ArgoCDRepository) *RepositoryRes
 
 // --- Application ---
 
+// CreateApplication deploys the application described by req and records the result.
 func (s *ArgoCDService) CreateApplication(req CreateApplicationRequest, createdBy string) (*ApplicationResponse, error) {
 	var server ArgoCDServer
 	if err := s.db.First(&server, req.ServerID).Error; err != nil {
@@ -292,7 +307,7 @@ func (s *ArgoCDService) CreateApplication(req CreateApplicationRequest, createdB
 	if err != nil {
 		return nil, err
 	}
-	opCtx, cancel := withCustomTimeout(nil, 10*time.Second)
+	opCtx, cancel := withCustomTimeout(context.TODO(), 10*time.Second)
 	defer cancel()
 	if err := client.CreateApplication(opCtx, payload); err != nil {
 		return nil, fmt.Errorf("argocd.create_failed: %w", err)
@@ -318,6 +333,7 @@ func (s *ArgoCDService) CreateApplication(req CreateApplicationRequest, createdB
 	return s.toApplicationResponse(record), nil
 }
 
+// ListApplications reads the applications deployed on the given Argo CD server.
 func (s *ArgoCDService) ListApplications(serverID uint64) (*ApplicationListResponse, error) {
 	var records []ArgoCDApplication
 	db := s.db
@@ -334,6 +350,7 @@ func (s *ArgoCDService) ListApplications(serverID uint64) (*ApplicationListRespo
 	return &ApplicationListResponse{Items: items, Total: int64(len(items))}, nil
 }
 
+// GetApplication returns the stored application identified by id.
 func (s *ArgoCDService) GetApplication(id uint64) (*ApplicationResponse, error) {
 	var record ArgoCDApplication
 	if err := s.db.First(&record, id).Error; err != nil {
@@ -342,6 +359,7 @@ func (s *ArgoCDService) GetApplication(id uint64) (*ApplicationResponse, error) 
 	return s.toApplicationResponse(&record), nil
 }
 
+// UpdateApplication applies req to the stored application identified by id.
 func (s *ArgoCDService) UpdateApplication(id uint64, req UpdateApplicationRequest) error {
 	updates := map[string]interface{}{}
 	if req.SourceRepoURL != "" {
@@ -368,6 +386,7 @@ func (s *ArgoCDService) UpdateApplication(id uint64, req UpdateApplicationReques
 	return s.db.Model(&ArgoCDApplication{}).Where("id = ?", id).Updates(updates).Error
 }
 
+// DeleteApplication removes the application from Argo CD and from the local registry.
 func (s *ArgoCDService) DeleteApplication(id uint64) error {
 	var record ArgoCDApplication
 	if err := s.db.First(&record, id).Error; err != nil {
@@ -393,7 +412,7 @@ func (s *ArgoCDService) DeleteApplication(id uint64) error {
 	if err != nil {
 		return err
 	}
-	opCtx, cancel := withCustomTimeout(nil, 10*time.Second)
+	opCtx, cancel := withCustomTimeout(context.TODO(), 10*time.Second)
 	defer cancel()
 	if err := client.DeleteApplication(opCtx, record.Name, false); err != nil {
 		return fmt.Errorf("argocd.delete_failed: %w", err)
@@ -433,7 +452,7 @@ func (s *ArgoCDService) SyncApplication(id uint64, revision string) (*SyncHistor
 	if err != nil {
 		return nil, err
 	}
-	opCtx, cancel := withCustomTimeout(nil, 30*time.Second)
+	opCtx, cancel := withCustomTimeout(context.TODO(), 30*time.Second)
 	defer cancel()
 
 	finished := time.Now()
@@ -498,7 +517,7 @@ func (s *ArgoCDService) RefreshApplication(id uint64) error {
 	if err != nil {
 		return err
 	}
-	opCtx, cancel := withCustomTimeout(nil, 10*time.Second)
+	opCtx, cancel := withCustomTimeout(context.TODO(), 10*time.Second)
 	defer cancel()
 
 	if err := client.RefreshApplication(opCtx, record.Name); err != nil {

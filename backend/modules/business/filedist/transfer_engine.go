@@ -108,7 +108,7 @@ func (e *TransferEngine) worker(ctx context.Context, id int) {
 
 func (e *TransferEngine) processTask(ctx context.Context, task *TransferTask) {
 	e.updateTarget(task.ID, map[string]interface{}{
-		"status":     "transferring",
+		"status":     statusTransferring,
 		"progress":   0,
 		"error":      "",
 		"started_at": time.Now(),
@@ -117,7 +117,7 @@ func (e *TransferEngine) processTask(ctx context.Context, task *TransferTask) {
 	// Get file path
 	filePath, err := e.storageService.GetFilePath(task.FileID)
 	if err != nil {
-		e.finishTarget(task.ID, "failed", 0, fmt.Sprintf("get_file_failed: %v", err))
+		e.finishTarget(task.ID, statusFailed, 0, fmt.Sprintf("get_file_failed: %v", err))
 		return
 	}
 
@@ -136,10 +136,10 @@ func (e *TransferEngine) processTask(ctx context.Context, task *TransferTask) {
 		e.handleTransferError(task, fmt.Sprintf("connect_failed: %v", err))
 		return
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	// Upload file
-	e.updateTargetStatus(task.ID, "transferring", 50, "")
+	e.updateTargetStatus(task.ID, statusTransferring, 50, "")
 
 	if err := client.Upload(filePath, task.TargetPath); err != nil {
 		e.handleTransferError(task, fmt.Sprintf("upload_failed: %v", err))
@@ -147,7 +147,7 @@ func (e *TransferEngine) processTask(ctx context.Context, task *TransferTask) {
 	}
 
 	// Success
-	e.finishTarget(task.ID, "completed", 100, "")
+	e.finishTarget(task.ID, statusCompleted, 100, "")
 }
 
 func (e *TransferEngine) handleTransferError(task *TransferTask, errorMsg string) {
@@ -155,7 +155,7 @@ func (e *TransferEngine) handleTransferError(task *TransferTask, errorMsg string
 	if task.RetryCount < task.MaxRetries {
 		task.RetryCount++
 		e.updateTarget(task.ID, map[string]interface{}{
-			"status":      "retrying",
+			"status":      statusRetrying,
 			"progress":    0,
 			"error":       errorMsg,
 			"retry_count": task.RetryCount,
@@ -164,22 +164,11 @@ func (e *TransferEngine) handleTransferError(task *TransferTask, errorMsg string
 		// Re-queue after delay
 		time.Sleep(5 * time.Second)
 		if err := e.SubmitTask(task); err != nil {
-			e.finishTarget(task.ID, "failed", 0, err.Error())
+			e.finishTarget(task.ID, statusFailed, 0, err.Error())
 		}
 	} else {
-		e.finishTarget(task.ID, "failed", 0, errorMsg)
+		e.finishTarget(task.ID, statusFailed, 0, errorMsg)
 	}
-}
-
-func (e *TransferEngine) updateTaskStatus(taskID uint64, status string, progress int, errorMsg string) {
-	updates := map[string]interface{}{
-		"status":   status,
-		"progress": progress,
-	}
-	if errorMsg != "" {
-		updates["error"] = errorMsg
-	}
-	_ = e.db.Model(&DistributionTask{}).Where("id = ?", taskID).Updates(updates).Error
 }
 
 func (e *TransferEngine) updateTargetStatus(targetID uint64, status string, progress int, errorMsg string) {

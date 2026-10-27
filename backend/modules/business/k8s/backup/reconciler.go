@@ -278,7 +278,7 @@ func mapVeleroPhase(phase string) string {
 		return StatusNew
 	case "InProgress", "Deleting":
 		return StatusInProgress
-	case "Completed":
+	case StatusCompleted:
 		return StatusCompleted
 	default: // Failed, PartiallyFailed, anything else
 		return StatusFailed

@@ -9,6 +9,8 @@ import (
 )
 
 // BackupHandler handles Velero backup HTTP requests.
+//
+//nolint:revive // the exported handler name keeps the backup domain prefix for API clarity.
 type BackupHandler struct {
 	service *BackupService
 }
@@ -54,6 +56,7 @@ func (h *BackupHandler) RegisterRoutes(r gin.IRoutes) {
 
 // --- Velero Status ---
 
+// GetVeleroStatus reports whether Velero answers on the cluster named by the path id.
 func (h *BackupHandler) GetVeleroStatus(c *gin.Context) {
 	clusterID, err := strconv.ParseUint(c.Query("clusterId"), 10, 64)
 	if err != nil {
@@ -71,6 +74,7 @@ func (h *BackupHandler) GetVeleroStatus(c *gin.Context) {
 
 // --- Storage Location ---
 
+// CreateStorageLocation registers a Velero backup storage location from the request body.
 func (h *BackupHandler) CreateStorageLocation(c *gin.Context) {
 	var req CreateStorageLocationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -88,6 +92,7 @@ func (h *BackupHandler) CreateStorageLocation(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ListStorageLocations returns the registered Velero backup storage locations.
 func (h *BackupHandler) ListStorageLocations(c *gin.Context) {
 	resp, err := h.service.ListStorageLocations()
 	if err != nil {
@@ -97,6 +102,7 @@ func (h *BackupHandler) ListStorageLocations(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetStorageLocation returns one Velero backup storage location by id.
 func (h *BackupHandler) GetStorageLocation(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -111,6 +117,7 @@ func (h *BackupHandler) GetStorageLocation(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// UpdateStorageLocation applies the request body to the storage location identified by the path id.
 func (h *BackupHandler) UpdateStorageLocation(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -131,6 +138,7 @@ func (h *BackupHandler) UpdateStorageLocation(c *gin.Context) {
 	common.Success(c, gin.H{"updated": true})
 }
 
+// DeleteStorageLocation removes the storage location identified by the path id.
 func (h *BackupHandler) DeleteStorageLocation(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -148,6 +156,7 @@ func (h *BackupHandler) DeleteStorageLocation(c *gin.Context) {
 
 // --- Backup ---
 
+// CreateBackup starts a Velero backup from the request body.
 func (h *BackupHandler) CreateBackup(c *gin.Context) {
 	var req CreateBackupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -166,6 +175,7 @@ func (h *BackupHandler) CreateBackup(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ListBackups returns Velero backups visible in the request data scope.
 func (h *BackupHandler) ListBackups(c *gin.Context) {
 	var query BackupListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -181,6 +191,7 @@ func (h *BackupHandler) ListBackups(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetBackup returns one Velero backup by id.
 func (h *BackupHandler) GetBackup(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -195,6 +206,7 @@ func (h *BackupHandler) GetBackup(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// DeleteBackup removes the Velero backup identified by the path id.
 func (h *BackupHandler) DeleteBackup(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -212,6 +224,7 @@ func (h *BackupHandler) DeleteBackup(c *gin.Context) {
 
 // --- Schedule ---
 
+// CreateSchedule registers a recurring Velero backup from the request body.
 func (h *BackupHandler) CreateSchedule(c *gin.Context) {
 	var req CreateScheduleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -230,6 +243,7 @@ func (h *BackupHandler) CreateSchedule(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ListSchedules returns the Velero backup schedules visible in the request data scope.
 func (h *BackupHandler) ListSchedules(c *gin.Context) {
 	var query ScheduleListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -245,6 +259,7 @@ func (h *BackupHandler) ListSchedules(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetSchedule returns one Velero schedule by id.
 func (h *BackupHandler) GetSchedule(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -259,6 +274,7 @@ func (h *BackupHandler) GetSchedule(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// UpdateSchedule applies the request body to the Velero schedule identified by the path id.
 func (h *BackupHandler) UpdateSchedule(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -279,6 +295,7 @@ func (h *BackupHandler) UpdateSchedule(c *gin.Context) {
 	common.Success(c, gin.H{"updated": true})
 }
 
+// DeleteSchedule removes the Velero schedule identified by the path id.
 func (h *BackupHandler) DeleteSchedule(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -294,6 +311,7 @@ func (h *BackupHandler) DeleteSchedule(c *gin.Context) {
 	common.Success(c, gin.H{"deleted": true})
 }
 
+// PauseSchedule suspends the Velero schedule identified by the path id.
 func (h *BackupHandler) PauseSchedule(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -309,6 +327,7 @@ func (h *BackupHandler) PauseSchedule(c *gin.Context) {
 	common.Success(c, gin.H{"paused": true})
 }
 
+// ResumeSchedule re-activates the Velero schedule identified by the path id.
 func (h *BackupHandler) ResumeSchedule(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -326,6 +345,7 @@ func (h *BackupHandler) ResumeSchedule(c *gin.Context) {
 
 // --- Restore ---
 
+// CreateRestore starts a Velero restore of a recorded backup.
 func (h *BackupHandler) CreateRestore(c *gin.Context) {
 	var req CreateRestoreRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -344,6 +364,7 @@ func (h *BackupHandler) CreateRestore(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ListRestores returns the Velero restores visible in the request data scope.
 func (h *BackupHandler) ListRestores(c *gin.Context) {
 	var query RestoreListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -359,6 +380,7 @@ func (h *BackupHandler) ListRestores(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetRestore returns one Velero restore by id.
 func (h *BackupHandler) GetRestore(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -373,6 +395,7 @@ func (h *BackupHandler) GetRestore(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// DeleteRestore removes the Velero restore identified by the path id.
 func (h *BackupHandler) DeleteRestore(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {

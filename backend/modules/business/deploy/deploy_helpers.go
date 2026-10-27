@@ -27,6 +27,8 @@ func shellQuoteSingle(value string) string {
 // DeployTaskSecret is the write-only encrypted secret parameter store for a
 // deploy task. Values are encrypted with the deploy credential key and are
 // never returned by list/detail APIs.
+//
+//nolint:revive // the exported helper name keeps the deploy domain prefix for API clarity.
 type DeployTaskSecret struct {
 	ID              uint64 `gorm:"primaryKey;autoIncrement" json:"id"`
 	TaskID          uint64 `gorm:"not null;index:uk_deploy_task_secret,unique" json:"taskId"`

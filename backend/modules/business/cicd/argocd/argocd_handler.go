@@ -9,6 +9,8 @@ import (
 )
 
 // ArgoCDHandler handles ArgoCD HTTP requests.
+//
+//nolint:revive // the exported handler name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDHandler struct {
 	service *ArgoCDService
 }
@@ -49,6 +51,7 @@ func (h *ArgoCDHandler) RegisterRoutes(r gin.IRoutes) {
 
 // --- Server ---
 
+// AddServer registers an Argo CD server from the request body.
 func (h *ArgoCDHandler) AddServer(c *gin.Context) {
 	var req AddServerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -66,6 +69,7 @@ func (h *ArgoCDHandler) AddServer(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ListServers returns the registered Argo CD servers.
 func (h *ArgoCDHandler) ListServers(c *gin.Context) {
 	resp, err := h.service.ListServers()
 	if err != nil {
@@ -75,6 +79,7 @@ func (h *ArgoCDHandler) ListServers(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetServer returns one Argo CD server by id.
 func (h *ArgoCDHandler) GetServer(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -89,6 +94,7 @@ func (h *ArgoCDHandler) GetServer(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// UpdateServer applies the request body to the Argo CD server identified by the path id.
 func (h *ArgoCDHandler) UpdateServer(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -109,6 +115,7 @@ func (h *ArgoCDHandler) UpdateServer(c *gin.Context) {
 	common.Success(c, gin.H{"updated": true})
 }
 
+// DeleteServer removes the Argo CD server identified by the path id.
 func (h *ArgoCDHandler) DeleteServer(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -124,6 +131,7 @@ func (h *ArgoCDHandler) DeleteServer(c *gin.Context) {
 	common.Success(c, gin.H{"deleted": true})
 }
 
+// TestServerConnection probes the Argo CD server identified by the path id.
 func (h *ArgoCDHandler) TestServerConnection(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -140,6 +148,7 @@ func (h *ArgoCDHandler) TestServerConnection(c *gin.Context) {
 
 // --- Repository ---
 
+// AddRepository registers a Git repository with the Argo CD server named by serverId.
 func (h *ArgoCDHandler) AddRepository(c *gin.Context) {
 	var req AddRepositoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -157,6 +166,7 @@ func (h *ArgoCDHandler) AddRepository(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ListRepositories returns the repositories of the Argo CD server named by serverId.
 func (h *ArgoCDHandler) ListRepositories(c *gin.Context) {
 	serverID, _ := strconv.ParseUint(c.Query("serverId"), 10, 64)
 	resp, err := h.service.ListRepositories(serverID)
@@ -167,6 +177,7 @@ func (h *ArgoCDHandler) ListRepositories(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetRepository returns one Argo CD repository by id.
 func (h *ArgoCDHandler) GetRepository(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -181,6 +192,7 @@ func (h *ArgoCDHandler) GetRepository(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// UpdateRepository applies the request body to the Argo CD repository identified by the path id.
 func (h *ArgoCDHandler) UpdateRepository(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -201,6 +213,7 @@ func (h *ArgoCDHandler) UpdateRepository(c *gin.Context) {
 	common.Success(c, gin.H{"updated": true})
 }
 
+// DeleteRepository removes the Argo CD repository identified by the path id.
 func (h *ArgoCDHandler) DeleteRepository(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -218,6 +231,7 @@ func (h *ArgoCDHandler) DeleteRepository(c *gin.Context) {
 
 // --- Application ---
 
+// CreateApplication deploys a new Argo CD application from the request body.
 func (h *ArgoCDHandler) CreateApplication(c *gin.Context) {
 	var req CreateApplicationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -235,6 +249,7 @@ func (h *ArgoCDHandler) CreateApplication(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ListApplications returns the applications of the Argo CD server named by serverId.
 func (h *ArgoCDHandler) ListApplications(c *gin.Context) {
 	serverID, _ := strconv.ParseUint(c.Query("serverId"), 10, 64)
 	resp, err := h.service.ListApplications(serverID)
@@ -245,6 +260,7 @@ func (h *ArgoCDHandler) ListApplications(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetApplication returns one Argo CD application by id.
 func (h *ArgoCDHandler) GetApplication(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -259,6 +275,7 @@ func (h *ArgoCDHandler) GetApplication(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// UpdateApplication applies the request body to the Argo CD application identified by the path id.
 func (h *ArgoCDHandler) UpdateApplication(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -279,6 +296,7 @@ func (h *ArgoCDHandler) UpdateApplication(c *gin.Context) {
 	common.Success(c, gin.H{"updated": true})
 }
 
+// DeleteApplication removes the Argo CD application identified by the path id.
 func (h *ArgoCDHandler) DeleteApplication(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -294,6 +312,7 @@ func (h *ArgoCDHandler) DeleteApplication(c *gin.Context) {
 	common.Success(c, gin.H{"deleted": true})
 }
 
+// SyncApplication syncs the Argo CD application identified by the path id to the requested revision.
 func (h *ArgoCDHandler) SyncApplication(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -313,6 +332,7 @@ func (h *ArgoCDHandler) SyncApplication(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// RefreshApplication asks Argo CD to re-reconcile the application identified by the path id.
 func (h *ArgoCDHandler) RefreshApplication(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -328,6 +348,7 @@ func (h *ArgoCDHandler) RefreshApplication(c *gin.Context) {
 	common.Success(c, gin.H{"refreshed": true})
 }
 
+// RollbackApplication re-syncs the application identified by the path id to the revision in the request body.
 func (h *ArgoCDHandler) RollbackApplication(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -349,6 +370,7 @@ func (h *ArgoCDHandler) RollbackApplication(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetSyncHistory returns the recorded sync operations of the application identified by the path id.
 func (h *ArgoCDHandler) GetSyncHistory(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {

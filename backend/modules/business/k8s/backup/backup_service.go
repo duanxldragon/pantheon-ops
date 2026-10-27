@@ -22,6 +22,8 @@ import (
 const backupOpTimeout = 30 * time.Second
 
 // BackupService manages Velero backup resources through DB + K8s API.
+//
+//nolint:revive // the exported service name keeps the backup domain prefix for API clarity.
 type BackupService struct {
 	db               *gorm.DB
 	clusterService   *cluster.ClusterService
@@ -52,6 +54,7 @@ func (s *BackupService) Migrate() error {
 
 // --- Storage Location ---
 
+// CreateStorageLocation persists a Velero backup storage location and pushes it to the cluster.
 func (s *BackupService) CreateStorageLocation(req CreateStorageLocationRequest, createdBy string) (*StorageLocationResponse, error) {
 	encAccessKeyID, err := secrets.Encrypt(req.AccessKeyID)
 	if err != nil {
@@ -85,6 +88,7 @@ func (s *BackupService) CreateStorageLocation(req CreateStorageLocationRequest, 
 	return s.toStorageLocationResponse(record), nil
 }
 
+// ListStorageLocations returns the stored Velero backup storage locations.
 func (s *BackupService) ListStorageLocations() ([]StorageLocationResponse, error) {
 	var records []VeleroStorageLocation
 	if err := s.db.Order("created_at DESC").Find(&records).Error; err != nil {
@@ -97,6 +101,7 @@ func (s *BackupService) ListStorageLocations() ([]StorageLocationResponse, error
 	return items, nil
 }
 
+// GetStorageLocation returns the storage location identified by id.
 func (s *BackupService) GetStorageLocation(id uint64) (*StorageLocationResponse, error) {
 	var record VeleroStorageLocation
 	if err := s.db.First(&record, id).Error; err != nil {
@@ -105,6 +110,7 @@ func (s *BackupService) GetStorageLocation(id uint64) (*StorageLocationResponse,
 	return s.toStorageLocationResponse(&record), nil
 }
 
+// UpdateStorageLocation applies req to the stored location and re-applies it on the cluster.
 func (s *BackupService) UpdateStorageLocation(id uint64, req CreateStorageLocationRequest) error {
 	updates := map[string]interface{}{
 		"name":     req.Name,
@@ -138,6 +144,7 @@ func (s *BackupService) UpdateStorageLocation(id uint64, req CreateStorageLocati
 	return s.db.Model(&VeleroStorageLocation{}).Where("id = ?", id).Updates(updates).Error
 }
 
+// DeleteStorageLocation removes the location from the cluster and from the registry.
 func (s *BackupService) DeleteStorageLocation(id uint64) error {
 	return s.db.Delete(&VeleroStorageLocation{}, id).Error
 }
@@ -158,6 +165,7 @@ func (s *BackupService) toStorageLocationResponse(r *VeleroStorageLocation) *Sto
 
 // --- Backup ---
 
+// CreateBackup starts a Velero backup on the target cluster and records it.
 func (s *BackupService) CreateBackup(ctx context.Context, req CreateBackupRequest, dataScope *common.DataScopeReq, createdBy string) (*BackupResponse, error) {
 	// Validate cluster exists
 	if _, err := s.clusterService.GetClientsetWithContext(ctx, req.ClusterID, dataScope); err != nil {
@@ -206,6 +214,7 @@ func (s *BackupService) CreateBackup(ctx context.Context, req CreateBackupReques
 	return s.toBackupResponse(record), nil
 }
 
+// ListBackups returns stored backups filtered by query and data scope.
 func (s *BackupService) ListBackups(query BackupListQuery, dataScope *common.DataScopeReq) (*BackupListResponse, error) {
 	var records []VeleroBackup
 	db := s.db.Model(&VeleroBackup{}).Where("cluster_id = ?", query.ClusterID)
@@ -249,6 +258,7 @@ func (s *BackupService) ListBackups(query BackupListQuery, dataScope *common.Dat
 	return &BackupListResponse{Items: items, Total: total, Page: page, PageSize: pageSize}, nil
 }
 
+// GetBackup returns the recorded backup identified by id within the data scope.
 func (s *BackupService) GetBackup(id uint64, dataScope *common.DataScopeReq) (*BackupResponse, error) {
 	var record VeleroBackup
 	q := s.db.Model(&VeleroBackup{})
@@ -265,6 +275,7 @@ func (s *BackupService) GetBackup(id uint64, dataScope *common.DataScopeReq) (*B
 	return s.toBackupResponse(&record), nil
 }
 
+// DeleteBackup deletes the backup from Velero and drops its record.
 func (s *BackupService) DeleteBackup(id uint64, dataScope *common.DataScopeReq) error {
 	var record VeleroBackup
 	q := s.db.Model(&VeleroBackup{})
@@ -319,6 +330,7 @@ func (s *BackupService) toBackupResponse(r *VeleroBackup) *BackupResponse {
 
 // --- Schedule ---
 
+// CreateSchedule registers a recurring backup both on the cluster and in the registry.
 func (s *BackupService) CreateSchedule(ctx context.Context, req CreateScheduleRequest, dataScope *common.DataScopeReq, createdBy string) (*ScheduleResponse, error) {
 	if _, err := s.clusterService.GetClientsetWithContext(ctx, req.ClusterID, dataScope); err != nil {
 		return nil, fmt.Errorf("cluster.not_found: %w", err)
@@ -346,6 +358,7 @@ func (s *BackupService) CreateSchedule(ctx context.Context, req CreateScheduleRe
 	return s.toScheduleResponse(record), nil
 }
 
+// ListSchedules returns stored schedules filtered by query and data scope.
 func (s *BackupService) ListSchedules(query ScheduleListQuery, dataScope *common.DataScopeReq) (*ScheduleListResponse, error) {
 	var records []VeleroSchedule
 	db := s.db.Model(&VeleroSchedule{}).Where("cluster_id = ?", query.ClusterID)
@@ -380,6 +393,7 @@ func (s *BackupService) ListSchedules(query ScheduleListQuery, dataScope *common
 	return &ScheduleListResponse{Items: items, Total: total, Page: page, PageSize: pageSize}, nil
 }
 
+// GetSchedule returns the recorded schedule identified by id within the data scope.
 func (s *BackupService) GetSchedule(id uint64, dataScope *common.DataScopeReq) (*ScheduleResponse, error) {
 	var record VeleroSchedule
 	q := s.db.Model(&VeleroSchedule{})
@@ -396,6 +410,7 @@ func (s *BackupService) GetSchedule(id uint64, dataScope *common.DataScopeReq) (
 	return s.toScheduleResponse(&record), nil
 }
 
+// UpdateSchedule applies req to the stored schedule and re-applies it on the cluster.
 func (s *BackupService) UpdateSchedule(id uint64, req CreateScheduleRequest) error {
 	tplJSON, _ := json.Marshal(req.BackupTemplate)
 	return s.db.Model(&VeleroSchedule{}).Where("id = ?", id).Updates(map[string]interface{}{
@@ -406,6 +421,7 @@ func (s *BackupService) UpdateSchedule(id uint64, req CreateScheduleRequest) err
 	}).Error
 }
 
+// DeleteSchedule removes the schedule from the cluster and from the registry.
 func (s *BackupService) DeleteSchedule(id uint64, dataScope *common.DataScopeReq) error {
 	var record VeleroSchedule
 	q := s.db.Model(&VeleroSchedule{})
@@ -428,10 +444,12 @@ func (s *BackupService) DeleteSchedule(id uint64, dataScope *common.DataScopeReq
 	return s.db.Delete(&VeleroSchedule{}, id).Error
 }
 
+// PauseSchedule suspends the schedule on the cluster and marks it paused.
 func (s *BackupService) PauseSchedule(id uint64) error {
 	return s.db.Model(&VeleroSchedule{}).Where("id = ?", id).Update("enabled", false).Error
 }
 
+// ResumeSchedule re-activates the schedule on the cluster and marks it active.
 func (s *BackupService) ResumeSchedule(id uint64) error {
 	return s.db.Model(&VeleroSchedule{}).Where("id = ?", id).Update("enabled", true).Error
 }
@@ -457,6 +475,7 @@ func (s *BackupService) toScheduleResponse(r *VeleroSchedule) *ScheduleResponse 
 
 // --- Restore ---
 
+// CreateRestore starts a Velero restore for a recorded backup and persists the attempt.
 func (s *BackupService) CreateRestore(ctx context.Context, req CreateRestoreRequest, dataScope *common.DataScopeReq, createdBy string) (*RestoreResponse, error) {
 	// Validate backup exists
 	var backup VeleroBackup
@@ -507,6 +526,7 @@ func (s *BackupService) CreateRestore(ctx context.Context, req CreateRestoreRequ
 	return s.toRestoreResponse(record), nil
 }
 
+// ListRestores returns stored restores filtered by query and data scope.
 func (s *BackupService) ListRestores(query RestoreListQuery, dataScope *common.DataScopeReq) (*RestoreListResponse, error) {
 	var records []VeleroRestore
 	db := s.db.Model(&VeleroRestore{}).Where("cluster_id = ?", query.ClusterID)
@@ -544,6 +564,7 @@ func (s *BackupService) ListRestores(query RestoreListQuery, dataScope *common.D
 	return &RestoreListResponse{Items: items, Total: total, Page: page, PageSize: pageSize}, nil
 }
 
+// GetRestore returns the recorded restore identified by id within the data scope.
 func (s *BackupService) GetRestore(id uint64, dataScope *common.DataScopeReq) (*RestoreResponse, error) {
 	var record VeleroRestore
 	q := s.db.Model(&VeleroRestore{})
@@ -560,6 +581,7 @@ func (s *BackupService) GetRestore(id uint64, dataScope *common.DataScopeReq) (*
 	return s.toRestoreResponse(&record), nil
 }
 
+// DeleteRestore removes the restore from the cluster and drops its record.
 func (s *BackupService) DeleteRestore(id uint64, dataScope *common.DataScopeReq) error {
 	var record VeleroRestore
 	q := s.db.Model(&VeleroRestore{})
@@ -608,6 +630,7 @@ func (s *BackupService) toRestoreResponse(r *VeleroRestore) *RestoreResponse {
 
 // --- Velero Status ---
 
+// GetVeleroStatus reads the live Velero deployment state of the given cluster.
 func (s *BackupService) GetVeleroStatus(ctx context.Context, clusterID uint64, dataScope *common.DataScopeReq) (*VeleroStatusResponse, error) {
 	clientset, err := s.clusterService.GetClientsetWithContext(ctx, clusterID, dataScope)
 	if err != nil {

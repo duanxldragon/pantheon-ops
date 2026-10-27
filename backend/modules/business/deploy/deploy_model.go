@@ -7,6 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// Status, execution-mode, template-code and task-action values persisted in the
+// deploy package, template and task tables.
 const (
 	PackageStatusEnabled          = "enabled"
 	PackageStatusDisabled         = "disabled"
@@ -336,6 +338,7 @@ type deployTargetSnapshot struct {
 
 // --- FZ-03: Persisted step and event models for checkpoint recovery ---
 
+// Lifecycle values for a persisted deploy task step and its failure policy.
 const (
 	StepStatusPending  = "pending"
 	StepStatusRunning  = "running"

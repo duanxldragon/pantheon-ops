@@ -185,9 +185,11 @@ func toItem(svc *corev1.Service) ServiceItem {
 	ports := make([]ServicePort, 0, len(svc.Spec.Ports))
 	for _, p := range svc.Spec.Ports {
 		ports = append(ports, ServicePort{
-			Name:       p.Name,
-			Port:       p.Port,
-			TargetPort: int32(p.TargetPort.IntValue()),
+			Name: p.Name,
+			Port: p.Port,
+			// IntVal is already int32, so no narrowing conversion happens here; a
+			// named (string) target port has no numeric value and stays 0.
+			TargetPort: p.TargetPort.IntVal,
 			NodePort:   p.NodePort,
 			Protocol:   string(p.Protocol),
 		})

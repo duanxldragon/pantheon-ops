@@ -396,7 +396,7 @@ func (s *DatasourceService) proxyJSON(record *PrometheusDatasource, requestPath 
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		return nil, fmt.Errorf("observability.datasource_query_status_%d", resp.StatusCode)
 	}
@@ -404,7 +404,7 @@ func (s *DatasourceService) proxyJSON(record *PrometheusDatasource, requestPath 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
-	if status, ok := result["status"].(string); ok && status != "success" {
+	if status, ok := result["status"].(string); ok && status != queryStatusSuccess {
 		return nil, errors.New("observability.datasource_query_failed")
 	}
 	return result, nil
@@ -461,7 +461,7 @@ func testDatasourceConnection(datasourceType, rawURL, username, password, bearer
 	if err != nil {
 		return false, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		_, _ = io.Copy(io.Discard, resp.Body)
@@ -477,7 +477,7 @@ func testDatasourceConnection(datasourceType, rawURL, username, password, bearer
 		return false, err
 	}
 
-	if status, ok := result["status"].(string); !ok || status != "success" {
+	if status, ok := result["status"].(string); !ok || status != queryStatusSuccess {
 		return false, errors.New("observability.datasource_test_invalid_response")
 	}
 

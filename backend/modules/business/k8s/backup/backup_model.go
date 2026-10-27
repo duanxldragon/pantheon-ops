@@ -36,6 +36,7 @@ type VeleroBackup struct {
 	DeletedAt            gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the biz_velero_backup table name.
 func (VeleroBackup) TableName() string {
 	return "biz_velero_backup"
 }
@@ -58,6 +59,7 @@ type VeleroSchedule struct {
 	DeletedAt        gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the biz_velero_schedule table name.
 func (VeleroSchedule) TableName() string {
 	return "biz_velero_schedule"
 }
@@ -86,6 +88,7 @@ type VeleroRestore struct {
 	DeletedAt          gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the biz_velero_restore table name.
 func (VeleroRestore) TableName() string {
 	return "biz_velero_restore"
 }
@@ -107,6 +110,7 @@ type VeleroStorageLocation struct {
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the biz_velero_storage_location table name.
 func (VeleroStorageLocation) TableName() string {
 	return "biz_velero_storage_location"
 }

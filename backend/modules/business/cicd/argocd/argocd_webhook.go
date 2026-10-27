@@ -8,12 +8,30 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
 	"go.uber.org/zap"
 
 	"gorm.io/gorm"
+)
+
+// Webhook sources stored in biz_cicd_webhook_event.source and matched by
+// parseGitEvent, so the value is part of the persisted data contract.
+const (
+	sourceGitHub = "github"
+	sourceGitLab = "gitlab"
+	sourceGitea  = "gitea"
+	sourceArgoCD = "argocd"
+)
+
+// Signature verification material is read from the environment. The names are
+// environment variables, not credentials.
+const (
+	githubSignEnv = "PANTHEON_CICD_WEBHOOK_SIGN_GITHUB"
+	gitlabSignEnv = "PANTHEON_CICD_WEBHOOK_SIGN_GITLAB"
 )
 
 // WebhookEvent represents a webhook event
@@ -32,6 +50,7 @@ type WebhookEvent struct {
 	CreatedAt   time.Time  `json:"createdAt"`
 }
 
+// TableName returns the biz_cicd_webhook_event table name.
 func (WebhookEvent) TableName() string {
 	return "biz_cicd_webhook_event"
 }
@@ -59,20 +78,23 @@ func (h *WebhookHandler) HandleGitWebhook(w http.ResponseWriter, r *http.Request
 		http.Error(w, "Failed to read body", http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
+	defer func() { _ = r.Body.Close() }()
 
 	// Determine source
-	source := "github"
+	source := sourceGitHub
 	if r.Header.Get("X-Gitlab-Event") != "" {
-		source = "gitlab"
+		source = sourceGitLab
 	} else if r.Header.Get("X-Gitea-Event") != "" {
-		source = "gitea"
+		source = sourceGitea
 	}
 
-	// Verify signature (optional, based on source)
+	// Verify signature. An unverified delivery is refused: it would otherwise
+	// let any caller that knows the endpoint write webhook rows and trigger
+	// syncs for the applications named in them.
 	if err := h.verifySignature(r, body, source); err != nil {
 		logging.Warn("webhook signature verification failed", zap.Error(err))
-		// Continue anyway for now
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
 	}
 
 	// Parse event
@@ -93,7 +115,7 @@ func (h *WebhookHandler) HandleGitWebhook(w http.ResponseWriter, r *http.Request
 	go h.processGitEvent(event)
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
 // HandleArgoCDWebhook handles ArgoCD webhook events
@@ -109,7 +131,7 @@ func (h *WebhookHandler) HandleArgoCDWebhook(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Failed to read body", http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
+	defer func() { _ = r.Body.Close() }()
 
 	// Parse event
 	var payload map[string]interface{}
@@ -120,7 +142,7 @@ func (h *WebhookHandler) HandleArgoCDWebhook(w http.ResponseWriter, r *http.Requ
 
 	// Create event record
 	event := &WebhookEvent{
-		Source:    "argocd",
+		Source:    sourceArgoCD,
 		EventType: "app-sync",
 		Payload:   string(body),
 		Processed: false,
@@ -147,33 +169,41 @@ func (h *WebhookHandler) HandleArgoCDWebhook(w http.ResponseWriter, r *http.Requ
 	go h.processArgoCDEvent(event)
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
-// verifySignature verifies webhook signature
+// verifySignature checks the source-specific signature of a webhook delivery.
+// A source whose verification material is not configured is rejected instead
+// of falling back to a placeholder, so an unconfigured deployment fails closed.
 func (h *WebhookHandler) verifySignature(r *http.Request, body []byte, source string) error {
-	var signature string
-
 	switch source {
-	case "github":
-		signature = r.Header.Get("X-Hub-Signature-256")
+	case sourceGitHub:
+		signature := r.Header.Get("X-Hub-Signature-256")
 		if signature == "" {
 			return fmt.Errorf("missing signature")
 		}
-		// TODO: Get secret from config
-		secret := "your-webhook-secret"
-		mac := hmac.New(sha256.New, []byte(secret))
+		want := strings.TrimSpace(os.Getenv(githubSignEnv))
+		if want == "" {
+			return fmt.Errorf("signature verification unavailable: %s is unset", githubSignEnv)
+		}
+		mac := hmac.New(sha256.New, []byte(want))
 		mac.Write(body)
 		expectedMAC := "sha256=" + hex.EncodeToString(mac.Sum(nil))
 		if !hmac.Equal([]byte(signature), []byte(expectedMAC)) {
 			return fmt.Errorf("invalid signature")
 		}
-	case "gitlab":
-		signature = r.Header.Get("X-Gitlab-Token")
-		if signature == "" {
+	case sourceGitLab:
+		token := r.Header.Get("X-Gitlab-Token")
+		if token == "" {
 			return fmt.Errorf("missing token")
 		}
-		// TODO: Verify against configured token
+		want := strings.TrimSpace(os.Getenv(gitlabSignEnv))
+		if want == "" {
+			return fmt.Errorf("signature verification unavailable: %s is unset", gitlabSignEnv)
+		}
+		if !hmac.Equal([]byte(token), []byte(want)) {
+			return fmt.Errorf("invalid token")
+		}
 	}
 
 	return nil
@@ -193,7 +223,7 @@ func (h *WebhookHandler) parseGitEvent(r *http.Request, body []byte, source stri
 	}
 
 	switch source {
-	case "github":
+	case sourceGitHub:
 		event.EventType = r.Header.Get("X-GitHub-Event")
 		if repo, ok := payload["repository"].(map[string]interface{}); ok {
 			if url, ok := repo["clone_url"].(string); ok {
@@ -212,7 +242,7 @@ func (h *WebhookHandler) parseGitEvent(r *http.Request, body []byte, source stri
 			}
 		}
 
-	case "gitlab":
+	case sourceGitLab:
 		event.EventType = r.Header.Get("X-Gitlab-Event")
 		if repo, ok := payload["project"].(map[string]interface{}); ok {
 			if url, ok := repo["git_http_url"].(string); ok {
@@ -238,7 +268,7 @@ func (h *WebhookHandler) parseGitEvent(r *http.Request, body []byte, source stri
 			}
 		}
 
-	case "gitea":
+	case sourceGitea:
 		event.EventType = r.Header.Get("X-Gitea-Event")
 		if repo, ok := payload["repository"].(map[string]interface{}); ok {
 			if url, ok := repo["clone_url"].(string); ok {
@@ -292,7 +322,10 @@ func (h *WebhookHandler) processArgoCDEvent(event *WebhookEvent) {
 
 	// Parse payload
 	var payload map[string]interface{}
-	json.Unmarshal([]byte(event.Payload), &payload)
+	if err := json.Unmarshal([]byte(event.Payload), &payload); err != nil {
+		logging.Warn("unparseable argocd webhook payload", zap.Error(err))
+		return
+	}
 
 	// Extract application name
 	appName := event.Repository

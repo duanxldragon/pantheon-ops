@@ -477,6 +477,7 @@ func (h *DeployHandler) StartTask(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// PauseTask suspends the deployment task identified by the path id.
 func (h *DeployHandler) PauseTask(c *gin.Context) {
 	common.SetAuditMetadata(c, "暂停部署任务", common.BusinessUpdate)
 	id, ok := parseIDParam(c)
@@ -491,6 +492,7 @@ func (h *DeployHandler) PauseTask(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ResumeTask continues the deployment task identified by the path id.
 func (h *DeployHandler) ResumeTask(c *gin.Context) {
 	common.SetAuditMetadata(c, "恢复部署任务", common.BusinessUpdate)
 	id, ok := parseIDParam(c)
@@ -505,6 +507,7 @@ func (h *DeployHandler) ResumeTask(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// RetryTask re-runs the deployment task identified by the path id.
 func (h *DeployHandler) RetryTask(c *gin.Context) {
 	common.SetAuditMetadata(c, "重试部署任务", common.BusinessUpdate)
 	id, ok := parseIDParam(c)

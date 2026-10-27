@@ -12,6 +12,8 @@ import (
 )
 
 // ObservabilityHandler handles observability API endpoints.
+//
+//nolint:revive // the exported handler name keeps the observability domain prefix for API clarity.
 type ObservabilityHandler struct {
 	datasourceService   *DatasourceService
 	alertRuleService    *AlertRuleService
@@ -79,6 +81,7 @@ func (h *ObservabilityHandler) registerRoutes(obs gin.IRoutes) {
 
 // Datasource handlers
 
+// CreateDatasource registers a Prometheus datasource from the request body.
 func (h *ObservabilityHandler) CreateDatasource(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.datasource.audit.create", common.BusinessInsert)
 	var dto DatasourceDTO
@@ -97,6 +100,7 @@ func (h *ObservabilityHandler) CreateDatasource(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ListDatasources returns the configured Prometheus datasources.
 func (h *ObservabilityHandler) ListDatasources(c *gin.Context) {
 	resp, err := h.datasourceService.List(common.GetDataScope(c))
 	if err != nil {
@@ -107,6 +111,7 @@ func (h *ObservabilityHandler) ListDatasources(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetDatasource returns one Prometheus datasource by id.
 func (h *ObservabilityHandler) GetDatasource(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -119,6 +124,7 @@ func (h *ObservabilityHandler) GetDatasource(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// UpdateDatasource applies the request body to the datasource identified by the path id.
 func (h *ObservabilityHandler) UpdateDatasource(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.datasource.audit.update", common.BusinessUpdate)
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -137,6 +143,7 @@ func (h *ObservabilityHandler) UpdateDatasource(c *gin.Context) {
 	common.Success(c, gin.H{"message": "updated"})
 }
 
+// DeleteDatasource removes the datasource identified by the path id.
 func (h *ObservabilityHandler) DeleteDatasource(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.datasource.audit.delete", common.BusinessDelete)
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -149,6 +156,7 @@ func (h *ObservabilityHandler) DeleteDatasource(c *gin.Context) {
 	common.Success(c, gin.H{"message": "deleted"})
 }
 
+// TestDatasourceConnection probes the datasource identified by the path id.
 func (h *ObservabilityHandler) TestDatasourceConnection(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.datasource.audit.test", common.BusinessUpdate)
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -231,6 +239,7 @@ func (h *ObservabilityHandler) GetTrace(c *gin.Context) {
 
 // Alert Rule handlers
 
+// CreateAlertRule registers an alert rule from the request body.
 func (h *ObservabilityHandler) CreateAlertRule(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.alert_rule.audit.create", common.BusinessInsert)
 	var dto AlertRuleDTO
@@ -255,6 +264,7 @@ func (h *ObservabilityHandler) CreateAlertRule(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ListAlertRules returns alert rules matching the query.
 func (h *ObservabilityHandler) ListAlertRules(c *gin.Context) {
 	var query AlertRuleListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -271,6 +281,7 @@ func (h *ObservabilityHandler) ListAlertRules(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetAlertRule returns one alert rule by id.
 func (h *ObservabilityHandler) GetAlertRule(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -283,6 +294,7 @@ func (h *ObservabilityHandler) GetAlertRule(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// UpdateAlertRule applies the request body to the alert rule identified by the path id.
 func (h *ObservabilityHandler) UpdateAlertRule(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.alert_rule.audit.update", common.BusinessUpdate)
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -310,6 +322,7 @@ func (h *ObservabilityHandler) UpdateAlertRule(c *gin.Context) {
 	common.Success(c, gin.H{"message": "updated"})
 }
 
+// DeleteAlertRule removes the alert rule identified by the path id.
 func (h *ObservabilityHandler) DeleteAlertRule(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.alert_rule.audit.delete", common.BusinessDelete)
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -323,6 +336,7 @@ func (h *ObservabilityHandler) DeleteAlertRule(c *gin.Context) {
 	common.Success(c, gin.H{"message": "deleted"})
 }
 
+// ToggleAlertRule flips the enabled state of the alert rule identified by the path id.
 func (h *ObservabilityHandler) ToggleAlertRule(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.alert_rule.audit.toggle", common.BusinessUpdate)
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -354,6 +368,7 @@ func (h *ObservabilityHandler) ToggleAlertRule(c *gin.Context) {
 
 // Alert Event handlers
 
+// ListAlertEvents returns fired alerts matching the query.
 func (h *ObservabilityHandler) ListAlertEvents(c *gin.Context) {
 	var query AlertEventListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -370,6 +385,7 @@ func (h *ObservabilityHandler) ListAlertEvents(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetAlertEvent returns one fired alert by id.
 func (h *ObservabilityHandler) GetAlertEvent(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -385,6 +401,7 @@ func (h *ObservabilityHandler) GetAlertEvent(c *gin.Context) {
 
 // Notification Channel handlers
 
+// CreateNotificationChannel registers a notification channel from the request body.
 func (h *ObservabilityHandler) CreateNotificationChannel(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.notification.audit.create", common.BusinessInsert)
 	var dto NotificationChannelDTO
@@ -403,6 +420,7 @@ func (h *ObservabilityHandler) CreateNotificationChannel(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ListNotificationChannels returns the configured notification channels.
 func (h *ObservabilityHandler) ListNotificationChannels(c *gin.Context) {
 	resp, err := h.notificationService.ListChannels(common.GetDataScope(c))
 	if err != nil {
@@ -413,6 +431,7 @@ func (h *ObservabilityHandler) ListNotificationChannels(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetNotificationChannel returns one notification channel by id.
 func (h *ObservabilityHandler) GetNotificationChannel(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -425,6 +444,7 @@ func (h *ObservabilityHandler) GetNotificationChannel(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// UpdateNotificationChannel applies the request body to the channel identified by the path id.
 func (h *ObservabilityHandler) UpdateNotificationChannel(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.notification.audit.update", common.BusinessUpdate)
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -443,6 +463,7 @@ func (h *ObservabilityHandler) UpdateNotificationChannel(c *gin.Context) {
 	common.Success(c, gin.H{"message": "updated"})
 }
 
+// DeleteNotificationChannel removes the channel identified by the path id.
 func (h *ObservabilityHandler) DeleteNotificationChannel(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.notification.audit.delete", common.BusinessDelete)
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)

@@ -738,12 +738,30 @@ func validateFixedPathValue(value string) error {
 	return nil
 }
 
+// isFixedAlphaNum reports whether r is an ASCII letter or digit; the
+// fixed-template field validators combine it with a punctuation set.
+func isFixedAlphaNum(r rune) bool {
+	return r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9'
+}
+
+func isFixedServiceNameChar(r rune) bool {
+	return isFixedAlphaNum(r) || strings.ContainsRune("_.@-", r)
+}
+
+func isFixedTokenChar(r rune) bool {
+	return isFixedAlphaNum(r) || strings.ContainsRune("_+=:.,/-", r)
+}
+
+func isFixedClassNameChar(r rune) bool {
+	return isFixedAlphaNum(r) || strings.ContainsRune("_.$", r)
+}
+
 func validateFixedServiceName(value string) error {
 	if value == "" {
 		return errors.New(errDeployTaskTemplateParamsInvalid)
 	}
 	for _, r := range value {
-		if !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || strings.ContainsRune("_.@-", r)) {
+		if !isFixedServiceNameChar(r) {
 			return errors.New(errDeployTaskTemplateParamsInvalid)
 		}
 	}
@@ -755,7 +773,7 @@ func validateFixedTokenList(value string) error {
 		if r == ' ' {
 			continue
 		}
-		if unicode.IsSpace(r) || !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || strings.ContainsRune("_+=:.,/-", r)) {
+		if unicode.IsSpace(r) || !isFixedTokenChar(r) {
 			return errors.New(errDeployTaskTemplateParamsInvalid)
 		}
 	}
@@ -774,7 +792,7 @@ func validateFixedJDKParams(installRoot, serviceName, javaOpts, mainClass, appAr
 	}
 	if mainClass != "" {
 		for _, r := range mainClass {
-			if !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || strings.ContainsRune("_.$", r)) {
+			if !isFixedClassNameChar(r) {
 				return errors.New(errDeployTaskTemplateParamsInvalid)
 			}
 		}

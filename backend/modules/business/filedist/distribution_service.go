@@ -50,7 +50,7 @@ func (s *DistributionService) CreateTask(dto DistributionTaskDTO, createdBy stri
 		Name:         dto.Name,
 		FileID:       dto.FileID,
 		Targets:      datatypes.JSON(targetsJSON),
-		Status:       "pending",
+		Status:       statusPending,
 		TotalTargets: len(dto.Targets),
 		ScheduledAt:  dto.ScheduledAt,
 		CreatedBy:    createdBy,
@@ -79,7 +79,7 @@ func (s *DistributionService) CreateTask(dto DistributionTaskDTO, createdBy stri
 				Password:        encryptedPassword,
 				PrivateKey:      encryptedKey,
 				HostFingerprint: target.HostFingerprint,
-				Status:          "pending",
+				Status:          statusPending,
 				MaxRetries:      target.MaxRetries,
 			}
 			if targetRecord.Port == 0 {
@@ -177,7 +177,7 @@ func (s *DistributionService) StartTask(id uint64) error {
 	if err := s.db.First(&task, id).Error; err != nil {
 		return err
 	}
-	if task.Status != "pending" {
+	if task.Status != statusPending {
 		return fmt.Errorf("task_not_pending")
 	}
 	go s.executeTask(id)
@@ -211,7 +211,7 @@ func (s *DistributionService) GetTaskProgress(taskID uint64) (map[string]interfa
 	}
 	running := 0
 	for _, target := range targets {
-		if target.Status == "transferring" || target.Status == "retrying" {
+		if target.Status == statusTransferring || target.Status == statusRetrying {
 			running++
 		}
 	}
@@ -239,13 +239,13 @@ func (s *DistributionService) RetryTask(id uint64) error {
 		return err
 	}
 
-	if task.Status != "failed" {
+	if task.Status != statusFailed {
 		return fmt.Errorf("task_not_failed")
 	}
 
 	// Reset task status
 	updates := map[string]interface{}{
-		"status":        "pending",
+		"status":        statusPending,
 		"progress":      0,
 		"success_count": 0,
 		"failed_count":  0,
@@ -259,9 +259,9 @@ func (s *DistributionService) RetryTask(id uint64) error {
 
 	// Reset failed targets
 	_ = s.db.Model(&DistributionTarget{}).
-		Where("task_id = ? AND status = ?", id, "failed").
+		Where("task_id = ? AND status = ?", id, statusFailed).
 		Updates(map[string]interface{}{
-			"status":      "pending",
+			"status":      statusPending,
 			"progress":    0,
 			"error":       "",
 			"retry_count": 0,
@@ -283,7 +283,7 @@ func (s *DistributionService) DeleteTask(id uint64) error {
 	if err := s.db.First(&task, id).Error; err != nil {
 		return err
 	}
-	if task.Status == "running" {
+	if task.Status == statusRunning {
 		return fmt.Errorf("task_running")
 	}
 	return s.db.Transaction(func(tx *gorm.DB) error {
@@ -297,8 +297,8 @@ func (s *DistributionService) DeleteTask(id uint64) error {
 // executeTask executes a distribution task.
 func (s *DistributionService) executeTask(taskID uint64) {
 	now := time.Now()
-	claim := s.db.Model(&DistributionTask{}).Where("id = ? AND status = ?", taskID, "pending").Updates(map[string]interface{}{
-		"status":     "running",
+	claim := s.db.Model(&DistributionTask{}).Where("id = ? AND status = ?", taskID, statusPending).Updates(map[string]interface{}{
+		"status":     statusRunning,
 		"started_at": now,
 	})
 	if claim.Error != nil || claim.RowsAffected != 1 {
@@ -307,7 +307,7 @@ func (s *DistributionService) executeTask(taskID uint64) {
 
 	// Get all pending targets
 	var targets []DistributionTarget
-	if err := s.db.Where("task_id = ? AND status = ?", taskID, "pending").Find(&targets).Error; err != nil {
+	if err := s.db.Where("task_id = ? AND status = ?", taskID, statusPending).Find(&targets).Error; err != nil {
 		s.markTaskFailed(taskID, err.Error())
 		return
 	}
@@ -317,12 +317,12 @@ func (s *DistributionService) executeTask(taskID uint64) {
 		// Decrypt credentials
 		password, err := secrets.Decrypt(target.Password)
 		if err != nil {
-			_ = s.db.Model(&target).Updates(map[string]interface{}{"status": "failed", "error": err.Error()}).Error
+			_ = s.db.Model(&target).Updates(map[string]interface{}{"status": statusFailed, "error": err.Error()}).Error
 			continue
 		}
 		privateKey, err := secrets.Decrypt(target.PrivateKey)
 		if err != nil {
-			_ = s.db.Model(&target).Updates(map[string]interface{}{"status": "failed", "error": err.Error()}).Error
+			_ = s.db.Model(&target).Updates(map[string]interface{}{"status": statusFailed, "error": err.Error()}).Error
 			continue
 		}
 
@@ -348,7 +348,7 @@ func (s *DistributionService) executeTask(taskID uint64) {
 		if err := s.transferEngine.SubmitTask(transferTask); err != nil {
 			// Mark target as failed if can't submit
 			_ = s.db.Model(&target).Updates(map[string]interface{}{
-				"status": "failed",
+				"status": statusFailed,
 				"error":  err.Error(),
 			}).Error
 		}
@@ -371,7 +371,7 @@ func (s *DistributionService) monitorTaskProgress(taskID uint64) {
 			return
 		}
 
-		if task.Status != "running" {
+		if task.Status != statusRunning {
 			return
 		}
 
@@ -383,8 +383,8 @@ func (s *DistributionService) monitorTaskProgress(taskID uint64) {
 		}
 
 		s.db.Model(&DistributionTarget{}).Where("task_id = ?", taskID).Count(&stats.Total)
-		s.db.Model(&DistributionTarget{}).Where("task_id = ? AND status = ?", taskID, "completed").Count(&stats.Completed)
-		s.db.Model(&DistributionTarget{}).Where("task_id = ? AND status = ?", taskID, "failed").Count(&stats.Failed)
+		s.db.Model(&DistributionTarget{}).Where("task_id = ? AND status = ?", taskID, statusCompleted).Count(&stats.Completed)
+		s.db.Model(&DistributionTarget{}).Where("task_id = ? AND status = ?", taskID, statusFailed).Count(&stats.Failed)
 
 		// Calculate progress
 		progress := 0
@@ -405,9 +405,9 @@ func (s *DistributionService) monitorTaskProgress(taskID uint64) {
 			updates["finished_at"] = now
 
 			if stats.Failed == 0 {
-				updates["status"] = "completed"
+				updates["status"] = statusCompleted
 			} else if stats.Completed == 0 {
-				updates["status"] = "failed"
+				updates["status"] = statusFailed
 			} else {
 				updates["status"] = "partial"
 			}
@@ -423,7 +423,7 @@ func (s *DistributionService) monitorTaskProgress(taskID uint64) {
 func (s *DistributionService) markTaskFailed(taskID uint64, errorMsg string) {
 	now := time.Now()
 	_ = s.db.Model(&DistributionTask{}).Where("id = ?", taskID).Updates(map[string]interface{}{
-		"status":      "failed",
+		"status":      statusFailed,
 		"error":       errorMsg,
 		"finished_at": now,
 	}).Error

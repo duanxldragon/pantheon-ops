@@ -68,14 +68,16 @@ docs/
 |------|------|
 | [HARNESS_ENGINEERING_CONTRACT.md](./harness/HARNESS_ENGINEERING_CONTRACT.md) | 本仓库 Harness 执行合同 |
 | [HARNESS_METHOD_PLAYBOOK.md](./harness/HARNESS_METHOD_PLAYBOOK.md) | 任务执行顺序与证据要求 |
-| [Harness patterns README](../../pantheon-harness/patterns/README.md) | 上游方法资产入口 |
-| [Harness core model](../../pantheon-harness/patterns/harness-core-model.md) | 方法核心模型 |
-| [Harness coverage model](../../pantheon-harness/patterns/harness-coverage-model.md) | 方法覆盖检查模型 |
-| [Harness template taxonomy](../../pantheon-harness/patterns/harness-template-taxonomy.md) | 模板分类 |
-| [Tool adapter matrix](../../pantheon-harness/patterns/tool-adapter-matrix.md) | 工具适配能力矩阵 |
-| [Method playbook](../../pantheon-harness/patterns/method-playbook.md) | 上游执行手册 |
-| [Execution guardrails](../../pantheon-harness/patterns/execution-guardrails.md) | 执行安全边界 |
-| [Context engineering protocol](../../pantheon-harness/patterns/context-engineering-protocol.md) | 上下文读取与隐私边界 |
+| [Harness patterns README](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/README.md) | 上游方法资产入口 |
+| [Harness core model](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/harness-core-model.md) | 方法核心模型 |
+| [Harness coverage model](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/harness-coverage-model.md) | 方法覆盖检查模型 |
+| [Harness template taxonomy](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/harness-template-taxonomy.md) | 模板分类 |
+| [Tool adapter matrix](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/tool-adapter-matrix.md) | 工具适配能力矩阵 |
+| [Method playbook](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/method-playbook.md) | 上游执行手册 |
+| [Execution guardrails](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/execution-guardrails.md) | 执行安全边界 |
+| [Context engineering protocol](https://github.com/duanxldragon/pantheon-harness/blob/main/patterns/context-engineering-protocol.md) | 上下文读取与隐私边界 |
+
+> 上游方法资产属于 `pantheon-harness` 仓库，ops 不复制副本；workspace 里它们是兄弟目录，CI 中不存在，所以这里用远端链接。
 
 ---
 

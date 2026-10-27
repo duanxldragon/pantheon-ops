@@ -13,6 +13,8 @@ import (
 // FileDistModule wires the storage and file distribution services into the
 // business router. The module owns the transfer workers used by distribution
 // tasks and keeps the public registration surface small for the overlay.
+//
+//nolint:revive // the exported module name keeps the file-distribution domain prefix for API clarity.
 type FileDistModule struct {
 	db                  *gorm.DB
 	storageService      *StorageService

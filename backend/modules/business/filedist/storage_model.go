@@ -7,6 +7,9 @@ import (
 	"gorm.io/gorm"
 )
 
+// storageTypeLocal marks a filesystem-backed storage location.
+const storageTypeLocal = "local"
+
 // FileStorage represents a file storage location.
 type FileStorage struct {
 	ID        uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
@@ -25,6 +28,7 @@ type FileStorage struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the filedist_storage table name.
 func (FileStorage) TableName() string {
 	return "filedist_storage"
 }
@@ -47,6 +51,7 @@ type FileRecord struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the filedist_file table name.
 func (FileRecord) TableName() string {
 	return "filedist_file"
 }
@@ -61,7 +66,7 @@ type StorageDTO struct {
 	IsDefault bool                   `json:"isDefault"`
 }
 
-// StorageConfig types
+// S3Config carries the credentials and endpoint of an S3-compatible storage location.
 type S3Config struct {
 	Region          string `json:"region"`
 	AccessKeyID     string `json:"accessKeyId"`
@@ -71,6 +76,7 @@ type S3Config struct {
 	UseSSL          bool   `json:"useSSL"`
 }
 
+// OSSConfig carries the endpoint and credentials of an Aliyun OSS storage location.
 type OSSConfig struct {
 	Endpoint        string `json:"endpoint"`
 	AccessKeyID     string `json:"accessKeyId"`
@@ -78,6 +84,7 @@ type OSSConfig struct {
 	Bucket          string `json:"bucket"`
 }
 
+// MinioConfig carries the credentials and endpoint of a MinIO storage location.
 type MinioConfig struct {
 	Endpoint        string `json:"endpoint"`
 	AccessKeyID     string `json:"accessKeyId"`
@@ -86,6 +93,7 @@ type MinioConfig struct {
 	UseSSL          bool   `json:"useSSL"`
 }
 
+// StorageResponse is the file storage shape returned to clients; secrets stay redacted.
 type StorageResponse struct {
 	ID        uint64                 `json:"id"`
 	Name      string                 `json:"name"`
@@ -101,6 +109,7 @@ type StorageResponse struct {
 	CreatedBy string                 `json:"createdBy"`
 }
 
+// StorageListResponse is the list of configured file storage locations.
 type StorageListResponse struct {
 	Items []StorageResponse `json:"items"`
 	Total int64             `json:"total"`
@@ -117,6 +126,7 @@ type FileRecordDTO struct {
 	Description string   `json:"description"`
 }
 
+// FileRecordResponse is the stored-file shape returned to clients.
 type FileRecordResponse struct {
 	ID          uint64    `json:"id"`
 	StorageID   uint64    `json:"storageId"`
@@ -141,6 +151,7 @@ type FileRecordResponse struct {
 	CreatedBy   string `json:"createdBy,omitempty"`
 }
 
+// FileRecordListQuery filters and paginates stored files.
 type FileRecordListQuery struct {
 	StorageID uint64 `form:"storageId"`
 	Keyword   string `form:"keyword"`
@@ -149,6 +160,7 @@ type FileRecordListQuery struct {
 	PageSize  int    `form:"pageSize"`
 }
 
+// FileRecordListResponse is the paged list of stored files.
 type FileRecordListResponse struct {
 	Items    []FileRecordResponse `json:"items"`
 	Total    int64                `json:"total"`

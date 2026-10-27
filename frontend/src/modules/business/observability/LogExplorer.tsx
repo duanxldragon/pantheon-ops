@@ -5,6 +5,7 @@ import { IconSearch } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import {
   AppTable,
+  buildStandardPagination,
   GovernanceSummaryBar,
   PageContainer,
   PageEmpty,
@@ -130,7 +131,7 @@ export default function LogExplorer() {
           {error && items.length === 0 ? <PageError onRetry={() => void executeQuery()} /> : null}
           {!loading && !error && datasources.length === 0 ? <PageEmpty description={t('business.observability.logs.noDatasource')} /> : null}
           {!loading && !error && datasources.length > 0 && hasQueried && items.length === 0 ? <PageEmpty description={t('business.observability.logs.empty')} /> : null}
-          {!loading && !error && items.length > 0 ? <AppTable rowKey="id" columns={columns} data={items} pagination={{ pageSize: 50 }} scroll={{ x: 'max-content' }} /> : null}
+          {!loading && !error && items.length > 0 ? <AppTable rowKey="id" columns={columns} data={items} pagination={buildStandardPagination(t, { pageSize: 50, total: items.length })} scroll={{ x: 'max-content' }} /> : null}
         </Card>
       </Space>
     </PageContainer>

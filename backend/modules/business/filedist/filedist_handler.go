@@ -13,6 +13,8 @@ import (
 )
 
 // FileDistHandler handles file distribution API endpoints.
+//
+//nolint:revive // the exported handler name keeps the file-distribution domain prefix for API clarity.
 type FileDistHandler struct {
 	storageService      *StorageService
 	distributionService *DistributionService
@@ -60,6 +62,7 @@ func (h *FileDistHandler) RegisterRoutes(filedist gin.IRoutes) {
 
 // Storage handlers
 
+// CreateStorage registers a file storage location from the request body.
 func (h *FileDistHandler) CreateStorage(c *gin.Context) {
 	var dto StorageDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
@@ -77,6 +80,7 @@ func (h *FileDistHandler) CreateStorage(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ListStorages returns the configured file storage locations.
 func (h *FileDistHandler) ListStorages(c *gin.Context) {
 	resp, err := h.storageService.ListStorages()
 	if err != nil {
@@ -87,6 +91,7 @@ func (h *FileDistHandler) ListStorages(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetStorage returns one file storage location by id.
 func (h *FileDistHandler) GetStorage(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -99,6 +104,7 @@ func (h *FileDistHandler) GetStorage(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// UpdateStorage applies the request body to the file storage location identified by the path id.
 func (h *FileDistHandler) UpdateStorage(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -116,6 +122,7 @@ func (h *FileDistHandler) UpdateStorage(c *gin.Context) {
 	common.Success(c, gin.H{"message": "updated"})
 }
 
+// DeleteStorage removes a file storage location that still holds no files.
 func (h *FileDistHandler) DeleteStorage(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -129,6 +136,7 @@ func (h *FileDistHandler) DeleteStorage(c *gin.Context) {
 
 // File handlers
 
+// UploadFile stores the multipart file in the selected storage and records its metadata.
 func (h *FileDistHandler) UploadFile(c *gin.Context) {
 	storageID, _ := strconv.ParseUint(c.PostForm("storageId"), 10, 64)
 	if storageID == 0 {
@@ -156,7 +164,7 @@ func (h *FileDistHandler) UploadFile(c *gin.Context) {
 		common.FailWithCode(c, http.StatusBadRequest, "invalid_file")
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	uploadedBy := c.GetString("username")
 	resp, err := h.storageService.UploadFile(storageID, header.Filename, file, header.Size, uploadedBy)
@@ -168,6 +176,7 @@ func (h *FileDistHandler) UploadFile(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ListFiles returns stored files matching the query.
 func (h *FileDistHandler) ListFiles(c *gin.Context) {
 	var query FileRecordListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -184,6 +193,7 @@ func (h *FileDistHandler) ListFiles(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetFile returns the metadata of the stored file identified by the path id.
 func (h *FileDistHandler) GetFile(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -196,6 +206,7 @@ func (h *FileDistHandler) GetFile(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// DownloadFile streams the stored file identified by the path id to the client.
 func (h *FileDistHandler) DownloadFile(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -214,12 +225,12 @@ func (h *FileDistHandler) DownloadFile(c *gin.Context) {
 	}
 
 	// Open file
-	file, err := os.Open(filePath)
+	file, err := os.Open(filePath) // #nosec G304 -- filePath is built by StorageService.GetFilePath from the stored record path, which is server-generated under the storage root.
 	if err != nil {
 		common.FailWithCode(c, http.StatusInternalServerError, "open_file_failed")
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Set headers
 	c.Header("Content-Description", "File Transfer")
@@ -231,6 +242,7 @@ func (h *FileDistHandler) DownloadFile(c *gin.Context) {
 	_, _ = io.Copy(c.Writer, file)
 }
 
+// DeleteFile removes the stored file identified by the path id and its record.
 func (h *FileDistHandler) DeleteFile(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -244,6 +256,7 @@ func (h *FileDistHandler) DeleteFile(c *gin.Context) {
 
 // Distribution Task handlers
 
+// CreateTask registers a distribution task from the request body.
 func (h *FileDistHandler) CreateTask(c *gin.Context) {
 	var dto DistributionTaskDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
@@ -261,6 +274,7 @@ func (h *FileDistHandler) CreateTask(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// ListTasks returns distribution tasks matching the query.
 func (h *FileDistHandler) ListTasks(c *gin.Context) {
 	var query TaskListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -277,6 +291,7 @@ func (h *FileDistHandler) ListTasks(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// GetTask returns one distribution task by id.
 func (h *FileDistHandler) GetTask(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -289,6 +304,7 @@ func (h *FileDistHandler) GetTask(c *gin.Context) {
 	common.Success(c, resp)
 }
 
+// StartTask begins distributing the file of the task identified by the path id.
 func (h *FileDistHandler) StartTask(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err := h.distributionService.StartTask(id); err != nil {
@@ -298,6 +314,7 @@ func (h *FileDistHandler) StartTask(c *gin.Context) {
 	common.Success(c, gin.H{"started": true})
 }
 
+// GetTaskTargets returns the per-target state of a distribution task.
 func (h *FileDistHandler) GetTaskTargets(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -310,6 +327,7 @@ func (h *FileDistHandler) GetTaskTargets(c *gin.Context) {
 	common.Success(c, gin.H{"items": targets})
 }
 
+// GetTaskEvents returns the recorded events of a distribution task.
 func (h *FileDistHandler) GetTaskEvents(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	if _, err := h.distributionService.GetTaskByID(id); err != nil {
@@ -319,6 +337,7 @@ func (h *FileDistHandler) GetTaskEvents(c *gin.Context) {
 	common.Success(c, []interface{}{})
 }
 
+// GetTaskProgress streams task progress updates to the caller.
 func (h *FileDistHandler) GetTaskProgress(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	resp, err := h.distributionService.GetTaskProgress(id)
@@ -340,6 +359,7 @@ func (h *FileDistHandler) DeleteTask(c *gin.Context) {
 	common.Success(c, gin.H{"deleted": true})
 }
 
+// CancelTask stops the running task identified by the path id.
 func (h *FileDistHandler) CancelTask(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 
@@ -351,6 +371,7 @@ func (h *FileDistHandler) CancelTask(c *gin.Context) {
 	common.Success(c, gin.H{"message": "cancelled"})
 }
 
+// RetryTask re-runs the targets that failed in the task identified by the path id.
 func (h *FileDistHandler) RetryTask(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 

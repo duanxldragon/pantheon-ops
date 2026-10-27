@@ -226,9 +226,14 @@ func (s *NotificationService) sendEmail(config map[string]interface{}, ruleName,
 	auth := smtp.PlainAuth("", username, password, smtpHost)
 	addr := fmt.Sprintf("%s:%d", smtpHost, int(smtpPort))
 
-	to := make([]string, len(recipients))
-	for i, r := range recipients {
-		to[i] = r.(string)
+	to := make([]string, 0, len(recipients))
+	for _, r := range recipients {
+		if email, ok := r.(string); ok && email != "" {
+			to = append(to, email)
+		}
+	}
+	if len(to) == 0 {
+		return fmt.Errorf("missing email recipients")
 	}
 
 	msg := []byte(fmt.Sprintf("To: %s\r\nSubject: %s\r\n\r\n%s", to[0], subject, body))
@@ -283,7 +288,7 @@ func (s *NotificationService) sendWebhook(config map[string]interface{}, ruleNam
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 400 {
 		body, _ := io.ReadAll(resp.Body)
@@ -307,9 +312,10 @@ func (s *NotificationService) sendSlack(config map[string]interface{}, ruleName,
 	}
 
 	color := "warning"
-	if severity == "critical" {
+	switch severity {
+	case "critical":
 		color = "danger"
-	} else if severity == "info" {
+	case "info":
 		color = "good"
 	}
 

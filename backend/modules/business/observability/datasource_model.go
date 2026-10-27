@@ -6,6 +6,10 @@ import (
 	"gorm.io/gorm"
 )
 
+// queryStatusSuccess is the status a Prometheus-compatible datasource returns
+// for a successful query.
+const queryStatusSuccess = "success"
+
 // PrometheusDatasource stores an observability backend configuration. The table
 // name is retained for migration compatibility with the original Prometheus-only model.
 type PrometheusDatasource struct {
@@ -28,6 +32,7 @@ type PrometheusDatasource struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the obs_prometheus_datasource table name.
 func (PrometheusDatasource) TableName() string {
 	return "obs_prometheus_datasource"
 }
@@ -45,6 +50,7 @@ type DatasourceDTO struct {
 	IsDefault   bool   `json:"isDefault"`
 }
 
+// DatasourceResponse is the Prometheus datasource shape returned to clients.
 type DatasourceResponse struct {
 	ID          uint64     `json:"id"`
 	DeptID      uint64     `json:"deptId"`
@@ -61,6 +67,7 @@ type DatasourceResponse struct {
 	CreatedBy   string     `json:"createdBy"`
 }
 
+// DatasourceListResponse is the list of configured Prometheus datasources.
 type DatasourceListResponse struct {
 	Items []DatasourceResponse `json:"items"`
 	Total int64                `json:"total"`

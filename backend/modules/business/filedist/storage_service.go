@@ -1,7 +1,7 @@
 package filedist
 
 import (
-	"crypto/md5"
+	"crypto/md5" // #nosec G501 -- MD5 is a non-security integrity fingerprint here; SHA-256 is computed alongside it.
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -49,13 +49,33 @@ func (s *StorageService) Migrate() error {
 	return s.encryptStoredConfigs()
 }
 
+// normalizeLocalStoragePath rejects parent-directory segments in an
+// admin-supplied local storage root before filepath.Clean would silently
+// resolve them, so a record path cannot escape the configured root.
+func normalizeLocalStoragePath(basePath string) (string, error) {
+	trimmed := strings.TrimSpace(basePath)
+	if trimmed == "" {
+		return "", errors.New("storage.base_path_required")
+	}
+	for _, segment := range strings.FieldsFunc(trimmed, func(r rune) bool { return r == '/' || r == os.PathSeparator }) {
+		if segment == ".." {
+			return "", errors.New("storage.base_path_invalid")
+		}
+	}
+	return filepath.Clean(trimmed), nil
+}
+
 // CreateStorage adds a new storage location.
 func (s *StorageService) CreateStorage(dto StorageDTO, createdBy string) (*StorageResponse, error) {
-	if dto.Type == "local" && strings.TrimSpace(dto.BasePath) == "" {
-		dto.BasePath = s.defaultBasePath
-	}
-	if dto.Type == "local" && strings.TrimSpace(dto.BasePath) == "" {
-		return nil, errors.New("storage.base_path_required")
+	if dto.Type == storageTypeLocal {
+		if strings.TrimSpace(dto.BasePath) == "" {
+			dto.BasePath = s.defaultBasePath
+		}
+		basePath, err := normalizeLocalStoragePath(dto.BasePath)
+		if err != nil {
+			return nil, err
+		}
+		dto.BasePath = basePath
 	}
 	// If marking as default, clear other defaults
 	if dto.IsDefault {
@@ -87,8 +107,12 @@ func (s *StorageService) CreateStorage(dto StorageDTO, createdBy string) (*Stora
 	}
 
 	// Create base directory for local storage
-	if dto.Type == "local" {
-		if err := os.MkdirAll(dto.BasePath, 0755); err != nil {
+	if dto.Type == storageTypeLocal {
+		// codeql go/path-injection: this is a false positive: the base path is
+		// the configuration of a storage location, reachable only through the
+		// permission-gated storage CRUD API, and normalizeLocalStoragePath
+		// rejects traversal segments.
+		if err := os.MkdirAll(dto.BasePath, 0750); err != nil {
 			return nil, fmt.Errorf("create_directory_failed: %w", err)
 		}
 	}
@@ -119,7 +143,7 @@ func (s *StorageService) EnsureDefaultStorage(createdBy string) error {
 	}
 	_, err := s.CreateStorage(StorageDTO{
 		Name:      "local-default",
-		Type:      "local",
+		Type:      storageTypeLocal,
 		BasePath:  basePath,
 		IsDefault: true,
 	}, createdBy)
@@ -173,6 +197,14 @@ func (s *StorageService) UpdateStorage(id uint64, dto StorageDTO) error {
 		return err
 	}
 
+	if dto.Type == storageTypeLocal {
+		basePath, err := normalizeLocalStoragePath(dto.BasePath)
+		if err != nil {
+			return err
+		}
+		dto.BasePath = basePath
+	}
+
 	updates := map[string]interface{}{
 		"name":      dto.Name,
 		"type":      dto.Type,
@@ -216,32 +248,39 @@ func (s *StorageService) UploadFile(storageID uint64, fileName string, reader io
 		return nil, fmt.Errorf("storage_full: used %d, max %d", storage.UsedSize, storage.MaxSize)
 	}
 
-	// Generate unique path
+	// Generate unique path. The caller-supplied name is reduced to its final
+	// path element so a record path can never escape the storage root.
 	now := time.Now()
 	relativePath := filepath.Join(
 		now.Format("2006/01/02"),
-		fmt.Sprintf("%d-%s", now.Unix(), fileName),
+		fmt.Sprintf("%d-%s", now.Unix(), filepath.Base(fileName)),
 	)
 	fullPath := filepath.Join(storage.BasePath, relativePath)
 
 	// Create directory
-	if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(fullPath), 0750); err != nil {
 		return nil, fmt.Errorf("create_directory_failed: %w", err)
 	}
 
 	// Write file and calculate MD5 + SHA-256
-	file, err := os.Create(fullPath)
+	file, err := os.Create(fullPath) // #nosec G304 -- fullPath stays inside the storage root: the file name is the multipart base name and the directory is server-generated.
 	if err != nil {
 		return nil, fmt.Errorf("create_file_failed: %w", err)
 	}
-	defer file.Close()
 
-	md5Hash := md5.New()
+	md5Hash := md5.New() // #nosec G401 -- MD5 is kept as a non-security integrity fingerprint; SHA-256 accompanies it.
 	sha256Hash := sha256.New()
 	written, err := io.Copy(io.MultiWriter(file, md5Hash, sha256Hash), reader)
 	if err != nil {
+		_ = file.Close()
 		_ = os.Remove(fullPath)
 		return nil, fmt.Errorf("write_file_failed: %w", err)
+	}
+	// Closing flushes the stored bytes; if it fails the record must not claim a
+	// file that never reached disk.
+	if err := file.Close(); err != nil {
+		_ = os.Remove(fullPath)
+		return nil, fmt.Errorf("close_file_failed: %w", err)
 	}
 
 	md5sum := hex.EncodeToString(md5Hash.Sum(nil))

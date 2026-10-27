@@ -4,6 +4,7 @@ import "time"
 
 // --- Server ---
 
+// AddServerRequest is the payload that registers an Argo CD server.
 type AddServerRequest struct {
 	Name      string `json:"name" binding:"required,max=128"`
 	ClusterID uint64 `json:"clusterId"`
@@ -11,12 +12,14 @@ type AddServerRequest struct {
 	AuthToken string `json:"authToken" binding:"required"`
 }
 
+// UpdateServerRequest carries the editable fields of an Argo CD server.
 type UpdateServerRequest struct {
 	Name      string `json:"name" binding:"required,max=128"`
 	Endpoint  string `json:"endpoint" binding:"required,max=256"`
 	AuthToken string `json:"authToken,omitempty"`
 }
 
+// ServerResponse is the Argo CD server shape returned to clients; it never carries the auth token.
 type ServerResponse struct {
 	ID          uint64     `json:"id"`
 	Name        string     `json:"name"`
@@ -30,6 +33,7 @@ type ServerResponse struct {
 	CreatedBy   string     `json:"createdBy"`
 }
 
+// ServerListResponse is the paged list of Argo CD servers.
 type ServerListResponse struct {
 	Items []ServerResponse `json:"items"`
 	Total int64            `json:"total"`
@@ -37,6 +41,7 @@ type ServerListResponse struct {
 
 // --- Repository ---
 
+// AddRepositoryRequest is the payload that registers a Git repository in Argo CD.
 type AddRepositoryRequest struct {
 	ServerID uint64 `json:"serverId" binding:"required"`
 	RepoURL  string `json:"repoUrl" binding:"required,max=512"`
@@ -48,6 +53,7 @@ type AddRepositoryRequest struct {
 	SSHKey   string `json:"sshKey,omitempty"`
 }
 
+// RepositoryResponse is the Argo CD repository shape returned to clients.
 type RepositoryResponse struct {
 	ID        uint64    `json:"id"`
 	ServerID  uint64    `json:"serverId"`
@@ -61,6 +67,7 @@ type RepositoryResponse struct {
 	CreatedBy string    `json:"createdBy"`
 }
 
+// RepositoryListResponse is the list of repositories known to one Argo CD server.
 type RepositoryListResponse struct {
 	Items []RepositoryResponse `json:"items"`
 	Total int64                `json:"total"`
@@ -68,6 +75,7 @@ type RepositoryListResponse struct {
 
 // --- Application ---
 
+// CreateApplicationRequest is the payload that creates an Argo CD application.
 type CreateApplicationRequest struct {
 	ServerID          uint64 `json:"serverId" binding:"required"`
 	Name              string `json:"name" binding:"required,max=128"`
@@ -79,6 +87,7 @@ type CreateApplicationRequest struct {
 	DestinationNS     string `json:"destinationNamespace" binding:"max=128"`
 }
 
+// UpdateApplicationRequest carries the editable fields of an Argo CD application.
 type UpdateApplicationRequest struct {
 	SourceRepoURL     string `json:"sourceRepoUrl"`
 	SourcePath        string `json:"sourcePath"`
@@ -88,6 +97,7 @@ type UpdateApplicationRequest struct {
 	Project           string `json:"project"`
 }
 
+// ApplicationResponse is the Argo CD application shape returned to clients.
 type ApplicationResponse struct {
 	ID                uint64     `json:"id"`
 	ServerID          uint64     `json:"serverId"`
@@ -107,15 +117,18 @@ type ApplicationResponse struct {
 	CreatedBy         string     `json:"createdBy"`
 }
 
+// ApplicationListResponse is the list of applications deployed on one Argo CD server.
 type ApplicationListResponse struct {
 	Items []ApplicationResponse `json:"items"`
 	Total int64                 `json:"total"`
 }
 
+// SyncApplicationRequest selects the revision an application syncs to.
 type SyncApplicationRequest struct {
 	Revision string `json:"revision,omitempty"`
 }
 
+// SyncHistoryResponse lists the recorded sync operations of an application.
 type SyncHistoryResponse struct {
 	ID         uint64     `json:"id"`
 	Revision   string     `json:"revision"`

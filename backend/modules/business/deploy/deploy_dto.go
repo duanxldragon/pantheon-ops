@@ -364,11 +364,13 @@ type TaskListResponse struct {
 	PageSize int            `json:"pageSize"`
 }
 
+// RollbackTaskRequest selects the deployment step a task rolls back to.
 type RollbackTaskRequest struct {
 	SourceTaskID uint64 `json:"sourceTaskId" binding:"required"`
 	AutoStart    bool   `json:"autoStart"`
 }
 
+// RollbackTaskResponse reports the state of a rollback request.
 type RollbackTaskResponse struct {
 	RollbackTask *TaskResponse `json:"rollbackTask"`
 	SourceTask   *TaskResponse `json:"sourceTask"`

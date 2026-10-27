@@ -131,11 +131,11 @@ func (c *SFTPClient) Upload(localPath, remotePath string) error {
 	}
 
 	// Open local file
-	localFile, err := os.Open(localPath)
+	localFile, err := os.Open(localPath) // #nosec G304 -- localPath comes from the transfer engine, which derives it from a stored filedist record path under the configured storage root.
 	if err != nil {
 		return fmt.Errorf("open_local_file_failed: %w", err)
 	}
-	defer localFile.Close()
+	defer func() { _ = localFile.Close() }()
 
 	// Create remote directory
 	remoteDir := filepath.Dir(remotePath)
@@ -148,11 +148,16 @@ func (c *SFTPClient) Upload(localPath, remotePath string) error {
 	if err != nil {
 		return fmt.Errorf("create_remote_file_failed: %w", err)
 	}
-	defer remoteFile.Close()
 
 	// Copy data
 	if _, err := io.Copy(remoteFile, localFile); err != nil {
+		_ = remoteFile.Close()
 		return fmt.Errorf("copy_failed: %w", err)
+	}
+	// Closing flushes the remote handle; a failed close means the upload did
+	// not land, so it must not be reported as success.
+	if err := remoteFile.Close(); err != nil {
+		return fmt.Errorf("close_remote_file_failed: %w", err)
 	}
 
 	return nil
@@ -169,24 +174,29 @@ func (c *SFTPClient) Download(remotePath, localPath string) error {
 	if err != nil {
 		return fmt.Errorf("open_remote_file_failed: %w", err)
 	}
-	defer remoteFile.Close()
+	defer func() { _ = remoteFile.Close() }()
 
 	// Create local directory
 	localDir := filepath.Dir(localPath)
-	if err := os.MkdirAll(localDir, 0755); err != nil {
+	if err := os.MkdirAll(localDir, 0750); err != nil {
 		return fmt.Errorf("create_local_dir_failed: %w", err)
 	}
 
 	// Create local file
-	localFile, err := os.Create(localPath)
+	localFile, err := os.Create(localPath) // #nosec G304 -- localPath comes from the transfer engine, which derives it from a stored filedist record path under the configured storage root.
 	if err != nil {
 		return fmt.Errorf("create_local_file_failed: %w", err)
 	}
-	defer localFile.Close()
 
 	// Copy data
 	if _, err := io.Copy(localFile, remoteFile); err != nil {
+		_ = localFile.Close()
 		return fmt.Errorf("copy_failed: %w", err)
+	}
+	// A failed close means the local file may be truncated, so surface it
+	// instead of reporting a successful download.
+	if err := localFile.Close(); err != nil {
+		return fmt.Errorf("close_local_file_failed: %w", err)
 	}
 
 	return nil
@@ -216,13 +226,13 @@ func (c *SFTPClient) List(remotePath string) ([]os.FileInfo, error) {
 	return c.sftpClient.ReadDir(remotePath)
 }
 
-// TestConnection tests SFTP connectivity.
+// TestSFTPConnection tests SFTP connectivity.
 func TestSFTPConnection(config SFTPConfig) error {
 	client := NewSFTPClient(config)
 	if err := client.Connect(); err != nil {
 		return err
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	// Try to stat the home directory
 	_, err := client.sftpClient.Getwd()

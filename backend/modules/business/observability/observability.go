@@ -74,6 +74,8 @@ type CreateTargetRequest struct {
 }
 
 // ObservabilityModule is the module facade exposed to the overlay registry.
+//
+//nolint:revive // the exported module name keeps the observability domain prefix for API clarity.
 type ObservabilityModule struct {
 	db                  *gorm.DB
 	bizScopeSvc         *bizscope.Service

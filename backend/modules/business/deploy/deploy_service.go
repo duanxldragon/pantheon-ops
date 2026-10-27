@@ -2870,11 +2870,12 @@ func (s *DeployService) loadTaskStep(taskID, taskHostID uint64, stepKey string) 
 func (s *DeployService) updateTaskStepStatus(checkpoint *DeployTaskStep, status, errorCode, errorMessage string) error {
 	now := time.Now()
 	updates := map[string]any{"status": status, "error_code": errorCode, "error_message": truncateDeployLog(errorMessage, 1024), "changed": checkpoint.Changed, "updated_at": now, "state_version": gorm.Expr("state_version + 1")}
-	if status == StepStatusRunning {
+	switch status {
+	case StepStatusRunning:
 		updates["started_at"] = &now
 		updates["finished_at"] = nil
 		updates["attempt_no"] = gorm.Expr("attempt_no + 1")
-	} else if status == StepStatusSuccess || status == StepStatusFailed || status == StepStatusSkipped || status == StepStatusCanceled {
+	case StepStatusSuccess, StepStatusFailed, StepStatusSkipped, StepStatusCanceled:
 		updates["finished_at"] = &now
 	}
 	err := s.db.Model(&DeployTaskStep{}).Where("id = ?", checkpoint.ID).Updates(updates).Error

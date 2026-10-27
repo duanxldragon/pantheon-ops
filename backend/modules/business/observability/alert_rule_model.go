@@ -31,6 +31,7 @@ type AlertRule struct {
 	DeletedAt            gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the obs_alert_rule table name.
 func (AlertRule) TableName() string {
 	return "obs_alert_rule"
 }
@@ -49,6 +50,7 @@ type AlertRuleDTO struct {
 	NotificationChannels []uint64          `json:"notificationChannels"`
 }
 
+// AlertRuleResponse is the alert rule shape returned to clients.
 type AlertRuleResponse struct {
 	ID                   uint64            `json:"id"`
 	DeptID               uint64            `json:"deptId"`
@@ -71,6 +73,7 @@ type AlertRuleResponse struct {
 	CreatedBy            string            `json:"createdBy"`
 }
 
+// AlertRuleListQuery filters and paginates alert rules.
 type AlertRuleListQuery struct {
 	Keyword      string `form:"keyword"`
 	DatasourceID uint64 `form:"datasourceId"`
@@ -81,6 +84,7 @@ type AlertRuleListQuery struct {
 	PageSize     int    `form:"pageSize"`
 }
 
+// AlertRuleListResponse is the paged list of alert rules.
 type AlertRuleListResponse struct {
 	Items    []AlertRuleResponse `json:"items"`
 	Total    int64               `json:"total"`
@@ -106,10 +110,12 @@ type AlertEvent struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the obs_alert_event table name.
 func (AlertEvent) TableName() string {
 	return "obs_alert_event"
 }
 
+// AlertEventResponse is the fired-alert shape returned to clients.
 type AlertEventResponse struct {
 	ID          uint64            `json:"id"`
 	DeptID      uint64            `json:"deptId"`
@@ -126,6 +132,7 @@ type AlertEventResponse struct {
 	CreatedAt   time.Time         `json:"createdAt"`
 }
 
+// AlertEventListQuery filters and paginates alert events.
 type AlertEventListQuery struct {
 	RuleID   uint64 `form:"ruleId"`
 	Severity string `form:"severity"`
@@ -134,6 +141,7 @@ type AlertEventListQuery struct {
 	PageSize int    `form:"pageSize"`
 }
 
+// AlertEventListResponse is the paged list of alert events.
 type AlertEventListResponse struct {
 	Items    []AlertEventResponse `json:"items"`
 	Total    int64                `json:"total"`

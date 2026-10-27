@@ -7,6 +7,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// Lifecycle statuses shared by distribution tasks and their per-target rows.
+const (
+	statusPending      = "pending"
+	statusRunning      = "running"
+	statusTransferring = "transferring"
+	statusRetrying     = "retrying"
+	statusCompleted    = "completed"
+	statusFailed       = "failed"
+)
+
 // DistributionTask represents a file distribution task.
 type DistributionTask struct {
 	ID           uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
@@ -27,6 +37,7 @@ type DistributionTask struct {
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the filedist_task table name.
 func (DistributionTask) TableName() string {
 	return "filedist_task"
 }
@@ -53,6 +64,7 @@ type DistributionTarget struct {
 	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the filedist_target table name.
 func (DistributionTarget) TableName() string {
 	return "filedist_target"
 }
@@ -65,6 +77,7 @@ type DistributionTaskDTO struct {
 	ScheduledAt *time.Time     `json:"scheduledAt"`
 }
 
+// TargetConfig describes where a distribution task pushes a file on one target.
 type TargetConfig struct {
 	Host            string `json:"host" binding:"required"`
 	Port            int    `json:"port"`
@@ -76,6 +89,7 @@ type TargetConfig struct {
 	MaxRetries      int    `json:"maxRetries"`
 }
 
+// DistributionTaskResponse is the distribution task shape returned to clients.
 type DistributionTaskResponse struct {
 	ID           uint64     `json:"id"`
 	Name         string     `json:"name"`
@@ -94,6 +108,7 @@ type DistributionTaskResponse struct {
 	CreatedBy    string     `json:"createdBy"`
 }
 
+// DistributionTargetResponse is the per-target progress shape returned to clients.
 type DistributionTargetResponse struct {
 	ID         uint64     `json:"id"`
 	TaskID     uint64     `json:"taskId"`
@@ -110,6 +125,7 @@ type DistributionTargetResponse struct {
 	FinishedAt *time.Time `json:"finishedAt,omitempty"`
 }
 
+// TaskListQuery filters and paginates distribution tasks.
 type TaskListQuery struct {
 	Status   string `form:"status"`
 	FileID   uint64 `form:"fileId"`
@@ -118,6 +134,7 @@ type TaskListQuery struct {
 	PageSize int    `form:"pageSize"`
 }
 
+// TaskListResponse is the paged list of distribution tasks.
 type TaskListResponse struct {
 	Items    []DistributionTaskResponse `json:"items"`
 	Total    int64                      `json:"total"`

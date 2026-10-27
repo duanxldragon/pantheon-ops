@@ -6,6 +6,7 @@ import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import {
   AppDrawer,
   AppTable,
+  buildStandardPagination,
   GovernanceSummaryBar,
   PageContainer,
   PageEmpty,
@@ -135,7 +136,7 @@ export default function TraceExplorer() {
           {error && items.length === 0 ? <PageError onRetry={() => void executeQuery()} /> : null}
           {!loading && !error && datasources.length === 0 ? <PageEmpty description={t('business.observability.traces.noDatasource')} /> : null}
           {!loading && !error && datasources.length > 0 && hasQueried && items.length === 0 ? <PageEmpty description={t('business.observability.traces.empty')} /> : null}
-          {!loading && !error && items.length > 0 ? <AppTable rowKey="traceID" columns={columns} data={items} pagination={{ pageSize: 20 }} scroll={{ x: 'max-content' }} /> : null}
+          {!loading && !error && items.length > 0 ? <AppTable rowKey="traceID" columns={columns} data={items} pagination={buildStandardPagination(t, { pageSize: 20, total: items.length })} scroll={{ x: 'max-content' }} /> : null}
         </Card>
       </Space>
       <AppDrawer

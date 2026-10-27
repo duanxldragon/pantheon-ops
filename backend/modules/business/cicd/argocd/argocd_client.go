@@ -14,6 +14,8 @@ import (
 )
 
 // ArgoCDClient wraps HTTP client for ArgoCD API communication.
+//
+//nolint:revive // the exported client name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDClient struct {
 	endpoint      string
 	authToken     string
@@ -32,8 +34,12 @@ func NewArgoCDClient(endpoint, authToken string, insecureSkipVerify bool) (*Argo
 
 	httpClient := validator.CreateHTTPClient(30 * time.Second)
 	if insecureSkipVerify {
+		// The flag is caller-opt-in per server record; self-hosted Argo CD
+		// endpoints commonly ship a self-signed certificate. Making it a stored,
+		// per-server setting instead of a constant at the call sites is tracked
+		// as a follow-up.
 		if t, ok := httpClient.Transport.(*http.Transport); ok {
-			t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+			t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} // #nosec G402 -- caller opts in, see comment above.
 		}
 	}
 
@@ -57,7 +63,7 @@ func (c *ArgoCDClient) TestConnection(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("http request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -79,7 +85,7 @@ func (c *ArgoCDClient) GetVersion(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("unexpected status %d", resp.StatusCode)
@@ -96,6 +102,8 @@ func (c *ArgoCDClient) GetVersion(ctx context.Context) (string, error) {
 }
 
 // ArgoCDApplicationStatus represents the status of an ArgoCD application.
+//
+//nolint:revive // the exported DTO name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDApplicationStatus struct {
 	Health struct {
 		Status string `json:"status"`
@@ -124,7 +132,7 @@ func (c *ArgoCDClient) GetApplicationStatus(ctx context.Context, appName string)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status %d", resp.StatusCode)
@@ -166,7 +174,7 @@ func (c *ArgoCDClient) SyncApplication(ctx context.Context, appName, revision st
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -190,7 +198,7 @@ func (c *ArgoCDClient) RefreshApplication(ctx context.Context, appName string) e
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("refresh failed with status %d", resp.StatusCode)
@@ -219,7 +227,7 @@ func (c *ArgoCDClient) CreateApplication(ctx context.Context, req *CreateApplica
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
@@ -262,7 +270,7 @@ func (c *ArgoCDClient) DeleteApplication(ctx context.Context, appName string, ca
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
 		body, _ := io.ReadAll(resp.Body)

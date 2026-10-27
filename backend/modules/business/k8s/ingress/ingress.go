@@ -55,12 +55,16 @@ func (Ingress) TableName() string {
 }
 
 // IngressRule mirrors the frontend K8sIngressRule contract.
+//
+//nolint:revive // the exported type name keeps the Ingress domain prefix for API clarity.
 type IngressRule struct {
 	Host  string            `json:"host"`
 	Paths []IngressRulePath `json:"paths"`
 }
 
 // IngressRulePath mirrors the frontend K8sIngressRulePath contract.
+//
+//nolint:revive // the exported type name keeps the Ingress domain prefix for API clarity.
 type IngressRulePath struct {
 	Path        string `json:"path"`
 	PathType    string `json:"pathType"`
@@ -69,12 +73,16 @@ type IngressRulePath struct {
 }
 
 // IngressTLS mirrors the frontend K8sIngressTLS contract.
+//
+//nolint:revive // the exported type name keeps the Ingress domain prefix for API clarity.
 type IngressTLS struct {
 	Hosts      []string `json:"hosts"`
 	SecretName string   `json:"secretName"`
 }
 
 // IngressListQuery filters ingress snapshots.
+//
+//nolint:revive // the exported type name keeps the Ingress domain prefix for API clarity.
 type IngressListQuery struct {
 	ClusterID uint64 `form:"clusterId"`
 	Namespace string `form:"namespace"`
@@ -83,6 +91,8 @@ type IngressListQuery struct {
 }
 
 // IngressListResponse contains ingress snapshots.
+//
+//nolint:revive // the exported type name keeps the Ingress domain prefix for API clarity.
 type IngressListResponse struct {
 	Items []Ingress `json:"items"`
 	Total int64     `json:"total"`

@@ -73,6 +73,8 @@ type PVC struct {
 func (PVC) TableName() string { return "biz_k8s_pvc" }
 
 // StorageClass is the DB snapshot of a Kubernetes StorageClass.
+//
+//nolint:revive // the exported type name keeps the StorageClass domain prefix for API clarity.
 type StorageClass struct {
 	ID                   uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
 	Name                 string    `gorm:"size:255;not null;index" json:"name"`

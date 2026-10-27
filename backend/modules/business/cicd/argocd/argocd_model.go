@@ -8,6 +8,8 @@ import (
 )
 
 // ArgoCDServer represents an ArgoCD server configuration.
+//
+//nolint:revive // the exported model name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDServer struct {
 	ID          uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
 	Name        string         `gorm:"size:128;not null;uniqueIndex" json:"name"`
@@ -24,11 +26,14 @@ type ArgoCDServer struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the biz_argocd_server table name.
 func (ArgoCDServer) TableName() string {
 	return "biz_argocd_server"
 }
 
 // ArgoCDRepository represents a Git repository configured in ArgoCD.
+//
+//nolint:revive // the exported model name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDRepository struct {
 	ID        uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
 	ServerID  uint64         `gorm:"not null;index:idx_server_repo" json:"serverId"`
@@ -46,11 +51,14 @@ type ArgoCDRepository struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the biz_argocd_repository table name.
 func (ArgoCDRepository) TableName() string {
 	return "biz_argocd_repository"
 }
 
 // ArgoCDApplication represents an ArgoCD application.
+//
+//nolint:revive // the exported model name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDApplication struct {
 	ID                uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
 	ServerID          uint64         `gorm:"not null;index:idx_server_name" json:"serverId"`
@@ -73,11 +81,14 @@ type ArgoCDApplication struct {
 	DeletedAt         gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the biz_argocd_application table name.
 func (ArgoCDApplication) TableName() string {
 	return "biz_argocd_application"
 }
 
 // ArgoCDSyncHistory records each sync event for an application.
+//
+//nolint:revive // the exported model name keeps the Argo CD domain prefix for API clarity.
 type ArgoCDSyncHistory struct {
 	ID            uint64     `gorm:"primaryKey;autoIncrement" json:"id"`
 	ApplicationID uint64     `gorm:"not null;index" json:"applicationId"`
@@ -88,6 +99,7 @@ type ArgoCDSyncHistory struct {
 	FinishedAt    *time.Time `json:"finishedAt,omitempty"`
 }
 
+// TableName returns the biz_argocd_sync_history table name.
 func (ArgoCDSyncHistory) TableName() string {
 	return "biz_argocd_sync_history"
 }

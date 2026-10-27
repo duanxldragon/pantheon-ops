@@ -48,6 +48,8 @@ type CreateBackupRequest struct {
 }
 
 // BackupResponse 备份响应
+//
+//nolint:revive // the exported DTO name keeps the backup domain prefix for API clarity.
 type BackupResponse struct {
 	ID                   uint64     `json:"id"`
 	Name                 string     `json:"name"`
@@ -75,6 +77,8 @@ type BackupResponse struct {
 }
 
 // BackupListQuery 备份列表查询
+//
+//nolint:revive // the exported DTO name keeps the backup domain prefix for API clarity.
 type BackupListQuery struct {
 	ClusterID  uint64 `form:"clusterId" binding:"required"`
 	Status     string `form:"status"`
@@ -85,6 +89,8 @@ type BackupListQuery struct {
 }
 
 // BackupListResponse 备份列表响应
+//
+//nolint:revive // the exported DTO name keeps the backup domain prefix for API clarity.
 type BackupListResponse struct {
 	Items    []BackupResponse `json:"items"`
 	Total    int64            `json:"total"`

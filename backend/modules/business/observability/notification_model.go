@@ -22,6 +22,7 @@ type NotificationChannel struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the obs_notification_channel table name.
 func (NotificationChannel) TableName() string {
 	return "obs_notification_channel"
 }
@@ -34,7 +35,7 @@ type NotificationChannelDTO struct {
 	Config  map[string]interface{} `json:"config" binding:"required"`
 }
 
-// Channel-specific configs
+// EmailConfig carries the SMTP settings of an email notification channel.
 type EmailConfig struct {
 	Recipients []string `json:"recipients"`
 	SMTPHost   string   `json:"smtpHost"`
@@ -45,6 +46,7 @@ type EmailConfig struct {
 	UseTLS     bool     `json:"useTLS"`
 }
 
+// WebhookConfig carries the endpoint and delivery options of a webhook notification channel.
 type WebhookConfig struct {
 	URL     string            `json:"url"`
 	Method  string            `json:"method"` // POST, PUT
@@ -52,12 +54,14 @@ type WebhookConfig struct {
 	Timeout int               `json:"timeout"`
 }
 
+// SlackConfig carries the webhook used by a Slack notification channel.
 type SlackConfig struct {
 	WebhookURL string `json:"webhookUrl"`
 	Channel    string `json:"channel"`
 	Username   string `json:"username"`
 }
 
+// DingTalkConfig carries the webhook and signing secret of a DingTalk notification channel.
 type DingTalkConfig struct {
 	WebhookURL string   `json:"webhookUrl"`
 	Secret     string   `json:"secret"`
@@ -65,11 +69,13 @@ type DingTalkConfig struct {
 	IsAtAll    bool     `json:"isAtAll"`
 }
 
+// FeishuConfig carries the webhook of a Feishu notification channel.
 type FeishuConfig struct {
 	WebhookURL string `json:"webhookUrl"`
 	Secret     string `json:"secret"`
 }
 
+// NotificationChannelResponse is the notification channel shape returned to clients.
 type NotificationChannelResponse struct {
 	ID        uint64                 `json:"id"`
 	DeptID    uint64                 `json:"deptId"`
@@ -82,6 +88,7 @@ type NotificationChannelResponse struct {
 	CreatedBy string                 `json:"createdBy"`
 }
 
+// NotificationChannelListResponse is the list of configured notification channels.
 type NotificationChannelListResponse struct {
 	Items []NotificationChannelResponse `json:"items"`
 	Total int64                         `json:"total"`
@@ -103,10 +110,12 @@ type NotificationLog struct {
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+// TableName returns the obs_notification_log table name.
 func (NotificationLog) TableName() string {
 	return "obs_notification_log"
 }
 
+// NotificationLogResponse is one delivery attempt returned to clients.
 type NotificationLogResponse struct {
 	ID        uint64    `json:"id"`
 	ChannelID uint64    `json:"channelId"`

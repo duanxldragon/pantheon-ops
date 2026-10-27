@@ -14,6 +14,7 @@ import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { IconPlus, IconDelete, IconEdit, IconSync, IconRefresh } from '@arco-design/web-react/icon';
 import {
   AppTable,
+  buildStandardPagination,
   SearchToolbar,
   GovernanceSummaryBar,
   PageContainer,
@@ -372,7 +373,7 @@ const AlertManagement = () => {
                 columns={alertRuleColumns}
                 data={alertRules}
                 rowKey="id"
-                pagination={{ pageSize: 20 }}
+                pagination={buildStandardPagination(t, { pageSize: 20, total: alertRules.length })}
               />
             </Space>
           </TabPane>
@@ -384,7 +385,7 @@ const AlertManagement = () => {
                 columns={alertEventColumns}
                 data={alertEvents}
                 rowKey="id"
-                pagination={{ pageSize: 50 }}
+                pagination={buildStandardPagination(t, { pageSize: 50, total: alertEvents.length })}
               />
             </Space>
           </TabPane>
