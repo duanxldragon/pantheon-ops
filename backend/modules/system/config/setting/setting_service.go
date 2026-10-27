@@ -42,6 +42,8 @@ const settingsRefreshChannel = "settings:refresh"
 
 // SettingService serves platform/system settings with per-request tenant
 // scoping.
+//
+//nolint:revive // the exported name keeps the setting domain prefix; consumers outside this package reference it as setting.SettingService.
 type SettingService struct {
 	db *gorm.DB
 	// tenantCtx is the per-request tenant context (queue-5 settings slice).

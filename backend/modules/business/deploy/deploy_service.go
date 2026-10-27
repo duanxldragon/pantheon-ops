@@ -3954,7 +3954,7 @@ func renderNginxSystemdScript(pkg DeployPackage, task DeployTask) (string, error
 	}
 	if action == TaskActionUninstall {
 		if serviceName == "" {
-			serviceName = "nginx"
+			serviceName = defaultNginxServiceName
 		}
 		if installRoot == "" {
 			installRoot = "/data/nginx"

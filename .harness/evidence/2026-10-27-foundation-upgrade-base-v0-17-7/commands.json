@@ -1,0 +1,181 @@
+{
+  "taskId": "2026-10-27-foundation-upgrade-base-v0-17-7",
+  "repo": "pantheon-ops",
+  "agent": { "tool": "other", "adapter": "qoder-desktop" },
+  "commands": [
+    {
+      "command": "sha256sum .foundation/releases/pantheon-base-v0.17.7/foundation-release-pantheon-base-v0.17.7.tgz .foundation/releases/pantheon-base-v0.17.7/repo.tar",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "a101f5f6376e92bf6dc10bea4fff0954ab43202d123d6030abfc61a58de59585 (tgz) and 6b62cd453d949a85f3a70b8a82eb4a69f6470c2f404b53202a57664ea5dad98c (repo.tar); both equal foundation-release.lock.json, the published .sha256 sidecars in the materialized directory, and the GitHub asset digests (sha256:... for the same two names)."
+    },
+    {
+      "command": "gh api repos/duanxldragon/pantheon-base/releases/tags/pantheon-base-v0.17.7 and gh api repos/duanxldragon/pantheon-base/git/refs/tags/pantheon-base-v0.17.7",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Release id 425047099, name v0.17.7, published_at 2026-10-27T04:52:26Z, target commit 2091a2d8409e6b4ed933b19c8ff8870f2d0eedbe, four assets; the tag object is annotated at 6866fee007731280ee4914ffc2fc51769bcf3755."
+    },
+    {
+      "command": "gh api repos/duanxldragon/pantheon-base/commits/2091a2d.../check-runs and gh api repos/duanxldragon/pantheon-base/actions/runs?head_sha=2091a2d...",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Release Gate Summary check 122016742142 success (run 40450323981) and Foundation Release Verify Summary check 122017367180 success (run 40452121919). Eight workflows are success on the tagged commit and the SonarCloud Gate / SonarCloud Code Analysis checks on that commit read success with 'Quality Gate passed'. Base reports 0 open code scanning alerts."
+    },
+    {
+      "command": "tar -xzf .foundation/releases/pantheon-base-v0.17.7/foundation-release-pantheon-base-v0.17.7.tgz -O manifest.json | compare with foundation-release.lock.json",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "manifest.releaseVersion pantheon-base-v0.17.7 equals the lock; manifest.baseCommit 2091a2d8... equals lock.baseCommit; sharedPaths.backend, sharedPaths.frontend and sharedPaths.docs are deep-equal to the lock (JSON.stringify equality per key)."
+    },
+    {
+      "command": "node scripts/business-overlay/rebuild-from-base.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "OK rebuilt clean Ops tree at .tmp/business-overlay-rebuild / Base commit: 2091a2d8409e6b4ed933b19c8ff8870f2d0eedbe / Declared/generated Ops files: 751 (748 in the v0.17.6 round). Lock-resolved path, no --base, so the consumer only ever sees the published release snapshot."
+    },
+    {
+      "command": "apply the rebuilt tree to the working copy (2237 files copied, 1 created)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "git status after the apply: 6 modified tracked paths (foundation-release.lock.json, VERSION, backend/pkg/logging/logger.go, backend/modules/system/config/setting/setting_service.go, frontend/scripts/tenant-matrix-fixture-setup.mjs, .business-overlay-report.json) plus RELEASE_NOTES_v0.17.7.md untracked. go.mod and go.sum were touched by the rebuild's go mod edit -require pass and then returned to the committed content by go mod tidy, so they are not part of the delta."
+    },
+    {
+      "command": "grep -c 'codeql go/log-injection' backend/pkg/logging/logger.go && grep -c 'codeql js/file-access-to-http' frontend/scripts/tenant-matrix-fixture-setup.mjs && grep -c 'nolint:revive' backend/modules/system/config/setting/setting_service.go && cat VERSION",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "4, 7, 1 and 0.17.7: the three base-owned dispositions landed in the consumer tree through the rebuild rather than by hand-copy."
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "OK business overlay contract (53 declared paths, rebuilt tree)."
+    },
+    {
+      "command": "node scripts/business-overlay/check-shared-drift.mjs --base ../pantheon-base",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "OK shared drift check: 805 shared files identical to base, 10 allowlisted drift, 160 business-overlay files skipped. The local Base checkout is at 2091a2d, the consumed commit, so this drift read compares the consumer against the release itself, not against a later main."
+    },
+    {
+      "command": "node --test tests/scripts/business-overlay/*.test.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "13 tests, 13 pass, 0 fail, 0 skipped."
+    },
+    {
+      "command": "go mod tidy",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "RC 0 and, more importantly, no residual diff: the rebuild's module assembly is exactly the graph the v0.17.6 round was tidied into, which proves v0.17.7 moved no dependency."
+    },
+    {
+      "command": "go build ./...",
+      "cwd": "backend",
+      "status": "passed"
+    },
+    {
+      "command": "go vet ./...",
+      "cwd": "backend",
+      "status": "passed"
+    },
+    {
+      "command": "gofmt -l .",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "0 unformatted files; gofmt -w was needed once on deploy_model.go after inserting the named constant into the existing const block."
+    },
+    {
+      "command": "go test -count=1 ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "RC 0, 63 ok lines, no FAIL. Package-local skips are covered by the dedicated skip-masking gate, not by this run."
+    },
+    {
+      "command": "go test -count=1 ./modules/business/deploy/...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Regression cover for the goconst repair: the nginx service-name fallback and the component-type map are asserted by deploy_service_test.go, and the package stays green after the literal is replaced by defaultNginxServiceName."
+    },
+    {
+      "command": "golangci-lint run --path-mode=abs --max-issues-per-linter 0 --max-same-issues 0 --new-from-rev=edcca7eb7bcbfd264e9c437e73ea44a7adfcd454 ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "0 issues. The hosted Go Lint job on the previous head (ebd4356) failed on exactly two findings: goconst on deploy_rollback.go:81 (fixed in this round) and revive on setting_service.go:45 (fixed by the consumed base nolint)."
+    },
+    {
+      "command": "node scripts/check-encoding.mjs --strict",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "0 finding(s) across 2065 scanned file(s)."
+    },
+    {
+      "command": "node scripts/harness/check-structure-contract.mjs --root . --strict",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "0 finding(s) across 2238 tracked file(s)."
+    },
+    {
+      "command": "node scripts/frontmatter-check.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Frontmatter check passed. Checked 404 docs, 276 with frontmatter."
+    },
+    {
+      "command": "node scripts/check-duplication.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Result: PASS."
+    },
+    {
+      "command": "gh api --method PATCH repos/duanxldragon/pantheon-ops/code-scanning/alerts/{56..64}",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Nine dismissals: 56 (go/log-injection) false positive because every sink routes message and fields through SanitizeLogValue, which maps CR/LF/U+2028/U+2029 to a space and drops other control characters except TAB, with TestSanitizeLogMessage and TestSanitizeLogFields as regression cover; 57-63 (js/file-access-to-http) used in tests because the taint source is the manifest the fixture writes itself into gitignored .tmp and the values only call the backend that fixture provisioned; 64 (go/path-injection) mitigated because normalizeLocalStoragePath rejects traversal before filepath.Clean and object paths go through filepath.Base at storage_service.go:254. The REST schema on this host rejects dismissal_comment, so the reasons live here and in review.md instead of on the alert object."
+    },
+    {
+      "command": "gh api 'repos/duanxldragon/pantheon-ops/code-scanning/alerts?state=open&per_page=100&ref=refs/pull/149/merge' --jq length and the same query without ref",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Open alerts went from 9 to 0 on the PR ref and stay 0 on the default branch; repo-wide open is 0."
+    },
+    {
+      "command": "node scripts/fetch-github-feedback.mjs --check --repo duanxldragon/pantheon-ops --pr 149",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "RC 0 with no BLOCKED lines. The nine code-scanning review threads on PR #149 read isResolved true after the alerts were dismissed, which is what the hosted GitHub Feedback Prereq job failed on (7 blocked actionable-change items on head ebd4356)."
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -b && node node_modules/eslint/bin/eslint.js src tests --max-warnings 0 && node node_modules/vite/bin/vite.js build",
+      "cwd": "frontend",
+      "status": "not-run",
+      "notes": "Deliberately skipped in this round. The v0.17.7 consumer delta touches no frontend/src file: the only frontend path in the delta is a Node-side smoke fixture script, and the hosted Frontend Contract and Smoke Sanity jobs were already green on this branch and re-run on the pushed commit."
+    },
+    {
+      "command": "runtime smoke (backend startup plus golang-migrate to 000030 on a fresh database)",
+      "cwd": ".",
+      "status": "not-run",
+      "notes": "Inherited gap from the v0.17.6 round, unchanged by this release: v0.17.7 does not move the schema, so no new runtime exposure was introduced. Requires a MySQL instance and credentials that are deliberately not part of this evidence set."
+    }
+  ],
+  "knownGaps": [
+    "Runtime acceptance (backend startup + golang-migrate to 000030 + tenant-operations menu seeding) has still not been executed in a consumer evidence set; no database credentials are recorded here.",
+    "The hosted SonarCloud Scan job fails with 'Failed to query JRE metadata: GET https://api.sonarcloud.io/analysis/jres ... 403 Forbidden' although SONAR_TOKEN and SONAR_HOST_URL both exist as repository secrets, so the credential itself is stale; it is not a required context and fixing it needs a maintainer token rotation.",
+    "Ops still has no consumer-side versioned migration channel; four business modules rely on AutoMigrate.",
+    "Historical .harness/evidence packages predate the current strict commands.json object schema; that debt predates this swap and was not rewritten here.",
+    "Base's inline // codeql annotations are documentation only; the alert state lives in GitHub, so any release that ships such annotations must also record the dismissal, otherwise the consumer inherits open alerts."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7/manifest.json",
+    "taskPacket": "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7.task.md",
+    "evidenceDir": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/",
+    "summaryFile": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/summary.md",
+    "reviewFile": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7.task.md",
+      "docs/PROJECT_INHERITANCE.md"
+    ]
+  },
+  "completedAt": "2026-10-27"
+}

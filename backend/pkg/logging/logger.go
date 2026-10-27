@@ -101,6 +101,7 @@ func Sync() {
 //	fields: 结构化字段，如 zap.String("key", "value")
 func Info(msg string, fields ...zap.Field) {
 	if Logger != nil {
+		// codeql go/log-injection: this is a false positive -- SanitizeLogValue strips CR, LF, Unicode line separators and other control characters, and sanitizeLogFields applies the same sanitizer to every field; TestSanitizeLogMessage and TestSanitizeLogFields cover it.
 		Logger.Info(SanitizeLogValue(msg), sanitizeLogFields(fields)...)
 	}
 }
@@ -108,6 +109,7 @@ func Info(msg string, fields ...zap.Field) {
 // Warn 记录 Warn 级别的警告日志
 func Warn(msg string, fields ...zap.Field) {
 	if Logger != nil {
+		// codeql go/log-injection: this is a false positive -- SanitizeLogValue strips CR, LF, Unicode line separators and other control characters, and sanitizeLogFields applies the same sanitizer to every field; TestSanitizeLogMessage and TestSanitizeLogFields cover it.
 		Logger.Warn(SanitizeLogValue(msg), sanitizeLogFields(fields)...)
 	}
 }
@@ -115,6 +117,7 @@ func Warn(msg string, fields ...zap.Field) {
 // Error 记录 Error 级别的错误日志
 func Error(msg string, fields ...zap.Field) {
 	if Logger != nil {
+		// codeql go/log-injection: this is a false positive -- SanitizeLogValue strips CR, LF, Unicode line separators and other control characters, and sanitizeLogFields applies the same sanitizer to every field; TestSanitizeLogMessage and TestSanitizeLogFields cover it.
 		Logger.Error(SanitizeLogValue(msg), sanitizeLogFields(fields)...)
 	}
 }
@@ -122,6 +125,7 @@ func Error(msg string, fields ...zap.Field) {
 // Debug 记录 Debug 级别的调试日志
 func Debug(msg string, fields ...zap.Field) {
 	if Logger != nil {
+		// codeql go/log-injection: this is a false positive -- SanitizeLogValue strips CR, LF, Unicode line separators and other control characters, and sanitizeLogFields applies the same sanitizer to every field; TestSanitizeLogMessage and TestSanitizeLogFields cover it.
 		Logger.Debug(SanitizeLogValue(msg), sanitizeLogFields(fields)...)
 	}
 }

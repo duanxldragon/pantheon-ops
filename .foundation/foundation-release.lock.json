@@ -1,59 +1,61 @@
 {
   "schemaVersion": 1,
   "consumer": "pantheon-ops",
-  "lockedRelease": "pantheon-base-v0.17.6",
+  "lockedRelease": "pantheon-base-v0.17.7",
   "releaseLine": "release/0.17",
-  "baseCommit": "c9bc6c0f5d351016afb4fffdedf12e72cc73e61d",
-  "supersedes": "pantheon-base-v0.16.1",
-  "lockedAt": "2026-10-27T02:05:00Z",
-  "source": "https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.17.6",
+  "baseCommit": "2091a2d8409e6b4ed933b19c8ff8870f2d0eedbe",
+  "supersedes": "pantheon-base-v0.17.6",
+  "lockedAt": "2026-10-27T04:54:43Z",
+  "source": "https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.17.7",
   "verification": {
     "tgzChecksumVerified": true,
     "repoTarChecksumVerified": true,
-    "tgzSha256": "dbf1edd8f4bd082baee817c8e7797d298cf70f20d41b38c60d7bd39a5f362e35",
-    "repoTarSha256": "7a44e9ce0ed642e6d2d1f1508ef488292c46148da4a9e42a3f04ad848fda645d",
-    "tagObject": "2bc799663f83d00959d54c0c300d6393467f0d19",
-    "publishedAt": "2026-10-27T01:39:12Z",
+    "tgzSha256": "a101f5f6376e92bf6dc10bea4fff0954ab43202d123d6030abfc61a58de59585",
+    "repoTarSha256": "6b62cd453d949a85f3a70b8a82eb4a69f6470c2f404b53202a57664ea5dad98c",
+    "tagObject": "6866fee007731280ee4914ffc2fc51769bcf3755",
+    "publishedAt": "2026-10-27T04:52:26Z",
+    "releaseAssetCount": 4,
     "releaseGateSummary": "success",
-    "releaseGateRun": "40431521256",
-    "foundationReleaseVerifyRun": "40433836341",
-    "sonarCloudUnresolvedIssues": 0,
-    "codeQlOpenAlerts": 0,
+    "releaseGateRun": "40450323981",
+    "foundationReleaseVerifyRun": "40452121919",
+    "baseSonarCloudGate": "success",
+    "baseCodeQlOpenAlerts": 0,
+    "sharedPathsMatchReleaseManifest": true,
     "materializedLayoutMatchesPriorReleases": false
   },
   "materialization": {
-    "releasesDir": ".foundation/releases/pantheon-base-v0.17.6",
-    "archive": "foundation-release-pantheon-base-v0.17.6.tgz",
+    "releasesDir": ".foundation/releases/pantheon-base-v0.17.7",
+    "archive": "foundation-release-pantheon-base-v0.17.7.tgz",
     "repoArchive": "repo.tar",
     "extractedRepo": "repo/",
     "manifest": "manifest.json (inside the tgz; not extracted to the releases dir)",
-    "note": "Unlike the v0.16.1 snapshot this release keeps the bundle inside the tgz, so rebuild-from-base.mjs reads the archive and the extracted repo/ rather than a pre-extracted bundle/ directory."
+    "note": "Same layout as v0.17.6: bundle/ and manifest.json stay inside the tgz, so rebuild-from-base.mjs reads the archive and the extracted repo/ rather than a pre-extracted bundle/ directory."
   },
   "pendingWork": [
     {
       "item": "baseline-swap",
-      "description": "Apply the rebuilt v0.17.6 assembly to the ops source tree",
+      "description": "Apply the rebuilt v0.17.7 assembly to the ops source tree",
       "blockedBy": "none",
       "status": "done",
       "completedAt": "2026-10-27",
-      "result": "418 files changed, 32638 insertions(+), 2573 deletions(-) (136 added, 2 deleted, 275 modified, 5 case-only renames). The renames needed the old paths removed from the index and disk first because Windows cannot express a case-only rename by copying."
+      "result": "6 tracked paths changed and 1 added: foundation-release.lock.json, VERSION (0.17.7), backend/pkg/logging/logger.go, backend/modules/system/config/setting/setting_service.go, frontend/scripts/tenant-matrix-fixture-setup.mjs, .business-overlay-report.json and RELEASE_NOTES_v0.17.7.md. go.mod/go.sum were re-tidied back to the byte-identical v0.17.6 content, which is the expected result because base did not move any dependency in v0.17.7. CHANGELOG.md and README*.md did not move because ops owns those overlay paths."
     },
     {
       "item": "post-swap-verification",
-      "description": "Run business-overlay gates, shared-drift hash check, backend build/test and frontend type-check after the baseline swap",
+      "description": "Run the consumer gates on the v0.17.7 tree and the ops-owned lint finding that PR #149 still carried",
       "blockedBy": "baseline-swap",
       "status": "done",
       "completedAt": "2026-10-27",
-      "result": "shared drift 805 identical / 10 allowlisted / 160 skipped on both the staged tree and the worktree; overlay contract 53 declared paths; 13/13 business-overlay tests; backend build, vet, gofmt 0, go test ./... RC 0 (63 ok) and the CI rebuilt-tree form 19 packages ok; frontend tsc -b, vite build, eslint --max-warnings 0 and all 14 prebuild contract checks green; structure 2233 files, encoding 2060 files, frontmatter 404 docs, duplication PASS; evidence, review, task-packet and adoption checks all 0 findings.",
-      "evidence": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/commands.json"
+      "result": "asset digests equal the lock and the published .sha256 sidecars; rebuild-from-base (lock-resolved) reported base commit 2091a2d with 751 declared/generated files; shared drift 805 identical / 10 allowlisted / 160 skipped; overlay contract 53 declared paths; 13/13 business-overlay tests; backend build, vet, gofmt 0 and go test ./... RC 0 (63 ok); golangci-lint with the CI scope (new-from-rev edcca7eb) reports 0 issues, down from the 2 issues the hosted Go Lint job failed on; encoding 2065 files, structure 2238 files, frontmatter 404 docs and duplication PASS.",
+      "evidence": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/commands.json"
     },
     {
       "item": "runtime-acceptance",
       "description": "Start the backend against a fresh database and run golang-migrate to 000030, then verify the tenant-operations menu group and its 5 permission codes seed correctly alongside the ops business seeds",
       "blockedBy": "none",
       "status": "open",
-      "reason": "Needs a MySQL instance and credentials that are deliberately not part of this ledger; the swap moved the schema baseline, so static gates cannot prove it."
+      "reason": "Needs a MySQL instance and credentials that are deliberately not part of this ledger; v0.17.7 does not move the schema (baseline stays 000030), so this gap is inherited unchanged from the v0.17.6 round."
     }
   ],
-  "notes": "v0.17.6 is the first base release with published assets since v0.16.1. The tag object 2bc79966 points at c9bc6c0f, the squash merge of the v0.17.6 release-material PR #428; the four release assets were verified against their own .sha256 sidecars and re-hashed locally after materialization. Release Gate run 40431521256 and Foundation Release Verify run 40433836341 are both success on the tagged commit, and the bundle's verification-summary.json still only declares the six required checks without per-check results, so those results were read back from the GitHub API instead of asserted from the bundle. The release is not schema-neutral: base migrations now run to 000030 (tenant_plans) and the menu seed moves 租户管理 under a new 租户运营 group with five new permission codes, so the ops swap must re-verify the schema guard, the menu/permission contract checks and the business smoke expectations."
+  "notes": "v0.17.7 is a lint-and-CodeQL release: base commit 2091a2d is the squash merge of base PR #430, the tag object 6866fee is annotated, and the four assets were re-hashed locally after materialization and matched both the lock and their own sidecars. Release Gate run 40450323981 and Foundation Release Verify run 40452121919 are both success on the tagged commit; the bundle's verification-summary.json still only lists the six required checks without per-check results, so those results were read back from the GitHub API rather than asserted from the bundle. The consumer delta is three base-owned files: the revive nolint on setting.SettingService, the four go/log-injection false-positive annotations on the zap sinks, and the seven js/file-access-to-http annotations in the tenant-matrix smoke fixture, plus VERSION and the release notes. Nothing in v0.17.7 moves an API, a DTO, a migration or a permission, so no consumer contract beyond the lock had to change."
 }

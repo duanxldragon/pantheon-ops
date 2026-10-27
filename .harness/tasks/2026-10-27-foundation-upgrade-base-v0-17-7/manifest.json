@@ -1,0 +1,194 @@
+{
+  "taskId": "2026-10-27-foundation-upgrade-base-v0-17-7",
+  "title": "Consume pantheon-base-v0.17.7 into pantheon-ops",
+  "goal": "Advance the Ops consumer from pantheon-base-v0.17.6 to the published pantheon-base-v0.17.7 so the tree inherits base's revive and CodeQL false-positive dispositions, repair the one remaining ops-owned goconst finding in the deploy package, and record the GitHub-side disposition that actually closes the nine open code scanning alerts on PR #149.",
+  "primaryLayer": "inheritance-sync",
+  "taskDoc": "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7.task.md",
+  "status": "complete",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "dependsOn": [
+    "pantheon-base v0.17.7 release (tag object 6866fee0, target commit 2091a2d8)"
+  ],
+  "blocks": [
+    "ops branch and pull-request closeout to main only"
+  ],
+  "scope": {
+    "in": [
+      "Update foundation-release.lock.json to pantheon-base-v0.17.7: version, base commit, asset name, materialization path, bundle checksum and repo.tar checksum.",
+      "Rewrite .foundation/foundation-release.lock.json with the release identity and the Release Gate / Foundation Release Verify facts read back from GitHub.",
+      "Rebuild the Ops tree from the locked release snapshot, apply it, and re-tidy the merged Go module graph.",
+      "Name the repeated nginx service string in backend/modules/business/deploy so golangci-lint reports zero issues in the CI scope.",
+      "Dismiss the nine open code scanning alerts on the PR ref with per-alert reasons and re-run the PR feedback gate."
+    ],
+    "out": [
+      "Any change to the pantheon-base repository, an existing tag, a published release or its assets.",
+      "Hand-copying base files into the Ops source tree instead of materializing the locked release.",
+      "Rewriting CHANGELOG.md or README*.md from base; those are Ops overlay paths by contract.",
+      "Any behaviour change in business modules beyond the goconst repair.",
+      "Rotating the SonarCloud token, and merging or closing the open Dependabot pull requests."
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7.task.md",
+      ".harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7/manifest.json",
+      ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/commands.json",
+      ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/summary.md",
+      ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/review.md",
+      "RELEASE_NOTES_v0.17.7.md"
+    ],
+    "modify": [
+      "foundation-release.lock.json",
+      ".foundation/foundation-release.lock.json",
+      "VERSION",
+      "backend/pkg/logging/logger.go",
+      "backend/modules/system/config/setting/setting_service.go",
+      "frontend/scripts/tenant-matrix-fixture-setup.mjs",
+      ".business-overlay-report.json",
+      "backend/modules/business/deploy/deploy_model.go",
+      "backend/modules/business/deploy/deploy_helpers.go",
+      "backend/modules/business/deploy/deploy_rollback.go",
+      "backend/modules/business/deploy/deploy_service.go"
+    ],
+    "doNotTouch": [
+      ".foundation/allowed-drift.json",
+      ".foundation/releases/** for previously materialized releases",
+      "any existing tag, release or release asset",
+      "CHANGELOG.md, README.md, README.en.md (Ops overlay copies)"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "foundation-release.lock.json",
+    ".foundation/foundation-release.lock.json",
+    ".foundation/allowed-drift.json",
+    "business-overlay.json",
+    "scripts/business-overlay/rebuild-from-base.mjs",
+    "scripts/fetch-github-feedback.mjs"
+  ],
+  "implementationNotes": [
+    "rebuild-from-base.mjs resolves the base from the lock when --base is omitted, so the round consumed the published v0.17.7 archive; the local Base checkout happens to sit on the same commit, which is what makes the against-main drift read meaningful.",
+    "go mod tidy reproduced go.mod and go.sum byte-identical to the v0.17.6 round, proving v0.17.7 moved no dependency; without the tidy the rebuild output reverts to Base's shorter indirect block and the tree does not build.",
+    "The inline // codeql annotations added in base v0.17.7 document the conclusion for a human reader but do not change GitHub alert state; alerts 56-64 stayed open until dismissed through the REST API, the same way 52 and 53 were in August.",
+    "Dismissals were applied by alert number, not line number, because the annotation comments shift lines while CodeQL's primaryLocationLineHash stays stable.",
+    "goconst counted seven occurrences of the nginx literal, four of them in production code; naming it once as defaultNginxServiceName removes all four and leaves only test fixtures."
+  ],
+  "harnessProfile": {
+    "template": "api-service",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "foundation-release-consumer",
+    "portableFailureClass": "consumer-lock-drift",
+    "ownerLayer": "inheritance-boundary",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality",
+      "method-health"
+    ]
+  },
+  "methodReadiness": {
+    "consumerSpecificControls": [
+      "immutable release consumption",
+      "release identity read back from GitHub instead of asserted from the bundle",
+      "code scanning disposition recorded per alert with its own reason"
+    ],
+    "requiredSensors": [
+      "command"
+    ],
+    "requiredEvidence": [
+      "commands.json",
+      "summary.md",
+      "review.md"
+    ],
+    "ratchetDecision": "gate-updated",
+    "deferredCodeIssues": [
+      "Ops business modules still create their schema through AutoMigrate instead of a consumer versioned-migration channel; no such channel exists in base",
+      "Runtime acceptance on a fresh database (startup plus golang-migrate to 000030) is still not executed in a consumer evidence set",
+      "the hosted SonarCloud Scan job fails with HTTP 403 from api.sonarcloud.io even though SONAR_TOKEN and SONAR_HOST_URL exist as repo secrets; needs a credential refresh, which is a maintainer action"
+    ]
+  },
+  "deliveryGovernance": {
+    "designGate": [
+      "inheritance boundary note: base owns the shared surface, ops consumes an immutable release snapshot and owns CHANGELOG/README overlays"
+    ],
+    "developmentGate": [
+      "lock and ledger updated together",
+      "rebuilt tree applied through the assembly, not by hand-copying",
+      "ops-owned lint finding fixed at its source"
+    ],
+    "qaAcceptanceGate": [
+      "business-overlay contract, shared-drift gate and 13 overlay tests on the applied tree",
+      "backend build/vet/gofmt/test on the tidied merged module graph",
+      "golangci-lint in the hosted CI scope reporting 0 issues",
+      "code scanning open-alert count zero repo-wide and the PR feedback gate passing locally"
+    ],
+    "githubGovernanceGate": [
+      "consumer-lock-drift"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "foundation release -> consumer lock -> rebuilt tree -> shared surface files -> Go lint and code scanning gates"
+    ],
+    "riskNodes": [
+      "shared prefix of the ops tree",
+      "Go module graph tidy step",
+      "deploy package service-name fallback",
+      "code scanning alert state"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "sha256sum .foundation/releases/pantheon-base-v0.17.7/foundation-release-pantheon-base-v0.17.7.tgz .foundation/releases/pantheon-base-v0.17.7/repo.tar",
+      "node scripts/business-overlay/rebuild-from-base.mjs",
+      "node scripts/business-overlay/check-business-overlay.mjs",
+      "node scripts/business-overlay/check-shared-drift.mjs --base ../pantheon-base",
+      "node --test tests/scripts/business-overlay/*.test.mjs",
+      "go mod tidy && go build ./... && go vet ./... && gofmt -l .",
+      "go test -count=1 ./...",
+      "golangci-lint run --path-mode=abs --max-issues-per-linter 0 --max-same-issues 0 --new-from-rev=edcca7eb7bcbfd264e9c437e73ea44a7adfcd454 ./...",
+      "node scripts/check-encoding.mjs --strict && node scripts/harness/check-structure-contract.mjs --root . --strict && node scripts/frontmatter-check.mjs && node scripts/check-duplication.mjs",
+      "node scripts/fetch-github-feedback.mjs --check --repo duanxldragon/pantheon-ops --pr 149",
+      "code scanning alert counts before and after the dismissal"
+    ],
+    "runtimeEvidence": [
+      "asset digests compared with the lock and the published .sha256 sidecars",
+      "sharedPaths deep-equality between the Ops lock and the manifest.json read out of the release tgz",
+      "golangci-lint run in the hosted scope on the repaired tree",
+      "GitHub code scanning open-alert count for the PR ref and repo-wide"
+    ]
+  },
+  "runtimeSensitive": true,
+  "costProfile": {
+    "tokens": "small",
+    "note": "incremental release consumption; the only product change is one named constant"
+  },
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/",
+    "reviewFile": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/review.md",
+    "summaryFile": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7.task.md"
+    ]
+  },
+  "evidenceRequired": [
+    "release identity and both asset digests re-hashed after materialization",
+    "sharedPaths equivalence between the Ops lock and the v0.17.7 release manifest",
+    "overlay contract, shared-drift and overlay test results on the applied tree",
+    "backend build/vet/gofmt/test and the CI-scoped golangci-lint result",
+    "the nine dismissed alert numbers with their reasons and the open count before and after",
+    "review summary"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Release identity verified from GitHub",
+    "Baseline advanced through the locked assembly",
+    "Code scanning disposition recorded per alert",
+    "Evidence saved",
+    "Review completed"
+  ]
+}

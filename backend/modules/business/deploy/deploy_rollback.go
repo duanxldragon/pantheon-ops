@@ -78,7 +78,7 @@ func buildComponentHealthCheck(templateCode string, params map[string]any) strin
 	switch templateCode {
 	case TemplateCodeNginxSystemd:
 		if serviceName == "" {
-			serviceName = "nginx"
+			serviceName = defaultNginxServiceName
 		}
 		return fmt.Sprintf("systemctl is-active --quiet %s", serviceName)
 	case TemplateCodeRedisSystemd:
@@ -123,7 +123,7 @@ func buildComponentUninstallHealthCheck(templateCode string, params map[string]a
 	switch templateCode {
 	case TemplateCodeNginxSystemd, TemplateCodeHarborOffline:
 		if serviceName == "" {
-			serviceName = "nginx"
+			serviceName = defaultNginxServiceName
 		}
 		return fmt.Sprintf("! systemctl is-active --quiet %s", serviceName)
 	case TemplateCodeRedisSystemd, TemplateCodeMySQLSystemd, TemplateCodeMinIOSystemd, TemplateCodePrometheusSystemd:

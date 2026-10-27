@@ -2,22 +2,22 @@
   "schemaVersion": 1,
   "baseRepo": "duanxldragon/pantheon-base",
   "releaseLine": "release/0.17",
-  "releaseVersion": "pantheon-base-v0.17.6",
-  "baseCommit": "c9bc6c0f5d351016afb4fffdedf12e72cc73e61d",
+  "releaseVersion": "pantheon-base-v0.17.7",
+  "baseCommit": "2091a2d8409e6b4ed933b19c8ff8870f2d0eedbe",
   "consumerMode": "foundation-release-consumer",
   "releaseArtifact": {
     "githubRepo": "duanxldragon/pantheon-base",
-    "assetName": "foundation-release-pantheon-base-v0.17.6.tgz",
-    "localPath": ".foundation/releases/pantheon-base-v0.17.6",
-    "checksum": "dbf1edd8f4bd082baee817c8e7797d298cf70f20d41b38c60d7bd39a5f362e35"
+    "assetName": "foundation-release-pantheon-base-v0.17.7.tgz",
+    "localPath": ".foundation/releases/pantheon-base-v0.17.7",
+    "checksum": "a101f5f6376e92bf6dc10bea4fff0954ab43202d123d6030abfc61a58de59585"
   },
   "repoSnapshot": {
     "assetName": "repo.tar",
-    "sha256": "7a44e9ce0ed642e6d2d1f1508ef488292c46148da4a9e42a3f04ad848fda645d",
-    "baseCommit": "c9bc6c0f5d351016afb4fffdedf12e72cc73e61d",
+    "sha256": "6b62cd453d949a85f3a70b8a82eb4a69f6470c2f404b53202a57664ea5dad98c",
+    "baseCommit": "2091a2d8409e6b4ed933b19c8ff8870f2d0eedbe",
     "generatedFrom": "git-archive"
   },
-  "lockedAt": "2026-10-27T02:05:00Z",
+  "lockedAt": "2026-10-27T04:54:43Z",
   "lockedBy": "qoder-agent",
   "sharedPaths": {
     "backend": [

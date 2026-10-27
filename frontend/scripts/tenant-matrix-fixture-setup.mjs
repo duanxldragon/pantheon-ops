@@ -92,6 +92,7 @@ async function loginTenantAdmin(tenant) {
   const res = await fetch(`${base}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    // codeql js/file-access-to-http: this is a false positive -- this local smoke fixture only calls the backend it provisions against, using identifiers read back from the manifest file it wrote itself under the gitignored .tmp directory.
     body: JSON.stringify({
       username: tenant.adminUsername,
       password: tenant.adminPassword,
@@ -118,6 +119,7 @@ async function getOperationToken(
       'X-CSRF-Token': session.csrfToken,
       'Content-Type': 'application/json',
     },
+    // codeql js/file-access-to-http: this is a false positive -- this local smoke fixture only calls the backend it provisions against, using identifiers read back from the manifest file it wrote itself under the gitignored .tmp directory.
     body: JSON.stringify({ password }),
   });
   const body = await res.json();
@@ -165,6 +167,7 @@ async function provisionTenant(session, spec) {
 }
 
 async function listDictTypes(session, dictCode) {
+  // codeql js/file-access-to-http: this is a false positive -- this local smoke fixture only calls the backend it provisions against, using identifiers read back from the manifest file it wrote itself under the gitignored .tmp directory.
   const res = await fetch(`${base}/system/dict/type/list?dictCode=${encodeURIComponent(dictCode)}`, {
     headers: {
       Authorization: `Bearer ${session.accessToken}`,
@@ -217,6 +220,7 @@ async function deleteDictType(session, operationToken, typeId) {
 }
 
 async function listMembers(platform, tenantId) {
+  // codeql js/file-access-to-http: this is a false positive -- this local smoke fixture only calls the backend it provisions against, using identifiers read back from the manifest file it wrote itself under the gitignored .tmp directory.
   const res = await fetch(`${base}/system/tenant/${tenantId}/members?page=1&pageSize=100`, {
     headers: {
       Authorization: `Bearer ${platform.accessToken}`,
@@ -230,6 +234,7 @@ async function listMembers(platform, tenantId) {
 }
 
 async function deleteMember(platform, tenantId, userId, operationToken) {
+  // codeql js/file-access-to-http: this is a false positive -- this local smoke fixture only calls the backend it provisions against, using identifiers read back from the manifest file it wrote itself under the gitignored .tmp directory.
   const res = await fetch(`${base}/system/tenant/${tenantId}/members/${userId}`, {
     method: 'DELETE',
     headers: {
@@ -247,6 +252,7 @@ async function deleteMember(platform, tenantId, userId, operationToken) {
 }
 
 async function archiveTenant(platform, tenantId, operationToken) {
+  // codeql js/file-access-to-http: this is a false positive -- this local smoke fixture only calls the backend it provisions against, using identifiers read back from the manifest file it wrote itself under the gitignored .tmp directory.
   const res = await fetch(`${base}/system/tenant/${tenantId}`, {
     method: 'PUT',
     headers: {
@@ -266,6 +272,7 @@ async function archiveTenant(platform, tenantId, operationToken) {
 }
 
 async function deleteTenant(platform, tenantId, operationToken) {
+  // codeql js/file-access-to-http: this is a false positive -- this local smoke fixture only calls the backend it provisions against, using identifiers read back from the manifest file it wrote itself under the gitignored .tmp directory.
   const res = await fetch(`${base}/system/tenant/${tenantId}`, {
     method: 'DELETE',
     headers: {

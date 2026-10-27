@@ -21,8 +21,12 @@ const (
 	TemplateCodeHarborOffline     = "harbor_offline"
 	TemplateCodeJDKSystemd        = "jdk_systemd"
 	TemplateCodePrometheusSystemd = "prometheus_systemd"
-	TemplateStepTypePackage       = "package"
-	TemplateStepTypeScript        = "script"
+	// defaultNginxServiceName is both the nginx component type key and the
+	// systemd unit the nginx/harbor templates fall back to when a task omits
+	// serviceName.
+	defaultNginxServiceName = "nginx"
+	TemplateStepTypePackage = "package"
+	TemplateStepTypeScript  = "script"
 
 	TemplateStatusEnabled  = "enabled"
 	TemplateStatusDisabled = "disabled"

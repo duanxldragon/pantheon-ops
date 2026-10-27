@@ -183,13 +183,13 @@ func isComponentType(stepType string) bool {
 // componentTypeToTemplateCode maps component step types to their built-in
 // fixed template codes.
 var componentTypeToTemplateCode = map[string]string{
-	"nginx":      TemplateCodeNginxSystemd,
-	"redis":      TemplateCodeRedisSystemd,
-	"jdk":        TemplateCodeJDKSystemd,
-	"mysql":      TemplateCodeMySQLSystemd,
-	"minio":      TemplateCodeMinIOSystemd,
-	"harbor":     TemplateCodeHarborOffline,
-	"prometheus": TemplateCodePrometheusSystemd,
+	defaultNginxServiceName: TemplateCodeNginxSystemd,
+	"redis":                 TemplateCodeRedisSystemd,
+	"jdk":                   TemplateCodeJDKSystemd,
+	"mysql":                 TemplateCodeMySQLSystemd,
+	"minio":                 TemplateCodeMinIOSystemd,
+	"harbor":                TemplateCodeHarborOffline,
+	"prometheus":            TemplateCodePrometheusSystemd,
 }
 
 // validStepType reports whether a step type is a package step, a script step,
