@@ -1,13 +1,17 @@
+---
+title: Pantheon-Ops SRE 演进计划
+doc_type: Design
+layer: platform
+status: Active
+author: duanxldragon
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-07-17
+---
+
 # Pantheon-Ops SRE 演进计划
 
 English version: [PLATFORM_SRE_EVOLUTION_PLAN.en.md](./PLATFORM_SRE_EVOLUTION_PLAN.en.md)
-
-更新时间：2026-07-17
-
-类型：Design (Roadmap)
-归属层：platform
-状态：Active
-作者：duanxldragon
 
 本文定义 pantheon-ops 从 Web 运维管理平台向 K8s-native SRE 平台演进的完整路线图。
 基于当前代码基线（2026-05-11）的实际能力缺口制定，与 `BUSINESS_DEPLOY_MODULE_DESIGN.md` §1

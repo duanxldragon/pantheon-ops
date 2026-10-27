@@ -1,4 +1,4 @@
-package config
+package setting
 
 type SettingResp struct {
 	ID           uint64 `json:"id"`

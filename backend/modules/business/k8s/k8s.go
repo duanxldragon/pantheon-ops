@@ -1,14 +1,22 @@
 package k8s
 
 import (
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/modules/business/k8s/cluster"
-	"pantheon-base/modules/business/k8s/configmap"
-	"pantheon-base/modules/business/k8s/namespace"
-	"pantheon-base/modules/business/k8s/release"
-	"pantheon-base/modules/business/k8s/secret"
-	"pantheon-base/modules/business/k8s/workload"
-	"pantheon-base/pkg/contracts"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/host"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/backup"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/configmap"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/helm"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/ingress"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/install"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/namespace"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/rbac"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/release"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/secret"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/service"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/storage"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/workload"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -20,6 +28,7 @@ const (
 	operationsK8sClusterMenu   = "operations.k8s.cluster.menu"
 	operationsK8sWorkloadMenu  = "operations.k8s.workload.menu"
 	operationsK8sReleaseMenu   = "operations.k8s.release.menu"
+	operationsK8sServiceMenu   = "operations.k8s.service.menu"
 	k8sClusterPermViewKey      = "business.k8s.cluster.permission.view"
 	k8sClusterPermCreateKey    = "business.k8s.cluster.permission.create"
 	k8sClusterPermUpdateKey    = "business.k8s.cluster.permission.update"
@@ -46,30 +55,70 @@ const (
 	k8sReleasePermCreateKey    = "business.k8s.release.permission.create"
 	k8sReleasePermRollbackKey  = "business.k8s.release.permission.rollback"
 	k8sReleasePermReconcileKey = "business.k8s.release.permission.reconcile"
-	menuPathWhereClause        = "path = ?"
+	operationsK8sIngressMenu   = "operations.k8s.ingress.menu"
+	k8sIngressPermViewKey      = "business.k8s.ingress.permission.view"
+	k8sIngressPermCreateKey    = "business.k8s.ingress.permission.create"
+	k8sIngressPermUpdateKey    = "business.k8s.ingress.permission.update"
+	k8sIngressPermDeleteKey    = "business.k8s.ingress.permission.delete"
+	operationsK8sStorageMenu   = "operations.k8s.storage.menu"
+	k8sStoragePermViewKey      = "business.k8s.storage.permission.view"
+	k8sStoragePermCreateKey    = "business.k8s.storage.permission.create"
+	k8sStoragePermUpdateKey    = "business.k8s.storage.permission.update"
+	k8sStoragePermDeleteKey    = "business.k8s.storage.permission.delete"
+	// Velero backup module is disabled in v1.0; the menu/permission keys are
+	// retained as constants for the v1.2 re-enablement (unused in v1.0).
+	operationsK8sBackupMenu = "operations.k8s.backup.menu"
+	k8sBackupPermViewKey    = "business.k8s.backup.permission.view"
+	k8sBackupPermCreateKey  = "business.k8s.backup.permission.create"
+	k8sBackupPermDeleteKey  = "business.k8s.backup.permission.delete"
+	menuPathWhereClause     = "path = ?"
 )
 
 const k8sRoutePath = "/business/k8s"
 
 // InitK8sModule registers Kubernetes business modules and returns target capabilities.
-func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, readers ...bizcap.BizScopeReader) bizcap.K8sTargetReader {
+func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, hostService *host.HostService, readers ...bizcap.BizScopeReader) bizcap.K8sTargetReader {
 	clusterSvc := cluster.NewClusterService(db, readers...)
 	clusterHandler := cluster.NewClusterHandler(clusterSvc)
 	namespaceSvc := namespace.NewNamespaceService(clusterSvc, db)
 	namespaceHandler := namespace.NewNamespaceHandler(namespaceSvc)
 	workloadSvc := workload.NewWorkloadService(clusterSvc, namespaceSvc)
-	workloadHandler := workload.NewWorkloadHandler(workloadSvc)
 	releaseSvc := release.NewReleaseService(db, clusterSvc, namespaceSvc)
 	clusterSvc.SetReferenceChecker(releaseSvc)
 	releaseHandler := release.NewReleaseHandler(releaseSvc)
 	configMapSvc := configmap.NewConfigMapService(clusterSvc, namespaceSvc)
-	configMapHandler := configmap.NewConfigMapHandler(configMapSvc)
 	secretSvc := secret.NewSecretService(clusterSvc, namespaceSvc)
-	secretHandler := secret.NewSecretHandler(secretSvc)
+	serviceSvc := service.NewServiceService(clusterSvc, namespaceSvc)
+
+	helmSvc := helm.NewHelmService(db)
+	helmHandler := helm.NewHelmHandler(helmSvc)
+
+	ingressSvc := ingress.NewIngressService(db, clusterSvc, namespaceSvc)
+	storageSvc := storage.NewStorageService(db, clusterSvc, namespaceSvc)
+
+	// Initialize K8s Install module
+	installSvc := install.InitInstallModule(r, db, hostService)
+
+	// Velero Backup module (v1.2 real integration: CRD create/delete, status
+	// reconciler, DataScope on reads). Routes are registered under the
+	// DataScopedGroup so token + Casbin + data-scope middleware apply.
+	backup.InitBackupModule(contracts.DataScopedGroup(r, k8sRoutePath, db), db, clusterSvc, namespaceSvc)
+
+	// Initialize RBAC module
+	rbacSvc := rbac.InitK8sRBACModule(r, db, clusterSvc)
+
+	workloadHandler := workload.NewWorkloadHandler(workloadSvc, rbacSvc)
+	configMapHandler := configmap.NewConfigMapHandler(configMapSvc, rbacSvc)
+	secretHandler := secret.NewSecretHandler(secretSvc, rbacSvc)
+	serviceHandler := service.NewServiceHandler(serviceSvc, rbacSvc)
+	ingressHandler := ingress.NewIngressHandler(ingressSvc, rbacSvc)
+	storageHandler := storage.NewStorageHandler(storageSvc, rbacSvc)
 
 	contracts.RegisterBackendModules(r, db, contracts.FuncModule{
-		ModuleName:    k8sModuleKey,
-		MigrateFunc:   func(_ *gorm.DB) error { return migrateAll(db, clusterSvc, namespaceSvc, releaseSvc) },
+		ModuleName: k8sModuleKey,
+		MigrateFunc: func(_ *gorm.DB) error {
+			return migrateAll(db, clusterSvc, namespaceSvc, releaseSvc, helmSvc, ingressSvc, storageSvc, rbacSvc, installSvc)
+		},
 		SeedMenusFunc: seedMenus,
 		SeedI18nFunc:  seedI18n,
 		Register: func(r *gin.RouterGroup) {
@@ -80,6 +129,11 @@ func InitK8sModule(r *gin.RouterGroup, db *gorm.DB, readers ...bizcap.BizScopeRe
 			releaseHandler.RegisterRoutes(k8s)
 			configMapHandler.RegisterRoutes(k8s)
 			secretHandler.RegisterRoutes(k8s)
+			serviceHandler.RegisterRoutes(k8s)
+			helmHandler.RegisterRoutes(k8s)
+			ingressHandler.RegisterRoutes(k8s)
+			storageHandler.RegisterRoutes(k8s)
+			// Install and RBAC routes are already registered in their Init functions
 		},
 	})
 	return NewTargetReader(clusterSvc)

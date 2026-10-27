@@ -3,7 +3,8 @@ package login
 import (
 	"strings"
 
-	"pantheon-base/pkg/rbacbind"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/rbacbind"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"gorm.io/gorm"
 )
@@ -82,8 +83,10 @@ func authMenuSeeds() []menuSeed {
 		{Key: "login-log-delete", ParentKey: menuKeyLoginLog, TitleKey: "system.permission.login_log.delete", Perms: "system:login-log:delete", Type: "F", Sort: 3},
 		{Key: "session-delete", ParentKey: "session", TitleKey: "system.permission.session.delete", Perms: "system:session:delete", Type: "F", Sort: 1},
 		{Key: "session-clear", ParentKey: "session", TitleKey: "system.permission.session.clear", Perms: "system:session:clear", Type: "F", Sort: 2},
+		{Key: "session-export", ParentKey: "session", TitleKey: "system.permission.session.export", Perms: "system:session:export", Type: "F", Sort: 3},
 		{Key: "security-event-acknowledge", ParentKey: menuKeySecurityEvent, TitleKey: "system.permission.security_event.acknowledge", Perms: "system:security-event:acknowledge", Type: "F", Sort: 1},
 		{Key: "security-event-clear", ParentKey: menuKeySecurityEvent, TitleKey: "system.permission.security_event.clear", Perms: "system:security-event:clear", Type: "F", Sort: 2},
+		{Key: "security-event-export", ParentKey: menuKeySecurityEvent, TitleKey: "system.permission.security_event.export", Perms: "system:security-event:export", Type: "F", Sort: 3},
 	}
 }
 
@@ -111,7 +114,39 @@ func ensureSingleMenuSeed(db *gorm.DB, seed menuSeed) error {
 	if menuID == 0 {
 		return nil
 	}
-	return ensureAdminRoleMenuBinding(db, menuID)
+	if err := ensureAdminRoleMenuBinding(db, menuID); err != nil {
+		return err
+	}
+	return ensureAdminRolePermissions(db, seed.PagePerm, seed.Perms)
+}
+
+// ensureAdminRolePermissions grants the seeded menu's page and action keys to
+// the platform administrator.
+//
+// Binding the menu alone is not a complete grant. The navigation tree is
+// resolved from `system_role_menu`, but the console's route guard authorises on
+// the key set resolved from `system_role_permission` — so a menu whose key was
+// never granted shows up in the sidebar and then answers 403 when it is opened.
+// The system module's seeder (seed.go: bindSeedMenuAdminRole) has always written
+// both halves; this module wrote only the menu, which kept
+// system:login-log:*, system:session:* and system:security-event:* out of the
+// platform administrator's key set.
+//
+// That gap did not stay platform-local: tenant provisioning derives a tenant
+// administrator's console surface by copying the platform administrator's key
+// set, so the missing twelve keys were missing for every tenant administrator
+// too. The tenant smoke suite caught it as a 403 on /system/login-log.
+func ensureAdminRolePermissions(db *gorm.DB, keys ...string) error {
+	adminRoleID, err := lookupAdminRoleID(db)
+	if err != nil || adminRoleID == 0 {
+		return err
+	}
+	for _, key := range keys {
+		if err := rbacbind.EnsureRolePermission(db, tenant.PlatformGlobalTenantID, adminRoleID, key); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func upsertSeedMenu(db *gorm.DB, seed menuSeed, parentID uint64) (uint64, error) {
@@ -172,12 +207,14 @@ func ensureAdminRoleMenuBinding(db *gorm.DB, menuID uint64) error {
 		return err
 	}
 
-	return rbacbind.EnsureRoleMenu(db, adminRoleID, menuID)
+	return rbacbind.EnsureRoleMenu(db, tenant.PlatformGlobalTenantID, adminRoleID, menuID)
 }
 
 func lookupAdminRoleID(db *gorm.DB) (uint64, error) {
 	var adminRoleID uint64
-	if err := db.Table("system_role").Select("id").Where("role_key = ?", "admin").Limit(1).Pluck("id", &adminRoleID).Error; err != nil {
+	if err := db.Table("system_role").Select("id").
+		Where("role_key = ? AND tenant_id = ?", "admin", tenant.PlatformGlobalTenantID).
+		Limit(1).Pluck("id", &adminRoleID).Error; err != nil {
 		return 0, err
 	}
 	return adminRoleID, nil

@@ -20,6 +20,7 @@ export interface OperationLogQuery {
 
 export interface OperationLogRow {
   id: number;
+  tenantId: number;
   title: string;
   businessType: number;
   method: string;
@@ -122,6 +123,7 @@ export function exportSelectedOperationLogs(rows: OperationLogRow[]) {
       'errorMsg',
       'operTime',
       'costTime',
+      'tenantId',
     ],
     rows.map((row) => [
       '',
@@ -138,6 +140,7 @@ export function exportSelectedOperationLogs(rows: OperationLogRow[]) {
       row.errorMsg || '',
       row.operTime || '',
       String(row.costTime ?? ''),
+      String(row.tenantId ?? 0),
     ]),
   );
 }

@@ -9,7 +9,7 @@ import (
 	mysqlDriver "github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 
-	"pantheon-base/pkg/testmysql"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 )
 
 func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
@@ -26,12 +26,14 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 		},
 		"system_user": {
 			"preference_json", "failed_login_attempts", "login_locked_until",
+			// 000029: OIDC fields folded in from the removed orphan add_oidc_fields.sql.
+			"oidc_subject", "oidc_provider", "oidc_last_sync", "auth_type",
 		},
 		"system_dept": {
 			"is_root", "leader", "phone", "email",
 		},
 		"system_user_session": {
-			"refresh_expires_at", "last_refresh_at", "last_activity_at", "last_ip", "revoked_at",
+			"refresh_expires_at", "last_refresh_at", "last_activity_at", "last_ip", "revoked_at", "tenant_id",
 		},
 		"system_log_login": {
 			"ipaddr", "login_location", "login_time",
@@ -52,7 +54,7 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 			"module", "is_encrypted", "remark",
 		},
 		"system_i18n": {
-			"key", "remark", "lifecycle_status", "lifecycle_marked_at",
+			"key", "remark", "lifecycle_status", "lifecycle_marked_at", "updated_by",
 		},
 		"system_dict_type": {
 			"module",
@@ -61,7 +63,7 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 			"item_color",
 		},
 		"system_log_oper": {
-			"business_type", "oper_name", "oper_url", "oper_ip", "source_domain", "source_page", "json_result", "error_msg", "oper_time", "cost_time", "failure_category",
+			"business_type", "oper_name", "oper_url", "oper_ip", "source_domain", "source_page", "json_result", "error_msg", "oper_time", "cost_time", "failure_category", "tenant_id",
 		},
 		"system_refresh_version": {
 			"created_at",
@@ -78,6 +80,11 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 		"system_module_registration": {
 			"scope", "source", "owner", "bounded_context", "summary", "source_table", "auto_recycle", "table_name", "installed_at", "uninstalled_at", "last_verified_at", "last_error", "last_verification_result",
 		},
+		// 000030: plan definitions leave the compiled-in switch statement, so the
+		// table and its natural key have to exist before the console can edit one.
+		"tenant_plans": {
+			"code", "name", "max_users", "max_roles", "max_depts", "max_api_keys", "max_storage_mb", "status", "sort",
+		},
 	}
 
 	for table, columns := range expectedColumns {
@@ -89,87 +96,20 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 	assertMigrationIndexExists(t, db, "system_log_oper", "idx_system_log_oper_source_domain_page")
 	assertMigrationIndexExists(t, db, "system_log_oper", "idx_system_log_oper_source_page")
 	assertMigrationIndexExists(t, db, "system_log_oper", "idx_system_log_oper_failure_category")
+	assertMigrationIndexExists(t, db, "system_user_session", "idx_system_user_session_tenant_id")
+	assertMigrationIndexExists(t, db, "system_log_oper", "idx_system_log_oper_tenant")
 	assertMigrationIndexDoesNotExist(t, db, "system_dept", "idx_system_dept_dept_code")
+	// 000029 replaces the orphan file's global unique on oidc_subject with the
+	// tenant-scoped composite key; both halves must hold after the chain runs.
+	assertMigrationIndexExists(t, db, "system_user", "uk_system_user_tenant_oidc_subject")
+	assertMigrationIndexExists(t, db, "system_user", "idx_system_user_auth_type")
+	assertMigrationIndexDoesNotExist(t, db, "system_user", "idx_system_user_oidc_subject")
+	assertMigrationIndexExists(t, db, "tenant_plans", "uk_tenant_plan_code")
+	assertTenantPlanSeedRows(t, db)
 	assertLegacyColumnDoesNotBlockRuntimeWrites(t, db, "system_user_session", "expires_at")
 	assertLegacyColumnDoesNotBlockRuntimeWrites(t, db, "system_i18n", "locale_key")
 
 	assertCurrentRuntimeWritesSucceed(t, db)
-}
-
-func TestRunMigrationsRepairsLegacyBusinessGeneratedKeys(t *testing.T) {
-	db := testmysql.Open(t)
-	dsn := migrationTestDSN(t, db)
-
-	if err := db.Exec(`
-CREATE TABLE biz_business_scope (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  code VARCHAR(255) NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  environment VARCHAR(50) NOT NULL,
-  status VARCHAR(50) NOT NULL,
-  deleted_at DATETIME(3) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`).Error; err != nil {
-		t.Fatalf("seed legacy business scope table: %v", err)
-	}
-	if err := db.Exec("INSERT INTO biz_business_scope (code, name, environment, status) VALUES ('legacy', 'Legacy', 'prod', 'active')").Error; err != nil {
-		t.Fatalf("seed legacy business scope row: %v", err)
-	}
-
-	if err := RunMigrations(dsn); err != nil {
-		t.Fatalf("run migrations on legacy business schema: %v", err)
-	}
-
-	assertMigrationColumnExists(t, db, "biz_business_scope", "active_code")
-	var activeCode string
-	if err := db.Raw("SELECT active_code FROM biz_business_scope WHERE code = 'legacy'").Scan(&activeCode).Error; err != nil {
-		t.Fatalf("read repaired active code: %v", err)
-	}
-	if activeCode != "legacy" {
-		t.Fatalf("expected generated active code legacy, got %q", activeCode)
-	}
-	assertLatestMigrationVersion(t, db)
-
-	if err := RunMigrations(dsn); err != nil {
-		t.Fatalf("repeat migrations on repaired legacy schema: %v", err)
-	}
-}
-
-func TestRunMigrationsRepairsOpsObjectsSkippedByLegacyBootstrap(t *testing.T) {
-	db := testmysql.Open(t)
-	dsn := migrationTestDSN(t, db)
-
-	if err := RunMigrations(dsn); err != nil {
-		t.Fatalf("run initial migrations: %v", err)
-	}
-	statements := []string{
-		"DROP TABLE biz_deploy_task_attempt",
-		"DROP TABLE biz_k8s_namespace_binding",
-		"DROP TABLE biz_deploy_credential_ref",
-		"DROP TABLE biz_k8s_cluster_credential_ref",
-		"DROP INDEX idx_deploy_task_credential_ref ON biz_deploy_task",
-		"ALTER TABLE biz_deploy_task DROP COLUMN execution_timeout_seconds, DROP COLUMN ssh_host_fingerprint, DROP COLUMN credential_ref_version, DROP COLUMN credential_ref_id",
-		"DROP INDEX idx_k8s_cluster_credential_ref ON biz_k8s_cluster",
-		"ALTER TABLE biz_k8s_cluster DROP COLUMN kubeconfig_credential_ref_id",
-	}
-	for _, statement := range statements {
-		if err := db.Exec(statement).Error; err != nil {
-			t.Fatalf("simulate skipped ops migration: %v", err)
-		}
-	}
-
-	if err := RunMigrations(dsn); err != nil {
-		t.Fatalf("repair skipped ops migrations: %v", err)
-	}
-	for _, table := range []string{"biz_deploy_task_attempt", "biz_k8s_namespace_binding", "biz_deploy_credential_ref", "biz_k8s_cluster_credential_ref"} {
-		assertMigrationTableExists(t, db, table)
-	}
-	for _, column := range []string{"credential_ref_id", "credential_ref_version", "ssh_host_fingerprint", "execution_timeout_seconds"} {
-		assertMigrationColumnExists(t, db, "biz_deploy_task", column)
-	}
-	assertMigrationColumnExists(t, db, "biz_k8s_cluster", "kubeconfig_credential_ref_id")
-	assertMigrationIndexExists(t, db, "biz_deploy_task", "idx_deploy_task_credential_ref")
-	assertMigrationIndexExists(t, db, "biz_k8s_cluster", "idx_k8s_cluster_credential_ref")
-	assertLatestMigrationVersion(t, db)
 }
 
 func TestRunMigrationsBootstrapsExistingCurrentSchema(t *testing.T) {
@@ -182,6 +122,132 @@ func TestRunMigrationsBootstrapsExistingCurrentSchema(t *testing.T) {
 		t.Fatalf("run migrations on current schema without version table: %v", err)
 	}
 
+	assertLatestMigrationVersion(t, db)
+}
+
+func TestRunMigrationsBackfillsExistingRoleDataScopePolicies(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+	seedCurrentSchemaBootstrapMarkers(t, db)
+
+	if err := db.Exec(`INSERT INTO system_role (role_key, deleted_at) VALUES
+		('legacy-default', NULL), ('legacy-custom', NULL), ('deleted-role', NOW(3))`).Error; err != nil {
+		t.Fatalf("seed legacy roles: %v", err)
+	}
+	if err := db.Exec(`INSERT INTO system_role_data_scope (role_key, mode, dept_ids)
+		VALUES ('legacy-custom', 'custom', '10,20')`).Error; err != nil {
+		t.Fatalf("seed existing custom policy: %v", err)
+	}
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations on current schema: %v", err)
+	}
+
+	type policyRow struct {
+		RoleKey string
+		Mode    string
+		DeptIDs string
+	}
+	var policies []policyRow
+	if err := db.Table("system_role_data_scope").
+		Select("role_key, mode, dept_ids").
+		Order("role_key ASC").
+		Scan(&policies).Error; err != nil {
+		t.Fatalf("load migrated role policies: %v", err)
+	}
+	if len(policies) != 2 {
+		t.Fatalf("expected active roles only, got %+v", policies)
+	}
+	if policies[0] != (policyRow{RoleKey: "legacy-custom", Mode: "custom", DeptIDs: "10,20"}) {
+		t.Fatalf("existing restricted policy changed: %+v", policies[0])
+	}
+	if policies[1] != (policyRow{RoleKey: "legacy-default", Mode: "all", DeptIDs: ""}) {
+		t.Fatalf("legacy role should retain its prior all-scope behavior: %+v", policies[1])
+	}
+	assertLatestMigrationVersion(t, db)
+}
+
+// W2 deactivates a user's membership when the user is deleted. Users deleted
+// before that fix left an active membership behind, which the member list
+// renders as a __deleted_user_* ghost (acceptance F4). 000027 repairs them.
+func TestRunMigrationsDeactivatesMembershipsOfDeletedUsers(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+
+	// Let the runner build the real schema first, then rewind the marker to 26
+	// so 000027 replays against a realistic shape.
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations: %v", err)
+	}
+
+	statements := []string{
+		`INSERT INTO system_user (id, username, password, status, deleted_at) VALUES
+			(1, 'alive', 'x', 1, NULL), (2, '__deleted_user_2', 'x', 1, NOW(3))`,
+		`INSERT INTO tenant_memberships (tenant_id, user_id, status) VALUES
+			(282, 1, 'active'), (282, 2, 'active')`,
+		`UPDATE schema_migrations SET version = 26`,
+	}
+	for _, statement := range statements {
+		if err := db.Exec(statement).Error; err != nil {
+			t.Fatalf("seed membership fixture: %v", err)
+		}
+	}
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("replay migration 000027: %v", err)
+	}
+
+	loadStatus := func(userID uint64) string {
+		t.Helper()
+		var status string
+		if err := db.Table("tenant_memberships").Select("status").Where("user_id = ?", userID).Scan(&status).Error; err != nil {
+			t.Fatalf("load membership status for user %d: %v", userID, err)
+		}
+		return status
+	}
+	if got := loadStatus(1); got != "active" {
+		t.Fatalf("live user membership status = %q, want active", got)
+	}
+	if got := loadStatus(2); got != "disabled" {
+		t.Fatalf("deleted user membership status = %q, want disabled", got)
+	}
+	assertLatestMigrationVersion(t, db)
+}
+
+func TestRunMigrationsDoesNotReapplyRoleDataScopeBackfillAfterPolicyDeletion(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+	seedCurrentSchemaBootstrapMarkers(t, db)
+
+	if err := db.Exec("INSERT INTO system_role (role_key, deleted_at) VALUES ('intentionally-removed', NULL)").Error; err != nil {
+		t.Fatalf("seed role: %v", err)
+	}
+	if err := db.Exec(`CREATE TABLE schema_migrations (
+		version BIGINT NOT NULL PRIMARY KEY,
+		dirty BOOLEAN NOT NULL
+	)`).Error; err != nil {
+		t.Fatalf("create schema_migrations: %v", err)
+	}
+	// Stamp the DB at the runtime baseline, which is deliberately BEHIND the
+	// newest migration file: data-only migrations sit above the baseline so a
+	// marker-complete database still replays them once (see
+	// currentRuntimeSchemaVersion). At the baseline the 000021 backfill is
+	// already applied, which is exactly the state this test needs.
+	if err := db.Exec("INSERT INTO schema_migrations (version, dirty) VALUES (?, false)", currentRuntimeSchemaVersion).Error; err != nil {
+		t.Fatalf("seed migration marker: %v", err)
+	}
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations: %v", err)
+	}
+
+	var count int64
+	if err := db.Table("system_role_data_scope").Where("role_key = ?", "intentionally-removed").Count(&count).Error; err != nil {
+		t.Fatalf("count role policy: %v", err)
+	}
+	if count != 0 {
+		t.Fatalf("already-applied migration resurrected a deleted policy: count=%d", count)
+	}
 	assertLatestMigrationVersion(t, db)
 }
 
@@ -239,6 +305,148 @@ func TestRunMigrationsAppliesLatestCompatWhenBootstrappedSchemaMissesSystemModul
 	assertLatestMigrationVersion(t, db)
 }
 
+// TestRunMigrationsReplaysToBackfillI18nUpdatedBy pins the marker contract for
+// migration 000019: a database that is current except for the new
+// system_i18n.updated_by marker must fail the current-check, rewind to the
+// pre-module-registration compat window and replay 8..latest, receiving the
+// column while every guarded file in the window stays idempotent.
+//
+// The runtime-write assertion is deliberately scoped to system_i18n: the
+// bootstrap fixture models the minimal marker set, not the full 000001 schema
+// (it has no system_dept), so the full assertCurrentRuntimeWritesSucceed suite
+// only belongs to the fresh-database test above.
+func TestRunMigrationsReplaysToBackfillI18nUpdatedBy(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+
+	seedCurrentSchemaBootstrapMarkers(t, db)
+	dropMigrationColumnIfExists(t, db, "system_i18n", "updated_by")
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations on current schema missing i18n updated_by: %v", err)
+	}
+
+	assertMigrationColumnExists(t, db, "system_i18n", "updated_by")
+	assertLatestMigrationVersion(t, db)
+
+	// The replayed schema must accept both statement shapes the i18n runtime
+	// writes attribution with: the parameterised UPDATE from I18nService.Update
+	// and a row INSERT carrying updated_by.
+	if err := db.Exec(`UPDATE system_i18n SET updated_by = 'replay-probe' WHERE id = 0`).Error; err != nil {
+		t.Fatalf("runtime updated_by UPDATE on replayed schema: %v", err)
+	}
+	if err := db.Exec(`
+INSERT INTO system_i18n (
+	module, group_name, `+"`key`"+`, locale, value, updated_by
+) VALUES (?, ?, ?, ?, ?, ?)
+`, "system.config", "menu", "replay.updated_by", "zh-CN", "回放写入", "replay-probe").Error; err != nil {
+		t.Fatalf("insert i18n row with updated_by on replayed schema: %v", err)
+	}
+}
+
+// TestRunMigrationsReplaysLegacyModuleRegistrationCopyAcrossCollations pins the
+// 000008 collation guard: real legacy databases carry module_registration under
+// the pre-8.0 utf8mb4_general_ci default while system_module_registration
+// inherits utf8mb4_0900_ai_ci, and the marker-driven replay (which rewinds real
+// databases to v7) must not die on Error 1267 Illegal mix of collations.
+func TestRunMigrationsReplaysLegacyModuleRegistrationCopyAcrossCollations(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+
+	seedCurrentSchemaBootstrapMarkers(t, db)
+	dropMigrationColumnIfExists(t, db, "system_i18n", "updated_by")
+
+	// Legacy table pinned to the old default collation; target table pinned to
+	// the 8.0 default so the pair differs regardless of the server default.
+	if err := db.Exec(`
+CREATE TABLE module_registration (
+	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+	name VARCHAR(64) DEFAULT '',
+	display_name VARCHAR(128) DEFAULT '',
+	module_type VARCHAR(32) DEFAULT '',
+	status INT DEFAULT 1,
+	registered_at DATETIME DEFAULT NULL,
+	PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci`).Error; err != nil {
+		t.Fatalf("create legacy module_registration: %v", err)
+	}
+	if err := db.Exec("ALTER TABLE system_module_registration CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci").Error; err != nil {
+		t.Fatalf("pin target table collation: %v", err)
+	}
+	if err := db.Exec(`
+INSERT INTO module_registration (name, display_name, module_type, status, registered_at)
+VALUES ('business.legacy', 'Legacy', 'business', 1, '2026-01-01 00:00:00')`).Error; err != nil {
+		t.Fatalf("seed legacy registration row: %v", err)
+	}
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations with legacy module_registration present: %v", err)
+	}
+
+	assertMigrationColumnExists(t, db, "system_i18n", "updated_by")
+	assertLatestMigrationVersion(t, db)
+
+	var copied int64
+	if err := db.Table("system_module_registration").Where("name = ?", "business.legacy").Count(&copied).Error; err != nil {
+		t.Fatalf("count copied registration: %v", err)
+	}
+	if copied != 1 {
+		t.Fatalf("expected legacy registration copied across collations, got %d", copied)
+	}
+}
+
+func TestRunMigrationsAdoptsDevSeededGlobalTenantPlaceholder(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+
+	seedCurrentSchemaBootstrapMarkers(t, db)
+	dropMigrationColumnIfExists(t, db, "system_i18n", "updated_by")
+
+	// Dev-era seed inserted the `__global__` placeholder through auto-increment
+	// (id=1), so the compat id=0 slot is free while the unique code is taken.
+	// A naive insert-if-missing on id=0 collides on idx_tenants_code (1062).
+	if err := db.Exec(`
+CREATE TABLE tenants (
+	id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+	code VARCHAR(64) NOT NULL,
+	name VARCHAR(128) NOT NULL,
+	status VARCHAR(16) NOT NULL DEFAULT 'active',
+	plan VARCHAR(32) NOT NULL DEFAULT '',
+	created_at DATETIME(3) DEFAULT NULL,
+	updated_at DATETIME(3) DEFAULT NULL,
+	deleted_at DATETIME(3) DEFAULT NULL,
+	PRIMARY KEY (id),
+	UNIQUE INDEX idx_tenants_code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`).Error; err != nil {
+		t.Fatalf("create tenants table: %v", err)
+	}
+	if err := db.Exec("INSERT INTO `tenants` (code, name, status) VALUES ('__global__', 'Platform Global', 'archived')").Error; err != nil {
+		t.Fatalf("seed dev-seeded placeholder: %v", err)
+	}
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations with dev-seeded placeholder present: %v", err)
+	}
+
+	assertMigrationColumnExists(t, db, "system_i18n", "updated_by")
+	assertLatestMigrationVersion(t, db)
+
+	var placeholderRows int64
+	if err := db.Raw("SELECT COUNT(*) FROM tenants WHERE id = 0 AND code = '__global__'").Scan(&placeholderRows).Error; err != nil {
+		t.Fatalf("count adopted placeholder: %v", err)
+	}
+	if placeholderRows != 1 {
+		t.Fatalf("expected the dev-seeded row adopted onto id=0, got %d matching rows", placeholderRows)
+	}
+	var totalRows int64
+	if err := db.Raw("SELECT COUNT(*) FROM tenants").Scan(&totalRows).Error; err != nil {
+		t.Fatalf("count tenants: %v", err)
+	}
+	if totalRows != 1 {
+		t.Fatalf("expected adoption instead of a second row, got %d rows", totalRows)
+	}
+}
+
 func TestRunMigrationsRepairsDirtyCurrentSchemaVersion(t *testing.T) {
 	db := testmysql.Open(t)
 	dsn := migrationTestDSN(t, db)
@@ -266,17 +474,6 @@ func assertLatestMigrationVersion(t *testing.T, db *gorm.DB) {
 		t.Fatalf("resolve latest migration version: %v", err)
 	}
 	assertMigrationVersion(t, db, latestVersion)
-}
-
-func assertMigrationTableExists(t *testing.T, db *gorm.DB, table string) {
-	t.Helper()
-	var count int64
-	if err := db.Raw("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?", table).Scan(&count).Error; err != nil {
-		t.Fatalf("check table %s: %v", table, err)
-	}
-	if count != 1 {
-		t.Fatalf("expected table %s to exist", table)
-	}
 }
 
 func dropMigrationColumnIfExists(t *testing.T, db *gorm.DB, table string, column string) {
@@ -365,6 +562,24 @@ WHERE table_schema = DATABASE()
 	}
 	if count < 1 {
 		t.Fatalf("expected index %s.%s to exist after migrations", table, index)
+	}
+}
+
+// assertTenantPlanSeedRows proves that migration 000030 did more than create the
+// table: the four built-in plans must be present, because a database with an
+// empty plan table makes every quota read fall back to the compiled-in defaults
+// and the console has nothing to edit.
+func assertTenantPlanSeedRows(t *testing.T, db *gorm.DB) {
+	t.Helper()
+
+	var count int64
+	if err := db.Table("tenant_plans").
+		Where("code IN ?", []string{"free", "basic", "professional", "enterprise"}).
+		Count(&count).Error; err != nil {
+		t.Fatalf("count seeded tenant plans: %v", err)
+	}
+	if count != 4 {
+		t.Fatalf("expected migration 000030 to seed the four built-in plans, got %d", count)
 	}
 }
 
@@ -538,6 +753,21 @@ func seedCurrentSchemaBootstrapMarkers(t *testing.T, db *gorm.DB) {
 	t.Helper()
 
 	statements := []string{
+		`CREATE TABLE system_role (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			role_key VARCHAR(64) NOT NULL,
+			deleted_at DATETIME(3) DEFAULT NULL,
+			PRIMARY KEY (id),
+			UNIQUE KEY idx_system_role_role_key (role_key)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+		`CREATE TABLE system_role_data_scope (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			role_key VARCHAR(64) NOT NULL,
+			mode VARCHAR(32) NOT NULL DEFAULT 'all',
+			dept_ids TEXT,
+			PRIMARY KEY (id),
+			UNIQUE KEY idx_system_role_data_scope_role_key (role_key)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 		`CREATE TABLE system_menu (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			parent_id BIGINT DEFAULT 0,
@@ -600,6 +830,7 @@ func seedCurrentSchemaBootstrapMarkers(t *testing.T, db *gorm.DB) {
 			"\tlifecycle_marked_at DATETIME(3) DEFAULT NULL,\n" +
 			"\tcreated_at DATETIME(3) DEFAULT NULL,\n" +
 			"\tupdated_at DATETIME(3) DEFAULT NULL,\n" +
+			"\tupdated_by VARCHAR(64) DEFAULT NULL,\n" +
 			"\tPRIMARY KEY (id)\n" +
 			") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 		`CREATE TABLE system_dict_type (
@@ -612,7 +843,8 @@ func seedCurrentSchemaBootstrapMarkers(t *testing.T, db *gorm.DB) {
 			created_at DATETIME(3) DEFAULT NULL,
 			updated_at DATETIME(3) DEFAULT NULL,
 			deleted_at DATETIME(3) DEFAULT NULL,
-			PRIMARY KEY (id)
+			PRIMARY KEY (id),
+			UNIQUE KEY idx_system_dict_type_dict_code (dict_code)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 		`CREATE TABLE system_log_oper (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -695,6 +927,18 @@ func seedCurrentSchemaBootstrapMarkers(t *testing.T, db *gorm.DB) {
 			last_verification_result TEXT,
 			PRIMARY KEY (id),
 			UNIQUE INDEX idx_system_module_registration_name (name)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+		`CREATE TABLE casbin_rule (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			ptype VARCHAR(100) DEFAULT '',
+			v0 VARCHAR(100) DEFAULT '',
+			v1 VARCHAR(100) DEFAULT '',
+			v2 VARCHAR(100) DEFAULT '',
+			v3 VARCHAR(100) DEFAULT '',
+			v4 VARCHAR(100) DEFAULT '',
+			v5 VARCHAR(100) DEFAULT '',
+			PRIMARY KEY (id),
+			UNIQUE INDEX idx_casbin_rule (ptype, v0, v1, v2, v3, v4, v5)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 	}
 

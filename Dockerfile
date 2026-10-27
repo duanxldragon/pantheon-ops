@@ -51,6 +51,10 @@ RUN apk --no-cache add ca-certificates curl tzdata
 
 # 设置时区
 ENV TZ=Asia/Shanghai
+# FIX-6: pin gin to release mode in the production image (matches the
+# PANTHEON_ENV=production check in cmd/server/main.go; keeps explicit
+# container env overrides possible).
+ENV GIN_MODE=release
 
 # 创建非 root 用户
 RUN addgroup -g 1000 pantheon && \

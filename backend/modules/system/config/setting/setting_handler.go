@@ -1,17 +1,21 @@
-package config
+package setting
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
+	uploadpkg "github.com/duanxldragon/pantheon-base/backend/pkg/upload"
 	"github.com/gin-gonic/gin"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/impexp"
-	uploadpkg "pantheon-base/pkg/upload"
 )
 
 const (
@@ -25,8 +29,18 @@ type SettingHandler struct {
 	uploadService *uploadpkg.Service
 }
 
+// storageDriverLocal is the config value selecting the local disk driver.
+const storageDriverLocal = "local"
+
 func NewSettingHandler(service *SettingService, uploadService *uploadpkg.Service) *SettingHandler {
 	return &SettingHandler{service: service, uploadService: uploadService}
+}
+
+// boundService returns the service view bound to the request tenant context
+// (queue-5 settings slice; same canary pattern as DictHandler). Under compat
+// the shared service is returned unchanged.
+func (h *SettingHandler) boundService(c *gin.Context) *SettingService {
+	return h.service.WithTenantContext(tenant.FromGin(c))
 }
 
 func (h *SettingHandler) GetSettingList(c *gin.Context) {
@@ -35,7 +49,7 @@ func (h *SettingHandler) GetSettingList(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	items, err := h.service.List(&query)
+	items, err := h.boundService(c).List(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "setting.list.error")
 		return
@@ -44,7 +58,7 @@ func (h *SettingHandler) GetSettingList(c *gin.Context) {
 }
 
 func (h *SettingHandler) GetSettingOverview(c *gin.Context) {
-	overview, err := h.service.GetOverview()
+	overview, err := h.boundService(c).GetOverview()
 	if err != nil {
 		common.Fail(c, common.CodeError, "setting.overview.error")
 		return
@@ -53,7 +67,7 @@ func (h *SettingHandler) GetSettingOverview(c *gin.Context) {
 }
 
 func (h *SettingHandler) GetSettingGroup(c *gin.Context) {
-	group, err := h.service.GetGroup(c.Param("groupKey"))
+	group, err := h.boundService(c).GetGroup(c.Param("groupKey"))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -78,7 +92,7 @@ func (h *SettingHandler) UpdateSettingGroup(c *gin.Context) {
 		successPayload = payload
 	}
 
-	group, err := h.service.UpdateGroup(groupKey, &req)
+	group, err := h.boundService(c).UpdateGroup(groupKey, &req)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -93,7 +107,10 @@ func (h *SettingHandler) UpdateSettingGroup(c *gin.Context) {
 }
 
 func (h *SettingHandler) GetPublicSettings(c *gin.Context) {
-	resp, err := h.service.GetPublicSettings()
+	// Public endpoint resolves per-request tenant context: in multi mode the
+	// response carries the tenant's overrides on top of global defaults; in
+	// compat mode the context is nil/global and behavior is unchanged.
+	resp, err := h.boundService(c).GetPublicSettings()
 	if err != nil {
 		common.Fail(c, common.CodeError, "setting.public.error")
 		return
@@ -114,7 +131,7 @@ func (h *SettingHandler) RefreshSettingCache(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	resp, err := h.service.RefreshSettingCache(req.GroupKeys)
+	resp, err := h.boundService(c).RefreshSettingCache(req.GroupKeys)
 	if err != nil {
 		common.Fail(c, common.CodeError, "setting.cache.refresh.error")
 		return
@@ -128,7 +145,7 @@ func (h *SettingHandler) GetSettingAuditList(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	page, err := h.service.ListAudit(&query)
+	page, err := h.boundService(c).ListAudit(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "setting.audit.list.error")
 		return
@@ -144,7 +161,7 @@ func (h *SettingHandler) ExportSettingAudit(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	file, err := h.service.ExportAudit(&query)
+	file, err := h.boundService(c).ExportAudit(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "setting.audit.export.error")
 		return
@@ -177,7 +194,7 @@ func (h *SettingHandler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	stored, err := h.uploadService.StoreWithContext(c.Request.Context(), fileHeader, c.DefaultQuery("scope", "general"), requestBaseURL(c))
+	stored, err := h.uploadService.StoreWithContext(c.Request.Context(), fileHeader, h.uploadScope(c), requestBaseURL(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -192,12 +209,6 @@ func (h *SettingHandler) ServeUploadedFile(c *gin.Context) {
 	}
 
 	cfg, err := h.uploadService.LoadConfig()
-	if err != nil || cfg.StorageDriver != "local" {
-		common.Fail(c, common.CodeError, errUploadFileNotFound)
-		return
-	}
-
-	rootPath, err := filepath.Abs(strings.TrimSpace(cfg.LocalPath))
 	if err != nil {
 		common.Fail(c, common.CodeError, errUploadFileNotFound)
 		return
@@ -206,6 +217,30 @@ func (h *SettingHandler) ServeUploadedFile(c *gin.Context) {
 	objectKey, err := uploadpkg.NormalizeObjectKey(c.Param("filepath"))
 	if err != nil {
 		common.Fail(c, common.CodeParamInvalid, errUploadFileNotFound)
+		return
+	}
+	// Tenancy is enforced from the resolved context only — never request fields.
+	if err := uploadpkg.EnforceTenantObjectScope(tenant.FromGin(c), objectKey); err != nil {
+		common.Fail(c, common.CodeError, errUploadFileNotFound)
+		return
+	}
+
+	// S3 driver: serve through the authorized backend path (download
+	// authorization slice). Previously this endpoint failed closed for S3,
+	// leaving object-store URLs as the only access path — unauthenticated
+	// object reads bypassed the tenant isolation the local path enforces.
+	if cfg.StorageDriver == "s3" {
+		h.serveS3Object(c, objectKey)
+		return
+	}
+	if cfg.StorageDriver != storageDriverLocal {
+		common.Fail(c, common.CodeError, errUploadFileNotFound)
+		return
+	}
+
+	rootPath, err := filepath.Abs(strings.TrimSpace(cfg.LocalPath))
+	if err != nil {
+		common.Fail(c, common.CodeError, errUploadFileNotFound)
 		return
 	}
 
@@ -225,6 +260,49 @@ func (h *SettingHandler) ServeUploadedFile(c *gin.Context) {
 		return
 	}
 	http.ServeFileFS(c.Writer, c.Request, os.DirFS(rootPath), objectKey)
+}
+
+// serveS3Object streams an object from the S3-compatible store through the
+// authorized serve endpoint. Headers mirror the local-driver path (nosniff,
+// attachment for non-images) so browsers treat both drivers identically.
+func (h *SettingHandler) serveS3Object(c *gin.Context, objectKey string) {
+	object, size, contentType, err := h.uploadService.OpenS3Object(c.Request.Context(), objectKey)
+	if err != nil {
+		common.Fail(c, common.CodeError, errUploadFileNotFound)
+		return
+	}
+	defer func() {
+		_ = object.Close()
+	}()
+
+	extension := strings.TrimPrefix(strings.ToLower(filepath.Ext(objectKey)), ".")
+	if contentType != "" {
+		c.Header("Content-Type", contentType)
+	}
+	// 纵深防御：禁止 MIME 嗅探；非图片类型强制下载（与本地驱动一致）。
+	c.Header("X-Content-Type-Options", "nosniff")
+	switch extension {
+	case "jpg", "jpeg", "png", "gif", "webp":
+	default:
+		c.Header("Content-Disposition", "attachment")
+	}
+	c.Header("Content-Length", strconv.FormatInt(size, 10))
+	_, _ = io.Copy(c.Writer, object)
+}
+
+// uploadScope builds the object-key prefix for an upload (queue-5 upload
+// slice, contract §3.3/Implementation Notes: "Cache and object keys must
+// include canonical tenant identity"). The tenant segment comes from the
+// resolved tenant context — never from the request — so a tenant subject
+// cannot write into another tenant's namespace and keys cannot collide across
+// tenants. Compat keeps the legacy layout (no tenant segment).
+func (h *SettingHandler) uploadScope(c *gin.Context) string {
+	scope := c.DefaultQuery("scope", "general")
+	ctx := tenant.FromGin(c)
+	if ctx == nil || !ctx.IsMulti() {
+		return scope
+	}
+	return fmt.Sprintf("t%d/%s", ctx.TenantID, scope)
 }
 
 func requestBaseURL(c *gin.Context) string {

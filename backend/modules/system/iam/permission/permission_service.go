@@ -1,17 +1,18 @@
 //nolint:revive // Permission service intentionally exposes a broad administrative facade.
-package iam
+package permission
 
 import (
 	"fmt"
 	"log/slog"
-	"pantheon-base/pkg/common"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -19,9 +20,19 @@ import (
 
 const permissionPtypeClause = "ptype = ?"
 
+// permissionRoleKeyLikeClause matches the casbin subject (role key) column.
+// Extracted as a constant because it is repeated across policy query builders
+// (SonarCloud go:S1192).
+const permissionRoleKeyLikeClause = "v0 LIKE ?"
+
+// permissionTenantClause scopes a query to a single tenant. Repeated across the
+// service and workbench query builders (SonarCloud go:S1192).
+const permissionTenantClause = "tenant_id = ?"
+
 const (
-	errPermissionPolicyExists = "permission.policy.exists"
-	errPermissionRoleInvalid  = "permission.role.invalid"
+	errPermissionPolicyExists  = "permission.policy.exists"
+	errPermissionRoleInvalid   = "permission.role.invalid"
+	errPermissionTenantInvalid = "permission.tenant.invalid"
 )
 
 const (
@@ -42,6 +53,80 @@ const (
 
 type PermissionService struct {
 	db *gorm.DB
+	// tenantCtx is the per-request tenant context (contract §2.3/§3.3). Set from
+	// the Gin context by the handler layer via WithTenantContext; nil keeps the
+	// historical global behaviour for platform-internal callers, compat binds
+	// the platform-global scope. Without it the data-scope console reads and
+	// writes every tenant's policy rows, which is how a tenant administrator
+	// could list and overwrite another tenant's role data scope (F7/F8/F9).
+	tenantCtx *tenant.Context
+}
+
+// WithTenantContext returns a shallow view of the service bound to a request
+// tenant context. Only a nil context returns the receiver unchanged.
+func (s *PermissionService) WithTenantContext(ctx *tenant.Context) *PermissionService {
+	if ctx == nil {
+		return s
+	}
+	bound := *s
+	bound.tenantCtx = ctx
+	return &bound
+}
+
+// tenantOwnerID is the tenant a policy row belongs to (write path: from the
+// resolved request context, never from the request body — contract §3.3).
+// Compat/platform => 0, which is the platform/global scope.
+func (s *PermissionService) tenantOwnerID() uint64 {
+	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+		return 0
+	}
+	return s.tenantCtx.TenantID
+}
+
+// isPlatformScope reports whether the caller operates on the platform/global
+// population (tenant 0) rather than inside a tenant. Platform scope is the only
+// scope allowed to read or write rows that are not pinned to a tenant.
+func (s *PermissionService) isPlatformScope() bool {
+	return s.tenantOwnerID() == tenant.PlatformGlobalTenantID
+}
+
+// policySubjectForWrite resolves the stored Casbin subject for a policy write
+// from the caller's resolved scope. A tenant subject may only write inside its
+// own domain: a body `tenantId` that disagrees is rejected, never honoured
+// (contract §2.3.1 rule 2 — the tenant of a write comes from the context, not
+// from the request body). Platform scope keeps the explicit-target behaviour
+// because the platform console legitimately manages tenant namespaces.
+func (s *PermissionService) policySubjectForWrite(roleKey string, requestedTenantID uint64) (string, error) {
+	targetTenant := requestedTenantID
+	if !s.isPlatformScope() {
+		if targetTenant != tenant.PlatformGlobalTenantID && targetTenant != s.tenantOwnerID() {
+			return "", common.NewForbidden("tenant.forbidden")
+		}
+		targetTenant = s.tenantOwnerID()
+	}
+	return s.resolvePolicySubject(roleKey, targetTenant)
+}
+
+// policyInTenantScope reports whether a stored policy row belongs to the
+// caller's tenant domain. A tenant caller must not be able to update or delete
+// a policy by id just because the id exists (acceptance F8 class).
+func (s *PermissionService) policyInTenantScope(policy *database.CasbinRule) bool {
+	if s.isPlatformScope() {
+		return true
+	}
+	suffix := fmt.Sprintf("@tenant:%d", s.tenantOwnerID())
+	subject := strings.TrimSpace(policy.V0)
+	return strings.HasPrefix(subject, "role:") && strings.HasSuffix(subject, suffix)
+}
+
+// applyPolicyTenantScope confines policy reads to the caller's tenant domain.
+// Global policy rows are platform-global state even when they carry a role key
+// that also exists in a tenant, so a tenant subject never sees them.
+func (s *PermissionService) applyPolicyTenantScope(db *gorm.DB) *gorm.DB {
+	if s.isPlatformScope() {
+		return db
+	}
+	return db.Where(permissionRoleKeyLikeClause, "%@tenant:"+strconv.FormatUint(s.tenantOwnerID(), 10))
 }
 
 type workbenchRemediationRecord struct {
@@ -79,14 +164,23 @@ func (s *PermissionService) Bootstrap() error {
 	if !s.db.Migrator().HasTable("system_role") || !s.db.Migrator().HasTable("casbin_rule") {
 		return nil
 	}
+	// Purge only policies whose subject no longer names a live role. A tenant
+	// role's policies live under role:<key>@tenant:<id> (contract §4), so the
+	// bare-key comparison alone treated EVERY tenant policy as an orphan and
+	// deleted it on each boot — the tenant module then re-granted only the
+	// default wildcard, silently dropping every policy a tenant had configured.
 	if err := s.db.Exec(`
 DELETE FROM casbin_rule
 WHERE `+permissionPtypeClause+`
   AND NOT EXISTS (
     SELECT 1
     FROM system_role
-    WHERE system_role.role_key = casbin_rule.v0
-      AND system_role.deleted_at IS NULL
+    WHERE system_role.deleted_at IS NULL
+      AND (
+        system_role.role_key = casbin_rule.v0
+        OR (system_role.tenant_id <> 0
+            AND casbin_rule.v0 = CONCAT('role:', system_role.role_key, '@tenant:', system_role.tenant_id))
+      )
   )
 `, "p").Error; err != nil {
 		return err
@@ -100,7 +194,7 @@ func (s *PermissionService) ListPolicies(query *PermissionPolicyQuery) (*Permiss
 	}
 
 	var policies []database.CasbinRule
-	db := s.db.Model(&database.CasbinRule{}).Where(permissionPtypeClause, "p")
+	db := s.applyPolicyTenantScope(s.db.Model(&database.CasbinRule{}).Where(permissionPtypeClause, "p"))
 	page, pageSize := normalizePermissionPageQuery(query)
 	if query != nil {
 		if strings.TrimSpace(query.Keyword) != "" {
@@ -108,7 +202,7 @@ func (s *PermissionService) ListPolicies(query *PermissionPolicyQuery) (*Permiss
 			db = db.Where("v0 LIKE ? OR v1 LIKE ?", keyword, keyword)
 		}
 		if strings.TrimSpace(query.RoleKey) != "" {
-			db = db.Where("v0 LIKE ?", "%"+strings.TrimSpace(query.RoleKey)+"%")
+			db = db.Where(permissionRoleKeyLikeClause, "%"+strings.TrimSpace(query.RoleKey)+"%")
 		}
 		if strings.TrimSpace(query.Path) != "" {
 			db = db.Where("v1 LIKE ?", "%"+strings.TrimSpace(query.Path)+"%")
@@ -158,14 +252,19 @@ func (s *PermissionService) CreatePolicy(operatorRoleKeys []string, req *Permiss
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
-	roleKey, path, method, err := s.validatePolicyPayload(0, operatorRoleKeys, req.RoleKey, req.Path, req.Method)
+	roleKey := strings.TrimSpace(req.RoleKey)
+	subject, err := s.policySubjectForWrite(roleKey, req.TenantId)
+	if err != nil {
+		return nil, err
+	}
+	path, method, err := s.validatePolicyPayload(0, operatorRoleKeys, roleKey, subject, req.Path, req.Method)
 	if err != nil {
 		return nil, err
 	}
 
 	policy := database.CasbinRule{
 		PType: "p",
-		V0:    roleKey,
+		V0:    subject,
 		V1:    path,
 		V2:    method,
 	}
@@ -194,13 +293,21 @@ func (s *PermissionService) UpdatePolicy(operatorRoleKeys []string, policyID uin
 	if err := s.db.First(&policy, policyID).Error; err != nil {
 		return nil, err
 	}
-	roleKey, path, method, err := s.validatePolicyPayload(policyID, operatorRoleKeys, req.RoleKey, req.Path, req.Method)
+	if !s.policyInTenantScope(&policy) {
+		return nil, common.NewNotFound("permission.policy.not_found")
+	}
+	roleKey := strings.TrimSpace(req.RoleKey)
+	subject, err := s.policySubjectForWrite(roleKey, req.TenantId)
+	if err != nil {
+		return nil, err
+	}
+	path, method, err := s.validatePolicyPayload(policyID, operatorRoleKeys, roleKey, subject, req.Path, req.Method)
 	if err != nil {
 		return nil, err
 	}
 
 	policy.PType = "p"
-	policy.V0 = roleKey
+	policy.V0 = subject
 	policy.V1 = path
 	policy.V2 = method
 	policy.V3 = ""
@@ -229,6 +336,9 @@ func (s *PermissionService) DeletePolicy(operatorRoleKeys []string, policyID uin
 	var policy database.CasbinRule
 	if err := s.db.First(&policy, policyID).Error; err != nil {
 		return err
+	}
+	if !s.policyInTenantScope(&policy) {
+		return common.NewNotFound("permission.policy.not_found")
 	}
 	if err := ensurePolicyWriteAllowed(operatorRoleKeys, policy.V1); err != nil {
 		return err
@@ -347,6 +457,13 @@ func (s *PermissionService) RemediateWorkbenchPolicies(req *PermissionWorkbenchR
 	if err := s.ensureRoleKeyExists(roleKey); err != nil {
 		return nil, err
 	}
+	// The补齐 writes must land in the caller's namespace. Before this resolved
+	// from the bare role key, a tenant administrator's remediation created
+	// GLOBAL policies that every tenant's same-named role inherited.
+	subject, err := s.policySubjectForWrite(roleKey, tenant.PlatformGlobalTenantID)
+	if err != nil {
+		return nil, err
+	}
 
 	// Fetch only the missing API policies for the target role,
 	// avoiding the full workbench computation overhead.
@@ -375,7 +492,7 @@ func (s *PermissionService) RemediateWorkbenchPolicies(req *PermissionWorkbenchR
 	}
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		return createMissingWorkbenchPolicies(tx, roleKey, role.MissingAPIPolicies, resp)
+		return createMissingWorkbenchPolicies(tx, subject, role.MissingAPIPolicies, resp)
 	}); err != nil {
 		return nil, err
 	}
@@ -401,11 +518,11 @@ func (s *PermissionService) RemediateWorkbenchPolicies(req *PermissionWorkbenchR
 	return resp, nil
 }
 
-func createMissingWorkbenchPolicies(tx *gorm.DB, roleKey string, missing []PermissionWorkbenchAPIPolicyResp, resp *PermissionWorkbenchRemediateResp) error {
+func createMissingWorkbenchPolicies(tx *gorm.DB, subject string, missing []PermissionWorkbenchAPIPolicyResp, resp *PermissionWorkbenchRemediateResp) error {
 	for _, item := range missing {
 		policy := database.CasbinRule{
 			PType: "p",
-			V0:    roleKey,
+			V0:    subject,
 			V1:    strings.TrimSpace(item.Path),
 			V2:    normalizePolicyMethod(item.Method),
 		}
@@ -436,6 +553,9 @@ func (s *PermissionService) ListWorkbenchRemediationEvents(query *PermissionWork
 
 	var events []PermissionWorkbenchRemediationEvent
 	db := s.db.Model(&PermissionWorkbenchRemediationEvent{})
+	if !s.isPlatformScope() {
+		db = db.Where(permissionTenantClause, s.tenantOwnerID())
+	}
 	if query != nil && strings.TrimSpace(query.RoleKey) != "" {
 		db = db.Where("role_key = ?", strings.TrimSpace(query.RoleKey))
 	}
@@ -466,6 +586,7 @@ func (s *PermissionService) recordWorkbenchRemediation(record workbenchRemediati
 		return nil
 	}
 	return s.db.Create(&PermissionWorkbenchRemediationEvent{
+		TenantID:     s.tenantOwnerID(),
 		RoleKey:      strings.TrimSpace(record.roleKey),
 		IssueType:    strings.TrimSpace(record.issueType),
 		IssueKey:     strings.TrimSpace(record.issueKey),
@@ -521,19 +642,25 @@ func (s *PermissionService) ImportPolicies(operatorRoleKeys []string, records []
 		return nil, err
 	}
 
-	// Step 4: Validate role keys exist
-	if err := validateImportRoleKeys(s.db, rows, result); err != nil {
+	// Step 4: Validate role keys exist in the target namespace
+	if err := s.validateImportRoleKeys(rows, result); err != nil {
 		return result, nil
 	}
 
-	// Step 5: Load existing policies for dedup
-	existingByKey, err := loadExistingPolicyMap(s.db)
+	// Step 5: Resolve the stored subject for each role key from the request
+	// scope (tenant scope writes role:<key>@tenant:<id>; the request body has
+	// no say in it) and load existing policies for dedup.
+	subjects, err := s.importPolicySubjects(rows)
+	if err != nil {
+		return nil, err
+	}
+	existingByKey, err := loadExistingPolicyMap(s.db, subjects, s.isPlatformScope(), s.tenantOwnerID())
 	if err != nil {
 		return nil, err
 	}
 
 	// Step 6: Write new policies in transaction
-	if err := writeImportPolicies(s.db, rows, existingByKey, result); err != nil {
+	if err := writeImportPolicies(s.db, rows, subjects, existingByKey, result); err != nil {
 		return nil, err
 	}
 
@@ -617,21 +744,54 @@ func validateImportRows(records [][]string, headerIndex map[string]int, result *
 	return rows, nil
 }
 
-// validateImportRoleKeys checks that all role keys in the import exist.
-func validateImportRoleKeys(db *gorm.DB, rows []policyImportRow, result *impexp.ImportResult) error {
+// importPolicySubjects resolves, once per imported role key, the subject the
+// row will be stored under. Tenant scope forces the caller's domain, so an
+// imported row can never become a global (platform) policy.
+func (s *PermissionService) importPolicySubjects(rows []policyImportRow) (map[string]string, error) {
+	subjects := make(map[string]string, len(rows))
+	for _, row := range rows {
+		if _, ok := subjects[row.RoleKey]; ok {
+			continue
+		}
+		subject, err := s.policySubjectForWrite(row.RoleKey, tenant.PlatformGlobalTenantID)
+		if err != nil {
+			return nil, err
+		}
+		subjects[row.RoleKey] = subject
+	}
+	return subjects, nil
+}
+
+// validateImportRoleKeys checks that all role keys in the import exist in the
+// namespace the rows will be written to: the caller's tenant in tenant scope,
+// the platform-global namespace otherwise. Checking by bare key across every
+// tenant let a tenant point a policy at somebody else's role (acceptance F8).
+func (s *PermissionService) validateImportRoleKeys(rows []policyImportRow, result *impexp.ImportResult) error {
 	roleKeys := make([]string, 0, len(rows))
 	for _, row := range rows {
 		roleKeys = append(roleKeys, row.RoleKey)
 	}
+	db := s.db.Table("system_role").Where("role_key IN ? AND deleted_at IS NULL", roleKeys)
+	if !s.isPlatformScope() {
+		db = db.Where(permissionTenantClause, s.tenantOwnerID())
+	} else {
+		db = db.Where(permissionTenantClause, tenant.PlatformGlobalTenantID)
+	}
 	var existingRoleCount int64
-	if err := db.Table("system_role").Where("role_key IN ? AND deleted_at IS NULL", roleKeys).Count(&existingRoleCount).Error; err != nil {
+	if err := db.Count(&existingRoleCount).Error; err != nil {
 		return err
 	}
 	normalizedRoleKeys := impexp.SplitPipeValues(strings.Join(roleKeys, "|"))
 	if existingRoleCount != int64(len(normalizedRoleKeys)) {
 		for _, row := range rows {
 			var count int64
-			if err := db.Table("system_role").Where("role_key = ? AND deleted_at IS NULL", row.RoleKey).Count(&count).Error; err != nil {
+			rowDB := s.db.Table("system_role").Where("role_key = ? AND deleted_at IS NULL", row.RoleKey)
+			if !s.isPlatformScope() {
+				rowDB = rowDB.Where(permissionTenantClause, s.tenantOwnerID())
+			} else {
+				rowDB = rowDB.Where(permissionTenantClause, tenant.PlatformGlobalTenantID)
+			}
+			if err := rowDB.Count(&count).Error; err != nil {
 				return err
 			}
 			if count == 0 {
@@ -643,10 +803,24 @@ func validateImportRoleKeys(db *gorm.DB, rows []policyImportRow, result *impexp.
 	return nil
 }
 
-// loadExistingPolicyMap loads all existing policies into a dedup map.
-func loadExistingPolicyMap(db *gorm.DB) (map[string]database.CasbinRule, error) {
+// loadExistingPolicyMap loads the existing policies that the import could
+// collide with: the subject set being written, never the whole installation.
+func loadExistingPolicyMap(db *gorm.DB, subjects map[string]string, platformScope bool, tenantID uint64) (map[string]database.CasbinRule, error) {
+	subjectList := make([]string, 0, len(subjects))
+	for _, subject := range subjects {
+		subjectList = append(subjectList, subject)
+	}
+	if len(subjectList) == 0 {
+		return map[string]database.CasbinRule{}, nil
+	}
+	query := db.Model(&database.CasbinRule{}).Where(permissionPtypeClause, "p")
+	if platformScope {
+		query = query.Where("v0 IN ?", subjectList)
+	} else {
+		query = query.Where(permissionRoleKeyLikeClause, "%@tenant:"+strconv.FormatUint(tenantID, 10))
+	}
 	var policies []database.CasbinRule
-	if err := db.Model(&database.CasbinRule{}).Where(permissionPtypeClause, "p").Find(&policies).Error; err != nil {
+	if err := query.Find(&policies).Error; err != nil {
 		return nil, err
 	}
 	existingByKey := make(map[string]database.CasbinRule, len(policies))
@@ -657,17 +831,18 @@ func loadExistingPolicyMap(db *gorm.DB) (map[string]database.CasbinRule, error) 
 }
 
 // writeImportPolicies writes new (non-duplicate) policies in a transaction.
-func writeImportPolicies(db *gorm.DB, rows []policyImportRow, existingByKey map[string]database.CasbinRule, result *impexp.ImportResult) error {
+func writeImportPolicies(db *gorm.DB, rows []policyImportRow, subjects map[string]string, existingByKey map[string]database.CasbinRule, result *impexp.ImportResult) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		for _, row := range rows {
-			compositeKey := fmt.Sprintf("%s|%s|%s", row.RoleKey, row.Path, row.Method)
+			subject := subjects[row.RoleKey]
+			compositeKey := fmt.Sprintf("%s|%s|%s", subject, row.Path, row.Method)
 			if _, ok := existingByKey[compositeKey]; ok {
 				result.Updated++
 				continue
 			}
 			policy := database.CasbinRule{
 				PType: "p",
-				V0:    row.RoleKey,
+				V0:    subject,
 				V1:    row.Path,
 				V2:    row.Method,
 			}
@@ -682,10 +857,10 @@ func writeImportPolicies(db *gorm.DB, rows []policyImportRow, existingByKey map[
 
 func (s *PermissionService) listPoliciesForExport(query *PermissionPolicyQuery) ([]database.CasbinRule, error) {
 	var policies []database.CasbinRule
-	db := s.db.Model(&database.CasbinRule{}).Where(permissionPtypeClause, "p")
+	db := s.applyPolicyTenantScope(s.db.Model(&database.CasbinRule{}).Where(permissionPtypeClause, "p"))
 	if query != nil {
 		if strings.TrimSpace(query.RoleKey) != "" {
-			db = db.Where("v0 LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.RoleKey))+"%")
+			db = db.Where(permissionRoleKeyLikeClause, "%"+common.EscapeLikePattern(strings.TrimSpace(query.RoleKey))+"%")
 		}
 		if strings.TrimSpace(query.Path) != "" {
 			db = db.Where("v1 LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.Path))+"%")
@@ -710,28 +885,58 @@ func boolToCSVValue(value bool) string {
 	return "false"
 }
 
-func (s *PermissionService) validatePolicyPayload(policyID uint64, operatorRoleKeys []string, roleKey string, path string, method string) (string, string, string, error) {
+func (s *PermissionService) validatePolicyPayload(policyID uint64, operatorRoleKeys []string, roleKey string, subject string, path string, method string) (string, string, error) {
 	roleKey = strings.TrimSpace(roleKey)
 	path = strings.TrimSpace(path)
 	method = normalizePolicyMethod(method)
 	if roleKey == "" || path == "" || method == "" {
-		return "", "", "", common.NewBadRequest("param.invalid")
+		return "", "", common.NewBadRequest("param.invalid")
 	}
 	if err := ensurePolicyWriteAllowed(operatorRoleKeys, path); err != nil {
-		return "", "", "", err
+		return "", "", err
 	}
 	if err := s.ensureRoleKeyExists(roleKey); err != nil {
-		return "", "", "", err
+		return "", "", err
 	}
-	if err := s.ensurePolicyUnique(policyID, roleKey, path, method); err != nil {
-		return "", "", "", err
+	if err := s.ensurePolicyUnique(policyID, subject, path, method); err != nil {
+		return "", "", err
 	}
-	return roleKey, path, method, nil
+	return path, method, nil
 }
 
+// resolvePolicySubject maps (roleKey, tenantId) to the stored Casbin subject:
+// global policies keep the plain role key; tenant-scoped policies store the
+// contract §4 form `role:<key>@tenant:<id>`. The tenant must exist and be
+// active (a policy for a suspended/archived tenant would silently grant
+// nothing but still pollute the namespace), and the tenant row itself is
+// owned by system/org — this is a read-only existence check (contract §7).
+func (s *PermissionService) resolvePolicySubject(roleKey string, tenantID uint64) (string, error) {
+	if tenantID == 0 {
+		return tenant.GlobalRoleSubject(roleKey), nil
+	}
+	var row tenant.Tenant
+	if err := s.db.Select("id", "status").Where("id = ?", tenantID).First(&row).Error; err != nil {
+		return "", common.NewBadRequest(errPermissionTenantInvalid)
+	}
+	if row.Status != tenant.TenantStatusActive {
+		return "", common.NewBadRequest(errPermissionTenantInvalid)
+	}
+	return tenant.RoleSubject(roleKey, tenantID), nil
+}
+
+// ensureRoleKeyExists verifies the role key exists in the caller's tenant.
+//
+// It used to accept a role_key that existed in ANY tenant, which let a tenant
+// administrator write policies (including data-scope policies) for a role that
+// belongs to somebody else — acceptance F8. Platform scope is exempt because
+// the platform console manages global roles, whose rows live at tenant 0.
 func (s *PermissionService) ensureRoleKeyExists(roleKey string) error {
 	var count int64
-	if err := s.db.Table("system_role").Where("role_key = ? AND deleted_at IS NULL", roleKey).Count(&count).Error; err != nil {
+	db := s.db.Table("system_role").Where("role_key = ? AND deleted_at IS NULL", roleKey)
+	if !s.isPlatformScope() {
+		db = db.Where(permissionTenantClause, s.tenantOwnerID())
+	}
+	if err := db.Count(&count).Error; err != nil {
 		return err
 	}
 	if count == 0 {
@@ -740,9 +945,9 @@ func (s *PermissionService) ensureRoleKeyExists(roleKey string) error {
 	return nil
 }
 
-func (s *PermissionService) ensurePolicyUnique(policyID uint64, roleKey string, path string, method string) error {
+func (s *PermissionService) ensurePolicyUnique(policyID uint64, subject string, path string, method string) error {
 	var count int64
-	db := s.db.Model(&database.CasbinRule{}).Where(permissionPtypeClause+" AND v0 = ? AND v1 = ? AND v2 = ?", "p", roleKey, path, method)
+	db := s.db.Model(&database.CasbinRule{}).Where(permissionPtypeClause+" AND v0 = ? AND v1 = ? AND v2 = ?", "p", subject, path, method)
 	if policyID > 0 {
 		db = db.Where("id <> ?", policyID)
 	}

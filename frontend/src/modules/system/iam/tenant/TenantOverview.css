@@ -1,0 +1,64 @@
+.tenant-overview__plans {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.tenant-overview__plans-title {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.tenant-overview__plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: var(--panel-muted);
+}
+
+.tenant-overview__plan-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.tenant-overview__plan-count {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tenant-overview__plan-quotas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+}
+
+.tenant-overview__plan-quotas li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.tenant-overview__plan-quotas span {
+  color: var(--text-tertiary);
+}
+
+.tenant-overview__plan-quotas strong {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tenant-overview__table-hint {
+  font-size: 12px;
+}

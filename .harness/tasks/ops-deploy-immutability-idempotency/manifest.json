@@ -2,6 +2,8 @@
   "schemaVersion": 1,
   "taskId": "ops-deploy-immutability-idempotency",
   "title": "Make Deploy tasks immutable, idempotent, and lease-safe",
+  "goal": "Make Deploy task inputs immutable and execution idempotent with recoverable leases.",
+  "primaryLayer": "business/*",
   "status": "complete",
   "priority": "P0",
   "deliveryTier": "L2",
@@ -88,6 +90,8 @@
   "runtimeSensitive": true,
   "costProfile": "high; strong backend/concurrency owner; lower-cost frontend lane only after API freeze",
   "linkage": {
+    "changeRef": "none",
+    "planRefs": ["docs/harness/tasks/2026-08-17-ops-deploy-immutability-idempotency.task.md"],
     "evidenceDir": ".harness/evidence/ops-deploy-immutability-idempotency/",
     "reviewFile": ".harness/evidence/ops-deploy-immutability-idempotency/review.md",
     "summaryFile": ".harness/evidence/ops-deploy-immutability-idempotency/summary.md"

@@ -18,7 +18,11 @@ config/kubeconfig.yaml
 *.err.log
 
 # Local caches and temp files
-.foundation/
+# (.foundation governance artifacts — lock allowlist, allowed-drift.json —
+# are tracked; release bundles and local caches stay ignored)
+.foundation/*
+!.foundation/allowed-drift.json
+!.foundation/foundation-release.lock.json
 .tmp/
 tmp/
 .gocache/

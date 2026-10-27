@@ -1,3 +1,6 @@
+import type { Dispatch, SetStateAction } from 'react';
+import type { TableProps } from '@arco-design/web-react/es/Table/interface';
+
 export type CrossPageRowKey = string | number;
 export type SharedPaginationConfig = {
   current?: number;
@@ -58,4 +61,27 @@ export function mergeCrossPageSelection(
     seen.add(normalizedKey);
     return true;
   });
+}
+
+export function buildCrossPageRowSelection<T>(options: {
+  rows: T[];
+  getRowKey: (row: T) => CrossPageRowKey;
+  selectedRowKeys: CrossPageRowKey[];
+  setSelectedRowKeys: Dispatch<SetStateAction<CrossPageRowKey[]>>;
+  checkboxProps?: (row: T) => Record<string, unknown>;
+  fixed?: boolean;
+}): TableProps<T>['rowSelection'] {
+  const visibleRowKeys = options.rows.map(options.getRowKey);
+  return {
+    type: 'checkbox',
+    selectedRowKeys: getVisibleSelectedRowKeys(options.selectedRowKeys, visibleRowKeys),
+    checkCrossPage: true,
+    preserveSelectedRowKeys: true,
+    fixed: options.fixed,
+    checkboxProps: options.checkboxProps,
+    onChange: (nextVisibleRowKeys) =>
+      options.setSelectedRowKeys((currentRowKeys) =>
+        mergeCrossPageSelection(currentRowKeys, nextVisibleRowKeys, visibleRowKeys),
+      ),
+  };
 }

@@ -290,7 +290,7 @@ test.describe.serial('Deploy business api smoke', () => {
     await apiContext.delete(`${apiBaseUrl}/business/deploy/packages/${pkgB.id}`).catch(() => undefined);
   });
 
-  test('deploy api deletes a draft task and rejects delete after start', async () => {
+  test('deploy api deletes draft and terminal tasks but rejects active execution', async () => {
     const token = `deploy-delete-${Date.now()}`;
 
     const scope = await expectSuccess<BizScopeRow>(
@@ -379,6 +379,13 @@ test.describe.serial('Deploy business api smoke', () => {
       }),
     );
 
+    await expectSuccess<null>(
+      await apiContext.delete(`${apiBaseUrl}/business/deploy/tasks/${runningTask.id}`),
+    );
+    const terminalDetailResponse = await apiContext.get(`${apiBaseUrl}/business/deploy/tasks/${runningTask.id}`);
+    const terminalDetailPayload = await terminalDetailResponse.json() as ApiEnvelope<unknown>;
+    expect(terminalDetailPayload.code).not.toBe(200);
+
     await apiContext.delete(`${apiBaseUrl}/business/cmdb/hosts/${host.id}`).catch(() => undefined);
     await apiContext.delete(`${apiBaseUrl}/business/bizscope/${scope.id}`).catch(() => undefined);
     await apiContext.delete(`${apiBaseUrl}/business/deploy/packages/${pkg.id}`).catch(() => undefined);
@@ -386,6 +393,8 @@ test.describe.serial('Deploy business api smoke', () => {
 
   test('deploy api records uploaded package metadata and failed ssh trace', async () => {
     const token = `deploy-api-trace-${Date.now()}`;
+    // Keep the SSH fixture isolated from leftovers from interrupted runs.
+    const smokeIp = `127.0.0.${Math.floor(Math.random() * 200) + 20}`;
     const sourceBuffer = Buffer.from('fake nginx source archive for api smoke', 'utf8');
 
     const scope = await expectSuccess<BizScopeRow>(
@@ -403,8 +412,8 @@ test.describe.serial('Deploy business api smoke', () => {
       await apiContext.post(`${apiBaseUrl}/business/cmdb/hosts`, {
         data: {
           hostname: `${token}-host`,
-          ip: `10.246.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}`,
-          sshPort: 22,
+          ip: smokeIp,
+          sshPort: 1,
           os: 'linux',
           businessScopeId: scope.id,
           labels: [
@@ -467,20 +476,37 @@ test.describe.serial('Deploy business api smoke', () => {
     );
     expect(task.status).toBe('draft');
 
-    const started = await expectSuccess<TaskRow>(
-      await apiContext.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`, {
+    const credential = await expectSuccess<{ id: number }>(
+      await apiContext.post(`${apiBaseUrl}/business/deploy/credentials`, {
         data: {
-          sshUser: 'root',
-          sshPassword: 'smoke-secret',
-          hostFingerprint: 'SHA256:test',
+          name: `${token}-credential`,
+          username: 'root',
           authMode: 'password',
+          secret: 'smoke-secret',
         },
       }),
     );
-    expect(started.status).toBe('failed');
-    expect(started.businessScopeName).toContain(token);
-    expect(started.hosts).toHaveLength(1);
-    expect(started.hosts[0].traceSteps?.length || 0).toBeGreaterThan(0);
+
+    await expectSuccess<TaskRow>(
+      await apiContext.post(`${apiBaseUrl}/business/deploy/tasks/${task.id}/start`, {
+        data: {
+          credentialRefId: credential.id,
+          hostFingerprint: 'SHA256:test',
+        },
+      }),
+    );
+    await expect.poll(async () => {
+      const response = await apiContext.get(`${apiBaseUrl}/business/deploy/tasks/${task.id}`);
+      const payload = await response.json() as ApiEnvelope<TaskRow>;
+      return payload.data.status;
+    }, { timeout: 10_000 }).toBe('failed');
+
+    const failedTask = await expectSuccess<TaskRow>(
+      await apiContext.get(`${apiBaseUrl}/business/deploy/tasks/${task.id}`),
+    );
+    expect(failedTask.businessScopeName).toContain(token);
+    expect(failedTask.hosts).toHaveLength(1);
+    expect(failedTask.hosts[0].traceSteps?.length || 0).toBeGreaterThan(0);
 
     const detail = await expectSuccess<TaskRow>(
       await apiContext.get(`${apiBaseUrl}/business/deploy/tasks/${task.id}`),
@@ -497,5 +523,6 @@ test.describe.serial('Deploy business api smoke', () => {
     await apiContext.delete(`${apiBaseUrl}/business/cmdb/hosts/${host.id}`).catch(() => undefined);
     await apiContext.delete(`${apiBaseUrl}/business/bizscope/${scope.id}`).catch(() => undefined);
     await apiContext.delete(`${apiBaseUrl}/business/deploy/packages/${pkg.id}`).catch(() => undefined);
+    await apiContext.delete(`${apiBaseUrl}/business/deploy/credentials/${credential.id}`).catch(() => undefined);
   });
 });

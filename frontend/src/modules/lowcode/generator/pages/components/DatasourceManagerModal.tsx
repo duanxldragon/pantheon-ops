@@ -11,6 +11,7 @@ import {
   Table,
   Tag,
 } from '@arco-design/web-react';
+import PasswordInput from '../../../../../components/patterns/forms/PasswordInput';
 const { Row, Col } = Grid;
 import { IconEdit } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
@@ -156,7 +157,7 @@ const DatasourceManagerModal: React.FC<DatasourceManagerProps> = ({
                 label={t('generator.datasource.password')}
                 extra={editingId ? t('generator.datasource.passwordOptional') : undefined}
               >
-                <Input.Password placeholder={t('generator.datasource.passwordPlaceholder')} />
+                <PasswordInput placeholder={t('generator.datasource.passwordPlaceholder')} />
               </FormItem>
             </Col>
             <Col xs={24} md={12}>

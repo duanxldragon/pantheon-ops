@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1260" viewBox="0 0 1600 1260">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#51606f"/>
+    </marker>
+    <style>
+      .title { font: 700 28px 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif; fill: #10233f; }
+      .subtitle { font: 400 14px 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif; fill: #4d5b6c; }
+      .section { font: 700 18px 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif; fill: #10233f; }
+      .box-title { font: 700 15px 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif; fill: #10233f; }
+      .box-text { font: 400 13px 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif; fill: #334155; }
+      .small { font: 400 12px 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif; fill: #526171; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1260" fill="#f5f8fc"/>
+
+  <text x="48" y="56" class="title">Pantheon Base Architecture Overview</text>
+  <text x="48" y="82" class="subtitle">模块化单体底座，用 platform + system/* 沉淀公共能力，再通过统一模块契约接入 business/*</text>
+
+  <rect x="40" y="110" width="1520" height="150" rx="18" fill="#ffffff" stroke="#d7e1ec"/>
+  <text x="64" y="145" class="section">1. Workspace And Authority</text>
+
+  <rect x="64" y="164" width="280" height="68" rx="14" fill="#e9f2ff" stroke="#b8d1f4"/>
+  <text x="84" y="190" class="box-title">pantheon-platform workspace</text>
+  <text x="84" y="212" class="box-text">共享 skills、工作区约束、继承规则</text>
+
+  <rect x="392" y="154" width="420" height="88" rx="14" fill="#dff7ec" stroke="#9ed7bc"/>
+  <text x="412" y="182" class="box-title">pantheon-base = authority</text>
+  <text x="412" y="204" class="box-text">平台层合同、system/* 合同、模块契约、验收基线</text>
+  <text x="412" y="224" class="box-text">这里定义“架构是什么”和“边界怎么守”</text>
+
+  <rect x="860" y="164" width="310" height="68" rx="14" fill="#fff1df" stroke="#f3c793"/>
+  <text x="880" y="190" class="box-title">Derived repos</text>
+  <text x="880" y="212" class="box-text">例如 pantheon-ops，承载 business/*</text>
+
+  <rect x="1200" y="164" width="336" height="68" rx="14" fill="#f2eaff" stroke="#d1bbf7"/>
+  <text x="1220" y="190" class="box-title">Business delivery</text>
+  <text x="1220" y="212" class="box-text">业务设计、业务模块、业务验收与升级</text>
+
+  <line x1="344" y1="198" x2="392" y2="198" stroke="#51606f" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="812" y1="198" x2="860" y2="198" stroke="#51606f" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="1170" y1="198" x2="1200" y2="198" stroke="#51606f" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <rect x="40" y="286" width="1520" height="670" rx="18" fill="#ffffff" stroke="#d7e1ec"/>
+  <text x="64" y="321" class="section">2. Runtime Layers</text>
+
+  <rect x="64" y="344" width="1472" height="126" rx="16" fill="#eef5ff" stroke="#c8daf7"/>
+  <text x="84" y="374" class="box-title">Frontend Shell</text>
+  <text x="84" y="396" class="box-text">App.tsx + BaseLayout + AuthGuard + RoutePermissionGuard + Suspense</text>
+  <text x="84" y="416" class="box-text">core/router/modules.ts 聚合 ModuleConfig，菜单、页面权限、组件注册统一装配</text>
+  <text x="84" y="438" class="box-text">模块入口：dashboard / auth / system/* / generated business modules</text>
+
+  <rect x="64" y="494" width="1472" height="118" rx="16" fill="#f4fbf7" stroke="#c7e2d0"/>
+  <text x="84" y="524" class="box-title">Backend Entry And Middleware</text>
+  <text x="84" y="546" class="box-text">backend/cmd/server/main.go 初始化 SecurityConfig、DB、Redis、Casbin、Gin</text>
+  <text x="84" y="566" class="box-text">统一挂载 CORS / RequestContext / OperationLog / CSRF / JWT / Casbin / SecureAction / DataScope</text>
+  <text x="84" y="588" class="box-text">请求先过底座中间件，再分发到 platform、auth、system、business</text>
+
+  <rect x="64" y="636" width="1472" height="196" rx="16" fill="#fffaf0" stroke="#ecd8a7"/>
+  <text x="84" y="666" class="box-title">Domain Modules</text>
+
+  <rect x="84" y="690" width="210" height="118" rx="14" fill="#fff5d8" stroke="#ebcf7a"/>
+  <text x="104" y="718" class="box-title">platform</text>
+  <text x="104" y="740" class="box-text">shell, dashboard,</text>
+  <text x="104" y="758" class="box-text">cross-domain views</text>
+
+  <rect x="316" y="690" width="210" height="118" rx="14" fill="#ffe9e2" stroke="#efb7a8"/>
+  <text x="336" y="718" class="box-title">system/auth</text>
+  <text x="336" y="740" class="box-text">login, refresh, logout,</text>
+  <text x="336" y="758" class="box-text">session, MFA, security</text>
+
+  <rect x="548" y="690" width="210" height="118" rx="14" fill="#eaf2ff" stroke="#bed0f4"/>
+  <text x="568" y="718" class="box-title">system/iam</text>
+  <text x="568" y="740" class="box-text">user, role, menu,</text>
+  <text x="568" y="758" class="box-text">permission workbench</text>
+
+  <rect x="780" y="690" width="210" height="118" rx="14" fill="#ebfbf3" stroke="#bfe0cd"/>
+  <text x="800" y="718" class="box-title">system/org</text>
+  <text x="800" y="740" class="box-text">dept, post, org tree,</text>
+  <text x="800" y="758" class="box-text">governance context</text>
+
+  <rect x="1012" y="690" width="250" height="118" rx="14" fill="#f1ecff" stroke="#d0c2f4"/>
+  <text x="1032" y="718" class="box-title">system/config</text>
+  <text x="1032" y="740" class="box-text">dict, setting, i18n, upload,</text>
+  <text x="1032" y="758" class="box-text">dynamicmodule, generator, audit</text>
+
+  <rect x="1284" y="690" width="232" height="118" rx="14" fill="#e8f8ff" stroke="#b5d8ea"/>
+  <text x="1304" y="718" class="box-title">business/*</text>
+  <text x="1304" y="740" class="box-text">cmdb, more samples, future</text>
+  <text x="1304" y="758" class="box-text">derived repo modules</text>
+
+  <rect x="64" y="856" width="1472" height="76" rx="16" fill="#f7f9fc" stroke="#d5dee8"/>
+  <text x="84" y="886" class="box-title">Shared Contracts And Infrastructure</text>
+  <text x="84" y="908" class="box-text">pkg/contracts, pkg/common, pkg/database, upload service, refresh sync, MySQL, Redis, Casbin, i18n packs, audit chain</text>
+
+  <line x1="800" y1="470" x2="800" y2="494" stroke="#51606f" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="800" y1="612" x2="800" y2="636" stroke="#51606f" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <line x1="800" y1="832" x2="800" y2="856" stroke="#51606f" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <rect x="40" y="980" width="740" height="238" rx="18" fill="#ffffff" stroke="#d7e1ec"/>
+  <text x="64" y="1015" class="section">3. What Is Already In Place</text>
+  <text x="64" y="1045" class="box-text">• 分层语言已经固定：platform / system/* / business/*</text>
+  <text x="64" y="1071" class="box-text">• 后端 BackendModule、前端 ModuleConfig 已形成统一接入模型</text>
+  <text x="64" y="1097" class="box-text">• auth 主链路闭环：login、refresh、logout、sessions、security、MFA</text>
+  <text x="64" y="1123" class="box-text">• iam 主链路闭环：user、role、menu、permission、Casbin、page guard</text>
+  <text x="64" y="1149" class="box-text">• org / config 已不是样板，已经进入真实治理能力阶段</text>
+  <text x="64" y="1175" class="box-text">• business/cmdb + 数据权限样板说明业务接入机制已可用</text>
+
+  <rect x="820" y="980" width="740" height="238" rx="18" fill="#ffffff" stroke="#d7e1ec"/>
+  <text x="844" y="1015" class="section">4. What Needs To Be Added Next</text>
+  <text x="844" y="1045" class="box-text">• system/iam 从“发现问题”推进到“整改追踪闭环”</text>
+  <text x="844" y="1071" class="box-text">• system/config 继续防膨胀，按高敏能力和普通配置分级治理</text>
+  <text x="844" y="1097" class="box-text">• 更多 business/* 模块补齐 smoke、审计、i18n、数据范围验证</text>
+  <text x="844" y="1123" class="box-text">• P2 继续推进：数据权限扩面、租户就绪、多租户、SSO/OIDC、登录风控</text>
+  <text x="844" y="1149" class="box-text">• 重点不是“再造一层”，而是继续把现有边界压实</text>
+
+  <text x="48" y="1244" class="small">Source: pantheon-base contracts, README, SYSTEM_MODULE_AUDIT, PLATFORM_GAP_AUDIT_20260429, P2_SCALE_ROADMAP, code structure as of 2026-05-12.</text>
+</svg>

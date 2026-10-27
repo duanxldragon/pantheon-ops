@@ -32,7 +32,7 @@ import {
   buildStandardPagination,
   useGovernanceRail,
 } from '../../../components';
-import { usePermission } from '../../../hooks/usePermission';
+import { usePermission } from '@duanxldragon/pantheon-base-ui';
 import {
   createBizScope,
   deleteBizScope,
@@ -46,7 +46,7 @@ import {
   type BizScopeRow,
 } from './api';
 import BizScopeForm from './BizScopeForm';
-import '../../system/components/shared/list-page.css';
+import '../../../assets/list-page.css';
 
 const emptyQuery: BizScopeListQuery = {
   code: '',

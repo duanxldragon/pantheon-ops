@@ -35,6 +35,11 @@ npm run rebuild:from-base -- --base ..\pantheon-base --target .tmp\clean-base-ov
 # 2. 验证声明和生成结果
 node scripts/business-overlay/check-business-overlay.mjs --root .tmp\clean-base-overlay
 
+# 2b. 共享文件哈希漂移检测（对比 base HEAD，business-overlay.json 声明的
+#     业务路径自动跳过；其余差异必须在 .foundation/allowed-drift.json
+#     声明理由，否则失败）
+node scripts/business-overlay/check-shared-drift.mjs --base ..\pantheon-base
+
 # 3. 在暂存树运行 backend、frontend、业务 smoke 和 SonarCloud 门禁
 
 # 4. 只有全部通过后，才以暂存树替换 Ops 工作树
@@ -66,3 +71,11 @@ node scripts/business-overlay/check-business-overlay.mjs --root .tmp\clean-base-
 - SonarCloud revision、代码量和重复率复核
 
 当前仓库替换属于 L2 human gate：暂存验证通过后才能执行最终基线替换。
+
+## 7. 继承锚点
+
+> 以下英文 marker 供 `../pantheon-base/scripts/harness/check-inheritance-contract.mjs` 机械校验，请勿翻译或删除；版本变化时必须与 `foundation-release.lock.json` 同步更新。
+
+- Base repository: `../pantheon-base`
+- Base version: `pantheon-base-v0.16.1` (`c83f8e4c865b19ecd5351ecefac4106ec416e0bc`)
+- If a foundation rule must change, update `pantheon-base` first

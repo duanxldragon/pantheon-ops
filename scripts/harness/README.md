@@ -25,13 +25,17 @@ node scripts/harness/check-doc-inventory.mjs --root . --strict
 node scripts/harness/check-sync-drift.mjs --root . --strict
 node scripts/harness/check-encoding.mjs --root . --strict
 node scripts/harness/check-review.mjs --root . --strict
-node scripts/harness/check-runtime-evidence.mjs --root . --strict
-node scripts/harness/check-task-packet.mjs --root .
+node scripts/harness/check-runtime-evidence.mjs --root . --strict   # warnings also fail --strict
+node scripts/harness/check-task-packet.mjs --root .   # all task packets; pre-template docs would be listed in config/task-packet-legacy-docs.json, which is now empty
 node scripts/harness/check-evidence.mjs --root . --strict
 node scripts/harness/check-failure-registry.mjs --root . --strict
 node scripts/harness/check-boundaries.mjs --root .
+node scripts/harness/check-boundaries.mjs --strict --repo pantheon-base --baseline config/boundary-baseline.json   # CI form; bare --strict is stricter than the gate
+node scripts/harness/check-inheritance-contract.mjs --root .. --strict   # workspace-level: --root . reports the workspace and ops docs as "missing"
+node scripts/harness/check-ui-quality-gate.mjs --root . --strict
 node scripts/harness/check-visual-evidence.mjs --root .
 node scripts/harness/check-feature-ledger.mjs --root . --strict
+node scripts/harness/check-generated.mjs --root . --strict
 ```
 
 ## Graph Review Tools
@@ -53,9 +57,12 @@ The following scripts are repo-specific and not part of the portable method:
 - `check-backend-dto-contract.mjs` - backend DTO contract checks.
 - `check-backend-response-contract.mjs` - backend response contract checks.
 - `check-coverage.mjs` - unit-test coverage gate (Go cover profile / vitest coverage-summary via `--format json`).
+- `check-generated.mjs` - generated-artifact marker + drift gate (REPOSITORY_LAYOUT §7).
 - `check-inheritance-contract.mjs` - base-to-ops inheritance validation.
 - `check-structure-contract.mjs` - file placement + naming against REPOSITORY_LAYOUT.md (complements check-boundaries import rules).
+- `check-ui-quality-gate.mjs` - validates the canonical UI policy, CI integration, and post-adoption UI task evidence declarations.
 - `check-permission-contract.mjs` - permission model contract checks.
+- `generate-pr-body.mjs` - generate a task-linked PR body for governance validation.
 - `triage-base-drift.mjs` - base drift triage.
 
 ## Tests

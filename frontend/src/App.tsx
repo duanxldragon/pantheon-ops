@@ -7,18 +7,25 @@ import { hasAuthSession, useAuthStore } from './store/useAuthStore';
 import { registeredModules } from './core/router/modules';
 import { getRegisteredComponent } from './core/router/componentRegistry';
 import RoutePermissionGuard from './core/router/RoutePermissionGuard';
+import PlanFeatureGuard from './core/entitlements/PlanFeatureGuard';
 import { ensureAuthUserInfo } from './core/auth/bootstrap';
 import { scheduleHighFrequencyRouteWarmup } from './core/router/prefetch';
-import { PageNotFound, RouteContentFallback } from './components';
+import {
+  PageError,
+  PageNotFound,
+  RouteContentFallback,
+  RouteErrorBoundary,
+} from './components';
 import {
   handleVerifySuccess,
   handleVerifyCancel,
 } from './components/feedback/secondaryVerifyController';
-import { findFirstNavigableMenuPath } from './modules/system/menu/api';
+import { findFirstNavigableMenuPath } from './modules/system/iam/menu/api';
 import { useMenuStore } from './store/useMenuStore';
-import { checkPermission } from './core/permissions/checkPermission';
+import { checkPermission } from './core/permission/checkPermission';
+import { resolveDefaultAuthedPath } from './core/router/defaultPath';
 
-const BaseLayout = lazy(() => import('./core/layout'));
+const BaseLayout = lazy(() => import('./core/layout/AppLayout'));
 const LoginPage = lazy(() =>
   import('./modules/auth/login/components/Login').then((module) => ({
     default: module.LoginPageComponent,
@@ -38,32 +45,25 @@ const AuthGuard = ({ children }: { children: ReactElement }) => {
   return children;
 };
 
-function resolveDefaultAuthedPath(
-  hasDashboardPermission: boolean,
-  fallbackMenuPath: string | null,
-) {
-  if (hasDashboardPermission) {
-    return '/dashboard';
-  }
-  if (fallbackMenuPath) {
-    return fallbackMenuPath;
-  }
-  return '/dashboard';
-}
-
 const DefaultHomeRedirect = () => {
   const { token, userInfo } = useAuthStore();
-  const { menuTree, loading, fetchMenuTree } = useMenuStore();
+  const { menuTree, loading, loadError, fetchMenuTree } = useMenuStore();
 
   useEffect(() => {
-    if (!token || menuTree.length > 0 || loading) {
+    if (!token || menuTree.length > 0 || loading || loadError) {
       return;
     }
     void fetchMenuTree();
-  }, [fetchMenuTree, loading, menuTree.length, token]);
+  }, [fetchMenuTree, loadError, loading, menuTree.length, token]);
 
   if (!userInfo) {
     return <RouteContentFallback />;
+  }
+
+  // Menu fetch failed and there is nothing cached: surface a retryable error
+  // instead of silently redirecting to a possibly-forbidden default path.
+  if (loadError && menuTree.length === 0) {
+    return <PageError onRetry={() => void fetchMenuTree({ force: true })} />;
   }
 
   const targetPath = resolveDefaultAuthedPath(
@@ -146,7 +146,8 @@ function App() {
   return (
     <ConfigProvider locale={arcoLocale}>
       <Suspense fallback={<Spin loading />}>
-        <Routes>
+        <RouteErrorBoundary>
+          <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route
             path="/"
@@ -167,7 +168,9 @@ function App() {
                   element={
                     <Suspense fallback={<RouteContentFallback />}>
                       <RoutePermissionGuard permission={route.pagePermission}>
-                        <Component />
+                        <PlanFeatureGuard feature={route.feature}>
+                          <Component />
+                        </PlanFeatureGuard>
                       </RoutePermissionGuard>
                     </Suspense>
                   }
@@ -184,6 +187,7 @@ function App() {
             onCancel={handleCancel}
           />
         ) : null}
+        </RouteErrorBoundary>
       </Suspense>
     </ConfigProvider>
   );

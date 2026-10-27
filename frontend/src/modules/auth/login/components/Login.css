@@ -1,7 +1,7 @@
 .auth-login-page {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(360px, 44%) minmax(420px, 56%);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   min-height: 100dvh;
   overflow: hidden;
   background: var(--app-bg);
@@ -9,15 +9,15 @@
 
 .auth-login-page__brand-pane,
 .auth-login-page__form-pane {
-  position: relative;
   z-index: 1;
 }
 
 .auth-login-page__brand-pane {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 64px 56px;
+  padding: var(--space-3xl-plus) var(--space-3xl-alt);
   border-right: 1px solid var(--panel-border);
   background: var(--panel-bg-solid);
 }
@@ -30,7 +30,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 44px;
+  margin-bottom: var(--space-3xl);
 }
 
 .auth-login-page__brand-mark {
@@ -83,7 +83,7 @@
 
 .auth-login-page .auth-login-page__headline {
   max-width: 460px;
-  margin: 16px 0 14px;
+  margin: var(--space-lg) 0 var(--space-md-plus);
   color: var(--text-primary);
   font-size: 32px;
   line-height: 1.18;
@@ -98,7 +98,7 @@
 }
 
 .auth-login-page__features {
-  margin-top: 26px;
+  margin-top: var(--space-xl-alt);
   row-gap: 10px;
 }
 
@@ -110,41 +110,65 @@
 }
 
 .auth-login-page__footer {
-  margin-top: 28px;
+  margin-top: var(--space-xl-plus);
   color: var(--text-tertiary);
   font-size: 12px;
 }
 
+/* Deliberately static: the absolutely placed tool row then resolves against the
+   page (its true corner) instead of this pane, which is only the right half on
+   wide screens and the bottom band on narrow ones. */
 .auth-login-page__form-pane {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 88px 56px 64px;
+  gap: var(--space-lg);
+  /* Symmetric vertical padding: an asymmetric inset offsets the card from true
+     centre, which reads as "sitting too high" on tall displays. */
+  padding: var(--space-3xl-plus) var(--space-3xl-alt);
 }
 
 .auth-login-page__tools {
   position: absolute;
-  top: 28px;
-  right: 32px;
+  z-index: 2;
+  top: var(--space-xl-plus);
+  right: var(--space-2xl);
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-wrap: nowrap;
+  align-items: center;
   justify-content: flex-end;
-  max-width: calc(100% - 64px);
+  gap: 10px;
+  max-width: calc(100% - var(--space-2xl) * 2);
 }
 
+/* Ghost treatment: the utility controls must not compete with the card for attention. */
 .auth-login-page__tools .auth-login-page__tool-btn {
-  height: 38px;
-  border: 1px solid var(--panel-border);
+  height: 34px;
+  border: 1px solid transparent;
   border-radius: var(--radius-action);
-  background: var(--panel-bg-solid);
+  background: transparent;
   color: var(--text-secondary);
   box-shadow: none;
 }
 
+.auth-login-page__tools .auth-login-page__tool-btn:hover {
+  border-color: transparent;
+  background: var(--panel-muted);
+  color: var(--text-primary);
+}
+
+.auth-login-page__tools .arco-select.auth-login-page__tool-btn {
+  width: 132px;
+}
+
+.auth-login-page__tools .arco-select.auth-login-page__tool-btn .arco-select-view {
+  background: transparent;
+}
+
 .auth-login-card {
   width: min(100%, 430px);
-  padding: 34px;
+  padding: var(--space-2xl-alt);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-lg);
   background: var(--panel-bg-solid);
@@ -152,15 +176,21 @@
 }
 
 .auth-login-card__header {
-  margin-bottom: 24px;
+  margin-bottom: var(--space-xl);
+}
+
+/* Arco Typography ships word-break: break-all, which splits latin words mid-syllable on narrow screens. */
+.auth-login-card .arco-typography {
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .auth-login-card__tag {
-  margin-bottom: 16px;
+  margin-bottom: var(--space-lg);
 }
 
 .auth-login-card .auth-login-card__title {
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-sm-plus);
   color: var(--text-primary);
 }
 
@@ -171,15 +201,36 @@
 }
 
 .auth-login-card__notice {
-  margin-bottom: 22px;
+  margin-bottom: var(--space-lg-large);
   border-radius: var(--radius-control);
+}
+
+.auth-login-tenant-picker {
+  display: grid;
+  gap: 6px;
+  margin-bottom: var(--space-lg-large);
+  padding: var(--space-md-plus);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-control);
+  background: var(--panel-muted);
+}
+
+.auth-login-tenant-picker__label {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.auth-login-tenant-picker__hint {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .auth-login-mfa-setup {
   display: grid;
   gap: 8px;
-  margin-bottom: 18px;
-  padding: 14px;
+  margin-bottom: var(--space-lg-alt);
+  padding: var(--space-md-plus);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-control);
   background: var(--panel-muted);
@@ -189,7 +240,7 @@
   display: grid;
   justify-items: center;
   gap: 10px;
-  padding: 12px 10px 14px;
+  padding: var(--space-md) var(--space-sm-plus) var(--space-md-plus);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-control);
   background: var(--panel-bg-solid);
@@ -281,7 +332,7 @@
 
 .auth-login-card__submit {
   height: 44px;
-  margin-top: 4px;
+  margin-top: var(--space-xs);
   border-radius: var(--radius-action);
   font-weight: 600;
 }
@@ -292,17 +343,17 @@
   }
 
   .auth-login-page__brand-pane {
-    padding: 56px 32px 28px;
+    padding: var(--space-3xl-alt) var(--space-2xl) var(--space-xl-plus);
     border-right: none;
     border-bottom: 1px solid var(--panel-border);
   }
 
   .auth-login-page__brand {
-    margin-bottom: 28px;
+    margin-bottom: var(--space-xl-plus);
   }
 
   .auth-login-page__form-pane {
-    padding: 84px 24px 44px;
+    padding: var(--space-3xl) var(--space-xl);
   }
 }
 
@@ -318,31 +369,42 @@
   }
 
   .auth-login-page .auth-login-page__headline {
-    margin-top: 12px;
+    margin-top: var(--space-md);
     font-size: 24px;
   }
 
   .auth-login-page__tools {
+    /* On phones the page scrolls, so the corner placement would pin the controls
+       over the brand block. Keep them in flow above the card instead. */
     position: static;
     max-width: 100%;
-    margin-bottom: 18px;
-    justify-content: stretch;
+    /* Long localized theme labels (ja-JP/ko-KR) exceed 288px at 320px wide;
+       stacking beats overflowing the row. */
+    flex-wrap: wrap;
   }
 
-  .auth-login-page__tool-btn {
-    flex: 1 1 0;
-    justify-content: center;
+  /* Touch has no hover, so a borderless control reads as static text. Restore the
+     filled chip and a larger tap target below the hover-capable breakpoints. */
+  .auth-login-page__tools .auth-login-page__tool-btn {
+    height: 40px;
+    border-color: var(--panel-border);
+    background: var(--panel-bg-solid);
+  }
+
+  .auth-login-page__tools .arco-select.auth-login-page__tool-btn .arco-select-view {
+    background: var(--panel-bg-solid);
   }
 
   .auth-login-page__form-pane {
     order: 1;
-    display: block;
-    padding: 24px 16px 18px;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: var(--space-xl) var(--space-lg) var(--space-lg-alt);
   }
 
   .auth-login-page__mobile-brand {
     display: block;
-    margin-bottom: 14px;
+    margin-bottom: var(--space-md-plus);
   }
 
   .auth-login-page__mobile-brand .auth-login-page__brand {
@@ -352,7 +414,7 @@
 
   .auth-login-card {
     width: 100%;
-    padding: 28px 22px;
+    padding: var(--space-xl-plus) var(--space-lg-large);
   }
 
   .auth-login-page__features,

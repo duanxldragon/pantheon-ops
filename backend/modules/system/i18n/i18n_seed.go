@@ -1,4 +1,4 @@
-package system
+package i18n
 
 import (
 	// Blank import enables the //go:embed directives that load the builtin seed resources.
@@ -21,6 +21,7 @@ const (
 	moduleConfig         = "system.config"
 	moduleAuth           = "system.auth"
 	moduleAudit          = "system.audit"
+	moduleTenant         = "system.tenant"
 	keyMenuDashboard     = "system.menu.dashboard"
 	keyMenuAccess        = "system.menu.access"
 	keyMenuOrg           = "system.menu.org"

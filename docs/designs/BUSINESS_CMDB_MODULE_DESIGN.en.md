@@ -1,12 +1,16 @@
+---
+title: CMDB Business Module Design
+doc_type: Design
+layer: business/cmdb
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-07-17
+---
+
 # CMDB Business Module Design
 
 Chinese version: [BUSINESS_CMDB_MODULE_DESIGN.md](./BUSINESS_CMDB_MODULE_DESIGN.md)
-
-Updated: 2026-07-17
-
-Type: Design
-Layer: `business/cmdb`
-Status: Active
 
 This document defines the lightweight CMDB module for `pantheon-ops`. It replaces the retired low-code validation sample and is the canonical business design for host inventory, label governance, and reusable host groups.
 

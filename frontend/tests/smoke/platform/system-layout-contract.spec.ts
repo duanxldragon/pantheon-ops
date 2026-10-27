@@ -38,6 +38,12 @@ async function expectNoPageError(page: Page) {
 }
 
 test.describe('system layout contract', () => {
+  // Each test sweeps 12 system pages in one go. On cold-start dev servers
+  // (local Windows runs, first CI warm-up) per-page vite on-demand compilation
+  // pushes the cumulative runtime past the suite-wide 30s budget. Mark the
+  // group slow (3× timeout) instead of raising the shared config timeout.
+  test.slow();
+
   for (const viewport of layoutViewportCases) {
     test(`list pages keep controls readable at ${viewport.width}w`, async ({ page }) => {
       await signInAsAdmin(page);

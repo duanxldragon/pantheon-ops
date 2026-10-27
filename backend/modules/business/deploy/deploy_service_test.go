@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -11,10 +12,10 @@ import (
 	"testing"
 	"time"
 
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/modules/business/cmdb"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/testmysql"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
@@ -32,6 +33,24 @@ func setupDeployTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("migrate cmdb fixtures: %v", err)
 	}
 	return db
+}
+
+// setupDeployTestCredential sets up the encryption key env and creates a
+// credential reference, returning its ID for use in StartTaskRequest.
+func setupDeployTestCredential(t *testing.T, svc *DeployService) uint64 {
+	t.Helper()
+	// Fixed 32-byte hex key for deterministic test encryption.
+	t.Setenv("PANTHEON_DEPLOY_CREDENTIAL_KEY", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+	cred, err := svc.CreateCredential(CreateDeployCredentialRequest{
+		Name:     "test-cred",
+		Username: "root",
+		AuthMode: "password",
+		Secret:   "secret",
+	}, "1")
+	if err != nil {
+		t.Fatalf("create test credential: %v", err)
+	}
+	return cred.ID
 }
 
 type deployTestHost struct {
@@ -80,6 +99,22 @@ type fakeDeploySSHRunner struct {
 	stderr string
 	err    error
 }
+
+type blockingDeploySSHRunner struct {
+	started chan struct{}
+}
+
+func (r *blockingDeploySSHRunner) RunScript(ctx context.Context, _ string) (string, string, error) {
+	select {
+	case <-r.started:
+	default:
+		close(r.started)
+	}
+	<-ctx.Done()
+	return "", "", ctx.Err()
+}
+
+func (r *blockingDeploySSHRunner) Close() error { return nil }
 
 func (r *fakeDeploySSHRunner) RunScript(_ context.Context, script string) (string, string, error) {
 	r.script = script
@@ -502,6 +537,7 @@ func TestDeployTaskGroupTargetInheritsParentConditions(t *testing.T) {
 func TestDeployTaskSSHExecutorRunsInstallAndWritesBackHostState(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	credID := setupDeployTestCredential(t, svc)
 	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 		if req.SSHUser != "root" {
 			t.Fatalf("unexpected ssh user: %s", req.SSHUser)
@@ -548,10 +584,8 @@ func TestDeployTaskSSHExecutorRunsInstallAndWritesBackHostState(t *testing.T) {
 	}
 
 	started, err := svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil)
 	if err != nil {
 		t.Fatalf("start ssh task: %v", err)
@@ -662,6 +696,7 @@ func TestDeployTaskCreatesWithTemplateParams(t *testing.T) {
 func TestDeployTaskFixedTemplateSSHExecutorRendersScript(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	credID := setupDeployTestCredential(t, svc)
 
 	runner := &fakeDeploySSHRunner{stdout: "nginx template installed"}
 	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
@@ -713,10 +748,8 @@ func TestDeployTaskFixedTemplateSSHExecutorRendersScript(t *testing.T) {
 	}
 
 	started, err := svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil)
 	if err != nil {
 		t.Fatalf("start task: %v", err)
@@ -841,38 +874,28 @@ func TestStartDeployTaskReturnsCanonicalSSHValidationErrors(t *testing.T) {
 		t.Fatalf("create task: %v", err)
 	}
 
+	// Missing credential reference is rejected before SSH field checks.
+	_, err = svc.StartTask(task.ID, StartTaskRequest{}, "1", nil)
+	if err == nil || err.Error() != "business.deploy.credential.required" {
+		t.Fatalf("expected credential required error, got %v", err)
+	}
+
+	// Inline SSH material is forbidden when credential reference is provided.
+	credID := setupDeployTestCredential(t, svc)
 	_, err = svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:     "root",
-		SSHPassword: "secret",
+		CredentialRefID: credID,
+		SSHUser:         "root",
+	}, "1", nil)
+	if err == nil || err.Error() != "business.deploy.credential.inline_forbidden" {
+		t.Fatalf("expected inline forbidden error, got %v", err)
+	}
+
+	// Missing host fingerprint is rejected after credential is resolved.
+	_, err = svc.StartTask(task.ID, StartTaskRequest{
+		CredentialRefID: credID,
 	}, "1", nil)
 	if err == nil || err.Error() != errDeployTaskSSHHostKeyRequired {
 		t.Fatalf("expected host key required error, got %v", err)
-	}
-
-	_, err = svc.StartTask(task.ID, StartTaskRequest{
-		HostFingerprint: "SHA256:test",
-		SSHPassword:     "secret",
-	}, "1", nil)
-	if err == nil || err.Error() != errDeployTaskSSHUserRequired {
-		t.Fatalf("expected ssh user required error, got %v", err)
-	}
-
-	_, err = svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:         "root",
-		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
-	}, "1", nil)
-	if err == nil || err.Error() != errDeployTaskSSHPasswordRequired {
-		t.Fatalf("expected ssh password required error, got %v", err)
-	}
-
-	_, err = svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:         "root",
-		HostFingerprint: "SHA256:test",
-		AuthMode:        "private_key",
-	}, "1", nil)
-	if err == nil || err.Error() != errDeployTaskSSHPrivateKeyRequired {
-		t.Fatalf("expected ssh private key required error, got %v", err)
 	}
 }
 
@@ -895,6 +918,8 @@ func TestStartDeployTaskReturnsCanonicalExecutionPlanValidationErrors(t *testing
 	if err := db.Create(&host).Error; err != nil {
 		t.Fatalf("seed host: %v", err)
 	}
+
+	credID := setupDeployTestCredential(t, svc)
 
 	fixedPkg, err := svc.CreatePackage(CreatePackageRequest{
 		Name:          "ssh-plan-fixed-pkg",
@@ -925,10 +950,8 @@ func TestStartDeployTaskReturnsCanonicalExecutionPlanValidationErrors(t *testing
 		snapshot.Steps[0].TemplateParams = map[string]any{"installRoot": "/data/nginx"}
 	})
 	_, err = svc.StartTask(fixedTask.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil)
 	if err == nil || err.Error() != errDeployTaskTemplateParamsInvalid {
 		t.Fatalf("expected template params invalid on start, got %v", err)
@@ -958,10 +981,8 @@ func TestStartDeployTaskReturnsCanonicalExecutionPlanValidationErrors(t *testing
 		snapshot.Steps[0].Package.InstallCommand = ""
 	})
 	_, err = svc.StartTask(plainTask.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil)
 	if err == nil || err.Error() != errDeployTaskInstallCommandRequired {
 		t.Fatalf("expected install command required on start, got %v", err)
@@ -998,10 +1019,8 @@ func TestStartDeployTaskReturnsCanonicalExecutionPlanValidationErrors(t *testing
 		t.Fatalf("create missing source task: %v", err)
 	}
 	_, err = svc.StartTask(missingSourceTask.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil)
 	if err == nil || err.Error() != errDeployTaskPackageSourceMissing {
 		t.Fatalf("expected package source missing on start, got %v", err)
@@ -1011,6 +1030,7 @@ func TestStartDeployTaskReturnsCanonicalExecutionPlanValidationErrors(t *testing
 func TestStartDeployTaskPersistsCanonicalSSHRunnerErrors(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	credID := setupDeployTestCredential(t, svc)
 	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 		return nil, errors.New(errDeployTaskSSHConnectFailed)
 	}
@@ -1052,10 +1072,8 @@ func TestStartDeployTaskPersistsCanonicalSSHRunnerErrors(t *testing.T) {
 	}
 
 	started, err := svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil)
 	if err != nil {
 		t.Fatalf("start task: %v", err)
@@ -1074,6 +1092,7 @@ func TestStartDeployTaskPersistsCanonicalSSHRunnerErrors(t *testing.T) {
 func TestDeployTaskFixedTemplateUsesUploadedSourceURL(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	credID := setupDeployTestCredential(t, svc)
 
 	runner := &fakeDeploySSHRunner{stdout: "nginx offline installed"}
 	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
@@ -1128,10 +1147,8 @@ func TestDeployTaskFixedTemplateUsesUploadedSourceURL(t *testing.T) {
 	}
 
 	_, err = svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil)
 	if err != nil {
 		t.Fatalf("start task: %v", err)
@@ -1166,7 +1183,7 @@ func TestDeployFixedTemplateScriptsRenderForBuiltInComponents(t *testing.T) {
 				Action:         TaskActionInstall,
 				TemplateParams: datatypes.JSON([]byte(`{"installRoot":"/data/mysql","dataRoot":"/data/mysql/data","serviceName":"mysqld","port":"3306","rootPassword":"Secret_123"}`)),
 			},
-			expectScript: []string{"mysql-8.0.39.tar.xz", "ROOT_PASSWORD=\"Secret_123\"", "ExecStart=/data/mysql/bin/mysqld", "--connect-timeout 15 --max-time 300 --retry 2 --retry-delay 2", `systemctl stop "mysqld" >/dev/null 2>&1 || true`, `pkill -f "/data/mysql/bin/mysqld" >/dev/null 2>&1 || true`},
+			expectScript: []string{"mysql-8.0.39.tar.xz", "ROOT_PASSWORD='Secret_123'", "ExecStart=/data/mysql/bin/mysqld", "--connect-timeout 15 --max-time 300 --retry 2 --retry-delay 2", `systemctl stop "mysqld" >/dev/null 2>&1 || true`, `pkill -f "/data/mysql/bin/mysqld" >/dev/null 2>&1 || true`},
 		},
 		{
 			name: "redis",
@@ -1194,7 +1211,7 @@ func TestDeployFixedTemplateScriptsRenderForBuiltInComponents(t *testing.T) {
 				Action:         TaskActionInstall,
 				TemplateParams: datatypes.JSON([]byte(`{"installRoot":"/data/minio","dataRoot":"/data/minio/data","serviceName":"minio","apiPort":"9000","consolePort":"9001","rootUser":"minioadmin","rootPassword":"Minio_123"}`)),
 			},
-			expectScript: []string{"dl.minio.org.cn/server/minio/release/linux-amd64/minio", "MINIO_ROOT_USER=minioadmin", "ExecStart=/data/minio/bin/minio server", "--connect-timeout 15 --max-time 300 --retry 2 --retry-delay 2", `systemctl stop "minio" >/dev/null 2>&1 || true`, `pkill -f "/data/minio/bin/minio" >/dev/null 2>&1 || true`},
+			expectScript: []string{"dl.minio.org.cn/server/minio/release/linux-amd64/minio", `MINIO_ROOT_USER="$ROOT_USER"`, `MINIO_ROOT_PASSWORD="$ROOT_PASSWORD"`, "ROOT_PASSWORD='Minio_123'", "ExecStart=/data/minio/bin/minio server", "--connect-timeout 15 --max-time 300 --retry 2 --retry-delay 2", `systemctl stop "minio" >/dev/null 2>&1 || true`, `pkill -f "/data/minio/bin/minio" >/dev/null 2>&1 || true`},
 		},
 		{
 			name: "harbor",
@@ -1247,9 +1264,89 @@ func TestDeployFixedTemplateScriptsRequireMandatoryParams(t *testing.T) {
 	}
 }
 
+func TestDeploySourceFetchRejectsShellInjection(t *testing.T) {
+	pkg := DeployPackage{SourceFileName: "safe.tar.gz", SourceURL: "https://example.test/a.tar.gz\"; touch /tmp/pwned; echo \""}
+	if _, _, err := buildSourceFetchScript(pkg, "", "$PKG_DIR"); err == nil {
+		t.Fatal("expected malicious source URL to be rejected")
+	}
+	pkg = DeployPackage{SourceFileName: "../evil.tar.gz", SourceURL: "https://example.test/a.tar.gz"}
+	if _, _, err := buildSourceFetchScript(pkg, "", "$PKG_DIR"); err == nil {
+		t.Fatal("expected path traversal artifact name to be rejected")
+	}
+}
+
+func TestDeployJDKTemplateServiceSemantics(t *testing.T) {
+	pkg := DeployPackage{TemplateCode: TemplateCodeJDKSystemd, SourceFileName: "jdk.tar.gz", SourceURL: "https://example.test/jdk.tar.gz"}
+	baseTask := DeployTask{Action: TaskActionInstall, TemplateParams: datatypes.JSON([]byte(`{"installRoot":"/data/jdk","serviceName":"jdk"}`))}
+	script, err := renderJDKSystemdScript(pkg, baseTask)
+	if err != nil {
+		t.Fatalf("render jdk without main class: %v", err)
+	}
+	if strings.Contains(script, "systemctl enable") || strings.Contains(script, ".service") {
+		t.Fatalf("jdk-only install must not create a service: %s", script)
+	}
+	appTask := DeployTask{Action: TaskActionInstall, TemplateParams: datatypes.JSON([]byte(`{"installRoot":"/data/jdk","serviceName":"demo","mainClass":"com.example.Main","appArgs":"--port 8080"}`))}
+	script, err = renderJDKSystemdScript(pkg, appTask)
+	if err != nil {
+		t.Fatalf("render jdk app: %v", err)
+	}
+	for _, expected := range []string{"systemctl enable", "systemctl restart", "ExecStart=/data/jdk/bin/app.sh", "com.example.Main"} {
+		if !strings.Contains(script, expected) {
+			t.Fatalf("expected jdk script to contain %q, got: %s", expected, script)
+		}
+	}
+	uninstallTask := DeployTask{Action: TaskActionUninstall, TemplateParams: datatypes.JSON([]byte(`{"installRoot":"/data/jdk","serviceName":"jdk"}`))}
+	script, err = renderJDKSystemdScript(pkg, uninstallTask)
+	if err != nil {
+		t.Fatalf("render jdk uninstall: %v", err)
+	}
+	if !strings.Contains(script, `rm -f "/etc/profile.d/jdk.sh"`) {
+		t.Fatalf("jdk uninstall must remove its profile export: %s", script)
+	}
+}
+
+func TestDeployRedisTemplateUsesSignalStopForPasswordProtectedService(t *testing.T) {
+	pkg := DeployPackage{TemplateCode: TemplateCodeRedisSystemd, Version: "7.2.5"}
+	task := DeployTask{Action: TaskActionInstall, TemplateParams: datatypes.JSON([]byte(`{"installRoot":"/data/redis","dataRoot":"/data/redis/data","serviceName":"redis","port":"6379","requirePassword":"Redis_123"}`))}
+	script, err := renderRedisSystemdScript(pkg, task)
+	if err != nil {
+		t.Fatalf("render password-protected redis: %v", err)
+	}
+	if strings.Contains(script, "ExecStop=") {
+		t.Fatalf("password-protected redis must rely on systemd SIGTERM rather than an unauthenticated redis-cli stop: %s", script)
+	}
+}
+
+func TestDeployPrometheusTemplateUsesCustomConfigPath(t *testing.T) {
+	pkg := DeployPackage{TemplateCode: TemplateCodePrometheusSystemd, SourceFileName: "prometheus.tar.gz", SourceURL: "https://example.test/prometheus.tar.gz"}
+	task := DeployTask{Action: TaskActionInstall, TemplateParams: datatypes.JSON([]byte(`{"installRoot":"/data/prometheus","dataRoot":"/data/prometheus/data","serviceName":"prometheus","webPort":"9090","storageRetentionPolicy":"30d","scrapeConfigFile":"/etc/prometheus/custom.yml"}`))}
+	script, err := renderPrometheusSystemdScript(pkg, task)
+	if err != nil {
+		t.Fatalf("render prometheus: %v", err)
+	}
+	if !strings.Contains(script, "CONFIG_FILE='/etc/prometheus/custom.yml'") || !strings.Contains(script, "cat > '/etc/prometheus/custom.yml'") || !strings.Contains(script, "--config.file=/etc/prometheus/custom.yml") {
+		t.Fatalf("custom prometheus config path was not applied consistently: %s", script)
+	}
+}
+
+func TestContinueOnHostFailureMapsToExecutionPolicy(t *testing.T) {
+	if got := effectiveFailurePolicy(FailurePolicyFailFast, true); got != FailurePolicyContinueHosts {
+		t.Fatalf("expected continue_hosts policy, got %q", got)
+	}
+	if got := effectiveFailurePolicy(FailurePolicyContinueSteps, true); got != FailurePolicyContinueHosts {
+		t.Fatalf("continue-on-host-failure must map to continue_hosts, got %q", got)
+	}
+	snapshot := deployExecutionSnapshot{Steps: []deployStepSnapshot{{StepCode: "step", ContinueOnHostFailure: true, FailurePolicy: FailurePolicyContinueHosts}}}
+	plan := executionSnapshotToPlan(snapshot)
+	if len(plan) != 1 || !plan[0].ContinueOnHostFailure || plan[0].FailurePolicy != FailurePolicyContinueHosts {
+		t.Fatalf("continue-on-host-failure was not preserved in execution plan: %+v", plan)
+	}
+}
+
 func TestDeployTaskTruncatesLargeExecutionLogs(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	credID := setupDeployTestCredential(t, svc)
 
 	largeStdout := strings.Repeat("x", 70000)
 	runner := &fakeDeploySSHRunner{stdout: largeStdout}
@@ -1295,10 +1392,8 @@ func TestDeployTaskTruncatesLargeExecutionLogs(t *testing.T) {
 	}
 
 	started, err := svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil)
 	if err != nil {
 		t.Fatalf("start task: %v", err)
@@ -1320,6 +1415,7 @@ func TestDeployTaskTruncatesLargeExecutionLogs(t *testing.T) {
 func TestDeployTaskUninstallWritebackReturnsHostToAssignedAndRemovesComponent(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	credID := setupDeployTestCredential(t, svc)
 	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
 		return &fakeDeploySSHRunner{stdout: "nginx removed"}, nil
 	}
@@ -1373,10 +1469,8 @@ func TestDeployTaskUninstallWritebackReturnsHostToAssignedAndRemovesComponent(t 
 	}
 
 	started, err := svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil)
 	if err != nil {
 		t.Fatalf("start task: %v", err)
@@ -1803,6 +1897,7 @@ func TestDeployTaskUpdateSwitchesToDirectPackageAndTemplateParams(t *testing.T) 
 func TestDeployTemplateTaskSSHExecutorRunsAllTemplateSteps(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	credID := setupDeployTestCredential(t, svc)
 
 	runner := &multiStepDeploySSHRunner{stdouts: []string{"nginx installed", "redis installed"}, errAt: -1}
 	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
@@ -1898,10 +1993,8 @@ func TestDeployTemplateTaskSSHExecutorRunsAllTemplateSteps(t *testing.T) {
 	}
 
 	started, err := svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil)
 	if err != nil {
 		t.Fatalf("start task: %v", err)
@@ -1967,6 +2060,7 @@ func TestMergeDeployTemplateParamsPrefersTaskOverrides(t *testing.T) {
 func TestDeployTemplateTaskSSHExecutorRunsScriptStepsWithChecks(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	credID := setupDeployTestCredential(t, svc)
 
 	runner := &multiStepDeploySSHRunner{
 		stdouts: []string{"precheck ok", "prepare ok", "postcheck ok", "install ok"},
@@ -2055,10 +2149,8 @@ func TestDeployTemplateTaskSSHExecutorRunsScriptStepsWithChecks(t *testing.T) {
 	}
 
 	started, err := svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil)
 	if err != nil {
 		t.Fatalf("start task: %v", err)
@@ -2097,6 +2189,7 @@ func TestDeployTemplateTaskSSHExecutorRunsScriptStepsWithChecks(t *testing.T) {
 func TestDeployTemplateTaskSSHExecutorFailsOnScriptPrecheck(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	credID := setupDeployTestCredential(t, svc)
 
 	runner := &multiStepDeploySSHRunner{
 		stdouts: []string{"precheck failed"},
@@ -2169,10 +2262,8 @@ func TestDeployTemplateTaskSSHExecutorFailsOnScriptPrecheck(t *testing.T) {
 	}
 
 	started, err := svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil)
 	if err != nil {
 		t.Fatalf("start task: %v", err)
@@ -2194,6 +2285,53 @@ func TestDeployTemplateTaskSSHExecutorFailsOnScriptPrecheck(t *testing.T) {
 		t.Fatalf("expected step_failed trace, got %s", string(tracePayload))
 	}
 }
+
+func TestDeployTemplateAllowsScriptOnlyPlaybookAndExplicitOrchestrationFields(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	scope := deployTestBizScope{Code: "playbook-scope", Name: "Playbook Scope", Status: "active"}
+	if err := db.Create(&scope).Error; err != nil {
+		t.Fatalf("seed scope: %v", err)
+	}
+	host := deployTestHost{Hostname: "playbook-host", IP: "10.50.0.10", OS: "ubuntu-24.04", Status: "assigned", BusinessScopeID: scope.ID, BusinessScopeName: scope.Name}
+	if err := db.Create(&host).Error; err != nil {
+		t.Fatalf("seed host: %v", err)
+	}
+	template, err := svc.CreateTemplate(CreateTemplateRequest{
+		Name: "generic playbook", Version: "v1", ExecutionMode: ExecutionModeOrchestrated,
+		DefaultAction: TaskActionInstall, Status: TemplateStatusEnabled,
+		ParameterSchema: map[string]any{"appPort": "8080"},
+		Steps: []TemplateStepPayload{
+			{StepCode: "prepare", StepName: "Prepare", StepType: TemplateStepTypeScript, Action: TaskActionInstall,
+				Dependencies: []string{}, Condition: map[string]any{"type": "always"}, FailurePolicy: FailurePolicyContinueSteps,
+				StepConfig: map[string]any{"script": "echo prepare {{appPort}}", "platformScripts": map[string]any{"ubuntu": "echo ubuntu {{appPort}}"}}, Sort: 1},
+			{StepCode: "configure", StepName: "Configure", StepType: TemplateStepTypeScript, Action: TaskActionInstall,
+				Dependencies: []string{"prepare"}, Condition: map[string]any{"type": "on_success"}, FailurePolicy: FailurePolicyFailFast,
+				StepConfig: map[string]any{"script": "echo configure"}, Sort: 2},
+		},
+	}, "1")
+	if err != nil {
+		t.Fatalf("create script-only playbook: %v", err)
+	}
+	if template.PackageID != 0 || len(template.Steps) != 2 {
+		t.Fatalf("expected package-free playbook, got %+v", template)
+	}
+	if template.Steps[1].Dependencies[0] != "prepare" || template.Steps[0].FailurePolicy != FailurePolicyContinueSteps {
+		t.Fatalf("expected explicit orchestration fields, got %+v", template.Steps)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "generic playbook task", TemplateID: template.ID, BusinessScopeID: scope.ID,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{host.ID}, ExecutorType: ExecutorTypeSimulated,
+		TemplateParams: map[string]any{"appPort": "9090"},
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create package-free task: %v", err)
+	}
+	if task.PackageID != 0 || task.TemplateID != template.ID {
+		t.Fatalf("expected package-free task snapshot, got %+v", task)
+	}
+}
+
 func TestDeployTaskVisibilityRespectsHostDataScope(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
@@ -2805,6 +2943,79 @@ func TestDeleteDeployTaskRejectsRunningTask(t *testing.T) {
 	err = svc.DeleteTask(task.ID, "1", nil)
 	if err == nil || err.Error() != errDeployTaskInvalidDeleteState {
 		t.Fatalf("expected %s, got %v", errDeployTaskInvalidDeleteState, err)
+	}
+}
+
+func TestDeleteDeployTaskReconcilesStaleRunningTask(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+
+	scope := deployTestBizScope{Code: "delete-stale-scope", Name: "陈旧任务作用域", Status: "active"}
+	if err := db.Create(&scope).Error; err != nil {
+		t.Fatalf("seed scope: %v", err)
+	}
+	host := deployTestHost{Hostname: "delete-stale-host", IP: "10.40.0.133", OS: "linux", Status: "assigned", BusinessScopeID: scope.ID, BusinessScopeName: scope.Name}
+	if err := db.Create(&host).Error; err != nil {
+		t.Fatalf("seed host: %v", err)
+	}
+	pkg, err := svc.CreatePackage(CreatePackageRequest{Name: "delete-stale-pkg", Version: "1.0.0", InstallCommand: "echo install", Status: PackageStatusEnabled}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{Name: "陈旧运行任务", PackageID: pkg.ID, BusinessScopeID: scope.ID, TargetType: TargetTypeHost, TargetIDs: []uint64{host.ID}, ExecutorType: ExecutorTypeManual}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+	if _, err := svc.StartTask(task.ID, StartTaskRequest{}, "1", nil); err != nil {
+		t.Fatalf("start task: %v", err)
+	}
+	staleAt := time.Now().Add(-6 * time.Minute)
+	if err := db.Model(&DeployTask{}).Where("id = ?", task.ID).Update("updated_at", staleAt).Error; err != nil {
+		t.Fatalf("age task: %v", err)
+	}
+	if err := svc.DeleteTask(task.ID, "1", nil); err != nil {
+		t.Fatalf("delete stale task: %v", err)
+	}
+	if _, err := svc.GetTask(task.ID, nil); err == nil || !isDeployTaskNotFound(err) {
+		t.Fatalf("expected stale task to be deleted, got %v", err)
+	}
+}
+
+func TestDeleteDeployTaskAllowsTerminalTask(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+
+	scope := deployTestBizScope{Code: "delete-terminal-scope", Name: "删除终态作用域", Status: "active"}
+	if err := db.Create(&scope).Error; err != nil {
+		t.Fatalf("seed scope: %v", err)
+	}
+	host := deployTestHost{Hostname: "delete-terminal-host", IP: "10.40.0.134", OS: "linux", Status: "assigned", BusinessScopeID: scope.ID, BusinessScopeName: scope.Name}
+	if err := db.Create(&host).Error; err != nil {
+		t.Fatalf("seed host: %v", err)
+	}
+	pkg, err := svc.CreatePackage(CreatePackageRequest{Name: "delete-terminal-pkg", Version: "1.0.0", InstallCommand: "echo install", Status: PackageStatusEnabled}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{Name: "可清理终态任务", PackageID: pkg.ID, BusinessScopeID: scope.ID, TargetType: TargetTypeHost, TargetIDs: []uint64{host.ID}, ExecutorType: ExecutorTypeManual}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+	if _, err := svc.StartTask(task.ID, StartTaskRequest{}, "1", nil); err != nil {
+		t.Fatalf("start task: %v", err)
+	}
+	var taskHost DeployTaskHost
+	if err := db.Where("task_id = ?", task.ID).First(&taskHost).Error; err != nil {
+		t.Fatalf("load task host: %v", err)
+	}
+	if _, err := svc.MarkHostResult(taskHost.ID, MarkHostResultRequest{Status: TaskHostStatusSuccess, Stdout: "done"}, "1", nil); err != nil {
+		t.Fatalf("mark task success: %v", err)
+	}
+	if err := svc.DeleteTask(task.ID, "1", nil); err != nil {
+		t.Fatalf("delete terminal task: %v", err)
+	}
+	if _, err := svc.GetTask(task.ID, nil); err == nil || !isDeployTaskNotFound(err) {
+		t.Fatalf("expected terminal task to be deleted, got %v", err)
 	}
 }
 
@@ -3567,6 +3778,7 @@ func TestDeployTaskMutationHandlersReturnCanonicalTargetStatusValidationError(t 
 func TestStartDeployTaskHandlerReturnsCanonicalValidationErrors(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	credID := setupDeployTestCredential(t, svc)
 	handler := NewDeployHandler(svc)
 
 	scope := deployTestBizScope{Code: "handler-start-validate", Name: "Handler Start Validate", Status: "active"}
@@ -3613,7 +3825,7 @@ func TestStartDeployTaskHandlerReturnsCanonicalValidationErrors(t *testing.T) {
 	missingFingerprintRequest := httptest.NewRequest(
 		http.MethodPost,
 		"/tasks/"+strconv.FormatUint(plainTask.ID, 10)+"/start",
-		strings.NewReader(`{"sshUser":"root","sshPassword":"secret","authMode":"password"}`),
+		strings.NewReader(fmt.Sprintf(`{"credentialRefId":%d}`, credID)),
 	)
 	missingFingerprintRequest.Header.Set("Content-Type", "application/json")
 	startRouter.ServeHTTP(missingFingerprintRecorder, missingFingerprintRequest)
@@ -3661,7 +3873,7 @@ func TestStartDeployTaskHandlerReturnsCanonicalValidationErrors(t *testing.T) {
 	templateRequest := httptest.NewRequest(
 		http.MethodPost,
 		"/tasks/"+strconv.FormatUint(fixedTask.ID, 10)+"/start",
-		strings.NewReader(`{"sshUser":"root","sshPassword":"secret","hostFingerprint":"SHA256:test","authMode":"password"}`),
+		strings.NewReader(fmt.Sprintf(`{"credentialRefId":%d,"hostFingerprint":"SHA256:test"}`, credID)),
 	)
 	templateRequest.Header.Set("Content-Type", "application/json")
 	startRouter.ServeHTTP(templateRecorder, templateRequest)
@@ -3695,7 +3907,7 @@ func TestStartDeployTaskHandlerReturnsCanonicalValidationErrors(t *testing.T) {
 	commandRequest := httptest.NewRequest(
 		http.MethodPost,
 		"/tasks/"+strconv.FormatUint(commandTask.ID, 10)+"/start",
-		strings.NewReader(`{"sshUser":"root","sshPassword":"secret","hostFingerprint":"SHA256:test","authMode":"password"}`),
+		strings.NewReader(fmt.Sprintf(`{"credentialRefId":%d,"hostFingerprint":"SHA256:test"}`, credID)),
 	)
 	commandRequest.Header.Set("Content-Type", "application/json")
 	startRouter.ServeHTTP(commandRecorder, commandRequest)
@@ -3745,7 +3957,7 @@ func TestStartDeployTaskHandlerReturnsCanonicalValidationErrors(t *testing.T) {
 	missingSourceRequest := httptest.NewRequest(
 		http.MethodPost,
 		"/tasks/"+strconv.FormatUint(missingSourceTask.ID, 10)+"/start",
-		strings.NewReader(`{"sshUser":"root","sshPassword":"secret","hostFingerprint":"SHA256:test","authMode":"password"}`),
+		strings.NewReader(fmt.Sprintf(`{"credentialRefId":%d,"hostFingerprint":"SHA256:test"}`, credID)),
 	)
 	missingSourceRequest.Header.Set("Content-Type", "application/json")
 	startRouter.ServeHTTP(missingSourceRecorder, missingSourceRequest)
@@ -3758,5 +3970,478 @@ func TestStartDeployTaskHandlerReturnsCanonicalValidationErrors(t *testing.T) {
 	}
 	if missingSourceResp.Code != common.CodeParamInvalid || missingSourceResp.Message != errDeployTaskPackageSourceMissing {
 		t.Fatalf("unexpected missing source response: %+v", missingSourceResp)
+	}
+}
+
+// --- FZ-03: Pause / Resume / Retry state transition tests ---
+
+// TestPauseTaskTransition proves a running task transitions to pause_requested
+// and a non-running task is rejected.
+func TestPauseTaskTransition(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	scopeID, hostID := seedDeployReliabilityFixture(t, db, "pause-host", "10.40.0.240")
+	pkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name: "pause-pkg", Version: "1.0.0", InstallCommand: "echo ok", Status: PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "Pause Task", PackageID: pkg.ID, BusinessScopeID: scopeID,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{hostID}, ExecutorType: ExecutorTypeSSH,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+
+	// Draft task cannot be paused.
+	_, err = svc.PauseTask(task.ID, "1", nil)
+	if err == nil || err.Error() != errDeployTaskInvalidPauseState {
+		t.Fatalf("expected invalidPauseState for draft, got %v", err)
+	}
+
+	if err := db.Model(&DeployTask{}).Where("id = ?", task.ID).Update("status", TaskStatusRunning).Error; err != nil {
+		t.Fatalf("mark task running: %v", err)
+	}
+
+	// Running task can be paused.
+	paused, err := svc.PauseTask(task.ID, "1", nil)
+	if err != nil {
+		t.Fatalf("pause task: %v", err)
+	}
+	if paused.Status != TaskStatusPauseRequested && paused.Status != TaskStatusPaused {
+		t.Fatalf("expected pause_requested or paused, got %s", paused.Status)
+	}
+}
+
+func TestAsyncPauseResumeUsesCheckpointAndAccurateAttempts(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	svc.SetAsyncExecution(true)
+	credID := setupDeployTestCredential(t, svc)
+
+	blockingRunner := &blockingDeploySSHRunner{started: make(chan struct{})}
+	svc.sshRunnerFactory = func(cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error) {
+		return blockingRunner, nil
+	}
+	scopeID, hostID := seedDeployReliabilityFixture(t, db, "pause-resume-host", "10.40.0.244")
+	pkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name: "pause-resume-pkg", Version: "1.0.0", InstallCommand: "echo ok", Status: PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "Pause Resume Task", PackageID: pkg.ID, BusinessScopeID: scopeID,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{hostID}, ExecutorType: ExecutorTypeSSH,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+	if err := db.Model(&DeployTask{}).Where("id = ?", task.ID).Update("status", TaskStatusPending).Error; err != nil {
+		t.Fatalf("mark task pending: %v", err)
+	}
+	if _, err := svc.StartTask(task.ID, StartTaskRequest{
+		CredentialRefID: credID, HostFingerprint: "SHA256:test", TimeoutSeconds: 60,
+	}, "1", nil); err != nil {
+		t.Fatalf("start task: %v", err)
+	}
+	select {
+	case <-blockingRunner.started:
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for the SSH step to start")
+	}
+	if _, err := svc.PauseTask(task.ID, "1", nil); err != nil {
+		t.Fatalf("pause task: %v", err)
+	}
+	waitForDeployTaskStatus(t, db, task.ID, TaskStatusPaused)
+	waitForDeployWorkerStop(t, svc, task.ID)
+
+	var pausedAttempt DeployTaskAttempt
+	if err := db.Where("task_id = ?", task.ID).Order("id DESC").First(&pausedAttempt).Error; err != nil {
+		t.Fatalf("load paused attempt: %v", err)
+	}
+	if pausedAttempt.Status != "paused" {
+		t.Fatalf("expected paused attempt, got %s", pausedAttempt.Status)
+	}
+	var checkpoint DeployTaskStep
+	if err := db.Where("task_id = ?", task.ID).First(&checkpoint).Error; err != nil {
+		t.Fatalf("load checkpoint: %v", err)
+	}
+	if checkpoint.Status != StepStatusPending {
+		t.Fatalf("expected interrupted checkpoint to return to pending, got %s", checkpoint.Status)
+	}
+
+	svc.sshRunnerFactory = func(cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error) {
+		return &fakeDeploySSHRunner{stdout: "resumed"}, nil
+	}
+	if _, err := svc.ResumeTask(task.ID, "1", nil); err != nil {
+		t.Fatalf("resume task: %v", err)
+	}
+	waitForDeployTaskStatus(t, db, task.ID, TaskStatusSuccess)
+	waitForDeployWorkerStop(t, svc, task.ID)
+
+	var attempts []DeployTaskAttempt
+	if err := db.Where("task_id = ?", task.ID).Order("attempt_no ASC").Find(&attempts).Error; err != nil {
+		t.Fatalf("load attempts: %v", err)
+	}
+	if len(attempts) != 2 || attempts[0].Status != "paused" || attempts[1].Status != "success" {
+		t.Fatalf("unexpected attempt history: %+v", attempts)
+	}
+	if attempts[1].AttemptNo <= attempts[0].AttemptNo {
+		t.Fatalf("attempt numbers must increase: %+v", attempts)
+	}
+	if err := db.Where("task_id = ?", task.ID).First(&checkpoint).Error; err != nil {
+		t.Fatalf("reload checkpoint: %v", err)
+	}
+	if checkpoint.Status != StepStatusSuccess || checkpoint.AttemptNo != 2 {
+		t.Fatalf("expected resumed checkpoint success on second execution, got %+v", checkpoint)
+	}
+}
+
+func waitForDeployTaskStatus(t *testing.T, db *gorm.DB, taskID uint64, expected string) {
+	t.Helper()
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		var task DeployTask
+		if db.Select("status").First(&task, taskID).Error == nil && task.Status == expected {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatalf("timed out waiting for task %d status %s", taskID, expected)
+}
+
+func waitForDeployWorkerStop(t *testing.T, svc *DeployService, taskID uint64) {
+	t.Helper()
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		if _, running := svc.taskWorkers.Load(taskID); !running {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatalf("timed out waiting for task %d worker to stop", taskID)
+}
+
+// TestResumeTaskTransition proves a paused task resumes and a non-paused task
+// is rejected.
+func TestResumeTaskTransition(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	scopeID, hostID := seedDeployReliabilityFixture(t, db, "resume-host", "10.40.0.241")
+	pkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name: "resume-pkg", Version: "1.0.0", InstallCommand: "echo ok", Status: PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "Resume Task", PackageID: pkg.ID, BusinessScopeID: scopeID,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{hostID}, ExecutorType: ExecutorTypeSSH,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+
+	// Draft task cannot be resumed.
+	_, err = svc.ResumeTask(task.ID, "1", nil)
+	if err == nil || err.Error() != errDeployTaskInvalidResumeState {
+		t.Fatalf("expected invalidResumeState for draft, got %v", err)
+	}
+
+	// Manually set task to paused.
+	now := time.Now()
+	db.Model(&DeployTask{}).Where("id = ?", task.ID).Updates(map[string]interface{}{
+		"status": TaskStatusPaused, "updated_at": now,
+	})
+
+	// Paused task can be resumed.
+	resumed, err := svc.ResumeTask(task.ID, "1", nil)
+	if err != nil {
+		t.Fatalf("resume task: %v", err)
+	}
+	if resumed.Status != TaskStatusRunning {
+		t.Fatalf("expected running after resume, got %s", resumed.Status)
+	}
+}
+
+// TestRetryTaskTransition proves a failed task can be retried and a non-failed
+// task is rejected.
+func TestRetryTaskTransition(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	scopeID, hostID := seedDeployReliabilityFixture(t, db, "retry-host", "10.40.0.242")
+	pkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name: "retry-pkg", Version: "1.0.0", InstallCommand: "echo ok", Status: PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "Retry Task", PackageID: pkg.ID, BusinessScopeID: scopeID,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{hostID}, ExecutorType: ExecutorTypeSSH,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+
+	// Draft task cannot be retried.
+	_, err = svc.RetryTask(task.ID, "1", nil)
+	if err == nil || err.Error() != errDeployTaskInvalidRetryState {
+		t.Fatalf("expected invalidRetryState for draft, got %v", err)
+	}
+
+	// Manually set task to failed.
+	now := time.Now()
+	db.Model(&DeployTask{}).Where("id = ?", task.ID).Updates(map[string]interface{}{
+		"status": TaskStatusFailed, "finished_at": &now, "updated_at": now,
+	})
+	// Create a failed host.
+	db.Create(&DeployTaskHost{
+		TaskID: task.ID, HostID: hostID, Hostname: "retry-host",
+		HostIP: "10.40.0.242", Status: TaskHostStatusFailed, UpdatedBy: "1",
+	})
+
+	// Failed task can be retried.
+	retried, err := svc.RetryTask(task.ID, "1", nil)
+	if err != nil {
+		t.Fatalf("retry task: %v", err)
+	}
+	if retried.Status != TaskStatusRunning {
+		t.Fatalf("expected running after retry, got %s", retried.Status)
+	}
+	// Failed host should be reset to running.
+	var host DeployTaskHost
+	db.Where("task_id = ? AND host_id = ?", task.ID, hostID).First(&host)
+	if host.Status != TaskHostStatusRunning {
+		t.Fatalf("expected host reset to running after retry, got %s", host.Status)
+	}
+}
+
+// TestCancelTaskCAS proves that concurrent cancel calls are serialized by CAS.
+func TestCancelTaskCAS(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	scopeID, hostID := seedDeployReliabilityFixture(t, db, "cas-host", "10.40.0.243")
+	pkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name: "cas-pkg", Version: "1.0.0", InstallCommand: "echo ok", Status: PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "CAS Task", PackageID: pkg.ID, BusinessScopeID: scopeID,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{hostID}, ExecutorType: ExecutorTypeSSH,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+	if err := db.Model(&DeployTask{}).Where("id = ?", task.ID).Update("status", TaskStatusPending).Error; err != nil {
+		t.Fatalf("mark task pending: %v", err)
+	}
+
+	// First cancel succeeds.
+	_, err = svc.CancelTask(task.ID, "1", nil)
+	if err != nil {
+		t.Fatalf("first cancel: %v", err)
+	}
+
+	// Second cancel fails with invalid state (already canceled).
+	_, err = svc.CancelTask(task.ID, "1", nil)
+	if err == nil || err.Error() != errDeployTaskInvalidCancelState {
+		t.Fatalf("expected invalidCancelState on second cancel, got %v", err)
+	}
+}
+
+// TestControlTransitionsRecordEvents proves that every control transition
+// (pause, resume, cancel, retry, start) appends an event record.
+func TestControlTransitionsRecordEvents(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	svc.SetAsyncExecution(true)
+	credID := setupDeployTestCredential(t, svc)
+	blockingRunner := &blockingDeploySSHRunner{started: make(chan struct{})}
+	svc.sshRunnerFactory = func(cmdbHostSnapshot, StartTaskRequest) (deploySSHRunner, error) {
+		return blockingRunner, nil
+	}
+	scopeID, hostID := seedDeployReliabilityFixture(t, db, "event-host", "10.40.0.250")
+	pkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name: "event-pkg", Version: "1.0.0", InstallCommand: "echo ok", Status: PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "Event Task", PackageID: pkg.ID, BusinessScopeID: scopeID,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{hostID}, ExecutorType: ExecutorTypeSSH,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+
+	// Start the task.
+	_, err = svc.StartTask(task.ID, StartTaskRequest{
+		CredentialRefID: credID, HostFingerprint: "SHA256:event", TimeoutSeconds: 60,
+	}, "1", nil)
+	if err != nil {
+
+		t.Fatalf("start task: %v", err)
+	}
+	select {
+	case <-blockingRunner.started:
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for event task execution")
+	}
+
+	// Pause the task.
+	_, err = svc.PauseTask(task.ID, "1", nil)
+	if err != nil {
+		t.Fatalf("pause task: %v", err)
+	}
+
+	waitForDeployTaskStatus(t, db, task.ID, TaskStatusPaused)
+	waitForDeployWorkerStop(t, svc, task.ID)
+
+	// Resume the task.
+	_, err = svc.ResumeTask(task.ID, "1", nil)
+	if err != nil {
+		t.Fatalf("resume task: %v", err)
+	}
+
+	// Cancel the task.
+	_, err = svc.CancelTask(task.ID, "1", nil)
+	if err != nil {
+		t.Fatalf("cancel task: %v", err)
+	}
+	waitForDeployTaskStatus(t, db, task.ID, TaskStatusCanceled)
+	waitForDeployWorkerStop(t, svc, task.ID)
+
+	// Verify events were recorded.
+	var events []DeployTaskEvent
+	db.Where("task_id = ?", task.ID).Order("sequence ASC").Find(&events)
+	if len(events) < 4 {
+		t.Fatalf("expected at least 4 events, got %d", len(events))
+	}
+	expectedTypes := []string{"task.started", "task.pause_requested", "task.paused", "task.resumed", "task.cancel_requested", "task.canceled"}
+	actualTypes := make([]string, 0, len(events))
+	for _, event := range events {
+		actualTypes = append(actualTypes, event.EventType)
+		if event.Actor != "1" {
+			t.Errorf("expected actor 1, got %q for %s", event.Actor, event.EventType)
+		}
+	}
+	for _, expected := range expectedTypes {
+		if !containsString(actualTypes, expected) {
+			t.Errorf("expected event %q, got %v", expected, actualTypes)
+		}
+	}
+}
+
+func containsString(values []string, expected string) bool {
+	for _, value := range values {
+		if value == expected {
+			return true
+		}
+	}
+	return false
+}
+
+// TestRetryTaskRecordsEvent proves that retry appends a retried event.
+func TestRetryTaskRecordsEvent(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	scopeID, hostID := seedDeployReliabilityFixture(t, db, "retry-event-host", "10.40.0.251")
+	pkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name: "retry-event-pkg", Version: "1.0.0", InstallCommand: "echo ok", Status: PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "Retry Event Task", PackageID: pkg.ID, BusinessScopeID: scopeID,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{hostID}, ExecutorType: ExecutorTypeSSH,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+
+	// Manually set task to failed.
+	now := time.Now()
+	db.Model(&DeployTask{}).Where("id = ?", task.ID).Updates(map[string]interface{}{
+		"status": TaskStatusFailed, "finished_at": &now, "updated_at": now,
+	})
+	db.Create(&DeployTaskHost{
+		TaskID: task.ID, HostID: hostID, Hostname: "retry-event-host",
+		HostIP: "10.40.0.251", Status: TaskHostStatusFailed, UpdatedBy: "1",
+	})
+
+	// Retry the task.
+	_, err = svc.RetryTask(task.ID, "1", nil)
+	if err != nil {
+		t.Fatalf("retry task: %v", err)
+	}
+
+	// Verify retried event was recorded.
+	var events []DeployTaskEvent
+	db.Where("task_id = ? AND event_type = ?", task.ID, "task.retried").Find(&events)
+	if len(events) != 1 {
+		t.Fatalf("expected 1 retried event, got %d", len(events))
+	}
+	if events[0].FromStatus != TaskStatusFailed {
+		t.Errorf("expected fromStatus failed, got %s", events[0].FromStatus)
+	}
+	if events[0].ToStatus != TaskStatusRunning {
+		t.Errorf("expected toStatus running, got %s", events[0].ToStatus)
+	}
+}
+
+// TestPauseReconciliation proves that pause_requested tasks are reconciled to
+// paused during ReconcileDeployQueue.
+func TestPauseReconciliation(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	scopeID, hostID := seedDeployReliabilityFixture(t, db, "reconcile-host", "10.40.0.252")
+	pkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name: "reconcile-pkg", Version: "1.0.0", InstallCommand: "echo ok", Status: PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "Reconcile Task", PackageID: pkg.ID, BusinessScopeID: scopeID,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{hostID}, ExecutorType: ExecutorTypeSSH,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+
+	// Manually set task to pause_requested.
+	now := time.Now()
+	db.Model(&DeployTask{}).Where("id = ?", task.ID).Updates(map[string]interface{}{
+		"status": TaskStatusPauseRequested, "updated_at": now,
+	})
+
+	// Reconcile.
+	count, err := svc.ReconcileDeployQueue("reconciler")
+	if err != nil {
+		t.Fatalf("reconcile: %v", err)
+	}
+	// The count is 0 because pause_requested is not running.
+	_ = count
+
+	// Verify task is now paused.
+	var updated DeployTask
+	db.First(&updated, task.ID)
+	if updated.Status != TaskStatusPaused {
+		t.Fatalf("expected paused after reconciliation, got %s", updated.Status)
+	}
+
+	// Verify paused event was recorded.
+	var events []DeployTaskEvent
+	db.Where("task_id = ? AND event_type = ?", task.ID, "task.paused").Find(&events)
+	if len(events) != 1 {
+		t.Fatalf("expected 1 paused event, got %d", len(events))
 	}
 }

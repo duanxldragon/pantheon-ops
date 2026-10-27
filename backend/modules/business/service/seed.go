@@ -12,7 +12,7 @@ type menuSeed struct {
 }
 
 var menuSeeds = []menuSeed{
-	{Key: "service", ParentPath: "", TitleKey: "operations.service.menu", Path: "/business/service", Component: "business/service/ServiceList", PagePerm: "business:service:list", Type: "C", Icon: "apps", RouteName: "service-list", Module: "business.service", Sort: 30},
+	{Key: "service", ParentPath: "", TitleKey: "operations.service.menu", Path: "/business/service", Component: "business/service/ServiceCatalog", PagePerm: "business:service:list", Type: "C", Icon: "apps", RouteName: "service-list", Module: "business.service", Sort: 2},
 	{Key: "service-view", ParentKey: "service", TitleKey: "business.service.permission.view", Perms: "business:service:view", Type: "F", Module: "business.service", Sort: 1},
 	{Key: "service-create", ParentKey: "service", TitleKey: "business.service.permission.create", Perms: "business:service:create", Type: "F", Module: "business.service", Sort: 2},
 	{Key: "service-update", ParentKey: "service", TitleKey: "business.service.permission.update", Perms: "business:service:update", Type: "F", Module: "business.service", Sort: 3},

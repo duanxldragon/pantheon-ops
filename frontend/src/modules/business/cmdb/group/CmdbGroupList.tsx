@@ -35,6 +35,7 @@ import {
   PageError,
   PageLoading,
   TableBatchActionBar,
+  TABLE_ACTION_COLUMN_WIDTH,
   ImportCsvButton,
   buildStandardPagination,
   useGovernanceRail,
@@ -52,7 +53,7 @@ import {
 import type { CreateGroupPayload, GroupRow, GroupMemberResp, GroupMemberRow } from './api';
 import CmdbGroupForm from './CmdbGroupForm';
 import { usePermission } from '../../../../hooks/usePermission';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 import '../cmdb.css';
 
 function flattenGroups(groups: GroupRow[]): GroupRow[] {
@@ -474,9 +475,9 @@ export default function CmdbGroupList() {
       title: t('common.action'),
       key: 'action',
       fixed: 'right',
-      width: 200,
+      width: TABLE_ACTION_COLUMN_WIDTH.wide,
       render: (_: unknown, row: GroupRow) => (
-        <Space>
+        <Space className="system-list__actions">
           {canDetail && (
             <Button
               type="text"

@@ -3,13 +3,13 @@ package dynamicmodule
 
 import (
 	"errors"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"log/slog"
-	"pantheon-base/pkg/common"
 	"strings"
 	"time"
 
-	"pantheon-base/internal/scaffold"
-	systemi18n "pantheon-base/modules/system/i18n"
+	"github.com/duanxldragon/pantheon-base/backend/internal/scaffold"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/i18n"
 
 	"gorm.io/gorm"
 )
@@ -314,13 +314,13 @@ func (s *DynamicModuleService) advanceModuleI18nLifecycle(moduleName string) (*M
 		return buildModuleI18nLifecycleSummary(moduleName, true, nil), nil
 	}
 
-	i18nService := systemi18n.NewI18nService(s.db)
-	resp := &systemi18n.I18nUnusedLifecycleAdvanceResp{
+	i18nService := i18n.NewI18nService(s.db)
+	resp := &i18n.I18nUnusedLifecycleAdvanceResp{
 		Module:                         moduleName,
 		ObservedKeys:                   make([]string, 0),
 		ArchivedKeys:                   make([]string, 0),
 		DeletedKeys:                    make([]string, 0),
-		ArchivedRetentionThresholdDays: systemi18n.I18nArchivedRetentionThresholdDays,
+		ArchivedRetentionThresholdDays: i18n.I18nArchivedRetentionThresholdDays,
 	}
 	if directCount > 0 {
 		moduleResp, err := i18nService.AdvanceUnusedLifecycle(moduleName)
@@ -343,7 +343,7 @@ func (s *DynamicModuleService) advanceModuleI18nLifecycle(moduleName string) (*M
 	return buildModuleI18nLifecycleSummary(moduleName, true, resp), nil
 }
 
-func mergeI18nLifecycleAdvanceResp(target, source *systemi18n.I18nUnusedLifecycleAdvanceResp) {
+func mergeI18nLifecycleAdvanceResp(target, source *i18n.I18nUnusedLifecycleAdvanceResp) {
 	if target == nil || source == nil {
 		return
 	}

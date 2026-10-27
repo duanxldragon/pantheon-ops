@@ -1,12 +1,22 @@
+---
+title: pantheon-ops 目标业务架构设计
+doc_type: Design
+layer: business
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-24
+---
+
 # pantheon-ops 目标业务架构设计
 
-更新时间：2026-08-18  
-类型：Design  
-归属层：business  
-状态：Proposed  
-关联评审：[BUSINESS_ARCHITECTURE_REVIEW.md](./BUSINESS_ARCHITECTURE_REVIEW.md)
+> 状态说明：Active Target（V1/P1/P2 边界以冻结检查表和全局功能设计为准）
+
+- 关联评审：[BUSINESS_ARCHITECTURE_REVIEW.md](./BUSINESS_ARCHITECTURE_REVIEW.md)
 
 本文定义 pantheon-ops 从当前模块化单体演进到企业级 SRE 平台的业务目标架构。它只规定 ops 业务域的边界、对象和交互；平台壳层、IAM、组织、审计、工作流、配置和通用 UI 仍以 `pantheon-base` 为唯一来源。
+
+V1 当前发布状态为 `BLOCKED`。V1 的当前/目标/排除语义、跨模块流程和 FZ-00 至 FZ-06 追溯以 [全局功能设计](./BUSINESS_FUNCTIONAL_DESIGN.md) 与 [V1 冻结检查表](../V1_RELEASE_CHECKLIST.md) 为准。本文中的通用 Resource 模型、Observability、Agent、GitOps 和大规模 provider 扩展均属于 V1 后路线，不能解释为 V1 已实现能力。
 
 ## 1. 设计原则
 
@@ -108,14 +118,14 @@ ChangeIntent
 
 核心字段：
 
-| 对象 | 必须字段 | 约束 |
-|---|---|---|
-| ChangeIntent | id、kind、request_snapshot、fingerprint、requester、scope、created_at | 创建后不可变；同一幂等键只能指向一个 intent |
-| ExecutionPlan | intent_id、target_snapshot、executor、steps、timeout、retry_policy | 固化目标和执行参数，不回读实时表替换历史 |
-| QueueItem | plan_id、priority、available_at、lease_owner、lease_until | 租约超时可被安全接管 |
-| Attempt | attempt_no、worker、started/finished、stdout/stderr_ref、exit_code | 每次尝试独立记录；重试不覆盖历史 |
-| ReconcileObservation | external_id、observed_state、generation、condition、observed_at | 处理重复回调、乱序回调和外部删除 |
-| AuditEvent | actor、action、target、before/after、reason、trace_id | 所有高风险动作可追溯 |
+| 对象                 | 必须字段                                                              | 约束                                        |
+| -------------------- | --------------------------------------------------------------------- | ------------------------------------------- |
+| ChangeIntent         | id、kind、request_snapshot、fingerprint、requester、scope、created_at | 创建后不可变；同一幂等键只能指向一个 intent |
+| ExecutionPlan        | intent_id、target_snapshot、executor、steps、timeout、retry_policy    | 固化目标和执行参数，不回读实时表替换历史    |
+| QueueItem            | plan_id、priority、available_at、lease_owner、lease_until             | 租约超时可被安全接管                        |
+| Attempt              | attempt_no、worker、started/finished、stdout/stderr_ref、exit_code    | 每次尝试独立记录；重试不覆盖历史            |
+| ReconcileObservation | external_id、observed_state、generation、condition、observed_at       | 处理重复回调、乱序回调和外部删除            |
+| AuditEvent           | actor、action、target、before/after、reason、trace_id                 | 所有高风险动作可追溯                        |
 
 执行器接口：
 

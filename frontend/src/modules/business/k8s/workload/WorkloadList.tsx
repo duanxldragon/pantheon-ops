@@ -35,7 +35,7 @@ import {
   type K8sWorkloadRow,
 } from '../api';
 import PodLogViewer from './PodLogViewer';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 
 const kindColor: Record<string, string> = {
   Deployment: 'arcoblue',

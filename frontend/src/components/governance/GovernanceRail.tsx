@@ -12,7 +12,7 @@ import {
   withRailSummaryKeys,
   type RailSummaryItem,
   type RailSummaryTone,
-} from '../patterns/rails/RailSummary';
+} from '../patterns/rails/railSummary';
 
 interface GovernanceRailToggleButtonProps {
   expanded: boolean;

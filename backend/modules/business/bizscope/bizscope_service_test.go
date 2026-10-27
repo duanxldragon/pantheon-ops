@@ -6,11 +6,12 @@ import (
 	"errors"
 	"net/http/httptest"
 	"testing"
+	"time"
 
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/testmysql"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -366,5 +367,77 @@ func TestSeedI18nReplacesLegacyBizScopeKeys(t *testing.T) {
 	}
 	if canonicalCount != 6 {
 		t.Fatalf("expected 6 canonical zh-CN/en-US rows, got %d", canonicalCount)
+	}
+}
+
+// fixtureScopeRefTable is a minimal table with a business_scope_id column used
+// to prove that Delete rejects scopes referenced by non-CMDB resources.
+type fixtureScopeRefTable struct {
+	ID              uint64 `gorm:"primaryKey;autoIncrement"`
+	BusinessScopeID uint64 `gorm:"column:business_scope_id;index"`
+}
+
+func (fixtureScopeRefTable) TableName() string { return "biz_application" }
+
+var _ = fixtureScopeRefTable{}
+
+func TestBizScopeDeleteRejectsNonCMDBReferences(t *testing.T) {
+	for _, ref := range []struct {
+		table string
+		name  string
+	}{
+		{"biz_application", "application"},
+		{"biz_k8s_cluster", "k8s_cluster"},
+		{"biz_deploy_task", "deploy_task"},
+	} {
+		t.Run(ref.name, func(t *testing.T) {
+			db := setupBizScopeTestDB(t)
+			// Create the referenced table with a business_scope_id column.
+			model := &struct {
+				ID              uint64         `gorm:"primaryKey;autoIncrement"`
+				BusinessScopeID uint64         `gorm:"column:business_scope_id;index"`
+				DeletedAt       gorm.DeletedAt `gorm:"index"`
+			}{}
+			if err := db.Table(ref.table).Migrator().CreateTable(model); err != nil {
+				t.Fatalf("create %s table: %v", ref.table, err)
+			}
+			svc := NewService(db)
+			scope := BizScope{Code: "ref-" + ref.name, Name: "Ref " + ref.name, Environment: "dev", Status: "active"}
+			if err := db.Create(&scope).Error; err != nil {
+				t.Fatalf("seed scope: %v", err)
+			}
+			if err := db.Table(ref.table).Create(map[string]any{"business_scope_id": scope.ID}).Error; err != nil {
+				t.Fatalf("seed %s reference: %v", ref.table, err)
+			}
+			if err := svc.Delete(scope.ID); err == nil || err.Error() != bizScopeInUseKey {
+				t.Fatalf("expected %s for %s reference, got %v", bizScopeInUseKey, ref.table, err)
+			}
+		})
+	}
+}
+
+func TestBizScopeDeleteIgnoresSoftDeletedReferences(t *testing.T) {
+	db := setupBizScopeTestDB(t)
+	for _, table := range []string{"biz_application", "biz_k8s_cluster", "biz_deploy_task"} {
+		model := &struct {
+			ID              uint64         `gorm:"primaryKey;autoIncrement"`
+			BusinessScopeID uint64         `gorm:"column:business_scope_id;index"`
+			DeletedAt       gorm.DeletedAt `gorm:"index"`
+		}{}
+		if err := db.Table(table).Migrator().CreateTable(model); err != nil {
+			t.Fatalf("create %s table: %v", table, err)
+		}
+	}
+	scope := BizScope{Code: "soft-deleted-ref", Name: "Soft deleted ref", Environment: "dev", Status: "active"}
+	if err := db.Create(&scope).Error; err != nil {
+		t.Fatalf("seed scope: %v", err)
+	}
+	for _, table := range []string{"biz_application", "biz_k8s_cluster", "biz_deploy_task"} {
+		if err := db.Table(table).Create(map[string]any{"business_scope_id": scope.ID, "deleted_at": time.Now()}).Error; err != nil {
+			t.Fatalf("seed %s reference: %v", table, err)
+		}
+	}
+	if err := NewService(db).Delete(scope.ID); err != nil {
+		t.Fatalf("delete scope with only soft-deleted references: %v", err)
 	}
 }

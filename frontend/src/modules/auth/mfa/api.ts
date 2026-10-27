@@ -4,6 +4,7 @@ import type { LoginResp } from '../login/api';
 export interface MFAVerifyPayload {
   challengeId: string;
   code: string;
+  tenantId?: number;
 }
 
 export function verifyMFA(data: MFAVerifyPayload) {

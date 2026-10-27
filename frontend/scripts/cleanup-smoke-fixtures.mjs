@@ -42,11 +42,19 @@ const entityPatterns = {
       'smoke_user_batch_',
       'smoke_post_user_',
       'smoke_batch_delete_user_',
+      // tenant-viewpoint-switcher.spec.ts fixtures (its own teardown purges
+      // them too; these prefixes cover an interrupted run)
+      'smoke_tadmin_',
+      'smoke_user_viewpoint_',
+      // tenant-matrix-fixture-setup.mjs provisions real tenants whose
+      // administrators own these names; a hard delete does not remove the user
+      // row, so the sweep is what finishes an interrupted matrix run.
+      'smoke_tmatrix_',
     ],
     exacts: ['smoke_impexp_user'],
   },
   depts: {
-    prefixes: ['烟测用户部门-', '烟测部门-', '烟测岗位部门-', '视觉巡检部门-', 'smoke_batch_delete_dept_'],
+    prefixes: ['烟测用户部门-', '烟测部门-', '烟测部门_Core_', '烟测岗位部门-', '视觉巡检部门-', 'smoke_batch_delete_dept_'],
     exacts: ['烟测研发中心'],
   },
   posts: {

@@ -145,6 +145,25 @@ test('hasLegacyMetadata detects old header style docs', () => {
   assert.equal(hasLegacyMetadata('# Example\n\nNo metadata here'), false);
 });
 
+test('hasLegacyMetadata detects bullet and English header styles', () => {
+  const bullet = `# Example\n\n- 更新时间：2026-08-24\n- 类型：Design\n- 归属层：\`business/k8s\`\n- 状态：Active\n`;
+  assert.equal(hasLegacyMetadata(bullet), true);
+
+  const english = `# Example\n\nUpdated: 2026-08-18  \nType: Review  \nStatus: Active\n`;
+  assert.equal(hasLegacyMetadata(english), true);
+
+  // A heading that merely starts with a metadata key is not metadata.
+  assert.equal(hasLegacyMetadata('# Example\n\n## Status: done\n'), false);
+});
+
+test('hasLegacyMetadata ignores fenced examples and body occurrences', () => {
+  const fenced = `# Task Packet Template\n\nCopy and fill:\n\n\`\`\`text\nTarget repo: pantheon-ops\nLayer: business/cmdb\n\`\`\`\n\nBody prose follows.\n`;
+  assert.equal(hasLegacyMetadata(fenced), false);
+
+  const bodyOnly = `# Report\n\n${'Filler line.\n'.repeat(25)}Status: waiting for CI\n`;
+  assert.equal(hasLegacyMetadata(bodyOnly), false);
+});
+
 test('parseContractBodyReferences reads contract sections', () => {
   const source = `# Contract\n\n关联设计：\n- \`FOO.md\`\n- \`BAR.md\`\n\n关联验收：\n- \`BAZ.md\`\n`;
   const parsed = parseContractBodyReferences(source);

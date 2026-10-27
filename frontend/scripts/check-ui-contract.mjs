@@ -23,6 +23,24 @@ const ALLOWED_FONT_WEIGHTS = new Set(['400', '500', '600', '700', 'normal', 'bol
 // Pure white/black are legitimate color-mix() anchors for tint generation.
 const NEUTRAL_HEX = /^#(?:fff|ffffff|000|000000)$/i;
 
+// Arco semantic color tokens are allowed (they are color-scale aliases, not text/border/fill tokens)
+const ALLOWED_ARCO_SEMANTIC_TOKENS = [
+  'color-error',
+  'color-error-bg',
+  'color-success',
+  'color-success-bg',
+  'color-warning',
+  'color-warning-bg',
+  'color-info',
+  'color-info-bg',
+];
+
+// DEPRECATED: This whitelist is being retired. All spacing should use tokens.
+// If a specific value is genuinely needed, add it to the token system in index.css.
+// Standard tokens: --space-2xs(2px), --space-xs(4px), --space-sm(8px), --space-md(12px),
+// --space-lg(16px), --space-xl(24px), --space-2xl(32px), --space-3xl(48px)
+const DEPRECATED_FINE_TUNED_SPACING = ['6px', '10px', '14px', '18px', '20px', '28px'];
+
 function checkFontWeightValue(rawValue) {
   const value = rawValue.trim().replace(/\s*!important\s*$/i, '').replace(/^['"]|['"]$/g, '');
   return ALLOWED_FONT_WEIGHTS.has(value) || value.startsWith('var(');
@@ -69,7 +87,15 @@ const RULES = [
     id: 'no-raw-arco-token',
     contract: 'DESIGN.md §7.7 — raw Arco tokens (--color-text-1 etc.) are banned; use Pantheon tokens',
     extensions: ['.css', '.tsx', '.ts'],
-    violates: (line) => /var\(\s*--color-(?:text|border|fill|bg)-\d/.test(line),
+    violates: (line) => {
+      // Check for Arco text/border/fill/bg tokens with numbers
+      const match = line.match(/var\(\s*--(color-(?:text|border|fill|bg)-\d)/);
+      if (!match) return false;
+
+      // Allow if it's a semantic color token
+      const tokenName = match[1];
+      return !ALLOWED_ARCO_SEMANTIC_TOKENS.some((allowed) => tokenName.includes(allowed));
+    },
   },
   {
     id: 'no-module-hex-color',
@@ -79,6 +105,26 @@ const RULES = [
     violates: (line) => {
       const matches = line.match(/#[0-9a-fA-F]{3,8}\b/g);
       return matches !== null && matches.some((hex) => !NEUTRAL_HEX.test(hex));
+    },
+  },
+  {
+    id: 'use-spacing-token',
+    contract: 'DESIGN.md §7.8 — use spacing tokens (--space-*) for consistency',
+    extensions: ['.css'],
+    scope: modulesRoot,
+    violates: (line) => {
+      // Match padding/margin with pixel values
+      const match = line.match(/(?:padding|margin)(?:-(?:top|right|bottom|left))?:\s*([^;]+);/);
+      if (!match) return false;
+
+      const value = match[1];
+      // Allow token usage
+      if (value.includes('var(--')) return false;
+      // Allow 0 without unit
+      if (value.trim() === '0' || /^0\s/.test(value)) return false;
+
+      // Detect any hard-coded pixel values
+      return /\d+px/.test(value);
     },
   },
 ];

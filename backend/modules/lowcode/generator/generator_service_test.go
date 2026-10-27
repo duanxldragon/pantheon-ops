@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"pantheon-base/internal/scaffold"
+	"github.com/duanxldragon/pantheon-base/backend/internal/scaffold"
 )
 
 func TestSuggestModuleNameMatchesScopeConventions(t *testing.T) {

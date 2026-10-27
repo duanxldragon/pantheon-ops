@@ -1,20 +1,20 @@
-package system
+package audit
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"pantheon-base/pkg/common"
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
-	"pantheon-base/internal/middleware"
-	"pantheon-base/pkg/impexp"
-	"pantheon-base/pkg/logging"
+	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/maintenance"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -22,21 +22,28 @@ import (
 const errCleanupRangeInvalid = "audit.operation_log.cleanup.range_invalid"
 
 type AuditService struct {
-	db              *gorm.DB
-	lastCleanupAtMu sync.Mutex
-	lastCleanupAt   map[string]time.Time
+	db *gorm.DB
+}
+
+// OperationLogRetentionTaskName is the maintenance registry key for the
+// periodic operation-log retention sweep.
+const OperationLogRetentionTaskName = "audit.operation_log_retention"
+
+// applyTenantScope enforces the audit read/delete boundary (queue-5 audit
+// slice, contract §3.3/§7): in multi mode every query is pinned to the request
+// tenant; platform-global subjects keep full visibility. Compat is unchanged.
+// The scope derives ONLY from the resolved tenant context handed in by the
+// handler — request parameters cannot widen it.
+func (s *AuditService) applyTenantScope(db *gorm.DB, ctx *tenant.Context) *gorm.DB {
+	return db.Scopes(tenant.WithTenantScope(ctx))
 }
 
 func NewAuditService(db *gorm.DB) *AuditService {
-	return &AuditService{
-		db:            db,
-		lastCleanupAt: make(map[string]time.Time),
-	}
+	return &AuditService{db: db}
 }
 
 const (
 	defaultOperationLogRetentionDays = 180
-	auditAutoCleanupMinInterval      = 15 * time.Minute
 	maxOperationLogPageSize          = 100
 	maxOperationLogExportRows        = 10000
 )
@@ -58,15 +65,16 @@ func (s *AuditService) Bootstrap() error {
 	return s.backfillOperationLogDerivedFields()
 }
 
-func (s *AuditService) ListOperationLogs(query *OperationLogQuery) (*OperationLogPageResp, error) {
+// ListOperationLogs returns a tenant-scoped page of operation logs.
+func (s *AuditService) ListOperationLogs(query *OperationLogQuery, ctx *tenant.Context) (*OperationLogPageResp, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
-	s.ensureAutomaticOperationLogRetention()
-
+	// Read path: retention runs as a registered maintenance task, not inline.
 	page, pageSize := normalizeOperationLogPageQuery(query)
 
-	db := s.applyOperationLogBaseQuery(s.db.Model(&middleware.SystemLogOper{}), query)
+	db := s.applyTenantScope(s.db.Model(&middleware.SystemLogOper{}), ctx)
+	db = s.applyOperationLogBaseQuery(db, query)
 	var total int64
 	var rows []middleware.SystemLogOper
 	if err := db.Count(&total).Error; err != nil {
@@ -74,8 +82,9 @@ func (s *AuditService) ListOperationLogs(query *OperationLogQuery) (*OperationLo
 	}
 	// Whole-filtered-set aggregate so the governance bar shows global numbers.
 	var successCount int64
-	if err := s.applyOperationLogBaseQuery(s.db.Model(&middleware.SystemLogOper{}), query).
+	if err := s.applyTenantScope(s.db.Model(&middleware.SystemLogOper{}), ctx).
 		Where("status = ?", common.OperationStatusSuccess).
+		Scopes(s.operationLogQueryScopes(query)...).
 		Count(&successCount).Error; err != nil {
 		return nil, err
 	}
@@ -103,27 +112,27 @@ func (s *AuditService) ListOperationLogs(query *OperationLogQuery) (*OperationLo
 	}, nil
 }
 
-func (s *AuditService) GetOperationLog(logID uint64) (*OperationLogResp, error) {
+// GetOperationLog returns one operation log if the tenant context allows it.
+func (s *AuditService) GetOperationLog(logID uint64, ctx *tenant.Context) (*OperationLogResp, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
-	s.ensureAutomaticOperationLogRetention()
 
 	var row middleware.SystemLogOper
-	if err := s.db.First(&row, logID).Error; err != nil {
+	if err := s.applyTenantScope(s.db, ctx).First(&row, logID).Error; err != nil {
 		return nil, err
 	}
 	resp := operationLogToResp(row)
 	return &resp, nil
 }
 
-func (s *AuditService) ExportOperationLogs(query *OperationLogQuery) (*impexp.CSVFile, error) {
+// ExportOperationLogs streams the tenant-scoped logs as a CSV export.
+func (s *AuditService) ExportOperationLogs(query *OperationLogQuery, ctx *tenant.Context) (*impexp.CSVFile, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
-	s.ensureAutomaticOperationLogRetention()
 
-	rows, err := s.listOperationLogsForExport(query)
+	rows, err := s.listOperationLogsForExport(query, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -156,24 +165,28 @@ func (s *AuditService) ExportOperationLogs(query *OperationLogQuery) (*impexp.CS
 			row.ErrorMsg,
 			row.OperTime.Format(time.RFC3339),
 			fmt.Sprintf("%d", row.CostTime),
+			fmt.Sprintf("%d", row.TenantID),
 		})
 	}
 
 	return &impexp.CSVFile{
 		Filename: "system-operation-log-export.csv",
-		Headers:  []string{"requestId", "title", "businessType", "sourceDomain", "sourcePage", "method", "operName", "operUrl", "operIp", "status", "failureCategory", "errorMsg", "operTime", "costTime"},
+		Headers:  []string{"requestId", "title", "businessType", "sourceDomain", "sourcePage", "method", "operName", "operUrl", "operIp", "status", "failureCategory", "errorMsg", "operTime", "costTime", "tenantId"},
 		Rows:     result,
 	}, nil
 }
 
-func (s *AuditService) DeleteOperationLog(logID uint64) error {
+// DeleteOperationLog removes one log entry under tenant scoping rules.
+func (s *AuditService) DeleteOperationLog(logID uint64, ctx *tenant.Context) error {
 	if s.db == nil {
 		return common.ErrDatabaseNotInitialized
 	}
-	return s.db.Delete(&middleware.SystemLogOper{}, logID).Error
+	return s.applyTenantScope(s.db, ctx).Delete(&middleware.SystemLogOper{}, logID).Error
 }
 
-func (s *AuditService) CleanupOperationLogs(retentionDays int, startedAt string, endedAt string) (int64, error) {
+// CleanupOperationLogs deletes entries older than the retention window and
+// returns the affected row count.
+func (s *AuditService) CleanupOperationLogs(retentionDays int, startedAt string, endedAt string, ctx *tenant.Context) (int64, error) {
 	if s.db == nil {
 		return 0, common.ErrDatabaseNotInitialized
 	}
@@ -182,7 +195,7 @@ func (s *AuditService) CleanupOperationLogs(retentionDays int, startedAt string,
 		return 0, err
 	}
 
-	db := s.db.Model(&middleware.SystemLogOper{})
+	db := s.applyTenantScope(s.db.Model(&middleware.SystemLogOper{}), ctx)
 	if window != nil {
 		db = db.Where("oper_time >= ? AND oper_time <= ?", window.StartedAt, window.EndedAt)
 	} else {
@@ -256,7 +269,10 @@ func (s *AuditService) getRetentionOptionsFromSetting(settingKey string, fallbac
 	if err := json.Unmarshal([]byte(strings.TrimSpace(row.SettingValue)), &values); err != nil {
 		return fallback
 	}
+	return normalizeRetentionOptions(values, fallback)
+}
 
+func normalizeRetentionOptions(values, fallback []int) []int {
 	normalized := make([]int, 0, len(values))
 	seen := make(map[int]struct{}, len(values))
 	for _, value := range values {
@@ -277,29 +293,33 @@ func (s *AuditService) getRetentionOptionsFromSetting(settingKey string, fallbac
 	return normalized
 }
 
-func (s *AuditService) ensureAutomaticOperationLogRetention() {
+// RunOperationLogRetention deletes operation logs older than
+// audit.operation_log_retention_days (default 180).
+//
+// It is a maintenance entry point: the background maintenance runner and the
+// explicit cleanup endpoint call it, request paths do not. Throttling and
+// overlap protection live in the maintenance registry.
+func (s *AuditService) RunOperationLogRetention() error {
 	if s.db == nil {
-		return
+		return common.ErrDatabaseNotInitialized
 	}
-
 	now := time.Now()
-	s.lastCleanupAtMu.Lock()
-	lastRun := s.lastCleanupAt["operation_log_retention"]
-	if !lastRun.IsZero() && now.Sub(lastRun) < auditAutoCleanupMinInterval {
-		s.lastCleanupAtMu.Unlock()
-		return
-	}
-	s.lastCleanupAt["operation_log_retention"] = now
-	s.lastCleanupAtMu.Unlock()
-
 	retentionDays := s.getRetentionDaysFromSetting("audit.operation_log_retention_days", defaultOperationLogRetentionDays)
 	if retentionDays <= 0 {
 		retentionDays = defaultOperationLogRetentionDays
 	}
 	cutoff := now.AddDate(0, 0, -retentionDays)
-	if err := s.db.Where("oper_time < ?", cutoff).Delete(&middleware.SystemLogOper{}).Error; err != nil {
-		logging.Warn("cleanup expired operation logs failed", zap.Error(err))
-	}
+	return s.db.Where("oper_time < ?", cutoff).Delete(&middleware.SystemLogOper{}).Error
+}
+
+// RegisterMaintenanceTasks registers the operation-log retention sweep with
+// the background maintenance registry.
+func (s *AuditService) RegisterMaintenanceTasks(reg *maintenance.Registry) {
+	reg.Register(maintenance.Task{
+		Name:     OperationLogRetentionTaskName,
+		Interval: maintenance.DefaultInterval,
+		Run:      func(context.Context) error { return s.RunOperationLogRetention() },
+	})
 }
 
 func (s *AuditService) getRetentionDaysFromSetting(settingKey string, fallback int) int {
@@ -321,7 +341,9 @@ func (s *AuditService) getRetentionDaysFromSetting(settingKey string, fallback i
 	return value
 }
 
-func (s *AuditService) BatchDeleteOperationLogs(ids []uint64) (int64, error) {
+// BatchDeleteOperationLogs removes several log entries at once and returns
+// the affected row count.
+func (s *AuditService) BatchDeleteOperationLogs(ids []uint64, ctx *tenant.Context) (int64, error) {
 	if s.db == nil {
 		return 0, common.ErrDatabaseNotInitialized
 	}
@@ -336,16 +358,17 @@ func (s *AuditService) BatchDeleteOperationLogs(ids []uint64) (int64, error) {
 		return 0, common.NewBadRequest("param.invalid")
 	}
 
-	result := s.db.Where("id IN ?", normalized).Delete(&middleware.SystemLogOper{})
+	result := s.applyTenantScope(s.db, ctx).Where("id IN ?", normalized).Delete(&middleware.SystemLogOper{})
 	if result.Error != nil {
 		return 0, result.Error
 	}
 	return result.RowsAffected, nil
 }
 
-func (s *AuditService) listOperationLogsForExport(query *OperationLogQuery) ([]middleware.SystemLogOper, error) {
+func (s *AuditService) listOperationLogsForExport(query *OperationLogQuery, ctx *tenant.Context) ([]middleware.SystemLogOper, error) {
 	var rows []middleware.SystemLogOper
-	db := s.applyOperationLogBaseQuery(s.db.Model(&middleware.SystemLogOper{}), query)
+	db := s.applyTenantScope(s.db.Model(&middleware.SystemLogOper{}), ctx)
+	db = s.applyOperationLogBaseQuery(db, query)
 	if err := db.Order("id desc").Limit(maxOperationLogExportRows).Find(&rows).Error; err != nil {
 		return nil, err
 	}
@@ -405,6 +428,32 @@ func (s *AuditService) applyOperationLogBaseQuery(db *gorm.DB, query *OperationL
 	if query == nil {
 		return db
 	}
+	for _, scope := range s.operationLogQueryScopes(query) {
+		db = db.Scopes(scope)
+	}
+	return db
+}
+
+// operationLogQueryScopes returns the filter scopes as GORM scopes so the same
+// filters can be composed with the tenant scope in any order.
+func (s *AuditService) operationLogQueryScopes(query *OperationLogQuery) []func(*gorm.DB) *gorm.DB {
+	if query == nil {
+		return nil
+	}
+	var scopes []func(*gorm.DB) *gorm.DB
+	if query.TenantIDFilter > 0 {
+		scopes = append(scopes, func(db *gorm.DB) *gorm.DB {
+			return db.Where("tenant_id = ?", query.TenantIDFilter)
+		})
+	}
+	return append(scopes, func(db *gorm.DB) *gorm.DB {
+		return s.applyOperationLogFilters(db, query)
+	})
+}
+
+// applyOperationLogFilters is the previous inline filter chain of
+// applyOperationLogBaseQuery, extracted verbatim.
+func (s *AuditService) applyOperationLogFilters(db *gorm.DB, query *OperationLogQuery) *gorm.DB {
 	if strings.TrimSpace(query.Keyword) != "" {
 		keyword := "%" + common.EscapeLikePattern(strings.TrimSpace(query.Keyword)) + "%"
 		db = db.Where("title LIKE ? OR oper_name LIKE ? OR request_id LIKE ?", keyword, keyword, keyword)
@@ -459,6 +508,7 @@ func parseOperationLogTime(value string) (time.Time, bool) {
 
 func operationLogToResp(row middleware.SystemLogOper) OperationLogResp {
 	return OperationLogResp{
+		TenantID:        row.TenantID,
 		ID:              row.ID,
 		RequestID:       strings.TrimSpace(row.RequestID),
 		Title:           row.Title,
@@ -479,42 +529,96 @@ func operationLogToResp(row middleware.SystemLogOper) OperationLogResp {
 	}
 }
 
+// Backfill batching limits: rows are processed in bounded keyset batches with
+// a per-run cap, so a large legacy table neither balloons memory on bootstrap
+// nor blocks startup for an unbounded number of single-row UPDATEs. The next
+// bootstrap run resumes from the remaining rows.
+const (
+	operationLogBackfillBatchSize = 500
+	operationLogBackfillRunCap    = 10000
+)
+
 func (s *AuditService) backfillOperationLogDerivedFields() error {
 	if s.db == nil {
 		return common.ErrDatabaseNotInitialized
 	}
 
-	var rows []middleware.SystemLogOper
-	if err := s.db.
-		Where("COALESCE(source_domain, '') = '' OR COALESCE(source_page, '') = '' OR (status = ? AND COALESCE(failure_category, '') = '')", common.OperationStatusFailure).
-		Find(&rows).Error; err != nil {
-		return err
-	}
+	lastID := uint64(0)
+	processed := 0
+	for processed < operationLogBackfillRunCap {
+		batchLimit := nextBackfillBatchLimit(processed)
 
-	for _, row := range rows {
-		sourceDomain := strings.TrimSpace(row.SourceDomain)
-		if sourceDomain == "" {
-			sourceDomain = detectOperationLogSourceDomain(row.OperURL)
-		}
-		sourcePage := strings.TrimSpace(row.SourcePage)
-		if sourcePage == "" {
-			sourcePage = detectOperationLogSourcePage(row.OperURL)
-		}
-		failureCategory := strings.TrimSpace(row.FailureCategory)
-		if failureCategory == "" {
-			failureCategory = detectOperationLogFailureCategory(row.Status, row.ErrorMsg, row.JsonResult)
-		}
-		if err := s.db.Model(&middleware.SystemLogOper{}).
-			Where("id = ?", row.ID).
-			Updates(map[string]any{
-				"source_domain":    sourceDomain,
-				"source_page":      sourcePage,
-				"failure_category": failureCategory,
-			}).Error; err != nil {
+		var rows []middleware.SystemLogOper
+		err := s.db.
+			Where("id > ?", lastID).
+			Where("COALESCE(source_domain, '') = '' OR COALESCE(source_page, '') = '' OR (status = ? AND COALESCE(failure_category, '') = '')", common.OperationStatusFailure).
+			Order("id ASC").
+			Limit(batchLimit).
+			Find(&rows).Error
+		if err != nil {
 			return err
+		}
+		if len(rows) == 0 {
+			break
+		}
+
+		if err := s.applyBackfillBatch(rows); err != nil {
+			return err
+		}
+
+		lastID = rows[len(rows)-1].ID
+		processed += len(rows)
+		if len(rows) < batchLimit {
+			break
 		}
 	}
 	return nil
+}
+
+// nextBackfillBatchLimit clamps the batch size to the remaining per-run cap.
+func nextBackfillBatchLimit(processed int) int {
+	if remaining := operationLogBackfillRunCap - processed; remaining < operationLogBackfillBatchSize {
+		return remaining
+	}
+	return operationLogBackfillBatchSize
+}
+
+// applyBackfillBatch derives and writes the missing audit fields for one batch
+// inside a single transaction, so a batch either lands fully or not at all.
+func (s *AuditService) applyBackfillBatch(rows []middleware.SystemLogOper) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		for _, row := range rows {
+			sourceDomain, sourcePage, failureCategory := deriveBackfillFields(row)
+			if err := tx.Model(&middleware.SystemLogOper{}).
+				Where("id = ?", row.ID).
+				Updates(map[string]any{
+					"source_domain":    sourceDomain,
+					"source_page":      sourcePage,
+					"failure_category": failureCategory,
+				}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+// deriveBackfillFields fills missing audit dimensions for one row, falling
+// back to the same detectors the request path uses.
+func deriveBackfillFields(row middleware.SystemLogOper) (sourceDomain, sourcePage, failureCategory string) {
+	sourceDomain = strings.TrimSpace(row.SourceDomain)
+	if sourceDomain == "" {
+		sourceDomain = detectOperationLogSourceDomain(row.OperURL)
+	}
+	sourcePage = strings.TrimSpace(row.SourcePage)
+	if sourcePage == "" {
+		sourcePage = detectOperationLogSourcePage(row.OperURL)
+	}
+	failureCategory = strings.TrimSpace(row.FailureCategory)
+	if failureCategory == "" {
+		failureCategory = detectOperationLogFailureCategory(row.Status, row.ErrorMsg, row.JsonResult)
+	}
+	return sourceDomain, sourcePage, failureCategory
 }
 
 func normalizeAuditLogIDs(ids []uint64) []uint64 {

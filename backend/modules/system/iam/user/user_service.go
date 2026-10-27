@@ -1,11 +1,14 @@
-package iam
+package user
 
 import (
+	"errors"
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common/security"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -26,12 +29,48 @@ type UserServiceOption func(*UserService)
 type UserService struct {
 	db                      *gorm.DB
 	sessionLifecycleFactory SessionLifecycleFactory
+	// tenantCtx is the per-request tenant context (contract §3.3). Set from the
+	// Gin context by the handler layer via WithTenantContext; nil stays
+	// unfiltered for platform-internal paths, compat binds tenant_id=0.
+	tenantCtx *tenant.Context
 }
 
 func WithSessionLifecycle(factory SessionLifecycleFactory) UserServiceOption {
 	return func(s *UserService) {
 		s.sessionLifecycleFactory = factory
 	}
+}
+
+// WithTenantContext returns a shallow view of the service bound to a request
+// tenant context. Only a nil context returns the receiver unchanged.
+func (s *UserService) WithTenantContext(ctx *tenant.Context) *UserService {
+	if ctx == nil {
+		return s
+	}
+	bound := *s
+	bound.tenantCtx = ctx
+	return &bound
+}
+
+// tenantScope applies the tenant read filter: in multi mode every query is
+// pinned to the request tenant, so a tenant administrator only ever sees its
+// own users. Compat binds the platform-global population (tenant_id=0).
+func (s *UserService) tenantScope() func(db *gorm.DB) *gorm.DB {
+	return tenant.WithTenantScope(s.tenantCtx)
+}
+
+// scoped applies the tenant read filter to a query builder.
+func (s *UserService) scoped(db *gorm.DB) *gorm.DB {
+	return db.Scopes(s.tenantScope())
+}
+
+// tenantOwnerID is the tenant a new user belongs to (write path: from context,
+// never from the request body — contract §3.3). Compat/platform => 0.
+func (s *UserService) tenantOwnerID() uint64 {
+	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+		return 0
+	}
+	return s.tenantCtx.TenantID
 }
 
 // NewUserService 构造函数
@@ -90,17 +129,43 @@ func (s *UserService) CleanupDeletedUsernames() error {
 	return s.releaseDeletedUsernames()
 }
 
-// GetUserRoles 获取用户角色标识。
+// userOwningTenantID resolves the tenant that owns a user's roles and
+// permissions (contract §2.3). Roles are always read from the user's OWN
+// tenant, so the lookup needs no tenant argument threaded through every caller:
+//   - platform/global user (admin) -> 0, i.e. the global role namespace
+//   - tenant-local user           -> its tenant, so tenant A's roles never leak
+//     into tenant B's session
+//
+// A missing user resolves to 0, which keeps compat behaviour (all historical
+// rows are tenant_id = 0) byte-for-byte identical to before this change.
+func (s *UserService) userOwningTenantID(userID uint64) (uint64, error) {
+	var tenantID uint64
+	err := s.db.Table("system_user").
+		Select("tenant_id").
+		Where("id = ?", userID).
+		Scan(&tenantID).Error
+	if err != nil {
+		return 0, err
+	}
+	return tenantID, nil
+}
+
+// GetUserRoles 获取用户角色标识，限定在用户所属租户内。
 func (s *UserService) GetUserRoles(userID uint64) ([]string, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
+	tenantID, err := s.userOwningTenantID(userID)
+	if err != nil {
+		return nil, err
+	}
 
 	var roles []string
-	err := s.db.Table("system_role").
+	err = s.db.Table("system_role").
 		Select("system_role.role_key").
 		Joins("JOIN system_user_role ON system_user_role.role_id = system_role.id").
-		Where("system_user_role.user_id = ? AND system_role.status = ?", userID, common.StatusEnabled).
+		Where("system_user_role.user_id = ? AND system_user_role.tenant_id = ? AND system_role.tenant_id = ? AND system_role.status = ?",
+			userID, tenantID, tenantID, common.StatusEnabled).
 		Pluck("system_role.role_key", &roles).Error
 	if err != nil {
 		return nil, err
@@ -108,17 +173,22 @@ func (s *UserService) GetUserRoles(userID uint64) ([]string, error) {
 	return roles, nil
 }
 
-// GetUserPerms 获取用户按钮/接口权限标识。
+// GetUserPerms 获取用户按钮/接口权限标识，同样限定在用户所属租户内。
 func (s *UserService) GetUserPerms(userID uint64) ([]string, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
+	tenantID, err := s.userOwningTenantID(userID)
+	if err != nil {
+		return nil, err
+	}
 
 	var permissionKeys []string
-	err := s.db.Table("system_role_permission").
+	err = s.db.Table("system_role_permission").
 		Select("DISTINCT system_role_permission.permission_key").
 		Joins("JOIN system_user_role ON system_user_role.role_id = system_role_permission.role_id").
-		Where("system_user_role.user_id = ? AND system_role_permission.permission_key <> ''", userID).
+		Where("system_user_role.user_id = ? AND system_user_role.tenant_id = ? AND system_role_permission.tenant_id = ? AND system_role_permission.permission_key <> ''",
+			userID, tenantID, tenantID).
 		Pluck("system_role_permission.permission_key", &permissionKeys).Error
 	if err != nil {
 		return nil, err
@@ -175,7 +245,7 @@ func (s *UserService) ListUsers(query *UserListQuery, dataScope *common.DataScop
 	}
 
 	var users []SystemUser
-	db := s.db.Model(&SystemUser{}).Scopes(database.WithDataScope(dataScope))
+	db := s.scoped(s.db.Model(&SystemUser{})).Scopes(database.WithDataScope(dataScope))
 	db = applyUserListFilters(db, query)
 	page, pageSize, err := normalizeUserPageQuery(query)
 	if err != nil {
@@ -245,15 +315,32 @@ func (s *UserService) ListUsers(query *UserListQuery, dataScope *common.DataScop
 }
 
 // GetUserDetail 获取用户详情。
+// loadTenantUser resolves one user inside the service's tenant scope.
+//
+// A user owned by another tenant is indistinguishable from a missing one by
+// design (contract §5): both answer the same not-found sentinel, so a guessed
+// id cannot be used to probe another tenant's population.
+func (s *UserService) loadTenantUser(userID uint64) (*SystemUser, error) {
+	var user SystemUser
+	if err := s.scoped(s.db).First(&user, userID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, common.NewNotFound("user.not_found")
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (s *UserService) GetUserDetail(userID uint64) (*UserDetailResp, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
 
-	var user SystemUser
-	if err := s.db.First(&user, userID).Error; err != nil {
+	loaded, err := s.loadTenantUser(userID)
+	if err != nil {
 		return nil, err
 	}
+	user := *loaded
 
 	roleIDsMap, roleKeysMap, roleNamesMap, err := s.loadUserRoles([]uint64{user.ID})
 	if err != nil {
@@ -311,12 +398,13 @@ func (s *UserService) CreateUser(req *UserCreateReq) (*UserListResp, error) {
 		return nil, err
 	}
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), security.GetBcryptCost())
 	if err != nil {
 		return nil, err
 	}
 
 	user := SystemUser{
+		TenantID: s.tenantOwnerID(),
 		Username: req.Username,
 		Password: string(passwordHash),
 		Nickname: req.Nickname,
@@ -338,9 +426,20 @@ func (s *UserService) CreateUser(req *UserCreateReq) (*UserListResp, error) {
 				return err
 			}
 		}
-		return replaceUserRoles(tx, user.ID, roleIDs)
+		if err := replaceUserRoles(tx, user.ID, roleIDs); err != nil {
+			return err
+		}
+		// 同一事务内补成员关系：否则事务成功后用户仍无法登录（验收 F1），
+		// 而这种「看得见、登不进」的半成品比创建失败更难排查。
+		return ensureTenantMembership(tx, user.TenantID, user.ID)
 	})
 	if err != nil {
+		// Username uniqueness is pre-checked, but the check cannot be atomic;
+		// the loser of a concurrent create hits the UNIQUE index. Return the
+		// same conflict the pre-check reports rather than a 500.
+		if database.IsDuplicateKey(err) {
+			return nil, common.NewConflict("user.create.error.username_exists")
+		}
 		return nil, err
 	}
 
@@ -367,10 +466,11 @@ func (s *UserService) UpdateUser(userID uint64, req *UserUpdateReq) (*UserListRe
 		return nil, common.ErrDatabaseNotInitialized
 	}
 
-	var user SystemUser
-	if err := s.db.First(&user, userID).Error; err != nil {
+	loaded, err := s.loadTenantUser(userID)
+	if err != nil {
 		return nil, err
 	}
+	user := *loaded
 	if err := s.validateUserUpdate(&user, req); err != nil {
 		return nil, err
 	}
@@ -425,10 +525,11 @@ func shouldRevokeUpdatedUserAccess(previousStatus, requestedStatus int) bool {
 }
 
 func (s *UserService) loadUpdatedUserResponse(userID uint64) (*UserListResp, error) {
-	var user SystemUser
-	if err := s.db.First(&user, userID).Error; err != nil {
+	loaded, err := s.loadTenantUser(userID)
+	if err != nil {
 		return nil, err
 	}
+	user := *loaded
 	roleIDMap, roleKeysMap, roleNamesMap, err := s.loadUserRoles([]uint64{user.ID})
 	if err != nil {
 		return nil, err
@@ -511,18 +612,25 @@ func (s *UserService) ResetPassword(userID uint64, newPassword string) (int64, e
 	}
 
 	var user SystemUser
-	if err := s.db.First(&user, userID).Error; err != nil {
+	if err := s.scoped(s.db).First(&user, userID).Error; err != nil {
 		return 0, err
 	}
 
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(trimmedPassword), bcrypt.DefaultCost)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(trimmedPassword), security.GetBcryptCost())
 	if err != nil {
 		return 0, err
 	}
 
 	var revokedSessionCount int64
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&user).Update("password", string(passwordHash)).Error; err != nil {
+		// An administrative reset also lifts the account lockout: the operator
+		// has just proved ownership, and leaving failed_login_attempts/lock in
+		// place would keep the new password unusable until the lock expires.
+		if err := tx.Model(&user).Updates(map[string]any{
+			"password":              string(passwordHash),
+			"failed_login_attempts": 0,
+			"login_locked_until":    nil,
+		}).Error; err != nil {
 			return err
 		}
 
@@ -555,7 +663,7 @@ func (s *UserService) BatchUpdateUserStatus(userIDs []uint64, status int) (int, 
 	}
 
 	var users []SystemUser
-	if err := s.db.Where("id IN ?", normalizedIDs).Find(&users).Error; err != nil {
+	if err := s.scoped(s.db).Where("id IN ?", normalizedIDs).Find(&users).Error; err != nil {
 		return 0, err
 	}
 	if len(users) != len(normalizedIDs) {
@@ -569,7 +677,7 @@ func (s *UserService) BatchUpdateUserStatus(userIDs []uint64, status int) (int, 
 		}
 	}
 
-	if err := s.db.Model(&SystemUser{}).
+	if err := s.scoped(s.db.Model(&SystemUser{})).
 		Where("id IN ?", normalizedIDs).
 		Updates(map[string]any{
 			"status":     normalizeStatus(status),
@@ -620,13 +728,18 @@ func (s *UserService) DeleteUser(userID uint64) error {
 
 func (s *UserService) deleteUserInTransaction(tx *gorm.DB, userID uint64) error {
 	var user SystemUser
-	if err := tx.First(&user, userID).Error; err != nil {
+	if err := s.scoped(tx).First(&user, userID).Error; err != nil {
 		return err
 	}
 	if err := s.deleteUserAuthArtifacts(tx, userID); err != nil {
 		return err
 	}
 	if err := deleteUserRelations(tx, userID); err != nil {
+		return err
+	}
+	// 成员关系是审计记录，只停用不删除：登录门禁把非 active 视为拒绝，
+	// 物理删除会让成员列表残留 __deleted_user_* 幽灵行（验收 F4）。
+	if err := deactivateTenantMemberships(tx, user.TenantID, userID); err != nil {
 		return err
 	}
 	deletedUsername, err := s.allocateDeletedUsername(tx, user.ID)

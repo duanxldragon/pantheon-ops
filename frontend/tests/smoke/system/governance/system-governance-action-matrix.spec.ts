@@ -146,7 +146,7 @@ async function prepareSessionRevoke(page: Page) {
     });
   });
 
-  await page.goto('/system/session', { waitUntil: 'networkidle' });
+  await page.goto('/system/session', { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: '下线会话', exact: true }).first().click();
   return waitForConfirmPopup(page, '确认下线该会话？');
 }
@@ -177,7 +177,7 @@ async function prepareLoginCleanup(page: Page) {
     });
   });
 
-  await page.goto('/system/login-log', { waitUntil: 'networkidle' });
+  await page.goto('/system/login-log', { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: '清理日志', exact: true }).click();
   return waitForConfirmPopup(page, CLEANUP_WARNING_TEXT);
 }
@@ -215,7 +215,7 @@ async function prepareOperationCleanup(page: Page) {
     });
   });
 
-  await page.goto('/system/operation-log', { waitUntil: 'networkidle' });
+  await page.goto('/system/operation-log', { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: '清理日志', exact: true }).click();
   return waitForConfirmPopup(page, CLEANUP_WARNING_TEXT);
 }
@@ -239,7 +239,7 @@ async function prepareModuleUnregister(page: Page) {
     });
   });
 
-  await page.goto('/system/modules', { waitUntil: 'networkidle' });
+  await page.goto('/system/modules', { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: '卸载', exact: true }).click();
   return waitForConfirmPopup(page, '确认卸载该模块吗？');
 }
@@ -301,7 +301,7 @@ test.describe('system governance action matrix', () => {
 
       try {
         const accessToken = await signInAsAdmin(casePage);
-        await casePage.goto('/dashboard', { waitUntil: 'networkidle' });
+        await casePage.goto('/dashboard', { waitUntil: 'domcontentloaded' });
         await installOperationToken(casePage, accessToken);
         const popup = await actionCase.prepare(casePage);
         await expect(popup.getByText(actionCase.confirmText, { exact: true })).toBeVisible();
@@ -322,7 +322,7 @@ test.describe('system governance action matrix', () => {
 
       try {
         const accessToken = await signInAsAdmin(casePage);
-        await casePage.goto('/dashboard', { waitUntil: 'networkidle' });
+        await casePage.goto('/dashboard', { waitUntil: 'domcontentloaded' });
         await installOperationToken(casePage, accessToken);
         await casePage.route(actionCase.actionRoutePattern, async (route) => {
           intercepted = true;
@@ -366,7 +366,7 @@ test.describe('system governance action matrix', () => {
 
       try {
         const accessToken = await signInAsAdmin(casePage);
-        await casePage.goto('/dashboard', { waitUntil: 'networkidle' });
+        await casePage.goto('/dashboard', { waitUntil: 'domcontentloaded' });
         await installOperationToken(casePage, accessToken);
         await casePage.route(actionCase.actionRoutePattern, async (route) => {
           await fulfillJson(route, 500, {

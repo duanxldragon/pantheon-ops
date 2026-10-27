@@ -77,7 +77,7 @@ export function registerSystemWorkspaceTaskDepthSmokeTests({
         }),
       );
 
-      await page.goto('/dashboard', { waitUntil: 'networkidle' });
+      await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
       await expectVisiblePageTitle(page, '工作台');
       const summaryPayload = await summaryPayloadPromise;
       expect(summaryPayload.code).toBe(200);
@@ -87,7 +87,7 @@ export function registerSystemWorkspaceTaskDepthSmokeTests({
       await expect(page.locator('.dashboard-stat-card').first()).toBeVisible();
       await expect(page.locator('.dashboard-panel-card--attention .dashboard-focus-item').first()).toBeVisible();
       await expect
-        .poll(async () => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
+        .poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth))
         .toBeLessThanOrEqual(1);
 
       await expect(
@@ -141,7 +141,7 @@ export function registerSystemWorkspaceTaskDepthSmokeTests({
         ),
       );
 
-      await page.goto('/auth/security', { waitUntil: 'networkidle' });
+      await page.goto('/auth/security', { waitUntil: 'domcontentloaded' });
       await expectVisiblePageTitle(page, '安全中心');
 
       const [overviewPayload, sessionsPayload, loginLogsPayload] = await Promise.all([
@@ -156,7 +156,7 @@ export function registerSystemWorkspaceTaskDepthSmokeTests({
 
       await expect(page.locator('.page-split-layout--with-rail')).toBeVisible();
       await expect
-        .poll(async () => page.locator('.page-side-column .side-rail-panel').count())
+        .poll(() => page.locator('.page-side-column .side-rail-panel').count())
         .toBeGreaterThanOrEqual(3);
       await expect(page.locator('.page-side-column').getByText(/当前安全策略|Current Security Policy/)).toBeVisible();
       await expect(page.locator('.page-side-column .side-rail-item').first()).toBeVisible();
@@ -192,7 +192,7 @@ export function registerSystemWorkspaceTaskDepthSmokeTests({
         ),
       );
 
-      await page.goto('/system/profile', { waitUntil: 'networkidle' });
+      await page.goto('/system/profile', { waitUntil: 'domcontentloaded' });
       await expectVisiblePageTitle(page, '个人中心');
       const profileLoadPayload = await profileLoadPayloadPromise;
       expect(profileLoadPayload.code).toBe(200);
@@ -264,7 +264,7 @@ export function registerSystemWorkspaceTaskDepthSmokeTests({
         ),
       );
 
-      await page.goto('/system/user/1', { waitUntil: 'networkidle' });
+      await page.goto('/system/user/1', { waitUntil: 'domcontentloaded' });
       const detailLoadPayload = await detailLoadPayloadPromise;
       expect(detailLoadPayload.code).toBe(200);
 

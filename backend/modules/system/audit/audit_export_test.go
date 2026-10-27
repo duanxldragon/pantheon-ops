@@ -1,11 +1,11 @@
-package system
+package audit
 
 import (
 	"testing"
 	"time"
 
-	"pantheon-base/internal/middleware"
-	"pantheon-base/pkg/testmysql"
+	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -14,11 +14,7 @@ import (
 func setupAuditTestDBForName(tb testing.TB, _ string) *gorm.DB {
 	tb.Helper()
 
-	t, ok := tb.(*testing.T)
-	if !ok {
-		tb.Fatalf("audit mysql test helper requires *testing.T")
-	}
-	db := testmysql.Open(t)
+	db := testmysql.OpenTB(tb)
 	sessionDB := db.Session(&gorm.Session{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
@@ -28,6 +24,17 @@ func setupAuditTestDBForName(tb testing.TB, _ string) *gorm.DB {
 func setupAuditTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 	return setupAuditTestDBForName(t, t.Name())
+}
+
+func seedAuditDerivedFilterLogs(t *testing.T, db *gorm.DB) {
+	t.Helper()
+	seed := []middleware.SystemLogOper{
+		{Title: "上传文件", Method: "POST", OperName: "admin", OperURL: "/api/v1/system/upload", OperIP: "127.0.0.1", SourceDomain: operationLogSourceDomainConfig, SourcePage: operationLogSourcePageUpload, Status: 2, FailureCategory: operationLogFailureValidation, ErrorMsg: "upload.file.type_not_allowed", JsonResult: `{"code":400,"message":"upload.file.type_not_allowed"}`, OperTime: time.Now().UTC(), CostTime: 18},
+		{Title: "删除用户", Method: "DELETE", OperName: "admin", OperURL: "/api/v1/system/user/2", OperIP: "127.0.0.1", SourceDomain: operationLogSourceDomainIAM, SourcePage: operationLogSourcePageUser, Status: 2, FailureCategory: operationLogFailurePermission, ErrorMsg: "permission.denied", JsonResult: `{"code":403,"message":"permission.denied"}`, OperTime: time.Now().UTC(), CostTime: 21},
+	}
+	if err := db.Create(&seed).Error; err != nil {
+		t.Fatalf("seed audit logs: %v", err)
+	}
 }
 
 func TestAuditService_ExportOperationLogsIncludesDerivedColumns(t *testing.T) {
@@ -67,12 +74,12 @@ func TestAuditService_ExportOperationLogsIncludesDerivedColumns(t *testing.T) {
 		t.Fatalf("seed audit logs: %v", err)
 	}
 
-	file, err := service.ExportOperationLogs(&OperationLogQuery{})
+	file, err := service.ExportOperationLogs(&OperationLogQuery{}, nil)
 	if err != nil {
 		t.Fatalf("export audit logs: %v", err)
 	}
 
-	expectedHeaders := []string{"requestId", "title", "businessType", "sourceDomain", "sourcePage", "method", "operName", "operUrl", "operIp", "status", "failureCategory", "errorMsg", "operTime", "costTime"}
+	expectedHeaders := []string{"requestId", "title", "businessType", "sourceDomain", "sourcePage", "method", "operName", "operUrl", "operIp", "status", "failureCategory", "errorMsg", "operTime", "costTime", "tenantId"}
 	if len(file.Headers) != len(expectedHeaders) {
 		t.Fatalf("expected %d headers, got %d", len(expectedHeaders), len(file.Headers))
 	}
@@ -117,48 +124,13 @@ func TestAuditService_ExportOperationLogsRespectsDerivedFilters(t *testing.T) {
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate audit: %v", err)
 	}
-
-	seed := []middleware.SystemLogOper{
-		{
-			Title:           "上传文件",
-			Method:          "POST",
-			OperName:        "admin",
-			OperURL:         "/api/v1/system/upload",
-			OperIP:          "127.0.0.1",
-			SourceDomain:    operationLogSourceDomainConfig,
-			SourcePage:      operationLogSourcePageUpload,
-			Status:          2,
-			FailureCategory: operationLogFailureValidation,
-			ErrorMsg:        "upload.file.type_not_allowed",
-			JsonResult:      `{"code":400,"message":"upload.file.type_not_allowed"}`,
-			OperTime:        time.Now().UTC(),
-			CostTime:        18,
-		},
-		{
-			Title:           "删除用户",
-			Method:          "DELETE",
-			OperName:        "admin",
-			OperURL:         "/api/v1/system/user/2",
-			OperIP:          "127.0.0.1",
-			SourceDomain:    operationLogSourceDomainIAM,
-			SourcePage:      operationLogSourcePageUser,
-			Status:          2,
-			FailureCategory: operationLogFailurePermission,
-			ErrorMsg:        "permission.denied",
-			JsonResult:      `{"code":403,"message":"permission.denied"}`,
-			OperTime:        time.Now().UTC(),
-			CostTime:        21,
-		},
-	}
-	if err := db.Create(&seed).Error; err != nil {
-		t.Fatalf("seed audit logs: %v", err)
-	}
+	seedAuditDerivedFilterLogs(t, db)
 
 	file, err := service.ExportOperationLogs(&OperationLogQuery{
 		SourceDomain:    operationLogSourceDomainConfig,
 		SourcePage:      operationLogSourcePageUpload,
 		FailureCategory: operationLogFailureValidation,
-	})
+	}, nil)
 	if err != nil {
 		t.Fatalf("export filtered audit logs: %v", err)
 	}
@@ -178,41 +150,7 @@ func TestAuditService_ListOperationLogsRespectsDerivedFilters(t *testing.T) {
 		t.Fatalf("migrate audit: %v", err)
 	}
 
-	seed := []middleware.SystemLogOper{
-		{
-			Title:           "上传文件",
-			Method:          "POST",
-			OperName:        "admin",
-			OperURL:         "/api/v1/system/upload",
-			OperIP:          "127.0.0.1",
-			SourceDomain:    operationLogSourceDomainConfig,
-			SourcePage:      operationLogSourcePageUpload,
-			Status:          2,
-			FailureCategory: operationLogFailureValidation,
-			ErrorMsg:        "upload.file.type_not_allowed",
-			JsonResult:      `{"code":400,"message":"upload.file.type_not_allowed"}`,
-			OperTime:        time.Now().UTC(),
-			CostTime:        18,
-		},
-		{
-			Title:           "删除用户",
-			Method:          "DELETE",
-			OperName:        "admin",
-			OperURL:         "/api/v1/system/user/2",
-			OperIP:          "127.0.0.1",
-			SourceDomain:    operationLogSourceDomainIAM,
-			SourcePage:      operationLogSourcePageUser,
-			Status:          2,
-			FailureCategory: operationLogFailurePermission,
-			ErrorMsg:        "permission.denied",
-			JsonResult:      `{"code":403,"message":"permission.denied"}`,
-			OperTime:        time.Now().UTC(),
-			CostTime:        21,
-		},
-	}
-	if err := db.Create(&seed).Error; err != nil {
-		t.Fatalf("seed audit logs: %v", err)
-	}
+	seedAuditDerivedFilterLogs(t, db)
 
 	page, err := service.ListOperationLogs(&OperationLogQuery{
 		SourceDomain:    operationLogSourceDomainConfig,
@@ -220,7 +158,7 @@ func TestAuditService_ListOperationLogsRespectsDerivedFilters(t *testing.T) {
 		FailureCategory: operationLogFailureValidation,
 		Page:            1,
 		PageSize:        10,
-	})
+	}, nil)
 	if err != nil {
 		t.Fatalf("list filtered audit logs: %v", err)
 	}
@@ -277,7 +215,7 @@ func TestAuditService_ListOperationLogsDoesNotBackfillDuringQuery(t *testing.T) 
 		FailureCategory: operationLogFailureValidation,
 		Page:            1,
 		PageSize:        10,
-	})
+	}, nil)
 	if err != nil {
 		t.Fatalf("list filtered audit logs: %v", err)
 	}
@@ -301,7 +239,7 @@ func TestAuditService_ListOperationLogsCapsPageSize(t *testing.T) {
 		t.Fatalf("migrate audit: %v", err)
 	}
 
-	page, err := service.ListOperationLogs(&OperationLogQuery{Page: 1, PageSize: 1000})
+	page, err := service.ListOperationLogs(&OperationLogQuery{Page: 1, PageSize: 1000}, nil)
 	if err != nil {
 		t.Fatalf("list operation logs: %v", err)
 	}
@@ -333,7 +271,7 @@ func TestAuditService_ExportOperationLogsCapsRows(t *testing.T) {
 		t.Fatalf("seed operation logs: %v", err)
 	}
 
-	file, err := service.ExportOperationLogs(&OperationLogQuery{})
+	file, err := service.ExportOperationLogs(&OperationLogQuery{}, nil)
 	if err != nil {
 		t.Fatalf("export operation logs: %v", err)
 	}

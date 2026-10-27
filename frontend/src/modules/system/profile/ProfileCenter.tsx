@@ -22,11 +22,11 @@ import {
   updateProfile,
   type UserProfile,
   type UserProfileUpdatePayload,
-} from '../user/api';
+} from '../iam/user/api';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { FormSection, PageContainer, PageLoading, SubmitBar } from '../../../components';
-import './profile.css';
+import { FormSection, PageContainer, PageError, PageLoading, SubmitBar } from '../../../components';
+import './ProfileCenter.css';
 
 const Row = Grid.Row;
 const Col = Grid.Col;
@@ -40,6 +40,7 @@ const ProfileCenter: React.FC = () => {
   const [savingProfile, setSavingProfile] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState('');
   const [profileForm] = Form.useForm<UserProfileUpdatePayload>();
 
@@ -66,7 +67,11 @@ const ProfileCenter: React.FC = () => {
         perms: result.perms,
         preferences: result.preferences,
       });
+      setLoadError(false);
     } catch {
+      // Keep a persistent recovery state: the profile page stays on the error
+      // panel with a retry action until a successful fetch renders the form.
+      setLoadError(true);
       message.error(t('common.loadFailed'));
     } finally {
       setLoading(false);
@@ -129,6 +134,16 @@ const ProfileCenter: React.FC = () => {
 
   if (loading && !profile) {
     return <PageLoading />;
+  }
+
+  if (loadError && !profile) {
+    // Save stays unavailable until valid profile data has loaded: the form is
+    // not rendered in this state at all.
+    return (
+      <PageContainer className="profile-center-page">
+        <PageError onRetry={() => void loadProfile()} />
+      </PageContainer>
+    );
   }
 
   return (
@@ -238,8 +253,16 @@ const ProfileCenter: React.FC = () => {
                   <FormItem label={t('system.profile.avatar')} field="avatar">
                     <Space direction="vertical" size={8} style={{ width: '100%' }}>
                       <Input
+                        value={avatarPreview}
                         placeholder={t('system.profile.avatarPlaceholder')}
-                        onChange={(value) => setAvatarPreview(value)}
+                        onChange={(value = '') => {
+                          // The FormItem's child is a Space, so Arco does not
+                          // bind this Input to the form field automatically;
+                          // mirror edits into the form store so manually typed
+                          // avatar URLs are saved like uploaded ones.
+                          profileForm.setFieldValue('avatar', value);
+                          setAvatarPreview(value);
+                        }}
                         onPressEnter={() => profileForm.submit()}
                       />
                       <Space wrap>

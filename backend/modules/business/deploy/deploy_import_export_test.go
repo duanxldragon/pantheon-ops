@@ -3,7 +3,7 @@ package deploy
 import (
 	"testing"
 
-	"pantheon-base/modules/business/cmdb"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
 )
 
 func TestDeployPackageImportAndExport(t *testing.T) {

@@ -18,8 +18,8 @@ const fallbackLoaders: Record<SupportedLocale, () => Promise<FallbackResourceMap
 };
 
 const overrideFallbackLoaders: Record<SupportedLocale, () => Promise<FallbackResourceMap>> = {
-  'zh-CN': async () => ({}),
-  'en-US': async () => ({}),
+  'zh-CN': () => Promise.resolve({}),
+  'en-US': () => Promise.resolve({}),
   'ja-JP': async () => (await import('./resources/overrides/ja-JP')).default,
   'ko-KR': async () => (await import('./resources/overrides/ko-KR')).default,
   'fr-FR': async () => (await import('./resources/overrides/fr-FR')).default,
@@ -37,6 +37,15 @@ const localeResourceTasks = new Map<SupportedLocale, Promise<void>>();
 function normalizeLocale(locale: string | null | undefined): SupportedLocale {
   const normalized = (locale || '').trim() as SupportedLocale;
   return SUPPORTED_LOCALES.includes(normalized) ? normalized : 'zh-CN';
+}
+
+// Screen readers pick the pronunciation of the whole page from this attribute, so
+// it has to move with the UI language instead of staying on the static markup.
+export function syncDocumentLang(locale: string) {
+  if (globalThis.document === undefined) {
+    return;
+  }
+  document.documentElement.lang = normalizeLocale(locale);
 }
 
 async function loadFallbackResources(locale: SupportedLocale) {
@@ -130,6 +139,7 @@ export async function initI18n() {
       escapeValue: false,
     },
   });
+  syncDocumentLang(i18n.language);
 }
 
 export async function switchI18nLanguage(locale: string) {
@@ -150,5 +160,9 @@ export async function reloadI18nResources() {
   const remoteResources = await fetchLangPack(currentLang);
   i18n.addResourceBundle(currentLang, 'translation', remoteResources, true, true);
 }
+
+// One subscription covers every locale change, including ones made outside these
+// helpers, so <html lang> can never drift from the language the UI is rendering.
+i18n.on('languageChanged', syncDocumentLang);
 
 export default i18n;

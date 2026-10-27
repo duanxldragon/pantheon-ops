@@ -1,5 +1,5 @@
 import { useAuthStore } from '../store/useAuthStore';
-import { checkPermission } from '../core/permissions/checkPermission';
+import { checkPermission } from '../core/permission/checkPermission';
 
 export const usePermission = () => {
   const { userInfo } = useAuthStore();

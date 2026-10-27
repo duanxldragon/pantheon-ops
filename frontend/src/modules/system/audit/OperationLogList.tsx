@@ -20,8 +20,7 @@ import { IconDelete, IconDownload, IconEye } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import {
-  getVisibleSelectedRowKeys,
-  mergeCrossPageSelection,
+  buildCrossPageRowSelection,
   type CrossPageRowKey,
 } from '../../../components/table/crossPageSelection';
 import {
@@ -35,7 +34,7 @@ import {
   type OperationLogRow,
   type OperationLogQuery,
 } from './api';
-import { getSettingGroup, type SettingGroup } from '../setting/api';
+import { getSettingGroup, type SettingGroup } from '../config/setting/api';
 import { loadRetentionSetting } from './retentionSetting';
 import {
   AppModal,
@@ -63,7 +62,7 @@ import {
 } from '../../../components';
 import { formatDateTime } from '../../../core/format/dateTime';
 import { usePermission } from '../../../hooks/usePermission';
-import '../components/shared/list-page.css';
+import '../../../assets/list-page.css';
 const httpMethodSet = new Set(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD']);
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
@@ -567,31 +566,6 @@ function hasActiveOperationLogFilters(query: OperationLogQuery, advancedActiveCo
   );
 }
 
-function buildLogRowSelection(options: {
-  enabled: boolean;
-  visibleSelectedRowKeys: CrossPageRowKey[];
-  rows: OperationLogRow[];
-  setSelectedRowKeys: React.Dispatch<React.SetStateAction<CrossPageRowKey[]>>;
-}): TableProps<OperationLogRow>['rowSelection'] {
-  if (!options.enabled) {
-    return undefined;
-  }
-  return {
-    type: 'checkbox',
-    selectedRowKeys: options.visibleSelectedRowKeys,
-    checkCrossPage: true,
-    preserveSelectedRowKeys: true,
-    onChange: (keys) =>
-      options.setSelectedRowKeys((currentKeys) =>
-        mergeCrossPageSelection(
-          currentKeys,
-          keys,
-          options.rows.map((item) => item.id),
-        ),
-      ),
-  };
-}
-
 const DetailSummaryHeader: React.FC<{ log: OperationLogRow }> = ({ log }) => {
   const { t } = useTranslation();
   const businessTypeMeta = getBusinessTypeMeta(log.businessType, t);
@@ -1035,21 +1009,28 @@ const OperationLogList: React.FC = () => {
     return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
+  // Re-fetch retention options from settings on mount AND right before the
+  // cleanup dialog opens, so a value just configured in 系统设置/日志治理
+  // (e.g. 14 天) shows up without a full page reload.
+  const refreshRetentionSetting = useCallback(() => {
+    return getSettingGroup('audit')
+      .then((group: SettingGroup) =>
+        loadRetentionSetting(
+          group,
+          'audit.operation_log_retention_options',
+          setRetentionOptions,
+          setRetentionDays,
+        ),
+      )
+      .catch(() => undefined);
+  }, []);
+
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
-      getSettingGroup('audit')
-        .then((group: SettingGroup) =>
-          loadRetentionSetting(
-            group,
-            'audit.operation_log_retention_options',
-            setRetentionOptions,
-            setRetentionDays,
-          ),
-        )
-        .catch(() => undefined);
+      void refreshRetentionSetting();
     }, 0);
     return () => globalThis.clearTimeout(timer);
-  }, []);
+  }, [refreshRetentionSetting]);
 
   useEffect(() => {
     const detailId = Number(searchParams.get('detailId') || 0);
@@ -1188,15 +1169,6 @@ const OperationLogList: React.FC = () => {
     });
   };
 
-  const visibleSelectedRowKeys = useMemo(
-    () =>
-      getVisibleSelectedRowKeys(
-        selectedRowKeys,
-        data.map((item) => item.id),
-      ),
-    [data, selectedRowKeys],
-  );
-
   const columns: ColumnProps<OperationLogRow>[] = [
     {
       title: t('system.audit.title'),
@@ -1330,9 +1302,7 @@ const OperationLogList: React.FC = () => {
       const selectedRows = data.filter((item) => selectedRowKeys.includes(item.id));
       if (selectedRows.length !== selectedRowKeys.length) {
         message.warning(
-          t('common.exportCurrentPageSelectionOnly', {
-            defaultValue: '已选记录包含跨页项，请切回对应页面后再导出。',
-          }),
+          t('common.exportCurrentPageSelectionOnly'),
         );
         return;
       }
@@ -1383,12 +1353,16 @@ const OperationLogList: React.FC = () => {
         loading={loading}
         scroll={{ x: 'max-content' }}
         onChange={handleTableChange}
-        rowSelection={buildLogRowSelection({
-          enabled: canDelete,
-          visibleSelectedRowKeys,
-          rows: data,
-          setSelectedRowKeys,
-        })}
+        rowSelection={
+          canDelete
+            ? buildCrossPageRowSelection({
+                rows: data,
+                getRowKey: (row) => row.id,
+                selectedRowKeys,
+                setSelectedRowKeys,
+              })
+            : undefined
+        }
         pagination={buildStandardPagination(t, {
           current: query.page || emptyQuery.page,
           pageSize: query.pageSize || emptyQuery.pageSize,
@@ -1525,6 +1499,7 @@ const OperationLogList: React.FC = () => {
               rangeEndLabel={t('common.cleanupRangeEnd')}
               rangeRequiredMessage={t('common.cleanupRangeRequired')}
               onConfirm={handleCleanup}
+              onBeforeOpen={refreshRetentionSetting}
               hint={t('system.audit.cleanupHint')}
               trailing={
                 <Button

@@ -19,20 +19,29 @@ test.describe('K8s business module smoke', () => {
     await primeChineseLocale(page);
   });
 
-  test('cluster and release pages load on business routes', async ({ page }, testInfo) => {
+  test('cluster, release, and Kubernetes Service pages load on business routes', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/business/k8s/cluster', { waitUntil: 'networkidle' });
     await expect(page).toHaveURL(/\/business\/k8s\/cluster$/);
     await expect(page.locator('.governance-summary-bar')).toContainText('K8s 集群');
     await expect(page.locator('.system-list__table-card')).toBeVisible();
     await expectNoVisibleK8sI18nKeys(page);
-    await page.screenshot({ path: testInfo.outputPath('k8s-cluster-desktop.png'), fullPage: true });
+    await page.screenshot({ path: testInfo.outputPath('k8s-cluster-desktop.png') });
 
     await page.goto('/business/k8s/release', { waitUntil: 'networkidle' });
     await expect(page).toHaveURL(/\/business\/k8s\/release$/);
     await expect(page.locator('.governance-summary-bar')).toContainText('应用发布');
     await expect(page.locator('.system-list__table-card')).toBeVisible();
     await expectNoVisibleK8sI18nKeys(page);
-    await page.screenshot({ path: testInfo.outputPath('k8s-release-desktop.png'), fullPage: true });
+    await page.screenshot({ path: testInfo.outputPath('k8s-release-desktop.png') });
+
+    await page.goto('/business/k8s/service', { waitUntil: 'domcontentloaded' });
+    await expect(page).toHaveURL(/\/business\/k8s\/service$/);
+    await expect(page.locator('.governance-summary-bar')).toContainText('服务');
+    await expect(page.locator('.search-toolbar')).toBeVisible();
+    await expect(page.locator('.system-list__table-card')).toBeVisible();
+    await expectNoVisibleK8sI18nKeys(page);
+    await page.screenshot({ path: testInfo.outputPath('k8s-service-desktop.png') });
   });
 
   test('cluster list remains usable in a phone viewport', async ({ page }, testInfo) => {
@@ -42,6 +51,13 @@ test.describe('K8s business module smoke', () => {
     await expect
       .poll(async () => page.evaluate(() => document.body.scrollWidth <= globalThis.innerWidth + 1))
       .toBe(true);
-    await page.screenshot({ path: testInfo.outputPath('k8s-cluster-mobile.png'), fullPage: true });
+    await page.screenshot({ path: testInfo.outputPath('k8s-cluster-mobile.png') });
+
+    await page.goto('/business/k8s/service', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('.governance-summary-bar')).toContainText('服务');
+    await expect
+      .poll(async () => page.evaluate(() => document.body.scrollWidth <= globalThis.innerWidth + 1))
+      .toBe(true);
+    await page.screenshot({ path: testInfo.outputPath('k8s-service-mobile.png') });
   });
 });

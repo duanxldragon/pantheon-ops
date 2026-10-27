@@ -1,4 +1,4 @@
-package iam
+package role
 
 import (
 	"context"
@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/impexp"
-	"pantheon-base/pkg/testmysql"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"gorm.io/gorm"
 )
@@ -20,10 +20,13 @@ func setupRoleTestDB(t *testing.T) *gorm.DB {
 
 	// 迁移模型
 	_ = db.AutoMigrate(&SystemRole{}, &SystemRolePermission{}, &SystemRoleMenu{}, &roleDataScopePolicy{}, &database.CasbinRule{})
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_menu (id INTEGER PRIMARY KEY, page_perm TEXT, perms TEXT, type TEXT)")
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_role (user_id INTEGER, role_id INTEGER)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_menu (id INTEGER PRIMARY KEY, page_perm TEXT, perms TEXT, type TEXT, module TEXT, path TEXT)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_role (tenant_id INTEGER NOT NULL DEFAULT 0, user_id INTEGER, role_id INTEGER)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user (id INTEGER PRIMARY KEY, username TEXT, nickname TEXT, dept_id INTEGER, post_id INTEGER, status INTEGER, created_at DATETIME, updated_at DATETIME, deleted_at DATETIME)")
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_dept (id INTEGER PRIMARY KEY, dept_name TEXT)")
+	// system_dept 按真实结构建表并预置部门 10/20/30：自定义数据范围会校验部门归属
+	// （acceptance F11），空表会让任何 dept id 都算非法。
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_dept (id INTEGER PRIMARY KEY, tenant_id BIGINT NOT NULL DEFAULT 0, dept_name TEXT, deleted_at DATETIME)")
+	_ = db.Exec("INSERT INTO system_dept (id, tenant_id, dept_name) VALUES (10, 0, 'd10'), (20, 0, 'd20'), (30, 0, 'd30')")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_post (id INTEGER PRIMARY KEY, post_name TEXT)")
 
 	// 插入菜单测试数据

@@ -1,11 +1,11 @@
-package org
+package dept
 
 import (
 	"errors"
 	"fmt"
 	"strings"
 
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -27,7 +27,7 @@ func (s *DeptService) GetDeptTree(query *DeptListQuery) ([]*DeptTreeResp, error)
 
 	var depts []SystemDept
 	sortColumn, sortDesc := normalizeDeptSort(query)
-	if err := s.db.Model(&SystemDept{}).
+	if err := s.scoped(s.db.Model(&SystemDept{})).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: sortColumn}, Desc: sortDesc}).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: false}).
 		Find(&depts).Error; err != nil {
@@ -49,7 +49,7 @@ func (s *DeptService) GetOverview() (*DeptOverviewResp, error) {
 	}
 
 	var depts []SystemDept
-	if err := s.db.Order("id asc").Find(&depts).Error; err != nil {
+	if err := s.scoped(s.db).Order("id asc").Find(&depts).Error; err != nil {
 		return nil, err
 	}
 
@@ -96,10 +96,15 @@ func (s *DeptService) GetOverview() (*DeptOverviewResp, error) {
 }
 
 // loadOverviewPosts loads department post rows for overview aggregation.
+// system_post is soft-deleted, and a raw Table() query does not inherit
+// GORM's deleted_at scope, so the filter is stated explicitly — otherwise
+// every post the operator ever removed keeps inflating the overview counts.
 func (s *DeptService) loadOverviewPosts() ([]overviewPostRow, error) {
 	posts := make([]overviewPostRow, 0)
 	if s.db.Migrator().HasTable("system_post") {
-		if err := s.db.Table("system_post").Select("dept_id, status").Order("id asc").Find(&posts).Error; err != nil {
+		if err := s.scoped(s.db.Table("system_post")).
+			Where("deleted_at IS NULL").
+			Select("dept_id, status").Order("id asc").Find(&posts).Error; err != nil {
 			return nil, err
 		}
 	}
@@ -144,7 +149,7 @@ func (s *DeptService) ListLeaderCandidates(deptID uint64) ([]DeptLeaderCandidate
 	}
 
 	var dept SystemDept
-	if err := s.db.First(&dept, deptID).Error; err != nil {
+	if err := s.scoped(s.db).First(&dept, deptID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, common.NewNotFound("dept.not_found")
 		}
@@ -165,7 +170,7 @@ func (s *DeptService) ListLeaderCandidates(deptID uint64) ([]DeptLeaderCandidate
 	}
 
 	rows := make([]leaderCandidateRow, 0)
-	if err := s.db.Table("system_user AS u").
+	if err := s.scoped(s.db.Table("system_user AS u")).
 		Select("u.id AS user_id, u.username, u.nickname, u.dept_id, d.dept_name, u.post_id, p.post_name").
 		Joins("JOIN system_dept AS d ON d.id = u.dept_id").
 		Joins("JOIN system_post AS p ON p.id = u.post_id AND p.dept_id = u.dept_id").
@@ -211,7 +216,8 @@ func (s *DeptService) loadDeptPostCounts() (map[uint64]int, error) {
 	}
 
 	rows := make([]deptPostCountRow, 0)
-	if err := s.db.Table("system_post").
+	if err := s.scoped(s.db.Table("system_post")).
+		Where("deleted_at IS NULL").
 		Select("dept_id, COUNT(1) AS count").
 		Group("dept_id").
 		Scan(&rows).Error; err != nil {

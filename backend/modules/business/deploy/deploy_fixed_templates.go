@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"unicode"
 
 	"gorm.io/datatypes"
 )
@@ -13,7 +14,7 @@ const pkgDirVar = "$PKG_DIR"
 
 func validateFixedTemplateDefinition(templateCode string) error {
 	switch strings.TrimSpace(templateCode) {
-	case "", TemplateCodeNginxSystemd, TemplateCodeMySQLSystemd, TemplateCodeRedisSystemd, TemplateCodeMinIOSystemd, TemplateCodeHarborOffline:
+	case "", TemplateCodeNginxSystemd, TemplateCodeMySQLSystemd, TemplateCodeRedisSystemd, TemplateCodeMinIOSystemd, TemplateCodeHarborOffline, TemplateCodeJDKSystemd, TemplateCodePrometheusSystemd:
 		return nil
 	default:
 		return errors.New("deploypackage.template_invalid")
@@ -36,6 +37,10 @@ func validateFixedTemplateParams(templateCode string, templateParams map[string]
 		return requireTemplateParamsForAction(action, templateParams, "installRoot", "dataRoot", "serviceName", "apiPort", "consolePort", "rootUser", "rootPassword")
 	case TemplateCodeHarborOffline:
 		return requireTemplateParamsForAction(action, templateParams, "installRoot", "dataRoot", "hostname", "httpPort", "adminPassword")
+	case TemplateCodeJDKSystemd:
+		return requireTemplateParamsForAction(action, templateParams, "installRoot", "serviceName")
+	case TemplateCodePrometheusSystemd:
+		return requireTemplateParamsForAction(action, templateParams, "installRoot", "dataRoot", "serviceName", "webPort", "storageRetentionPolicy")
 	default:
 		return nil
 	}
@@ -65,6 +70,10 @@ func renderFixedTemplateScript(pkg DeployPackage, task DeployTask) (string, erro
 		return renderMinIOSystemdScript(pkg, task)
 	case TemplateCodeHarborOffline:
 		return renderHarborOfflineScript(pkg, task)
+	case TemplateCodeJDKSystemd:
+		return renderJDKSystemdScript(pkg, task)
+	case TemplateCodePrometheusSystemd:
+		return renderPrometheusSystemdScript(pkg, task)
 	default:
 		return "", errors.New(errDeployTaskTemplateInvalid)
 	}
@@ -124,13 +133,15 @@ echo "MySQL uninstall completed"
 	if err != nil {
 		return "", err
 	}
+	// FZ-02: the password is transported as a POSIX single-quoted token so its
+	// value can never break out into shell syntax.
 	return fmt.Sprintf(`set -e
 MYSQL_VERSION="%s"
 INSTALL_ROOT="%s"
 DATA_ROOT="%s"
 SERVICE_NAME="%s"
 MYSQL_PORT="%s"
-ROOT_PASSWORD="%s"
+ROOT_PASSWORD=%s
 PKG_DIR="/tmp/mysql-${MYSQL_VERSION}"
 STAGE_DIR="$PKG_DIR/stage"
 ARCHIVE_NAME="%s"
@@ -192,7 +203,7 @@ sleep 8
 "$INSTALL_ROOT/bin/mysqladmin" --protocol=socket --socket="$INSTALL_ROOT/run/mysql.sock" -uroot password "$ROOT_PASSWORD" >/dev/null 2>&1 || true
 systemctl status "${SERVICE_NAME}" --no-pager
 echo "MySQL installed at $INSTALL_ROOT"
-`, pkg.Version, installRoot, dataRoot, serviceName, port, rootPassword, archiveName, downloadScript, buildServiceStopAndDrainScript(serviceName, filepath.ToSlash(filepath.Join(installRoot, "bin", "mysqld"))), installRoot, dataRoot, installRoot, installRoot, port, installRoot, installRoot, installRoot), nil
+`, pkg.Version, installRoot, dataRoot, serviceName, port, shellQuoteSingle(rootPassword), archiveName, downloadScript, buildServiceStopAndDrainScript(serviceName, filepath.ToSlash(filepath.Join(installRoot, "bin", "mysqld"))), installRoot, dataRoot, installRoot, installRoot, port, installRoot, installRoot, installRoot), nil
 }
 
 func renderRedisSystemdScript(pkg DeployPackage, task DeployTask) (string, error) {
@@ -203,6 +214,9 @@ func renderRedisSystemdScript(pkg DeployPackage, task DeployTask) (string, error
 	serviceName := templateParamString(params, "serviceName", "redis")
 	port := templateParamString(params, "port", "6379")
 	requirePassword := templateParamString(params, "requirePassword", "")
+	// The version is a task-level variable (templateParams.version) so the same
+	// template can install any redis release; pkg.Version is only the fallback.
+	version := templateParamString(params, "version", pkg.Version)
 	if action == TaskActionUninstall {
 		return fmt.Sprintf(`set -e
 SERVICE_NAME="%s"
@@ -217,12 +231,17 @@ id redis >/dev/null 2>&1 && userdel redis || true
 echo "Redis uninstall completed"
 `, serviceName, installRoot, dataRoot), nil
 	}
-	archiveName, downloadScript, err := buildSourceFetchScript(pkg, fmt.Sprintf("https://download.redis.io/releases/redis-%s.tar.gz", pkg.Version), pkgDirVar)
+	archiveName, downloadScript, err := buildSourceFetchScript(pkg, fmt.Sprintf("https://download.redis.io/releases/redis-%s.tar.gz", version), pkgDirVar)
 	if err != nil {
 		return "", err
 	}
 	passwordLine := ""
 	if requirePassword != "" {
+		// redis.conf tokens cannot carry quoting or whitespace; reject values
+		// that cannot be transported structurally.
+		if strings.ContainsAny(requirePassword, " \t\n\x00") {
+			return "", errors.New(errDeployTaskTemplateParamsInvalid)
+		}
 		passwordLine = fmt.Sprintf("requirepass %s\nmasterauth %s\n", requirePassword, requirePassword)
 	}
 	return fmt.Sprintf(`set -e
@@ -270,7 +289,6 @@ Type=simple
 User=redis
 Group=redis
 ExecStart=%s/bin/redis-server %s/conf/redis.conf
-ExecStop=%s/bin/redis-cli -p %s shutdown
 Restart=always
 
 [Install]
@@ -280,8 +298,9 @@ systemctl daemon-reload
 systemctl enable "${SERVICE_NAME}"
 systemctl restart "${SERVICE_NAME}"
 systemctl status "${SERVICE_NAME}" --no-pager
+rm -rf "$PKG_DIR"
 echo "Redis installed at $INSTALL_ROOT"
-`, pkg.Version, installRoot, dataRoot, serviceName, port, archiveName, downloadScript, buildServiceStopAndDrainScript(serviceName, filepath.ToSlash(filepath.Join(installRoot, "bin", "redis-server"))), port, dataRoot, installRoot, passwordLine, installRoot, installRoot, installRoot, port), nil
+`, version, installRoot, dataRoot, serviceName, port, archiveName, downloadScript, buildServiceStopAndDrainScript(serviceName, filepath.ToSlash(filepath.Join(installRoot, "bin", "redis-server"))), port, dataRoot, installRoot, passwordLine, installRoot, installRoot), nil
 }
 
 func renderMinIOSystemdScript(pkg DeployPackage, task DeployTask) (string, error) {
@@ -323,7 +342,7 @@ SERVICE_NAME="%s"
 API_PORT="%s"
 CONSOLE_PORT="%s"
 ROOT_USER="%s"
-ROOT_PASSWORD="%s"
+ROOT_PASSWORD=%s
 PKG_DIR="/tmp/%s"
 ARCHIVE_NAME="%s"
 mkdir -p "$PKG_DIR" "$INSTALL_ROOT/bin" "$DATA_ROOT"
@@ -332,8 +351,8 @@ mkdir -p "$PKG_DIR" "$INSTALL_ROOT/bin" "$DATA_ROOT"
 %s
 id minio >/dev/null 2>&1 || useradd --system --home-dir "$INSTALL_ROOT" --shell /sbin/nologin minio
 cat > "/etc/default/${SERVICE_NAME}" <<EOF
-MINIO_ROOT_USER=%s
-MINIO_ROOT_PASSWORD=%s
+MINIO_ROOT_USER="$ROOT_USER"
+MINIO_ROOT_PASSWORD="$ROOT_PASSWORD"
 MINIO_VOLUMES=%s
 MINIO_OPTS=--address :%s --console-address :%s
 EOF
@@ -359,8 +378,9 @@ systemctl daemon-reload
 systemctl enable "${SERVICE_NAME}"
 systemctl restart "${SERVICE_NAME}"
 systemctl status "${SERVICE_NAME}" --no-pager
+rm -rf "$PKG_DIR"
 echo "MinIO installed at $INSTALL_ROOT"
-`, installRoot, dataRoot, serviceName, apiPort, consolePort, rootUser, rootPassword, serviceName, archiveName, downloadScript, extractScript, buildServiceStopAndDrainScript(serviceName, filepath.ToSlash(filepath.Join(installRoot, "bin", "minio"))), rootUser, rootPassword, dataRoot, apiPort, consolePort, serviceName, installRoot), nil
+`, installRoot, dataRoot, serviceName, apiPort, consolePort, rootUser, shellQuoteSingle(rootPassword), serviceName, archiveName, downloadScript, extractScript, buildServiceStopAndDrainScript(serviceName, filepath.ToSlash(filepath.Join(installRoot, "bin", "minio"))), dataRoot, apiPort, consolePort, serviceName, installRoot), nil
 }
 
 func renderHarborOfflineScript(pkg DeployPackage, task DeployTask) (string, error) {
@@ -389,12 +409,17 @@ echo "Harbor uninstall completed"
 	if err != nil {
 		return "", err
 	}
+	// FZ-02: the admin password must survive YAML single-quoted transport in
+	// harbor.yml, so single quotes cannot be part of the value.
+	if strings.Contains(adminPassword, "'") {
+		return "", errors.New(errDeployTaskTemplateParamsInvalid)
+	}
 	return fmt.Sprintf(`set -e
 INSTALL_ROOT="%s"
 DATA_ROOT="%s"
 HARBOR_HOSTNAME="%s"
 HTTP_PORT="%s"
-ADMIN_PASSWORD="%s"
+ADMIN_PASSWORD=%s
 PKG_DIR="/tmp/harbor-installer"
 ARCHIVE_NAME="%s"
 mkdir -p "$PKG_DIR" "$INSTALL_ROOT" "$DATA_ROOT" "$INSTALL_ROOT/logs"
@@ -408,7 +433,7 @@ cat > "$INSTALL_ROOT/installer/harbor.yml" <<EOF
 hostname: $HARBOR_HOSTNAME
 http:
   port: $HTTP_PORT
-harbor_admin_password: $ADMIN_PASSWORD
+harbor_admin_password: '$ADMIN_PASSWORD'
 data_volume: %s
 log:
   level: info
@@ -418,7 +443,7 @@ EOF
 cd "$INSTALL_ROOT/installer"
 ./install.sh
 echo "Harbor installed at $INSTALL_ROOT"
-`, installRoot, dataRoot, hostname, httpPort, adminPassword, archiveName, downloadScript, dataRoot, installRoot), nil
+`, installRoot, dataRoot, hostname, httpPort, shellQuoteSingle(adminPassword), archiveName, downloadScript, dataRoot, installRoot), nil
 }
 
 func buildSourceFetchScript(pkg DeployPackage, fallbackURL string, targetDirExpr string) (string, string, error) {
@@ -430,19 +455,28 @@ func buildSourceFetchScript(pkg DeployPackage, fallbackURL string, targetDirExpr
 			return "", "", errors.New(errDeployTaskPackageSourceMissing)
 		}
 	}
+	if err := validateDeployArtifactName(artifactName); err != nil {
+		return "", "", err
+	}
 	if strings.TrimSpace(pkg.SourceObjectKey) != "" || strings.TrimSpace(pkg.SourceURL) != "" {
 		if strings.TrimSpace(pkg.SourceURL) == "" {
 			return "", "", errors.New(errDeployTaskPackageSourceMissing)
 		}
-		return artifactName, fmt.Sprintf(`SOURCE_URL="%s"
+		if err := validateDeploySourceURL(pkg.SourceURL); err != nil {
+			return "", "", err
+		}
+		return artifactName, fmt.Sprintf(`SOURCE_URL=%s
 curl --connect-timeout 15 --max-time 300 --retry 2 --retry-delay 2 -fsSL "$SOURCE_URL" -o %s/%s
-`, pkg.SourceURL, targetDirExpr, artifactName), nil
+`, shellQuoteSingle(pkg.SourceURL), targetDirExpr, shellQuoteSingle(artifactName)), nil
 	}
 	if fallbackURL == "" {
 		return "", "", errors.New(errDeployTaskPackageSourceMissing)
 	}
-	return artifactName, fmt.Sprintf(`curl --connect-timeout 15 --max-time 300 --retry 2 --retry-delay 2 -fsSL "%s" -o %s/%s
-`, fallbackURL, targetDirExpr, artifactName), nil
+	if err := validateDeploySourceURL(fallbackURL); err != nil {
+		return "", "", err
+	}
+	return artifactName, fmt.Sprintf(`curl --connect-timeout 15 --max-time 300 --retry 2 --retry-delay 2 -fsSL %s -o %s/%s
+`, shellQuoteSingle(fallbackURL), targetDirExpr, shellQuoteSingle(artifactName)), nil
 }
 
 func minioArtifactInstallScript(artifactName string) string {
@@ -463,6 +497,330 @@ cp "$(find "$PKG_DIR/extract" -type f -name minio | head -n 1)" "$INSTALL_ROOT/b
 	}
 	return `cp "$PKG_DIR/$ARCHIVE_NAME" "$INSTALL_ROOT/bin/minio"
 `
+}
+
+func renderJDKSystemdScript(pkg DeployPackage, task DeployTask) (string, error) {
+	params := decodeJSONMap(task.TemplateParams)
+	action := normalizeTaskAction(task.Action)
+	installRoot := templateParamString(params, "installRoot", "/data/jdk")
+	serviceName := templateParamString(params, "serviceName", "jdk")
+	javaOpts := templateParamString(params, "javaOpts", "-Xms512m -Xmx512m")
+	mainClass := templateParamString(params, "mainClass", "")
+	appArgs := templateParamString(params, "appArgs", "")
+	if err := validateFixedJDKParams(installRoot, serviceName, javaOpts, mainClass, appArgs); err != nil {
+		return "", err
+	}
+	if action == TaskActionUninstall {
+		return fmt.Sprintf(`set -e
+SERVICE_NAME=%s
+INSTALL_ROOT=%s
+systemctl stop "${SERVICE_NAME}" || true
+systemctl disable "${SERVICE_NAME}" || true
+rm -f "/etc/systemd/system/${SERVICE_NAME}.service"
+systemctl daemon-reload
+rm -rf "$INSTALL_ROOT"
+rm -f "/etc/profile.d/jdk.sh"
+echo "JDK uninstall completed"
+`, shellQuoteSingle(serviceName), shellQuoteSingle(installRoot)), nil
+	}
+	archiveName, downloadScript, err := buildSourceFetchScript(pkg, "", pkgDirVar)
+	if err != nil {
+		return "", err
+	}
+	if mainClass == "" {
+		return fmt.Sprintf(`set -e
+INSTALL_ROOT=%s
+PKG_DIR="/tmp/jdk-installer"
+ARCHIVE_NAME=%s
+mkdir -p "$PKG_DIR" "$INSTALL_ROOT"
+%s
+rm -rf "$PKG_DIR/extract"
+mkdir -p "$PKG_DIR/extract"
+tar -xf "$PKG_DIR/$ARCHIVE_NAME" -C "$PKG_DIR/extract" --strip-components=1
+rsync -a --delete "$PKG_DIR/extract/" "$INSTALL_ROOT/"
+chmod +x "$INSTALL_ROOT/bin/java" "$INSTALL_ROOT/bin/javac"
+cat > "/etc/profile.d/jdk.sh" <<EOF
+export JAVA_HOME=%s
+export PATH=\$JAVA_HOME/bin:\$PATH
+EOF
+source /etc/profile.d/jdk.sh
+rm -rf "$PKG_DIR" "$PKG_DIR/extract"
+echo "JDK installed at $INSTALL_ROOT"
+java -version 2>&1 || true
+`, shellQuoteSingle(installRoot), shellQuoteSingle(archiveName), downloadScript, shellQuoteSingle(installRoot)), nil
+	}
+	mainClassLine := strings.TrimSpace(strings.Join([]string{shellQuoteSingle(mainClass), appArgs}, " "))
+	javaCommand := strings.TrimSpace(strings.Join([]string{shellQuoteSingle(filepath.ToSlash(filepath.Join(installRoot, "bin", "java"))), javaOpts, "-cp", shellQuoteSingle(filepath.ToSlash(filepath.Join(installRoot, "lib", "*"))), mainClassLine}, " "))
+	return fmt.Sprintf(`set -e
+INSTALL_ROOT=%s
+SERVICE_NAME=%s
+PKG_DIR="/tmp/jdk-installer"
+ARCHIVE_NAME=%s
+mkdir -p "$PKG_DIR" "$INSTALL_ROOT"
+%s
+rm -rf "$PKG_DIR/extract"
+mkdir -p "$PKG_DIR/extract"
+tar -xf "$PKG_DIR/$ARCHIVE_NAME" -C "$PKG_DIR/extract" --strip-components=1
+rsync -a --delete "$PKG_DIR/extract/" "$INSTALL_ROOT/"
+chmod +x "$INSTALL_ROOT/bin/java" "$INSTALL_ROOT/bin/javac"
+cat > "/etc/profile.d/jdk.sh" <<EOF
+export JAVA_HOME=%s
+export PATH=\$JAVA_HOME/bin:\$PATH
+EOF
+source /etc/profile.d/jdk.sh
+cat > "$INSTALL_ROOT/bin/app.sh" <<'APPEOF'
+#!/bin/bash
+exec %s "\$@"
+APPEOF
+chmod +x "$INSTALL_ROOT/bin/app.sh"
+cat > "/etc/systemd/system/${SERVICE_NAME}.service" <<EOF
+[Unit]
+Description=Java Application
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=%s/bin/app.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl enable "${SERVICE_NAME}"
+systemctl restart "${SERVICE_NAME}"
+systemctl status "${SERVICE_NAME}" --no-pager
+rm -rf "$PKG_DIR" "$PKG_DIR/extract"
+echo "JDK installed at $INSTALL_ROOT"
+java -version 2>&1 || true
+	`, shellQuoteSingle(installRoot), shellQuoteSingle(serviceName), shellQuoteSingle(archiveName), downloadScript, shellQuoteSingle(installRoot), javaCommand, installRoot), nil
+}
+
+func renderPrometheusSystemdScript(pkg DeployPackage, task DeployTask) (string, error) {
+	params := decodeJSONMap(task.TemplateParams)
+	action := normalizeTaskAction(task.Action)
+	installRoot := templateParamString(params, "installRoot", "/data/prometheus")
+	dataRoot := templateParamString(params, "dataRoot", filepath.ToSlash(filepath.Join(installRoot, "data")))
+	serviceName := templateParamString(params, "serviceName", "prometheus")
+	webPort := templateParamString(params, "webPort", "9090")
+	storageRetentionPolicy := templateParamString(params, "storageRetentionPolicy", "30d")
+	scrapeConfigFile := templateParamString(params, "scrapeConfigFile", "")
+	if err := validateFixedPrometheusParams(installRoot, dataRoot, serviceName, webPort, storageRetentionPolicy, scrapeConfigFile); err != nil {
+		return "", err
+	}
+	if action == TaskActionUninstall {
+		return fmt.Sprintf(`set -e
+SERVICE_NAME="%s"
+INSTALL_ROOT="%s"
+DATA_ROOT="%s"
+systemctl stop "${SERVICE_NAME}" || true
+systemctl disable "${SERVICE_NAME}" || true
+rm -f "/etc/systemd/system/${SERVICE_NAME}.service"
+systemctl daemon-reload
+rm -rf "$INSTALL_ROOT" "$DATA_ROOT"
+id prometheus >/dev/null 2>&1 && userdel prometheus || true
+echo "Prometheus uninstall completed"
+`, serviceName, installRoot, dataRoot), nil
+	}
+	archiveName, downloadScript, err := buildSourceFetchScript(pkg, "", pkgDirVar)
+	if err != nil {
+		return "", err
+	}
+	configFile := filepath.ToSlash(filepath.Join(installRoot, "prometheus.yml"))
+	if scrapeConfigFile != "" {
+		configFile = scrapeConfigFile
+	}
+	return fmt.Sprintf(`set -e
+INSTALL_ROOT=%s
+DATA_ROOT=%s
+SERVICE_NAME=%s
+WEB_PORT=%s
+STORAGE_RETENTION=%s
+CONFIG_FILE=%s
+PKG_DIR="/tmp/prometheus-installer"
+ARCHIVE_NAME=%s
+mkdir -p "$PKG_DIR" "$INSTALL_ROOT" "$DATA_ROOT" "$(dirname "$CONFIG_FILE")"
+%s
+rm -rf "$PKG_DIR/extract"
+mkdir -p "$PKG_DIR/extract"
+tar -xf "$PKG_DIR/$ARCHIVE_NAME" -C "$PKG_DIR/extract" --strip-components=1
+rsync -a --delete "$PKG_DIR/extract/" "$INSTALL_ROOT/"
+chmod +x "$INSTALL_ROOT/bin/prometheus" "$INSTALL_ROOT/bin/promtool"
+cat > %s <<EOF
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+EOF
+id prometheus >/dev/null 2>&1 || useradd --system --home-dir "$INSTALL_ROOT" --shell /sbin/nologin prometheus
+chown -R prometheus:prometheus "$INSTALL_ROOT" "$DATA_ROOT"
+cat > "/etc/systemd/system/${SERVICE_NAME}.service" <<EOF
+[Unit]
+Description=Prometheus Monitoring System
+After=network.target
+
+[Service]
+Type=simple
+User=prometheus
+Group=prometheus
+ExecStart=%s/bin/prometheus \
+  --config.file=%s \
+  --storage.tsdb.path=%s \
+  --storage.tsdb.retention.time=%s \
+  --web.listen-address=:%s \
+  --web.enable-lifecycle
+Restart=always
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl enable "${SERVICE_NAME}"
+systemctl restart "${SERVICE_NAME}"
+systemctl status "${SERVICE_NAME}" --no-pager
+rm -rf "$PKG_DIR" "$PKG_DIR/extract"
+echo "Prometheus installed at $INSTALL_ROOT, listening on port %s"
+`, shellQuoteSingle(installRoot), shellQuoteSingle(dataRoot), shellQuoteSingle(serviceName), shellQuoteSingle(webPort), shellQuoteSingle(storageRetentionPolicy), shellQuoteSingle(configFile), shellQuoteSingle(archiveName), downloadScript, shellQuoteSingle(configFile), installRoot, configFile, dataRoot, storageRetentionPolicy, webPort, webPort), nil
+}
+
+func validateDeployArtifactName(value string) error {
+	if value == "" || len(value) > 255 || filepath.Base(value) != value {
+		return errors.New(errDeployTaskTemplateParamsInvalid)
+	}
+	for _, r := range value {
+		if unicode.IsControl(r) || unicode.IsSpace(r) || strings.ContainsRune("'\"$`;&|<>\\/(){}[]", r) {
+			return errors.New(errDeployTaskTemplateParamsInvalid)
+		}
+	}
+	return nil
+}
+
+func validateDeployPackageSource(fileName, sourceURL string) error {
+	if strings.TrimSpace(fileName) != "" {
+		if err := validateDeployArtifactName(strings.TrimSpace(fileName)); err != nil {
+			return err
+		}
+	}
+	if strings.TrimSpace(sourceURL) != "" {
+		if err := validateDeploySourceURL(strings.TrimSpace(sourceURL)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateDeploySourceURL(value string) error {
+	if strings.TrimSpace(value) == "" {
+		return errors.New(errDeployTaskPackageSourceMissing)
+	}
+	for _, r := range value {
+		if unicode.IsControl(r) || unicode.IsSpace(r) {
+			return errors.New(errDeployTaskTemplateParamsInvalid)
+		}
+	}
+	return nil
+}
+
+func validateFixedPathValue(value string) error {
+	if value == "" || !strings.HasPrefix(value, "/") {
+		return errors.New(errDeployTaskTemplateParamsInvalid)
+	}
+	for _, r := range value {
+		if unicode.IsControl(r) || unicode.IsSpace(r) || strings.ContainsRune("'\"$`;&|<>\\(){}[]", r) {
+			return errors.New(errDeployTaskTemplateParamsInvalid)
+		}
+	}
+	return nil
+}
+
+// isFixedAlphaNum reports whether r is an ASCII letter or digit; the
+// fixed-template field validators combine it with a punctuation set.
+func isFixedAlphaNum(r rune) bool {
+	return r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9'
+}
+
+func isFixedServiceNameChar(r rune) bool {
+	return isFixedAlphaNum(r) || strings.ContainsRune("_.@-", r)
+}
+
+func isFixedTokenChar(r rune) bool {
+	return isFixedAlphaNum(r) || strings.ContainsRune("_+=:.,/-", r)
+}
+
+func isFixedClassNameChar(r rune) bool {
+	return isFixedAlphaNum(r) || strings.ContainsRune("_.$", r)
+}
+
+func validateFixedServiceName(value string) error {
+	if value == "" {
+		return errors.New(errDeployTaskTemplateParamsInvalid)
+	}
+	for _, r := range value {
+		if !isFixedServiceNameChar(r) {
+			return errors.New(errDeployTaskTemplateParamsInvalid)
+		}
+	}
+	return nil
+}
+
+func validateFixedTokenList(value string) error {
+	for _, r := range value {
+		if r == ' ' {
+			continue
+		}
+		if unicode.IsSpace(r) || !isFixedTokenChar(r) {
+			return errors.New(errDeployTaskTemplateParamsInvalid)
+		}
+	}
+	return nil
+}
+
+func validateFixedJDKParams(installRoot, serviceName, javaOpts, mainClass, appArgs string) error {
+	if err := validateFixedPathValue(installRoot); err != nil {
+		return err
+	}
+	if err := validateFixedServiceName(serviceName); err != nil {
+		return err
+	}
+	if err := validateFixedTokenList(javaOpts); err != nil {
+		return err
+	}
+	if mainClass != "" {
+		for _, r := range mainClass {
+			if !isFixedClassNameChar(r) {
+				return errors.New(errDeployTaskTemplateParamsInvalid)
+			}
+		}
+		if err := validateFixedTokenList(appArgs); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateFixedPrometheusParams(installRoot, dataRoot, serviceName, webPort, retention, configFile string) error {
+	for _, value := range []string{installRoot, dataRoot} {
+		if err := validateFixedPathValue(value); err != nil {
+			return err
+		}
+	}
+	if configFile != "" {
+		if err := validateFixedPathValue(configFile); err != nil {
+			return err
+		}
+	}
+	if err := validateFixedServiceName(serviceName); err != nil {
+		return err
+	}
+	if err := validateFixedTokenList(webPort); err != nil {
+		return err
+	}
+	return validateFixedTokenList(retention)
 }
 
 func templateParamString(values map[string]any, key string, fallback string) string {

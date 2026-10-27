@@ -1,6 +1,6 @@
 import React from 'react';
 import { SideRailItem, SideRailNote, SideRailPanel, SideRailStack } from './SideRail';
-import { withRailSummaryKeys, type RailSummaryItem, type RailSummaryTone } from './RailSummary';
+import { withRailSummaryKeys, type RailSummaryItem, type RailSummaryTone } from './railSummary';
 
 interface StandardRailSummaryProps {
   title?: React.ReactNode;

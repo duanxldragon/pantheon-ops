@@ -4,6 +4,7 @@ import "time"
 
 type SystemAuthSecurityEvent struct {
 	ID                  uint64     `gorm:"primaryKey;autoIncrement"`
+	TenantID            uint64     `gorm:"not null;index"`
 	UserID              uint64     `gorm:"index"`
 	Username            string     `gorm:"size:64;index"`
 	EventType           string     `gorm:"size:64;not null;index"`

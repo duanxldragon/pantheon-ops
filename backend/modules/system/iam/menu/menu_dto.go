@@ -1,4 +1,4 @@
-package iam
+package menu
 
 // MenuTreeResp 菜单树返回 DTO
 type MenuTreeResp struct {

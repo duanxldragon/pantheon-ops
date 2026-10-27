@@ -1,3 +1,15 @@
+---
+title: Consume pantheon-base-v0.10.2 foundation release
+doc_type: Remediation
+layer: inheritance-sync
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-05
+---
+
+# Task Packet: 2026-08-05-foundation-upgrade-base-v0-10-2
+
 Target repository: pantheon-ops
 Layer: inheritance-sync (pantheon-base -> pantheon-ops)
 Delivery tier: L2

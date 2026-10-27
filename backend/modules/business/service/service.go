@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"gorm.io/gorm"
 )
@@ -260,7 +260,7 @@ func (m *Manager) ListServiceOptions(applicationID uint64, scope *common.DataSco
 // CreateService creates a service for an application.
 func (m *Manager) CreateService(req CreateServiceRequest, actor string, scope *common.DataScopeReq) (*ServiceResponse, error) {
 	req.Code, req.Name, req.RuntimeType = strings.TrimSpace(req.Code), strings.TrimSpace(req.Name), strings.TrimSpace(req.RuntimeType)
-	if req.ApplicationID == 0 || req.Code == "" || req.Name == "" || req.RuntimeType == "" {
+	if req.ApplicationID == 0 || req.Code == "" || req.Name == "" || !validRuntimeType(req.RuntimeType) {
 		return nil, errors.New(errTargetInvalid)
 	}
 	app, err := m.findApplication(req.ApplicationID, scope)
@@ -313,7 +313,20 @@ func (m *Manager) UpdateService(id uint64, req UpdateServiceRequest, actor strin
 		updates["name"] = strings.TrimSpace(*req.Name)
 	}
 	if req.RuntimeType != nil {
-		updates["runtime_type"] = strings.TrimSpace(*req.RuntimeType)
+		runtimeType := strings.TrimSpace(*req.RuntimeType)
+		if !validRuntimeType(runtimeType) {
+			return nil, errors.New(errTargetInvalid)
+		}
+		if runtimeType != RuntimeTypeHybrid {
+			var incompatible int64
+			if err := m.db.Model(&ServiceInstance{}).Where("service_id = ? AND target_type != ?", row.ID, runtimeType).Count(&incompatible).Error; err != nil {
+				return nil, err
+			}
+			if incompatible > 0 {
+				return nil, errors.New(errTargetInvalid)
+			}
+		}
+		updates["runtime_type"] = runtimeType
 	}
 	if req.Description != nil {
 		updates["description"] = *req.Description
@@ -324,7 +337,11 @@ func (m *Manager) UpdateService(id uint64, req UpdateServiceRequest, actor strin
 	if err := m.db.Model(row).Updates(updates).Error; err != nil {
 		return nil, err
 	}
-	resp, err := m.serviceResponse(row, scope)
+	updated, err := m.findService(id, scope)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := m.serviceResponse(updated, scope)
 	return &resp, err
 }
 
@@ -388,6 +405,9 @@ func (m *Manager) CreateInstance(ctx context.Context, req CreateInstanceRequest,
 	if serviceRef.Status != StatusActive {
 		return InstanceRef{}, errors.New("business.service.service_inactive")
 	}
+	if serviceRef.RuntimeType != RuntimeTypeHybrid && serviceRef.RuntimeType != strings.ToLower(strings.TrimSpace(req.TargetType)) {
+		return InstanceRef{}, errors.New(errTargetInvalid)
+	}
 	req.Environment = strings.TrimSpace(req.Environment)
 	if req.Environment == "" {
 		return InstanceRef{}, errors.New(errTargetInvalid)
@@ -416,6 +436,15 @@ func (m *Manager) CreateInstance(ctx context.Context, req CreateInstanceRequest,
 	return m.instanceRef(&row, serviceRef), nil
 }
 
+func validRuntimeType(runtimeType string) bool {
+	switch runtimeType {
+	case RuntimeTypeVM, RuntimeTypeK8s, RuntimeTypeHybrid:
+		return true
+	default:
+		return false
+	}
+}
+
 // UpdateInstance updates a service instance visible in the supplied data scope.
 func (m *Manager) UpdateInstance(id uint64, req UpdateInstanceRequest, actor string, scope *common.DataScopeReq) (*InstanceResponse, error) {
 	row, err := m.findInstance(id, scope)
@@ -435,7 +464,11 @@ func (m *Manager) UpdateInstance(id uint64, req UpdateInstanceRequest, actor str
 	if err := m.db.Model(row).Updates(updates).Error; err != nil {
 		return nil, err
 	}
-	resp, err := m.instanceResponse(row, scope)
+	updated, err := m.findInstance(id, scope)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := m.instanceResponse(updated, scope)
 	return &resp, err
 }
 

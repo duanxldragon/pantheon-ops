@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/impexp"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

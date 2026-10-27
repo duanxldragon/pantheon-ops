@@ -5,23 +5,27 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log/slog"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"pantheon-base/modules/auth/mfa"
-	"pantheon-base/modules/auth/security"
-	"pantheon-base/modules/auth/session"
-	iamuser "pantheon-base/modules/system/iam/user"
-	"pantheon-base/pkg/authsession"
-	"pantheon-base/pkg/authtoken"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/impexp"
-	"pantheon-base/pkg/logging"
-	"pantheon-base/pkg/platformprefs"
+	"github.com/duanxldragon/pantheon-base/backend/modules/auth/mfa"
+	"github.com/duanxldragon/pantheon-base/backend/modules/auth/security"
+	"github.com/duanxldragon/pantheon-base/backend/modules/auth/session"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/authsession"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts/authuser"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/maintenance"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/platformprefs"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -41,7 +45,6 @@ const (
 	defaultMaxActiveSessions       = authsession.DefaultMaxActiveSessionsPerUser
 	defaultLoginLogRetentionDays   = 90
 	defaultSessionRetentionDays    = authsession.DefaultSessionRetentionDays
-	autoCleanupMinInterval         = 15 * time.Minute
 )
 
 const (
@@ -72,6 +75,11 @@ const (
 // Runtime is the root auth service that composes sub-domain services.
 type Runtime struct {
 	db *gorm.DB
+	// userRepo is the credential port over system user state. It is injected by
+	// the composition root (backend/cmd/server/main.go) so auth never imports
+	// modules/system/iam/user (docs/designs/REPOSITORY_LAYOUT.md §8.2).
+	userRepo  authuser.Repository
+	tenantCtx *tenant.Context
 
 	// Sub-services
 	loginSvc    *LoginService
@@ -79,24 +87,45 @@ type Runtime struct {
 	securitySvc *security.Service
 	sessionSvc  *session.Service
 
-	// 账号安全策略缓存
-	settingsMu                   sync.RWMutex
-	settingsCache                map[string]int
+	// 账号安全策略缓存. Shared by pointer so request-scoped tenant facades
+	// never copy the embedded lock (vet lock-copy rule).
+	settings *runtimeSettingsState
+}
+
+// runtimeSettingsState holds the mutex-guarded account-security policy cache.
+type runtimeSettingsState struct {
+	mu                           sync.RWMutex
+	cache                        map[string]int
 	loginLogCleanupRetentionDays []int
 	sessionCleanupRetentionDays  []int
 }
 
+// WithTenantContext returns a request-scoped facade for tenant-bound reads and writes.
+func (s *Runtime) WithTenantContext(ctx *tenant.Context) *Runtime {
+	clone := *s
+	clone.tenantCtx = ctx
+	clone.loginSvc = s.loginSvc.WithTenantContext(ctx)
+	clone.securitySvc = s.securitySvc.WithTenantContext(ctx)
+	// F03: admin session reads/revocations are tenant-scoped too.
+	clone.sessionSvc = s.sessionSvc.WithTenantContext(ctx)
+	clone.loginSvc.recorder = &clone
+	return &clone
+}
+
 // NewRuntime constructs the root auth service and its sub-services.
-func NewRuntime(db *gorm.DB) *Runtime {
+func NewRuntime(db *gorm.DB, userRepo authuser.Repository) *Runtime {
 	s := &Runtime{
-		db:            db,
-		settingsCache: make(map[string]int),
+		db:       db,
+		userRepo: userRepo,
+		settings: &runtimeSettingsState{
+			cache: make(map[string]int),
+		},
 	}
 
 	// Build sub-services, wiring them back through interfaces on Runtime.
-	s.loginSvc = NewLoginService(db, s, s)
+	s.loginSvc = NewLoginService(db, userRepo, s, s)
 	s.mfaSvc = mfa.NewService(db, s, s, s)
-	s.securitySvc = security.NewService(db, s)
+	s.securitySvc = security.NewService(db, userRepo, s)
 
 	// SessionService needs Runtime to implement PolicyProvider, UserRoleLoader, TokenIssuer.
 	s.sessionSvc = session.NewService(db, s, s, s)
@@ -142,8 +171,8 @@ func (s *Runtime) GetUserByID(userID uint64) (*session.UserRef, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
-	var u iamuser.SystemUser
-	if err := s.db.First(&u, userID).Error; err != nil {
+	u, err := s.userRepo.FindByID(context.Background(), userID)
+	if err != nil {
 		return nil, err
 	}
 	return &session.UserRef{ID: u.ID, Username: u.Username}, nil
@@ -162,17 +191,17 @@ func (s *Runtime) IssueTokenPairWithContext(ctx context.Context, userID uint64, 
 // login.PolicyProvider implementation
 // ─────────────────────────────────────────────────────────────
 func (s *Runtime) GetRuntimePolicy() RuntimePolicy {
-	s.settingsMu.RLock()
-	defer s.settingsMu.RUnlock()
+	s.settings.mu.RLock()
+	defer s.settings.mu.RUnlock()
 	return RuntimePolicy{
-		MaxFailedAttempts:            s.settingsCache[settingMaxFailedAttemptsKey],
-		LockMinutes:                  s.settingsCache[settingLockMinutesKey],
-		SourceMaxFailedAttempts:      s.settingsCache[settingSourceMaxFailedAttemptsKey],
-		SourceWindowMinutes:          s.settingsCache[settingSourceWindowMinutesKey],
-		SourceLockMinutes:            s.settingsCache[settingSourceLockMinutesKey],
-		SecurityEventEnabled:         s.settingsCache[settingSecurityEventEnabledKey] == 1,
-		LoginLogRetentionDays:        s.settingsCache[settingLoginLogRetentionDaysKey],
-		LoginLogCleanupRetentionDays: cloneIntSlice(s.loginLogCleanupRetentionDays),
+		MaxFailedAttempts:            s.settings.cache[settingMaxFailedAttemptsKey],
+		LockMinutes:                  s.settings.cache[settingLockMinutesKey],
+		SourceMaxFailedAttempts:      s.settings.cache[settingSourceMaxFailedAttemptsKey],
+		SourceWindowMinutes:          s.settings.cache[settingSourceWindowMinutesKey],
+		SourceLockMinutes:            s.settings.cache[settingSourceLockMinutesKey],
+		SecurityEventEnabled:         s.settings.cache[settingSecurityEventEnabledKey] == 1,
+		LoginLogRetentionDays:        s.settings.cache[settingLoginLogRetentionDaysKey],
+		LoginLogCleanupRetentionDays: cloneIntSlice(s.settings.loginLogCleanupRetentionDays),
 	}
 }
 
@@ -188,6 +217,12 @@ func (s *Runtime) RecordSecurityEvent(event security.SystemAuthSecurityEvent) {
 	if event.Severity == "" {
 		event.Severity = "medium"
 	}
+	// Subject attribution wins: a failed attempt against a tenant-owned account
+	// belongs to that tenant even when the request named another one. The
+	// request context is only a fallback for events without a known subject.
+	if event.TenantID == tenant.PlatformGlobalTenantID && s.tenantCtx != nil && s.tenantCtx.IsMulti() {
+		event.TenantID = s.tenantCtx.TenantID
+	}
 	if err := s.db.Create(&event).Error; err != nil {
 		logging.Warn("record security event failed",
 			zap.String("event_type", event.EventType), zap.Error(err))
@@ -198,26 +233,27 @@ func (s *Runtime) RecordSecurityEvent(event security.SystemAuthSecurityEvent) {
 // security.PolicyProvider implementation
 // ─────────────────────────────────────────────────────────────
 func (s *Runtime) GetAuthRuntimePolicy() security.AuthRuntimePolicy {
-	s.settingsMu.RLock()
-	defer s.settingsMu.RUnlock()
+	internal := s.getAuthRuntimePolicy()
 	return security.AuthRuntimePolicy{
-		PasswordMinLength:       s.settingsCache[settingPasswordMinLengthKey],
-		PasswordRequireDigit:    s.settingsCache[settingPasswordRequireDigitKey] == 1,
-		PasswordRequireUpper:    s.settingsCache[settingPasswordRequireUpperKey] == 1,
-		PasswordHistoryLimit:    s.settingsCache[settingPasswordHistoryLimitKey],
-		PasswordExpireDays:      s.settingsCache[settingPasswordExpireDaysKey],
-		MaxFailedAttempts:       s.settingsCache[settingMaxFailedAttemptsKey],
-		LockMinutes:             s.settingsCache[settingLockMinutesKey],
-		SourceMaxFailedAttempts: s.settingsCache[settingSourceMaxFailedAttemptsKey],
-		SourceWindowMinutes:     s.settingsCache[settingSourceWindowMinutesKey],
-		SourceLockMinutes:       s.settingsCache[settingSourceLockMinutesKey],
-		SessionIdleMinutes:      s.settingsCache[settingSessionIdleMinutesKey],
-		MaxActiveSessions:       s.settingsCache[settingMaxActiveSessionsKey],
-		SessionRetentionDays:    s.settingsCache[settingSessionRetentionDaysKey],
-		SecurityEventEnabled:    s.settingsCache[settingSecurityEventEnabledKey] == 1,
-		CaptchaEnabled:          s.settingsCache[settingCaptchaEnabledKey] == 1,
-		MFAEnabled:              s.settingsCache[settingMFAEnabledKey] == 1,
-		SSOEnabled:              s.settingsCache[settingSSOEnabledKey] == 1,
+		PasswordMinLength:    internal.PasswordMinLength,
+		PasswordRequireDigit: internal.PasswordRequireDigit,
+		PasswordRequireUpper: internal.PasswordRequireUpper,
+		PasswordHistoryLimit: internal.PasswordHistoryLimit,
+		PasswordExpireDays:   internal.PasswordExpireDays,
+		MaxFailedAttempts:    internal.MaxFailedAttempts,
+		LockMinutes:          internal.LockMinutes,
+
+		SourceMaxFailedAttempts: internal.SourceMaxFailedAttempts,
+		SourceWindowMinutes:     internal.SourceWindowMinutes,
+		SourceLockMinutes:       internal.SourceLockMinutes,
+		SessionIdleMinutes:      internal.SessionIdleMinutes,
+		MaxActiveSessions:       internal.MaxActiveSessions,
+		SessionRetentionDays:    internal.SessionRetentionDays,
+
+		SecurityEventEnabled: internal.SecurityEventEnabled,
+		CaptchaEnabled:       internal.CaptchaEnabled,
+		MFAEnabled:           internal.MFAEnabled,
+		SSOEnabled:           internal.SSOEnabled,
 	}
 }
 
@@ -225,17 +261,17 @@ func (s *Runtime) GetAuthRuntimePolicy() security.AuthRuntimePolicy {
 // mfa.PolicyProvider implementation
 // ─────────────────────────────────────────────────────────────
 func (s *Runtime) IsMFAEnabled() bool {
-	s.settingsMu.RLock()
-	defer s.settingsMu.RUnlock()
-	return s.settingsCache[settingMFAEnabledKey] == 1
+	s.settings.mu.RLock()
+	defer s.settings.mu.RUnlock()
+	return s.settings.cache[settingMFAEnabledKey] == 1
 }
 
 // ─────────────────────────────────────────────────────────────
 // mfa.IdentityProvider implementation
 // ─────────────────────────────────────────────────────────────
 func (s *Runtime) LoadUserByID(userID uint64) (*mfa.UserRecord, error) {
-	var u iamuser.SystemUser
-	if err := s.db.First(&u, userID).Error; err != nil {
+	u, err := s.userRepo.FindByID(context.Background(), userID)
+	if err != nil {
 		return nil, err
 	}
 	return &mfa.UserRecord{
@@ -249,12 +285,53 @@ func (s *Runtime) LoadUserByID(userID uint64) (*mfa.UserRecord, error) {
 	}, nil
 }
 
+// userOwningTenantID resolves the tenant owning a user's role bindings
+// (contract §2.3). Roles are always read from the user's OWN tenant, so no
+// tenant argument has to be threaded through every caller: a platform/global
+// user (admin) resolves to 0 and a tenant-local user to its tenant, which keeps
+// tenant A's roles out of tenant B's session. A missing user resolves to 0, so
+// compat behaviour (every historical row is tenant_id = 0) is unchanged.
+func (s *Runtime) userOwningTenantID(userID uint64) (uint64, error) {
+	var tenantID uint64
+	err := s.db.Table("system_user").
+		Select("tenant_id").
+		Where("id = ?", userID).
+		Scan(&tenantID).Error
+	if err != nil {
+		return 0, err
+	}
+	return tenantID, nil
+}
+
+// roleTenantID resolves the tenant whose role namespace applies to the subject:
+//   - an explicit multi context (login tenant choice, session switch) wins, so
+//     a multi-membership subject gets the roles of the tenant it is acting in;
+//   - otherwise the subject's own tenant (0 for platform/global and compat).
+func (s *Runtime) roleTenantID(userID uint64) (uint64, error) {
+	if s.tenantCtx != nil && s.tenantCtx.IsMulti() {
+		return s.tenantCtx.TenantID, nil
+	}
+	return s.userOwningTenantID(userID)
+}
+
 func (s *Runtime) GetUserRoles(userID uint64) ([]string, error) {
+	tenantID, err := s.roleTenantID(userID)
+	if err != nil {
+		return nil, err
+	}
+	return s.GetUserRolesForTenant(userID, tenantID)
+}
+
+// GetUserRolesForTenant resolves the subject's role keys inside one specific
+// tenant. It backs session.TenantRoleLoader so the tenant switch can re-sign a
+// session with the target tenant's roles (contract §4).
+func (s *Runtime) GetUserRolesForTenant(userID, tenantID uint64) ([]string, error) {
 	var roles []string
 	err := s.db.Table("system_role").
 		Select("system_role.role_key").
 		Joins("JOIN system_user_role ON system_user_role.role_id = system_role.id").
-		Where("system_user_role.user_id = ? AND system_role.status = ?", userID, common.StatusEnabled).
+		Where("system_user_role.user_id = ? AND system_user_role.tenant_id = ? AND system_role.tenant_id = ? AND system_role.status = ?",
+			userID, tenantID, tenantID, common.StatusEnabled).
 		Pluck("system_role.role_key", &roles).Error
 	return roles, err
 }
@@ -267,6 +344,13 @@ func (s *Runtime) CreateSession(userID uint64, roles []string, ip, userAgent str
 }
 
 func (s *Runtime) CreateSessionWithContext(ctx context.Context, userID uint64, roles []string, ip, userAgent string) (*authtoken.Pair, error) {
+	return s.CreateSessionForTenantWithContext(ctx, userID, roles, ip, userAgent, 0)
+}
+
+// CreateSessionForTenantWithContext creates a session stamped with the given
+// explicit tenant choice (0 = auto-discovery). The choice is still validated
+// by the issuance gate — callers cannot stamp a claim they lack membership for.
+func (s *Runtime) CreateSessionForTenantWithContext(ctx context.Context, userID uint64, roles []string, ip, userAgent string, tenantChoice uint64) (*authtoken.Pair, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
@@ -276,15 +360,27 @@ func (s *Runtime) CreateSessionWithContext(ctx context.Context, userID uint64, r
 	policy := s.getAuthRuntimePolicy()
 	now := time.Now()
 
-	if err := s.governSessionInventory(now, policy); err != nil {
-		return nil, err
-	}
-	if err := authsession.CleanupUserOverflowSessions(s.db, userID, now, policy.SessionIdleMinutes, maxInt(policy.MaxActiveSessions-1, 0)); err != nil {
+	// Load the subject before resolving the claim: the resolver needs to know
+	// whether this is a platform subject or a tenant-scoped one to decide
+	// between "claim 0 is correct" and "this subject has no context left".
+	u, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
 		return nil, err
 	}
 
-	var u iamuser.SystemUser
-	if err := s.db.First(&u, userID).Error; err != nil {
+	// Tenant discovery (contract §3.1 source 2): multi mode resolves the
+	// login tenant from the explicit choice or active membership;
+	// ambiguous/erroneous membership state denies login. Compat mode returns
+	// no claim (zero behavior change).
+	tenantClaim, err := s.resolveLoginTenantClaim(u, tenantChoice)
+	if err != nil {
+		return nil, err
+	}
+
+	// Per-user overflow pruning stays inline: it is bounded by
+	// MaxActiveSessions and is part of this user's own login correctness, not a
+	// table-wide sweep. The global inventory sweep is a maintenance task.
+	if err := authsession.CleanupUserOverflowSessions(s.db, userID, now, policy.SessionIdleMinutes, maxInt(policy.MaxActiveSessions-1, 0)); err != nil {
 		return nil, err
 	}
 
@@ -296,11 +392,12 @@ func (s *Runtime) CreateSessionWithContext(ctx context.Context, userID uint64, r
 		LastActivityAt:   &now,
 		LastIP:           ip,
 		UserAgent:        session.TruncateString(userAgent, 255),
+		TenantID:         tenantClaim,
 	}
 	if err := s.db.Create(&sess).Error; err != nil {
 		return nil, err
 	}
-	pair, err := s.issueTokenPair(ctx, &u, roles, &sess)
+	pair, err := s.issueTenantTokenPair(ctx, u.ID, u.Username, roles, &sess, tenantClaim)
 	if err != nil {
 		// Token issuance failed after the session row was persisted; remove it so
 		// failed logins don't accumulate orphan sessions in the governance views.
@@ -310,7 +407,83 @@ func (s *Runtime) CreateSessionWithContext(ctx context.Context, userID uint64, r
 		}
 		return nil, err
 	}
+
+	// Authentication is complete: credentials verified, the tenant gate passed
+	// and the new pair is stored. Clear the user-wide blacklist written by
+	// RevokeUserTokens so a password reset or a disable/enable cycle does not
+	// lock the account out for the marker's whole TTL (acceptance F2). This is
+	// deliberately after issuance, never before: a failed login must not reset
+	// a lockout that a disable action just imposed. Session-level revocation is
+	// left intact, so tokens minted before the change remain dead.
+	if clearErr := authtoken.ClearUserBlacklist(ctx, database.RDB, u.ID); clearErr != nil {
+		logging.Warn("clear user token blacklist after login failed",
+			zap.Uint64("userId", u.ID), zap.Error(clearErr))
+	}
 	return pair, nil
+}
+
+// resolveLoginTenantClaim discovers the tenant claim to stamp into the new
+// session (contract §3.1). Compat mode: always 0. Multi mode:
+//   - explicit tenantChoice > 0 wins and is validated through the issuance
+//     gate (active membership + active tenant master) — this is the picker
+//     path for multi-membership users (slice 2);
+//   - without a choice, single-membership subjects resolve deterministically;
+//   - zero memberships => 0 for a platform subject (tenant_id = 0). That is the
+//     pre-multi-tenant population, and the only subject that legitimately has
+//     no tenant to name;
+//   - zero memberships for a tenant-scoped subject (tenant_id != 0) denies: it
+//     owns no tenant context, so no session it could receive would work;
+//   - ambiguous memberships without a choice deny (never silently narrowed).
+func (s *Runtime) resolveLoginTenantClaim(subject *authuser.User, tenantChoice uint64) (uint64, error) {
+	if subject == nil {
+		return 0, tenant.ErrTenantForbidden
+	}
+	mode := tenant.NormalizeMode(tenant.FeatureFlagSettingKeyReader(s.db))
+	if mode != tenant.ModeMulti {
+		// Compat ignores any requested tenant: no claim is ever stamped.
+		return 0, nil
+	}
+	if tenantChoice != 0 {
+		return tenant.GateSessionIssuance(s.db, tenant.IssuanceCheckInput{
+			Mode:     mode,
+			UserID:   subject.ID,
+			TenantID: tenantChoice,
+		})
+	}
+	discovery, err := tenant.DiscoverDefaultTenant(s.db, subject.ID)
+	if err != nil {
+		return 0, err
+	}
+	if !discovery.Resolved {
+		return 0, refuseClaimlessTenantSubject(subject)
+	}
+	// Gate: membership + tenant master status must both hold (contract §5).
+	return tenant.GateSessionIssuance(s.db, tenant.IssuanceCheckInput{
+		Mode:     mode,
+		UserID:   subject.ID,
+		TenantID: discovery.TenantID,
+	})
+}
+
+// refuseClaimlessTenantSubject decides the outcome for a multi-mode subject that
+// resolved to no tenant claim.
+//
+// A subject with no owning tenant is platform population and claim 0 is correct
+// for it — platform-only staff have no membership by design, and denying them
+// would lock them out of the console entirely.
+//
+// A subject that carries an owning tenant is a different case. It has no
+// context left to be in — its membership was removed or disabled, or its tenant
+// was deleted — and issuing it a claim-less session is fail-open in the worst
+// way: login reports success, and then every tenant-scoped request fails closed
+// with `tenant.context.missing`. The operator sees a signed-in application that
+// is broken on every page, instead of a login that says the membership is gone.
+// Refuse instead (contract §5: no membership => TENANT_FORBIDDEN).
+func refuseClaimlessTenantSubject(subject *authuser.User) error {
+	if subject.TenantID == tenant.PlatformGlobalTenantID {
+		return nil
+	}
+	return tenant.ErrTenantForbidden
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -324,15 +497,15 @@ func (s *Runtime) GetSecurityRuntimePolicy() security.AuthRuntimePolicy {
 // Runtime facade methods used by HTTP handlers and module callers.
 // ─────────────────────────────────────────────────────────────
 
-func (s *Runtime) Login(req *LoginReq) (*iamuser.SystemUser, error) {
+func (s *Runtime) Login(req *LoginReq) (*authuser.User, error) {
 	return s.loginSvc.Authenticate(req)
 }
 
-func (s *Runtime) LoginWithSource(req *LoginReq, sourceKey string) (*iamuser.SystemUser, error) {
+func (s *Runtime) LoginWithSource(req *LoginReq, sourceKey string) (*authuser.User, error) {
 	return s.loginSvc.AuthenticateWithSource(req, sourceKey)
 }
 
-func (s *Runtime) Authenticate(req *LoginReq) (*iamuser.SystemUser, error) {
+func (s *Runtime) Authenticate(req *LoginReq) (*authuser.User, error) {
 	return s.Login(req)
 }
 
@@ -364,7 +537,11 @@ func (s *Runtime) RecordLoginLog(requestID, username, ip, browser, os string, st
 	s.loginSvc.RecordLoginLog(requestID, username, ip, browser, os, status, msg)
 }
 
-func (s *Runtime) CreateMFAChallenge(currentUser *iamuser.SystemUser) (*mfa.MFAChallengeResp, error) {
+func (s *Runtime) CreateMFAChallenge(currentUser *authuser.User) (*mfa.MFAChallengeResp, error) {
+	return s.CreateMFAChallengeForTenant(currentUser, 0)
+}
+
+func (s *Runtime) CreateMFAChallengeForTenant(currentUser *authuser.User, tenantID uint64) (*mfa.MFAChallengeResp, error) {
 	mfaUser := &mfa.UserRecord{
 		ID:       currentUser.ID,
 		Username: currentUser.Username,
@@ -374,7 +551,7 @@ func (s *Runtime) CreateMFAChallenge(currentUser *iamuser.SystemUser) (*mfa.MFAC
 		Phone:    currentUser.Phone,
 		Status:   currentUser.Status,
 	}
-	return s.mfaSvc.CreateChallenge(mfaUser)
+	return s.mfaSvc.CreateChallengeForTenant(mfaUser, tenantID)
 }
 
 func (s *Runtime) VerifyMFAChallenge(req *MFAVerifyReq, ip, userAgent string) (*AuthTokenResp, error) {
@@ -394,6 +571,16 @@ func (s *Runtime) VerifyMFAChallengeWithContext(ctx context.Context, req *MFAVer
 		AccessExpiresAt:  result.TokenPair.AccessExpiresAt.Format("2006-01-02 15:04:05"),
 		RefreshExpiresAt: result.TokenPair.RefreshExpiresAt.Format("2006-01-02 15:04:05"),
 		SessionID:        result.TokenPair.SessionID,
+		User: &security.UserInfoResp{
+			ID:       result.UserID,
+			Username: result.Username,
+			Nickname: result.Nickname,
+			Avatar:   result.Avatar,
+			Email:    result.Email,
+			Phone:    result.Phone,
+			Roles:    result.Roles,
+			Perms:    result.Perms,
+		},
 	}, nil
 }
 
@@ -434,6 +621,10 @@ func (s *Runtime) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPageRe
 	return s.sessionSvc.ListAllSessions(query)
 }
 
+func (s *Runtime) ExportAdminSessions(query *AdminSessionQuery) (*impexp.CSVFile, error) {
+	return s.sessionSvc.ExportAdminSessions(query)
+}
+
 func (s *Runtime) RevokeAnySession(currentSessionID, targetSessionID string) error {
 	return s.sessionSvc.RevokeAnySession(currentSessionID, targetSessionID)
 }
@@ -442,21 +633,83 @@ func (s *Runtime) GetUserPerms(userID uint64) ([]string, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
+
+	// Try cache first (5-minute TTL)
+	cacheKey := fmt.Sprintf("user_perms:%d", userID)
+	if database.RDB != nil {
+		cached, err := database.RDB.Get(context.Background(), cacheKey).Result()
+		if err == nil && cached != "" {
+			var perms []string
+			if json.Unmarshal([]byte(cached), &perms) == nil {
+				return s.dropStalePlatformOnlyPerms(userID, cacheKey, perms), nil
+			}
+		}
+	}
+
+	// Cache miss or Redis unavailable: query DB. The cache key stays user-only:
+	// a user has exactly one owning tenant, so the derived permission set is
+	// deterministic per user and cannot differ between tenants.
+	tenantID, err := s.userOwningTenantID(userID)
+	if err != nil {
+		return nil, err
+	}
 	var permissionKeys []string
-	err := s.db.Table("system_role_permission").
+	err = s.db.Table("system_role_permission").
 		Select("DISTINCT system_role_permission.permission_key").
 		Joins("JOIN system_user_role ON system_user_role.role_id = system_role_permission.role_id").
-		Where("system_user_role.user_id = ? AND system_role_permission.permission_key <> ''", userID).
+		Where("system_user_role.user_id = ? AND system_user_role.tenant_id = ? AND system_role_permission.tenant_id = ? AND system_role_permission.permission_key <> ''",
+			userID, tenantID, tenantID).
 		Pluck("system_role_permission.permission_key", &permissionKeys).Error
-	return mergePermissionKeys(permissionKeys), err
+
+	perms := mergePermissionKeys(permissionKeys)
+	if tenantID != tenant.PlatformGlobalTenantID {
+		perms = tenant.FilterPlatformOnlyPermissionKeys(perms)
+	}
+
+	// Cache for 5 minutes
+	if database.RDB != nil && len(perms) > 0 && err == nil {
+		if data, marshalErr := json.Marshal(perms); marshalErr == nil {
+			database.RDB.Set(context.Background(), cacheKey, data, 5*time.Minute)
+		}
+	}
+
+	return perms, err
+}
+
+// dropStalePlatformOnlyPerms keeps a permission cache entry from outliving the
+// tenant platform-grant repair. Only entries that actually contain a
+// platform-only key pay the ownership lookup, so the common cache hit stays a
+// single Redis read, and platform users keep their platform-only keys.
+func (s *Runtime) dropStalePlatformOnlyPerms(userID uint64, cacheKey string, perms []string) []string {
+	hasPlatformOnly := false
+	for _, key := range perms {
+		if tenant.IsPlatformOnlyPermissionKey(key) {
+			hasPlatformOnly = true
+			break
+		}
+	}
+	if !hasPlatformOnly {
+		return perms
+	}
+	tenantID, err := s.userOwningTenantID(userID)
+	if err != nil || tenantID == tenant.PlatformGlobalTenantID {
+		return perms
+	}
+	filtered := tenant.FilterPlatformOnlyPermissionKeys(perms)
+	if database.RDB != nil && len(filtered) > 0 {
+		if data, marshalErr := json.Marshal(filtered); marshalErr == nil {
+			database.RDB.Set(context.Background(), cacheKey, data, 5*time.Minute)
+		}
+	}
+	return filtered
 }
 
 func (s *Runtime) GetCurrentUserInfo(userID uint64) (*UserInfoResp, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
-	var u iamuser.SystemUser
-	if err := s.db.First(&u, userID).Error; err != nil {
+	u, err := s.userRepo.FindByID(context.Background(), userID)
+	if err != nil {
 		return nil, err
 	}
 	roles, err := s.GetUserRoles(u.ID)
@@ -484,8 +737,8 @@ func (s *Runtime) UpdateCurrentUserPreferences(userID uint64, req *UserPlatformP
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
-	var u iamuser.SystemUser
-	if err := s.db.First(&u, userID).Error; err != nil {
+	u, err := s.userRepo.FindByID(context.Background(), userID)
+	if err != nil {
 		return nil, err
 	}
 	previousPreferences := platformprefs.Parse(u.PreferenceJSON)
@@ -500,9 +753,7 @@ func (s *Runtime) UpdateCurrentUserPreferences(userID uint64, req *UserPlatformP
 		return nil, err
 	}
 	if preferenceJSON != u.PreferenceJSON {
-		if err := s.db.Model(&iamuser.SystemUser{}).
-			Where("id = ?", userID).
-			Update("preference_json", preferenceJSON).Error; err != nil {
+		if err := s.userRepo.UpdatePreferenceJSON(context.Background(), userID, preferenceJSON); err != nil {
 			return nil, err
 		}
 	}
@@ -538,11 +789,10 @@ func (s *Runtime) GetSecurityOverview(userID uint64, username, currentSessionID 
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
+	// Read path: session inventory governance is a registered maintenance
+	// task, never an inline sweep while rendering this overview.
 	policy := s.getAuthRuntimePolicy()
 	now := time.Now()
-	if err := s.governSessionInventory(now, policy); err != nil {
-		return nil, err
-	}
 
 	info, err := s.GetCurrentUserInfo(userID)
 	if err != nil {
@@ -630,6 +880,10 @@ func (s *Runtime) CleanupSecurityEvents(retentionDays int, startedAt, endedAt st
 	return s.securitySvc.CleanupSecurityEvents(retentionDays, startedAt, endedAt)
 }
 
+func (s *Runtime) ExportSecurityEvents(query *SecurityEventQuery) (*impexp.CSVFile, error) {
+	return s.securitySvc.ExportSecurityEvents(query)
+}
+
 // ─────────────────────────────────────────────────────────────
 // Settings management
 // ─────────────────────────────────────────────────────────────
@@ -658,28 +912,28 @@ func (s *Runtime) ReloadSettings() error {
 		SSOEnabled:                   s.fetchSettingBoolFromDB(settingSSOEnabledKey, false),
 	}
 
-	s.settingsMu.Lock()
-	s.settingsCache[settingPasswordMinLengthKey] = policy.PasswordMinLength
-	s.settingsCache[settingPasswordRequireDigitKey] = boolToInt(policy.PasswordRequireDigit)
-	s.settingsCache[settingPasswordRequireUpperKey] = boolToInt(policy.PasswordRequireUpper)
-	s.settingsCache[settingPasswordHistoryLimitKey] = policy.PasswordHistoryLimit
-	s.settingsCache[settingPasswordExpireDaysKey] = policy.PasswordExpireDays
-	s.settingsCache[settingMaxFailedAttemptsKey] = policy.MaxFailedAttempts
-	s.settingsCache[settingLockMinutesKey] = policy.LockMinutes
-	s.settingsCache[settingSourceMaxFailedAttemptsKey] = policy.SourceMaxFailedAttempts
-	s.settingsCache[settingSourceWindowMinutesKey] = policy.SourceWindowMinutes
-	s.settingsCache[settingSourceLockMinutesKey] = policy.SourceLockMinutes
-	s.settingsCache[settingSessionIdleMinutesKey] = policy.SessionIdleMinutes
-	s.settingsCache[settingMaxActiveSessionsKey] = policy.MaxActiveSessions
-	s.settingsCache[settingLoginLogRetentionDaysKey] = policy.LoginLogRetentionDays
-	s.settingsCache[settingSessionRetentionDaysKey] = policy.SessionRetentionDays
-	s.loginLogCleanupRetentionDays = cloneIntSlice(policy.LoginLogCleanupRetentionDays)
-	s.sessionCleanupRetentionDays = cloneIntSlice(policy.SessionCleanupRetentionDays)
-	s.settingsCache[settingSecurityEventEnabledKey] = boolToInt(policy.SecurityEventEnabled)
-	s.settingsCache[settingCaptchaEnabledKey] = boolToInt(policy.CaptchaEnabled)
-	s.settingsCache[settingMFAEnabledKey] = boolToInt(policy.MFAEnabled)
-	s.settingsCache[settingSSOEnabledKey] = boolToInt(policy.SSOEnabled)
-	s.settingsMu.Unlock()
+	s.settings.mu.Lock()
+	s.settings.cache[settingPasswordMinLengthKey] = policy.PasswordMinLength
+	s.settings.cache[settingPasswordRequireDigitKey] = boolToInt(policy.PasswordRequireDigit)
+	s.settings.cache[settingPasswordRequireUpperKey] = boolToInt(policy.PasswordRequireUpper)
+	s.settings.cache[settingPasswordHistoryLimitKey] = policy.PasswordHistoryLimit
+	s.settings.cache[settingPasswordExpireDaysKey] = policy.PasswordExpireDays
+	s.settings.cache[settingMaxFailedAttemptsKey] = policy.MaxFailedAttempts
+	s.settings.cache[settingLockMinutesKey] = policy.LockMinutes
+	s.settings.cache[settingSourceMaxFailedAttemptsKey] = policy.SourceMaxFailedAttempts
+	s.settings.cache[settingSourceWindowMinutesKey] = policy.SourceWindowMinutes
+	s.settings.cache[settingSourceLockMinutesKey] = policy.SourceLockMinutes
+	s.settings.cache[settingSessionIdleMinutesKey] = policy.SessionIdleMinutes
+	s.settings.cache[settingMaxActiveSessionsKey] = policy.MaxActiveSessions
+	s.settings.cache[settingLoginLogRetentionDaysKey] = policy.LoginLogRetentionDays
+	s.settings.cache[settingSessionRetentionDaysKey] = policy.SessionRetentionDays
+	s.settings.loginLogCleanupRetentionDays = cloneIntSlice(policy.LoginLogCleanupRetentionDays)
+	s.settings.sessionCleanupRetentionDays = cloneIntSlice(policy.SessionCleanupRetentionDays)
+	s.settings.cache[settingSecurityEventEnabledKey] = boolToInt(policy.SecurityEventEnabled)
+	s.settings.cache[settingCaptchaEnabledKey] = boolToInt(policy.CaptchaEnabled)
+	s.settings.cache[settingMFAEnabledKey] = boolToInt(policy.MFAEnabled)
+	s.settings.cache[settingSSOEnabledKey] = boolToInt(policy.SSOEnabled)
+	s.settings.mu.Unlock()
 
 	return nil
 }
@@ -688,49 +942,62 @@ func (s *Runtime) WatchSettings() {
 	if database.RDB == nil {
 		return
 	}
-	pubsub := database.RDB.Subscribe(context.TODO(), "settings:refresh")
 	go func() {
 		defer func() {
-			_ = pubsub.Close()
+			if r := recover(); r != nil {
+				slog.Error("settings watcher goroutine panic", "panic", r)
+			}
 		}()
-		for range pubsub.Channel() {
-			_ = s.ReloadSettings()
-		}
+		s.watchSettingsLoop()
 	}()
 }
 
+func (s *Runtime) watchSettingsLoop() {
+	for {
+		pubsub := database.RDB.Subscribe(context.TODO(), "settings:refresh")
+		for msg := range pubsub.Channel() {
+			_ = msg // consume message
+			_ = s.ReloadSettings()
+		}
+		// Channel closed (Redis disconnect or timeout), reconnect after delay
+		_ = pubsub.Close()
+		slog.Warn("settings pubsub channel closed, reconnecting in 5s")
+		time.Sleep(5 * time.Second)
+	}
+}
+
 func (s *Runtime) getAuthRuntimePolicy() authRuntimePolicy {
-	s.settingsMu.RLock()
-	defer s.settingsMu.RUnlock()
+	s.settings.mu.RLock()
+	defer s.settings.mu.RUnlock()
 
 	return authRuntimePolicy{
-		PasswordMinLength:            s.settingsCache[settingPasswordMinLengthKey],
-		PasswordRequireDigit:         s.settingsCache[settingPasswordRequireDigitKey] == 1,
-		PasswordRequireUpper:         s.settingsCache[settingPasswordRequireUpperKey] == 1,
-		PasswordHistoryLimit:         s.settingsCache[settingPasswordHistoryLimitKey],
-		PasswordExpireDays:           s.settingsCache[settingPasswordExpireDaysKey],
-		MaxFailedAttempts:            s.settingsCache[settingMaxFailedAttemptsKey],
-		LockMinutes:                  s.settingsCache[settingLockMinutesKey],
-		SourceMaxFailedAttempts:      s.settingsCache[settingSourceMaxFailedAttemptsKey],
-		SourceWindowMinutes:          s.settingsCache[settingSourceWindowMinutesKey],
-		SourceLockMinutes:            s.settingsCache[settingSourceLockMinutesKey],
-		SessionIdleMinutes:           s.settingsCache[settingSessionIdleMinutesKey],
-		MaxActiveSessions:            s.settingsCache[settingMaxActiveSessionsKey],
-		LoginLogRetentionDays:        s.settingsCache[settingLoginLogRetentionDaysKey],
-		SessionRetentionDays:         s.settingsCache[settingSessionRetentionDaysKey],
-		LoginLogCleanupRetentionDays: cloneIntSlice(s.loginLogCleanupRetentionDays),
-		SessionCleanupRetentionDays:  cloneIntSlice(s.sessionCleanupRetentionDays),
-		SecurityEventEnabled:         s.settingsCache[settingSecurityEventEnabledKey] == 1,
-		CaptchaEnabled:               s.settingsCache[settingCaptchaEnabledKey] == 1,
-		MFAEnabled:                   s.settingsCache[settingMFAEnabledKey] == 1,
-		SSOEnabled:                   s.settingsCache[settingSSOEnabledKey] == 1,
+		PasswordMinLength:            s.settings.cache[settingPasswordMinLengthKey],
+		PasswordRequireDigit:         s.settings.cache[settingPasswordRequireDigitKey] == 1,
+		PasswordRequireUpper:         s.settings.cache[settingPasswordRequireUpperKey] == 1,
+		PasswordHistoryLimit:         s.settings.cache[settingPasswordHistoryLimitKey],
+		PasswordExpireDays:           s.settings.cache[settingPasswordExpireDaysKey],
+		MaxFailedAttempts:            s.settings.cache[settingMaxFailedAttemptsKey],
+		LockMinutes:                  s.settings.cache[settingLockMinutesKey],
+		SourceMaxFailedAttempts:      s.settings.cache[settingSourceMaxFailedAttemptsKey],
+		SourceWindowMinutes:          s.settings.cache[settingSourceWindowMinutesKey],
+		SourceLockMinutes:            s.settings.cache[settingSourceLockMinutesKey],
+		SessionIdleMinutes:           s.settings.cache[settingSessionIdleMinutesKey],
+		MaxActiveSessions:            s.settings.cache[settingMaxActiveSessionsKey],
+		LoginLogRetentionDays:        s.settings.cache[settingLoginLogRetentionDaysKey],
+		SessionRetentionDays:         s.settings.cache[settingSessionRetentionDaysKey],
+		LoginLogCleanupRetentionDays: cloneIntSlice(s.settings.loginLogCleanupRetentionDays),
+		SessionCleanupRetentionDays:  cloneIntSlice(s.settings.sessionCleanupRetentionDays),
+		SecurityEventEnabled:         s.settings.cache[settingSecurityEventEnabledKey] == 1,
+		CaptchaEnabled:               s.settings.cache[settingCaptchaEnabledKey] == 1,
+		MFAEnabled:                   s.settings.cache[settingMFAEnabledKey] == 1,
+		SSOEnabled:                   s.settings.cache[settingSSOEnabledKey] == 1,
 	}
 }
 
 func (s *Runtime) getSecurityEventEnabled() bool {
-	s.settingsMu.RLock()
-	defer s.settingsMu.RUnlock()
-	return s.settingsCache[settingSecurityEventEnabledKey] == 1
+	s.settings.mu.RLock()
+	defer s.settings.mu.RUnlock()
+	return s.settings.cache[settingSecurityEventEnabledKey] == 1
 }
 
 func (s *Runtime) fetchSettingIntFromDB(settingKey string, fallback int) int {
@@ -795,51 +1062,39 @@ func (s *Runtime) fetchSettingIntSliceFromDB(settingKey string, fallback []int) 
 	return normalizeRetentionDays(rawValue, fallback)
 }
 
-func (s *Runtime) governSessionInventory(now time.Time, policy authRuntimePolicy) error {
-	if err := authsession.CleanupInactiveSessions(s.db, now, policy.SessionIdleMinutes); err != nil {
-		return err
-	}
-	return authsession.PurgeHistoricSessions(s.db, now, policy.SessionRetentionDays)
+// RegisterMaintenanceTasks registers the auth-domain periodic housekeeping
+// (session inventory governance, login-log retention, security-event
+// retention) with the background maintenance registry. Registration is
+// idempotent, so repeated module wiring cannot duplicate sweeps.
+func (s *Runtime) RegisterMaintenanceTasks(reg *maintenance.Registry) {
+	s.sessionSvc.RegisterMaintenanceTasks(reg)
+	s.loginSvc.RegisterMaintenanceTasks(reg)
+	s.securitySvc.RegisterMaintenanceTasks(reg)
 }
 
-func (s *Runtime) issueTokenPair(ctx context.Context, u *iamuser.SystemUser, roles []string, sess *session.SystemUserSession) (*authtoken.Pair, error) {
+// issueTenantTokenPair stores the session/refresh pair with the resolved
+// tenant claim. claim=0 keeps the legacy payload shape (compat behavior).
+func (s *Runtime) issueTenantTokenPair(ctx context.Context, userID uint64, username string, roles []string, sess *session.SystemUserSession, tenantClaim uint64) (*authtoken.Pair, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	accessToken := authtoken.NewAccessToken()
-	refreshToken := authtoken.NewRefreshToken()
-	now := time.Now()
-	accessTTL := authtoken.AccessTokenTTL
-	refreshTTL := authtoken.RefreshTokenTTL
-
-	accessData := &authtoken.SessionData{
-		UserID:         u.ID,
-		Username:       u.Username,
-		RoleKeys:       roles,
-		SessionID:      sess.SessionID,
-		LastActivityAt: now.Unix(),
-	}
-	if err := authtoken.StoreSession(ctx, database.RDB, accessToken, accessData, accessTTL); err != nil {
-		return nil, err
-	}
-	if err := authtoken.StoreRefresh(ctx, database.RDB, refreshToken, u.ID, sess.SessionID, refreshTTL); err != nil {
-		return nil, err
-	}
-	sess.RefreshExpiresAt = now.Add(refreshTTL)
-	return &authtoken.Pair{
-		AccessToken:      accessToken,
-		RefreshToken:     refreshToken,
-		TokenType:        authtoken.TypeAccess,
-		AccessExpiresAt:  now.Add(accessTTL),
-		RefreshExpiresAt: now.Add(refreshTTL),
-		SessionID:        sess.SessionID,
-	}, nil
+	return storeSessionTokenPair(ctx, userID, username, roles, sess, tenantClaim)
 }
 
 func (s *Runtime) issueTokenPairForSession(ctx context.Context, userID uint64, username string, roles []string, sess *session.SystemUserSession) (*authtoken.Pair, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
+	// Refresh carries the session's original claim (no re-discovery): the
+	// membership re-check for the claim happened in RefreshSessionWithContext
+	// before reaching here; rotating to a different tenant claim silently
+	// would break session↔tenant auditability.
+	return storeSessionTokenPair(ctx, userID, username, roles, sess, tenant.SessionTenantClaim(sess.TenantID))
+}
+
+// storeSessionTokenPair generates and stores the access/refresh pair for a
+// session with the given tenant claim, rotating the session's refresh expiry.
+func storeSessionTokenPair(ctx context.Context, userID uint64, username string, roles []string, sess *session.SystemUserSession, tenantClaim uint64) (*authtoken.Pair, error) {
 	accessToken := authtoken.NewAccessToken()
 	refreshToken := authtoken.NewRefreshToken()
 	now := time.Now()
@@ -852,6 +1107,7 @@ func (s *Runtime) issueTokenPairForSession(ctx context.Context, userID uint64, u
 		RoleKeys:       roles,
 		SessionID:      sess.SessionID,
 		LastActivityAt: now.Unix(),
+		TenantID:       tenantClaim,
 	}
 	if err := authtoken.StoreSession(ctx, database.RDB, accessToken, accessData, accessTTL); err != nil {
 		return nil, err
@@ -964,4 +1220,14 @@ func normalizeRetentionDays(rawValue string, fallback []int) []int {
 	}
 	sort.Ints(normalized)
 	return normalized
+}
+
+// InvalidateUserPermCache invalidates the cached permissions for a user.
+// This should be called after role assignments, permission changes, or role updates.
+func (s *Runtime) InvalidateUserPermCache(userID uint64) error {
+	if database.RDB == nil {
+		return nil // No cache to invalidate
+	}
+	cacheKey := fmt.Sprintf("user_perms:%d", userID)
+	return database.RDB.Del(context.Background(), cacheKey).Err()
 }

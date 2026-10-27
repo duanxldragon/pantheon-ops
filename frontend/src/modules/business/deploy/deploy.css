@@ -7,7 +7,7 @@
 .deploy-page__metric {
   display: grid;
   gap: 4px;
-  padding: 10px 12px;
+  padding: var(--space-sm-plus) var(--space-md);
   border: 1px solid var(--panel-border);
   border-radius: 6px;
   background: var(--panel-muted);
@@ -37,7 +37,7 @@
   align-items: center;
   gap: 8px;
   min-height: 44px;
-  padding: 10px 12px;
+  padding: var(--space-sm-plus) var(--space-md);
   border: 1px solid var(--panel-border);
   border-radius: 6px;
   background: var(--panel-bg-solid);
@@ -110,7 +110,7 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  padding: 12px;
+  padding: var(--space-md);
   border: 1px solid var(--panel-border);
   border-radius: 6px;
   background: var(--panel-bg-solid);
@@ -139,7 +139,7 @@
 .deploy-page__host-summary-item {
   display: grid;
   gap: 4px;
-  padding: 10px 12px;
+  padding: var(--space-sm-plus) var(--space-md);
   border: 1px solid var(--panel-border);
   border-radius: 6px;
   background: var(--panel-muted);

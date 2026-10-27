@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-08-31-ops-operational-workbench-design",
+  "title": "Define Ops business operational workbenches",
+  "status": "planned",
+  "priority": "P0-P2",
+  "deliveryTier": "L2",
+  "primaryLayer": "business/*",
+  "qualityProfiles": ["ui-runtime", "permission-policy", "architecture-fitness"],
+  "ratchetDecision": "guide-updated",
+  "goal": "Turn Ops operational flows into resumable business workbench packets without duplicating Base contracts.",
+  "scope": {
+    "in": [
+      "business context and target selection",
+      "deployment execution and change preview",
+      "observability query and log workbenches",
+      "business dashboard widgets",
+      "gated CMDB impact discovery"
+    ],
+    "out": [
+      "production code changes",
+      "platform or system overrides",
+      "BK Design dependency",
+      "external production mutation"
+    ]
+  },
+  "taskDoc": "docs/harness/tasks/2026-08-31-ops-operational-workbench-design.task.md",
+  "designDoc": "docs/designs/BUSINESS_OPERATIONAL_WORKBENCH_DESIGN.md",
+  "handoffDoc": ".harness/tasks/2026-08-31-ops-operational-workbench-design/HANDOFF.md",
+  "executionQueueDoc": ".harness/tasks/2026-08-31-ops-operational-workbench-design/EXECUTION_QUEUE.md",
+  "statusDoc": ".harness/tasks/2026-08-31-ops-operational-workbench-design/STATUS.md",
+  "children": ["O1", "O2", "O3", "O4", "O5", "O6", "O7"],
+  "executionBatches": [["O1", "O4"], ["O2", "O5"], ["O3", "O6"], ["O7"]],
+  "runtimeSensitive": false,
+  "linkage": {
+    "taskId": "2026-08-31-ops-operational-workbench-design",
+    "changeRef": "none",
+    "taskPacket": "docs/harness/tasks/2026-08-31-ops-operational-workbench-design.task.md",
+    "evidenceDir": ".harness/evidence/2026-08-31-ops-operational-workbench-design/",
+    "reviewFile": ".harness/evidence/2026-08-31-ops-operational-workbench-design/review.md",
+    "summaryFile": ".harness/evidence/2026-08-31-ops-operational-workbench-design/summary.md",
+    "planRefs": [
+      ".harness/tasks/2026-08-31-ops-operational-workbench-design/EXECUTION_QUEUE.md"
+    ]
+  },
+  "verificationPlan": {
+    "visualEvidence": null,
+    "visualEvidenceExemption": {
+      "scope": "governance-only",
+      "reason": "This packet defines design and implementation work packages; it does not change or render a UI surface. Each implementation packet must declare its own rendered evidence plan.",
+      "noRenderedSurfaceChanged": true,
+      "humanApprovalRequired": true
+    }
+  },
+  "maintainerGates": [
+    "Base foundation lock update",
+    "new schema or public contract",
+    "external production mutation or credentials",
+    "final visual and functional acceptance"
+  ]
+}

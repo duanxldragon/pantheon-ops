@@ -53,8 +53,32 @@ function walkMarkdownFiles(dirPath) {
   return files;
 }
 
+// Legacy in-body metadata is a document-head convention (see
+// docs/contracts/DOCUMENT_METADATA_AND_STATUS.md). Only the head is inspected
+// so body content is never mistaken for metadata, and fenced code blocks are
+// blanked first because templates legitimately show example metadata.
+export const LEGACY_METADATA_HEAD_LINES = 20;
+const LEGACY_METADATA_LINE = /^\s*(?:[-*>]\s*)*(?:更新时间|类型|归属层|主层|状态|Updated|Type|Layer|Status)\s*[:：]/;
+
+function stripFencedCodeBlocks(source) {
+  let insideFence = false;
+  return source
+    .split(/\r?\n/)
+    .map((line) => {
+      if (/^\s*(?:```|~~~)/.test(line)) {
+        insideFence = !insideFence;
+        return '';
+      }
+      return insideFence ? '' : line;
+    })
+    .join('\n');
+}
+
 export function hasLegacyMetadata(source) {
-  return /^(更新时间：|类型：|归属层：|主层：|状态：)/m.test(source);
+  return stripFencedCodeBlocks(source)
+    .split('\n')
+    .slice(0, LEGACY_METADATA_HEAD_LINES)
+    .some((line) => LEGACY_METADATA_LINE.test(line));
 }
 
 export function parseFrontmatter(source) {

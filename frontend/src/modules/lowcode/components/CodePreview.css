@@ -7,7 +7,7 @@
 
 .generator-code-preview__tree {
   width: 280px;
-  padding-right: 16px;
+  padding-right: var(--space-lg);
   border-right: 1px solid var(--panel-border);
   flex-shrink: 0;
 }
@@ -23,7 +23,7 @@
 }
 
 .generator-code-preview__file-header {
-  margin-bottom: 16px;
+  margin-bottom: var(--space-lg);
 }
 
 .generator-code-preview .generator-code-preview__file-title {
@@ -32,13 +32,13 @@
 
 .generator-code-preview__path {
   display: block;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-lg);
 }
 
 .generator-code-preview__pre {
   max-height: calc(100dvh - 250px);
   margin: 0;
-  padding: 16px;
+  padding: var(--space-lg);
   overflow: auto;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-md);
@@ -71,7 +71,7 @@
   .generator-code-preview__tree {
     width: 100%;
     padding-right: 0;
-    padding-bottom: 16px;
+    padding-bottom: var(--space-lg);
     border-right: none;
     border-bottom: 1px solid var(--panel-border);
   }

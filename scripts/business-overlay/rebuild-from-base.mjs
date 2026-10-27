@@ -24,11 +24,40 @@ function runGit(root, args) {
   return result.stdout.trim();
 }
 
+// git quotes non-ASCII paths as C-style octal escapes when core.quotepath is
+// enabled (the default). Decode them so business overlay paths with Chinese
+// names (e.g. docs/audits/v1.0/*.md) resolve to real filesystem paths.
+function decodeGitPath(rawPath) {
+  if (rawPath.length < 2 || !rawPath.startsWith('"') || !rawPath.endsWith('"')) {
+    return rawPath;
+  }
+  const inner = rawPath.slice(1, -1);
+  if (!/\\[0-7]{3}/u.test(inner)) return inner;
+  const bytes = [];
+  for (let i = 0; i < inner.length; i += 1) {
+    const ch = inner[i];
+    if (ch === '\\' && /^[0-7]{3}/u.test(inner.slice(i + 1, i + 4))) {
+      bytes.push(Number.parseInt(inner.slice(i + 1, i + 4), 8));
+      i += 3;
+    } else if (ch === '\\' && inner[i + 1] === '"') {
+      bytes.push(0x22);
+      i += 1;
+    } else if (ch === '\\' && inner[i + 1] === '\\') {
+      bytes.push(0x5c);
+      i += 1;
+    } else {
+      // Non-escaped characters are UTF-8 code units of the raw output.
+      for (const b of Buffer.from(ch, 'utf8')) bytes.push(b);
+    }
+  }
+  return Buffer.from(bytes).toString('utf8');
+}
+
 function trackedFiles(root) {
   return runGit(root, ['ls-files', '--cached', '--others', '--exclude-standard'])
     .split(/\r?\n/u)
     .filter(Boolean)
-    .map(repoPath);
+    .map((file) => repoPath(decodeGitPath(file)));
 }
 
 function snapshotFiles(root) {
@@ -261,7 +290,12 @@ function rewriteBusinessGoImports(targetRoot, sourceModule, targetModule) {
       if (entry.isDirectory()) visit(absolute);
       else if (entry.name.endsWith('.go')) {
         const before = fs.readFileSync(absolute, 'utf8');
-        const after = before.replaceAll(`${sourceModule}/`, `${targetModule}/`);
+        // Business sources from the pre-foundation migration may still carry the
+        // historical local module prefix. Normalize both forms at the assembly
+        // seam so the rebuilt tree always compiles against the locked Base module.
+        const after = before
+          .replaceAll(`${sourceModule}/`, `${targetModule}/`)
+          .replaceAll('"pantheon-base/', `"${targetModule}/`);
         if (after !== before) {
           fs.writeFileSync(absolute, after, 'utf8');
           changed.push(repoPath(path.relative(targetRoot, absolute)));
@@ -273,9 +307,37 @@ function rewriteBusinessGoImports(targetRoot, sourceModule, targetModule) {
   return changed.sort();
 }
 
-function generateRegistries(targetRoot, manifest) {
+function readGoModule(targetRoot) {
+  const goMod = path.join(targetRoot, 'backend', 'go.mod');
+  const content = fs.readFileSync(goMod, 'utf8');
+  const match = content.match(/^module\s+([^\s]+)\s*$/mu);
+  if (!match) throw new Error(`Cannot determine Go module from ${goMod}`);
+  return match[1];
+}
+
+// Overlay registry files are injected into an existing Base package directory, so
+// they must declare that directory's package name. Base owns the package (it
+// renamed the iam/menu package from `iam` to `menu`), so read the name from the
+// copied Base tree instead of hardcoding one that silently stops matching after
+// a Base rename.
+function readHostGoPackage(targetRoot, relativeDirectory) {
+  const directory = path.join(targetRoot, relativeDirectory);
+  if (!fs.existsSync(directory)) return null;
+  const candidates = fs
+    .readdirSync(directory)
+    .filter((name) => name.endsWith('.go') && !name.endsWith('_test.go'))
+    .sort();
+  for (const name of candidates) {
+    const source = fs.readFileSync(path.join(directory, name), 'utf8');
+    const match = source.match(/^package\s+([A-Za-z_][A-Za-z0-9_]*)/mu);
+    if (match) return match[1];
+  }
+  return null;
+}
+
+function generateRegistries(targetRoot, manifest, targetModule) {
   const imports = manifest.backendModules
-    .map((entry) => `\t${entry.alias} "${entry.importPath}"`)
+    .map((entry) => `\t${entry.alias} "${entry.importPath.replace(/^pantheon-base\//u, `${targetModule}/`)}"`)
     .join('\n');
   const calls = manifest.backendModules.map((entry) => `\t${entry.alias}.${entry.init}(r, db)`).join('\n');
   const backend = `package business\n\nimport (\n${imports}\n\n\t"github.com/gin-gonic/gin"\n\t"gorm.io/gorm"\n)\n\nfunc initOverlayBusinessModules(r *gin.RouterGroup, db *gorm.DB) {\n${calls}\n}\n`;
@@ -300,13 +362,15 @@ function generateRegistries(targetRoot, manifest) {
       return `\t${prefix}${' '.repeat(maxMenuKeyPrefixLen - prefix.length + 1)}{},`;
     })
     .join('\n');
-  const menu = `package iam\n\nvar businessOverlayMenuComponentKeys = map[string]struct{}{\n${menuEntries}\n}\n`;
+  const menuDirectory = 'backend/modules/system/iam/menu';
+  const menuPackage = readHostGoPackage(targetRoot, menuDirectory) ?? 'menu';
+  const menu = `package ${menuPackage}\n\nvar businessOverlayMenuComponentKeys = map[string]struct{}{\n${menuEntries}\n}\n`;
 
   const outputs = new Map([
     ['backend/modules/business/business_overlay_registry.go', backend],
     ['frontend/src/modules/businessOverlay.ts', frontendModules],
     ['frontend/src/core/router/businessOverlayComponentRegistry.ts', components],
-    ['backend/modules/system/iam/menu/business_overlay_component_registry.go', menu],
+    [`${menuDirectory}/business_overlay_component_registry.go`, menu],
   ]);
   for (const [relativePath, content] of outputs) {
     const target = path.join(targetRoot, relativePath);
@@ -404,14 +468,28 @@ function wireBusinessFallbacks(targetRoot) {
 
 function mergePackages(baseRoot, opsRoot, targetRoot, manifest) {
   const basePackage = JSON.parse(fs.readFileSync(path.join(baseRoot, 'package.json'), 'utf8'));
+  const opsPackage = JSON.parse(fs.readFileSync(path.join(opsRoot, 'package.json'), 'utf8'));
   basePackage.scripts = {
     ...basePackage.scripts,
     'rebuild:from-base': 'node scripts/business-overlay/rebuild-from-base.mjs',
     'check:business-overlay': 'node scripts/business-overlay/check-business-overlay.mjs',
+    'check:shared-drift': 'node scripts/business-overlay/check-shared-drift.mjs',
     'test:business-overlay': 'node --test tests/scripts/business-overlay/*.test.mjs',
     // Ops-owned root scripts (repositoryOverlayPaths) that Base does not ship.
     'check:encoding': 'node scripts/check-encoding.mjs --strict',
   };
+  // Ops-only governance scripts: base may not ship them, but their script
+  // files are ops repository overlays, so the entries must survive the merge.
+  const opsOnlyScripts = [
+    'check:business-boundaries',
+    'test:business-boundaries',
+    'check:business-foundation',
+  ];
+  for (const scriptName of opsOnlyScripts) {
+    if (opsPackage.scripts?.[scriptName] && !basePackage.scripts[scriptName]) {
+      basePackage.scripts[scriptName] = opsPackage.scripts[scriptName];
+    }
+  }
   for (const scriptName of Object.keys(basePackage.scripts)) {
     if (scriptName.startsWith('release:foundation') || scriptName === 'test:foundation-release') {
       delete basePackage.scripts[scriptName];
@@ -424,6 +502,21 @@ function mergePackages(baseRoot, opsRoot, targetRoot, manifest) {
   for (const scriptName of manifest.businessSmokeScripts) {
     if (!opsFrontend.scripts[scriptName]) throw new Error(`Missing business smoke script: ${scriptName}`);
     baseFrontend.scripts[scriptName] = opsFrontend.scripts[scriptName];
+  }
+  // Ops-only frontend dependencies (e.g. the local file: tarball binding the
+  // Base UI package) must survive the Base package.json overwrite, otherwise
+  // the rebuilt tree cannot resolve '@duanxldragon/pantheon-base-ui' imports.
+  for (const [depName, depSpec] of Object.entries(opsFrontend.dependencies ?? {})) {
+    if (!baseFrontend.dependencies?.[depName]) {
+      baseFrontend.dependencies ??= {};
+      baseFrontend.dependencies[depName] = depSpec;
+    }
+  }
+  // The rebuilt tree is an assembled whole (Base framework + business overlay),
+  // so the Base package name may self-reference via npm package.json
+  // "exports" self-reference; keep the ops declaration if Base lacks it.
+  if (!baseFrontend.exports && opsFrontend.exports) {
+    baseFrontend.exports = opsFrontend.exports;
   }
   fs.writeFileSync(path.join(targetRoot, 'frontend', 'package.json'), `${JSON.stringify(baseFrontend, null, 2)}\n`, 'utf8');
 }
@@ -563,8 +656,10 @@ export function rebuildFromBase({ opsRoot = defaultOpsRoot, baseRoot, targetRoot
   copyFile(opsRoot, resolvedTarget, 'business-overlay.json');
   copiedRepository.push('business-overlay.json');
 
-  const rewritten = rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, `${manifest.base.module}`);
-  const generated = generateRegistries(resolvedTarget, manifest);
+  const targetModule = readGoModule(resolvedTarget);
+  const rewritten = rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, targetModule);
+  const generated = generateRegistries(resolvedTarget, manifest, targetModule);
+  rewritten.push(...rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, targetModule));
   generated.push(...wireBusinessRegistries(resolvedTarget));
   generated.push(...mergeGoDependencies(opsRoot, resolvedTarget, manifest));
   generateBusinessFallbacks(resolvedTarget);

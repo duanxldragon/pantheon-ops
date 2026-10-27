@@ -12,6 +12,10 @@ const (
 	StatusActive   = "active"
 	StatusInactive = "inactive"
 
+	RuntimeTypeVM     = "vm"
+	RuntimeTypeK8s    = "k8s"
+	RuntimeTypeHybrid = "hybrid"
+
 	TargetTypeVM  = "vm"
 	TargetTypeK8s = "k8s"
 

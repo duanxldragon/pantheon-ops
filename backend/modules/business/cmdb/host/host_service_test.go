@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	cmdbgroup "pantheon-base/modules/business/cmdb/group"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/testmysql"
+	cmdbgroup "github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/group"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"gorm.io/gorm"
 )
@@ -219,6 +219,21 @@ func TestDeleteHost(t *testing.T) {
 	}
 }
 
+func TestDeleteHostRejectsActiveServiceReferences(t *testing.T) {
+	db := setupTestDB(t)
+	svc := NewHostService(db)
+	svc.SetServiceInstanceReferenceReader(activeServiceReferenceReader{active: true})
+	created, err := svc.Create(CreateHostRequest{Hostname: "del-referenced", IP: "10.0.0.41", OS: "linux"}, "1")
+	if err != nil {
+		t.Fatalf("create host: %v", err)
+	}
+	// Deleting an in-use host must be rejected to avoid orphaning service
+	// instances, mirroring the retire path reference check.
+	if err := svc.Delete(created.ID, nil); err == nil || err.Error() != "cmdbhost.active_service_reference" {
+		t.Fatalf("expected active service reference rejection on delete, got %v", err)
+	}
+}
+
 func TestUpdateStatus(t *testing.T) {
 	db := setupTestDB(t)
 	svc := NewHostService(db)
@@ -230,6 +245,32 @@ func TestUpdateStatus(t *testing.T) {
 	resp, _ := svc.GetByID(created.ID, nil)
 	if resp.Status != "online" {
 		t.Errorf("expected online, got %s", resp.Status)
+	}
+}
+
+func TestUpdateStatusRejectsRetired(t *testing.T) {
+	db := setupTestDB(t)
+	svc := NewHostService(db)
+	created, _ := svc.Create(CreateHostRequest{Hostname: "h1-retire-bypass", IP: "10.0.0.51", OS: "linux"}, "1")
+
+	// Direct status writes must not bypass the lifecycle state machine: the
+	// retired transition is only reachable through TransitionState, which
+	// enforces the active service-instance reference check.
+	if err := svc.UpdateStatus(created.ID, "retired", nil); err == nil {
+		t.Fatal("expected UpdateStatus(retired) to be rejected")
+	}
+	resp, err := svc.GetByID(created.ID, nil)
+	if err != nil {
+		t.Fatalf("get host: %v", err)
+	}
+	if resp.LifecycleState == "retired" || resp.Status == "retired" {
+		t.Fatalf("host must not be retired via UpdateStatus, got lifecycle=%s status=%s", resp.LifecycleState, resp.Status)
+	}
+	// The legitimate path still works when there are no active references.
+	if _, err := svc.TransitionState(created.ID, HostStateTransitionRequest{
+		Action: HostTransitionRetire, ExpectedStateVersion: resp.StateVersion,
+	}, "1", nil); err != nil {
+		t.Fatalf("expected retire via TransitionState to succeed, got %v", err)
 	}
 }
 

@@ -1,13 +1,13 @@
-package config
+package setting
 
 import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	commonsecurity "github.com/duanxldragon/pantheon-base/backend/pkg/common/security"
 	"io"
-	"pantheon-base/pkg/common"
-	commonsecurity "pantheon-base/pkg/common/security"
 	"strings"
 )
 

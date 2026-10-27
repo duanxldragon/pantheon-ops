@@ -33,24 +33,33 @@ const staticComponentRegistry = {
   'system/profile/ProfileCenter': defineRegistryEntry(
     () => import('../../modules/system/profile/ProfileCenter'),
   ),
-  'system/dict/DictPage': defineRegistryEntry(() => import('../../modules/system/dict/DictPage')),
+  'system/dict/DictPage': defineRegistryEntry(() => import('../../modules/system/config/dict/DictPage')),
   'system/i18n/I18nList': defineRegistryEntry(() => import('../../modules/system/i18n/I18nList')),
-  'system/dept/DeptList': defineRegistryEntry(() => import('../../modules/system/dept/DeptList')),
-  'system/menu/MenuList': defineRegistryEntry(() => import('../../modules/system/menu/MenuList')),
+  'system/dept/DeptList': defineRegistryEntry(() => import('../../modules/system/org/dept/DeptList')),
+  'system/menu/MenuList': defineRegistryEntry(() => import('../../modules/system/iam/menu/MenuList')),
   'system/permission/PermissionList': defineRegistryEntry(
-    () => import('../../modules/system/permission/PermissionList'),
+    () => import('../../modules/system/iam/permission/PermissionList'),
   ),
-  'system/post/PostList': defineRegistryEntry(() => import('../../modules/system/post/PostList')),
-  'system/role/RoleList': defineRegistryEntry(() => import('../../modules/system/role/RoleList')),
+  'system/post/PostList': defineRegistryEntry(() => import('../../modules/system/org/post/PostList')),
+  'system/role/RoleList': defineRegistryEntry(() => import('../../modules/system/iam/role/RoleList')),
   'system/setting/SettingOverviewPage': defineRegistryEntry(
-    () => import('../../modules/system/setting/SettingOverviewPage'),
+    () => import('../../modules/system/config/setting/SettingOverviewPage'),
   ),
   'system/setting/SettingGroupPage': defineRegistryEntry(
-    () => import('../../modules/system/setting/SettingGroupPage'),
+    () => import('../../modules/system/config/setting/SettingGroupPage'),
   ),
-  'system/user/UserList': defineRegistryEntry(() => import('../../modules/system/user/UserList')),
+  'system/user/UserList': defineRegistryEntry(() => import('../../modules/system/iam/user/UserList')),
   'system/user/UserDetail': defineRegistryEntry(
-    () => import('../../modules/system/user/UserDetail'),
+    () => import('../../modules/system/iam/user/UserDetail'),
+  ),
+  'system/tenant/TenantList': defineRegistryEntry(
+    () => import('../../modules/system/iam/tenant/TenantList'),
+  ),
+  'system/tenant/TenantOverview': defineRegistryEntry(
+    () => import('../../modules/system/iam/tenant/TenantOverview'),
+  ),
+  'system/tenant/TenantMemberList': defineRegistryEntry(
+    () => import('../../modules/system/iam/tenant/TenantMemberList'),
   ),
   'system/audit/OperationLogList': defineRegistryEntry(
     () => import('../../modules/system/audit/OperationLogList'),

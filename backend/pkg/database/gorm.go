@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -8,12 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/metrics"
 	mysqlDriver "github.com/go-sql-driver/mysql"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-	"pantheon-base/pkg/metrics"
 )
 
 var DB *gorm.DB
@@ -117,14 +118,28 @@ func initMySQL(dsn string) {
 	sqlDB.SetConnMaxIdleTime(time.Duration(envInt("PANTHEON_DB_CONN_MAX_IDLE_MINUTES", 30)) * time.Minute)     // 连接最大空闲时间
 
 	// 启动后台协程采集数据库连接池指标
+	metricsCtx, metricsCancel := context.WithCancel(context.Background())
+	metrics.RegisterDBMetricsCollector(metricsCancel) // Store cancel for shutdown
+
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				slog.Error("db metrics goroutine panic", "panic", r)
+			}
+		}()
 		ticker := time.NewTicker(10 * time.Second)
 		defer ticker.Stop()
-		for range ticker.C {
-			stats := sqlDB.Stats()
-			metrics.DBConnectionsActive.Set(float64(stats.InUse))
-			metrics.DBConnectionsIdle.Set(float64(stats.Idle))
-			metrics.DBConnectionsOpen.Set(float64(stats.OpenConnections))
+		for {
+			select {
+			case <-metricsCtx.Done():
+				slog.Info("db metrics collector shutting down")
+				return
+			case <-ticker.C:
+				stats := sqlDB.Stats()
+				metrics.DBConnectionsActive.Set(float64(stats.InUse))
+				metrics.DBConnectionsIdle.Set(float64(stats.Idle))
+				metrics.DBConnectionsOpen.Set(float64(stats.OpenConnections))
+			}
 		}
 	}()
 

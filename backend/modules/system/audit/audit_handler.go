@@ -1,10 +1,11 @@
-package system
+package audit
 
 import (
 	"strconv"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +21,29 @@ func NewAuditHandler(s *AuditService) *AuditHandler {
 	return &AuditHandler{service: s}
 }
 
+// requestTenantContext returns the resolved tenant context for the request
+// (queue-5 audit slice). Under compat it is nil — the service then applies no
+// filter, preserving single-tenant behavior byte-for-byte.
+func (h *AuditHandler) requestTenantContext(c *gin.Context) *tenant.Context {
+	return tenant.FromGin(c)
+}
+
+// enforceTenantQueryBoundary rejects tenantIdFilter from subjects that are not
+// platform-global (contract §7): a tenant subject must never be able to widen
+// its own scope, and a forged filter value must not leak another tenant's
+// audit trail. Platform-global subjects keep cross-tenant query capability.
+func (h *AuditHandler) enforceTenantQueryBoundary(c *gin.Context, query *OperationLogQuery) bool {
+	if query == nil || query.TenantIDFilter == 0 {
+		return true
+	}
+	ctx := h.requestTenantContext(c)
+	if ctx != nil && ctx.IsMulti() && ctx.TenantID != tenant.PlatformGlobalTenantID {
+		common.Fail(c, common.CodeForbidden, "tenant.forbidden")
+		return false
+	}
+	return true
+}
+
 func (h *AuditHandler) GetOperationLogList(c *gin.Context) {
 	var query OperationLogQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -27,7 +51,11 @@ func (h *AuditHandler) GetOperationLogList(c *gin.Context) {
 		return
 	}
 
-	page, err := h.service.ListOperationLogs(&query)
+	if !h.enforceTenantQueryBoundary(c, &query) {
+		return
+	}
+
+	page, err := h.service.ListOperationLogs(&query, h.requestTenantContext(c))
 	if err != nil {
 		common.Fail(c, common.CodeError, "audit.operation_log.list.error")
 		return
@@ -42,7 +70,7 @@ func (h *AuditHandler) GetOperationLog(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.GetOperationLog(logID)
+	resp, err := h.service.GetOperationLog(logID, h.requestTenantContext(c))
 	if err != nil {
 		common.Fail(c, common.CodeError, "audit.operation_log.detail.error")
 		return
@@ -58,7 +86,7 @@ func (h *AuditHandler) DeleteOperationLog(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.DeleteOperationLog(logID); err != nil {
+	if err := h.service.DeleteOperationLog(logID, h.requestTenantContext(c)); err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
 	}
@@ -74,7 +102,7 @@ func (h *AuditHandler) CleanupOperationLogs(c *gin.Context) {
 		return
 	}
 
-	clearedCount, err := h.service.CleanupOperationLogs(req.RetentionDays, req.StartedAt, req.EndedAt)
+	clearedCount, err := h.service.CleanupOperationLogs(req.RetentionDays, req.StartedAt, req.EndedAt, h.requestTenantContext(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -91,7 +119,7 @@ func (h *AuditHandler) BatchDeleteOperationLogs(c *gin.Context) {
 		return
 	}
 
-	deletedCount, err := h.service.BatchDeleteOperationLogs(req.IDs)
+	deletedCount, err := h.service.BatchDeleteOperationLogs(req.IDs, h.requestTenantContext(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -107,7 +135,10 @@ func (h *AuditHandler) ExportOperationLogs(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	file, err := h.service.ExportOperationLogs(&query)
+	if !h.enforceTenantQueryBoundary(c, &query) {
+		return
+	}
+	file, err := h.service.ExportOperationLogs(&query, h.requestTenantContext(c))
 	if err != nil {
 		common.Fail(c, common.CodeError, "audit.operation_log.export.error")
 		return

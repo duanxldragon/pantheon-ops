@@ -1,10 +1,10 @@
-package iam
+package permission
 
 import (
 	"errors"
 	"testing"
 
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 )
 
 func TestPermissionServiceErrorCode(t *testing.T) {

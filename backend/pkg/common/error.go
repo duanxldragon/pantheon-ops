@@ -74,6 +74,35 @@ func ErrMessage(err error) string {
 	return msg
 }
 
+// CodeForError maps a wrapped sentinel error to the business status code the
+// HTTP envelope should carry.
+//
+// Handlers that would otherwise hardcode CodeError for every service failure
+// use this so the envelope reflects the class of failure: a rejected field is
+// 400, a missing row is 404, a forbidden action is 403. Collapsing all of them
+// to 500 both hides the cause and tells the caller to retry something that
+// cannot succeed (see PlatformHandler.failServiceError, which encodes the same
+// convention). There is no 409 sentinel in the envelope, so a conflict — input
+// unacceptable as sent, the caller's to fix — maps to 400.
+func CodeForError(err error) int {
+	switch {
+	case err == nil:
+		return CodeError
+	case errors.Is(err, ErrBadRequest):
+		return CodeParamInvalid
+	case errors.Is(err, ErrConflict):
+		return CodeParamInvalid
+	case errors.Is(err, ErrNotFound):
+		return CodeNotFound
+	case errors.Is(err, ErrForbidden):
+		return CodeForbidden
+	case errors.Is(err, ErrUnauthorized):
+		return CodeUnauthorized
+	default:
+		return CodeError
+	}
+}
+
 // ErrorResponse is the JSON envelope returned by HTTP handlers.
 type ErrorResponse struct {
 	Code    string `json:"code"`

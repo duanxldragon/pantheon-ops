@@ -11,17 +11,20 @@ import (
 	"syscall"
 	"time"
 
-	"pantheon-base/internal/middleware"
-	"pantheon-base/modules/auth"
-	"pantheon-base/modules/business"
-	"pantheon-base/modules/lowcode"
-	"pantheon-base/modules/platform"
-	"pantheon-base/modules/system"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/logging"
-	"pantheon-base/pkg/telemetry"
-	"pantheon-base/pkg/version"
+	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
+	"github.com/duanxldragon/pantheon-base/backend/modules/auth"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business"
+	"github.com/duanxldragon/pantheon-base/backend/modules/lowcode"
+	"github.com/duanxldragon/pantheon-base/backend/modules/platform"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/maintenance"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/metrics"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/telemetry"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/version"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -97,6 +100,12 @@ func initInfrastructure() {
 
 	if redisAddr := os.Getenv("PANTHEON_REDIS_ADDR"); redisAddr != "" {
 		database.InitRedis(redisAddr, os.Getenv("PANTHEON_REDIS_PASSWORD"), 0)
+	} else if database.RequireRedis() {
+		// Redis stores token sessions and the revocation blacklist; starting
+		// without an address is only meaningful for local dev/test. Production
+		// (and any deployment that sets PANTHEON_REDIS_REQUIRED=true) must fail
+		// fast instead of serving unauthenticated-by-design requests.
+		logging.Fatal("PANTHEON_REDIS_ADDR is required (production mode or PANTHEON_REDIS_REQUIRED=true)")
 	}
 	database.InitCasbin(database.DB)
 }
@@ -113,8 +122,17 @@ func runDatabaseMigrations(dsn string) {
 }
 
 func buildRouter(env string) *gin.Engine {
+	// FIX-6: gin defaults to debug mode unless GIN_MODE is set; a production
+	// deployment that forgets the env var would otherwise log every request
+	// verbosely (and print debug startup output). PANTHEON_ENV is the single
+	// source of truth here, so pin release mode to the same check the metrics
+	// gate uses.
+	if isProductionEnv(env) {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 	r.Use(middleware.SecurityHeadersMiddleware())
+	r.Use(middleware.CSPNonceMiddleware()) // Generate nonce before CSP
 	r.Use(middleware.CSPMiddleware())
 	r.Use(middleware.BodySizeLimit(middleware.DefaultMaxBodyBytes))
 	r.Use(middleware.CORSMiddleware())
@@ -144,10 +162,14 @@ func registerAPIRoutes(r *gin.Engine) {
 			Store:       middleware.NewRedisRateLimitStore(),
 		}))
 	}
-	platform.RegisterPlatformRoutes(api, database.DB)
+	platform.RegisterPlatformRoutes(api, database.DB, platformDeptGovernanceTaskLoader{db: database.DB})
 	lowcode.InitLowcodeModule(api, database.DB)
 	system.InitSystemModule(api, database.DB)
-	auth.InitAuthModule(api, database.DB)
+	// Composition root: auth consumes system user credentials through the
+	// pkg/contracts/authuser port, implemented by the module that owns the
+	// system_user table. Neither module imports the other.
+	// Boundary rule: docs/designs/REPOSITORY_LAYOUT.md §8.2.
+	auth.InitAuthModule(api, database.DB, user.NewCredentialRepository(database.DB))
 	business.InitBusinessModules(api, database.DB)
 }
 
@@ -177,6 +199,17 @@ func runServer(r *gin.Engine) {
 		}
 	}()
 
+	// Background maintenance: retention sweeps and session inventory governance
+	// run here on their own schedule instead of inside list/read handlers
+	// (task 2026-09-22-request-path-maintenance).
+	if envFlag("PANTHEON_MAINTENANCE_ENABLED") == envFlagFalse {
+		slog.Warn("background maintenance disabled by PANTHEON_MAINTENANCE_ENABLED=false")
+	} else {
+		interval := time.Duration(envIntDefault("PANTHEON_MAINTENANCE_INTERVAL_SECONDS", int(maintenance.DefaultInterval/time.Second))) * time.Second
+		slog.Info("background maintenance enabled", "interval", interval.String())
+		go maintenance.Run(ctx, maintenance.Default(), interval)
+	}
+
 	<-ctx.Done()
 	slog.Info("shutdown signal received; draining")
 
@@ -187,6 +220,7 @@ func runServer(r *gin.Engine) {
 		slog.Error("http server shutdown error", "error", err)
 	}
 	middleware.ShutdownOperationLog(shutdownCtx)
+	metrics.StopDBMetricsCollector() // Stop DB metrics goroutine
 	slog.Info("server stopped")
 }
 
@@ -206,13 +240,18 @@ func shouldExposeMetrics(env string) bool {
 	if envFlag("PANTHEON_METRICS_ENABLED") == envFlagFalse {
 		return false
 	}
-	if !strings.EqualFold(strings.TrimSpace(env), "production") {
+	if !isProductionEnv(env) {
 		return true
 	}
 	if strings.TrimSpace(os.Getenv("PANTHEON_METRICS_BEARER_TOKEN")) != "" {
 		return true
 	}
 	return envFlag("PANTHEON_METRICS_PUBLIC") == envFlagTrue
+}
+
+// isProductionEnv mirrors the existing PANTHEON_ENV production check.
+func isProductionEnv(env string) bool {
+	return strings.EqualFold(strings.TrimSpace(env), "production")
 }
 
 func metricsAccessMiddleware() gin.HandlerFunc {

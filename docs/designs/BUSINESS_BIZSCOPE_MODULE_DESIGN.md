@@ -1,12 +1,16 @@
+---
+title: 业务域模块设计
+doc_type: Design
+layer: business/bizscope
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-07-18
+---
+
 # 业务域模块设计
 
 English version: [BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md](./BUSINESS_BIZSCOPE_MODULE_DESIGN.en.md)
-
-更新时间：2026-07-18
-
-类型：Design
-归属层：business/bizscope
-状态：Active
 
 本文定义 `pantheon-ops` 中 `business/bizscope` 模块的业务边界、数据模型、接口、UI 和验收要求。该模块负责治理“业务域”本身，并作为 CMDB 主机分配和 Deploy 任务信任边界的唯一业务来源。
 

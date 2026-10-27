@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import istanbul from 'vite-plugin-istanbul'
+import dts from 'vite-plugin-dts'
+import path from 'node:path'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -14,7 +16,22 @@ export default defineConfig({
         })]
       : []),
     react(),
+    // 仅在构建 library 模式时启用 dts
+    ...(process.env.BUILD_MODE === 'library'
+      ? [dts({
+          tsconfigPath: './tsconfig.app.json',
+          include: ['src/**/*.ts', 'src/**/*.tsx'],
+          exclude: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'src/modules/generated/**'],
+        })]
+      : []),
   ],
+  // Path alias: canonical form for cross-module imports (REPOSITORY_LAYOUT §5.2).
+  // Must stay in sync with the `paths` entry in tsconfig.app.json and vitest.config.ts.
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
   server: {
     hmr: process.env.PANTHEON_SMOKE === '1' ? { overlay: false } : undefined,
     proxy: {
@@ -24,7 +41,36 @@ export default defineConfig({
       },
     },
   },
-  build: {
+  build: process.env.BUILD_MODE === 'library' ? {
+    // Library 构建配置
+    lib: {
+      entry: path.resolve(__dirname, 'src/index.ts'),
+      name: 'PantheonBase',
+      formats: ['es', 'cjs'],
+      fileName: (format) => `index.${format === 'es' ? 'esm' : 'cjs'}.js`
+    },
+    rollupOptions: {
+      external: [
+        'react',
+        'react-dom',
+        'react-router-dom',
+        '@arco-design/web-react',
+        'axios',
+        'zustand',
+        'i18next',
+        'react-i18next'
+      ],
+      output: {
+        globals: {
+          react: 'React',
+          'react-dom': 'ReactDOM',
+          'react-router-dom': 'ReactRouterDOM',
+          '@arco-design/web-react': 'ArcoDesign'
+        }
+      }
+    }
+  } : {
+    // 正常应用构建配置
     rolldownOptions: {
       output: {
         codeSplitting: {

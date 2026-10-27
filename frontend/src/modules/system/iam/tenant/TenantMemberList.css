@@ -1,0 +1,10 @@
+.tenant-member-page__scope {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.tenant-member-page__tenant-code {
+  font-size: 12px;
+}

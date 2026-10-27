@@ -1,13 +1,17 @@
-package iam
+package permission
 
 import (
-	"pantheon-base/pkg/common"
+	"errors"
 	"sort"
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/database"
+	"github.com/casbin/casbin/v2/util"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	tenantctx "github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -88,7 +92,16 @@ func (s *PermissionService) GetWorkbench(query *PermissionWorkbenchQuery) (*Perm
 }
 
 func (s *PermissionService) fetchWorkbenchRoles(query *PermissionWorkbenchQuery) ([]permissionWorkbenchRoleRow, error) {
-	db := s.db.Table("system_role").Where("deleted_at IS NULL")
+	// Each scope shows the roles it owns. The platform board used to list every
+	// tenant's roles too, but the role key is only unique per tenant: every
+	// tenant owns a `tenant_admin`, so the rows collided in the roleKey-keyed
+	// maps, resolved policies by the bare key (always zero for a tenant
+	// subject), and a platform-side remediation would have written a dead
+	// global policy instead of the tenant namespace. Tenant roles are governed
+	// inside their own tenant console.
+	db := s.db.Table("system_role").
+		Where("deleted_at IS NULL").
+		Where(permissionTenantClause, s.tenantOwnerID())
 	if query != nil {
 		if strings.TrimSpace(query.RoleKey) != "" {
 			db = db.Where("role_key LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.RoleKey))+"%")
@@ -421,22 +434,41 @@ func (s *PermissionService) loadWorkbenchPermissions(roleIDs []uint64) (map[uint
 	return result, nil
 }
 
+// loadWorkbenchPolicies reads the workbench's API policies for the given role
+// keys, resolving each key to the subject form of the caller's namespace.
+// Reading the bare key in tenant scope showed every tenant's policies for a
+// same-named role and made the补齐 write the wrong namespace.
 func (s *PermissionService) loadWorkbenchPolicies(roleKeys []string) (map[string][]PermissionWorkbenchAPIPolicyResp, error) {
 	result := make(map[string][]PermissionWorkbenchAPIPolicyResp, len(roleKeys))
 	if len(roleKeys) == 0 {
 		return result, nil
 	}
 
+	subjectToRoleKey := make(map[string]string, len(roleKeys))
+	subjects := make([]string, 0, len(roleKeys))
+	for _, roleKey := range roleKeys {
+		subject := roleKey
+		if !s.isPlatformScope() {
+			subject = tenantctx.RoleSubject(roleKey, s.tenantOwnerID())
+		}
+		subjectToRoleKey[subject] = roleKey
+		subjects = append(subjects, subject)
+	}
+
 	var policies []database.CasbinRule
 	if err := s.db.Model(&database.CasbinRule{}).
-		Where("ptype = ? AND v0 IN ?", "p", roleKeys).
+		Where("ptype = ? AND v0 IN ?", "p", subjects).
 		Order("v0 asc, v1 asc, v2 asc, id asc").
 		Find(&policies).Error; err != nil {
 		return nil, err
 	}
 
 	for _, policy := range policies {
-		result[policy.V0] = append(result[policy.V0], PermissionWorkbenchAPIPolicyResp{
+		roleKey, ok := subjectToRoleKey[policy.V0]
+		if !ok {
+			continue
+		}
+		result[roleKey] = append(result[roleKey], PermissionWorkbenchAPIPolicyResp{
 			ID:     policy.ID,
 			Path:   policy.V1,
 			Method: policy.V2,
@@ -455,8 +487,11 @@ func (s *PermissionService) loadLatestWorkbenchRemediationEvents(roleKeys []stri
 	}
 
 	var events []PermissionWorkbenchRemediationEvent
-	if err := s.db.Model(&PermissionWorkbenchRemediationEvent{}).
-		Where("role_key IN ?", roleKeys).
+	query := s.db.Model(&PermissionWorkbenchRemediationEvent{}).Where("role_key IN ?", roleKeys)
+	if !s.isPlatformScope() {
+		query = query.Where(permissionTenantClause, s.tenantOwnerID())
+	}
+	if err := query.
 		Order("created_at desc, id desc").
 		Find(&events).Error; err != nil {
 		return nil, err
@@ -479,8 +514,11 @@ func (s *PermissionService) countRecentWorkbenchRemediationEvents(roleKeys []str
 	}
 
 	var events []PermissionWorkbenchRemediationEvent
-	if err := s.db.Model(&PermissionWorkbenchRemediationEvent{}).
-		Where("role_key IN ?", roleKeys).
+	query := s.db.Model(&PermissionWorkbenchRemediationEvent{}).Where("role_key IN ?", roleKeys)
+	if !s.isPlatformScope() {
+		query = query.Where(permissionTenantClause, s.tenantOwnerID())
+	}
+	if err := query.
 		Order("created_at desc, id desc").
 		Limit(limit).
 		Find(&events).Error; err != nil {
@@ -519,20 +557,20 @@ func collectRequiredAPIPolicies(pagePermissions, actionPermissions []PermissionW
 	return result
 }
 
+// diffMissingAPIPolicies reports the required routes the role's stored policies
+// do not authorise. Coverage uses the same keyMatch2 semantics as the Casbin
+// matcher, so a wildcard grant such as `/api/v1/*` counts for every required
+// route it actually protects. Exact string comparison used to mark every
+// wildcard-granted role (the platform admin and every tenant role) as "missing
+// all API policies".
 func diffMissingAPIPolicies(required []permissionRequiredAPIPolicy, actual []PermissionWorkbenchAPIPolicyResp) []PermissionWorkbenchAPIPolicyResp {
 	if len(required) == 0 {
 		return []PermissionWorkbenchAPIPolicyResp{}
 	}
-	actualSet := make(map[string]struct{}, len(actual))
-	for _, item := range actual {
-		key := strings.ToUpper(strings.TrimSpace(item.Method)) + " " + strings.TrimSpace(item.Path)
-		actualSet[key] = struct{}{}
-	}
 
 	missing := make([]PermissionWorkbenchAPIPolicyResp, 0)
 	for _, item := range required {
-		key := item.Method + " " + item.Path
-		if _, ok := actualSet[key]; ok {
+		if policyCoversRoute(actual, item) {
 			continue
 		}
 		missing = append(missing, PermissionWorkbenchAPIPolicyResp{
@@ -543,21 +581,91 @@ func diffMissingAPIPolicies(required []permissionRequiredAPIPolicy, actual []Per
 	return missing
 }
 
+// policyCoversRoute reports whether any stored policy authorises the route
+// under Casbin's keyMatch2 matcher (see pkg/database/casbin.go).
+func policyCoversRoute(policies []PermissionWorkbenchAPIPolicyResp, route permissionRequiredAPIPolicy) bool {
+	for _, policy := range policies {
+		if strings.ToUpper(strings.TrimSpace(policy.Method)) != route.Method {
+			continue
+		}
+		if util.KeyMatch2(route.Path, strings.TrimSpace(policy.Path)) {
+			return true
+		}
+	}
+	return false
+}
+
+// RequiredAPIRouteEntry is one "METHOD path" pair required by a permission key.
+type RequiredAPIRouteEntry struct {
+	Method string
+	Path   string
+}
+
+// requiredAPIRoutesByPermission binds permission keys to the API routes the
+// Casbin middleware actually protects for them. It is the single binding
+// source for the workbench remediation flow ("受控补齐" creates policies from
+// these entries).
+//
+// Governance contract:
+//   - Every entry MUST match a route registered on the live engine (path uses
+//     gin :param syntax, same as the route registration).
+//   - Drift is enforced by TestRequiredAPIRoutesExistOnEngine
+//     (permission_workbench_routes_test.go), which builds the real route
+//     table and fails on any stale entry — remediation must never create
+//     policies pointing at routes that do not exist.
+//
 // Entries stay one-line "METHOD path" strings so this data table remains
 // below copy-paste-detection token thresholds.
-var requiredAPIRoutesByPermission = map[string][]string{
-	"system:user:list":                   {"GET /api/v1/system/user/list"},
-	"system:user:create":                 {"POST /api/v1/system/user/create"},
-	"system:security-event:list":         {"GET /api/v1/system/security-event/list"},
-	"system:security-event:acknowledge":  {"POST /api/v1/system/security-event/:id/acknowledge", "POST /api/v1/system/security-event/batch-acknowledge"},
-	"system:security-event:clear":        {"POST /api/v1/system/security-event/cleanup"},
-	"system:module:list":                 {"GET /api/v1/lowcode/dynamic-modules"},
-	"system:module:register":             {"POST /api/v1/lowcode/dynamic-modules"},
-	"system:module:unregister":           {"DELETE /api/v1/lowcode/dynamic-modules/:name"},
-	"system:module:delete_record":        {"DELETE /api/v1/lowcode/dynamic-modules/:name/record"},
-	"system:module:purge":                {"DELETE /api/v1/lowcode/dynamic-modules/:name/purge"},
-	"system:module:generate":             {"POST /api/v1/lowcode/dynamic-modules/generate"},
-	"system:generator:datasource:manage": {"POST /api/v1/lowcode/generator/datasources", "PUT /api/v1/lowcode/generator/datasources/:id", "DELETE /api/v1/lowcode/generator/datasources/:id", "POST /api/v1/lowcode/generator/datasources/:id/test"},
+//
+// Export actions are appended from the shared ReadOnlyExportRoutes table: they
+// are POST endpoints behind `:export` keys, and the tenant member role holds
+// those keys, so the workbench must be able to report them as a real gap
+// instead of inferring the method from the key name.
+var requiredAPIRoutesByPermission = func() map[string][]string {
+	routes := map[string][]string{
+		"system:user:list":                   {"GET /api/v1/system/user/list"},
+		"system:user:create":                 {"POST /api/v1/system/user"},
+		"system:security-event:list":         {"GET /api/v1/system/security-event/list"},
+		"system:security-event:acknowledge":  {"POST /api/v1/system/security-event/:id/acknowledge", "POST /api/v1/system/security-event/batch-acknowledge"},
+		"system:security-event:clear":        {"POST /api/v1/system/security-event/cleanup"},
+		"system:tenant:list":                 {"GET /api/v1/system/tenant/list"},
+		"system:tenant:create":               {"POST /api/v1/system/tenant"},
+		"system:tenant:update":               {"PUT /api/v1/system/tenant/:id"},
+		"system:tenant:delete":               {"DELETE /api/v1/system/tenant/:id"},
+		"system:tenant:member-add":           {"POST /api/v1/system/tenant/:id/members"},
+		"system:tenant:member-remove":        {"DELETE /api/v1/system/tenant/:id/members/:userId"},
+		"system:tenant:overview":             {"GET /api/v1/system/tenant-ops/overview"},
+		"system:tenant:member-list":          {"GET /api/v1/system/tenant-ops/member"},
+		"system:tenant:plan:list":            {"GET /api/v1/system/tenant-ops/plan/list"},
+		"system:tenant:plan:create":          {"POST /api/v1/system/tenant-ops/plan"},
+		"system:tenant:plan:update":          {"PUT /api/v1/system/tenant-ops/plan/:code"},
+		"system:module:list":                 {"GET /api/v1/lowcode/dynamic-modules"},
+		"system:module:register":             {"POST /api/v1/lowcode/dynamic-modules"},
+		"system:module:unregister":           {"DELETE /api/v1/lowcode/dynamic-modules/:name"},
+		"system:module:delete_record":        {"DELETE /api/v1/lowcode/dynamic-modules/:name/record"},
+		"system:module:purge":                {"DELETE /api/v1/lowcode/dynamic-modules/:name/purge"},
+		"system:module:generate":             {"POST /api/v1/lowcode/dynamic-modules/generate"},
+		"system:generator:datasource:manage": {"POST /api/v1/lowcode/generator/datasources", "PUT /api/v1/lowcode/generator/datasources/:id", "DELETE /api/v1/lowcode/generator/datasources/:id", "POST /api/v1/lowcode/generator/datasources/:id/test"},
+	}
+	for _, export := range tenantctx.ReadOnlyExportRoutes {
+		routes[export.PermissionKey] = append(routes[export.PermissionKey], "POST "+export.Path)
+	}
+	return routes
+}()
+
+// RequiredAPIRoutesByPermission exposes the permission→route binding table for
+// drift checks (tests) without allowing callers to mutate the workbench view.
+func RequiredAPIRoutesByPermission() map[string][]RequiredAPIRouteEntry {
+	out := make(map[string][]RequiredAPIRouteEntry, len(requiredAPIRoutesByPermission))
+	for key, routes := range requiredAPIRoutesByPermission {
+		entries := make([]RequiredAPIRouteEntry, 0, len(routes))
+		for _, route := range routes {
+			method, path, _ := strings.Cut(route, " ")
+			entries = append(entries, RequiredAPIRouteEntry{Method: method, Path: path})
+		}
+		out[key] = entries
+	}
+	return out
 }
 
 func requiredAPIPoliciesByPermissionKey(permissionKey string) []permissionRequiredAPIPolicy {
@@ -578,9 +686,17 @@ func requiredAPIPoliciesByPermissionKey(permissionKey string) []permissionRequir
 // remediation events, integrity/coverage filters, and unrelated roles.
 func (s *PermissionService) getRoleMissingAPIPolicies(roleKey string) (*PermissionWorkbenchRoleResp, error) {
 	var role permissionWorkbenchRoleRow
+	// The role belongs to the caller's scope, never to an arbitrary tenant that
+	// happens to own the same role key. Without the tenant predicate a platform
+	// remediation could resolve a tenant's `tenant_admin` and then write a dead
+	// global subject for it.
 	if err := s.db.Table("system_role").
 		Where("role_key = ? AND deleted_at IS NULL", roleKey).
+		Where(permissionTenantClause, s.tenantOwnerID()).
 		First(&role).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, common.NewBadRequest(errPermissionRoleInvalid)
+		}
 		return nil, err
 	}
 

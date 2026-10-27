@@ -2,16 +2,74 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/testmysql"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 )
+
+func TestInstanceRefUsesPublicJSONContract(t *testing.T) {
+	payload, err := json.Marshal(InstanceRef{ID: 42, ServiceID: 7, LifecycleVersion: 3})
+	if err != nil {
+		t.Fatalf("marshal instance ref: %v", err)
+	}
+	var decoded map[string]any
+	if err := json.Unmarshal(payload, &decoded); err != nil {
+		t.Fatalf("unmarshal instance ref: %v", err)
+	}
+	if decoded["id"] != float64(42) || decoded["serviceId"] != float64(7) || decoded["lifecycleVersion"] != float64(3) {
+		t.Fatalf("unexpected public JSON contract: %s", payload)
+	}
+	if _, exists := decoded["ID"]; exists {
+		t.Fatalf("internal Go field name leaked into JSON: %s", payload)
+	}
+}
 
 type fakeBizScopeReader struct {
 	ref bizcap.BizScopeRef
+}
+
+func TestServiceCatalogDeleteLifecycle(t *testing.T) {
+	manager := setupServiceTestDB(t)
+	scope := &common.DataScopeReq{Mode: common.DataScopeModeDept, DeptID: 7}
+	application, err := manager.CreateApplication(
+		CreateApplicationRequest{Code: "app-delete", Name: "Delete App", BusinessScopeID: 10},
+		"1",
+		scope,
+	)
+	if err != nil {
+		t.Fatalf("create application: %v", err)
+	}
+	service, err := manager.CreateService(
+		CreateServiceRequest{ApplicationID: application.ID, Code: "api-delete", Name: "Delete API", RuntimeType: "vm"},
+		"1",
+		scope,
+	)
+	if err != nil {
+		t.Fatalf("create service: %v", err)
+	}
+	instance, err := manager.CreateInstance(
+		context.Background(),
+		CreateInstanceRequest{ServiceID: service.ID, Environment: "prod", TargetType: TargetTypeVM, HostID: 55},
+		"1",
+		scope,
+	)
+	if err != nil {
+		t.Fatalf("create instance: %v", err)
+	}
+
+	if err := manager.DeleteInstance(instance.ID, scope); err != nil {
+		t.Fatalf("delete instance: %v", err)
+	}
+	if err := manager.DeleteService(service.ID, scope); err != nil {
+		t.Fatalf("delete service after instance: %v", err)
+	}
+	if err := manager.DeleteApplication(application.ID, scope); err != nil {
+		t.Fatalf("delete application after service: %v", err)
+	}
 }
 
 func TestServiceInstanceReconciliationMarksStuckTransitionFailed(t *testing.T) {
@@ -306,5 +364,64 @@ func TestServiceFoundationValidatesVMAndK8sTargets(t *testing.T) {
 	}
 	if _, err := manager.CreateInstance(context.Background(), CreateInstanceRequest{ServiceID: svc.ID, Environment: "prod", TargetType: TargetTypeVM, HostID: 55}, "1", scope); err == nil || err.Error() != errTargetConflict {
 		t.Fatalf("expected duplicate target conflict, got %v", err)
+	}
+}
+
+func TestServiceRuntimeTypeRejectsIncompatibleInstanceTarget(t *testing.T) {
+	manager := setupServiceTestDB(t)
+	scope := &common.DataScopeReq{Mode: common.DataScopeModeDept, DeptID: 7}
+	app, err := manager.CreateApplication(CreateApplicationRequest{Code: "app-runtime", Name: "Runtime App", BusinessScopeID: 10}, "1", scope)
+	if err != nil {
+		t.Fatalf("create app: %v", err)
+	}
+	vmService, err := manager.CreateService(CreateServiceRequest{ApplicationID: app.ID, Code: "vm-api", Name: "VM API", RuntimeType: RuntimeTypeVM}, "1", scope)
+	if err != nil {
+		t.Fatalf("create service: %v", err)
+	}
+	_, err = manager.CreateInstance(context.Background(), CreateInstanceRequest{
+		ServiceID: vmService.ID, Environment: "prod", TargetType: TargetTypeK8s,
+		K8sClusterID: 99, Namespace: "prod", WorkloadKind: "Deployment", WorkloadName: "api",
+	}, "1", scope)
+	if err == nil || err.Error() != errTargetInvalid {
+		t.Fatalf("expected runtime/target mismatch rejection, got %v", err)
+	}
+
+	invalidRuntime := "container"
+	if _, err := manager.UpdateService(vmService.ID, UpdateServiceRequest{RuntimeType: &invalidRuntime}, "1", scope); err == nil || err.Error() != errTargetInvalid {
+		t.Fatalf("expected invalid runtime rejection, got %v", err)
+	}
+}
+
+func TestServiceUpdatesReturnPersistedValues(t *testing.T) {
+	manager := setupServiceTestDB(t)
+	scope := &common.DataScopeReq{Mode: common.DataScopeModeDept, DeptID: 7}
+	app, err := manager.CreateApplication(CreateApplicationRequest{Code: "app-update", Name: "App", BusinessScopeID: 10}, "1", scope)
+	if err != nil {
+		t.Fatalf("create app: %v", err)
+	}
+	svc, err := manager.CreateService(CreateServiceRequest{ApplicationID: app.ID, Code: "api", Name: "API", RuntimeType: "vm"}, "1", scope)
+	if err != nil {
+		t.Fatalf("create service: %v", err)
+	}
+	newName := "API v2"
+	updatedService, err := manager.UpdateService(svc.ID, UpdateServiceRequest{Name: &newName}, "2", scope)
+	if err != nil {
+		t.Fatalf("update service: %v", err)
+	}
+	if updatedService.Name != newName {
+		t.Fatalf("expected persisted service name %q, got %q", newName, updatedService.Name)
+	}
+
+	instance, err := manager.CreateInstance(context.Background(), CreateInstanceRequest{ServiceID: svc.ID, Environment: "prod", TargetType: TargetTypeVM, HostID: 55}, "1", scope)
+	if err != nil {
+		t.Fatalf("create instance: %v", err)
+	}
+	version := "1.2.0"
+	updatedInstance, err := manager.UpdateInstance(instance.ID, UpdateInstanceRequest{DesiredVersion: &version}, "2", scope)
+	if err != nil {
+		t.Fatalf("update instance: %v", err)
+	}
+	if updatedInstance.DesiredVersion != version || updatedInstance.LifecycleVersion != 1 {
+		t.Fatalf("expected persisted instance update, got %+v", updatedInstance)
 	}
 }

@@ -1,15 +1,19 @@
-package config
+package setting
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/contracts"
-	"pantheon-base/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -18,22 +22,82 @@ const (
 	settingKeyUploadDriver       = "upload.storage_driver"
 	settingKeyI18nLanguage       = "i18n.default_language"
 	settingKeyAppMode            = "platform.app_mode"
+	settingKeyPlatformTenantMode = "platform.tenant_mode"
 	settingKeyUploadAllowedTypes = "upload.allowed_types"
 )
 
-type SettingService struct {
-	db          *gorm.DB
-	cacheMu     sync.RWMutex
+type settingCacheState struct {
+	mu          sync.RWMutex
 	listCache   map[string][]SettingResp
 	groupCache  map[string]*SettingGroupResp
-	publicCache *PublicSettingResp
+	publicCache map[string]*PublicSettingResp
+	// watcherOnce guards the cross-instance invalidation goroutine so repeated
+	// wiring (module re-register, tests) never spawns duplicate subscribers.
+	watcherOnce sync.Once
+}
+
+// settingsRefreshChannel is the pubsub channel also published by
+// notifyRuntimeSettingsChanged; keep both in sync.
+const settingsRefreshChannel = "settings:refresh"
+
+// SettingService serves platform/system settings with per-request tenant
+// scoping.
+//
+//nolint:revive // the exported name keeps the setting domain prefix; consumers outside this package reference it as setting.SettingService.
+type SettingService struct {
+	db *gorm.DB
+	// tenantCtx is the per-request tenant context (queue-5 settings slice).
+	// Set from the Gin context by the handler via WithTenantContext; nil/compat
+	// => platform-global rows only (legacy behavior preserved).
+	tenantCtx *tenant.Context
+	// cache is shared by pointer across all WithTenantContext-bound views so
+	// the lock is never copied and invalidation reaches every view.
+	cache *settingCacheState
+}
+
+// WithTenantContext returns a shallow view of the service bound to a request
+// tenant context (same canary pattern as DictService). Under compat the shared
+// service view is returned unchanged.
+func (s *SettingService) WithTenantContext(ctx *tenant.Context) *SettingService {
+	if ctx == nil || !ctx.IsMulti() {
+		return s
+	}
+	return &SettingService{db: s.db, tenantCtx: ctx, cache: s.cache}
+}
+
+// tenantScope applies the settings read filter (contract §3.3 + scope matrix
+// "tenant-overridable"): multi mode restricts to the request tenant's rows
+// AND the platform-global population (tenant_id = 0) so overrides resolve on
+// top of global defaults. Compat sees global rows only — unchanged.
+func (s *SettingService) tenantScope() func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+			// Global rows only (tenant_id=0) is the compat population. Legacy
+			// schemas always satisfied this implicitly; with override rows present
+			// the filter must now be explicit.
+			return db.Where("tenant_id = ?", tenant.PlatformGlobalTenantID)
+		}
+		return db.Where("tenant_id IN (?)", []uint64{tenant.PlatformGlobalTenantID, s.tenantCtx.TenantID})
+	}
+}
+
+// tenantOwnerID is the tenant a new/updated row belongs to (write path: from
+// context, never from the request body — contract §3.3). Compat => 0.
+func (s *SettingService) tenantOwnerID() uint64 {
+	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+		return 0
+	}
+	return s.tenantCtx.TenantID
 }
 
 func NewSettingService(db *gorm.DB) *SettingService {
 	return &SettingService{
-		db:         db,
-		listCache:  make(map[string][]SettingResp),
-		groupCache: make(map[string]*SettingGroupResp),
+		db: db,
+		cache: &settingCacheState{
+			listCache:   make(map[string][]SettingResp),
+			groupCache:  make(map[string]*SettingGroupResp),
+			publicCache: make(map[string]*PublicSettingResp),
+		},
 	}
 }
 
@@ -47,6 +111,35 @@ func (s *SettingService) Migrate() error {
 	return s.Bootstrap()
 }
 
+// WatchSettingsInvalidation subscribes to the cross-instance "settings:refresh"
+// pubsub channel and clears this process's setting caches on every message, so
+// an instance that did not serve the mutating request still drops its
+// process-local cache (public/list/group). Idempotent; a no-op without Redis
+// (single-instance or no-Redis deployments have nothing to sync).
+func (s *SettingService) WatchSettingsInvalidation() {
+	if database.RDB == nil || s.cache == nil {
+		return
+	}
+	s.cache.watcherOnce.Do(func() {
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					logging.Error("settings invalidation watcher panic", zap.Any("panic", r))
+				}
+			}()
+			for {
+				pubsub := database.RDB.Subscribe(context.TODO(), settingsRefreshChannel)
+				for range pubsub.Channel() {
+					s.invalidateSettingCache()
+				}
+				_ = pubsub.Close()
+				logging.Warn("settings invalidation channel closed, reconnecting in 5s")
+				time.Sleep(5 * time.Second)
+			}
+		}()
+	})
+}
+
 func (s *SettingService) Bootstrap() error {
 	if s.db == nil {
 		return common.ErrDatabaseNotInitialized
@@ -55,6 +148,10 @@ func (s *SettingService) Bootstrap() error {
 		if err := s.bootstrapSettingSeed(item); err != nil {
 			return err
 		}
+	}
+
+	if err := s.syncPublicSettingFlags(); err != nil {
+		return err
 	}
 
 	if err := s.normalizeLegacySettingValue(settingKeyUITheme); err != nil {
@@ -76,9 +173,44 @@ func (s *SettingService) Bootstrap() error {
 	return nil
 }
 
+// syncPublicSettingFlags raises is_public for every key the seed declares
+// public.
+//
+// Public visibility is a property of the key, not an operator-editable value:
+// the frontend reads GET /system/setting/public before sign-in, and gates the
+// whole multi-mode surface (tenant picker, tenant switcher, tenant viewpoint
+// switcher, tenant console) on `platform.tenant_mode` arriving through it.
+//
+// bootstrapSettingSeed only inserts *missing* keys, so a row created by an
+// older seed keeps whatever is_public it was born with — which is how
+// platform.tenant_mode stayed non-public in every deployment seeded after the
+// YAML list gained the key: the flag was absent from the public payload, the
+// frontend fell back to `compat`, and no multi-mode control ever rendered even
+// after the deployment was switched to multi. The repair only ever raises the
+// flag, so it cannot hide a setting an operator deliberately exposed.
+func (s *SettingService) syncPublicSettingFlags() error {
+	publicKeys := make([]string, 0, len(settingSeeds()))
+	for _, item := range settingSeeds() {
+		if item.IsPublic == 1 {
+			publicKeys = append(publicKeys, item.SettingKey)
+		}
+	}
+	if len(publicKeys) == 0 {
+		return nil
+	}
+	if err := s.db.Model(&SystemSetting{}).
+		Where("tenant_id = ? AND setting_key IN ? AND is_public <> ?", 0, publicKeys, 1).
+		Update("is_public", 1).Error; err != nil {
+		return err
+	}
+	s.invalidateSettingCache()
+	return nil
+}
+
 func (s *SettingService) bootstrapSettingSeed(item defaultSettingSeed) error {
 	var count int64
-	if err := s.db.Model(&SystemSetting{}).Where("setting_key = ?", item.SettingKey).Count(&count).Error; err != nil {
+	// Seeds are platform-global rows (tenant_id = 0) — never per-tenant copies.
+	if err := s.db.Model(&SystemSetting{}).Where("setting_key = ? AND tenant_id = 0", item.SettingKey).Count(&count).Error; err != nil {
 		return err
 	}
 	if count > 0 {
@@ -117,16 +249,16 @@ func (s *SettingService) List(query *SettingListQuery) ([]SettingResp, error) {
 		module = strings.TrimSpace(query.Module)
 	}
 
-	cacheKey := settingListCacheKey(groupKey, module)
-	s.cacheMu.RLock()
-	if cached, ok := s.listCache[cacheKey]; ok {
-		s.cacheMu.RUnlock()
+	cacheKey := s.settingListCacheKeyTenant(groupKey, module)
+	s.cache.mu.RLock()
+	if cached, ok := s.cache.listCache[cacheKey]; ok {
+		s.cache.mu.RUnlock()
 		return cloneSettingRespList(cached), nil
 	}
-	s.cacheMu.RUnlock()
+	s.cache.mu.RUnlock()
 
 	var rows []SystemSetting
-	db := s.db.Model(&SystemSetting{})
+	db := s.tenantScope()(s.db.Model(&SystemSetting{}))
 	if groupKey != "" {
 		db = db.Where("group_key = ?", groupKey)
 	}
@@ -142,9 +274,9 @@ func (s *SettingService) List(query *SettingListQuery) ([]SettingResp, error) {
 		result = append(result, toSettingResp(row))
 	}
 
-	s.cacheMu.Lock()
-	s.listCache[cacheKey] = cloneSettingRespList(result)
-	s.cacheMu.Unlock()
+	s.cache.mu.Lock()
+	s.cache.listCache[cacheKey] = cloneSettingRespList(result)
+	s.cache.mu.Unlock()
 	return cloneSettingRespList(result), nil
 }
 
@@ -158,12 +290,12 @@ func (s *SettingService) GetGroup(groupKey string) (*SettingGroupResp, error) {
 		return nil, common.NewBadRequest("setting.group.invalid")
 	}
 
-	s.cacheMu.RLock()
-	if cached, ok := s.groupCache[groupKey]; ok {
-		s.cacheMu.RUnlock()
+	s.cache.mu.RLock()
+	if cached, ok := s.cache.groupCache[s.settingGroupCacheKey(groupKey)]; ok {
+		s.cache.mu.RUnlock()
 		return cloneSettingGroupResp(cached), nil
 	}
-	s.cacheMu.RUnlock()
+	s.cache.mu.RUnlock()
 
 	items, err := s.List(&SettingListQuery{GroupKey: groupKey})
 	if err != nil {
@@ -171,21 +303,34 @@ func (s *SettingService) GetGroup(groupKey string) (*SettingGroupResp, error) {
 	}
 
 	group := &SettingGroupResp{GroupKey: groupKey, Items: items}
-	s.cacheMu.Lock()
-	s.groupCache[groupKey] = cloneSettingGroupResp(group)
-	s.cacheMu.Unlock()
+	s.cache.mu.Lock()
+	s.cache.groupCache[s.settingGroupCacheKey(groupKey)] = cloneSettingGroupResp(group)
+	s.cache.mu.Unlock()
 	return cloneSettingGroupResp(group), nil
 }
 
+// GetByKey resolves a setting with tenant override semantics (queue-5
+// settings slice, scope matrix "tenant-overridable"): in multi mode a tenant
+// override row (tenant_id = ctx) wins over the platform-global default
+// (tenant_id = 0). Compat resolves global rows only — unchanged.
 func (s *SettingService) GetByKey(settingKey string) (string, error) {
 	if s.db == nil {
 		return "", common.ErrDatabaseNotInitialized
 	}
 
-	var row SystemSetting
-	if err := s.db.Where("setting_key = ?", strings.TrimSpace(settingKey)).First(&row).Error; err != nil {
+	var rows []SystemSetting
+	if err := s.tenantScope()(s.db).
+		Where("setting_key = ?", strings.TrimSpace(settingKey)).
+		Order("tenant_id asc").
+		Find(&rows).Error; err != nil {
 		return "", err
 	}
+	if len(rows) == 0 {
+		return "", gorm.ErrRecordNotFound
+	}
+	// Ascending tenant_id puts the override (>0) after the global row (0);
+	// the last match is therefore the tenant-specific value when present.
+	row := rows[len(rows)-1]
 	if row.IsEncrypted == 1 {
 		return decryptSettingValue(row.SettingValue)
 	}
@@ -207,7 +352,7 @@ func (s *SettingService) UpdateGroup(groupKey string, req *SettingGroupUpdateReq
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range req.Items {
-			if err := updateSettingGroupItem(tx, groupKey, item); err != nil {
+			if err := updateSettingGroupItem(tx, groupKey, item, s.tenantOwnerID()); err != nil {
 				return err
 			}
 		}
@@ -226,16 +371,31 @@ func (s *SettingService) UpdateGroup(groupKey string, req *SettingGroupUpdateReq
 // updateSettingGroupItem applies a single setting update within an existing transaction.
 // It returns nil (skipping the item) when an encrypted setting is cleared with an empty
 // value, which is byte-for-byte equivalent to the original `continue` semantics.
-func updateSettingGroupItem(tx *gorm.DB, groupKey string, item SettingUpdateItemReq) error {
+// ownerTenantID is the tenant the write belongs to (0 = platform/global; contract
+// §3.3 write ownership from context, never the request body).
+func updateSettingGroupItem(tx *gorm.DB, groupKey string, item SettingUpdateItemReq, ownerTenantID uint64) error {
 	settingKey := strings.TrimSpace(item.SettingKey)
 	if settingKey == "" {
 		return common.NewBadRequest("setting.key.required")
 	}
 
-	var current SystemSetting
-	if err := tx.Where("setting_key = ? AND group_key = ?", settingKey, groupKey).First(&current).Error; err != nil {
+	// The write targets the request tenant's effective row: the tenant override
+	// row when one exists, otherwise the global row — which the tenant then
+	// overrides by writing a tenant-owned copy (never mutating the global row).
+	var rows []SystemSetting
+	db := tx.Where("setting_key = ? AND group_key = ?", settingKey, groupKey)
+	if ownerTenantID == 0 {
+		db = db.Where("tenant_id = ?", 0)
+	} else {
+		db = db.Where("tenant_id IN (?)", []uint64{0, ownerTenantID})
+	}
+	if err := db.Order("tenant_id asc").Find(&rows).Error; err != nil {
 		return err
 	}
+	if len(rows) == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	current := rows[len(rows)-1]
 
 	nextValue := strings.TrimSpace(item.SettingValue)
 	if current.IsEncrypted == 1 && nextValue == "" {
@@ -246,12 +406,66 @@ func updateSettingGroupItem(tx *gorm.DB, groupKey string, item SettingUpdateItem
 	if err != nil {
 		return err
 	}
+	if err := guardTenantModeDowngrade(tx, current.SettingKey, normalizedValue, current.SettingValue); err != nil {
+		return err
+	}
 	storedValue, err := prepareSettingStoredValue(normalizedValue, current.IsEncrypted)
 	if err != nil {
 		return err
 	}
-	if err := tx.Model(&current).Update("setting_value", storedValue).Error; err != nil {
+	if ownerTenantID == 0 || current.TenantID == ownerTenantID {
+		// Platform write, or the tenant override row already exists: update in place.
+		if err := tx.Model(&current).Update("setting_value", storedValue).Error; err != nil {
+			return err
+		}
+		return nil
+	}
+	// First tenant override of a global row: create a tenant-owned copy. The
+	// composite unique key (tenant_id, setting_key) makes duplicates impossible.
+	return tx.Create(&SystemSetting{
+		TenantID:     ownerTenantID,
+		SettingKey:   current.SettingKey,
+		SettingValue: storedValue,
+		ValueType:    current.ValueType,
+		GroupKey:     current.GroupKey,
+		Module:       current.Module,
+		IsPublic:     current.IsPublic,
+		IsEncrypted:  current.IsEncrypted,
+		Remark:       current.Remark,
+	}).Error
+}
+
+// isTenantModeDowngradeToCompat is the pure decision half of the downgrade
+// guard: the key is the tenant-mode flag, the next value normalizes to compat,
+// and the currently stored value is multi. Everything else needs no guard.
+func isTenantModeDowngradeToCompat(settingKey, nextValue, currentValue string) bool {
+	if strings.TrimSpace(settingKey) != settingKeyPlatformTenantMode {
+		return false
+	}
+	if tenant.NormalizeMode(nextValue) != tenant.ModeCompat {
+		return false
+	}
+	return tenant.NormalizeMode(currentValue) == tenant.ModeMulti
+}
+
+// guardTenantModeDowngrade blocks the multi -> compat switch while live
+// tenants exist. WHY: compat pins every scoped read to tenant_id = 0
+// (tenant.WithTenantScope), so flipping the flag with tenant rows present
+// would merge each tenant's data into the platform-global view. The
+// soft-delete marker (status = "deleted") is the state DeleteTenant writes and
+// such tenants can no longer host sessions, so they do not block the switch.
+func guardTenantModeDowngrade(tx *gorm.DB, settingKey, nextValue, currentValue string) error {
+	if !isTenantModeDowngradeToCompat(settingKey, nextValue, currentValue) {
+		return nil
+	}
+	var live int64
+	if err := tx.Table("tenants").
+		Where("id <> ? AND status <> ?", tenant.PlatformGlobalTenantID, tenant.TenantStatusDeleted).
+		Count(&live).Error; err != nil {
 		return err
+	}
+	if live > 0 {
+		return common.NewBadRequest("setting.tenantMode.downgradeBlocked")
 	}
 	return nil
 }
@@ -261,15 +475,27 @@ func (s *SettingService) GetPublicSettings() (*PublicSettingResp, error) {
 		return nil, common.ErrDatabaseNotInitialized
 	}
 
-	s.cacheMu.RLock()
-	if s.publicCache != nil {
-		s.cacheMu.RUnlock()
-		return clonePublicSettingResp(s.publicCache), nil
-	}
-	s.cacheMu.RUnlock()
+	// Cache key is tenant-namespaced in multi mode (same canary pattern as
+	// list/group caches) so tenant A/B never read each other's public rows
+	// through the process-local cache.
+	cacheKey := s.publicSettingsCacheKey()
 
+	s.cache.mu.RLock()
+	if cached, ok := s.cache.publicCache[cacheKey]; ok && cached != nil {
+		s.cache.mu.RUnlock()
+		return clonePublicSettingResp(cached), nil
+	}
+	s.cache.mu.RUnlock()
+
+	// Tenant-scoped read (contract §3.3): multi mode resolves global defaults
+	// plus the request tenant's overrides; compat sees global rows only.
+	// Ordering by tenant_id ascending makes the last row per key the tenant
+	// override (same resolution rule as GetByKey).
 	var rows []SystemSetting
-	if err := s.db.Model(&SystemSetting{}).Where("is_public = ? AND is_encrypted = ?", 1, 0).Order("id asc").Find(&rows).Error; err != nil {
+	if err := s.tenantScope()(s.db.Model(&SystemSetting{})).
+		Where("is_public = ? AND is_encrypted = ?", 1, 0).
+		Order("tenant_id asc, id asc").
+		Find(&rows).Error; err != nil {
 		return nil, err
 	}
 
@@ -279,10 +505,19 @@ func (s *SettingService) GetPublicSettings() (*PublicSettingResp, error) {
 	}
 
 	resp := &PublicSettingResp{Settings: settings}
-	s.cacheMu.Lock()
-	s.publicCache = clonePublicSettingResp(resp)
-	s.cacheMu.Unlock()
+	s.cache.mu.Lock()
+	s.cache.publicCache[cacheKey] = clonePublicSettingResp(resp)
+	s.cache.mu.Unlock()
 	return clonePublicSettingResp(resp), nil
+}
+
+// publicSettingsCacheKey namespaces the public settings cache per tenant
+// (multi mode). Compat and platform-global share the legacy base key.
+func (s *SettingService) publicSettingsCacheKey() string {
+	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+		return "public"
+	}
+	return "t" + strconv.FormatUint(s.tenantCtx.TenantID, 10) + ":public"
 }
 
 func (s *SettingService) GetOverview() (*SettingOverviewResp, error) {
@@ -291,7 +526,7 @@ func (s *SettingService) GetOverview() (*SettingOverviewResp, error) {
 	}
 
 	var rows []SystemSetting
-	if err := s.db.Order("group_key asc, id asc").Find(&rows).Error; err != nil {
+	if err := s.tenantScope()(s.db).Order("group_key asc, id asc").Find(&rows).Error; err != nil {
 		return nil, err
 	}
 
@@ -506,6 +741,16 @@ func settingListCacheKey(groupKey, module string) string {
 	return strings.TrimSpace(groupKey) + "|" + strings.TrimSpace(module)
 }
 
+// settingListCacheKeyTenant namespaces the list cache per tenant (multi mode)
+// so two tenants never collide through the process cache (canary pattern).
+func (s *SettingService) settingListCacheKeyTenant(groupKey, module string) string {
+	base := settingListCacheKey(groupKey, module)
+	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+		return base
+	}
+	return "t" + strconv.FormatUint(s.tenantCtx.TenantID, 10) + ":" + base
+}
+
 func cloneSettingRespList(items []SettingResp) []SettingResp {
 	if len(items) == 0 {
 		return []SettingResp{}
@@ -541,7 +786,7 @@ func (s *SettingService) notifyRuntimeSettingsChanged() error {
 		return err
 	}
 	if database.RDB != nil {
-		_ = database.RDB.Publish(context.TODO(), "settings:refresh", "updated").Err()
+		_ = database.RDB.Publish(context.TODO(), settingsRefreshChannel, "updated").Err()
 	}
 	return nil
 }

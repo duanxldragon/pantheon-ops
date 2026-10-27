@@ -1,4 +1,4 @@
-package config
+package dict
 
 type DictTypeResp struct {
 	ID                uint64 `json:"id"`

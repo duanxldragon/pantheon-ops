@@ -1,12 +1,20 @@
+---
+title: Deploy Business Module Design
+doc_type: Design
+layer: business/deploy
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-24
+---
+
 # Deploy Business Module Design
 
 Chinese version: [BUSINESS_DEPLOY_MODULE_DESIGN.md](./BUSINESS_DEPLOY_MODULE_DESIGN.md)
 
-Updated: 2026-07-17
+> Status note: Active V1 target; implementation and release remain governed by the freeze checklist
 
-Type: Design
-Layer: `business/deploy`
-Status: Active
+> V1 freeze overlay: SSH Start accepts `CredentialRef` only; component secrets are write-only references; task/host/attempt/step/event/log records are persisted; task transitions use CAS; pause/resume/cancel/retry and worker recovery are required; execution uses registered providers with validated DAG/failure policy; redacted append-only logs stream through authenticated reconnectable SSE. Historical statements below that describe raw credentials, mutable stdout/stderr, polling-first UI, or manual result marking as the V1 completion contract are superseded by the [global functional design (Chinese canonical)](./BUSINESS_FUNCTIONAL_DESIGN.md) and [V1 checklist](../V1_RELEASE_CHECKLIST.md).
 
 This document defines the Deploy business module, a peer of `business/cmdb` and `business/bizscope`. It turns software, targets, execution state, and per-host results into traceable deployment tasks and preserves the boundary for later Agent execution.
 
@@ -20,48 +28,48 @@ It does not own CMDB inventory, realtime connectivity monitoring, credential vau
 
 ## 2. Boundaries and Dependencies
 
-| Area | Allowed | Forbidden |
-| :--- | :--- | :--- |
-| platform | shared responses, audit metadata, module registration | changing platform-shell business logic |
-| system/auth | login principal context | importing auth services |
-| system/iam | menu/permission/Casbin results | implementing roles inside Deploy |
-| system/org | data-scope context | importing org repositories |
-| business/cmdb | explicit read/query and write-back capabilities | direct `biz_cmdb_*` table or CMDB service/repository access |
-| business/bizscope | business-scope trust boundary | deploying directly to unassigned hosts |
+| Area              | Allowed                                               | Forbidden                                                   |
+| :---------------- | :---------------------------------------------------- | :---------------------------------------------------------- |
+| platform          | shared responses, audit metadata, module registration | changing platform-shell business logic                      |
+| system/auth       | login principal context                               | importing auth services                                     |
+| system/iam        | menu/permission/Casbin results                        | implementing roles inside Deploy                            |
+| system/org        | data-scope context                                    | importing org repositories                                  |
+| business/cmdb     | explicit read/query and write-back capabilities       | direct `biz_cmdb_*` table or CMDB service/repository access |
+| business/bizscope | business-scope trust boundary                         | deploying directly to unassigned hosts                      |
 
 Current code reality: target resolution, host status write-back, and installed-component write-back are already routed through a CMDB-local capability. Deploy no longer directly reads or updates CMDB tables from its service layer.
 
 ### 2.1 CMDB Query Contract
 
-| Capability | Purpose |
-| :--- | :--- |
-| `ListSelectableHosts` | scoped host options |
-| `ListSelectableGroups` | scoped group options |
-| `PreviewGroupMembers` | group member preview |
-| `ResolveTaskTargets` | deduplicated host snapshots before execution |
+| Capability             | Purpose                                      |
+| :--------------------- | :------------------------------------------- |
+| `ListSelectableHosts`  | scoped host options                          |
+| `ListSelectableGroups` | scoped group options                         |
+| `PreviewGroupMembers`  | group member preview                         |
+| `ResolveTaskTargets`   | deduplicated host snapshots before execution |
 
 Every result must obey `DataScopeReq`, and Deploy receives only task-required snapshots rather than CMDB-internal JSON structures.
 
 ## 3. Menus and Naming
 
-| Menu key | Path | Component key | Page permission |
-| :--- | :--- | :--- | :--- |
-| `business.deploy.package` | `/business/deploy/package` | `business/deploy/package/DeployPackageList` | `business:deploy:package:view` |
-| `business.deploy.template` | `/business/deploy/template` | `business/deploy/template/DeployTemplateList` | `business:deploy:template:list` |
-| `business.deploy.task` | `/business/deploy/task` | `business/deploy/task/DeployTaskList` | `business:deploy:task:view` |
-| `business.deploy.task.detail` | `/business/deploy/task/:id` | `business/deploy/task/DeployTaskDetail` | `business:deploy:task:detail` |
+| Menu key                      | Path                        | Component key                                 | Page permission                 |
+| :---------------------------- | :-------------------------- | :-------------------------------------------- | :------------------------------ |
+| `business.deploy.package`     | `/business/deploy/package`  | `business/deploy/package/DeployPackageList`   | `business:deploy:package:view`  |
+| `business.deploy.template`    | `/business/deploy/template` | `business/deploy/template/DeployTemplateList` | `business:deploy:template:list` |
+| `business.deploy.task`        | `/business/deploy/task`     | `business/deploy/task/DeployTaskList`         | `business:deploy:task:view`     |
+| `business.deploy.task.detail` | `/business/deploy/task/:id` | `business/deploy/task/DeployTaskDetail`       | `business:deploy:task:detail`   |
 
 The module name is `business.deploy`. List and detail permissions are separate. Templates use a real header-plus-steps model; packages remain reusable execution assets.
 
 ## 4. Core Objects
 
-| Object | Purpose | Key fields |
-| :--- | :--- | :--- |
-| `DeployPackage` | software component | name, version, execution mode, template code, source object, install/uninstall commands, status |
-| `DeployTemplate` | reusable task template | name, version, category, default action, package, parameter schema, status |
-| `DeployTemplateStep` | ordered template step | code, type, action, package, parameters, sort |
-| `DeployTask` | deployment task | package/template snapshots, business scope, action, targets, executor, status, timing |
-| `DeployTaskHost` | host execution detail | host snapshot, status, trace steps, stdout/stderr, error |
+| Object               | Purpose                | Key fields                                                                                      |
+| :------------------- | :--------------------- | :---------------------------------------------------------------------------------------------- |
+| `DeployPackage`      | software component     | name, version, execution mode, template code, source object, install/uninstall commands, status |
+| `DeployTemplate`     | reusable task template | name, version, category, default action, package, parameter schema, status                      |
+| `DeployTemplateStep` | ordered template step  | code, type, action, package, parameters, sort                                                   |
+| `DeployTask`         | deployment task        | package/template snapshots, business scope, action, targets, executor, status, timing           |
+| `DeployTaskHost`     | host execution detail  | host snapshot, status, trace steps, stdout/stderr, error                                        |
 
 ## 5. State Transitions
 
@@ -115,27 +123,27 @@ Responses use shared success/failure envelopes; lists return `items/total/page/p
 
 ### 7.2 Endpoint List
 
-| Method | Path | Purpose | Permission |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/packages` | package list | `business:deploy:package:list` |
-| `GET` | `/packages/:id` | package detail | **Permission mapping gap:** the route exists, but `business:deploy:package:list` currently maps only `GET /packages`, not this route. Track in `2026-07-17-business-permission-gaps`. |
-| `POST` | `/packages` | create package | `business:deploy:package:create` |
-| `PUT` | `/packages/:id` | update package | `business:deploy:package:update` |
-| `DELETE` | `/packages/:id` | delete package | `business:deploy:package:delete` |
-| `GET` | `/templates` | template list | `business:deploy:template:list` |
-| `POST` | `/templates` | create template | `business:deploy:template:create` |
-| `GET` | `/templates/:id` | template detail | `business:deploy:template:list` |
-| `PUT` | `/templates/:id` | update template | `business:deploy:template:update` |
-| `DELETE` | `/templates/:id` | delete template | `business:deploy:template:delete` |
-| `GET` | `/tasks` | task list | `business:deploy:task:list` |
-| `POST` | `/tasks` | create task | `business:deploy:task:create` |
-| `GET` | `/tasks/:id` | task detail | `business:deploy:task:detail` |
-| `PUT` | `/tasks/:id` | update an unstarted task | `business:deploy:task:update` |
-| `DELETE` | `/tasks/:id` | delete a `draft/pending` task and its task-host rows | `business:deploy:task:delete` |
-| `POST` | `/tasks/:id/start` | start task | `business:deploy:task:start` |
-| `POST` | `/tasks/:id/cancel` | cancel task | `business:deploy:task:cancel` |
-| `POST` | `/task-hosts/:id/result` | manually mark host result | `business:deploy:task:mark-result` |
-| `POST` | `/task-hosts/:id/report` | reserved Agent report; currently bound to the same handler as `/result`, so manual marking and executor reporting are not yet distinguished | Agent-stage follow-up |
+| Method   | Path                     | Purpose                                                                                                                                     | Permission                                                                                                                                                                            |
+| :------- | :----------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET`    | `/packages`              | package list                                                                                                                                | `business:deploy:package:list`                                                                                                                                                        |
+| `GET`    | `/packages/:id`          | package detail                                                                                                                              | **Permission mapping gap:** the route exists, but `business:deploy:package:list` currently maps only `GET /packages`, not this route. Track in `2026-07-17-business-permission-gaps`. |
+| `POST`   | `/packages`              | create package                                                                                                                              | `business:deploy:package:create`                                                                                                                                                      |
+| `PUT`    | `/packages/:id`          | update package                                                                                                                              | `business:deploy:package:update`                                                                                                                                                      |
+| `DELETE` | `/packages/:id`          | delete package                                                                                                                              | `business:deploy:package:delete`                                                                                                                                                      |
+| `GET`    | `/templates`             | template list                                                                                                                               | `business:deploy:template:list`                                                                                                                                                       |
+| `POST`   | `/templates`             | create template                                                                                                                             | `business:deploy:template:create`                                                                                                                                                     |
+| `GET`    | `/templates/:id`         | template detail                                                                                                                             | `business:deploy:template:list`                                                                                                                                                       |
+| `PUT`    | `/templates/:id`         | update template                                                                                                                             | `business:deploy:template:update`                                                                                                                                                     |
+| `DELETE` | `/templates/:id`         | delete template                                                                                                                             | `business:deploy:template:delete`                                                                                                                                                     |
+| `GET`    | `/tasks`                 | task list                                                                                                                                   | `business:deploy:task:list`                                                                                                                                                           |
+| `POST`   | `/tasks`                 | create task                                                                                                                                 | `business:deploy:task:create`                                                                                                                                                         |
+| `GET`    | `/tasks/:id`             | task detail                                                                                                                                 | `business:deploy:task:detail`                                                                                                                                                         |
+| `PUT`    | `/tasks/:id`             | update an unstarted task                                                                                                                    | `business:deploy:task:update`                                                                                                                                                         |
+| `DELETE` | `/tasks/:id`             | delete a `draft/pending` task and its task-host rows                                                                                        | `business:deploy:task:delete`                                                                                                                                                         |
+| `POST`   | `/tasks/:id/start`       | start task                                                                                                                                  | `business:deploy:task:start`                                                                                                                                                          |
+| `POST`   | `/tasks/:id/cancel`      | cancel task                                                                                                                                 | `business:deploy:task:cancel`                                                                                                                                                         |
+| `POST`   | `/task-hosts/:id/result` | manually mark host result                                                                                                                   | `business:deploy:task:mark-result`                                                                                                                                                    |
+| `POST`   | `/task-hosts/:id/report` | reserved Agent report; currently bound to the same handler as `/result`, so manual marking and executor reporting are not yet distinguished | Agent-stage follow-up                                                                                                                                                                 |
 
 The `GET /packages/:id` detail route is implemented but remains outside the current `business:deploy:package:list` Casbin mapping; it is a documented permission gap, not an authorized-route claim.
 

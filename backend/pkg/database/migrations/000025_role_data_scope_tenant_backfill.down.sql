@@ -1,0 +1,7 @@
+-- Intentionally retain the backfilled policy rows on down.
+--
+-- The rows this migration creates are indistinguishable from rows a tenant
+-- administrator saved through the console afterwards (same columns, same
+-- values), so deleting them would destroy real configuration. Rolling the code
+-- back to key-only reads makes tenant-owned rows invisible again anyway, which
+-- restores the pre-migration behaviour without touching data. Mirrors 000021.

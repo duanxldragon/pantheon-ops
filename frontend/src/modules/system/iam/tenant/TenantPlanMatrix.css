@@ -1,0 +1,92 @@
+.tenant-plan-matrix {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+.tenant-plan-matrix__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.tenant-plan-matrix__title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.tenant-plan-matrix__description {
+  font-size: 12px;
+}
+
+.tenant-plan-matrix__scroll {
+  overflow-x: auto;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+}
+
+.tenant-plan-matrix__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.tenant-plan-matrix__table th,
+.tenant-plan-matrix__table td {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--panel-border);
+  text-align: center;
+}
+
+.tenant-plan-matrix__table thead th {
+  color: var(--text-secondary);
+  font-weight: 500;
+  background: var(--panel-muted);
+  white-space: nowrap;
+}
+
+.tenant-plan-matrix__table tbody th {
+  color: var(--text-primary);
+  font-weight: 400;
+  text-align: left;
+}
+
+.tenant-plan-matrix__table tbody tr:last-child th,
+.tenant-plan-matrix__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tenant-plan-matrix__column--active {
+  background: var(--brand-primary-muted);
+}
+
+.tenant-plan-matrix__feature {
+  display: block;
+}
+
+.tenant-plan-matrix__feature-description {
+  display: block;
+  margin-top: var(--space-2xs);
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
+
+.tenant-plan-matrix__plan {
+  display: block;
+  margin-bottom: var(--space-2xs);
+}
+
+.tenant-plan-matrix__included,
+.tenant-plan-matrix__excluded {
+  display: inline-flex;
+  font-size: 16px;
+}
+
+.tenant-plan-matrix__included {
+  color: var(--color-success);
+}
+
+.tenant-plan-matrix__excluded {
+  color: var(--text-tertiary);
+}

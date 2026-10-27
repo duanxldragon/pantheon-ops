@@ -75,7 +75,7 @@ test.describe('system secondary route failure and empty states', () => {
       await signInAsAdmin(page);
 
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      await page.goto('/system/user/0', { waitUntil: 'networkidle' });
+      await page.goto('/system/user/0', { waitUntil: 'domcontentloaded' });
 
       await expectRouteShell(page);
       await expect(page.locator('[role="tab"][aria-selected="true"]').first()).toContainText('用户详情');
@@ -109,7 +109,7 @@ test.describe('system secondary route failure and empty states', () => {
 
       try {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        await page.goto('/system/user/1', { waitUntil: 'networkidle' });
+        await page.goto('/system/user/1', { waitUntil: 'domcontentloaded' });
 
         await expectRouteShell(page);
         await expect(page.getByText('加载失败', { exact: true })).toBeVisible();
@@ -149,7 +149,7 @@ test.describe('system secondary route failure and empty states', () => {
 
       try {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        await page.goto('/system/user/1', { waitUntil: 'networkidle' });
+        await page.goto('/system/user/1', { waitUntil: 'domcontentloaded' });
 
         await expectRouteShell(page);
         await expect(page.getByText('暂无数据', { exact: true })).toBeVisible();
@@ -185,7 +185,7 @@ test.describe('system secondary route failure and empty states', () => {
 
       try {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        await page.goto('/system/setting/basic', { waitUntil: 'networkidle' });
+        await page.goto('/system/setting/basic', { waitUntil: 'domcontentloaded' });
 
         await expectRouteShell(page);
         await expect(page.getByText('服务异常', { exact: true })).toBeVisible();
@@ -245,7 +245,7 @@ test.describe('system secondary route failure and empty states', () => {
 
       try {
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        await page.goto('/system/setting/basic', { waitUntil: 'networkidle' });
+        await page.goto('/system/setting/basic', { waitUntil: 'domcontentloaded' });
 
         await expectRouteShell(page);
         await expect(page.getByText('暂无系统设置', { exact: true })).toBeVisible();

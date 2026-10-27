@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-base/modules/business/cmdb"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
 
 	"gorm.io/gorm"
 )
@@ -31,6 +31,101 @@ func seedDeployReliabilityFixture(t *testing.T, db *gorm.DB, hostname, ip string
 		t.Fatalf("seed host: %v", err)
 	}
 	return scope.ID, host.ID
+}
+
+func TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	scopeID, hostID := seedDeployReliabilityFixture(t, db, "attempt-lease-host", "10.40.0.200")
+	pkg, err := svc.CreatePackage(CreatePackageRequest{
+		Name: "attempt-lease-package", Version: "1.0.0", InstallCommand: "exit 1", Status: PackageStatusEnabled,
+	}, "1")
+	if err != nil {
+		t.Fatalf("create package: %v", err)
+	}
+	task, err := svc.CreateTask(CreateTaskRequest{
+		Name: "Attempt Lease Task", PackageID: pkg.ID, BusinessScopeID: scopeID,
+		TargetType: TargetTypeHost, TargetIDs: []uint64{hostID}, ExecutorType: ExecutorTypeSSH,
+	}, "1", nil)
+	if err != nil {
+		t.Fatalf("create task: %v", err)
+	}
+	var taskHost DeployTaskHost
+	if err := db.Where("task_id = ?", task.ID).First(&taskHost).Error; err != nil {
+		t.Fatalf("load task host: %v", err)
+	}
+	if err := db.Model(&DeployTask{}).Where("id = ?", task.ID).Update("status", TaskStatusRunning).Error; err != nil {
+		t.Fatalf("mark task running: %v", err)
+	}
+	if err := db.Model(&DeployTaskHost{}).Where("id = ?", taskHost.ID).Update("status", TaskHostStatusRunning).Error; err != nil {
+		t.Fatalf("mark task host running: %v", err)
+	}
+	now := time.Now()
+	leaseExpiresAt := now.Add(time.Minute)
+	attempt := DeployTaskAttempt{
+		TaskID: task.ID, TaskHostID: taskHost.ID, AttemptNo: 1, Status: "running", WorkerID: "active-worker",
+		LeaseExpiresAt: &leaseExpiresAt, StartedAt: &now,
+	}
+	if err := db.Create(&attempt).Error; err != nil {
+		t.Fatalf("create active attempt: %v", err)
+	}
+	if err := db.Create(&DeployHostLease{
+		HostID: taskHost.HostID, TaskID: task.ID, Owner: deployHostLeaseOwner(task.ID), ExpiresAt: leaseExpiresAt,
+	}).Error; err != nil {
+		t.Fatalf("create host lease: %v", err)
+	}
+
+	if _, err := svc.MarkHostResult(taskHost.ID, MarkHostResultRequest{
+		Status: TaskHostStatusFailed, ErrorMessage: "first attempt failed",
+	}, "1", nil); err != nil {
+		t.Fatalf("mark host result: %v", err)
+	}
+	var currentTask DeployTask
+	if err := db.First(&currentTask, task.ID).Error; err != nil {
+		t.Fatalf("reload task: %v", err)
+	}
+	if currentTask.Status != TaskStatusRunning {
+		t.Fatalf("active attempt must keep task running, got %s", currentTask.Status)
+	}
+	var activeLeaseCount int64
+	if err := db.Model(&DeployHostLease{}).Where("task_id = ?", task.ID).Count(&activeLeaseCount).Error; err != nil {
+		t.Fatalf("count host leases: %v", err)
+	}
+	if activeLeaseCount != 1 {
+		t.Fatalf("active attempt must retain host lease, got %d", activeLeaseCount)
+	}
+
+	if err := db.Model(&DeployTaskAttempt{}).Where("id = ?", attempt.ID).Updates(map[string]any{
+		"status": "failed", "lease_expires_at": nil, "finished_at": now,
+	}).Error; err != nil {
+		t.Fatalf("finish active attempt: %v", err)
+	}
+	if err := svc.recomputeTaskStatus(task.ID, "1"); err != nil {
+		t.Fatalf("recompute task after attempt finish: %v", err)
+	}
+	if err := db.First(&currentTask, task.ID).Error; err != nil {
+		t.Fatalf("reload terminal task: %v", err)
+	}
+	if currentTask.Status != TaskStatusFailed {
+		t.Fatalf("expected failed after attempt completion, got %s", currentTask.Status)
+	}
+}
+
+func TestHasActiveTaskAttemptTreatsLegacyNilLeaseAsActive(t *testing.T) {
+	db := setupDeployTestDB(t)
+	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	if err := db.Create(&DeployTaskAttempt{
+		TaskID: 100, TaskHostID: 200, AttemptNo: 1, Status: "running", WorkerID: "legacy-worker",
+	}).Error; err != nil {
+		t.Fatalf("create legacy active attempt: %v", err)
+	}
+	active, err := svc.hasActiveTaskAttempt(100, 200, time.Now())
+	if err != nil {
+		t.Fatalf("check active attempt: %v", err)
+	}
+	if !active {
+		t.Fatal("running attempt without a lease expiry must remain active")
+	}
 }
 
 func TestDeployPackageImmutableAfterTaskReference(t *testing.T) {
@@ -75,6 +170,7 @@ func TestDeployPackageImmutableAfterTaskReference(t *testing.T) {
 func TestDeployTaskExecutionSnapshotFrozenAgainstLiveMutation(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
+	credID := setupDeployTestCredential(t, svc)
 
 	runner := &fakeDeploySSHRunner{stdout: "ok"}
 	svc.sshRunnerFactory = func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error) {
@@ -108,10 +204,8 @@ func TestDeployTaskExecutionSnapshotFrozenAgainstLiveMutation(t *testing.T) {
 	}
 
 	if _, err := svc.StartTask(task.ID, StartTaskRequest{
-		SSHUser:         "root",
-		SSHPassword:     "secret",
+		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-		AuthMode:        "password",
 	}, "1", nil); err != nil {
 		t.Fatalf("start task: %v", err)
 	}

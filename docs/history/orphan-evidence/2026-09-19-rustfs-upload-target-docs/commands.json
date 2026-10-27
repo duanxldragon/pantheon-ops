@@ -1,0 +1,83 @@
+{
+  "taskId": "2026-09-19-rustfs-upload-target-docs",
+  "repo": "pantheon-base",
+  "commands": [
+    {
+      "command": "python json.load on backend builtin_locale_resources.json",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Description: JSON integrity after adding RustFS copy Expected: valid JSON, 5 locales, 10 keys contain RustFS; observed exactly that"
+    },
+    {
+      "command": "cd backend && go test ./modules/system/i18n/... ./modules/system/config/setting/...",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Description: minimal backend scope test for touched modules Expected: ok; observed ok (both packages)"
+    },
+    {
+      "command": "node scripts/frontmatter-check.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Description: docs governance after upload-target docs update Expected: pass; observed passed, 266 docs"
+    },
+    {
+      "command": "node scripts/check-task-packet-template.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Description: task packet template gate Expected: OK; observed OK"
+    },
+    {
+      "command": "cd frontend && node node_modules/eslint/bin/eslint.js .",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Description: frontend lint Expected: exit 0; observed exit 0"
+    },
+    {
+      "command": "cd frontend && node node_modules/typescript/bin/tsc -b",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Description: frontend type check Expected: exit 0; observed exit 0"
+    },
+    {
+      "command": "cd frontend && node node_modules/vite/bin/vite.js build",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Description: frontend build Expected: success; observed built in 698ms"
+    },
+    {
+      "command": "cd frontend && node scripts/check-i18n-hardcode.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Description: i18n hardcode gate Expected: pass; observed passed (214 files)"
+    },
+    {
+      "command": "cd frontend && node scripts/check-i18n-generated-scope.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Description: i18n generated scope gate Expected: pass; observed passed"
+    },
+    {
+      "command": "cd frontend && node scripts/audit-i18n-locales.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Description: locale parity audit Expected: no missing/extra/empty keys; observed 2811 keys, missing=0 extra=0 empty=0"
+    },
+    {
+      "command": "RustFS v1.0.0 local instance round-trip via minio-go v7.2.1 (MakeBucket/PutObject/StatObject/GetObject/ListObjects/RemoveObject) + pantheon upload API byte-level read-back",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Description: real-world S3-compatible verification backing the docs claim Expected: full round-trip success; observed all operations passed and upload API stored into RustFS with byte-level match"
+    }
+  ],
+  "linkage": {
+    "taskManifest": "none",
+    "evidenceDir": ".harness/evidence/2026-09-19-rustfs-upload-target-docs/",
+    "reviewFile": "none",
+    "summaryFile": ".harness/evidence/2026-09-19-rustfs-upload-target-docs/summary.md",
+    "changeRef": "none",
+    "planRefs": []
+  },
+  "knownGaps": [
+    "Trivial docs+i18n-copy change: task manifest and review artifact intentionally none per trivial-change allowance"
+  ]
+}

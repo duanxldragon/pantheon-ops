@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/testmysql"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -89,6 +89,29 @@ func TestOperationLogStore_DropsWhenQueueFullAndDrainsOnClose(t *testing.T) {
 
 	// 关闭后 enqueue 是 no-op，不 panic
 	store.enqueue(SystemLogOper{Title: "after-close"})
+}
+
+func TestOperationLogStore_PersistsTenantContextThroughAsyncQueue(t *testing.T) {
+	db := setupOperationLogTestDB(t)
+	store := &operationLogAsyncStore{
+		db:    db,
+		queue: make(chan SystemLogOper, 2),
+		done:  make(chan struct{}),
+	}
+	go store.run()
+	store.enqueue(SystemLogOper{TenantID: 101, Title: "tenant-101", OperTime: time.Now()})
+	store.enqueue(SystemLogOper{TenantID: 202, Title: "tenant-202", OperTime: time.Now()})
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	store.Close(ctx)
+
+	var rows []SystemLogOper
+	if err := db.Order("id asc").Find(&rows).Error; err != nil {
+		t.Fatalf("read queued operation logs: %v", err)
+	}
+	if len(rows) != 2 || rows[0].TenantID != 101 || rows[1].TenantID != 202 {
+		t.Fatalf("async queue must preserve explicit tenant ids, got %+v", rows)
+	}
 }
 
 func TestOperationLogMiddleware_UsesAuditOverrides(t *testing.T) {

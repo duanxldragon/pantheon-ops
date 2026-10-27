@@ -1,8 +1,8 @@
 # Program Status
 
 - Status: `complete`
-- Updated: `2026-08-18`
-- Program owner: Codex `/root`
+- Updated: `2026-08-22`
+- Program owner: Codex `/root` (Buffy session 2026-08-22 credential-fixture re-verification)
 - Baseline commit: `ee213508a32ebdf27685128e0c719e9036272de5`
 - Source audit: `docs/business-module-review-summary.md`
 - Execution queue: `.harness/tasks/2026-08-17-ops-foundation-hardening/EXECUTION_QUEUE.md`
@@ -23,10 +23,10 @@
 ## Known Baseline
 
 - Backend audit baseline: `go test -count=1 ./modules/business/...` passed.
-- Current verification after lint/remediation cleanup:
-  `golangci-lint run --new-from-rev origin/main ./...`, business tests,
-  `go vet`, frontend ESLint/type-check/build, overlay checks, generated-module
-  checks, smoke-script tests, and `git diff --check` pass.
+- Deploy module re-verified 2026-08-22: `go test -count=1`, `go test -race`,
+  `go vet`, boundary checker, and `git diff --check` all pass against MySQL
+  8.0.36. SSH credential-reference fixtures updated to match
+  `validateCredentialReferenceRequest` contract.
 - The repository already has unrelated modified/untracked files. Child owners must
   record collisions and preserve those changes.
 

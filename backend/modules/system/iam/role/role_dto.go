@@ -1,4 +1,4 @@
-package iam
+package role
 
 // RoleListResp 角色列表 DTO
 type RoleListResp struct {

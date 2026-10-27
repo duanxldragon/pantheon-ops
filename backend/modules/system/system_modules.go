@@ -1,21 +1,26 @@
 package system
 
 import (
-	"pantheon-base/internal/middleware"
-	authsession "pantheon-base/modules/auth/session"
-	audit "pantheon-base/modules/system/audit"
-	dict "pantheon-base/modules/system/config/dict"
-	setting "pantheon-base/modules/system/config/setting"
-	i18n "pantheon-base/modules/system/i18n"
-	menu "pantheon-base/modules/system/iam/menu"
-	permission "pantheon-base/modules/system/iam/permission"
-	role "pantheon-base/modules/system/iam/role"
-	user "pantheon-base/modules/system/iam/user"
-	dept "pantheon-base/modules/system/org/dept"
-	post "pantheon-base/modules/system/org/post"
-	"pantheon-base/pkg/contracts"
-	"pantheon-base/pkg/database"
-	uploadpkg "pantheon-base/pkg/upload"
+	"time"
+
+	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
+	"github.com/duanxldragon/pantheon-base/backend/modules/auth/session"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/audit"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/config/dict"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/i18n"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/menu"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/permission"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/role"
+	tenantiam "github.com/duanxldragon/pantheon-base/backend/modules/system/iam/tenant"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/org/dept"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/org/post"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/maintenance"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
+	uploadpkg "github.com/duanxldragon/pantheon-base/backend/pkg/upload"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -26,6 +31,9 @@ const (
 	routeUserByID    = "/user/:id"
 	routeI18nByID    = "/i18n/:id"
 )
+
+// tenantModeLoaderTTL bounds staleness of the cached tenant mode flag.
+const tenantModeLoaderTTL = 5 * time.Second
 
 type systemModuleDependencies struct {
 	db *gorm.DB
@@ -45,6 +53,9 @@ type systemModuleDependencies struct {
 	permissionSvc     *permission.PermissionService
 	permissionHandler *permission.PermissionHandler
 
+	tenantSvc     *tenantiam.Service
+	tenantHandler *tenantiam.PlatformHandler
+
 	deptSvc     *dept.DeptService
 	deptHandler *dept.DeptHandler
 
@@ -53,6 +64,9 @@ type systemModuleDependencies struct {
 
 	dictSvc     *dict.DictService
 	dictHandler *dict.DictHandler
+
+	// tenantModeLoader drives the dict canary flag (nil-safe middleware).
+	tenantModeLoader *tenant.ModeLoader
 
 	settingSvc     *setting.SettingService
 	settingHandler *setting.SettingHandler
@@ -68,23 +82,31 @@ func newSystemModuleDependencies(db *gorm.DB) *systemModuleDependencies {
 	refreshSyncSvc := NewRefreshSyncService(db)
 
 	userSvc := user.NewUserService(db, user.WithSessionLifecycle(func(db *gorm.DB) user.SessionLifecycle {
-		return authsession.NewLifecycleService(db)
+		return session.NewLifecycleService(db)
 	}))
 	menuSvc := menu.NewMenuService(db)
 	roleSvc := role.NewRoleService(db)
 	permissionSvc := permission.NewPermissionService(db)
+	tenantSvc := tenantiam.NewService(db)
 	deptSvc := dept.NewDeptService(db)
 	postSvc := post.NewPostService(db)
 	dictSvc := dict.NewDictService(db)
 	settingSvc := setting.NewSettingService(db)
+	// Canary flag loader (contract §6): cached read of platform.tenant_mode.
+	tenantModeLoader := tenant.NewSettingModeLoader(settingSvc, int64(tenantModeLoaderTTL))
 	uploadSvc := uploadpkg.NewService(settingSvc)
 	i18nSvc := i18n.NewI18nService(db)
 	auditSvc := audit.NewAuditService(db)
+	// Register the operation-log retention sweep with the background
+	// maintenance runner instead of purging inline on list/export requests
+	// (task 2026-09-22-request-path-maintenance).
+	auditSvc.RegisterMaintenanceTasks(maintenance.Default())
 
 	return &systemModuleDependencies{
 		db:                 db,
 		refreshSyncSvc:     refreshSyncSvc,
 		refreshSyncHandler: NewRefreshSyncHandler(refreshSyncSvc),
+		tenantModeLoader:   tenantModeLoader,
 		userSvc:            userSvc,
 		userHandler:        user.NewUserHandler(userSvc),
 		menuSvc:            menuSvc,
@@ -93,6 +115,8 @@ func newSystemModuleDependencies(db *gorm.DB) *systemModuleDependencies {
 		roleHandler:        role.NewRoleHandler(roleSvc),
 		permissionSvc:      permissionSvc,
 		permissionHandler:  permission.NewPermissionHandler(permissionSvc),
+		tenantSvc:          tenantSvc,
+		tenantHandler:      tenantiam.NewPlatformHandler(tenantSvc),
 		deptSvc:            deptSvc,
 		deptHandler:        dept.NewDeptHandler(deptSvc),
 		postSvc:            postSvc,
@@ -130,8 +154,13 @@ func initIAMModules(deps *systemModuleDependencies) []contracts.BackendModule {
 			MigrateFunc:   func(_ *gorm.DB) error { return deps.userSvc.Migrate() },
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.userSvc.Bootstrap() },
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
-				systemDataScoped := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(middleware.DataScopeMiddleware(deps.db)).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				// The IAM console is shared by platform operators (tenant 0) and
+				// tenant administrators. Declaring the group platform-scoped is
+				// what lets a claim-less platform operator resolve to the
+				// platform-global context in multi mode, while a tenant subject
+				// still resolves to its own tenant claim (contract §3.1/§3.3).
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				systemDataScoped := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db)).Use(middleware.CasbinMiddleware()).Use(middleware.DataScopeMiddleware(deps.db)).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
 				{
 					systemProtected.GET("/profile", deps.userHandler.GetProfile)
 					systemProtected.PUT("/profile", deps.userHandler.UpdateProfile)
@@ -156,12 +185,19 @@ func initIAMModules(deps *systemModuleDependencies) []contracts.BackendModule {
 			MigrateFunc:   func(_ *gorm.DB) error { return deps.menuSvc.Migrate() },
 			SeedMenusFunc: seedMenuModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				// Menu writes mutate the platform-global `system_menu` table.
+				// A tenant administrator's `/api/v1/*` tenant-domain Casbin
+				// grant satisfies the route check above, so authoring the
+				// shared menu tree must additionally require a platform
+				// capability (same contract §3.3 gate as the tenant console
+				// below). The tree read stays tenant-accessible: tenants need
+				// their own navigation.
 				{
 					systemProtected.GET("/menu/tree", deps.menuHandler.GetMenuTree)
-					systemProtected.POST("/menu", deps.menuHandler.CreateMenu)
-					systemProtected.PUT("/menu/:id", deps.menuHandler.UpdateMenu)
-					systemProtected.DELETE("/menu/:id", middleware.SecureActionMiddleware(), deps.menuHandler.DeleteMenu)
+					systemProtected.POST("/menu", middleware.PlatformCapabilityMiddleware(), deps.menuHandler.CreateMenu)
+					systemProtected.PUT("/menu/:id", middleware.PlatformCapabilityMiddleware(), deps.menuHandler.UpdateMenu)
+					systemProtected.DELETE("/menu/:id", middleware.PlatformCapabilityMiddleware(), middleware.SecureActionMiddleware(), deps.menuHandler.DeleteMenu)
 				}
 			},
 		},
@@ -170,7 +206,7 @@ func initIAMModules(deps *systemModuleDependencies) []contracts.BackendModule {
 			MigrateFunc:   func(_ *gorm.DB) error { return deps.roleSvc.Migrate() },
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.roleSvc.Bootstrap() },
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
 				{
 					systemProtected.GET("/role/list", deps.roleHandler.GetRoleList)
 					systemProtected.GET("/role/:id/users", deps.roleHandler.GetRoleMembers)
@@ -199,7 +235,7 @@ func initIAMModules(deps *systemModuleDependencies) []contracts.BackendModule {
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.permissionSvc.Bootstrap() },
 			SeedMenusFunc: seedPermissionModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
 				{
 					systemProtected.GET("/permission/workbench", deps.permissionHandler.GetWorkbench)
 					systemProtected.GET("/permission/workbench/remediation", deps.permissionHandler.ListWorkbenchRemediationEvents)
@@ -218,6 +254,59 @@ func initIAMModules(deps *systemModuleDependencies) []contracts.BackendModule {
 				}
 			},
 		},
+		contracts.FuncModule{
+			// Tenant management (platform-scoped): tables come from the tenant
+			// migrations (000013..000020); only the console surface + menu seeds
+			// are wired here. Visibility is gated by platform.tenant_mode via the
+			// frontend capability filter (same pattern as system.org / org.enabled).
+			ModuleName: "tenant",
+			// MigrateFunc mirrors the permission module. RegisterBackendModules
+			// runs either Migrate() (PANTHEON_AUTO_MIGRATE=true, dev) or
+			// Bootstrap() (versioned-migration mode) — never both. Migrate adds
+			// the plan-definition table (migration 000030 owns it in versioned
+			// mode) and then runs the same repairs. The permission
+			// bootstrap purges casbin policies whose subject is not a live
+			// system_role.role_key, which includes every tenant-domain subject
+			// `role:<key>@tenant:<id>`. Without this repair on the Migrate path a
+			// dev-mode boot strips every tenant role policy and each tenant user
+			// answers 403 permission.denied on every page. Idempotent/additive.
+			MigrateFunc:   func(_ *gorm.DB) error { return deps.tenantSvc.Migrate() },
+			BootstrapFunc: func(_ *gorm.DB) error { return deps.tenantSvc.Bootstrap() },
+			SeedMenusFunc: seedTenantModuleMenus,
+			Register: func(r *gin.RouterGroup) {
+				// Platform-scoped by declaration (contract §3.3): the console
+				// reads and writes `tenants` across every tenant, which is the
+				// "平台管理 API（显式声明，要求平台权限，落审计）" path. The
+				// declaration is what lets a tenant-less platform operator
+				// resolve to the platform-global context (tenant 0) in multi
+				// mode; Casbin still requires `system:tenant:*` on top.
+				//
+				// PlatformCapabilityMiddleware is the second half of that
+				// contract: a tenant administrator's `/api/v1/*` tenant-domain
+				// grant satisfies Casbin, so without the gate it could list
+				// every tenant. The console stays a platform capability.
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db)).Use(middleware.CasbinMiddleware()).Use(middleware.PlatformCapabilityMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				{
+					systemProtected.GET("/tenant/list", deps.tenantHandler.ListTenants)
+					systemProtected.GET("/tenant/:id", deps.tenantHandler.GetTenant)
+					systemProtected.POST("/tenant", deps.tenantHandler.CreateTenant)
+					systemProtected.PUT("/tenant/:id", deps.tenantHandler.UpdateTenant)
+					systemProtected.DELETE("/tenant/:id", middleware.SecureActionMiddleware(), deps.tenantHandler.DeleteTenant)
+					systemProtected.GET("/tenant/:id/members", deps.tenantHandler.ListTenantMembers)
+					systemProtected.POST("/tenant/:id/members", deps.tenantHandler.AddTenantMember)
+					systemProtected.DELETE("/tenant/:id/members/:userId", middleware.SecureActionMiddleware(), deps.tenantHandler.RemoveTenantMember)
+					// Tenant-ops console (contract §2.5): the platform-global
+					// rollup, the cross-tenant member listing and the plan
+					// editor. Separate path segment from /tenant/:id so no static
+					// route competes with the wildcard.
+					systemProtected.GET("/tenant-ops/overview", deps.tenantHandler.GetOverview)
+					systemProtected.GET("/tenant-ops/member", deps.tenantHandler.ListAllMembers)
+					systemProtected.GET("/tenant-ops/plan/list", deps.tenantHandler.ListPlans)
+					systemProtected.POST("/tenant-ops/plan", deps.tenantHandler.CreatePlan)
+					systemProtected.PUT("/tenant-ops/plan/:code", deps.tenantHandler.UpdatePlan)
+				}
+			},
+		},
 	}
 }
 
@@ -229,7 +318,7 @@ func initOrgModules(deps *systemModuleDependencies) []contracts.BackendModule {
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.deptSvc.Bootstrap() },
 			SeedMenusFunc: seedDeptModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
 				{
 					systemProtected.GET("/dept/overview", deps.deptHandler.GetDeptOverview)
 					systemProtected.GET("/dept/governance/tasks", deps.deptHandler.GetGovernanceTasks)
@@ -254,7 +343,7 @@ func initOrgModules(deps *systemModuleDependencies) []contracts.BackendModule {
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.postSvc.Bootstrap() },
 			SeedMenusFunc: seedPostModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db)).Use(middleware.CasbinMiddleware()).Use(RefreshSyncMiddleware(deps.refreshSyncSvc))
 				{
 					systemProtected.GET("/post/list", deps.postHandler.GetPostList)
 					systemProtected.GET("/post/import-template", deps.postHandler.DownloadImportTemplate)
@@ -277,14 +366,13 @@ func initConfigModules(deps *systemModuleDependencies) []contracts.BackendModule
 			ModuleName:    "dict",
 			MigrateFunc:   func(_ *gorm.DB) error { return deps.dictSvc.Migrate() },
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.dictSvc.Bootstrap() },
-			SeedMenusFunc: seedDictModuleMenus,
-			Register: func(r *gin.RouterGroup) {
+			SeedMenusFunc: seedDictModuleMenus, Register: func(r *gin.RouterGroup) {
 				systemPublic := r.Group(routeGroupSystem)
 				{
 					systemPublic.GET("/dict/options", deps.dictHandler.GetDictOptions)
 				}
 
-				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db)).Use(middleware.CasbinMiddleware())
 				{
 					systemProtected.GET("/dict/type/list", deps.dictHandler.GetDictTypeList)
 					systemProtected.GET("/dict/type/import-template", deps.dictHandler.DownloadDictTypeImportTemplate)
@@ -311,23 +399,40 @@ func initConfigModules(deps *systemModuleDependencies) []contracts.BackendModule
 			},
 		},
 		contracts.FuncModule{
-			ModuleName:    "setting",
-			MigrateFunc:   func(_ *gorm.DB) error { return deps.settingSvc.Migrate() },
+			ModuleName: "setting",
+			MigrateFunc: func(_ *gorm.DB) error {
+				if err := deps.settingSvc.Migrate(); err != nil {
+					return err
+				}
+				// Cross-instance invalidation: drop this process's setting
+				// caches whenever any instance publishes settings:refresh.
+				deps.settingSvc.WatchSettingsInvalidation()
+				return nil
+			},
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.settingSvc.Bootstrap() },
 			SeedMenusFunc: seedSettingModuleMenus,
 			Register: func(r *gin.RouterGroup) {
 				systemPublic := r.Group(routeGroupSystem)
 				{
 					systemPublic.GET("/setting/public", deps.settingHandler.GetPublicSettings)
-					systemPublic.GET("/upload/files/*filepath", deps.settingHandler.ServeUploadedFile)
+				}
+				uploadProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db))
+				{
+					uploadProtected.GET("/upload/files/*filepath", deps.settingHandler.ServeUploadedFile)
 				}
 
-				systemAuth := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB))
+				// TenantContextMiddleware is REQUIRED on the upload write path too:
+				// uploadScope() derives the `t{id}/` object-key prefix from the
+				// resolved tenant context — without it a multi-mode upload would
+				// silently fall back to the legacy (tenantless) keyspace and let
+				// tenants collide into the global namespace (queue-6 matrix
+				// finding #2, 2026-09-13).
+				systemAuth := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db))
 				{
 					systemAuth.POST("/upload", RefreshSyncMiddleware(deps.refreshSyncSvc), deps.settingHandler.UploadFile)
 				}
 
-				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db)).Use(middleware.CasbinMiddleware())
 				{
 					systemProtected.GET("/setting/overview", deps.settingHandler.GetSettingOverview)
 					systemProtected.GET("/setting/list", deps.settingHandler.GetSettingList)
@@ -356,7 +461,14 @@ func initI18nModules(deps *systemModuleDependencies) []contracts.BackendModule {
 					sysPublic.GET("/i18n/pack", deps.i18nHandler.GetLangPack)
 				}
 
-				sysProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
+				// The i18n console writes the platform-global `sys_i18n`
+				// catalogue; a tenant administrator's blanket `/api/v1/*`
+				// tenant-domain Casbin grant would otherwise let it rewrite
+				// shared language packs, so the whole management group is a
+				// platform capability (contract §3.3, same gate as the tenant
+				// console). The public `/i18n/pack` read stays open — every
+				// tenant's UI loads its language pack from it.
+				sysProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db)).Use(middleware.CasbinMiddleware()).Use(middleware.PlatformCapabilityMiddleware())
 				{
 					sysProtected.GET("/i18n/overview", deps.i18nHandler.GetOverview)
 					sysProtected.GET("/i18n/audit", deps.i18nHandler.GetAudit)
@@ -394,7 +506,11 @@ func initAuditModules(deps *systemModuleDependencies) []contracts.BackendModule 
 			BootstrapFunc: func(_ *gorm.DB) error { return deps.auditSvc.Bootstrap() },
 			SeedMenusFunc: seedAuditModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.CasbinMiddleware())
+				// TenantContextMiddleware is REQUIRED here: without it the audit
+				// handler sees a nil tenant context and WithTenantScope no-ops,
+				// letting every tenant read the full operation-log population
+				// (found by the queue-6 live two-tenant matrix 2026-09-13).
+				systemProtected := r.Group(routeGroupSystem).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(deps.tenantModeLoader, deps.db)).Use(middleware.CasbinMiddleware())
 				{
 					systemProtected.GET("/operation-log/list", deps.auditHandler.GetOperationLogList)
 					systemProtected.GET("/operation-log/:id", deps.auditHandler.GetOperationLog)

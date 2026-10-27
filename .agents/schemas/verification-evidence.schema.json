@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pantheon Verification Evidence",
+  "type": "object",
+  "required": ["taskId", "repo", "agent", "commands", "knownGaps"],
+  "properties": {
+    "taskId": { "type": "string" },
+    "repo": { "type": "string" },
+    "agent": {
+      "type": "object",
+      "required": ["tool"],
+      "properties": {
+        "tool": {
+          "type": "string",
+          "enum": [
+            "codex",
+            "claude-code",
+            "cursor",
+            "github-copilot",
+            "openhands",
+            "aider",
+            "human",
+            "other"
+          ]
+        },
+        "adapter": { "type": "string" }
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["command", "cwd", "status"],
+        "properties": {
+          "command": { "type": "string" },
+          "cwd": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["passed", "failed", "not-run"]
+          },
+          "durationMs": { "type": "number" },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "browserEvidence": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "linkage": {
+      "type": "object",
+      "required": ["taskPacket", "evidenceDir", "reviewFile", "changeRef", "planRefs"],
+      "properties": {
+        "taskPacket": { "type": "string" },
+        "evidenceDir": { "type": "string" },
+        "reviewFile": { "type": "string" },
+        "changeRef": { "type": "string" },
+        "planRefs": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "knownGaps": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "completedAt": { "type": "string" }
+  }
+}

@@ -1,4 +1,4 @@
-import { defineModule } from '../../../core/router/types';
+import { defineModule } from '@duanxldragon/pantheon-base-ui';
 
 export const ServiceModule = defineModule({
   name: 'service',
@@ -10,7 +10,7 @@ export const ServiceModule = defineModule({
       titleKey: 'operations.service.menu',
       icon: 'apps',
       pagePermission: 'business:service:list',
-      componentKey: 'business/service/ServiceList',
+      componentKey: 'business/service/ServiceCatalog',
     },
   ],
   menus: [

@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# Pre-push hook to validate harness task structure
+# Install: cp scripts/hooks/pre-push .git/hooks/pre-push && chmod +x .git/hooks/pre-push
+
+set -e
+
+echo "🔍 Validating harness task structure..."
+
+# Find all staged harness task manifests
+staged_manifests=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.harness/tasks/.*/manifest\.json$' || true)
+
+if [ -z "$staged_manifests" ]; then
+  echo "✅ No harness tasks to validate"
+  exit 0
+fi
+
+validation_failed=0
+
+for manifest in $staged_manifests; do
+  if [ ! -f "$manifest" ]; then
+    continue
+  fi
+
+  task_id=$(dirname "$manifest" | xargs basename)
+  echo "  Checking task: $task_id"
+
+  # Required files
+  required_files=(
+    ".harness/tasks/$task_id/manifest.json"
+    ".harness/evidence/$task_id/commands.json"
+    ".harness/evidence/$task_id/summary.md"
+    ".harness/evidence/$task_id/review.md"
+  )
+
+  for file in "${required_files[@]}"; do
+    if [ ! -f "$file" ]; then
+      echo "    ❌ Missing: $file"
+      validation_failed=1
+    fi
+  done
+
+  # Validate manifest has required fields
+  if command -v jq >/dev/null 2>&1; then
+    required_fields=("taskId" "description" "scope" "impact" "ratchetDecision" "githubSignal")
+    for field in "${required_fields[@]}"; do
+      if ! jq -e ".$field" "$manifest" >/dev/null 2>&1; then
+        echo "    ❌ Missing field in manifest: $field"
+        validation_failed=1
+      fi
+    done
+  fi
+done
+
+if [ $validation_failed -eq 1 ]; then
+  echo ""
+  echo "❌ Harness validation failed!"
+  echo ""
+  echo "To fix:"
+  echo "  1. Ensure all evidence files exist"
+  echo "  2. Update manifest.json with required fields"
+  echo "  3. Use: node scripts/harness/generate-pr-body.mjs <task-id>"
+  echo ""
+  exit 1
+fi
+
+echo "✅ All harness tasks validated"
+exit 0

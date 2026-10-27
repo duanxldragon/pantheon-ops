@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-base/modules/business/k8s/cluster"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/testmysql"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm"

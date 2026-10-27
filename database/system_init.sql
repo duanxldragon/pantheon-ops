@@ -131,6 +131,7 @@ CREATE TABLE `system_i18n` (
     `lifecycle_marked_at` datetime(3) DEFAULT NULL COMMENT '生命周期标记时间',
     `created_at` datetime(3) DEFAULT NULL,
     `updated_at` datetime(3) DEFAULT NULL,
+    `updated_by` varchar(64) DEFAULT NULL COMMENT '最后更新人 (updated_by)',
     PRIMARY KEY (`id`),
     UNIQUE KEY `uidx_system_i18n_locale_key` (`locale`, `key`),
     KEY `idx_system_i18n_module_key` (`module`, `key`),

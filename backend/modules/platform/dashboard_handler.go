@@ -1,7 +1,8 @@
 package platform
 
 import (
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +21,7 @@ func (h *DashboardHandler) GetSummary(c *gin.Context) {
 		return
 	}
 
-	summary, err := h.service.GetSummary()
+	summary, err := h.service.WithTenantContext(tenant.FromGin(c)).GetSummary()
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "dashboard.summary.error")
 		return

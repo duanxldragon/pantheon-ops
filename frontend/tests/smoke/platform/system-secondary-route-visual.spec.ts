@@ -212,7 +212,7 @@ test.describe('system secondary route visual acceptance', () => {
         await signInAsAdmin(page);
 
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
-        await page.goto(route.path, { waitUntil: 'networkidle' });
+        await page.goto(route.path, { waitUntil: 'domcontentloaded' });
 
         expectPagePathname(page, route.path);
         await expectPageIdentity(page, route.title);

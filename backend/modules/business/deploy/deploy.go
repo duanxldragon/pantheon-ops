@@ -1,10 +1,13 @@
 package deploy
 
 import (
-	bizscope "pantheon-base/modules/business/bizscope"
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/modules/business/cmdb"
-	"pantheon-base/pkg/contracts"
+	"log/slog"
+	"runtime/debug"
+
+	bizscope "github.com/duanxldragon/pantheon-base/backend/modules/business/bizscope"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -33,7 +36,19 @@ func initDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.Deplo
 	svc.SetServiceInstanceStateCommand(stateCommand)
 	// Recover leases and queued work from a prior process before accepting new
 	// deploy starts. Each host is still claimed atomically by the worker.
-	go func() { _, _ = svc.ReconcileDeployQueue("system") }()
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				slog.Error("deploy queue reconciliation panic recovered",
+					"panic", r,
+					"stack", string(debug.Stack()),
+				)
+			}
+		}()
+		if _, err := svc.ReconcileDeployQueue("system"); err != nil {
+			slog.Error("deploy queue reconciliation failed", "error", err)
+		}
+	}()
 	handler := NewDeployHandler(svc)
 
 	modules := []contracts.BackendModule{

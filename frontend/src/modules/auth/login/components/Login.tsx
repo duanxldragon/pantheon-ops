@@ -29,19 +29,24 @@ import {
   isServerRequestError,
   isTimeoutRequestError,
 } from '../../../../api/request';
-import { login, type LoginPayload, type LoginResp } from '../api';
+import { login, type LoginPayload, type LoginResp, type LoginTenantCandidate } from '../api';
 import { verifyMFA } from '../../mfa/api';
-import { findFirstNavigableMenuPath } from '../../../system/menu/api';
+import { findFirstNavigableMenuPath } from '../../../system/iam/menu/api';
 import { useAuthStore } from '../../../../store/useAuthStore';
 import { useMenuStore } from '../../../../store/useMenuStore';
+import { useTenantSessionStore } from '../../../../store/useTenantSessionStore';
+import PasswordInput from '../../../../components/patterns/forms/PasswordInput';
 import ThemeSwitcher from '../../../../core/theme/ThemeSwitcher';
 import { clearShellSessionState, LOGIN_NOTICE_STORAGE_KEY } from '../../../../core/shellState';
+import { clearTenantViewpoint } from '../../../../core/tenant/viewpoint';
 import {
   getBrandInitial,
   setExplicitLanguagePreference,
   usePublicSettings,
-} from '../../../../core/settings/publicSettings';
+} from '../../../../core/setting/publicSettings';
 import { COOKIE_TOKEN_PLACEHOLDER } from '../../../../core/auth/sessionSnapshot';
+import { invalidateAllRouteWarmData } from '../../../../core/router/prefetch';
+import { resolveDefaultAuthedPath } from '../../../../core/router/defaultPath';
 import { SUPPORTED_LOCALES, switchI18nLanguage, type SupportedLocale } from '../../../../i18n';
 import './Login.css';
 
@@ -50,15 +55,17 @@ const LOGIN_NOTICE_MESSAGE_KEY_MAP: Record<string, string> = {
   'session.idle_timeout': 'auth.login.idleTimeoutNotice',
 };
 
-function resolvePostLoginPath(hasDashboardPermission: boolean, fallbackMenuPath: string | null) {
-  if (hasDashboardPermission) {
-    return '/dashboard';
-  }
-  if (fallbackMenuPath) {
-    return fallbackMenuPath;
-  }
-  return '/dashboard';
-}
+// The backend answers a refused tenant sign-in with its own `tenant.*` key
+// (tenant.forbidden / tenant.suspended / tenant.archived), so those keys are
+// rendered verbatim: a generic "login failed" hides the one fact the operator
+// needs — whether the account lacks membership, or the tenant itself is not
+// accepting logins. Every key admitted here has a translation in all locales.
+const LOGIN_PASSTHROUGH_MESSAGE_PREFIXES = [
+  'user.login.error.',
+  'auth.login.error.',
+  'auth.mfa.',
+  'tenant.',
+];
 
 function resolveLoginErrorKey(error: unknown, fallbackKey: string) {
   if (!isRequestError(error)) {
@@ -68,11 +75,7 @@ function resolveLoginErrorKey(error: unknown, fallbackKey: string) {
   if (!messageKey) {
     return fallbackKey;
   }
-  if (
-    messageKey.startsWith('user.login.error.') ||
-    messageKey.startsWith('auth.login.error.') ||
-    messageKey.startsWith('auth.mfa.')
-  ) {
+  if (LOGIN_PASSTHROUGH_MESSAGE_PREFIXES.some((prefix) => messageKey.startsWith(prefix))) {
     return messageKey;
   }
   return fallbackKey;
@@ -136,7 +139,7 @@ function MFAChallengeFields({ challenge, t, onSubmit }: Readonly<MFAChallengeFie
         <div className="auth-login-mfa-setup">
           {challenge.totpProvisionUri ? (
             <div className="auth-login-mfa-qr">
-              <div className="auth-login-mfa-qr__image" aria-label={t('auth.mfa.scanQr')}>
+              <div className="auth-login-mfa-qr__image" role="img" aria-label={t('auth.mfa.scanQr')}>
                 <QRCodeSVG value={challenge.totpProvisionUri} size={168} level="M" includeMargin />
               </div>
               <Typography.Text className="auth-login-mfa-qr__hint">
@@ -172,6 +175,8 @@ function MFAChallengeFields({ challenge, t, onSubmit }: Readonly<MFAChallengeFie
           placeholder={t('auth.mfa.codePlaceholder')}
           size="large"
           maxLength={6}
+          autoComplete="one-time-code"
+          inputMode="numeric"
           onPressEnter={onSubmit}
         />
       </FormItem>
@@ -183,6 +188,8 @@ export function LoginPageComponent() {
   const [form] = Form.useForm<LoginPayload & { mfaCode?: string }>();
   const [loading, setLoading] = useState(false);
   const [mfaChallenge, setMFAChallenge] = useState<LoginResp | null>(null);
+  const [tenantCandidates, setTenantCandidates] = useState<LoginTenantCandidate[]>([]);
+  const [selectedTenantId, setSelectedTenantId] = useState<number>();
   const [loginNotice] = useState<string | null>(() =>
     sessionStorage.getItem(LOGIN_NOTICE_STORAGE_KEY),
   );
@@ -237,11 +244,24 @@ export function LoginPageComponent() {
     }
     clearShellSessionState();
     resetMenuTree();
+    // The tenant context is session state: a re-login in the same tab must not
+    // inherit the previous subject's plan or viewpoint.
+    useTenantSessionStore.getState().resetTenantSession();
+    // A viewpoint never crosses a login boundary: the new session decides its
+    // own scope (tenant admins resolve their claim at login; platform
+    // subjects opt back in explicitly). sessionStorage is per-tab but a
+    // re-login in the same tab would otherwise inherit the stale pin.
+    clearTenantViewpoint();
+    // Same boundary rule for the route warm-data cache: it is keyed by path
+    // only, so a sign-in that followed a logout in this tab must not be served
+    // the previous subject's warmed rows. The logout path clears it too; this
+    // side covers exits that never reached it.
+    invalidateAllRouteWarmData();
     setTokens(COOKIE_TOKEN_PLACEHOLDER, COOKIE_TOKEN_PLACEHOLDER);
     setUserInfo(res.user);
     const menuTree = await fetchMenuTree();
     const fallbackMenuPath = findFirstNavigableMenuPath(menuTree);
-    const nextPath = resolvePostLoginPath(canEnterPlatformDashboard(res.user), fallbackMenuPath);
+    const nextPath = resolveDefaultAuthedPath(canEnterPlatformDashboard(res.user), fallbackMenuPath);
     message.success(t('auth.loginSuccess'));
     navigate(nextPath, { replace: true });
   };
@@ -254,12 +274,24 @@ export function LoginPageComponent() {
         const res = await verifyMFA({
           challengeId: mfaChallenge.challengeId,
           code: values.mfaCode || '',
+          tenantId: selectedTenantId ?? mfaChallenge.tenantId,
         });
         await completeLogin(res);
         return;
       }
 
-      const res = await login(values);
+      const res = await login({
+        username: values.username,
+        password: values.password,
+        tenantId: selectedTenantId,
+      });
+      if (res.tenantSelectionRequired) {
+        if (!Array.isArray(res.tenantCandidates) || res.tenantCandidates.length < 2) {
+          throw new Error('auth.login.response_invalid');
+        }
+        setTenantCandidates(res.tenantCandidates);
+        return;
+      }
       if (res.mfaRequired) {
         setMFAChallenge(res);
         message.info(t('auth.mfa.required'));
@@ -389,19 +421,43 @@ export function LoginPageComponent() {
                 prefix={<IconUser />}
                 placeholder={t('auth.usernamePlaceholder')}
                 size="large"
+                autoComplete="username"
                 onPressEnter={() => form.submit()}
               />
             </FormItem>
+            {tenantCandidates.length > 0 && !mfaChallenge ? (
+              <div className="auth-login-tenant-picker">
+                <Typography.Text className="auth-login-tenant-picker__label">
+                  {t('auth.login.tenant.title')}
+                </Typography.Text>
+                <Typography.Text className="auth-login-tenant-picker__hint">
+                  {t('auth.login.tenant.hint')}
+                </Typography.Text>
+                <Select
+                  value={selectedTenantId}
+                  placeholder={t('auth.login.tenant.placeholder')}
+                  size="large"
+                  onChange={(value) => setSelectedTenantId(Number(value))}
+                >
+                  {tenantCandidates.map((candidate) => (
+                    <Select.Option key={candidate.tenantId} value={candidate.tenantId}>
+                      {candidate.name} ({candidate.code})
+                    </Select.Option>
+                  ))}
+                </Select>
+              </div>
+            ) : null}
             <FormItem
               label={t('auth.password')}
               field="password"
               rules={[{ required: true, message: t('auth.passwordRequired') }]}
             >
-              <Input.Password
+              <PasswordInput
                 disabled={Boolean(mfaChallenge)}
                 prefix={<IconLock />}
                 placeholder={t('auth.passwordPlaceholder')}
                 size="large"
+                autoComplete="current-password"
                 onPressEnter={() => form.submit()}
               />
             </FormItem>
@@ -413,13 +469,23 @@ export function LoginPageComponent() {
               htmlType="submit"
               long
               loading={loading}
+              disabled={tenantCandidates.length > 0 && !selectedTenantId && !mfaChallenge}
               className="auth-login-card__submit"
             >
               {mfaChallenge ? t('auth.mfa.verifyAndSignIn') : t('auth.signIn')}
             </Button>
-            {mfaChallenge ? (
-              <Button long type="text" disabled={loading} onClick={() => setMFAChallenge(null)}>
-                {t('auth.mfa.backToPassword')}
+            {mfaChallenge || tenantCandidates.length > 0 ? (
+              <Button
+                long
+                type="text"
+                disabled={loading}
+                onClick={() => {
+                  setMFAChallenge(null);
+                  setTenantCandidates([]);
+                  setSelectedTenantId(undefined);
+                }}
+              >
+                {mfaChallenge ? t('auth.mfa.backToPassword') : t('auth.login.tenant.back')}
               </Button>
             ) : null}
           </Form>

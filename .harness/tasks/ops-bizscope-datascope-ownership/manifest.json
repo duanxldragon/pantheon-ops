@@ -2,6 +2,8 @@
   "schemaVersion": 1,
   "taskId": "ops-bizscope-datascope-ownership",
   "title": "Make BizScope an authorized, race-safe ownership boundary",
+  "goal": "Enforce authorized and race-safe BizScope ownership for business resources and operations.",
+  "primaryLayer": "business/*",
   "status": "complete",
   "priority": "P0",
   "deliveryTier": "L2",
@@ -85,6 +87,8 @@
   "runtimeSensitive": true,
   "costProfile": "high; strong backend/auth executor; frontend can be a separate low-cost lane after API freeze",
   "linkage": {
+    "changeRef": "none",
+    "planRefs": ["docs/harness/tasks/2026-08-17-ops-bizscope-datascope-ownership.task.md"],
     "evidenceDir": ".harness/evidence/ops-bizscope-datascope-ownership/",
     "reviewFile": ".harness/evidence/ops-bizscope-datascope-ownership/review.md",
     "summaryFile": ".harness/evidence/ops-bizscope-datascope-ownership/summary.md"

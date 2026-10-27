@@ -35,3 +35,9 @@ Pantheon Platform 当前优先维护以下范围：
 - 收到报告后，会先确认问题归属层级与影响边界；
 - 对高风险认证、授权、敏感配置泄露问题优先处理；
 - 修复后会同步更新相关测试与文档，避免回归。
+
+## Current Security Status
+
+V1 发布状态以 [`docs/V1_RELEASE_CHECKLIST.md`](./docs/V1_RELEASE_CHECKLIST.md) 为唯一入口；当前清单仍为 `BLOCKED - NOT READY TO FREEZE`。执行状态和命令证据分别保存在 `.harness/tasks/2026-08-24-ops-v1-freeze-remediation/` 与 `.harness/evidence/2026-08-24-ops-v1-freeze-remediation/`。
+
+归档的安全审计和阶段性修复计划位于 `archive/2026-08-process/`，仅供追溯，不能替代当前发布门禁。

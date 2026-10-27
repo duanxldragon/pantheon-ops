@@ -1,9 +1,9 @@
-package system
+package audit
 
 import (
 	"strings"
 
-	"pantheon-base/internal/middleware"
+	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
 )
 
 const (

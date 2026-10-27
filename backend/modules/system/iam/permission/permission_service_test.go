@@ -1,5 +1,5 @@
 //nolint:goconst // repeated assertion literals are intentional in this integration test file.
-package iam
+package permission
 
 import (
 	"errors"
@@ -7,17 +7,22 @@ import (
 	"testing"
 	"time"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/testmysql"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"gorm.io/gorm"
 )
 
+// permissionTestRole mirrors the production system_role table: TenantID and
+// the (tenant_id, role_key) unique key. The old fixture omitted tenant_id,
+// which is why a policy service that never filtered by tenant could look
+// correct here while a tenant could read every tenant's policies in production.
 type permissionTestRole struct {
 	ID        uint64         `gorm:"primaryKey;autoIncrement"`
+	TenantID  uint64         `gorm:"not null;default:0;uniqueIndex:uk_system_role_tenant_key,priority:1"`
 	RoleName  string         `gorm:"size:64;not null"`
-	RoleKey   string         `gorm:"size:64;not null;uniqueIndex"`
+	RoleKey   string         `gorm:"size:64;not null;uniqueIndex:uk_system_role_tenant_key,priority:2"`
 	Sort      int            `gorm:"default:0"`
 	Status    int            `gorm:"default:1"`
 	DeletedAt gorm.DeletedAt `gorm:"index"`
@@ -61,6 +66,19 @@ func (permissionTestMenu) TableName() string {
 	return "system_menu"
 }
 
+// permissionTestDept 让夹具带上真实的 system_dept 结构。数据权限的自定义范围
+// 会校验部门归属（acceptance F11），没有这张表时任何 dept id 都算非法。
+type permissionTestDept struct {
+	ID        uint64         `gorm:"primaryKey;autoIncrement"`
+	TenantID  uint64         `gorm:"not null;default:0"`
+	Name      string         `gorm:"column:dept_name;size:64;not null;default:''"`
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+}
+
+func (permissionTestDept) TableName() string {
+	return "system_dept"
+}
+
 func setupPermissionTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
@@ -71,10 +89,18 @@ func setupPermissionTestDB(t *testing.T) *gorm.DB {
 		&permissionTestRoleMenu{},
 		&permissionTestRolePermission{},
 		&permissionTestMenu{},
+		&permissionTestDept{},
 		&database.CasbinRule{},
 		&PermissionRoleDataScopePolicy{},
 	); err != nil {
 		t.Fatalf("migrate permission fixtures: %v", err)
+	}
+
+	if err := db.Create(&[]permissionTestDept{
+		{ID: 10, TenantID: 0, Name: "研发部"},
+		{ID: 20, TenantID: 0, Name: "市场部"},
+	}).Error; err != nil {
+		t.Fatalf("seed permission depts: %v", err)
 	}
 
 	return db
@@ -237,7 +263,7 @@ func TestPermissionService_GetWorkbenchIntegrityFilter(t *testing.T) {
 
 	if err := db.Create(&[]database.CasbinRule{
 		{PType: "p", V0: "clean_role", V1: "/api/v1/system/user/list", V2: "GET"},
-		{PType: "p", V0: "dirty_role", V1: "/api/v1/system/user/create", V2: "POST"},
+		{PType: "p", V0: "dirty_role", V1: "/api/v1/system/user", V2: "POST"},
 	}).Error; err != nil {
 		t.Fatalf("seed policies: %v", err)
 	}
@@ -308,7 +334,7 @@ func TestPermissionService_GetWorkbenchCoverageFilter(t *testing.T) {
 	}
 	if err := db.Create(&[]database.CasbinRule{
 		{PType: "p", V0: "complete_role", V1: "/api/v1/system/user/list", V2: "GET"},
-		{PType: "p", V0: "complete_role", V1: "/api/v1/system/user/create", V2: "POST"},
+		{PType: "p", V0: "complete_role", V1: "/api/v1/system/user", V2: "POST"},
 	}).Error; err != nil {
 		t.Fatalf("seed casbin rules: %v", err)
 	}
@@ -644,12 +670,12 @@ func TestPermissionWorkbenchRequiresSecurityEventActionPolicies(t *testing.T) {
 		t.Fatalf("unexpected batch acknowledge policy: %+v", acknowledge[1])
 	}
 
-	clear := requiredAPIPoliciesByPermissionKey("system:security-event:clear")
-	if len(clear) != 1 {
-		t.Fatalf("expected one required clear policy, got %+v", clear)
+	policies := requiredAPIPoliciesByPermissionKey("system:security-event:clear")
+	if len(policies) != 1 {
+		t.Fatalf("expected one required clear policy, got %+v", policies)
 	}
-	if clear[0].Path != "/api/v1/system/security-event/cleanup" || clear[0].Method != "POST" {
-		t.Fatalf("unexpected clear policy: %+v", clear[0])
+	if policies[0].Path != "/api/v1/system/security-event/cleanup" || policies[0].Method != "POST" {
+		t.Fatalf("unexpected clear policy: %+v", policies[0])
 	}
 }
 

@@ -14,7 +14,7 @@ import {
   buildStandardPagination,
 } from '../../../components';
 import { getServiceInstanceList, getServiceList, reconcileServiceInstance, type ServiceInstanceRow, type ServiceListQuery, type ServiceRow } from './api';
-import '../../../modules/system/components/shared/list-page.css';
+import '../../../assets/list-page.css';
 
 const emptyQuery: ServiceListQuery = { keyword: '', status: '', page: 1, pageSize: 20 };
 

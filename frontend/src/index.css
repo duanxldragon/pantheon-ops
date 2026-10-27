@@ -116,13 +116,31 @@
   --shell-governance-select-width: 200px;
   /* P2-2 通用阶梯 token —— 供浮层与业务页优先消费；壳层专用变量继续保留 */
   --space-2xs: 2px;
+  --space-3xs: 3px;
   --space-xs: 4px;
+  --space-xs-plus: 6px;
   --space-sm: 8px;
+  --space-sm-alt: 9px;
+  --space-sm-plus: 10px;
+  --space-sm-large: 11px;
   --space-md: 12px;
+  --space-md-alt: 13px;
+  --space-md-plus: 14px;
   --space-lg: 16px;
+  --space-lg-alt: 18px;
+  --space-lg-plus: 20px;
+  --space-lg-large: 22px;
   --space-xl: 24px;
+  --space-xl-alt: 26px;
+  --space-xl-plus: 28px;
   --space-2xl: 32px;
+  --space-2xl-alt: 34px;
+  --space-2xl-plus: 36px;
   --space-3xl: 48px;
+  --space-3xl-alt: 56px;
+  --space-3xl-plus: 64px;
+  --space-4xl: 84px;
+  --space-4xl-plus: 88px;
   --font-size-caption: 12px;
   --font-size-body-sm: 13px;
   --font-size-body: 14px;
@@ -144,6 +162,16 @@
   --z-overlay: 1200;
   --z-modal: 1300;
   --z-notification: 1400;
+  /* 容器分类 - 交互容器（需要用户操作的元素） */
+  --container-interactive-bg: var(--panel-bg-solid);
+  --container-interactive-border: var(--panel-border);
+  --container-interactive-hover-bg: rgba(var(--primary-1), 0.5);
+  --container-interactive-focus-border: var(--brand-primary);
+  /* 容器分类 - 展示容器（信息展示、分组容器） */
+  --container-display-bg: var(--panel-muted);
+  --container-display-border: rgba(0, 0, 0, 0.06);
+  --container-display-separator: rgba(0, 0, 0, 0.04);
+  --container-display-elevated: var(--panel-bg-solid);
 }
 
 :root[data-pantheon-theme='emerald'] {
@@ -265,6 +293,15 @@
   --shell-sider-bg: #12161f;
   --shell-sider-elevated: #1a212c;
   --shell-sider-border: rgba(255, 255, 255, 0.08);
+  /* 容器分类 - 暗色模式 */
+  --container-interactive-bg: var(--panel-bg-solid);
+  --container-interactive-border: var(--panel-border);
+  --container-interactive-hover-bg: rgba(91, 136, 255, 0.1);
+  --container-interactive-focus-border: var(--brand-primary);
+  --container-display-bg: var(--panel-muted);
+  --container-display-border: rgba(255, 255, 255, 0.08);
+  --container-display-separator: rgba(255, 255, 255, 0.04);
+  --container-display-elevated: var(--panel-bg-solid);
 }
 
 /* 品牌色在暗色下提亮、略降饱和、保持色相 */
@@ -393,6 +430,61 @@ a {
   .arco-input-tag
 ):focus-visible {
   outline: 0;
+}
+
+/* ===========================================================================
+   交互容器样式 - 使用 --container-interactive-* token
+   应用于需要用户操作的元素：输入框、选择器、可点击卡片
+   =========================================================================== */
+.arco-input-inner-wrapper,
+.arco-input-password,
+.arco-input-number,
+input.arco-input,
+.arco-select-view,
+.arco-tree-select-view,
+.arco-picker,
+.arco-textarea-wrapper {
+  background-color: var(--container-interactive-bg);
+  border-color: var(--container-interactive-border);
+}
+
+.arco-input-inner-wrapper:hover,
+.arco-select-view:hover,
+.arco-tree-select-view:hover,
+.arco-picker:hover {
+  background-color: var(--container-interactive-hover-bg);
+}
+
+.arco-input-inner-wrapper:focus-within,
+.arco-input-inner-wrapper.arco-input-focus,
+.arco-select-view.arco-select-view-focus,
+.arco-tree-select-view.arco-tree-select-view-focus,
+.arco-picker.arco-picker-focused {
+  border-color: var(--container-interactive-focus-border);
+  background-color: var(--container-interactive-bg);
+}
+
+/* ===========================================================================
+   展示容器样式 - 使用 --container-display-* token
+   应用于只读展示的元素：卡片、描述列表、统计面板、信息展示区
+   =========================================================================== */
+.arco-card {
+  background-color: var(--container-display-elevated);
+  border-color: var(--container-display-border);
+}
+
+.arco-descriptions {
+  background-color: var(--container-display-bg);
+  border-radius: var(--radius-md);
+}
+
+.arco-table {
+  background-color: var(--container-display-elevated);
+}
+
+.arco-table-th,
+.arco-table-td {
+  border-color: var(--container-display-border);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -805,9 +897,139 @@ a {
 
 .submit-bar {
   display: flex;
+  align-items: flex-start;
   justify-content: flex-end;
+  gap: 12px;
   width: 100%;
   padding-top: 4px;
+}
+
+.operational-visual-fixture {
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--page-bg);
+}
+
+.operational-visual-fixture__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.operational-visual-fixture__grid > .operational-primitive,
+.operational-visual-fixture__grid > .arco-card {
+  min-width: 0;
+}
+
+.operational-visual-fixture__registry .arco-card-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.operational-visual-fixture__registry [data-dashboard-slot] {
+  padding: 6px 8px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .operational-visual-fixture {
+    padding: 16px;
+  }
+
+  .operational-visual-fixture__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.submit-bar__state {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.submit-bar__status {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.submit-bar__error {
+  max-width: 720px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--color-error) 18%, var(--panel-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-error-bg) 56%, var(--surface-lift));
+  color: var(--color-error);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.submit-bar__actions {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
+
+.submit-bar__actions .arco-space-item {
+  min-width: 0;
+}
+
+.submit-bar[data-sticky='true'] {
+  position: sticky;
+  z-index: 10;
+  bottom: max(0px, env(safe-area-inset-bottom));
+  align-items: center;
+  min-height: 58px;
+  margin-top: 16px;
+  padding: 10px 0 max(10px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--panel-border);
+  background: color-mix(in srgb, var(--panel-bg-solid) 96%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.submit-bar[data-status='dirty'] .submit-bar__status {
+  color: var(--brand-primary);
+}
+
+.submit-bar[data-status='success'] .submit-bar__status {
+  color: var(--color-success);
+}
+
+.submit-bar[data-status='error'] .submit-bar__status,
+.submit-bar[data-status='conflict'] .submit-bar__status {
+  color: var(--color-error);
+}
+
+@media (max-width: 768px) {
+  .submit-bar {
+    align-items: stretch;
+  }
+
+  .submit-bar[data-sticky='true'] {
+    flex-direction: column;
+    align-items: stretch;
+    padding-inline: 0;
+  }
+
+  .submit-bar__actions {
+    width: 100%;
+  }
+
+  .submit-bar__actions.arco-space-horizontal {
+    justify-content: flex-end;
+  }
+
+  .submit-bar__actions .arco-btn-primary {
+    min-width: min(172px, 48vw);
+  }
+
+  .submit-bar__overflow {
+    width: 36px;
+    padding-inline: 0;
+  }
 }
 
 .page-empty,
@@ -2600,10 +2822,6 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
   box-shadow: none;
 }
 
-.arco-descriptions {
-  border-radius: var(--radius-md);
-}
-
 .arco-descriptions-item-label {
   color: var(--text-tertiary);
   font-weight: 500;
@@ -2717,6 +2935,49 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 
 .app-table {
   font-variant-numeric: tabular-nums;
+}
+
+.app-table__view-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.app-table__view-menu {
+  min-width: 260px;
+}
+
+.app-table__view-menu-row,
+.app-table__view-column {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.app-table__view-column .arco-checkbox {
+  min-width: 0;
+}
+
+.app-table__view-column .arco-checkbox-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-table__view-column-order {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.app-table-shell--density-compact {
+  --shell-table-cell-padding-y: 6px;
+}
+
+.app-table-shell--density-comfortable {
+  --shell-table-cell-padding-y: 12px;
 }
 
 .app-table .arco-table-th {
@@ -3110,6 +3371,21 @@ html .arco-input-number .arco-input-inner-wrapper .arco-input:focus-visible {
 @media (max-width: 1280px) {
   .app-table .app-table__col--hide-lg {
     display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-table__view-toolbar {
+    justify-content: stretch;
+  }
+
+  .app-table__view-toolbar .arco-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .app-table__view-menu {
+    min-width: min(320px, calc(100vw - 32px));
   }
 }
 

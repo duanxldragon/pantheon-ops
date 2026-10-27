@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Card, Button, Popconfirm, Select, Space, Tag, Typography } from '@arco-design/web-react';
 import { message } from '../../../../components/feedback/message';
 import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
-import { IconDelete } from '@arco-design/web-react/icon';
+import { IconDelete, IconDownload } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import {
   getVisibleSelectedRowKeys,
@@ -14,6 +14,7 @@ import { usePermission } from '../../../../hooks/usePermission';
 import {
   batchRevokeAdminSessions,
   cleanupAdminSessions,
+  exportAdminSessions,
   getAdminSessionList,
   getSessions,
   revokeAdminSession,
@@ -26,10 +27,11 @@ import {
   buildStandardPagination,
   SearchToolbar,
   GovernanceCleanupBar,
+  buildGovernanceCleanupLabels,
+  GovernanceListSummary,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
-  GovernanceSummaryBar,
   PageContainer,
   PageEmpty,
   PageLoading,
@@ -42,9 +44,9 @@ import {
 } from '../../../../components';
 import { formatClientSummary } from '../clientInfo';
 import SessionDetailModal from './SessionDetailModal';
-import { getSettingGroup, type SettingGroup } from '../../../system/setting/api';
+import { getSettingGroup, type SettingGroup } from '../../../system/config/setting/api';
 import { loadRetentionSetting } from '../../../system/audit/retentionSetting';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 import '../../auth.css';
 
 const defaultRetentionOptions = [1, 7, 30];
@@ -71,7 +73,9 @@ const SessionList: React.FC = () => {
   const { isAdmin, hasPerm } = usePermission();
   const canDelete = isAdmin || hasPerm('system:session:delete');
   const canClear = isAdmin || hasPerm('system:session:clear');
+  const canExport = isAdmin || hasPerm('system:session:export');
   const governanceRail = useGovernanceRail();
+  const cleanupLabels = useMemo(() => buildGovernanceCleanupLabels(t), [t]);
   const [data, setData] = useState<AdminSessionRow[]>([]);
   const [total, setTotal] = useState(0);
   const [activeCount, setActiveCount] = useState(0);
@@ -108,21 +112,28 @@ const SessionList: React.FC = () => {
     };
   }, []);
 
+  // Re-fetch retention options from settings on mount AND right before the
+  // cleanup dialog opens, so a value just configured in 系统设置/日志治理
+  // (e.g. 14 天) shows up without a full page reload.
+  const refreshRetentionSetting = useCallback(() => {
+    return getSettingGroup('audit')
+      .then((group: SettingGroup) =>
+        loadRetentionSetting(
+          group,
+          'audit.session_cleanup_retention_options',
+          setRetentionOptions,
+          setRetentionDays,
+        ),
+      )
+      .catch(() => undefined);
+  }, []);
+
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
-      getSettingGroup('audit')
-        .then((group: SettingGroup) =>
-          loadRetentionSetting(
-            group,
-            'audit.session_cleanup_retention_options',
-            setRetentionOptions,
-            setRetentionDays,
-          ),
-        )
-        .catch(() => undefined);
+      void refreshRetentionSetting();
     }, 0);
     return () => globalThis.clearTimeout(timer);
-  }, []);
+  }, [refreshRetentionSetting]);
 
   const loadData = useCallback(
     async (nextQuery: AdminSessionQuery = query, options?: LoadDataOptions) => {
@@ -178,7 +189,9 @@ const SessionList: React.FC = () => {
     });
   };
 
+  const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
   const removeSession = async (row: AdminSessionRow) => {
+    setRevokingSessionId(row.sessionId);
     try {
       await revokeAdminSession(row.sessionId);
       message.success(t('auth.session.revokeSuccess'));
@@ -186,6 +199,8 @@ const SessionList: React.FC = () => {
       await loadData(query, { silent: true });
     } catch {
       message.error(t('common.actionFailed'));
+    } finally {
+      setRevokingSessionId(null);
     }
   };
 
@@ -215,6 +230,14 @@ const SessionList: React.FC = () => {
           : await cleanupAdminSessions({ retentionDays: payload.retentionDays });
       message.success(t('auth.session.cleanupSuccess', { count: resp.clearedCount }));
       await loadData(query, { silent: true });
+    } catch {
+      message.error(t('common.actionFailed'));
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      await exportAdminSessions(query);
     } catch {
       message.error(t('common.actionFailed'));
     }
@@ -373,6 +396,7 @@ const SessionList: React.FC = () => {
                 size="small"
                 status="danger"
                 icon={<IconDelete />}
+                loading={revokingSessionId === row.sessionId}
                 disabled={!canDelete || isSelf || !!row.revokedAt}
               >
                 {t('auth.session.revoke')}
@@ -430,7 +454,7 @@ const SessionList: React.FC = () => {
   return (
     <PageContainer>
       <Space direction="vertical" size={16} className="system-page-template">
-        <GovernanceSummaryBar
+        <GovernanceListSummary
           eyebrow={t('auth.session.hero.eyebrow')}
           title={t('auth.session.hero.title')}
           description={t('auth.session.hero.desc')}
@@ -439,7 +463,9 @@ const SessionList: React.FC = () => {
             label: item.label,
             value: item.value,
           }))}
-          action={
+          summaryTitle={t('auth.session.hero.summaryTitle')}
+          rail={governanceRail}
+          railToggle={
             <GovernanceRailToggleButton
               expanded={governanceRail.expanded}
               onToggle={governanceRail.toggle}
@@ -536,26 +562,35 @@ const SessionList: React.FC = () => {
           />
 
           <Card className="page-panel system-list__table-card">
-            {canDelete || canClear ? (
+            {canDelete || canClear || canExport ? (
               <GovernanceCleanupBar
                 showCleanup={canClear}
                 retentionDays={retentionDays}
                 retentionOptions={retentionOptions}
                 onRetentionChange={setRetentionDays}
-                retentionLabel={(option) => t('common.keepRecentDays', { count: option })}
-                confirmTitle={t('common.cleanupIrreversibleWarning')}
+                retentionLabel={cleanupLabels.retentionLabel}
+                confirmTitle={cleanupLabels.confirmTitle}
                 actionLabel={t('auth.session.cleanupAction')}
-                confirmActionLabel={t('common.cleanup')}
-                cleanupModeLabel={t('common.cleanupMode')}
-                cleanupModeOptions={[
-                  { label: t('common.cleanupModeRetention'), value: 'retention' },
-                  { label: t('common.cleanupModeRange'), value: 'range' },
-                ]}
-                rangeStartLabel={t('common.cleanupRangeStart')}
-                rangeEndLabel={t('common.cleanupRangeEnd')}
-                rangeRequiredMessage={t('common.cleanupRangeRequired')}
+                confirmActionLabel={cleanupLabels.confirmActionLabel}
+                cleanupModeLabel={cleanupLabels.cleanupModeLabel}
+                cleanupModeOptions={cleanupLabels.cleanupModeOptions}
+                rangeStartLabel={cleanupLabels.rangeStartLabel}
+                rangeEndLabel={cleanupLabels.rangeEndLabel}
+                rangeRequiredMessage={cleanupLabels.rangeRequiredMessage}
                 onConfirm={clearHistoricSessions}
+                onBeforeOpen={refreshRetentionSetting}
                 hint={t('auth.session.cleanupHint')}
+                trailing={
+                  <Button
+                    icon={<IconDownload />}
+                    onClick={() => {
+                      void handleExport();
+                    }}
+                    disabled={!canExport}
+                  >
+                    {t('common.export')}
+                  </Button>
+                }
                 extraActions={
                   canDelete ? (
                     <>

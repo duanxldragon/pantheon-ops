@@ -1,11 +1,12 @@
-package iam
+package menu
 
 import (
 	"testing"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	tenantctx "github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 	"gorm.io/gorm"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/testmysql"
 )
 
 func setupMenuTestDB(t *testing.T) *gorm.DB {
@@ -15,11 +16,28 @@ func setupMenuTestDB(t *testing.T) *gorm.DB {
 	if err := db.AutoMigrate(&SystemMenu{}); err != nil {
 		t.Fatalf("migrate menu: %v", err)
 	}
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role (id BIGINT PRIMARY KEY AUTO_INCREMENT, role_key VARCHAR(64), status INT)")
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role_menu (role_id BIGINT, menu_id BIGINT, PRIMARY KEY (role_id, menu_id))")
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role_permission (role_id BIGINT, permission_key VARCHAR(128))")
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_setting (setting_key VARCHAR(128) PRIMARY KEY, setting_value TEXT)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role (id BIGINT PRIMARY KEY AUTO_INCREMENT, tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0, role_key VARCHAR(64), status INT)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role_menu (tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0, role_id BIGINT, menu_id BIGINT, PRIMARY KEY (tenant_id, role_id, menu_id))")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role_permission (tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0, role_id BIGINT, permission_key VARCHAR(128))")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_setting (tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0, setting_key VARCHAR(128) NOT NULL, setting_value TEXT, PRIMARY KEY (tenant_id, setting_key))")
 	return db
+}
+
+func seedPlatformWorkspaceMenus(t *testing.T, db *gorm.DB, workspaceType string, includeOperations bool) {
+	t.Helper()
+	menus := []SystemMenu{
+		{ID: 1, TitleKey: "app.workspace", Path: "/workspace", Type: workspaceType, Icon: "dashboard", RouteName: "workspace", Module: "platform", Sort: 10, IsVisible: 1},
+		{ID: 2, ParentID: 1, TitleKey: "system.menu.dashboard", Path: "/dashboard", Type: "C", Icon: "dashboard", RouteName: "dashboard", Module: "platform", Sort: 1, IsVisible: 1},
+	}
+	if includeOperations {
+		menus = append(menus,
+			SystemMenu{ID: 3, ParentID: 1, TitleKey: "operations.menu", Path: "/operations", Type: "M", Icon: "desktop", RouteName: "operations", Module: "platform", Sort: 20, IsVisible: 1},
+			SystemMenu{ID: 4, ParentID: 3, TitleKey: "business.ticket.menu", Path: "/operations/ticket", Component: "business/ticket/TicketList", PagePerm: "business:ticket:list", Type: "C", Icon: "file", RouteName: "business-ticket", Module: "business.ticket", Sort: 1, IsVisible: 1},
+		)
+	}
+	if err := db.Create(&menus).Error; err != nil {
+		t.Fatalf("seed workspace menus: %v", err)
+	}
 }
 
 func TestMenuServiceCreateMenuBindsAdminRole(t *testing.T) {
@@ -192,11 +210,11 @@ func TestMenuServiceNavigationHidesOrgWhenCapabilityDisabled(t *testing.T) {
 	if err := db.Create(&SystemMenu{ID: 2, TitleKey: "system.menu.org", Path: "/system/org", Type: "M", Module: "system.org", IsVisible: 1}).Error; err != nil {
 		t.Fatalf("seed org menu: %v", err)
 	}
-	if err := db.Exec("INSERT INTO system_setting (setting_key, setting_value) VALUES ('org.enabled', 'false')").Error; err != nil {
+	if err := db.Exec("INSERT INTO system_setting (tenant_id, setting_key, setting_value) VALUES (0, 'org.enabled', 'false')").Error; err != nil {
 		t.Fatalf("seed org capability: %v", err)
 	}
 
-	tree, err := service.GetMenuTree(&MenuListQuery{Scope: "nav"}, []string{"admin"})
+	tree, err := service.GetMenuTree(&MenuListQuery{Scope: "nav"}, []string{"admin"}, nil)
 	if err != nil {
 		t.Fatalf("get nav tree: %v", err)
 	}
@@ -209,65 +227,9 @@ func TestMenuServiceNavigationFlattensPlatformWorkspaceMenus(t *testing.T) {
 	db := setupMenuTestDB(t)
 	service := NewMenuService(db)
 
-	if err := db.Create(&SystemMenu{
-		ID:        1,
-		TitleKey:  "app.workspace",
-		Path:      "/workspace",
-		Type:      "M",
-		Icon:      "dashboard",
-		RouteName: "workspace",
-		Module:    "platform",
-		Sort:      10,
-		IsVisible: 1,
-	}).Error; err != nil {
-		t.Fatalf("seed workspace menu: %v", err)
-	}
-	if err := db.Create(&SystemMenu{
-		ID:        2,
-		ParentID:  1,
-		TitleKey:  "system.menu.dashboard",
-		Path:      "/dashboard",
-		Type:      "C",
-		Icon:      "dashboard",
-		RouteName: "dashboard",
-		Module:    "platform",
-		Sort:      1,
-		IsVisible: 1,
-	}).Error; err != nil {
-		t.Fatalf("seed dashboard menu: %v", err)
-	}
-	if err := db.Create(&SystemMenu{
-		ID:        3,
-		ParentID:  1,
-		TitleKey:  "operations.menu",
-		Path:      "/operations",
-		Type:      "M",
-		Icon:      "desktop",
-		RouteName: "operations",
-		Module:    "platform",
-		Sort:      20,
-		IsVisible: 1,
-	}).Error; err != nil {
-		t.Fatalf("seed operations menu: %v", err)
-	}
-	if err := db.Create(&SystemMenu{
-		ID:        4,
-		ParentID:  3,
-		TitleKey:  "business.ticket.menu",
-		Path:      "/operations/ticket",
-		Component: "business/ticket/TicketList",
-		PagePerm:  "business:ticket:list",
-		Type:      "C",
-		Icon:      "file",
-		RouteName: "business-ticket",
-		Module:    "business.ticket",
-		Sort:      1,
-		IsVisible: 1,
-	}).Error; err != nil {
-		t.Fatalf("seed operations child menu: %v", err)
-	}
+	seedPlatformWorkspaceMenus(t, db, "M", true)
 
-	tree, err := service.GetMenuTree(&MenuListQuery{Scope: "nav"}, []string{"admin"})
+	tree, err := service.GetMenuTree(&MenuListQuery{Scope: "nav"}, []string{"admin"}, nil)
 	if err != nil {
 		t.Fatalf("get nav tree: %v", err)
 	}
@@ -294,35 +256,9 @@ func TestMenuServiceManageTreeHidesWorkspaceContainer(t *testing.T) {
 	db := setupMenuTestDB(t)
 	service := NewMenuService(db)
 
-	if err := db.Create(&SystemMenu{
-		ID:        1,
-		TitleKey:  "app.workspace",
-		Path:      "/workspace",
-		Type:      "D",
-		Icon:      "dashboard",
-		RouteName: "workspace",
-		Module:    "platform",
-		Sort:      10,
-		IsVisible: 1,
-	}).Error; err != nil {
-		t.Fatalf("seed workspace menu: %v", err)
-	}
-	if err := db.Create(&SystemMenu{
-		ID:        2,
-		ParentID:  1,
-		TitleKey:  "system.menu.dashboard",
-		Path:      "/dashboard",
-		Type:      "C",
-		Icon:      "dashboard",
-		RouteName: "dashboard",
-		Module:    "platform",
-		Sort:      1,
-		IsVisible: 1,
-	}).Error; err != nil {
-		t.Fatalf("seed dashboard menu: %v", err)
-	}
+	seedPlatformWorkspaceMenus(t, db, "D", false)
 
-	tree, err := service.GetMenuTree(&MenuListQuery{Scope: "manage"}, []string{"admin"})
+	tree, err := service.GetMenuTree(&MenuListQuery{Scope: "manage"}, []string{"admin"}, nil)
 	if err != nil {
 		t.Fatalf("get manage tree: %v", err)
 	}
@@ -333,6 +269,71 @@ func TestMenuServiceManageTreeHidesWorkspaceContainer(t *testing.T) {
 	}
 	if len(tree) != 1 || tree[0].Path != "/dashboard" || tree[0].ParentID != 0 {
 		t.Fatalf("expected dashboard to be promoted to root, got %+v", tree)
+	}
+}
+
+// A tenant-scoped session must not be shown menus whose route group requires a
+// platform capability: the page opens and every request answers 403
+// tenant.platformOnly. Both the navigation tree and the manage tail (role
+// assignment) are filtered, while a platform-scoped or compat session still
+// sees the full console.
+func TestMenuServiceTenantScopeHidesPlatformOnlyMenus(t *testing.T) {
+	db := setupMenuTestDB(t)
+	service := NewMenuService(db)
+
+	menus := []SystemMenu{
+		{ID: 1, TitleKey: "system.menu.user", Path: "/system/user", Type: "C", Module: "system.iam", IsVisible: 1, Sort: 1},
+		{ID: 2, TitleKey: "system.menu.tenant", Path: "/system/tenant", Type: "C", Module: "system.tenant", IsVisible: 1, Sort: 2},
+		{ID: 3, TitleKey: "system.menu.menu", Path: "/system/menu", Type: "C", Module: "system.iam", PagePerm: "system:menu:list", IsVisible: 1, Sort: 3},
+		{ID: 4, TitleKey: "system.menu.i18n", Path: "/system/i18n", Type: "C", Module: "system.iam", PagePerm: "system:i18n:list", IsVisible: 1, Sort: 4},
+	}
+	if err := db.Create(&menus).Error; err != nil {
+		t.Fatalf("seed menus: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_role (id, tenant_id, role_key, status) VALUES (7, 611, 'viewer', 1)").Error; err != nil {
+		t.Fatalf("seed viewer role: %v", err)
+	}
+	for _, menu := range menus {
+		if err := db.Exec("INSERT INTO system_role_menu (tenant_id, role_id, menu_id) VALUES (611, 7, ?)", menu.ID).Error; err != nil {
+			t.Fatalf("grant viewer menu %d: %v", menu.ID, err)
+		}
+	}
+
+	tenantCtx := &tenantctx.Context{TenantID: 611, Mode: tenantctx.ModeMulti, ResolvedBy: tenantctx.ResolvedBySubject}
+	nav, err := service.GetMenuTree(&MenuListQuery{Scope: "nav"}, []string{"viewer"}, tenantCtx)
+	if err != nil {
+		t.Fatalf("get tenant nav tree: %v", err)
+	}
+	navPaths := collectMenuTreePaths(nav)
+	if len(navPaths) != 1 || navPaths[0] != "/system/user" {
+		t.Fatalf("tenant navigation must only contain assignable menus, got %+v", navPaths)
+	}
+
+	manage, err := service.GetMenuTree(&MenuListQuery{Scope: "manage"}, []string{"admin"}, tenantCtx)
+	if err != nil {
+		t.Fatalf("get tenant manage tree: %v", err)
+	}
+	managePaths := collectMenuTreePaths(manage)
+	if len(managePaths) != 1 || managePaths[0] != "/system/user" {
+		t.Fatalf("tenant manage tree must only contain assignable menus, got %+v", managePaths)
+	}
+
+	platformCtx := &tenantctx.Context{TenantID: 0, Mode: tenantctx.ModeMulti, ResolvedBy: tenantctx.ResolvedByPlatformFallback}
+	platformNav, err := service.GetMenuTree(&MenuListQuery{Scope: "nav"}, []string{"admin"}, platformCtx)
+	if err != nil {
+		t.Fatalf("get platform nav tree: %v", err)
+	}
+	if platformPaths := collectMenuTreePaths(platformNav); len(platformPaths) != len(menus) {
+		t.Fatalf("platform navigation must keep platform-only menus, got %+v", platformPaths)
+	}
+
+	compatNav, err := service.GetMenuTree(&MenuListQuery{Scope: "nav"}, []string{"admin"},
+		&tenantctx.Context{TenantID: 0, Mode: tenantctx.ModeCompat, ResolvedBy: tenantctx.ResolvedByCompatFallback})
+	if err != nil {
+		t.Fatalf("get compat nav tree: %v", err)
+	}
+	if compatPaths := collectMenuTreePaths(compatNav); len(compatPaths) != len(menus) {
+		t.Fatalf("compat navigation must keep platform-only menus, got %+v", compatPaths)
 	}
 }
 

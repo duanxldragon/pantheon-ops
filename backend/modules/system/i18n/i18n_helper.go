@@ -1,4 +1,4 @@
-package system
+package i18n
 
 import (
 	"os"
@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"gorm.io/gorm"
 )
@@ -46,7 +46,9 @@ func (s *I18nService) ScanErrorKeys() ([]string, error) {
 	return scanI18nKeys(true)
 }
 
-func (s *I18nService) SyncMissingKeys() (*I18nSyncResp, error) {
+// SyncMissingKeys 为代码中引用但库里缺失的 key 补齐所有受支持语言的记录。
+// updatedBy 记录触发同步的操作者，写入新建行的 updated_by（操作者追溯，fix-report §4.5）。
+func (s *I18nService) SyncMissingKeys(updatedBy string) (*I18nSyncResp, error) {
 	keys, err := s.ScanErrorKeys()
 	if err != nil {
 		return nil, err
@@ -57,7 +59,7 @@ func (s *I18nService) SyncMissingKeys() (*I18nSyncResp, error) {
 		return nil, err
 	}
 	for _, k := range keys {
-		createdForKey, err := s.syncMissingKeyForLocales(k, supportedLocales)
+		createdForKey, err := s.syncMissingKeyForLocales(k, supportedLocales, updatedBy)
 		if err != nil {
 			return resp, err
 		}
@@ -72,7 +74,7 @@ func (s *I18nService) SyncMissingKeys() (*I18nSyncResp, error) {
 // syncMissingKeyForLocales 为单个 key 在所有受支持语言下补齐缺失的 i18n 记录：
 // 仅当 (key, locale) 不存在时才写入（跳过已存在 key），写入值优先取内置语言值。
 // 该逻辑为原 SyncMissingKeys 内层双重循环的等价提取，未改变写入语义与事务边界。
-func (s *I18nService) syncMissingKeyForLocales(k string, supportedLocales []string) (bool, error) {
+func (s *I18nService) syncMissingKeyForLocales(k string, supportedLocales []string, updatedBy string) (bool, error) {
 	created := false
 	for _, locale := range supportedLocales {
 		var exists int64
@@ -87,11 +89,12 @@ func (s *I18nService) syncMissingKeyForLocales(k string, supportedLocales []stri
 			value = builtinValue
 		}
 		if err := s.db.Create(&SystemI18n{
-			Module: "system.config",
-			Group:  "messages",
-			Key:    k,
-			Locale: locale,
-			Value:  value,
+			Module:    "system.config",
+			Group:     "messages",
+			Key:       k,
+			Locale:    locale,
+			Value:     value,
+			UpdatedBy: updatedBy,
 		}).Error; err != nil {
 			return false, err
 		}

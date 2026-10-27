@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 
 	"golang.org/x/crypto/ssh"
 	"gorm.io/datatypes"
@@ -111,6 +111,9 @@ func (s *HostService) List(query HostListQuery, dataScope *common.DataScopeReq) 
 		items[i] = hostToResponse(&h, groupIndex)
 	}
 
+	// 更新主机状态统计 metrics
+	UpdateHostStatusMetrics(hosts)
+
 	return &HostListResponse{Items: items, Total: total, Page: query.Page, PageSize: query.PageSize}, nil
 }
 
@@ -182,8 +185,14 @@ func (s *HostService) Create(req CreateHostRequest, createdBy string) (*HostResp
 	}
 
 	if err := s.db.Create(&host).Error; err != nil {
+		RecordHostOperation("create", "failed")
 		return nil, err
 	}
+
+	// 记录创建成功和主机指标
+	RecordHostOperation("create", "success")
+	RecordHostMetrics(&host)
+
 	groupIndex, err := s.loadGroupIndex()
 	if err != nil {
 		return nil, err
@@ -329,6 +338,15 @@ func (s *HostService) Delete(id uint64, dataScope *common.DataScopeReq) error {
 	if s.db == nil {
 		return errors.New("database.not_initialized")
 	}
+	if s.serviceRefs != nil {
+		active, err := s.serviceRefs.HasActiveHostReferences(context.Background(), id, dataScope)
+		if err != nil {
+			return err
+		}
+		if active {
+			return errors.New("cmdbhost.active_service_reference")
+		}
+	}
 	result := s.hostQuery(dataScope).Where(idWhereClause, id).Delete(&Host{})
 	if result.Error != nil {
 		return result.Error
@@ -409,7 +427,11 @@ func (s *HostService) UpdateStatus(id uint64, status string, dataScope *common.D
 		return errors.New("database.not_initialized")
 	}
 	status = strings.TrimSpace(status)
-	if !oneOfHostState(status, "pending", "assigned", "online", "offline", "maintenance", "retired") {
+	// retired is intentionally rejected here: retiring a host must go through
+	// TransitionState (HostTransitionRetire) which enforces the active
+	// service-instance reference check. Direct status writes must not bypass
+	// the lifecycle state machine.
+	if !oneOfHostState(status, "pending", "assigned", "online", "offline", "maintenance") {
 		return errors.New(errHostStateInvalid)
 	}
 	var row Host
@@ -434,9 +456,6 @@ func (s *HostService) UpdateStatus(id uint64, status string, dataScope *common.D
 	case HostLifecycleMaintenance:
 		lifecycle = HostLifecycleMaintenance
 		connectivity = HostConnectivityUnknown
-	case HostLifecycleRetired:
-		lifecycle = HostLifecycleRetired
-		connectivity = HostConnectivityUnknown
 	}
 	result := s.hostQuery(dataScope).Where(idWhereClause, id).Updates(map[string]any{
 		"status":             status,
@@ -456,7 +475,10 @@ func (s *HostService) UpdateStatus(id uint64, status string, dataScope *common.D
 
 func (s *HostService) ipExists(ip string, excludeID uint64) bool {
 	var count int64
-	q := s.db.Model(&Host{}).Where("ip = ?", ip)
+	// Soft-deleted hosts no longer occupy an address in the active CMDB. The
+	// composite database index includes deleted_at, so a cleared host can be
+	// recreated with the same experiment-machine IP.
+	q := s.db.Model(&Host{}).Where("ip = ? AND deleted_at IS NULL", ip)
 	if excludeID > 0 {
 		q = q.Where("id != ?", excludeID)
 	}

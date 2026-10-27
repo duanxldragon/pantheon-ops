@@ -94,7 +94,21 @@ function buildRouteDataWarmers() {
   return warmersByPath;
 }
 
-const routeDataWarmers = buildRouteDataWarmers();
+/**
+ * Built on first use instead of at import time.
+ *
+ * The registry it reads is a module-level value, and this file sits inside that
+ * registry's own import graph (modules -> auth barrel -> pages -> prefetch), so
+ * evaluating it while `registeredModules` is still being assigned would read
+ * `undefined` and crash the document for whichever entry point happens to load
+ * first. Every real caller runs after the graph has settled.
+ */
+let routeDataWarmersByPath: Map<string, RouteDataWarmer[]> | null = null;
+
+function getRouteDataWarmers() {
+  routeDataWarmersByPath ??= buildRouteDataWarmers();
+  return routeDataWarmersByPath;
+}
 
 function buildWarmDataCacheKey(path: string, resourceKey: string) {
   return `${path}::${resourceKey}`;
@@ -143,7 +157,7 @@ function preloadRouteData(path: string, context?: RouteWarmupContext) {
   if (!canWarmRoute(path, context)) {
     return Promise.resolve(undefined);
   }
-  const warmers = routeDataWarmers.get(path);
+  const warmers = getRouteDataWarmers().get(path);
   if (!warmers?.length) {
     return Promise.resolve(undefined);
   }
@@ -185,6 +199,26 @@ export function invalidateRouteWarmDataMany(
   targets.forEach((target) => invalidateRouteWarmData(target.path, target.resourceKeys));
 }
 
+/**
+ * Drops every warm-data entry held by this tab.
+ *
+ * Entries are keyed by `path::resourceKey` only — the key deliberately carries
+ * no subject, tenant or session identity — so an entry written by account A
+ * stays addressable by account B for the rest of its TTL. Logout is a SPA
+ * navigation that never reloads the document (see AppLayout.performLogout), and
+ * module state therefore survives the boundary, so a re-login in the same tab
+ * would serve A's list/tree rows as B's first page. Both sides of the boundary
+ * clear the cache: the logout path calls it, and the login path calls it again
+ * so that any other exit (a hard redirect, an idle-timeout bounce) cannot leave
+ * rows behind.
+ */
+export function invalidateAllRouteWarmData() {
+  // Clearing the map also drops in-flight entries: a loader that was started
+  // for the previous subject can no longer be resolved onto a cache key, so
+  // the next caller always re-reads through its own loader.
+  warmDataCache.clear();
+}
+
 export function preloadRouteComponent(path?: string, context?: RouteWarmupContext) {
   if (!path) {
     return Promise.resolve(undefined);
@@ -221,7 +255,7 @@ export function scheduleHighFrequencyRouteWarmup(
 ) {
   const excludedPaths = new Set((options?.excludePaths || []).map((path) => normalizePath(path)));
   const runWarmup = () => {
-    routeDataWarmers.forEach((_warmers, path) => {
+    getRouteDataWarmers().forEach((_warmers, path) => {
       if (excludedPaths.has(normalizePath(path))) {
         return;
       }

@@ -57,22 +57,22 @@ A Deploy task is now a durable, immutable change record:
 
 ## Residual risk
 
-- `go test -race` now builds and runs with the native MinGW CGO toolchain at
-  `D:\msys64\mingw64\bin` (`PATH=.../mingw64/bin:$PATH CC=gcc CGO_ENABLED=1`):
-  `go test -race -count=1 ./modules/business/deploy/...` passes, so the
-  lease/callback-CAS/idempotent-start concurrency is now also race-detector
-  proven, not just conditional-update proven.
-- `go test -count=1 ./...` now passes across the backend except the pre-existing
-  `TestPurgeModuleAllowsBusinessStaticModuleWithoutTable` failure in
-  `modules/lowcode/dynamicmodule`, which reproduces identically at the clean base
-  commit `ee21350` (verified via a throwaway worktree) and is tracked as an
-  explicit out-of-scope gap. The former `bizscope`/`cmdb` failures are resolved
-  by the `ops-bizscope-datascope-ownership` child's verification pass.
-- The deploy test suite had several latent failures that were previously hidden
-  because the MySQL suite skipped without a DSN. Four were stale assertions
-  (decorated stdout, variable-based tarball/service name, trace ordering) and
-  four were `dept_id` fixture gaps; all are fixed in this task's test file so the
-  module is green against real MySQL.
+- `go test -race` passes with the native MinGW CGO toolchain at
+  `D:\msys64\mingw64\bin` (`PATH=.../mingw64/bin:$PATH CGO_ENABLED=1`):
+  `go test -race -count=1 ./modules/business/deploy/...` passes (52s), so the
+  lease/callback-CAS/idempotent-start concurrency is race-detector proven.
+- `go test -count=1` passes across the deploy module against MySQL 8.0.36.
+  The pre-existing `TestPurgeModuleAllowsBusinessStaticModuleWithoutTable`
+  failure in `modules/lowcode/dynamicmodule` reproduces at the clean base commit
+  and is tracked as an explicit out-of-scope gap.
+- The deploy test suite had latent failures hidden by DSN-less skipping. Four
+  stale assertions and four `dept_id` fixture gaps were fixed in the prior
+  session. The credential-reference test fixtures (inline SSH fields →
+  `CredentialRefID`) were additionally fixed in this session so the full SSH
+  executor path is green against real MySQL.
 - Frontend `npm run type-check` was already red at the K8s pages per the audit and
   is not part of this task; the Deploy DTO changes are additive (new optional
   fields) and do not change existing frontend contracts.
+- The pre-existing CMDB host state-transition test failure
+  (`TestHostStateTransitionsUseCompatibilityProjectionAndCAS`) is unrelated to
+  deploy changes and remains tracked as a CMDB-layer gap.

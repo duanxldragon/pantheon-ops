@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	"pantheon-base/internal/scaffold"
+	"github.com/duanxldragon/pantheon-base/backend/internal/scaffold"
 )
 
 func TestBuildFeatureLedgerSnapshot_ProjectsGeneratedModuleMetadata(t *testing.T) {

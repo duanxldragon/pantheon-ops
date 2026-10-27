@@ -1,4 +1,4 @@
-package iam
+package user
 
 import (
 	"fmt"
@@ -6,9 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/common"
-	commonsecurity "pantheon-base/pkg/common/security"
-	"pantheon-base/pkg/rbacbind"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	commonsecurity "github.com/duanxldragon/pantheon-base/backend/pkg/common/security"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/rbacbind"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -75,7 +76,7 @@ func (s *UserService) ensureAdminUserSeed() error {
 	if err != nil {
 		return err
 	}
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(initialPassword), bcrypt.DefaultCost)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(initialPassword), commonsecurity.GetBcryptCost())
 	if err != nil {
 		return err
 	}
@@ -112,14 +113,22 @@ func (s *UserService) ensureAdminRoleBinding() error {
 	}
 
 	var adminRoleID uint64
-	if err := s.db.Table("system_role").Select("id").Where("role_key = ?", "admin").Limit(1).Pluck("id", &adminRoleID).Error; err != nil {
+	// Platform bootstrap only: pin the lookup to the platform namespace so a
+	// tenant-owned role that happens to be keyed `admin` can never be bound to
+	// the builtin platform user.
+	if err := s.db.Table("system_role").Select("id").
+		Where("tenant_id = ?", tenant.PlatformGlobalTenantID).
+		Where("role_key = ?", "admin").
+		Limit(1).Pluck("id", &adminRoleID).Error; err != nil {
 		return err
 	}
 	if adminRoleID == 0 {
 		return nil
 	}
 
-	return rbacbind.EnsureUserRole(s.db, 1, adminRoleID)
+	// The platform bootstrap binds the built-in admin (user 1) to the platform
+	// `admin` role, so the binding lives in the platform-global namespace.
+	return rbacbind.EnsureUserRole(s.db, tenant.PlatformGlobalTenantID, 1, adminRoleID)
 }
 
 func (s *UserService) releaseDeletedUsernames() error {

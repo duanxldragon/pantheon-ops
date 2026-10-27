@@ -1,10 +1,18 @@
+---
+title: pantheon-ops 业务架构评审报告
+doc_type: Assessment
+layer: business
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-28
+---
+
 # pantheon-ops 业务架构评审报告
 
-更新时间：2026-08-18  
-类型：Review  
-归属层：business  
-状态：Active  
-评审对象：`pantheon-ops` 当前工作树（HEAD `ee21350`，存在未提交和未跟踪业务实现）
+> 更新说明：正文基线 2026-08-18；2026-08-28 追加 §14 复审增量。
+
+评审对象：`pantheon-ops` 当前工作树（正文 HEAD `ee21350`；§14 复审 HEAD `e7ddc58`）
 
 本文将代码审查结论、架构判断和后续治理要求固化为业务仓库的评审基线。本文不是生产就绪声明；“已实现”“已验证”“建议”三种状态必须严格区分。
 
@@ -231,3 +239,27 @@ Executor 统一抽象为 `SSH / Agent / Ansible / Terraform / Helm / GitOps`。H
 - [BUSINESS_DEVELOPMENT_PLAN.md](./BUSINESS_DEVELOPMENT_PLAN.md)
 - [BUSINESS_QA_ACCEPTANCE_PLAN.md](./BUSINESS_QA_ACCEPTANCE_PLAN.md)
 - [BUSINESS_TEST_PLAN.md](./BUSINESS_TEST_PLAN.md)
+
+## 14. 2026-08-28 复审增量（V1 冻结前）
+
+### 14.1 基线变化
+
+2026-08-22 基线（`ee21350` 之后经 `#112–#118` 收口）曾达到可冻结状态：test/vet/race/build、迁移演练（22→16→22）、麒麟 V10 真机 K3s 验收全部通过（证据：`.harness/evidence/2026-08-19-ops-v1-backlog-closeout/`）。
+
+2026-08-28 08:55（`27209f5`）与 09:08（`e7ddc58`，重写自 `88a4306`，两者仅差一个二进制文件清理）两个 AI 生成的提交破坏了该状态：
+
+1. 引用 10 个从未创建的包（`deploy/executor`、`deploy/orchestrator`、`k8s/{helm,ingress,install,rbac,service,storage}`、`filedist`、`observability`），**HEAD 不可编译**。
+2. 引入 ArgoCD/Velero 壳级伪实现（Sync 不调 API 伪造 Succeeded；Velero 不建 CRD 状态永远 New），违反 deploy 设计 §1 "扩展点不提供伪成功实现" 原则。
+3. backup/cicd 路由注册绕过 `DataScopedGroup` 鉴权链。
+
+### 14.2 复审结论
+
+- 底座（认证/RBAC/审计/加密）与部署引擎仍为真实实现且质量高于平均；K8s 核心集成真实。
+- 新增 P0：恢复可编译（revert 破坏性提交）、下架伪实现、CMDB `UpdateStatus` 绕过 retire 引用检查、业务域删除引用检查不全、backup/cicd 裸路由。
+- 完整评审见《pantheon-ops v1.0 冻结前综合评审报告》（WorkBuddy 会话产出，2026-08-28）；执行顺序见 [V1 冻结整改计划](../../.harness/v1.2-docs/V1_FREEZE_REMEDIATION_DEV_PLAN.md)；能力地图与 V1 状态见 [BUSINESS_FUNCTIONAL_DESIGN.md](./BUSINESS_FUNCTIONAL_DESIGN.md)。
+
+### 14.3 流程治理要求（新增）
+
+1. main 必须维持 `go build ./...` 编译门禁；AI 会话（Codebuff/Codex 等）产出未过门禁不得合入。
+2. 提交信息声称的内容必须与提交文件一致——`e7ddc58`（及 `88a4306`）声称包含的六个子模块实际均未提交。
+3. 注册表/菜单预告的能力必须先有实现（"宣称即存在"契约）。

@@ -1,0 +1,16 @@
+{
+  "name": "pantheon-ops-e2e-tests",
+  "version": "1.0.0",
+  "description": "E2E smoke tests for Pantheon-Ops v1.2.0",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "test:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0"
+  }
+}

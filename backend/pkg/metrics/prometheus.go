@@ -94,4 +94,24 @@ var (
 			Help: "Current depth of the operation log async queue",
 		},
 	)
+
+	// MaintenanceRunsTotal 后台维护任务执行次数，按任务与结果分类
+	// （succeeded / failed / skipped / overlap）。维护失败靠该指标可见。
+	MaintenanceRunsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pantheon_maintenance_runs_total",
+			Help: "Total number of background maintenance task runs by outcome",
+		},
+		[]string{"task", "outcome"},
+	)
+
+	// MaintenanceDuration 后台维护任务耗时（秒）。
+	MaintenanceDuration = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "pantheon_maintenance_duration_seconds",
+			Help:    "Background maintenance task duration in seconds",
+			Buckets: []float64{0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60},
+		},
+		[]string{"task"},
+	)
 )

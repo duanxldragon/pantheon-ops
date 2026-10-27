@@ -2,8 +2,12 @@ package pkg
 
 import (
 	"errors"
+	"fmt"
+
+	"github.com/duanxldragon/pantheon-base/backend/pkg/security/ssrf"
 
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
@@ -21,6 +25,14 @@ func NewClientFromKubeconfig(kubeconfig string) (*kubernetes.Clientset, error) {
 	if err != nil {
 		return nil, errKubeconfigInvalid
 	}
+
+	// Validate API server URL against SSRF attacks
+	validator := ssrf.DefaultValidator()
+	validator.AllowedPorts = []int{443, 6443, 8443, 16443}
+	if err := validator.ValidateURL(restConfig.Host); err != nil {
+		return nil, fmt.Errorf("k8s.apiserver_invalid_url: %w", err)
+	}
+
 	clientset, err := kubernetes.NewForConfig(restConfig)
 	if err != nil {
 		return nil, errKubeconfigInvalid
@@ -66,4 +78,25 @@ func firstClusterServer(cfg *clientcmdapi.Config) string {
 		return cl.Server
 	}
 	return ""
+}
+
+// RESTConfigFromKubeconfig creates a REST config from kubeconfig string.
+// This is used for creating dynamic clients for CRD access (e.g., Velero).
+func RESTConfigFromKubeconfig(kubeconfig string) (*rest.Config, error) {
+	if kubeconfig == "" {
+		return nil, errKubeconfigInvalid
+	}
+	restConfig, err := clientcmd.RESTConfigFromKubeConfig([]byte(kubeconfig))
+	if err != nil {
+		return nil, errKubeconfigInvalid
+	}
+
+	// Validate API server URL against SSRF attacks
+	validator := ssrf.DefaultValidator()
+	validator.AllowedPorts = []int{443, 6443, 8443, 16443}
+	if err := validator.ValidateURL(restConfig.Host); err != nil {
+		return nil, fmt.Errorf("k8s.apiserver_invalid_url: %w", err)
+	}
+
+	return restConfig, nil
 }

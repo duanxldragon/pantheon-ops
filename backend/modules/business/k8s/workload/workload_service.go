@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/modules/business/k8s/cluster"
-	"pantheon-base/modules/business/k8s/namespace"
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/namespace"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"

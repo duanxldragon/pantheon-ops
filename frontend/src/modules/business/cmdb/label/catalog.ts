@@ -4,6 +4,7 @@ export const labelCategoryOptions = [
   { value: 'base', i18nKey: 'business.cmdb.label.category.base' },
   { value: 'environment', i18nKey: 'business.cmdb.label.category.environment' },
   { value: 'business', i18nKey: 'business.cmdb.label.category.business' },
+  { value: 'application', i18nKey: 'business.cmdb.label.category.application' },
   { value: 'topology', i18nKey: 'business.cmdb.label.category.topology' },
   { value: 'middleware', i18nKey: 'business.cmdb.label.category.middleware' },
   { value: 'database', i18nKey: 'business.cmdb.label.category.database' },

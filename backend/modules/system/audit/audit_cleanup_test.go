@@ -1,11 +1,13 @@
-package system
+package audit
 
 import (
 	"testing"
 	"time"
 
-	"pantheon-base/internal/middleware"
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+
+	"gorm.io/gorm"
 )
 
 func TestAuditService_CleanupOperationLogsUsesConfiguredRetentionOptions(t *testing.T) {
@@ -27,7 +29,7 @@ func TestAuditService_CleanupOperationLogsUsesConfiguredRetentionOptions(t *test
 		t.Fatalf("seed operation logs: %v", err)
 	}
 
-	clearedCount, err := service.CleanupOperationLogs(15, "", "")
+	clearedCount, err := service.CleanupOperationLogs(15, "", "", nil)
 	if err != nil {
 		t.Fatalf("cleanup operation logs with configured option: %v", err)
 	}
@@ -35,7 +37,7 @@ func TestAuditService_CleanupOperationLogsUsesConfiguredRetentionOptions(t *test
 		t.Fatalf("expected to clean 1 operation log, got %d", clearedCount)
 	}
 
-	_, err = service.CleanupOperationLogs(7, "", "")
+	_, err = service.CleanupOperationLogs(7, "", "", nil)
 	if err == nil || common.ErrMessage(err) != "audit.operation_log.cleanup.days_invalid" {
 		t.Fatalf("expected invalid retention days error, got %v", err)
 	}
@@ -55,7 +57,7 @@ func TestAuditService_CleanupOperationLogsSupportsExplicitTimeRange(t *testing.T
 		t.Fatalf("seed operation logs: %v", err)
 	}
 
-	clearedCount, err := service.CleanupOperationLogs(0, now.Add(-12*time.Hour).Format(time.RFC3339), now.Format(time.RFC3339))
+	clearedCount, err := service.CleanupOperationLogs(0, now.Add(-12*time.Hour).Format(time.RFC3339), now.Format(time.RFC3339), nil)
 	if err != nil {
 		t.Fatalf("cleanup operation logs by explicit range: %v", err)
 	}
@@ -64,18 +66,16 @@ func TestAuditService_CleanupOperationLogsSupportsExplicitTimeRange(t *testing.T
 	}
 }
 
-func TestAuditService_ListOperationLogsAppliesAutomaticRetention(t *testing.T) {
+// TestAuditService_ListOperationLogsDoesNotPurge pins the request-path contract
+// of task 2026-09-22-request-path-maintenance: listing operation logs must not
+// delete expired rows.
+func TestAuditService_ListOperationLogsDoesNotPurge(t *testing.T) {
 	db := setupAuditTestDB(t)
 	service := NewAuditService(db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate audit: %v", err)
 	}
-	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_setting (setting_key VARCHAR(191) PRIMARY KEY, setting_value TEXT)").Error; err != nil {
-		t.Fatalf("create system_setting table: %v", err)
-	}
-	if err := db.Exec("INSERT INTO system_setting (setting_key, setting_value) VALUES ('audit.operation_log_retention_days', '5')").Error; err != nil {
-		t.Fatalf("seed operation log retention days: %v", err)
-	}
+	seedOperationLogRetention(t, db, "5")
 	if err := db.Create(&[]middleware.SystemLogOper{
 		{Title: "expired", OperURL: "/api/v1/system/user/1", OperTime: time.Now().UTC().AddDate(0, 0, -20)},
 		{Title: "retained", OperURL: "/api/v1/system/user/2", OperTime: time.Now().UTC().AddDate(0, 0, -2)},
@@ -83,11 +83,58 @@ func TestAuditService_ListOperationLogsAppliesAutomaticRetention(t *testing.T) {
 		t.Fatalf("seed operation logs: %v", err)
 	}
 
-	resp, err := service.ListOperationLogs(&OperationLogQuery{Page: 1, PageSize: 10})
+	resp, err := service.ListOperationLogs(&OperationLogQuery{Page: 1, PageSize: 10}, nil)
+	if err != nil {
+		t.Fatalf("list operation logs: %v", err)
+	}
+	if resp.Total != 2 {
+		t.Fatalf("list request must not purge: expected both logs, got %+v", resp)
+	}
+
+	var remaining int64
+	if err := db.Model(&middleware.SystemLogOper{}).Count(&remaining).Error; err != nil {
+		t.Fatalf("count operation logs: %v", err)
+	}
+	if remaining != 2 {
+		t.Fatalf("list request purged operation logs: %d rows left", remaining)
+	}
+}
+
+// TestAuditService_RunOperationLogRetentionDeletesExpired verifies the
+// maintenance entry point still enforces the configured retention window.
+func TestAuditService_RunOperationLogRetentionDeletesExpired(t *testing.T) {
+	db := setupAuditTestDB(t)
+	service := NewAuditService(db)
+	if err := service.Migrate(); err != nil {
+		t.Fatalf("migrate audit: %v", err)
+	}
+	seedOperationLogRetention(t, db, "5")
+	if err := db.Create(&[]middleware.SystemLogOper{
+		{Title: "expired", OperURL: "/api/v1/system/user/1", OperTime: time.Now().UTC().AddDate(0, 0, -20)},
+		{Title: "retained", OperURL: "/api/v1/system/user/2", OperTime: time.Now().UTC().AddDate(0, 0, -2)},
+	}).Error; err != nil {
+		t.Fatalf("seed operation logs: %v", err)
+	}
+
+	if err := service.RunOperationLogRetention(); err != nil {
+		t.Fatalf("run operation log retention: %v", err)
+	}
+
+	resp, err := service.ListOperationLogs(&OperationLogQuery{Page: 1, PageSize: 10}, nil)
 	if err != nil {
 		t.Fatalf("list operation logs: %v", err)
 	}
 	if resp.Total != 1 || len(resp.Items) != 1 || resp.Items[0].Title != "retained" {
-		t.Fatalf("expected only retained operation log, got %+v", resp)
+		t.Fatalf("expected only retained operation log after maintenance, got %+v", resp)
+	}
+}
+
+func seedOperationLogRetention(t *testing.T, db *gorm.DB, days string) {
+	t.Helper()
+	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_setting (setting_key VARCHAR(191) PRIMARY KEY, setting_value TEXT)").Error; err != nil {
+		t.Fatalf("create system_setting table: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_setting (setting_key, setting_value) VALUES ('audit.operation_log_retention_days', ?)", days).Error; err != nil {
+		t.Fatalf("seed operation log retention days: %v", err)
 	}
 }

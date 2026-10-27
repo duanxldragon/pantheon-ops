@@ -1,11 +1,11 @@
 package cmdb
 
 import (
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/modules/business/cmdb/group"
-	"pantheon-base/modules/business/cmdb/host"
-	"pantheon-base/modules/business/cmdb/label"
-	"pantheon-base/pkg/contracts"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/group"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/host"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/label"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"

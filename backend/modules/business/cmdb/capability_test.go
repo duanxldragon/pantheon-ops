@@ -5,10 +5,10 @@ import (
 	"sync"
 	"testing"
 
-	bizcap "pantheon-base/modules/business/capability"
-	cmdbhost "pantheon-base/modules/business/cmdb/host"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/testmysql"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	cmdbhost "github.com/duanxldragon/pantheon-base/backend/modules/business/cmdb/host"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"gorm.io/gorm"
 )

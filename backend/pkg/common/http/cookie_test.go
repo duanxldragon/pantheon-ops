@@ -1,10 +1,26 @@
 package http
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 )
+
+func TestExtractAccessTokenUsesCookieThenBearerHeader(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Authorization", "Bearer header-token")
+	req.AddCookie(&http.Cookie{Name: CookieAccessToken, Value: "cookie-token"})
+	if got := ExtractAccessToken(req); got != "cookie-token" {
+		t.Fatalf("expected cookie token precedence, got %q", got)
+	}
+
+	req = httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Authorization", "Bearer header-token")
+	if got := ExtractAccessToken(req); got != "header-token" {
+		t.Fatalf("expected bearer token fallback, got %q", got)
+	}
+}
 
 func TestTokenCookiesAlwaysSecure(t *testing.T) {
 	recorder := httptest.NewRecorder()

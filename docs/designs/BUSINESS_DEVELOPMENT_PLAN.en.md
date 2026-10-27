@@ -1,10 +1,21 @@
+---
+title: pantheon-ops Business Development Plan
+doc_type: Design
+layer: business
+status: Superseded
+superseded_by: docs/V1_RELEASE_CHECKLIST.md
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-24
+---
+
 # pantheon-ops Business Development Plan
 
-Updated: 2026-08-18  
-Type: Plan  
-Status: Proposed
-
 Normative plan: [BUSINESS_DEVELOPMENT_PLAN.md](./BUSINESS_DEVELOPMENT_PLAN.md).
+
+> Status note: Superseded for V1 execution; the V1 checklist and global functional design own V1 order, evidence, and stop conditions
+
+This file remains an estimation and roadmap reference. The [V1 checklist](../V1_RELEASE_CHECKLIST.md) and [global functional design (Chinese canonical)](./BUSINESS_FUNCTIONAL_DESIGN.md) govern V1 order, priority, evidence, and stop conditions.
 
 The eight-week V1 plan is ordered as follows:
 

@@ -96,7 +96,7 @@ import {
   type I18nQuery,
   type SystemI18n,
 } from './api';
-import '../components/shared/list-page.css';
+import '../../../assets/list-page.css';
 
 interface I18nRenameFormValues {
   module: string;
@@ -197,6 +197,19 @@ const emptyQuery: I18nQuery = {
 
 function requiredRule(t: TFunction, labelKey: string) {
   return { required: true, message: t('common.requiredField', { field: t(labelKey) }) };
+}
+
+function renderI18nValueFields(t: TFunction) {
+  return (
+    <>
+      <FormItem label={t('i18n.value')} field="value" rules={[requiredRule(t, 'i18n.value')]}>
+        <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} />
+      </FormItem>
+      <FormItem label={t('i18n.remark')} field="remark">
+        <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
+      </FormItem>
+    </>
+  );
 }
 
 function isDuplicateI18nKeyRequestError(error: unknown) {
@@ -2049,12 +2062,7 @@ const I18nList: React.FC = () => {
             </FormItem>
           </Col>
         </Row>
-        <FormItem label={t('i18n.value')} field="value" rules={[requiredRule(t, 'i18n.value')]}>
-          <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} />
-        </FormItem>
-        <FormItem label={t('i18n.remark')} field="remark">
-          <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
-        </FormItem>
+        {renderI18nValueFields(t)}
       </Form>
     </AppModal>
   );
@@ -2118,12 +2126,7 @@ const I18nList: React.FC = () => {
             </FormItem>
           </Col>
         </Row>
-        <FormItem label={t('i18n.value')} field="value" rules={[requiredRule(t, 'i18n.value')]}>
-          <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} />
-        </FormItem>
-        <FormItem label={t('i18n.remark')} field="remark">
-          <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
-        </FormItem>
+        {renderI18nValueFields(t)}
       </Form>
     </AppModal>
   );

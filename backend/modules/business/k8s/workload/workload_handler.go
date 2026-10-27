@@ -3,7 +3,8 @@ package workload
 import (
 	"strconv"
 
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/rbac"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,12 +15,13 @@ const msgParamInvalid = "common.param_invalid"
 //
 //nolint:revive // retained as the public handler name for this package.
 type WorkloadHandler struct {
-	svc *WorkloadService
+	svc     *WorkloadService
+	rbacSvc *rbac.K8sRBACService
 }
 
 // NewWorkloadHandler creates the Kubernetes workload HTTP handler.
-func NewWorkloadHandler(svc *WorkloadService) *WorkloadHandler {
-	return &WorkloadHandler{svc: svc}
+func NewWorkloadHandler(svc *WorkloadService, rbacSvc *rbac.K8sRBACService) *WorkloadHandler {
+	return &WorkloadHandler{svc: svc, rbacSvc: rbacSvc}
 }
 
 // RegisterRoutes registers Kubernetes workload endpoints.
@@ -70,6 +72,10 @@ func (h *WorkloadHandler) Scale(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
+	if h.rbacSvc != nil && !h.rbacSvc.CheckHandlerPermission(c, clusterID, namespace, rbac.ResourceTypeForKind(kind), rbac.ActionUpdate) {
+		common.Fail(c, common.CodeForbidden, "k8s.rbac.permission_denied")
+		return
+	}
 	var req ScaleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
@@ -89,6 +95,10 @@ func (h *WorkloadHandler) Restart(c *gin.Context) {
 	clusterID, namespace, kind, name, ok := parseWorkloadParams(c)
 	if !ok {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	if h.rbacSvc != nil && !h.rbacSvc.CheckHandlerPermission(c, clusterID, namespace, rbac.ResourceTypeForKind(kind), rbac.ActionUpdate) {
+		common.Fail(c, common.CodeForbidden, "k8s.rbac.permission_denied")
 		return
 	}
 	if err := h.svc.RestartWithResourceVersion(clusterID, namespace, kind, name, c.Query("resourceVersion"), common.GetDataScope(c)); err != nil {

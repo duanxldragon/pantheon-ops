@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testredis"
 	"github.com/redis/go-redis/v9"
-	"pantheon-base/pkg/testredis"
 )
 
 func TestValidateSessionRejectsInvalidJSON(t *testing.T) {
-	rdb := testredis.Open(t)
+	rdb := testredis.OpenDB(t, testredis.DBAuthToken)
 	ctx := context.Background()
 	token := "bad-session-token"
 	if err := rdb.Set(ctx, SessionKey(token), []byte("{"), time.Minute).Err(); err != nil {
@@ -25,7 +25,7 @@ func TestValidateSessionRejectsInvalidJSON(t *testing.T) {
 }
 
 func TestValidateRefreshRejectsInvalidJSON(t *testing.T) {
-	rdb := testredis.Open(t)
+	rdb := testredis.OpenDB(t, testredis.DBAuthToken)
 	ctx := context.Background()
 	token := "bad-refresh-token"
 	if err := rdb.Set(ctx, RefreshKey(token), []byte("{"), time.Minute).Err(); err != nil {
@@ -39,7 +39,7 @@ func TestValidateRefreshRejectsInvalidJSON(t *testing.T) {
 }
 
 func TestValidateOperationRejectsInvalidJSON(t *testing.T) {
-	rdb := testredis.Open(t)
+	rdb := testredis.OpenDB(t, testredis.DBAuthToken)
 	ctx := context.Background()
 	token := "bad-operation-token"
 	if err := rdb.Set(ctx, OperationKey(token), []byte("{"), time.Minute).Err(); err != nil {
@@ -59,7 +59,7 @@ func TestDeleteSessionPairAllowsNilRedis(t *testing.T) {
 }
 
 func TestRevokeSessionRefreshCascadesTokenDeletion(t *testing.T) {
-	rdb := testredis.Open(t)
+	rdb := testredis.OpenDB(t, testredis.DBAuthToken)
 	ctx := context.Background()
 	const sessionID = "sess-cascade-1"
 	token := NewRefreshToken()
@@ -89,7 +89,7 @@ func TestRevokeSessionRefreshCascadesTokenDeletion(t *testing.T) {
 }
 
 func TestStoreRefreshRotationKeepsIndexOnLatestToken(t *testing.T) {
-	rdb := testredis.Open(t)
+	rdb := testredis.OpenDB(t, testredis.DBAuthToken)
 	ctx := context.Background()
 	const sessionID = "sess-rotate-1"
 	oldToken := NewRefreshToken()

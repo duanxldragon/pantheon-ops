@@ -2582,7 +2582,7 @@ function buildRelationRuntimeColumns(
   }
 
   private relativeToSystemListPageCss(): string {
-    return `${this.relativeToSrcRoot()}/modules/system/components/shared/list-page.css`;
+    return `${this.relativeToSrcRoot()}/assets/list-page.css`;
   }
 
   private toPascalCase(value: string): string {

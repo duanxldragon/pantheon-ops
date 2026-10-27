@@ -1756,6 +1756,15 @@ test('dict management keeps both tabs on the shared list rhythm', async ({ page 
   const [filterPaddingTop, filterPaddingRight, , filterPaddingLeft] =
     expandPaddingValues(cssVariables['--shell-filter-body-padding']);
 
+  // 一次性 DOM 快照前先等共享表格挂载：慢环境下表格晚于筛选面板渲染，
+  // 否则 hasSharedSystemTable 会在挂载窗口内被误判为 false。
+  await expect(
+    page
+      .locator(
+        '.arco-tabs-content-item-active .app-table.system-list__table, .arco-tabs-pane-active .app-table.system-list__table',
+      )
+      .first(),
+  ).toBeVisible();
   const typeTabContract = await readDictTabContract();
   expect(typeTabContract.governancePaddingTop).toBe('10px');
   expect(typeTabContract.governancePaddingBottom).toBe('10px');

@@ -1,0 +1,7 @@
+-- Intentionally retain the deactivated membership rows on down.
+--
+-- The status is an audit fact ("this relationship ended"), and reactivating
+-- rows on rollback would resurrect exactly the ghost members the migration
+-- removed. The W2 code fix keeps writing `disabled` on delete, so rolling the
+-- code back without this migration only restores the old leak for future
+-- deletions, not for the repaired rows.

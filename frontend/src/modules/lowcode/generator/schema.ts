@@ -22,7 +22,14 @@ export type BusinessTableRole = 'main' | 'detail' | 'relation' | 'dictionary';
 
 export type GeneratorTemplateVersion = 'v1';
 
-export type DataScopeMode = 'none' | 'owner' | 'dept' | 'tenant' | 'custom';
+/**
+ * 生成器数据权限模式。
+ *
+ * 与后端 scaffold 契约（backend/internal/scaffold/contract.go）保持同源：
+ * `tenant` 已下线 —— 运行时没有租户隔离实现，生成器不得再暴露该伪能力。
+ * 见 .harness/tasks/TENANT_EVOLUTION_MASTER_PLAN_20260910.md（任务 0）。
+ */
+export type DataScopeMode = 'none' | 'owner' | 'dept' | 'custom';
 
 export type ModuleRelationType = 'oneToMany' | 'manyToMany' | 'lookup';
 
@@ -231,535 +238,203 @@ function resolveTemplateText(
   return resolveText ? resolveText(locale, key, fallback) : fallback;
 }
 
-export const FIELD_TEMPLATE_DEFINITIONS: FieldTemplateDefinition[] = [
-  {
-    key: 'code',
-    labelKey: 'generator.fieldTemplates.code',
+interface FieldTemplateConfig {
+  key: Exclude<FieldTemplateKey, 'none'>;
+  type: FieldType;
+  required: boolean;
+  searchable: boolean;
+  sortable: boolean;
+  visibleInList: boolean;
+  visibleInForm: boolean;
+  validation?: FieldValidation;
+  dictCode?: string;
+  enumOptions?: ReadonlyArray<{ value: string; color: string }>;
+}
+
+function createFieldTemplate(config: FieldTemplateConfig): FieldTemplateDefinition {
+  const labelKey = `generator.fieldTemplates.${config.key}`;
+  return {
+    key: config.key,
+    labelKey,
     createField: (resolveText) => ({
-      name: 'code',
-      type: 'string',
-      label: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.code',
-        'generator.fieldTemplates.code',
-      ),
-      labelEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.code',
-        'generator.fieldTemplates.code',
-      ),
-      required: true,
-      searchable: true,
-      sortable: true,
-      visibleInList: true,
-      visibleInForm: true,
+      name: config.key,
+      type: config.type,
+      label: resolveTemplateText(resolveText, 'zh-CN', labelKey, labelKey),
+      labelEn: resolveTemplateText(resolveText, 'en-US', labelKey, labelKey),
+      required: config.required,
+      searchable: config.searchable,
+      sortable: config.sortable,
+      visibleInList: config.visibleInList,
+      visibleInForm: config.visibleInForm,
       placeholder: resolveTemplateText(
         resolveText,
         'zh-CN',
-        'generator.fieldTemplates.code.placeholder',
-        'generator.fieldTemplates.code.placeholder',
+        `${labelKey}.placeholder`,
+        `${labelKey}.placeholder`,
       ),
       placeholderEn: resolveTemplateText(
         resolveText,
         'en-US',
-        'generator.fieldTemplates.code.placeholder',
-        'generator.fieldTemplates.code.placeholder',
+        `${labelKey}.placeholder`,
+        `${labelKey}.placeholder`,
       ),
-      validation: { unique: true, maxLength: 64 },
-      templateKey: 'code',
+      ...(config.validation
+        ? {
+            validation: {
+              ...config.validation,
+              ...(config.validation.enum ? { enum: [...config.validation.enum] } : {}),
+            },
+          }
+        : {}),
+      ...(config.dictCode ? { dictCode: config.dictCode } : {}),
+      ...(config.enumOptions
+        ? {
+            enumOptions: config.enumOptions.map(({ value, color }) => ({
+              value,
+              label: resolveTemplateText(
+                resolveText,
+                'zh-CN',
+                `${labelKey}.${value}`,
+                `${labelKey}.${value}`,
+              ),
+              labelEn: resolveTemplateText(
+                resolveText,
+                'en-US',
+                `${labelKey}.${value}`,
+                `${labelKey}.${value}`,
+              ),
+              color,
+            })),
+          }
+        : {}),
+      templateKey: config.key,
     }),
+  };
+}
+
+const FIELD_TEMPLATE_CONFIGS: readonly FieldTemplateConfig[] = [
+  {
+    key: 'code',
+    type: 'string',
+    required: true,
+    searchable: true,
+    sortable: true,
+    visibleInList: true,
+    visibleInForm: true,
+    validation: { unique: true, maxLength: 64 },
   },
   {
     key: 'name',
-    labelKey: 'generator.fieldTemplates.name',
-    createField: (resolveText) => ({
-      name: 'name',
-      type: 'string',
-      label: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.name',
-        'generator.fieldTemplates.name',
-      ),
-      labelEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.name',
-        'generator.fieldTemplates.name',
-      ),
-      required: true,
-      searchable: true,
-      sortable: true,
-      visibleInList: true,
-      visibleInForm: true,
-      placeholder: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.name.placeholder',
-        'generator.fieldTemplates.name.placeholder',
-      ),
-      placeholderEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.name.placeholder',
-        'generator.fieldTemplates.name.placeholder',
-      ),
-      validation: { maxLength: 128 },
-      templateKey: 'name',
-    }),
+    type: 'string',
+    required: true,
+    searchable: true,
+    sortable: true,
+    visibleInList: true,
+    visibleInForm: true,
+    validation: { maxLength: 128 },
   },
   {
     key: 'status',
-    labelKey: 'generator.fieldTemplates.status',
-    createField: (resolveText) => ({
-      name: 'status',
-      type: 'enum',
-      label: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.status',
-        'generator.fieldTemplates.status',
-      ),
-      labelEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.status',
-        'generator.fieldTemplates.status',
-      ),
-      required: true,
-      searchable: true,
-      sortable: true,
-      visibleInList: true,
-      visibleInForm: true,
-      placeholder: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.status.placeholder',
-        'generator.fieldTemplates.status.placeholder',
-      ),
-      placeholderEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.status.placeholder',
-        'generator.fieldTemplates.status.placeholder',
-      ),
-      dictCode: 'status',
-      enumOptions: [
-        {
-          value: 'active',
-          label: resolveTemplateText(
-            resolveText,
-            'zh-CN',
-            'generator.fieldTemplates.status.active',
-            'generator.fieldTemplates.status.active',
-          ),
-          labelEn: resolveTemplateText(
-            resolveText,
-            'en-US',
-            'generator.fieldTemplates.status.active',
-            'generator.fieldTemplates.status.active',
-          ),
-          color: 'green',
-        },
-        {
-          value: 'inactive',
-          label: resolveTemplateText(
-            resolveText,
-            'zh-CN',
-            'generator.fieldTemplates.status.inactive',
-            'generator.fieldTemplates.status.inactive',
-          ),
-          labelEn: resolveTemplateText(
-            resolveText,
-            'en-US',
-            'generator.fieldTemplates.status.inactive',
-            'generator.fieldTemplates.status.inactive',
-          ),
-          color: 'gray',
-        },
-      ],
-      validation: { enum: ['active', 'inactive'] },
-      templateKey: 'status',
-    }),
+    type: 'enum',
+    required: true,
+    searchable: true,
+    sortable: true,
+    visibleInList: true,
+    visibleInForm: true,
+    dictCode: 'status',
+    enumOptions: [
+      { value: 'active', color: 'green' },
+      { value: 'inactive', color: 'gray' },
+    ],
+    validation: { enum: ['active', 'inactive'] },
   },
   {
     key: 'sort',
-    labelKey: 'generator.fieldTemplates.sort',
-    createField: (resolveText) => ({
-      name: 'sort',
-      type: 'int',
-      label: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.sort',
-        'generator.fieldTemplates.sort',
-      ),
-      labelEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.sort',
-        'generator.fieldTemplates.sort',
-      ),
-      required: false,
-      searchable: false,
-      sortable: true,
-      visibleInList: true,
-      visibleInForm: true,
-      placeholder: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.sort.placeholder',
-        'generator.fieldTemplates.sort.placeholder',
-      ),
-      placeholderEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.sort.placeholder',
-        'generator.fieldTemplates.sort.placeholder',
-      ),
-      templateKey: 'sort',
-    }),
+    type: 'int',
+    required: false,
+    searchable: false,
+    sortable: true,
+    visibleInList: true,
+    visibleInForm: true,
   },
   {
     key: 'remark',
-    labelKey: 'generator.fieldTemplates.remark',
-    createField: (resolveText) => ({
-      name: 'remark',
-      type: 'text',
-      label: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.remark',
-        'generator.fieldTemplates.remark',
-      ),
-      labelEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.remark',
-        'generator.fieldTemplates.remark',
-      ),
-      required: false,
-      searchable: false,
-      sortable: false,
-      visibleInList: false,
-      visibleInForm: true,
-      placeholder: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.remark.placeholder',
-        'generator.fieldTemplates.remark.placeholder',
-      ),
-      placeholderEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.remark.placeholder',
-        'generator.fieldTemplates.remark.placeholder',
-      ),
-      templateKey: 'remark',
-    }),
+    type: 'text',
+    required: false,
+    searchable: false,
+    sortable: false,
+    visibleInList: false,
+    visibleInForm: true,
   },
   {
     key: 'owner',
-    labelKey: 'generator.fieldTemplates.owner',
-    createField: (resolveText) => ({
-      name: 'owner',
-      type: 'string',
-      label: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.owner',
-        'generator.fieldTemplates.owner',
-      ),
-      labelEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.owner',
-        'generator.fieldTemplates.owner',
-      ),
-      required: false,
-      searchable: true,
-      sortable: false,
-      visibleInList: true,
-      visibleInForm: true,
-      placeholder: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.owner.placeholder',
-        'generator.fieldTemplates.owner.placeholder',
-      ),
-      placeholderEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.owner.placeholder',
-        'generator.fieldTemplates.owner.placeholder',
-      ),
-      templateKey: 'owner',
-    }),
+    type: 'string',
+    required: false,
+    searchable: true,
+    sortable: false,
+    visibleInList: true,
+    visibleInForm: true,
   },
   {
     key: 'phone',
-    labelKey: 'generator.fieldTemplates.phone',
-    createField: (resolveText) => ({
-      name: 'phone',
-      type: 'string',
-      label: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.phone',
-        'generator.fieldTemplates.phone',
-      ),
-      labelEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.phone',
-        'generator.fieldTemplates.phone',
-      ),
-      required: false,
-      searchable: true,
-      sortable: false,
-      visibleInList: true,
-      visibleInForm: true,
-      placeholder: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.phone.placeholder',
-        'generator.fieldTemplates.phone.placeholder',
-      ),
-      placeholderEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.phone.placeholder',
-        'generator.fieldTemplates.phone.placeholder',
-      ),
-      validation: { pattern: String.raw`^1[3-9]\d{9}$` },
-      templateKey: 'phone',
-    }),
+    type: 'string',
+    required: false,
+    searchable: true,
+    sortable: false,
+    visibleInList: true,
+    visibleInForm: true,
+    validation: { pattern: String.raw`^1[3-9]\d{9}$` },
   },
   {
     key: 'email',
-    labelKey: 'generator.fieldTemplates.email',
-    createField: (resolveText) => ({
-      name: 'email',
-      type: 'string',
-      label: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.email',
-        'generator.fieldTemplates.email',
-      ),
-      labelEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.email',
-        'generator.fieldTemplates.email',
-      ),
-      required: false,
-      searchable: true,
-      sortable: false,
-      visibleInList: true,
-      visibleInForm: true,
-      placeholder: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.email.placeholder',
-        'generator.fieldTemplates.email.placeholder',
-      ),
-      placeholderEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.email.placeholder',
-        'generator.fieldTemplates.email.placeholder',
-      ),
-      validation: { pattern: String.raw`^[^\s@]+@[^\s@]+\.[^\s@]+$` },
-      templateKey: 'email',
-    }),
+    type: 'string',
+    required: false,
+    searchable: true,
+    sortable: false,
+    visibleInList: true,
+    visibleInForm: true,
+    validation: { pattern: String.raw`^[^\s@]+@[^\s@]+\.[^\s@]+$` },
   },
   {
     key: 'ipAddress',
-    labelKey: 'generator.fieldTemplates.ipAddress',
-    createField: (resolveText) => ({
-      name: 'ipAddress',
-      type: 'string',
-      label: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.ipAddress',
-        'generator.fieldTemplates.ipAddress',
-      ),
-      labelEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.ipAddress',
-        'generator.fieldTemplates.ipAddress',
-      ),
-      required: true,
-      searchable: true,
-      sortable: true,
-      visibleInList: true,
-      visibleInForm: true,
-      placeholder: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.ipAddress.placeholder',
-        'generator.fieldTemplates.ipAddress.placeholder',
-      ),
-      placeholderEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.ipAddress.placeholder',
-        'generator.fieldTemplates.ipAddress.placeholder',
-      ),
-      validation: { unique: true },
-      templateKey: 'ipAddress',
-    }),
+    type: 'string',
+    required: true,
+    searchable: true,
+    sortable: true,
+    visibleInList: true,
+    visibleInForm: true,
+    validation: { unique: true },
   },
   {
     key: 'hostname',
-    labelKey: 'generator.fieldTemplates.hostname',
-    createField: (resolveText) => ({
-      name: 'hostname',
-      type: 'string',
-      label: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.hostname',
-        'generator.fieldTemplates.hostname',
-      ),
-      labelEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.hostname',
-        'generator.fieldTemplates.hostname',
-      ),
-      required: true,
-      searchable: true,
-      sortable: true,
-      visibleInList: true,
-      visibleInForm: true,
-      placeholder: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.hostname.placeholder',
-        'generator.fieldTemplates.hostname.placeholder',
-      ),
-      placeholderEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.hostname.placeholder',
-        'generator.fieldTemplates.hostname.placeholder',
-      ),
-      templateKey: 'hostname',
-    }),
+    type: 'string',
+    required: true,
+    searchable: true,
+    sortable: true,
+    visibleInList: true,
+    visibleInForm: true,
   },
   {
     key: 'environment',
-    labelKey: 'generator.fieldTemplates.environment',
-    createField: (resolveText) => ({
-      name: 'environment',
-      type: 'enum',
-      label: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.environment',
-        'generator.fieldTemplates.environment',
-      ),
-      labelEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.environment',
-        'generator.fieldTemplates.environment',
-      ),
-      required: true,
-      searchable: true,
-      sortable: false,
-      visibleInList: true,
-      visibleInForm: true,
-      placeholder: resolveTemplateText(
-        resolveText,
-        'zh-CN',
-        'generator.fieldTemplates.environment.placeholder',
-        'generator.fieldTemplates.environment.placeholder',
-      ),
-      placeholderEn: resolveTemplateText(
-        resolveText,
-        'en-US',
-        'generator.fieldTemplates.environment.placeholder',
-        'generator.fieldTemplates.environment.placeholder',
-      ),
-      dictCode: 'environment',
-      enumOptions: [
-        {
-          value: 'dev',
-          label: resolveTemplateText(
-            resolveText,
-            'zh-CN',
-            'generator.fieldTemplates.environment.dev',
-            'generator.fieldTemplates.environment.dev',
-          ),
-          labelEn: resolveTemplateText(
-            resolveText,
-            'en-US',
-            'generator.fieldTemplates.environment.dev',
-            'generator.fieldTemplates.environment.dev',
-          ),
-          color: 'arcoblue',
-        },
-        {
-          value: 'test',
-          label: resolveTemplateText(
-            resolveText,
-            'zh-CN',
-            'generator.fieldTemplates.environment.test',
-            'generator.fieldTemplates.environment.test',
-          ),
-          labelEn: resolveTemplateText(
-            resolveText,
-            'en-US',
-            'generator.fieldTemplates.environment.test',
-            'generator.fieldTemplates.environment.test',
-          ),
-          color: 'purple',
-        },
-        {
-          value: 'staging',
-          label: resolveTemplateText(
-            resolveText,
-            'zh-CN',
-            'generator.fieldTemplates.environment.staging',
-            'generator.fieldTemplates.environment.staging',
-          ),
-          labelEn: resolveTemplateText(
-            resolveText,
-            'en-US',
-            'generator.fieldTemplates.environment.staging',
-            'generator.fieldTemplates.environment.staging',
-          ),
-          color: 'orange',
-        },
-        {
-          value: 'prod',
-          label: resolveTemplateText(
-            resolveText,
-            'zh-CN',
-            'generator.fieldTemplates.environment.prod',
-            'generator.fieldTemplates.environment.prod',
-          ),
-          labelEn: resolveTemplateText(
-            resolveText,
-            'en-US',
-            'generator.fieldTemplates.environment.prod',
-            'generator.fieldTemplates.environment.prod',
-          ),
-          color: 'red',
-        },
-      ],
-      validation: { enum: ['dev', 'test', 'staging', 'prod'] },
-      templateKey: 'environment',
-    }),
+    type: 'enum',
+    required: true,
+    searchable: true,
+    sortable: false,
+    visibleInList: true,
+    visibleInForm: true,
+    dictCode: 'environment',
+    enumOptions: [
+      { value: 'dev', color: 'arcoblue' },
+      { value: 'test', color: 'purple' },
+      { value: 'staging', color: 'orange' },
+      { value: 'prod', color: 'red' },
+    ],
+    validation: { enum: ['dev', 'test', 'staging', 'prod'] },
   },
 ];
+
+export const FIELD_TEMPLATE_DEFINITIONS: FieldTemplateDefinition[] =
+  FIELD_TEMPLATE_CONFIGS.map(createFieldTemplate);
 
 export const PAGE_ACTION_TEMPLATE_DEFINITIONS: PageActionTemplateDefinition[] = [
   {

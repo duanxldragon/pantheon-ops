@@ -14,6 +14,7 @@ export { default as FilterPanel } from './patterns/FilterPanel';
 export { default as SearchToolbar, type SearchToolbarProps } from './patterns/SearchToolbar';
 export { default as PageActions } from './patterns/actions/PageActions';
 export { default as ListHeaderActions } from './patterns/actions/ListHeaderActions';
+export { default as ListDataActions } from './patterns/actions/ListDataActions';
 export {
   GovernanceRailPanel,
   GovernanceRailSummary,
@@ -31,6 +32,8 @@ export {
   type GovernanceCleanupPayload,
   type GovernanceCleanupMode,
 } from './governance/GovernanceCleanupBar';
+export { default as GovernanceListSummary } from './governance/GovernanceListPatterns';
+export { buildGovernanceCleanupLabels } from './governance/governanceCleanupLabels';
 export {
   default as TimeRangeFilter,
   TIME_RANGE_FILTER_FORMAT,
@@ -42,12 +45,12 @@ export { default as TableBatchActionBar } from './patterns/table/TableBatchActio
 export {
   TABLE_ACTION_COLUMN_WIDTH,
   type TableActionColumnWidthPreset,
-} from './patterns/table/TableAction';
-export { TABLE_COLUMN_WIDTH, type TableColumnWidthPreset } from './patterns/table/TableColumnWidth';
+} from './patterns/table/tableAction';
+export { TABLE_COLUMN_WIDTH, type TableColumnWidthPreset } from './patterns/table/tableColumnWidth';
 export {
   withTableColumnPriority,
   type TableColumnPriority,
-} from './patterns/table/TableColumnPriority';
+} from './patterns/table/tableColumnPriority';
 export {
   getPaginationCurrentPage,
   getPaginationPageSize,
@@ -55,6 +58,7 @@ export {
   getVisibleSelectedRowKeys,
   isPaginationConfig,
   mergeCrossPageSelection,
+  buildCrossPageRowSelection,
   type CrossPageRowKey,
   type SharedPaginationConfig,
 } from './table/crossPageSelection';
@@ -65,12 +69,28 @@ export {
 } from './table/standardPagination';
 export { default as FormSection } from './patterns/feedback/FormSection';
 export { default as SubmitBar } from './patterns/actions/SubmitBar';
+export { default as FormModalFooter } from './patterns/actions/FormModalFooter';
+export {
+  ChangeDiff,
+  ConditionBuilder,
+  ContextSelector,
+  ExecutionStepRail,
+  TaskLogViewer,
+} from './operational';
+export type {
+  ChangeDiffLine,
+  ConditionAstNode,
+  ConditionFieldOption,
+  ContextSelectorOption,
+  ExecutionStep,
+  TaskLogChunk,
+} from './operational';
 export { default as AppModal } from './patterns/modals/AppModal';
 export {
   showAppModalConfirm,
   showAppModalSuccess,
   showAppModalError,
-} from './patterns/modals/AppModalActions';
+} from './patterns/modals/appModalActions';
 export { default as AppDrawer } from './patterns/modals/AppDrawer';
 export { default as PageSplitLayout } from './patterns/layout/PageSplitLayout';
 export {
@@ -80,12 +100,13 @@ export {
   SideRailNote,
 } from './patterns/rails/SideRail';
 export { StandardRailSummary, StandardRailNotePanel } from './patterns/rails/StandardRail';
-export type { RailSummaryItem, RailSummaryTone } from './patterns/rails/RailSummary';
+export type { RailSummaryItem, RailSummaryTone } from './patterns/rails/railSummary';
 export { default as ImportCsvButton } from './patterns/actions/ImportCsvButton';
 export { default as PageLoading } from './feedback/PageLoading';
 export { default as PageSkeleton } from './feedback/PageSkeleton';
 export { default as Sparkline } from './data-display/Sparkline';
 export { default as RouteContentFallback } from './feedback/RouteContentFallback';
+export { default as RouteErrorBoundary } from './feedback/RouteErrorBoundary';
 export { default as PageEmpty } from './feedback/PageEmpty';
 export { default as PageError } from './feedback/PageError';
 export { default as PageRequestError } from './feedback/PageRequestError';

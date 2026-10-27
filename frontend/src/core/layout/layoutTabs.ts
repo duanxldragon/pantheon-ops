@@ -74,6 +74,13 @@ export function readOpenedTabs(): OpenedPageTab[] {
   }
 }
 
+export function selectAccessibleTabs(
+  tabs: OpenedPageTab[],
+  isPathAccessible: (path: string) => boolean,
+): OpenedPageTab[] {
+  return tabs.filter((tab) => isPathAccessible(tab.path));
+}
+
 export function mergeOpenedTabsIntoState(
   currentTabs: OpenedPageTab[],
   nextTab: OpenedPageTab,

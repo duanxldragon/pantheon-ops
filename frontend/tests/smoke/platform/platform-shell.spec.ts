@@ -42,7 +42,7 @@ async function selectAdminRoleInVirtualizedList(page: Page, accessToken: string)
 
 test.describe('enter submit smoke', () => {
   test('login page submits with Enter key', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'networkidle' });
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
     await page.getByPlaceholder(/请输入用户名|username/i).fill(adminCredentials.username);
     await page.getByPlaceholder(/请输入密码|password/i).fill(adminCredentials.password);
     await page.locator('input[type="password"]').press('Enter');
@@ -56,7 +56,7 @@ test.describe('enter submit smoke', () => {
     // 用户名 FilterPanel inputs no longer exist.
     await signInAsAdmin(page);
 
-    await page.goto('/system/login-log', { waitUntil: 'networkidle' });
+    await page.goto('/system/login-log', { waitUntil: 'domcontentloaded' });
     const loginLogKeyword = page.locator('.search-toolbar input').first();
     const loginLogRequest = page.waitForRequest((request) => (
       request.method() === 'GET'
@@ -67,7 +67,7 @@ test.describe('enter submit smoke', () => {
     await loginLogKeyword.press('Enter');
     await loginLogRequest;
 
-    await page.goto('/system/session', { waitUntil: 'networkidle' });
+    await page.goto('/system/session', { waitUntil: 'domcontentloaded' });
     const sessionKeyword = page.locator('.search-toolbar input').first();
     const sessionRequest = page.waitForRequest((request) => (
       request.method() === 'GET'
@@ -93,7 +93,7 @@ test.describe('enter submit smoke', () => {
     let createdPermissionId = 0;
 
     try {
-      await page.goto('/system/dict', { waitUntil: 'networkidle' });
+      await page.goto('/system/dict', { waitUntil: 'domcontentloaded' });
       await page.locator('.dict-page__actions').first().getByRole('button', { name: '新增', exact: true }).click();
       const dictDialog = await waitForDialog(page, '新增字典类型');
       const dictInputs = dictDialog.locator('input:not([disabled])');
@@ -113,7 +113,7 @@ test.describe('enter submit smoke', () => {
         return createdDictId > 0;
       }).toBeTruthy();
 
-      await page.goto('/system/i18n', { waitUntil: 'networkidle' });
+      await page.goto('/system/i18n', { waitUntil: 'domcontentloaded' });
       await page.getByRole('button', { name: '新增', exact: true }).click();
       const i18nDialog = await waitForDialog(page, '新增翻译');
       const i18nInputs = i18nDialog.locator('input:not([disabled])');
@@ -135,7 +135,7 @@ test.describe('enter submit smoke', () => {
         return createdI18nId > 0;
       }).toBeTruthy();
 
-      await page.goto('/system/permission', { waitUntil: 'networkidle' });
+      await page.goto('/system/permission', { waitUntil: 'domcontentloaded' });
       await page.getByRole('tab', { name: '接口策略', exact: true }).click();
       await page.getByRole('button', { name: '新增', exact: true }).click();
       const permissionDialog = await waitForDialog(page, '新增策略');

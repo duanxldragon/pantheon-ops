@@ -1,0 +1,67 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pantheon-ingress
+  namespace: pantheon
+  labels:
+    app: pantheon-base
+  annotations:
+    # NGINX Ingress Controller annotations
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: "10m"
+
+    # Rate limiting (optional)
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+
+    # cert-manager for automatic TLS
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+    # Security headers (additional to app headers)
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Request-ID: $req_id";
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - pantheon.example.com
+    secretName: pantheon-tls
+  rules:
+  - host: pantheon.example.com
+    http:
+      paths:
+      # API routes
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: pantheon-backend
+            port:
+              number: 8080
+      # Health check
+      - path: /health
+        pathType: Exact
+        backend:
+          service:
+            name: pantheon-backend
+            port:
+              number: 8080
+      # Metrics (should be protected)
+      - path: /metrics
+        pathType: Exact
+        backend:
+          service:
+            name: pantheon-backend
+            port:
+              number: 8080
+      # Frontend (served by backend in production)
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pantheon-backend
+            port:
+              number: 8080

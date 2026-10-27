@@ -3,19 +3,13 @@ package system
 import (
 	"testing"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 	"gorm.io/gorm"
-	"pantheon-base/pkg/testmysql"
 )
 
 func TestEnsureMenuSeedsReparentsLegacyFlatMenus(t *testing.T) {
-	db := testmysql.Open(t)
-	if err := createSeedTestTables(db); err != nil {
-		t.Fatalf("create tables: %v", err)
-	}
-
-	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
-		t.Fatalf("seed admin role: %v", err)
-	}
+	db := openSeedTestDB(t)
+	seedAdminRole(t, db)
 	if err := db.Exec(`
 INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
 VALUES
@@ -77,13 +71,8 @@ func TestCoreMenuSeedsExcludeObsoletePlatformContainers(t *testing.T) {
 }
 
 func TestOrgAccessControlSeedContract(t *testing.T) {
-	db := testmysql.Open(t)
-	if err := createSeedTestTables(db); err != nil {
-		t.Fatalf("create tables: %v", err)
-	}
-	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
-		t.Fatalf("seed admin role: %v", err)
-	}
+	db := openSeedTestDB(t)
+	seedAdminRole(t, db)
 
 	seeds := append([]menuSeed{}, baseMenuGroupSeeds()...)
 	seeds = append(seeds, coreMenuSeeds()...)
@@ -105,14 +94,47 @@ func TestOrgAccessControlSeedContract(t *testing.T) {
 	assertActionPermissionContract(t, db, "system:user:view", "/system/user")
 }
 
+// TestTenantOpsMenuSeedContract pins the 租户运营 information architecture:
+// /system/tenant must leave 访问控制 and land under the new first-level group,
+// the two read pages must be created there, and the plan editor's buttons must
+// hang off the overview page rather than becoming menu entries. The legacy row
+// is inserted explicitly because re-parenting an existing database is the
+// behaviour that could silently fail (the seed matches menus by path).
+func TestTenantOpsMenuSeedContract(t *testing.T) {
+	db := openSeedTestDB(t)
+	seedAdminRole(t, db)
+	if err := db.Exec(`
+INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
+VALUES
+(400, 0, 'system.menu.access', '/system/access', '', '', '', 'M', 'idcard', 'system-access', 'system.iam', 20, 1, 0, 0, '', 0),
+(401, 400, 'system.menu.tenant', '/system/tenant', 'system/tenant/TenantList', 'system:tenant:list', '', 'C', 'storage', 'system-tenant', 'system.tenant', 35, 1, 0, 0, '', 0)
+`).Error; err != nil {
+		t.Fatalf("seed legacy tenant menu: %v", err)
+	}
+
+	seeds := append([]menuSeed{}, baseMenuGroupSeeds()...)
+	seeds = append(seeds, tenantMenuSeeds()...)
+	if err := ensureMenuSeeds(db, seeds); err != nil {
+		t.Fatalf("ensure seeds: %v", err)
+	}
+
+	assertMenuRoot(t, db, "/system/tenant-ops", "system.tenant")
+	assertPageMenuContract(t, db, "/system/tenant-ops/overview", "/system/tenant-ops", "system.tenant", "system:tenant:overview", "system/tenant/TenantOverview")
+	assertPageMenuContract(t, db, "/system/tenant", "/system/tenant-ops", "system.tenant", "system:tenant:list", "system/tenant/TenantList")
+	assertPageMenuContract(t, db, "/system/tenant-ops/member", "/system/tenant-ops", "system.tenant", "system:tenant:member-list", "system/tenant/TenantMemberList")
+
+	assertActionPermissionContract(t, db, "system:tenant:create", "/system/tenant")
+	assertActionPermissionContract(t, db, "system:tenant:member-remove", "/system/tenant")
+	assertActionPermissionContract(t, db, "system:tenant:plan:list", "/system/tenant-ops/overview")
+	assertActionPermissionContract(t, db, "system:tenant:plan:create", "/system/tenant-ops/overview")
+	assertActionPermissionContract(t, db, "system:tenant:plan:update", "/system/tenant-ops/overview")
+	assertAdminPermissionBound(t, db, "system:tenant:overview")
+	assertAdminPermissionBound(t, db, "system:tenant:member-list")
+}
+
 func TestEnsureMenuSeedsCleansObsoleteMenuMatrixEntries(t *testing.T) {
-	db := testmysql.Open(t)
-	if err := createSeedTestTables(db); err != nil {
-		t.Fatalf("create tables: %v", err)
-	}
-	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
-		t.Fatalf("seed admin role: %v", err)
-	}
+	db := openSeedTestDB(t)
+	seedAdminRole(t, db)
 	if err := db.Exec(`
 INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
 VALUES
@@ -162,13 +184,8 @@ VALUES
 }
 
 func TestEnsureMenuSeedsRemovesObsoletePlatformContainers(t *testing.T) {
-	db := testmysql.Open(t)
-	if err := createSeedTestTables(db); err != nil {
-		t.Fatalf("create tables: %v", err)
-	}
-	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
-		t.Fatalf("seed admin role: %v", err)
-	}
+	db := openSeedTestDB(t)
+	seedAdminRole(t, db)
 	if err := db.Exec(`
 INSERT INTO system_menu (id, parent_id, title_key, path, component, page_perm, perms, type, icon, route_name, module, sort, is_visible, is_cache, is_external, active_menu, hide_in_nav)
 VALUES
@@ -219,6 +236,22 @@ VALUES
 	assertAdminPermissionBound(t, db, "platform:dashboard:view")
 }
 
+func openSeedTestDB(t *testing.T) *gorm.DB {
+	t.Helper()
+	db := testmysql.Open(t)
+	if err := createSeedTestTables(db); err != nil {
+		t.Fatalf("create tables: %v", err)
+	}
+	return db
+}
+
+func seedAdminRole(t *testing.T, db *gorm.DB) {
+	t.Helper()
+	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
+		t.Fatalf("seed admin role: %v", err)
+	}
+}
+
 func createSeedTestTables(db *gorm.DB) error {
 	if err := db.Exec(`
 CREATE TABLE system_menu (
@@ -245,6 +278,7 @@ CREATE TABLE system_menu (
 	if err := db.Exec(`
 CREATE TABLE system_role (
 	id BIGINT PRIMARY KEY,
+	tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
 	role_key VARCHAR(64),
 	status INT
 )`).Error; err != nil {
@@ -252,17 +286,19 @@ CREATE TABLE system_role (
 	}
 	if err := db.Exec(`
 CREATE TABLE system_role_menu (
+	tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
 	role_id BIGINT NOT NULL,
 	menu_id BIGINT NOT NULL,
-	PRIMARY KEY (role_id, menu_id)
+	PRIMARY KEY (tenant_id, role_id, menu_id)
 )`).Error; err != nil {
 		return err
 	}
 	return db.Exec(`
 CREATE TABLE system_role_permission (
+	tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
 	role_id BIGINT NOT NULL,
 	permission_key VARCHAR(128) NOT NULL,
-	PRIMARY KEY (role_id, permission_key)
+	PRIMARY KEY (tenant_id, role_id, permission_key)
 )`).Error
 }
 
@@ -442,13 +478,8 @@ func assertAdminPermissionBound(t *testing.T, db *gorm.DB, perms string) {
 }
 
 func TestCleanupDuplicateMenusRemovesDuplicatesByPath(t *testing.T) {
-	db := testmysql.Open(t)
-	if err := createSeedTestTables(db); err != nil {
-		t.Fatalf("create tables: %v", err)
-	}
-	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
-		t.Fatalf("seed admin role: %v", err)
-	}
+	db := openSeedTestDB(t)
+	seedAdminRole(t, db)
 
 	// Insert duplicate menus with same path
 	if err := db.Exec(`
@@ -486,13 +517,8 @@ VALUES
 }
 
 func TestCleanupDuplicateMenusRemovesDuplicatesByPerms(t *testing.T) {
-	db := testmysql.Open(t)
-	if err := createSeedTestTables(db); err != nil {
-		t.Fatalf("create tables: %v", err)
-	}
-	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
-		t.Fatalf("seed admin role: %v", err)
-	}
+	db := openSeedTestDB(t)
+	seedAdminRole(t, db)
 
 	// Insert parent menu first
 	if err := db.Exec(`
@@ -538,13 +564,8 @@ VALUES
 }
 
 func TestCleanupDuplicateMenusIsIdempotent(t *testing.T) {
-	db := testmysql.Open(t)
-	if err := createSeedTestTables(db); err != nil {
-		t.Fatalf("create tables: %v", err)
-	}
-	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
-		t.Fatalf("seed admin role: %v", err)
-	}
+	db := openSeedTestDB(t)
+	seedAdminRole(t, db)
 
 	// Insert unique menus (no duplicates)
 	if err := db.Exec(`

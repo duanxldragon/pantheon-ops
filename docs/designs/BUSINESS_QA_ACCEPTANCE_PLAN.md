@@ -1,9 +1,15 @@
+---
+title: pantheon-ops QA 验收问题与准入计划
+doc_type: Acceptance
+layer: business
+status: Draft
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-08-18
+---
+
 # pantheon-ops QA 验收问题与准入计划
 
-更新时间：2026-08-18  
-类型：Acceptance  
-归属层：business  
-状态：Proposed  
 关联评审：[BUSINESS_ARCHITECTURE_REVIEW.md](./BUSINESS_ARCHITECTURE_REVIEW.md)  
 关联测试：[BUSINESS_TEST_PLAN.md](./BUSINESS_TEST_PLAN.md)
 

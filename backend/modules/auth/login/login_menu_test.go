@@ -3,8 +3,8 @@ package login
 import (
 	"testing"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 	"gorm.io/gorm"
-	"pantheon-base/pkg/testmysql"
 )
 
 func TestSeedAuthModuleMenusReparentsLegacyFlatMenus(t *testing.T) {
@@ -36,6 +36,71 @@ VALUES
 	assertAdminAuthMenuBound(t, db, "/system/session")
 }
 
+// The auth module's seeder must grant the permission keys, not just the menu.
+//
+// The console shell resolves the sidebar from `system_role_menu`, but the route
+// guard authorises on the key set resolved from `system_role_permission`. Seeding
+// only the menu produced a login-log page that appeared in the navigation and
+// then answered 403 — and because tenant provisioning copies the platform
+// administrator's key set, every tenant administrator inherited the same hole.
+func TestSeedAuthModuleMenusGrantsAdminPermissionKeys(t *testing.T) {
+	db := testmysql.Open(t)
+	if err := createAuthSeedTestTables(db); err != nil {
+		t.Fatalf("create tables: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
+		t.Fatalf("seed admin role: %v", err)
+	}
+
+	if err := SeedAuthModuleMenus(db); err != nil {
+		t.Fatalf("seed auth menus: %v", err)
+	}
+
+	var keys []string
+	if err := db.Table("system_role_permission").
+		Where("tenant_id = ? AND role_id = ?", 0, 1).
+		Order("permission_key asc").
+		Pluck("permission_key", &keys).Error; err != nil {
+		t.Fatalf("read admin permission keys: %v", err)
+	}
+	got := make(map[string]bool, len(keys))
+	for _, key := range keys {
+		got[key] = true
+	}
+	for _, want := range []string{
+		"system:login-log:list",
+		"system:login-log:export",
+		"system:login-log:clear",
+		"system:login-log:delete",
+		"system:session:list",
+		"system:session:delete",
+		"system:session:clear",
+		"system:session:export",
+		"system:security-event:list",
+		"system:security-event:acknowledge",
+		"system:security-event:clear",
+		"system:security-event:export",
+	} {
+		if !got[want] {
+			t.Fatalf("platform administrator is missing permission key %q (granted: %v)", want, keys)
+		}
+	}
+
+	// Idempotent: a second bootstrap run must not duplicate the grants.
+	if err := SeedAuthModuleMenus(db); err != nil {
+		t.Fatalf("re-seed auth menus: %v", err)
+	}
+	var count int64
+	if err := db.Table("system_role_permission").
+		Where("tenant_id = ? AND role_id = ?", 0, 1).
+		Count(&count).Error; err != nil {
+		t.Fatalf("count admin permission keys: %v", err)
+	}
+	if int(count) != len(keys) {
+		t.Fatalf("re-seeding duplicated grants: %d keys became %d", len(keys), count)
+	}
+}
+
 func createAuthSeedTestTables(db *gorm.DB) error {
 	if err := db.Exec(`
 CREATE TABLE system_menu (
@@ -61,16 +126,34 @@ CREATE TABLE system_menu (
 	if err := db.Exec(`
 CREATE TABLE system_role (
 	id BIGINT PRIMARY KEY,
+	tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
 	role_key VARCHAR(64),
 	status INT
 )`).Error; err != nil {
 		return err
 	}
-	return db.Exec(`
+	if err := db.Exec(`
 CREATE TABLE system_role_menu (
+	tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
 	role_id BIGINT NOT NULL,
 	menu_id BIGINT NOT NULL,
-	PRIMARY KEY (role_id, menu_id)
+	PRIMARY KEY (tenant_id, role_id, menu_id)
+)`).Error; err != nil {
+		return err
+	}
+	return createAuthSeedPermissionTable(db)
+}
+
+// createAuthSeedPermissionTable declares the table the seeder grants into. The
+// legacy fixture only needed the menu join table, which is exactly how the
+// missing permission half went unnoticed.
+func createAuthSeedPermissionTable(db *gorm.DB) error {
+	return db.Exec(`
+CREATE TABLE system_role_permission (
+	tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+	role_id BIGINT NOT NULL,
+	permission_key VARCHAR(128) NOT NULL,
+	PRIMARY KEY (tenant_id, role_id, permission_key)
 )`).Error
 }
 

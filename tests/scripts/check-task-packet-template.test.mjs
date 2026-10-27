@@ -46,9 +46,21 @@ function withTemplateRepo(templateContent, callback) {
 
 test('validateTaskPacketTemplate requires quality profile and ratchet decision markers', () => {
   const template = `目标仓库：pantheon-base
+## Workspace Context
+Repository Role:
+Upstream Dependencies:
+Downstream Consumers:
+Sync Expectation:
+Release Requirement:
 同步要求：
 如果共享能力会影响 pantheon-ops，只记录
 Target repo: pantheon-base
+## Workspace Context
+Repository Role:
+Upstream Dependencies:
+Downstream Consumers:
+Sync Expectation:
+Release Requirement:
 Sync expectation:
 \`base -> ops\` sync is required
 `;

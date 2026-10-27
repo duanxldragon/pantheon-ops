@@ -36,7 +36,7 @@ import {
   type K8sReleaseListQuery,
   type K8sReleaseRow,
 } from '../api';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 
 const FormItem = Form.Item;
 

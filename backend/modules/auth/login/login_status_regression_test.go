@@ -3,7 +3,7 @@ package login
 import (
 	"testing"
 
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 )
 
 // Regression: SystemLogLogin.Status used to carry `gorm:"default:1"`, which made
@@ -11,7 +11,7 @@ import (
 // failed login was persisted as a success.
 func TestRecordLoginLogPersistsFailureStatus(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
 	s.RecordLoginLog("req-fail", "admin", "127.0.0.1", "curl", "Linux", common.LoginStatusFailure, "token.store.not_initialized")
 	s.RecordLoginLog("req-ok", "admin", "127.0.0.1", "Chrome", "Windows", common.LoginStatusSuccess, "auth.loginSuccess")

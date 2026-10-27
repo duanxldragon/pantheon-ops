@@ -5,26 +5,32 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"pantheon-base/pkg/authtoken"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/testredis"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testredis"
 
 	"github.com/gin-gonic/gin"
 )
 
-func TestSecureActionMiddlewareRejectsSessionMismatch(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	rdb := testredis.Open(t)
+// setupSecureActionRedis wires the test Redis into the global database.RDB
+// that SecureActionMiddleware reads, restoring the previous value on cleanup.
+func setupSecureActionRedis(t *testing.T) {
+	t.Helper()
+	rdb := testredis.OpenDB(t, testredis.DBMiddleware)
+	previousRDB := database.RDB
+	database.RDB = rdb
+	t.Cleanup(func() {
+		database.RDB = previousRDB
+	})
+}
 
-	token, err := authtoken.GenerateOperationToken(7, "session-a", "secure_action", authtoken.DefaultAccessTokenTTL, rdb)
-	if err != nil {
-		t.Fatalf("generate operation token: %v", err)
-	}
-
+func assertSecureActionStatus(t *testing.T, token string, userID uint64, sessionID string, wantStatus int) {
+	t.Helper()
 	engine := gin.New()
 	engine.Use(func(c *gin.Context) {
-		c.Set("userId", uint64(7))
-		c.Set("sessionId", "session-b")
+		c.Set("userId", userID)
+		c.Set("sessionId", sessionID)
 		c.Next()
 	})
 	engine.POST("/secure", SecureActionMiddleware(), func(c *gin.Context) {
@@ -32,120 +38,66 @@ func TestSecureActionMiddlewareRejectsSessionMismatch(t *testing.T) {
 	})
 
 	req := httptest.NewRequest(http.MethodPost, "/secure", nil)
-	req.Header.Set("X-Operation-Token", token)
+	if token != "" {
+		req.Header.Set("X-Operation-Token", token)
+	}
 	recorder := httptest.NewRecorder()
 	engine.ServeHTTP(recorder, req)
-
-	if recorder.Code != http.StatusForbidden {
-		t.Fatalf("expected session mismatch to be rejected, got %d", recorder.Code)
+	if recorder.Code != wantStatus {
+		t.Fatalf("expected status %d, got %d", wantStatus, recorder.Code)
 	}
+}
+
+func TestSecureActionMiddlewareRejectsSessionMismatch(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	setupSecureActionRedis(t)
+
+	token, err := authtoken.GenerateOperationToken(7, "session-a", "secure_action", authtoken.DefaultAccessTokenTTL, database.RDB)
+	if err != nil {
+		t.Fatalf("generate operation token: %v", err)
+	}
+
+	assertSecureActionStatus(t, token, 7, "session-b", http.StatusForbidden)
 }
 
 func TestSecureActionMiddlewareAllowsMatchingSession(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	rdb := testredis.Open(t)
+	setupSecureActionRedis(t)
 
-	token, err := authtoken.GenerateOperationToken(7, "session-a", "secure_action", authtoken.DefaultAccessTokenTTL, rdb)
+	token, err := authtoken.GenerateOperationToken(7, "session-a", "secure_action", authtoken.DefaultAccessTokenTTL, database.RDB)
 	if err != nil {
 		t.Fatalf("generate operation token: %v", err)
 	}
 
-	engine := gin.New()
-	engine.Use(func(c *gin.Context) {
-		c.Set("userId", uint64(7))
-		c.Set("sessionId", "session-a")
-		c.Next()
-	})
-	engine.POST("/secure", SecureActionMiddleware(), func(c *gin.Context) {
-		common.Success(c, gin.H{"ok": true})
-	})
-
-	req := httptest.NewRequest(http.MethodPost, "/secure", nil)
-	req.Header.Set("X-Operation-Token", token)
-	recorder := httptest.NewRecorder()
-	engine.ServeHTTP(recorder, req)
-
-	if recorder.Code != http.StatusOK {
-		t.Fatalf("expected matching session to pass, got %d", recorder.Code)
-	}
+	assertSecureActionStatus(t, token, 7, "session-a", http.StatusOK)
 }
 
 func TestSecureActionMiddlewareRejectsMissingToken(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	engine := gin.New()
-	engine.Use(func(c *gin.Context) {
-		c.Set("userId", uint64(7))
-		c.Set("sessionId", "session-a")
-		c.Next()
-	})
-	engine.POST("/secure", SecureActionMiddleware(), func(c *gin.Context) {
-		common.Success(c, gin.H{"ok": true})
-	})
-
-	req := httptest.NewRequest(http.MethodPost, "/secure", nil)
-	recorder := httptest.NewRecorder()
-	engine.ServeHTTP(recorder, req)
-
-	if recorder.Code != http.StatusForbidden {
-		t.Fatalf("expected missing token to be rejected, got %d", recorder.Code)
-	}
+	assertSecureActionStatus(t, "", 7, "session-a", http.StatusForbidden)
 }
 
 func TestSecureActionMiddlewareRejectsUserMismatch(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	rdb := testredis.Open(t)
+	setupSecureActionRedis(t)
 
-	token, err := authtoken.GenerateOperationToken(7, "session-a", "secure_action", authtoken.DefaultAccessTokenTTL, rdb)
+	token, err := authtoken.GenerateOperationToken(7, "session-a", "secure_action", authtoken.DefaultAccessTokenTTL, database.RDB)
 	if err != nil {
 		t.Fatalf("generate operation token: %v", err)
 	}
 
-	engine := gin.New()
-	engine.Use(func(c *gin.Context) {
-		c.Set("userId", uint64(99)) // Different user
-		c.Set("sessionId", "session-a")
-		c.Next()
-	})
-	engine.POST("/secure", SecureActionMiddleware(), func(c *gin.Context) {
-		common.Success(c, gin.H{"ok": true})
-	})
-
-	req := httptest.NewRequest(http.MethodPost, "/secure", nil)
-	req.Header.Set("X-Operation-Token", token)
-	recorder := httptest.NewRecorder()
-	engine.ServeHTTP(recorder, req)
-
-	if recorder.Code != http.StatusForbidden {
-		t.Fatalf("expected user mismatch to be rejected, got %d", recorder.Code)
-	}
+	assertSecureActionStatus(t, token, 99, "session-a", http.StatusForbidden)
 }
 
 func TestSecureActionMiddlewareRejectsWrongScope(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	rdb := testredis.Open(t)
+	setupSecureActionRedis(t)
 
-	token, err := authtoken.GenerateOperationToken(7, "session-a", "other_scope", authtoken.DefaultAccessTokenTTL, rdb)
+	token, err := authtoken.GenerateOperationToken(7, "session-a", "other_scope", authtoken.DefaultAccessTokenTTL, database.RDB)
 	if err != nil {
 		t.Fatalf("generate operation token: %v", err)
 	}
 
-	engine := gin.New()
-	engine.Use(func(c *gin.Context) {
-		c.Set("userId", uint64(7))
-		c.Set("sessionId", "session-a")
-		c.Next()
-	})
-	engine.POST("/secure", SecureActionMiddleware(), func(c *gin.Context) {
-		common.Success(c, gin.H{"ok": true})
-	})
-
-	req := httptest.NewRequest(http.MethodPost, "/secure", nil)
-	req.Header.Set("X-Operation-Token", token)
-	recorder := httptest.NewRecorder()
-	engine.ServeHTTP(recorder, req)
-
-	if recorder.Code != http.StatusForbidden {
-		t.Fatalf("expected wrong scope to be rejected, got %d", recorder.Code)
-	}
+	assertSecureActionStatus(t, token, 7, "session-a", http.StatusForbidden)
 }

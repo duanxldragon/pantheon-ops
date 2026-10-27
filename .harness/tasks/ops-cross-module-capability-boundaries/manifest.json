@@ -2,6 +2,8 @@
   "schemaVersion": 1,
   "taskId": "ops-cross-module-capability-boundaries",
   "title": "Enforce provider-owned cross-module capability APIs",
+  "goal": "Enforce provider-owned typed capability APIs and prevent direct cross-module data access.",
+  "primaryLayer": "business/*",
   "status": "complete",
   "priority": "P0",
   "deliveryTier": "L2",
@@ -78,6 +80,8 @@
   "runtimeSensitive": true,
   "costProfile": "high; strong architecture/backend executor; single contract owner",
   "linkage": {
+    "changeRef": "none",
+    "planRefs": ["docs/harness/tasks/2026-08-17-ops-cross-module-capability-boundaries.task.md"],
     "evidenceDir": ".harness/evidence/ops-cross-module-capability-boundaries/",
     "reviewFile": ".harness/evidence/ops-cross-module-capability-boundaries/review.md",
     "summaryFile": ".harness/evidence/ops-cross-module-capability-boundaries/summary.md"

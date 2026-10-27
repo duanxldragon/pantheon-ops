@@ -1,4 +1,4 @@
-package system
+package i18n
 
 import (
 	// Blank import enables the //go:embed directive that loads builtin_locale_resources.json.

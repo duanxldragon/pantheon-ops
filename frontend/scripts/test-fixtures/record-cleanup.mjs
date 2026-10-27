@@ -7,6 +7,7 @@ if (markerPath) {
   const payload = JSON.stringify({
     args: process.argv.slice(2),
     preserve: process.env.PANTHEON_SMOKE_PRESERVE_FIXTURES ?? '',
+    apiBaseUrl: process.env.PANTHEON_API_BASE_URL ?? null,
   });
   fs.appendFileSync(markerPath, `${payload}\n`, 'utf8');
 }

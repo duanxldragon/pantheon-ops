@@ -1,4 +1,4 @@
-import { defineModule } from '../../../core/router/types';
+import { defineModule } from '@duanxldragon/pantheon-base-ui';
 
 export const DeployModule = defineModule({
   name: 'deploy',
@@ -77,6 +77,9 @@ export const DeployModule = defineModule({
     'business:deploy:task:update',
     'business:deploy:task:delete',
     'business:deploy:task:start',
+    'business:deploy:task:pause',
+    'business:deploy:task:resume',
+    'business:deploy:task:retry',
     'business:deploy:task:cancel',
     'business:deploy:task:mark-result',
     'business:deploy:task:export',

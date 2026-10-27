@@ -110,19 +110,28 @@ export interface UpdateStatusPayload {
   status: string;
 }
 
-export function getHostList(params?: HostListQuery) {
-  return apiRequest<HostListResp>({
+function normalizeHostRow(row: HostRow): HostRow {
+  return {
+    ...row,
+    os: row.os?.trim().toLowerCase() || '',
+  };
+}
+
+export async function getHostList(params?: HostListQuery) {
+  const result = await apiRequest<HostListResp>({
     url: '/business/cmdb/hosts',
     method: 'get',
     params,
   });
+  return { ...result, items: result.items.map(normalizeHostRow) };
 }
 
-export function getHostDetail(id: number) {
-  return apiRequest<HostRow>({
+export async function getHostDetail(id: number) {
+  const result = await apiRequest<HostRow>({
     url: `/business/cmdb/hosts/${id}`,
     method: 'get',
   });
+  return normalizeHostRow(result);
 }
 
 export function createHost(data: CreateHostPayload) {

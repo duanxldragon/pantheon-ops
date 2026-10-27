@@ -1,9 +1,9 @@
-package system
+package audit
 
 import (
 	"testing"
 
-	"pantheon-base/internal/middleware"
+	"github.com/duanxldragon/pantheon-base/backend/internal/middleware"
 )
 
 func TestAuditService_MigrateBackfillsDerivedFields(t *testing.T) {

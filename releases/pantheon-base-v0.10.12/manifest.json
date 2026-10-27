@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "releaseVersion": "pantheon-base-v0.10.12",
+  "releaseLine": "release/0.10",
+  "baseCommit": "16918771e2650f8c045b0e086144eb290e774704",
+  "createdAt": "2026-08-11T05:44:44.215Z",
+  "sourceRepo": "pantheon-base",
+  "consumerMode": "foundation-release-consumer",
+  "releaseArtifact": {
+    "assetName": "foundation-release-pantheon-base-v0.10.12.tgz"
+  },
+  "bundleExclusions": [
+    "backend/cmd/server/uploads",
+    "backend/uploads",
+    "uploads"
+  ],
+  "sharedPaths": {
+    "backend": [
+      "backend/cmd",
+      "backend/internal",
+      "backend/modules",
+      "backend/pkg"
+    ],
+    "frontend": [
+      "frontend/src/api/request.ts",
+      "frontend/src/api/requestErrorUtils.ts",
+      "frontend/src/components",
+      "frontend/src/core",
+      "frontend/src/store",
+      "frontend/src/modules/auth",
+      "frontend/src/modules/lowcode",
+      "frontend/src/modules/platform",
+      "frontend/src/modules/system",
+      "frontend/src/index.css",
+      "frontend/scripts/export-generated-module.mjs",
+      "frontend/scripts/lib/auth-cookie-session.mjs",
+      "frontend/scripts/lib/css-declarations.mjs",
+      "frontend/scripts/run-smoke-suite.mjs",
+      "frontend/scripts/run-smoke-suite.test.mjs",
+      "frontend/scripts/test-fixtures/bind-ready-server.mjs",
+      "frontend/scripts/test-fixtures/fake-playwright-cli.mjs",
+      "frontend/scripts/test-fixtures/record-cleanup.mjs",
+      "frontend/scripts/transpile-typescript-files.mjs",
+      "frontend/tests/fixtures/coverage.ts",
+      "frontend/tests/smoke/helpers/auth.ts",
+      "frontend/tests/smoke/helpers/fixture-policy.ts",
+      "frontend/tests/smoke/helpers/shared-read-cache.ts",
+      "frontend/tests/smoke/helpers/url-pattern.ts",
+      "frontend/tests/smoke/platform/shell-visual-contract.spec.ts",
+      "frontend/tests/smoke/system/system-pages.spec.ts",
+      "frontend/tests/smoke/system/system-workspace-task-depth.ts"
+    ],
+    "docs": [
+      "docs/designs/FOUNDATION_RELEASE_MODEL.md",
+      "docs/designs/WORKFLOW.md"
+    ]
+  },
+  "verification": {
+    "summaryFile": "verification-summary.json",
+    "requiredChecks": [
+      "CI Summary",
+      "Quality Gates",
+      "Security Gates",
+      "Actionlint",
+      "Full Smoke",
+      "SonarCloud Code Analysis"
+    ]
+  },
+  "consumerCompatibility": {
+    "pantheon-ops": {
+      "minimumCurrentRelease": "release/0.10",
+      "notesFile": "consumer-impact.md"
+    }
+  }
+}

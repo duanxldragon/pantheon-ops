@@ -1,4 +1,4 @@
-package iam
+package menu
 
 var businessOverlayMenuComponentKeys = map[string]struct{}{
 	"business/bizscope/BizScopeList":              {},
@@ -14,6 +14,20 @@ var businessOverlayMenuComponentKeys = map[string]struct{}{
 	"business/k8s/cluster/ClusterList":            {},
 	"business/k8s/cluster/ClusterDetail":          {},
 	"business/k8s/workload/WorkloadList":          {},
+	"business/k8s/service/ServiceList":            {},
 	"business/k8s/release/ReleaseList":            {},
-	"business/service/ServiceList":                {},
+	"business/k8s/ingress/IngressList":            {},
+	"business/k8s/storage/StorageList":            {},
+	"business/k8s/backup/BackupList":              {},
+	"business/service/ServiceCatalog":             {},
+	"business/observability/MonitoringCenter":     {},
+	"business/observability/AlertCenter":          {},
+	"business/observability/LogExplorer":          {},
+	"business/observability/TraceExplorer":        {},
+	"business/observability/MetricSourceList":     {},
+	"business/observability/AlertRuleList":        {},
+	"business/observability/AlertRecordList":      {},
+	"business/filedist/FiledistList":              {},
+	"business/filedist/FiledistDetail":            {},
+	"business/cicd/argocd/ArgoCDList":             {},
 }

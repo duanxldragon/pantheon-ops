@@ -26,6 +26,12 @@ SET @legacy_module_registration_exists := (
   WHERE table_schema = DATABASE()
     AND table_name = 'module_registration'
 );
+-- The name comparison pins both sides to utf8mb4_general_ci explicitly: legacy
+-- databases created under the pre-8.0 default carry utf8mb4_general_ci while the
+-- new table inherits the server default (utf8mb4_0900_ai_ci), and a cross-collation
+-- "=" fails with Error 1267 (Illegal mix of collations). This migration is replayed
+-- by the marker-driven bootstrap rewind (pkg/database), so the copy must execute on
+-- real legacy databases, not only on fixtures without the legacy table.
 SET @module_registration_copy_stmt := IF(
   @legacy_module_registration_exists = 1,
   'INSERT INTO `system_module_registration` (
@@ -42,7 +48,7 @@ SET @module_registration_copy_stmt := IF(
      AND NOT EXISTS (
        SELECT 1
        FROM `system_module_registration` target
-       WHERE target.`name` = legacy.`name`
+       WHERE target.`name` COLLATE utf8mb4_general_ci = legacy.`name` COLLATE utf8mb4_general_ci
      )',
   'SELECT 1'
 );

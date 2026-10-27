@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"io"
 	"log/slog"
+	"mime"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"strconv"
@@ -13,8 +15,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/metrics"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/metrics"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"gorm.io/gorm"
 
@@ -36,7 +39,19 @@ const (
 
 	defaultOperationLogQueueSize = 1024
 	defaultOperationLogBodyLimit = 64 * 1024
-	operationLogWriteTimeout     = 2 * time.Second
+	// F05: the audit copy of a request body has its own small cap, decoupled
+	// from the upload size limit — a 10MiB upload must never be buffered a
+	// second time just for auditing.
+	defaultOperationLogAuditBodyLimit = 16 * 1024
+	maxOperationLogAuditBodyLimit     = 64 * 1024
+	operationLogAuditBodyLimitEnv     = "PANTHEON_OPERATION_LOG_AUDIT_BODY_LIMIT"
+	operationLogWriteTimeout          = 2 * time.Second
+	unavailableAuditParam             = `{"__body":"unavailable"}`
+	operationLogParamOverLimit        = `{"__body":"over_limit"}`
+	multipartAuditOverLimit           = `{"__multipart":"metadata_over_limit"}`
+	maxMultipartAuditFiles            = 32
+	maxMultipartAuditFieldName        = 128
+	maxMultipartAuditFileName         = 256
 )
 
 func (w operationLogWriter) Write(data []byte) (int, error) {
@@ -47,6 +62,11 @@ func (w operationLogWriter) Write(data []byte) (int, error) {
 type operationLogBuffer struct {
 	bytes.Buffer
 	limit int
+}
+
+type operationLogBodyReadCloser struct {
+	io.Reader
+	io.Closer
 }
 
 func newOperationLogBuffer() *operationLogBuffer {
@@ -68,6 +88,7 @@ func (b *operationLogBuffer) Write(data []byte) (int, error) {
 
 type SystemLogOper struct {
 	ID              uint64    `gorm:"primaryKey;autoIncrement"`
+	TenantID        uint64    `gorm:"not null;default:0;index:idx_system_log_oper_tenant"` // tenant of the acted-on context (0 = platform/global; contract §3.3)
 	RequestID       string    `gorm:"size:64;index:idx_system_log_oper_request_id"`
 	Title           string    `gorm:"size:64"`
 	BusinessType    int       `gorm:"default:0"`
@@ -210,7 +231,10 @@ func OperationLogMiddleware(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		start := time.Now()
-		requestBody := readAndRestoreBody(c)
+		requestBody := ""
+		if !shouldAllowlistMultipartParam(c) {
+			requestBody = readAndRestoreBody(c)
+		}
 		responseBody := newOperationLogBuffer()
 		c.Writer = operationLogWriter{ResponseWriter: c.Writer, body: responseBody}
 
@@ -221,24 +245,14 @@ func OperationLogMiddleware(db *gorm.DB) gin.HandlerFunc {
 			username, _ = value.(string)
 		}
 
-		status := common.OperationStatusSuccess
-		errorMessage := ""
-		if c.Writer.Status() >= http.StatusBadRequest {
-			status = common.OperationStatusFailure
-			errorMessage = http.StatusText(c.Writer.Status())
-		}
-		if code, message := parseBusinessResult(responseBody.String()); code != 0 && code != 200 {
-			status = common.OperationStatusFailure
-			errorMessage = message
-		}
-		if overrideStatus, ok := readOperationLogStatus(c); ok {
-			status = overrideStatus
-		}
-		if overrideErrorMessage := readOperationLogErrorMsg(c); overrideErrorMessage != "" {
-			errorMessage = overrideErrorMessage
-		}
+		status, errorMessage := resolveOperationOutcome(c, responseBody.String())
 
 		log := SystemLogOper{
+			// Stamp the tenant of the acted-on context (queue-5 audit slice):
+			// built AFTER c.Next() so TenantContextMiddleware has already resolved
+			// and stored the context. Routes without tenant middleware (or compat)
+			// stamp 0 = platform population. Ownership never comes from the request.
+			TenantID:        tenantIDForOperationLog(c),
 			RequestID:       strings.TrimSpace(common.GetRequestID(c)),
 			Title:           readOperationLogTitle(c),
 			BusinessType:    readOperationLogBusinessType(c),
@@ -248,7 +262,7 @@ func OperationLogMiddleware(db *gorm.DB) gin.HandlerFunc {
 			OperIP:          c.ClientIP(),
 			SourceDomain:    DetectOperationLogSourceDomain(c.Request.URL.Path),
 			SourcePage:      DetectOperationLogSourcePage(c.Request.URL.Path),
-			OperParam:       readOperationLogParam(c, requestBody),
+			OperParam:       readOperationLogParam(c, buildAuditParamFallback(c, requestBody)),
 			JsonResult:      readOperationLogResult(c, responseBody.String()),
 			Status:          status,
 			FailureCategory: DetectOperationLogFailureCategory(status, errorMessage, readOperationLogResult(c, responseBody.String())),
@@ -259,6 +273,43 @@ func OperationLogMiddleware(db *gorm.DB) gin.HandlerFunc {
 
 		store.enqueue(log)
 	}
+}
+
+// resolveOperationOutcome derives the audit status and failure message for a
+// completed request. Precedence: HTTP status failure, then business result
+// code in the response body, then explicit handler overrides set via context
+// (readOperationLogStatus / readOperationLogErrorMsg), which always win.
+func resolveOperationOutcome(c *gin.Context, responseBody string) (int, string) {
+	status := common.OperationStatusSuccess
+	errorMessage := ""
+	if c.Writer.Status() >= http.StatusBadRequest {
+		status = common.OperationStatusFailure
+		errorMessage = http.StatusText(c.Writer.Status())
+	}
+	if code, message := parseBusinessResult(responseBody); code != 0 && code != 200 {
+		status = common.OperationStatusFailure
+		errorMessage = message
+	}
+	if overrideStatus, ok := readOperationLogStatus(c); ok {
+		status = overrideStatus
+	}
+	if overrideErrorMessage := readOperationLogErrorMsg(c); overrideErrorMessage != "" {
+		errorMessage = overrideErrorMessage
+	}
+	return status, errorMessage
+}
+
+// tenantIDForOperationLog returns the tenant of the acted-on context for the
+// audit row (queue-5 audit slice). The value is read exclusively from the
+// resolved tenant context set by TenantContextMiddleware — never from the
+// request — so a spoofed header/claim cannot forge audit ownership beyond
+// what the trusted resolution already authorized (contract §3.3).
+// Compat mode and routes without the middleware yield 0 (platform population).
+func tenantIDForOperationLog(c *gin.Context) uint64 {
+	if ctx := tenant.FromGin(c); ctx != nil && ctx.IsMulti() {
+		return ctx.TenantID
+	}
+	return tenant.PlatformGlobalTenantID
 }
 
 func readOperationLogTitle(c *gin.Context) string {
@@ -291,10 +342,33 @@ func readOperationLogBusinessType(c *gin.Context) int {
 func readOperationLogParam(c *gin.Context, fallback string) string {
 	if value, ok := c.Get(operationLogParamKey); ok {
 		if text, ok := value.(string); ok {
-			return text
+			return sanitizeAuditParam(text)
 		}
 	}
-	return sanitizeJSON(fallback)
+	return sanitizeAuditParam(fallback)
+}
+
+func sanitizeAuditParam(raw string) string {
+	if strings.TrimSpace(raw) == "" {
+		return ""
+	}
+	var payload interface{}
+	if err := json.Unmarshal([]byte(raw), &payload); err != nil {
+		return unavailableAuditParam
+	}
+	switch payload.(type) {
+	case map[string]interface{}, []interface{}:
+	default:
+		return unavailableAuditParam
+	}
+	data, err := json.Marshal(maskSensitivePayload(payload))
+	if err != nil {
+		return unavailableAuditParam
+	}
+	if len(data) > operationLogAuditBodyLimit() {
+		return operationLogParamOverLimit
+	}
+	return string(data)
 }
 
 func readOperationLogResult(c *gin.Context, fallback string) string {
@@ -333,16 +407,151 @@ func readOperationLogErrorMsg(c *gin.Context) string {
 	return ""
 }
 
+// operationLogAuditBodyLimit returns the audit-specific request-body cap.
+// It defaults to 16KiB and can be tightened per deployment via
+// PANTHEON_OPERATION_LOG_AUDIT_BODY_LIMIT (bytes); invalid values fall back
+// to the default.
+func operationLogAuditBodyLimit() int {
+	raw := strings.TrimSpace(os.Getenv(operationLogAuditBodyLimitEnv))
+	if raw == "" {
+		return defaultOperationLogAuditBodyLimit
+	}
+	parsed, err := strconv.Atoi(raw)
+	if err != nil || parsed < len(multipartAuditOverLimit) {
+		return defaultOperationLogAuditBodyLimit
+	}
+	if parsed > maxOperationLogAuditBodyLimit {
+		return maxOperationLogAuditBodyLimit
+	}
+	return parsed
+}
+
+// readAndRestoreBody returns a capped audit copy of the request body while
+// restoring the FULL original body for the handler chain (F05). Memory and
+// storage are bounded by the audit cap independent of the upload limit.
 func readAndRestoreBody(c *gin.Context) string {
 	if c.Request.Body == nil {
 		return ""
 	}
-	body, err := io.ReadAll(c.Request.Body)
-	if err != nil {
+	limit := operationLogAuditBodyLimit()
+
+	originalBody := c.Request.Body
+	auditBuf := new(bytes.Buffer)
+	_, err := io.CopyN(auditBuf, originalBody, int64(limit))
+	c.Request.Body = operationLogBodyReadCloser{
+		Reader: io.MultiReader(bytes.NewReader(auditBuf.Bytes()), originalBody),
+		Closer: originalBody,
+	}
+	if err != nil && err != io.EOF {
+		// Best effort: still expose whatever the handler can read.
+		return auditBuf.String()
+	}
+
+	// Restore the full body for downstream handlers; the audit copy stays capped.
+	return auditBuf.String()
+}
+
+// buildAuditParamFallback decides what is persisted for OperParam when the
+// route did not set an explicit audit override (F05):
+//   - multipart/form-data: only allowlisted metadata (part file names and
+//     sizes) — secret fields and raw file bytes never reach the audit store;
+//   - JSON bodies: the capped copy, subject to strict parsing and masking;
+//   - other bodies: a marker only, never raw values or binary bytes.
+func buildAuditParamFallback(c *gin.Context, auditBody string) string {
+	if shouldAllowlistMultipartParam(c) {
+		return multipartAuditMetadata(c)
+	}
+	if strings.TrimSpace(auditBody) == "" {
 		return ""
 	}
-	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
-	return string(body)
+	mediaType, _, err := mime.ParseMediaType(c.GetHeader("Content-Type"))
+	if err == nil && (strings.EqualFold(mediaType, "application/json") || strings.HasSuffix(strings.ToLower(mediaType), "+json")) {
+		return auditBody
+	}
+	return unavailableAuditParam
+}
+
+// shouldAllowlistMultipartParam reports whether the request carries a
+// multipart/form-data content type (possibly with ignored parameters).
+func shouldAllowlistMultipartParam(c *gin.Context) bool {
+	mediaType, _, err := mime.ParseMediaType(c.GetHeader("Content-Type"))
+	if err != nil {
+		return false
+	}
+	return strings.EqualFold(mediaType, "multipart/form-data")
+}
+
+// multipartAuditMetadata extracts allowlisted upload metadata from the
+// request's already parsed multipart form: file part names with sizes and
+// the count of non-file fields. Values are never copied into the audit record, so a
+// secret typed into a form field cannot leak through operation logs.
+// If the handler did not parse the form, a minimal marker is returned.
+func multipartAuditMetadata(c *gin.Context) string {
+	metadata := map[string]interface{}{
+		"__multipart": true,
+	}
+
+	form := c.Request.MultipartForm
+	if form == nil {
+		metadata["__multipart"] = "unparsed"
+		return encodeAuditMetadata(metadata)
+	}
+
+	files, truncated := collectMultipartFileParts(form.File)
+	metadata["files"] = files
+	metadata["fieldCount"] = len(form.Value)
+	if truncated {
+		metadata["__truncated"] = true
+	}
+
+	return encodeAuditMetadata(metadata)
+}
+
+// collectMultipartFileParts builds the allowlisted per-field file metadata,
+// bounding both the number of fields and the number of file parts recorded so
+// a huge upload cannot bloat the audit row. Only names and sizes are kept.
+func collectMultipartFileParts(formFiles map[string][]*multipart.FileHeader) (map[string]interface{}, bool) {
+	files := make(map[string]interface{})
+	count := 0
+	truncated := false
+	for field, headers := range formFiles {
+		if count >= maxMultipartAuditFiles || len(files) >= maxMultipartAuditFiles {
+			truncated = true
+			break
+		}
+		name := field
+		if len(name) > maxMultipartAuditFieldName {
+			name = name[:maxMultipartAuditFieldName]
+			truncated = true
+		}
+		parts := make([]map[string]interface{}, 0, min(len(headers), maxMultipartAuditFiles-count))
+		for _, header := range headers {
+			if count >= maxMultipartAuditFiles {
+				truncated = true
+				break
+			}
+			filename := header.Filename
+			if len(filename) > maxMultipartAuditFileName {
+				filename = filename[:maxMultipartAuditFileName]
+				truncated = true
+			}
+			parts = append(parts, map[string]interface{}{
+				"filename": filename,
+				"size":     header.Size,
+			})
+			count++
+		}
+		files[name] = parts
+	}
+	return files, truncated
+}
+
+func encodeAuditMetadata(metadata map[string]interface{}) string {
+	data, err := json.Marshal(metadata)
+	if err != nil || len(data) > operationLogAuditBodyLimit() {
+		return multipartAuditOverLimit
+	}
+	return string(data)
 }
 
 func sanitizeJSON(raw string) string {

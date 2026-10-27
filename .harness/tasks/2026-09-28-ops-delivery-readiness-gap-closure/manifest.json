@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "taskId": "2026-09-28-ops-delivery-readiness-gap-closure",
+  "title": "Close Pantheon Ops delivery readiness gaps",
+  "status": "planned",
+  "priority": "P0",
+  "deliveryTier": "L2",
+  "primaryLayer": "business/*",
+  "qualityProfiles": ["runtime-quality", "architecture-fitness", "method-health"],
+  "ratchetDecision": "guide-updated",
+  "goal": "Turn the current RC-ready local implementation into an evidence-backed production delivery decision without hiding external, Base-first, SSRF, tenant, or Harness gaps.",
+  "scope": {
+    "in": [
+      "re-run and close the direct production acceptance gates identified by the 2026-08-31 round-2 review",
+      "verify the v0.13.0 foundation consumer boundary and route shared fixes back to pantheon-base",
+      "record tenant migration G2/G3 evidence as a separate multi-tenant release track",
+      "triage active Harness/schema/link and generated-artifact gate failures into resumable child packets"
+    ],
+    "out": [
+      "unapproved production database, Kubernetes, ArgoCD, Velero, or observability mutations",
+      "new business feature development unrelated to a readiness gate",
+      "copying Base-owned platform or system code into Ops",
+      "claiming multi-tenant production readiness from local tests or screenshots alone"
+    ]
+  },
+  "taskDoc": "docs/harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure.task.md",
+  "statusDoc": ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/STATUS.md",
+  "executionQueueDoc": ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/EXECUTION_QUEUE.md",
+  "children": ["D1", "D2", "D3", "D4", "D5"],
+  "executionBatches": [["D3", "D5"], ["D1", "D2"], ["D4"]],
+  "runtimeSensitive": true,
+  "estimatedEffort": {
+    "singleTenantProduction": "4.5-9 engineer-days after endpoints, credentials, and maintainer decisions are available",
+    "multiTenantMigrationTrack": "additional 3-7 engineer-days plus DBA/maintenance-window time",
+    "calendarRisk": "unbounded while required external endpoints, credentials, or human gates are unavailable",
+    "confidence": "medium"
+  },
+  "linkage": {
+    "taskId": "2026-09-28-ops-delivery-readiness-gap-closure",
+    "changeRef": "none",
+    "taskPacket": "docs/harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure.task.md",
+    "evidenceDir": ".harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure/",
+    "reviewFile": ".harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure/review.md",
+    "summaryFile": ".harness/evidence/2026-09-28-ops-delivery-readiness-gap-closure/summary.md",
+    "planRefs": [
+      ".harness/tasks/2026-09-28-ops-delivery-readiness-gap-closure/EXECUTION_QUEUE.md",
+      ".harness/evidence/2026-08-31-ops-v1-2-production-readiness-round2/summary.md",
+      "docs/runbooks/TENANT_MIGRATION_RUNBOOK.md"
+    ]
+  },
+  "maintainerGates": [
+    "production-like external endpoints and credentials",
+    "SSRF outbound allowlist/private-network policy",
+    "Base foundation re-review or upstream change",
+    "tenant migration G2/G3 DBA and maintenance-window approval",
+    "final functional and visual acceptance"
+  ],
+  "verificationPlan": {
+    "backend": [
+      "go test -count=1 ./...",
+      "go vet ./...",
+      "PATH=D:\\msys64\\mingw64\\bin; CGO_ENABLED=1; go test -race ./..."
+    ],
+    "frontend": [
+      "npm run type-check",
+      "npm run lint",
+      "npm run build"
+    ],
+    "business": [
+      "npm run check:business-foundation",
+      "npm run check:business-overlay",
+      "npm run test:business-overlay"
+    ],
+    "harness": [
+      "npm run check:harness-method",
+      "npm run check:harness-adoption",
+      "npm run check:harness-docs",
+      "npm run check:harness-inventory",
+      "npm run check:harness-sync",
+      "npm run check:harness-encoding",
+      "npm run check:structure",
+      "npm run check:ui-quality-gate",
+      "node scripts/harness/check-task-packet.mjs --root ."
+    ],
+    "visualEvidence": null
+  }
+}

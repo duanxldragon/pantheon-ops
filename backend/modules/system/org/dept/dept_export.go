@@ -1,4 +1,4 @@
-package org
+package dept
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
 
 	"gorm.io/gorm/clause"
 )
@@ -41,7 +41,7 @@ func (s *DeptService) ExportDepts(ctx context.Context, query *DeptListQuery) (*i
 	if err != nil {
 		return nil, err
 	}
-	pathByID, _, err := impexp.BuildDeptPathMaps(s.db)
+	pathByID, _, err := impexp.BuildDeptPathMaps(s.scoped(s.db))
 	if err != nil {
 		return nil, err
 	}

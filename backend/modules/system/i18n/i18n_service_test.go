@@ -1,5 +1,5 @@
 //nolint:goconst,gosec // repeated assertion literals and fixture file operations in this test file are intentional.
-package system
+package i18n
 
 import (
 	"errors"
@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 	"gorm.io/gorm"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/testmysql"
 )
 
 func newI18nTestDB(t *testing.T) *gorm.DB {
@@ -19,12 +19,40 @@ func newI18nTestDB(t *testing.T) *gorm.DB {
 	return testmysql.Open(t)
 }
 
-func TestI18nService_SeedI18nModuleI18nIsIdempotent(t *testing.T) {
+// newI18nTestService opens a test database and returns it together with an
+// I18nService whose schema has been migrated through the service.
+func newI18nTestService(t *testing.T) (*gorm.DB, *I18nService) {
+	t.Helper()
 	db := newI18nTestDB(t)
 	service := NewI18nService(db)
 	if err := service.Migrate(); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
+	return db, service
+}
+
+// newI18nTestServiceWithRawTable opens a test database and migrates only the
+// SystemI18n table, for tests that exercise the raw table without Migrate().
+func newI18nTestServiceWithRawTable(t *testing.T) (*gorm.DB, *I18nService) {
+	t.Helper()
+	db := newI18nTestDB(t)
+	service := NewI18nService(db)
+	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	return db, service
+}
+
+// seedI18nRows inserts fixture rows and fails the test on error.
+func seedI18nRows(t *testing.T, service *I18nService, items ...SystemI18n) {
+	t.Helper()
+	if err := service.BatchInsert(items); err != nil {
+		t.Fatalf("seed items: %v", err)
+	}
+}
+
+func TestI18nService_SeedI18nModuleI18nIsIdempotent(t *testing.T) {
+	db, service := newI18nTestService(t)
 	if err := service.SeedI18nModuleI18n(db); err != nil {
 		t.Fatalf("first seed: %v", err)
 	}
@@ -71,11 +99,7 @@ func TestI18nService_SeedI18nModuleI18nIsIdempotent(t *testing.T) {
 }
 
 func TestI18nService_SeedI18nModuleI18nBackfillsEmptyValue(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestService(t)
 
 	if err := db.Create(&SystemI18n{
 		Module: "system.config",
@@ -102,11 +126,7 @@ func TestI18nService_SeedI18nModuleI18nBackfillsEmptyValue(t *testing.T) {
 }
 
 func TestI18nService_UpdateRejectsBlankValue(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestService(t)
 
 	row := SystemI18n{
 		Module: "system.config",
@@ -133,11 +153,7 @@ func TestI18nService_UpdateRejectsBlankValue(t *testing.T) {
 }
 
 func TestI18nService_GetAndDelete(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestService(t)
 
 	row := SystemI18n{
 		Module: "system.config",
@@ -168,11 +184,7 @@ func TestI18nService_GetAndDelete(t *testing.T) {
 }
 
 func TestI18nService_ListSupportsGroupAndBatchDelete(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestService(t)
 
 	rows := []SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "i18n.value", Locale: "zh-CN", Value: "内容"},
@@ -210,13 +222,9 @@ func TestI18nService_ListSupportsGroupAndBatchDelete(t *testing.T) {
 }
 
 func TestI18nService_SyncMissingKeysReturnsCreatedKeys(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestService(t)
 
-	resp, err := service.SyncMissingKeys()
+	resp, err := service.SyncMissingKeys("admin")
 	if err != nil {
 		t.Fatalf("sync keys: %v", err)
 	}
@@ -228,23 +236,19 @@ func TestI18nService_SyncMissingKeysReturnsCreatedKeys(t *testing.T) {
 	}
 	for _, key := range resp.Keys {
 		for _, locale := range []string{"zh-CN", "en-US", "ja-JP", "ko-KR", "fr-FR"} {
-			var count int64
-			if err := db.Model(&SystemI18n{}).Where("`key` = ? AND locale = ?", key, locale).Count(&count).Error; err != nil {
-				t.Fatalf("count %s/%s: %v", key, locale, err)
+			var row SystemI18n
+			if err := db.Where("`key` = ? AND locale = ?", key, locale).First(&row).Error; err != nil {
+				t.Fatalf("load synchronized key %s/%s: %v", key, locale, err)
 			}
-			if count == 0 {
-				t.Fatalf("expected synchronized key %s to exist for locale %s", key, locale)
+			if row.UpdatedBy != "admin" {
+				t.Fatalf("expected synchronized key %s/%s to record updated_by=admin, got %q", key, locale, row.UpdatedBy)
 			}
 		}
 	}
 }
 
 func TestI18nService_GetLangPackMergesZhFallback(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	_, service := newI18nTestService(t)
 
 	items := []SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "i18n.only.zh", Locale: "zh-CN", Value: "仅中文"},
@@ -252,9 +256,7 @@ func TestI18nService_GetLangPackMergesZhFallback(t *testing.T) {
 		{Module: "system.config", Group: "messages", Key: "i18n.override", Locale: "en-US", Value: "English Value"},
 		{Module: "system.config", Group: "messages", Key: "i18n.batchDelete", Locale: "fr-FR", Value: "[i18n.batchDelete]"},
 	}
-	if err := service.BatchInsert(items); err != nil {
-		t.Fatalf("seed items: %v", err)
-	}
+	seedI18nRows(t, service, items...)
 
 	pack, err := service.GetLangPack("en-US")
 	if err != nil {
@@ -277,11 +279,7 @@ func TestI18nService_GetLangPackMergesZhFallback(t *testing.T) {
 }
 
 func TestI18nService_GetOverviewSummarizesCoverage(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	_, service := newI18nTestServiceWithRawTable(t)
 
 	items := []SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "i18n.cover.zh_only", Locale: "zh-CN", Value: "中文"},
@@ -289,9 +287,7 @@ func TestI18nService_GetOverviewSummarizesCoverage(t *testing.T) {
 		{Module: "system.config", Group: "messages", Key: "i18n.cover.full", Locale: "en-US", Value: "Full"},
 		{Module: "system.config", Group: "messages", Key: "i18n.cover.placeholder", Locale: "en-US", Value: "[i18n.cover.placeholder]"},
 	}
-	if err := service.BatchInsert(items); err != nil {
-		t.Fatalf("seed items: %v", err)
-	}
+	seedI18nRows(t, service, items...)
 
 	overview, err := service.GetOverview()
 	if err != nil {
@@ -315,20 +311,14 @@ func TestI18nService_GetOverviewSummarizesCoverage(t *testing.T) {
 }
 
 func TestI18nService_ListMissingLocales(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	_, service := newI18nTestService(t)
 
 	items := []SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "i18n.missing.zh_only", Locale: "zh-CN", Value: "仅中文"},
 		{Module: "system.config", Group: "messages", Key: "i18n.missing.complete", Locale: "zh-CN", Value: "完整"},
 		{Module: "system.config", Group: "messages", Key: "i18n.missing.complete", Locale: "en-US", Value: "Complete"},
 	}
-	if err := service.BatchInsert(items); err != nil {
-		t.Fatalf("seed items: %v", err)
-	}
+	seedI18nRows(t, service, items...)
 
 	resp, err := service.ListMissingLocales("")
 	if err != nil {
@@ -368,19 +358,13 @@ func TestI18nService_ListMissingLocales(t *testing.T) {
 }
 
 func TestI18nService_FillMissingLocales(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestService(t)
 
 	items := []SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "i18n.fill.zh_only", Locale: "zh-CN", Value: "仅中文"},
 		{Module: "system.iam", Group: "messages", Key: "i18n.fill.user.zh_only", Locale: "zh-CN", Value: "仅中文用户"},
 	}
-	if err := service.BatchInsert(items); err != nil {
-		t.Fatalf("seed items: %v", err)
-	}
+	seedI18nRows(t, service, items...)
 
 	resp, err := service.FillMissingLocales("system.config")
 	if err != nil {
@@ -411,11 +395,7 @@ func TestI18nService_FillMissingLocales(t *testing.T) {
 }
 
 func TestI18nService_FillMissingLocalesAllCoveredByBuiltin(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	_, service := newI18nTestServiceWithRawTable(t)
 
 	if err := service.BatchInsert([]SystemI18n{
 		{Module: "system.auth", Group: "menu", Key: "system.menu.session", Locale: "zh-CN", Value: "会话管理"},
@@ -433,11 +413,7 @@ func TestI18nService_FillMissingLocalesAllCoveredByBuiltin(t *testing.T) {
 }
 
 func TestI18nService_GetOverviewUsesBuiltinCoverage(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	_, service := newI18nTestServiceWithRawTable(t)
 
 	if err := service.BatchInsert([]SystemI18n{
 		{Module: "system.auth", Group: "menu", Key: "system.menu.session", Locale: "zh-CN", Value: "会话管理"},
@@ -462,11 +438,7 @@ func TestI18nService_GetOverviewUsesBuiltinCoverage(t *testing.T) {
 }
 
 func TestI18nService_HydrateBuiltinLocales(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestServiceWithRawTable(t)
 
 	if err := service.BatchInsert([]SystemI18n{
 		{Module: "system.auth", Group: "menu", Key: "system.menu.session", Locale: "zh-CN", Value: "会话管理"},
@@ -493,11 +465,7 @@ func TestI18nService_HydrateBuiltinLocales(t *testing.T) {
 }
 
 func TestI18nService_SeedI18nModuleI18nHydratesBuiltinLocales(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestService(t)
 
 	if err := service.SeedI18nModuleI18n(db); err != nil {
 		t.Fatalf("seed i18n module: %v", err)
@@ -555,11 +523,7 @@ func TestCanonicalMenuLocaleEntriesIncludeLowCodeKeys(t *testing.T) {
 }
 
 func TestI18nService_GetLangPackIncludesCommonUsernameFallback(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	_, service := newI18nTestService(t)
 
 	zhPack, err := service.GetLangPack("zh-CN")
 	if err != nil {
@@ -579,11 +543,7 @@ func TestI18nService_GetLangPackIncludesCommonUsernameFallback(t *testing.T) {
 }
 
 func TestI18nService_CreateAndReloadLocales(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	_, service := newI18nTestService(t)
 
 	created, err := service.Create(&I18nCreateReq{
 		Module: "system.config",
@@ -655,11 +615,7 @@ func assertCanonicalLocaleRow(t *testing.T, db *gorm.DB, key, locale, wantModule
 }
 
 func TestI18nService_CreateRejectsCrossModuleLocaleKeyDuplicate(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	_, service := newI18nTestService(t)
 
 	if err := service.BatchInsert([]SystemI18n{
 		{Module: "system.iam", Group: "menu", Key: "system.menu.access", Locale: "en-US", Value: "Access & Permissions"},
@@ -683,18 +639,14 @@ func TestI18nService_CreateRejectsCrossModuleLocaleKeyDuplicate(t *testing.T) {
 }
 
 func TestI18nService_ImportTemplateAndImport(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestService(t)
 
 	template := service.BuildImportTemplate()
 	if template == nil || len(template.Headers) != 6 {
 		t.Fatalf("unexpected template: %#v", template)
 	}
 
-	templateResult, err := service.Import(append([][]string{template.Headers}, template.Rows...))
+	templateResult, err := service.Import(append([][]string{template.Headers}, template.Rows...), "importer")
 	if err != nil {
 		t.Fatalf("import template rows: %v", err)
 	}
@@ -706,7 +658,7 @@ func TestI18nService_ImportTemplateAndImport(t *testing.T) {
 		{"module", "group", "key", "locale", "value", "remark"},
 		{"system.config", "messages", "i18n.bulk.created", "zh-CN", "批量新增", "created"},
 		{"system.config", "messages", "i18n.sample.key", "zh-CN", "示例文案已更新", "updated"},
-	})
+	}, "importer")
 	if err != nil {
 		t.Fatalf("import rows: %v", err)
 	}
@@ -732,11 +684,7 @@ func TestI18nService_ImportTemplateAndImport(t *testing.T) {
 }
 
 func TestI18nService_ImportBlocksCrossModuleOwnershipConflict(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestService(t)
 
 	if err := service.BatchInsert([]SystemI18n{
 		{Module: "system.iam", Group: "menu", Key: "system.menu.access", Locale: "en-US", Value: "Access & Permissions"},
@@ -747,7 +695,7 @@ func TestI18nService_ImportBlocksCrossModuleOwnershipConflict(t *testing.T) {
 	result, err := service.Import([][]string{
 		{"module", "group", "key", "locale", "value", "remark"},
 		{"system.config", "menu", "system.menu.access", "en-US", "Platform Access", "translator"},
-	})
+	}, "importer")
 	if err != nil {
 		t.Fatalf("import rows: %v", err)
 	}
@@ -771,17 +719,13 @@ func TestI18nService_ImportBlocksCrossModuleOwnershipConflict(t *testing.T) {
 }
 
 func TestI18nService_ImportRejectsInvalidRows(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	_, service := newI18nTestService(t)
 
 	result, err := service.Import([][]string{
 		{"module", "group", "key", "locale", "value", "remark"},
 		{"system.config", "messages", "i18n.invalid", "zh-CN", "", "missing value"},
 		{"system.config", "messages", "i18n.invalid", "zh-CN", "重复", "duplicate"},
-	})
+	}, "importer")
 	if err != nil {
 		t.Fatalf("import invalid rows: %v", err)
 	}
@@ -794,11 +738,7 @@ func TestI18nService_ImportRejectsInvalidRows(t *testing.T) {
 }
 
 func TestI18nService_GetAudit(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestServiceWithRawTable(t)
 
 	// Use raw Create to bypass BatchInsert dedup - need 2 rows with same (locale,key) for duplicate detection
 	items := []SystemI18n{
@@ -998,11 +938,7 @@ func TestIsLikelyI18nKeyRejectsPseudoKeysAndKeepsBusinessKeys(t *testing.T) {
 }
 
 func TestI18nService_GetAuditIncludesStalePlaceholders(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestService(t)
 
 	row := SystemI18n{
 		Module: "system.config",
@@ -1034,11 +970,7 @@ func TestI18nService_GetAuditIncludesStalePlaceholders(t *testing.T) {
 }
 
 func TestI18nService_CleanupUnusedKeysByModule(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestServiceWithRawTable(t)
 
 	// Use raw Create to bypass BatchInsert dedup - need 2 rows with same (locale,key) in different modules
 	items := []SystemI18n{
@@ -1075,19 +1007,13 @@ func TestI18nService_CleanupUnusedKeysByModule(t *testing.T) {
 }
 
 func TestI18nService_ExportByModule(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := db.AutoMigrate(&SystemI18n{}); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	_, service := newI18nTestServiceWithRawTable(t)
 
 	items := []SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "i18n.export.module", Locale: "zh-CN", Value: "导出模块"},
 		{Module: "system.iam", Group: "messages", Key: "i18n.export.other", Locale: "zh-CN", Value: "其他模块"},
 	}
-	if err := service.BatchInsert(items); err != nil {
-		t.Fatalf("seed items: %v", err)
-	}
+	seedI18nRows(t, service, items...)
 
 	file, err := service.Export(&I18nQuery{Module: "system.config"})
 	if err != nil {
@@ -1102,19 +1028,13 @@ func TestI18nService_ExportByModule(t *testing.T) {
 }
 
 func TestI18nService_PreviewRenameKey(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	_, service := newI18nTestService(t)
 
 	items := []SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "common.refresh", Locale: "zh-CN", Value: "刷新"},
 		{Module: "system.config", Group: "messages", Key: "common.refresh", Locale: "en-US", Value: "Refresh"},
 	}
-	if err := service.BatchInsert(items); err != nil {
-		t.Fatalf("seed items: %v", err)
-	}
+	seedI18nRows(t, service, items...)
 
 	resp, err := service.PreviewRenameKey(&I18nRenamePreviewReq{
 		Module: "system.config",
@@ -1139,19 +1059,13 @@ func TestI18nService_PreviewRenameKey(t *testing.T) {
 }
 
 func TestI18nService_RenameKey(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestService(t)
 
 	items := []SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "zz.rename.source", Locale: "zh-CN", Value: "源"},
 		{Module: "system.config", Group: "messages", Key: "zz.rename.source", Locale: "en-US", Value: "Source"},
 	}
-	if err := service.BatchInsert(items); err != nil {
-		t.Fatalf("seed items: %v", err)
-	}
+	seedI18nRows(t, service, items...)
 
 	resp, err := service.RenameKey(&I18nRenameExecuteReq{
 		Module: "system.config",
@@ -1175,11 +1089,7 @@ func TestI18nService_RenameKey(t *testing.T) {
 }
 
 func TestI18nService_RenameKeyRequiresSourceConfirmation(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	_, service := newI18nTestService(t)
 
 	if err := service.BatchInsert([]SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "common.close", Locale: "zh-CN", Value: "关闭"},
@@ -1198,11 +1108,7 @@ func TestI18nService_RenameKeyRequiresSourceConfirmation(t *testing.T) {
 }
 
 func TestI18nService_UnusedLifecycleFlow(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestService(t)
 
 	if err := service.BatchInsert([]SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "zz.lifecycle.key", Locale: "zh-CN", Value: "观察"},
@@ -1282,11 +1188,7 @@ func assertI18nRowCount(t *testing.T, db *gorm.DB, module, key string, want int6
 }
 
 func TestI18nService_AdvanceUnusedLifecycleDeletesExpiredArchivedKeys(t *testing.T) {
-	db := newI18nTestDB(t)
-	service := NewI18nService(db)
-	if err := service.Migrate(); err != nil {
-		t.Fatalf("migrate: %v", err)
-	}
+	db, service := newI18nTestService(t)
 
 	if err := service.BatchInsert([]SystemI18n{
 		{Module: "system.config", Group: "messages", Key: "zz.advance.observe", Locale: "zh-CN", Value: "待观察"},

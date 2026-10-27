@@ -1,6 +1,27 @@
-import { defineModule } from '../../core/router/types';
+import { defineModule, type DashboardQuickActionWidget } from '../../core/router/types';
 import { getOwnLoginLogs, getSecurityOverview } from './security/api';
 import { getSessions } from './session/api';
+
+function quickActionWidget(
+  key: string,
+  titleKey: string,
+  descriptionKey: string,
+  path: string,
+  permission: string,
+  icon: DashboardQuickActionWidget['icon'],
+): DashboardQuickActionWidget {
+  return {
+    key,
+    slot: 'quick-action',
+    sourceDomain: 'system/auth',
+    titleKey,
+    descriptionKey,
+    path,
+    permission,
+    icon,
+    cleanupPolicy: 'hide_when_forbidden',
+  };
+}
 
 export { LoginPageComponent as LoginPage } from './login/components/Login';
 export { login } from './login/api';
@@ -132,39 +153,30 @@ export const AuthModule = defineModule({
     },
   ],
   dashboardWidgets: [
-    {
-      key: 'platform.login-log',
-      slot: 'quick-action',
-      sourceDomain: 'system/auth',
-      titleKey: 'system.menu.loginLog',
-      descriptionKey: 'dashboard.quickAction.loginLog',
-      path: '/system/login-log',
-      permission: 'system:login-log:list',
-      icon: 'clock',
-      cleanupPolicy: 'hide_when_forbidden',
-    },
-    {
-      key: 'platform.session',
-      slot: 'quick-action',
-      sourceDomain: 'system/auth',
-      titleKey: 'system.menu.session',
-      descriptionKey: 'dashboard.quickAction.session',
-      path: '/system/session',
-      permission: 'system:session:list',
-      icon: 'desktop',
-      cleanupPolicy: 'hide_when_forbidden',
-    },
-    {
-      key: 'platform.security-event',
-      slot: 'quick-action',
-      sourceDomain: 'system/auth',
-      titleKey: 'system.menu.securityEvent',
-      descriptionKey: 'dashboard.quickAction.securityEvent',
-      path: '/system/security-event',
-      permission: 'system:security-event:list',
-      icon: 'safe',
-      cleanupPolicy: 'hide_when_forbidden',
-    },
+    quickActionWidget(
+      'platform.login-log',
+      'system.menu.loginLog',
+      'dashboard.quickAction.loginLog',
+      '/system/login-log',
+      'system:login-log:list',
+      'clock',
+    ),
+    quickActionWidget(
+      'platform.session',
+      'system.menu.session',
+      'dashboard.quickAction.session',
+      '/system/session',
+      'system:session:list',
+      'desktop',
+    ),
+    quickActionWidget(
+      'platform.security-event',
+      'system.menu.securityEvent',
+      'dashboard.quickAction.securityEvent',
+      '/system/security-event',
+      'system:security-event:list',
+      'safe',
+    ),
     {
       key: 'platform.domain.security',
       slot: 'domain-overview',
@@ -189,9 +201,11 @@ export const AuthModule = defineModule({
     'system:session:list',
     'system:session:delete',
     'system:session:clear',
+    'system:session:export',
     'system:security-event:list',
     'system:security-event:acknowledge',
     'system:security-event:clear',
+    'system:security-event:export',
   ],
   i18nNamespaces: ['auth', 'system.menu'],
 });

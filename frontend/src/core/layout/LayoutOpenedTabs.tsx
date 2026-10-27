@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Dropdown, Menu } from '@arco-design/web-react';
 import { IconClose, IconPushpin } from '@arco-design/web-react/icon';
 import { preloadRouteComponent } from '../router/prefetch';
@@ -18,6 +18,26 @@ interface LayoutOpenedTabsProps {
   t: TranslateLabel;
 }
 
+// Keyboard model (manual-activation tabs): every tab is a tab stop; Enter and
+// Space activate the focused tab; Arrow keys / Home / End move focus between
+// tabs (Left/Right in horizontal mode, Up/Down in vertical mode). The close
+// button inside each tab is its own keyboard-accessible control.
+function getTabFocusOffset(
+  layoutMode: ShellLayoutMode,
+  key: string,
+): number | 'home' | 'end' | null {
+  if (layoutMode === 'horizontal') {
+    if (key === 'ArrowRight') return 1;
+    if (key === 'ArrowLeft') return -1;
+  } else {
+    if (key === 'ArrowDown') return 1;
+    if (key === 'ArrowUp') return -1;
+  }
+  if (key === 'Home') return 'home';
+  if (key === 'End') return 'end';
+  return null;
+}
+
 const LayoutOpenedTabs: React.FC<LayoutOpenedTabsProps> = ({
   enabled,
   layoutMode,
@@ -30,6 +50,22 @@ const LayoutOpenedTabs: React.FC<LayoutOpenedTabsProps> = ({
 }) => {
   const [draggingTabPath, setDraggingTabPath] = useState<string | null>(null);
   const [dragOverTabPath, setDragOverTabPath] = useState<string | null>(null);
+  const tabRefs = useRef(new Map<string, HTMLDivElement>());
+
+  const moveTabFocus = (offset: number | 'home' | 'end', currentIndex: number) => {
+    if (tabs.length === 0) {
+      return;
+    }
+    let nextIndex: number;
+    if (offset === 'home') {
+      nextIndex = 0;
+    } else if (offset === 'end') {
+      nextIndex = tabs.length - 1;
+    } else {
+      nextIndex = (currentIndex + offset + tabs.length) % tabs.length;
+    }
+    tabRefs.current.get(tabs[nextIndex].path)?.focus();
+  };
 
   if (!enabled) {
     return null;
@@ -86,6 +122,13 @@ const LayoutOpenedTabs: React.FC<LayoutOpenedTabsProps> = ({
               role="tab"
               tabIndex={0}
               aria-selected={active}
+              ref={(element) => {
+                if (element) {
+                  tabRefs.current.set(item.path, element);
+                } else {
+                  tabRefs.current.delete(item.path);
+                }
+              }}
               className={[
                 'app-shell__tab',
                 active ? 'app-shell__tab--active' : '',
@@ -163,6 +206,12 @@ const LayoutOpenedTabs: React.FC<LayoutOpenedTabsProps> = ({
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault();
                   onNavigate(item.path);
+                  return;
+                }
+                const offset = getTabFocusOffset(layoutMode, event.key);
+                if (offset !== null) {
+                  event.preventDefault();
+                  moveTabFocus(offset, itemIndex);
                 }
               }}
             >

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { message } from '../components/feedback/message';
 import i18n from 'i18next';
+import { readStoredCsrfToken } from '../core/auth/clientSession';
 
 interface DownloadFileOptions {
   url: string;
@@ -70,7 +71,41 @@ export function downloadCsvFile(filename: string, headers: string[], rows: strin
   saveBlob(blob, filename || 'export.csv');
 }
 
+const OPERATION_TOKEN_STORAGE_KEY = 'pantheon_op_token';
+
+// 与 src/api/request.ts 的请求拦截器对齐：写操作必须携带 CSRF，
+// 存在二级验证令牌时必须携带 operation token，否则后端会以
+// csrf.missing / permission.denied 拒绝导出类 POST。
+function appendSecurityHeaders(
+  options: DownloadFileOptions,
+  headers: Record<string, string>,
+) {
+  if (options.method && options.method !== 'get') {
+    const csrfToken = readStoredCsrfToken();
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
+  }
+  try {
+    const rawValue = sessionStorage.getItem(OPERATION_TOKEN_STORAGE_KEY);
+    if (rawValue) {
+      const parsed = JSON.parse(rawValue) as { token?: string };
+      if (typeof parsed.token === 'string' && parsed.token.trim()) {
+        headers['X-Operation-Token'] = parsed.token;
+      }
+    }
+  } catch {
+    // Malformed or unavailable operation token: proceed without it and let
+    // the backend trigger the standard secondary-verification flow.
+  }
+}
+
 export async function downloadFile(options: DownloadFileOptions) {
+  const headers: Record<string, string> = {
+    'Accept-Language': localStorage.getItem('pantheon_lang') || 'zh-CN',
+  };
+  appendSecurityHeaders(options, headers);
+
   const response = await axios.request<Blob>({
     baseURL: '/api/v1',
     url: options.url,
@@ -80,9 +115,7 @@ export async function downloadFile(options: DownloadFileOptions) {
     responseType: 'blob',
     timeout: 30000,
     withCredentials: true,
-    headers: {
-      'Accept-Language': localStorage.getItem('pantheon_lang') || 'zh-CN',
-    },
+    headers,
     validateStatus: () => true,
   });
 

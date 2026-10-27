@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	bizcap "pantheon-base/modules/business/capability"
-	"pantheon-base/pkg/common"
+	bizcap "github.com/duanxldragon/pantheon-base/backend/modules/business/capability"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 )
 
 // ApplicationRef is the minimal application projection exposed to other modules.
@@ -65,29 +65,29 @@ type ServiceRef struct {
 
 // InstanceRef is the minimal service-instance projection exposed to other modules.
 type InstanceRef struct {
-	ID               uint64
-	ServiceID        uint64
-	ApplicationID    uint64
-	BusinessScopeID  uint64
-	DeptID           uint64
-	Environment      string
-	TargetType       string
-	HostID           uint64
-	K8sClusterID     uint64
-	Namespace        string
-	WorkloadKind     string
-	WorkloadName     string
-	DesiredVersion   string
-	CurrentVersion   string
-	RollbackVersion  string
-	DesiredState     string
-	ObservedState    string
-	HealthState      string
-	HealthMessage    string
-	HealthRevision   string
-	LastTransitionID string
-	LifecycleVersion uint64
-	Status           string
+	ID               uint64 `json:"id"`
+	ServiceID        uint64 `json:"serviceId"`
+	ApplicationID    uint64 `json:"applicationId"`
+	BusinessScopeID  uint64 `json:"businessScopeId"`
+	DeptID           uint64 `json:"deptId"`
+	Environment      string `json:"environment"`
+	TargetType       string `json:"targetType"`
+	HostID           uint64 `json:"hostId"`
+	K8sClusterID     uint64 `json:"k8sClusterId"`
+	Namespace        string `json:"namespace"`
+	WorkloadKind     string `json:"workloadKind"`
+	WorkloadName     string `json:"workloadName"`
+	DesiredVersion   string `json:"desiredVersion"`
+	CurrentVersion   string `json:"currentVersion"`
+	RollbackVersion  string `json:"rollbackVersion"`
+	DesiredState     string `json:"desiredState"`
+	ObservedState    string `json:"observedState"`
+	HealthState      string `json:"healthState"`
+	HealthMessage    string `json:"healthMessage"`
+	HealthRevision   string `json:"healthRevision"`
+	LastTransitionID string `json:"lastTransitionId"`
+	LifecycleVersion uint64 `json:"lifecycleVersion"`
+	Status           string `json:"status"`
 }
 
 // Reader exposes service-owned read capabilities to other business modules.

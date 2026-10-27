@@ -1,12 +1,16 @@
+---
+title: Ops Business Error Semantics Appendix
+doc_type: Design
+layer: business/*
+status: Active
+linked_contracts:
+  - docs/PROJECT_INHERITANCE.md
+updated_at: 2026-07-18
+---
+
 # Ops Business Error Semantics Appendix
 
 Chinese version: [BUSINESS_ERROR_SEMANTICS_APPENDIX.md](./BUSINESS_ERROR_SEMANTICS_APPENDIX.md)
-
-Updated: 2026-07-18
-
-Type: Design
-Layer: `business/*`
-Status: Active
 
 This appendix is the repository-level canonical business error-key reference for `pantheon-ops`. Backend responses, frontend i18n, API integration, acceptance, and audit detail must use the same semantic vocabulary.
 

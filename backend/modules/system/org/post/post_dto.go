@@ -1,4 +1,4 @@
-package org
+package post
 
 type PostListResp struct {
 	ID                    uint64   `json:"id"`

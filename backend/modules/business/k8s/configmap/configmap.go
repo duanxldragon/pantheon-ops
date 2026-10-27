@@ -7,9 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"pantheon-base/modules/business/k8s/cluster"
-	"pantheon-base/modules/business/k8s/namespace"
-	"pantheon-base/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/cluster"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/namespace"
+	"github.com/duanxldragon/pantheon-base/backend/modules/business/k8s/rbac"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"github.com/gin-gonic/gin"
 	corev1 "k8s.io/api/core/v1"
@@ -189,12 +190,13 @@ func (s *ConfigMapService) DeleteWithResourceVersion(clusterID uint64, namespace
 //
 //nolint:revive // retained as the public handler name for this package.
 type ConfigMapHandler struct {
-	svc *ConfigMapService
+	svc     *ConfigMapService
+	rbacSvc *rbac.K8sRBACService
 }
 
 // NewConfigMapHandler creates the ConfigMap HTTP handler.
-func NewConfigMapHandler(svc *ConfigMapService) *ConfigMapHandler {
-	return &ConfigMapHandler{svc: svc}
+func NewConfigMapHandler(svc *ConfigMapService, rbacSvc *rbac.K8sRBACService) *ConfigMapHandler {
+	return &ConfigMapHandler{svc: svc, rbacSvc: rbacSvc}
 }
 
 // RegisterRoutes registers ConfigMap endpoints.
@@ -259,6 +261,10 @@ func (h *ConfigMapHandler) Create(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
+	if h.rbacSvc != nil && !h.rbacSvc.CheckHandlerPermission(c, clusterID, namespace, rbac.ResourceTypeConfigMap, rbac.ActionCreate) {
+		common.Fail(c, common.CodeForbidden, "k8s.rbac.permission_denied")
+		return
+	}
 	resp, err := h.svc.Create(clusterID, namespace, req, common.GetDataScope(c))
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.configmap.create_failed")
@@ -276,7 +282,16 @@ func (h *ConfigMapHandler) Delete(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	if err := h.svc.DeleteWithResourceVersion(clusterID, c.Query("namespace"), c.Param("name"), c.Query("resourceVersion"), common.GetDataScope(c)); err != nil {
+	namespace := c.Query("namespace")
+	if namespace == "" {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	if h.rbacSvc != nil && !h.rbacSvc.CheckHandlerPermission(c, clusterID, namespace, rbac.ResourceTypeConfigMap, rbac.ActionDelete) {
+		common.Fail(c, common.CodeForbidden, "k8s.rbac.permission_denied")
+		return
+	}
+	if err := h.svc.DeleteWithResourceVersion(clusterID, namespace, c.Param("name"), c.Query("resourceVersion"), common.GetDataScope(c)); err != nil {
 		common.FailWithError(c, common.CodeError, err, "k8s.configmap.delete_failed")
 		return
 	}

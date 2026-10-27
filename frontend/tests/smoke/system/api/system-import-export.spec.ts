@@ -392,7 +392,7 @@ test.describe.serial('system import/export api smoke', () => {
     });
     const operationLogCsv = await expectCsv(operationLogResponse, 'system-operation-log-export.csv');
     expect(parseCsvLines(operationLogCsv)[0]).toBe(
-      'requestId,title,businessType,sourceDomain,sourcePage,method,operName,operUrl,operIp,status,failureCategory,errorMsg,operTime,costTime',
+      'requestId,title,businessType,sourceDomain,sourcePage,method,operName,operUrl,operIp,status,failureCategory,errorMsg,operTime,costTime,tenantId',
     );
   });
 

@@ -21,8 +21,30 @@ function resolveLocale() {
   return 'zh-CN';
 }
 
+// Go's `time.Time` zero value ("0001-01-01T00:00:00Z", or its local-date form)
+// means "never set" rather than a real instant. Without this guard the ISO
+// branch below happily parses it and renders a fabricated local timestamp —
+// year 1 sits at UTC+08:05:43, which is exactly where the bogus
+// "01-01-01 08:05:43" cells in the tenant console came from.
+//
+// Split into the bare date and the zero-clock instant so neither expression
+// carries the nesting the combined pattern needed.
+const GO_ZERO_DATE_PATTERN = /^0001-01-01$/;
+const GO_ZERO_DATETIME_PATTERN = /^0001-01-01[T ]00:00:00(?:\.0+)?(?:Z|[+-]\d{2}:\d{2})?$/;
+
+function isGoZeroTime(value: DateValue) {
+  if (typeof value !== 'string') {
+    return false;
+  }
+  const normalized = value.trim();
+  return GO_ZERO_DATE_PATTERN.test(normalized) || GO_ZERO_DATETIME_PATTERN.test(normalized);
+}
+
 function parseDate(value: DateValue) {
   if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  if (isGoZeroTime(value)) {
     return null;
   }
   if (typeof value === 'string') {
@@ -82,6 +104,10 @@ export function isValidDateValue(value?: DateValue) {
 
 function getInvalidFallback(value: DateValue) {
   if (value === null || value === undefined || value === '') {
+    return '-';
+  }
+  // An unset backend timestamp is "no value", not a value worth echoing back.
+  if (isGoZeroTime(value)) {
     return '-';
   }
   return String(value);

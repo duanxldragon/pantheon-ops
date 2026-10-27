@@ -30,7 +30,7 @@ echo Starting backend server...
 echo.
 
 REM Start the backend server
-go run ./cmd/server/main.go
+go run ./cmd/server
 
 if errorlevel 1 (
     echo.

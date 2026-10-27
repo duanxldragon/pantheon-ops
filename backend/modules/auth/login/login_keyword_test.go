@@ -7,7 +7,7 @@ import (
 
 func TestRuntime_ListLoginLogsKeywordMatchesMultipleFields(t *testing.T) {
 	db := setupTestDB(t)
-	s := NewRuntime(db)
+	s := NewRuntime(db, testCredentialRepo(db))
 
 	now := time.Now().UTC()
 	if err := db.Create(&[]SystemLogLogin{

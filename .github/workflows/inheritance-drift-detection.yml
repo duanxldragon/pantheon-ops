@@ -35,6 +35,10 @@ jobs:
         working-directory: pantheon-ops
         run: npm run test:business-overlay
 
+      - name: Check shared-file drift against base HEAD
+        working-directory: pantheon-ops
+        run: npm run check:shared-drift -- --base ../pantheon-base
+
       - name: Rebuild clean consumer
         working-directory: pantheon-ops
         run: npm run rebuild:from-base -- --base ../pantheon-base --target .tmp/base-compatibility
@@ -42,6 +46,14 @@ jobs:
       - name: Check rebuilt overlay
         working-directory: pantheon-ops
         run: node scripts/business-overlay/check-business-overlay.mjs --root .tmp/base-compatibility
+
+      # The overlay merges Base's go.mod with the business modules' declared
+      # dependencies, so the assembly only lists Base's indirect requirements.
+      # Tidy recomputes them before anything can be built; this is the same step
+      # a consumer runs locally after a rebuild.
+      - name: Finalize rebuilt module graph
+        working-directory: pantheon-ops/.tmp/base-compatibility/backend
+        run: go mod tidy
 
       - name: Compile rebuilt backend
         working-directory: pantheon-ops/.tmp/base-compatibility/backend

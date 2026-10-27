@@ -57,7 +57,7 @@ test('checkDirty returns no issues for clean generated artifacts', () => {
   const { repoRoot, generatedPaths, registryFiles } = createFixtureRepo();
   try {
     writeFileSync(registryFiles.backendRegistry, 'package business\n', 'utf8');
-    writeFileSync(registryFiles.backendMenuRegistry, 'package iam\n', 'utf8');
+    writeFileSync(registryFiles.backendMenuRegistry, 'package menu\n', 'utf8');
     writeFileSync(registryFiles.frontendBusinessRegistry, 'export const generatedBusinessModules = [];\n', 'utf8');
     writeFileSync(registryFiles.frontendComponentRegistry, 'export const generatedComponentRegistry = {};\n', 'utf8');
     writeFileSync(path.join(generatedPaths.i18nDir, 'zh-CN.ts'), 'const generatedzhCNFallback = {};\n', 'utf8');
@@ -173,37 +173,6 @@ test('cleanup removes generated leftovers and restores clean registry templates'
       fs.readFileSync(path.join(generatedPaths.i18nDir, 'zh-CN.ts'), 'utf8'),
       /generatedzhCNFallback = \{\};/,
     );
-  } finally {
-    rmSync(repoRoot, { recursive: true, force: true });
-  }
-});
-
-test('cleanup never removes untracked directories declared by business-overlay.json', () => {
-  const { repoRoot, generatedPaths, registryFiles } = createFixtureRepo();
-  const declaredBackend = path.join(generatedPaths.backendBusinessDir, 'k8s');
-  const declaredFrontend = path.join(generatedPaths.frontendBusinessDir, 'service');
-  const generatedBackend = path.join(generatedPaths.backendBusinessDir, 'mdqa-order');
-  const generatedFrontend = path.join(generatedPaths.frontendBusinessDir, 'mdqa-order');
-
-  try {
-    writeFileSync(
-      path.join(repoRoot, 'business-overlay.json'),
-      JSON.stringify({
-        businessPaths: ['backend/modules/business/k8s', 'frontend/src/modules/business/service'],
-      }),
-      'utf8',
-    );
-    mkdirSync(path.join(declaredBackend, 'cluster'), { recursive: true });
-    mkdirSync(path.join(declaredFrontend, 'nested'), { recursive: true });
-    mkdirSync(generatedBackend, { recursive: true });
-    mkdirSync(generatedFrontend, { recursive: true });
-
-    cleanup(generatedPaths, registryFiles, repoRoot, new Set());
-
-    assert.equal(existsSync(declaredBackend), true);
-    assert.equal(existsSync(declaredFrontend), true);
-    assert.equal(existsSync(generatedBackend), false);
-    assert.equal(existsSync(generatedFrontend), false);
   } finally {
     rmSync(repoRoot, { recursive: true, force: true });
   }

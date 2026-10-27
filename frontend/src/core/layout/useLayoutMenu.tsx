@@ -1,6 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
 import { Menu } from '@arco-design/web-react';
-import { type MenuNode, findFirstNavigableMenuPath } from '../../modules/system/menu/api';
+import { type MenuNode, findFirstNavigableMenuPath } from '../../modules/system/iam/menu/api';
 import { renderMenuIcon } from '../menu/icon';
 import { findRouteByPath } from '../router/modules';
 import { preloadRouteComponent } from '../router/prefetch';
@@ -15,6 +15,7 @@ type NavigateToPath = (path: string) => void;
 
 interface MenuRenderOptions {
   handleMenuNavigation: NavigateToPath;
+  isPathEntitled: (path: string) => boolean;
   t: TranslateLabel;
 }
 
@@ -79,8 +80,11 @@ export function findMenuNodeByPath(nodes: MenuNode[], path: string): MenuNode | 
   return undefined;
 }
 
-function findMenuNavigationPath(item: MenuNode): string | undefined {
-  if (item.path && findRouteByPath(item.path)) {
+function findMenuNavigationPath(
+  item: MenuNode,
+  isPathEntitled: (path: string) => boolean,
+): string | undefined {
+  if (item.path && findRouteByPath(item.path) && isPathEntitled(item.path)) {
     return item.path;
   }
   return item.children?.length ? findFirstNavigableMenuPath(item.children) || undefined : undefined;
@@ -105,7 +109,7 @@ function renderMenuItems(nodes: MenuNode[], options: MenuRenderOptions, level = 
     ].join(' ');
 
     if (item.children && item.children.length > 0) {
-      const navigationPath = findMenuNavigationPath(item);
+      const navigationPath = findMenuNavigationPath(item, options.isPathEntitled);
       const handleGroupNavigation = () => {
         if (navigationPath) {
           options.handleMenuNavigation(navigationPath);
@@ -155,24 +159,100 @@ function renderMenuItems(nodes: MenuNode[], options: MenuRenderOptions, level = 
   });
 }
 
-function filterMenuTreeByCapabilities(nodes: MenuNode[], orgEnabled: boolean): MenuNode[] {
-  return nodes
-    .filter((item) => orgEnabled || item.module !== 'system.org')
-    .map((item) => ({
-      ...item,
-      children: item.children?.length
-        ? filterMenuTreeByCapabilities(item.children, orgEnabled)
-        : [],
-    }));
+interface CapabilityFilter {
+  orgEnabled: boolean;
+  tenantEnabled: boolean;
+  /** True when the session is pinned to a tenant (multi mode, tenant id > 0). */
+  tenantScoped: boolean;
+}
+
+// Mirrors backend pkg/tenant/platform_scope.go: these surfaces are gated by
+// PlatformCapabilityMiddleware, so a tenant session that opens them gets
+// 403 tenant.platformOnly. The backend already filters them out of the tree;
+// repeating the rule here keeps a stale/gateway-cached tree from rendering a
+// dead menu entry.
+const PLATFORM_ONLY_MENU_MODULES = new Set(['system.tenant']);
+const PLATFORM_ONLY_MENU_PATHS = new Set([
+  '/system/tenant',
+  '/system/tenant-ops/overview',
+  '/system/tenant-ops/member',
+  '/system/menu',
+  '/system/i18n',
+]);
+
+function isPlatformOnlyMenu(item: MenuNode): boolean {
+  return (
+    PLATFORM_ONLY_MENU_MODULES.has(item.module) || PLATFORM_ONLY_MENU_PATHS.has(item.path)
+  );
+}
+
+// isHiddenByCapabilities is the single place the capability rules apply:
+// module disablement (org / tenant) and the platform-only surface a tenant
+// session must never see.
+function isHiddenByCapabilities(item: MenuNode, caps: CapabilityFilter): boolean {
+  if (!caps.orgEnabled && item.module === 'system.org') {
+    return true;
+  }
+  // 单租户（compat）下没有租户维度可管，租户管理菜单从访问控制移除。
+  // 多租户（multi）下保留。与 org.enabled / system.org 同一套能力过滤机制。
+  if (!caps.tenantEnabled && item.module === 'system.tenant') {
+    return true;
+  }
+  return caps.tenantScoped && isPlatformOnlyMenu(item);
+}
+
+// isNavigableGroup keeps a group that still has a visible child, or that
+// navigates somewhere the plan includes. Resolving the navigation target
+// against the filtered children stops a hidden child from keeping its parent
+// group alive as an empty expandable row.
+function isNavigableGroup(
+  item: MenuNode,
+  children: MenuNode[],
+  entitled: boolean,
+  isPathEntitled: (path: string) => boolean,
+): boolean {
+  if (children.length > 0) {
+    return true;
+  }
+  return entitled && Boolean(findMenuNavigationPath({ ...item, children }, isPathEntitled));
+}
+
+function filterMenuTreeByCapabilities(
+  nodes: MenuNode[],
+  caps: CapabilityFilter,
+  isPathEntitled: (path: string) => boolean,
+): MenuNode[] {
+  const filtered: MenuNode[] = [];
+  for (const item of nodes) {
+    if (isHiddenByCapabilities(item, caps)) {
+      continue;
+    }
+    const children = item.children?.length
+      ? filterMenuTreeByCapabilities(item.children, caps, isPathEntitled)
+      : [];
+    const entitled = !item.path || isPathEntitled(item.path);
+    const keep = item.children?.length
+      ? isNavigableGroup(item, children, entitled, isPathEntitled)
+      : entitled;
+    if (!keep) {
+      continue;
+    }
+    filtered.push({ ...item, children });
+  }
+  return filtered;
 }
 
 export interface UseLayoutMenuOptions {
   menuTree: MenuNode[];
   orgEnabled: boolean;
+  tenantEnabled: boolean;
+  tenantScoped: boolean;
   currentPath: string;
   activeMenuPath: string;
   routeActiveMenu?: string;
   currentRouteTitleKey?: string;
+  /** Plan/feature filter resolved from the module route registry. */
+  isPathEntitled: (path: string) => boolean;
   t: TranslateLabel;
   handleMenuNavigation: NavigateToPath;
 }
@@ -191,17 +271,25 @@ export function useLayoutMenu(options: UseLayoutMenuOptions): UseLayoutMenuResul
   const {
     menuTree,
     orgEnabled,
+    tenantEnabled,
+    tenantScoped,
     activeMenuPath,
     currentPath,
     routeActiveMenu,
     currentRouteTitleKey,
+    isPathEntitled,
     t,
     handleMenuNavigation,
   } = options;
 
   const visibleMenuTree = useMemo(
-    () => filterMenuTreeByCapabilities(menuTree, orgEnabled),
-    [menuTree, orgEnabled],
+    () =>
+      filterMenuTreeByCapabilities(
+        menuTree,
+        { orgEnabled, tenantEnabled, tenantScoped },
+        isPathEntitled,
+      ),
+    [menuTree, orgEnabled, tenantEnabled, tenantScoped, isPathEntitled],
   );
 
   const currentMenuTitleKey = useMemo(
@@ -274,9 +362,10 @@ export function useLayoutMenu(options: UseLayoutMenuOptions): UseLayoutMenuResul
     () =>
       renderMenuItems(visibleMenuTree, {
         handleMenuNavigation,
+        isPathEntitled,
         t,
       }),
-    [handleMenuNavigation, t, visibleMenuTree],
+    [handleMenuNavigation, isPathEntitled, t, visibleMenuTree],
   );
 
   return {

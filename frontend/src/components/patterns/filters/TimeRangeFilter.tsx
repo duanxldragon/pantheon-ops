@@ -3,7 +3,7 @@ import { Button, DatePicker, Typography } from '@arco-design/web-react';
 import { IconCalendar } from '@arco-design/web-react/icon';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import './time-range-filter.css';
+import './TimeRangeFilter.css';
 
 const RangePicker = DatePicker.RangePicker;
 

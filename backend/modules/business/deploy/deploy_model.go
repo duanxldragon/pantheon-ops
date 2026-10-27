@@ -7,18 +7,26 @@ import (
 	"gorm.io/gorm"
 )
 
+// Status, execution-mode, template-code and task-action values persisted in the
+// deploy package, template and task tables.
 const (
-	PackageStatusEnabled      = "enabled"
-	PackageStatusDisabled     = "disabled"
-	ExecutionModeFixed        = "fixed"
-	ExecutionModeOrchestrated = "orchestrated"
-	TemplateCodeNginxSystemd  = "nginx_systemd"
-	TemplateCodeMySQLSystemd  = "mysql_systemd"
-	TemplateCodeRedisSystemd  = "redis_systemd"
-	TemplateCodeMinIOSystemd  = "minio_systemd"
-	TemplateCodeHarborOffline = "harbor_offline"
-	TemplateStepTypePackage   = "package"
-	TemplateStepTypeScript    = "script"
+	PackageStatusEnabled          = "enabled"
+	PackageStatusDisabled         = "disabled"
+	ExecutionModeFixed            = "fixed"
+	ExecutionModeOrchestrated     = "orchestrated"
+	TemplateCodeNginxSystemd      = "nginx_systemd"
+	TemplateCodeMySQLSystemd      = "mysql_systemd"
+	TemplateCodeRedisSystemd      = "redis_systemd"
+	TemplateCodeMinIOSystemd      = "minio_systemd"
+	TemplateCodeHarborOffline     = "harbor_offline"
+	TemplateCodeJDKSystemd        = "jdk_systemd"
+	TemplateCodePrometheusSystemd = "prometheus_systemd"
+	// defaultNginxServiceName is both the nginx component type key and the
+	// systemd unit the nginx/harbor templates fall back to when a task omits
+	// serviceName.
+	defaultNginxServiceName = "nginx"
+	TemplateStepTypePackage = "package"
+	TemplateStepTypeScript  = "script"
 
 	TemplateStatusEnabled  = "enabled"
 	TemplateStatusDisabled = "disabled"
@@ -33,12 +41,18 @@ const (
 	TaskActionRollback  = "rollback"
 	TaskActionRetire    = "retire"
 
-	TaskStatusDraft    = "draft"
-	TaskStatusPending  = "pending"
-	TaskStatusRunning  = "running"
-	TaskStatusSuccess  = "success"
-	TaskStatusFailed   = "failed"
-	TaskStatusCanceled = "canceled"
+	RollbackStrategyAuto   = "auto"
+	RollbackStrategyManual = "manual"
+
+	TaskStatusDraft           = "draft"
+	TaskStatusPending         = "pending"
+	TaskStatusRunning         = "running"
+	TaskStatusSuccess         = "success"
+	TaskStatusFailed          = "failed"
+	TaskStatusCanceled        = "canceled"
+	TaskStatusPauseRequested  = "pause_requested"
+	TaskStatusPaused          = "paused"
+	TaskStatusCancelRequested = "cancel_requested"
 
 	TaskHostStatusPending = "pending"
 	TaskHostStatusRunning = "running"
@@ -109,6 +123,11 @@ type DeployTask struct {
 	Status                  string         `gorm:"size:32;default:draft;index" json:"status"`
 	Remark                  string         `gorm:"size:512" json:"remark"`
 	ExternalTaskID          string         `gorm:"size:128" json:"externalTaskId"`
+	RollbackEnabled         bool           `gorm:"default:false" json:"rollbackEnabled"`
+	RollbackTaskID          *uint64        `gorm:"column:rollback_task_id;index" json:"rollbackTaskId,omitempty"`
+	SourceTaskID            *uint64        `gorm:"column:source_task_id;index" json:"sourceTaskId,omitempty"`
+	RollbackStrategy        string         `gorm:"size:32" json:"rollbackStrategy,omitempty"`
+	RollbackSnapshot        datatypes.JSON `gorm:"type:json" json:"rollbackSnapshot,omitempty"`
 	StartedAt               *time.Time     `json:"startedAt"`
 	FinishedAt              *time.Time     `json:"finishedAt"`
 	CreatedAt               time.Time      `json:"createdAt"`
@@ -145,21 +164,22 @@ type DeployTemplate struct {
 func (DeployTemplate) TableName() string { return "biz_deploy_template" }
 
 type DeployTemplateStep struct {
-	ID             uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	TemplateID     uint64         `gorm:"not null;index" json:"templateId"`
-	StepCode       string         `gorm:"size:64;not null" json:"stepCode"`
-	StepName       string         `gorm:"size:128;not null" json:"stepName"`
-	StepType       string         `gorm:"size:32;not null;index" json:"stepType"`
-	Action         string         `gorm:"size:32;default:install;index" json:"action"`
-	PackageID      uint64         `gorm:"index" json:"packageId"`
-	PackageName    string         `gorm:"size:128" json:"packageName"`
-	PackageVersion string         `gorm:"size:64" json:"packageVersion"`
-	TemplateCode   string         `gorm:"size:64;index" json:"templateCode"`
-	TemplateParams datatypes.JSON `gorm:"type:json" json:"templateParams"`
-	StepConfig     datatypes.JSON `gorm:"type:json" json:"stepConfig"`
-	Sort           int            `gorm:"default:1;index" json:"sort"`
-	CreatedAt      time.Time      `json:"createdAt"`
-	UpdatedAt      time.Time      `json:"updatedAt"`
+	ID                    uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TemplateID            uint64         `gorm:"not null;index" json:"templateId"`
+	StepCode              string         `gorm:"size:64;not null" json:"stepCode"`
+	StepName              string         `gorm:"size:128;not null" json:"stepName"`
+	StepType              string         `gorm:"size:32;not null;index" json:"stepType"`
+	Action                string         `gorm:"size:32;default:install;index" json:"action"`
+	PackageID             uint64         `gorm:"index" json:"packageId"`
+	PackageName           string         `gorm:"size:128" json:"packageName"`
+	PackageVersion        string         `gorm:"size:64" json:"packageVersion"`
+	TemplateCode          string         `gorm:"size:64;index" json:"templateCode"`
+	TemplateParams        datatypes.JSON `gorm:"type:json" json:"templateParams"`
+	StepConfig            datatypes.JSON `gorm:"type:json" json:"stepConfig"`
+	ContinueOnHostFailure bool           `gorm:"column:continue_on_host_failure;default:0" json:"continueOnHostFailure"`
+	Sort                  int            `gorm:"default:1;index" json:"sort"`
+	CreatedAt             time.Time      `json:"createdAt"`
+	UpdatedAt             time.Time      `json:"updatedAt"`
 }
 
 func (DeployTemplateStep) TableName() string { return "biz_deploy_template_step" }
@@ -261,13 +281,6 @@ type cmdbHostSnapshot struct {
 	DeptID            uint64         `gorm:"column:dept_id"`
 }
 
-type cmdbGroupSnapshot struct {
-	ID         uint64         `gorm:"column:id"`
-	ParentID   uint64         `gorm:"column:parent_id"`
-	Name       string         `gorm:"column:name"`
-	Conditions datatypes.JSON `gorm:"column:conditions"`
-}
-
 // deployPackageSnapshot is the immutable execution-definition view of a package
 // captured at task creation. It never reads the live package row at run time.
 type deployPackageSnapshot struct {
@@ -286,13 +299,17 @@ type deployPackageSnapshot struct {
 
 // deployStepSnapshot is a frozen template step with its fully resolved package.
 type deployStepSnapshot struct {
-	StepCode       string                `json:"stepCode"`
-	StepName       string                `json:"stepName"`
-	StepType       string                `json:"stepType"`
-	Action         string                `json:"action"`
-	Package        deployPackageSnapshot `json:"package"`
-	TemplateParams map[string]any        `json:"templateParams"`
-	StepConfig     map[string]any        `json:"stepConfig"`
+	StepCode              string                `json:"stepCode"`
+	StepName              string                `json:"stepName"`
+	StepType              string                `json:"stepType"`
+	Action                string                `json:"action"`
+	ContinueOnHostFailure bool                  `json:"continueOnHostFailure,omitempty"`
+	Dependencies          []string              `json:"dependencies,omitempty"`
+	Condition             map[string]any        `json:"condition,omitempty"`
+	FailurePolicy         string                `json:"failurePolicy,omitempty"`
+	Package               deployPackageSnapshot `json:"package"`
+	TemplateParams        map[string]any        `json:"templateParams"`
+	StepConfig            map[string]any        `json:"stepConfig"`
 }
 
 // deployExecutionSnapshot is the immutable execution intent persisted on a task.
@@ -322,3 +339,92 @@ type deployTargetSnapshot struct {
 	ResolvedAt string                     `json:"resolvedAt"`
 	Hosts      []deployTargetHostSnapshot `json:"hosts"`
 }
+
+// --- FZ-03: Persisted step and event models for checkpoint recovery ---
+
+// Lifecycle values for a persisted deploy task step and its failure policy.
+const (
+	StepStatusPending  = "pending"
+	StepStatusRunning  = "running"
+	StepStatusSuccess  = "success"
+	StepStatusFailed   = "failed"
+	StepStatusSkipped  = "skipped"
+	StepStatusCanceled = "canceled"
+
+	FailurePolicyFailFast      = "fail_fast"
+	FailurePolicyContinueHosts = "continue_hosts"
+	FailurePolicyContinueSteps = "continue_steps"
+)
+
+// DeployTaskStep stores one executable step within a task host. The worker
+// persists progress here so recovery after restart can resume from the last
+// successful step instead of re-executing the entire task.
+//
+//nolint:revive // Public model name retains the deploy domain prefix for compatibility.
+type DeployTaskStep struct {
+	ID             uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TaskID         uint64         `gorm:"not null;uniqueIndex:uk_deploy_task_step_key" json:"taskId"`
+	TaskHostID     uint64         `gorm:"not null;uniqueIndex:uk_deploy_task_step_key" json:"taskHostId"`
+	StepKey        string         `gorm:"size:128;not null;uniqueIndex:uk_deploy_task_step_key" json:"stepKey"`
+	StepOrder      int            `gorm:"not null;default:1" json:"stepOrder"`
+	StepType       string         `gorm:"size:32;not null;default:script" json:"stepType"`
+	Action         string         `gorm:"size:32;not null;default:install" json:"action"`
+	DependencyJSON datatypes.JSON `gorm:"type:json" json:"dependencyJson"`
+	ConditionJSON  datatypes.JSON `gorm:"type:json" json:"conditionJson"`
+	FailurePolicy  string         `gorm:"size:32;not null;default:fail_fast" json:"failurePolicy"`
+	Status         string         `gorm:"size:32;not null;default:pending;index:idx_deploy_task_step_status" json:"status"`
+	Changed        bool           `gorm:"not null;default:false" json:"changed"`
+	AttemptNo      int            `gorm:"not null;default:0" json:"attemptNo"`
+	ErrorCode      string         `gorm:"size:255" json:"errorCode"`
+	ErrorMessage   string         `gorm:"size:1024" json:"errorMessage"`
+	StateVersion   uint64         `gorm:"not null;default:1" json:"stateVersion"`
+	StartedAt      *time.Time     `json:"startedAt"`
+	FinishedAt     *time.Time     `json:"finishedAt"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
+}
+
+// TableName returns the deploy task step table name.
+func (DeployTaskStep) TableName() string { return "biz_deploy_task_step" }
+
+// DeployTaskEvent stores an append-only log of state transitions for a task,
+// host, or step. Events are never updated or deleted.
+//
+//nolint:revive // Public model name retains the deploy domain prefix for compatibility.
+type DeployTaskEvent struct {
+	ID         uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	TaskID     uint64    `gorm:"not null;uniqueIndex:uk_deploy_task_event_seq" json:"taskId"`
+	TaskHostID uint64    `gorm:"not null;default:0" json:"taskHostId"`
+	TaskStepID uint64    `gorm:"not null;default:0" json:"taskStepId"`
+	Sequence   uint64    `gorm:"not null;uniqueIndex:uk_deploy_task_event_seq" json:"sequence"`
+	EventType  string    `gorm:"size:64;not null;index:idx_deploy_task_event_type" json:"eventType"`
+	FromStatus string    `gorm:"size:32" json:"fromStatus"`
+	ToStatus   string    `gorm:"size:32" json:"toStatus"`
+	Actor      string    `gorm:"size:128;not null;default:''" json:"actor"`
+	RequestID  string    `gorm:"size:128" json:"requestId"`
+	Reason     string    `gorm:"size:1024" json:"reason"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+// TableName returns the deploy task event table name.
+func (DeployTaskEvent) TableName() string { return "biz_deploy_task_event" }
+
+// --- FZ-04: Append-only log chunks for streaming task output ---
+
+// DeployTaskLogChunk stores an append-only segment of task output. Chunks are
+// never updated or deleted. Maximum chunk size is 16 KiB.
+//
+//nolint:revive // Public model name retains the deploy domain prefix for compatibility.
+type DeployTaskLogChunk struct {
+	ID         uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	TaskID     uint64    `gorm:"not null;index:idx_deploy_task_log_chunk_task" json:"taskId"`
+	TaskHostID uint64    `gorm:"not null;default:0;index:idx_deploy_task_log_chunk_host" json:"taskHostId"`
+	TaskStepID uint64    `gorm:"not null;default:0" json:"taskStepId"`
+	Sequence   uint64    `gorm:"not null;uniqueIndex:uk_deploy_task_log_chunk_seq" json:"sequence"`
+	Stream     string    `gorm:"size:16;not null;default:stdout" json:"stream"`
+	Content    string    `gorm:"type:text;not null" json:"content"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+// TableName returns the deploy task log chunk table name.
+func (DeployTaskLogChunk) TableName() string { return "biz_deploy_task_log_chunk" }

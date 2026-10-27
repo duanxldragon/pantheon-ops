@@ -105,8 +105,32 @@ function isNonEmptyArray(value) {
   return Array.isArray(value) && value.length > 0 && value.every(isNonEmptyString);
 }
 
+// Legacy in-body metadata is a document-head convention. Only the head is
+// inspected so body content is never mistaken for metadata, and fenced code
+// blocks are blanked first because templates legitimately show example
+// metadata.
+const LEGACY_METADATA_HEAD_LINES = 20;
+const LEGACY_METADATA_LINE = /^\s*(?:[-*>]\s*)*(?:更新时间|类型|归属层|主层|状态|Updated|Type|Layer|Status)\s*[:：]/;
+
+function stripFencedCodeBlocks(source) {
+  let insideFence = false;
+  return source
+    .split(/\r?\n/)
+    .map((line) => {
+      if (/^\s*(?:```|~~~)/.test(line)) {
+        insideFence = !insideFence;
+        return '';
+      }
+      return insideFence ? '' : line;
+    })
+    .join('\n');
+}
+
 function hasLegacyMetadata(source) {
-  return /^(Type:|Layer:|Status:|类型：|归属层：|状态：|更新时间：)/m.test(source);
+  return stripFencedCodeBlocks(source)
+    .split('\n')
+    .slice(0, LEGACY_METADATA_HEAD_LINES)
+    .some((line) => LEGACY_METADATA_LINE.test(line));
 }
 
 function validateFrontmatter(file, data, root) {

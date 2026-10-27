@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pantheon Task Packet",
+  "type": "object",
+  "required": [
+    "taskId",
+    "goal",
+    "primaryLayer",
+    "contractAnchors",
+    "scope",
+    "verificationPlan",
+    "linkage",
+    "evidenceRequired",
+    "humanGates"
+  ],
+  "properties": {
+    "taskId": { "type": "string" },
+    "goal": { "type": "string" },
+    "primaryLayer": {
+      "type": "string",
+      "enum": [
+        "platform",
+        "system/auth",
+        "system/iam",
+        "system/org",
+        "system/config",
+        "business/*"
+      ]
+    },
+    "dependencyLayers": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "contractAnchors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "scope": {
+      "type": "object",
+      "required": ["in", "out"],
+      "properties": {
+        "in": { "type": "array", "items": { "type": "string" } },
+        "out": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "expectedFiles": {
+      "type": "object",
+      "properties": {
+        "create": { "type": "array", "items": { "type": "string" } },
+        "modify": { "type": "array", "items": { "type": "string" } },
+        "doNotTouch": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "verificationPlan": {
+      "type": "object",
+      "properties": {
+        "backend": { "type": "array", "items": { "type": "string" } },
+        "frontend": { "type": "array", "items": { "type": "string" } },
+        "browser": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "linkage": {
+      "type": "object",
+      "required": ["taskId", "taskPacket", "evidenceDir", "reviewFile", "changeRef", "planRefs"],
+      "properties": {
+        "taskId": { "type": "string" },
+        "taskPacket": { "type": "string" },
+        "evidenceDir": { "type": "string" },
+        "reviewFile": { "type": "string" },
+        "changeRef": { "type": "string" },
+        "planRefs": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "evidenceRequired": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "humanGates": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

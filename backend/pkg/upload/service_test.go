@@ -41,6 +41,10 @@ type fakeObjectStorageClient struct {
 	contextValueKey      interface{}
 	lastContextValue     interface{}
 	lastPutObjectOptions minio.PutObjectOptions
+	objectContent        []byte
+	objectContentType    string
+	getObjectErr         error
+	statObjectErr        error
 }
 
 func (f *fakeObjectStorageClient) BucketExists(ctx context.Context, bucketName string) (bool, error) {
@@ -66,6 +70,29 @@ func (f *fakeObjectStorageClient) PutObject(ctx context.Context, bucketName, obj
 	_, _ = reader.Read(buf)
 	return minio.UploadInfo{Bucket: bucketName, Key: objectName}, f.putObjectErr
 }
+
+func (f *fakeObjectStorageClient) GetScopedObject(ctx context.Context, bucketName, objectName string, _ minio.GetObjectOptions) (io.ReadSeekCloser, error) {
+	f.lastBucket = bucketName
+	f.lastObjectKey = objectName
+	if f.getObjectErr != nil {
+		return nil, f.getObjectErr
+	}
+	return nopReadSeekCloser{Reader: bytes.NewReader(f.objectContent)}, nil
+}
+
+func (f *fakeObjectStorageClient) StatScopedObject(ctx context.Context, bucketName, objectName string, _ minio.StatObjectOptions) (minio.ObjectInfo, error) {
+	f.lastBucket = bucketName
+	f.lastObjectKey = objectName
+	if f.statObjectErr != nil {
+		return minio.ObjectInfo{}, f.statObjectErr
+	}
+	return minio.ObjectInfo{Key: objectName, Size: int64(len(f.objectContent)), ContentType: f.objectContentType}, nil
+}
+
+// nopReadSeekCloser wraps a byte reader as an io.ReadSeekCloser for fakes.
+type nopReadSeekCloser struct{ *bytes.Reader }
+
+func (n nopReadSeekCloser) Close() error { return nil }
 
 // pngPayload 构造带真实 PNG magic bytes 的测试内容，配合 verifyImageContent 内容嗅探。
 func pngPayload(extra []byte) []byte {

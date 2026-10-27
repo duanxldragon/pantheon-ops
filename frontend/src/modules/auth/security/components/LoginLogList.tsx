@@ -24,10 +24,11 @@ import {
   AppTable,
   buildStandardPagination,
   GovernanceCleanupBar,
+  buildGovernanceCleanupLabels,
+  GovernanceListSummary,
   GovernanceInsightDrawer,
   GovernanceRailSummary,
   GovernanceRailToggleButton,
-  GovernanceSummaryBar,
   PageContainer,
   PageEmpty,
   PageLoading,
@@ -41,9 +42,9 @@ import {
   useGovernanceRail,
 } from '../../../../components';
 import { usePermission } from '../../../../hooks/usePermission';
-import { getSettingGroup, type SettingGroup } from '../../../system/setting/api';
+import { getSettingGroup, type SettingGroup } from '../../../system/config/setting/api';
 import { loadRetentionSetting } from '../../../system/audit/retentionSetting';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 import '../../auth.css';
 const defaultRetentionOptions = [1, 7, 30];
 
@@ -64,6 +65,7 @@ const LoginLogList: React.FC = () => {
   const canDelete = isAdmin || hasPerm('system:login-log:delete');
   const canClear = isAdmin || hasPerm('system:login-log:clear');
   const governanceRail = useGovernanceRail();
+  const cleanupLabels = useMemo(() => buildGovernanceCleanupLabels(t), [t]);
   const [data, setData] = useState<LoginLogRow[]>([]);
   const [total, setTotal] = useState(0);
   const [successCount, setSuccessCount] = useState(0);
@@ -77,21 +79,28 @@ const LoginLogList: React.FC = () => {
     [...defaultRetentionOptions].sort((left, right) => right - left),
   );
 
+  // Re-fetch retention options from settings on mount AND right before the
+  // cleanup dialog opens, so a value just configured in 系统设置/日志治理
+  // (e.g. 14 天) shows up without a full page reload.
+  const refreshRetentionSetting = useCallback(() => {
+    return getSettingGroup('audit')
+      .then((group: SettingGroup) =>
+        loadRetentionSetting(
+          group,
+          'audit.login_log_retention_options',
+          setRetentionOptions,
+          setRetentionDays,
+        ),
+      )
+      .catch(() => undefined);
+  }, []);
+
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
-      getSettingGroup('audit')
-        .then((group: SettingGroup) =>
-          loadRetentionSetting(
-            group,
-            'audit.login_log_retention_options',
-            setRetentionOptions,
-            setRetentionDays,
-          ),
-        )
-        .catch(() => undefined);
+      void refreshRetentionSetting();
     }, 0);
     return () => globalThis.clearTimeout(timer);
-  }, []);
+  }, [refreshRetentionSetting]);
 
   const loadData = useCallback(
     async (nextQuery: LoginLogQuery = query) => {
@@ -261,9 +270,7 @@ const LoginLogList: React.FC = () => {
       const selectedRows = data.filter((item) => selectedRowKeys.includes(item.id));
       if (selectedRows.length !== selectedRowKeys.length) {
         message.warning(
-          t('common.exportCurrentPageSelectionOnly', {
-            defaultValue: '已选记录包含跨页项，请切回对应页面后再导出。',
-          }),
+          t('common.exportCurrentPageSelectionOnly'),
         );
         return;
       }
@@ -316,7 +323,7 @@ const LoginLogList: React.FC = () => {
   return (
     <PageContainer>
       <Space direction="vertical" size={16} className="system-page-template auth-login-log-page">
-        <GovernanceSummaryBar
+        <GovernanceListSummary
           className="auth-login-log-page__hero"
           eyebrow={t('auth.loginLog.hero.eyebrow')}
           title={t('auth.loginLog.hero.title')}
@@ -326,7 +333,9 @@ const LoginLogList: React.FC = () => {
             label: item.label,
             value: item.value,
           }))}
-          action={
+          summaryTitle={t('auth.loginLog.hero.summaryTitle')}
+          rail={governanceRail}
+          railToggle={
             <GovernanceRailToggleButton
               expanded={governanceRail.expanded}
               onToggle={governanceRail.toggle}
@@ -376,19 +385,17 @@ const LoginLogList: React.FC = () => {
               retentionDays={retentionDays}
               retentionOptions={retentionOptions}
               onRetentionChange={setRetentionDays}
-              retentionLabel={(option) => t('common.keepRecentDays', { count: option })}
-              confirmTitle={t('common.cleanupIrreversibleWarning')}
+              retentionLabel={cleanupLabels.retentionLabel}
+              confirmTitle={cleanupLabels.confirmTitle}
               actionLabel={t('common.cleanupLogs')}
-              confirmActionLabel={t('common.cleanup')}
-              cleanupModeLabel={t('common.cleanupMode')}
-              cleanupModeOptions={[
-                { label: t('common.cleanupModeRetention'), value: 'retention' },
-                { label: t('common.cleanupModeRange'), value: 'range' },
-              ]}
-              rangeStartLabel={t('common.cleanupRangeStart')}
-              rangeEndLabel={t('common.cleanupRangeEnd')}
-              rangeRequiredMessage={t('common.cleanupRangeRequired')}
+              confirmActionLabel={cleanupLabels.confirmActionLabel}
+              cleanupModeLabel={cleanupLabels.cleanupModeLabel}
+              cleanupModeOptions={cleanupLabels.cleanupModeOptions}
+              rangeStartLabel={cleanupLabels.rangeStartLabel}
+              rangeEndLabel={cleanupLabels.rangeEndLabel}
+              rangeRequiredMessage={cleanupLabels.rangeRequiredMessage}
               onConfirm={handleCleanup}
+              onBeforeOpen={refreshRetentionSetting}
               hint={t('auth.loginLog.hero.cleanupHint')}
               trailing={
                 <Button

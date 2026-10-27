@@ -98,7 +98,7 @@ async function expectPageIdentityReady(page: Page, title: string | RegExp) {
 }
 
 async function openSystemPage(page: Page, path: string) {
-  await page.goto(path, { waitUntil: 'networkidle' });
+  await page.goto(path, { waitUntil: 'domcontentloaded' });
   const title = systemPageTitles.get(path);
   if (title) {
     await expectPageIdentityReady(page, title);

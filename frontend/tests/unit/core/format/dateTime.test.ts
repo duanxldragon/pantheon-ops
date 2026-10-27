@@ -29,6 +29,10 @@ describe('isValidDateValue', () => {
   it('returns false for invalid string', () => {
     expect(isValidDateValue('not-a-date')).toBe(false)
   })
+
+  it('returns false for the Go zero time', () => {
+    expect(isValidDateValue('0001-01-01T00:00:00Z')).toBe(false)
+  })
 })
 
 describe('formatDate', () => {
@@ -68,6 +72,14 @@ describe('formatDateTime', () => {
 
   it('returns raw string for unparseable value', () => {
     expect(formatDateTime('nope')).toBe('nope')
+  })
+
+  // Regression: the tenant console rendered the Go zero time as
+  // "01-01-01 08:05:43" because year 1 was parsed as a valid instant.
+  it('treats the Go zero time as unset instead of formatting it', () => {
+    expect(formatDateTime('0001-01-01T00:00:00Z', { withSeconds: true })).toBe('-')
+    expect(formatDateTime('0001-01-01 00:00:00')).toBe('-')
+    expect(formatDate('0001-01-01')).toBe('-')
   })
 })
 

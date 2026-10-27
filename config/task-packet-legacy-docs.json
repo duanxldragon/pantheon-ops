@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "contract": "docs/acceptances/TASK_PACKET_BASE_TEMPLATE.md",
+  "description": "Task packet docs written before the section-based template existed. scripts/harness/check-task-packet.mjs skips these by default so a plain run answers the real question ('do current-format packets comply?') instead of failing on history. They are listed explicitly rather than ignored by a date or path rule so the exemption stays reviewable: the checker errors if a listed doc disappears, which forces this file to shrink as docs are migrated or deleted. Drop a doc from this list once it is migrated; never add a doc that was written against the current template. 2026-09-23: the last 17 pre-template docs were migrated, so the list is intentionally empty and must stay empty; a new entry means a packet was written against the template and then exempted, which is exactly what this file is meant to prevent.",
+  "entries": []
+}

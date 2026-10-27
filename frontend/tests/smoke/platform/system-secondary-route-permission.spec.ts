@@ -164,7 +164,13 @@ async function createApiPermission(
   });
   expect(response.ok()).toBeTruthy();
   const payload = await response.json();
-  expect(payload.code).toBe(200);
+  // Saving a role already syncs the API routes its permission keys declare, so
+  // the route this fixture asks for is usually in place before the POST. The
+  // backend's duplicate check covers exactly (subject, path, method), so that
+  // conflict reports the grant as present rather than a failed grant.
+  if (payload.code !== 200) {
+    expect(payload.message).toBe('permission.policy.exists');
+  }
 }
 
 async function provisionViewer(
@@ -271,7 +277,7 @@ test.describe('system secondary route permission and readonly states', () => {
 
       try {
         await viewerPage.setViewportSize({ width: viewport.width, height: viewport.height });
-        await viewerPage.goto('/system/setting/basic', { waitUntil: 'networkidle' });
+        await viewerPage.goto('/system/setting/basic', { waitUntil: 'domcontentloaded' });
 
         await expect(viewerPage).toHaveURL(/\/system\/setting\/basic$/);
         await expectRouteShell(viewerPage);
@@ -329,7 +335,7 @@ test.describe('system secondary route permission and readonly states', () => {
 
       try {
         await viewerPage.setViewportSize({ width: viewport.width, height: viewport.height });
-        await viewerPage.goto('/system/user/1', { waitUntil: 'networkidle' });
+        await viewerPage.goto('/system/user/1', { waitUntil: 'domcontentloaded' });
 
         await expect(viewerPage).toHaveURL(/\/system\/user\/1$/);
         await expectRouteShell(viewerPage);

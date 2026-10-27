@@ -7,11 +7,14 @@ import (
 	"strings"
 	"time"
 
-	"pantheon-base/pkg/authsession"
-	"pantheon-base/pkg/authtoken"
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
-	"pantheon-base/pkg/logging"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/authsession"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/maintenance"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -35,6 +38,14 @@ type UserRoleLoader interface {
 	GetUserRoles(userID uint64) ([]string, error)
 }
 
+// TenantRoleLoader is the optional extension of UserRoleLoader for callers that
+// must resolve roles inside a tenant other than the subject's own — the tenant
+// switch (contract §2.2). A loader that does not implement it falls back to
+// GetUserRoles, which is correct for every single-membership subject.
+type TenantRoleLoader interface {
+	GetUserRolesForTenant(userID, tenantID uint64) ([]string, error)
+}
+
 // TokenIssuer abstracts token issuance so SessionService stays decoupled from AuthService.
 type TokenIssuer interface {
 	IssueTokenPairWithContext(ctx context.Context, userID uint64, username string, roles []string, sess *SystemUserSession) (*authtoken.Pair, error)
@@ -46,6 +57,26 @@ type Service struct {
 	policy PolicyProvider
 	loader UserRoleLoader
 	issuer TokenIssuer
+	// tenantCtx is the resolved tenant of the acted-on request (contract §3.2).
+	// Nil (or compat mode) = platform scope; multi mode restricts admin reads
+	// and revocations to the active tenant (F03).
+	tenantCtx *tenant.Context
+}
+
+// WithTenantContext returns a request-scoped facade that applies the tenant
+// scope of the resolved context to admin session operations (F03). The same
+// clone pattern is used by LoginService and security.Service.
+func (s *Service) WithTenantContext(ctx *tenant.Context) *Service {
+	clone := *s
+	clone.tenantCtx = ctx
+	return &clone
+}
+
+// scoped restricts tenant-bound session rows. A nil context (maintenance /
+// platform-internal paths) stays unfiltered; a request-bound scope pins
+// tenant_id — compat resolves to 0, multi to the active tenant.
+func (s *Service) scoped(db *gorm.DB) *gorm.DB {
+	return db.Scopes(tenant.WithTenantScope(s.tenantCtx))
 }
 
 // NewService creates a SessionService.
@@ -53,11 +84,40 @@ func NewService(db *gorm.DB, policy PolicyProvider, loader UserRoleLoader, issue
 	return &Service{db: db, policy: policy, loader: loader, issuer: issuer}
 }
 
-func (s *Service) governSessionInventory(now time.Time, policy AuthRuntimePolicy) error {
+// SessionInventoryGovernanceTaskName is the maintenance registry key for the
+// periodic session inventory sweep (idle-session revocation + retention
+// purge). It is the only automatic caller of this work.
+const SessionInventoryGovernanceTaskName = "auth.session_inventory"
+
+// RunSessionInventoryGovernance revokes idle sessions and purges sessions past
+// the configured retention window.
+//
+// It is a maintenance entry point: callers are the background maintenance
+// runner and explicitly-triggered maintenance, never list/read handlers
+// (task 2026-09-22-request-path-maintenance). Failures are returned so the
+// runner can log and count them instead of them hiding inside a read request.
+func (s *Service) RunSessionInventoryGovernance() error {
+	if s.db == nil {
+		return common.ErrDatabaseNotInitialized
+	}
+	now := time.Now()
+	policy := s.policy.GetSessionPolicy()
 	if err := authsession.CleanupInactiveSessions(s.db, now, policy.SessionIdleMinutes); err != nil {
 		return err
 	}
 	return authsession.PurgeHistoricSessions(s.db, now, policy.SessionRetentionDays)
+}
+
+// RegisterMaintenanceTasks registers the session inventory sweep with the
+// background maintenance registry.
+func (s *Service) RegisterMaintenanceTasks(reg *maintenance.Registry) {
+	reg.Register(maintenance.Task{
+		Name:     SessionInventoryGovernanceTaskName,
+		Interval: maintenance.DefaultInterval,
+		Run: func(context.Context) error {
+			return s.RunSessionInventoryGovernance()
+		},
+	})
 }
 
 // RefreshSession refreshes an active session and issues a new token pair.
@@ -83,6 +143,17 @@ func (s *Service) RefreshSessionWithContext(ctx context.Context, sessionID strin
 		return nil, common.ErrUnauthorized
 	}
 
+	// Tenant refresh gate (contract §2.2/§5, task packet risk node "stale
+	// membership"): a session must not outlive its membership. Compat mode
+	// and claim-less sessions pass unchanged (flag-off regression guarantee).
+	if err := tenant.GateSessionRefresh(db, tenant.RefreshCheckInput{
+		Mode:     tenant.NormalizeMode(tenant.FeatureFlagSettingKeyReader(db)),
+		UserID:   sess.UserID,
+		TenantID: sess.TenantID,
+	}); err != nil {
+		return nil, err
+	}
+
 	u, err := s.loader.GetUserByID(userID)
 	if err != nil {
 		return nil, err
@@ -105,6 +176,77 @@ func (s *Service) RefreshSessionWithContext(ctx context.Context, sessionID strin
 	return s.issuer.IssueTokenPairWithContext(ctx, u.ID, u.Username, roles, &sess)
 }
 
+// SwitchSessionTenant re-issues the caller's session bound to a different
+// tenant (contract §2.2/§3.1). It is the only place a session's tenant claim
+// can change, and it is deliberately strict:
+//
+//   - the switch is a multi-mode-only operation (compat has one scope);
+//   - the target tenant must exist and be active (EnsureTenantLoginable);
+//   - the subject must hold an ACTIVE membership in the target tenant;
+//   - a no-op switch to the current tenant is rejected.
+//
+// On success the session row is re-stamped and the access/refresh pair is
+// re-signed with the new claim, so the client keeps its session id but every
+// subsequent request resolves to the new tenant.
+func (s *Service) SwitchSessionTenant(ctx context.Context, sessionID string, userID, tenantID uint64) (*authtoken.Pair, error) {
+	if s.db == nil {
+		return nil, common.ErrDatabaseNotInitialized
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	db := s.db.WithContext(ctx)
+	var sess SystemUserSession
+	if err := db.Where(sessionIDAndUserIDWhereClause, sessionID, userID).First(&sess).Error; err != nil {
+		return nil, err
+	}
+	if sess.RevokedAt != nil || sess.RefreshExpiresAt.Before(time.Now()) {
+		return nil, common.ErrUnauthorized
+	}
+	if tenant.NormalizeMode(tenant.FeatureFlagSettingKeyReader(db)) != tenant.ModeMulti {
+		return nil, tenant.ErrTenantForbidden
+	}
+	if sess.TenantID == tenantID {
+		return nil, common.NewBadRequest("tenant.switch.same")
+	}
+	if err := tenant.EnsureTenantLoginable(db, tenantID); err != nil {
+		return nil, err
+	}
+	if !tenant.HasActiveMembership(db, tenantID, userID) {
+		return nil, tenant.ErrTenantForbidden
+	}
+
+	u, err := s.loader.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	roles, err := s.loadRolesForTenant(u.ID, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+	sess.TenantID = tenantID
+	sess.RefreshJTI = uuid.NewString()
+	sess.RefreshExpiresAt = now.Add(authtoken.RefreshTokenTTL)
+	sess.LastRefreshAt = &now
+	sess.LastActivityAt = &now
+	if err := db.Save(&sess).Error; err != nil {
+		return nil, err
+	}
+	return s.issuer.IssueTokenPairWithContext(ctx, u.ID, u.Username, roles, &sess)
+}
+
+// loadRolesForTenant resolves the subject's role keys inside a specific tenant,
+// falling back to the loader's default (the subject's own tenant) when the
+// loader cannot resolve per-tenant roles.
+func (s *Service) loadRolesForTenant(userID, tenantID uint64) ([]string, error) {
+	if l, ok := s.loader.(TenantRoleLoader); ok {
+		return l.GetUserRolesForTenant(userID, tenantID)
+	}
+	return s.loader.GetUserRoles(userID)
+}
+
 // RevokeSession marks a session as revoked.
 func (s *Service) RevokeSession(sessionID string) error {
 	if s.db == nil || sessionID == "" {
@@ -116,12 +258,32 @@ func (s *Service) RevokeSession(sessionID string) error {
 		Updates(map[string]interface{}{"revoked_at": &now}).Error; err != nil {
 		return err
 	}
-	CascadeRevokeSessionRefresh(sessionID)
+	return RevokeSessionArtifacts(sessionID)
+}
+
+// RevokeSessionArtifacts 使会话在 Redis 侧的三条失效路径同时生效：access
+// token 黑名单（每请求校验，立即阻断存量 access token）、refresh token 级联
+// 删除、以及 middleware 本地会话缓存无法感知的失效窗口。DB revoked_at 已由
+// 调用方写入；这里任一写失败都必须返回错误——access 路径没有 DB 兜底，
+// 静默失败会形成“已撤销仍可用”的安全假象。
+func RevokeSessionArtifacts(sessionID string) error {
+	if err := authtoken.BlacklistSession(context.Background(), database.RDB, sessionID); err != nil {
+		logging.Warn("blacklist session access token failed",
+			zap.String("session_id", sessionID), zap.Error(err))
+		return err
+	}
+	if err := authtoken.RevokeSessionRefresh(context.Background(), database.RDB, sessionID); err != nil {
+		logging.Warn("cascade revoke session refresh token failed",
+			zap.String("session_id", sessionID), zap.Error(err))
+		return err
+	}
 	return nil
 }
 
 // CascadeRevokeSessionRefresh 级联删除会话绑定的 refresh token（Redis）。
 // 失败仅记日志不回滚：DB 侧 revoked_at 已生效，refresh 路径仍会被 session 状态校验拦截。
+// 仅用于已删除会话行等无法逐会话返回错误的批量场景；显式撤销路径请使用
+// RevokeSessionArtifacts 以获得 fail-fast 语义。
 func CascadeRevokeSessionRefresh(sessionIDs ...string) {
 	for _, sid := range sessionIDs {
 		if strings.TrimSpace(sid) == "" {
@@ -155,11 +317,10 @@ func (s *Service) ListSessions(userID uint64, currentSessionID string) ([]Sessio
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
+	// Read path: no inventory purge here. Idle/expired sessions are swept by
+	// the registered maintenance task, not while serving this list.
 	now := time.Now()
 	policy := s.policy.GetSessionPolicy()
-	if err := s.governSessionInventory(now, policy); err != nil {
-		return nil, err
-	}
 
 	var sessions []SystemUserSession
 	if err := authsession.ApplyActiveScope(s.db, "", now, policy.SessionIdleMinutes).
@@ -209,8 +370,7 @@ func (s *Service) RevokeOwnedSession(userID uint64, currentSessionID, targetSess
 		Updates(map[string]interface{}{"revoked_at": &now}).Error; err != nil {
 		return err
 	}
-	CascadeRevokeSessionRefresh(targetSessionID)
-	return nil
+	return RevokeSessionArtifacts(targetSessionID)
 }
 
 // CleanupHistoricSessions removes expired session records.
@@ -224,9 +384,6 @@ func (s *Service) CleanupHistoricSessions(retentionDays int, startedAt, endedAt 
 	}
 	now := time.Now()
 	policy := s.policy.GetSessionPolicy()
-	if err := s.governSessionInventory(now, policy); err != nil {
-		return 0, err
-	}
 	db := s.db.Table("system_user_session").Where("revoked_at IS NOT NULL")
 	if window != nil {
 		db = db.Where("revoked_at >= ? AND revoked_at <= ?", window.StartedAt, window.EndedAt)
@@ -260,70 +417,158 @@ func (s *Service) BatchRevokeSessions(currentSessionID string, sessionIDs []stri
 			return 0, errors.New("auth.session.current_revoke_forbidden")
 		}
 	}
+	// F03: candidate IDs are resolved inside the tenant scope first, so a
+	// tenant-scoped manager can neither revoke another tenant's sessions nor
+	// blacklist their tokens via RevokeSessionArtifacts.
+	var scopedIDs []string
+	if err := s.scoped(s.db.Model(&SystemUserSession{})).
+		Where("session_id IN ? AND revoked_at IS NULL", normalized).
+		Pluck("session_id", &scopedIDs).Error; err != nil {
+		return 0, err
+	}
+	if len(scopedIDs) == 0 {
+		return 0, nil
+	}
 	now := time.Now()
 	result := s.db.Model(&SystemUserSession{}).
-		Where("session_id IN ? AND revoked_at IS NULL", normalized).
+		Where("session_id IN ? AND revoked_at IS NULL", scopedIDs).
 		Updates(map[string]interface{}{"revoked_at": &now})
 	if result.Error != nil {
 		return result.RowsAffected, result.Error
 	}
-	CascadeRevokeSessionRefresh(normalized...)
+	for _, sid := range scopedIDs {
+		if err := RevokeSessionArtifacts(sid); err != nil {
+			return result.RowsAffected, err
+		}
+	}
 	return result.RowsAffected, nil
 }
 
 // ListAllSessions returns paginated session records for admin use.
+// Filters (including browser/OS/device, derived from user_agent) are pushed
+// down to SQL; COUNT and LIMIT/OFFSET run in the database — no full-scan
+// into memory pagination (task 2026-09-22-export-and-session-pagination).
 func (s *Service) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPageResp, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
+	// Read path: the session inventory sweep is a registered maintenance task
+	// (RunSessionInventoryGovernance), deliberately not part of this query.
 	now := time.Now()
 	policy := s.policy.GetSessionPolicy()
-	if err := s.governSessionInventory(now, policy); err != nil {
+
+	page, pageSize := normalizePageQuery(queryPageFromAdminSession(query), queryPageSizeFromAdminSession(query))
+
+	base := func() *gorm.DB {
+		db := s.db.Table("system_user_session").
+			Joins("LEFT JOIN system_user ON system_user.id = system_user_session.user_id")
+		// F03 + FIX-2: every request-bound context pins tenant_id — compat to
+		// 0, multi to the active tenant; only the nil-context internal
+		// maintenance paths keep the unfiltered view.
+		db = s.scoped(db)
+		return applyAdminSessionFilters(db, query, now, policy)
+	}
+	// Browser/OS/device filters become user_agent LIKE conditions so the
+	// whole filtered set lives in SQL and counts match pages exactly.
+	db := applyAdminSessionClientFilters(base(), query)
+
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
 		return nil, err
 	}
 
-	page, pageSize := normalizePageQuery(queryPageFromAdminSession(query), queryPageSizeFromAdminSession(query))
-	db := s.db.Table("system_user_session").
-		Select("system_user_session.session_id, system_user_session.user_id, system_user.username, system_user.nickname, system_user_session.last_ip, system_user_session.user_agent, system_user_session.refresh_expires_at, system_user_session.last_refresh_at, system_user_session.last_activity_at, system_user_session.revoked_at, system_user_session.created_at").
-		Joins("LEFT JOIN system_user ON system_user.id = system_user_session.user_id")
-	db = applyAdminSessionFilters(db, query, now, policy)
+	// Whole-filtered-set aggregates so active/revoked counts match the
+	// paginated result exactly (both derive from the same SQL filter).
+	var activeCount, revokedCount int64
+	counts := struct {
+		ActiveCount  *int64
+		RevokedCount *int64
+	}{}
+	if err := base().Session(&gorm.Session{}).
+		Select("SUM(CASE WHEN system_user_session.revoked_at IS NULL THEN 1 ELSE 0 END) AS active_count, " +
+			"SUM(CASE WHEN system_user_session.revoked_at IS NOT NULL THEN 1 ELSE 0 END) AS revoked_count").
+		Scan(&counts).Error; err != nil {
+		return nil, err
+	}
+	if counts.ActiveCount != nil {
+		activeCount = *counts.ActiveCount
+	}
+	if counts.RevokedCount != nil {
+		revokedCount = *counts.RevokedCount
+	}
 
 	var rows []adminSessionRow
-	if err := db.Order("system_user_session.created_at desc").Scan(&rows).Error; err != nil {
+	if err := base().Session(&gorm.Session{}).
+		Select("system_user_session.session_id, system_user_session.user_id, system_user.username, system_user.nickname, system_user_session.last_ip, system_user_session.user_agent, system_user_session.refresh_expires_at, system_user_session.last_refresh_at, system_user_session.last_activity_at, system_user_session.revoked_at, system_user_session.created_at").
+		Order("system_user_session.created_at desc").
+		Offset((page - 1) * pageSize).Limit(pageSize).
+		Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 
 	items := make([]AdminSessionResp, 0, len(rows))
-	var activeCount, revokedCount int64
 	for _, row := range rows {
-		clientInfo := ParseClientInfo(row.UserAgent)
-		if !matchesAdminSessionFilters(query, clientInfo) {
-			continue
-		}
-		if row.RevokedAt == nil {
-			activeCount++
-		} else {
-			revokedCount++
-		}
-		items = append(items, buildAdminSessionResp(row, clientInfo))
+		items = append(items, buildAdminSessionResp(row, ParseClientInfo(row.UserAgent)))
 	}
 
-	total := int64(len(items))
-	start := (page - 1) * pageSize
-	if start > len(items) {
-		start = len(items)
-	}
-	end := start + pageSize
-	if end > len(items) {
-		end = len(items)
-	}
 	return &AdminSessionPageResp{
-		Items:        items[start:end],
+		Items:        items,
 		Total:        total,
 		ActiveCount:  activeCount,
 		RevokedCount: revokedCount,
 		Page:         page,
 		PageSize:     pageSize,
+	}, nil
+}
+
+// ExportAdminSessions exports admin sessions as CSV. It reuses the exact
+// list-scope filters (minus pagination) so the file matches the filtered view.
+func (s *Service) ExportAdminSessions(query *AdminSessionQuery) (*impexp.CSVFile, error) {
+	if s.db == nil {
+		return nil, common.ErrDatabaseNotInitialized
+	}
+	now := time.Now()
+	policy := s.policy.GetSessionPolicy()
+
+	db := s.scoped(s.db.Table("system_user_session").
+		Joins("LEFT JOIN system_user ON system_user.id = system_user_session.user_id"))
+	db = applyAdminSessionClientFilters(applyAdminSessionFilters(db, query, now, policy), query)
+
+	var rows []adminSessionRow
+	if err := db.Select("system_user_session.session_id, system_user_session.user_id, system_user.username, system_user.nickname, system_user_session.last_ip, system_user_session.user_agent, system_user_session.refresh_expires_at, system_user_session.last_refresh_at, system_user_session.last_activity_at, system_user_session.revoked_at, system_user_session.created_at").
+		Order("system_user_session.created_at desc").
+		Limit(impexp.MaxExportRows()).
+		Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	nullable := func(value *string) string {
+		if value == nil {
+			return ""
+		}
+		return *value
+	}
+	out := make([][]string, 0, len(rows))
+	for _, row := range rows {
+		resp := buildAdminSessionResp(row, ParseClientInfo(row.UserAgent))
+		status := "active"
+		if resp.RevokedAt != nil {
+			status = "revoked"
+		}
+		out = append(out, []string{
+			resp.SessionID, resp.Username, resp.Nickname, resp.LastIP,
+			resp.Browser, resp.OS, resp.Device, status, resp.RefreshExpiresAt,
+			nullable(resp.LastRefreshAt), nullable(resp.LastActivityAt),
+			nullable(resp.RevokedAt), resp.CreatedAt,
+		})
+	}
+	return &impexp.CSVFile{
+		Filename: "system-session-export.csv",
+		Headers: []string{
+			"sessionId", "username", "nickname", "lastIp", "browser", "os", "device",
+			"status", "refreshExpiresAt", "lastRefreshAt", "lastActivityAt", "revokedAt", "createdAt",
+		},
+		Rows: out,
 	}, nil
 }
 
@@ -339,7 +584,20 @@ func (s *Service) RevokeAnySession(currentSessionID, targetSessionID string) err
 		return common.ErrUnauthorized
 	}
 	now := time.Now()
-	return s.db.Model(&SystemUserSession{}).
+	// F03: the revoke itself is tenant-scoped; a tenant-scoped manager cannot
+	// revoke another tenant's session and artifacts are only invalidated for
+	// rows this operator actually revoked.
+	result := s.scoped(s.db.Model(&SystemUserSession{})).
 		Where("session_id = ? AND revoked_at IS NULL", targetSessionID).
-		Updates(map[string]interface{}{"revoked_at": &now}).Error
+		Updates(map[string]interface{}{"revoked_at": &now})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil
+	}
+	// 与 RevokeSession/RevokeOwnedSession 保持同一失效语义：DB revoked_at、
+	// refresh token 删除、access token 黑名单三路同时生效，管理员撤销后
+	// 存量 access token 不允许继续使用到 TTL 结束。
+	return RevokeSessionArtifacts(targetSessionID)
 }

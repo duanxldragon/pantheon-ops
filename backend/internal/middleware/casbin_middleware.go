@@ -1,9 +1,11 @@
 package middleware
 
 import (
-	"pantheon-base/pkg/common"
-	"pantheon-base/pkg/database"
 	"strings"
+
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,9 +29,12 @@ func CasbinMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		allowed, err := authorizeRoleKeys(roleKeys, c.Request.URL.Path, c.Request.Method, func(roleKey, obj, act string) (bool, error) {
-			return database.Enforcer.Enforce(roleKey, obj, act)
-		})
+		// Tenant domain expansion (contract §4): consult the global subject
+		// first, then the tenant-scoped subject role:<key>@tenant:<id> for the
+		// resolved request context. Compat contexts resolve to global subjects
+		// only — zero behavior change when the flag is off.
+		tenantCtx := tenant.FromGin(c)
+		allowed, err := authorizeRoleKeys(roleKeys, c.Request.URL.Path, c.Request.Method, casbinTenantEnforce(tenantCtx))
 		if err != nil || !allowed {
 			failPermissionCheck(c, "permission.denied")
 			return
@@ -55,6 +60,28 @@ func authorizeRoleKeys(
 			return false, err
 		}
 		if allowed {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// casbinTenantEnforce returns an enforce function that consults every policy
+// subject variant (global + tenant-scoped) for the resolved request context.
+func casbinTenantEnforce(tenantCtx *tenant.Context) func(roleKey, obj, act string) (bool, error) {
+	return func(roleKey, obj, act string) (bool, error) {
+		return enforceAnySubject(tenant.CasbinDomainPolicySubjects(roleKey, tenantCtx), obj, act)
+	}
+}
+
+// enforceAnySubject reports whether any subject variant is allowed for obj/act.
+func enforceAnySubject(subjects []string, obj, act string) (bool, error) {
+	for _, subject := range subjects {
+		ok, err := database.Enforcer.Enforce(subject, obj, act)
+		if err != nil {
+			return false, err
+		}
+		if ok {
 			return true, nil
 		}
 	}

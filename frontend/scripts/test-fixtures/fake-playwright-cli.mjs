@@ -9,6 +9,7 @@ if (markerPath) {
     JSON.stringify({
       args: process.argv.slice(2),
       baseUrl: process.env.PANTHEON_WEB_BASE_URL ?? null,
+      apiBaseUrl: process.env.PANTHEON_API_BASE_URL ?? null,
     }),
   );
 }

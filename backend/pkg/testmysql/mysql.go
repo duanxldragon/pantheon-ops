@@ -17,8 +17,32 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-// Open creates an isolated MySQL database for the current test.
-func Open(t *testing.T) *gorm.DB {
+// requiredEnvVar switches resolution from "skip when unconfigured" to "fail".
+// Set it in any job that provisions MySQL so a typo'd or renamed variable fails
+// the build instead of reducing coverage silently.
+const requiredEnvVar = "PANTHEON_TEST_DSN_REQUIRED"
+
+// reporter is the subset of *testing.T that DSN resolution needs. Taking the
+// narrow interface keeps the fail-vs-skip decision testable: Fatalf/Skipf end
+// the calling goroutine, so a real *testing.T cannot be asserted on.
+type reporter interface {
+	Helper()
+	Fatalf(format string, args ...any)
+	Skipf(format string, args ...any)
+	Cleanup(func())
+	Name() string
+}
+
+func isTruthy(value string) bool {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "1", "true", "yes", "on":
+		return true
+	default:
+		return false
+	}
+}
+
+func resolveDSN(t reporter) string {
 	t.Helper()
 
 	dsn := strings.TrimSpace(os.Getenv("PANTHEON_TEST_DSN"))
@@ -26,7 +50,36 @@ func Open(t *testing.T) *gorm.DB {
 		dsn = strings.TrimSpace(os.Getenv("PANTHEON_DSN"))
 	}
 	if dsn == "" {
-		t.Skip("mysql test dsn is not configured")
+		if isTruthy(os.Getenv(requiredEnvVar)) {
+			t.Fatalf(
+				"mysql is required (%s is set) but neither PANTHEON_TEST_DSN nor PANTHEON_DSN is configured; a misconfigured variable would otherwise skip this test silently",
+				requiredEnvVar,
+			)
+		} else {
+			t.Skipf("mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)")
+		}
+	}
+	return dsn
+}
+
+// Open creates an isolated MySQL database for the current test.
+func Open(t *testing.T) *gorm.DB {
+	return open(t)
+}
+
+// OpenTB is the testing.TB form of Open so benchmarks (testing.B) can also
+// create isolated per-run databases. It shares Open's DSN resolution, naming,
+// and cleanup behavior.
+func OpenTB(tb testing.TB) *gorm.DB {
+	return open(tb)
+}
+
+func open(t reporter) *gorm.DB {
+	t.Helper()
+
+	dsn := resolveDSN(t)
+	if dsn == "" {
+		return nil
 	}
 
 	cfg, err := mysqlDriver.ParseDSN(dsn)

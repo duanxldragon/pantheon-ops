@@ -9,15 +9,15 @@ import (
 
 // CSPMiddleware 添加 Content-Security-Policy 响应头
 func CSPMiddleware() gin.HandlerFunc {
-	cspPolicy := buildCSPPolicy()
-
 	return func(c *gin.Context) {
+		nonce := GetCSPNonce(c)
+		cspPolicy := buildCSPPolicy(nonce)
 		c.Header("Content-Security-Policy", cspPolicy)
 		c.Next()
 	}
 }
 
-func buildCSPPolicy() string {
+func buildCSPPolicy(nonce string) string {
 	env := strings.ToLower(strings.TrimSpace(os.Getenv("PANTHEON_ENV")))
 
 	// 基础策略
@@ -32,13 +32,20 @@ func buildCSPPolicy() string {
 		"form-action 'self'",
 	}
 
-	// 开发环境：允许 unsafe-eval（Vite HMR 需要）
-	if env == "development" || env == "" {
-		directives = append(directives, "script-src 'self' 'unsafe-inline' 'unsafe-eval'")
-	} else {
-		// 生产环境：移除 unsafe-eval，仅保留 unsafe-inline（React 需要）
-		directives = append(directives, "script-src 'self' 'unsafe-inline'")
+	// 构建 script-src，使用 nonce 替代 unsafe-inline（生产环境）
+	scriptSrc := "script-src 'self'"
+	if nonce != "" {
+		scriptSrc += " 'nonce-" + nonce + "'"
 	}
+	// 开发环境：允许 unsafe-eval（Vite HMR 需要）和 unsafe-inline（兼容性）
+	if env == "development" || env == "" {
+		scriptSrc += " 'unsafe-inline' 'unsafe-eval'"
+	}
+	// 生产环境：如果没有 nonce，保留 unsafe-inline 作为降级（不应该发生）
+	if (env != "development" && env != "") && nonce == "" {
+		scriptSrc += " 'unsafe-inline'"
+	}
+	directives = append(directives, scriptSrc)
 
 	// CSP 报告端点
 	reportURI := os.Getenv("CSP_REPORT_URI")
