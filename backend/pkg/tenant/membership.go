@@ -42,6 +42,62 @@ func HasActiveMembership(db *gorm.DB, tenantID, userID uint64) bool {
 	return count > 0
 }
 
+// IsPlatformPopulationUser reports whether the user belongs to no tenant at
+// all — the "platform population / platform-only user" the issuance gate
+// resolves to a claim-less session (contract §3.1 source 2). It mirrors
+// DiscoverDefaultTenant's zero-membership branch so the request side and the
+// login side agree on who is a non-tenant subject.
+//
+// failClosed is true whenever the answer cannot be established (nil DB, zero
+// user id, query error): the caller must then refuse the platform-global
+// fallback rather than assume the subject is tenant-less.
+func IsPlatformPopulationUser(db *gorm.DB, userID uint64) (tenantLess bool, failClosed bool) {
+	if db == nil || userID == 0 {
+		return false, true
+	}
+	var count int64
+	if err := db.Model(&Membership{}).
+		Where("user_id = ? AND status = ?", userID, MembershipActive).
+		Count(&count).Error; err != nil {
+		return false, true
+	}
+	return count == 0, false
+}
+
+// ListActiveMemberships returns every active membership a user holds, ordered
+// by tenant id. It backs the tenant switcher: the subject may only ever move
+// between tenants it is an active member of (contract §2.2/§3.1).
+func ListActiveMemberships(db *gorm.DB, userID uint64) ([]Membership, error) {
+	if db == nil || userID == 0 {
+		return nil, ErrTenantForbidden
+	}
+	var rows []Membership
+	if err := db.Model(&Membership{}).
+		Where("user_id = ? AND status = ?", userID, MembershipActive).
+		Order("tenant_id asc").
+		Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	return rows, nil
+}
+
+// ValidateExplicitTenant checks that an explicit tenant override
+// (`X-Tenant-Id`) names a real, active tenant (contract §3.1 source 1, §5).
+//
+// Tenant 0 is the platform-global scope and is always valid: it is a
+// first-class scope in both modes (contract §2.3/§4), not a tenant row.
+// Anything else must exist and be active. Fail-closed: an unavailable lookup
+// denies rather than widening scope.
+func ValidateExplicitTenant(db *gorm.DB, tenantID uint64) error {
+	if tenantID == PlatformGlobalTenantID {
+		return nil
+	}
+	if db == nil || !db.Migrator().HasTable("tenants") {
+		return ErrTenantForbidden
+	}
+	return EnsureTenantLoginable(db, tenantID)
+}
+
 // SettingFlagReader is the minimal read interface the mode loader binds to
 // (satisfied by *config.SettingService.GetByKey and test stubs).
 type SettingFlagReader interface {

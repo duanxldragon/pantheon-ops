@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-09-10
+updated_at: 2026-10-22
 ---
 
 # Tenant Resource Scope Matrix Template and Global Unique-Key Registry
@@ -17,8 +17,12 @@ This is a deliverable of task 0 (`2026-09-10-tenant-ready-guardrails`), implemen
 section 5 of the tenant-ready single-tenant design and feeding the tenant contract
 design task.
 
-> The runtime stays single-tenant. This is a governance template, not a multi-tenant
-> implementation commitment; the generator's `tenant` data-scope option has been retired.
+> The runtime is **dual-mode: `compat` (default) and `multi`**. Under compat every row resolves to
+> `tenant_id = 0`; under multi the tenant dimension is enabled per contract §6. This page is the
+> governance template for that delivered model, not a promise to implement multi-tenancy later —
+> `multi` is a superset of `compat` (contract §6). The generator's `tenant` data-scope option stays
+> retired. The obligations and the two allowed cross-tenant surfaces are defined by
+> [tenant contract V1](../contracts/TENANT_CONTRACT_V1.md) §2.3.1.
 
 ## 1. Four Resource Scope Classes
 

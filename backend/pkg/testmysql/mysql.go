@@ -17,54 +17,99 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-// Open creates an isolated MySQL database for the current test.
-func Open(t *testing.T) *gorm.DB {
-	t.Helper()
-	return OpenTB(t)
+// requiredEnvVar switches resolution from "skip when unconfigured" to "fail".
+// Set it in any job that provisions MySQL so a typo'd or renamed variable fails
+// the build instead of reducing coverage silently.
+const requiredEnvVar = "PANTHEON_TEST_DSN_REQUIRED"
+
+// reporter is the subset of *testing.T that DSN resolution needs. Taking the
+// narrow interface keeps the fail-vs-skip decision testable: Fatalf/Skipf end
+// the calling goroutine, so a real *testing.T cannot be asserted on.
+type reporter interface {
+	Helper()
+	Fatalf(format string, args ...any)
+	Skipf(format string, args ...any)
+	Cleanup(func())
+	Name() string
 }
 
-// OpenTB is the testing.TB form of Open so benchmarks (testing.B) can also
-// create isolated per-run databases. It shares Open's DSN resolution, naming,
-// and cleanup behavior.
-func OpenTB(tb testing.TB) *gorm.DB {
-	tb.Helper()
+func isTruthy(value string) bool {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "1", "true", "yes", "on":
+		return true
+	default:
+		return false
+	}
+}
+
+func resolveDSN(t reporter) string {
+	t.Helper()
 
 	dsn := strings.TrimSpace(os.Getenv("PANTHEON_TEST_DSN"))
 	if dsn == "" {
 		dsn = strings.TrimSpace(os.Getenv("PANTHEON_DSN"))
 	}
 	if dsn == "" {
-		tb.Skip("mysql test dsn is not configured")
+		if isTruthy(os.Getenv(requiredEnvVar)) {
+			t.Fatalf(
+				"mysql is required (%s is set) but neither PANTHEON_TEST_DSN nor PANTHEON_DSN is configured; a misconfigured variable would otherwise skip this test silently",
+				requiredEnvVar,
+			)
+		} else {
+			t.Skipf("mysql test dsn is not configured (PANTHEON_TEST_DSN and PANTHEON_DSN unset)")
+		}
+	}
+	return dsn
+}
+
+// Open creates an isolated MySQL database for the current test.
+func Open(t *testing.T) *gorm.DB {
+	return open(t)
+}
+
+// OpenTB is the testing.TB form of Open so benchmarks (testing.B) can also
+// create isolated per-run databases. It shares Open's DSN resolution, naming,
+// and cleanup behavior.
+func OpenTB(tb testing.TB) *gorm.DB {
+	return open(tb)
+}
+
+func open(t reporter) *gorm.DB {
+	t.Helper()
+
+	dsn := resolveDSN(t)
+	if dsn == "" {
+		return nil
 	}
 
 	cfg, err := mysqlDriver.ParseDSN(dsn)
 	if err != nil {
-		tb.Fatalf("parse mysql dsn: %v", err)
+		t.Fatalf("parse mysql dsn: %v", err)
 	}
 	if strings.TrimSpace(cfg.DBName) == "" {
-		tb.Fatalf("mysql test dsn must include database name")
+		t.Fatalf("mysql test dsn must include database name")
 	}
 
 	adminCfg := *cfg
 	adminCfg.DBName = ""
 	adminDB, err := sql.Open("mysql", adminCfg.FormatDSN())
 	if err != nil {
-		tb.Fatalf("open mysql admin connection: %v", err)
+		t.Fatalf("open mysql admin connection: %v", err)
 	}
-	tb.Cleanup(func() {
+	t.Cleanup(func() {
 		_ = adminDB.Close()
 	})
 
-	testDBName, err := buildTestDBName(cfg.DBName, tb.Name())
+	testDBName, err := buildTestDBName(cfg.DBName, t.Name())
 	if err != nil {
-		tb.Fatalf("build test database name: %v", err)
+		t.Fatalf("build test database name: %v", err)
 	}
 	createDatabaseStatement := buildCreateDatabaseStatement(testDBName)
 	if _, err := adminDB.Exec(createDatabaseStatement); err != nil { // NOSONAR — test helper, controlled input
-		tb.Fatalf("create test database %s: %v", testDBName, err)
+		t.Fatalf("create test database %s: %v", testDBName, err)
 	}
 	dropDatabaseStatement := buildDropDatabaseStatement(testDBName)
-	tb.Cleanup(func() {
+	t.Cleanup(func() {
 		_, _ = adminDB.Exec(dropDatabaseStatement) // NOSONAR — test helper, controlled input
 	})
 
@@ -85,14 +130,14 @@ func OpenTB(tb testing.TB) *gorm.DB {
 		NamingStrategy: schema.NamingStrategy{SingularTable: true},
 	})
 	if err != nil {
-		tb.Fatalf("open gorm mysql connection: %v", err)
+		t.Fatalf("open gorm mysql connection: %v", err)
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		tb.Fatalf("resolve sql db: %v", err)
+		t.Fatalf("resolve sql db: %v", err)
 	}
-	tb.Cleanup(func() {
+	t.Cleanup(func() {
 		_ = sqlDB.Close()
 	})
 	return db

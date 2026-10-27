@@ -135,7 +135,8 @@
     "scripts/check-business-module-boundaries.mjs",
     "tests/scripts/check-business-module-boundaries.test.mjs",
     "tests/scripts/check-inheritance-contract.test.mjs",
-    "docs/V1_RELEASE_CHECKLIST.md"
+    "docs/V1_RELEASE_CHECKLIST.md",
+    "docs/migrations/legacy-ops-business-v010x"
   ],
   "backendModules": [
     {

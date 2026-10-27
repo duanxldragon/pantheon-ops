@@ -10,6 +10,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type tenantSmokeResponse struct {
@@ -22,6 +23,12 @@ type tenantSmokeResponse struct {
 // and runs two tenant requests concurrently to catch ambient-context leakage.
 func TestTenantContextMiddleware_HostileTwoTenantMatrix(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+
+	// A platform override names a tenant directly, so the middleware validates
+	// it against the master table (contract §3.1 source 1, §5). Seed a real,
+	// active tenant 202 so the accepted-override case exercises resolution
+	// rather than validation rejection.
+	db := setupTenantContextTestDB(t)
 
 	tests := []struct {
 		name           string
@@ -66,15 +73,17 @@ func TestTenantContextMiddleware_HostileTwoTenantMatrix(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			recorder := runTenantSmokeRequest(t, tt.mode, tt.subjectTenant, tt.headerTenant, tt.roles)
+			recorder := runTenantSmokeRequest(t, db, tt.mode, tt.subjectTenant, tt.headerTenant, tt.roles)
 			assertTenantSmokeResponse(t, recorder, tt.wantHTTPStatus, tt.wantCode, tt.wantTenantID, tt.wantMode)
 		})
 	}
 }
 
 // runTenantSmokeRequest builds the engine with the same stub/context keys as
-// the hostile matrix and issues the protected request.
-func runTenantSmokeRequest(t *testing.T, mode, subjectTenant, headerTenant string, roles []string) *httptest.ResponseRecorder {
+// the hostile matrix and issues the protected request. membershipDB backs the
+// explicit-override validation (contract §3.1 source 1); pass a DB that holds
+// the tenants the matrix pins.
+func runTenantSmokeRequest(t *testing.T, membershipDB *gorm.DB, mode, subjectTenant, headerTenant string, roles []string) *httptest.ResponseRecorder {
 	t.Helper()
 	loader := tenant.NewModeLoader(func() string { return mode }, 0)
 	engine := gin.New()
@@ -86,7 +95,7 @@ func runTenantSmokeRequest(t *testing.T, mode, subjectTenant, headerTenant strin
 			c.Set("roleKeys", roles)
 		}
 	})
-	engine.Use(TenantContextMiddleware(loader, nil))
+	engine.Use(TenantContextMiddleware(loader, membershipDB))
 	engine.GET("/protected", func(c *gin.Context) {
 		ctx := tenant.FromGin(c)
 		if ctx == nil {

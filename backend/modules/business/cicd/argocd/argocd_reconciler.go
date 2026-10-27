@@ -193,5 +193,3 @@ func StartAll(ctx context.Context, db *gorm.DB) {
 	argocdReconciler := NewReconciler(db, 30*time.Second)
 	go argocdReconciler.Start(ctx)
 }
-
-

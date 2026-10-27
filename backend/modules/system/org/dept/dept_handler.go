@@ -5,6 +5,7 @@ import (
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +21,15 @@ func NewDeptHandler(s *DeptService) *DeptHandler {
 	return &DeptHandler{service: s}
 }
 
+// svc returns the request-scoped service view bound to the resolved tenant
+// context (contract §3.3). A nil context returns the shared service; compat
+// binds the platform-global scope (tenant_id=0). Admin operations must use this
+// instead of h.service directly, otherwise they read and write the
+// platform-global tree.
+func (h *DeptHandler) svc(c *gin.Context) *DeptService {
+	return h.service.WithTenantContext(tenant.FromGin(c))
+}
+
 func (h *DeptHandler) GetDeptTree(c *gin.Context) {
 	var query DeptListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -27,7 +37,7 @@ func (h *DeptHandler) GetDeptTree(c *gin.Context) {
 		return
 	}
 
-	tree, err := h.service.GetDeptTree(&query)
+	tree, err := h.svc(c).GetDeptTree(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dept.list.error")
 		return
@@ -36,7 +46,7 @@ func (h *DeptHandler) GetDeptTree(c *gin.Context) {
 }
 
 func (h *DeptHandler) GetDeptOverview(c *gin.Context) {
-	overview, err := h.service.GetOverview()
+	overview, err := h.svc(c).GetOverview()
 	if err != nil {
 		common.Fail(c, common.CodeError, "dept.overview.error")
 		return
@@ -51,7 +61,7 @@ func (h *DeptHandler) GetGovernanceTasks(c *gin.Context) {
 		return
 	}
 
-	items, err := h.service.ListGovernanceTasks(&query)
+	items, err := h.svc(c).ListGovernanceTasks(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dept.governance.task.error")
 		return
@@ -66,9 +76,9 @@ func (h *DeptHandler) GetDeptLeaderCandidates(c *gin.Context) {
 		return
 	}
 
-	items, err := h.service.ListLeaderCandidates(deptID)
+	items, err := h.svc(c).ListLeaderCandidates(deptID)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		common.FailWithError(c, common.CodeForError(err), err, errRequestFailed)
 		return
 	}
 	common.Success(c, items)
@@ -82,9 +92,9 @@ func (h *DeptHandler) CreateDept(c *gin.Context) {
 		return
 	}
 
-	dept, err := h.service.CreateDept(&req)
+	dept, err := h.svc(c).CreateDept(&req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		common.FailWithError(c, common.CodeForError(err), err, errRequestFailed)
 		return
 	}
 	common.Success(c, dept)
@@ -104,9 +114,9 @@ func (h *DeptHandler) UpdateDept(c *gin.Context) {
 		return
 	}
 
-	dept, err := h.service.UpdateDept(deptID, &req)
+	dept, err := h.svc(c).UpdateDept(deptID, &req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		common.FailWithError(c, common.CodeForError(err), err, errRequestFailed)
 		return
 	}
 	common.Success(c, dept)
@@ -121,9 +131,9 @@ func (h *DeptHandler) BatchUpdateDeptStatus(c *gin.Context) {
 		return
 	}
 
-	updatedCount, err := h.service.BatchUpdateDeptStatus(req.DeptIDs, req.Status)
+	updatedCount, err := h.svc(c).BatchUpdateDeptStatus(req.DeptIDs, req.Status)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		common.FailWithError(c, common.CodeForError(err), err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"updatedCount": updatedCount})
@@ -138,9 +148,9 @@ func (h *DeptHandler) BatchUpdateDeptLeader(c *gin.Context) {
 		return
 	}
 
-	updatedCount, err := h.service.BatchUpdateDeptLeader(req.Items)
+	updatedCount, err := h.svc(c).BatchUpdateDeptLeader(req.Items)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		common.FailWithError(c, common.CodeForError(err), err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"updatedCount": updatedCount})
@@ -154,8 +164,8 @@ func (h *DeptHandler) DeleteDept(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.DeleteDept(deptID); err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+	if err := h.svc(c).DeleteDept(deptID); err != nil {
+		common.FailWithError(c, common.CodeForError(err), err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})
@@ -169,7 +179,7 @@ func (h *DeptHandler) BatchDeleteDepts(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	resp := common.BatchDelete(req.IDs, h.service.DeleteDept)
+	resp := common.BatchDelete(req.IDs, h.svc(c).DeleteDept)
 	common.Success(c, resp)
 }
 
@@ -181,7 +191,7 @@ func (h *DeptHandler) ExportDepts(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	file, err := h.service.ExportDepts(c.Request.Context(), &query)
+	file, err := h.svc(c).ExportDepts(c.Request.Context(), &query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dept.export.error")
 		return
@@ -199,7 +209,7 @@ func (h *DeptHandler) ExportGovernanceTasks(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	file, err := h.service.ExportGovernanceTasks(&query)
+	file, err := h.svc(c).ExportGovernanceTasks(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dept.governance.task.export.error")
 		return
@@ -238,7 +248,7 @@ func (h *DeptHandler) ImportDepts(c *gin.Context) {
 		return
 	}
 
-	result, err := h.service.ImportDepts(records)
+	result, err := h.svc(c).ImportDepts(records)
 	if err != nil {
 		common.Fail(c, common.CodeError, "dept.import.error")
 		return

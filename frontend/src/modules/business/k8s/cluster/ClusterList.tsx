@@ -38,7 +38,7 @@ import {
   type K8sClusterRow,
 } from '../api';
 import ClusterForm from './ClusterForm';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 
 const emptyQuery: K8sClusterListQuery = {
   keyword: '',

@@ -21,6 +21,9 @@ var staticRegisteredMenuComponentKeys = map[string]struct{}{
 	"system/user/UserList":                {},
 	"system/user/UserDetail":              {},
 	"system/audit/OperationLogList":       {},
+	"system/tenant/TenantList":            {},
+	"system/tenant/TenantOverview":        {},
+	"system/tenant/TenantMemberList":      {},
 	"lowcode/dynamicmodule/ModuleManager": {},
 	"lowcode/generator/ModuleWizard":      {},
 }

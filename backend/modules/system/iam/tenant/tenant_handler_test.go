@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -119,4 +120,119 @@ func TestListTenantMembersHandlerUsesBoundedContract(t *testing.T) {
 	engine.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/tenants/999999/members", nil))
 	require.Equal(t, http.StatusOK, recorder.Code)
 	require.JSONEq(t, "{\"items\":[],\"total\":0,\"page\":1,\"pageSize\":20}", recorder.Body.String())
+}
+
+// requireUnifiedErrorEnvelope asserts the platform error envelope shape written
+// by common.Fail: HTTP 200 with {code, data, message}. The legacy raw success
+// shape is asserted by the tests above; these pin the unified failure contract.
+func requireUnifiedErrorEnvelope(t *testing.T, body string, wantCode int, wantMessage string) {
+	t.Helper()
+
+	var parsed map[string]any
+	require.NoError(t, json.Unmarshal([]byte(body), &parsed), "error body must be a JSON envelope")
+	require.Equal(t, float64(wantCode), parsed["code"], body)
+	require.Equal(t, wantMessage, parsed["message"], body)
+	require.Contains(t, parsed, "data", body)
+	require.NotContains(t, parsed, "error", "legacy raw {\"error\": ...} shape must be gone: "+body)
+	// Internal detail must never be echoed: bind/parse/driver strings are the
+	// realistic leak vectors on these paths.
+	for _, leak := range []string{"json:", "strconv:", "Error:", "Key:", "Field validation", "gorm", "sql"} {
+		require.NotContains(t, body, leak, body)
+	}
+}
+
+// TestLegacyTenantHandlerErrorEnvelopeIsUnifiedAndLeakFree covers the error
+// paths that fail before the service is touched, so it runs without a database
+// (the service pointer is never dereferenced on these paths).
+func TestLegacyTenantHandlerErrorEnvelopeIsUnifiedAndLeakFree(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	RegisterRoutes(engine.Group(""), NewHandler(NewService(nil)))
+
+	cases := []struct {
+		name        string
+		method      string
+		path        string
+		body        string
+		wantCode    int
+		wantMessage string
+	}{
+		{"get bad id", http.MethodGet, "/tenants/abc", "", 400, "param.invalid"},
+		{"list bad filter", http.MethodGet, "/tenants?status=bogus", "", 400, "param.invalid"},
+		{"create bad json", http.MethodPost, "/tenants", `{"code":`, 400, "param.invalid"},
+		{"update bad id", http.MethodPut, "/tenants/abc", `{"name":"x"}`, 400, "param.invalid"},
+		{"update bad json", http.MethodPut, "/tenants/1", `not-json`, 400, "param.invalid"},
+		{"delete bad id", http.MethodDelete, "/tenants/-1", "", 400, "param.invalid"},
+		{"add member bad id", http.MethodPost, "/tenants/x/members", `{"user_id":1,"role":"member"}`, 400, "param.invalid"},
+		{"add member bad json", http.MethodPost, "/tenants/1/members", `{"user_id":`, 400, "param.invalid"},
+		{"remove member bad user id", http.MethodDelete, "/tenants/1/members/abc", "", 400, "param.invalid"},
+		{"members bad id", http.MethodGet, "/tenants/abc/members", "", 400, "param.invalid"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			recorder := httptest.NewRecorder()
+			engine.ServeHTTP(recorder, httptest.NewRequest(tc.method, tc.path, strings.NewReader(tc.body)))
+			// common.Fail answers with HTTP 200 and the business code inside
+			// the envelope, matching every other system module.
+			require.Equal(t, http.StatusOK, recorder.Code)
+			requireUnifiedErrorEnvelope(t, recorder.Body.String(), tc.wantCode, tc.wantMessage)
+		})
+	}
+
+	t.Run("my tenants without auth context", func(t *testing.T) {
+		recorder := httptest.NewRecorder()
+		engine.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/tenants/my", nil))
+		require.Equal(t, http.StatusOK, recorder.Code)
+		requireUnifiedErrorEnvelope(t, recorder.Body.String(), 401, "token.invalid")
+	})
+
+	t.Run("my tenants with malformed auth context", func(t *testing.T) {
+		bad := gin.New()
+		bad.Use(func(c *gin.Context) {
+			c.Set("user_id", "7")
+			c.Next()
+		})
+		RegisterRoutes(bad.Group(""), NewHandler(NewService(nil)))
+		recorder := httptest.NewRecorder()
+		bad.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/tenants/my", nil))
+		require.Equal(t, http.StatusOK, recorder.Code)
+		requireUnifiedErrorEnvelope(t, recorder.Body.String(), 500, "request.failed")
+		require.NotContains(t, recorder.Body.String(), "invalid user id type")
+	})
+}
+
+// TestLegacyTenantHandlerSentinelMappingRequiresNoInternalLeak drives the
+// service-error branches with a real database and asserts the sentinel texts
+// ("tenant not found", "tenant code already exists") are replaced by i18n
+// keys instead of being echoed to the client. Skips without MySQL.
+func TestLegacyTenantHandlerSentinelMappingRequiresNoInternalLeak(t *testing.T) {
+	db := setupTestDB(t)
+	service := NewService(db)
+	created, err := service.CreateTenant(CreateTenantDTO{Code: "legacy-envelope", Name: "Legacy Envelope"})
+	require.NoError(t, err)
+
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	RegisterRoutes(engine.Group(""), NewHandler(service))
+
+	recorder := httptest.NewRecorder()
+	engine.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/tenants/999999", nil))
+	require.Equal(t, http.StatusOK, recorder.Code)
+	requireUnifiedErrorEnvelope(t, recorder.Body.String(), 404, "tenant.not_found")
+	require.NotContains(t, recorder.Body.String(), "tenant not found")
+
+	recorder = httptest.NewRecorder()
+	engine.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/tenants",
+		strings.NewReader(fmt.Sprintf(`{"code":%q,"name":"dup"}`, created.Code))))
+	require.Equal(t, http.StatusOK, recorder.Code)
+	requireUnifiedErrorEnvelope(t, recorder.Body.String(), 400, "tenant.code_taken")
+	require.NotContains(t, recorder.Body.String(), "tenant code already exists")
+
+	require.NoError(t, service.AddMember(created.ID, 88001, "member"))
+
+	recorder = httptest.NewRecorder()
+	engine.ServeHTTP(recorder, httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/tenants/%d", created.ID), nil))
+	require.Equal(t, http.StatusOK, recorder.Code)
+	requireUnifiedErrorEnvelope(t, recorder.Body.String(), 400, "tenant.has_active_members")
+	require.NotContains(t, recorder.Body.String(), "tenant has active users")
 }

@@ -18,18 +18,18 @@ import (
 
 // WebhookEvent represents a webhook event
 type WebhookEvent struct {
-	ID          uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
-	Source      string    `gorm:"size:32;not null" json:"source"` // github, gitlab, argocd
-	EventType   string    `gorm:"size:64;not null" json:"eventType"`
-	Repository  string    `gorm:"size:255" json:"repository"`
-	Ref         string    `gorm:"size:255" json:"ref"`
-	CommitSHA   string    `gorm:"size:128" json:"commitSha"`
-	CommitMsg   string    `gorm:"type:text" json:"commitMessage"`
-	Author      string    `gorm:"size:128" json:"author"`
-	Payload     string    `gorm:"type:longtext" json:"payload"`
-	Processed   bool      `gorm:"default:false" json:"processed"`
+	ID          uint64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	Source      string     `gorm:"size:32;not null" json:"source"` // github, gitlab, argocd
+	EventType   string     `gorm:"size:64;not null" json:"eventType"`
+	Repository  string     `gorm:"size:255" json:"repository"`
+	Ref         string     `gorm:"size:255" json:"ref"`
+	CommitSHA   string     `gorm:"size:128" json:"commitSha"`
+	CommitMsg   string     `gorm:"type:text" json:"commitMessage"`
+	Author      string     `gorm:"size:128" json:"author"`
+	Payload     string     `gorm:"type:longtext" json:"payload"`
+	Processed   bool       `gorm:"default:false" json:"processed"`
 	ProcessedAt *time.Time `json:"processedAt,omitempty"`
-	CreatedAt   time.Time `json:"createdAt"`
+	CreatedAt   time.Time  `json:"createdAt"`
 }
 
 func (WebhookEvent) TableName() string {
@@ -120,11 +120,11 @@ func (h *WebhookHandler) HandleArgoCDWebhook(w http.ResponseWriter, r *http.Requ
 
 	// Create event record
 	event := &WebhookEvent{
-		Source:     "argocd",
-		EventType:  "app-sync",
-		Payload:    string(body),
-		Processed:  false,
-		CreatedAt:  time.Now(),
+		Source:    "argocd",
+		EventType: "app-sync",
+		Payload:   string(body),
+		Processed: false,
+		CreatedAt: time.Now(),
 	}
 
 	// Extract info from payload

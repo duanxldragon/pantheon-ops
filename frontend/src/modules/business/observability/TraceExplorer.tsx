@@ -14,7 +14,7 @@ import {
   SearchToolbar,
 } from '../../../components';
 import { getDatasourceList, getTrace, searchTraces, type DatasourceRow, type TempoTraceSummary } from './api';
-import '../../system/components/shared/list-page.css';
+import '../../../assets/list-page.css';
 
 function traceStartTime(value?: string) {
   if (!value) return '-';

@@ -33,6 +33,12 @@ interface GovernanceCleanupBarProps {
   rangeEndLabel?: string;
   rangeRequiredMessage?: string;
   onConfirm: (payload: GovernanceCleanupPayload) => Promise<void> | void;
+  /**
+   * Opened right before the cleanup dialog shows. Pages use it to re-fetch
+   * the retention options so a value just saved in 系统设置/日志治理 appears
+   * in the dialog without a full page reload.
+   */
+  onBeforeOpen?: () => Promise<void> | void;
   hint?: string;
   extraActions?: React.ReactNode;
   trailing?: React.ReactNode;
@@ -56,6 +62,7 @@ const GovernanceCleanupBar: React.FC<GovernanceCleanupBarProps> = ({
   rangeEndLabel,
   rangeRequiredMessage,
   onConfirm,
+  onBeforeOpen,
   hint,
   extraActions,
   trailing,
@@ -73,6 +80,11 @@ const GovernanceCleanupBar: React.FC<GovernanceCleanupBarProps> = ({
     setRangeValue([]);
     setRangeError(false);
     setDialogVisible(true);
+    // Refresh retention options from settings before showing the dialog so a
+    // newly configured value (e.g. 14 天) is selectable without reloading.
+    if (onBeforeOpen) {
+      void Promise.resolve(onBeforeOpen()).catch(() => undefined);
+    }
   };
 
   const closeDialog = () => {

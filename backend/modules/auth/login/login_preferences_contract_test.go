@@ -34,13 +34,13 @@ func setupPreferenceContractRouter(t *testing.T) (*gin.Engine, *gorm.DB) {
 	); err != nil {
 		t.Fatalf("migrate auth preference contract tables: %v", err)
 	}
-	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_role (id BIGINT PRIMARY KEY, role_key VARCHAR(64), status INT)").Error; err != nil {
+	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_role (id BIGINT PRIMARY KEY, role_key VARCHAR(64), status INT, tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0)").Error; err != nil {
 		t.Fatalf("create role table: %v", err)
 	}
-	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_user_role (user_id BIGINT, role_id BIGINT)").Error; err != nil {
+	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_user_role (tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0, user_id BIGINT, role_id BIGINT)").Error; err != nil {
 		t.Fatalf("create user role table: %v", err)
 	}
-	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_role_permission (role_id BIGINT, permission_key VARCHAR(128))").Error; err != nil {
+	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_role_permission (role_id BIGINT, permission_key VARCHAR(128), tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0)").Error; err != nil {
 		t.Fatalf("create role permission table: %v", err)
 	}
 

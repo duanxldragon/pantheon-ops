@@ -15,6 +15,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/org/dept"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/org/post"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"gorm.io/gorm"
@@ -108,7 +109,7 @@ type staticGovernanceLoader struct {
 	tasks []OrgGovernanceTask
 }
 
-func (l staticGovernanceLoader) ListOrgGovernanceTasks() ([]OrgGovernanceTask, error) {
+func (l staticGovernanceLoader) ListOrgGovernanceTasks(_ *tenant.Context) ([]OrgGovernanceTask, error) {
 	return l.tasks, nil
 }
 

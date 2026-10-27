@@ -37,7 +37,7 @@ func (s *UserService) ExportUsers(ctx context.Context, query *UserListQuery, dat
 	if err != nil {
 		return nil, err
 	}
-	deptPathByID, _, err := impexp.BuildDeptPathMaps(s.db)
+	deptPathByID, _, err := impexp.BuildDeptPathMaps(s.scoped(s.db))
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +152,14 @@ func (s *UserService) buildUserImportHeaderIndex(records [][]string, result *imp
 
 // loadUserImportLookups pre-loads the reference data needed to resolve CSV
 // values into database identifiers.
+//
+// Every lookup is tenant-scoped: username, role key, department path and post
+// code are unique per tenant, not globally. An unscoped map does not merely
+// over-match — an import row naming a username that exists in another tenant
+// would update that tenant's user, and a shared role key would resolve to
+// another tenant's role id.
 func (s *UserService) loadUserImportLookups() (*userImportLookups, error) {
-	_, deptPathToID, err := impexp.BuildDeptPathMaps(s.db)
+	_, deptPathToID, err := impexp.BuildDeptPathMaps(s.scoped(s.db))
 	if err != nil {
 		return nil, err
 	}
@@ -369,6 +375,10 @@ func (s *UserService) applyUserImportCreate(tx *gorm.DB, row importRow, result *
 		return err
 	}
 	user := SystemUser{
+		// Tenant write path: ownership comes from the request context, never
+		// from the CSV. Without this the row landed in the platform namespace
+		// and the importing tenant could not see (or log in) the user.
+		TenantID: s.tenantOwnerID(),
 		Username: row.Create.Username,
 		Password: string(passwordHash),
 		Nickname: row.Create.Nickname,
@@ -384,13 +394,18 @@ func (s *UserService) applyUserImportCreate(tx *gorm.DB, row importRow, result *
 	if err := replaceUserRoles(tx, user.ID, normalizeUint64IDs(row.Create.RoleIDs)); err != nil {
 		return err
 	}
+	// Same reason as CreateUser: a user without an active membership passes the
+	// list view and fails the first login with 403 tenant.forbidden.
+	if err := ensureTenantMembership(tx, user.TenantID, user.ID); err != nil {
+		return err
+	}
 	result.Created++
 	return nil
 }
 
 func (s *UserService) listUsersForExport(ctx context.Context, query *UserListQuery, dataScope *common.DataScopeReq) ([]SystemUser, error) {
 	var users []SystemUser
-	db := s.db.WithContext(ctx).Model(&SystemUser{}).Scopes(database.WithDataScope(dataScope))
+	db := s.scoped(s.db.WithContext(ctx).Model(&SystemUser{})).Scopes(database.WithDataScope(dataScope))
 	db = applyUserListFilters(db, query)
 
 	sortColumn, sortDesc := normalizeUserSort(query)

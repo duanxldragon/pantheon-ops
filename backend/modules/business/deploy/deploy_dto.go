@@ -84,21 +84,21 @@ type TemplateQuery struct {
 }
 
 type TemplateStepPayload struct {
-	StepCode       string         `json:"stepCode"`
-	StepName       string         `json:"stepName"`
-	StepType       string         `json:"stepType"`
-	Action         string         `json:"action"`
-	PackageID      uint64         `json:"packageId"`
-	PackageName    string         `json:"packageName"`
-	PackageVersion string         `json:"packageVersion"`
-	TemplateCode   string         `json:"templateCode"`
-	TemplateParams map[string]any `json:"templateParams"`
-	StepConfig              map[string]any `json:"stepConfig"`
-	ContinueOnHostFailure   bool           `json:"continueOnHostFailure"`
-	Dependencies            []string       `json:"dependencies,omitempty"`
-	Condition               map[string]any `json:"condition,omitempty"`
-	FailurePolicy           string         `json:"failurePolicy,omitempty"`
-	Sort                    int            `json:"sort"`
+	StepCode              string         `json:"stepCode"`
+	StepName              string         `json:"stepName"`
+	StepType              string         `json:"stepType"`
+	Action                string         `json:"action"`
+	PackageID             uint64         `json:"packageId"`
+	PackageName           string         `json:"packageName"`
+	PackageVersion        string         `json:"packageVersion"`
+	TemplateCode          string         `json:"templateCode"`
+	TemplateParams        map[string]any `json:"templateParams"`
+	StepConfig            map[string]any `json:"stepConfig"`
+	ContinueOnHostFailure bool           `json:"continueOnHostFailure"`
+	Dependencies          []string       `json:"dependencies,omitempty"`
+	Condition             map[string]any `json:"condition,omitempty"`
+	FailurePolicy         string         `json:"failurePolicy,omitempty"`
+	Sort                  int            `json:"sort"`
 }
 
 type CreateTemplateRequest struct {
@@ -132,25 +132,25 @@ type UpdateTemplateRequest struct {
 }
 
 type TemplateStepResponse struct {
-	ID             uint64         `json:"id"`
-	TemplateID     uint64         `json:"templateId"`
-	StepCode       string         `json:"stepCode"`
-	StepName       string         `json:"stepName"`
-	StepType       string         `json:"stepType"`
-	Action         string         `json:"action"`
-	PackageID      uint64         `json:"packageId"`
-	PackageName    string         `json:"packageName"`
-	PackageVersion string         `json:"packageVersion"`
-	TemplateCode   string         `json:"templateCode"`
-	TemplateParams map[string]any `json:"templateParams"`
-	StepConfig              map[string]any `json:"stepConfig"`
-	ContinueOnHostFailure   bool           `json:"continueOnHostFailure"`
-	Dependencies            []string       `json:"dependencies,omitempty"`
-	Condition               map[string]any `json:"condition,omitempty"`
-	FailurePolicy           string         `json:"failurePolicy,omitempty"`
-	Sort                    int            `json:"sort"`
-	CreatedAt               time.Time      `json:"createdAt"`
-	UpdatedAt               time.Time      `json:"updatedAt"`
+	ID                    uint64         `json:"id"`
+	TemplateID            uint64         `json:"templateId"`
+	StepCode              string         `json:"stepCode"`
+	StepName              string         `json:"stepName"`
+	StepType              string         `json:"stepType"`
+	Action                string         `json:"action"`
+	PackageID             uint64         `json:"packageId"`
+	PackageName           string         `json:"packageName"`
+	PackageVersion        string         `json:"packageVersion"`
+	TemplateCode          string         `json:"templateCode"`
+	TemplateParams        map[string]any `json:"templateParams"`
+	StepConfig            map[string]any `json:"stepConfig"`
+	ContinueOnHostFailure bool           `json:"continueOnHostFailure"`
+	Dependencies          []string       `json:"dependencies,omitempty"`
+	Condition             map[string]any `json:"condition,omitempty"`
+	FailurePolicy         string         `json:"failurePolicy,omitempty"`
+	Sort                  int            `json:"sort"`
+	CreatedAt             time.Time      `json:"createdAt"`
+	UpdatedAt             time.Time      `json:"updatedAt"`
 }
 
 type TemplateResponse struct {

@@ -28,7 +28,7 @@ settings:
     valueType: "string"
     groupKey: "platform"
     module: "platform"
-    isPublic: 0
+    isPublic: 1
     isEncrypted: 0
     remark: "system.setting.remark.platform.tenant_mode"
   - settingKey: "org.enabled"

@@ -20,12 +20,99 @@ const (
 	MembershipRoleMember = "member"
 )
 
+// Provisioned tenant-local role keys (contract §4/§7). They live in the
+// tenant's own role namespace (system_role.tenant_id = <tenant>), so every
+// tenant may own its own copy without colliding with the platform's roles.
+//
+// These are declared here, in the shared tenant package, so the middleware can
+// recognise a tenant administrator without importing the tenant module.
+const (
+	// TenantRoleAdminKey is the tenant's own administrator: the full console,
+	// with every query automatically confined to the tenant by the tenant
+	// scope — not by the row-level data-scope policy, which is what the
+	// platform `admin` key relaxes.
+	TenantRoleAdminKey = "tenant_admin"
+	// TenantRoleMemberKey is a read-only tenant member.
+	TenantRoleMemberKey = "tenant_member"
+)
+
+// TenantScopedRoleKeys is the full set of tenant-local role keys provisioned by
+// ProvisionTenant. Membership in this list is what marks a role as "tenant
+// scoped": its row-level confinement is owned by the tenant scope (applied
+// unconditionally downstream) and its read/write split by Casbin — NOT by the
+// platform's dept-based data-scope policy, which is a global (tenant-agnostic)
+// mechanism (contract §7 keeps the two role namespaces separate).
+//
+// DataScopeMiddleware consults this list to exempt tenant-local roles from the
+// fail-closed policy lookup. Without the exemption a tenant member — which has
+// no system_role_data_scope row — would fall through to custom + empty dept set
+// and every request it makes would be rejected with a 500.
+//
+// A new tenant-local role must be registered here. The tenant module asserts at
+// test time that its provisioning set is a subset of this list, so an omission
+// fails CI instead of silently 500-ing every request from that role.
+var TenantScopedRoleKeys = []string{
+	TenantRoleAdminKey,
+	TenantRoleMemberKey,
+}
+
+// IsTenantScopedRoleKey reports whether roleKey names a tenant-local role.
+func IsTenantScopedRoleKey(roleKey string) bool {
+	trimmed := strings.TrimSpace(roleKey)
+	for _, key := range TenantScopedRoleKeys {
+		if trimmed == key {
+			return true
+		}
+	}
+	return false
+}
+
+// ReadOnlyExportRoute binds a `:export` permission key to the route that
+// implements it. Export endpoints are POST requests while a read-only role's
+// Casbin surface is the GET wildcard, so the key alone would render an export
+// action the middleware refuses (contract §4: the policy, not the key, is the
+// authority). Provisioning and the startup repair grant exactly these routes to
+// a role that holds the matching key; the workbench uses the same table to
+// report a genuine missing policy instead of guessing from the key name.
+type ReadOnlyExportRoute struct {
+	PermissionKey string
+	Path          string
+}
+
+// ReadOnlyExportRoutes is the single binding table for export actions. Add a
+// route here when an export endpoint is introduced, so the workbench, tenant
+// provisioning and the repair stay in sync.
+var ReadOnlyExportRoutes = []ReadOnlyExportRoute{
+	{PermissionKey: "system:user:export", Path: "/api/v1/system/user/export"},
+	{PermissionKey: "system:role:export", Path: "/api/v1/system/role/export"},
+	{PermissionKey: "system:permission:export", Path: "/api/v1/system/permission/export"},
+	{PermissionKey: "system:dept:export", Path: "/api/v1/system/dept/export"},
+	{PermissionKey: "system:dept:export", Path: "/api/v1/system/dept/governance/export"},
+	{PermissionKey: "system:post:export", Path: "/api/v1/system/post/export"},
+	{PermissionKey: "system:dict:export", Path: "/api/v1/system/dict/type/export"},
+	{PermissionKey: "system:dict:export", Path: "/api/v1/system/dict/item/export"},
+	{PermissionKey: "system:setting:export", Path: "/api/v1/system/setting/audit/export"},
+	{PermissionKey: "system:operation-log:export", Path: "/api/v1/system/operation-log/export"},
+	{PermissionKey: "system:login-log:export", Path: "/api/v1/system/login-log/export"},
+	{PermissionKey: "system:session:export", Path: "/api/v1/system/session/export"},
+	{PermissionKey: "system:security-event:export", Path: "/api/v1/system/security-event/export"},
+	{PermissionKey: "system:i18n:export", Path: "/api/v1/system/i18n/export"},
+}
+
 // Tenant master status values (contract §2.1).
 const (
 	TenantStatusActive    = "active"
 	TenantStatusSuspended = "suspended"
 	TenantStatusArchived  = "archived"
 )
+
+// TenantStatusDeleted is the soft-delete marker, not a lifecycle state: it is
+// absent from contract §2.1's active/suspended/archived vocabulary on purpose
+// and only appears through an explicit status filter. It lives here because two
+// modules need the same token for different reasons — the tenant module writes
+// it, and the credential lookup has to treat a row that carries it as no longer
+// able to host a session.
+const TenantStatusDeleted = "deleted"
 
 // RoleDomainPrefix decorates a global role key into the tenant-scoped Casbin
 // subject `role:<key>@tenant:<id>` (contract §4). Global roles never carry a
@@ -259,6 +346,13 @@ func ListActiveMembershipsForUser(db *gorm.DB, userID uint64) ([]LoginTenantCand
 // directly from system_setting (used by callers that have a raw *gorm.DB but
 // no SettingService handle, e.g. the auth runtime). Fail-safe: missing table
 // or row => compat.
+//
+// The flag is platform-scoped (contract §6/§7: one mode per deployment), so
+// the read is pinned to the platform-global row (tenant_id = 0). Reading
+// without that filter is non-deterministic once tenants exist: provisioning
+// copies platform settings into every tenant, so an unfiltered lookup could
+// resolve the flag from an arbitrary tenant's copy and silently degrade the
+// whole deployment to compat.
 func FeatureFlagSettingKeyReader(db *gorm.DB) string {
 	if db == nil {
 		return ModeCompat
@@ -266,12 +360,28 @@ func FeatureFlagSettingKeyReader(db *gorm.DB) string {
 	var raw string
 	if err := db.Table("system_setting").
 		Select("setting_value").
-		Where("setting_key = ?", FeatureFlagSettingKey).
+		Where("setting_key = ? AND tenant_id = ?", FeatureFlagSettingKey, PlatformGlobalTenantID).
 		Limit(1).
 		Pluck("setting_value", &raw).Error; err != nil {
 		return ModeCompat
 	}
-	return raw
+	// Pluck leaves raw empty (and returns no error) when the row is absent.
+	if strings.TrimSpace(raw) == "" {
+		return ModeCompat
+	}
+	return NormalizeFlagValue(raw)
+}
+
+// NormalizeFlagValue trims a stored flag value and strips a single layer of
+// surrounding double quotes. Bootstrap historically persisted the JSON-encoded
+// form (`"compat"`) while the settings API persists the bare form (`compat`),
+// so both spellings must resolve identically.
+func NormalizeFlagValue(raw string) string {
+	value := strings.TrimSpace(raw)
+	if len(value) >= 2 && value[0] == '"' && value[len(value)-1] == '"' {
+		value = strings.TrimSpace(value[1 : len(value)-1])
+	}
+	return value
 }
 
 // SessionTenantClaim normalizes a session row's tenant claim for re-stamping

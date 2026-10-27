@@ -38,8 +38,8 @@ type DictService struct {
 	// are namespaced per tenant (dictOptionCacheKey) so tenants never collide.
 	optionCache *dictOptionCache
 	// tenantCtx is the per-request tenant context (canary slice). Set from the
-	// Gin context by the handler layer via WithTenantContext; nil/compat =>
-	// legacy global behavior (flag-off regression baseline).
+	// Gin context by the handler layer via WithTenantContext; nil stays
+	// unfiltered for platform-internal paths, compat binds tenant_id=0.
 	tenantCtx *tenant.Context
 }
 
@@ -56,7 +56,7 @@ func newDictOptionCache() *dictOptionCache {
 // tenant context. The receiver shares the cache (per-tenant namespacing keeps
 // entries isolated; see dictOptionCacheKey).
 func (s *DictService) WithTenantContext(ctx *tenant.Context) *DictService {
-	if ctx == nil || !ctx.IsMulti() {
+	if ctx == nil {
 		return s
 	}
 	bound := *s
@@ -65,7 +65,9 @@ func (s *DictService) WithTenantContext(ctx *tenant.Context) *DictService {
 }
 
 // tenantScope applies the tenant read filter (contract §3.3): multi mode
-// restricts to the request tenant; compat/global behavior is unchanged.
+// restricts to the request tenant; compat restricts to the global tenant_id=0
+// population (pinning, not unfiltering, keeps multi-era rows invisible after
+// a downgrade).
 func (s *DictService) tenantScope() func(db *gorm.DB) *gorm.DB {
 	return tenant.WithTenantScope(s.tenantCtx)
 }
@@ -977,7 +979,7 @@ func (s *DictService) ReorderDictItem(itemID uint64, direction string) (*DictIte
 	}
 
 	var current SystemDictItem
-	if err := s.db.First(&current, itemID).Error; err != nil {
+	if err := s.db.Scopes(s.tenantScope()).First(&current, itemID).Error; err != nil {
 		return nil, err
 	}
 
@@ -994,7 +996,7 @@ func (s *DictService) ReorderDictItem(itemID uint64, direction string) (*DictIte
 		return nil, err
 	}
 
-	if err := s.db.First(&current, current.ID).Error; err != nil {
+	if err := s.db.Scopes(s.tenantScope()).First(&current, current.ID).Error; err != nil {
 		return nil, err
 	}
 	s.invalidateDictOptionCache(current.DictCode)
@@ -1004,7 +1006,7 @@ func (s *DictService) ReorderDictItem(itemID uint64, direction string) (*DictIte
 
 func (s *DictService) findReorderNeighbor(current SystemDictItem, direction string) (SystemDictItem, error) {
 	var neighbor SystemDictItem
-	query := s.db.Model(&SystemDictItem{}).Where("dict_code = ? AND id <> ?", current.DictCode, current.ID)
+	query := s.db.Model(&SystemDictItem{}).Scopes(s.tenantScope()).Where("dict_code = ? AND id <> ?", current.DictCode, current.ID)
 	if direction == "up" {
 		query = query.Where("(sort < ? OR (sort = ? AND id < ?))", current.Sort, current.Sort, current.ID).
 			Order("sort desc, id desc")
@@ -1023,11 +1025,11 @@ func (s *DictService) swapDictItemSort(current, neighbor SystemDictItem) error {
 		currentSort := current.Sort
 		current.Sort = neighbor.Sort
 		neighbor.Sort = currentSort
-		if err := tx.Model(&SystemDictItem{}).Where(condIDEquals, current.ID).
+		if err := tx.Model(&SystemDictItem{}).Scopes(s.tenantScope()).Where(condIDEquals, current.ID).
 			Updates(map[string]any{"sort": current.Sort, "updated_at": time.Now()}).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&SystemDictItem{}).Where(condIDEquals, neighbor.ID).
+		if err := tx.Model(&SystemDictItem{}).Scopes(s.tenantScope()).Where(condIDEquals, neighbor.ID).
 			Updates(map[string]any{"sort": neighbor.Sort, "updated_at": time.Now()}).Error; err != nil {
 			return err
 		}

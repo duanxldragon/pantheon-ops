@@ -33,7 +33,7 @@ import {
   type ArgoCDApplicationRow,
   type ArgoCDRepositoryRow,
 } from './api';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 
 type ArgoCDTab = 'servers' | 'repositories' | 'applications';
 

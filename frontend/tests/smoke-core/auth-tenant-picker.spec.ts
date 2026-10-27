@@ -153,8 +153,33 @@ test.describe('Tenant login picker @priority:critical @smoke:core', () => {
     await page.getByPlaceholder(/请输入密码|password/i).fill('correct-password');
     await page.locator('input[type="password"]').press('Enter');
     await expect(page.locator('.auth-login-tenant-picker')).toBeVisible();
-    await page.locator('.auth-login-tenant-picker .arco-select').click();
+    const tenantSelect = page.locator('.auth-login-tenant-picker .arco-select');
+    await tenantSelect.click();
     await expect(page.getByText('Acme North (acme)')).toBeVisible();
+
+    // Arco mounts the select popup at the trigger's center for one frame and
+    // repositions it to the trigger's left edge on the next. On a 390px
+    // viewport the 282px popup transiently reaches 477px, so measuring while
+    // the appear animation is still running races that reposition and saw 87px
+    // in CI. Wait until the popup is actually aligned with its trigger, then
+    // assert the settled layout; a popup that stays outside the viewport still
+    // fails the overflow check below.
+    await expect
+      .poll(
+        async () => {
+          const popup = page.locator('.arco-trigger').filter({ hasText: 'Acme North (acme)' }).first();
+          const [popupBox, triggerBox] = await Promise.all([
+            popup.boundingBox(),
+            tenantSelect.boundingBox(),
+          ]);
+          if (!popupBox || !triggerBox) {
+            return Number.POSITIVE_INFINITY;
+          }
+          return Math.abs(popupBox.x - triggerBox.x);
+        },
+        { message: 'the tenant picker popup never aligned with its trigger' },
+      )
+      .toBeLessThanOrEqual(1);
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);

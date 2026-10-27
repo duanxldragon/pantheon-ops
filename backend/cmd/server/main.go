@@ -122,6 +122,14 @@ func runDatabaseMigrations(dsn string) {
 }
 
 func buildRouter(env string) *gin.Engine {
+	// FIX-6: gin defaults to debug mode unless GIN_MODE is set; a production
+	// deployment that forgets the env var would otherwise log every request
+	// verbosely (and print debug startup output). PANTHEON_ENV is the single
+	// source of truth here, so pin release mode to the same check the metrics
+	// gate uses.
+	if isProductionEnv(env) {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 	r.Use(middleware.SecurityHeadersMiddleware())
 	r.Use(middleware.CSPNonceMiddleware()) // Generate nonce before CSP
@@ -232,13 +240,18 @@ func shouldExposeMetrics(env string) bool {
 	if envFlag("PANTHEON_METRICS_ENABLED") == envFlagFalse {
 		return false
 	}
-	if !strings.EqualFold(strings.TrimSpace(env), "production") {
+	if !isProductionEnv(env) {
 		return true
 	}
 	if strings.TrimSpace(os.Getenv("PANTHEON_METRICS_BEARER_TOKEN")) != "" {
 		return true
 	}
 	return envFlag("PANTHEON_METRICS_PUBLIC") == envFlagTrue
+}
+
+// isProductionEnv mirrors the existing PANTHEON_ENV production check.
+func isProductionEnv(env string) bool {
+	return strings.EqualFold(strings.TrimSpace(env), "production")
 }
 
 func metricsAccessMiddleware() gin.HandlerFunc {

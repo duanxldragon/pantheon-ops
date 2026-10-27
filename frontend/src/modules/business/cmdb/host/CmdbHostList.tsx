@@ -59,7 +59,7 @@ import { showImportResult } from '../../../../api/importExport';
 import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
 import CmdbHostForm from './CmdbHostForm';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 import '../cmdb.css';
 
 const statusColorMap: Record<string, string> = {

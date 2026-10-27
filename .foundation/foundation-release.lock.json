@@ -1,41 +1,59 @@
 {
   "schemaVersion": 1,
   "consumer": "pantheon-ops",
-  "lockedRelease": "pantheon-base-v0.16.1",
-  "releaseLine": "release/0.16",
-  "baseCommit": "c83f8e4c865b19ecd5351ecefac4106ec416e0bc",
-  "supersedes": "pantheon-base-v0.13.0",
-  "lockedAt": "2026-10-21T00:00:00Z",
-  "source": "https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.16.1",
+  "lockedRelease": "pantheon-base-v0.17.6",
+  "releaseLine": "release/0.17",
+  "baseCommit": "c9bc6c0f5d351016afb4fffdedf12e72cc73e61d",
+  "supersedes": "pantheon-base-v0.16.1",
+  "lockedAt": "2026-10-27T02:05:00Z",
+  "source": "https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.17.6",
   "verification": {
     "tgzChecksumVerified": true,
     "repoTarChecksumVerified": true,
-    "releaseGateSummary": "declared-required-checks",
-    "sonarCloudUnresolvedIssues": null,
-    "materializedLayoutMatchesPriorReleases": true
+    "tgzSha256": "dbf1edd8f4bd082baee817c8e7797d298cf70f20d41b38c60d7bd39a5f362e35",
+    "repoTarSha256": "7a44e9ce0ed642e6d2d1f1508ef488292c46148da4a9e42a3f04ad848fda645d",
+    "tagObject": "2bc799663f83d00959d54c0c300d6393467f0d19",
+    "publishedAt": "2026-10-27T01:39:12Z",
+    "releaseGateSummary": "success",
+    "releaseGateRun": "40431521256",
+    "foundationReleaseVerifyRun": "40433836341",
+    "sonarCloudUnresolvedIssues": 0,
+    "codeQlOpenAlerts": 0,
+    "materializedLayoutMatchesPriorReleases": false
   },
   "materialization": {
-    "releasesDir": ".foundation/releases/pantheon-base-v0.16.1",
-    "bundle": "bundle/",
-    "manifest": "manifest.json",
-    "checksums": [
-      "foundation-release-pantheon-base-v0.16.1.tgz.sha256",
-      "repo.tar.sha256"
-    ]
+    "releasesDir": ".foundation/releases/pantheon-base-v0.17.6",
+    "archive": "foundation-release-pantheon-base-v0.17.6.tgz",
+    "repoArchive": "repo.tar",
+    "extractedRepo": "repo/",
+    "manifest": "manifest.json (inside the tgz; not extracted to the releases dir)",
+    "note": "Unlike the v0.16.1 snapshot this release keeps the bundle inside the tgz, so rebuild-from-base.mjs reads the archive and the extracted repo/ rather than a pre-extracted bundle/ directory."
   },
   "pendingWork": [
     {
       "item": "baseline-swap",
-      "description": "Apply the rebuilt v0.16.1 assembly to the ops source tree",
+      "description": "Apply the rebuilt v0.17.6 assembly to the ops source tree",
       "blockedBy": "none",
-      "status": "done"
+      "status": "done",
+      "completedAt": "2026-10-27",
+      "result": "418 files changed, 32638 insertions(+), 2573 deletions(-) (136 added, 2 deleted, 275 modified, 5 case-only renames). The renames needed the old paths removed from the index and disk first because Windows cannot express a case-only rename by copying."
     },
     {
       "item": "post-swap-verification",
       "description": "Run business-overlay gates, shared-drift hash check, backend build/test and frontend type-check after the baseline swap",
       "blockedBy": "baseline-swap",
-      "status": "done"
+      "status": "done",
+      "completedAt": "2026-10-27",
+      "result": "shared drift 805 identical / 10 allowlisted / 160 skipped on both the staged tree and the worktree; overlay contract 53 declared paths; 13/13 business-overlay tests; backend build, vet, gofmt 0, go test ./... RC 0 (63 ok) and the CI rebuilt-tree form 19 packages ok; frontend tsc -b, vite build, eslint --max-warnings 0 and all 14 prebuild contract checks green; structure 2233 files, encoding 2060 files, frontmatter 404 docs, duplication PASS; evidence, review, task-packet and adoption checks all 0 findings.",
+      "evidence": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/commands.json"
+    },
+    {
+      "item": "runtime-acceptance",
+      "description": "Start the backend against a fresh database and run golang-migrate to 000030, then verify the tenant-operations menu group and its 5 permission codes seed correctly alongside the ops business seeds",
+      "blockedBy": "none",
+      "status": "open",
+      "reason": "Needs a MySQL instance and credentials that are deliberately not part of this ledger; the swap moved the schema baseline, so static gates cannot prove it."
     }
   ],
-  "notes": "v0.14.0, v0.15.0 and v0.16.0 were published without assets, so v0.16.1 is the first consumable release after v0.13.0. Asset digests f22305e1 (bundle) and daf8c890 (repo.tar) were verified against the published .sha256 sidecars and against GitHub's own release digest; repo.tar matches the tag tree byte-for-byte apart from the two gitattributes eol=crlf files. The bundle's verification-summary.json declares the six required checks without per-check results, so no SonarCloud issue count is asserted here. 2026-10-21: baseline swap executed from the unchanged release snapshot and verified by shared-drift hash check (704 shared files identical to the release snapshot, 10 allowlisted overlay hooks), business-overlay contract and 13/13 tests, backend build/vet/test, frontend type-check. Base main is 13 commits ahead of the release tag, so the against-main drift gate stays red until the next base release."
+  "notes": "v0.17.6 is the first base release with published assets since v0.16.1. The tag object 2bc79966 points at c9bc6c0f, the squash merge of the v0.17.6 release-material PR #428; the four release assets were verified against their own .sha256 sidecars and re-hashed locally after materialization. Release Gate run 40431521256 and Foundation Release Verify run 40433836341 are both success on the tagged commit, and the bundle's verification-summary.json still only declares the six required checks without per-check results, so those results were read back from the GitHub API instead of asserted from the bundle. The release is not schema-neutral: base migrations now run to 000030 (tenant_plans) and the menu seed moves 租户管理 under a new 租户运营 group with five new permission codes, so the ops swap must re-verify the schema guard, the menu/permission contract checks and the business smoke expectations."
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/duanxldragon/pantheon-base/backend/modules/platform"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/org/dept"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"gorm.io/gorm"
 )
 
@@ -21,8 +22,10 @@ type platformDeptGovernanceTaskLoader struct {
 
 var _ platform.OrgGovernanceTaskLoader = platformDeptGovernanceTaskLoader{}
 
-func (l platformDeptGovernanceTaskLoader) ListOrgGovernanceTasks() ([]platform.OrgGovernanceTask, error) {
-	orgSvc := dept.NewDeptService(l.db)
+func (l platformDeptGovernanceTaskLoader) ListOrgGovernanceTasks(ctx *tenant.Context) ([]platform.OrgGovernanceTask, error) {
+	// The dashboard passes its resolved tenant context through, so a tenant
+	// administrator sees only its own tenant's governance tasks.
+	orgSvc := dept.NewDeptService(l.db).WithTenantContext(ctx)
 	tasks, err := orgSvc.ListGovernanceTasks(&dept.DeptGovernanceTaskQuery{})
 	if err != nil {
 		return nil, err

@@ -123,6 +123,38 @@ async function createRole(page: Page, accessToken: string, roleKey: string, role
   expect(payload.code).toBe(200);
 }
 
+// Saving a role already grants the API routes its permission keys declare, so
+// the generate route is in place before this spec looks for a gap. The
+// remediation case needs a real gap, so revoke the synced policy first.
+async function dropPolicy(
+  page: Page,
+  accessToken: string,
+  roleKey: string,
+  path: string,
+  method: string,
+) {
+  const list = await page.request.get(`${apiBaseUrl}/system/permission/list`, {
+    headers: authHeaders(accessToken),
+    params: { roleKey, page: 1, pageSize: 100 },
+    timeout: 10000,
+  });
+  expect(list.ok()).toBeTruthy();
+  const items = ((await list.json()).data?.items ?? []) as Array<{
+    id: number;
+    roleKey: string;
+    path: string;
+    method: string;
+  }>;
+  const row = items.find((item) => item.roleKey === roleKey && item.path === path && item.method === method);
+  expect(row).toBeTruthy();
+  const response = await page.request.delete(`${apiBaseUrl}/system/permission/${row!.id}`, {
+    headers: await verifiedHeaders(page, accessToken),
+    timeout: 10000,
+  });
+  expect(response.ok()).toBeTruthy();
+  expect((await response.json()).code).toBe(200);
+}
+
 async function fetchWorkbenchRole(page: Page, accessToken: string, roleKey: string): Promise<WorkbenchRole> {
   const response = await page.request.get(`${apiBaseUrl}/system/permission/workbench`, {
     headers: authHeaders(accessToken),
@@ -149,6 +181,7 @@ test('permission workbench can remediate recommended generator policy against re
   try {
     createdMenuId = await ensureGeneratePermissionMenu(page, accessToken);
     await createRole(page, accessToken, roleKey, roleName);
+    await dropPolicy(page, accessToken, roleKey, '/api/v1/lowcode/dynamic-modules/generate', 'POST');
 
     const before = await fetchWorkbenchRole(page, accessToken, roleKey);
     expect(before.governanceStatus).toBe('pending');

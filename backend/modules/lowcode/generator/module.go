@@ -34,7 +34,7 @@ func InitGeneratorModule(r *gin.RouterGroup, db *gorm.DB) {
 			tokenMiddleware := middleware.TokenAuthMiddleware(database.RDB)
 			readAPI := r.Group("/lowcode/generator").
 				Use(tokenMiddleware).
-				Use(middleware.TenantContextMiddleware(tenantModeLoader, db)).
+				Use(middleware.PlatformScopeTenantContextMiddleware(tenantModeLoader, db)).
 				Use(middleware.CasbinMiddleware())
 			{
 				readAPI.GET("/datasources", handler.ListDatasources)
@@ -46,7 +46,7 @@ func InitGeneratorModule(r *gin.RouterGroup, db *gorm.DB) {
 
 			writeAPI := r.Group("/lowcode/generator").
 				Use(tokenMiddleware).
-				Use(middleware.TenantContextMiddleware(tenantModeLoader, db)).
+				Use(middleware.PlatformScopeTenantContextMiddleware(tenantModeLoader, db)).
 				Use(middleware.CasbinMiddleware()).
 				Use(middleware.SecureActionMiddleware())
 			{

@@ -192,6 +192,17 @@
   grid-template-columns: repeat(5, minmax(88px, 1fr));
 }
 
+/* 设置页有 4 个指标，默认 minmax(120px) 在指标列里只能排 2 列、折成 2×2，
+   与其他系统页的单行节奏不一致。这里给指标列更多宽度，并把下限降到 96px，
+   放得下就排一行，放不下（窄屏）才折行。 */
+.setting-page__governance-bar {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.45fr) auto;
+}
+
+.setting-page__governance-bar .governance-summary-bar__metrics {
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+}
+
 .permission-page__governance-bar {
   grid-template-columns: minmax(0, 1.15fr) minmax(420px, 1.1fr) auto;
 }
@@ -1202,6 +1213,7 @@ body
   }
 
   .module-manager-page__governance-bar .governance-summary-bar__metrics,
+  .setting-page__governance-bar .governance-summary-bar__metrics,
   .governance-summary-bar__metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1526,10 +1538,15 @@ body
   border-radius: var(--radius-md);
   background: var(--panel-bg-solid);
   padding: var(--space-md-plus);
-  transition:
-    border-color 0.18s ease,
-    box-shadow 0.18s ease,
-    transform 0.18s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .org-chart__dept-card {
+    transition:
+      border-color 0.18s ease,
+      box-shadow 0.18s ease,
+      transform 0.18s ease;
+  }
 }
 
 .org-chart__dept-card:hover,

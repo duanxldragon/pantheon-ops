@@ -1,7 +1,7 @@
 .auth-login-page {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(360px, 44%) minmax(420px, 56%);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   min-height: 100dvh;
   overflow: hidden;
   background: var(--app-bg);
@@ -9,11 +9,11 @@
 
 .auth-login-page__brand-pane,
 .auth-login-page__form-pane {
-  position: relative;
   z-index: 1;
 }
 
 .auth-login-page__brand-pane {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -115,31 +115,55 @@
   font-size: 12px;
 }
 
+/* Deliberately static: the absolutely placed tool row then resolves against the
+   page (its true corner) instead of this pane, which is only the right half on
+   wide screens and the bottom band on narrow ones. */
 .auth-login-page__form-pane {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-4xl-plus) var(--space-3xl-alt) var(--space-3xl-plus);
+  gap: var(--space-lg);
+  /* Symmetric vertical padding: an asymmetric inset offsets the card from true
+     centre, which reads as "sitting too high" on tall displays. */
+  padding: var(--space-3xl-plus) var(--space-3xl-alt);
 }
 
 .auth-login-page__tools {
   position: absolute;
-  top: 28px;
-  right: 32px;
+  z-index: 2;
+  top: var(--space-xl-plus);
+  right: var(--space-2xl);
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-wrap: nowrap;
+  align-items: center;
   justify-content: flex-end;
-  max-width: calc(100% - 64px);
+  gap: 10px;
+  max-width: calc(100% - var(--space-2xl) * 2);
 }
 
+/* Ghost treatment: the utility controls must not compete with the card for attention. */
 .auth-login-page__tools .auth-login-page__tool-btn {
-  height: 38px;
-  border: 1px solid var(--panel-border);
+  height: 34px;
+  border: 1px solid transparent;
   border-radius: var(--radius-action);
-  background: var(--panel-bg-solid);
+  background: transparent;
   color: var(--text-secondary);
   box-shadow: none;
+}
+
+.auth-login-page__tools .auth-login-page__tool-btn:hover {
+  border-color: transparent;
+  background: var(--panel-muted);
+  color: var(--text-primary);
+}
+
+.auth-login-page__tools .arco-select.auth-login-page__tool-btn {
+  width: 132px;
+}
+
+.auth-login-page__tools .arco-select.auth-login-page__tool-btn .arco-select-view {
+  background: transparent;
 }
 
 .auth-login-card {
@@ -153,6 +177,12 @@
 
 .auth-login-card__header {
   margin-bottom: var(--space-xl);
+}
+
+/* Arco Typography ships word-break: break-all, which splits latin words mid-syllable on narrow screens. */
+.auth-login-card .arco-typography {
+  word-break: normal;
+  overflow-wrap: break-word;
 }
 
 .auth-login-card__tag {
@@ -323,7 +353,7 @@
   }
 
   .auth-login-page__form-pane {
-    padding: var(--space-4xl) var(--space-xl) var(--space-3xl);
+    padding: var(--space-3xl) var(--space-xl);
   }
 }
 
@@ -344,20 +374,31 @@
   }
 
   .auth-login-page__tools {
+    /* On phones the page scrolls, so the corner placement would pin the controls
+       over the brand block. Keep them in flow above the card instead. */
     position: static;
     max-width: 100%;
-    margin-bottom: var(--space-lg-alt);
-    justify-content: stretch;
+    /* Long localized theme labels (ja-JP/ko-KR) exceed 288px at 320px wide;
+       stacking beats overflowing the row. */
+    flex-wrap: wrap;
   }
 
-  .auth-login-page__tool-btn {
-    flex: 1 1 0;
-    justify-content: center;
+  /* Touch has no hover, so a borderless control reads as static text. Restore the
+     filled chip and a larger tap target below the hover-capable breakpoints. */
+  .auth-login-page__tools .auth-login-page__tool-btn {
+    height: 40px;
+    border-color: var(--panel-border);
+    background: var(--panel-bg-solid);
+  }
+
+  .auth-login-page__tools .arco-select.auth-login-page__tool-btn .arco-select-view {
+    background: var(--panel-bg-solid);
   }
 
   .auth-login-page__form-pane {
     order: 1;
-    display: block;
+    align-items: stretch;
+    justify-content: flex-start;
     padding: var(--space-xl) var(--space-lg) var(--space-lg-alt);
   }
 

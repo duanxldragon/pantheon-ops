@@ -26,6 +26,21 @@ func TestShouldExposeMetricsRequiresExplicitProductionGate(t *testing.T) {
 	}
 }
 
+// FIX-6: the gin release-mode switch must reuse the same PANTHEON_ENV
+// production check as the metrics gate (case/whitespace tolerant).
+func TestIsProductionEnvMatchesExistingEnvCheck(t *testing.T) {
+	for _, env := range []string{"production", "Production", "  production "} {
+		if !isProductionEnv(env) {
+			t.Fatalf("isProductionEnv(%q) = false, want true", env)
+		}
+	}
+	for _, env := range []string{"", "development", "test", "stagIng"} {
+		if isProductionEnv(env) {
+			t.Fatalf("isProductionEnv(%q) = true, want false", env)
+		}
+	}
+}
+
 func TestMetricsAccessMiddlewareRequiresBearerTokenWhenConfigured(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	t.Setenv("PANTHEON_METRICS_BEARER_TOKEN", "secret")

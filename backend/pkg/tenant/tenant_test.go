@@ -60,9 +60,24 @@ func TestResolveForCanary_MultiMode(t *testing.T) {
 		t.Fatalf("expected ErrTenantForbidden for malformed id, got %v", err)
 	}
 
-	// explicit 0 in header: invalid, never widens to global
-	if _, err := ResolveForCanary("multi", "42", "0", true); !errors.Is(err, ErrTenantForbidden) {
-		t.Fatalf("expected ErrTenantForbidden for tenant 0 header, got %v", err)
+	// explicit 0 in header without platform permission: still forbidden, the
+	// override never widens scope on its own.
+	if _, err := ResolveForCanary("multi", "42", "0", false); !errors.Is(err, ErrTenantForbidden) {
+		t.Fatalf("expected ErrTenantForbidden for tenant 0 header without permission, got %v", err)
+	}
+
+	// explicit 0 in header WITH platform permission: pins the platform-global
+	// scope. Contract V1.1 §3.1 item 1 / §3.4: tenant 0 is the reserved
+	// platform/global scope (§2.3/§4), and the header is the only path by which
+	// a subject that holds a membership can reach it. It stays safe because the
+	// header is honoured only for subjects carrying a platform-level grant, so
+	// a tenant user can never widen itself to global.
+	ctx, err = ResolveForCanary("multi", "42", "0", true)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !ctx.IsMulti() || ctx.TenantID != PlatformGlobalTenantID || ctx.ResolvedBy != ResolvedByHeader {
+		t.Fatalf("got %+v", ctx)
 	}
 
 	// no trusted context in multi mode: deny-by-default

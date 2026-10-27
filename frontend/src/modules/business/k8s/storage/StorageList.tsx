@@ -37,7 +37,7 @@ import {
   type K8sPVCRow,
   type K8sStorageClassRow,
 } from '../api';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 
 type StorageTab = 'pv' | 'pvc' | 'storageclass';
 

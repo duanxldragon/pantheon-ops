@@ -17,6 +17,7 @@ import {
   PageRequestError,
 } from '../../components';
 import { renderMenuIcon } from '../../core/menu/icon';
+import { usePlanEntitlements } from '../../core/entitlements/usePlanEntitlements';
 import { resolveRouteWarmData } from '../../core/router/prefetch';
 import { usePermission } from '../../hooks/usePermission';
 import { useMenuStore } from '../../store/useMenuStore';
@@ -205,6 +206,7 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { menuTree } = useMenuStore();
   const { hasPerm, isAdmin } = usePermission();
+  const { hasFeature } = usePlanEntitlements();
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [error, setError] = useState<unknown>(null);
@@ -295,7 +297,14 @@ const DashboardPage: React.FC = () => {
 
   const quickActions = useMemo(() => {
     return dashboardQuickActionWidgets
-      .filter((widget) => isDashboardWidgetVisible(widget, { menuTree, hasPerm, isAdmin }))
+      .filter((widget) =>
+        isDashboardWidgetVisible(widget, {
+          menuTree,
+          hasPerm,
+          isAdmin,
+          isFeatureEnabled: hasFeature,
+        }),
+      )
       .map((widget) => ({
         key: widget.key,
         path: widget.path,
@@ -305,12 +314,19 @@ const DashboardPage: React.FC = () => {
       }))
       .sort((left, right) => compareByPriority(left.key, right.key, QUICK_ACTION_PRIORITY))
       .slice(0, QUICK_ACTION_LIMIT);
-  }, [hasPerm, isAdmin, menuTree, t]);
+  }, [hasFeature, hasPerm, isAdmin, menuTree, t]);
 
   const domainCards = useMemo(
     () =>
       dashboardDomainOverviewWidgets
-        .filter((widget) => isDashboardWidgetVisible(widget, { menuTree, hasPerm, isAdmin }))
+        .filter((widget) =>
+          isDashboardWidgetVisible(widget, {
+            menuTree,
+            hasPerm,
+            isAdmin,
+            isFeatureEnabled: hasFeature,
+          }),
+        )
         .map((widget) => ({
           key: widget.key,
           title: t(widget.titleKey),
@@ -320,7 +336,7 @@ const DashboardPage: React.FC = () => {
           path: widget.path,
         }))
         .sort((left, right) => compareByPriority(left.key, right.key, DOMAIN_CARD_PRIORITY)),
-    [hasPerm, isAdmin, menuTree, summary, t],
+    [hasFeature, hasPerm, isAdmin, menuTree, summary, t],
   );
 
   const renderActivityTime = (value?: string | null) => {

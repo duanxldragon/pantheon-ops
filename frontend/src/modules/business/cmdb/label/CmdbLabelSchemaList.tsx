@@ -47,7 +47,7 @@ import {
   type LabelSchemaRow,
 } from './api';
 import { labelCategoryOptions, labelPresetOptions } from './catalog';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 import '../cmdb.css';
 
 type LabelFormValues = LabelSchemaPayload & {

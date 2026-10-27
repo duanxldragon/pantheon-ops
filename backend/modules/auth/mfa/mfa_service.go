@@ -160,11 +160,17 @@ func (s *Service) VerifyChallengeWithContext(ctx context.Context, req *MFAVerify
 		return nil, errors.New("auth.mfa.challenge_required")
 	}
 
+	requestedTenantID := req.TenantId
 	now := time.Now()
 	challenge, err := s.loadActiveChallenge(ctx, strings.TrimSpace(req.ChallengeID), now)
 	if err != nil {
 		return nil, err
 	}
+
+	// Pin the request to the challenge's tenant before validating the code so a
+	// failed verification is still audited in the tenant the challenge belongs
+	// to. requestedTenantID keeps the caller's explicit choice for the gate.
+	req.TenantId = challenge.TenantID
 
 	secret, err := s.loadChallengeSecret(ctx, *challenge)
 	if err != nil {
@@ -182,12 +188,10 @@ func (s *Service) VerifyChallengeWithContext(ctx context.Context, req *MFAVerify
 		return nil, errors.New("user.login.error.disabled")
 	}
 
-	if challenge.TenantID != 0 && req.TenantId != 0 && req.TenantId != challenge.TenantID {
+	if challenge.TenantID != 0 && requestedTenantID != 0 && requestedTenantID != challenge.TenantID {
 		return nil, errors.New("tenant.forbidden")
 	}
-	if challenge.TenantID != 0 {
-		req.TenantId = challenge.TenantID
-	} else if req.TenantId != 0 {
+	if challenge.TenantID == 0 && requestedTenantID != 0 {
 		return nil, errors.New("tenant.forbidden")
 	}
 	if err := s.finalizeChallenge(ctx, *challenge, secret, now); err != nil {

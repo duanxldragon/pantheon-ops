@@ -87,8 +87,11 @@ test('governance insight opens as drawer without compressing main pages', async 
     await navigateInShell(page, item.path);
     await expectPageIdentityReady(page, item.title);
     await expect(page.locator('.page-split-layout')).toHaveCount(0);
+    // The page container can still be inside its route-enter transition right
+    // after the identity selectors appear, reporting a zero width. Wait for the
+    // settled layout before pinning the baseline width.
+    await expect.poll(() => measureMainContentWidth(page), { message: item.path }).toBeGreaterThan(700);
     const mainWidthBefore = await measureMainContentWidth(page);
-    expect(mainWidthBefore, item.path).toBeGreaterThan(700);
 
     await page.getByRole('button', { name: item.button }).first().click();
 

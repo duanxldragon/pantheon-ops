@@ -35,6 +35,8 @@ type AuditPage = {
   layer: string;
   /** button label that opens the primary create dialog, if any */
   createButton?: string;
+  /** tab that must be active before the create button exists */
+  tabBeforeCreate?: string;
   /** expected dialog title after clicking createButton */
   dialogTitle?: string;
 };
@@ -76,7 +78,8 @@ const auditPages: AuditPage[] = [
     path: '/system/permission',
     title: '权限管理',
     createButton: '新增',
-    dialogTitle: '新增权限',
+    tabBeforeCreate: '接口策略',
+    dialogTitle: '新增策略',
   },
   { key: 'operation-log', layer: 'system/iam', path: '/system/operation-log', title: '操作日志' },
   {
@@ -151,6 +154,20 @@ function collectRuntimeErrors(page: Page): string[] {
     }
   });
   return errors;
+}
+
+// The shell mounts before the route's data queries resolve, so a screenshot
+// taken right after `domcontentloaded` captures the loading spinner instead of
+// the page. Wait for the shell plus a quiet network window; both are advisory
+// (a slow page must not fail the audit) so timeouts land in `notes`.
+async function waitForPageRender(page: Page, notes: string[]) {
+  await page
+    .locator('.app-shell')
+    .waitFor({ state: 'visible', timeout: 15000 })
+    .catch(() => notes.push('app shell not visible within 15s'));
+  await page
+    .waitForLoadState('networkidle', { timeout: 10000 })
+    .catch(() => notes.push('networkidle timeout'));
 }
 
 async function detectBrokenState(page: Page): Promise<string[]> {
@@ -262,8 +279,7 @@ test.describe('full page audit', () => {
       const errors = collectRuntimeErrors(page);
 
       await page.goto(ap.path, { waitUntil: 'domcontentloaded' });
-      // let async data settle
-      await page.waitForLoadState('domcontentloaded').catch(() => notes.push('domcontentloaded timeout'));
+      await waitForPageRender(page, notes);
 
       const titleVisible = await page
         .getByText(ap.title, { exact: false })
@@ -289,10 +305,17 @@ test.describe('full page audit', () => {
       if (ap.createButton && ap.dialogTitle) {
         dialogOpened = false;
         try {
+          if (ap.tabBeforeCreate) {
+            await page
+              .getByRole('tab', { name: ap.tabBeforeCreate, exact: true })
+              .first()
+              .click({ timeout: 5000 });
+          }
           const btn = page
             .getByRole('button', { name: ap.createButton, exact: true })
             .filter({ visible: true })
             .first();
+          await btn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
           if ((await btn.count()) > 0) {
             await btn.click({ timeout: 5000 });
             const dialog = page
@@ -320,8 +343,11 @@ test.describe('full page audit', () => {
             dialogOverflow = await dialog
               .evaluate((el) => el.scrollWidth > el.clientWidth + 4)
               .catch(() => null);
-            if (box && box.height > 860)
-              notes.push(`dialog taller than viewport (${Math.round(box.height)}px)`);
+            const viewport = page.viewportSize();
+            if (box && viewport && box.height > viewport.height - 40)
+              notes.push(
+                `dialog leaves <40px vertical margin (${Math.round(box.height)}px of ${viewport.height}px)`,
+              );
             // close it (Escape)
             await page.keyboard.press('Escape').catch(() => {});
           } else {

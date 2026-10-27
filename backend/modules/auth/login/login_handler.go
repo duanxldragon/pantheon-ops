@@ -12,6 +12,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	commonhttp "github.com/duanxldragon/pantheon-base/backend/pkg/common/http"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts/authuser"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
@@ -29,6 +30,7 @@ type AuthHandler struct {
 
 const csrfGenerateErrorKey = "csrf.generate.error"
 const msgParamInvalid = "param.invalid"
+const msgTokenInvalid = "token.invalid"
 const headerUserAgent = "User-Agent"
 
 func NewAuthHandler(s *Runtime, invalidators ...func(string)) *AuthHandler {
@@ -100,6 +102,61 @@ func writeRefreshSuccessResponse(c *gin.Context, tokenPair *authtoken.Pair) bool
 	return true
 }
 
+// loginServiceFor pins the login service to the tenant the request named. A
+// request without a tenant keeps the platform service, which is the compat path.
+func (h *AuthHandler) loginServiceFor(req *LoginReq) *Runtime {
+	if req.TenantId == 0 {
+		return h.service
+	}
+	return h.service.WithTenantContext(&tenant.Context{TenantID: req.TenantId, Mode: tenant.ModeMulti, ResolvedBy: "login-choice"})
+}
+
+// failLoginTenantClaim answers a failed tenant-claim resolution. A subject that
+// may log into several tenants gets the picker instead of an error; every other
+// cause is mapped to its i18n key and recorded on the login log.
+func failLoginTenantClaim(
+	c *gin.Context,
+	service *Runtime,
+	user *authuser.User,
+	requestedTenantID uint64,
+	cause error,
+	ip string,
+	clientInfo session.ClientInfoResp,
+) {
+	if requestedTenantID == 0 && errors.Is(cause, tenant.ErrTenantForbidden) {
+		if candidates := service.ListLoginTenantCandidates(c.Request.Context(), user.ID); len(candidates) > 1 {
+			common.Success(c, gin.H{
+				"tenantSelectionRequired": true,
+				"tenantCandidates":        candidates,
+			})
+			return
+		}
+	}
+	messageKey := common.ResolveErrorMessageKey(cause, "auth.login.error")
+	service.RecordLoginLog(common.GetRequestID(c), user.Username, ip, clientInfo.Browser, clientInfo.OS, 0, messageKey)
+	common.Fail(c, common.CodeForbidden, messageKey)
+}
+
+// startMFAChallenge issues the MFA challenge that replaces the session response
+// when the runtime policy requires a second factor.
+func startMFAChallenge(
+	c *gin.Context,
+	service *Runtime,
+	user *authuser.User,
+	tenantID uint64,
+	ip string,
+	clientInfo session.ClientInfoResp,
+) {
+	challenge, err := service.CreateMFAChallengeForTenant(user, tenantID)
+	if err != nil {
+		messageKey := common.ResolveErrorMessageKey(err, "auth.mfa.challenge.error")
+		service.RecordLoginLog(common.GetRequestID(c), user.Username, ip, clientInfo.Browser, clientInfo.OS, 0, messageKey)
+		common.Fail(c, common.CodeError, messageKey)
+		return
+	}
+	common.Success(c, challenge)
+}
+
 func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	common.SetAuditMetadata(c, "auth.login.audit.title", common.BusinessOther)
 
@@ -108,10 +165,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	service := h.service
-	if req.TenantId > 0 {
-		service = h.service.WithTenantContext(&tenant.Context{TenantID: req.TenantId, Mode: tenant.ModeMulti, ResolvedBy: "login-choice"})
-	}
+	service := h.loginServiceFor(&req)
 
 	ip := c.ClientIP()
 	userAgent := c.GetHeader(headerUserAgent)
@@ -120,38 +174,29 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	sourceKey := buildLoginSourceKey(ip)
 	currentUser, err := service.LoginWithSource(&req, sourceKey)
 	if err != nil {
+		// A failed attempt against a known subject is audited in the subject's
+		// tenant even though no claim was issued yet.
+		if tenantID, ok := tenantIDFromError(err); ok {
+			service = service.withLoginAuditTenant(tenantID)
+		}
 		messageKey := common.ResolveErrorMessageKey(err, "auth.login.error")
 		service.RecordLoginLog(common.GetRequestID(c), strings.TrimSpace(req.Username), ip, clientInfo.Browser, clientInfo.OS, 0, messageKey)
 		common.Fail(c, common.CodeUnauthorized, messageKey)
 		return
 	}
 
-	tenantClaim, tenantErr := service.resolveLoginTenantClaim(currentUser.ID, req.TenantId)
+	tenantClaim, tenantErr := service.resolveLoginTenantClaim(currentUser, req.TenantId)
 	if tenantErr != nil {
-		if errors.Is(tenantErr, tenant.ErrTenantForbidden) && req.TenantId == 0 {
-			if candidates := service.ListLoginTenantCandidates(c.Request.Context(), currentUser.ID); len(candidates) > 1 {
-				common.Success(c, gin.H{
-					"tenantSelectionRequired": true,
-					"tenantCandidates":        candidates,
-				})
-				return
-			}
-		}
-		messageKey := common.ResolveErrorMessageKey(tenantErr, "auth.login.error")
-		service.RecordLoginLog(common.GetRequestID(c), currentUser.Username, ip, clientInfo.Browser, clientInfo.OS, 0, messageKey)
-		common.Fail(c, common.CodeForbidden, messageKey)
+		failLoginTenantClaim(c, service.withLoginAuditTenant(service.loginAuditTenantID(currentUser)), currentUser, req.TenantId, tenantErr, ip, clientInfo)
 		return
 	}
 
+	// A successful login is audited in the tenant the session was issued for,
+	// which is the same claim stamped into the session row.
+	auditService := service.withLoginAuditTenant(tenantClaim)
+
 	if service.getAuthRuntimePolicy().MFAEnabled {
-		challenge, err := service.CreateMFAChallengeForTenant(currentUser, tenantClaim)
-		if err != nil {
-			messageKey := common.ResolveErrorMessageKey(err, "auth.mfa.challenge.error")
-			service.RecordLoginLog(common.GetRequestID(c), currentUser.Username, ip, clientInfo.Browser, clientInfo.OS, 0, messageKey)
-			common.Fail(c, common.CodeError, messageKey)
-			return
-		}
-		common.Success(c, challenge)
+		startMFAChallenge(c, auditService, currentUser, tenantClaim, ip, clientInfo)
 		return
 	}
 
@@ -169,7 +214,7 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 		if tenant.IsTenantGateError(err) {
 			messageKey = common.ErrMessage(err)
 		}
-		service.RecordLoginLog(common.GetRequestID(c), currentUser.Username, ip, clientInfo.Browser, clientInfo.OS, 0, messageKey)
+		auditService.RecordLoginLog(common.GetRequestID(c), currentUser.Username, ip, clientInfo.Browser, clientInfo.OS, 0, messageKey)
 		common.Fail(c, common.CodeForbidden, messageKey)
 		return
 	}
@@ -177,12 +222,12 @@ func (h *AuthHandler) LoginHandler(c *gin.Context) {
 	userInfo, err := service.GetCurrentUserInfo(currentUser.ID)
 	if err != nil {
 		messageKey := common.ResolveErrorMessageKey(err, "auth.current_user.error")
-		service.RecordLoginLog(common.GetRequestID(c), currentUser.Username, ip, clientInfo.Browser, clientInfo.OS, 0, messageKey)
+		auditService.RecordLoginLog(common.GetRequestID(c), currentUser.Username, ip, clientInfo.Browser, clientInfo.OS, 0, messageKey)
 		common.Fail(c, common.CodeError, messageKey)
 		return
 	}
 
-	service.RecordLoginLog(common.GetRequestID(c), currentUser.Username, ip, clientInfo.Browser, clientInfo.OS, 1, "auth.loginSuccess")
+	auditService.RecordLoginLog(common.GetRequestID(c), currentUser.Username, ip, clientInfo.Browser, clientInfo.OS, 1, "auth.loginSuccess")
 	if !writeLoginSuccessResponse(c, tokenPair, userInfo) {
 		return
 	}
@@ -205,6 +250,10 @@ func (h *AuthHandler) VerifyMFAHandler(c *gin.Context) {
 	userAgent := c.GetHeader(headerUserAgent)
 	clientInfo := session.ParseClientInfo(userAgent)
 	resp, err := service.VerifyMFAChallengeWithContext(c.Request.Context(), &req, ip, userAgent)
+	// Verification pins req.TenantId to the challenge's tenant once the
+	// challenge is loaded, so failures before a session exists are still
+	// audited in the tenant the challenge belongs to.
+	auditService := service.withLoginAuditTenant(req.TenantId)
 	if err != nil {
 		// Tenant gates (explicit choice rejected at MFA-final session issuance)
 		// surface their contract §5 keys; everything else keeps MFA messages.
@@ -212,7 +261,7 @@ func (h *AuthHandler) VerifyMFAHandler(c *gin.Context) {
 		if tenant.IsTenantGateError(err) {
 			messageKey = common.ErrMessage(err)
 		}
-		service.RecordLoginLog(common.GetRequestID(c), "", ip, clientInfo.Browser, clientInfo.OS, 0, messageKey)
+		auditService.RecordLoginLog(common.GetRequestID(c), "", ip, clientInfo.Browser, clientInfo.OS, 0, messageKey)
 		common.Fail(c, common.CodeForbidden, messageKey)
 		return
 	}
@@ -221,7 +270,7 @@ func (h *AuthHandler) VerifyMFAHandler(c *gin.Context) {
 	if resp.User != nil {
 		username = resp.User.Username
 	}
-	service.RecordLoginLog(common.GetRequestID(c), username, ip, clientInfo.Browser, clientInfo.OS, 1, "auth.loginSuccess")
+	auditService.RecordLoginLog(common.GetRequestID(c), username, ip, clientInfo.Browser, clientInfo.OS, 1, "auth.loginSuccess")
 
 	if !writeMFASuccessResponse(c, resp) {
 		return
@@ -252,13 +301,13 @@ func (h *AuthHandler) RefreshTokenHandler(c *gin.Context) {
 		refreshToken = req.RefreshToken
 	}
 	if refreshToken == "" {
-		common.Fail(c, common.CodeUnauthorized, "token.invalid")
+		common.Fail(c, common.CodeUnauthorized, msgTokenInvalid)
 		return
 	}
 
 	refreshClaims, err := parseRefreshTokenWithContext(c.Request.Context(), refreshToken)
 	if err != nil {
-		common.FailWithError(c, common.CodeUnauthorized, err, "token.invalid")
+		common.FailWithError(c, common.CodeUnauthorized, err, msgTokenInvalid)
 		return
 	}
 
@@ -372,7 +421,7 @@ func (h *AuthHandler) AcknowledgeSecurityEvent(c *gin.Context) {
 		c.GetString("username"),
 		req.AcknowledgementNote,
 	); err != nil {
-		common.FailWithError(c, common.CodeError, err, "auth.security_event.acknowledge.error")
+		common.FailWithError(c, common.CodeForError(err), err, "auth.security_event.acknowledge.error")
 		return
 	}
 	common.Success(c, gin.H{"acknowledged": true})
@@ -394,7 +443,7 @@ func (h *AuthHandler) BatchAcknowledgeSecurityEvents(c *gin.Context) {
 		req.AcknowledgementNote,
 	)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "auth.security_event.acknowledge.error")
+		common.FailWithError(c, common.CodeForError(err), err, "auth.security_event.acknowledge.error")
 		return
 	}
 	common.Success(c, SecurityEventBatchAcknowledgeResp{AcknowledgedCount: acknowledgedCount})
@@ -432,6 +481,42 @@ func (h *AuthHandler) ExportLoginLogs(c *gin.Context) {
 	}
 	if err := impexp.WriteCSV(c, *file); err != nil {
 		common.FailWithError(c, common.CodeError, err, "auth.login_log.export.error")
+	}
+}
+
+func (h *AuthHandler) ExportSecurityEvents(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.security_event.export.title", common.BusinessExport)
+
+	var query SecurityEventQuery
+	if err := c.ShouldBindJSON(&query); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	file, err := h.service.WithTenantContext(tenant.FromGin(c)).ExportSecurityEvents(&query)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "auth.security_event.export.error")
+		return
+	}
+	if err := impexp.WriteCSV(c, *file); err != nil {
+		common.FailWithError(c, common.CodeError, err, "auth.security_event.export.error")
+	}
+}
+
+func (h *AuthHandler) ExportAdminSessions(c *gin.Context) {
+	common.SetAuditMetadata(c, "auth.session.export.title", common.BusinessExport)
+
+	var query AdminSessionQuery
+	if err := c.ShouldBindJSON(&query); err != nil {
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+		return
+	}
+	file, err := h.service.WithTenantContext(tenant.FromGin(c)).ExportAdminSessions(&query)
+	if err != nil {
+		common.FailWithError(c, common.CodeError, err, "auth.session.export.error")
+		return
+	}
+	if err := impexp.WriteCSV(c, *file); err != nil {
+		common.FailWithError(c, common.CodeError, err, "auth.session.export.error")
 	}
 }
 
@@ -668,7 +753,7 @@ func buildLoginSourceKey(ip string) string {
 
 func parseRefreshTokenWithContext(ctx context.Context, refreshToken string) (*TokenRefreshClaims, error) {
 	if refreshToken == "" {
-		return nil, errors.New("token.invalid")
+		return nil, errors.New(msgTokenInvalid)
 	}
 
 	if ctx == nil {

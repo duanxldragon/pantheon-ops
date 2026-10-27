@@ -34,7 +34,7 @@ import {
   type ServiceInstanceRow,
   type ServiceRow,
 } from './api';
-import '../../system/components/shared/list-page.css';
+import '../../../assets/list-page.css';
 
 const { TabPane } = Tabs;
 const FormItem = Form.Item;

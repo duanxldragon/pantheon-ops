@@ -1009,21 +1009,28 @@ const OperationLogList: React.FC = () => {
     return () => globalThis.clearTimeout(timer);
   }, [loadData, query]);
 
+  // Re-fetch retention options from settings on mount AND right before the
+  // cleanup dialog opens, so a value just configured in 系统设置/日志治理
+  // (e.g. 14 天) shows up without a full page reload.
+  const refreshRetentionSetting = useCallback(() => {
+    return getSettingGroup('audit')
+      .then((group: SettingGroup) =>
+        loadRetentionSetting(
+          group,
+          'audit.operation_log_retention_options',
+          setRetentionOptions,
+          setRetentionDays,
+        ),
+      )
+      .catch(() => undefined);
+  }, []);
+
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
-      getSettingGroup('audit')
-        .then((group: SettingGroup) =>
-          loadRetentionSetting(
-            group,
-            'audit.operation_log_retention_options',
-            setRetentionOptions,
-            setRetentionDays,
-          ),
-        )
-        .catch(() => undefined);
+      void refreshRetentionSetting();
     }, 0);
     return () => globalThis.clearTimeout(timer);
-  }, []);
+  }, [refreshRetentionSetting]);
 
   useEffect(() => {
     const detailId = Number(searchParams.get('detailId') || 0);
@@ -1492,6 +1499,7 @@ const OperationLogList: React.FC = () => {
               rangeEndLabel={t('common.cleanupRangeEnd')}
               rangeRequiredMessage={t('common.cleanupRangeRequired')}
               onConfirm={handleCleanup}
+              onBeforeOpen={refreshRetentionSetting}
               hint={t('system.audit.cleanupHint')}
               trailing={
                 <Button

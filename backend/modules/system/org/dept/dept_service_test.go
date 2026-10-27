@@ -19,6 +19,7 @@ func setupDeptTestDB(t *testing.T) *gorm.DB {
 
 type deptFixturePost struct {
 	ID        uint64         `gorm:"primaryKey;autoIncrement"`
+	TenantID  uint64         `gorm:"column:tenant_id;not null;default:0"`
 	DeptID    uint64         `gorm:"column:dept_id"`
 	PostCode  string         `gorm:"column:post_code;size:64"`
 	PostName  string         `gorm:"column:post_name;size:128"`
@@ -33,6 +34,7 @@ func (deptFixturePost) TableName() string {
 
 type deptFixtureUser struct {
 	ID        uint64         `gorm:"primaryKey;autoIncrement"`
+	TenantID  uint64         `gorm:"column:tenant_id;not null;default:0"`
 	Username  string         `gorm:"column:username;size:64"`
 	Password  string         `gorm:"column:password;size:255"`
 	Nickname  string         `gorm:"column:nickname;size:64"`
@@ -773,6 +775,13 @@ func seedDeptOverviewFixture(t *testing.T, db *gorm.DB, root SystemDept) {
 	}
 	if err := db.Exec(`INSERT INTO system_post (dept_id, post_code, post_name, status) VALUES (?, ?, ?, ?)`, rd.ID, "qa", "测试工程师", 2).Error; err != nil {
 		t.Fatalf("seed disabled post: %v", err)
+	}
+	// Soft-deleted posts must not resurface in the overview/governance counts.
+	if err := db.Create(&deptFixturePost{
+		DeptID: rd.ID, PostCode: "legacy", PostName: "已删除岗位", Status: 1,
+		DeletedAt: gorm.DeletedAt{Time: time.Now(), Valid: true},
+	}).Error; err != nil {
+		t.Fatalf("seed soft-deleted post: %v", err)
 	}
 }
 

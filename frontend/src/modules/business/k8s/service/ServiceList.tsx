@@ -35,7 +35,7 @@ import {
   type K8sClusterRow,
   type K8sServiceRow,
 } from '../api';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 
 interface ServiceDraft {
   name: string;

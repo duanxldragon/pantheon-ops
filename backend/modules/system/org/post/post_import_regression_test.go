@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 )
 
 // 以下回归测试用于锁定 ImportPosts 的事务边界、逐行校验、重复处理以及
@@ -167,6 +168,45 @@ func TestPostService_ImportPostsRejectsRootDept(t *testing.T) {
 	}
 	if len(result.Errors) != 1 || result.Errors[0].Field != "deptPath" || result.Errors[0].Message != "post.dept.root_forbidden" {
 		t.Fatalf("expected deptPath post.dept.root_forbidden, got %+v", result.Errors)
+	}
+}
+
+// TestPostService_ImportPostsStampsRequestTenant pins the import path: the dept
+// path map must be resolved inside the request tenant and the created post must
+// carry that tenant. Otherwise a tenant import can attach rows to another
+// tenant's department tree and strand them outside the tenant's own console.
+func TestPostService_ImportPostsStampsRequestTenant(t *testing.T) {
+	db := setupPostTestDB(t)
+	if err := db.Exec("ALTER TABLE system_dept ADD COLUMN tenant_id BIGINT NOT NULL DEFAULT 0").Error; err != nil {
+		t.Fatalf("add tenant_id to dept fixture: %v", err)
+	}
+	// Duplicate the seeded tenant-0 path under tenant 77 so an unscoped path map
+	// would resolve to whichever row the scan visits last.
+	if err := db.Exec("INSERT INTO system_dept (id, parent_id, is_root, dept_name, tenant_id) VALUES (101, 0, 1, 'Pantheon Base', 77), (110, 101, 0, '研发中心', 77)").Error; err != nil {
+		t.Fatalf("seed tenant depts: %v", err)
+	}
+
+	service := NewPostService(db).WithTenantContext(&tenant.Context{
+		TenantID:   77,
+		Mode:       tenant.ModeMulti,
+		ResolvedBy: "subject",
+	})
+	result, err := service.ImportPosts(importRecords([]string{
+		"Pantheon Base/研发中心", testImportPostCode, "研发工程师", "10", "1", "r",
+	}))
+	if err != nil {
+		t.Fatalf("import: %v", err)
+	}
+	if !result.Applied || result.Created != 1 || result.Failed != 0 {
+		t.Fatalf("unexpected import result: %+v", result)
+	}
+
+	var post SystemPost
+	if err := db.Where("post_code = ?", testImportPostCode).First(&post).Error; err != nil {
+		t.Fatalf("load imported post: %v", err)
+	}
+	if post.TenantID != 77 || post.DeptID != 110 {
+		t.Fatalf("imported post must be stamped with tenant 77 and dept 110: %+v", post)
 	}
 }
 

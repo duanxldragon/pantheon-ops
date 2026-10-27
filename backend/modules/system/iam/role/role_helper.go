@@ -10,8 +10,10 @@ import (
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/rbacbind"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const (
@@ -21,7 +23,7 @@ const (
 
 func (s *RoleService) ensureAdminRoleSeed() error {
 	var adminRole SystemRole
-	err := s.db.Where(condRoleKeyEquals, "admin").First(&adminRole).Error
+	err := s.db.Where("tenant_id = ?", tenant.PlatformGlobalTenantID).Where(condRoleKeyEquals, "admin").First(&adminRole).Error
 	switch {
 	case errors.Is(err, gorm.ErrRecordNotFound):
 		adminRole = SystemRole{
@@ -64,7 +66,10 @@ func (s *RoleService) ensureAdminUserBinding() error {
 	}
 
 	var adminRoleID uint64
-	if err := s.db.Table("system_role").Select("id").Where(condRoleKeyEquals, "admin").Limit(1).Pluck("id", &adminRoleID).Error; err != nil {
+	if err := s.db.Table("system_role").Select("id").
+		Where("tenant_id = ?", tenant.PlatformGlobalTenantID).
+		Where(condRoleKeyEquals, "admin").
+		Limit(1).Pluck("id", &adminRoleID).Error; err != nil {
 		return err
 	}
 	if adminRoleID == 0 {
@@ -79,12 +84,17 @@ func (s *RoleService) ensureAdminUserBinding() error {
 		return nil
 	}
 
-	return rbacbind.EnsureUserRole(s.db, 1, adminRoleID)
+	// The platform bootstrap binds the built-in admin (user 1) to the platform
+	// `admin` role, so the binding lives in the platform-global namespace.
+	return rbacbind.EnsureUserRole(s.db, tenant.PlatformGlobalTenantID, 1, adminRoleID)
 }
 
 func (s *RoleService) validateRoleCreate(req *RoleCreateReq) error {
 	if strings.TrimSpace(req.RoleName) == "" || strings.TrimSpace(req.RoleKey) == "" {
 		return common.NewBadRequest(errParamInvalid)
+	}
+	if err := s.ensureRoleKeyAllowed(req.RoleKey, 0); err != nil {
+		return err
 	}
 	if err := s.ensureRoleKeyUnique(0, req.RoleKey); err != nil {
 		return err
@@ -92,15 +102,25 @@ func (s *RoleService) validateRoleCreate(req *RoleCreateReq) error {
 	if err := s.ensureMenuIDsExist(req.MenuIDs); err != nil {
 		return err
 	}
-	return s.ensurePermissionKeysExist(req.PermissionKeys)
+	if err := s.ensureMenuIDsAssignable(s.tenantOwnerID(), req.MenuIDs); err != nil {
+		return err
+	}
+	if err := s.ensurePermissionKeysExist(req.PermissionKeys); err != nil {
+		return err
+	}
+	return ensurePermissionKeysAssignable(s.tenantOwnerID(), req.PermissionKeys)
 }
 
 func (s *RoleService) validateRoleUpdate(role *SystemRole, req *RoleUpdateReq) error {
 	if strings.TrimSpace(req.RoleName) == "" || strings.TrimSpace(req.RoleKey) == "" {
 		return common.NewBadRequest(errParamInvalid)
 	}
-	if role.RoleKey == "admin" && (strings.TrimSpace(req.RoleKey) != "admin" || req.Status == common.StatusDisabled) {
+	if role.RoleKey == "admin" && role.TenantID == tenant.PlatformGlobalTenantID &&
+		(strings.TrimSpace(req.RoleKey) != "admin" || req.Status == common.StatusDisabled) {
 		return common.NewConflict("role.update.error.protected")
+	}
+	if err := s.ensureRoleKeyAllowed(req.RoleKey, role.ID); err != nil {
+		return err
 	}
 	if err := s.ensureRoleKeyUnique(role.ID, req.RoleKey); err != nil {
 		return err
@@ -108,12 +128,83 @@ func (s *RoleService) validateRoleUpdate(role *SystemRole, req *RoleUpdateReq) e
 	if err := s.ensureMenuIDsExist(req.MenuIDs); err != nil {
 		return err
 	}
-	return s.ensurePermissionKeysExist(req.PermissionKeys)
+	if err := s.ensureMenuIDsAssignable(role.TenantID, req.MenuIDs); err != nil {
+		return err
+	}
+	if err := s.ensurePermissionKeysExist(req.PermissionKeys); err != nil {
+		return err
+	}
+	return ensurePermissionKeysAssignable(role.TenantID, req.PermissionKeys)
+}
+
+// ensureRoleKeyAllowed enforces the bidirectional role-key namespace mutex
+// (contract §7: "两个命名空间互斥").
+//
+// Forward direction — tenant callers must not take a platform key: role keys
+// are unique per tenant, so a tenant could otherwise create a role keyed
+// `admin` (or any other platform role key) and hand it to a user. Login then
+// puts that bare key into the session, and Casbin consults the GLOBAL subject
+// of the same name (contract §4: global first, then domain), so the tenant
+// role inherits the platform `admin` policies — a full tenant→platform
+// escape. `platform_ops` is reserved even without a role row because the
+// platform-capability middleware admits it by name.
+//
+// Reverse direction — platform callers must not take a key a live tenant
+// already owns: the same global-first lookup works the other way, so a new
+// platform role keyed like a tenant role would hand that tenant's users the
+// platform policies the moment they log in. Soft-deleted roles are excluded
+// via the model scope; released keys are already archived under
+// deletedRoleKeyPrefix, so legitimate re-use is unaffected.
+// reverse mutex must not fire on the role being renamed itself: a platform
+// edit of a tenant role that keeps the key would otherwise collide with the
+// live tenant row it is updating (excludeRoleID).
+func (s *RoleService) ensureRoleKeyAllowed(roleKey string, excludeRoleID uint64) error {
+	key := strings.TrimSpace(roleKey)
+	if key == "" {
+		return nil
+	}
+	ownerID := s.tenantOwnerID()
+	if ownerID != tenant.PlatformGlobalTenantID && key == "platform_ops" {
+		return common.NewConflict("role.key.reserved")
+	}
+
+	column, value := roleKeyBlockingNamespace(ownerID)
+	var count int64
+	// Model-based count: gorm pins the statement to system_role and appends
+	// `deleted_at IS NULL`, so only live roles in the opposite namespace block.
+	q := s.db.Model(&SystemRole{}).
+		Where(condRoleKeyEquals, key).
+		Where("tenant_id "+column+" ?", value)
+	if excludeRoleID > 0 {
+		q = q.Where("id <> ?", excludeRoleID)
+	}
+	if err := q.Count(&count).Error; err != nil {
+		return err
+	}
+	if count > 0 {
+		return common.NewConflict("role.key.reserved")
+	}
+	return nil
+}
+
+// roleKeyBlockingNamespace is the pure half of the mutex: which side of the
+// namespace pair an operator of the given tenant is checked against. A
+// platform operator (tenant 0) is blocked by any tenant-owned role
+// (tenant_id <> 0); a tenant operator is blocked by platform roles
+// (tenant_id = 0).
+func roleKeyBlockingNamespace(ownerID uint64) (operator string, value uint64) {
+	if ownerID == tenant.PlatformGlobalTenantID {
+		return "<>", tenant.PlatformGlobalTenantID
+	}
+	return "=", tenant.PlatformGlobalTenantID
 }
 
 func (s *RoleService) ensureRoleKeyUnique(roleID uint64, roleKey string) error {
 	var count int64
-	db := s.db.Model(&SystemRole{}).Where(condRoleKeyEquals, strings.TrimSpace(roleKey))
+	// Role keys are unique PER TENANT in multi mode (contract §4): the scope
+	// narrows the lookup to the request tenant, so each tenant can own its own
+	// `tenant_admin` without colliding with the platform's roles.
+	db := s.scoped(s.db.Model(&SystemRole{})).Where(condRoleKeyEquals, strings.TrimSpace(roleKey))
 	if roleID > 0 {
 		db = db.Where("id <> ?", roleID)
 	}
@@ -162,9 +253,54 @@ func (s *RoleService) ensurePermissionKeysExist(permissionKeys []string) error {
 	return nil
 }
 
+// ensureMenuIDsAssignable rejects platform-only pages on a tenant-owned role.
+// The manage-scoped tree already hides them, but the API is the authority: a
+// direct request must not recreate the broken menu entry the tree filter removes.
+func (s *RoleService) ensureMenuIDsAssignable(ownerTenantID uint64, menuIDs []uint64) error {
+	if ownerTenantID == tenant.PlatformGlobalTenantID {
+		return nil
+	}
+	normalized := normalizeUint64IDs(menuIDs)
+	if len(normalized) == 0 {
+		return nil
+	}
+	type menuRow struct {
+		ID     uint64 `gorm:"column:id"`
+		Module string `gorm:"column:module"`
+		Path   string `gorm:"column:path"`
+	}
+	var rows []menuRow
+	if err := s.db.Table("system_menu").
+		Select("id, module, path").
+		Where("id IN ?", normalized).
+		Scan(&rows).Error; err != nil {
+		return err
+	}
+	for _, row := range rows {
+		if tenant.IsPlatformOnlyMenu(row.Module, row.Path) {
+			return common.NewBadRequest("role.menu.invalid")
+		}
+	}
+	return nil
+}
+
+// ensurePermissionKeysAssignable rejects platform-only permission keys on a
+// tenant-owned role, for the same reason as ensureMenuIDsAssignable.
+func ensurePermissionKeysAssignable(ownerTenantID uint64, permissionKeys []string) error {
+	if ownerTenantID == tenant.PlatformGlobalTenantID {
+		return nil
+	}
+	for _, key := range normalizePermissionKeys(permissionKeys) {
+		if tenant.IsPlatformOnlyPermissionKey(key) {
+			return common.NewBadRequest("role.permission.invalid")
+		}
+	}
+	return nil
+}
+
 func (s *RoleService) ensureUsersExist(userIDs []uint64) error {
 	var count int64
-	if err := s.db.Table("system_user").Where("id IN ?", userIDs).Count(&count).Error; err != nil {
+	if err := s.scoped(s.db.Table("system_user")).Where("id IN ?", userIDs).Count(&count).Error; err != nil {
 		return err
 	}
 	if count != int64(len(userIDs)) {
@@ -173,7 +309,49 @@ func (s *RoleService) ensureUsersExist(userIDs []uint64) error {
 	return nil
 }
 
+// roleOwningTenantIDTx resolves the tenant that owns a role row, on an existing
+// transaction/query handle. `system_role_permission` is keyed by
+// (tenant_id, role_id, permission_key), so the grant is stamped from the role
+// itself and can never be written into another tenant's namespace. A missing
+// role resolves to 0 (the pre-tenant behaviour).
+func roleOwningTenantIDTx(tx *gorm.DB, roleID uint64) (uint64, error) {
+	var tenantID uint64
+	if err := tx.Table("system_role").
+		Select("tenant_id").
+		Where(condIDEquals, roleID).
+		Scan(&tenantID).Error; err != nil {
+		return 0, err
+	}
+	return tenantID, nil
+}
+
+// lockRoleOwningTenantIDTx is roleOwningTenantIDTx with a row lock on the role.
+//
+// replaceRolePermissions deletes the role's grants and re-inserts the requested
+// set. Two concurrent replacers that both read "no grants", both delete, and
+// both insert produce either a merged set (the second delete missed the first
+// insert) or a deadlock on the index gap. Holding the role row makes them queue:
+// the loser waits, then replaces the winner's rows, so the surviving set is
+// exactly the last caller's.
+func lockRoleOwningTenantIDTx(tx *gorm.DB, roleID uint64) (uint64, error) {
+	var role struct {
+		TenantID uint64 `gorm:"column:tenant_id"`
+	}
+	if err := tx.Table("system_role").
+		Select("tenant_id").
+		Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where(condIDEquals, roleID).
+		Scan(&role).Error; err != nil {
+		return 0, err
+	}
+	return role.TenantID, nil
+}
+
 func (s *RoleService) replaceRolePermissions(tx *gorm.DB, roleID uint64, permissionKeys []string) error {
+	tenantID, err := lockRoleOwningTenantIDTx(tx, roleID)
+	if err != nil {
+		return err
+	}
 	if err := tx.Exec("DELETE FROM system_role_permission WHERE role_id = ?", roleID).Error; err != nil {
 		return err
 	}
@@ -184,6 +362,7 @@ func (s *RoleService) replaceRolePermissions(tx *gorm.DB, roleID uint64, permiss
 	permissions := make([]SystemRolePermission, 0, len(normalized))
 	for _, permissionKey := range normalized {
 		permissions = append(permissions, SystemRolePermission{
+			TenantID:      tenantID,
 			RoleID:        roleID,
 			PermissionKey: permissionKey,
 		})
@@ -231,16 +410,62 @@ func (s *RoleService) allocateDeletedRoleKey(tx *gorm.DB, roleID uint64) (string
 	return "", common.NewConflict("role.delete.error.archive_key_conflict")
 }
 
+// repairStaleTenantPermissionRows rewrites grants that a pre-fix backfill wrote
+// into the platform namespace (tenant_id = 0) for a tenant-owned role.
+//
+// Those rows are invisible to every tenant-scoped read, so the tenant role
+// silently loses the permission while a stray grant sits under tenant 0. The
+// role may also already own the same key under its real tenant — the unique key
+// (tenant_id, role_id, permission_key) allows both — so the duplicate is
+// deleted first and only the remaining rows are re-stamped. Soft-deleted roles
+// are skipped, matching the seed query: their grants are not in use and
+// rewriting them would resurrect data the operator deleted.
+func (s *RoleService) repairStaleTenantPermissionRows() error {
+	if err := s.db.Exec(`
+		DELETE stale
+		FROM system_role_permission AS stale
+		JOIN system_role AS r
+		  ON r.id = stale.role_id
+		 AND r.deleted_at IS NULL
+		 AND r.tenant_id <> 0
+		JOIN system_role_permission AS owned
+		  ON owned.role_id = stale.role_id
+		 AND owned.permission_key = stale.permission_key
+		 AND owned.tenant_id = r.tenant_id
+		WHERE stale.tenant_id = 0`).Error; err != nil {
+		return fmt.Errorf("repair stale tenant permission rows: delete duplicates: %w", err)
+	}
+	if err := s.db.Exec(`
+		UPDATE system_role_permission AS stale
+		JOIN system_role AS r
+		  ON r.id = stale.role_id
+		 AND r.deleted_at IS NULL
+		 AND r.tenant_id <> 0
+		SET stale.tenant_id = r.tenant_id
+		WHERE stale.tenant_id = 0`).Error; err != nil {
+		return fmt.Errorf("repair stale tenant permission rows: stamp tenant: %w", err)
+	}
+	return nil
+}
+
 func (s *RoleService) backfillRolePermissions() error {
+	// Repair runs before the seed query and before its empty-seed early return:
+	// a database whose stale rows are the only thing to fix must still be fixed.
+	if err := s.repairStaleTenantPermissionRows(); err != nil {
+		return err
+	}
+
 	type rolePermissionSeed struct {
+		TenantID      uint64 `gorm:"column:tenant_id"`
 		RoleID        uint64 `gorm:"column:role_id"`
 		PermissionKey string `gorm:"column:permission_key"`
 	}
 
 	var seeds []rolePermissionSeed
 	if err := s.db.Table("system_role_menu").
-		Select("system_role_menu.role_id AS role_id, COALESCE(NULLIF(system_menu.page_perm, ''), NULLIF(system_menu.perms, '')) AS permission_key").
+		Select("system_role.tenant_id AS tenant_id, system_role_menu.role_id AS role_id, COALESCE(NULLIF(system_menu.page_perm, ''), NULLIF(system_menu.perms, '')) AS permission_key").
 		Joins("JOIN system_menu ON system_menu.id = system_role_menu.menu_id").
+		Joins("JOIN system_role ON system_role.id = system_role_menu.role_id AND system_role.deleted_at IS NULL").
 		Where("(system_menu.page_perm <> '' OR system_menu.perms <> '')").
 		Scan(&seeds).Error; err != nil {
 		return err
@@ -250,21 +475,34 @@ func (s *RoleService) backfillRolePermissions() error {
 		return nil
 	}
 
-	return s.db.Transaction(func(tx *gorm.DB) error {
-		for _, seed := range seeds {
-			if strings.TrimSpace(seed.PermissionKey) == "" {
-				continue
-			}
-			if err := tx.Where("role_id = ? AND permission_key = ?", seed.RoleID, seed.PermissionKey).
-				FirstOrCreate(&SystemRolePermission{
-					RoleID:        seed.RoleID,
-					PermissionKey: strings.TrimSpace(seed.PermissionKey),
-				}).Error; err != nil {
-				return err
-			}
+	// Several menus can expose the same permission key, so one role can produce
+	// the same natural key more than once. The unique index would absorb the
+	// duplicates, but deduplicating keeps the batch honest on its own.
+	seen := make(map[SystemRolePermission]struct{}, len(seeds))
+	permissions := make([]SystemRolePermission, 0, len(seeds))
+	for _, seed := range seeds {
+		permissionKey := strings.TrimSpace(seed.PermissionKey)
+		if permissionKey == "" {
+			continue
 		}
+		grant := SystemRolePermission{
+			TenantID:      seed.TenantID,
+			RoleID:        seed.RoleID,
+			PermissionKey: permissionKey,
+		}
+		if _, ok := seen[grant]; ok {
+			continue
+		}
+		seen[grant] = struct{}{}
+		permissions = append(permissions, grant)
+	}
+	if len(permissions) == 0 {
 		return nil
-	})
+	}
+
+	return s.db.Table("system_role_permission").
+		Clauses(clause.OnConflict{DoNothing: true}).
+		CreateInBatches(permissions, 100).Error
 }
 
 func reloadRolePolicies() error {

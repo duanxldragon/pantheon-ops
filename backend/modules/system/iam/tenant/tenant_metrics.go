@@ -103,7 +103,7 @@ func (c *MetricsCollector) CollectMetrics() error {
 		// Quota usage
 		usage, err := c.quotaEnforcer.GetTenantUsage(tenant.ID)
 		if err == nil {
-			quota := GetDefaultQuota(tenant.Plan)
+			quota := c.quotaEnforcer.quotaFor(tenant.Plan)
 
 			// User quota
 			if quota.MaxUsers > 0 {

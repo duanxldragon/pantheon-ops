@@ -327,7 +327,9 @@ cd backend && go test -race -count=1 ./...
 
 # MySQL/Redis backed unit tests (mirrors ci.yml unit-tests services)
 PANTHEON_TEST_DSN='root:<pw>@tcp(127.0.0.1:3306)/pantheon_test?charset=utf8mb4&parseTime=true&loc=Local' \
+PANTHEON_TEST_DSN_REQUIRED=true \
 PANTHEON_TEST_REDIS_ADDR=127.0.0.1:6379 \
+PANTHEON_TEST_REDIS_REQUIRED=true \
 go test -short ./...
 ```
 
@@ -353,7 +355,23 @@ PANTHEON_TEST_REDIS_REQUIRED: "true"
 A resolved address that refuses the connection always fails (never skips), and
 `backend/pkg/testredis/redis_test.go` pins both the accepted variable names and the
 fail/skip decision, so dropping a name or the required-flag check breaks a test.
+
+### MySQL-backed tests
+
+`backend/pkg/testmysql.Open` resolves `PANTHEON_TEST_DSN`, then `PANTHEON_DSN`
+(the runtime variable the server itself reads). When neither resolves it
+**skips** by default. Every job that provisions MySQL sets
+`PANTHEON_TEST_DSN_REQUIRED=true`, which turns the missing-DSN case into a hard
+failure naming both variables:
+
+```yaml
+PANTHEON_TEST_DSN: "..."
+PANTHEON_TEST_DSN_REQUIRED: "true"
 ```
+
+Configured-but-broken DSNs (parse errors, refused connections) already fail
+unconditionally. `backend/pkg/testmysql/mysql_test.go` pins the fail/skip
+decision and the `PANTHEON_DSN` fallback.
 
 ## Escalation Matrix
 

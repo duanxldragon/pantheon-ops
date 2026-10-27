@@ -16,18 +16,18 @@ import (
 
 // Resource types understood by the RBAC layer.
 const (
-	ResourceTypeConfigMap  = "configmap"
-	ResourceTypeSecret     = "secret"
-	ResourceTypeService    = "service"
-	ResourceTypeIngress    = "ingress"
-	ResourceTypeStorage    = "storage"
-	ResourceTypeWorkload   = "workload"
-	ResourceTypeNamespace  = "namespace"
-	ResourceTypeHelm       = "helm"
-	ResourceTypeDeployment = "deployment"
-	ResourceTypeDaemonSet  = "daemonset"
+	ResourceTypeConfigMap   = "configmap"
+	ResourceTypeSecret      = "secret"
+	ResourceTypeService     = "service"
+	ResourceTypeIngress     = "ingress"
+	ResourceTypeStorage     = "storage"
+	ResourceTypeWorkload    = "workload"
+	ResourceTypeNamespace   = "namespace"
+	ResourceTypeHelm        = "helm"
+	ResourceTypeDeployment  = "deployment"
+	ResourceTypeDaemonSet   = "daemonset"
 	ResourceTypeStatefulSet = "statefulset"
-	ResourceTypePod        = "pod"
+	ResourceTypePod         = "pod"
 )
 
 // Actions recognised by the RBAC layer.

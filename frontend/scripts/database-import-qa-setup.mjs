@@ -98,53 +98,58 @@ export function readEnvFile(envFilePath) {
 }
 
 export function resolveMysqlConfig(env = process.env, options = {}) {
-  const localEnv = options.localEnv ?? readEnvFile(path.join(options.repoRoot ?? repoRoot, '.env'));
-  const parsedDsn = parseDsn(firstNonEmpty(env.PANTHEON_DSN, localEnv.PANTHEON_DSN));
+  const root = options.repoRoot ?? repoRoot;
+  const localEnv = options.localEnv ?? readEnvFile(path.join(root, '.env'));
+  // `.env.test` carries the isolated test DSN and is not exported by default;
+  // fall back to it so a local smoke run does not require a manual `source`.
+  const testEnv = options.testEnv ?? readEnvFile(path.join(root, '.env.test'));
+  const fileEnv = { ...localEnv, ...testEnv };
+  const parsedDsn = parseDsn(firstNonEmpty(env.PANTHEON_DSN, fileEnv.PANTHEON_DSN));
   const explicitPassword = firstNonEmpty(
     env.PANTHEON_SMOKE_MYSQL_PASSWORD,
     env.MYSQL_ROOT_PASSWORD,
-    localEnv.PANTHEON_SMOKE_MYSQL_PASSWORD,
-    localEnv.MYSQL_ROOT_PASSWORD,
+    fileEnv.PANTHEON_SMOKE_MYSQL_PASSWORD,
+    fileEnv.MYSQL_ROOT_PASSWORD,
     parsedDsn?.password,
   );
   return {
     host: firstNonEmpty(
       env.PANTHEON_SMOKE_MYSQL_HOST,
-      localEnv.PANTHEON_SMOKE_MYSQL_HOST,
+      fileEnv.PANTHEON_SMOKE_MYSQL_HOST,
       parsedDsn?.host,
       '127.0.0.1',
     ),
     port: Number(
       firstNonEmpty(
         env.PANTHEON_SMOKE_MYSQL_PORT,
-        localEnv.PANTHEON_SMOKE_MYSQL_PORT,
+        fileEnv.PANTHEON_SMOKE_MYSQL_PORT,
         parsedDsn?.port ? String(parsedDsn.port) : '',
         '3306',
       ),
     ),
     username: firstNonEmpty(
       env.PANTHEON_SMOKE_MYSQL_USER,
-      localEnv.PANTHEON_SMOKE_MYSQL_USER,
+      fileEnv.PANTHEON_SMOKE_MYSQL_USER,
       parsedDsn?.username,
       'root',
     ),
     password: explicitPassword,
     database: firstNonEmpty(
       env.PANTHEON_SMOKE_MYSQL_DATABASE,
-      localEnv.PANTHEON_SMOKE_MYSQL_DATABASE,
+      fileEnv.PANTHEON_SMOKE_MYSQL_DATABASE,
       parsedDsn?.database,
       'pantheon_base',
     ),
     mysqlBin: firstNonEmpty(
       env.PANTHEON_SMOKE_MYSQL_BIN,
-      localEnv.PANTHEON_SMOKE_MYSQL_BIN,
+      fileEnv.PANTHEON_SMOKE_MYSQL_BIN,
       'mysql',
     ),
     hasExplicitPassword: explicitPassword !== '',
     // Extra probe passwords supplied out-of-band; never hardcode credentials.
     passwordCandidates: firstNonEmpty(
       env.PANTHEON_SMOKE_MYSQL_PASSWORD_CANDIDATES,
-      localEnv.PANTHEON_SMOKE_MYSQL_PASSWORD_CANDIDATES,
+      fileEnv.PANTHEON_SMOKE_MYSQL_PASSWORD_CANDIDATES,
     )
       .split(',')
       .map((candidate) => candidate.trim())

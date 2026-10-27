@@ -39,7 +39,7 @@ var defaultSettingSeeds = []defaultSettingSeed{
 	{SettingKey: "site.name", SettingValue: "Pantheon Base", ValueType: "string", GroupKey: "basic", Module: "system", IsPublic: 1, Remark: "system.setting.remark.site.name"},
 	{SettingKey: "site.logo", SettingValue: "", ValueType: "string", GroupKey: "basic", Module: "system", IsPublic: 1, Remark: "system.setting.remark.site.logo"},
 	{SettingKey: "platform.app_mode", SettingValue: "enterprise", ValueType: "string", GroupKey: "platform", Module: "platform", IsPublic: 1, Remark: "system.setting.remark.platform.app_mode"},
-	{SettingKey: "platform.tenant_mode", SettingValue: "compat", ValueType: "string", GroupKey: "platform", Module: "platform", IsPublic: 0, Remark: "system.setting.remark.platform.tenant_mode"},
+	{SettingKey: "platform.tenant_mode", SettingValue: "compat", ValueType: "string", GroupKey: "platform", Module: "platform", IsPublic: 1, Remark: "system.setting.remark.platform.tenant_mode"},
 	{SettingKey: "org.enabled", SettingValue: "true", ValueType: "boolean", GroupKey: "platform", Module: "system.org", IsPublic: 1, Remark: "system.setting.remark.org.enabled"},
 	{SettingKey: "org.required_for_user", SettingValue: "false", ValueType: "boolean", GroupKey: "platform", Module: "system.org", IsPublic: 1, Remark: "system.setting.remark.org.required_for_user"},
 	{SettingKey: "security.password_min_length", SettingValue: "6", ValueType: "number", GroupKey: "security", Module: "system", IsPublic: 0, Remark: "system.setting.remark.security.password_min_length"},

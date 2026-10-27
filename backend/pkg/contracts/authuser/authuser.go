@@ -33,6 +33,13 @@ type User struct {
 	LoginLockedUntil    *time.Time
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
+	// TenantID is the subject's owning tenant (0 = platform population).
+	//
+	// Login needs it to tell a platform subject apart from a tenant-scoped one.
+	// A tenant-scoped subject that resolves to no tenant claim in multi mode has
+	// no usable session — every tenant-scoped route fails closed on it — so it
+	// must be refused rather than issued a claim-less session.
+	TenantID uint64
 }
 
 // TxFunc runs inside the same database transaction as a Repository write. tx is
@@ -46,6 +53,15 @@ type TxFunc func(tx *gorm.DB) error
 // for a missing user so callers keep working with errors.Is.
 type Repository interface {
 	// FindByUsername loads the credential record for a login subject.
+	//
+	// Because usernames are unique only per tenant (contract §2.2), the same
+	// username can exist in several tenants and the implementation must pick a
+	// deterministic winner: the platform population (TenantID 0) first, then the
+	// lowest id. A subject whose tenant has been soft-deleted is not a login
+	// candidate and must be skipped — it can never host a session (its tenant is
+	// gone, so no claim resolves), and letting it win the tie-break would shadow
+	// a live tenant's same-named user and hand the caller a subject that fails
+	// every subsequent request.
 	FindByUsername(ctx context.Context, username string) (*User, error)
 	// FindByID loads the credential record for an authenticated subject.
 	FindByID(ctx context.Context, userID uint64) (*User, error)
@@ -60,3 +76,29 @@ type Repository interface {
 	// inTx inside the same transaction.
 	RotatePassword(ctx context.Context, userID uint64, newHash string, inTx TxFunc) error
 }
+
+// TenantUserFinder is the optional extension of Repository for tenant-aware
+// credential lookup.
+//
+// Under multi mode a username is unique only WITHIN a tenant (contract §2.2:
+// the unique key is (tenant_id, username)), so a login that names a tenant must
+// resolve the subject inside that tenant — otherwise `admin` in tenant 22 would
+// resolve to the platform `admin` and report a password mismatch. The login
+// service asserts this interface and falls back to the plain global lookup only
+// when no tenant was named (compat mode, or the tenant-selection flow).
+//
+// The name follows the Go convention for a single-method interface (the method
+// noun plus -er). TenantScopedRepository is kept below as a deprecated alias so
+// downstream repositories that already name this contract keep compiling.
+type TenantUserFinder interface {
+	// FindByUsernameInTenant loads the credential record for a login subject
+	// whose username is unique only within tenantID.
+	FindByUsernameInTenant(ctx context.Context, tenantID uint64, username string) (*User, error)
+}
+
+// TenantScopedRepository is the former name of TenantUserFinder.
+//
+// Deprecated: use TenantUserFinder. The alias is an identical type, so
+// satisfying one satisfies the other; it will be removed in the next major
+// release.
+type TenantScopedRepository = TenantUserFinder

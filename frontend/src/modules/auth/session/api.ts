@@ -1,4 +1,5 @@
 import { apiRequest } from '../../../api/request';
+import { downloadFile } from '../../../api/file';
 
 export interface AuthSessionPayload {
   tokenType?: string;
@@ -86,10 +87,16 @@ export function revokeSession(sessionId: string) {
   });
 }
 
+// Every caller treats logout as best effort: AppLayout awaits it through
+// resolveSilently and then tears down local state regardless of the outcome.
+// During a session teardown the CSRF pair is usually already gone, so the
+// backend answers 403 csrf.missing — the interceptor must not surface that as
+// if the user's own action failed.
 export function logout() {
   return apiRequest<{ loggedOut: boolean }>({
     url: '/auth/logout',
     method: 'post',
+    skipErrorMessage: true,
   });
 }
 
@@ -129,5 +136,14 @@ export function batchRevokeAdminSessions(data: SessionBatchRevokePayload) {
     url: '/system/session/batch-revoke',
     method: 'post',
     data,
+  });
+}
+
+export function exportAdminSessions(data?: AdminSessionQuery) {
+  return downloadFile({
+    url: '/system/session/export',
+    method: 'post',
+    data,
+    filename: 'system-session-export.csv',
   });
 }

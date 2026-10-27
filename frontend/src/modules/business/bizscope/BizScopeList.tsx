@@ -46,7 +46,7 @@ import {
   type BizScopeRow,
 } from './api';
 import BizScopeForm from './BizScopeForm';
-import '../../system/components/shared/list-page.css';
+import '../../../assets/list-page.css';
 
 const emptyQuery: BizScopeListQuery = {
   code: '',

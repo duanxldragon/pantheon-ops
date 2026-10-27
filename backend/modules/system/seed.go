@@ -1,9 +1,11 @@
 package system
 
 import (
+	"log/slog"
 	"strings"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/rbacbind"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"gorm.io/gorm"
 )
@@ -13,8 +15,16 @@ const (
 	moduleOrg     = "system.org"
 	moduleConfig  = "system.config"
 	moduleLowcode = "system.lowcode"
+	// moduleTenant gates the tenant console menu; the frontend hides it unless
+	// platform.tenant_mode is multi (mirrors system.org / org.enabled).
+	moduleTenant = "system.tenant"
 
 	menuKeyOperationLog = "operation-log"
+	// The tenant-ops group and its overview page are referenced by several
+	// children below and by the parent-path map, so the key is named once: a
+	// typo in one of them silently orphans the button at the menu root.
+	menuKeyTenantOps      = "tenant-ops"
+	menuKeyTenantOverview = "tenant-overview"
 
 	orderByIDASC   = "id ASC"
 	condPathEquals = "path = ?"
@@ -69,6 +79,10 @@ func seedDictModuleMenus(db *gorm.DB) error {
 
 func seedI18nModuleMenus(db *gorm.DB) error {
 	return ensureMenuSeeds(db, append(baseMenuGroupSeeds(), i18nMenuSeeds()...))
+}
+
+func seedTenantModuleMenus(db *gorm.DB) error {
+	return ensureMenuSeeds(db, append(baseMenuGroupSeeds(), tenantMenuSeeds()...))
 }
 
 func ensureMenuSeeds(db *gorm.DB, seeds []menuSeed) error {
@@ -132,6 +146,16 @@ func baseMenuGroupSeeds() []menuSeed {
 			Module:    moduleIAM,
 			RouteName: "system-access",
 			Sort:      20,
+		},
+		{
+			Key:       menuKeyTenantOps,
+			TitleKey:  "system.menu.tenantOps",
+			Path:      "/system/tenant-ops",
+			Type:      "M",
+			Icon:      "cloud",
+			Module:    moduleTenant,
+			RouteName: "system-tenant-ops",
+			Sort:      25,
 		},
 		{
 			Key:       "org",
@@ -447,6 +471,63 @@ func i18nMenuSeeds() []menuSeed {
 	}
 }
 
+func tenantMenuSeeds() []menuSeed {
+	return []menuSeed{
+		{
+			Key:       menuKeyTenantOverview,
+			ParentKey: menuKeyTenantOps,
+			TitleKey:  "system.menu.tenantOverview",
+			Path:      "/system/tenant-ops/overview",
+			Component: "system/tenant/TenantOverview",
+			PagePerm:  "system:tenant:overview",
+			Perms:     "",
+			Type:      "C",
+			Icon:      "dashboard",
+			RouteName: "system-tenant-overview",
+			Module:    moduleTenant,
+			Sort:      10,
+		},
+		{
+			Key:       "tenant",
+			ParentKey: menuKeyTenantOps,
+			TitleKey:  "system.menu.tenant",
+			Path:      "/system/tenant",
+			Component: "system/tenant/TenantList",
+			PagePerm:  "system:tenant:list",
+			Perms:     "",
+			Type:      "C",
+			Icon:      "storage",
+			RouteName: "system-tenant",
+			Module:    moduleTenant,
+			Sort:      20,
+		},
+		{
+			Key:       "tenant-member",
+			ParentKey: menuKeyTenantOps,
+			TitleKey:  "system.menu.tenantMember",
+			Path:      "/system/tenant-ops/member",
+			Component: "system/tenant/TenantMemberList",
+			PagePerm:  "system:tenant:member-list",
+			Perms:     "",
+			Type:      "C",
+			Icon:      "user-group",
+			RouteName: "system-tenant-member",
+			Module:    moduleTenant,
+			Sort:      30,
+		},
+		{Key: "tenant-create", ParentKey: "tenant", TitleKey: "system.permission.tenant.create", Perms: "system:tenant:create", Type: "F", Sort: 1},
+		{Key: "tenant-update", ParentKey: "tenant", TitleKey: "system.permission.tenant.update", Perms: "system:tenant:update", Type: "F", Sort: 2},
+		{Key: "tenant-delete", ParentKey: "tenant", TitleKey: "system.permission.tenant.delete", Perms: "system:tenant:delete", Type: "F", Sort: 3},
+		{Key: "tenant-member-add", ParentKey: "tenant", TitleKey: "system.permission.tenant.member_add", Perms: "system:tenant:member-add", Type: "F", Sort: 4},
+		{Key: "tenant-member-remove", ParentKey: "tenant", TitleKey: "system.permission.tenant.member_remove", Perms: "system:tenant:member-remove", Type: "F", Sort: 5},
+		// The plan editor lives inside the overview page (a drawer), not as a
+		// fourth menu entry, so its buttons hang off that page.
+		{Key: "tenant-plan-list", ParentKey: menuKeyTenantOverview, TitleKey: "system.permission.tenant.plan_list", Perms: "system:tenant:plan:list", Type: "F", Sort: 6},
+		{Key: "tenant-plan-create", ParentKey: menuKeyTenantOverview, TitleKey: "system.permission.tenant.plan_create", Perms: "system:tenant:plan:create", Type: "F", Sort: 7},
+		{Key: "tenant-plan-update", ParentKey: menuKeyTenantOverview, TitleKey: "system.permission.tenant.plan_update", Perms: "system:tenant:plan:update", Type: "F", Sort: 8},
+	}
+}
+
 func auditMenuSeeds() []menuSeed {
 	return []menuSeed{
 		{
@@ -549,14 +630,18 @@ func seedMenuPayload(seed menuSeed, parentID uint64) map[string]interface{} {
 
 func bindSeedMenuAdminRole(db *gorm.DB, seed menuSeed, menuID uint64) error {
 	var adminRoleID uint64
-	if err := db.Table("system_role").Select("id").Where("role_key = ?", "admin").Limit(1).Pluck("id", &adminRoleID).Error; err != nil {
+	// Only the platform admin (tenant 0): a tenant may own a role with the same
+	// key, and seeding must never write a grant into a tenant namespace.
+	if err := db.Table("system_role").Select("id").
+		Where("role_key = ? AND tenant_id = ?", "admin", tenant.PlatformGlobalTenantID).
+		Limit(1).Pluck("id", &adminRoleID).Error; err != nil {
 		return err
 	}
 	if adminRoleID == 0 {
 		return nil
 	}
 	if normalizeSeedMenuType(seed.Type) != "F" {
-		if err := rbacbind.EnsureRoleMenu(db, adminRoleID, menuID); err != nil {
+		if err := rbacbind.EnsureRoleMenu(db, tenant.PlatformGlobalTenantID, adminRoleID, menuID); err != nil {
 			return err
 		}
 	}
@@ -570,20 +655,10 @@ func bindSeedMenuAdminRole(db *gorm.DB, seed menuSeed, menuID uint64) error {
 }
 
 func ensureAdminPermissionSeed(db *gorm.DB, adminRoleID uint64, permissionKey string) error {
-	permissionKey = strings.TrimSpace(permissionKey)
-	if permissionKey == "" {
-		return nil
-	}
-	var count int64
-	if err := db.Table("system_role_permission").
-		Where("role_id = ? AND permission_key = ?", adminRoleID, permissionKey).
-		Count(&count).Error; err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil
-	}
-	return db.Exec("INSERT INTO system_role_permission (role_id, permission_key) VALUES (?, ?)", adminRoleID, permissionKey).Error
+	// One implementation, shared with the auth module's menu seeder: both write
+	// the platform administrator's key set, and tenant provisioning copies that
+	// set, so a divergence here silently narrows every tenant console.
+	return rbacbind.EnsureRolePermission(db, tenant.PlatformGlobalTenantID, adminRoleID, permissionKey)
 }
 
 func cleanupActionMenuRoleBindings(db *gorm.DB) error {
@@ -806,28 +881,40 @@ func resolveMenuParentID(db *gorm.DB, parentKey string) (uint64, error) {
 		return 0, nil
 	}
 	parentPaths := map[string]string{
-		"access":            "/system/access",
-		"org":               "/system/org",
-		"config":            "/system/config",
-		"lowcode":           "/system/lowcode",
-		"security":          "/system/security",
-		"user":              "/system/user",
-		"role":              "/system/role",
-		"menu":              "/system/menu",
-		"dept":              "/system/dept",
-		"post":              "/system/post",
-		"permission":        "/system/permission",
-		"login-log":         "/system/login-log",
-		"session":           "/system/session",
-		"setting":           "/system/setting",
-		"modules":           "/system/modules",
-		"generator":         "/system/generator",
-		"dict":              "/system/dict",
-		"i18n":              "/system/i18n",
-		menuKeyOperationLog: "/system/operation-log",
+		"access":              "/system/access",
+		"org":                 "/system/org",
+		"config":              "/system/config",
+		"lowcode":             "/system/lowcode",
+		"security":            "/system/security",
+		"user":                "/system/user",
+		"role":                "/system/role",
+		"menu":                "/system/menu",
+		"dept":                "/system/dept",
+		"post":                "/system/post",
+		"permission":          "/system/permission",
+		"login-log":           "/system/login-log",
+		"session":             "/system/session",
+		"setting":             "/system/setting",
+		"modules":             "/system/modules",
+		"generator":           "/system/generator",
+		"dict":                "/system/dict",
+		"i18n":                "/system/i18n",
+		menuKeyTenantOps:      "/system/tenant-ops",
+		"tenant":              "/system/tenant",
+		menuKeyTenantOverview: "/system/tenant-ops/overview",
+		menuKeyOperationLog:   "/system/operation-log",
 	}
 	parentPath, ok := parentPaths[parentKey]
 	if !ok {
+		// A silent zero here is how the tenant permission rows ended up at the
+		// menu root: tenantMenuSeeds declared ParentKey "tenant" before this map
+		// knew about it, and nothing reported the miss, so the five buttons
+		// rendered as top-level entries in 菜单管理. Keep the menu (at the root)
+		// rather than failing the whole seed, but make the miss visible.
+		slog.Warn(
+			"menu seed references an unmapped parent key; menu will be created at the root",
+			"parent_key", parentKey,
+		)
 		return 0, nil
 	}
 	return lookupMenuIDByPath(db, parentPath)

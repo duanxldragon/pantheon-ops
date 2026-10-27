@@ -28,17 +28,17 @@ type AlertEvaluator struct {
 }
 
 type ruleEvaluator struct {
-	rule     *AlertRule
-	ticker   *time.Ticker
-	state    *alertState
-	stopCh   chan struct{}
+	rule   *AlertRule
+	ticker *time.Ticker
+	state  *alertState
+	stopCh chan struct{}
 }
 
 type alertState struct {
-	firing       bool
-	notified     bool
-	firingSince  time.Time
-	lastValue    float64
+	firing        bool
+	notified      bool
+	firingSince   time.Time
+	lastValue     float64
 	consecutiveOK int
 }
 

@@ -63,7 +63,7 @@ import {
 } from '../api';
 import { buildDeployTemplateDefaultParameters, getDeployFixedTemplateCatalogEntry } from '../catalog';
 import { formatDateTime } from '../../../../core/format/dateTime';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 import '../deploy.css';
 
 type TaskFormValues = {

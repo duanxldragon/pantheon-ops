@@ -5,6 +5,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/capability"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/rbacbind"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"log/slog"
 	"net/url"
 	"strings"
@@ -28,14 +29,16 @@ func (s *MenuService) Migrate() error {
 	return s.db.AutoMigrate(&SystemMenu{})
 }
 
-// GetMenuTree 获取全量菜单树。
-func (s *MenuService) GetMenuTree(query *MenuListQuery, roleKeys []string) ([]*MenuTreeResp, error) {
+// GetMenuTree 获取菜单树。tenantCtx 决定是否隐藏平台专用菜单：租户会话只能看到
+// 自身可用、且路由层不会以 tenant.platformOnly 拒绝的页面。
+func (s *MenuService) GetMenuTree(query *MenuListQuery, roleKeys []string, tenantCtx *tenant.Context) ([]*MenuTreeResp, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
 
+	tenantScoped := tenant.IsTenantScoped(tenantCtx)
 	if normalizeMenuScope(query) == "nav" {
-		return s.getScopedNavigationMenuTree(roleKeys)
+		return s.getScopedNavigationMenuTree(roleKeys, tenantScoped)
 	}
 
 	var menus []SystemMenu
@@ -64,6 +67,10 @@ func (s *MenuService) GetMenuTree(query *MenuListQuery, roleKeys []string) ([]*M
 		}).
 		Find(&menus).Error; err != nil {
 		return nil, err
+	}
+
+	if tenantScoped {
+		menus = filterPlatformOnlyMenus(menus)
 	}
 
 	if textFiltered {
@@ -187,8 +194,8 @@ func toIDSet(ids []uint64) map[uint64]struct{} {
 	return set
 }
 
-func (s *MenuService) getScopedNavigationMenuTree(roleKeys []string) ([]*MenuTreeResp, error) {
-	allMenus, err := s.loadNavigationMenus()
+func (s *MenuService) getScopedNavigationMenuTree(roleKeys []string, tenantScoped bool) ([]*MenuTreeResp, error) {
+	allMenus, err := s.loadNavigationMenus(tenantScoped)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +222,7 @@ func (s *MenuService) getScopedNavigationMenuTree(roleKeys []string) ([]*MenuTre
 	return normalizeScopedNavigationMenuTree(buildMenuTree(selectedMenus, 0), 0), nil
 }
 
-func (s *MenuService) loadNavigationMenus() ([]SystemMenu, error) {
+func (s *MenuService) loadNavigationMenus(tenantScoped bool) ([]SystemMenu, error) {
 	var menus []SystemMenu
 	db := s.db.Model(&SystemMenu{}).
 		Where("is_visible = ? AND type <> ?", 1, "F").
@@ -223,8 +230,27 @@ func (s *MenuService) loadNavigationMenus() ([]SystemMenu, error) {
 	if !capability.Load(s.db).OrgEnabled {
 		db = db.Where("module <> ?", "system.org")
 	}
-	err := db.Find(&menus).Error
-	return menus, err
+	if err := db.Find(&menus).Error; err != nil {
+		return nil, err
+	}
+	if tenantScoped {
+		menus = filterPlatformOnlyMenus(menus)
+	}
+	return menus, nil
+}
+
+// filterPlatformOnlyMenus keeps platform-only pages out of every tree a
+// tenant-scoped subject reads. Their routes answer 403 tenant.platformOnly, so
+// showing them only produces a menu entry whose page cannot load.
+func filterPlatformOnlyMenus(menus []SystemMenu) []SystemMenu {
+	filtered := make([]SystemMenu, 0, len(menus))
+	for _, menu := range menus {
+		if tenant.IsPlatformOnlyMenu(menu.Module, menu.Path) {
+			continue
+		}
+		filtered = append(filtered, menu)
+	}
+	return filtered
 }
 
 func (s *MenuService) loadAllowedNavigationMenuIDs(roleKeys []string) ([]uint64, error) {
@@ -240,9 +266,7 @@ func (s *MenuService) loadAllowedNavigationMenuIDs(roleKeys []string) ([]uint64,
 	if !capability.Load(s.db).OrgEnabled {
 		db = db.Where("system_menu.module <> ?", "system.org")
 	}
-	err := db.
-		Order("system_menu.sort asc, system_menu.id asc").
-		Pluck("system_menu.id", &menuIDs).Error
+	err := db.Pluck("system_menu.id", &menuIDs).Error
 	return menuIDs, err
 }
 
@@ -626,14 +650,19 @@ func hasRoleKey(roleKeys []string, target string) bool {
 
 func bindMenuToAdmin(tx *gorm.DB, menuID uint64) error {
 	var roleID uint64
-	if err := tx.Table("system_role").Select("id").Where("role_key = ?", "admin").Limit(1).Pluck("id", &roleID).Error; err != nil {
+	// The platform admin role lives in the global namespace (tenant 0). Without
+	// the predicate, a tenant that also owns a role named `admin` could be
+	// picked and the menu would be granted into that tenant's namespace.
+	if err := tx.Table("system_role").Select("id").
+		Where("role_key = ? AND tenant_id = ?", "admin", tenant.PlatformGlobalTenantID).
+		Limit(1).Pluck("id", &roleID).Error; err != nil {
 		return err
 	}
 	if roleID == 0 {
 		slog.Warn("bindMenuToAdmin: admin role not found, skipping menu binding", "menuID", menuID)
 		return nil
 	}
-	return rbacbind.EnsureRoleMenu(tx, roleID, menuID)
+	return rbacbind.EnsureRoleMenu(tx, tenant.PlatformGlobalTenantID, roleID, menuID)
 }
 
 func (s *MenuService) validateMenuCreate(req *MenuCreateReq) error {

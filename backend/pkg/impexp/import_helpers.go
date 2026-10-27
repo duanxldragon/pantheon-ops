@@ -133,7 +133,12 @@ func (r *deptPathResolver) resolve(id uint64) (string, error) {
 	}
 	row, ok := r.byID[id]
 	if !ok {
-		return "", common.NewNotFound("dept.not_found")
+		// A parent outside the loaded set (typically a cross-tenant orphan left
+		// by the pre-scope import bug) is a path boundary, not a fatal error:
+		// the row itself belongs to the caller's tenant and must stay
+		// importable/exportable, and one inconsistent ancestor must not block
+		// the whole tenant's path map.
+		return "", nil
 	}
 	if r.visiting[id] {
 		return "", common.NewBadRequest("dept.path.circular")

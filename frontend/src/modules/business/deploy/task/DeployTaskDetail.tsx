@@ -58,7 +58,7 @@ import {
   type DeployTaskRow,
   type StartDeployTaskPayload,
 } from '../api';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 import '../deploy.css';
 
 const statusColorMap: Record<string, string> = {

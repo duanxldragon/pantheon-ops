@@ -48,7 +48,7 @@ import {
   type K8sNodeRow,
   type K8sSecretRow,
 } from '../api';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 
 const FormItem = Form.Item;
 

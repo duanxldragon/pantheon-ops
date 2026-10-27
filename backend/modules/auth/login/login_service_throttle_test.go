@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/auth/security"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/tenant"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
@@ -35,7 +36,7 @@ func (s *recordingSecurityEventRecorder) RecordSecurityEvent(event security.Syst
 func setupThrottleTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 	db := testmysql.Open(t)
-	_ = db.AutoMigrate(&user.SystemUser{}, &SystemLoginThrottle{}, &SystemLogLogin{})
+	_ = db.AutoMigrate(&tenant.Tenant{}, &user.SystemUser{}, &SystemLoginThrottle{}, &SystemLogLogin{})
 	return db
 }
 

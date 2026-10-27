@@ -5,7 +5,7 @@ import { Button, Card, Descriptions, Message, Space, Table, Tag, Tabs } from '@a
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { PageContainer, PageError, PageLoading } from '../../../components';
 import { cancelTask, getTaskDetail, getTaskEvents, getTaskTargets, retryTask, startTask, type DistributionEventRow, type DistributionTargetRow, type TaskDetailResponse } from './api';
-import '../../system/components/shared/list-page.css';
+import '../../../assets/list-page.css';
 
 export default function FiledistDetail() {
   const { t } = useTranslation(); const navigate = useNavigate(); const { id } = useParams<{ id: string }>(); const taskId = Number(id);

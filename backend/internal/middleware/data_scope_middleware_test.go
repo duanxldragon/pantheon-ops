@@ -3,13 +3,208 @@ package middleware
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"github.com/gin-gonic/gin"
 )
+
+// TestDataScopeMiddlewareTreatsTenantAdminAsUnrestricted 守护真多租户下的租户管理员：
+// 租户管理员持有 tenant_admin 而非平台 admin，且不会有 system_role_data_scope 行。
+// 若只认平台 admin，策略回退为 custom + 空 dept 集合，租户管理员会「看不到任何数据」
+// （实测：用户列表返回 0 行）。租户范围内的收窄由 tenant scope 无条件施加，
+// 与本策略无关，因此这里放行不会削弱隔离。
+func TestDataScopeMiddlewareTreatsTenantAdminAsUnrestricted(t *testing.T) {
+	db := testmysql.Open(t)
+	if err := db.Exec("CREATE TABLE system_user (id BIGINT PRIMARY KEY, dept_id BIGINT)").Error; err != nil {
+		t.Fatalf("create user table: %v", err)
+	}
+	if err := MigrateDataScopePolicy(db); err != nil {
+		t.Fatalf("migrate data scope policy: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_user (id, dept_id) VALUES (7, 42)").Error; err != nil {
+		t.Fatalf("seed user: %v", err)
+	}
+	// Deliberately no system_role_data_scope row for tenant_admin.
+
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	engine.Use(func(c *gin.Context) {
+		c.Set("userId", uint64(7))
+		c.Set("roleKeys", []string{tenant.TenantRoleAdminKey})
+		c.Next()
+	})
+	engine.Use(DataScopeMiddleware(db))
+	engine.GET("/scoped", func(c *gin.Context) {
+		scope := common.GetDataScope(c)
+		if scope == nil {
+			t.Fatalf("expected data scope")
+		}
+		if !scope.IsAdmin {
+			t.Fatalf("tenant admin must be treated as unrestricted, got %+v", scope)
+		}
+		if scope.Mode != common.DataScopeModeAll {
+			t.Fatalf("expected mode=all for a tenant admin, got %q", scope.Mode)
+		}
+		common.Success(c, gin.H{"mode": scope.Mode})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/scoped", nil)
+	recorder := httptest.NewRecorder()
+	engine.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected the tenant admin's request to pass, got %d body=%s",
+			recorder.Code, recorder.Body.String())
+	}
+}
+
+// TestDataScopeMiddlewareStillFailsClosedForPlainRoles pins the other half: a
+// role with no policy row that is NOT an administrative or tenant-local role
+// must keep failing closed, so widening the exemption cannot leak the whole
+// table. The role key is a plain platform role on purpose — tenant-local roles
+// are exempt by design (see the tenant-member test below).
+//
+// The failure surfaces as the framework's business-error envelope (HTTP 200
+// carrying `"code":500` / `common.serverError`) plus a handler that never runs,
+// matching TestMissingPolicyTableRejectsRequest.
+func TestDataScopeMiddlewareStillFailsClosedForPlainRoles(t *testing.T) {
+	db := testmysql.Open(t)
+	if err := db.Exec("CREATE TABLE system_user (id BIGINT PRIMARY KEY, dept_id BIGINT)").Error; err != nil {
+		t.Fatalf("create user table: %v", err)
+	}
+	if err := MigrateDataScopePolicy(db); err != nil {
+		t.Fatalf("migrate data scope policy: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_user (id, dept_id) VALUES (7, 42)").Error; err != nil {
+		t.Fatalf("seed user: %v", err)
+	}
+	// The policy table exists but has no row for `viewer`.
+
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	handlerReached := false
+	engine.Use(func(c *gin.Context) {
+		c.Set("userId", uint64(7))
+		c.Set("roleKeys", []string{"viewer"})
+		c.Next()
+	})
+	engine.Use(DataScopeMiddleware(db))
+	engine.GET("/scoped", func(c *gin.Context) {
+		handlerReached = true
+		common.Success(c, gin.H{"ok": true})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/scoped", nil)
+	recorder := httptest.NewRecorder()
+	engine.ServeHTTP(recorder, req)
+
+	if handlerReached {
+		t.Fatalf("handler must not run when a plain role has no data-scope policy")
+	}
+	body := recorder.Body.String()
+	if !strings.Contains(body, `"code":500`) || !strings.Contains(body, "common.serverError") {
+		t.Fatalf("expected a fail-closed business error for a policy-less plain role, status=%d body=%s",
+			recorder.Code, body)
+	}
+}
+
+// TestDataScopeMiddlewareTreatsTenantMemberAsUnrestricted 守护租户成员：
+// tenant_member 持有 GET /api/v1/*（只读全控制台，由 Casbin 收窄），但没有
+// system_role_data_scope 行。它的行级收窄由 tenant scope 无条件施加，与本策略无关，
+// 因此必须与 tenant_admin 一样豁免 fail-closed，否则成员登录后每个读请求都 500。
+func TestDataScopeMiddlewareTreatsTenantMemberAsUnrestricted(t *testing.T) {
+	db := testmysql.Open(t)
+	if err := db.Exec("CREATE TABLE system_user (id BIGINT PRIMARY KEY, dept_id BIGINT)").Error; err != nil {
+		t.Fatalf("create user table: %v", err)
+	}
+	if err := MigrateDataScopePolicy(db); err != nil {
+		t.Fatalf("migrate data scope policy: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_user (id, dept_id) VALUES (7, 42)").Error; err != nil {
+		t.Fatalf("seed user: %v", err)
+	}
+	// Deliberately no system_role_data_scope row for tenant_member.
+
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	engine.Use(func(c *gin.Context) {
+		c.Set("userId", uint64(7))
+		c.Set("roleKeys", []string{tenant.TenantRoleMemberKey})
+		c.Next()
+	})
+	engine.Use(DataScopeMiddleware(db))
+	engine.GET("/scoped", func(c *gin.Context) {
+		scope := common.GetDataScope(c)
+		if scope == nil {
+			t.Fatalf("expected data scope")
+		}
+		if scope.Mode != common.DataScopeModeAll {
+			t.Fatalf("expected mode=all for a tenant member, got %q", scope.Mode)
+		}
+		common.Success(c, gin.H{"mode": scope.Mode})
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/scoped", nil)
+	recorder := httptest.NewRecorder()
+	engine.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected the tenant member's request to pass, got %d body=%s",
+			recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestHasAdministrativeRoleRecognisesBothAdminKeys(t *testing.T) {
+	cases := []struct {
+		name     string
+		roleKeys []string
+		want     bool
+	}{
+		{"platform admin", []string{"admin"}, true},
+		{"tenant admin", []string{tenant.TenantRoleAdminKey}, true},
+		{"tenant admin among others", []string{"viewer", tenant.TenantRoleAdminKey}, true},
+		{"padded tenant admin", []string{"  " + tenant.TenantRoleAdminKey + "  "}, true},
+		{"tenant member", []string{tenant.TenantRoleMemberKey}, false},
+		{"no roles", nil, false},
+		{"lookalike key", []string{"tenant_admin_readonly"}, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := hasAdministrativeRole(tc.roleKeys); got != tc.want {
+				t.Fatalf("hasAdministrativeRole(%v) = %v, want %v", tc.roleKeys, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestHasTenantLocalRoleRecognisesTenantRoles(t *testing.T) {
+	cases := []struct {
+		name     string
+		roleKeys []string
+		want     bool
+	}{
+		{"tenant admin", []string{tenant.TenantRoleAdminKey}, true},
+		{"tenant member", []string{tenant.TenantRoleMemberKey}, true},
+		{"padded tenant member", []string{"  " + tenant.TenantRoleMemberKey + "  "}, true},
+		{"tenant role among platform roles", []string{"viewer", tenant.TenantRoleMemberKey}, true},
+		{"platform admin only", []string{"admin"}, false},
+		{"plain role", []string{"viewer"}, false},
+		{"lookalike key", []string{"tenant_member_readonly"}, false},
+		{"no roles", nil, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := hasTenantLocalRole(tc.roleKeys); got != tc.want {
+				t.Fatalf("hasTenantLocalRole(%v) = %v, want %v", tc.roleKeys, got, tc.want)
+			}
+		})
+	}
+}
 
 func TestDataScopeMiddlewareInjectsRoleDeptScope(t *testing.T) {
 	db := testmysql.Open(t)

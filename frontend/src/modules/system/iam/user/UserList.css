@@ -198,6 +198,7 @@
   gap: 10px;
 }
 
+/* Join-tenant integration inside the create-user modal (tenant viewpoint). */
 .system-user-list__hero .system-page-kpi {
   padding: var(--space-md) var(--space-md-plus);
 }

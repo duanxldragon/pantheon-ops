@@ -1,18 +1,27 @@
 package tenant
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
+
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	invalidTenantIDMessage = "invalid tenant id"
-	tenantNotFoundMessage  = "tenant not found"
-)
-
-// Handler handles HTTP requests for tenant management
+// Handler handles HTTP requests for tenant management.
+//
+// Response contract (two shapes by design):
+//   - Success paths keep the historical raw-JSON shape (bare Tenant, ListResponse,
+//     {"message": ...}) because out-of-band consumers (runbooks, curl smoke
+//     scripts, swagger docs) parse them directly and the frontend never reads
+//     this surface: the console consumes the PlatformHandler envelope on
+//     /system/tenant/* (see tenant_platform_handler.go).
+//   - Error paths emit the platform envelope (common.Fail / FailWithError:
+//     {code, data, message}) so every failure is classified through the same
+//     pipeline as the rest of the system modules and no internal error string
+//     (GORM/driver detail, sentinel text) is ever echoed to the client.
 type Handler struct {
 	service *Service
 }
@@ -20,6 +29,38 @@ type Handler struct {
 // NewHandler creates a new tenant handler instance
 func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
+}
+
+// failServiceError maps tenant service sentinel errors onto the platform
+// envelope codes and i18n message keys, mirroring
+// PlatformHandler.failServiceError so both tenant surfaces agree. Unknown
+// internal errors collapse to CodeError + "request.failed"; FailWithError
+// logs the real cause server-side and never leaks it in the response.
+func (h *Handler) failServiceError(c *gin.Context, err error) {
+	switch {
+	case errors.Is(err, common.ErrBadRequest):
+		common.FailWithError(c, common.CodeParamInvalid, err, errRequestFailed)
+	case errors.Is(err, ErrTenantNotFound), errors.Is(err, ErrMembershipNotFound):
+		common.FailWithError(c, common.CodeNotFound, err, "tenant.not_found")
+	case errors.Is(err, ErrTenantCodeExists):
+		// Duplicate key: the input is unacceptable as sent (the envelope code
+		// set has no 409 sentinel), so it reports as a caller error.
+		common.FailWithError(c, common.CodeParamInvalid, err, "tenant.code_taken")
+	case errors.Is(err, ErrTenantCodeReserved):
+		common.FailWithError(c, common.CodeParamInvalid, err, "tenant.code_reserved")
+	case errors.Is(err, ErrMembershipExists):
+		common.FailWithError(c, common.CodeParamInvalid, err, "tenant.member_exists")
+	case errors.Is(err, ErrLastOwner):
+		common.FailWithError(c, common.CodeParamInvalid, err, "tenant.member.last_owner")
+	case errors.Is(err, common.ErrConflict):
+		common.FailWithError(c, common.CodeParamInvalid, err, errRequestFailed)
+	case errors.Is(err, ErrTenantHasActiveUsers):
+		common.FailWithError(c, common.CodeParamInvalid, err, "tenant.has_active_members")
+	case errors.Is(err, ErrTenantAdminUsernameTaken):
+		common.FailWithError(c, common.CodeParamInvalid, err, "user.create.error.username_exists")
+	default:
+		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+	}
 }
 
 // CreateTenant godoc
@@ -30,23 +71,19 @@ func NewHandler(service *Service) *Handler {
 // @Produce json
 // @Param body body CreateTenantDTO true "Tenant creation data"
 // @Success 201 {object} Tenant
-// @Failure 400 {object} map[string]string
-// @Failure 409 {object} map[string]string
+// @Failure 400 {object} common.Response
+// @Failure 409 {object} common.Response
 // @Router /api/v1/tenants [post]
 func (h *Handler) CreateTenant(c *gin.Context) {
 	var dto CreateTenantDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	tenant, err := h.service.CreateTenant(dto)
 	if err != nil {
-		if err == ErrTenantCodeExists {
-			c.JSON(http.StatusConflict, gin.H{"error": "tenant code already exists"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		h.failServiceError(c, err)
 		return
 	}
 
@@ -60,22 +97,18 @@ func (h *Handler) CreateTenant(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Tenant ID"
 // @Success 200 {object} Tenant
-// @Failure 404 {object} map[string]string
+// @Failure 404 {object} common.Response
 // @Router /api/v1/tenants/{id} [get]
 func (h *Handler) GetTenant(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": invalidTenantIDMessage})
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	tenant, err := h.service.GetTenantByID(id)
 	if err != nil {
-		if err == ErrTenantNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": tenantNotFoundMessage})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		h.failServiceError(c, err)
 		return
 	}
 
@@ -96,13 +129,13 @@ func (h *Handler) GetTenant(c *gin.Context) {
 func (h *Handler) ListTenants(c *gin.Context) {
 	var filter Filter
 	if err := c.ShouldBindQuery(&filter); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	response, err := h.service.ListTenants(filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		h.failServiceError(c, err)
 		return
 	}
 
@@ -118,27 +151,23 @@ func (h *Handler) ListTenants(c *gin.Context) {
 // @Param id path int true "Tenant ID"
 // @Param body body UpdateTenantDTO true "Tenant update data"
 // @Success 200 {object} map[string]string
-// @Failure 404 {object} map[string]string
+// @Failure 404 {object} common.Response
 // @Router /api/v1/tenants/{id} [put]
 func (h *Handler) UpdateTenant(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": invalidTenantIDMessage})
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	var dto UpdateTenantDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	if err := h.service.UpdateTenant(id, dto); err != nil {
-		if err == ErrTenantNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": tenantNotFoundMessage})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		h.failServiceError(c, err)
 		return
 	}
 
@@ -151,26 +180,18 @@ func (h *Handler) UpdateTenant(c *gin.Context) {
 // @Tags Tenant
 // @Param id path int true "Tenant ID"
 // @Success 200 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
+// @Failure 400 {object} common.Response
+// @Failure 404 {object} common.Response
 // @Router /api/v1/tenants/{id} [delete]
 func (h *Handler) DeleteTenant(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": invalidTenantIDMessage})
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	if err := h.service.DeleteTenant(id); err != nil {
-		if err == ErrTenantNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": tenantNotFoundMessage})
-			return
-		}
-		if err == ErrTenantHasActiveUsers {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "cannot delete tenant with active members"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		h.failServiceError(c, err)
 		return
 	}
 
@@ -186,33 +207,25 @@ func (h *Handler) DeleteTenant(c *gin.Context) {
 // @Param id path int true "Tenant ID"
 // @Param body body AddTenantMemberDTO true "Member data"
 // @Success 201 {object} map[string]string
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 409 {object} map[string]string
+// @Failure 400 {object} common.Response
+// @Failure 404 {object} common.Response
+// @Failure 409 {object} common.Response
 // @Router /api/v1/tenants/{id}/members [post]
 func (h *Handler) AddTenantMember(c *gin.Context) {
 	tenantID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": invalidTenantIDMessage})
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	var dto AddTenantMemberDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	if err := h.service.AddMember(tenantID, dto.UserID, dto.Role); err != nil {
-		if err == ErrTenantNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": tenantNotFoundMessage})
-			return
-		}
-		if err == ErrMembershipExists {
-			c.JSON(http.StatusConflict, gin.H{"error": "user is already a member"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		h.failServiceError(c, err)
 		return
 	}
 
@@ -226,27 +239,23 @@ func (h *Handler) AddTenantMember(c *gin.Context) {
 // @Param id path int true "Tenant ID"
 // @Param user_id path int true "User ID"
 // @Success 200 {object} map[string]string
-// @Failure 404 {object} map[string]string
+// @Failure 404 {object} common.Response
 // @Router /api/v1/tenants/{id}/members/{user_id} [delete]
 func (h *Handler) RemoveTenantMember(c *gin.Context) {
 	tenantID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": invalidTenantIDMessage})
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	userID, err := strconv.ParseUint(c.Param("user_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	if err := h.service.RemoveMember(tenantID, userID); err != nil {
-		if err == ErrMembershipNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "membership not found"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		h.failServiceError(c, err)
 		return
 	}
 
@@ -288,13 +297,13 @@ func parseTenantMemberPagination(c *gin.Context) (int, int) {
 func (h *Handler) writeTenantMembersPage(c *gin.Context, page, pageSize int) {
 	tenantID, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": invalidTenantIDMessage})
+		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
 
 	members, total, err := h.service.ListTenantMembers(tenantID, page, pageSize)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		h.failServiceError(c, err)
 		return
 	}
 
@@ -317,19 +326,21 @@ func (h *Handler) GetMyTenants(c *gin.Context) {
 	// Extract user ID from context (set by auth middleware)
 	userID, exists := c.Get("user_id")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+		common.Fail(c, common.CodeUnauthorized, "token.invalid")
 		return
 	}
 
 	uid, ok := userID.(uint64)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid user id type"})
+		// A malformed auth context is a server-side fault; the concrete type
+		// detail must not reach the client.
+		common.FailWithError(c, common.CodeError, errors.New("tenant: invalid user id type in auth context"), errRequestFailed)
 		return
 	}
 
 	tenants, err := h.service.GetUserTenants(uid)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		h.failServiceError(c, err)
 		return
 	}
 

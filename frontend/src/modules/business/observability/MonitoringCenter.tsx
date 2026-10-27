@@ -27,7 +27,8 @@ import {
   type DatasourceRow,
   type MonitoringTargetRow,
 } from './api';
-import '../../system/components/shared/list-page.css';
+import PasswordInput from '../../../components/patterns/forms/PasswordInput';
+import '../../../assets/list-page.css';
 
 const { TabPane } = Tabs;
 const FormItem = Form.Item;
@@ -211,8 +212,8 @@ export default function MonitoringCenter() {
           <FormItem field="type" label={t('business.observability.monitoring.field.type')} rules={[{ required: true }]}><Select><Select.Option value="prometheus">Prometheus</Select.Option><Select.Option value="victoriametrics">VictoriaMetrics</Select.Option><Select.Option value="loki">Loki</Select.Option><Select.Option value="tempo">Tempo</Select.Option></Select></FormItem>
           <FormItem field="url" label={t('business.observability.monitoring.field.url')} rules={[{ required: true, type: 'url' }]}><Input placeholder="http://observability-backend:3100" /></FormItem>
           <FormItem field="username" label={t('business.observability.monitoring.field.username')}><Input /></FormItem>
-          <FormItem field="password" label={t('business.observability.monitoring.field.password')}><Input.Password /></FormItem>
-          <FormItem field="bearerToken" label={t('business.observability.monitoring.field.token')}><Input.Password /></FormItem>
+          <FormItem field="password" label={t('business.observability.monitoring.field.password')}><PasswordInput /></FormItem>
+          <FormItem field="bearerToken" label={t('business.observability.monitoring.field.token')}><PasswordInput /></FormItem>
           <FormItem field="timeout" label={t('business.observability.monitoring.field.timeout')}><InputNumber min={1} max={120} /></FormItem>
           <FormItem field="isDefault" label={t('business.observability.monitoring.field.default')} triggerPropName="checked"><Switch /></FormItem>
         </Form>

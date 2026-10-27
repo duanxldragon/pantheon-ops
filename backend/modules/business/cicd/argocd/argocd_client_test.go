@@ -16,9 +16,9 @@ import (
 // newTestArgoCDClient creates a client with relaxed SSRF validation for testing
 func newTestArgoCDClient(endpoint, authToken string, insecureSkipVerify bool) (*ArgoCDClient, error) {
 	validator := ssrf.DefaultValidator()
-	validator.AllowedPorts = []int{}       // Allow all ports for testing
-	validator.BlockPrivateIPs = false      // Allow localhost for testing
-	validator.DNSRebindProtection = false  // Disable DNS rebind check for testing
+	validator.AllowedPorts = []int{}      // Allow all ports for testing
+	validator.BlockPrivateIPs = false     // Allow localhost for testing
+	validator.DNSRebindProtection = false // Disable DNS rebind check for testing
 
 	if err := validator.ValidateURL(endpoint); err != nil {
 		return nil, err

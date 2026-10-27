@@ -1,0 +1,7 @@
+-- Intentionally retain the migrated grant rows on down.
+--
+-- The rows are indistinguishable from grants a tenant administrator saved
+-- through the console afterwards (same columns, same values), so deleting them
+-- would destroy real configuration. Rolling the code back to key-only writes
+-- leaves them invisible to tenant-scoped reads anyway, which restores the
+-- pre-migration behaviour without touching data. Mirrors 000025.

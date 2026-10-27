@@ -1,10 +1,11 @@
 import { expect, test, type Browser } from '@playwright/test';
+import { apiBaseUrl, apiRequestHeaders, loginByApi } from '../smoke/helpers/auth';
 import {
-  apiBaseUrl,
-  apiRequestHeaders,
-  installClientSession,
-  loginByApi,
-} from '../smoke/helpers/auth';
+  loginAsTenantAdmin,
+  setupMatrixTenants,
+  teardownMatrixTenants,
+  type MatrixTenant,
+} from './tenant-fixture';
 
 // Hostile two-tenant browser matrix — phase 2 (tenant-verification-and-gray,
 // 2026-09-20). Closes the browser/runtime coverage remaining from review
@@ -19,9 +20,11 @@ import {
 //   4. dynamic-module/generator surface: module registry list is tenant-blind
 //      platform state but the write path requires the SecureAction token per
 //      tenant (no cross-tenant mutation without re-verification).
-// The flag must be multi and tenants 101/202 must exist (tenantmatrixdb up).
-// This spec restores nothing: flag restore is done by the runner/cleanup, the
-// reusable fixtures stay.
+// The flag must be multi and the tenant matrix must be provisioned (see
+// ./tenant-fixture.ts: a pair of real tenants, each with its own
+// administrator — a platform admin naming a tenant has no tenant-scoped role
+// there and would be refused with 403). This spec restores nothing: teardown of
+// the tenants it owns happens in `afterAll`.
 
 type ApiEnvelope<T> = {
   code: number;
@@ -39,21 +42,11 @@ type SecurityEventPage = {
   total?: number;
 };
 
-const tenants = {
-  a: 101,
-  b: 202,
-} as const;
+let tenants: [MatrixTenant, MatrixTenant];
+let platformLogin: Awaited<ReturnType<typeof loginByApi>>;
 
-async function loginForTenant(browser: Browser, tenantId: number) {
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  const login = await loginByApi(page.request, {
-    username: 'admin',
-    password: '123456',
-    tenantId,
-  } as Parameters<typeof loginByApi>[1]);
-  await installClientSession(page, login);
-  return { context, page, login, tenantId };
+async function loginForTenant(browser: Browser, tenant: MatrixTenant) {
+  return loginAsTenantAdmin(browser, tenant);
 }
 
 async function assertProtectedPage(page: import('@playwright/test').Page, path: string, selector: string) {
@@ -64,11 +57,27 @@ async function assertProtectedPage(page: import('@playwright/test').Page, path: 
   expect(pageErrors, `page ${path} must render without errors`).toEqual([]);
 }
 
+test.beforeAll(async ({ request }) => {
+  const matrix = await setupMatrixTenants(request);
+  tenants = [matrix[0], matrix[1]];
+  platformLogin = await loginByApi(request, {
+    username: process.env.PANTHEON_SMOKE_ADMIN_USERNAME ?? 'admin',
+    password: process.env.PANTHEON_SMOKE_ADMIN_PASSWORD ?? '123456',
+  });
+});
+
+test.afterAll(async ({ request }) => {
+  await teardownMatrixTenants(request, [tenants[0], tenants[1]], platformLogin);
+});
+
+const tenantAOf = () => tenants[0];
+const tenantBOf = () => tenants[1];
+
 test.describe('Tenant auth-log surfaces @priority:critical @smoke:tenant', () => {
   test('login-log and security-event pages render per tenant and stay pinned to it', async ({ browser }) => {
     test.setTimeout(120_000);
-    const tenantA = await loginForTenant(browser, tenants.a);
-    const tenantB = await loginForTenant(browser, tenants.b);
+    const tenantA = await loginForTenant(browser, tenantAOf());
+    const tenantB = await loginForTenant(browser, tenantBOf());
     try {
       // Both audit pages must render for a tenant subject without errors.
       await assertProtectedPage(tenantA.page, '/system/login-log', '.auth-login-log-page__table-card');
@@ -101,8 +110,8 @@ test.describe('Tenant auth-log surfaces @priority:critical @smoke:tenant', () =>
 test.describe('Tenant audit surfaces @priority:critical @smoke:tenant', () => {
   test('operation-log list, detail, and export stay pinned to the acting tenant', async ({ browser }) => {
     test.setTimeout(120_000);
-    const tenantA = await loginForTenant(browser, tenants.a);
-    const tenantB = await loginForTenant(browser, tenants.b);
+    const tenantA = await loginForTenant(browser, tenantAOf());
+    const tenantB = await loginForTenant(browser, tenantBOf());
     try {
       await assertProtectedPage(tenantA.page, '/system/operation-log', '.system-list__table-card');
 
@@ -121,14 +130,14 @@ test.describe('Tenant audit surfaces @priority:critical @smoke:tenant', () => {
       const pageA = await listFor(tenantA);
       const pageB = await listFor(tenantB);
       for (const item of pageA.items ?? []) {
-        expect(item.tenantId, 'operation-log list leaked a foreign row to tenant 101').toBe(tenants.a);
+        expect(item.tenantId, 'operation-log list leaked a foreign row to the acting tenant').toBe(tenantAOf().id);
       }
       for (const item of pageB.items ?? []) {
-        expect(item.tenantId, 'operation-log list leaked a foreign row to tenant 202').toBe(tenants.b);
+        expect(item.tenantId, 'operation-log list leaked a foreign row to the acting tenant').toBe(tenantBOf().id);
       }
 
       // Cross-tenant detail lookup must be rejected (404 semantics, no row).
-      const foreignId = (pageB.items ?? []).find((item) => item.tenantId === tenants.b)?.id;
+      const foreignId = (pageB.items ?? []).find((item) => item.tenantId === tenantBOf().id)?.id;
       if (foreignId !== undefined) {
         const detailResponse = await tenantA.page.request.get(
           `${apiBaseUrl}/system/operation-log/${foreignId}`,
@@ -164,7 +173,7 @@ test.describe('Tenant audit surfaces @priority:critical @smoke:tenant', () => {
             expect(
               cell,
               'operation-log export leaked a foreign tenant row',
-            ).toBe(String(tenants.a));
+            ).toBe(String(tenantAOf().id));
           }
         }
       }
@@ -178,8 +187,8 @@ test.describe('Tenant audit surfaces @priority:critical @smoke:tenant', () => {
 test.describe('Tenant settings surface @priority:high @smoke:tenant', () => {
   test('tenant-bound setting group reads stay per-tenant; cache refresh stays scoped', async ({ browser }) => {
     test.setTimeout(90_000);
-    const tenantA = await loginForTenant(browser, tenants.a);
-    const tenantB = await loginForTenant(browser, tenants.b);
+    const tenantA = await loginForTenant(browser, tenantAOf());
+    const tenantB = await loginForTenant(browser, tenantBOf());
     try {
       // The ui group is the smallest read surface both tenants can access.
       const readGroup = async (tenant: Awaited<ReturnType<typeof loginForTenant>>) => {
@@ -218,7 +227,7 @@ test.describe('Tenant settings surface @priority:high @smoke:tenant', () => {
 test.describe('Tenant dynamic-module surface @priority:high @smoke:tenant', () => {
   test('module registry list is readable per tenant; unverified write stays rejected', async ({ browser }) => {
     test.setTimeout(90_000);
-    const tenantA = await loginForTenant(browser, tenants.a);
+    const tenantA = await loginForTenant(browser, tenantAOf());
     try {
       // The registry list is platform state readable by authorized subjects.
       const listResponse = await tenantA.page.request.get(`${apiBaseUrl}/lowcode/dynamic-modules`, {

@@ -65,7 +65,7 @@ func InitDynamicModule(r *gin.RouterGroup, db *gorm.DB) {
 			Register: func(r *gin.RouterGroup) {
 				readAPI := r.Group("/lowcode/dynamic-modules").
 					Use(tokenMiddleware).
-					Use(middleware.TenantContextMiddleware(tenantModeLoader, db)).
+					Use(middleware.PlatformScopeTenantContextMiddleware(tenantModeLoader, db)).
 					Use(middleware.CasbinMiddleware()).
 					Use(DynamicModuleEnvGuard())
 				{
@@ -76,7 +76,7 @@ func InitDynamicModule(r *gin.RouterGroup, db *gorm.DB) {
 
 				writeAPI := r.Group("/lowcode/dynamic-modules").
 					Use(tokenMiddleware).
-					Use(middleware.TenantContextMiddleware(tenantModeLoader, db)).
+					Use(middleware.PlatformScopeTenantContextMiddleware(tenantModeLoader, db)).
 					Use(middleware.CasbinMiddleware()).
 					Use(DynamicModuleEnvGuard()).
 					Use(middleware.SecureActionMiddleware())

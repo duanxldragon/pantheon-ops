@@ -79,21 +79,28 @@ const LoginLogList: React.FC = () => {
     [...defaultRetentionOptions].sort((left, right) => right - left),
   );
 
+  // Re-fetch retention options from settings on mount AND right before the
+  // cleanup dialog opens, so a value just configured in 系统设置/日志治理
+  // (e.g. 14 天) shows up without a full page reload.
+  const refreshRetentionSetting = useCallback(() => {
+    return getSettingGroup('audit')
+      .then((group: SettingGroup) =>
+        loadRetentionSetting(
+          group,
+          'audit.login_log_retention_options',
+          setRetentionOptions,
+          setRetentionDays,
+        ),
+      )
+      .catch(() => undefined);
+  }, []);
+
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
-      getSettingGroup('audit')
-        .then((group: SettingGroup) =>
-          loadRetentionSetting(
-            group,
-            'audit.login_log_retention_options',
-            setRetentionOptions,
-            setRetentionDays,
-          ),
-        )
-        .catch(() => undefined);
+      void refreshRetentionSetting();
     }, 0);
     return () => globalThis.clearTimeout(timer);
-  }, []);
+  }, [refreshRetentionSetting]);
 
   const loadData = useCallback(
     async (nextQuery: LoginLogQuery = query) => {
@@ -388,6 +395,7 @@ const LoginLogList: React.FC = () => {
               rangeEndLabel={cleanupLabels.rangeEndLabel}
               rangeRequiredMessage={cleanupLabels.rangeRequiredMessage}
               onConfirm={handleCleanup}
+              onBeforeOpen={refreshRetentionSetting}
               hint={t('auth.loginLog.hero.cleanupHint')}
               trailing={
                 <Button

@@ -262,6 +262,23 @@ func BlacklistUser(ctx context.Context, rdb *redis.Client, userID uint64) error 
 	return rdb.Set(ctx, BlacklistUserKey(userID), "1", AccessTokenTTL+time.Minute).Err()
 }
 
+// ClearUserBlacklist removes the per-user blacklist marker after a successful
+// authentication. RevokeUserTokens sets it when credentials change (password
+// reset, disable/enable); without this clear the user stays locked out for the
+// key's whole TTL (~16 minutes) and gets `401 token.expired.force`, which reads
+// like an expired session rather than a lockout (acceptance F2).
+//
+// Session-level revocation is untouched: `blacklist:session:*` keys and the
+// revoked session rows keep every token minted before the credential change
+// dead. Only the user-wide marker is cleared, because the user just proved the
+// new credential works.
+func ClearUserBlacklist(ctx context.Context, rdb *redis.Client, userID uint64) error {
+	if rdb == nil || userID == 0 {
+		return nil
+	}
+	return rdb.Del(ctx, BlacklistUserKey(userID)).Err()
+}
+
 // BlacklistSession force-expires every live access token of one session by
 // writing the per-session blacklist key. TTL covers the remaining access token
 // life (AccessTokenTTL) plus the same margin BlacklistUser applies for the

@@ -40,7 +40,7 @@ node scripts/harness/check-generated.mjs --root . --strict
 - `check-backend-response-contract.mjs`
 - `check-coverage.mjs`（单测覆盖率门禁，支持 Go cover profile 与 vitest coverage-summary `--format json`）
 - `check-generated.mjs`（生成产物标记与漂移门禁，见 REPOSITORY_LAYOUT §7）
-- `check-inheritance-contract.mjs`
+- `check-inheritance-contract.mjs`（必须在 workspace 根执行：`node scripts/harness/check-inheritance-contract.mjs --root .. --strict`；`--root .` 会把 workspace 与 ops 的文档报成"文件缺失"，那是误读不是 finding）
 - `check-structure-contract.mjs`（目录放置 + 命名门禁，契约源 REPOSITORY_LAYOUT.md；与 check-boundaries 的 import 边界互补）
 - `check-ui-quality-gate.mjs`（校验 UI 政策、CI 接线与新 UI 任务的证据声明）
 - `check-permission-contract.mjs`

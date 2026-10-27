@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -17,6 +18,37 @@ const condIDIn = "id IN ?"
 
 type PostService struct {
 	db *gorm.DB
+	// tenantCtx is the per-request tenant context (contract §3.3). Set from the
+	// Gin context by the handler layer via WithTenantContext; nil stays
+	// unfiltered for platform-internal paths, compat binds tenant_id=0.
+	tenantCtx *tenant.Context
+}
+
+// WithTenantContext returns a shallow view of the service bound to a request
+// tenant context. Only a nil context returns the receiver unchanged.
+func (s *PostService) WithTenantContext(ctx *tenant.Context) *PostService {
+	if ctx == nil {
+		return s
+	}
+	bound := *s
+	bound.tenantCtx = ctx
+	return &bound
+}
+
+// scoped applies the tenant read filter: in multi mode every post query is
+// pinned to the request tenant, so a tenant administrator only ever sees (and
+// can only mutate) its own posts. Compat binds tenant_id=0.
+func (s *PostService) scoped(db *gorm.DB) *gorm.DB {
+	return db.Scopes(tenant.WithTenantScope(s.tenantCtx))
+}
+
+// tenantOwnerID is the tenant a new post belongs to (write path: from context,
+// never from the request body — contract §3.3). Compat/platform => 0.
+func (s *PostService) tenantOwnerID() uint64 {
+	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+		return 0
+	}
+	return s.tenantCtx.TenantID
 }
 
 const deletedPostCodePrefix = "__deleted_post_"
@@ -50,7 +82,7 @@ func (s *PostService) ListPosts(query *PostListQuery) (*PostListPageResp, error)
 	}
 
 	var posts []SystemPost
-	db := s.db.Model(&SystemPost{})
+	db := s.scoped(s.db.Model(&SystemPost{}))
 	page, pageSize := normalizePostPageQuery(query)
 	db = applyPostListFilters(db, query)
 
@@ -123,6 +155,7 @@ func (s *PostService) CreatePost(req *PostCreateReq) (*PostListResp, error) {
 	}
 
 	post := SystemPost{
+		TenantID: s.tenantOwnerID(),
 		DeptID:   req.DeptID,
 		PostCode: strings.TrimSpace(req.PostCode),
 		PostName: strings.TrimSpace(req.PostName),
@@ -148,14 +181,14 @@ func (s *PostService) UpdatePost(postID uint64, req *PostUpdateReq) (*PostListRe
 	}
 
 	var post SystemPost
-	if err := s.db.First(&post, postID).Error; err != nil {
+	if err := s.scoped(s.db).First(&post, postID).Error; err != nil {
 		return nil, err
 	}
 	if err := s.validatePostCreate(postID, req.PostCode, req.DeptID); err != nil {
 		return nil, err
 	}
 	if post.Status != common.StatusDisabled && normalizePostStatus(req.Status) == common.StatusDisabled {
-		if err := s.ensurePostsNotAssignedToUsers(s.db, []uint64{postID}); err != nil {
+		if err := s.ensurePostsNotAssignedToUsers(s.scoped(s.db), []uint64{postID}); err != nil {
 			return nil, err
 		}
 	}
@@ -185,7 +218,7 @@ func (s *PostService) DeletePost(postID uint64) error {
 
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		var post SystemPost
-		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&post, postID).Error; err != nil {
+		if err := s.scoped(tx).Clauses(clause.Locking{Strength: "UPDATE"}).First(&post, postID).Error; err != nil {
 			return err
 		}
 		// 用户占用检查放在事务内，收窄检查与删除之间的并发窗口。
@@ -219,7 +252,7 @@ func (s *PostService) BatchUpdatePostStatus(postIDs []uint64, status int) (int, 
 	}
 
 	var posts []SystemPost
-	if err := s.db.Where(condIDIn, normalizedIDs).Find(&posts).Error; err != nil {
+	if err := s.scoped(s.db).Where(condIDIn, normalizedIDs).Find(&posts).Error; err != nil {
 		return 0, err
 	}
 	if len(posts) != len(normalizedIDs) {
@@ -232,12 +265,12 @@ func (s *PostService) BatchUpdatePostStatus(postIDs []uint64, status int) (int, 
 				activeIDs = append(activeIDs, post.ID)
 			}
 		}
-		if err := s.ensurePostsNotAssignedToUsers(s.db, activeIDs); err != nil {
+		if err := s.ensurePostsNotAssignedToUsers(s.scoped(s.db), activeIDs); err != nil {
 			return 0, err
 		}
 	}
 
-	if err := s.db.Model(&SystemPost{}).
+	if err := s.scoped(s.db.Model(&SystemPost{})).
 		Where(condIDIn, normalizedIDs).
 		Updates(map[string]any{
 			"status":     normalizePostStatus(status),
@@ -262,7 +295,7 @@ func (s *PostService) ExportPosts(query *PostListQuery) (*impexp.CSVFile, error)
 	if err != nil {
 		return nil, err
 	}
-	deptPathByID, _, err := impexp.BuildDeptPathMaps(s.db)
+	deptPathByID, _, err := impexp.BuildDeptPathMaps(s.scoped(s.db))
 	if err != nil {
 		return nil, err
 	}
@@ -408,6 +441,7 @@ func applyImportRows(
 	tx *gorm.DB,
 	rows []postImportRow,
 	existingByCode map[string]SystemPost,
+	tenantID uint64,
 	result *impexp.ImportResult,
 ) error {
 	for _, row := range rows {
@@ -426,6 +460,7 @@ func applyImportRows(
 		}
 
 		post := SystemPost{
+			TenantID: tenantID,
 			DeptID:   row.DeptID,
 			PostCode: row.PostCode,
 			PostName: row.PostName,
@@ -465,7 +500,7 @@ func (s *PostService) ImportPosts(records [][]string) (*impexp.ImportResult, err
 
 	rows := make([]postImportRow, 0, len(records)-1)
 	seenCodes := make(map[string]int, len(records)-1)
-	_, deptPathToID, err := impexp.BuildDeptPathMaps(s.db)
+	_, deptPathToID, err := impexp.BuildDeptPathMaps(s.scoped(s.db))
 	if err != nil {
 		return nil, err
 	}
@@ -490,7 +525,7 @@ func (s *PostService) ImportPosts(records [][]string) (*impexp.ImportResult, err
 	}
 
 	var existingRows []SystemPost
-	if err := s.db.Where("post_code IN ?", codes).Find(&existingRows).Error; err != nil {
+	if err := s.scoped(s.db).Where("post_code IN ?", codes).Find(&existingRows).Error; err != nil {
 		return nil, err
 	}
 	existingByCode := make(map[string]SystemPost, len(existingRows))
@@ -499,7 +534,7 @@ func (s *PostService) ImportPosts(records [][]string) (*impexp.ImportResult, err
 	}
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
-		return applyImportRows(tx, rows, existingByCode, result)
+		return applyImportRows(tx, rows, existingByCode, s.tenantOwnerID(), result)
 	}); err != nil {
 		return nil, err
 	}
@@ -510,7 +545,7 @@ func (s *PostService) ImportPosts(records [][]string) (*impexp.ImportResult, err
 
 func (s *PostService) listPostsForExport(query *PostListQuery) ([]SystemPost, error) {
 	var posts []SystemPost
-	db := s.db.Model(&SystemPost{})
+	db := s.scoped(s.db.Model(&SystemPost{}))
 	if query != nil {
 		if strings.TrimSpace(query.PostCode) != "" {
 			db = db.Where("post_code LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.PostCode))+"%")
@@ -548,7 +583,7 @@ func (s *PostService) validatePostCreate(postID uint64, postCode string, deptID 
 	}
 
 	var count int64
-	db := s.db.Model(&SystemPost{}).Where("post_code = ?", trimmedCode)
+	db := s.scoped(s.db.Model(&SystemPost{})).Where("post_code = ?", trimmedCode)
 	if postID > 0 {
 		db = db.Where("id <> ?", postID)
 	}
@@ -570,7 +605,7 @@ func (s *PostService) ensurePostDeptID(deptID uint64) error {
 		IsRoot int    `gorm:"column:is_root"`
 	}
 	var dept row
-	if err := s.db.Table("system_dept").Select("id, is_root").Where("id = ?", deptID).First(&dept).Error; err != nil {
+	if err := s.scoped(s.db.Table("system_dept")).Select("id, is_root").Where("id = ?", deptID).First(&dept).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return common.NewBadRequest("post.dept.invalid")
 		}
@@ -604,7 +639,7 @@ func (s *PostService) loadPostDeptNames(posts []SystemPost) (map[uint64]string, 
 		DeptName string `gorm:"column:dept_name"`
 	}
 	var rows []row
-	if err := s.db.Table("system_dept").Select("id, dept_name").Where(condIDIn, deptIDs).Scan(&rows).Error; err != nil {
+	if err := s.scoped(s.db.Table("system_dept")).Select("id, dept_name").Where(condIDIn, deptIDs).Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 	for _, row := range rows {
@@ -726,7 +761,7 @@ func (s *PostService) loadPostUserCounts() (map[uint64]int, error) {
 	}
 
 	rows := make([]postUserCountRow, 0)
-	if err := s.db.Table("system_user").
+	if err := s.scoped(s.db.Table("system_user")).
 		Select("post_id, COUNT(1) AS count").
 		Where("deleted_at IS NULL AND post_id > 0").
 		Group("post_id").

@@ -461,7 +461,10 @@ test('setting smoke: logout clears explicit language and falls back to default l
     await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
 
     await page.getByRole('textbox', { name: 'Username' }).fill('admin');
-    await page.getByLabel('Password').fill('123456');
+    // The visibility toggle inside PasswordInput is a labelled button, so
+    // getByLabel(/密码|Password/) now resolves to two nodes; the field itself is
+    // the only password input on the page.
+    await page.locator('input[type="password"]').fill('123456');
     await page.getByRole('button', { name: 'Sign in' }).click();
 
     await expect(page).toHaveURL(/\/dashboard$/);
@@ -515,7 +518,7 @@ test('setting smoke: logout clears explicit theme and falls back to default them
       .toBe(nextTheme);
 
     await page.getByRole('textbox', { name: /用户名|Username/ }).fill('admin');
-    await page.getByLabel(/密码|Password/).fill('123456');
+    await page.locator('input[type="password"]').fill('123456');
     await page.getByRole('button', { name: /登录|Sign in|Sign In/ }).click();
 
     await expect(page).toHaveURL(/\/dashboard$/);
@@ -627,7 +630,11 @@ test('setting smoke: upload config affects runtime upload endpoint', async ({ pa
     expect(uploadPayload.ok()).toBeTruthy();
     const uploadResult = await uploadPayload.json();
     expect(uploadResult.code).toBe(200);
-    expect(uploadResult.data.url).toContain('/api/v1/system/upload/files/profile/avatar/');
+    // Compat keeps the legacy key layout; multi mode prefixes the resolved
+    // tenant (`t<id>/`) so object keys cannot collide across tenants.
+    expect(uploadResult.data.url).toMatch(
+      /\/api\/v1\/system\/upload\/files\/(?:t\d+\/)?profile\/avatar\//,
+    );
 
     const fileResponse = await page.request.get(uploadResult.data.url);
     expect(fileResponse.ok()).toBeTruthy();

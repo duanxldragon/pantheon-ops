@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Form, Input } from '@arco-design/web-react';
+import { Form } from '@arco-design/web-react';
+import PasswordInput from '../patterns/forms/PasswordInput';
 import { message } from './message';
 import { useTranslation } from 'react-i18next';
 import { verifyOperationPassword } from '../../modules/auth/security/api';
@@ -61,7 +62,7 @@ export const SecondaryVerifyModal: React.FC<SecondaryVerifyModalProps> = ({
           field="password"
           rules={[{ required: true, message: t('auth.passwordRequired') }]}
         >
-          <Input.Password
+          <PasswordInput
             placeholder={t('auth.passwordPlaceholder')}
             onPressEnter={() => form.submit()}
           />

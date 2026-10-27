@@ -1,6 +1,7 @@
 import type { LazyExoticComponent, ComponentType } from 'react';
 import type { RegisteredComponentKey } from './componentRegistry';
 import type { MenuIconKey } from '../menu/icon';
+import type { PlanFeatureKey } from '../entitlements/plans';
 import type { TFunction } from 'i18next';
 
 /** 消费方业务组件覆盖注册表：字符串 key 映射到懒加载组件。 */
@@ -77,6 +78,8 @@ interface DashboardWidgetBase {
   descriptionKey: string;
   path: string;
   permission?: string;
+  /** Minimum tenant plan that exposes this widget. Omit for every plan. */
+  feature?: PlanFeatureKey;
   cleanupPolicy: DashboardWidgetCleanupPolicy;
   navigationSource?: DashboardWidgetNavigationSource;
   registrationOwner?: string;
@@ -134,6 +137,8 @@ interface ModuleRouteConfigBase {
   isCache?: boolean;
   activeMenu?: string;
   pagePermission?: string;
+  /** Minimum tenant plan that exposes this page. Omit for every plan. */
+  feature?: PlanFeatureKey;
 }
 
 export type ModuleRouteConfig = ModuleRouteConfigBase &

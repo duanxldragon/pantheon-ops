@@ -26,6 +26,7 @@ import {
   showAppModalConfirm,
 } from '../../../../components';
 import { usePermission } from '../../../../hooks/usePermission';
+import { usePlanEntitlements } from '../../../../core/entitlements/usePlanEntitlements';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { auditPendingActivations, getModuleStatus } from '../../dynamicmodule/api';
@@ -711,10 +712,20 @@ function isOneClickRegistrationEnabled(
   );
 }
 
+/**
+ * The table prefix a scope owns. A system module may only bind `system_*`
+ * tables and a business module only `biz_*`, so the picker, the hint and the
+ * scope change handler all read the same rule.
+ */
+function tablePrefixForScope(scope: ModuleScope): string {
+  return scope === 'system' ? 'system_' : 'biz_';
+}
+
 const ModuleWizard: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPerm, isAdmin } = usePermission();
+  const { hasFeature } = usePlanEntitlements();
   const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm<Partial<ModuleSchema>>();
   const [fields, setFields] = useState<ModuleField[]>([]);
@@ -755,11 +766,22 @@ const ModuleWizard: React.FC = () => {
     Record<string, TranslationOverride>
   >({});
   const [datasourceForm] = Form.useForm<UpsertGeneratorDatasourcePayload>();
-  const canManageDatasources = hasAccess(isAdmin, hasPerm('system:generator:datasource:manage'));
+  const datasourcePlanEntitled = hasFeature('lowcode.generator.datasource');
+  const canManageDatasources =
+    datasourcePlanEntitled && hasAccess(isAdmin, hasPerm('system:generator:datasource:manage'));
+  const visibleDatasources = datasourcePlanEntitled
+    ? datasources
+    : datasources.filter((item) => item.isCurrent);
   const actionLabel = (action: Exclude<PageActionKey, 'detail'>, locale: 'zh-CN' | 'en-US') =>
     t(`generator.pageActions.${action}`, { lng: locale });
 
   const selectedDatasource = datasources.find((item) => item.id === selectedDatasourceId);
+  const watchedScope = Form.useWatch('scope', form) as ModuleScope | undefined;
+  const activeScope: ModuleScope = watchedScope ?? 'business';
+  const managedTablePrefix = tablePrefixForScope(activeScope);
+  const visibleTableOptions = tableOptions.filter((item) =>
+    item.tableName.startsWith(managedTablePrefix),
+  );
 
   const loadDatasources = useCallback(async () => {
     const items = await listGeneratorDatasources();
@@ -1245,7 +1267,7 @@ const ModuleWizard: React.FC = () => {
             title: t('generator.wizard.register.overwriteTitle'),
             content: t('generator.wizard.register.overwriteContent'),
             onOk: () => {
-               void submitGenerateAndRegister(true);
+              void submitGenerateAndRegister(true);
             },
           });
           return;
@@ -1448,6 +1470,13 @@ const ModuleWizard: React.FC = () => {
                               <IconPlus /> {t('generator.datasource.manage')}
                             </Button>
                           </PermissionAction>
+                          {!datasourcePlanEntitled ? (
+                            <Tag color="orange">
+                              {t('generator.datasource.planLocked', {
+                                plan: t('system.tenant.plan.enterprise'),
+                              })}
+                            </Tag>
+                          ) : null}
                         </Space>
                       </Space>
                       <Select
@@ -1455,7 +1484,7 @@ const ModuleWizard: React.FC = () => {
                         onChange={(value) => setSelectedDatasourceId(String(value))}
                         placeholder={t('generator.datasource.selectorPlaceholder')}
                       >
-                        {datasources.map((item) => (
+                        {visibleDatasources.map((item) => (
                           <Select.Option key={item.id} value={item.id}>
                             {item.name} · {item.databaseName}
                             {item.isCurrent ? ` · ${t('generator.datasource.currentTag')}` : ''}
@@ -1470,7 +1499,10 @@ const ModuleWizard: React.FC = () => {
                   <FormItem
                     label={t('generator.wizard.sourceTable')}
                     field="metadata.sourceTable"
-                    extra={t('generator.wizard.sourceTable.help')}
+                    extra={`${t('generator.wizard.sourceTable.help')} ${t(
+                      'generator.wizard.sourceTable.scopeFilter',
+                      { prefix: managedTablePrefix },
+                    )}`}
                   >
                     <Select
                       allowClear
@@ -1501,7 +1533,7 @@ const ModuleWizard: React.FC = () => {
                           .catch(() => undefined);
                       }}
                     >
-                      {tableOptions.map((item) => (
+                      {visibleTableOptions.map((item) => (
                         <Select.Option key={item.tableName} value={item.tableName}>
                           {item.tableName}
                           {item.comment ? ` · ${item.comment}` : ''}
@@ -1532,7 +1564,14 @@ const ModuleWizard: React.FC = () => {
                 rules={[{ required: true, message: t('common.required') }]}
               >
                 <Select
-                  onChange={() => {
+                  onChange={(value) => {
+                    const nextPrefix = tablePrefixForScope(value as ModuleScope);
+                    const currentTable = String(
+                      form.getFieldValue('metadata.sourceTable' as keyof ModuleSchema) || '',
+                    ).trim();
+                    if (currentTable && !currentTable.startsWith(nextPrefix)) {
+                      form.setFieldValue('metadata.sourceTable' as keyof ModuleSchema, undefined);
+                    }
                     syncModuleNameValidation();
                   }}
                 >
@@ -2247,7 +2286,7 @@ const ModuleWizard: React.FC = () => {
                     loading={registering}
                     disabled={!oneClickEnabled}
                     onClick={() => {
-                       void submitGenerateAndRegister();
+                      void submitGenerateAndRegister();
                     }}
                   >
                     {t('generator.wizard.register.submit')}
@@ -2438,7 +2477,7 @@ const ModuleWizard: React.FC = () => {
                         loading={auditingActivation}
                         disabled={result.module.status === 1}
                         onClick={() => {
-                           void handleAuditActivation();
+                          void handleAuditActivation();
                         }}
                       >
                         {t('generator.wizard.result.checkActivation')}

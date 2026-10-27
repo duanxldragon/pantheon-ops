@@ -12,6 +12,7 @@ import { SettingModule } from '../../modules/system/config/setting';
 import { AuditModule } from '../../modules/system/audit';
 import { I18nModule } from '../../modules/system/i18n';
 import { UserModule } from '../../modules/system/iam/user';
+import { TenantModule } from '../../modules/system/iam/tenant';
 import { GeneratorModule } from '../../modules/lowcode/generator';
 import { DynamicModuleModule } from '../../modules/lowcode/dynamicmodule';
 import { generatedSystemModules } from '../../modules/generated/system';
@@ -28,6 +29,7 @@ export const systemModules: ModuleConfig[] = [
   UserModule,
   RoleModule,
   MenuModule,
+  TenantModule,
   SettingModule,
   I18nModule,
   DynamicModuleModule,

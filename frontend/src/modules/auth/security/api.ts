@@ -249,6 +249,15 @@ export function exportAdminLoginLogs(data?: LoginLogQuery) {
   });
 }
 
+export function exportAdminSecurityEvents(data?: SecurityEventQuery) {
+  return downloadFile({
+    url: '/system/security-event/export',
+    method: 'post',
+    data,
+    filename: 'system-security-event-export.csv',
+  });
+}
+
 export function exportSelectedAdminLoginLogs(rows: LoginLogRow[]) {
   downloadCsvFile(
     'system-login-log-export.csv',

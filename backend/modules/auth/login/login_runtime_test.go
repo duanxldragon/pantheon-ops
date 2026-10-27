@@ -15,6 +15,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/audit"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/role"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/tenant"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
@@ -32,6 +33,9 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	db := testmysql.Open(t)
 
 	// 迁移模型
+	// tenants is required by the credential lookup: it skips subjects whose
+	// tenant has been soft-deleted, since those can never host a session.
+	_ = db.AutoMigrate(&tenant.Tenant{})
 	_ = db.AutoMigrate(&user.SystemUser{}, &SystemUserSession{}, &SystemLogLogin{}, &SystemLoginThrottle{}, &SystemAuthFactor{}, &SystemAuthMFAChallenge{}, &SystemAuthSecurityEvent{}, &SystemUserPasswordHistory{})
 	_ = db.AutoMigrate(&setting.SystemSetting{}, &role.SystemRole{}, &user.SystemUserRole{}, &role.SystemRolePermission{})
 	return db
@@ -78,7 +82,7 @@ func boolPtr(value bool) *bool {
 
 func setupTestRedis(t *testing.T) *redis.Client {
 	t.Helper()
-	rdb := testredis.Open(t)
+	rdb := testredis.OpenDB(t, testredis.DBLogin)
 	previousRDB := database.RDB
 	database.RDB = rdb
 	t.Cleanup(func() {
@@ -152,7 +156,7 @@ func TestRuntime_MFARejectsInvalidCode(t *testing.T) {
 
 func TestRuntime_ReloadsMFASettingAfterSettingUpdate(t *testing.T) {
 	db := testmysql.Open(t)
-	_ = db.AutoMigrate(&user.SystemUser{}, &SystemUserSession{}, &SystemLogLogin{}, &SystemLoginThrottle{}, &SystemAuthFactor{}, &SystemAuthMFAChallenge{})
+	_ = db.AutoMigrate(&tenant.Tenant{}, &user.SystemUser{}, &SystemUserSession{}, &SystemLogLogin{}, &SystemLoginThrottle{}, &SystemAuthFactor{}, &SystemAuthMFAChallenge{})
 	settingSvc := setting.NewSettingService(db)
 	if err := settingSvc.Migrate(); err != nil {
 		t.Fatalf("migrate setting: %v", err)

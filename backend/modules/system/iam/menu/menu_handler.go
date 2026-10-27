@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,7 +40,7 @@ func (h *MenuHandler) GetMenuTree(c *gin.Context) {
 			return
 		}
 	}
-	tree, err := h.service.GetMenuTree(&query, roleKeys)
+	tree, err := h.service.GetMenuTree(&query, roleKeys, tenant.FromGin(c))
 	if err != nil {
 		common.Fail(c, common.CodeError, "menu.fetch.error")
 		return
@@ -131,16 +132,24 @@ func menuErrorCode(err error) int {
 
 func menuErrorMessage(err error, fallback string) string {
 	if isMenuValidationError(err) {
-		return err.Error()
+		return common.ErrMessage(err)
 	}
 	return fallback
 }
 
+// isMenuValidationError reports whether err is one of the menu module's
+// client-fixable validation failures.
+//
+// It matches on the extracted i18n key (common.ErrMessage), NOT on err.Error():
+// the service builds these with common.NewBadRequest, whose Error() is
+// "bad_request: menu.page_perm.required". Comparing that raw string against the
+// bare keys below never matched, so every menu validation failure fell through
+// to CodeError and the caller saw a 500 for what is plainly a 400.
 func isMenuValidationError(err error) bool {
 	if err == nil {
 		return false
 	}
-	switch err.Error() {
+	switch common.ErrMessage(err) {
 	case "menu.update.error.parent_self",
 		"menu.route_name.required",
 		"menu.page_perm.required",

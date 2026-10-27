@@ -1,9 +1,11 @@
 package security
 
 import (
+	"errors"
 	"testing"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 )
 
@@ -73,11 +75,14 @@ func TestBatchAcknowledgeSecurityEvents(t *testing.T) {
 		t.Fatalf("expected no pending events left, got %d", pendingLeft)
 	}
 
-	if _, err := svc.BatchAcknowledgeSecurityEvents([]uint64{pending1}, 42, "admin", "  "); err == nil {
-		t.Fatal("expected error for empty note")
+	if _, err := svc.BatchAcknowledgeSecurityEvents([]uint64{pending1}, 42, "admin", "  "); !errors.Is(err, common.ErrBadRequest) {
+		t.Fatalf("expected bad-request class for empty note, got %v", err)
 	}
-	if _, err := svc.BatchAcknowledgeSecurityEvents(nil, 42, "admin", "note"); err == nil {
-		t.Fatal("expected error for empty id list")
+	if _, err := svc.BatchAcknowledgeSecurityEvents(nil, 42, "admin", "note"); !errors.Is(err, common.ErrBadRequest) {
+		t.Fatalf("expected bad-request class for empty id list, got %v", err)
+	}
+	if err := svc.AcknowledgeSecurityEvent(pending1, 42, "admin", " "); !errors.Is(err, common.ErrBadRequest) {
+		t.Fatalf("expected bad-request class for single empty note, got %v", err)
 	}
 }
 

@@ -19,7 +19,7 @@ type SecretPresenceItem struct {
 }
 
 // shellQuoteSingle wraps a value for safe single-quoted shell interpolation:
-// ' -> '\'' so arbitrary values (including quotes) cannot break out.
+// ' -> '\” so arbitrary values (including quotes) cannot break out.
 func shellQuoteSingle(value string) string {
 	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
 }
@@ -87,6 +87,7 @@ func validateDeploySecretParams(secrets map[string]string) error {
 	}
 	return nil
 }
+
 // validateDeployStructuralParams validates structural template params. Values
 // that could break the fixed template renderer (newlines, embedded quotes) are
 // rejected for the keys known to be rendered into shell text.

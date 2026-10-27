@@ -473,6 +473,7 @@ function mergePackages(baseRoot, opsRoot, targetRoot, manifest) {
     ...basePackage.scripts,
     'rebuild:from-base': 'node scripts/business-overlay/rebuild-from-base.mjs',
     'check:business-overlay': 'node scripts/business-overlay/check-business-overlay.mjs',
+    'check:shared-drift': 'node scripts/business-overlay/check-shared-drift.mjs',
     'test:business-overlay': 'node --test tests/scripts/business-overlay/*.test.mjs',
     // Ops-owned root scripts (repositoryOverlayPaths) that Base does not ship.
     'check:encoding': 'node scripts/check-encoding.mjs --strict',

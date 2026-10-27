@@ -1,10 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>pantheon platform</title>
+    <script>
+      // Pre-paint language: assistive tech picks pronunciation from <html lang>,
+      // so it must already be right before the bundle loads. Keep this list in
+      // sync with SUPPORTED_LOCALES in src/i18n/index.ts, which owns the value
+      // again as soon as i18n initialises.
+      (() => {
+        const supported = ['zh-CN', 'en-US', 'ja-JP', 'ko-KR', 'fr-FR'];
+        let lang = null;
+        try {
+          lang = localStorage.getItem('pantheon_lang');
+        } catch (error) {
+          lang = null;
+        }
+        document.documentElement.lang = supported.includes(lang ?? '') ? lang : 'zh-CN';
+      })();
+    </script>
     <script>
       // Pre-paint color mode: set the root attribute before first paint so the
       // page background never flashes light-on-dark. Body's arco-theme is set

@@ -39,6 +39,15 @@ function normalizeLocale(locale: string | null | undefined): SupportedLocale {
   return SUPPORTED_LOCALES.includes(normalized) ? normalized : 'zh-CN';
 }
 
+// Screen readers pick the pronunciation of the whole page from this attribute, so
+// it has to move with the UI language instead of staying on the static markup.
+export function syncDocumentLang(locale: string) {
+  if (globalThis.document === undefined) {
+    return;
+  }
+  document.documentElement.lang = normalizeLocale(locale);
+}
+
 async function loadFallbackResources(locale: SupportedLocale) {
   const [baseResources, overrideResources, generatedResources] = await Promise.all([
     fallbackLoaders[locale](),
@@ -130,6 +139,7 @@ export async function initI18n() {
       escapeValue: false,
     },
   });
+  syncDocumentLang(i18n.language);
 }
 
 export async function switchI18nLanguage(locale: string) {
@@ -150,5 +160,9 @@ export async function reloadI18nResources() {
   const remoteResources = await fetchLangPack(currentLang);
   i18n.addResourceBundle(currentLang, 'translation', remoteResources, true, true);
 }
+
+// One subscription covers every locale change, including ones made outside these
+// helpers, so <html lang> can never drift from the language the UI is rendering.
+i18n.on('languageChanged', syncDocumentLang);
 
 export default i18n;

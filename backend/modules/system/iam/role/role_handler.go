@@ -1,17 +1,21 @@
 package role
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 const (
 	errParamInvalid  = "param.invalid"
 	errRequestFailed = "request.failed"
+	errRoleNotFound  = "role.not_found"
 )
 
 type RoleHandler struct {
@@ -22,6 +26,34 @@ func NewRoleHandler(s *RoleService) *RoleHandler {
 	return &RoleHandler{service: s}
 }
 
+// svc returns the request-scoped service view bound to the resolved tenant
+// context (contract §3.3/§4). A nil context returns the shared service; compat
+// binds the platform-global scope (tenant_id=0). Admin operations must use this
+// instead of h.service directly, otherwise they read and write platform-global
+// roles.
+func (h *RoleHandler) svc(c *gin.Context) *RoleService {
+	return h.service.WithTenantContext(tenant.FromGin(c))
+}
+
+// roleErrorResponse maps a role-service error to the right envelope shape.
+//
+// The service resolves a role with a tenant-scoped query (getRole), so a
+// cross-tenant or stale id surfaces as gorm.ErrRecordNotFound. Answering that
+// with request.failed turned an isolation miss into a server fault — the
+// caller addressed a role that simply does not exist in its own tenant
+// (acceptance F14). Map the not-found sentinels to 404 role.not_found and
+// keep everything else on the generic 500 path.
+func roleErrorResponse(c *gin.Context, err error) {
+	if errors.Is(err, gorm.ErrRecordNotFound) || errors.Is(err, common.ErrNotFound) {
+		common.Fail(c, common.CodeNotFound, errRoleNotFound)
+		return
+	}
+	// A rejected role key is the caller's input to fix, not a server fault:
+	// CodeForError maps ErrConflict/ErrBadRequest to the parameter-invalid code so
+	// the console can surface the message instead of a generic 500.
+	common.FailWithError(c, common.CodeForError(err), err, errRequestFailed)
+}
+
 // GetRoleList 获取角色列表。
 func (h *RoleHandler) GetRoleList(c *gin.Context) {
 	var query RoleListQuery
@@ -30,7 +62,7 @@ func (h *RoleHandler) GetRoleList(c *gin.Context) {
 		return
 	}
 
-	list, err := h.service.ListRoles(&query)
+	list, err := h.svc(c).ListRoles(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "role.list.error")
 		return
@@ -48,9 +80,9 @@ func (h *RoleHandler) CreateRole(c *gin.Context) {
 		return
 	}
 
-	role, err := h.service.CreateRole(&req)
+	role, err := h.svc(c).CreateRole(&req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		roleErrorResponse(c, err)
 		return
 	}
 	common.Success(c, role)
@@ -65,7 +97,7 @@ func (h *RoleHandler) ExportRoles(c *gin.Context) {
 		return
 	}
 
-	file, err := h.service.ExportRoles(c.Request.Context(), &query)
+	file, err := h.svc(c).ExportRoles(c.Request.Context(), &query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "role.export.error")
 		return
@@ -104,7 +136,7 @@ func (h *RoleHandler) ImportRoles(c *gin.Context) {
 		return
 	}
 
-	result, err := h.service.ImportRoles(records)
+	result, err := h.svc(c).ImportRoles(records)
 	if err != nil {
 		common.Fail(c, common.CodeError, "role.import.error")
 		return
@@ -128,9 +160,9 @@ func (h *RoleHandler) UpdateRole(c *gin.Context) {
 		return
 	}
 
-	role, err := h.service.UpdateRole(roleID, &req)
+	role, err := h.svc(c).UpdateRole(roleID, &req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		roleErrorResponse(c, err)
 		return
 	}
 	common.Success(c, role)
@@ -145,9 +177,9 @@ func (h *RoleHandler) BatchUpdateRoleStatus(c *gin.Context) {
 		return
 	}
 
-	updatedCount, err := h.service.BatchUpdateRoleStatus(req.RoleIDs, req.Status)
+	updatedCount, err := h.svc(c).BatchUpdateRoleStatus(req.RoleIDs, req.Status)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		roleErrorResponse(c, err)
 		return
 	}
 	common.Success(c, gin.H{"updatedCount": updatedCount})
@@ -161,7 +193,7 @@ func (h *RoleHandler) BatchDeleteRoles(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	resp := common.BatchDelete(req.IDs, h.service.DeleteRole)
+	resp := common.BatchDelete(req.IDs, h.svc(c).DeleteRole)
 	common.Success(c, resp)
 }
 
@@ -178,9 +210,9 @@ func (h *RoleHandler) GetRoleMembers(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.ListRoleMembers(roleID, &query)
+	resp, err := h.svc(c).ListRoleMembers(roleID, &query)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		roleErrorResponse(c, err)
 		return
 	}
 	common.Success(c, resp)
@@ -199,9 +231,9 @@ func (h *RoleHandler) GetRoleMemberCandidates(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.ListAssignableUsers(roleID, &query)
+	resp, err := h.svc(c).ListAssignableUsers(roleID, &query)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		roleErrorResponse(c, err)
 		return
 	}
 	common.Success(c, resp)
@@ -222,9 +254,9 @@ func (h *RoleHandler) AddRoleMembers(c *gin.Context) {
 		return
 	}
 
-	addedCount, err := h.service.AddRoleMembers(roleID, req.UserIDs)
+	addedCount, err := h.svc(c).AddRoleMembers(roleID, req.UserIDs)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		roleErrorResponse(c, err)
 		return
 	}
 	common.Success(c, gin.H{"addedCount": addedCount})
@@ -245,9 +277,9 @@ func (h *RoleHandler) RemoveRoleMembers(c *gin.Context) {
 		return
 	}
 
-	removedCount, err := h.service.RemoveRoleMembers(roleID, req.UserIDs)
+	removedCount, err := h.svc(c).RemoveRoleMembers(roleID, req.UserIDs)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		roleErrorResponse(c, err)
 		return
 	}
 	common.Success(c, gin.H{"removedCount": removedCount})
@@ -263,8 +295,8 @@ func (h *RoleHandler) DeleteRole(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.DeleteRole(roleID); err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+	if err := h.svc(c).DeleteRole(roleID); err != nil {
+		roleErrorResponse(c, err)
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})

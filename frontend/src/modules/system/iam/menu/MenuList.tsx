@@ -871,7 +871,7 @@ const MenuList: React.FC = () => {
       title={t('system.menu.hero.summaryTitle')}
       visible={governanceRail.expanded}
       onClose={governanceRail.close}
-      noteTitle={t('system.menu.hero.summaryTitle')}
+      noteTitle={t('system.menu.hero.sideLead')}
       noteDescription={t('system.menu.hero.sideDesc')}
     >
       <GovernanceRailSummary items={governanceSummaryItems} />

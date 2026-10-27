@@ -321,7 +321,8 @@ func TestTenantCanary_MembershipDenyByDefault(t *testing.T) {
 	}
 }
 
-// 10. Handler binding: compat request reuses shared service; multi gets a view.
+// 10. Handler binding: a missing context reuses the shared service; resolved
+// compat and multi contexts both get a bound view.
 func TestTenantCanary_HandlerBinding(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	f := newTenantFixture(t)
@@ -329,12 +330,67 @@ func TestTenantCanary_HandlerBinding(t *testing.T) {
 	c, _ := gin.CreateTestContext(nil)
 	bound := f.service.WithTenantContext(tenant.FromGin(c))
 	if bound != f.service {
-		t.Fatal("missing context must return the shared (compat) service")
+		t.Fatal("missing context must return the shared service")
+	}
+
+	cWorld, _ := gin.CreateTestContext(nil)
+	tenant.SetGin(cWorld, f.ctxWorld)
+	if f.service.WithTenantContext(tenant.FromGin(cWorld)) == f.service {
+		t.Fatal("compat context must produce a platform-global bound view")
 	}
 
 	c2, _ := gin.CreateTestContext(nil)
 	tenant.SetGin(c2, f.ctxA)
 	if f.service.WithTenantContext(tenant.FromGin(c2)) == f.service {
 		t.Fatal("multi-mode context must produce a tenant-bound view")
+	}
+}
+
+// 11. Compat pins tenant_id=0: rows copied to tenants while the deployment ran
+// in multi mode stay invisible, and their items must not block a platform-level
+// delete or make a platform dict code look taken.
+func TestTenantCanary_CompatPinsGlobalScope(t *testing.T) {
+	f := newTenantFixture(t)
+	mustCreateType(t, f.svcA(), "compat_code", "tenant-a-compat")
+	mustCreateItem(t, f.svcA(), "compat_code", "a-item")
+
+	compat := f.service.WithTenantContext(f.ctxWorld)
+
+	rows, err := compat.ListDictTypes(&DictTypeListQuery{})
+	if err != nil {
+		t.Fatalf("compat list: %v", err)
+	}
+	for _, row := range rows {
+		if row.DictName == "tenant-a-compat" {
+			t.Fatal("compat view must not contain tenant rows")
+		}
+	}
+
+	global := mustCreateType(t, compat, "compat_code", "global-compat")
+	if err := compat.DeleteDictType(global.ID); err != nil {
+		t.Fatalf("platform delete must ignore other tenants' same-code items: %v", err)
+	}
+}
+
+// 12. Reorder is tenant-scoped: reordering by ID cannot move another tenant's
+// item, and the compat view cannot reorder tenant rows.
+func TestTenantCanary_ReorderContained(t *testing.T) {
+	f := newTenantFixture(t)
+	mustCreateType(t, f.svcA(), "reorder_a", "tenant-a")
+	a1 := mustCreateItem(t, f.svcA(), "reorder_a", "a-1")
+	mustCreateItem(t, f.svcA(), "reorder_a", "a-2")
+	mustCreateType(t, f.svcB(), "reorder_b", "tenant-b")
+	b1 := mustCreateItem(t, f.svcB(), "reorder_b", "b-1")
+	mustCreateItem(t, f.svcB(), "reorder_b", "b-2")
+
+	if _, err := f.svcB().ReorderDictItem(a1.ID, "up"); !isNotFound(err) {
+		t.Fatalf("expected not-found reordering another tenant's item, got %v", err)
+	}
+	compat := f.service.WithTenantContext(f.ctxWorld)
+	if _, err := compat.ReorderDictItem(b1.ID, "up"); !isNotFound(err) {
+		t.Fatalf("expected not-found reordering a tenant item from compat, got %v", err)
+	}
+	if _, err := f.svcB().ReorderDictItem(b1.ID, "down"); err != nil {
+		t.Fatalf("tenant must still reorder its own item: %v", err)
 	}
 }

@@ -2,14 +2,6 @@
   "schemaVersion": 1,
   "contract": "docs/designs/REPOSITORY_LAYOUT.md §8.3",
   "reviewBy": "2026-12-31",
-  "description": "Frozen cross-layer boundary findings from the 2026-09-22 layer-boundary-gate task. Each entry is known, reviewed debt with a stated ratchet; the gate (scripts/harness/check-boundaries.mjs --strict --baseline config/boundary-baseline.json) blocks any NEW violation but lets these stay tracked until they are refactored or re-approved. Do not add an entry to silence a new finding — fix it or get explicit maintainer approval. Entries must keep matching a real finding: the gate fails --strict on stale entries (2026-09-23) so they cannot whitelist a reintroduced import. The three backend/modules/auth/* -> modules/system/iam/user entries were removed on 2026-09-23 once the pkg/contracts/authuser port landed and production code stopped importing the iam model. The four auth -> system/components/shared/list-page.css entries were removed on 2026-10-11 by executing their own ratchet: the stylesheet was promoted to frontend/src/assets/list-page.css, so auth pages no longer reach into the system module for a shared style and the misleading modules/system/components/ directory is gone.",
-  "entries": [
-    {
-      "file": "frontend/src/modules/platform/widgets.tsx",
-      "importPath": "../system/iam/menu/api",
-      "layer": "platform",
-      "reviewBy": "2026-12-31",
-      "reason": "Type-only import of the menu contract type MenuNode. Ratchet: promote MenuNode to a shared contract type (frontend/src/api) so the platform module stops importing the system/menu module path."
-    }
-  ]
+  "description": "Frozen cross-layer boundary findings from the 2026-09-22 layer-boundary-gate task. Each entry is known, reviewed debt with a stated ratchet; the gate (scripts/harness/check-boundaries.mjs --strict --baseline config/boundary-baseline.json) blocks any NEW violation but lets these stay tracked until they are refactored or re-approved. Do not add an entry to silence a new finding — fix it or get explicit maintainer approval. Entries must keep matching a real finding: the gate fails --strict on stale entries (2026-09-23) so they cannot whitelist a reintroduced import. The three backend/modules/auth/* -> modules/system/iam/user entries were removed on 2026-09-23 once the pkg/contracts/authuser port landed and production code stopped importing the iam model. The four auth -> system/components/shared/list-page.css entries were removed on 2026-10-11 by executing their own ratchet: the stylesheet was promoted to frontend/src/assets/list-page.css, so auth pages no longer reach into the system module for a shared style and the misleading modules/system/components/ directory is gone. The last entry (platform/widgets.tsx -> system/iam/menu/api) was removed on 2026-10-26 by executing its own ratchet: MenuNode now lives in frontend/src/api/menu.ts, which is the public-contract location named by docs/designs/REPOSITORY_LAYOUT.md §8.1, so the platform module no longer imports a system subdomain path.",
+  "entries": []
 }

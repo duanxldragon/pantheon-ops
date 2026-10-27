@@ -122,4 +122,26 @@ describe('dashboard widget registry', () => {
       }),
     ).toEqual([widget]);
   });
+
+  it('hides widgets whose plan feature the tenant session lacks', () => {
+    const [widget] = buildDashboardWidgetRegistry([
+      {
+        name: 'ops',
+        dashboardWidgets: [operationalWidget({ feature: 'lowcode.generator' })],
+      },
+    ]);
+    const context = {
+      menuTree: [{ id: 1, title: 'visible', path: '/business/cmdb', children: [] }],
+      isAdmin: false,
+      hasPerm: () => true,
+    };
+
+    expect(
+      getVisibleDashboardWidgets([widget], { ...context, isFeatureEnabled: () => false }),
+    ).toEqual([]);
+    expect(
+      getVisibleDashboardWidgets([widget], { ...context, isFeatureEnabled: () => true }),
+    ).toEqual([widget]);
+    expect(getVisibleDashboardWidgets([widget], context)).toEqual([widget]);
+  });
 });

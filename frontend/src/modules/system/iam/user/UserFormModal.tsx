@@ -3,6 +3,7 @@ import { uploadSystemFile } from '../../../../api/upload';
 import {
   Avatar,
   Button,
+  Checkbox,
   Form,
   Grid,
   Input,
@@ -10,6 +11,7 @@ import {
   Space,
   Typography,
 } from '@arco-design/web-react';
+import PasswordInput from '../../../../components/patterns/forms/PasswordInput';
 import { IconUpload } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { AppModal, FormSection, SubmitBar } from '../../../../components';
@@ -23,6 +25,13 @@ interface UserFormModalProps {
   submitting: boolean;
   orgEnabled: boolean;
   orgRequiredForUser: boolean;
+  /**
+   * A platform subject has pinned a tenant viewpoint: while creating a user
+   * the "join this tenant" integration (checkbox + membership role) is
+   * offered. Always false while editing — membership is a create-time
+   * decision managed from the tenant console afterwards.
+   */
+  joinTenantEnabled: boolean;
   formDeptId: number;
   avatarPreview: string;
   roleOptions: Array<{ label: string; value: number }>;
@@ -45,6 +54,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
   submitting,
   orgEnabled,
   orgRequiredForUser,
+  joinTenantEnabled,
   formDeptId,
   avatarPreview,
   roleOptions,
@@ -103,7 +113,7 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
                     field="password"
                     rules={[{ required: true, message: t('auth.passwordRequired') }]}
                   >
-                    <Input.Password onPressEnter={() => form.submit()} />
+                    <PasswordInput onPressEnter={() => form.submit()} />
                   </FormItem>
                 </Col>
               ) : null}
@@ -237,6 +247,48 @@ const UserFormModal: React.FC<UserFormModalProps> = ({
                 </FormItem>
               </Col>
             </Row>
+            {joinTenantEnabled && !editing ? (
+              /*
+               * Platform tenant viewpoint (contract §3.1): the fresh row is
+               * owned by the pinned tenant server-side, but multi-mode login
+               * also requires an active membership — without it the account
+               * could never log in. The fields ride on the same form; the
+               * hook strips them before the user-create wire call.
+               */
+              <Row gutter={16}>
+                <Col xs={24} md={12}>
+                  {/*
+                   * `triggerPropName="checked"` is required for a Checkbox in
+                   * an Arco Form.Item: without it the field value never reaches
+                   * the control, so the "join by default" state would render
+                   * unchecked (caught by tenant-viewpoint-switcher.spec.ts). The
+                   * hint rides on `extra` to keep the control the only child.
+                   */}
+                  <FormItem
+                    label=" "
+                    field="joinTenant"
+                    triggerPropName="checked"
+                    extra={t('system.user.joinTenantHint')}
+                  >
+                    <Checkbox>{t('system.user.joinTenant')}</Checkbox>
+                  </FormItem>
+                </Col>
+                <Col xs={24} md={12}>
+                  <FormItem
+                    label={t('system.tenant.memberRole')}
+                    field="membershipRole"
+                  >
+                    <Select
+                      options={[
+                        { label: t('system.tenant.role.owner'), value: 'owner' },
+                        { label: t('system.tenant.role.admin'), value: 'admin' },
+                        { label: t('system.tenant.role.member'), value: 'member' },
+                      ]}
+                    />
+                  </FormItem>
+                </Col>
+              </Row>
+            ) : null}
           </FormSection>
         </Space>
       </Form>

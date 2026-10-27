@@ -36,8 +36,11 @@ type OrgGovernanceTask struct {
 	RelatedUserCount      int
 }
 
+// OrgGovernanceTaskLoader supplies the dashboard's org-governance task list.
+// It takes the resolved tenant context so the list is confined to the caller's
+// tenant in multi mode (contract §3.3); a nil/compat context means global.
 type OrgGovernanceTaskLoader interface {
-	ListOrgGovernanceTasks() ([]OrgGovernanceTask, error)
+	ListOrgGovernanceTasks(ctx *tenant.Context) ([]OrgGovernanceTask, error)
 }
 
 type DashboardServiceOption func(*DashboardService)
@@ -162,7 +165,7 @@ func (s *DashboardService) loadOrgGovernanceTasks(resp *SummaryResp) error {
 	if s.orgGovernanceTaskLoader == nil {
 		return nil
 	}
-	tasks, err := s.orgGovernanceTaskLoader.ListOrgGovernanceTasks()
+	tasks, err := s.orgGovernanceTaskLoader.ListOrgGovernanceTasks(s.tenantCtx)
 	if err != nil {
 		return err
 	}
@@ -226,7 +229,8 @@ func (s *DashboardService) loadSummaryCounts(resp *SummaryResp, params summaryCo
 		{count: func() (int64, error) { return s.countTable("system_setting", "") }, apply: func(value int64) { resp.TotalSettings = value }},
 		{count: func() (int64, error) { return s.countTable("system_menu", "is_visible = ? AND type <> ?", 1, "F") }, apply: func(value int64) { resp.VisibleMenuCount = value }},
 		{count: func() (int64, error) {
-			return countQuery(authsession.ApplyActiveScope(s.db.Table("system_user_session"), "", params.Now, params.IdleMinutes))
+			return countQuery(authsession.ApplyActiveScope(
+				s.scopedTable("system_user_session"), "", params.Now, params.IdleMinutes))
 		}, apply: func(value int64) { resp.ActiveSessionCount = value }},
 		{count: func() (int64, error) {
 			return s.countTable("system_log_login", "status = ? AND login_time >= ?", 1, params.Since)
@@ -317,10 +321,34 @@ func (s *DashboardService) countTable(tableName string, where string, args ...in
 	return count, nil
 }
 
+// tenantScopedTables is the set of tables that carry a tenant_id column
+// (contract §2.3). The dashboard counts only for these tables are confined per
+// tenant. The shared catalogues — system_menu, system_i18n and
+// system_module_registration — have no tenant dimension and stay unscoped.
+var tenantScopedTables = map[string]struct{}{
+	"system_user":                       {},
+	"system_role":                       {},
+	"system_dept":                       {},
+	"system_post":                       {},
+	"system_dict_type":                  {},
+	"system_dict_item":                  {},
+	"system_setting":                    {},
+	"system_user_session":               {},
+	"system_log_login":                  {},
+	"system_log_oper":                   {},
+	authSecurityEventTableName:          {},
+	"system_auth_mfa_challenge":         {},
+	"system_user_role":                  {},
+	"system_role_menu":                  {},
+	"system_role_permission":            {},
+	"system_role_data_scope":            {},
+	"permission_role_data_scope_policy": {},
+	"tenant_memberships":                {},
+}
+
 func (s *DashboardService) scopedTable(tableName string) *gorm.DB {
 	q := s.db.Table(tableName)
-	switch tableName {
-	case "system_log_login", authSecurityEventTableName, operationLogTableName, "system_setting":
+	if _, ok := tenantScopedTables[tableName]; ok {
 		q = q.Scopes(tenant.WithTenantScope(s.tenantCtx))
 	}
 	return q

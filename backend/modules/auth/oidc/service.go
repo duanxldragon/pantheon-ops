@@ -13,6 +13,11 @@ import (
 	"gorm.io/gorm"
 )
 
+// oidcProviderName is the provider key stamped into every provisioned user.
+// The (tenant_id, oidc_provider, oidc_subject) unique key (migration 000029)
+// is only sound when lookups and writes agree on one provider identity.
+const oidcProviderName = "default"
+
 // Service handles OIDC authentication flow
 type Service struct {
 	db       *gorm.DB
@@ -64,8 +69,12 @@ func (s *Service) InitiateLogin(ctx context.Context, clientIP string) (authURL s
 	return authURL, nil
 }
 
-// HandleCallback processes the OIDC callback
-func (s *Service) HandleCallback(ctx context.Context, code, state, clientIP string) (*CallbackResult, error) {
+// HandleCallback processes the OIDC callback. tenantID is the tenancy the
+// login flow was started under, resolved by the handler from the request's
+// tenant context (platform-global when no context is present); user lookup
+// and provisioning are scoped to it so a subject from one tenant can never
+// authenticate as the same-subject user of another.
+func (s *Service) HandleCallback(ctx context.Context, code, state, clientIP string, tenantID uint64) (*CallbackResult, error) {
 	// Validate state
 	key := "oidc:state:" + state
 	data, err := s.redis.HGetAll(ctx, key).Result()
@@ -123,7 +132,7 @@ func (s *Service) HandleCallback(ctx context.Context, code, state, clientIP stri
 	}
 
 	// Provision or update user
-	user, isNew, err := s.provisionUser(ctx, userInfo)
+	user, isNew, err := s.provisionUser(ctx, userInfo, tenantID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to provision user: %w", err)
 	}
@@ -134,13 +143,19 @@ func (s *Service) HandleCallback(ctx context.Context, code, state, clientIP stri
 	}, nil
 }
 
-// provisionUser creates or updates a user from OIDC claims
-func (s *Service) provisionUser(ctx context.Context, claims *UserInfo) (*User, bool, error) {
+// provisionUser creates or updates a user from OIDC claims, scoped to the
+// tenant the login flow resolved. The subject predicate matches the
+// (tenant_id, oidc_provider, oidc_subject) unique key from migration 000029;
+// an unscoped lookup would let one provider subject authenticate as the same
+// subject in every tenant.
+func (s *Service) provisionUser(ctx context.Context, claims *UserInfo, tenantID uint64) (*User, bool, error) {
 	var user User
-	result := s.db.Where("oidc_subject = ?", claims.Subject).First(&user)
+	result := s.db.
+		Where("tenant_id = ? AND oidc_provider = ? AND oidc_subject = ?", tenantID, oidcProviderName, claims.Subject).
+		First(&user)
 
 	if result.Error == gorm.ErrRecordNotFound {
-		return s.provisionNewUser(ctx, claims)
+		return s.provisionNewUser(ctx, claims, tenantID)
 	}
 	if result.Error != nil {
 		return nil, false, result.Error
@@ -150,7 +165,7 @@ func (s *Service) provisionUser(ctx context.Context, claims *UserInfo) (*User, b
 
 // provisionNewUser creates a user from OIDC claims after validating the
 // auto-provision policy (extracted to keep provisionUser complexity low).
-func (s *Service) provisionNewUser(ctx context.Context, claims *UserInfo) (*User, bool, error) {
+func (s *Service) provisionNewUser(ctx context.Context, claims *UserInfo, tenantID uint64) (*User, bool, error) {
 	if !s.config.AutoProvision {
 		return nil, false, errors.New("user not found and auto-provision is disabled")
 	}
@@ -161,12 +176,15 @@ func (s *Service) provisionNewUser(ctx context.Context, claims *UserInfo) (*User
 		return nil, false, err
 	}
 
+	subject := claims.Subject
+	provider := oidcProviderName
 	user := User{
+		TenantID:     tenantID,
 		Username:     generateUsername(claims.Email),
 		Email:        claims.Email,
 		Nickname:     claims.Name,
-		OIDCSubject:  &claims.Subject,
-		OIDCProvider: stringPtr("default"),
+		OIDCSubject:  &subject,
+		OIDCProvider: &provider,
 		AuthType:     "oidc",
 		Status:       "active",
 	}
@@ -223,20 +241,30 @@ type CallbackResult struct {
 	IsNew bool
 }
 
-// User represents a simplified user model (should import from actual user package)
+// User represents a simplified user model (should import from actual user
+// package). It maps the real system_user table (migration 000029); the
+// (tenant_id, oidc_provider, oidc_subject) composite unique mirrors
+// uk_system_user_tenant_oidc_subject so a subject is only unique per
+// provider within one tenant.
 type User struct {
 	ID           uint64     `gorm:"primaryKey"`
+	TenantID     uint64     `gorm:"column:tenant_id;uniqueIndex:uk_system_user_tenant_oidc_subject,priority:1"`
 	Username     string     `gorm:"uniqueIndex;not null"`
 	Email        string     `gorm:"uniqueIndex;not null"`
 	Nickname     string     `gorm:"not null"`
 	Status       string     `gorm:"default:'active'"`
-	OIDCSubject  *string    `gorm:"uniqueIndex;column:oidc_subject"`
-	OIDCProvider *string    `gorm:"column:oidc_provider"`
+	OIDCSubject  *string    `gorm:"column:oidc_subject;uniqueIndex:uk_system_user_tenant_oidc_subject,priority:3"`
+	OIDCProvider *string    `gorm:"column:oidc_provider;uniqueIndex:uk_system_user_tenant_oidc_subject,priority:2"`
 	OIDCLastSync *time.Time `gorm:"column:oidc_last_sync"`
-	AuthType     string     `gorm:"default:'local'"`
+	AuthType     string     `gorm:"column:auth_type;default:'local'"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
+
+// TableName pins the model to the versioned-migration table; without it GORM
+// would silently query a non-existent `users` table and every OIDC lookup
+// would fail on any deployment created through the numbered migration chain.
+func (User) TableName() string { return "system_user" }
 
 // Helper functions
 
@@ -272,8 +300,4 @@ func generateUsername(email string) string {
 		return parts[0]
 	}
 	return email
-}
-
-func stringPtr(s string) *string {
-	return &s
 }

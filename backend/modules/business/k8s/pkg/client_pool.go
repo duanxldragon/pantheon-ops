@@ -11,10 +11,10 @@ import (
 // request handlers reuse a single authenticated client per cluster. Entries
 // are evicted after the idle timeout.
 type ClientPool struct {
-	mu       sync.RWMutex
-	clients  map[uint64]*pooledClient
-	idleTTL  time.Duration
-	lastGC   time.Time
+	mu      sync.RWMutex
+	clients map[uint64]*pooledClient
+	idleTTL time.Duration
+	lastGC  time.Time
 }
 
 type pooledClient struct {

@@ -26,7 +26,15 @@ func RegisterPlatformRoutes(r *gin.RouterGroup, db *gorm.DB, orgGovernanceTaskLo
 	dashboardSvc := NewDashboardService(db, WithOrgGovernanceTaskLoader(orgGovernanceTaskLoader))
 	dashboardHandler := NewDashboardHandler(dashboardSvc)
 
-	dashboardGroup := r.Group("/dashboard").Use(tokenMiddleware).Use(middleware.TenantContextMiddleware(tenantModeLoader, db))
+	// The dashboard summary aggregates console-wide counts, so it is a
+	// management surface: it requires an explicit permission grant on top of
+	// authentication (contract §3.3). `admin` holds `/api/v1/*` GET and tenant
+	// administrators hold it through role:<key>@tenant:<id>; a subject with no
+	// grant is denied instead of reading platform-wide statistics.
+	dashboardGroup := r.Group("/dashboard").
+		Use(tokenMiddleware).
+		Use(middleware.PlatformScopeTenantContextMiddleware(tenantModeLoader, db)).
+		Use(middleware.CasbinMiddleware())
 	{
 		dashboardGroup.GET("/summary", dashboardHandler.GetSummary)
 	}

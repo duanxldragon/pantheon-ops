@@ -264,6 +264,63 @@ test('run-smoke-suite skips fixture cleanup in preserve mode but still cleans ge
   );
 });
 
+test('run-smoke-suite injects the explicit API base into cleanup and playwright children', async () => {
+  const port = await getFreePort();
+  const cleanupMarkerPath = path.join(tmpRoot, `cleanup-api-${port}.jsonl`);
+  const playwrightMarkerPath = path.join(tmpRoot, `playwright-api-${port}.json`);
+  const configPath = path.join(tmpRoot, `config-api-${port}.txt`);
+  const apiBaseUrl = 'http://127.0.0.1:8081/api/v1';
+  fs.writeFileSync(configPath, 'placeholder');
+
+  const result = await spawnCommand(process.execPath, [
+    runnerScript,
+    '--host',
+    '127.0.0.1',
+    '--port',
+    String(port),
+    '--timeout',
+    '10000',
+    '--server-script',
+    fixtureServerScript,
+    '--playwright-cli',
+    fakePlaywrightCli,
+    '--generated-cleanup-script',
+    cleanupRecorderScript,
+    '--fixture-cleanup-script',
+    cleanupRecorderScript,
+    '--cleanup-fixtures',
+    'all',
+    '--api-base-url',
+    apiBaseUrl,
+    '--config',
+    configPath,
+    '--',
+    'tests/smoke/fake.spec.ts',
+  ], {
+    env: {
+      ...process.env,
+      PANTHEON_CLEANUP_MARKER: cleanupMarkerPath,
+      PANTHEON_FAKE_PLAYWRIGHT_MARKER: playwrightMarkerPath,
+      PANTHEON_API_BASE_URL: 'http://ignored.example/api/v1',
+    },
+  });
+
+  assert.equal(result.code, 0, `${result.stderr}\n${result.stdout}`);
+  assert.match(result.stdout, new RegExp(`API base ${apiBaseUrl.replaceAll('.', '\\.')}`));
+  const playwrightPayload = JSON.parse(fs.readFileSync(playwrightMarkerPath, 'utf8'));
+  assert.equal(playwrightPayload.apiBaseUrl, apiBaseUrl);
+  const cleanups = fs
+    .readFileSync(cleanupMarkerPath, 'utf8')
+    .trim()
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+  assert.equal(cleanups.length, 4);
+  for (const entry of cleanups) {
+    assert.equal(entry.apiBaseUrl, apiBaseUrl);
+  }
+});
+
 test('run-smoke-suite propagates a pre-cleanup failure and does not invoke playwright', async () => {
   const port = await getFreePort();
   const cleanupMarkerPath = path.join(tmpRoot, `cleanup-failure-${port}.jsonl`);

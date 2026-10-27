@@ -86,14 +86,14 @@ func (s *LoginService) AuthenticateWithSource(req *LoginReq, sourceKey string) (
 		return nil, err
 	}
 	if err := s.ensureUserAvailable(currentUser, sourceKey, policy, now); err != nil {
-		return nil, err
+		return nil, attributeTenant(err, s.loginAuditTenantID(currentUser))
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(currentUser.Password), []byte(req.Password)); err != nil {
-		return nil, s.handlePasswordMismatch(currentUser, sourceKey, policy, now)
+		return nil, attributeTenant(s.handlePasswordMismatch(currentUser, sourceKey, policy, now), s.loginAuditTenantID(currentUser))
 	}
 	if err := s.clearFailedLoginState(currentUser.ID); err != nil {
-		return nil, err
+		return nil, attributeTenant(err, s.loginAuditTenantID(currentUser))
 	}
 	return currentUser, nil
 }
@@ -117,7 +117,7 @@ func (s *LoginService) loadLoginUser(username, sourceKey string, policy RuntimeP
 	// The login path is reached from handlers that do not thread a request
 	// context into Authenticate; keep the pre-port behavior (no per-request
 	// context) rather than widening the login facade signature.
-	currentUser, err := s.userRepo.FindByUsername(context.Background(), username)
+	currentUser, err := s.findCredentialByUsername(username)
 	if err == nil {
 		return currentUser, nil
 	}
@@ -128,6 +128,57 @@ func (s *LoginService) loadLoginUser(username, sourceKey string, policy RuntimeP
 		return nil, errors.New(errUserNotFound)
 	}
 	return nil, err
+}
+
+// findCredentialByUsername resolves the login subject for a login that may have
+// named a tenant.
+//
+// A username is unique only within a tenant (contract §2.2), so a named tenant
+// is tried first: when that tenant owns a credential row for the username, that
+// row is the intended subject and no other row can be.
+//
+// The named tenant is not always a *credential scope* though. A subject may be
+// a member of several tenants while owning a credential row in exactly one of
+// them — that is the login-page picker flow. Membership rows do not create
+// credentials, so a picker choice naming a non-home tenant legitimately finds
+// nothing there. In that case fall back to the global lookup and let the
+// issuance gate decide: resolveLoginTenantClaim runs GateSessionIssuance, which
+// returns ErrTenantForbidden when the resolved subject may not hold a claim for
+// the named tenant (contract §5 → 403 TENANT_FORBIDDEN).
+//
+// The fallback cannot pick a different subject *within* the named tenant —
+// there is none — so it only widens the search when the named tenant is silent.
+// The password comparison and the issuance gate both still apply.
+//
+// Without a named tenant the global lookup is the only path: that is the compat
+// case and the zero/one-membership case, where the platform population has no
+// tenant to name.
+func (s *LoginService) findCredentialByUsername(username string) (*authuser.User, error) {
+	if tenantID, ok := s.loginTenantID(); ok {
+		if repo, ok := s.userRepo.(authuser.TenantUserFinder); ok {
+			user, err := repo.FindByUsernameInTenant(context.Background(), tenantID, username)
+			if err == nil {
+				return user, nil
+			}
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, err
+			}
+		}
+	}
+	return s.userRepo.FindByUsername(context.Background(), username)
+}
+
+// loginTenantID reports the explicit tenant the login named, if any. Only a
+// multi-mode context with a real tenant id scopes the credential lookup; the
+// platform-global placeholder (0) and a compat context both mean "no choice".
+func (s *LoginService) loginTenantID() (uint64, bool) {
+	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+		return 0, false
+	}
+	if s.tenantCtx.TenantID == tenant.PlatformGlobalTenantID {
+		return 0, false
+	}
+	return s.tenantCtx.TenantID, true
 }
 
 func (s *LoginService) ensureUserAvailable(currentUser *authuser.User, sourceKey string, policy RuntimePolicy, now time.Time) error {
@@ -580,6 +631,7 @@ func (s *LoginService) emitSecurityEvent(currentUser *authuser.User, eventType, 
 		username = currentUser.Username
 	}
 	s.recorder.RecordSecurityEvent(security.SystemAuthSecurityEvent{
+		TenantID:   s.loginAuditTenantID(currentUser),
 		UserID:     userID,
 		Username:   username,
 		EventType:  eventType,

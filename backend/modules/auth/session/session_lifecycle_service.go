@@ -45,6 +45,10 @@ func (s *LifecycleService) DeleteUserSessions(userID uint64) error {
 // 每请求检查，含缓存命中路径，立即生效）并级联删除该用户所有会话绑定的
 // refresh token。DB 会话行由 Revoke/DeleteUserSessions 负责，这里不动。
 // blacklist 写失败必须返回错误——它是禁用/删除后阻断访问的唯一硬防线。
+//
+// 同时写 session 级黑名单：登录成功会清除 user 级键（F2，否则密码重置后
+// 用户被锁死约 16 分钟），如果只清 user 级，重置前签发的 access token 会
+// 重新生效。session 级键让「新会话可用、旧 token 仍失效」同时成立。
 func (s *LifecycleService) RevokeUserTokens(userID uint64) error {
 	if s == nil || s.db == nil || userID == 0 {
 		return nil
@@ -56,7 +60,13 @@ func (s *LifecycleService) RevokeUserTokens(userID uint64) error {
 		return err
 	}
 	CascadeRevokeSessionRefresh(sessionIDs...)
-	return authtoken.BlacklistUser(context.Background(), database.RDB, userID)
+	ctx := context.Background()
+	for _, sessionID := range sessionIDs {
+		if err := authtoken.BlacklistSession(ctx, database.RDB, sessionID); err != nil {
+			return err
+		}
+	}
+	return authtoken.BlacklistUser(ctx, database.RDB, userID)
 }
 
 // PurgeUserAuthArtifacts 在用户删除时级联清理 auth 域残留：密码历史、

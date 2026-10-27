@@ -11,6 +11,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/maintenance"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
@@ -35,6 +36,14 @@ type UserRef struct {
 type UserRoleLoader interface {
 	GetUserByID(userID uint64) (*UserRef, error)
 	GetUserRoles(userID uint64) ([]string, error)
+}
+
+// TenantRoleLoader is the optional extension of UserRoleLoader for callers that
+// must resolve roles inside a tenant other than the subject's own — the tenant
+// switch (contract §2.2). A loader that does not implement it falls back to
+// GetUserRoles, which is correct for every single-membership subject.
+type TenantRoleLoader interface {
+	GetUserRolesForTenant(userID, tenantID uint64) ([]string, error)
 }
 
 // TokenIssuer abstracts token issuance so SessionService stays decoupled from AuthService.
@@ -63,8 +72,9 @@ func (s *Service) WithTenantContext(ctx *tenant.Context) *Service {
 	return &clone
 }
 
-// scoped restricts tenant-bound session rows. Compat mode (and a nil context)
-// stays unfiltered; multi mode reads only the active tenant's rows.
+// scoped restricts tenant-bound session rows. A nil context (maintenance /
+// platform-internal paths) stays unfiltered; a request-bound scope pins
+// tenant_id — compat resolves to 0, multi to the active tenant.
 func (s *Service) scoped(db *gorm.DB) *gorm.DB {
 	return db.Scopes(tenant.WithTenantScope(s.tenantCtx))
 }
@@ -164,6 +174,77 @@ func (s *Service) RefreshSessionWithContext(ctx context.Context, sessionID strin
 		return nil, err
 	}
 	return s.issuer.IssueTokenPairWithContext(ctx, u.ID, u.Username, roles, &sess)
+}
+
+// SwitchSessionTenant re-issues the caller's session bound to a different
+// tenant (contract §2.2/§3.1). It is the only place a session's tenant claim
+// can change, and it is deliberately strict:
+//
+//   - the switch is a multi-mode-only operation (compat has one scope);
+//   - the target tenant must exist and be active (EnsureTenantLoginable);
+//   - the subject must hold an ACTIVE membership in the target tenant;
+//   - a no-op switch to the current tenant is rejected.
+//
+// On success the session row is re-stamped and the access/refresh pair is
+// re-signed with the new claim, so the client keeps its session id but every
+// subsequent request resolves to the new tenant.
+func (s *Service) SwitchSessionTenant(ctx context.Context, sessionID string, userID, tenantID uint64) (*authtoken.Pair, error) {
+	if s.db == nil {
+		return nil, common.ErrDatabaseNotInitialized
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	db := s.db.WithContext(ctx)
+	var sess SystemUserSession
+	if err := db.Where(sessionIDAndUserIDWhereClause, sessionID, userID).First(&sess).Error; err != nil {
+		return nil, err
+	}
+	if sess.RevokedAt != nil || sess.RefreshExpiresAt.Before(time.Now()) {
+		return nil, common.ErrUnauthorized
+	}
+	if tenant.NormalizeMode(tenant.FeatureFlagSettingKeyReader(db)) != tenant.ModeMulti {
+		return nil, tenant.ErrTenantForbidden
+	}
+	if sess.TenantID == tenantID {
+		return nil, common.NewBadRequest("tenant.switch.same")
+	}
+	if err := tenant.EnsureTenantLoginable(db, tenantID); err != nil {
+		return nil, err
+	}
+	if !tenant.HasActiveMembership(db, tenantID, userID) {
+		return nil, tenant.ErrTenantForbidden
+	}
+
+	u, err := s.loader.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	roles, err := s.loadRolesForTenant(u.ID, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+	sess.TenantID = tenantID
+	sess.RefreshJTI = uuid.NewString()
+	sess.RefreshExpiresAt = now.Add(authtoken.RefreshTokenTTL)
+	sess.LastRefreshAt = &now
+	sess.LastActivityAt = &now
+	if err := db.Save(&sess).Error; err != nil {
+		return nil, err
+	}
+	return s.issuer.IssueTokenPairWithContext(ctx, u.ID, u.Username, roles, &sess)
+}
+
+// loadRolesForTenant resolves the subject's role keys inside a specific tenant,
+// falling back to the loader's default (the subject's own tenant) when the
+// loader cannot resolve per-tenant roles.
+func (s *Service) loadRolesForTenant(userID, tenantID uint64) ([]string, error) {
+	if l, ok := s.loader.(TenantRoleLoader); ok {
+		return l.GetUserRolesForTenant(userID, tenantID)
+	}
+	return s.loader.GetUserRoles(userID)
 }
 
 // RevokeSession marks a session as revoked.
@@ -381,8 +462,9 @@ func (s *Service) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPageRe
 	base := func() *gorm.DB {
 		db := s.db.Table("system_user_session").
 			Joins("LEFT JOIN system_user ON system_user.id = system_user_session.user_id")
-		// F03: tenant-scoped managers only see their tenant's sessions;
-		// compat/platform context keeps the unfiltered view.
+		// F03 + FIX-2: every request-bound context pins tenant_id — compat to
+		// 0, multi to the active tenant; only the nil-context internal
+		// maintenance paths keep the unfiltered view.
 		db = s.scoped(db)
 		return applyAdminSessionFilters(db, query, now, policy)
 	}
@@ -436,6 +518,57 @@ func (s *Service) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPageRe
 		RevokedCount: revokedCount,
 		Page:         page,
 		PageSize:     pageSize,
+	}, nil
+}
+
+// ExportAdminSessions exports admin sessions as CSV. It reuses the exact
+// list-scope filters (minus pagination) so the file matches the filtered view.
+func (s *Service) ExportAdminSessions(query *AdminSessionQuery) (*impexp.CSVFile, error) {
+	if s.db == nil {
+		return nil, common.ErrDatabaseNotInitialized
+	}
+	now := time.Now()
+	policy := s.policy.GetSessionPolicy()
+
+	db := s.scoped(s.db.Table("system_user_session").
+		Joins("LEFT JOIN system_user ON system_user.id = system_user_session.user_id"))
+	db = applyAdminSessionClientFilters(applyAdminSessionFilters(db, query, now, policy), query)
+
+	var rows []adminSessionRow
+	if err := db.Select("system_user_session.session_id, system_user_session.user_id, system_user.username, system_user.nickname, system_user_session.last_ip, system_user_session.user_agent, system_user_session.refresh_expires_at, system_user_session.last_refresh_at, system_user_session.last_activity_at, system_user_session.revoked_at, system_user_session.created_at").
+		Order("system_user_session.created_at desc").
+		Limit(impexp.MaxExportRows()).
+		Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	nullable := func(value *string) string {
+		if value == nil {
+			return ""
+		}
+		return *value
+	}
+	out := make([][]string, 0, len(rows))
+	for _, row := range rows {
+		resp := buildAdminSessionResp(row, ParseClientInfo(row.UserAgent))
+		status := "active"
+		if resp.RevokedAt != nil {
+			status = "revoked"
+		}
+		out = append(out, []string{
+			resp.SessionID, resp.Username, resp.Nickname, resp.LastIP,
+			resp.Browser, resp.OS, resp.Device, status, resp.RefreshExpiresAt,
+			nullable(resp.LastRefreshAt), nullable(resp.LastActivityAt),
+			nullable(resp.RevokedAt), resp.CreatedAt,
+		})
+	}
+	return &impexp.CSVFile{
+		Filename: "system-session-export.csv",
+		Headers: []string{
+			"sessionId", "username", "nickname", "lastIp", "browser", "os", "device",
+			"status", "refreshExpiresAt", "lastRefreshAt", "lastActivityAt", "revokedAt", "createdAt",
+		},
+		Rows: out,
 	}, nil
 }
 

@@ -176,10 +176,19 @@ const playwrightSubcommand = readArg('--playwright-subcommand', 'test');
 const generatedCleanupScript = readArg('--generated-cleanup-script', 'scripts/cleanup-generated-modules.mjs');
 const fixtureCleanupScript = readArg('--fixture-cleanup-script', 'scripts/cleanup-smoke-fixtures.mjs');
 const fixtureCleanupScope = readArg('--cleanup-fixtures', '');
+const apiBaseUrl = normalizeUrl(readArg('--api-base-url', process.env.PANTHEON_API_BASE_URL ?? ''));
 const separatorIndex = process.argv.indexOf('--');
 const testArgs = separatorIndex >= 0 ? process.argv.slice(separatorIndex + 1) : [];
 const webBaseUrl = `http://${host}:${port}`;
 const preserveFixtures = isTruthy(process.env.PANTHEON_SMOKE_PRESERVE_FIXTURES);
+
+if (apiBaseUrl) {
+  console.log(`[smoke-suite] API base ${apiBaseUrl}`);
+}
+
+function smokeApiEnv() {
+  return apiBaseUrl ? { PANTHEON_API_BASE_URL: apiBaseUrl } : {};
+}
 
 let server = null;
 let shuttingDown = false;
@@ -221,7 +230,7 @@ function cleanupArgs(kind, phase, scope = '') {
 async function runCleanup(scriptPath, args, label) {
   const result = await spawnChild(process.execPath, [scriptPath, ...args], {
     cwd: process.cwd(),
-    env: process.env,
+    env: { ...process.env, ...smokeApiEnv() },
     captureOutput: true,
   });
   const exitCode = result.code ?? (result.signal ? 1 : 0);
@@ -268,6 +277,7 @@ async function main() {
       cwd: process.cwd(),
       env: {
         ...process.env,
+        ...smokeApiEnv(),
         PANTHEON_EXTERNAL_WEB_SERVER: '1',
         PANTHEON_SMOKE_READY_TOKEN: readyToken,
         PANTHEON_WEB_BASE_URL: webBaseUrl,
@@ -301,6 +311,7 @@ async function main() {
         cwd: process.cwd(),
         env: {
           ...process.env,
+          ...smokeApiEnv(),
           PANTHEON_EXTERNAL_WEB_SERVER: '1',
           PANTHEON_WEB_BASE_URL: webBaseUrl,
         },

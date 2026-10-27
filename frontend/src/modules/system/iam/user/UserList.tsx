@@ -379,6 +379,7 @@ const UserList: React.FC = () => {
     state,
     orgEnabled,
     orgRequiredForUser,
+    viewpointTenantId,
     // Form modal
     openCreate,
     openEdit,
@@ -735,6 +736,7 @@ const UserList: React.FC = () => {
         submitting={state.submitting}
         orgEnabled={orgEnabled}
         orgRequiredForUser={orgRequiredForUser}
+        joinTenantEnabled={(viewpointTenantId ?? 0) > 0}
         formDeptId={state.formDeptId}
         avatarPreview={state.avatarPreview}
         roleOptions={state.roleOptions}

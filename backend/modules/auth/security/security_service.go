@@ -17,6 +17,7 @@ import (
 	commonsecurity "github.com/duanxldragon/pantheon-base/backend/pkg/common/security"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts/authuser"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/maintenance"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
@@ -29,6 +30,9 @@ import (
 const (
 	condEventAcknowledged = "acknowledged_at IS NOT NULL"
 	condUserIDEquals      = "user_id = ?"
+	// orderEventRecent is the list order shared by every security-event read
+	// path, so a page and its export always agree on the sequence.
+	orderEventRecent = "created_at desc, id desc"
 )
 
 // PolicyProvider abstracts runtime auth policy.
@@ -222,7 +226,7 @@ func (s *Service) ListSecurityEvents(query *SecurityEventQuery) (*SecurityEventP
 		return nil, err
 	}
 	var events []SystemAuthSecurityEvent
-	if err := db.Order("created_at desc, id desc").Offset((page - 1) * pageSize).Limit(pageSize).Find(&events).Error; err != nil {
+	if err := db.Order(orderEventRecent).Offset((page - 1) * pageSize).Limit(pageSize).Find(&events).Error; err != nil {
 		return nil, err
 	}
 	return &SecurityEventPageResp{
@@ -233,6 +237,44 @@ func (s *Service) ListSecurityEvents(query *SecurityEventQuery) (*SecurityEventP
 		HighSeverityCount: highSeverityCount,
 		Page:              page,
 		PageSize:          pageSize,
+	}, nil
+}
+
+// ExportSecurityEvents exports security events as CSV. It reuses the exact
+// list-scope filters (keyword/type/severity/time window/acknowledgement) so
+// the file always matches the filtered view being exported.
+func (s *Service) ExportSecurityEvents(query *SecurityEventQuery) (*impexp.CSVFile, error) {
+	if s.db == nil {
+		return nil, common.ErrDatabaseNotInitialized
+	}
+	var events []SystemAuthSecurityEvent
+	db := applySecurityEventFilters(s.scoped(s.db.Model(&SystemAuthSecurityEvent{})), query)
+	if err := db.Order(orderEventRecent).Limit(impexp.MaxExportRows()).Find(&events).Error; err != nil {
+		return nil, err
+	}
+
+	items := toSecurityEventRespList(events)
+	rows := make([][]string, 0, len(items))
+	for _, item := range items {
+		acknowledgedAt := ""
+		if item.AcknowledgedAt != nil {
+			acknowledgedAt = *item.AcknowledgedAt
+		}
+		rows = append(rows, []string{
+			strconv.FormatUint(item.ID, 10),
+			item.Username, item.EventType, item.Severity, item.SourceKey, item.IP,
+			item.UserAgent, item.MessageKey, item.Metadata, acknowledgedAt,
+			item.AcknowledgedByUser, item.AcknowledgementNote, item.CreatedAt,
+		})
+	}
+	return &impexp.CSVFile{
+		Filename: "system-security-event-export.csv",
+		Headers: []string{
+			"id", "username", "eventType", "severity", "sourceKey", "ip", "userAgent",
+			"messageKey", "metadata", "acknowledgedAt", "acknowledgedByUser",
+			"acknowledgementNote", "createdAt",
+		},
+		Rows: rows,
 	}, nil
 }
 
@@ -327,7 +369,7 @@ func (s *Service) AcknowledgeSecurityEvent(eventID, actorID uint64, actorUsernam
 	}
 	note = strings.TrimSpace(note)
 	if note == "" {
-		return errors.New("auth.security_event.acknowledge.note_required")
+		return common.NewBadRequest("auth.security_event.acknowledge.note_required")
 	}
 	result := s.scoped(s.db.Model(&SystemAuthSecurityEvent{})).
 		Where("id = ?", eventID).
@@ -355,7 +397,7 @@ func (s *Service) BatchAcknowledgeSecurityEvents(eventIDs []uint64, actorID uint
 	}
 	note = strings.TrimSpace(note)
 	if note == "" {
-		return 0, errors.New("auth.security_event.acknowledge.note_required")
+		return 0, common.NewBadRequest("auth.security_event.acknowledge.note_required")
 	}
 	normalized := make([]uint64, 0, len(eventIDs))
 	seen := make(map[uint64]struct{}, len(eventIDs))
@@ -370,12 +412,12 @@ func (s *Service) BatchAcknowledgeSecurityEvents(eventIDs []uint64, actorID uint
 		normalized = append(normalized, id)
 	}
 	if len(normalized) == 0 {
-		return 0, errors.New("auth.security_event.acknowledge.ids_required")
+		return 0, common.NewBadRequest("auth.security_event.acknowledge.ids_required")
 	}
 	// Cap batch input so a single request cannot smuggle an arbitrarily
 	// large IN clause past BodySizeLimit.
 	if len(normalized) > 500 {
-		return 0, errors.New("param.invalid")
+		return 0, common.NewBadRequest("param.invalid")
 	}
 	result := s.scoped(s.db.Model(&SystemAuthSecurityEvent{})).
 		Where("id IN ? AND acknowledged_at IS NULL", normalized).
@@ -485,7 +527,7 @@ func (s *Service) ListRecentSecurityEvents(userID uint64, limit int) []SecurityE
 		return []SecurityEventResp{}
 	}
 	var events []SystemAuthSecurityEvent
-	if err := s.scoped(s.db).Where(condUserIDEquals, userID).Order("created_at desc, id desc").Limit(limit).Find(&events).Error; err != nil {
+	if err := s.scoped(s.db).Where(condUserIDEquals, userID).Order(orderEventRecent).Limit(limit).Find(&events).Error; err != nil {
 		return []SecurityEventResp{}
 	}
 	return toSecurityEventRespList(events)

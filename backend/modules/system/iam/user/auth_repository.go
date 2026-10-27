@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts/authuser"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"gorm.io/gorm"
 )
@@ -24,6 +25,7 @@ type credentialRepository struct {
 }
 
 var _ authuser.Repository = (*credentialRepository)(nil)
+var _ authuser.TenantUserFinder = (*credentialRepository)(nil)
 
 // NewCredentialRepository publishes the system user credential port for the
 // composition root to inject into the auth module.
@@ -31,9 +33,51 @@ func NewCredentialRepository(db *gorm.DB) authuser.Repository {
 	return &credentialRepository{db: db}
 }
 
+// FindByUsername loads a login subject by username alone.
+//
+// Since the tenant-isolation work made usernames unique only per tenant, the
+// same username can exist in several tenants, so this global lookup needs a
+// deterministic winner. Platform-population subjects (tenant_id = 0) sort
+// first: they are the pre-multi-tenant population and the only subjects that
+// legitimately have no tenant to name at login.
+//
+// A tenant-named login resolves through FindByUsernameInTenant first, so this
+// method is reached for a named tenant only when that tenant owns no such
+// credential row — the picker case, where the choice names a session context
+// rather than the subject's home tenant. The issuance gate then decides whether
+// the subject may hold a claim for the named tenant, so picking the wrong
+// subject here cannot by itself grant access to the named tenant.
+//
+// Subjects whose tenant has been deleted are excluded outright. Deleting a
+// tenant does not remove the `system_user` rows it provisioned, so those rows
+// survive as orphans; because the tie-break below is the lowest id, an orphan
+// used to shadow a live tenant's user with the same username. Login then
+// succeeded as the orphan — whose tenant is gone, so no claim could be resolved
+// — and the resulting claim-less session failed every subsequent request with
+// `tenant.context.missing`. Such a row cannot host a session at all, so it is
+// not a login candidate.
 func (r *credentialRepository) FindByUsername(ctx context.Context, username string) (*authuser.User, error) {
 	var model SystemUser
-	if err := r.db.WithContext(ctx).Where("username = ?", username).First(&model).Error; err != nil {
+	liveTenants := r.db.WithContext(ctx).Table("tenants").
+		Select("id").
+		Where("status <> ?", tenant.TenantStatusDeleted)
+	if err := r.db.WithContext(ctx).
+		Where("username = ?", username).
+		Where("tenant_id = ? OR tenant_id IN (?)", tenant.PlatformGlobalTenantID, liveTenants).
+		Order("CASE WHEN tenant_id = 0 THEN 0 ELSE 1 END, id ASC").
+		First(&model).Error; err != nil {
+		return nil, err
+	}
+	return toAuthUser(&model), nil
+}
+
+// FindByUsernameInTenant loads a login subject whose username is unique only
+// within tenantID (contract §2.2).
+func (r *credentialRepository) FindByUsernameInTenant(ctx context.Context, tenantID uint64, username string) (*authuser.User, error) {
+	var model SystemUser
+	if err := r.db.WithContext(ctx).
+		Where("tenant_id = ? AND username = ?", tenantID, username).
+		First(&model).Error; err != nil {
 		return nil, err
 	}
 	return toAuthUser(&model), nil
@@ -98,5 +142,6 @@ func toAuthUser(model *SystemUser) *authuser.User {
 		LoginLockedUntil:    model.LoginLockedUntil,
 		CreatedAt:           model.CreatedAt,
 		UpdatedAt:           model.UpdatedAt,
+		TenantID:            model.TenantID,
 	}
 }

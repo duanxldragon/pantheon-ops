@@ -1,11 +1,11 @@
 package permission
 
 import (
-	"errors"
 	"strconv"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,11 +13,12 @@ import (
 const errRequestFailed = "request.failed"
 const errParamInvalid = "param.invalid"
 
+// permissionServiceErrorCode keeps the HTTP class of a rejected policy write:
+// a cross-tenant or out-of-scope target is 403, an unknown row is 404, an
+// invalid payload is 400. Collapsing them to 500 hid acceptance F8/F14 behind a
+// generic "request failed".
 func permissionServiceErrorCode(err error) int {
-	if errors.Is(err, common.ErrForbidden) {
-		return common.CodeForbidden
-	}
-	return common.CodeError
+	return common.CodeForError(err)
 }
 
 func failPermissionServiceError(c *gin.Context, err error) {
@@ -33,6 +34,14 @@ func NewPermissionHandler(s *PermissionService) *PermissionHandler {
 	return &PermissionHandler{service: s}
 }
 
+// svc binds the service to the request tenant context. Every surface that reads
+// or writes tenant-owned rows (roles, data-scope policies) must go through it;
+// otherwise a tenant administrator operates on the whole installation
+// (acceptance F7/F8/F9/F10).
+func (h *PermissionHandler) svc(c *gin.Context) *PermissionService {
+	return h.service.WithTenantContext(tenant.FromGin(c))
+}
+
 func (h *PermissionHandler) GetWorkbench(c *gin.Context) {
 	var query PermissionWorkbenchQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -40,7 +49,7 @@ func (h *PermissionHandler) GetWorkbench(c *gin.Context) {
 		return
 	}
 
-	workbench, err := h.service.GetWorkbench(&query)
+	workbench, err := h.svc(c).GetWorkbench(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "permission.workbench.error")
 		return
@@ -57,7 +66,7 @@ func (h *PermissionHandler) ExportWorkbench(c *gin.Context) {
 		return
 	}
 
-	file, err := h.service.ExportWorkbench(&query)
+	file, err := h.svc(c).ExportWorkbench(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "permission.workbench.export.error")
 		return
@@ -74,7 +83,7 @@ func (h *PermissionHandler) ListWorkbenchRemediationEvents(c *gin.Context) {
 		return
 	}
 
-	events, err := h.service.ListWorkbenchRemediationEvents(&query)
+	events, err := h.svc(c).ListWorkbenchRemediationEvents(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "permission.workbench.remediation.error")
 		return
@@ -91,7 +100,7 @@ func (h *PermissionHandler) RemediateWorkbenchPolicies(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.RemediateWorkbenchPolicies(&req)
+	resp, err := h.svc(c).RemediateWorkbenchPolicies(&req)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -106,7 +115,7 @@ func (h *PermissionHandler) ListDataScopePolicies(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.ListDataScopePolicies(&query)
+	resp, err := h.svc(c).ListDataScopePolicies(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "permission.data_scope.list.error")
 		return
@@ -123,7 +132,7 @@ func (h *PermissionHandler) UpdateDataScopePolicy(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.UpdateDataScopePolicy(c.Param("roleKey"), &req)
+	resp, err := h.svc(c).UpdateDataScopePolicy(c.Param("roleKey"), &req)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, errRequestFailed)
 		return
@@ -138,7 +147,7 @@ func (h *PermissionHandler) GetPolicyList(c *gin.Context) {
 		return
 	}
 
-	list, err := h.service.ListPolicies(&query)
+	list, err := h.svc(c).ListPolicies(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "permission.policy.list.error")
 		return
@@ -154,7 +163,7 @@ func (h *PermissionHandler) CreatePolicy(c *gin.Context) {
 		return
 	}
 
-	policy, err := h.service.CreatePolicy(common.GetRoleKeys(c), &req)
+	policy, err := h.svc(c).CreatePolicy(common.GetRoleKeys(c), &req)
 	if err != nil {
 		failPermissionServiceError(c, err)
 		return
@@ -176,7 +185,7 @@ func (h *PermissionHandler) UpdatePolicy(c *gin.Context) {
 		return
 	}
 
-	policy, err := h.service.UpdatePolicy(common.GetRoleKeys(c), policyID, &req)
+	policy, err := h.svc(c).UpdatePolicy(common.GetRoleKeys(c), policyID, &req)
 	if err != nil {
 		failPermissionServiceError(c, err)
 		return
@@ -192,7 +201,7 @@ func (h *PermissionHandler) DeletePolicy(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.DeletePolicy(common.GetRoleKeys(c), policyID); err != nil {
+	if err := h.svc(c).DeletePolicy(common.GetRoleKeys(c), policyID); err != nil {
 		failPermissionServiceError(c, err)
 		return
 	}
@@ -209,7 +218,7 @@ func (h *PermissionHandler) BatchDeletePolicies(c *gin.Context) {
 	}
 	operatorRoleKeys := common.GetRoleKeys(c)
 	resp := common.BatchDelete(req.IDs, func(id uint64) error {
-		return h.service.DeletePolicy(operatorRoleKeys, id)
+		return h.svc(c).DeletePolicy(operatorRoleKeys, id)
 	})
 	common.Success(c, resp)
 }
@@ -222,7 +231,7 @@ func (h *PermissionHandler) ExportPolicies(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	file, err := h.service.ExportPolicies(&query)
+	file, err := h.svc(c).ExportPolicies(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "permission.policy.export.error")
 		return
@@ -261,7 +270,7 @@ func (h *PermissionHandler) ImportPolicies(c *gin.Context) {
 		return
 	}
 
-	result, err := h.service.ImportPolicies(common.GetRoleKeys(c), records)
+	result, err := h.svc(c).ImportPolicies(common.GetRoleKeys(c), records)
 	if err != nil {
 		failPermissionServiceError(c, err)
 		return

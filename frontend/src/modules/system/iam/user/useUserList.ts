@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import type { FormInstance } from '@arco-design/web-react/es/Form';
 import { message } from '../../../../components/feedback/message';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { showImportResult } from '../../../../api/importExport';
-import { isArcoFormValidationError } from '../../../../core/arco/formValidation';
 import { publishRefresh, useRefreshSubscription } from '../../../../core/refresh/refreshBus';
 import { invalidateRouteWarmDataMany, resolveRouteWarmData } from '../../../../core/router/prefetch';
+import { readTenantViewpointId } from '../../../../core/tenant/viewpoint';
+import { addTenantMember, type TenantMemberRole } from '../tenant/api';
 import { usePublicSettings } from '../../../../core/setting/publicSettings';
 import { getDeptTree, type DeptNode } from '../../org/dept/api';
 import { getPostList } from '../../org/post/api';
@@ -84,6 +86,68 @@ const emptyForm: UserCreatePayload = {
   postId: 0,
   roleIds: [],
 };
+
+/**
+ * Form-only extension of the create payload: the "join the pinned tenant"
+ * integration lives in one place. Both fields are stripped before the wire
+ * call — membership is a separate endpoint (`/system/tenant/:id/members`),
+ * not part of the user create payload, and the user's own tenant_id is
+ * stamped server-side from the viewpoint context (contract §3.3).
+ */
+type UserFormValues = UserCreatePayload & {
+  joinTenant?: boolean;
+  membershipRole?: TenantMemberRole;
+};
+
+const emptyFormValues: UserFormValues = {
+  ...emptyForm,
+  // Multi mode login requires an active membership, so "join" defaults to
+  // on: a user created in a tenant viewpoint without membership is a row
+  // nobody can ever log into.
+  joinTenant: true,
+  membershipRole: 'member',
+};
+
+// buildUserWritePayload maps form values onto the write payload. `orgEnabled`
+// gates the org fields so a deployment without the org module never sends a
+// stale dept/post id, and the create and update paths share one shape.
+function buildUserWritePayload(values: UserFormValues, orgEnabled: boolean) {
+  return {
+    nickname: values.nickname ?? '',
+    email: values.email,
+    phone: values.phone,
+    avatar: values.avatar,
+    status: values.status ?? 1,
+    roleIds: values.roleIds || [],
+    deptId: orgEnabled ? (values.deptId ?? 0) : 0,
+    postId: orgEnabled ? (values.postId ?? 0) : 0,
+  };
+}
+
+// joinViewpointIfNeeded completes the "can log in" loop after a create while a
+// tenant viewpoint is pinned: multi-mode login requires an active membership,
+// so the fresh row joins the pinned tenant in the same gesture. A failed
+// membership add is reported on its own — the user creation already succeeded
+// and is never rolled back here.
+async function joinViewpointIfNeeded(
+  tenantId: number | null,
+  createdId: number,
+  values: UserFormValues,
+  t: TFunction,
+) {
+  if (tenantId === null || tenantId <= 0 || createdId <= 0 || values.joinTenant === false) {
+    return;
+  }
+  try {
+    await addTenantMember(tenantId, {
+      user_id: createdId,
+      role: values.membershipRole || 'member',
+    });
+    message.success(t('system.user.joinTenantDone'));
+  } catch {
+    message.error(t('system.tenant.viewpoint.joinMembershipFailed'));
+  }
+}
 
 function isDefaultUserListQuery(query: UserListQuery) {
   return (
@@ -346,9 +410,11 @@ export function useUserList(form: FormInstance<UserCreatePayload>) {
 
   // ---- Form modal actions ----
 
+  const viewpointTenantId = useMemo(() => readTenantViewpointId(), []);
+
   const openCreate = useCallback(() => {
     dispatch({ type: 'OPEN_CREATE' });
-    form.setFieldsValue(emptyForm);
+    form.setFieldsValue(emptyFormValues);
   }, [form]);
 
   const openEdit = useCallback(
@@ -379,44 +445,28 @@ export function useUserList(form: FormInstance<UserCreatePayload>) {
   }, []);
 
   const submitForm = useCallback(async () => {
-    let values: UserCreatePayload;
+    let values: UserFormValues;
     try {
-      values = (await form.validate()) as UserCreatePayload;
-    } catch (error) {
-      if (isArcoFormValidationError(error)) {
-        return;
-      }
+      values = (await form.validate()) as UserFormValues;
+    } catch {
+      // Arco surfaces validation failures on the fields themselves; the submit
+      // path only needs to stop.
       return;
     }
     dispatch({ type: 'SET_SUBMITTING', submitting: true });
     try {
       if (state.editingRow) {
-        await updateUser(state.editingRow.id, {
-          nickname: values.nickname ?? '',
-          email: values.email,
-          phone: values.phone,
-          avatar: values.avatar,
-          deptId: orgEnabled ? (values.deptId ?? 0) : 0,
-          postId: orgEnabled ? (values.postId ?? 0) : 0,
-          status: values.status ?? 1,
-          roleIds: values.roleIds || [],
-        });
+        await updateUser(state.editingRow.id, buildUserWritePayload(values, orgEnabled));
         message.success(t('common.updateSuccess'));
       } else {
-        await createUser({
+        const created = await createUser({
+          ...buildUserWritePayload(values, orgEnabled),
           username: values.username,
           password: values.password,
-          nickname: values.nickname ?? '',
-          avatar: values.avatar,
-          email: values.email,
-          phone: values.phone,
-          status: values.status ?? 1,
-          roleIds: values.roleIds || [],
-          deptId: orgEnabled ? (values.deptId ?? 0) : 0,
-          postId: orgEnabled ? (values.postId ?? 0) : 0,
           profileExt: values.profileExt,
         });
         message.success(t('common.createSuccess'));
+        await joinViewpointIfNeeded(viewpointTenantId, Number(created?.id ?? 0), values, t);
       }
       invalidateUserCaches();
       publishRefresh('system:user:changed', 'system/user');
@@ -427,7 +477,7 @@ export function useUserList(form: FormInstance<UserCreatePayload>) {
     } finally {
       dispatch({ type: 'SET_SUBMITTING', submitting: false });
     }
-  }, [form, invalidateUserCaches, loadData, orgEnabled, state.editingRow, state.query, t]);
+  }, [form, invalidateUserCaches, loadData, orgEnabled, state.editingRow, state.query, t, viewpointTenantId]);
 
   const handleAvatarUploadSuccess = useCallback(
     (response: unknown) => {
@@ -660,6 +710,9 @@ export function useUserList(form: FormInstance<UserCreatePayload>) {
     state,
     orgEnabled,
     orgRequiredForUser,
+    // Tenant viewpoint (platform subject only): enables the join-tenant
+    // section of the create-user form and is consumed by submitForm.
+    viewpointTenantId,
     // Form modal
     openCreate,
     openEdit,

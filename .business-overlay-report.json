@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "baseCommit": "c83f8e4c865b19ecd5351ecefac4106ec416e0bc",
+  "baseCommit": "c9bc6c0f5d351016afb4fffdedf12e72cc73e61d",
   "ownedFiles": [
     {
       "path": ".agents/README.md",
@@ -88,7 +88,7 @@
     },
     {
       "path": ".foundation/foundation-release.lock.json",
-      "sha256": "0238f11af2615b323d73117a375cbccd7f093e88aaabf2d6c523ce28af2d01fa"
+      "sha256": "2c2dc173d04298d1edd1564ff141092a6cc225f4544de33d355ecdd90a9c682f"
     },
     {
       "path": ".githooks/commit-msg",
@@ -108,7 +108,7 @@
     },
     {
       "path": ".github/PULL_REQUEST_TEMPLATE.md",
-      "sha256": "41b04dcd07228dd75c561f655c3b4c3d78ac01894da1d8ef833b7c6397425781"
+      "sha256": "9741b82a1e712d813a6324044a4e7da8048d85afcafc6acba0cb64dc71041c39"
     },
     {
       "path": ".github/dependabot.yml",
@@ -524,15 +524,15 @@
     },
     {
       "path": ".harness/evidence/2026-10-12-foundation-upgrade-base-v0-16-1/commands.json",
-      "sha256": "c36820af6c040eb0e0c886d151ab88eda9be1f1c0343e29d7e058e39e8ad2ba0"
+      "sha256": "b053509a388c6a43fc84933c8ddb40e14f74905d04311f4da0b1f311a56a11cd"
     },
     {
       "path": ".harness/evidence/2026-10-12-foundation-upgrade-base-v0-16-1/review.md",
-      "sha256": "eafc28a54adb4a36352eac8d306ad94c53e174f56c11a4b94f45034efef7f6e2"
+      "sha256": "e827a5c5e07f737dfb9eb885fc4c88c8abe5eecbf9ce31ace37d7d5c31c79ac7"
     },
     {
       "path": ".harness/evidence/2026-10-12-foundation-upgrade-base-v0-16-1/summary.md",
-      "sha256": "f5dc42eee3bbdb7947127869e68747767676756d59262ca1d9eba2ee78ac8da2"
+      "sha256": "04257aec176f84c62e9f77685df8199fca251c6cd375c94066e0cc89331dc0fb"
     },
     {
       "path": ".harness/evidence/cmdb-host-import-export/commands.json",
@@ -1236,11 +1236,11 @@
     },
     {
       "path": "backend/go.mod",
-      "sha256": "59c87fd9314b37738ee8306e0def1c83b86c409e01bbc749d69abaf898d53800"
+      "sha256": "0c86d64cbea2eedb97b9455f4951e4c03f767e185bfc7af74b90866f52885a03"
     },
     {
       "path": "backend/go.sum",
-      "sha256": "0d115209ca8e9859b5949f27537a640eccb3243658cbaac24c1a29c72d1f0901"
+      "sha256": "2d31e4423a9bf263d9bb92df5fe0b7608e38224d50cc1c04d036ab6ce9b23feb"
     },
     {
       "path": "backend/modules/business/bizscope/bizscope_dto.go",
@@ -1896,11 +1896,11 @@
     },
     {
       "path": "backend/modules/system/iam/menu/component_registry.go",
-      "sha256": "83deaafef6a1bf14bcc4cfe076b81b056574ea69df7495b3ed8519cc41bb9d91"
+      "sha256": "56acb971152741e8df554f432ab5f77accf6db74b810f582e656c1f47ed49e8d"
     },
     {
       "path": "business-overlay.json",
-      "sha256": "03005f37098d6c8d12c624ef68c3c729a8cfb26658c66597045a6ab932256185"
+      "sha256": "5c67bb17e74a31070a93c7ea5fa517a084dba35ac521457080da9d743e856cfa"
     },
     {
       "path": "docker-compose.yml",
@@ -1912,7 +1912,7 @@
     },
     {
       "path": "docs/PROJECT_INHERITANCE.md",
-      "sha256": "138a6d4c9f2027797b1c82ebef7c81127a4aafd288d0dada55672520c62d2afb"
+      "sha256": "0b5d0d30e55ae14b6e5881061885afecb4c07497b2a0cbce89911772aab42653"
     },
     {
       "path": "docs/README.en.md",
@@ -2347,6 +2347,98 @@
       "sha256": "c01be381abbcfed488417906af13c1f0c33c63fc19cefe32ceff69ca401b3a89"
     },
     {
+      "path": "docs/migrations/legacy-ops-business-v010x/000012_business_schema.down.sql",
+      "sha256": "4e36e59ba8e7f25ca63524b41c02dffe36e58766e985a917a2fa5f52e4822ee3"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000012_business_schema.up.sql",
+      "sha256": "3c63f5c840d2809a85f20c683264cb69bc95bae10c2633a1fddb1ec9831330bd"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000013_deploy_snapshot_idempotency_lease.down.sql",
+      "sha256": "5203d7093aa361ceb6cf28bbe8ba216f74e39c06d3d6b83250f30bc11e107f6c"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000013_deploy_snapshot_idempotency_lease.up.sql",
+      "sha256": "1935143fbebcff9b2ed0604ac5e529cb1ee1e7801eb5bff5b52c1aef1000d5d8"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000014_service_foundation.down.sql",
+      "sha256": "cb6b26a15296f9f84beab1a3fd6b138aa8f95f05a65ecfbc0cedcddbdd0cf825"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000014_service_foundation.up.sql",
+      "sha256": "7ea3e19ed98c6b6c136ac7ec9846f0c64719f3adca9780797fe6b5fdce9116dd"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000015_business_legacy_upgrade.down.sql",
+      "sha256": "f30fad01cbc63a3df1548b546ae4c8a7f80aec0834e85c9f6eeb33981e9cb7a7"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000015_business_legacy_upgrade.up.sql",
+      "sha256": "ae748d135fd8d20770bfb860287f6be3abfd6eb99d86f3fada61244e855ff83e"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000016_deploy_task_attempt.down.sql",
+      "sha256": "7ca2c7691edbf575ec1b86560bcd58281a99ce78bf982c8baa347d9158277af7"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000016_deploy_task_attempt.up.sql",
+      "sha256": "670a01fc249215920de89fb1877bfa7004f3ed46f3c07ccabd75ac7905d900d2"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000017_k8s_namespace_binding.down.sql",
+      "sha256": "35089ce96a4d0c467d4418f6f857428fce8d223da74f4f9ec4f7e6aa107326f0"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000017_k8s_namespace_binding.up.sql",
+      "sha256": "7c9b64b15985f974414b550821445ca1c528b7777ec1008f4310033b16d5c98e"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000018_deploy_credential_ref.down.sql",
+      "sha256": "305fe0abb8625aa5e7f1e198955d92052e735091d184c0096cdfe7073825e664"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000018_deploy_credential_ref.up.sql",
+      "sha256": "e58fbb55e0c2040508346023312e5f6e0d5cc54532728dee7920543c689b7023"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000019_k8s_cluster_credential_ref.down.sql",
+      "sha256": "2a806ec99e7a33506b3a919ded5047ee72ad9673ac0bcb2fe300bb43cc99bcfd"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000019_k8s_cluster_credential_ref.up.sql",
+      "sha256": "ceb768cc2ba77be9748846944c507bf4c8a4cbfb8afdbc5d4207da53bca21952"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000020_deploy_execution_credential_snapshot.down.sql",
+      "sha256": "7f86fe198e37e4ac6f2888758e349f29682362c7d508030c31e983e4bddeb946"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000020_deploy_execution_credential_snapshot.up.sql",
+      "sha256": "8ba3eb99bf4ec290f82bf473883d444d8e3b435fe3e6ee78e454f5dcb2878d87"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000021_k8s_credential_ref_backfill.down.sql",
+      "sha256": "12b0f974965dccf5f33891caa9ae2cf30f3bf536c455a26c00f8f028a2f72460"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000021_k8s_credential_ref_backfill.up.sql",
+      "sha256": "406a69f49d271f729173c6b77d473700dc263965109561379b1273cd3a724954"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000022_ops_skipped_migrations_repair.down.sql",
+      "sha256": "85d768b5597c4a18da07454fe76db55c5988f2915a4eebfda4bc2c459c9a5616"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/000022_ops_skipped_migrations_repair.up.sql",
+      "sha256": "3edcae69f78e82cf92b0afb0e3bef31b664392aa1915ae5f6ef8eae9a64c97e6"
+    },
+    {
+      "path": "docs/migrations/legacy-ops-business-v010x/README.md",
+      "sha256": "a100529bbb3d87ca0c3b0cab83eccab430d58a6a3094c415d447b2f4bc4827bc"
+    },
+    {
       "path": "e2e-tests/README.md",
       "sha256": "d75f5e1b7ffee783bff927fa7c47ca4a30410497a8cbb24b9fba45474c4a5f39"
     },
@@ -2384,7 +2476,7 @@
     },
     {
       "path": "foundation-release.lock.json",
-      "sha256": "213eb32dc2dc9643d4a4005855d6258747e14ba353cccfca6b1d9f2da20747bd"
+      "sha256": "fa3439f5f0e146b5a7615be6d31ae5cb51a1ae5fe008f53ee261d0b130524734"
     },
     {
       "path": "frontend/README.en.md",
@@ -2392,7 +2484,7 @@
     },
     {
       "path": "frontend/package.json",
-      "sha256": "5ec6ee909e18a9f5cbfff32811d26e97e21cb78ddaf1f4b4454d2a5746d6b1a4"
+      "sha256": "26394ab6e90451f27a2ba7b2aeb66f613d23bf00852ae1b054824c32052d637e"
     },
     {
       "path": "frontend/scripts/cleanup-generated-modules.mjs",
@@ -2404,11 +2496,11 @@
     },
     {
       "path": "frontend/src/core/router/componentRegistry.ts",
-      "sha256": "14e1ef296fb8118945d8da78f77b604c5890855b44468fb4bcda8abd42711608"
+      "sha256": "b8c57b5fb4b38d45c756fa0730990ca59a2fab49a063540e416ed678976ffbf7"
     },
     {
       "path": "frontend/src/core/router/modules.ts",
-      "sha256": "a60347e18aeedd60f7d9e29bca5f4d0265aac57a1daedfda0e411f71b6ab1071"
+      "sha256": "935954b4667621be966b021560d2f12dfb2c98b04982130585b55d91ea80e690"
     },
     {
       "path": "frontend/src/i18n/resources/business/en-US.ts",
@@ -2432,11 +2524,11 @@
     },
     {
       "path": "frontend/src/i18n/resources/en-US.ts",
-      "sha256": "5d6be9d48d4916ab8543060c7e0ab6eeff6c3d0b9a7e3fb65b1d616f47f1e554"
+      "sha256": "a39603808bc65d11c9f5fe7bf95176ab2819b05f54b92b399847f125de36ff4e"
     },
     {
       "path": "frontend/src/i18n/resources/zh-CN.ts",
-      "sha256": "1f8232939f7f4f432de93a0fbca38d8ae1f170c2e3334e387c8907a9c0c9112b"
+      "sha256": "8c21d573b448d4f21f63678ffece2bfef024db545e6e993cf295b7fb04a24763"
     },
     {
       "path": "frontend/src/modules/business/bizscope/BizScopeDetail.tsx",
@@ -2772,7 +2864,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "a014ae18b793373413e1bfe5122294009d9d1ce80076192bb1f05b37c099171c"
+      "sha256": "30d391b91c9888ec19ed27dd94a73651a4ae832a334361a77ea4a40892c15a38"
     },
     {
       "path": "scripts/address-github-feedback.mjs",

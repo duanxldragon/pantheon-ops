@@ -24,7 +24,7 @@ func NewDictHandler(service *DictService) *DictHandler {
 
 // boundService returns the service view bound to the request tenant context
 // (canary: TenantContextMiddleware runs before the protected routes). Under
-// compat the shared service is returned unchanged.
+// compat the view is pinned to the platform-global population (tenant_id=0).
 func (h *DictHandler) boundService(c *gin.Context) *DictService {
 	return h.service.WithTenantContext(tenant.FromGin(c))
 }

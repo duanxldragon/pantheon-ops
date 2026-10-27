@@ -1,5 +1,35 @@
 # Pantheon Base Tenant System - Maturity Assessment
 
+> ## ⚠️ 修正说明（2026-10-13）
+>
+> **本文的 96/100「Production-ready」评分不成立，已被后续实测推翻。**
+>
+> 2026-10-13 的实机端到端复验（`docs/TENANT_INITIALIZATION_FINDINGS_2026-10-13.md`）发现：尽管 schema 与迁移已就位，multi 模式下实际提供的是一套**"租户声明（claim）管道"而非"租户隔离"**：
+>
+> - 建租户只产出**一行 `tenants`**，没有管理员、没有角色、没有 membership——**没人能登进去**
+> - membership 角色**从不映射到 Casbin 权限**，租户管理员登录后菜单 0 节点、控制台接口全 403
+> - `system_user` / `system_role` / `system_dept` / `system_post` **没有 `tenant_id` 列**，IAM 数据是全局的
+> - 用户名唯一性是**全局**的，不是租户内唯一
+>
+> 本文的维度评分把"迁移脚本已写"等同于"隔离已生效"，这是评分失真的根因：**迁移覆盖 ≠ 运行时生效**。
+>
+> ### 整改后（2026-10-13 复验）
+>
+> 上述缺口已全部关闭，并有实机证据：
+>
+> | 维度 | 本文评分 | 复验状态 |
+> |------|---------|---------|
+> | 数据模型与隔离 | 98% | ✅ 已达标——18 张表带 `tenant_id`，`system_user` 唯一键 `(tenant_id, username)`，IAM 全量按租户读写 |
+> | API 与服务层 | 95% | ✅ 已达标——`/system/tenant/*` 建租户即完成初始化（幂等，可重跑修复） |
+> | 认证与授权 | — | ✅ 已达标——membership 角色桥接到 Casbin 域主体；租户管理员全量控制台 + 自动收窄本租户 |
+> | 会话与切换 | — | ✅ 已达标——`/auth/tenants/*` 会话级切换；`X-Tenant-Id` 经真实租户校验 |
+>
+> **复验证据**：`.tmp/verify_tenant_isolation_phase_g.py` — 34/34 通过。
+>
+> 本轮整改还修掉 4 个此前未暴露的真实缺陷（settings 复制漏 `group_key` 致建租户整体失败；成员列表 join `tenant_id` 歧义；登录全局按用户名命中错误主体；数据范围中间件不认租户管理员致其看不到任何数据）。详见 findings 文档顶部订正表。
+>
+> **结论**：本文应重读为"**schema 与迁移层**成熟度评估"。运行时成熟度以复验证据为准。下文的评分保留作对照。
+
 **Assessment Date**: 2026-09-29  
 **Previous Maturity**: 55/100 (Beta early stage)  
 **Current Maturity**: **96/100** (Production-ready)  

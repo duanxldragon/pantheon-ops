@@ -201,9 +201,11 @@ export const AuthModule = defineModule({
     'system:session:list',
     'system:session:delete',
     'system:session:clear',
+    'system:session:export',
     'system:security-event:list',
     'system:security-event:acknowledge',
     'system:security-event:clear',
+    'system:security-event:export',
   ],
   i18nNamespaces: ['auth', 'system.menu'],
 });

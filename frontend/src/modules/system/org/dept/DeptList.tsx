@@ -426,8 +426,13 @@ const DeptList: React.FC = () => {
     },
   );
 
+  // The API returns a nested tree, but the table paginates rows. Paginating
+  // the roots left every child off page 1 and reported "total = 1" for a
+  // two-level department tree (acceptance F6). Flat rows keep search, sort and
+  // pagination consistent with what the table actually renders.
+  const flatDeptRows = useMemo(() => flattenDeptNodes(data), [data]);
   const { currentPage: tableCurrentPage } = getPagedItems(
-    data,
+    flatDeptRows,
     tablePagination.current,
     tablePagination.pageSize,
   );
@@ -460,7 +465,6 @@ const DeptList: React.FC = () => {
   }, [allDeptTree]);
 
   const flatOrgDepts = useMemo(() => flattenDeptNodes(orgDepts), [orgDepts]);
-  const flatDeptRows = useMemo(() => flattenDeptNodes(data), [data]);
   const postsByDept = useMemo(() => groupByDept(orgPosts), [orgPosts]);
   const usersByDept = useMemo(() => groupByDept(orgUsers), [orgUsers]);
   const usersByPost = useMemo(() => groupUsersByPost(orgUsers), [orgUsers]);
@@ -539,6 +543,24 @@ const DeptList: React.FC = () => {
     });
     setVisible(true);
   };
+
+  // The dialog can open before the department tree finishes loading, which
+  // leaves the parent field on the '0' placeholder — a value the backend
+  // rejects ("dept.parent.required"). Backfill the root once the tree arrives,
+  // but never override a parent the operator already picked.
+  useEffect(() => {
+    if (!visible || editing) {
+      return;
+    }
+    const current = form.getFieldValue('parentId') as string | undefined;
+    if (current && current !== '0') {
+      return;
+    }
+    const rootDept = findRootDept(allDeptTree);
+    if (rootDept && rootDept.id > 0) {
+      form.setFieldValue('parentId', String(rootDept.id));
+    }
+  }, [visible, editing, allDeptTree, form]);
 
   const loadLeaderCandidateOptions = useCallback(
     async (deptId: number) => {
@@ -1101,7 +1123,7 @@ const DeptList: React.FC = () => {
       {!loading && !(error && data.length === 0) && data.length > 0 ? (
         <AppTable<DeptNode>
           className="system-list__table"
-          data={data}
+          data={flatDeptRows}
           columns={columns}
           rowKey="id"
           loading={loading}
@@ -1118,7 +1140,7 @@ const DeptList: React.FC = () => {
           pagination={buildStandardPagination(t, {
             current: tableCurrentPage,
             pageSize: tablePagination.pageSize,
-            total: data.length,
+            total: flatDeptRows.length,
           })}
         />
       ) : null}

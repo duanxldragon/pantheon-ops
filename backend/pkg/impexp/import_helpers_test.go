@@ -2,6 +2,8 @@ package impexp
 
 import (
 	"testing"
+
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 )
 
 func TestSplitPipeValues_Empty(t *testing.T) {
@@ -282,5 +284,30 @@ func TestBuildDeptPathMaps_NilDB(t *testing.T) {
 	}
 	if err == nil {
 		t.Fatal("expected error for nil DB")
+	}
+}
+
+// TestBuildDeptPathMaps_OrphanParentIsPathBoundary pins the repair tolerance: a
+// parent outside the loaded set (cross-tenant orphan left by the pre-scope
+// import bug) must not fail the whole path map, otherwise one stale row blocks
+// every import/export for the tenant that owns it.
+func TestBuildDeptPathMaps_OrphanParentIsPathBoundary(t *testing.T) {
+	db := testmysql.Open(t)
+	if err := db.Exec("CREATE TABLE system_dept (id BIGINT PRIMARY KEY, parent_id BIGINT, dept_name VARCHAR(64))").Error; err != nil {
+		t.Fatalf("create dept fixture: %v", err)
+	}
+	if err := db.Exec("INSERT INTO system_dept (id, parent_id, dept_name) VALUES (1, 0, 'Pantheon Base'), (2, 1, '研发中心'), (9, 77, 'orphan')").Error; err != nil {
+		t.Fatalf("seed dept fixture: %v", err)
+	}
+
+	byID, byPath, err := BuildDeptPathMaps(db)
+	if err != nil {
+		t.Fatalf("orphan parent must not fail the path map: %v", err)
+	}
+	if byPath["Pantheon Base/研发中心"] != 2 {
+		t.Fatalf("expected normal path to resolve to 2, got %d", byPath["Pantheon Base/研发中心"])
+	}
+	if byID[9] != "orphan" || byPath["orphan"] != 9 {
+		t.Fatalf("expected orphan to become its own path root, got byID=%q pathToID=%d", byID[9], byPath["orphan"])
 	}
 }

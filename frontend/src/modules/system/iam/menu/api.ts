@@ -1,24 +1,7 @@
 import { apiRequest } from '../../../../api/request';
+import type { MenuNode } from '../../../../api/menu';
 
-export interface MenuNode {
-  id: number;
-  parentId: number;
-  titleKey: string;
-  path: string;
-  component: string;
-  pagePerm: string;
-  perms: string;
-  type: string;
-  icon: string;
-  routeName: string;
-  module: string;
-  sort: number;
-  isVisible: number;
-  isCache: number;
-  isExternal: number;
-  activeMenu: string;
-  children?: MenuNode[];
-}
+export type { MenuNode };
 
 export interface MenuPayload {
   parentId: number;

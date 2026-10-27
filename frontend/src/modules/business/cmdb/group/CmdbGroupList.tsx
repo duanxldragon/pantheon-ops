@@ -53,7 +53,7 @@ import {
 import type { CreateGroupPayload, GroupRow, GroupMemberResp, GroupMemberRow } from './api';
 import CmdbGroupForm from './CmdbGroupForm';
 import { usePermission } from '../../../../hooks/usePermission';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 import '../cmdb.css';
 
 function flattenGroups(groups: GroupRow[]): GroupRow[] {

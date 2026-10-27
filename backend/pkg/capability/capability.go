@@ -42,9 +42,13 @@ func Load(db *gorm.DB) PlatformCapabilities {
 	}
 
 	var rows []settingRow
+	// Platform-scoped read: these flags describe the deployment, so only the
+	// platform-global rows (tenant_id = 0) apply. Without the filter a tenant's
+	// settings copy could win and make capabilities tenant-dependent.
 	if err := db.Table("system_setting").
 		Select("setting_key, setting_value").
 		Where("setting_key IN ?", []string{"platform.app_mode", "org.enabled", "org.required_for_user"}).
+		Where("tenant_id = ?", 0).
 		Find(&rows).Error; err != nil {
 		return caps
 	}

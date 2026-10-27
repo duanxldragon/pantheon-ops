@@ -117,11 +117,12 @@ const SettingOverviewPage: React.FC = () => {
                 eyebrow={t('system.setting.hero.eyebrow')}
                 title={t('system.setting.hero.title')}
                 description={t('system.setting.hero.desc')}
+                // 指标说明统一收进治理抽屉，指标卡保持 label + value 两行节奏，
+                // 与其他系统页（用户/角色/菜单）一致。
                 metrics={heroStats.map((item) => ({
                   key: item.key,
                   label: item.label,
                   value: item.value,
-                  description: item.description,
                 }))}
               />
               <div

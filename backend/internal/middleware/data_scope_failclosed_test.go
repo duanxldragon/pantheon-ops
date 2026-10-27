@@ -8,6 +8,7 @@ import (
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 
 	"github.com/gin-gonic/gin"
@@ -47,7 +48,7 @@ func TestApplyRolePolicyFailureFailsClosedScope(t *testing.T) {
 		RoleKeys: []string{"restricted_role"},
 		Mode:     common.DataScopeModeAll,
 	}
-	failed := applyRoleDataScopePolicy(db, scope)
+	failed := applyRoleDataScopePolicy(db, scope, tenant.PlatformGlobalTenantID)
 	if !failed {
 		t.Fatalf("expected policy lookup failure to be reported")
 	}
@@ -163,7 +164,7 @@ func TestEmptyCustomPolicyReturnsNoRows(t *testing.T) {
 	}
 
 	scope := &common.DataScopeReq{UserID: 7, RoleKeys: []string{"restricted"}, Mode: common.DataScopeModeAll}
-	if applyRoleDataScopePolicy(db, scope) {
+	if applyRoleDataScopePolicy(db, scope, tenant.PlatformGlobalTenantID) {
 		t.Fatal("policy lookup unexpectedly failed")
 	}
 	if scope.Mode != common.DataScopeModeCustom || len(scope.DeptIDs) != 0 {
@@ -260,14 +261,14 @@ func TestRoleDataScopePolicyReadSeesCommittedUpdate(t *testing.T) {
 	if err := db.Create(&SystemRoleDataScope{RoleKey: "restricted", Mode: common.DataScopeModeAll}).Error; err != nil {
 		t.Fatalf("seed policy: %v", err)
 	}
-	first, ok := loadRoleDataScopePolicies(db, []string{"restricted"})
+	first, ok := loadRoleDataScopePolicies(db, tenant.PlatformGlobalTenantID, []string{"restricted"})
 	if !ok || len(first) != 1 || first[0].Mode != common.DataScopeModeAll {
 		t.Fatalf("unexpected initial policy: %+v, ok=%t", first, ok)
 	}
 	if err := db.Model(&SystemRoleDataScope{}).Where("role_key = ?", "restricted").Update("mode", common.DataScopeModeSelf).Error; err != nil {
 		t.Fatalf("update policy: %v", err)
 	}
-	second, ok := loadRoleDataScopePolicies(db, []string{"restricted"})
+	second, ok := loadRoleDataScopePolicies(db, tenant.PlatformGlobalTenantID, []string{"restricted"})
 	if !ok || len(second) != 1 || second[0].Mode != common.DataScopeModeSelf {
 		t.Fatalf("policy read must see committed restriction: %+v, ok=%t", second, ok)
 	}

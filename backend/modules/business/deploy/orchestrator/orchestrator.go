@@ -14,11 +14,11 @@ import (
 // Step condition types. Values mirror the template condition payloads used by
 // the deploy module (condition["type"]).
 const (
-	ConditionAlways       = "always"
-	ConditionOnSuccess    = "on_success"
-	ConditionOnFailure    = "on_failure"
-	ConditionOnChanged    = "on_changed"
-	ConditionParamEquals  = "param_equals"
+	ConditionAlways      = "always"
+	ConditionOnSuccess   = "on_success"
+	ConditionOnFailure   = "on_failure"
+	ConditionOnChanged   = "on_changed"
+	ConditionParamEquals = "param_equals"
 )
 
 // Host execution terminal statuses. Values are shared with the deploy step
@@ -31,11 +31,11 @@ const (
 
 // DAGNode is one node of the execution graph used for validation and ordering.
 type DAGNode struct {
-	StepKey      string
-	Dependencies []string
-	Condition    string
+	StepKey       string
+	Dependencies  []string
+	Condition     string
 	FailurePolicy string
-	StepOrder    int
+	StepOrder     int
 }
 
 // DAGValidation reports whether a set of nodes forms a valid DAG and lists

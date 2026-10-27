@@ -21,10 +21,17 @@ type Quota struct {
 	MaxStorageMB int `json:"max_storage_mb"`
 }
 
-// GetDefaultQuota returns default quota based on plan
+// GetDefaultQuota returns the compiled-in quota table.
+//
+// It is the fallback, not the answer: the operator-editable definitions live in
+// `tenant_plans` (contract §2.4) and PlanStore reads them through QuotaFor. This
+// stays the source of the seeded values and of every resolution that happens
+// before the table exists (a fresh AutoMigrate boot, a unit test with a hand-made
+// schema), which is why deleting it would break exactly the paths that need it
+// most.
 func GetDefaultQuota(plan string) Quota {
 	switch plan {
-	case "free":
+	case planCodeFree:
 		return Quota{
 			MaxUsers:     5,
 			MaxRoles:     3,
@@ -32,7 +39,7 @@ func GetDefaultQuota(plan string) Quota {
 			MaxAPIKeys:   2,
 			MaxStorageMB: 100,
 		}
-	case "basic":
+	case planCodeBasic:
 		return Quota{
 			MaxUsers:     20,
 			MaxRoles:     10,
@@ -40,7 +47,7 @@ func GetDefaultQuota(plan string) Quota {
 			MaxAPIKeys:   10,
 			MaxStorageMB: 1000,
 		}
-	case "professional":
+	case planCodeProfessional:
 		return Quota{
 			MaxUsers:     100,
 			MaxRoles:     50,
@@ -48,27 +55,43 @@ func GetDefaultQuota(plan string) Quota {
 			MaxAPIKeys:   50,
 			MaxStorageMB: 10000,
 		}
-	case "enterprise":
+	case planCodeEnterprise:
 		return Quota{
-			MaxUsers:     -1, // Unlimited
-			MaxRoles:     -1,
-			MaxDepts:     -1,
-			MaxAPIKeys:   -1,
-			MaxStorageMB: -1,
+			MaxUsers:     UnlimitedQuota,
+			MaxRoles:     UnlimitedQuota,
+			MaxDepts:     UnlimitedQuota,
+			MaxAPIKeys:   UnlimitedQuota,
+			MaxStorageMB: UnlimitedQuota,
 		}
 	default:
-		return GetDefaultQuota("free")
+		return GetDefaultQuota(planCodeFree)
 	}
 }
 
-// QuotaEnforcer handles tenant quota enforcement
+// QuotaEnforcer handles tenant quota enforcement.
+//
+// Nothing in the shipped request path constructs it: quota is a reporting
+// dimension, not a write gate (TENANT_CONTRACT_V1 §2.4). It stays here because
+// the console's usage numbers come from the same GetTenantUsage counts, and it
+// reads PlanStore so that if enforcement is ever switched on it cannot disagree
+// with the limits the console already shows.
 type QuotaEnforcer struct {
-	db *gorm.DB
+	db    *gorm.DB
+	plans *PlanStore
 }
 
-// NewQuotaEnforcer creates a new quota enforcer instance
-func NewQuotaEnforcer(db *gorm.DB) *QuotaEnforcer {
-	return &QuotaEnforcer{db: db}
+// NewQuotaEnforcer creates a new quota enforcer instance. A nil plan store falls
+// back to the compiled-in table.
+func NewQuotaEnforcer(db *gorm.DB, plans *PlanStore) *QuotaEnforcer {
+	return &QuotaEnforcer{db: db, plans: plans}
+}
+
+// quotaFor resolves the limits a plan code carries on this deployment.
+func (e *QuotaEnforcer) quotaFor(plan string) Quota {
+	if e.plans == nil {
+		return GetDefaultQuota(plan)
+	}
+	return e.plans.QuotaFor(plan)
 }
 
 // CheckUserQuota verifies if tenant can add more users
@@ -78,7 +101,7 @@ func (e *QuotaEnforcer) CheckUserQuota(tenantID uint64) error {
 		return fmt.Errorf("get tenant: %w", err)
 	}
 
-	quota := GetDefaultQuota(tenant.Plan)
+	quota := e.quotaFor(tenant.Plan)
 	if quota.MaxUsers < 0 {
 		return nil // Unlimited
 	}
@@ -104,7 +127,7 @@ func (e *QuotaEnforcer) CheckRoleQuota(tenantID uint64) error {
 		return fmt.Errorf("get tenant: %w", err)
 	}
 
-	quota := GetDefaultQuota(tenant.Plan)
+	quota := e.quotaFor(tenant.Plan)
 	if quota.MaxRoles < 0 {
 		return nil // Unlimited
 	}

@@ -1,4 +1,5 @@
-import type { MenuNode } from '../system/iam/menu/api';
+import type { MenuNode } from '../../api/menu';
+import type { PlanFeatureKey } from '../../core/entitlements/plans';
 import { registeredModules } from '../../core/router/modules';
 import type {
   DashboardDomainOverviewWidget,
@@ -19,6 +20,8 @@ interface DashboardWidgetVisibilityContext {
   menuTree: MenuNode[];
   hasPerm: (permission: string) => boolean;
   isAdmin: boolean;
+  /** Omitted by callers outside the authenticated shell; then no plan gate applies. */
+  isFeatureEnabled?: (feature: PlanFeatureKey) => boolean;
 }
 
 function findMenuNodeByPath(nodes: MenuNode[], path: string): MenuNode | undefined {
@@ -193,6 +196,13 @@ export function isDashboardWidgetVisible(
   widget: DashboardWidgetDefinition,
   context: DashboardWidgetVisibilityContext,
 ) {
+  if (
+    widget.feature &&
+    context.isFeatureEnabled &&
+    !context.isFeatureEnabled(widget.feature)
+  ) {
+    return false;
+  }
   const hasAccess = !widget.permission || context.isAdmin || context.hasPerm(widget.permission);
   if (!hasAccess) {
     return false;

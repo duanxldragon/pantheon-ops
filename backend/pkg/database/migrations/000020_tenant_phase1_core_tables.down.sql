@@ -5,17 +5,20 @@
 -- Phase 1.7: I18n Tables (reverse order)
 -- ============================================================================
 
-SET @i18n_locale_table_exists := (
+-- Guarded on the column (not just the table): a later down migration may
+-- already have removed it, and the rollback chain must not abort.
+SET @i18n_locale_col_exists := (
   SELECT COUNT(*)
-  FROM information_schema.tables
+  FROM information_schema.columns
   WHERE table_schema = DATABASE()
     AND table_name = 'system_i18n_locale'
+    AND column_name = 'tenant_id'
 );
 
 SET @i18n_locale_drop_col_stmt := IF(
-  @i18n_locale_table_exists > 0,
+  @i18n_locale_col_exists > 0,
   'ALTER TABLE `system_i18n_locale` DROP COLUMN `tenant_id`',
-  'SELECT "system_i18n_locale table does not exist, skipping"'
+  'SELECT "system_i18n_locale.tenant_id already absent, skipping"'
 );
 PREPARE i18n_locale_drop_col_stmt FROM @i18n_locale_drop_col_stmt;
 EXECUTE i18n_locale_drop_col_stmt;
@@ -25,25 +28,35 @@ DEALLOCATE PREPARE i18n_locale_drop_col_stmt;
 -- Phase 1.6: Data Scope Tables
 -- ============================================================================
 
-SET @data_scope_policy_table_exists := (
+-- Guarded on the column (not just the table): a later down migration may
+-- already have removed it, and the rollback chain must not abort.
+SET @data_scope_policy_col_exists := (
   SELECT COUNT(*)
-  FROM information_schema.tables
+  FROM information_schema.columns
   WHERE table_schema = DATABASE()
     AND table_name = 'permission_role_data_scope_policy'
+    AND column_name = 'tenant_id'
 );
 
 SET @data_scope_policy_drop_col_stmt := IF(
-  @data_scope_policy_table_exists > 0,
+  @data_scope_policy_col_exists > 0,
   'ALTER TABLE `permission_role_data_scope_policy` DROP COLUMN `tenant_id`',
-  'SELECT "permission_role_data_scope_policy table does not exist, skipping"'
+  'SELECT "permission_role_data_scope_policy.tenant_id already absent, skipping"'
 );
 PREPARE data_scope_policy_drop_col_stmt FROM @data_scope_policy_drop_col_stmt;
 EXECUTE data_scope_policy_drop_col_stmt;
 DEALLOCATE PREPARE data_scope_policy_drop_col_stmt;
 
-ALTER TABLE `system_role_data_scope`
-  DROP INDEX `idx_role_data_scope_tenant_role`,
-  DROP COLUMN `tenant_id`;
+-- Guarded: a later down migration (000024) may already have removed the
+-- column, and re-running this file must not abort the rollback chain.
+SET @col := (SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = 'system_role_data_scope' AND column_name = 'tenant_id');
+SET @idx := (SELECT COUNT(*) FROM information_schema.statistics
+             WHERE table_schema = DATABASE() AND table_name = 'system_role_data_scope' AND index_name = 'idx_role_data_scope_tenant_role');
+SET @s := IF(@col > 0 AND @idx > 0,
+  'ALTER TABLE `system_role_data_scope` DROP INDEX `idx_role_data_scope_tenant_role`, DROP COLUMN `tenant_id`',
+  IF(@col > 0, 'ALTER TABLE `system_role_data_scope` DROP COLUMN `tenant_id`', 'SELECT 1'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 -- ============================================================================
 -- Phase 1.5: Hierarchy Closure Tables
@@ -162,21 +175,48 @@ PREPARE user_dept_drop_col_stmt FROM @user_dept_drop_col_stmt;
 EXECUTE user_dept_drop_col_stmt;
 DEALLOCATE PREPARE user_dept_drop_col_stmt;
 
-ALTER TABLE `system_user_role`
-  DROP INDEX `idx_system_user_role_tenant_user`,
-  DROP PRIMARY KEY,
-  ADD PRIMARY KEY (`user_id`, `role_id`),
-  DROP COLUMN `tenant_id`;
+-- Guarded: 000024.down already restores the natural keys and drops tenant_id.
+SET @col := (SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = 'system_user_role' AND column_name = 'tenant_id');
+SET @pk_has_tenant := (SELECT COUNT(*) FROM information_schema.statistics
+                       WHERE table_schema = DATABASE() AND table_name = 'system_user_role'
+                         AND index_name = 'PRIMARY' AND column_name = 'tenant_id');
+SET @idx := (SELECT COUNT(*) FROM information_schema.statistics
+             WHERE table_schema = DATABASE() AND table_name = 'system_user_role' AND index_name = 'idx_system_user_role_tenant_user');
+SET @s := IF(@col > 0 AND @pk_has_tenant > 0,
+  'ALTER TABLE `system_user_role` DROP PRIMARY KEY, ADD PRIMARY KEY (`user_id`, `role_id`)', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s := IF(@idx > 0, 'ALTER TABLE `system_user_role` DROP INDEX `idx_system_user_role_tenant_user`', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s := IF(@col > 0, 'ALTER TABLE `system_user_role` DROP COLUMN `tenant_id`', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
-ALTER TABLE `system_role_permission`
-  DROP INDEX `uk_role_permission_tenant`,
-  ADD UNIQUE INDEX `idx_role_permission_unique` (`role_id`, `permission_key`),
-  DROP COLUMN `tenant_id`;
+-- Guarded: 000024.down already restores the natural keys and drops tenant_id.
+SET @col := (SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = 'system_role_permission' AND column_name = 'tenant_id');
+SET @idx := (SELECT COUNT(*) FROM information_schema.statistics
+             WHERE table_schema = DATABASE() AND table_name = 'system_role_permission' AND index_name = 'uk_role_permission_tenant');
+SET @legacy := (SELECT COUNT(*) FROM information_schema.statistics
+                WHERE table_schema = DATABASE() AND table_name = 'system_role_permission' AND index_name = 'idx_role_permission_unique');
+SET @s := IF(@idx > 0, 'ALTER TABLE `system_role_permission` DROP INDEX `uk_role_permission_tenant`', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s := IF(@col > 0 AND @legacy = 0,
+  'ALTER TABLE `system_role_permission` ADD UNIQUE INDEX `idx_role_permission_unique` (`role_id`, `permission_key`)', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s := IF(@col > 0, 'ALTER TABLE `system_role_permission` DROP COLUMN `tenant_id`', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
-ALTER TABLE `system_role_menu`
-  DROP PRIMARY KEY,
-  ADD PRIMARY KEY (`role_id`, `menu_id`),
-  DROP COLUMN `tenant_id`;
+-- Guarded: 000024.down already restores the natural primary key.
+SET @col := (SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = 'system_role_menu' AND column_name = 'tenant_id');
+SET @pk_has_tenant := (SELECT COUNT(*) FROM information_schema.statistics
+                       WHERE table_schema = DATABASE() AND table_name = 'system_role_menu'
+                         AND index_name = 'PRIMARY' AND column_name = 'tenant_id');
+SET @s := IF(@col > 0 AND @pk_has_tenant > 0,
+  'ALTER TABLE `system_role_menu` DROP PRIMARY KEY, ADD PRIMARY KEY (`role_id`, `menu_id`)', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s := IF(@col > 0, 'ALTER TABLE `system_role_menu` DROP COLUMN `tenant_id`', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 -- ============================================================================
 -- Phase 1.2: Organization Structure Tables
@@ -323,16 +363,40 @@ PREPARE permission_drop_col_stmt FROM @permission_drop_col_stmt;
 EXECUTE permission_drop_col_stmt;
 DEALLOCATE PREPARE permission_drop_col_stmt;
 
-ALTER TABLE `system_menu`
-  DROP INDEX `idx_system_menu_tenant_parent`,
-  DROP COLUMN `tenant_id`;
+-- Guarded: 000024.down already drops the column on some deployments.
+SET @col := (SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = 'system_menu' AND column_name = 'tenant_id');
+SET @idx := (SELECT COUNT(*) FROM information_schema.statistics
+             WHERE table_schema = DATABASE() AND table_name = 'system_menu' AND index_name = 'idx_system_menu_tenant_parent');
+SET @s := IF(@col > 0 AND @idx > 0,
+  'ALTER TABLE `system_menu` DROP INDEX `idx_system_menu_tenant_parent`, DROP COLUMN `tenant_id`',
+  IF(@col > 0, 'ALTER TABLE `system_menu` DROP COLUMN `tenant_id`', 'SELECT 1'));
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
-ALTER TABLE `system_role`
-  DROP INDEX `uk_system_role_tenant_key`,
-  ADD UNIQUE INDEX `idx_system_role_role_key` (`role_key`),
-  DROP COLUMN `tenant_id`;
+-- Guarded: 000024.down already restores the natural key and drops tenant_id.
+SET @col := (SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = 'system_role' AND column_name = 'tenant_id');
+SET @idx := (SELECT COUNT(*) FROM information_schema.statistics
+             WHERE table_schema = DATABASE() AND table_name = 'system_role' AND index_name = 'uk_system_role_tenant_key');
+SET @legacy := (SELECT COUNT(*) FROM information_schema.statistics
+                WHERE table_schema = DATABASE() AND table_name = 'system_role' AND index_name = 'idx_system_role_role_key');
+SET @s := IF(@idx > 0, 'ALTER TABLE `system_role` DROP INDEX `uk_system_role_tenant_key`', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s := IF(@col > 0 AND @legacy = 0, 'ALTER TABLE `system_role` ADD UNIQUE INDEX `idx_system_role_role_key` (`role_key`)', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s := IF(@col > 0, 'ALTER TABLE `system_role` DROP COLUMN `tenant_id`', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
-ALTER TABLE `system_user`
-  DROP INDEX `uk_system_user_tenant_username`,
-  ADD UNIQUE INDEX `idx_system_user_username` (`username`),
-  DROP COLUMN `tenant_id`;
+-- Guarded: 000024.down already restores the natural key and drops tenant_id.
+SET @col := (SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = 'system_user' AND column_name = 'tenant_id');
+SET @idx := (SELECT COUNT(*) FROM information_schema.statistics
+             WHERE table_schema = DATABASE() AND table_name = 'system_user' AND index_name = 'uk_system_user_tenant_username');
+SET @legacy := (SELECT COUNT(*) FROM information_schema.statistics
+                WHERE table_schema = DATABASE() AND table_name = 'system_user' AND index_name = 'idx_system_user_username');
+SET @s := IF(@idx > 0, 'ALTER TABLE `system_user` DROP INDEX `uk_system_user_tenant_username`', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s := IF(@col > 0 AND @legacy = 0, 'ALTER TABLE `system_user` ADD UNIQUE INDEX `idx_system_user_username` (`username`)', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+SET @s := IF(@col > 0, 'ALTER TABLE `system_user` DROP COLUMN `tenant_id`', 'SELECT 1');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;

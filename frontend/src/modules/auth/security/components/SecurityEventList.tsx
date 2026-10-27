@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Card, Input, Select, Space, Tag, Typography } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
-import { IconCheck } from '@arco-design/web-react/icon';
+import { IconCheck, IconDownload } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { message } from '../../../../components/feedback/message';
 import { formatDateTime } from '../../../../core/format/dateTime';
@@ -33,6 +33,7 @@ import {
   acknowledgeSecurityEvent,
   batchAcknowledgeSecurityEvents,
   cleanupSecurityEvents,
+  exportAdminSecurityEvents,
   getAdminSecurityEventList,
   type SecurityEventPageResp,
   type SecurityEventQuery,
@@ -89,6 +90,7 @@ const SecurityEventList: React.FC = () => {
   const { isAdmin, hasPerm } = usePermission();
   const canAcknowledge = isAdmin || hasPerm('system:security-event:acknowledge');
   const canClear = isAdmin || hasPerm('system:security-event:clear');
+  const canExport = isAdmin || hasPerm('system:security-event:export');
   const governanceRail = useGovernanceRail();
   const [retentionDays, setRetentionDays] = useState<number>(30);
   const [retentionOptions, setRetentionOptions] = useState<number[]>(() =>
@@ -143,21 +145,28 @@ const SecurityEventList: React.FC = () => {
     return () => globalThis.clearTimeout(timer);
   }, []);
 
+  // Re-fetch the retention options from settings. Runs on mount AND right
+  // before the cleanup dialog opens, so a value just configured in
+  // 系统设置/日志治理 (e.g. 14 天) shows up without a full page reload.
+  const refreshRetentionSetting = useCallback(() => {
+    return getSettingGroup('audit')
+      .then((group: SettingGroup) =>
+        loadRetentionSetting(
+          group,
+          'audit.security_event_retention_options',
+          setRetentionOptions,
+          setRetentionDays,
+        ),
+      )
+      .catch(() => undefined);
+  }, []);
+
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
-      getSettingGroup('audit')
-        .then((group: SettingGroup) =>
-          loadRetentionSetting(
-            group,
-            'audit.security_event_retention_options',
-            setRetentionOptions,
-            setRetentionDays,
-          ),
-        )
-        .catch(() => undefined);
+      void refreshRetentionSetting();
     }, 0);
     return () => globalThis.clearTimeout(timer);
-  }, []);
+  }, [refreshRetentionSetting]);
 
   const handleCleanup = async (payload: GovernanceCleanupPayload) => {
     try {
@@ -170,6 +179,14 @@ const SecurityEventList: React.FC = () => {
           : await cleanupSecurityEvents({ retentionDays: payload.retentionDays });
       message.success(t('auth.securityEvent.cleanupSuccess', { count: resp.clearedCount }));
       await fetchData(query);
+    } catch {
+      message.error(t('common.actionFailed'));
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      await exportAdminSecurityEvents(query);
     } catch {
       message.error(t('common.actionFailed'));
     }
@@ -407,7 +424,7 @@ const SecurityEventList: React.FC = () => {
         />
         <Card className="page-panel system-list__table-card auth-security-event-page__table-card">
           <Typography.Text type="secondary">{t('auth.securityEvent.hint')}</Typography.Text>
-          {canClear || canAcknowledge ? (
+          {canClear || canAcknowledge || canExport ? (
             <GovernanceCleanupBar
               showCleanup={canClear}
               retentionDays={retentionDays}
@@ -422,11 +439,23 @@ const SecurityEventList: React.FC = () => {
                 { label: t('common.cleanupModeRetention'), value: 'retention' },
                 { label: t('common.cleanupModeRange'), value: 'range' },
               ]}
+              onBeforeOpen={refreshRetentionSetting}
               rangeStartLabel={t('common.cleanupRangeStart')}
               rangeEndLabel={t('common.cleanupRangeEnd')}
               rangeRequiredMessage={t('common.cleanupRangeRequired')}
               onConfirm={handleCleanup}
               hint={t('auth.securityEvent.cleanupHint')}
+              trailing={
+                <Button
+                  icon={<IconDownload />}
+                  onClick={() => {
+                    void handleExport();
+                  }}
+                  disabled={!canExport}
+                >
+                  {t('common.export')}
+                </Button>
+              }
               extraActions={
                 canAcknowledge ? (
                   <>

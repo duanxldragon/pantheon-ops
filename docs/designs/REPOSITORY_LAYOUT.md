@@ -260,8 +260,12 @@ BEM 类名（`.time-range-filter__x`）不随文件名变化。
 - `platform -> system/org/dept` 已按 §8.2 修复：adapter 移入组合根 `backend/cmd/server/platform_org_governance.go`，platform 模块不再直接 import system 实现。
 - `system/*` 子域的 ts 规则（2026-10-11 补齐）：此前 `systemDomainRules()` 的 `ts: []` 是空规则，
   即使目录存在也等于不检查。现按 §8.2 校验"跨子域只能走对方 `api`"。
-- 其余已知违规冻结在 `config/boundary-baseline.json`（逐条带 `reason` 与 `reviewBy=2026-12-31`）。CI 以 `--baseline` 放行已知项、阻断新增项：
-  - `frontend/src/modules/platform/widgets.tsx` 对 `system/iam/menu/api` 的**类型**依赖（唯一剩余项）。
+- 其余已知违规冻结在 `config/boundary-baseline.json`（逐条带 `reason` 与 `reviewBy=2026-12-31`）。CI 以 `--baseline` 放行已知项、阻断新增项。
+  **基线现为空**（2026-10-26）：最后一条 `frontend/src/modules/platform/widgets.tsx` 对 `system/iam/menu/api` 的**类型**依赖已按期收口，见下条。
+- **已按期收口（2026-10-26）**：`MenuNode` 从 `frontend/src/modules/system/iam/menu/api.ts` 提升到公共契约位置
+  `frontend/src/api/menu.ts`（§8.1 的"公共契约"前端目录），`modules/system/iam/menu/api.ts` 改为再导出以保持既有调用方不变，
+  `modules/platform/widgets.tsx` 改 import 共享类型。platform 不再伸手进 sibling system 路径，
+  `check-boundaries --root . --strict`（不带 `--baseline`）首次 0 finding / 0 stale / exit 0。
 - **已按期收口（2026-10-11）**：4 个 auth 页面 import `system/components/shared/list-page.css` 的基线条目已删除——
   按条目自带的 ratchet 把该样式表提升到 `frontend/src/assets/list-page.css`，auth 不再跨域 import system 模块，
   名不符实的 `modules/system/components/` 目录随之消失。基线从 5 条缩到 1 条。

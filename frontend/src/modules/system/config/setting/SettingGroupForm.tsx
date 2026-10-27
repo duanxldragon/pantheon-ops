@@ -12,6 +12,7 @@ import {
   Typography,
   type FormInstance,
 } from '@arco-design/web-react';
+import PasswordInput from '../../../../components/patterns/forms/PasswordInput';
 import { IconRefresh } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import { FormSection, SubmitBar } from '../../../../components';
@@ -92,6 +93,9 @@ const SettingGroupForm: React.FC<SettingGroupFormProps> = ({
     if (item.settingKey === 'platform.app_mode') {
       return t(`system.setting.option.platform.app_mode.${item.defaultValue}`, item.defaultValue);
     }
+    if (item.settingKey === 'platform.tenant_mode') {
+      return t(`system.setting.option.platform.tenant_mode.${item.defaultValue}`, item.defaultValue);
+    }
     if (item.valueType === 'boolean') {
       return item.defaultValue === 'true' ? t('common.yes') : t('common.no');
     }
@@ -142,6 +146,30 @@ const SettingGroupForm: React.FC<SettingGroupFormProps> = ({
               },
               { label: t('system.setting.option.platform.app_mode.consumer'), value: 'consumer' },
               { label: t('system.setting.option.platform.app_mode.hybrid'), value: 'hybrid' },
+            ]}
+          />
+        </FormItem>
+      );
+    }
+    if (item.settingKey === 'platform.tenant_mode') {
+      return (
+        <FormItem
+          key={item.settingKey}
+          className={fieldClassName}
+          field={item.settingKey}
+          label={label}
+          extra={help}
+        >
+          <Select
+            options={[
+              {
+                label: t('system.setting.option.platform.tenant_mode.compat'),
+                value: 'compat',
+              },
+              {
+                label: t('system.setting.option.platform.tenant_mode.multi'),
+                value: 'multi',
+              },
             ]}
           />
         </FormItem>
@@ -383,7 +411,7 @@ const SettingGroupForm: React.FC<SettingGroupFormProps> = ({
           label={label}
           extra={help}
         >
-          <Input.Password
+          <PasswordInput
             placeholder={
               item.hasValue === 1
                 ? t('system.setting.leaveEmptyToKeep')

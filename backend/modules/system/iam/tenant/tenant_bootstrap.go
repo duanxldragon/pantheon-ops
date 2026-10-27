@@ -116,12 +116,15 @@ func (s *BootstrapService) InitializeTenantInfrastructure() error {
 		return fmt.Errorf("ensure default tenant: %w", err)
 	}
 
-	// Set platform.tenant_mode to compat if not set
+	// Set platform.tenant_mode to compat if not set. The value is stored bare
+	// (`compat`), matching the settings API and the seed default: the readers
+	// compare against the bare token, and a JSON-quoted value would silently
+	// fall back to compat for every other mode.
 	var settingExists int64
 	if err := s.db.Raw(`
 		SELECT COUNT(*)
 		FROM system_setting
-		WHERE setting_key = 'platform.tenant_mode'
+		WHERE setting_key = 'platform.tenant_mode' AND tenant_id = 0
 	`).Scan(&settingExists).Error; err != nil {
 		return fmt.Errorf("check tenant_mode setting: %w", err)
 	}
@@ -130,7 +133,7 @@ func (s *BootstrapService) InitializeTenantInfrastructure() error {
 		// Create compat mode setting
 		if err := s.db.Exec(`
 			INSERT INTO system_setting (tenant_id, setting_key, setting_value, created_at, updated_at)
-			VALUES (0, 'platform.tenant_mode', '"compat"', NOW(), NOW())
+			VALUES (0, 'platform.tenant_mode', 'compat', NOW(), NOW())
 		`).Error; err != nil {
 			return fmt.Errorf("create tenant_mode setting: %w", err)
 		}

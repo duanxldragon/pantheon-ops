@@ -14,12 +14,11 @@ import { clearShellSessionState, persistLoginNotice } from '../core/shellState';
 import { clearExplicitLanguagePreference } from '../core/setting/languagePreference';
 import { clearPantheonThemePreference } from '../core/theme/theme';
 import { showSecondaryVerify } from '../components/feedback/secondaryVerifyController';
-import { switchI18nLanguage } from '../i18n';
-import {
-  clearClientAuthSession,
+import { switchI18nLanguage } from '../i18n';import { clearClientAuthSession,
   persistCsrfToken,
   readStoredCsrfToken,
 } from '../core/auth/clientSession';
+import { businessTenantIdForHeader, clearTenantViewpoint } from '../core/tenant/viewpoint';
 import { COOKIE_TOKEN_PLACEHOLDER } from '../core/auth/sessionSnapshot';
 
 export interface RequestConfig extends AxiosRequestConfig {
@@ -92,7 +91,23 @@ let refreshPromise: Promise<boolean> | null = null;
 let logoutTransition = false;
 
 const clearClientSession = () => {
-  request.post('/auth/logout', {}).catch(() => undefined);
+  // Silent, and typed as RequestConfig so the flag survives post()'s
+  // AxiosRequestConfig signature: the session is already being torn down here,
+  // so a 403 csrf.missing refusal is expected rather than a user-facing failure.
+  const logoutConfig: RequestConfig = { skipErrorMessage: true };
+  request.post('/auth/logout', {}, logoutConfig).catch(() => undefined);
+  // A viewpoint is a session-scope preference: it must never survive a
+  // logout, otherwise a freshly logged-in non-platform subject could carry
+  // a header the backend refuses with 403 and the shell a stale banner.
+  clearTenantViewpoint();
+  // The secondary-verification token is bound to the *session* it was issued
+  // for (the backend compares its session claim against the current cookie),
+  // so sessionStorage must not outlive that session either: otherwise the new
+  // session's first sensitive request goes out with the previous subject's
+  // token and is refused with verification_mismatch. /auth/logout itself is
+  // not a secure-action route, so dropping the token before that POST is sent
+  // cannot trip the verification retry.
+  clearOperationToken();
   clearShellSessionState();
   clearPantheonThemePreference();
   const nextLanguage = clearExplicitLanguagePreference();
@@ -285,7 +300,7 @@ const readStoredOperationToken = (): StoredOperationToken | null => {
 };
 
 const readOperationToken = () => readStoredOperationToken()?.token ?? null;
-const clearOperationToken = () => sessionStorage.removeItem(OPERATION_TOKEN_KEY);
+export const clearOperationToken = () => sessionStorage.removeItem(OPERATION_TOKEN_KEY);
 
 const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
   const segments = token.split('.');
@@ -375,6 +390,16 @@ request.interceptors.request.use(
     const opToken = readOperationToken();
     if (opToken) {
       config.headers['X-Operation-Token'] = opToken;
+    }
+    // Tenant viewpoint (contract §3.1 source 1): pinned tenant scope rides on
+    // every business request. The backend accepts the header only from a
+    // platform-capable subject (anything else is refused with 403) and
+    // validates the tenant, so attaching it can never widen a subject's
+    // scope even if the stored flag drifts. /auth/* is excluded on purpose:
+    // auth flows resolve tenancy from the membership gate, not the header.
+    const viewpointTenantId = businessTenantIdForHeader();
+    if (viewpointTenantId !== null && !config.url?.startsWith('/auth/')) {
+      config.headers['X-Tenant-Id'] = String(viewpointTenantId);
     }
     config.headers['Accept-Language'] = localStorage.getItem('pantheon_lang') || 'zh-CN';
     return config;

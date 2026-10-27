@@ -7,6 +7,7 @@ import { hasAuthSession, useAuthStore } from './store/useAuthStore';
 import { registeredModules } from './core/router/modules';
 import { getRegisteredComponent } from './core/router/componentRegistry';
 import RoutePermissionGuard from './core/router/RoutePermissionGuard';
+import PlanFeatureGuard from './core/entitlements/PlanFeatureGuard';
 import { ensureAuthUserInfo } from './core/auth/bootstrap';
 import { scheduleHighFrequencyRouteWarmup } from './core/router/prefetch';
 import {
@@ -167,7 +168,9 @@ function App() {
                   element={
                     <Suspense fallback={<RouteContentFallback />}>
                       <RoutePermissionGuard permission={route.pagePermission}>
-                        <Component />
+                        <PlanFeatureGuard feature={route.feature}>
+                          <Component />
+                        </PlanFeatureGuard>
                       </RoutePermissionGuard>
                     </Suspense>
                   }

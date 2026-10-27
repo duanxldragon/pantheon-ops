@@ -1,11 +1,16 @@
-import { expect, test, type APIRequestContext, type Browser, type Page } from '@playwright/test';
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import {
   apiBaseUrl,
   apiRequestHeaders,
-  installClientSession,
   loginByApi,
   type BrowserLoginResult,
 } from '../smoke/helpers/auth';
+import {
+  loginAsTenantAdmin,
+  setupMatrixTenants,
+  teardownMatrixTenants,
+  type MatrixTenant,
+} from './tenant-fixture';
 
 type DictTypeRow = {
   id: number;
@@ -19,28 +24,19 @@ type ApiEnvelope<T> = {
   data: T;
 };
 
-const tenants = {
-  a: 101,
-  b: 202,
-} as const;
+/**
+ * Provisioned in `beforeAll` (see ./tenant-fixture.ts). The matrix is a pair of
+ * real tenants with their own administrators — a platform admin naming a tenant
+ * has no tenant-scoped role there and would be refused with 403.
+ */
+let tenants: [MatrixTenant, MatrixTenant];
+let platformLogin: BrowserLoginResult;
 
 function listRows(payload: ApiEnvelope<DictTypeRow[] | { items?: DictTypeRow[] }>) {
   if (Array.isArray(payload.data)) {
     return payload.data;
   }
   return Array.isArray(payload.data?.items) ? payload.data.items : [];
-}
-
-async function loginForTenant(browser: Browser, tenantId: number) {
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  const login = await loginByApi(page.request, {
-    username: 'admin',
-    password: '123456',
-    tenantId,
-  });
-  await installClientSession(page, login);
-  return { context, page, login };
 }
 
 async function createDictType(
@@ -52,7 +48,12 @@ async function createDictType(
     headers: apiRequestHeaders(login),
     data: {
       dictCode,
-      dictName: dictCode,
+      // The name must differ from the code: the dict table renders the code in
+      // its own column AND the name column falls back to the raw value when no
+      // translation exists (`t(value, value)`). Sharing one string makes
+      // `getByText(code, { exact: true })` resolve to two cells, so the
+      // isolation assertion below would be a strict-mode violation or a race.
+      dictName: `E2E ${dictCode}`,
       module: 'system',
       status: 1,
       remark: 'tenant-browser-e2e',
@@ -97,13 +98,26 @@ async function assertProtectedPage(page: Page, path: string, selector: string) {
 }
 
 test.describe('Tenant protected resources @priority:critical @smoke:tenant', () => {
+  test.beforeAll(async ({ request }) => {
+    const matrix = await setupMatrixTenants(request);
+    tenants = [matrix[0], matrix[1]];
+    platformLogin = await loginByApi(request, {
+      username: process.env.PANTHEON_SMOKE_ADMIN_USERNAME ?? 'admin',
+      password: process.env.PANTHEON_SMOKE_ADMIN_PASSWORD ?? '123456',
+    });
+  });
+
+  test.afterAll(async ({ request }) => {
+    await teardownMatrixTenants(request, [tenants[0], tenants[1]], platformLogin);
+  });
+
   test('isolates protected pages, dictionary reads, exports, and ID tampering', async ({ browser }) => {
     test.setTimeout(60_000);
     const suffix = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const dictCodeA = `tenant_e2e_a_${suffix}`;
     const dictCodeB = `tenant_e2e_b_${suffix}`;
-    const tenantA = await loginForTenant(browser, tenants.a);
-    const tenantB = await loginForTenant(browser, tenants.b);
+    const tenantA = await loginAsTenantAdmin(browser, tenants[0]);
+    const tenantB = await loginAsTenantAdmin(browser, tenants[1]);
 
     let dictA: DictTypeRow | undefined;
     let dictB: DictTypeRow | undefined;

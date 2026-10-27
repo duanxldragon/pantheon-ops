@@ -41,8 +41,8 @@ func (DisasterRecoveryDrill) TableName() string {
 
 // DrillService manages disaster recovery drills
 type DrillService struct {
-	db            *gorm.DB
-	backupService *BackupService
+	db             *gorm.DB
+	backupService  *BackupService
 	clusterService *cluster.ClusterService
 }
 

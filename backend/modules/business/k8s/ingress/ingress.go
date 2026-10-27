@@ -24,8 +24,8 @@ import (
 )
 
 const (
-	msgParamInvalid   = "common.param_invalid"
-	opTimeout         = 30 * time.Second
+	msgParamInvalid     = "common.param_invalid"
+	opTimeout           = 30 * time.Second
 	ingressStatusActive = "active"
 )
 
@@ -56,16 +56,16 @@ func (Ingress) TableName() string {
 
 // IngressRule mirrors the frontend K8sIngressRule contract.
 type IngressRule struct {
-	Host  string             `json:"host"`
-	Paths []IngressRulePath  `json:"paths"`
+	Host  string            `json:"host"`
+	Paths []IngressRulePath `json:"paths"`
 }
 
 // IngressRulePath mirrors the frontend K8sIngressRulePath contract.
 type IngressRulePath struct {
-	Path         string `json:"path"`
-	PathType     string `json:"pathType"`
-	ServiceName  string `json:"serviceName"`
-	ServicePort  int32  `json:"servicePort"`
+	Path        string `json:"path"`
+	PathType    string `json:"pathType"`
+	ServiceName string `json:"serviceName"`
+	ServicePort int32  `json:"servicePort"`
 }
 
 // IngressTLS mirrors the frontend K8sIngressTLS contract.

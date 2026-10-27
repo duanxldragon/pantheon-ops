@@ -23,7 +23,8 @@ import { getHostDetail, collectHostConfig } from './api';
 import type { HostRow } from './api';
 import { usePermission } from '../../../../hooks/usePermission';
 import { formatDateTime } from '../../../../core/format/dateTime';
-import '../../../system/components/shared/list-page.css';
+import PasswordInput from '../../../../components/patterns/forms/PasswordInput';
+import '../../../../assets/list-page.css';
 import '../cmdb.css';
 
 export default function CmdbHostDetail() {
@@ -320,7 +321,7 @@ export default function CmdbHostDetail() {
                   field="sshPassword"
                   rules={[{ required: true }]}
                 >
-                  <Input.Password />
+                  <PasswordInput />
                 </Form.Item>
               )
             }

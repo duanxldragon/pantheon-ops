@@ -1,0 +1,178 @@
+{
+  "taskId": "2026-10-27-foundation-upgrade-base-v0-17-6",
+  "repo": "pantheon-ops",
+  "agent": { "tool": "other", "adapter": "qoder-desktop" },
+  "commands": [
+    {
+      "command": "sha256sum .foundation/releases/pantheon-base-v0.17.6/foundation-release-pantheon-base-v0.17.6.tgz .foundation/releases/pantheon-base-v0.17.6/repo.tar",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "dbf1edd8f4bd082baee817c8e7797d298cf70f20d41b38c60d7bd39a5f362e35 (tgz) and 7a44e9ce0ed642e6d2d1f1508ef488292c46148da4a9e42a3f04ad848fda645d (repo.tar); both equal the digests recorded in foundation-release.lock.json and the published .sha256 sidecars."
+    },
+    {
+      "command": "node scripts/business-overlay/rebuild-from-base.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "OK rebuilt clean Ops tree at .tmp/business-overlay-rebuild / Base commit: c9bc6c0f5d351016afb4fffdedf12e72cc73e61d / Declared/generated Ops files: 748. Lock-resolved path (no --base), so the consumer only ever sees the published release snapshot."
+    },
+    {
+      "command": "node scripts/business-overlay/check-shared-drift.mjs --base <rebuilt staged tree>",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Run against the staged rebuild before applying it to the source tree: 805 shared files identical to base, 10 allowlisted drift, 160 business-overlay files skipped."
+    },
+    {
+      "command": "node scripts/business-overlay/check-shared-drift.mjs --base ../pantheon-base",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Re-run on the swapped working tree: OK shared drift check: 805 shared files identical to base, 10 allowlisted drift, 160 business-overlay files skipped."
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "OK business overlay contract (53 declared paths, rebuilt tree)."
+    },
+    {
+      "command": "node --test tests/scripts/business-overlay/*.test.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "13 tests, 13 pass, 0 fail, 0 skipped."
+    },
+    {
+      "command": "node scripts/check-business-module-boundaries.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "business module boundary check passed."
+    },
+    {
+      "command": "go build ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Run after go mod tidy; the first attempt failed only because the Base go.mod raise had not been tidied into the consumer module."
+    },
+    {
+      "command": "go vet ./...",
+      "cwd": "backend",
+      "status": "passed"
+    },
+    {
+      "command": "gofmt -l .",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "0 unformatted files after gofmt -w on the 18 business files the rebuild repopulated."
+    },
+    {
+      "command": "go test ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "RC 0, 63 ok lines, no FAIL. Package-local skips are covered by the dedicated skip-masking gate, not by this run."
+    },
+    {
+      "command": "go test ./modules/business/... ./modules/system/iam/menu/...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Reproduces the CI rebuilt-tree step: 19 packages ok."
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc -b",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "0 errors in about 22s."
+    },
+    {
+      "command": "node node_modules/vite/bin/vite.js build",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "built successfully; the only notice is the pre-existing INEFFECTIVE_DYNAMIC_IMPORT warning for Login.tsx, which is not a gate."
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src tests --max-warnings 0",
+      "cwd": "frontend",
+      "status": "passed"
+    },
+    {
+      "command": "prebuild contract chain (14 checks: menu-contract, i18n-hardcode, i18n-generated-scope, system-datetime-presentation, shell-visual-contract, ui-contract, password-toggle, search-toolbar-contract, important-budget, system-page-admission, smoke-web-base, smoke-coverage-contract, import-path-case, arco-react19 patch)",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "All RC 0. Notably: UI contract 0 finding(s) across 358 files, Password toggle 0 finding(s) across 327 files, import path case guard passed for 348 source files, menu contract 40 menus / 50 routes / 221 permissions / 52 component keys."
+    },
+    {
+      "command": "node scripts/harness/check-structure-contract.mjs --root . --strict",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "0 finding(s) across 2233 tracked files."
+    },
+    {
+      "command": "node scripts/check-encoding.mjs --strict",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "0 finding(s) across 2060 scanned files."
+    },
+    {
+      "command": "node scripts/frontmatter-check.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Frontmatter check passed. Checked 404 docs, 276 with frontmatter."
+    },
+    {
+      "command": "node scripts/check-duplication.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Result: PASS."
+    },
+    {
+      "command": "node scripts/harness/check-evidence.mjs --root . --strict .harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/commands.json",
+      "cwd": ".",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/harness/check-review.mjs --root . --strict .harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/review.md",
+      "cwd": ".",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/harness/check-task-packet.mjs docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6.task.md",
+      "cwd": ".",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/harness/check-adoption.mjs --root . --strict",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "0 findings for this task after the packet, task manifest and evidence triple landed; the pre-existing historical evidence-schema failures are tracked separately and are not an adoption finding."
+    },
+    {
+      "command": "node scripts/business-overlay/rebuild-from-base.mjs --base ../pantheon-base",
+      "cwd": ".",
+      "status": "not-run",
+      "notes": "Deliberately not used. The consumer contract is to rebuild only from the published release snapshot; the local Base working tree is ahead of the v0.17.6 tag and would mask tag-versus-main drift."
+    },
+    {
+      "command": "runtime smoke (backend startup plus golang-migrate to 000030 on a fresh database)",
+      "cwd": ".",
+      "status": "not-run",
+      "notes": "Requires a MySQL instance and credentials that are not part of this evidence set. The consumed release moves the schema baseline to 000030 and seeds the tenant-operations menu group with 5 permission codes, so this is the named residual gap for the next acceptance round."
+    }
+  ],
+  "knownGaps": [
+    "Runtime acceptance (backend startup + golang-migrate to 000030 + tenant-operations menu seeding) was not executed; no database credentials are recorded here.",
+    "Ops still has no consumer-side versioned migration channel; four business modules rely on AutoMigrate (business/cicd, business/opsinit x2, business/k8s/backup, business/k8s/rbac).",
+    "Historical evidence packages under .harness/evidence use the pre-object commands.json shape and fail the current strict schema; that debt predates this swap and was not rewritten here.",
+    "check:harness-docs, check:ui-quality-gate, check:harness-visual and check:generated still report findings on files untouched by this swap; each is pre-existing ops debt, not CI-blocking.",
+    "Base main is ahead of the v0.17.6 tag, so the against-main drift comparison is expected to differ from the release-snapshot comparison until the next Base release."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6/manifest.json",
+    "taskPacket": "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6.task.md",
+    "evidenceDir": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/",
+    "summaryFile": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/summary.md",
+    "reviewFile": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6.task.md",
+      "docs/PROJECT_INHERITANCE.md"
+    ]
+  },
+  "completedAt": "2026-10-27"
+}

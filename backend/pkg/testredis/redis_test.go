@@ -3,6 +3,7 @@ package testredis
 import (
 	"fmt"
 	"slices"
+	"strings"
 	"testing"
 )
 
@@ -119,4 +120,82 @@ func clearRedisEnv(t *testing.T) {
 		t.Setenv(name, "")
 	}
 	t.Setenv(requiredEnvVar, "")
+}
+
+// TestReservedDatabasesAreDistinct pins the registry OpenDB hands out. Two
+// packages sharing a reserved index would reintroduce exactly the cross-package
+// flush the registry exists to prevent, and the collision would be invisible:
+// both packages pass alone and fail only in a full `go test ./...` run.
+func TestReservedDatabasesAreDistinct(t *testing.T) {
+	seen := map[int]string{
+		DBDefault: "DBDefault (shared, must stay unclaimed)",
+	}
+	reserved := map[string]int{
+		"DBAuthToken":  DBAuthToken,
+		"DBLogin":      DBLogin,
+		"DBMiddleware": DBMiddleware,
+		"DBSession":    DBSession,
+	}
+
+	for name, index := range reserved {
+		if index < 0 || index > 15 {
+			t.Fatalf("%s must be a valid logical database (0-15), got %d", name, index)
+		}
+		if owner, taken := seen[index]; taken {
+			t.Fatalf("%s reuses database %d, already claimed by %s", name, index, owner)
+		}
+		seen[index] = name
+	}
+}
+
+// TestOpenDBIgnoresPerProcessOverride is the contract OpenDB exists for: an
+// explicit index wins over PANTHEON_TEST_REDIS_DB, because the variable is
+// per-process and cannot distinguish two packages inside one run. If OpenDB
+// ever starts honouring it, this fails on the invalid value rather than
+// silently putting every reserved package back on one database.
+func TestOpenDBIgnoresPerProcessOverride(t *testing.T) {
+	clearRedisEnv(t)
+	// Open would reject this; OpenDB must not look at it at all.
+	t.Setenv(dbEnvVar, "not-a-number")
+	// Unreachable but well-formed, so openAt builds the client before pinging.
+	t.Setenv(addressEnvVars[0], "127.0.0.1:1")
+
+	reporter := &fakeReporter{}
+	client := openAt(reporter, DBSession)
+	if client == nil {
+		t.Fatalf("openAt returned no client; failed=%v skipped=%v", reporter.failed, reporter.skipped)
+	}
+	t.Cleanup(func() { _ = client.Close() })
+
+	if got := client.Options().DB; got != DBSession {
+		t.Fatalf("expected database %d, got %d", DBSession, got)
+	}
+	for _, message := range reporter.failed {
+		if strings.Contains(message, dbEnvVar) {
+			t.Fatalf("an explicit index must not consult %s: %s", dbEnvVar, message)
+		}
+	}
+}
+
+// TestResolveDBIndexValidatesTheOverride keeps the env path honest: a bad index
+// is a failure, because silently falling back to the default would put the test
+// on a database another package is flushing.
+func TestResolveDBIndexValidatesTheOverride(t *testing.T) {
+	for _, value := range []string{"-1", "16", "abc", "1.5"} {
+		t.Run(value, func(t *testing.T) {
+			clearRedisEnv(t)
+			t.Setenv(dbEnvVar, value)
+
+			reporter := &fakeReporter{}
+			if got := resolveDBIndex(reporter); len(reporter.failed) != 1 {
+				t.Fatalf("expected %q to be rejected, got index %d (failed=%v)", value, got, reporter.failed)
+			}
+		})
+	}
+
+	clearRedisEnv(t)
+	t.Setenv(dbEnvVar, "")
+	if got := resolveDBIndex(&fakeReporter{}); got != DBDefault {
+		t.Fatalf("expected the shared default %d, got %d", DBDefault, got)
+	}
 }

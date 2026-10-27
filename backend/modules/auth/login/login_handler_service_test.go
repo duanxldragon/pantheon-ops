@@ -11,6 +11,7 @@ import (
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/config/setting"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/role"
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/tenant"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/user"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
@@ -25,6 +26,9 @@ func setupHandlerTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 	db := testmysql.Open(t)
 	_ = db.AutoMigrate(
+		// tenants is required by the credential lookup (it skips subjects whose
+		// tenant has been soft-deleted).
+		&tenant.Tenant{},
 		&user.SystemUser{},
 		&user.SystemUserRole{},
 		&role.SystemRole{},

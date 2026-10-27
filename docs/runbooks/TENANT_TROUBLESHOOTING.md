@@ -4,41 +4,142 @@
 
 ### 1. Tenant Creation Fails
 
-**Symptom**: `POST /api/v1/tenants` returns 409 Conflict
+**Symptom**: `POST /api/v1/system/tenant` is refused with one of the two code-conflict messages.
 
-**Cause**: Tenant code already exists
+Note the envelope shape: the API answers **HTTP 200** with the outcome in the body
+(`{"code":400,"message":"tenant.code_taken"}`), so read `message`, not the HTTP status.
+
+**Cause A** — `message: "tenant.code_taken"`: a **live** tenant already holds the code.
+
+**Cause B** — `message: "tenant.code_reserved"`: the code is held by a **soft-deleted**
+tenant. Deleted tenants are hidden from the default console list, so the list looks empty
+even though the code is taken. Deleting a tenant archives its code to
+`__deleted_tenant_<id>` (see `docs/designs/BACKEND.md` §7), so this state should only be
+observable for a row written before that rule existed — the startup repair clears it on the
+next backend start.
 
 **Solution**:
 ```bash
-# Check existing tenants
-curl -X GET http://localhost:8080/api/v1/tenants \
-  -H "Authorization: Bearer <token>"
+# Both cases: inspect what actually holds the code, including deleted rows.
+# The console list hides deleted tenants by default; this does not.
+mysql -uroot -p -e "SELECT id, code, name, status FROM tenants WHERE code = '<the-code>';"
 
-# Use a different tenant code
+# Cause A: pick a different code.
+# Cause B: also fine to pick a different code — or release the stale reservation:
+#   (a) restart the backend, which runs ReleaseDeletedTenantCodes, or
+#   (b) archive it directly:
+mysql -uroot -p -e "UPDATE tenants SET code = CONCAT('__deleted_tenant_', id) WHERE id = <id>;"
 ```
+
+A released code becomes immediately usable again, and the deleted tenant stays traceable by
+id (its `name` is preserved).
 
 ---
 
 ### 2. Cannot Delete Tenant
 
-**Symptom**: `DELETE /api/v1/tenants/:id` returns 400 "tenant has active members"
+**Symptom**: `DELETE /api/v1/system/tenant/:id` is refused because the tenant still has active members
 
-**Cause**: Tenant still has active members
+**Cause**: The tenant is not archived and still has active memberships. Membership is the login
+gate, so the API deliberately refuses while any active membership remains (contract §2.2).
+
+**Why "remove the members first" does not work**: the last owner can never be removed
+(`tenant.member.last_owner`), so a provisioned tenant has no member-free state on its own.
+The supported path is archive-then-delete: an archived tenant is terminal (§2.1) and may be
+deleted even while members remain; the delete transaction disables those memberships.
 
 **Solution**:
 ```bash
-# List tenant members
-curl -X GET http://localhost:8080/api/v1/tenants/1/members \
-  -H "Authorization: Bearer <token>"
+# Console: Tenants -> Edit -> Status = Archived -> Save, then Delete.
+#
+# API equivalent. Both writes use the session cookies and the CSRF token; the
+# DELETE is also a secure action and needs X-Operation-Token from
+# POST /api/v1/auth/operation-verify:
+curl -X PUT http://localhost:8080/api/v1/system/tenant/1 \
+  -H "Content-Type: application/json" \
+  -H "Cookie: <session cookies>" -H "X-CSRF-Token: <csrf>" \
+  -d '{"status":"archived"}'
 
-# Remove all members first
-curl -X DELETE http://localhost:8080/api/v1/tenants/1/members/100 \
-  -H "Authorization: Bearer <token>"
-
-# Then delete tenant
-curl -X DELETE http://localhost:8080/api/v1/tenants/1 \
-  -H "Authorization: Bearer <token>"
+curl -X DELETE http://localhost:8080/api/v1/system/tenant/1 \
+  -H "Cookie: <session cookies>" -H "X-CSRF-Token: <csrf>" -H "X-Operation-Token: <op-token>"
 ```
+
+> The refusal is reported in the response envelope as `code: 400` with message
+> `tenant.has_active_members` (HTTP 200 — this API puts the outcome in the body). Teardown
+> scripts should archive the tenant (or purge memberships directly) before calling delete; the
+> message key, not the HTTP class, is the reliable signal.
+>
+> Deleting a tenant also **archives its `code`** to `__deleted_tenant_<id>` in the same
+> transaction, so the code is free for reuse afterwards. That is why a deleted tenant no longer
+> appears under its original code — match deleted rows by `id` or `name`, not by `code`.
+
+---
+
+### 2b. Hard-deleting a tenant (ops action): purge Casbin policies first
+
+**Context**: `DELETE /system/tenant/:id` is a **soft** delete. Removing a tenant row outright is an
+ops action (contract §2.1), and it is the one deletion path the application cannot do for you.
+
+**Why it matters**: `casbin_rule` has **no foreign key** to `tenants` and the application has **no
+cleanup path** for tenant-domain policies. Provisioning writes them as
+`p.type='p'`, `v0='role:<role_key>@tenant:<id>'` (7 rows per role: 5 methods on `/api/v1/*` plus
+whatever the role definition adds). A hard delete that skips them leaves an orphaned grant: if the
+`tenants` AUTO_INCREMENT later recycles the id, the new tenant **inherits the old tenant's
+authority**. This is a security-relevant leftover, not just row hygiene.
+
+**Procedure** (replace `<id>` with the tenant id):
+
+> **Scope the purge to `<id>`, and to `<id>` only.** The `DELETE` below is a plain
+> `LIKE`, so a pattern that is too broad — an empty id, a loop over the wrong
+> list, a `%` — will strip the domain policies of **live** tenants too. A tenant
+> whose policies are gone still authenticates; it just answers
+> `403 permission.denied` on every page (issue 5c). The startup repair
+> (`Service.EnsureTenantRolePolicies`) restores them on the next restart, so the
+> damage is recoverable, but the tenant is broken until then.
+
+```sql
+-- 1. Inspect what would be removed before removing anything.
+SELECT id, ptype, v0, v1, v2, v3 FROM casbin_rule WHERE v0 LIKE CONCAT('role:%@tenant:', <id>);
+
+-- 2. Purge tenant-domain policies (do this FIRST, while the id is still known).
+DELETE FROM casbin_rule WHERE v0 LIKE CONCAT('role:%@tenant:', <id>);
+
+-- 3. Purge tenant-scoped rows across the 18 tables carrying tenant_id
+--    (authoritative list: docs/designs/TENANT_RESOURCE_SCOPE_MATRIX.md).
+DELETE FROM tenant_memberships        WHERE tenant_id = <id>;
+DELETE FROM system_user               WHERE tenant_id = <id>;
+DELETE FROM system_user_role          WHERE tenant_id = <id>;
+DELETE FROM system_user_session       WHERE tenant_id = <id>;
+DELETE FROM system_role               WHERE tenant_id = <id>;
+DELETE FROM system_role_menu          WHERE tenant_id = <id>;
+DELETE FROM system_role_permission    WHERE tenant_id = <id>;
+DELETE FROM system_role_data_scope    WHERE tenant_id = <id>;
+DELETE FROM system_setting            WHERE tenant_id = <id>;
+DELETE FROM system_dept               WHERE tenant_id = <id>;
+DELETE FROM system_post               WHERE tenant_id = <id>;
+DELETE FROM system_dict_type          WHERE tenant_id = <id>;
+DELETE FROM system_dict_item          WHERE tenant_id = <id>;
+DELETE FROM system_log_login          WHERE tenant_id = <id>;
+DELETE FROM system_log_oper           WHERE tenant_id = <id>;
+DELETE FROM system_auth_security_event    WHERE tenant_id = <id>;
+DELETE FROM system_auth_mfa_challenge     WHERE tenant_id = <id>;
+DELETE FROM permission_role_data_scope_policy WHERE tenant_id = <id>;
+
+-- 4. Finally the master row.
+DELETE FROM tenants WHERE id = <id>;
+```
+
+**Verification**: both queries must return `0` for the deleted id.
+
+```sql
+SELECT COUNT(*) FROM casbin_rule WHERE v0 LIKE CONCAT('role:%@tenant:', <id>);
+SELECT COUNT(*) FROM tenants WHERE id = <id>;
+```
+
+**Deliberately not done**: the application does **not** perform this purge on soft delete, and no
+`PurgeTenant` helper exists. The contract assigns hard delete to ops, and the platform deliberately
+has no cross-tenant hard-delete endpoint (contract §7 keeps `tenants` CRUD in the platform console).
+Any future `PurgeTenant` must run steps 2–4 in one transaction and be platform-capability gated.
 
 ---
 
@@ -153,6 +254,99 @@ WHERE tm.id IS NULL;
 
 ---
 
+### 5b. Login Succeeds but Every Page Fails with `tenant.context.missing`
+
+**Symptom**: A tenant admin signs in successfully (HTTP 200 on `/auth/login`), then almost
+every request fails with `{"code":500,"message":"tenant.context.missing"}`. The console looks
+signed-in but is broken everywhere — the worst failure shape to self-diagnose, because login
+reports success.
+
+**Cause**: soft-deleting a tenant does **not** delete the `system_user` rows it provisioned.
+Those rows survive as orphans, and because the global credential lookup tie-breaks on the
+lowest id, an orphan can shadow a live tenant's same-named user. Login then succeeds as the
+orphan — whose tenant is gone, so no claim resolves — and the resulting claim-less session is
+deny-by-default on every tenant-scoped route.
+
+**Diagnosis** — find the shadowing pair:
+```sql
+SELECT u.id, u.tenant_id, u.username, t.status AS tenant_status
+FROM system_user u
+JOIN tenants t ON t.id = u.tenant_id
+WHERE u.username = '<the username that fails>'
+ORDER BY u.id;
+```
+If an `id` with `tenant_status = 'deleted'` sorts **before** the live row, that is the orphan.
+Confirm which row login resolves to:
+```sql
+SELECT id, tenant_id FROM system_user
+WHERE username = '<username>'
+  AND (tenant_id = 0 OR tenant_id IN (SELECT id FROM tenants WHERE status <> 'deleted'))
+ORDER BY CASE WHEN tenant_id = 0 THEN 0 ELSE 1 END, id ASC;
+```
+The first row is the login subject. A `tenant_id` whose tenant is `deleted` means the fix is
+not in place.
+
+**Fix**: upgrade to the build that (a) excludes deleted-tenant subjects from the credential
+lookup and (b) refuses a claim-less tenant-scoped subject at login with `403 tenant.forbidden`
+instead of issuing a broken session. No data repair is required — the exclusion is evaluated at
+read time, so pre-existing orphans stop shadowing immediately.
+
+**Optional cleanup** (the orphan no longer causes harm once the fix is in place, so this is
+hygiene, not a fix): delete the orphan rows for the deleted tenants.
+```sql
+-- Inspect first: these are rows whose tenant is soft-deleted.
+SELECT u.id, u.tenant_id, u.username
+FROM system_user u JOIN tenants t ON t.id = u.tenant_id
+WHERE t.status = 'deleted';
+-- Then delete by explicit id, never by username.
+DELETE FROM system_user WHERE id IN (<ids>);
+```
+
+**Why not fix it at delete time?** Archiving the orphan's username on tenant delete would leave
+rows created *before* that change still shadowing, and it mutates user records that audits may
+need. Excluding them from the login candidate set is the read-time equivalent of the same rule
+and heals history too.
+
+---
+
+### 5c. Tenant Sign-In Succeeds but Every Page Answers `permission.denied`
+
+**Symptom**: the tenant administrator signs in successfully, then every authorized route
+answers `{"code":403,"message":"permission.denied"}`. Unlike issue 5b this is not a session
+problem — the session carries the right tenant claim, the role is correct, the permission keys
+and menus are all bound. Only the Casbin rules are missing.
+
+**Cause**: the tenant's `role:<key>@tenant:<id>` policies are gone. `ProvisionTenant` writes
+them, but `casbin_rule` has no foreign key to `tenants` and the sanctioned hard-delete procedure
+(§2b) purges those rows **by hand** — so one over-broad purge, or a tenant created before that
+provisioning step existed, leaves a tenant that authenticates but holds no permissions.
+
+**Diagnosis** — the decisive query is the last one:
+```sql
+-- Roles and bindings should look healthy (that is what makes this confusing).
+SELECT id, role_key, status FROM system_role WHERE tenant_id = <id>;
+SELECT user_id, role_id, tenant_id FROM system_user_role WHERE tenant_id = <id>;
+SELECT COUNT(*) FROM system_role_permission WHERE role_id = <a tenant role id>;
+SELECT COUNT(*) FROM system_role_menu       WHERE role_id = <a tenant role id>;
+
+-- The actual gap: expect 6 rows (5 methods for tenant_admin + GET for
+-- tenant_member). Zero here is the defect.
+SELECT v0, v1, v2 FROM casbin_rule WHERE v0 LIKE CONCAT('role:%@tenant:', <id>);
+```
+
+**Fix**: restart the backend. `Service.EnsureTenantRolePolicies` runs at startup and re-derives
+the policies for every **active** tenant, logging what it restored:
+```
+INFO tenant policy repair restored missing Casbin domain policies {"tenants": 2, "policiesRestored": 12}
+```
+No manual SQL is needed, and the repair is idempotent and additive — it never removes a policy.
+
+**Related**: if the tenant is deliberately meant to be locked out, use **suspension**
+(`PUT /system/tenant/:id` with `status=suspended`), not policy deletion. The login gate refuses a
+suspended tenant, and the repair respects that by only touching `active` tenants.
+
+---
+
 ### 6. OIDC Login Not Showing Tenant Picker
 
 **Symptom**: Users with multiple tenant memberships are auto-logged into one tenant without choice
@@ -238,6 +432,13 @@ WHERE tm.id IS NULL;
 
 -- Roles with tenant_id=0 (platform global)
 SELECT id, role_key, tenant_id FROM system_role WHERE tenant_id = 0;
+
+-- Credential rows whose tenant has been soft-deleted ("orphans").
+-- Harmless once the read-time exclusion is in place, but they are the shape
+-- behind issue 5b, so check for them when a login resolves oddly.
+SELECT u.id, u.tenant_id, u.username, t.code
+FROM system_user u JOIN tenants t ON t.id = u.tenant_id
+WHERE t.status = 'deleted';
 ```
 
 ### Verify Tenant Isolation

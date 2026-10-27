@@ -42,6 +42,14 @@ const entityPatterns = {
       'smoke_user_batch_',
       'smoke_post_user_',
       'smoke_batch_delete_user_',
+      // tenant-viewpoint-switcher.spec.ts fixtures (its own teardown purges
+      // them too; these prefixes cover an interrupted run)
+      'smoke_tadmin_',
+      'smoke_user_viewpoint_',
+      // tenant-matrix-fixture-setup.mjs provisions real tenants whose
+      // administrators own these names; a hard delete does not remove the user
+      // row, so the sweep is what finishes an interrupted matrix run.
+      'smoke_tmatrix_',
     ],
     exacts: ['smoke_impexp_user'],
   },

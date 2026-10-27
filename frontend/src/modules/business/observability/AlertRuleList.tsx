@@ -5,7 +5,7 @@ import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { IconDelete, IconRefresh } from '@arco-design/web-react/icon';
 import { AppTable, PageContainer, PageEmpty, PageError, PageLoading } from '../../../components';
 import { deleteAlertRule, getAlertRuleList, toggleAlertRule, type AlertRuleRow } from './api';
-import '../../system/components/shared/list-page.css';
+import '../../../assets/list-page.css';
 
 export default function AlertRuleList() {
   const { t } = useTranslation();

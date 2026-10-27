@@ -1,5 +1,6 @@
 import React from 'react';
 import { Form, Input, Space, Tag } from '@arco-design/web-react';
+import PasswordInput from '../../../../components/patterns/forms/PasswordInput';
 import { useTranslation } from 'react-i18next';
 import { isArcoFormValidationError } from '../../../../core/arco/formValidation';
 import { AppModal, SubmitBar } from '../../../../components';
@@ -78,7 +79,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
             field="newPassword"
             rules={[{ required: true, message: t('auth.passwordRequired') }]}
           >
-            <Input.Password onPressEnter={() => form.submit()} />
+            <PasswordInput onPressEnter={() => form.submit()} />
           </FormItem>
           <FormItem
             label={t('system.user.confirmPassword')}
@@ -97,7 +98,7 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
               },
             ]}
           >
-            <Input.Password onPressEnter={() => form.submit()} />
+            <PasswordInput onPressEnter={() => form.submit()} />
           </FormItem>
           <Tag color="orange">{t('system.user.resetPasswordHint')}</Tag>
         </Space>

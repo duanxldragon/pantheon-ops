@@ -21,6 +21,7 @@ const (
 	moduleConfig         = "system.config"
 	moduleAuth           = "system.auth"
 	moduleAudit          = "system.audit"
+	moduleTenant         = "system.tenant"
 	keyMenuDashboard     = "system.menu.dashboard"
 	keyMenuAccess        = "system.menu.access"
 	keyMenuOrg           = "system.menu.org"

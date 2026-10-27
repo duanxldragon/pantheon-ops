@@ -13,7 +13,7 @@ import {
   SearchToolbar,
 } from '../../../components';
 import { getDatasourceList, queryLogs, type DatasourceRow } from './api';
-import '../../system/components/shared/list-page.css';
+import '../../../assets/list-page.css';
 
 interface LogRow {
   id: string;

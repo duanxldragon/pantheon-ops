@@ -33,11 +33,16 @@
 }
 
 .auth-inline-note__title,
-.auth-detail-summary__title,
-.auth-device-summary {
+.auth-detail-summary__title {
   color: var(--text-primary);
   font-size: 14px;
   font-weight: 600;
+  line-height: 20px;
+}
+
+.auth-device-summary {
+  color: var(--text-primary);
+  font-size: 14px;
   line-height: 20px;
 }
 

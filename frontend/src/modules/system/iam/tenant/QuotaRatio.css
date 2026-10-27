@@ -1,0 +1,14 @@
+.tenant-quota {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tenant-quota-is-full {
+  color: var(--color-warning);
+}
+
+.tenant-quota-is-over {
+  color: var(--color-error);
+  font-weight: 600;
+}

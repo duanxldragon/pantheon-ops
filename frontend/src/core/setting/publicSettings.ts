@@ -17,6 +17,7 @@ export interface PublicSettingsState {
   siteName: string;
   siteLogo: string;
   appMode: 'enterprise' | 'consumer' | 'hybrid';
+  tenantMode: 'compat' | 'multi';
   orgEnabled: boolean;
   orgRequiredForUser: boolean;
   defaultLanguage: string;
@@ -59,6 +60,7 @@ function buildPublicSettingsState(settings: Record<string, string>): PublicSetti
     siteName,
     siteLogo: settings['site.logo']?.trim() ?? '',
     appMode,
+    tenantMode: normalizeTenantMode(settings['platform.tenant_mode']),
     orgEnabled: settings['org.enabled']?.trim() !== 'false',
     orgRequiredForUser: settings['org.required_for_user']?.trim() === 'true',
     defaultLanguage: settings['i18n.default_language']?.trim() ?? 'zh-CN',
@@ -74,6 +76,10 @@ function normalizeAppMode(value?: string): PublicSettingsState['appMode'] {
     return normalized;
   }
   return 'enterprise';
+}
+
+function normalizeTenantMode(value?: string): PublicSettingsState['tenantMode'] {
+  return value?.trim() === 'multi' ? 'multi' : 'compat';
 }
 
 function persistPublicSettings(settings: Record<string, string>) {

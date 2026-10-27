@@ -5,6 +5,7 @@ import (
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +21,15 @@ func NewPostHandler(s *PostService) *PostHandler {
 	return &PostHandler{service: s}
 }
 
+// svc returns the request-scoped service view bound to the resolved tenant
+// context (contract §3.3). A nil context returns the shared service; compat
+// binds the platform-global scope (tenant_id=0). Admin operations must use this
+// instead of h.service directly, otherwise they read and write platform-global
+// posts.
+func (h *PostHandler) svc(c *gin.Context) *PostService {
+	return h.service.WithTenantContext(tenant.FromGin(c))
+}
+
 func (h *PostHandler) GetPostList(c *gin.Context) {
 	var query PostListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
@@ -27,7 +37,7 @@ func (h *PostHandler) GetPostList(c *gin.Context) {
 		return
 	}
 
-	list, err := h.service.ListPosts(&query)
+	list, err := h.svc(c).ListPosts(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "post.list.error")
 		return
@@ -43,9 +53,9 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 		return
 	}
 
-	post, err := h.service.CreatePost(&req)
+	post, err := h.svc(c).CreatePost(&req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		common.FailWithError(c, common.CodeForError(err), err, errRequestFailed)
 		return
 	}
 	common.Success(c, post)
@@ -65,9 +75,9 @@ func (h *PostHandler) UpdatePost(c *gin.Context) {
 		return
 	}
 
-	post, err := h.service.UpdatePost(postID, &req)
+	post, err := h.svc(c).UpdatePost(postID, &req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		common.FailWithError(c, common.CodeForError(err), err, errRequestFailed)
 		return
 	}
 	common.Success(c, post)
@@ -82,9 +92,9 @@ func (h *PostHandler) BatchUpdatePostStatus(c *gin.Context) {
 		return
 	}
 
-	updatedCount, err := h.service.BatchUpdatePostStatus(req.PostIDs, req.Status)
+	updatedCount, err := h.svc(c).BatchUpdatePostStatus(req.PostIDs, req.Status)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		common.FailWithError(c, common.CodeForError(err), err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"updatedCount": updatedCount})
@@ -98,8 +108,8 @@ func (h *PostHandler) DeletePost(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.DeletePost(postID); err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+	if err := h.svc(c).DeletePost(postID); err != nil {
+		common.FailWithError(c, common.CodeForError(err), err, errRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})
@@ -113,7 +123,7 @@ func (h *PostHandler) BatchDeletePosts(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	resp := common.BatchDelete(req.IDs, h.service.DeletePost)
+	resp := common.BatchDelete(req.IDs, h.svc(c).DeletePost)
 	common.Success(c, resp)
 }
 
@@ -126,7 +136,7 @@ func (h *PostHandler) ExportPosts(c *gin.Context) {
 		return
 	}
 
-	file, err := h.service.ExportPosts(&query)
+	file, err := h.svc(c).ExportPosts(&query)
 	if err != nil {
 		common.Fail(c, common.CodeError, "post.export.error")
 		return
@@ -165,7 +175,7 @@ func (h *PostHandler) ImportPosts(c *gin.Context) {
 		return
 	}
 
-	result, err := h.service.ImportPosts(records)
+	result, err := h.svc(c).ImportPosts(records)
 	if err != nil {
 		common.Fail(c, common.CodeError, "post.import.error")
 		return

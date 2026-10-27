@@ -47,6 +47,23 @@ test('dept smoke: create dialog and root edit are reachable through the UI', asy
   await page.keyboard.press('Escape');
 });
 
+test('dept smoke: create dialog defaults the parent even when the dept tree loads late', async ({
+  page,
+}) => {
+  const accessToken = await signInAsAdmin(page);
+  await page.route('**/api/v1/system/dept/tree**', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await route.continue();
+  });
+  await page.goto('/system/dept', { waitUntil: 'domcontentloaded' });
+  await installOperationToken(page, accessToken);
+  await page.getByRole('button', { name: '新增' }).click();
+  const createDialog = page.getByRole('dialog').filter({ hasText: '新增部门' });
+  await expect(createDialog).toBeVisible();
+  await expect(createDialog.getByText('Pantheon Base').first()).toBeVisible({ timeout: 15000 });
+  await createDialog.locator('.submit-bar').getByRole('button', { name: '取消' }).click();
+});
+
 test('dept smoke: blocked delete through API is covered', async ({ page }) => {
   const accessToken = await signInAsAdmin(page);
   const now = Date.now();

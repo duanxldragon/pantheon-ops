@@ -55,7 +55,7 @@ func (s *DeptService) ImportDepts(records [][]string) (*impexp.ImportResult, err
 		return result, nil
 	}
 
-	_, pathToID, err := impexp.BuildDeptPathMaps(s.db)
+	_, pathToID, err := impexp.BuildDeptPathMaps(s.scoped(s.db))
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (s *DeptService) upsertSingleImportRow(tx *gorm.DB, row deptImportRow, path
 	}
 
 	var dept SystemDept
-	err := tx.Where("parent_id = ? AND dept_name = ?", parentID, row.DeptName).First(&dept).Error
+	err := s.scoped(tx).Where("parent_id = ? AND dept_name = ?", parentID, row.DeptName).First(&dept).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
@@ -174,11 +174,12 @@ func (s *DeptService) upsertSingleImportRow(tx *gorm.DB, row deptImportRow, path
 // createImportDept builds the ancestor chain and persists a new department for
 // the given row, then records its path in pathToID.
 func (s *DeptService) createImportDept(tx *gorm.DB, row deptImportRow, parentID uint64, pathToID map[string]uint64, result *impexp.ImportResult) error {
-	ancestors, buildErr := s.buildAncestorsWithDB(tx, parentID)
+	ancestors, buildErr := s.buildAncestorsWithDB(s.scoped(tx), parentID)
 	if buildErr != nil {
 		return buildErr
 	}
 	dept := SystemDept{
+		TenantID:  s.tenantOwnerID(),
 		ParentID:  parentID,
 		Ancestors: ancestors,
 		IsRoot:    0,

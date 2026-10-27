@@ -183,7 +183,8 @@ English version: [BACKEND.en.md](./BACKEND.en.md)
 
 - **用户**: 创建时校验用户名唯一、邮箱格式合法、角色至少选择一项且角色存在；更新时禁止停用内置管理员或移除其管理员角色；管理员重置密码接口单独校验密码长度不少于 6 位。
 - **用户删除与复用**: `system_user` 采用软删除，但删除时会先把用户名归档为内部保留值，再写入 `deleted_at`；这样既保留审计痕迹，也允许后续重新创建同名用户。
-- **软删唯一键复用**: 对 `system_user.username`、`system_role.role_key`、`system_post.post_code`、`system_dict_type.dict_code`、`system_dict_item(dict_code,item_value)` 这类“软删除 + 唯一键”实体，删除时统一先归档唯一标识，再执行软删除；启动迁移也会自动修复历史遗留数据。
+- **软删唯一键复用**: 对 `system_user.username`、`system_role.role_key`、`system_post.post_code`、`system_dict_type.dict_code`、`system_dict_item(dict_code,item_value)`、`tenants.code` 这类“软删除 + 唯一键”实体，删除时统一先归档唯一标识，再执行软删除；启动迁移也会自动修复历史遗留数据。
+- **租户编码归档**: `tenants` 的软删除标记是 `status = 'deleted'`（不是 `deleted_at`，该列不参与租户生命周期），因此归档与启动修复都以该列为准。归档值形如 `__deleted_tenant_<id>`：前缀以下划线开头，而合同 §2.1 的编码文法 `^[a-z][a-z0-9-]{1,62}$` 不可能产生下划线，所以归档值不会与任何可输入的编码冲突。归档只改 `code`，`name` 保留，删除后的租户在 `status=deleted` 视图里仍可按 id 与名称追溯。
 - **用户组织字段**: `dept_id`、`post_id` 允许为空；若选择岗位，则必须先选择部门，且岗位必须属于该部门。
 - **平台能力开关**: `system/config` 公开下发 `platform.app_mode`、`org.enabled`、`org.required_for_user`。`platform.app_mode` 支持 `enterprise / consumer / hybrid`；关闭 `org.enabled` 只隐藏组织导航和用户组织字段，不删除 `system/org` 数据，也不改变已有用户记录。
 - **用户扩展档案**: `system_user` 保持瘦核心表；C 端或混合模式下的非稳定档案字段统一进入 `system_user_profile_ext.profile_json`，通过 `profileExt` DTO 受控暴露。`preference_json` 仅用于平台壳层偏好，不承载业务档案。
@@ -195,6 +196,7 @@ English version: [BACKEND.en.md](./BACKEND.en.md)
 - **组织根节点**: `dept` 模块启动迁移会确保存在唯一组织根节点，并把历史顶级部门自动收敛到根节点下，避免出现多个顶层组织入口。
 - **岗位**: 创建/更新时校验所属部门存在且不能是组织根节点、岗位编码唯一；删除时若被用户引用则拒绝。
 - **权限策略**: 管理 `casbin_rule` 中的 `p` 策略，要求 `role_key` 存在，且 `(role_key, path, method)` 唯一；角色保存和迁移会同步系统已知权限点对应的 API 策略，权限页仍可维护额外手工策略。
+- **派生授权状态的启动重算**: `casbin_rule` 没有指向 `tenants` 的外键，而租户域策略（`role:<key>@tenant:<id>`）是**由代码派生**的（`tenantRoleDefinitions`），却被**外部可变操作**影响 —— 合同把硬删租户定为运维动作，其步骤是手工 `DELETE ... WHERE v0 LIKE 'role:%@tenant:<id>'`。因此任何作用域写宽的清理都会留下「能登录、无权限」的租户（登录成功、角色正确、权限键与菜单齐全，但每个接口 `403 permission.denied`，从 UI 无法自证）。约定：**凡是由代码派生、又可能被外部操作抹掉的授权状态，必须由 `Bootstrap` 重新推导**。tenant 模块的 `EnsureTenantRolePolicies` 即此：只对 `status='active'` 的租户补发（挂起才是受支持的停用手段，修复不得与之对抗），且只增不删、幂等。
 - **字典类型**: 创建/更新时校验 `dict_code` 非空且唯一；删除时若仍存在字典项则拒绝。
 - **字典项**: 创建/更新时校验 `dict_code` 存在，且同一字典内 `item_value` 唯一。
 - **字典缓存**: `GET /system/dict/options` 已接入进程内 options 缓存；字典类型/字典项变更后自动失效对应 `dict_code`，后台也支持手动刷新缓存。

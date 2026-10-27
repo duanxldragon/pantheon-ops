@@ -43,6 +43,24 @@ Dockerfile 使用 Node.js 24 构建前端、Go 1.26.5 构建后端，最终进�
 
 默认启动路径使用 migrations。仅开发环境可使用 `PANTHEON_AUTO_MIGRATE=true`；生产环境不得启用 GORM AutoMigrate。
 
+### 3.1 租户模式（compat / multi）
+
+`platform.tenant_mode` 决定这个部署是否启用租户维度，默认 `compat`：
+
+| 模式 | 行为 | 适用 |
+| --- | --- | --- |
+| `compat`（默认） | 所有请求解析到平台全局作用域（`tenant_id = 0`），不校验 membership，Casbin 全部 `tenant:0` | 单租户部署、存量部署升级到本版本后的初始状态 |
+| `multi` | 按合同 §3 解析租户上下文：主体 claim / 平台声明 / `X-Tenant-Id`（需平台能力），并在读写上强制 `tenant_id` 谓词 | 需要多租户控制台、租户配额与租户成员管理的部署 |
+
+- **开启方式**：在「系统设置 → 平台 → `platform.tenant_mode`」改为 `multi`，或直接更新 `system_setting` 后重启（读取有 5 秒进程内缓存）。该设置是公开配置，租户切换器与租户控制台据此渲染。
+- **单向**：`multi` 是 `compat` 的超集。存在未删除且 `tenant_id > 0` 的租户时，降级回 `compat` 会被拒绝（`setting_service.guardTenantModeDowngrade`）；真需要回退时按数据回滚处理，禁止在 `multi` 写入后直接改回 `compat` 继续运行（合同 §6）。
+- **平台主体**：multi 下平台控制台（`/system/tenant*`、菜单写、i18n 写）要求**平台级能力**（全局角色或无 domain 的 Casbin 策略）且主体不属于任何租户；租户管理员访问这些面会得到 `403 tenant.platformOnly`。
+- **同库并存**：multi 下平台主体与租户主体共用一套库，`tenant_id = 0` 始终是一等作用域，不是"旧模式残留"。
+- **验证**：切到 `multi` 后依次确认 ① 平台管理员可打开租户控制台；② 新建租户填管理员后可直接登录；③ 租户侧栏无「租户管理/菜单管理/国际化管理」；④ `Tenant Smoke (multi-mode)` 在 CI 绿。
+
+升级步骤与数据归属细节见 [COMPAT_TO_MULTI_UPGRADE.md](./migrations/COMPAT_TO_MULTI_UPGRADE.md)，权威语义见
+[TENANT_CONTRACT_V1.md](./contracts/TENANT_CONTRACT_V1.md) §3、§6。
+
 ## 4. 必需环境变量
 
 生产环境至少配置以下变量：

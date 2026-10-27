@@ -22,14 +22,23 @@ func setupUserTestDB(t *testing.T) *gorm.DB {
 
 	// 迁移模型
 	_ = db.AutoMigrate(&SystemUser{}, &SystemUserProfileExt{})
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role (id BIGINT PRIMARY KEY, role_key VARCHAR(64), role_name VARCHAR(128), status INT, deleted_at DATETIME NULL)")
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_role (user_id BIGINT, role_id BIGINT)")
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role_permission (id BIGINT PRIMARY KEY AUTO_INCREMENT, role_id BIGINT, permission_key VARCHAR(128) NOT NULL DEFAULT '')")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role (id BIGINT PRIMARY KEY, tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0, role_key VARCHAR(64), role_name VARCHAR(128), status INT, deleted_at DATETIME NULL)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_role (tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0, user_id BIGINT, role_id BIGINT)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_role_permission (id BIGINT PRIMARY KEY AUTO_INCREMENT, tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0, role_id BIGINT, permission_key VARCHAR(128) NOT NULL DEFAULT '')")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_session (session_id VARCHAR(128), user_id BIGINT, revoked_at DATETIME NULL)")
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_dept (id BIGINT PRIMARY KEY, parent_id BIGINT, dept_name VARCHAR(128))")
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_post (id BIGINT PRIMARY KEY, post_code VARCHAR(64), post_name VARCHAR(128), dept_id BIGINT)")
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_log_login (id BIGINT PRIMARY KEY AUTO_INCREMENT, username VARCHAR(64), status INT, login_time DATETIME)")
-	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_setting (setting_key VARCHAR(128) PRIMARY KEY, setting_value TEXT)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_dept (id BIGINT PRIMARY KEY, tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0, parent_id BIGINT, dept_name VARCHAR(128), deleted_at DATETIME NULL)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_post (id BIGINT PRIMARY KEY, tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0, post_code VARCHAR(64), post_name VARCHAR(128), dept_id BIGINT, deleted_at DATETIME NULL)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_log_login (id BIGINT PRIMARY KEY AUTO_INCREMENT, tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0, username VARCHAR(64), status INT, login_time DATETIME)")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_setting (setting_key VARCHAR(128) PRIMARY KEY, tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0, setting_value TEXT)")
+	// tenant_memberships is written by CreateUser/DeleteUser (acceptance F1/F4):
+	// the login gate requires an active membership in multi mode, so the fixture
+	// has to carry the table the service now maintains.
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS tenant_memberships (id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT, tenant_id BIGINT UNSIGNED NOT NULL, user_id BIGINT UNSIGNED NOT NULL, role VARCHAR(32) NOT NULL DEFAULT 'member', status VARCHAR(16) NOT NULL DEFAULT 'active', created_at DATETIME NULL, updated_at DATETIME NULL, UNIQUE KEY uk_tenant_membership (tenant_id, user_id))")
+	// tenants is the tenant master table. The credential lookup consults it to
+	// skip subjects whose tenant has been soft-deleted (they can never host a
+	// session), so the fixture must carry it even though this package never
+	// writes it.
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS tenants (id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT, code VARCHAR(64) NOT NULL, name VARCHAR(128) NOT NULL DEFAULT '', status VARCHAR(16) NOT NULL DEFAULT 'active', plan VARCHAR(32) NOT NULL DEFAULT '', metadata TEXT NULL, created_at DATETIME NULL, updated_at DATETIME NULL, UNIQUE KEY uk_tenant_code (code))")
 
 	// 插入基础数据
 	_ = db.Exec("INSERT INTO system_role (id, role_key, role_name, status) VALUES (1, 'admin', '管理员', 1)")
@@ -264,7 +273,7 @@ func TestUserService_BatchUpdateUserStatus(t *testing.T) {
 func TestUserService_MigrateCreatesUserRoleTableAndAdminBinding(t *testing.T) {
 	t.Setenv("PANTHEON_ENV", "development")
 	db := testmysql.Open(t)
-	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_role (id BIGINT PRIMARY KEY, role_key VARCHAR(64), status INT, deleted_at DATETIME NULL)").Error; err != nil {
+	if err := db.Exec("CREATE TABLE IF NOT EXISTS system_role (id BIGINT PRIMARY KEY, tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0, role_key VARCHAR(64), status INT, deleted_at DATETIME NULL)").Error; err != nil {
 		t.Fatalf("create role table: %v", err)
 	}
 	if err := db.Exec("INSERT INTO system_role (id, role_key, status) VALUES (1, 'admin', 1)").Error; err != nil {
@@ -672,6 +681,12 @@ func TestUserService_ResetPassword(t *testing.T) {
 
 	_ = db.Exec("INSERT INTO system_user_session (session_id, user_id, revoked_at) VALUES ('s-1', ?, NULL)", userResp.ID)
 	_ = db.Exec("INSERT INTO system_user_session (session_id, user_id, revoked_at) VALUES ('s-2', ?, NULL)", userResp.ID)
+	if err := db.Exec(
+		"UPDATE system_user SET failed_login_attempts = 5, login_locked_until = ? WHERE id = ?",
+		time.Now().Add(time.Hour), userResp.ID,
+	).Error; err != nil {
+		t.Fatalf("seed account lockout: %v", err)
+	}
 
 	revokedCount, err := s.ResetPassword(userResp.ID, "newpassword456")
 	if err != nil {
@@ -687,6 +702,10 @@ func TestUserService_ResetPassword(t *testing.T) {
 	}
 	if err := bcrypt.CompareHashAndPassword([]byte(updatedUser.Password), []byte("newpassword456")); err != nil {
 		t.Fatalf("expected password to be updated: %v", err)
+	}
+	if updatedUser.FailedLoginAttempts != 0 || updatedUser.LoginLockedUntil != nil {
+		t.Fatalf("reset must clear account lockout, got attempts=%d lockedUntil=%v",
+			updatedUser.FailedLoginAttempts, updatedUser.LoginLockedUntil)
 	}
 
 	var revokedRows int64

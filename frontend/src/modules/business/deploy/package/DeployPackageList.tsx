@@ -50,7 +50,7 @@ import {
   type DeployPackageRow,
 } from '../api';
 import { deployFixedTemplateCatalog, getDeployFixedTemplateCatalogEntry } from '../catalog';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 import '../deploy.css';
 
 function PackageDetailContent({ record }: Readonly<{ record: DeployPackageRow }>) {

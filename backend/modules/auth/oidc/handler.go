@@ -3,8 +3,22 @@ package oidc
 import (
 	"net/http"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
+
 	"github.com/gin-gonic/gin"
 )
+
+// resolveLoginTenant returns the tenancy the OIDC login flow runs under.
+// /auth/* routes resolve tenancy from the login gate, not the business
+// middleware, so no tenant context is guaranteed here: fall back to the
+// platform-global scope (tenant 0), which is the compat-mode semantic and
+// can never widen a tenant's user population.
+func resolveLoginTenant(c *gin.Context) uint64 {
+	if tc := tenant.FromGin(c); tc != nil {
+		return tc.TenantID
+	}
+	return tenant.PlatformGlobalTenantID
+}
 
 // InitiateOIDCLogin handles the OIDC login initiation
 func InitiateOIDCLogin(service *Service) gin.HandlerFunc {
@@ -36,7 +50,7 @@ func HandleOIDCCallback(service *Service) gin.HandlerFunc {
 		}
 
 		// Handle callback
-		result, err := service.HandleCallback(c.Request.Context(), code, state, c.ClientIP())
+		result, err := service.HandleCallback(c.Request.Context(), code, state, c.ClientIP(), resolveLoginTenant(c))
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error":   "Authentication failed",

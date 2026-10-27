@@ -21,7 +21,7 @@ import {
   type K8sIngressRow,
   type K8sClusterRow,
 } from '../api';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 
 export default function IngressList() {
   const { t } = useTranslation();

@@ -4,12 +4,12 @@ import {
   Card,
   Form,
   Grid,
-  Input,
   Popconfirm,
   Space,
   Tag,
   Typography,
 } from '@arco-design/web-react';
+import PasswordInput from '../../../../components/patterns/forms/PasswordInput';
 import { message } from '../../../../components/feedback/message';
 import { IconEye, IconLock } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
@@ -575,7 +575,7 @@ const SecurityCenter: React.FC = () => {
                           { required: true, message: t('system.profile.oldPasswordRequired') },
                         ]}
                       >
-                        <Input.Password
+                        <PasswordInput
                           prefix={<IconLock />}
                           onPressEnter={() => passwordForm.submit()}
                         />
@@ -587,7 +587,7 @@ const SecurityCenter: React.FC = () => {
                         field="newPassword"
                         rules={[{ required: true, message: t('auth.passwordRequired') }]}
                       >
-                        <Input.Password
+                        <PasswordInput
                           prefix={<IconLock />}
                           onPressEnter={() => passwordForm.submit()}
                         />
@@ -611,7 +611,7 @@ const SecurityCenter: React.FC = () => {
                           },
                         ]}
                       >
-                        <Input.Password
+                        <PasswordInput
                           prefix={<IconLock />}
                           onPressEnter={() => passwordForm.submit()}
                         />

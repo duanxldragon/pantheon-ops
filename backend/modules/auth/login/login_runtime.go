@@ -217,7 +217,10 @@ func (s *Runtime) RecordSecurityEvent(event security.SystemAuthSecurityEvent) {
 	if event.Severity == "" {
 		event.Severity = "medium"
 	}
-	if s.tenantCtx != nil && s.tenantCtx.IsMulti() {
+	// Subject attribution wins: a failed attempt against a tenant-owned account
+	// belongs to that tenant even when the request named another one. The
+	// request context is only a fallback for events without a known subject.
+	if event.TenantID == tenant.PlatformGlobalTenantID && s.tenantCtx != nil && s.tenantCtx.IsMulti() {
 		event.TenantID = s.tenantCtx.TenantID
 	}
 	if err := s.db.Create(&event).Error; err != nil {
@@ -282,12 +285,53 @@ func (s *Runtime) LoadUserByID(userID uint64) (*mfa.UserRecord, error) {
 	}, nil
 }
 
+// userOwningTenantID resolves the tenant owning a user's role bindings
+// (contract §2.3). Roles are always read from the user's OWN tenant, so no
+// tenant argument has to be threaded through every caller: a platform/global
+// user (admin) resolves to 0 and a tenant-local user to its tenant, which keeps
+// tenant A's roles out of tenant B's session. A missing user resolves to 0, so
+// compat behaviour (every historical row is tenant_id = 0) is unchanged.
+func (s *Runtime) userOwningTenantID(userID uint64) (uint64, error) {
+	var tenantID uint64
+	err := s.db.Table("system_user").
+		Select("tenant_id").
+		Where("id = ?", userID).
+		Scan(&tenantID).Error
+	if err != nil {
+		return 0, err
+	}
+	return tenantID, nil
+}
+
+// roleTenantID resolves the tenant whose role namespace applies to the subject:
+//   - an explicit multi context (login tenant choice, session switch) wins, so
+//     a multi-membership subject gets the roles of the tenant it is acting in;
+//   - otherwise the subject's own tenant (0 for platform/global and compat).
+func (s *Runtime) roleTenantID(userID uint64) (uint64, error) {
+	if s.tenantCtx != nil && s.tenantCtx.IsMulti() {
+		return s.tenantCtx.TenantID, nil
+	}
+	return s.userOwningTenantID(userID)
+}
+
 func (s *Runtime) GetUserRoles(userID uint64) ([]string, error) {
+	tenantID, err := s.roleTenantID(userID)
+	if err != nil {
+		return nil, err
+	}
+	return s.GetUserRolesForTenant(userID, tenantID)
+}
+
+// GetUserRolesForTenant resolves the subject's role keys inside one specific
+// tenant. It backs session.TenantRoleLoader so the tenant switch can re-sign a
+// session with the target tenant's roles (contract §4).
+func (s *Runtime) GetUserRolesForTenant(userID, tenantID uint64) ([]string, error) {
 	var roles []string
 	err := s.db.Table("system_role").
 		Select("system_role.role_key").
 		Joins("JOIN system_user_role ON system_user_role.role_id = system_role.id").
-		Where("system_user_role.user_id = ? AND system_role.status = ?", userID, common.StatusEnabled).
+		Where("system_user_role.user_id = ? AND system_user_role.tenant_id = ? AND system_role.tenant_id = ? AND system_role.status = ?",
+			userID, tenantID, tenantID, common.StatusEnabled).
 		Pluck("system_role.role_key", &roles).Error
 	return roles, err
 }
@@ -316,11 +360,19 @@ func (s *Runtime) CreateSessionForTenantWithContext(ctx context.Context, userID 
 	policy := s.getAuthRuntimePolicy()
 	now := time.Now()
 
+	// Load the subject before resolving the claim: the resolver needs to know
+	// whether this is a platform subject or a tenant-scoped one to decide
+	// between "claim 0 is correct" and "this subject has no context left".
+	u, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
 	// Tenant discovery (contract §3.1 source 2): multi mode resolves the
 	// login tenant from the explicit choice or active membership;
 	// ambiguous/erroneous membership state denies login. Compat mode returns
 	// no claim (zero behavior change).
-	tenantClaim, err := s.resolveLoginTenantClaim(userID, tenantChoice)
+	tenantClaim, err := s.resolveLoginTenantClaim(u, tenantChoice)
 	if err != nil {
 		return nil, err
 	}
@@ -329,11 +381,6 @@ func (s *Runtime) CreateSessionForTenantWithContext(ctx context.Context, userID 
 	// MaxActiveSessions and is part of this user's own login correctness, not a
 	// table-wide sweep. The global inventory sweep is a maintenance task.
 	if err := authsession.CleanupUserOverflowSessions(s.db, userID, now, policy.SessionIdleMinutes, maxInt(policy.MaxActiveSessions-1, 0)); err != nil {
-		return nil, err
-	}
-
-	u, err := s.userRepo.FindByID(ctx, userID)
-	if err != nil {
 		return nil, err
 	}
 
@@ -360,6 +407,18 @@ func (s *Runtime) CreateSessionForTenantWithContext(ctx context.Context, userID 
 		}
 		return nil, err
 	}
+
+	// Authentication is complete: credentials verified, the tenant gate passed
+	// and the new pair is stored. Clear the user-wide blacklist written by
+	// RevokeUserTokens so a password reset or a disable/enable cycle does not
+	// lock the account out for the marker's whole TTL (acceptance F2). This is
+	// deliberately after issuance, never before: a failed login must not reset
+	// a lockout that a disable action just imposed. Session-level revocation is
+	// left intact, so tokens minted before the change remain dead.
+	if clearErr := authtoken.ClearUserBlacklist(ctx, database.RDB, u.ID); clearErr != nil {
+		logging.Warn("clear user token blacklist after login failed",
+			zap.Uint64("userId", u.ID), zap.Error(clearErr))
+	}
 	return pair, nil
 }
 
@@ -369,9 +428,16 @@ func (s *Runtime) CreateSessionForTenantWithContext(ctx context.Context, userID 
 //     gate (active membership + active tenant master) — this is the picker
 //     path for multi-membership users (slice 2);
 //   - without a choice, single-membership subjects resolve deterministically;
-//   - zero memberships => 0 (the subject logs into the platform population);
+//   - zero memberships => 0 for a platform subject (tenant_id = 0). That is the
+//     pre-multi-tenant population, and the only subject that legitimately has
+//     no tenant to name;
+//   - zero memberships for a tenant-scoped subject (tenant_id != 0) denies: it
+//     owns no tenant context, so no session it could receive would work;
 //   - ambiguous memberships without a choice deny (never silently narrowed).
-func (s *Runtime) resolveLoginTenantClaim(userID, tenantChoice uint64) (uint64, error) {
+func (s *Runtime) resolveLoginTenantClaim(subject *authuser.User, tenantChoice uint64) (uint64, error) {
+	if subject == nil {
+		return 0, tenant.ErrTenantForbidden
+	}
 	mode := tenant.NormalizeMode(tenant.FeatureFlagSettingKeyReader(s.db))
 	if mode != tenant.ModeMulti {
 		// Compat ignores any requested tenant: no claim is ever stamped.
@@ -380,23 +446,44 @@ func (s *Runtime) resolveLoginTenantClaim(userID, tenantChoice uint64) (uint64, 
 	if tenantChoice != 0 {
 		return tenant.GateSessionIssuance(s.db, tenant.IssuanceCheckInput{
 			Mode:     mode,
-			UserID:   userID,
+			UserID:   subject.ID,
 			TenantID: tenantChoice,
 		})
 	}
-	discovery, err := tenant.DiscoverDefaultTenant(s.db, userID)
+	discovery, err := tenant.DiscoverDefaultTenant(s.db, subject.ID)
 	if err != nil {
 		return 0, err
 	}
 	if !discovery.Resolved {
-		return 0, nil
+		return 0, refuseClaimlessTenantSubject(subject)
 	}
 	// Gate: membership + tenant master status must both hold (contract §5).
 	return tenant.GateSessionIssuance(s.db, tenant.IssuanceCheckInput{
 		Mode:     mode,
-		UserID:   userID,
+		UserID:   subject.ID,
 		TenantID: discovery.TenantID,
 	})
+}
+
+// refuseClaimlessTenantSubject decides the outcome for a multi-mode subject that
+// resolved to no tenant claim.
+//
+// A subject with no owning tenant is platform population and claim 0 is correct
+// for it — platform-only staff have no membership by design, and denying them
+// would lock them out of the console entirely.
+//
+// A subject that carries an owning tenant is a different case. It has no
+// context left to be in — its membership was removed or disabled, or its tenant
+// was deleted — and issuing it a claim-less session is fail-open in the worst
+// way: login reports success, and then every tenant-scoped request fails closed
+// with `tenant.context.missing`. The operator sees a signed-in application that
+// is broken on every page, instead of a login that says the membership is gone.
+// Refuse instead (contract §5: no membership => TENANT_FORBIDDEN).
+func refuseClaimlessTenantSubject(subject *authuser.User) error {
+	if subject.TenantID == tenant.PlatformGlobalTenantID {
+		return nil
+	}
+	return tenant.ErrTenantForbidden
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -534,6 +621,10 @@ func (s *Runtime) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPageRe
 	return s.sessionSvc.ListAllSessions(query)
 }
 
+func (s *Runtime) ExportAdminSessions(query *AdminSessionQuery) (*impexp.CSVFile, error) {
+	return s.sessionSvc.ExportAdminSessions(query)
+}
+
 func (s *Runtime) RevokeAnySession(currentSessionID, targetSessionID string) error {
 	return s.sessionSvc.RevokeAnySession(currentSessionID, targetSessionID)
 }
@@ -550,20 +641,30 @@ func (s *Runtime) GetUserPerms(userID uint64) ([]string, error) {
 		if err == nil && cached != "" {
 			var perms []string
 			if json.Unmarshal([]byte(cached), &perms) == nil {
-				return perms, nil
+				return s.dropStalePlatformOnlyPerms(userID, cacheKey, perms), nil
 			}
 		}
 	}
 
-	// Cache miss or Redis unavailable: query DB
+	// Cache miss or Redis unavailable: query DB. The cache key stays user-only:
+	// a user has exactly one owning tenant, so the derived permission set is
+	// deterministic per user and cannot differ between tenants.
+	tenantID, err := s.userOwningTenantID(userID)
+	if err != nil {
+		return nil, err
+	}
 	var permissionKeys []string
-	err := s.db.Table("system_role_permission").
+	err = s.db.Table("system_role_permission").
 		Select("DISTINCT system_role_permission.permission_key").
 		Joins("JOIN system_user_role ON system_user_role.role_id = system_role_permission.role_id").
-		Where("system_user_role.user_id = ? AND system_role_permission.permission_key <> ''", userID).
+		Where("system_user_role.user_id = ? AND system_user_role.tenant_id = ? AND system_role_permission.tenant_id = ? AND system_role_permission.permission_key <> ''",
+			userID, tenantID, tenantID).
 		Pluck("system_role_permission.permission_key", &permissionKeys).Error
 
 	perms := mergePermissionKeys(permissionKeys)
+	if tenantID != tenant.PlatformGlobalTenantID {
+		perms = tenant.FilterPlatformOnlyPermissionKeys(perms)
+	}
 
 	// Cache for 5 minutes
 	if database.RDB != nil && len(perms) > 0 && err == nil {
@@ -573,6 +674,34 @@ func (s *Runtime) GetUserPerms(userID uint64) ([]string, error) {
 	}
 
 	return perms, err
+}
+
+// dropStalePlatformOnlyPerms keeps a permission cache entry from outliving the
+// tenant platform-grant repair. Only entries that actually contain a
+// platform-only key pay the ownership lookup, so the common cache hit stays a
+// single Redis read, and platform users keep their platform-only keys.
+func (s *Runtime) dropStalePlatformOnlyPerms(userID uint64, cacheKey string, perms []string) []string {
+	hasPlatformOnly := false
+	for _, key := range perms {
+		if tenant.IsPlatformOnlyPermissionKey(key) {
+			hasPlatformOnly = true
+			break
+		}
+	}
+	if !hasPlatformOnly {
+		return perms
+	}
+	tenantID, err := s.userOwningTenantID(userID)
+	if err != nil || tenantID == tenant.PlatformGlobalTenantID {
+		return perms
+	}
+	filtered := tenant.FilterPlatformOnlyPermissionKeys(perms)
+	if database.RDB != nil && len(filtered) > 0 {
+		if data, marshalErr := json.Marshal(filtered); marshalErr == nil {
+			database.RDB.Set(context.Background(), cacheKey, data, 5*time.Minute)
+		}
+	}
+	return filtered
 }
 
 func (s *Runtime) GetCurrentUserInfo(userID uint64) (*UserInfoResp, error) {
@@ -749,6 +878,10 @@ func (s *Runtime) BatchAcknowledgeSecurityEvents(eventIDs []uint64, actorID uint
 
 func (s *Runtime) CleanupSecurityEvents(retentionDays int, startedAt, endedAt string) (int64, error) {
 	return s.securitySvc.CleanupSecurityEvents(retentionDays, startedAt, endedAt)
+}
+
+func (s *Runtime) ExportSecurityEvents(query *SecurityEventQuery) (*impexp.CSVFile, error) {
+	return s.securitySvc.ExportSecurityEvents(query)
 }
 
 // ─────────────────────────────────────────────────────────────

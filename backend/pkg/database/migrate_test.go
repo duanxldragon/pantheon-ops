@@ -26,6 +26,8 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 		},
 		"system_user": {
 			"preference_json", "failed_login_attempts", "login_locked_until",
+			// 000029: OIDC fields folded in from the removed orphan add_oidc_fields.sql.
+			"oidc_subject", "oidc_provider", "oidc_last_sync", "auth_type",
 		},
 		"system_dept": {
 			"is_root", "leader", "phone", "email",
@@ -78,6 +80,11 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 		"system_module_registration": {
 			"scope", "source", "owner", "bounded_context", "summary", "source_table", "auto_recycle", "table_name", "installed_at", "uninstalled_at", "last_verified_at", "last_error", "last_verification_result",
 		},
+		// 000030: plan definitions leave the compiled-in switch statement, so the
+		// table and its natural key have to exist before the console can edit one.
+		"tenant_plans": {
+			"code", "name", "max_users", "max_roles", "max_depts", "max_api_keys", "max_storage_mb", "status", "sort",
+		},
 	}
 
 	for table, columns := range expectedColumns {
@@ -92,6 +99,13 @@ func TestRunMigrationsAlignsRuntimeSchemaWithCurrentContracts(t *testing.T) {
 	assertMigrationIndexExists(t, db, "system_user_session", "idx_system_user_session_tenant_id")
 	assertMigrationIndexExists(t, db, "system_log_oper", "idx_system_log_oper_tenant")
 	assertMigrationIndexDoesNotExist(t, db, "system_dept", "idx_system_dept_dept_code")
+	// 000029 replaces the orphan file's global unique on oidc_subject with the
+	// tenant-scoped composite key; both halves must hold after the chain runs.
+	assertMigrationIndexExists(t, db, "system_user", "uk_system_user_tenant_oidc_subject")
+	assertMigrationIndexExists(t, db, "system_user", "idx_system_user_auth_type")
+	assertMigrationIndexDoesNotExist(t, db, "system_user", "idx_system_user_oidc_subject")
+	assertMigrationIndexExists(t, db, "tenant_plans", "uk_tenant_plan_code")
+	assertTenantPlanSeedRows(t, db)
 	assertLegacyColumnDoesNotBlockRuntimeWrites(t, db, "system_user_session", "expires_at")
 	assertLegacyColumnDoesNotBlockRuntimeWrites(t, db, "system_i18n", "locale_key")
 
@@ -153,6 +167,53 @@ func TestRunMigrationsBackfillsExistingRoleDataScopePolicies(t *testing.T) {
 	assertLatestMigrationVersion(t, db)
 }
 
+// W2 deactivates a user's membership when the user is deleted. Users deleted
+// before that fix left an active membership behind, which the member list
+// renders as a __deleted_user_* ghost (acceptance F4). 000027 repairs them.
+func TestRunMigrationsDeactivatesMembershipsOfDeletedUsers(t *testing.T) {
+	db := testmysql.Open(t)
+	dsn := migrationTestDSN(t, db)
+
+	// Let the runner build the real schema first, then rewind the marker to 26
+	// so 000027 replays against a realistic shape.
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("run migrations: %v", err)
+	}
+
+	statements := []string{
+		`INSERT INTO system_user (id, username, password, status, deleted_at) VALUES
+			(1, 'alive', 'x', 1, NULL), (2, '__deleted_user_2', 'x', 1, NOW(3))`,
+		`INSERT INTO tenant_memberships (tenant_id, user_id, status) VALUES
+			(282, 1, 'active'), (282, 2, 'active')`,
+		`UPDATE schema_migrations SET version = 26`,
+	}
+	for _, statement := range statements {
+		if err := db.Exec(statement).Error; err != nil {
+			t.Fatalf("seed membership fixture: %v", err)
+		}
+	}
+
+	if err := RunMigrations(dsn); err != nil {
+		t.Fatalf("replay migration 000027: %v", err)
+	}
+
+	loadStatus := func(userID uint64) string {
+		t.Helper()
+		var status string
+		if err := db.Table("tenant_memberships").Select("status").Where("user_id = ?", userID).Scan(&status).Error; err != nil {
+			t.Fatalf("load membership status for user %d: %v", userID, err)
+		}
+		return status
+	}
+	if got := loadStatus(1); got != "active" {
+		t.Fatalf("live user membership status = %q, want active", got)
+	}
+	if got := loadStatus(2); got != "disabled" {
+		t.Fatalf("deleted user membership status = %q, want disabled", got)
+	}
+	assertLatestMigrationVersion(t, db)
+}
+
 func TestRunMigrationsDoesNotReapplyRoleDataScopeBackfillAfterPolicyDeletion(t *testing.T) {
 	db := testmysql.Open(t)
 	dsn := migrationTestDSN(t, db)
@@ -167,7 +228,12 @@ func TestRunMigrationsDoesNotReapplyRoleDataScopeBackfillAfterPolicyDeletion(t *
 	)`).Error; err != nil {
 		t.Fatalf("create schema_migrations: %v", err)
 	}
-	if err := db.Exec("INSERT INTO schema_migrations (version, dirty) VALUES (?, false)", currentRuntimeSchemaVersion+1).Error; err != nil {
+	// Stamp the DB at the runtime baseline, which is deliberately BEHIND the
+	// newest migration file: data-only migrations sit above the baseline so a
+	// marker-complete database still replays them once (see
+	// currentRuntimeSchemaVersion). At the baseline the 000021 backfill is
+	// already applied, which is exactly the state this test needs.
+	if err := db.Exec("INSERT INTO schema_migrations (version, dirty) VALUES (?, false)", currentRuntimeSchemaVersion).Error; err != nil {
 		t.Fatalf("seed migration marker: %v", err)
 	}
 
@@ -182,7 +248,7 @@ func TestRunMigrationsDoesNotReapplyRoleDataScopeBackfillAfterPolicyDeletion(t *
 	if count != 0 {
 		t.Fatalf("already-applied migration resurrected a deleted policy: count=%d", count)
 	}
-	assertMigrationVersion(t, db, currentRuntimeSchemaVersion+1)
+	assertLatestMigrationVersion(t, db)
 }
 
 func TestRunMigrationsAppliesLatestCompatWhenBootstrappedSchemaMissesMenuHideInNav(t *testing.T) {
@@ -496,6 +562,24 @@ WHERE table_schema = DATABASE()
 	}
 	if count < 1 {
 		t.Fatalf("expected index %s.%s to exist after migrations", table, index)
+	}
+}
+
+// assertTenantPlanSeedRows proves that migration 000030 did more than create the
+// table: the four built-in plans must be present, because a database with an
+// empty plan table makes every quota read fall back to the compiled-in defaults
+// and the console has nothing to edit.
+func assertTenantPlanSeedRows(t *testing.T, db *gorm.DB) {
+	t.Helper()
+
+	var count int64
+	if err := db.Table("tenant_plans").
+		Where("code IN ?", []string{"free", "basic", "professional", "enterprise"}).
+		Count(&count).Error; err != nil {
+		t.Fatalf("count seeded tenant plans: %v", err)
+	}
+	if count != 4 {
+		t.Fatalf("expected migration 000030 to seed the four built-in plans, got %d", count)
 	}
 }
 

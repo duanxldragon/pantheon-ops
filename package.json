@@ -45,6 +45,7 @@
     "prepare": "husky",
     "rebuild:from-base": "node scripts/business-overlay/rebuild-from-base.mjs",
     "check:business-overlay": "node scripts/business-overlay/check-business-overlay.mjs",
+    "check:shared-drift": "node scripts/business-overlay/check-shared-drift.mjs",
     "test:business-overlay": "node --test tests/scripts/business-overlay/*.test.mjs",
     "check:encoding": "node scripts/check-encoding.mjs --strict",
     "check:business-boundaries": "node scripts/check-business-module-boundaries.mjs",
@@ -69,7 +70,7 @@
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
-    "playwright": "^1.63.0",
-    "prettier": "^3.9.9"
+    "playwright": "^1.64.1",
+    "prettier": "^3.9.10"
   }
 }

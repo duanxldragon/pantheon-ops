@@ -17,7 +17,7 @@ import (
 // that SecureActionMiddleware reads, restoring the previous value on cleanup.
 func setupSecureActionRedis(t *testing.T) {
 	t.Helper()
-	rdb := testredis.Open(t)
+	rdb := testredis.OpenDB(t, testredis.DBMiddleware)
 	previousRDB := database.RDB
 	database.RDB = rdb
 	t.Cleanup(func() {

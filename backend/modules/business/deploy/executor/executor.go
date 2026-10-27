@@ -31,19 +31,19 @@ type ExecutionPlan struct {
 
 // StepPlan describes one step within an execution plan.
 type StepPlan struct {
-	StepKey              string
-	StepName             string
-	StepType             string
-	Action               string
+	StepKey               string
+	StepName              string
+	StepType              string
+	Action                string
 	ContinueOnHostFailure bool
-	PackageName          string
-	PackageVersion       string
-	TemplateParams       map[string]any
-	Dependencies         []string
-	Condition            string
-	ConditionParams      map[string]any
-	FailurePolicy        string
-	InitialStatus        string
+	PackageName           string
+	PackageVersion        string
+	TemplateParams        map[string]any
+	Dependencies          []string
+	Condition             string
+	ConditionParams       map[string]any
+	FailurePolicy         string
+	InitialStatus         string
 }
 
 // StepRequest carries the identity of the step a provider must execute.

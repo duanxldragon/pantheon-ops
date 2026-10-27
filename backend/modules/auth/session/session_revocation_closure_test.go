@@ -22,7 +22,7 @@ func newRevocationClosureHarness(t *testing.T) (*Service, *redis.Client) {
 	if err := db.AutoMigrate(&SystemUserSession{}); err != nil {
 		t.Fatalf("migrate sessions: %v", err)
 	}
-	rdb := testredis.Open(t)
+	rdb := testredis.OpenDB(t, testredis.DBSession)
 	oldRDB := database.RDB
 	database.RDB = rdb
 	t.Cleanup(func() { database.RDB = oldRDB })

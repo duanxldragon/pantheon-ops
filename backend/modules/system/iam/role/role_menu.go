@@ -19,7 +19,7 @@ func (s *RoleService) loadRoleMenus(roleIDs []uint64) (map[uint64][]uint64, erro
 	}
 
 	var pairs []roleMenuPair
-	if err := s.db.Table("system_role_menu").
+	if err := s.scoped(s.db.Table("system_role_menu")).
 		Select("system_role_menu.role_id, system_role_menu.menu_id").
 		Joins("JOIN system_menu ON system_menu.id = system_role_menu.menu_id").
 		Where("system_role_menu.role_id IN ? AND system_menu.type <> ?", roleIDs, "F").
@@ -51,8 +51,18 @@ func (s *RoleService) ensureMenuIDsExist(menuIDs []uint64) error {
 }
 
 func (s *RoleService) replaceRoleMenus(tx *gorm.DB, roleID uint64, menuIDs []uint64) error {
+	// Stamp the grant from the role row, never from the request context: a
+	// platform administrator may edit a tenant role, and the row must follow
+	// the role (contract §2.3.1, acceptance F3).
+	tenantID, err := roleOwningTenantIDTx(tx, roleID)
+	if err != nil {
+		return err
+	}
+	// role_id is globally unique (system_role.id), so this delete cannot reach
+	// another tenant's rows. It also clears pre-fix rows that were written with
+	// tenant_id = 0, which would otherwise linger as unreachable phantoms.
 	if err := tx.Exec("DELETE FROM system_role_menu WHERE role_id = ?", roleID).Error; err != nil {
 		return err
 	}
-	return rbacbind.InsertRoleMenus(tx, roleID, menuIDs)
+	return rbacbind.InsertRoleMenus(tx, tenantID, roleID, menuIDs)
 }

@@ -41,7 +41,7 @@ func (s *DeptService) ExportDepts(ctx context.Context, query *DeptListQuery) (*i
 	if err != nil {
 		return nil, err
 	}
-	pathByID, _, err := impexp.BuildDeptPathMaps(s.db)
+	pathByID, _, err := impexp.BuildDeptPathMaps(s.scoped(s.db))
 	if err != nil {
 		return nil, err
 	}

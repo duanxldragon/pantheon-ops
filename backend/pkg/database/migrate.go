@@ -28,7 +28,15 @@ const moduleRegistrationCompatMigrationVersion = 8
 // currentRuntimeSchemaVersion is the migration baseline represented by the
 // current-schema compatibility markers. Keep it ahead of data-only migrations
 // so existing runtime schemas still execute those migrations once.
-const currentRuntimeSchemaVersion = 20
+//
+// Raised 20 -> 24 by 000024_tenant_core_tables_repair. Migration 000020 also
+// occupies version 20, so while the baseline was 20 every database that
+// satisfied the markers was stamped straight to 20 and 000020's tenant_id DDL
+// was skipped permanently — the schema_migrations row said "applied" while none
+// of the columns existed. The baseline now sits at the migration that actually
+// delivers those columns, and tenantCoreSchemaMarkers below make the claim
+// checkable: a database without them is no longer judged "current".
+const currentRuntimeSchemaVersion = 24
 
 type schemaColumnMarker struct {
 	table  string
@@ -61,21 +69,38 @@ var preModuleRegistrationRuntimeSchemaMarkers = append(
 )
 
 var currentRuntimeSchemaMarkers = append(
-	[]schemaColumnMarker{
-		{table: "system_module_registration", column: "table_name"},
-		// Migration 000019 adds system_i18n.updated_by. The marker is required:
-		// looksLikeCurrentRuntimeSchema otherwise judges every marker-complete
-		// database as fully current and bootstraps schema_migrations to latest,
-		// which would skip 000019 forever and leave the runtime
-		// "UPDATE system_i18n SET updated_by = ?" failing on every existing DB.
-		// A DB missing this marker fails the current-check, falls through to the
-		// preModuleRegistration check (whose markers it still has) and rewinds to
-		// v7, replaying 8..19 — every file in that window is guarded, with 000012
-		// hardened in the same change precisely because of this replay.
-		{table: "system_i18n", column: "updated_by"},
-	},
+	append(
+		[]schemaColumnMarker{
+			{table: "system_module_registration", column: "table_name"},
+			// Migration 000019 adds system_i18n.updated_by. The marker is required:
+			// looksLikeCurrentRuntimeSchema otherwise judges every marker-complete
+			// database as fully current and bootstraps schema_migrations to latest,
+			// which would skip 000019 forever and leave the runtime
+			// "UPDATE system_i18n SET updated_by = ?" failing on every existing DB.
+			// A DB missing this marker fails the current-check, falls through to the
+			// preModuleRegistration check (whose markers it still has) and rewinds to
+			// v7, replaying 8..19 — every file in that window is guarded, with 000012
+			// hardened in the same change precisely because of this replay.
+			{table: "system_i18n", column: "updated_by"},
+		},
+		tenantCoreSchemaMarkers...,
+	),
 	preModuleRegistrationRuntimeSchemaMarkers...,
 )
+
+// tenantCoreSchemaMarkers prove that the tenant core-table isolation is really
+// present. Migration 000020 was skipped on every bootstrapped database (see
+// currentRuntimeSchemaVersion), so "the row says 20" was never evidence that
+// tenant_id existed. These markers are sampled from the tables a tenant-scoped
+// deployment cannot work without — user, role and the user_role join — so a
+// database missing any of them fails the current-schema check and lets
+// golang-migrate replay from its recorded version instead of being stamped
+// forward past the repair.
+var tenantCoreSchemaMarkers = []schemaColumnMarker{
+	{table: "system_user", column: "tenant_id"},
+	{table: "system_role", column: "tenant_id"},
+	{table: "system_user_role", column: "tenant_id"},
+}
 
 // MigrationsHealthy reports whether the startup migration step completed
 // successfully, so the health/readiness endpoint can reflect migration state

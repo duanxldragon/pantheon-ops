@@ -1,0 +1,194 @@
+{
+  "taskId": "2026-10-27-foundation-upgrade-base-v0-17-6",
+  "title": "Consume pantheon-base-v0.17.6 into pantheon-ops",
+  "goal": "Advance the Ops foundation consumer from pantheon-base-v0.16.1 to the published pantheon-base-v0.17.6, swap the Ops baseline onto the verified rebuilt assembly, and repair the consumer defects the swap exposes: stale css specifiers, password fields that must use the shared PasswordInput, two dead base-path files, five case-only renames, an undeclared Ops doc archive and the missing check:shared-drift root script.",
+  "primaryLayer": "inheritance-sync",
+  "taskDoc": "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6.task.md",
+  "status": "complete",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "dependsOn": [
+    "pantheon-base v0.17.6 release (tag object 2bc79966, target commit c9bc6c0f)"
+  ],
+  "blocks": [
+    "ops branch and pull-request closeout to main only"
+  ],
+  "scope": {
+    "in": [
+      "Update foundation-release.lock.json to pantheon-base-v0.17.6: release line, version, base commit, asset name, materialization path, bundle checksum and repo.tar checksum.",
+      "Rewrite .foundation/foundation-release.lock.json as the consumer ledger with the release identity, the verified digests and the gate facts read back from GitHub.",
+      "Rebuild the Ops tree from the locked release snapshot, verify the staged tree, then swap the baseline onto it.",
+      "Declare docs/migrations/legacy-ops-business-v010x as an Ops repository overlay path.",
+      "Remove backend/modules/system/iam/tenant/tenant_switch.go and backend/pkg/database/migrations/add_oidc_fields.sql, which base no longer ships and nothing references.",
+      "Follow base's five lower-camel-case pattern renames through the git index so a Linux checkout resolves them.",
+      "Repair 31 stale ../../system/components/shared/list-page.css specifiers and 6 Input.Password fields across 4 business files.",
+      "Inject check:shared-drift into the merged root package.json so Base Compatibility Rebuild can run its drift step."
+    ],
+    "out": [
+      "Any change to the pantheon-base repository, an existing tag, a published release or its assets.",
+      "Hand-copying base files into the Ops source tree instead of materializing the locked release.",
+      "Any change to business module behaviour, routes, permissions, menus or database migrations.",
+      "Promoting the four advisory Ops harness checkers to CI gates.",
+      "Deleting or closing remote branches and open Dependabot pull requests."
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6.task.md",
+      ".harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6/manifest.json",
+      ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/commands.json",
+      ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/summary.md",
+      ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/review.md"
+    ],
+    "modify": [
+      "foundation-release.lock.json",
+      ".foundation/foundation-release.lock.json",
+      "business-overlay.json",
+      "package.json",
+      "scripts/business-overlay/rebuild-from-base.mjs",
+      "the swapped base-owned backend and frontend tree"
+    ],
+    "doNotTouch": [
+      ".foundation/allowed-drift.json",
+      ".foundation/releases/** for previously materialized releases",
+      "any existing tag, release or release asset",
+      "docs/migrations/legacy-ops-business-v010x/** contents"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "foundation-release.lock.json",
+    ".foundation/foundation-release.lock.json",
+    ".foundation/allowed-drift.json",
+    "business-overlay.json",
+    "scripts/business-overlay/rebuild-from-base.mjs",
+    "scripts/business-overlay/check-shared-drift.mjs",
+    ".github/workflows/inheritance-drift-detection.yml"
+  ],
+  "implementationNotes": [
+    "rebuild-from-base.mjs resolves the base from the lock when --base is omitted, so the swap consumes the published v0.17.6 archive rather than the local ../pantheon-base working tree; only the drift gate reads that checkout.",
+    "The v0.17.6 materialization keeps bundle/ and manifest.json inside the tgz, so the ledger records materializedLayoutMatchesPriorReleases as false instead of claiming the v0.16.1 layout.",
+    "base's pattern modules were renamed to lower camel case; on a case-insensitive filesystem a copy cannot express that, so the old-case index entries were removed before applying the staged tree, and git then records them as renames with no content change.",
+    "migrate.go is base-owned, so currentRuntimeSchemaVersion moved 20 -> 24 with the swap together with migrations up to 000030; no Ops-side version pin needed editing.",
+    "The merged root package.json injects only a fixed list of Ops scripts; check:shared-drift was absent, which is why the scheduled Base Compatibility Rebuild failed its first drift step. The merge now injects it.",
+    "This is not a schema-neutral consumption: base migrations run to 000030 (tenant_plans), the menu seed moves 租户管理 under a new 租户运营 group and five new permission codes exist, so the Ops menu contract reports 40 menus / 50 routes / 221 permissions / 52 component keys."
+  ],
+  "harnessProfile": {
+    "template": "api-service",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "foundation-release-consumer",
+    "portableFailureClass": "consumer-lock-drift",
+    "ownerLayer": "inheritance-boundary",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality",
+      "method-health"
+    ]
+  },
+  "methodReadiness": {
+    "consumerSpecificControls": [
+      "immutable release consumption",
+      "baseline swap behind staged verification",
+      "shared-drift gate exposed as a runnable root script"
+    ],
+    "requiredSensors": [
+      "command"
+    ],
+    "requiredEvidence": [
+      "commands.json",
+      "summary.md",
+      "review.md"
+    ],
+    "ratchetDecision": "gate-updated",
+    "deferredCodeIssues": [
+      "Ops business modules still create their schema through AutoMigrate instead of a consumer versioned-migration channel; no such channel exists in base",
+      "Four advisory Ops harness checkers (harness-docs link, ui-quality-gate, visual-evidence, generated-marker) stay red and are not CI gates",
+      "local cgo toolchain cannot build sqlite-backed base packages, so -race coverage stays with CI Linux"
+    ]
+  },
+  "deliveryGovernance": {
+    "designGate": [
+      "inheritance boundary note: base owns platform/system, ops consumes an immutable release snapshot"
+    ],
+    "developmentGate": [
+      "lock and ledger updated together",
+      "rebuilt tree verified before the baseline swap",
+      "undeclared Ops-only paths registered instead of silently preserved"
+    ],
+    "qaAcceptanceGate": [
+      "business-overlay contract and shared-drift gate on both staged tree and worktree",
+      "backend build/vet/test on the tidied merged module graph",
+      "frontend type-check, lint, build and all 14 contract checks",
+      "hosted Base Compatibility Rebuild for the shared-drift script fix"
+    ],
+    "githubGovernanceGate": [
+      "consumer-lock-drift"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "foundation release -> consumer lock -> rebuilt tree -> business overlay anchors -> backend/frontend gates"
+    ],
+    "riskNodes": [
+      "shared prefix of the ops tree",
+      "overlay assembly anchors",
+      "Go module graph",
+      "frontend import graph and case-sensitive resolution",
+      "runtime schema baseline"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "sha256sum .foundation/releases/pantheon-base-v0.17.6/foundation-release-pantheon-base-v0.17.6.tgz .foundation/releases/pantheon-base-v0.17.6/repo.tar",
+      "node scripts/business-overlay/rebuild-from-base.mjs --target .tmp/overlay-v0176",
+      "node scripts/business-overlay/check-business-overlay.mjs --root .tmp/overlay-v0176",
+      "node scripts/business-overlay/check-shared-drift.mjs --root .tmp/overlay-v0176 --base ../pantheon-base",
+      "node scripts/business-overlay/check-shared-drift.mjs --base ../pantheon-base",
+      "npm run test:business-overlay",
+      "go mod tidy && go build ./... && go vet ./... && gofmt -l .",
+      "go test ./...",
+      "go test ./modules/business/... ./modules/system/iam/menu/... (rebuilt tree)",
+      "npm run type-check && npm run lint && npm run build (frontend)",
+      "all 14 frontend contract checks",
+      "npm run check:docs-frontmatter && npm run check:encoding && npm run check:structure && npm run check:business-overlay && npm run check:generated-modules && npm run check:duplication"
+    ],
+    "runtimeEvidence": [
+      "shared-drift hash comparison against the base checkout on staged tree and swapped worktree",
+      "overlay contract resolution on the rebuilt tree",
+      "backend build/vet/test on the tidied merged module graph",
+      "frontend type-check, lint and production build on the swapped tree"
+    ]
+  },
+  "runtimeSensitive": true,
+  "costProfile": {
+    "tokens": "medium",
+    "note": "release materialization and local gates only; hosted smoke carries the runtime evidence"
+  },
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/",
+    "reviewFile": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/review.md",
+    "summaryFile": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-6/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6.task.md"
+    ]
+  },
+  "evidenceRequired": [
+    "release identity and the two asset digests re-hashed after materialization",
+    "sharedPaths equivalence between the Ops lock and the v0.17.6 release manifest",
+    "overlay contract and drift results on the staged tree and on the swapped worktree",
+    "backend and frontend verification output",
+    "the named consumer repairs with their before/after gate results",
+    "review summary"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Lock and materialization verified",
+    "Baseline swap verified through staged gates",
+    "Evidence saved",
+    "Review completed"
+  ]
+}

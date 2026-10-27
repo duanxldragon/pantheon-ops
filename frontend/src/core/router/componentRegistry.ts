@@ -52,6 +52,15 @@ const staticComponentRegistry = {
   'system/user/UserDetail': defineRegistryEntry(
     () => import('../../modules/system/iam/user/UserDetail'),
   ),
+  'system/tenant/TenantList': defineRegistryEntry(
+    () => import('../../modules/system/iam/tenant/TenantList'),
+  ),
+  'system/tenant/TenantOverview': defineRegistryEntry(
+    () => import('../../modules/system/iam/tenant/TenantOverview'),
+  ),
+  'system/tenant/TenantMemberList': defineRegistryEntry(
+    () => import('../../modules/system/iam/tenant/TenantMemberList'),
+  ),
   'system/audit/OperationLogList': defineRegistryEntry(
     () => import('../../modules/system/audit/OperationLogList'),
   ),

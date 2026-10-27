@@ -39,7 +39,7 @@ import {
   type K8sStorageLocationRow,
   type K8sVeleroStatus,
 } from '../api';
-import '../../../system/components/shared/list-page.css';
+import '../../../../assets/list-page.css';
 
 type BackupTab = 'backups' | 'schedules' | 'restores' | 'locations';
 

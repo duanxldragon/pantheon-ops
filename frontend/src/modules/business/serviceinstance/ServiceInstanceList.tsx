@@ -5,7 +5,7 @@ import { IconRefresh } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { AppTable, PageContainer, PageEmpty, PageError, PageLoading } from '../../../components';
 import { getServiceInstanceList, reconcileServiceInstance, type ServiceInstanceRow } from './api';
-import '../../system/components/shared/list-page.css';
+import '../../../assets/list-page.css';
 
 export default function ServiceInstanceList() {
   const { t } = useTranslation();

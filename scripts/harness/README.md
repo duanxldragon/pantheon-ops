@@ -25,11 +25,13 @@ node scripts/harness/check-doc-inventory.mjs --root . --strict
 node scripts/harness/check-sync-drift.mjs --root . --strict
 node scripts/harness/check-encoding.mjs --root . --strict
 node scripts/harness/check-review.mjs --root . --strict
-node scripts/harness/check-runtime-evidence.mjs --root . --strict
+node scripts/harness/check-runtime-evidence.mjs --root . --strict   # warnings also fail --strict
 node scripts/harness/check-task-packet.mjs --root .   # all task packets; pre-template docs would be listed in config/task-packet-legacy-docs.json, which is now empty
 node scripts/harness/check-evidence.mjs --root . --strict
 node scripts/harness/check-failure-registry.mjs --root . --strict
 node scripts/harness/check-boundaries.mjs --root .
+node scripts/harness/check-boundaries.mjs --strict --repo pantheon-base --baseline config/boundary-baseline.json   # CI form; bare --strict is stricter than the gate
+node scripts/harness/check-inheritance-contract.mjs --root .. --strict   # workspace-level: --root . reports the workspace and ops docs as "missing"
 node scripts/harness/check-ui-quality-gate.mjs --root . --strict
 node scripts/harness/check-visual-evidence.mjs --root .
 node scripts/harness/check-feature-ledger.mjs --root . --strict

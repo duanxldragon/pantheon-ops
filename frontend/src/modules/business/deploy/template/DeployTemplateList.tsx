@@ -57,7 +57,8 @@ import {
   isDeployComponentStepType,
   type DeployComponentStepType,
 } from '../catalog';
-import '../../../system/components/shared/list-page.css';
+import PasswordInput from '../../../../components/patterns/forms/PasswordInput';
+import '../../../../assets/list-page.css';
 import '../deploy.css';
 
 type TemplateStepType = 'package' | 'script' | DeployComponentStepType;
@@ -671,7 +672,7 @@ export default function DeployTemplateList() {
               <Space direction="vertical" size={8} style={{ width: '100%' }}>
                 {selectedDefaultTemplateEntry.parameters.map((item) => (
                   <Form.Item key={item.key} field={`parameterValues.${item.key}`} label={t(item.labelKey)}>
-                    {item.secret ? <Input.Password placeholder={item.defaultValue} /> : <Input placeholder={item.defaultValue} />}
+                    {item.secret ? <PasswordInput placeholder={item.defaultValue} /> : <Input placeholder={item.defaultValue} />}
                   </Form.Item>
                 ))}
               </Space>
@@ -866,7 +867,7 @@ export default function DeployTemplateList() {
                                   field={`steps[${index}].parameterValues.${item.key}`}
                                   label={t(item.labelKey)}
                                 >
-                                  {item.secret ? <Input.Password placeholder={item.defaultValue} /> : <Input placeholder={item.defaultValue} />}
+                                  {item.secret ? <PasswordInput placeholder={item.defaultValue} /> : <Input placeholder={item.defaultValue} />}
                                 </Form.Item>
                               ))}
                             </>

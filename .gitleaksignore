@@ -42,3 +42,12 @@ d489c8db33773db68aeb24bc503621cff5a22087:.github/workflows/release-gate.yml:curl
 178756dde9507912664d595b4bb4f6beb23e39e1:k8s/README.md:curl-auth-header:208
 b2e907916c1a4b29942e9d44f6ff5f29fceda4ac:.harness/tasks/2026-09-08-p1-k8s-manifests/task.md:curl-auth-header:448
 b2e907916c1a4b29942e9d44f6ff5f29fceda4ac:k8s/README.md:curl-auth-header:208
+
+# Synthetic fixture in the release secret-scan test (v0.17.2): the value is a
+# made-up counter shaped like the v0.17.0 leak; the real literal must never be
+# committed anywhere. The live line carries gitleaks:allow on the same line
+# (gitleaks v8 honours the marker only on the secret's own line). The entries
+# below pin the two historical commits whose diffs introduced the fixture with
+# the marker on the wrong line: the first file-add and the #410 squash commit.
+0fcc38d00089aa0807bd828c409cf51b36ee2bbb:tests/scripts/foundation-release/check-release-secrets.test.mjs:generic-api-key:27
+43aec46e700a4fcfb1290de8935780d9ec585a50:tests/scripts/foundation-release/check-release-secrets.test.mjs:generic-api-key:28

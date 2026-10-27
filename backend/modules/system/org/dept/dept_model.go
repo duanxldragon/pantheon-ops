@@ -6,8 +6,11 @@ import (
 	"gorm.io/gorm"
 )
 
+// SystemDept is a department. TenantID is the owning tenant (contract §2.3):
+// 0 is the platform/global tree, >0 a tenant-local one.
 type SystemDept struct {
 	ID           uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	TenantID     uint64         `gorm:"not null;default:0;index:idx_system_dept_tenant_id" json:"tenantId"`
 	ParentID     uint64         `gorm:"default:0" json:"parentId"`
 	Ancestors    string         `gorm:"size:255;default:''" json:"ancestors"`
 	IsRoot       int            `gorm:"default:0" json:"isRoot"`

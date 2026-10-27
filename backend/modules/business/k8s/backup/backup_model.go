@@ -19,7 +19,7 @@ type VeleroBackup struct {
 	ExcludedResources    datatypes.JSON `gorm:"type:json" json:"excludedResources,omitempty"`
 	LabelSelector        string         `gorm:"size:256" json:"labelSelector,omitempty"`
 	IncludePVs           bool           `gorm:"default:true" json:"includePvs"`
-	TTL                  int            `gorm:"default:720" json:"ttl"` // 保留时长（小时）
+	TTL                  int            `gorm:"default:720" json:"ttl"`                     // 保留时长（小时）
 	Status               string         `gorm:"size:32;not null;default:New" json:"status"` // New, InProgress, Completed, Failed
 	Phase                string         `gorm:"size:32" json:"phase,omitempty"`             // Velero phase
 	StartTime            *time.Time     `json:"startTime,omitempty"`
@@ -98,8 +98,8 @@ type VeleroStorageLocation struct {
 	Bucket          string         `gorm:"size:128;not null" json:"bucket"`
 	Region          string         `gorm:"size:64" json:"region,omitempty"`
 	Endpoint        string         `gorm:"size:256" json:"endpoint,omitempty"` // MinIO/S3 endpoint
-	AccessKeyID     string         `gorm:"size:128" json:"-"` // 加密存储，不返回
-	SecretAccessKey string         `gorm:"size:256" json:"-"` // 加密存储，不返回
+	AccessKeyID     string         `gorm:"size:128" json:"-"`                  // 加密存储，不返回
+	SecretAccessKey string         `gorm:"size:256" json:"-"`                  // 加密存储，不返回
 	Config          datatypes.JSON `gorm:"type:json" json:"config,omitempty"`
 	IsDefault       bool           `gorm:"default:false" json:"isDefault"`
 	CreatedAt       time.Time      `json:"createdAt"`

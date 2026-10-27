@@ -24,14 +24,10 @@ import (
 // modules/system/iam/user (docs/designs/REPOSITORY_LAYOUT.md §8.2).
 func InitAuthModule(r *gin.RouterGroup, db *gorm.DB, userRepo authuser.Repository) {
 	tenantModeLoader := tenant.NewModeLoader(func() string {
-		if db == nil {
-			return tenant.ModeCompat
-		}
-		var value string
-		if err := db.Table("system_setting").Where("setting_key = ?", "platform.tenant_mode").Pluck("setting_value", &value).Error; err != nil {
-			return tenant.ModeCompat
-		}
-		return value
+		// Pin the read to the platform-global row (tenant_id = 0): the flag is
+		// platform-scoped, and an unfiltered lookup would resolve from an
+		// arbitrary tenant's settings copy once tenants exist.
+		return tenant.FeatureFlagSettingKeyReader(db)
 	}, int64(5*time.Second))
 	authSvc := login.NewRuntime(db, userRepo)
 	authHandler := login.NewAuthHandler(authSvc, middleware.InvalidateTokenAuthCache)
@@ -87,7 +83,7 @@ func InitAuthModule(r *gin.RouterGroup, db *gorm.DB, userRepo authuser.Repositor
 					apiAuth.GET("/login-tenants", middleware.TokenAuthMiddleware(database.RDB), authHandler.GetLoginTenantCandidates)
 				}
 
-				systemProtected := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.TenantContextMiddleware(tenantModeLoader, db)).Use(middleware.CasbinMiddleware())
+				systemProtected := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(tenantModeLoader, db)).Use(middleware.CasbinMiddleware())
 				{
 					systemProtected.POST("/logout", authHandler.LogoutHandler)
 					systemProtected.GET("/user/info", authHandler.GetCurrentUserInfo)
@@ -97,16 +93,18 @@ func InitAuthModule(r *gin.RouterGroup, db *gorm.DB, userRepo authuser.Repositor
 					systemProtected.POST("/login-log/cleanup", middleware.SecureActionMiddleware(), authHandler.CleanupLoginLogs)
 					systemProtected.POST("/login-log/batch-delete", middleware.SecureActionMiddleware(), authHandler.BatchDeleteLoginLogs)
 					systemProtected.GET("/security-event/list", authHandler.GetSecurityEventList)
+					systemProtected.POST("/security-event/export", authHandler.ExportSecurityEvents)
 					systemProtected.POST("/security-event/:id/acknowledge", middleware.SecureActionMiddleware(), authHandler.AcknowledgeSecurityEvent)
 					systemProtected.POST("/security-event/batch-acknowledge", middleware.SecureActionMiddleware(), authHandler.BatchAcknowledgeSecurityEvents)
 					systemProtected.POST("/security-event/cleanup", middleware.SecureActionMiddleware(), authHandler.CleanupSecurityEvents)
 					systemProtected.GET("/session/list", authHandler.GetSessionList)
+					systemProtected.POST("/session/export", authHandler.ExportAdminSessions)
 					systemProtected.POST("/session/cleanup", middleware.SecureActionMiddleware(), authHandler.CleanupHistoricSessions)
 					systemProtected.POST("/session/batch-revoke", middleware.SecureActionMiddleware(), authHandler.BatchRevokeSessions)
 					systemProtected.DELETE("/session/:id", middleware.SecureActionMiddleware(), authHandler.RevokeAnySession)
 				}
 
-				authV2 := r.Group("/auth").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.TenantContextMiddleware(tenantModeLoader, db)).Use(middleware.CasbinMiddleware())
+				authV2 := r.Group("/auth").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(tenantModeLoader, db)).Use(middleware.CasbinMiddleware())
 				{
 					authV2.POST("/logout", authHandler.LogoutHandler)
 					authV2.POST("/activity", authHandler.TouchActivity)
@@ -118,6 +116,19 @@ func InitAuthModule(r *gin.RouterGroup, db *gorm.DB, userRepo authuser.Repositor
 					authV2.GET("/sessions", authHandler.GetSessions)
 					authV2.DELETE("/sessions/:id", authHandler.RevokeSession)
 					authV2.GET("/login-logs", authHandler.GetOwnLoginLogs)
+				}
+
+				// Tenant switcher (self-service, contract §2.2). Deliberately NOT
+				// Casbin-gated: the authority for moving between tenants is the
+				// membership row, which the service checks directly — a Casbin
+				// policy would let a permission grant widen tenancy. The tenant
+				// context middleware is still required so "current tenant" is the
+				// resolved request context rather than a client-supplied value.
+				authTenants := r.Group("/auth").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(tenantModeLoader, db))
+				{
+					authTenants.GET("/tenants/switchable", authHandler.ListSwitchableTenants)
+					authTenants.GET("/tenants/current", authHandler.GetCurrentTenant)
+					authTenants.POST("/tenants/switch", authHandler.SwitchTenant)
 				}
 			},
 		},

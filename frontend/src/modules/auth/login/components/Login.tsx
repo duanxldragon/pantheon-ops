@@ -34,14 +34,18 @@ import { verifyMFA } from '../../mfa/api';
 import { findFirstNavigableMenuPath } from '../../../system/iam/menu/api';
 import { useAuthStore } from '../../../../store/useAuthStore';
 import { useMenuStore } from '../../../../store/useMenuStore';
+import { useTenantSessionStore } from '../../../../store/useTenantSessionStore';
+import PasswordInput from '../../../../components/patterns/forms/PasswordInput';
 import ThemeSwitcher from '../../../../core/theme/ThemeSwitcher';
 import { clearShellSessionState, LOGIN_NOTICE_STORAGE_KEY } from '../../../../core/shellState';
+import { clearTenantViewpoint } from '../../../../core/tenant/viewpoint';
 import {
   getBrandInitial,
   setExplicitLanguagePreference,
   usePublicSettings,
 } from '../../../../core/setting/publicSettings';
 import { COOKIE_TOKEN_PLACEHOLDER } from '../../../../core/auth/sessionSnapshot';
+import { invalidateAllRouteWarmData } from '../../../../core/router/prefetch';
 import { resolveDefaultAuthedPath } from '../../../../core/router/defaultPath';
 import { SUPPORTED_LOCALES, switchI18nLanguage, type SupportedLocale } from '../../../../i18n';
 import './Login.css';
@@ -51,6 +55,18 @@ const LOGIN_NOTICE_MESSAGE_KEY_MAP: Record<string, string> = {
   'session.idle_timeout': 'auth.login.idleTimeoutNotice',
 };
 
+// The backend answers a refused tenant sign-in with its own `tenant.*` key
+// (tenant.forbidden / tenant.suspended / tenant.archived), so those keys are
+// rendered verbatim: a generic "login failed" hides the one fact the operator
+// needs — whether the account lacks membership, or the tenant itself is not
+// accepting logins. Every key admitted here has a translation in all locales.
+const LOGIN_PASSTHROUGH_MESSAGE_PREFIXES = [
+  'user.login.error.',
+  'auth.login.error.',
+  'auth.mfa.',
+  'tenant.',
+];
+
 function resolveLoginErrorKey(error: unknown, fallbackKey: string) {
   if (!isRequestError(error)) {
     return fallbackKey;
@@ -59,11 +75,7 @@ function resolveLoginErrorKey(error: unknown, fallbackKey: string) {
   if (!messageKey) {
     return fallbackKey;
   }
-  if (
-    messageKey.startsWith('user.login.error.') ||
-    messageKey.startsWith('auth.login.error.') ||
-    messageKey.startsWith('auth.mfa.')
-  ) {
+  if (LOGIN_PASSTHROUGH_MESSAGE_PREFIXES.some((prefix) => messageKey.startsWith(prefix))) {
     return messageKey;
   }
   return fallbackKey;
@@ -232,6 +244,19 @@ export function LoginPageComponent() {
     }
     clearShellSessionState();
     resetMenuTree();
+    // The tenant context is session state: a re-login in the same tab must not
+    // inherit the previous subject's plan or viewpoint.
+    useTenantSessionStore.getState().resetTenantSession();
+    // A viewpoint never crosses a login boundary: the new session decides its
+    // own scope (tenant admins resolve their claim at login; platform
+    // subjects opt back in explicitly). sessionStorage is per-tab but a
+    // re-login in the same tab would otherwise inherit the stale pin.
+    clearTenantViewpoint();
+    // Same boundary rule for the route warm-data cache: it is keyed by path
+    // only, so a sign-in that followed a logout in this tab must not be served
+    // the previous subject's warmed rows. The logout path clears it too; this
+    // side covers exits that never reached it.
+    invalidateAllRouteWarmData();
     setTokens(COOKIE_TOKEN_PLACEHOLDER, COOKIE_TOKEN_PLACEHOLDER);
     setUserInfo(res.user);
     const menuTree = await fetchMenuTree();
@@ -427,7 +452,7 @@ export function LoginPageComponent() {
               field="password"
               rules={[{ required: true, message: t('auth.passwordRequired') }]}
             >
-              <Input.Password
+              <PasswordInput
                 disabled={Boolean(mfaChallenge)}
                 prefix={<IconLock />}
                 placeholder={t('auth.passwordPlaceholder')}

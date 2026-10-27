@@ -5,6 +5,7 @@ import (
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,6 +18,15 @@ type UserHandler struct {
 
 func NewUserHandler(s *UserService) *UserHandler {
 	return &UserHandler{service: s}
+}
+
+// svc returns the request-scoped service view bound to the resolved tenant
+// context (contract §3.3). A nil context returns the shared service; compat
+// binds the platform-global scope (tenant_id=0). Admin operations must use this
+// instead of h.service directly, otherwise they read and write platform-global
+// rows.
+func (h *UserHandler) svc(c *gin.Context) *UserService {
+	return h.service.WithTenantContext(tenant.FromGin(c))
 }
 
 // GetProfile 获取个人中心信息。
@@ -67,7 +77,7 @@ func (h *UserHandler) GetUserList(c *gin.Context) {
 	}
 
 	dataScope := common.GetDataScope(c)
-	list, err := h.service.ListUsers(&query, dataScope)
+	list, err := h.svc(c).ListUsers(&query, dataScope)
 	if err != nil {
 		common.Fail(c, common.CodeError, "user.list.error")
 		return
@@ -84,7 +94,7 @@ func (h *UserHandler) ExportUsers(c *gin.Context) {
 		return
 	}
 	dataScope := common.GetDataScope(c)
-	file, err := h.service.ExportUsers(c.Request.Context(), &query, dataScope)
+	file, err := h.svc(c).ExportUsers(c.Request.Context(), &query, dataScope)
 	if err != nil {
 		common.Fail(c, common.CodeError, "user.export.error")
 		return
@@ -123,7 +133,7 @@ func (h *UserHandler) ImportUsers(c *gin.Context) {
 		return
 	}
 
-	result, err := h.service.ImportUsers(records)
+	result, err := h.svc(c).ImportUsers(records)
 	if err != nil {
 		common.Fail(c, common.CodeError, "user.import.error")
 		return
@@ -139,9 +149,11 @@ func (h *UserHandler) GetUserDetail(c *gin.Context) {
 		return
 	}
 
-	detail, err := h.service.GetUserDetail(userID)
+	detail, err := h.svc(c).GetUserDetail(userID)
 	if err != nil {
-		common.Fail(c, common.CodeError, "user.detail.error")
+		// CodeForError keeps a missing/foreign user at 404 while every other
+		// cause stays a server fault (contract §5: do not distinguish the two).
+		common.FailWithError(c, common.CodeForError(err), err, "user.detail.error")
 		return
 	}
 	common.Success(c, detail)
@@ -156,7 +168,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.CreateUser(&req)
+	user, err := h.svc(c).CreateUser(&req)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "user.create.error")
 		return
@@ -179,9 +191,9 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.UpdateUser(userID, &req)
+	user, err := h.svc(c).UpdateUser(userID, &req)
 	if err != nil {
-		common.Fail(c, common.CodeError, "user.update.error")
+		common.FailWithError(c, common.CodeForError(err), err, "user.update.error")
 		return
 	}
 	common.Success(c, user)
@@ -203,7 +215,7 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	revokedSessionCount, err := h.service.ResetPassword(userID, req.NewPassword)
+	revokedSessionCount, err := h.svc(c).ResetPassword(userID, req.NewPassword)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "user.password.reset.error")
 		return
@@ -223,7 +235,7 @@ func (h *UserHandler) BatchUpdateUserStatus(c *gin.Context) {
 		return
 	}
 
-	updatedCount, err := h.service.BatchUpdateUserStatus(req.UserIDs, req.Status)
+	updatedCount, err := h.svc(c).BatchUpdateUserStatus(req.UserIDs, req.Status)
 	if err != nil {
 		common.FailWithError(c, common.CodeError, err, "user.status.batch_update.error")
 		return
@@ -239,7 +251,7 @@ func (h *UserHandler) BatchDeleteUsers(c *gin.Context) {
 		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
 		return
 	}
-	resp := common.BatchDelete(req.IDs, h.service.DeleteUser)
+	resp := common.BatchDelete(req.IDs, h.svc(c).DeleteUser)
 	common.Success(c, resp)
 }
 
@@ -252,7 +264,7 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.DeleteUser(userID); err != nil {
+	if err := h.svc(c).DeleteUser(userID); err != nil {
 		common.FailWithError(c, common.CodeError, err, "user.delete.error")
 		return
 	}

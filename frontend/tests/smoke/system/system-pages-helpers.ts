@@ -672,7 +672,13 @@ export async function createApiPermission(
   });
   expect(response.ok()).toBeTruthy();
   const payload = await response.json();
-  expect(payload.code).toBe(200);
+  // Saving a role already syncs the API routes its permission keys declare, so
+  // the route this fixture asks for is usually in place before the POST. The
+  // backend's duplicate check covers exactly (subject, path, method), so that
+  // conflict reports the grant as present rather than a failed grant.
+  if (payload.code !== 200) {
+    expect(payload.message).toBe('permission.policy.exists');
+  }
 }
 
 /**

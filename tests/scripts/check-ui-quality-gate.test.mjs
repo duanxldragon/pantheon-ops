@@ -21,6 +21,7 @@ function createFixture() {
     'docs/designs/OPERATIONAL_WORKBENCH_COMPONENTS_DESIGN.md',
     'frontend/scripts/check-shell-visual-contract.mjs',
     'frontend/scripts/check-ui-contract.mjs',
+    'frontend/scripts/check-password-toggle.mjs',
     'frontend/scripts/check-contrast.mjs',
     'frontend/scripts/check-important-budget.mjs',
     'scripts/harness/check-visual-evidence.mjs',

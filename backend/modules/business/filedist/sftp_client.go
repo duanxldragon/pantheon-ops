@@ -16,25 +16,25 @@ import (
 
 // SFTPClient wraps SFTP connection for file transfers.
 type SFTPClient struct {
-	host          string
-	port          int
-	username      string
-	password      string
-	privateKey    string
+	host            string
+	port            int
+	username        string
+	password        string
+	privateKey      string
 	hostFingerprint string
-	sshClient     *ssh.Client
-	sftpClient    *sftp.Client
+	sshClient       *ssh.Client
+	sftpClient      *sftp.Client
 }
 
 // SFTPConfig represents SFTP connection configuration.
 type SFTPConfig struct {
-	Host           string `json:"host"`
-	Port           int    `json:"port"`
-	Username       string `json:"username"`
-	Password       string `json:"password"`
-	PrivateKey     string `json:"privateKey"`
+	Host            string `json:"host"`
+	Port            int    `json:"port"`
+	Username        string `json:"username"`
+	Password        string `json:"password"`
+	PrivateKey      string `json:"privateKey"`
 	HostFingerprint string `json:"hostFingerprint"` // required SSH host key fingerprint (SHA256)
-	Timeout        int    `json:"timeout"`          // seconds
+	Timeout         int    `json:"timeout"`         // seconds
 }
 
 // NewSFTPClient creates a new SFTP client.

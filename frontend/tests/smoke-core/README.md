@@ -32,11 +32,23 @@ job 在显式 multi 模式、租户 101/202、membership 和字典 fixture 均�
 
 ```bash
 cd frontend
-npm run test:smoke:tenant
+npm run test:smoke:tenant              # 双租户 hostile 矩阵 + 平台视角验收
+npm run test:smoke:tenant:viewpoint    # 只跑平台租户视角（自建自清 fixture）
 ```
 
 该 job 仍是 push-only 的 advisory 信号；它与 Core Smoke 分离，避免把缺少租户
 前置条件误报成隔离回归。
+
+### 平台主体租户视角（multi 模式专用）
+
+| 测试文件 | 覆盖范围 | 预估耗时 | 优先级 |
+|---------|---------|---------|--------|
+| `tenant-viewpoint-switcher.spec.ts` | 平台主体经顶栏「租户视角」钉住租户（`X-Tenant-Id`）、钉住域内新建用户并「加入本租户」、该用户登录、退出视角 | ~1min | P0 |
+
+该 spec 不依赖 101/202 fixture：`beforeAll` 用 admin API 自建租户，`afterAll`
+删除用户与租户（`DELETE /system/tenant` 为软删除，租户行的物理清理需另行 SQL）。
+需要 `platform.tenant_mode=multi` 且后端已在 8080 运行。设置
+`PANTHEON_VIEWPOINT_EVIDENCE_DIR=<dir>` 可额外落盘关键状态截图。
 
 ## 运行方式
 

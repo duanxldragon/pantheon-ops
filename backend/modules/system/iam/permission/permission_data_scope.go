@@ -11,6 +11,10 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// condTenantIDEquals is the tenant confinement predicate every data-scope read
+// applies when the caller is not platform-scoped (contract §4).
+const condTenantIDEquals = "tenant_id = ?"
+
 type permissionDataScopeRoleRow struct {
 	ID       uint64 `gorm:"column:id"`
 	RoleName string `gorm:"column:role_name"`
@@ -20,6 +24,10 @@ type permissionDataScopeRoleRow struct {
 }
 
 // ListDataScopePolicies returns the current data scope policies.
+//
+// The role list is the console's row set, so it must be pinned to the caller's
+// tenant: a tenant administrator owns a handful of roles, not every role in the
+// installation (acceptance F7 showed 53 rows for a tenant owning 3).
 func (s *PermissionService) ListDataScopePolicies(query *PermissionDataScopeQuery) (*PermissionDataScopePolicyListResp, error) {
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
@@ -27,6 +35,9 @@ func (s *PermissionService) ListDataScopePolicies(query *PermissionDataScopeQuer
 
 	var roles []permissionDataScopeRoleRow
 	db := s.db.Table("system_role").Where("deleted_at IS NULL")
+	if !s.isPlatformScope() {
+		db = db.Where(condTenantIDEquals, s.tenantOwnerID())
+	}
 	if query != nil {
 		if strings.TrimSpace(query.RoleKey) != "" {
 			db = db.Where("role_key LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.RoleKey))+"%")
@@ -102,14 +113,21 @@ func (s *PermissionService) UpdateDataScopePolicy(roleKey string, req *Permissio
 	if mode != common.DataScopeModeCustom {
 		deptIDs = []uint64{}
 	}
+	// A department id is a global sequence, so the same number denotes different
+	// departments in different tenants. Accepting a foreign id would let one
+	// tenant point another tenant's scope at an unrelated department (F11).
+	if err := s.ensureDeptIDsBelongToTenant(deptIDs); err != nil {
+		return nil, err
+	}
 
 	policy := PermissionRoleDataScopePolicy{
-		RoleKey: roleKey,
-		Mode:    mode,
-		DeptIDs: joinPermissionDataScopeDeptIDs(deptIDs),
+		TenantID: s.tenantOwnerID(),
+		RoleKey:  roleKey,
+		Mode:     mode,
+		DeptIDs:  joinPermissionDataScopeDeptIDs(deptIDs),
 	}
 	if err := s.db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "role_key"}},
+		Columns:   []clause.Column{{Name: "tenant_id"}, {Name: "role_key"}},
 		DoUpdates: clause.AssignmentColumns([]string{"mode", "dept_ids"}),
 	}).Create(&policy).Error; err != nil {
 		return nil, err
@@ -127,6 +145,30 @@ func (s *PermissionService) UpdateDataScopePolicy(roleKey string, req *Permissio
 	return nil, gorm.ErrRecordNotFound
 }
 
+// ensureDeptIDsBelongToTenant rejects custom scope definitions that reference
+// departments outside the caller's tenant. An empty set is valid (it is the
+// non-custom case).
+func (s *PermissionService) ensureDeptIDsBelongToTenant(deptIDs []uint64) error {
+	if len(deptIDs) == 0 {
+		return nil
+	}
+	if !s.db.Migrator().HasTable("system_dept") {
+		return common.NewBadRequest("permission.data_scope.dept_invalid")
+	}
+	var found int64
+	db := s.db.Table("system_dept").Where("id IN ?", deptIDs).Where("deleted_at IS NULL")
+	if !s.isPlatformScope() {
+		db = db.Where(condTenantIDEquals, s.tenantOwnerID())
+	}
+	if err := db.Count(&found).Error; err != nil {
+		return err
+	}
+	if int(found) != len(deptIDs) {
+		return common.NewBadRequest("permission.data_scope.dept_invalid")
+	}
+	return nil
+}
+
 func (s *PermissionService) loadRoleDataScopePolicies(roleKeys []string) (map[string]PermissionRoleDataScopePolicy, error) {
 	result := make(map[string]PermissionRoleDataScopePolicy, len(roleKeys))
 	if len(roleKeys) == 0 {
@@ -136,7 +178,11 @@ func (s *PermissionService) loadRoleDataScopePolicies(roleKeys []string) (map[st
 		return result, nil
 	}
 	var policies []PermissionRoleDataScopePolicy
-	if err := s.db.Where("role_key IN ?", roleKeys).Find(&policies).Error; err != nil {
+	db := s.db.Where("role_key IN ?", roleKeys)
+	if !s.isPlatformScope() {
+		db = db.Where(condTenantIDEquals, s.tenantOwnerID())
+	}
+	if err := db.Find(&policies).Error; err != nil {
 		return nil, err
 	}
 	for _, policy := range policies {

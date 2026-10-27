@@ -6,12 +6,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	dynamicfake "k8s.io/client-go/dynamic/fake"
 	"k8s.io/client-go/kubernetes/fake"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestVeleroClient_IsInstalled(t *testing.T) {
@@ -113,7 +113,7 @@ func TestVeleroClient_CreateRestore(t *testing.T) {
 	vc := NewVeleroClient(clientset, dynamicClient)
 
 	spec := map[string]interface{}{
-		"backupName": "test-backup",
+		"backupName":         "test-backup",
 		"includedNamespaces": []string{"default"},
 	}
 

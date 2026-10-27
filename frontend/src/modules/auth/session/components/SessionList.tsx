@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Card, Button, Popconfirm, Select, Space, Tag, Typography } from '@arco-design/web-react';
 import { message } from '../../../../components/feedback/message';
 import type { ColumnProps, TableProps } from '@arco-design/web-react/es/Table/interface';
-import { IconDelete } from '@arco-design/web-react/icon';
+import { IconDelete, IconDownload } from '@arco-design/web-react/icon';
 import { useTranslation } from 'react-i18next';
 import {
   getVisibleSelectedRowKeys,
@@ -14,6 +14,7 @@ import { usePermission } from '../../../../hooks/usePermission';
 import {
   batchRevokeAdminSessions,
   cleanupAdminSessions,
+  exportAdminSessions,
   getAdminSessionList,
   getSessions,
   revokeAdminSession,
@@ -72,6 +73,7 @@ const SessionList: React.FC = () => {
   const { isAdmin, hasPerm } = usePermission();
   const canDelete = isAdmin || hasPerm('system:session:delete');
   const canClear = isAdmin || hasPerm('system:session:clear');
+  const canExport = isAdmin || hasPerm('system:session:export');
   const governanceRail = useGovernanceRail();
   const cleanupLabels = useMemo(() => buildGovernanceCleanupLabels(t), [t]);
   const [data, setData] = useState<AdminSessionRow[]>([]);
@@ -110,21 +112,28 @@ const SessionList: React.FC = () => {
     };
   }, []);
 
+  // Re-fetch retention options from settings on mount AND right before the
+  // cleanup dialog opens, so a value just configured in 系统设置/日志治理
+  // (e.g. 14 天) shows up without a full page reload.
+  const refreshRetentionSetting = useCallback(() => {
+    return getSettingGroup('audit')
+      .then((group: SettingGroup) =>
+        loadRetentionSetting(
+          group,
+          'audit.session_cleanup_retention_options',
+          setRetentionOptions,
+          setRetentionDays,
+        ),
+      )
+      .catch(() => undefined);
+  }, []);
+
   useEffect(() => {
     const timer = globalThis.setTimeout(() => {
-      getSettingGroup('audit')
-        .then((group: SettingGroup) =>
-          loadRetentionSetting(
-            group,
-            'audit.session_cleanup_retention_options',
-            setRetentionOptions,
-            setRetentionDays,
-          ),
-        )
-        .catch(() => undefined);
+      void refreshRetentionSetting();
     }, 0);
     return () => globalThis.clearTimeout(timer);
-  }, []);
+  }, [refreshRetentionSetting]);
 
   const loadData = useCallback(
     async (nextQuery: AdminSessionQuery = query, options?: LoadDataOptions) => {
@@ -221,6 +230,14 @@ const SessionList: React.FC = () => {
           : await cleanupAdminSessions({ retentionDays: payload.retentionDays });
       message.success(t('auth.session.cleanupSuccess', { count: resp.clearedCount }));
       await loadData(query, { silent: true });
+    } catch {
+      message.error(t('common.actionFailed'));
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      await exportAdminSessions(query);
     } catch {
       message.error(t('common.actionFailed'));
     }
@@ -545,7 +562,7 @@ const SessionList: React.FC = () => {
           />
 
           <Card className="page-panel system-list__table-card">
-            {canDelete || canClear ? (
+            {canDelete || canClear || canExport ? (
               <GovernanceCleanupBar
                 showCleanup={canClear}
                 retentionDays={retentionDays}
@@ -561,7 +578,19 @@ const SessionList: React.FC = () => {
                 rangeEndLabel={cleanupLabels.rangeEndLabel}
                 rangeRequiredMessage={cleanupLabels.rangeRequiredMessage}
                 onConfirm={clearHistoricSessions}
+                onBeforeOpen={refreshRetentionSetting}
                 hint={t('auth.session.cleanupHint')}
+                trailing={
+                  <Button
+                    icon={<IconDownload />}
+                    onClick={() => {
+                      void handleExport();
+                    }}
+                    disabled={!canExport}
+                  >
+                    {t('common.export')}
+                  </Button>
+                }
                 extraActions={
                   canDelete ? (
                     <>

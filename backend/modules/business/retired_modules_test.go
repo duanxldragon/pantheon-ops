@@ -107,6 +107,7 @@ func mustCreateRetiredModuleGovernanceTables(t *testing.T, db *gorm.DB) {
 		)`,
 		`CREATE TABLE system_role_menu (
 			id BIGINT PRIMARY KEY AUTO_INCREMENT,
+			tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
 			role_id BIGINT,
 			menu_id BIGINT
 		)`,

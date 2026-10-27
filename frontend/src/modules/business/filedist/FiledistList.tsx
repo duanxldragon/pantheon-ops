@@ -6,7 +6,7 @@ import { IconDelete, IconUpload } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { AppTable, GovernanceSummaryBar, PageContainer, PageEmpty, PageError, PageLoading } from '../../../components';
 import { deleteFile, deleteTask, getFileList, getTaskList, uploadFile, type DistributionTaskRow, type FileRecordRow } from './api';
-import '../../system/components/shared/list-page.css';
+import '../../../assets/list-page.css';
 
 const formatSize = (size: number) => size < 1024 ? `${size} B` : size < 1024 * 1024 ? `${(size / 1024).toFixed(1)} KB` : `${(size / (1024 * 1024)).toFixed(1)} MB`;
 

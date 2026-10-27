@@ -189,17 +189,35 @@ func cmdUp(db *sql.DB) error {
 		}
 	}
 
-	// 3. Fixture memberships for the smoke user (active in both tenants —
-	//    this is the multi-membership ambiguity the picker resolves).
-	for _, tid := range []int64{tenantA, tenantB} {
-		_, err := db.Exec(
-			"INSERT INTO `tenant_memberships` (`tenant_id`,`user_id`,`role`,`status`) VALUES (?,?,?,?) "+
-				"ON DUPLICATE KEY UPDATE `status`='active'",
-			tid, smokeUserID, "owner", "active",
-		)
-		if err != nil {
-			return fmt.Errorf("upsert membership %d: %w", tid, err)
+	// 3. Fixture memberships for the smoke user — OPT-IN
+	//    (PANTHEON_MATRIX_MEMBERSHIPS=1).
+	//
+	// Under the tenant-isolation model a subject holding several active
+	// memberships can no longer obtain a platform-global session from a plain
+	// login: multiple memberships force an explicit tenant choice (contract
+	// §2.2), and a session carrying that claim resolves its roles INSIDE the
+	// tenant, where the platform admin owns none. Every subsequent API call is
+	// therefore refused with 403 permission.denied, which silently broke every
+	// API-driven smoke helper that signs in as `admin`.
+	//
+	// The hostile browser specs now provision their own tenants with real
+	// tenant administrators instead of reusing the platform subject, so the
+	// matrix no longer needs this ambiguity. Keep it available for the runbook
+	// §6.2 kill-switch rehearsal, which does want the platform admin to own
+	// matrix sessions.
+	if strings.TrimSpace(os.Getenv("PANTHEON_MATRIX_MEMBERSHIPS")) == "1" {
+		for _, tid := range []int64{tenantA, tenantB} {
+			_, err := db.Exec(
+				"INSERT INTO `tenant_memberships` (`tenant_id`,`user_id`,`role`,`status`) VALUES (?,?,?,?) "+
+					"ON DUPLICATE KEY UPDATE `status`='active'",
+				tid, smokeUserID, "owner", "active",
+			)
+			if err != nil {
+				return fmt.Errorf("upsert membership %d: %w", tid, err)
+			}
 		}
+	} else {
+		fmt.Println("tenant-matrix: platform-admin memberships skipped (set PANTHEON_MATRIX_MEMBERSHIPS=1 for the kill-switch rehearsal)")
 	}
 
 	// 4. Explicit starting flag value: compat by default, or multi when the
