@@ -88,7 +88,8 @@
     "ratchetDecision": "registry-only",
     "deferredCodeIssues": [
       "Dependabot-triggered runs cannot read repository secrets, so SonarCloud Scan stays red on Dependabot PRs until Dependabot secrets are provisioned or the job is made to skip that actor; that is a gate-policy decision for the maintainer.",
-      "The SonarCloud quality gate for duanxldragon_pantheon-ops is currently ERROR on new_security_rating; clearing those findings is product work outside this packet."
+      "The SonarCloud quality gate for duanxldragon_pantheon-ops is ERROR on the restored main baseline: new_security_rating E and new_reliability_rating C over an open backlog of 62 vulnerability issues and 6 bugs, concentrated in GORM dynamic-condition taint in backend/modules/business/*. Clearing those findings is product work outside this packet, and relaxing the gate or its new-code baseline is a maintainer policy decision.",
+      "Every GitHub Actions workflow on main is green; the Vercel deployment check stays red because it is an external integration with no committed configuration and no credential on this host."
     ]
   },
   "deliveryGovernance": {
