@@ -75,6 +75,25 @@ Final staged shape: 130 modified, 30 added, 20 deleted, 13 renamed.
 The staging tree was gated with the same set before the live replacement, including the frontend
 build that proves the `TS2614` break is gone (`✓ built in 725ms`).
 
+## Hosted verification after the merge
+
+- PR #151 squash-merged to `main` as `fc6bc850` at 2026-10-29T07:44:33Z; PR #150 (i18next 26.5.11 /
+  react-i18next 17.1.9, the only Dependabot PR still valid after the 0.18.1 dependency refresh)
+  squash-merged as `165014c8` at 2026-10-29T07:59:50Z.
+- Six Dependabot PRs were closed as obsolete because `main` already carries newer versions from the
+  0.18.1 tree: #129 js-yaml, #130 vitest, #131 baseline-browser-mapping, #135/#136 otlptrace 1.45.0
+  and #137 root npm group. After the merges `git ls-remote --heads origin` returns only `main`, and
+  no PR is open.
+- Push pipelines on `165014c8`: Code Quality Gates `40839019495` success, Security Gates
+  `40839019357` success, Branch Hygiene `40839019345` success, SonarCloud Scan `40839019352`
+  failure (HTTP 403 from api.sonarcloud.io: the `SONAR_TOKEN` secret is rejected).
+- Dispatched on the same commit to prove the gates against the final tree: Code Quality Gates
+  `40840649887` success, Security Gates `40840655454` success (frontend `npm audit` 0
+  vulnerabilities, OSV call analysis 3 advisories all `called:false`), Branch Hygiene
+  `40840665983` success, Base Compatibility Rebuild `40840676477` success.
+- Branch protection requires only `Quality Gates` and `Security Gates`; both are green on every main
+  push and on the merge PRs.
+
 ## Known gaps
 
 - **Runtime acceptance** (backend startup + `golang-migrate` + seeding) still has no consumer
@@ -84,5 +103,12 @@ build that proves the `TS2614` break is gone (`✓ built in 725ms`).
   into any ops workflow, and its repair belongs to base.
 - **`go test -race`** cannot run on this Windows host (ThreadSanitizer shadow-memory allocation
   fails with error code 87); the plain test run passes and CI runs the race variant on Linux.
-- **SonarCloud Scan** keeps failing on a stale `SONAR_TOKEN` (HTTP 403 from api.sonarcloud.io); it is
-  not a required context and rotating the credential is a maintainer action.
+- **SonarCloud Scan** is the only failing GitHub Actions workflow. Two distinct causes: the
+  `SONAR_TOKEN` secret is rejected with HTTP 403 on push and normal-PR runs, and Dependabot PR runs
+  have repository secrets withheld by GitHub, leaving `SONAR_HOST_URL` empty ("URI with undefined
+  scheme"). Rotating the token, and either adding Dependabot secrets or skipping the job for
+  Dependabot, are maintainer actions; the check is not a required context.
+- **Vercel** is an external integration, not a GitHub Actions workflow: production deployment
+  `7407012001` (`dpl_oh9Pv9fibTSxf72d7QWfrtuW5Kuq`) for `165014c8` failed, as did every preview
+  build before it. The repository has never carried a `vercel.json`, so the configuration lives in
+  the Vercel project and needs dashboard access to diagnose.
