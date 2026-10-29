@@ -63,10 +63,10 @@
       "notes": "OK pantheon-ops PR body governance fields are present."
     },
     {
-      "command": "hosted SonarCloud Scan with the restored configuration (PR run and main dispatch)",
+      "command": "hosted SonarCloud Scan with the restored configuration (PR run 40851210564 on head 3f5a800a)",
       "cwd": ".",
-      "status": "pending",
-      "notes": "Recorded after the PR opens; the baseline run 40849180395 is the before picture."
+      "status": "passed",
+      "notes": "SonarCloud Scan succeeded in 1m21s and SonarCloud Code Analysis published the PR analysis (dashboard?id=duanxldragon_pantheon-ops&pullRequest=153). The whole PR rollup is green except the external Vercel deployment: Quality Gates, Security Gates, Docs Governance, Backend Tests, Go Lint, CodeQL + CodeQL Alert Gate, Secret Scan, Workflow Posture, Duplication Gate, Change Scope, both PR Automation prereqs and Automate Solo PR all pass; Smoke Sanity, Frontend Contract and Dependency Vulnerabilities skip out of scope. Read back over the API: /api/qualitygates/project_status returns ERROR on new_security_rating (actual 3) and new_duplicated_lines_density (actual 3.2), and the project carries 0 bugs, 4 vulnerabilities, 245 code smells, 2.7% duplication over 142,716 LOC. The baseline history /api/project_analyses/search still lists the two pre-existing analyses dated 2026-08-10 and 2026-08-22, which is correct: a pull-request analysis does not move the main-branch baseline until the merge dispatch runs."
     }
   ],
   "runtimeSensitive": false,
@@ -75,7 +75,8 @@
     "Dependabot-triggered runs still cannot read repository secrets, so SonarCloud Scan stays red on Dependabot PRs (empty SONAR_HOST_URL gives 'URI with undefined scheme'). Provisioning Dependabot secrets, or making the job skip that actor, is a gate-policy decision for the maintainer and is deliberately not taken here.",
     "The SonarCloud quality gate for duanxldragon_pantheon-ops reads ERROR on new_security_rating with 4 vulnerabilities and 245 code smells recorded on the project. The workflow does not fail on a gate ERROR, so this does not redden the pipeline, but it is the real quality backlog.",
     "The scanner runs without any test coverage report, matching the base posture; the restored sonar.coverage.exclusions keeps new_coverage not computed so the built-in Sonar way gate cannot fail on it.",
-    "Vercel stays red and is outside this repository: it is an external integration with no committed configuration."
+    "Vercel stays red and is outside this repository: it is an external integration with no committed configuration.",
+    "The restored properties keep sonar.sources=. the way the deleted file did, so the scanner reads committed PNG evidence and snapshots as text and logs 'Invalid character encountered ... Please fix file content or configure sonar.sourceEncoding'. The warnings are noise, not failures, and adding binary exclusions would widen this packet beyond restoring the analysis."
   ],
   "linkage": {
     "taskManifest": ".harness/tasks/2026-10-29-sonar-ci-analysis-restore/manifest.json",

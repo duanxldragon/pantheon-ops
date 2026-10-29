@@ -58,8 +58,8 @@
 ## 审核留痕
 
 - Copilot review：requested（由 PR Automation 自动请求）
-- CodeQL 结果：pending-hosted-run
-- GitHub checks 结果：pending-hosted-run
+- CodeQL 结果：pass（CodeQL Security Scan 3m59s + CodeQL Alert Gate 均为绿，run 40851210544）
+- GitHub checks 结果：除外部 Vercel 部署外全绿；`SonarCloud Scan` 在 head `3f5a800a` 上 pass（run 40851210564，1m21s），扫描日志 `ANALYSIS SUCCESSFUL`，结果落在 `dashboard?id=duanxldragon_pantheon-ops&pullRequest=153`
 - Auto-merge：enabled
 - Duplication Gate 结果：pass（配置文件与 JSON 声明，无新增重复代码）
 - 是否高风险改动：no（仅恢复 Ops 独有配置文件并加 overlay 声明；不改工作流语义、不提交任何密钥值）
