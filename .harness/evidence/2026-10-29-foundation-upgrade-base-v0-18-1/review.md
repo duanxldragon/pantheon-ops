@@ -105,6 +105,15 @@ branch-cleanup script (now base's copy, 4/4 tests pass).
   type-check and build clean after `npm ci` at the root and in `frontend`.
 - Every Docs Governance command the workflow runs is green on the applied tree; `check:task-packet`
   is green for current-format packets and red only on the 60 pre-template docs described above.
+- Hosted verification on the merged main `165014c8`: push runs for Code Quality Gates
+  (`40839019495`), Security Gates (`40839019357`) and Branch Hygiene (`40839019345`) all succeeded,
+  and a `workflow_dispatch` of the same commit proved Code Quality Gates (`40840649887`), Security
+  Gates (`40840655454`), Branch Hygiene (`40840665983`) and Base Compatibility Rebuild
+  (`40840676477`). Only SonarCloud Scan (`40839019352`) failed, on the credential described in D9.
+  The earlier squash merge `fc6bc850` produced no push runs, so the dispatch was necessary.
+- All seven Dependabot PRs were resolved: #150 merged, #129/#130/#131/#135/#136/#137 closed as
+  obsolete because main already carries newer versions. Only `main` remains on the remote; no PR is
+  open.
 
 ## Machine Readable
 
@@ -119,7 +128,9 @@ branch-cleanup script (now base's copy, 4/4 tests pass).
     {"id": "D5", "severity": "P2", "title": "No runtime acceptance (startup + golang-migrate) in this round", "state": "inherited-open"},
     {"id": "D6", "severity": "P2", "title": "check:harness-docs has four dangling links inherited from base documents", "state": "base-side-fix-needed"},
     {"id": "D7", "severity": "P2", "title": "go test -race cannot run on this Windows host (TSan shadow memory)", "state": "environment-gap"},
-    {"id": "D8", "severity": "P2", "title": "Inherited base workflow tests assert base's .github shape and RELEASE_GATE_TOKEN", "state": "explicitly-accepted-red"}
+    {"id": "D8", "severity": "P2", "title": "Inherited base workflow tests assert base's .github shape and RELEASE_GATE_TOKEN", "state": "explicitly-accepted-red"},
+    {"id": "D9", "severity": "P2", "title": "SonarCloud Scan is the only failing workflow: SONAR_TOKEN rejected with HTTP 403, and Dependabot PR runs have repository secrets withheld", "state": "maintainer-credential-action"},
+    {"id": "D10", "severity": "P2", "title": "Vercel production and preview deployments fail from an external project configuration the repository cannot see", "state": "external-integration-gap"}
   ],
   "structuralReview": {
     "affectedSubgraph": [
@@ -140,7 +151,8 @@ branch-cleanup script (now base's copy, 4/4 tests pass).
     "Runtime startup and golang-migrate remain unverified in this round.",
     "Base documents that link to base-only task packets and archive evidence will keep failing the consumer doc-link report until base changes them.",
     "Inherited base workflow tests stay red locally for release-gate, quality-workflow and the RELEASE_GATE_TOKEN assertion; none of them is executed by a workflow.",
-    "Auto-merge in this repository still merges with github.token, so a workflow-triggered merge does not run push pipelines unless a RELEASE_GATE_TOKEN is created."
+    "SonarCloud Scan stays red until a maintainer rotates SONAR_TOKEN and handles Dependabot secret access; Vercel stays red until its project configuration is fixed in the Vercel dashboard.",
+    "A workflow-triggered squash merge can land without push pipelines running (observed on fc6bc850), so the security/quality gates on the final tree were proven with workflow_dispatch rather than by a push event."
   ],
   "linkage": {
     "taskManifest": ".harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1/manifest.json",

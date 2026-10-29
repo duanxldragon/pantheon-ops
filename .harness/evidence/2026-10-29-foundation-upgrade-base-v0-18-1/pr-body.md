@@ -1,7 +1,7 @@
 ## 变更摘要
 
 - 改动层级：inheritance-sync（pantheon-base foundation release → pantheon-ops consumer）
-- 改动模块：`foundation-release.lock.json`、`.foundation/foundation-release.lock.json`、base 快照树（backend / frontend / docs / tests）、`scripts/task-manifest.mjs`、`scripts/cleanup-github-branches.mjs`、`.github/workflows/{quality,pr-automation}.yml`
+- 改动模块：`foundation-release.lock.json`、`.foundation/foundation-release.lock.json`、base 快照树（backend / frontend / docs / tests）、`scripts/task-manifest.mjs`、`scripts/cleanup-github-branches.mjs`、`.github/workflows/{quality,pr-automation}.yml`；本 PR 在此基础上仅补记 `.harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/` 的托管流水线结果与依赖 PR 收敛记录
 - 目标问题：把 ops 从 `pantheon-base-v0.17.7` 推进到 `pantheon-base-v0.18.1`（v0.18.0 的 S1 波次删掉了 `isForbiddenRequestError` 共享导出，导致本仓 `DeployTaskDetail` 前端构建 `TS2614`；v0.18.1 恢复该导出），同时修复这次跳版暴露的 5 处 consumer 侧漂移。
 - 预期影响：`VERSION` 0.17.7 → 0.18.1；go directive 1.26.9 → 1.26.10，go-oidc 3.9.0 → 3.21.0，go-jose v3 → v4；Dockerfile builder 镜像 golang:1.26.10-alpine；删除 7 个被 0.18 精简波次退役的 base 文件与 13 个前端 capture 脚本；13 个根 RELEASE_NOTES 迁入 `docs/release-notes/`；业务模块无行为变更。
 
@@ -58,12 +58,12 @@
 ## 审核留痕
 
 - Copilot review：requested（由 PR Automation 自动请求）
-- CodeQL 结果：pending-hosted-run
-- GitHub checks 结果：pending-hosted-run
+- CodeQL 结果：pass（main push `165014c8`：CodeQL Security Scan / CodeQL Alert Gate 均 success）
+- GitHub checks 结果：pass（必需上下文 Quality Gates、Security Gates 在 main push 与 workflow_dispatch 上全绿；Code Quality Gates `40839019495`/`40840649887`、Security Gates `40839019357`/`40840655454`、Branch Hygiene `40839019345`/`40840665983`、Base Compatibility Rebuild `40840676477` 全部 success）
 - Auto-merge：enabled
 - Duplication Gate 结果：pass（`npm run check:duplication` 本地 0）
 - 是否高风险改动：yes（触碰共享 base 面、`pkg/*`、`.github/workflows/*` 与继承边界）
-- Residual risk / follow-up：① runtime acceptance（启动 + migrate + seed）仍未在 consumer evidence 中执行；② `check:harness-docs` 的 4 个断链来自 base 文档指向 base-only 任务与归档，修复属 base 侧；③ 继承自 base 的 3 个工作流测试（release-gate / quality-workflow 评分 / RELEASE_GATE_TOKEN）断言的是 base 的 `.github` 形态或本仓不存在的 secret，未被任何 workflow 执行，保持显式红灯；④ 本仓无 `RELEASE_GATE_TOKEN`，自动合并仍用 `github.token`，workflow 触发的合并不会触发 main 的 push 流水线。
+- Residual risk / follow-up：① runtime acceptance（启动 + migrate + seed）仍未在 consumer evidence 中执行；② `check:harness-docs` 的 4 个断链来自 base 文档指向 base-only 任务与归档，修复属 base 侧；③ 继承自 base 的 3 个工作流测试（release-gate / quality-workflow 评分 / RELEASE_GATE_TOKEN）断言的是 base 的 `.github` 形态或本仓不存在的 secret，未被任何 workflow 执行，保持显式红灯；④ SonarCloud Scan 是唯一失败的 workflow：`SONAR_TOKEN` 被 403 拒绝，且 Dependabot PR 无法读取仓库 secret（`SONAR_HOST_URL` 为空），需要维护者轮换 token 并配置 Dependabot secret 或对 Dependabot 跳过该 job；⑤ Vercel 是外部集成而非 Actions workflow，`165014c8` 的生产部署 `7407012001` 失败，仓库从未包含 `vercel.json`，需要 Vercel 项目后台处理；⑥ `fc6bc850` 的 squash 合并未产出 push 流水线，故用 workflow_dispatch 在最终树上重新证明门禁。
 
 ## 检查清单
 

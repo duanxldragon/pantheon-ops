@@ -175,10 +175,28 @@
       "notes": "Inherited base tests that assert a .github the consumer deliberately replaces: release-gate-workflow reads .github/workflows/release-gate.yml (ops has no release producer), quality-workflow expects base's docs-only/governance-only scope classification and report-only go-lint enforcement, and one pr-automation assertion expects secrets.RELEASE_GATE_TOKEN (not present in this repository). None of these is executed by a workflow; two adjacent failures that were real (setup-node pin, deleteBranch export) are fixed."
     },
     {
-      "command": "hosted workflows on the consumption PR (Quality Gates, Security Gates, SonarCloud Scan, Inheritance Drift Detection, Branch Hygiene, PR Automation)",
+      "command": "gh run list / gh pr checks on the consumption PR and on main after the merges",
       "cwd": ".",
-      "status": "pending",
-      "notes": "Recorded after the PR opens; see the PR timeline for the final rollup."
+      "status": "passed",
+      "notes": "PR #151 checks (head f0aebdd): Quality Gates, Security Gates, Backend Tests, Go Lint, Docs Governance, Frontend Contract, Duplication Gate, CodeQL family, Secret Scan, Workflow Posture, Change Scope, PR Governance Prereq and Smoke Sanity all success; SonarCloud Scan failed and Vercel failed. Squash-merged as fc6bc850 at 2026-10-29T07:44:33Z. PR #150 (i18next 26.5.11 / react-i18next 17.1.9) passed the same set after the governance exemption and squash-merged as 165014c8 at 2026-10-29T07:59:50Z."
+    },
+    {
+      "command": "gh pr close 129 130 131 135 136 137",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Closed as obsolete: main already carries js-yaml ^5.5.0, vitest ^5.0.0, no baseline-browser-mapping, otlptrace/otlptracehttp v1.45.0, lint-staged ^17.6.0, playwright ^1.64.1 and prettier ^3.9.10 from the 0.18.1 tree, all equal or newer than the proposed bumps. Dependabot removed their branches; the two remaining remote branches (chore/consume-base-v0-18-1, one stale otlptrace branch) were deleted and the local worktree .tmp/consume-v0130 removed after archiving its diff and history to .tmp/consume-v0130-worktree.patch and .tmp/consume-v0130.bundle. git ls-remote --heads origin now lists only refs/heads/main, and gh pr list returns no open PRs."
+    },
+    {
+      "command": "gh workflow run quality.yml/security.yml/branch-hygiene.yml/inheritance-drift-detection.yml --ref main (commit 165014c8)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Code Quality Gates 40840649887 success, Security Gates 40840655454 success, Branch Hygiene 40840665983 success, Base Compatibility Rebuild 40840676477 success. Push runs on the same commit: Code Quality Gates 40839019495 success, Security Gates 40839019357 success, Branch Hygiene 40839019345 success; Security Gates green on the applied tree because frontend npm audit reports 0 vulnerabilities and OSV call analysis returns 3 advisories with called:false."
+    },
+    {
+      "command": "gh run view 40839019352 (SonarCloud Scan on main push) / gh run view 40837695588 (Dependabot PR)",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Only failing GitHub Actions workflow on main. On push it is HTTP 403 from api.sonarcloud.io because SONAR_TOKEN is rejected; on Dependabot PRs GitHub withholds repository secrets, so SONAR_HOST_URL is empty and the scanner dies with 'URI with undefined scheme'. Rotating the token and adding Dependabot secrets (or skipping the job for dependabot[bot]) are maintainer actions; the check is not a required context."
     }
   ],
   "runtimeSensitive": true,
@@ -187,7 +205,8 @@
     "Runtime acceptance (backend startup + golang-migrate to 000030 + tenant/business seeding) still has not been executed in a consumer evidence set; no database credentials are recorded here.",
     "check:harness-docs reports four dangling links inherited from base documents; the check is report-only and its repair is a base-side change, not a consumer edit.",
     "Ops still has no consumer-side versioned migration channel; business modules rely on AutoMigrate.",
-    "The hosted SonarCloud Scan job has been failing with HTTP 403 from api.sonarcloud.io on a stale SONAR_TOKEN; it is not a required context and rotating the credential is a maintainer action.",
+    "The hosted SonarCloud Scan job is the only failing workflow on main: SONAR_TOKEN is rejected with HTTP 403 on push, and Dependabot PR runs cannot read repository secrets so SONAR_HOST_URL is empty. Both are maintainer actions (rotate the token; add Dependabot secrets or skip the job for dependabot[bot]); the check is not a required context.",
+    "Vercel is an external integration, not a GitHub Actions workflow: the production deployment for 165014c8 (deployment 7407012001, dpl_oh9Pv9fibTSxf72d7QWfrtuW5Kuq) failed and every preview build before it failed too. The repository has never carried a vercel.json, so diagnosis needs Vercel project access.",
     "Base v0.18.0 shipped a TS2614 break to this repository because the S1 export removal was justified by a repo-local only caller search; v0.18.1 restores the export. The base-side record is FR-021 plus AI_QUALITY_GOVERNANCE section 5.4.",
     "Inherited base workflow tests for release-gate, quality-workflow scoring and RELEASE_GATE_TOKEN stay red locally; they assert a .github the consumer replaces by contract and none of them runs in a workflow. Closing them needs either base-side consumer-aware tests or a maintainer-created RELEASE_GATE_TOKEN."
   ],
