@@ -73,15 +73,27 @@
       "cwd": ".",
       "status": "passed",
       "notes": "Post-merge dispatch proves the workflow itself is green on main, not just on the PR head. The job completed with the only annotation being the runner-image notice, and /api/project_analyses/search?branch=main now reports a third analysis dated 2026-10-29T09:50:45+0000 at revision 8799b2e9, which is the first main-branch baseline analysis since 2026-08-22. The CI analysis channel is therefore restored end to end: credential valid, mandatory properties resolved, server accepts the report, baseline moves."
+    },
+    {
+      "command": "gh workflow run {quality,security,sonarcloud,branch-hygiene,inheritance-drift-detection}.yml --ref main (runs 40854249942 / 40854269302 / 40854276654 / 40854282623 / 40854287662 on d79dc024)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Final main rollup after both merges: Code Quality Gates, Security Gates, SonarCloud Scan, Branch Hygiene and Base Compatibility Rebuild all complete with success on d79dc024, and the push-triggered SonarCloud Scan and Security Gates runs for the same commit are green too. The baseline history grows to four analyses with 2026-10-29T10:00:28+0000 and 10:02:14+0000 at d79dc024. One bookkeeping detail: the push-triggered Code Quality Gates run 40854031854 was cancelled mid-flight by the concurrent dispatch in the same concurrency group, which left its rollup red on the commit; gh run rerun 40854031854 --failed re-executed the cancelled jobs and the run now concludes success, so every GitHub Actions check on main head is green."
+    },
+    {
+      "command": "curl -u <token>: https://sonarcloud.io/api/qualitygates/project_status?projectKey=duanxldragon_pantheon-ops&branch=main && /api/issues/search?branch=main&issueStatuses=OPEN,CONFIRMED",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "The only red context on main head is SonarCloud's own quality-gate check (SonarCloud Code Analysis, run 123382238408), and it is red for a real reason rather than a configuration one: on the freshly established main baseline the gate reads ERROR on new_security_rating (actual E) and new_reliability_rating (actual C), while maintainability, duplication (1.8% against a 3% threshold) and hotspot review are OK. The open backlog on main is 62 vulnerability issues, 6 bugs and 174 code smells, dominated by GORM dynamic-condition taint reported as SQL Injection across backend/modules/business/{cmdb,deploy,service,observability,filedist,k8s,cicd}, two path-traversal findings in filedist/storage_service.go, disabled server-certificate and hostname verification in cicd/argocd/argocd_client.go:42, npm/npx lifecycle-script exposure in the e2e shell scripts, pip without --only-binary in security.yml, and unhandled promise rejections in four business list pages. The earlier reading in this file (0 bugs / 4 vulnerabilities / 245 code smells) was the stale pre-restoration baseline, which is exactly the blindness this packet removes. Clearing these findings is product work in the business layer, and silencing them by marking false positives, moving the new-code baseline or attaching a different gate is a gate-policy decision for the maintainer; none of those was taken here."
     }
   ],
   "runtimeSensitive": false,
   "runtimeGap": "No application runtime was started: the change is scanner configuration plus an overlay declaration. The runtime evidence is the hosted analysis itself, which either produces a project version on SonarCloud or does not.",
   "knownGaps": [
     "Dependabot-triggered runs still cannot read repository secrets, so SonarCloud Scan stays red on Dependabot PRs (empty SONAR_HOST_URL gives 'URI with undefined scheme'). Provisioning Dependabot secrets, or making the job skip that actor, is a gate-policy decision for the maintainer and is deliberately not taken here.",
-    "The SonarCloud quality gate for duanxldragon_pantheon-ops reads ERROR on new_security_rating with 4 vulnerabilities and 245 code smells recorded on the project. The workflow does not fail on a gate ERROR, so this does not redden the pipeline, but it is the real quality backlog and it is now visible again because the analysis channel works.",
+    "The SonarCloud quality gate on main reads ERROR on new_security_rating (E) and new_reliability_rating (C) against a backlog of 62 vulnerability issues and 6 bugs, mostly GORM dynamic-condition taint in backend/modules/business/*. GitHub Actions itself is green because the workflow does not fail on a gate ERROR; the red context is SonarCloud's own check, and clearing it is business-layer product work.",
     "The scanner runs without any test coverage report, matching the base posture; the restored sonar.coverage.exclusions keeps new_coverage not computed so the built-in Sonar way gate cannot fail on it.",
-    "Vercel stays red and is outside this repository: it is an external integration with no committed configuration.",
+    "Vercel stays red and is outside this repository: it is an external integration with no committed configuration, and the CLI is logged out on this host, so neither its project settings nor its build logs are reachable from here.",
     "The restored properties keep sonar.sources=. the way the deleted file did, so the scanner reads committed PNG evidence and snapshots as text and logs 'Invalid character encountered ... Please fix file content or configure sonar.sourceEncoding'. The warnings are noise, not failures, and adding binary exclusions would widen this packet beyond restoring the analysis."
   ],
   "linkage": {

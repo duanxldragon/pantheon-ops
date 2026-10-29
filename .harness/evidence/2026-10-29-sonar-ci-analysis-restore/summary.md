@@ -54,12 +54,33 @@ The rebuild is the part that matters for durability: before the declaration the 
 
 ## Hosted verification after the merge
 
-`/api/project_analyses/search?project=duanxldragon_pantheon-ops&branch=main` returns three
-analyses. The first two are dated `2026-08-10` and `2026-08-22`; the third is dated
-`2026-10-29T09:50:45+0000` at revision `8799b2e9`. That is the CI analysis channel moving the
-main-branch baseline for the first time since August, which is the acceptance condition for this
-packet: the credential authenticates, the mandatory properties resolve from the restored file, the
-server accepts the report, and the project version on `main` advances.
+`/api/project_analyses/search?project=duanxldragon_pantheon-ops&branch=main` now returns four
+analyses. The first two are dated `2026-08-10` and `2026-08-22`; the rest are dated
+`2026-10-29T09:50:45+0000` at `8799b2e9` and `10:00:28` / `10:02:14` at `d79dc024`. That is the CI
+analysis channel moving the main-branch baseline for the first time since August, which is the
+acceptance condition for this packet: the credential authenticates, the mandatory properties
+resolve from the restored file, the server accepts the report, and the project version on `main`
+advances.
+
+After both merges every GitHub Actions workflow on `main` is green: Code Quality Gates, Security
+Gates, SonarCloud Scan, Branch Hygiene and Base Compatibility Rebuild all complete with success on
+`d79dc024`, dispatched and pushed. One bookkeeping item is worth naming because it looks like a
+failure in the history: the push-triggered Code Quality Gates run `40854031854` was cancelled
+mid-flight by the concurrent dispatch sharing its concurrency group, which left its rollup red on
+the commit; `gh run rerun 40854031854 --failed` re-executed the cancelled jobs and it now concludes
+success.
+
+The single remaining red context on `main` is SonarCloud's own quality-gate check, and it is red
+because the restored analysis finally measures the code: on the new baseline the gate reads `ERROR`
+on `new_security_rating` (E) and `new_reliability_rating` (C), with maintainability, duplication
+(1.8% against a 3% threshold) and hotspot review passing. The open backlog is 62 vulnerability
+issues, 6 bugs and 174 code smells, concentrated in GORM dynamic-condition taint reported as SQL
+Injection across `backend/modules/business/{cmdb,deploy,service,observability,filedist,k8s,cicd}`,
+plus two path-traversal findings in `filedist/storage_service.go`, disabled certificate and
+hostname verification in `cicd/argocd/argocd_client.go:42`, npm/npx lifecycle-script exposure in
+the e2e shell scripts, `pip` without `--only-binary` in `security.yml`, and unhandled promise
+rejections in four business list pages. Those numbers replace the stale pre-restoration reading
+recorded earlier in this file, which is precisely the blindness this packet removes.
 
 ## Known gaps
 
@@ -67,12 +88,14 @@ server accepts the report, and the project version on `main` advances.
   Dependabot PRs (`empty SONAR_HOST_URL` → `URI with undefined scheme`). Provisioning Dependabot
   secrets or making the job skip that actor is a gate-policy decision for the maintainer and was
   deliberately not taken here.
-- The SonarCloud quality gate for the project currently reads `ERROR` on `new_security_rating`,
-  with 4 vulnerabilities and 245 code smells recorded. The workflow does not fail on a gate
-  `ERROR`, so the pipeline is not reddened by it, but that is the real backlog the scan now
-  surfaces again.
+- The SonarCloud quality gate on `main` reads `ERROR` on `new_security_rating` (E) and
+  `new_reliability_rating` (C) against that 62-vulnerability / 6-bug backlog. GitHub Actions stays
+  green because the workflow does not fail on a gate `ERROR`; clearing it is business-layer product
+  work, and marking findings false-positive, moving the new-code baseline or attaching a laxer gate
+  were all declined as maintainer-owned policy decisions.
 - `Vercel` remains red and is outside this repository: an external integration with no committed
-  configuration.
+  configuration, and the Vercel CLI on this host is logged out, so neither its project settings nor
+  its build logs are reachable from here.
 - The restored file keeps `sonar.sources=.` exactly as the deleted copy did, so the scanner reads
   committed PNG evidence and visual snapshots as text and logs `Invalid character encountered`.
   Those are warnings, not failures; narrowing the source set is a separate decision from restoring
