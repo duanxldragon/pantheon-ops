@@ -1,0 +1,92 @@
+{
+  "taskId": "2026-10-29-sonar-ci-analysis-restore",
+  "generatedAt": "2026-10-29",
+  "commands": [
+    {
+      "command": "curl -u <rotated SONAR_TOKEN>: https://sonarcloud.io/api/authentication/validate",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "The maintainer-supplied token authenticates against SonarCloud. It belongs to organization duanxldragon (GitHub Alm, personal, FREE subscription) and that organization already provisions the project duanxldragon_pantheon-ops, so no project had to be created."
+    },
+    {
+      "command": "curl -u <token>: https://sonarcloud.io/api/projects/search?organization=duanxldragon",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Three projects: duanxldragon_ai-coding-welfare, duanxldragon_pantheon-base, duanxldragon_pantheon-ops. Confirms the workflow only needs a project key and organization, not new provisioning."
+    },
+    {
+      "command": "printf <token> | gh secret set SONAR_TOKEN",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Repository secret replaced. The previous value was rejected with HTTP 403 from api.sonarcloud.io on every push and normal-PR run."
+    },
+    {
+      "command": "gh workflow run sonarcloud.yml --ref main (run 40849180395)",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Baseline that isolates the remaining defect: authentication now succeeds and the scanner stops with 'You must define the following mandatory properties: sonar.projectKey, sonar.organization' (exit 3). This is the failure this packet closes, and it proves the credential was never the only problem."
+    },
+    {
+      "command": "git log --all --oneline -- sonar-project.properties && git show 5c12964f^:sonar-project.properties > sonar-project.properties",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "The file was deleted by 5c12964f (consume pantheon-base-v0.17.7). Restored verbatim from its last known-good revision: projectKey duanxldragon_pantheon-ops, organization duanxldragon, sourceEncoding UTF-8, sonar.sources ., exclusions for scripts/frontend scripts/database/SQL/i18n resources/node_modules/dist/build/coverage/.git, coverage exclusions **/* and cpd exclusions for test files."
+    },
+    {
+      "command": "add sonar-project.properties to business-overlay.json repositoryOverlayPaths && npm run check:business-overlay && npm run test:business-overlay",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Overlay contract OK (53 declared paths) and the overlay test suite reports fail 0. Without the declaration the next consumption would delete the file again, since Base ships only .sonarcloud.properties."
+    },
+    {
+      "command": "npm run rebuild:from-base",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Rebuilt tree at .tmp/business-overlay-rebuild reports 761 declared/generated files against the 758 recorded in the 0.18.1 round, and the rebuilt tree contains sonar-project.properties with the restored content. This is the durability proof: the file now survives assembly from the locked release."
+    },
+    {
+      "command": "node scripts/harness/check-task-packet.mjs docs/harness/tasks/2026-10-29-sonar-ci-analysis-restore.task.md",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Task packet check: 1 file, 0 errors, 0 warnings."
+    },
+    {
+      "command": "npm run check:harness-adoption",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Strict adoption check reports 0 findings after the manifest and evidence set were written."
+    },
+    {
+      "command": "node scripts/check-pr-governance.mjs --event <event.json>",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "OK pantheon-ops PR body governance fields are present."
+    },
+    {
+      "command": "hosted SonarCloud Scan with the restored configuration (PR run and main dispatch)",
+      "cwd": ".",
+      "status": "pending",
+      "notes": "Recorded after the PR opens; the baseline run 40849180395 is the before picture."
+    }
+  ],
+  "runtimeSensitive": false,
+  "runtimeGap": "No application runtime was started: the change is scanner configuration plus an overlay declaration. The runtime evidence is the hosted analysis itself, which either produces a project version on SonarCloud or does not.",
+  "knownGaps": [
+    "Dependabot-triggered runs still cannot read repository secrets, so SonarCloud Scan stays red on Dependabot PRs (empty SONAR_HOST_URL gives 'URI with undefined scheme'). Provisioning Dependabot secrets, or making the job skip that actor, is a gate-policy decision for the maintainer and is deliberately not taken here.",
+    "The SonarCloud quality gate for duanxldragon_pantheon-ops reads ERROR on new_security_rating with 4 vulnerabilities and 245 code smells recorded on the project. The workflow does not fail on a gate ERROR, so this does not redden the pipeline, but it is the real quality backlog.",
+    "The scanner runs without any test coverage report, matching the base posture; the restored sonar.coverage.exclusions keeps new_coverage not computed so the built-in Sonar way gate cannot fail on it.",
+    "Vercel stays red and is outside this repository: it is an external integration with no committed configuration."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-10-29-sonar-ci-analysis-restore/manifest.json",
+    "taskPacket": "docs/harness/tasks/2026-10-29-sonar-ci-analysis-restore.task.md",
+    "evidenceDir": ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/",
+    "summaryFile": ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/summary.md",
+    "reviewFile": ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/harness/tasks/2026-10-29-sonar-ci-analysis-restore.task.md",
+      "docs/harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1.task.md"
+    ]
+  }
+}
