@@ -90,11 +90,6 @@ const frFRFallback = {
   'auth.login.consoleTitle': "Vérification d'identité",
   'auth.login.securityNotice':
     "Connectez-vous avec un compte attribué par un administrateur. L'heure de connexion, l'appareil et l'IP source sont enregistrés pour l'audit de sécurité.",
-  'auth.login.tenant.title': 'Choisir le locataire de travail',
-  'auth.login.tenant.hint':
-    'Ce compte appartient à plusieurs locataires. Choisissez le périmètre de cette connexion.',
-  'auth.login.tenant.placeholder': 'Sélectionner un locataire',
-  'auth.login.tenant.back': 'Retour aux identifiants',
   'auth.login.idleTimeoutNotice':
     'Ce compte a été déconnecté automatiquement après une trop longue inactivité. Reconnectez-vous pour continuer.',
   'auth.login.feature.modules': 'Monolithe modulaire',
@@ -1540,11 +1535,14 @@ const frFRFallback = {
   'tenant.not_found': 'Locataire introuvable.',
   'tenant.has_active_members':
     'Ce locataire a encore des membres actifs. Passez d’abord son statut à « Archivé », puis supprimez-le ; la suppression d’un locataire archivé désactive ses membres.',
+  'tenant.not_archived':
+    'Ce locataire n’est pas archivé et ne peut pas être supprimé. Passez d’abord son statut à « Archivé », puis supprimez-le.',
   'tenant.delete.error.archive_code_conflict':
     'Impossible de libérer le code du locataire. Veuillez réessayer.',
   'tenant.forbidden':
     "Votre compte n'appartient pas à ce locataire, ses données sont donc inaccessibles.",
   'tenant.suspended': 'Ce locataire est suspendu et ne permet pas de connexion pour le moment.',
+  'tenant.member.user_not_in_tenant': "Cet utilisateur appartient à un autre tenant et ne peut pas être ajouté comme membre ici.",
   'tenant.archived': 'Ce locataire est archivé et ne permet pas de connexion.',
   'tenant.context.missing':
     "Cette session n'a pas de contexte de locataire. Veuillez vous reconnecter.",
@@ -1713,7 +1711,7 @@ const frFRFallback = {
   'system.tenant.plan.professional': 'Professionnel',
   'system.tenant.plan.enterprise': 'Entreprise',
   'system.tenant.plan.outsideLadder':
-    'La formule {{plan}} ne fait pas partie de la grille de capacités de la console : les fonctionnalités affichées correspondent au niveau gratuit, alors que les quotas suivent bien cette définition de formule.',
+    'La formule {{plan}} ne fait pas partie de la grille de capacités de la console : les fonctionnalités affichées correspondent au niveau gratuit et les surfaces lowcode contrôlées restent masquées ; les quotas suivent bien cette définition de formule.',
   'system.tenant.planFeature.title': 'Comparatif des fonctionnalités par formule',
   'system.tenant.planFeature.description':
     'La formule détermine les entrées de fonctionnalités exposées dans la console du locataire ; les permissions de rôle continuent de régir les actions autorisées.',
@@ -1776,6 +1774,12 @@ const frFRFallback = {
   'system.tenant.memberUserId': 'ID utilisateur',
   'system.tenant.memberUserIdPlaceholder': 'Saisir l’ID utilisateur',
   'system.tenant.memberUserIdRequired': 'Veuillez saisir l’ID utilisateur',
+  'system.tenant.member.userSelectEmpty': 'Aucun utilisateur disponible dans ce périmètre',
+  'system.tenant.member.userSelectNoPermission':
+    'Ce compte ne peut pas parcourir la liste des utilisateurs',
+  'system.tenant.member.userSelectSearch': 'Rechercher par nom d’utilisateur ou surnom',
+  'system.tenant.member.userSelectScope':
+    'Les candidats proviennent du point de vue tenant actif ; changez de point de vue s’il ne s’agit pas du tenant cible',
   'system.tenant.memberRole': 'Rôle',
   'system.tenant.memberAddSuccess': 'Membre ajouté',
   'system.tenant.memberRemove': 'Retirer',

@@ -38,10 +38,12 @@ id (its `name` is preserved).
 
 ### 2. Cannot Delete Tenant
 
-**Symptom**: `DELETE /api/v1/system/tenant/:id` is refused because the tenant still has active members
+**Symptom**: `DELETE /api/v1/system/tenant/:id` is refused with `tenant.not_archived`
 
-**Cause**: The tenant is not archived and still has active memberships. Membership is the login
-gate, so the API deliberately refuses while any active membership remains (contract §2.2).
+**Cause**: Deletion is reserved for archived tenants (contract §2.1). The guard is the
+tenant's status, not its member count: an active tenant is refused even when it has no
+active members — a state reachable by deleting every user, which disables their memberships
+and used to make a live tenant look deletable without archiving.
 
 **Why "remove the members first" does not work**: the last owner can never be removed
 (`tenant.member.last_owner`), so a provisioned tenant has no member-free state on its own.
@@ -65,7 +67,7 @@ curl -X DELETE http://localhost:8080/api/v1/system/tenant/1 \
 ```
 
 > The refusal is reported in the response envelope as `code: 400` with message
-> `tenant.has_active_members` (HTTP 200 — this API puts the outcome in the body). Teardown
+> `tenant.not_archived` (HTTP 200 — this API puts the outcome in the body). Teardown
 > scripts should archive the tenant (or purge memberships directly) before calling delete; the
 > message key, not the HTTP class, is the reliable signal.
 >

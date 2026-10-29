@@ -4,7 +4,7 @@
   "title": "Separate and enforce Host and ServiceInstance lifecycle state machines",
   "goal": "Enforce separate Host and ServiceInstance lifecycle state machines and safe state transitions.",
   "primaryLayer": "business/*",
-  "status": "complete",
+  "status": "completed",
   "priority": "P0",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-08-17-ops-resource-service-state-machines.task.md",

@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"strconv"
 	"strings"
 
 	"github.com/duanxldragon/pantheon-base/backend/modules/auth/session"
@@ -403,9 +402,8 @@ func (h *AuthHandler) GetSecurityEventList(c *gin.Context) {
 func (h *AuthHandler) AcknowledgeSecurityEvent(c *gin.Context) {
 	common.SetAuditMetadata(c, "auth.security_event.acknowledge.title", common.BusinessUpdate)
 
-	eventID, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
+	eventID, ok := common.ParseUintParam(c, "id")
+	if !ok {
 		return
 	}
 

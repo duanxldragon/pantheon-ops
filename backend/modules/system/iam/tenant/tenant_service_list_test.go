@@ -118,6 +118,8 @@ func TestListTenants_SoftDeletedHiddenUnlessRequested(t *testing.T) {
 	service := NewService(db)
 	created, err := service.CreateTenant(CreateTenantDTO{Code: "doomed", Name: "Doomed", Plan: "free"})
 	require.NoError(t, err)
+	archived := tenant.TenantStatusArchived
+	require.NoError(t, service.UpdateTenant(created.ID, UpdateTenantDTO{Status: &archived}))
 	require.NoError(t, service.DeleteTenant(created.ID))
 
 	defaultView, err := service.ListTenants(Filter{Page: 1, Size: 20})
@@ -184,6 +186,8 @@ func TestListTenants_SummaryCountsDeletedSeparately(t *testing.T) {
 	service := NewService(db)
 	created, err := service.CreateTenant(CreateTenantDTO{Code: "gone", Name: "Gone", Plan: "free"})
 	require.NoError(t, err)
+	archived := tenant.TenantStatusArchived
+	require.NoError(t, service.UpdateTenant(created.ID, UpdateTenantDTO{Status: &archived}))
 	require.NoError(t, service.DeleteTenant(created.ID))
 
 	response, err := service.ListTenants(Filter{Page: 1, Size: 20})

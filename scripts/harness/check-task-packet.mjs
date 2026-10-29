@@ -6,6 +6,7 @@ import process from 'node:process';
 import {
   buildTaskManifestPath,
   readTaskManifest,
+  resolveArchiveAwarePath,
 } from '../task-manifest.mjs';
 
 const DEFAULT_ROOT = process.cwd();
@@ -433,8 +434,7 @@ function validateContractAnchors(content, headings, result, root) {
   }
 
   for (const anchor of anchors) {
-    const anchorPath = path.join(root, anchor);
-    if (!fs.existsSync(anchorPath)) {
+    if (!resolveArchiveAwarePath(root, anchor)) {
       result.warnings.push(`Contract anchor does not exist: ${anchor}`);
     }
   }
@@ -643,7 +643,7 @@ function validateLinkage(content, headings, result, root, filePath) {
       const expectedReview = `.harness/evidence/${expectedTaskId}/review.md`;
       if (normalized !== expectedReview) {
         result.errors.push(`Linkage Review File must be "${expectedReview}" or "none".`);
-      } else if (!fs.existsSync(path.join(root, normalized))) {
+      } else if (!resolveArchiveAwarePath(root, normalized)) {
         result.warnings.push(`Linked review file does not exist: ${normalized}`);
       }
     }

@@ -4,7 +4,7 @@
   "title": "Enforce provider-owned cross-module capability APIs",
   "goal": "Enforce provider-owned typed capability APIs and prevent direct cross-module data access.",
   "primaryLayer": "business/*",
-  "status": "complete",
+  "status": "completed",
   "priority": "P0",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-08-17-ops-cross-module-capability-boundaries.task.md",

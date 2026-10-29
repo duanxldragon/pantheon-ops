@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/permission"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/rbacbind"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
@@ -16,10 +17,11 @@ import (
 
 type RoleService struct {
 	db *gorm.DB
-	// tenantCtx is the per-request tenant context (contract §3.3/§4). Set from
-	// the Gin context by the handler layer via WithTenantContext; nil stays
-	// unfiltered for platform-internal paths, compat binds tenant_id=0.
-	tenantCtx *tenant.Context
+	// Scoper carries the per-request tenant context (contract §3.3/§4) with
+	// the shared read filter and write owner. Bound from the Gin context by
+	// the handler layer via WithTenantContext; nil stays unfiltered for
+	// platform-internal paths, compat binds tenant_id=0.
+	tenant.Scoper
 }
 
 // WithTenantContext returns a shallow view of the service bound to a request
@@ -29,24 +31,8 @@ func (s *RoleService) WithTenantContext(ctx *tenant.Context) *RoleService {
 		return s
 	}
 	bound := *s
-	bound.tenantCtx = ctx
+	bound.TenantCtx = ctx
 	return &bound
-}
-
-// scoped applies the tenant read filter: in multi mode every role query is
-// pinned to the request tenant, so a tenant administrator only ever sees (and
-// can only mutate) its own roles — including its own `tenant_admin`.
-func (s *RoleService) scoped(db *gorm.DB) *gorm.DB {
-	return db.Scopes(tenant.WithTenantScope(s.tenantCtx))
-}
-
-// tenantOwnerID is the tenant a new role belongs to (write path: from context,
-// never from the request body — contract §3.3). Compat/platform => 0.
-func (s *RoleService) tenantOwnerID() uint64 {
-	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
-		return 0
-	}
-	return s.tenantCtx.TenantID
 }
 
 type roleListAssociations struct {
@@ -62,20 +48,11 @@ const (
 	condIDIn                  = "id IN ?"
 )
 
-// roleDataScopePolicy mirrors PermissionRoleDataScopePolicy to avoid cross-directory import.
-// Table name: system_role_data_scope
-// TenantID scopes the policy and RoleKey is unique per tenant (contract §2.3/§4).
-type roleDataScopePolicy struct {
-	ID       uint64 `gorm:"primaryKey;autoIncrement"`
-	TenantID uint64 `gorm:"not null;default:0;uniqueIndex:uk_role_data_scope_tenant_role,priority:1"`
-	RoleKey  string `gorm:"size:64;not null;uniqueIndex:uk_role_data_scope_tenant_role,priority:2"`
-	Mode     string `gorm:"size:32;not null;default:'all'"`
-	DeptIDs  string `gorm:"type:text"`
-}
-
-func (roleDataScopePolicy) TableName() string {
-	return "system_role_data_scope"
-}
+// The role data-scope table is owned by the permission domain:
+// permission.PermissionRoleDataScopePolicy is the single Go model for
+// system_role_data_scope (contract §2.3/§4). The former package-local mirror
+// was field-for-field identical and is deleted so the two definitions can no
+// longer drift; role already imports permission for policy sync.
 
 func NewRoleService(db *gorm.DB) *RoleService {
 	return &RoleService{db: db}
@@ -85,7 +62,7 @@ func (s *RoleService) Migrate() error {
 	if s.db == nil {
 		return common.NewBadRequest(errDatabaseNotInitialized)
 	}
-	if err := s.db.AutoMigrate(&SystemRole{}, &SystemRolePermission{}, &SystemRoleMenu{}, &roleDataScopePolicy{}); err != nil {
+	if err := s.db.AutoMigrate(&SystemRole{}, &SystemRolePermission{}, &SystemRoleMenu{}, &permission.PermissionRoleDataScopePolicy{}); err != nil {
 		return err
 	}
 	return s.Bootstrap()
@@ -117,8 +94,8 @@ func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error)
 	}
 
 	var roles []SystemRole
-	page, pageSize := normalizeRolePageQuery(query)
-	db := buildRoleListQuery(s.scoped(s.db), query)
+	page, pageSize, offset := normalizeRolePageQuery(query)
+	db := buildRoleListQuery(s.Scoped(s.db), query)
 
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
@@ -131,7 +108,7 @@ func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error)
 			Column: clause.Column{Name: sortColumn},
 			Desc:   sortDesc,
 		}).
-		Offset((page - 1) * pageSize).
+		Offset(offset).
 		Limit(pageSize).
 		Find(&roles).Error; err != nil {
 		return nil, err
@@ -259,7 +236,7 @@ func (s *RoleService) AddRoleMembers(roleID uint64, userIDs []uint64) (int, erro
 	var existingRows []struct {
 		UserID uint64 `gorm:"column:user_id"`
 	}
-	if err := s.scoped(s.db.Table("system_user_role")).
+	if err := s.Scoped(s.db.Table("system_user_role")).
 		Select("user_id").
 		Where("role_id = ? AND user_id IN ?", roleID, normalizedUserIDs).
 		Scan(&existingRows).Error; err != nil {
@@ -289,7 +266,7 @@ func (s *RoleService) AddRoleMembers(roleID uint64, userIDs []uint64) (int, erro
 		// and the member would log in with no roles. `getRole` and
 		// `ensureUsersExist` already confine both the role and every user to
 		// this tenant, so the namespace is unambiguous.
-		return rbacbind.InsertUserRoles(tx, s.tenantOwnerID(), userIDsToAdd, roleID)
+		return rbacbind.InsertUserRoles(tx, s.TenantOwnerID(), userIDsToAdd, roleID)
 	}); err != nil {
 		return 0, err
 	}
@@ -344,7 +321,7 @@ func (s *RoleService) CreateRole(req *RoleCreateReq) (*RoleListResp, error) {
 	}
 
 	role := SystemRole{
-		TenantID: s.tenantOwnerID(),
+		TenantID: s.TenantOwnerID(),
 		RoleName: strings.TrimSpace(req.RoleName),
 		RoleKey:  strings.TrimSpace(req.RoleKey),
 		Sort:     req.Sort,
@@ -403,7 +380,7 @@ func (s *RoleService) UpdateRole(roleID uint64, req *RoleUpdateReq) (*RoleListRe
 	}
 
 	var role SystemRole
-	if err := s.scoped(s.db).First(&role, roleID).Error; err != nil {
+	if err := s.Scoped(s.db).First(&role, roleID).Error; err != nil {
 		return nil, err
 	}
 	if err := s.validateRoleUpdate(&role, req); err != nil {
@@ -488,8 +465,8 @@ func (s *RoleService) upsertRoleDataScopePolicyPreservingCustomDepts(tx *gorm.DB
 		return common.NewBadRequest("permission.data_scope.mode_invalid")
 	}
 
-	var existing roleDataScopePolicy
-	err := s.scoped(tx).Where("role_key = ?", oldRoleKey).Limit(1).Find(&existing).Error
+	var existing permission.PermissionRoleDataScopePolicy
+	err := s.Scoped(tx).Where("role_key = ?", oldRoleKey).Limit(1).Find(&existing).Error
 	if err != nil {
 		return err
 	}
@@ -511,8 +488,8 @@ func (s *RoleService) upsertRoleDataScopePolicyPreservingCustomDepts(tx *gorm.DB
 		}).Error
 	}
 
-	policy := roleDataScopePolicy{
-		TenantID: s.tenantOwnerID(),
+	policy := permission.PermissionRoleDataScopePolicy{
+		TenantID: s.TenantOwnerID(),
 		RoleKey:  newRoleKey,
 		Mode:     mode,
 		DeptIDs:  deptIDs,
@@ -580,14 +557,14 @@ func (s *RoleService) deleteRoleInTransaction(tx *gorm.DB, roleID uint64) error 
 func (s *RoleService) loadDeletableRole(tx *gorm.DB, roleID uint64) (SystemRole, error) {
 	// 前置检查放在事务内并对角色行加锁，避免成员绑定检查与删除之间的并发窗口。
 	var role SystemRole
-	if err := s.scoped(tx).Clauses(clause.Locking{Strength: "UPDATE"}).First(&role, roleID).Error; err != nil {
+	if err := s.Scoped(tx).Clauses(clause.Locking{Strength: "UPDATE"}).First(&role, roleID).Error; err != nil {
 		return role, err
 	}
 	if role.ID == common.BuiltinAdminRoleID || role.RoleKey == common.AdminRoleKey {
 		return role, common.NewConflict("role.delete.error.protected")
 	}
 	var userCount int64
-	if err := s.scoped(tx).Table("system_user_role").Where("role_id = ?", roleID).Count(&userCount).Error; err != nil {
+	if err := s.Scoped(tx).Table("system_user_role").Where("role_id = ?", roleID).Count(&userCount).Error; err != nil {
 		return role, err
 	}
 	if userCount > 0 {
@@ -617,7 +594,7 @@ func deleteRoleDataScopes(tx *gorm.DB, tenantID uint64, roleKey string) error {
 	// key, and an unscoped delete removed the other tenant's policy as a side
 	// effect of deleting this one.
 	if err := tx.Where("tenant_id = ? AND role_key = ?", tenantID, roleKey).
-		Delete(&roleDataScopePolicy{}).Error; err != nil {
+		Delete(&permission.PermissionRoleDataScopePolicy{}).Error; err != nil {
 		return err
 	}
 	if !tx.Migrator().HasTable("permission_role_data_scope_policy") {
@@ -636,11 +613,11 @@ func (s *RoleService) BatchUpdateRoleStatus(roleIDs []uint64, status int) (int, 
 		return 0, common.NewBadRequest("role.batch.empty")
 	}
 	if !common.IsEnabledStatus(status) {
-		return 0, common.NewBadRequest(errParamInvalid)
+		return 0, common.NewBadRequest(common.MessageParamInvalid)
 	}
 
 	var roles []SystemRole
-	if err := s.scoped(s.db).Where(condIDIn, normalizedIDs).Find(&roles).Error; err != nil {
+	if err := s.Scoped(s.db).Where(condIDIn, normalizedIDs).Find(&roles).Error; err != nil {
 		return 0, err
 	}
 	if len(roles) != len(normalizedIDs) {
@@ -654,7 +631,7 @@ func (s *RoleService) BatchUpdateRoleStatus(roleIDs []uint64, status int) (int, 
 		}
 	}
 
-	if err := s.scoped(s.db.Model(&SystemRole{})).
+	if err := s.Scoped(s.db.Model(&SystemRole{})).
 		Where(condIDIn, normalizedIDs).
 		Updates(map[string]any{
 			"status":     normalizeRoleStatus(status),
@@ -668,7 +645,7 @@ func (s *RoleService) BatchUpdateRoleStatus(roleIDs []uint64, status int) (int, 
 
 func (s *RoleService) getRole(roleID uint64) (*SystemRole, error) {
 	var role SystemRole
-	if err := s.scoped(s.db).First(&role, roleID).Error; err != nil {
+	if err := s.Scoped(s.db).First(&role, roleID).Error; err != nil {
 		return nil, err
 	}
 	return &role, nil
@@ -686,7 +663,7 @@ func (s *RoleService) loadRolePermissions(roleIDs []uint64) (map[uint64][]string
 	}
 
 	var pairs []rolePermissionPair
-	if err := s.scoped(s.db.Table("system_role_permission")).
+	if err := s.Scoped(s.db.Table("system_role_permission")).
 		Select("role_id, permission_key").
 		Where("role_id IN ?", roleIDs).
 		Order("permission_key asc").
@@ -713,8 +690,8 @@ func (s *RoleService) listUsersByRoleMembership(roleID uint64, query *RoleMember
 		CreatedAt time.Time `gorm:"column:created_at"`
 	}
 
-	page, pageSize := normalizeRoleMemberPageQuery(query)
-	db := s.scoped(s.db.Table("system_user")).
+	page, pageSize, offset := normalizeRoleMemberPageQuery(query)
+	db := s.Scoped(s.db.Table("system_user")).
 		Select(strings.Join([]string{
 			"system_user.id",
 			"system_user.username",
@@ -763,7 +740,7 @@ func (s *RoleService) listUsersByRoleMembership(roleID uint64, query *RoleMember
 	var rows []roleMemberRow
 	if err := db.
 		Order("system_user.created_at desc, system_user.id desc").
-		Offset((page - 1) * pageSize).
+		Offset(offset).
 		Limit(pageSize).
 		Scan(&rows).Error; err != nil {
 		return nil, err
@@ -799,8 +776,8 @@ func (s *RoleService) upsertRoleDataScopePolicy(tx *gorm.DB, roleKey string, mod
 		return common.NewBadRequest("permission.data_scope.mode_invalid")
 	}
 
-	policy := roleDataScopePolicy{
-		TenantID: s.tenantOwnerID(),
+	policy := permission.PermissionRoleDataScopePolicy{
+		TenantID: s.TenantOwnerID(),
 		RoleKey:  roleKey,
 		Mode:     mode,
 		DeptIDs:  "",
@@ -820,7 +797,7 @@ func (s *RoleService) loadRoleDataScopes(roleIDs []uint64) map[uint64]string {
 	if len(roleIDs) == 0 {
 		return result
 	}
-	if !s.db.Migrator().HasTable(&roleDataScopePolicy{}) {
+	if !s.db.Migrator().HasTable(&permission.PermissionRoleDataScopePolicy{}) {
 		return result
 	}
 
@@ -828,7 +805,7 @@ func (s *RoleService) loadRoleDataScopes(roleIDs []uint64) map[uint64]string {
 		ID      uint64 `gorm:"column:id"`
 		RoleKey string `gorm:"column:role_key"`
 	}
-	if err := s.scoped(s.db.Table("system_role")).
+	if err := s.Scoped(s.db.Table("system_role")).
 		Select("id, role_key").
 		Where(condIDIn, roleIDs).
 		Scan(&roleRows).Error; err != nil {
@@ -846,11 +823,11 @@ func (s *RoleService) loadRoleDataScopes(roleIDs []uint64) map[uint64]string {
 		return result
 	}
 
-	var policies []roleDataScopePolicy
+	var policies []permission.PermissionRoleDataScopePolicy
 	// Tenant-pinned: role_key is unique per tenant, so an unfiltered read merges
 	// every tenant's row and the last one scanned wins — which made a tenant's
 	// role list echo another tenant's dataScope (acceptance F13).
-	if err := s.scoped(s.db).Where("role_key IN ?", roleKeys).Find(&policies).Error; err != nil {
+	if err := s.Scoped(s.db).Where("role_key IN ?", roleKeys).Find(&policies).Error; err != nil {
 		return result
 	}
 	for _, policy := range policies {

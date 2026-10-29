@@ -37,7 +37,7 @@ func (s *UserService) ExportUsers(ctx context.Context, query *UserListQuery, dat
 	if err != nil {
 		return nil, err
 	}
-	deptPathByID, _, err := impexp.BuildDeptPathMaps(s.scoped(s.db))
+	deptPathByID, _, err := impexp.BuildDeptPathMaps(s.Scoped(s.db))
 	if err != nil {
 		return nil, err
 	}
@@ -69,14 +69,12 @@ func (s *UserService) ExportUsers(ctx context.Context, query *UserListQuery, dat
 }
 
 func (s *UserService) BuildUserImportTemplate() *impexp.CSVFile {
-	return &impexp.CSVFile{
-		Filename: "system-user-import-template.csv",
-		Headers:  []string{"username", "password", "nickname", "email", "phone", "deptPath", "postCode", "status", "roleKeys"},
-		Rows: [][]string{
-			{"#说明：保留第一行表头；status 使用 1=启用、2=禁用；roleKeys 多角色用 | 分隔；deptPath 使用部门导出的完整路径；postCode 使用岗位编码；导入新用户 password 必填。", "", "", "", "", "", "", "", ""},
-			{"#sample_user", "ChangeMe123", "示例用户", "sample@example.com", "13800138000", "", "", "1", "admin"},
-		},
-	}
+	return impexp.BuildImportTemplate(
+		"system-user-import-template.csv",
+		"#说明：保留第一行表头；status 使用 1=启用、2=禁用；roleKeys 多角色用 | 分隔；deptPath 使用部门导出的完整路径；postCode 使用岗位编码；导入新用户 password 必填。",
+		[]string{"username", "password", "nickname", "email", "phone", "deptPath", "postCode", "status", "roleKeys"},
+		[]string{"#sample_user", "ChangeMe123", "示例用户", "sample@example.com", "13800138000", "", "", "1", "admin"},
+	)
 }
 
 // importRow represents a single parsed CSV row that will be applied to the
@@ -99,10 +97,7 @@ type userImportLookups struct {
 }
 
 func (s *UserService) ImportUsers(records [][]string) (*impexp.ImportResult, error) {
-	result := &impexp.ImportResult{
-		Applied: false,
-		Errors:  []impexp.ImportError{},
-	}
+	result := impexp.NewImportResult()
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
@@ -111,7 +106,9 @@ func (s *UserService) ImportUsers(records [][]string) (*impexp.ImportResult, err
 		return result, nil
 	}
 
-	headerIndex := s.buildUserImportHeaderIndex(records, result)
+	headerIndex := impexp.BuildHeaderIndex(records)
+	impexp.RequireHeaders(result, headerIndex,
+		"username", "password", "nickname", "email", "phone", "deptPath", "postCode", "status", "roleKeys")
 	if result.Failed > 0 {
 		return result, nil
 	}
@@ -134,22 +131,6 @@ func (s *UserService) ImportUsers(records [][]string) (*impexp.ImportResult, err
 	return result, nil
 }
 
-// buildUserImportHeaderIndex maps each header name to its column index and
-// records an error for any required header that is missing from the file.
-func (s *UserService) buildUserImportHeaderIndex(records [][]string, result *impexp.ImportResult) map[string]int {
-	headerIndex := make(map[string]int, len(records[0]))
-	for index, header := range records[0] {
-		headerIndex[strings.TrimSpace(header)] = index
-	}
-	requiredHeaders := []string{"username", "password", "nickname", "email", "phone", "deptPath", "postCode", "status", "roleKeys"}
-	for _, header := range requiredHeaders {
-		if _, ok := headerIndex[header]; !ok {
-			impexp.AppendImportError(result, 0, header, "import.header.missing")
-		}
-	}
-	return headerIndex
-}
-
 // loadUserImportLookups pre-loads the reference data needed to resolve CSV
 // values into database identifiers.
 //
@@ -159,7 +140,7 @@ func (s *UserService) buildUserImportHeaderIndex(records [][]string, result *imp
 // would update that tenant's user, and a shared role key would resolve to
 // another tenant's role id.
 func (s *UserService) loadUserImportLookups() (*userImportLookups, error) {
-	_, deptPathToID, err := impexp.BuildDeptPathMaps(s.scoped(s.db))
+	_, deptPathToID, err := impexp.BuildDeptPathMaps(s.Scoped(s.db))
 	if err != nil {
 		return nil, err
 	}
@@ -188,15 +169,9 @@ func (s *UserService) loadUserImportLookups() (*userImportLookups, error) {
 func (s *UserService) parseUserImportRows(records [][]string, headerIndex map[string]int, lookups *userImportLookups, result *impexp.ImportResult) []importRow {
 	rows := make([]importRow, 0, len(records)-1)
 	seenUsernames := make(map[string]int, len(records)-1)
-	for rowIndex := 1; rowIndex < len(records); rowIndex++ {
-		record := records[rowIndex]
-		if impexp.IsCSVRecordEmpty(record) {
-			continue
-		}
-		rowNumber := rowIndex + 1
-		row := s.buildUserImportRow(record, rowNumber, headerIndex, lookups, seenUsernames, result)
-		rows = append(rows, row)
-	}
+	impexp.ForEachDataRow(records, func(rowNumber int, record []string) {
+		rows = append(rows, s.buildUserImportRow(record, rowNumber, headerIndex, lookups, seenUsernames, result))
+	})
 	return rows
 }
 
@@ -378,7 +353,7 @@ func (s *UserService) applyUserImportCreate(tx *gorm.DB, row importRow, result *
 		// Tenant write path: ownership comes from the request context, never
 		// from the CSV. Without this the row landed in the platform namespace
 		// and the importing tenant could not see (or log in) the user.
-		TenantID: s.tenantOwnerID(),
+		TenantID: s.TenantOwnerID(),
 		Username: row.Create.Username,
 		Password: string(passwordHash),
 		Nickname: row.Create.Nickname,
@@ -405,7 +380,7 @@ func (s *UserService) applyUserImportCreate(tx *gorm.DB, row importRow, result *
 
 func (s *UserService) listUsersForExport(ctx context.Context, query *UserListQuery, dataScope *common.DataScopeReq) ([]SystemUser, error) {
 	var users []SystemUser
-	db := s.scoped(s.db.WithContext(ctx).Model(&SystemUser{})).Scopes(database.WithDataScope(dataScope))
+	db := s.Scoped(s.db.WithContext(ctx).Model(&SystemUser{})).Scopes(database.WithDataScope(dataScope))
 	db = applyUserListFilters(db, query)
 
 	sortColumn, sortDesc := normalizeUserSort(query)

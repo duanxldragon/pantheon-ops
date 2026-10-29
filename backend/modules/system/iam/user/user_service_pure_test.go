@@ -47,37 +47,37 @@ func TestNormalizeStatus_99_Returns1(t *testing.T) {
 // ---- normalizeUserPageQuery ----
 
 func TestNormalizeUserPageQuery_Nil(t *testing.T) {
-	page, pageSize, err := normalizeUserPageQuery(nil)
+	page, pageSize, offset, err := normalizeUserPageQuery(nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if page != 1 || pageSize != 10 {
-		t.Fatalf("expected (1, 10), got (%d, %d)", page, pageSize)
+	if page != 1 || pageSize != 10 || offset != 0 {
+		t.Fatalf("expected (1, 10, 0), got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizeUserPageQuery_ZeroValues(t *testing.T) {
-	page, pageSize, err := normalizeUserPageQuery(&UserListQuery{})
+	page, pageSize, offset, err := normalizeUserPageQuery(&UserListQuery{})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if page != 1 || pageSize != 10 {
-		t.Fatalf("expected (1, 10) for zero values, got (%d, %d)", page, pageSize)
+	if page != 1 || pageSize != 10 || offset != 0 {
+		t.Fatalf("expected (1, 10, 0) for zero values, got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizeUserPageQuery_CustomValues(t *testing.T) {
-	page, pageSize, err := normalizeUserPageQuery(&UserListQuery{Page: 3, PageSize: 20})
+	page, pageSize, offset, err := normalizeUserPageQuery(&UserListQuery{Page: 3, PageSize: 20})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if page != 3 || pageSize != 20 {
-		t.Fatalf("expected (3, 20), got (%d, %d)", page, pageSize)
+	if page != 3 || pageSize != 20 || offset != 40 {
+		t.Fatalf("expected (3, 20, 40), got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizeUserPageQuery_MaxPageSize(t *testing.T) {
-	_, pageSize, err := normalizeUserPageQuery(&UserListQuery{PageSize: 200})
+	_, pageSize, _, err := normalizeUserPageQuery(&UserListQuery{PageSize: 200})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -87,7 +87,7 @@ func TestNormalizeUserPageQuery_MaxPageSize(t *testing.T) {
 }
 
 func TestNormalizeUserPageQuery_RejectsDeepOffset(t *testing.T) {
-	_, _, err := normalizeUserPageQuery(&UserListQuery{Page: 1002, PageSize: 100})
+	_, _, _, err := normalizeUserPageQuery(&UserListQuery{Page: 1002, PageSize: 100})
 	if err == nil {
 		t.Fatal("expected deep pagination error")
 	}
@@ -358,35 +358,6 @@ func TestGetUserIDFromContext_WrongType(t *testing.T) {
 	_, ok := getUserIDFromContext(c)
 	if ok {
 		t.Fatal("expected ok=false for wrong type")
-	}
-}
-
-// ---- parseUintParam ----
-
-func TestParseUintParam_Valid(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	recorder := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(recorder)
-	c.Params = []gin.Param{{Key: "id", Value: "123"}}
-
-	id, err := parseUintParam(c, "id")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if id != 123 {
-		t.Fatalf("expected 123, got %d", id)
-	}
-}
-
-func TestParseUintParam_Invalid(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	recorder := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(recorder)
-	c.Params = []gin.Param{{Key: "id", Value: "abc"}}
-
-	_, err := parseUintParam(c, "id")
-	if err == nil {
-		t.Fatal("expected error for non-numeric param")
 	}
 }
 

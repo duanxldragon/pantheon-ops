@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "taskId": "2026-08-17-ops-foundation-hardening",
   "title": "Pantheon Ops foundation hardening program",
-  "status": "complete",
+  "status": "completed",
   "priority": "P0-P1",
   "deliveryTier": "L2",
   "primaryLayer": "business-foundation",

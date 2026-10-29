@@ -41,7 +41,6 @@ import { useTranslation } from 'react-i18next';
 import { beginLogoutTransition, clearOperationToken, endLogoutTransition } from '../../api/request';
 import { type MenuNode } from '../../modules/system/iam/menu/api';
 import { logout as logoutApi, reportActivity } from '../../modules/auth/session/api';
-import { TenantSwitcher } from '../../modules/auth/tenant/TenantSwitcher';
 import {
   TenantViewpointBanner,
   TenantViewpointSwitcher,
@@ -1838,7 +1837,6 @@ const BaseLayout: React.FC = () => {
               summary={noticeSummary}
               t={t}
             />
-            <TenantSwitcher enabled={publicSettings.tenantMode === 'multi'} t={t} />
             <TenantViewpointSwitcher enabled={publicSettings.tenantMode === 'multi'} t={t} />
             <Dropdown
               trigger="click"

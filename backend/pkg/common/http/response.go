@@ -58,6 +58,12 @@ func FailWithData(c *gin.Context, code int, message string, data interface{}) {
 	})
 }
 
+// NOTE: the private i18n-key helpers below mirror pkg/common's on purpose.
+// pkg/common/re_export.go re-exports this package's envelope to the whole
+// codebase, so http cannot import common without an import cycle. If the
+// envelope ever moves into common itself, these four privates collapse onto
+// common.ErrMessage / common.ResolveErrorMessageKey / common.IsI18nMessageKey.
+
 func isI18nMessageKey(message string) bool {
 	return i18nKeyPattern.MatchString(strings.TrimSpace(message))
 }
@@ -110,18 +116,4 @@ func FailWithCode(c *gin.Context, code int, message string) {
 		Data:    nil,
 		Message: message,
 	})
-}
-
-func GetUserID(c *gin.Context) uint64 {
-	for _, key := range []string{"userID", "userId"} {
-		val, ok := c.Get(key)
-		if !ok {
-			continue
-		}
-		userID, ok := val.(uint64)
-		if ok {
-			return userID
-		}
-	}
-	return 0
 }

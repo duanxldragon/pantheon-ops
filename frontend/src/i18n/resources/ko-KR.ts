@@ -86,10 +86,6 @@ const koKRFallback = {
   'auth.login.consoleTitle': '신원 확인',
   'auth.login.securityNotice':
     '관리자가 할당한 계정으로 로그인하세요. 로그인 시간, 장치, 출처 IP 는 보안 감사를 위해 기록됩니다.',
-  'auth.login.tenant.title': '작업 테넌트 선택',
-  'auth.login.tenant.hint': '이 계정은 여러 테넌트에 속해 있습니다. 이번 로그인 범위를 선택하세요.',
-  'auth.login.tenant.placeholder': '테넌트 선택',
-  'auth.login.tenant.back': '자격 증명으로 돌아가기',
   'auth.login.idleTimeoutNotice':
     '오랫동안 활동이 없어 자동 로그아웃되었습니다. 계속하려면 다시 로그인하세요.',
   'auth.login.feature.modules': '모듈형 모놀리스',
@@ -1430,10 +1426,13 @@ const koKRFallback = {
   'tenant.not_found': '테넌트를 찾을 수 없습니다.',
   'tenant.has_active_members':
     '이 테넌트에 활성 멤버가 남아 있습니다. 먼저 상태를 "보관됨"으로 변경한 후 삭제하세요. 보관된 테넌트를 삭제하면 멤버가 자동으로 비활성화됩니다.',
+  'tenant.not_archived':
+    '이 테넌트는 보관되지 않아 삭제할 수 없습니다. 먼저 상태를 "보관됨"으로 변경한 후 삭제하세요.',
   'tenant.delete.error.archive_code_conflict':
     '테넌트 코드를 해제하지 못했습니다. 다시 시도하세요.',
   'tenant.forbidden': '이 계정은 해당 테넌트에 속하지 않아 데이터에 접근할 수 없습니다.',
   'tenant.suspended': '이 테넌트는 일시 중지되어 로그인할 수 없습니다.',
+  'tenant.member.user_not_in_tenant': '해당 사용자는 다른 테넌트에 속해 있어 이 테넌트의 멤버로 추가할 수 없습니다.',
   'tenant.archived': '이 테넌트는 보관되어 로그인할 수 없습니다.',
   'tenant.context.missing': '이 세션에는 테넌트 컨텍스트가 없습니다. 다시 로그인하세요.',
   'tenant.id.invalid': '테넌트 식별자가 올바르지 않습니다.',
@@ -1581,7 +1580,7 @@ const koKRFallback = {
   'system.tenant.plan.professional': '프로페셔널',
   'system.tenant.plan.enterprise': '엔터프라이즈',
   'system.tenant.plan.outsideLadder':
-    '{{plan}} 은 콘솔 기능 사다리에 포함되지 않아 기능은 Free 등급으로 표시됩니다. 상한 값은 이 플랜 정의를 따릅니다.',
+    '{{plan}} 은 콘솔 기능 사다리에 포함되지 않아 기능은 Free 등급으로 표시되며 lowcode 게이트 대상 화면은 숨겨집니다. 상한 값은 이 플랜 정의를 따릅니다.',
   'system.tenant.planFeature.title': '요금제 기능 비교',
   'system.tenant.planFeature.description':
     '요금제는 테넌트 콘솔에서 사용할 수 있는 기능 진입점을 결정합니다. 실제 작업 권한은 역할 권한 부여로 제어됩니다.',
@@ -1640,6 +1639,11 @@ const koKRFallback = {
   'system.tenant.memberUserId': '사용자 ID',
   'system.tenant.memberUserIdPlaceholder': '사용자 ID 입력',
   'system.tenant.memberUserIdRequired': '사용자 ID를 입력하세요',
+  'system.tenant.member.userSelectEmpty': '이 범위에서 추가할 수 있는 사용자가 없습니다',
+  'system.tenant.member.userSelectNoPermission': '이 계정은 사용자 목록을 조회할 수 없습니다',
+  'system.tenant.member.userSelectSearch': '사용자 이름 또는 별명으로 검색',
+  'system.tenant.member.userSelectScope':
+    '후보 사용자는 현재 테넌트 뷰포인트에서 가져옵니다. 대상 테넌트가 아니면 뷰포인트를 전환하세요',
   'system.tenant.memberRole': '역할',
   'system.tenant.memberAddSuccess': '멤버가 추가되었습니다',
   'system.tenant.memberRemove': '제거',

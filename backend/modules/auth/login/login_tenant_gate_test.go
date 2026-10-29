@@ -29,7 +29,7 @@ type authTenantFixture struct {
 func newAuthTenantFixture(t *testing.T) *authTenantFixture {
 	t.Helper()
 	db := testmysql.Open(t)
-	if err := db.AutoMigrate(&tenant.Membership{}, &tenant.Tenant{}, &user.SystemUser{}, &SystemLoginThrottle{}); err != nil {
+	if err := db.AutoMigrate(&tenant.Membership{}, &tenant.Tenant{}, &user.SystemUser{}, &user.SystemUserRole{}, &SystemLoginThrottle{}); err != nil {
 		t.Fatalf("migrate tenant tables: %v", err)
 	}
 	rt := NewRuntime(db, testCredentialRepo(db))
@@ -79,6 +79,17 @@ func (f *authTenantFixture) seedMembership(t *testing.T, tenantID, userID uint64
 	}
 }
 
+// seedUserRole stamps a system_user_role binding for (tenant, user). W4 (W3
+// decision A): a membership without at least one binding is not a usable
+// context, so every resolution test must state whether the subject holds one.
+func (f *authTenantFixture) seedUserRole(t *testing.T, tenantID, userID, roleID uint64) {
+	t.Helper()
+	row := user.SystemUserRole{TenantID: tenantID, UserID: userID, RoleID: roleID}
+	if err := f.db.Create(&row).Error; err != nil {
+		t.Fatalf("seed user role t%d u%d: %v", tenantID, userID, err)
+	}
+}
+
 // seedSetting writes the platform.tenant_mode flag directly.
 func (f *authTenantFixture) seedSetting(t *testing.T, mode string) {
 	t.Helper()
@@ -120,11 +131,13 @@ func TestAuthTenantGate_CompatModeNoClaim(t *testing.T) {
 }
 
 // 2. Single active membership resolves deterministically and passes the gate.
+// W4: the membership carries a role binding, so it is usable and resolves.
 func TestAuthTenantGate_SingleMembershipResolves(t *testing.T) {
 	f := newAuthTenantFixture(t)
 	f.seedSetting(t, tenant.ModeMulti)
 	f.seedTenant(t, 101, "alpha", tenant.TenantStatusActive)
 	f.seedMembership(t, 101, 42, tenant.MembershipRoleMember, tenant.MembershipActive)
+	f.seedUserRole(t, 101, 42, 1)
 
 	claim, err := f.runtime.resolveLoginTenantClaim(&authuser.User{ID: 42}, 0)
 	if err != nil {
@@ -149,8 +162,10 @@ func TestAuthTenantGate_NoMembershipPlatformPopulation(t *testing.T) {
 	}
 }
 
-// 4. Ambiguous (two active) memberships deny-by-default (contract §3.1:
-// ambiguous context is never silently narrowed).
+// 4. Ambiguous (two active, usable) memberships deny-by-default (contract
+// §3.1: ambiguous context is never silently narrowed). Both memberships carry
+// role bindings — ambiguity between unusable memberships is unreachable since
+// W4 filters those out before the count.
 func TestAuthTenantGate_AmbiguousMembershipsDenied(t *testing.T) {
 	f := newAuthTenantFixture(t)
 	f.seedSetting(t, tenant.ModeMulti)
@@ -158,6 +173,8 @@ func TestAuthTenantGate_AmbiguousMembershipsDenied(t *testing.T) {
 	f.seedTenant(t, 202, "beta", tenant.TenantStatusActive)
 	f.seedMembership(t, 101, 42, tenant.MembershipRoleMember, tenant.MembershipActive)
 	f.seedMembership(t, 202, 42, tenant.MembershipRoleMember, tenant.MembershipActive)
+	f.seedUserRole(t, 101, 42, 1)
+	f.seedUserRole(t, 202, 42, 1)
 
 	if _, err := f.runtime.resolveLoginTenantClaim(&authuser.User{ID: 42}, 0); !errors.Is(err, tenant.ErrTenantForbidden) {
 		t.Fatalf("ambiguous memberships err = %v, want ErrTenantForbidden", err)
@@ -197,6 +214,11 @@ func TestAuthTenantGate_TenantStatusGates(t *testing.T) {
 	f.seedTenant(t, 202, "beta", tenant.TenantStatusArchived)
 	f.seedMembership(t, 101, 42, tenant.MembershipRoleMember, tenant.MembershipActive)
 	f.seedMembership(t, 202, 43, tenant.MembershipRoleMember, tenant.MembershipActive)
+	// Bindings keep both memberships usable so the test isolates the tenant
+	// status gate: without them the W4 predicate would filter the membership
+	// out before EnsureTenantLoginable could fire its specific sentinel.
+	f.seedUserRole(t, 101, 42, 1)
+	f.seedUserRole(t, 202, 43, 1)
 
 	if _, err := f.runtime.resolveLoginTenantClaim(&authuser.User{ID: 42}, 0); !errors.Is(err, tenant.ErrTenantSuspended) {
 		t.Fatalf("suspended tenant err = %v, want ErrTenantSuspended", err)
@@ -312,7 +334,8 @@ func TestAuthTenantGate_IssuanceCompatNoStamp(t *testing.T) {
 // ─────────────────────────────────────────────────────────────
 
 // 13. Explicit choice resolves for a multi-membership user (picker path):
-// ambiguous memberships no longer deny when the subject picks a tenant.
+// ambiguous memberships no longer deny when the subject picks a tenant. W4:
+// both tenants carry bindings — the chosen one must, or the gate refuses.
 func TestAuthTenantGate_ExplicitChoiceResolvesMultiMembership(t *testing.T) {
 	f := newAuthTenantFixture(t)
 	f.seedSetting(t, tenant.ModeMulti)
@@ -320,6 +343,8 @@ func TestAuthTenantGate_ExplicitChoiceResolvesMultiMembership(t *testing.T) {
 	f.seedTenant(t, 202, "beta", tenant.TenantStatusActive)
 	f.seedMembership(t, 101, 42, tenant.MembershipRoleMember, tenant.MembershipActive)
 	f.seedMembership(t, 202, 42, tenant.MembershipRoleMember, tenant.MembershipActive)
+	f.seedUserRole(t, 101, 42, 1)
+	f.seedUserRole(t, 202, 42, 1)
 
 	claim, err := f.runtime.resolveLoginTenantClaim(&authuser.User{ID: 42}, 202)
 	if err != nil {
@@ -374,7 +399,10 @@ func TestAuthTenantGate_CompatIgnoresExplicitChoice(t *testing.T) {
 	}
 }
 
-// 17. Candidate listing returns only active memberships in active tenants.
+// 17. Candidate listing returns only usable memberships (W4: at least one
+// role binding) in active tenants. All three of user 42's memberships carry
+// bindings, so exclusion of 303 isolates the suspended-tenant rule instead of
+// the binding predicate.
 func TestAuthTenantGate_ListCandidates(t *testing.T) {
 	f := newAuthTenantFixture(t)
 	f.seedSetting(t, tenant.ModeMulti)
@@ -385,6 +413,9 @@ func TestAuthTenantGate_ListCandidates(t *testing.T) {
 	f.seedMembership(t, 202, 42, tenant.MembershipRoleMember, tenant.MembershipActive)
 	f.seedMembership(t, 303, 42, tenant.MembershipRoleMember, tenant.MembershipActive)   // suspended tenant
 	f.seedMembership(t, 101, 43, tenant.MembershipRoleMember, tenant.MembershipDisabled) // other user, disabled
+	f.seedUserRole(t, 101, 42, 1)
+	f.seedUserRole(t, 202, 42, 1)
+	f.seedUserRole(t, 303, 42, 1)
 
 	candidates := f.runtime.ListLoginTenantCandidates(context.Background(), 42)
 	if len(candidates) != 2 {
@@ -403,6 +434,56 @@ func TestAuthTenantGate_ListCandidates(t *testing.T) {
 	}
 	if got := f.runtime.ListLoginTenantCandidates(context.Background(), 42); len(got) != 0 {
 		t.Fatalf("compat candidates = %+v, want empty", got)
+	}
+}
+
+// 17b. W4 (W3 decision A, TC-01): a membership without a role binding is not a
+// usable context. Discovery must not resolve it — today it resolves the tenant
+// and hands the subject an empty role set, an empty menu and 403 everywhere.
+func TestAuthTenantGate_DiscoveryIgnoresMembershipWithoutRoles(t *testing.T) {
+	f := newAuthTenantFixture(t)
+	f.seedSetting(t, tenant.ModeMulti)
+	f.seedTenant(t, 101, "alpha", tenant.TenantStatusActive)
+	f.seedMembership(t, 101, 42, tenant.MembershipRoleMember, tenant.MembershipActive)
+	// Deliberately no seedUserRole: user 42 is a member of alpha without roles.
+
+	claim, err := f.runtime.resolveLoginTenantClaim(&authuser.User{ID: 42}, 0)
+	if err != nil {
+		t.Fatalf("resolveLoginTenantClaim: %v", err)
+	}
+	if claim != 0 {
+		t.Fatalf("claim = %d, want 0 — a membership without role bindings must not resolve", claim)
+	}
+}
+
+// 17c. W4: the explicit-choice path is gated by the same predicate — naming a
+// tenant where the subject holds a membership but no roles is refused instead
+// of issuing a blank-console session.
+func TestAuthTenantGate_ExplicitChoiceWithoutRolesRefused(t *testing.T) {
+	f := newAuthTenantFixture(t)
+	f.seedSetting(t, tenant.ModeMulti)
+	f.seedTenant(t, 101, "alpha", tenant.TenantStatusActive)
+	f.seedMembership(t, 101, 42, tenant.MembershipRoleMember, tenant.MembershipActive)
+
+	if _, err := f.runtime.resolveLoginTenantClaim(&authuser.User{ID: 42}, 101); !errors.Is(err, tenant.ErrTenantForbidden) {
+		t.Fatalf("explicit choice without roles err = %v, want ErrTenantForbidden", err)
+	}
+}
+
+// 17d. W4: the candidate list excludes memberships without role bindings, so
+// the picker can no longer offer a tenant that would produce an empty console.
+func TestAuthTenantGate_ListCandidatesExcludeMembershipWithoutRoles(t *testing.T) {
+	f := newAuthTenantFixture(t)
+	f.seedSetting(t, tenant.ModeMulti)
+	f.seedTenant(t, 101, "alpha", tenant.TenantStatusActive)
+	f.seedTenant(t, 202, "beta", tenant.TenantStatusActive)
+	f.seedMembership(t, 101, 42, tenant.MembershipRoleOwner, tenant.MembershipActive)
+	f.seedMembership(t, 202, 42, tenant.MembershipRoleMember, tenant.MembershipActive)
+	f.seedUserRole(t, 101, 42, 1) // only alpha carries a binding
+
+	candidates := f.runtime.ListLoginTenantCandidates(context.Background(), 42)
+	if len(candidates) != 1 || candidates[0].TenantID != 101 {
+		t.Fatalf("candidates = %+v, want only 101 (beta has no role binding)", candidates)
 	}
 }
 
@@ -453,6 +534,9 @@ func TestLoginNamedTenantFallsBackToGlobalCredential(t *testing.T) {
 	home := f.seedTenantUser(t, 101, "alice", "s3cret-pw")
 	f.seedMembership(t, 101, home.ID, tenant.MembershipRoleOwner, tenant.MembershipActive)
 	f.seedMembership(t, 202, home.ID, tenant.MembershipRoleMember, tenant.MembershipActive)
+	// W4: the chosen tenant must carry a binding, or the issuance gate refuses
+	// the claim the fallback credential resolution would otherwise earn.
+	f.seedUserRole(t, 202, home.ID, 1)
 
 	got, err := f.loginAs(202, "alice", "s3cret-pw")
 	if err != nil {

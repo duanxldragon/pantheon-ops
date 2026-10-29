@@ -2,7 +2,6 @@
 package dynamicmodule
 
 import (
-	"errors"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"log/slog"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/internal/scaffold"
 	"github.com/duanxldragon/pantheon-base/backend/modules/system/i18n"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"gorm.io/gorm"
 )
 
@@ -55,10 +55,7 @@ func (s *DynamicModuleService) loadModuleRegistration(moduleName string) (Module
 	var registration ModuleRegistration
 	if err := s.db.Where(condNameEquals, moduleName).First(&registration).Error; err != nil {
 		// 无注册记录的模块一律拒绝卸载：防止对任意磁盘目录（尤其 system/*）执行清理/删除。
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ModuleRegistration{}, common.NewNotFound(msgModuleNotFound)
-		}
-		return ModuleRegistration{}, err
+		return ModuleRegistration{}, database.TranslateNotFound(err, common.NewNotFound(msgModuleNotFound))
 	}
 	return registration, nil
 }
@@ -84,10 +81,7 @@ func (s *DynamicModuleService) DeleteModuleRecord(moduleName string) error {
 
 	var registration ModuleRegistration
 	if err := s.db.Where(condNameEquals, moduleName).First(&registration).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return common.NewNotFound(msgModuleNotFound)
-		}
-		return err
+		return database.TranslateNotFound(err, common.NewNotFound(msgModuleNotFound))
 	}
 	if strings.TrimSpace(registration.ModelTableName) == "" {
 		return common.NewForbidden(msgModuleBuiltinForbidden)

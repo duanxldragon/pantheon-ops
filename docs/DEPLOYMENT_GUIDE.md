@@ -29,7 +29,7 @@ docker build \
 docker push registry.example.com/pantheon-base:pantheon-base-vX.Y.Z
 ```
 
-Dockerfile 使用 Node.js 24 构建前端、Go 1.26.5 构建后端，最终进程以非 root 用户运行。不要从未通过 `Release Gate Summary` 的 commit 构建生产镜像。
+Dockerfile 使用 Node.js 24 构建前端、Go 1.26.10 构建后端，最终进程以非 root 用户运行。不要从未通过 `Release Gate Summary` 的 commit 构建生产镜像。
 
 ## 3. 数据库初始化
 

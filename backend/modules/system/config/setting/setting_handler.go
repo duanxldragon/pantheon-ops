@@ -18,11 +18,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	errParamInvalid       = "param.invalid"
-	errRequestFailed      = "request.failed"
-	errUploadFileNotFound = "upload.file.not_found"
-)
+const errUploadFileNotFound = "upload.file.not_found"
 
 type SettingHandler struct {
 	service       *SettingService
@@ -46,7 +42,7 @@ func (h *SettingHandler) boundService(c *gin.Context) *SettingService {
 func (h *SettingHandler) GetSettingList(c *gin.Context) {
 	var query SettingListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	items, err := h.boundService(c).List(&query)
@@ -69,7 +65,7 @@ func (h *SettingHandler) GetSettingOverview(c *gin.Context) {
 func (h *SettingHandler) GetSettingGroup(c *gin.Context) {
 	group, err := h.boundService(c).GetGroup(c.Param("groupKey"))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		common.FailWithError(c, common.CodeError, err, common.MessageRequestFailed)
 		return
 	}
 	common.Success(c, group)
@@ -80,7 +76,7 @@ func (h *SettingHandler) UpdateSettingGroup(c *gin.Context) {
 
 	var req SettingGroupUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	groupKey := c.Param("groupKey")
@@ -94,7 +90,7 @@ func (h *SettingHandler) UpdateSettingGroup(c *gin.Context) {
 
 	group, err := h.boundService(c).UpdateGroup(groupKey, &req)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		common.FailWithError(c, common.CodeError, err, common.MessageRequestFailed)
 		return
 	}
 	if successPayload != "" {
@@ -128,7 +124,7 @@ func (h *SettingHandler) RefreshSettingCache(c *gin.Context) {
 
 	var req SettingCacheRefreshReq
 	if err := c.ShouldBindJSON(&req); err != nil && c.Request.ContentLength > 0 {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	resp, err := h.boundService(c).RefreshSettingCache(req.GroupKeys)
@@ -142,7 +138,7 @@ func (h *SettingHandler) RefreshSettingCache(c *gin.Context) {
 func (h *SettingHandler) GetSettingAuditList(c *gin.Context) {
 	var query SettingAuditQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	page, err := h.boundService(c).ListAudit(&query)
@@ -158,7 +154,7 @@ func (h *SettingHandler) ExportSettingAudit(c *gin.Context) {
 
 	var query SettingAuditQuery
 	if err := c.ShouldBindJSON(&query); err != nil && c.Request.ContentLength > 0 {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	file, err := h.boundService(c).ExportAudit(&query)
@@ -196,7 +192,7 @@ func (h *SettingHandler) UploadFile(c *gin.Context) {
 
 	stored, err := h.uploadService.StoreWithContext(c.Request.Context(), fileHeader, h.uploadScope(c), requestBaseURL(c))
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		common.FailWithError(c, common.CodeError, err, common.MessageRequestFailed)
 		return
 	}
 	common.Success(c, stored)

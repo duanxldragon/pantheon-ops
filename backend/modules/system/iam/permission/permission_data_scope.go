@@ -36,7 +36,7 @@ func (s *PermissionService) ListDataScopePolicies(query *PermissionDataScopeQuer
 	var roles []permissionDataScopeRoleRow
 	db := s.db.Table("system_role").Where("deleted_at IS NULL")
 	if !s.isPlatformScope() {
-		db = db.Where(condTenantIDEquals, s.tenantOwnerID())
+		db = db.Where(condTenantIDEquals, s.TenantOwnerID())
 	}
 	if query != nil {
 		if strings.TrimSpace(query.RoleKey) != "" {
@@ -121,7 +121,7 @@ func (s *PermissionService) UpdateDataScopePolicy(roleKey string, req *Permissio
 	}
 
 	policy := PermissionRoleDataScopePolicy{
-		TenantID: s.tenantOwnerID(),
+		TenantID: s.TenantOwnerID(),
 		RoleKey:  roleKey,
 		Mode:     mode,
 		DeptIDs:  joinPermissionDataScopeDeptIDs(deptIDs),
@@ -158,7 +158,7 @@ func (s *PermissionService) ensureDeptIDsBelongToTenant(deptIDs []uint64) error 
 	var found int64
 	db := s.db.Table("system_dept").Where("id IN ?", deptIDs).Where("deleted_at IS NULL")
 	if !s.isPlatformScope() {
-		db = db.Where(condTenantIDEquals, s.tenantOwnerID())
+		db = db.Where(condTenantIDEquals, s.TenantOwnerID())
 	}
 	if err := db.Count(&found).Error; err != nil {
 		return err
@@ -180,7 +180,7 @@ func (s *PermissionService) loadRoleDataScopePolicies(roleKeys []string) (map[st
 	var policies []PermissionRoleDataScopePolicy
 	db := s.db.Where("role_key IN ?", roleKeys)
 	if !s.isPlatformScope() {
-		db = db.Where(condTenantIDEquals, s.tenantOwnerID())
+		db = db.Where(condTenantIDEquals, s.TenantOwnerID())
 	}
 	if err := db.Find(&policies).Error; err != nil {
 		return nil, err

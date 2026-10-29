@@ -4,7 +4,7 @@
   "title": "Make Deploy tasks immutable, idempotent, and lease-safe",
   "goal": "Make Deploy task inputs immutable and execution idempotent with recoverable leases.",
   "primaryLayer": "business/*",
-  "status": "complete",
+  "status": "completed",
   "priority": "P0",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-08-17-ops-deploy-immutability-idempotency.task.md",

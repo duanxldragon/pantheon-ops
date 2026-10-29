@@ -1,7 +1,6 @@
 package user
 
 import (
-	"errors"
 	"strings"
 	"time"
 
@@ -29,10 +28,12 @@ type UserServiceOption func(*UserService)
 type UserService struct {
 	db                      *gorm.DB
 	sessionLifecycleFactory SessionLifecycleFactory
-	// tenantCtx is the per-request tenant context (contract §3.3). Set from the
-	// Gin context by the handler layer via WithTenantContext; nil stays
-	// unfiltered for platform-internal paths, compat binds tenant_id=0.
-	tenantCtx *tenant.Context
+	// Scoper carries the per-request tenant context (contract §3.3) with the
+	// shared read filter and write owner. Bound from the Gin context by the
+	// handler layer via WithTenantContext; nil stays unfiltered for
+	// platform-internal paths, compat binds the platform-global population
+	// (tenant_id=0).
+	tenant.Scoper
 }
 
 func WithSessionLifecycle(factory SessionLifecycleFactory) UserServiceOption {
@@ -48,29 +49,8 @@ func (s *UserService) WithTenantContext(ctx *tenant.Context) *UserService {
 		return s
 	}
 	bound := *s
-	bound.tenantCtx = ctx
+	bound.TenantCtx = ctx
 	return &bound
-}
-
-// tenantScope applies the tenant read filter: in multi mode every query is
-// pinned to the request tenant, so a tenant administrator only ever sees its
-// own users. Compat binds the platform-global population (tenant_id=0).
-func (s *UserService) tenantScope() func(db *gorm.DB) *gorm.DB {
-	return tenant.WithTenantScope(s.tenantCtx)
-}
-
-// scoped applies the tenant read filter to a query builder.
-func (s *UserService) scoped(db *gorm.DB) *gorm.DB {
-	return db.Scopes(s.tenantScope())
-}
-
-// tenantOwnerID is the tenant a new user belongs to (write path: from context,
-// never from the request body — contract §3.3). Compat/platform => 0.
-func (s *UserService) tenantOwnerID() uint64 {
-	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
-		return 0
-	}
-	return s.tenantCtx.TenantID
 }
 
 // NewUserService 构造函数
@@ -245,9 +225,9 @@ func (s *UserService) ListUsers(query *UserListQuery, dataScope *common.DataScop
 	}
 
 	var users []SystemUser
-	db := s.scoped(s.db.Model(&SystemUser{})).Scopes(database.WithDataScope(dataScope))
+	db := s.Scoped(s.db.Model(&SystemUser{})).Scopes(database.WithDataScope(dataScope))
 	db = applyUserListFilters(db, query)
-	page, pageSize, err := normalizeUserPageQuery(query)
+	page, pageSize, offset, err := normalizeUserPageQuery(query)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +243,7 @@ func (s *UserService) ListUsers(query *UserListQuery, dataScope *common.DataScop
 			Column: clause.Column{Name: sortColumn},
 			Desc:   sortDesc,
 		}).
-		Offset((page - 1) * pageSize).
+		Offset(offset).
 		Limit(pageSize).
 		Find(&users).Error; err != nil {
 		return nil, err
@@ -322,11 +302,8 @@ func (s *UserService) ListUsers(query *UserListQuery, dataScope *common.DataScop
 // id cannot be used to probe another tenant's population.
 func (s *UserService) loadTenantUser(userID uint64) (*SystemUser, error) {
 	var user SystemUser
-	if err := s.scoped(s.db).First(&user, userID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, common.NewNotFound("user.not_found")
-		}
-		return nil, err
+	if err := s.Scoped(s.db).First(&user, userID).Error; err != nil {
+		return nil, database.TranslateNotFound(err, common.NewNotFound("user.not_found"))
 	}
 	return &user, nil
 }
@@ -404,7 +381,7 @@ func (s *UserService) CreateUser(req *UserCreateReq) (*UserListResp, error) {
 	}
 
 	user := SystemUser{
-		TenantID: s.tenantOwnerID(),
+		TenantID: s.TenantOwnerID(),
 		Username: req.Username,
 		Password: string(passwordHash),
 		Nickname: req.Nickname,
@@ -612,7 +589,7 @@ func (s *UserService) ResetPassword(userID uint64, newPassword string) (int64, e
 	}
 
 	var user SystemUser
-	if err := s.scoped(s.db).First(&user, userID).Error; err != nil {
+	if err := s.Scoped(s.db).First(&user, userID).Error; err != nil {
 		return 0, err
 	}
 
@@ -663,7 +640,7 @@ func (s *UserService) BatchUpdateUserStatus(userIDs []uint64, status int) (int, 
 	}
 
 	var users []SystemUser
-	if err := s.scoped(s.db).Where("id IN ?", normalizedIDs).Find(&users).Error; err != nil {
+	if err := s.Scoped(s.db).Where("id IN ?", normalizedIDs).Find(&users).Error; err != nil {
 		return 0, err
 	}
 	if len(users) != len(normalizedIDs) {
@@ -677,7 +654,7 @@ func (s *UserService) BatchUpdateUserStatus(userIDs []uint64, status int) (int, 
 		}
 	}
 
-	if err := s.scoped(s.db.Model(&SystemUser{})).
+	if err := s.Scoped(s.db.Model(&SystemUser{})).
 		Where("id IN ?", normalizedIDs).
 		Updates(map[string]any{
 			"status":     normalizeStatus(status),
@@ -728,7 +705,7 @@ func (s *UserService) DeleteUser(userID uint64) error {
 
 func (s *UserService) deleteUserInTransaction(tx *gorm.DB, userID uint64) error {
 	var user SystemUser
-	if err := s.scoped(tx).First(&user, userID).Error; err != nil {
+	if err := s.Scoped(tx).First(&user, userID).Error; err != nil {
 		return err
 	}
 	if err := s.deleteUserAuthArtifacts(tx, userID); err != nil {

@@ -234,10 +234,17 @@ test.describe('Tenant Viewpoint @priority:critical @smoke:tenant', () => {
     await page.locator('.arco-modal').locator('input[type="password"]').fill(viewpointPassword);
     await page.getByLabel('昵称').fill('Viewpoint User');
 
+    // W4 login gate: a membership without a role binding cannot log in, so the
+    // created user carries the tenant's member role (租户成员, provisioned for
+    // every tenant) — otherwise the next test's sign-in is refused.
+    await page.locator('.system-user-list__role-field .arco-select').click();
+    await page.locator('.arco-select-option', { hasText: '租户成员' }).first().click();
+
     // 「加入本租户（可登录）」默认勾选，成员角色默认 member。
     const joinCheckbox = page.getByRole('checkbox', { name: /加入本租户/ });
     await expect(joinCheckbox).toBeChecked();
     await capture(page, '03-create-modal-join-default-on');
+    await page.keyboard.press('Escape');
     await page.locator('.arco-modal').getByRole('button', { name: '新增' }).click();
 
     await expect(page.getByText('用户已创建并加入租户成员')).toBeVisible({ timeout: 15_000 });

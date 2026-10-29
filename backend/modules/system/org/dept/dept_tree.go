@@ -1,13 +1,12 @@
 package dept
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
-	"gorm.io/gorm"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"gorm.io/gorm/clause"
 )
 
@@ -27,7 +26,7 @@ func (s *DeptService) GetDeptTree(query *DeptListQuery) ([]*DeptTreeResp, error)
 
 	var depts []SystemDept
 	sortColumn, sortDesc := normalizeDeptSort(query)
-	if err := s.scoped(s.db.Model(&SystemDept{})).
+	if err := s.Scoped(s.db.Model(&SystemDept{})).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: sortColumn}, Desc: sortDesc}).
 		Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: false}).
 		Find(&depts).Error; err != nil {
@@ -49,7 +48,7 @@ func (s *DeptService) GetOverview() (*DeptOverviewResp, error) {
 	}
 
 	var depts []SystemDept
-	if err := s.scoped(s.db).Order("id asc").Find(&depts).Error; err != nil {
+	if err := s.Scoped(s.db).Order("id asc").Find(&depts).Error; err != nil {
 		return nil, err
 	}
 
@@ -102,7 +101,7 @@ func (s *DeptService) GetOverview() (*DeptOverviewResp, error) {
 func (s *DeptService) loadOverviewPosts() ([]overviewPostRow, error) {
 	posts := make([]overviewPostRow, 0)
 	if s.db.Migrator().HasTable("system_post") {
-		if err := s.scoped(s.db.Table("system_post")).
+		if err := s.Scoped(s.db.Table("system_post")).
 			Where("deleted_at IS NULL").
 			Select("dept_id, status").Order("id asc").Find(&posts).Error; err != nil {
 			return nil, err
@@ -149,11 +148,8 @@ func (s *DeptService) ListLeaderCandidates(deptID uint64) ([]DeptLeaderCandidate
 	}
 
 	var dept SystemDept
-	if err := s.scoped(s.db).First(&dept, deptID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, common.NewNotFound("dept.not_found")
-		}
-		return nil, err
+	if err := s.Scoped(s.db).First(&dept, deptID).Error; err != nil {
+		return nil, database.TranslateNotFound(err, common.NewNotFound("dept.not_found"))
 	}
 	if dept.IsRoot == common.StatusFlagYes {
 		return []DeptLeaderCandidateResp{}, nil
@@ -170,7 +166,7 @@ func (s *DeptService) ListLeaderCandidates(deptID uint64) ([]DeptLeaderCandidate
 	}
 
 	rows := make([]leaderCandidateRow, 0)
-	if err := s.scoped(s.db.Table("system_user AS u")).
+	if err := s.Scoped(s.db.Table("system_user AS u")).
 		Select("u.id AS user_id, u.username, u.nickname, u.dept_id, d.dept_name, u.post_id, p.post_name").
 		Joins("JOIN system_dept AS d ON d.id = u.dept_id").
 		Joins("JOIN system_post AS p ON p.id = u.post_id AND p.dept_id = u.dept_id").
@@ -216,7 +212,7 @@ func (s *DeptService) loadDeptPostCounts() (map[uint64]int, error) {
 	}
 
 	rows := make([]deptPostCountRow, 0)
-	if err := s.scoped(s.db.Table("system_post")).
+	if err := s.Scoped(s.db.Table("system_post")).
 		Where("deleted_at IS NULL").
 		Select("dept_id, COUNT(1) AS count").
 		Group("dept_id").
@@ -231,25 +227,23 @@ func (s *DeptService) loadDeptPostCounts() (map[uint64]int, error) {
 	return result, nil
 }
 
+var deptSortColumns = map[string]string{
+	"id":        "id",
+	"deptName":  "dept_name",
+	"dept_name": "dept_name",
+	"sort":      "sort",
+	"leader":    "leader",
+	"status":    "status",
+}
+
 // normalizeDeptSort normalizes sort field and direction
 func normalizeDeptSort(query *DeptListQuery) (string, bool) {
 	if query == nil {
 		return "sort", false
 	}
 
-	sortWhitelist := map[string]string{
-		"id":        "id",
-		"deptName":  "dept_name",
-		"dept_name": "dept_name",
-		"sort":      "sort",
-		"leader":    "leader",
-		"status":    "status",
-	}
-	column, ok := sortWhitelist[strings.TrimSpace(query.SortField)]
-	if !ok {
-		column = "sort"
-	}
-	return column, strings.ToLower(strings.TrimSpace(query.SortOrder)) == "desc"
+	return common.NormalizeSort(query.SortField, deptSortColumns, "sort"),
+		strings.ToLower(strings.TrimSpace(query.SortOrder)) == "desc"
 }
 
 // filterDeptTreeNodes filters departments based on query

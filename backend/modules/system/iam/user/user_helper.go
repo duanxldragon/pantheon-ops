@@ -2,13 +2,13 @@ package user
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"net/mail"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -26,25 +26,32 @@ func normalizeStatus(status int) int {
 
 const maxUserPageOffset = 100000
 
-func normalizeUserPageQuery(query *UserListQuery) (int, int, error) {
-	page := 1
-	pageSize := 10
-	if query == nil {
-		return page, pageSize, nil
+// normalizeUserPageQuery clamps the user list query through the shared
+// pagination helper with the user module's own cap, then keeps the module's
+// deep-offset rejection local: beyond maxUserPageOffset rows the list is
+// refused instead of served. The int64 multiply avoids overflowing before
+// the comparison.
+func normalizeUserPageQuery(query *UserListQuery) (int, int, int, error) {
+	var page, pageSize int
+	if query != nil {
+		page, pageSize = query.Page, query.PageSize
 	}
-	if query.Page > 0 {
-		page = query.Page
-	}
-	if query.PageSize > 0 {
-		pageSize = query.PageSize
-	}
-	if pageSize > 100 {
-		pageSize = 100
-	}
+	page, pageSize, offset := common.NormalizePagination(page, pageSize, 100)
 	if int64(page-1)*int64(pageSize) > maxUserPageOffset {
-		return 0, 0, common.NewBadRequest("param.page.too_large")
+		return 0, 0, 0, common.NewBadRequest("param.page.too_large")
 	}
-	return page, pageSize, nil
+	return page, pageSize, offset, nil
+}
+
+var userSortColumns = map[string]string{
+	"id":         "id",
+	"username":   "username",
+	"nickname":   "nickname",
+	"email":      "email",
+	"phone":      "phone",
+	"status":     "status",
+	"createdAt":  "created_at",
+	"created_at": "created_at",
 }
 
 func normalizeUserSort(query *UserListQuery) (string, bool) {
@@ -52,22 +59,10 @@ func normalizeUserSort(query *UserListQuery) (string, bool) {
 		return "id", true
 	}
 
-	sortWhitelist := map[string]string{
-		"id":         "id",
-		"username":   "username",
-		"nickname":   "nickname",
-		"email":      "email",
-		"phone":      "phone",
-		"status":     "status",
-		"createdAt":  "created_at",
-		"created_at": "created_at",
-	}
+	column := common.NormalizeSort(query.SortField, userSortColumns, "id")
 
-	column, ok := sortWhitelist[strings.TrimSpace(query.SortField)]
-	if !ok {
-		column = "id"
-	}
-
+	// The user module treats anything-but-"asc" as descending, which differs
+	// from the ==-"desc" grammar other modules use; that difference is kept.
 	order := strings.ToLower(strings.TrimSpace(query.SortOrder))
 	if order == "asc" {
 		return column, false
@@ -167,7 +162,7 @@ func (s *UserService) validateUserCreate(req *UserCreateReq) error {
 	// scope narrows the lookup to the request tenant, so `acme` and `beta` may
 	// each own an `admin`. Compat keeps the historical global uniqueness.
 	var count int64
-	if err := s.scoped(s.db.Model(&SystemUser{})).
+	if err := s.Scoped(s.db.Model(&SystemUser{})).
 		Where("username = ?", req.Username).
 		Count(&count).Error; err != nil {
 		return err
@@ -227,7 +222,7 @@ func (s *UserService) ensureUserRoleIDs(roleIDs []uint64) error {
 	}
 
 	var count int64
-	if err := s.scoped(s.db.Table("system_role")).
+	if err := s.Scoped(s.db.Table("system_role")).
 		Where("id IN ? AND status = ?", normalized, common.StatusEnabled).Count(&count).Error; err != nil {
 		return err
 	}
@@ -282,7 +277,7 @@ func (s *UserService) ensureDeptID(deptID uint64) error {
 		return nil
 	}
 	var count int64
-	if err := s.scoped(s.db.Table("system_dept")).
+	if err := s.Scoped(s.db.Table("system_dept")).
 		Where(condDeletedAtMissing).
 		Where(condIDEquals, deptID).Count(&count).Error; err != nil {
 		return err
@@ -305,13 +300,10 @@ func (s *UserService) ensurePostForDept(deptID, postID uint64) error {
 		DeptID uint64 `gorm:"column:dept_id"`
 	}
 	var post postRow
-	if err := s.scoped(s.db.Table("system_post")).
+	if err := s.Scoped(s.db.Table("system_post")).
 		Where(condDeletedAtMissing).
 		Select("id, dept_id").Where(condIDEquals, postID).First(&post).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return common.NewBadRequest("user.post.invalid")
-		}
-		return err
+		return database.TranslateNotFound(err, common.NewBadRequest("user.post.invalid"))
 	}
 	if post.ID == 0 {
 		return common.NewBadRequest("user.post.invalid")
@@ -380,7 +372,7 @@ func (s *UserService) loadUserLastLoginAt(username string) (*string, error) {
 	// Login logs are tenant-scoped and usernames repeat across tenants, so the
 	// lookup must be pinned to the request tenant — otherwise tenant A's user
 	// detail would surface tenant B's login timestamp.
-	err := s.scoped(s.db.Table("system_log_login")).
+	err := s.Scoped(s.db.Table("system_log_login")).
 		Select("login_time").
 		Where("username = ? AND status = ?", trimmedUsername, common.LoginStatusSuccess).
 		Order("login_time desc, id desc").
@@ -419,7 +411,7 @@ func (s *UserService) loadDeptNames(users []SystemUser) (map[uint64]string, erro
 		DeptName string `gorm:"column:dept_name"`
 	}
 	var rows []deptNameRow
-	if err := s.scoped(s.db.Table("system_dept")).Select("id, dept_name").Where(condIDIn, deptIDs).Scan(&rows).Error; err != nil {
+	if err := s.Scoped(s.db.Table("system_dept")).Select("id, dept_name").Where(condIDIn, deptIDs).Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 	for _, row := range rows {
@@ -451,7 +443,7 @@ func (s *UserService) loadPostNames(users []SystemUser) (map[uint64]string, erro
 		PostName string `gorm:"column:post_name"`
 	}
 	var rows []postNameRow
-	if err := s.scoped(s.db.Table("system_post")).Select("id, post_name").Where(condIDIn, postIDs).Scan(&rows).Error; err != nil {
+	if err := s.Scoped(s.db.Table("system_post")).Select("id, post_name").Where(condIDIn, postIDs).Scan(&rows).Error; err != nil {
 		return nil, err
 	}
 	for _, row := range rows {
@@ -500,7 +492,7 @@ func (s *UserService) loadPostIDsByCode() (map[string]uint64, error) {
 		PostCode string `gorm:"column:post_code"`
 	}
 	var rows []row
-	if err := s.scoped(s.db.Table("system_post")).Select("id, post_code").Find(&rows).Error; err != nil {
+	if err := s.Scoped(s.db.Table("system_post")).Select("id, post_code").Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	result := make(map[string]uint64, len(rows))
@@ -520,7 +512,7 @@ func (s *UserService) loadRoleIDsByKey() (map[string]uint64, error) {
 		Status  int    `gorm:"column:status"`
 	}
 	var rows []row
-	if err := s.scoped(s.db.Table("system_role")).Select("id, role_key, status").Where(condDeletedAtMissing).Find(&rows).Error; err != nil {
+	if err := s.Scoped(s.db.Table("system_role")).Select("id, role_key, status").Where(condDeletedAtMissing).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	result := make(map[string]uint64, len(rows))
@@ -537,7 +529,7 @@ func (s *UserService) loadRoleIDsByKey() (map[string]uint64, error) {
 // update a same-named user owned by another tenant.
 func (s *UserService) loadUsersByUsername() (map[string]*SystemUser, error) {
 	var rows []SystemUser
-	if err := s.scoped(s.db).Find(&rows).Error; err != nil {
+	if err := s.Scoped(s.db).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	result := make(map[string]*SystemUser, len(rows))

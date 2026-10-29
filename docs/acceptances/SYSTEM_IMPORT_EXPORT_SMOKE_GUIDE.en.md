@@ -8,7 +8,7 @@ linked_contracts:
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
   - docs/contracts/SYSTEM_ORG_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-05-19
+updated_at: 2026-10-28
 ---
 
 # System-Domain Import/Export Smoke Guide
@@ -26,7 +26,7 @@ cmd /c npm run test:smoke:system:api
 
 ## Main Coverage
 
-- users, permissions, departments, posts, dictionaries
+- users, roles, permissions, departments, posts, dictionaries
 - export-only flows for login logs and operation logs
 - shared token acquisition and API-based smoke verification
 

@@ -9,6 +9,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/authtoken"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -222,10 +223,7 @@ func (s *Service) VerifyChallengeWithContext(ctx context.Context, req *MFAVerify
 func (s *Service) loadActiveChallenge(ctx context.Context, challengeID string, now time.Time) (*SystemAuthMFAChallenge, error) {
 	var challenge SystemAuthMFAChallenge
 	if err := s.db.WithContext(ctx).Where("challenge_id = ?", challengeID).First(&challenge).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("auth.mfa.challenge_invalid")
-		}
-		return nil, err
+		return nil, database.TranslateNotFound(err, errors.New("auth.mfa.challenge_invalid"))
 	}
 	if challenge.ConsumedAt != nil || !challenge.ExpiresAt.After(now) {
 		return nil, errors.New("auth.mfa.challenge_expired")

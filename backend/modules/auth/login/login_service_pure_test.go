@@ -88,28 +88,28 @@ func TestSourceThrottleBlockedUntil_FallsBackToOneMinute(t *testing.T) {
 // ---- normalizePageQuery ----
 
 func TestNormalizePageQuery_ZeroValuesGetDefaults(t *testing.T) {
-	page, pageSize := normalizePageQuery(0, 0)
-	if page != 1 || pageSize != 10 {
-		t.Fatalf("expected (1, 10), got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizePageQuery(0, 0)
+	if page != 1 || pageSize != 10 || offset != 0 {
+		t.Fatalf("expected (1, 10, 0), got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizePageQuery_NegativeValuesGetDefaults(t *testing.T) {
-	page, pageSize := normalizePageQuery(-5, -1)
-	if page != 1 || pageSize != 10 {
-		t.Fatalf("expected (1, 10), got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizePageQuery(-5, -1)
+	if page != 1 || pageSize != 10 || offset != 0 {
+		t.Fatalf("expected (1, 10, 0), got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizePageQuery_ValidValuesPassThrough(t *testing.T) {
-	page, pageSize := normalizePageQuery(3, 25)
-	if page != 3 || pageSize != 25 {
-		t.Fatalf("expected (3, 25), got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizePageQuery(3, 25)
+	if page != 3 || pageSize != 25 || offset != 50 {
+		t.Fatalf("expected (3, 25, 50), got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizePageQuery_CapsPageSizeAt100(t *testing.T) {
-	_, pageSize := normalizePageQuery(1, 500)
+	_, pageSize, _ := normalizePageQuery(1, 500)
 	if pageSize != 100 {
 		t.Fatalf("expected pageSize capped at 100, got %d", pageSize)
 	}

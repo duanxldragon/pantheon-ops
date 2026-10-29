@@ -205,27 +205,6 @@
   border-radius: var(--radius-control);
 }
 
-.auth-login-tenant-picker {
-  display: grid;
-  gap: 6px;
-  margin-bottom: var(--space-lg-large);
-  padding: var(--space-md-plus);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius-control);
-  background: var(--panel-muted);
-}
-
-.auth-login-tenant-picker__label {
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.auth-login-tenant-picker__hint {
-  color: var(--text-secondary);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
 .auth-login-mfa-setup {
   display: grid;
   gap: 8px;

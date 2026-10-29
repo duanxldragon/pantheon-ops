@@ -19,7 +19,7 @@ func (s *RoleService) loadRoleMenus(roleIDs []uint64) (map[uint64][]uint64, erro
 	}
 
 	var pairs []roleMenuPair
-	if err := s.scoped(s.db.Table("system_role_menu")).
+	if err := s.Scoped(s.db.Table("system_role_menu")).
 		Select("system_role_menu.role_id, system_role_menu.menu_id").
 		Joins("JOIN system_menu ON system_menu.id = system_role_menu.menu_id").
 		Where("system_role_menu.role_id IN ? AND system_menu.type <> ?", roleIDs, "F").

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "baseCommit": "2091a2d8409e6b4ed933b19c8ff8870f2d0eedbe",
+  "baseCommit": "93505225e36c8d3ba5aa9facc12975eb813167d3",
   "ownedFiles": [
     {
       "path": ".agents/README.md",
@@ -88,7 +88,7 @@
     },
     {
       "path": ".foundation/foundation-release.lock.json",
-      "sha256": "82c72b93613d0da84acc31a6fa00be5fa05c78f39987cc701dfebd7b2aea8aa7"
+      "sha256": "e14231d1422bbe4278e401fa8a197dd6a8a5504519636a2c6bc0b7b6d9bdb23c"
     },
     {
       "path": ".githooks/commit-msg",
@@ -116,27 +116,27 @@
     },
     {
       "path": ".github/workflows/branch-hygiene.yml",
-      "sha256": "75865a5c4d792cf29aa1947d2ce338486471e18f9bf1132852fee29dfff41556"
+      "sha256": "a4155d432a2ee749e48419c30bdd41c0a667c984981627b4b699a48a240b5988"
     },
     {
       "path": ".github/workflows/inheritance-drift-detection.yml",
-      "sha256": "f2ec06c7c1b13210df82ce8920a1ad6637b9e448030f0cf453b0f228c7c6343c"
+      "sha256": "c53b12091d2a821866ed8301df8599921eb53bb06894ff17138c2e9273745f63"
     },
     {
       "path": ".github/workflows/pr-automation.yml",
-      "sha256": "0aeb0914c31c3d6a2488b071767613ece9c3e299c7f1bb6773e4019395b55864"
+      "sha256": "56373f80200649780ede303a8d832dbe68f2aaf5081f82319f9a83aa91c50a75"
     },
     {
       "path": ".github/workflows/quality.yml",
-      "sha256": "e9f0819f91101ba0324433fe9d7a127b5fe4624f0fe811f1679db852905594f2"
+      "sha256": "447d79ce67c33e0747306e6970357a2e5d5ce5f2e58550c268c75ab366879f77"
     },
     {
       "path": ".github/workflows/security.yml",
-      "sha256": "5ba0e76e7784d65c748f61bd051ad9040134649cfe372648e3c4ef2543bb4808"
+      "sha256": "3291ba8b1677c3a872b0233178dd2e140724d751f3cf4d3362ca198eb2de6f2e"
     },
     {
       "path": ".github/workflows/sonarcloud.yml",
-      "sha256": "b6e880858363c99fef941c3baa126c6abdf50f3e075126709e4831fa4b610d85"
+      "sha256": "4aa487e9a2eb5d4a34d22c225485eb30f7d643ce9f97dc1f79d0e079dbfc80a0"
     },
     {
       "path": ".gitignore",
@@ -547,6 +547,26 @@
       "sha256": "eab99ee95b3b819e1a4a4a88fc9cad6b1ea7745cfd7af480a3d56d2d3f3689e4"
     },
     {
+      "path": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/commands.json",
+      "sha256": "a5d10518cefd24189820283287a6ceacafd24ad26ab8de6af213589f001752a0"
+    },
+    {
+      "path": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/review.md",
+      "sha256": "d631f75fa1581f6fa856760ff5f802e0cac1b8829d68f4d91052df4b4c199d4c"
+    },
+    {
+      "path": ".harness/evidence/2026-10-27-foundation-upgrade-base-v0-17-7/summary.md",
+      "sha256": "f862a35a68891c5701e451f223da3920cd4ae564dee0537c9c959563a8d54d57"
+    },
+    {
+      "path": ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/commands.json",
+      "sha256": "1136d8be2b152087e7c387649709505d43609dc113411ce04b740a3105df64ac"
+    },
+    {
+      "path": ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/summary.md",
+      "sha256": "cbda2806edf4d67b1180d78c89612a70874644f430603f877232ca2128a3f4e1"
+    },
+    {
       "path": ".harness/evidence/cmdb-host-import-export/commands.json",
       "sha256": "36457bf7f79ba6608fb5753a94ec3e368093aabfec5959803fa29a735b037c87"
     },
@@ -768,7 +788,7 @@
     },
     {
       "path": ".harness/tasks/2026-08-17-ops-foundation-hardening/manifest.json",
-      "sha256": "4b1b01f93a3da29619c324a6f235ea889118f8383eb808ef2e588894de08605d"
+      "sha256": "d1d55ba866d4e2f22f0bec6fc8a0cd906c5b42c3da17da20f51f02c57ff2231c"
     },
     {
       "path": ".harness/tasks/2026-08-19-ops-v1-backlog-closeout/STATUS.md",
@@ -864,7 +884,15 @@
     },
     {
       "path": ".harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6/manifest.json",
-      "sha256": "3c1130e4e82eff797be0211200658ae3653b8d77768373155aa5a24887318e92"
+      "sha256": "1913bcc4e6fe6a32d750968063a2c6f27bd1451f2af234dd100c95a2c9e4ab96"
+    },
+    {
+      "path": ".harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7/manifest.json",
+      "sha256": "b747db57f9197e43a0fc1795ecd50fbb52d0b52d55e6d43e96bf6f43c60dec9c"
+    },
+    {
+      "path": ".harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1/manifest.json",
+      "sha256": "c9f1d1b04833b6b9455e51021a7520cfe600cc3ee283f0f9869404b7b3b1a5d5"
     },
     {
       "path": ".harness/tasks/cmdb-host-import-export/STATUS.md",
@@ -892,7 +920,7 @@
     },
     {
       "path": ".harness/tasks/ops-architecture-quality-gates/manifest.json",
-      "sha256": "b75332675938b963409097cee2831f3bd89e34d3a2808c45403e9cc1b8506d55"
+      "sha256": "6a27ffa4d954163dd666951bf14b5f22231e4c4a6f64715c4f6032d9428c1a72"
     },
     {
       "path": ".harness/tasks/ops-bizscope-datascope-ownership/HANDOFF.md",
@@ -904,7 +932,7 @@
     },
     {
       "path": ".harness/tasks/ops-bizscope-datascope-ownership/manifest.json",
-      "sha256": "0b662dd06ebcc8e1a91b6dac9c1c775fcfa8cd381f73dd3d6cadf539105b772e"
+      "sha256": "ee935ad08159796edefcf8131b3cf305e0648ae0b22e11c8107b4b9b03e8709c"
     },
     {
       "path": ".harness/tasks/ops-business-versioned-migrations/HANDOFF.md",
@@ -916,7 +944,7 @@
     },
     {
       "path": ".harness/tasks/ops-business-versioned-migrations/manifest.json",
-      "sha256": "8a11588df1628d38a0d3bcae4e44b37434639c217f3e160bdb3606389dc30f97"
+      "sha256": "1172167a6dd78b9b6f9d06bd623b0c592cf9fb1a1a2c46dd55afdbc20c03744b"
     },
     {
       "path": ".harness/tasks/ops-cross-module-capability-boundaries/HANDOFF.md",
@@ -928,7 +956,7 @@
     },
     {
       "path": ".harness/tasks/ops-cross-module-capability-boundaries/manifest.json",
-      "sha256": "8136c33225d9b1094d5ba1aafaf2709c1f0110dc18ed6fcdb1e77d127e293e20"
+      "sha256": "6606bcbc08d200ccb2402ed1d7bf0dff8f824eb8d2e38529ddc1a3910cb05634"
     },
     {
       "path": ".harness/tasks/ops-deploy-immutability-idempotency/HANDOFF.md",
@@ -940,7 +968,7 @@
     },
     {
       "path": ".harness/tasks/ops-deploy-immutability-idempotency/manifest.json",
-      "sha256": "827cea757df941cda11e3aa7136330e5b85bc81d76ea81aa9179fc30f679e97a"
+      "sha256": "87b9d0365b5ce3fd951575d02ba2e5397ee1abb1b0ad9b6f568a93e246d481d8"
     },
     {
       "path": ".harness/tasks/ops-k8s-release-reliability/HANDOFF.md",
@@ -952,7 +980,7 @@
     },
     {
       "path": ".harness/tasks/ops-k8s-release-reliability/manifest.json",
-      "sha256": "c857c67d92ab4434a88f89fe8618a2a53772d4e98880fc4bff919b0a7325221b"
+      "sha256": "02199643e589780174ef8f6b5b33f38085e44ce5c7fc7a249f524661af1e26d5"
     },
     {
       "path": ".harness/tasks/ops-resource-service-state-machines/HANDOFF.md",
@@ -964,7 +992,7 @@
     },
     {
       "path": ".harness/tasks/ops-resource-service-state-machines/manifest.json",
-      "sha256": "3e53aeddd861e9100d444c26ee450a91ffb8d74cf9046d2c89a73b43f6571b9f"
+      "sha256": "dd15c34aab5ade3189c51869dcfc37d45602b6f03d2b6365a099808cfa2da10c"
     },
     {
       "path": ".harness/tasks/ops-service-instance-foundation/HANDOFF.md",
@@ -976,7 +1004,7 @@
     },
     {
       "path": ".harness/tasks/ops-service-instance-foundation/manifest.json",
-      "sha256": "30895e659c2324841751b3a4904a42c848633f7b018ed221a906df2818d9d08c"
+      "sha256": "3a9725ec97d9019afe821cdcdaaa25cf1cf5787989c1ed8b18372d73e9cecc51"
     },
     {
       "path": ".harness/templates/STATELESS_TOOL_HANDOFF_TEMPLATE.md",
@@ -1252,11 +1280,11 @@
     },
     {
       "path": "backend/go.mod",
-      "sha256": "0c86d64cbea2eedb97b9455f4951e4c03f767e185bfc7af74b90866f52885a03"
+      "sha256": "d025bbf53f98b69c85bc0bb3260ef4ac1175480141e66f1a6a43dc76efc425f0"
     },
     {
       "path": "backend/go.sum",
-      "sha256": "2d31e4423a9bf263d9bb92df5fe0b7608e38224d50cc1c04d036ab6ce9b23feb"
+      "sha256": "cca959a4050045690061502b37782d6dd0571070577e3273375594d2d5dcbec8"
     },
     {
       "path": "backend/modules/business/bizscope/bizscope_dto.go",
@@ -1496,7 +1524,7 @@
     },
     {
       "path": "backend/modules/business/deploy/deploy_helpers.go",
-      "sha256": "e7e01e315b6949e00171c746c34a21afbfce9145dd7962539f4dcafbf8ada763"
+      "sha256": "7c8e9e2b9561a6f0b45e5c49f9cbc938fd94f09bb0f66d38ad33e87196d8fadb"
     },
     {
       "path": "backend/modules/business/deploy/deploy_import_export.go",
@@ -1512,7 +1540,7 @@
     },
     {
       "path": "backend/modules/business/deploy/deploy_model.go",
-      "sha256": "8901fc6cb18b0e2caba774317308371c9dff8ddb3d0da7a8e682403c0a8d4bdc"
+      "sha256": "fd8ecc3ff20a8e6fa8e1eb1eb8587e3fff3e159d6e925a1c8bed98795e18dc61"
     },
     {
       "path": "backend/modules/business/deploy/deploy_reliability_test.go",
@@ -1520,7 +1548,7 @@
     },
     {
       "path": "backend/modules/business/deploy/deploy_rollback.go",
-      "sha256": "bb93ff152e3dd91d137f56e68b588af36f38332583ef7b4a2a8bde497dd03ddc"
+      "sha256": "89a3513e778927e94b569e8f3879f32e02db96d33f77a792c271d735648019a0"
     },
     {
       "path": "backend/modules/business/deploy/deploy_seed.go",
@@ -1532,7 +1560,7 @@
     },
     {
       "path": "backend/modules/business/deploy/deploy_service.go",
-      "sha256": "e523634fa548cc8f1285aa95ef3accae4c0a9a485cd78d8bfbbce335078be1e5"
+      "sha256": "4f24d0498ba843c3ac2125eda81ed95a3508fe646be3b1c91762308ed452c13a"
     },
     {
       "path": "backend/modules/business/deploy/deploy_service_test.go",
@@ -1916,7 +1944,7 @@
     },
     {
       "path": "business-overlay.json",
-      "sha256": "5c67bb17e74a31070a93c7ea5fa517a084dba35ac521457080da9d743e856cfa"
+      "sha256": "5ece424acf19c2e535a108c8f3a312e4ce303f89577d86feef04d6bb9a87a7ed"
     },
     {
       "path": "docker-compose.yml",
@@ -1928,7 +1956,7 @@
     },
     {
       "path": "docs/PROJECT_INHERITANCE.md",
-      "sha256": "0b5d0d30e55ae14b6e5881061885afecb4c07497b2a0cbce89911772aab42653"
+      "sha256": "08956645abca2eda904e0e59c7d82ba1de7402966a40b51b829cc41a96883907"
     },
     {
       "path": "docs/README.en.md",
@@ -2363,6 +2391,14 @@
       "sha256": "90dd1b325bfe25598931989d192d187cbcf9e3d64c4e1ba43dfffb3dcc5b32e1"
     },
     {
+      "path": "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7.task.md",
+      "sha256": "96cd9356520ef895b84c9ada31f61779ee5f204e054d1bb311bd75d326bb6c06"
+    },
+    {
+      "path": "docs/harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1.task.md",
+      "sha256": "9b2cf6b0076e76b6e852715b997b3c4aa71a25ad533e56f9e65008e1e3e9794d"
+    },
+    {
       "path": "docs/harness/tasks/README.md",
       "sha256": "c01be381abbcfed488417906af13c1f0c33c63fc19cefe32ceff69ca401b3a89"
     },
@@ -2496,7 +2532,7 @@
     },
     {
       "path": "foundation-release.lock.json",
-      "sha256": "846096026506b5eeee04403e762613aacf75d6c56fd9074e452f7a066ccc9b67"
+      "sha256": "83d03ab4db93e1a5804c7721d3c7f61b663d3b2fefb80f30a143b21fb4cd26ce"
     },
     {
       "path": "frontend/README.en.md",
@@ -2504,7 +2540,7 @@
     },
     {
       "path": "frontend/package.json",
-      "sha256": "26394ab6e90451f27a2ba7b2aeb66f613d23bf00852ae1b054824c32052d637e"
+      "sha256": "04409ac44d0be932285a75af6d8a980593a9a23883b8c19424ae19f108342679"
     },
     {
       "path": "frontend/scripts/cleanup-generated-modules.mjs",
@@ -2544,11 +2580,11 @@
     },
     {
       "path": "frontend/src/i18n/resources/en-US.ts",
-      "sha256": "a39603808bc65d11c9f5fe7bf95176ab2819b05f54b92b399847f125de36ff4e"
+      "sha256": "df88f3eadb6e66a6c112d70e96007a6b6831c9152bb2b68d942554ec361f43b5"
     },
     {
       "path": "frontend/src/i18n/resources/zh-CN.ts",
-      "sha256": "8c21d573b448d4f21f63678ffece2bfef024db545e6e993cf295b7fb04a24763"
+      "sha256": "be46ac0be5db28bdb67985439c9af46d17d668a301eea7e0ddb9115b3c96b947"
     },
     {
       "path": "frontend/src/modules/business/bizscope/BizScopeDetail.tsx",
@@ -2935,10 +2971,6 @@
       "sha256": "2f9036a7d9046499352ee2e19168bf80fc2b1a0f69e394fac3b69e39dbee3c1c"
     },
     {
-      "path": "scripts/cleanup-github-branches.mjs",
-      "sha256": "0bed356c2881698be0ba974d4c5c02f1a830cd34049dba7cb16e372e83e48c77"
-    },
-    {
       "path": "scripts/fetch-github-feedback.mjs",
       "sha256": "4e59467fc34a4a0fbfa70c5bb5f584e729efe296bf33b075ecc1c2546e4188c5"
     },
@@ -2953,10 +2985,6 @@
     {
       "path": "scripts/run-github-feedback-loop.mjs",
       "sha256": "f84892d1f58b17bef9750c7ae3840276265b75ed93f3455b84d4b58a45d8231a"
-    },
-    {
-      "path": "scripts/task-manifest.mjs",
-      "sha256": "33a59994bc940d1c4b599e880ed91b79bfeb0bd6c3cdb0201cb042ee1fde9bff"
     },
     {
       "path": "tests/fixtures/system-import-export/dept-import.csv",
@@ -3004,7 +3032,7 @@
     },
     {
       "path": "tests/scripts/workflow-baseline.test.mjs",
-      "sha256": "38a0d8e8318414866d293e6332cf843356a937176ea736ff61de239086f05b6b"
+      "sha256": "9e9ef6fce811b23b7f9e4a90d82ace44cf215c5453b310e76500aa5145b4d225"
     }
   ],
   "rewrittenGoImports": [],

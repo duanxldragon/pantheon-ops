@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md
-updated_at: 2026-10-11
+updated_at: 2026-10-28
 ---
 
 # 仓库布局、命名与分层边界规范
@@ -22,7 +22,7 @@ English version: [REPOSITORY_LAYOUT.en.md](./REPOSITORY_LAYOUT.en.md)
 ```text
 backend/                  # Go 后端：go.mod、启动入口、领域模块、共享包、数据库迁移、性能压测
 frontend/                 # React 前端：应用壳、页面模块、smoke、fixtures 与前端脚本
-docs/                     # 当前文档、合同、设计、验收、harness 规范
+docs/                     # 当前文档、合同、设计、验收、harness 规范、历史发布说明
 scripts/                  # 根级自动化、GitHub 协作、harness 检查、release 脚本
 tests/                    # 根级 Node 脚本测试、文档测试
 .harness/                 # 方法执行运行时治理状态（证据与 manifest 按任务生成）
@@ -56,6 +56,7 @@ schema/generated/         # 生成能力账本等跨端治理输出
 6. 生成 bundle 输出进入 `dist/`，不要提交。
 7. 数据库初始化脚本当前保留在 `database/system_init.sql`，因为 `docker-compose.yml` 直接引用该路径。
 8. Grafana/Prometheus 本地观测配置当前保留在 `grafana/`，避免和应用运行代码混在一起。
+9. 发布说明进入 `docs/release-notes/`（索引为该目录的 `README.md`），不在根目录堆放；历史版本只追加、不回改。
 
 ### 2.2 目录白名单（机械门禁的判定依据）
 

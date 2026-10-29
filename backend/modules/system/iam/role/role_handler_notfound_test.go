@@ -60,7 +60,7 @@ func TestRoleErrorResponseKeepsGeneric500ForOtherErrors(t *testing.T) {
 	if code != common.CodeError {
 		t.Fatalf("expected code %d for an unrelated error, got %d", common.CodeError, code)
 	}
-	if message != errRequestFailed {
-		t.Fatalf("expected message %q, got %q", errRequestFailed, message)
+	if message != common.MessageRequestFailed {
+		t.Fatalf("expected message %q, got %q", common.MessageRequestFailed, message)
 	}
 }

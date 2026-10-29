@@ -4,7 +4,7 @@
   "title": "Business versioned migrations and production schema gate",
   "goal": "Version Ops business schema changes and require evidence gates before production migration execution.",
   "primaryLayer": "business/*",
-  "status": "complete",
+  "status": "completed",
   "priority": "P0",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-08-17-ops-business-versioned-migrations.task.md",

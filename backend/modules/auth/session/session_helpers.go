@@ -94,17 +94,8 @@ func queryPageSizeFromAdminSession(query *AdminSessionQuery) int {
 	return query.PageSize
 }
 
-func normalizePageQuery(page, pageSize int) (int, int) {
-	if page <= 0 {
-		page = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
-	if pageSize > 100 {
-		pageSize = 100
-	}
-	return page, pageSize
+func normalizePageQuery(page, pageSize int) (int, int, int) {
+	return common.NormalizePagination(page, pageSize, 100)
 }
 
 type adminSessionRow struct {

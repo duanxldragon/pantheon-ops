@@ -1,0 +1,207 @@
+{
+  "taskId": "2026-10-29-foundation-upgrade-base-v0-18-1",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "other",
+    "adapter": "qoder-desktop"
+  },
+  "commands": [
+    {
+      "command": "sha256sum .foundation/releases/pantheon-base-v0.18.1/foundation-release-pantheon-base-v0.18.1.tgz .foundation/releases/pantheon-base-v0.18.1/repo.tar",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "2fe49d70f8ac628351fc51076026cecb9c35cfa76180f7cdf3fdb5092ac77f03 (tgz, 29,888,926 B) and 37ae7a0873f9e49a076f21fdaa53651cbce1b72160d98e04a4a04cfc132303d9 (repo.tar, 47,411,200 B); both equal foundation-release.lock.json and the GitHub asset digests."
+    },
+    {
+      "command": "gh release view pantheon-base-v0.18.1 -R duanxldragon/pantheon-base --json tagName,targetCommitish,publishedAt,assets && gh api repos/duanxldragon/pantheon-base/git/ref/tags/pantheon-base-v0.18.1",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "tag pantheon-base-v0.18.1, annotated tag object b63974357334aa6765e6a07bee9f12841dcb784c, target commit 93505225e36c8d3ba5aa9facc12975eb813167d3, publishedAt 2026-10-29T04:19:38Z, four assets (tgz, tgz.sha256, repo.tar, repo.tar.sha256)."
+    },
+    {
+      "command": "gh run list -R duanxldragon/pantheon-base --commit 93505225e36c8d3ba5aa9facc12975eb813167d3",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "All eight workflows on the tagged commit are success: Release Gate 40814653285, Code Quality Gates 40814653355, Security Gates 40814653306, CI 40814653314, Full Smoke Suite 40814653289, Core Smoke Tests 40814653403, Lint Workflows 40814653389, Foundation Release Verify 40817118092. Base reports 0 open code scanning alerts."
+    },
+    {
+      "command": "tar -xzf .foundation/releases/pantheon-base-v0.18.1/foundation-release-pantheon-base-v0.18.1.tgz -O manifest.json | compare with foundation-release.lock.json",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "manifest.releaseVersion pantheon-base-v0.18.1 and manifest.baseCommit 93505225... equal the lock; sharedPaths.backend, sharedPaths.frontend and sharedPaths.docs are deep-equal to the lock."
+    },
+    {
+      "command": "node scripts/business-overlay/rebuild-from-base.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "OK rebuilt clean Ops tree at .tmp/business-overlay-rebuild / Base commit: 93505225e36c8d3ba5aa9facc12975eb813167d3 / Declared/generated Ops files: 756 (751 in the v0.17.7 round). Lock-resolved path, no --base."
+    },
+    {
+      "command": "node scripts/business-overlay/check-shared-drift.mjs --base ../pantheon-base   (against the live tree, before replacement)",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Expected failure recorded as the pre-swap baseline: FAIL shared drift check with 81 modified and 7 missing-in-base paths, because the live tree still carried the v0.17.7 baseline while base HEAD already contained the 13-wave programme."
+    },
+    {
+      "command": "cd .tmp/business-overlay-rebuild/backend && GOFLAGS=-mod=mod go mod tidy && go vet ./... && go build ./... && go test ./...",
+      "cwd": ".tmp/business-overlay-rebuild",
+      "status": "passed",
+      "notes": "Staging backend: tidy stable, vet 0, build 0, go test ./... RC 0 across every package."
+    },
+    {
+      "command": "cd .tmp/business-overlay-rebuild/backend && CGO_ENABLED=1 go test -race ./...",
+      "cwd": ".tmp/business-overlay-rebuild",
+      "status": "not-run",
+      "notes": "Blocked by the host, not by the tree: ThreadSanitizer cannot reserve its shadow memory on this Windows machine ('failed to allocate ... error code: 87') and every package fails at runtime with the same allocator error. The plain go test run passes. CI runs go test -race on ubuntu-latest."
+    },
+    {
+      "command": "cd .tmp/business-overlay-rebuild/frontend && npm run lint && npm run type-check && npm run build",
+      "cwd": ".tmp/business-overlay-rebuild",
+      "status": "passed",
+      "notes": "Staging frontend lint 0, type-check 0, build '✓ built in 725ms' after recreating the node_modules junction. This is the run that proves the v0.18.0 TS2614 break is gone."
+    },
+    {
+      "command": "node scripts/business-overlay/check-shared-drift.mjs --root .tmp/business-overlay-rebuild --base ../pantheon-base && npm run test:business-overlay && npm run check:business-overlay",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Staging: OK shared drift check: 812 shared files identical to base, 10 allowlisted drift, 160 business-overlay files skipped; 13/13 business-overlay tests; OK business overlay contract (53 declared paths, rebuilt tree)."
+    },
+    {
+      "command": "git diff > .tmp/backup-pre-0181/tracked.patch && tar -czf .tmp/backup-pre-0181/untracked.tar.gz -T .tmp/backup-pre-0181/untracked.txt",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Pre-swap working tree snapshotted before the L2 replacement: 7 modified tracked files plus 5 untracked ops docs."
+    },
+    {
+      "command": "tar -cf - --exclude=node_modules --exclude=./.tmp . | (cd ../.. && tar -xf -)   (from .tmp/business-overlay-rebuild) then git rm the 33 tracked paths absent from staging",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Live-tree replacement: 142 tracked paths touched. Final staged shape is 130 modified, 30 added, 20 deleted and 13 renamed (the 13 root RELEASE_NOTES_v0.13.1..v0.17.7 files moved into docs/release-notes/). .git, .tmp, .foundation/releases, node_modules and ignored artifacts were preserved."
+    },
+    {
+      "command": "git status --short && git diff --cached --diff-filter=D --name-only && git diff --cached --diff-filter=A --name-only",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Deleted set: backend/internal/middleware/logging_middleware.go, backend/modules/system/iam/tenant/{tenant_bootstrap,tenant_handler,tenant_handler_test,tenant_routes}.go, backend/pkg/common/token.go, frontend/src/modules/auth/tenant/TenantSwitcher.tsx and 13 frontend capture/utility scripts. Added set: 14 backend test/pkg files, 18 release notes, 9 review docs, tests/smoke-core/tenant-console.spec.ts and tests/scripts/harness-check-doc-links-archive.test.mjs."
+    },
+    {
+      "command": "cp ../pantheon-base/scripts/task-manifest.mjs scripts/task-manifest.mjs && remove scripts/task-manifest.mjs from business-overlay.json repositoryOverlayPaths",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Drift repair 1. Before: check:task-packet and check:harness-docs both died with 'The requested module ../task-manifest.mjs does not provide an export named resolveArchiveAwarePath'. After: check:task-packet PASS for every packet."
+    },
+    {
+      "command": "add the check:ui-quality-gate step to the Docs Governance job in .github/workflows/quality.yml",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Drift repair 2. Before: check:ui-quality-gate reported ui_gate_workflow_step_missing for .github/workflows/quality.yml. After: 0 findings."
+    },
+    {
+      "command": "sed -i 's/\"status\": \"complete\"/\"status\": \"completed\"/' on the 11 ops manifests",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Drift repair 3. Base's canonical vocabulary is planned/in-progress/completed/abandoned; the two packets that check:task-packet validates were the visible failures, the other nine were normalised in the same pass."
+    },
+    {
+      "command": "rmdir backend/modules/business/outside",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "An empty leftover directory from an earlier generator smoke made check:generated-modules fail with 'generated module dir still present'; removing the empty directory clears it."
+    },
+    {
+      "command": "node scripts/business-overlay/check-shared-drift.mjs --base ../pantheon-base   (against the applied live tree)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "OK shared drift check: 812 shared files identical to base, 10 allowlisted drift, 160 business-overlay files skipped."
+    },
+    {
+      "command": "npm run test:business-overlay && npm run check:business-overlay",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "13/13 pass; OK business overlay contract (53 declared paths, rebuilt tree)."
+    },
+    {
+      "command": "npm ci --ignore-scripts   (root and frontend)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Both lockfiles resolve cleanly against the 0.18.1 dependency set, including the go-oidc/go-jose move in backend/go.sum and the tenant-console smoke entry in frontend/package.json."
+    },
+    {
+      "command": "cd backend && GOFLAGS=-mod=mod go build ./... && go vet ./... && gofmt -l . && go test ./...",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "build 0, vet 0, gofmt clean, go test ./... RC 0 on the applied tree."
+    },
+    {
+      "command": "cd frontend && npm run lint && npm run type-check && npm run build",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "lint 0, type-check 0, build '✓ built in 886ms' on the applied tree."
+    },
+    {
+      "command": "npm run check:docs-frontmatter && npm run check:encoding && npm run check:structure && npm run check:task-packet-template && npm run check:pr-governance && npm run check:business-overlay && npm run test:business-overlay && npm run check:generated-modules && npm run check:ui-quality-gate",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Every Docs Governance command exits 0 on the applied tree."
+    },
+    {
+      "command": "npm run check:task-packet && npm run check:harness-adoption && npm run check:failure-registry && npm run check:business-boundaries && npm run test:business-boundaries && npm run check:business-foundation && npm run check:duplication",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "All exit 0 after the task packet and its evidence set were written."
+    },
+    {
+      "command": "npm run check:harness-docs",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Report-only check, not wired into any ops workflow. Four dangling links, all inherited from base documents that point at base-only destinations: docs/reviews/TENANT_MULTI_MEMBERSHIP_DECISION_2026-10-27.md and docs/reviews/TENANT_PLAN_LADDER_DECISION_2026-10-28.md link to docs/harness/tasks/2026-10-27-tenant-completeness-remediation.task.md (base-excluded path in the consumer), and docs/runbooks/TENANT_MIGRATION_RUNBOOK.md links to .harness/archive/2026-09/evidence/2026-09-10-tenant-migration-runbook/rehearsal-log.md (base archive, never materialized in ops). Fixing them belongs to base, not to a consumer hand-edit."
+    },
+    {
+      "command": "cp ../pantheon-base/scripts/cleanup-github-branches.mjs scripts/cleanup-github-branches.mjs && remove it from business-overlay.json repositoryOverlayPaths && node --test tests/scripts/cleanup-github-branches.test.mjs tests/scripts/workflow-baseline.test.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Drift repair 4. The pinned copy threw on 404/403 where base's exported deleteBranch returns already-gone/protected-or-rejected, and the inherited test imports that export. After adopting base's copy: cleanup-github-branches 4/4 pass. The stale setup-node pin in the ops-owned workflow-baseline test was updated to 949feb24 (the pin every workflow already uses): 2/2 pass."
+    },
+    {
+      "command": "add the dependabot exemption to .github/workflows/pr-automation.yml",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Drift repair 5. pr-automation now skips the body ceremony for dependabot[bot] and satisfies the governance output the way base does, so dependabot PRs can reach auto-merge; ops has no RELEASE_GATE_TOKEN secret, so the merge step keeps github.token. The check:task-packet step was NOT added to Docs Governance: 60 of 66 ops packets predate the template, so enabling the gate needs a 60-entry legacy allowlist of its own."
+    },
+    {
+      "command": "node --test tests/scripts/release-gate-workflow.test.mjs && node --test tests/scripts/quality-workflow.test.mjs && node --test tests/scripts/pr-automation-workflow.test.mjs",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Inherited base tests that assert a .github the consumer deliberately replaces: release-gate-workflow reads .github/workflows/release-gate.yml (ops has no release producer), quality-workflow expects base's docs-only/governance-only scope classification and report-only go-lint enforcement, and one pr-automation assertion expects secrets.RELEASE_GATE_TOKEN (not present in this repository). None of these is executed by a workflow; two adjacent failures that were real (setup-node pin, deleteBranch export) are fixed."
+    },
+    {
+      "command": "hosted workflows on the consumption PR (Quality Gates, Security Gates, SonarCloud Scan, Inheritance Drift Detection, Branch Hygiene, PR Automation)",
+      "cwd": ".",
+      "status": "pending",
+      "notes": "Recorded after the PR opens; see the PR timeline for the final rollup."
+    }
+  ],
+  "runtimeSensitive": true,
+  "runtimeGap": "No backend startup, golang-migrate run or seed verification was executed. v0.18.x moves no migration baseline, so the gap is inherited unchanged from the v0.17.7 round. Go race tests cannot run on this Windows host because ThreadSanitizer cannot allocate its shadow memory (error code 87); CI runs them on ubuntu-latest.",
+  "knownGaps": [
+    "Runtime acceptance (backend startup + golang-migrate to 000030 + tenant/business seeding) still has not been executed in a consumer evidence set; no database credentials are recorded here.",
+    "check:harness-docs reports four dangling links inherited from base documents; the check is report-only and its repair is a base-side change, not a consumer edit.",
+    "Ops still has no consumer-side versioned migration channel; business modules rely on AutoMigrate.",
+    "The hosted SonarCloud Scan job has been failing with HTTP 403 from api.sonarcloud.io on a stale SONAR_TOKEN; it is not a required context and rotating the credential is a maintainer action.",
+    "Base v0.18.0 shipped a TS2614 break to this repository because the S1 export removal was justified by a repo-local only caller search; v0.18.1 restores the export. The base-side record is FR-021 plus AI_QUALITY_GOVERNANCE section 5.4.",
+    "Inherited base workflow tests for release-gate, quality-workflow scoring and RELEASE_GATE_TOKEN stay red locally; they assert a .github the consumer replaces by contract and none of them runs in a workflow. Closing them needs either base-side consumer-aware tests or a maintainer-created RELEASE_GATE_TOKEN."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1/manifest.json",
+    "taskPacket": "docs/harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1.task.md",
+    "evidenceDir": ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/",
+    "summaryFile": ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/summary.md",
+    "reviewFile": ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1.task.md",
+      "docs/PROJECT_INHERITANCE.md"
+    ]
+  },
+  "completedAt": "2026-10-29"
+}

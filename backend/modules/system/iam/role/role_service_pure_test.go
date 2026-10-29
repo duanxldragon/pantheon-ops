@@ -33,28 +33,28 @@ func TestNormalizeRoleStatus_UnknownDefaultsToEnabled(t *testing.T) {
 // ---- normalizeRolePageQuery ----
 
 func TestNormalizeRolePageQuery_Nil(t *testing.T) {
-	page, pageSize := normalizeRolePageQuery(nil)
-	if page != 1 || pageSize != 10 {
-		t.Fatalf("expected (1, 10), got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizeRolePageQuery(nil)
+	if page != 1 || pageSize != 10 || offset != 0 {
+		t.Fatalf("expected (1, 10, 0), got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizeRolePageQuery_ZeroValues(t *testing.T) {
-	page, pageSize := normalizeRolePageQuery(&RoleListQuery{})
-	if page != 1 || pageSize != 10 {
-		t.Fatalf("expected (1, 10) for zero values, got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizeRolePageQuery(&RoleListQuery{})
+	if page != 1 || pageSize != 10 || offset != 0 {
+		t.Fatalf("expected (1, 10, 0) for zero values, got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizeRolePageQuery_CustomValues(t *testing.T) {
-	page, pageSize := normalizeRolePageQuery(&RoleListQuery{Page: 4, PageSize: 25})
-	if page != 4 || pageSize != 25 {
-		t.Fatalf("expected (4, 25), got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizeRolePageQuery(&RoleListQuery{Page: 4, PageSize: 25})
+	if page != 4 || pageSize != 25 || offset != 75 {
+		t.Fatalf("expected (4, 25, 75), got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizeRolePageQuery_CapsPageSizeAt100(t *testing.T) {
-	_, pageSize := normalizeRolePageQuery(&RoleListQuery{Page: 1, PageSize: 1000})
+	_, pageSize, _ := normalizeRolePageQuery(&RoleListQuery{Page: 1, PageSize: 1000})
 	if pageSize != 100 {
 		t.Fatalf("expected pageSize capped at 100, got %d", pageSize)
 	}
@@ -63,21 +63,21 @@ func TestNormalizeRolePageQuery_CapsPageSizeAt100(t *testing.T) {
 // ---- normalizeRoleMemberPageQuery ----
 
 func TestNormalizeRoleMemberPageQuery_Nil(t *testing.T) {
-	page, pageSize := normalizeRoleMemberPageQuery(nil)
-	if page != 1 || pageSize != 10 {
-		t.Fatalf("expected (1, 10), got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizeRoleMemberPageQuery(nil)
+	if page != 1 || pageSize != 10 || offset != 0 {
+		t.Fatalf("expected (1, 10, 0), got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizeRoleMemberPageQuery_ZeroValues(t *testing.T) {
-	page, pageSize := normalizeRoleMemberPageQuery(&RoleMemberQuery{})
-	if page != 1 || pageSize != 10 {
-		t.Fatalf("expected (1, 10) for zero values, got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizeRoleMemberPageQuery(&RoleMemberQuery{})
+	if page != 1 || pageSize != 10 || offset != 0 {
+		t.Fatalf("expected (1, 10, 0) for zero values, got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizeRoleMemberPageQuery_CapsPageSizeAt100(t *testing.T) {
-	_, pageSize := normalizeRoleMemberPageQuery(&RoleMemberQuery{Page: 2, PageSize: 200})
+	_, pageSize, _ := normalizeRoleMemberPageQuery(&RoleMemberQuery{Page: 2, PageSize: 200})
 	if pageSize != 100 {
 		t.Fatalf("expected pageSize capped at 100, got %d", pageSize)
 	}

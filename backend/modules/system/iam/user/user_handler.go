@@ -1,16 +1,12 @@
 package user
 
 import (
-	"strconv"
-
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
 )
-
-const errParamInvalid = "param.invalid"
 
 type UserHandler struct {
 	service *UserService
@@ -56,7 +52,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 
 	var req UserProfileUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 
@@ -72,7 +68,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 func (h *UserHandler) GetUserList(c *gin.Context) {
 	var query UserListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 
@@ -90,7 +86,7 @@ func (h *UserHandler) ExportUsers(c *gin.Context) {
 
 	var query UserListQuery
 	if err := c.ShouldBindJSON(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	dataScope := common.GetDataScope(c)
@@ -114,22 +110,8 @@ func (h *UserHandler) DownloadImportTemplate(c *gin.Context) {
 func (h *UserHandler) ImportUsers(c *gin.Context) {
 	common.SetAuditMetadata(c, "user.import.title", common.BusinessImport)
 
-	fileHeader, err := c.FormFile("file")
-	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "import.file.required")
-		return
-	}
-	file, err := fileHeader.Open()
-	if err != nil {
-		common.Fail(c, common.CodeError, "import.file.read.error")
-		return
-	}
-	// 显式接管 multipart part 的生命周期：ReadCSV 内部也会关闭，
-	// 这里 defer 保证所有权清晰，且覆盖未来提前 return 的路径。
-	defer func() { _ = file.Close() }()
-	records, err := impexp.ReadCSV(file)
-	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "import.file.invalid_csv")
+	records, ok := impexp.ReadImportCSV(c)
+	if !ok {
 		return
 	}
 
@@ -143,9 +125,8 @@ func (h *UserHandler) ImportUsers(c *gin.Context) {
 
 // GetUserDetail 获取用户详情。
 func (h *UserHandler) GetUserDetail(c *gin.Context) {
-	userID, err := parseUintParam(c, "id")
-	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+	userID, ok := common.ParseUintParam(c, "id")
+	if !ok {
 		return
 	}
 
@@ -164,7 +145,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	common.SetAuditMetadata(c, "user.create.title", common.BusinessInsert)
 	var req UserCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 
@@ -181,13 +162,12 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	common.SetAuditMetadata(c, "user.update.title", common.BusinessUpdate)
 	var req UserUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 
-	userID, err := parseUintParam(c, "id")
-	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+	userID, ok := common.ParseUintParam(c, "id")
+	if !ok {
 		return
 	}
 
@@ -203,15 +183,14 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 func (h *UserHandler) ResetPassword(c *gin.Context) {
 	common.SetAuditMetadata(c, "user.password.reset.title", common.BusinessUpdate)
 
-	userID, err := parseUintParam(c, "id")
-	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+	userID, ok := common.ParseUintParam(c, "id")
+	if !ok {
 		return
 	}
 
 	var req UserResetPasswordReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 
@@ -231,7 +210,7 @@ func (h *UserHandler) BatchUpdateUserStatus(c *gin.Context) {
 
 	var req UserBatchStatusReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 
@@ -248,7 +227,7 @@ func (h *UserHandler) BatchDeleteUsers(c *gin.Context) {
 
 	var req common.BatchDeleteReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	resp := common.BatchDelete(req.IDs, h.svc(c).DeleteUser)
@@ -258,9 +237,8 @@ func (h *UserHandler) BatchDeleteUsers(c *gin.Context) {
 // DeleteUser 删除用户。
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	common.SetAuditMetadata(c, "user.delete.title", common.BusinessDelete)
-	userID, err := parseUintParam(c, "id")
-	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+	userID, ok := common.ParseUintParam(c, "id")
+	if !ok {
 		return
 	}
 
@@ -271,16 +249,11 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	common.Success(c, gin.H{"deleted": true})
 }
 
+// getUserIDFromContext keeps the (uint64, bool) shape the handler call sites
+// expect while delegating the key lookup to the shared implementation; the
+// token middleware stores the id as uint64 under "userId" and real ids are
+// nonzero, so a zero result means absent or mistyped.
 func getUserIDFromContext(c *gin.Context) (uint64, bool) {
-	userIDValue, ok := c.Get("userId")
-	if !ok {
-		return 0, false
-	}
-	userID, ok := userIDValue.(uint64)
-	return userID, ok
-}
-
-func parseUintParam(c *gin.Context, key string) (uint64, error) {
-	value := c.Param(key)
-	return strconv.ParseUint(value, 10, 64)
+	userID := common.GetUserID(c)
+	return userID, userID != 0
 }

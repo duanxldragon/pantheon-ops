@@ -1,11 +1,11 @@
 package generator
 
 import (
-	"errors"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"regexp"
 	"strings"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"gorm.io/gorm"
 )
 
@@ -91,10 +91,7 @@ func (s *GeneratorService) PreviewTable(datasourceID, tableName string) (*TableS
 		Select("table_name, table_comment, engine, table_rows").
 		Where("table_schema = ? and table_name = ?", reader.schema, normalizedTable).
 		Take(&table).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, common.NewNotFound("generator.table.not_found")
-		}
-		return nil, err
+		return nil, database.TranslateNotFound(err, common.NewNotFound("generator.table.not_found"))
 	}
 
 	var columns []columnRow

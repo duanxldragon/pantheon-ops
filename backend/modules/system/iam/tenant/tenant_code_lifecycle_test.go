@@ -27,6 +27,10 @@ func TestDeleteTenant_ReleasesCodeForReuse(t *testing.T) {
 	first, err := service.CreateTenant(CreateTenantDTO{Code: "acme", Name: "Acme", Plan: "free"})
 	require.NoError(t, err)
 
+	// Contract §2.1: deletion is reserved for archived tenants, so the fixture
+	// walks the archive step even though the tenant has no members.
+	archived := tenant.TenantStatusArchived
+	require.NoError(t, service.UpdateTenant(first.ID, UpdateTenantDTO{Status: &archived}))
 	require.NoError(t, service.DeleteTenant(first.ID))
 
 	// The same code must now be creatable. Before the fix this returned
@@ -58,6 +62,8 @@ func TestDeleteTenant_ArchivedCodeIsOutsideTheOperatorNamespace(t *testing.T) {
 
 	created, err := service.CreateTenant(CreateTenantDTO{Code: "beta", Name: "Beta", Plan: "free"})
 	require.NoError(t, err)
+	archivedStatus := tenant.TenantStatusArchived
+	require.NoError(t, service.UpdateTenant(created.ID, UpdateTenantDTO{Status: &archivedStatus}))
 	require.NoError(t, service.DeleteTenant(created.ID))
 
 	archived := fmt.Sprintf("%s%d", deletedTenantCodePrefix, created.ID)
@@ -152,6 +158,8 @@ func TestReleaseDeletedTenantCodes_IsIdempotent(t *testing.T) {
 
 	created, err := service.CreateTenant(CreateTenantDTO{Code: "legacy", Name: "Legacy", Plan: "free"})
 	require.NoError(t, err)
+	archived := tenant.TenantStatusArchived
+	require.NoError(t, service.UpdateTenant(created.ID, UpdateTenantDTO{Status: &archived}))
 	require.NoError(t, service.DeleteTenant(created.ID))
 
 	require.NoError(t, service.ReleaseDeletedTenantCodes())
@@ -207,17 +215,19 @@ func TestBootstrap_RunsTheRepair(t *testing.T) {
 // row insert: the recreated tenant must be usable, i.e. provisioned like any
 // other create.
 //
-// The first tenant is created without an administrator on purpose. A provisioned
-// tenant owns an active membership, and contract §2.2 forbids deleting a tenant
-// that still has active members — so a deletable fixture is one that was never
-// provisioned. That asymmetry is itself worth pinning: it is why the console's
-// delete button is only reachable for empty tenants.
+// The first tenant is created without an administrator, then archived: the
+// contract (§2.1) reserves deletion for archived tenants, so every delete
+// fixture walks the documented retirement path. The provisioned variant —
+// where the same delete also disables the remaining memberships — is pinned
+// by TestDeleteTenantArchivedWithMembersSucceeds.
 func TestCreateTenant_ReusedCodeIsFullyProvisioned(t *testing.T) {
 	db := setupTestDB(t)
 	service := NewService(db)
 
 	first, err := service.CreateTenant(CreateTenantDTO{Code: "acme", Name: "Acme", Plan: "free"})
 	require.NoError(t, err)
+	archived := tenant.TenantStatusArchived
+	require.NoError(t, service.UpdateTenant(first.ID, UpdateTenantDTO{Status: &archived}))
 	require.NoError(t, service.DeleteTenant(first.ID))
 
 	second, err := service.CreateTenant(CreateTenantDTO{
@@ -252,6 +262,8 @@ func TestListTenants_DeletedRowKeepsItsName(t *testing.T) {
 
 	created, err := service.CreateTenant(CreateTenantDTO{Code: "acme", Name: "Acme Corp", Plan: "free"})
 	require.NoError(t, err)
+	archived := tenant.TenantStatusArchived
+	require.NoError(t, service.UpdateTenant(created.ID, UpdateTenantDTO{Status: &archived}))
 	require.NoError(t, service.DeleteTenant(created.ID))
 
 	view, err := service.ListTenants(Filter{Status: tenantStatusDeleted})
@@ -270,6 +282,8 @@ func TestGetTenantByCode_ResolvesOnlyLiveCodes(t *testing.T) {
 
 	created, err := service.CreateTenant(CreateTenantDTO{Code: "acme", Name: "Acme", Plan: "free"})
 	require.NoError(t, err)
+	archived := tenant.TenantStatusArchived
+	require.NoError(t, service.UpdateTenant(created.ID, UpdateTenantDTO{Status: &archived}))
 	require.NoError(t, service.DeleteTenant(created.ID))
 
 	_, err = service.GetTenantByCode("acme")

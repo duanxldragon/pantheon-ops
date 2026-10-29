@@ -149,6 +149,32 @@ type LoginDiscovery struct {
 	Resolved bool
 }
 
+// HasRoleBindingInTenant reports whether the user holds at least one
+// system_user_role binding stamped for (user, tenant). W4 (W3 decision A,
+// docs/reviews/TENANT_MULTI_MEMBERSHIP_DECISION_2026-10-27.md): a membership
+// only resolves when the subject owns a role binding in that tenant, because
+// bindings are stamped from the user's owning tenant — a membership elsewhere
+// resolves to an empty role set (the TC-01 blank console). The table is
+// addressed by name, not by model import: pkg/tenant must not depend on the
+// IAM user module, and the binding table has no status column, so existence is
+// the predicate. Missing table or query error fails closed (false) — a
+// deployment that cannot prove the binding cannot hand out the context either.
+func HasRoleBindingInTenant(db *gorm.DB, userID, tenantID uint64) bool {
+	if db == nil || userID == 0 || tenantID == 0 {
+		return false
+	}
+	if !db.Migrator().HasTable("system_user_role") {
+		return false
+	}
+	var count int64
+	if err := db.Table("system_user_role").
+		Where("user_id = ? AND tenant_id = ?", userID, tenantID).
+		Count(&count).Error; err != nil {
+		return false
+	}
+	return count > 0
+}
+
 // DiscoverDefaultTenant returns the tenant a user logs into under multi mode.
 // Contract §3.1: login resolves tenancy from membership — a single active
 // membership resolves deterministically; zero memberships means the subject
@@ -156,6 +182,10 @@ type LoginDiscovery struct {
 // multiple active memberships require an explicit choice by the caller and
 // deny-by-default for now (ambiguous context is never silently narrowed).
 // Missing table or DB error also denies without leaking which part failed.
+//
+// W4 (W3 decision A): memberships without a role binding are filtered out
+// before the count logic, so only a membership the subject can actually use
+// (at least one system_user_role row) participates in resolution.
 func DiscoverDefaultTenant(db *gorm.DB, userID uint64) (LoginDiscovery, error) {
 	if db == nil || userID == 0 {
 		return LoginDiscovery{}, nil
@@ -167,16 +197,22 @@ func DiscoverDefaultTenant(db *gorm.DB, userID uint64) (LoginDiscovery, error) {
 		Find(&memberships).Error; err != nil {
 		return LoginDiscovery{}, ErrTenantContextMissing
 	}
-	if len(memberships) > 1 {
+	usable := make([]Membership, 0, len(memberships))
+	for _, m := range memberships {
+		if HasRoleBindingInTenant(db, userID, m.TenantID) {
+			usable = append(usable, m)
+		}
+	}
+	if len(usable) > 1 {
 		return LoginDiscovery{}, ErrTenantForbidden
 	}
-	if len(memberships) == 0 {
+	if len(usable) == 0 {
 		return LoginDiscovery{}, nil
 	}
-	if err := EnsureTenantLoginable(db, memberships[0].TenantID); err != nil {
+	if err := EnsureTenantLoginable(db, usable[0].TenantID); err != nil {
 		return LoginDiscovery{}, err
 	}
-	return LoginDiscovery{TenantID: memberships[0].TenantID, Resolved: true}, nil
+	return LoginDiscovery{TenantID: usable[0].TenantID, Resolved: true}, nil
 }
 
 // IssuanceCheckInput carries everything the session-issuance gate needs.
@@ -203,6 +239,13 @@ func GateSessionIssuance(db *gorm.DB, in IssuanceCheckInput) (uint64, error) {
 		}
 		if err := EnsureTenantLoginable(db, in.TenantID); err != nil {
 			return 0, err
+		}
+		// W4 (W3 decision A): the same predicate the discovery and picker paths
+		// apply. An explicit choice of a tenant where the subject holds no role
+		// binding would stamp an unusable claim — refuse it at the gate so both
+		// login paths agree.
+		if !HasRoleBindingInTenant(db, in.UserID, in.TenantID) {
+			return 0, ErrTenantForbidden
 		}
 		return in.TenantID, nil
 	}
@@ -308,8 +351,11 @@ type LoginTenantCandidate struct {
 }
 
 // ListActiveMembershipsForUser returns the login-able tenant candidates for a
-// user: active membership ∧ active tenant master. Missing tables or query
-// errors return an error so callers can fail closed.
+// user: active membership ∧ active tenant master ∧ the W4 role-presence
+// predicate. The predicate is HasRoleBindingInTenant itself — the same single
+// implementation discovery and the switchable list apply — so the three read
+// points cannot drift. Missing tables or query errors return an error so
+// callers can fail closed.
 func ListActiveMembershipsForUser(db *gorm.DB, userID uint64) ([]LoginTenantCandidate, error) {
 	if db == nil || userID == 0 {
 		return nil, nil
@@ -332,6 +378,9 @@ func ListActiveMembershipsForUser(db *gorm.DB, userID uint64) ([]LoginTenantCand
 	}
 	candidates := make([]LoginTenantCandidate, 0, len(rows))
 	for _, row := range rows {
+		if !HasRoleBindingInTenant(db, userID, row.TenantID) {
+			continue
+		}
 		candidates = append(candidates, LoginTenantCandidate{
 			TenantID: row.TenantID,
 			Code:     row.Code,

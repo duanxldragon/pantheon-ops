@@ -1,11 +1,17 @@
 package tenant
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
@@ -70,6 +76,7 @@ func TestRemoveMemberRefusesLastOwner(t *testing.T) {
 	created, err := service.CreateTenant(CreateTenantDTO{Code: "owner-co", Name: "Owner Co"})
 	require.NoError(t, err)
 
+	mustInsertTenantUsers(t, db, created.ID, 100, 3)
 	require.NoError(t, service.AddMember(created.ID, 100, "owner"))
 	require.NoError(t, service.AddMember(created.ID, 101, "member"))
 
@@ -111,10 +118,12 @@ func TestDeleteTenantArchivedWithMembersSucceeds(t *testing.T) {
 
 	created, err := service.CreateTenant(CreateTenantDTO{Code: "retire-co", Name: "Retire Co"})
 	require.NoError(t, err)
+	mustInsertTenantUser(t, db, created.ID, 201)
 	require.NoError(t, service.AddMember(created.ID, 201, "owner"))
 
-	// A live tenant with members stays protected.
-	assert.ErrorIs(t, service.DeleteTenant(created.ID), ErrTenantHasActiveUsers)
+	// A live tenant stays protected with members or without: the guard is the
+	// status, not the member count (contract §2.1).
+	assert.ErrorIs(t, service.DeleteTenant(created.ID), ErrTenantNotArchived)
 
 	archived := tenant.TenantStatusArchived
 	require.NoError(t, service.UpdateTenant(created.ID, UpdateTenantDTO{Status: &archived}))
@@ -188,6 +197,10 @@ func TestDeletedTenantCannotBeRevivedByUpdate(t *testing.T) {
 
 	created, err := service.CreateTenant(CreateTenantDTO{Code: "tombstone-co", Name: "Tombstone Co"})
 	require.NoError(t, err)
+	// Delete fixtures archive first: contract §2.1 reserves deletion for
+	// archived tenants.
+	archived := tenant.TenantStatusArchived
+	require.NoError(t, service.UpdateTenant(created.ID, UpdateTenantDTO{Status: &archived}))
 	require.NoError(t, service.DeleteTenant(created.ID))
 
 	active := tenant.TenantStatusActive
@@ -213,6 +226,13 @@ func TestDeletedTenantRefusesNewMembers(t *testing.T) {
 
 	created, err := service.CreateTenant(CreateTenantDTO{Code: "tombstone-members", Name: "Tombstone Members"})
 	require.NoError(t, err)
+	// The user row is created before the tenant is deleted so that the guard
+	// under test cannot pass by rejecting an unknown subject: the membership
+	// attempt carries a user this tenant really owns, and the tombstone still
+	// has to win with the tenant error.
+	mustInsertTenantUser(t, db, created.ID, 777)
+	archived := tenant.TenantStatusArchived
+	require.NoError(t, service.UpdateTenant(created.ID, UpdateTenantDTO{Status: &archived}))
 	require.NoError(t, service.DeleteTenant(created.ID))
 
 	err = service.AddMember(created.ID, 777, "member")
@@ -232,8 +252,77 @@ func TestDeletedTenantCannotBeReprovisioned(t *testing.T) {
 
 	created, err := service.CreateTenant(CreateTenantDTO{Code: "tombstone-provision", Name: "Tombstone Provision"})
 	require.NoError(t, err)
+	archived := tenant.TenantStatusArchived
+	require.NoError(t, service.UpdateTenant(created.ID, UpdateTenantDTO{Status: &archived}))
 	require.NoError(t, service.DeleteTenant(created.ID))
 
 	_, err = service.ProvisionTenant(ProvisionInput{TenantID: created.ID})
 	assert.ErrorIs(t, err, ErrTenantNotFound)
+}
+
+// TestPlatformAddMemberRejectsUnknownUser drives the guard through the mounted
+// write route (system_modules.go mounts POST /system/tenant/:id/members on
+// PlatformHandler.AddTenantMember) rather than only the service, because the
+// defect was observable as an HTTP 200 success envelope: an id naming no user
+// came back as "member added". The envelope must answer with the user key so the
+// console can distinguish "no such user" from "no such tenant".
+func TestPlatformAddMemberRejectsUnknownUser(t *testing.T) {
+	db := setupTestDB(t)
+	service := NewService(db)
+	handler := NewPlatformHandler(service)
+
+	created, err := service.CreateTenant(CreateTenantDTO{Code: "member-http", Name: "Member HTTP"})
+	require.NoError(t, err)
+	mustInsertTenantUser(t, db, created.ID, 900)
+
+	gin.SetMode(gin.TestMode)
+	engine := gin.New()
+	engine.POST("/system/tenant/:id/members", handler.AddTenantMember)
+
+	envelope := func(body string) (int, string) {
+		t.Helper()
+		recorder := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/system/tenant/%d/members", created.ID), strings.NewReader(body))
+		request.Header.Set("Content-Type", "application/json")
+		engine.ServeHTTP(recorder, request)
+		var parsed struct {
+			Code    int    `json:"code"`
+			Message string `json:"message"`
+		}
+		require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &parsed))
+		return parsed.Code, parsed.Message
+	}
+
+	// 424242 has no system_user row.
+	code, message := envelope(`{"user_id": 424242, "role": "member"}`)
+	assert.Equal(t, 404, code, "body: %s", message)
+	assert.Equal(t, "user.not_found", message)
+
+	// A user that does exist still gets in, so the guard is not a blanket refusal.
+	code, _ = envelope(`{"user_id": 900, "role": "member"}`)
+	assert.Equal(t, 200, code)
+
+	var memberships int64
+	require.NoError(t, db.Model(&Membership{}).Where("tenant_id = ?", created.ID).Count(&memberships).Error)
+	assert.Equal(t, int64(1), memberships, "the rejected request must not leave a row behind")
+}
+
+// TestDeleteTenant_ActiveWithoutMembersStillRefused pins the TC-02 remedy. The
+// old guard (`memberCount > 0 && status != archived`) tombstoned an ACTIVE
+// tenant once its active member count reached zero — a state reachable without
+// any SQL by deleting every user, because DeleteUser disables their
+// memberships. The contract (§2.1) reserves deletion for archived tenants, so
+// the status, not the member count, is the guard.
+func TestDeleteTenant_ActiveWithoutMembersStillRefused(t *testing.T) {
+	db := setupTestDB(t)
+	service := NewService(db)
+
+	created, err := service.CreateTenant(CreateTenantDTO{Code: "bypass-co", Name: "Bypass Co"})
+	require.NoError(t, err)
+
+	assert.ErrorIs(t, service.DeleteTenant(created.ID), ErrTenantNotArchived)
+
+	var row Tenant
+	require.NoError(t, db.Unscoped().Where(condIDEquals, created.ID).Take(&row).Error)
+	assert.Equal(t, tenant.TenantStatusActive, row.Status, "the refused delete must not tombstone the tenant")
 }

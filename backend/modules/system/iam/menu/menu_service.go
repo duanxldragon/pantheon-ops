@@ -594,39 +594,34 @@ func normalizeMenuActiveMenu(value string) string {
 	return strings.TrimSpace(value)
 }
 
+var menuSortColumns = map[string]string{
+	"id":          "id",
+	"titleKey":    "title_key",
+	"title_key":   "title_key",
+	"path":        "path",
+	"routeName":   "route_name",
+	"route_name":  "route_name",
+	"pagePerm":    "page_perm",
+	"page_perm":   "page_perm",
+	"perms":       "perms",
+	"type":        "type",
+	"module":      "module",
+	"sort":        "sort",
+	"isCache":     "is_cache",
+	"is_cache":    "is_cache",
+	"isExternal":  "is_external",
+	"is_external": "is_external",
+	"isVisible":   "is_visible",
+	"is_visible":  "is_visible",
+}
+
 func normalizeMenuSort(query *MenuListQuery) (string, bool) {
 	if query == nil {
 		return "sort", false
 	}
 
-	sortWhitelist := map[string]string{
-		"id":          "id",
-		"titleKey":    "title_key",
-		"title_key":   "title_key",
-		"path":        "path",
-		"routeName":   "route_name",
-		"route_name":  "route_name",
-		"pagePerm":    "page_perm",
-		"page_perm":   "page_perm",
-		"perms":       "perms",
-		"type":        "type",
-		"module":      "module",
-		"sort":        "sort",
-		"isCache":     "is_cache",
-		"is_cache":    "is_cache",
-		"isExternal":  "is_external",
-		"is_external": "is_external",
-		"isVisible":   "is_visible",
-		"is_visible":  "is_visible",
-	}
-
-	column, ok := sortWhitelist[strings.TrimSpace(query.SortField)]
-	if !ok {
-		column = "sort"
-	}
-
-	order := strings.ToLower(strings.TrimSpace(query.SortOrder))
-	return column, order == "desc"
+	return common.NormalizeSort(query.SortField, menuSortColumns, "sort"),
+		strings.ToLower(strings.TrimSpace(query.SortOrder)) == "desc"
 }
 
 func normalizeMenuScope(query *MenuListQuery) string {

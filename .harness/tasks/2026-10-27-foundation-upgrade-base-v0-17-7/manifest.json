@@ -4,7 +4,7 @@
   "goal": "Advance the Ops consumer from pantheon-base-v0.17.6 to the published pantheon-base-v0.17.7 so the tree inherits base's revive and CodeQL false-positive dispositions, repair the one remaining ops-owned goconst finding in the deploy package, and record the GitHub-side disposition that actually closes the nine open code scanning alerts on PR #149.",
   "primaryLayer": "inheritance-sync",
   "taskDoc": "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-7.task.md",
-  "status": "complete",
+  "status": "completed",
   "priority": "P1",
   "deliveryTier": "L2",
   "dependsOn": [

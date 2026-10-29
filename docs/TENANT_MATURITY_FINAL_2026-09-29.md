@@ -112,20 +112,30 @@ The Pantheon Base tenant system has been upgraded from 55% to **96% maturity** t
 
 ### 4. Initialization & Bootstrap (40% → 100%)
 
+> **2026-10-27 订正（W8 死入口删除）**：本节列出的四个 bootstrap 入口
+> （`EnsureDefaultTenant` / `AssignAdminToDefaultTenant` /
+> `MigrateExistingUsersToDefaultTenant` / `InitializeTenantInfrastructure`）
+> **从未接入启动流程**——`tenant_bootstrap.go` 在整棵树中零引用
+> （`docs/TENANT_INITIALIZATION_FINDINGS_2026-10-13.md` 同日已记录该结论）。
+> 实际生效的初始化路径是 `/system/tenant/*` 建租户即初始化（幂等，可重跑修复，
+> 见上表"API 与服务层"一行）。该文件与配套的未挂载 legacy Handler 已于
+> 2026-10-27 删除（`.harness/tasks/2026-10-27-tenant-dead-surface-removal/`），
+> 本节其余内容保留作历史对照。
+
 **Before**:
 - No default tenant creation
 - Admin not assigned to tenant
 - Manual SQL required
 
-**After**:
-- ✅ EnsureDefaultTenant() auto-creates on bootstrap
-- ✅ AssignAdminToDefaultTenant() ensures admin access
-- ✅ MigrateExistingUsersToDefaultTenant() for upgrades
-- ✅ InitializeTenantInfrastructure() one-time setup
-- ✅ Bootstrap service with idempotent operations
+**After (2026-09-29 原文，见上方订正)**:
+- ~~✅ EnsureDefaultTenant() auto-creates on bootstrap~~（未接线，已删除）
+- ~~✅ AssignAdminToDefaultTenant() ensures admin access~~（未接线，已删除）
+- ~~✅ MigrateExistingUsersToDefaultTenant() for upgrades~~（未接线，已删除）
+- ~~✅ InitializeTenantInfrastructure() one-time setup~~（未接线，已删除）
+- ~~✅ Bootstrap service with idempotent operations~~（未接线，已删除）
 
 **Evidence**:
-- Bootstrap: `backend/modules/system/iam/tenant/tenant_bootstrap.go`
+- ~~Bootstrap: `backend/modules/system/iam/tenant/tenant_bootstrap.go`~~（已删除；替代路径：`system_modules.go` 注册的 `/system/tenant/*`）
 - Guide: `docs/migrations/COMPAT_TO_MULTI_UPGRADE.md`
 
 ---

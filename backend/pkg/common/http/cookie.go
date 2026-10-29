@@ -84,13 +84,3 @@ func generateCSRFToken() (string, error) {
 	}
 	return hex.EncodeToString(b), nil
 }
-
-// SetTokenTTL overrides the effective token TTLs. Pass zero to use defaults.
-func SetTokenTTL(accessTTL, refreshTTL time.Duration) {
-	if accessTTL > 0 {
-		accessTokenTTL = accessTTL
-	}
-	if refreshTTL > 0 {
-		refreshTokenTTL = refreshTTL
-	}
-}

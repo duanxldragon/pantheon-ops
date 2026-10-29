@@ -4,7 +4,7 @@
   "title": "Add minimal Application, Service, and ServiceInstance foundation",
   "goal": "Establish the minimum business-owned Application, Service, and ServiceInstance model and consumer linkage.",
   "primaryLayer": "business/*",
-  "status": "complete",
+  "status": "completed",
   "priority": "P0-model/P1-delivery",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-08-17-ops-service-instance-foundation.task.md",

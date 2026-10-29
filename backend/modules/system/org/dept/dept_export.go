@@ -41,7 +41,7 @@ func (s *DeptService) ExportDepts(ctx context.Context, query *DeptListQuery) (*i
 	if err != nil {
 		return nil, err
 	}
-	pathByID, _, err := impexp.BuildDeptPathMaps(s.scoped(s.db))
+	pathByID, _, err := impexp.BuildDeptPathMaps(s.Scoped(s.db))
 	if err != nil {
 		return nil, err
 	}
@@ -87,14 +87,12 @@ func (s *DeptService) ExportDepts(ctx context.Context, query *DeptListQuery) (*i
 
 // BuildDeptImportTemplate generates import template CSV
 func (s *DeptService) BuildDeptImportTemplate() *impexp.CSVFile {
-	return &impexp.CSVFile{
-		Filename: "system-dept-import-template.csv",
-		Headers:  []string{"parentDeptPath", "deptName", "sort", "leader", "phone", "email", "status"},
-		Rows: [][]string{
-			{"#说明：保留第一行表头；parentDeptPath 使用部门导出的完整路径；根节点下创建部门时通常填写 Pantheon Base；status 使用 1=启用、2=禁用。", "", "", "", "", "", ""},
-			{"#Pantheon Base", "研发中心", "10", "张三", "13800138000", "rd@example.com", "1"},
-		},
-	}
+	return impexp.BuildImportTemplate(
+		"system-dept-import-template.csv",
+		"#说明：保留第一行表头；parentDeptPath 使用部门导出的完整路径；根节点下创建部门时通常填写 Pantheon Base；status 使用 1=启用、2=禁用。",
+		[]string{"parentDeptPath", "deptName", "sort", "leader", "phone", "email", "status"},
+		[]string{"#Pantheon Base", "研发中心", "10", "张三", "13800138000", "rd@example.com", "1"},
+	)
 }
 
 // ExportGovernanceTasks exports governance tasks to CSV

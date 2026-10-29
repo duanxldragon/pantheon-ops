@@ -241,10 +241,10 @@ func (s *SettingService) invalidateSettingCacheForGroup(groupKey string) {
 // settingGroupCacheKey namespaces the group cache per tenant (multi mode) so
 // two tenants never collide through the process cache (canary pattern).
 func (s *SettingService) settingGroupCacheKey(groupKey string) string {
-	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+	if s.TenantCtx == nil || !s.TenantCtx.IsMulti() {
 		return groupKey
 	}
-	return "t" + strconv.FormatUint(s.tenantCtx.TenantID, 10) + ":" + groupKey
+	return "t" + strconv.FormatUint(s.TenantCtx.TenantID, 10) + ":" + groupKey
 }
 
 func appendSettingOverviewIssue(issues []SettingOverviewIssueResp, seen map[string]struct{}, issue SettingOverviewIssueResp) []SettingOverviewIssueResp {

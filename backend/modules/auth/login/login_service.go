@@ -39,9 +39,11 @@ type LoginService struct {
 	// userRepo is the credential port over system user state. It is injected at
 	// the composition root so auth never imports modules/system/iam/user
 	// (docs/designs/REPOSITORY_LAYOUT.md §8.2).
-	userRepo  authuser.Repository
-	recorder  SecurityEventRecorder
-	tenantCtx *tenant.Context
+	userRepo authuser.Repository
+	recorder SecurityEventRecorder
+	// Scoper carries the per-request tenant context with the shared read
+	// filter (contract §3.2/§3.3).
+	tenant.Scoper
 }
 
 // LoginLogRetentionTaskName is the maintenance registry key for the periodic
@@ -50,12 +52,8 @@ const LoginLogRetentionTaskName = "auth.login_log_retention"
 
 func (s *LoginService) WithTenantContext(ctx *tenant.Context) *LoginService {
 	clone := *s
-	clone.tenantCtx = ctx
+	clone.TenantCtx = ctx
 	return &clone
-}
-
-func (s *LoginService) scoped(db *gorm.DB) *gorm.DB {
-	return db.Scopes(tenant.WithTenantScope(s.tenantCtx))
 }
 
 // NewLoginService creates a LoginService with the given DB, credential port and
@@ -172,13 +170,13 @@ func (s *LoginService) findCredentialByUsername(username string) (*authuser.User
 // multi-mode context with a real tenant id scopes the credential lookup; the
 // platform-global placeholder (0) and a compat context both mean "no choice".
 func (s *LoginService) loginTenantID() (uint64, bool) {
-	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+	if s.TenantCtx == nil || !s.TenantCtx.IsMulti() {
 		return 0, false
 	}
-	if s.tenantCtx.TenantID == tenant.PlatformGlobalTenantID {
+	if s.TenantCtx.TenantID == tenant.PlatformGlobalTenantID {
 		return 0, false
 	}
-	return s.tenantCtx.TenantID, true
+	return s.TenantCtx.TenantID, true
 }
 
 func (s *LoginService) ensureUserAvailable(currentUser *authuser.User, sourceKey string, policy RuntimePolicy, now time.Time) error {
@@ -245,7 +243,7 @@ func (s *LoginService) ListLoginLogs(query *LoginLogQuery) (*LoginLogPageResp, e
 // scopedLoginLogQuery applies the shared list filters so that the paged query
 // and the whole-set aggregates run over the identical scope.
 func (s *LoginService) scopedLoginLogQuery(query *LoginLogQuery, filterUsername string) *gorm.DB {
-	db := s.scoped(s.db.Model(&SystemLogLogin{}))
+	db := s.Scoped(s.db.Model(&SystemLogLogin{}))
 	if filterUsername != "" {
 		// F04: the own-log path is driven by the authenticated subject, so the
 		// identity filter is an exact match — a substring match would expose
@@ -270,7 +268,7 @@ func (s *LoginService) listLoginLogs(query *LoginLogQuery, filterUsername string
 	}
 
 	var logs []SystemLogLogin
-	page, pageSize := normalizePageQuery(queryPage(query), queryPageSize(query))
+	page, pageSize, offset := normalizePageQuery(queryPage(query), queryPageSize(query))
 	db := s.scopedLoginLogQuery(query, filterUsername)
 
 	var total int64
@@ -283,7 +281,7 @@ func (s *LoginService) listLoginLogs(query *LoginLogQuery, filterUsername string
 		Count(&successCount).Error; err != nil {
 		return nil, err
 	}
-	if err := db.Order(loginTimeDescOrderClause).Offset((page - 1) * pageSize).Limit(pageSize).Find(&logs).Error; err != nil {
+	if err := db.Order(loginTimeDescOrderClause).Offset(offset).Limit(pageSize).Find(&logs).Error; err != nil {
 		return nil, err
 	}
 
@@ -345,7 +343,7 @@ func (s *LoginService) CleanupLoginLogs(retentionDays int, startedAt, endedAt st
 	if err != nil {
 		return 0, err
 	}
-	db := s.scoped(s.db.Model(&SystemLogLogin{}))
+	db := s.Scoped(s.db.Model(&SystemLogLogin{}))
 	if window != nil {
 		db = db.Where("login_time >= ? AND login_time <= ?", window.StartedAt, window.EndedAt)
 	} else {
@@ -375,7 +373,7 @@ func (s *LoginService) BatchDeleteLoginLogs(ids []uint64) (int64, error) {
 	if len(normalized) > maxBatchIDs {
 		return 0, errors.New("param.invalid")
 	}
-	result := s.scoped(s.db).Where("id IN ?", normalized).Delete(&SystemLogLogin{})
+	result := s.Scoped(s.db).Where("id IN ?", normalized).Delete(&SystemLogLogin{})
 	return result.RowsAffected, result.Error
 }
 
@@ -387,7 +385,7 @@ func (s *LoginService) listLoginLogsForExport(query *LoginLogQuery) ([]SystemLog
 	var logs []SystemLogLogin
 	// Reuse the exact list-scope filters (username/keyword/status AND the
 	// time window) so the CSV always matches the filtered view being exported.
-	db := s.scoped(s.scopedLoginLogQuery(query, ""))
+	db := s.Scoped(s.scopedLoginLogQuery(query, ""))
 	return logs, db.Order(loginTimeDescOrderClause).Limit(maxLoginLogExportRows).Find(&logs).Error
 }
 
@@ -434,7 +432,7 @@ func (s *LoginService) RecordLoginLog(requestID, username, ip, browser, os strin
 	}
 
 	loginLog := SystemLogLogin{
-		TenantID:      tenantIDFromContext(s.tenantCtx),
+		TenantID:      tenantIDFromContext(s.TenantCtx),
 		RequestID:     strings.TrimSpace(requestID),
 		Username:      username,
 		Ipaddr:        ip,
@@ -716,17 +714,8 @@ func queryPageSize(query *LoginLogQuery) int {
 	return query.PageSize
 }
 
-func normalizePageQuery(page, pageSize int) (int, int) {
-	if page <= 0 {
-		page = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
-	if pageSize > 100 {
-		pageSize = 100
-	}
-	return page, pageSize
+func normalizePageQuery(page, pageSize int) (int, int, int) {
+	return common.NormalizePagination(page, pageSize, 100)
 }
 
 type cleanupWindow = authsession.CleanupWindow

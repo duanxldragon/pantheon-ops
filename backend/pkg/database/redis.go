@@ -72,11 +72,6 @@ func InitRedis(addr string, password string, db int) {
 	slog.Info("Redis connection successful")
 }
 
-// SetEx 设置带过期时间的缓存 (对底座后续业务很有用)
-func SetEx(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
-	return RDB.Set(ctx, key, value, expiration).Err()
-}
-
 // Get 获取缓存
 func Get(ctx context.Context, key string) (string, error) {
 	return RDB.Get(ctx, key).Result()

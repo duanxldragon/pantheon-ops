@@ -87,11 +87,6 @@ const jaJPFallback = {
   'auth.login.consoleTitle': '本人確認',
   'auth.login.securityNotice':
     '管理者が割り当てたアカウントでサインインしてください。ログイン時刻、端末、送信元 IP はセキュリティ監査のため記録されます。',
-  'auth.login.tenant.title': 'ワークスペーステナントを選択',
-  'auth.login.tenant.hint':
-    'このアカウントは複数のテナントに所属しています。今回のログイン範囲を選択してください。',
-  'auth.login.tenant.placeholder': 'テナントを選択',
-  'auth.login.tenant.back': '認証情報に戻る',
   'auth.login.idleTimeoutNotice':
     '長時間操作がなかったため自動的にサインアウトされました。続行するには再度サインインしてください。',
   'auth.login.feature.modules': 'モジュラーモノリス',
@@ -1492,11 +1487,14 @@ const jaJPFallback = {
   'tenant.not_found': 'テナントが見つかりません。',
   'tenant.has_active_members':
     'このテナントには有効なメンバーが残っています。ステータスを「アーカイブ済み」に変更してから削除してください。アーカイブ済みテナントの削除時にはメンバーが自動的に無効化されます。',
+  'tenant.not_archived':
+    'このテナントはアーカイブされていないため削除できません。まずステータスを「アーカイブ済み」に変更してから削除してください。',
   'tenant.delete.error.archive_code_conflict':
     'テナントコードを解放できませんでした。もう一度お試しください。',
   'tenant.forbidden':
     'このアカウントはこのテナントに所属していないため、データにアクセスできません。',
   'tenant.suspended': 'このテナントは停止中のため、ログインできません。',
+  'tenant.member.user_not_in_tenant': 'このユーザーは別のテナントに所属しているため、メンバーとして追加できません。',
   'tenant.archived': 'このテナントはアーカイブ済みのため、ログインできません。',
   'tenant.context.missing':
     'このセッションにはテナントコンテキストがありません。再度ログインしてください。',
@@ -1651,7 +1649,7 @@ const jaJPFallback = {
   'system.tenant.plan.professional': 'プロフェッショナル',
   'system.tenant.plan.enterprise': 'エンタープライズ',
   'system.tenant.plan.outsideLadder':
-    '{{plan}} はコンソールの機能階層に含まれないため、機能は Free プラン相当で表示されます。上限値はこのプラン定義に従います。',
+    '{{plan}} はコンソールの機能階層に含まれないため、機能は Free プラン相当で表示され、lowcode の制御対象画面は非表示になります。上限値はこのプラン定義に従います。',
   'system.tenant.planFeature.title': 'プラン機能比較',
   'system.tenant.planFeature.description':
     'プランはテナントコンソールで利用できる機能入口を決めます。実際の操作権限はロール認可で制御されます。',
@@ -1712,6 +1710,11 @@ const jaJPFallback = {
   'system.tenant.memberUserId': 'ユーザー ID',
   'system.tenant.memberUserIdPlaceholder': 'ユーザー ID を入力',
   'system.tenant.memberUserIdRequired': 'ユーザー ID を入力してください',
+  'system.tenant.member.userSelectEmpty': 'この範囲に追加できるユーザーはいません',
+  'system.tenant.member.userSelectNoPermission': 'このアカウントはユーザー一覧を参照できません',
+  'system.tenant.member.userSelectSearch': 'ユーザー名またはニックネームで検索',
+  'system.tenant.member.userSelectScope':
+    '候補は現在のテナントビューポイントから取得しています。対象のテナントでなければビューポイントを切り替えてください',
   'system.tenant.memberRole': 'ロール',
   'system.tenant.memberAddSuccess': 'メンバーを追加しました',
   'system.tenant.memberRemove': '削除',

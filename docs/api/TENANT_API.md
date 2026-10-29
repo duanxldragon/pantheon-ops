@@ -51,14 +51,18 @@ Creates a new tenant.
 **Response** (200 OK):
 ```json
 {
-  "id": 1,
-  "code": "acme-corp",
-  "name": "ACME Corporation",
-  "status": "active",
-  "plan": "enterprise",
-  "metadata": "{\"industry\":\"technology\"}",
-  "created_at": "2026-09-29T10:00:00Z",
-  "updated_at": "2026-09-29T10:00:00Z"
+  "code": 200,
+  "data": {
+    "id": 1,
+    "code": "acme-corp",
+    "name": "ACME Corporation",
+    "status": "active",
+    "plan": "enterprise",
+    "metadata": "{\"industry\":\"technology\"}",
+    "created_at": "2026-09-29T10:00:00Z",
+    "updated_at": "2026-09-29T10:00:00Z"
+  },
+  "message": "success"
 }
 ```
 
@@ -153,7 +157,9 @@ All fields are optional. Only provided fields will be updated.
 **Response** (200 OK):
 ```json
 {
-  "message": "tenant updated successfully"
+  "code": 200,
+  "data": {},
+  "message": "success"
 }
 ```
 
@@ -173,18 +179,23 @@ Marks a tenant as deleted (soft delete).
 **Response** (200 OK):
 ```json
 {
-  "message": "tenant deleted successfully"
+  "code": 200,
+  "data": {},
+  "message": "success"
 }
 ```
 
 **Errors**:
-- `400 Bad Request`: Tenant has active members
+- `400 Bad Request` + `tenant.not_archived`: the tenant is not archived — deletion is reserved
+  for archived tenants (contract §2.1)
 - `404 Not Found`: Tenant not found
 
-**Note**: An active tenant cannot be deleted while it still has active members. Remove the
-members first, or — because the last owner can never be removed — set the tenant to
-`archived` first and then delete it. Deleting an archived tenant disables its remaining
-memberships in the same transaction.
+**Note**: Deletion is the final step of the documented retirement path, not a
+member-management action. The guard is the tenant's status, not its member count: an active
+tenant is refused even when it has no active members (a state reachable by deleting every
+user, which disables their memberships). Because the last owner can never be removed (§2.2),
+set the tenant to `archived` first and then delete it. Deleting an archived tenant disables
+its remaining memberships in the same transaction.
 
 ---
 
@@ -212,13 +223,28 @@ Adds a user to a tenant.
 **Response** (200 OK):
 ```json
 {
-  "message": "member added successfully"
+  "code": 200,
+  "data": {},
+  "message": "success"
 }
 ```
 
 **Errors**:
-- `404 Not Found`: Tenant or user not found
-- Envelope `code` `400` + `tenant.member_exists`: the user is already a member (re-adding is idempotent for non-owner rows)
+- Envelope `code` `404` + `tenant.not_found`: the tenant id is unknown or the tenant is a deleted
+  tombstone. This guard runs first, so a tombstone answers with the tenant error even when
+  `user_id` is also unknown.
+- Envelope `code` `404` + `user.not_found`: `user_id` does not name a `system_user` row that still
+  exists (`deleted_at IS NULL`). `tenant_memberships` has no foreign key to `system_user`, so without
+  this guard a typo in the console created a membership row naming nobody — and a row written as
+  `owner` for a nonexistent user satisfied the last-owner invariant for a user who can never sign in.
+  A disabled user is still addable.
+- Envelope `code` `400` + `tenant.member.user_not_in_tenant`: the user is owned by another tenant
+  (`system_user.tenant_id` is not the target tenant). Role bindings are stamped from the owning
+  tenant, so a cross-tenant membership would grant login eligibility with zero roles — an unusable
+  context (tenant contract §2.2, V1.7). This closes the defect where such a row was accepted and the
+  login picker then offered a tenant that rendered an empty console.
+- Envelope `code` `400` + `tenant.member_exists`: the user is already an `owner` and a non-owner role
+  was submitted (re-adding is idempotent for non-owner rows)
 
 ---
 
@@ -226,7 +252,7 @@ Adds a user to a tenant.
 
 **GET** `/system/tenant/:id/members`
 
-Lists one bounded page of active tenant members, ordered by creation time and ID. The response envelope is stable for all consumers; the `/members/page` path below remains as a compatibility alias.
+Lists one bounded page of active tenant members, ordered by creation time and ID. The response envelope is stable for all consumers. This is the only mounted member-list route: no `/members/page` variant exists (the legacy route group that carried it is not registered).
 
 **Authorization**: Platform capability required (`PlatformCapabilityMiddleware` + `system:tenant:*`)
 
@@ -252,9 +278,8 @@ Lists one bounded page of active tenant members, ordered by creation time and ID
 }
 ```
 
-**GET** `/system/tenant/:id/members/page`
+---
 
-Compatibility alias for the same bounded pagination contract and response envelope.
 ### 8. Remove Tenant Member
 
 **DELETE** `/system/tenant/:id/members/:userId`
@@ -279,8 +304,16 @@ Removes a user from a tenant.
 
 **GET** `/auth/tenants/switchable`
 
-Returns the tenants the current authenticated user may switch into (active memberships). This is
-the mounted equivalent of the legacy `GET /tenants/my`; the legacy group is not registered.
+Returns the tenants the current authenticated user may switch into: active memberships in active
+tenants **where the user holds at least one role binding** (tenant contract §2.2, V1.7 — a
+membership without roles is not a usable context). This is the mounted equivalent of the legacy
+`GET /tenants/my`; the legacy group is not registered.
+
+**Compatibility surface (V1.7)**: the login tenant picker and the shell TenantSwitcher control were
+removed because a subject can hold role bindings in at most one tenant (its owning one), so this
+list is filtered down to at most one item and the controls could never render. The endpoint stays
+for API compatibility: a client that still calls it gets the filtered list, not an error. The same
+predicate filters `GET /auth/login-tenants` (the login candidate list).
 
 **Authorization**: Requires authentication (any authenticated user)
 
@@ -499,10 +532,12 @@ Codes seen on this surface:
 | 200 | 200 | `success` | OK |
 | 200 | 400 | `param.invalid` | Binding/validation failure (also used for state conflicts; the envelope has no 409) |
 | 200 | 400 | `tenant.member.last_owner` | Removing the last active owner (contract §2.2) |
+| 200 | 400 | `tenant.member.user_not_in_tenant` | Add-member submitted a user owned by another tenant (contract §2.2 V1.7) |
 | 200 | 400 | `tenant.status.terminal` | Trying to move an archived tenant (contract §2.1) |
 | 200 | 403 | `tenant.platformOnly` | Non-platform subject on the tenant console |
 | 200 | 403 | `tenant.forbidden` | Foreign tenant id in the body / untrusted `X-Tenant-Id` |
 | 200 | 404 | `tenant.not_found` | Unknown tenant or membership |
+| 200 | 404 | `user.not_found` | Add-member submitted an id that names no existing user |
 
 > The transport status stays `200` for business failures; always branch on the envelope `code`,
 > not on the HTTP status. This is the platform-wide convention, not tenant-specific.

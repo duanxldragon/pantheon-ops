@@ -62,7 +62,7 @@ func (s *DeptService) loadGovernanceSnapshot() (*governanceSnapshot, error) {
 	}
 
 	var depts []SystemDept
-	if err := s.scoped(s.db).Order("sort asc").Order("id asc").Find(&depts).Error; err != nil {
+	if err := s.Scoped(s.db).Order("sort asc").Order("id asc").Find(&depts).Error; err != nil {
 		return nil, err
 	}
 	childCountByDept, err := s.loadDeptChildCounts()
@@ -81,7 +81,7 @@ func (s *DeptService) loadGovernanceSnapshot() (*governanceSnapshot, error) {
 	if err != nil {
 		return nil, err
 	}
-	pathByID, _, err := impexp.BuildDeptPathMaps(s.scoped(s.db))
+	pathByID, _, err := impexp.BuildDeptPathMaps(s.Scoped(s.db))
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +152,7 @@ func (s *DeptService) collectPostGovernanceTasks(snapshot *governanceSnapshot, q
 	}
 
 	posts := make([]postGovernanceRow, 0)
-	if err := s.scoped(s.db.Table("system_post")).
+	if err := s.Scoped(s.db.Table("system_post")).
 		Where("deleted_at IS NULL").
 		Select("id, dept_id, post_code, post_name, status").
 		Order("sort asc").Order("id asc").
@@ -213,7 +213,7 @@ func (s *DeptService) loadDeptChildCounts() (map[uint64]int, error) {
 	}
 
 	var depts []SystemDept
-	if err := s.scoped(s.db).Select("id, parent_id").Find(&depts).Error; err != nil {
+	if err := s.Scoped(s.db).Select("id, parent_id").Find(&depts).Error; err != nil {
 		return nil, err
 	}
 
@@ -239,7 +239,7 @@ func (s *DeptService) loadDeptUserCounts() (map[uint64]int, error) {
 	}
 
 	rows := make([]deptUserCountRow, 0)
-	if err := s.scoped(s.db.Table("system_user")).
+	if err := s.Scoped(s.db.Table("system_user")).
 		Select("dept_id, COUNT(1) AS count").
 		Where("deleted_at IS NULL").
 		Group("dept_id").
@@ -269,7 +269,7 @@ func (s *DeptService) loadPostUserCounts() (map[uint64]int, error) {
 	}
 
 	rows := make([]postUserCountRow, 0)
-	if err := s.scoped(s.db.Table("system_user")).
+	if err := s.Scoped(s.db.Table("system_user")).
 		Select("post_id, COUNT(1) AS count").
 		Where("deleted_at IS NULL AND post_id > 0").
 		Group("post_id").

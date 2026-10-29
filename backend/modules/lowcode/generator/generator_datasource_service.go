@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"errors"
 	"fmt"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"net/netip"
@@ -11,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	mysqlDriver "github.com/go-sql-driver/mysql"
 	mysqlgorm "gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -78,10 +78,7 @@ func (s *GeneratorService) UpdateDatasource(id string, req *UpsertGeneratorDatas
 
 	var existing GeneratorDatasource
 	if err := s.db.First(&existing, numericID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, common.NewNotFound(msgDatasourceNotFound)
-		}
-		return nil, err
+		return nil, database.TranslateNotFound(err, common.NewNotFound(msgDatasourceNotFound))
 	}
 
 	row, err := normalizeDatasourceReq(req, false)
@@ -245,10 +242,7 @@ func (s *GeneratorService) loadDatasource(id string) (*GeneratorDatasource, erro
 	}
 	var row GeneratorDatasource
 	if err := s.db.First(&row, numericID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, common.NewNotFound(msgDatasourceNotFound)
-		}
-		return nil, err
+		return nil, database.TranslateNotFound(err, common.NewNotFound(msgDatasourceNotFound))
 	}
 	return &row, nil
 }

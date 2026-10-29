@@ -20,6 +20,7 @@ func TestAuthHandler_LoginReturnsTenantPickerAfterPasswordVerification(t *testin
 	db := testmysql.Open(t)
 	if err := db.AutoMigrate(
 		&user.SystemUser{},
+		&user.SystemUserRole{},
 		&SystemUserSession{},
 		&SystemLogLogin{},
 		&SystemLoginThrottle{},
@@ -51,6 +52,16 @@ func TestAuthHandler_LoginReturnsTenantPickerAfterPasswordVerification(t *testin
 	} {
 		if err := db.Create(&row).Error; err != nil {
 			t.Fatalf("create membership: %v", err)
+		}
+	}
+	// W4 (W3 decision A): the picker lists only usable memberships — each must
+	// carry at least one role binding, or the candidate is withheld.
+	for _, row := range []user.SystemUserRole{
+		{TenantID: 101, UserID: account.ID, RoleID: 1},
+		{TenantID: 202, UserID: account.ID, RoleID: 1},
+	} {
+		if err := db.Create(&row).Error; err != nil {
+			t.Fatalf("create user role: %v", err)
 		}
 	}
 	if err := db.Create(&setting.SystemSetting{

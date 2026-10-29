@@ -226,8 +226,8 @@ export async function loginAsTenantAdmin(browser: Browser, tenant: MatrixTenant)
   const login = await loginByApi(page.request, {
     username: tenant.adminUsername,
     password: tenant.adminPassword,
-    // A tenant's own administrator has exactly one membership, so this resolves
-    // deterministically instead of opening the login picker.
+    // The owning tenant is also the only usable one (contract §2.2 V1.7);
+    // naming it keeps the request deterministic without relying on discovery.
     tenantId: tenant.id,
   } as Parameters<typeof loginByApi>[1]);
   await installClientSession(page, login);
@@ -239,10 +239,13 @@ export type TenantSession = Awaited<ReturnType<typeof loginAsTenantAdmin>>;
 /**
  * Removes the tenants this run owns.
  *
- * `DELETE /system/tenant/:id` is refused while any active membership remains
- * (membership is the login gate, contract §2.2), so every membership is purged
- * first — including the owner row provisioning creates. Manifest tenants are
- * left in place: the runner's `down` step owns them.
+ * `DELETE /system/tenant/:id` refuses anything that is not in the archived
+ * terminal state (W1, contract §2.1: `tenant.not_archived`), so each owned
+ * tenant is archived first; the delete transaction disables any remaining
+ * memberships itself. The old purge-memberships-then-delete order is both
+ * unnecessary and broken now — removing the provisioning owner is refused as
+ * the last-owner removal. Manifest tenants are left in place: the runner's
+ * `down` step owns them.
  */
 export async function teardownMatrixTenants(
   request: APIRequestContext,
@@ -257,24 +260,21 @@ export async function teardownMatrixTenants(
   await Promise.all(owned.map((tenant) => teardownOneTenant(request, tenant, headers)));
 }
 
-/** Purges one owned tenant: every membership first, then the tenant row. */
+/** Archives one owned tenant, then deletes the row. */
 async function teardownOneTenant(
   request: APIRequestContext,
   tenant: MatrixTenant,
   headers: Record<string, string>,
 ): Promise<void> {
-  const response = await request.get(`${apiBaseUrl}/system/tenant/${tenant.id}/members`, {
+  const archived = await request.put(`${apiBaseUrl}/system/tenant/${tenant.id}`, {
     headers,
+    data: { name: tenant.name, status: 'archived' },
   });
-  const payload = (await response.json()) as ApiEnvelope<{ items?: Array<{ user_id: number }> }>;
-  const members = payload.data?.items ?? [];
-  await Promise.all(
-    members.map((member) =>
-      request.delete(`${apiBaseUrl}/system/tenant/${tenant.id}/members/${member.user_id}`, {
-        headers,
-      }),
-    ),
-  );
+  const archivedPayload = (await archived.json()) as ApiEnvelope<unknown>;
+  expect(
+    archivedPayload.code,
+    `archive tenant ${tenant.id}: ${JSON.stringify(archivedPayload)}`,
+  ).toBe(200);
   const deleted = await request.delete(`${apiBaseUrl}/system/tenant/${tenant.id}`, { headers });
   const deletedPayload = (await deleted.json()) as ApiEnvelope<unknown>;
   expect(deletedPayload.code, `teardown tenant ${tenant.id}: ${JSON.stringify(deletedPayload)}`).toBe(

@@ -106,10 +106,6 @@ const zhCNFallback = {
   'auth.login.consoleTitle': '身份验证',
   'auth.login.securityNotice':
     '请使用管理员分配的账号登录。系统会记录登录时间、设备与来源 IP 用于安全审计。',
-  'auth.login.tenant.title': '选择工作租户',
-  'auth.login.tenant.hint': '该账号属于多个租户，请选择本次登录的工作范围。',
-  'auth.login.tenant.placeholder': '请选择租户',
-  'auth.login.tenant.back': '返回重新输入',
   'auth.login.idleTimeoutNotice': '当前账号因超过会话空闲时长被自动退出，请重新登录继续操作。',
   'auth.login.feature.modules': '模块化单体',
   'auth.login.feature.security': '安全会话',
@@ -655,7 +651,7 @@ const zhCNFallback = {
   'system.tenant.plan.professional': '专业版',
   'system.tenant.plan.enterprise': '旗舰版',
   'system.tenant.plan.outsideLadder':
-    '「{{plan}}」不在前台能力阶梯内：控制台功能按免费版展示，配额上限仍按该套餐定义生效。',
+    '「{{plan}}」不在前台能力阶梯内：控制台功能按免费版展示，lowcode 门控面不可见；配额上限仍按该套餐定义生效。',
   'system.tenant.planFeature.title': '套餐功能对照',
   'system.tenant.planFeature.description':
     '套餐决定租户控制台中可用的功能入口；具体操作仍由角色授权控制。',
@@ -712,6 +708,11 @@ const zhCNFallback = {
   'system.tenant.memberUserId': '用户 ID',
   'system.tenant.memberUserIdPlaceholder': '请输入用户 ID',
   'system.tenant.memberUserIdRequired': '请输入用户 ID',
+  'system.tenant.member.userSelectEmpty': '当前范围内没有可添加的用户',
+  'system.tenant.member.userSelectNoPermission': '当前账号无权浏览用户列表',
+  'system.tenant.member.userSelectSearch': '搜索用户名或昵称',
+  'system.tenant.member.userSelectScope':
+    '候选用户来自当前租户视角，与目标租户不一致时请先切换视角',
   'system.tenant.memberRole': '成员角色',
   'system.tenant.memberAddSuccess': '成员添加成功',
   'system.tenant.memberRemove': '移除',
@@ -2351,9 +2352,11 @@ const zhCNFallback = {
   'tenant.not_found': '租户不存在',
   'tenant.has_active_members':
     '该租户仍有关联成员。请先将租户状态改为「已归档」再执行删除；删除已归档租户时会自动停用其成员',
+  'tenant.not_archived': '该租户尚未归档，无法删除。请先把状态改为「已归档」，再执行删除',
   'tenant.delete.error.archive_code_conflict': '释放租户编码失败，请重试',
   'tenant.forbidden': '当前账号不属于该租户，无法访问该租户的数据',
   'tenant.suspended': '该租户已被暂停，暂时无法登录',
+  'tenant.member.user_not_in_tenant': '该成员属于其他租户，无法添加为当前租户成员',
   'tenant.archived': '该租户已归档，无法登录',
   'tenant.context.missing': '当前会话缺少租户上下文，请重新登录',
   'tenant.id.invalid': '租户标识无效',

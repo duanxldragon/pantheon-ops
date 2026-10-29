@@ -29,7 +29,7 @@ const (
 func (h *PlatformHandler) GetOverview(c *gin.Context) {
 	var filter Filter
 	if err := c.ShouldBindQuery(&filter); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	resp, err := h.service.Overview(filter)
@@ -44,7 +44,7 @@ func (h *PlatformHandler) GetOverview(c *gin.Context) {
 func (h *PlatformHandler) ListAllMembers(c *gin.Context) {
 	var filter MemberRowFilter
 	if err := c.ShouldBindQuery(&filter); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	resp, err := h.service.ListMembersAcrossPages(filter)
@@ -71,7 +71,7 @@ func (h *PlatformHandler) CreatePlan(c *gin.Context) {
 
 	var req PlanCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	plan, err := h.service.Plans().Create(req)
@@ -88,12 +88,12 @@ func (h *PlatformHandler) UpdatePlan(c *gin.Context) {
 
 	code := normalizePlanCode(c.Param("code"))
 	if code == "" {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	var req PlanUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	plan, err := h.service.Plans().Update(code, req)

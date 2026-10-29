@@ -87,7 +87,7 @@ func TestRoleService_UpdateRolePreservesCustomDataScopeDeptIDs(t *testing.T) {
 		t.Fatalf("role key change created a new policy row: old=%d new=%d", pol.ID, policies.Items[0].ID)
 	}
 	var oldCount int64
-	if err := db.Model(&roleDataScopePolicy{}).Where("role_key = ?", "scoped_role").Count(&oldCount).Error; err != nil || oldCount != 0 {
+	if err := db.Model(&permission.PermissionRoleDataScopePolicy{}).Where("role_key = ?", "scoped_role").Count(&oldCount).Error; err != nil || oldCount != 0 {
 		t.Fatalf("old role policy remains after rename: count=%d err=%v", oldCount, err)
 	}
 }
@@ -118,7 +118,7 @@ func TestRoleService_UpdateRoleSwitchToCustomWithoutPolicyKeepsEmpty(t *testing.
 		t.Fatalf("update role to custom: %v", err)
 	}
 
-	var policy roleDataScopePolicy
+	var policy permission.PermissionRoleDataScopePolicy
 	err = db.Where("role_key = ?", "plain_role").Limit(1).Find(&policy).Error
 	if err != nil {
 		t.Fatalf("load policy: %v", err)

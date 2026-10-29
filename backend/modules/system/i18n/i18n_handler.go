@@ -13,7 +13,6 @@ import (
 )
 
 const (
-	errParamInvalid = "param.invalid"
 	errIDInvalid    = "id.invalid"
 	errI18nNotFound = "i18n.not_found"
 )
@@ -95,7 +94,7 @@ func (h *I18nHandler) DeleteArchivedUnusedKeys(c *gin.Context) {
 	common.SetAuditMetadata(c, "i18n.lifecycle.delete.title", common.BusinessDelete)
 	var req I18nUnusedLifecycleReq
 	if err := c.ShouldBindJSON(&req); err != nil && err.Error() != "EOF" {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	if req.Module == "" {
@@ -106,7 +105,7 @@ func (h *I18nHandler) DeleteArchivedUnusedKeys(c *gin.Context) {
 	resp, err := h.service.DeleteArchivedUnusedKeys(req.Module, req.ConfirmArchived)
 	if err != nil {
 		if err.Error() == "i18n.lifecycle.delete.confirm_required" {
-			common.FailWithError(c, common.CodeParamInvalid, err, errParamInvalid)
+			common.FailWithError(c, common.CodeParamInvalid, err, common.MessageParamInvalid)
 			return
 		}
 		common.Fail(c, common.CodeError, "i18n.lifecycle.delete.error")
@@ -162,14 +161,14 @@ func (h *I18nHandler) PreviewRenameKey(c *gin.Context) {
 
 	var req I18nRenamePreviewReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	resp, err := h.service.PreviewRenameKey(&req)
 	if err != nil {
 		switch err.Error() {
 		case "i18n.rename.invalid":
-			common.FailWithError(c, common.CodeParamInvalid, err, errParamInvalid)
+			common.FailWithError(c, common.CodeParamInvalid, err, common.MessageParamInvalid)
 		case "i18n.rename.source_not_found":
 			common.FailWithError(c, common.CodeError, err, "i18n.rename.preview.error")
 		default:
@@ -184,14 +183,14 @@ func (h *I18nHandler) RenameKey(c *gin.Context) {
 	common.SetAuditMetadata(c, "i18n.rename.execute.title", common.BusinessUpdate)
 	var req I18nRenameExecuteReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	resp, err := h.service.RenameKey(&req)
 	if err != nil {
 		switch err.Error() {
 		case "i18n.rename.invalid", "i18n.rename.source_not_found":
-			common.FailWithError(c, common.CodeParamInvalid, err, errParamInvalid)
+			common.FailWithError(c, common.CodeParamInvalid, err, common.MessageParamInvalid)
 		case "i18n.rename.target_exists", "i18n.rename.source_not_confirmed":
 			common.FailWithError(c, common.CodeError, err, "i18n.rename.execute.error")
 		default:
@@ -235,7 +234,7 @@ func (h *I18nHandler) HydrateBuiltinLocales(c *gin.Context) {
 func (h *I18nHandler) List(c *gin.Context) {
 	var query I18nQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	resp, err := h.service.List(&query)
@@ -268,7 +267,7 @@ func (h *I18nHandler) Create(c *gin.Context) {
 	common.SetAuditMetadata(c, "i18n.translation.create.title", common.BusinessInsert)
 	var req I18nCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	// 操作者追溯：token middleware 已将 username 写入上下文；json:"-" 阻止客户端伪造。
@@ -277,7 +276,7 @@ func (h *I18nHandler) Create(c *gin.Context) {
 	if err != nil {
 		switch err.Error() {
 		case "i18n.create.invalid":
-			common.FailWithError(c, common.CodeParamInvalid, err, errParamInvalid)
+			common.FailWithError(c, common.CodeParamInvalid, err, common.MessageParamInvalid)
 		case "i18n.key.duplicate":
 			common.FailWithError(c, common.CodeError, err, "i18n.create.error")
 		default:
@@ -300,7 +299,7 @@ func (h *I18nHandler) Update(c *gin.Context) {
 
 	var req I18nUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	// 操作者追溯：同 Create，从认证上下文注入而非信任请求体。
@@ -312,7 +311,7 @@ func (h *I18nHandler) Update(c *gin.Context) {
 			return
 		}
 		if err.Error() == "i18n.value.required" {
-			common.FailWithError(c, common.CodeParamInvalid, err, errParamInvalid)
+			common.FailWithError(c, common.CodeParamInvalid, err, common.MessageParamInvalid)
 			return
 		}
 		common.Fail(c, common.CodeError, "i18n.update.error")
@@ -343,7 +342,7 @@ func (h *I18nHandler) DeleteBatch(c *gin.Context) {
 	common.SetAuditMetadata(c, "i18n.translation.batch_delete.title", common.BusinessDelete)
 	var req I18nBatchDeleteReq
 	if err := c.ShouldBindJSON(&req); err != nil || len(req.IDs) == 0 {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	if err := h.service.DeleteBatch(req.IDs); err != nil {
@@ -357,7 +356,7 @@ func (h *I18nHandler) Export(c *gin.Context) {
 	common.SetAuditMetadata(c, "i18n.translation.export.title", common.BusinessExport)
 	var query I18nQuery
 	if err := c.ShouldBindJSON(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	file, err := h.service.Export(&query)
@@ -380,22 +379,8 @@ func (h *I18nHandler) DownloadImportTemplate(c *gin.Context) {
 func (h *I18nHandler) Import(c *gin.Context) {
 	common.SetAuditMetadata(c, "i18n.translation.import.title", common.BusinessImport)
 
-	fileHeader, err := c.FormFile("file")
-	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "import.file.required")
-		return
-	}
-	file, err := fileHeader.Open()
-	if err != nil {
-		common.Fail(c, common.CodeError, "import.file.read.error")
-		return
-	}
-	// 显式接管 multipart part 的生命周期：ReadCSV 内部也会关闭，
-	// 这里 defer 保证所有权清晰，且覆盖未来提前 return 的路径。
-	defer func() { _ = file.Close() }()
-	records, err := impexp.ReadCSV(file)
-	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "import.file.invalid_csv")
+	records, ok := impexp.ReadImportCSV(c)
+	if !ok {
 		return
 	}
 	result, err := h.service.Import(records, strings.TrimSpace(c.GetString("username")))
@@ -424,7 +409,7 @@ func (h *I18nHandler) ReloadCache(c *gin.Context) {
 
 	var req I18nCacheRefreshReq
 	if err := c.ShouldBindJSON(&req); err != nil && err.Error() != "EOF" {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	if err := h.service.ReloadLocales(req.Locales); err != nil {

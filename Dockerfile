@@ -19,7 +19,8 @@ COPY frontend/ ./
 RUN npm run patch:arco-react19 && npm run build
 
 # 阶段 2: 构建后端
-FROM golang:1.26.5-alpine AS backend-builder
+# 与 backend/go.mod 的 go directive 保持一致：CI 用 go-version-file 读取，这里必须手改。
+FROM golang:1.26.10-alpine AS backend-builder
 
 ARG PANTHEON_VERSION=dev
 WORKDIR /app
