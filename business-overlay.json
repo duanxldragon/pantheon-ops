@@ -84,6 +84,7 @@
     ".gitleaks.toml",
     ".gitmessage",
     ".sonarcloud.properties",
+    "sonar-project.properties",
     ".harness",
     ".foundation",
     "AGENTS.md",

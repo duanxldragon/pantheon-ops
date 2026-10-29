@@ -1,0 +1,164 @@
+{
+  "taskId": "2026-10-29-sonar-ci-analysis-restore",
+  "title": "Restore the Ops SonarCloud CI analysis configuration",
+  "goal": "Make the hosted SonarCloud Scan workflow analyse pantheon-ops again by restoring the Ops-owned sonar-project.properties that the v0.17.7 consumption silently dropped, and declare it in business-overlay.json so a future consumption cannot drop it again.",
+  "primaryLayer": "inheritance-sync",
+  "taskDoc": "docs/harness/tasks/2026-10-29-sonar-ci-analysis-restore.task.md",
+  "status": "completed",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "dependsOn": [
+    "maintainer-supplied SONAR_TOKEN for this repository (the previous value returned HTTP 403 from api.sonarcloud.io)"
+  ],
+  "blocks": [
+    "green SonarCloud Scan on pantheon-ops main"
+  ],
+  "scope": {
+    "in": [
+      "Restore sonar-project.properties with the content it held at 5c12964f^, including sonar.projectKey, sonar.organization, source exclusions, coverage exclusions and cpd exclusions.",
+      "Declare sonar-project.properties in business-overlay.json repositoryOverlayPaths.",
+      "Record the overlay contract, rebuild reproducibility and hosted SonarCloud Scan results."
+    ],
+    "out": [
+      "Any change to .github/workflows/sonarcloud.yml semantics, job conditions or gate policy.",
+      "Any change to SonarCloud project settings, quality gates or organization membership.",
+      "Introducing a second Sonar analysis channel or uploading coverage from a local run.",
+      "Re-committing or re-asserting the token value inside the repository."
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      "sonar-project.properties",
+      "docs/harness/tasks/2026-10-29-sonar-ci-analysis-restore.task.md",
+      ".harness/tasks/2026-10-29-sonar-ci-analysis-restore/manifest.json",
+      ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/commands.json",
+      ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/summary.md",
+      ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/review.md",
+      ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/pr-body.md"
+    ],
+    "modify": [
+      "business-overlay.json"
+    ],
+    "doNotTouch": [
+      ".github/workflows/sonarcloud.yml",
+      ".sonarcloud.properties (scopes SonarCloud automatic analysis and is already declared)",
+      "any repository secret value inside the working tree"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "business-overlay.json",
+    "scripts/business-overlay/rebuild-from-base.mjs",
+    ".github/workflows/sonarcloud.yml",
+    ".sonarcloud.properties"
+  ],
+  "implementationNotes": [
+    "copyDeclaredPath copies every declared repositoryOverlayPaths entry from the Ops tree regardless of whether Base ships that path, and the product-root guard only rejects backend, frontend/src, frontend/tests/smoke, database and schema, so a root configuration file is a legal repository overlay.",
+    "The file disappeared at 5c12964f (consume pantheon-base-v0.17.7) because it was never declared; the rebuild had no instruction to keep an Ops-only root file. This is the same failure class as the pinned task-manifest overlay found in the 0.18.1 round: overlay declarations, not file content, decide survival.",
+    ".sonarcloud.properties and sonar-project.properties are both required and are not duplicates: the scanner CLI that the workflow runs only reads sonar-project.properties, while .sonarcloud.properties scopes SonarCloud's automatic analysis.",
+    "The restored file also carries sonar.coverage.exclusions=**/* and sonar.cpd.exclusions; without them the built-in Sonar way new_coverage condition on the Free plan cannot be neutralised, which is why the file existed in the first place.",
+    "SONAR_TOKEN was rotated by the maintainer for this repository; with it installed the scan authenticates and now fails only on the missing mandatory properties, which is what this packet closes."
+  ],
+  "harnessProfile": {
+    "template": "api-service",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ci-workflow",
+    "portableFailureClass": "static-sensor-gap",
+    "ownerLayer": "inheritance-boundary",
+    "coverageDimensions": [
+      "architecture-fitness",
+      "method-health"
+    ]
+  },
+  "methodReadiness": {
+    "consumerSpecificControls": [
+      "repository overlay declaration is the survival mechanism for Ops-only root configuration",
+      "staging rebuild used to prove the file survives a consumption round"
+    ],
+    "requiredSensors": [
+      "command",
+      "hosted-workflow"
+    ],
+    "requiredEvidence": [
+      "commands.json",
+      "summary.md",
+      "review.md"
+    ],
+    "ratchetDecision": "registry-only",
+    "deferredCodeIssues": [
+      "Dependabot-triggered runs cannot read repository secrets, so SonarCloud Scan stays red on Dependabot PRs until Dependabot secrets are provisioned or the job is made to skip that actor; that is a gate-policy decision for the maintainer.",
+      "The SonarCloud quality gate for duanxldragon_pantheon-ops is currently ERROR on new_security_rating; clearing those findings is product work outside this packet."
+    ]
+  },
+  "deliveryGovernance": {
+    "designGate": [
+      "inheritance boundary note: base ships no sonar-project.properties, so the file is Ops-owned configuration and must be declared as a repository overlay"
+    ],
+    "developmentGate": [
+      "file restored from its last known-good revision rather than rewritten",
+      "overlay declaration added in the same change so the repair is durable"
+    ],
+    "qaAcceptanceGate": [
+      "check:business-overlay and test:business-overlay after the declaration",
+      "rebuild:from-base showing the rebuilt tree still contains sonar-project.properties"
+    ],
+    "githubGovernanceGate": [
+      "consumer-lock-drift",
+      "hosted-sonar-scan"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "business-overlay.json repositoryOverlayPaths -> rebuild-from-base assembly -> Ops-only root configuration -> .github/workflows/sonarcloud.yml -> sonar-scanner CLI"
+    ],
+    "riskNodes": [
+      "undeclared Ops-only root files",
+      "CI-based analysis authentication and project identity"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "npm run check:business-overlay",
+      "npm run test:business-overlay",
+      "npm run rebuild:from-base",
+      "node scripts/harness/check-task-packet.mjs docs/harness/tasks/2026-10-29-sonar-ci-analysis-restore.task.md",
+      "npm run check:harness-adoption",
+      "node scripts/check-pr-governance.mjs --event <event.json>",
+      "gh workflow run sonarcloud.yml --ref main"
+    ],
+    "runtimeEvidence": [
+      "scanner error text before the change (mandatory properties missing)",
+      "successful analysis and quality-gate read-back from the SonarCloud web API after the change",
+      "hosted SonarCloud Scan run conclusion on main"
+    ]
+  },
+  "runtimeSensitive": false,
+  "costProfile": {
+    "tokens": "small",
+    "note": "one restored configuration file plus one overlay declaration"
+  },
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/",
+    "reviewFile": ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/review.md",
+    "summaryFile": ".harness/evidence/2026-10-29-sonar-ci-analysis-restore/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/harness/tasks/2026-10-29-sonar-ci-analysis-restore.task.md",
+      "docs/harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1.task.md"
+    ]
+  },
+  "evidenceRequired": [
+    "scanner failure text before the change and the analysis result after it",
+    "overlay contract, overlay test and rebuild reproducibility after the declaration",
+    "hosted SonarCloud Scan run identity and conclusion",
+    "review summary"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Verification run or exception recorded",
+    "Evidence saved or summarized",
+    "Review completed"
+  ]
+}
