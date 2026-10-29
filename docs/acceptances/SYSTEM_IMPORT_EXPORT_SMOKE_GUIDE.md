@@ -8,7 +8,7 @@ linked_contracts:
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
   - docs/contracts/SYSTEM_ORG_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-04-21
+updated_at: 2026-10-28
 ---
 
 # 系统域导入导出 Smoke 指南
@@ -35,7 +35,7 @@ cmd /c npm run test:smoke:system:api
 - `system/iam`
   - 用户：导入 / 导出
   - 权限策略：导入 / 导出
-  - 角色：仅导出、批量启用 / 禁用，不支持导入
+  - 角色：导入 / 导出、批量启用 / 禁用
 - `system/org`
   - 部门：导入 / 导出
   - 岗位：导入 / 导出

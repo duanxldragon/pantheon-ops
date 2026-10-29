@@ -30,12 +30,16 @@ type tenantSummary struct {
 }
 
 // ListSwitchableTenants lists the tenants the authenticated subject may switch
-// to: exactly its ACTIVE memberships (contract §2.2). Under compat, or for a
-// subject with no memberships, the list is empty and the UI keeps the switcher
-// hidden.
+// to: exactly its ACTIVE memberships (contract §2.2), narrowed by W4 (W3
+// decision A) to memberships where the subject holds at least one role
+// binding — a membership without roles is not a usable context and is no
+// longer offered. Under compat, or for a subject with no usable memberships,
+// the list is empty and the UI keeps the switcher hidden.
 //
 // This is the read half of the tenant switcher; it never widens scope, it only
-// reports what the membership table already grants.
+// reports what the membership table already grants. `tenant.ListActiveMemberships`
+// itself stays unfiltered — /auth/tenants/current uses it to report the caller's own
+// membership role honestly, even when that membership is not loginable.
 func (h *AuthHandler) ListSwitchableTenants(c *gin.Context) {
 	userID := common.GetUserID(c)
 	if userID == 0 {
@@ -52,6 +56,9 @@ func (h *AuthHandler) ListSwitchableTenants(c *gin.Context) {
 
 	ids := make([]uint64, 0, len(memberships))
 	for _, m := range memberships {
+		if !tenant.HasRoleBindingInTenant(h.service.db, userID, m.TenantID) {
+			continue
+		}
 		ids = append(ids, m.TenantID)
 	}
 	summaries := h.loadTenantSummaries(ids)

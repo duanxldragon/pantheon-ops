@@ -116,6 +116,9 @@ jobs:
       - name: Check generated modules
         run: npm run check:generated-modules
 
+      - name: Check UI quality gate
+        run: npm run check:ui-quality-gate
+
   frontend-contract:
     name: Frontend Contract
     needs:

@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
+import { resolveArchiveAwarePath } from '../task-manifest.mjs';
 import { resolvePantheonHarnessRoot } from './upstream-root.mjs';
 
 const DEFAULT_ROOT = process.cwd();
@@ -61,6 +62,17 @@ function resolvePantheonHarnessTarget(methodRoot, href) {
   return path.join(methodRoot, match[1]);
 }
 
+// Docs keep pointing at the canonical `.harness/{tasks,evidence}/<task-id>/...`
+// address after a task moves into the monthly archive, so a link is satisfied
+// when the archive-aware resolver finds it there.
+function resolvesIntoArchive(root, absoluteTarget) {
+  const relative = path.relative(root, absoluteTarget).replaceAll(path.sep, '/');
+  if (relative.startsWith('..')) {
+    return false;
+  }
+  return resolveArchiveAwarePath(root, relative) !== null;
+}
+
 function scan(root) {
   const findings = [];
   const methodRoot = resolvePantheonHarnessRoot(root);
@@ -73,7 +85,8 @@ function scan(root) {
         const targetExists =
           fs.existsSync(target) ||
           fs.existsSync(target.replace(/#.*$/, '')) ||
-          (externalTarget !== null && fs.existsSync(externalTarget));
+          (externalTarget !== null && fs.existsSync(externalTarget)) ||
+          resolvesIntoArchive(root, target);
         if (!targetExists) {
           findings.push({
             file: path.relative(root, filePath).replaceAll(path.sep, '/'),

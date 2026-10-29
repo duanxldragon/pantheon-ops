@@ -114,11 +114,6 @@ const enUSFallback = {
   'auth.login.consoleTitle': 'Identity verification',
   'auth.login.securityNotice':
     'Sign in with an administrator-assigned account. Login time, device, and source IP are recorded for security audit.',
-  'auth.login.tenant.title': 'Choose a workspace tenant',
-  'auth.login.tenant.hint':
-    'This account belongs to multiple tenants. Choose the scope for this sign-in.',
-  'auth.login.tenant.placeholder': 'Select a tenant',
-  'auth.login.tenant.back': 'Back to credentials',
   'auth.login.idleTimeoutNotice':
     'This account was signed out automatically after being idle for too long. Sign in again to continue.',
   'auth.login.feature.modules': 'Modular Monolith',
@@ -706,7 +701,7 @@ const enUSFallback = {
   'system.tenant.plan.professional': 'Professional',
   'system.tenant.plan.enterprise': 'Enterprise',
   'system.tenant.plan.outsideLadder':
-    '"{{plan}}" is not part of the console capability ladder, so its features show at the free tier; the quota ceilings still come from this plan definition.',
+    '"{{plan}}" is not part of the console capability ladder, so its features show at the free tier and the lowcode gated surfaces stay hidden; the quota ceilings still come from this plan definition.',
   'system.tenant.planFeature.title': 'Plan feature comparison',
   'system.tenant.planFeature.description':
     'The plan decides which feature entries the tenant console exposes; role permissions still govern what each user may do.',
@@ -766,6 +761,11 @@ const enUSFallback = {
   'system.tenant.memberUserId': 'User ID',
   'system.tenant.memberUserIdPlaceholder': 'Enter user ID',
   'system.tenant.memberUserIdRequired': 'Please enter the user ID',
+  'system.tenant.member.userSelectEmpty': 'No users are available in this scope',
+  'system.tenant.member.userSelectNoPermission': 'This account cannot browse the user list',
+  'system.tenant.member.userSelectSearch': 'Search by username or nickname',
+  'system.tenant.member.userSelectScope':
+    'Candidates come from the active tenant viewpoint; switch viewpoint if it is not the target tenant',
   'system.tenant.memberRole': 'Role',
   'system.tenant.memberAddSuccess': 'Member added',
   'system.tenant.memberRemove': 'Remove',
@@ -2538,11 +2538,14 @@ const enUSFallback = {
   'tenant.not_found': 'Tenant not found.',
   'tenant.has_active_members':
     'This tenant still has active members. Set its status to "Archived" first, then delete it; deleting an archived tenant disables its members.',
+  'tenant.not_archived':
+    'This tenant is not archived and cannot be deleted. Set its status to "Archived" first, then delete it.',
   'tenant.delete.error.archive_code_conflict':
     'Could not release the tenant code. Please try again.',
   'tenant.forbidden':
     'Your account does not belong to this tenant, so its data cannot be accessed.',
   'tenant.suspended': 'This tenant is suspended and cannot be signed in to right now.',
+  'tenant.member.user_not_in_tenant': 'That user belongs to another tenant and cannot be added as a member here.',
   'tenant.archived': 'This tenant is archived and cannot be signed in to.',
   'tenant.context.missing': 'This session has no tenant context. Please sign in again.',
   'tenant.id.invalid': 'Invalid tenant identifier.',

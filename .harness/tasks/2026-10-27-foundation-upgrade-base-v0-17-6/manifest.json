@@ -4,7 +4,7 @@
   "goal": "Advance the Ops foundation consumer from pantheon-base-v0.16.1 to the published pantheon-base-v0.17.6, swap the Ops baseline onto the verified rebuilt assembly, and repair the consumer defects the swap exposes: stale css specifiers, password fields that must use the shared PasswordInput, two dead base-path files, five case-only renames, an undeclared Ops doc archive and the missing check:shared-drift root script.",
   "primaryLayer": "inheritance-sync",
   "taskDoc": "docs/harness/tasks/2026-10-27-foundation-upgrade-base-v0-17-6.task.md",
-  "status": "complete",
+  "status": "completed",
   "priority": "P1",
   "deliveryTier": "L2",
   "dependsOn": [

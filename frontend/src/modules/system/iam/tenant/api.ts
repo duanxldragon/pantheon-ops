@@ -236,7 +236,7 @@ export interface MemberUsageListResp {
 
 export interface MemberUsageQuery {
   tenantId?: number;
-  status?: 'active' | 'removed';
+  status?: 'active' | 'disabled';
   role?: TenantMemberRole;
   keyword?: string;
   page?: number;

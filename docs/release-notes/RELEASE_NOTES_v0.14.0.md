@@ -251,11 +251,11 @@ Upgrade to v0.13.1 first, then follow v0.13.x upgrade path.
 
 ## 📚 Documentation Links
 
-- [API Reference](./docs/api/TENANT_API.md)
-- [Troubleshooting Guide](./docs/runbooks/TENANT_TROUBLESHOOTING.md)
-- [Upgrade Guide](./docs/migrations/COMPAT_TO_MULTI_UPGRADE.md)
-- [Maturity Assessment](./docs/TENANT_MATURITY_FINAL_2026-09-29.md)
-- [Contract Specification](./docs/contracts/TENANT_CONTRACT_V1.md)
+- [API Reference](../api/TENANT_API.md)
+- [Troubleshooting Guide](../runbooks/TENANT_TROUBLESHOOTING.md)
+- [Upgrade Guide](../migrations/COMPAT_TO_MULTI_UPGRADE.md)
+- [Maturity Assessment](../TENANT_MATURITY_FINAL_2026-09-29.md)
+- [Contract Specification](../contracts/TENANT_CONTRACT_V1.md)
 
 ## 🔗 Related Issues
 

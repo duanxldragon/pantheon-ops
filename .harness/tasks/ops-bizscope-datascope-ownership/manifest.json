@@ -4,7 +4,7 @@
   "title": "Make BizScope an authorized, race-safe ownership boundary",
   "goal": "Enforce authorized and race-safe BizScope ownership for business resources and operations.",
   "primaryLayer": "business/*",
-  "status": "complete",
+  "status": "completed",
   "priority": "P0",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-08-17-ops-bizscope-datascope-ownership.task.md",

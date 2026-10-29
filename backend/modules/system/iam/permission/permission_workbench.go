@@ -1,7 +1,6 @@
 package permission
 
 import (
-	"errors"
 	"sort"
 	"strings"
 	"time"
@@ -11,7 +10,6 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	tenantctx "github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
-	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -101,7 +99,7 @@ func (s *PermissionService) fetchWorkbenchRoles(query *PermissionWorkbenchQuery)
 	// inside their own tenant console.
 	db := s.db.Table("system_role").
 		Where("deleted_at IS NULL").
-		Where(permissionTenantClause, s.tenantOwnerID())
+		Where(permissionTenantClause, s.TenantOwnerID())
 	if query != nil {
 		if strings.TrimSpace(query.RoleKey) != "" {
 			db = db.Where("role_key LIKE ?", "%"+common.EscapeLikePattern(strings.TrimSpace(query.RoleKey))+"%")
@@ -449,7 +447,7 @@ func (s *PermissionService) loadWorkbenchPolicies(roleKeys []string) (map[string
 	for _, roleKey := range roleKeys {
 		subject := roleKey
 		if !s.isPlatformScope() {
-			subject = tenantctx.RoleSubject(roleKey, s.tenantOwnerID())
+			subject = tenantctx.RoleSubject(roleKey, s.TenantOwnerID())
 		}
 		subjectToRoleKey[subject] = roleKey
 		subjects = append(subjects, subject)
@@ -489,7 +487,7 @@ func (s *PermissionService) loadLatestWorkbenchRemediationEvents(roleKeys []stri
 	var events []PermissionWorkbenchRemediationEvent
 	query := s.db.Model(&PermissionWorkbenchRemediationEvent{}).Where("role_key IN ?", roleKeys)
 	if !s.isPlatformScope() {
-		query = query.Where(permissionTenantClause, s.tenantOwnerID())
+		query = query.Where(permissionTenantClause, s.TenantOwnerID())
 	}
 	if err := query.
 		Order("created_at desc, id desc").
@@ -516,7 +514,7 @@ func (s *PermissionService) countRecentWorkbenchRemediationEvents(roleKeys []str
 	var events []PermissionWorkbenchRemediationEvent
 	query := s.db.Model(&PermissionWorkbenchRemediationEvent{}).Where("role_key IN ?", roleKeys)
 	if !s.isPlatformScope() {
-		query = query.Where(permissionTenantClause, s.tenantOwnerID())
+		query = query.Where(permissionTenantClause, s.TenantOwnerID())
 	}
 	if err := query.
 		Order("created_at desc, id desc").
@@ -692,12 +690,9 @@ func (s *PermissionService) getRoleMissingAPIPolicies(roleKey string) (*Permissi
 	// global subject for it.
 	if err := s.db.Table("system_role").
 		Where("role_key = ? AND deleted_at IS NULL", roleKey).
-		Where(permissionTenantClause, s.tenantOwnerID()).
+		Where(permissionTenantClause, s.TenantOwnerID()).
 		First(&role).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, common.NewBadRequest(errPermissionRoleInvalid)
-		}
-		return nil, err
+		return nil, database.TranslateNotFound(err, common.NewBadRequest(errPermissionRoleInvalid))
 	}
 
 	result := &PermissionWorkbenchRoleResp{

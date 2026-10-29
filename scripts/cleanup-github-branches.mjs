@@ -130,12 +130,23 @@ async function hasOpenPullRequestForBranch(owner, repo, branchName, { token, api
   return pulls.length > 0;
 }
 
-async function deleteBranch(owner, repo, branchName, { token, apiBase }) {
-  await githubRequest(buildBranchDeletePath({ owner, repo, branchName }), {
+export async function deleteBranch(owner, repo, branchName, { token, apiBase }) {
+  const pathname = buildBranchDeletePath({ owner, repo, branchName });
+  const response = await fetch(`${apiBase}${pathname}`, {
     method: 'DELETE',
-    token,
-    apiBase,
+    headers: createHeaders(token),
   });
+  if (response.status === 404) {
+    return { deleted: false, reason: 'already-gone' };
+  }
+  if (response.status === 422 || response.status === 403) {
+    return { deleted: false, reason: 'protected-or-rejected' };
+  }
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`GitHub API DELETE ${pathname} failed: ${response.status} ${body}`);
+  }
+  return { deleted: true, reason: 'deleted' };
 }
 
 async function run() {
@@ -179,12 +190,20 @@ async function run() {
     });
 
     if (decision.action === 'delete') {
-      await deleteBranch(owner, repo, candidate.branchName, { token, apiBase });
-      summary.deleted.push({
-        branchName: candidate.branchName,
-        number: candidate.number,
-        reason: decision.reason,
-      });
+      const result = await deleteBranch(owner, repo, candidate.branchName, { token, apiBase });
+      if (result.deleted) {
+        summary.deleted.push({
+          branchName: candidate.branchName,
+          number: candidate.number,
+          reason: decision.reason,
+        });
+      } else {
+        summary.skipped.push({
+          branchName: candidate.branchName,
+          number: candidate.number,
+          reason: result.reason,
+        });
+      }
       continue;
     }
 

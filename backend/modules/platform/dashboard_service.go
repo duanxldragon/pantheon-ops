@@ -48,12 +48,15 @@ type DashboardServiceOption func(*DashboardService)
 type DashboardService struct {
 	db                      *gorm.DB
 	orgGovernanceTaskLoader OrgGovernanceTaskLoader
-	tenantCtx               *tenant.Context
+	// Scoper carries the per-request tenant context; the read side keeps its
+	// own scopedTable whitelist because several dashboard tables have no
+	// tenant dimension and must stay unscoped.
+	tenant.Scoper
 }
 
 func (s *DashboardService) WithTenantContext(ctx *tenant.Context) *DashboardService {
 	clone := *s
-	clone.tenantCtx = ctx
+	clone.TenantCtx = ctx
 	return &clone
 }
 
@@ -165,7 +168,7 @@ func (s *DashboardService) loadOrgGovernanceTasks(resp *SummaryResp) error {
 	if s.orgGovernanceTaskLoader == nil {
 		return nil
 	}
-	tasks, err := s.orgGovernanceTaskLoader.ListOrgGovernanceTasks(s.tenantCtx)
+	tasks, err := s.orgGovernanceTaskLoader.ListOrgGovernanceTasks(s.TenantCtx)
 	if err != nil {
 		return err
 	}
@@ -349,7 +352,7 @@ var tenantScopedTables = map[string]struct{}{
 func (s *DashboardService) scopedTable(tableName string) *gorm.DB {
 	q := s.db.Table(tableName)
 	if _, ok := tenantScopedTables[tableName]; ok {
-		q = q.Scopes(tenant.WithTenantScope(s.tenantCtx))
+		q = q.Scopes(tenant.WithTenantScope(s.TenantCtx))
 	}
 	return q
 }

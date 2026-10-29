@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/permission"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/impexp"
@@ -19,7 +20,7 @@ func setupRoleTestDB(t *testing.T) *gorm.DB {
 	db := testmysql.Open(t)
 
 	// 迁移模型
-	_ = db.AutoMigrate(&SystemRole{}, &SystemRolePermission{}, &SystemRoleMenu{}, &roleDataScopePolicy{}, &database.CasbinRule{})
+	_ = db.AutoMigrate(&SystemRole{}, &SystemRolePermission{}, &SystemRoleMenu{}, &permission.PermissionRoleDataScopePolicy{}, &database.CasbinRule{})
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_menu (id INTEGER PRIMARY KEY, page_perm TEXT, perms TEXT, type TEXT, module TEXT, path TEXT)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user_role (tenant_id INTEGER NOT NULL DEFAULT 0, user_id INTEGER, role_id INTEGER)")
 	_ = db.Exec("CREATE TABLE IF NOT EXISTS system_user (id INTEGER PRIMARY KEY, username TEXT, nickname TEXT, dept_id INTEGER, post_id INTEGER, status INTEGER, created_at DATETIME, updated_at DATETIME, deleted_at DATETIME)")
@@ -228,7 +229,7 @@ func assertRoleDeletionCleansAssociations(t *testing.T, db *gorm.DB, s *RoleServ
 		t.Fatalf("expected casbin policies to be removed, got %d", policyCount)
 	}
 	var scopeCount int64
-	if err := db.Model(&roleDataScopePolicy{}).Where(condRoleKeyEquals, "delete_me").Count(&scopeCount).Error; err != nil {
+	if err := db.Model(&permission.PermissionRoleDataScopePolicy{}).Where(condRoleKeyEquals, "delete_me").Count(&scopeCount).Error; err != nil {
 		t.Fatalf("failed to count data scope policies: %v", err)
 	}
 	if scopeCount != 0 {
@@ -237,7 +238,7 @@ func assertRoleDeletionCleansAssociations(t *testing.T, db *gorm.DB, s *RoleServ
 	if _, err := s.CreateRole(createReq); err != nil {
 		t.Fatalf("expected role key to be reusable after delete, got %v", err)
 	}
-	var recreatedScope roleDataScopePolicy
+	var recreatedScope permission.PermissionRoleDataScopePolicy
 	if err := db.Where(condRoleKeyEquals, "delete_me").First(&recreatedScope).Error; err == nil {
 		if recreatedScope.Mode == "custom" {
 			t.Fatalf("re-created role inherited dead role's custom data scope")

@@ -169,13 +169,13 @@ func TestIsAllowedSessionCleanupRetentionDays(t *testing.T) {
 }
 
 func TestNormalizePageQuery(t *testing.T) {
-	page, size := normalizePageQuery(0, 0)
-	if page != 1 || size != 10 {
-		t.Errorf("zero page/size should normalize to 1/10, got %d/%d", page, size)
+	page, size, offset := normalizePageQuery(0, 0)
+	if page != 1 || size != 10 || offset != 0 {
+		t.Errorf("zero page/size should normalize to 1/10/0, got %d/%d/%d", page, size, offset)
 	}
-	page, size = normalizePageQuery(3, 500)
-	if page != 3 || size != 100 {
-		t.Errorf("oversized page size should clamp to 100, got %d/%d", page, size)
+	page, size, offset = normalizePageQuery(3, 500)
+	if page != 3 || size != 100 || offset != 200 {
+		t.Errorf("oversized page size should clamp to 100, got %d/%d/%d", page, size, offset)
 	}
 }
 

@@ -42,28 +42,28 @@ func TestNormalizeRetentionOptions_NilInputFallsBack(t *testing.T) {
 // ---- normalizeOperationLogPageQuery ----
 
 func TestNormalizeOperationLogPageQuery_Nil(t *testing.T) {
-	page, pageSize := normalizeOperationLogPageQuery(nil)
-	if page != 1 || pageSize != 10 {
-		t.Fatalf("expected (1, 10), got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizeOperationLogPageQuery(nil)
+	if page != 1 || pageSize != 10 || offset != 0 {
+		t.Fatalf("expected (1, 10, 0), got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizeOperationLogPageQuery_ZeroValues(t *testing.T) {
-	page, pageSize := normalizeOperationLogPageQuery(&OperationLogQuery{})
-	if page != 1 || pageSize != 10 {
-		t.Fatalf("expected (1, 10) for zero values, got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizeOperationLogPageQuery(&OperationLogQuery{})
+	if page != 1 || pageSize != 10 || offset != 0 {
+		t.Fatalf("expected (1, 10, 0) for zero values, got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizeOperationLogPageQuery_CustomValues(t *testing.T) {
-	page, pageSize := normalizeOperationLogPageQuery(&OperationLogQuery{Page: 2, PageSize: 50})
-	if page != 2 || pageSize != 50 {
-		t.Fatalf("expected (2, 50), got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizeOperationLogPageQuery(&OperationLogQuery{Page: 2, PageSize: 50})
+	if page != 2 || pageSize != 50 || offset != 50 {
+		t.Fatalf("expected (2, 50, 50), got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizeOperationLogPageQuery_CapsPageSizeAt100(t *testing.T) {
-	_, pageSize := normalizeOperationLogPageQuery(&OperationLogQuery{Page: 1, PageSize: 250})
+	_, pageSize, _ := normalizeOperationLogPageQuery(&OperationLogQuery{Page: 1, PageSize: 250})
 	if pageSize != 100 {
 		t.Fatalf("expected pageSize capped at 100, got %d", pageSize)
 	}

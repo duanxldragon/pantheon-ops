@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md
-updated_at: 2026-10-11
+updated_at: 2026-10-28
 ---
 
 # Repository Layout, Naming, and Layer Boundaries
@@ -22,7 +22,7 @@ This document is the single authoritative standard for `pantheon-base` directory
 ```text
 backend/                  # Go backend: go.mod, entrypoint, domain modules, shared packages, migrations, performance tests
 frontend/                 # React frontend: shell, page modules, smoke tests, fixtures, frontend scripts
-docs/                     # Current docs, contracts, designs, acceptance docs, harness specs
+docs/                     # Current docs, contracts, designs, acceptance docs, harness specs, historical release notes
 scripts/                  # Root automation, GitHub collaboration, harness checks, release scripts
 tests/                    # Root Node script tests, docs tests
 .harness/                 # Runtime governance state (evidence/manifests created per task)
@@ -56,6 +56,7 @@ Root files fall into four groups:
 6. Generated bundle output belongs under `dist/` and must not be committed.
 7. `database/system_init.sql` remains in `database/` because `docker-compose.yml` references that stable path.
 8. Local Grafana/Prometheus observability config remains in `grafana/` so it stays separate from application runtime code.
+9. Release notes belong under `docs/release-notes/` (indexed by that directory's `README.md`) rather than accumulating at the repository root; historical versions are appended, never rewritten.
 
 ### 2.2 Directory Whitelist (the gate's decision basis)
 

@@ -91,7 +91,7 @@ func (s *RoleService) ensureAdminUserBinding() error {
 
 func (s *RoleService) validateRoleCreate(req *RoleCreateReq) error {
 	if strings.TrimSpace(req.RoleName) == "" || strings.TrimSpace(req.RoleKey) == "" {
-		return common.NewBadRequest(errParamInvalid)
+		return common.NewBadRequest(common.MessageParamInvalid)
 	}
 	if err := s.ensureRoleKeyAllowed(req.RoleKey, 0); err != nil {
 		return err
@@ -102,18 +102,18 @@ func (s *RoleService) validateRoleCreate(req *RoleCreateReq) error {
 	if err := s.ensureMenuIDsExist(req.MenuIDs); err != nil {
 		return err
 	}
-	if err := s.ensureMenuIDsAssignable(s.tenantOwnerID(), req.MenuIDs); err != nil {
+	if err := s.ensureMenuIDsAssignable(s.TenantOwnerID(), req.MenuIDs); err != nil {
 		return err
 	}
 	if err := s.ensurePermissionKeysExist(req.PermissionKeys); err != nil {
 		return err
 	}
-	return ensurePermissionKeysAssignable(s.tenantOwnerID(), req.PermissionKeys)
+	return ensurePermissionKeysAssignable(s.TenantOwnerID(), req.PermissionKeys)
 }
 
 func (s *RoleService) validateRoleUpdate(role *SystemRole, req *RoleUpdateReq) error {
 	if strings.TrimSpace(req.RoleName) == "" || strings.TrimSpace(req.RoleKey) == "" {
-		return common.NewBadRequest(errParamInvalid)
+		return common.NewBadRequest(common.MessageParamInvalid)
 	}
 	if role.RoleKey == "admin" && role.TenantID == tenant.PlatformGlobalTenantID &&
 		(strings.TrimSpace(req.RoleKey) != "admin" || req.Status == common.StatusDisabled) {
@@ -163,7 +163,7 @@ func (s *RoleService) ensureRoleKeyAllowed(roleKey string, excludeRoleID uint64)
 	if key == "" {
 		return nil
 	}
-	ownerID := s.tenantOwnerID()
+	ownerID := s.TenantOwnerID()
 	if ownerID != tenant.PlatformGlobalTenantID && key == "platform_ops" {
 		return common.NewConflict("role.key.reserved")
 	}
@@ -204,7 +204,7 @@ func (s *RoleService) ensureRoleKeyUnique(roleID uint64, roleKey string) error {
 	// Role keys are unique PER TENANT in multi mode (contract §4): the scope
 	// narrows the lookup to the request tenant, so each tenant can own its own
 	// `tenant_admin` without colliding with the platform's roles.
-	db := s.scoped(s.db.Model(&SystemRole{})).Where(condRoleKeyEquals, strings.TrimSpace(roleKey))
+	db := s.Scoped(s.db.Model(&SystemRole{})).Where(condRoleKeyEquals, strings.TrimSpace(roleKey))
 	if roleID > 0 {
 		db = db.Where("id <> ?", roleID)
 	}
@@ -300,7 +300,7 @@ func ensurePermissionKeysAssignable(ownerTenantID uint64, permissionKeys []strin
 
 func (s *RoleService) ensureUsersExist(userIDs []uint64) error {
 	var count int64
-	if err := s.scoped(s.db.Table("system_user")).Where("id IN ?", userIDs).Count(&count).Error; err != nil {
+	if err := s.Scoped(s.db.Table("system_user")).Where("id IN ?", userIDs).Count(&count).Error; err != nil {
 		return err
 	}
 	if count != int64(len(userIDs)) {
@@ -520,40 +520,38 @@ func normalizeRoleStatus(status int) int {
 	return common.NormalizeEnabledStatus(status)
 }
 
-func normalizeRolePageQuery(query *RoleListQuery) (int, int) {
-	page := 1
-	pageSize := 10
-	if query == nil {
-		return page, pageSize
+// normalizeRolePageQuery clamps the role list query through the shared
+// pagination helper with the role module's own cap. The nil-extract prelude
+// keeps the service's nil-tolerant contract; the shared helper decides the
+// defaults. normalizeRoleMemberPageQuery is the same adapter for the member
+// query type — generics cannot read struct fields, so the two types cannot
+// share one function body.
+func normalizeRolePageQuery(query *RoleListQuery) (int, int, int) {
+	var page, pageSize int
+	if query != nil {
+		page, pageSize = query.Page, query.PageSize
 	}
-	if query.Page > 0 {
-		page = query.Page
-	}
-	if query.PageSize > 0 {
-		pageSize = query.PageSize
-	}
-	if pageSize > 100 {
-		pageSize = 100
-	}
-	return page, pageSize
+	return common.NormalizePagination(page, pageSize, 100)
 }
 
-func normalizeRoleMemberPageQuery(query *RoleMemberQuery) (int, int) {
-	page := 1
-	pageSize := 10
-	if query == nil {
-		return page, pageSize
+func normalizeRoleMemberPageQuery(query *RoleMemberQuery) (int, int, int) {
+	var page, pageSize int
+	if query != nil {
+		page, pageSize = query.Page, query.PageSize
 	}
-	if query.Page > 0 {
-		page = query.Page
-	}
-	if query.PageSize > 0 {
-		pageSize = query.PageSize
-	}
-	if pageSize > 100 {
-		pageSize = 100
-	}
-	return page, pageSize
+	return common.NormalizePagination(page, pageSize, 100)
+}
+
+var roleSortColumns = map[string]string{
+	"id":         "id",
+	"roleName":   "role_name",
+	"role_name":  "role_name",
+	"roleKey":    "role_key",
+	"role_key":   "role_key",
+	"sort":       "sort",
+	"status":     "status",
+	"createdAt":  "created_at",
+	"created_at": "created_at",
 }
 
 func normalizeRoleSort(query *RoleListQuery) (string, bool) {
@@ -561,24 +559,8 @@ func normalizeRoleSort(query *RoleListQuery) (string, bool) {
 		return "id", true
 	}
 
-	sortWhitelist := map[string]string{
-		"id":         "id",
-		"roleName":   "role_name",
-		"role_name":  "role_name",
-		"roleKey":    "role_key",
-		"role_key":   "role_key",
-		"sort":       "sort",
-		"status":     "status",
-		"createdAt":  "created_at",
-		"created_at": "created_at",
-	}
-
-	column, ok := sortWhitelist[strings.TrimSpace(query.SortField)]
-	if !ok {
-		column = "id"
-	}
-
-	return column, strings.ToLower(strings.TrimSpace(query.SortOrder)) == "desc"
+	return common.NormalizeSort(query.SortField, roleSortColumns, "id"),
+		strings.ToLower(strings.TrimSpace(query.SortOrder)) == "desc"
 }
 
 func normalizeUint64IDs(ids []uint64) []uint64 {

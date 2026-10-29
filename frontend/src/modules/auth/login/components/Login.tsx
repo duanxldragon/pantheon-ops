@@ -29,7 +29,7 @@ import {
   isServerRequestError,
   isTimeoutRequestError,
 } from '../../../../api/request';
-import { login, type LoginPayload, type LoginResp, type LoginTenantCandidate } from '../api';
+import { login, type LoginPayload, type LoginResp } from '../api';
 import { verifyMFA } from '../../mfa/api';
 import { findFirstNavigableMenuPath } from '../../../system/iam/menu/api';
 import { useAuthStore } from '../../../../store/useAuthStore';
@@ -188,8 +188,6 @@ export function LoginPageComponent() {
   const [form] = Form.useForm<LoginPayload & { mfaCode?: string }>();
   const [loading, setLoading] = useState(false);
   const [mfaChallenge, setMFAChallenge] = useState<LoginResp | null>(null);
-  const [tenantCandidates, setTenantCandidates] = useState<LoginTenantCandidate[]>([]);
-  const [selectedTenantId, setSelectedTenantId] = useState<number>();
   const [loginNotice] = useState<string | null>(() =>
     sessionStorage.getItem(LOGIN_NOTICE_STORAGE_KEY),
   );
@@ -274,7 +272,7 @@ export function LoginPageComponent() {
         const res = await verifyMFA({
           challengeId: mfaChallenge.challengeId,
           code: values.mfaCode || '',
-          tenantId: selectedTenantId ?? mfaChallenge.tenantId,
+          tenantId: mfaChallenge.tenantId,
         });
         await completeLogin(res);
         return;
@@ -283,14 +281,12 @@ export function LoginPageComponent() {
       const res = await login({
         username: values.username,
         password: values.password,
-        tenantId: selectedTenantId,
       });
       if (res.tenantSelectionRequired) {
-        if (!Array.isArray(res.tenantCandidates) || res.tenantCandidates.length < 2) {
-          throw new Error('auth.login.response_invalid');
-        }
-        setTenantCandidates(res.tenantCandidates);
-        return;
+        // W4 (option A): a subject resolves at most one usable tenant — its
+        // owning one — so the login picker never renders. A picker envelope
+        // can only mean stale server state; refuse instead of guessing.
+        throw new Error('auth.login.response_invalid');
       }
       if (res.mfaRequired) {
         setMFAChallenge(res);
@@ -425,28 +421,6 @@ export function LoginPageComponent() {
                 onPressEnter={() => form.submit()}
               />
             </FormItem>
-            {tenantCandidates.length > 0 && !mfaChallenge ? (
-              <div className="auth-login-tenant-picker">
-                <Typography.Text className="auth-login-tenant-picker__label">
-                  {t('auth.login.tenant.title')}
-                </Typography.Text>
-                <Typography.Text className="auth-login-tenant-picker__hint">
-                  {t('auth.login.tenant.hint')}
-                </Typography.Text>
-                <Select
-                  value={selectedTenantId}
-                  placeholder={t('auth.login.tenant.placeholder')}
-                  size="large"
-                  onChange={(value) => setSelectedTenantId(Number(value))}
-                >
-                  {tenantCandidates.map((candidate) => (
-                    <Select.Option key={candidate.tenantId} value={candidate.tenantId}>
-                      {candidate.name} ({candidate.code})
-                    </Select.Option>
-                  ))}
-                </Select>
-              </div>
-            ) : null}
             <FormItem
               label={t('auth.password')}
               field="password"
@@ -469,23 +443,20 @@ export function LoginPageComponent() {
               htmlType="submit"
               long
               loading={loading}
-              disabled={tenantCandidates.length > 0 && !selectedTenantId && !mfaChallenge}
               className="auth-login-card__submit"
             >
               {mfaChallenge ? t('auth.mfa.verifyAndSignIn') : t('auth.signIn')}
             </Button>
-            {mfaChallenge || tenantCandidates.length > 0 ? (
+            {mfaChallenge ? (
               <Button
                 long
                 type="text"
                 disabled={loading}
                 onClick={() => {
                   setMFAChallenge(null);
-                  setTenantCandidates([]);
-                  setSelectedTenantId(undefined);
                 }}
               >
-                {mfaChallenge ? t('auth.mfa.backToPassword') : t('auth.login.tenant.back')}
+                {t('auth.mfa.backToPassword')}
               </Button>
             ) : null}
           </Form>

@@ -2,7 +2,7 @@
 
 **Version**: 1.1  
 **Date**: 2026-09-11  
-**Status**: Superseded by contract V1 — see [TENANT_CONTRACT_V1](../contracts/TENANT_CONTRACT_V1.md) (frozen) and [TENANT_MIGRATION_RUNBOOK](../runbooks/TENANT_MIGRATION_RUNBOOK.md). This document remains as background material for Phase 2/3 deployment models; where it conflicts with the contract, the contract wins.  
+**Status**: Vision document — **not a V1 commitment**. The binding scope of the shipped multi-tenant surface is [TENANT_CONTRACT_V1](../contracts/TENANT_CONTRACT_V1.md) §1 (In/Out); where this document conflicts with the contract, the contract wins. **What is not in V1** (named here as future work, out of scope per contract §1): custom subdomains, custom domains, tenant branding, public self-registration. The Phase 2/3 deployment models below are exploratory background material, not scheduled work. See also [TENANT_MIGRATION_RUNBOOK](../runbooks/TENANT_MIGRATION_RUNBOOK.md).  
 **Target**: Enterprise Multi-Organization Support
 
 ---

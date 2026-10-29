@@ -9,6 +9,7 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
+	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -20,10 +21,11 @@ const (
 
 type DeptService struct {
 	db *gorm.DB
-	// tenantCtx is the per-request tenant context (contract §3.3). Set from the
-	// Gin context by the handler layer via WithTenantContext; nil stays
-	// unfiltered for platform-internal paths, compat binds tenant_id=0.
-	tenantCtx *tenant.Context
+	// Scoper carries the per-request tenant context (contract §3.3) with the
+	// shared read filter and write owner. Bound from the Gin context by the
+	// handler layer via WithTenantContext; nil stays unfiltered for
+	// platform-internal paths, compat binds tenant_id=0.
+	tenant.Scoper
 }
 
 // WithTenantContext returns a shallow view of the service bound to a request
@@ -33,24 +35,8 @@ func (s *DeptService) WithTenantContext(ctx *tenant.Context) *DeptService {
 		return s
 	}
 	bound := *s
-	bound.tenantCtx = ctx
+	bound.TenantCtx = ctx
 	return &bound
-}
-
-// scoped applies the tenant read filter: in multi mode every department query
-// is pinned to the request tenant, so a tenant administrator only ever sees
-// (and can only mutate) its own department tree. Compat binds tenant_id=0.
-func (s *DeptService) scoped(db *gorm.DB) *gorm.DB {
-	return db.Scopes(tenant.WithTenantScope(s.tenantCtx))
-}
-
-// tenantOwnerID is the tenant a new department belongs to (write path: from
-// context, never from the request body — contract §3.3). Compat/platform => 0.
-func (s *DeptService) tenantOwnerID() uint64 {
-	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
-		return 0
-	}
-	return s.tenantCtx.TenantID
 }
 
 type deptLeaderUpdate struct {
@@ -99,7 +85,7 @@ func (s *DeptService) CreateDept(req *DeptCreateReq) (*DeptTreeResp, error) {
 	}
 
 	dept := SystemDept{
-		TenantID:     s.tenantOwnerID(),
+		TenantID:     s.TenantOwnerID(),
 		ParentID:     req.ParentID,
 		Ancestors:    ancestors,
 		DeptName:     strings.TrimSpace(req.DeptName),
@@ -123,7 +109,7 @@ func (s *DeptService) UpdateDept(deptID uint64, req *DeptUpdateReq) (*DeptTreeRe
 	}
 
 	var dept SystemDept
-	if err := s.scoped(s.db).First(&dept, deptID).Error; err != nil {
+	if err := s.Scoped(s.db).First(&dept, deptID).Error; err != nil {
 		return nil, err
 	}
 	if err := s.validateDeptUpdate(&dept, req); err != nil {
@@ -181,7 +167,7 @@ func (s *DeptService) DeleteDept(deptID uint64) error {
 // (and the table name) from one check into the next.
 func (s *DeptService) deleteDeptInTransaction(tx *gorm.DB, deptID uint64) error {
 	var dept SystemDept
-	if err := s.scoped(tx).Clauses(clause.Locking{Strength: "UPDATE"}).First(&dept, deptID).Error; err != nil {
+	if err := s.Scoped(tx).Clauses(clause.Locking{Strength: "UPDATE"}).First(&dept, deptID).Error; err != nil {
 		return err
 	}
 	if dept.IsRoot == common.StatusFlagYes {
@@ -201,21 +187,21 @@ func (s *DeptService) deleteDeptInTransaction(tx *gorm.DB, deptID uint64) error 
 
 func (s *DeptService) ensureDeptHasNoChildren(tx *gorm.DB, deptID uint64) error {
 	return ensureDeptReferenceCountZero(
-		s.scoped(tx).Model(&SystemDept{}).Where("parent_id = ?", deptID),
+		s.Scoped(tx).Model(&SystemDept{}).Where("parent_id = ?", deptID),
 		"dept.delete.error.has_children",
 	)
 }
 
 func (s *DeptService) ensureDeptHasNoPosts(tx *gorm.DB, deptID uint64) error {
 	return ensureDeptReferenceCountZero(
-		s.scoped(tx).Table("system_post").Where("dept_id = ? AND deleted_at IS NULL", deptID),
+		s.Scoped(tx).Table("system_post").Where("dept_id = ? AND deleted_at IS NULL", deptID),
 		"dept.delete.error.has_posts",
 	)
 }
 
 func (s *DeptService) ensureDeptHasNoUsers(tx *gorm.DB, deptID uint64) error {
 	return ensureDeptReferenceCountZero(
-		s.scoped(tx).Table("system_user").Where("dept_id = ? AND deleted_at IS NULL", deptID),
+		s.Scoped(tx).Table("system_user").Where("dept_id = ? AND deleted_at IS NULL", deptID),
 		"dept.delete.error.has_users",
 	)
 }
@@ -245,7 +231,7 @@ func (s *DeptService) BatchUpdateDeptStatus(deptIDs []uint64, status int) (int, 
 	}
 
 	var depts []SystemDept
-	if err := s.scoped(s.db).Where(condIDIn, normalizedIDs).Find(&depts).Error; err != nil {
+	if err := s.Scoped(s.db).Where(condIDIn, normalizedIDs).Find(&depts).Error; err != nil {
 		return 0, err
 	}
 	if len(depts) != len(normalizedIDs) {
@@ -257,7 +243,7 @@ func (s *DeptService) BatchUpdateDeptStatus(deptIDs []uint64, status int) (int, 
 		}
 	}
 
-	if err := s.scoped(s.db.Model(&SystemDept{})).
+	if err := s.Scoped(s.db.Model(&SystemDept{})).
 		Where(condIDIn, normalizedIDs).
 		Updates(map[string]any{
 			"status":     normalizeSystemStatus(status),
@@ -301,7 +287,7 @@ func (s *DeptService) prepareDeptLeaderUpdates(items []DeptBatchLeaderItem) ([]d
 		deptToLeader[item.DeptID] = item
 	}
 	var depts []SystemDept
-	if err := s.scoped(s.db).Where(condIDIn, deptIDs).Find(&depts).Error; err != nil {
+	if err := s.Scoped(s.db).Where(condIDIn, deptIDs).Find(&depts).Error; err != nil {
 		return nil, err
 	}
 	if len(depts) != len(deptIDs) {
@@ -409,15 +395,12 @@ func (s *DeptService) resolveDeptLeaderFields(deptID uint64, leader string, lead
 		Nickname string `gorm:"column:nickname"`
 	}
 	var row leaderUserRow
-	if err := s.scoped(s.db.Table("system_user AS u")).
+	if err := s.Scoped(s.db.Table("system_user AS u")).
 		Select("u.id AS user_id, u.username, u.nickname").
 		Joins("JOIN system_post AS p ON p.id = u.post_id AND p.dept_id = u.dept_id").
 		Where("u.deleted_at IS NULL AND u.status = ? AND u.id = ? AND u.dept_id = ? AND u.post_id > 0", 1, leaderUserID, deptID).
 		Take(&row).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", 0, common.NewBadRequest("dept.leader.user_invalid")
-		}
-		return "", 0, err
+		return "", 0, database.TranslateNotFound(err, common.NewBadRequest("dept.leader.user_invalid"))
 	}
 
 	displayName := strings.TrimSpace(row.Nickname)
@@ -433,7 +416,7 @@ func (s *DeptService) ensureDeptParentExists(parentID uint64) error {
 	}
 
 	var count int64
-	if err := s.scoped(s.db.Model(&SystemDept{})).Where(condIDEquals, parentID).Count(&count).Error; err != nil {
+	if err := s.Scoped(s.db.Model(&SystemDept{})).Where(condIDEquals, parentID).Count(&count).Error; err != nil {
 		return err
 	}
 	if count == 0 {
@@ -450,7 +433,7 @@ func (s *DeptService) ensureDeptParentNotDescendant(deptID, parentID uint64) err
 	var parent SystemDept
 	// 使用条件查询而非主键直查: SonarCloud gosecurity:S3649 将 uint64 主键直查
 	// 误判为 SQL 注入污点汇; 显式 Where 条件对分析器可追踪。
-	if err := s.scoped(s.db).Where(condIDEquals, parentID).First(&parent).Error; err != nil {
+	if err := s.Scoped(s.db).Where(condIDEquals, parentID).First(&parent).Error; err != nil {
 		return err
 	}
 	ancestors := splitAncestors(parent.Ancestors)
@@ -463,7 +446,7 @@ func (s *DeptService) ensureDeptParentNotDescendant(deptID, parentID uint64) err
 }
 
 func (s *DeptService) buildAncestors(parentID uint64) (string, error) {
-	return s.buildAncestorsWithDB(s.scoped(s.db), parentID)
+	return s.buildAncestorsWithDB(s.Scoped(s.db), parentID)
 }
 
 func (s *DeptService) buildAncestorsWithDB(db *gorm.DB, parentID uint64) (string, error) {

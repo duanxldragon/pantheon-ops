@@ -43,16 +43,16 @@ type userRoleBinding struct {
 	RoleID   uint64 `gorm:"column:role_id"`
 }
 
-// InsertRoleMenu inserts a role→menu binding unconditionally into the tenant
+// insertRoleMenu inserts a role→menu binding unconditionally into the tenant
 // namespace that owns the role (0 = platform/global). Callers that have already
 // cleared existing rows (e.g. replaceRoleMenus) use this directly.
-func InsertRoleMenu(db *gorm.DB, tenantID, roleID, menuID uint64) error {
+func insertRoleMenu(db *gorm.DB, tenantID, roleID, menuID uint64) error {
 	return db.Exec(insertRoleMenuSQL, tenantID, roleID, menuID).Error
 }
 
-// InsertUserRole inserts a user→role binding unconditionally into the given
+// insertUserRole inserts a user→role binding unconditionally into the given
 // tenant namespace (0 = platform/global).
-func InsertUserRole(db *gorm.DB, tenantID, userID, roleID uint64) error {
+func insertUserRole(db *gorm.DB, tenantID, userID, roleID uint64) error {
 	return db.Exec(insertUserRoleSQL, tenantID, userID, roleID).Error
 }
 
@@ -97,7 +97,7 @@ func EnsureRoleMenu(db *gorm.DB, tenantID, roleID, menuID uint64) error {
 	if count > 0 {
 		return nil
 	}
-	return InsertRoleMenu(db, tenantID, roleID, menuID)
+	return insertRoleMenu(db, tenantID, roleID, menuID)
 }
 
 // EnsureUserRole binds a role to a user in the given tenant namespace only when
@@ -113,7 +113,7 @@ func EnsureUserRole(db *gorm.DB, tenantID, userID, roleID uint64) error {
 	if count > 0 {
 		return nil
 	}
-	return InsertUserRole(db, tenantID, userID, roleID)
+	return insertUserRole(db, tenantID, userID, roleID)
 }
 
 // EnsureRolePermission grants one permission key to a role in the given tenant

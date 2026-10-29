@@ -26,7 +26,7 @@ test('workflow actions and Node runtime match the certified Base baseline', () =
     assert.doesNotMatch(workflowSource, new RegExp(stalePin, 'u'));
   }
   assert.match(workflowSource, /actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1/u);
-  assert.match(workflowSource, /actions\/setup-node@820762786026740c76f36085b0efc47a31fe5020/u);
+  assert.match(workflowSource, /actions\/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1/u);
   assert.match(workflowSource, /dorny\/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d/u);
 });
 

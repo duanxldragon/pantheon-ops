@@ -7,8 +7,10 @@ import { fileURLToPath } from 'node:url';
 
 import {
   extractTaskIdFromManifestPath,
+  findArchivedReferencePath,
   findArchivedTaskManifestPath,
   readTaskManifest,
+  resolveArchiveAwarePath,
 } from '../../scripts/task-manifest.mjs';
 
 const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -122,6 +124,64 @@ test('archived manifests still validate against the manifest path task id', () =
       () => readTaskManifest(root, 'some-task'),
       /taskManifest\.taskId must match manifest path task id/,
     );
+  });
+});
+
+test('findArchivedReferencePath resolves evidence files that moved with their task', () => {
+  withTempRoot((root) => {
+    const reviewDir = path.join(root, '.harness', 'archive', '2026-10', 'evidence', 'archived-task');
+    fs.mkdirSync(reviewDir, { recursive: true });
+    fs.writeFileSync(path.join(reviewDir, 'review.md'), 'verdict: approved\n');
+
+    assert.equal(
+      findArchivedReferencePath(root, '.harness/evidence/archived-task/review.md'),
+      '.harness/archive/2026-10/evidence/archived-task/review.md',
+    );
+    assert.equal(
+      findArchivedReferencePath(root, '.harness/evidence/archived-task/'),
+      '.harness/archive/2026-10/evidence/archived-task/',
+    );
+  });
+});
+
+test('findArchivedReferencePath covers archived manifests as well as evidence', () => {
+  withTempRoot((root) => {
+    writeManifest(root, '.harness/archive/2026-10/tasks/archived-task', 'archived-task');
+
+    assert.equal(
+      findArchivedReferencePath(root, '.harness/tasks/archived-task/manifest.json'),
+      '.harness/archive/2026-10/tasks/archived-task/manifest.json',
+    );
+  });
+});
+
+test('findArchivedReferencePath leaves non-archived paths alone', () => {
+  withTempRoot((root) => {
+    assert.equal(findArchivedReferencePath(root, 'AGENTS.md'), null);
+    assert.equal(findArchivedReferencePath(root, '.harness/archive/2026-10/evidence/x/review.md'), null);
+    writeManifest(root, '.harness/archive/2026-10/tasks/x', 'x');
+    assert.equal(findArchivedReferencePath(root, '.harness/evidence/missing-task/review.md'), null);
+  });
+});
+
+test('resolveArchiveAwarePath prefers the live path and falls back to the archive', () => {
+  withTempRoot((root) => {
+    const liveDir = path.join(root, '.harness', 'evidence', 'live-task');
+    fs.mkdirSync(liveDir, { recursive: true });
+    fs.writeFileSync(path.join(liveDir, 'review.md'), 'verdict: approved\n');
+    const archivedDir = path.join(root, '.harness', 'archive', '2026-09', 'evidence', 'old-task');
+    fs.mkdirSync(archivedDir, { recursive: true });
+    fs.writeFileSync(path.join(archivedDir, 'review.md'), 'verdict: approved\n');
+
+    assert.equal(
+      resolveArchiveAwarePath(root, '.harness/evidence/live-task/review.md'),
+      '.harness/evidence/live-task/review.md',
+    );
+    assert.equal(
+      resolveArchiveAwarePath(root, '.harness/evidence/old-task/review.md'),
+      '.harness/archive/2026-09/evidence/old-task/review.md',
+    );
+    assert.equal(resolveArchiveAwarePath(root, '.harness/evidence/absent-task/review.md'), null);
   });
 });
 

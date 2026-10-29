@@ -65,7 +65,7 @@ func (s *RoleService) ExportRoles(ctx context.Context, query *RoleListQuery) (*i
 
 func (s *RoleService) listRolesForExport(ctx context.Context, query *RoleListQuery) ([]SystemRole, error) {
 	var roles []SystemRole
-	db := s.scoped(s.db.WithContext(ctx).Model(&SystemRole{}))
+	db := s.Scoped(s.db.WithContext(ctx).Model(&SystemRole{}))
 	if query != nil {
 		if strings.TrimSpace(query.RoleName) != "" {
 			db = db.Where("role_name LIKE ?", fmt.Sprintf("%%%s%%", common.EscapeLikePattern(strings.TrimSpace(query.RoleName))))
@@ -90,23 +90,18 @@ func (s *RoleService) listRolesForExport(ctx context.Context, query *RoleListQue
 }
 
 func (s *RoleService) BuildRoleImportTemplate() *impexp.CSVFile {
-	return &impexp.CSVFile{
-		Filename: "system-role-import-template.csv",
-		Headers:  []string{"roleName", "roleKey", "sort", "status", "menuIds", "permissionKeys"},
-		Rows: [][]string{
-			{"#说明：保留第一行表头；status 使用 1=启用、2=禁用；menuIds 多个用逗号分隔；permissionKeys 多个用逗号分隔；roleKey 唯一标识，创建后不可修改。", "", "", "", "", ""},
-			{"#示例角色", "example_role", "99", "1", "1,2,3", "system:user:list,system:user:create"},
-		},
-	}
+	return impexp.BuildImportTemplate(
+		"system-role-import-template.csv",
+		"#说明：保留第一行表头；status 使用 1=启用、2=禁用；menuIds 多个用逗号分隔；permissionKeys 多个用逗号分隔；roleKey 唯一标识，创建后不可修改。",
+		[]string{"roleName", "roleKey", "sort", "status", "menuIds", "permissionKeys"},
+		[]string{"#示例角色", "example_role", "99", "1", "1,2,3", "system:user:list,system:user:create"},
+	)
 }
 
 // ImportRoles 导入角色 CSV。解析、校验、事务、重复处理、权限、错误消息与返回统计契约
 // 与历史实现完全一致，仅通过阶段 helper/上下文对象进行等价提炼以降低认知复杂度。
 func (s *RoleService) ImportRoles(records [][]string) (*impexp.ImportResult, error) {
-	result := &impexp.ImportResult{
-		Applied: false,
-		Errors:  []impexp.ImportError{},
-	}
+	result := impexp.NewImportResult()
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
@@ -115,8 +110,8 @@ func (s *RoleService) ImportRoles(records [][]string) (*impexp.ImportResult, err
 		return result, nil
 	}
 
-	headerIndex := buildImportHeaderIndex(records)
-	validateRequiredImportHeaders(result, headerIndex)
+	headerIndex := impexp.BuildHeaderIndex(records)
+	impexp.RequireHeaders(result, headerIndex, "roleName", "roleKey", "sort", "status")
 	if result.Failed > 0 {
 		return result, nil
 	}
@@ -140,14 +135,9 @@ func (s *RoleService) ImportRoles(records [][]string) (*impexp.ImportResult, err
 	}
 
 	rows := make([]roleImportRow, 0, len(records)-1)
-	for rowIndex := 1; rowIndex < len(records); rowIndex++ {
-		record := records[rowIndex]
-		if impexp.IsCSVRecordEmpty(record) {
-			continue
-		}
-		rowNumber := rowIndex + 1
+	impexp.ForEachDataRow(records, func(rowNumber int, record []string) {
 		rows = append(rows, s.parseImportRow(ctx, result, rowNumber, record))
-	}
+	})
 
 	if result.Failed > 0 {
 		return result, nil
@@ -159,25 +149,6 @@ func (s *RoleService) ImportRoles(records [][]string) (*impexp.ImportResult, err
 
 	result.Applied = true
 	return result, nil
-}
-
-// buildImportHeaderIndex 构建表头名到列索引的映射。
-func buildImportHeaderIndex(records [][]string) map[string]int {
-	headerIndex := make(map[string]int, len(records[0]))
-	for index, header := range records[0] {
-		headerIndex[strings.TrimSpace(header)] = index
-	}
-	return headerIndex
-}
-
-// validateRequiredImportHeaders 校验必填表头是否齐全，缺失时追加导入错误。
-func validateRequiredImportHeaders(result *impexp.ImportResult, headerIndex map[string]int) {
-	requiredHeaders := []string{"roleName", "roleKey", "sort", "status"}
-	for _, header := range requiredHeaders {
-		if _, ok := headerIndex[header]; !ok {
-			impexp.AppendImportError(result, 0, header, "import.header.missing")
-		}
-	}
 }
 
 // loadImportReferenceSets 预加载合法菜单 ID 集合与合法权限 key 集合，用于逐行校验。
@@ -271,7 +242,7 @@ func parseImportSort(rowNumber int, sortStr string, result *impexp.ImportResult)
 	}
 	parsed, err := strconv.Atoi(sortStr)
 	if err != nil {
-		impexp.AppendImportError(result, rowNumber, "sort", errParamInvalid)
+		impexp.AppendImportError(result, rowNumber, "sort", common.MessageParamInvalid)
 		return sortValue
 	}
 	return parsed
@@ -285,7 +256,7 @@ func parseImportStatus(rowNumber int, statusStr string, result *impexp.ImportRes
 	}
 	parsed, err := strconv.Atoi(statusStr)
 	if err != nil || !common.IsEnabledStatus(parsed) {
-		impexp.AppendImportError(result, rowNumber, "status", errParamInvalid)
+		impexp.AppendImportError(result, rowNumber, "status", common.MessageParamInvalid)
 		return statusValue
 	}
 	return parsed
@@ -304,7 +275,7 @@ func parseImportMenuIDs(rowNumber int, menuIdsStr string, menuIDSet map[uint64]s
 		}
 		id, err := strconv.ParseUint(idStr, 10, 64)
 		if err != nil {
-			impexp.AppendImportError(result, rowNumber, "menuIds", errParamInvalid)
+			impexp.AppendImportError(result, rowNumber, "menuIds", common.MessageParamInvalid)
 			continue
 		}
 		if _, ok := menuIDSet[id]; !ok {
@@ -373,7 +344,7 @@ func (s *RoleService) applyImportRow(tx *gorm.DB, result *impexp.ImportResult, r
 		// Tenant scope: the imported role belongs to the caller's tenant. This
 		// used to omit TenantID, so a tenant's CSV import created a platform-
 		// global role (tenant_id = 0).
-		TenantID: s.tenantOwnerID(),
+		TenantID: s.TenantOwnerID(),
 		RoleName: row.Create.RoleName,
 		RoleKey:  row.Create.RoleKey,
 		Sort:     row.Create.Sort,
@@ -397,7 +368,7 @@ func (s *RoleService) loadRolesByRoleKey() (map[string]*SystemRole, error) {
 	var roles []SystemRole
 	// Scoped: role keys are unique per tenant, so import matching must only
 	// consider the request tenant's own roles.
-	if err := s.scoped(s.db).Find(&roles).Error; err != nil {
+	if err := s.Scoped(s.db).Find(&roles).Error; err != nil {
 		return nil, err
 	}
 	for i := range roles {

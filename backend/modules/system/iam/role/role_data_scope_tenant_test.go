@@ -3,6 +3,7 @@ package role
 import (
 	"testing"
 
+	"github.com/duanxldragon/pantheon-base/backend/modules/system/iam/permission"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 )
@@ -23,7 +24,7 @@ func TestListRolesEchoesOnlyTheCallersDataScope(t *testing.T) {
 		t.Fatalf("seed roles: %v", err)
 	}
 
-	policies := []roleDataScopePolicy{
+	policies := []permission.PermissionRoleDataScopePolicy{
 		{TenantID: tenant.PlatformGlobalTenantID, RoleKey: "ops", Mode: common.DataScopeModeAll},
 		{TenantID: 101, RoleKey: "ops", Mode: common.DataScopeModeSelf},
 		{TenantID: 202, RoleKey: "ops", Mode: common.DataScopeModeDept},
@@ -64,7 +65,7 @@ func TestListRolesDataScopeKeepsCompatBaseline(t *testing.T) {
 	if err := db.Create(&SystemRole{TenantID: tenant.PlatformGlobalTenantID, RoleName: "平台运营", RoleKey: "ops", Status: 1, Sort: 1}).Error; err != nil {
 		t.Fatalf("seed platform role: %v", err)
 	}
-	if err := db.Create(&roleDataScopePolicy{TenantID: tenant.PlatformGlobalTenantID, RoleKey: "ops", Mode: common.DataScopeModeDeptAndChildren}).Error; err != nil {
+	if err := db.Create(&permission.PermissionRoleDataScopePolicy{TenantID: tenant.PlatformGlobalTenantID, RoleKey: "ops", Mode: common.DataScopeModeDeptAndChildren}).Error; err != nil {
 		t.Fatalf("seed platform policy: %v", err)
 	}
 

@@ -6,11 +6,6 @@ type LoginPayload = {
   tenantId?: number;
 };
 
-const candidates = [
-  { tenantId: 101, code: 'acme', name: 'Acme North', role: 'owner' },
-  { tenantId: 202, code: 'globex', name: 'Globex South', role: 'member' },
-];
-
 async function installTenantLoginRoutes(page: Page) {
   const loginBodies: LoginPayload[] = [];
   await page.route('**/api/v1/auth/login', async (route) => {
@@ -28,27 +23,12 @@ async function installTenantLoginRoutes(page: Page) {
       });
       return;
     }
-    if (!body.tenantId) {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          code: 200,
-          data: {
-            tenantSelectionRequired: true,
-            tenantCandidates: candidates,
-          },
-        }),
-      });
-      return;
-    }
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
         code: 200,
         data: {
-          tenantId: body.tenantId,
           user: {
             id: 1,
             username: body.username,
@@ -94,8 +74,8 @@ async function installTenantLoginRoutes(page: Page) {
   return loginBodies;
 }
 
-test.describe('Tenant login picker @priority:critical @smoke:core', () => {
-  test('shows candidates only after password verification and submits the selected tenant', async ({
+test.describe('Tenant login (picker removed, W4) @priority:critical @smoke:core', () => {
+  test('signs in directly without sending a tenant and never renders the picker', async ({
     page,
   }) => {
     const loginBodies = await installTenantLoginRoutes(page);
@@ -105,26 +85,53 @@ test.describe('Tenant login picker @priority:critical @smoke:core', () => {
     await page.getByPlaceholder(/请输入密码|password/i).fill('correct-password');
     await page.locator('input[type="password"]').press('Enter');
 
-    await expect(page.locator('.auth-login-tenant-picker')).toBeVisible();
-    await page.locator('.auth-login-tenant-picker .arco-select').click();
-    await expect(page.getByText('Acme North (acme)')).toBeVisible();
-    await expect(page.getByText('Globex South (globex)')).toBeVisible();
-    await page.screenshot({
-      path: '../.harness/evidence/2026-09-10-tenant-verification-and-gray/artifacts/browser/tenant-picker-desktop.png',
-      fullPage: true,
-    });
-    expect(loginBodies).toEqual([{ username: 'tenant-user', password: 'correct-password' }]);
-    expect(await page.context().cookies()).toEqual([]);
-    expect(await page.evaluate(() => localStorage.getItem('pantheon_session_hint'))).toBeNull();
-
-    await page.getByText('Acme North (acme)').click();
-    await page.getByRole('button', { name: /登录|sign in/i }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
-    expect(loginBodies.at(-1)).toEqual({
-      username: 'tenant-user',
-      password: 'correct-password',
-      tenantId: 101,
+    // The client no longer names a tenant: discovery resolves the owning one
+    // server-side (contract §2.2 V1.7).
+    expect(loginBodies).toEqual([{ username: 'tenant-user', password: 'correct-password' }]);
+    await expect(page.locator('.auth-login-tenant-picker')).toHaveCount(0);
+  });
+
+  test('a picker envelope from stale server state is refused, not rendered', async ({ page }) => {
+    const loginBodies = await installTenantLoginRoutes(page);
+    await page.route('**/api/v1/auth/login', async (route) => {
+      const body = route.request().postDataJSON() as LoginPayload;
+      loginBodies.push(body);
+      if (body.password !== 'correct-password') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ code: 401, message: 'auth.login.error.invalid_credentials', data: null }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          code: 200,
+          data: {
+            tenantSelectionRequired: true,
+            tenantCandidates: [
+              { tenantId: 101, code: 'acme', name: 'Acme North', role: 'owner' },
+              { tenantId: 202, code: 'globex', name: 'Globex South', role: 'member' },
+            ],
+          },
+        }),
+      });
     });
+
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    await page.getByPlaceholder(/请输入用户名|username/i).fill('tenant-user');
+    await page.getByPlaceholder(/请输入密码|password/i).fill('correct-password');
+    await page.locator('input[type="password"]').press('Enter');
+
+    // Refusal surfaces the generic login failure; the UI must not grow a
+    // picker retroactively and must not navigate into a half-signed-in shell.
+    await expect(page.locator('.arco-message-error, .arco-notification-error')).toBeVisible();
+    await expect(page.locator('.auth-login-tenant-picker')).toHaveCount(0);
+    await expect(page).toHaveURL(/\/login$/);
+    expect(loginBodies).toHaveLength(1);
   });
 
   test('invalid password does not expose tenant candidates', async ({ page }) => {
@@ -142,51 +149,17 @@ test.describe('Tenant login picker @priority:critical @smoke:core', () => {
     expect(await page.context().cookies()).toEqual([]);
   });
 
-  test('picker remains usable on narrow viewports without horizontal overflow', async ({
-    page,
-  }) => {
-    const loginBodies = await installTenantLoginRoutes(page);
+  test('login form renders on narrow viewports without horizontal overflow', async ({ page }) => {
+    await installTenantLoginRoutes(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/login', { waitUntil: 'domcontentloaded' });
 
     await page.getByPlaceholder(/请输入用户名|username/i).fill('tenant-user');
     await page.getByPlaceholder(/请输入密码|password/i).fill('correct-password');
     await page.locator('input[type="password"]').press('Enter');
-    await expect(page.locator('.auth-login-tenant-picker')).toBeVisible();
-    const tenantSelect = page.locator('.auth-login-tenant-picker .arco-select');
-    await tenantSelect.click();
-    await expect(page.getByText('Acme North (acme)')).toBeVisible();
-
-    // Arco mounts the select popup at the trigger's center for one frame and
-    // repositions it to the trigger's left edge on the next. On a 390px
-    // viewport the 282px popup transiently reaches 477px, so measuring while
-    // the appear animation is still running races that reposition and saw 87px
-    // in CI. Wait until the popup is actually aligned with its trigger, then
-    // assert the settled layout; a popup that stays outside the viewport still
-    // fails the overflow check below.
-    await expect
-      .poll(
-        async () => {
-          const popup = page.locator('.arco-trigger').filter({ hasText: 'Acme North (acme)' }).first();
-          const [popupBox, triggerBox] = await Promise.all([
-            popup.boundingBox(),
-            tenantSelect.boundingBox(),
-          ]);
-          if (!popupBox || !triggerBox) {
-            return Number.POSITIVE_INFINITY;
-          }
-          return Math.abs(popupBox.x - triggerBox.x);
-        },
-        { message: 'the tenant picker popup never aligned with its trigger' },
-      )
-      .toBeLessThanOrEqual(1);
+    await expect(page).toHaveURL(/\/dashboard$/);
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);
-    await page.screenshot({
-      path: '../.harness/evidence/2026-09-10-tenant-verification-and-gray/artifacts/browser/tenant-picker-mobile.png',
-      fullPage: true,
-    });
-    expect(loginBodies).toHaveLength(1);
   });
 });

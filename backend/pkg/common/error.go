@@ -103,18 +103,19 @@ func CodeForError(err error) int {
 	}
 }
 
-// ErrorResponse is the JSON envelope returned by HTTP handlers.
-type ErrorResponse struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-	Detail  string `json:"detail,omitempty"`
-}
-
 // ── I18n utilities (also used by http package) ───────────────────────
+
+// Shared envelope message keys. Handlers pass these as the Fail/FailWithError
+// fallback when a bound parameter or a service error carries no i18n key; the
+// values are part of the observable envelope contract.
+const (
+	MessageParamInvalid  = "param.invalid"
+	MessageRequestFailed = "request.failed"
+)
 
 var i18nKeyPattern = regexp.MustCompile(`^[a-z0-9_]+(?:\.[a-z0-9_]+)+$`)
 
-func IsI18nMessageKey(message string) bool {
+func isI18nMessageKey(message string) bool {
 	return i18nKeyPattern.MatchString(strings.TrimSpace(message))
 }
 
@@ -123,16 +124,16 @@ func ResolveErrorMessageKey(err error, fallback string) string {
 		if strings.TrimSpace(fallback) != "" {
 			return fallback
 		}
-		return "request.failed"
+		return MessageRequestFailed
 	}
 	message := ErrMessage(err)
-	if IsI18nMessageKey(message) {
+	if isI18nMessageKey(message) {
 		return message
 	}
 	if strings.TrimSpace(fallback) != "" {
 		return fallback
 	}
-	return "request.failed"
+	return MessageRequestFailed
 }
 
 // GetUserID extracts the user ID from the Gin context.

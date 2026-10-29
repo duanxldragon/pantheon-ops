@@ -46,10 +46,12 @@ const settingsRefreshChannel = "settings:refresh"
 //nolint:revive // the exported name keeps the setting domain prefix; consumers outside this package reference it as setting.SettingService.
 type SettingService struct {
 	db *gorm.DB
-	// tenantCtx is the per-request tenant context (queue-5 settings slice).
-	// Set from the Gin context by the handler via WithTenantContext; nil/compat
-	// => platform-global rows only (legacy behavior preserved).
-	tenantCtx *tenant.Context
+	// Scoper carries the per-request tenant context (queue-5 settings slice)
+	// with the shared write owner; the read side keeps its own tenantScope
+	// because settings resolve overrides on top of platform-global rows.
+	// Bound from the Gin context via WithTenantContext; nil/compat =>
+	// platform-global rows only (legacy behavior preserved).
+	tenant.Scoper
 	// cache is shared by pointer across all WithTenantContext-bound views so
 	// the lock is never copied and invalidation reaches every view.
 	cache *settingCacheState
@@ -62,7 +64,7 @@ func (s *SettingService) WithTenantContext(ctx *tenant.Context) *SettingService 
 	if ctx == nil || !ctx.IsMulti() {
 		return s
 	}
-	return &SettingService{db: s.db, tenantCtx: ctx, cache: s.cache}
+	return &SettingService{db: s.db, Scoper: tenant.Scoper{TenantCtx: ctx}, cache: s.cache}
 }
 
 // tenantScope applies the settings read filter (contract §3.3 + scope matrix
@@ -71,23 +73,14 @@ func (s *SettingService) WithTenantContext(ctx *tenant.Context) *SettingService 
 // top of global defaults. Compat sees global rows only — unchanged.
 func (s *SettingService) tenantScope() func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+		if s.TenantCtx == nil || !s.TenantCtx.IsMulti() {
 			// Global rows only (tenant_id=0) is the compat population. Legacy
 			// schemas always satisfied this implicitly; with override rows present
 			// the filter must now be explicit.
 			return db.Where("tenant_id = ?", tenant.PlatformGlobalTenantID)
 		}
-		return db.Where("tenant_id IN (?)", []uint64{tenant.PlatformGlobalTenantID, s.tenantCtx.TenantID})
+		return db.Where("tenant_id IN (?)", []uint64{tenant.PlatformGlobalTenantID, s.TenantCtx.TenantID})
 	}
-}
-
-// tenantOwnerID is the tenant a new/updated row belongs to (write path: from
-// context, never from the request body — contract §3.3). Compat => 0.
-func (s *SettingService) tenantOwnerID() uint64 {
-	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
-		return 0
-	}
-	return s.tenantCtx.TenantID
 }
 
 func NewSettingService(db *gorm.DB) *SettingService {
@@ -352,7 +345,7 @@ func (s *SettingService) UpdateGroup(groupKey string, req *SettingGroupUpdateReq
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range req.Items {
-			if err := updateSettingGroupItem(tx, groupKey, item, s.tenantOwnerID()); err != nil {
+			if err := updateSettingGroupItem(tx, groupKey, item, s.TenantOwnerID()); err != nil {
 				return err
 			}
 		}
@@ -514,10 +507,10 @@ func (s *SettingService) GetPublicSettings() (*PublicSettingResp, error) {
 // publicSettingsCacheKey namespaces the public settings cache per tenant
 // (multi mode). Compat and platform-global share the legacy base key.
 func (s *SettingService) publicSettingsCacheKey() string {
-	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+	if s.TenantCtx == nil || !s.TenantCtx.IsMulti() {
 		return "public"
 	}
-	return "t" + strconv.FormatUint(s.tenantCtx.TenantID, 10) + ":public"
+	return "t" + strconv.FormatUint(s.TenantCtx.TenantID, 10) + ":public"
 }
 
 func (s *SettingService) GetOverview() (*SettingOverviewResp, error) {
@@ -745,10 +738,10 @@ func settingListCacheKey(groupKey, module string) string {
 // so two tenants never collide through the process cache (canary pattern).
 func (s *SettingService) settingListCacheKeyTenant(groupKey, module string) string {
 	base := settingListCacheKey(groupKey, module)
-	if s.tenantCtx == nil || !s.tenantCtx.IsMulti() {
+	if s.TenantCtx == nil || !s.TenantCtx.IsMulti() {
 		return base
 	}
-	return "t" + strconv.FormatUint(s.tenantCtx.TenantID, 10) + ":" + base
+	return "t" + strconv.FormatUint(s.TenantCtx.TenantID, 10) + ":" + base
 }
 
 func cloneSettingRespList(items []SettingResp) []SettingResp {

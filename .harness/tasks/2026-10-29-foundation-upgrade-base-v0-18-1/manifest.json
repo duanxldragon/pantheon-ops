@@ -1,0 +1,199 @@
+{
+  "taskId": "2026-10-29-foundation-upgrade-base-v0-18-1",
+  "title": "Consume pantheon-base-v0.18.1 into pantheon-ops",
+  "goal": "Advance the Ops consumer from pantheon-base-v0.17.7 to the published pantheon-base-v0.18.1 so the tree carries the 13-wave simplification programme, and repair the three consumer-side drifts the jump exposes: the TS2614 break v0.18.0 shipped to the DeployTaskDetail page, the stale scripts/task-manifest.mjs overlay that crashes check:task-packet and check:harness-docs, and the missing check:ui-quality-gate step in the Docs Governance job.",
+  "primaryLayer": "inheritance-sync",
+  "taskDoc": "docs/harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1.task.md",
+  "status": "completed",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "dependsOn": [
+    "pantheon-base v0.18.1 release (tag object b6397435, target commit 93505225)"
+  ],
+  "blocks": [
+    "ops branch and pull-request closeout to main only"
+  ],
+  "scope": {
+    "in": [
+      "Update foundation-release.lock.json to pantheon-base-v0.18.1: release line, version, base commit, asset name, materialization path, bundle checksum and repo.tar checksum.",
+      "Rewrite .foundation/foundation-release.lock.json with the release identity and the Release Gate / Foundation Release Verify facts read back from GitHub.",
+      "Rebuild the Ops tree from the locked release snapshot, validate it in the staging tree, apply it to the live tree, and re-tidy the merged Go module graph.",
+      "Adopt base's archive-aware scripts/task-manifest.mjs by dropping it from repositoryOverlayPaths.",
+      "Adopt base's null-safe scripts/cleanup-github-branches.mjs the same way.",
+      "Wire check:ui-quality-gate into the Docs Governance job, exempt dependabot from the PR body ceremony, and normalise eleven manifests from status complete to completed."
+    ],
+    "out": [
+      "Any change to the pantheon-base repository, an existing tag, a published release or its assets.",
+      "Hand-copying base files into the Ops source tree instead of materializing the locked release.",
+      "Rewriting CHANGELOG.md or README*.md from base; those are Ops overlay paths by contract.",
+      "Any behaviour change in the business modules.",
+      "Merging or closing the open Dependabot pull requests inside this packet.",
+      "Re-enabling check:task-packet in CI; 60 of 66 ops packets predate the template, so that needs its own legacy allowlist task."
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1.task.md",
+      ".harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1/manifest.json",
+      ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/commands.json",
+      ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/summary.md",
+      ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/review.md",
+      ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/pr-body.md"
+    ],
+    "modify": [
+      "foundation-release.lock.json",
+      ".foundation/foundation-release.lock.json",
+      "VERSION",
+      "business-overlay.json",
+      "scripts/task-manifest.mjs",
+      ".github/workflows/quality.yml",
+      ".github/workflows/pr-automation.yml",
+      "tests/scripts/workflow-baseline.test.mjs",
+      "docs/PROJECT_INHERITANCE.md",
+      ".business-overlay-report.json"
+    ],
+    "doNotTouch": [
+      ".foundation/allowed-drift.json",
+      ".foundation/releases/** for previously materialized releases",
+      "any existing tag, release or release asset",
+      "CHANGELOG.md, README.md, README.en.md (Ops overlay copies)"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "foundation-release.lock.json",
+    ".foundation/foundation-release.lock.json",
+    ".foundation/allowed-drift.json",
+    "business-overlay.json",
+    "scripts/business-overlay/rebuild-from-base.mjs",
+    "scripts/task-manifest.mjs"
+  ],
+  "implementationNotes": [
+    "rebuild-from-base.mjs resolves the base from the lock when --base is omitted, so the round consumed the published v0.18.1 archive rather than the local Base checkout.",
+    "v0.18.0 removed the isForbiddenRequestError export from frontend/src/api/request.ts on a repo-local zero-caller search; the ops DeployTaskDetail page still imports it, so the consumer frontend build failed with TS2614 until v0.18.1 restored the export. This is the consumer half of the base-side FR-021 record.",
+    "The staging tree was fully gated before the working copy moved: drift, overlay contract, 13/13 overlay tests, backend build/vet/test and frontend lint/type-check/build all ran inside .tmp/business-overlay-rebuild, and the same gate set re-ran after the live replacement.",
+    "The live-tree replacement is the documented L2 human gate and ran under the maintainer's explicit instruction to consume the latest base release; the pre-swap working tree was snapshotted to .tmp/backup-pre-0181/ before any file moved.",
+    "scripts/task-manifest.mjs was pinned as an Ops overlay path from the pre-archive era and carried no Ops-specific customisation; base 0.18 made it archive-aware and both check-task-packet.mjs and check-doc-links.mjs import resolveArchiveAwarePath from it, so the pin was removed instead of patched. The checker is green for current-format packets; wiring it into CI is deferred because 60 pre-template ops packets would need a legacy allowlist.",
+    "scripts/cleanup-github-branches.mjs had the same shape: a pinned older copy that threw on 404 and 403 where base's exported deleteBranch returns already-gone or protected-or-rejected. Adopting base's copy also makes the branch cleanup that follows this merge tolerate already-deleted heads.",
+    "pr-automation.yml ran the PR body ceremony for every PR while check-pr-governance.mjs has no dependabot branch, so dependabot PRs could never reach auto-merge; the workflow now mirrors base's dependabot exemption and output expression.",
+    "The deleted set is base content retired by the simplification waves, not Ops business code: backend/internal/middleware/logging_middleware.go, four system/iam/tenant files, pkg/common/token.go, modules/auth/tenant/TenantSwitcher.tsx and 13 frontend capture scripts."
+  ],
+  "harnessProfile": {
+    "template": "api-service",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "foundation-release-consumer",
+    "portableFailureClass": "static-sensor-gap",
+    "ownerLayer": "inheritance-boundary",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality",
+      "method-health"
+    ]
+  },
+  "methodReadiness": {
+    "consumerSpecificControls": [
+      "immutable release consumption",
+      "release identity read back from GitHub instead of asserted from the bundle",
+      "staging tree gated before the live L2 replacement"
+    ],
+    "requiredSensors": [
+      "command"
+    ],
+    "requiredEvidence": [
+      "commands.json",
+      "summary.md",
+      "review.md"
+    ],
+    "ratchetDecision": "gate-updated",
+    "deferredCodeIssues": [
+      "Ops business modules still create their schema through AutoMigrate instead of a consumer versioned-migration channel; no such channel exists in base",
+      "Runtime acceptance on a fresh database (startup plus golang-migrate to 000030) is still not executed in a consumer evidence set",
+      "Inherited base docs (docs/reviews/TENANT_*_2026-10-2*.md and docs/runbooks/TENANT_MIGRATION_RUNBOOK.md) link to base-only task packets and the base evidence archive, so check:harness-docs reports four dangling links in the consumer; the check is report-only and not part of the ops pipeline",
+      "Go race tests cannot run on this Windows host because ThreadSanitizer cannot reserve its shadow memory (error code 87); CI runs go test -race on ubuntu-latest"
+    ]
+  },
+  "deliveryGovernance": {
+    "designGate": [
+      "inheritance boundary note: base owns the shared surface, ops consumes an immutable release snapshot and owns CHANGELOG/README overlays"
+    ],
+    "developmentGate": [
+      "lock and ledger updated together",
+      "rebuilt tree validated in staging and applied through the assembly, not by hand-copying",
+      "consumer drifts repaired at their owner (base-owned script adopted, workflow step added, manifests normalised)"
+    ],
+    "qaAcceptanceGate": [
+      "business-overlay contract, shared-drift gate and 13 overlay tests on the applied tree",
+      "backend build/vet/gofmt/test on the tidied merged module graph",
+      "frontend lint/type-check/build after npm ci at the root and in frontend",
+      "every Docs Governance command green on the applied tree"
+    ],
+    "githubGovernanceGate": [
+      "consumer-lock-drift"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "foundation release -> consumer lock -> rebuilt tree -> shared surface files -> harness scripts and Docs Governance"
+    ],
+    "riskNodes": [
+      "shared prefix of the ops tree",
+      "Go module graph tidy step",
+      "frontend request-error predicate surface",
+      "harness script ownership boundary"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "sha256sum .foundation/releases/pantheon-base-v0.18.1/foundation-release-pantheon-base-v0.18.1.tgz .foundation/releases/pantheon-base-v0.18.1/repo.tar",
+      "node scripts/business-overlay/rebuild-from-base.mjs",
+      "node scripts/business-overlay/check-business-overlay.mjs",
+      "node scripts/business-overlay/check-shared-drift.mjs --base ../pantheon-base",
+      "node --test tests/scripts/business-overlay/*.test.mjs",
+      "go mod tidy && go build ./... && go vet ./... && gofmt -l .",
+      "go test -count=1 ./...",
+      "npm ci --ignore-scripts at the root and in frontend",
+      "npm run lint && npm run type-check && npm run build in frontend",
+      "npm run check:docs-frontmatter && npm run check:encoding && npm run check:structure && npm run check:task-packet-template && npm run check:pr-governance && npm run check:business-overlay && npm run test:business-overlay && npm run check:generated-modules && npm run check:ui-quality-gate",
+      "npm run check:task-packet && npm run check:harness-adoption && npm run check:failure-registry && npm run check:business-boundaries && npm run check:business-foundation && npm run check:duplication"
+    ],
+    "runtimeEvidence": [
+      "asset digests compared with the lock and the published .sha256 sidecars",
+      "sharedPaths deep-equality between the Ops lock and the manifest.json read out of the release tgz",
+      "staging and applied tree gate results",
+      "hosted workflow results on the consumption PR"
+    ]
+  },
+  "runtimeSensitive": true,
+  "costProfile": {
+    "tokens": "medium",
+    "note": "baseline jump across a 13-wave programme; no product code written by ops"
+  },
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/",
+    "reviewFile": ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/review.md",
+    "summaryFile": ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1.task.md"
+    ]
+  },
+  "evidenceRequired": [
+    "release identity and both asset digests re-hashed after materialization",
+    "sharedPaths equivalence between the Ops lock and the v0.18.1 release manifest",
+    "overlay contract, shared-drift and overlay test results on the staging and applied tree",
+    "backend build/vet/gofmt/test and frontend lint/type-check/build results",
+    "the three consumer-drift repairs with before/after command readings",
+    "review summary"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Release identity verified from GitHub",
+    "Baseline advanced through the locked assembly",
+    "Consumer drift repaired at its owner",
+    "Evidence saved",
+    "Review completed"
+  ]
+}

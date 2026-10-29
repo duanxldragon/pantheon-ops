@@ -42,7 +42,7 @@ const roleTone: Record<string, string> = {
 interface MemberQueryState {
   tenantId?: number;
   keyword: string;
-  status?: string;
+  status?: MemberUsageQuery['status'];
   role?: string;
   page: number;
   pageSize: number;
@@ -81,7 +81,7 @@ const TenantMemberList: React.FC = () => {
       const params: MemberUsageQuery = {
         tenantId: next.tenantId,
         keyword: next.keyword.trim() || undefined,
-        status: next.status as MemberUsageQuery['status'],
+        status: next.status,
         role: next.role as MemberUsageQuery['role'],
         page: next.page,
         pageSize: next.pageSize,

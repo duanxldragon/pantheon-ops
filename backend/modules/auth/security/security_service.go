@@ -109,8 +109,10 @@ type Service struct {
 	// userRepo is the credential port over system user state, injected at the
 	// composition root so auth never imports modules/system/iam/user
 	// (docs/designs/REPOSITORY_LAYOUT.md §8.2).
-	userRepo  authuser.Repository
-	tenantCtx *tenant.Context
+	userRepo authuser.Repository
+	// Scoper carries the per-request tenant context with the shared read
+	// filter (contract §3.2/§3.3).
+	tenant.Scoper
 }
 
 // SecurityEventRetentionTaskName is the maintenance registry key for the
@@ -121,11 +123,9 @@ const SecurityEventRetentionTaskName = "auth.security_event_retention"
 // tenant context.
 func (s *Service) WithTenantContext(ctx *tenant.Context) *Service {
 	clone := *s
-	clone.tenantCtx = ctx
+	clone.TenantCtx = ctx
 	return &clone
 }
-
-func (s *Service) scoped(db *gorm.DB) *gorm.DB { return db.Scopes(tenant.WithTenantScope(s.tenantCtx)) }
 
 // NewService creates a SecurityService.
 func NewService(db *gorm.DB, userRepo authuser.Repository, policy PolicyProvider) *Service {
@@ -205,8 +205,8 @@ func (s *Service) ListSecurityEvents(query *SecurityEventQuery) (*SecurityEventP
 	}
 	// Read path: retention is swept by the registered maintenance task, not
 	// while serving this list (task 2026-09-22-request-path-maintenance).
-	page, pageSize := normalizeSecurityEventPageQuery(query)
-	db := applySecurityEventFilters(s.scoped(s.db.Model(&SystemAuthSecurityEvent{})), query)
+	page, pageSize, offset := normalizeSecurityEventPageQuery(query)
+	db := applySecurityEventFilters(s.Scoped(s.db.Model(&SystemAuthSecurityEvent{})), query)
 
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
@@ -214,19 +214,19 @@ func (s *Service) ListSecurityEvents(query *SecurityEventQuery) (*SecurityEventP
 	}
 	// Whole-filtered-set aggregates so the governance bar shows global numbers.
 	var acknowledgedCount int64
-	if err := applySecurityEventFilters(s.scoped(s.db.Model(&SystemAuthSecurityEvent{})), query).
+	if err := applySecurityEventFilters(s.Scoped(s.db.Model(&SystemAuthSecurityEvent{})), query).
 		Where(condEventAcknowledged).
 		Count(&acknowledgedCount).Error; err != nil {
 		return nil, err
 	}
 	var highSeverityCount int64
-	if err := applySecurityEventFilters(s.scoped(s.db.Model(&SystemAuthSecurityEvent{})), query).
+	if err := applySecurityEventFilters(s.Scoped(s.db.Model(&SystemAuthSecurityEvent{})), query).
 		Where("severity = ?", "high").
 		Count(&highSeverityCount).Error; err != nil {
 		return nil, err
 	}
 	var events []SystemAuthSecurityEvent
-	if err := db.Order(orderEventRecent).Offset((page - 1) * pageSize).Limit(pageSize).Find(&events).Error; err != nil {
+	if err := db.Order(orderEventRecent).Offset(offset).Limit(pageSize).Find(&events).Error; err != nil {
 		return nil, err
 	}
 	return &SecurityEventPageResp{
@@ -248,7 +248,7 @@ func (s *Service) ExportSecurityEvents(query *SecurityEventQuery) (*impexp.CSVFi
 		return nil, common.ErrDatabaseNotInitialized
 	}
 	var events []SystemAuthSecurityEvent
-	db := applySecurityEventFilters(s.scoped(s.db.Model(&SystemAuthSecurityEvent{})), query)
+	db := applySecurityEventFilters(s.Scoped(s.db.Model(&SystemAuthSecurityEvent{})), query)
 	if err := db.Order(orderEventRecent).Limit(impexp.MaxExportRows()).Find(&events).Error; err != nil {
 		return nil, err
 	}
@@ -288,7 +288,7 @@ func (s *Service) CleanupSecurityEvents(retentionDays int, startedAt, endedAt st
 	if err != nil {
 		return 0, err
 	}
-	db := s.scoped(s.db.Model(&SystemAuthSecurityEvent{})).Where(condEventAcknowledged)
+	db := s.Scoped(s.db.Model(&SystemAuthSecurityEvent{})).Where(condEventAcknowledged)
 	if window != nil {
 		db = db.Where("created_at >= ? AND created_at <= ?", window.StartedAt, window.EndedAt)
 	} else {
@@ -371,7 +371,7 @@ func (s *Service) AcknowledgeSecurityEvent(eventID, actorID uint64, actorUsernam
 	if note == "" {
 		return common.NewBadRequest("auth.security_event.acknowledge.note_required")
 	}
-	result := s.scoped(s.db.Model(&SystemAuthSecurityEvent{})).
+	result := s.Scoped(s.db.Model(&SystemAuthSecurityEvent{})).
 		Where("id = ?", eventID).
 		Updates(map[string]interface{}{
 			"acknowledged_at":      time.Now(),
@@ -419,7 +419,7 @@ func (s *Service) BatchAcknowledgeSecurityEvents(eventIDs []uint64, actorID uint
 	if len(normalized) > 500 {
 		return 0, common.NewBadRequest("param.invalid")
 	}
-	result := s.scoped(s.db.Model(&SystemAuthSecurityEvent{})).
+	result := s.Scoped(s.db.Model(&SystemAuthSecurityEvent{})).
 		Where("id IN ? AND acknowledged_at IS NULL", normalized).
 		Updates(map[string]interface{}{
 			"acknowledged_at":      time.Now(),
@@ -527,7 +527,7 @@ func (s *Service) ListRecentSecurityEvents(userID uint64, limit int) []SecurityE
 		return []SecurityEventResp{}
 	}
 	var events []SystemAuthSecurityEvent
-	if err := s.scoped(s.db).Where(condUserIDEquals, userID).Order(orderEventRecent).Limit(limit).Find(&events).Error; err != nil {
+	if err := s.Scoped(s.db).Where(condUserIDEquals, userID).Order(orderEventRecent).Limit(limit).Find(&events).Error; err != nil {
 		return []SecurityEventResp{}
 	}
 	return toSecurityEventRespList(events)
@@ -719,22 +719,15 @@ func formatNullableTime(value *time.Time) *string {
 	return &formatted
 }
 
-func normalizeSecurityEventPageQuery(query *SecurityEventQuery) (int, int) {
-	if query == nil {
-		return 1, 10
+// normalizeSecurityEventPageQuery clamps the security event query through the
+// shared pagination helper with the security module's own cap; the nil-extract
+// prelude keeps the service's nil-tolerant contract.
+func normalizeSecurityEventPageQuery(query *SecurityEventQuery) (int, int, int) {
+	var page, pageSize int
+	if query != nil {
+		page, pageSize = query.Page, query.PageSize
 	}
-	page := query.Page
-	pageSize := query.PageSize
-	if page <= 0 {
-		page = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
-	if pageSize > 100 {
-		pageSize = 100
-	}
-	return page, pageSize
+	return common.NormalizePagination(page, pageSize, 100)
 }
 
 // PasswordChangeReq is the password update request DTO.

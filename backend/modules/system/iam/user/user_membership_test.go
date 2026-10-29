@@ -10,6 +10,7 @@ import (
 
 const (
 	membershipTestTenantID = uint64(282)
+	membershipTestRoleID   = uint64(201)
 	membershipTestPassword = "password123"
 )
 
@@ -31,6 +32,19 @@ func seedActiveTenant(t *testing.T, db *gorm.DB) {
 		membershipTestTenantID,
 	).Error; err != nil {
 		t.Fatalf("seed tenant: %v", err)
+	}
+}
+
+// seedTenantRole adds a role owned by the test tenant. Role assignment is
+// tenant-scoped (ensureUserRoleIDs), so the platform-level roles the fixture
+// seeds globally are not assignable from the tenant context.
+func seedTenantRole(t *testing.T, db *gorm.DB) {
+	t.Helper()
+	if err := db.Exec(
+		"INSERT INTO system_role (id, tenant_id, role_key, role_name, status) VALUES (?, ?, 'acme-member', 'Acme Member', 1)",
+		membershipTestRoleID, membershipTestTenantID,
+	).Error; err != nil {
+		t.Fatalf("seed tenant role: %v", err)
 	}
 }
 
@@ -67,6 +81,7 @@ func countMembershipsForUser(t *testing.T, db *gorm.DB, userID uint64) int64 {
 func TestCreateUserWritesTenantMembershipForFirstLogin(t *testing.T) {
 	db := setupUserTestDB(t)
 	seedActiveTenant(t, db)
+	seedTenantRole(t, db)
 	s := newTenantUserService(db, membershipTestTenantID)
 
 	created, err := s.CreateUser(&UserCreateReq{
@@ -74,6 +89,10 @@ func TestCreateUserWritesTenantMembershipForFirstLogin(t *testing.T) {
 		Password: membershipTestPassword,
 		Nickname: "Acme Member",
 		Status:   1,
+		// W4 (W3 decision A): the first-login gate also requires a role
+		// binding in the owning tenant; CreateUser stamps it from the user's
+		// tenant when RoleIDs is set.
+		RoleIDs: []uint64{membershipTestRoleID},
 	})
 	if err != nil {
 		t.Fatalf("create user in tenant: %v", err)

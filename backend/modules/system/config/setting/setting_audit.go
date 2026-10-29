@@ -22,7 +22,7 @@ type settingAuditPayload struct {
 // (queue-5 settings slice; the rows live in system_log_oper which now carries
 // tenant_id). Platform-global subjects keep full visibility; compat unchanged.
 func (s *SettingService) tenantAuditScope(db *gorm.DB) *gorm.DB {
-	return db.Where("title = ?", settingAuditTitle).Scopes(tenant.WithTenantScope(s.tenantCtx))
+	return db.Where("title = ?", settingAuditTitle).Scopes(tenant.WithTenantScope(s.TenantCtx))
 }
 
 func (s *SettingService) BuildAuditPayload(groupKey string, req *SettingGroupUpdateReq, includeOld bool) (string, error) {

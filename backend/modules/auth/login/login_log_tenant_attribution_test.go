@@ -81,6 +81,12 @@ func TestLoginHandlerAuditsImplicitTenantLoginInTenant(t *testing.T) {
 	setupTestRedis(t)
 	account := seedTenantLoginFixture(t, db, 101, "tenant_success_user", "tenant-pass")
 	seedTenantMode(t, db, tenant.ModeMulti)
+	// W4 (W3 decision A): a membership without a role binding is not a usable
+	// context — the issuance gate refuses it. Seed the binding so the test
+	// isolates the implicit-login audit path.
+	if err := db.Create(&user.SystemUserRole{TenantID: 101, UserID: account.ID, RoleID: 1}).Error; err != nil {
+		t.Fatalf("seed role binding: %v", err)
+	}
 
 	handler := NewAuthHandler(NewRuntime(db, testCredentialRepo(db)))
 	code, _ := postLoginRequest(t, handler, `{"username":"tenant_success_user","password":"tenant-pass"}`)

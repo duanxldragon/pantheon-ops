@@ -4,7 +4,7 @@
   "title": "Automate architecture, migration, contract, lifecycle, and frontend gates",
   "goal": "Automate repeatable architecture, migration, contract, lifecycle, and frontend quality checks for Ops business modules.",
   "primaryLayer": "business/*",
-  "status": "complete",
+  "status": "completed",
   "priority": "P0-closeout/P1-hardening",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-08-17-ops-architecture-quality-gates.task.md",

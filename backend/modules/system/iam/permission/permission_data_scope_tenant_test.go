@@ -242,8 +242,8 @@ func TestWithTenantContextKeepsCompatBaseline(t *testing.T) {
 	if compat == base {
 		t.Fatalf("a compat context must produce a bound view")
 	}
-	if compat.tenantOwnerID() != tenant.PlatformGlobalTenantID {
-		t.Fatalf("compat writes must stay on the platform scope, got tenant %d", compat.tenantOwnerID())
+	if compat.TenantOwnerID() != tenant.PlatformGlobalTenantID {
+		t.Fatalf("compat writes must stay on the platform scope, got tenant %d", compat.TenantOwnerID())
 	}
 
 	if _, err := compat.UpdateDataScopePolicy(dsScopePlatform, &PermissionDataScopePolicyUpdateReq{

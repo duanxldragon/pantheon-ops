@@ -32,28 +32,28 @@ func TestNormalizePolicyMethod_RejectsUnknownMethods(t *testing.T) {
 // ---- normalizePermissionPageQuery ----
 
 func TestNormalizePermissionPageQuery_Nil(t *testing.T) {
-	page, pageSize := normalizePermissionPageQuery(nil)
-	if page != 1 || pageSize != 10 {
-		t.Fatalf("expected (1, 10), got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizePermissionPageQuery(nil)
+	if page != 1 || pageSize != 10 || offset != 0 {
+		t.Fatalf("expected (1, 10, 0), got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizePermissionPageQuery_ZeroValues(t *testing.T) {
-	page, pageSize := normalizePermissionPageQuery(&PermissionPolicyQuery{})
-	if page != 1 || pageSize != 10 {
-		t.Fatalf("expected (1, 10) for zero values, got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizePermissionPageQuery(&PermissionPolicyQuery{})
+	if page != 1 || pageSize != 10 || offset != 0 {
+		t.Fatalf("expected (1, 10, 0) for zero values, got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizePermissionPageQuery_CustomValues(t *testing.T) {
-	page, pageSize := normalizePermissionPageQuery(&PermissionPolicyQuery{Page: 5, PageSize: 40})
-	if page != 5 || pageSize != 40 {
-		t.Fatalf("expected (5, 40), got (%d, %d)", page, pageSize)
+	page, pageSize, offset := normalizePermissionPageQuery(&PermissionPolicyQuery{Page: 5, PageSize: 40})
+	if page != 5 || pageSize != 40 || offset != 160 {
+		t.Fatalf("expected (5, 40, 160), got (%d, %d, %d)", page, pageSize, offset)
 	}
 }
 
 func TestNormalizePermissionPageQuery_CapsPageSizeAt100(t *testing.T) {
-	_, pageSize := normalizePermissionPageQuery(&PermissionPolicyQuery{Page: 1, PageSize: 999})
+	_, pageSize, _ := normalizePermissionPageQuery(&PermissionPolicyQuery{Page: 1, PageSize: 999})
 	if pageSize != 100 {
 		t.Fatalf("expected pageSize capped at 100, got %d", pageSize)
 	}

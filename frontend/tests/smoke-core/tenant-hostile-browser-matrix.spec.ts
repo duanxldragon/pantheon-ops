@@ -14,15 +14,16 @@ import {
 } from './tenant-fixture';
 
 // Hostile two-tenant browser matrix expansion (tenant-verification-and-gray,
-// 2026-09-15; refreshed 2026-10-15). Scenarios NOT covered by
-// tenant-protected-resources.spec.ts:
-//   1. live multi-tenant login picker against the real backend (candidate
-//      disclosure only after password verification, session untouched until a
-//      tenant is chosen)
-//   2. dashboard aggregate isolation in the browser
-//   3. upload namespace isolation through the real upload API
-//   4. refresh rotation + replay rejection in the browser cookie jar
-//   5. pre-provisioned dictionary fixtures staying tenant-isolated
+// 2026-09-15; refreshed 2026-10-15; W4 rewrite 2026-10-27). Scenarios NOT
+// covered by tenant-protected-resources.spec.ts:
+//   1. AddMember narrowing against the real backend: a user owned by tenant A
+//      cannot be granted membership in tenant B (tenant.member.user_not_in_tenant)
+//   2. direct multi-mode login without the removed login picker: the shell
+//      carries the owning tenant context (contract §2.2 V1.7)
+//   3. dashboard aggregate isolation in the browser
+//   4. upload namespace isolation through the real upload API
+//   5. refresh rotation + replay rejection in the browser cookie jar
+//   6. pre-provisioned dictionary fixtures staying tenant-isolated
 //
 // The matrix is a pair of REAL tenants provisioned through POST /system/tenant,
 // each with its own administrator (see ./tenant-fixture.ts). Earlier revisions
@@ -67,8 +68,7 @@ async function addTenantMember(
     headers: session.headers,
     data: { user_id: userId, role },
   });
-  const payload = (await response.json()) as ApiEnvelope<unknown>;
-  expect(payload.code, `add member ${userId} to t${tenantId}: ${JSON.stringify(payload)}`).toBe(200);
+  return (await response.json()) as ApiEnvelope<unknown>;
 }
 
 test.beforeAll(async ({ request }) => {
@@ -78,75 +78,62 @@ test.beforeAll(async ({ request }) => {
     username: process.env.PANTHEON_SMOKE_ADMIN_USERNAME ?? 'admin',
     password: process.env.PANTHEON_SMOKE_ADMIN_PASSWORD ?? '123456',
   });
-
-  // Give tenant A's administrator a second membership so it is a genuine
-  // multi-membership subject: the login picker exists precisely for this case
-  // (contract §2.2), and it is what the picker spec below signs in as.
-  const session = await platformSession(request);
-  const members = await listTenantMembers(request, session, tenants[0].id);
-  const owner = members.find((member) => member.user_id);
-  expect(owner, `t${tenants[0].id} must have an owner after provisioning`).toBeTruthy();
-  // Idempotent: re-running against a manifest tenant that already carries the
-  // cross-membership (an interrupted run) must not fail on tenant.conflict.
-  const alreadyMember = (await listTenantMembers(request, session, tenants[1].id)).some(
-    (member) => member.user_id === owner!.user_id,
-  );
-  if (!alreadyMember) {
-    await addTenantMember(request, session, tenants[1].id, owner!.user_id, 'member');
-  }
 });
 
 test.afterAll(async ({ request }) => {
   await teardownMatrixTenants(request, [tenants[0], tenants[1]], platformLogin);
 });
 
-test.describe('Tenant login picker (live backend) @priority:critical @smoke:tenant', () => {
-  test('multi-mode login requires tenant selection and never touches the session before it', async ({
+test.describe('Tenant login after W4 (live backend) @priority:critical @smoke:tenant', () => {
+  test('cross-tenant membership is refused and login lands on the owning tenant without a picker', async ({
     page,
+    request,
   }) => {
-    test.setTimeout(60_000);
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+    test.setTimeout(90_000);
+    // 1. AddMember narrowing (contract §2.2 V1.7): tenant A's administrator is
+    // owned by tenant A, so granting it membership in tenant B is refused with
+    // the registered key instead of creating an unusable context.
+    const session = await platformSession(request);
+    const members = await listTenantMembers(request, session, tenants[0].id);
+    const owner = members.find((member) => member.user_id);
+    expect(owner, `t${tenants[0].id} must have an owner after provisioning`).toBeTruthy();
+    const grant = await addTenantMember(request, session, tenants[1].id, owner!.user_id, 'member');
+    expect(grant.code, `cross-grant must be refused: ${JSON.stringify(grant)}`).toBe(400);
+    expect(grant.message).toBe('tenant.member.user_not_in_tenant');
 
-    // Password verified first: submitting credentials without a tenant must
-    // surface the picker (tenantSelectionRequired), never log straight in.
+    // 2. Direct login: the subject resolves its owning tenant deterministically,
+    // so the picker never appears and sign-in completes in one round trip.
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
     await page.getByPlaceholder(/请输入用户名|username/i).fill(tenants[0].adminUsername);
     await page.getByPlaceholder(/请输入密码|password/i).fill(tenants[0].adminPassword);
     const loginResponse = page.waitForResponse((response) =>
       response.url().includes('/api/v1/auth/login'),
     );
-    await page.getByRole('button', { name: /登录|sign in|sign in/i }).click();
+    await page.getByRole('button', { name: /登录|sign in/i }).click();
     const response = await loginResponse;
     expect(response.ok()).toBeTruthy();
     const payload = (await response.json()) as ApiEnvelope<{
       tenantSelectionRequired?: boolean;
-      tenantCandidates?: Array<{ tenantId: number; code: string; name: string }>;
+      user?: { id: number };
     }>;
     expect(payload.code).toBe(200);
-    expect(payload.data.tenantSelectionRequired).toBeTruthy();
-    const candidateIds = (payload.data.tenantCandidates ?? []).map((candidate) => candidate.tenantId);
-    expect(candidateIds).toEqual(expect.arrayContaining([tenants[0].id, tenants[1].id]));
+    expect(payload.data.tenantSelectionRequired).toBeFalsy();
+    expect(payload.data.user?.id).toBeGreaterThan(0);
+    await expect(page.locator('.auth-login-tenant-picker')).toHaveCount(0);
 
-    // The picker renders with both candidates and the session stays untouched.
-    await expect(page.locator('.auth-login-tenant-picker')).toBeVisible();
-    expect(await page.evaluate(() => localStorage.getItem('pantheon_session_hint'))).toBeNull();
-    expect((await page.context().cookies()).filter((c) => c.name.startsWith('pantheon_'))).toEqual(
-      [],
-    );
-
-    // Pick tenant B (the subject is only a member there) and submit.
-    await page.locator('.auth-login-tenant-picker .arco-select').click();
-    await page.getByText(new RegExp(tenants[1].code)).first().click();
-    const secondLogin = page.waitForResponse((response) =>
-      response.url().includes('/api/v1/auth/login'),
-    );
-    await page.getByRole('button', { name: /登录|sign in/i }).click();
-    const secondResponse = await secondLogin;
-    expect(secondResponse.ok()).toBeTruthy();
-    const secondPayload = (await secondResponse.json()) as ApiEnvelope<{ user?: { id: number } }>;
-    expect(secondPayload.code).toBe(200);
-    expect(secondPayload.data.user?.id).toBeGreaterThan(0);
+    // 3. The shell carries the owning tenant context: /auth/tenants/current
+    // resolves tenant A from the browser cookie jar, not platform scope.
     await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.app-shell__header')).toBeVisible();
+    const current = await page.request.get(`${apiBaseUrl}/auth/tenants/current`);
+    expect(current.ok()).toBeTruthy();
+    const currentPayload = (await current.json()) as ApiEnvelope<{
+      mode: string;
+      tenantId: number;
+    }>;
+    expect(currentPayload.code).toBe(200);
+    expect(currentPayload.data.mode).toBe('multi');
+    expect(currentPayload.data.tenantId).toBe(tenants[0].id);
   });
 
   test('wrong password never exposes tenant candidates', async ({ page }) => {

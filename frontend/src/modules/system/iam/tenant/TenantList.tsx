@@ -39,6 +39,8 @@ import {
   type TenantUpdatePayload,
 } from './api';
 import { getSecurityOverview } from '../../../auth/security/api';
+import { getUserList, type UserListRow } from '../user/api';
+import { readTenantViewpointId } from '../../../../core/tenant/viewpoint';
 import { normalizeTenantPlan } from '../../../../core/entitlements/plans';
 import { definedPlanOptions, editorPlanOptions, type PlanOption } from './planOptions';
 import TenantPlanMatrix from './TenantPlanMatrix';
@@ -92,6 +94,11 @@ interface TenantFormValues {
 
 const emptyQuery: TenantListQueryState = { keyword: '', page: 1, pageSize: 10 };
 
+// One bounded page of candidate users for the member picker. The user-list
+// endpoint caps a page at 100; 50 keeps the dropdown snappy and the request
+// single, and the picker filters this set locally instead of searching.
+const MEMBER_CANDIDATE_PAGE_SIZE = 50;
+
 const planTone: Record<string, string> = {
   free: 'gray',
   basic: 'blue',
@@ -116,10 +123,15 @@ const TenantList: React.FC = () => {
   // disappearing from the navigation (which left operators with no way to
   // discover the feature).
   const tenantModeEnabled = publicSettings.tenantMode === 'multi';
-  const canCreate = isAdmin || hasPerm('system:tenant:create');
-  const canUpdate = isAdmin || hasPerm('system:tenant:update');
-  const canDelete = isAdmin || hasPerm('system:tenant:delete');
-  const canManageMember = isAdmin || hasPerm('system:tenant:member-add');
+  const can = (perm: string) => isAdmin || hasPerm(perm);
+  const canCreate = can('system:tenant:create');
+  const canUpdate = can('system:tenant:update');
+  const canDelete = can('system:tenant:delete');
+  const canManageMember = can('system:tenant:member-add');
+  // The picker is a read of the user list, so it is offered only to subjects
+  // that can actually perform that read; without it the select stays empty and
+  // says so rather than looking like a data bug.
+  const canBrowseUsers = can('system:user:list');
 
   // The request interceptor already reports the server's message for a
   // RequestError. Re-reporting it here stacked two toasts — a specific one and a
@@ -178,7 +190,9 @@ const TenantList: React.FC = () => {
   const [memberPage, setMemberPage] = useState(1);
   const [memberPageSize, setMemberPageSize] = useState(10);
   const [memberLoading, setMemberLoading] = useState(false);
-  const [memberForm] = Form.useForm<{ userId: string; role: string }>();
+  const [memberForm] = Form.useForm<{ userId: number; role: string }>();
+  const [memberCandidates, setMemberCandidates] = useState<UserListRow[]>([]);
+  const [candidateLoading, setCandidateLoading] = useState(false);
 
   const loadData = useCallback(async (next: TenantListQueryState) => {
     setLoading(true);
@@ -291,20 +305,64 @@ const TenantList: React.FC = () => {
     [reportUnexpectedError],
   );
 
+  // The member dialog used to ask for a raw numeric user id, which is how a
+  // typo became a membership row naming nobody. Candidates come from the
+  // existing user-list API under the scope the request interceptor already
+  // carries; this is a picker, not a second user browser, so it reads one
+  // bounded page (the server caps a page at 100) and filters it locally.
+  const loadMemberCandidates = useCallback(async () => {
+    if (!canBrowseUsers) {
+      setMemberCandidates([]);
+      return;
+    }
+    setCandidateLoading(true);
+    try {
+      const resp = await getUserList({ page: 1, pageSize: MEMBER_CANDIDATE_PAGE_SIZE });
+      setMemberCandidates(resp.items ?? []);
+    } catch {
+      // The request layer already reports the failure; an empty candidate list
+      // with its own empty state is the honest fallback for a picker.
+      setMemberCandidates([]);
+    } finally {
+      setCandidateLoading(false);
+    }
+  }, [canBrowseUsers]);
+
+  // Only the currently loaded member page is known here, so a member on a later
+  // page can still be offered. That is survivable: re-adding a non-owner row
+  // updates its role instead of failing, and the table reloads after a submit.
+  const memberUserOptions = useMemo(() => {
+    const alreadyMember = new Set(members.map((member) => member.user_id));
+    return memberCandidates
+      .filter((user) => !alreadyMember.has(user.id))
+      .map((user) => ({
+        value: user.id,
+        label: user.nickname ? `${user.username} · ${user.nickname}` : user.username,
+      }));
+  }, [memberCandidates, members]);
+
+  // Read per render rather than kept in state: switching viewpoint reloads the
+  // whole shell (core/tenant/viewpoint), so this can never go stale within a
+  // session. `null` (no viewpoint) and `0` (explicit platform scope) both run
+  // platform-globally server-side, hence the `?? 0`.
+  const viewpointId = readTenantViewpointId();
+
   const openMembers = useCallback(
     (row: TenantRow) => {
       setMemberTarget(row);
       setMemberVisible(true);
       memberForm.resetFields();
       void loadMembers(row, 1, 10);
+      void loadMemberCandidates();
     },
-    [loadMembers, memberForm],
+    [loadMemberCandidates, loadMembers, memberForm],
   );
 
   const closeMembers = useCallback(() => {
     setMemberVisible(false);
     setMemberTarget(null);
     setMembers([]);
+    setMemberCandidates([]);
   }, []);
 
   const openCreate = useCallback(() => {
@@ -392,7 +450,7 @@ const TenantList: React.FC = () => {
     try {
       const values = await memberForm.validate();
       await addTenantMember(memberTarget.id, {
-        user_id: Number(values.userId),
+        user_id: values.userId,
         role: values.role as never,
       });
       message.success(t('system.tenant.memberAddSuccess'));
@@ -513,7 +571,10 @@ const TenantList: React.FC = () => {
                 text: t('common.delete'),
                 icon: <IconDelete />,
                 status: 'danger',
-                disabled: !canDelete,
+                // Contract §2.1: only an archived tenant may be deleted. The
+                // backend refuses anything else with `tenant.not_archived`;
+                // the disabled state here is the affordance, not the guard.
+                disabled: !canDelete || row.status !== 'archived',
                 confirm: {
                   title: t('system.tenant.deleteConfirm', { name: row.name }),
                   onOk: () => {
@@ -568,30 +629,32 @@ const TenantList: React.FC = () => {
   // Resolve the body once, as a plain conditional chain: compat guide, first
   // load, request error, table. Reading top-to-bottom keeps the four states
   // legible, which a nested ternary inside the JSX did not.
-  let bodyContent: React.ReactNode;
-  if (!tenantModeEnabled) {
-    bodyContent = (
-      <Space direction="vertical" size={16} className="tenant-list__compat-guide">
-        <PageEmpty description={t('system.tenant.compat.desc')} />
-        <Button type="primary" onClick={() => navigate('/system/setting/platform')}>
-          {t('system.tenant.compat.action')}
-        </Button>
-      </Space>
-    );
-  } else if (loading && tableData.length === 0) {
-    bodyContent = <PageLoading />;
-  } else if (error && tableData.length === 0) {
-    bodyContent = (
-      <PageRequestError
-        error={error}
-        onRetry={() => {
-          void loadData(query);
-        }}
-      />
-    );
-  } else {
-    bodyContent = tableContent;
-  }
+  const renderBody = (): React.ReactNode => {
+    if (!tenantModeEnabled) {
+      return (
+        <Space direction="vertical" size={16} className="tenant-list__compat-guide">
+          <PageEmpty description={t('system.tenant.compat.desc')} />
+          <Button type="primary" onClick={() => navigate('/system/setting/platform')}>
+            {t('system.tenant.compat.action')}
+          </Button>
+        </Space>
+      );
+    }
+    if (loading && tableData.length === 0) {
+      return <PageLoading />;
+    }
+    if (error && tableData.length === 0) {
+      return (
+        <PageRequestError
+          error={error}
+          onRetry={() => {
+            void loadData(query);
+          }}
+        />
+      );
+    }
+    return tableContent;
+  };
 
   return (
     <PageContainer>
@@ -663,7 +726,7 @@ const TenantList: React.FC = () => {
                 </PermissionAction>
               }
             />
-            {bodyContent}
+            {renderBody()}
           </Card>
         </>
       </Space>
@@ -851,7 +914,20 @@ const TenantList: React.FC = () => {
             label={t('system.tenant.memberUserId')}
             rules={[{ required: true, message: t('system.tenant.memberUserIdRequired') }]}
           >
-            <Input placeholder={t('system.tenant.memberUserIdPlaceholder')} />
+            <Select
+              showSearch
+              loading={candidateLoading}
+              disabled={!canBrowseUsers}
+              placeholder={t('system.tenant.member.userSelectSearch')}
+              notFoundContent={t(
+                canBrowseUsers
+                  ? 'system.tenant.member.userSelectEmpty'
+                  : 'system.tenant.member.userSelectNoPermission',
+              )}
+              // Values are the user ids the API returns; free text can never be
+              // submitted, which is the point of the change.
+              options={memberUserOptions}
+            />
           </FormItem>
           <FormItem field="role" label={t('system.tenant.memberRole')} initialValue="member">
             <Select>
@@ -866,6 +942,14 @@ const TenantList: React.FC = () => {
             </Button>
           </PermissionAction>
         </Form>
+        {/* The candidate list is scoped by the X-Tenant-Id the request carries,
+            not by the tenant this dialog edits, so the two can differ; say so
+            instead of letting the operator add a member from the wrong pool. */}
+        {(viewpointId ?? 0) !== memberTarget?.id ? (
+          <Typography.Text type="warning" style={{ display: 'block', marginBottom: 12 }}>
+            {t('system.tenant.member.userSelectScope')}
+          </Typography.Text>
+        ) : null}
         <AppTable<TenantMemberRow>
           className="system-list__table"
           rowKey="id"

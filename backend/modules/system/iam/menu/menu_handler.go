@@ -1,16 +1,11 @@
 package menu
 
 import (
-	"strconv"
-
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 
 	"github.com/gin-gonic/gin"
 )
-
-const errRequestFailed = "request.failed"
-const errParamInvalid = "param.invalid"
 
 type MenuHandler struct {
 	service *MenuService
@@ -24,11 +19,11 @@ func NewMenuHandler(s *MenuService) *MenuHandler {
 func (h *MenuHandler) GetMenuTree(c *gin.Context) {
 	var query MenuListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 
-	roleKeys := getRoleKeysFromContext(c)
+	roleKeys := common.GetRoleKeys(c)
 	if normalizeMenuScope(&query) == "manage" {
 		allowed, err := h.service.HasManageAccess(roleKeys)
 		if err != nil {
@@ -54,7 +49,7 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 
 	var req MenuCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 
@@ -72,13 +67,12 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 
 	var req MenuUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 
-	menuID, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+	menuID, ok := common.ParseUintParam(c, "id")
+	if !ok {
 		return
 	}
 
@@ -94,33 +88,16 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 func (h *MenuHandler) DeleteMenu(c *gin.Context) {
 	common.SetAuditMetadata(c, "menu.delete.title", common.BusinessDelete)
 
-	menuID, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+	menuID, ok := common.ParseUintParam(c, "id")
+	if !ok {
 		return
 	}
 
 	if err := h.service.DeleteMenu(menuID); err != nil {
-		common.FailWithError(c, common.CodeError, err, errRequestFailed)
+		common.FailWithError(c, common.CodeError, err, common.MessageRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{"deleted": true})
-}
-
-func getRoleKeysFromContext(c *gin.Context) []string {
-	roleKeysValue, ok := c.Get("roleKeys")
-	if ok {
-		if roleKeys, ok := roleKeysValue.([]string); ok {
-			return roleKeys
-		}
-	}
-	roleKeyValue, ok := c.Get("roleKey")
-	if ok {
-		if roleKey, ok := roleKeyValue.(string); ok && roleKey != "" {
-			return []string{roleKey}
-		}
-	}
-	return nil
 }
 
 func menuErrorCode(err error) int {

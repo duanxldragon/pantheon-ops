@@ -4,7 +4,7 @@
   "title": "Make Kubernetes Release intent durable and rollout-aware",
   "goal": "Persist Kubernetes Release intent and track rollout outcomes through reconciliation.",
   "primaryLayer": "business/*",
-  "status": "complete",
+  "status": "completed",
   "priority": "P0",
   "deliveryTier": "L2",
   "taskDoc": "docs/harness/tasks/2026-08-17-ops-k8s-release-reliability.task.md",

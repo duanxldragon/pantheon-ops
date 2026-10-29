@@ -95,18 +95,68 @@ ${workspaceContext}
 `;
 }
 
-function runChecker(content) {
+function runChecker(content, seed = () => {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-base-task-context-'));
   try {
     const taskDir = path.join(root, 'docs', 'harness', 'tasks');
     fs.mkdirSync(taskDir, { recursive: true });
     fs.writeFileSync(path.join(taskDir, 'cross-repo-fixture.task.md'), content, 'utf8');
+    seed(root);
     return spawnSync(process.execPath, [checker, '--root', root], {
       encoding: 'utf8',
     });
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
+}
+
+function archivedPacket() {
+  return taskPacket(`## Workspace Context
+
+- Target Repository: pantheon-base
+- Repository Role: foundation-source
+- Upstream Dependencies: pantheon-harness
+- Downstream Consumers: pantheon-ops
+- Sync Expectation: required
+- Release Requirement: foundation-release
+
+`)
+    .replace(
+      '- Task ID: `cross-repo-fixture`',
+      '- Task ID: `cross-repo-fixture`\n- Task Manifest: `.harness/tasks/cross-repo-fixture/manifest.json`',
+    )
+    .replace(
+      '- Review File: `none`',
+      '- Review File: `.harness/evidence/cross-repo-fixture/review.md`',
+    )
+    .replace(
+      '- `AGENTS.md`',
+      '- `AGENTS.md`\n- `.harness/evidence/cross-repo-fixture/review.md`',
+    );
+}
+
+function seedArchivedArtifacts(root) {
+  fs.writeFileSync(path.join(root, 'AGENTS.md'), '# fixture\n');
+  const manifestDir = path.join(root, '.harness', 'archive', '2026-10', 'tasks', 'cross-repo-fixture');
+  fs.mkdirSync(manifestDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(manifestDir, 'manifest.json'),
+    JSON.stringify({
+      taskId: 'cross-repo-fixture',
+      goal: 'fixture',
+      primaryLayer: 'platform',
+      scope: { in: [], out: [] },
+      linkage: {
+        evidenceDir: '.harness/evidence/cross-repo-fixture/',
+        reviewFile: '.harness/evidence/cross-repo-fixture/review.md',
+        changeRef: 'none',
+        planRefs: [],
+      },
+    }),
+  );
+  const evidenceDir = path.join(root, '.harness', 'archive', '2026-10', 'evidence', 'cross-repo-fixture');
+  fs.mkdirSync(evidenceDir, { recursive: true });
+  fs.writeFileSync(path.join(evidenceDir, 'review.md'), 'verdict: approved\n');
 }
 
 test('inheritance-sync task packets require Workspace Context', () => {
@@ -131,4 +181,26 @@ test('inheritance-sync task packets accept complete Workspace Context', () => {
 
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.match(result.stdout, /\[PASS\]/);
+});
+
+test('archived manifests and evidence satisfy their canonical linkage references', () => {
+  const result = runChecker(archivedPacket(), seedArchivedArtifacts);
+
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.doesNotMatch(result.stdout, /Linked review file does not exist/);
+  assert.doesNotMatch(result.stdout, /Contract anchor does not exist/);
+  assert.doesNotMatch(result.stdout, /task manifest does not exist/);
+});
+
+test('a review file missing from both the live tree and the archive still warns', () => {
+  const seed = (root) => {
+    seedArchivedArtifacts(root);
+    fs.rmSync(
+      path.join(root, '.harness', 'archive', '2026-10', 'evidence', 'cross-repo-fixture', 'review.md'),
+    );
+  };
+  const result = runChecker(archivedPacket(), seed);
+
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.match(result.stdout, /Linked review file does not exist/);
 });

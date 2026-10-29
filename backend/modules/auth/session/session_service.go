@@ -57,10 +57,10 @@ type Service struct {
 	policy PolicyProvider
 	loader UserRoleLoader
 	issuer TokenIssuer
-	// tenantCtx is the resolved tenant of the acted-on request (contract §3.2).
-	// Nil (or compat mode) = platform scope; multi mode restricts admin reads
-	// and revocations to the active tenant (F03).
-	tenantCtx *tenant.Context
+	// Scoper carries the per-request tenant context with the shared read
+	// filter (contract §3.2). Nil (or compat mode) = platform scope; multi
+	// mode restricts admin reads and revocations to the active tenant (F03).
+	tenant.Scoper
 }
 
 // WithTenantContext returns a request-scoped facade that applies the tenant
@@ -68,15 +68,8 @@ type Service struct {
 // clone pattern is used by LoginService and security.Service.
 func (s *Service) WithTenantContext(ctx *tenant.Context) *Service {
 	clone := *s
-	clone.tenantCtx = ctx
+	clone.TenantCtx = ctx
 	return &clone
-}
-
-// scoped restricts tenant-bound session rows. A nil context (maintenance /
-// platform-internal paths) stays unfiltered; a request-bound scope pins
-// tenant_id — compat resolves to 0, multi to the active tenant.
-func (s *Service) scoped(db *gorm.DB) *gorm.DB {
-	return db.Scopes(tenant.WithTenantScope(s.tenantCtx))
 }
 
 // NewService creates a SessionService.
@@ -223,6 +216,13 @@ func (s *Service) SwitchSessionTenant(ctx context.Context, sessionID string, use
 	roles, err := s.loadRolesForTenant(u.ID, tenantID)
 	if err != nil {
 		return nil, err
+	}
+	// W4 (W3 decision A, TC-01): a target where the subject holds no role
+	// binding would re-issue a session with an empty role set — the blank
+	// console. The membership gate above passes, so the refusal here is what
+	// makes the switch path agree with the login paths.
+	if len(roles) == 0 {
+		return nil, tenant.ErrTenantForbidden
 	}
 
 	now := time.Now()
@@ -421,7 +421,7 @@ func (s *Service) BatchRevokeSessions(currentSessionID string, sessionIDs []stri
 	// tenant-scoped manager can neither revoke another tenant's sessions nor
 	// blacklist their tokens via RevokeSessionArtifacts.
 	var scopedIDs []string
-	if err := s.scoped(s.db.Model(&SystemUserSession{})).
+	if err := s.Scoped(s.db.Model(&SystemUserSession{})).
 		Where("session_id IN ? AND revoked_at IS NULL", normalized).
 		Pluck("session_id", &scopedIDs).Error; err != nil {
 		return 0, err
@@ -457,7 +457,7 @@ func (s *Service) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPageRe
 	now := time.Now()
 	policy := s.policy.GetSessionPolicy()
 
-	page, pageSize := normalizePageQuery(queryPageFromAdminSession(query), queryPageSizeFromAdminSession(query))
+	page, pageSize, offset := normalizePageQuery(queryPageFromAdminSession(query), queryPageSizeFromAdminSession(query))
 
 	base := func() *gorm.DB {
 		db := s.db.Table("system_user_session").
@@ -465,7 +465,7 @@ func (s *Service) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPageRe
 		// F03 + FIX-2: every request-bound context pins tenant_id — compat to
 		// 0, multi to the active tenant; only the nil-context internal
 		// maintenance paths keep the unfiltered view.
-		db = s.scoped(db)
+		db = s.Scoped(db)
 		return applyAdminSessionFilters(db, query, now, policy)
 	}
 	// Browser/OS/device filters become user_agent LIKE conditions so the
@@ -501,7 +501,7 @@ func (s *Service) ListAllSessions(query *AdminSessionQuery) (*AdminSessionPageRe
 	if err := base().Session(&gorm.Session{}).
 		Select("system_user_session.session_id, system_user_session.user_id, system_user.username, system_user.nickname, system_user_session.last_ip, system_user_session.user_agent, system_user_session.refresh_expires_at, system_user_session.last_refresh_at, system_user_session.last_activity_at, system_user_session.revoked_at, system_user_session.created_at").
 		Order("system_user_session.created_at desc").
-		Offset((page - 1) * pageSize).Limit(pageSize).
+		Offset(offset).Limit(pageSize).
 		Scan(&rows).Error; err != nil {
 		return nil, err
 	}
@@ -530,7 +530,7 @@ func (s *Service) ExportAdminSessions(query *AdminSessionQuery) (*impexp.CSVFile
 	now := time.Now()
 	policy := s.policy.GetSessionPolicy()
 
-	db := s.scoped(s.db.Table("system_user_session").
+	db := s.Scoped(s.db.Table("system_user_session").
 		Joins("LEFT JOIN system_user ON system_user.id = system_user_session.user_id"))
 	db = applyAdminSessionClientFilters(applyAdminSessionFilters(db, query, now, policy), query)
 
@@ -587,7 +587,7 @@ func (s *Service) RevokeAnySession(currentSessionID, targetSessionID string) err
 	// F03: the revoke itself is tenant-scoped; a tenant-scoped manager cannot
 	// revoke another tenant's session and artifacts are only invalidated for
 	// rows this operator actually revoked.
-	result := s.scoped(s.db.Model(&SystemUserSession{})).
+	result := s.Scoped(s.db.Model(&SystemUserSession{})).
 		Where("session_id = ? AND revoked_at IS NULL", targetSessionID).
 		Updates(map[string]interface{}{"revoked_at": &now})
 	if result.Error != nil {

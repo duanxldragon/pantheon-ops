@@ -10,8 +10,6 @@ import (
 )
 
 const (
-	errParamInvalid       = "param.invalid"
-	errRequestFailed      = "request.failed"
 	tenantAuditPrefix     = "tenant."
 	tenantAuditSuffix     = ".title"
 	tenantListErrorKey    = "tenant.list.error"
@@ -37,12 +35,32 @@ func tenantAuditTitle(action string) string {
 }
 
 func parseTenantID(c *gin.Context) (uint64, bool) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil || id == 0 {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+	id, ok := common.ParseUintParam(c, "id")
+	if !ok {
+		return 0, false
+	}
+	// The zero check stays local: the shared helper deliberately passes zero
+	// through, and this module treats id 0 as invalid with the same envelope.
+	if id == 0 {
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return 0, false
 	}
 	return id, true
+}
+
+// parseTenantMemberPagination reads the bounded member-list pagination query.
+// It moved here from the deleted legacy Handler (W8): the mounted
+// /system/tenant/:id/members route is the only caller.
+func parseTenantMemberPagination(c *gin.Context) (int, int) {
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		page = 1
+	}
+	pageSize, err := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
+	if err != nil {
+		pageSize = defaultTenantMemberPageSize
+	}
+	return normalizeTenantMemberPagination(page, pageSize)
 }
 
 func (h *PlatformHandler) failServiceError(c *gin.Context, err error, fallback string) {
@@ -56,6 +74,11 @@ func (h *PlatformHandler) failServiceError(c *gin.Context, err error, fallback s
 		// The subject of the request does not exist. Reporting that as 500
 		// blames the server for a caller mistake and invites blind retries.
 		common.FailWithError(c, common.CodeNotFound, err, "tenant.not_found")
+	case errors.Is(err, common.ErrNotFound):
+		// The member target does not resolve to a user that still exists. The key
+		// travels inside the error (user.not_found), so the console can say
+		// "no such user" instead of "the server failed".
+		common.FailWithError(c, common.CodeNotFound, err, "user.not_found")
 	case errors.Is(err, ErrTenantCodeExists):
 		// Duplicate key: the input is unacceptable as sent, which is the
 		// caller's to fix (the envelope code set has no 409 sentinel).
@@ -72,11 +95,22 @@ func (h *PlatformHandler) failServiceError(c *gin.Context, err error, fallback s
 		// Contract §2.2: removing the last active owner would leave a tenant
 		// nobody can administer. Same HTTP class as a rejected input.
 		common.FailWithError(c, common.CodeParamInvalid, err, "tenant.member.last_owner")
+	case errors.Is(err, ErrMemberUserNotInTenant):
+		// W4 (W3 decision A): AddMember only accepts users whose owning tenant
+		// is the target — a membership naming a user owned elsewhere can never
+		// carry a role binding. Same HTTP class as a rejected input.
+		common.FailWithError(c, common.CodeParamInvalid, err, "tenant.member.user_not_in_tenant")
 	case errors.Is(err, common.ErrConflict):
 		// Lifecycle conflicts (archived is terminal, contract §2.1) carry their
 		// own i18n key; the envelope has no 409 sentinel, so they report as a
 		// caller error instead of a server fault.
 		common.FailWithError(c, common.CodeParamInvalid, err, fallback)
+	case errors.Is(err, ErrTenantNotArchived):
+		// Contract §2.1: only an archived tenant may be deleted. This replaces
+		// the old "has active members" refusal, which let an active tenant with
+		// zero active members be tombstoned directly and skipped archiving.
+		// The remedy is the same archive-then-delete path the runbook records.
+		common.FailWithError(c, common.CodeParamInvalid, err, "tenant.not_archived")
 	case errors.Is(err, ErrTenantHasActiveUsers):
 		// A state conflict, not a fault: DELETE /tenant is refused while an
 		// active membership remains (contract §2.2) and the tenant is not
@@ -101,7 +135,7 @@ func (h *PlatformHandler) failServiceError(c *gin.Context, err error, fallback s
 func (h *PlatformHandler) ListTenants(c *gin.Context) {
 	var filter Filter
 	if err := c.ShouldBindQuery(&filter); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	resp, err := h.service.ListTenants(filter)
@@ -120,7 +154,7 @@ func (h *PlatformHandler) GetTenant(c *gin.Context) {
 	}
 	row, err := h.service.GetTenantByID(id)
 	if err != nil {
-		h.failServiceError(c, err, errRequestFailed)
+		h.failServiceError(c, err, common.MessageRequestFailed)
 		return
 	}
 	common.Success(c, row)
@@ -132,12 +166,12 @@ func (h *PlatformHandler) CreateTenant(c *gin.Context) {
 
 	var dto CreateTenantDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	row, err := h.service.CreateTenant(dto)
 	if err != nil {
-		h.failServiceError(c, err, errRequestFailed)
+		h.failServiceError(c, err, common.MessageRequestFailed)
 		return
 	}
 	common.Success(c, row)
@@ -153,11 +187,11 @@ func (h *PlatformHandler) UpdateTenant(c *gin.Context) {
 	}
 	var dto UpdateTenantDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	if err := h.service.UpdateTenant(id, dto); err != nil {
-		h.failServiceError(c, err, errRequestFailed)
+		h.failServiceError(c, err, common.MessageRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{})
@@ -172,7 +206,7 @@ func (h *PlatformHandler) DeleteTenant(c *gin.Context) {
 		return
 	}
 	if err := h.service.DeleteTenant(id); err != nil {
-		h.failServiceError(c, err, errRequestFailed)
+		h.failServiceError(c, err, common.MessageRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{})
@@ -208,11 +242,11 @@ func (h *PlatformHandler) AddTenantMember(c *gin.Context) {
 	}
 	var dto AddTenantMemberDTO
 	if err := c.ShouldBindJSON(&dto); err != nil {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	if err := h.service.AddMember(id, dto.UserID, dto.Role); err != nil {
-		h.failServiceError(c, err, errRequestFailed)
+		h.failServiceError(c, err, common.MessageRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{})
@@ -226,13 +260,16 @@ func (h *PlatformHandler) RemoveTenantMember(c *gin.Context) {
 	if !ok {
 		return
 	}
-	userID, err := strconv.ParseUint(c.Param("userId"), 10, 64)
-	if err != nil || userID == 0 {
-		common.Fail(c, common.CodeParamInvalid, errParamInvalid)
+	userID, ok := common.ParseUintParam(c, "userId")
+	if !ok {
+		return
+	}
+	if userID == 0 {
+		common.Fail(c, common.CodeParamInvalid, common.MessageParamInvalid)
 		return
 	}
 	if err := h.service.RemoveMember(id, userID); err != nil {
-		h.failServiceError(c, err, errRequestFailed)
+		h.failServiceError(c, err, common.MessageRequestFailed)
 		return
 	}
 	common.Success(c, gin.H{})

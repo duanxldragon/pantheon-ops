@@ -57,15 +57,13 @@ func (s *I18nService) Export(query *I18nQuery) (*impexp.CSVFile, error) {
 }
 
 func (s *I18nService) BuildImportTemplate() *impexp.CSVFile {
-	return &impexp.CSVFile{
-		Filename: "system-i18n-import-template.csv",
-		Headers:  []string{"module", "group", "key", "locale", "value", "remark"},
-		Rows: [][]string{
-			{"#说明：保留第一行表头；group 为空时默认 messages；module/key/locale/value 必填；已存在记录按 locale + key 更新 value/remark/group；若 module 与现有记录归属不一致，该行会被阻断。", "", "", "", "", ""},
-			{"system.config", "messages", "i18n.sample.key", "zh-CN", "示例文案", "sample"},
-			{"system.config", "messages", "i18n.sample.key", "en-US", "Sample Text", "sample"},
-		},
-	}
+	return impexp.BuildImportTemplate(
+		"system-i18n-import-template.csv",
+		"#说明：保留第一行表头；group 为空时默认 messages；module/key/locale/value 必填；已存在记录按 locale + key 更新 value/remark/group；若 module 与现有记录归属不一致，该行会被阻断。",
+		[]string{"module", "group", "key", "locale", "value", "remark"},
+		[]string{"system.config", "messages", "i18n.sample.key", "zh-CN", "示例文案", "sample"},
+		[]string{"system.config", "messages", "i18n.sample.key", "en-US", "Sample Text", "sample"},
+	)
 }
 
 type i18nImportRow struct {
@@ -80,23 +78,6 @@ type i18nImportRow struct {
 type i18nValidatedImportRow struct {
 	i18nImportRow
 	rowNumber int
-}
-
-func (s *I18nService) buildI18nImportHeaderIndex(records [][]string) map[string]int {
-	headerIndex := make(map[string]int, len(records[0]))
-	for index, header := range records[0] {
-		headerIndex[strings.TrimSpace(header)] = index
-	}
-	return headerIndex
-}
-
-func (s *I18nService) validateI18nImportHeaders(headerIndex map[string]int, result *impexp.ImportResult) {
-	requiredHeaders := []string{"module", "group", "key", "locale", "value", "remark"}
-	for _, header := range requiredHeaders {
-		if _, ok := headerIndex[header]; !ok {
-			impexp.AppendImportError(result, 0, header, "import.header.missing")
-		}
-	}
 }
 
 func (s *I18nService) parseI18nImportRow(record []string, headerIndex map[string]int) i18nImportRow {
@@ -137,12 +118,7 @@ func (s *I18nService) validateI18nImportRow(row i18nImportRow, rowNumber int, re
 func (s *I18nService) buildI18nImportRows(records [][]string, headerIndex map[string]int, result *impexp.ImportResult) []i18nValidatedImportRow {
 	rows := make([]i18nValidatedImportRow, 0, len(records)-1)
 	seen := make(map[string]int, len(records)-1)
-	for rowIndex := 1; rowIndex < len(records); rowIndex++ {
-		record := records[rowIndex]
-		if impexp.IsCSVRecordEmpty(record) || impexp.IsCSVRecordBlank(record) {
-			continue
-		}
-		rowNumber := rowIndex + 1
+	impexp.ForEachDataRow(records, func(rowNumber int, record []string) {
 		row := s.parseI18nImportRow(record, headerIndex)
 		s.validateI18nImportRow(row, rowNumber, result)
 
@@ -157,7 +133,7 @@ func (s *I18nService) buildI18nImportRows(records [][]string, headerIndex map[st
 			i18nImportRow: row,
 			rowNumber:     rowNumber,
 		})
-	}
+	})
 	return rows
 }
 
@@ -204,10 +180,7 @@ func (s *I18nService) applyI18nImportRows(tx *gorm.DB, rows []i18nValidatedImpor
 // Import 批量导入 i18n 词条记录，逐行校验并返回导入结果（含逐行错误）。
 // updatedBy 记录触发导入的操作者（handler 从认证上下文注入），写入新建与被更新行的 updated_by。
 func (s *I18nService) Import(records [][]string, updatedBy string) (*impexp.ImportResult, error) {
-	result := &impexp.ImportResult{
-		Applied: false,
-		Errors:  []impexp.ImportError{},
-	}
+	result := impexp.NewImportResult()
 	if s.db == nil {
 		return nil, common.ErrDatabaseNotInitialized
 	}
@@ -216,8 +189,8 @@ func (s *I18nService) Import(records [][]string, updatedBy string) (*impexp.Impo
 		return result, nil
 	}
 
-	headerIndex := s.buildI18nImportHeaderIndex(records)
-	s.validateI18nImportHeaders(headerIndex, result)
+	headerIndex := impexp.BuildHeaderIndex(records)
+	impexp.RequireHeaders(result, headerIndex, "module", "group", "key", "locale", "value", "remark")
 	if result.Failed > 0 {
 		return result, nil
 	}
