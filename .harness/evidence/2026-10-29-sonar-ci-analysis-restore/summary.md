@@ -44,10 +44,22 @@ They are not duplicates.
 | `check:harness-adoption` | 0 findings |
 | `check-pr-governance.mjs --event` | OK pantheon-ops PR body governance fields are present |
 | SonarCloud authentication | `{"valid":true}`; project and organization resolve for the new token |
+| `SonarCloud Scan` on PR #153 | pass, run `40851210564`, log ends `ANALYSIS SUCCESSFUL` |
+| `SonarCloud Scan` on `main` | pass, run `40852770827` at `8799b2e9` |
+| PR #153 check rollup | green except the external `Vercel` deployment |
 
 The rebuild is the part that matters for durability: before the declaration the assembly produced
 758 files and no Sonar configuration, after it the assembly produces 761 files including
 `sonar-project.properties`.
+
+## Hosted verification after the merge
+
+`/api/project_analyses/search?project=duanxldragon_pantheon-ops&branch=main` returns three
+analyses. The first two are dated `2026-08-10` and `2026-08-22`; the third is dated
+`2026-10-29T09:50:45+0000` at revision `8799b2e9`. That is the CI analysis channel moving the
+main-branch baseline for the first time since August, which is the acceptance condition for this
+packet: the credential authenticates, the mandatory properties resolve from the restored file, the
+server accepts the report, and the project version on `main` advances.
 
 ## Known gaps
 
@@ -61,3 +73,7 @@ The rebuild is the part that matters for durability: before the declaration the 
   surfaces again.
 - `Vercel` remains red and is outside this repository: an external integration with no committed
   configuration.
+- The restored file keeps `sonar.sources=.` exactly as the deleted copy did, so the scanner reads
+  committed PNG evidence and visual snapshots as text and logs `Invalid character encountered`.
+  Those are warnings, not failures; narrowing the source set is a separate decision from restoring
+  the channel.
