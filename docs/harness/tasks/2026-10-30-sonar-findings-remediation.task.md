@@ -176,6 +176,30 @@ business/*
   job shape that ops' `quality.yml` does not have; that drift is recorded, not fixed here, because fixing
   it means changing which jobs are allowed to skip.
 
+## Post-Merge Read-Back (round 3)
+
+- The squash-merge landed on `main` as `9522048` and the push-triggered `SonarCloud Scan` succeeded, so the
+  gate was read back against the merged tree, not the PR. Open issues on `main` went **242 → 194**;
+  **BUG count went 6 → 0**, and every shell / typescript / githubactions vulnerability class cleared. The
+  gate condition `new_reliability_rating` is now **OK**, and `new_security_rating` is the only remaining
+  ERROR. That is the honest shape of what code fixed versus what still needs triage: the code fixes worked,
+  and one condition is left to the recorded-false-positive path.
+- What is still open under `new_security_rating` is exactly 36 BLOCKER vulnerabilities: 33 `gosecurity:S3649`
+  (the GORM literal-argument family) and 3 `gosecurity:S2083` on `os.Remove(fullPath)` in
+  `filedist/storage_service.go:319/325/345`. The S2083 trio is the cleanup path of `UploadFile`: SonarGo
+  cleared the `os.Create` site this round, which shows it accepts `resolveWithinRoot` as a sanitizer for the
+  create flow, but it still taints the three remove calls that use the same value.
+- Rather than argue the S2083 trio from the code alone, `TestUploadPathStaysInsideRootForAdversarialNames`
+  now pins the exact flagged data flow: an attacker-controlled multipart name goes through
+  `sanitizeUploadFileName`, is joined the way `UploadFile` joins it, and the resolved result is asserted to
+  stay under the storage root — including `../../etc/passwd`, a Windows path with backslashes, an absolute
+  path, `....//` doubling, a nested traversal, an embedded NUL and a CRLF name. Names that the sanitizer
+  rejects are treated as equally safe outcomes, so the test does not encode a false expectation that every
+  hostile name must succeed. This is the machine-checkable justification the triage record leans on; the
+  S3649 family leans on `scripts/check-gorm-sql-literal.mjs`, which blocks in CI.
+- No transition was performed before this test was on `main`, and no metric, new-code baseline or gate was
+  touched to make the reading look better.
+
 ## Verification Plan
 
 - `cd backend && gofmt -l modules/business && go build ./... && go vet ./... && go test ./... -count=1`

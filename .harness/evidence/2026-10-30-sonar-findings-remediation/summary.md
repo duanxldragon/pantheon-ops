@@ -83,6 +83,25 @@ annotations already in that module. Re-running the lint job's own arguments
 (`golangci-lint run --new-from-rev=<main> ./...`) locally returns 0 issues, the Go suite is 64 packages ok,
 the checker and the duplication gate are green, and frontend was untouched in round 2.
 
+## Post-merge read-back
+
+PR #156 squash-merged into `main` as `9522048` with both required contexts green, the head branch was deleted
+on merge, and the repository now holds only `main`. The push-triggered scan moved the numbers the way the
+code should: open issues **242 → 194**, vulnerabilities **62 → 36**, bugs **6 → 0**. `new_reliability_rating`
+turned OK, duplication and maintainability stayed OK, and the gate is now ERROR on a single condition,
+`new_security_rating`.
+
+That last condition is entirely made of two families, both machine-verified rather than argued: 33
+`gosecurity:S3649` behind `scripts/check-gorm-sql-literal.mjs`, and 3 `gosecurity:S2083` on the
+`os.Remove(fullPath)` cleanup calls in `UploadFile`. SonarGo accepted `resolveWithinRoot` as a sanitizer for
+the `os.Create` site this round — that finding is gone — but it does not treat the same value as sanitized
+by the time it reaches `os.Remove`, so the code fix alone did not clear the trio. Rather than assert the
+containment in prose, `TestUploadPathStaysInsideRootForAdversarialNames` now runs the flagged data flow: the
+seven hostile upload names (unix traversal, Windows separators, absolute path, `....//` doubling, nested
+traversal, embedded NUL, CRLF) go through `sanitizeUploadFileName`, get joined as `UploadFile` joins them,
+and must resolve under the storage root. Names the sanitizer rejects are accepted as safe outcomes, so the
+test asserts the property instead of a hoped-for behaviour.
+
 ## Explicit gaps
 
 - The legacy smell backlog outside the new-code period is untouched on purpose: `go:S1192` ×68, `go:S3776`

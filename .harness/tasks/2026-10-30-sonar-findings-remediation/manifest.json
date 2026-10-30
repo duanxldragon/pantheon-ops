@@ -102,7 +102,8 @@
     "biz_argocd_server.ca_cert needs no SQL migration: the argocd module owns Migrate() with GORM AutoMigrate and no versioned SQL references that table.",
     "e2e-tests/auto-test.sh shipped a reachable production IP and http:// defaults; requiring API_BASE_URL and WEB_BASE_URL removes the shell:S5332 class instead of marking it won't-fix, and the same change makes the scripts refuse to run against an unintended host.",
     "The checker is an Ops-only sensor: base ships no backend/modules/business, so it is deliberately not proposed upstream and must not be hand-copied into base.",
-    "Round 2 was driven by the first hosted CI run rather than by local review: Go Lint reported one new gosec G304 on the line this round introduced (os.Create of a path that is already proven to stay inside the storage root), annotated consistently with the three G304 waivers already in that module, and the SonarCloud gate stayed ERROR only on new-code duplication because the new checker test file repeated its twelve test bodies. The test file became a CASES table with one driver loop, so the duplication is removed rather than the metric suppressed; the gate's security and reliability conditions were already OK on that analysis."
+    "Round 2 was driven by the first hosted CI run rather than by local review: Go Lint reported one new gosec G304 on the line this round introduced (os.Create of a path that is already proven to stay inside the storage root), annotated consistently with the three G304 waivers already in that module, and the SonarCloud gate stayed ERROR only on new-code duplication because the new checker test file repeated its twelve test bodies. The test file became a CASES table with one driver loop, so the duplication is removed rather than the metric suppressed; the gate's security and reliability conditions were already OK on that analysis.",
+    "Post-merge read-back (round 3): the squash-merge landed on main as 9522048 and the push-triggered scan took open issues from 242 to 194, bugs from 6 to 0, and new_reliability_rating to OK. The only remaining gate ERROR is new_security_rating, whose whole residue is 33 gosecurity:S3649 plus 3 gosecurity:S2083 on the os.Remove cleanup sites in UploadFile. SonarGo accepted resolveWithinRoot as a sanitizer for os.Create but not for os.Remove on the same value, so those three are backed by TestUploadPathStaysInsideRootForAdversarialNames, which pins the flagged data flow end to end, and by the checker for the S3649 family. Nothing was transitioned before that test was on main."
   ],
   "harnessProfile": {
     "template": "api-service",
@@ -130,7 +131,9 @@
       "commands.json",
       "summary.md",
       "review.md",
-      "sonar-s3649-keys.json"
+      "sonar-s3649-keys.json",
+      "sonar-after-merge-vulnerabilities.json",
+      "sonar-triage.json"
     ],
     "ratchetDecision": "new-sensor",
     "deferredCodeIssues": [
