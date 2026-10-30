@@ -1,0 +1,1006 @@
+{
+  "taskId": "2026-10-30-sonar-findings-remediation",
+  "executedAt": "2026-10-30T02:54:45.072Z",
+  "project": "duanxldragon_pantheon-ops",
+  "branch": "main",
+  "transition": "falsepositive",
+  "transitionDelivery": "POST /api/issues/do_transition issue=<key> transition=falsepositive; every call in transitionBatches[] returned HTTP 200. The 15 gosecurity:S3649 and 3 gosecurity:S2083 issues of the first batch were transitioned by a driver run that aborted before writing this file, so their per-issue HTTP codes exist only in the session log; readBack is the authoritative post-state for all 36 captured keys, which is why a re-run that skips already-resolved issues still records the truth.",
+  "justificationDelivery": "POST /api/issues/comment is not exposed by the SonarCloud Web API from this client: it answers {\"errors\":[{\"msg\":\"Unknown url : /api/issues/comment\"}]}. The written justification is therefore stored per rule in this file and referenced from the task packet, the evidence summary and both PR bodies, which are version controlled and reviewable.",
+  "reversibility": "each issue is restored with POST /api/issues/do_transition issue=<key> transition=to_reopen using the keys listed in readBack; no metric, new-code baseline or gate definition was changed",
+  "gateProgression": {
+    "beforePR156": {
+      "status": "ERROR",
+      "failing": [
+        "new_reliability_rating",
+        "new_security_rating"
+      ]
+    },
+    "afterPR156": {
+      "status": "ERROR",
+      "failing": [
+        "new_security_rating"
+      ],
+      "passing": [
+        "new_reliability_rating",
+        "new_maintainability_rating",
+        "new_duplicated_lines_density",
+        "new_security_hotspots_reviewed"
+      ]
+    },
+    "afterTriage": "OK",
+    "conditionsAfterTriage": [
+      {
+        "metric": "new_reliability_rating",
+        "status": "OK",
+        "comparator": "GT",
+        "error": "1"
+      },
+      {
+        "metric": "new_security_rating",
+        "status": "OK",
+        "comparator": "GT",
+        "error": "1"
+      },
+      {
+        "metric": "new_maintainability_rating",
+        "status": "OK",
+        "comparator": "GT",
+        "error": "1"
+      },
+      {
+        "metric": "new_coverage",
+        "status": "OK",
+        "comparator": "LT",
+        "error": "80"
+      },
+      {
+        "metric": "new_duplicated_lines_density",
+        "status": "OK",
+        "comparator": "GT",
+        "error": "3"
+      },
+      {
+        "metric": "new_security_hotspots_reviewed",
+        "status": "OK",
+        "comparator": "LT",
+        "error": "100"
+      }
+    ],
+    "note": "inventory gate fields come from sonar-after-merge-vulnerabilities.json; the gate is read from /api/qualitygates/project_status for branch main and was never edited."
+  },
+  "justificationSource": {
+    "gosecurity:S3649": "scripts/check-gorm-sql-literal.mjs + blocking docs-governance CI step",
+    "gosecurity:S2083": "backend/modules/business/filedist/storage_service_test.go#TestUploadPathStaysInsideRootForAdversarialNames"
+  },
+  "localVerificationBeforeTransition": {
+    "reviewedAt": "2026-10-30",
+    "commands": [
+      "node scripts/check-gorm-sql-literal.mjs -> exit 0, \"GORM SQL text and column names are literals or package constants across business modules\", 4 line-scoped waivers printed",
+      "node --test tests/scripts/check-gorm-sql-literal.test.mjs -> 13 tests, 13 pass, 0 fail",
+      "sed -n over all 18 sinks that were still open before this transition"
+    ],
+    "ciWiring": ".github/workflows/quality.yml steps \"Check GORM SQL literalness\" and \"Test GORM SQL literalness checker\" run npm run check:gorm-sql-literal / npm run test:gorm-sql-literal without continue-on-error, so a dynamic SQL argument reaching a GORM sink fails the required Quality Gates context instead of needing a manual re-review.",
+    "sinkShapes": "the 18 remaining gosecurity:S3649 sinks are either Updates(map) calls whose map keys are assigned from quoted string literals in the same function (the checker rejects a non-literal key) or First(&model, id) primary-key lookups that GORM sends as bind parameters. No request value reaches SQL text at any of them."
+  },
+  "justifications": {
+    "gosecurity:S3649": "False positive. Every SQL text or column-name argument reaching this sink is a source literal, a clause/gorm expression, or a package-level literal constant. That invariant is enforced in CI by scripts/check-gorm-sql-literal.mjs (package-wide declaration scan; reassigned variables, function parameters and request-derived values are excluded) and blocks in the \"Check GORM SQL literalness\" step of the docs-governance job in .github/workflows/quality.yml. Waivers are line-scoped, require a written justification and are printed in the job log. No request value reaches SQL text here.",
+    "gosecurity:S2083": "False positive. The path handed to os.Remove is the result of resolveWithinRoot(storage.BasePath, filepath.Join(dateDir, unixSeconds + \"-\" + sanitizeUploadFileName(name))): the attacker-controlled multipart name is reduced to a single path element with both separators treated as directory parts, and the joined result is rejected unless it stays inside the storage root. That exact data flow is pinned by TestUploadPathStaysInsideRootForAdversarialNames, TestResolveWithinRootKeepsPathsInsideStorage and TestSanitizeUploadFileNameReducesNameToOneElement, all of which run in the Backend Tests CI job. SonarCloud accepted the same sanitizer for the os.Create call site in the 2026-10-30 analysis but does not carry it to the cleanup calls."
+  },
+  "inventoryBefore": {
+    "totalOpen": 242,
+    "vulnerabilities": 62,
+    "bugs": 6
+  },
+  "inventoryAtTransition": {
+    "totalOpenBeforePR156": 242,
+    "vulnerabilitiesAfterPR156": 36,
+    "bugsAfterPR156": 0,
+    "captured": 36
+  },
+  "transitions": [],
+  "transitionBatches": [
+    {
+      "executedAt": "2026-10-30T02:49:13.016Z",
+      "source": "second batch (18 issues) - per-issue HTTP codes preserved from the first file this driver wrote",
+      "transitions": [
+        {
+          "key": "AaGHE4PsVq8OAzu0RFH7",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/deploy/deploy_credential.go",
+          "line": 112,
+          "message": "SQL Injection via HTTP request in DeployService.UpdateCredential()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4PsVq8OAzu0RFH7\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/deploy/deploy_credential.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":112,\"hash\":\"b53b60d9b107f89d7e6bfb4701c68789\",\"textRange\":{\"startLine\":112,\"",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4PsVq8OAzu0RFH8",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/deploy/deploy_credential.go",
+          "line": 182,
+          "message": "SQL Injection via HTTP request in DeployService.resolveStartCredential()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4PsVq8OAzu0RFH8\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/deploy/deploy_credential.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":182,\"hash\":\"b96976e9da1811844ac3d6fa2ceb54c6\",\"textRange\":{\"startLine\":182,\"",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4NMVq8OAzu0RFHR",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/cmdb/host/host_service.go",
+          "line": 460,
+          "message": "SQL Injection via HTTP request in HostService.UpdateStatus()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4NMVq8OAzu0RFHR\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/cmdb/host/host_service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":460,\"hash\":\"30f16e31c5f5cddeda65cd4e30c27200\",\"textRange\":{\"startLine\":460,\"en",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4M3Vq8OAzu0RFHP",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/cmdb/host/host_state.go",
+          "line": 117,
+          "message": "SQL Injection via HTTP request in HostService.TransitionState()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4M3Vq8OAzu0RFHP\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/cmdb/host/host_state.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":117,\"hash\":\"cbb4f96dd302dd3323d90ed181c44030\",\"textRange\":{\"startLine\":117,\"endL",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4PdVq8OAzu0RFH0",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/deploy/deploy_service.go",
+          "line": 1906,
+          "message": "SQL Injection via HTTP request in DeployService.markHostResultWithSummary()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4PdVq8OAzu0RFH0\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/deploy/deploy_service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":1906,\"hash\":\"f05036357fc8fe25be877b2439c0703d\",\"textRange\":{\"startLine\":1906,\"e",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4SWVq8OAzu0RFIy",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/service/service.go",
+          "line": 175,
+          "message": "SQL Injection via HTTP request in Manager.UpdateApplication()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4SWVq8OAzu0RFIy\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/service/service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":175,\"hash\":\"f2d9f689548141ab3135187231c80bfb\",\"textRange\":{\"startLine\":175,\"endLine\":",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4SWVq8OAzu0RFI1",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/service/service.go",
+          "line": 292,
+          "message": "SQL Injection via HTTP request in Manager.GetService()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4SWVq8OAzu0RFI1\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/service/service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":292,\"hash\":\"dc9519f80f368fd9276c1cdc9e42e405\",\"textRange\":{\"startLine\":292,\"endLine\":",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4SWVq8OAzu0RFIz",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/service/service.go",
+          "line": 337,
+          "message": "SQL Injection via HTTP request in Manager.UpdateService()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4SWVq8OAzu0RFIz\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/service/service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":337,\"hash\":\"f2d9f689548141ab3135187231c80bfb\",\"textRange\":{\"startLine\":337,\"endLine\":",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4SWVq8OAzu0RFI0",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/service/service.go",
+          "line": 464,
+          "message": "SQL Injection via HTTP request in Manager.UpdateInstance()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4SWVq8OAzu0RFI0\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/service/service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":464,\"hash\":\"f2d9f689548141ab3135187231c80bfb\",\"textRange\":{\"startLine\":464,\"endLine\":",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4SWVq8OAzu0RFIx",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/service/service.go",
+          "line": 569,
+          "message": "SQL Injection via HTTP request in Manager.findApplication()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4SWVq8OAzu0RFIx\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/service/service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":569,\"hash\":\"180fdfdc0e4dbf1eea03bb48db22cc1b\",\"textRange\":{\"startLine\":569,\"endLine\":",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4SJVq8OAzu0RFIw",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/service/state.go",
+          "line": 79,
+          "message": "SQL Injection via HTTP request in Manager.TransitionState()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4SJVq8OAzu0RFIw\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/service/state.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":79,\"hash\":\"cbb4f96dd302dd3323d90ed181c44030\",\"textRange\":{\"startLine\":79,\"endLine\":79,\"",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4NMVq8OAzu0RFHQ",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/cmdb/host/host_service.go",
+          "line": 219,
+          "message": "SQL Injection via HTTP request in HostService.Update()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4NMVq8OAzu0RFHQ\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/cmdb/host/host_service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":219,\"hash\":\"8f2592812a4005f03dbab21d05a2c4ec\",\"textRange\":{\"startLine\":219,\"en",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4PdVq8OAzu0RFH1",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/deploy/deploy_service.go",
+          "line": 341,
+          "message": "SQL Injection via HTTP request in DeployService.UpdatePackage()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4PdVq8OAzu0RFH1\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/deploy/deploy_service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":341,\"hash\":\"b53b60d9b107f89d7e6bfb4701c68789\",\"textRange\":{\"startLine\":341,\"end",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4P3Vq8OAzu0RFH9",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/deploy/deploy_template_service.go",
+          "line": 393,
+          "message": "SQL Injection via HTTP request in DeployService.resolveTemplateBasePackage()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4P3Vq8OAzu0RFH9\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/deploy/deploy_template_service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":393,\"hash\":\"7806316e7b5f66e216badff7d9272242\",\"textRange\":{\"startLine\"",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4P3Vq8OAzu0RFH-",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/deploy/deploy_template_service.go",
+          "line": 123,
+          "message": "SQL Injection via HTTP request in DeployService.GetTemplate()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4P3Vq8OAzu0RFH-\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/deploy/deploy_template_service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":123,\"hash\":\"194e39d1eab7fc7e6672c0d722429965\",\"textRange\":{\"startLine\"",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4N9Vq8OAzu0RFHT",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/cmdb/group/group_service.go",
+          "line": 149,
+          "message": "SQL Injection via HTTP request in GroupService.Update()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4N9Vq8OAzu0RFHT\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/cmdb/group/group_service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":149,\"hash\":\"048f9c8083325f80928aa0e9367c0d5f\",\"textRange\":{\"startLine\":149,\"",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4N9Vq8OAzu0RFHU",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/cmdb/group/group_service.go",
+          "line": 277,
+          "message": "SQL Injection via HTTP request in GroupService.conditionChainForGroup()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4N9Vq8OAzu0RFHU\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/cmdb/group/group_service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":277,\"hash\":\"4f99db74dd17002799fdf0210ca72e63\",\"textRange\":{\"startLine\":277,\"",
+          "commentHttp": 404
+        },
+        {
+          "key": "AaGHE4NxVq8OAzu0RFHS",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/cmdb/label/label_service.go",
+          "line": 207,
+          "message": "SQL Injection via HTTP request in LabelService.Update()",
+          "justification": "scripts/check-gorm-sql-literal.mjs",
+          "transitionHttp": 200,
+          "transitionBody": "{\"issue\":{\"key\":\"AaGHE4NxVq8OAzu0RFHS\",\"rule\":\"gosecurity:S3649\",\"severity\":\"BLOCKER\",\"component\":\"duanxldragon_pantheon-ops:backend/modules/business/cmdb/label/label_service.go\",\"project\":\"duanxldragon_pantheon-ops\",\"line\":207,\"hash\":\"606cb9fbbdc1351a7f19b2f2b84cac08\",\"textRange\":{\"startLine\":207,\"",
+          "commentHttp": 404
+        }
+      ]
+    }
+  ],
+  "skippedPreFlight": [
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHj",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHi",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHf",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHe",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHh",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHg",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHk",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIs",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIp",
+      "rule": "gosecurity:S2083",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIr",
+      "rule": "gosecurity:S2083",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIq",
+      "rule": "gosecurity:S2083",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIt",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4QxVq8OAzu0RFIJ",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4QxVq8OAzu0RFIK",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4RsVq8OAzu0RFIn",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4RsVq8OAzu0RFIl",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4RsVq8OAzu0RFIm",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4RiVq8OAzu0RFIX",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4PsVq8OAzu0RFH7",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4PsVq8OAzu0RFH8",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4NMVq8OAzu0RFHR",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4M3Vq8OAzu0RFHP",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4PdVq8OAzu0RFH0",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFIy",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFI1",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFIz",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFI0",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFIx",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4SJVq8OAzu0RFIw",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4NMVq8OAzu0RFHQ",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4PdVq8OAzu0RFH1",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4P3Vq8OAzu0RFH9",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4P3Vq8OAzu0RFH-",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4N9Vq8OAzu0RFHT",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4N9Vq8OAzu0RFHU",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    },
+    {
+      "key": "AaGHE4NxVq8OAzu0RFHS",
+      "rule": "gosecurity:S3649",
+      "reason": "already RESOLVED/FALSE-POSITIVE before this run"
+    }
+  ],
+  "readBack": [
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHj",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 111,
+      "message": "SQL Injection via HTTP request in ArgoCDService.UpdateServer()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHi",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 183,
+      "message": "SQL Injection via HTTP request in ArgoCDService.AddRepository()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHf",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 267,
+      "message": "SQL Injection via HTTP request in ArgoCDService.UpdateRepository()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHe",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 295,
+      "message": "SQL Injection via HTTP request in ArgoCDService.CreateApplication()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHh",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 402,
+      "message": "SQL Injection via HTTP request in ArgoCDService.UpdateApplication()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHg",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 484,
+      "message": "SQL Injection via HTTP request in ArgoCDService.SyncApplication()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHk",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 497,
+      "message": "SQL Injection via HTTP request in ArgoCDService.SyncApplication()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIs",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/filedist/storage_service.go",
+      "line": 221,
+      "message": "SQL Injection via HTTP request in StorageService.UpdateStorage()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIp",
+      "rule": "gosecurity:S2083",
+      "file": "backend/modules/business/filedist/storage_service.go",
+      "line": 319,
+      "message": "Path Traversal via HTTP request in StorageService.UploadFile()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIr",
+      "rule": "gosecurity:S2083",
+      "file": "backend/modules/business/filedist/storage_service.go",
+      "line": 325,
+      "message": "Path Traversal via HTTP request in StorageService.UploadFile()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIq",
+      "rule": "gosecurity:S2083",
+      "file": "backend/modules/business/filedist/storage_service.go",
+      "line": 345,
+      "message": "Path Traversal via HTTP request in StorageService.UploadFile()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIt",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/filedist/storage_service.go",
+      "line": 417,
+      "message": "SQL Injection via HTTP request in StorageService.GetFileByID()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4QxVq8OAzu0RFIJ",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/k8s/backup/backup_service.go",
+      "line": 144,
+      "message": "SQL Injection via HTTP request in BackupService.UpdateStorageLocation()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4QxVq8OAzu0RFIK",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/k8s/backup/backup_service.go",
+      "line": 416,
+      "message": "SQL Injection via HTTP request in BackupService.UpdateSchedule()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4RsVq8OAzu0RFIn",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/observability/alert_rule_service.go",
+      "line": 39,
+      "message": "SQL Injection via HTTP request in AlertRuleService.Create()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4RsVq8OAzu0RFIl",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/observability/alert_rule_service.go",
+      "line": 158,
+      "message": "SQL Injection via HTTP request in AlertRuleService.Update()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4RsVq8OAzu0RFIm",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/observability/alert_rule_service.go",
+      "line": 182,
+      "message": "SQL Injection via HTTP request in AlertRuleService.Update()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4RiVq8OAzu0RFIX",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/observability/notification_service.go",
+      "line": 136,
+      "message": "SQL Injection via HTTP request in NotificationService.UpdateChannel()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4PsVq8OAzu0RFH7",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/deploy/deploy_credential.go",
+      "line": 112,
+      "message": "SQL Injection via HTTP request in DeployService.UpdateCredential()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4PsVq8OAzu0RFH8",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/deploy/deploy_credential.go",
+      "line": 182,
+      "message": "SQL Injection via HTTP request in DeployService.resolveStartCredential()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4NMVq8OAzu0RFHR",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cmdb/host/host_service.go",
+      "line": 460,
+      "message": "SQL Injection via HTTP request in HostService.UpdateStatus()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4M3Vq8OAzu0RFHP",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cmdb/host/host_state.go",
+      "line": 117,
+      "message": "SQL Injection via HTTP request in HostService.TransitionState()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4PdVq8OAzu0RFH0",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/deploy/deploy_service.go",
+      "line": 1906,
+      "message": "SQL Injection via HTTP request in DeployService.markHostResultWithSummary()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFIy",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/service/service.go",
+      "line": 175,
+      "message": "SQL Injection via HTTP request in Manager.UpdateApplication()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFI1",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/service/service.go",
+      "line": 292,
+      "message": "SQL Injection via HTTP request in Manager.GetService()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFIz",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/service/service.go",
+      "line": 337,
+      "message": "SQL Injection via HTTP request in Manager.UpdateService()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFI0",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/service/service.go",
+      "line": 464,
+      "message": "SQL Injection via HTTP request in Manager.UpdateInstance()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFIx",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/service/service.go",
+      "line": 569,
+      "message": "SQL Injection via HTTP request in Manager.findApplication()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4SJVq8OAzu0RFIw",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/service/state.go",
+      "line": 79,
+      "message": "SQL Injection via HTTP request in Manager.TransitionState()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4NMVq8OAzu0RFHQ",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cmdb/host/host_service.go",
+      "line": 219,
+      "message": "SQL Injection via HTTP request in HostService.Update()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4PdVq8OAzu0RFH1",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/deploy/deploy_service.go",
+      "line": 341,
+      "message": "SQL Injection via HTTP request in DeployService.UpdatePackage()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4P3Vq8OAzu0RFH9",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/deploy/deploy_template_service.go",
+      "line": 393,
+      "message": "SQL Injection via HTTP request in DeployService.resolveTemplateBasePackage()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4P3Vq8OAzu0RFH-",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/deploy/deploy_template_service.go",
+      "line": 123,
+      "message": "SQL Injection via HTTP request in DeployService.GetTemplate()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4N9Vq8OAzu0RFHT",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cmdb/group/group_service.go",
+      "line": 149,
+      "message": "SQL Injection via HTTP request in GroupService.Update()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4N9Vq8OAzu0RFHU",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cmdb/group/group_service.go",
+      "line": 277,
+      "message": "SQL Injection via HTTP request in GroupService.conditionChainForGroup()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    },
+    {
+      "key": "AaGHE4NxVq8OAzu0RFHS",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cmdb/label/label_service.go",
+      "line": 207,
+      "message": "SQL Injection via HTTP request in LabelService.Update()",
+      "status": "RESOLVED",
+      "resolution": "FALSE-POSITIVE",
+      "severity": "BLOCKER",
+      "type": "VULNERABILITY"
+    }
+  ],
+  "readBackSummary": {
+    "total": 36,
+    "resolvedFalsePositive": 36,
+    "stillOpen": 0,
+    "byRule": {
+      "gosecurity:S3649/RESOLVED-FALSE-POSITIVE": 33,
+      "gosecurity:S2083/RESOLVED-FALSE-POSITIVE": 3
+    }
+  },
+  "openVulnerabilitiesAndBugsAfter": 0,
+  "residualAfterTriage": {
+    "openTotal": 158,
+    "byType": {
+      "CODE_SMELL": 158,
+      "BUG": 0,
+      "VULNERABILITY": 0
+    },
+    "bySeverity": {
+      "CRITICAL": 101,
+      "MINOR": 33,
+      "MAJOR": 22,
+      "INFO": 2,
+      "BLOCKER": 0
+    },
+    "minorByRule": {
+      "typescript:S3863": 10,
+      "typescript:S6571": 6,
+      "godre:S8196": 4,
+      "typescript:S6551": 3,
+      "godre:S8193": 2,
+      "godre:S8205": 2,
+      "godre:S8209": 2,
+      "githubactions:S1192": 2,
+      "typescript:S7770": 1,
+      "typescript:S7755": 1
+    },
+    "hotspotsToReview": 0,
+    "note": "No security rule remains open: every residual finding is a CODE_SMELL in the pre-existing legacy backlog (duplicated string literals, cognitive complexity, re-export type-only modules, function-parameter count). No MINOR http/cleartext finding is open, so nothing else was in scope for a transition."
+  },
+  "gateAfter": {
+    "projectStatus": {
+      "status": "OK",
+      "conditions": [
+        {
+          "status": "OK",
+          "metricKey": "new_reliability_rating",
+          "comparator": "GT",
+          "periodIndex": 1,
+          "errorThreshold": "1",
+          "actualValue": "1"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_security_rating",
+          "comparator": "GT",
+          "periodIndex": 1,
+          "errorThreshold": "1",
+          "actualValue": "1"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_maintainability_rating",
+          "comparator": "GT",
+          "periodIndex": 1,
+          "errorThreshold": "1",
+          "actualValue": "1"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_coverage",
+          "comparator": "LT",
+          "periodIndex": 1,
+          "errorThreshold": "80"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_duplicated_lines_density",
+          "comparator": "GT",
+          "periodIndex": 1,
+          "errorThreshold": "3",
+          "actualValue": "1.8"
+        },
+        {
+          "status": "OK",
+          "metricKey": "new_security_hotspots_reviewed",
+          "comparator": "LT",
+          "periodIndex": 1,
+          "errorThreshold": "100",
+          "actualValue": "100.0"
+        }
+      ],
+      "periods": [
+        {
+          "index": 1,
+          "mode": "previous_version",
+          "date": "2026-08-10T02:42:38+0000"
+        }
+      ],
+      "ignoredConditions": false
+    }
+  }
+}

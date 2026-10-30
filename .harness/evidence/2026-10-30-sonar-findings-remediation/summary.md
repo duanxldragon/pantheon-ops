@@ -102,11 +102,37 @@ traversal, embedded NUL, CRLF) go through `sanitizeUploadFileName`, get joined a
 and must resolve under the storage root. Names the sanitizer rejects are accepted as safe outcomes, so the
 test asserts the property instead of a hoped-for behaviour.
 
+## Recorded false positives, and the check that carries them
+
+Marking an issue won't-fix is only defensible after the fix ships and a fresh analysis runs against it, so the
+transition happened last: PR #158 merged, the containment tests and the GORM sensor were on `main`, the checker
+was re-run green there (13/13 tests), and each of the 18 sinks that were still open was read at its reported
+line before any state was changed. All 36 captured keys are now `RESOLVED / FALSE-POSITIVE` and the branch gate
+reads **OK** on every condition — open vulnerabilities **36 → 0**, bugs stay **0**, hotspots to review **0**.
+
+What makes this a record rather than a suppression:
+
+- The justification is per rule and lives in version control (`sonar-triage.json`), naming the artifact that
+  re-checks it: `scripts/check-gorm-sql-literal.mjs` for the 33 `gosecurity:S3649`, and
+  `TestUploadPathStaysInsideRootForAdversarialNames` plus its two siblings for the 3 `gosecurity:S2083`.
+- Both artifacts block: `.github/workflows/quality.yml` runs `npm run check:gorm-sql-literal` and
+  `npm run test:gorm-sql-literal` with no `continue-on-error`, and that job feeds the required `Quality Gates`
+  context. If someone reintroduces a dynamic SQL argument, the sensor fails the merge instead of the finding
+  silently coming back.
+- It is reversible and keyed: every issue key is listed, and `POST /api/issues/do_transition
+  transition=to_reopen` restores any of them. No metric, new-code baseline or gate definition was touched, and
+  nothing was marked won't-fix.
+- SonarCloud does not expose `POST /api/issues/comment` for this client (HTTP 404 `Unknown url`), so the written
+  justification could not be attached to the issue thread; it is carried by this packet and both PR bodies.
+
 ## Explicit gaps
 
-- The legacy smell backlog outside the new-code period is untouched on purpose: `go:S1192` ×68, `go:S3776`
-  ×27, `typescript:S3358` ×22, `typescript:S3863` ×10, `godre:*`, `shell:S7688` ×7, `typescript:S6571` ×6,
-  `go:S1135` TODO comments ×2, `go:S107` wide parameter lists ×2. Clearing it is a maintainability program,
+- The legacy smell backlog outside the new-code period is untouched on purpose: 158 open findings, all
+  `CODE_SMELL` — `go:S1192` ×68, `go:S3776` ×27, `typescript:S3358` ×20, `typescript:S3863` ×10, `godre:*` ×10,
+  `typescript:S3776` ×6, `typescript:S6571` ×6, `typescript:S6551` ×3, `go:S107` ×2, `go:S1135` TODO comments ×2,
+  `githubactions:S1192` ×2, `typescript:S7770` ×1, `typescript:S7755` ×1 (facets read back from
+  `/api/issues/search` on `main` after the transition, so this is the post-change count rather than the
+  pre-merge one). Clearing it is a maintainability program,
   not a security gate, and doing it in this diff would make a security review harder.
 - Dependabot-triggered runs still cannot read `SONAR_TOKEN`, so `SonarCloud Scan` stays red on Dependabot
   PRs. Provisioning Dependabot secrets or skipping that actor is a maintainer gate-policy decision.
@@ -120,6 +146,9 @@ test asserts the property instead of a hoped-for behaviour.
   exposes only `hasCaCert`.
 - `sonar.sources=.` still makes the scanner read PNG evidence as source text; narrowing that property is a
   Sonar configuration decision left with the maintainer.
+- The gate's `new_coverage` condition (LT 80) reports OK with no value because no coverage report is uploaded,
+  so it is not actually evaluated. Treating coverage as a real gate needs a Go coverage pipeline in
+  `sonarcloud.yml` first; claiming a passing coverage condition here would be false evidence.
 - The two `go:S1135` TODO comments are not just comments: `argocd_webhook.go:304` logs "triggering sync"
   without ever parsing the auto-sync policy, and `argocd_reconciler.go:183` only logs instead of updating
   service instance state through the capability interface. Both conflict with this repository's

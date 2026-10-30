@@ -200,6 +200,36 @@ business/*
 - No transition was performed before this test was on `main`, and no metric, new-code baseline or gate was
   touched to make the reading look better.
 
+## Recorded False Positives (round 4)
+
+- Ordering was the safety property: PR #158 merged as `52dfe28`, then the sensor and its 13 tests were re-run
+  green on that tree, then every still-open sink was read at its reported line, and only then were the 36 keys
+  transitioned. `node scripts/check-gorm-sql-literal.mjs` exits 0 on `52dfe28`,
+  `node --test tests/scripts/check-gorm-sql-literal.test.mjs` is 13/13, and
+  `go test ./modules/business/{filedist,service,cmdb,cmdb/host,cmdb/group,cmdb/label,deploy}/...` is green,
+  which are the packages holding the reported sinks.
+- The 18 issues still open at the start of this round are 12 `Updates(map)` calls whose map keys are assigned
+  from quoted string literals inside the same function (`deploy_credential.go:112`, `host_service.go:219/460`,
+  `host_state.go:117`, `deploy_service.go:341/1906`, `service.go:175/337/464`, `state.go:79`,
+  `group_service.go:149`, `label_service.go:207`) and 6 `First(&model, id)` primary-key lookups that GORM sends
+  as bind parameters (`deploy_credential.go:182`, `service.go:292/569`, `deploy_template_service.go:123/393`,
+  `group_service.go:277`). That is the exact invariant the sensor asserts, so the transition is a recorded
+  justification pointing at a blocking check, not an opinion about the rule.
+- Read-back after the transition: all 36 keys are `RESOLVED / FALSE-POSITIVE` (33 `gosecurity:S3649` +
+  3 `gosecurity:S2083`), open **VULNERABILITY 36 → 0**, **BUG 0**, hotspots to review **0**, and the branch gate
+  reports **OK** on every condition — `new_security_rating` is no longer ERROR. The remaining 158 open findings
+  are all `CODE_SMELL` legacy backlog and were left alone on purpose.
+- Reversibility and honesty limits recorded in `.harness/evidence/2026-10-30-sonar-findings-remediation/sonar-triage.json`:
+  every key is listed so `transition=to_reopen` restores it; `POST /api/issues/comment` is not exposed by
+  SonarCloud (HTTP 404 `Unknown url`), so the written justification lives in this packet and the PR bodies rather
+  than in the issue thread; `/api/issues/search` ignores `issueKeys` and only accepts
+  `OPEN,CONFIRMED,FALSE_POSITIVE,ACCEPTED,FIXED` in `issueStatuses`, which is why a resumed run must match keys
+  client-side instead of trusting a filtered query; and `new_coverage` reads OK only because no coverage report
+  is uploaded, so it is not an evaluated condition and is not claimed as one.
+- The driver script was kept as a scratch tool outside the repository and is not committed: it authenticates with
+  a maintainer token from the environment, and a token-using script inside the tree would be an attack surface
+  rather than evidence.
+
 ## Verification Plan
 
 - `cd backend && gofmt -l modules/business && go build ./... && go vet ./... && go test ./... -count=1`
@@ -213,6 +243,11 @@ business/*
   `check:ui-quality-gate`, `check:encoding`
 - Hosted: all GitHub Actions workflows green on `main`, then a `sonarcloud.yml` dispatch on `main`,
   then `/api/qualitygates/project_status` for branch `main`.
+- Triage: read the live set with `/api/issues/search` (accepted `issueStatuses` vocabulary is
+  `OPEN,CONFIRMED,FALSE_POSITIVE,ACCEPTED,FIXED`, `issueKeys` is ignored so keys are matched client-side),
+  `POST /api/issues/do_transition transition=falsepositive` per key, then re-read the gate, the open
+  `VULNERABILITY,BUG` count and `/api/hotspots/search?status=TO_REVIEW`, and write the whole exchange to
+  `sonar-triage.json` including the HTTP code per transition.
 
 ## Linkage
 
