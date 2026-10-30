@@ -372,6 +372,35 @@ business/*
   remaining PRs in this task are merged with an explicit `gh pr merge --squash --delete-branch` so the merge
   point stays a deliberate, reviewable action.
 
+## Issues and Security at Zero (round 8)
+
+- Acceptance reached: `main` at `430a9f0` (the squash of PR #161) reports **0 open issues** — the type facet
+  reads `CODE_SMELL 0 / VULNERABILITY 0 / BUG 0`, the rule facet is empty, security hotspots `TO_REVIEW` is 0 —
+  and the project quality gate is **OK** on all five conditions. The measures behind it are `vulnerabilities 0`,
+  `bugs 0`, `code_smells 0`, `security_hotspots 0`, `accepted_issues 0`, `false_positive_issues 36`,
+  `duplicated_lines_density 2.0`, with security, reliability and maintainability ratings at A. The full
+  progression is 242 open → 194 → 158 smells plus 1 vulnerability → 3 → 0.
+- The three residual findings of the dispatched `7364a44` analysis were closed as follows: the BLOCKER
+  `gosecurity:S3649` at `argocd_service.go:409` was transitioned on the branch (PR #161 does not touch that
+  line, so its text and issue identity survive the merge), and the three `gosecurity:S3649` instances the PR
+  analysis raised at `argocd_service.go:274`/`:409` and `backup_service.go:424` were transitioned on the pull
+  request. All four returned HTTP 200 and are recorded per key in `sonar-triage.json`.
+- The round-7 prediction that each rewritten sink needs its own post-merge transition was wrong, and the
+  read-back says so: after the merge `argocd_service.go:274` and `backup_service.go:424` appear on `main` as
+  RESOLVED / FALSE-POSITIVE under their original round-4 keys and round-4 line numbers while the source text at
+  those lines is now `Where(idWhereClause, id)` / `Where(whereByID, id)`. A transition made on the matching
+  pull-request instance is inherited by the branch analysis, so marking on the PR view before the merge is the
+  cheaper and correct place to triage — the statement-hash rule only bites when the text changes with no
+  transition on record.
+- Zero was reached without silencing anything: no suppression comment was added, no test assertion weakened, no
+  gate definition, metric or new-code baseline touched; only the four recorded issue keys were transitioned.
+- Merge discipline did not hold. `pr-automation.yml` had auto-merge re-enabled by `app/github-actions` within a
+  minute of PR #161 opening, so the explicit `gh pr merge 161 --squash --delete-branch` was rejected as
+  out-of-date while the automation landed the same squash. `main` is nevertheless the only branch now, locally
+  and on the remote, because the stale branches were verified to have no code diff against `main` before
+  deletion. Because an automation merge emits no push run, the pipeline evidence on `main` is the explicitly
+  dispatched `sonarcloud.yml`, `branch-hygiene.yml`, `quality.yml` and `security.yml` runs for `430a9f0`.
+
 ## Verification Plan
 
 - `cd backend && gofmt -l modules/business && go build ./... && go vet ./... && go test ./... -count=1`
@@ -417,9 +446,12 @@ business/*
   token value is written into the tree.
 - Gate policy: the legacy smell backlog and the Dependabot scan failure are maintainer decisions and are
   recorded rather than resolved here.
-- Sonar triage authority: marking 33 findings FALSE_POSITIVE changes hosted analysis state. It is executed
+- Sonar triage authority: marking findings FALSE_POSITIVE changes hosted analysis state. It is executed
   only after the checker that justifies it is merged and blocking in CI, with the key list recorded so the
-  transition can be reversed issue by issue.
+  transition can be reversed issue by issue. Populations so far: 36 instances marked in round 4 (33
+  `gosecurity:S3649` + 3 `gosecurity:S2083`) and 4 more in round 8 (3 pull-request instances plus 1 branch
+  instance), each with its written justification and HTTP code in `sonar-triage.json`. No other resolution
+  state was set — `accepted_issues` stays 0.
 
 ## Completion Checklist
 

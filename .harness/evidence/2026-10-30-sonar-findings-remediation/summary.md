@@ -215,6 +215,41 @@ eslint silent, `tsc -b` exit 0, vitest 230/230, `PANTHEON_CI=true npm run build`
 the same 14 pre-existing base-drift failures as the HEAD baseline. The local TS complexity oracle puts every
 previously flagged component at or below the threshold (max 15 across the six files).
 
+## Issues and security at zero (round 8)
+
+`main` at `430a9f0` reads **0 open issues and 0 security findings**, and the project quality gate is **OK**. The
+read-back that proves it is the analysis dispatched after PR #161 (`2026-10-30T06:38:03+0000`):
+`/api/issues/search?branch=main&issueStatuses=OPEN,CONFIRMED` returns total 0 with the type facet
+`CODE_SMELL 0 / VULNERABILITY 0 / BUG 0` and an empty rule facet, `/api/hotspots/search?status=TO_REVIEW` returns
+0, and the measures are `vulnerabilities 0`, `bugs 0`, `code_smells 0`, `security_hotspots 0`,
+`accepted_issues 0`, `false_positive_issues 36`, `duplicated_lines_density 2.0` with security, reliability and
+maintability ratings all A. The progression across the task is 242 open (62 vulnerabilities + 6 bugs + 174
+smells) → 194 → 158 smells + 1 vulnerability → 3 → 0.
+
+How the last three were cleared, in order, because the order is the part that is easy to get wrong:
+
+1. the dispatched main analysis (the first attempt died on a SonarCloud-side `HTTP 502` from
+   `POST /analysis/analyses`, the rerun succeeded in 2m0s) reported exactly two CRITICAL `go:S1192` on the
+   declaration lines and one BLOCKER `gosecurity:S3649` at `argocd_service.go:409`;
+2. `:409` was transitioned on the branch, because PR #161 does not touch that line, so its statement text and
+   issue identity are the same before and after the merge;
+3. PR #161's own analysis reported exactly the three predicted `gosecurity:S3649` (`argocd_service.go:274` and
+   `:409`, `backup_service.go:424`) and **0 code smells**, which is the direct proof that one restored sink per
+   declaring file satisfies S1192; those three keys were transitioned, the PR gate recomputed to OK without a
+   re-scan, and the GitHub check flipped from fail to pass;
+4. after the merge the branch analysis inherited the pull-request transitions: `argocd_service.go:274` and
+   `backup_service.go:424` read back on `main` as RESOLVED / FALSE-POSITIVE under their original round-4 keys
+   (`AaGHE4OZVq8OAzu0RFHf`, `AaGHE4QxVq8OAzu0RFIK`) even though the text at those lines is now
+   `Where(idWhereClause, id)` / `Where(whereByID, id)`. **This corrects the round-7 prediction**: a transition
+   made on the matching pull-request instance is carried onto the branch, so the cost of the shape was three
+   transitions made before the merge, not three more after it. The marked population stays 33 `gosecurity:S3649`
+   + 3 `gosecurity:S2083` = 36, all reversible with `transition=to_reopen`.
+
+Nothing was silenced to reach zero: no `//nolint`, `NOSONAR`, `eslint-disable` or `@ts-ignore` was added, no test
+assertion was weakened, the gate definition, the new-code baseline and every metric threshold are untouched, and
+the only transitions are the four issue keys listed in `sonar-triage.json` (`transitionBatches[]`, third batch)
+each with its written justification.
+
 ## Explicit gaps
 
 - The 158-finding `CODE_SMELL` backlog is addressed in round 5 rather than deferred, but the acceptance oracle
@@ -248,3 +283,14 @@ previously flagged component at or below the threshold (max 15 across the six fi
   implemented: writing a service-instance transition needs an `InstanceID`, and `biz_argocd_application` has no
   association to a service instance, so the honest outcome is that association gap — recorded above as a
   follow-up — not a comment that pretends the path exists.
+- Merge control is still held by `pr-automation.yml`, not by the merge command. The Pull Request Automation app
+  (`app/github-actions`) enables auto-merge on every `pull_request` event, and it did so on PR #161 within a
+  minute of opening, so the explicit `gh pr merge 161 --squash --delete-branch` was rejected as "head branch is
+  not up to date with the base branch" while the automation landed the same squash. Reaching the intended state
+  needs either an explicit `disablePullRequestAutoMerge` GraphQL call right after the PR is created or a
+  maintainer decision to stop that app from enabling auto-merge; the branch cleanup was done manually afterwards
+  so `main` is the only branch left.
+- A merge performed by that automation produces no push-triggered workflow run, so the acceptance evidence on
+  `main` had to be dispatched by hand twice (`sonarcloud.yml`, then `branch-hygiene.yml` / `quality.yml` /
+  `security.yml`). Nothing in the workflows distinguishes an automation merge from a human merge today; if
+  push-side analysis is to stay the authority, either the merge path or the trigger needs to be fixed upstream.

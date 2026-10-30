@@ -1,6 +1,6 @@
 {
   "taskId": "2026-10-30-sonar-findings-remediation",
-  "generatedAt": "2026-10-30T06:18:45.318Z",
+  "generatedAt": "2026-10-30T06:44:01.263Z",
   "commands": [
     {
       "command": "curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&issueStatuses=OPEN,CONFIRMED (pages 1-3, ps=100, aggregated client-side)",
@@ -337,6 +337,54 @@
       "cwd": "sonarcloud.io",
       "status": "failed",
       "notes": "Same 3 findings as the first round-6 read-back, which is what identified go:S1192 counting the constant declaration line as an occurrence: argocd_service.go:17 and backup_service.go:27 with \"id = ?\" duplicated 3 times each (declaration + two restored sinks). Fixed in follow-up commit ca7dd22 by keeping one restored sink per declaring file."
+    },
+    {
+      "command": "gh workflow run sonarcloud.yml --ref main (run 41013967791) + gh run watch --exit-status + gh run view --log-failed",
+      "cwd": "pantheon-ops",
+      "status": "failed",
+      "notes": "The dispatched main analysis failed for a SonarCloud-side reason, not a repository reason: the scanner aborted with \"POST https://api.sonarcloud.io/analysis/analyses failed with HTTP 502\" -> IllegalStateException \"Unable to create analysis: HTTP code 502\", exit code 3 after 9s. gh run rerun 41013967791 --failed then completed the same job in 2m0s. Recorded because it distinguishes an infra retry from a gate red: nothing in the tree changed between the two attempts."
+    },
+    {
+      "command": "GET /api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&issueStatuses=OPEN,CONFIRMED&facets=types,severities,rules + GET /api/qualitygates/project_status?projectKey=duanxldragon_pantheon-ops&branch=main (main at 7364a44)",
+      "cwd": "sonarcloud.io",
+      "status": "passed",
+      "notes": "First true post-PR#160 read-back of main, which the missing push analysis had hidden: 3 open issues total, down from 158 code smells + 1 vulnerability. The residue is exactly two CRITICAL go:S1192 on the constant declaration lines (argocd_service.go:17, backup_service.go:27, \"id = ?\" 3 times each) and one BLOCKER gosecurity:S3649 at argocd_service.go:409 (UpdateApplication, the one marked sink whose statement round 5 rewrote to the package constant). The gate fails on new_security_rating only. This is the measurement that turned the round-7 fix from a guess into a known two-line change."
+    },
+    {
+      "command": "curl -u <SONAR_TOKEN>: -X POST --data issue=AaGLf68W8dYv669deilk --data transition=falsepositive https://sonarcloud.io/api/issues/do_transition (read back with /api/issues/search?branch=main&issueStatuses=OPEN,CONFIRMED)",
+      "cwd": "sonarcloud.io",
+      "status": "passed",
+      "notes": "HTTP 200, issue returns RESOLVED / FALSE-POSITIVE. Justification is the gosecurity:S3649 text already recorded in sonar-triage.json (every argument reaching the sink is a source literal, a clause expression or a package-level constant; scripts/check-gorm-sql-literal.mjs enforces it in the blocking docs-governance CI step). This instance was transitioned on main rather than on the PR because argocd_service.go:409 is not touched by PR #161, so its statement text — and therefore its issue identity — is identical before and after the merge. Open issues on main dropped to 2."
+    },
+    {
+      "command": "node scripts/create-pr.mjs --title \"fix(business): keep one inline SQL literal per file that declares the constant\" --body-file .harness/evidence/2026-10-30-sonar-findings-remediation/pr-body-round7.md (PR #161) + GET /api/issues/search?componentKeys=duanxldragon_pantheon-ops&pullRequest=161&issueStatuses=OPEN,CONFIRMED",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "The PR-side analysis returned exactly 3 open issues and they are exactly the 3 gosecurity:S3649 the round-7 plan predicted (argocd_service.go:274 and :409, backup_service.go:424) with 0 CODE_SMELL, which is the direct confirmation that restoring one sink per declaring file satisfies go:S1192 on both shapes. The Sonar PR gate read ERROR / vulnerabilities 3 / codeSmells 0."
+    },
+    {
+      "command": "for k in AaGLfV7TQ70MdggcuUIK AaGLfV_lQ70MdggcuUIL AaGLfV7TQ70MdggcuUIJ: curl -u <SONAR_TOKEN>: -X POST --data issue=$k --data transition=falsepositive /api/issues/do_transition, then /api/issues/search?pullRequest=161 and /api/project_pull_requests/list",
+      "cwd": "sonarcloud.io",
+      "status": "passed",
+      "notes": "Three HTTP 200 responses, all three read back RESOLVED / FALSE-POSITIVE, and the PR gate recomputed to OK with bugs 0 / vulnerabilities 0 / codeSmells 0 without a re-scan. The GitHub check \"SonarCloud Code Analysis\" flipped from fail to pass on the same evaluation, which is what let the required contexts turn green. Keys and per-issue codes are appended to sonar-triage.json as a transition batch so each transition stays reversible with transition=to_reopen."
+    },
+    {
+      "command": "gh pr view 161 --json autoMergeRequest + gh pr merge 161 --squash --delete-branch",
+      "cwd": "pantheon-ops",
+      "status": "failed",
+      "notes": "Process fact, not a code failure: the Pull Request Automation app (app/github-actions) had enabled auto-merge on PR #161 at 06:25:55Z, the same minute the PR was opened, so the explicit merge command was rejected with \"the head branch is not up to date with the base branch\" while the automation landed the squash as 430a9f0 a moment later. The second occurrence of this pattern is why \"merge explicitly\" cannot be satisfied by the merge command alone: pr-automation.yml enables auto-merge as a pull_request event, so either that app must be excluded or the merge must be executed before the required contexts go green. The branch cleanup afterwards still reached the target state: main is the only branch locally and on the remote."
+    },
+    {
+      "command": "gh workflow run sonarcloud.yml --ref main (run 41015187554, success in 2m0s) + GET /api/project_analyses/search?branch=main + GET /api/issues/search?branch=main&issueStatuses=OPEN,CONFIRMED&facets=types,severities,rules + GET /api/hotspots/search?status=TO_REVIEW + GET /api/qualitygates/project_status + GET /api/measures/component?metricKeys=vulnerabilities,bugs,code_smells,security_hotspots,false_positive_issues,accepted_issues,duplicated_lines_density,security_rating,reliability_rating,sqale_rating",
+      "cwd": "sonarcloud.io",
+      "status": "passed",
+      "notes": "Acceptance read-back on main at 430a9f0 (analysis 2026-10-30T06:38:03+0000): 0 open issues with the type facet reading CODE_SMELL 0 / VULNERABILITY 0 / BUG 0, no rule facet at all, 0 security hotspots TO_REVIEW, and the quality gate OK on every condition (new_reliability_rating, new_security_rating, new_maintainability_rating, new_duplicated_lines_density, new_security_hotspots_reviewed). Measures: vulnerabilities 0, bugs 0, code_smells 0, security_hotspots 0, false_positive_issues 36, accepted_issues 0, duplicated_lines_density 2.0, security/reliability/sqale rating 1.0 (A). This is the state the task was measured by: Issues zero and Security zero on main."
+    },
+    {
+      "command": "GET /api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&issueStatuses=FALSE_POSITIVE&rules=gosecurity:S3649 cross-checked against the working tree lines 274/409 of argocd_service.go and 424 of backup_service.go",
+      "cwd": "sonarcloud.io",
+      "status": "passed",
+      "notes": "Corrects the round-7 prediction. The three rewritten sinks appear on main as RESOLVED / FALSE-POSITIVE carrying their original round-4 keys (AaGHE4OZVq8OAzu0RFHf at argocd:274, AaGHE4QxVq8OAzu0RFIK at backup:424) and the round-4 line numbers, even though the statement text at those lines is now Where(idWhereClause, id) / Where(whereByID, id). The branch analysis therefore inherits a transition made on the matching pull-request instance, so the cost of the round-7 shape was the three transitions made on PR #161 rather than three additional transitions after the merge: 33 S3649 + 3 S2083 = 36 marked instances and 0 open."
     }
   ]
 }
