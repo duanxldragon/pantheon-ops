@@ -93,7 +93,7 @@ func (r *Reconciler) reconcileServer(ctx context.Context, server *ArgoCDServer) 
 	}
 
 	// 1. 创建 ArgoCD client
-	client, err := NewArgoCDClient(server.Endpoint, authToken, false)
+	client, err := NewArgoCDClient(server.Endpoint, authToken, server.CACert)
 	if err != nil {
 		return err
 	}

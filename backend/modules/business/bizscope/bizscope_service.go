@@ -331,6 +331,7 @@ func (s *Service) Delete(id uint64, dataScopes ...*common.DataScopeReq) error {
 			{"biz_deploy_task", "deploy_task"},
 		} {
 			var refCount int64
+			// gorm-sql-literal:allow resource.table 只取自上方内联切片里的三个字面量表名（biz_application/biz_k8s_cluster/biz_deploy_task），循环不接受任何请求输入
 			if err := s.db.Table(resource.table).
 				Where("business_scope_id = ? AND deleted_at IS NULL", id).
 				Count(&refCount).Error; err != nil {

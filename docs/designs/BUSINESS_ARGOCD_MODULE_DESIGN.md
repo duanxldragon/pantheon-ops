@@ -5,7 +5,7 @@ layer: business/cicd/argocd
 status: Draft
 linked_contracts:
   - docs/PROJECT_INHERITANCE.md
-updated_at: 2026-08-28
+updated_at: 2026-10-30
 ---
 
 # ArgoCD GitOps 集成业务模块设计
@@ -37,7 +37,7 @@ K8s 场景:  Ops Deploy → ArgoCD Application → 集群
 
 | 表 | 关键字段 | 说明 |
 |---|---|---|
-| `biz_argocd_server` | name, url, auth_token(加密), insecure, status | ArgoCD 实例注册，支持多实例 |
+| `biz_argocd_server` | name, url, auth_token(加密), ca_cert(PEM), status | ArgoCD 实例注册，支持多实例；服务端证书校验不可关闭 |
 | `biz_argocd_repository` | server_id, repo_url, auth_type, credential_ref | Git 仓库凭据走 CredentialRef，不入明文 |
 | `biz_argocd_application` | name, server_id, repo_url, path, target_revision, destination_cluster, destination_namespace, sync_policy(JSON), sync_status, health_status, revision, business_scope_id | Application 声明 + 缓存状态 |
 | `biz_argocd_sync_history` | application_id, action(sync/rollback/refresh), revision_before, revision_after, result, message | 操作审计与回滚依据 |
@@ -49,6 +49,8 @@ K8s 场景:  Ops Deploy → ArgoCD Application → 集群
 1. `auth_token`/`password`/`ssh_key` 必须走统一 `v1:` AES-256-GCM 加密（复用 `deploy_credential.go` 实现），禁止明文入库——当前代码仅 `json:"-"` 不回显，属 P1 缺陷。
 2. 路由必须经 `DataScopedGroup`（TokenAuth + Casbin + DataScope + RequireWrite），当前裸 RouterGroup 注册属 P0 缺陷。
 3. 权限键：`business:cicd:argocd:{view|create|update|delete|sync|rollback}`；sync/rollback 为危险操作，挂 SecureAction 二次确认。
+4. 服务端证书校验恒为开启（`tls.Config` 不设置 `InsecureSkipVerify`，最低 TLS 1.2）。私有 CA 通过 `ca_cert` 存 PEM 束追加信任：束为空时使用系统信任链，束内无有效证书时构造客户端直接返回 `ErrInvalidCACert` 并拒绝保存，禁止用关闭校验换取连通。`GET` 响应只回 `hasCaCert` 布尔位，不回证书内容。更新接口的 `caCert` 为三态：字段缺省＝保持已存证书束，空串＝清除并回到系统信任链，非空＝替换（无有效证书即拒绝保存）。
+5. 出网目标必须经 SSRF 校验器（`pkg/security/ssrf`）并限定端口白名单，注册与每次调用都复用同一 client。
 
 ## 4. 生命周期（真实实现要求）
 

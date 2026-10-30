@@ -616,8 +616,8 @@ export default function CmdbHostList() {
             canDelete ? (
               <Popconfirm
                 title={t('common.deleteConfirm')}
-                onOk={() => {
-                  handleBatchDelete();
+                onOk={async () => {
+                  await handleBatchDelete();
                 }}
                 disabled={selectedRowKeys.length === 0 || submitting}
               >

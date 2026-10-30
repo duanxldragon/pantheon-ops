@@ -1,0 +1,229 @@
+{
+  "taskId": "2026-10-30-sonar-findings-remediation",
+  "title": "Remediate the open SonarCloud security and reliability findings on business scope",
+  "goal": "Clear the SonarCloud quality-gate blockers for duanxldragon_pantheon-ops by fixing every open vulnerability and bug in the touched scope with real code, turning the 33-issue gosecurity:S3649 family into a machine-checked CI invariant, and only then transitioning the verified false positives in Sonar with a recorded, reversible justification.",
+  "primaryLayer": "business/*",
+  "taskDoc": "docs/harness/tasks/2026-10-30-sonar-findings-remediation.task.md",
+  "status": "completed",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "dependsOn": [
+    "2026-10-29-sonar-ci-analysis-restore (the scan must run before its findings can be closed)"
+  ],
+  "blocks": [
+    "green SonarCloud quality gate on pantheon-ops main"
+  ],
+  "scope": {
+    "in": [
+      "ArgoCD client: always verify the server certificate; support private CAs through a stored PEM bundle instead of InsecureSkipVerify (go:S4830, go:S5527).",
+      "Filedist storage: confine resolved paths to the configured root and reduce upload names to one path element (gosecurity:S2083).",
+      "Add scripts/check-gorm-sql-literal.mjs plus node tests and a blocking docs-governance CI step so the S3649 false-positive argument is a checked invariant.",
+      "Fix the frontend floating-promise, nested-template, fixed-wait and cleartext-placeholder findings and the duplicated CI worker config in e2e-tests/playwright.config.ts.",
+      "Remove the hardcoded reachable target IP and implicit cleartext defaults from both e2e shell scripts by requiring explicit API_BASE_URL / WEB_BASE_URL.",
+      "Merge the byte-identical upgrade/rollback branches in service/state.go and move the CMDB import template example IP into the RFC 5737 documentation range.",
+      "Capture the S3649 issue keys, transition them with a written justification after the checker is merged, and read back the gate."
+    ],
+    "out": [
+      "Mass refactoring of the legacy smell backlog outside the new-code period (go:S1192, go:S3776, typescript:S3358, typescript:S3863, godre:*, shell:S7688).",
+      "Any change to SonarCloud quality-gate definitions, the new-code period, or the organization plan.",
+      "Provisioning Dependabot secrets or changing the Dependabot scan policy.",
+      "Removing the external Vercel deployment check, which requires a maintainer action in the GitHub UI.",
+      "Adding a UI form for ArgoCD CA-certificate storage; caCert is API-only in this round."
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      "scripts/check-gorm-sql-literal.mjs",
+      "tests/scripts/check-gorm-sql-literal.test.mjs",
+      "docs/harness/tasks/2026-10-30-sonar-findings-remediation.task.md",
+      ".harness/tasks/2026-10-30-sonar-findings-remediation/manifest.json",
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/commands.json",
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/summary.md",
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/review.md",
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/pr-body.md",
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/sonar-s3649-keys.json"
+    ],
+    "modify": [
+      "backend/modules/business/cicd/argocd/argocd_client.go",
+      "backend/modules/business/cicd/argocd/argocd_client_test.go",
+      "backend/modules/business/cicd/argocd/argocd_dto.go",
+      "backend/modules/business/cicd/argocd/argocd_model.go",
+      "backend/modules/business/cicd/argocd/argocd_service.go",
+      "backend/modules/business/cicd/argocd/argocd_reconciler.go",
+      "backend/modules/business/filedist/storage_service.go",
+      "backend/modules/business/bizscope/bizscope_service.go",
+      "backend/modules/business/k8s/storage/storage.go",
+      "backend/modules/business/filedist/storage_service_test.go",
+      "backend/modules/business/retired_modules.go",
+      "backend/modules/business/service/state.go",
+      "backend/modules/business/cmdb/host/host_import_export.go",
+      "frontend/src/modules/business/cicd/argocd/api.ts",
+      "frontend/src/modules/business/bizscope/BizScopeList.tsx",
+      "frontend/src/modules/business/cmdb/host/CmdbHostList.tsx",
+      "frontend/src/modules/business/deploy/task/DeployTaskList.tsx",
+      "frontend/src/modules/business/filedist/FiledistDetail.tsx",
+      "frontend/src/modules/business/k8s/backup/BackupList.tsx",
+      "frontend/src/modules/business/observability/MonitoringCenter.tsx",
+      "frontend/src/i18n/resources/business/zh-CN.ts",
+      "frontend/src/i18n/resources/business/en-US.ts",
+      "frontend/tests/smoke/business/observability-filedist-pages.spec.ts",
+      "e2e-tests/auto-test.sh",
+      "e2e-tests/run-real-machine-test.sh",
+      "e2e-tests/playwright.config.ts",
+      ".harness/v1.2-tasks/generate_tasks.sh",
+      "docs/designs/BUSINESS_ARGOCD_MODULE_DESIGN.md",
+      ".github/workflows/quality.yml",
+      ".github/workflows/security.yml",
+      ".github/PULL_REQUEST_TEMPLATE.md",
+      "package.json"
+    ],
+    "doNotTouch": [
+      "sonar-project.properties and .sonarcloud.properties (project identity and analysis scope are settled)",
+      "foundation-release.lock.json and .foundation/foundation-release.lock.json (no lock advance)",
+      ".github/workflows/sonarcloud.yml gate policy",
+      "any repository secret value inside the working tree; SONAR_TOKEN is only ever a shell variable"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "docs/designs/BUSINESS_ARGOCD_MODULE_DESIGN.md",
+    "scripts/check-business-module-boundaries.mjs",
+    "scripts/check-gorm-sql-literal.mjs",
+    ".github/workflows/quality.yml",
+    ".github/workflows/security.yml",
+    "sonar-project.properties"
+  ],
+  "implementationNotes": [
+    "SonarGo reports gosecurity:S3649 for any GORM condition argument that is not a source-level literal, including package-level constants that are provably literal. Arguing 33 findings by hand does not survive the next analysis, so the invariant behind the argument is now enforced by scripts/check-gorm-sql-literal.mjs, unit-tested by tests/scripts/check-gorm-sql-literal.test.mjs and blocking in the docs-governance job.",
+    "The checker distinguishes GORM sinks from same-named methods on other receivers (the Kubernetes clientset Update(ctx, object, opts) has a different arity) and treats line-scoped waivers as visible output, never as silence. An empty justification is not a waiver.",
+    "retired_modules.go previously passed a column name into a built clause; the three IN clauses became package constants, matching the condNameEquals and menuPathWhereClause convention already used by the CMDB modules, and the two remaining dynamic-looking call sites carry visible waivers.",
+    "ArgoCD server certificate verification is now unconditional. A stored CA bundle adds trust; an unparseable bundle fails construction with ErrInvalidCACert instead of silently downgrading. The tests inject the httptest server certificate as the stored bundle, so they exercise the production path rather than bypassing it.",
+    "biz_argocd_server.ca_cert needs no SQL migration: the argocd module owns Migrate() with GORM AutoMigrate and no versioned SQL references that table.",
+    "e2e-tests/auto-test.sh shipped a reachable production IP and http:// defaults; requiring API_BASE_URL and WEB_BASE_URL removes the shell:S5332 class instead of marking it won't-fix, and the same change makes the scripts refuse to run against an unintended host.",
+    "The checker is an Ops-only sensor: base ships no backend/modules/business, so it is deliberately not proposed upstream and must not be hand-copied into base."
+  ],
+  "harnessProfile": {
+    "template": "api-service",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "auth-security",
+    "portableFailureClass": "static-sensor-gap",
+    "ownerLayer": "business-boundary",
+    "coverageDimensions": [
+      "architecture-fitness",
+      "method-health",
+      "maintainability"
+    ]
+  },
+  "methodReadiness": {
+    "consumerSpecificControls": [
+      "SQL literalness in business GORM condition builders is a checked invariant, not a review convention",
+      "e2e scripts refuse to run without an explicitly supplied target"
+    ],
+    "requiredSensors": [
+      "command",
+      "hosted-workflow",
+      "external-analysis"
+    ],
+    "requiredEvidence": [
+      "commands.json",
+      "summary.md",
+      "review.md",
+      "sonar-s3649-keys.json"
+    ],
+    "ratchetDecision": "new-sensor",
+    "deferredCodeIssues": [
+      "The legacy smell backlog outside the new-code period stays open: go:S1192 x68, go:S3776 x27, typescript:S3358 x22, typescript:S3863 x10, godre:S8196/S8205/S8209/S8193, shell:S7688 x7, shell:S6505 x3, typescript:S6571 x6. Clearing it is a separate maintainability program, not a security gate.",
+      "Dependabot-triggered runs still cannot read SONAR_TOKEN, so SonarCloud Scan stays red on Dependabot PRs until Dependabot secrets are provisioned or the job skips that actor; that is a maintainer gate-policy decision.",
+      "The Vercel deployment check stays red: it is an external GitHub App integration with no committed configuration and it cannot be removed through the APIs available on this host.",
+      "sonar.sources=. makes the scanner read PNG evidence files as source text; scoping that property is a Sonar configuration decision left with the maintainer.",
+      "No coverage report is produced, which is why sonar.coverage.exclusions=**/* stays in sonar-project.properties on the Free plan.",
+      "The ArgoCD UI has no server-registration form, so the new caCert field is reachable only through the API in this round."
+    ]
+  },
+  "deliveryGovernance": {
+    "designGate": [
+      "each finding class mapped to the code path that actually produces it before editing",
+      "false-positive claims converted into an enforced invariant instead of a Sonar-only dismissal"
+    ],
+    "developmentGate": [
+      "verification-first fix ordering",
+      "no Sonar suppression, no new-code-period move, no gate change"
+    ],
+    "qaAcceptanceGate": [
+      "go build/vet/test, gorm checker plus checker unit tests, frontend lint/type-check/build, bash -n, governance suite",
+      "hosted workflows green on main and a fresh analysis dispatched on main"
+    ],
+    "githubGovernanceGate": [
+      "pr-governance",
+      "quality-gate read-back",
+      "recorded Sonar issue keys before transition"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "backend/modules/business GORM condition builders -> scripts/check-gorm-sql-literal.mjs -> docs-governance job -> SonarCloud new_security_rating",
+      "ArgoCD server record (ca_cert) -> NewArgoCDClient TLS config -> outbound Argo CD calls",
+      "filedist storage root -> resolveWithinRoot -> upload/download handlers",
+      "e2e scripts -> required target env -> Playwright run",
+      "frontend business pages -> i18n business resources -> placeholder rendering"
+    ],
+    "riskNodes": [
+      "outbound TLS trust for registered Argo CD servers",
+      "filedist file storage path resolution",
+      "dynamic SQL construction across business modules",
+      "CI job composition in quality.yml"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "cd backend && gofmt -l modules/business && go build ./... && go vet ./... && go test ./... -count=1",
+      "node scripts/check-gorm-sql-literal.mjs",
+      "node --test tests/scripts/check-gorm-sql-literal.test.mjs",
+      "cd frontend && npm run lint && npm run type-check && PANTHEON_CI=true npm run build",
+      "bash -n e2e-tests/auto-test.sh e2e-tests/run-real-machine-test.sh .harness/v1.2-tasks/generate_tasks.sh",
+      "node scripts/harness/check-structure-contract.mjs --root . --strict",
+      "node scripts/frontmatter-check.mjs",
+      "node scripts/business-overlay/check-business-overlay.mjs",
+      "node scripts/check-business-module-boundaries.mjs",
+      "node scripts/harness/check-ui-quality-gate.mjs --root . --strict",
+      "node scripts/check-encoding.mjs --strict",
+      "node scripts/create-pr.mjs --title ... --body-file .harness/evidence/2026-10-30-sonar-findings-remediation/pr-body.md",
+      "gh workflow run sonarcloud.yml --ref main"
+    ],
+    "runtimeEvidence": [
+      "Sonar open-issue inventory before the change and the captured S3649 key list",
+      "quality-gate conditions read back before and after the transition",
+      "hosted workflow run conclusions on main"
+    ]
+  },
+  "runtimeSensitive": true,
+  "costProfile": {
+    "tokens": "medium",
+    "note": "one new sensor with its tests, plus targeted fixes across six business modules"
+  },
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-10-30-sonar-findings-remediation/",
+    "reviewFile": ".harness/evidence/2026-10-30-sonar-findings-remediation/review.md",
+    "summaryFile": ".harness/evidence/2026-10-30-sonar-findings-remediation/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/harness/tasks/2026-10-30-sonar-findings-remediation.task.md",
+      "docs/harness/tasks/2026-10-29-sonar-ci-analysis-restore.task.md"
+    ]
+  },
+  "evidenceRequired": [
+    "issue inventory before and the gate reading after the change",
+    "command evidence for the Go, TypeScript, shell and governance matrices",
+    "recorded S3649 issue keys and the transition result",
+    "hosted workflow conclusions on main",
+    "review summary with explicit gaps"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Verification run or exception recorded",
+    "Evidence saved or summarized",
+    "Review completed"
+  ]
+}

@@ -4,14 +4,21 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/security/ssrf"
 )
+
+// ErrInvalidCACert rejects a stored CA bundle that contains no parseable certificate, so a
+// mistyped bundle fails at save time instead of turning every request into a TLS error.
+var ErrInvalidCACert = errors.New("ca_cert_contains_no_valid_certificate")
 
 // ArgoCDClient wraps HTTP client for ArgoCD API communication.
 //
@@ -24,7 +31,13 @@ type ArgoCDClient struct {
 }
 
 // NewArgoCDClient creates a new ArgoCD API client.
-func NewArgoCDClient(endpoint, authToken string, insecureSkipVerify bool) (*ArgoCDClient, error) {
+//
+// Server certificates are always verified: against the system trust store, or against the
+// server record's own CA bundle when caCertPEM is set. Self-hosted Argo CD endpoints that ship
+// a private certificate authority are supported by storing that CA on the server record; there
+// is no mode that disables verification, because every caller passed one unconditionally before
+// this and the endpoint then accepted any certificate.
+func NewArgoCDClient(endpoint, authToken, caCertPEM string) (*ArgoCDClient, error) {
 	validator := ssrf.DefaultValidator()
 	validator.AllowedPorts = []int{80, 443, 8080}
 
@@ -33,13 +46,13 @@ func NewArgoCDClient(endpoint, authToken string, insecureSkipVerify bool) (*Argo
 	}
 
 	httpClient := validator.CreateHTTPClient(30 * time.Second)
-	if insecureSkipVerify {
-		// The flag is caller-opt-in per server record; self-hosted Argo CD
-		// endpoints commonly ship a self-signed certificate. Making it a stored,
-		// per-server setting instead of a constant at the call sites is tracked
-		// as a follow-up.
+	tlsConfig, err := serverTLSConfig(caCertPEM)
+	if err != nil {
+		return nil, err
+	}
+	if tlsConfig != nil {
 		if t, ok := httpClient.Transport.(*http.Transport); ok {
-			t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} // #nosec G402 -- caller opts in, see comment above.
+			t.TLSClientConfig = tlsConfig
 		}
 	}
 
@@ -49,6 +62,24 @@ func NewArgoCDClient(endpoint, authToken string, insecureSkipVerify bool) (*Argo
 		httpClient:    httpClient,
 		ssrfValidator: validator,
 	}, nil
+}
+
+// serverTLSConfig returns the transport TLS settings for a server record. An empty CA bundle
+// means "use the system trust store", expressed as a nil config so the standard verification
+// path stays intact; a bundle produces a pool of system roots plus that CA.
+func serverTLSConfig(caCertPEM string) (*tls.Config, error) {
+	bundle := strings.TrimSpace(caCertPEM)
+	if bundle == "" {
+		return nil, nil
+	}
+	pool, err := x509.SystemCertPool()
+	if err != nil || pool == nil {
+		pool = x509.NewCertPool()
+	}
+	if !pool.AppendCertsFromPEM([]byte(bundle)) {
+		return nil, fmt.Errorf("cicd.argocd_invalid_ca_cert: %w", ErrInvalidCACert)
+	}
+	return &tls.Config{RootCAs: pool, MinVersion: tls.VersionTLS12}, nil
 }
 
 // TestConnection tests connectivity to ArgoCD server.

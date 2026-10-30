@@ -10,6 +10,7 @@ type AddServerRequest struct {
 	ClusterID uint64 `json:"clusterId"`
 	Endpoint  string `json:"endpoint" binding:"required,max=256"`
 	AuthToken string `json:"authToken" binding:"required"`
+	CACert    string `json:"caCert,omitempty" binding:"max=8192"`
 }
 
 // UpdateServerRequest carries the editable fields of an Argo CD server.
@@ -17,6 +18,9 @@ type UpdateServerRequest struct {
 	Name      string `json:"name" binding:"required,max=128"`
 	Endpoint  string `json:"endpoint" binding:"required,max=256"`
 	AuthToken string `json:"authToken,omitempty"`
+	// CACert is tri-state: absent keeps the stored bundle, an empty string clears it back to
+	// system trust, a non-empty value replaces it. Certificate verification is never optional.
+	CACert *string `json:"caCert,omitempty" binding:"omitempty,max=8192"`
 }
 
 // ServerResponse is the Argo CD server shape returned to clients; it never carries the auth token.
@@ -25,6 +29,7 @@ type ServerResponse struct {
 	Name        string     `json:"name"`
 	ClusterID   uint64     `json:"clusterId"`
 	Endpoint    string     `json:"endpoint"`
+	HasCACert   bool       `json:"hasCaCert"`
 	Status      string     `json:"status"`
 	Version     string     `json:"version,omitempty"`
 	Installed   bool       `json:"installed"`

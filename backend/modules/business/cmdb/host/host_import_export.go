@@ -143,8 +143,10 @@ func (s *HostService) BuildImportTemplate() *impexp.CSVFile {
 		Filename: "cmdb-host-import-template.csv",
 		Headers:  hostImportExportHeaders(),
 		Rows: [][]string{
-			{"#说明：保留第一行表头；hostname/ip/os 必填；labels 多个用 \"; \" 分隔（key=val）；businessScopeCode 对应业务域编码；status 取值 pending/assigned/online/offline/maintenance，留空默认 pending。", "", "", "", "", "", "", "", "", "", "", "", "", ""},
-			{"web-01", "10.0.0.1", "22", "linux", "Ubuntu 22.04", "4", "8", "100", "env=prod; region=cn-east-1", "volcano-prod", "0", "ops", "pending", ""},
+			{"#说明：保留第一行表头；hostname/ip/os 必填；labels 多个用 \"; \" 分隔（key=val）；businessScopeCode 对应业务域编码；status 取值 pending/assigned/online/offline/maintenance，留空默认 pending。导入前请把示例 ip 换成真实地址。", "", "", "", "", "", "", "", "", "", "", "", "", ""},
+			// 示例 ip 取 RFC 5737 TEST-NET-1 文档专用段（192.0.2.0/24），不可路由，
+			// 避免模板里出现能被当真实主机使用的内网地址。
+			{"web-01", "192.0.2.10", "22", "linux", "Ubuntu 22.04", "4", "8", "100", "env=prod; region=cn-east-1", "volcano-prod", "0", "ops", "pending", ""},
 		},
 	}
 }

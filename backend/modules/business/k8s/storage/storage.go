@@ -381,6 +381,7 @@ func (s *StorageService) deleteSnapshot(model interface{}, id uint64, dataScope 
 			ClusterID uint64
 			Namespace string
 		}
+		// gorm-sql-literal:allow s.tableName(model) 只回落到入参模型自身声明的 TableName() 字面量，入参由本包调用点固定，不来自请求
 		if err := s.db.Table(s.tableName(model)).Where("id = ?", id).Scan(&row).Error; err != nil {
 			return err
 		}

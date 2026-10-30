@@ -49,6 +49,7 @@
 ## 验证记录
 
 - [ ] `npm run check:business-overlay && npm run test:business-overlay`
+- [ ] `npm run check:gorm-sql-literal`
 - [ ] `go test ./...`
 - [ ] `cd frontend && npm run lint && npm run type-check && npm run build`
 - [ ] 业务 smoke 或明确 runtime gap

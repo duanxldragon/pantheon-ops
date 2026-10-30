@@ -10,6 +10,7 @@ export interface ArgoCDServerRow {
   status: string;
   version?: string;
   installed: boolean;
+  hasCaCert: boolean;
   lastChecked?: string;
   createdAt: string;
   createdBy: string;
@@ -24,7 +25,15 @@ export function getArgoCDServerList() {
   return apiRequest<ArgoCDServerListResp>({ url: '/business/cicd/argocd/servers', method: 'get' });
 }
 
-export function addArgoCDServer(data: { name: string; clusterId?: number; endpoint: string; authToken: string }) {
+// caCert is the optional PEM bundle of a private certificate authority. Server certificate
+// verification is always on; the bundle is how a self-hosted Argo CD with a private CA is trusted.
+export function addArgoCDServer(data: {
+  name: string;
+  clusterId?: number;
+  endpoint: string;
+  authToken: string;
+  caCert?: string;
+}) {
   return apiRequest<ArgoCDServerRow>({ url: '/business/cicd/argocd/servers', method: 'post', data });
 }
 

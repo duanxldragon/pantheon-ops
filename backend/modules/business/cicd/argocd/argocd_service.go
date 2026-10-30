@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -43,12 +44,17 @@ func (s *ArgoCDService) AddServer(req AddServerRequest, createdBy string) (*Serv
 	if err != nil {
 		return nil, fmt.Errorf("encryption_failed: %w", err)
 	}
+	// Reject an unusable CA bundle at save time rather than on the first request.
+	if _, err := serverTLSConfig(req.CACert); err != nil {
+		return nil, err
+	}
 
 	record := &ArgoCDServer{
 		Name:      req.Name,
 		ClusterID: req.ClusterID,
 		Endpoint:  req.Endpoint,
 		AuthToken: encryptedToken,
+		CACert:    strings.TrimSpace(req.CACert),
 		Status:    ArgoCDStatusUnknown,
 		CreatedBy: createdBy,
 	}
@@ -93,6 +99,15 @@ func (s *ArgoCDService) UpdateServer(id uint64, req UpdateServerRequest) error {
 		}
 		updates["auth_token"] = encryptedToken
 	}
+	if req.CACert != nil {
+		bundle := strings.TrimSpace(*req.CACert)
+		if bundle != "" {
+			if _, err := serverTLSConfig(bundle); err != nil {
+				return err
+			}
+		}
+		updates["ca_cert"] = bundle
+	}
 	return s.db.Model(&ArgoCDServer{}).Where("id = ?", id).Updates(updates).Error
 }
 
@@ -115,7 +130,7 @@ func (s *ArgoCDService) TestServerConnection(id uint64) (bool, error) {
 	}
 
 	// Create ArgoCD client and test connection
-	client, err := NewArgoCDClient(record.Endpoint, authToken, true)
+	client, err := NewArgoCDClient(record.Endpoint, authToken, record.CACert)
 	if err != nil {
 		return false, err
 	}
@@ -149,6 +164,7 @@ func (s *ArgoCDService) toServerResponse(r *ArgoCDServer) *ServerResponse {
 		Name:        r.Name,
 		ClusterID:   r.ClusterID,
 		Endpoint:    r.Endpoint,
+		HasCACert:   strings.TrimSpace(r.CACert) != "",
 		Status:      r.Status,
 		Version:     r.Version,
 		Installed:   r.Installed,
@@ -303,7 +319,7 @@ func (s *ArgoCDService) CreateApplication(req CreateApplicationRequest, createdB
 	payload.Spec.Destination.Server = req.DestinationServer
 	payload.Spec.Destination.Namespace = req.DestinationNS
 
-	client, err := NewArgoCDClient(server.Endpoint, authToken, true)
+	client, err := NewArgoCDClient(server.Endpoint, authToken, server.CACert)
 	if err != nil {
 		return nil, err
 	}
@@ -408,7 +424,7 @@ func (s *ArgoCDService) DeleteApplication(id uint64) error {
 	// Delete on the remote server first so local and remote state stay
 	// consistent; the local record is only removed after the remote delete
 	// succeeds.
-	client, err := NewArgoCDClient(server.Endpoint, authToken, true)
+	client, err := NewArgoCDClient(server.Endpoint, authToken, server.CACert)
 	if err != nil {
 		return err
 	}
@@ -448,7 +464,7 @@ func (s *ArgoCDService) SyncApplication(id uint64, revision string) (*SyncHistor
 		return nil, err
 	}
 
-	client, err := NewArgoCDClient(server.Endpoint, authToken, true)
+	client, err := NewArgoCDClient(server.Endpoint, authToken, server.CACert)
 	if err != nil {
 		return nil, err
 	}
@@ -513,7 +529,7 @@ func (s *ArgoCDService) RefreshApplication(id uint64) error {
 	}
 
 	// Create client and refresh
-	client, err := NewArgoCDClient(server.Endpoint, authToken, true)
+	client, err := NewArgoCDClient(server.Endpoint, authToken, server.CACert)
 	if err != nil {
 		return err
 	}

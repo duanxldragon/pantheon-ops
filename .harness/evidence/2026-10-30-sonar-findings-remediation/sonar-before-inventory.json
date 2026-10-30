@@ -1,0 +1,532 @@
+{
+  "capturedAt": "2026-10-30",
+  "project": "duanxldragon_pantheon-ops",
+  "branch": "main",
+  "total": 242,
+  "fetched": 242,
+  "byType": {
+    "CODE_SMELL": 174,
+    "VULNERABILITY": 62,
+    "BUG": 6
+  },
+  "bySeverity": {
+    "CRITICAL": 103,
+    "MINOR": 54,
+    "MAJOR": 47,
+    "BLOCKER": 36,
+    "INFO": 2
+  },
+  "byRule": {
+    "go:S1192": 68,
+    "gosecurity:S3649": 33,
+    "go:S3776": 27,
+    "typescript:S3358": 22,
+    "shell:S5332": 18,
+    "typescript:S3863": 10,
+    "shell:S7688": 7,
+    "typescript:S6571": 6,
+    "typescript:S3776": 6,
+    "typescript:S9383": 5,
+    "godre:S8196": 4,
+    "gosecurity:S2083": 3,
+    "shell:S6505": 3,
+    "typescript:S6551": 3,
+    "godre:S8205": 2,
+    "go:S1135": 2,
+    "go:S107": 2,
+    "godre:S8209": 2,
+    "shell:S1192": 2,
+    "typescript:S2681": 2,
+    "typescript:S5332": 2,
+    "godre:S8193": 2,
+    "go:S4830": 1,
+    "go:S5527": 1,
+    "shell:S7679": 1,
+    "typescript:S3923": 1,
+    "typescript:S7770": 1,
+    "typescript:S4624": 1,
+    "typescript:S7755": 1,
+    "typescript:S2925": 1,
+    "go:S1313": 1,
+    "go:S1871": 1,
+    "githubactions:S8541": 1
+  },
+  "vulnerabilityAndBugKeys": [
+    {
+      "key": "AaGHE4OUVq8OAzu0RFHX",
+      "rule": "go:S4830",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cicd/argocd/argocd_client.go",
+      "line": 42
+    },
+    {
+      "key": "AaGHE4OUVq8OAzu0RFHY",
+      "rule": "go:S5527",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cicd/argocd/argocd_client.go",
+      "line": 42
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHj",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 96
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHi",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 167
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHf",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 251
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHe",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 279
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHh",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 386
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHg",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 468
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHk",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 481
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIs",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/filedist/storage_service.go",
+      "line": 221
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIp",
+      "rule": "gosecurity:S2083",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/filedist/storage_service.go",
+      "line": 276
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIr",
+      "rule": "gosecurity:S2083",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/filedist/storage_service.go",
+      "line": 282
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIq",
+      "rule": "gosecurity:S2083",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/filedist/storage_service.go",
+      "line": 302
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIt",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/filedist/storage_service.go",
+      "line": 374
+    },
+    {
+      "key": "AaGHE4QxVq8OAzu0RFIJ",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/k8s/backup/backup_service.go",
+      "line": 144
+    },
+    {
+      "key": "AaGHE4QxVq8OAzu0RFIK",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/k8s/backup/backup_service.go",
+      "line": 416
+    },
+    {
+      "key": "AaGHE4RsVq8OAzu0RFIn",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/observability/alert_rule_service.go",
+      "line": 39
+    },
+    {
+      "key": "AaGHE4RsVq8OAzu0RFIl",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/observability/alert_rule_service.go",
+      "line": 158
+    },
+    {
+      "key": "AaGHE4RsVq8OAzu0RFIm",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/observability/alert_rule_service.go",
+      "line": 182
+    },
+    {
+      "key": "AaGHE4RiVq8OAzu0RFIX",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/observability/notification_service.go",
+      "line": 136
+    },
+    {
+      "key": "AaGHE4UnVq8OAzu0RFJH",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/auto-test.sh",
+      "line": 30
+    },
+    {
+      "key": "AaGHE4UnVq8OAzu0RFJI",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/auto-test.sh",
+      "line": 31
+    },
+    {
+      "key": "AaGHE4UnVq8OAzu0RFJJ",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/auto-test.sh",
+      "line": 45
+    },
+    {
+      "key": "AaGHE4UnVq8OAzu0RFJL",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/auto-test.sh",
+      "line": 47
+    },
+    {
+      "key": "AaGHE4UnVq8OAzu0RFJM",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/auto-test.sh",
+      "line": 49
+    },
+    {
+      "key": "AaGHE4UnVq8OAzu0RFJN",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/auto-test.sh",
+      "line": 52
+    },
+    {
+      "key": "AaGHE4UnVq8OAzu0RFJP",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/auto-test.sh",
+      "line": 54
+    },
+    {
+      "key": "AaGHE4UnVq8OAzu0RFJQ",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/auto-test.sh",
+      "line": 56
+    },
+    {
+      "key": "AaGHE4UnVq8OAzu0RFJS",
+      "rule": "shell:S6505",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/auto-test.sh",
+      "line": 66
+    },
+    {
+      "key": "AaGHE4UdVq8OAzu0RFI3",
+      "rule": "typescript:S3923",
+      "type": "BUG",
+      "file": "e2e-tests/playwright.config.ts",
+      "line": 8
+    },
+    {
+      "key": "AaGHE4UhVq8OAzu0RFI4",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/run-real-machine-test.sh",
+      "line": 21
+    },
+    {
+      "key": "AaGHE4UhVq8OAzu0RFI5",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/run-real-machine-test.sh",
+      "line": 22
+    },
+    {
+      "key": "AaGHE4UhVq8OAzu0RFI6",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/run-real-machine-test.sh",
+      "line": 37
+    },
+    {
+      "key": "AaGHE4UhVq8OAzu0RFI7",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/run-real-machine-test.sh",
+      "line": 46
+    },
+    {
+      "key": "AaGHE4UhVq8OAzu0RFI9",
+      "rule": "shell:S6505",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/run-real-machine-test.sh",
+      "line": 59
+    },
+    {
+      "key": "AaGHE4UhVq8OAzu0RFI-",
+      "rule": "shell:S6505",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/run-real-machine-test.sh",
+      "line": 64
+    },
+    {
+      "key": "AaGHE4UhVq8OAzu0RFI_",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/run-real-machine-test.sh",
+      "line": 74
+    },
+    {
+      "key": "AaGHE4UhVq8OAzu0RFJB",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/run-real-machine-test.sh",
+      "line": 103
+    },
+    {
+      "key": "AaGHE4UhVq8OAzu0RFJC",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/run-real-machine-test.sh",
+      "line": 104
+    },
+    {
+      "key": "AaGHE4UhVq8OAzu0RFJD",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/run-real-machine-test.sh",
+      "line": 105
+    },
+    {
+      "key": "AaGHE4UhVq8OAzu0RFJE",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/run-real-machine-test.sh",
+      "line": 106
+    },
+    {
+      "key": "AaGHE4UhVq8OAzu0RFJF",
+      "rule": "shell:S5332",
+      "type": "VULNERABILITY",
+      "file": "e2e-tests/run-real-machine-test.sh",
+      "line": 107
+    },
+    {
+      "key": "AaGHE4LGVq8OAzu0RFHE",
+      "rule": "typescript:S5332",
+      "type": "VULNERABILITY",
+      "file": "frontend/src/modules/business/observability/MonitoringCenter.tsx",
+      "line": 203
+    },
+    {
+      "key": "AaGHE4LGVq8OAzu0RFHF",
+      "rule": "typescript:S5332",
+      "type": "VULNERABILITY",
+      "file": "frontend/src/modules/business/observability/MonitoringCenter.tsx",
+      "line": 213
+    },
+    {
+      "key": "AaGHE4PsVq8OAzu0RFH7",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/deploy/deploy_credential.go",
+      "line": 112
+    },
+    {
+      "key": "AaGHE4PsVq8OAzu0RFH8",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/deploy/deploy_credential.go",
+      "line": 182
+    },
+    {
+      "key": "AaGHE4NMVq8OAzu0RFHR",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cmdb/host/host_service.go",
+      "line": 460
+    },
+    {
+      "key": "AaGHE4M3Vq8OAzu0RFHP",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cmdb/host/host_state.go",
+      "line": 117
+    },
+    {
+      "key": "AaGHE4PdVq8OAzu0RFH0",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/deploy/deploy_service.go",
+      "line": 1906
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFIy",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/service/service.go",
+      "line": 175
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFI1",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/service/service.go",
+      "line": 292
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFIz",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/service/service.go",
+      "line": 337
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFI0",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/service/service.go",
+      "line": 464
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFIx",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/service/service.go",
+      "line": 569
+    },
+    {
+      "key": "AaGHE4SJVq8OAzu0RFIw",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/service/state.go",
+      "line": 79
+    },
+    {
+      "key": "AaGHE4NMVq8OAzu0RFHQ",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cmdb/host/host_service.go",
+      "line": 219
+    },
+    {
+      "key": "AaGHE4PdVq8OAzu0RFH1",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/deploy/deploy_service.go",
+      "line": 341
+    },
+    {
+      "key": "AaGHE4P3Vq8OAzu0RFH9",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/deploy/deploy_template_service.go",
+      "line": 393
+    },
+    {
+      "key": "AaGHE4KRVq8OAzu0RFGx",
+      "rule": "typescript:S9383",
+      "type": "BUG",
+      "file": "frontend/src/modules/business/deploy/task/DeployTaskList.tsx",
+      "line": 699
+    },
+    {
+      "key": "AaGHE4UYVq8OAzu0RFI2",
+      "rule": "githubactions:S8541",
+      "type": "VULNERABILITY",
+      "file": ".github/workflows/security.yml",
+      "line": 206
+    },
+    {
+      "key": "AaGHE4H2Vq8OAzu0RFGc",
+      "rule": "typescript:S9383",
+      "type": "BUG",
+      "file": "frontend/src/modules/business/bizscope/BizScopeList.tsx",
+      "line": 428
+    },
+    {
+      "key": "AaGHE4JaVq8OAzu0RFGo",
+      "rule": "typescript:S9383",
+      "type": "BUG",
+      "file": "frontend/src/modules/business/cmdb/host/CmdbHostList.tsx",
+      "line": 620
+    },
+    {
+      "key": "AaGHE4KRVq8OAzu0RFGw",
+      "rule": "typescript:S9383",
+      "type": "BUG",
+      "file": "frontend/src/modules/business/deploy/task/DeployTaskList.tsx",
+      "line": 521
+    },
+    {
+      "key": "AaGHE4KRVq8OAzu0RFGy",
+      "rule": "typescript:S9383",
+      "type": "BUG",
+      "file": "frontend/src/modules/business/deploy/task/DeployTaskList.tsx",
+      "line": 1354
+    },
+    {
+      "key": "AaGHE4P3Vq8OAzu0RFH-",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/deploy/deploy_template_service.go",
+      "line": 123
+    },
+    {
+      "key": "AaGHE4N9Vq8OAzu0RFHT",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cmdb/group/group_service.go",
+      "line": 149
+    },
+    {
+      "key": "AaGHE4N9Vq8OAzu0RFHU",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cmdb/group/group_service.go",
+      "line": 277
+    },
+    {
+      "key": "AaGHE4NxVq8OAzu0RFHS",
+      "rule": "gosecurity:S3649",
+      "type": "VULNERABILITY",
+      "file": "backend/modules/business/cmdb/label/label_service.go",
+      "line": 207
+    }
+  ]
+}

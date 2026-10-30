@@ -16,6 +16,7 @@ type ArgoCDServer struct {
 	ClusterID   uint64         `gorm:"index" json:"clusterId"`
 	Endpoint    string         `gorm:"size:256;not null" json:"endpoint"`
 	AuthToken   string         `gorm:"size:512" json:"-"`                                // encrypted, never returned
+	CACert      string         `gorm:"type:text" json:"-"`                               // PEM bundle for private CAs; verification is never disabled
 	Status      string         `gorm:"size:32;not null;default:'unknown'" json:"status"` // connected, disconnected, unknown
 	Version     string         `gorm:"size:64" json:"version,omitempty"`
 	Installed   bool           `gorm:"default:false" json:"installed"`

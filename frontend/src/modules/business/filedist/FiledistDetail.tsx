@@ -10,7 +10,15 @@ import '../../../assets/list-page.css';
 export default function FiledistDetail() {
   const { t } = useTranslation(); const navigate = useNavigate(); const { id } = useParams<{ id: string }>(); const taskId = Number(id);
   const [task, setTask] = useState<TaskDetailResponse | null>(null); const [targets, setTargets] = useState<DistributionTargetRow[]>([]); const [events, setEvents] = useState<DistributionEventRow[]>([]); const [loading, setLoading] = useState(true); const [error, setError] = useState<unknown>(null);
-  const load = useCallback(async () => { if (!Number.isFinite(taskId)) return; setLoading(true); setError(null); try { const [taskResponse, targetResponse, eventResponse] = await Promise.all([getTaskDetail(taskId), getTaskTargets(taskId), getTaskEvents(taskId)]); setTask(taskResponse); setTargets(targetResponse.items || []); setEvents(eventResponse || []); } catch (requestError) { setError(requestError); } finally { setLoading(false); } }, [taskId]);
+  const load = useCallback(async () => {
+    if (!Number.isFinite(taskId)) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const [taskResponse, targetResponse, eventResponse] = await Promise.all([getTaskDetail(taskId), getTaskTargets(taskId), getTaskEvents(taskId)]);
+      setTask(taskResponse); setTargets(targetResponse.items || []); setEvents(eventResponse || []);
+    } catch (requestError) { setError(requestError); } finally { setLoading(false); }
+  }, [taskId]);
   useEffect(() => {
     const timeoutId = window.setTimeout(() => { void load(); }, 0);
     return () => window.clearTimeout(timeoutId);
@@ -18,6 +26,7 @@ export default function FiledistDetail() {
   const action = async (runner: () => Promise<unknown>, key: string) => { try { await runner(); Message.success(t(key)); await load(); } catch { Message.error(t('common.failed')); } };
   const targetColumns: ColumnProps<DistributionTargetRow>[] = [{ title: t('business.filedist.hostname'), dataIndex: 'host' }, { title: t('business.filedist.targetPath'), dataIndex: 'targetPath' }, { title: t('business.filedist.status'), dataIndex: 'status', render: (_: unknown, row) => <Tag>{row.status}</Tag> }, { title: t('business.filedist.progress'), dataIndex: 'progress', render: (_: unknown, row) => `${row.progress ?? 0}%` }, { title: t('business.filedist.message'), dataIndex: 'error', render: (_: unknown, row) => row.error || '-' }];
   const eventColumns: ColumnProps<DistributionEventRow>[] = [{ title: t('business.filedist.time'), dataIndex: 'createdAt' }, { title: t('business.filedist.type'), dataIndex: 'type' }, { title: t('business.filedist.message'), dataIndex: 'message' }];
-  if (loading) return <PageContainer><PageLoading /></PageContainer>; if (error || !task) return <PageContainer><PageError onRetry={() => void load()} /></PageContainer>;
+  if (loading) return <PageContainer><PageLoading /></PageContainer>;
+  if (error || !task) return <PageContainer><PageError onRetry={() => void load()} /></PageContainer>;
   return <PageContainer><Space direction="vertical" size={16} className="system-page-template"><Card className="page-panel"><Space direction="vertical" style={{ width: '100%' }}><div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}><Button type="text" onClick={() => navigate('/business/filedist/tasks')}>返回任务列表</Button><Space>{task.status === 'pending' ? <Button type="primary" onClick={() => void action(() => startTask(task.id), 'business.filedist.taskStarted')}>开始</Button> : null}{task.status === 'running' ? <Button onClick={() => void action(() => cancelTask(task.id), 'business.filedist.taskCanceled')}>取消</Button> : null}{task.status === 'failed' ? <Button onClick={() => void action(() => retryTask(task.id), 'business.filedist.taskRetried')}>重试</Button> : null}</Space></div><Descriptions column={2} title={t('business.filedist.taskOverview')} data={[{ label: t('business.filedist.taskName'), value: task.name || '-' }, { label: t('business.filedist.fileName'), value: task.fileName || '-' }, { label: t('business.filedist.status'), value: <Tag>{task.status || '-'}</Tag> }, { label: t('business.filedist.overallProgress'), value: `${task.progress ?? 0}%` }, { label: t('business.filedist.totalHosts'), value: task.totalTargets ?? 0 }, { label: t('business.filedist.success'), value: task.successCount ?? 0 }, { label: t('business.filedist.failed'), value: task.failedCount ?? 0 }, { label: t('business.filedist.message'), value: task.error || '-' }]} /></Space></Card><Card className="page-panel system-list__table-card"><Tabs defaultActiveTab="hosts"><Tabs.TabPane key="hosts" title={t('business.filedist.hostsTab', { count: targets.length })}><Table rowKey="id" columns={targetColumns} data={targets} pagination={false} scroll={{ x: 'max-content' }} /></Tabs.TabPane><Tabs.TabPane key="events" title={t('business.filedist.eventsTab', { count: events.length })}><Table rowKey="id" columns={eventColumns} data={events} pagination={false} scroll={{ x: 'max-content' }} /></Tabs.TabPane></Tabs></Card></Space></PageContainer>;
 }

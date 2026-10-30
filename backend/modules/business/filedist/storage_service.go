@@ -235,6 +235,42 @@ func (s *StorageService) DeleteStorage(id uint64) error {
 	return s.db.Delete(&FileStorage{}, id).Error
 }
 
+// resolveWithinRoot joins rel to a storage root and proves the result stays inside that root.
+// Every filesystem operation in this module goes through it, so a stored record path or a
+// caller-supplied name cannot reach a file outside the configured storage location.
+func resolveWithinRoot(root, rel string) (string, error) {
+	base, err := normalizeLocalStoragePath(root)
+	if err != nil {
+		return "", err
+	}
+	target := filepath.Clean(filepath.Join(base, filepath.FromSlash(rel)))
+	if target != base && !strings.HasPrefix(target, base+string(filepath.Separator)) {
+		return "", errors.New("storage.path_escapes_base_path")
+	}
+	return target, nil
+}
+
+// sanitizeUploadFileName reduces an uploaded name to a single safe path element. Multipart
+// file names are attacker-controlled, so directory parts, traversal segments, empty results and
+// control characters are rejected instead of being joined into a stored path.
+func sanitizeUploadFileName(name string) (string, error) {
+	cleaned := strings.TrimSpace(name)
+	if cleaned == "" {
+		return "", errors.New("file.name_required")
+	}
+	// Multipart file names are attacker-controlled, and browser-supplied Windows paths arrive with
+	// backslashes even when this process runs on Linux. Treat both separators as directory parts
+	// before taking the final element, otherwise a stored name could keep path structure on Linux.
+	cleaned = filepath.Base(filepath.FromSlash(strings.ReplaceAll(cleaned, `\`, "/")))
+	if cleaned == "." || cleaned == ".." || cleaned == string(filepath.Separator) || strings.Contains(cleaned, "..") {
+		return "", errors.New("file.name_invalid")
+	}
+	if strings.ContainsAny(cleaned, "\r\n\x00") || filepath.Base(cleaned) != cleaned {
+		return "", errors.New("file.name_invalid")
+	}
+	return cleaned, nil
+}
+
 // UploadFile stores a file and creates a record.
 func (s *StorageService) UploadFile(storageID uint64, fileName string, reader io.Reader, size int64, uploadedBy string) (*FileRecordResponse, error) {
 	// Get storage
@@ -248,14 +284,21 @@ func (s *StorageService) UploadFile(storageID uint64, fileName string, reader io
 		return nil, fmt.Errorf("storage_full: used %d, max %d", storage.UsedSize, storage.MaxSize)
 	}
 
-	// Generate unique path. The caller-supplied name is reduced to its final
-	// path element so a record path can never escape the storage root.
+	// Generate unique path. The caller-supplied name is reduced to a single safe path
+	// element and the joined result is proven to stay inside the storage root.
+	safeName, err := sanitizeUploadFileName(fileName)
+	if err != nil {
+		return nil, err
+	}
 	now := time.Now()
 	relativePath := filepath.Join(
 		now.Format("2006/01/02"),
-		fmt.Sprintf("%d-%s", now.Unix(), filepath.Base(fileName)),
+		fmt.Sprintf("%d-%s", now.Unix(), safeName),
 	)
-	fullPath := filepath.Join(storage.BasePath, relativePath)
+	fullPath, err := resolveWithinRoot(storage.BasePath, relativePath)
+	if err != nil {
+		return nil, err
+	}
 
 	// Create directory
 	if err := os.MkdirAll(filepath.Dir(fullPath), 0750); err != nil {
@@ -263,7 +306,7 @@ func (s *StorageService) UploadFile(storageID uint64, fileName string, reader io
 	}
 
 	// Write file and calculate MD5 + SHA-256
-	file, err := os.Create(fullPath) // #nosec G304 -- fullPath stays inside the storage root: the file name is the multipart base name and the directory is server-generated.
+	file, err := os.Create(fullPath)
 	if err != nil {
 		return nil, fmt.Errorf("create_file_failed: %w", err)
 	}
@@ -289,7 +332,7 @@ func (s *StorageService) UploadFile(storageID uint64, fileName string, reader io
 	// Create file record
 	record := &FileRecord{
 		StorageID:  storageID,
-		Name:       fileName,
+		Name:       safeName,
 		Path:       relativePath,
 		Size:       written,
 		MD5:        md5sum,
@@ -393,8 +436,13 @@ func (s *StorageService) DeleteFile(id uint64) error {
 		return err
 	}
 
-	// Delete physical file
-	fullPath := filepath.Join(storage.BasePath, record.Path)
+	// Delete physical file. A stored path that no longer resolves inside its storage root is
+	// refused instead of being removed, so a tampered or migrated record cannot delete files
+	// outside the storage location.
+	fullPath, err := resolveWithinRoot(storage.BasePath, record.Path)
+	if err != nil {
+		return err
+	}
 	_ = os.Remove(fullPath)
 
 	// Delete record
@@ -423,7 +471,7 @@ func (s *StorageService) GetFilePath(id uint64) (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(storage.BasePath, record.Path), nil
+	return resolveWithinRoot(storage.BasePath, record.Path)
 }
 
 func (s *StorageService) toStorageResponse(r *FileStorage) *StorageResponse {
