@@ -115,6 +115,36 @@
       "cwd": ".",
       "status": "passed",
       "notes": "Round-2 verification set: Go suite exit 0 with 64 packages ok, no FAIL or panic; GORM literalness checker green with the 4 visible waivers printed; repository duplication gate PASS. Frontend was not touched in round 2, so the frontend lint/type-check/build results from round 1 still stand."
+    },
+    {
+      "command": "gh pr view 156 --json state,mergedAt,mergeCommit && gh api repos/duanxldragon/pantheon-ops/branches",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "PR #156 squash-merged into main as 9522048 at 2026-10-30T01:45:47Z with every required context green (Quality Gates and Security Gates; strict=false). Branch list is now exactly [main], so the head branch was deleted on merge and the repo holds only main."
+    },
+    {
+      "command": "curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/qualitygates/project_status?projectKey=duanxldragon_pantheon-ops&branch=main && curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&issueStatuses=OPEN,CONFIRMED&ps=100 (pages 1-3)",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Post-merge read-back after the push-triggered SonarCloud Scan succeeded on main. Open issues fell 242 -> 194, vulnerabilities 62 -> 36 and bugs 6 -> 0, i.e. every BUG-class finding and every shell/typescript/githubactions vulnerability class this packet targeted is closed. The gate is still ERROR but on exactly one condition now: new_security_rating. new_reliability_rating flipped to OK, and new_maintainability_rating, new_duplicated_lines_density and new_security_hotspots_reviewed are OK. The whole residue of new_security_rating is 36 BLOCKER vulnerabilities: 33 gosecurity:S3649 and 3 gosecurity:S2083 on the os.Remove cleanup calls at filedist/storage_service.go:319/325/345. Live keys and lines captured in sonar-after-merge-vulnerabilities.json; the pre-merge capture in sonar-s3649-keys.json is kept for comparison because the merge re-keyed the moved issues."
+    },
+    {
+      "command": "cd backend && go test ./modules/business/filedist/... -count=1 -run \"TestUploadPathStaysInsideRoot|TestResolveWithinRoot|TestSanitizeUploadFileName|TestNormalizeLocalStoragePath|TestCreateStorageRejects\" -v",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Adds and runs TestUploadPathStaysInsideRootForAdversarialNames, which pins the exact data flow SonarGo still taints on the os.Remove cleanup calls: an attacker-controlled multipart name goes through sanitizeUploadFileName, is joined the way UploadFile joins it, and the resolved path is asserted to stay under the storage root. The input set covers ../../etc/passwd, a Windows path with backslashes, an absolute path, the ....// doubling trick, a nested traversal, an embedded NUL and a CRLF name; names the sanitizer rejects are counted as safe outcomes rather than forced through, so the test does not encode a false expectation. Result: PASS, with TestResolveWithinRootKeepsPathsInsideStorage and TestSanitizeUploadFileNameReducesNameToOneElement still passing alongside it. This is the justification the S2083 transitions rest on; SonarGo accepted resolveWithinRoot as a sanitizer for the os.Create site this round but not for os.Remove on the same value, which is why the trio survives the code fix."
+    },
+    {
+      "command": "cd backend && gofmt -l modules/business && go build ./... && go vet ./... && go test ./... -count=1 && golangci-lint run --new-from-rev=95220488 ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Round-3 verification set on the merged tree: gofmt clean, build and vet clean, Go suite exit 0 with 64 packages ok, and golangci-lint in the CI new-code mode against the merge commit reports 0 issues for the added test."
+    },
+    {
+      "command": "node scripts/harness/check-task-packet.mjs docs/harness/tasks/2026-10-30-sonar-findings-remediation.task.md && node scripts/check-encoding.mjs --strict && node scripts/frontmatter-check.mjs && node scripts/harness/check-structure-contract.mjs --root . --strict",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Governance gates after the round-3 doc and manifest updates: task packet 0 errors 0 warnings, encoding strict 0 findings across 2105 files, frontmatter check 435 docs passed, structure contract 0 findings across 2279 tracked files."
     }
   ]
 }
