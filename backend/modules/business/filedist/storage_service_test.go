@@ -118,3 +118,37 @@ func TestSanitizeUploadFileNameReducesNameToOneElement(t *testing.T) {
 		}
 	}
 }
+
+// TestUploadPathStaysInsideRootForAdversarialNames pins the exact data flow SonarCloud reports as
+// gosecurity:S2083 on UploadFile's cleanup calls: an attacker-controlled multipart name runs through
+// sanitizeUploadFileName, is joined the way UploadFile joins it, and the result is still inside the
+// storage root. Names that are rejected outright are equally safe, so only accepted names are joined.
+func TestUploadPathStaysInsideRootForAdversarialNames(t *testing.T) {
+	root := t.TempDir()
+	for _, attackerName := range []string{
+		"../../etc/passwd",
+		`..\..\Windows\system32\config`,
+		"/absolute/etc/shadow",
+		"....//....//escape.txt",
+		"2026/10/29/../../../../../etc/passwd",
+		"\x00nul-name",
+		"line\r\nname.txt",
+	} {
+		safeName, err := sanitizeUploadFileName(attackerName)
+		if err != nil {
+			continue
+		}
+		if strings.Contains(safeName, string(filepath.Separator)) || strings.Contains(safeName, "/") ||
+			strings.Contains(safeName, `\`) || strings.Contains(safeName, "..") {
+			t.Fatalf("sanitized name %q from %q still carries path structure", safeName, attackerName)
+		}
+		relativePath := filepath.Join("2026-10-29", "1730000000-"+safeName)
+		target, err := resolveWithinRoot(root, relativePath)
+		if err != nil {
+			t.Fatalf("resolve %q from %q: %v", relativePath, attackerName, err)
+		}
+		if target != root && !strings.HasPrefix(target, root+string(filepath.Separator)) {
+			t.Fatalf("upload path %q from %q escaped the storage root %q", target, attackerName, root)
+		}
+	}
+}
