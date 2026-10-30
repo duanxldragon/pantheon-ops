@@ -91,6 +91,30 @@
       "cwd": ".",
       "status": "passed",
       "notes": "All 33 open S3649 issue keys captured in sonar-s3649-keys.json before any transition, so the triage is reversible issue by issue."
+    },
+    {
+      "command": "gh pr checks 156 && gh api repos/duanxldragon/pantheon-ops/branches/main/protection/required_status_checks && curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/qualitygates/project_status?projectKey=duanxldragon_pantheon-ops&pullRequest=156",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "First CI read-back on the PR: SonarCloud Scan / Backend Tests / Docs Governance / Frontend Contract / Security Gates / CodeQL all SUCCESS, the SonarCloud Scan job is green with the stored SONAR_TOKEN. Two reds remain: Go Lint fails on one new issue (gosec G304 os.Create(fullPath) at filedist/storage_service.go:309, which the round-1 rewrite introduced) and the SonarCloud Code Analysis check is ERROR on new_duplicated_lines_density (11.90% against a 3% threshold; 74 duplicated lines out of 622 new lines) while new_reliability_rating, new_security_rating, new_maintainability_rating and new_security_hotspots_reviewed are OK — the vulnerability/bug conditions this packet targets are cleared on the PR analysis. Required status contexts on main are only Quality Gates and Security Gates (strict=false), so the Vercel commit status and the non-required Sonar check cannot block the merge; Quality Gates is red only because it depends on Go Lint. Per-file duplication for the PR shows 68 duplicated lines in the brand-new tests/scripts/check-gorm-sql-literal.test.mjs (12 hand-copied test bodies), which is the new-code duplication."
+    },
+    {
+      "command": "cd backend && golangci-lint run --new-from-rev=080e9efec4bbf4419ef4eb0cbc21451c2ef3b6fb ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Same arguments the Go Lint job uses. Before the round-2 edits it reported the G304 hit; after adding the file-local #nosec G304 annotation, whose justification is that fullPath is resolveWithinRoot(sanitizeUploadFileName(...)) and therefore proven to stay inside the storage root (the same containment invariant that closes gosecurity:S2083, and consistent with the three existing G304 annotations in this module), it reports 0 issues."
+    },
+    {
+      "command": "node --test tests/scripts/check-gorm-sql-literal.test.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "13 tests / 13 pass after collapsing the twelve hand-copied test bodies into one CASES table plus a single driver loop. Coverage is unchanged: the same 12 Go fixtures and assertions run, with the expectation data (sources, passed, output patterns) now declared per case instead of repeated per test. This removes the duplicated-line block Sonar measured on the new file rather than suppressing the finding."
+    },
+    {
+      "command": "cd backend && go test ./... -count=1 && node scripts/check-gorm-sql-literal.mjs && node scripts/check-duplication.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Round-2 verification set: Go suite exit 0 with 64 packages ok, no FAIL or panic; GORM literalness checker green with the 4 visible waivers printed; repository duplication gate PASS. Frontend was not touched in round 2, so the frontend lint/type-check/build results from round 1 still stand."
     }
   ]
 }

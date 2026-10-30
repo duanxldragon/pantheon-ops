@@ -162,6 +162,16 @@ business/*
 - `scripts/check-gorm-sql-literal.mjs` is an Ops-only sensor: it scans `backend/modules/business/**`, which
   base does not ship. It therefore does not need a base-first round trip, and must not be hand-copied into
   base as a generic checker.
+- The first hosted CI run on the PR drove a second round: `Go Lint` flagged one new gosec **G304** on
+  `os.Create(fullPath)`, a line this round's own rewrite introduced, and the SonarCloud gate stayed ERROR
+  only on `new_duplicated_lines_density` (11.90% against a 3% limit) once `new_security_rating` and
+  `new_reliability_rating` were already OK. The G304 line takes a file-local annotation justified by the
+  same containment proof that closes `gosecurity:S2083` (`fullPath` is
+  `resolveWithinRoot(sanitizeUploadFileName(...))`), matching the three G304 waivers already present in that
+  module, and is verified by re-running the lint job's own `--new-from-rev=<main>` invocation locally. The
+  duplication was real, not noise: the new checker test file copied its twelve test bodies, 68 of the 74
+  duplicated new lines. It is now a `CASES` table plus one driver loop, with the same fixtures and the same
+  assertions, so the metric is fixed by removing the copy rather than by relaxing the gate.
 - `test:quality-workflow` has 4 pre-existing failures asserting base's `paths-filter` / governance-only
   job shape that ops' `quality.yml` does not have; that drift is recorded, not fixed here, because fixing
   it means changing which jobs are allowed to skip.
@@ -169,6 +179,8 @@ business/*
 ## Verification Plan
 
 - `cd backend && gofmt -l modules/business && go build ./... && go vet ./... && go test ./... -count=1`
+- `cd backend && golangci-lint run --new-from-rev=<main sha> ./...`, the same arguments and new-code mode
+  the `Go Lint` job uses, so the hosted gate is reproduced locally instead of guessed at
 - `node scripts/check-gorm-sql-literal.mjs` and `node --test tests/scripts/check-gorm-sql-literal.test.mjs`
 - `cd frontend && npm run lint && npm run type-check && PANTHEON_CI=true npm run build`
 - `bash -n e2e-tests/auto-test.sh e2e-tests/run-real-machine-test.sh .harness/v1.2-tasks/generate_tasks.sh`

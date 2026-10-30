@@ -101,7 +101,8 @@
     "ArgoCD server certificate verification is now unconditional. A stored CA bundle adds trust; an unparseable bundle fails construction with ErrInvalidCACert instead of silently downgrading. The tests inject the httptest server certificate as the stored bundle, so they exercise the production path rather than bypassing it.",
     "biz_argocd_server.ca_cert needs no SQL migration: the argocd module owns Migrate() with GORM AutoMigrate and no versioned SQL references that table.",
     "e2e-tests/auto-test.sh shipped a reachable production IP and http:// defaults; requiring API_BASE_URL and WEB_BASE_URL removes the shell:S5332 class instead of marking it won't-fix, and the same change makes the scripts refuse to run against an unintended host.",
-    "The checker is an Ops-only sensor: base ships no backend/modules/business, so it is deliberately not proposed upstream and must not be hand-copied into base."
+    "The checker is an Ops-only sensor: base ships no backend/modules/business, so it is deliberately not proposed upstream and must not be hand-copied into base.",
+    "Round 2 was driven by the first hosted CI run rather than by local review: Go Lint reported one new gosec G304 on the line this round introduced (os.Create of a path that is already proven to stay inside the storage root), annotated consistently with the three G304 waivers already in that module, and the SonarCloud gate stayed ERROR only on new-code duplication because the new checker test file repeated its twelve test bodies. The test file became a CASES table with one driver loop, so the duplication is removed rather than the metric suppressed; the gate's security and reliability conditions were already OK on that analysis."
   ],
   "harnessProfile": {
     "template": "api-service",
@@ -135,7 +136,7 @@
     "deferredCodeIssues": [
       "The legacy smell backlog outside the new-code period stays open: go:S1192 x68, go:S3776 x27, typescript:S3358 x22, typescript:S3863 x10, godre:S8196/S8205/S8209/S8193, shell:S7688 x7, shell:S6505 x3, typescript:S6571 x6. Clearing it is a separate maintainability program, not a security gate.",
       "Dependabot-triggered runs still cannot read SONAR_TOKEN, so SonarCloud Scan stays red on Dependabot PRs until Dependabot secrets are provisioned or the job skips that actor; that is a maintainer gate-policy decision.",
-      "The Vercel deployment check stays red: it is an external GitHub App integration with no committed configuration and it cannot be removed through the APIs available on this host.",
+      "The Vercel deployment check stays red and is out of scope by maintainer instruction: it is an external GitHub App integration with no committed configuration, its build log needs the Vercel team's credentials, and it is not a required status context on main, so disabling it is a GitHub App or Vercel dashboard action.",
       "sonar.sources=. makes the scanner read PNG evidence files as source text; scoping that property is a Sonar configuration decision left with the maintainer.",
       "No coverage report is produced, which is why sonar.coverage.exclusions=**/* stays in sonar-project.properties on the Free plan.",
       "The ArgoCD UI has no server-registration form, so the new caCert field is reachable only through the API in this round."
@@ -178,6 +179,7 @@
   "verificationPlan": {
     "commands": [
       "cd backend && gofmt -l modules/business && go build ./... && go vet ./... && go test ./... -count=1",
+      "cd backend && golangci-lint run --new-from-rev=<main sha> ./... (same arguments and mode as the Go Lint job)",
       "node scripts/check-gorm-sql-literal.mjs",
       "node --test tests/scripts/check-gorm-sql-literal.test.mjs",
       "cd frontend && npm run lint && npm run type-check && PANTHEON_CI=true npm run build",

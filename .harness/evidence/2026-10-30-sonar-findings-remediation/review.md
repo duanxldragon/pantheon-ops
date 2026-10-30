@@ -45,6 +45,26 @@ were acted on. Nothing was declined without a reason.
    non-empty = replace and validate), and the semantics are now stated in
    `docs/designs/BUSINESS_ARGOCD_MODULE_DESIGN.md` section 3.
 
+## CI round 2 (after the first PR run)
+
+The first CI run on PR #156 was green on SonarCloud Scan, Backend Tests, Docs Governance, Frontend Contract,
+Security Gates and CodeQL, and red on two things this review owns:
+
+- **Gosec G304 on the new code** — `os.Create(fullPath)` in `UploadFile` was introduced by the round-1
+  rewrite, so it counted as new code and blocked `Go Lint`, which in turn blocked the required
+  `Quality Gates` context. Fixed with a file-local `#nosec G304` whose justification is the containment
+  proof (`fullPath` is `resolveWithinRoot(sanitizeUploadFileName(...))`), consistent with the three G304
+  annotations already in this module. Verified by re-running the lint job's own invocation locally: 0 issues.
+- **New-code duplication 11.90% against a 3% gate limit** — traced to the new checker test file: twelve test
+  bodies that repeated the same fixture/run/assert shape, 68 of the 74 duplicated new lines. Restructured
+  into a `CASES` table with one driver loop rather than suppressing the metric; the fixture content and the
+  assertions are unchanged and all 13 tests still pass. This is the honest fix: the duplication was real,
+  and a copy-paste test file is also harder to extend.
+
+Not acted on, recorded instead: the `Vercel` commit status is red and is not a required context (main
+requires only `Quality Gates` and `Security Gates`, `strict: false`), so it cannot block this merge, and
+removing it needs a maintainer action outside the APIs available here.
+
 ## Checked and found correct
 
 - `veleroState(status)` produces byte-identical output to the inlined nested template it replaced.

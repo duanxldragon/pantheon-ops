@@ -306,7 +306,7 @@ func (s *StorageService) UploadFile(storageID uint64, fileName string, reader io
 	}
 
 	// Write file and calculate MD5 + SHA-256
-	file, err := os.Create(fullPath)
+	file, err := os.Create(fullPath) // #nosec G304 -- fullPath is resolveWithinRoot(output of sanitizeUploadFileName), proven to stay inside the storage root.
 	if err != nil {
 		return nil, fmt.Errorf("create_file_failed: %w", err)
 	}

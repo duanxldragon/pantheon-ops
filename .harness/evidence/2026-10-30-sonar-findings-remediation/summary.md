@@ -67,10 +67,21 @@ the documentation of that semantics in the ArgoCD design. Full record in `review
 ## Verification
 
 Full matrices are recorded in `commands.json`. Headline results: backend `gofmt`/`build`/`vet`/`test`
-green (64 packages, exit 0), new checker green with 2 visible waivers, checker tests 10/10, frontend
+green (64 packages, exit 0), new checker green with 4 visible waivers, checker tests 13/13, frontend
 lint/type-check/build green, `bash -n` green for the three rewritten shell files, and the governance suite
 (structure contract, frontmatter, task-packet template, encoding strict, overlay contract, module
 boundaries, UI quality gate, generated modules) green.
+
+Round 2 was driven by the first PR CI run rather than by review: `Go Lint` failed on a new gosec **G304**
+(`os.Create(fullPath)`) that round 1's own rewrite introduced, and the SonarCloud gate was still ERROR, this
+time only on `new_duplicated_lines_density` (11.90% against a 3% limit; 74 of 622 new lines) with the
+security and reliability conditions now **OK**. The duplicated lines were in the brand-new checker test file,
+whose twelve test bodies were copies of each other, so the file was collapsed into a `CASES` table plus one
+driver loop — the same 12 fixtures and assertions, 13/13 still passing — instead of relaxing the gate. The
+G304 line carries a file-local annotation pointing at the containment proof, matching the three G304
+annotations already in that module. Re-running the lint job's own arguments
+(`golangci-lint run --new-from-rev=<main> ./...`) locally returns 0 issues, the Go suite is 64 packages ok,
+the checker and the duplication gate are green, and frontend was untouched in round 2.
 
 ## Explicit gaps
 
@@ -80,8 +91,10 @@ boundaries, UI quality gate, generated modules) green.
   not a security gate, and doing it in this diff would make a security review harder.
 - Dependabot-triggered runs still cannot read `SONAR_TOKEN`, so `SonarCloud Scan` stays red on Dependabot
   PRs. Provisioning Dependabot secrets or skipping that actor is a maintainer gate-policy decision.
-- The external Vercel deployment check cannot be removed through the APIs available on this host; it needs
-  a maintainer action in the GitHub UI.
+- The Vercel check is out of scope by maintainer instruction ("drop the Vercel task"). There is no committed
+  Vercel config to change, the deployment log needs the Vercel team's credentials, and it is not a required
+  context on `main`, so it neither blocks the merge nor is fixable from this host; disabling it is a GitHub
+  App / Vercel dashboard action.
 - `test:quality-workflow` has 4 pre-existing failures that assert base's `paths-filter` / governance-only
   job shape, which ops' `quality.yml` does not have. That base drift is recorded, not fixed here.
 - No UI form exists for ArgoCD server registration, so `caCert` is API-only in this round; the response
