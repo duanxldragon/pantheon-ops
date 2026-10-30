@@ -138,20 +138,14 @@ func (r *Reconciler) reconcileBackup(ctx context.Context, backup *VeleroBackup) 
 	if v, ok := nestedInt64(status, "backupItemOperationsAttempted"); ok {
 		updates["backup_size"] = v
 	}
-	if ts := nestedString(status, "startTimestamp"); ts != "" {
-		if parsed, err := time.Parse(time.RFC3339, ts); err == nil {
-			updates["start_time"] = parsed
-		}
+	if ts, ok := statusTimestamp(status, "startTimestamp"); ok {
+		updates["start_time"] = ts
 	}
-	if ts := nestedString(status, "completionTimestamp"); ts != "" {
-		if parsed, err := time.Parse(time.RFC3339, ts); err == nil {
-			updates["completion_time"] = parsed
-		}
+	if ts, ok := statusTimestamp(status, "completionTimestamp"); ok {
+		updates["completion_time"] = ts
 	}
-	if ts := nestedString(status, "expiration"); ts != "" {
-		if parsed, err := time.Parse(time.RFC3339, ts); err == nil {
-			updates["expiration"] = parsed
-		}
+	if ts, ok := statusTimestamp(status, "expiration"); ok {
+		updates["expiration"] = ts
 	}
 
 	if len(updates) == 0 {
@@ -205,15 +199,11 @@ func (r *Reconciler) reconcileRestore(ctx context.Context, restore *VeleroRestor
 	if v, ok := nestedInt64(status, "warnings"); ok {
 		updates["warnings"] = v
 	}
-	if ts := nestedString(status, "startTimestamp"); ts != "" {
-		if parsed, err := time.Parse(time.RFC3339, ts); err == nil {
-			updates["start_time"] = parsed
-		}
+	if ts, ok := statusTimestamp(status, "startTimestamp"); ok {
+		updates["start_time"] = ts
 	}
-	if ts := nestedString(status, "completionTimestamp"); ts != "" {
-		if parsed, err := time.Parse(time.RFC3339, ts); err == nil {
-			updates["completion_time"] = parsed
-		}
+	if ts, ok := statusTimestamp(status, "completionTimestamp"); ok {
+		updates["completion_time"] = ts
 	}
 
 	if len(updates) == 0 {
@@ -301,4 +291,17 @@ func nestedString(obj map[string]interface{}, key string) string {
 func nestedInt64(obj map[string]interface{}, key string) (int64, bool) {
 	value, found, err := unstructured.NestedInt64(obj, key)
 	return value, found && err == nil
+}
+
+// statusTimestamp reads an RFC3339 timestamp field from a Velero CRD status.
+func statusTimestamp(status map[string]interface{}, key string) (time.Time, bool) {
+	ts := nestedString(status, key)
+	if ts == "" {
+		return time.Time{}, false
+	}
+	parsed, err := time.Parse(time.RFC3339, ts)
+	if err != nil {
+		return time.Time{}, false
+	}
+	return parsed, true
 }

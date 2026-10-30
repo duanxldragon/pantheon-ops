@@ -57,12 +57,20 @@ func (WebhookEvent) TableName() string {
 
 // WebhookHandler handles webhook events
 type WebhookHandler struct {
-	db *gorm.DB
+	db     *gorm.DB
+	syncer applicationSyncer
+}
+
+// applicationSyncer starts a sync for a stored application. *ArgoCDService satisfies it;
+// the webhook depends on the behaviour instead of the concrete service so the trigger
+// decision can be tested without an Argo CD server.
+type applicationSyncer interface {
+	SyncApplication(id uint64, revision string) (*SyncHistoryResponse, error)
 }
 
 // NewWebhookHandler creates a webhook handler
 func NewWebhookHandler(db *gorm.DB) *WebhookHandler {
-	return &WebhookHandler{db: db}
+	return &WebhookHandler{db: db, syncer: NewArgoCDService(db)}
 }
 
 // HandleGitWebhook handles Git webhook events (GitHub/GitLab/Gitea)
@@ -224,63 +232,121 @@ func (h *WebhookHandler) parseGitEvent(r *http.Request, body []byte, source stri
 
 	switch source {
 	case sourceGitHub:
-		event.EventType = r.Header.Get("X-GitHub-Event")
-		if repo, ok := payload["repository"].(map[string]interface{}); ok {
-			if url, ok := repo["clone_url"].(string); ok {
-				event.Repository = url
-			}
-		}
-		if ref, ok := payload["ref"].(string); ok {
-			event.Ref = ref
-		}
-		if after, ok := payload["after"].(string); ok {
-			event.CommitSHA = after
-		}
-		if sender, ok := payload["sender"].(map[string]interface{}); ok {
-			if login, ok := sender["login"].(string); ok {
-				event.Author = login
-			}
-		}
-
+		parseGitHubEventFields(event, payload, r.Header)
 	case sourceGitLab:
-		event.EventType = r.Header.Get("X-Gitlab-Event")
-		if repo, ok := payload["project"].(map[string]interface{}); ok {
-			if url, ok := repo["git_http_url"].(string); ok {
-				event.Repository = url
-			}
-		}
-		if ref, ok := payload["ref"].(string); ok {
-			event.Ref = ref
-		}
-		if commits, ok := payload["commits"].([]interface{}); ok && len(commits) > 0 {
-			if commit, ok := commits[0].(map[string]interface{}); ok {
-				if id, ok := commit["id"].(string); ok {
-					event.CommitSHA = id
-				}
-				if msg, ok := commit["message"].(string); ok {
-					event.CommitMsg = msg
-				}
-				if author, ok := commit["author"].(map[string]interface{}); ok {
-					if name, ok := author["name"].(string); ok {
-						event.Author = name
-					}
-				}
-			}
-		}
-
+		parseGitLabEventFields(event, payload, r.Header)
 	case sourceGitea:
-		event.EventType = r.Header.Get("X-Gitea-Event")
-		if repo, ok := payload["repository"].(map[string]interface{}); ok {
-			if url, ok := repo["clone_url"].(string); ok {
-				event.Repository = url
-			}
-		}
-		if ref, ok := payload["ref"].(string); ok {
-			event.Ref = ref
-		}
+		parseGiteaEventFields(event, payload, r.Header)
 	}
 
 	return event
+}
+
+// parseGitHubEventFields copies the repository, ref, commit and sender of a GitHub delivery
+// onto the event row.
+func parseGitHubEventFields(event *WebhookEvent, payload map[string]interface{}, header http.Header) {
+	event.EventType = header.Get("X-GitHub-Event")
+	if url, ok := webhookString(payload, "repository", "clone_url"); ok {
+		event.Repository = url
+	}
+	if ref, ok := webhookString(payload, "ref"); ok {
+		event.Ref = ref
+	}
+	if after, ok := webhookString(payload, "after"); ok {
+		event.CommitSHA = after
+	}
+	if login, ok := webhookString(payload, "sender", "login"); ok {
+		event.Author = login
+	}
+}
+
+// parseGitLabEventFields copies the project, ref and head commit of a GitLab delivery onto
+// the event row.
+func parseGitLabEventFields(event *WebhookEvent, payload map[string]interface{}, header http.Header) {
+	event.EventType = header.Get("X-Gitlab-Event")
+	if url, ok := webhookString(payload, "project", "git_http_url"); ok {
+		event.Repository = url
+	}
+	if ref, ok := webhookString(payload, "ref"); ok {
+		event.Ref = ref
+	}
+	commits, ok := payload["commits"].([]interface{})
+	if !ok || len(commits) == 0 {
+		return
+	}
+	applyGitLabHeadCommit(event, commits[0])
+}
+
+// applyGitLabHeadCommit reads the first commit of a GitLab push payload.
+func applyGitLabHeadCommit(event *WebhookEvent, item interface{}) {
+	commit, ok := item.(map[string]interface{})
+	if !ok {
+		return
+	}
+	if id, ok := webhookString(commit, "id"); ok {
+		event.CommitSHA = id
+	}
+	if msg, ok := webhookString(commit, "message"); ok {
+		event.CommitMsg = msg
+	}
+	if name, ok := webhookString(commit, "author", "name"); ok {
+		event.Author = name
+	}
+}
+
+// parseGiteaEventFields copies the repository and ref of a Gitea delivery onto the event row.
+func parseGiteaEventFields(event *WebhookEvent, payload map[string]interface{}, header http.Header) {
+	event.EventType = header.Get("X-Gitea-Event")
+	if url, ok := webhookString(payload, "repository", "clone_url"); ok {
+		event.Repository = url
+	}
+	if ref, ok := webhookString(payload, "ref"); ok {
+		event.Ref = ref
+	}
+}
+
+// webhookString walks an object path inside a decoded webhook payload and returns the string
+// stored at the last key. A missing step, or a step that is not a JSON object, reports ok=false
+// so callers keep the field untouched, exactly as the per-key type assertions they replace did.
+func webhookString(payload map[string]interface{}, path ...string) (string, bool) {
+	if len(path) == 0 {
+		return "", false
+	}
+	current := payload
+	for _, key := range path[:len(path)-1] {
+		next, ok := current[key].(map[string]interface{})
+		if !ok {
+			return "", false
+		}
+		current = next
+	}
+	value, ok := current[path[len(path)-1]].(string)
+	return value, ok
+}
+
+// gitSyncAutomated is Argo CD's automation marker object: its presence in the policy, not its
+// fields, is what makes Argo CD reconcile on its own.
+type gitSyncAutomated struct{}
+
+// gitSyncPolicy is the subset of Argo CD's spec.syncPolicy that decides whether a Git push may
+// trigger a sync.
+type gitSyncPolicy struct {
+	Automated *gitSyncAutomated `json:"automated"`
+}
+
+// hasAutomatedSyncPolicy reports whether a stored Argo CD syncPolicy object declares automated
+// sync. An absent, null, unparseable or automated-less policy all mean "a push must not
+// trigger a sync", so a malformed column fails closed instead of touching the deployment.
+func hasAutomatedSyncPolicy(policy []byte) bool {
+	trimmed := strings.TrimSpace(string(policy))
+	if trimmed == "" || trimmed == "null" {
+		return false
+	}
+	var parsed gitSyncPolicy
+	if err := json.Unmarshal([]byte(trimmed), &parsed); err != nil {
+		return false
+	}
+	return parsed.Automated != nil
 }
 
 // processGitEvent processes a Git webhook event
@@ -299,10 +365,13 @@ func (h *WebhookHandler) processGitEvent(event *WebhookEvent) {
 	}
 
 	for _, app := range apps {
-		// Trigger sync for auto-sync enabled apps
-		if app.SyncPolicy != nil {
-			// TODO: Parse sync policy and check if auto-sync is enabled
-			logging.Info("triggering sync for application", zap.String("app", app.Name))
+		if !hasAutomatedSyncPolicy(app.SyncPolicy) {
+			continue
+		}
+		logging.Info("triggering auto-sync for application", zap.String("app", app.Name))
+		if _, err := h.syncer.SyncApplication(app.ID, app.SourceTargetRev); err != nil {
+			logging.Error("auto-sync trigger failed",
+				zap.String("app", app.Name), zap.Error(err))
 		}
 	}
 
@@ -330,12 +399,8 @@ func (h *WebhookHandler) processArgoCDEvent(event *WebhookEvent) {
 	// Extract application name
 	appName := event.Repository
 	if appName == "" {
-		if app, ok := payload["application"].(map[string]interface{}); ok {
-			if metadata, ok := app["metadata"].(map[string]interface{}); ok {
-				if name, ok := metadata["name"].(string); ok {
-					appName = name
-				}
-			}
+		if name, ok := webhookString(payload, "application", "metadata", "name"); ok {
+			appName = name
 		}
 	}
 
@@ -346,18 +411,14 @@ func (h *WebhookHandler) processArgoCDEvent(event *WebhookEvent) {
 		return
 	}
 
-	// Update application status from payload
-	if status, ok := payload["status"].(map[string]interface{}); ok {
-		if sync, ok := status["sync"].(map[string]interface{}); ok {
-			if syncStatus, ok := sync["status"].(string); ok {
-				h.db.Model(&app).Update("sync_status", syncStatus)
-			}
-		}
-		if health, ok := status["health"].(map[string]interface{}); ok {
-			if healthStatus, ok := health["status"].(string); ok {
-				h.db.Model(&app).Update("health_status", healthStatus)
-			}
-		}
+	// Update application status from payload, sync status first and health status second,
+	// exactly as the previous inline extraction did.
+	syncStatus, healthStatus := argoCDStatusFields(payload)
+	if syncStatus != nil {
+		h.db.Model(&app).Update("sync_status", *syncStatus)
+	}
+	if healthStatus != nil {
+		h.db.Model(&app).Update("health_status", *healthStatus)
 	}
 
 	// Mark as processed
@@ -368,10 +429,27 @@ func (h *WebhookHandler) processArgoCDEvent(event *WebhookEvent) {
 	})
 }
 
+// argoCDStatusFields reads the sync and health statuses of an Argo CD notification payload.
+// A nil value means the payload carried no string for that field, so the caller leaves the
+// stored status untouched rather than writing an empty one.
+func argoCDStatusFields(payload map[string]interface{}) (syncStatus *string, healthStatus *string) {
+	status, ok := payload["status"].(map[string]interface{})
+	if !ok {
+		return nil, nil
+	}
+	if value, ok := webhookString(status, "sync", "status"); ok {
+		syncStatus = &value
+	}
+	if value, ok := webhookString(status, "health", "status"); ok {
+		healthStatus = &value
+	}
+	return syncStatus, healthStatus
+}
+
 // ListEvents lists webhook events
 func (h *WebhookHandler) ListEvents(source string, limit int) ([]WebhookEvent, error) {
 	var events []WebhookEvent
-	query := h.db.Order("created_at DESC")
+	query := h.db.Order(orderByCreatedAtDesc)
 	if source != "" {
 		query = query.Where("source = ?", source)
 	}

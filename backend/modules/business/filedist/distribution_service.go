@@ -12,6 +12,12 @@ import (
 	"gorm.io/gorm"
 )
 
+// SQL fragments shared by the distribution target queries below.
+const (
+	whereTaskByID      = "task_id = ?"
+	whereTaskAndStatus = "task_id = ? AND status = ?"
+)
+
 // DistributionService manages file distribution tasks.
 type DistributionService struct {
 	db             *gorm.DB
@@ -187,7 +193,7 @@ func (s *DistributionService) StartTask(id uint64) error {
 // GetTaskTargets retrieves all targets for a task.
 func (s *DistributionService) GetTaskTargets(taskID uint64) ([]DistributionTargetResponse, error) {
 	var targets []DistributionTarget
-	if err := s.db.Where("task_id = ?", taskID).Order("created_at ASC").Find(&targets).Error; err != nil {
+	if err := s.db.Where(whereTaskByID, taskID).Order("created_at ASC").Find(&targets).Error; err != nil {
 		return nil, err
 	}
 
@@ -259,7 +265,7 @@ func (s *DistributionService) RetryTask(id uint64) error {
 
 	// Reset failed targets
 	_ = s.db.Model(&DistributionTarget{}).
-		Where("task_id = ? AND status = ?", id, statusFailed).
+		Where(whereTaskAndStatus, id, statusFailed).
 		Updates(map[string]interface{}{
 			"status":      statusPending,
 			"progress":    0,
@@ -287,7 +293,7 @@ func (s *DistributionService) DeleteTask(id uint64) error {
 		return fmt.Errorf("task_running")
 	}
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("task_id = ?", id).Delete(&DistributionTarget{}).Error; err != nil {
+		if err := tx.Where(whereTaskByID, id).Delete(&DistributionTarget{}).Error; err != nil {
 			return err
 		}
 		return tx.Delete(&task).Error
@@ -307,7 +313,7 @@ func (s *DistributionService) executeTask(taskID uint64) {
 
 	// Get all pending targets
 	var targets []DistributionTarget
-	if err := s.db.Where("task_id = ? AND status = ?", taskID, statusPending).Find(&targets).Error; err != nil {
+	if err := s.db.Where(whereTaskAndStatus, taskID, statusPending).Find(&targets).Error; err != nil {
 		s.markTaskFailed(taskID, err.Error())
 		return
 	}
@@ -382,9 +388,9 @@ func (s *DistributionService) monitorTaskProgress(taskID uint64) {
 			Failed    int64
 		}
 
-		s.db.Model(&DistributionTarget{}).Where("task_id = ?", taskID).Count(&stats.Total)
-		s.db.Model(&DistributionTarget{}).Where("task_id = ? AND status = ?", taskID, statusCompleted).Count(&stats.Completed)
-		s.db.Model(&DistributionTarget{}).Where("task_id = ? AND status = ?", taskID, statusFailed).Count(&stats.Failed)
+		s.db.Model(&DistributionTarget{}).Where(whereTaskByID, taskID).Count(&stats.Total)
+		s.db.Model(&DistributionTarget{}).Where(whereTaskAndStatus, taskID, statusCompleted).Count(&stats.Completed)
+		s.db.Model(&DistributionTarget{}).Where(whereTaskAndStatus, taskID, statusFailed).Count(&stats.Failed)
 
 		// Calculate progress
 		progress := 0

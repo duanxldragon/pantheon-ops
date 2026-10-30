@@ -7,7 +7,11 @@ import (
 	"gorm.io/gorm"
 )
 
-const serviceModuleKey = "business.service"
+// Kept in a const block: the base menu-contract gate resolves seed field
+// identifiers only from `name = "value"` declarations.
+const (
+	serviceModuleKey = "business.service"
+)
 
 // InitServiceModule registers the service business module and returns its reader capability.
 func InitServiceModule(r *gin.RouterGroup, db *gorm.DB, deps Dependencies) Reader {
@@ -27,4 +31,4 @@ func InitServiceModule(r *gin.RouterGroup, db *gorm.DB, deps Dependencies) Reade
 }
 
 var _ Reader = (*Manager)(nil)
-var _ Command = (*Manager)(nil)
+var _ InstanceCreator = (*Manager)(nil)

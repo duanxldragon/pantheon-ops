@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const msgParamInvalid = "common.param_invalid"
+
 // BackupHandler handles Velero backup HTTP requests.
 //
 //nolint:revive // the exported handler name keeps the backup domain prefix for API clarity.
@@ -60,7 +62,7 @@ func (h *BackupHandler) RegisterRoutes(r gin.IRoutes) {
 func (h *BackupHandler) GetVeleroStatus(c *gin.Context) {
 	clusterID, err := strconv.ParseUint(c.Query("clusterId"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	dataScope := common.GetDataScope(c)
@@ -78,7 +80,7 @@ func (h *BackupHandler) GetVeleroStatus(c *gin.Context) {
 func (h *BackupHandler) CreateStorageLocation(c *gin.Context) {
 	var req CreateStorageLocationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
@@ -106,7 +108,7 @@ func (h *BackupHandler) ListStorageLocations(c *gin.Context) {
 func (h *BackupHandler) GetStorageLocation(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.service.GetStorageLocation(id)
@@ -121,12 +123,12 @@ func (h *BackupHandler) GetStorageLocation(c *gin.Context) {
 func (h *BackupHandler) UpdateStorageLocation(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	var req CreateStorageLocationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "更新 Velero 存储位置", common.BusinessUpdate)
@@ -142,7 +144,7 @@ func (h *BackupHandler) UpdateStorageLocation(c *gin.Context) {
 func (h *BackupHandler) DeleteStorageLocation(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "删除 Velero 存储位置", common.BusinessDelete)
@@ -160,7 +162,7 @@ func (h *BackupHandler) DeleteStorageLocation(c *gin.Context) {
 func (h *BackupHandler) CreateBackup(c *gin.Context) {
 	var req CreateBackupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
@@ -179,7 +181,7 @@ func (h *BackupHandler) CreateBackup(c *gin.Context) {
 func (h *BackupHandler) ListBackups(c *gin.Context) {
 	var query BackupListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	dataScope := common.GetDataScope(c)
@@ -195,7 +197,7 @@ func (h *BackupHandler) ListBackups(c *gin.Context) {
 func (h *BackupHandler) GetBackup(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.service.GetBackup(id, common.GetDataScope(c))
@@ -210,7 +212,7 @@ func (h *BackupHandler) GetBackup(c *gin.Context) {
 func (h *BackupHandler) DeleteBackup(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "删除 Velero 备份", common.BusinessDelete)
@@ -228,7 +230,7 @@ func (h *BackupHandler) DeleteBackup(c *gin.Context) {
 func (h *BackupHandler) CreateSchedule(c *gin.Context) {
 	var req CreateScheduleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
@@ -247,7 +249,7 @@ func (h *BackupHandler) CreateSchedule(c *gin.Context) {
 func (h *BackupHandler) ListSchedules(c *gin.Context) {
 	var query ScheduleListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	dataScope := common.GetDataScope(c)
@@ -263,7 +265,7 @@ func (h *BackupHandler) ListSchedules(c *gin.Context) {
 func (h *BackupHandler) GetSchedule(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.service.GetSchedule(id, common.GetDataScope(c))
@@ -278,12 +280,12 @@ func (h *BackupHandler) GetSchedule(c *gin.Context) {
 func (h *BackupHandler) UpdateSchedule(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	var req CreateScheduleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "更新定时备份", common.BusinessUpdate)
@@ -299,7 +301,7 @@ func (h *BackupHandler) UpdateSchedule(c *gin.Context) {
 func (h *BackupHandler) DeleteSchedule(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "删除定时备份", common.BusinessDelete)
@@ -315,7 +317,7 @@ func (h *BackupHandler) DeleteSchedule(c *gin.Context) {
 func (h *BackupHandler) PauseSchedule(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "暂停定时备份", common.BusinessUpdate)
@@ -331,7 +333,7 @@ func (h *BackupHandler) PauseSchedule(c *gin.Context) {
 func (h *BackupHandler) ResumeSchedule(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "恢复定时备份", common.BusinessUpdate)
@@ -349,7 +351,7 @@ func (h *BackupHandler) ResumeSchedule(c *gin.Context) {
 func (h *BackupHandler) CreateRestore(c *gin.Context) {
 	var req CreateRestoreRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
@@ -368,7 +370,7 @@ func (h *BackupHandler) CreateRestore(c *gin.Context) {
 func (h *BackupHandler) ListRestores(c *gin.Context) {
 	var query RestoreListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	dataScope := common.GetDataScope(c)
@@ -384,7 +386,7 @@ func (h *BackupHandler) ListRestores(c *gin.Context) {
 func (h *BackupHandler) GetRestore(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.service.GetRestore(id, common.GetDataScope(c))
@@ -399,7 +401,7 @@ func (h *BackupHandler) GetRestore(c *gin.Context) {
 func (h *BackupHandler) DeleteRestore(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "删除恢复记录", common.BusinessDelete)

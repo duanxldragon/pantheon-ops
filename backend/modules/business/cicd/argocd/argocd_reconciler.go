@@ -170,21 +170,7 @@ func (r *Reconciler) reconcileApplication(ctx context.Context, client *ArgoCDCli
 		}
 	}
 
-	// 5. 更新关联的服务实例状态 (如果有关联)
-	if app.Status != status.Sync.Status {
-		r.updateServiceInstanceState(app)
-	}
-
 	return nil
-}
-
-// updateServiceInstanceState updates associated service instance state
-func (r *Reconciler) updateServiceInstanceState(app *ArgoCDApplication) {
-	// TODO: 关联服务实例状态更新
-	// 需要通过 capability 接口调用
-	logging.Info("service instance state should be updated",
-		zap.String("application", app.Name),
-		zap.String("sync_status", app.SyncStatus))
 }
 
 // StartAll starts all reconcilers

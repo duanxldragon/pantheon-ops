@@ -324,6 +324,7 @@ jobs:
           WORKFLOW_POSTURE_RESULT: ${{ needs.workflow-posture.result }}
           CODEQL_SECURITY_SCAN_RESULT: ${{ needs.codeql-security.result }}
           CODEQL_ALERT_RESULT: ${{ needs.codeql-alerts.result }}
+          EXPECTED_RESULT: success
         run: |
           echo "Dependency Vulnerabilities: ${DEPENDENCY_VULNERABILITIES_RESULT}"
           echo "Secret Scan: ${SECRET_SCAN_RESULT}"
@@ -334,9 +335,9 @@ jobs:
              [ "${DEPENDENCY_VULNERABILITIES_RESULT}" != "skipped" ]; then
             exit 1
           fi
-          if [ "${SECRET_SCAN_RESULT}" != "success" ] || \
-             [ "${WORKFLOW_POSTURE_RESULT}" != "success" ] || \
-             [ "${CODEQL_SECURITY_SCAN_RESULT}" != "success" ] || \
-             [ "${CODEQL_ALERT_RESULT}" != "success" ]; then
+          if [ "${SECRET_SCAN_RESULT}" != "${EXPECTED_RESULT}" ] || \
+             [ "${WORKFLOW_POSTURE_RESULT}" != "${EXPECTED_RESULT}" ] || \
+             [ "${CODEQL_SECURITY_SCAN_RESULT}" != "${EXPECTED_RESULT}" ] || \
+             [ "${CODEQL_ALERT_RESULT}" != "${EXPECTED_RESULT}" ]; then
             exit 1
           fi

@@ -87,6 +87,34 @@ the check is a GitHub App / Vercel dashboard action.
   `CODE_SMELL` findings are untouched legacy backlog, and the three `os.Remove` taints are still a SonarGo
   sanitizer-propagation limitation — the code is safe because the test says so, not because the scanner agreed.
 
+## Round 5: the smell fan-out, and what the gates caught
+
+- Partitioning was by directory so no two writers shared a file (k8s + filedist, deploy, service + cmdb,
+  cicd + observability, two frontend batches). The cross-cutting classes stayed with the orchestrator because
+  they need repo-wide reference updates: the four `godre:S8196` interface renames, the two `go:S1135` TODOs and
+  the two workflow literals.
+- Two independent adversarial audits were run over the agent diffs, plus a line-by-line personal read of the
+  highest-risk extractions (`service/state.go`, `cmdb/host/host_state.go`, the seed files, the CMDB/group/label
+  import paths and every frontend helper lift). Both audits returned no blocker: extracted constants are
+  byte-identical to the literals they replace, error-append ordering is preserved, optimistic-lock and CAS
+  guards are unchanged, hook dependency lists are unchanged, React helpers moved to module scope rather than
+  into the component body (so no remount identity change), and no assertion was weakened.
+- One agent hit its turn budget with an unknown completion state, so its package was re-derived from
+  measurement rather than trusted: `gofmt`/`build`/`vet` clean, all nine `go:S1192` literals gone, all eleven
+  `go:S3776` targets under the threshold, `go:S107` and `godre:S8209` fixed. That suspicion was justified — the
+  full new-code lint then found two issues in it that review alone had missed (an unreachable extracted helper
+  and a `goconst` duplicate), both fixed and re-linted to 0.
+- The `applicationSyncer` seam was reviewed for the shape of the failure mode, not just the happy path:
+  `{"automated":null}` and `{"automated":false}` must both be false, a truncated `syncPolicy` column must be
+  false, and a sync that returns an error must still mark the webhook event processed, otherwise a transient
+  Argo CD outage would re-drive the same event forever. All four are pinned by tests.
+- Deleting the reconciler stub was checked against the schema before it was accepted as the honest option:
+  `biz_argocd_application` has no service-instance column, so the alternative was inventing an association.
+  The gap is recorded in the manifest instead.
+- What is deliberately not claimed here: that the local Go suite is green (11 failures reproduce identically at
+  HEAD), and that the backlog is cleared in the metric rather than in the code — only the next hosted analysis
+  decides that.
+
 ## Checked and found correct
 
 - `veleroState(status)` produces byte-identical output to the inlined nested template it replaced.
@@ -104,3 +132,28 @@ the check is a GitHub App / Vercel dashboard action.
 - zizmor publishes wheels, so `--only-binary :all:` installs it without a source build.
 - CI wiring for the two new steps is real: `docs-governance` installs root dependencies with `npm ci`
   before them, and both npm scripts exist.
+
+## Round 6: the PR analysis as an independent reviewer
+
+- The PR analysis is the only hosted oracle available before the merge, and it behaved like a reviewer: it
+  rejected two of round 5's own refactors (`go:S8242` on the struct-held context, `go:S3776` on a snapshot
+  builder that had only been partially decomposed) that every local gate had accepted. Local `gocognit` is
+  conservative for Sonar, but it cannot see the struct-field-context rule at all, so "all local gates green" was
+  not evidence of new-code cleanliness.
+- The component extractions were reviewed for render equality rather than for compiling: the JSX, the conditional
+  expressions, the callbacks and the `pagination`/`scroll` table props are unchanged, `TaskActionsCard` still
+  receives the same seven permission booleans (now produced by `resolveTaskActionPermissions`, whose `!task`
+  branch returns an all-false constant instead of seven `Boolean(task && …)` expressions), and `buildTaskDetailItems`
+  is now a concatenation of the profile and execution halves in the original order. The `taskFlowItems` memo
+  dependency moved from the derived status string to `task`, which recomputes more often and yields the same
+  value.
+- `resolveTaskActionPermissions` was checked status-by-status against the round-5 expressions it replaces,
+  including the deliberate asymmetry that `canDeleteTask` excludes the three request states
+  (`running`, `pause_requested`, `cancel_requested`) rather than allow-listing terminal ones.
+- Restoring the four FALSE_POSITIVE-marked sink statements is a trade, not a fix, and it is recorded as one: the
+  lines are literal SQL again because rewriting them would silently re-open hosted security findings that were
+  closed with a machine-checked argument. The trade is acceptable only while
+  `scripts/check-gorm-sql-literal.mjs` stays blocking, because that sensor is what prevents the restored text
+  from drifting into a genuinely dynamic clause later.
+- What is still not claimed: that the merged `main` analysis is at zero. The PR view cannot show findings on
+  unchanged lines, so the post-merge read-back remains the acceptance step.

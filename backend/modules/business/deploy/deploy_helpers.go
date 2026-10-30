@@ -11,6 +11,11 @@ import (
 // errDeployTaskSecretParamInvalid rejects empty secret parameter values.
 const errDeployTaskSecretParamInvalid = "business.deploy.task.secretParamInvalid"
 
+// secretSentinelPrefix is the opening marker of a {{secret.<key>}} sentinel;
+// the sentinel is the only form in which a secret value may appear in persisted
+// or logged text.
+const secretSentinelPrefix = "{{secret."
+
 // SecretPresenceItem reports whether a write-only secret parameter exists for a
 // task without exposing its value.
 type SecretPresenceItem struct {
@@ -116,8 +121,8 @@ func resolveStepParamsSecretSentinels(params map[string]any, secrets map[string]
 	resolved := make(map[string]any, len(params))
 	for key, value := range params {
 		text := strings.TrimSpace(anyToString(value))
-		if strings.HasPrefix(text, "{{secret.") && strings.HasSuffix(text, "}}") {
-			name := strings.TrimSuffix(strings.TrimPrefix(text, "{{secret."), "}}")
+		if strings.HasPrefix(text, secretSentinelPrefix) && strings.HasSuffix(text, "}}") {
+			name := strings.TrimSuffix(strings.TrimPrefix(text, secretSentinelPrefix), "}}")
 			if secretValue, ok := secrets[name]; ok && secretValue != "" {
 				resolved[key] = secretValue
 				continue
@@ -140,7 +145,7 @@ func redactDeploySecrets(content string, secrets map[string]string) string {
 		if value == "" {
 			continue
 		}
-		redacted = strings.ReplaceAll(redacted, value, "{{secret."+key+"}}")
+		redacted = strings.ReplaceAll(redacted, value, secretSentinelPrefix+key+"}}")
 	}
 	return redacted
 }
@@ -160,7 +165,7 @@ func redactExecutionSnapshotSecrets(snapshot *deployExecutionSnapshot, secretPar
 			matched := false
 			for secretKey, secretValue := range secretParams {
 				if text == secretValue {
-					redacted[key] = "{{secret." + secretKey + "}}"
+					redacted[key] = secretSentinelPrefix + secretKey + "}}"
 					matched = true
 					break
 				}

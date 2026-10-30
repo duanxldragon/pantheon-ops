@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const msgParamInvalid = "common.param_invalid"
+
 // Handler exposes the application, service, and instance HTTP endpoints.
 type Handler struct {
 	manager *Manager
@@ -21,7 +23,7 @@ func (h *Handler) reconcileInstanceState(c *gin.Context) {
 	var req ReconcileInstanceRequest
 	if c.Request.ContentLength > 0 {
 		if err := c.ShouldBindJSON(&req); err != nil {
-			common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+			common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 			return
 		}
 	}
@@ -60,7 +62,7 @@ func (h *Handler) RegisterRoutes(r gin.IRoutes) {
 func (h *Handler) listApplications(c *gin.Context) {
 	var q ApplicationQuery
 	if err := c.ShouldBindQuery(&q); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.manager.ListApplications(q, common.GetDataScope(c))
@@ -83,7 +85,7 @@ func (h *Handler) applicationOptions(c *gin.Context) {
 func (h *Handler) createApplication(c *gin.Context) {
 	var req CreateApplicationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.manager.CreateApplication(req, actor(c), common.GetDataScope(c))
@@ -101,7 +103,7 @@ func (h *Handler) updateApplication(c *gin.Context) {
 	}
 	var req UpdateApplicationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.manager.UpdateApplication(id, req, actor(c), common.GetDataScope(c))
@@ -131,7 +133,7 @@ func (h *Handler) transitionInstanceState(c *gin.Context) {
 	}
 	var req InstanceStateTransitionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	req.InstanceID = id
@@ -146,7 +148,7 @@ func (h *Handler) transitionInstanceState(c *gin.Context) {
 func (h *Handler) listServices(c *gin.Context) {
 	var q ServiceQuery
 	if err := c.ShouldBindQuery(&q); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.manager.ListServices(q, common.GetDataScope(c))
@@ -162,7 +164,7 @@ func (h *Handler) serviceOptions(c *gin.Context) {
 		ApplicationID uint64 `form:"applicationId"`
 	}
 	if err := c.ShouldBindQuery(&q); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.manager.ListServiceOptions(q.ApplicationID, common.GetDataScope(c))
@@ -176,7 +178,7 @@ func (h *Handler) serviceOptions(c *gin.Context) {
 func (h *Handler) createService(c *gin.Context) {
 	var req CreateServiceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.manager.CreateService(req, actor(c), common.GetDataScope(c))
@@ -194,7 +196,7 @@ func (h *Handler) updateService(c *gin.Context) {
 	}
 	var req UpdateServiceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.manager.UpdateService(id, req, actor(c), common.GetDataScope(c))
@@ -220,7 +222,7 @@ func (h *Handler) deleteService(c *gin.Context) {
 func (h *Handler) listInstances(c *gin.Context) {
 	var q InstanceQuery
 	if err := c.ShouldBindQuery(&q); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.manager.ListInstances(q, common.GetDataScope(c))
@@ -247,7 +249,7 @@ func (h *Handler) getInstance(c *gin.Context) {
 func (h *Handler) createInstance(c *gin.Context) {
 	var req CreateInstanceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	ref, err := h.manager.CreateInstance(c.Request.Context(), req, actor(c), common.GetDataScope(c))
@@ -265,7 +267,7 @@ func (h *Handler) updateInstance(c *gin.Context) {
 	}
 	var req UpdateInstanceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.manager.UpdateInstance(id, req, actor(c), common.GetDataScope(c))
@@ -291,7 +293,7 @@ func (h *Handler) deleteInstance(c *gin.Context) {
 func parseID(c *gin.Context) (uint64, bool) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return 0, false
 	}
 	return id, true

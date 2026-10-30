@@ -167,55 +167,84 @@ func validateInstanceTransition(current, next *ServiceInstance, action string) e
 	}
 	switch action {
 	case TransitionActionInstall:
-		if !oneOf(current.ObservedState, ObservedStateUnknown, ObservedStateStopped, ObservedStateFailed, ObservedStateInstalling) ||
-			!oneOf(next.ObservedState, ObservedStateInstalling, ObservedStateStopped, ObservedStateFailed) {
-			return errors.New(errStateInvalid)
-		}
-		if next.DesiredState == "" {
-			next.DesiredState = DesiredStateStopped
-		}
+		return validateInstallTransition(current, next)
 	case TransitionActionStart:
-		if !oneOf(current.ObservedState, ObservedStateStopped, ObservedStateFailed, ObservedStateStarting) ||
-			!oneOf(next.ObservedState, ObservedStateStarting, ObservedStateRunning, ObservedStateFailed) ||
-			strings.TrimSpace(next.CurrentVersion) == "" {
-			return errors.New(errStateInvalid)
-		}
-		next.DesiredState = DesiredStateRunning
+		return validateStartTransition(current, next)
 	case TransitionActionHealth:
-		if current.ObservedState != ObservedStateRunning || next.ObservedState != ObservedStateRunning {
-			return errors.New(errStateInvalid)
-		}
+		return validateHealthTransition(current, next)
 	case TransitionActionStop:
-		if !oneOf(current.ObservedState, ObservedStateRunning, ObservedStateFailed, ObservedStateStopping) ||
-			!oneOf(next.ObservedState, ObservedStateStopping, ObservedStateStopped, ObservedStateFailed) {
-			return errors.New(errStateInvalid)
-		}
-		next.DesiredState = DesiredStateStopped
+		return validateStopTransition(current, next)
 	case TransitionActionUpgrade, TransitionActionRollback:
-		if !oneOf(current.ObservedState, ObservedStateRunning, ObservedStateStopped, ObservedStateFailed, ObservedStateUpgrading) ||
-			!oneOf(next.ObservedState, ObservedStateUpgrading, ObservedStateRunning, ObservedStateFailed) {
-			return errors.New(errStateInvalid)
-		}
-		if strings.TrimSpace(next.DesiredVersion) == "" {
-			return errors.New(errStateInvalid)
-		}
-		if action == TransitionActionRollback && strings.TrimSpace(current.RollbackVersion) != "" &&
-			next.DesiredVersion != current.RollbackVersion {
-			return errors.New(errStateInvalid)
-		}
-		if next.ObservedState == ObservedStateRunning && next.HealthState != HealthStateHealthy {
-			return errors.New(errStateInvalid)
-		}
+		return validateUpgradeTransition(current, next, action)
 	case TransitionActionRetire:
-		if !oneOf(current.ObservedState, ObservedStateUnknown, ObservedStateStopped, ObservedStateFailed) ||
-			next.ObservedState != ObservedStateRetired {
-			return errors.New(errStateInvalid)
-		}
-		next.DesiredState = DesiredStateRetired
-		next.HealthState = HealthStateUnknown
+		return validateRetireTransition(current, next)
 	default:
 		return errors.New(errStateInvalid)
 	}
+}
+
+func validateInstallTransition(current, next *ServiceInstance) error {
+	if !oneOf(current.ObservedState, ObservedStateUnknown, ObservedStateStopped, ObservedStateFailed, ObservedStateInstalling) ||
+		!oneOf(next.ObservedState, ObservedStateInstalling, ObservedStateStopped, ObservedStateFailed) {
+		return errors.New(errStateInvalid)
+	}
+	if next.DesiredState == "" {
+		next.DesiredState = DesiredStateStopped
+	}
+	return nil
+}
+
+func validateStartTransition(current, next *ServiceInstance) error {
+	if !oneOf(current.ObservedState, ObservedStateStopped, ObservedStateFailed, ObservedStateStarting) ||
+		!oneOf(next.ObservedState, ObservedStateStarting, ObservedStateRunning, ObservedStateFailed) ||
+		strings.TrimSpace(next.CurrentVersion) == "" {
+		return errors.New(errStateInvalid)
+	}
+	next.DesiredState = DesiredStateRunning
+	return nil
+}
+
+func validateHealthTransition(current, next *ServiceInstance) error {
+	if current.ObservedState != ObservedStateRunning || next.ObservedState != ObservedStateRunning {
+		return errors.New(errStateInvalid)
+	}
+	return nil
+}
+
+func validateStopTransition(current, next *ServiceInstance) error {
+	if !oneOf(current.ObservedState, ObservedStateRunning, ObservedStateFailed, ObservedStateStopping) ||
+		!oneOf(next.ObservedState, ObservedStateStopping, ObservedStateStopped, ObservedStateFailed) {
+		return errors.New(errStateInvalid)
+	}
+	next.DesiredState = DesiredStateStopped
+	return nil
+}
+
+func validateUpgradeTransition(current, next *ServiceInstance, action string) error {
+	if !oneOf(current.ObservedState, ObservedStateRunning, ObservedStateStopped, ObservedStateFailed, ObservedStateUpgrading) ||
+		!oneOf(next.ObservedState, ObservedStateUpgrading, ObservedStateRunning, ObservedStateFailed) {
+		return errors.New(errStateInvalid)
+	}
+	if strings.TrimSpace(next.DesiredVersion) == "" {
+		return errors.New(errStateInvalid)
+	}
+	if action == TransitionActionRollback && strings.TrimSpace(current.RollbackVersion) != "" &&
+		next.DesiredVersion != current.RollbackVersion {
+		return errors.New(errStateInvalid)
+	}
+	if next.ObservedState == ObservedStateRunning && next.HealthState != HealthStateHealthy {
+		return errors.New(errStateInvalid)
+	}
+	return nil
+}
+
+func validateRetireTransition(current, next *ServiceInstance) error {
+	if !oneOf(current.ObservedState, ObservedStateUnknown, ObservedStateStopped, ObservedStateFailed) ||
+		next.ObservedState != ObservedStateRetired {
+		return errors.New(errStateInvalid)
+	}
+	next.DesiredState = DesiredStateRetired
+	next.HealthState = HealthStateUnknown
 	return nil
 }
 

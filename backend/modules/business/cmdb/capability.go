@@ -18,6 +18,11 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	idInWhereClause            = "id IN ?"
+	businessScopeIDWhereClause = "business_scope_id = ?"
+)
+
 type DeployHostTarget struct {
 	ID                uint64
 	Hostname          string
@@ -93,7 +98,7 @@ func (c *deployCMDBCapability) GetByIDs(ctx context.Context, req bizcap.HostIDsQ
 	}
 	query := c.db.WithContext(ctx).Model(&cmdbhost.Host{}).
 		Scopes(database.WithDataScope(req.DataScope)).
-		Where("id IN ?", ids)
+		Where(idInWhereClause, ids)
 	var rows []cmdbhost.Host
 	if err := query.Order("id ASC").Find(&rows).Error; err != nil {
 		return bizcap.HostPage{}, err
@@ -163,7 +168,7 @@ func (c *deployCMDBCapability) ListByBusinessScope(ctx context.Context, req bizc
 	}
 	query := c.db.WithContext(ctx).Model(&cmdbhost.Host{}).
 		Scopes(database.WithDataScope(req.DataScope)).
-		Where("business_scope_id = ?", req.BusinessScopeID)
+		Where(businessScopeIDWhereClause, req.BusinessScopeID)
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
 		return bizcap.HostPage{}, err
@@ -198,7 +203,7 @@ func (c *deployCMDBCapability) HasBusinessScopeReferences(ctx context.Context, b
 		return false, errors.New("database.not_initialized")
 	}
 	var count int64
-	if err := c.db.WithContext(ctx).Model(&cmdbhost.Host{}).Where("business_scope_id = ?", businessScopeID).Count(&count).Error; err != nil {
+	if err := c.db.WithContext(ctx).Model(&cmdbhost.Host{}).Where(businessScopeIDWhereClause, businessScopeID).Count(&count).Error; err != nil {
 		return false, err
 	}
 	return count > 0, nil
@@ -231,7 +236,7 @@ func (c *deployCMDBCapability) bindUnlocked(ctx context.Context, req bizcap.Bind
 		var found int64
 		if err := tx.Model(&cmdbhost.Host{}).
 			Scopes(database.WithDataScope(req.DataScope)).
-			Where("id IN ?", hostIDs).
+			Where(idInWhereClause, hostIDs).
 			Count(&found).Error; err != nil {
 			return err
 		}
@@ -241,7 +246,7 @@ func (c *deployCMDBCapability) bindUnlocked(ctx context.Context, req bizcap.Bind
 		var owned int64
 		if err := tx.Model(&cmdbhost.Host{}).
 			Scopes(database.WithDataScope(req.DataScope)).
-			Where("id IN ?", hostIDs).
+			Where(idInWhereClause, hostIDs).
 			Where("business_scope_id <> 0").
 			Count(&owned).Error; err != nil {
 			return err
@@ -259,7 +264,7 @@ func (c *deployCMDBCapability) bindUnlocked(ctx context.Context, req bizcap.Bind
 		}
 		result := tx.Model(&cmdbhost.Host{}).
 			Scopes(database.WithDataScope(req.DataScope)).
-			Where("id IN ?", hostIDs).
+			Where(idInWhereClause, hostIDs).
 			Where("business_scope_id = 0").
 			Updates(updates)
 		if result.Error != nil {
@@ -329,7 +334,7 @@ func classifyOwnershipBindFailure(tx *gorm.DB, dataScope *common.DataScopeReq, h
 	var found int64
 	if err := tx.Model(&cmdbhost.Host{}).
 		Scopes(database.WithDataScope(dataScope)).
-		Where("id IN ?", hostIDs).
+		Where(idInWhereClause, hostIDs).
 		Count(&found).Error; err != nil {
 		return err
 	}
@@ -450,9 +455,9 @@ func reconcileHostStatus(status string, componentCount int) string {
 }
 
 func (c *deployCMDBCapability) resolveHostTargets(businessScopeID uint64, targetIDs []uint64, dataScope *common.DataScopeReq) ([]DeployHostTarget, error) {
-	query := c.db.Model(&cmdbhost.Host{}).Scopes(database.WithDataScope(dataScope)).Where("id IN ?", targetIDs)
+	query := c.db.Model(&cmdbhost.Host{}).Scopes(database.WithDataScope(dataScope)).Where(idInWhereClause, targetIDs)
 	if businessScopeID > 0 {
-		query = query.Where("business_scope_id = ?", businessScopeID)
+		query = query.Where(businessScopeIDWhereClause, businessScopeID)
 	}
 	var rows []cmdbhost.Host
 	if err := query.Order(idAscOrder).Find(&rows).Error; err != nil {
@@ -478,7 +483,7 @@ func (c *deployCMDBCapability) resolveHostTargets(businessScopeID uint64, target
 
 func (c *deployCMDBCapability) resolveGroupTargets(targetIDs []uint64, dataScope *common.DataScopeReq) ([]DeployHostTarget, error) {
 	var selectedGroups []cmdbgroup.Group
-	if err := c.db.Where("id IN ?", targetIDs).Find(&selectedGroups).Error; err != nil {
+	if err := c.db.Where(idInWhereClause, targetIDs).Find(&selectedGroups).Error; err != nil {
 		return nil, err
 	}
 	var allGroups []cmdbgroup.Group

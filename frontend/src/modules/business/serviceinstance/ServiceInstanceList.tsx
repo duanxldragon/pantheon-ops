@@ -7,6 +7,16 @@ import { AppTable, PageContainer, PageEmpty, PageError, PageLoading } from '../.
 import { getServiceInstanceList, reconcileServiceInstance, type ServiceInstanceRow } from './api';
 import '../../../assets/list-page.css';
 
+const healthStateColor = (value: string) => {
+  if (value === 'healthy') {
+    return 'green';
+  }
+  if (value === 'unhealthy') {
+    return 'red';
+  }
+  return 'gray';
+};
+
 export default function ServiceInstanceList() {
   const { t } = useTranslation();
   const [items, setItems] = useState<ServiceInstanceRow[]>([]);
@@ -37,7 +47,7 @@ export default function ServiceInstanceList() {
     { title: t('business.service.instance.target'), dataIndex: 'targetType', width: 110 },
     { title: t('business.service.instance.desired'), dataIndex: 'desiredState', width: 120, render: (_: unknown, row) => <Tag>{row.desiredState}</Tag> },
     { title: t('business.service.instance.observed'), dataIndex: 'observedState', width: 120, render: (_: unknown, row) => <Tag color={row.observedState === 'running' ? 'green' : 'orange'}>{row.observedState}</Tag> },
-    { title: t('business.service.instance.health'), dataIndex: 'healthState', width: 120, render: (_: unknown, row) => <Tag color={row.healthState === 'healthy' ? 'green' : row.healthState === 'unhealthy' ? 'red' : 'gray'}>{row.healthState}</Tag> },
+    { title: t('business.service.instance.health'), dataIndex: 'healthState', width: 120, render: (_: unknown, row) => <Tag color={healthStateColor(row.healthState)}>{row.healthState}</Tag> },
     { title: t('business.service.instance.version'), dataIndex: 'currentVersion', width: 120 },
     {
       title: t('business.service.instance.actions'),

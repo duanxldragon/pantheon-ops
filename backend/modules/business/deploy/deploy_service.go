@@ -33,7 +33,7 @@ type DeployService struct {
 	cmdbCapability   cmdb.DeployCMDBCapability
 	bizScopeReader   bizcap.BizScopeReader
 	hostReader       bizcap.CMDBHostReader
-	serviceState     bizcap.ServiceInstanceStateCommand
+	serviceState     bizcap.ServiceInstanceStateApplier
 	sshRunnerFactory func(host cmdbHostSnapshot, req StartTaskRequest) (deploySSHRunner, error)
 	executor         DeployExecutor
 	asyncExecution   bool
@@ -140,6 +140,10 @@ const (
 	taskIDWhereClause = "task_id = ?"
 	idWhereClause     = "id = ?"
 	statusWhereClause = "status = ?"
+	// idAndStatusWhereClause and taskIDAndStatusInWhereClause guard the
+	// optimistic state transitions on the task and task-host tables.
+	idAndStatusWhereClause       = "id = ? AND status = ?"
+	taskIDAndStatusInWhereClause = "task_id = ? AND status IN ?"
 )
 
 // NewDeployService creates the deployment service with owner-module capabilities.
@@ -176,9 +180,9 @@ func (s *DeployService) SetExecutor(executor DeployExecutor) {
 	s.executor = executor
 }
 
-// SetServiceInstanceStateCommand configures service-instance state writeback.
-func (s *DeployService) SetServiceInstanceStateCommand(command bizcap.ServiceInstanceStateCommand) {
-	s.serviceState = command
+// SetServiceInstanceStateApplier configures service-instance state writeback.
+func (s *DeployService) SetServiceInstanceStateApplier(applier bizcap.ServiceInstanceStateApplier) {
+	s.serviceState = applier
 }
 
 func (s *DeployService) Migrate() error {
@@ -1014,13 +1018,13 @@ func (s *DeployService) DeleteTask(id uint64, actor string, dataScope *common.Da
 			return err
 		}
 		if activeAttempts == 0 && activeLeases == 0 {
-			if err := s.db.Model(&DeployTask{}).Where("id = ? AND status = ?", task.ID, TaskStatusRunning).Updates(map[string]any{
+			if err := s.db.Model(&DeployTask{}).Where(idAndStatusWhereClause, task.ID, TaskStatusRunning).Updates(map[string]any{
 				"status": TaskStatusFailed, "finished_at": now, "updated_by": actor, "updated_at": now,
 			}).Error; err != nil {
 				return err
 			}
 			task.Status = TaskStatusFailed
-			s.appendTaskEvent(task.ID, 0, 0, "task.reconciled_stale", TaskStatusRunning, TaskStatusFailed, actor, "", "worker lease expired")
+			s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.reconciled_stale", fromStatus: TaskStatusRunning, toStatus: TaskStatusFailed, actor: actor, reason: "worker lease expired"})
 		}
 	}
 	// A task may be cleaned up after it reaches a terminal state. Running and
@@ -1067,16 +1071,60 @@ func (s *DeployService) StartTask(id uint64, req StartTaskRequest, actor string,
 		return nil, errors.New("business.deploy.task.invalidStartState")
 	}
 	if task.ExecutorType == ExecutorTypeSSH {
-		if err := validateCredentialReferenceRequest(req); err != nil {
-			return nil, err
-		}
-		resolvedReq, version, err := s.resolveStartCredential(req)
+		resolvedReq, version, err := s.prepareStartCredential(req)
 		if err != nil {
 			return nil, err
 		}
 		req, credentialVersion = resolvedReq, version
 	}
+	hosts, err := s.prepareStartTargets(task, req, dataScope)
+	if err != nil {
+		return nil, err
+	}
 
+	now := time.Now()
+	claim := startTaskClaim{
+		task:              task,
+		req:               req,
+		hosts:             hosts,
+		actor:             actor,
+		key:               key,
+		now:               now,
+		timeout:           normalizeDeployExecutionTimeout(req.TimeoutSeconds),
+		leaseOwner:        deployHostLeaseOwner(task.ID),
+		credentialVersion: credentialVersion,
+	}
+	claimErr := s.db.Transaction(claim.claim)
+	if claimErr != nil {
+		return s.rejectFailedStartClaim(id, claimErr, key, dataScope)
+	}
+	s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.started", fromStatus: task.Status, toStatus: TaskStatusRunning, actor: actor, requestID: key})
+	if err := s.beginServiceInstanceState(*task, actor, dataScope); err != nil {
+		s.failStartedTask(task, hosts, actor, err)
+		return nil, err
+	}
+	if err := s.dispatchStartedTask(task, hosts, req, actor); err != nil {
+		return nil, err
+	}
+	return s.GetTask(id, dataScope)
+}
+
+// prepareStartCredential resolves the SSH credential reference of a start
+// request into the values persisted on the task.
+func (s *DeployService) prepareStartCredential(req StartTaskRequest) (StartTaskRequest, uint64, error) {
+	if err := validateCredentialReferenceRequest(req); err != nil {
+		return req, 0, err
+	}
+	resolvedReq, version, err := s.resolveStartCredential(req)
+	if err != nil {
+		return req, 0, err
+	}
+	return resolvedReq, version, nil
+}
+
+// prepareStartTargets validates the frozen execution snapshot and resolves the
+// hosts the start request targets.
+func (s *DeployService) prepareStartTargets(task *DeployTask, req StartTaskRequest, dataScope *common.DataScopeReq) ([]cmdbHostSnapshot, error) {
 	// Validate the frozen execution snapshot before mutating anything.
 	if _, err := s.resolveTaskExecutionPlan(*task); err != nil {
 		return nil, mapDeployTaskExecutionPlanError(err)
@@ -1096,106 +1144,136 @@ func (s *DeployService) StartTask(id uint64, req StartTaskRequest, actor string,
 			return nil, mapDeployTaskExecutionPlanError(err)
 		}
 	}
+	return hosts, nil
+}
 
-	now := time.Now()
-	timeout := normalizeDeployExecutionTimeout(req.TimeoutSeconds)
-	leaseOwner := deployHostLeaseOwner(task.ID)
-	claimErr := s.db.Transaction(func(tx *gorm.DB) error {
-		result := tx.Model(&DeployTask{}).
-			Where(idWhereClause, task.ID).
-			Where("status IN ?", []string{TaskStatusDraft, TaskStatusPending}).
-			Updates(map[string]interface{}{
-				"status":                    TaskStatusRunning,
-				"started_at":                &now,
-				"start_request_key":         key,
-				"credential_ref_id":         req.CredentialRefID,
-				"credential_ref_version":    credentialVersion,
-				"ssh_host_fingerprint":      strings.TrimSpace(req.HostFingerprint),
-				"execution_timeout_seconds": int(timeout.Seconds()),
-				"updated_by":                actor,
-				"updated_at":                now,
-			})
-		if result.Error != nil {
-			return result.Error
-		}
-		if result.RowsAffected == 0 {
-			return errors.New(errDeployTaskAlreadyRunning)
-		}
+// startTaskClaim carries the resolved start request of the claiming
+// transaction so the transaction keeps its inputs in one place.
+type startTaskClaim struct {
+	task              *DeployTask
+	req               StartTaskRequest
+	hosts             []cmdbHostSnapshot
+	actor             string
+	key               string
+	now               time.Time
+	timeout           time.Duration
+	leaseOwner        string
+	credentialVersion uint64
+}
 
-		targetSnapshot := buildDeployTargetSnapshot(task, hosts, now)
-		targetJSON, _ := json.Marshal(targetSnapshot)
-		if err := tx.Model(&DeployTask{}).Where(idWhereClause, task.ID).Update("target_snapshot", datatypes.JSON(targetJSON)).Error; err != nil {
+// claim flips the task to running, freezes the target snapshot and creates the
+// per-host rows together with their leases.
+func (c startTaskClaim) claim(tx *gorm.DB) error {
+	result := tx.Model(&DeployTask{}).
+		Where(idWhereClause, c.task.ID).
+		Where("status IN ?", []string{TaskStatusDraft, TaskStatusPending}).
+		Updates(map[string]interface{}{
+			"status":                    TaskStatusRunning,
+			"started_at":                &c.now,
+			"start_request_key":         c.key,
+			"credential_ref_id":         c.req.CredentialRefID,
+			"credential_ref_version":    c.credentialVersion,
+			"ssh_host_fingerprint":      strings.TrimSpace(c.req.HostFingerprint),
+			"execution_timeout_seconds": int(c.timeout.Seconds()),
+			"updated_by":                c.actor,
+			"updated_at":                c.now,
+		})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New(errDeployTaskAlreadyRunning)
+	}
+
+	targetSnapshot := buildDeployTargetSnapshot(c.task, c.hosts, c.now)
+	targetJSON, _ := json.Marshal(targetSnapshot)
+	if err := tx.Model(&DeployTask{}).Where(idWhereClause, c.task.ID).Update("target_snapshot", datatypes.JSON(targetJSON)).Error; err != nil {
+		return err
+	}
+
+	for _, host := range c.hosts {
+		if err := c.createTaskHostRow(tx, host); err != nil {
 			return err
 		}
+	}
+	return nil
+}
 
-		for _, host := range hosts {
-			if err := acquireHostLease(tx, host.ID, task.ID, leaseOwner, now); err != nil {
-				return err
-			}
-			initialTrace, _ := json.Marshal([]map[string]any{
-				{"at": now.Format(time.RFC3339), "phase": "start", "message": "Task host queued"},
-			})
-			row := DeployTaskHost{
-				TaskID:          task.ID,
-				HostID:          host.ID,
-				Hostname:        host.Hostname,
-				HostIP:          host.IP,
-				SSHPort:         host.SSHPort,
-				OS:              host.OS,
-				BusinessScopeID: host.BusinessScopeID,
-				Status:          TaskHostStatusRunning,
-				TraceSteps:      datatypes.JSON(initialTrace),
-				StartedAt:       &now,
-				ResolvedAt:      &now,
-				UpdatedBy:       actor,
-			}
-			if err := tx.Create(&row).Error; err != nil {
-				return err
-			}
-			// FZ-03: persist execution steps for checkpoint recovery.
-			var snapshot deployExecutionSnapshot
-			if err := json.Unmarshal(task.ExecutionSnapshot, &snapshot); err == nil && len(snapshot.Steps) > 0 {
-				if err := persistTaskSteps(tx, task.ID, row.ID, snapshot.Steps); err != nil {
-					return err
-				}
-			}
-		}
-		return nil
+// createTaskHostRow acquires the host lease and persists the running host row
+// with the execution steps needed for checkpoint recovery.
+func (c startTaskClaim) createTaskHostRow(tx *gorm.DB, host cmdbHostSnapshot) error {
+	if err := acquireHostLease(tx, host.ID, c.task.ID, c.leaseOwner, c.now); err != nil {
+		return err
+	}
+	initialTrace, _ := json.Marshal([]map[string]any{
+		{"at": c.now.Format(time.RFC3339), "phase": "start", "message": "Task host queued"},
 	})
-	if claimErr != nil {
-		if strings.TrimSpace(errorText(claimErr)) == errDeployTaskAlreadyRunning {
-			current, loadErr := s.loadVisibleTask(id, dataScope)
-			if loadErr == nil && current.Status == TaskStatusRunning && key != "" && current.StartRequestKey == key {
-				return s.getTaskReused(id, dataScope)
-			}
-			return nil, errors.New(errDeployTaskAlreadyRunning)
-		}
+	row := DeployTaskHost{
+		TaskID:          c.task.ID,
+		HostID:          host.ID,
+		Hostname:        host.Hostname,
+		HostIP:          host.IP,
+		SSHPort:         host.SSHPort,
+		OS:              host.OS,
+		BusinessScopeID: host.BusinessScopeID,
+		Status:          TaskHostStatusRunning,
+		TraceSteps:      datatypes.JSON(initialTrace),
+		StartedAt:       &c.now,
+		ResolvedAt:      &c.now,
+		UpdatedBy:       c.actor,
+	}
+	if err := tx.Create(&row).Error; err != nil {
+		return err
+	}
+	// FZ-03: persist execution steps for checkpoint recovery.
+	var executionSnapshot deployExecutionSnapshot
+	if err := json.Unmarshal(c.task.ExecutionSnapshot, &executionSnapshot); err == nil && len(executionSnapshot.Steps) > 0 {
+		return persistTaskSteps(tx, c.task.ID, row.ID, executionSnapshot.Steps)
+	}
+	return nil
+}
+
+// rejectFailedStartClaim replays an idempotent start that lost the claim race
+// and otherwise reports the claim failure.
+func (s *DeployService) rejectFailedStartClaim(id uint64, claimErr error, key string, dataScope *common.DataScopeReq) (*TaskResponse, error) {
+	if strings.TrimSpace(errorText(claimErr)) != errDeployTaskAlreadyRunning {
 		return nil, claimErr
 	}
-	s.appendTaskEvent(task.ID, 0, 0, "task.started", task.Status, TaskStatusRunning, actor, key, "")
-	if err := s.beginServiceInstanceState(*task, actor, dataScope); err != nil {
-		now := time.Now()
-		_ = s.db.Model(&DeployTask{}).Where(idWhereClause, task.ID).Updates(map[string]interface{}{
-			"status": TaskStatusFailed, "finished_at": &now, "updated_by": actor, "updated_at": now,
-		}).Error
-		_ = s.db.Model(&DeployTaskHost{}).Where("task_id = ? AND status IN ?", task.ID, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]interface{}{
-			"status": TaskHostStatusFailed, "error_message": err.Error(), "finished_at": &now, "updated_by": actor, "updated_at": now,
-		}).Error
-		for _, host := range hosts {
-			_ = releaseHostLease(s.db, host.ID, deployHostLeaseOwner(task.ID))
-		}
-		return nil, err
+	current, loadErr := s.loadVisibleTask(id, dataScope)
+	if loadErr == nil && current.Status == TaskStatusRunning && key != "" && current.StartRequestKey == key {
+		return s.getTaskReused(id, dataScope)
 	}
-	if task.ExecutorType == ExecutorTypeSSH {
-		if s.asyncExecution {
-			// 记录任务开始 metrics
-			recordTaskStart(task)
-			go s.runAsyncTask(task.ID, actor)
-		} else if err := s.executeSSHTask(*task, hosts, req, actor); err != nil {
-			return nil, err
-		}
+	return nil, errors.New(errDeployTaskAlreadyRunning)
+}
+
+// failStartedTask marks the claimed task and its hosts failed when the service
+// instance could not be opened, and releases their leases.
+func (s *DeployService) failStartedTask(task *DeployTask, hosts []cmdbHostSnapshot, actor string, reason error) {
+	now := time.Now()
+	_ = s.db.Model(&DeployTask{}).Where(idWhereClause, task.ID).Updates(map[string]interface{}{
+		"status": TaskStatusFailed, "finished_at": &now, "updated_by": actor, "updated_at": now,
+	}).Error
+	_ = s.db.Model(&DeployTaskHost{}).Where(taskIDAndStatusInWhereClause, task.ID, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]interface{}{
+		"status": TaskHostStatusFailed, "error_message": reason.Error(), "finished_at": &now, "updated_by": actor, "updated_at": now,
+	}).Error
+	for _, host := range hosts {
+		_ = releaseHostLease(s.db, host.ID, deployHostLeaseOwner(task.ID))
 	}
-	return s.GetTask(id, dataScope)
+}
+
+// dispatchStartedTask hands the claimed task to the async worker or runs it
+// inline for the current request.
+func (s *DeployService) dispatchStartedTask(task *DeployTask, hosts []cmdbHostSnapshot, req StartTaskRequest, actor string) error {
+	if task.ExecutorType != ExecutorTypeSSH {
+		return nil
+	}
+	if s.asyncExecution {
+		// 记录任务开始 metrics
+		recordTaskStart(task)
+		go s.runAsyncTask(task.ID, actor)
+		return nil
+	}
+	return s.executeSSHTask(*task, hosts, req, actor)
 }
 
 func (s *DeployService) runAsyncTask(taskID uint64, actor string) {
@@ -1215,7 +1293,7 @@ func (s *DeployService) runAsyncTask(taskID uint64, actor string) {
 		return
 	}
 	var hosts []DeployTaskHost
-	if err := s.db.Where("task_id = ?", taskID).Order("id ASC").Find(&hosts).Error; err != nil {
+	if err := s.db.Where(taskIDWhereClause, taskID).Order("id ASC").Find(&hosts).Error; err != nil {
 		return
 	}
 	if err := s.ensureTaskHostLeases(task, hosts); err != nil {
@@ -1268,38 +1346,71 @@ func (s *DeployService) runAsyncTaskHost(taskContext context.Context, task Deplo
 		if attempt == nil {
 			return false
 		}
-		target := cmdbHostSnapshot{ID: host.HostID, Hostname: host.Hostname, IP: host.HostIP, SSHPort: host.SSHPort, OS: host.OS, BusinessScopeID: host.BusinessScopeID}
-		hostContext, cancelHost := context.WithTimeout(taskContext, deployExecutionTimeout(task))
-		err := s.executeTaskHostContext(hostContext, task, target, taskHostToResponse(&host), req, actor)
-		cancelHost()
-		if s.taskExecutionSuspended(task.ID) {
-			s.finishAttemptWithStatus(attempt.ID, workerID, "paused", nil)
+		err := s.executeAsyncHostAttempt(taskContext, task, host, req, actor)
+		if status := s.interruptedAsyncHostStatus(task); status != "" {
+			s.finishAttemptWithStatus(attempt.ID, workerID, status, nil)
 			return false
 		}
-		if s.taskCancellationRequested(task.ID) {
-			s.finishAttemptWithStatus(attempt.ID, workerID, "canceled", nil)
-			return false
-		}
-		var completed DeployTaskHost
-		if loadErr := s.db.First(&completed, host.ID).Error; loadErr != nil {
-			err = loadErr
-		} else if completed.Status == TaskHostStatusFailed {
-			err = errors.New(completed.ErrorMessage)
-		} else if completed.Status == TaskHostStatusSkipped {
-			err = errors.New("business.deploy.task.canceled")
-		}
+		err = s.resolveAsyncHostError(host, err)
 		if err == nil {
 			s.finishAttempt(attempt.ID, workerID, nil)
 			return false
 		}
 		s.finishAttempt(attempt.ID, workerID, err)
-		if attemptNo+1 < deployAttemptMax && !s.taskCancellationRequested(task.ID) && !s.taskExecutionSuspended(task.ID) {
-			_ = s.db.Model(&DeployTaskHost{}).Where("id = ?", host.ID).Updates(map[string]any{"status": TaskHostStatusRunning, "error_message": "", "finished_at": nil, "reported_at": nil, "updated_at": time.Now()}).Error
-			continue
+		if !s.asyncHostRetryAllowed(task, attemptNo) {
+			return true
 		}
-		return true
+		s.requeueAsyncHostAttempt(host)
 	}
 	return true
+}
+
+// executeAsyncHostAttempt runs the deploy plan of one host under the execution
+// timeout of its task.
+func (s *DeployService) executeAsyncHostAttempt(taskContext context.Context, task DeployTask, host DeployTaskHost, req StartTaskRequest, actor string) error {
+	target := cmdbHostSnapshot{ID: host.HostID, Hostname: host.Hostname, IP: host.HostIP, SSHPort: host.SSHPort, OS: host.OS, BusinessScopeID: host.BusinessScopeID}
+	hostContext, cancelHost := context.WithTimeout(taskContext, deployExecutionTimeout(task))
+	defer cancelHost()
+	return s.executeTaskHostContext(hostContext, task, target, taskHostToResponse(&host), req, actor)
+}
+
+// interruptedAsyncHostStatus reports the attempt status of a task that was
+// suspended or canceled, or an empty string when it still runs normally.
+func (s *DeployService) interruptedAsyncHostStatus(task DeployTask) string {
+	switch {
+	case s.taskExecutionSuspended(task.ID):
+		return TaskStatusPaused
+	case s.taskCancellationRequested(task.ID):
+		return TaskStatusCanceled
+	default:
+		return ""
+	}
+}
+
+// resolveAsyncHostError maps the persisted host result of a finished attempt
+// onto the error reported for the attempt.
+func (s *DeployService) resolveAsyncHostError(host DeployTaskHost, err error) error {
+	var completed DeployTaskHost
+	if loadErr := s.db.First(&completed, host.ID).Error; loadErr != nil {
+		return loadErr
+	}
+	if completed.Status == TaskHostStatusFailed {
+		return errors.New(completed.ErrorMessage)
+	}
+	if completed.Status == TaskHostStatusSkipped {
+		return errors.New("business.deploy.task.canceled")
+	}
+	return err
+}
+
+// asyncHostRetryAllowed reports whether the host may claim another attempt.
+func (s *DeployService) asyncHostRetryAllowed(task DeployTask, attemptNo int) bool {
+	return attemptNo+1 < deployAttemptMax && s.interruptedAsyncHostStatus(task) == ""
+}
+
+// requeueAsyncHostAttempt resets the host row so the next attempt re-executes it.
+func (s *DeployService) requeueAsyncHostAttempt(host DeployTaskHost) {
+	_ = s.db.Model(&DeployTaskHost{}).Where(idWhereClause, host.ID).Updates(map[string]any{"status": TaskHostStatusRunning, "error_message": "", "finished_at": nil, "reported_at": nil, "updated_at": time.Now()}).Error
 }
 
 func (s *DeployService) ensureTaskHostLeases(task DeployTask, hosts []DeployTaskHost) error {
@@ -1394,9 +1505,9 @@ func (s *DeployService) startRequestForTask(task DeployTask) (StartTaskRequest, 
 
 func (s *DeployService) failQueuedTask(taskID uint64, actor string, reason error) {
 	now := time.Now()
-	_ = s.db.Model(&DeployTaskHost{}).Where("task_id = ? AND status IN ?", taskID, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]any{"status": TaskHostStatusFailed, "error_message": truncateDeployLog(reason.Error(), 480), "finished_at": &now, "updated_by": actor, "updated_at": now}).Error
-	_ = s.db.Model(&DeployTask{}).Where("id = ? AND status = ?", taskID, TaskStatusRunning).Updates(map[string]any{"status": TaskStatusFailed, "finished_at": &now, "updated_by": actor, "updated_at": now}).Error
-	s.appendTaskEvent(taskID, 0, 0, "task.failed", TaskStatusRunning, TaskStatusFailed, actor, "", truncateDeployLog(reason.Error(), 256))
+	_ = s.db.Model(&DeployTaskHost{}).Where(taskIDAndStatusInWhereClause, taskID, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]any{"status": TaskHostStatusFailed, "error_message": truncateDeployLog(reason.Error(), 480), "finished_at": &now, "updated_by": actor, "updated_at": now}).Error
+	_ = s.db.Model(&DeployTask{}).Where(idAndStatusWhereClause, taskID, TaskStatusRunning).Updates(map[string]any{"status": TaskStatusFailed, "finished_at": &now, "updated_by": actor, "updated_at": now}).Error
+	s.appendTaskEvent(taskEventInput{taskID: taskID, eventType: "task.failed", fromStatus: TaskStatusRunning, toStatus: TaskStatusFailed, actor: actor, reason: truncateDeployLog(reason.Error(), 256)})
 }
 
 func (s *DeployService) taskCanceled(taskID uint64) bool {
@@ -1414,11 +1525,11 @@ func (s *DeployService) taskCancellationRequested(taskID uint64) bool {
 
 func (s *DeployService) finalizeTaskCancellation(taskID uint64, actor string) {
 	now := time.Now()
-	transition := s.db.Model(&DeployTask{}).Where("id = ? AND status = ?", taskID, TaskStatusCancelRequested).Updates(map[string]any{
+	transition := s.db.Model(&DeployTask{}).Where(idAndStatusWhereClause, taskID, TaskStatusCancelRequested).Updates(map[string]any{
 		"status": TaskStatusCanceled, "finished_at": &now, "updated_by": actor, "updated_at": now,
 	})
 	if transition.Error == nil && transition.RowsAffected > 0 {
-		s.appendTaskEvent(taskID, 0, 0, "task.canceled", TaskStatusCancelRequested, TaskStatusCanceled, actor, "", "")
+		s.appendTaskEvent(taskEventInput{taskID: taskID, eventType: "task.canceled", fromStatus: TaskStatusCancelRequested, toStatus: TaskStatusCanceled, actor: actor})
 	}
 }
 
@@ -1447,7 +1558,7 @@ func (s *DeployService) claimAttempt(taskID, taskHostID uint64, workerID string)
 			return errors.New("business.deploy.attempt.active")
 		}
 		var chargeableCount int64
-		if err := tx.Model(&DeployTaskAttempt{}).Where("task_host_id = ? AND status <> ?", taskHostID, "paused").Count(&chargeableCount).Error; err != nil {
+		if err := tx.Model(&DeployTaskAttempt{}).Where("task_host_id = ? AND status <> ?", taskHostID, TaskStatusPaused).Count(&chargeableCount).Error; err != nil {
 			return err
 		}
 		if chargeableCount >= deployAttemptMax {
@@ -1483,9 +1594,9 @@ func (s *DeployService) ReconcileDeployQueue(actor string) (int, error) {
 	// FZ-03: reconcile pause_requested → paused after worker restart.
 	now := time.Now()
 	var pausedTaskIDs []uint64
-	s.db.Model(&DeployTask{}).Where("status = ?", TaskStatusPauseRequested).Pluck("id", &pausedTaskIDs)
+	s.db.Model(&DeployTask{}).Where(statusWhereClause, TaskStatusPauseRequested).Pluck("id", &pausedTaskIDs)
 	pauseResult := s.db.Model(&DeployTask{}).
-		Where("status = ?", TaskStatusPauseRequested).
+		Where(statusWhereClause, TaskStatusPauseRequested).
 		Updates(map[string]interface{}{
 			"status":     TaskStatusPaused,
 			"updated_by": actor,
@@ -1493,7 +1604,7 @@ func (s *DeployService) ReconcileDeployQueue(actor string) (int, error) {
 		})
 	if pauseResult.Error == nil && pauseResult.RowsAffected > 0 {
 		for _, taskID := range pausedTaskIDs {
-			s.appendTaskEvent(taskID, 0, 0, "task.paused", TaskStatusPauseRequested, TaskStatusPaused, actor, "", "worker reconciliation")
+			s.appendTaskEvent(taskEventInput{taskID: taskID, eventType: "task.paused", fromStatus: TaskStatusPauseRequested, toStatus: TaskStatusPaused, actor: actor, reason: "worker reconciliation"})
 		}
 	}
 	var tasks []DeployTask
@@ -1552,7 +1663,7 @@ func (s *DeployService) CancelTask(id uint64, actor string, dataScope *common.Da
 		updates["finished_at"] = &now
 	}
 	transition := s.db.Model(&DeployTask{}).
-		Where(idWhereClause+" AND status = ?", task.ID, task.Status).
+		Where(idAndStatusWhereClause, task.ID, task.Status).
 		Updates(updates)
 	if transition.Error != nil {
 		return nil, transition.Error
@@ -1560,7 +1671,7 @@ func (s *DeployService) CancelTask(id uint64, actor string, dataScope *common.Da
 	if transition.RowsAffected == 0 {
 		return nil, errors.New(errDeployTaskInvalidCancelState)
 	}
-	if err := s.db.Model(&DeployTaskHost{}).Where("task_id = ? AND status IN ?", id, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]interface{}{
+	if err := s.db.Model(&DeployTaskHost{}).Where(taskIDAndStatusInWhereClause, id, []string{TaskHostStatusPending, TaskHostStatusRunning}).Updates(map[string]interface{}{
 		"status":      TaskHostStatusSkipped,
 		"finished_at": &now,
 		"updated_by":  actor,
@@ -1577,7 +1688,7 @@ func (s *DeployService) CancelTask(id uint64, actor string, dataScope *common.Da
 	if nextStatus == TaskStatusCanceled {
 		eventType = "task.canceled"
 	}
-	s.appendTaskEvent(task.ID, 0, 0, eventType, task.Status, nextStatus, actor, "", "")
+	s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: eventType, fromStatus: task.Status, toStatus: nextStatus, actor: actor})
 	return s.GetTask(id, dataScope)
 }
 
@@ -1594,7 +1705,7 @@ func (s *DeployService) PauseTask(id uint64, actor string, dataScope *common.Dat
 	}
 	now := time.Now()
 	transition := s.db.Model(&DeployTask{}).
-		Where(idWhereClause+" AND status = ?", task.ID, TaskStatusRunning).
+		Where(idAndStatusWhereClause, task.ID, TaskStatusRunning).
 		Updates(map[string]interface{}{
 			"status":     TaskStatusPauseRequested,
 			"updated_by": actor,
@@ -1606,7 +1717,7 @@ func (s *DeployService) PauseTask(id uint64, actor string, dataScope *common.Dat
 	if transition.RowsAffected == 0 {
 		return nil, errors.New(errDeployTaskInvalidPauseState)
 	}
-	s.appendTaskEvent(task.ID, 0, 0, "task.pause_requested", TaskStatusRunning, TaskStatusPauseRequested, actor, "", "")
+	s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.pause_requested", fromStatus: TaskStatusRunning, toStatus: TaskStatusPauseRequested, actor: actor})
 	// Propagate cancellation to the current executor step so it finishes
 	// promptly; the worker will transition to paused after the step returns.
 	if cancel, ok := s.taskCancels.Load(id); ok {
@@ -1629,7 +1740,7 @@ func (s *DeployService) ResumeTask(id uint64, actor string, dataScope *common.Da
 	}
 	now := time.Now()
 	transition := s.db.Model(&DeployTask{}).
-		Where(idWhereClause+" AND status = ?", task.ID, TaskStatusPaused).
+		Where(idAndStatusWhereClause, task.ID, TaskStatusPaused).
 		Updates(map[string]interface{}{
 			"status":     TaskStatusRunning,
 			"updated_by": actor,
@@ -1641,7 +1752,7 @@ func (s *DeployService) ResumeTask(id uint64, actor string, dataScope *common.Da
 	if transition.RowsAffected == 0 {
 		return nil, errors.New(errDeployTaskInvalidResumeState)
 	}
-	s.appendTaskEvent(task.ID, 0, 0, "task.resumed", TaskStatusPaused, TaskStatusRunning, actor, "", "")
+	s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.resumed", fromStatus: TaskStatusPaused, toStatus: TaskStatusRunning, actor: actor})
 	// Re-run the async worker to pick up unfinished hosts from the checkpoint.
 	if s.asyncExecution {
 		go s.runAsyncTask(task.ID, actor)
@@ -1662,7 +1773,7 @@ func (s *DeployService) RetryTask(id uint64, actor string, dataScope *common.Dat
 	}
 	now := time.Now()
 	transition := s.db.Model(&DeployTask{}).
-		Where(idWhereClause+" AND status = ?", task.ID, TaskStatusFailed).
+		Where(idAndStatusWhereClause, task.ID, TaskStatusFailed).
 		Updates(map[string]interface{}{
 			"status":      TaskStatusRunning,
 			"finished_at": nil,
@@ -1675,10 +1786,10 @@ func (s *DeployService) RetryTask(id uint64, actor string, dataScope *common.Dat
 	if transition.RowsAffected == 0 {
 		return nil, errors.New(errDeployTaskInvalidRetryState)
 	}
-	s.appendTaskEvent(task.ID, 0, 0, "task.retried", TaskStatusFailed, TaskStatusRunning, actor, "", "")
+	s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.retried", fromStatus: TaskStatusFailed, toStatus: TaskStatusRunning, actor: actor})
 	// Reset failed/canceled hosts to running so the worker re-executes them.
 	_ = s.db.Model(&DeployTaskHost{}).
-		Where("task_id = ? AND status IN ?", task.ID, []string{TaskHostStatusFailed, TaskHostStatusSkipped}).
+		Where(taskIDAndStatusInWhereClause, task.ID, []string{TaskHostStatusFailed, TaskHostStatusSkipped}).
 		Updates(map[string]interface{}{
 			"status":        TaskHostStatusRunning,
 			"error_message": "",
@@ -1694,19 +1805,33 @@ func (s *DeployService) RetryTask(id uint64, actor string, dataScope *common.Dat
 
 // --- FZ-03: Event append and step persistence ---
 
+// taskEventInput is the payload of an append-only task event record. Omitted
+// fields carry their zero value.
+type taskEventInput struct {
+	taskID     uint64
+	taskHostID uint64
+	taskStepID uint64
+	eventType  string
+	fromStatus string
+	toStatus   string
+	actor      string
+	requestID  string
+	reason     string
+}
+
 // appendTaskEvent writes an append-only event record for a task transition.
 // The sequence is monotonically increasing per task and never reused.
-func (s *DeployService) appendTaskEvent(taskID, taskHostID, taskStepID uint64, eventType, fromStatus, toStatus, actor, requestID, reason string) {
-	err := s.withTaskSequence(taskID, &DeployTaskEvent{}, func(sequence uint64, tx *gorm.DB) error {
+func (s *DeployService) appendTaskEvent(event taskEventInput) {
+	err := s.withTaskSequence(event.taskID, &DeployTaskEvent{}, func(sequence uint64, tx *gorm.DB) error {
 		return tx.Create(&DeployTaskEvent{
-			TaskID: taskID, TaskHostID: taskHostID, TaskStepID: taskStepID,
-			Sequence: sequence, EventType: eventType, FromStatus: fromStatus,
-			ToStatus: toStatus, Actor: actor, RequestID: requestID,
-			Reason: reason, CreatedAt: time.Now(),
+			TaskID: event.taskID, TaskHostID: event.taskHostID, TaskStepID: event.taskStepID,
+			Sequence: sequence, EventType: event.eventType, FromStatus: event.fromStatus,
+			ToStatus: event.toStatus, Actor: event.actor, RequestID: event.requestID,
+			Reason: event.reason, CreatedAt: time.Now(),
 		}).Error
 	})
 	if err != nil {
-		slog.Error("append deploy task event failed", "task_id", taskID, "event_type", eventType, "error", err)
+		slog.Error("append deploy task event failed", "task_id", event.taskID, "event_type", event.eventType, "error", err)
 	}
 }
 
@@ -1717,7 +1842,7 @@ func (s *DeployService) withTaskSequence(taskID uint64, model any, write func(ui
 			return err
 		}
 		var maxSequence uint64
-		if err := tx.Model(model).Where("task_id = ?", taskID).Select("COALESCE(MAX(sequence), 0)").Scan(&maxSequence).Error; err != nil {
+		if err := tx.Model(model).Where(taskIDWhereClause, taskID).Select("COALESCE(MAX(sequence), 0)").Scan(&maxSequence).Error; err != nil {
 			return err
 		}
 		return write(maxSequence+1, tx)
@@ -1779,9 +1904,9 @@ func persistTaskSteps(db *gorm.DB, taskID, taskHostID uint64, steps []deployStep
 }
 
 // loadTaskEvents returns the event log for a task, optionally filtered by sequence.
-func (s *DeployService) loadTaskEvents(taskID uint64, afterSequence uint64) ([]DeployTaskEvent, error) {
+func (s *DeployService) loadTaskEvents(taskID, afterSequence uint64) ([]DeployTaskEvent, error) {
 	var events []DeployTaskEvent
-	db := s.db.Where("task_id = ?", taskID)
+	db := s.db.Where(taskIDWhereClause, taskID)
 	if afterSequence > 0 {
 		db = db.Where("sequence > ?", afterSequence)
 	}
@@ -1831,9 +1956,9 @@ func splitLogSegment(content string) (string, string) {
 }
 
 // loadLogChunks returns log chunks for a task, optionally after a given sequence.
-func (s *DeployService) loadLogChunks(taskID uint64, afterSequence uint64) ([]DeployTaskLogChunk, error) {
+func (s *DeployService) loadLogChunks(taskID, afterSequence uint64) ([]DeployTaskLogChunk, error) {
 	var chunks []DeployTaskLogChunk
-	db := s.db.Where("task_id = ?", taskID)
+	db := s.db.Where(taskIDWhereClause, taskID)
 	if afterSequence > 0 {
 		db = db.Where("sequence > ?", afterSequence)
 	}
@@ -1843,7 +1968,7 @@ func (s *DeployService) loadLogChunks(taskID uint64, afterSequence uint64) ([]De
 	return chunks, nil
 }
 
-// WriteLog implements the executor.LogSink interface for persistence.
+// WriteLog implements the executor.LogWriter interface for persistence.
 func (s *DeployService) WriteLog(taskID, taskHostID uint64, stepKey, stream, content string) {
 	secrets := s.renderSecrets(taskID)
 	redacted := redactDeploySecrets(content, secrets)
@@ -1860,14 +1985,8 @@ func (s *DeployService) MarkHostResult(hostID uint64, req MarkHostResultRequest,
 }
 
 func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostResultRequest, actor string, dataScope *common.DataScopeReq, summary deployExecutionSummary) (*TaskHostResponse, error) {
-	if req.Status != TaskHostStatusSuccess && req.Status != TaskHostStatusFailed && req.Status != TaskHostStatusSkipped {
-		return nil, errors.New("business.deploy.taskHost.invalidResultState")
-	}
-	req.Stdout = truncateDeployLog(req.Stdout, 60000)
-	req.Stderr = truncateDeployLog(req.Stderr, 60000)
-	req.ErrorMessage = truncateDeployLog(req.ErrorMessage, 480)
-	if req.Status == TaskHostStatusFailed && strings.TrimSpace(req.ErrorMessage) == "" {
-		return nil, errors.New("business.deploy.taskHost.markFailed.reasonRequired")
+	if err := normalizeMarkHostResultRequest(&req); err != nil {
+		return nil, err
 	}
 	var host DeployTaskHost
 	if err := s.db.First(&host, hostID).Error; err != nil {
@@ -1882,44 +2001,87 @@ func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostRes
 	}
 
 	reportKey := strings.TrimSpace(req.ReportKey)
+	// A settled host keeps its first result; a different report is stale.
 	if isTerminalTaskHostStatus(host.Status) {
-		if sameTaskHostReport(host, req, reportKey) {
-			resp := taskHostToResponse(&host)
-			return &resp, nil
-		}
-		return nil, errors.New(errDeployTaskHostStaleReport)
+		return s.hostResultReplayOrStale(host, req, reportKey)
 	}
 
 	now := time.Now()
-	updates := map[string]interface{}{
-		"status":        req.Status,
-		"stdout":        req.Stdout,
-		"stderr":        req.Stderr,
-		"error_message": req.ErrorMessage,
-		"executor_id":   req.ExecutorID,
-		"report_key":    reportKey,
-		"finished_at":   &now,
-		"reported_at":   &now,
-		"updated_by":    actor,
-		"updated_at":    now,
+	applied, err := s.applyMarkedHostResult(host, req, reportKey, actor, now)
+	if err != nil {
+		return nil, err
 	}
+	if !applied {
+		return s.replayLostHostResult(host.ID, req, reportKey)
+	}
+	s.appendHostResultTrace(host, req, now)
+	if err := s.writebackMarkedHostResult(host, task, req, actor, summary, now); err != nil {
+		return nil, err
+	}
+	return s.finalizeMarkedHostResult(host, task, req, actor, dataScope)
+}
+
+// normalizeMarkHostResultRequest rejects unsupported host results, truncates the
+// reported text and requires a reason for a failure.
+func normalizeMarkHostResultRequest(req *MarkHostResultRequest) error {
+	if req.Status != TaskHostStatusSuccess && req.Status != TaskHostStatusFailed && req.Status != TaskHostStatusSkipped {
+		return errors.New("business.deploy.taskHost.invalidResultState")
+	}
+	req.Stdout = truncateDeployLog(req.Stdout, 60000)
+	req.Stderr = truncateDeployLog(req.Stderr, 60000)
+	req.ErrorMessage = truncateDeployLog(req.ErrorMessage, 480)
+	if req.Status == TaskHostStatusFailed && strings.TrimSpace(req.ErrorMessage) == "" {
+		return errors.New("business.deploy.taskHost.markFailed.reasonRequired")
+	}
+	return nil
+}
+
+// applyMarkedHostResult persists the reported result while the host is still
+// pending or running. It returns false when a competing report settled it.
+func (s *DeployService) applyMarkedHostResult(host DeployTaskHost, req MarkHostResultRequest, reportKey, actor string, now time.Time) (bool, error) {
 	transition := s.db.Model(&DeployTaskHost{}).
 		Where("id = ? AND status IN ?", host.ID, []string{TaskHostStatusPending, TaskHostStatusRunning}).
-		Updates(updates)
+		Updates(map[string]interface{}{
+			"status":        req.Status,
+			"stdout":        req.Stdout,
+			"stderr":        req.Stderr,
+			"error_message": req.ErrorMessage,
+			"executor_id":   req.ExecutorID,
+			"report_key":    reportKey,
+			"finished_at":   &now,
+			"reported_at":   &now,
+			"updated_by":    actor,
+			"updated_at":    now,
+		})
 	if transition.Error != nil {
-		return nil, transition.Error
+		return false, transition.Error
 	}
-	if transition.RowsAffected == 0 {
-		var current DeployTaskHost
-		if err := s.db.First(&current, host.ID).Error; err != nil {
-			return nil, err
-		}
-		if sameTaskHostReport(current, req, reportKey) {
-			resp := taskHostToResponse(&current)
-			return &resp, nil
-		}
-		return nil, errors.New(errDeployTaskHostStaleReport)
+	return transition.RowsAffected > 0, nil
+}
+
+// hostResultReplayOrStale replays the persisted result of an already settled
+// host, and reports a stale report when the submission differs.
+func (s *DeployService) hostResultReplayOrStale(host DeployTaskHost, req MarkHostResultRequest, reportKey string) (*TaskHostResponse, error) {
+	if sameTaskHostReport(host, req, reportKey) {
+		resp := taskHostToResponse(&host)
+		return &resp, nil
 	}
+	return nil, errors.New(errDeployTaskHostStaleReport)
+}
+
+// replayLostHostResult reloads a host whose result transition did not apply and
+// replays its persisted result.
+func (s *DeployService) replayLostHostResult(hostID uint64, req MarkHostResultRequest, reportKey string) (*TaskHostResponse, error) {
+	var current DeployTaskHost
+	if err := s.db.First(&current, hostID).Error; err != nil {
+		return nil, err
+	}
+	return s.hostResultReplayOrStale(current, req, reportKey)
+}
+
+// appendHostResultTrace records the reported status, and the failure reason when
+// the host ended in error.
+func (s *DeployService) appendHostResultTrace(host DeployTaskHost, req MarkHostResultRequest, now time.Time) {
 	resultTrace := []map[string]any{
 		{"at": now.Format(time.RFC3339), "phase": "result", "message": fmt.Sprintf("status=%s", req.Status)},
 	}
@@ -1929,31 +2091,41 @@ func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostRes
 		})
 	}
 	_ = s.appendTaskHostTrace(host.TaskID, host.ID, resultTrace)
-	if req.Status == TaskHostStatusSuccess {
-		writeback := cmdb.DeployHostWritebackRequest{
-			HostID: host.HostID,
-			Status: hostStatusForAction(task.Action),
-			Actor:  actor,
-		}
-		if len(summary.RemovedComponentNames) > 0 || len(summary.InstalledComponents) > 0 {
-			writeback.RemovedComponentNames = normalizeDeployStringValues(summary.RemovedComponentNames)
-			writeback.InstalledComponents = summary.InstalledComponents
-		} else if normalizeTaskAction(task.Action) == TaskActionUninstall {
-			writeback.RemovedComponentNames = []string{task.PackageName}
-		} else {
-			writeback.InstalledComponents = []cmdb.InstalledComponentUpsert{{
-				Name:           task.PackageName,
-				Version:        task.PackageVersion,
-				DeployedAt:     now,
-				DeployTaskID:   task.ID,
-				DeployTaskName: task.Name,
-				ExecutorType:   task.ExecutorType,
-			}}
-		}
-		if err := s.cmdbCapability.WriteDeployHostResult(writeback); err != nil {
-			return nil, err
-		}
+}
+
+// writebackMarkedHostResult publishes the installed or removed components of a
+// successful host result to CMDB.
+func (s *DeployService) writebackMarkedHostResult(host DeployTaskHost, task *DeployTask, req MarkHostResultRequest, actor string, summary deployExecutionSummary, now time.Time) error {
+	if req.Status != TaskHostStatusSuccess {
+		return nil
 	}
+	writeback := cmdb.DeployHostWritebackRequest{
+		HostID: host.HostID,
+		Status: hostStatusForAction(task.Action),
+		Actor:  actor,
+	}
+	switch {
+	case len(summary.RemovedComponentNames) > 0 || len(summary.InstalledComponents) > 0:
+		writeback.RemovedComponentNames = normalizeDeployStringValues(summary.RemovedComponentNames)
+		writeback.InstalledComponents = summary.InstalledComponents
+	case normalizeTaskAction(task.Action) == TaskActionUninstall:
+		writeback.RemovedComponentNames = []string{task.PackageName}
+	default:
+		writeback.InstalledComponents = []cmdb.InstalledComponentUpsert{{
+			Name:           task.PackageName,
+			Version:        task.PackageVersion,
+			DeployedAt:     now,
+			DeployTaskID:   task.ID,
+			DeployTaskName: task.Name,
+			ExecutorType:   task.ExecutorType,
+		}}
+	}
+	return s.cmdbCapability.WriteDeployHostResult(writeback)
+}
+
+// finalizeMarkedHostResult propagates a persisted host result into the task, its
+// service instance and its host lease, then reloads the host response.
+func (s *DeployService) finalizeMarkedHostResult(host DeployTaskHost, task *DeployTask, req MarkHostResultRequest, actor string, dataScope *common.DataScopeReq) (*TaskHostResponse, error) {
 	if err := s.recomputeTaskStatus(host.TaskID, actor); err != nil {
 		return nil, err
 	}
@@ -1976,12 +2148,13 @@ func (s *DeployService) markHostResultWithSummary(hostID uint64, req MarkHostRes
 	if !activeAttempt {
 		_ = releaseHostLease(s.db, host.HostID, deployHostLeaseOwner(host.TaskID))
 	}
-	if err := s.db.First(&host, hostID).Error; err != nil {
+	var marked DeployTaskHost
+	if err := s.db.First(&marked, host.ID).Error; err != nil {
 		return nil, err
 	}
 	// 记录主机结果 metrics
-	recordHostResult(&host, task.ExecutorType)
-	resp := taskHostToResponse(&host)
+	recordHostResult(&marked, task.ExecutorType)
+	resp := taskHostToResponse(&marked)
 	return &resp, nil
 }
 
@@ -2058,59 +2231,101 @@ func deployStateBegin(rawAction string) (action, observed, desired string, ok bo
 	}
 }
 
+// deployStateFinishResult is the service-instance state a finished deploy
+// action leaves behind.
+type deployStateFinishResult struct {
+	action, observed, desired, health, currentVersion string
+}
+
 func deployStateFinish(rawAction, taskStatus, packageVersion, reportedHealth string) (action, observed, desired, health, currentVersion string, ok bool) {
-	success := taskStatus == TaskStatusSuccess
-	switch normalizeTaskAction(rawAction) {
+	result, ok := resolveDeployStateFinish(normalizeTaskAction(rawAction), taskStatus == TaskStatusSuccess, packageVersion, reportedHealth)
+	return result.action, result.observed, result.desired, result.health, result.currentVersion, ok
+}
+
+// resolveDeployStateFinish maps a normalized deploy action and its terminal task
+// status onto the service-instance state.
+func resolveDeployStateFinish(rawAction string, success bool, packageVersion, reportedHealth string) (deployStateFinishResult, bool) {
+	switch rawAction {
 	case TaskActionInstall, TaskActionReinstall:
-		if success {
-			return TaskActionInstall, observedStateStopped, observedStateStopped, observedStateUnknown, strings.TrimSpace(packageVersion), true
-		}
-		return TaskActionInstall, TaskStatusFailed, observedStateStopped, observedStateUnknown, "", true
+		return finishComponentInstallState(success, packageVersion), true
 	case TaskActionUpgrade:
-		if success {
-			health = strings.TrimSpace(reportedHealth)
-			if health == "" {
-				health = observedStateUnknown
-			}
-			return TaskActionUpgrade, TaskStatusRunning, TaskStatusRunning, health, strings.TrimSpace(packageVersion), true
-		}
-		return TaskActionUpgrade, TaskStatusFailed, "", observedStateUnknown, "", true
+		return finishVersionedServiceState(TaskActionUpgrade, success, packageVersion, reportedHealth), true
 	case TaskActionRollback:
-		if success {
-			health = strings.TrimSpace(reportedHealth)
-			if health == "" {
-				health = observedStateUnknown
-			}
-			return TaskActionRollback, TaskStatusRunning, TaskStatusRunning, health, strings.TrimSpace(packageVersion), true
-		}
-		return TaskActionRollback, TaskStatusFailed, "", observedStateUnknown, "", true
+		return finishVersionedServiceState(TaskActionRollback, success, packageVersion, reportedHealth), true
 	case TaskActionStart:
-		if success {
-			return TaskActionStart, TaskStatusRunning, TaskStatusRunning, observedStateUnknown, "", true
-		}
-		return TaskActionStart, TaskStatusFailed, TaskStatusRunning, observedStateUnknown, "", true
+		return finishServiceStartState(success), true
 	case TaskActionHealth:
-		if success {
-			health = strings.TrimSpace(reportedHealth)
-			if health == "" {
-				health = observedStateUnknown
-			}
-			return TaskActionHealth, TaskStatusRunning, "", health, "", true
-		}
-		return TaskActionHealth, TaskStatusRunning, "", "unhealthy", "", true
+		return finishHealthProbeState(success, reportedHealth), true
 	case TaskActionStop, TaskActionUninstall:
-		if success {
-			return TaskActionStop, observedStateStopped, observedStateStopped, observedStateUnknown, "", true
-		}
-		return TaskActionStop, TaskStatusFailed, "stopped", observedStateUnknown, "", true
+		return finishServiceStopState(success), true
 	case TaskActionRetire:
-		if success {
-			return TaskActionRetire, "retired", "retired", observedStateUnknown, "", true
-		}
-		return "", "", "", "", "", false
+		return finishServiceRetireState(success)
 	default:
-		return "", "", "", "", "", false
+		return deployStateFinishResult{}, false
 	}
+}
+
+// finishComponentInstallState reports the stopped instance left by an install,
+// reinstall or failed attempt of one.
+func finishComponentInstallState(success bool, packageVersion string) deployStateFinishResult {
+	if !success {
+		return deployStateFinishResult{action: TaskActionInstall, observed: TaskStatusFailed, desired: observedStateStopped, health: observedStateUnknown}
+	}
+	return deployStateFinishResult{action: TaskActionInstall, observed: observedStateStopped, desired: observedStateStopped, health: observedStateUnknown, currentVersion: strings.TrimSpace(packageVersion)}
+}
+
+// finishVersionedServiceState reports the running instance an upgrade or
+// rollback leaves behind, with the health the host reported.
+func finishVersionedServiceState(action string, success bool, packageVersion, reportedHealth string) deployStateFinishResult {
+	if !success {
+		return deployStateFinishResult{action: action, observed: TaskStatusFailed, desired: "", health: observedStateUnknown}
+	}
+	return deployStateFinishResult{action: action, observed: TaskStatusRunning, desired: TaskStatusRunning, health: reportedHealthOrUnknown(reportedHealth), currentVersion: strings.TrimSpace(packageVersion)}
+}
+
+// finishServiceStartState reports the instance after a start action.
+func finishServiceStartState(success bool) deployStateFinishResult {
+	if !success {
+		return deployStateFinishResult{action: TaskActionStart, observed: TaskStatusFailed, desired: TaskStatusRunning, health: observedStateUnknown}
+	}
+	return deployStateFinishResult{action: TaskActionStart, observed: TaskStatusRunning, desired: TaskStatusRunning, health: observedStateUnknown}
+}
+
+// finishHealthProbeState reports the instance after a health-only action; the
+// desired state stays empty because the probe changes nothing.
+func finishHealthProbeState(success bool, reportedHealth string) deployStateFinishResult {
+	if !success {
+		return deployStateFinishResult{action: TaskActionHealth, observed: TaskStatusRunning, desired: "", health: "unhealthy"}
+	}
+	return deployStateFinishResult{action: TaskActionHealth, observed: TaskStatusRunning, desired: "", health: reportedHealthOrUnknown(reportedHealth)}
+}
+
+// finishServiceStopState reports the stopped instance left by a stop or
+// uninstall action.
+func finishServiceStopState(success bool) deployStateFinishResult {
+	if !success {
+		return deployStateFinishResult{action: TaskActionStop, observed: TaskStatusFailed, desired: "stopped", health: observedStateUnknown}
+	}
+	return deployStateFinishResult{action: TaskActionStop, observed: observedStateStopped, desired: observedStateStopped, health: observedStateUnknown}
+}
+
+// finishServiceRetireState reports the retired instance; a failed retire leaves
+// the state untouched.
+func finishServiceRetireState(success bool) (deployStateFinishResult, bool) {
+	if !success {
+		return deployStateFinishResult{}, false
+	}
+	return deployStateFinishResult{action: TaskActionRetire, observed: "retired", desired: "retired", health: observedStateUnknown}, true
+}
+
+// reportedHealthOrUnknown falls back to the unknown probe state when the host
+// did not report a health state.
+func reportedHealthOrUnknown(reportedHealth string) string {
+	health := strings.TrimSpace(reportedHealth)
+	if health == "" {
+		return observedStateUnknown
+	}
+	return health
 }
 
 func firstNonBlank(values ...string) string {
@@ -2313,6 +2528,34 @@ func (s *DeployService) recomputeTaskStatus(taskID uint64, actor string) error {
 	if len(hosts) == 0 {
 		return nil
 	}
+	status := terminalTaskStatus(hosts)
+	if status == "" {
+		return nil
+	}
+	activeAttempt, err := s.hasActiveTaskAttempt(taskID, 0, time.Now())
+	if err != nil {
+		return err
+	}
+	if activeAttempt {
+		return nil
+	}
+	now := time.Now()
+	err = s.db.Model(&DeployTask{}).Where(idWhereClause, taskID).Updates(map[string]interface{}{
+		"status":      status,
+		"finished_at": &now,
+		"updated_by":  actor,
+		"updated_at":  now,
+	}).Error
+	if err == nil {
+		s.appendTaskEvent(taskEventInput{taskID: taskID, eventType: "task.completed", fromStatus: TaskStatusRunning, toStatus: status, actor: actor})
+		s.recordTaskFinishMetrics(taskID, status)
+	}
+	return err
+}
+
+// terminalTaskStatus derives the task status implied by the host rows. An
+// empty result means at least one host is still pending or running.
+func terminalTaskStatus(hosts []DeployTaskHost) string {
 	allDone := true
 	hasFailed := false
 	allSkipped := true
@@ -2328,14 +2571,7 @@ func (s *DeployService) recomputeTaskStatus(taskID uint64, actor string) error {
 		}
 	}
 	if !allDone {
-		return nil
-	}
-	activeAttempt, err := s.hasActiveTaskAttempt(taskID, 0, time.Now())
-	if err != nil {
-		return err
-	}
-	if activeAttempt {
-		return nil
+		return ""
 	}
 	status := TaskStatusSuccess
 	if hasFailed {
@@ -2344,38 +2580,31 @@ func (s *DeployService) recomputeTaskStatus(taskID uint64, actor string) error {
 	if allSkipped {
 		status = TaskStatusCanceled
 	}
-	now := time.Now()
-	err = s.db.Model(&DeployTask{}).Where(idWhereClause, taskID).Updates(map[string]interface{}{
-		"status":      status,
-		"finished_at": &now,
-		"updated_by":  actor,
-		"updated_at":  now,
-	}).Error
-	if err == nil {
-		s.appendTaskEvent(taskID, 0, 0, "task.completed", TaskStatusRunning, status, actor, "", "")
-		// 记录任务完成 metrics
-		var task DeployTask
-		if err := s.db.First(&task, taskID).Error; err == nil {
-			if task.StartedAt != nil && task.FinishedAt != nil {
-				duration := task.FinishedAt.Sub(*task.StartedAt)
-				recordTaskComplete(&task, duration)
-			}
-			if status == TaskStatusFailed {
-				recordTaskFailure(&task, "execution_failed")
-				// Trigger auto-rollback if enabled
-				if task.RollbackEnabled && task.RollbackStrategy == RollbackStrategyAuto {
-					ctx := context.Background()
-					if rollbackErr := s.TriggerAutoRollback(ctx, &task); rollbackErr != nil {
-						// Log error but don't fail the original task status update
-						s.appendTaskEvent(taskID, 0, 0, "rollback.auto_trigger_failed", "", "", "system", "", rollbackErr.Error())
-					} else {
-						s.appendTaskEvent(taskID, 0, 0, "rollback.auto_triggered", "", "", "system", "", "")
-					}
-				}
-			}
-		}
+	return status
+}
+
+// recordTaskFinishMetrics reports completion/failure metrics for a task that
+// just reached a terminal status and triggers the configured auto-rollback.
+func (s *DeployService) recordTaskFinishMetrics(taskID uint64, status string) {
+	var task DeployTask
+	if err := s.db.First(&task, taskID).Error; err != nil {
+		return
 	}
-	return err
+	if task.StartedAt != nil && task.FinishedAt != nil {
+		recordTaskComplete(&task, task.FinishedAt.Sub(*task.StartedAt))
+	}
+	if status != TaskStatusFailed {
+		return
+	}
+	recordTaskFailure(&task, "execution_failed")
+	if !task.RollbackEnabled || task.RollbackStrategy != RollbackStrategyAuto {
+		return
+	}
+	if rollbackErr := s.TriggerAutoRollback(context.Background(), &task); rollbackErr != nil {
+		s.appendTaskEvent(taskEventInput{taskID: taskID, eventType: "rollback.auto_trigger_failed", actor: "system", reason: rollbackErr.Error()})
+		return
+	}
+	s.appendTaskEvent(taskEventInput{taskID: taskID, eventType: "rollback.auto_triggered", actor: "system"})
 }
 
 // hasActiveTaskAttempt reports whether a worker currently owns a non-expired
@@ -2793,7 +3022,7 @@ func (p *sshStepProvider) Validate(_ context.Context, plan executorprovider.Exec
 	return nil
 }
 
-func (p *sshStepProvider) ExecuteStep(ctx context.Context, req executorprovider.StepRequest, logSink executorprovider.LogSink) executorprovider.StepResult {
+func (p *sshStepProvider) ExecuteStep(ctx context.Context, req executorprovider.StepRequest, logWriter executorprovider.LogWriter) executorprovider.StepResult {
 	step, exists := p.steps[req.StepKey]
 	if !exists {
 		return executorprovider.StepResult{Status: StepStatusFailed, ErrorMessage: errDeployTaskSnapshotMissing}
@@ -2808,19 +3037,19 @@ func (p *sshStepProvider) ExecuteStep(ctx context.Context, req executorprovider.
 	if err := p.service.updateTaskStepStatus(&checkpoint, StepStatusRunning, "", ""); err != nil {
 		return executorprovider.StepResult{Status: StepStatusFailed, ErrorMessage: err.Error()}
 	}
-	p.service.appendTaskEvent(p.task.ID, p.taskHost.ID, checkpoint.ID, "step.running", checkpoint.Status, StepStatusRunning, req.Actor, "", "")
+	p.service.appendTaskEvent(taskEventInput{taskID: p.task.ID, taskHostID: p.taskHost.ID, taskStepID: checkpoint.ID, eventType: "step.running", fromStatus: checkpoint.Status, toStatus: StepStatusRunning, actor: req.Actor})
 
 	stdoutStart := len(p.execution.stdoutSections)
 	stderrStart := len(p.execution.stderrSections)
 	previousExecutionErr := p.execution.executionErr
-	stop, changed := p.service.executeTaskStep(ctx, p.task, p.target, p.taskHost, p.runner, step, p.execution)
-	writeNewExecutionLogs(logSink, req, p.execution, stdoutStart, stderrStart)
+	stop, changed := p.service.executeTaskStep(ctx, taskStepHostRun{task: p.task, target: p.target, taskHost: p.taskHost, runner: p.runner, execution: p.execution}, step)
+	writeNewExecutionLogs(logWriter, req, p.execution, stdoutStart, stderrStart)
 	if !stop {
 		checkpoint.Changed = changed
 		if err := p.service.updateTaskStepStatus(&checkpoint, StepStatusSuccess, "", ""); err != nil {
 			return executorprovider.StepResult{Status: StepStatusFailed, ErrorMessage: err.Error()}
 		}
-		p.service.appendTaskEvent(p.task.ID, p.taskHost.ID, checkpoint.ID, "step.success", StepStatusRunning, StepStatusSuccess, req.Actor, "", "")
+		p.service.appendTaskEvent(taskEventInput{taskID: p.task.ID, taskHostID: p.taskHost.ID, taskStepID: checkpoint.ID, eventType: "step.success", fromStatus: StepStatusRunning, toStatus: StepStatusSuccess, actor: req.Actor})
 		return executorprovider.StepResult{Status: StepStatusSuccess, Changed: changed}
 	}
 
@@ -2838,7 +3067,7 @@ func (p *sshStepProvider) ExecuteStep(ctx context.Context, req executorprovider.
 	if err := p.service.updateTaskStepStatus(&checkpoint, status, "", errorMessage); err != nil {
 		return executorprovider.StepResult{Status: StepStatusFailed, ErrorMessage: err.Error()}
 	}
-	p.service.appendTaskEvent(p.task.ID, p.taskHost.ID, checkpoint.ID, "step."+status, StepStatusRunning, status, req.Actor, "", truncateDeployLog(errorMessage, 256))
+	p.service.appendTaskEvent(taskEventInput{taskID: p.task.ID, taskHostID: p.taskHost.ID, taskStepID: checkpoint.ID, eventType: "step." + status, fromStatus: StepStatusRunning, toStatus: status, actor: req.Actor, reason: truncateDeployLog(errorMessage, 256)})
 	return executorprovider.StepResult{Status: status, ErrorMessage: errorMessage}
 }
 
@@ -2849,15 +3078,15 @@ func (p *sshStepProvider) Cancel(_ context.Context, handle executorprovider.Exec
 	return nil
 }
 
-func writeNewExecutionLogs(logSink executorprovider.LogSink, req executorprovider.StepRequest, execution *taskHostExecution, stdoutStart, stderrStart int) {
-	if logSink == nil {
+func writeNewExecutionLogs(logWriter executorprovider.LogWriter, req executorprovider.StepRequest, execution *taskHostExecution, stdoutStart, stderrStart int) {
+	if logWriter == nil {
 		return
 	}
 	if stdoutStart < len(execution.stdoutSections) {
-		logSink.WriteLog(req.TaskID, req.TaskHostID, req.StepKey, "stdout", strings.Join(execution.stdoutSections[stdoutStart:], "\n"))
+		logWriter.WriteLog(req.TaskID, req.TaskHostID, req.StepKey, "stdout", strings.Join(execution.stdoutSections[stdoutStart:], "\n"))
 	}
 	if stderrStart < len(execution.stderrSections) {
-		logSink.WriteLog(req.TaskID, req.TaskHostID, req.StepKey, "stderr", strings.Join(execution.stderrSections[stderrStart:], "\n"))
+		logWriter.WriteLog(req.TaskID, req.TaskHostID, req.StepKey, "stderr", strings.Join(execution.stderrSections[stderrStart:], "\n"))
 	}
 }
 
@@ -2878,7 +3107,7 @@ func (s *DeployService) updateTaskStepStatus(checkpoint *DeployTaskStep, status,
 	case StepStatusSuccess, StepStatusFailed, StepStatusSkipped, StepStatusCanceled:
 		updates["finished_at"] = &now
 	}
-	err := s.db.Model(&DeployTaskStep{}).Where("id = ?", checkpoint.ID).Updates(updates).Error
+	err := s.db.Model(&DeployTaskStep{}).Where(idWhereClause, checkpoint.ID).Updates(updates).Error
 	if err == nil {
 		// 更新内存中的 checkpoint 状态以供 metrics 使用
 		checkpoint.Status = status
@@ -2895,28 +3124,15 @@ func (s *DeployService) executeOrchestratedSSHHost(ctx context.Context, task Dep
 	}
 	runner, runnerErr := s.sshRunnerFactory(target, req)
 	if runnerErr != nil {
-		if _, err := s.MarkHostResult(taskHost.ID, MarkHostResultRequest{Status: TaskHostStatusFailed, ErrorMessage: runnerErr.Error(), ExecutorID: fmt.Sprintf("ssh:%s", target.IP)}, actor, nil); err != nil {
-			return err
-		}
-		return nil
+		return s.markSSHConnectFailure(taskHost, runnerErr, target.IP, actor)
 	}
 	execution := &taskHostExecution{stdoutSections: make([]string, 0, len(steps)), stderrSections: make([]string, 0, len(steps)), summary: deployExecutionSummary{InstalledComponents: make([]cmdb.InstalledComponentUpsert, 0, len(steps)), RemovedComponentNames: make([]string, 0, len(steps))}}
 	_ = s.appendTaskHostTrace(task.ID, taskHost.ID, []map[string]any{{"at": time.Now().Format(time.RFC3339), "phase": "connect", "message": "SSH connected"}})
 	provider := &sshStepProvider{service: s, task: task, target: target, taskHost: taskHost, runner: runner, execution: execution, steps: make(map[string]deployExecutionStep, len(steps))}
 	plan := executorprovider.ExecutionPlan{TaskID: task.ID, TaskHostID: taskHost.ID, TaskName: task.Name, Action: task.Action, ExecutorType: ExecutorTypeSSH, TargetIP: target.IP, TargetPort: target.SSHPort, TargetOS: target.OS, MaxParallelSteps: 1, Actor: actor}
-	for index, step := range steps {
-		stepKey := step.StepCode
-		if stepKey == "" {
-			stepKey = fmt.Sprintf("step-%d", index+1)
-			step.StepCode = stepKey
-		}
-		provider.steps[stepKey] = step
-		checkpoint, loadErr := s.loadTaskStep(task.ID, taskHost.ID, stepKey)
-		if loadErr != nil {
-			_ = runner.Close()
-			return loadErr
-		}
-		plan.Steps = append(plan.Steps, executorprovider.StepPlan{StepKey: stepKey, StepName: step.StepName, StepType: step.StepType, Action: step.Action, ContinueOnHostFailure: step.ContinueOnHostFailure, PackageName: step.Package.Name, PackageVersion: step.Package.Version, TemplateParams: step.TemplateParams, Dependencies: step.Dependencies, Condition: conditionType(step.Condition), ConditionParams: step.Condition, FailurePolicy: step.FailurePolicy, InitialStatus: checkpoint.Status})
+	if err := s.registerOrchestrationSteps(steps, provider, &plan, task.ID, taskHost.ID); err != nil {
+		_ = runner.Close()
+		return err
 	}
 	registry := executorprovider.NewRegistry()
 	registry.Register(provider)
@@ -2925,32 +3141,89 @@ func (s *DeployService) executeOrchestratedSSHHost(ctx context.Context, task Dep
 		_ = runner.Close()
 		return err
 	}
-	if result.Status == deployorchestrator.StatusCanceled && s.taskExecutionSuspended(task.ID) {
-		_ = runner.Close()
-		now := time.Now()
-		transition := s.db.Model(&DeployTask{}).Where("id = ? AND status = ?", task.ID, TaskStatusPauseRequested).Updates(map[string]any{"status": TaskStatusPaused, "updated_by": actor, "updated_at": now})
-		if transition.Error != nil {
-			return transition.Error
-		}
-		if transition.RowsAffected > 0 {
-			s.appendTaskEvent(task.ID, 0, 0, "task.paused", TaskStatusPauseRequested, TaskStatusPaused, actor, "", "")
-		}
-		return nil
+	halted, haltErr := s.interruptOrchestratedHost(task, result, runner, actor)
+	if halted {
+		return haltErr
 	}
-	if result.Status == deployorchestrator.StatusCanceled && s.taskCancellationRequested(task.ID) {
-		_ = runner.Close()
-		return nil
+	applyOrchestrationOutcome(ctx, result, execution)
+	return s.finalizeTaskHostExecution(task, taskHost, runner, execution, target.IP, actor)
+}
+
+// markSSHConnectFailure records a host result for an SSH runner that never came
+// up; a nil error means the host row was marked as failed.
+func (s *DeployService) markSSHConnectFailure(taskHost TaskHostResponse, runnerErr error, ip, actor string) error {
+	_, err := s.MarkHostResult(taskHost.ID, MarkHostResultRequest{
+		Status:       TaskHostStatusFailed,
+		ErrorMessage: runnerErr.Error(),
+		ExecutorID:   fmt.Sprintf("ssh:%s", ip),
+	}, actor, nil)
+	return err
+}
+
+// registerOrchestrationSteps seeds the provider step index and the orchestrator
+// plan with the checkpoint status of every plan step.
+func (s *DeployService) registerOrchestrationSteps(steps []deployExecutionStep, provider *sshStepProvider, plan *executorprovider.ExecutionPlan, taskID, taskHostID uint64) error {
+	for index, step := range steps {
+		stepKey := step.StepCode
+		if stepKey == "" {
+			stepKey = fmt.Sprintf("step-%d", index+1)
+			step.StepCode = stepKey
+		}
+		provider.steps[stepKey] = step
+		checkpoint, loadErr := s.loadTaskStep(taskID, taskHostID, stepKey)
+		if loadErr != nil {
+			return loadErr
+		}
+		plan.Steps = append(plan.Steps, executorprovider.StepPlan{StepKey: stepKey, StepName: step.StepName, StepType: step.StepType, Action: step.Action, ContinueOnHostFailure: step.ContinueOnHostFailure, PackageName: step.Package.Name, PackageVersion: step.Package.Version, TemplateParams: step.TemplateParams, Dependencies: step.Dependencies, Condition: conditionType(step.Condition), ConditionParams: step.Condition, FailurePolicy: step.FailurePolicy, InitialStatus: checkpoint.Status})
 	}
+	return nil
+}
+
+// interruptOrchestratedHost reports whether a canceled orchestration result was
+// caused by a pause or a cancel request; in that case the returned error is the
+// caller's return value and the SSH runner is already closed.
+func (s *DeployService) interruptOrchestratedHost(task DeployTask, result deployorchestrator.HostExecution, runner deploySSHRunner, actor string) (bool, error) {
+	if result.Status != deployorchestrator.StatusCanceled {
+		return false, nil
+	}
+	if s.taskExecutionSuspended(task.ID) {
+		_ = runner.Close()
+		return true, s.pauseTaskAfterSuspend(task, actor)
+	}
+	if s.taskCancellationRequested(task.ID) {
+		_ = runner.Close()
+		return true, nil
+	}
+	return false, nil
+}
+
+// pauseTaskAfterSuspend moves a task from pause-requested to paused.
+func (s *DeployService) pauseTaskAfterSuspend(task DeployTask, actor string) error {
+	now := time.Now()
+	transition := s.db.Model(&DeployTask{}).Where(idAndStatusWhereClause, task.ID, TaskStatusPauseRequested).Updates(map[string]any{"status": TaskStatusPaused, "updated_by": actor, "updated_at": now})
+	if transition.Error != nil {
+		return transition.Error
+	}
+	if transition.RowsAffected > 0 {
+		s.appendTaskEvent(taskEventInput{taskID: task.ID, eventType: "task.paused", fromStatus: TaskStatusPauseRequested, toStatus: TaskStatusPaused, actor: actor})
+	}
+	return nil
+}
+
+// applyOrchestrationOutcome records the error implied by a failed or canceled
+// orchestration result when the step itself reported none.
+func applyOrchestrationOutcome(ctx context.Context, result deployorchestrator.HostExecution, execution *taskHostExecution) {
 	if result.Status == deployorchestrator.StatusFailed && execution.executionErr == nil {
 		execution.executionErr = orchestrationExecutionError(result)
 	}
-	if result.Status == deployorchestrator.StatusCanceled && execution.executionErr == nil {
-		execution.executionErr = ctx.Err()
-		if execution.executionErr == nil {
-			execution.executionErr = context.Canceled
-		}
+	if result.Status != deployorchestrator.StatusCanceled || execution.executionErr != nil {
+		return
 	}
-	return s.finalizeTaskHostExecution(task, taskHost, runner, execution, target.IP, actor)
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		execution.executionErr = ctxErr
+		return
+	}
+	execution.executionErr = context.Canceled
 }
 
 func (s *DeployService) persistSkippedTaskSteps(task DeployTask, taskHost TaskHostResponse, result deployorchestrator.HostExecution, actor string) error {
@@ -2968,7 +3241,7 @@ func (s *DeployService) persistSkippedTaskSteps(task DeployTask, taskHost TaskHo
 		if err := s.updateTaskStepStatus(&checkpoint, StepStatusSkipped, "", ""); err != nil {
 			return err
 		}
-		s.appendTaskEvent(task.ID, taskHost.ID, checkpoint.ID, "step.skipped", checkpoint.Status, StepStatusSkipped, actor, "", "condition evaluated false")
+		s.appendTaskEvent(taskEventInput{taskID: task.ID, taskHostID: taskHost.ID, taskStepID: checkpoint.ID, eventType: "step.skipped", fromStatus: checkpoint.Status, toStatus: StepStatusSkipped, actor: actor, reason: "condition evaluated false"})
 	}
 	return nil
 }
@@ -2994,14 +3267,7 @@ func (s *DeployService) executeSSHHost(ctx context.Context, task DeployTask, tar
 	}
 	runner, runnerErr := s.sshRunnerFactory(target, req)
 	if runnerErr != nil {
-		if _, err := s.MarkHostResult(taskHost.ID, MarkHostResultRequest{
-			Status:       TaskHostStatusFailed,
-			ErrorMessage: runnerErr.Error(),
-			ExecutorID:   fmt.Sprintf("ssh:%s", target.IP),
-		}, actor, nil); err != nil {
-			return err
-		}
-		return nil
+		return s.markSSHConnectFailure(taskHost, runnerErr, target.IP, actor)
 	}
 
 	_ = s.appendTaskHostTrace(task.ID, taskHost.ID, []map[string]any{
@@ -3015,24 +3281,30 @@ func (s *DeployService) executeSSHHost(ctx context.Context, task DeployTask, tar
 			RemovedComponentNames: make([]string, 0, len(plan)),
 		},
 	}
-	s.runTaskExecutionSteps(ctx, task, target, taskHost, runner, plan, execution)
-	return s.finalizeTaskHostExecution(task, taskHost, runner, execution, target.IP, actor)
-}
-
-// runTaskExecutionSteps runs the plan steps for one host, stopping at the first
-// unrecoverable step failure.
-func (s *DeployService) runTaskExecutionSteps(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, runner deploySSHRunner, plan []deployExecutionStep, execution *taskHostExecution) {
+	run := taskStepHostRun{task: task, target: target, taskHost: taskHost, runner: runner, execution: execution}
 	for _, step := range plan {
-		stop, _ := s.executeTaskStep(ctx, task, target, taskHost, runner, step, execution)
-		if stop {
+		if stop, _ := s.executeTaskStep(ctx, run, step); stop {
 			break
 		}
 	}
+	return s.finalizeTaskHostExecution(task, taskHost, runner, execution, target.IP, actor)
+}
+
+// taskStepHostRun carries the host-scoped state shared by every plan step of a
+// single host run.
+type taskStepHostRun struct {
+	task      DeployTask
+	target    cmdbHostSnapshot
+	taskHost  TaskHostResponse
+	runner    deploySSHRunner
+	execution *taskHostExecution
 }
 
 // executeTaskStep runs a single plan step and records its trace. It returns
 // true when the host loop must stop on an unrecoverable failure.
-func (s *DeployService) executeTaskStep(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, runner deploySSHRunner, step deployExecutionStep, execution *taskHostExecution) (bool, bool) {
+func (s *DeployService) executeTaskStep(ctx context.Context, run taskStepHostRun, step deployExecutionStep) (bool, bool) {
+	task, target := run.task, run.target
+	taskHost, runner, execution := run.taskHost, run.runner, run.execution
 	stepLabel := buildDeployStepLabel(step)
 	var script string
 	var probeCommand string
@@ -3071,7 +3343,7 @@ func (s *DeployService) executeTaskStep(ctx context.Context, task DeployTask, ta
 		script = rendered
 	}
 	s.appendStepTrace(task, taskHost, step, "step_start", fmt.Sprintf("%s started", stepLabel))
-	if s.runTaskStepCheck(ctx, task, target, taskHost, runner, step, execution, taskStepCheckConfig{configKey: "precheckCommand", phase: "precheck", stepLabel: stepLabel}) {
+	if s.runTaskStepCheck(ctx, run, step, taskStepCheckConfig{configKey: "precheckCommand", phase: "precheck", stepLabel: stepLabel}) {
 		return true, false
 	}
 	s.appendStepTrace(task, taskHost, step, "script", fmt.Sprintf("%s script rendered", stepLabel))
@@ -3082,7 +3354,7 @@ func (s *DeployService) executeTaskStep(ctx context.Context, task DeployTask, ta
 		s.appendStepTrace(task, taskHost, step, "step_failed", execErr.Error())
 		return true, false
 	}
-	if s.runTaskStepCheck(ctx, task, target, taskHost, runner, step, execution, taskStepCheckConfig{configKey: "postcheckCommand", phase: "postcheck", stepLabel: stepLabel}) {
+	if s.runTaskStepCheck(ctx, run, step, taskStepCheckConfig{configKey: "postcheckCommand", phase: "postcheck", stepLabel: stepLabel}) {
 		return true, false
 	}
 	s.appendStepTrace(task, taskHost, step, "step_success", fmt.Sprintf("%s completed", stepLabel))
@@ -3100,8 +3372,9 @@ type taskStepCheckConfig struct {
 
 // runTaskStepCheck renders and runs an optional precheck/postcheck snippet,
 // returning true when the host loop must stop.
-func (s *DeployService) runTaskStepCheck(ctx context.Context, task DeployTask, target cmdbHostSnapshot, taskHost TaskHostResponse, runner deploySSHRunner, step deployExecutionStep, execution *taskHostExecution, check taskStepCheckConfig) bool {
-	script, hasCheck, checkErr := renderDeployCheckSnippet(step, task, target, check.configKey)
+func (s *DeployService) runTaskStepCheck(ctx context.Context, run taskStepHostRun, step deployExecutionStep, check taskStepCheckConfig) bool {
+	task, taskHost, execution := run.task, run.taskHost, run.execution
+	script, hasCheck, checkErr := renderDeployCheckSnippet(step, task, run.target, check.configKey)
 	if checkErr != nil {
 		execution.executionErr = mapDeployTaskExecutionPlanError(checkErr)
 		s.appendStepTrace(task, taskHost, step, check.phase+"_render_failed", checkErr.Error())
@@ -3111,7 +3384,7 @@ func (s *DeployService) runTaskStepCheck(ctx context.Context, task DeployTask, t
 		return false
 	}
 	s.appendStepTrace(task, taskHost, step, check.phase, fmt.Sprintf("%s %s started", check.stepLabel, check.phase))
-	stdout, stderr, execErr := runDeployScript(ctx, runner, script)
+	stdout, stderr, execErr := runDeployScript(ctx, run.runner, script)
 	execution.recordOutput(step, check.phase, stdout, stderr)
 	if execErr != nil {
 		execution.executionErr = fmt.Errorf("%s %s failed: %w", check.stepLabel, check.phase, execErr)
@@ -3218,98 +3491,125 @@ func (s *DeployService) buildDeployExecutionSnapshot(pkg DeployPackage, template
 	}
 	normalizedAction := normalizeTaskAction(action)
 	if template == nil || template.ID == 0 {
-		if err := validateTemplateParams(pkg.ExecutionMode, pkg.TemplateCode, pkg.TemplateConfig, taskParams); err != nil {
+		steps, err := s.defaultExecutionSnapshotSteps(pkg, deployStepSnapshotPackageDefault, pkg.Name, normalizedAction, taskParams)
+		if err != nil {
 			return deployExecutionSnapshot{}, err
 		}
-		snapshot.Steps = []deployStepSnapshot{{
-			StepCode:       "package_default",
-			StepName:       pkg.Name,
-			StepType:       TemplateStepTypePackage,
-			Action:         normalizedAction,
-			Package:        packageToSnapshot(pkg),
-			TemplateParams: taskParams,
-		}}
+		snapshot.Steps = steps
 		return snapshot, nil
 	}
 	if len(template.Steps) == 0 {
-		if err := validateTemplateParams(pkg.ExecutionMode, pkg.TemplateCode, pkg.TemplateConfig, taskParams); err != nil {
+		steps, err := s.defaultExecutionSnapshotSteps(pkg, deployStepSnapshotTemplateDefault, template.Name, normalizedAction, taskParams)
+		if err != nil {
 			return deployExecutionSnapshot{}, err
 		}
-		snapshot.Steps = []deployStepSnapshot{{
-			StepCode:       "template_default",
-			StepName:       template.Name,
-			StepType:       TemplateStepTypePackage,
-			Action:         normalizedAction,
-			Package:        packageToSnapshot(pkg),
-			TemplateParams: taskParams,
-		}}
+		snapshot.Steps = steps
 		return snapshot, nil
 	}
 	cache := map[uint64]DeployPackage{}
 	steps := make([]deployStepSnapshot, 0, len(template.Steps))
 	for _, step := range template.Steps {
-		stepType := strings.TrimSpace(step.StepType)
-		if stepType == "" {
-			stepType = TemplateStepTypePackage
+		snapshotStep, err := s.buildTemplateStepSnapshot(step, pkg, normalizedAction, taskParams, cache)
+		if err != nil {
+			return deployExecutionSnapshot{}, err
 		}
-		if !validStepType(stepType) {
-			return deployExecutionSnapshot{}, errors.New(errDeployTaskTemplateInvalid)
-		}
-		effectiveAction := normalizedAction
-		if effectiveAction == "" {
-			effectiveAction = normalizeTaskAction(step.Action)
-		}
-		params := mergeDeployTemplateParams(step.TemplateParams, taskParams)
-		stepPackage := DeployPackage{}
-		if stepType == TemplateStepTypePackage {
-			resolvedPackage, err := s.resolveExecutionPackage(step.PackageID, pkg, cache)
-			if err != nil {
-				return deployExecutionSnapshot{}, err
-			}
-			cache[resolvedPackage.ID] = resolvedPackage
-			stepPackage = resolvedPackage
-			if err := validateTemplateParams(stepPackage.ExecutionMode, stepPackage.TemplateCode, stepPackage.TemplateConfig, params); err != nil {
-				return deployExecutionSnapshot{}, err
-			}
-		} else if isComponentType(stepType) {
-			resolvedPackage, err := s.resolveExecutionPackage(step.PackageID, pkg, cache)
-			if err != nil {
-				return deployExecutionSnapshot{}, err
-			}
-			cache[resolvedPackage.ID] = resolvedPackage
-			stepPackage = resolvedPackage
-			componentParams := cloneDeployConfig(params)
-			componentParams["action"] = effectiveAction
-			if err := validateFixedTemplateParams(componentTypeToTemplateCode[stepType], componentParams); err != nil {
-				return deployExecutionSnapshot{}, err
-			}
-		} else if step.PackageID > 0 {
-			resolvedPackage, err := s.resolveExecutionPackage(step.PackageID, pkg, cache)
-			if err != nil {
-				return deployExecutionSnapshot{}, err
-			}
-			cache[resolvedPackage.ID] = resolvedPackage
-			stepPackage = resolvedPackage
-		}
-		steps = append(steps, deployStepSnapshot{
-			StepCode:              step.StepCode,
-			StepName:              step.StepName,
-			StepType:              stepType,
-			Action:                effectiveAction,
-			ContinueOnHostFailure: step.ContinueOnHostFailure,
-			Package:               packageToSnapshot(stepPackage),
-			TemplateParams:        params,
-			StepConfig:            step.StepConfig,
-			Dependencies:          stringSliceConfig(step.StepConfig, "dependencies"),
-			Condition:             mapConfig(step.StepConfig, "condition"),
-			FailurePolicy:         effectiveFailurePolicy(stringConfig(step.StepConfig, "failurePolicy"), step.ContinueOnHostFailure),
-		})
+		steps = append(steps, snapshotStep)
 	}
 	if err := validateDeploySnapshotDAG(steps); err != nil {
 		return deployExecutionSnapshot{}, err
 	}
 	snapshot.Steps = steps
 	return snapshot, nil
+}
+
+// Step codes of the fallback snapshots used when a task has no executable
+// template steps: the package itself, then the template definition.
+const (
+	deployStepSnapshotPackageDefault  = "package_default"
+	deployStepSnapshotTemplateDefault = "template_default"
+)
+
+// defaultExecutionSnapshotSteps builds the single fallback step and validates
+// the request parameters against the resolved package.
+func (s *DeployService) defaultExecutionSnapshotSteps(pkg DeployPackage, stepCode, stepName, normalizedAction string, taskParams map[string]any) ([]deployStepSnapshot, error) {
+	if err := validateTemplateParams(pkg.ExecutionMode, pkg.TemplateCode, pkg.TemplateConfig, taskParams); err != nil {
+		return nil, err
+	}
+	return []deployStepSnapshot{{
+		StepCode:       stepCode,
+		StepName:       stepName,
+		StepType:       TemplateStepTypePackage,
+		Action:         normalizedAction,
+		Package:        packageToSnapshot(pkg),
+		TemplateParams: taskParams,
+	}}, nil
+}
+
+// buildTemplateStepSnapshot freezes a single template step: its type, effective
+// action, resolved package and validated parameters.
+func (s *DeployService) buildTemplateStepSnapshot(step TemplateStepResponse, pkg DeployPackage, normalizedAction string, taskParams map[string]any, cache map[uint64]DeployPackage) (deployStepSnapshot, error) {
+	stepType := strings.TrimSpace(step.StepType)
+	if stepType == "" {
+		stepType = TemplateStepTypePackage
+	}
+	if !validStepType(stepType) {
+		return deployStepSnapshot{}, errors.New(errDeployTaskTemplateInvalid)
+	}
+	action := normalizedAction
+	if action == "" {
+		action = normalizeTaskAction(step.Action)
+	}
+	params := mergeDeployTemplateParams(step.TemplateParams, taskParams)
+	stepPackage, err := s.resolveStepSnapshotPackage(step, stepType, pkg, cache)
+	if err != nil {
+		return deployStepSnapshot{}, err
+	}
+	if err := validateStepSnapshotParams(stepType, stepPackage, params, action); err != nil {
+		return deployStepSnapshot{}, err
+	}
+	return deployStepSnapshot{
+		StepCode:              step.StepCode,
+		StepName:              step.StepName,
+		StepType:              stepType,
+		Action:                action,
+		ContinueOnHostFailure: step.ContinueOnHostFailure,
+		Package:               packageToSnapshot(stepPackage),
+		TemplateParams:        params,
+		StepConfig:            step.StepConfig,
+		Dependencies:          stringSliceConfig(step.StepConfig, "dependencies"),
+		Condition:             mapConfig(step.StepConfig, "condition"),
+		FailurePolicy:         effectiveFailurePolicy(stringConfig(step.StepConfig, "failurePolicy"), step.ContinueOnHostFailure),
+	}, nil
+}
+
+// resolveStepSnapshotPackage returns the package a frozen step needs, reusing
+// the per-plan lookup cache. A step that is neither a package nor a component
+// type and carries no package reference keeps the zero-value package.
+func (s *DeployService) resolveStepSnapshotPackage(step TemplateStepResponse, stepType string, pkg DeployPackage, cache map[uint64]DeployPackage) (DeployPackage, error) {
+	if stepType != TemplateStepTypePackage && !isComponentType(stepType) && step.PackageID == 0 {
+		return DeployPackage{}, nil
+	}
+	resolvedPackage, err := s.resolveExecutionPackage(step.PackageID, pkg, cache)
+	if err != nil {
+		return DeployPackage{}, err
+	}
+	cache[resolvedPackage.ID] = resolvedPackage
+	return resolvedPackage, nil
+}
+
+// validateStepSnapshotParams applies the parameter contract of the step type:
+// package steps validate against the resolved package, component steps against
+// their fixed schema, other step types have no parameter contract.
+func validateStepSnapshotParams(stepType string, stepPackage DeployPackage, params map[string]any, action string) error {
+	if stepType == TemplateStepTypePackage {
+		return validateTemplateParams(stepPackage.ExecutionMode, stepPackage.TemplateCode, stepPackage.TemplateConfig, params)
+	}
+	if isComponentType(stepType) {
+		componentParams := cloneDeployConfig(params)
+		componentParams["action"] = action
+		return validateFixedTemplateParams(componentTypeToTemplateCode[stepType], componentParams)
+	}
+	return nil
 }
 
 func validateDeploySnapshotDAG(steps []deployStepSnapshot) error {

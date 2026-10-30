@@ -147,15 +147,8 @@ func (s *LabelService) Import(records [][]string, createdBy string) (*impexp.Imp
 		return result, nil
 	}
 
-	headerIndex := make(map[string]int, len(records[0]))
-	for index, header := range records[0] {
-		headerIndex[strings.TrimSpace(header)] = index
-	}
-	for _, header := range []string{"key", "name", "category", "valueMode"} {
-		if _, ok := headerIndex[header]; !ok {
-			impexp.AppendImportError(result, 0, header, "import.header.missing")
-		}
-	}
+	headerIndex := impexp.BuildHeaderIndex(records)
+	impexp.RequireHeaders(result, headerIndex, "key", "name", "category", "valueMode")
 	if result.Failed > 0 {
 		return result, nil
 	}
@@ -165,23 +158,7 @@ func (s *LabelService) Import(records [][]string, createdBy string) (*impexp.Imp
 		return nil, err
 	}
 
-	rows := make([]labelImportRow, 0, len(records)-1)
-	seenKey := make(map[string]int, len(records)-1)
-	for rowIndex := 1; rowIndex < len(records); rowIndex++ {
-		record := records[rowIndex]
-		if impexp.IsCSVRecordEmpty(record) {
-			continue
-		}
-		rowNumber := rowIndex + 1
-		row := parseLabelImportRow(record, headerIndex, rowNumber, result)
-		if firstRow, ok := seenKey[strings.ToLower(row.Key)]; ok && row.Key != "" {
-			impexp.AppendImportError(result, rowNumber, "key", fmt.Sprintf("import.duplicate.row.%d", firstRow))
-		} else if row.Key != "" {
-			seenKey[strings.ToLower(row.Key)] = rowNumber
-		}
-		row.Existing = existingByKey[strings.ToLower(row.Key)]
-		rows = append(rows, row)
-	}
+	rows := parseLabelImportRows(records, headerIndex, result, existingByKey)
 
 	if result.Failed > 0 {
 		return result, nil
@@ -222,6 +199,20 @@ func parseLabelImportRow(
 		Description: strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "description")),
 	}
 
+	validateLabelImportRequiredFields(&row, rowNumber, result)
+	validateLabelImportEnumeratedFields(&row, rowNumber, result)
+	row.Options = parseLabelImportOptions(record, headerIndex)
+	row.Required = parseLabelImportRequired(record, headerIndex)
+	validateLabelImportValueMode(&row, rowNumber, result)
+
+	if row.Status == "" {
+		row.Status = labelStatusEnabled
+	}
+
+	return row
+}
+
+func validateLabelImportRequiredFields(row *labelImportRow, rowNumber int, result *impexp.ImportResult) {
 	if row.Key == "" {
 		impexp.AppendImportError(result, rowNumber, "key", "cmdblabel.key_required")
 	}
@@ -234,7 +225,9 @@ func parseLabelImportRow(
 	if row.ValueMode == "" {
 		impexp.AppendImportError(result, rowNumber, "valueMode", "cmdblabel.valueMode_required")
 	}
+}
 
+func validateLabelImportEnumeratedFields(row *labelImportRow, rowNumber int, result *impexp.ImportResult) {
 	if row.Category != "" {
 		if _, ok := labelValidCategories[row.Category]; !ok {
 			impexp.AppendImportError(result, rowNumber, "category", "cmdblabel.category.invalid")
@@ -250,36 +243,61 @@ func parseLabelImportRow(
 			impexp.AppendImportError(result, rowNumber, "status", "cmdblabel.status.invalid")
 		}
 	}
+}
 
+func parseLabelImportOptions(record []string, headerIndex map[string]int) []string {
+	var options []string
 	optionsRaw := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "options"))
-	if optionsRaw != "" {
-		for _, item := range strings.FieldsFunc(optionsRaw, func(r rune) bool {
-			return r == ';' || r == ','
-		}) {
-			item = strings.TrimSpace(item)
-			if item != "" {
-				row.Options = append(row.Options, item)
-			}
+	if optionsRaw == "" {
+		return options
+	}
+	for _, item := range strings.FieldsFunc(optionsRaw, func(r rune) bool {
+		return r == ';' || r == ','
+	}) {
+		item = strings.TrimSpace(item)
+		if item != "" {
+			options = append(options, item)
 		}
 	}
+	return options
+}
 
+func parseLabelImportRequired(record []string, headerIndex map[string]int) bool {
 	requiredRaw := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "required"))
-	if requiredRaw != "" {
-		row.Required = strings.ToLower(requiredRaw) == "true" || requiredRaw == "1"
+	if requiredRaw == "" {
+		return false
 	}
+	return strings.ToLower(requiredRaw) == "true" || requiredRaw == "1"
+}
 
+func validateLabelImportValueMode(row *labelImportRow, rowNumber int, result *impexp.ImportResult) {
 	if row.ValueMode == "enum" && len(row.Options) == 0 {
 		impexp.AppendImportError(result, rowNumber, "options", "cmdblabel.options_required_for_enum")
 	}
 	if row.ValueMode == "dict" && row.DictCode == "" {
 		impexp.AppendImportError(result, rowNumber, "dictCode", "cmdblabel.dictCode_required_for_dict")
 	}
+}
 
-	if row.Status == "" {
-		row.Status = labelStatusEnabled
-	}
-
-	return row
+// parseLabelImportRows turns the data records into label rows, flagging keys
+// that repeat inside the file (case-insensitively) and attaching the existing schema.
+func parseLabelImportRows(records [][]string, headerIndex map[string]int, result *impexp.ImportResult, existingByKey map[string]*LabelSchema) []labelImportRow {
+	rows := make([]labelImportRow, 0, len(records)-1)
+	seenKey := make(map[string]int, len(records)-1)
+	impexp.ForEachDataRow(records, func(rowNumber int, record []string) {
+		row := parseLabelImportRow(record, headerIndex, rowNumber, result)
+		key := strings.ToLower(row.Key)
+		if key != "" {
+			if firstRow, ok := seenKey[key]; ok {
+				impexp.AppendImportError(result, rowNumber, "key", fmt.Sprintf("import.duplicate.row.%d", firstRow))
+			} else {
+				seenKey[key] = rowNumber
+			}
+		}
+		row.Existing = existingByKey[key]
+		rows = append(rows, row)
+	})
+	return rows
 }
 
 func (s *LabelService) applyLabelImportRows(result *impexp.ImportResult, rows []labelImportRow, createdBy string) error {

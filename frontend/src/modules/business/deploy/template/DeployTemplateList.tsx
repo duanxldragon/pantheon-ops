@@ -111,6 +111,20 @@ const templateStepTypeColorMap: Record<string, string> = {
   prometheus: 'green',
 };
 
+function resolveStepTemplateEntry(
+  isComponentStep: boolean,
+  currentStepType: TemplateStepType,
+  stepPackage: DeployPackageRow | undefined,
+) {
+  if (isComponentStep) {
+    return getDeployComponentTemplateEntry(currentStepType);
+  }
+  if (currentStepType === 'package') {
+    return getDeployFixedTemplateCatalogEntry(stepPackage?.templateCode);
+  }
+  return null;
+}
+
 export default function DeployTemplateList() {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
@@ -706,11 +720,11 @@ export default function DeployTemplateList() {
                     );
                     const stepPackage = packageMap.get(currentPackageId);
                     const isComponentStep = isDeployComponentStepType(currentStepType);
-                    const stepTemplateEntry = isComponentStep
-                      ? getDeployComponentTemplateEntry(currentStepType)
-                      : currentStepType === 'package'
-                        ? getDeployFixedTemplateCatalogEntry(stepPackage?.templateCode)
-                        : null;
+                    const stepTemplateEntry = resolveStepTemplateEntry(
+                      isComponentStep,
+                      currentStepType,
+                      stepPackage,
+                    );
                     return (
                       <div
                         key={field.key}
@@ -780,8 +794,9 @@ export default function DeployTemplateList() {
                             <Select mode="multiple" allowClear placeholder={t('business.deploy.template.stepDependenciesPlaceholder')}>
                               {fields.map((_, candidateIndex) => {
                                 if (candidateIndex === index) return null;
-                                const code = (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${candidateIndex}].stepCode`);
-                                return code ? <Select.Option key={String(code)} value={String(code)}>{String(code)}</Select.Option> : null;
+                                const rawCode = (form as unknown as { getFieldValue: (path: string) => unknown }).getFieldValue(`steps[${candidateIndex}].stepCode`);
+                                const code = typeof rawCode === 'string' ? rawCode : '';
+                                return code ? <Select.Option key={code} value={code}>{code}</Select.Option> : null;
                               })}
                             </Select>
                           </Form.Item>
@@ -1103,7 +1118,7 @@ function buildTemplateStepCondition(step: NonNullable<TemplateFormValues['steps'
 }
 
 function stringArrayValue(value: unknown): string[] {
-  return Array.isArray(value) ? value.map((item) => String(item)).filter(Boolean) : [];
+  return Array.isArray(value) ? value.map(String).filter(Boolean) : [];
 }
 
 function readConfigField(value: unknown, key: string): unknown {

@@ -36,7 +36,7 @@ func (m *Manager) ApplyServiceInstanceState(ctx context.Context, req bizcap.Serv
 	return err
 }
 
-var _ bizcap.ServiceInstanceStateCommand = (*Manager)(nil)
+var _ bizcap.ServiceInstanceStateApplier = (*Manager)(nil)
 
 // HasActiveHostReferences reports whether a host is referenced by an active service instance.
 func (m *Manager) HasActiveHostReferences(ctx context.Context, hostID uint64, scope *common.DataScopeReq) (bool, error) {
@@ -97,13 +97,13 @@ type Reader interface {
 	GetInstance(ctx context.Context, id uint64, scope *common.DataScopeReq) (InstanceRef, error)
 }
 
-// Command exposes service-owned write capabilities to other business modules.
-type Command interface {
+// InstanceCreator exposes service-owned write capabilities to other business modules.
+type InstanceCreator interface {
 	CreateInstance(ctx context.Context, req CreateInstanceRequest, actor string, scope *common.DataScopeReq) (InstanceRef, error)
 }
 
-// StateCommand exposes service-instance state transitions to other modules.
-type StateCommand interface {
+// StateTransitioner exposes service-instance state transitions to other modules.
+type StateTransitioner interface {
 	TransitionState(ctx context.Context, req InstanceStateTransitionRequest, actor string, scope *common.DataScopeReq) (InstanceRef, error)
 }
 

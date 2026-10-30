@@ -18,6 +18,7 @@ import {
   Divider,
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
+import type { FormInstance } from '@arco-design/web-react/es/Form';
 import {
   IconDelete,
   IconEdit,
@@ -109,6 +110,20 @@ const taskStatusFlow: Array<{ key: DeployTaskStatus; kind: 'primary' | 'terminal
   { key: 'failed', kind: 'terminal' },
   { key: 'canceled', kind: 'cancel' },
 ];
+
+const taskStatusReachedPredecessors: Partial<Record<DeployTaskStatus, DeployTaskStatus[]>> = {
+  running: ['draft', 'pending'],
+  success: ['draft', 'pending', 'running'],
+  failed: ['draft', 'pending', 'running'],
+  canceled: ['draft', 'pending', 'running'],
+};
+
+function isTaskStatusReached(key: DeployTaskStatus, active: DeployTaskStatus): boolean {
+  if (key === active) {
+    return true;
+  }
+  return (taskStatusReachedPredecessors[active] || []).includes(key);
+}
 
 const isTaskNotFoundError = (error: unknown) =>
   isRequestError(error) &&
@@ -290,7 +305,7 @@ function buildTaskHostColumns({
   ];
 }
 
-function buildTaskDetailItems(task: DeployTaskRow, t: TFunction) {
+function buildTaskProfileItems(task: DeployTaskRow, t: TFunction) {
   return [
     {
       label: t('business.deploy.task.source'),
@@ -331,6 +346,11 @@ function buildTaskDetailItems(task: DeployTaskRow, t: TFunction) {
       value: t(`business.deploy.task.executorType.${task.executorType}`),
     },
     { label: t('business.deploy.task.externalTaskId'), value: task.externalTaskId || '-' },
+  ];
+}
+
+function buildTaskExecutionItems(task: DeployTaskRow, t: TFunction) {
+  return [
     {
       label: t('business.deploy.task.startedAt'),
       value: task.startedAt ? formatDateTime(task.startedAt) : '-',
@@ -350,6 +370,10 @@ function buildTaskDetailItems(task: DeployTaskRow, t: TFunction) {
     { label: t('business.deploy.task.skippedCount'), value: task.skippedCount || 0 },
     { label: t('business.deploy.task.remark'), value: task.remark || '-' },
   ];
+}
+
+function buildTaskDetailItems(task: DeployTaskRow, t: TFunction) {
+  return [...buildTaskProfileItems(task, t), ...buildTaskExecutionItems(task, t)];
 }
 
 interface TaskActionsCardProps {
@@ -474,6 +498,385 @@ function TaskActionsCard({
         </div>
       </Space>
     </Card>
+  );
+}
+
+interface TaskBasePermissions {
+  readonly canStart: boolean;
+  readonly canCancel: boolean;
+  readonly canPause: boolean;
+  readonly canResume: boolean;
+  readonly canRetry: boolean;
+  readonly canUpdate: boolean;
+  readonly canDelete: boolean;
+}
+
+interface TaskActionPermissions {
+  readonly canStartTask: boolean;
+  readonly canCancelTask: boolean;
+  readonly canPauseTask: boolean;
+  readonly canResumeTask: boolean;
+  readonly canRetryTask: boolean;
+  readonly canEditTask: boolean;
+  readonly canDeleteTask: boolean;
+}
+
+const noTaskActions: TaskActionPermissions = {
+  canStartTask: false,
+  canCancelTask: false,
+  canPauseTask: false,
+  canResumeTask: false,
+  canRetryTask: false,
+  canEditTask: false,
+  canDeleteTask: false,
+};
+
+const taskStatusAllowed = (permitted: boolean, statuses: string[], status: string) =>
+  permitted && statuses.includes(status);
+
+function resolveTaskActionPermissions(
+  task: DeployTaskRow | null,
+  perms: TaskBasePermissions,
+): TaskActionPermissions {
+  if (!task) {
+    return noTaskActions;
+  }
+  const { status } = task;
+  return {
+    canStartTask: taskStatusAllowed(perms.canStart, ['draft', 'pending'], status),
+    canCancelTask: taskStatusAllowed(perms.canCancel, ['pending', 'running'], status),
+    canPauseTask: taskStatusAllowed(perms.canPause, ['running'], status),
+    canResumeTask: taskStatusAllowed(perms.canResume, ['paused'], status),
+    canRetryTask: taskStatusAllowed(perms.canRetry, ['failed'], status),
+    canEditTask: taskStatusAllowed(perms.canUpdate, ['draft', 'pending'], status),
+    canDeleteTask:
+      perms.canDelete &&
+      !['running', 'pause_requested', 'cancel_requested'].includes(status),
+  };
+}
+
+interface TaskDetailHeaderProps {
+  readonly task: DeployTaskRow;
+  readonly streamConnected: boolean;
+  readonly t: TFunction;
+  readonly navigate: (path: string) => void;
+}
+
+function TaskDetailHeader({ task, streamConnected, t, navigate }: TaskDetailHeaderProps) {
+  return (
+    <BusinessPageHeader
+      title={task.name}
+      subtitle={t('operations.deploy.task.detail')}
+      extra={
+        <Space wrap>
+          {['pending', 'running', 'pause_requested', 'cancel_requested'].includes(task.status) ? (
+            <Tag color={streamConnected ? 'green' : 'orange'}>
+              {t(
+                streamConnected
+                  ? 'business.deploy.task.stream.live'
+                  : 'business.deploy.task.stream.fallback',
+              )}
+            </Tag>
+          ) : null}
+          <Button icon={<IconLeft />} onClick={() => navigate('/business/deploy/task')}>
+            {t('common.back')}
+          </Button>
+        </Space>
+      }
+    />
+  );
+}
+
+interface TaskHeroCardProps {
+  readonly task: DeployTaskRow;
+  readonly t: TFunction;
+  readonly heroStats: ReadonlyArray<{ key: string; label: string; value: number }>;
+}
+
+function TaskHeroCard({ task, t, heroStats }: TaskHeroCardProps) {
+  return (
+    <Card className="page-panel system-page-hero">
+      <div className="system-page-hero__top">
+        <div className="system-page-hero__copy">
+          <span className="system-page-hero__eyebrow">{t('business.deploy.task.hero.eyebrow')}</span>
+          <Typography.Title heading={5} className="system-page-hero__title">
+            {task.name}
+          </Typography.Title>
+          <Typography.Paragraph className="system-page-hero__desc">
+            {t('business.deploy.task.detailLead')}
+          </Typography.Paragraph>
+        </div>
+        <Tag color={statusColorMap[task.status] || 'gray'}>
+          {t(`business.deploy.task.status.${task.status}`)}
+        </Tag>
+      </div>
+      <div className="deploy-page__hero-grid">
+        {heroStats.map((item) => (
+          <div key={item.key} className="deploy-page__metric">
+            <span className="deploy-page__metric-label">{item.label}</span>
+            <span className="deploy-page__metric-value">{item.value}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+interface StatusFlowCardProps {
+  readonly t: TFunction;
+  readonly taskFlowItems: ReadonlyArray<{
+    key: DeployTaskStatus;
+    kind: 'primary' | 'terminal' | 'cancel';
+    active: boolean;
+    reached: boolean;
+  }>;
+}
+
+function StatusFlowCard({ t, taskFlowItems }: StatusFlowCardProps) {
+  return (
+    <Card className="page-panel">
+      <Space direction="vertical" size={12} style={{ width: '100%' }}>
+        <Typography.Text style={{ fontWeight: 600 }}>
+          {t('business.deploy.task.statusFlowTitle')}
+        </Typography.Text>
+        <ul
+          className="deploy-page__status-flow"
+          style={{ listStyle: 'none', margin: 0, padding: 0 }}
+          aria-label={t('business.deploy.task.statusFlowTitle')}
+        >
+          {taskFlowItems.map((item) => (
+            <li
+              key={item.key}
+              className={[
+                'deploy-page__status-step',
+                item.active ? 'is-active' : '',
+                item.reached ? 'is-reached' : '',
+                item.kind === 'terminal' ? 'is-terminal' : '',
+                item.kind === 'cancel' ? 'is-cancel' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
+              <span className="deploy-page__status-dot" />
+              <span className="deploy-page__status-label">
+                {t(`business.deploy.task.status.${item.key}`)}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <Typography.Text type="secondary">
+          {t('business.deploy.task.statusFlowHint')}
+        </Typography.Text>
+      </Space>
+    </Card>
+  );
+}
+
+interface TemplateParamsCardProps {
+  readonly t: TFunction;
+  readonly items: Array<{ label: string; value: string }>;
+}
+
+function TemplateParamsCard({ t, items }: TemplateParamsCardProps) {
+  if (!items.length) {
+    return null;
+  }
+  return (
+    <Card className="page-panel">
+      <Descriptions
+        column={2}
+        title={t('business.deploy.task.templateParams')}
+        data={items}
+      />
+    </Card>
+  );
+}
+
+interface HostTraceCardsProps {
+  readonly t: TFunction;
+  readonly hosts: DeployTaskHostRow[] | undefined;
+  readonly processColumns: ColumnProps<DeployTraceRow>[];
+}
+
+function HostTraceCards({ t, hosts, processColumns }: HostTraceCardsProps) {
+  if (!hosts?.length) {
+    return null;
+  }
+  return (
+    <Space direction="vertical" size={16} style={{ width: '100%' }}>
+      {hosts.map((host) => (
+        <Card key={host.id} className="page-panel">
+          <Space direction="vertical" size={12} style={{ width: '100%' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: 12,
+                width: '100%',
+              }}
+            >
+              <Space direction="vertical" size={2}>
+                <Typography.Text style={{ fontWeight: 600 }}>{host.hostname}</Typography.Text>
+                <Typography.Text type="secondary">
+                  {host.hostIp}
+                  {host.startedAt ? ` / ${formatDateTime(host.startedAt)}` : ''}
+                  {host.durationSeconds ? ` / ${host.durationSeconds}s` : ''}
+                </Typography.Text>
+              </Space>
+              <Tag color={statusColorMap[host.status] || 'gray'}>
+                {t(`business.deploy.task.hostStatus.${host.status}`)}
+              </Tag>
+            </div>
+            <AppTable<DeployTraceRow>
+              rowKey="traceKey"
+              columns={processColumns}
+              data={buildTraceRows(host)}
+              pagination={false}
+              size="small"
+            />
+            <Divider style={{ margin: '12px 0' }} />
+            <Descriptions
+              column={1}
+              data={[
+                {
+                  label: t('business.deploy.task.stdout'),
+                  value: (
+                    <Typography.Paragraph
+                      className="deploy-page__log"
+                      copyable={Boolean(host.stdout)}
+                    >
+                      {host.stdout || '-'}
+                    </Typography.Paragraph>
+                  ),
+                },
+                {
+                  label: t('business.deploy.task.stderr'),
+                  value: (
+                    <Typography.Paragraph
+                      className="deploy-page__log"
+                      copyable={Boolean(host.stderr)}
+                    >
+                      {host.stderr || '-'}
+                    </Typography.Paragraph>
+                  ),
+                },
+              ]}
+            />
+          </Space>
+        </Card>
+      ))}
+    </Space>
+  );
+}
+
+interface MarkResultModalProps {
+  readonly visible: boolean;
+  readonly t: TFunction;
+  readonly form: FormInstance<MarkResultFormValues>;
+  readonly submitting: boolean;
+  readonly onClose: () => void;
+  readonly onSubmit: () => void;
+}
+
+function MarkResultModal({ visible, t, form, submitting, onClose, onSubmit }: MarkResultModalProps) {
+  return (
+    <AppModal
+      title={t('business.deploy.task.markFailedAction')}
+      visible={visible}
+      footer={null}
+      onCancel={onClose}
+    >
+      <Form form={form} layout="vertical">
+        <Form.Item field="stdout" label={t('business.deploy.task.stdout')}>
+          <Input.TextArea className="deploy-page__log" autoSize={{ minRows: 2, maxRows: 5 }} />
+        </Form.Item>
+        <Form.Item field="stderr" label={t('business.deploy.task.stderr')}>
+          <Input.TextArea className="deploy-page__log" autoSize={{ minRows: 2, maxRows: 5 }} />
+        </Form.Item>
+        <Form.Item
+          field="errorMessage"
+          label={t('business.deploy.task.errorMessage')}
+          rules={[
+            {
+              validator: (value, callback) => {
+                if (String(value || '').trim() !== '') {
+                  callback();
+                  return;
+                }
+                callback(t('business.deploy.taskHost.markFailed.reasonRequired'));
+              },
+            },
+          ]}
+        >
+          <Input />
+        </Form.Item>
+        <SubmitBar loading={submitting} onCancel={onClose} onSubmit={onSubmit} />
+      </Form>
+    </AppModal>
+  );
+}
+
+interface StartSshModalProps {
+  readonly visible: boolean;
+  readonly t: TFunction;
+  readonly form: FormInstance<StartDeployTaskPayload>;
+  readonly credentials: DeployCredentialRow[];
+  readonly startSubmitting: boolean;
+  readonly onClose: () => void;
+  readonly onSubmit: () => void;
+}
+
+function StartSshModal({
+  visible,
+  t,
+  form,
+  credentials,
+  startSubmitting,
+  onClose,
+  onSubmit,
+}: StartSshModalProps) {
+  return (
+    <AppModal
+      title={t('business.deploy.task.startSshTitle')}
+      visible={visible}
+      footer={null}
+      onCancel={onClose}
+    >
+      <Space direction="vertical" size={12} style={{ width: '100%' }}>
+        <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
+          {t('business.deploy.task.startSshHint')}
+        </Typography.Paragraph>
+        <Form form={form} layout="vertical">
+          <Form.Item
+            field="credentialRefId"
+            label={t('business.deploy.task.credentialRefId')}
+            rules={[{ required: true, message: t('business.deploy.task.credentialRefIdRequired') }]}
+          >
+            <Select placeholder={t('business.deploy.task.credentialRefIdPlaceholder')}>
+              {credentials
+                .filter((item) => item.status === 'active')
+                .map((item) => (
+                  <Select.Option key={item.id} value={item.id}>
+                    {item.name}（{item.username} ·{' '}
+                    {item.authMode === 'private_key'
+                      ? t('business.deploy.task.authMode.privateKey')
+                      : t('business.deploy.task.authMode.password')}
+                    ）
+                  </Select.Option>
+                ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            field="hostFingerprint"
+            label={t('business.deploy.task.hostFingerprint')}
+            rules={[{ required: true, message: t('business.deploy.task.sshHostKeyRequired') }]}
+          >
+            <Input placeholder={t('business.deploy.task.hostFingerprintPlaceholder')} />
+          </Form.Item>
+          <SubmitBar loading={startSubmitting} onCancel={onClose} onSubmit={onSubmit} />
+        </Form>
+      </Space>
+    </AppModal>
   );
 }
 
@@ -640,31 +1043,32 @@ export default function DeployTaskDetail() {
     ];
   }, [task, t]);
 
-  const activeTaskStatus = (task?.status || 'draft') as DeployTaskStatus;
-  const taskFlowItems = useMemo(
-    () =>
-      taskStatusFlow.map((item) => ({
-        ...item,
-        active: item.key === activeTaskStatus,
-        reached:
-          item.key === activeTaskStatus ||
-          (activeTaskStatus === 'running' && ['draft', 'pending'].includes(item.key)) ||
-          (activeTaskStatus === 'success' && ['draft', 'pending', 'running'].includes(item.key)) ||
-          (activeTaskStatus === 'failed' && ['draft', 'pending', 'running'].includes(item.key)) ||
-          (activeTaskStatus === 'canceled' && ['draft', 'pending', 'running'].includes(item.key)),
-      })),
-    [activeTaskStatus],
-  );
+  const taskFlowItems = useMemo(() => {
+    const activeTaskStatus = (task?.status || 'draft') as DeployTaskStatus;
+    return taskStatusFlow.map((item) => ({
+      ...item,
+      active: item.key === activeTaskStatus,
+      reached: isTaskStatusReached(item.key, activeTaskStatus),
+    }));
+  }, [task]);
 
-  const canStartTask = Boolean(task && canStart && ['draft', 'pending'].includes(task.status));
-  const canCancelTask = Boolean(task && canCancel && ['pending', 'running'].includes(task.status));
-  const canPauseTask = Boolean(task && canPause && task.status === 'running');
-  const canResumeTask = Boolean(task && canResume && task.status === 'paused');
-  const canRetryTask = Boolean(task && canRetry && task.status === 'failed');
-  const canEditTask = Boolean(task && canUpdate && ['draft', 'pending'].includes(task.status));
-  const canDeleteTask = Boolean(
-    task && canDelete && !['running', 'pause_requested', 'cancel_requested'].includes(task.status),
-  );
+  const {
+    canStartTask,
+    canCancelTask,
+    canPauseTask,
+    canResumeTask,
+    canRetryTask,
+    canEditTask,
+    canDeleteTask,
+  } = resolveTaskActionPermissions(task, {
+    canStart,
+    canCancel,
+    canPause,
+    canResume,
+    canRetry,
+    canUpdate,
+    canDelete,
+  });
 
   const openResult = (row: DeployTaskHostRow) => {
     setSelectedHost(row);
@@ -862,88 +1266,15 @@ export default function DeployTaskDetail() {
 
   return (
     <PageContainer>
-      <BusinessPageHeader
-        title={task.name}
-        subtitle={t('operations.deploy.task.detail')}
-        extra={
-          <Space wrap>
-            {['pending', 'running', 'pause_requested', 'cancel_requested'].includes(task.status) ? (
-              <Tag color={streamConnected ? 'green' : 'orange'}>
-                {t(
-                  streamConnected
-                    ? 'business.deploy.task.stream.live'
-                    : 'business.deploy.task.stream.fallback',
-                )}
-              </Tag>
-            ) : null}
-            <Button icon={<IconLeft />} onClick={() => navigate('/business/deploy/task')}>
-              {t('common.back')}
-            </Button>
-          </Space>
-        }
+      <TaskDetailHeader
+        task={task}
+        streamConnected={streamConnected}
+        t={t}
+        navigate={navigate}
       />
       <Space direction="vertical" size={16} className="system-page-template">
-        <Card className="page-panel system-page-hero">
-          <div className="system-page-hero__top">
-            <div className="system-page-hero__copy">
-              <span className="system-page-hero__eyebrow">
-                {t('business.deploy.task.hero.eyebrow')}
-              </span>
-              <Typography.Title heading={5} className="system-page-hero__title">
-                {task.name}
-              </Typography.Title>
-              <Typography.Paragraph className="system-page-hero__desc">
-                {t('business.deploy.task.detailLead')}
-              </Typography.Paragraph>
-            </div>
-            <Tag color={statusColorMap[task.status] || 'gray'}>
-              {t(`business.deploy.task.status.${task.status}`)}
-            </Tag>
-          </div>
-          <div className="deploy-page__hero-grid">
-            {heroStats.map((item) => (
-              <div key={item.key} className="deploy-page__metric">
-                <span className="deploy-page__metric-label">{item.label}</span>
-                <span className="deploy-page__metric-value">{item.value}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-        <Card className="page-panel">
-          <Space direction="vertical" size={12} style={{ width: '100%' }}>
-            <Typography.Text style={{ fontWeight: 600 }}>
-              {t('business.deploy.task.statusFlowTitle')}
-            </Typography.Text>
-            <ul
-              className="deploy-page__status-flow"
-              style={{ listStyle: 'none', margin: 0, padding: 0 }}
-              aria-label={t('business.deploy.task.statusFlowTitle')}
-            >
-              {taskFlowItems.map((item) => (
-                <li
-                  key={item.key}
-                  className={[
-                    'deploy-page__status-step',
-                    item.active ? 'is-active' : '',
-                    item.reached ? 'is-reached' : '',
-                    item.kind === 'terminal' ? 'is-terminal' : '',
-                    item.kind === 'cancel' ? 'is-cancel' : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                >
-                  <span className="deploy-page__status-dot" />
-                  <span className="deploy-page__status-label">
-                    {t(`business.deploy.task.status.${item.key}`)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <Typography.Text type="secondary">
-              {t('business.deploy.task.statusFlowHint')}
-            </Typography.Text>
-          </Space>
-        </Card>
+        <TaskHeroCard task={task} t={t} heroStats={heroStats} />
+        <StatusFlowCard t={t} taskFlowItems={taskFlowItems} />
         <TaskActionsCard
           task={task}
           t={t}
@@ -967,15 +1298,7 @@ export default function DeployTaskDetail() {
         <Card className="page-panel">
           <Descriptions column={2} data={buildTaskDetailItems(task, t)} />
         </Card>
-        {templateParamItems.length > 0 ? (
-          <Card className="page-panel">
-            <Descriptions
-              column={2}
-              title={t('business.deploy.task.templateParams')}
-              data={templateParamItems}
-            />
-          </Card>
-        ) : null}
+        <TemplateParamsCard t={t} items={templateParamItems} />
         <Card className="page-panel system-list__table-card">
           <Space direction="vertical" size={12} style={{ width: '100%' }}>
             <div className="deploy-page__section-top">
@@ -1014,152 +1337,25 @@ export default function DeployTaskDetail() {
             </AsyncContentState>
           </Space>
         </Card>
-        {task.hosts?.length ? (
-          <Space direction="vertical" size={16} style={{ width: '100%' }}>
-            {task.hosts.map((host) => (
-              <Card key={host.id} className="page-panel">
-                <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                      width: '100%',
-                    }}
-                  >
-                    <Space direction="vertical" size={2}>
-                      <Typography.Text style={{ fontWeight: 600 }}>{host.hostname}</Typography.Text>
-                      <Typography.Text type="secondary">
-                        {host.hostIp}
-                        {host.startedAt ? ` / ${formatDateTime(host.startedAt)}` : ''}
-                        {host.durationSeconds ? ` / ${host.durationSeconds}s` : ''}
-                      </Typography.Text>
-                    </Space>
-                    <Tag color={statusColorMap[host.status] || 'gray'}>
-                      {t(`business.deploy.task.hostStatus.${host.status}`)}
-                    </Tag>
-                  </div>
-                  <AppTable<DeployTraceRow>
-                    rowKey="traceKey"
-                    columns={processColumns}
-                    data={buildTraceRows(host)}
-                    pagination={false}
-                    size="small"
-                  />
-                  <Divider style={{ margin: '12px 0' }} />
-                  <Descriptions
-                    column={1}
-                    data={[
-                      {
-                        label: t('business.deploy.task.stdout'),
-                        value: (
-                          <Typography.Paragraph
-                            className="deploy-page__log"
-                            copyable={Boolean(host.stdout)}
-                          >
-                            {host.stdout || '-'}
-                          </Typography.Paragraph>
-                        ),
-                      },
-                      {
-                        label: t('business.deploy.task.stderr'),
-                        value: (
-                          <Typography.Paragraph
-                            className="deploy-page__log"
-                            copyable={Boolean(host.stderr)}
-                          >
-                            {host.stderr || '-'}
-                          </Typography.Paragraph>
-                        ),
-                      },
-                    ]}
-                  />
-                </Space>
-              </Card>
-            ))}
-          </Space>
-        ) : null}
+        <HostTraceCards t={t} hosts={task.hosts} processColumns={processColumns} />
       </Space>
-      <AppModal
-        title={t('business.deploy.task.markFailedAction')}
+      <MarkResultModal
         visible={visible}
-        footer={null}
-        onCancel={closeResultModal}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item field="stdout" label={t('business.deploy.task.stdout')}>
-            <Input.TextArea className="deploy-page__log" autoSize={{ minRows: 2, maxRows: 5 }} />
-          </Form.Item>
-          <Form.Item field="stderr" label={t('business.deploy.task.stderr')}>
-            <Input.TextArea className="deploy-page__log" autoSize={{ minRows: 2, maxRows: 5 }} />
-          </Form.Item>
-          <Form.Item
-            field="errorMessage"
-            label={t('business.deploy.task.errorMessage')}
-            rules={[
-              {
-                validator: (value, callback) => {
-                  if (String(value || '').trim() !== '') {
-                    callback();
-                    return;
-                  }
-                  callback(t('business.deploy.taskHost.markFailed.reasonRequired'));
-                },
-              },
-            ]}
-          >
-            <Input />
-          </Form.Item>
-          <SubmitBar loading={submitting} onCancel={closeResultModal} onSubmit={handleSubmit} />
-        </Form>
-      </AppModal>
-      <AppModal
-        title={t('business.deploy.task.startSshTitle')}
+        t={t}
+        form={form}
+        submitting={submitting}
+        onClose={closeResultModal}
+        onSubmit={handleSubmit}
+      />
+      <StartSshModal
         visible={startVisible}
-        footer={null}
-        onCancel={closeStartModal}
-      >
-        <Space direction="vertical" size={12} style={{ width: '100%' }}>
-          <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
-            {t('business.deploy.task.startSshHint')}
-          </Typography.Paragraph>
-          <Form form={startForm} layout="vertical">
-            <Form.Item
-              field="credentialRefId"
-              label={t('business.deploy.task.credentialRefId')}
-              rules={[
-                { required: true, message: t('business.deploy.task.credentialRefIdRequired') },
-              ]}
-            >
-              <Select placeholder={t('business.deploy.task.credentialRefIdPlaceholder')}>
-                {credentials
-                  .filter((item) => item.status === 'active')
-                  .map((item) => (
-                    <Select.Option key={item.id} value={item.id}>
-                      {item.name}（{item.username} ·{' '}
-                      {item.authMode === 'private_key'
-                        ? t('business.deploy.task.authMode.privateKey')
-                        : t('business.deploy.task.authMode.password')}
-                      ）
-                    </Select.Option>
-                  ))}
-              </Select>
-            </Form.Item>
-            <Form.Item
-              field="hostFingerprint"
-              label={t('business.deploy.task.hostFingerprint')}
-              rules={[{ required: true, message: t('business.deploy.task.sshHostKeyRequired') }]}
-            >
-              <Input placeholder={t('business.deploy.task.hostFingerprintPlaceholder')} />
-            </Form.Item>
-            <SubmitBar
-              loading={startSubmitting}
-              onCancel={closeStartModal}
-              onSubmit={submitStart}
-            />
-          </Form>
-        </Space>
-      </AppModal>
+        t={t}
+        form={startForm}
+        credentials={credentials}
+        startSubmitting={startSubmitting}
+        onClose={closeStartModal}
+        onSubmit={submitStart}
+      />
     </PageContainer>
   );
 }

@@ -62,9 +62,9 @@ type StepResult struct {
 	Changed      bool
 }
 
-// LogSink receives appended log output for a step, keyed by stream
+// LogWriter receives appended log output for a step, keyed by stream
 // (for example "stdout" or "stderr").
-type LogSink interface {
+type LogWriter interface {
 	WriteLog(taskID, taskHostID uint64, stepKey, stream, content string)
 }
 
@@ -82,7 +82,7 @@ type StepProvider interface {
 	// Validate checks a plan before execution starts.
 	Validate(ctx context.Context, plan ExecutionPlan) error
 	// ExecuteStep runs one step and reports its result.
-	ExecuteStep(ctx context.Context, req StepRequest, logSink LogSink) StepResult
+	ExecuteStep(ctx context.Context, req StepRequest, logWriter LogWriter) StepResult
 	// Cancel requests cancellation of an in-flight execution.
 	Cancel(ctx context.Context, handle ExecutionHandle) error
 }

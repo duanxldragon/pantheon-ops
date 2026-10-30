@@ -440,6 +440,7 @@ jobs:
           GO_LINT_RESULT: ${{ needs.go-lint.result }}
           DUPLICATION_RESULT: ${{ needs.duplication.result }}
           SMOKE_SANITY_RESULT: ${{ needs.smoke-sanity.result }}
+          EXPECTED_RESULT: success
         run: |
           FRONTEND_CONTRACT_REQUIRED=true
           SMOKE_SANITY_REQUIRED=true
@@ -457,17 +458,17 @@ jobs:
           echo "Smoke Sanity: ${SMOKE_SANITY_RESULT}"
           echo "Frontend Contract Required: ${FRONTEND_CONTRACT_REQUIRED}"
           echo "Smoke Sanity Required: ${SMOKE_SANITY_REQUIRED}"
-          if [ "${DOCS_GOVERNANCE_RESULT}" != "success" ] || \
-             [ "${DUPLICATION_RESULT}" != "success" ] || \
-             [ "${BACKEND_TESTS_RESULT}" != "success" ]; then
+          if [ "${DOCS_GOVERNANCE_RESULT}" != "${EXPECTED_RESULT}" ] || \
+             [ "${DUPLICATION_RESULT}" != "${EXPECTED_RESULT}" ] || \
+             [ "${BACKEND_TESTS_RESULT}" != "${EXPECTED_RESULT}" ]; then
             exit 1
           fi
-          if [ "${FRONTEND_CONTRACT_REQUIRED}" = "true" ] && [ "${FRONTEND_CONTRACT_RESULT}" != "success" ]; then
+          if [ "${FRONTEND_CONTRACT_REQUIRED}" = "true" ] && [ "${FRONTEND_CONTRACT_RESULT}" != "${EXPECTED_RESULT}" ]; then
             exit 1
           fi
-          if [ "${EVENT_NAME}" != "push" ] && [ "${GO_LINT_RESULT}" != "success" ]; then
+          if [ "${EVENT_NAME}" != "push" ] && [ "${GO_LINT_RESULT}" != "${EXPECTED_RESULT}" ]; then
             exit 1
           fi
-          if [ "${SMOKE_SANITY_REQUIRED}" = "true" ] && [ "${SMOKE_SANITY_RESULT}" != "success" ]; then
+          if [ "${SMOKE_SANITY_REQUIRED}" = "true" ] && [ "${SMOKE_SANITY_RESULT}" != "${EXPECTED_RESULT}" ]; then
             exit 1
           fi

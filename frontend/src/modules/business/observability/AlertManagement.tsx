@@ -40,6 +40,26 @@ import {
 
 const { TabPane } = Tabs;
 
+function datasourceStatusColor(status: string): string {
+  if (status === 'healthy') {
+    return 'green';
+  }
+  if (status === 'unhealthy') {
+    return 'red';
+  }
+  return 'gray';
+}
+
+function alertSeverityColor(severity: string): string {
+  if (severity === 'critical') {
+    return 'red';
+  }
+  if (severity === 'warning') {
+    return 'orange';
+  }
+  return 'blue';
+}
+
 const AlertManagement = () => {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
@@ -98,7 +118,7 @@ const AlertManagement = () => {
       dataIndex: 'status',
       width: 100,
       render: (status: string) => (
-        <Tag color={status === 'healthy' ? 'green' : status === 'unhealthy' ? 'red' : 'gray'}>
+        <Tag color={datasourceStatusColor(status)}>
           {status}
         </Tag>
       ),
@@ -143,7 +163,7 @@ const AlertManagement = () => {
       dataIndex: 'severity',
       width: 100,
       render: (severity: string) => (
-        <Tag color={severity === 'critical' ? 'red' : severity === 'warning' ? 'orange' : 'blue'}>
+        <Tag color={alertSeverityColor(severity)}>
           {severity}
         </Tag>
       ),
@@ -204,7 +224,7 @@ const AlertManagement = () => {
       dataIndex: 'severity',
       width: 100,
       render: (severity: string) => (
-        <Tag color={severity === 'critical' ? 'red' : severity === 'warning' ? 'orange' : 'blue'}>
+        <Tag color={alertSeverityColor(severity)}>
           {severity}
         </Tag>
       ),

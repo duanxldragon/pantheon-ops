@@ -23,9 +23,9 @@ import {
   PageEmpty,
   PageError,
   PageLoading,
+  SubmitBar,
   buildStandardPagination,
 } from '../../../../components';
-import { SubmitBar } from '../../../../components';
 import { usePermission } from '../../../../hooks/usePermission';
 import {
   createK8sRelease,

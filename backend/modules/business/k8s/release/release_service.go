@@ -38,6 +38,10 @@ const (
 	defaultRolloutPollInterval = 500 * time.Millisecond
 	maxReleaseTimeout          = 10 * time.Minute
 	maxRolloutPollInterval     = 30 * time.Second
+
+	// SQL fragment and error key shared by the release state transitions below.
+	whereIDAndStatus           = "id = ? AND status = ?"
+	msgResourceVersionConflict = "k8s.release.resource_version_conflict"
 )
 
 var (
@@ -302,7 +306,7 @@ func (s *ReleaseService) Reconcile(id uint64, dataScope *common.DataScopeReq) (*
 	}
 	if record.Status == releaseStatusPending {
 		now := time.Now()
-		if err := s.db.Model(&Release{}).Where("id = ? AND status = ?", record.ID, releaseStatusPending).
+		if err := s.db.Model(&Release{}).Where(whereIDAndStatus, record.ID, releaseStatusPending).
 			Updates(map[string]interface{}{"last_reconciled_at": &now, "updated_at": now}).Error; err != nil {
 			return nil, err
 		}
@@ -385,7 +389,7 @@ func (s *ReleaseService) execute(id uint64, dataScope *common.DataScopeReq) erro
 	}
 
 	now := time.Now()
-	result := s.db.Model(&Release{}).Where("id = ? AND status = ?", id, releaseStatusPending).
+	result := s.db.Model(&Release{}).Where(whereIDAndStatus, id, releaseStatusPending).
 		Updates(map[string]interface{}{"status": releaseStatusApplying, "started_at": &now, "updated_at": now})
 	if result.Error != nil {
 		return result.Error
@@ -552,7 +556,7 @@ func (s *ReleaseService) clientFor(clusterID uint64, dataScope *common.DataScope
 
 func (s *ReleaseService) persistBeforeApply(id uint64, observed workloadObservation) error {
 	now := time.Now()
-	result := s.db.Model(&Release{}).Where("id = ? AND status = ?", id, releaseStatusApplying).Updates(map[string]interface{}{
+	result := s.db.Model(&Release{}).Where(whereIDAndStatus, id, releaseStatusApplying).Updates(map[string]interface{}{
 		"image_before":        observed.Image,
 		"observed_generation": observed.Generation,
 		"observed_revision":   observed.Revision,
@@ -568,7 +572,7 @@ func (s *ReleaseService) persistBeforeApply(id uint64, observed workloadObservat
 
 func (s *ReleaseService) persistTarget(id uint64, target workloadObservation) error {
 	now := time.Now()
-	result := s.db.Model(&Release{}).Where("id = ? AND status = ?", id, releaseStatusApplying).Updates(map[string]interface{}{
+	result := s.db.Model(&Release{}).Where(whereIDAndStatus, id, releaseStatusApplying).Updates(map[string]interface{}{
 		"target_generation": target.Generation,
 		"target_revision":   target.Revision,
 		"updated_at":        now,
@@ -834,65 +838,77 @@ func observeWorkload(ctx context.Context, clientset kubernetes.Interface, worklo
 func applyImage(ctx context.Context, clientset kubernetes.Interface, workloadType, namespace, name, containerName, image string) (workloadObservation, error) {
 	switch normalizeWorkloadType(workloadType) {
 	case "deployment":
-		item, err := clientset.AppsV1().Deployments(namespace).Get(ctx, name, metav1.GetOptions{})
-		if err != nil {
-			return workloadObservation{}, err
-		}
-		if err := setContainerImageStrict(item.Spec.Template.Spec.Containers, containerName, image); err != nil {
-			return workloadObservation{}, err
-		}
-		updated, err := clientset.AppsV1().Deployments(namespace).Update(ctx, item, metav1.UpdateOptions{})
-		if err != nil {
-			if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
-				return workloadObservation{}, common.NewConflict("k8s.release.resource_version_conflict")
-			}
-			return workloadObservation{}, err
-		}
-		target, err := observeDeployment(updated, containerName)
-		target.Generation = updated.Generation
-		target.Revision = ""
-		return target, err
+		return applyImageToDeployment(ctx, clientset, namespace, name, containerName, image)
 	case "statefulset":
-		item, err := clientset.AppsV1().StatefulSets(namespace).Get(ctx, name, metav1.GetOptions{})
-		if err != nil {
-			return workloadObservation{}, err
-		}
-		if err := setContainerImageStrict(item.Spec.Template.Spec.Containers, containerName, image); err != nil {
-			return workloadObservation{}, err
-		}
-		updated, err := clientset.AppsV1().StatefulSets(namespace).Update(ctx, item, metav1.UpdateOptions{})
-		if err != nil {
-			if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
-				return workloadObservation{}, common.NewConflict("k8s.release.resource_version_conflict")
-			}
-			return workloadObservation{}, err
-		}
-		target, err := observeStatefulSet(updated, containerName)
-		target.Generation = updated.Generation
-		target.Revision = ""
-		return target, err
+		return applyImageToStatefulSet(ctx, clientset, namespace, name, containerName, image)
 	case "daemonset":
-		item, err := clientset.AppsV1().DaemonSets(namespace).Get(ctx, name, metav1.GetOptions{})
-		if err != nil {
-			return workloadObservation{}, err
-		}
-		if err := setContainerImageStrict(item.Spec.Template.Spec.Containers, containerName, image); err != nil {
-			return workloadObservation{}, err
-		}
-		updated, err := clientset.AppsV1().DaemonSets(namespace).Update(ctx, item, metav1.UpdateOptions{})
-		if err != nil {
-			if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
-				return workloadObservation{}, common.NewConflict("k8s.release.resource_version_conflict")
-			}
-			return workloadObservation{}, err
-		}
-		target, err := observeDaemonSet(updated, containerName)
-		target.Generation = updated.Generation
-		target.Revision = ""
-		return target, err
+		return applyImageToDaemonSet(ctx, clientset, namespace, name, containerName, image)
 	default:
 		return workloadObservation{}, errReleaseInvalidWorkload
 	}
+}
+
+// asResourceVersionConflict keeps the API server optimistic-locking failures on
+// the release conflict error; other errors pass through unchanged.
+func asResourceVersionConflict(err error) error {
+	if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
+		return common.NewConflict(msgResourceVersionConflict)
+	}
+	return err
+}
+
+func applyImageToDeployment(ctx context.Context, clientset kubernetes.Interface, namespace, name, containerName, image string) (workloadObservation, error) {
+	item, err := clientset.AppsV1().Deployments(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return workloadObservation{}, err
+	}
+	if err := setContainerImageStrict(item.Spec.Template.Spec.Containers, containerName, image); err != nil {
+		return workloadObservation{}, err
+	}
+	updated, err := clientset.AppsV1().Deployments(namespace).Update(ctx, item, metav1.UpdateOptions{})
+	if err != nil {
+		return workloadObservation{}, asResourceVersionConflict(err)
+	}
+	target, err := observeDeployment(updated, containerName)
+	target.Generation = updated.Generation
+	target.Revision = ""
+	return target, err
+}
+
+func applyImageToStatefulSet(ctx context.Context, clientset kubernetes.Interface, namespace, name, containerName, image string) (workloadObservation, error) {
+	item, err := clientset.AppsV1().StatefulSets(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return workloadObservation{}, err
+	}
+	if err := setContainerImageStrict(item.Spec.Template.Spec.Containers, containerName, image); err != nil {
+		return workloadObservation{}, err
+	}
+	updated, err := clientset.AppsV1().StatefulSets(namespace).Update(ctx, item, metav1.UpdateOptions{})
+	if err != nil {
+		return workloadObservation{}, asResourceVersionConflict(err)
+	}
+	target, err := observeStatefulSet(updated, containerName)
+	target.Generation = updated.Generation
+	target.Revision = ""
+	return target, err
+}
+
+func applyImageToDaemonSet(ctx context.Context, clientset kubernetes.Interface, namespace, name, containerName, image string) (workloadObservation, error) {
+	item, err := clientset.AppsV1().DaemonSets(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return workloadObservation{}, err
+	}
+	if err := setContainerImageStrict(item.Spec.Template.Spec.Containers, containerName, image); err != nil {
+		return workloadObservation{}, err
+	}
+	updated, err := clientset.AppsV1().DaemonSets(namespace).Update(ctx, item, metav1.UpdateOptions{})
+	if err != nil {
+		return workloadObservation{}, asResourceVersionConflict(err)
+	}
+	target, err := observeDaemonSet(updated, containerName)
+	target.Generation = updated.Generation
+	target.Revision = ""
+	return target, err
 }
 
 func observeDeployment(item *appsv1.Deployment, containerName string) (workloadObservation, error) {

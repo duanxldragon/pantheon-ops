@@ -18,6 +18,26 @@ import '../../../assets/list-page.css';
 
 const emptyQuery: ServiceListQuery = { keyword: '', status: '', page: 1, pageSize: 20 };
 
+const observedStateColor = (value: string) => {
+  if (value === 'running') {
+    return 'green';
+  }
+  if (value === 'failed') {
+    return 'red';
+  }
+  return 'orange';
+};
+
+const healthStateColor = (value: string) => {
+  if (value === 'healthy') {
+    return 'green';
+  }
+  if (value === 'unhealthy') {
+    return 'red';
+  }
+  return 'gray';
+};
+
 export default function ServiceList() {
   const { t } = useTranslation();
   const [query, setQuery] = useState<ServiceListQuery>(emptyQuery);
@@ -72,8 +92,8 @@ export default function ServiceList() {
       { title: t('business.service.instance.environment'), dataIndex: 'environment', width: 110 },
       { title: t('business.service.instance.target'), dataIndex: 'targetType', width: 100 },
       { title: t('business.service.instance.desired'), dataIndex: 'desiredState', width: 110, render: (_: unknown, row) => <Tag color="arcoblue">{row.desiredState}</Tag> },
-      { title: t('business.service.instance.observed'), dataIndex: 'observedState', width: 120, render: (_: unknown, row) => <Tag color={row.observedState === 'running' ? 'green' : row.observedState === 'failed' ? 'red' : 'orange'}>{row.observedState}</Tag> },
-      { title: t('business.service.instance.health'), dataIndex: 'healthState', width: 110, render: (_: unknown, row) => <Tag color={row.healthState === 'healthy' ? 'green' : row.healthState === 'unhealthy' ? 'red' : 'gray'}>{row.healthState}</Tag> },
+      { title: t('business.service.instance.observed'), dataIndex: 'observedState', width: 120, render: (_: unknown, row) => <Tag color={observedStateColor(row.observedState)}>{row.observedState}</Tag> },
+      { title: t('business.service.instance.health'), dataIndex: 'healthState', width: 110, render: (_: unknown, row) => <Tag color={healthStateColor(row.healthState)}>{row.healthState}</Tag> },
       { title: t('business.service.instance.version'), dataIndex: 'currentVersion', width: 120 },
       {
         title: t('business.service.instance.actions'),

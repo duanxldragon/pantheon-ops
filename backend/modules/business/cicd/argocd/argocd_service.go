@@ -10,6 +10,13 @@ import (
 	"gorm.io/gorm"
 )
 
+// SQL fragments shared by the Argo CD registry queries. They stay package constants so every
+// GORM statement is provably literal (see scripts/check-gorm-sql-literal.mjs).
+const (
+	orderByCreatedAtDesc = "created_at DESC"
+	idWhereClause        = "id = ?"
+)
+
 // ArgoCDService manages ArgoCD resources.
 //
 //nolint:revive // the exported service name keeps the Argo CD domain prefix for API clarity.
@@ -67,7 +74,7 @@ func (s *ArgoCDService) AddServer(req AddServerRequest, createdBy string) (*Serv
 // ListServers returns every registered Argo CD server.
 func (s *ArgoCDService) ListServers() (*ServerListResponse, error) {
 	var records []ArgoCDServer
-	if err := s.db.Order("created_at DESC").Find(&records).Error; err != nil {
+	if err := s.db.Order(orderByCreatedAtDesc).Find(&records).Error; err != nil {
 		return nil, err
 	}
 	items := make([]ServerResponse, len(records))
@@ -220,7 +227,7 @@ func (s *ArgoCDService) ListRepositories(serverID uint64) (*RepositoryListRespon
 	if serverID > 0 {
 		db = db.Where("server_id = ?", serverID)
 	}
-	if err := db.Order("created_at DESC").Find(&records).Error; err != nil {
+	if err := db.Order(orderByCreatedAtDesc).Find(&records).Error; err != nil {
 		return nil, err
 	}
 	items := make([]RepositoryResponse, len(records))
@@ -356,7 +363,7 @@ func (s *ArgoCDService) ListApplications(serverID uint64) (*ApplicationListRespo
 	if serverID > 0 {
 		db = db.Where("server_id = ?", serverID)
 	}
-	if err := db.Order("created_at DESC").Find(&records).Error; err != nil {
+	if err := db.Order(orderByCreatedAtDesc).Find(&records).Error; err != nil {
 		return nil, err
 	}
 	items := make([]ApplicationResponse, len(records))
@@ -399,7 +406,7 @@ func (s *ArgoCDService) UpdateApplication(id uint64, req UpdateApplicationReques
 	if len(updates) == 0 {
 		return nil
 	}
-	return s.db.Model(&ArgoCDApplication{}).Where("id = ?", id).Updates(updates).Error
+	return s.db.Model(&ArgoCDApplication{}).Where(idWhereClause, id).Updates(updates).Error
 }
 
 // DeleteApplication removes the application from Argo CD and from the local registry.

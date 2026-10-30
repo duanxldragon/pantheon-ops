@@ -125,15 +125,101 @@ What makes this a record rather than a suppression:
 - SonarCloud does not expose `POST /api/issues/comment` for this client (HTTP 404 `Unknown url`), so the written
   justification could not be attached to the issue thread; it is carried by this packet and both PR bodies.
 
+## The maintainability residue (round 5)
+
+The maintainer's target is `Issues = 0`, and security alone does not get there: 158 open findings remained, all
+`CODE_SMELL`. This round cleared them by rule, in the file that produced each one — 109 Go findings under
+`backend/modules/business`, 47 TypeScript findings under `frontend/src/modules/business`, and 2 workflow
+literals. Nothing was suppressed: no `//nolint`, no `NOSONAR`, no `eslint-disable`, no `@ts-ignore`, no config
+edit, and no assertion changed. The only test-file edits in the whole diff are the mechanical rename of
+`recordingServiceStateCommand` and one SQL-fragment constant substitution.
+
+How each rule was satisfied, and where the shape was forced by an existing gate rather than chosen:
+
+- `go:S1192` → package-level `const` (never `var`, because `scripts/check-gorm-sql-literal.mjs` only accepts
+  literals or package constants), except `Updates(map…)` keys, which stay inline quoted literals on purpose.
+- `go:S3776` / `typescript:S3776` → guard clauses and per-case helper extraction.
+- `typescript:S3358` → module-level `if/else` resolvers; `typescript:S3863` → merged imports;
+  `typescript:S6571` → a named union with `(string & {})` instead of `… | string`; `typescript:S6551` →
+  `typeof` narrowing instead of `String(…)`; `typescript:S7755` → `.at(-1)`; `typescript:S7770` → `String` used
+  directly.
+- `godre:S8205` → named struct types with identical JSON tags; `godre:S8209` → grouped same-typed parameters;
+  `godre:S8193` → the temporary inlined into its condition; `godre:S8196` → agentive names for single-method
+  interfaces (`InstanceCreator`, `StateTransitioner`, `ServiceInstanceStateApplier`, `LogWriter`).
+- `go:S107` → `appendTaskEvent` and `runTaskStepCheck` take one purpose-built struct (`taskEventInput`,
+  `taskStepHostRun`) instead of nine and eight positional parameters.
+- `go:S1135` → resolved by evidence, differently for each: the ArgoCD webhook auto-sync is implemented behind an
+  `applicationSyncer` seam with three tests, and the reconciler's service-instance stub was deleted because
+  `biz_argocd_application` carries no service-instance association.
+- `githubactions:S1192` → `EXPECTED_RESULT: success` in the aggregate steps.
+
+Resolution was measured rather than asserted. HEAD was mapped finding-by-finding to the enclosing function with
+`gocognit` and re-measured on the working tree: **27 of 27** `go:S3776` targets are at or below the threshold,
+and the whole `backend/modules/business` duplicate-literal inventory went from 871 candidate clusters to 802
+with **no new cluster anywhere** (the two apparent additions were this scanner matching `"automated"` inside
+backtick raw strings in the new webhook test — SonarGo lexes those as one token).
+
+Two regressions were caught by running the gates instead of trusting the fan-out, and both are the interesting
+kind:
+
+1. `tests/scripts/security-workflow.test.mjs` went from green to red, because that base-owned test pins the
+   literal text `[ "${DEPENDENCY_VULNERABILITIES_RESULT}" != "success" ]`. One literal occurrence was restored
+   there and only the other four became `${EXPECTED_RESULT}`; the test is green again and the cluster is still
+   below the duplication threshold.
+2. `golangci-lint --new-from-rev` reported two new-code issues in `deploy`: an extracted helper that was
+   unreachable because its only caller `executeSSHHost` is dead code already at HEAD (`unused`), and three
+   `"paused"` occurrences with `TaskStatusPaused` already declared (`goconst`). The helper was inlined back into
+   its caller and the literals now use the constants; the package re-lints at 0 issues.
+
+Verification for this round: `gofmt` clean, `go build ./...` and `go vet ./...` exit 0,
+`golangci-lint run --new-from-rev=a5b5910` 0 issues, the GORM sensor green with 4 visible waivers plus 13/13
+tests, `check-duplication` green, all governance gates green, frontend `eslint` 0 output, `tsc -b` exit 0,
+`vitest` 230/230, `PANTHEON_CI=true npm run build` exit 0 (which is the run that caught the menu-contract
+const-block coupling), and `node --test tests/scripts/*.test.mjs` failing the same 14 tests as a clean HEAD
+worktree. Eleven Go tests fail against the local MySQL; every one of them fails with a byte-identical message
+in that same HEAD worktree, so none is damage from this round.
+
+## PR-side new code (round 6)
+
+Round 5 was pushed as PR #160 and then judged against the PR analysis, which reports only new-code findings and
+therefore acts as a fast per-push oracle on exactly the lines this branch touches. It returned 12 open issues;
+four were real damage introduced by round 5.
+
+- `go:S8242` — the extracted `taskStepHostRun` stored a `context.Context` as a struct field. The field is gone;
+  `ctx` is a parameter of `executeTaskStep` and `runTaskStepCheck`, matching the rest of that file.
+- `go:S3776` — `buildDeployExecutionSnapshot` (Sonar 18) became `defaultExecutionSnapshotSteps`,
+  `buildTemplateStepSnapshot`, `resolveStepSnapshotPackage` and `validateStepSnapshotParams` plus the two
+  snapshot reason constants, with every branch preserved. The three CMDB `Import` methods now share the
+  base-owned `impexp` header primitives instead of repeating the header-and-row loop three more times.
+- `typescript:S3776` — `AlertCenter` (20), `ServiceCatalog` (17) and `DeployTaskDetail` (25) were decomposed
+  into module-level subcomponents with readonly props shapes and `FormInstance<T>` form props, the pattern the
+  repo already uses in `DeployTaskList.tsx` and `CmdbLabelSchemaList.tsx`.
+- `typescript:S6759` — the two `ClusterDetail` card props are now `Readonly<{…}>`.
+
+The finding worth keeping as a rule: Sonar keys an issue instance on the text hash of its location, so editing a
+statement that was marked FALSE_POSITIVE in round 4 produces a new open instance. The four previously marked GORM
+sinks in `argocd_service.go` and `backup_service.go` were restored to their HEAD text and only the other
+occurrences became package constants; `go:S1192` allows two inline literals per file, so both rules stay satisfied
+and the post-merge re-triage shrinks to the single `ArgoCDService.UpdateApplication` instance.
+
+Verification: `gofmt`/`go build`/`go vet` clean, `golangci-lint run --new-from-rev=a5b5910` 0 issues, GORM sensor
+exit 0 with 4 visible waivers and 13/13 tests, `go test ./... -count=1` exit 0 with no `FAIL` line, frontend
+eslint silent, `tsc -b` exit 0, vitest 230/230, `PANTHEON_CI=true npm run build` exit 0,
+`check:harness-adoption --strict` 0 findings, and `node --test tests/scripts/*.test.mjs` still 177 pass / 14 fail —
+the same 14 pre-existing base-drift failures as the HEAD baseline. The local TS complexity oracle puts every
+previously flagged component at or below the threshold (max 15 across the six files).
+
 ## Explicit gaps
 
-- The legacy smell backlog outside the new-code period is untouched on purpose: 158 open findings, all
-  `CODE_SMELL` — `go:S1192` ×68, `go:S3776` ×27, `typescript:S3358` ×20, `typescript:S3863` ×10, `godre:*` ×10,
-  `typescript:S3776` ×6, `typescript:S6571` ×6, `typescript:S6551` ×3, `go:S107` ×2, `go:S1135` TODO comments ×2,
-  `githubactions:S1192` ×2, `typescript:S7770` ×1, `typescript:S7755` ×1 (facets read back from
-  `/api/issues/search` on `main` after the transition, so this is the post-change count rather than the
-  pre-merge one). Clearing it is a maintainability program,
-  not a security gate, and doing it in this diff would make a security review harder.
+- The 158-finding `CODE_SMELL` backlog is addressed in round 5 rather than deferred, but the acceptance oracle
+  is the next hosted analysis: local `gocognit`/duplicate-literal scans approximate SonarGo and are not the
+  metric, so "Issues = 0" is only claimed after `/api/issues/search` on `main` reads it.
+- Eleven Go tests failed against the developer MySQL in round 5 (`deploy` x4, `bizscope` x3, `observability` x2,
+  `cmdb/host` x1, `lowcode/dynamicmodule` x1). Each reproduced with an identical message in a clean worktree of
+  `a5b5910`, and the isolated `-run` form reproduced them too, so they are environment-dependent and pre-existing.
+  In round 6 the same local MySQL run (`go test ./... -count=1`) exited 0 with no `FAIL` line, which supports that
+  reading rather than the idea that this branch damages them; the hosted `backend-tests` job provisions a fresh
+  `mysql:8.0` and stays the authority.
 - Dependabot-triggered runs still cannot read `SONAR_TOKEN`, so `SonarCloud Scan` stays red on Dependabot
   PRs. Provisioning Dependabot secrets or skipping that actor is a maintainer gate-policy decision.
 - The Vercel check is out of scope by maintainer instruction ("drop the Vercel task"). There is no committed
@@ -149,8 +235,10 @@ What makes this a record rather than a suppression:
 - The gate's `new_coverage` condition (LT 80) reports OK with no value because no coverage report is uploaded,
   so it is not actually evaluated. Treating coverage as a real gate needs a Go coverage pipeline in
   `sonarcloud.yml` first; claiming a passing coverage condition here would be false evidence.
-- The two `go:S1135` TODO comments are not just comments: `argocd_webhook.go:304` logs "triggering sync"
-  without ever parsing the auto-sync policy, and `argocd_reconciler.go:183` only logs instead of updating
-  service instance state through the capability interface. Both conflict with this repository's
-  "extension points must not fake success" principle. Implementing them needs policy parsing and
-  capability wiring, which is feature work; recording it is the honest option, not deleting the TODO.
+- The two `go:S1135` comments are closed, one by implementation and one by deletion. `processGitEvent` now parses
+  the stored Argo CD `syncPolicy` and triggers a sync only when `automated` is present, through
+  `applicationSyncer`, pinned by `argocd_webhook_test.go` (policy table, trigger set, and a failing sync still
+  marks the event processed). The reconciler's `updateServiceInstanceState` stub was deleted instead of
+  implemented: writing a service-instance transition needs an `InstanceID`, and `biz_argocd_application` has no
+  association to a service instance, so the honest outcome is that association gap — recorded above as a
+  follow-up — not a comment that pretends the path exists.

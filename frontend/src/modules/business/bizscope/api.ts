@@ -1,5 +1,4 @@
-import { apiRequest } from '@duanxldragon/pantheon-base-ui';
-import { downloadFile, uploadImportFile } from '@duanxldragon/pantheon-base-ui';
+import { apiRequest, downloadFile, uploadImportFile } from '@duanxldragon/pantheon-base-ui';
 
 export interface BizScopeRow {
   id: number;

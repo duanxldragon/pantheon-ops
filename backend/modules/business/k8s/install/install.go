@@ -16,6 +16,8 @@ import (
 
 const msgParamInvalid = "common.param_invalid"
 
+const msgListFailed = "k8s.install.list_failed"
+
 // Install is a Kubernetes installation wizard record.
 type Install struct {
 	ID          uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
@@ -91,7 +93,7 @@ func (s *InstallService) List(c *gin.Context) {
 		return
 	}
 	if s.db == nil {
-		common.FailWithError(c, common.CodeError, errors.New("database.not_initialized"), "k8s.install.list_failed")
+		common.FailWithError(c, common.CodeError, errors.New("database.not_initialized"), msgListFailed)
 		return
 	}
 	db := s.db.Model(&Install{})
@@ -109,12 +111,12 @@ func (s *InstallService) List(c *gin.Context) {
 	}
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
-		common.FailWithError(c, common.CodeError, err, "k8s.install.list_failed")
+		common.FailWithError(c, common.CodeError, err, msgListFailed)
 		return
 	}
 	var items []Install
 	if err := db.Order("id DESC").Find(&items).Error; err != nil {
-		common.FailWithError(c, common.CodeError, err, "k8s.install.list_failed")
+		common.FailWithError(c, common.CodeError, err, msgListFailed)
 		return
 	}
 	common.Success(c, ListResponse{Items: items, Total: total})

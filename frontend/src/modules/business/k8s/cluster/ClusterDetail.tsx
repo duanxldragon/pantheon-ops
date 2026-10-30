@@ -16,6 +16,7 @@ import {
   Typography,
 } from '@arco-design/web-react';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
+import type { TFunction } from 'i18next';
 import { IconDelete, IconLeft, IconPlus, IconSync } from '@arco-design/web-react/icon';
 import {
   AppModal,
@@ -70,6 +71,310 @@ function parseKeyValue(text: string): Record<string, string> {
   return result;
 }
 
+async function fetchClusterDetail(
+  clusterId: number,
+  setDetail: (value: K8sClusterRow | null) => void,
+  setLoading: (value: boolean) => void,
+  setError: (value: unknown) => void,
+): Promise<void> {
+  if (!clusterId) {
+    return;
+  }
+  setLoading(true);
+  setError(null);
+  try {
+    const result = await getK8sClusterDetail(clusterId);
+    setDetail(result);
+  } catch (requestError) {
+    setError(requestError);
+    setDetail(null);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function fetchClusterCollection<T>(
+  clusterId: number,
+  request: () => Promise<{ items: T[] }>,
+  setItems: (value: T[]) => void,
+  setLoading: (value: boolean) => void,
+  setError: (value: unknown) => void,
+): Promise<void> {
+  if (!clusterId) {
+    return;
+  }
+  setLoading(true);
+  setError(null);
+  try {
+    const result = await request();
+    setItems(result.items);
+  } catch (requestError) {
+    setError(requestError);
+    setItems([]);
+  } finally {
+    setLoading(false);
+  }
+}
+
+function buildNodeColumns(t: TFunction): ColumnProps<K8sNodeRow>[] {
+  return [
+    { title: t('business.k8s.cluster.node.name'), dataIndex: 'name', width: 200 },
+    {
+      title: t('business.k8s.cluster.node.status'),
+      dataIndex: 'status',
+      width: 110,
+      render: (_: unknown, row) => (
+        <Tag color={row.status === 'ready' ? 'green' : 'orange'}>
+          {t(`business.k8s.cluster.node.status.${row.status}`)}
+        </Tag>
+      ),
+    },
+    { title: t('business.k8s.cluster.node.ip'), dataIndex: 'internalIp', width: 150 },
+    { title: t('business.k8s.cluster.node.os'), dataIndex: 'os', width: 180 },
+    { title: t('business.k8s.cluster.node.kubelet'), dataIndex: 'kubeletVersion', width: 130 },
+    { title: t('business.k8s.cluster.node.cpu'), dataIndex: 'cpuCapacity', width: 100 },
+    { title: t('business.k8s.cluster.node.memory'), dataIndex: 'memoryCapacity', width: 120 },
+    { title: t('business.k8s.cluster.node.pods'), dataIndex: 'allocatablePods', width: 100 },
+  ];
+}
+
+function buildNamespaceColumns(options: {
+  t: TFunction;
+  canManage: boolean;
+  clusterId: number;
+  load: () => Promise<void>;
+}): ColumnProps<K8sNamespaceRow>[] {
+  const { t, canManage, clusterId, load } = options;
+  const columns: ColumnProps<K8sNamespaceRow>[] = [
+    { title: t('business.k8s.namespace.name'), dataIndex: 'name', width: 240 },
+    {
+      title: t('business.k8s.namespace.status'),
+      dataIndex: 'status',
+      width: 140,
+      render: (_: unknown, row) => (
+        <Tag color={row.status === 'Active' ? 'green' : 'gray'}>{row.status}</Tag>
+      ),
+    },
+    { title: t('business.k8s.namespace.createdAt'), dataIndex: 'creationTimestamp', width: 200 },
+  ];
+  if (canManage) {
+    columns.push({
+      title: t('common.action'),
+      width: 100,
+      fixed: 'right',
+      render: (_: unknown, row) => (
+        <Popconfirm
+          title={t('business.k8s.namespace.deleteConfirm', { name: row.name })}
+          onOk={async () => {
+            await deleteK8sNamespace(clusterId, row.name);
+            Message.success(t('common.deleteSuccess'));
+            await load();
+          }}
+        >
+          <Button type="text" size="small" status="danger" icon={<IconDelete />}>
+            {t('common.delete')}
+          </Button>
+        </Popconfirm>
+      ),
+    });
+  }
+  return columns;
+}
+
+function buildConfigMapColumns(options: {
+  t: TFunction;
+  canManage: boolean;
+  clusterId: number;
+  load: () => Promise<void>;
+}): ColumnProps<K8sConfigMapRow>[] {
+  const { t, canManage, clusterId, load } = options;
+  const columns: ColumnProps<K8sConfigMapRow>[] = [
+    { title: t('business.k8s.configmap.name'), dataIndex: 'name', width: 240 },
+    { title: t('business.k8s.configmap.namespace'), dataIndex: 'namespace', width: 160 },
+    { title: t('business.k8s.configmap.keyCount'), dataIndex: 'keyCount', width: 100 },
+  ];
+  if (canManage) {
+    columns.push({
+      title: t('common.action'),
+      width: 100,
+      fixed: 'right',
+      render: (_: unknown, row) => (
+        <Popconfirm
+          title={t('business.k8s.configmap.deleteConfirm', { name: row.name })}
+          onOk={async () => {
+            await deleteK8sConfigMap(clusterId, row.namespace, row.name);
+            Message.success(t('common.deleteSuccess'));
+            await load();
+          }}
+        >
+          <Button type="text" size="small" status="danger" icon={<IconDelete />}>
+            {t('common.delete')}
+          </Button>
+        </Popconfirm>
+      ),
+    });
+  }
+  return columns;
+}
+
+function buildSecretColumns(options: {
+  t: TFunction;
+  canManage: boolean;
+  clusterId: number;
+  load: () => Promise<void>;
+}): ColumnProps<K8sSecretRow>[] {
+  const { t, canManage, clusterId, load } = options;
+  const columns: ColumnProps<K8sSecretRow>[] = [
+    { title: t('business.k8s.secret.name'), dataIndex: 'name', width: 240 },
+    { title: t('business.k8s.secret.namespace'), dataIndex: 'namespace', width: 160 },
+    { title: t('business.k8s.secret.type'), dataIndex: 'type', width: 140 },
+    { title: t('business.k8s.secret.keyCount'), dataIndex: 'keyCount', width: 100 },
+  ];
+  if (canManage) {
+    columns.push({
+      title: t('common.action'),
+      width: 100,
+      fixed: 'right',
+      render: (_: unknown, row) => (
+        <Popconfirm
+          title={t('business.k8s.secret.deleteConfirm', { name: row.name })}
+          onOk={async () => {
+            await deleteK8sSecret(clusterId, row.namespace, row.name);
+            Message.success(t('common.deleteSuccess'));
+            await load();
+          }}
+        >
+          <Button type="text" size="small" status="danger" icon={<IconDelete />}>
+            {t('common.delete')}
+          </Button>
+        </Popconfirm>
+      ),
+    });
+  }
+  return columns;
+}
+
+interface ClusterResourceTabProps<T> {
+  readonly loading: boolean;
+  readonly error: unknown;
+  readonly errorText: string;
+  readonly onRetry: () => void | Promise<void>;
+  readonly emptyText: string;
+  readonly data: T[];
+  readonly columns: ColumnProps<T>[];
+  readonly rowKey: string | ((record: T) => string);
+  readonly canManage?: boolean;
+  readonly createLabel?: string;
+  readonly onCreate?: () => void;
+}
+
+function ClusterResourceTab<T>({
+  loading,
+  error,
+  errorText,
+  onRetry,
+  emptyText,
+  data,
+  columns,
+  rowKey,
+  canManage,
+  createLabel,
+  onCreate,
+}: ClusterResourceTabProps<T>) {
+  return (
+    <>
+      {canManage ? (
+        <Space style={{ marginBottom: 12 }}>
+          <Button type="primary" size="small" icon={<IconPlus />} onClick={onCreate}>
+            {createLabel}
+          </Button>
+        </Space>
+      ) : null}
+      {loading ? <PageLoading /> : null}
+      {error && !loading ? (
+        <PageError description={errorText} onRetry={onRetry} />
+      ) : null}
+      {!loading && !error && data.length === 0 ? (
+        <PageEmpty description={emptyText} />
+      ) : null}
+      {!loading && !error && data.length > 0 ? (
+        <AppTable rowKey={rowKey} columns={columns} data={data} pagination={false} scroll={{ x: 'max-content' }} />
+      ) : null}
+    </>
+  );
+}
+
+function ClusterHeroCard({ detail }: Readonly<{ detail: K8sClusterRow }>) {
+  const { t } = useTranslation();
+  return (
+    <Card className="page-panel system-page-hero cmdb-page__hero">
+      <div className="system-page-hero__top">
+        <div className="system-page-hero__copy">
+          <span className="system-page-hero__eyebrow">{t('business.k8s.cluster.hero.eyebrow')}</span>
+          <Typography.Title heading={5} className="system-page-hero__title cmdb-page__hero-title">
+            {detail.name}
+          </Typography.Title>
+          <Typography.Text type="secondary" className="system-page-hero__desc">
+            {detail.apiServer}
+          </Typography.Text>
+        </div>
+      </div>
+      <div className="cmdb-page__hero-grid">
+        <div className="cmdb-page__hero-metric">
+          <span className="cmdb-page__hero-label">{t('business.k8s.cluster.field.status')}</span>
+          <span className="cmdb-page__hero-value">
+            <Tag color={statusColor[detail.status] || 'gray'}>
+              {t(`business.k8s.cluster.status.${detail.status}`)}
+            </Tag>
+          </span>
+        </div>
+        <div className="cmdb-page__hero-metric">
+          <span className="cmdb-page__hero-label">{t('business.k8s.cluster.hero.nodes')}</span>
+          <span className="cmdb-page__hero-value">{`${detail.readyNodes}/${detail.totalNodes}`}</span>
+        </div>
+        <div className="cmdb-page__hero-metric">
+          <span className="cmdb-page__hero-label">{t('business.k8s.cluster.field.pods')}</span>
+          <span className="cmdb-page__hero-value">{`${detail.runningPods}/${detail.totalPods}`}</span>
+        </div>
+        <div className="cmdb-page__hero-metric">
+          <span className="cmdb-page__hero-label">{t('business.k8s.cluster.field.cpu')}</span>
+          <span className="cmdb-page__hero-value">{`${detail.cpuCapacity} C`}</span>
+        </div>
+        <div className="cmdb-page__hero-metric">
+          <span className="cmdb-page__hero-label">{t('business.k8s.cluster.field.memory')}</span>
+          <span className="cmdb-page__hero-value">{`${detail.memoryCapacity} GB`}</span>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function ClusterSummaryCard({ detail }: Readonly<{ detail: K8sClusterRow }>) {
+  const { t } = useTranslation();
+  return (
+    <Card className="page-panel">
+      <FormSection title={t('business.k8s.cluster.summaryTitle')}>
+        <Descriptions
+          column={2}
+          data={[
+            { label: t('business.k8s.cluster.field.code'), value: detail.code },
+            { label: t('business.k8s.cluster.field.name'), value: detail.name },
+            {
+              label: t('business.k8s.cluster.field.environment'),
+              value: t(`business.k8s.cluster.environment.${detail.environment}`),
+            },
+            { label: t('business.k8s.cluster.field.businessScope'), value: detail.businessScopeName || '-' },
+            { label: t('business.k8s.cluster.field.apiServer'), value: detail.apiServer || '-' },
+            { label: t('business.k8s.cluster.field.version'), value: detail.version || '-' },
+            { label: t('business.k8s.cluster.field.lastSyncedAt'), value: detail.lastSyncedAt ? formatDateTime(detail.lastSyncedAt) : '-' },
+            { label: t('business.k8s.cluster.field.remark'), value: detail.remark || '-' },
+          ]}
+        />
+      </FormSection>
+    </Card>
+  );
+}
+
 export default function ClusterDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -103,80 +408,30 @@ export default function ClusterDetail() {
   const clusterId = id ? Number(id) : 0;
   const canManage = hasPerm('business:k8s:cluster:update');
 
-  const loadDetail = useCallback(async () => {
-    if (!clusterId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await getK8sClusterDetail(clusterId);
-      setDetail(result);
-    } catch (requestError) {
-      setError(requestError);
-      setDetail(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [clusterId]);
+  const loadDetail = useCallback(
+    () => fetchClusterDetail(clusterId, setDetail, setLoading, setError),
+    [clusterId],
+  );
 
-  const loadNodes = useCallback(async () => {
-    if (!clusterId) return;
-    setNodesLoading(true);
-    setNodesError(null);
-    try {
-      const result = await getK8sClusterNodes(clusterId);
-      setNodes(result.items);
-    } catch (requestError) {
-      setNodesError(requestError);
-      setNodes([]);
-    } finally {
-      setNodesLoading(false);
-    }
-  }, [clusterId]);
+  const loadNodes = useCallback(
+    () => fetchClusterCollection(clusterId, () => getK8sClusterNodes(clusterId), setNodes, setNodesLoading, setNodesError),
+    [clusterId],
+  );
 
-  const loadNamespaces = useCallback(async () => {
-    if (!clusterId) return;
-    setNamespacesLoading(true);
-    setNamespacesError(null);
-    try {
-      const result = await getK8sNamespaces(clusterId);
-      setNamespaces(result.items);
-    } catch (requestError) {
-      setNamespacesError(requestError);
-      setNamespaces([]);
-    } finally {
-      setNamespacesLoading(false);
-    }
-  }, [clusterId]);
+  const loadNamespaces = useCallback(
+    () => fetchClusterCollection(clusterId, () => getK8sNamespaces(clusterId), setNamespaces, setNamespacesLoading, setNamespacesError),
+    [clusterId],
+  );
 
-  const loadConfigMaps = useCallback(async () => {
-    if (!clusterId) return;
-    setConfigMapsLoading(true);
-    setConfigMapsError(null);
-    try {
-      const result = await getK8sConfigMaps(clusterId);
-      setConfigMaps(result.items);
-    } catch (requestError) {
-      setConfigMapsError(requestError);
-      setConfigMaps([]);
-    } finally {
-      setConfigMapsLoading(false);
-    }
-  }, [clusterId]);
+  const loadConfigMaps = useCallback(
+    () => fetchClusterCollection(clusterId, () => getK8sConfigMaps(clusterId), setConfigMaps, setConfigMapsLoading, setConfigMapsError),
+    [clusterId],
+  );
 
-  const loadSecrets = useCallback(async () => {
-    if (!clusterId) return;
-    setSecretsLoading(true);
-    setSecretsError(null);
-    try {
-      const result = await getK8sSecrets(clusterId);
-      setSecrets(result.items);
-    } catch (requestError) {
-      setSecretsError(requestError);
-      setSecrets([]);
-    } finally {
-      setSecretsLoading(false);
-    }
-  }, [clusterId]);
+  const loadSecrets = useCallback(
+    () => fetchClusterCollection(clusterId, () => getK8sSecrets(clusterId), setSecrets, setSecretsLoading, setSecretsError),
+    [clusterId],
+  );
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -252,132 +507,22 @@ export default function ClusterDetail() {
   }, [clusterId, loadSecrets, secretForm, t]);
 
   const nodeColumns = useMemo<ColumnProps<K8sNodeRow>[]>(
-    () => [
-      { title: t('business.k8s.cluster.node.name'), dataIndex: 'name', width: 200 },
-      {
-        title: t('business.k8s.cluster.node.status'),
-        dataIndex: 'status',
-        width: 110,
-        render: (_: unknown, row) => (
-          <Tag color={row.status === 'ready' ? 'green' : 'orange'}>
-            {t(`business.k8s.cluster.node.status.${row.status}`)}
-          </Tag>
-        ),
-      },
-      { title: t('business.k8s.cluster.node.ip'), dataIndex: 'internalIp', width: 150 },
-      { title: t('business.k8s.cluster.node.os'), dataIndex: 'os', width: 180 },
-      { title: t('business.k8s.cluster.node.kubelet'), dataIndex: 'kubeletVersion', width: 130 },
-      { title: t('business.k8s.cluster.node.cpu'), dataIndex: 'cpuCapacity', width: 100 },
-      { title: t('business.k8s.cluster.node.memory'), dataIndex: 'memoryCapacity', width: 120 },
-      { title: t('business.k8s.cluster.node.pods'), dataIndex: 'allocatablePods', width: 100 },
-    ],
+    () => buildNodeColumns(t),
     [t],
   );
 
   const namespaceColumns = useMemo<ColumnProps<K8sNamespaceRow>[]>(
-    () => {
-      const columns: ColumnProps<K8sNamespaceRow>[] = [
-        { title: t('business.k8s.namespace.name'), dataIndex: 'name', width: 240 },
-        {
-          title: t('business.k8s.namespace.status'),
-          dataIndex: 'status',
-          width: 140,
-          render: (_: unknown, row) => (
-            <Tag color={row.status === 'Active' ? 'green' : 'gray'}>{row.status}</Tag>
-          ),
-        },
-        { title: t('business.k8s.namespace.createdAt'), dataIndex: 'creationTimestamp', width: 200 },
-      ];
-      if (canManage) {
-        columns.push({
-          title: t('common.action'),
-          width: 100,
-          fixed: 'right',
-          render: (_: unknown, row) => (
-            <Popconfirm
-              title={t('business.k8s.namespace.deleteConfirm', { name: row.name })}
-              onOk={async () => {
-                await deleteK8sNamespace(clusterId, row.name);
-                Message.success(t('common.deleteSuccess'));
-                await loadNamespaces();
-              }}
-            >
-              <Button type="text" size="small" status="danger" icon={<IconDelete />}>
-                {t('common.delete')}
-              </Button>
-            </Popconfirm>
-          ),
-        });
-      }
-      return columns;
-    },
+    () => buildNamespaceColumns({ t, canManage, clusterId, load: loadNamespaces }),
     [canManage, clusterId, loadNamespaces, t],
   );
 
   const configMapColumns = useMemo<ColumnProps<K8sConfigMapRow>[]>(
-    () => {
-      const columns: ColumnProps<K8sConfigMapRow>[] = [
-        { title: t('business.k8s.configmap.name'), dataIndex: 'name', width: 240 },
-        { title: t('business.k8s.configmap.namespace'), dataIndex: 'namespace', width: 160 },
-        { title: t('business.k8s.configmap.keyCount'), dataIndex: 'keyCount', width: 100 },
-      ];
-      if (canManage) {
-        columns.push({
-          title: t('common.action'),
-          width: 100,
-          fixed: 'right',
-          render: (_: unknown, row) => (
-            <Popconfirm
-              title={t('business.k8s.configmap.deleteConfirm', { name: row.name })}
-              onOk={async () => {
-                await deleteK8sConfigMap(clusterId, row.namespace, row.name);
-                Message.success(t('common.deleteSuccess'));
-                await loadConfigMaps();
-              }}
-            >
-              <Button type="text" size="small" status="danger" icon={<IconDelete />}>
-                {t('common.delete')}
-              </Button>
-            </Popconfirm>
-          ),
-        });
-      }
-      return columns;
-    },
+    () => buildConfigMapColumns({ t, canManage, clusterId, load: loadConfigMaps }),
     [canManage, clusterId, loadConfigMaps, t],
   );
 
   const secretColumns = useMemo<ColumnProps<K8sSecretRow>[]>(
-    () => {
-      const columns: ColumnProps<K8sSecretRow>[] = [
-        { title: t('business.k8s.secret.name'), dataIndex: 'name', width: 240 },
-        { title: t('business.k8s.secret.namespace'), dataIndex: 'namespace', width: 160 },
-        { title: t('business.k8s.secret.type'), dataIndex: 'type', width: 140 },
-        { title: t('business.k8s.secret.keyCount'), dataIndex: 'keyCount', width: 100 },
-      ];
-      if (canManage) {
-        columns.push({
-          title: t('common.action'),
-          width: 100,
-          fixed: 'right',
-          render: (_: unknown, row) => (
-            <Popconfirm
-              title={t('business.k8s.secret.deleteConfirm', { name: row.name })}
-              onOk={async () => {
-                await deleteK8sSecret(clusterId, row.namespace, row.name);
-                Message.success(t('common.deleteSuccess'));
-                await loadSecrets();
-              }}
-            >
-              <Button type="text" size="small" status="danger" icon={<IconDelete />}>
-                {t('common.delete')}
-              </Button>
-            </Popconfirm>
-          ),
-        });
-      }
-      return columns;
-    },
+    () => buildSecretColumns({ t, canManage, clusterId, load: loadSecrets }),
     [canManage, clusterId, loadSecrets, t],
   );
 
@@ -414,135 +559,66 @@ export default function ClusterDetail() {
         }
       />
       <Space direction="vertical" size={16} className="system-page-template">
-        <Card className="page-panel system-page-hero cmdb-page__hero">
-          <div className="system-page-hero__top">
-            <div className="system-page-hero__copy">
-              <span className="system-page-hero__eyebrow">{t('business.k8s.cluster.hero.eyebrow')}</span>
-              <Typography.Title heading={5} className="system-page-hero__title cmdb-page__hero-title">
-                {detail.name}
-              </Typography.Title>
-              <Typography.Text type="secondary" className="system-page-hero__desc">
-                {detail.apiServer}
-              </Typography.Text>
-            </div>
-          </div>
-          <div className="cmdb-page__hero-grid">
-            <div className="cmdb-page__hero-metric">
-              <span className="cmdb-page__hero-label">{t('business.k8s.cluster.field.status')}</span>
-              <span className="cmdb-page__hero-value">
-                <Tag color={statusColor[detail.status] || 'gray'}>
-                  {t(`business.k8s.cluster.status.${detail.status}`)}
-                </Tag>
-              </span>
-            </div>
-            <div className="cmdb-page__hero-metric">
-              <span className="cmdb-page__hero-label">{t('business.k8s.cluster.hero.nodes')}</span>
-              <span className="cmdb-page__hero-value">{`${detail.readyNodes}/${detail.totalNodes}`}</span>
-            </div>
-            <div className="cmdb-page__hero-metric">
-              <span className="cmdb-page__hero-label">{t('business.k8s.cluster.field.pods')}</span>
-              <span className="cmdb-page__hero-value">{`${detail.runningPods}/${detail.totalPods}`}</span>
-            </div>
-            <div className="cmdb-page__hero-metric">
-              <span className="cmdb-page__hero-label">{t('business.k8s.cluster.field.cpu')}</span>
-              <span className="cmdb-page__hero-value">{`${detail.cpuCapacity} C`}</span>
-            </div>
-            <div className="cmdb-page__hero-metric">
-              <span className="cmdb-page__hero-label">{t('business.k8s.cluster.field.memory')}</span>
-              <span className="cmdb-page__hero-value">{`${detail.memoryCapacity} GB`}</span>
-            </div>
-          </div>
-        </Card>
-        <Card className="page-panel">
-          <FormSection title={t('business.k8s.cluster.summaryTitle')}>
-            <Descriptions
-              column={2}
-              data={[
-                { label: t('business.k8s.cluster.field.code'), value: detail.code },
-                { label: t('business.k8s.cluster.field.name'), value: detail.name },
-                {
-                  label: t('business.k8s.cluster.field.environment'),
-                  value: t(`business.k8s.cluster.environment.${detail.environment}`),
-                },
-                { label: t('business.k8s.cluster.field.businessScope'), value: detail.businessScopeName || '-' },
-                { label: t('business.k8s.cluster.field.apiServer'), value: detail.apiServer || '-' },
-                { label: t('business.k8s.cluster.field.version'), value: detail.version || '-' },
-                { label: t('business.k8s.cluster.field.lastSyncedAt'), value: detail.lastSyncedAt ? formatDateTime(detail.lastSyncedAt) : '-' },
-                { label: t('business.k8s.cluster.field.remark'), value: detail.remark || '-' },
-              ]}
-            />
-          </FormSection>
-        </Card>
+        <ClusterHeroCard detail={detail} />
+        <ClusterSummaryCard detail={detail} />
         <Card className="page-panel">
           <Tabs defaultActiveTab="nodes">
             <Tabs.TabPane key="nodes" title={t('business.k8s.cluster.nodesTab')}>
-              {nodesLoading ? <PageLoading /> : null}
-              {nodesError && !nodesLoading ? (
-                <PageError description={t('business.k8s.cluster.nodesLoadFailed')} onRetry={loadNodes} />
-              ) : null}
-              {!nodesLoading && !nodesError && nodes.length === 0 ? (
-                <PageEmpty description={t('business.k8s.cluster.nodesEmpty')} />
-              ) : null}
-              {!nodesLoading && !nodesError && nodes.length > 0 ? (
-                <AppTable rowKey="name" columns={nodeColumns} data={nodes} pagination={false} scroll={{ x: 'max-content' }} />
-              ) : null}
+              <ClusterResourceTab
+                loading={nodesLoading}
+                error={nodesError}
+                errorText={t('business.k8s.cluster.nodesLoadFailed')}
+                onRetry={loadNodes}
+                emptyText={t('business.k8s.cluster.nodesEmpty')}
+                data={nodes}
+                columns={nodeColumns}
+                rowKey="name"
+              />
             </Tabs.TabPane>
             <Tabs.TabPane key="namespaces" title={t('business.k8s.cluster.namespacesTab')}>
-              {canManage ? (
-                <Space style={{ marginBottom: 12 }}>
-                  <Button type="primary" size="small" icon={<IconPlus />} onClick={() => setNamespaceVisible(true)}>
-                    {t('business.k8s.namespace.create')}
-                  </Button>
-                </Space>
-              ) : null}
-              {namespacesLoading ? <PageLoading /> : null}
-              {namespacesError && !namespacesLoading ? (
-                <PageError description={t('business.k8s.cluster.namespacesLoadFailed')} onRetry={loadNamespaces} />
-              ) : null}
-              {!namespacesLoading && !namespacesError && namespaces.length === 0 ? (
-                <PageEmpty description={t('business.k8s.cluster.namespacesEmpty')} />
-              ) : null}
-              {!namespacesLoading && !namespacesError && namespaces.length > 0 ? (
-                <AppTable rowKey="name" columns={namespaceColumns} data={namespaces} pagination={false} scroll={{ x: 'max-content' }} />
-              ) : null}
+              <ClusterResourceTab
+                loading={namespacesLoading}
+                error={namespacesError}
+                errorText={t('business.k8s.cluster.namespacesLoadFailed')}
+                onRetry={loadNamespaces}
+                emptyText={t('business.k8s.cluster.namespacesEmpty')}
+                data={namespaces}
+                columns={namespaceColumns}
+                rowKey="name"
+                canManage={canManage}
+                createLabel={t('business.k8s.namespace.create')}
+                onCreate={() => setNamespaceVisible(true)}
+              />
             </Tabs.TabPane>
             <Tabs.TabPane key="configmaps" title={t('business.k8s.cluster.configmapsTab')}>
-              {canManage ? (
-                <Space style={{ marginBottom: 12 }}>
-                  <Button type="primary" size="small" icon={<IconPlus />} onClick={() => setConfigMapVisible(true)}>
-                    {t('business.k8s.configmap.create')}
-                  </Button>
-                </Space>
-              ) : null}
-              {configMapsLoading ? <PageLoading /> : null}
-              {configMapsError && !configMapsLoading ? (
-                <PageError description={t('business.k8s.configmap.loadFailed')} onRetry={loadConfigMaps} />
-              ) : null}
-              {!configMapsLoading && !configMapsError && configMaps.length === 0 ? (
-                <PageEmpty description={t('business.k8s.configmap.empty')} />
-              ) : null}
-              {!configMapsLoading && !configMapsError && configMaps.length > 0 ? (
-                <AppTable rowKey={(record) => `${record.namespace}/${record.name}`} columns={configMapColumns} data={configMaps} pagination={false} scroll={{ x: 'max-content' }} />
-              ) : null}
+              <ClusterResourceTab
+                loading={configMapsLoading}
+                error={configMapsError}
+                errorText={t('business.k8s.configmap.loadFailed')}
+                onRetry={loadConfigMaps}
+                emptyText={t('business.k8s.configmap.empty')}
+                data={configMaps}
+                columns={configMapColumns}
+                rowKey={(record) => `${record.namespace}/${record.name}`}
+                canManage={canManage}
+                createLabel={t('business.k8s.configmap.create')}
+                onCreate={() => setConfigMapVisible(true)}
+              />
             </Tabs.TabPane>
             <Tabs.TabPane key="secrets" title={t('business.k8s.cluster.secretsTab')}>
-              {canManage ? (
-                <Space style={{ marginBottom: 12 }}>
-                  <Button type="primary" size="small" icon={<IconPlus />} onClick={() => setSecretVisible(true)}>
-                    {t('business.k8s.secret.create')}
-                  </Button>
-                </Space>
-              ) : null}
-              {secretsLoading ? <PageLoading /> : null}
-              {secretsError && !secretsLoading ? (
-                <PageError description={t('business.k8s.secret.loadFailed')} onRetry={loadSecrets} />
-              ) : null}
-              {!secretsLoading && !secretsError && secrets.length === 0 ? (
-                <PageEmpty description={t('business.k8s.secret.empty')} />
-              ) : null}
-              {!secretsLoading && !secretsError && secrets.length > 0 ? (
-                <AppTable rowKey={(record) => `${record.namespace}/${record.name}`} columns={secretColumns} data={secrets} pagination={false} scroll={{ x: 'max-content' }} />
-              ) : null}
+              <ClusterResourceTab
+                loading={secretsLoading}
+                error={secretsError}
+                errorText={t('business.k8s.secret.loadFailed')}
+                onRetry={loadSecrets}
+                emptyText={t('business.k8s.secret.empty')}
+                data={secrets}
+                columns={secretColumns}
+                rowKey={(record) => `${record.namespace}/${record.name}`}
+                canManage={canManage}
+                createLabel={t('business.k8s.secret.create')}
+                onCreate={() => setSecretVisible(true)}
+              />
             </Tabs.TabPane>
           </Tabs>
         </Card>

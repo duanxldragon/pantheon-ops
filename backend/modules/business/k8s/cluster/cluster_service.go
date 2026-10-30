@@ -202,54 +202,78 @@ func (s *ClusterService) Update(id uint64, req UpdateClusterRequest, updatedBy s
 		return nil, errors.New("database.not_initialized")
 	}
 
-	var encryptedCredential string
-	if req.Kubeconfig != nil && *req.Kubeconfig != "" {
-		if _, err := k8spkg.NewClientFromKubeconfig(*req.Kubeconfig); err != nil {
-			return nil, err
-		}
-		encrypted, err := k8spkg.EncryptKubeconfig(*req.Kubeconfig)
-		if err != nil {
-			return nil, err
-		}
-		encryptedCredential = encrypted
+	encryptedCredential, err := encryptKubeconfigUpdate(req)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := s.WithClusterLock(id, dataScope, func(tx *gorm.DB, cluster *Cluster) error {
-		updates := map[string]interface{}{"updated_by": updatedBy, "updated_at": time.Now()}
-		if req.Name != nil {
-			updates["name"] = *req.Name
-		}
-		if req.Environment != nil {
-			updates["environment"] = *req.Environment
-		}
-		if req.Remark != nil {
-			updates["remark"] = *req.Remark
-		}
-		if req.BusinessScopeID != nil {
-			if *req.BusinessScopeID == 0 {
-				updates["business_scope_id"] = uint64(0)
-				updates["business_scope_name"] = ""
-			} else {
-				scope, err := s.getBusinessScope(*req.BusinessScopeID, dataScope)
-				if err != nil {
-					return err
-				}
-				updates["business_scope_id"] = scope.ID
-				updates["business_scope_name"] = scope.Name
-				updates["dept_id"] = scope.DeptID
-			}
-		}
-		if encryptedCredential != "" {
-			updates["api_server"] = k8spkg.ExtractAPIServer(*req.Kubeconfig)
-			if err := s.rotateCredentialInTransaction(tx, cluster, encryptedCredential, updates); err != nil {
-				return err
-			}
+		updates, err := s.buildClusterUpdates(tx, cluster, req, updatedBy, encryptedCredential, dataScope)
+		if err != nil {
+			return err
 		}
 		return tx.Model(cluster).Updates(updates).Error
 	}); err != nil {
 		return nil, err
 	}
 	return s.GetByID(id, dataScope)
+}
+
+// encryptKubeconfigUpdate validates and encrypts a replacement kubeconfig; an
+// empty result means the request carries no new credential.
+func encryptKubeconfigUpdate(req UpdateClusterRequest) (string, error) {
+	if req.Kubeconfig == nil || *req.Kubeconfig == "" {
+		return "", nil
+	}
+	if _, err := k8spkg.NewClientFromKubeconfig(*req.Kubeconfig); err != nil {
+		return "", err
+	}
+	return k8spkg.EncryptKubeconfig(*req.Kubeconfig)
+}
+
+// buildClusterUpdates assembles the columns of an Update inside the caller's
+// transaction, rotating the stored credential when a new kubeconfig arrived.
+func (s *ClusterService) buildClusterUpdates(tx *gorm.DB, cluster *Cluster, req UpdateClusterRequest, updatedBy, encryptedCredential string, dataScope *common.DataScopeReq) (map[string]interface{}, error) {
+	updates := map[string]interface{}{"updated_by": updatedBy, "updated_at": time.Now()}
+	if req.Name != nil {
+		updates["name"] = *req.Name
+	}
+	if req.Environment != nil {
+		updates["environment"] = *req.Environment
+	}
+	if req.Remark != nil {
+		updates["remark"] = *req.Remark
+	}
+	if req.BusinessScopeID != nil {
+		if err := s.applyBusinessScopeUpdate(updates, *req.BusinessScopeID, dataScope); err != nil {
+			return nil, err
+		}
+	}
+	if encryptedCredential != "" {
+		updates["api_server"] = k8spkg.ExtractAPIServer(*req.Kubeconfig)
+		if err := s.rotateCredentialInTransaction(tx, cluster, encryptedCredential, updates); err != nil {
+			return nil, err
+		}
+	}
+	return updates, nil
+}
+
+// applyBusinessScopeUpdate resolves the target business scope, or clears the
+// scope columns when the caller asks for scope id 0.
+func (s *ClusterService) applyBusinessScopeUpdate(updates map[string]interface{}, businessScopeID uint64, dataScope *common.DataScopeReq) error {
+	if businessScopeID == 0 {
+		updates["business_scope_id"] = uint64(0)
+		updates["business_scope_name"] = ""
+		return nil
+	}
+	scope, err := s.getBusinessScope(businessScopeID, dataScope)
+	if err != nil {
+		return err
+	}
+	updates["business_scope_id"] = scope.ID
+	updates["business_scope_name"] = scope.Name
+	updates["dept_id"] = scope.DeptID
+	return nil
 }
 
 // Delete removes a Kubernetes cluster when no owner-module references remain.

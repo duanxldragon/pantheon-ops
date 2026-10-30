@@ -14,6 +14,7 @@ import {
 } from '@arco-design/web-react';
 import { IconDelete, IconDownload, IconEdit, IconPlus, IconTags } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
+import type { TFunction } from 'i18next';
 import {
   AppModal,
   AppTable,
@@ -53,6 +54,294 @@ import '../cmdb.css';
 type LabelFormValues = LabelSchemaPayload & {
   presetKey?: string;
 };
+
+function buildLabelSchemaColumns(options: {
+  t: TFunction;
+  canUpdate: boolean;
+  canDelete: boolean;
+  onEdit: (row: LabelSchemaRow) => void;
+  removeRow: (row: LabelSchemaRow) => Promise<void>;
+}): ColumnProps<LabelSchemaRow>[] {
+  const { t, canUpdate, canDelete, onEdit, removeRow } = options;
+  return [
+    {
+      title: t('business.cmdb.label.schema.key'),
+      dataIndex: 'key',
+      width: 140,
+      render: (_: unknown, row) => <Tag color="arcoblue">{row.key}</Tag>,
+    },
+    {
+      title: t('business.cmdb.label.schema.name'),
+      dataIndex: 'name',
+      width: 160,
+    },
+    {
+      title: t('business.cmdb.label.schema.category'),
+      dataIndex: 'category',
+      width: 140,
+      render: (_: unknown, row) => (
+        <Tag color="purple">{t(`business.cmdb.label.category.${row.category}`)}</Tag>
+      ),
+    },
+    {
+      title: t('business.cmdb.label.schema.valueMode'),
+      dataIndex: 'valueMode',
+      width: 140,
+      render: (_: unknown, row) => t(`business.cmdb.label.valueMode.${row.valueMode}`),
+    },
+    {
+      title: t('business.cmdb.label.schema.dictCode'),
+      dataIndex: 'dictCode',
+      width: 160,
+      render: (_: unknown, row) => row.dictCode || '-',
+    },
+    {
+      title: t('business.cmdb.label.schema.options'),
+      dataIndex: 'options',
+      width: 260,
+      render: (_: unknown, row) =>
+        row.options?.length ? (
+          <Space wrap size={4}>
+            {row.options.map((option) => (
+              <Tag key={option} size="small">
+                {option}
+              </Tag>
+            ))}
+          </Space>
+        ) : (
+          '-'
+        ),
+    },
+    {
+      title: t('business.cmdb.label.schema.required'),
+      dataIndex: 'required',
+      width: 100,
+      render: (_: unknown, row) => (
+        <Tag color={row.required ? 'orange' : 'gray'}>
+          {row.required ? t('common.yes') : t('common.no')}
+        </Tag>
+      ),
+    },
+    {
+      title: t('business.cmdb.label.schema.status'),
+      dataIndex: 'status',
+      width: 120,
+      render: (_: unknown, row) => (
+        <Tag color={row.status === 'enabled' ? 'green' : 'gray'}>
+          {t(`business.cmdb.label.status.${row.status}`)}
+        </Tag>
+      ),
+    },
+    {
+      title: t('business.cmdb.label.schema.description'),
+      dataIndex: 'description',
+      width: 240,
+      render: (_: unknown, row) => row.description || '-',
+    },
+    {
+      title: t('common.action'),
+      key: 'action',
+      fixed: 'right',
+      width: TABLE_ACTION_COLUMN_WIDTH.compact,
+      render: (_: unknown, row) => (
+        <Space className="system-list__actions">
+          {canUpdate ? (
+            <Button
+              type="text"
+              size="small"
+              icon={<IconEdit />}
+              onClick={() => {
+                onEdit(row);
+              }}
+            >
+              {t('common.edit')}
+            </Button>
+          ) : null}
+          {canDelete ? (
+            <Popconfirm
+              title={t('business.cmdb.label.deleteConfirm')}
+              onOk={async () => {
+                await removeRow(row);
+              }}
+            >
+              <Button type="text" size="small" status="danger" icon={<IconDelete />}>
+                {t('common.delete')}
+              </Button>
+            </Popconfirm>
+          ) : null}
+        </Space>
+      ),
+    },
+  ];
+}
+
+interface LabelSchemaTablePanelProps {
+  readonly loading: boolean;
+  readonly error: unknown;
+  readonly data: LabelSchemaRow[];
+  readonly columns: ColumnProps<LabelSchemaRow>[];
+  readonly page: number;
+  readonly pageSize: number;
+  readonly total: number;
+  readonly selectedRowKeys: Array<string | number>;
+  readonly onSelect: (rowKeys: Array<string | number>) => void;
+  readonly onRetry: () => void | Promise<void>;
+  readonly setPage: (value: number) => void;
+  readonly setPageSize: (value: number) => void;
+}
+
+function LabelSchemaTablePanel({
+  loading,
+  error,
+  data,
+  columns,
+  page,
+  pageSize,
+  total,
+  selectedRowKeys,
+  onSelect,
+  onRetry,
+  setPage,
+  setPageSize,
+}: LabelSchemaTablePanelProps) {
+  const { t } = useTranslation();
+  return (
+    <Card className="page-panel system-list__table-card">
+      {loading && data.length === 0 ? <PageLoading /> : null}
+      {!loading && error && data.length === 0 ? (
+        <PageError description={t('common.loadFailedDesc')} onRetry={onRetry} />
+      ) : null}
+      {!loading && !error && data.length === 0 ? (
+        <PageEmpty description={t('business.cmdb.label.empty')} />
+      ) : null}
+      {!loading && !(error && data.length === 0) && data.length > 0 ? (
+        <AppTable
+          columns={columns}
+          data={data}
+          loading={loading}
+          rowKey="id"
+          rowSelection={{
+            type: 'checkbox',
+            selectedRowKeys,
+            checkCrossPage: true,
+            preserveSelectedRowKeys: true,
+            fixed: true,
+            onChange: onSelect,
+          }}
+          pagination={buildStandardPagination(t, {
+            current: page,
+            pageSize,
+            total,
+            onChange: (nextPage, nextPageSize) => {
+              setPage(nextPage || 1);
+              if (nextPageSize && nextPageSize !== pageSize) {
+                setPageSize(nextPageSize);
+                setPage(1);
+              }
+            },
+            pageSizeChangeResetCurrent: true,
+          })}
+          scroll={{ x: 'max-content' }}
+        />
+      ) : null}
+    </Card>
+  );
+}
+
+interface LabelSchemaBatchBarProps {
+  readonly canCreate: boolean;
+  readonly canExport: boolean;
+  readonly canImport: boolean;
+  readonly canDelete: boolean;
+  readonly selectedCount: number;
+  readonly submitting: boolean;
+  readonly onCreate: () => void;
+  readonly onExport: () => void;
+  readonly onDownloadTemplate: () => void;
+  readonly onImport: (file: File) => Promise<void>;
+  readonly onDeleteSelected: () => void;
+  readonly onClear: () => void;
+}
+
+function LabelSchemaBatchBar({
+  canCreate,
+  canExport,
+  canImport,
+  canDelete,
+  selectedCount,
+  submitting,
+  onCreate,
+  onExport,
+  onDownloadTemplate,
+  onImport,
+  onDeleteSelected,
+  onClear,
+}: LabelSchemaBatchBarProps) {
+  const { t } = useTranslation();
+  return (
+    <TableBatchActionBar
+      selectedCount={selectedCount}
+      selectedText={t('common.selectedCount', { count: selectedCount })}
+      clearText={t('common.clearSelection')}
+      clearSuccessText={t('common.clearSelectionSuccess')}
+      onClear={onClear}
+      prefixActions={
+        canCreate ? (
+          <ListHeaderActions
+            primary={
+              <Button
+                type="primary"
+                icon={<IconPlus />}
+                onClick={onCreate}
+              >
+                {t('common.add')}
+              </Button>
+            }
+            utility={
+              <>
+                {canExport ? (
+                  <Button icon={<IconDownload />} onClick={onExport}>
+                    {t('common.export')}
+                  </Button>
+                ) : null}
+                {canImport ? (
+                  <>
+                    <Button icon={<IconDownload />} onClick={onDownloadTemplate}>
+                      {t('common.downloadTemplate')}
+                    </Button>
+                    <ImportCsvButton disabled={!canImport} onSelect={onImport}>
+                      {t('common.import')}
+                    </ImportCsvButton>
+                  </>
+                ) : null}
+              </>
+            }
+          />
+        ) : undefined
+      }
+      actions={
+        canDelete ? (
+          <Popconfirm
+            title={t('common.deleteConfirm')}
+            onOk={() => {
+              onDeleteSelected();
+            }}
+            disabled={selectedCount === 0 || submitting}
+          >
+            <Button
+              status="danger"
+              icon={<IconDelete />}
+              disabled={selectedCount === 0 || submitting}
+              loading={submitting}
+            >
+              {t('common.deleteSelected')}
+            </Button>
+          </Popconfirm>
+        ) : undefined
+      }
+    />
+  );
+}
 
 export default function CmdbLabelSchemaList() {
   const { t } = useTranslation();
@@ -274,121 +563,20 @@ export default function CmdbLabelSchemaList() {
     [data, t],
   );
 
+  const openEdit = useCallback((row: LabelSchemaRow) => {
+    setEditing(row);
+    setVisible(true);
+  }, []);
+
+  const removeRow = useCallback(async (row: LabelSchemaRow) => {
+    await deleteLabelSchema(row.id);
+    Message.success(t('common.deleteSuccess'));
+    await loadData();
+  }, [loadData, t]);
+
   const columns = useMemo<ColumnProps<LabelSchemaRow>[]>(
-    () => [
-      {
-        title: t('business.cmdb.label.schema.key'),
-        dataIndex: 'key',
-        width: 140,
-        render: (_: unknown, row) => <Tag color="arcoblue">{row.key}</Tag>,
-      },
-      {
-        title: t('business.cmdb.label.schema.name'),
-        dataIndex: 'name',
-        width: 160,
-      },
-      {
-        title: t('business.cmdb.label.schema.category'),
-        dataIndex: 'category',
-        width: 140,
-        render: (_: unknown, row) => (
-          <Tag color="purple">{t(`business.cmdb.label.category.${row.category}`)}</Tag>
-        ),
-      },
-      {
-        title: t('business.cmdb.label.schema.valueMode'),
-        dataIndex: 'valueMode',
-        width: 140,
-        render: (_: unknown, row) => t(`business.cmdb.label.valueMode.${row.valueMode}`),
-      },
-      {
-        title: t('business.cmdb.label.schema.dictCode'),
-        dataIndex: 'dictCode',
-        width: 160,
-        render: (_: unknown, row) => row.dictCode || '-',
-      },
-      {
-        title: t('business.cmdb.label.schema.options'),
-        dataIndex: 'options',
-        width: 260,
-        render: (_: unknown, row) =>
-          row.options?.length ? (
-            <Space wrap size={4}>
-              {row.options.map((option) => (
-                <Tag key={option} size="small">
-                  {option}
-                </Tag>
-              ))}
-            </Space>
-          ) : (
-            '-'
-          ),
-      },
-      {
-        title: t('business.cmdb.label.schema.required'),
-        dataIndex: 'required',
-        width: 100,
-        render: (_: unknown, row) => (
-          <Tag color={row.required ? 'orange' : 'gray'}>
-            {row.required ? t('common.yes') : t('common.no')}
-          </Tag>
-        ),
-      },
-      {
-        title: t('business.cmdb.label.schema.status'),
-        dataIndex: 'status',
-        width: 120,
-        render: (_: unknown, row) => (
-          <Tag color={row.status === 'enabled' ? 'green' : 'gray'}>
-            {t(`business.cmdb.label.status.${row.status}`)}
-          </Tag>
-        ),
-      },
-      {
-        title: t('business.cmdb.label.schema.description'),
-        dataIndex: 'description',
-        width: 240,
-        render: (_: unknown, row) => row.description || '-',
-      },
-      {
-        title: t('common.action'),
-        key: 'action',
-        fixed: 'right',
-        width: TABLE_ACTION_COLUMN_WIDTH.compact,
-        render: (_: unknown, row) => (
-          <Space className="system-list__actions">
-            {canUpdate ? (
-              <Button
-                type="text"
-                size="small"
-                icon={<IconEdit />}
-                onClick={() => {
-                  setEditing(row);
-                  setVisible(true);
-                }}
-              >
-                {t('common.edit')}
-              </Button>
-            ) : null}
-            {canDelete ? (
-              <Popconfirm
-                title={t('business.cmdb.label.deleteConfirm')}
-                onOk={async () => {
-                  await deleteLabelSchema(row.id);
-                  Message.success(t('common.deleteSuccess'));
-                  await loadData();
-                }}
-              >
-                <Button type="text" size="small" status="danger" icon={<IconDelete />}>
-                  {t('common.delete')}
-                </Button>
-              </Popconfirm>
-            ) : null}
-          </Space>
-        ),
-      },
-    ],
-    [canDelete, canUpdate, loadData, t],
+    () => buildLabelSchemaColumns({ t, canUpdate, canDelete, onEdit: openEdit, removeRow }),
+    [canDelete, canUpdate, openEdit, removeRow, t],
   );
 
   return (
@@ -455,109 +643,39 @@ export default function CmdbLabelSchemaList() {
             setPage(1);
           }}
         />
-        <TableBatchActionBar
+        <LabelSchemaBatchBar
+          canCreate={canCreate}
+          canExport={canExport}
+          canImport={canImport}
+          canDelete={canDelete}
           selectedCount={selectedRowKeys.length}
-          selectedText={t('common.selectedCount', { count: selectedRowKeys.length })}
-          clearText={t('common.clearSelection')}
-          clearSuccessText={t('common.clearSelectionSuccess')}
+          submitting={submitting}
+          onCreate={() => {
+            setEditing(null);
+            setVisible(true);
+          }}
+          onExport={handleExport}
+          onDownloadTemplate={handleDownloadTemplate}
+          onImport={handleImport}
+          onDeleteSelected={() => {
+            void handleBatchDelete();
+          }}
           onClear={() => setSelectedRowKeys([])}
-          prefixActions={
-            canCreate ? (
-              <ListHeaderActions
-                primary={
-                  <Button
-                    type="primary"
-                    icon={<IconPlus />}
-                    onClick={() => {
-                      setEditing(null);
-                      setVisible(true);
-                    }}
-                  >
-                    {t('common.add')}
-                  </Button>
-                }
-                utility={
-                  <>
-                    {canExport ? (
-                      <Button icon={<IconDownload />} onClick={handleExport}>
-                        {t('common.export')}
-                      </Button>
-                    ) : null}
-                    {canImport ? (
-                      <>
-                        <Button icon={<IconDownload />} onClick={handleDownloadTemplate}>
-                          {t('common.downloadTemplate')}
-                        </Button>
-                        <ImportCsvButton disabled={!canImport} onSelect={handleImport}>
-                          {t('common.import')}
-                        </ImportCsvButton>
-                      </>
-                    ) : null}
-                  </>
-                }
-              />
-            ) : undefined
-          }
-          actions={
-            canDelete ? (
-              <Popconfirm
-                title={t('common.deleteConfirm')}
-                onOk={() => {
-                  void handleBatchDelete();
-                }}
-                disabled={selectedRowKeys.length === 0 || submitting}
-              >
-                <Button
-                  status="danger"
-                  icon={<IconDelete />}
-                  disabled={selectedRowKeys.length === 0 || submitting}
-                  loading={submitting}
-                >
-                  {t('common.deleteSelected')}
-                </Button>
-              </Popconfirm>
-            ) : undefined
-          }
         />
-        <Card className="page-panel system-list__table-card">
-          {loading && data.length === 0 ? <PageLoading /> : null}
-          {!loading && error && data.length === 0 ? (
-            <PageError description={t('common.loadFailedDesc')} onRetry={loadData} />
-          ) : null}
-          {!loading && !error && data.length === 0 ? (
-            <PageEmpty description={t('business.cmdb.label.empty')} />
-          ) : null}
-          {!loading && !(error && data.length === 0) && data.length > 0 ? (
-            <AppTable
-              columns={columns}
-              data={data}
-              loading={loading}
-              rowKey="id"
-              rowSelection={{
-                type: 'checkbox',
-                selectedRowKeys,
-                checkCrossPage: true,
-                preserveSelectedRowKeys: true,
-                fixed: true,
-                onChange: (rowKeys) => setSelectedRowKeys(rowKeys),
-              }}
-              pagination={buildStandardPagination(t, {
-                current: page,
-                pageSize,
-                total,
-                onChange: (nextPage, nextPageSize) => {
-                  setPage(nextPage || 1);
-                  if (nextPageSize && nextPageSize !== pageSize) {
-                    setPageSize(nextPageSize);
-                    setPage(1);
-                  }
-                },
-                pageSizeChangeResetCurrent: true,
-              })}
-              scroll={{ x: 'max-content' }}
-            />
-          ) : null}
-        </Card>
+        <LabelSchemaTablePanel
+          loading={loading}
+          error={error}
+          data={data}
+          columns={columns}
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          selectedRowKeys={selectedRowKeys}
+          onSelect={setSelectedRowKeys}
+          onRetry={loadData}
+          setPage={setPage}
+          setPageSize={setPageSize}
+        />
       </Space>
       <GovernanceInsightDrawer
         title={t('business.cmdb.label.hero.summaryTitle')}

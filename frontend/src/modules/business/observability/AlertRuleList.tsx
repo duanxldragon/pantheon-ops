@@ -7,6 +7,16 @@ import { AppTable, PageContainer, PageEmpty, PageError, PageLoading } from '../.
 import { deleteAlertRule, getAlertRuleList, toggleAlertRule, type AlertRuleRow } from './api';
 import '../../../assets/list-page.css';
 
+function alertSeverityColor(value: string): string {
+  if (value === 'critical') {
+    return 'red';
+  }
+  if (value === 'warning') {
+    return 'orange';
+  }
+  return 'blue';
+}
+
 export default function AlertRuleList() {
   const { t } = useTranslation();
   const [rows, setRows] = useState<AlertRuleRow[]>([]);
@@ -52,7 +62,7 @@ export default function AlertRuleList() {
     { title: t('observability.alert_rule.name'), dataIndex: 'name', width: 220 },
     { title: t('observability.alert_rule.metric_source'), dataIndex: 'datasourceName', width: 180 },
     { title: t('observability.alert_rule.promql'), dataIndex: 'query', ellipsis: true },
-    { title: t('observability.alert_rule.severity'), dataIndex: 'severity', width: 110, render: (value: string) => <Tag color={value === 'critical' ? 'red' : value === 'warning' ? 'orange' : 'blue'}>{value}</Tag> },
+    { title: t('observability.alert_rule.severity'), dataIndex: 'severity', width: 110, render: (value: string) => <Tag color={alertSeverityColor(value)}>{value}</Tag> },
     { title: t('observability.alert_rule.status'), dataIndex: 'enabled', width: 100, render: (enabled: boolean, row) => <Switch checked={enabled} onChange={(checked) => void handleToggle(row, checked)} /> },
     { title: t('observability.alert_rule.fired_count', { defaultValue: 'Fired' }), dataIndex: 'firedCount', width: 90 },
     { title: t('common.action'), width: 100, render: (_value, row) => <Popconfirm title={t('observability.alert_rule.delete_confirm')} onOk={() => void handleDelete(row)}><Button type="text" size="small" status="danger" icon={<IconDelete />}>{t('common.delete')}</Button></Popconfirm> },

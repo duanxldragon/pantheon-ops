@@ -42,6 +42,26 @@ interface TargetFormValues {
   remark?: string;
 }
 
+function datasourceTypeColor(value: string): string {
+  if (value === 'loki') {
+    return 'cyan';
+  }
+  if (value === 'tempo') {
+    return 'purple';
+  }
+  return 'arcoblue';
+}
+
+function datasourceStatusColor(value: string): string {
+  if (value === 'healthy') {
+    return 'green';
+  }
+  if (value === 'unhealthy') {
+    return 'red';
+  }
+  return 'gray';
+}
+
 export default function MonitoringCenter() {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
@@ -139,9 +159,9 @@ export default function MonitoringCenter() {
   const datasourceColumns = useMemo<ColumnProps<DatasourceRow>[]>(
     () => [
       { title: t('business.observability.monitoring.field.name'), dataIndex: 'name', width: 180 },
-      { title: t('business.observability.monitoring.field.type'), dataIndex: 'type', width: 140, render: (value: string) => <Tag color={value === 'loki' ? 'cyan' : value === 'tempo' ? 'purple' : 'arcoblue'}>{value}</Tag> },
+      { title: t('business.observability.monitoring.field.type'), dataIndex: 'type', width: 140, render: (value: string) => <Tag color={datasourceTypeColor(value)}>{value}</Tag> },
       { title: t('business.observability.monitoring.field.url'), dataIndex: 'url', width: 300, ellipsis: true },
-      { title: t('business.observability.monitoring.field.status'), dataIndex: 'status', width: 120, render: (value: string) => <Tag color={value === 'healthy' ? 'green' : value === 'unhealthy' ? 'red' : 'gray'}>{value}</Tag> },
+      { title: t('business.observability.monitoring.field.status'), dataIndex: 'status', width: 120, render: (value: string) => <Tag color={datasourceStatusColor(value)}>{value}</Tag> },
       { title: t('business.observability.monitoring.field.default'), dataIndex: 'isDefault', width: 100, render: (value: boolean) => value ? <Tag color="arcoblue">{t('common.yes')}</Tag> : '-' },
       {
         title: t('common.action'),

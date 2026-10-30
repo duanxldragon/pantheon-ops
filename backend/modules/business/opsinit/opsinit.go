@@ -44,8 +44,8 @@ func Init(r *gin.RouterGroup, db *gorm.DB) {
 		CMDBReader:     cmdbCapability,
 		K8sReader:      k8sReader,
 	})
-	if stateCommand, ok := serviceReader.(bizcap.ServiceInstanceStateCommand); ok {
-		deploy.InitDeployModuleWithServiceState(r, db, cmdbCapability, stateCommand, bizScopeService)
+	if stateApplier, ok := serviceReader.(bizcap.ServiceInstanceStateApplier); ok {
+		deploy.InitDeployModuleWithServiceState(r, db, cmdbCapability, stateApplier, bizScopeService)
 	} else {
 		deploy.InitDeployModule(r, db, cmdbCapability, bizScopeService)
 	}

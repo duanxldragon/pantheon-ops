@@ -28,6 +28,13 @@ const (
 	errScopeInvalid         = "business.service.scope_invalid"
 )
 
+const (
+	whereStatusEq        = "status = ?"
+	whereApplicationIDEq = "application_id = ?"
+	whereServiceIDEq     = "service_id = ?"
+	orderIDDesc          = "id DESC"
+)
+
 // Manager owns application, service, and service-instance persistence operations.
 type Manager struct {
 	db         *gorm.DB
@@ -66,14 +73,14 @@ func (m *Manager) ListApplications(q ApplicationQuery, scope *common.DataScopeRe
 		db = db.Where("code LIKE ? OR name LIKE ?", like, like)
 	}
 	if q.Status != "" {
-		db = db.Where("status = ?", q.Status)
+		db = db.Where(whereStatusEq, q.Status)
 	}
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
 		return nil, err
 	}
 	var rows []Application
-	if err := db.Order("id DESC").Offset((q.Page - 1) * q.PageSize).Limit(q.PageSize).Find(&rows).Error; err != nil {
+	if err := db.Order(orderIDDesc).Offset((q.Page - 1) * q.PageSize).Limit(q.PageSize).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	items := make([]ApplicationResponse, 0, len(rows))
@@ -91,7 +98,7 @@ func (m *Manager) ListApplications(q ApplicationQuery, scope *common.DataScopeRe
 func (m *Manager) ListApplicationOptions(scope *common.DataScopeReq) ([]OptionItem, error) {
 	var rows []Application
 	if err := m.db.Model(&Application{}).Scopes(database.WithDataScope(scope)).
-		Where("status = ?", StatusActive).Order("name ASC").Find(&rows).Error; err != nil {
+		Where(whereStatusEq, StatusActive).Order("name ASC").Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	items := make([]OptionItem, 0, len(rows))
@@ -190,7 +197,7 @@ func (m *Manager) DeleteApplication(id uint64, scope *common.DataScopeReq) error
 		return err
 	}
 	var count int64
-	if err := m.db.Model(&Service{}).Where("application_id = ?", row.ID).Count(&count).Error; err != nil {
+	if err := m.db.Model(&Service{}).Where(whereApplicationIDEq, row.ID).Count(&count).Error; err != nil {
 		return err
 	}
 	if count > 0 {
@@ -212,21 +219,21 @@ func (m *Manager) ListServices(q ServiceQuery, scope *common.DataScopeReq) (*Ser
 	q.Page, q.PageSize = normalizePage(q.Page, q.PageSize)
 	db := m.serviceQuery(scope)
 	if q.ApplicationID > 0 {
-		db = db.Where("application_id = ?", q.ApplicationID)
+		db = db.Where(whereApplicationIDEq, q.ApplicationID)
 	}
 	if q.Keyword != "" {
 		like := "%" + strings.TrimSpace(q.Keyword) + "%"
 		db = db.Where("code LIKE ? OR name LIKE ?", like, like)
 	}
 	if q.Status != "" {
-		db = db.Where("status = ?", q.Status)
+		db = db.Where(whereStatusEq, q.Status)
 	}
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
 		return nil, err
 	}
 	var rows []Service
-	if err := db.Order("id DESC").Offset((q.Page - 1) * q.PageSize).Limit(q.PageSize).Find(&rows).Error; err != nil {
+	if err := db.Order(orderIDDesc).Offset((q.Page - 1) * q.PageSize).Limit(q.PageSize).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	items := make([]ServiceResponse, 0, len(rows))
@@ -242,9 +249,9 @@ func (m *Manager) ListServices(q ServiceQuery, scope *common.DataScopeReq) (*Ser
 
 // ListServiceOptions returns active service options for an application.
 func (m *Manager) ListServiceOptions(applicationID uint64, scope *common.DataScopeReq) ([]OptionItem, error) {
-	db := m.serviceQuery(scope).Where("status = ?", StatusActive)
+	db := m.serviceQuery(scope).Where(whereStatusEq, StatusActive)
 	if applicationID > 0 {
-		db = db.Where("application_id = ?", applicationID)
+		db = db.Where(whereApplicationIDEq, applicationID)
 	}
 	var rows []Service
 	if err := db.Order("name ASC").Find(&rows).Error; err != nil {
@@ -352,7 +359,7 @@ func (m *Manager) DeleteService(id uint64, scope *common.DataScopeReq) error {
 		return err
 	}
 	var count int64
-	if err := m.db.Model(&ServiceInstance{}).Where("service_id = ?", row.ID).Count(&count).Error; err != nil {
+	if err := m.db.Model(&ServiceInstance{}).Where(whereServiceIDEq, row.ID).Count(&count).Error; err != nil {
 		return err
 	}
 	if count > 0 {
@@ -369,20 +376,20 @@ func (m *Manager) ListInstances(q InstanceQuery, scope *common.DataScopeReq) (*I
 	q.Page, q.PageSize = normalizePage(q.Page, q.PageSize)
 	db := m.instanceQuery(scope)
 	if q.ServiceID > 0 {
-		db = db.Where("service_id = ?", q.ServiceID)
+		db = db.Where(whereServiceIDEq, q.ServiceID)
 	}
 	if q.TargetType != "" {
 		db = db.Where("target_type = ?", q.TargetType)
 	}
 	if q.Status != "" {
-		db = db.Where("status = ?", q.Status)
+		db = db.Where(whereStatusEq, q.Status)
 	}
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
 		return nil, err
 	}
 	var rows []ServiceInstance
-	if err := db.Order("id DESC").Offset((q.Page - 1) * q.PageSize).Limit(q.PageSize).Find(&rows).Error; err != nil {
+	if err := db.Order(orderIDDesc).Offset((q.Page - 1) * q.PageSize).Limit(q.PageSize).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	items := make([]InstanceResponse, 0, len(rows))
@@ -497,45 +504,54 @@ func (m *Manager) DeleteInstance(id uint64, scope *common.DataScopeReq) error {
 func (m *Manager) validateAndNormalizeTarget(ctx context.Context, row *ServiceInstance, scopeID uint64, dataScope *common.DataScopeReq) error {
 	switch strings.ToLower(row.TargetType) {
 	case TargetTypeVM:
-		if row.HostID == 0 || row.K8sClusterID != 0 || row.Namespace != "" || row.WorkloadKind != "" || row.WorkloadName != "" {
-			return errors.New(errTargetInvalid)
-		}
-		if m.cmdbReader == nil {
-			return errors.New("business.service.cmdb_reader_not_configured")
-		}
-		hosts, err := m.cmdbReader.GetByIDs(ctx, bizcap.HostIDsQuery{HostIDs: []uint64{row.HostID}, DataScope: dataScope})
-		if err != nil {
-			return err
-		}
-		if len(hosts.Items) != 1 || hosts.Items[0].BusinessScopeID != scopeID {
-			return errors.New(errTargetNotFound)
-		}
+		return m.validateVMTarget(ctx, row, scopeID, dataScope)
 	case TargetTypeK8s:
-		if row.K8sClusterID == 0 || row.Namespace == "" || row.WorkloadKind == "" || row.WorkloadName == "" || row.HostID != 0 {
-			return errors.New(errTargetInvalid)
-		}
-		if m.k8sReader == nil {
-			return errors.New("business.service.k8s_reader_not_configured")
-		}
-		target, err := m.k8sReader.ResolveTarget(ctx, bizcap.K8sTargetQuery{
-			ClusterID: row.K8sClusterID, Namespace: row.Namespace, WorkloadKind: row.WorkloadKind,
-			WorkloadName: row.WorkloadName, DataScope: dataScope,
-		})
-		if err != nil {
-			return err
-		}
-		if target.BusinessScopeID != scopeID {
-			return errors.New(errTargetNotFound)
-		}
-		row.WorkloadKind = target.WorkloadKind
+		return m.validateK8sTarget(ctx, row, scopeID, dataScope)
 	default:
 		return errors.New(errTargetInvalid)
+	}
+}
+
+func (m *Manager) validateVMTarget(ctx context.Context, row *ServiceInstance, scopeID uint64, dataScope *common.DataScopeReq) error {
+	if row.HostID == 0 || row.K8sClusterID != 0 || row.Namespace != "" || row.WorkloadKind != "" || row.WorkloadName != "" {
+		return errors.New(errTargetInvalid)
+	}
+	if m.cmdbReader == nil {
+		return errors.New("business.service.cmdb_reader_not_configured")
+	}
+	hosts, err := m.cmdbReader.GetByIDs(ctx, bizcap.HostIDsQuery{HostIDs: []uint64{row.HostID}, DataScope: dataScope})
+	if err != nil {
+		return err
+	}
+	if len(hosts.Items) != 1 || hosts.Items[0].BusinessScopeID != scopeID {
+		return errors.New(errTargetNotFound)
 	}
 	return nil
 }
 
+func (m *Manager) validateK8sTarget(ctx context.Context, row *ServiceInstance, scopeID uint64, dataScope *common.DataScopeReq) error {
+	if row.K8sClusterID == 0 || row.Namespace == "" || row.WorkloadKind == "" || row.WorkloadName == "" || row.HostID != 0 {
+		return errors.New(errTargetInvalid)
+	}
+	if m.k8sReader == nil {
+		return errors.New("business.service.k8s_reader_not_configured")
+	}
+	target, err := m.k8sReader.ResolveTarget(ctx, bizcap.K8sTargetQuery{
+		ClusterID: row.K8sClusterID, Namespace: row.Namespace, WorkloadKind: row.WorkloadKind,
+		WorkloadName: row.WorkloadName, DataScope: dataScope,
+	})
+	if err != nil {
+		return err
+	}
+	if target.BusinessScopeID != scopeID {
+		return errors.New(errTargetNotFound)
+	}
+	row.WorkloadKind = target.WorkloadKind
+	return nil
+}
+
 func (m *Manager) ensureTargetUnique(row *ServiceInstance) error {
-	db := m.db.Model(&ServiceInstance{}).Where("service_id = ?", row.ServiceID)
+	db := m.db.Model(&ServiceInstance{}).Where(whereServiceIDEq, row.ServiceID)
 	switch row.TargetType {
 	case TargetTypeVM:
 		db = db.Where("target_type = ? AND host_id = ?", TargetTypeVM, row.HostID)
@@ -599,7 +615,7 @@ func (m *Manager) findInstance(id uint64, scope *common.DataScopeReq) (*ServiceI
 
 func (m *Manager) applicationResponse(row *Application) (ApplicationResponse, error) {
 	var count int64
-	if err := m.db.Model(&Service{}).Where("application_id = ?", row.ID).Count(&count).Error; err != nil {
+	if err := m.db.Model(&Service{}).Where(whereApplicationIDEq, row.ID).Count(&count).Error; err != nil {
 		return ApplicationResponse{}, err
 	}
 	return ApplicationResponse{ID: row.ID, Code: row.Code, Name: row.Name, BusinessScopeID: row.BusinessScopeID, BusinessScopeName: row.BusinessScopeName, DeptID: row.DeptID, Status: row.Status, Owner: row.Owner, Remark: row.Remark, ServiceCount: count, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt}, nil
@@ -611,7 +627,7 @@ func (m *Manager) serviceResponse(row *Service, scope *common.DataScopeReq) (Ser
 		return ServiceResponse{}, err
 	}
 	var count int64
-	if err := m.db.Model(&ServiceInstance{}).Where("service_id = ?", row.ID).Count(&count).Error; err != nil {
+	if err := m.db.Model(&ServiceInstance{}).Where(whereServiceIDEq, row.ID).Count(&count).Error; err != nil {
 		return ServiceResponse{}, err
 	}
 	return ServiceResponse{ID: row.ID, ApplicationID: row.ApplicationID, ApplicationCode: app.Code, ApplicationName: app.Name, BusinessScopeID: app.BusinessScopeID, Code: row.Code, Name: row.Name, RuntimeType: row.RuntimeType, Description: row.Description, Status: row.Status, InstanceCount: count, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt}, nil
@@ -669,4 +685,4 @@ func bizScopeDeptID(ref bizcap.BizScopeRef, scope *common.DataScopeReq) uint64 {
 }
 
 var _ Reader = (*Manager)(nil)
-var _ Command = (*Manager)(nil)
+var _ InstanceCreator = (*Manager)(nil)

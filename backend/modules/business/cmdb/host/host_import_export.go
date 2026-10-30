@@ -19,6 +19,8 @@ import (
 // maxHostExportRows 限制单次主机资产导出的最大行数（var 便于测试降低阈值）。
 var maxHostExportRows = 10000
 
+const importMsgParamInvalid = "param.invalid"
+
 var hostImportStatuses = map[string]struct{}{
 	"pending":     {},
 	"assigned":    {},
@@ -165,15 +167,8 @@ func (s *HostService) Import(records [][]string, dataScope *common.DataScopeReq,
 		return result, nil
 	}
 
-	headerIndex := make(map[string]int, len(records[0]))
-	for index, header := range records[0] {
-		headerIndex[strings.TrimSpace(header)] = index
-	}
-	for _, header := range []string{"hostname", "ip", "os"} {
-		if _, ok := headerIndex[header]; !ok {
-			impexp.AppendImportError(result, 0, header, "import.header.missing")
-		}
-	}
+	headerIndex := impexp.BuildHeaderIndex(records)
+	impexp.RequireHeaders(result, headerIndex, "hostname", "ip", "os")
 	if result.Failed > 0 {
 		return result, nil
 	}
@@ -188,23 +183,7 @@ func (s *HostService) Import(records [][]string, dataScope *common.DataScopeReq,
 		return nil, err
 	}
 
-	rows := make([]hostImportRow, 0, len(records)-1)
-	seenIP := make(map[string]int, len(records)-1)
-	for rowIndex := 1; rowIndex < len(records); rowIndex++ {
-		record := records[rowIndex]
-		if impexp.IsCSVRecordEmpty(record) {
-			continue
-		}
-		rowNumber := rowIndex + 1
-		row := parseHostImportRow(record, headerIndex, rowNumber, result, scopesByCode)
-		if firstRow, ok := seenIP[row.IP]; ok && row.IP != "" {
-			impexp.AppendImportError(result, rowNumber, "ip", fmt.Sprintf("import.duplicate.row.%d", firstRow))
-		} else if row.IP != "" {
-			seenIP[row.IP] = rowNumber
-		}
-		row.Existing = existingByIP[row.IP]
-		rows = append(rows, row)
-	}
+	rows := parseHostImportRows(records, headerIndex, result, existingByIP, scopesByCode)
 
 	if result.Failed > 0 {
 		return result, nil
@@ -332,7 +311,7 @@ func parseHostImportRow(
 		result,
 	)
 	if deptID < 0 {
-		impexp.AppendImportError(result, rowNumber, "deptId", "param.invalid")
+		impexp.AppendImportError(result, rowNumber, "deptId", importMsgParamInvalid)
 	} else {
 		row.DeptID = uint64(deptID)
 	}
@@ -348,7 +327,7 @@ func parseHostImportRow(
 func parseHostImportInt(raw string, rowNumber int, field string, result *impexp.ImportResult) int {
 	value, err := impexp.ParseCSVInt(raw)
 	if err != nil {
-		impexp.AppendImportError(result, rowNumber, field, "param.invalid")
+		impexp.AppendImportError(result, rowNumber, field, importMsgParamInvalid)
 		return 0
 	}
 	return value
@@ -361,7 +340,7 @@ func parseHostImportFloat(raw string, rowNumber int, field string, result *impex
 	}
 	value, err := strconv.ParseFloat(raw, 64)
 	if err != nil {
-		impexp.AppendImportError(result, rowNumber, field, "param.invalid")
+		impexp.AppendImportError(result, rowNumber, field, importMsgParamInvalid)
 		return 0
 	}
 	return value
@@ -378,7 +357,7 @@ func parseHostImportLabels(raw string, rowNumber int, result *impexp.ImportResul
 		}
 		key, value, ok := strings.Cut(item, "=")
 		if !ok {
-			impexp.AppendImportError(result, rowNumber, "labels", "param.invalid")
+			impexp.AppendImportError(result, rowNumber, "labels", importMsgParamInvalid)
 			continue
 		}
 		labels = append(labels, LabelEntry{
@@ -389,6 +368,32 @@ func parseHostImportLabels(raw string, rowNumber int, result *impexp.ImportResul
 	return labels
 }
 
+// parseHostImportRows turns the data records into host rows, flagging IPs that
+// repeat inside the file and attaching the existing host.
+func parseHostImportRows(
+	records [][]string,
+	headerIndex map[string]int,
+	result *impexp.ImportResult,
+	existingByIP map[string]*Host,
+	scopesByCode map[string]bizcap.BizScopeRef,
+) []hostImportRow {
+	rows := make([]hostImportRow, 0, len(records)-1)
+	seenIP := make(map[string]int, len(records)-1)
+	impexp.ForEachDataRow(records, func(rowNumber int, record []string) {
+		row := parseHostImportRow(record, headerIndex, rowNumber, result, scopesByCode)
+		if row.IP != "" {
+			if firstRow, ok := seenIP[row.IP]; ok {
+				impexp.AppendImportError(result, rowNumber, "ip", fmt.Sprintf("import.duplicate.row.%d", firstRow))
+			} else {
+				seenIP[row.IP] = rowNumber
+			}
+		}
+		row.Existing = existingByIP[row.IP]
+		rows = append(rows, row)
+	})
+	return rows
+}
+
 func (s *HostService) applyHostImportRows(result *impexp.ImportResult, rows []hostImportRow, createdBy string) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		for i := range rows {
@@ -397,64 +402,14 @@ func (s *HostService) applyHostImportRows(result *impexp.ImportResult, rows []ho
 				return err
 			}
 			if rows[i].Existing != nil {
-				updates := map[string]interface{}{
-					"hostname":            rows[i].Hostname,
-					"os":                  rows[i].OS,
-					"os_version":          rows[i].OSVersion,
-					"ssh_port":            rows[i].SSHPort,
-					"cpu_cores":           rows[i].CPUCores,
-					"memory_gb":           rows[i].MemoryGB,
-					"disk_gb":             rows[i].DiskGB,
-					"label_values":        datatypes.JSON(labelsJSON),
-					"business_scope_id":   rows[i].BusinessScopeID,
-					"business_scope_code": rows[i].BusinessScopeCode,
-					"business_scope_name": rows[i].BusinessScopeName,
-					"dept_id":             rows[i].DeptID,
-					"owner":               rows[i].Owner,
-					"remark":              rows[i].Remark,
-					"updated_by":          createdBy,
-					"updated_at":          time.Now(),
-				}
-				if rows[i].Status != "" {
-					updates["status"] = rows[i].Status
-				}
-				if err := tx.Model(rows[i].Existing).Updates(updates).Error; err != nil {
+				if err := tx.Model(rows[i].Existing).Updates(buildHostImportUpdates(rows[i], labelsJSON, createdBy)).Error; err != nil {
 					return err
 				}
 				result.Updated++
 				continue
 			}
 
-			status := rows[i].Status
-			if status == "" {
-				status = HostLifecyclePending
-				if rows[i].BusinessScopeID > 0 {
-					status = HostLifecycleAssigned
-				}
-			}
-			host := Host{
-				Hostname:          rows[i].Hostname,
-				IP:                rows[i].IP,
-				SSHPort:           rows[i].SSHPort,
-				OS:                rows[i].OS,
-				OSVersion:         rows[i].OSVersion,
-				CPUCores:          rows[i].CPUCores,
-				MemoryGB:          rows[i].MemoryGB,
-				DiskGB:            rows[i].DiskGB,
-				LabelValues:       datatypes.JSON(labelsJSON),
-				BusinessScopeID:   rows[i].BusinessScopeID,
-				BusinessScopeCode: rows[i].BusinessScopeCode,
-				BusinessScopeName: rows[i].BusinessScopeName,
-				DeptID:            rows[i].DeptID,
-				Owner:             rows[i].Owner,
-				Status:            status,
-				Remark:            rows[i].Remark,
-				CreatedBy:         createdBy,
-				UpdatedBy:         createdBy,
-			}
-			if host.SSHPort == 0 {
-				host.SSHPort = 22
-			}
+			host := buildHostImportHost(rows[i], labelsJSON, createdBy)
 			if err := tx.Create(&host).Error; err != nil {
 				return err
 			}
@@ -462,4 +417,63 @@ func (s *HostService) applyHostImportRows(result *impexp.ImportResult, rows []ho
 		}
 		return nil
 	})
+}
+
+func buildHostImportUpdates(row hostImportRow, labelsJSON []byte, createdBy string) map[string]interface{} {
+	updates := map[string]interface{}{
+		"hostname":            row.Hostname,
+		"os":                  row.OS,
+		"os_version":          row.OSVersion,
+		"ssh_port":            row.SSHPort,
+		"cpu_cores":           row.CPUCores,
+		"memory_gb":           row.MemoryGB,
+		"disk_gb":             row.DiskGB,
+		"label_values":        datatypes.JSON(labelsJSON),
+		"business_scope_id":   row.BusinessScopeID,
+		"business_scope_code": row.BusinessScopeCode,
+		"business_scope_name": row.BusinessScopeName,
+		"dept_id":             row.DeptID,
+		"owner":               row.Owner,
+		"remark":              row.Remark,
+		"updated_by":          createdBy,
+		"updated_at":          time.Now(),
+	}
+	if row.Status != "" {
+		updates["status"] = row.Status
+	}
+	return updates
+}
+
+func buildHostImportHost(row hostImportRow, labelsJSON []byte, createdBy string) Host {
+	status := row.Status
+	if status == "" {
+		status = HostLifecyclePending
+		if row.BusinessScopeID > 0 {
+			status = HostLifecycleAssigned
+		}
+	}
+	host := Host{
+		Hostname:          row.Hostname,
+		IP:                row.IP,
+		SSHPort:           row.SSHPort,
+		OS:                row.OS,
+		OSVersion:         row.OSVersion,
+		CPUCores:          row.CPUCores,
+		MemoryGB:          row.MemoryGB,
+		DiskGB:            row.DiskGB,
+		LabelValues:       datatypes.JSON(labelsJSON),
+		BusinessScopeID:   row.BusinessScopeID,
+		BusinessScopeCode: row.BusinessScopeCode,
+		BusinessScopeName: row.BusinessScopeName,
+		DeptID:            row.DeptID,
+		Owner:             row.Owner,
+		Status:            status,
+		Remark:            row.Remark,
+		CreatedBy:         createdBy,
+		UpdatedBy:         createdBy,
+	}
+	if host.SSHPort == 0 {
+		host.SSHPort = 22
+	}
+	return host
 }

@@ -17,6 +17,8 @@ import (
 
 const syncTimeout = 30 * time.Second
 
+const whereClusterAndNamespace = "cluster_id = ? AND namespace = ?"
+
 // NamespaceService manages Kubernetes namespaces through client-go.
 //
 //nolint:revive // Service names retain the namespace domain prefix for module wiring clarity.
@@ -47,7 +49,7 @@ func (s *NamespaceService) bindingWithContext(ctx context.Context, clusterID uin
 		return nil, errors.New("database.not_initialized")
 	}
 	var item NamespaceBinding
-	if err := s.db.WithContext(ctx).Where("cluster_id = ? AND namespace = ?", clusterID, name).First(&item).Error; err != nil {
+	if err := s.db.WithContext(ctx).Where(whereClusterAndNamespace, clusterID, name).First(&item).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("k8s.namespace.binding_required")
 		}
@@ -113,7 +115,7 @@ func (s *NamespaceService) Create(clusterID uint64, req CreateNamespaceRequest, 
 	}
 	actions, _ := json.Marshal(req.AllowedActions)
 	binding := NamespaceBinding{ClusterID: clusterID, Namespace: req.Name, BusinessScopeID: req.BusinessScopeID, Environment: req.Environment, AllowedActions: string(actions)}
-	if err := s.db.Where("cluster_id = ? AND namespace = ?", clusterID, req.Name).FirstOrCreate(&binding).Error; err != nil {
+	if err := s.db.Where(whereClusterAndNamespace, clusterID, req.Name).FirstOrCreate(&binding).Error; err != nil {
 		return nil, err
 	}
 	clientset, err := s.clusterSvc.GetClientset(clusterID, dataScope)
@@ -163,7 +165,7 @@ func (s *NamespaceService) Delete(clusterID uint64, name, resourceVersion string
 		}
 		return errors.New("k8s.namespace.delete_failed")
 	}
-	return s.db.Where("cluster_id = ? AND namespace = ?", clusterID, name).Delete(&NamespaceBinding{}).Error
+	return s.db.Where(whereClusterAndNamespace, clusterID, name).Delete(&NamespaceBinding{}).Error
 }
 
 func toNamespaceItem(ns *corev1.Namespace) NamespaceItem {
