@@ -320,6 +320,60 @@
           "commentHttp": 404
         }
       ]
+    },
+    {
+      "executedAt": "2026-10-30T06:44:43.959Z",
+      "source": "third batch (4 issues): the three gosecurity:S3649 instances re-raised on pull-request 161 by the sinks that PR #161 converted to package constants, transitioned before the merge so the required contexts could go green, plus the one instance that was open on branch main at 7364a44 (argocd_service.go:409, a line PR #161 does not touch). Every call returned HTTP 200.",
+      "transitions": [
+        {
+          "key": "AaGLfV7TQ70MdggcuUIK",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+          "line": 274,
+          "message": "SQL Injection via HTTP request in ArgoCDService.UpdateRepository()",
+          "scope": "pullRequest=161",
+          "transitionHttp": 200,
+          "readBack": "RESOLVED / FALSE-POSITIVE",
+          "justification": "False positive. Every SQL text or column-name argument reaching this sink is a source literal, a clause/gorm expression, or a package-level literal constant. That invariant is enforced in CI by scripts/check-gorm-sql-literal.mjs (package-wide declaration scan; reassigned variables, function parameters and request-derived values are excluded) and blocks in the \"Check GORM SQL literalness\" step of the docs-governance job in .github/workflows/quality.yml. Waivers are line-scoped, require a written justification and are printed in the job log. No request value reaches SQL text here."
+        },
+        {
+          "key": "AaGLfV_lQ70MdggcuUIL",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/k8s/backup/backup_service.go",
+          "line": 424,
+          "message": "SQL Injection via HTTP request in BackupService.UpdateSchedule()",
+          "scope": "pullRequest=161",
+          "transitionHttp": 200,
+          "readBack": "RESOLVED / FALSE-POSITIVE",
+          "justification": "False positive. Every SQL text or column-name argument reaching this sink is a source literal, a clause/gorm expression, or a package-level literal constant. That invariant is enforced in CI by scripts/check-gorm-sql-literal.mjs (package-wide declaration scan; reassigned variables, function parameters and request-derived values are excluded) and blocks in the \"Check GORM SQL literalness\" step of the docs-governance job in .github/workflows/quality.yml. Waivers are line-scoped, require a written justification and are printed in the job log. No request value reaches SQL text here."
+        },
+        {
+          "key": "AaGLfV7TQ70MdggcuUIJ",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+          "line": 409,
+          "message": "SQL Injection via HTTP request in ArgoCDService.UpdateApplication()",
+          "scope": "pullRequest=161",
+          "transitionHttp": 200,
+          "readBack": "RESOLVED / FALSE-POSITIVE",
+          "justification": "False positive. Every SQL text or column-name argument reaching this sink is a source literal, a clause/gorm expression, or a package-level literal constant. That invariant is enforced in CI by scripts/check-gorm-sql-literal.mjs (package-wide declaration scan; reassigned variables, function parameters and request-derived values are excluded) and blocks in the \"Check GORM SQL literalness\" step of the docs-governance job in .github/workflows/quality.yml. Waivers are line-scoped, require a written justification and are printed in the job log. No request value reaches SQL text here."
+        },
+        {
+          "key": "AaGLf68W8dYv669deilk",
+          "rule": "gosecurity:S3649",
+          "severity": "BLOCKER",
+          "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+          "line": 409,
+          "message": "SQL Injection via HTTP request in ArgoCDService.UpdateApplication()",
+          "scope": "branch=main at 7364a44",
+          "transitionHttp": 200,
+          "readBack": "RESOLVED / FALSE-POSITIVE",
+          "justification": "False positive. Every SQL text or column-name argument reaching this sink is a source literal, a clause/gorm expression, or a package-level literal constant. That invariant is enforced in CI by scripts/check-gorm-sql-literal.mjs (package-wide declaration scan; reassigned variables, function parameters and request-derived values are excluded) and blocks in the \"Check GORM SQL literalness\" step of the docs-governance job in .github/workflows/quality.yml. Waivers are line-scoped, require a written justification and are printed in the job log. No request value reaches SQL text here."
+        }
+      ]
     }
   ],
   "skippedPreFlight": [
@@ -1002,5 +1056,43 @@
       ],
       "ignoredConditions": false
     }
+  },
+  "postRound8ReadBack": {
+    "capturedAt": "2026-10-30T06:44:43.959Z",
+    "commit": "430a9f0 (squash of PR #161)",
+    "analysis": "2026-10-30T06:38:03+0000, dispatched with gh workflow run sonarcloud.yml --ref main because the automation merge produced no push-triggered run",
+    "openIssues": 0,
+    "openByType": {
+      "CODE_SMELL": 0,
+      "VULNERABILITY": 0,
+      "BUG": 0
+    },
+    "openRuleFacet": [],
+    "securityHotspotsToReview": 0,
+    "gate": {
+      "status": "OK",
+      "conditions": {
+        "new_reliability_rating": "OK",
+        "new_security_rating": "OK",
+        "new_maintainability_rating": "OK",
+        "new_duplicated_lines_density": "OK",
+        "new_security_hotspots_reviewed": "OK"
+      },
+      "note": "The gate definition, the new-code baseline and every metric were left untouched; this is the same project gate that read ERROR on new_security_rating before the triage."
+    },
+    "measures": {
+      "vulnerabilities": 0,
+      "bugs": 0,
+      "code_smells": 0,
+      "security_hotspots": 0,
+      "accepted_issues": 0,
+      "false_positive_issues": 36,
+      "duplicated_lines_density": "2.0",
+      "security_rating": "1.0 (A)",
+      "reliability_rating": "1.0 (A)",
+      "sqale_rating": "1.0 (A)"
+    },
+    "inheritanceObservation": "The three PR-side transitions carried onto the branch analysis: argocd_service.go:274 and backup_service.go:424 read back on main as RESOLVED / FALSE-POSITIVE under their original round-4 keys AaGHE4OZVq8OAzu0RFHf and AaGHE4QxVq8OAzu0RFIK at their round-4 line numbers, even though the statement text at those lines is now Where(idWhereClause, id) and Where(whereByID, id). The round-7 assumption that each rewritten sink would need its own post-merge transition was therefore wrong: a transition made on the matching pull-request instance is inherited by the branch, so the total marked population stays 33 gosecurity:S3649 + 3 gosecurity:S2083 = 36.",
+    "reversibilityRound8": "each of the four keys above is restored with POST /api/issues/do_transition issue=<key> transition=to_reopen; nothing else on the branch was changed by this batch"
   }
 }
