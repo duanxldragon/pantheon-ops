@@ -34,6 +34,11 @@
 ## Harness adoption markers
 
 > 保留本区块的英文 marker，供治理脚本做机械检查。
+>
+> 注：本文件是 round 8 的 PR body 留痕，提交在 PR #162 **之前**，因此下面几处「pending / not-applicable」在合并后已翻绿——
+> `GitHub checks`（PR #162 的 `Quality Gates`、`Security Gates`、`SonarCloud Code Analysis` 全部 pass，合并后 main 的四个
+> push 工作流亦全部 success）、`Duplication Gate`（PR #162 实际运行并 pass）。当前权威读数见 `commands.json` 最后三条记录
+> 与 `sonar-triage.json` 的 `postRound8ReadBack.finalMergeEvidence`。
 
 - task id: 2026-10-30-sonar-findings-remediation
 - task manifest: `.harness/tasks/2026-10-30-sonar-findings-remediation/manifest.json`
