@@ -195,30 +195,14 @@ func parseGroupImportRow(
 func (s *GroupService) applyGroupImportRows(result *impexp.ImportResult, rows []groupImportRow, existingByName map[string]*Group, createdBy string) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		for i := range rows {
-			var parentID uint64
-			if rows[i].ParentName != "" {
-				parent, ok := existingByName[rows[i].ParentName]
-				if !ok {
-					impexp.AppendImportError(result, rows[i].RowNumber, "parentName", "cmdbgroup.parent_not_found")
-					continue
-				}
-				parentID = parent.ID
+			row := rows[i]
+			parentID, ok := resolveGroupImportParent(result, row, existingByName)
+			if !ok {
+				continue
 			}
 
-			var conditions datatypes.JSON
-			if rows[i].Conditions != "" && rows[i].Conditions != "[]" {
-				conditions = datatypes.JSON([]byte(rows[i].Conditions))
-			} else {
-				conditions = datatypes.JSON([]byte("[]"))
-			}
-
-			if rows[i].Existing != nil {
-				updates := map[string]interface{}{
-					"parent_id":   parentID,
-					"conditions":  conditions,
-					"description": rows[i].Description,
-				}
-				if err := tx.Model(rows[i].Existing).Updates(updates).Error; err != nil {
+			if row.Existing != nil {
+				if err := tx.Model(row.Existing).Updates(buildGroupImportUpdates(parentID, row)).Error; err != nil {
 					return err
 				}
 				result.Updated++
@@ -226,10 +210,10 @@ func (s *GroupService) applyGroupImportRows(result *impexp.ImportResult, rows []
 			}
 
 			group := Group{
-				Name:        rows[i].Name,
+				Name:        row.Name,
 				ParentID:    parentID,
-				Conditions:  conditions,
-				Description: rows[i].Description,
+				Conditions:  groupImportConditions(row),
+				Description: row.Description,
 			}
 			if err := tx.Create(&group).Error; err != nil {
 				return err
@@ -239,4 +223,31 @@ func (s *GroupService) applyGroupImportRows(result *impexp.ImportResult, rows []
 		}
 		return nil
 	})
+}
+
+func resolveGroupImportParent(result *impexp.ImportResult, row groupImportRow, existingByName map[string]*Group) (uint64, bool) {
+	if row.ParentName == "" {
+		return 0, true
+	}
+	parent, ok := existingByName[row.ParentName]
+	if !ok {
+		impexp.AppendImportError(result, row.RowNumber, "parentName", "cmdbgroup.parent_not_found")
+		return 0, false
+	}
+	return parent.ID, true
+}
+
+func groupImportConditions(row groupImportRow) datatypes.JSON {
+	if row.Conditions != "" && row.Conditions != "[]" {
+		return datatypes.JSON([]byte(row.Conditions))
+	}
+	return datatypes.JSON([]byte("[]"))
+}
+
+func buildGroupImportUpdates(parentID uint64, row groupImportRow) map[string]interface{} {
+	return map[string]interface{}{
+		"parent_id":   parentID,
+		"conditions":  groupImportConditions(row),
+		"description": row.Description,
+	}
 }

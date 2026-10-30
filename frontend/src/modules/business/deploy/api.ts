@@ -1,7 +1,8 @@
-import { apiRequest } from '@duanxldragon/pantheon-base-ui';
-import { downloadFile, uploadImportFile } from '@duanxldragon/pantheon-base-ui';
+import { apiRequest, downloadFile, uploadImportFile } from '@duanxldragon/pantheon-base-ui';
 
 export type DeployAction = 'install' | 'uninstall' | 'upgrade' | 'reinstall';
+
+export type DeployFailurePolicy = 'fail_fast' | 'continue_hosts' | 'continue_steps' | (string & {});
 
 export type DeployStepType =
   | 'package'
@@ -75,7 +76,7 @@ export interface DeployTemplateStepRow {
   stepConfig?: Record<string, unknown>;
   dependencies?: string[];
   condition?: Record<string, unknown>;
-  failurePolicy?: 'fail_fast' | 'continue_hosts' | 'continue_steps' | string;
+  failurePolicy?: DeployFailurePolicy;
   continueOnHostFailure?: boolean;
   sort: number;
   createdAt: string;
@@ -130,7 +131,7 @@ export interface DeployTemplatePayload {
     stepConfig?: Record<string, unknown>;
     dependencies?: string[];
     condition?: Record<string, unknown>;
-    failurePolicy?: 'fail_fast' | 'continue_hosts' | 'continue_steps' | string;
+    failurePolicy?: DeployFailurePolicy;
     continueOnHostFailure?: boolean;
     sort: number;
   }>;

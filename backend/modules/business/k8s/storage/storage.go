@@ -28,6 +28,9 @@ const (
 	msgParamInvalid = "common.param_invalid"
 	opTimeout       = 30 * time.Second
 	defaultClassKey = "storageclass.kubernetes.io/is-default-class"
+	// SQL fragments shared by the snapshot list queries below.
+	whereName     = "name = ?"
+	orderByIdDesc = "id DESC"
 )
 
 // PV is the DB snapshot of a Kubernetes PersistentVolume.
@@ -150,14 +153,14 @@ func (s *StorageService) ListPVs(query ListQuery, dataScope *common.DataScopeReq
 		db = db.Where("status = ?", query.Status)
 	}
 	if query.Name != "" {
-		db = db.Where("name = ?", query.Name)
+		db = db.Where(whereName, query.Name)
 	}
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
 		return nil, err
 	}
 	var items []PV
-	if err := db.Order("id DESC").Find(&items).Error; err != nil {
+	if err := db.Order(orderByIdDesc).Find(&items).Error; err != nil {
 		return nil, err
 	}
 	return &ListResponse{Items: items, Total: total}, nil
@@ -173,7 +176,7 @@ func (s *StorageService) ListPVCs(query ListQuery, dataScope *common.DataScopeRe
 		db = db.Where("status = ?", query.Status)
 	}
 	if query.Name != "" {
-		db = db.Where("name = ?", query.Name)
+		db = db.Where(whereName, query.Name)
 	}
 	if query.Namespace != "" {
 		db = db.Where("namespace = ?", query.Namespace)
@@ -183,7 +186,7 @@ func (s *StorageService) ListPVCs(query ListQuery, dataScope *common.DataScopeRe
 		return nil, err
 	}
 	var items []PVC
-	if err := db.Order("id DESC").Find(&items).Error; err != nil {
+	if err := db.Order(orderByIdDesc).Find(&items).Error; err != nil {
 		return nil, err
 	}
 	return &ListResponse{Items: items, Total: total}, nil
@@ -193,14 +196,14 @@ func (s *StorageService) ListPVCs(query ListQuery, dataScope *common.DataScopeRe
 func (s *StorageService) ListStorageClasses(query ListQuery, dataScope *common.DataScopeReq) (*ListResponse, error) {
 	db := s.snapshotQuery(&StorageClass{}, query.ClusterID, dataScope)
 	if query.Name != "" {
-		db = db.Where("name = ?", query.Name)
+		db = db.Where(whereName, query.Name)
 	}
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
 		return nil, err
 	}
 	var items []StorageClass
-	if err := db.Order("id DESC").Find(&items).Error; err != nil {
+	if err := db.Order(orderByIdDesc).Find(&items).Error; err != nil {
 		return nil, err
 	}
 	return &ListResponse{Items: items, Total: total}, nil

@@ -8,7 +8,25 @@ import { AppTable, GovernanceSummaryBar, PageContainer, PageEmpty, PageError, Pa
 import { deleteFile, deleteTask, getFileList, getTaskList, uploadFile, type DistributionTaskRow, type FileRecordRow } from './api';
 import '../../../assets/list-page.css';
 
-const formatSize = (size: number) => size < 1024 ? `${size} B` : size < 1024 * 1024 ? `${(size / 1024).toFixed(1)} KB` : `${(size / (1024 * 1024)).toFixed(1)} MB`;
+const formatSize = (size: number) => {
+  if (size < 1024) {
+    return `${size} B`;
+  }
+  if (size < 1024 * 1024) {
+    return `${(size / 1024).toFixed(1)} KB`;
+  }
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const taskStatusColor = (status: string) => {
+  if (status === 'completed') {
+    return 'green';
+  }
+  if (status === 'failed') {
+    return 'red';
+  }
+  return 'arcoblue';
+};
 
 export default function FiledistList() {
   const { t } = useTranslation();
@@ -67,7 +85,7 @@ export default function FiledistList() {
   const taskColumns = useMemo<ColumnProps<DistributionTaskRow>[]>(() => [
     { title: t('business.filedist.taskName'), dataIndex: 'name', width: 260 },
     { title: t('business.filedist.fileName'), dataIndex: 'fileName', width: 220, render: (_: unknown, row) => row.fileName || '-' },
-    { title: t('business.filedist.status'), dataIndex: 'status', width: 120, render: (_: unknown, row) => <Tag color={row.status === 'completed' ? 'green' : row.status === 'failed' ? 'red' : 'arcoblue'}>{row.status}</Tag> },
+    { title: t('business.filedist.status'), dataIndex: 'status', width: 120, render: (_: unknown, row) => <Tag color={taskStatusColor(row.status)}>{row.status}</Tag> },
     { title: t('business.filedist.progress'), dataIndex: 'progress', width: 110, render: (_: unknown, row) => `${row.progress ?? 0}%` },
     { title: t('business.filedist.totalHosts'), dataIndex: 'totalTargets', width: 120 },
     { title: t('common.action'), width: 150, fixed: 'right', render: (_: unknown, row) => <Space><Button type="text" size="small" onClick={() => navigate(`/business/filedist/tasks/${row.id}`)}>{t('common.view')}</Button><Popconfirm title={t('common.deleteConfirm')} onOk={() => void handleDeleteTask(row)}><Button type="text" status="danger" size="small" icon={<IconDelete />}>{t('common.delete')}</Button></Popconfirm></Space> },

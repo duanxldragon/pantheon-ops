@@ -39,6 +39,43 @@ import '../../../assets/list-page.css';
 const { TabPane } = Tabs;
 const FormItem = Form.Item;
 
+const instanceTargetTypeColor = (value: string) => (value === 'k8s' ? 'purple' : 'cyan');
+
+const instanceObservedStateColor = (value: string) => {
+  if (value === 'running') {
+    return 'green';
+  }
+  if (value === 'failed') {
+    return 'red';
+  }
+  return 'orange';
+};
+
+const instanceHealthStateColor = (value: string) => {
+  if (value === 'healthy') {
+    return 'green';
+  }
+  if (value === 'unhealthy') {
+    return 'red';
+  }
+  return 'gray';
+};
+
+const instanceBindingLabel = (row: ServiceInstanceRow) =>
+  row.targetType === 'vm'
+    ? `Host #${row.hostId}`
+    : `${row.namespace}/${row.workloadKind}/${row.workloadName}`;
+
+const resolveAllowedTargetTypes = (runtimeType?: string): Array<'vm' | 'k8s'> => {
+  if (runtimeType === 'vm') {
+    return ['vm'];
+  }
+  if (runtimeType === 'k8s') {
+    return ['k8s'];
+  }
+  return ['vm', 'k8s'];
+};
+
 interface ApplicationFormValues {
   code: string;
   name: string;
@@ -202,10 +239,10 @@ export default function ServiceCatalog() {
   const instanceColumns = useMemo<ColumnProps<ServiceInstanceRow>[]>(() => [
     { title: t('business.service.catalog.field.service'), dataIndex: 'serviceName', width: 180 },
     { title: t('business.service.instance.environment'), dataIndex: 'environment', width: 110 },
-    { title: t('business.service.instance.target'), dataIndex: 'targetType', width: 100, render: (value: string) => <Tag color={value === 'k8s' ? 'purple' : 'cyan'}>{value}</Tag> },
-    { title: t('business.service.catalog.field.binding'), width: 260, render: (_: unknown, row) => row.targetType === 'vm' ? `Host #${row.hostId}` : `${row.namespace}/${row.workloadKind}/${row.workloadName}` },
-    { title: t('business.service.instance.observed'), dataIndex: 'observedState', width: 120, render: (value: string) => <Tag color={value === 'running' ? 'green' : value === 'failed' ? 'red' : 'orange'}>{value}</Tag> },
-    { title: t('business.service.instance.health'), dataIndex: 'healthState', width: 110, render: (value: string) => <Tag color={value === 'healthy' ? 'green' : value === 'unhealthy' ? 'red' : 'gray'}>{value}</Tag> },
+    { title: t('business.service.instance.target'), dataIndex: 'targetType', width: 100, render: (value: string) => <Tag color={instanceTargetTypeColor(value)}>{value}</Tag> },
+    { title: t('business.service.catalog.field.binding'), width: 260, render: (_: unknown, row) => instanceBindingLabel(row) },
+    { title: t('business.service.instance.observed'), dataIndex: 'observedState', width: 120, render: (value: string) => <Tag color={instanceObservedStateColor(value)}>{value}</Tag> },
+    { title: t('business.service.instance.health'), dataIndex: 'healthState', width: 110, render: (value: string) => <Tag color={instanceHealthStateColor(value)}>{value}</Tag> },
     {
       title: t('common.action'),
       width: 160,
@@ -216,11 +253,7 @@ export default function ServiceCatalog() {
 
   const selectedService = services.find((item) => item.id === selectedServiceId);
   const visibleHosts = selectedService ? hosts.filter((item) => item.businessScopeId === selectedService.businessScopeId) : hosts;
-  const allowedTargetTypes: Array<'vm' | 'k8s'> = selectedService?.runtimeType === 'vm'
-    ? ['vm']
-    : selectedService?.runtimeType === 'k8s'
-      ? ['k8s']
-      : ['vm', 'k8s'];
+  const allowedTargetTypes = resolveAllowedTargetTypes(selectedService?.runtimeType);
 
   const handleServiceChange = (serviceId: number) => {
     const service = services.find((item) => item.id === serviceId);

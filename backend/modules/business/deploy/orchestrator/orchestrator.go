@@ -72,43 +72,70 @@ func New(registry *executor.Registry) *Orchestrator {
 // ValidateDAG checks node references, cycles and duplicate keys. A missing
 // dependency, a self-referencing step or a cycle is reported as invalid.
 func ValidateDAG(nodes []DAGNode) DAGValidation {
+	byKey, known, errs := indexDAGNodes(nodes)
+	errs = append(errs, validateDAGReferences(nodes, known)...)
+	if hasDAGCycle(byKey) {
+		errs = append(errs, "cycle detected in step dependencies")
+	}
+	if len(errs) == 0 {
+		return DAGValidation{Valid: true}
+	}
+	return DAGValidation{Valid: false, Errors: errs}
+}
+
+// indexDAGNodes maps the nodes by step key and reports empty or duplicate keys.
+func indexDAGNodes(nodes []DAGNode) (map[string]DAGNode, map[string]bool, []string) {
 	byKey := make(map[string]DAGNode, len(nodes))
 	seen := make(map[string]bool, len(nodes))
-	var errors []string
+	var errs []string
 	for _, n := range nodes {
 		if strings.TrimSpace(n.StepKey) == "" {
-			errors = append(errors, "step key must not be empty")
+			errs = append(errs, "step key must not be empty")
 			continue
 		}
 		if seen[n.StepKey] {
-			errors = append(errors, "duplicate step key: "+n.StepKey)
+			errs = append(errs, "duplicate step key: "+n.StepKey)
 			continue
 		}
 		seen[n.StepKey] = true
 		byKey[n.StepKey] = n
 	}
+	return byKey, seen, errs
+}
+
+// validateDAGReferences reports self references and dependencies on unknown steps.
+func validateDAGReferences(nodes []DAGNode, known map[string]bool) []string {
+	var errs []string
 	for _, n := range nodes {
 		for _, dep := range n.Dependencies {
 			if dep == n.StepKey {
-				errors = append(errors, "step "+n.StepKey+" depends on itself")
+				errs = append(errs, "step "+n.StepKey+" depends on itself")
 				continue
 			}
-			if !seen[dep] {
-				errors = append(errors, "step "+n.StepKey+" depends on unknown step "+dep)
+			if !known[dep] {
+				errs = append(errs, "step "+n.StepKey+" depends on unknown step "+dep)
 			}
 		}
 	}
-	// Cycle detection: DFS over dependency edges.
-	state := make(map[string]int, len(nodes)) // 0=unvisited 1=visiting 2=done
+	return errs
+}
+
+// hasDAGCycle walks the dependency edges depth first and reports a back edge.
+func hasDAGCycle(byKey map[string]DAGNode) bool {
+	const (
+		visiting = 1
+		done     = 2
+	)
+	state := make(map[string]int, len(byKey)) // 0=unvisited 1=visiting 2=done
 	var visit func(key string) bool
 	visit = func(key string) bool {
 		switch state[key] {
-		case 1:
+		case visiting:
 			return true // back edge -> cycle
-		case 2:
+		case done:
 			return false
 		}
-		state[key] = 1
+		state[key] = visiting
 		node, ok := byKey[key]
 		if ok {
 			for _, dep := range node.Dependencies {
@@ -117,105 +144,143 @@ func ValidateDAG(nodes []DAGNode) DAGValidation {
 				}
 			}
 		}
-		state[key] = 2
+		state[key] = done
 		return false
 	}
 	for key := range byKey {
 		if visit(key) {
-			errors = append(errors, "cycle detected in step dependencies")
-			break
+			return true
 		}
 	}
-	if len(errors) == 0 {
-		return DAGValidation{Valid: true}
-	}
-	return DAGValidation{Valid: false, Errors: errors}
+	return false
 }
 
 // RunHostSteps executes the plan against the provider registered for its
 // executor type, honoring conditions, dependencies and failure policies.
 // The sink receives per-step log output. Execution stops on the first
 // unrecoverable step failure unless the step policy allows continuation.
-func (o *Orchestrator) RunHostSteps(ctx context.Context, plan executor.ExecutionPlan, sink executor.LogSink) HostExecution {
+func (o *Orchestrator) RunHostSteps(ctx context.Context, plan executor.ExecutionPlan, sink executor.LogWriter) HostExecution {
 	provider, ok := o.registry.Get(plan.ExecutorType)
 	if !ok {
-		return HostExecution{Status: StatusFailed, Steps: []StepResult{{
-			StepKey: planFirstStepKey(plan),
-			Status:  StatusFailed,
-			Error:   "no executor provider registered for type: " + plan.ExecutorType,
-		}}}
+		return singleStepFailure(planFirstStepKey(plan), "no executor provider registered for type: "+plan.ExecutorType)
 	}
 	if err := provider.Validate(ctx, plan); err != nil {
-		return HostExecution{Status: StatusFailed, Steps: []StepResult{{
-			StepKey: planFirstStepKey(plan),
-			Status:  StatusFailed,
-			Error:   err.Error(),
-		}}}
+		return singleStepFailure(planFirstStepKey(plan), err.Error())
 	}
-
 	ordered := orderSteps(plan)
-	results := make([]StepResult, 0, len(ordered))
-	executed := make(map[string]StepResult, len(ordered))
-	failed := false
-	canceled := false
-
+	run := hostStepRun{
+		provider: provider,
+		plan:     plan,
+		sink:     sink,
+		results:  make([]StepResult, 0, len(ordered)),
+		executed: make(map[string]StepResult, len(ordered)),
+	}
 	for _, step := range ordered {
 		if ctx.Err() != nil {
-			canceled = true
+			run.canceled = true
 			break
 		}
-		// Condition evaluation.
-		skip, err := evaluateCondition(step, executed, plan)
-		if err != nil {
-			results = append(results, StepResult{StepKey: step.StepKey, Status: StatusFailed, Error: err.Error()})
-			failed = true
-			if !stepContinueOnFailure(step) {
-				break
-			}
-			continue
+		result, outcome := run.runStep(ctx, step)
+		if outcome == stepTerminatesRun {
+			return result
 		}
-		if skip {
-			results = append(results, StepResult{StepKey: step.StepKey, Status: "skipped"})
-			executed[step.StepKey] = StepResult{StepKey: step.StepKey, Status: "skipped"}
-			continue
-		}
-		// Checkpoint resume: skip steps already in a terminal successful state.
-		if step.InitialStatus == "success" || step.InitialStatus == "skipped" {
-			results = append(results, StepResult{StepKey: step.StepKey, Status: step.InitialStatus, Changed: true})
-			executed[step.StepKey] = StepResult{StepKey: step.StepKey, Status: step.InitialStatus, Changed: true}
-			continue
-		}
-
-		res := provider.ExecuteStep(ctx, executor.StepRequest{
-			TaskID:     plan.TaskID,
-			TaskHostID: plan.TaskHostID,
-			StepKey:    step.StepKey,
-			StepType:   step.StepType,
-			Actor:      plan.Actor,
-		}, sink)
-		sr := StepResult{StepKey: step.StepKey, Status: res.Status, Changed: res.Changed, Error: res.ErrorMessage}
-		results = append(results, sr)
-		executed[step.StepKey] = sr
-
-		switch res.Status {
-		case StatusFailed:
-			failed = true
-			if !stepContinueOnFailure(step) {
-				return HostExecution{Status: StatusFailed, Steps: results}
-			}
-		case StatusCanceled:
-			canceled = true
+		if outcome == stepStopsRun {
+			break
 		}
 	}
+	return run.finalize()
+}
 
+// stepOutcome tells the host loop whether to keep going, end with the
+// accumulated status, or return a terminal failure immediately.
+type stepOutcome int
+
+const (
+	stepContinues stepOutcome = iota
+	stepStopsRun
+	stepTerminatesRun
+)
+
+// hostStepRun carries the accumulating outcome of one host run.
+type hostStepRun struct {
+	provider executor.StepProvider
+	plan     executor.ExecutionPlan
+	sink     executor.LogWriter
+	results  []StepResult
+	executed map[string]StepResult
+	failed   bool
+	canceled bool
+}
+
+// runStep executes one ordered step. A condition error ends the run through the
+// accumulated status, while a failed step returns its terminal execution right
+// away unless the step policy allows continuation.
+func (r *hostStepRun) runStep(ctx context.Context, step executor.StepPlan) (HostExecution, stepOutcome) {
+	skip, err := evaluateCondition(step, r.executed, r.plan)
+	if err != nil {
+		// A condition error is reported for the step but never counts as an
+		// executed outcome for its dependents.
+		r.results = append(r.results, StepResult{StepKey: step.StepKey, Status: StatusFailed, Error: err.Error()})
+		r.failed = true
+		if stepContinueOnFailure(step) {
+			return HostExecution{}, stepContinues
+		}
+		return HostExecution{}, stepStopsRun
+	}
+	if skip {
+		r.remember(StepResult{StepKey: step.StepKey, Status: "skipped"})
+		return HostExecution{}, stepContinues
+	}
+	// Checkpoint resume: skip steps already in a terminal successful state.
+	if step.InitialStatus == "success" || step.InitialStatus == "skipped" {
+		r.remember(StepResult{StepKey: step.StepKey, Status: step.InitialStatus, Changed: true})
+		return HostExecution{}, stepContinues
+	}
+	res := r.provider.ExecuteStep(ctx, executor.StepRequest{
+		TaskID:     r.plan.TaskID,
+		TaskHostID: r.plan.TaskHostID,
+		StepKey:    step.StepKey,
+		StepType:   step.StepType,
+		Actor:      r.plan.Actor,
+	}, r.sink)
+	r.remember(StepResult{StepKey: step.StepKey, Status: res.Status, Changed: res.Changed, Error: res.ErrorMessage})
+	switch res.Status {
+	case StatusFailed:
+		r.failed = true
+		if stepContinueOnFailure(step) {
+			return HostExecution{}, stepContinues
+		}
+		return HostExecution{Status: StatusFailed, Steps: r.results}, stepTerminatesRun
+	case StatusCanceled:
+		r.canceled = true
+	}
+	return HostExecution{}, stepContinues
+}
+
+// remember appends a step outcome and exposes it to the conditions of the
+// following steps.
+func (r *hostStepRun) remember(res StepResult) {
+	r.results = append(r.results, res)
+	r.executed[res.StepKey] = res
+}
+
+func (r *hostStepRun) finalize() HostExecution {
 	switch {
-	case canceled:
-		return HostExecution{Status: StatusCanceled, Steps: results}
-	case failed:
-		return HostExecution{Status: StatusFailed, Steps: results}
+	case r.canceled:
+		return HostExecution{Status: StatusCanceled, Steps: r.results}
+	case r.failed:
+		return HostExecution{Status: StatusFailed, Steps: r.results}
 	default:
-		return HostExecution{Status: StatusSuccess, Steps: results}
+		return HostExecution{Status: StatusSuccess, Steps: r.results}
 	}
+}
+
+func singleStepFailure(stepKey, message string) HostExecution {
+	return HostExecution{Status: StatusFailed, Steps: []StepResult{{
+		StepKey: stepKey,
+		Status:  StatusFailed,
+		Error:   message,
+	}}}
 }
 
 func planFirstStepKey(plan executor.ExecutionPlan) string {
@@ -280,34 +345,60 @@ func evaluateCondition(step executor.StepPlan, executed map[string]StepResult, p
 	}
 	switch cond {
 	case ConditionOnSuccess:
-		for _, dep := range step.Dependencies {
-			if r, ok := executed[dep]; ok && r.Status != StatusSuccess && r.Status != "skipped" {
-				return true, nil
-			}
-		}
-		return false, nil
+		return dependenciesNotSatisfied(executed, step.Dependencies), nil
 	case ConditionOnFailure:
-		for _, dep := range step.Dependencies {
-			if r, ok := executed[dep]; ok && r.Status == StatusFailed {
-				return false, nil
-			}
-		}
-		return true, nil
+		return !dependenciesAnyFailed(executed, step.Dependencies), nil
 	case ConditionOnChanged:
-		for _, dep := range step.Dependencies {
-			if r, ok := executed[dep]; ok && r.Changed {
-				return false, nil
-			}
-		}
-		return true, nil
+		return !dependenciesAnyChanged(executed, step.Dependencies), nil
 	case ConditionParamEquals:
-		expected, ok := step.ConditionParams["value"].(string)
-		if !ok || expected == "" {
-			return false, nil
-		}
-		actual, ok := step.ConditionParams["current"].(string)
-		return !ok || actual != expected, nil
+		return paramEqualsSkips(step), nil
 	default:
 		return false, nil
 	}
+}
+
+// dependenciesNotSatisfied reports whether an executed dependency ended in a
+// state other than success or skipped.
+func dependenciesNotSatisfied(executed map[string]StepResult, dependencies []string) bool {
+	for _, dep := range dependencies {
+		result, ok := executed[dep]
+		if ok && result.Status != StatusSuccess && result.Status != "skipped" {
+			return true
+		}
+	}
+	return false
+}
+
+// dependenciesAnyFailed reports whether an executed dependency failed.
+func dependenciesAnyFailed(executed map[string]StepResult, dependencies []string) bool {
+	for _, dep := range dependencies {
+		result, ok := executed[dep]
+		if ok && result.Status == StatusFailed {
+			return true
+		}
+	}
+	return false
+}
+
+// dependenciesAnyChanged reports whether an executed dependency changed the
+// host.
+func dependenciesAnyChanged(executed map[string]StepResult, dependencies []string) bool {
+	for _, dep := range dependencies {
+		result, ok := executed[dep]
+		if ok && result.Changed {
+			return true
+		}
+	}
+	return false
+}
+
+// paramEqualsSkips resolves the param_equals condition against the current and
+// expected values carried by the step condition parameters.
+func paramEqualsSkips(step executor.StepPlan) bool {
+	expected, ok := step.ConditionParams["value"].(string)
+	if !ok || expected == "" {
+		return false
+	}
+	actual, ok := step.ConditionParams["current"].(string)
+	return !ok || actual != expected
 }

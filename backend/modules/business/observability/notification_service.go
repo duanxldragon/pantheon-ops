@@ -133,12 +133,12 @@ func (s *NotificationService) UpdateChannel(id uint64, dto NotificationChannelDT
 		"config":  configJSON,
 	}
 
-	return s.db.Model(&NotificationChannel{}).Where("id = ?", id).Updates(updates).Error
+	return s.db.Model(&NotificationChannel{}).Where(idWhereClause, id).Updates(updates).Error
 }
 
 // DeleteChannel removes a channel.
 func (s *NotificationService) DeleteChannel(id uint64, scopes ...*common.DataScopeReq) error {
-	result := s.db.Scopes(database.WithDataScope(firstDataScope(scopes))).Where("id = ?", id).Delete(&NotificationChannel{})
+	result := s.db.Scopes(database.WithDataScope(firstDataScope(scopes))).Where(idWhereClause, id).Delete(&NotificationChannel{})
 	if result.Error != nil {
 		return result.Error
 	}
@@ -457,7 +457,7 @@ func (s *NotificationService) encryptStoredChannelConfigs() error {
 		if err != nil {
 			return err
 		}
-		if err := s.db.Model(&NotificationChannel{}).Where("id = ?", records[i].ID).Update("config", encoded).Error; err != nil {
+		if err := s.db.Model(&NotificationChannel{}).Where(idWhereClause, records[i].ID).Update("config", encoded).Error; err != nil {
 			return err
 		}
 	}

@@ -7,6 +7,16 @@ import { AppTable, PageContainer, PageEmpty, PageError, PageLoading } from '../.
 import { getAlertEventList, type AlertEventRow } from './api';
 import '../../../assets/list-page.css';
 
+function alertSeverityColor(value: string): string {
+  if (value === 'critical') {
+    return 'red';
+  }
+  if (value === 'warning') {
+    return 'orange';
+  }
+  return 'blue';
+}
+
 export default function AlertRecordList() {
   const { t } = useTranslation();
   const [rows, setRows] = useState<AlertEventRow[]>([]);
@@ -34,7 +44,7 @@ export default function AlertRecordList() {
 
   const columns = useMemo<ColumnProps<AlertEventRow>[]>(() => [
     { title: t('observability.alert_record.rule_name'), dataIndex: 'ruleName', width: 220 },
-    { title: t('observability.alert_record.severity'), dataIndex: 'severity', width: 110, render: (value: string) => <Tag color={value === 'critical' ? 'red' : value === 'warning' ? 'orange' : 'blue'}>{value}</Tag> },
+    { title: t('observability.alert_record.severity'), dataIndex: 'severity', width: 110, render: (value: string) => <Tag color={alertSeverityColor(value)}>{value}</Tag> },
     { title: t('observability.alert_record.status'), dataIndex: 'status', width: 110, render: (value: string) => <Tag color={value === 'firing' ? 'red' : 'green'}>{t(`observability.alert_record.${value}`, { defaultValue: value })}</Tag> },
     { title: t('observability.alert_record.fired_at'), dataIndex: 'firedAt', width: 190, render: (value: string) => new Date(value).toLocaleString() },
     { title: t('observability.alert_record.resolved_at'), dataIndex: 'resolvedAt', width: 190, render: (value?: string) => value ? new Date(value).toLocaleString() : '-' },

@@ -8,6 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// msgParamInvalid is the i18n key returned for a malformed request. The key is part of the
+// frontend message catalogue contract, so it stays a single package constant.
+const msgParamInvalid = "common.param_invalid"
+
 // ArgoCDHandler handles ArgoCD HTTP requests.
 //
 //nolint:revive // the exported handler name keeps the Argo CD domain prefix for API clarity.
@@ -55,7 +59,7 @@ func (h *ArgoCDHandler) RegisterRoutes(r gin.IRoutes) {
 func (h *ArgoCDHandler) AddServer(c *gin.Context) {
 	var req AddServerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
@@ -83,7 +87,7 @@ func (h *ArgoCDHandler) ListServers(c *gin.Context) {
 func (h *ArgoCDHandler) GetServer(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.service.GetServer(id)
@@ -98,12 +102,12 @@ func (h *ArgoCDHandler) GetServer(c *gin.Context) {
 func (h *ArgoCDHandler) UpdateServer(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	var req UpdateServerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "更新 ArgoCD 服务端", common.BusinessUpdate)
@@ -119,7 +123,7 @@ func (h *ArgoCDHandler) UpdateServer(c *gin.Context) {
 func (h *ArgoCDHandler) DeleteServer(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "删除 ArgoCD 服务端", common.BusinessDelete)
@@ -135,7 +139,7 @@ func (h *ArgoCDHandler) DeleteServer(c *gin.Context) {
 func (h *ArgoCDHandler) TestServerConnection(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	ok, err := h.service.TestServerConnection(id)
@@ -152,7 +156,7 @@ func (h *ArgoCDHandler) TestServerConnection(c *gin.Context) {
 func (h *ArgoCDHandler) AddRepository(c *gin.Context) {
 	var req AddRepositoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
@@ -181,7 +185,7 @@ func (h *ArgoCDHandler) ListRepositories(c *gin.Context) {
 func (h *ArgoCDHandler) GetRepository(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.service.GetRepository(id)
@@ -196,12 +200,12 @@ func (h *ArgoCDHandler) GetRepository(c *gin.Context) {
 func (h *ArgoCDHandler) UpdateRepository(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	var req AddRepositoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "更新 Git 仓库", common.BusinessUpdate)
@@ -217,7 +221,7 @@ func (h *ArgoCDHandler) UpdateRepository(c *gin.Context) {
 func (h *ArgoCDHandler) DeleteRepository(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "删除 Git 仓库", common.BusinessDelete)
@@ -235,7 +239,7 @@ func (h *ArgoCDHandler) DeleteRepository(c *gin.Context) {
 func (h *ArgoCDHandler) CreateApplication(c *gin.Context) {
 	var req CreateApplicationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	createdBy := strconv.FormatUint(common.GetUserID(c), 10)
@@ -264,7 +268,7 @@ func (h *ArgoCDHandler) ListApplications(c *gin.Context) {
 func (h *ArgoCDHandler) GetApplication(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.service.GetApplication(id)
@@ -279,12 +283,12 @@ func (h *ArgoCDHandler) GetApplication(c *gin.Context) {
 func (h *ArgoCDHandler) UpdateApplication(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	var req UpdateApplicationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "更新 ArgoCD 应用", common.BusinessUpdate)
@@ -300,7 +304,7 @@ func (h *ArgoCDHandler) UpdateApplication(c *gin.Context) {
 func (h *ArgoCDHandler) DeleteApplication(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "删除 ArgoCD 应用", common.BusinessDelete)
@@ -316,7 +320,7 @@ func (h *ArgoCDHandler) DeleteApplication(c *gin.Context) {
 func (h *ArgoCDHandler) SyncApplication(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	var req SyncApplicationRequest
@@ -336,7 +340,7 @@ func (h *ArgoCDHandler) SyncApplication(c *gin.Context) {
 func (h *ArgoCDHandler) RefreshApplication(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "刷新 ArgoCD 应用", common.BusinessUpdate)
@@ -352,12 +356,12 @@ func (h *ArgoCDHandler) RefreshApplication(c *gin.Context) {
 func (h *ArgoCDHandler) RollbackApplication(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	var req SyncApplicationRequest
 	if err := c.ShouldBindJSON(&req); err != nil || req.Revision == "" {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	common.SetAuditMetadata(c, "回滚 ArgoCD 应用", common.BusinessUpdate)
@@ -374,7 +378,7 @@ func (h *ArgoCDHandler) RollbackApplication(c *gin.Context) {
 func (h *ArgoCDHandler) GetSyncHistory(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	resp, err := h.service.GetSyncHistory(id)

@@ -87,6 +87,34 @@ the check is a GitHub App / Vercel dashboard action.
   `CODE_SMELL` findings are untouched legacy backlog, and the three `os.Remove` taints are still a SonarGo
   sanitizer-propagation limitation — the code is safe because the test says so, not because the scanner agreed.
 
+## Round 5: the smell fan-out, and what the gates caught
+
+- Partitioning was by directory so no two writers shared a file (k8s + filedist, deploy, service + cmdb,
+  cicd + observability, two frontend batches). The cross-cutting classes stayed with the orchestrator because
+  they need repo-wide reference updates: the four `godre:S8196` interface renames, the two `go:S1135` TODOs and
+  the two workflow literals.
+- Two independent adversarial audits were run over the agent diffs, plus a line-by-line personal read of the
+  highest-risk extractions (`service/state.go`, `cmdb/host/host_state.go`, the seed files, the CMDB/group/label
+  import paths and every frontend helper lift). Both audits returned no blocker: extracted constants are
+  byte-identical to the literals they replace, error-append ordering is preserved, optimistic-lock and CAS
+  guards are unchanged, hook dependency lists are unchanged, React helpers moved to module scope rather than
+  into the component body (so no remount identity change), and no assertion was weakened.
+- One agent hit its turn budget with an unknown completion state, so its package was re-derived from
+  measurement rather than trusted: `gofmt`/`build`/`vet` clean, all nine `go:S1192` literals gone, all eleven
+  `go:S3776` targets under the threshold, `go:S107` and `godre:S8209` fixed. That suspicion was justified — the
+  full new-code lint then found two issues in it that review alone had missed (an unreachable extracted helper
+  and a `goconst` duplicate), both fixed and re-linted to 0.
+- The `applicationSyncer` seam was reviewed for the shape of the failure mode, not just the happy path:
+  `{"automated":null}` and `{"automated":false}` must both be false, a truncated `syncPolicy` column must be
+  false, and a sync that returns an error must still mark the webhook event processed, otherwise a transient
+  Argo CD outage would re-drive the same event forever. All four are pinned by tests.
+- Deleting the reconciler stub was checked against the schema before it was accepted as the honest option:
+  `biz_argocd_application` has no service-instance column, so the alternative was inventing an association.
+  The gap is recorded in the manifest instead.
+- What is deliberately not claimed here: that the local Go suite is green (11 failures reproduce identically at
+  HEAD), and that the backlog is cleared in the metric rather than in the code — only the next hosted analysis
+  decides that.
+
 ## Checked and found correct
 
 - `veleroState(status)` produces byte-identical output to the inlined nested template it replaced.

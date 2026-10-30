@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Form, Input, InputNumber, Message, Popconfirm, Select, Space, Switch, Tabs, Tag } from '@arco-design/web-react';
 import { IconDelete, IconPlus } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
+import type { TFunction } from 'i18next';
 import { AppModal, AppTable, GovernanceSummaryBar, PageContainer, PageEmpty, PageError, PageLoading, SearchToolbar } from '../../../components';
 import { usePermission } from '@duanxldragon/pantheon-base-ui';
 import {
@@ -41,6 +42,65 @@ interface ChannelFormValues {
   type: 'webhook' | 'slack' | 'dingtalk' | 'feishu';
   webhookUrl: string;
   secret?: string;
+}
+
+function severityTagColor(value: string): string {
+  if (value === 'critical') {
+    return 'red';
+  }
+  if (value === 'warning') {
+    return 'orange';
+  }
+  return 'arcoblue';
+}
+
+function buildChannelConfig(values: ChannelFormValues): Record<string, unknown> {
+  if (values.type === 'webhook') {
+    return { url: values.webhookUrl, method: 'POST', timeout: 10 };
+  }
+  return { webhookUrl: values.webhookUrl, secret: values.secret || '' };
+}
+
+function buildRuleColumns(options: {
+  t: TFunction;
+  canDeleteRule: boolean;
+  canUpdateRule: boolean;
+  load: () => Promise<void>;
+}): ColumnProps<AlertRuleRow>[] {
+  const { t, canDeleteRule, canUpdateRule, load } = options;
+  return [
+    { title: t('observability.alert_rule.name'), dataIndex: 'name', width: 200 },
+    { title: t('observability.alert_rule.metric_source'), dataIndex: 'datasourceName', width: 180 },
+    { title: t('observability.alert_rule.promql'), dataIndex: 'query', ellipsis: true },
+    { title: t('observability.alert_rule.severity'), dataIndex: 'severity', width: 110, render: (value: string) => <Tag color={severityTagColor(value)}>{value}</Tag> },
+    { title: t('observability.alert_rule.status'), dataIndex: 'enabled', width: 90, render: (enabled: boolean, row) => <Switch checked={enabled} disabled={!canUpdateRule} onChange={async (checked) => { await toggleAlertRule(row.id, checked); await load(); }} /> },
+    { title: t('business.observability.alertCenter.firedCount'), dataIndex: 'firedCount', width: 90 },
+    { title: t('common.action'), width: 90, fixed: 'right', render: (_: unknown, row) => canDeleteRule ? <Popconfirm title={t('observability.alert_rule.delete_confirm')} onOk={async () => { await deleteAlertRule(row.id); await load(); }}><Button type="text" status="danger" icon={<IconDelete />}>{t('common.delete')}</Button></Popconfirm> : null },
+  ];
+}
+
+function buildEventColumns(t: TFunction): ColumnProps<AlertEventRow>[] {
+  return [
+    { title: t('observability.alert_record.rule_name'), dataIndex: 'ruleName', width: 220 },
+    { title: t('observability.alert_record.severity'), dataIndex: 'severity', width: 110, render: (value: string) => <Tag color={severityTagColor(value)}>{value}</Tag> },
+    { title: t('observability.alert_record.status'), dataIndex: 'status', width: 110, render: (value: string) => <Tag color={value === 'firing' ? 'red' : 'green'}>{value}</Tag> },
+    { title: t('observability.alert_record.fired_at'), dataIndex: 'firedAt', width: 190, render: (value: string) => new Date(value).toLocaleString() },
+    { title: t('observability.alert_record.resolved_at'), dataIndex: 'resolvedAt', width: 190, render: (value?: string) => value ? new Date(value).toLocaleString() : '-' },
+  ];
+}
+
+function buildChannelColumns(options: {
+  t: TFunction;
+  canManageChannels: boolean;
+  load: () => Promise<void>;
+}): ColumnProps<NotificationChannelRow>[] {
+  const { t, canManageChannels, load } = options;
+  return [
+    { title: t('business.observability.alertCenter.field.name'), dataIndex: 'name', width: 220 },
+    { title: t('business.observability.alertCenter.field.type'), dataIndex: 'type', width: 130, render: (value: string) => <Tag color="cyan">{value}</Tag> },
+    { title: t('business.observability.alertCenter.field.status'), dataIndex: 'status', width: 120, render: (value: string) => <Tag color={value === 'active' ? 'green' : 'gray'}>{value}</Tag> },
+    { title: t('common.action'), width: 90, fixed: 'right', render: (_: unknown, row) => canManageChannels ? <Popconfirm title={t('business.observability.alertCenter.channelDeleteConfirm')} onOk={async () => { await deleteNotificationChannel(row.id); await load(); }}><Button type="text" status="danger" icon={<IconDelete />}>{t('common.delete')}</Button></Popconfirm> : null },
+  ];
 }
 
 export default function AlertCenter() {
@@ -106,9 +166,7 @@ export default function AlertCenter() {
 
   const submitChannel = useCallback(async () => {
     const values = await channelForm.validate();
-    const config = values.type === 'webhook'
-      ? { url: values.webhookUrl, method: 'POST', timeout: 10 }
-      : { webhookUrl: values.webhookUrl, secret: values.secret || '' };
+    const config = buildChannelConfig(values);
     setSubmitting(true);
     try {
       await createNotificationChannel({ name: values.name, type: values.type, enabled: true, config });
@@ -123,30 +181,17 @@ export default function AlertCenter() {
     }
   }, [channelForm, load, t]);
 
-  const ruleColumns = useMemo<ColumnProps<AlertRuleRow>[]>(() => [
-    { title: t('observability.alert_rule.name'), dataIndex: 'name', width: 200 },
-    { title: t('observability.alert_rule.metric_source'), dataIndex: 'datasourceName', width: 180 },
-    { title: t('observability.alert_rule.promql'), dataIndex: 'query', ellipsis: true },
-    { title: t('observability.alert_rule.severity'), dataIndex: 'severity', width: 110, render: (value: string) => <Tag color={value === 'critical' ? 'red' : value === 'warning' ? 'orange' : 'arcoblue'}>{value}</Tag> },
-    { title: t('observability.alert_rule.status'), dataIndex: 'enabled', width: 90, render: (enabled: boolean, row) => <Switch checked={enabled} disabled={!canUpdateRule} onChange={async (checked) => { await toggleAlertRule(row.id, checked); await load(); }} /> },
-    { title: t('business.observability.alertCenter.firedCount'), dataIndex: 'firedCount', width: 90 },
-    { title: t('common.action'), width: 90, fixed: 'right', render: (_: unknown, row) => canDeleteRule ? <Popconfirm title={t('observability.alert_rule.delete_confirm')} onOk={async () => { await deleteAlertRule(row.id); await load(); }}><Button type="text" status="danger" icon={<IconDelete />}>{t('common.delete')}</Button></Popconfirm> : null },
-  ], [canDeleteRule, canUpdateRule, load, t]);
+  const ruleColumns = useMemo<ColumnProps<AlertRuleRow>[]>(
+    () => buildRuleColumns({ t, canDeleteRule, canUpdateRule, load }),
+    [canDeleteRule, canUpdateRule, load, t],
+  );
 
-  const eventColumns = useMemo<ColumnProps<AlertEventRow>[]>(() => [
-    { title: t('observability.alert_record.rule_name'), dataIndex: 'ruleName', width: 220 },
-    { title: t('observability.alert_record.severity'), dataIndex: 'severity', width: 110, render: (value: string) => <Tag color={value === 'critical' ? 'red' : value === 'warning' ? 'orange' : 'arcoblue'}>{value}</Tag> },
-    { title: t('observability.alert_record.status'), dataIndex: 'status', width: 110, render: (value: string) => <Tag color={value === 'firing' ? 'red' : 'green'}>{value}</Tag> },
-    { title: t('observability.alert_record.fired_at'), dataIndex: 'firedAt', width: 190, render: (value: string) => new Date(value).toLocaleString() },
-    { title: t('observability.alert_record.resolved_at'), dataIndex: 'resolvedAt', width: 190, render: (value?: string) => value ? new Date(value).toLocaleString() : '-' },
-  ], [t]);
+  const eventColumns = useMemo<ColumnProps<AlertEventRow>[]>(() => buildEventColumns(t), [t]);
 
-  const channelColumns = useMemo<ColumnProps<NotificationChannelRow>[]>(() => [
-    { title: t('business.observability.alertCenter.field.name'), dataIndex: 'name', width: 220 },
-    { title: t('business.observability.alertCenter.field.type'), dataIndex: 'type', width: 130, render: (value: string) => <Tag color="cyan">{value}</Tag> },
-    { title: t('business.observability.alertCenter.field.status'), dataIndex: 'status', width: 120, render: (value: string) => <Tag color={value === 'active' ? 'green' : 'gray'}>{value}</Tag> },
-    { title: t('common.action'), width: 90, fixed: 'right', render: (_: unknown, row) => canManageChannels ? <Popconfirm title={t('business.observability.alertCenter.channelDeleteConfirm')} onOk={async () => { await deleteNotificationChannel(row.id); await load(); }}><Button type="text" status="danger" icon={<IconDelete />}>{t('common.delete')}</Button></Popconfirm> : null },
-  ], [canManageChannels, load, t]);
+  const channelColumns = useMemo<ColumnProps<NotificationChannelRow>[]>(
+    () => buildChannelColumns({ t, canManageChannels, load }),
+    [canManageChannels, load, t],
+  );
 
   return (
     <PageContainer>

@@ -286,31 +286,10 @@ func fromK8s(item *networkingv1.Ingress, clusterID, businessScopeID, deptID uint
 	rules := make([]IngressRule, 0, len(item.Spec.Rules))
 	hosts := make([]string, 0, len(item.Spec.Rules))
 	for _, rule := range item.Spec.Rules {
-		paths := make([]IngressRulePath, 0, len(rule.HTTP.Paths))
-		for _, p := range rule.HTTP.Paths {
-			pathType := ""
-			if p.PathType != nil {
-				pathType = string(*p.PathType)
-			}
-			port := int32(0)
-			if p.Backend.Service != nil {
-				port = p.Backend.Service.Port.Number
-			}
-			serviceName := ""
-			if p.Backend.Service != nil {
-				serviceName = p.Backend.Service.Name
-			}
-			paths = append(paths, IngressRulePath{
-				Path:        p.Path,
-				PathType:    pathType,
-				ServiceName: serviceName,
-				ServicePort: port,
-			})
-		}
 		if rule.Host != "" {
 			hosts = append(hosts, rule.Host)
 		}
-		rules = append(rules, IngressRule{Host: rule.Host, Paths: paths})
+		rules = append(rules, IngressRule{Host: rule.Host, Paths: fromK8sRulePaths(rule)})
 	}
 	tls := make([]IngressTLS, 0, len(item.Spec.TLS))
 	for _, t := range item.Spec.TLS {
@@ -337,6 +316,36 @@ func fromK8s(item *networkingv1.Ingress, clusterID, businessScopeID, deptID uint
 		Status:          ingressStatusActive,
 		LoadBalancerIP:  lbIP,
 		Hosts:           jsonBytes(hosts),
+	}
+}
+
+// fromK8sRulePaths maps one ingress rule's HTTP paths onto the snapshot shape.
+func fromK8sRulePaths(rule networkingv1.IngressRule) []IngressRulePath {
+	paths := make([]IngressRulePath, 0, len(rule.HTTP.Paths))
+	for _, p := range rule.HTTP.Paths {
+		paths = append(paths, fromK8sRulePath(p))
+	}
+	return paths
+}
+
+// fromK8sRulePath maps one HTTP path; a path without a service backend keeps the
+// zero service name and port.
+func fromK8sRulePath(p networkingv1.HTTPIngressPath) IngressRulePath {
+	pathType := ""
+	if p.PathType != nil {
+		pathType = string(*p.PathType)
+	}
+	serviceName := ""
+	var port int32
+	if p.Backend.Service != nil {
+		port = p.Backend.Service.Port.Number
+		serviceName = p.Backend.Service.Name
+	}
+	return IngressRulePath{
+		Path:        p.Path,
+		PathType:    pathType,
+		ServiceName: serviceName,
+		ServicePort: port,
 	}
 }
 

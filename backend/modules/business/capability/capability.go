@@ -134,8 +134,8 @@ type ServiceInstanceStateTransition struct {
 	CorrelationID            string
 }
 
-// ServiceInstanceStateCommand exposes owner-module service-instance state commands.
-type ServiceInstanceStateCommand interface {
+// ServiceInstanceStateApplier exposes owner-module service-instance state writes.
+type ServiceInstanceStateApplier interface {
 	ApplyServiceInstanceState(
 		ctx context.Context,
 		req ServiceInstanceStateTransition,

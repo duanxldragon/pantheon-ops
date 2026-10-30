@@ -7,6 +7,21 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	// Menu node keys referenced by both Key and ParentKey of the seed rows below.
+	menuKeyCluster  = "k8s-cluster"
+	menuKeyWorkload = "k8s-workload"
+	menuKeyRelease  = "k8s-release"
+	menuKeyIngress  = "k8s-ingress"
+	menuKeyStorage  = "k8s-storage"
+
+	// Display texts reused across several k8s page groups.
+	placeholderNamespaceZh = "输入命名空间"
+	placeholderNamespaceEn = "Enter namespace"
+	hintSelectClusterZh    = "请先选择集群"
+	hintSelectClusterEn    = "Select a cluster first"
+)
+
 type menuSeed struct {
 	Key        string
 	ParentPath string
@@ -35,7 +50,7 @@ var seeds = []menuSeed{
 		Sort:      4,
 	},
 	{
-		Key:       "k8s-cluster",
+		Key:       menuKeyCluster,
 		ParentKey: "k8s",
 		TitleKey:  operationsK8sClusterMenu,
 		Path:      "/business/k8s/cluster",
@@ -49,7 +64,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-cluster-view",
-		ParentKey: "k8s-cluster",
+		ParentKey: menuKeyCluster,
 		TitleKey:  k8sClusterPermViewKey,
 		Perms:     "business:k8s:cluster:view",
 		Type:      "F",
@@ -58,7 +73,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-cluster-create",
-		ParentKey: "k8s-cluster",
+		ParentKey: menuKeyCluster,
 		TitleKey:  k8sClusterPermCreateKey,
 		Perms:     "business:k8s:cluster:create",
 		Type:      "F",
@@ -67,7 +82,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-cluster-update",
-		ParentKey: "k8s-cluster",
+		ParentKey: menuKeyCluster,
 		TitleKey:  k8sClusterPermUpdateKey,
 		Perms:     "business:k8s:cluster:update",
 		Type:      "F",
@@ -76,7 +91,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-cluster-delete",
-		ParentKey: "k8s-cluster",
+		ParentKey: menuKeyCluster,
 		TitleKey:  k8sClusterPermDeleteKey,
 		Perms:     "business:k8s:cluster:delete",
 		Type:      "F",
@@ -84,7 +99,7 @@ var seeds = []menuSeed{
 		Sort:      4,
 	},
 	{
-		Key:       "k8s-workload",
+		Key:       menuKeyWorkload,
 		ParentKey: "k8s",
 		TitleKey:  operationsK8sWorkloadMenu,
 		Path:      "/business/k8s/workload",
@@ -98,7 +113,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-workload-view",
-		ParentKey: "k8s-workload",
+		ParentKey: menuKeyWorkload,
 		TitleKey:  k8sWorkloadPermViewKey,
 		Perms:     "business:k8s:workload:view",
 		Type:      "F",
@@ -107,7 +122,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-workload-update",
-		ParentKey: "k8s-workload",
+		ParentKey: menuKeyWorkload,
 		TitleKey:  k8sWorkloadPermUpdateKey,
 		Perms:     "business:k8s:workload:update",
 		Type:      "F",
@@ -128,7 +143,7 @@ var seeds = []menuSeed{
 		Sort:      5,
 	},
 	{
-		Key:       "k8s-release",
+		Key:       menuKeyRelease,
 		ParentKey: "k8s",
 		TitleKey:  operationsK8sReleaseMenu,
 		Path:      "/business/k8s/release",
@@ -142,7 +157,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-release-view",
-		ParentKey: "k8s-release",
+		ParentKey: menuKeyRelease,
 		TitleKey:  k8sReleasePermViewKey,
 		Perms:     "business:k8s:release:view",
 		Type:      "F",
@@ -151,7 +166,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-release-create",
-		ParentKey: "k8s-release",
+		ParentKey: menuKeyRelease,
 		TitleKey:  k8sReleasePermCreateKey,
 		Perms:     "business:k8s:release:create",
 		Type:      "F",
@@ -160,7 +175,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-release-rollback",
-		ParentKey: "k8s-release",
+		ParentKey: menuKeyRelease,
 		TitleKey:  k8sReleasePermRollbackKey,
 		Perms:     "business:k8s:release:rollback",
 		Type:      "F",
@@ -169,7 +184,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-release-reconcile",
-		ParentKey: "k8s-release",
+		ParentKey: menuKeyRelease,
 		TitleKey:  k8sReleasePermReconcileKey,
 		Perms:     "business:k8s:release:reconcile",
 		Type:      "F",
@@ -177,7 +192,7 @@ var seeds = []menuSeed{
 		Sort:      4,
 	},
 	{
-		Key:       "k8s-ingress",
+		Key:       menuKeyIngress,
 		ParentKey: "k8s",
 		TitleKey:  operationsK8sIngressMenu,
 		Path:      "/business/k8s/ingress",
@@ -191,7 +206,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-ingress-view",
-		ParentKey: "k8s-ingress",
+		ParentKey: menuKeyIngress,
 		TitleKey:  k8sIngressPermViewKey,
 		Perms:     "business:k8s:ingress:view",
 		Type:      "F",
@@ -200,7 +215,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-ingress-create",
-		ParentKey: "k8s-ingress",
+		ParentKey: menuKeyIngress,
 		TitleKey:  k8sIngressPermCreateKey,
 		Perms:     "business:k8s:ingress:create",
 		Type:      "F",
@@ -209,7 +224,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-ingress-update",
-		ParentKey: "k8s-ingress",
+		ParentKey: menuKeyIngress,
 		TitleKey:  k8sIngressPermUpdateKey,
 		Perms:     "business:k8s:ingress:update",
 		Type:      "F",
@@ -218,7 +233,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-ingress-delete",
-		ParentKey: "k8s-ingress",
+		ParentKey: menuKeyIngress,
 		TitleKey:  k8sIngressPermDeleteKey,
 		Perms:     "business:k8s:ingress:delete",
 		Type:      "F",
@@ -226,7 +241,7 @@ var seeds = []menuSeed{
 		Sort:      4,
 	},
 	{
-		Key:       "k8s-storage",
+		Key:       menuKeyStorage,
 		ParentKey: "k8s",
 		TitleKey:  operationsK8sStorageMenu,
 		Path:      "/business/k8s/storage",
@@ -240,7 +255,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-storage-view",
-		ParentKey: "k8s-storage",
+		ParentKey: menuKeyStorage,
 		TitleKey:  k8sStoragePermViewKey,
 		Perms:     "business:k8s:storage:view",
 		Type:      "F",
@@ -249,7 +264,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-storage-create",
-		ParentKey: "k8s-storage",
+		ParentKey: menuKeyStorage,
 		TitleKey:  k8sStoragePermCreateKey,
 		Perms:     "business:k8s:storage:create",
 		Type:      "F",
@@ -258,7 +273,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-storage-update",
-		ParentKey: "k8s-storage",
+		ParentKey: menuKeyStorage,
 		TitleKey:  k8sStoragePermUpdateKey,
 		Perms:     "business:k8s:storage:update",
 		Type:      "F",
@@ -267,7 +282,7 @@ var seeds = []menuSeed{
 	},
 	{
 		Key:       "k8s-storage-delete",
-		ParentKey: "k8s-storage",
+		ParentKey: menuKeyStorage,
 		TitleKey:  k8sStoragePermDeleteKey,
 		Perms:     "business:k8s:storage:delete",
 		Type:      "F",
@@ -360,10 +375,10 @@ var i18nSeeds = []i18nSeed{
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.ingress.field.status", Value: "Status"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.ingress.field.cluster", Value: "集群"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.ingress.field.cluster", Value: "Cluster"},
-	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.ingress.field.namespacePlaceholder", Value: "输入命名空间"},
-	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.ingress.field.namespacePlaceholder", Value: "Enter namespace"},
-	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.ingress.selectClusterHint", Value: "请先选择集群"},
-	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.ingress.selectClusterHint", Value: "Select a cluster first"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.ingress.field.namespacePlaceholder", Value: placeholderNamespaceZh},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.ingress.field.namespacePlaceholder", Value: placeholderNamespaceEn},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.ingress.selectClusterHint", Value: hintSelectClusterZh},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.ingress.selectClusterHint", Value: hintSelectClusterEn},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.ingress.sync", Value: "同步"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.ingress.sync", Value: "Sync"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.ingress.syncSuccess", Value: "Ingress 同步成功"},
@@ -394,8 +409,8 @@ var i18nSeeds = []i18nSeed{
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.storage.hero.title", Value: "Manage PersistentVolume, PersistentVolumeClaim, and StorageClass"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.storage.field.cluster", Value: "集群"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.storage.field.cluster", Value: "Cluster"},
-	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.storage.selectClusterHint", Value: "请先选择集群"},
-	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.storage.selectClusterHint", Value: "Select a cluster first"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.storage.selectClusterHint", Value: hintSelectClusterZh},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.storage.selectClusterHint", Value: hintSelectClusterEn},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.storage.sync", Value: "同步"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.storage.sync", Value: "Sync"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.storage.syncSuccess", Value: "存储同步成功"},
@@ -606,8 +621,8 @@ var i18nSeeds = []i18nSeed{
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.workload.field.name", Value: "Name"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.workload.field.namespace", Value: "命名空间"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.workload.field.namespace", Value: "Namespace"},
-	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.workload.field.namespacePlaceholder", Value: "输入命名空间"},
-	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.workload.field.namespacePlaceholder", Value: "Enter namespace"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.workload.field.namespacePlaceholder", Value: placeholderNamespaceZh},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.workload.field.namespacePlaceholder", Value: placeholderNamespaceEn},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.workload.field.replicas", Value: "副本数"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.workload.field.replicas", Value: "Replicas"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.workload.field.images", Value: "镜像"},
@@ -652,8 +667,8 @@ var i18nSeeds = []i18nSeed{
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.workload.pod.restarts", Value: "Restarts"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.workload.pod.createdAt", Value: "创建时间"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.workload.pod.createdAt", Value: "Created"},
-	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.workload.selectClusterHint", Value: "请先选择集群"},
-	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.workload.selectClusterHint", Value: "Select a cluster first"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.workload.selectClusterHint", Value: hintSelectClusterZh},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.workload.selectClusterHint", Value: hintSelectClusterEn},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.workload.empty", Value: "暂无工作负载"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.workload.empty", Value: "No workloads"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.workload.log.view", Value: "日志"},
@@ -694,8 +709,8 @@ var i18nSeeds = []i18nSeed{
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.release.field.cluster", Value: "Cluster"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.release.field.namespace", Value: "命名空间"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.release.field.namespace", Value: "Namespace"},
-	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.release.field.namespacePlaceholder", Value: "输入命名空间"},
-	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.release.field.namespacePlaceholder", Value: "Enter namespace"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.release.field.namespacePlaceholder", Value: placeholderNamespaceZh},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.release.field.namespacePlaceholder", Value: placeholderNamespaceEn},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.release.field.workloadType", Value: "工作负载类型"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.release.field.workloadType", Value: "Workload Type"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.release.field.workloadName", Value: "工作负载名称"},
@@ -808,8 +823,8 @@ var i18nSeeds = []i18nSeed{
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.hero.title", Value: "Manage cluster backups, scheduled backups, and restore policies"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.veleroStatus", Value: "Velero 状态"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.veleroStatus", Value: "Velero Status"},
-	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.selectClusterHint", Value: "请先选择集群"},
-	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.selectClusterHint", Value: "Select a cluster first"},
+	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.selectClusterHint", Value: hintSelectClusterZh},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.selectClusterHint", Value: hintSelectClusterEn},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.tab.backups", Value: "备份"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.backup.tab.backups", Value: "Backups"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.backup.tab.schedules", Value: "定时备份"},
@@ -877,7 +892,7 @@ var i18nSeeds = []i18nSeed{
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.configmap.namePlaceholder", Value: "请输入 ConfigMap 名称"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.configmap.namePlaceholder", Value: "Enter ConfigMap name"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.configmap.namespacePlaceholder", Value: "请输入命名空间"},
-	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.configmap.namespacePlaceholder", Value: "Enter namespace"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.configmap.namespacePlaceholder", Value: placeholderNamespaceEn},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.configmap.data", Value: "数据"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.configmap.data", Value: "Data"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.configmap.dataHint", Value: "每行一个键值对，格式 key=value"},
@@ -907,7 +922,7 @@ var i18nSeeds = []i18nSeed{
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.secret.namePlaceholder", Value: "请输入 Secret 名称"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.secret.namePlaceholder", Value: "Enter Secret name"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.secret.namespacePlaceholder", Value: "请输入命名空间"},
-	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.secret.namespacePlaceholder", Value: "Enter namespace"},
+	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.secret.namespacePlaceholder", Value: placeholderNamespaceEn},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.secret.data", Value: "数据"},
 	{Module: k8sModuleKey, Locale: "en-US", Group: "page", Key: "business.k8s.secret.data", Value: "Data"},
 	{Module: k8sModuleKey, Locale: "zh-CN", Group: "page", Key: "business.k8s.secret.dataHint", Value: "每行一个键值对，格式 key=value（值将加密存储于集群）"},

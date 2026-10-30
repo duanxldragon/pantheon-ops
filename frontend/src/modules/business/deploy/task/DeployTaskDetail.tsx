@@ -110,6 +110,20 @@ const taskStatusFlow: Array<{ key: DeployTaskStatus; kind: 'primary' | 'terminal
   { key: 'canceled', kind: 'cancel' },
 ];
 
+const taskStatusReachedPredecessors: Partial<Record<DeployTaskStatus, DeployTaskStatus[]>> = {
+  running: ['draft', 'pending'],
+  success: ['draft', 'pending', 'running'],
+  failed: ['draft', 'pending', 'running'],
+  canceled: ['draft', 'pending', 'running'],
+};
+
+function isTaskStatusReached(key: DeployTaskStatus, active: DeployTaskStatus): boolean {
+  if (key === active) {
+    return true;
+  }
+  return (taskStatusReachedPredecessors[active] || []).includes(key);
+}
+
 const isTaskNotFoundError = (error: unknown) =>
   isRequestError(error) &&
   (error.status === 404 ||
@@ -646,12 +660,7 @@ export default function DeployTaskDetail() {
       taskStatusFlow.map((item) => ({
         ...item,
         active: item.key === activeTaskStatus,
-        reached:
-          item.key === activeTaskStatus ||
-          (activeTaskStatus === 'running' && ['draft', 'pending'].includes(item.key)) ||
-          (activeTaskStatus === 'success' && ['draft', 'pending', 'running'].includes(item.key)) ||
-          (activeTaskStatus === 'failed' && ['draft', 'pending', 'running'].includes(item.key)) ||
-          (activeTaskStatus === 'canceled' && ['draft', 'pending', 'running'].includes(item.key)),
+        reached: isTaskStatusReached(item.key, activeTaskStatus),
       })),
     [activeTaskStatus],
   );

@@ -43,6 +43,63 @@ const kindColor: Record<string, string> = {
   DaemonSet: 'cyan',
 };
 
+interface WorkloadTablePanelProps {
+  readonly clusterId: number | undefined;
+  readonly loading: boolean;
+  readonly error: unknown;
+  readonly data: K8sWorkloadRow[];
+  readonly columns: ColumnProps<K8sWorkloadRow>[];
+  readonly onRetry: () => void | Promise<void>;
+}
+
+function WorkloadTablePanel({ clusterId, loading, error, data, columns, onRetry }: WorkloadTablePanelProps) {
+  const { t } = useTranslation();
+  return (
+    <Card className="page-panel system-list__table-card">
+      {!clusterId ? (
+        <PageEmpty description={t('business.k8s.workload.selectClusterHint')} />
+      ) : null}
+      {clusterId && loading ? <PageLoading /> : null}
+      {clusterId && error && !loading ? (
+        <PageError onRetry={onRetry} />
+      ) : null}
+      {clusterId && !loading && !error && data.length === 0 ? (
+        <PageEmpty description={t('business.k8s.workload.empty')} />
+      ) : null}
+      {clusterId && !loading && !(error && data.length === 0) && data.length > 0 ? (
+        <AppTable
+          rowKey={(record) => `${record.kind}/${record.namespace}/${record.name}`}
+          columns={columns}
+          data={data}
+          pagination={false}
+          scroll={{ x: 'max-content' }}
+        />
+      ) : null}
+    </Card>
+  );
+}
+
+interface WorkloadPodsPanelProps {
+  readonly podsLoading: boolean;
+  readonly pods: K8sPodRow[];
+  readonly podColumns: ColumnProps<K8sPodRow>[];
+}
+
+function WorkloadPodsPanel({ podsLoading, pods, podColumns }: WorkloadPodsPanelProps) {
+  const { t } = useTranslation();
+  return (
+    <>
+      {podsLoading ? <PageLoading /> : null}
+      {!podsLoading && pods.length === 0 ? (
+        <PageEmpty description={t('business.k8s.workload.podsEmpty')} />
+      ) : null}
+      {!podsLoading && pods.length > 0 ? (
+        <AppTable rowKey="name" columns={podColumns} data={pods} pagination={false} scroll={{ x: 'max-content' }} />
+      ) : null}
+    </>
+  );
+}
+
 export default function WorkloadList() {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
@@ -327,27 +384,14 @@ export default function WorkloadList() {
             setKind('');
           }}
         />
-        <Card className="page-panel system-list__table-card">
-          {!clusterId ? (
-            <PageEmpty description={t('business.k8s.workload.selectClusterHint')} />
-          ) : null}
-          {clusterId && loading ? <PageLoading /> : null}
-          {clusterId && error && !loading ? (
-            <PageError onRetry={loadData} />
-          ) : null}
-          {clusterId && !loading && !error && data.length === 0 ? (
-            <PageEmpty description={t('business.k8s.workload.empty')} />
-          ) : null}
-          {clusterId && !loading && !(error && data.length === 0) && data.length > 0 ? (
-            <AppTable
-              rowKey={(record) => `${record.kind}/${record.namespace}/${record.name}`}
-              columns={columns}
-              data={data}
-              pagination={false}
-              scroll={{ x: 'max-content' }}
-            />
-          ) : null}
-        </Card>
+        <WorkloadTablePanel
+          clusterId={clusterId}
+          loading={loading}
+          error={error}
+          data={data}
+          columns={columns}
+          onRetry={loadData}
+        />
       </Space>
       <AppModal
         visible={Boolean(scaleTarget)}
@@ -377,13 +421,7 @@ export default function WorkloadList() {
         size="lg"
         footer={null}
       >
-        {podsLoading ? <PageLoading /> : null}
-        {!podsLoading && pods.length === 0 ? (
-          <PageEmpty description={t('business.k8s.workload.podsEmpty')} />
-        ) : null}
-        {!podsLoading && pods.length > 0 ? (
-          <AppTable rowKey="name" columns={podColumns} data={pods} pagination={false} scroll={{ x: 'max-content' }} />
-        ) : null}
+        <WorkloadPodsPanel podsLoading={podsLoading} pods={pods} podColumns={podColumns} />
       </AppDrawer>
       <AppDrawer
         visible={Boolean(logTarget)}

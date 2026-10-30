@@ -132,12 +132,12 @@ type multiStepDeploySSHRunner struct {
 	errAt   int
 }
 
-type recordingServiceStateCommand struct {
+type recordingServiceStateApplier struct {
 	transitions []bizcap.ServiceInstanceStateTransition
 	err         error
 }
 
-func (f *recordingServiceStateCommand) ApplyServiceInstanceState(_ context.Context, req bizcap.ServiceInstanceStateTransition, _ string, _ *common.DataScopeReq) error {
+func (f *recordingServiceStateApplier) ApplyServiceInstanceState(_ context.Context, req bizcap.ServiceInstanceStateTransition, _ string, _ *common.DataScopeReq) error {
 	f.transitions = append(f.transitions, req)
 	return f.err
 }
@@ -276,8 +276,8 @@ func TestDeployTaskLifecycleCreatesHostDetailsAndSummarizesResult(t *testing.T) 
 func TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand(t *testing.T) {
 	db := setupDeployTestDB(t)
 	svc := NewDeployService(db, cmdb.NewDeployCMDBCapability(db))
-	stateCommand := &recordingServiceStateCommand{}
-	svc.SetServiceInstanceStateCommand(stateCommand)
+	stateApplier := &recordingServiceStateApplier{}
+	svc.SetServiceInstanceStateApplier(stateApplier)
 
 	scopeID, hostID := seedDeployReliabilityFixture(t, db, "state-host", "10.40.0.250")
 	pkg, err := svc.CreatePackage(CreatePackageRequest{
@@ -298,18 +298,18 @@ func TestDeployTaskRoutesServiceInstanceStateThroughTypedCommand(t *testing.T) {
 	if err != nil {
 		t.Fatalf("start task: %v", err)
 	}
-	if len(stateCommand.transitions) != 1 || stateCommand.transitions[0].ObservedState != "installing" {
-		t.Fatalf("expected install begin transition, got %+v", stateCommand.transitions)
+	if len(stateApplier.transitions) != 1 || stateApplier.transitions[0].ObservedState != "installing" {
+		t.Fatalf("expected install begin transition, got %+v", stateApplier.transitions)
 	}
 	if _, err := svc.MarkHostResult(started.Hosts[0].ID, MarkHostResultRequest{
 		Status: TaskHostStatusSuccess, ReportKey: "state-report-1",
 	}, "1", nil); err != nil {
 		t.Fatalf("mark host success: %v", err)
 	}
-	if len(stateCommand.transitions) != 2 {
-		t.Fatalf("expected begin and finish transitions, got %+v", stateCommand.transitions)
+	if len(stateApplier.transitions) != 2 {
+		t.Fatalf("expected begin and finish transitions, got %+v", stateApplier.transitions)
 	}
-	finish := stateCommand.transitions[1]
+	finish := stateApplier.transitions[1]
 	if finish.Action != "install" || finish.ObservedState != observedStateStopped || finish.CurrentVersion != "1.0.0" {
 		t.Fatalf("unexpected install finish transition: %+v", finish)
 	}

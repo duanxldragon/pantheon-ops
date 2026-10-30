@@ -19,11 +19,11 @@ func InitDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.Deplo
 }
 
 // InitDeployModuleWithServiceState registers deploy with service-instance state callbacks.
-func InitDeployModuleWithServiceState(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, stateCommand bizcap.ServiceInstanceStateCommand, readers ...bizcap.BizScopeReader) {
-	initDeployModule(r, db, cmdbCapability, stateCommand, readers...)
+func InitDeployModuleWithServiceState(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, stateApplier bizcap.ServiceInstanceStateApplier, readers ...bizcap.BizScopeReader) {
+	initDeployModule(r, db, cmdbCapability, stateApplier, readers...)
 }
 
-func initDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, stateCommand bizcap.ServiceInstanceStateCommand, readers ...bizcap.BizScopeReader) {
+func initDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.DeployCMDBCapability, stateApplier bizcap.ServiceInstanceStateApplier, readers ...bizcap.BizScopeReader) {
 	var bizScopeReader bizcap.BizScopeReader
 	if len(readers) > 0 {
 		bizScopeReader = readers[0]
@@ -33,7 +33,7 @@ func initDeployModule(r *gin.RouterGroup, db *gorm.DB, cmdbCapability cmdb.Deplo
 	}
 	svc := NewDeployService(db, cmdbCapability, bizScopeReader)
 	svc.SetAsyncExecution(true)
-	svc.SetServiceInstanceStateCommand(stateCommand)
+	svc.SetServiceInstanceStateApplier(stateApplier)
 	// Recover leases and queued work from a prior process before accepting new
 	// deploy starts. Each host is still claimed atomically by the worker.
 	go func() {

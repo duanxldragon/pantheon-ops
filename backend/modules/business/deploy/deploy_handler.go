@@ -18,9 +18,11 @@ import (
 
 const (
 	msgParamInvalid = "common.param_invalid"
-	packageIDRoute  = "/packages/:id"
-	templateIDRoute = "/templates/:id"
-	taskIDRoute     = "/tasks/:id"
+	// msgTaskEventsFailed is the visible error key for event-log retrieval.
+	msgTaskEventsFailed = "deploytask.events_failed"
+	packageIDRoute      = "/packages/:id"
+	templateIDRoute     = "/templates/:id"
+	taskIDRoute         = "/tasks/:id"
 )
 
 type DeployHandler struct {
@@ -696,7 +698,7 @@ func (h *DeployHandler) ListTaskEvents(c *gin.Context) {
 		return
 	}
 	if _, err := h.svc.loadVisibleTask(id, common.GetDataScope(c)); err != nil {
-		failDeployTaskError(c, err, "deploytask.events_failed")
+		failDeployTaskError(c, err, msgTaskEventsFailed)
 		return
 	}
 	var after uint64
@@ -710,7 +712,7 @@ func (h *DeployHandler) ListTaskEvents(c *gin.Context) {
 	}
 	events, err := h.svc.loadTaskEvents(id, after)
 	if err != nil {
-		common.FailWithError(c, common.CodeError, err, "deploytask.events_failed")
+		common.FailWithError(c, common.CodeError, err, msgTaskEventsFailed)
 		return
 	}
 	items := make([]TaskEventItem, 0, len(events))
@@ -767,7 +769,7 @@ func (h *DeployHandler) StreamTaskEvents(c *gin.Context) {
 		return
 	}
 	if _, err := h.svc.loadVisibleTask(id, common.GetDataScope(c)); err != nil {
-		failDeployTaskError(c, err, "deploytask.events_failed")
+		failDeployTaskError(c, err, msgTaskEventsFailed)
 		return
 	}
 	after, err := parseEventSequence(c)

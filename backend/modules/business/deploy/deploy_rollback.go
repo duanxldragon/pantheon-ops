@@ -143,7 +143,7 @@ func (s *DeployService) persistDeployTaskSecrets(taskID uint64, secretParams map
 		return errors.New(errDeployTaskSecretParamInvalid)
 	}
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("task_id = ?", taskID).Delete(&DeployTaskSecret{}).Error; err != nil {
+		if err := tx.Where(taskIDWhereClause, taskID).Delete(&DeployTaskSecret{}).Error; err != nil {
 			return err
 		}
 		for key, value := range secretParams {
@@ -169,7 +169,7 @@ func (s *DeployService) persistDeployTaskSecrets(taskID uint64, secretParams map
 // loadDeployTaskSecrets loads and decrypts the secret params for a task.
 func (s *DeployService) loadDeployTaskSecrets(taskID uint64) (map[string]string, error) {
 	var rows []DeployTaskSecret
-	if err := s.db.Where("task_id = ?", taskID).Find(&rows).Error; err != nil {
+	if err := s.db.Where(taskIDWhereClause, taskID).Find(&rows).Error; err != nil {
 		return nil, err
 	}
 	secrets := make(map[string]string, len(rows))
@@ -187,7 +187,7 @@ func (s *DeployService) loadDeployTaskSecrets(taskID uint64) (map[string]string,
 // exposing any value.
 func (s *DeployService) deployTaskSecretPresence(taskID uint64) []SecretPresenceItem {
 	var rows []DeployTaskSecret
-	if err := s.db.Select("secret_key").Where("task_id = ?", taskID).Find(&rows).Error; err != nil {
+	if err := s.db.Select("secret_key").Where(taskIDWhereClause, taskID).Find(&rows).Error; err != nil {
 		return []SecretPresenceItem{}
 	}
 	items := make([]SecretPresenceItem, 0, len(rows))

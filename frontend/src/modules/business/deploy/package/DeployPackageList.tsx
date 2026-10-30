@@ -305,9 +305,7 @@ export default function DeployPackageList() {
     setTemplateCode(row.templateCode || '');
     form.setFieldsValue({
       ...row,
-      templateConfig: row.templateConfig && Object.keys(row.templateConfig).length > 0
-        ? row.templateConfig
-        : row.templateCode ? buildDefaultTemplateConfig(row.templateCode) : {},
+      templateConfig: resolveInitialTemplateConfig(row),
     });
     setVisible(true);
   };
@@ -675,4 +673,14 @@ function buildDefaultTemplateConfig(templateCode: string) {
   return {
     scenario: templateCode,
   };
+}
+
+function resolveInitialTemplateConfig(row: DeployPackageRow) {
+  if (row.templateConfig && Object.keys(row.templateConfig).length > 0) {
+    return row.templateConfig;
+  }
+  if (row.templateCode) {
+    return buildDefaultTemplateConfig(row.templateCode);
+  }
+  return {};
 }

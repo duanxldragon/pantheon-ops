@@ -222,6 +222,20 @@ func parseLabelImportRow(
 		Description: strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "description")),
 	}
 
+	validateLabelImportRequiredFields(&row, rowNumber, result)
+	validateLabelImportEnumeratedFields(&row, rowNumber, result)
+	row.Options = parseLabelImportOptions(record, headerIndex)
+	row.Required = parseLabelImportRequired(record, headerIndex)
+	validateLabelImportValueMode(&row, rowNumber, result)
+
+	if row.Status == "" {
+		row.Status = labelStatusEnabled
+	}
+
+	return row
+}
+
+func validateLabelImportRequiredFields(row *labelImportRow, rowNumber int, result *impexp.ImportResult) {
 	if row.Key == "" {
 		impexp.AppendImportError(result, rowNumber, "key", "cmdblabel.key_required")
 	}
@@ -234,7 +248,9 @@ func parseLabelImportRow(
 	if row.ValueMode == "" {
 		impexp.AppendImportError(result, rowNumber, "valueMode", "cmdblabel.valueMode_required")
 	}
+}
 
+func validateLabelImportEnumeratedFields(row *labelImportRow, rowNumber int, result *impexp.ImportResult) {
 	if row.Category != "" {
 		if _, ok := labelValidCategories[row.Category]; !ok {
 			impexp.AppendImportError(result, rowNumber, "category", "cmdblabel.category.invalid")
@@ -250,36 +266,40 @@ func parseLabelImportRow(
 			impexp.AppendImportError(result, rowNumber, "status", "cmdblabel.status.invalid")
 		}
 	}
+}
 
+func parseLabelImportOptions(record []string, headerIndex map[string]int) []string {
+	var options []string
 	optionsRaw := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "options"))
-	if optionsRaw != "" {
-		for _, item := range strings.FieldsFunc(optionsRaw, func(r rune) bool {
-			return r == ';' || r == ','
-		}) {
-			item = strings.TrimSpace(item)
-			if item != "" {
-				row.Options = append(row.Options, item)
-			}
+	if optionsRaw == "" {
+		return options
+	}
+	for _, item := range strings.FieldsFunc(optionsRaw, func(r rune) bool {
+		return r == ';' || r == ','
+	}) {
+		item = strings.TrimSpace(item)
+		if item != "" {
+			options = append(options, item)
 		}
 	}
+	return options
+}
 
+func parseLabelImportRequired(record []string, headerIndex map[string]int) bool {
 	requiredRaw := strings.TrimSpace(impexp.ReadCSVField(record, headerIndex, "required"))
-	if requiredRaw != "" {
-		row.Required = strings.ToLower(requiredRaw) == "true" || requiredRaw == "1"
+	if requiredRaw == "" {
+		return false
 	}
+	return strings.ToLower(requiredRaw) == "true" || requiredRaw == "1"
+}
 
+func validateLabelImportValueMode(row *labelImportRow, rowNumber int, result *impexp.ImportResult) {
 	if row.ValueMode == "enum" && len(row.Options) == 0 {
 		impexp.AppendImportError(result, rowNumber, "options", "cmdblabel.options_required_for_enum")
 	}
 	if row.ValueMode == "dict" && row.DictCode == "" {
 		impexp.AppendImportError(result, rowNumber, "dictCode", "cmdblabel.dictCode_required_for_dict")
 	}
-
-	if row.Status == "" {
-		row.Status = labelStatusEnabled
-	}
-
-	return row
 }
 
 func (s *LabelService) applyLabelImportRows(result *impexp.ImportResult, rows []labelImportRow, createdBy string) error {

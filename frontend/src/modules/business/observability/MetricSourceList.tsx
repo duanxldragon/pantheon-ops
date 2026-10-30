@@ -4,8 +4,7 @@ import { Button, Card, Message, Popconfirm, Space, Tag } from '@arco-design/web-
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 import { IconDelete } from '@arco-design/web-react/icon';
 import { AppTable, PageContainer, PageEmpty, PageError, PageLoading } from '../../../components';
-import { usePermission } from '@duanxldragon/pantheon-base-ui';
-import { apiRequest } from '@duanxldragon/pantheon-base-ui';
+import { apiRequest, usePermission } from '@duanxldragon/pantheon-base-ui';
 import '../../../assets/list-page.css';
 
 interface MonitoringTargetRow {

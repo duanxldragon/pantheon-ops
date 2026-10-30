@@ -23,6 +23,16 @@ import {
 } from '../api';
 import '../../../../assets/list-page.css';
 
+function ingressStatusColor(status: string): string {
+  if (status === 'ready') {
+    return 'green';
+  }
+  if (status === 'error') {
+    return 'red';
+  }
+  return 'orange';
+}
+
 export default function IngressList() {
   const { t } = useTranslation();
   const { hasPerm } = usePermission();
@@ -142,7 +152,7 @@ export default function IngressList() {
         dataIndex: 'status',
         width: 120,
         render: (_: unknown, row) => (
-          <Tag color={row.status === 'ready' ? 'green' : row.status === 'error' ? 'red' : 'orange'}>
+          <Tag color={ingressStatusColor(row.status)}>
             {row.status}
           </Tag>
         ),

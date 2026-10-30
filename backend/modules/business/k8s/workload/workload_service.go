@@ -19,10 +19,11 @@ import (
 )
 
 const (
-	syncTimeout             = 30 * time.Second
-	workloadKindDeployment  = "deployment"
-	workloadKindStatefulSet = "statefulset"
-	workloadKindDaemonSet   = "daemonset"
+	syncTimeout                = 30 * time.Second
+	workloadKindDeployment     = "deployment"
+	workloadKindStatefulSet    = "statefulset"
+	workloadKindDaemonSet      = "daemonset"
+	msgResourceVersionConflict = "k8s.workload.resource_version_conflict"
 )
 
 // WorkloadService reads and mutates Kubernetes workloads through client-go.
@@ -55,125 +56,21 @@ func (s *WorkloadService) List(query WorkloadListQuery, dataScope *common.DataSc
 		ns = metav1.NamespaceAll
 	}
 
-	items := make([]WorkloadItem, 0)
 	options := metav1.ListOptions{Limit: normalizeListLimit(query.Limit), Continue: query.ContinueToken}
-	continueToken := ""
+	var items []WorkloadItem
+	var continueToken string
 	switch normalizeKind(query.Kind) {
 	case workloadKindDeployment:
-		list, err := clientset.AppsV1().Deployments(ns).List(ctx, options)
-		if err != nil {
-			return nil, errors.New("k8s.workload.list_failed")
-		}
-		continueToken = list.Continue
-		for i := range list.Items {
-			d := &list.Items[i]
-			items = append(items, WorkloadItem{
-				Kind:            "Deployment",
-				Name:            d.Name,
-				Namespace:       d.Namespace,
-				Replicas:        safeReplicas(d.Spec.Replicas),
-				ReadyReplicas:   d.Status.ReadyReplicas,
-				Images:          containerImages(d.Spec.Template.Spec.Containers),
-				Status:          workloadStatus(d.Status.ReadyReplicas, safeReplicas(d.Spec.Replicas)),
-				Age:             age(d.CreationTimestamp),
-				ResourceVersion: d.ResourceVersion,
-			})
-		}
+		items, continueToken, err = listDeployments(ctx, clientset, ns, options)
 	case workloadKindStatefulSet:
-		list, err := clientset.AppsV1().StatefulSets(ns).List(ctx, options)
-		if err != nil {
-			return nil, errors.New("k8s.workload.list_failed")
-		}
-		continueToken = list.Continue
-		for i := range list.Items {
-			st := &list.Items[i]
-			items = append(items, WorkloadItem{
-				Kind:            "StatefulSet",
-				Name:            st.Name,
-				Namespace:       st.Namespace,
-				Replicas:        safeReplicas(st.Spec.Replicas),
-				ReadyReplicas:   st.Status.ReadyReplicas,
-				Images:          containerImages(st.Spec.Template.Spec.Containers),
-				Status:          workloadStatus(st.Status.ReadyReplicas, safeReplicas(st.Spec.Replicas)),
-				Age:             age(st.CreationTimestamp),
-				ResourceVersion: st.ResourceVersion,
-			})
-		}
+		items, continueToken, err = listStatefulSets(ctx, clientset, ns, options)
 	case workloadKindDaemonSet:
-		list, err := clientset.AppsV1().DaemonSets(ns).List(ctx, options)
-		if err != nil {
-			return nil, errors.New("k8s.workload.list_failed")
-		}
-		continueToken = list.Continue
-		for i := range list.Items {
-			ds := &list.Items[i]
-			items = append(items, WorkloadItem{
-				Kind:            "DaemonSet",
-				Name:            ds.Name,
-				Namespace:       ds.Namespace,
-				Replicas:        ds.Status.DesiredNumberScheduled,
-				ReadyReplicas:   ds.Status.NumberReady,
-				Images:          containerImages(ds.Spec.Template.Spec.Containers),
-				Status:          workloadStatus(ds.Status.NumberReady, ds.Status.DesiredNumberScheduled),
-				Age:             age(ds.CreationTimestamp),
-				ResourceVersion: ds.ResourceVersion,
-			})
-		}
+		items, continueToken, err = listDaemonSets(ctx, clientset, ns, options)
 	default:
-		deployments, err := clientset.AppsV1().Deployments(ns).List(ctx, options)
-		if err != nil {
-			return nil, errors.New("k8s.workload.list_failed")
-		}
-		for i := range deployments.Items {
-			d := &deployments.Items[i]
-			items = append(items, WorkloadItem{
-				Kind:            "Deployment",
-				Name:            d.Name,
-				Namespace:       d.Namespace,
-				Replicas:        safeReplicas(d.Spec.Replicas),
-				ReadyReplicas:   d.Status.ReadyReplicas,
-				Images:          containerImages(d.Spec.Template.Spec.Containers),
-				Status:          workloadStatus(d.Status.ReadyReplicas, safeReplicas(d.Spec.Replicas)),
-				Age:             age(d.CreationTimestamp),
-				ResourceVersion: d.ResourceVersion,
-			})
-		}
-		statefulsets, err := clientset.AppsV1().StatefulSets(ns).List(ctx, metav1.ListOptions{})
-		if err != nil {
-			return nil, errors.New("k8s.workload.list_failed")
-		}
-		for i := range statefulsets.Items {
-			st := &statefulsets.Items[i]
-			items = append(items, WorkloadItem{
-				Kind:            "StatefulSet",
-				Name:            st.Name,
-				Namespace:       st.Namespace,
-				Replicas:        safeReplicas(st.Spec.Replicas),
-				ReadyReplicas:   st.Status.ReadyReplicas,
-				Images:          containerImages(st.Spec.Template.Spec.Containers),
-				Status:          workloadStatus(st.Status.ReadyReplicas, safeReplicas(st.Spec.Replicas)),
-				Age:             age(st.CreationTimestamp),
-				ResourceVersion: st.ResourceVersion,
-			})
-		}
-		daemonsets, err := clientset.AppsV1().DaemonSets(ns).List(ctx, metav1.ListOptions{})
-		if err != nil {
-			return nil, errors.New("k8s.workload.list_failed")
-		}
-		for i := range daemonsets.Items {
-			ds := &daemonsets.Items[i]
-			items = append(items, WorkloadItem{
-				Kind:            "DaemonSet",
-				Name:            ds.Name,
-				Namespace:       ds.Namespace,
-				Replicas:        ds.Status.DesiredNumberScheduled,
-				ReadyReplicas:   ds.Status.NumberReady,
-				Images:          containerImages(ds.Spec.Template.Spec.Containers),
-				Status:          workloadStatus(ds.Status.NumberReady, ds.Status.DesiredNumberScheduled),
-				Age:             age(ds.CreationTimestamp),
-				ResourceVersion: ds.ResourceVersion,
-			})
-		}
+		items, err = listAllWorkloadKinds(ctx, clientset, ns, options)
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	if strings.TrimSpace(query.Kind) == "" {
@@ -182,6 +79,101 @@ func (s *WorkloadService) List(query WorkloadListQuery, dataScope *common.DataSc
 		continueToken = ""
 	}
 	return &WorkloadListResponse{Items: items, Total: len(items), ContinueToken: continueToken}, nil
+}
+
+// listDeployments reads one deployment page and maps it to workload items with
+// the continuation token for the next page.
+func listDeployments(ctx context.Context, clientset kubernetes.Interface, ns string, options metav1.ListOptions) ([]WorkloadItem, string, error) {
+	list, err := clientset.AppsV1().Deployments(ns).List(ctx, options)
+	if err != nil {
+		return nil, "", errors.New("k8s.workload.list_failed")
+	}
+	items := make([]WorkloadItem, 0, len(list.Items))
+	for i := range list.Items {
+		d := &list.Items[i]
+		items = append(items, WorkloadItem{
+			Kind:            "Deployment",
+			Name:            d.Name,
+			Namespace:       d.Namespace,
+			Replicas:        safeReplicas(d.Spec.Replicas),
+			ReadyReplicas:   d.Status.ReadyReplicas,
+			Images:          containerImages(d.Spec.Template.Spec.Containers),
+			Status:          workloadStatus(d.Status.ReadyReplicas, safeReplicas(d.Spec.Replicas)),
+			Age:             age(d.CreationTimestamp),
+			ResourceVersion: d.ResourceVersion,
+		})
+	}
+	return items, list.Continue, nil
+}
+
+// listStatefulSets reads one statefulset page and maps it to workload items.
+func listStatefulSets(ctx context.Context, clientset kubernetes.Interface, ns string, options metav1.ListOptions) ([]WorkloadItem, string, error) {
+	list, err := clientset.AppsV1().StatefulSets(ns).List(ctx, options)
+	if err != nil {
+		return nil, "", errors.New("k8s.workload.list_failed")
+	}
+	items := make([]WorkloadItem, 0, len(list.Items))
+	for i := range list.Items {
+		st := &list.Items[i]
+		items = append(items, WorkloadItem{
+			Kind:            "StatefulSet",
+			Name:            st.Name,
+			Namespace:       st.Namespace,
+			Replicas:        safeReplicas(st.Spec.Replicas),
+			ReadyReplicas:   st.Status.ReadyReplicas,
+			Images:          containerImages(st.Spec.Template.Spec.Containers),
+			Status:          workloadStatus(st.Status.ReadyReplicas, safeReplicas(st.Spec.Replicas)),
+			Age:             age(st.CreationTimestamp),
+			ResourceVersion: st.ResourceVersion,
+		})
+	}
+	return items, list.Continue, nil
+}
+
+// listDaemonSets reads one daemonset page and maps it to workload items.
+func listDaemonSets(ctx context.Context, clientset kubernetes.Interface, ns string, options metav1.ListOptions) ([]WorkloadItem, string, error) {
+	list, err := clientset.AppsV1().DaemonSets(ns).List(ctx, options)
+	if err != nil {
+		return nil, "", errors.New("k8s.workload.list_failed")
+	}
+	items := make([]WorkloadItem, 0, len(list.Items))
+	for i := range list.Items {
+		ds := &list.Items[i]
+		items = append(items, WorkloadItem{
+			Kind:            "DaemonSet",
+			Name:            ds.Name,
+			Namespace:       ds.Namespace,
+			Replicas:        ds.Status.DesiredNumberScheduled,
+			ReadyReplicas:   ds.Status.NumberReady,
+			Images:          containerImages(ds.Spec.Template.Spec.Containers),
+			Status:          workloadStatus(ds.Status.NumberReady, ds.Status.DesiredNumberScheduled),
+			Age:             age(ds.CreationTimestamp),
+			ResourceVersion: ds.ResourceVersion,
+		})
+	}
+	return items, list.Continue, nil
+}
+
+// listAllWorkloadKinds aggregates the three kinds; only the deployment page
+// carries the caller's limit and continuation token, as before.
+func listAllWorkloadKinds(ctx context.Context, clientset kubernetes.Interface, ns string, options metav1.ListOptions) ([]WorkloadItem, error) {
+	deployments, _, err := listDeployments(ctx, clientset, ns, options)
+	if err != nil {
+		return nil, err
+	}
+	statefulsets, _, err := listStatefulSets(ctx, clientset, ns, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	daemonsets, _, err := listDaemonSets(ctx, clientset, ns, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	items := make([]WorkloadItem, 0, len(deployments)+len(statefulsets)+len(daemonsets))
+	items = append(items, deployments...)
+	items = append(items, statefulsets...)
+	items = append(items, daemonsets...)
+	return items, nil
 }
 
 func normalizeListLimit(limit int64) int64 {
@@ -249,42 +241,56 @@ func (s *WorkloadService) ScaleWithResourceVersion(clusterID uint64, namespace, 
 	ctx, cancel := context.WithTimeout(context.Background(), syncTimeout)
 	defer cancel()
 
-	switch normalizeKind(kind) {
-	case workloadKindStatefulSet:
-		st, err := clientset.AppsV1().StatefulSets(namespace).Get(ctx, name, metav1.GetOptions{})
-		if err != nil {
-			return errors.New("k8s.workload.not_found")
-		}
-		if expectedResourceVersion != "" && st.ResourceVersion != expectedResourceVersion {
-			return common.NewConflict("k8s.workload.resource_version_conflict")
-		}
-		st.Spec.Replicas = &replicas
-		_, err = clientset.AppsV1().StatefulSets(namespace).Update(ctx, st, metav1.UpdateOptions{})
-		if err != nil {
-			if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
-				return common.NewConflict("k8s.workload.resource_version_conflict")
-			}
-			return errors.New("k8s.workload.scale_failed")
-		}
-		return nil
-	default:
-		d, err := clientset.AppsV1().Deployments(namespace).Get(ctx, name, metav1.GetOptions{})
-		if err != nil {
-			return errors.New("k8s.workload.not_found")
-		}
-		if expectedResourceVersion != "" && d.ResourceVersion != expectedResourceVersion {
-			return common.NewConflict("k8s.workload.resource_version_conflict")
-		}
-		d.Spec.Replicas = &replicas
-		_, err = clientset.AppsV1().Deployments(namespace).Update(ctx, d, metav1.UpdateOptions{})
-		if err != nil {
-			if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
-				return common.NewConflict("k8s.workload.resource_version_conflict")
-			}
-			return errors.New("k8s.workload.scale_failed")
-		}
-		return nil
+	if normalizeKind(kind) == workloadKindStatefulSet {
+		return scaleStatefulSet(ctx, clientset, namespace, name, replicas, expectedResourceVersion)
 	}
+	return scaleDeployment(ctx, clientset, namespace, name, replicas, expectedResourceVersion)
+}
+
+// scaleDeployment patches the replica count of a deployment, refusing a stale
+// resource version both before the write and on an API-server conflict.
+func scaleDeployment(ctx context.Context, clientset kubernetes.Interface, namespace, name string, replicas int32, expectedResourceVersion string) error {
+	d, err := clientset.AppsV1().Deployments(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return errors.New("k8s.workload.not_found")
+	}
+	if isResourceVersionMismatch(d.ResourceVersion, expectedResourceVersion) {
+		return common.NewConflict(msgResourceVersionConflict)
+	}
+	d.Spec.Replicas = &replicas
+	if _, err := clientset.AppsV1().Deployments(namespace).Update(ctx, d, metav1.UpdateOptions{}); err != nil {
+		if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
+			return common.NewConflict(msgResourceVersionConflict)
+		}
+		return errors.New("k8s.workload.scale_failed")
+	}
+	return nil
+}
+
+// scaleStatefulSet patches the replica count of a statefulset, refusing a stale
+// resource version both before the write and on an API-server conflict.
+func scaleStatefulSet(ctx context.Context, clientset kubernetes.Interface, namespace, name string, replicas int32, expectedResourceVersion string) error {
+	st, err := clientset.AppsV1().StatefulSets(namespace).Get(ctx, name, metav1.GetOptions{})
+	if err != nil {
+		return errors.New("k8s.workload.not_found")
+	}
+	if isResourceVersionMismatch(st.ResourceVersion, expectedResourceVersion) {
+		return common.NewConflict(msgResourceVersionConflict)
+	}
+	st.Spec.Replicas = &replicas
+	if _, err := clientset.AppsV1().StatefulSets(namespace).Update(ctx, st, metav1.UpdateOptions{}); err != nil {
+		if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
+			return common.NewConflict(msgResourceVersionConflict)
+		}
+		return errors.New("k8s.workload.scale_failed")
+	}
+	return nil
+}
+
+// isResourceVersionMismatch reports a caller-supplied resource version that no
+// longer matches the object read from the cluster; an empty expectation skips it.
+func isResourceVersionMismatch(actual, expected string) bool {
+	return expected != "" && actual != expected
 }
 
 // Restart triggers a rolling restart by patching the pod template annotation.
@@ -317,7 +323,7 @@ func (s *WorkloadService) RestartWithResourceVersion(clusterID uint64, namespace
 			return errors.New("k8s.workload.not_found")
 		}
 		if expectedResourceVersion != "" && st.ResourceVersion != expectedResourceVersion {
-			return common.NewConflict("k8s.workload.resource_version_conflict")
+			return common.NewConflict(msgResourceVersionConflict)
 		}
 		_, err = clientset.AppsV1().StatefulSets(namespace).Patch(ctx, name, types.StrategicMergePatchType, []byte(patch), metav1.PatchOptions{})
 	default:
@@ -326,13 +332,13 @@ func (s *WorkloadService) RestartWithResourceVersion(clusterID uint64, namespace
 			return errors.New("k8s.workload.not_found")
 		}
 		if expectedResourceVersion != "" && d.ResourceVersion != expectedResourceVersion {
-			return common.NewConflict("k8s.workload.resource_version_conflict")
+			return common.NewConflict(msgResourceVersionConflict)
 		}
 		_, err = clientset.AppsV1().Deployments(namespace).Patch(ctx, name, types.StrategicMergePatchType, []byte(patch), metav1.PatchOptions{})
 	}
 	if err != nil {
 		if apierrors.IsConflict(err) || apierrors.IsInvalid(err) {
-			return common.NewConflict("k8s.workload.resource_version_conflict")
+			return common.NewConflict(msgResourceVersionConflict)
 		}
 		return errors.New("k8s.workload.restart_failed")
 	}

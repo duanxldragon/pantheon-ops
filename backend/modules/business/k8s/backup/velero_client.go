@@ -50,25 +50,31 @@ func normalizeUnstructuredJSONValue(value interface{}) interface{} {
 
 const veleroNamespace = "velero"
 
+// Velero CRD API group and version shared by the resource definitions below.
+const (
+	veleroAPIGroup   = "velero.io"
+	veleroAPIVersion = "velero.io/v1"
+)
+
 var (
 	// Velero CRD GroupVersionResource definitions
 	backupGVR = schema.GroupVersionResource{
-		Group:    "velero.io",
+		Group:    veleroAPIGroup,
 		Version:  "v1",
 		Resource: "backups",
 	}
 	scheduleGVR = schema.GroupVersionResource{
-		Group:    "velero.io",
+		Group:    veleroAPIGroup,
 		Version:  "v1",
 		Resource: "schedules",
 	}
 	restoreGVR = schema.GroupVersionResource{
-		Group:    "velero.io",
+		Group:    veleroAPIGroup,
 		Version:  "v1",
 		Resource: "restores",
 	}
 	backupStorageLocationGVR = schema.GroupVersionResource{
-		Group:    "velero.io",
+		Group:    veleroAPIGroup,
 		Version:  "v1",
 		Resource: "backupstoragelocations",
 	}
@@ -150,7 +156,7 @@ func (c *VeleroClient) CreateBackup(ctx context.Context, name string, spec map[s
 
 	backup := &unstructured.Unstructured{
 		Object: map[string]interface{}{
-			"apiVersion": "velero.io/v1",
+			"apiVersion": veleroAPIVersion,
 			"kind":       "Backup",
 			"metadata": map[string]interface{}{
 				"name":      name,
@@ -196,7 +202,7 @@ func (c *VeleroClient) CreateSchedule(ctx context.Context, name string, spec map
 
 	schedule := &unstructured.Unstructured{
 		Object: map[string]interface{}{
-			"apiVersion": "velero.io/v1",
+			"apiVersion": veleroAPIVersion,
 			"kind":       "Schedule",
 			"metadata": map[string]interface{}{
 				"name":      name,
@@ -234,7 +240,7 @@ func (c *VeleroClient) CreateRestore(ctx context.Context, name string, spec map[
 
 	restore := &unstructured.Unstructured{
 		Object: map[string]interface{}{
-			"apiVersion": "velero.io/v1",
+			"apiVersion": veleroAPIVersion,
 			"kind":       "Restore",
 			"metadata": map[string]interface{}{
 				"name":      name,
@@ -272,7 +278,7 @@ func (c *VeleroClient) CreateBackupStorageLocation(ctx context.Context, name str
 
 	bsl := &unstructured.Unstructured{
 		Object: map[string]interface{}{
-			"apiVersion": "velero.io/v1",
+			"apiVersion": veleroAPIVersion,
 			"kind":       "BackupStorageLocation",
 			"metadata": map[string]interface{}{
 				"name":      name,

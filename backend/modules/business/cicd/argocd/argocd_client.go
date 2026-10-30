@@ -20,6 +20,9 @@ import (
 // mistyped bundle fails at save time instead of turning every request into a TLS error.
 var ErrInvalidCACert = errors.New("ca_cert_contains_no_valid_certificate")
 
+// authorizationBearerPrefix is the RFC 6750 scheme Argo CD expects in front of the API token.
+const authorizationBearerPrefix = "Bearer "
+
 // ArgoCDClient wraps HTTP client for ArgoCD API communication.
 //
 //nolint:revive // the exported client name keeps the Argo CD domain prefix for API clarity.
@@ -88,7 +91,7 @@ func (c *ArgoCDClient) TestConnection(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)
 	}
-	req.Header.Set("Authorization", "Bearer "+c.authToken)
+	req.Header.Set("Authorization", authorizationBearerPrefix+c.authToken)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -110,7 +113,7 @@ func (c *ArgoCDClient) GetVersion(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("Authorization", "Bearer "+c.authToken)
+	req.Header.Set("Authorization", authorizationBearerPrefix+c.authToken)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -157,7 +160,7 @@ func (c *ArgoCDClient) GetApplicationStatus(ctx context.Context, appName string)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer "+c.authToken)
+	req.Header.Set("Authorization", authorizationBearerPrefix+c.authToken)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -198,7 +201,7 @@ func (c *ArgoCDClient) SyncApplication(ctx context.Context, appName, revision st
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Authorization", "Bearer "+c.authToken)
+	req.Header.Set("Authorization", authorizationBearerPrefix+c.authToken)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -223,7 +226,7 @@ func (c *ArgoCDClient) RefreshApplication(ctx context.Context, appName string) e
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Authorization", "Bearer "+c.authToken)
+	req.Header.Set("Authorization", authorizationBearerPrefix+c.authToken)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -251,7 +254,7 @@ func (c *ArgoCDClient) CreateApplication(ctx context.Context, req *CreateApplica
 	if err != nil {
 		return err
 	}
-	httpReq.Header.Set("Authorization", "Bearer "+c.authToken)
+	httpReq.Header.Set("Authorization", authorizationBearerPrefix+c.authToken)
 	httpReq.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(httpReq)
@@ -270,21 +273,34 @@ func (c *ArgoCDClient) CreateApplication(ctx context.Context, req *CreateApplica
 
 // CreateApplicationPayload represents the payload for creating an ArgoCD application.
 type CreateApplicationPayload struct {
-	Metadata struct {
-		Name string `json:"name"`
-	} `json:"metadata"`
-	Spec struct {
-		Project string `json:"project"`
-		Source  struct {
-			RepoURL        string `json:"repoURL"`
-			Path           string `json:"path"`
-			TargetRevision string `json:"targetRevision"`
-		} `json:"source"`
-		Destination struct {
-			Server    string `json:"server"`
-			Namespace string `json:"namespace"`
-		} `json:"destination"`
-	} `json:"spec"`
+	Metadata applicationObjectMeta `json:"metadata"`
+	Spec     applicationSpec       `json:"spec"`
+}
+
+// applicationObjectMeta is the Kubernetes-style object metadata Argo CD reads on create.
+type applicationObjectMeta struct {
+	Name string `json:"name"`
+}
+
+// applicationSpec is the Argo CD application spec: which project owns the app and where its
+// manifests come from and land.
+type applicationSpec struct {
+	Project     string                 `json:"project"`
+	Source      applicationSource      `json:"source"`
+	Destination applicationDestination `json:"destination"`
+}
+
+// applicationSource points the application at a path inside a Git repository.
+type applicationSource struct {
+	RepoURL        string `json:"repoURL"`
+	Path           string `json:"path"`
+	TargetRevision string `json:"targetRevision"`
+}
+
+// applicationDestination points the application at a cluster namespace.
+type applicationDestination struct {
+	Server    string `json:"server"`
+	Namespace string `json:"namespace"`
 }
 
 // DeleteApplication deletes an ArgoCD application.
@@ -295,7 +311,7 @@ func (c *ArgoCDClient) DeleteApplication(ctx context.Context, appName string, ca
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Authorization", "Bearer "+c.authToken)
+	req.Header.Set("Authorization", authorizationBearerPrefix+c.authToken)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

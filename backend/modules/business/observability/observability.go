@@ -25,6 +25,14 @@ const (
 	TargetTypeOther = "other"
 )
 
+// msgParamInvalid is the i18n key returned for a malformed request. The key belongs to the
+// frontend message catalogue, so it is declared once here.
+const msgParamInvalid = "common.param_invalid"
+
+// idWhereClause is the GORM fragment that keys a statement on the row id. Seed and request data
+// reaches the statement only through the bind parameter.
+const idWhereClause = "id = ?"
+
 // MonitoringTarget is a DB-recorded monitoring target bound to a business
 // scope. It is the seed for file_sd generation in v1.1.
 type MonitoringTarget struct {
@@ -140,7 +148,7 @@ func (m *ObservabilityModule) RegisterRoutes(r *gin.RouterGroup) {
 func (m *ObservabilityModule) ListTargets(c *gin.Context) {
 	var query TargetListQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	page := query.Page
@@ -179,7 +187,7 @@ func (m *ObservabilityModule) CreateTarget(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.target.create", common.BusinessInsert)
 	var req CreateTargetRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
 	req.TargetType = strings.TrimSpace(req.TargetType)
@@ -223,10 +231,10 @@ func (m *ObservabilityModule) DeleteTarget(c *gin.Context) {
 	common.SetAuditMetadata(c, "observability.target.delete", common.BusinessDelete)
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil || id == 0 {
-		common.Fail(c, common.CodeParamInvalid, "common.param_invalid")
+		common.Fail(c, common.CodeParamInvalid, msgParamInvalid)
 		return
 	}
-	result := m.db.Scopes(database.WithDataScope(common.GetDataScope(c))).Where("id = ?", id).Delete(&MonitoringTarget{})
+	result := m.db.Scopes(database.WithDataScope(common.GetDataScope(c))).Where(idWhereClause, id).Delete(&MonitoringTarget{})
 	if result.Error != nil {
 		common.FailWithError(c, common.CodeError, result.Error, "observability.delete_failed")
 		return

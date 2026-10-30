@@ -13,6 +13,9 @@ const (
 	argocdRouteName      = "cicd-argocd-list"
 	argocdComponentKey   = "business/cicd/argocd/ArgoCDList"
 	argocdPagePermission = "business:cicd:argocd:list"
+	// i18nRowWhere locates one i18n entry. The column names are fixed SQL text, the
+	// values reach the statement only through bind parameters.
+	i18nRowWhere = "module = ? AND locale = ? AND `key` = ?"
 )
 
 type argocdI18nSeed struct {
@@ -108,7 +111,7 @@ func seedArgocdI18n(db *gorm.DB) error {
 				"updated_at":       time.Now(),
 			}
 			var count int64
-			if err := tx.Table("system_i18n").Where("module = ? AND locale = ? AND `key` = ?", cicdModuleKey, item.Locale, item.Key).Count(&count).Error; err != nil {
+			if err := tx.Table("system_i18n").Where(i18nRowWhere, cicdModuleKey, item.Locale, item.Key).Count(&count).Error; err != nil {
 				return err
 			}
 			if count == 0 {
@@ -116,7 +119,7 @@ func seedArgocdI18n(db *gorm.DB) error {
 				if err := tx.Table("system_i18n").Create(payload).Error; err != nil {
 					return err
 				}
-			} else if err := tx.Table("system_i18n").Where("module = ? AND locale = ? AND `key` = ?", cicdModuleKey, item.Locale, item.Key).Updates(payload).Error; err != nil {
+			} else if err := tx.Table("system_i18n").Where(i18nRowWhere, cicdModuleKey, item.Locale, item.Key).Updates(payload).Error; err != nil {
 				return err
 			}
 		}
@@ -140,7 +143,7 @@ func SeedPerms(db *gorm.DB) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		for _, item := range seeds {
 			var count int64
-			if err := tx.Table("system_i18n").Where("module = ? AND locale = ? AND `key` = ?", cicdModuleKey, item.Locale, item.Key).Count(&count).Error; err != nil {
+			if err := tx.Table("system_i18n").Where(i18nRowWhere, cicdModuleKey, item.Locale, item.Key).Count(&count).Error; err != nil {
 				return err
 			}
 			if count != 0 {

@@ -230,6 +230,75 @@ business/*
   a maintainer token from the environment, and a token-using script inside the tree would be an attack surface
   rather than evidence.
 
+## Code-Smell Backlog (round 5)
+
+- Target: the 158 findings left after the round-4 triage, all `CODE_SMELL` on `main`
+  (`go:S1192` x68, `go:S3776` x27, `typescript:S3358` x20, `typescript:S3863` x10, `typescript:S6571` x6,
+  `typescript:S3776` x6, `godre:S8196/S8205/S8209/S8193` x10, `typescript:S6551` x3, `go:S107` x2,
+  `go:S1135` x2, `githubactions:S1192` x2). 109 are Go under `backend/modules/business`, 47 are TypeScript
+  under `frontend/src/modules/business`, 2 are the workflow gate scripts.
+- Work was partitioned by directory so no two writers share a file: k8s + filedist, deploy, service + cmdb,
+  cicd + observability, and two frontend batches. The cross-cutting classes were kept out of the fan-out
+  because they need repo-wide reference updates: the four `godre:S8196` single-method interface renames,
+  the two `go:S1135` TODOs, and the two workflow literals.
+- Every agent worked under the same constraints: behaviour-preserving extraction only, no `//nolint`,
+  no `NOSONAR`, no `eslint-disable`, no `@ts-ignore`, no config or gate edit, no weakened assertion, and
+  `node scripts/check-gorm-sql-literal.mjs` must stay green, which is what forces extracted SQL to be a
+  package `const` rather than a `var`.
+- `go:S1192` is cleared by moving the duplicated fragment to a package-level constant, which is the shape
+  the SQL-literal sensor already accepts; `Updates(map…)` keys stay inline quoted literals on purpose, because
+  a constant map key would break that sensor.
+- `go:S3776` and `typescript:S3776` are cleared by extracting guard-clause and per-case helpers, not by adding
+  nesting suppression; `typescript:S3358` by module-level `if/else` resolvers, `typescript:S3863` by merged
+  import statements, `typescript:S6571` by a named union type instead of `… | string`, `typescript:S6551` by
+  narrowing a form value with `typeof` instead of `String(…)`, `typescript:S7755` by `.at(-1)`,
+  `godre:S8205` by named struct types with identical JSON tags, `godre:S8209` by grouping same-typed
+  parameters, and `godre:S8193` by inlining a temporary into the condition that used it.
+- Two gate couplings were found by the fan-out and are worth keeping as rules. First, `githubactions:S1192`
+  was cleared by declaring `EXPECTED_RESULT: success` in the job env and comparing against it, which keeps the
+  fail-closed behaviour (an unset variable yields an empty string and every comparison mismatches). That edit
+  initially turned `tests/scripts/security-workflow.test.mjs` from green to red, because that base-owned test
+  pins the literal text `[ "${DEPENDENCY_VULNERABILITIES_RESULT}" != "success" ]` in the dependency-vulnerability
+  branch; the fix was to leave exactly one literal occurrence there and parameterize only the other four, which
+  is below the duplication threshold and keeps the test green. The lesson is that a workflow literal is not free
+  text — a governance test may be asserting on its exact shape. Second,
+  base's `frontend/scripts/check-menu-contract.mjs` resolves a seed field that points at a Go identifier only
+  through a package const table built from `name = "value"` lines; extracting `"business.service"` into an
+  inline `const serviceModuleKey = …` therefore made the `/business/service` menu read back an empty module and
+  `PANTHEON_CI=true npm run build` failed. The ops side was fixed by declaring that const inside a `const (…)`
+  block, because the checker is a base-owned inherited file and a generic fix must go base-first rather than
+  being hand-copied here.
+- The two `go:S1135` pseudo-implementations were resolved differently, and the difference is deliberate.
+  `processGitEvent` now parses the stored Argo CD `syncPolicy` and triggers a real sync only when
+  `automated` is present, through an `applicationSyncer` seam satisfied by `*ArgoCDService` so the decision is
+  testable without a server; `argocd_webhook_test.go` pins the parse table (8 cases, including
+  `{"automated":false}` and a truncated column, both of which fail closed) and the trigger set (automated,
+  manual, no policy, and an `Error` application), including that a failing sync still marks the event
+  processed. The reconciler's `updateServiceInstanceState` stub was deleted instead of implemented: writing
+  a service-instance transition needs an `InstanceID`, and `biz_argocd_application` has no association to a
+  service instance, so implementing it would have meant a schema change plus API and UI work inside a
+  code-smell cleanup. That gap is recorded in the manifest as a follow-up rather than hidden behind a comment.
+- Local verification against the real MySQL from `.env` reproduces 11 failures in 5 packages
+  (`deploy` x4, `bizscope` x3, `observability` x2, `cmdb/host` x1, `lowcode/dynamicmodule` x1). Each one was
+  re-run in a clean worktree of `a5b5910` and fails with a byte-identical message there, including the four
+  `deploy` cases that a first pass looked like refactor damage (`load task host: record not found`,
+  `business.deploy.task.sshConnectFailed`, `… invalidDeleteState`, `… precheck failed: step failed`), so they are
+  environment-dependent pre-existing failures and not regressions from this round; the isolated
+  `-run` form reproduces them too, which rules out cross-package interference on the shared local schema. The
+  hosted `backend-tests` job, which provisions a fresh `mysql:8.0`, stays the authority for them. The same HEAD
+  worktree is the baseline for the governance suites: `node --test tests/scripts/*.test.mjs` fails 14 tests and
+  `check:harness-generated` fails, identically before and after this round, so those two reds are not
+  attributed to it either.
+- Resolution was measured, not asserted. HEAD was mapped finding-by-finding to the enclosing function via
+  `gocognit`, then the working tree was re-measured: all 27 `go:S3776` targets are at or below the threshold
+  (SonarGo never reports a cognitive complexity higher than `gocognit`'s, so `gocognit ≤ 15` is a sound
+  local oracle), and a duplicate-literal scan of `backend/modules/business` went 871 candidate clusters to
+  802 with no new cluster appearing anywhere. The two apparent new clusters were tokenizer artifacts of the
+  scan matching `"automated"` inside backtick raw strings in the new webhook test; SonarGo lexes those as one
+  token, so nothing was introduced.
+- The acceptance oracle is still the next hosted analysis, not these local numbers: local linters approximate
+  SonarGo, and only `/api/issues/search` on branch `main` decides whether the counter reaches zero.
+
 ## Verification Plan
 
 - `cd backend && gofmt -l modules/business && go build ./... && go vet ./... && go test ./... -count=1`

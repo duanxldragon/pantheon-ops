@@ -80,10 +80,10 @@ func TestPodRestarts(t *testing.T) {
 
 func TestAge(t *testing.T) {
 	now := time.Now()
-	if got := age(metav1.NewTime(now.Add(-30 * time.Second))); got == "" {
+	if age(metav1.NewTime(now.Add(-30*time.Second))) == "" {
 		t.Fatal("expected non-empty age for 30s")
 	}
-	if got := age(metav1.NewTime(now.Add(-2 * time.Hour))); got == "" {
+	if age(metav1.NewTime(now.Add(-2*time.Hour))) == "" {
 		t.Fatal("expected non-empty age for 2h")
 	}
 	if got := age(metav1.Time{}); got != "" {

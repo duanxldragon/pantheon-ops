@@ -458,5 +458,5 @@ function veleroState(status: K8sVeleroStatus): string {
 function veleroVersion(image: string): string {
   // Extract version from image tag like velero/velero:v1.12.0
   const parts = image.split(':');
-  return parts.length > 1 ? parts[parts.length - 1] : image;
+  return parts.at(-1) ?? image;
 }

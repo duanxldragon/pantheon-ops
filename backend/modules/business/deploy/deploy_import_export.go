@@ -78,34 +78,49 @@ func (s *DeployService) ImportPackages(records [][]string, actor string) (*impex
 		return result, nil
 	}
 	return result, s.db.Transaction(func(tx *gorm.DB) error {
-		for rowNo, record := range records[1:] {
-			if impexp.IsCSVRecordEmpty(record) {
-				continue
-			}
-			row := parsePackageCSV(record, index, result, rowNo+2)
-			if result.Failed > 0 {
-				continue
-			}
-			var item DeployPackage
-			err := tx.Where("name = ? AND version = ?", row.Name, row.Version).First(&item).Error
-			if err != nil && err != gorm.ErrRecordNotFound {
-				return err
-			}
-			if err == nil {
-				if err := tx.Model(&item).Updates(row.updates(actor)).Error; err != nil {
-					return err
-				}
-				result.Updated++
-			} else {
-				if err := tx.Create(&DeployPackage{Name: row.Name, Version: row.Version, Description: row.Description, InstallCommand: row.InstallCommand, UninstallCommand: row.UninstallCommand, ExecutionMode: row.ExecutionMode, TemplateCode: row.TemplateCode, TemplateConfig: row.TemplateConfig, SourceObjectKey: row.SourceObjectKey, SourceFileName: row.SourceFileName, SourceURL: row.SourceURL, Status: row.Status, CreatedBy: actor, UpdatedBy: actor}).Error; err != nil {
-					return err
-				}
-				result.Created++
-			}
-		}
-		result.Applied = result.Failed == 0
-		return nil
+		return importPackageCSVRows(tx, records[1:], index, actor, result)
 	})
+}
+
+// importPackageCSVRows applies the package data rows of an uploaded CSV. A
+// failed row validation stops the remaining rows from being applied.
+func importPackageCSVRows(tx *gorm.DB, records [][]string, index map[string]int, actor string, result *impexp.ImportResult) error {
+	for rowNo, record := range records {
+		if impexp.IsCSVRecordEmpty(record) {
+			continue
+		}
+		row := parsePackageCSV(record, index, result, rowNo+2)
+		if result.Failed > 0 {
+			continue
+		}
+		if err := upsertPackageCSVRow(tx, row, actor, result); err != nil {
+			return err
+		}
+	}
+	result.Applied = result.Failed == 0
+	return nil
+}
+
+// upsertPackageCSVRow updates the package identified by name and version, or
+// creates it when it does not exist yet.
+func upsertPackageCSVRow(tx *gorm.DB, row packageCSVRow, actor string, result *impexp.ImportResult) error {
+	var item DeployPackage
+	err := tx.Where("name = ? AND version = ?", row.Name, row.Version).First(&item).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return err
+	}
+	if err == nil {
+		if err := tx.Model(&item).Updates(row.updates(actor)).Error; err != nil {
+			return err
+		}
+		result.Updated++
+		return nil
+	}
+	if err := tx.Create(&DeployPackage{Name: row.Name, Version: row.Version, Description: row.Description, InstallCommand: row.InstallCommand, UninstallCommand: row.UninstallCommand, ExecutionMode: row.ExecutionMode, TemplateCode: row.TemplateCode, TemplateConfig: row.TemplateConfig, SourceObjectKey: row.SourceObjectKey, SourceFileName: row.SourceFileName, SourceURL: row.SourceURL, Status: row.Status, CreatedBy: actor, UpdatedBy: actor}).Error; err != nil {
+		return err
+	}
+	result.Created++
+	return nil
 }
 
 type packageCSVRow struct {
@@ -169,68 +184,122 @@ func (s *DeployService) ImportTemplates(records [][]string, actor string) (*impe
 		return result, nil
 	}
 	return result, s.db.Transaction(func(tx *gorm.DB) error {
-		for rowNo, record := range records[1:] {
-			if impexp.IsCSVRecordEmpty(record) {
-				continue
-			}
-			name := strings.TrimSpace(impexp.ReadCSVField(record, index, "name"))
-			version := strings.TrimSpace(impexp.ReadCSVField(record, index, "version"))
-			if name == "" {
-				impexp.AppendImportError(result, rowNo+2, "name", "deploytemplate.name_required")
-			}
-			if version == "" {
-				impexp.AppendImportError(result, rowNo+2, "version", "deploytemplate.version_required")
-			}
-			if result.Failed > 0 {
-				continue
-			}
-			rawSteps := impexp.ReadCSVField(record, index, "steps")
-			var steps []TemplateStepPayload
-			if rawSteps != "" && json.Unmarshal([]byte(rawSteps), &steps) != nil {
-				impexp.AppendImportError(result, rowNo+2, "steps", "deploytemplate.steps_invalid")
-				continue
-			}
-			var item DeployTemplate
-			err := tx.Where("name = ? AND version = ?", name, version).First(&item).Error
-			description := impexp.ReadCSVField(record, index, "description")
-			category := impexp.ReadCSVField(record, index, "category")
-			executionMode := impexp.ReadCSVField(record, index, "executionMode")
-			defaultAction := impexp.ReadCSVField(record, index, "defaultAction")
-			templateCode := impexp.ReadCSVField(record, index, "templateCode")
-			status := impexp.ReadCSVField(record, index, "status")
-			values := map[string]any{"description": description, "category": category, "execution_mode": executionMode, "default_action": defaultAction, "template_code": templateCode, "status": status, "updated_by": actor}
-			if err == nil {
-				if err := tx.Model(&item).Updates(values).Error; err != nil {
-					return err
-				}
-				result.Updated++
-			} else if errors.Is(err, gorm.ErrRecordNotFound) {
-				item = DeployTemplate{Name: name, Version: version, Description: description, Category: category, ExecutionMode: executionMode, DefaultAction: defaultAction, TemplateCode: templateCode, Status: status, CreatedBy: actor, UpdatedBy: actor}
-				if item.ExecutionMode == "" {
-					item.ExecutionMode = ExecutionModeFixed
-				}
-				if item.Status == "" {
-					item.Status = TemplateStatusEnabled
-				}
-				if err := tx.Create(&item).Error; err != nil {
-					return err
-				}
-				result.Created++
-			} else {
-				return err
-			}
-			if len(steps) > 0 {
-				if err := tx.Where("template_id = ?", item.ID).Delete(&DeployTemplateStep{}).Error; err != nil {
-					return err
-				}
-				for i := range steps {
-					if err := tx.Create(&DeployTemplateStep{TemplateID: item.ID, StepCode: steps[i].StepCode, StepName: steps[i].StepName, StepType: steps[i].StepType, Action: steps[i].Action, PackageID: steps[i].PackageID, PackageName: steps[i].PackageName, PackageVersion: steps[i].PackageVersion, TemplateCode: steps[i].TemplateCode, Sort: steps[i].Sort}).Error; err != nil {
-						return err
-					}
-				}
-			}
-		}
-		result.Applied = result.Failed == 0
-		return nil
+		return importTemplateCSVRows(tx, records[1:], index, actor, result)
 	})
+}
+
+// importTemplateCSVRows applies the template data rows of an uploaded CSV. A
+// failed row validation stops the remaining rows from being applied.
+func importTemplateCSVRows(tx *gorm.DB, records [][]string, index map[string]int, actor string, result *impexp.ImportResult) error {
+	for rowNo, record := range records {
+		if impexp.IsCSVRecordEmpty(record) {
+			continue
+		}
+		row := parseTemplateCSV(record, index, result, rowNo+2)
+		if result.Failed > 0 {
+			continue
+		}
+		steps, ok := readTemplateCSVSteps(record, index, result, rowNo+2)
+		if !ok {
+			continue
+		}
+		row.Steps = steps
+		if err := upsertTemplateCSVRow(tx, row, actor, result); err != nil {
+			return err
+		}
+	}
+	result.Applied = result.Failed == 0
+	return nil
+}
+
+type templateCSVRow struct {
+	Name, Version, Description, Category, ExecutionMode, DefaultAction, TemplateCode, Status string
+	Steps                                                                                    []TemplateStepPayload
+}
+
+func (r templateCSVRow) updates(actor string) map[string]any {
+	return map[string]any{"description": r.Description, "category": r.Category, "execution_mode": r.ExecutionMode, "default_action": r.DefaultAction, "template_code": r.TemplateCode, "status": r.Status, "updated_by": actor}
+}
+
+// parseTemplateCSV reads the template columns of one CSV record and reports the
+// required-key errors.
+func parseTemplateCSV(record []string, index map[string]int, result *impexp.ImportResult, row int) templateCSVRow {
+	r := templateCSVRow{
+		Name:          strings.TrimSpace(impexp.ReadCSVField(record, index, "name")),
+		Version:       strings.TrimSpace(impexp.ReadCSVField(record, index, "version")),
+		Description:   impexp.ReadCSVField(record, index, "description"),
+		Category:      impexp.ReadCSVField(record, index, "category"),
+		ExecutionMode: impexp.ReadCSVField(record, index, "executionMode"),
+		DefaultAction: impexp.ReadCSVField(record, index, "defaultAction"),
+		TemplateCode:  impexp.ReadCSVField(record, index, "templateCode"),
+		Status:        impexp.ReadCSVField(record, index, "status"),
+	}
+	if r.Name == "" {
+		impexp.AppendImportError(result, row, "name", "deploytemplate.name_required")
+	}
+	if r.Version == "" {
+		impexp.AppendImportError(result, row, "version", "deploytemplate.version_required")
+	}
+	return r
+}
+
+// readTemplateCSVSteps decodes the JSON step payload of one CSV record. It
+// returns false when the payload is invalid and the row must be skipped.
+func readTemplateCSVSteps(record []string, index map[string]int, result *impexp.ImportResult, row int) ([]TemplateStepPayload, bool) {
+	rawSteps := impexp.ReadCSVField(record, index, "steps")
+	if rawSteps == "" {
+		return nil, true
+	}
+	var steps []TemplateStepPayload
+	if json.Unmarshal([]byte(rawSteps), &steps) != nil {
+		impexp.AppendImportError(result, row, "steps", "deploytemplate.steps_invalid")
+		return nil, false
+	}
+	return steps, true
+}
+
+// upsertTemplateCSVRow updates the template identified by name and version, or
+// creates it when it does not exist yet, and rewrites its steps.
+func upsertTemplateCSVRow(tx *gorm.DB, row templateCSVRow, actor string, result *impexp.ImportResult) error {
+	var item DeployTemplate
+	err := tx.Where("name = ? AND version = ?", row.Name, row.Version).First(&item).Error
+	switch {
+	case err == nil:
+		if err := tx.Model(&item).Updates(row.updates(actor)).Error; err != nil {
+			return err
+		}
+		result.Updated++
+	case errors.Is(err, gorm.ErrRecordNotFound):
+		item = DeployTemplate{Name: row.Name, Version: row.Version, Description: row.Description, Category: row.Category, ExecutionMode: row.ExecutionMode, DefaultAction: row.DefaultAction, TemplateCode: row.TemplateCode, Status: row.Status, CreatedBy: actor, UpdatedBy: actor}
+		if item.ExecutionMode == "" {
+			item.ExecutionMode = ExecutionModeFixed
+		}
+		if item.Status == "" {
+			item.Status = TemplateStatusEnabled
+		}
+		if err := tx.Create(&item).Error; err != nil {
+			return err
+		}
+		result.Created++
+	default:
+		return err
+	}
+	return replaceTemplateCSVSteps(tx, item.ID, row.Steps)
+}
+
+// replaceTemplateCSVSteps rewrites the persisted step rows of a template; an
+// empty payload keeps the existing steps untouched.
+func replaceTemplateCSVSteps(tx *gorm.DB, templateID uint64, steps []TemplateStepPayload) error {
+	if len(steps) == 0 {
+		return nil
+	}
+	if err := tx.Where("template_id = ?", templateID).Delete(&DeployTemplateStep{}).Error; err != nil {
+		return err
+	}
+	for i := range steps {
+		if err := tx.Create(&DeployTemplateStep{TemplateID: templateID, StepCode: steps[i].StepCode, StepName: steps[i].StepName, StepType: steps[i].StepType, Action: steps[i].Action, PackageID: steps[i].PackageID, PackageName: steps[i].PackageName, PackageVersion: steps[i].PackageVersion, TemplateCode: steps[i].TemplateCode, Sort: steps[i].Sort}).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }

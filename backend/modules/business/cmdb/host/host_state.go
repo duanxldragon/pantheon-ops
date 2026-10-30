@@ -53,63 +53,13 @@ func (s *HostService) TransitionState(id uint64, req HostStateTransitionRequest,
 		return nil, errors.New(errHostStateStale)
 	}
 
-	nextLifecycle := row.LifecycleState
-	nextConnectivity := row.ConnectivityState
-	observedAt := row.ConnectivityObservedAt
-	switch strings.TrimSpace(req.Action) {
-	case HostTransitionAssign:
-		if row.LifecycleState != HostLifecyclePending {
-			return nil, errors.New(errHostStateInvalid)
-		}
-		nextLifecycle = HostLifecycleAssigned
-	case HostTransitionMaintenance:
-		if row.LifecycleState != HostLifecycleAssigned {
-			return nil, errors.New(errHostStateInvalid)
-		}
-		nextLifecycle = HostLifecycleMaintenance
-	case HostTransitionRetire:
-		if !oneOfHostState(row.LifecycleState, HostLifecyclePending, HostLifecycleMaintenance) {
-			return nil, errors.New(errHostStateInvalid)
-		}
-		if s.serviceRefs != nil {
-			active, err := s.serviceRefs.HasActiveHostReferences(context.Background(), row.ID, dataScope)
-			if err != nil {
-				return nil, err
-			}
-			if active {
-				return nil, errors.New("cmdbhost.active_service_reference")
-			}
-		}
-		nextLifecycle = HostLifecycleRetired
-	case HostTransitionConnectivity:
-		if !validHostConnectivity(req.ConnectivityState) {
-			return nil, errors.New(errHostStateInvalid)
-		}
-		nextConnectivity = req.ConnectivityState
-		if req.ObservedAt != nil {
-			parsed, err := time.Parse(time.RFC3339, strings.TrimSpace(*req.ObservedAt))
-			if err != nil {
-				return nil, errors.New(errHostStateInvalid)
-			}
-			observedAt = &parsed
-		} else {
-			now := time.Now()
-			observedAt = &now
-		}
-	default:
-		return nil, errors.New(errHostStateInvalid)
+	nextLifecycle, nextConnectivity, observedAt, err := s.resolveHostStateTarget(&row, req, dataScope)
+	if err != nil {
+		return nil, err
 	}
 
 	nextStatus := hostStatusFromState(nextLifecycle, nextConnectivity)
-	updates := map[string]any{
-		"lifecycle_state":          nextLifecycle,
-		"connectivity_state":       nextConnectivity,
-		"connectivity_observed_at": observedAt,
-		"status":                   nextStatus,
-		"state_version":            gorm.Expr("state_version + 1"),
-		"updated_by":               actor,
-		"updated_at":               time.Now(),
-	}
+	updates := hostStateTransitionUpdates(nextLifecycle, nextConnectivity, observedAt, nextStatus, actor)
 	query := s.hostQuery(dataScope).Where(idWhereClause, id)
 	if req.ExpectedStateVersion > 0 {
 		query = query.Where("state_version = ?", req.ExpectedStateVersion)
@@ -122,6 +72,91 @@ func (s *HostService) TransitionState(id uint64, req HostStateTransitionRequest,
 		return nil, errors.New(errHostStateStale)
 	}
 	return s.GetByID(id, dataScope)
+}
+
+func hostStateTransitionUpdates(lifecycle, connectivity string, observedAt *time.Time, status, actor string) map[string]any {
+	return map[string]any{
+		"lifecycle_state":          lifecycle,
+		"connectivity_state":       connectivity,
+		"connectivity_observed_at": observedAt,
+		"status":                   status,
+		"state_version":            gorm.Expr("state_version + 1"),
+		"updated_by":               actor,
+		"updated_at":               time.Now(),
+	}
+}
+
+func (s *HostService) resolveHostStateTarget(row *Host, req HostStateTransitionRequest, dataScope *common.DataScopeReq) (string, string, *time.Time, error) {
+	if strings.TrimSpace(req.Action) == HostTransitionConnectivity {
+		return s.resolveHostConnectivityTarget(row, req)
+	}
+	lifecycle, err := s.resolveHostLifecycleTarget(row, strings.TrimSpace(req.Action), dataScope)
+	if err != nil {
+		return "", "", nil, err
+	}
+	return lifecycle, row.ConnectivityState, row.ConnectivityObservedAt, nil
+}
+
+func (s *HostService) resolveHostLifecycleTarget(row *Host, action string, dataScope *common.DataScopeReq) (string, error) {
+	switch action {
+	case HostTransitionAssign:
+		if row.LifecycleState != HostLifecyclePending {
+			return "", errors.New(errHostStateInvalid)
+		}
+		return HostLifecycleAssigned, nil
+	case HostTransitionMaintenance:
+		if row.LifecycleState != HostLifecycleAssigned {
+			return "", errors.New(errHostStateInvalid)
+		}
+		return HostLifecycleMaintenance, nil
+	case HostTransitionRetire:
+		if err := s.ensureHostRetirable(row, dataScope); err != nil {
+			return "", err
+		}
+		return HostLifecycleRetired, nil
+	default:
+		return "", errors.New(errHostStateInvalid)
+	}
+}
+
+func (s *HostService) resolveHostConnectivityTarget(row *Host, req HostStateTransitionRequest) (string, string, *time.Time, error) {
+	if !validHostConnectivity(req.ConnectivityState) {
+		return "", "", nil, errors.New(errHostStateInvalid)
+	}
+	observedAt, err := parseHostConnectivityObservedAt(req)
+	if err != nil {
+		return "", "", nil, err
+	}
+	return row.LifecycleState, req.ConnectivityState, observedAt, nil
+}
+
+func (s *HostService) ensureHostRetirable(row *Host, dataScope *common.DataScopeReq) error {
+	if !oneOfHostState(row.LifecycleState, HostLifecyclePending, HostLifecycleMaintenance) {
+		return errors.New(errHostStateInvalid)
+	}
+	if s.serviceRefs == nil {
+		return nil
+	}
+	active, err := s.serviceRefs.HasActiveHostReferences(context.Background(), row.ID, dataScope)
+	if err != nil {
+		return err
+	}
+	if active {
+		return errors.New("cmdbhost.active_service_reference")
+	}
+	return nil
+}
+
+func parseHostConnectivityObservedAt(req HostStateTransitionRequest) (*time.Time, error) {
+	if req.ObservedAt == nil {
+		now := time.Now()
+		return &now, nil
+	}
+	parsed, err := time.Parse(time.RFC3339, strings.TrimSpace(*req.ObservedAt))
+	if err != nil {
+		return nil, errors.New(errHostStateInvalid)
+	}
+	return &parsed, nil
 }
 
 func normalizeHostState(row *Host) {

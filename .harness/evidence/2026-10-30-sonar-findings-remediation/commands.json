@@ -1,6 +1,6 @@
 {
   "taskId": "2026-10-30-sonar-findings-remediation",
-  "generatedAt": "2026-10-30",
+  "generatedAt": "2026-10-30T04:38:19.793Z",
   "commands": [
     {
       "command": "curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&issueStatuses=OPEN,CONFIRMED (pages 1-3, ps=100, aggregated client-side)",
@@ -169,6 +169,90 @@
       "cwd": ".",
       "status": "passed",
       "notes": "Round-4 read-back: the gate leaves ERROR and reports OK for every condition (new_reliability_rating, new_security_rating, new_maintainability_rating, new_duplicated_lines_density, new_security_hotspots_reviewed; new_coverage carries no value because no coverage report is uploaded). Open VULNERABILITY 36 -> 0 and BUG stays 0; all 36 captured keys read back as RESOLVED/FALSE-POSITIVE (33 gosecurity:S3649 + 3 gosecurity:S2083). 158 open findings remain and all of them are CODE_SMELL in the pre-existing legacy backlog (go:S1192 x68, go:S3776 x27, typescript:S3358 x20, typescript:S3863 x10, typescript:S6571 x6, typescript:S3776 x6, godre:* x10, typescript:S6551 x3, go:S107 x2, go:S1135 x2, githubactions:S1192 x2, typescript:S7770 x1, typescript:S7755 x1); no MINOR cleartext/http finding is open, so nothing else qualified for a transition. Security hotspots TO_REVIEW = 0. No metric, new-code baseline or gate definition was edited, and every key is listed in sonar-triage.json for to_reopen rollback."
+    },
+    {
+      "command": "cd backend && gofmt -l modules/business && go build ./... && go vet ./...",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "Round 5. gofmt lists nothing, build exit 0, vet exit 0 over the whole backend module after the deploy fan-out, the four godre:S8196 renames and the go:S107 parameter-struct changes."
+    },
+    {
+      "command": "cd backend && PANTHEON_TEST_DSN=<local root DSN from .env, used as a shell variable only> go test ./... -count=1",
+      "cwd": "pantheon-ops/backend",
+      "status": "failed",
+      "notes": "Five packages fail with eleven test failures: deploy x4 (TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes, TestStartDeployTaskPersistsCanonicalSSHRunnerErrors, TestDeployTemplateTaskSSHExecutorFailsOnScriptPrecheck, TestDeleteDeployTaskReconcilesStaleRunningTask), bizscope x3, observability x2, cmdb/host x1, lowcode/dynamicmodule x1. All are classified as pre-existing by the HEAD baseline runs below, so this record is kept as the honest local state rather than rewritten as a pass. cicd/argocd, service, cmdb, cmdb/group, cmdb/label, filedist, every k8s subpackage and business root pass on the same database, which is where the new webhook tests and the extracted helpers run."
+    },
+    {
+      "command": "cd ../.verify-head/backend && go test ./modules/business/deploy/... ./modules/lowcode/dynamicmodule/... -count=1",
+      "cwd": "pantheon-ops/backend",
+      "status": "failed",
+      "notes": "Clean git worktree of HEAD (a5b5910) with the same local DSN. The five failures reproduce with byte-identical messages (load task host: record not found; business.deploy.task.sshConnectFailed; precheck failed: step failed; business.deploy.task.invalidDeleteState; TestPurgeModuleAllowsBusinessStaticModuleWithoutTable), so none of them is damage from the round-5 deploy refactor. The four deploy cases look exactly like refactor damage, which is why the baseline was run instead of a code read."
+    },
+    {
+      "command": "cd backend && go test ./modules/business/deploy/ -count=1 -run \"TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes|TestStartDeployTaskPersistsCanonicalSSHRunnerErrors|TestDeployTemplateTaskSSHExecutorFailsOnScriptPrecheck|TestDeleteDeployTaskReconcilesStaleRunningTask\"",
+      "cwd": "pantheon-ops/backend",
+      "status": "failed",
+      "notes": "Same four failures when run in isolation, which rules out cross-package interference on the shared local schema as the explanation. Hosted backend-tests provisions a fresh mysql:8.0 and remains the authority; recorded as a runtime gap in the summary."
+    },
+    {
+      "command": "cd backend && golangci-lint run --timeout=25m --new-from-rev=a5b5910 ./...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "0 issues, in the same new-code mode the hosted Go Lint job uses. The first run of this command reported two issues introduced by the fan-out and both were fixed rather than annotated: an extracted helper that was unreachable because its only caller executeSSHHost is dead code already at HEAD (unused), and three occurrences of \"paused\" with TaskStatusPaused already declared (goconst). A third attempt had to be discarded because the background shell lost go on PATH and golangci-lint reported exit 0 while failing to load packages, which is why the log is kept at 10 bytes of \"0 issues.\" with the command re-run in a shell that has go."
+    },
+    {
+      "command": "cd backend && golangci-lint run --timeout=10m --new-from-rev=a5b5910 ./modules/business/deploy/...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "Package-scoped re-lint after inlining runTaskExecutionSteps back into executeSSHHost and after replacing the paused/canceled literals with TaskStatusPaused/TaskStatusCanceled: 0 issues, build still exit 0, gofmt still clean."
+    },
+    {
+      "command": "node scripts/check-gorm-sql-literal.mjs && node --test tests/scripts/check-gorm-sql-literal.test.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "Sensor exit 0 with four visible waivers printed, tests 13/13. This is the check that constrains the round-5 S1192 fixes: extracted SQL may be a package const but never a var, and Updates(map) keys must stay inline quoted literals."
+    },
+    {
+      "command": "for gate in docs-frontmatter task-packet-template harness-adoption encoding structure business-overlay test-business-overlay business-boundaries ui-quality-gate duplication generated-modules harness-method harness-template failure-registry generated; do <the fifteen node commands>; done",
+      "cwd": "pantheon-ops",
+      "status": "failed",
+      "notes": "Exit codes recorded per gate for the working tree and for a clean HEAD worktree side by side. Every gate matches HEAD except two: check:harness-generated fails at HEAD too (pre-existing), and check:harness-adoption went red only for backend/modules/business/capability/capability.go because the round-5 manifest and commands.json had not been written yet; it is green after the manifest expectedFiles update and is green again in the final pass with commands.json changed. check:duplication is the base-owned copy-paste gate that the 43-file backend fan-out was most likely to trip, and it passes."
+    },
+    {
+      "command": "node --test tests/scripts/*.test.mjs   (working tree, then the same in ../.verify-head)",
+      "cwd": "pantheon-ops",
+      "status": "failed",
+      "notes": "191 tests, 177 pass, 14 fail in both trees, and the failing test-name sets diff empty. The 4 quality-workflow failures inside that suite assert base governance-only/paths-filter job shapes that ops quality.yml does not have, which is the base drift already recorded in earlier rounds; they are not caused by the EXPECTED_RESULT change."
+    },
+    {
+      "command": "node --test tests/scripts/security-workflow.test.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "1/1 green. It first failed (exit 1) because clearing githubactions:S1192 replaced every \"success\" literal in the aggregate step, including the one this base-owned test pins by exact text. Restoring exactly one literal occurrence in the dependency-vulnerability branch and parameterizing only the other four satisfies both the test and the duplication rule; the test was not edited."
+    },
+    {
+      "command": "cd frontend && node ./node_modules/eslint/bin/eslint.js . && node ./node_modules/typescript/bin/tsc -b && node ./node_modules/vitest/vitest.mjs run",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "eslint produces no output and exits 0 over the 22 changed business pages, tsc -b exits 0, vitest is 230/230. Run through node directly because adding /bin to PATH on this host breaks npm with WSL relay errors."
+    },
+    {
+      "command": "cd frontend && PANTHEON_CI=true npm run build",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "Exit 0. This is the gate that caught the menu-contract coupling: an inline const serviceModuleKey made the /business/service menu resolve an empty module key and the build failed with module mismatch; declaring it inside a const ( … ) block fixed it, because base check-menu-contract.mjs builds its const table only from name = \"value\" lines."
+    },
+    {
+      "command": "cd frontend && node ./scripts/check-menu-contract.mjs && node ./scripts/check-i18n-hardcode.mjs && node ./scripts/check-i18n-generated-scope.mjs",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "Menu contract: 40 menus, 50 routes, 221 permissions, 52 component keys consistent. i18n hardcode scan passes over 302 files, generated i18n scope passes. These are the contracts the seed-const refactor and the frontend helper extractions were most likely to break."
+    },
+    {
+      "command": "gocognit -over 15 modules/business/ (HEAD worktree vs working tree) and node tmp-sonar/dup_scan.cjs over both trees",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "The resolution oracle. All 27 Sonar go:S3776 targets map to functions that are at or below 15 by gocognit in the working tree, and SonarGo never reports a value above gocognit, so no S3776 can survive. The duplicate-literal inventory falls from 871 clusters to 802 with no new cluster: the only two apparent additions were the scan matching \"automated\" and \"Synced\" inside backtick raw strings in the new argocd_webhook_test.go, which SonarGo lexes as single tokens."
     }
   ]
 }
