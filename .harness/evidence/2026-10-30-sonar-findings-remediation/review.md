@@ -62,8 +62,30 @@ Security Gates and CodeQL, and red on two things this review owns:
   and a copy-paste test file is also harder to extend.
 
 Not acted on, recorded instead: the `Vercel` commit status is red and is not a required context (main
-requires only `Quality Gates` and `Security Gates`, `strict: false`), so it cannot block this merge, and
-removing it needs a maintainer action outside the APIs available here.
+requires only `Quality Gates` and `Security Gates`, `strict: false`), so it cannot block this merge. The
+maintainer dropped it from scope for this task ("delete the Vercel item"), and it is not actionable from this
+host: nothing in the repository configures it, the deployment log needs Vercel team credentials, and removing
+the check is a GitHub App / Vercel dashboard action.
+
+## CI round 3 and the triage decision
+
+- PR #158 (the filedist containment test plus the post-merge read-back) merged as `52dfe28` and the branch list
+  is again exactly `[main]`. The pre-existing `Vercel` red on that PR was not treated as a signal to change
+  code, because no gate on `main` depends on it.
+- Decision reviewed before acting: transitioning 36 BLOCKER issues to false-positive is the kind of change that
+  can quietly launder a real vulnerability, so it was ordered last — after both fixes were on `main`, after the
+  sensor and its 13 tests were re-run green on that tree, and after each of the 18 still-open sinks was read at
+  its reported line to confirm it is an `Updates(map)` with literal keys or a `First(&model, id)` primary-key
+  lookup. Nothing was transitioned on the strength of the rule name alone.
+- The API quirks that shaped the record, so a later reader does not mistake them for missing evidence:
+  `/api/issues/search` ignores `issueKeys` and rejects `RESOLVED/CLOSED/REOPENED` in `issueStatuses`, so an
+  already-transitioned issue looks absent unless the statuses are read with the accepted vocabulary; and
+  `/api/issues/comment` is not exposed, so the written justification is carried by this packet. The first driver
+  run therefore reported "0 of 36" while 18 keys were in fact already `RESOLVED / FALSE-POSITIVE` — the batch was
+  resumed against the live state instead of being replayed blindly.
+- What is deliberately not claimed: `new_coverage` passes only because no coverage is uploaded, the 158 remaining
+  `CODE_SMELL` findings are untouched legacy backlog, and the three `os.Remove` taints are still a SonarGo
+  sanitizer-propagation limitation — the code is safe because the test says so, not because the scanner agreed.
 
 ## Checked and found correct
 

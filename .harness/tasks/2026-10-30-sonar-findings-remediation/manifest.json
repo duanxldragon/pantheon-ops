@@ -41,7 +41,9 @@
       ".harness/evidence/2026-10-30-sonar-findings-remediation/summary.md",
       ".harness/evidence/2026-10-30-sonar-findings-remediation/review.md",
       ".harness/evidence/2026-10-30-sonar-findings-remediation/pr-body.md",
-      ".harness/evidence/2026-10-30-sonar-findings-remediation/sonar-s3649-keys.json"
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/sonar-s3649-keys.json",
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/sonar-after-merge-vulnerabilities.json",
+      ".harness/evidence/2026-10-30-sonar-findings-remediation/sonar-triage.json"
     ],
     "modify": [
       "backend/modules/business/cicd/argocd/argocd_client.go",
@@ -103,7 +105,8 @@
     "e2e-tests/auto-test.sh shipped a reachable production IP and http:// defaults; requiring API_BASE_URL and WEB_BASE_URL removes the shell:S5332 class instead of marking it won't-fix, and the same change makes the scripts refuse to run against an unintended host.",
     "The checker is an Ops-only sensor: base ships no backend/modules/business, so it is deliberately not proposed upstream and must not be hand-copied into base.",
     "Round 2 was driven by the first hosted CI run rather than by local review: Go Lint reported one new gosec G304 on the line this round introduced (os.Create of a path that is already proven to stay inside the storage root), annotated consistently with the three G304 waivers already in that module, and the SonarCloud gate stayed ERROR only on new-code duplication because the new checker test file repeated its twelve test bodies. The test file became a CASES table with one driver loop, so the duplication is removed rather than the metric suppressed; the gate's security and reliability conditions were already OK on that analysis.",
-    "Post-merge read-back (round 3): the squash-merge landed on main as 9522048 and the push-triggered scan took open issues from 242 to 194, bugs from 6 to 0, and new_reliability_rating to OK. The only remaining gate ERROR is new_security_rating, whose whole residue is 33 gosecurity:S3649 plus 3 gosecurity:S2083 on the os.Remove cleanup sites in UploadFile. SonarGo accepted resolveWithinRoot as a sanitizer for os.Create but not for os.Remove on the same value, so those three are backed by TestUploadPathStaysInsideRootForAdversarialNames, which pins the flagged data flow end to end, and by the checker for the S3649 family. Nothing was transitioned before that test was on main."
+    "Post-merge read-back (round 3): the squash-merge landed on main as 9522048 and the push-triggered scan took open issues from 242 to 194, bugs from 6 to 0, and new_reliability_rating to OK. The only remaining gate ERROR is new_security_rating, whose whole residue is 33 gosecurity:S3649 plus 3 gosecurity:S2083 on the os.Remove cleanup sites in UploadFile. SonarGo accepted resolveWithinRoot as a sanitizer for os.Create but not for os.Remove on the same value, so those three are backed by TestUploadPathStaysInsideRootForAdversarialNames, which pins the flagged data flow end to end, and by the checker for the S3649 family. Nothing was transitioned before that test was main-merged.",
+    "Round 4 executed the transition last, against the merged tree: the checker and its 13 tests were re-run green on 52dfe28, the packages hosting every still-open sink passed, and each of the 18 remaining S3649 lines was read to confirm it is an Updates(map) with quoted literal keys or a First(&model, id) primary-key lookup. All 36 keys are now RESOLVED/FALSE-POSITIVE, open vulnerabilities went 36 to 0, and the branch gate reads OK on every condition. POST /api/issues/comment is not exposed by SonarCloud (404 Unknown url), so the justification is carried by sonar-triage.json and this packet instead of the issue thread, and /api/issues/search ignores issueKeys while rejecting RESOLVED in issueStatuses, which is why live state is matched client-side. The transition driver stayed outside the repository because it authenticates with a maintainer token; reversibility is per key via transition=to_reopen and no metric, new-code baseline or gate definition was edited."
   ],
   "harnessProfile": {
     "template": "api-service",
@@ -137,7 +140,7 @@
     ],
     "ratchetDecision": "new-sensor",
     "deferredCodeIssues": [
-      "The legacy smell backlog outside the new-code period stays open: go:S1192 x68, go:S3776 x27, typescript:S3358 x22, typescript:S3863 x10, godre:S8196/S8205/S8209/S8193, shell:S7688 x7, shell:S6505 x3, typescript:S6571 x6. Clearing it is a separate maintainability program, not a security gate.",
+      "The legacy smell backlog outside the new-code period stays open after the transition: 158 findings, all CODE_SMELL (go:S1192 x68, go:S3776 x27, typescript:S3358 x20, typescript:S3863 x10, godre:* x10, typescript:S3776 x6, typescript:S6571 x6, typescript:S6551 x3, go:S107 x2, go:S1135 x2, githubactions:S1192 x2, typescript:S7770 x1, typescript:S7755 x1). Clearing it is a separate maintainability program, not a security gate.",
       "Dependabot-triggered runs still cannot read SONAR_TOKEN, so SonarCloud Scan stays red on Dependabot PRs until Dependabot secrets are provisioned or the job skips that actor; that is a maintainer gate-policy decision.",
       "The Vercel deployment check stays red and is out of scope by maintainer instruction: it is an external GitHub App integration with no committed configuration, its build log needs the Vercel team's credentials, and it is not a required status context on main, so disabling it is a GitHub App or Vercel dashboard action.",
       "sonar.sources=. makes the scanner read PNG evidence files as source text; scoping that property is a Sonar configuration decision left with the maintainer.",
@@ -194,12 +197,14 @@
       "node scripts/harness/check-ui-quality-gate.mjs --root . --strict",
       "node scripts/check-encoding.mjs --strict",
       "node scripts/create-pr.mjs --title ... --body-file .harness/evidence/2026-10-30-sonar-findings-remediation/pr-body.md",
-      "gh workflow run sonarcloud.yml --ref main"
+      "gh workflow run sonarcloud.yml --ref main",
+      "POST /api/issues/do_transition issue=<key> transition=falsepositive for each captured key, then re-read /api/qualitygates/project_status, /api/issues/search (OPEN,CONFIRMED,FALSE_POSITIVE,ACCEPTED,FIXED) and /api/hotspots/search?status=TO_REVIEW, recording every HTTP code in sonar-triage.json"
     ],
     "runtimeEvidence": [
       "Sonar open-issue inventory before the change and the captured S3649 key list",
       "quality-gate conditions read back before and after the transition",
-      "hosted workflow run conclusions on main"
+      "hosted workflow run conclusions on main",
+      "per-key post-transition status read back as RESOLVED/FALSE-POSITIVE with the issue keys retained for to_reopen"
     ]
   },
   "runtimeSensitive": true,

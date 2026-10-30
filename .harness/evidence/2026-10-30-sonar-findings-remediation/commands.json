@@ -145,6 +145,30 @@
       "cwd": ".",
       "status": "passed",
       "notes": "Governance gates after the round-3 doc and manifest updates: task packet 0 errors 0 warnings, encoding strict 0 findings across 2105 files, frontmatter check 435 docs passed, structure contract 0 findings across 2279 tracked files."
+    },
+    {
+      "command": "node scripts/check-gorm-sql-literal.mjs && node --test tests/scripts/check-gorm-sql-literal.test.mjs && go test ./modules/business/{filedist,service,cmdb,cmdb/host,cmdb/group,cmdb/label,deploy}/... -count=1 && go test ./modules/business/filedist/... -run \"TestUploadPathStaysInsideRootForAdversarialNames|TestResolveWithinRootKeepsPathsInsideStorage|TestSanitizeUploadFileNameReducesNameToOneElement\" -v",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Round-4 pre-transition verification on the synced main tree (52dfe28, which carries both the sensor and the containment tests): checker exit 0, checker tests 13/13, every package that hosts a still-open gosecurity:S3649 sink green, and the three containment tests PASS individually. A false-positive transition is only recorded for a finding whose invariant is executing in CI at the commit being triaged."
+    },
+    {
+      "command": "curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&issueStatuses=OPEN,CONFIRMED&rules=gosecurity:S3649&ps=100 (then sed over each reported file:line)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "18 S3649 issues were still open after the first transition batch. Each sink was read at its reported line: twelve are Updates(map) calls whose map keys are assigned from quoted string literals in the same function (deploy_credential.go:112, host_service.go:219/460, host_state.go:117, deploy_service.go:341/1906, service.go:175/337/464, state.go:79, group_service.go:149, label_service.go:207) and the rest are First(&model, id) primary-key lookups that GORM sends as bind parameters (deploy_credential.go:182, service.go:292/569, deploy_template_service.go:123/393, group_service.go:277). No request value reaches SQL text at any of them, which is the assertion the sensor enforces."
+    },
+    {
+      "command": "POST https://sonarcloud.io/api/issues/do_transition issue=<key> transition=falsepositive for the 18 still-open gosecurity:S3649 keys (driver: sonar-triage.mjs, scratch tool kept outside the repository)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "All 18 calls returned HTTP 200. POST /api/issues/comment returned HTTP 404 {\"errors\":[{\"msg\":\"Unknown url : /api/issues/comment\"}]} for every key, so the written justification is stored per rule in sonar-triage.json and referenced from the task packet, the evidence summary and the PR body instead of living in the Sonar issue thread. /api/issues/search also rejects RESOLVED/CLOSED/REOPENED in issueStatuses (accepted vocabulary is OPEN, CONFIRMED, FALSE_POSITIVE, ACCEPTED, FIXED) and ignores issueKeys, so the live state is read with a paginated fetch and matched client-side; that is what made an already-transitioned issue look absent in the first driver run."
+    },
+    {
+      "command": "curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/qualitygates/project_status?projectKey=duanxldragon_pantheon-ops&branch=main && curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&issueStatuses=OPEN,CONFIRMED&ps=500&facets=types,severities && curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/hotspots/search?projectKey=duanxldragon_pantheon-ops&branch=main&status=TO_REVIEW&ps=1",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Round-4 read-back: the gate leaves ERROR and reports OK for every condition (new_reliability_rating, new_security_rating, new_maintainability_rating, new_duplicated_lines_density, new_security_hotspots_reviewed; new_coverage carries no value because no coverage report is uploaded). Open VULNERABILITY 36 -> 0 and BUG stays 0; all 36 captured keys read back as RESOLVED/FALSE-POSITIVE (33 gosecurity:S3649 + 3 gosecurity:S2083). 158 open findings remain and all of them are CODE_SMELL in the pre-existing legacy backlog (go:S1192 x68, go:S3776 x27, typescript:S3358 x20, typescript:S3863 x10, typescript:S6571 x6, typescript:S3776 x6, godre:* x10, typescript:S6551 x3, go:S107 x2, go:S1135 x2, githubactions:S1192 x2, typescript:S7770 x1, typescript:S7755 x1); no MINOR cleartext/http finding is open, so nothing else qualified for a transition. Security hotspots TO_REVIEW = 0. No metric, new-code baseline or gate definition was edited, and every key is listed in sonar-triage.json for to_reopen rollback."
     }
   ]
 }
