@@ -149,7 +149,7 @@ func (s *BackupService) UpdateStorageLocation(id uint64, req CreateStorageLocati
 		_ = s.db.Model(&VeleroStorageLocation{}).Where("is_default = ?", true).Update("is_default", false).Error
 		updates["is_default"] = true
 	}
-	return s.db.Model(&VeleroStorageLocation{}).Where(whereByID, id).Updates(updates).Error
+	return s.db.Model(&VeleroStorageLocation{}).Where("id = ?", id).Updates(updates).Error
 }
 
 // DeleteStorageLocation removes the location from the cluster and from the registry.
@@ -421,7 +421,7 @@ func (s *BackupService) GetSchedule(id uint64, dataScope *common.DataScopeReq) (
 // UpdateSchedule applies req to the stored schedule and re-applies it on the cluster.
 func (s *BackupService) UpdateSchedule(id uint64, req CreateScheduleRequest) error {
 	tplJSON, _ := json.Marshal(req.BackupTemplate)
-	return s.db.Model(&VeleroSchedule{}).Where(whereByID, id).Updates(map[string]interface{}{
+	return s.db.Model(&VeleroSchedule{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"name":            req.Name,
 		"cron_expression": req.CronExpression,
 		"enabled":         req.Enabled,

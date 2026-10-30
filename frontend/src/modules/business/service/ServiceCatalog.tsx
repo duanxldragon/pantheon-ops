@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Form, Input, Message, Popconfirm, Select, Space, Switch, Tabs, Tag } from '@arco-design/web-react';
 import { IconDelete, IconPlus, IconRefresh } from '@arco-design/web-react/icon';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
+import type { FormInstance } from '@arco-design/web-react/es/Form';
 import {
   AppModal,
   AppTable,
@@ -76,6 +77,13 @@ const resolveAllowedTargetTypes = (runtimeType?: string): Array<'vm' | 'k8s'> =>
   return ['vm', 'k8s'];
 };
 
+const filterHostsForService = (hosts: HostRow[], service?: ServiceRow): HostRow[] => {
+  if (!service) {
+    return hosts;
+  }
+  return hosts.filter((item) => item.businessScopeId === service.businessScopeId);
+};
+
 interface ApplicationFormValues {
   code: string;
   name: string;
@@ -102,6 +110,180 @@ interface InstanceFormValues {
   workloadKind?: string;
   workloadName?: string;
   desiredVersion?: string;
+}
+
+interface CatalogStateNoticesProps {
+  readonly loading: boolean;
+  readonly error: unknown;
+  readonly applicationCount: number;
+  readonly serviceCount: number;
+  readonly onRetry: () => void;
+}
+
+function CatalogStateNotices({
+  loading,
+  error,
+  applicationCount,
+  serviceCount,
+  onRetry,
+}: Readonly<CatalogStateNoticesProps>) {
+  const catalogEmpty = applicationCount === 0 && serviceCount === 0;
+  return (
+    <>
+      {loading && catalogEmpty ? <PageLoading /> : null}
+      {error && catalogEmpty ? <PageError onRetry={onRetry} /> : null}
+    </>
+  );
+}
+
+interface CatalogTabPanelProps<T> {
+  readonly loading: boolean;
+  readonly rows: T[];
+  readonly columns: ColumnProps<T>[];
+  readonly rowKey: string;
+  readonly emptyText: string;
+  readonly canCreate: boolean;
+  readonly addLabel: string;
+  readonly addDisabled: boolean;
+  readonly onAdd: () => void;
+}
+
+function CatalogTabPanel<T>({
+  loading,
+  rows,
+  columns,
+  rowKey,
+  emptyText,
+  canCreate,
+  addLabel,
+  addDisabled,
+  onAdd,
+}: Readonly<CatalogTabPanelProps<T>>) {
+  return (
+    <>
+      <SearchToolbar
+        onClearAll={() => undefined}
+        extra={canCreate ? <Button type="primary" icon={<IconPlus />} disabled={addDisabled} onClick={onAdd}>{addLabel}</Button> : undefined}
+      />
+      <Card className="page-panel system-list__table-card">
+        {!loading && rows.length === 0 ? <PageEmpty description={emptyText} /> : <AppTable rowKey={rowKey} columns={columns} data={rows} pagination={false} scroll={{ x: 'max-content' }} />}
+      </Card>
+    </>
+  );
+}
+
+interface ApplicationFormModalProps {
+  readonly visible: boolean;
+  readonly submitting: boolean;
+  readonly form: FormInstance<ApplicationFormValues>;
+  readonly bizScopes: BizScopeOptionItem[];
+  readonly onOk: () => void;
+  readonly onCancel: () => void;
+}
+
+function ApplicationFormModal({
+  visible,
+  submitting,
+  form,
+  bizScopes,
+  onOk,
+  onCancel,
+}: Readonly<ApplicationFormModalProps>) {
+  const { t } = useTranslation();
+  return (
+    <AppModal visible={visible} title={t('business.service.catalog.addApplication')} confirmLoading={submitting} onOk={onOk} onCancel={onCancel}>
+      <Form form={form} layout="vertical">
+        <FormItem field="code" label={t('business.service.catalog.field.code')} rules={[{ required: true }]}><Input /></FormItem>
+        <FormItem field="name" label={t('business.service.catalog.field.application')} rules={[{ required: true }]}><Input /></FormItem>
+        <FormItem field="businessScopeId" label={t('business.service.catalog.field.scope')} rules={[{ required: true }]}><Select>{bizScopes.map((item) => <Select.Option key={item.id} value={item.id}>{item.name}</Select.Option>)}</Select></FormItem>
+        <FormItem field="owner" label={t('business.service.catalog.field.owner')}><Input /></FormItem>
+        <FormItem field="remark" label={t('common.remark')}><Input.TextArea /></FormItem>
+      </Form>
+    </AppModal>
+  );
+}
+
+interface ServiceFormModalProps {
+  readonly visible: boolean;
+  readonly submitting: boolean;
+  readonly form: FormInstance<ServiceFormValues>;
+  readonly applications: ApplicationRow[];
+  readonly onOk: () => void;
+  readonly onCancel: () => void;
+}
+
+function ServiceFormModal({
+  visible,
+  submitting,
+  form,
+  applications,
+  onOk,
+  onCancel,
+}: Readonly<ServiceFormModalProps>) {
+  const { t } = useTranslation();
+  return (
+    <AppModal visible={visible} title={t('business.service.catalog.addService')} confirmLoading={submitting} onOk={onOk} onCancel={onCancel}>
+      <Form form={form} layout="vertical">
+        <FormItem field="applicationId" label={t('business.service.catalog.field.application')} rules={[{ required: true }]}><Select>{applications.filter((item) => item.status === 'active').map((item) => <Select.Option key={item.id} value={item.id}>{item.name}</Select.Option>)}</Select></FormItem>
+        <FormItem field="code" label={t('business.service.catalog.field.code')} rules={[{ required: true }]}><Input /></FormItem>
+        <FormItem field="name" label={t('business.service.catalog.field.service')} rules={[{ required: true }]}><Input /></FormItem>
+        <FormItem field="runtimeType" label={t('business.service.catalog.field.runtime')} rules={[{ required: true }]}><Select><Select.Option value="vm">VM</Select.Option><Select.Option value="k8s">Kubernetes</Select.Option><Select.Option value="hybrid">Hybrid</Select.Option></Select></FormItem>
+        <FormItem field="description" label={t('common.description')}><Input.TextArea /></FormItem>
+      </Form>
+    </AppModal>
+  );
+}
+
+interface InstanceFormModalProps {
+  readonly visible: boolean;
+  readonly submitting: boolean;
+  readonly form: FormInstance<InstanceFormValues>;
+  readonly services: ServiceRow[];
+  readonly clusters: K8sClusterRow[];
+  readonly hosts: HostRow[];
+  readonly allowedTargetTypes: Array<'vm' | 'k8s'>;
+  readonly targetType: 'vm' | 'k8s';
+  readonly onOk: () => void;
+  readonly onCancel: () => void;
+  readonly onServiceChange: (serviceId: number) => void;
+  readonly onTargetTypeChange: (value: 'vm' | 'k8s') => void;
+}
+
+function InstanceFormModal({
+  visible,
+  submitting,
+  form,
+  services,
+  clusters,
+  hosts,
+  allowedTargetTypes,
+  targetType,
+  onOk,
+  onCancel,
+  onServiceChange,
+  onTargetTypeChange,
+}: Readonly<InstanceFormModalProps>) {
+  const { t } = useTranslation();
+  return (
+    <AppModal visible={visible} title={t('business.service.catalog.addInstance')} confirmLoading={submitting} onOk={onOk} onCancel={onCancel}>
+      <Form form={form} layout="vertical" initialValues={{ environment: 'prod', targetType: 'vm' }}>
+        <FormItem field="serviceId" label={t('business.service.catalog.field.service')} rules={[{ required: true }]}><Select onChange={onServiceChange}>{services.filter((item) => item.status === 'active').map((item) => <Select.Option key={item.id} value={item.id}>{item.applicationName} / {item.name}</Select.Option>)}</Select></FormItem>
+        <FormItem field="environment" label={t('business.service.instance.environment')} rules={[{ required: true }]}><Select><Select.Option value="dev">Dev</Select.Option><Select.Option value="test">Test</Select.Option><Select.Option value="prod">Prod</Select.Option></Select></FormItem>
+        <FormItem field="targetType" label={t('business.service.instance.target')} rules={[{ required: true }]}><Select onChange={onTargetTypeChange}>{allowedTargetTypes.includes('vm') ? <Select.Option value="vm">VM Host</Select.Option> : null}{allowedTargetTypes.includes('k8s') ? <Select.Option value="k8s">Kubernetes Workload</Select.Option> : null}</Select></FormItem>
+        {targetType === 'vm' ? (
+          <FormItem field="hostId" label="CMDB Host" rules={[{ required: true }]}><Select showSearch>{hosts.map((item) => <Select.Option key={item.id} value={item.id}>{item.hostname} ({item.ip})</Select.Option>)}</Select></FormItem>
+        ) : (
+          <>
+            <FormItem field="k8sClusterId" label={t('business.service.catalog.field.cluster')} rules={[{ required: true }]}><Select>{clusters.map((item) => <Select.Option key={item.id} value={item.id}>{item.name}</Select.Option>)}</Select></FormItem>
+            <FormItem field="namespace" label={t('business.service.catalog.field.namespace')} rules={[{ required: true }]}><Input /></FormItem>
+            <FormItem field="workloadKind" label={t('business.service.catalog.field.workloadKind')} rules={[{ required: true }]}><Select><Select.Option value="Deployment">Deployment</Select.Option><Select.Option value="StatefulSet">StatefulSet</Select.Option><Select.Option value="DaemonSet">DaemonSet</Select.Option></Select></FormItem>
+            <FormItem field="workloadName" label={t('business.service.catalog.field.workloadName')} rules={[{ required: true }]}><Input /></FormItem>
+          </>
+        )}
+        <FormItem field="desiredVersion" label={t('business.service.instance.version')}><Input /></FormItem>
+      </Form>
+    </AppModal>
+  );
 }
 
 export default function ServiceCatalog() {
@@ -252,7 +434,7 @@ export default function ServiceCatalog() {
   ], [canDelete, canUpdate, load, t]);
 
   const selectedService = services.find((item) => item.id === selectedServiceId);
-  const visibleHosts = selectedService ? hosts.filter((item) => item.businessScopeId === selectedService.businessScopeId) : hosts;
+  const visibleHosts = filterHostsForService(hosts, selectedService);
   const allowedTargetTypes = resolveAllowedTargetTypes(selectedService?.runtimeType);
 
   const handleServiceChange = (serviceId: number) => {
@@ -271,12 +453,6 @@ export default function ServiceCatalog() {
     });
   };
 
-  const renderTable = <T,>(rows: T[], columns: ColumnProps<T>[], rowKey: string, emptyText: string) => (
-    <Card className="page-panel system-list__table-card">
-      {!loading && rows.length === 0 ? <PageEmpty description={emptyText} /> : <AppTable rowKey={rowKey} columns={columns} data={rows} pagination={false} scroll={{ x: 'max-content' }} />}
-    </Card>
-  );
-
   return (
     <PageContainer>
       <Space direction="vertical" size={16} className="system-page-template">
@@ -286,18 +462,86 @@ export default function ServiceCatalog() {
           { key: 'instances', label: t('business.service.catalog.hero.instances'), value: instances.length },
           { key: 'healthy', label: t('business.service.catalog.hero.healthy'), value: instances.filter((item) => item.healthState === 'healthy').length },
         ]} />
-        {loading && applications.length === 0 && services.length === 0 ? <PageLoading /> : null}
-        {error && applications.length === 0 && services.length === 0 ? <PageError onRetry={() => void load()} /> : null}
+        <CatalogStateNotices
+          loading={loading}
+          error={error}
+          applicationCount={applications.length}
+          serviceCount={services.length}
+          onRetry={() => void load()}
+        />
         {!error ? <Tabs defaultActiveTab="applications">
-          <TabPane key="applications" title={t('business.service.catalog.applicationsTab')}><SearchToolbar onClearAll={() => undefined} extra={canCreate ? <Button type="primary" icon={<IconPlus />} onClick={() => setApplicationVisible(true)}>{t('business.service.catalog.addApplication')}</Button> : undefined} />{renderTable(applications, applicationColumns, 'id', t('business.service.catalog.applicationEmpty'))}</TabPane>
-          <TabPane key="services" title={t('business.service.catalog.servicesTab')}><SearchToolbar onClearAll={() => undefined} extra={canCreate ? <Button type="primary" icon={<IconPlus />} disabled={applications.length === 0} onClick={() => setServiceVisible(true)}>{t('business.service.catalog.addService')}</Button> : undefined} />{renderTable(services, serviceColumns, 'id', t('business.service.catalog.serviceEmpty'))}</TabPane>
-          <TabPane key="instances" title={t('business.service.catalog.instancesTab')}><SearchToolbar onClearAll={() => undefined} extra={canCreate ? <Button type="primary" icon={<IconPlus />} disabled={services.length === 0} onClick={() => setInstanceVisible(true)}>{t('business.service.catalog.addInstance')}</Button> : undefined} />{renderTable(instances, instanceColumns, 'id', t('business.service.catalog.instanceEmpty'))}</TabPane>
+          <TabPane key="applications" title={t('business.service.catalog.applicationsTab')}>
+            <CatalogTabPanel
+              rows={applications}
+              columns={applicationColumns}
+              rowKey="id"
+              loading={loading}
+              canCreate={canCreate}
+              addDisabled={false}
+              addLabel={t('business.service.catalog.addApplication')}
+              emptyText={t('business.service.catalog.applicationEmpty')}
+              onAdd={() => setApplicationVisible(true)}
+            />
+          </TabPane>
+          <TabPane key="services" title={t('business.service.catalog.servicesTab')}>
+            <CatalogTabPanel
+              rows={services}
+              columns={serviceColumns}
+              rowKey="id"
+              loading={loading}
+              canCreate={canCreate}
+              addDisabled={applications.length === 0}
+              addLabel={t('business.service.catalog.addService')}
+              emptyText={t('business.service.catalog.serviceEmpty')}
+              onAdd={() => setServiceVisible(true)}
+            />
+          </TabPane>
+          <TabPane key="instances" title={t('business.service.catalog.instancesTab')}>
+            <CatalogTabPanel
+              rows={instances}
+              columns={instanceColumns}
+              rowKey="id"
+              loading={loading}
+              canCreate={canCreate}
+              addDisabled={services.length === 0}
+              addLabel={t('business.service.catalog.addInstance')}
+              emptyText={t('business.service.catalog.instanceEmpty')}
+              onAdd={() => setInstanceVisible(true)}
+            />
+          </TabPane>
         </Tabs> : null}
       </Space>
 
-      <AppModal visible={applicationVisible} title={t('business.service.catalog.addApplication')} confirmLoading={submitting} onOk={() => void submitApplication()} onCancel={() => setApplicationVisible(false)}><Form form={applicationForm} layout="vertical"><FormItem field="code" label={t('business.service.catalog.field.code')} rules={[{ required: true }]}><Input /></FormItem><FormItem field="name" label={t('business.service.catalog.field.application')} rules={[{ required: true }]}><Input /></FormItem><FormItem field="businessScopeId" label={t('business.service.catalog.field.scope')} rules={[{ required: true }]}><Select>{bizScopes.map((item) => <Select.Option key={item.id} value={item.id}>{item.name}</Select.Option>)}</Select></FormItem><FormItem field="owner" label={t('business.service.catalog.field.owner')}><Input /></FormItem><FormItem field="remark" label={t('common.remark')}><Input.TextArea /></FormItem></Form></AppModal>
-      <AppModal visible={serviceVisible} title={t('business.service.catalog.addService')} confirmLoading={submitting} onOk={() => void submitService()} onCancel={() => setServiceVisible(false)}><Form form={serviceForm} layout="vertical"><FormItem field="applicationId" label={t('business.service.catalog.field.application')} rules={[{ required: true }]}><Select>{applications.filter((item) => item.status === 'active').map((item) => <Select.Option key={item.id} value={item.id}>{item.name}</Select.Option>)}</Select></FormItem><FormItem field="code" label={t('business.service.catalog.field.code')} rules={[{ required: true }]}><Input /></FormItem><FormItem field="name" label={t('business.service.catalog.field.service')} rules={[{ required: true }]}><Input /></FormItem><FormItem field="runtimeType" label={t('business.service.catalog.field.runtime')} rules={[{ required: true }]}><Select><Select.Option value="vm">VM</Select.Option><Select.Option value="k8s">Kubernetes</Select.Option><Select.Option value="hybrid">Hybrid</Select.Option></Select></FormItem><FormItem field="description" label={t('common.description')}><Input.TextArea /></FormItem></Form></AppModal>
-      <AppModal visible={instanceVisible} title={t('business.service.catalog.addInstance')} confirmLoading={submitting} onOk={() => void submitInstance()} onCancel={() => setInstanceVisible(false)}><Form form={instanceForm} layout="vertical" initialValues={{ environment: 'prod', targetType: 'vm' }}><FormItem field="serviceId" label={t('business.service.catalog.field.service')} rules={[{ required: true }]}><Select onChange={handleServiceChange}>{services.filter((item) => item.status === 'active').map((item) => <Select.Option key={item.id} value={item.id}>{item.applicationName} / {item.name}</Select.Option>)}</Select></FormItem><FormItem field="environment" label={t('business.service.instance.environment')} rules={[{ required: true }]}><Select><Select.Option value="dev">Dev</Select.Option><Select.Option value="test">Test</Select.Option><Select.Option value="prod">Prod</Select.Option></Select></FormItem><FormItem field="targetType" label={t('business.service.instance.target')} rules={[{ required: true }]}><Select onChange={setInstanceTargetType}>{allowedTargetTypes.includes('vm') ? <Select.Option value="vm">VM Host</Select.Option> : null}{allowedTargetTypes.includes('k8s') ? <Select.Option value="k8s">Kubernetes Workload</Select.Option> : null}</Select></FormItem>{instanceTargetType === 'vm' ? <FormItem field="hostId" label="CMDB Host" rules={[{ required: true }]}><Select showSearch>{visibleHosts.map((item) => <Select.Option key={item.id} value={item.id}>{item.hostname} ({item.ip})</Select.Option>)}</Select></FormItem> : <><FormItem field="k8sClusterId" label={t('business.service.catalog.field.cluster')} rules={[{ required: true }]}><Select>{clusters.map((item) => <Select.Option key={item.id} value={item.id}>{item.name}</Select.Option>)}</Select></FormItem><FormItem field="namespace" label={t('business.service.catalog.field.namespace')} rules={[{ required: true }]}><Input /></FormItem><FormItem field="workloadKind" label={t('business.service.catalog.field.workloadKind')} rules={[{ required: true }]}><Select><Select.Option value="Deployment">Deployment</Select.Option><Select.Option value="StatefulSet">StatefulSet</Select.Option><Select.Option value="DaemonSet">DaemonSet</Select.Option></Select></FormItem><FormItem field="workloadName" label={t('business.service.catalog.field.workloadName')} rules={[{ required: true }]}><Input /></FormItem></>}<FormItem field="desiredVersion" label={t('business.service.instance.version')}><Input /></FormItem></Form></AppModal>
+      <ApplicationFormModal
+        visible={applicationVisible}
+        submitting={submitting}
+        form={applicationForm}
+        bizScopes={bizScopes}
+        onOk={() => void submitApplication()}
+        onCancel={() => setApplicationVisible(false)}
+      />
+      <ServiceFormModal
+        visible={serviceVisible}
+        submitting={submitting}
+        form={serviceForm}
+        applications={applications}
+        onOk={() => void submitService()}
+        onCancel={() => setServiceVisible(false)}
+      />
+      <InstanceFormModal
+        visible={instanceVisible}
+        submitting={submitting}
+        form={instanceForm}
+        services={services}
+        clusters={clusters}
+        hosts={visibleHosts}
+        allowedTargetTypes={allowedTargetTypes}
+        targetType={instanceTargetType}
+        onOk={() => void submitInstance()}
+        onCancel={() => setInstanceVisible(false)}
+        onServiceChange={handleServiceChange}
+        onTargetTypeChange={setInstanceTargetType}
+      />
     </PageContainer>
   );
 }

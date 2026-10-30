@@ -304,7 +304,7 @@ function ClusterResourceTab<T>({
   );
 }
 
-function ClusterHeroCard({ detail }: { detail: K8sClusterRow }) {
+function ClusterHeroCard({ detail }: Readonly<{ detail: K8sClusterRow }>) {
   const { t } = useTranslation();
   return (
     <Card className="page-panel system-page-hero cmdb-page__hero">
@@ -349,7 +349,7 @@ function ClusterHeroCard({ detail }: { detail: K8sClusterRow }) {
   );
 }
 
-function ClusterSummaryCard({ detail }: { detail: K8sClusterRow }) {
+function ClusterSummaryCard({ detail }: Readonly<{ detail: K8sClusterRow }>) {
   const { t } = useTranslation();
   return (
     <Card className="page-panel">

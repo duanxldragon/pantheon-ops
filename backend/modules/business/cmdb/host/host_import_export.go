@@ -167,15 +167,8 @@ func (s *HostService) Import(records [][]string, dataScope *common.DataScopeReq,
 		return result, nil
 	}
 
-	headerIndex := make(map[string]int, len(records[0]))
-	for index, header := range records[0] {
-		headerIndex[strings.TrimSpace(header)] = index
-	}
-	for _, header := range []string{"hostname", "ip", "os"} {
-		if _, ok := headerIndex[header]; !ok {
-			impexp.AppendImportError(result, 0, header, "import.header.missing")
-		}
-	}
+	headerIndex := impexp.BuildHeaderIndex(records)
+	impexp.RequireHeaders(result, headerIndex, "hostname", "ip", "os")
 	if result.Failed > 0 {
 		return result, nil
 	}
@@ -190,23 +183,7 @@ func (s *HostService) Import(records [][]string, dataScope *common.DataScopeReq,
 		return nil, err
 	}
 
-	rows := make([]hostImportRow, 0, len(records)-1)
-	seenIP := make(map[string]int, len(records)-1)
-	for rowIndex := 1; rowIndex < len(records); rowIndex++ {
-		record := records[rowIndex]
-		if impexp.IsCSVRecordEmpty(record) {
-			continue
-		}
-		rowNumber := rowIndex + 1
-		row := parseHostImportRow(record, headerIndex, rowNumber, result, scopesByCode)
-		if firstRow, ok := seenIP[row.IP]; ok && row.IP != "" {
-			impexp.AppendImportError(result, rowNumber, "ip", fmt.Sprintf("import.duplicate.row.%d", firstRow))
-		} else if row.IP != "" {
-			seenIP[row.IP] = rowNumber
-		}
-		row.Existing = existingByIP[row.IP]
-		rows = append(rows, row)
-	}
+	rows := parseHostImportRows(records, headerIndex, result, existingByIP, scopesByCode)
 
 	if result.Failed > 0 {
 		return result, nil
@@ -389,6 +366,32 @@ func parseHostImportLabels(raw string, rowNumber int, result *impexp.ImportResul
 		})
 	}
 	return labels
+}
+
+// parseHostImportRows turns the data records into host rows, flagging IPs that
+// repeat inside the file and attaching the existing host.
+func parseHostImportRows(
+	records [][]string,
+	headerIndex map[string]int,
+	result *impexp.ImportResult,
+	existingByIP map[string]*Host,
+	scopesByCode map[string]bizcap.BizScopeRef,
+) []hostImportRow {
+	rows := make([]hostImportRow, 0, len(records)-1)
+	seenIP := make(map[string]int, len(records)-1)
+	impexp.ForEachDataRow(records, func(rowNumber int, record []string) {
+		row := parseHostImportRow(record, headerIndex, rowNumber, result, scopesByCode)
+		if row.IP != "" {
+			if firstRow, ok := seenIP[row.IP]; ok {
+				impexp.AppendImportError(result, rowNumber, "ip", fmt.Sprintf("import.duplicate.row.%d", firstRow))
+			} else {
+				seenIP[row.IP] = rowNumber
+			}
+		}
+		row.Existing = existingByIP[row.IP]
+		rows = append(rows, row)
+	})
+	return rows
 }
 
 func (s *HostService) applyHostImportRows(result *impexp.ImportResult, rows []hostImportRow, createdBy string) error {

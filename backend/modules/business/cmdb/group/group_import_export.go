@@ -105,15 +105,8 @@ func (s *GroupService) Import(records [][]string, createdBy string) (*impexp.Imp
 		return result, nil
 	}
 
-	headerIndex := make(map[string]int, len(records[0]))
-	for index, header := range records[0] {
-		headerIndex[strings.TrimSpace(header)] = index
-	}
-	for _, header := range []string{"name"} {
-		if _, ok := headerIndex[header]; !ok {
-			impexp.AppendImportError(result, 0, header, "import.header.missing")
-		}
-	}
+	headerIndex := impexp.BuildHeaderIndex(records)
+	impexp.RequireHeaders(result, headerIndex, "name")
 	if result.Failed > 0 {
 		return result, nil
 	}
@@ -123,24 +116,7 @@ func (s *GroupService) Import(records [][]string, createdBy string) (*impexp.Imp
 		return nil, err
 	}
 
-	rows := make([]groupImportRow, 0, len(records)-1)
-	seenName := make(map[string]int, len(records)-1)
-	for rowIndex := 1; rowIndex < len(records); rowIndex++ {
-		record := records[rowIndex]
-		if impexp.IsCSVRecordEmpty(record) {
-			continue
-		}
-		rowNumber := rowIndex + 1
-		row := parseGroupImportRow(record, headerIndex, rowNumber, result)
-		row.RowNumber = rowNumber
-		if firstRow, ok := seenName[row.Name]; ok && row.Name != "" {
-			impexp.AppendImportError(result, rowNumber, "name", fmt.Sprintf("import.duplicate.row.%d", firstRow))
-		} else if row.Name != "" {
-			seenName[row.Name] = rowNumber
-		}
-		row.Existing = existingByName[row.Name]
-		rows = append(rows, row)
-	}
+	rows := parseGroupImportRows(records, headerIndex, result, existingByName)
 
 	if result.Failed > 0 {
 		return result, nil
@@ -190,6 +166,27 @@ func parseGroupImportRow(
 	}
 
 	return row
+}
+
+// parseGroupImportRows turns the data records into group rows, flagging names
+// that repeat inside the file and attaching the existing group.
+func parseGroupImportRows(records [][]string, headerIndex map[string]int, result *impexp.ImportResult, existingByName map[string]*Group) []groupImportRow {
+	rows := make([]groupImportRow, 0, len(records)-1)
+	seenName := make(map[string]int, len(records)-1)
+	impexp.ForEachDataRow(records, func(rowNumber int, record []string) {
+		row := parseGroupImportRow(record, headerIndex, rowNumber, result)
+		row.RowNumber = rowNumber
+		if row.Name != "" {
+			if firstRow, ok := seenName[row.Name]; ok {
+				impexp.AppendImportError(result, rowNumber, "name", fmt.Sprintf("import.duplicate.row.%d", firstRow))
+			} else {
+				seenName[row.Name] = rowNumber
+			}
+		}
+		row.Existing = existingByName[row.Name]
+		rows = append(rows, row)
+	})
+	return rows
 }
 
 func (s *GroupService) applyGroupImportRows(result *impexp.ImportResult, rows []groupImportRow, existingByName map[string]*Group, createdBy string) error {

@@ -132,3 +132,28 @@ the check is a GitHub App / Vercel dashboard action.
 - zizmor publishes wheels, so `--only-binary :all:` installs it without a source build.
 - CI wiring for the two new steps is real: `docs-governance` installs root dependencies with `npm ci`
   before them, and both npm scripts exist.
+
+## Round 6: the PR analysis as an independent reviewer
+
+- The PR analysis is the only hosted oracle available before the merge, and it behaved like a reviewer: it
+  rejected two of round 5's own refactors (`go:S8242` on the struct-held context, `go:S3776` on a snapshot
+  builder that had only been partially decomposed) that every local gate had accepted. Local `gocognit` is
+  conservative for Sonar, but it cannot see the struct-field-context rule at all, so "all local gates green" was
+  not evidence of new-code cleanliness.
+- The component extractions were reviewed for render equality rather than for compiling: the JSX, the conditional
+  expressions, the callbacks and the `pagination`/`scroll` table props are unchanged, `TaskActionsCard` still
+  receives the same seven permission booleans (now produced by `resolveTaskActionPermissions`, whose `!task`
+  branch returns an all-false constant instead of seven `Boolean(task && …)` expressions), and `buildTaskDetailItems`
+  is now a concatenation of the profile and execution halves in the original order. The `taskFlowItems` memo
+  dependency moved from the derived status string to `task`, which recomputes more often and yields the same
+  value.
+- `resolveTaskActionPermissions` was checked status-by-status against the round-5 expressions it replaces,
+  including the deliberate asymmetry that `canDeleteTask` excludes the three request states
+  (`running`, `pause_requested`, `cancel_requested`) rather than allow-listing terminal ones.
+- Restoring the four FALSE_POSITIVE-marked sink statements is a trade, not a fix, and it is recorded as one: the
+  lines are literal SQL again because rewriting them would silently re-open hosted security findings that were
+  closed with a machine-checked argument. The trade is acceptable only while
+  `scripts/check-gorm-sql-literal.mjs` stays blocking, because that sensor is what prevents the restored text
+  from drifting into a genuinely dynamic clause later.
+- What is still not claimed: that the merged `main` analysis is at zero. The PR view cannot show findings on
+  unchanged lines, so the post-merge read-back remains the acceptance step.

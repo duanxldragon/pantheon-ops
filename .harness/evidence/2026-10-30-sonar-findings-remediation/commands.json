@@ -1,6 +1,6 @@
 {
   "taskId": "2026-10-30-sonar-findings-remediation",
-  "generatedAt": "2026-10-30T04:38:19.793Z",
+  "generatedAt": "2026-10-30T05:40:24.711Z",
   "commands": [
     {
       "command": "curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&issueStatuses=OPEN,CONFIRMED (pages 1-3, ps=100, aggregated client-side)",
@@ -253,6 +253,60 @@
       "cwd": "pantheon-ops/backend",
       "status": "passed",
       "notes": "The resolution oracle. All 27 Sonar go:S3776 targets map to functions that are at or below 15 by gocognit in the working tree, and SonarGo never reports a value above gocognit, so no S3776 can survive. The duplicate-literal inventory falls from 871 clusters to 802 with no new cluster: the only two apparent additions were the scan matching \"automated\" and \"Synced\" inside backtick raw strings in the new argocd_webhook_test.go, which SonarGo lexes as single tokens."
+    },
+    {
+      "command": "cd backend && gofmt -l modules/business && go build ./... && go vet ./modules/business/...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "Round 6 backend gate after removing the context field from taskStepHostRun, splitting buildDeployExecutionSnapshot into four helpers, and converting the three CMDB Import functions to the base-owned impexp header primitives."
+    },
+    {
+      "command": "cd backend && golangci-lint run --timeout=30m --new-from-rev=a5b5910 ./...",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "0 issues. Same arguments and mode as the hosted Go Lint job, scoped to the lines this branch changes."
+    },
+    {
+      "command": "node scripts/check-gorm-sql-literal.mjs && node --test tests/scripts/check-gorm-sql-literal.test.mjs",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "Sensor exit 0 with the four pre-existing visible waivers and 13/13 checker tests passing. The restored inline Where(\"id = ?\", id) sinks in argocd and backup and the new idWhereClause/whereByID constants in the same files are all accepted by the invariant."
+    },
+    {
+      "command": "cd backend && go test ./... -count=1",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "Exit 0 with no FAIL line in the output. The 11 MySQL-dependent failures seen in an earlier round did not reproduce and are not attributable to this change."
+    },
+    {
+      "command": "cd frontend && node ./node_modules/eslint/bin/eslint.js . && node ./node_modules/typescript/bin/tsc -b",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "eslint silent and tsc -b exit 0 over the four extracted components (AlertCenter, ServiceCatalog, DeployTaskDetail, ClusterDetail)."
+    },
+    {
+      "command": "cd frontend && node ./node_modules/vitest/vitest.mjs run",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "230 tests in 34 files passed, so the component extraction did not change any rendered behaviour the unit suite pins."
+    },
+    {
+      "command": "cd frontend && PANTHEON_CI=true npm run build",
+      "cwd": "pantheon-ops/frontend",
+      "status": "passed",
+      "notes": "CI-mode build incl. menu-contract, i18n-hardcode and i18n-generated-scope checks; built in 918ms."
+    },
+    {
+      "command": "node tmp-sonar/ts_cc.cjs (TS-AST cognitive complexity, calibrated against Sonar HEAD values)",
+      "cwd": "pantheon-platform",
+      "status": "passed",
+      "notes": "The local typescript:S3776 oracle. Every HEAD-flagged component is at or below the threshold now: DeployTaskDetail 25 -> max 9, AlertCenter 20 -> max 8, ServiceCatalog 17 -> max 5, CmdbLabelSchemaList 27 -> max 12, ClusterDetail 49 -> max 10, WorkloadList 26 -> max 15. The oracle over-counts JSX logical operators, so these are upper bounds."
+    },
+    {
+      "command": "go build ./... && go vet ./... (HEAD baseline comparison for the S8242 context-field change)",
+      "cwd": "pantheon-ops/backend",
+      "status": "passed",
+      "notes": "taskStepHostRun no longer stores a context.Context, so go:V8242 cannot fire; the ctx is threaded explicitly through executeTaskStep and runTaskStepCheck."
     }
   ]
 }

@@ -3042,7 +3042,7 @@ func (p *sshStepProvider) ExecuteStep(ctx context.Context, req executorprovider.
 	stdoutStart := len(p.execution.stdoutSections)
 	stderrStart := len(p.execution.stderrSections)
 	previousExecutionErr := p.execution.executionErr
-	stop, changed := p.service.executeTaskStep(taskStepHostRun{ctx: ctx, task: p.task, target: p.target, taskHost: p.taskHost, runner: p.runner, execution: p.execution}, step)
+	stop, changed := p.service.executeTaskStep(ctx, taskStepHostRun{task: p.task, target: p.target, taskHost: p.taskHost, runner: p.runner, execution: p.execution}, step)
 	writeNewExecutionLogs(logWriter, req, p.execution, stdoutStart, stderrStart)
 	if !stop {
 		checkpoint.Changed = changed
@@ -3281,19 +3281,18 @@ func (s *DeployService) executeSSHHost(ctx context.Context, task DeployTask, tar
 			RemovedComponentNames: make([]string, 0, len(plan)),
 		},
 	}
-	run := taskStepHostRun{ctx: ctx, task: task, target: target, taskHost: taskHost, runner: runner, execution: execution}
+	run := taskStepHostRun{task: task, target: target, taskHost: taskHost, runner: runner, execution: execution}
 	for _, step := range plan {
-		if stop, _ := s.executeTaskStep(run, step); stop {
+		if stop, _ := s.executeTaskStep(ctx, run, step); stop {
 			break
 		}
 	}
 	return s.finalizeTaskHostExecution(task, taskHost, runner, execution, target.IP, actor)
 }
 
-// taskStepHostRun carries the host-scoped context shared by every plan step of
-// a single host run.
+// taskStepHostRun carries the host-scoped state shared by every plan step of a
+// single host run.
 type taskStepHostRun struct {
-	ctx       context.Context
 	task      DeployTask
 	target    cmdbHostSnapshot
 	taskHost  TaskHostResponse
@@ -3303,8 +3302,8 @@ type taskStepHostRun struct {
 
 // executeTaskStep runs a single plan step and records its trace. It returns
 // true when the host loop must stop on an unrecoverable failure.
-func (s *DeployService) executeTaskStep(run taskStepHostRun, step deployExecutionStep) (bool, bool) {
-	ctx, task, target := run.ctx, run.task, run.target
+func (s *DeployService) executeTaskStep(ctx context.Context, run taskStepHostRun, step deployExecutionStep) (bool, bool) {
+	task, target := run.task, run.target
 	taskHost, runner, execution := run.taskHost, run.runner, run.execution
 	stepLabel := buildDeployStepLabel(step)
 	var script string
@@ -3344,7 +3343,7 @@ func (s *DeployService) executeTaskStep(run taskStepHostRun, step deployExecutio
 		script = rendered
 	}
 	s.appendStepTrace(task, taskHost, step, "step_start", fmt.Sprintf("%s started", stepLabel))
-	if s.runTaskStepCheck(run, step, taskStepCheckConfig{configKey: "precheckCommand", phase: "precheck", stepLabel: stepLabel}) {
+	if s.runTaskStepCheck(ctx, run, step, taskStepCheckConfig{configKey: "precheckCommand", phase: "precheck", stepLabel: stepLabel}) {
 		return true, false
 	}
 	s.appendStepTrace(task, taskHost, step, "script", fmt.Sprintf("%s script rendered", stepLabel))
@@ -3355,7 +3354,7 @@ func (s *DeployService) executeTaskStep(run taskStepHostRun, step deployExecutio
 		s.appendStepTrace(task, taskHost, step, "step_failed", execErr.Error())
 		return true, false
 	}
-	if s.runTaskStepCheck(run, step, taskStepCheckConfig{configKey: "postcheckCommand", phase: "postcheck", stepLabel: stepLabel}) {
+	if s.runTaskStepCheck(ctx, run, step, taskStepCheckConfig{configKey: "postcheckCommand", phase: "postcheck", stepLabel: stepLabel}) {
 		return true, false
 	}
 	s.appendStepTrace(task, taskHost, step, "step_success", fmt.Sprintf("%s completed", stepLabel))
@@ -3373,7 +3372,7 @@ type taskStepCheckConfig struct {
 
 // runTaskStepCheck renders and runs an optional precheck/postcheck snippet,
 // returning true when the host loop must stop.
-func (s *DeployService) runTaskStepCheck(run taskStepHostRun, step deployExecutionStep, check taskStepCheckConfig) bool {
+func (s *DeployService) runTaskStepCheck(ctx context.Context, run taskStepHostRun, step deployExecutionStep, check taskStepCheckConfig) bool {
 	task, taskHost, execution := run.task, run.taskHost, run.execution
 	script, hasCheck, checkErr := renderDeployCheckSnippet(step, task, run.target, check.configKey)
 	if checkErr != nil {
@@ -3385,7 +3384,7 @@ func (s *DeployService) runTaskStepCheck(run taskStepHostRun, step deployExecuti
 		return false
 	}
 	s.appendStepTrace(task, taskHost, step, check.phase, fmt.Sprintf("%s %s started", check.stepLabel, check.phase))
-	stdout, stderr, execErr := runDeployScript(run.ctx, run.runner, script)
+	stdout, stderr, execErr := runDeployScript(ctx, run.runner, script)
 	execution.recordOutput(step, check.phase, stdout, stderr)
 	if execErr != nil {
 		execution.executionErr = fmt.Errorf("%s %s failed: %w", check.stepLabel, check.phase, execErr)
@@ -3492,98 +3491,125 @@ func (s *DeployService) buildDeployExecutionSnapshot(pkg DeployPackage, template
 	}
 	normalizedAction := normalizeTaskAction(action)
 	if template == nil || template.ID == 0 {
-		if err := validateTemplateParams(pkg.ExecutionMode, pkg.TemplateCode, pkg.TemplateConfig, taskParams); err != nil {
+		steps, err := s.defaultExecutionSnapshotSteps(pkg, deployStepSnapshotPackageDefault, pkg.Name, normalizedAction, taskParams)
+		if err != nil {
 			return deployExecutionSnapshot{}, err
 		}
-		snapshot.Steps = []deployStepSnapshot{{
-			StepCode:       "package_default",
-			StepName:       pkg.Name,
-			StepType:       TemplateStepTypePackage,
-			Action:         normalizedAction,
-			Package:        packageToSnapshot(pkg),
-			TemplateParams: taskParams,
-		}}
+		snapshot.Steps = steps
 		return snapshot, nil
 	}
 	if len(template.Steps) == 0 {
-		if err := validateTemplateParams(pkg.ExecutionMode, pkg.TemplateCode, pkg.TemplateConfig, taskParams); err != nil {
+		steps, err := s.defaultExecutionSnapshotSteps(pkg, deployStepSnapshotTemplateDefault, template.Name, normalizedAction, taskParams)
+		if err != nil {
 			return deployExecutionSnapshot{}, err
 		}
-		snapshot.Steps = []deployStepSnapshot{{
-			StepCode:       "template_default",
-			StepName:       template.Name,
-			StepType:       TemplateStepTypePackage,
-			Action:         normalizedAction,
-			Package:        packageToSnapshot(pkg),
-			TemplateParams: taskParams,
-		}}
+		snapshot.Steps = steps
 		return snapshot, nil
 	}
 	cache := map[uint64]DeployPackage{}
 	steps := make([]deployStepSnapshot, 0, len(template.Steps))
 	for _, step := range template.Steps {
-		stepType := strings.TrimSpace(step.StepType)
-		if stepType == "" {
-			stepType = TemplateStepTypePackage
+		snapshotStep, err := s.buildTemplateStepSnapshot(step, pkg, normalizedAction, taskParams, cache)
+		if err != nil {
+			return deployExecutionSnapshot{}, err
 		}
-		if !validStepType(stepType) {
-			return deployExecutionSnapshot{}, errors.New(errDeployTaskTemplateInvalid)
-		}
-		effectiveAction := normalizedAction
-		if effectiveAction == "" {
-			effectiveAction = normalizeTaskAction(step.Action)
-		}
-		params := mergeDeployTemplateParams(step.TemplateParams, taskParams)
-		stepPackage := DeployPackage{}
-		if stepType == TemplateStepTypePackage {
-			resolvedPackage, err := s.resolveExecutionPackage(step.PackageID, pkg, cache)
-			if err != nil {
-				return deployExecutionSnapshot{}, err
-			}
-			cache[resolvedPackage.ID] = resolvedPackage
-			stepPackage = resolvedPackage
-			if err := validateTemplateParams(stepPackage.ExecutionMode, stepPackage.TemplateCode, stepPackage.TemplateConfig, params); err != nil {
-				return deployExecutionSnapshot{}, err
-			}
-		} else if isComponentType(stepType) {
-			resolvedPackage, err := s.resolveExecutionPackage(step.PackageID, pkg, cache)
-			if err != nil {
-				return deployExecutionSnapshot{}, err
-			}
-			cache[resolvedPackage.ID] = resolvedPackage
-			stepPackage = resolvedPackage
-			componentParams := cloneDeployConfig(params)
-			componentParams["action"] = effectiveAction
-			if err := validateFixedTemplateParams(componentTypeToTemplateCode[stepType], componentParams); err != nil {
-				return deployExecutionSnapshot{}, err
-			}
-		} else if step.PackageID > 0 {
-			resolvedPackage, err := s.resolveExecutionPackage(step.PackageID, pkg, cache)
-			if err != nil {
-				return deployExecutionSnapshot{}, err
-			}
-			cache[resolvedPackage.ID] = resolvedPackage
-			stepPackage = resolvedPackage
-		}
-		steps = append(steps, deployStepSnapshot{
-			StepCode:              step.StepCode,
-			StepName:              step.StepName,
-			StepType:              stepType,
-			Action:                effectiveAction,
-			ContinueOnHostFailure: step.ContinueOnHostFailure,
-			Package:               packageToSnapshot(stepPackage),
-			TemplateParams:        params,
-			StepConfig:            step.StepConfig,
-			Dependencies:          stringSliceConfig(step.StepConfig, "dependencies"),
-			Condition:             mapConfig(step.StepConfig, "condition"),
-			FailurePolicy:         effectiveFailurePolicy(stringConfig(step.StepConfig, "failurePolicy"), step.ContinueOnHostFailure),
-		})
+		steps = append(steps, snapshotStep)
 	}
 	if err := validateDeploySnapshotDAG(steps); err != nil {
 		return deployExecutionSnapshot{}, err
 	}
 	snapshot.Steps = steps
 	return snapshot, nil
+}
+
+// Step codes of the fallback snapshots used when a task has no executable
+// template steps: the package itself, then the template definition.
+const (
+	deployStepSnapshotPackageDefault  = "package_default"
+	deployStepSnapshotTemplateDefault = "template_default"
+)
+
+// defaultExecutionSnapshotSteps builds the single fallback step and validates
+// the request parameters against the resolved package.
+func (s *DeployService) defaultExecutionSnapshotSteps(pkg DeployPackage, stepCode, stepName, normalizedAction string, taskParams map[string]any) ([]deployStepSnapshot, error) {
+	if err := validateTemplateParams(pkg.ExecutionMode, pkg.TemplateCode, pkg.TemplateConfig, taskParams); err != nil {
+		return nil, err
+	}
+	return []deployStepSnapshot{{
+		StepCode:       stepCode,
+		StepName:       stepName,
+		StepType:       TemplateStepTypePackage,
+		Action:         normalizedAction,
+		Package:        packageToSnapshot(pkg),
+		TemplateParams: taskParams,
+	}}, nil
+}
+
+// buildTemplateStepSnapshot freezes a single template step: its type, effective
+// action, resolved package and validated parameters.
+func (s *DeployService) buildTemplateStepSnapshot(step TemplateStepResponse, pkg DeployPackage, normalizedAction string, taskParams map[string]any, cache map[uint64]DeployPackage) (deployStepSnapshot, error) {
+	stepType := strings.TrimSpace(step.StepType)
+	if stepType == "" {
+		stepType = TemplateStepTypePackage
+	}
+	if !validStepType(stepType) {
+		return deployStepSnapshot{}, errors.New(errDeployTaskTemplateInvalid)
+	}
+	action := normalizedAction
+	if action == "" {
+		action = normalizeTaskAction(step.Action)
+	}
+	params := mergeDeployTemplateParams(step.TemplateParams, taskParams)
+	stepPackage, err := s.resolveStepSnapshotPackage(step, stepType, pkg, cache)
+	if err != nil {
+		return deployStepSnapshot{}, err
+	}
+	if err := validateStepSnapshotParams(stepType, stepPackage, params, action); err != nil {
+		return deployStepSnapshot{}, err
+	}
+	return deployStepSnapshot{
+		StepCode:              step.StepCode,
+		StepName:              step.StepName,
+		StepType:              stepType,
+		Action:                action,
+		ContinueOnHostFailure: step.ContinueOnHostFailure,
+		Package:               packageToSnapshot(stepPackage),
+		TemplateParams:        params,
+		StepConfig:            step.StepConfig,
+		Dependencies:          stringSliceConfig(step.StepConfig, "dependencies"),
+		Condition:             mapConfig(step.StepConfig, "condition"),
+		FailurePolicy:         effectiveFailurePolicy(stringConfig(step.StepConfig, "failurePolicy"), step.ContinueOnHostFailure),
+	}, nil
+}
+
+// resolveStepSnapshotPackage returns the package a frozen step needs, reusing
+// the per-plan lookup cache. A step that is neither a package nor a component
+// type and carries no package reference keeps the zero-value package.
+func (s *DeployService) resolveStepSnapshotPackage(step TemplateStepResponse, stepType string, pkg DeployPackage, cache map[uint64]DeployPackage) (DeployPackage, error) {
+	if stepType != TemplateStepTypePackage && !isComponentType(stepType) && step.PackageID == 0 {
+		return DeployPackage{}, nil
+	}
+	resolvedPackage, err := s.resolveExecutionPackage(step.PackageID, pkg, cache)
+	if err != nil {
+		return DeployPackage{}, err
+	}
+	cache[resolvedPackage.ID] = resolvedPackage
+	return resolvedPackage, nil
+}
+
+// validateStepSnapshotParams applies the parameter contract of the step type:
+// package steps validate against the resolved package, component steps against
+// their fixed schema, other step types have no parameter contract.
+func validateStepSnapshotParams(stepType string, stepPackage DeployPackage, params map[string]any, action string) error {
+	if stepType == TemplateStepTypePackage {
+		return validateTemplateParams(stepPackage.ExecutionMode, stepPackage.TemplateCode, stepPackage.TemplateConfig, params)
+	}
+	if isComponentType(stepType) {
+		componentParams := cloneDeployConfig(params)
+		componentParams["action"] = action
+		return validateFixedTemplateParams(componentTypeToTemplateCode[stepType], componentParams)
+	}
+	return nil
 }
 
 func validateDeploySnapshotDAG(steps []deployStepSnapshot) error {

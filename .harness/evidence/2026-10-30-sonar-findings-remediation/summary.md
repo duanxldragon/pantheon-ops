@@ -179,16 +179,47 @@ const-block coupling), and `node --test tests/scripts/*.test.mjs` failing the sa
 worktree. Eleven Go tests fail against the local MySQL; every one of them fails with a byte-identical message
 in that same HEAD worktree, so none is damage from this round.
 
+## PR-side new code (round 6)
+
+Round 5 was pushed as PR #160 and then judged against the PR analysis, which reports only new-code findings and
+therefore acts as a fast per-push oracle on exactly the lines this branch touches. It returned 12 open issues;
+four were real damage introduced by round 5.
+
+- `go:S8242` — the extracted `taskStepHostRun` stored a `context.Context` as a struct field. The field is gone;
+  `ctx` is a parameter of `executeTaskStep` and `runTaskStepCheck`, matching the rest of that file.
+- `go:S3776` — `buildDeployExecutionSnapshot` (Sonar 18) became `defaultExecutionSnapshotSteps`,
+  `buildTemplateStepSnapshot`, `resolveStepSnapshotPackage` and `validateStepSnapshotParams` plus the two
+  snapshot reason constants, with every branch preserved. The three CMDB `Import` methods now share the
+  base-owned `impexp` header primitives instead of repeating the header-and-row loop three more times.
+- `typescript:S3776` — `AlertCenter` (20), `ServiceCatalog` (17) and `DeployTaskDetail` (25) were decomposed
+  into module-level subcomponents with readonly props shapes and `FormInstance<T>` form props, the pattern the
+  repo already uses in `DeployTaskList.tsx` and `CmdbLabelSchemaList.tsx`.
+- `typescript:S6759` — the two `ClusterDetail` card props are now `Readonly<{…}>`.
+
+The finding worth keeping as a rule: Sonar keys an issue instance on the text hash of its location, so editing a
+statement that was marked FALSE_POSITIVE in round 4 produces a new open instance. The four previously marked GORM
+sinks in `argocd_service.go` and `backup_service.go` were restored to their HEAD text and only the other
+occurrences became package constants; `go:S1192` allows two inline literals per file, so both rules stay satisfied
+and the post-merge re-triage shrinks to the single `ArgoCDService.UpdateApplication` instance.
+
+Verification: `gofmt`/`go build`/`go vet` clean, `golangci-lint run --new-from-rev=a5b5910` 0 issues, GORM sensor
+exit 0 with 4 visible waivers and 13/13 tests, `go test ./... -count=1` exit 0 with no `FAIL` line, frontend
+eslint silent, `tsc -b` exit 0, vitest 230/230, `PANTHEON_CI=true npm run build` exit 0,
+`check:harness-adoption --strict` 0 findings, and `node --test tests/scripts/*.test.mjs` still 177 pass / 14 fail —
+the same 14 pre-existing base-drift failures as the HEAD baseline. The local TS complexity oracle puts every
+previously flagged component at or below the threshold (max 15 across the six files).
+
 ## Explicit gaps
 
 - The 158-finding `CODE_SMELL` backlog is addressed in round 5 rather than deferred, but the acceptance oracle
   is the next hosted analysis: local `gocognit`/duplicate-literal scans approximate SonarGo and are not the
   metric, so "Issues = 0" is only claimed after `/api/issues/search` on `main` reads it.
-- Eleven Go tests fail against the developer MySQL from `.env` (`deploy` x4, `bizscope` x3, `observability` x2,
-  `cmdb/host` x1, `lowcode/dynamicmodule` x1). Each reproduces with an identical message in a clean worktree of
-  `a5b5910`, and the isolated `-run` form reproduces them too, so they are environment-dependent and pre-existing;
-  the hosted `backend-tests` job provisions a fresh `mysql:8.0` and is the authority for them. This is a stated
-  runtime gap, not a claim that the local Go suite is green.
+- Eleven Go tests failed against the developer MySQL in round 5 (`deploy` x4, `bizscope` x3, `observability` x2,
+  `cmdb/host` x1, `lowcode/dynamicmodule` x1). Each reproduced with an identical message in a clean worktree of
+  `a5b5910`, and the isolated `-run` form reproduced them too, so they are environment-dependent and pre-existing.
+  In round 6 the same local MySQL run (`go test ./... -count=1`) exited 0 with no `FAIL` line, which supports that
+  reading rather than the idea that this branch damages them; the hosted `backend-tests` job provisions a fresh
+  `mysql:8.0` and stays the authority.
 - Dependabot-triggered runs still cannot read `SONAR_TOKEN`, so `SonarCloud Scan` stays red on Dependabot
   PRs. Provisioning Dependabot secrets or skipping that actor is a maintainer gate-policy decision.
 - The Vercel check is out of scope by maintainer instruction ("drop the Vercel task"). There is no committed
