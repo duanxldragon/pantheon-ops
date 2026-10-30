@@ -518,7 +518,7 @@ export default function DeployTaskList() {
 
   const openStart = (row: DeployTaskRow) => {
     if (row.executorType !== 'ssh') {
-      handleStart(row);
+      void handleStart(row);
       return;
     }
     setStartingTask(row);
@@ -695,8 +695,8 @@ export default function DeployTaskList() {
             canCancel ? (
               <Popconfirm
                 title={t('business.deploy.task.cancelConfirm')}
-                onOk={() => {
-                  handleBatchCancel();
+                onOk={async () => {
+                  await handleBatchCancel();
                 }}
                 disabled={batchCancelDisabled}
               >
@@ -1351,7 +1351,7 @@ function DeployTaskFormModal({
                 const nextScopeId = value || undefined;
                 setSelectedBusinessScopeId(nextScopeId);
                 form.setFieldValue('targetIds', []);
-                loadScopedHosts(nextScopeId);
+                void loadScopedHosts(nextScopeId);
               }}
             >
               {scopeOptions.map((item) => (

@@ -1,0 +1,120 @@
+{
+  "taskId": "2026-10-30-sonar-findings-remediation",
+  "generatedAt": "2026-10-30",
+  "commands": [
+    {
+      "command": "curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&issueStatuses=OPEN,CONFIRMED (pages 1-3, ps=100, aggregated client-side)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Baseline inventory: 242 open issues; 62 VULNERABILITY + 6 BUG. The security/reliability set is exactly go:S4830 x1, go:S5527 x1, gosecurity:S3649 x33, gosecurity:S2083 x3, shell:S5332 x18, shell:S6505 x3, typescript:S5332 x2, typescript:S3923 x1, typescript:S9383 x5, githubactions:S8541 x1. SonarCloud facet values come back undefined, so the counts are aggregated from the issue list rather than from facets. Saved as sonar-before-inventory.json."
+    },
+    {
+      "command": "curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/qualitygates/project_status?projectKey=duanxldragon_pantheon-ops&branch=main",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Gate is ERROR before the change: new_reliability_rating and new_security_rating both exceed the threshold; new_maintainability_rating, new_duplicated_lines_density and new_security_hotspots_reviewed are OK. This is the failure mode this packet targets."
+    },
+    {
+      "command": "cd backend && gofmt -l modules/business (0 files) && go build ./... && go vet ./... && go test ./... -count=1",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Full backend matrix after the ArgoCD TLS, filedist containment, retired_modules, state.go, host_import_export and argocd tri-state CA changes: exit 0 with 64 packages ok and no FAIL lines. Re-run after the review fixes, because the filedist sanitizer defect only shows up with Linux path semantics."
+    },
+    {
+      "command": "node scripts/check-gorm-sql-literal.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "New sensor is green over the whole business tree and prints its four waivers instead of hiding them: retired_modules.go:181 and :184 (inClause is one of the three menu*InClause constants declared in that file), bizscope_service.go:335 (resource.table is one of three inline literal table names), k8s/storage/storage.go:385 (s.tableName(model) returns the model's own literal TableName()). Widening the sinks to Raw/Exec/Table is what surfaced the last two."
+    },
+    {
+      "command": "node --test tests/scripts/check-gorm-sql-literal.test.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "13 tests, pass 13, fail 0. The suite pins both directions: SQL built by concatenation, fmt.Sprintf SQL, a dynamic sort column in Order(), a map literal keyed by a variable, a map variable keyed by req.Column, dynamic SQL reaching Exec(), a dynamic table name in Table(), a const name shadowed by a local := reassignment, a const name shadowed by a function parameter, a waiver without justification; plus the accept cases (bind parameters, literal maps, package constants), proof that same-named non-GORM methods are not sinks, and a real-tree run."
+    },
+    {
+      "command": "cd frontend && npm run lint && npm run type-check",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "eslint reports nothing and tsc -b exits 0 after the floating-promise, nested-template, indentation and i18n placeholder changes."
+    },
+    {
+      "command": "cd frontend && PANTHEON_CI=true npm run build",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "Production build exits 0."
+    },
+    {
+      "command": "bash -n e2e-tests/auto-test.sh e2e-tests/run-real-machine-test.sh .harness/v1.2-tasks/generate_tasks.sh",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Syntax-only check for the three rewritten shell files. Both e2e scripts now exit 1 unless API_BASE_URL and WEB_BASE_URL are supplied, so the hardcoded reachable IP and the implicit http:// defaults are gone rather than marked won't-fix."
+    },
+    {
+      "command": "node scripts/harness/check-structure-contract.mjs --root . --strict",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "0 findings across 2269 tracked files, including the new scripts/check-gorm-sql-literal.mjs and tests/scripts/check-gorm-sql-literal.test.mjs placements."
+    },
+    {
+      "command": "node scripts/frontmatter-check.mjs && node scripts/check-task-packet-template.mjs && node scripts/check-encoding.mjs --strict",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "435 docs checked (280 with frontmatter) pass, the ops task-packet template is present and linked, and the strict encoding check reports 0 findings across 2095 files after the Chinese placeholder strings were rewritten in the e2e scripts."
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs && node scripts/check-business-module-boundaries.mjs && node scripts/harness/check-ui-quality-gate.mjs --root . --strict && node frontend/scripts/cleanup-generated-modules.mjs --check",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Overlay contract, module boundary rules, UI quality gate and generated-module ownership all stay green; the new .github step does not change the declared overlay set."
+    },
+    {
+      "command": "node scripts/harness/check-task-packet.mjs docs/harness/tasks/2026-10-30-sonar-findings-remediation.task.md",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Task packet check: 1 file, 0 errors after fixing the primary layer to business/*, the workspace sync expectation to not-required, the coverage dimension list and the manifest status enum."
+    },
+    {
+      "command": "independent review pass over the working-tree diff (go build/vet, checker semantics, sanitizer semantics on both OSes, shell expansions, CI wiring)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Five findings raised, all acted on: a Windows-only filedist sanitizer test (fixed by normalizing backslashes, which also closes the real containment gap on Linux), missing Raw/Exec/Table sinks in the checker (added; surfaced two pre-existing dynamic shapes now carried as visible waivers), a name-based constant allowlist that accepted shadowed and reassigned names (rewritten as a package-wide declaration scan), a receiver heuristic that skipped handles not literally named db/tx (widened to a name tail), and a CA bundle that could never be cleared through the API (UpdateServerRequest.CACert is now *string with tri-state semantics). Full record in review.md."
+    },
+    {
+      "command": "node scripts/harness/check-adoption.mjs --root . --strict && node scripts/harness/check-task-packet.mjs docs/harness/tasks/2026-10-30-sonar-findings-remediation.task.md",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Adoption check: 0 findings, 0 warnings once the manifest and commands.json exist. Task packet check: 0 errors, 0 warnings after correcting the primary layer, workspace sync expectation, coverage dimensions and manifest status enum."
+    },
+    {
+      "command": "curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/issues/search?...rules=gosecurity:S3649 (pages 1-3)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "All 33 open S3649 issue keys captured in sonar-s3649-keys.json before any transition, so the triage is reversible issue by issue."
+    },
+    {
+      "command": "gh pr checks 156 && gh api repos/duanxldragon/pantheon-ops/branches/main/protection/required_status_checks && curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/qualitygates/project_status?projectKey=duanxldragon_pantheon-ops&pullRequest=156",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "First CI read-back on the PR: SonarCloud Scan / Backend Tests / Docs Governance / Frontend Contract / Security Gates / CodeQL all SUCCESS, the SonarCloud Scan job is green with the stored SONAR_TOKEN. Two reds remain: Go Lint fails on one new issue (gosec G304 os.Create(fullPath) at filedist/storage_service.go:309, which the round-1 rewrite introduced) and the SonarCloud Code Analysis check is ERROR on new_duplicated_lines_density (11.90% against a 3% threshold; 74 duplicated lines out of 622 new lines) while new_reliability_rating, new_security_rating, new_maintainability_rating and new_security_hotspots_reviewed are OK — the vulnerability/bug conditions this packet targets are cleared on the PR analysis. Required status contexts on main are only Quality Gates and Security Gates (strict=false), so the Vercel commit status and the non-required Sonar check cannot block the merge; Quality Gates is red only because it depends on Go Lint. Per-file duplication for the PR shows 68 duplicated lines in the brand-new tests/scripts/check-gorm-sql-literal.test.mjs (12 hand-copied test bodies), which is the new-code duplication."
+    },
+    {
+      "command": "cd backend && golangci-lint run --new-from-rev=080e9efec4bbf4419ef4eb0cbc21451c2ef3b6fb ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Same arguments the Go Lint job uses. Before the round-2 edits it reported the G304 hit; after adding the file-local #nosec G304 annotation, whose justification is that fullPath is resolveWithinRoot(sanitizeUploadFileName(...)) and therefore proven to stay inside the storage root (the same containment invariant that closes gosecurity:S2083, and consistent with the three existing G304 annotations in this module), it reports 0 issues."
+    },
+    {
+      "command": "node --test tests/scripts/check-gorm-sql-literal.test.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "13 tests / 13 pass after collapsing the twelve hand-copied test bodies into one CASES table plus a single driver loop. Coverage is unchanged: the same 12 Go fixtures and assertions run, with the expectation data (sources, passed, output patterns) now declared per case instead of repeated per test. This removes the duplicated-line block Sonar measured on the new file rather than suppressing the finding."
+    },
+    {
+      "command": "cd backend && go test ./... -count=1 && node scripts/check-gorm-sql-literal.mjs && node scripts/check-duplication.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Round-2 verification set: Go suite exit 0 with 64 packages ok, no FAIL or panic; GORM literalness checker green with the 4 visible waivers printed; repository duplication gate PASS. Frontend was not touched in round 2, so the frontend lint/type-check/build results from round 1 still stand."
+    }
+  ]
+}

@@ -5,7 +5,8 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : 1,
+  // CI runs against one shared backend, so workers stay at 1 there; locally use Playwright's default.
+  workers: process.env.CI ? 1 : undefined,
   reporter: [
     ['html', { outputFolder: 'test-results/html' }],
     ['junit', { outputFile: 'test-results/junit.xml' }],

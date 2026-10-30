@@ -13,6 +13,14 @@ type retiredModuleSpec struct {
 	ComponentKeys      []string
 }
 
+// 菜单过滤子句整条是包级常量：列名不参与运行期字符串拼接，SQL 文本只来自字面量，
+// 取值通过 ? 绑定。scripts/check-gorm-sql-literal.mjs 断言这一不变式。
+const (
+	menuModuleInClause    = "module IN ?"
+	menuPathInClause      = "path IN ?"
+	menuComponentInClause = "component IN ?"
+)
+
 // retiredBusinessModules 在 pantheon-base 留作通用 hook，business/* 退役条目
 // 属于 ops 业务语义，应由 pantheon-ops 维护。base 不再内置 cmdb 等业务模块。
 var retiredBusinessModules = []retiredModuleSpec{}
@@ -145,9 +153,9 @@ func collectRetiredMenuIDs(tx *gorm.DB, spec retiredModuleSpec) ([]uint64, error
 	query := tx.Table("system_menu").Distinct("id")
 	applied := false
 
-	query, applied = applyMenuFieldFilter(query, applied, "module", spec.ModuleNames)
-	query, applied = applyMenuFieldFilter(query, applied, "path", spec.MenuPaths)
-	query, applied = applyMenuFieldFilter(query, applied, "component", spec.ComponentKeys)
+	query, applied = applyMenuFieldFilter(query, applied, menuModuleInClause, spec.ModuleNames)
+	query, applied = applyMenuFieldFilter(query, applied, menuPathInClause, spec.MenuPaths)
+	query, applied = applyMenuFieldFilter(query, applied, menuComponentInClause, spec.ComponentKeys)
 	query, applied = appendPermissionPrefixFilters(query, applied, spec.PermissionPrefixes)
 
 	if !applied {
@@ -161,17 +169,19 @@ func collectRetiredMenuIDs(tx *gorm.DB, spec retiredModuleSpec) ([]uint64, error
 	return menuIDs, nil
 }
 
-// applyMenuFieldFilter 为单个字段（模块名/路径/组件）追加 IN 过滤条件：首个条件用
+// applyMenuFieldFilter 追加一条 IN 过滤条件（inClause 是整条包级常量子句）：首个条件用
 // WHERE，后续条件用 OR 串联，返回更新后的 (query, applied)。等价于原 collectRetiredMenuIDs
 // 中内联的 if applied/else 分支。
-func applyMenuFieldFilter(query *gorm.DB, applied bool, column string, values []string) (*gorm.DB, bool) {
+func applyMenuFieldFilter(query *gorm.DB, applied bool, inClause string, values []string) (*gorm.DB, bool) {
 	if len(values) == 0 {
 		return query, applied
 	}
 	if applied {
-		return query.Or(column+" IN ?", values), true
+		// gorm-sql-literal:allow inClause 只能是本文件声明的 menuModuleInClause/menuPathInClause/menuComponentInClause 常量
+		return query.Or(inClause, values), true
 	}
-	return query.Where(column+" IN ?", values), true
+	// gorm-sql-literal:allow inClause 只能是本文件声明的 menuModuleInClause/menuPathInClause/menuComponentInClause 常量
+	return query.Where(inClause, values), true
 }
 
 // appendPermissionPrefixFilters 按权限前缀追加 page_perm/perms 的 OR 过滤条件，

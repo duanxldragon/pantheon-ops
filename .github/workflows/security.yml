@@ -203,7 +203,7 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          python -m pip install --user zizmor==1.25.2
+          python -m pip install --user --only-binary :all: zizmor==1.25.2
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           "$HOME/.local/bin/zizmor" --format json .github/workflows > security-reports/zizmor.json
 

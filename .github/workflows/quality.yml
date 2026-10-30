@@ -110,6 +110,14 @@ jobs:
       - name: Check business overlay contract
         run: npm run check:business-overlay
 
+      - name: Check GORM SQL literalness
+        # Blocking: business modules must build SQL from literals or package constants, so the
+        # gosecurity:S3649 triage stays a checked invariant instead of a manual re-review.
+        run: npm run check:gorm-sql-literal
+
+      - name: Test GORM SQL literalness checker
+        run: npm run test:gorm-sql-literal
+
       - name: Test business overlay rebuild
         run: npm run test:business-overlay
 

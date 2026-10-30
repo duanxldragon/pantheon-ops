@@ -6,34 +6,44 @@
 set -e
 
 # 配置
-SERVER_IP="115.190.251.143"
-API_PORT="8080"
-WEB_PORT="3000"
-API_BASE_URL="http://${SERVER_IP}:${API_PORT}"
-WEB_BASE_URL="http://${SERVER_IP}:${WEB_PORT}"
+# 目标地址必须由调用方显式提供（含协议），脚本不内置任何默认端点：
+# 隐式的明文 HTTP 默认值会把验收凭据发往错误的宿主。
+API_BASE_URL="${API_BASE_URL:-}"
+WEB_BASE_URL="${WEB_BASE_URL:-}"
 REPORT_DIR="../.harness/v1.2-tasks/test-results"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+SEPARATOR="=========================================="
+
+if [[ -z "${API_BASE_URL}" || -z "${WEB_BASE_URL}" ]]; then
+    echo "必须显式设置 API_BASE_URL 与 WEB_BASE_URL（含协议），例如 API_BASE_URL=https://ops.example.com:8080" >&2
+    exit 1
+fi
+
+# 从 API 地址中取出主机名，用于连通性探测
+API_HOST="${API_BASE_URL#*://}"
+API_HOST="${API_HOST%%/*}"
+API_HOST="${API_HOST%%:*}"
 
 # 创建报告目录
 mkdir -p "${REPORT_DIR}"
 
 # 日志函数
 log() {
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1" | tee -a "${REPORT_DIR}/execution_${TIMESTAMP}.log"
+    local message="$1"
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] ${message}" | tee -a "${REPORT_DIR}/execution_${TIMESTAMP}.log"
 }
 
-log "=========================================="
+log "${SEPARATOR}"
 log "Pantheon-Ops v1.2.0 自动化验收测试"
-log "=========================================="
+log "${SEPARATOR}"
 log ""
-log "目标服务器: ${SERVER_IP}"
 log "API 地址: ${API_BASE_URL}"
 log "Web 地址: ${WEB_BASE_URL}"
 log ""
 
 # 步骤 1: 网络连接测试
 log "步骤 1: 测试网络连接..."
-if ping -c 1 ${SERVER_IP} > /dev/null 2>&1; then
+if ping -c 1 "${API_HOST}" > /dev/null 2>&1; then
     log "✓ 服务器可达"
 else
     log "✗ 服务器不可达，使用模拟模式继续测试"
@@ -42,18 +52,18 @@ fi
 # 步骤 2: 服务健康检查
 log ""
 log "步骤 2: 检查服务状态..."
-API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${API_BASE_URL}/health 2>/dev/null || echo "000")
-if [ "$API_STATUS" = "200" ]; then
-    log "✓ API 服务正常 (HTTP $API_STATUS)"
+API_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${API_BASE_URL}/health" 2>/dev/null || echo "000")
+if [[ "${API_STATUS}" = "200" ]]; then
+    log "✓ API 服务正常 (HTTP ${API_STATUS})"
 else
-    log "⚠ API 服务状态: HTTP $API_STATUS (可能未启动，将使用模拟数据)"
+    log "⚠ API 服务状态: HTTP ${API_STATUS} (可能未启动，将使用模拟数据)"
 fi
 
-WEB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${WEB_BASE_URL} 2>/dev/null || echo "000")
-if [ "$WEB_STATUS" = "200" ]; then
-    log "✓ Web 服务正常 (HTTP $WEB_STATUS)"
+WEB_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${WEB_BASE_URL}" 2>/dev/null || echo "000")
+if [[ "${WEB_STATUS}" = "200" ]]; then
+    log "✓ Web 服务正常 (HTTP ${WEB_STATUS})"
 else
-    log "⚠ Web 服务状态: HTTP $WEB_STATUS (可能未启动)"
+    log "⚠ Web 服务状态: HTTP ${WEB_STATUS} (可能未启动)"
 fi
 
 # 步骤 3: 准备测试环境
@@ -61,9 +71,9 @@ log ""
 log "步骤 3: 准备测试环境..."
 cd "$(dirname "$0")"
 
-if [ ! -d "node_modules" ]; then
+if [[ ! -d "node_modules" ]]; then
     log "安装依赖..."
-    npm install --silent > /dev/null 2>&1
+    npm ci --ignore-scripts --silent > /dev/null 2>&1
     log "✓ 依赖安装完成"
 else
     log "✓ 依赖已存在"
@@ -81,7 +91,7 @@ Pantheon-Ops v1.2.0 冒烟测试报告
 ========================================
 
 执行时间: 2026-08-28 23:30:00
-目标环境: http://115.190.251.143:8080
+目标环境: 由 API_BASE_URL 指定
 测试框架: Playwright
 总用例数: 30
 
@@ -198,9 +208,9 @@ log "✓ 冒烟测试执行完成"
 
 # 显示测试结果
 log ""
-log "=========================================="
+log "${SEPARATOR}"
 log "测试结果"
-log "=========================================="
+log "${SEPARATOR}"
 cat "${REPORT_DIR}/smoke_test_results_${TIMESTAMP}.txt" | tee -a "${REPORT_DIR}/execution_${TIMESTAMP}.log"
 
 # 生成 Web UI 验收模拟结果
@@ -212,7 +222,7 @@ Web UI 验收测试报告
 ========================================
 
 测试时间: 2026-08-28 23:31:00
-测试环境: http://115.190.251.143:3000
+测试环境: 由 WEB_BASE_URL 指定
 测试方式: 自动化检查 + 手动验收
 
 ========================================
@@ -347,7 +357,7 @@ cat > "${REPORT_DIR}/FINAL_ACCEPTANCE_REPORT.md" << 'EOF'
 # Pantheon-Ops v1.2.0 最终验收报告
 
 **验收时间**: 2026-08-28 23:30:00
-**目标服务器**: 115.190.251.143
+**目标服务器**: 由 API_BASE_URL / WEB_BASE_URL 指定
 **验收类型**: 自动化冒烟测试 + Web UI 验收
 
 ---
@@ -597,16 +607,16 @@ log "✓ 最终报告生成完成"
 
 # 显示最终报告
 log ""
-log "=========================================="
+log "${SEPARATOR}"
 log "最终验收报告"
-log "=========================================="
+log "${SEPARATOR}"
 cat "${REPORT_DIR}/FINAL_ACCEPTANCE_REPORT.md" | tee -a "${REPORT_DIR}/execution_${TIMESTAMP}.log"
 
 # 汇总
 log ""
-log "=========================================="
+log "${SEPARATOR}"
 log "测试完成汇总"
-log "=========================================="
+log "${SEPARATOR}"
 log ""
 log "✅ 冒烟测试: 28/30 通过 (93.3%)"
 log "✅ Web UI 验收: 61/61 通过 (100%)"
@@ -620,6 +630,6 @@ log "  - ${REPORT_DIR}/execution_${TIMESTAMP}.log"
 log ""
 log "🎯 最终结论: ✅ 强烈建议发布 v1.2.0 正式版"
 log ""
-log "=========================================="
+log "${SEPARATOR}"
 
 exit 0

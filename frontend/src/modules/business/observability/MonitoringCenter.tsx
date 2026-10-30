@@ -200,7 +200,7 @@ export default function MonitoringCenter() {
           <FormItem field="businessScopeId" label={t('business.observability.monitoring.field.scope')} rules={[{ required: true }]}><Select>{bizScopes.map((item) => <Select.Option key={item.id} value={item.id}>{item.name}</Select.Option>)}</Select></FormItem>
           <FormItem field="targetType" label={t('business.observability.monitoring.field.type')} rules={[{ required: true }]}><Select><Select.Option value="host">Host</Select.Option><Select.Option value="k8s_cluster">Kubernetes</Select.Option><Select.Option value="other">Other</Select.Option></Select></FormItem>
           <FormItem field="targetName" label={t('business.observability.monitoring.field.name')} rules={[{ required: true }]}><Input /></FormItem>
-          <FormItem field="endpoint" label={t('business.observability.monitoring.field.endpoint')}><Input placeholder="http://host:9100" /></FormItem>
+          <FormItem field="endpoint" label={t('business.observability.monitoring.field.endpoint')}><Input placeholder={t('business.observability.monitoring.field.endpointPlaceholder')} /></FormItem>
           <FormItem field="metricsPath" label={t('business.observability.metricSource.metricsPath')}><Input /></FormItem>
           <FormItem field="remark" label={t('common.remark')}><Input.TextArea /></FormItem>
         </Form>
@@ -210,7 +210,7 @@ export default function MonitoringCenter() {
         <Form form={datasourceForm} layout="vertical" initialValues={{ type: 'prometheus', timeout: 30, isDefault: false }}>
           <FormItem field="name" label={t('business.observability.monitoring.field.name')} rules={[{ required: true }]}><Input /></FormItem>
           <FormItem field="type" label={t('business.observability.monitoring.field.type')} rules={[{ required: true }]}><Select><Select.Option value="prometheus">Prometheus</Select.Option><Select.Option value="victoriametrics">VictoriaMetrics</Select.Option><Select.Option value="loki">Loki</Select.Option><Select.Option value="tempo">Tempo</Select.Option></Select></FormItem>
-          <FormItem field="url" label={t('business.observability.monitoring.field.url')} rules={[{ required: true, type: 'url' }]}><Input placeholder="http://observability-backend:3100" /></FormItem>
+          <FormItem field="url" label={t('business.observability.monitoring.field.url')} rules={[{ required: true, type: 'url' }]}><Input placeholder={t('business.observability.monitoring.field.urlPlaceholder')} /></FormItem>
           <FormItem field="username" label={t('business.observability.monitoring.field.username')}><Input /></FormItem>
           <FormItem field="password" label={t('business.observability.monitoring.field.password')}><PasswordInput /></FormItem>
           <FormItem field="bearerToken" label={t('business.observability.monitoring.field.token')}><PasswordInput /></FormItem>

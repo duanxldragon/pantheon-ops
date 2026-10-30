@@ -88,12 +88,8 @@ func (m *Manager) TransitionState(ctx context.Context, req InstanceStateTransiti
 
 func applyRollbackTarget(current, next *ServiceInstance, action string) {
 	switch action {
-	case TransitionActionUpgrade:
-		if current.ObservedState != ObservedStateUpgrading && next.ObservedState == ObservedStateUpgrading &&
-			strings.TrimSpace(current.CurrentVersion) != "" && current.CurrentVersion != next.DesiredVersion {
-			next.RollbackVersion = current.CurrentVersion
-		}
-	case TransitionActionRollback:
+	// upgrade 与 rollback 记录回滚锚点的条件一致，两个 action 共用同一分支。
+	case TransitionActionUpgrade, TransitionActionRollback:
 		if current.ObservedState != ObservedStateUpgrading && next.ObservedState == ObservedStateUpgrading &&
 			strings.TrimSpace(current.CurrentVersion) != "" && current.CurrentVersion != next.DesiredVersion {
 			next.RollbackVersion = current.CurrentVersion

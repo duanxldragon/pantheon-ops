@@ -207,7 +207,8 @@ test.describe('Observability and file distribution Web smoke', () => {
     await page.screenshot({ path: testInfo.outputPath('filedist-files-desktop.png') });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(200);
+    // The layout reflow after the viewport change is observed through poll()
+    // below; a fixed sleep would only mask it and flake under CI load.
     await expect
       .poll(async () => page.evaluate(() => document.body.scrollWidth <= globalThis.innerWidth + 1))
       .toBe(true);

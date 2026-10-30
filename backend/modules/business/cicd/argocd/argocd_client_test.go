@@ -3,6 +3,7 @@ package argocd
 import (
 	"context"
 	"crypto/tls"
+	"encoding/pem"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,8 +14,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// newTestArgoCDClient creates a client with relaxed SSRF validation for testing
-func newTestArgoCDClient(endpoint, authToken string, insecureSkipVerify bool) (*ArgoCDClient, error) {
+// newTestArgoCDClient creates a client with relaxed SSRF validation for testing. Server
+// certificate verification is never disabled: pass the test server's own CA PEM as caCertPEM for
+// TLS servers, or an empty bundle to exercise the system trust store path.
+func newTestArgoCDClient(endpoint, authToken, caCertPEM string) (*ArgoCDClient, error) {
 	validator := ssrf.DefaultValidator()
 	validator.AllowedPorts = []int{}      // Allow all ports for testing
 	validator.BlockPrivateIPs = false     // Allow localhost for testing
@@ -25,12 +28,13 @@ func newTestArgoCDClient(endpoint, authToken string, insecureSkipVerify bool) (*
 	}
 
 	httpClient := validator.CreateHTTPClient(30 * time.Second)
-	if insecureSkipVerify {
-		if t, ok := httpClient.Transport.(*http.Transport); ok {
-			if t.TLSClientConfig == nil {
-				t.TLSClientConfig = &tls.Config{}
-			}
-			t.TLSClientConfig.InsecureSkipVerify = true
+	tlsConfig, err := serverTLSConfig(caCertPEM)
+	if err != nil {
+		return nil, err
+	}
+	if tlsConfig != nil {
+		if transport, ok := httpClient.Transport.(*http.Transport); ok {
+			transport.TLSClientConfig = tlsConfig
 		}
 	}
 
@@ -40,6 +44,16 @@ func newTestArgoCDClient(endpoint, authToken string, insecureSkipVerify bool) (*
 		httpClient:    httpClient,
 		ssrfValidator: validator,
 	}, nil
+}
+
+// caPEMFrom returns the test server's certificate in PEM form so it can be stored as a server
+// record CA bundle.
+func caPEMFrom(t *testing.T, server *httptest.Server) string {
+	t.Helper()
+	return string(pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: server.Certificate().Raw,
+	}))
 }
 
 func TestArgoCDClient_TestConnection(t *testing.T) {
@@ -77,7 +91,7 @@ func TestArgoCDClient_TestConnection(t *testing.T) {
 			}))
 			defer server.Close()
 
-			client, err := newTestArgoCDClient(server.URL, "test-token", true)
+			client, err := newTestArgoCDClient(server.URL, "test-token", "")
 			require.NoError(t, err)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
@@ -100,7 +114,7 @@ func TestArgoCDClient_GetVersion(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := newTestArgoCDClient(server.URL, "test-token", true)
+	client, err := newTestArgoCDClient(server.URL, "test-token", "")
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -123,7 +137,7 @@ func TestArgoCDClient_GetApplicationStatus(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := newTestArgoCDClient(server.URL, "test-token", true)
+	client, err := newTestArgoCDClient(server.URL, "test-token", "")
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -143,7 +157,7 @@ func TestArgoCDClient_SyncApplication(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := newTestArgoCDClient(server.URL, "test-token", true)
+	client, err := newTestArgoCDClient(server.URL, "test-token", "")
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -160,7 +174,7 @@ func TestArgoCDClient_RefreshApplication(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := newTestArgoCDClient(server.URL, "test-token", true)
+	client, err := newTestArgoCDClient(server.URL, "test-token", "")
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -176,7 +190,7 @@ func TestArgoCDClient_Timeout(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := newTestArgoCDClient(server.URL, "test-token", true)
+	client, err := newTestArgoCDClient(server.URL, "test-token", "")
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
@@ -184,4 +198,51 @@ func TestArgoCDClient_Timeout(t *testing.T) {
 	err = client.TestConnection(ctx)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "context deadline exceeded")
+}
+
+func TestServerTLSConfigKeepsSystemTrustWhenCAIsEmpty(t *testing.T) {
+	for _, bundle := range []string{"", "  \n "} {
+		config, err := serverTLSConfig(bundle)
+		require.NoError(t, err)
+		assert.Nil(t, config, "an empty CA bundle must leave the standard verification path untouched")
+	}
+}
+
+func TestServerTLSConfigAddsStoredCAAndKeepsVerificationOn(t *testing.T) {
+	server := httptest.NewTLSServer(http.NotFoundHandler())
+	defer server.Close()
+
+	config, err := serverTLSConfig(caPEMFrom(t, server))
+	require.NoError(t, err)
+	require.NotNil(t, config)
+	assert.False(t, config.InsecureSkipVerify)
+	assert.NotNil(t, config.RootCAs)
+	assert.Equal(t, uint16(tls.VersionTLS12), config.MinVersion)
+}
+
+func TestServerTLSConfigRejectsBundleWithoutCertificate(t *testing.T) {
+	_, err := serverTLSConfig("-----BEGIN CERTIFICATE-----\nnot-base64\n-----END CERTIFICATE-----")
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidCACert)
+}
+
+func TestArgoCDClient_VerifiesServerCertificate(t *testing.T) {
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"Version":"v2.8.0"}`))
+	}))
+	defer server.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	untrusted, err := newTestArgoCDClient(server.URL, "test-token", "")
+	require.NoError(t, err)
+	err = untrusted.TestConnection(ctx)
+	require.Error(t, err, "a certificate the platform does not trust must be refused")
+	assert.Contains(t, err.Error(), "certificate")
+
+	trusted, err := newTestArgoCDClient(server.URL, "test-token", caPEMFrom(t, server))
+	require.NoError(t, err)
+	assert.NoError(t, trusted.TestConnection(ctx))
 }

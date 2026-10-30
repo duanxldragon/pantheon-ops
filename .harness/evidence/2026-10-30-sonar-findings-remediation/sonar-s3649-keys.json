@@ -1,0 +1,307 @@
+{
+  "fetchedAt": "2026-10-30",
+  "project": "duanxldragon_pantheon-ops",
+  "branch": "main",
+  "rule": "gosecurity:S3649",
+  "total": 33,
+  "count": 33,
+  "issues": [
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHj",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 96,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in ArgoCDService.UpdateServer()"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHi",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 167,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in ArgoCDService.AddRepository()"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHf",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 251,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in ArgoCDService.UpdateRepository()"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHe",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 279,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in ArgoCDService.CreateApplication()"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHh",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 386,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in ArgoCDService.UpdateApplication()"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHg",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 468,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in ArgoCDService.SyncApplication()"
+    },
+    {
+      "key": "AaGHE4OZVq8OAzu0RFHk",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cicd/argocd/argocd_service.go",
+      "line": 481,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in ArgoCDService.SyncApplication()"
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIs",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/filedist/storage_service.go",
+      "line": 221,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in StorageService.UpdateStorage()"
+    },
+    {
+      "key": "AaGHE4R5Vq8OAzu0RFIt",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/filedist/storage_service.go",
+      "line": 374,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in StorageService.GetFileByID()"
+    },
+    {
+      "key": "AaGHE4QxVq8OAzu0RFIJ",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/k8s/backup/backup_service.go",
+      "line": 144,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in BackupService.UpdateStorageLocation()"
+    },
+    {
+      "key": "AaGHE4QxVq8OAzu0RFIK",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/k8s/backup/backup_service.go",
+      "line": 416,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in BackupService.UpdateSchedule()"
+    },
+    {
+      "key": "AaGHE4RsVq8OAzu0RFIn",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/observability/alert_rule_service.go",
+      "line": 39,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in AlertRuleService.Create()"
+    },
+    {
+      "key": "AaGHE4RsVq8OAzu0RFIl",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/observability/alert_rule_service.go",
+      "line": 158,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in AlertRuleService.Update()"
+    },
+    {
+      "key": "AaGHE4RsVq8OAzu0RFIm",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/observability/alert_rule_service.go",
+      "line": 182,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in AlertRuleService.Update()"
+    },
+    {
+      "key": "AaGHE4RiVq8OAzu0RFIX",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/observability/notification_service.go",
+      "line": 136,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in NotificationService.UpdateChannel()"
+    },
+    {
+      "key": "AaGHE4PsVq8OAzu0RFH7",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/deploy/deploy_credential.go",
+      "line": 112,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in DeployService.UpdateCredential()"
+    },
+    {
+      "key": "AaGHE4PsVq8OAzu0RFH8",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/deploy/deploy_credential.go",
+      "line": 182,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in DeployService.resolveStartCredential()"
+    },
+    {
+      "key": "AaGHE4NMVq8OAzu0RFHR",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cmdb/host/host_service.go",
+      "line": 460,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in HostService.UpdateStatus()"
+    },
+    {
+      "key": "AaGHE4M3Vq8OAzu0RFHP",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cmdb/host/host_state.go",
+      "line": 117,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in HostService.TransitionState()"
+    },
+    {
+      "key": "AaGHE4PdVq8OAzu0RFH0",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/deploy/deploy_service.go",
+      "line": 1906,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in DeployService.markHostResultWithSummary()"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFIy",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/service/service.go",
+      "line": 175,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in Manager.UpdateApplication()"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFI1",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/service/service.go",
+      "line": 292,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in Manager.GetService()"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFIz",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/service/service.go",
+      "line": 337,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in Manager.UpdateService()"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFI0",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/service/service.go",
+      "line": 464,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in Manager.UpdateInstance()"
+    },
+    {
+      "key": "AaGHE4SWVq8OAzu0RFIx",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/service/service.go",
+      "line": 569,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in Manager.findApplication()"
+    },
+    {
+      "key": "AaGHE4SJVq8OAzu0RFIw",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/service/state.go",
+      "line": 79,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in Manager.TransitionState()"
+    },
+    {
+      "key": "AaGHE4NMVq8OAzu0RFHQ",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cmdb/host/host_service.go",
+      "line": 219,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in HostService.Update()"
+    },
+    {
+      "key": "AaGHE4PdVq8OAzu0RFH1",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/deploy/deploy_service.go",
+      "line": 341,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in DeployService.UpdatePackage()"
+    },
+    {
+      "key": "AaGHE4P3Vq8OAzu0RFH9",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/deploy/deploy_template_service.go",
+      "line": 393,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in DeployService.resolveTemplateBasePackage()"
+    },
+    {
+      "key": "AaGHE4P3Vq8OAzu0RFH-",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/deploy/deploy_template_service.go",
+      "line": 123,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in DeployService.GetTemplate()"
+    },
+    {
+      "key": "AaGHE4N9Vq8OAzu0RFHT",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cmdb/group/group_service.go",
+      "line": 149,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in GroupService.Update()"
+    },
+    {
+      "key": "AaGHE4N9Vq8OAzu0RFHU",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cmdb/group/group_service.go",
+      "line": 277,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in GroupService.conditionChainForGroup()"
+    },
+    {
+      "key": "AaGHE4NxVq8OAzu0RFHS",
+      "rule": "gosecurity:S3649",
+      "file": "backend/modules/business/cmdb/label/label_service.go",
+      "line": 207,
+      "type": "VULNERABILITY",
+      "severity": "BLOCKER",
+      "msg": "SQL Injection via HTTP request in LabelService.Update()"
+    }
+  ]
+}

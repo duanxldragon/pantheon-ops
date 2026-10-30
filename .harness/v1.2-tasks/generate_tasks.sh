@@ -65,7 +65,7 @@ $desc
 ## 2. 前置依赖
 
 ### 依赖任务
-$(if [ "$deps" != "无" ] && [ "$deps" != "所有开发任务" ]; then
+$(if [[ "$deps" != "无" ]] && [[ "$deps" != "所有开发任务" ]]; then
     IFS=',' read -ra DEP_ARRAY <<< "$deps"
     for dep in "\${DEP_ARRAY[@]}"; do
         echo "- [ ] $dep"

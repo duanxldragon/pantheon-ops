@@ -386,7 +386,7 @@ export default function BackupList() {
           title={t('business.k8s.backup.hero.title')}
           description={
             veleroStatus
-              ? `${t('business.k8s.backup.veleroStatus')}: ${veleroStatus.installed ? 'Installed' : 'Not Installed'}${veleroStatus.version ? ` (${veleroVersion(veleroStatus.version)})` : ''}`
+              ? `${t('business.k8s.backup.veleroStatus')}: ${veleroState(veleroStatus)}`
               : undefined
           }
           metrics={heroMetrics}
@@ -448,6 +448,11 @@ export default function BackupList() {
       </Space>
     </PageContainer>
   );
+}
+
+function veleroState(status: K8sVeleroStatus): string {
+  const phase = status.installed ? 'Installed' : 'Not Installed';
+  return status.version ? `${phase} (${veleroVersion(status.version)})` : phase;
 }
 
 function veleroVersion(image: string): string {
