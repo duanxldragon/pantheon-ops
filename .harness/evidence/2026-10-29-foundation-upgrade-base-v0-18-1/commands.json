@@ -257,6 +257,24 @@
       "cwd": ".",
       "status": "passed",
       "notes": "一次性驱动文件 backend/tmp_runtime_acceptance/main.go 与临时脚本已删除（git status 只剩既有 i18n 未 stage 项之外的零改动）；pantheon_ops_ra 这个隔离 schema 原地保留以便复查，可随时 DROP，不影响 pantheon_ops 开发库——后者全程未被写入。"
+    },
+    {
+      "command": "gh pr checks 164 --json name,bucket,state",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "PR #164 收口读数：18 pass / 3 skipping / 1 fail，唯一的 fail 是 Vercel（外部集成，review.md 的 D10）。必需上下文只有 Quality Gates 与 Security Gates（branch protection required_status_checks，strict=false），Vercel 不在其中，因此 auto-merge 正常落地。"
+    },
+    {
+      "command": "gh pr view 164 --json autoMergeRequest,mergeCommit,mergedAt + gh api repos/.../actions/runs?head_sha=4e69224f",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "合并读数：state MERGED，mergedAt 2026-10-30T17:01:47Z，main = 4e69224f8a8fc1f155c51d5cec573ad5dfc1577f，autoMergeRequest.enabledBy = app/github-actions。第三次复现既有发现：自动化执行的 squash 不产生 main 的 push 工作流——api ...?head_sha=4e69224f 返回 total_count 0，commits/4e69224f/check-runs 为空。这与 #162/#163 那轮的测量一致（自动化合并 7364a44、430a9f0 同样零 push run，而显式合并的 38a07c0/b85e1a3 四个工作流全跑）。"
+    },
+    {
+      "command": "gh workflow run \"Code Quality Gates|Security Gates|SonarCloud Scan|Branch Hygiene\" --ref main",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "按既有处置流程手工派发 main 的四个工作流以补齐 main 侧读数。结果：Branch Hygiene、SonarCloud Scan、Security Gates、Code Quality Gates 全部 completed/success，head 均为 4e69224f。SonarCloud Scan 成功意味着 v0.18.1 消费者在台账收口后仍保持零 open issue（与 #162/#163 那轮的 post-merge 读数同为延续）。"
     }
   ],
   "runtimeSensitive": true,
@@ -270,7 +288,8 @@
     "Base v0.18.0 shipped a TS2614 break to this repository because the S1 export removal was justified by a repo-local only caller search; v0.18.1 restores the export. The base-side record is FR-021 plus AI_QUALITY_GOVERNANCE section 5.4.",
     "Inherited base workflow tests for release-gate, quality-workflow scoring and RELEASE_GATE_TOKEN stay red locally; they assert a .github the consumer replaces by contract and none of them runs in a workflow. Closing them needs either base-side consumer-aware tests or a maintainer-created RELEASE_GATE_TOKEN.",
     "runtime-acceptance 的 UI 面（frontend/tests/smoke-core/tenant-console.spec.ts）本轮未跑：它需要 frontend dev server + tenant matrix fixture（scripts/tenant-matrix-fixture-setup.mjs）成对开通租户，属独立一轮；本轮以租户控制台的真实 HTTP 契约（读 5 个面 + 完整生命周期写路径）作为运行时验收证据。",
-    "本地 shell 会话卫生：一次 `source .env` 因 DSN 含括号失败并回显了 ops 开发库连接串。该串未进入任何仓库文件或提交；建议轮换该本地 MySQL 口令。驱动改为在进程内解析 .env，不再经 shell 展开。"
+    "本地 shell 会话卫生：一次 `source .env` 因 DSN 含括号失败并回显了 ops 开发库连接串。该串未进入任何仓库文件或提交；建议轮换该本地 MySQL 口令。驱动改为在进程内解析 .env，不再经 shell 展开。",
+    "main 侧读数的取得方式仍是「手工派发」而非「push 自动触发」：自动化 squash 不产生 push run 这一机制尚未在仓库侧修复（可选方案是把收口改为显式 gh pr merge，或在 main 上加 workflow_dispatch 的定时复核）。本轮沿用既有处置，登记为待决而非新缺陷。"
   ],
   "linkage": {
     "taskManifest": ".harness/tasks/2026-10-29-foundation-upgrade-base-v0-18-1/manifest.json",

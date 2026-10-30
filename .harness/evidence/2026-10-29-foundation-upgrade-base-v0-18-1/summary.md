@@ -141,3 +141,15 @@ v0.17.7 round because it needed a live MySQL instance. It is now closed on this 
 Remaining runtime gap: the browser-side `tenant-console.spec.ts` smoke (needs a dev server plus the
 tenant matrix fixture) was not run this round — recorded in `knownGaps`, along with one session-hygiene
 note about a shell `source .env` failure that echoed the local dev DSN and then stopped being used.
+
+## Main-side confirmation (2026-10-31)
+
+- PR #164 落地：18 pass / 3 skipping / 1 fail（Vercel，外部集成，非必需上下文），
+  `mergedAt 2026-10-30T17:01:47Z`，ops `main = 4e69224f`。
+- 第三次复现「自动化 squash 不产生 main push run」：`head_sha=4e69224f` 的 runs 为 0、
+  check-runs 为空。处置沿用既有流程，手工派发 main 的四个工作流。
+- 手工派发读数：Code Quality Gates / Security Gates / SonarCloud Scan / Branch Hygiene
+  在 `4e69224f` 上全部 completed success。至此 v0.18.1 的台账四项 pendingWork 都有
+  main 侧或隔离环境的实测背书。
+- 待决：把「显式合并以触发 main push run」固化为本仓流程，还是给 main 加定期
+  workflow_dispatch 复核——属维护者决策，本轮只做记录。
