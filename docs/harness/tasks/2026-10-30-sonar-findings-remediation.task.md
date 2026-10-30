@@ -346,6 +346,32 @@ business/*
   until the squash merge triggers the `main` analysis. That read-back, and the single S3649 re-triage, are the
   next step.
 
+## Declaration-Line Duplication and the Auto-Merge Gap (round 7)
+
+- The round-6 shape still failed the hosted read-back, and the reason is a rule detail worth recording:
+  `go:S1192` counts the constant declaration itself as an occurrence of the literal. A file that declares
+  `idWhereClause = "id = ?"` therefore has one occurrence before it writes the clause anywhere, so two inline
+  sinks plus the declaration is three and the CRITICAL fires on the declaration line
+  (`argocd_service.go:17`, `backup_service.go:27`). The admissible shapes are "no declaration, at most two inline"
+  and "declaration, at most one inline"; with three sinks in one file neither shape preserves all three
+  FALSE_POSITIVE marks.
+- Chosen shape: declaration plus one restored sink per declaring file. `ArgoCDService.UpdateServer` and
+  `BackupService.UpdateStorageLocation` keep their HEAD statement text, `NotificationService.UpdateChannel` is
+  restored as well because that file declares no such constant, and `ArgoCDService.UpdateRepository`,
+  `ArgoCDService.UpdateApplication` and `BackupService.UpdateSchedule` stay on package constants. The cost is
+  three recorded FALSE_POSITIVE transitions after the merge instead of one, and the benefit is that `main`
+  carries no CRITICAL smell, which is the number this task is measured by.
+- Process finding about the merge itself: PR #160 was merged by auto-merge that
+  `app/github-actions` (Pull Request Automation) had enabled, and it landed the moment the required contexts
+  turned green — before the second hosted read-back could act on the 12-then-3 findings. The follow-up commit
+  therefore had to become a second PR rather than an amendment, and it also exposed that a merge executed by
+  the automation does not produce the push-triggered workflow run that the acceptance step depends on: `main`
+  at `7364a44` has no `SonarCloud Scan`, `Code Quality Gates` or `Security Gates` run at all, while the two
+  earlier merges that were performed explicitly did. Consequence for this task's acceptance: the post-merge
+  analysis has to be dispatched with `gh workflow run sonarcloud.yml --ref main` rather than assumed, and the
+  remaining PRs in this task are merged with an explicit `gh pr merge --squash --delete-branch` so the merge
+  point stays a deliberate, reviewable action.
+
 ## Verification Plan
 
 - `cd backend && gofmt -l modules/business && go build ./... && go vet ./... && go test ./... -count=1`
