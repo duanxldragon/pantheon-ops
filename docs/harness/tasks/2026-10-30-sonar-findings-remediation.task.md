@@ -400,6 +400,11 @@ business/*
   and on the remote, because the stale branches were verified to have no code diff against `main` before
   deletion. Because an automation merge emits no push run, the pipeline evidence on `main` is the explicitly
   dispatched `sonarcloud.yml`, `branch-hygiene.yml`, `quality.yml` and `security.yml` runs for `430a9f0`.
+- The counter-case was then measured: PR #162 disabled that auto-merge through GraphQL before its required
+  contexts turned green, was merged explicitly, and the resulting push ran all four `main` workflows to success,
+  with analysis `2026-10-30T06:56:45+0000` reading 0 open issues and an OK gate on the current main tip
+  `38a07c0`. Acceptance therefore belongs to the explicit-merge path; a dispatched run is a substitute that only
+  exists because the automation merge produced nothing.
 
 ## Verification Plan
 

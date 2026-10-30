@@ -1,6 +1,6 @@
 {
   "taskId": "2026-10-30-sonar-findings-remediation",
-  "generatedAt": "2026-10-30T06:44:01.263Z",
+  "generatedAt": "2026-10-30T07:14:21.899Z",
   "commands": [
     {
       "command": "curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&issueStatuses=OPEN,CONFIRMED (pages 1-3, ps=100, aggregated client-side)",
@@ -385,6 +385,24 @@
       "cwd": "sonarcloud.io",
       "status": "passed",
       "notes": "Corrects the round-7 prediction. The three rewritten sinks appear on main as RESOLVED / FALSE-POSITIVE carrying their original round-4 keys (AaGHE4OZVq8OAzu0RFHf at argocd:274, AaGHE4QxVq8OAzu0RFIK at backup:424) and the round-4 line numbers, even though the statement text at those lines is now Where(idWhereClause, id) / Where(whereByID, id). The branch analysis therefore inherits a transition made on the matching pull-request instance, so the cost of the round-7 shape was the three transitions made on PR #161 rather than three additional transitions after the merge: 33 S3649 + 3 S2083 = 36 marked instances and 0 open."
+    },
+    {
+      "command": "gh pr merge 162 --squash --delete-branch (after GraphQL disablePullRequestAutoMerge) + gh run list --json headSha,event,name,status,conclusion",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "The merge-discipline gap from rounds 6 and 7 was closed by disabling auto-merge before the required contexts went green: app/github-actions enabled it within seconds of PR #162 opening, the GraphQL mutation turned it off, and the explicit squash merge landed as 38a07c0 instead of losing the race a second time. The consequence the previous rounds could only infer is now measured directly: an explicitly merged main commit produces all four push-triggered workflows (SonarCloud Scan, Code Quality Gates, Branch Hygiene, Security Gates) and every one of them completed with success, while the two automation merges (7364a44, 430a9f0) produced none."
+    },
+    {
+      "command": "GET /api/project_analyses/search?branch=main + GET /api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&issueStatuses=OPEN,CONFIRMED&facets=types + GET /api/qualitygates/project_status?projectKey=duanxldragon_pantheon-ops&branch=main + GET /api/issues/search?pullRequest=162",
+      "cwd": "sonarcloud.io",
+      "status": "passed",
+      "notes": "Final acceptance read-back on the current main tip: the push-triggered analysis 2026-10-30T06:56:45+0000 reports 0 open issues with the type facet CODE_SMELL 0 / VULNERABILITY 0 / BUG 0 and the gate OK on all five conditions. PR #162 itself carried 0 new-code issues, which is what a documentation-only changeset should look like in the PR view."
+    },
+    {
+      "command": "git diff --stat origin/main origin/<branch> -- backend frontend scripts .github (empty for both merged branches) + git push origin --delete fix/sonar-duplication-literals refactor/sonar-code-smell-backlog + git branch -D docs/sonar-triage-record fix/sonar-security-findings test/filedist-containment-on-main + git worktree remove .verify-head",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "Branch and scratch cleanup, done only after each branch was verified to contribute no code diff against main, so no work was discarded. End state: main is the only branch locally and on the remote, the a5b5910 baseline worktree is gone, and the one-off drivers (tmp-sonar/, sonar-triage.mjs) live outside the repository so they are not part of the gates."
     }
   ]
 }

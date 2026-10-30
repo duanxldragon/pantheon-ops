@@ -250,6 +250,15 @@ assertion was weakened, the gate definition, the new-code baseline and every met
 the only transitions are the four issue keys listed in `sonar-triage.json` (`transitionBatches[]`, third batch)
 each with its written justification.
 
+The round-7 inference about merge mechanics is now measured rather than inferred. PR #162 — this evidence — was
+merged with an explicit `gh pr merge 162 --squash --delete-branch` after turning the automation's auto-merge off
+through GraphQL, and that push produced all four `main` workflows (`SonarCloud Scan`, `Code Quality Gates`,
+`Branch Hygiene`, `Security Gates`), each finishing green, with the resulting analysis
+`2026-10-30T06:56:45+0000` reading 0 open issues and an OK gate. The two automation-performed merges before it
+(`7364a44`, `430a9f0`) produced no push run at all, which is why their acceptance had to be dispatched by hand.
+Disabling auto-merge before the required contexts turn green is therefore the procedure rather than a nicety:
+`app/github-actions` re-enables it within seconds of a PR opening.
+
 ## Explicit gaps
 
 - The 158-finding `CODE_SMELL` backlog is addressed in round 5 rather than deferred, but the acceptance oracle

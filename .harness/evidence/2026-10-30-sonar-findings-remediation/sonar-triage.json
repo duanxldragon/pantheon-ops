@@ -1093,6 +1093,24 @@
       "sqale_rating": "1.0 (A)"
     },
     "inheritanceObservation": "The three PR-side transitions carried onto the branch analysis: argocd_service.go:274 and backup_service.go:424 read back on main as RESOLVED / FALSE-POSITIVE under their original round-4 keys AaGHE4OZVq8OAzu0RFHf and AaGHE4QxVq8OAzu0RFIK at their round-4 line numbers, even though the statement text at those lines is now Where(idWhereClause, id) and Where(whereByID, id). The round-7 assumption that each rewritten sink would need its own post-merge transition was therefore wrong: a transition made on the matching pull-request instance is inherited by the branch, so the total marked population stays 33 gosecurity:S3649 + 3 gosecurity:S2083 = 36.",
-    "reversibilityRound8": "each of the four keys above is restored with POST /api/issues/do_transition issue=<key> transition=to_reopen; nothing else on the branch was changed by this batch"
+    "reversibilityRound8": "each of the four keys above is restored with POST /api/issues/do_transition issue=<key> transition=to_reopen; nothing else on the branch was changed by this batch",
+    "finalMergeEvidence": {
+      "mainTip": "38a07c0 (squash of PR #162, merged explicitly after disabling auto-merge through GraphQL)",
+      "analysis": "2026-10-30T06:56:45+0000, produced by the push trigger rather than a dispatch",
+      "openIssues": 0,
+      "openByType": {
+        "CODE_SMELL": 0,
+        "VULNERABILITY": 0,
+        "BUG": 0
+      },
+      "gate": "OK",
+      "pushWorkflows": {
+        "SonarCloud Scan": "success",
+        "Code Quality Gates": "success",
+        "Branch Hygiene": "success",
+        "Security Gates": "success"
+      },
+      "note": "This is the first main commit in the task whose push-triggered analysis and workflows both exist, which confirms the round-7 diagnosis that automation-performed merges emit no push runs for this repository configuration."
+    }
   }
 }
