@@ -133,7 +133,7 @@ func (s *NotificationService) UpdateChannel(id uint64, dto NotificationChannelDT
 		"config":  configJSON,
 	}
 
-	return s.db.Model(&NotificationChannel{}).Where(idWhereClause, id).Updates(updates).Error
+	return s.db.Model(&NotificationChannel{}).Where("id = ?", id).Updates(updates).Error
 }
 
 // DeleteChannel removes a channel.

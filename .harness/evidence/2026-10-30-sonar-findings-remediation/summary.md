@@ -197,10 +197,16 @@ four were real damage introduced by round 5.
 - `typescript:S6759` — the two `ClusterDetail` card props are now `Readonly<{…}>`.
 
 The finding worth keeping as a rule: Sonar keys an issue instance on the text hash of its location, so editing a
-statement that was marked FALSE_POSITIVE in round 4 produces a new open instance. The four previously marked GORM
-sinks in `argocd_service.go` and `backup_service.go` were restored to their HEAD text and only the other
-occurrences became package constants; `go:S1192` allows two inline literals per file, so both rules stay satisfied
-and the post-merge re-triage shrinks to the single `ArgoCDService.UpdateApplication` instance.
+statement that was marked FALSE_POSITIVE in round 4 produces a new open instance. Five marked sinks were
+candidates for restoration. The first read-back after restoring four of them reported two `go:S1192` findings on
+the const declaration lines, which exposed the actual bound: S1192 counts the declaration itself as an occurrence
+of the literal, so a file that declares the SQL constant may hold at most one inline copy of it. The shape that
+satisfies both rules is one restored sink per declaring file, so three sinks are now verbatim HEAD text
+(`ArgoCDService.UpdateServer`, `BackupService.UpdateStorageLocation`, `NotificationService.UpdateChannel`) and
+three stay on package constants (`ArgoCDService.UpdateRepository`, `ArgoCDService.UpdateApplication`,
+`BackupService.UpdateSchedule`). Those three are the post-merge re-triage, each covered by the checked invariant.
+The alternative — keeping all five inline — would have left two CRITICAL smells on `main`, which is the metric
+this round exists to clear.
 
 Verification: `gofmt`/`go build`/`go vet` clean, `golangci-lint run --new-from-rev=a5b5910` 0 issues, GORM sensor
 exit 0 with 4 visible waivers and 13/13 tests, `go test ./... -count=1` exit 0 with no `FAIL` line, frontend

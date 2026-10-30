@@ -1,6 +1,6 @@
 {
   "taskId": "2026-10-30-sonar-findings-remediation",
-  "generatedAt": "2026-10-30T05:40:24.711Z",
+  "generatedAt": "2026-10-30T06:18:45.318Z",
   "commands": [
     {
       "command": "curl -u <SONAR_TOKEN>: https://sonarcloud.io/api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&issueStatuses=OPEN,CONFIRMED (pages 1-3, ps=100, aggregated client-side)",
@@ -307,6 +307,36 @@
       "cwd": "pantheon-ops/backend",
       "status": "passed",
       "notes": "taskStepHostRun no longer stores a context.Context, so go:V8242 cannot fire; the ctx is threaded explicitly through executeTaskStep and runTaskStepCheck."
+    },
+    {
+      "command": "GET /api/issues/search?componentKeys=duanxldragon_pantheon-ops&pullRequest=160&issueStatuses=OPEN,CONFIRMED",
+      "cwd": "sonarcloud.io",
+      "status": "passed",
+      "notes": "First round-6 read-back after c11766d: 12 new-code issues became 3 — 2 CRITICAL go:S1192 on the const declaration lines (argocd_service.go:17, backup_service.go:27) plus 1 BLOCKER gosecurity:S3649 (argocd_service.go:409). The PR analysis also confirmed the four restored sinks no longer raise S3649, which is the evidence for the location-hash rule."
+    },
+    {
+      "command": "GET /api/issues/search?componentKeys=duanxldragon_pantheon-ops&branch=main&issueStatuses=FALSE_POSITIVE,ACCEPTED,CONFIRMED&ps=500 + node tmp-sonar/fp_survival.cjs (compare each marked statement text between a5b5910 and the branch)",
+      "cwd": "pantheon-platform",
+      "status": "passed",
+      "notes": "Audits the false-positive inventory instead of trusting it: 36 marked instances on main, 34 still carry their HEAD statement text on the branch and 2 had been rewritten to package constants (argocd UpdateApplication, observability UpdateChannel). This is how the restoration list was built rather than guessed."
+    },
+    {
+      "command": "cd backend && gofmt -l modules/business && go build ./... && go vet ./modules/business/... && go test ./modules/business/cicd/argocd/... ./modules/business/k8s/backup/... ./modules/business/observability/... -count=1 && node scripts/check-gorm-sql-literal.mjs && node tmp-sonar/dup_scan.cjs pantheon-ops",
+      "cwd": "pantheon-ops",
+      "status": "passed",
+      "notes": "Second read-back fix: one restored inline sink per declaring file (argocd UpdateServer, backup UpdateStorageLocation) plus observability UpdateChannel in a file that declares no constant, leaving ArgoCD UpdateRepository, ArgoCD UpdateApplication and Backup UpdateSchedule on package constants. gofmt/build/vet clean, the three affected packages pass, the SQL-literal sensor exits 0, and the per-file duplicate-literal scan is unchanged at 802 candidate clusters with no new cluster; \"id = ?\" now appears 2 times in argocd_service.go, 2 in backup_service.go and 1 in notification_service.go, all below the S1192 threshold of 3."
+    },
+    {
+      "command": "gh run list --branch main / gh api repos/duanxldragon/pantheon-ops/commits/<merge-sha>/check-runs / GET /api/project_analyses/search?branch=main",
+      "cwd": "pantheon-ops",
+      "status": "failed",
+      "notes": "Not a code failure: after PR #160 was merged by auto-merge at 05:57Z, main at 7364a44 has zero workflow runs and zero check-runs, and the last main analysis on Sonar is still the pre-merge one (03:14Z), so /api/issues/search on main still reports the old 158 smells and the gate still reads the old state. The acceptance analysis must be dispatched explicitly with gh workflow run sonarcloud.yml --ref main. Recorded here so the next round does not read a stale metric as a result."
+    },
+    {
+      "command": "GET /api/issues/search?componentKeys=duanxldragon_pantheon-ops&pullRequest=160&issueStatuses=OPEN,CONFIRMED (second read-back, c11766d)",
+      "cwd": "sonarcloud.io",
+      "status": "failed",
+      "notes": "Same 3 findings as the first round-6 read-back, which is what identified go:S1192 counting the constant declaration line as an occurrence: argocd_service.go:17 and backup_service.go:27 with \"id = ?\" duplicated 3 times each (declaration + two restored sinks). Fixed in follow-up commit ca7dd22 by keeping one restored sink per declaring file."
     }
   ]
 }

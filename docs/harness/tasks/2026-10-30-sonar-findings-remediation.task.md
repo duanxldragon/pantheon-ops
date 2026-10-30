@@ -323,12 +323,16 @@ business/*
   the pattern `DeployTaskList.tsx` and `CmdbLabelSchemaList.tsx` already use. The extraction is render-identical
   and pinned by the 230-test unit suite.
 - The round-4 FALSE_POSITIVE marks do not survive a rewrite of the marked statement: Sonar keys an issue
-  instance on the text hash of its location, so replacing `Where("id = ?", id)` with a constant produces a new
-  open instance at that line. Four previously marked sinks in `argocd_service.go` and `backup_service.go` were
-  therefore restored verbatim to their HEAD text and only the other occurrences moved to package constants.
-  Because `go:S1192` counts occurrences per file with a threshold of three, each file keeps exactly two inline
-  literals and stays clean under both rules. This reduces the unavoidable post-merge re-triage from five S3649
-  findings to one (`ArgoCDService.UpdateApplication`), covered by the same checked invariant.
+  instance on the text hash of its location, so replacing `Where("id = ?", id)` with a constant produces a
+  new open instance at that line. Five marked sinks were candidates for restoration, and the binding constraint
+  turned out to be `go:S1192` itself: the rule counts the constant declaration as an occurrence of the literal, so
+  a file that declares the SQL constant may keep at most one inline copy of it (declaration plus two inline uses is
+  three, which re-raises the smell — exactly what the first PR read-back reported on `argocd_service.go:17` and
+  `backup_service.go:27`). Three sinks are now restored verbatim (`ArgoCDService.UpdateServer`,
+  `BackupService.UpdateStorageLocation`, `NotificationService.UpdateChannel`; the last sits in a file that declares
+  no such constant, so it costs nothing) and three stay on package constants (`ArgoCDService.UpdateRepository`,
+  `ArgoCDService.UpdateApplication`, `BackupService.UpdateSchedule`). Those three are the unavoidable post-merge
+  re-triage, each justified by `scripts/check-gorm-sql-literal.mjs` and recorded per key so it stays reversible.
 - Verification this round: `gofmt`/`go build`/`go vet` clean, `golangci-lint run --new-from-rev=a5b5910` →
   0 issues, `scripts/check-gorm-sql-literal.mjs` exit 0 with its four visible waivers and 13/13 checker tests,
   `go test ./... -count=1` exit 0 with no `FAIL` line — the 11 MySQL-dependent failures reported in round 5 did
@@ -341,6 +345,32 @@ business/*
 - Residual gap for this round: the PR view shows only new code, so issues on unchanged lines are not visible
   until the squash merge triggers the `main` analysis. That read-back, and the single S3649 re-triage, are the
   next step.
+
+## Declaration-Line Duplication and the Auto-Merge Gap (round 7)
+
+- The round-6 shape still failed the hosted read-back, and the reason is a rule detail worth recording:
+  `go:S1192` counts the constant declaration itself as an occurrence of the literal. A file that declares
+  `idWhereClause = "id = ?"` therefore has one occurrence before it writes the clause anywhere, so two inline
+  sinks plus the declaration is three and the CRITICAL fires on the declaration line
+  (`argocd_service.go:17`, `backup_service.go:27`). The admissible shapes are "no declaration, at most two inline"
+  and "declaration, at most one inline"; with three sinks in one file neither shape preserves all three
+  FALSE_POSITIVE marks.
+- Chosen shape: declaration plus one restored sink per declaring file. `ArgoCDService.UpdateServer` and
+  `BackupService.UpdateStorageLocation` keep their HEAD statement text, `NotificationService.UpdateChannel` is
+  restored as well because that file declares no such constant, and `ArgoCDService.UpdateRepository`,
+  `ArgoCDService.UpdateApplication` and `BackupService.UpdateSchedule` stay on package constants. The cost is
+  three recorded FALSE_POSITIVE transitions after the merge instead of one, and the benefit is that `main`
+  carries no CRITICAL smell, which is the number this task is measured by.
+- Process finding about the merge itself: PR #160 was merged by auto-merge that
+  `app/github-actions` (Pull Request Automation) had enabled, and it landed the moment the required contexts
+  turned green — before the second hosted read-back could act on the 12-then-3 findings. The follow-up commit
+  therefore had to become a second PR rather than an amendment, and it also exposed that a merge executed by
+  the automation does not produce the push-triggered workflow run that the acceptance step depends on: `main`
+  at `7364a44` has no `SonarCloud Scan`, `Code Quality Gates` or `Security Gates` run at all, while the two
+  earlier merges that were performed explicitly did. Consequence for this task's acceptance: the post-merge
+  analysis has to be dispatched with `gh workflow run sonarcloud.yml --ref main` rather than assumed, and the
+  remaining PRs in this task are merged with an explicit `gh pr merge --squash --delete-branch` so the merge
+  point stays a deliberate, reviewable action.
 
 ## Verification Plan
 

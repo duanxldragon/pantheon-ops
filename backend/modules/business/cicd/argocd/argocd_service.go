@@ -271,7 +271,7 @@ func (s *ArgoCDService) UpdateRepository(id uint64, req AddRepositoryRequest) er
 		}
 		updates["ssh_key"] = encrypted
 	}
-	return s.db.Model(&ArgoCDRepository{}).Where("id = ?", id).Updates(updates).Error
+	return s.db.Model(&ArgoCDRepository{}).Where(idWhereClause, id).Updates(updates).Error
 }
 
 // DeleteRepository removes the repository from Argo CD and from the local registry.
