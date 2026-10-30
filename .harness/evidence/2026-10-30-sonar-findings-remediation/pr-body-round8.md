@@ -3,6 +3,7 @@
 - 改动层级：仅 `docs/harness/tasks/**` 与 `.harness/{evidence,tasks}/**`（任务包文档、summary、commands.json、sonar-triage.json、manifest、本 PR body）；**零代码改动**
 - 改动模块：harness 治理记录（任务 2026-10-30-sonar-findings-remediation 的 round 8 验收留痕）
 - 目标问题：记录 `main` 已达到 **Issues = 0 且 Security = 0** 的托管事实，并修正 round 7 的一条规则模型
+- 预期影响：无运行时影响（零代码改动，不改任何二进制行为、接口、权限、菜单或 seed）；影响面只有治理记录本身——`main` 的验收读数、4 个 issue key 的流转留痕、以及「PR 侧流转会被分支分析继承」这条被读数修正的规则，供下一轮 Sonar 处置直接复用而不必重新试错
 - 验收读数（`main` at `430a9f0`，PR #161 的 squash；分析 `2026-10-30T06:38:03+0000`，因自动化合并不产生 push 触发而由 `gh workflow run sonarcloud.yml --ref main` 显式派发）：
   - `/api/issues/search?branch=main&issueStatuses=OPEN,CONFIRMED` → total **0**，type facet `CODE_SMELL 0 / VULNERABILITY 0 / BUG 0`，rule facet 为空
   - `/api/hotspots/search?status=TO_REVIEW` → **0**
@@ -21,12 +22,12 @@
 - Task ID：2026-10-30-sonar-findings-remediation
 - Task Manifest：.harness/tasks/2026-10-30-sonar-findings-remediation/manifest.json
 - Evidence：.harness/evidence/2026-10-30-sonar-findings-remediation/commands.json
-- Verification evidence：.harness/evidence/2026-10-30-sonar-findings-remediation/summary.md（新增 "Issues and security at zero (round 8)" 一节）
+- Verification evidence：.harness/evidence/2026-10-30-sonar-findings-remediation/summary.md
 - Hosted read-back：.harness/evidence/2026-10-30-sonar-findings-remediation/sonar-triage.json（`postRound8ReadBack`）
 - Review Artifact：.harness/evidence/2026-10-30-sonar-findings-remediation/review.md
 - OpenSpec change：none
-- Trivial change：no（验收结论与规则模型都需留痕）
-- Quality Profile：docs-governance
+- Trivial change：no
+- Quality Profile：ci-workflow
 - Ratchet Decision：no-repeat-observed
 - GitHub Signal：repo-quality-gate
 
@@ -75,6 +76,7 @@
 - Copilot review：requested（由 PR Automation 自动请求）
 - CodeQL 结果：not-applicable（本 PR 无代码改动，不新增 sink）
 - GitHub checks 结果：pending（`Quality Gates` / `Security Gates` 为 `main` 的 required contexts）
+- Duplication Gate 结果：not-applicable for this diff（本 PR 只改 markdown 与 evidence JSON，不新增任何源码行，因此 `node scripts/check-duplication.mjs` 的 base 侧复制粘贴面为空；作为回归位仍跑过 round 7 的 `check:duplication` 全绿集合，且 `main` 的 `duplicated_lines_density` 读数为 2.0）
 - Auto-merge：本 PR 创建后需在 required contexts 变绿前用 GraphQL `disablePullRequestAutoMerge` 关闭，否则 `app/github-actions` 会在变绿瞬间落地——PR #160 与 #161 两次都是这样合并的，显式 `gh pr merge --squash --delete-branch` 因「head branch is not up to date with the base branch」被拒
 - 分支收口：`fix/sonar-duplication-literals` 与 `refactor/sonar-code-smell-backlog` 在删除前已核验对 `main` **无代码 diff**（`git diff --stat origin/main origin/<b> -- backend frontend scripts .github` 空输出），远端与本地均已删除；`docs/sonar-triage-record`、`fix/sonar-security-findings`、`test/filedist-containment-on-main` 三条早已 squash 合并的本地分支一并清理，当前本地与远端都只剩 `main`
 - 是否高风险改动：no（纯治理文档与 evidence 记录；风险点仅在「验收结论是否属实」，因此每条结论都附托管读数与可复查 URL/命令）
