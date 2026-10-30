@@ -150,9 +150,11 @@ the check is a GitHub App / Vercel dashboard action.
 - `resolveTaskActionPermissions` was checked status-by-status against the round-5 expressions it replaces,
   including the deliberate asymmetry that `canDeleteTask` excludes the three request states
   (`running`, `pause_requested`, `cancel_requested`) rather than allow-listing terminal ones.
-- Restoring the four FALSE_POSITIVE-marked sink statements is a trade, not a fix, and it is recorded as one: the
+- Restoring the FALSE_POSITIVE-marked sink statements is a trade, not a fix, and it is recorded as one: those
   lines are literal SQL again because rewriting them would silently re-open hosted security findings that were
-  closed with a machine-checked argument. The trade is acceptable only while
+  closed with a machine-checked argument. The bound is `go:S1192` counting the constant declaration as an
+  occurrence, so only one restored sink per declaring file is possible, and three provably-literal sinks stay on
+  package constants and must be re-triaged after the merge. The trade is acceptable only while
   `scripts/check-gorm-sql-literal.mjs` stays blocking, because that sensor is what prevents the restored text
   from drifting into a genuinely dynamic clause later.
 - What is still not claimed: that the merged `main` analysis is at zero. The PR view cannot show findings on

@@ -323,12 +323,16 @@ business/*
   the pattern `DeployTaskList.tsx` and `CmdbLabelSchemaList.tsx` already use. The extraction is render-identical
   and pinned by the 230-test unit suite.
 - The round-4 FALSE_POSITIVE marks do not survive a rewrite of the marked statement: Sonar keys an issue
-  instance on the text hash of its location, so replacing `Where("id = ?", id)` with a constant produces a new
-  open instance at that line. Four previously marked sinks in `argocd_service.go` and `backup_service.go` were
-  therefore restored verbatim to their HEAD text and only the other occurrences moved to package constants.
-  Because `go:S1192` counts occurrences per file with a threshold of three, each file keeps exactly two inline
-  literals and stays clean under both rules. This reduces the unavoidable post-merge re-triage from five S3649
-  findings to one (`ArgoCDService.UpdateApplication`), covered by the same checked invariant.
+  instance on the text hash of its location, so replacing `Where("id = ?", id)` with a constant produces a
+  new open instance at that line. Five marked sinks were candidates for restoration, and the binding constraint
+  turned out to be `go:S1192` itself: the rule counts the constant declaration as an occurrence of the literal, so
+  a file that declares the SQL constant may keep at most one inline copy of it (declaration plus two inline uses is
+  three, which re-raises the smell — exactly what the first PR read-back reported on `argocd_service.go:17` and
+  `backup_service.go:27`). Three sinks are now restored verbatim (`ArgoCDService.UpdateServer`,
+  `BackupService.UpdateStorageLocation`, `NotificationService.UpdateChannel`; the last sits in a file that declares
+  no such constant, so it costs nothing) and three stay on package constants (`ArgoCDService.UpdateRepository`,
+  `ArgoCDService.UpdateApplication`, `BackupService.UpdateSchedule`). Those three are the unavoidable post-merge
+  re-triage, each justified by `scripts/check-gorm-sql-literal.mjs` and recorded per key so it stays reversible.
 - Verification this round: `gofmt`/`go build`/`go vet` clean, `golangci-lint run --new-from-rev=a5b5910` →
   0 issues, `scripts/check-gorm-sql-literal.mjs` exit 0 with its four visible waivers and 13/13 checker tests,
   `go test ./... -count=1` exit 0 with no `FAIL` line — the 11 MySQL-dependent failures reported in round 5 did

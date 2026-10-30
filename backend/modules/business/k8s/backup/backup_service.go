@@ -421,7 +421,7 @@ func (s *BackupService) GetSchedule(id uint64, dataScope *common.DataScopeReq) (
 // UpdateSchedule applies req to the stored schedule and re-applies it on the cluster.
 func (s *BackupService) UpdateSchedule(id uint64, req CreateScheduleRequest) error {
 	tplJSON, _ := json.Marshal(req.BackupTemplate)
-	return s.db.Model(&VeleroSchedule{}).Where("id = ?", id).Updates(map[string]interface{}{
+	return s.db.Model(&VeleroSchedule{}).Where(whereByID, id).Updates(map[string]interface{}{
 		"name":            req.Name,
 		"cron_expression": req.CronExpression,
 		"enabled":         req.Enabled,
