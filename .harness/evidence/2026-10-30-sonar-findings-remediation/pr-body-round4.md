@@ -9,8 +9,8 @@
 
 - Task ID：2026-10-30-sonar-findings-remediation
 - Task Manifest：.harness/tasks/2026-10-30-sonar-findings-remediation/manifest.json
-- Evidence：.harness/evidence/2026-10-30-sonar-findings-remediation/sonar-triage.json
-- Verification evidence：.harness/evidence/2026-10-30-sonar-findings-remediation/commands.json
+- Evidence：.harness/evidence/2026-10-30-sonar-findings-remediation/commands.json
+- Verification evidence：.harness/evidence/2026-10-30-sonar-findings-remediation/summary.md
 - Review Artifact：.harness/evidence/2026-10-30-sonar-findings-remediation/review.md
 - OpenSpec change：none
 - Trivial change：no
