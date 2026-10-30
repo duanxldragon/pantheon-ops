@@ -115,17 +115,30 @@ branch-cleanup script (now base's copy, 4/4 tests pass).
   obsolete because main already carries newer versions. Only `main` remains on the remote; no PR is
   open.
 
+## Runtime acceptance review (2026-10-31)
+
+- 边界复核：本轮新增的是 evidence 记录与 lock 文件 `pendingWork` 状态，业务源码零改动
+  （`git status` 干净，一次性驱动文件已删除）。因此不存在新的消费者契约面。
+- 判定：`runtime-acceptance` 的验收口径由「声称能跑」提升到「在隔离 schema 上真跑通」，
+  并且覆盖了 base v0.18.x 最敏感的继承面——租户核心表 DDL（migration 20/24 修复线）与
+  租户控制台 HTTP 契约。写路径还顺带验证了 secure-action 守卫与软删除的 code 释放约定。
+- 保留意见：UI 冒烟（tenant-console.spec.ts + matrix fixture）未跑，不能据此声称浏览器面已验收；
+  该项在 knownGaps 里显式留着，而不是被本轮的 API 读数掩盖。
+- 会话卫生：一次 shell `source .env` 失败回显了本地开发库连接串（未入仓、未入提交）。已改为
+  进程内解析，不再经 shell 展开；建议轮换该本地口令。
+
 ## Machine Readable
 
 ```json
 {
+  "taskId": "2026-10-29-foundation-upgrade-base-v0-18-1",
   "verdict": "approved",
   "findings": [
     {"id": "D1", "severity": "P1", "title": "v0.18.0 removed a shared export with a repo-local caller search; consumer build broke, v0.18.1 restores it", "state": "closed-by-v0181"},
     {"id": "D2", "severity": "P1", "title": "Two Ops overlay pins served stale copies of base scripts and turned check-task-packet/check-doc-links into crashes", "state": "fixed-unpinned"},
     {"id": "D3", "severity": "P1", "title": "Ops Docs Governance never ran check:task-packet, so the broken checker stayed invisible", "state": "checker-fixed-ci-wiring-deferred"},
     {"id": "D4", "severity": "P1", "title": "Dependabot PRs could never satisfy PR Governance Prereq; auto-merge unreachable", "state": "fixed-exemption-added"},
-    {"id": "D5", "severity": "P2", "title": "No runtime acceptance (startup + golang-migrate) in this round", "state": "inherited-open"},
+    {"id": "D5", "severity": "P2", "title": "No runtime acceptance (startup + golang-migrate) in this round", "state": "closed-2026-10-31"},
     {"id": "D6", "severity": "P2", "title": "check:harness-docs has four dangling links inherited from base documents", "state": "base-side-fix-needed"},
     {"id": "D7", "severity": "P2", "title": "go test -race cannot run on this Windows host (TSan shadow memory)", "state": "environment-gap"},
     {"id": "D8", "severity": "P2", "title": "Inherited base workflow tests assert base's .github shape and RELEASE_GATE_TOKEN", "state": "explicitly-accepted-red"},
