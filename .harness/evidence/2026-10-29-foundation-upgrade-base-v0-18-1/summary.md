@@ -112,3 +112,32 @@ build that proves the `TS2614` break is gone (`✓ built in 725ms`).
   `7407012001` (`dpl_oh9Pv9fibTSxf72d7QWfrtuW5Kuq`) for `165014c8` failed, as did every preview
   build before it. The repository has never carried a `vercel.json`, so the configuration lives in
   the Vercel project and needs dashboard access to diagnose.
+
+## Runtime acceptance (2026-10-31, closes the last open ledger item)
+
+The last `pendingWork` item on the v0.18.1 lock was `runtime-acceptance`, inherited open from the
+v0.17.7 round because it needed a live MySQL instance. It is now closed on this host:
+
+- **Isolation first.** A scratch schema (`pantheon_ops_ra`) was created and the DSN was rewritten in
+  process; the `pantheon_ops` dev database was never written to, `docker-compose.yml` was not used
+  (it collides with the running instance on 3306 and mounts the deprecated
+  `database/system_init.sql`), and no `DROP DATABASE` was executed anywhere.
+- **golang-migrate on an empty schema:** `RunMigrations` reached `version=30 dirty=false`, 34 tables.
+  This is the authoritative path the ledger claimed but had never actually run.
+- **Consumer boot:** `go run ./cmd/server` with `PANTHEON_AUTO_MIGRATE=true` listened on 8080 with no
+  panic/fatal, completed its maintenance tasks, and grew the schema to 81 tables (the 22
+  business-domain `AutoMigrate` sites). Seeds measured: 228 menus, 4 active tenant plans, 43→84
+  settings, 1385 i18n rows, admin user and roles.
+- **Tenant console over HTTP:** login via cookie jar (access + refresh + csrf), then 5 read surfaces in
+  `compat` mode; after flipping `platform.tenant_mode` to `multi` in the scratch schema (5s loader TTL,
+  no restart), the full write lifecycle ran: create tenant with admin provisioning → get → members →
+  overview → archive → delete refused with `auth.operation.verification_required` → re-verified through
+  `/auth/operation-verify` → delete succeeded, leaving `total=0` and the soft-deleted
+  `__deleted_tenant_1` row.
+- **Handler tests uncached:** `go test -count=1 ./modules/system/iam/tenant/ ./modules/platform/` ok.
+- **Cleanup:** the one-off driver and scratch scripts were deleted; the scratch schema is left in place
+  for inspection and can be dropped at any time.
+
+Remaining runtime gap: the browser-side `tenant-console.spec.ts` smoke (needs a dev server plus the
+tenant matrix fixture) was not run this round — recorded in `knownGaps`, along with one session-hygiene
+note about a shell `source .env` failure that echoed the local dev DSN and then stopped being used.
