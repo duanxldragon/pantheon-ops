@@ -107,6 +107,30 @@
       "cwd": ".",
       "status": "passed",
       "notes": "check:task-packet passes all six current-format packets including this one; check:harness-adoption 0 findings after this manifest and evidence file were added; failure registry 0 errors with the known empty-table warning; business boundary check passed; business-boundaries and business-foundation 0 fail; duplication PASS; harness-docs reports only the inherited base-document dangling links as findings (report-only, exit 0); gorm-sql-literal passes with four documented waivers in bizscope, storage and retired_modules."
+    },
+    {
+      "command": "curl -s -u \"$T:\" \"https://sonarcloud.io/api/qualitygates/project_status?projectKey=duanxldragon_pantheon-ops&pullRequest=166\"",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "First PR analysis failed the gate on new_duplicated_lines_density 3.187% against the 3% threshold (new_duplicated_lines 16 of new_lines 502); new_reliability_rating, new_security_rating, new_maintainability_rating and new_security_hotspots_reviewed are all OK. The 16 new duplicated lines are exactly the 16 permission strings added to frontend/src/modules/business/k8s/index.ts, one key per line; SonarJS duplication treats every `'string',` line as the same token sequence as the other modules' permission arrays."
+    },
+    {
+      "command": "curl -s -u \"$T:\" \"https://sonarcloud.io/api/issues/search?componentKeys=duanxldragon_pantheon-ops&pullRequest=166&resolved=false\"",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Six new CRITICAL go:S1192 code smells, all in k8s_seed.go: \"k8s-service\" duplicated 5 times, \"创建命名空间\" / \"创建 ConfigMap\" / \"Create ConfigMap\" / \"创建 Secret\" / \"Create Secret\" each duplicated 3 times."
+    },
+    {
+      "command": "go build ./modules/business/k8s/ && go test -count=1 ./modules/business/k8s/ && gofmt -l modules/business/k8s",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "After introducing k8sServiceEntityKey plus the five create-title constants in k8s.go and replacing all 20 literal occurrences in k8s_seed.go: build 0, no test files, gofmt empty."
+    },
+    {
+      "command": "cd frontend && node scripts/check-menu-contract.mjs && npm run lint && npm run type-check",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "The 16 new permission keys are grouped two per line by resource; the sensor still extracts all literals from the permissions array and reports 40 menus / 50 routes / 237 permissions / 52 component keys; lint 0, type-check 0."
     }
   ],
   "runtimeSensitive": true,
