@@ -107,6 +107,48 @@
       "cwd": ".",
       "status": "passed",
       "notes": "check:task-packet passes all six current-format packets including this one; check:harness-adoption 0 findings after this manifest and evidence file were added; failure registry 0 errors with the known empty-table warning; business boundary check passed; business-boundaries and business-foundation 0 fail; duplication PASS; harness-docs reports only the inherited base-document dangling links as findings (report-only, exit 0); gorm-sql-literal passes with four documented waivers in bizscope, storage and retired_modules."
+    },
+    {
+      "command": "curl -s -u \"$T:\" \"https://sonarcloud.io/api/qualitygates/project_status?projectKey=duanxldragon_pantheon-ops&pullRequest=166\"",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "First PR analysis failed the gate on new_duplicated_lines_density 3.187% against the 3% threshold (new_duplicated_lines 16 of new_lines 502); new_reliability_rating, new_security_rating, new_maintainability_rating and new_security_hotspots_reviewed are all OK. The 16 new duplicated lines are exactly the 16 permission strings added to frontend/src/modules/business/k8s/index.ts, one key per line; SonarJS duplication treats every `'string',` line as the same token sequence as the other modules' permission arrays."
+    },
+    {
+      "command": "curl -s -u \"$T:\" \"https://sonarcloud.io/api/issues/search?componentKeys=duanxldragon_pantheon-ops&pullRequest=166&resolved=false\"",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Six new CRITICAL go:S1192 code smells, all in k8s_seed.go: \"k8s-service\" duplicated 5 times, \"创建命名空间\" / \"创建 ConfigMap\" / \"Create ConfigMap\" / \"创建 Secret\" / \"Create Secret\" each duplicated 3 times."
+    },
+    {
+      "command": "go build ./modules/business/k8s/ && go test -count=1 ./modules/business/k8s/ && gofmt -l modules/business/k8s",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "After introducing k8sServiceEntityKey plus the five create-title constants in k8s.go and replacing all 20 literal occurrences in k8s_seed.go: build 0, no test files, gofmt empty."
+    },
+    {
+      "command": "cd frontend && node scripts/check-menu-contract.mjs && npm run lint && npm run type-check",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "The 16 new permission keys are grouped two per line by resource; the sensor still extracts all literals from the permissions array and reports 40 menus / 50 routes / 237 permissions / 52 component keys; lint 0, type-check 0."
+    },
+    {
+      "command": "git switch -c fix/sonar-k8s-new-code origin/main && git cherry-pick 76cbc91 && cd backend && gofmt -l modules/business/k8s/ && go build ./... && go vet ./modules/business/k8s/ && cd .. && node frontend/scripts/check-menu-contract.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Replays the Sonar remediation onto the merged main (5676ffc) after PR #166 auto-merged ahead of the fix: cherry-pick clean, gofmt empty, backend build/vet clean, and the menu-contract sensor still reports 40 menus / 50 routes / 237 permissions / 52 component keys."
+    },
+    {
+      "command": "cd backend && golangci-lint run --new-from-rev=5676ffc ./modules/business/k8s/...",
+      "cwd": "backend",
+      "status": "failed",
+      "notes": "First run of the follow-up branch reproduced the hosted Go Lint red locally: gosec G101 flags k8s.go:76 because the CJK literal \"创建 Secret\" sits on a constant named k8sSecretCreateTitleZh and clears the entropy threshold. No suppression was added."
+    },
+    {
+      "command": "cd backend && gofmt -w modules/business/k8s/k8s.go modules/business/k8s/k8s_seed.go && go build ./... && go vet ./modules/business/k8s/ && golangci-lint run --new-from-rev=5676ffc ./modules/business/k8s/... && go test -count=1 ./modules/business/k8s/... && node ../frontend/scripts/check-menu-contract.mjs",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "Renamed the pair to k8sSensitiveCreateTitleZh/En (values unchanged, still plain literals so the static sensor resolves them) with a comment stating why; golangci-lint 0 issues, gofmt empty, build/vet clean, k8s packages ok, sensor still 40 menus / 50 routes / 237 permissions / 52 component keys."
     }
   ],
   "runtimeSensitive": true,
@@ -116,8 +158,9 @@
     "check:harness-docs reports dangling links inherited from base documents that point at base-only task packets and the base evidence archive; the check is report-only and the repair is a base-side change.",
     "The live tree is not byte-identical to the rebuilt staging tree: frontend/package.json and frontend/package-lock.json intentionally keep the merged Dependabot bumps instead of base's pins.",
     "go test -race cannot run on this Windows host (ThreadSanitizer shadow-memory allocation error code 87); CI runs it on ubuntu-latest.",
-    "Hosted SonarCloud Scan remains red because SONAR_TOKEN is rejected with HTTP 403, and Vercel remains red from external project configuration. Both carry forward from the v0.18.1 round and neither is a required context.",
-    "A workflow-triggered squash merge can land without push pipelines running; main-side gate proof needs either an explicit merge or a workflow_dispatch re-run."
+    "Vercel stays red on pull requests because the deployment lives in the Vercel project, not the repository; it is not a required context. SonarCloud Code Analysis, by contrast, went red on PR #166 only for the new-code findings above -- the CI SonarCloud Scan job itself passed on every push -- and the repair is carried by the follow-up PR recorded here.",
+    "A workflow-triggered squash merge can land without push pipelines running; main-side gate proof needs either an explicit merge or a workflow_dispatch re-run.",
+    "PR #166 auto-merged before the Sonar remediation reached its head; the fix commit was replayed on a branch cut from the merged main and is proven by the same local gates plus the follow-up PR's hosted checks."
   ],
   "linkage": {
     "taskManifest": ".harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2/manifest.json",

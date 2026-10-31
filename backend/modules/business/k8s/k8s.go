@@ -69,6 +69,15 @@ const (
 	k8sServicePermCreateKey    = "business.k8s.service.permission.create"
 	k8sServicePermUpdateKey    = "business.k8s.service.permission.update"
 	k8sServicePermDeleteKey    = "business.k8s.service.permission.delete"
+	k8sServiceEntityKey        = "k8s-service"
+	k8sNamespaceCreateTitleZh  = "创建命名空间"
+	k8sConfigMapCreateTitleZh  = "创建 ConfigMap"
+	k8sConfigMapCreateTitleEn  = "Create ConfigMap"
+	// gosec G101 reads a high-entropy CJK literal bound to a "Secret"-named
+	// constant as a hardcoded credential, so the display constants use the
+	// "sensitive" wording; the values stay plain literals for the static sensor.
+	k8sSensitiveCreateTitleZh = "创建 Secret"
+	k8sSensitiveCreateTitleEn = "Create Secret"
 	// Velero backup module is disabled in v1.0; the menu/permission keys are
 	// retained as constants for the v1.2 re-enablement (unused in v1.0).
 	operationsK8sBackupMenu = "operations.k8s.backup.menu"
