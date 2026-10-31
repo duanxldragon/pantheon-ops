@@ -1,0 +1,73 @@
+{
+  "taskId": "2026-10-31-frontend-follow-redirects-audit",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "other",
+    "adapter": "qoder-desktop"
+  },
+  "executedAt": "2026-10-31",
+  "workingDirectory": "pantheon-ops",
+  "linkage": {
+    "taskDoc": "docs/harness/tasks/2026-10-31-frontend-follow-redirects-audit.task.md",
+    "taskManifest": ".harness/tasks/2026-10-31-frontend-follow-redirects-audit/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-10-31-frontend-follow-redirects-audit",
+    "reviewFile": ".harness/evidence/2026-10-31-frontend-follow-redirects-audit/review.md"
+  },
+  "commands": [
+    {
+      "command": "gh run view 41169290115 -R duanxldragon/pantheon-ops --log-failed",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "main run of Security Gates (2026-10-31T04:36:50Z) failed because the Dependency Vulnerabilities job reported NPM_AUDIT_FRONTEND_RESULT=failure; the aggregated Security Gates job then exited 1 on DEPENDENCY_VULNERABILITIES_RESULT=failure."
+    },
+    {
+      "command": "gh api repos/duanxldragon/pantheon-ops/actions/jobs/124443543622/logs | grep -A6 'audited 455 packages'",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "frontend install logged '20 vulnerabilities (19 moderate, 1 high)' and npm audit --audit-level=high exited 1; the root workspace audit reported 'found 0 vulnerabilities'."
+    },
+    {
+      "command": "cd frontend && npm audit --registry=https://registry.npmjs.org --json",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "Before the fix: 1 high, 19 moderate. The high entry is follow-redirects 1.16.1 (range 1.16.0 - 1.16.1) under GHSA-mrwp-f3q8-3g9p, CWE-201, CVSS 5.9, reached through axios@1.20.0."
+    },
+    {
+      "command": "npm view follow-redirects versions --json --registry=https://registry.npmjs.org",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "1.16.2 is published and is the only version above the vulnerable range that still satisfies the axios range."
+    },
+    {
+      "command": "npm update follow-redirects (then reverted) and git checkout -- frontend/package-lock.json",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "Rejected path: the local npm rewrote unrelated libc fields on six optional platform packages. The lock was restored and only the follow-redirects version/resolved/integrity triple was edited, so the diff is 3 insertions and 3 deletions in one entry."
+    },
+    {
+      "command": "cd frontend && npm ci --ignore-scripts --registry=https://registry.npmjs.org",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "Installed from the edited lock: 454 packages, no lock drift."
+    },
+    {
+      "command": "cd frontend && npm ls follow-redirects",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "axios@1.20.0 -> follow-redirects@1.16.2 resolves inside the frontend tree."
+    },
+    {
+      "command": "cd frontend && npm audit --registry=https://registry.npmjs.org --json",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "After the fix: high 0, critical 0. The 19 moderate advisories remain and are outside --audit-level=high; they are dev-tooling chains (@typescript-eslint/*, eslint, minimatch, nyc, vite-plugin-istanbul) that need major upgrades and are deliberately out of scope."
+    },
+    {
+      "command": "cd frontend && npm run lint && npm run type-check && npm run build",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "eslint clean, tsc -b clean, vite build OK in 736ms with the existing INEFFECTIVE_DYNAMIC_IMPORT warning on Login.tsx."
+    }
+  ],
+  "knownGaps": []
+}
