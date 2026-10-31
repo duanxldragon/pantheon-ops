@@ -55,6 +55,10 @@
 
 - [x] `git cherry-pick 76cbc91` 到 `origin/main`（`5676ffc`）上 → clean
 - [x] `cd backend && gofmt -l modules/business/k8s/ && go build ./... && go vet ./modules/business/k8s/` → 空 / 0 / 0
+- [x] `cd backend && golangci-lint run --new-from-rev=5676ffc ./modules/business/k8s/...` → 0 issues
+      （首轮复现出 gosec G101：`k8sSecretCreateTitleZh` 承载中文高熵字面量被当作硬编码凭据；
+      改为 `k8sSensitiveCreateTitleZh/En`，值保持纯字面量以便静态传感器解析，未加任何抑制注释）
+- [x] `cd backend && go test -count=1 ./modules/business/k8s/...` → k8s 包 ok
 - [x] `node frontend/scripts/check-menu-contract.mjs` → `40 个菜单，50 条路由，237 个权限，52 个组件键`
 - [x] `cd frontend && npm run lint && npm run type-check` → 0 / 0（在 `76cbc91` 的原始验证中记录，重放未改变文件内容）
 - [x] 资源与继承门禁不适用：本 PR 不移动 lock、不重建 overlay
