@@ -25,9 +25,9 @@
 - Review Artifact：`.harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/review.md`
 - OpenSpec change：none
 - Trivial change：no
-- Quality Profile：foundation-release-consumer
+- Quality Profile：i18n
 - Ratchet Decision：sensor-added
-- GitHub Signal：consumer-lock-drift
+- GitHub Signal：method-gate
 
 ## Harness adoption markers
 
