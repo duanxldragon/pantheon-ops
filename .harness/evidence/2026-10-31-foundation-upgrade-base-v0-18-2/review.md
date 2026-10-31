@@ -125,7 +125,8 @@ memory (`error code: 87`). The plain `go test ./...` run passes and CI runs the 
   "residualRisk": [
     "Runtime seeding of the rewritten k8s permission rows rests on go test plus the v0.18.1 isolated-schema run, not a fresh startup reading.",
     "Base documents that link to base-only task packets keep failing the report-only doc-link check in the consumer.",
-    "Hosted SonarCloud Scan and Vercel remain red for the credential and external-project reasons recorded in the v0.18.1 round; neither is a required context."
+    "Vercel remains red on pull requests because the deployment lives in the Vercel project; it is not a required context.",
+    "PR #166 auto-merged before the Sonar remediation reached its head, so the fix landed through a follow-up PR cut from the merged main; the first PR's own gate reading stays red by history."
   ],
   "linkage": {
     "taskManifest": ".harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2/manifest.json",

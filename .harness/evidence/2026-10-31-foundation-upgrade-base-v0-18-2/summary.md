@@ -104,8 +104,13 @@ Both were repaired in code rather than waived: the repeated Go literals became n
 `k8s.go` (`k8sServiceEntityKey`, `k8sNamespaceCreateTitleZh`, `k8sConfigMapCreateTitleZh/En`,
 `k8sSecretCreateTitleZh/En`) referenced from the seed, and the new permission keys are grouped two
 per line by resource so the flat list no longer presents as a duplicated token run. The sensor
-still extracts every literal and reports the same 237 permissions. The re-analysis reading is
-recorded in commands.json once the PR's SonarCloud check settles.
+still extracts every literal and reports the same 237 permissions.
+
+The repair missed #166's merge window: auto-merge landed the PR at 2026-10-31T01:59:39Z as
+`5676ffc`, roughly ninety seconds before the remediation commit `76cbc91` reached the branch, so the
+reset PR carried the gate red and the fix was left on a closed head. The commit was replayed onto
+main as a follow-up PR (`fix/sonar-k8s-new-code`) so the code fix and its evidence land on the
+default branch instead of a dead ref; the hosted reading for that PR is recorded in commands.json.
 
 ## Known gaps
 

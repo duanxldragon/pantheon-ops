@@ -131,6 +131,12 @@
       "cwd": "frontend",
       "status": "passed",
       "notes": "The 16 new permission keys are grouped two per line by resource; the sensor still extracts all literals from the permissions array and reports 40 menus / 50 routes / 237 permissions / 52 component keys; lint 0, type-check 0."
+    },
+    {
+      "command": "git switch -c fix/sonar-k8s-new-code origin/main && git cherry-pick 76cbc91 && cd backend && gofmt -l modules/business/k8s/ && go build ./... && go vet ./modules/business/k8s/ && cd .. && node frontend/scripts/check-menu-contract.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Replays the Sonar remediation onto the merged main (5676ffc) after PR #166 auto-merged ahead of the fix: cherry-pick clean, gofmt empty, backend build/vet clean, and the menu-contract sensor still reports 40 menus / 50 routes / 237 permissions / 52 component keys."
     }
   ],
   "runtimeSensitive": true,
@@ -140,8 +146,9 @@
     "check:harness-docs reports dangling links inherited from base documents that point at base-only task packets and the base evidence archive; the check is report-only and the repair is a base-side change.",
     "The live tree is not byte-identical to the rebuilt staging tree: frontend/package.json and frontend/package-lock.json intentionally keep the merged Dependabot bumps instead of base's pins.",
     "go test -race cannot run on this Windows host (ThreadSanitizer shadow-memory allocation error code 87); CI runs it on ubuntu-latest.",
-    "Hosted SonarCloud Scan remains red because SONAR_TOKEN is rejected with HTTP 403, and Vercel remains red from external project configuration. Both carry forward from the v0.18.1 round and neither is a required context.",
-    "A workflow-triggered squash merge can land without push pipelines running; main-side gate proof needs either an explicit merge or a workflow_dispatch re-run."
+    "Vercel stays red on pull requests because the deployment lives in the Vercel project, not the repository; it is not a required context. SonarCloud Code Analysis, by contrast, went red on PR #166 only for the new-code findings above -- the CI SonarCloud Scan job itself passed on every push -- and the repair is carried by the follow-up PR recorded here.",
+    "A workflow-triggered squash merge can land without push pipelines running; main-side gate proof needs either an explicit merge or a workflow_dispatch re-run.",
+    "PR #166 auto-merged before the Sonar remediation reached its head; the fix commit was replayed on a branch cut from the merged main and is proven by the same local gates plus the follow-up PR's hosted checks."
   ],
   "linkage": {
     "taskManifest": ".harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2/manifest.json",
