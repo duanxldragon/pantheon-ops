@@ -484,6 +484,8 @@ function mergePackages(baseRoot, opsRoot, targetRoot, manifest) {
     'check:business-boundaries',
     'test:business-boundaries',
     'check:business-foundation',
+    'check:gorm-sql-literal',
+    'test:gorm-sql-literal',
   ];
   for (const scriptName of opsOnlyScripts) {
     if (opsPackage.scripts?.[scriptName] && !basePackage.scripts[scriptName]) {

@@ -65,6 +65,10 @@ const (
 	k8sStoragePermCreateKey    = "business.k8s.storage.permission.create"
 	k8sStoragePermUpdateKey    = "business.k8s.storage.permission.update"
 	k8sStoragePermDeleteKey    = "business.k8s.storage.permission.delete"
+	k8sServicePermViewKey      = "business.k8s.service.permission.view"
+	k8sServicePermCreateKey    = "business.k8s.service.permission.create"
+	k8sServicePermUpdateKey    = "business.k8s.service.permission.update"
+	k8sServicePermDeleteKey    = "business.k8s.service.permission.delete"
 	// Velero backup module is disabled in v1.0; the menu/permission keys are
 	// retained as constants for the v1.2 re-enablement (unused in v1.0).
 	operationsK8sBackupMenu = "operations.k8s.backup.menu"

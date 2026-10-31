@@ -1,30 +1,30 @@
 {
   "consumer": "pantheon-ops",
-  "lockedRelease": "pantheon-base-v0.18.1",
+  "lockedRelease": "pantheon-base-v0.18.2",
   "releaseLine": "release/0.18",
-  "baseCommit": "93505225e36c8d3ba5aa9facc12975eb813167d3",
-  "supersedes": "pantheon-base-v0.17.7",
-  "lockedAt": "2026-10-29T05:15:00Z",
-  "source": "https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.18.1",
+  "baseCommit": "a44ae4e012fff20430b1b7f91cb7a9296f3ea843",
+  "supersedes": "pantheon-base-v0.18.1",
+  "lockedAt": "2026-10-31T01:07:28Z",
+  "source": "https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.18.2",
   "verification": {
     "tgzChecksumVerified": true,
     "repoTarChecksumVerified": true,
-    "tgzSha256": "2fe49d70f8ac628351fc51076026cecb9c35cfa76180f7cdf3fdb5092ac77f03",
-    "repoTarSha256": "37ae7a0873f9e49a076f21fdaa53651cbce1b72160d98e04a4a04cfc132303d9",
-    "tagObject": "b63974357334aa6765e6a07bee9f12841dcb784c",
-    "publishedAt": "2026-10-29T04:19:38Z",
+    "tgzSha256": "c01ebbc1c515ae09ba097b421071800cc1e19fec516fea9b147b35b0b2fc356a",
+    "repoTarSha256": "c1360fb147610ff8629cc952d50491b993b04c07993d41f6c29eec37ecfc5d51",
+    "tagObject": "2e32bd465678e7259604ac2a16f4c8cb0e53308e",
+    "publishedAt": "2026-10-31T00:48:38Z",
     "releaseAssetCount": 4,
     "releaseGateSummary": "success",
-    "releaseGateRun": "40814653285",
-    "foundationReleaseVerifyRun": "40817118092",
+    "releaseGateRun": "41146688290",
+    "foundationReleaseVerifyRun": "41153048213",
     "baseSonarCloudGate": "success",
     "baseCodeQlOpenAlerts": 0,
     "sharedPathsMatchReleaseManifest": true,
     "materializedLayoutMatchesPriorReleases": true
   },
   "materialization": {
-    "releasesDir": ".foundation/releases/pantheon-base-v0.18.1",
-    "archive": "foundation-release-pantheon-base-v0.18.1.tgz",
+    "releasesDir": ".foundation/releases/pantheon-base-v0.18.2",
+    "archive": "foundation-release-pantheon-base-v0.18.2.tgz",
     "repoArchive": "repo.tar",
     "extractedRepo": "repo/",
     "manifest": "manifest.json (inside the tgz; not extracted to the releases dir)",
@@ -33,38 +33,37 @@
   "pendingWork": [
     {
       "item": "baseline-swap",
-      "description": "Apply the rebuilt v0.18.1 assembly to the ops source tree",
-      "blockedBy": "none",
-      "status": "done",
-      "completedAt": "2026-10-29",
-      "result": "20 tracked paths deleted, 30 added and 130 modified, of which 13 are the root RELEASE_NOTES_v0.13.1..v0.17.7 moves into docs/release-notes/. The deleted set is 7 base files retired by the 0.18 simplification waves (logging middleware, four tenant iam files, pkg/common/token.go, TenantSwitcher.tsx) plus 13 frontend capture/utility scripts; the added set is the 0.18 test and pkg files plus 18 release notes and 9 review docs. VERSION 0.17.7 -> 0.18.1, go directive 1.26.9 -> 1.26.10 with go-oidc v3.21.0 and go-jose v4, Dockerfile builder image bumped to golang:1.26.10-alpine."
-    },
-    {
-      "item": "post-swap-verification",
-      "description": "Run the consumer gates on the v0.18.1 tree and repair the consumer-side drift the swap exposed",
-      "blockedBy": "baseline-swap",
-      "status": "done",
-      "completedAt": "2026-10-29",
-      "result": "asset digests equal the lock and the published .sha256 sidecars; rebuild-from-base (lock-resolved) reported base commit 93505225 with 756 declared/generated files; shared drift 812 identical / 10 allowlisted / 160 skipped on both the staging and the applied tree; overlay contract 53 declared paths; 13/13 business-overlay tests; backend build, vet, gofmt 0 and go test ./... RC 0; frontend lint, type-check and build 0; npm ci clean at the root and in frontend; all Docs Governance scripts 0 including the newly wired check:ui-quality-gate.",
-      "evidence": ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/commands.json"
-    },
-    {
-      "item": "consumer-drift-repair",
-      "description": "Adopt base's archive-aware task-manifest helper, wire the UI quality gate into Docs Governance and normalise the manifest status vocabulary",
-      "blockedBy": "baseline-swap",
-      "status": "done",
-      "completedAt": "2026-10-29",
-      "result": "scripts/task-manifest.mjs and scripts/cleanup-github-branches.mjs dropped from repositoryOverlayPaths so the consumer follows base's copies; check:task-packet and check:harness-docs no longer crash on the missing resolveArchiveAwarePath export and branch deletion tolerates already-gone heads; quality.yml Docs Governance gained the check:ui-quality-gate and check:task-packet steps base 0.18 expects; pr-automation.yml exempts dependabot from the PR body ceremony; 11 ops manifests moved from status complete to completed under base's canonical vocabulary."
-    },
-    {
-      "item": "runtime-acceptance",
-      "description": "Start the backend against a fresh database and run golang-migrate to 000030, then verify the business seeds and the tenant console route",
+      "description": "Apply the rebuilt v0.18.2 assembly to the ops source tree",
       "blockedBy": "none",
       "status": "done",
       "completedAt": "2026-10-31",
-      "result": "Executed on the local MySQL 8 against an isolated scratch schema (pantheon_ops_ra); the pantheon_ops dev database was never written and docker-compose.yml was deliberately not used (3306 collision plus the deprecated database/system_init.sql mount). golang-migrate over the embedded backend/pkg/database/migrations set reached schema_migrations version=30 dirty=false with 34 tables on an empty schema. go run ./cmd/server with PANTHEON_AUTO_MIGRATE=true then listened on 8080 with no panic or fatal, finished its maintenance tasks and grew the schema to 81 tables across the 22 business-domain AutoMigrate sites, seeding 228 menus, 4 active tenant plans (free/basic/professional/enterprise), 84 settings, 1385 i18n rows, the admin user and roles. The tenant console was exercised over its real HTTP contract: login through the cookie jar (access, refresh and csrf), then user/info, tenant/list, tenant-ops/plan/list, tenant-ops/overview and tenant-ops/member all 200 in compat mode; after flipping platform.tenant_mode to multi in the scratch schema (5s ModeLoader TTL, no restart) the full write lifecycle ran - create with tenant-admin provisioning, get, members, overview, archive, the first delete refused with auth.operation.verification_required by the secure-action guard, re-verified through /auth/operation-verify, then deleted, leaving total=0 and the soft-deleted __deleted_tenant_1 row. go test -count=1 ./modules/system/iam/tenant/ ./modules/platform/ passed uncached. The one-off driver was deleted; the scratch schema is left in place for inspection.",
-      "evidence": ".harness/evidence/2026-10-29-foundation-upgrade-base-v0-18-1/commands.json"
+      "result": "14 paths applied to the live tree (12 modified, 2 new): .business-overlay-report.json, VERSION 0.18.1 -> 0.18.2, the docs/release-notes index pair, docs/reviews/CODE_SIMPLIFICATION_PLAN.md, frontend/scripts/check-menu-contract.mjs, the two generated frontend/src/i18n/resources/business/*.ts files, package.json, the three tests/scripts workflow tests, plus new docs/release-notes/RELEASE_NOTES_v0.18.2.md and tests/scripts/check-menu-contract.test.mjs. The copy was enumerated rather than a bulk archive overlay so that frontend/package.json and frontend/package-lock.json stay on the Dependabot bumps already merged on ops main (i18next 26.5.11, react-i18next 17.1.9) instead of regressing to base 26.5.6 / 17.1.3. Backed up beforehand to .tmp/backup-pre-0182/ (tracked.patch plus untracked.txt; the untracked set was empty)."
+    },
+    {
+      "item": "post-swap-verification",
+      "description": "Run the consumer gates on the v0.18.2 tree",
+      "blockedBy": "baseline-swap",
+      "status": "done",
+      "completedAt": "2026-10-31",
+      "result": "check:shared-drift against the rel-0182 worktree reported 813 shared files identical to base, 10 allowlisted drift, 161 business-overlay files skipped; check:business-overlay 53 declared paths; 13/13 tests/scripts/business-overlay tests; frontend lint, type-check and build all green with the new menu-contract sensor reporting 40 menus / 50 routes / 237 permissions / 52 component keys; backend go build ./..., go vet ./... and gofmt clean, go test -count=1 ./... 64 packages ok with no FAIL; npm run prepare and the root Docs Governance set (check:docs-frontmatter 436 docs, check:encoding 2115 files, check:structure 2289 files, check:task-packet-template, check:pr-governance, check:generated-modules, check:ui-quality-gate), the harness set (check:task-packet, check:harness-adoption, check:failure-registry, check:business-boundaries, test:business-boundaries, check:business-foundation, check:duplication, check:harness-docs) and check:gorm-sql-literal all exit 0.",
+      "evidence": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/commands.json"
+    },
+    {
+      "item": "menu-contract-sensor-repair",
+      "description": "Repair the k8s permission seeds the newly shared menu-contract sensor exposed",
+      "blockedBy": "baseline-swap",
+      "status": "done",
+      "completedAt": "2026-10-31",
+      "result": "v0.18.2 shares frontend/scripts/check-menu-contract.mjs with consumers, and on its first run over the ops tree it rejected the k8s module: k8s_seed.go built its permission menu seeds inside init() with titleKey := strings.ReplaceAll(item.perm, \":\", \".\") + \".permission\", which the parser cannot resolve to a constant, and the resulting runtime key spelling (business.k8s.cluster.sync.permission) matched no i18n catalogue. Fixed by removing the init() derivation and unrolling 20 static F menuSeed entries plus 40 zh-CN/en-US permission i18nSeed rows on canonical consts, adding the four missing k8sServicePerm* consts, declaring the 16 missing permission strings in frontend/src/modules/business/k8s/index.ts and adding their 20 title translations to the business v12locales JSON. The sensor now passes with the payload above, and k8s module behaviour (bindAdminPermission, seeded menu set) is unchanged."
+    },
+    {
+      "item": "overlay-completeness-repair",
+      "description": "Stop the deterministic rebuild from deleting the ops-only gorm gate and from dropping two hand-added i18n keys",
+      "blockedBy": "baseline-swap",
+      "status": "done",
+      "completedAt": "2026-10-31",
+      "result": "The rebuild plan showed scripts/check-gorm-sql-literal.mjs and tests/scripts/check-gorm-sql-literal.test.mjs were undeclared repositoryOverlayPaths, so a clean rebuild would have deleted them and dropped their package.json scripts. Both paths are now declared in business-overlay.json and both script names added to opsOnlyScripts in scripts/business-overlay/rebuild-from-base.mjs; a follow-up dry rebuild re-derived 789 declared/generated files with no deletion. Separately, business.observability.monitoring.field.endpointPlaceholder and ...urlPlaceholder existed only in the generated resources/business/*.ts files, so they would have vanished on rebuild; both are now in frontend/src/modules/business/v12locales/{zh-CN,en-US}.json."
     }
   ],
-  "notes": "v0.18.1 is a patch on top of the 13-wave simplification minor: base commit 93505225 is the squash merge of base PR #469, the tag object b639743 is annotated, and the four assets were re-hashed locally after materialization and matched both the lock and their own sidecars. Release Gate run 40814653285 and Foundation Release Verify run 40817118092 are both success on the tagged commit, and every other base workflow on that commit is success. The consumer had to move for a real reason rather than for parity: v0.18.0's simplification wave removed the isForbiddenRequestError export from frontend/src/api/request.ts on a repo-local zero-caller search, and the ops DeployTaskDetail page still imported it, so the consumer frontend build failed with TS2614. v0.18.1 restores the export. The swap itself also surfaced three consumer-side drifts that base 0.18 tightened: the stale scripts/task-manifest.mjs overlay that lacked resolveArchiveAwarePath, the missing check:ui-quality-gate workflow step, and the complete status spelling in 11 manifests."
+  "notes": "v0.18.2 is a patch release on top of the 13-wave simplification minor. Base commit a44ae4e0 is the squash merge of base PR #479, the tag object 2e32bd46 is annotated, and all four release assets were re-hashed locally after materialization and matched both the root lock and their published .sha256 sidecars (tgz c01ebbc1..., repo.tar c1360fb1...). Release Gate run 41146688290 succeeded on the tagged commit; Foundation Release Verify run 41153048213 succeeded after being dispatched manually, because GitHub suppresses release: published events for releases published with GITHUB_TOKEN, so the tag-triggered fan-out never fired. The consumer-relevant change in this release is the shared menu-contract sensor: v0.18.2 adds frontend/scripts/check-menu-contract.mjs to sharedPaths (backend 4 / frontend 47 / docs 2 = 53), wires it into the frontend prebuild and ships tests/scripts/check-menu-contract.test.mjs. That sensor immediately exposed runtime-derived k8s permission title keys that had never been validated; the consumer fix is recorded in pendingWork. Two pre-existing rebuild defects (undeclared gorm gate scripts, i18n keys only present in generated files) were repaired in the same pass so the next rebuild is lossless."
 }

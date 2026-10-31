@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import vm from 'node:vm';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const workspaceRoot = path.resolve(path.dirname(currentFilePath), '..', '..');
@@ -156,7 +156,18 @@ function extractObjectBlocks(arrayBody) {
   return blocks;
 }
 
-function extractField(block, fieldName, consts) {
+// A Go seed field may reference a package-local string constant instead of a
+// literal (the SonarCloud S1192 remediation). Only a bare identifier is such a
+// reference: `item.Key`, `strings.ToLower(x)` and `menuKey(i)` are expressions
+// that no constant table can resolve, so they must not be reported as one.
+function constReference(block, fieldName) {
+  const match = block.match(
+    new RegExp(`\\b${fieldName}\\b\\s*:\\s*([A-Za-z_]\\w*)(?![\\w.\\[(])`),
+  );
+  return match ? match[1] : '';
+}
+
+export function extractField(block, fieldName, scope) {
   const patterns = [
     new RegExp(`\\b${fieldName}\\b\\s*:\\s*'([^']*)'`),
     new RegExp(`\\b${fieldName}\\b\\s*:\\s*"([^"]*)"`),
@@ -168,25 +179,58 @@ function extractField(block, fieldName, consts) {
       return match[1];
     }
   }
-  // Go seed files may reference package-local string constants instead of
-  // literals (SonarCloud S1192 remediation); resolve identifiers through the
-  // package const table when one is supplied.
-  if (consts) {
-    const identifier = block.match(new RegExp(`\\b${fieldName}\\b\\s*:\\s*([A-Za-z_]\\w*)`));
-    if (identifier && consts.has(identifier[1])) {
-      return consts.get(identifier[1]);
+  if (scope) {
+    const identifier = constReference(block, fieldName);
+    if (identifier && scope.consts.has(identifier)) {
+      return scope.consts.get(identifier);
     }
   }
   return '';
 }
 
+// Unresolved bare references are a sensor gap rather than an absent field:
+// collapsing them to '' would let the contract checks compare '' against the
+// frontend value and report a bogus mismatch (or miss a real one). Callers report
+// this only for blocks they keep as seeds, so ordinary Go code that happens to
+// contain a `{ Key: … }` fragment stays out of the finding list.
+export function recordUnresolvedConstRefs(block, fieldNames, scope) {
+  if (!scope) {
+    return;
+  }
+  for (const fieldName of fieldNames) {
+    const identifier = constReference(block, fieldName);
+    if (identifier && !scope.consts.has(identifier)) {
+      unresolvedGoConstRefs.push({ filePath: scope.filePath, fieldName, identifier });
+    }
+  }
+}
+
 // Package-scoped Go string-constant tables (dir -> Map<name, value>), so seed
 // parsers can resolve `Key: keyMenuUser`-style references introduced by the
-// duplicated-literal remediation. Only simple `name = "value"` declarations
-// are collected — enough for seed keys, modules, and locales.
-const goConstTableCache = new Map();
+// duplicated-literal remediation.
+export function collectGoConsts(source, table = new Map()) {
+  const declarationPatterns = [
+    // `const ( name = "value" )` / `const ( name string = "value" )` block entries
+    /^\s*(\w+)\s*(?:string\s*)?=\s*"((?:[^"\\]|\\.)*)"\s*(?:\/\/[^\n]*)?$/gm,
+    // single-line `const name = "value"` / `const name string = "value"`
+    /^\s*const\s+(\w+)\s+(?:\w+\s+)?=\s*"((?:[^"\\]|\\.)*)"\s*(?:\/\/[^\n]*)?$/gm,
+  ];
+  for (const pattern of declarationPatterns) {
+    for (const match of source.matchAll(pattern)) {
+      table.set(match[1], match[2]);
+    }
+  }
+  return table;
+}
 
-function goConstTable(filePath) {
+const goConstTableCache = new Map();
+const unresolvedGoConstRefs = [];
+
+export function takeUnresolvedGoConstRefs() {
+  return unresolvedGoConstRefs.splice(0, unresolvedGoConstRefs.length);
+}
+
+export function goConstTable(filePath) {
   const dirPath = path.dirname(filePath);
   if (!goConstTableCache.has(dirPath)) {
     const table = new Map();
@@ -194,14 +238,11 @@ function goConstTable(filePath) {
       if (!entry.endsWith('.go') || entry.endsWith('_test.go')) {
         continue;
       }
-      const source = readFile(path.join(dirPath, entry));
-      for (const match of source.matchAll(/^\s*(\w+)\s*(?:string\s*)?=\s*"((?:[^"\\]|\\.)*)"\s*$/gm)) {
-        table.set(match[1], match[2]);
-      }
+      collectGoConsts(readFile(path.join(dirPath, entry)), table);
     }
     goConstTableCache.set(dirPath, table);
   }
-  return goConstTableCache.get(dirPath);
+  return { filePath, consts: goConstTableCache.get(dirPath) };
 }
 
 function extractStringArray(source, propertyName) {
@@ -263,6 +304,18 @@ function parseFrontendModules() {
   return modules;
 }
 
+const backendSeedFields = [
+  'Type',
+  'Key',
+  'Path',
+  'TitleKey',
+  'Component',
+  'PagePerm',
+  'Perms',
+  'RouteName',
+  'Module',
+];
+
 function parseBackendSeeds() {
   const backendSeedFiles = [
     ...new Set([
@@ -300,6 +353,7 @@ function parseBackendSeeds() {
         type,
       };
       if (item.path || item.pagePerm || item.perms) {
+        recordUnresolvedConstRefs(block, backendSeedFields, consts);
         seeds.push(item);
       }
     }
@@ -378,8 +432,13 @@ function parseBackendMenuI18nSeeds() {
       const block = match[1];
       const locale = extractField(block, 'Locale', consts);
       const key = extractField(block, 'Key', consts);
-      if (translations.has(locale) && key) {
-        translations.get(locale).add(key);
+      if (translations.has(locale)) {
+        // an unresolved Key empties the seed value, so the gap is recorded even
+        // when the emptied key itself is skipped below
+        recordUnresolvedConstRefs(block, ['Key'], consts);
+        if (key) {
+          translations.get(locale).add(key);
+        }
       }
     }
 
@@ -417,8 +476,11 @@ function parseBackendScopedI18nSeeds(groupNames) {
       const locale = extractField(block, 'Locale', consts);
       const group = extractField(block, 'Group', consts);
       const key = extractField(block, 'Key', consts);
-      if (translations.has(locale) && groups.has(group) && key) {
-        translations.get(locale).add(key);
+      if (translations.has(locale) && groups.has(group)) {
+        recordUnresolvedConstRefs(block, ['Key'], consts);
+        if (key) {
+          translations.get(locale).add(key);
+        }
       }
     }
 
@@ -520,6 +582,14 @@ function main() {
     menuMap,
   } = collectContracts();
   const errors = [];
+  // Report resolution failures before the contract comparisons: an unresolved
+  // seed constant empties the field, which would otherwise surface as a bogus
+  // frontend/backend mismatch instead of the sensor gap it actually is.
+  for (const ref of takeUnresolvedGoConstRefs()) {
+    errors.push(
+      `后端 seed 引用了无法解析的常量: ${ref.fieldName}: ${ref.identifier} (${ref.filePath})`,
+    );
+  }
   const backendPageSeeds = backendSeeds.filter((item) => item.path && item.type === 'C');
   const backendActionSeeds = backendSeeds.filter((item) => item.perms && item.type === 'F');
   const backendPermissionKeys = new Set(
@@ -724,4 +794,6 @@ function main() {
   );
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  main();
+}
