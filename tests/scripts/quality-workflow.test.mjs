@@ -59,7 +59,12 @@ test('governance-only changes can skip runtime gates without failing Quality Gat
   );
   assert.match(
     workflowSource,
-    /GO_LINT_RESULT.*!=.*"success"/i,
+    /GATE_OK:\s*success/i,
+    'quality gates should declare the passing outcome once instead of repeating the literal',
+  );
+  assert.match(
+    workflowSource,
+    /GO_LINT_RESULT.*!=.*\$GATE_OK/i,
     'quality gates should enforce go-lint as a runtime gate',
   );
   assert.match(

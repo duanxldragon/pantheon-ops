@@ -30,6 +30,7 @@
     "cleanup:generated-modules": "node frontend/scripts/cleanup-generated-modules.mjs",
     "test:docs-frontmatter": "node --test tests/docs/frontmatter-check.test.mjs",
     "test:search-toolbar-contract": "node --test tests/scripts/check-search-toolbar-contract.test.mjs",
+    "test:menu-contract": "node --test tests/scripts/check-menu-contract.test.mjs",
     "test:address-github-feedback": "node --test tests/scripts/address-github-feedback.test.mjs",
     "test:github-feedback": "node --test tests/scripts/fetch-github-feedback.test.mjs",
     "test:github-feedback-loop": "node --test tests/scripts/run-github-feedback-loop.test.mjs",

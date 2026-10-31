@@ -317,8 +317,10 @@ grep -rln "var errParamInvalid" backend | wc -l              # 目标：11 → 1
 
 ### 11.1 结论
 
-1. **13 个波次全部合并**（S1×2、S2×6、S3×3、S4×2），14 个任务清单项里只有 1 项未完成：
-   `pantheon-ops` 对同步后 foundation release 的构建验证——依赖维护者切发布，见 §11.6。
+1. **13 个波次全部合并**（S1×2、S2×6、S3×3、S4×2）。最后一项 `pantheon-ops` 构建验证已于
+   2026-10-29 关闭：`pantheon-base-v0.18.0`（`b4bb2392`）发布后消费仓前端红在 `TS2614`，
+   `pantheon-base-v0.18.1`（`93505225`）恢复 `isForbiddenRequestError` 导出，消费仓
+   `go build ./...` 与 `npm run build` 均通过（staging 树读数；live 替换属消费仓 L2 门禁）。
 2. **六个横向重复族各收敛到一份实现**：路径 ID 解析、分页归一化、排序白名单、
    `ErrRecordNotFound` 转换、批量操作、导入导出管线。例外 3 处（`setting_audit` 分页回退、
    tenant member 分页、i18n 的两处 ID 解析），每处都在对应波次证据里写明"为什么不能合"。
@@ -400,9 +402,11 @@ W9 租户域重写、发布说明目录化、`TenantList` 的 S3776 修复。因
 
 **仍未关闭（维护者决策，不属于本程序遗漏）**：
 
-1. `pantheon-ops` 对同步后 foundation release 的 `go build ./... && npm run build`——
-   需要一个覆盖 13 个波次的 foundation release。当前 `pantheon-ops` 只随已发布版本同步，
-   而波次都以常规 PR 合入 `main`。这是程序清单里唯一未勾的项。
+1. ~~`pantheon-ops` 对同步后 foundation release 的 `go build ./... && npm run build`~~
+   — **已关闭（2026-10-29）**：`pantheon-base-v0.18.0` 发布后消费仓前端红在 `TS2614`
+   （`api/request` 缺 `isForbiddenRequestError`），由 `pantheon-base-v0.18.1` 以 patch 恢复；
+   重建后后端 `go build ./...` 与前端 `npm run build` 均通过。修复类目登记为 `FR-021`，
+   规则写入 `docs/harness/AI_QUALITY_GOVERNANCE.md` §5.4。live 树替换仍需消费仓自身评审。
 2. 是否在 S2/S3 之后冻结功能进入维护期（方案 §C 的排期问题）。
 3. RC-036/037/038 的最终去留：S4 已定 keep / keep-and-check（含
    `scripts/harness/check-doc-bilingual.mjs` 规格），若维护者改判需另立波次。

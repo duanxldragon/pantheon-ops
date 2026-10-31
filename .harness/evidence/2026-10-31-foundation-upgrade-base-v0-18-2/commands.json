@@ -1,0 +1,135 @@
+{
+  "taskId": "2026-10-31-foundation-upgrade-base-v0-18-2",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "other",
+    "adapter": "qoder-desktop"
+  },
+  "commands": [
+    {
+      "command": "gh release view pantheon-base-v0.18.2 -R duanxldragon/pantheon-base --json tagName,publishedAt,assets",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "tag pantheon-base-v0.18.2, publishedAt 2026-10-31T00:48:38Z, four assets: tgz 30,051,238 B sha256 c01ebbc1c515ae09ba097b421071800cc1e19fec516fea9b147b35b0b2fc356a, tgz.sha256 111 B a87717ff1ee5aef831bce0e37b8cb978426332c890dedd662be7f2ab01d779a3, repo.tar 47,923,200 B sha256 c1360fb147610ff8629cc952d50491b993b04c07993d41f6c29eec37ecfc5d51, repo.tar.sha256 75 B 32e0f32df1f77f871095ed713b0e2bc6c9f692ac3ba13bb6be1317222f0d6f1f."
+    },
+    {
+      "command": "git ls-remote origin 'refs/tags/pantheon-base-v0.18.2*'",
+      "cwd": "../pantheon-base",
+      "status": "passed",
+      "notes": "annotated tag object 2e32bd465678e7259604ac2a16f4c8cb0e53308e peels to commit a44ae4e012fff20430b1b7f91cb7a9296f3ea843, which is the lock's baseCommit."
+    },
+    {
+      "command": "sha256sum .foundation/releases/pantheon-base-v0.18.2/foundation-release-pantheon-base-v0.18.2.tgz .foundation/releases/pantheon-base-v0.18.2/repo.tar",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "c01ebbc1c515ae09ba097b421071800cc1e19fec516fea9b147b35b0b2fc356a (tgz) and c1360fb147610ff8629cc952d50491b993b04c07993d41f6c29eec37ecfc5d51 (repo.tar); both equal the lock and the published asset digests."
+    },
+    {
+      "command": "tar -xOf .foundation/releases/pantheon-base-v0.18.2/foundation-release-pantheon-base-v0.18.2.tgz manifest.json | compare with foundation-release.lock.json",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "manifest.releaseVersion pantheon-base-v0.18.2 and manifest.baseCommit a44ae4e0... equal the lock; sharedPaths backend 4, frontend 47 and docs 2 are deep-equal to the lock lists (53 entries, with frontend/scripts/check-menu-contract.mjs added after cleanup-smoke-fixtures.mjs)."
+    },
+    {
+      "command": "gh run view 41146688290 -R duanxldragon/pantheon-base --json conclusion && gh workflow run foundation-release-verify.yml -f release_version=pantheon-base-v0.18.2",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Release Gate 41146688290 is success on the tagged commit. Foundation Release Verify was dispatched manually because the release was published by github-actions[bot] with GITHUB_TOKEN and GitHub suppresses release: published events for that token; run 41153048213 completed success. CodeQL reports 0 open alerts on base."
+    },
+    {
+      "command": "node scripts/business-overlay/rebuild-from-base.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "Lock-resolved path, no --base. OK rebuilt clean Ops tree at .tmp/business-overlay-rebuild, base commit a44ae4e0..., 789 declared/generated files, no deletions. The rebuild plan exposed the undeclared check-gorm-sql-literal scripts before any file moved."
+    },
+    {
+      "command": "tar -xf <rebuilt tree snapshot> -C . (bulk overlay of the rebuilt staging tree onto the live tree)",
+      "cwd": ".",
+      "status": "failed",
+      "notes": "Refused before execution by the local execution guard as an unapproved wide-area file write ('Irreversible Local Destruction'); the command did not run and nothing was written. Replaced with the enumerated copy below, which is also required because two paths must not be overwritten."
+    },
+    {
+      "command": "cp <14 enumerated paths> from .tmp/business-overlay-rebuild to . (12 modified + 2 new)",
+      "cwd": ".",
+      "status": "passed",
+      "notes": ".business-overlay-report.json, VERSION, docs/release-notes/README{,.en}.md, docs/reviews/CODE_SIMPLIFICATION_PLAN.md, frontend/scripts/check-menu-contract.mjs, frontend/src/i18n/resources/business/{en-US,zh-CN}.ts, package.json, tests/scripts/{check-pr-governance,quality-workflow,release-gate-workflow}.test.mjs plus new docs/release-notes/RELEASE_NOTES_v0.18.2.md and tests/scripts/check-menu-contract.test.mjs. frontend/package.json and frontend/package-lock.json were deliberately excluded to preserve the merged Dependabot bumps (i18next 26.5.11, react-i18next 17.1.9 against base 26.5.6 / 17.1.3). Pre-swap snapshot at .tmp/backup-pre-0182/ (tracked.patch; the untracked set was empty)."
+    },
+    {
+      "command": "cd .tmp/business-overlay-rebuild/frontend && npm run build  (before the k8s repair)",
+      "cwd": ".tmp/business-overlay-rebuild",
+      "status": "failed",
+      "notes": "Recorded baseline for the new shared sensor: the prebuild check:menu-contract step failed with 后端 seed 引用了无法解析的常量: Key: titleKey twice, because k8s_seed.go derived titleKey in init() with strings.ReplaceAll. The build never reached vite."
+    },
+    {
+      "command": "cd frontend && npm run lint && npm run type-check && npm run build  (after the k8s repair)",
+      "cwd": "frontend",
+      "status": "passed",
+      "notes": "lint 0, type-check 0, prebuild sensor 40 menus / 50 routes / 237 permissions / 52 component keys, vite built in 804ms. The same sensor now passes on the applied tree."
+    },
+    {
+      "command": "node scripts/business-overlay/check-shared-drift.mjs --base ../pantheon-base/.tmp/rel-0182",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "OK shared drift check: 813 shared files identical to base, 10 allowlisted drift, 161 business-overlay files skipped. The --base target is the rel-0182 worktree checked out at origin/main (a44ae4e0), because the primary base checkout is stale."
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "OK business overlay contract (53 declared paths, rebuilt tree)."
+    },
+    {
+      "command": "node --test tests/scripts/business-overlay/*.test.mjs",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "13 pass, 0 fail."
+    },
+    {
+      "command": "cd backend && go build ./... && go vet ./... && gofmt -l . && go test -count=1 ./...",
+      "cwd": "backend",
+      "status": "passed",
+      "notes": "build 0, vet 0, gofmt output empty, go test -count=1 ./... 64 packages ok with no FAIL. GOFLAGS=-mod=mod go mod tidy ran first because the rebuild resets go.sum and go-difflib was briefly missing."
+    },
+    {
+      "command": "cd backend && CGO_ENABLED=1 go test -race ./...",
+      "cwd": "backend",
+      "status": "not-run",
+      "notes": "Blocked by the host: ThreadSanitizer cannot reserve its shadow memory on this Windows machine (failed to allocate, error code 87). CI runs go test -race on ubuntu-latest."
+    },
+    {
+      "command": "npm run check:docs-frontmatter && npm run check:encoding && npm run check:structure && npm run check:task-packet-template && npm run check:pr-governance && npm run check:generated-modules && npm run check:ui-quality-gate",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "436 docs scanned (280 with frontmatter); encoding strict 0 findings across 2115 files; structure strict 0 findings across 2289 tracked files; task-packet template present and linked; PR template governance fields present; no generated modules found; UI quality gate strict 0 findings."
+    },
+    {
+      "command": "npm run check:task-packet && npm run check:harness-adoption && npm run check:failure-registry && npm run check:business-boundaries && npm run test:business-boundaries && npm run check:business-foundation && npm run check:duplication && npm run check:harness-docs && npm run check:gorm-sql-literal",
+      "cwd": ".",
+      "status": "passed",
+      "notes": "check:task-packet passes all six current-format packets including this one; check:harness-adoption 0 findings after this manifest and evidence file were added; failure registry 0 errors with the known empty-table warning; business boundary check passed; business-boundaries and business-foundation 0 fail; duplication PASS; harness-docs reports only the inherited base-document dangling links as findings (report-only, exit 0); gorm-sql-literal passes with four documented waivers in bizscope, storage and retired_modules."
+    }
+  ],
+  "runtimeSensitive": true,
+  "runtimeGap": "No fresh backend startup or seeding reading for v0.18.2; the k8s change is seed spelling only (same 237 permission keys) and is covered by go test plus the v0.18.1 isolated-schema run.",
+  "knownGaps": [
+    "Runtime acceptance (backend startup + golang-migrate + seeding) was not re-run this round; the v0.18.1 isolated-schema run remains the last runtime reading. The k8s seed rewrite is covered by go test and the menu-contract sensor, not by a fresh boot.",
+    "check:harness-docs reports dangling links inherited from base documents that point at base-only task packets and the base evidence archive; the check is report-only and the repair is a base-side change.",
+    "The live tree is not byte-identical to the rebuilt staging tree: frontend/package.json and frontend/package-lock.json intentionally keep the merged Dependabot bumps instead of base's pins.",
+    "go test -race cannot run on this Windows host (ThreadSanitizer shadow-memory allocation error code 87); CI runs it on ubuntu-latest.",
+    "Hosted SonarCloud Scan remains red because SONAR_TOKEN is rejected with HTTP 403, and Vercel remains red from external project configuration. Both carry forward from the v0.18.1 round and neither is a required context.",
+    "A workflow-triggered squash merge can land without push pipelines running; main-side gate proof needs either an explicit merge or a workflow_dispatch re-run."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2/manifest.json",
+    "taskPacket": "docs/harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2.task.md",
+    "evidenceDir": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/",
+    "summaryFile": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/summary.md",
+    "reviewFile": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2.task.md",
+      "docs/PROJECT_INHERITANCE.md"
+    ]
+  },
+  "completedAt": "2026-10-31"
+}

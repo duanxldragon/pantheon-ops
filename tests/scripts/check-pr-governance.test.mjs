@@ -25,8 +25,8 @@ function withFixtureRepo(callback) {
   }
 }
 
-function writeTaskManifest(repoRoot, taskId) {
-  const manifestPath = path.join(repoRoot, '.harness', 'tasks', taskId, 'manifest.json');
+function writeTaskManifest(repoRoot, taskId, baseSegments = ['.harness', 'tasks']) {
+  const manifestPath = path.join(repoRoot, ...baseSegments, taskId, 'manifest.json');
   fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
   fs.writeFileSync(
     manifestPath,
@@ -460,5 +460,94 @@ test('validatePrBody rejects mismatched task-id linkage for non-trivial changes'
 `, { rootDir: repoRoot });
 
     assert.match(findings.join('\n'), /same task-id/);
+  });
+});
+
+function archivedTaskBody(taskId) {
+  return `## 变更摘要
+
+- 改动层级：\`platform\`
+- 改动模块：\`workflow\`
+- 目标问题：\`补齐 PR 治理门禁\`
+- 预期影响：\`PR 留痕进入自动校验\`
+
+## Harness 链路
+
+- Task ID：\`${taskId}\`
+- Task Manifest：\`.harness/tasks/${taskId}/manifest.json\`
+- Evidence：\`.harness/evidence/${taskId}/commands.json\`
+- Verification evidence：\`.harness/evidence/${taskId}/summary.md\`
+- Review Artifact：\`.harness/evidence/${taskId}/review.md\`
+- OpenSpec change：\`none\`
+- Trivial change：\`no\`
+- Quality Profile：\`ci-workflow\`
+- Ratchet Decision：\`gate-updated\`
+- GitHub Signal：\`repo-quality-gate\`
+
+## Harness adoption markers
+
+- task id: \`${taskId}\`
+- task manifest: \`.harness/tasks/${taskId}/manifest.json\`
+- evidence: \`.harness/evidence/${taskId}/\`
+- boundaries: \`platform only\`
+- backend response contract: \`none\`
+- backend DTO contract: \`none\`
+- permission contract: \`none\`
+- audit coverage: \`none\`
+- visual evidence: \`none\`
+- inheritance contract: \`none\`
+- base drift: \`none\`
+- Base/ops inheritance: \`none\`
+
+## 边界说明
+
+- [x] 本次改动仅涉及单一层级
+- [ ] 本次改动涉及跨层，已说明边界与依赖
+
+## 验证记录
+
+- [x] GitHub required checks 通过
+
+## 审核留痕
+
+- Copilot review：\`requested\`
+- CodeQL 结果：\`queued\`
+- GitHub checks 结果：\`pending\`
+- Auto-merge：\`not-enabled\`
+- Duplication Gate 结果：\`report-only\`
+- 是否高风险改动：\`no\`
+- Residual risk / follow-up：\`follow-up tracked in task manifest\`
+
+## 检查清单
+
+- [x] 已明确本次改动归属
+`;
+}
+
+test('validatePrBody resolves archived task and evidence paths through the monthly archive', () => {
+  withFixtureRepo((repoRoot) => {
+    const taskId = '2026-06-17-archived';
+    const taskSegments = ['.harness', 'archive', '2026-06', 'tasks'];
+    const evidenceSegments = ['.harness', 'archive', '2026-06', 'evidence'];
+
+    writeTaskManifest(repoRoot, taskId, taskSegments);
+    const evidenceDir = path.join(repoRoot, ...evidenceSegments, taskId);
+    fs.mkdirSync(evidenceDir, { recursive: true });
+    fs.writeFileSync(path.join(evidenceDir, 'commands.json'), '{"commands":[]}\n', 'utf8');
+    fs.writeFileSync(path.join(evidenceDir, 'summary.md'), '# Verification Summary: sample\n', 'utf8');
+    fs.writeFileSync(path.join(evidenceDir, 'review.md'), '# Review Summary: sample\n', 'utf8');
+
+    assert.deepEqual(validatePrBody(archivedTaskBody(taskId), { rootDir: repoRoot }), []);
+  });
+});
+
+test('validatePrBody still rejects harness references that exist neither live nor archived', () => {
+  withFixtureRepo((repoRoot) => {
+    const findings = validatePrBody(archivedTaskBody('2026-06-17-missing'), { rootDir: repoRoot });
+
+    assert.ok(
+      findings.some((finding) => finding.includes('does not exist in repository')),
+      `expected a missing-file finding, got: ${findings.join(' | ')}`,
+    );
   });
 });

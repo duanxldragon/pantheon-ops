@@ -1,0 +1,210 @@
+{
+  "taskId": "2026-10-31-foundation-upgrade-base-v0-18-2",
+  "title": "Consume pantheon-base-v0.18.2 into pantheon-ops",
+  "goal": "Advance the Ops consumer from pantheon-base-v0.18.1 to the published pantheon-base-v0.18.2 so the tree carries the new shared menu-contract sensor, and repair what that sensor exposes on its first consumer run: 20 runtime-derived k8s permission title keys that resolve to no constant and no catalogue entry. Two pre-existing rebuild defects are repaired in the same pass so the next deterministic rebuild is lossless.",
+  "primaryLayer": "inheritance-sync",
+  "taskDoc": "docs/harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2.task.md",
+  "status": "completed",
+  "priority": "P1",
+  "deliveryTier": "L2",
+  "dependsOn": [
+    "pantheon-base v0.18.2 release (tag object 2e32bd46, target commit a44ae4e0)"
+  ],
+  "blocks": [
+    "ops branch and pull-request closeout to main only"
+  ],
+  "scope": {
+    "in": [
+      "Update foundation-release.lock.json to pantheon-base-v0.18.2: release line, version, base commit, asset name, materialization path, bundle checksum and repo.tar checksum.",
+      "Rewrite .foundation/foundation-release.lock.json with the release identity, gate facts read back from GitHub, v0.18.2 pendingWork and notes.",
+      "Apply the rebuilt assembly to the live tree with an enumerated file copy, preserving the Dependabot bumps on frontend/package.json and frontend/package-lock.json.",
+      "Replace the init()-derived k8s permission menu seeds with static canonical-constant seeds, add the four missing k8sServicePerm* constants, the 16 missing frontend permission declarations and the 20 permission title translations.",
+      "Declare scripts/check-gorm-sql-literal.mjs and its test as repositoryOverlayPaths, add both script names to opsOnlyScripts, and restore the two observability placeholder i18n keys into the v12locales sources.",
+      "Re-run every Docs Governance, harness and business gate on the applied tree."
+    ],
+    "out": [
+      "Any change to the pantheon-base repository, an existing tag, a published release or its assets.",
+      "Hand-copying base files into the Ops source tree instead of materializing the locked release.",
+      "Any behaviour change in the k8s business module: menu membership, sort order, admin permission binding and route table stay unchanged.",
+      "Downgrading the Dependabot dependency bumps (i18next 26.5.11 / react-i18next 17.1.9).",
+      "Re-enabling check:task-packet in CI; the legacy allowlist remains a separate task."
+    ]
+  },
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2.task.md",
+      ".harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2/manifest.json",
+      ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/commands.json",
+      ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/summary.md",
+      ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/review.md",
+      ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/pr-body.md",
+      "docs/release-notes/RELEASE_NOTES_v0.18.2.md",
+      "tests/scripts/check-menu-contract.test.mjs"
+    ],
+    "modify": [
+      "foundation-release.lock.json",
+      ".foundation/foundation-release.lock.json",
+      "VERSION",
+      "business-overlay.json",
+      ".business-overlay-report.json",
+      "scripts/business-overlay/rebuild-from-base.mjs",
+      "backend/modules/business/k8s/k8s.go",
+      "backend/modules/business/k8s/k8s_seed.go",
+      "frontend/scripts/check-menu-contract.mjs",
+      "frontend/src/modules/business/k8s/index.ts",
+      "frontend/src/modules/business/v12locales/zh-CN.json",
+      "frontend/src/modules/business/v12locales/en-US.json",
+      "frontend/src/i18n/resources/business/zh-CN.ts",
+      "frontend/src/i18n/resources/business/en-US.ts",
+      "package.json",
+      "docs/PROJECT_INHERITANCE.md",
+      "docs/release-notes/README.md",
+      "docs/release-notes/README.en.md",
+      "docs/reviews/CODE_SIMPLIFICATION_PLAN.md",
+      "tests/scripts/check-pr-governance.test.mjs",
+      "tests/scripts/quality-workflow.test.mjs",
+      "tests/scripts/release-gate-workflow.test.mjs"
+    ],
+    "doNotTouch": [
+      ".foundation/allowed-drift.json",
+      ".foundation/releases/** for previously materialized releases",
+      "any existing tag, release or release asset",
+      "frontend/package.json, frontend/package-lock.json (Dependabot-owned dependency bumps)",
+      "CHANGELOG.md, README.md, README.en.md (Ops overlay copies)"
+    ]
+  },
+  "contractAnchors": [
+    "AGENTS.md",
+    "docs/PROJECT_INHERITANCE.md",
+    "foundation-release.lock.json",
+    ".foundation/foundation-release.lock.json",
+    ".foundation/allowed-drift.json",
+    "business-overlay.json",
+    "scripts/business-overlay/rebuild-from-base.mjs"
+  ],
+  "implementationNotes": [
+    "The v0.18.2 delta is one shared path: frontend/scripts/check-menu-contract.mjs joins sharedPaths, so the manifest is backend 4 / frontend 47 / docs 2 = 53; the lock lists were verified byte-equal against the manifest inside the tgz.",
+    "The live replacement used an enumerated 14-path copy rather than a bulk archive overlay, because a wide-area overwrite was refused by the execution guard and because frontend/package.json plus frontend/package-lock.json must not be overwritten: the live tree already carries the Dependabot bumps i18next 26.5.11 / react-i18next 17.1.9 while base pins 26.5.6 / 17.1.3. The pre-swap tree was snapshotted to .tmp/backup-pre-0182/ (the untracked set was empty).",
+    "The new sensor parses Go seed struct literals. k8s_seed.go built permission menu seeds inside init() with titleKey := strings.ReplaceAll(item.perm, ':', '.') + '.permission', which is neither a resolvable constant nor an existing catalogue key (runtime spelling business.k8s.cluster.sync.permission). The frontend build failed with 后端 seed 引用了无法解析的常量: Key: titleKey twice. The fix removes the derivation and unrolls 20 static F menu seeds plus 40 zh-CN/en-US permission i18n rows on canonical constants.",
+    "The canonical keys surfaced 16 permissions the frontend module never declared (cluster sync/nodes; workload scale/restart/logs; namespace view/create/delete; configmap view/create/update/delete; secret view/create/update/delete); frontend/src/modules/business/k8s/index.ts gained those strings and the v12locales JSON sources gained their titles.",
+    "scripts/check-gorm-sql-literal.mjs and its test were undeclared repositoryOverlayPaths and were not in opsOnlyScripts, so a clean rebuild would delete both files and drop check:gorm-sql-literal / test:gorm-sql-literal from package.json. Both paths are declared now and both script names survive the merge; the follow-up rebuild re-derived 789 files with no deletion.",
+    "business.observability.monitoring.field.endpointPlaceholder and ...urlPlaceholder existed only in the generated frontend/src/i18n/resources/business/*.ts files and would vanish on rebuild; both are now in the v12locales sources that generate them."
+  ],
+  "harnessProfile": {
+    "template": "api-service",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "foundation-release-consumer",
+    "portableFailureClass": "static-sensor-gap",
+    "ownerLayer": "inheritance-boundary",
+    "coverageDimensions": [
+      "behaviour",
+      "architecture-fitness",
+      "runtime-quality",
+      "method-health"
+    ]
+  },
+  "methodReadiness": {
+    "consumerSpecificControls": [
+      "immutable release consumption",
+      "release identity read back from GitHub instead of asserted from the bundle",
+      "enumerated live-tree replacement after a wide-area overwrite was refused"
+    ],
+    "requiredSensors": [
+      "command"
+    ],
+    "requiredEvidence": [
+      "commands.json",
+      "summary.md",
+      "review.md"
+    ],
+    "ratchetDecision": "sensor-added",
+    "deferredCodeIssues": [
+      "Ops business modules still create their schema through AutoMigrate instead of a consumer versioned-migration channel; no such channel exists in base",
+      "Inherited base docs link to base-only task packets and the base evidence archive, so check:harness-docs reports dangling links in the consumer; the check is report-only and not part of the ops pipeline",
+      "Go race tests cannot run on this Windows host because ThreadSanitizer cannot reserve its shadow memory (error code 87); CI runs go test -race on ubuntu-latest"
+    ]
+  },
+  "deliveryGovernance": {
+    "designGate": [
+      "inheritance boundary note: base owns the shared surface; the menu-contract sensor is base-owned and the k8s seeds are business-owned, so the repair had to happen on the ops side"
+    ],
+    "developmentGate": [
+      "lock and ledger updated together",
+      "rebuilt tree gated before the live replacement, and the same gate set re-ran on the applied tree",
+      "sensor-exposed defects repaired at their business owner"
+    ],
+    "qaAcceptanceGate": [
+      "business-overlay contract, shared-drift gate and 13 overlay tests on the applied tree",
+      "backend build/vet/gofmt/test on the applied tree",
+      "frontend lint/type-check/build with the menu-contract sensor reporting 40 menus / 50 routes / 237 permissions / 52 component keys",
+      "every Docs Governance, harness and business gate green on the applied tree"
+    ],
+    "githubGovernanceGate": [
+      "consumer-lock-drift"
+    ]
+  },
+  "structuralScope": {
+    "affectedSubgraph": [
+      "foundation release -> consumer lock -> rebuilt tree -> shared surface files -> menu-contract sensor -> k8s seed constants -> frontend permission declarations and i18n sources"
+    ],
+    "riskNodes": [
+      "shared prefix of the ops tree",
+      "k8s permission seed surface",
+      "generated frontend i18n resource files",
+      "overlay declaration completeness"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "sha256sum .foundation/releases/pantheon-base-v0.18.2/foundation-release-pantheon-base-v0.18.2.tgz .foundation/releases/pantheon-base-v0.18.2/repo.tar",
+      "gh release view pantheon-base-v0.18.2 -R duanxldragon/pantheon-base --json tagName,publishedAt,assets",
+      "node scripts/business-overlay/rebuild-from-base.mjs",
+      "node scripts/business-overlay/check-business-overlay.mjs",
+      "node scripts/business-overlay/check-shared-drift.mjs --base ../pantheon-base/.tmp/rel-0182",
+      "node --test tests/scripts/business-overlay/*.test.mjs",
+      "go build ./... && go vet ./... && gofmt -l .",
+      "go test -count=1 ./...",
+      "npm run lint && npm run type-check && npm run build in frontend",
+      "npm run check:docs-frontmatter && npm run check:encoding && npm run check:structure && npm run check:task-packet-template && npm run check:pr-governance && npm run check:generated-modules && npm run check:ui-quality-gate",
+      "npm run check:task-packet && npm run check:harness-adoption && npm run check:failure-registry && npm run check:business-boundaries && npm run test:business-boundaries && npm run check:business-foundation && npm run check:duplication && npm run check:harness-docs && npm run check:gorm-sql-literal"
+    ],
+    "runtimeEvidence": [
+      "asset digests compared with the lock and the published .sha256 sidecars",
+      "sharedPaths deep-equality between the Ops lock and the manifest.json read out of the release tgz",
+      "applied tree gate results including the menu-contract sensor payload",
+      "hosted workflow results on the consumption PR"
+    ]
+  },
+  "runtimeSensitive": true,
+  "costProfile": {
+    "tokens": "medium",
+    "note": "patch consumption plus one business-module seed repair; no product behaviour changes"
+  },
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/",
+    "reviewFile": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/review.md",
+    "summaryFile": ".harness/evidence/2026-10-31-foundation-upgrade-base-v0-18-2/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      "docs/harness/tasks/2026-10-31-foundation-upgrade-base-v0-18-2.task.md"
+    ]
+  },
+  "evidenceRequired": [
+    "release identity and both asset digests re-hashed after materialization",
+    "sharedPaths equivalence between the Ops lock and the v0.18.2 release manifest",
+    "overlay contract, shared-drift and overlay test results on the applied tree",
+    "backend build/vet/gofmt/test and frontend lint/type-check/build results",
+    "the sensor exposure and the k8s repair with before/after sensor readings",
+    "the two rebuild-completeness repairs",
+    "review summary"
+  ],
+  "completionChecklist": [
+    "Layer and boundary declared",
+    "Contract anchors read",
+    "Release identity verified from GitHub",
+    "Baseline advanced through the locked assembly",
+    "Sensor-exposed defects repaired at its owner",
+    "Evidence saved",
+    "Review completed"
+  ]
+}

@@ -4,10 +4,11 @@ English version: [README.en.md](./README.en.md)
 
 本目录保存历次发布的 `RELEASE_NOTES_vX.Y.Z.md`，自 v0.13.1 起。发布说明随 foundation release 冻结：只追加新版本，不回改历史条目；变更全量记录见 [CHANGELOG.md](../../CHANGELOG.md)，发布流程见 [版本管理指南](../VERSION_MANAGEMENT_GUIDE.md)。
 
-当前最新：[RELEASE_NOTES_v0.18.1.md](./RELEASE_NOTES_v0.18.1.md)
+当前最新：[RELEASE_NOTES_v0.18.2.md](./RELEASE_NOTES_v0.18.2.md)
 
 | 版本 | 发布日期 | 发布说明 |
 | --- | --- | --- |
+| v0.18.2 | 2026-10-31 | [RELEASE_NOTES_v0.18.2.md](./RELEASE_NOTES_v0.18.2.md) |
 | v0.18.1 | 2026-10-29 | [RELEASE_NOTES_v0.18.1.md](./RELEASE_NOTES_v0.18.1.md) |
 | v0.18.0 | 2026-10-29 | [RELEASE_NOTES_v0.18.0.md](./RELEASE_NOTES_v0.18.0.md) |
 | v0.17.8 | 2026-10-27 | [RELEASE_NOTES_v0.17.8.md](./RELEASE_NOTES_v0.17.8.md) |
