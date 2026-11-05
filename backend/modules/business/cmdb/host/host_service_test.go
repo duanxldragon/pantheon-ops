@@ -55,6 +55,9 @@ func TestCreateHost(t *testing.T) {
 	if resp.LifecycleState != HostLifecyclePending || resp.ConnectivityState != HostConnectivityUnknown {
 		t.Fatalf("expected split initial state, got %+v", resp)
 	}
+	if resp.StateVersion != 1 {
+		t.Fatalf("expected initial state version 1, got %d", resp.StateVersion)
+	}
 }
 
 func TestHostStateTransitionsUseCompatibilityProjectionAndCAS(t *testing.T) {

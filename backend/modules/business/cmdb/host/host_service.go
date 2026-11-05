@@ -177,6 +177,7 @@ func (s *HostService) Create(req CreateHostRequest, createdBy string) (*HostResp
 		Status:            status,
 		LifecycleState:    status,
 		ConnectivityState: HostConnectivityUnknown,
+		StateVersion:      1,
 		CreatedBy:         createdBy,
 		UpdatedBy:         createdBy,
 	}
