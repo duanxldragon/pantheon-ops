@@ -50,9 +50,14 @@ func TestMarkHostResultDefersTerminalTaskUntilActiveAttemptFinishes(t *testing.T
 	if err != nil {
 		t.Fatalf("create task: %v", err)
 	}
-	var taskHost DeployTaskHost
-	if err := db.Where("task_id = ?", task.ID).First(&taskHost).Error; err != nil {
-		t.Fatalf("load task host: %v", err)
+	// Task hosts are materialized by the start claim; seed the row this
+	// reliability test needs before exercising MarkHostResult.
+	taskHost := DeployTaskHost{
+		TaskID: task.ID, HostID: hostID, Hostname: "attempt-lease-host", HostIP: "10.40.0.200",
+		SSHPort: 22, OS: "linux", BusinessScopeID: scopeID, Status: TaskHostStatusRunning,
+	}
+	if err := db.Create(&taskHost).Error; err != nil {
+		t.Fatalf("seed task host: %v", err)
 	}
 	if err := db.Model(&DeployTask{}).Where("id = ?", task.ID).Update("status", TaskStatusRunning).Error; err != nil {
 		t.Fatalf("mark task running: %v", err)

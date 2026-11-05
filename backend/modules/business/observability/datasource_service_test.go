@@ -7,8 +7,19 @@ import (
 	"testing"
 
 	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/security/ssrf"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
 )
+
+// testDatasourceValidator allows loopback test endpoints without widening the
+// production SSRF port/private-IP policy enforced by NewDatasourceService.
+func testDatasourceValidator() *ssrf.Validator {
+	validator := ssrf.DefaultValidator()
+	validator.AllowedPorts = nil
+	validator.BlockPrivateIPs = false
+	validator.DNSRebindProtection = false
+	return validator
+}
 
 func TestDatasourceDefaultCanMoveAndClear(t *testing.T) {
 	db := testmysql.Open(t)
@@ -25,6 +36,7 @@ func TestDatasourceDefaultCanMoveAndClear(t *testing.T) {
 	}
 
 	service := NewDatasourceService(db)
+	service.ssrfValidator = testDatasourceValidator()
 	if err := service.Update(second.ID, DatasourceDTO{Name: second.Name, Type: second.Type, URL: second.URL, AccessMode: "proxy", Timeout: 1, IsDefault: true}); err != nil {
 		t.Fatalf("move default datasource: %v", err)
 	}
@@ -129,6 +141,7 @@ func TestDatasourceQueriesLokiAndTempo(t *testing.T) {
 	}
 
 	service := NewDatasourceService(db)
+	service.ssrfValidator = testDatasourceValidator()
 	if _, err := service.QueryLogs(loki.ID, `{app="api"}`, "", "", 100); err != nil {
 		t.Fatalf("query Loki: %v", err)
 	}
