@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md
-updated_at: 2026-10-28
+updated_at: 2026-11-04
 ---
 
 # Repository Layout, Naming, and Layer Boundaries
@@ -54,7 +54,7 @@ Root files fall into four groups:
 4. Harness method checks belong under `scripts/harness/`; task manifests and evidence belong under `.harness/`.
 5. Active architecture and governance docs belong under `docs/designs/`, `docs/contracts/`, and `docs/acceptances/`; phase audits, assessments, and process records are not committed — they stay with task evidence under `.harness/` and are cleaned up when a task closes.
 6. Generated bundle output belongs under `dist/` and must not be committed.
-7. `database/system_init.sql` remains in `database/` because `docker-compose.yml` references that stable path.
+7. `database/system_init.sql` remains as deprecated historical reference. Compose no longer mounts it; runtime initialization uses the versioned migrations in `backend/pkg/database/migrations`.
 8. Local Grafana/Prometheus observability config remains in `grafana/` so it stays separate from application runtime code.
 9. Release notes belong under `docs/release-notes/` (indexed by that directory's `README.md`) rather than accumulating at the repository root; historical versions are appended, never rewritten.
 
@@ -96,7 +96,7 @@ backend/uploads/
 The following directories add root entries, but they are stable contracts and should not be moved just to reduce the top-level count:
 
 - `config/`: harness sync and check scripts read `config/method.config.json`.
-- `database/`: `docker-compose.yml` mounts `database/system_init.sql` directly.
+- `database/`: historical SQL reference only; Compose does not mount it.
 - `.harness/`: task evidence and method execution records need a fixed automation location.
 - `schema/generated/`: cross-surface capability ledgers are read by governance flows.
 

@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_ORG_CONTRACT.md
-updated_at: 2026-04-17
+updated_at: 2026-11-04
 ---
 
 # Backend Architecture Design and Development Rules
@@ -44,7 +44,7 @@ Each feature package must own its full stack. Do not split a domain into horizon
 - Sessions persist refresh-token JTI in `system_user_session`, rotate on refresh, and revoke on logout.
 - Access tokens carry `userId`, `username`, `roleKeys`, and `sessionId`.
 - Casbin enforces RESTful route policies, with `admin` as the default full-access role.
-- Casbin persistence is bootstrapped by SQL initialization plus runtime migration through the GORM adapter.
+- Casbin persistence is initialized through the runtime database/migration and GORM adapter path. `database/system_init.sql` is deprecated historical reference and is not mounted by Compose.
 - Non-admin users cannot create, update, or delete Casbin policies whose target path matches `/api/v1/system/permission*` or `/api/v1/system/role*`; the service returns `permission.escalation.forbidden`.
 - When `PANTHEON_CASBIN_WATCHER=true` and Redis is available, policy writes fan out through a Redis watcher and trigger `LoadPolicy()` on peer instances. The default remains single-instance behavior.
 - `PANTHEON_TOKEN_CACHE_TTL_SECONDS` controls the in-process token cache TTL. The default is `60` seconds; setting it to `0` disables the process-local cache so every check goes through Redis.

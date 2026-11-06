@@ -156,6 +156,7 @@ func (s *Service) RefreshSessionWithContext(ctx context.Context, sessionID strin
 		return nil, err
 	}
 
+	previousJTI, previousTenantID := sess.RefreshJTI, sess.TenantID
 	now := time.Now()
 	sess.RefreshJTI = uuid.NewString()
 	sess.RefreshExpiresAt = now.Add(authtoken.RefreshTokenTTL)
@@ -163,7 +164,7 @@ func (s *Service) RefreshSessionWithContext(ctx context.Context, sessionID strin
 	sess.LastActivityAt = &now
 	sess.LastIP = NormalizeSessionClientIP(ip)
 	sess.UserAgent = TruncateString(userAgent, 255)
-	if err := db.Save(&sess).Error; err != nil {
+	if err := persistSessionRotation(db, &sess, previousJTI, previousTenantID); err != nil {
 		return nil, err
 	}
 	return s.issuer.IssueTokenPairWithContext(ctx, u.ID, u.Username, roles, &sess)
@@ -225,16 +226,42 @@ func (s *Service) SwitchSessionTenant(ctx context.Context, sessionID string, use
 		return nil, tenant.ErrTenantForbidden
 	}
 
+	previousJTI, previousTenantID := sess.RefreshJTI, sess.TenantID
 	now := time.Now()
 	sess.TenantID = tenantID
 	sess.RefreshJTI = uuid.NewString()
 	sess.RefreshExpiresAt = now.Add(authtoken.RefreshTokenTTL)
 	sess.LastRefreshAt = &now
 	sess.LastActivityAt = &now
-	if err := db.Save(&sess).Error; err != nil {
+	if err := persistSessionRotation(db, &sess, previousJTI, previousTenantID); err != nil {
 		return nil, err
 	}
 	return s.issuer.IssueTokenPairWithContext(ctx, u.ID, u.Username, roles, &sess)
+}
+
+// persistSessionRotation updates only the session lifecycle fields and refuses
+// a stale read after revocation, expiration, or another rotation/tenant switch.
+// Save would overwrite revoked_at with the earlier nil value and revive a session.
+func persistSessionRotation(db *gorm.DB, sess *SystemUserSession, previousJTI string, previousTenantID uint64) error {
+	result := db.Model(&SystemUserSession{}).
+		Where(sessionIDAndUserIDWhereClause, sess.SessionID, sess.UserID).
+		Where("revoked_at IS NULL AND refresh_jti = ? AND tenant_id = ? AND refresh_expires_at > ?", previousJTI, previousTenantID, time.Now()).
+		Updates(map[string]interface{}{
+			"tenant_id":          sess.TenantID,
+			"refresh_jti":        sess.RefreshJTI,
+			"refresh_expires_at": sess.RefreshExpiresAt,
+			"last_refresh_at":    sess.LastRefreshAt,
+			"last_activity_at":   sess.LastActivityAt,
+			"last_ip":            sess.LastIP,
+			"user_agent":         sess.UserAgent,
+		})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected != 1 {
+		return common.ErrUnauthorized
+	}
+	return nil
 }
 
 // loadRolesForTenant resolves the subject's role keys inside a specific tenant,

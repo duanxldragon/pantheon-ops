@@ -1,13 +1,14 @@
 /**
- * SearchToolbar 交互契约门禁（DESIGN.md §7.2 列表页筛选区规范）。
+ * SearchToolbar 交互契约门禁（docs/frontend/DESIGN_ENGINEERING_GUIDE.md §8.1 列表页筛选区规范）。
  *
  * 2026-07 全部列表页已从 FilterPanel 表单栅格（显式搜索/重置按钮）迁移到
  * SearchToolbar（防抖关键词 + 即时下拉 + 弹层低频筛选 + 条件清空）。本门禁
  * 把该契约固化为机械检查，防止两类回退：
  *
  * A. 结构回退 —— 列表页重新引入旧筛选形态：
- *    - src/modules 内禁止 import FilterPanel（组件保留给 lowcode 模板过渡，
- *      业务页不得再使用）
+ *    - src/modules 内禁止 import FilterPanel（lowcode 模板目录曾享有的整目录过渡
+ *      豁免已于 AUD-021 撤销：该目录不参与构建、全仓零引用，豁免只会让退役组件
+ *      永久存活；业务页本就不得再使用）
  *    - 禁止 filter-panel__action-item（旧搜索/重置按钮容器）
  *    - SearchToolbar 的 keywordPlaceholder 必须走 t() i18n，不得内联字符串
  *    - 使用 SearchToolbar 且传 onKeywordChange 时必须同时传受控 keyword
@@ -34,9 +35,6 @@ const frontendRoot =
   rootFlagIndex >= 0 ? path.resolve(process.argv[rootFlagIndex + 1]) : path.resolve(scriptDir, '..');
 const modulesRoot = path.join(frontendRoot, 'src', 'modules');
 const indexCssPath = path.join(frontendRoot, 'src', 'index.css');
-
-// lowcode 模板/生成器输出属于生成物契约，由 generator-quality-contract 测试覆盖。
-const EXEMPT_SEGMENTS = [`${path.sep}lowcode${path.sep}templates${path.sep}`];
 
 function walk(dir) {
   const out = [];
@@ -69,8 +67,7 @@ function allowed(line, ruleId) {
 
 const moduleFiles = walk(modulesRoot).filter(
   (file) =>
-    ['.tsx', '.ts'].includes(path.extname(file)) &&
-    !EXEMPT_SEGMENTS.some((segment) => file.includes(segment)),
+    ['.tsx', '.ts'].includes(path.extname(file)),
 );
 
 for (const file of moduleFiles) {
@@ -83,7 +80,7 @@ for (const file of moduleFiles) {
         file,
         index + 1,
         'no-filter-panel',
-        'List pages must use SearchToolbar; FilterPanel form grids are retired (DESIGN.md §7.2)',
+        'List pages must use SearchToolbar; FilterPanel form grids are retired (docs/frontend/DESIGN_ENGINEERING_GUIDE.md §8.1)',
       );
     }
     if (/filter-panel__action-item/.test(line) && !allowed(line, 'no-action-item')) {

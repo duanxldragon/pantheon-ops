@@ -5,14 +5,14 @@ layer: system/iam
 status: Active
 linked_contracts:
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
-updated_at: 2026-05-05
+updated_at: 2026-11-04
 ---
 
 # Data Permission Hook
 
 Chinese version: [DATA_PERMISSION_HOOK.md](./DATA_PERMISSION_HOOK.md)
 
-This document defines Pantheon’s architectural placeholder for data permissions, especially row-level filtering for department scope, self scope, or future custom scope dimensions.
+This document defines Pantheon’s implemented shared contract for data permissions, especially row-level filtering for department scope, self scope, or future custom scope dimensions.
 
 ## 1. Core Contract
 
@@ -22,7 +22,7 @@ The shared data-scope structure lives in a common contract area and is meant to 
 
 ### 1.2 GORM Hook
 
-The shared database scope hook exists as the injection point for future row-level filtering.
+The shared database scope hook provides current row-level filtering and the extension point for additional dimensions.
 
 ## 2. Usage Examples
 
@@ -40,8 +40,8 @@ This hook is the current extension point for richer data-scope strategy evolutio
 
 ### 3.1 Multi-Role Merge Rules
 
-Future work must define how multiple role scopes merge safely and predictably.
+Current additive merge: `admin` bypasses filtering; any `all` grants all; custom department IDs form a union; otherwise choose `dept_and_children`, then `dept`, then `self`. Results are independent of database row order. No deny/intersection semantics are implied.
 
-## 4. Why Add a Placeholder Now
+## 4. Why Keep a Shared Hook
 
-Pantheon does not need full mature data-permission behavior everywhere yet, but it does need a stable architectural hook now so later growth does not require invasive redesign.
+The shared hook protects current IAM behavior. System tenant scope follows TENANT_CONTRACT_V1; V1 business modules remain single-tenant even when using DataScope. Ops CMDB is a downstream example, not a Base-owned module.

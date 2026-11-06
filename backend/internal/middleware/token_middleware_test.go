@@ -23,15 +23,15 @@ func TestTokenSessionCacheDisabledByZeroTTL(t *testing.T) {
 	}()
 
 	tokenSessionCacheTTL = 0
-	tokenSessionCache = make(map[string]*tokenCachedSession)
+	tokenSessionCache = make(map[string]tokenCachedSession)
 
 	storeTokenSessionCache("token", &authtoken.SessionData{}, time.Now().Add(time.Hour))
 	if len(tokenSessionCache) != 0 {
 		t.Fatalf("expected cache to stay empty when ttl is zero, got %d entries", len(tokenSessionCache))
 	}
 
-	tokenSessionCache["token"] = &tokenCachedSession{
-		data:      &authtoken.SessionData{},
+	tokenSessionCache["token"] = tokenCachedSession{
+		data:      authtoken.SessionData{},
 		cachedAt:  time.Now(),
 		expiresAt: time.Now().Add(time.Hour),
 	}

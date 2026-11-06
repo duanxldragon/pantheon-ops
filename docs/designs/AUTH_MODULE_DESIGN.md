@@ -5,14 +5,14 @@ layer: system/auth
 status: Active
 linked_contracts:
   - docs/contracts/SYSTEM_AUTH_CONTRACT.md
-updated_at: 2026-06-24
+updated_at: 2026-11-04
 ---
 
 # Auth 模块拆分设计
 
 English version: [AUTH_MODULE_DESIGN.en.md](./AUTH_MODULE_DESIGN.en.md)
 
-本文用于把”认证与会话”从当前 `system/user` 混合实现中拆分为独立能力域，目标是在项目早期就锁定边界，避免后期继续把登录、用户管理、角色权限、安全策略揉成一个模块。
+本文用于锁定已经拆分的认证与会话能力域（`backend/modules/auth/`），IAM 位于 `backend/modules/system/iam/`，目标是在项目早期就锁定边界，避免后期继续把登录、用户管理、角色权限、安全策略揉成一个模块。
 
 ## 1. 设计目标
 
@@ -36,7 +36,7 @@ English version: [AUTH_MODULE_DESIGN.en.md](./AUTH_MODULE_DESIGN.en.md)
 
 ## 3. 当前问题
 
-当前 `backend/modules/system/user/` 同时承担：
+拆分前的历史 `backend/modules/system/user/` 曾同时承担（以下不是当前职责或待办）：
 
 - 登录
 - refresh token 轮换
@@ -427,7 +427,7 @@ frontend/src/modules/
 | :--- | :--- | :--- |
 | 登录入口 | 本地用户名/密码 | 增加 `/auth/sso/start/:provider`、`/auth/sso/callback/:provider` |
 | 用户识别 | 本地 `system_user` | 新增外部主体绑定查询，先找绑定，再决定映射或拒绝 |
-| 会话签发 | 本地 JWT + `system_user_session` | 保持不变，外部认证成功后仍落到本地会话签发 |
+| 会话签发 | Redis opaque token + `system_user_session` | 保持不变，外部认证成功后仍落到本地会话签发 |
 | 审计日志 | 已支持 requestId、登录日志 | 额外记录 provider、外部 subject、回调结果 |
 | 安全设置 | 已有开关预留 | 增加 provider 级配置，而不是只靠一个布尔开关 |
 
@@ -456,7 +456,7 @@ frontend/src/modules/
 8. 后端查询 `system_user_external_identity`
 9. 如果已绑定，则定位本地 `system_user`
 10. 如果未绑定，则按系统策略执行“拒绝 / 人工绑定 / 首次自动建号”
-11. 完成本地主体决策后，继续复用现有 `CreateSession()` 和 JWT 签发链路
+11. 完成本地主体决策后，继续复用现有 `CreateSession()` 和 opaque token 签发链路
 12. 返回前端，由前端进入正常业务壳层
 
 这里必须刻意避免两种错误：
@@ -594,7 +594,7 @@ LoginPage
 当前仍保留的过渡点：
 
 - `profile` 页面已收口为资料维护，安全能力已独立进入 `auth/security`
-- JWT 中间件仍直接校验 `system_user_session` 表
+- `TokenAuthMiddleware` 从 Redis 读取会话、校验黑名单与有效期；会话状态由 `system_user_session` 治理
 - 当前用户会话管理、当前用户登录日志、管理员登录日志页、管理员全局会话页已落地
 
 当前下一批待推进：

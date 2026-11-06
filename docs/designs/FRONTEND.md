@@ -5,10 +5,12 @@ layer: platform
 status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-04-17
+updated_at: 2026-11-04
 ---
 
 # 前端架构设计与 UI 规范
+
+> 模块语言包由现有生成器/消费者重建接入。有效命令以 `frontend/package.json` 为准，禁止要求执行不存在的生成或缺失 key 命令。
 
 English version: [FRONTEND.en.md](./FRONTEND.en.md)
 
@@ -85,8 +87,6 @@ export const OrderModule = {
 - **i18next**: 核心引擎。
 - **Backend Sync**: 应用启动时调用 `/api/v1/system/i18n/pack` 接口，拉取数据库中的全量翻译并注入资源池。
 - **Fallback Resources**: 前端内置 `zh-CN`、`en-US`、`ja-JP`、`ko-KR`、`fr-FR` 最小语言包；其中新增语言可先回退到英文骨架，再由 `system/config -> i18n` 运行时资产覆盖。
-- **模块语言包聚合**: 业务模块和系统模块可以在自身目录维护 `locales/{locale}.json`。平台层通过 `npm run i18n:generate-module` 扫描 `src/modules/**/locales/*.json`，生成 `src/i18n/resources/generated/{locale}.ts`，再由 `src/i18n/index.ts` 与基础 fallback、远端语言包合并。模块开发时只维护本模块 json，禁止再手工双写到全局 fallback。
-- **模块语言包聚合**: 业务模块和系统模块可以在自身目录维护 `locales/{locale}.json`。平台层通过 `npm run i18n:generate-module` 扫描 `src/modules/**/locales/*.json`，生成 `src/i18n/resources/generated/{locale}.ts`，再由 `src/i18n/index.ts` 与基础 fallback、远端语言包合并。模块开发时只维护本模块 json，禁止再手工双写到全局 fallback。
 - **UI 绑定**: 使用 `t('key')` 或 `<Trans />` 组件进行文本翻译。
 - **运行时刷新**: `system/config -> i18n` 管理端修改翻译后，前端应支持重新拉取并刷新资源池，不要求用户手工刷新整个页面。
 - **请求层兜底**: 请求失败、网络异常、超时等默认提示统一回退到 i18n key，如 `request.failed / network.error / network.timeout`，不再直接暴露硬编码英文 fallback。
@@ -99,7 +99,7 @@ export const OrderModule = {
 - **严禁大量手写 CSS**: 优先使用 Arco Design 的属性（如 `Grid`, `Space`）进行布局。
 - **Form 封装**: 统一使用表单校验，并配合后端返回的业务错误码显示 Tip。
 - **Fetch 封装**: 统一处理 Token 注入、401/403 异常拦截及 RequestID 日志跟踪。
-- **国际化防回归**: 前端构建前必须执行 `npm run i18n:generate-module`、`npm run check:i18n-missing-keys`、`npm run check:i18n-hardcode`。其中生成脚本保证模块语言包进入运行时 fallback，缺失 key 检查扫描静态 `t('...')` 调用，硬编码扫描阻断 `title / label / placeholder / content / defaultValue / Message / Notification` 等展示位写死自然语言。
+- **国际化防回归**: 当前 `frontend/package.json` 的 prebuild 执行 `check:i18n-hardcode` 和 `check:i18n-generated-scope`；生成资源与模块 locale 按现有生成器/consumer rebuild 接入，不新增缺失的命令。
 - **Locale 完整性门禁**: 扩语种、补翻译、导入翻译资产或批量改 key 后，必须执行 `npm run audit:i18n-locales`。该脚本以 `zh-CN` 为基准、`en-US` 为参考，检查各 locale 的 `missing / extra / empty / sameAsEn`，用于阻断缺 key、空值和可疑未翻译值进入仓库。
 - **语种扩展验收**: 新增 fallback locale 时，不要求预先支持所有语言，但一旦新增，就必须同步补齐本地资源、通过 `check:i18n-hardcode`、通过 `audit:i18n-locales`，并完成一次 `npm run build` 验证，确保语言切换、动态菜单、导入导出结果与错误反馈都不回退到硬编码。
 
@@ -114,11 +114,11 @@ export const OrderModule = {
 - **模块 Manifest**: `src/core/router/types.ts` 已将 `ModuleConfig` 升级为包含 `scope / menus / permissions / i18nNamespaces / pagePermission` 的模块契约。
 - **权限钩子**: `src/hooks/usePermission.ts` 统一处理 `admin` 角色和权限标识判断。
 - **页面权限**: `src/core/router/RoutePermissionGuard.tsx` 根据路由 `pagePermission` 做页面级拦截，并统一展示 403。
-- **用户页**: `src/modules/system/user/UserList.tsx`，支持筛选、分页、排序、读取、新增、编辑、删除用户，并维护用户角色绑定；同时支持按部门/岗位筛选、CSV 模板下载、导出、导入摘要反馈与批量启用/禁用。
-- **用户详情页**: `src/modules/system/user/UserDetail.tsx` 走独立 `system:user:view` 页面权限，展示用户基础资料、组织归属、角色摘要，并通过详情路由 `activeMenu` 保持菜单高亮。
-- **用户密码重置**: `src/modules/system/user/UserList.tsx` 已把管理员重置密码从编辑弹窗中拆出，独立弹窗走 `system:user:reset` 权限点，并提示会话强制下线影响。
-- **角色页**: `src/modules/system/role/RoleList.tsx`，支持筛选、分页、排序、读取、新增、编辑、删除角色，并把授权表单拆成“导航授权 / 页面授权 / 操作授权”三段，接口策略仍在权限页独立维护；列表页额外支持角色基础信息导出与批量启用/禁用。
-- **菜单页**: `src/modules/system/menu/MenuList.tsx`，支持筛选、排序、读取菜单树、新增、编辑、删除菜单，并把 `pagePerm` 与动作 `perms` 分开维护；页面支持表格、列表、卡片三种浏览方式。
+- **用户页**: `src/modules/system/iam/user/UserList.tsx`，支持筛选、分页、排序、读取、新增、编辑、删除用户，并维护用户角色绑定；同时支持按部门/岗位筛选、CSV 模板下载、导出、导入摘要反馈与批量启用/禁用。
+- **用户详情页**: `src/modules/system/iam/user/UserDetail.tsx` 走独立 `system:user:view` 页面权限，展示用户基础资料、组织归属、角色摘要，并通过详情路由 `activeMenu` 保持菜单高亮。
+- **用户密码重置**: `src/modules/system/iam/user/UserList.tsx` 已把管理员重置密码从编辑弹窗中拆出，独立弹窗走 `system:user:reset` 权限点，并提示会话强制下线影响。
+- **角色页**: `src/modules/system/iam/role/RoleList.tsx`，支持筛选、分页、排序、读取、新增、编辑、删除角色，并把授权表单拆成“导航授权 / 页面授权 / 操作授权”三段，接口策略仍在权限页独立维护；列表页额外支持角色基础信息导出与批量启用/禁用。
+- **菜单页**: `src/modules/system/iam/menu/MenuList.tsx`，支持筛选、排序、读取菜单树、新增、编辑、删除菜单，并把 `pagePerm` 与动作 `perms` 分开维护；页面支持表格、列表、卡片三种浏览方式。
 - **部门页**: `src/modules/system/dept/DeptList.tsx`，支持树形读取、新增、编辑、删除部门，并维护上下级组织结构；页面会显示真实组织根节点，普通部门默认挂载在根节点之下，并支持 CSV 模板下载、导出、导入与批量启用/禁用；同时新增“组织架构”视图，以部门树为主干展示岗位和成员归属。
 - **组织健康总览**: `src/modules/system/dept/DeptList.tsx` 顶部已补组织治理摘要，直接展示部门总数、岗位总数、缺负责人部门、空部门和问题数，保持在 `system/org` 单域内演进；缺负责人部门、空部门卡片可直接回填筛选。
 - **组织治理整改**: 部门页当前筛选结果可直接执行“批量补负责人”，用于对缺负责人部门做集中收口；单条部门仍可沿现有编辑动作进入整改。
@@ -129,21 +129,21 @@ export const OrderModule = {
 - **批量负责人治理收口**: “批量补负责人”已升级为任务式治理弹窗。入口仍支持多选部门，但每个部门都需要逐条选择本部门负责人候选人；没有候选人的部门会明确提示先补岗位与成员，避免批量入口继续绕过真实成员约束。
 - **岗位页**: `src/modules/system/post/PostList.tsx`，支持分页读取、新增、编辑、删除岗位，并维护岗位所属部门；同时支持 CSV 模板下载、导出、导入与批量启用/禁用。
 - **岗位治理导出增强**: 岗位导出按钮继续沿用原入口，但导出的 CSV 现在会附带在用成员数，并统一落到 `governanceScope / governanceTags / governanceProblemCount / governanceBlockedBy / governanceActions` 这套治理模板列；同时追加对应 `*Label` 字典列，方便 `system/org` 对岗位占用治理做线下分发与复核。
-- **权限页**: `src/modules/system/permission/PermissionList.tsx`，已升级为“权限工作台 + Casbin 路由策略”双视图，统一展示角色的导航、页面/按钮权限与接口策略；接口策略页支持 CSV 模板下载、导出与导入。
+- **权限页**: `src/modules/system/iam/permission/PermissionList.tsx`，已升级为“权限工作台 + Casbin 路由策略”双视图，统一展示角色的导航、页面/按钮权限与接口策略；接口策略页支持 CSV 模板下载、导出与导入。
 - **个人中心**: `src/modules/system/profile/ProfileCenter.tsx`，支持查看当前账号信息、维护昵称/邮箱/手机号/头像；密码修改请求已切到 `system/auth` API。
 - **头像上传**: 个人中心已新增基于统一上传接口的头像上传入口，上传行为受 `system/config` 的上传配置实时约束，不再只能手工输入头像 URL。
 - **安全入口**: 顶部用户区和个人中心页均已提供“安全中心”入口，安全能力不再继续堆叠在 `ProfileCenter` 内。
 - **审计入口**: 管理员可通过动态菜单进入“登录日志”“会话管理”页面。
 - **模块治理兜底**: `src/modules/lowcode/dynamicmodule/ModuleManager.tsx` 已补“注册表自检/修复”动作，用于在历史脏数据、手工删改源码或注册表漂移时重写 generated registries，并把缺失源码的接入记录自动校正为已卸载。
 - **基础布局**: `src/core/layout/index.tsx`，支持动态菜单、语言切换、登出，并按当前用户权限渲染侧边导航。
-- **页面骨架第一批组件**: 已新增 `src/components/` 下的 `PageContainer`、`PageHeader`、`FilterPanel`、`PageLoading`、`PageEmpty`、`PageError`、`PageForbidden`，并优先接入 `auth` 相关页面。
+- **页面骨架第一批组件**: 已新增 `src/components/` 下的 `PageContainer`、`PageHeader`、`SearchToolbar`、`PageLoading`、`PageEmpty`、`PageError`、`PageForbidden`，并优先接入 `auth` 相关页面。
 - **页面骨架第二批组件**: 已新增 `AppTable`、`PageActions`、`FormSection`、`SubmitBar`，并开始接入 `UserList`、`RoleList`、`PermissionList`、`ProfileCenter`。
 - **第二批覆盖扩展**: `DeptList`、`MenuList`、`PostList` 已接入统一页面头部、筛选区、表格封装与提交栏。
 - **异常态补强**: 已补 `PageServerError`、`PageNetworkError`，请求层也已能区分 `network / timeout / server / business` 基础错误类型。
-- **仪表盘真实数据化**: `src/modules/dashboard/` 已接入平台层汇总接口，不再使用硬编码统计数字。
+- **仪表盘真实数据化**: `src/modules/platform/` 已接入平台层汇总接口，不再使用硬编码统计数字。
 - **首页归属澄清**: dashboard 在模块 manifest 中按 `platform` scope 理解，语义上属于跨域聚合页；物理目录已从 `platform/dashboard` 扁平化到顶层 `dashboard`。
-- **系统设置页**: 当前已拆分为 `src/modules/system/setting/SettingOverviewPage.tsx` 与 `src/modules/system/setting/SettingGroupPage.tsx`。前者负责 `/system/setting` 概览入口，后者负责 `basic / platform / security / login / audit / upload / i18n / ui` 分组维护，并对敏感配置提供“已加密/留空不变”交互表达。
-- **配置健康总览**: `src/modules/system/setting/SettingOverviewPage.tsx` 展示公开/敏感配置数量、缺失必填项、运行时风险以及当前语言、主题、上传驱动状态；`SettingGroupPage.tsx` 承载单组配置编辑与审计能力。
+- **系统设置页**: 当前已拆分为 `src/modules/system/config/setting/SettingOverviewPage.tsx` 与 `src/modules/system/config/setting/SettingGroupPage.tsx`。前者负责 `/system/setting` 概览入口，后者负责 `basic / platform / security / login / audit / upload / i18n / ui` 分组维护，并对敏感配置提供“已加密/留空不变”交互表达。
+- **配置健康总览**: `src/modules/system/config/setting/SettingOverviewPage.tsx` 展示公开/敏感配置数量、缺失必填项、运行时风险以及当前语言、主题、上传驱动状态；`SettingGroupPage.tsx` 承载单组配置编辑与审计能力。
 - **平台公开设置消费**: `site.name / site.logo / i18n.default_language / ui.default_theme / ui.enable_tab_bar / login.session_idle_minutes` 已接入登录页与应用壳层；其中默认语言仅在“当前会话无显式语言覆盖且当前用户无语言偏好”时生效，标签栏可由 `ui.enable_tab_bar` 控制显隐，空闲时长由 `login.session_idle_minutes` 控制自动退出。
 - **平台能力开关消费**: `platform.app_mode / org.enabled / org.required_for_user` 已进入公开设置链路。`org.enabled=false` 时，壳层会隐藏 `system.org` 导航，用户页隐藏部门/岗位列和表单字段；`org.required_for_user=true` 且组织启用时，用户表单要求选择部门。
 - **用户扩展档案契约**: 用户相关 API 类型已预留 `profileExt`，用于 C 端或混合模式下的扩展档案展示与编辑。后台管理页默认不渲染任意 JSON 字段，后续应由具体业务页面或受控表单定义字段语义，避免把未知 PII 直接散落到通用用户列表。
@@ -154,7 +154,7 @@ export const OrderModule = {
 - **设置缓存刷新**: 系统设置页已补“刷新设置缓存”入口，允许管理员按当前分组手动预热缓存。
 - **字典管理页**: 已新增 `src/modules/system/dict/DictPage.tsx`，采用左侧字典类型 + 右侧字典项的主从布局，支持类型筛选、字典项排序、状态和颜色维护；类型与字典项都支持各自的 CSV 模板下载、导出与导入。
 - **字典缓存刷新**: 字典页右侧卡片已补“刷新缓存”入口，管理员可按当前选中字典手动刷新 options 缓存。
-- **菜单元数据页增强**: `src/modules/system/menu/MenuList.tsx` 已支持维护 `routeName / module / isCache / isExternal / activeMenu`，图标输入已收敛为平台层共享 icon registry 的枚举选择器；前后端菜单配置统一复用同一套 `MenuIconKey`，避免自由字符串和默认 fallback 导致重复图标。
+- **菜单元数据页增强**: `src/modules/system/iam/menu/MenuList.tsx` 已支持维护 `routeName / module / isCache / isExternal / activeMenu`，图标输入已收敛为平台层共享 icon registry 的枚举选择器；前后端菜单配置统一复用同一套 `MenuIconKey`，避免自由字符串和默认 fallback 导致重复图标。
 - **操作日志页**: `src/modules/system/audit/OperationLogList.tsx` 已支持按筛选条件导出 CSV，并把危险动作收口为“按 `system/config -> audit` 设置动态下发的保留期清理”与“按选择集批量删除”；危险动作继续要求独立权限点和二次验证。
 
 ## 8. 交互补充

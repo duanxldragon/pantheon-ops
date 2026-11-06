@@ -4,6 +4,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { resolveBaseFromLock, validateChecksum } from './foundation-release.mjs';
+export const validateReleaseBundleChecksum = validateChecksum;
 
 const currentFile = fileURLToPath(import.meta.url);
 const defaultOpsRoot = path.resolve(path.dirname(currentFile), '..', '..');
@@ -74,123 +76,6 @@ function snapshotFiles(root) {
   return results.sort();
 }
 
-function sha256FileHex(filePath) {
-  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
-}
-
-function readLock(opsRoot) {
-  const lockPath = path.join(opsRoot, 'foundation-release.lock.json');
-  if (!fs.existsSync(lockPath)) return null;
-  return JSON.parse(fs.readFileSync(lockPath, 'utf8'));
-}
-
-// Ops consumes Base only from the published GitHub release, never from a sibling
-// ../pantheon-base working tree. When the snapshot is not already cached under
-// releaseArtifact.localPath, download it from the locked GitHub release and rely
-// on the lock's repoSnapshot.sha256 for integrity.
-function downloadReleaseBundle(lock, releaseDir) {
-  const repo = lock.releaseArtifact?.githubRepo;
-  const tag = lock.releaseVersion;
-  const bundleAssetName = lock.releaseArtifact?.assetName;
-  if (!repo || !tag || !bundleAssetName) {
-    throw new Error(
-      'Lock is missing releaseArtifact.githubRepo, releaseVersion, or releaseArtifact.assetName; ' +
-      'cannot download the Base release bundle from GitHub.',
-    );
-  }
-  fs.mkdirSync(releaseDir, { recursive: true });
-  const result = spawnSync(
-    'gh',
-    ['release', 'download', tag, '--repo', repo, '--pattern', bundleAssetName, '--dir', releaseDir],
-    { encoding: 'utf8' },
-  );
-  if (result.status !== 0) {
-    throw new Error(
-      result.stderr.trim() || `failed to download ${bundleAssetName} from GitHub release ${repo}@${tag}`,
-    );
-  }
-  return path.join(releaseDir, bundleAssetName);
-}
-
-export function validateReleaseBundleChecksum(bundlePath, expectedChecksum) {
-  if (!expectedChecksum) return;
-  const actualChecksum = sha256FileHex(bundlePath);
-  if (actualChecksum !== expectedChecksum) {
-    throw new Error(
-      `release bundle checksum mismatch: expected ${expectedChecksum}, got ${actualChecksum} (${path.basename(bundlePath)})`,
-    );
-  }
-}
-
-function downloadRepoSnapshot(lock, releaseDir) {
-  const repo = lock.releaseArtifact?.githubRepo;
-  const tag = lock.releaseVersion;
-  const assetName = lock.repoSnapshot?.assetName ?? 'repo.tar';
-  if (!repo || !tag) {
-    throw new Error(
-      'Lock is missing releaseArtifact.githubRepo or releaseVersion; ' +
-      'cannot download the Base snapshot from GitHub.',
-    );
-  }
-  fs.mkdirSync(releaseDir, { recursive: true });
-  const result = spawnSync(
-    'gh',
-    ['release', 'download', tag, '--repo', repo, '--pattern', assetName, '--dir', releaseDir],
-    { encoding: 'utf8' },
-  );
-  if (result.status !== 0) {
-    throw new Error(
-      result.stderr.trim() || `failed to download ${assetName} from GitHub release ${repo}@${tag}`,
-    );
-  }
-  return path.join(releaseDir, assetName);
-}
-
-function resolveBaseFromLock(opsRoot) {
-  const lock = readLock(opsRoot);
-  if (!lock?.repoSnapshot || !lock?.releaseArtifact?.localPath) return null;
-  const releaseDir = path.resolve(opsRoot, lock.releaseArtifact.localPath);
-  const repoDir = path.join(releaseDir, 'repo');
-
-  // Validate the release bundle (.tgz) integrity if available or downloadable.
-  const bundleAssetName = lock.releaseArtifact?.assetName;
-  if (bundleAssetName) {
-    let bundlePath = path.join(releaseDir, bundleAssetName);
-    if (!fs.existsSync(bundlePath)) {
-      bundlePath = downloadReleaseBundle(lock, releaseDir);
-    }
-    validateReleaseBundleChecksum(bundlePath, lock.releaseArtifact?.checksum);
-  }
-
-  let repoTar = path.join(releaseDir, lock.repoSnapshot.assetName ?? 'repo.tar');
-  if (!fs.existsSync(repoTar)) {
-    repoTar = downloadRepoSnapshot(lock, releaseDir);
-  }
-  if (!fs.existsSync(repoDir)) {
-    fs.mkdirSync(repoDir, { recursive: true });
-    // GNU tar treats a drive-letter path (`D:\...`) as the `host:file` remote-archive
-    // syntax. Run with relative paths under `cwd` to avoid the colon entirely, so this
-    // works on both GNU tar (Git Bash) and BSD tar (Windows built-in).
-    const result = spawnSync('tar', ['-xf', path.basename(repoTar), '-C', path.basename(repoDir)], {
-      encoding: 'utf8',
-      cwd: releaseDir,
-    });
-    if (result.status !== 0) {
-      throw new Error(result.stderr.trim() || `failed to extract ${repoTar}`);
-    }
-  }
-  if (lock.repoSnapshot.sha256) {
-    const actual = sha256FileHex(repoTar);
-    if (actual !== lock.repoSnapshot.sha256) {
-      throw new Error(`repo.tar sha256 mismatch: expected ${lock.repoSnapshot.sha256}, got ${actual}`);
-    }
-  }
-  if (lock.repoSnapshot.baseCommit && lock.repoSnapshot.baseCommit !== lock.baseCommit) {
-    throw new Error(`repoSnapshot.baseCommit ${lock.repoSnapshot.baseCommit} != lock.baseCommit ${lock.baseCommit}`);
-  }
-  return { baseRoot: repoDir, baseCommit: lock.baseCommit };
-}
-
 function copyFile(sourceRoot, targetRoot, relativePath) {
   const source = path.join(sourceRoot, relativePath);
   const target = path.join(targetRoot, relativePath);
@@ -247,7 +132,53 @@ function assertBusinessPathsDoNotOverwriteBase(opsRoot, baseRoot, baseTracked, b
   }
 }
 
-function assertSafeManifest(manifest) {
+// Module-owned SQL may join the shared migration chain only through this
+// fixed destination. Generic businessPaths still cannot own backend/pkg.
+export function planBusinessMigrations(manifest) {
+  const sources = manifest.businessMigrations ?? [];
+  if (!Array.isArray(sources)) throw new Error('businessMigrations must be an array');
+  const versions = new Map();
+  const plans = sources.map((source) => {
+    const match = typeof source === 'string' && /^backend\/modules\/business\/(?:[a-z0-9_]+\/)+migrations\/(\d{6})_([a-z0-9_]+)\.(up|down)\.sql$/u.exec(source);
+    if (!match) throw new Error(`Invalid business migration source: ${source}`);
+    if (!(manifest.businessPaths ?? []).some((owned) => isWithin(source, repoPath(owned)))) {
+      throw new Error(`Business migration source is not declared in businessPaths: ${source}`);
+    }
+    const [, version, name, direction] = match;
+    const pair = versions.get(version) ?? { name, directions: new Set() };
+    if (pair.name !== name || pair.directions.has(direction)) {
+      throw new Error(`Duplicate business migration version or direction: ${version}`);
+    }
+    pair.directions.add(direction);
+    versions.set(version, pair);
+    return { source, version, target: `backend/pkg/database/migrations/${path.posix.basename(source)}` };
+  });
+  for (const [version, pair] of versions) {
+    if (pair.directions.size !== 2) throw new Error(`Business migration requires up/down pair: ${version}`);
+  }
+  return plans;
+}
+
+function assembleBusinessMigrations(opsRoot, targetRoot, manifest) {
+  const plans = planBusinessMigrations(manifest);
+  const targetDirectory = path.join(targetRoot, 'backend/pkg/database/migrations');
+  const baseVersions = new Set((fs.existsSync(targetDirectory) ? fs.readdirSync(targetDirectory) : [])
+    .map((name) => /^(\d+)_.*\.(up|down)\.sql$/u.exec(name)?.[1]).filter(Boolean).map(Number));
+  // Validate every input and collision before copying either half of a pair.
+  for (const plan of plans) {
+    if (baseVersions.has(Number(plan.version))) throw new Error(`Business migration version conflicts with Base: ${plan.version}`);
+    const source = path.join(opsRoot, plan.source);
+    if (!fs.existsSync(source) || !fs.lstatSync(source).isFile()) throw new Error(`Business migration source must be a regular file: ${plan.source}`);
+  }
+  for (const plan of plans) {
+    fs.mkdirSync(path.dirname(path.join(targetRoot, plan.target)), { recursive: true });
+    fs.copyFileSync(path.join(opsRoot, plan.source), path.join(targetRoot, plan.target));
+  }
+  return plans.map((plan) => plan.target);
+}
+
+export function assertSafeManifest(manifest) {
+  planBusinessMigrations(manifest);
   if (manifest.schemaVersion !== 1) throw new Error('Unsupported business overlay schema');
   const productRoots = ['backend', 'frontend/src', 'frontend/tests/smoke', 'database', 'schema'];
   const allowedBusinessRoots = [
@@ -471,6 +402,7 @@ function mergePackages(baseRoot, opsRoot, targetRoot, manifest) {
   const opsPackage = JSON.parse(fs.readFileSync(path.join(opsRoot, 'package.json'), 'utf8'));
   basePackage.scripts = {
     ...basePackage.scripts,
+    'fetch:base-release': 'node scripts/business-overlay/foundation-release.mjs',
     'rebuild:from-base': 'node scripts/business-overlay/rebuild-from-base.mjs',
     'check:business-overlay': 'node scripts/business-overlay/check-business-overlay.mjs',
     'check:shared-drift': 'node scripts/business-overlay/check-shared-drift.mjs',
@@ -618,37 +550,24 @@ function writeReport(targetRoot, baseCommit, copiedBusiness, copiedRepository, r
   return report;
 }
 
-export function rebuildFromBase({ opsRoot = defaultOpsRoot, baseRoot, targetRoot, manifestPath } = {}) {
+export function assembleConsumerTree({ opsRoot = defaultOpsRoot, snapshot, targetRoot, manifestPath } = {}) {
   const resolvedManifest = manifestPath ?? path.join(opsRoot, 'business-overlay.json');
   const manifest = JSON.parse(fs.readFileSync(resolvedManifest, 'utf8'));
   assertSafeManifest(manifest);
 
-  let resolvedBase;
-  let lockedBaseCommit = null;
-  if (baseRoot) {
-    resolvedBase = path.resolve(opsRoot, baseRoot);
-  } else {
-    const fromLock = resolveBaseFromLock(opsRoot);
-    if (!fromLock) {
-      throw new Error(
-        'No locked Base snapshot found (foundation-release.lock.json). Ops consumes Base only from ' +
-        'the published GitHub release, not a local ../pantheon-base working tree.',
-      );
-    }
-    resolvedBase = fromLock.baseRoot;
-    lockedBaseCommit = fromLock.baseCommit;
-  }
-
+  const resolvedBase = snapshot?.baseRoot;
+  if (!resolvedBase || !snapshot.baseCommit) throw new Error('Verified release snapshot is required');
   const resolvedTarget = path.resolve(opsRoot, targetRoot ?? '.tmp/business-overlay-rebuild');
-  if (resolvedTarget === path.resolve(opsRoot) || resolvedTarget === resolvedBase) {
+  const targetContainsSource = [path.resolve(opsRoot), path.resolve(resolvedBase)].some((source) => source === resolvedTarget || source.startsWith(resolvedTarget + path.sep));
+  const targetInsideBase = resolvedTarget.startsWith(path.resolve(resolvedBase) + path.sep);
+  if (targetContainsSource || targetInsideBase || resolvedTarget === path.parse(resolvedTarget).root || path.basename(resolvedTarget) === '.git' || (fs.existsSync(resolvedTarget) && fs.lstatSync(resolvedTarget).isSymbolicLink())) {
     throw new Error('Refusing to rebuild over a source repository');
   }
   fs.rmSync(resolvedTarget, { recursive: true, force: true });
   fs.mkdirSync(resolvedTarget, { recursive: true });
 
-  const baseIsGit = fs.existsSync(path.join(resolvedBase, '.git'));
-  const baseTracked = baseIsGit ? trackedFiles(resolvedBase) : snapshotFiles(resolvedBase);
-  const baseCommit = lockedBaseCommit ?? runGit(resolvedBase, ['rev-parse', 'HEAD']);
+  const baseTracked = snapshotFiles(resolvedBase);
+  const baseCommit = snapshot.baseCommit;
   for (const file of baseTracked) copyFile(resolvedBase, resolvedTarget, file);
   pruneBaseRepositoryOverlay(resolvedTarget, manifest);
   assertBusinessPathsDoNotOverwriteBase(opsRoot, resolvedBase, baseTracked, manifest.businessPaths ?? []);
@@ -661,6 +580,7 @@ export function rebuildFromBase({ opsRoot = defaultOpsRoot, baseRoot, targetRoot
   const targetModule = readGoModule(resolvedTarget);
   const rewritten = rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, targetModule);
   const generated = generateRegistries(resolvedTarget, manifest, targetModule);
+  generated.push(...assembleBusinessMigrations(opsRoot, resolvedTarget, manifest));
   rewritten.push(...rewriteBusinessGoImports(resolvedTarget, manifest.sourceModule, targetModule));
   generated.push(...wireBusinessRegistries(resolvedTarget));
   generated.push(...mergeGoDependencies(opsRoot, resolvedTarget, manifest));
@@ -675,13 +595,19 @@ export function rebuildFromBase({ opsRoot = defaultOpsRoot, baseRoot, targetRoot
   return { targetRoot: resolvedTarget, report };
 }
 
+export function rebuildFromBase({ opsRoot = defaultOpsRoot, baseRoot, targetRoot, manifestPath } = {}) {
+  if (baseRoot) throw new Error('Local Base sources are not supported; fetch the official GitHub release');
+  return assembleConsumerTree({ opsRoot, targetRoot, manifestPath, snapshot: resolveBaseFromLock(opsRoot) });
+}
+
 function argument(name) {
   const index = process.argv.indexOf(name);
   return index >= 0 ? process.argv[index + 1] : undefined;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === currentFile) {
-  const result = rebuildFromBase({ baseRoot: argument('--base'), targetRoot: argument('--target'), manifestPath: argument('--manifest') });
+  if (process.argv.includes('--base')) throw new Error('--base is no longer supported; fetch the official GitHub release');
+  const result = rebuildFromBase({ targetRoot: argument('--target'), manifestPath: argument('--manifest') });
   console.log(`OK rebuilt clean Ops tree at ${result.targetRoot}`);
   console.log(`Base commit: ${result.report.baseCommit}`);
   console.log(`Declared/generated Ops files: ${result.report.ownedFiles.length}`);

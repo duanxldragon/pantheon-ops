@@ -93,7 +93,7 @@ The validator blocks requests to:
 1. **Private Network Scanning**: Blocks access to internal IP ranges
 2. **Cloud Metadata Access**: Prevents access to 169.254.169.254 (AWS, GCP, Azure)
 3. **Localhost Exploitation**: Blocks 127.0.0.1 and localhost
-4. **DNS Rebinding**: Re-resolves DNS before request and validates IPs
+4. **DNS Rebinding**: Resolves and validates all addresses, then dials only those numeric IPs; HTTP Host and TLS SNI retain the original hostname
 5. **Redirect Chains**: Limits redirects and validates each hop
 6. **Port Scanning**: Restricts to allowed ports only
 
@@ -178,3 +178,9 @@ go test -bench=. ./pkg/security/ssrf/...
 
 - [OWASP SSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html)
 - [CWE-918: Server-Side Request Forgery](https://cwe.mitre.org/data/definitions/918.html)
+
+## Downstream compatibility
+
+`ValidateURL` and `CreateHTTPClient` retain their public signatures. The protected transport resolves once per connection, rejects empty or any private/reserved DNS answer, and tries only validated IPs within a shared lookup/dial deadline. `BlockPrivateIPs` or `DNSRebindProtection` enables this protection; explicitly disabling both retains ordinary dialing. Redirects retain the configured limits and URL validation.
+
+Pantheon Ops datasource and notification callers consume this package through foundation releases. Validate HTTPS, IPv4/IPv6, multiple addresses and intentional private-network policy before upgrading; do not replace its transport with an unchecked default dialer. No foundation release or consumer lock upgrade is performed by the local repair.

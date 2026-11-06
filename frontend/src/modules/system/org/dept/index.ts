@@ -1,4 +1,5 @@
 import { defineModule } from '../../../../core/router/types';
+import { fetchAllPages } from '../../../../api/fetchAllPages';
 import { getPostList } from '../post/api';
 import { getUserList } from '../../iam/user/api';
 import { getDeptOverview, getDeptTree } from './api';
@@ -36,12 +37,18 @@ export const DeptModule = defineModule({
     {
       path: '/system/dept',
       key: 'posts:org-chart',
-      load: () => getPostList({ page: 1, pageSize: 1000, sortField: 'sort', sortOrder: 'asc' }),
+      load: () =>
+        fetchAllPages((page, pageSize) =>
+          getPostList({ page, pageSize, sortField: 'sort', sortOrder: 'asc' }),
+        ),
     },
     {
       path: '/system/dept',
       key: 'users:org-chart',
-      load: () => getUserList({ page: 1, pageSize: 1000, sortField: 'username', sortOrder: 'asc' }),
+      load: () =>
+        fetchAllPages((page, pageSize) =>
+          getUserList({ page, pageSize, sortField: 'username', sortOrder: 'asc' }),
+        ),
     },
   ],
   dashboardWidgets: [

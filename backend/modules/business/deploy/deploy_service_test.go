@@ -1071,12 +1071,15 @@ func TestStartDeployTaskPersistsCanonicalSSHRunnerErrors(t *testing.T) {
 		t.Fatalf("create task: %v", err)
 	}
 
-	started, err := svc.StartTask(task.ID, StartTaskRequest{
+	if _, err := svc.StartTask(task.ID, StartTaskRequest{
 		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-	}, "1", nil)
+	}, "1", nil); err == nil || err.Error() != errDeployTaskSSHConnectFailed {
+		t.Fatalf("expected %s from start, got %v", errDeployTaskSSHConnectFailed, err)
+	}
+	started, err := svc.GetTask(task.ID, nil)
 	if err != nil {
-		t.Fatalf("start task: %v", err)
+		t.Fatalf("reload task: %v", err)
 	}
 	if started.Status != TaskStatusFailed {
 		t.Fatalf("expected failed task, got %s", started.Status)
@@ -2261,12 +2264,15 @@ func TestDeployTemplateTaskSSHExecutorFailsOnScriptPrecheck(t *testing.T) {
 		t.Fatalf("create task: %v", err)
 	}
 
-	started, err := svc.StartTask(task.ID, StartTaskRequest{
+	if _, err := svc.StartTask(task.ID, StartTaskRequest{
 		CredentialRefID: credID,
 		HostFingerprint: "SHA256:test",
-	}, "1", nil)
+	}, "1", nil); err == nil || !strings.Contains(err.Error(), "precheck failed") {
+		t.Fatalf("expected precheck failure from start, got %v", err)
+	}
+	started, err := svc.GetTask(task.ID, nil)
 	if err != nil {
-		t.Fatalf("start task: %v", err)
+		t.Fatalf("reload task: %v", err)
 	}
 	if started.Status != TaskStatusFailed {
 		t.Fatalf("expected failed task, got %s", started.Status)
@@ -2970,7 +2976,12 @@ func TestDeleteDeployTaskReconcilesStaleRunningTask(t *testing.T) {
 		t.Fatalf("start task: %v", err)
 	}
 	staleAt := time.Now().Add(-6 * time.Minute)
-	if err := db.Model(&DeployTask{}).Where("id = ?", task.ID).Update("updated_at", staleAt).Error; err != nil {
+	// The start claim holds a live host lease; a stale running task can only be
+	// reconciled once its lease has expired as well.
+	if err := db.Where("task_id = ?", task.ID).Delete(&DeployHostLease{}).Error; err != nil {
+		t.Fatalf("expire host lease: %v", err)
+	}
+	if err := db.Model(&DeployTask{}).Where("id = ?", task.ID).UpdateColumn("updated_at", staleAt).Error; err != nil {
 		t.Fatalf("age task: %v", err)
 	}
 	if err := svc.DeleteTask(task.ID, "1", nil); err != nil {

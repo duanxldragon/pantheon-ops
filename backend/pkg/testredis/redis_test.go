@@ -131,10 +131,11 @@ func TestReservedDatabasesAreDistinct(t *testing.T) {
 		DBDefault: "DBDefault (shared, must stay unclaimed)",
 	}
 	reserved := map[string]int{
-		"DBAuthToken":  DBAuthToken,
-		"DBLogin":      DBLogin,
-		"DBMiddleware": DBMiddleware,
-		"DBSession":    DBSession,
+		"DBAuthToken":     DBAuthToken,
+		"DBLogin":         DBLogin,
+		"DBMiddleware":    DBMiddleware,
+		"DBSession":       DBSession,
+		"DBSystemModules": DBSystemModules,
 	}
 
 	for name, index := range reserved {

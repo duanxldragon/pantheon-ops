@@ -217,6 +217,30 @@ func ValidateRefresh(ctx context.Context, rdb *redis.Client, tok string) (uint64
 	return e.UserID, e.SessionID, nil
 }
 
+// ConsumeRefresh atomically loads and deletes a refresh token before issuance.
+// GETDEL is supported by the deployed Redis 7 baseline. Only one request across
+// all instances can consume a token. A later DB/issuance failure does not restore
+// it: restoring after an uncertain failure would reopen the replay window.
+// The session reverse index is left intact until replacement/revocation; never
+// delete it here, since another operation may already have installed a new token.
+func ConsumeRefresh(ctx context.Context, rdb *redis.Client, tok string) (uint64, string, error) {
+	if rdb == nil {
+		return 0, "", ErrStoreNotInitialized
+	}
+	b, err := rdb.GetDel(ctx, RefreshKey(tok)).Bytes()
+	if err == redis.Nil {
+		return 0, "", ErrNotFound
+	}
+	if err != nil {
+		return 0, "", err
+	}
+	var e refreshEntry
+	if err := json.Unmarshal(b, &e); err != nil {
+		return 0, "", ErrInvalid
+	}
+	return e.UserID, e.SessionID, nil
+}
+
 // DeleteRefresh removes a refresh token mapping from Redis.
 func DeleteRefresh(ctx context.Context, rdb *redis.Client, tok string) error {
 	if rdb == nil {

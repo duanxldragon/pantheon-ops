@@ -1,0 +1,200 @@
+{
+  "taskId": "2026-11-05-base-v0183-consumption",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": "Scoped Generator plus independent code/architect reviewers"
+  },
+  "recordedAt": "2026-11-05T10:33:52.924977+00:00",
+  "commands": [
+    {
+      "command": "npm run test:business-overlay",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:04:02.613Z",
+      "finishedAt": "2026-11-05T10:04:08.473Z",
+      "log": "opsAssembly-restricted-migration-0.log",
+      "stderr": "opsAssembly-restricted-migration-0-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:04:08.484Z",
+      "finishedAt": "2026-11-05T10:04:09.239Z",
+      "log": "opsAssembly-restricted-migration-1.log",
+      "stderr": "opsAssembly-restricted-migration-1-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "go test -race -count=1 ./modules/business/cmdb/host -run TestHostStateVersionBackfillEnablesCAS$",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05/backend",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:04:09.242Z",
+      "finishedAt": "2026-11-05T10:04:20.493Z",
+      "log": "opsAssembly-restricted-migration-2.log",
+      "stderr": "opsAssembly-restricted-migration-2-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "npm run test:business-overlay",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05",
+      "exitCode": 1,
+      "error": null,
+      "startedAt": "2026-11-05T10:22:46.970Z",
+      "finishedAt": "2026-11-05T10:22:57.577Z",
+      "log": "opsAssembly-drift-repair-red-0.log",
+      "stderr": "opsAssembly-drift-repair-red-0-stderr.log",
+      "status": "failed",
+      "notes": "Expected red regression"
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:22:57.586Z",
+      "finishedAt": "2026-11-05T10:22:58.344Z",
+      "log": "opsAssembly-drift-repair-red-1.log",
+      "stderr": "opsAssembly-drift-repair-red-1-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "go test -race -count=1 ./modules/business/cmdb/host -run TestHostStateVersionBackfillEnablesCAS$",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05/backend",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:22:58.353Z",
+      "finishedAt": "2026-11-05T10:23:08.276Z",
+      "log": "opsAssembly-drift-repair-red-2.log",
+      "stderr": "opsAssembly-drift-repair-red-2-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "npm run test:business-overlay",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:26:29.732Z",
+      "finishedAt": "2026-11-05T10:26:37.886Z",
+      "log": "opsAssembly-drift-repair-green-0.log",
+      "stderr": "opsAssembly-drift-repair-green-0-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:26:37.893Z",
+      "finishedAt": "2026-11-05T10:26:38.520Z",
+      "log": "opsAssembly-drift-repair-green-1.log",
+      "stderr": "opsAssembly-drift-repair-green-1-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "go test -race -count=1 ./modules/business/cmdb/host -run TestHostStateVersionBackfillEnablesCAS$",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05/backend",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:26:38.522Z",
+      "finishedAt": "2026-11-05T10:26:48.711Z",
+      "log": "opsAssembly-drift-repair-green-2.log",
+      "stderr": "opsAssembly-drift-repair-green-2-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "npm run fetch:base-release -- --release pantheon-base-v0.18.4",
+      "cwd": "pantheon-ops (side worktree)",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "ops-v0184-actual-acquisition.log; digest recheck matched lock"
+    },
+    {
+      "command": "npm run rebuild:from-base -- --target .tmp/clean-base-overlay",
+      "cwd": "pantheon-ops (side worktree)",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "827 files; baseCommit 0a8229c6"
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs --root .tmp/clean-base-overlay && npm run check:shared-drift -- --root .tmp/clean-base-overlay",
+      "cwd": "pantheon-ops (side worktree)",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "826 shared identical, 2 derived migrations verified"
+    },
+    {
+      "command": "go test -buildvcs=false -race -p 1 -count=1 ./... (CGO_ENABLED=1, msys64 mingw PATH)",
+      "cwd": "pantheon-ops/.tmp/clean-base-overlay/backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "staging full race"
+    },
+    {
+      "command": "npm run lint && npm run type-check && npm run build && npm run test:unit",
+      "cwd": "pantheon-ops/.tmp/clean-base-overlay/frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "218/218 unit"
+    },
+    {
+      "command": "fresh-DB migration replay (PANTHEON_AUTO_MIGRATE=false)",
+      "cwd": "pantheon-ops/.tmp/clean-base-overlay/backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "schema_migrations version=32 dirty=0"
+    },
+    {
+      "command": "business generated-module smoke (governance, auto-recycle, master-detail, many-to-many)",
+      "cwd": "pantheon-ops/.tmp/clean-base-overlay/frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "4 passed; ops-v0184-staging-governance-smoke.log"
+    },
+    {
+      "command": "module-governance-host-real.spec.ts staging vs v0.18.2 fresh-DB baseline",
+      "cwd": "pantheon-ops",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "identical hidden-menu failure on both; pre-existing fixture-state issue; ops-v0184-staging-host-smoke.log + ops-v0182-baseline-host-smoke.log"
+    },
+    {
+      "command": "npm run test:smoke:tenant (fresh staging DB)",
+      "cwd": "pantheon-ops/.tmp/clean-base-overlay/frontend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "403 permission.denied in tenant-admin dict provisioning on fresh DB; CI deterministic seed is authoritative; ops-v0184-staging-tenant-smoke.log"
+    }
+  ],
+  "runtimeSensitive": true,
+  "runtimeLogs": [
+    ".harness/evidence/2026-11-05-base-v0183-consumption/opsAssembly-drift-repair-green-2.log"
+  ],
+  "runtimeGap": "Official v0.18.3 asset hashes, final rebuild, full race/frontend/business smoke and remote CI pending. No production DDL performed.",
+  "knownGaps": [
+    "Official release and final consumer validation pending"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-05-base-v0183-consumption/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-05-base-v0183-consumption/",
+    "reviewFile": ".harness/evidence/2026-11-05-base-v0183-consumption/review.md",
+    "summaryFile": ".harness/evidence/2026-11-05-base-v0183-consumption/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-05-base-v0183-consumption/plan.md"
+    ]
+  }
+}

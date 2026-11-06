@@ -80,6 +80,7 @@ func (s *PostService) ListPosts(query *PostListQuery) (*PostListPageResp, error)
 	sortColumn, sortDesc := normalizePostSort(query)
 	if err := db.
 		Order(clause.OrderByColumn{Column: clause.Column{Name: sortColumn}, Desc: sortDesc}).
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: sortDesc}).
 		Offset(offset).
 		Limit(pageSize).
 		Find(&posts).Error; err != nil {

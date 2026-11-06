@@ -58,7 +58,7 @@ func TestReadRoleKeysFromContext_PrefersRoleKeysSlice(t *testing.T) {
 	c.Set("roleKeys", []string{"admin", "auditor"})
 	c.Set("roleKey", "guest")
 
-	roleKeys := readRoleKeysFromContext(c)
+	roleKeys := common.GetRoleKeys(c)
 	if len(roleKeys) != 2 || roleKeys[0] != "admin" || roleKeys[1] != "auditor" {
 		t.Fatalf("expected roleKeys slice from context, got %#v", roleKeys)
 	}
@@ -68,7 +68,7 @@ func TestReadRoleKeysFromContext_FallsBackToSingleRoleKey(t *testing.T) {
 	c, _ := gin.CreateTestContext(nil)
 	c.Set("roleKey", "operator")
 
-	roleKeys := readRoleKeysFromContext(c)
+	roleKeys := common.GetRoleKeys(c)
 	if len(roleKeys) != 1 || roleKeys[0] != "operator" {
 		t.Fatalf("expected single roleKey fallback, got %#v", roleKeys)
 	}

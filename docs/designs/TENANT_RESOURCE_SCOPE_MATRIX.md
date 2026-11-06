@@ -7,7 +7,7 @@ linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
   - docs/contracts/TENANT_CONTRACT_V1.md
-updated_at: 2026-10-22
+updated_at: 2026-10-31
 ---
 
 # 租户资源 scope 矩阵模板与全局唯一键登记
@@ -52,7 +52,7 @@ English version: [TENANT_RESOURCE_SCOPE_MATRIX.en.md](./TENANT_RESOURCE_SCOPE_MA
 | `system_user` | `tenant-replicated` | 用户名**租户内唯一**（2026-10-13 维护者决策，迁移 000024 落地 `uk_system_user_tenant_username`） |
 | `system_role` | `tenant-replicated` | **2026-10-15 维护者裁决：角色按租户复制**。每个租户持有自己的 `tenant_admin` / `tenant_member` 副本；角色**定义**是全局统一的，单一来源为 `pkg/tenant` 的角色常量与 `modules/system/iam/tenant` 的 `tenantRoleDefinitions`，由 `ProvisionTenant` 代码生成而非人工逐租户维护，因此不会产生漂移 |
 | `system_menu` / `system_permission` | `platform-global` | **2026-10-15 维护者裁决：菜单与权限保持全局共享**。注意：迁移 000020 已为两表加了 `tenant_id` 列，但菜单/权限读写路径不按该列过滤，列当前未参与隔离语义（占位）。2026-10-21 验收整改：菜单写接口与 i18n 系统域写接口已加 `PlatformCapabilityMiddleware`，租户管理员不能再写全局菜单/权限表。租户差异只由 Casbin domain 表达（契约 §4），不做租户内菜单/权限定制 |
-| `system_dept` / `system_post` | `platform-global`（倾向） | 组织是组织，租户是租户，不混用 |
+| `system_dept` / `system_post` | `tenant-owned` | **2026-10-31 更正（AUD-009）**：原归 `platform-global`（倾向，理由“组织是组织，租户是租户”）与代码相反。两表均带 `tenant_id`；service 嵌入 `tenant.Scoper`（`backend/modules/system/org/dept/dept_service.go:28`、`backend/modules/system/org/post/post_service.go:26`），创建时写 `TenantID: s.TenantOwnerID()`（`dept_service.go:88`、`post_service.go:144`），读路径按 `s.Scoped(...)` 过滤（`dept_service.go:112/170/190/234`）。按原文设计数据权限的下游会漏掉租户内过滤 |
 | `tenants` / `tenant_plans` | `platform-global` | 2026-10-25 登记（合同 V1.4 §2.4）。两张表**都没有 `tenant_id` 列**：`tenants` 是租户主数据本身，`tenant_plans` 是它的属性定义表（套餐阈值）。本模块的隔离由各 service 显式 `WithTenantScope` 施加、不是全局插件，因此「不带该列」在这里是正确形状而非遗漏——给计划表加 `tenant_id` 会把平台控制台的读过滤成空集。唯一键 `tenant_plans.code` 全局唯一（`uk_tenant_plan_code`），没有租户内变体 |
 | 系统设置（`system_setting`） | `tenant-overridable` 候选 | canary 首选资源域（`system/config`） |
 | 字典（`system_dict_type` / `system_dict_item`） | `tenant-replicated`（自平台默认复制） | 表已带 `tenant_id`（000013 canary）。2026-10-21 验收整改：`ProvisionTenant` 初始化时将平台（tenant_id=0）字典类型与字典项幂等复制到新租户（INSERT…SELECT + NOT EXISTS），平台字典为单一来源、租户持有副本可覆盖 |
@@ -70,7 +70,7 @@ English version: [TENANT_RESOURCE_SCOPE_MATRIX.en.md](./TENANT_RESOURCE_SCOPE_MA
 | `system_user` | username | 平台全局 | `tenant-unique`：`(tenant_id, username)` **已冻结**（2026-10-13） | 迁移 000024 已建 `uk_system_user_tenant_username` |
 | `system_role` | role_key | 平台全局 | `tenant-unique`：`(tenant_id, role_key)` **已冻结**（2026-10-15） | 迁移 000024 已建 `uk_system_role_tenant_key`；角色按租户复制，复制体在租户内唯一 |
 | `system_setting` | key（或 key+scope 组合） | 平台全局 | `tenant-overridable`：组合键候选 | 合同冻结 |
-| 业务 `biz_*` 表 | 新增时逐表登记 | 按评审 | 按评审 | 按评审 |
+| 业务 `biz_*` 表 | 新增时逐表登记（**V2 预留**：截至合同 V1.10 无业务表登记、无业务表带 `tenant_id`，与 `TENANT_CONTRACT_V1.md` §2.6 一致） | 按评审 | 按评审 | 按评审 |
 
 **`system_user.username` 的推论（2026-10-15 补记）**：用户名既然只保证**租户内**唯一，那么「按用户名找登录主体」这个全局查找就必然要给出一个确定性赢家。实现约定为：平台主体（`tenant_id = 0`）优先，其次 id 升序；**所属租户已软删除的行不是登录候选**（该主体没有任何可承载会话的租户上下文，让它胜出会把活跃租户的同名用户遮蔽掉，登录成功但处处 `tenant.context.missing`）。软删除租户**不会**清理其 `system_user` 行，因此这条排除必须由查找侧保证，不能指望删除侧清干净。详见 `docs/TENANT_FULL_FLOW_REVIEW_2026-10-14.md` 缺陷 6 与 `docs/runbooks/TENANT_TROUBLESHOOTING.md` §5b。
 
@@ -85,17 +85,26 @@ English version: [TENANT_RESOURCE_SCOPE_MATRIX.en.md](./TENANT_RESOURCE_SCOPE_MA
    > `system_role` 随本轮「角色按租户复制」裁决冻结为租户内唯一。两条唯一键从现在起是**合同认可**的
    > 既成事实，不再算提前改造。
 
-## 4. 租户识别方式（全部待决策，禁止按示例实现）
+## 4. 租户识别方式（2026-10-31 更正，AUD-009）
 
-以下识别方式在合同冻结前一律不得实现，仅作为决策输入记录：
+> 原文写“全部待决策，禁止按示例实现”，与代码相反：`X-Tenant-Id` 与会话 claim 早已实现并由
+> 租户合同冻结。原文引用保留在审计记录（AUD-009）中，不改写历史。
 
-- Header（如 `X-Tenant-ID`）：可伪造，需网关级可信来源配合。
+### 4.1 已实现（合同冻结）
+
+- `X-Tenant-Id`：仅平台能力可指定（`PlatformCapabilityMiddleware`），普通租户请求以服务端
+  会话上下文为准。
+- 会话 claim：租户切换经 `backend/modules/auth/login/login_tenant_switch.go` 校验成员资格后
+  重签会话并绑定租户 claim。
+- compat 兜底：兼容路径固定 `tenant_id = 0`（平台上下文）由 middleware 绑定。
+- 缺失、冲突或不可信的租户上下文对 `tenant-owned` / `tenant-overridable` 资源默认拒绝
+  （deny-by-default）；该语义已冻结（租户合同 §6），**不再是待决策项**。
+
+### 4.2 仍未实现
+
 - 子域名：需域名规划与证书策略。
 - 自定义域名：需租户域名管理能力。
-- JWT claim：需先冻结 token 结构与刷新语义。
-
-缺失、冲突或不可信的租户上下文对 `tenant-owned` / `tenant-overridable` 资源
-必须默认拒绝（deny-by-default）；该语义由租户合同任务冻结。
+- 客户端自带 JWT claim：不允许——claim 只由服务端签发。
 
 ---
 

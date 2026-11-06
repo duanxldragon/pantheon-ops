@@ -1,6 +1,6 @@
 # Tenant Management API Documentation
 
-Version: 1.2 (2026-10-25: adds the platform tenant-ops console endpoints §10–§14)  
+Version: 1.3 (2026-11-05: current authentication, provisioning, membership and lifecycle semantics)
 Base URL: `/api/v1`
 
 ## Overview
@@ -14,18 +14,19 @@ The Tenant Management API provides endpoints for managing multi-tenant resources
 without a platform-level grant) is rejected with `403 tenant.platformOnly` even when a request
 reaches the handler, and Casbin still requires `system:tenant:*` on top.
 
-The earlier `/api/v1/tenants*` group in `tenant_routes.go` is **not mounted**; do not integrate
-against it.
+The historical `/api/v1/tenants*` group has been removed; do not integrate against it.
 
 **Envelope.** Every response uses the platform envelope `{ "code": 200, "data": ..., "message": "success" }`.
 The payloads below describe `data`; errors carry a non-200 `code` and an i18n `message` key.
 
 ## Authentication
 
-All endpoints require authentication via Bearer token:
+Use authenticated session cookies and the session CSRF header for writes. Credentials are Redis opaque tokens, not JWTs. API clients may use the supported Bearer transport with the opaque access token; write operations still require the applicable CSRF and secondary-operation verification.
 
 ```
-Authorization: Bearer <your-jwt-token>
+Cookie: <authenticated session cookies>
+X-CSRF-Token: <session csrf token>
+X-Operation-Token: <token from POST /api/v1/auth/operation-verify, when required>
 ```
 
 ## Endpoints
@@ -34,7 +35,7 @@ Authorization: Bearer <your-jwt-token>
 
 **POST** `/system/tenant`
 
-Creates a new tenant.
+Creates a new tenant. Administrator fields `admin_username`, `admin_password`, `admin_nickname` use snake_case. Omitting `admin_username` provisions roles/defaults but creates no login. With an administrator, provisioning creates its owning user, role binding and owner membership in a transaction after tenant-row creation. Failure triggers compensating row deletion. Repeating create for a live code is a conflict, not an initialization-retry endpoint. Plan codes come from enabled plan definitions, including custom plans. See the [initialization guide](../TENANT_INITIALIZATION_GUIDE.md) for a complete create request.
 
 **Authorization**: Platform capability required (`PlatformCapabilityMiddleware` + `system:tenant:*`)
 
@@ -82,8 +83,9 @@ Lists all tenants with pagination and filtering.
 **Authorization**: Platform capability required (`PlatformCapabilityMiddleware` + `system:tenant:*`)
 
 **Query Parameters**:
-- `status` (optional): Filter by status (`active`, `suspended`, `deleted`)
-- `plan` (optional): Filter by plan (`free`, `basic`, `professional`, `enterprise`)
+- `status` (optional): Filter by status (`active`, `suspended`, `archived`, `deleted`); deleted tombstones are excluded by default
+- `plan` (optional): Filter by plan code (built-in or custom)
+- `keyword` (optional): Substring match on code and name (maximum 128 characters)
 - `page` (optional): Page number (default: 1)
 - `size` (optional): Page size (default: 20, max: 100)
 
@@ -172,7 +174,7 @@ All fields are optional. Only provided fields will be updated.
 
 **DELETE** `/system/tenant/:id`
 
-Marks a tenant as deleted (soft delete).
+Deletes an archived tenant by disabling its remaining active memberships, releasing its original code and writing the internal deleted marker in one transaction. `archived` is terminal; `deleted` is not an editable lifecycle state.
 
 **Authorization**: Platform capability required (`PlatformCapabilityMiddleware` + `system:tenant:*`)
 
@@ -216,9 +218,11 @@ Adds a user to a tenant.
 ```
 
 **Roles**:
-- `owner`: Full control over tenant
-- `admin`: Administrative access
-- `member`: Standard member access
+- `owner`: Member-relationship owner, subject to the last-live-owner invariant
+- `admin`: Member-relationship administrator
+- `member`: Regular member relationship
+
+These labels do not grant IAM/Casbin permissions. The user must be owned by the target tenant; a usable login context also requires valid tenant role bindings.
 
 **Response** (200 OK):
 ```json
@@ -291,12 +295,17 @@ Removes a user from a tenant.
 **Response** (200 OK):
 ```json
 {
-  "message": "member removed successfully"
+  "code": 200,
+  "data": {},
+  "message": "success"
 }
 ```
 
 **Errors**:
 - `404 Not Found`: Membership not found
+- Envelope `code` `400` + `tenant.member.last_owner`: removing the last live owner is refused
+
+Removal deletes the membership and attempts session revocation. Revocation failures are logged; login/refresh gates remain the backstop. Suspension and archiving likewise attempt revocation. Deletion relies on the preceding archive transition and state checks.
 
 ---
 
@@ -483,7 +492,9 @@ Plan deletion is not modelled — retirement is `status = "disabled"`.
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/system/tenant \
-  -H "Authorization: Bearer <token>" \
+  -H "Cookie: <authenticated session cookies>" \
+  -H "X-CSRF-Token: <session csrf token>" \
+  -H "X-Operation-Token: <operation token, when required>" \
   -H "Content-Type: application/json" \
   -d '{
     "code": "acme-corp",
@@ -496,7 +507,9 @@ curl -X POST http://localhost:8080/api/v1/system/tenant \
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/system/tenant/1/members \
-  -H "Authorization: Bearer <token>" \
+  -H "Cookie: <authenticated session cookies>" \
+  -H "X-CSRF-Token: <session csrf token>" \
+  -H "X-Operation-Token: <operation token, when required>" \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": 100,
@@ -508,7 +521,7 @@ curl -X POST http://localhost:8080/api/v1/system/tenant/1/members \
 
 ```bash
 curl -X GET http://localhost:8080/api/v1/auth/tenants/switchable \
-  -H "Authorization: Bearer <token>"
+  -H "Cookie: <authenticated session cookies>"
 ```
 
 ---

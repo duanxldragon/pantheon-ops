@@ -5,14 +5,14 @@ layer: system/iam
 status: Active
 linked_contracts:
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
-updated_at: 2026-05-05
+updated_at: 2026-11-04
 ---
 
 # 数据权限架构钩子 (Data Permission Hook)
 
 English version: [DATA_PERMISSION_HOOK.en.md](./DATA_PERMISSION_HOOK.en.md)
 
-本文定义 Pantheon 平台的数据权限（行级过滤）架构占位规范，用于支持未来“部门级”、“本人级”或“自定义维度”的数据隔离需求。
+本文定义 Pantheon 平台的数据权限（行级过滤）架构契约，已提供部门与本人范围过滤，并保留未来“部门级”、“本人级”或“自定义维度”的数据隔离需求。
 
 ## 1. 核心契约
 
@@ -48,13 +48,13 @@ func (h *OrderHandler) List(c *gin.Context) {
 
 当前已补齐的 P2 基线：
 
-1. **中间件注入**：`DataScopeMiddleware` 已在 `JWTAuthMiddleware` 之后构造 `DataScopeReq`，并从 `system_role_data_scope` 读取角色数据范围策略。
+1. **中间件注入**：`DataScopeMiddleware` 已在 `TokenAuthMiddleware` 之后构造 `DataScopeReq`，并从 `system_role_data_scope` 读取角色数据范围策略。
 2. **策略管理页**：`/system/permission` 的“数据权限”页已支持按角色配置 `all / self / dept / dept_and_children / custom`。
-3. **业务接入样板**：`business/cmdb/host` 列表已接入 `common.GetDataScope(c)` 与 `database.WithDataScope(dataScope)`。
+3. **下游业务接入样板（Pantheon Ops）**：`business/cmdb/host` 列表已接入 `common.GetDataScope(c)` 与 `database.WithDataScope(dataScope)`。
 4. **脚手架集成**：业务模块生成器已提供 `enableDataScope` / `dataScopeMode` 契约，新生成模块可默认包含数据权限注入点。
 5. **部门树展开**：`dept_and_children` 已基于 `system_dept.ancestors` 展开当前部门及下级部门，并写入 `DataScopeReq.DeptIDs`。
 6. **失败兜底**：用户部门、角色策略或部门树加载失败时会记录日志；部门树不可用时回退为当前部门，避免误放大数据范围。
-7. **业务回归样板**：`business/cmdb/host` 已新增 `dept_id` 数据范围字段，并用后端测试固定有权限/无权限数据集过滤行为。
+7. **下游业务回归样板（Pantheon Ops）**：`business/cmdb/host` 已新增 `dept_id` 数据范围字段，并用后端测试固定有权限/无权限数据集过滤行为。
 
 ### 3.1 多角色合并规则
 
@@ -70,11 +70,11 @@ func (h *OrderHandler) List(c *gin.Context) {
 
 后续扩展仍按以下顺序推进：
 
-1. **租户支持**：未来进入真实多租户后，在统一 scope 中注入 `tenant_id = ?` 条件。
+1. **租户支持**：系统域按 `TENANT_CONTRACT_V1` 的当前 scope 实现；业务域 V1 仍是单租户，不因接入 DataScope 自动获得租户隔离。
 2. **高级策略表达式**：如确有需要，再评估 Casbin 条件表达式到 SQL 过滤片段的映射。
 3. **业务 smoke**：继续为更多业务域补有权限/无权限的数据集验证。
 
-## 4. 为什么现在做占位？
+## 4. 为什么保留统一钩子？
 
 - **预防大规模重构**：如果在系统上线后再加数据权限，需要修改成百上千个 Service 方法签名。
 - **确立开发文化**：让业务开发者从第一天起就意识到“数据是有归属和边界的”。

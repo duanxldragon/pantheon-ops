@@ -124,7 +124,3 @@ func isSelfServiceRouteBySignature(fullPath, method, scope string) bool {
 		return false
 	}
 }
-
-func readRoleKeysFromContext(c *gin.Context) []string {
-	return common.GetRoleKeys(c)
-}

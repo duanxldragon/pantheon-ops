@@ -1,4 +1,16 @@
+---
+title: 历史测试分层规划
+doc_type: Remediation
+layer: platform
+linked_contracts:
+  - docs/contracts/PLATFORM_CONTRACT.md
+status: Archived
+updated_at: 2026-11-04
+---
+
 # 测试体系优化 - 快速启动指南
+
+> 历史 smoke 分层规划，core/full 分层已存在。当前入口以 [Core 工作流](../.github/workflows/smoke-core.yml) 和 `.github/workflows/smoke-{core,full}.yml` 为准；原耗时/收益为当时规划，非本轮实测。
 
 > **TL;DR**: 当前每次 PR 机械等待冒烟测试 120 分钟。优化方案：拆分核心冒烟套件(20分钟) + 保留完整回归(每日)，开发效率提升 80%。
 

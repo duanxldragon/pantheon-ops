@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/netip"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 )
@@ -28,7 +29,7 @@ type Validator struct {
 	// MaxRedirects sets the maximum number of redirects to follow (0 = no redirects)
 	MaxRedirects int
 
-	// DNSRebindProtection re-resolves DNS before making the request
+	// DNSRebindProtection resolves, validates and pins the IP used for dialing
 	DNSRebindProtection bool
 
 	// Timeout for DNS resolution and HTTP requests
@@ -106,24 +107,8 @@ func (v *Validator) CreateHTTPClient(timeout time.Duration) *http.Client {
 	}
 	transport := &http.Transport{
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-			// Extract hostname from addr (format: "host:port")
-			host, _, err := net.SplitHostPort(addr)
-			if err != nil {
-				host = addr
-			}
-
-			// DNS rebinding protection: resolve and validate IP
-			if v.DNSRebindProtection || v.BlockPrivateIPs {
-				if err := v.checkPrivateIP(host); err != nil {
-					return nil, err
-				}
-			}
-
-			// Use default dialer with timeout
-			dialer := &net.Dialer{
-				Timeout: v.Timeout,
-			}
-			return dialer.DialContext(ctx, network, addr)
+			dialer := &net.Dialer{Timeout: v.Timeout}
+			return v.dialChecked(ctx, network, addr, net.DefaultResolver.LookupIPAddr, dialer.DialContext)
 		},
 	}
 
@@ -138,6 +123,89 @@ func (v *Validator) CreateHTTPClient(timeout time.Duration) *http.Client {
 			return v.ValidateURL(req.URL.String())
 		},
 	}
+}
+
+// dialChecked keeps DNS lookup and dialing in one testable boundary. Resolver and
+// dialer callbacks are private seams; callers still use CreateHTTPClient.
+func (v *Validator) dialChecked(ctx context.Context, network, addr string,
+	lookup func(context.Context, string) ([]net.IPAddr, error),
+	dial func(context.Context, string, string) (net.Conn, error),
+) (net.Conn, error) {
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return nil, fmt.Errorf("ssrf: invalid dial address: %w", err)
+	}
+	if !v.DNSRebindProtection && !v.BlockPrivateIPs {
+		return dial(ctx, network, addr)
+	}
+	// One deadline covers both lookup and all connection attempts.
+	if v.Timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, v.Timeout)
+		defer cancel()
+	}
+	ips, err := resolvePublicIPs(ctx, host, lookup)
+	if err != nil {
+		return nil, err
+	}
+	// Validate every answer before filtering by network family; only candidates
+	// we can actually dial share the remaining connection budget.
+	ips = addressesForNetwork(ips, network)
+	var lastErr error
+	for index, ip := range ips {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		attemptCtx := ctx
+		cancel := func() {
+			// No per-attempt timer exists to cancel when ctx has no deadline.
+		}
+		if deadline, ok := ctx.Deadline(); ok {
+			attemptCtx, cancel = context.WithTimeout(ctx, time.Until(deadline)/time.Duration(len(ips)-index))
+		}
+		// Only the numeric, already checked address reaches the dialer. The
+		// request URL remains unchanged, preserving HTTP Host and TLS SNI.
+		conn, err := dial(attemptCtx, network, net.JoinHostPort(ip.String(), port))
+		cancel()
+		if err == nil {
+			return conn, nil
+		}
+		lastErr = err
+	}
+	if lastErr == nil {
+		lastErr = fmt.Errorf("ssrf: hostname %s has no addresses for %s", host, network)
+	}
+	return nil, lastErr
+}
+
+func addressesForNetwork(ips []net.IPAddr, network string) []net.IPAddr {
+	return slices.DeleteFunc(slices.Clone(ips), func(ip net.IPAddr) bool {
+		return (network == "tcp4" && ip.IP.To4() == nil) || (network == "tcp6" && ip.IP.To4() != nil)
+	})
+}
+
+func resolvePublicIPs(ctx context.Context, host string,
+	lookup func(context.Context, string) ([]net.IPAddr, error),
+) ([]net.IPAddr, error) {
+	var ips []net.IPAddr
+	if addr, err := netip.ParseAddr(host); err == nil {
+		ips = []net.IPAddr{{IP: net.IP(addr.AsSlice()), Zone: addr.Zone()}}
+	} else {
+		var err error
+		ips, err = lookup(ctx, host)
+		if err != nil {
+			return nil, fmt.Errorf("ssrf: DNS resolution failed: %w", err)
+		}
+	}
+	if len(ips) == 0 {
+		return nil, fmt.Errorf("ssrf: hostname %s has no addresses", host)
+	}
+	for _, ip := range ips {
+		if isPrivateIP(ip.IP) {
+			return nil, fmt.Errorf("ssrf: hostname %s resolves to private IP %s", host, ip.String())
+		}
+	}
+	return ips, nil
 }
 
 // isAllowedScheme checks if the URL scheme is allowed
@@ -174,31 +242,10 @@ func (v *Validator) isAllowedPort(port string) bool {
 
 // checkPrivateIP checks if the hostname resolves to a private IP
 func (v *Validator) checkPrivateIP(hostname string) error {
-	// Check if already an IP address
-	if ip := net.ParseIP(hostname); ip != nil {
-		if isPrivateIP(ip) {
-			return fmt.Errorf("ssrf: private IP address %s blocked", ip.String())
-		}
-		return nil
-	}
-
-	// Resolve hostname to IPs
 	ctx, cancel := context.WithTimeout(context.Background(), v.Timeout)
 	defer cancel()
-
-	ips, err := net.DefaultResolver.LookupIPAddr(ctx, hostname)
-	if err != nil {
-		return fmt.Errorf("ssrf: DNS resolution failed: %w", err)
-	}
-
-	// Check all resolved IPs
-	for _, ipAddr := range ips {
-		if isPrivateIP(ipAddr.IP) {
-			return fmt.Errorf("ssrf: hostname %s resolves to private IP %s", hostname, ipAddr.IP.String())
-		}
-	}
-
-	return nil
+	_, err := resolvePublicIPs(ctx, hostname, net.DefaultResolver.LookupIPAddr)
+	return err
 }
 
 // blockedPrefixes lists the network ranges an SSRF target must never resolve

@@ -306,5 +306,9 @@
     "test:smoke:business:observability",
     "test:smoke:business:service",
     "test:smoke:business:k8s"
+  ],
+  "businessMigrations": [
+    "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.up.sql",
+    "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.down.sql"
   ]
 }

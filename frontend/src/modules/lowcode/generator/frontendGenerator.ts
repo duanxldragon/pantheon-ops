@@ -42,6 +42,8 @@ interface ListPageFeatures {
   searchUsesSelect: boolean;
   detailActionEnabled: boolean;
   createActionEnabled: boolean;
+  updateActionEnabled: boolean;
+  editorEnabled: boolean;
   deleteActionEnabled: boolean;
   exportActionEnabled: boolean;
   importActionEnabled: boolean;
@@ -80,6 +82,9 @@ function buildListIconImports(features: ListPageFeatures): string[] {
   if (features.createActionEnabled) {
     imports.push('IconPlus');
   }
+  if (features.updateActionEnabled) {
+    imports.push('IconEdit');
+  }
   return imports;
 }
 
@@ -110,6 +115,9 @@ function buildListComponentImports(features: ListPageFeatures): string[] {
   }
   if (features.batchActionsEnabled) {
     imports.splice(-3, 0, 'TableBatchActionBar');
+  }
+  if (features.editorEnabled) {
+    imports.push('AppModal');
   }
   return imports;
 }
@@ -427,12 +435,13 @@ ${extraApi ? `\n${extraApi}\n` : ''}
     const componentImports = buildListComponentImports(features);
     const snippets = this.buildListPageSnippets(features);
 
-    return `import React, { useCallback, useEffect, useState } from 'react';
+    return `import React, { useCallback, useEffect, useState${features.editorEnabled ? ', useRef' : ''} } from 'react';
 import { ${listImports.join(', ')} } from '@arco-design/web-react';
 ${snippets.iconImport}
 import { useTranslation } from 'react-i18next';
 ${snippets.navigateImport}
 ${snippets.messageImport}
+${snippets.editorImports}
 import {
   ${this.generateListActionImports()}
   get${modelName}List,
@@ -462,6 +471,7 @@ const ${modelName}List: React.FC = () => {
   const [query, setQuery] = useState<${modelName}ListQuery>(emptyQuery);
   ${snippets.selectionState}
   ${snippets.submittingState}
+  ${snippets.editorState}
   const { t } = useTranslation();
 
   const loadData = useCallback(async (nextQuery: ${modelName}ListQuery = query) => {
@@ -488,6 +498,7 @@ const ${modelName}List: React.FC = () => {
   ${snippets.importHandler}
 
   ${snippets.batchDeleteHandler}
+  ${snippets.editorHandlers}
 
   if (loading && data.length === 0) {
     return <PageLoading />;
@@ -540,6 +551,7 @@ ${this.generateWorkbenchTableColumns(features.rowActionsEnabled)}
           ) : null}
         </Card>
       </Space>
+      ${snippets.editorModal}
     </PageContainer>
   );
 };
@@ -556,7 +568,8 @@ export default ${modelName}List;
     const batchActionsEnabled = this.isListBatchActionsEnabled();
     const rowActionsEnabled = this.isListRowActionsEnabled();
     const detailActionEnabled = pageActions.includes('view') || pageActions.includes('detail');
-    const createActionEnabled = pageActions.includes('create');
+    const createActionEnabled = headerActionsEnabled && pageActions.includes('create');
+    const updateActionEnabled = rowActionsEnabled && pageActions.includes('update');
     const deleteActionEnabled = pageActions.includes('delete');
     const importActionEnabled = pageActions.includes('import');
     return {
@@ -570,12 +583,15 @@ export default ${modelName}List;
       ),
       detailActionEnabled,
       createActionEnabled,
+      updateActionEnabled,
+      editorEnabled: createActionEnabled || updateActionEnabled,
       deleteActionEnabled,
       exportActionEnabled: pageActions.includes('export'),
       importActionEnabled,
       useNavigateHook: detailActionEnabled,
       useMessage:
         createActionEnabled ||
+        updateActionEnabled ||
         importActionEnabled ||
         (deleteActionEnabled && (batchActionsEnabled || rowActionsEnabled)),
     };
@@ -584,6 +600,7 @@ export default ${modelName}List;
   private buildListPageSnippets(features: ListPageFeatures) {
     const clearSelection = features.batchActionsEnabled ? 'setSelectedRowKeys([]);' : '';
     return {
+      ...this.buildListEditorSnippets(features),
       iconImport: buildListIconImports(features).length
         ? `import { ${buildListIconImports(features).join(', ')} } from '@arco-design/web-react/icon';`
         : '',
@@ -662,6 +679,132 @@ export default ${modelName}List;
     };
   }
 
+  private buildListEditorSnippets(features: ListPageFeatures) {
+    const modelName = this.modelName;
+    if (!features.editorEnabled) {
+      return { editorImports: '', editorState: '', editorHandlers: '', editorModal: '' };
+    }
+    const formFields = this.schema.model.fields.filter((field) => field.visibleInForm !== false);
+    const requiredFields = formFields.filter((field) => field.required);
+    const createGuard = requiredFields
+      .map((field) => {
+        const value = `values.${field.name}`;
+        return ['string', 'text', 'enum'].includes(field.type)
+          ? `${value} == null || ${value} === ''`
+          : `${value} == null`;
+      })
+      .join(' || ');
+    const createPayload = formFields
+      .map((field) => `          ${field.name}: values.${field.name},`)
+      .join('\n');
+    const createDefaults = formFields
+      .filter((field) => field.type === 'bool')
+      .map((field) => `${field.name}: false`)
+      .join(', ');
+    const createValidation = createGuard ? `if (${createGuard}) { return; }` : '';
+    const createHandler = features.createActionEnabled
+      ? `
+      if (editor.mode === 'create') {
+        ${createValidation}
+        await create${modelName}({
+${createPayload}
+        });
+        message.success(t('common.createSuccess'));
+      }`
+      : '';
+    const updateHandler = features.updateActionEnabled
+      ? `
+      if (editor.mode === 'update' && editor.id != null) {
+        await update${modelName}(editor.id, {
+${createPayload}
+        });
+        message.success(t('common.updateSuccess'));
+      }`
+      : '';
+    return {
+      editorImports: `import ${modelName}Form, { type ${modelName}FormValues } from './${modelName}Form';
+import { usePermission } from '${this.relativeToSrcRoot()}/hooks/usePermission';`,
+      editorState: `const { hasPerm } = usePermission();
+  const [editor, setEditor] = useState<{ mode: 'create' | 'update'; id?: number; values?: ${modelName}FormValues } | null>(null);
+  const [editorSubmitting, setEditorSubmitting] = useState(false);
+  ${features.updateActionEnabled ? 'const [editorLoading, setEditorLoading] = useState(false);' : 'const editorLoading = false;'}
+  const editorBusy = useRef(false);
+  const [editorFailed, setEditorFailed] = useState(false);`,
+      editorHandlers: `${
+        features.createActionEnabled
+          ? `const openCreateEditor = () => {
+    setEditorFailed(false);
+    setEditor({ mode: 'create', values: { ${createDefaults} } });
+  };`
+          : ''
+      }
+
+  ${
+    features.updateActionEnabled
+      ? `const openUpdateEditor = async (id: number) => {
+    if (editorBusy.current) { return; }
+    editorBusy.current = true;
+    setEditorLoading(true);
+    setEditorFailed(false);
+    try {
+      const detail = await get${modelName}Detail(id);
+      setEditor({ mode: 'update', id, values: detail });
+    } catch {
+      // apiRequest reports the translated request error; do not open an incomplete editor.
+    } finally {
+      editorBusy.current = false;
+      setEditorLoading(false);
+    }
+  };`
+      : ''
+  }
+
+  const closeEditor = () => {
+    if (!editorBusy.current) { setEditor(null); }
+  };
+
+  const submitEditor = async (values: ${modelName}FormValues) => {
+    if (!editor || editorBusy.current) { return; }
+    editorBusy.current = true;
+    setEditorSubmitting(true);
+    setEditorFailed(false);
+    try {
+${createHandler}
+${updateHandler}
+      setEditor(null);
+      await loadData(query);
+    } catch {
+      // apiRequest supplies the error message; preserve the form for correction/retry.
+      setEditorFailed(true);
+    } finally {
+      editorBusy.current = false;
+      setEditorSubmitting(false);
+    }
+  };`,
+      editorModal: `<AppModal
+        title={editor?.mode === 'update' ? t('common.edit') : t('common.add')}
+        visible={editor !== null}
+        size="md"
+        footer={null}
+        onCancel={closeEditor}
+        closable={!editorSubmitting}
+        escToExit={!editorSubmitting}
+        unmountOnExit
+      >
+        {editor ? (
+          <${modelName}Form
+            mode={editor.mode}
+            initialValues={editor.values}
+            submitting={editorSubmitting}
+            submitError={editorFailed}
+            onSubmit={submitEditor}
+            onCancel={closeEditor}
+          />
+        ) : null}
+      </AppModal>`,
+    };
+  }
+
   generateFormComponent(): string {
     const modelName = this.modelName;
     const toSrcRoot = this.relativeToSrcRoot();
@@ -693,6 +836,7 @@ export interface ${modelName}FormProps {
   mode: 'create' | 'update';
   initialValues?: ${modelName}FormValues;
   submitting?: boolean;
+  submitError?: boolean;
   onSubmit: (values: ${modelName}FormValues) => void | Promise<void>;
   onCancel?: () => void;
 }
@@ -701,6 +845,7 @@ const ${modelName}Form: React.FC<${modelName}FormProps> = ({
   mode,
   initialValues,
   submitting = false,
+  submitError = false,
   onSubmit,
   onCancel,
 }) => {
@@ -715,7 +860,7 @@ ${relationStateBlock}
 ${relationLookupLoaderEffect}
 
   return (
-    <Form form={form} layout="vertical" onSubmit={onSubmit}>
+    <Form form={form} layout="vertical" disabled={submitting} onSubmit={onSubmit}>
 ${this.generateFormItems()}
       <SubmitBar
         onCancel={onCancel}
@@ -723,6 +868,8 @@ ${this.generateFormItems()}
           form.submit();
         }}
         loading={submitting}
+        status={submitError ? 'error' : submitting ? 'submitting' : 'idle'}
+        errorSummary={submitError ? t('common.submitBar.status.error') : undefined}
         submitText={mode === 'create' ? t('common.create') : t('common.save')}
       />
     </Form>
@@ -1498,7 +1645,7 @@ ${options}
     }
 
     if (field.type === 'bool') {
-      return `      <FormItem label={t('${labelKey}')} field="${field.name}" triggerPropName="checked">
+      return `      <FormItem label={t('${labelKey}')} field="${field.name}"${rules} triggerPropName="checked">
         <Switch />
       </FormItem>`;
     }
@@ -1561,6 +1708,15 @@ ${this.generateRowActionItems()}
                           onClick: () => navigate('${buildPageRoutePath(this.schema.scope, this.schema.name)}/' + row.id),
                         },`);
     }
+    if (actions.includes('update')) {
+      items.push(`                        {
+                          key: 'update',
+                          text: t('common.edit'),
+                          icon: <IconEdit />,
+                          disabled: !hasPerm('${buildPermissionPrefix(this.schema.scope, this.schema.name)}:update') || editorLoading || editorSubmitting,
+                          onClick: () => { void openUpdateEditor(row.id); },
+                        },`);
+    }
     if (actions.includes('delete')) {
       items.push(`                        {
                           key: 'delete',
@@ -1583,7 +1739,17 @@ ${this.generateRowActionItems()}
 
   private generateListActionImports(): string {
     const imports: string[] = [];
-    if (this.hasPageAction('delete') && this.isListBatchActionsEnabled()) {
+    const features = this.getListPageFeatures();
+    if (features.createActionEnabled) {
+      imports.push(`create${this.modelName}`);
+    }
+    if (features.updateActionEnabled) {
+      imports.push(`get${this.modelName}Detail`, `update${this.modelName}`);
+    }
+    if (
+      features.deleteActionEnabled &&
+      (features.batchActionsEnabled || features.rowActionsEnabled)
+    ) {
       imports.push(`delete${this.modelName}`);
     }
     if (this.hasPageAction('export')) {
@@ -1741,9 +1907,8 @@ ${inlineFields.map((field) => this.renderInlineFilterSelect(field)).join('\n')}
       primaryActions.push(`                  <Button
                     type="primary"
                     icon={<IconPlus />}
-                    onClick={() => {
-                      message.info(t('common.comingSoon'));
-                    }}
+                    disabled={!hasPerm('${buildPermissionPrefix(this.schema.scope, this.schema.name)}:create') || editorLoading || editorSubmitting}
+                    onClick={openCreateEditor}
                   >
                     {t('common.add')}
                   </Button>`);

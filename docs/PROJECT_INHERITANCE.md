@@ -2,7 +2,7 @@
 
 English version: [PROJECT_INHERITANCE.en.md](./PROJECT_INHERITANCE.en.md)
 
-`pantheon-ops` 采用“完整 Pantheon Base 快照 + 声明式 business overlay”的继承模式。升级时从选定的 Base commit 重建完整产品树，再注入 Ops 业务资产；不在旧树上逐文件同步，也不维护共享源码白名单。
+`pantheon-ops` 采用“完整 Pantheon Base 快照 + 声明式 business overlay”的继承模式。升级时从 `foundation-release.lock.json` 锁定的正式 Base release 重建完整产品树，再注入 Ops 业务资产；不在旧树上逐文件同步，也不维护共享源码白名单。
 
 ## 1. 所有权
 
@@ -28,24 +28,24 @@ Base 的菜单契约门禁（`check-menu-contract.mjs`）按命名约定发现�
 
 ## 3. 升级流程
 
+以下命令在 Ops 仓库根目录执行：
+
 ```powershell
-# 1. 在临时目录重建，不覆盖当前 Ops
-npm run rebuild:from-base -- --base ..\pantheon-base --target .tmp\clean-base-overlay
+# 1. 从 GitHub 查询最新稳定的正式 Base release，下载四个资产，校验 SHA256、
+# manifest 和不可变 tag，全部成功后才更新 Ops 锁文件。
+# 不指定版本时获取 GitHub 最新稳定版；本次明确锁定 v0.18.4：
+npm run fetch:base-release -- --release pantheon-base-v0.18.4
 
-# 2. 验证声明和生成结果
-node scripts/business-overlay/check-business-overlay.mjs --root .tmp\clean-base-overlay
+# 2. 从该正式锁定版本重建暂存树，不覆盖当前 Ops。
+npm run rebuild:from-base -- --target .tmp/clean-base-overlay
+node scripts/business-overlay/check-business-overlay.mjs --root .tmp/clean-base-overlay
+npm run check:shared-drift -- --root .tmp/clean-base-overlay
 
-# 2b. 共享文件哈希漂移检测（对比 base HEAD，business-overlay.json 声明的
-#     业务路径自动跳过；其余差异必须在 .foundation/allowed-drift.json
-#     声明理由，否则失败）
-node scripts/business-overlay/check-shared-drift.mjs --base ..\pantheon-base
-
-# 3. 在暂存树运行 backend、frontend、业务 smoke 和 SonarCloud 门禁
-
-# 4. 只有全部通过后，才以暂存树替换 Ops 工作树
+# 3. 验证 backend CGO race、frontend、业务 smoke 和 GitHub 质量门禁。
+# 4. 全部通过后，才以暂存树替换 Ops 工作树。
 ```
 
-相同 Base commit 和相同 overlay 必须得到相同报告与文件。每周 GitHub workflow 直接在 Base HEAD 上执行兼容性重建和编译；失败表示真实接口断点，不表示需要逐文件追平代码差异。
+每周 GitHub workflow 使用相同的最新正式 release 获取和锁定重建流程。重建与漂移校验均核验 GitHub 官方资产，读取解压快照的真实字节，不读取父目录仓库的 Git HEAD。入口拒绝本地 Base 来源参数；指定 `--release` 时必须获取该正式版本，不能退回 latest 或其他 tag。缓存归档必须符合锁文件及官方 release 的 SHA256；解压目录每次从验证过的归档重建，避免旧文件或被修改的缓存成为基线。
 
 ## 4. 禁止路径
 
@@ -77,5 +77,11 @@ node scripts/business-overlay/check-shared-drift.mjs --base ..\pantheon-base
 > 以下英文 marker 供 `../pantheon-base/scripts/harness/check-inheritance-contract.mjs` 机械校验，请勿翻译或删除；版本变化时必须与 `foundation-release.lock.json` 同步更新。
 
 - Base repository: `../pantheon-base`
-- Base version: `pantheon-base-v0.18.2` (`a44ae4e012fff20430b1b7f91cb7a9296f3ea843`)
+- Base version: `pantheon-base-v0.18.4` (`0a8229c67ab482c2e163622fc4e5b87301c53399`)
 - If a foundation rule must change, update `pantheon-base` first
+
+## 8. 业务数据迁移
+
+业务 SQL 的唯一源文件位于 `backend/modules/business/<module>/.../migrations/`，使用六位编号与配对的 `.up.sql` / `.down.sql`。`businessMigrations` 显式列出这些源文件；来源必须属于已声明的 `businessPaths`。重建器把它们装配到固定的 `backend/pkg/database/migrations/`，并记录为生成文件，沿用 Base 的启动迁移失败处理。
+
+不允许业务清单直接拥有 `backend/pkg/database`，也不允许指定任意目标路径。缺少配对、重复版本/方向、非法来源或与 Base 迁移编号冲突都会中止重建。新增 Base 版本占用业务编号时，只能调整尚未发布的业务迁移；已发布迁移不可重编号，必须另行设计兼容升级。当前未发布 host-state 回填使用 `000032`，Base 保留 `000031`。

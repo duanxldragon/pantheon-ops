@@ -1294,6 +1294,8 @@ const jaJPFallback = {
   'module.register.source_missing':
     '生成済みソースまたは schema ファイルが見つからないため、再登録できません',
   'module.register.schema_invalid': 'モジュール schema が無効なため、再登録できません',
+  'module.register.source_uncompilable':
+    '生成されたソースをコンパイルできないため、モジュールを再接続できません。生成コードまたは Go ツールチェーン設定を確認してください',
   'module.register.builtin_forbidden': '組み込みモジュールはこのページから再登録できません',
   'module.register.unsupported':
     '旧来の手動登録エンドポイントは無効です。代わりにジェネレーターを使用してください',

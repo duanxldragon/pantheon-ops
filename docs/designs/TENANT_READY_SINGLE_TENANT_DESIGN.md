@@ -2,16 +2,18 @@
 title: 单租户先行、租户就绪设计
 doc_type: Design
 layer: platform / system/auth / system/config / business/*
-status: Active
+status: Archived
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_AUTH_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
   - docs/contracts/TENANT_CONTRACT_V1.md
-updated_at: 2026-05-04
+updated_at: 2026-11-04
 ---
 
 # 单租户先行、租户就绪设计
+
+> 单租户先行的历史规划基线。当前权威：[TENANT_CONTRACT_V1](../contracts/TENANT_CONTRACT_V1.md)；compat/multi 已实现，业务域 V1 仍单租户。下文保留原阶段论证，不作为当前指令。
 
 English version: [TENANT_READY_SINGLE_TENANT_DESIGN.en.md](./TENANT_READY_SINGLE_TENANT_DESIGN.en.md)
 

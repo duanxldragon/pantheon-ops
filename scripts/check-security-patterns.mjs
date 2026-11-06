@@ -11,10 +11,11 @@
  * 4. 硬编码密钥：代码中的密码/密钥/凭证
  */
 
-import { execSync } from 'child_process';
-import { existsSync } from 'fs';
+import fs from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { scanTree } from './harness/scan-tree.mjs';
+import { fingerprintOf, loadFingerprints, reviewByDate, saveFingerprints } from './harness/pattern-baseline.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -39,34 +40,68 @@ function log(level, message) {
   console.log(`${prefix[level]} ${message}`);
 }
 
-function runRipgrep(pattern, paths, description) {
-  const findings = [];
+const BASELINE_PATH = resolve(projectRoot, 'config', 'security-pattern-baseline.json');
+const writeBaseline = process.argv.includes('--write-baseline');
+const baseline = writeBaseline ? null : loadFingerprints(BASELINE_PATH);
+const collectedFingerprints = [];
+let baselineHits = 0;
 
-  try {
-    const cmd = `rg -n --no-heading --color=never ${pattern} ${paths.join(' ')}`;
-    const output = execSync(cmd, {
-      cwd: projectRoot,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
+// Scans with a plain Node walk (scripts/harness/scan-tree.mjs) instead of
+// ripgrep: no external binary, no CI install step, and JS regexes support the
+// look-ahead the session-fixation rule needs. A scan root that cannot be read
+// is a failure, not a clean result.
+function runPattern(pattern, paths, description, { extensions = null, excludeSuffixes = null } = {}) {
+  const { matches, missing } = scanTree({ root: projectRoot, dirs: paths, pattern, extensions, excludeSuffixes });
 
-    if (output.trim()) {
-      const lines = output.trim().split('\n');
-      findings.push({
-        description,
-        count: lines.length,
-        lines: lines.slice(0, 10), // 只显示前 10 条
-        hasMore: lines.length > 10,
-      });
-    }
-  } catch (error) {
-    // Exit code 1 means no matches found, which is good
-    if (error.status !== 1) {
-      log('warn', `Pattern check failed: ${description}`);
-    }
+  if (missing.length > 0) {
+    log('error', `Pattern check could not run: ${description} (unreadable: ${missing.join(', ')})`);
+    process.exit(2);
   }
 
-  return findings;
+  const fresh = [];
+  for (const match of matches) {
+    const fingerprint = fingerprintOf(description, match);
+    if (writeBaseline) {
+      collectedFingerprints.push(fingerprint);
+    }
+    if (baseline && baseline.has(fingerprint)) {
+      baselineHits += 1;
+      continue;
+    }
+    fresh.push(match);
+  }
+
+  if (fresh.length === 0) {
+    return [];
+  }
+
+  const lines = fresh.map((match) => `${match.file}:${match.line}:${match.text}`);
+  return [{
+    description,
+    count: lines.length,
+    lines: lines.slice(0, 10), // 只显示前 10 条
+    hasMore: lines.length > 10,
+  }];
+}
+
+const GO_EXTENSIONS = new Set(['.go']);
+
+// Test files build fixtures, not the production query surface; counting them
+// would drown the 46 real hits in 310 fixture hits and make the baseline
+// meaningless.
+const GO_PROD = { extensions: GO_EXTENSIONS, excludeSuffixes: ['_test.go'] };
+
+// baselineReviewBy reports the baseline's own review date so a stale acceptance
+// list is visible in the green output, not only in the file.
+function baselineReviewBy() {
+  if (!fs.existsSync(BASELINE_PATH)) {
+    return 'n/a';
+  }
+  try {
+    return JSON.parse(fs.readFileSync(BASELINE_PATH, 'utf8')).reviewBy ?? 'n/a';
+  } catch {
+    return 'unreadable';
+  }
 }
 
 function checkGoRawSQL() {
@@ -74,11 +109,11 @@ function checkGoRawSQL() {
 
   const patterns = [
     {
-      pattern: '"Raw\\("',
+      pattern: /Raw\(/,
       desc: 'GORM Raw() usage (potential SQL injection if not parameterized)',
     },
     {
-      pattern: '"Exec\\("',
+      pattern: /Exec\(/,
       desc: 'GORM Exec() usage (potential SQL injection if not parameterized)',
     },
   ];
@@ -86,11 +121,7 @@ function checkGoRawSQL() {
   const findings = [];
 
   for (const { pattern, desc } of patterns) {
-    const result = runRipgrep(
-      pattern,
-      ['backend/'],
-      desc
-    );
+    const result = runPattern(pattern, ['backend/'], desc, GO_PROD);
     findings.push(...result);
   }
 
@@ -100,8 +131,8 @@ function checkGoRawSQL() {
 function checkXSSRisks() {
   log('info', 'Checking XSS risks (dangerouslySetInnerHTML)...');
 
-  return runRipgrep(
-    'dangerouslySetInnerHTML',
+  return runPattern(
+    /dangerouslySetInnerHTML/,
     ['frontend/src/'],
     'dangerouslySetInnerHTML usage (XSS risk if not sanitized)'
   );
@@ -110,10 +141,10 @@ function checkXSSRisks() {
 function checkTokenStorage() {
   log('info', 'Checking insecure token storage...');
 
-  return runRipgrep(
-    'localStorage\\.(setItem|getItem).*["\'].*token',
+  return runPattern(
+    /localStorage\.(setItem|getItem).*["'].*token/,
     ['frontend/src/'],
-    'localStorage token storage (XSS can steal tokens, prefer httpOnly cookies)'
+    'localStorage token storage (XSS can steal tokens, prefer httpOnly cookies)',
   );
 }
 
@@ -122,15 +153,15 @@ function checkHardcodedSecrets() {
 
   const patterns = [
     {
-      pattern: '(password|passwd|pwd)\\s*[:=]\\s*["\'][^"\']{8,}["\']',
+      pattern: /(password|passwd|pwd)\s*[:=]\s*["'][^"']{8,}["']/,
       desc: 'Hardcoded password in code',
     },
     {
-      pattern: '(api[_-]?key|apikey|access[_-]?key)\\s*[:=]\\s*["\'][^"\']{16,}["\']',
+      pattern: /(api[_-]?key|apikey|access[_-]?key)\s*[:=]\s*["'][^"']{16,}["']/,
       desc: 'Hardcoded API key in code',
     },
     {
-      pattern: '(secret|token)\\s*[:=]\\s*["\'][a-zA-Z0-9+/=]{32,}["\']',
+      pattern: /(secret|token)\s*[:=]\s*["'][a-zA-Z0-9+/=]{32,}["']/,
       desc: 'Hardcoded secret/token in code',
     },
   ];
@@ -138,7 +169,7 @@ function checkHardcodedSecrets() {
   const findings = [];
 
   for (const { pattern, desc } of patterns) {
-    const result = runRipgrep(
+    const result = runPattern(
       pattern,
       ['backend/', 'frontend/src/'],
       desc
@@ -152,10 +183,11 @@ function checkHardcodedSecrets() {
 function checkSessionFixation() {
   log('info', 'Checking session fixation risks...');
 
-  return runRipgrep(
-    'SetCookie.*session.*(?!Secure|HttpOnly)',
+  return runPattern(
+    /SetCookie.*session.*(?!Secure|HttpOnly)/,
     ['backend/'],
-    'Session cookie without Secure/HttpOnly flags'
+    'Session cookie without Secure/HttpOnly flags',
+    GO_PROD
   );
 }
 
@@ -170,10 +202,22 @@ function main() {
     ...checkSessionFixation(),
   ];
 
+  if (writeBaseline) {
+    const written = saveFingerprints(BASELINE_PATH, collectedFingerprints, reviewByDate());
+    log('success', `baseline written: ${written} fingerprint(s) -> config/security-pattern-baseline.json`);
+    console.log('');
+    process.exit(0);
+  }
+
   console.log('');
 
   if (allFindings.length === 0) {
-    log('success', 'No security pattern violations found');
+    log(
+      'success',
+      baselineHits > 0
+        ? `No new security pattern violations (${baselineHits} accepted by baseline, review by ${baselineReviewBy()})`
+        : 'No security pattern violations found'
+    );
     console.log('');
     process.exit(0);
   }
@@ -210,6 +254,9 @@ function main() {
   console.log(`${colors.blue}Summary:${colors.reset}`);
   console.log(`  Errors: ${errorCount}`);
   console.log(`  Warnings: ${warnCount}`);
+  if (baselineHits > 0) {
+    console.log(`  Accepted by baseline: ${baselineHits}`);
+  }
   console.log('');
 
   // 错误级别问题阻断构建

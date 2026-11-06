@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_ORG_CONTRACT.md
-updated_at: 2026-04-17
+updated_at: 2026-11-04
 ---
 
 # 后端架构设计与开发规范
@@ -50,7 +50,7 @@ English version: [BACKEND.en.md](./BACKEND.en.md)
 - **请求链路标识**: 平台壳层会为每个请求生成或透传 `X-Request-ID`，并同步回写 `X-Trace-ID` 响应头；统一审计会把 `request_id` 一并落库，用于串联前端报错、接口响应与操作日志。
 - **多语言**: `/api/v1/system/i18n/pack` 返回语言包，优先查询 Redis，缓存失效后读取 `system_i18n`。
 - **健康检查**: 平台层提供 `GET /api/v1/health`，通过统一 `common.Response` envelope 返回进程状态、数据库连通性与 Redis 状态（未启用时标记为 `disabled`）；依赖降级时保留 HTTP `503` 供部署探针识别。
-- **平台聚合**: `platform` 层用于承载 dashboard/workbench 这类跨 `system/*` 子域的聚合接口，不应反向塞回单一系统子域；当前 `dashboard` 已物理放置在 `backend/modules/dashboard/`，但逻辑归属仍是 `platform`。
+- **平台聚合**: `platform` 层用于承载 dashboard/workbench 这类跨 `system/*` 子域的聚合接口，不应反向塞回单一系统子域；当前 `dashboard` 已物理放置在 `backend/modules/platform/`，但逻辑归属仍是 `platform`。
 - **数据库运行时**: 后端运行时数据库已收敛为 MySQL；`PANTHEON_DSN` 必须是合法 MySQL DSN。SQLite 运行时代码与历史兼容修复已移除，测试统一通过 MySQL 夹具执行。
 
 ## 5. 已实现系统接口

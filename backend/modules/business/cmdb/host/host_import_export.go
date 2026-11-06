@@ -469,6 +469,7 @@ func buildHostImportHost(row hostImportRow, labelsJSON []byte, createdBy string)
 		Owner:             row.Owner,
 		Status:            status,
 		Remark:            row.Remark,
+		StateVersion:      1,
 		CreatedBy:         createdBy,
 		UpdatedBy:         createdBy,
 	}

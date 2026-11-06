@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-10-22
+updated_at: 2026-10-31
 ---
 
 # Tenant Resource Scope Matrix Template and Global Unique-Key Registry
@@ -47,7 +47,7 @@ Rules:
 | :--- | :--- | :--- |
 | `system_user` | pending contract freeze | membership cardinality undecided |
 | `system_role` / `system_menu` / `system_permission` | pending contract freeze | tenant-local replication undecided |
-| `system_dept` / `system_post` | `platform-global` (leaning) | org is org, tenant is tenant |
+| `system_dept` / `system_post` | `tenant-owned` | corrected 2026-10-31 (AUD-009): the previous `platform-global` (leaning) verdict contradicts the code — both tables carry `tenant_id`, services embed `tenant.Scoper` (`backend/modules/system/org/dept/dept_service.go:28`, `backend/modules/system/org/post/post_service.go:26`), stamp `TenantID: s.TenantOwnerID()` on create (`dept_service.go:88`, `post_service.go:144`) and read via `s.Scoped(...)` (`dept_service.go:112/170/190/234`) |
 | system settings | `tenant-overridable` candidate | canary preferred domain (`system/config`) |
 | dictionaries | `tenant-overridable` candidate | platform default + tenant override |
 | audit logs | `derived` (follows write source) | must keep a splittable dimension |
@@ -62,7 +62,7 @@ Rules:
 | `system_user` | username | platform-global | pending freeze | — |
 | `system_role` | role_key | platform-global | pending freeze | — |
 | `system_setting` | key (or key+scope composite) | platform-global | `tenant-overridable`: composite candidate | freeze at contract |
-| business `biz_*` tables | register per DDL review | per review | per review | per review |
+| business `biz_*` tables | register per DDL review (**V2 reserved**: as of contract V1.10 no business table is registered and no business table carries `tenant_id`, per `TENANT_CONTRACT_V1.md` §2.6) | per review | per review | per review |
 
 Rules:
 
@@ -70,11 +70,27 @@ Rules:
 2. The contract-design task takes over this registry; until then this table is the single entry point.
 3. Keys marked "pending freeze" must not be converted to composite keys before the contract freezes.
 
-## 4. Tenant Identification (all pending decision)
+## 4. Tenant Identification (corrected 2026-10-31, AUD-009)
 
-Header, subdomain, custom domain and JWT claim are decision inputs only — none may be
-implemented before the contract freezes. Missing, conflicting or untrusted tenant
-context is deny-by-default for `tenant-owned` / `tenant-overridable` resources.
+The previous "all pending decision" verdict contradicted the code: `X-Tenant-Id` and session
+claims are implemented and frozen by the tenant contract.
+
+### 4.1 Implemented (frozen by contract)
+
+- `X-Tenant-Id`: only specifiable with platform capability (`PlatformCapabilityMiddleware`);
+  ordinary tenant requests are bound by the server-side session context.
+- Session claim: tenant switching goes through
+  `backend/modules/auth/login/login_tenant_switch.go`, re-signing the session with the tenant
+  claim after membership validation.
+- Compat fallback: compatibility paths bind `tenant_id = 0` (platform context) in middleware.
+- Missing, conflicting or untrusted tenant context is deny-by-default for `tenant-owned` /
+  `tenant-overridable` resources; this semantics is **frozen** (tenant contract §6), not pending.
+
+### 4.2 Still unimplemented
+
+- Subdomain: requires domain planning and certificate strategy.
+- Custom domains: require tenant domain-management capability.
+- Client-supplied JWT claims: not allowed — claims are only server-signed.
 
 ## 5. Ownership
 

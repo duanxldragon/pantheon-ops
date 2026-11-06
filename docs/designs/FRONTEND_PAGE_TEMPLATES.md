@@ -7,7 +7,7 @@ linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
   - docs/contracts/SYSTEM_ORG_CONTRACT.md
-updated_at: 2026-04-17
+updated_at: 2026-11-04
 ---
 
 # 前端页面模板规范
@@ -113,14 +113,14 @@ ListPage
   │   ├── title
   │   ├── description
   │   └── primaryAction
-  ├── FilterPanel
+  ├── SearchToolbar
   ├── TableCard
   │   ├── Table
   │   └── Pagination
   └── CreateEditModal / Drawer
 ```
 
-## 3.2 FilterPanel
+## 3.2 SearchToolbar
 
 规则：
 
@@ -129,7 +129,7 @@ ListPage
 - 超过 4 个筛选项时支持折叠
 - 查询按钮在右侧，顺序为：重置、查询
 - 筛选项必须能随分页、排序联动
-- 筛选区必须使用共享 `FilterPanel`，不得在页面内直接手写 `Card + Form` 复制筛选样式
+- 筛选区必须使用共享 `SearchToolbar`，不得在页面内直接手写 `Card + Form` 复制筛选样式
 - 筛选区 body padding 必须使用平台变量 `--shell-filter-body-padding`
 - 筛选控件高度必须使用 `--shell-filter-control-min-height`，Input / Select / TreeSelect / Picker 不得单页私自压缩
 - 筛选项底部间距必须使用 `--shell-filter-form-item-margin-bottom`，label 底部间距必须使用 `--shell-filter-label-padding-bottom`
@@ -217,7 +217,7 @@ ListPage
 ```text
 TreePage
   ├── PageHeader
-  ├── FilterPanel
+  ├── SearchToolbar
   ├── TreeTableCard
   └── CreateEditDrawer
 ```
@@ -519,7 +519,7 @@ AI 生成前端页面时必须：
 后续建议按以下顺序改造现有页面：
 
 1. 抽 `PageHeader`
-2. 抽 `FilterPanel`
+2. 抽 `SearchToolbar`
 3. 抽 `DataTableCard`
 4. 抽 `StatePage`
 5. 逐步改造用户、角色、菜单、部门、岗位、权限页

@@ -30,13 +30,14 @@ test('workflow actions and Node runtime match the certified Base baseline', () =
   assert.match(workflowSource, /dorny\/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d/u);
 });
 
-test('base compatibility workflow rebuilds Ops on the current Base snapshot', () => {
+test('base compatibility workflow rebuilds Ops from the official GitHub release', () => {
   const source = fs.readFileSync(
     path.join(workflowsRoot, 'inheritance-drift-detection.yml'),
     'utf8',
   );
   assert.match(source, /path:\s*pantheon-ops/u);
-  assert.match(source, /path:\s*pantheon-base/u);
+  assert.doesNotMatch(source, /path:\s*pantheon-base/u);
+  assert.match(source, /fetch:base-release/u);
   assert.match(source, /working-directory:\s*pantheon-ops/u);
   assert.match(source, /test:business-overlay/u);
   assert.match(source, /rebuild:from-base/u);

@@ -9,7 +9,7 @@ linked_contracts:
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
   - docs/contracts/TENANT_CONTRACT_V1.md
-updated_at: 2026-05-05
+updated_at: 2026-11-04
 ---
 
 # P2 规模化能力路线图
@@ -150,7 +150,7 @@ P2 不应做成一轮“大爆炸重构”。
 
 - 单租户先行。
 - 租户就绪。
-- 不实现真实 tenant model。
+- 租户 V1 已实现 compat/multi 和系统域 scope；不扩展业务域租户隔离或计费模型。
 
 > **2026-09-11 更新**：租户合同 V1 已冻结 — 见 [TENANT_CONTRACT_V1](../contracts/TENANT_CONTRACT_V1.md)（共享 schema MVP：tenants/memberships、tenant context、Casbin domain `tenant:<id>`、compat 模式）。
 > 迁移程序见 [TENANT_MIGRATION_RUNBOOK](../runbooks/TENANT_MIGRATION_RUNBOOK.md)（副本演练已通过，生产执行待 G1–G4 gate）。
@@ -212,7 +212,7 @@ CMDB 应作为第一批样板。
 
 当前 CMDB Host 已具备后端自动化样板：
 
-- `go test ./backend/modules/business/cmdb/host` 覆盖 `dept_and_children` 只返回当前部门及下级部门数据。
+- `go -C ../pantheon-ops/backend test ./modules/business/cmdb/host` 覆盖 `dept_and_children` 只返回当前部门及下级部门数据。
 - `go test ./backend/internal/middleware` 覆盖中间件从角色策略扩展部门树。
 - `go test ./backend/pkg/database` 覆盖 `WithDataScope` 对展开后的 `DeptIDs` 生成过滤条件。
 

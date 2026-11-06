@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
+import { assertSafeManifest, planBusinessMigrations } from './rebuild-from-base.mjs';
 
 const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const rootArgumentIndex = process.argv.indexOf('--root');
@@ -9,6 +10,7 @@ const root = rootArgumentIndex >= 0
   ? path.resolve(process.cwd(), process.argv[rootArgumentIndex + 1])
   : defaultRoot;
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'business-overlay.json'), 'utf8'));
+assertSafeManifest(manifest);
 const isRebuiltTree = fs.existsSync(path.join(root, '.business-overlay-report.json'));
 const forbiddenModule = isRebuiltTree ? manifest.sourceModule : manifest.base.module;
 const required = isRebuiltTree ? [
@@ -22,6 +24,10 @@ const required = isRebuiltTree ? [
   'frontend/src/core/router/generatedComponentRegistry.ts',
   'backend/modules/system/iam/menu/generated_component_registry.go',
 ];
+for (const migration of planBusinessMigrations(manifest)) {
+  required.push(migration.source);
+  if (isRebuiltTree) required.push(migration.target);
+}
 const missing = required.filter((file) => !fs.existsSync(path.join(root, file)));
 const staleImports = [];
 for (const declaredPath of manifest.businessPaths) {

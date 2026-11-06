@@ -2,14 +2,16 @@
 title: Task Center Design
 doc_type: Design
 layer: platform
-status: Active
+status: Draft
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
-updated_at: 2026-05-18
+updated_at: 2026-11-04
 ---
 
 # Task Center Design
+
+> Unimplemented design proposal. Current Base does not ship this independent center; these planned capabilities are not maintenance-freeze requirements.
 
 Chinese version: [TASK_CENTER_DESIGN.md](./TASK_CENTER_DESIGN.md)
 

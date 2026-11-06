@@ -1,0 +1,85 @@
+{
+  "recordedAt": "2026-11-06T02:43:05.369461+00:00",
+  "status": "local-consumer-scripts-verified-release-and-final-consumer-pending",
+  "sourceManifest": "github-consumer-source-manifest.json",
+  "commands": [
+    {
+      "command": "node --test tests/scripts/business-overlay/*.test.mjs",
+      "cwd": "Ops isolated worktree",
+      "exitCode": 0,
+      "pass": 54,
+      "fail": 0,
+      "skip": 0,
+      "log": "ops-github-consumer-verified.log"
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "cwd": "Ops isolated worktree",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run check:docs-frontmatter",
+      "cwd": "Ops isolated worktree",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run check:task-packet-template",
+      "cwd": "Ops isolated worktree",
+      "exitCode": 0
+    },
+    {
+      "command": "go run ./cmd/actionlint -oneline <Ops inheritance-drift-detection.yml>",
+      "toolVersion": "1.7.10",
+      "toolSource": "already cached official actionlint module",
+      "GOPROXY": "off",
+      "exitCode": 0,
+      "log": "ops-github-consumer-actionlint.log"
+    },
+    {
+      "command": "PyYAML safe_load inheritance-drift-detection.yml",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "cwd": "Base and Ops isolated worktree",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run check:docs-frontmatter",
+      "cwd": "Base",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run check:task-packet-template",
+      "cwd": "Base",
+      "exitCode": 0
+    }
+  ],
+  "blockers": [
+    {
+      "action": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund --fetch-retries=0 --fetch-timeout=15000 --registry=https://registry.npmjs.org",
+      "result": "EACCES connecting to registry.npmjs.org; no patched lock/install"
+    },
+    {
+      "action": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund --offline --registry=https://registry.npmjs.org",
+      "result": "ENOTCACHED; patched minimatch metadata not cached"
+    },
+    {
+      "action": "gh api repos/duanxldragon/pantheon-base/releases/tags/pantheon-base-v0.18.3",
+      "result": "socket access forbidden; cannot independently query remote assets"
+    },
+    {
+      "action": "Independent code-reviewer and architect CLI review",
+      "result": "Initial MCP transport parse error; repaired ephemeral no-MCP adapter still cannot connect to model service; no current independent verdict"
+    }
+  ],
+  "notVerified": [
+    "minimatch11.0.1 installed compatibility or fresh audit",
+    "new Base CI/review/merge/Release Gate",
+    "v0.18.4 official assets/tag/manifest",
+    "real v0.18.4 Ops staging reconstruction/full CGO race/frontend/business smoke",
+    "new Ops independent review/hosted checks/merge"
+  ],
+  "liveOpsLock": "pantheon-base-v0.18.2",
+  "historicalApprovalIsCurrent": false
+}

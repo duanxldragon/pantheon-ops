@@ -1,4 +1,5 @@
 import { defineModule } from '../../../../core/router/types';
+import { fetchAllPages } from '../../../../api/fetchAllPages';
 import { getDeptTree } from '../../org/dept/api';
 import { getPostList } from '../../org/post/api';
 import { getRoleList } from '../role/api';
@@ -44,7 +45,9 @@ export const UserModule = defineModule({
       path: '/system/user',
       key: 'roles:active',
       load: () =>
-        getRoleList({ page: 1, pageSize: 100, sortField: 'sort', sortOrder: 'asc', status: 1 }),
+        fetchAllPages((page, pageSize) =>
+          getRoleList({ page, pageSize, sortField: 'sort', sortOrder: 'asc', status: 1 }),
+        ),
     },
     {
       path: '/system/user',
@@ -55,7 +58,9 @@ export const UserModule = defineModule({
       path: '/system/user',
       key: 'posts:active',
       load: () =>
-        getPostList({ page: 1, pageSize: 100, sortField: 'sort', sortOrder: 'asc', status: 1 }),
+        fetchAllPages((page, pageSize) =>
+          getPostList({ page, pageSize, sortField: 'sort', sortOrder: 'asc', status: 1 }),
+        ),
     },
   ],
   dashboardWidgets: [

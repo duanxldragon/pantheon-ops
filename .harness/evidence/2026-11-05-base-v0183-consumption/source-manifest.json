@@ -1,0 +1,23 @@
+{
+  "backend/modules/business/bizscope/bizscope_service_test.go": "183191ad67d1447afd3e2849c1df8a5183a8ed557abfc032e80e36adb41e51a0",
+  "backend/modules/business/cmdb/host/host_import_export.go": "c5c228e98d89173a1159aab1faaa24636b3967f5c8a319a9c3b1010c7c8f86f3",
+  "backend/modules/business/cmdb/host/host_model.go": "1df3ead9daa3d49e8a307ab4410fe7402562e1d6c8495173bdeb5f8df1c5318f",
+  "backend/modules/business/cmdb/host/host_service.go": "7275e93b35723dd884136e6fc5d6346c22ff4ade540cd70d7add10c216a26200",
+  "backend/modules/business/cmdb/host/host_service_test.go": "111b346659f0ec56283824eb31090cfa0a7c50fcd3e0cc8b8e06dcb11d49df18",
+  "backend/modules/business/cmdb/host/host_state_version_migration_test.go": "333a21df36268a16247391ff370dc7c62b5bd8e64c998a562bca530cf93a0303",
+  "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.down.sql": "5b4c8186b8382e5d68e328e6119129e8d9db5f67cadb89ae52e5429ced87f7e1",
+  "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.up.sql": "5b53ae1d11d5c8e6680e2ac9d726ede9636ff722207cdb452014abfd2c26ad81",
+  "backend/modules/business/deploy/deploy_reliability_test.go": "2d03fb11c7adc74c2794af3ba7f0c75e669f8b2619d703836cf146318fb47648",
+  "backend/modules/business/deploy/deploy_service_test.go": "895167023be894efef26351bd7a7ce239c0f8cd0af081b2cdde5ff453db2a8c8",
+  "backend/modules/business/observability/datasource_service_test.go": "ed4cb9fd0497b39c449da37c3db32284dc3f74e4bbe881d15d6952747b34c166",
+  "backend/pkg/database/migrations/000032_backfill_cmdb_host_state_version.down.sql": "5b4c8186b8382e5d68e328e6119129e8d9db5f67cadb89ae52e5429ced87f7e1",
+  "backend/pkg/database/migrations/000032_backfill_cmdb_host_state_version.up.sql": "5b53ae1d11d5c8e6680e2ac9d726ede9636ff722207cdb452014abfd2c26ad81",
+  "business-overlay.json": "96b87119a45a9ff49dba1b6670fb6dce8db254255a238b54360d8b34f6f163e2",
+  "docs/PROJECT_INHERITANCE.en.md": "14f944dcbd7de4769505de49a6e8e7f8ff4776b507b445d68d029018f6b00e41",
+  "docs/PROJECT_INHERITANCE.md": "c522f59555b25dcc0fb439170b0d725b242175d6da326eafeb08b953b15e9cb1",
+  "scripts/business-overlay/check-business-overlay.mjs": "ed7fe0a8a3c3a4ed6f5d887ed320dc0c5a04891807c6275682f4662db9669a3c",
+  "scripts/business-overlay/check-shared-drift.mjs": "5451b052db9bbed24f574d2f4483691a5bce67cb732e43c0c3f5f60422d453f3",
+  "scripts/business-overlay/rebuild-from-base.mjs": "ce75f0622c576f3b7aa900b577740776e8d786b6cbe1ed9c895068b1ea818be8",
+  "tests/scripts/business-overlay/check-shared-drift.test.mjs": "d0328c436610a4d1f2a41ecf6aa178df30da54fa4fc0f737e28aadb2f064df7b",
+  "tests/scripts/business-overlay/rebuild-from-base.test.mjs": "d1957b06c220a9ae11e63eee2fd3b0dad0d0d5f72750326bb7b2bae8b2abd1f5"
+}

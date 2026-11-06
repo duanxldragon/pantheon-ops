@@ -1,4 +1,5 @@
 import { defineModule } from '../../../../core/router/types';
+import { fetchAllPages } from '../../../../api/fetchAllPages';
 import { getRoleList } from '../role/api';
 import { getPermissionPolicyList, getPermissionWorkbench } from './api';
 
@@ -38,7 +39,10 @@ export const PermissionModule = defineModule({
     {
       path: '/system/permission',
       key: 'roles:default',
-      load: () => getRoleList({ page: 1, pageSize: 100, sortField: 'sort', sortOrder: 'asc' }),
+      load: () =>
+        fetchAllPages((page, pageSize) =>
+          getRoleList({ page, pageSize, sortField: 'sort', sortOrder: 'asc' }),
+        ),
     },
   ],
   dashboardWidgets: [

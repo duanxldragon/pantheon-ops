@@ -9,7 +9,7 @@ linked_contracts:
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
   - docs/contracts/SYSTEM_ORG_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-05-12
+updated_at: 2026-11-04
 ---
 
 # Pantheon Base 架构总览
@@ -90,8 +90,8 @@ Pantheon Base 不是“登录页 + 菜单 + CRUD 模板”，而是一个面向�
 
 典型目录：
 
-- 后端：`backend/modules/platform`、`backend/modules/dashboard`
-- 前端：`frontend/src/core`、`frontend/src/modules/dashboard`
+- 后端：`backend/modules/platform`
+- 前端：`frontend/src/core`、`frontend/src/modules/platform`
 
 要点是：`platform` 可以汇总多个系统域或业务域的数据，但不应该侵入单个域的内部职责。
 
@@ -169,16 +169,16 @@ Pantheon 明确把系统域拆成四块，而不是继续维护一个“大 syst
 
 物理落点：
 
-- 后端：`backend/modules/system/{config,i18n,dynamicmodule,generator,audit}`
-- 前端：`frontend/src/modules/system/{dict,setting,i18n,dynamicmodule}`、`frontend/src/modules/generator`
+- 后端：`backend/modules/system/{config,i18n,audit}`、`backend/modules/lowcode`、`backend/internal/scaffold`
+- 前端：`frontend/src/modules/system/config/{dict,setting}`、`frontend/src/modules/system/i18n`、`frontend/src/modules/lowcode`
 
 ### 3.3 `business/*`：业务领域能力
 
 `business/*` 是业务域扩展位，不应该直接耦合底座内部实现。
 
-当前样板包括：
+下游 Pantheon Ops 的业务样板包括（Base 不拥有这些业务源码）：
 
-- `backend/modules/business/cmdb`
+- `pantheon-ops/backend/modules/business/cmdb`
 - 前端 generated business modules
 
 它们应该通过统一契约接入：
@@ -277,7 +277,7 @@ Pantheon 明确把系统域拆成四块，而不是继续维护一个“大 syst
 
 ### 5.4 已经开始验证业务接入
 
-- `business/cmdb` 已作为业务样板进入设计与验收主链
+- Pantheon Ops 的 `business/cmdb` 已作为下游业务样板进入设计与验收主链
 - 数据权限中间件、角色数据范围策略、`dept_and_children` 扩展已经落地
 - 业务模块不再只是理论扩展位，而是已经开始走真实接入验证
 

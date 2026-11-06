@@ -66,7 +66,9 @@ func InitAuthModule(r *gin.RouterGroup, db *gorm.DB, userRepo authuser.Repositor
 			MigrateFunc:   func(_ *gorm.DB) error { return authSvc.Migrate() },
 			SeedMenusFunc: login.SeedAuthModuleMenus,
 			Register: func(r *gin.RouterGroup) {
-				sys := r.Group("/system")
+				// legacy 双入口（AUD-014）：/system/login|refresh 保留至 2026-12-31，
+				// 响应带 Deprecation/Sunset 头；下线约束回指 SYSTEM_AUTH_CONTRACT.md §7.7（en §7.6）。
+				sys := r.Group("/system").Use(middleware.LegacyDeprecationMiddleware())
 				{
 					sys.POST("/login", loginRateLimiter, authHandler.LoginHandler)
 					sys.POST("/refresh", refreshRateLimiter, authHandler.RefreshTokenHandler)
@@ -83,7 +85,9 @@ func InitAuthModule(r *gin.RouterGroup, db *gorm.DB, userRepo authuser.Repositor
 					apiAuth.GET("/login-tenants", middleware.TokenAuthMiddleware(database.RDB), authHandler.GetLoginTenantCandidates)
 				}
 
-				systemProtected := r.Group("/system").Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(tenantModeLoader, db)).Use(middleware.CasbinMiddleware())
+				// systemProtected 同样先挂 LegacyDeprecationMiddleware，使 legacy
+				// /system/logout|user/info 在 401/403 时也带弃用头（AUD-014，§7.7）。
+				systemProtected := r.Group("/system").Use(middleware.LegacyDeprecationMiddleware()).Use(middleware.TokenAuthMiddleware(database.RDB)).Use(middleware.PlatformScopeTenantContextMiddleware(tenantModeLoader, db)).Use(middleware.CasbinMiddleware())
 				{
 					systemProtected.POST("/logout", authHandler.LogoutHandler)
 					systemProtected.GET("/user/info", authHandler.GetCurrentUserInfo)

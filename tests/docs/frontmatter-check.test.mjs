@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -15,6 +17,8 @@ const {
   parseContractBodyReferences,
   extractReadmeDocLinks,
   extractReadmeMainEntryLinks,
+  summarizeCoverage,
+  runCheck,
 } = await import(moduleUrl);
 
 test('parseFrontmatter reads yaml-like scalar and array fields', () => {
@@ -180,4 +184,59 @@ test('extractReadmeDocLinks ignores external and anchor links', () => {
 test('extractReadmeMainEntryLinks limits checks to main entry sections', () => {
   const source = `## 2. Main\n[Active](./designs/FOO.md)\n## 5. Archive\n[Archived](./archive/examples/BAR.md)`;
   assert.deepEqual(extractReadmeMainEntryLinks(source), ['./designs/FOO.md']);
+});
+
+test('summarizeCoverage locks scanned vs with-frontmatter vs not-enforced counts', () => {
+  const scanned = Array.from({ length: 415 }, (_, index) => `docs/example-${index}.md`);
+  const withFrontmatter = scanned.slice(0, 302);
+  assert.deepEqual(summarizeCoverage(scanned, withFrontmatter), {
+    scanned: 415,
+    withFrontmatter: 302,
+    withoutFrontmatter: 113,
+  });
+  assert.deepEqual(summarizeCoverage([], []), {
+    scanned: 0,
+    withFrontmatter: 0,
+    withoutFrontmatter: 0,
+  });
+});
+
+// AUD-025 lock #14: the 90-day Active review window is reported, never enforced.
+// Negative-verified: folding activeReviewOverdue into the ok verdict turns this red
+// ('overdue docs must not fail the gate / false !== true').
+test('Active docs past the 90-day window are reported as overdue without failing the gate', () => {
+  const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-frontmatter-overdue-'));
+  try {
+    fs.mkdirSync(path.join(repoRoot, 'docs'), { recursive: true });
+    const daysAgo = (n) => new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
+    const fm = (title, docType, updatedAt, extra = []) => [
+      '---',
+      `title: ${title}`,
+      `doc_type: ${docType}`,
+      'layer: platform',
+      'status: Active',
+      ...extra,
+      `updated_at: ${updatedAt}`,
+      '---',
+      '',
+      `# ${title}`,
+      '',
+    ].join('\n');
+    // Design is in DOC_TYPES_REQUIRING_CONTRACTS, so the fixture must carry a
+    // resolvable Contract doc — otherwise the docs go red for missing
+    // linked_contracts and the window assertion proves nothing.
+    const contractRef = ['linked_contracts:', '  - docs/scope-contract.md'];
+    fs.writeFileSync(path.join(repoRoot, 'docs', 'scope-contract.md'), fm('Scope Contract', 'Contract', daysAgo(5)), 'utf8');
+    fs.writeFileSync(path.join(repoRoot, 'docs', 'old-active.md'), fm('Old Active Doc', 'Design', daysAgo(200), contractRef), 'utf8');
+    fs.writeFileSync(path.join(repoRoot, 'docs', 'fresh-active.md'), fm('Fresh Active Doc', 'Design', daysAgo(5), contractRef), 'utf8');
+
+    const result = runCheck(repoRoot);
+
+    assert.equal(result.ok, true, `overdue docs must not fail the gate / ${result.errors.join("; ")}`);
+    assert.equal(result.activeReviewOverdue.length, 1);
+    assert.equal(result.activeReviewOverdue[0].path, 'docs/old-active.md');
+    assert.ok(result.activeReviewOverdue[0].days >= 200);
+  } finally {
+    fs.rmSync(repoRoot, { recursive: true, force: true });
+  }
 });

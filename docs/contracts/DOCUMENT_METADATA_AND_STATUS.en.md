@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md
   - docs/contracts/DOCUMENT_FRONTMATTER_SCHEMA.md
-updated_at: 2026-04-30
+updated_at: 2026-10-31
 ---
 
 # Document Metadata And Status
@@ -26,26 +26,16 @@ If a repository defines document type but not document status, it quickly regres
 
 So all core Pantheon docs should gradually adopt unified metadata.
 
-## 2. Unified Metadata Fields
+## 2. Unified Metadata Fields (pointer)
 
-Core docs should carry at least:
+The single source of truth for field definitions is
+[DOCUMENT_FRONTMATTER_SCHEMA.md](./DOCUMENT_FRONTMATTER_SCHEMA.md): required base fields
+(`title / doc_type / layer / status / updated_at`), retained-directory fields
+(`index_group / retention_reason / linked_contracts`), type and format constraints, and the
+enforced coverage boundary (schema §11). This document no longer repeats them.
 
-- update time
-- type
-- ownership layer
-- status
-
-Important docs should additionally consider:
-
-- owner
-- last reviewed
-- linked contract
-- index group
-- retention reason
-
-New or rewritten docs should prefer YAML frontmatter. Legacy inline header text is only a transition format.
-
-See [DOCUMENT_FRONTMATTER_SCHEMA.md](./DOCUMENT_FRONTMATTER_SCHEMA.md).
+This document only defines the value semantics of the `doc_type` enum (§3) and the
+`status` enum (§4).
 
 ## 3. Document Type Enums
 
@@ -147,6 +137,21 @@ Recommended directory-to-index mapping:
   - `index_group: archive/upgrade`
 
 If a retained doc cannot justify an `index_group` and `retention_reason`, it likely should not be retained.
+
+### 6.5 Active review window
+
+`Active` means "in force right now", so it is also an assertion about **now** — and assertions expire. Rules:
+
+- `updated_at` older than **90 days** → **review overdue**.
+- Overdue does not mean invalid and never auto-demotes; it means the doc must not be trusted solely because `status: Active`.
+- Two disposal options: re-read the content and rewrite `updated_at`, or demote to `Draft` / `Superseded`.
+- Reviewing is not date-bumping: pushing `updated_at` to today without reading a word is worse than overdue — it disguises "nobody looked" as "just looked".
+
+`scripts/frontmatter-check.mjs` reports this as a **count** (informational, never a build failure); use `--report-overdue` for the list. Deliberately not an error: at 144 overdue docs (2026-10-31; 71 `.en.md` mirrors; oldest 198 days — `docs/designs/BACKEND.md` / `BACKEND.en.md`, `updated_at` 2026-04-17) the only feasible way to pass an error gate would be bulk-editing `updated_at`, destroying exactly what the rule protects. The bar is **visibility**, not **green**.
+
+Scope note: audit report §11 counted "102 Active docs older than 60 days", a different window and population; not reproduced — the measured 90-day count is authoritative here.
+
+Reading change (2026-11-01 re-check): 144 → **143**. The one that left the overdue set is `docs/designs/MODULE_CONTRACT.md`, whose `updated_at` was pushed to 2026-11-01 because §4.3 changed in substance (W11). That is exactly the disposal this section expects — re-review the content, then rewrite the date — not a bulk date bump.
 
 ## 8. First-Round Rollout
 

@@ -94,3 +94,46 @@ func TestRegisterBackendModules_RunsMigrateWhenAutoMigrateEnabled(t *testing.T) 
 		}
 	}
 }
+
+// AUD-001c lock: in versioned-migrations mode a module that only sets
+// BootstrapFunc must still bootstrap, and a module that only sets MigrateFunc
+// must not migrate. The existing tests use orderedModule, which implements both
+// Migrate and Bootstrap, so they cannot distinguish "a complete module
+// bootstrapped" from "a FuncModule carrying only BootstrapFunc bootstrapped" —
+// and the latter is the actual shape of generated low-code modules
+// (BootstrapFunc == service.Migrate()). Negative A (narrowing FuncModule.Bootstrap
+// to require a non-nil MigrateFunc) fails ONLY this test; deleting the whole
+// bootstrap phase also fails TestRegisterBackendModules_PhasedExecution
+// (negative B), so this test is not the sole gatekeeper of that phase.
+func TestRegisterBackendModules_DefaultModeRunsBootstrapForGeneratedModules(t *testing.T) {
+	t.Setenv("PANTHEON_AUTO_MIGRATE", "")
+	steps := make([]string, 0, 4)
+	r := gin.New()
+	api := r.Group("/api/v1")
+
+	RegisterBackendModules(api, nil,
+		FuncModule{
+			ModuleName: "bootstrap-only",
+			BootstrapFunc: func(_ *gorm.DB) error {
+				steps = append(steps, "bootstrap-only:bootstrap")
+				return nil
+			},
+		},
+		FuncModule{
+			ModuleName: "migrate-only",
+			MigrateFunc: func(_ *gorm.DB) error {
+				steps = append(steps, "migrate-only:migrate")
+				return nil
+			},
+		},
+	)
+
+	for _, step := range steps {
+		if step == "migrate-only:migrate" {
+			t.Fatalf("module Migrate() must be skipped in versioned mode; steps=%v", steps)
+		}
+	}
+	if len(steps) != 1 || steps[0] != "bootstrap-only:bootstrap" {
+		t.Fatalf("a module that only sets BootstrapFunc must still bootstrap in versioned mode; otherwise low-code generated tables are never created (DEPLOYMENT_GUIDE §3): steps=%v", steps)
+	}
+}

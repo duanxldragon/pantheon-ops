@@ -5,7 +5,7 @@ layer: platform
 status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-05-01
+updated_at: 2026-11-04
 ---
 
 # 平台仪表盘设计
@@ -19,7 +19,7 @@ English version: [PLATFORM_DASHBOARD_DESIGN.en.md](./PLATFORM_DASHBOARD_DESIGN.e
 补充说明：
 
 - `platform` 在这里是**逻辑层**，不是必须存在的物理目录；
-- 当前代码已将 dashboard 物理放置在顶层 `backend/modules/dashboard/` 与 `frontend/src/modules/dashboard/`；
+- 当前代码已将 dashboard 物理放置在顶层 `backend/modules/platform/` 与 `frontend/src/modules/platform/`；
 - 即使物理目录不再叫 `platform`，它的职责仍然是平台聚合层。
 
 原因：

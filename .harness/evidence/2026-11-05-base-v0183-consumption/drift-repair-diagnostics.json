@@ -1,0 +1,104 @@
+{
+  "checks": [
+    {
+      "command": "D:\\nodejs\\node.exe --check scripts/business-overlay/check-shared-drift.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:28:40.232Z",
+      "finishedAt": "2026-11-05T10:28:40.305Z",
+      "passed": true,
+      "log": "ops-drift-repair-diagnostic-0.log"
+    },
+    {
+      "command": "D:\\nodejs\\node.exe --check tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:28:40.306Z",
+      "finishedAt": "2026-11-05T10:28:40.392Z",
+      "passed": true,
+      "log": "ops-drift-repair-diagnostic-1.log"
+    },
+    {
+      "command": "D:\\nodejs\\node.exe --check tests/scripts/business-overlay/rebuild-from-base.test.mjs",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:28:40.392Z",
+      "finishedAt": "2026-11-05T10:28:40.511Z",
+      "passed": true,
+      "log": "ops-drift-repair-diagnostic-2.log"
+    },
+    {
+      "command": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64\\bin\\gofmt.exe -l backend/modules/business/cmdb/host/host_state_version_migration_test.go",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:28:40.511Z",
+      "finishedAt": "2026-11-05T10:28:40.543Z",
+      "passed": true,
+      "log": "ops-drift-repair-diagnostic-3.log"
+    },
+    {
+      "command": "git diff --check -- scripts/business-overlay/check-shared-drift.mjs tests/scripts/business-overlay/check-shared-drift.test.mjs tests/scripts/business-overlay/rebuild-from-base.test.mjs backend/modules/business/cmdb/host/host_state_version_migration_test.go",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:28:40.543Z",
+      "finishedAt": "2026-11-05T10:28:40.593Z",
+      "passed": true,
+      "log": "ops-drift-repair-diagnostic-4.log"
+    },
+    {
+      "command": "D:\\cache\\go\\pkg\\mod\\golang.org\\toolchain@v0.0.1-go1.26.10.windows-amd64\\bin\\go.exe vet ./modules/business/cmdb/host",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\ops-test-fixes-2026-11-05\\backend",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:28:40.593Z",
+      "finishedAt": "2026-11-05T10:28:46.375Z",
+      "passed": true,
+      "log": "ops-drift-repair-diagnostic-5.log"
+    }
+  ],
+  "files": {
+    "scripts/business-overlay/check-shared-drift.mjs": {
+      "sha256": "5451b052db9bbed24f574d2f4483691a5bce67cb732e43c0c3f5f60422d453f3",
+      "changed": true
+    },
+    "scripts/business-overlay/rebuild-from-base.mjs": {
+      "sha256": "ce75f0622c576f3b7aa900b577740776e8d786b6cbe1ed9c895068b1ea818be8",
+      "changed": false
+    },
+    "tests/scripts/business-overlay/check-shared-drift.test.mjs": {
+      "sha256": "d0328c436610a4d1f2a41ecf6aa178df30da54fa4fc0f737e28aadb2f064df7b",
+      "changed": true
+    },
+    "tests/scripts/business-overlay/rebuild-from-base.test.mjs": {
+      "sha256": "d1957b06c220a9ae11e63eee2fd3b0dad0d0d5f72750326bb7b2bae8b2abd1f5",
+      "changed": true
+    },
+    "backend/modules/business/cmdb/host/host_state_version_migration_test.go": {
+      "sha256": "333a21df36268a16247391ff370dc7c62b5bd8e64c998a562bca530cf93a0303",
+      "changed": true
+    }
+  },
+  "migrations": [
+    {
+      "source": "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.up.sql",
+      "version": "000032",
+      "target": "backend/pkg/database/migrations/000032_backfill_cmdb_host_state_version.up.sql",
+      "identicalBytes": true,
+      "sourceSha256": "5b53ae1d11d5c8e6680e2ac9d726ede9636ff722207cdb452014abfd2c26ad81",
+      "targetSha256": "5b53ae1d11d5c8e6680e2ac9d726ede9636ff722207cdb452014abfd2c26ad81"
+    },
+    {
+      "source": "backend/modules/business/cmdb/host/migrations/000032_backfill_cmdb_host_state_version.down.sql",
+      "version": "000032",
+      "target": "backend/pkg/database/migrations/000032_backfill_cmdb_host_state_version.down.sql",
+      "identicalBytes": true,
+      "sourceSha256": "5b4c8186b8382e5d68e328e6119129e8d9db5f67cadb89ae52e5429ced87f7e1",
+      "targetSha256": "5b4c8186b8382e5d68e328e6119129e8d9db5f67cadb89ae52e5429ced87f7e1"
+    }
+  ]
+}

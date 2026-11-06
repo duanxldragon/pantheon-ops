@@ -5,7 +5,7 @@ layer: system/config
 status: Active
 linked_contracts:
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-04-28
+updated_at: 2026-11-04
 ---
 
 # 字典与系统设置设计
@@ -82,8 +82,8 @@ English version: [DICT_AND_SETTING_DESIGN.en.md](./DICT_AND_SETTING_DESIGN.en.md
 建议模块：
 
 ```text
-backend/modules/system/dict/
-backend/modules/system/setting/
+backend/modules/system/config/dict/
+backend/modules/system/config/setting/
 
 frontend/src/modules/system/dict/
 frontend/src/modules/system/setting/

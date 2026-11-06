@@ -1,7 +1,7 @@
 # Pantheon Base 生产部署指南
 
 **适用基线**：当前 `main` 与其认证后的 `pantheon-base-vX.Y.Z` foundation release
-**最后更新**：2026-08-11
+**最后更新**：2026-11-01
 
 ## 1. 支持范围
 
@@ -41,7 +41,23 @@ Dockerfile 使用 Node.js 24 构建前端、Go 1.26.10 构建后端，最终进�
 
 不要挂载 `database/system_init.sql`。该文件仅保留为 deprecated 历史参考，不是当前 schema 来源。
 
-默认启动路径使用 migrations。仅开发环境可使用 `PANTHEON_AUTO_MIGRATE=true`；生产环境不得启用 GORM AutoMigrate。
+默认启动路径使用 migrations。仅开发环境可使用 `PANTHEON_AUTO_MIGRATE=true`；生产环境不得启用 GORM AutoMigrate（平台表）。
+
+**例外（AUD-001c）**：低代码生成的业务表不在此禁令覆盖范围内——它们只在运行时才有 schema，由生成模块的 `Migrate()`（内部为 GORM `AutoMigrate`）经 `BootstrapFunc` 在启动时创建，不受开关控制。逐类对号入座：
+
+| 表 | 由谁创建 | 受 `PANTHEON_AUTO_MIGRATE` 控制 |
+| --- | --- | --- |
+| 平台表（`system_*` / `platform_*`） | `backend/pkg/database/migrations/` 版本化迁移 | 是（生产恒 false，只走迁移） |
+| 低代码生成的业务表及其关联表 | 生成模块的 `Migrate()`，经 `BootstrapFunc` 在启动时执行，内部为 `AutoMigrate` | **否**（始终 AutoMigrate） |
+
+这条例外不是免费的，两条操作后果：
+
+1. 应用账号需要建表/改表权限；生产启动日志出现 `runtime bootstraps run instead` 是**预期行为，不是漏配**。
+2. 生成表的列**只增不减**：`AutoMigrate` 从不删列、不改列类型。需要删列或改类型时必须另写显式迁移——"改 schema 就是重新生成一下"是错的。
+
+辨析（避免误读）：`PANTHEON_ENABLE_DYNAMIC_MODULES`（默认 `!IsProductionEnv()`，生产固定 false）与本例外无关。它只把 `DynamicModuleEnvGuard` 挡在 `/lowcode/dynamic-modules/*` 这组 HTTP 注册路由上；而生成模块编译进 `backend/modules/business/generated_registry.go`，由 `InitGeneratedBusinessModules` 静态注册，不经过该路由——生产关掉动态模块，照样建表。
+
+曾评估并否决的两个替代方案：显式 `CREATE TABLE IF NOT EXISTS`（表存在时不补列，低代码加字段后运行时报"列不存在"，比现状更糟）；生成器产出版本化迁移文件（原理更好但需逐列对齐 GORM 模型，如 MySQL `datetime(3)`、索引命名、m2m 关联表形状，冻结前引入该风险不划算，登记为 `AUD-001c-ddl` 待重估）。
 
 ### 3.1 租户模式（compat / multi）
 

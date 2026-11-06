@@ -33,7 +33,6 @@ import {
 } from './api';
 import {
   AppTable,
-  FilterPanel,
   GovernanceSummaryBar,
   ImportCsvButton,
   ListHeaderActions,

@@ -52,14 +52,15 @@ const dbEnvVar = "PANTHEON_TEST_REDIS_DB"
 // reserved index means adding a constant, so two packages cannot silently pick
 // the same number.
 //
-// DB 1 stays the shared default. Indexes 2-5 are reserved and must not be used
+// DB 1 stays the shared default. Indexes 2-6 are reserved and must not be used
 // by an Open caller.
 const (
-	DBDefault    = 1
-	DBAuthToken  = 2
-	DBLogin      = 3
-	DBMiddleware = 4
-	DBSession    = 5
+	DBDefault       = 1
+	DBAuthToken     = 2
+	DBLogin         = 3
+	DBMiddleware    = 4
+	DBSession       = 5
+	DBSystemModules = 6
 )
 
 func isTruthy(value string) bool {

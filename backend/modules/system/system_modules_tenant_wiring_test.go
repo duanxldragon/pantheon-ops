@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -18,11 +16,11 @@ import (
 	"github.com/duanxldragon/pantheon-base/backend/pkg/database"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/tenant"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/testmysql"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/testredis"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -108,27 +106,14 @@ func newAuditWiringEngineWithToken(t *testing.T, tenantClaim uint64) (*gin.Engin
 		settingSvc:       setting.NewSettingService(db), // retention settings lookup
 	}
 
-	// Real Redis-backed token session (skip when the local Redis is down so
-	// the wiring pin keeps running in DSN-less CI): TokenAuthMiddleware reads
-	// database.RDB, so point it at the same store and seed a session with the
-	// desired tenant claim — exactly the shape a real login produces.
-	rdb := database.RDB
-	if rdb == nil {
-		addr := strings.TrimSpace(os.Getenv("PANTHEON_REDIS_ADDR"))
-		if addr == "" {
-			addr = "127.0.0.1:6379"
-		}
-		rdb = redis.NewClient(&redis.Options{
-			Addr:     addr,
-			Password: os.Getenv("PANTHEON_REDIS_PASSWORD"),
-		})
-		database.RDB = rdb
-		t.Cleanup(func() { database.RDB = nil })
-	}
+	// Use the shared configured-test helper and its dedicated logical DB. A
+	// required Redis misconfiguration must fail rather than silently skip or
+	// connect to an unrelated local default service.
+	previousRDB := database.RDB
+	rdb := testredis.OpenDB(t, testredis.DBSystemModules)
+	database.RDB = rdb
+	t.Cleanup(func() { database.RDB = previousRDB })
 	ctx := context.Background()
-	if err := rdb.Ping(ctx).Err(); err != nil {
-		t.Skipf("local redis unavailable: %v", err)
-	}
 	token := authtoken.NewAccessToken()
 	if err := authtoken.StoreSession(ctx, rdb, token, &authtoken.SessionData{
 		UserID:    1,

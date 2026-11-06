@@ -392,16 +392,19 @@ func TestBizScopeDeleteRejectsNonCMDBReferences(t *testing.T) {
 	} {
 		t.Run(ref.name, func(t *testing.T) {
 			db := setupBizScopeTestDB(t)
-			// Create the referenced table with a business_scope_id column.
+			// Delete scans every non-CMDB reference table, so all of them must
+			// exist before seeding the one under test.
 			model := &struct {
 				ID              uint64         `gorm:"primaryKey;autoIncrement"`
 				BusinessScopeID uint64         `gorm:"column:business_scope_id;index"`
 				DeletedAt       gorm.DeletedAt `gorm:"index"`
 			}{}
-			if err := db.Table(ref.table).Migrator().CreateTable(model); err != nil {
-				t.Fatalf("create %s table: %v", ref.table, err)
+			for _, table := range []string{"biz_application", "biz_k8s_cluster", "biz_deploy_task"} {
+				if err := db.Table(table).Migrator().CreateTable(model); err != nil {
+					t.Fatalf("create %s table: %v", table, err)
+				}
 			}
-			svc := NewService(db)
+			svc := newBizScopeServiceWithCMDB(t, db)
 			scope := BizScope{Code: "ref-" + ref.name, Name: "Ref " + ref.name, Environment: "dev", Status: "active"}
 			if err := db.Create(&scope).Error; err != nil {
 				t.Fatalf("seed scope: %v", err)
@@ -437,7 +440,7 @@ func TestBizScopeDeleteIgnoresSoftDeletedReferences(t *testing.T) {
 			t.Fatalf("seed %s reference: %v", table, err)
 		}
 	}
-	if err := NewService(db).Delete(scope.ID); err != nil {
+	if err := newBizScopeServiceWithCMDB(t, db).Delete(scope.ID); err != nil {
 		t.Fatalf("delete scope with only soft-deleted references: %v", err)
 	}
 }

@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md
-updated_at: 2026-06-08
+updated_at: 2026-11-04
 ---
 
 # Code Quality and Security Governance Strategy
@@ -33,6 +33,12 @@ Security reachability: CodeQL plus secret, dependency, and workflow posture scan
 Architecture and maintainability judgment: Copilot review plus PR residual-risk notes
 External comparison: none
 ```
+
+## 1.1 Existing Release Exception and Authority
+
+Risk-first governs routine remediation investment and merge review; it does not waive release gates. The current `.github/workflows/release-gate.yml` requires SonarCloud candidate analysis and zero unresolved BUG / VULNERABILITY / CODE_SMELL items for a foundation release. This is an additional release-stage hard condition. It coexists with the principle of avoiding unsolicited low-risk style refactors.
+
+Agents must preserve the existing gate. "External comparison: none" does not mean skipping Sonar at release time. Threshold, scope, required/advisory or exception changes belong to the maintainer quality-policy touchpoint. This repair changes documentation only; workflow behavior stays authoritative, and actual remote results require candidate-run evidence.
 
 ## Repository Tiers
 

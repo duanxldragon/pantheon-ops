@@ -23,7 +23,7 @@ type Host struct {
 	LifecycleState         string         `gorm:"column:lifecycle_state;size:32;default:pending;index" json:"lifecycleState"`
 	ConnectivityState      string         `gorm:"column:connectivity_state;size:32;default:unknown;index" json:"connectivityState"`
 	ConnectivityObservedAt *time.Time     `gorm:"column:connectivity_observed_at" json:"connectivityObservedAt"`
-	StateVersion           uint64         `gorm:"column:state_version;not null;default:0" json:"stateVersion"`
+	StateVersion           uint64         `gorm:"column:state_version;not null;default:1" json:"stateVersion"`
 	BusinessScopeID        uint64         `gorm:"column:business_scope_id;index" json:"businessScopeId"`
 	BusinessScopeCode      string         `gorm:"column:business_scope_code;size:64" json:"businessScopeCode"`
 	BusinessScopeName      string         `gorm:"column:business_scope_name;size:128" json:"businessScopeName"`

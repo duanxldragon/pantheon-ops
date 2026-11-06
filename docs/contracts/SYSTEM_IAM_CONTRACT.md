@@ -12,7 +12,7 @@ related_designs:
 related_acceptances:
   - docs/acceptances/ACCEPTANCE_CHECKLIST.md
   - docs/acceptances/PLATFORM_ACCEPTANCE_MATRIX_20260430_UI_MIGRATION.md
-updated_at: 2026-05-12
+updated_at: 2026-11-04
 ---
 
 # system/iam 合同文档
@@ -244,7 +244,7 @@ Pantheon 的 `iam` 不是简单的“用户管理页集合”，而是系统底�
 
 ### 9.2 后端与权限验收
 
-- `go test ./backend/modules/system/permission`
+- `go -C backend test ./modules/system/iam/permission`
 - 相关用户、角色、菜单模块改动应补对应测试
 
 ### 9.3 前端与构建验收

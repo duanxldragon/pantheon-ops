@@ -1,0 +1,7 @@
+-- Intentionally retain the backfilled state versions on down.
+--
+-- A row moved from 0 to 1 is indistinguishable from a host created under the
+-- fixed code, and rolling the code back does not make the version wrong: the
+-- pre-fix reader ignored `ExpectedStateVersion = 0` anyway, so keeping 1
+-- preserves the post-fix behaviour without destroying data. Mirrors 000021 and
+-- 000025.

@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { rebuildFromBase } from '../../../scripts/business-overlay/rebuild-from-base.mjs';
+import { rebuildFromBase, assembleConsumerTree, assertSafeManifest } from '../../../scripts/business-overlay/rebuild-from-base.mjs';
 
 const rebuildModulePath = pathToFileURL(
   path.resolve('scripts/business-overlay/rebuild-from-base.mjs'),
@@ -43,6 +43,11 @@ function fixtureRepository(root, files) {
   git(root, ['commit', '-m', 'fixture']);
 }
 
+function rebuildFixture({ baseRoot, ...options }) {
+  const commit = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: baseRoot, encoding: 'utf8' }).stdout.trim();
+  return assembleConsumerTree({ ...options, snapshot: { baseRoot, baseCommit: commit } });
+}
+
 test('rebuilds a deterministic Base snapshot with generated business registries', () => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-overlay-'));
   const baseRoot = path.join(temp, 'base');
@@ -72,6 +77,7 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
       ].join('\n'),
       'backend/go.mod': 'module pantheon-base\n\ngo 1.24.0\n',
       'backend/go.sum': '',
+      'backend/pkg/database/migrations/000031_foundation.up.sql': 'SELECT 31;\n',
       'backend/modules/business/business.go': 'package business\nfunc InitBusinessModules(r any, db any) {\n\tInitGeneratedBusinessModules(r, db)\n}\n',
       'backend/modules/business/generated_registry.go': 'package business\nfunc InitGeneratedBusinessModules(r any, db any) {}\n',
       'backend/modules/system/iam/menu/component_registry.go': 'package iam\nvar registeredMenuComponentKeys = mergeMenuComponentKeys(staticRegisteredMenuComponentKeys, generatedMenuComponentKeys)\n',
@@ -91,6 +97,7 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
       replaceRoots: ['docs'],
       baseExcludedPaths: ['scripts/foundation-release'],
       businessPaths: ['backend/modules/business/cmdb', 'frontend/src/modules/business/cmdb'],
+      businessMigrations: ['backend/modules/business/cmdb/host/migrations/000032_backfill.up.sql', 'backend/modules/business/cmdb/host/migrations/000032_backfill.down.sql'],
       repositoryOverlayPaths: ['scripts/business-overlay'],
       backendModules: [{ alias: 'cmdb', importPath: 'pantheon-base/modules/business/cmdb', init: 'InitCmdbModule' }],
       frontendModules: [{ export: 'CmdbModule', importPath: './business/cmdb' }],
@@ -102,6 +109,8 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
       'package.json': '{"scripts":{}}\n',
       'backend/go.sum': 'gorm.io/datatypes v1.2.7 h1:test\ngorm.io/datatypes v1.2.7/go.mod h1:testmod\n',
       'frontend/package.json': '{"scripts":{"test:smoke:business:cmdb":"playwright test tests/smoke/business/cmdb/pages.spec.ts"}}\n',
+      'backend/modules/business/cmdb/host/migrations/000032_backfill.up.sql': 'SELECT 32;\n',
+      'backend/modules/business/cmdb/host/migrations/000032_backfill.down.sql': 'SELECT 1;\n',
       'backend/modules/business/cmdb/module.go': 'package cmdb\nimport "pantheon-ops/backend/pkg/contracts"\n',
       'backend/modules/business/generated_registry.go': 'package business\n',
       'backend/modules/system/iam/menu/generated_component_registry.go': 'package menu\n',
@@ -113,8 +122,15 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
       'scripts/business-overlay/rebuild-from-base.mjs': '// fixture\n',
     });
 
-    const first = rebuildFromBase({ opsRoot, baseRoot, targetRoot });
+    const first = rebuildFixture({ opsRoot, baseRoot, targetRoot });
     const firstReport = fs.readFileSync(path.join(targetRoot, '.business-overlay-report.json'), 'utf8');
+    assert.equal(fs.readFileSync(path.join(targetRoot, 'backend/pkg/database/migrations/000031_foundation.up.sql'), 'utf8'), 'SELECT 31;\n');
+    for (const direction of ['up', 'down']) {
+      const target = `backend/pkg/database/migrations/000032_backfill.${direction}.sql`;
+      assert.equal(fs.readFileSync(path.join(targetRoot, target), 'utf8'), fs.readFileSync(path.join(opsRoot, `backend/modules/business/cmdb/host/migrations/000032_backfill.${direction}.sql`), 'utf8'));
+      assert.ok(first.report.generatedFiles.includes(target));
+    }
+    assert.equal(JSON.parse(fs.readFileSync(path.join(targetRoot, 'package.json'), 'utf8')).scripts['fetch:base-release'], 'node scripts/business-overlay/foundation-release.mjs');
     assert.match(fs.readFileSync(path.join(targetRoot, 'backend/modules/business/cmdb/module.go'), 'utf8'), /pantheon-base\/pkg\/contracts/u);
     assert.match(fs.readFileSync(path.join(targetRoot, 'backend/modules/business/business_overlay_registry.go'), 'utf8'), /cmdb\.InitCmdbModule/u);
     const businessOverlay = fs.readFileSync(path.join(targetRoot, 'frontend/src/modules/businessOverlay.ts'), 'utf8');
@@ -144,9 +160,17 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
     assert.equal(fs.existsSync(path.join(targetRoot, 'scripts/foundation-release/publish.mjs')), false);
     assert.equal(checkOverlay(opsRoot).status, 0, checkOverlay(opsRoot).stderr);
     assert.equal(checkOverlay(targetRoot).status, 0, checkOverlay(targetRoot).stderr);
-    const second = rebuildFromBase({ opsRoot, baseRoot, targetRoot });
+    const second = rebuildFixture({ opsRoot, baseRoot, targetRoot });
     assert.equal(fs.readFileSync(path.join(targetRoot, '.business-overlay-report.json'), 'utf8'), firstReport);
     assert.deepEqual(second.report, first.report);
+    write(targetRoot, 'foundation-release.lock.json', JSON.stringify({ sharedPaths: { backend: ['backend/pkg/database/migrations'] } }));
+    const drift = spawnSync(process.execPath, [
+      '--input-type=module', '-e', `import {checkSharedDrift} from ${JSON.stringify(pathToFileURL(path.resolve('scripts/business-overlay/check-shared-drift.mjs')).href)}; import fs from 'node:fs'; import path from 'node:path'; process.exitCode=checkSharedDrift({root:process.argv[1],snapshot:{baseRoot:process.argv[2],manifest:JSON.parse(fs.readFileSync(path.join(process.argv[1],'foundation-release.lock.json'),'utf8'))}});`, targetRoot, baseRoot,
+    ], { encoding: 'utf8' });
+    assert.equal(drift.status, 0, drift.stderr);
+    assert.match(drift.stdout, /2 derived business migrations verified/u);
+    write(baseRoot, 'backend/pkg/database/migrations/000032_future_base.up.sql', 'SELECT 99;\n');
+    assert.throws(() => rebuildFixture({ opsRoot, baseRoot, targetRoot }), /Business migration version conflicts with Base: 000032/u);
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
@@ -172,7 +196,7 @@ test('rejects a business path that overwrites a Base hook file', () => {
       'business-overlay.json': `${JSON.stringify(manifest)}\n`,
       'backend/modules/business/hook.go': 'package business\nvar hookOps = false\n',
     });
-    assert.throws(() => rebuildFromBase({ opsRoot, baseRoot }), /Business overlay overwrites Base files/u);
+    assert.throws(() => rebuildFixture({ opsRoot, baseRoot }), /Business overlay overwrites Base files/u);
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
@@ -198,7 +222,7 @@ test('rejects a manifest that claims a generic product path', () => {
       'frontend/package.json': '{"scripts":{}}',
       'frontend/src/shared/local.ts': 'export {};\n',
     });
-    assert.throws(() => rebuildFromBase({ opsRoot, baseRoot }), /cannot own generic product path/u);
+    assert.throws(() => rebuildFixture({ opsRoot, baseRoot }), /cannot own generic product path/u);
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
@@ -231,14 +255,14 @@ test('validateReleaseBundleChecksum rejects a mismatched checksum', () => {
   }
 });
 
-test('validateReleaseBundleChecksum skips validation when no checksum is provided', () => {
+test('validateReleaseBundleChecksum rejects missing checksums', () => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-checksum-skip-'));
   try {
     const bundlePath = path.join(temp, 'foundation-release-pantheon-base-v0.10.22.tgz');
     fs.writeFileSync(bundlePath, 'release bundle content', 'utf8');
-    assert.doesNotThrow(() => validateReleaseBundleChecksum(bundlePath, undefined));
-    assert.doesNotThrow(() => validateReleaseBundleChecksum(bundlePath, null));
-    assert.doesNotThrow(() => validateReleaseBundleChecksum(bundlePath, ''));
+    assert.throws(() => validateReleaseBundleChecksum(bundlePath, undefined), /Missing or invalid/u);
+    assert.throws(() => validateReleaseBundleChecksum(bundlePath, null), /Missing or invalid/u);
+    assert.throws(() => validateReleaseBundleChecksum(bundlePath, ''), /Missing or invalid/u);
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
@@ -358,9 +382,74 @@ test('refuses to consume a live base tree when no lock snapshot is present', () 
     });
     assert.throws(
       () => rebuildFromBase({ opsRoot }),
-      /published GitHub release, not a local/u,
+      /fetch the official GitHub release first/u,
     );
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
+});
+
+
+test('migration assembly requires module-owned, paired and unique inputs', () => {
+  const prefix = 'backend/modules/business/cmdb/host/migrations/';
+  const valid = ['000032_backfill.up.sql', '000032_backfill.down.sql'].map((name) => prefix + name);
+  const manifest = { schemaVersion: 1, businessPaths: ['backend/modules/business/cmdb'], businessMigrations: valid };
+  assert.doesNotThrow(() => assertSafeManifest(manifest));
+  for (const [sources, expected] of [
+    [[valid[0]], /requires up\/down pair/u],
+    [[...valid, valid[0]], /Duplicate business migration/u],
+    [[valid[0], prefix + '000032_different.down.sql'], /Duplicate business migration/u],
+    [['backend/pkg/database/migrations/000032_backfill.up.sql'], /Invalid business migration source/u],
+    [[prefix + '../000032_backfill.up.sql'], /Invalid business migration source/u],
+  ]) {
+    assert.throws(() => assertSafeManifest({ ...manifest, businessMigrations: sources }), expected);
+  }
+  assert.throws(() => assertSafeManifest({ ...manifest, businessPaths: [] }), /not declared in businessPaths/u);
+  assert.throws(() => assertSafeManifest({ ...manifest, businessPaths: ['backend/pkg/database'] }), /not declared in businessPaths/u);
+});
+
+
+test('migration assembly rejects missing or non-file sources before copying either half', async (t) => {
+  for (const direction of ['up', 'down']) {
+    for (const kind of ['missing', 'directory']) {
+      await t.test(`${direction} ${kind}`, (t) => {
+        const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pantheon-overlay-missing-migration-'));
+        t.after(() => fs.rmSync(temp, { recursive: true, force: true }));
+        const baseRoot = path.join(temp, 'base');
+        const opsRoot = path.join(temp, 'ops');
+        const targetRoot = path.join(temp, 'target');
+        const sources = ['up', 'down'].map((part) => `backend/modules/business/cmdb/host/migrations/000032_backfill.${part}.sql`);
+        const missing = sources.find((source) => source.endsWith(`.${direction}.sql`));
+        const manifest = {
+          schemaVersion: 1,
+          sourceModule: 'pantheon-ops/backend',
+          businessPaths: ['backend/modules/business/cmdb'],
+          businessMigrations: sources,
+          repositoryOverlayPaths: [],
+          backendModules: [], frontendModules: [], components: [], businessSmokeScripts: [],
+        };
+        fixtureRepository(baseRoot, { 'backend/go.mod': 'module pantheon-base\n\ngo 1.24.0\n' });
+        fixtureRepository(opsRoot, {
+          'business-overlay.json': JSON.stringify(manifest),
+          'backend/modules/business/cmdb/module.go': 'package cmdb\n',
+          [sources.find((source) => source !== missing)]: 'SELECT 32;\n',
+        });
+        if (kind === 'directory') fs.mkdirSync(path.join(opsRoot, missing));
+        assert.throws(
+          () => rebuildFixture({ opsRoot, baseRoot, targetRoot }),
+          (error) => error.message === `Business migration source must be a regular file: ${missing}`,
+        );
+        for (const source of sources) {
+          assert.equal(fs.existsSync(path.join(targetRoot, 'backend/pkg/database/migrations', path.basename(source))), false);
+        }
+      });
+    }
+  }
+});
+
+test('production rebuild refuses local Base arguments', () => {
+  assert.throws(() => rebuildFromBase({ baseRoot: '../pantheon-base' }), /Local Base sources are not supported/);
+  const result = spawnSync(process.execPath, ['scripts/business-overlay/rebuild-from-base.mjs', '--base', '../pantheon-base'], { encoding: 'utf8' });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /--base is no longer supported/);
 });
