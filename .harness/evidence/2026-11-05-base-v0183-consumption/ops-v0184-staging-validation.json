@@ -1,0 +1,51 @@
+{
+  "taskId": "2026-11-05-base-v0183-consumption",
+  "recordedAt": "2026-11-06T14:30:00+08:00",
+  "scope": "Official v0.18.4 acquisition and staging verification in isolated worktree ops/triage-test-fixes-2026-11-05",
+  "acquisition": {
+    "command": "npm run fetch:base-release -- --release pantheon-base-v0.18.4",
+    "result": "OK locked GitHub duanxldragon/pantheon-base@pantheon-base-v0.18.4 (0a8229c67ab482c2e163622fc4e5b87301c53399)",
+    "assetDigestsVerifiedIndependently": {
+      "repo.tar": "dcaa86cc6ff3b2d784e60e9a6ed55fe297525aaf5c9ed507a173e015741e0049",
+      "foundation-release-pantheon-base-v0.18.4.tgz": "f3adeba77e1ffb4ee0bc32126d435eaea64a68bcd57751972027d80d3c4e126f"
+    },
+    "githubAssetsCrossChecked": true
+  },
+  "stagingRebuild": {
+    "command": "npm run rebuild:from-base -- --target .tmp/clean-base-overlay",
+    "baseCommit": "0a8229c67ab482c2e163622fc4e5b87301c53399",
+    "declaredOrGeneratedFiles": 827,
+    "checkBusinessOverlay": "OK business overlay contract (53 declared paths, rebuilt tree)",
+    "checkSharedDrift": "OK shared drift check: 826 shared files identical to base, 10 allowlisted drift, 164 business-overlay files skipped, 2 derived business migrations verified"
+  },
+  "verification": [
+    { "command": "go test -buildvcs=false -race -p 1 -count=1 ./... (CGO=1, msys64 mingw PATH)", "result": "exit 0, no failures" },
+    { "command": "go build -buildvcs=false ./... (rebuilt backend)", "result": "exit 0" },
+    { "command": "npm run lint / type-check / build / test:unit (staging frontend)", "result": "all green, 218/218 unit tests" },
+    { "command": "fresh-DB versioned migration replay (PANTHEON_AUTO_MIGRATE=false)", "result": "schema_migrations version=32 dirty=0; Base 000031 + business 000032 assembled and replayed" },
+    { "command": "module-governance-real.spec.ts", "result": "1 passed (11.8s)" },
+    { "command": "module-auto-recycle-real.spec.ts", "result": "1 passed (8.1s)" },
+    { "command": "module-master-detail-real.spec.ts", "result": "1 passed (8.4s)" },
+    { "command": "module-many-to-many-real.spec.ts", "result": "1 passed (10.3s)" },
+    { "command": "module-governance-host-real.spec.ts", "result": "1 failed: menu label 主机管理 hidden under collapsed CMDB group" },
+    { "command": "test:smoke:tenant (fresh staging DB)", "result": "setup failed: list matrix_browser_a 403 permission.denied via newly provisioned tenant admin" }
+  ],
+  "baselineComparison": {
+    "purpose": "determine whether host-real smoke failure is a v0.18.4 consumption regression",
+    "method": "same spec run against ops main (v0.18.2 baseline) backend on port 18082 with equally fresh database pantheon_ops_v0182_baselinecheck",
+    "result": "identical failure signature (locator 主机管理 hidden) on baseline",
+    "conclusion": "pre-existing fresh-database/fixture-state issue, not a v0.18.2 to v0.18.4 regression"
+  },
+  "knownGaps": [
+    "module-governance-host-real and tenant matrix fixture provisioning assume long-lived QA database state; on a freshly migrated database they fail equally on v0.18.2 baseline and v0.18.4 staging, so hosted CI with deterministic seeds remains the authoritative gate.",
+    "test:scripts carries 15 pre-existing governance failures on this branch (missing ci.yml expectations, legacy manifest vocabulary); identical on clean HEAD, tracked for separate triage.",
+    "Ops main worktree baseline replacement and consumption PR are pending as the next gated step."
+  ],
+  "logs": {
+    "governanceSmoke": "ops-v0184-staging-governance-smoke.log",
+    "hostRealStaging": "ops-v0184-staging-host-smoke.log",
+    "hostRealBaseline": "ops-v0182-baseline-host-smoke.log",
+    "tenantStaging": "ops-v0184-staging-tenant-smoke.log",
+    "acquisition": "ops-v0184-actual-acquisition.log"
+  }
+}

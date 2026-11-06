@@ -114,6 +114,69 @@
       "stderr": "opsAssembly-drift-repair-green-2-stderr.log",
       "status": "passed",
       "notes": "Actual isolated validation"
+    },
+    {
+      "command": "npm run fetch:base-release -- --release pantheon-base-v0.18.4",
+      "cwd": "pantheon-ops (side worktree)",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "ops-v0184-actual-acquisition.log; digest recheck matched lock"
+    },
+    {
+      "command": "npm run rebuild:from-base -- --target .tmp/clean-base-overlay",
+      "cwd": "pantheon-ops (side worktree)",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "827 files; baseCommit 0a8229c6"
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs --root .tmp/clean-base-overlay && npm run check:shared-drift -- --root .tmp/clean-base-overlay",
+      "cwd": "pantheon-ops (side worktree)",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "826 shared identical, 2 derived migrations verified"
+    },
+    {
+      "command": "go test -buildvcs=false -race -p 1 -count=1 ./... (CGO_ENABLED=1, msys64 mingw PATH)",
+      "cwd": "pantheon-ops/.tmp/clean-base-overlay/backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "staging full race"
+    },
+    {
+      "command": "npm run lint && npm run type-check && npm run build && npm run test:unit",
+      "cwd": "pantheon-ops/.tmp/clean-base-overlay/frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "218/218 unit"
+    },
+    {
+      "command": "fresh-DB migration replay (PANTHEON_AUTO_MIGRATE=false)",
+      "cwd": "pantheon-ops/.tmp/clean-base-overlay/backend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "schema_migrations version=32 dirty=0"
+    },
+    {
+      "command": "business generated-module smoke (governance, auto-recycle, master-detail, many-to-many)",
+      "cwd": "pantheon-ops/.tmp/clean-base-overlay/frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "notes": "4 passed; ops-v0184-staging-governance-smoke.log"
+    },
+    {
+      "command": "module-governance-host-real.spec.ts staging vs v0.18.2 fresh-DB baseline",
+      "cwd": "pantheon-ops",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "identical hidden-menu failure on both; pre-existing fixture-state issue; ops-v0184-staging-host-smoke.log + ops-v0182-baseline-host-smoke.log"
+    },
+    {
+      "command": "npm run test:smoke:tenant (fresh staging DB)",
+      "cwd": "pantheon-ops/.tmp/clean-base-overlay/frontend",
+      "status": "failed",
+      "exitCode": 1,
+      "notes": "403 permission.denied in tenant-admin dict provisioning on fresh DB; CI deterministic seed is authoritative; ops-v0184-staging-tenant-smoke.log"
     }
   ],
   "runtimeSensitive": true,

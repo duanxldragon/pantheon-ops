@@ -36,3 +36,14 @@ Final preparation review: independent CODE APPROVE / ARCH CLEAR;21 source hashes
 ## 最新续办：明确 v0.18.4 与授权
 
 用户再次明确授权发行 v0.18.4、让 Ops 主线锁定消费并检查结果。已补 `npm run fetch:base-release -- --release pantheon-base-v0.18.4`，该入口只请求指定的 GitHub 正式 tag，不会退回 latest 或其他版本；无参数仍支持最新稳定版。新增回归后 57 tests pass / 0 fail / 0 skip。重新运行真实 v0.18.4 获取命令仍被系统拒绝网络 socket，锁文件哈希保持不变。GitHub查询与npm安装也返回相同阻断。当前审批策略 never，不能发起工具提权请求；聊天授权已记录但不会修改执行环境。v0.18.4 未发行，Ops主线仍为v0.18.2，主线消费结果尚不能验证。详见 v0184-explicit-consumption-status.json。
+
+## 2026-11-06 官方 v0.18.4 获取与暂存验证（本会话）
+
+- 网络恢复后完成 base v0.18.4 发布（PR494/495，tag 0a8229c6，见 base 仓证据）。
+- Ops 侧：fetch:base-release 显式获取 pantheon-base-v0.18.4，四资产 SHA256 独立复核一致，锁文件钉定 0a8229c6。
+- 暂存重建 827 文件；overlay 契约 53 路径 OK；shared-drift 826 文件与官方快照一致（10 allowlist、164 overlay 跳过、2 派生迁移校验）。
+- CGO race 全量 exit 0；前端 lint/type-check/build/218 单测全绿；全新库版本化迁移重放至 version=32、dirty=0（Base 000031 + 业务 000032 装配成功）。
+- 生成模块业务 smoke：governance/auto-recycle/master-detail/many-to-many 4 项通过；host-real 失败（CMDB 分组折叠导致菜单标签 hidden），用 v0.18.2 基线全新库同跑得到完全相同失败，判定为既有环境态问题，非 v0.18.4 回归。
+- tenant 矩阵在全新库上 fixture 供给 403 permission.denied，同属长命 QA 库状态假设；托管 CI 的确定性种子为权威门禁。
+- test:scripts 存在 15 个与 clean HEAD 完全相同的既有治理失败（ci.yml 期望、遗留 manifest 词汇），单独排队。
+- 下一步：Ops 基线替换与消费 PR（L2 门禁）。详见 ops-v0184-staging-validation.json 与四份 smoke 日志。
