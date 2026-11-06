@@ -31,41 +31,63 @@ var hostBackfillMigrations embed.FS
 // apply the column default (now 1) and hide the exact state this migration has
 // to repair.
 func TestHostStateVersionBackfillEnablesCAS(t *testing.T) {
-	for _, name := range []string{"missing_table", "missing_column"} {
-		t.Run(name, func(t *testing.T) {
-			db := testmysql.Open(t)
-			if name == "missing_column" {
-				if err := db.Exec("CREATE TABLE biz_cmdb_host (id BIGINT PRIMARY KEY, hostname VARCHAR(64) NOT NULL)").Error; err != nil {
-					t.Fatalf("create host table without state_version: %v", err)
-				}
-				if err := db.Exec("INSERT INTO biz_cmdb_host (id, hostname) VALUES (1, 'legacy-without-version')").Error; err != nil {
-					t.Fatalf("seed host without state_version: %v", err)
-				}
-			}
-
-			m := newHostBackfillRunner(t, hostBackfillTestDSN(t, db))
-			if err := m.Up(); err != nil {
-				t.Fatalf("run guarded backfill: %v", err)
-			}
-			assertHostBackfillApplied(t, m)
-			if got := db.Migrator().HasTable("biz_cmdb_host"); got != (name == "missing_column") {
-				t.Fatalf("backfill changed host table existence: %v", got)
-			}
-			if db.Migrator().HasColumn("biz_cmdb_host", "state_version") {
-				t.Fatal("backfill unexpectedly created state_version")
-			}
-			if name == "missing_column" {
-				var hostname string
-				if err := db.Raw("SELECT hostname FROM biz_cmdb_host WHERE id = 1").Scan(&hostname).Error; err != nil {
-					t.Fatalf("read host after guarded backfill: %v", err)
-				}
-				if hostname != "legacy-without-version" {
-					t.Fatalf("backfill changed a host without state_version: %q", hostname)
-				}
-			}
+	for _, scenario := range []struct {
+		name            string
+		withLegacyTable bool
+	}{
+		{name: "missing_table"},
+		{name: "missing_column", withLegacyTable: true},
+	} {
+		t.Run(scenario.name, func(t *testing.T) {
+			testHostBackfillGuardedSkip(t, scenario.withLegacyTable)
 		})
 	}
 	t.Run("down_reapply_and_cas", testHostBackfillDownReapplyAndCAS)
+}
+
+func testHostBackfillGuardedSkip(t *testing.T, withLegacyTable bool) {
+	db := testmysql.Open(t)
+	if withLegacyTable {
+		seedHostWithoutStateVersion(t, db)
+	}
+
+	m := newHostBackfillRunner(t, hostBackfillTestDSN(t, db))
+	if err := m.Up(); err != nil {
+		t.Fatalf("run guarded backfill: %v", err)
+	}
+	assertHostBackfillApplied(t, m)
+	if got := db.Migrator().HasTable("biz_cmdb_host"); got != withLegacyTable {
+		t.Fatalf("backfill changed host table existence: %v", got)
+	}
+	if db.Migrator().HasColumn("biz_cmdb_host", "state_version") {
+		t.Fatal("backfill unexpectedly created state_version")
+	}
+	if withLegacyTable {
+		assertLegacyHostRowUnchanged(t, db)
+	}
+}
+
+func seedHostWithoutStateVersion(t *testing.T, db *gorm.DB) {
+	t.Helper()
+
+	if err := db.Exec("CREATE TABLE biz_cmdb_host (id BIGINT PRIMARY KEY, hostname VARCHAR(64) NOT NULL)").Error; err != nil {
+		t.Fatalf("create host table without state_version: %v", err)
+	}
+	if err := db.Exec("INSERT INTO biz_cmdb_host (id, hostname) VALUES (1, 'legacy-without-version')").Error; err != nil {
+		t.Fatalf("seed host without state_version: %v", err)
+	}
+}
+
+func assertLegacyHostRowUnchanged(t *testing.T, db *gorm.DB) {
+	t.Helper()
+
+	var hostname string
+	if err := db.Raw("SELECT hostname FROM biz_cmdb_host WHERE id = 1").Scan(&hostname).Error; err != nil {
+		t.Fatalf("read host after guarded backfill: %v", err)
+	}
+	if hostname != "legacy-without-version" {
+		t.Fatalf("backfill changed a host without state_version: %q", hostname)
+	}
 }
 
 func testHostBackfillDownReapplyAndCAS(t *testing.T) {
