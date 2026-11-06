@@ -1,0 +1,41 @@
+{
+  "recordedAt": "2026-11-06T03:13:26.201381+00:00",
+  "userAuthorization": "发行v0.18.4、Ops主线锁定并消费新版本、检查消费结果；用户随后明确表示可以提供授权",
+  "approvalConfiguration": "Current session approval policy is never; tools may not request escalation",
+  "status": "network-access-denied-release-and-main-consumption-not-completed",
+  "actualChecks": [
+    {
+      "command": "gh api repos/duanxldragon/pantheon-base/releases/latest",
+      "exitCode": 1,
+      "result": "System refuses network socket access"
+    },
+    {
+      "command": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund --fetch-retries=0 --fetch-timeout=15000 --registry=https://registry.npmjs.org",
+      "exitCode": 1,
+      "result": "EACCES registry socket; minimatch installation/lock still pending"
+    },
+    {
+      "command": "npm run fetch:base-release -- --release pantheon-base-v0.18.4",
+      "exitCode": 1,
+      "result": "EACCES api.github.com socket",
+      "log": "ops-v0184-actual-acquisition.log",
+      "lockUnchanged": true
+    },
+    {
+      "command": "node --test tests/scripts/business-overlay/*.test.mjs",
+      "exitCode": 0,
+      "pass": 57,
+      "fail": 0,
+      "skip": 0,
+      "log": "ops-v0184-explicit-release-tests.log"
+    }
+  ],
+  "newBehavior": "--release pantheon-base-v0.18.4 fetches only that official GitHub tag; no latest fallback, no local Base source. No-argument fetch retains latest stable behavior.",
+  "pending": [
+    "Install/lock/verify minimatch11.0.1",
+    "New candidate independent review, hosted gates, merge and Release Gate",
+    "Publish/verify officialv0.18.4 assets/tag/manifest",
+    "Ops official acquisition/reconstruction/full CGO race/frontend/business smoke/review/CI/merge"
+  ],
+  "opsMainVersion": "pantheon-base-v0.18.2"
+}

@@ -1,0 +1,55 @@
+{
+  "taskId": "2026-11-05-base-v0183-consumption",
+  "goal": "Consume latest official GitHub Base release after v0.18.4 security publication, preserving Ops business corrections",
+  "primaryLayer": "business/*",
+  "status": "in-progress",
+  "runtimeSensitive": true,
+  "parentTask": "pantheon-base:2026-11-05-base-freeze-release",
+  "scope": {
+    "in": [
+      "Official foundation release lock and reproducible overlay rebuild",
+      "Preserve existing dbce4ae business corrections",
+      "Move unpublished business migration 000031 to 000032 and declare migration/test assets",
+      "Full race/frontend/business smoke/CI and independent review",
+      "GitHub latest stable release acquisition and lock; reject local Base CLI source/comparison",
+      "Verified snapshot bytes and git-archive/tag provenance; regressions for nested Ops Git HEAD and cache tampering"
+    ],
+    "out": [
+      "Production data operations",
+      "Shared Base source overrides",
+      "Gate weakening"
+    ]
+  },
+  "implementationNotes": [
+    "Root explicitly acts as scoped Generator for migration/overlay integration; independent reviewers retain approval ownership.",
+    "User already authorized official release consumption. Keep main Ops tree and preexisting untracked logs until staged rebuild validates.",
+    "Original task ID is retained for continuity; current final target is v0.18.4. v0.18.3 preparation approvals do not cover new consumer changes.",
+    "Network EACCES blocks official acquisition, final staged CGO race/smoke/CI and independent review; main Ops remains unchanged."
+  ],
+  "verificationPlan": {
+    "commands": [
+      "npm run fetch:base-release",
+      "npm run check:business-overlay",
+      "npm run test:business-overlay",
+      "go test -race ./...",
+      "npm run lint",
+      "npm run type-check",
+      "npm run build",
+      "business smoke"
+    ],
+    "runtimeEvidence": [
+      "Isolated MySQL/Redis migration and business tests; formal release checksums; consumer rebuild evidence"
+    ]
+  },
+  "linkage": {
+    "evidenceDir": ".harness/evidence/2026-11-05-base-v0183-consumption/",
+    "reviewFile": ".harness/evidence/2026-11-05-base-v0183-consumption/review.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-05-base-v0183-consumption/plan.md"
+    ]
+  },
+  "targetRelease": "pantheon-base-v0.18.4",
+  "implementationStatus": "github-consumer-scripts-verified-final-release-not-consumed",
+  "reviewStatus": "new-source-awaits-independent-review-network-unavailable"
+}

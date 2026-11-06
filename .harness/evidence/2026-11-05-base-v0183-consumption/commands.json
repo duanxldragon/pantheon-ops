@@ -1,0 +1,137 @@
+{
+  "taskId": "2026-11-05-base-v0183-consumption",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": "Scoped Generator plus independent code/architect reviewers"
+  },
+  "recordedAt": "2026-11-05T10:33:52.924977+00:00",
+  "commands": [
+    {
+      "command": "npm run test:business-overlay",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:04:02.613Z",
+      "finishedAt": "2026-11-05T10:04:08.473Z",
+      "log": "opsAssembly-restricted-migration-0.log",
+      "stderr": "opsAssembly-restricted-migration-0-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:04:08.484Z",
+      "finishedAt": "2026-11-05T10:04:09.239Z",
+      "log": "opsAssembly-restricted-migration-1.log",
+      "stderr": "opsAssembly-restricted-migration-1-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "go test -race -count=1 ./modules/business/cmdb/host -run TestHostStateVersionBackfillEnablesCAS$",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05/backend",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:04:09.242Z",
+      "finishedAt": "2026-11-05T10:04:20.493Z",
+      "log": "opsAssembly-restricted-migration-2.log",
+      "stderr": "opsAssembly-restricted-migration-2-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "npm run test:business-overlay",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05",
+      "exitCode": 1,
+      "error": null,
+      "startedAt": "2026-11-05T10:22:46.970Z",
+      "finishedAt": "2026-11-05T10:22:57.577Z",
+      "log": "opsAssembly-drift-repair-red-0.log",
+      "stderr": "opsAssembly-drift-repair-red-0-stderr.log",
+      "status": "failed",
+      "notes": "Expected red regression"
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:22:57.586Z",
+      "finishedAt": "2026-11-05T10:22:58.344Z",
+      "log": "opsAssembly-drift-repair-red-1.log",
+      "stderr": "opsAssembly-drift-repair-red-1-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "go test -race -count=1 ./modules/business/cmdb/host -run TestHostStateVersionBackfillEnablesCAS$",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05/backend",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:22:58.353Z",
+      "finishedAt": "2026-11-05T10:23:08.276Z",
+      "log": "opsAssembly-drift-repair-red-2.log",
+      "stderr": "opsAssembly-drift-repair-red-2-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "npm run test:business-overlay",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:26:29.732Z",
+      "finishedAt": "2026-11-05T10:26:37.886Z",
+      "log": "opsAssembly-drift-repair-green-0.log",
+      "stderr": "opsAssembly-drift-repair-green-0-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "npm run check:business-overlay",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:26:37.893Z",
+      "finishedAt": "2026-11-05T10:26:38.520Z",
+      "log": "opsAssembly-drift-repair-green-1.log",
+      "stderr": "opsAssembly-drift-repair-green-1-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    },
+    {
+      "command": "go test -race -count=1 ./modules/business/cmdb/host -run TestHostStateVersionBackfillEnablesCAS$",
+      "cwd": "audit-artifacts/ops-test-fixes-2026-11-05/backend",
+      "exitCode": 0,
+      "error": null,
+      "startedAt": "2026-11-05T10:26:38.522Z",
+      "finishedAt": "2026-11-05T10:26:48.711Z",
+      "log": "opsAssembly-drift-repair-green-2.log",
+      "stderr": "opsAssembly-drift-repair-green-2-stderr.log",
+      "status": "passed",
+      "notes": "Actual isolated validation"
+    }
+  ],
+  "runtimeSensitive": true,
+  "runtimeLogs": [
+    ".harness/evidence/2026-11-05-base-v0183-consumption/opsAssembly-drift-repair-green-2.log"
+  ],
+  "runtimeGap": "Official v0.18.3 asset hashes, final rebuild, full race/frontend/business smoke and remote CI pending. No production DDL performed.",
+  "knownGaps": [
+    "Official release and final consumer validation pending"
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-05-base-v0183-consumption/manifest.json",
+    "evidenceDir": ".harness/evidence/2026-11-05-base-v0183-consumption/",
+    "reviewFile": ".harness/evidence/2026-11-05-base-v0183-consumption/review.md",
+    "summaryFile": ".harness/evidence/2026-11-05-base-v0183-consumption/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-05-base-v0183-consumption/plan.md"
+    ]
+  }
+}

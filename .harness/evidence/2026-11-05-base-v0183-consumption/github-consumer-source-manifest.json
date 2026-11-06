@@ -1,0 +1,55 @@
+{
+  "recordedAt": "2026-11-06T03:13:26.201381+00:00",
+  "repo": "Ops isolated worktree",
+  "status": "awaits-independent-review",
+  "files": [
+    {
+      "path": ".github/workflows/inheritance-drift-detection.yml",
+      "sha256": "dfee3e4e29e002d8135256583dedffc6469e5e48c4f4c10740e5c1b977ef2d46"
+    },
+    {
+      "path": "package.json",
+      "sha256": "938e8d181cf859ae417f0b095c8bd73db0bcccf31615c3c1dd98122cdbd2d2a5"
+    },
+    {
+      "path": "business-overlay.json",
+      "sha256": "96b87119a45a9ff49dba1b6670fb6dce8db254255a238b54360d8b34f6f163e2"
+    },
+    {
+      "path": "scripts/business-overlay/foundation-release.mjs",
+      "sha256": "f014ba6fbb0b26bccfb110ab0bff888572b60458678de8e67e2e3df322a64a41"
+    },
+    {
+      "path": "scripts/business-overlay/rebuild-from-base.mjs",
+      "sha256": "abc65e8968b6b365895a5ae1ab84bcc797430cada839cd1cf2681081b161fe8e"
+    },
+    {
+      "path": "scripts/business-overlay/check-shared-drift.mjs",
+      "sha256": "3f8d8780c6493a45aa65a2c44eb6977c7db4f274103e39c0baf8dbd68a958766"
+    },
+    {
+      "path": "scripts/business-overlay/check-business-overlay.mjs",
+      "sha256": "ed7fe0a8a3c3a4ed6f5d887ed320dc0c5a04891807c6275682f4662db9669a3c"
+    },
+    {
+      "path": "tests/scripts/business-overlay/foundation-release.test.mjs",
+      "sha256": "585202018664bf7fb40cc9f8e4a186decce30669fd81a6a7e83429a14ee8be80"
+    },
+    {
+      "path": "tests/scripts/business-overlay/rebuild-from-base.test.mjs",
+      "sha256": "77a63eae70ed4d33d6997002068900a553e84c1f3f6fcbc04d7f21ef4fd29e87"
+    },
+    {
+      "path": "tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "sha256": "08f4c2a2009ee77973585bff6f310616e6d5791e1df69d4243b820da9ba1865b"
+    },
+    {
+      "path": "docs/PROJECT_INHERITANCE.md",
+      "sha256": "7b8f6367b034fed2c76e4c337b7a8aa0eeebdc0b4e72dddf50f7cd765c79cf2b"
+    },
+    {
+      "path": "docs/PROJECT_INHERITANCE.en.md",
+      "sha256": "1d8d23dc013561758cc30822b8fc857908566ee8be1704416963168fe9c60f7f"
+    }
+  ]
+}

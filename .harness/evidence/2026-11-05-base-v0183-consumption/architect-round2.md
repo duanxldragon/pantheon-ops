@@ -1,0 +1,11 @@
+**ARCH：CLEAR。原唯一架构阻断已解除，本轮未发现新增架构问题。**
+
+- **根因已修复**：装配器与漂移门禁此前对生成 SQL 的归属不一致。现在共同使用迁移规划器，只有精确派生目标、源和目标均为普通文件且字节一致时才放行；Base 工作树及 HEAD 的版本冲突仍拒绝。[check-shared-drift.mjs:106](/D:/workspace/go/pantheon-platform/audit-artifacts/ops-test-fixes-2026-11-05/scripts/business-overlay/check-shared-drift.mjs:106)
+- **保护没有放宽**：负向测试覆盖篡改及 allowlist 绕过、伪造 generatedFiles、缺失源/目标、Base 冲突和通用目录声明；确定性重建后实际调用漂移检查。[漂移测试:177](/D:/workspace/go/pantheon-platform/audit-artifacts/ops-test-fixes-2026-11-05/tests/scripts/business-overlay/check-shared-drift.test.mjs:177)、[重建测试:157](/D:/workspace/go/pantheon-platform/audit-artifacts/ops-test-fixes-2026-11-05/tests/scripts/business-overlay/rebuild-from-base.test.mjs:157)
+- **迁移回归补齐**：缺表/缺列有独立场景；真实 Down/Up 后新增零版本行被回填，既有版本保留，陈旧 CAS 被拒绝。[迁移测试:33](/D:/workspace/go/pantheon-platform/audit-artifacts/ops-test-fixes-2026-11-05/backend/modules/business/cmdb/host/host_state_version_migration_test.go:33)、[重放断言:104](/D:/workspace/go/pantheon-platform/audit-artifacts/ops-test-fixes-2026-11-05/backend/modules/business/cmdb/host/host_state_version_migration_test.go:104)
+
+核验范围为 `1c057ee → dbce4ae + 当前未提交变更`，重点复审指定四文件；此前未变业务修复结论按哈希保留。[最终清单](/D:/workspace/go/pantheon-platform/audit-artifacts/base-freeze-2026-11-05/ops-drift-final-source-manifest.json:1) **21/21 SHA-256 匹配**，清单自身 SHA-256 为 `feefb51c3b069bad638cb177aa2d75a04e4d547450878a070577040c3bbba108`。
+
+本轮只读检查通过：脚本语法、overlay checker、正反 manifest 断言及 SQL 字节核对。另已核对既有 **37/37 overlay、真实 MySQL 定向 race 三场景**的[绿灯记录](/D:/workspace/go/pantheon-platform/audit-artifacts/base-freeze-2026-11-05/opsAssembly-drift-repair-green-results.json:3)及 [vet/gofmt 诊断](/D:/workspace/go/pantheon-platform/audit-artifacts/base-freeze-2026-11-05/ops-drift-repair-diagnostics.json:1)，未重跑长套件。
+
+建议解除原 ARCH 阻断。保留的取舍是共享迁移编号空间，未来碰撞必须停止升级，[已发布迁移不可重编号](/D:/workspace/go/pantheon-platform/audit-artifacts/ops-test-fixes-2026-11-05/docs/PROJECT_INHERITANCE.md:87)。正式制品哈希、完整重建、全量 race/frontend/business smoke 仍按[消费计划](/D:/workspace/go/pantheon-platform/audit-artifacts/ops-test-fixes-2026-11-05/.harness/tasks/2026-11-05-base-v0183-consumption/plan.md:7)后续执行；本结论仅关闭源码架构复审。
