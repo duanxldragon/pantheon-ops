@@ -54,13 +54,13 @@ Base 职责：v0.18.4 快照（含 minimatch override、OIDC/scaffold 移除、0
 - [x] `cd frontend && npm run lint && npm run type-check && npm run build`（218 单测通过）
 - [x] 业务 smoke 或明确 runtime gap（generated-module 4/5；host-real 与 tenant fresh-DB 失败已在 v0.18.2 基线复现，属既有 fixture 状态依赖，交由托管 CI 复验）
 - [ ] GitHub required checks 通过
-- [ ] Copilot review 已请求，或已说明当前仓库/账号不可用
+- [x] Copilot review 已请求，或已说明当前仓库/账号不可用（copilot-swe-agent 非本仓库 collaborator，API 请求 422，无法指派）
 
 补充说明：fresh DB 迁移链在 staging 实测回放至 version=32、dirty=0（`PANTHEON_AUTO_MIGRATE=false` golang-migrate 模式，DB `pantheon_ops_v0184_staging`）。基线替换后工作区与 staging 树 byte-identical（backend/frontend/src/scripts/tests 共享范围为 0 差异）。
 
 ## 审核留痕
 
-- Copilot review：requested
+- Copilot review：unavailable（copilot-swe-agent 非仓库 collaborator，无法通过 API 指派评审）
 - CodeQL 结果：待 CI
 - GitHub checks 结果：待 CI
 - Auto-merge：not-enabled
