@@ -316,12 +316,6 @@ func (h *AuthHandler) RefreshTokenHandler(c *gin.Context) {
 		return
 	}
 
-	// 刷新令牌轮换：新 pair 签发成功后立即失效旧 refresh token，防止旧 token 在剩余 TTL 内被重放。
-	if err := authtoken.DeleteRefresh(c.Request.Context(), database.RDB, refreshToken); err != nil {
-		logging.Warn("revoke rotated refresh token failed",
-			zap.String("session_id", refreshClaims.SessionID), zap.Error(err))
-	}
-
 	if !writeRefreshSuccessResponse(c, tokenPair) {
 		return
 	}
@@ -749,6 +743,8 @@ func buildLoginSourceKey(ip string) string {
 	return "ip:" + trimmed
 }
 
+// parseRefreshTokenWithContext consumes the old token atomically. Consumption
+// precedes all session updates and token issuance, including across instances.
 func parseRefreshTokenWithContext(ctx context.Context, refreshToken string) (*TokenRefreshClaims, error) {
 	if refreshToken == "" {
 		return nil, errors.New(msgTokenInvalid)
@@ -757,7 +753,7 @@ func parseRefreshTokenWithContext(ctx context.Context, refreshToken string) (*To
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	userID, sessionID, err := authtoken.ValidateRefresh(ctx, database.RDB, refreshToken)
+	userID, sessionID, err := authtoken.ConsumeRefresh(ctx, database.RDB, refreshToken)
 	if err != nil {
 		return nil, err
 	}

@@ -3,13 +3,15 @@ package dynamicmodule
 
 import (
 	"errors"
-	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"strings"
 	"time"
 
 	"github.com/duanxldragon/pantheon-base/backend/internal/scaffold"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/common"
 	"github.com/duanxldragon/pantheon-base/backend/pkg/contracts"
+	"github.com/duanxldragon/pantheon-base/backend/pkg/logging"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -32,6 +34,10 @@ const (
 type DynamicModuleService struct {
 	db            *gorm.DB
 	workspaceRoot string
+	// buildGeneratedModule 是 AUD-001 编译闸门的注入点（实现见 dynamic_module_build_check.go）：
+	// 生产构造函数注入真实 go build；测试用替身覆盖"编译失败 → 拒绝注册"的负向路径；
+	// nil 表示跳过闸门（仅测试构造，由 TestNewDynamicModuleServiceWiresGeneratedModuleBuild 钉住）。
+	buildGeneratedModule generatedModuleBuilder
 }
 
 // NewDynamicModuleService 创建服务实例
@@ -40,7 +46,11 @@ func NewDynamicModuleService(db *gorm.DB) *DynamicModuleService {
 	if err != nil {
 		workspaceRoot = ""
 	}
-	return &DynamicModuleService{db: db, workspaceRoot: workspaceRoot}
+	return &DynamicModuleService{
+		db:                   db,
+		workspaceRoot:        workspaceRoot,
+		buildGeneratedModule: runGoBuildGeneratedModule,
+	}
 }
 
 // ModuleRegistration 模块注册信息
@@ -329,6 +339,30 @@ func (s *DynamicModuleService) validateGeneratedModuleSource(scope, shortName st
 	if !generatedDirExists(s.workspaceRoot, backendPath) ||
 		!generatedDirExists(s.workspaceRoot, frontendPath) {
 		return common.NewBadRequest("module.register.source_missing")
+	}
+	return s.verifyGeneratedModuleCompiles(scope, shortName)
+}
+
+// verifyGeneratedModuleCompiles 在写盘之后、registration 状态推进之前编译生成包（AUD-001）。
+//
+// 目标限定 ./modules/<scope>/<name>，不把全仓构建债务带进注册路径；失败即返回
+// module.register.source_uncompilable，populateManagedModuleRegistration 与 db.Save
+// 都不执行，registration 停在未注册状态——宁可注册慢/失败，也不要"页面显示已接入、
+// 重启后服务起不来"。builder 为 nil（仅测试构造）时跳过。
+func (s *DynamicModuleService) verifyGeneratedModuleCompiles(scope, shortName string) error {
+	if s.buildGeneratedModule == nil {
+		return nil
+	}
+	packagePath := "./modules/" + scope + "/" + shortName
+	if err := s.buildGeneratedModule(s.workspaceRoot, packagePath); err != nil {
+		// Route through pkg/logging: it sanitises the message and every field, so
+		// the user-derived module/package values cannot forge log lines (CodeQL
+		// go/log-injection alerts 97/98).
+		logging.Warn("generated module build check failed",
+			zap.String("module", logging.SanitizeLogValue(scope+"/"+shortName)),
+			zap.String("package", logging.SanitizeLogValue(packagePath)),
+			zap.String("error", logging.SanitizeLogValue(err.Error())))
+		return common.NewBadRequest(msgSourceUncompilable)
 	}
 	return nil
 }

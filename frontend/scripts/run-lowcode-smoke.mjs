@@ -9,7 +9,8 @@
  * 对每种 shape：
  *   - 通过 scripts/export-generated-module.mjs 调 ModuleExporter 生成产物；
  *   - 校验 9 个固定产物文件存在（model/dto/service/handler/module + index/api/List/Form/Detail）；
- *   - 后端产物调 gofmt -l（若 gofmt 可用）确保能编译；
+ *   - 后端产物调 gofmt -l（若 gofmt 可用）同时作为语法与格式门禁：
+ *     语法报错或仍有文件需要 gofmt 都判失败（AUD-001b）；
  *   - 前端产物调 ts.transpileModule（若 typescript 可用）确保语法 + 简单类型可过。
  *
  * 任何一步失败 exit code 1，便于挂到 npm run 作为门禁。
@@ -371,22 +372,27 @@ async function runOneShape(kind) {
     const tsResult = await runTypeScriptCheck(files, join(tempDir, 'tsc'));
 
     // gofmt -e 报告语法错误（exit!=0）与 reformat 待办路径（stdout）。
-    // 我们要求"语法可解析通过"为门禁，reformat 仅作为告警，避免在生成器没自带格式化时阻塞门禁。
+    // 两者都是门禁：语法不过当然不能要，产物需要再跑一次 gofmt 同样不能要——
+    // AUD-001b 的教训就是"生成物反正提交时会 gofmt -w 归位"，那等于让模板缺陷
+    // 长期存活，并且首次提交总要背一份无关的格式 diff。
     if (!gofmtResult.skipped && gofmtResult.exitCode && gofmtResult.exitCode !== 0) {
       throw new Error(`gofmt -e failed for ${kind}:\n${gofmtResult.output}`);
+    }
+    if (!gofmtResult.skipped && gofmtResult.dirtyPaths && gofmtResult.dirtyPaths.length > 0) {
+      const dirty = gofmtResult.dirtyPaths.split('\n').filter(Boolean);
+      throw new Error(
+        `gofmt -l lists ${dirty.length} generated Go file(s) for ${kind}; ` +
+          `the templates must emit gofmt-clean code (AUD-001b):\n${dirty.join('\n')}`,
+      );
     }
     if (!tsResult.skipped && tsResult.output.trim()) {
       throw new Error(`tsc transpile failed for ${kind}:\n${tsResult.output}`);
     }
 
-    const dirtyNote =
-      gofmtResult.dirtyPaths && gofmtResult.dirtyPaths.length > 0
-        ? ` (gofmt-reformat=${gofmtResult.dirtyPaths.split('\n').length})`
-        : '';
     console.log(
       `  ${kind}: ${files.length} files, gofmt=${
-        gofmtResult.skipped ? 'skipped' : 'passed'
-      }${dirtyNote}, tsc=${tsResult.skipped ? 'skipped' : 'passed'}`,
+        gofmtResult.skipped ? 'skipped' : 'clean'
+      }, tsc=${tsResult.skipped ? 'skipped' : 'passed'}`,
     );
   } finally {
     await rm(tempDir, { recursive: true, force: true });

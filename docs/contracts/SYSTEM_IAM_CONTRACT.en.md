@@ -3,7 +3,7 @@ title: system/iam Contract
 doc_type: Contract
 layer: system/iam
 status: Active
-updated_at: 2026-05-12
+updated_at: 2026-11-04
 ---
 
 # system/iam Contract
@@ -220,7 +220,7 @@ Changes in `system/iam` must at least pass:
 
 ### 9.2 Backend and Permission Acceptance
 
-- `go test ./backend/modules/system/permission`
+- `go -C backend test ./modules/system/iam/permission`
 - user/role/menu module changes should add corresponding tests
 
 ### 9.3 Frontend and Build Acceptance

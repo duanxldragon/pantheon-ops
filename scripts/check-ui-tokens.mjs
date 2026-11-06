@@ -11,9 +11,9 @@
  * 4. 硬编码颜色值（#hex、rgb()）
  */
 
-import { execSync } from 'child_process';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { scanTree } from './harness/scan-tree.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -37,54 +37,54 @@ function log(level, message) {
   console.log(`${prefix[level]} ${message}`);
 }
 
-function runRipgrep(pattern, paths, description, extraFlags = '') {
-  const findings = [];
+// Scans with a plain Node walk (scripts/harness/scan-tree.mjs) instead of
+// ripgrep: no external binary, no CI install step, and JS regexes support the
+// look-ahead the gradient rule needs. A scan root that cannot be read is a
+// failure, not a clean result.
+function runPattern(pattern, paths, description, extensions = null) {
+  const { matches, missing } = scanTree({ root: projectRoot, dirs: paths, pattern, extensions });
 
-  try {
-    const cmd = `rg -n --no-heading --color=never ${extraFlags} '${pattern}' ${paths.join(' ')}`;
-    const output = execSync(cmd, {
-      cwd: projectRoot,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
-
-    if (output.trim()) {
-      const lines = output.trim().split('\n');
-      findings.push({
-        description,
-        count: lines.length,
-        lines: lines.slice(0, 8),
-        hasMore: lines.length > 8,
-      });
-    }
-  } catch (error) {
-    if (error.status !== 1) {
-      log('warn', `Pattern check failed: ${description}`);
-    }
+  if (missing.length > 0) {
+    log('error', `Pattern check could not run: ${description} (unreadable: ${missing.join(', ')})`);
+    process.exit(2);
   }
 
-  return findings;
+  if (matches.length === 0) {
+    return [];
+  }
+
+  const lines = matches.map((match) => `${match.file}:${match.line}:${match.text}`);
+  return [{
+    description,
+    count: lines.length,
+    lines: lines.slice(0, 8),
+    hasMore: lines.length > 8,
+  }];
 }
+
+// Replaces rg's `-t style -t typescript -t tsx` type filters.
+const UI_STYLE_EXTENSIONS = new Set(['.css', '.scss', '.less', '.ts', '.tsx']);
+const TS_EXTENSIONS = new Set(['.ts', '.tsx']);
 
 function checkArcoRawTokens() {
   log('info', 'Checking Arco raw token usage...');
 
   // Arco Design 原始 token 模式
   const patterns = [
-    '--color-text-[0-9]',
-    '--color-border-[0-9]',
-    '--color-fill-[0-9]',
-    '--color-bg-[0-9]',
+    /--color-text-[0-9]/,
+    /--color-border-[0-9]/,
+    /--color-fill-[0-9]/,
+    /--color-bg-[0-9]/,
   ];
 
   const findings = [];
 
   for (const pattern of patterns) {
-    const result = runRipgrep(
+    const result = runPattern(
       pattern,
       ['frontend/src/'],
-      `Arco raw token ${pattern} (should use Pantheon token)`,
-      '--type-add "style:*.{css,scss,less}" -t style -t typescript -t tsx'
+      `Arco raw token ${pattern.source} (should use Pantheon token)`,
+      UI_STYLE_EXTENSIONS
     );
     findings.push(...result);
   }
@@ -97,15 +97,15 @@ function checkForbiddenPatterns() {
 
   const patterns = [
     {
-      pattern: 'radial-gradient',
+      pattern: /radial-gradient/,
       desc: 'radial-gradient usage (forbidden decoration pattern)',
     },
     {
-      pattern: 'font-weight:\\s*(650|620)',
+      pattern: /font-weight:\s*(650|620)/,
       desc: 'Non-standard font-weight (should use 400/500/600/700)',
     },
     {
-      pattern: 'linear-gradient.*background.*(?!button)',
+      pattern: /linear-gradient.*background.*(?!button)/,
       desc: 'Large-area gradient background (forbidden except buttons)',
     },
   ];
@@ -113,11 +113,11 @@ function checkForbiddenPatterns() {
   const findings = [];
 
   for (const { pattern, desc } of patterns) {
-    const result = runRipgrep(
+    const result = runPattern(
       pattern,
       ['frontend/src/'],
       desc,
-      '--type-add "style:*.{css,scss,less,tsx,ts}" -t style -t typescript -t tsx'
+      UI_STYLE_EXTENSIONS
     );
     findings.push(...result);
   }
@@ -128,11 +128,11 @@ function checkForbiddenPatterns() {
 function checkModalDirectUsage() {
   log('info', 'Checking Modal.confirm direct usage...');
 
-  return runRipgrep(
-    'Modal\\.(confirm|success|error|info|warning)',
+  return runPattern(
+    /Modal\.(confirm|success|error|info|warning)/,
     ['frontend/src/modules/', 'frontend/src/components/'],
     'Modal.confirm direct usage (should use platform wrapper)',
-    '-t typescript -t tsx'
+    TS_EXTENSIONS
   );
 }
 
@@ -141,15 +141,15 @@ function checkHardcodedColors() {
 
   const patterns = [
     {
-      pattern: 'color:\\s*#[0-9a-fA-F]{3,6}',
+      pattern: /color:\s*#[0-9a-fA-F]{3,6}/,
       desc: 'Hardcoded hex color (should use design token)',
     },
     {
-      pattern: 'background:\\s*#[0-9a-fA-F]{3,6}',
+      pattern: /background:\s*#[0-9a-fA-F]{3,6}/,
       desc: 'Hardcoded hex background (should use design token)',
     },
     {
-      pattern: 'rgb\\(',
+      pattern: /rgb\(/,
       desc: 'Hardcoded rgb() color (should use design token)',
     },
   ];
@@ -157,11 +157,11 @@ function checkHardcodedColors() {
   const findings = [];
 
   for (const { pattern, desc } of patterns) {
-    const result = runRipgrep(
+    const result = runPattern(
       pattern,
       ['frontend/src/modules/', 'frontend/src/components/'],
       desc,
-      '--type-add "style:*.{css,scss,less,tsx,ts}" -t style -t typescript -t tsx'
+      UI_STYLE_EXTENSIONS
     );
     findings.push(...result);
   }
@@ -172,11 +172,11 @@ function checkHardcodedColors() {
 function checkInlineStyles() {
   log('info', 'Checking inline style usage...');
 
-  return runRipgrep(
-    'style={{.*color.*}}',
+  return runPattern(
+    /style=\{\{.*color.*\}\}/,
     ['frontend/src/modules/'],
     'Inline style with color (prefer CSS class with token)',
-    '-t typescript -t tsx'
+    TS_EXTENSIONS
   );
 }
 

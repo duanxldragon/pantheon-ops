@@ -7,7 +7,7 @@ linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
   - docs/contracts/SYSTEM_ORG_CONTRACT.md
-updated_at: 2026-04-17
+updated_at: 2026-11-04
 ---
 
 # Frontend Page Template Specification
@@ -94,14 +94,14 @@ Typical uses:
 ```text
 ListPage
   ├── PageHeader
-  ├── FilterPanel
+  ├── SearchToolbar
   ├── TableCard
   │   ├── Table
   │   └── Pagination
   └── CreateEditModal / Drawer
 ```
 
-### 3.2 `FilterPanel`
+### 3.2 `SearchToolbar`
 
 Rules:
 
@@ -110,7 +110,7 @@ Rules:
 - support collapse after roughly four fields
 - align action buttons on the right in the order `Reset`, then `Search`
 - filters must coordinate with pagination and sorting
-- use the shared `FilterPanel` component instead of page-local `Card + Form` rewrites
+- use the shared `SearchToolbar` component instead of page-local `Card + Form` rewrites
 - rely on platform spacing and density tokens rather than page-local overrides
 
 ### 3.3 `TableCard`
@@ -178,7 +178,7 @@ Typical uses:
 ```text
 TreePage
   ├── PageHeader
-  ├── FilterPanel
+  ├── SearchToolbar
   ├── TreeTableCard
   └── CreateEditDrawer
 ```

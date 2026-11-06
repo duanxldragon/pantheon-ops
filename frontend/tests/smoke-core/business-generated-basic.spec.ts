@@ -87,7 +87,7 @@ test.describe('Business Generated Basic @priority:high @smoke:core', () => {
 
     // 验证没有错误提示
     const errorMessage = page.locator('.arco-message-error, .arco-notification-error');
-    await expect(errorMessage).not.toBeVisible({ timeout: 2000 }).catch(() => {});
+    await expect(errorMessage).not.toBeVisible({ timeout: 2000 });
   });
 
   test('can open create dialog in generated module', async ({ page }) => {
@@ -127,7 +127,7 @@ test.describe('Business Generated Basic @priority:high @smoke:core', () => {
     }
 
     await page.goto(targetPath, { waitUntil: 'domcontentloaded' });
-    await page.waitForSelector('table, .arco-table', { timeout: 15000 });
+    await expect(page.locator('.system-list__table-card')).toBeVisible({ timeout: 15000 });
 
     // 验证基础操作按钮存在（新增/导出/刷新任一即可）。
     const operationButtons = page.locator(
@@ -135,8 +135,9 @@ test.describe('Business Generated Basic @priority:high @smoke:core', () => {
     );
     expect(await operationButtons.count()).toBeGreaterThan(0);
 
-    // 验证表格存在
-    const table = page.locator('table, .arco-table').first();
-    await expect(table).toBeVisible();
+    // 空列表应显示明确空态；有数据时应显示表格。
+    await expect(
+      page.locator('.system-list__table-card').locator('table, .arco-table, .page-empty').first(),
+    ).toBeVisible();
   });
 });

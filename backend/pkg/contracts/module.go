@@ -77,13 +77,20 @@ func RegisterBackendModules(r *gin.RouterGroup, db *gorm.DB, modules ...BackendM
 	// When PANTHEON_AUTO_MIGRATE=true, run module Migrate() (GORM AutoMigrate).
 	// When false (default), versioned migrations are handled by golang-migrate at startup,
 	// so we skip the module-level AutoMigrate calls but still run runtime bootstraps.
+	// The bootstrap phase is NOT covered by the AutoMigrate ban: generated business
+	// modules run service.Migrate() (GORM AutoMigrate) inside BootstrapFunc, so their
+	// tables are still created at startup even in production. See
+	// docs/DEPLOYMENT_GUIDE.md §3 for the documented exception and its costs.
 	autoMigrate := strings.EqualFold(strings.TrimSpace(os.Getenv("PANTHEON_AUTO_MIGRATE")), "true")
 	if autoMigrate {
 		for _, module := range modules {
 			runModuleSeed(module.Name(), "migrate", db, module.Migrate)
 		}
 	} else {
-		slog.Info("versioned migrations mode: skipping module AutoMigrate and running runtime bootstraps (use PANTHEON_AUTO_MIGRATE=true for dev)")
+		slog.Info(
+			"versioned migrations mode: module Migrate() skipped, runtime bootstraps run instead",
+			slog.String("note", "generated business modules create their own tables via AutoMigrate inside Bootstrap; see docs/DEPLOYMENT_GUIDE.md §3"),
+		)
 		for _, module := range modules {
 			if bootstrapper, ok := module.(interface{ Bootstrap(*gorm.DB) error }); ok {
 				runModuleSeed(module.Name(), "bootstrap", db, bootstrapper.Bootstrap)

@@ -3,7 +3,7 @@ title: 文档 Frontmatter Schema 约定
 doc_type: Contract
 layer: platform
 status: Active
-updated_at: 2026-09-30
+updated_at: 2026-10-31
 ---
 
 # 文档 Frontmatter Schema 约定
@@ -319,3 +319,31 @@ npm run check:docs-frontmatter:legacy
 ```bash
 npm run test:docs-frontmatter
 ```
+
+---
+
+## 11. 覆盖范围
+
+### 11.1 强制目录
+
+以下目录前缀内的文档**必须**携带 frontmatter（由 `scripts/frontmatter-check.mjs` 的
+`ENFORCED_DIR_PREFIXES` 实现，两处必须保持一致）：
+
+- `docs/superpowers/specs/`（`index_group`：`superpowers-specs`）
+- `docs/archive/examples/`（`index_group`：`archive/examples`）
+- `docs/archive/baselines/`（`index_group`：`archive/baselines`）
+- `docs/archive/upgrade/`（`index_group`：`archive/upgrade`）
+
+### 11.2 不强制目录
+
+`docs/history`、`docs/release-notes`、`docs/reviews`、`docs/runbooks` 及其余 `docs/**`
+目录不要求 frontmatter：缺失只计入信息性统计，不报错。截至 2026-10-31 的实测口径：
+**415 份扫描 / 302 份带元数据 / 113 份不带元数据（信息性，非违规）**。
+
+### 11.3 门禁语义与升级规则
+
+`node scripts/frontmatter-check.mjs` 通过的含义是“**被检查部分合规**”，不是“全仓合规”。
+检查器会打印扫描总数、带元数据数、不强制数与强制目录清单。扩大强制范围必须在同一次变更中
+同时修改本节（§11）与 `scripts/frontmatter-check.mjs` 的 `ENFORCED_DIR_PREFIXES`，
+禁止只改其一；禁止引入没有到期说明的存量白名单
+（`docs/harness/AI_QUALITY_GOVERNANCE.md` 记录过该失败模式）。

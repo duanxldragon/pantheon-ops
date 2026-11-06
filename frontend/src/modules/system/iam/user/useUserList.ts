@@ -7,6 +7,7 @@ import { showImportResult } from '../../../../api/importExport';
 import { publishRefresh, useRefreshSubscription } from '../../../../core/refresh/refreshBus';
 import { invalidateRouteWarmDataMany, resolveRouteWarmData } from '../../../../core/router/prefetch';
 import { readTenantViewpointId } from '../../../../core/tenant/viewpoint';
+import { fetchAllPages } from '../../../../api/fetchAllPages';
 import { addTenantMember, type TenantMemberRole } from '../tenant/api';
 import { usePublicSettings } from '../../../../core/setting/publicSettings';
 import { getDeptTree, type DeptNode } from '../../org/dept/api';
@@ -326,11 +327,15 @@ export function useUserList(form: FormInstance<UserCreatePayload>) {
   const loadRoles = useCallback(async () => {
     try {
       const result = await resolveRouteWarmData('/system/user', 'roles:active', () =>
-        getRoleList({ page: 1, pageSize: 9999, sortField: 'sort', sortOrder: 'asc', status: 1 }),
+        // Aggregate every active role: pageSize 9999 gets silently capped to
+        // 100 by NormalizePagination, truncating the selectable set.
+        fetchAllPages((page, pageSize) =>
+          getRoleList({ page, pageSize, sortField: 'sort', sortOrder: 'asc', status: 1 }),
+        ),
       );
       dispatch({
         type: 'SET_ROLE_OPTIONS',
-        options: result.items.map((item) => ({
+        options: result.map((item) => ({
           label: translateRoleName(item.roleName, t),
           value: item.id,
         })),
@@ -352,7 +357,10 @@ export function useUserList(form: FormInstance<UserCreatePayload>) {
           getDeptTree({ sortField: 'sort', sortOrder: 'asc' }),
         ),
         resolveRouteWarmData('/system/user', 'posts:active', () =>
-          getPostList({ page: 1, pageSize: 9999, sortField: 'sort', sortOrder: 'asc', status: 1 }),
+          // Aggregate every active post (see loadRoles: 9999 silently caps to 100).
+          fetchAllPages((page, pageSize) =>
+            getPostList({ page, pageSize, sortField: 'sort', sortOrder: 'asc', status: 1 }),
+          ),
         ),
       ]);
       const flattenDept = (nodes: DeptNode[], depth = 0): Array<{ label: string; value: number }> =>
@@ -369,7 +377,7 @@ export function useUserList(form: FormInstance<UserCreatePayload>) {
       });
       dispatch({
         type: 'SET_POST_OPTIONS',
-        options: postRows.items.map((item) => ({
+        options: postRows.map((item) => ({
           label: item.postName,
           value: item.id,
           deptId: item.deptId,

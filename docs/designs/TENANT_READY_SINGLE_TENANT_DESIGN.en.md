@@ -2,15 +2,17 @@
 title: Single-Tenant First, Tenant-Ready Design
 doc_type: Design
 layer: platform / system/auth / system/config / business/*
-status: Active
+status: Archived
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_AUTH_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-05-04
+updated_at: 2026-11-04
 ---
 
 # Single-Tenant First, Tenant-Ready Design
+
+> Historical single-tenant planning baseline. Current authority: [TENANT_CONTRACT_V1](../contracts/TENANT_CONTRACT_V1.md); compat/multi is implemented, while V1 business remains single-tenant. The original discussion below is historical.
 
 Chinese version: [TENANT_READY_SINGLE_TENANT_DESIGN.md](./TENANT_READY_SINGLE_TENANT_DESIGN.md)
 

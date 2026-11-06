@@ -41,6 +41,99 @@ import {
 } from './schema';
 import { TYPE_MAPPING, generateStructTags, getRequiredImports } from './typeMapping';
 
+/**
+ * GO_MODULE_PATH 是生成物 Go 导入前缀的唯一来源（AUD-001）。
+ *
+ * 必须与 backend/go.mod 的 module 行一致：模板此前手写 `pantheon-base/...` 前缀，
+ * 而 internal/scaffold/workspace.go 的注册器写真实模块路径，两处不同源，
+ * 生成包因此从未编译成功。tests/generator/generator-quality-contract.test.ts
+ * 直接读 backend/go.mod 钉住这条常量——改模块名但忘改常量会先在测试里红。
+ */
+export const GO_MODULE_PATH = 'github.com/duanxldragon/pantheon-base/backend';
+
+/** 由单一模块路径常量派生项目内部 Go 导入路径（模板侧不得再手写前缀）。 */
+function goImportPath(subpath: string): string {
+  return `${GO_MODULE_PATH}/${subpath}`;
+}
+
+/**
+ * 组装 Go 导入块（AUD-001b）。
+ *
+ * gofmt 会把同一个导入组按路径字典序排序，因此这里必须排序后再发出；
+ * 此前模板按写入顺序 emit，`gofmt -l` 会点名每一个生成文件。
+ * 条目允许传带引号（`typeMapping.getRequiredImports` 的历史格式）或不带
+ * 引号的路径，统一在 `normalizeGoImportPaths` 归一化；falsy 条目直接丢弃，
+ * 这样条件导入不再留下纯制表符行。
+ */
+function normalizeGoImportPaths(importPaths: Array<string | false | null | undefined>): string[] {
+  return importPaths
+    .map((importPath) =>
+      typeof importPath === 'string' ? importPath.trim().replace(/^"|"$/g, '') : '',
+    )
+    .filter((importPath) => importPath.length > 0)
+    // Go import paths use byte order, keeping emitted blocks gofmt-stable.
+    .sort((left, right) => (left < right ? -1 : Number(left > right)));
+}
+
+function buildGoImportBlock(importPaths: Array<string | false | null | undefined>): string {
+  return normalizeGoImportPaths(importPaths)
+    .map((importPath) => `\t"${importPath}"`)
+    .join('\n');
+}
+
+/**
+ * 按 gofmt 的列对齐规则渲染一个连续块（AUD-001b 的根因修复点）。
+ *
+ * gofmt 用空格（不是制表符）补齐：块内除最后一列外，每列右侧补空格到
+ * 「该列最宽单元格 + 1」。模板此前要么写死单空格、要么按想象中的列宽手填
+ * 空格，两者都会让产物落在 `gofmt -l` 里。调用方必须把「在产物里物理连续、
+ * 且列结构相同」的行放进同一个块——中间夹空行、注释行或以 `{` 结尾的行会
+ * 打断 gofmt 的列块，所以那些行不进 rows。
+ */
+function alignGoBlock(rows: string[][], indent: string): string {
+  if (rows.length === 0) {
+    return '';
+  }
+  const widths: number[] = [];
+  for (const row of rows) {
+    for (let column = 0; column < row.length - 1; column += 1) {
+      widths[column] = Math.max(widths[column] ?? 0, row[column].length);
+    }
+  }
+  return rows
+    .map(
+      (row) =>
+        indent +
+        row
+          .map((cell, column) => (column < row.length - 1 ? cell.padEnd(widths[column] + 1) : cell))
+          .join(''),
+    )
+    .join('\n');
+}
+
+/**
+ * Go 产物的空白归一（AUD-001b）。
+ *
+ * 只收口 gofmt 一定会做的三件事：剥行尾空白、把连续空行压成一个空行、
+ * 文件末尾只留一个换行。列对齐不在这里做——那是 `alignGoBlock` 在模板里
+ * 逐块负责的，否则等于把模板缺陷推给事后格式化。
+ */
+function normalizeGoWhitespace(source: string): string {
+  return (
+    source
+      .split('\n')
+      .map((line) => line.trimEnd())
+      .join('\n')
+      // 空体：gofmt 把空结构体声明写成 `struct{}`、空复合字面量/映射写成 `{}`，
+      // 两者都不会保留 `{` 与 `}` 之间的空行（全部字段不进表单时会撞上）。
+      .replace(/struct \{\n\n[ \t]*\}/gu, 'struct{}')
+      .replace(/\{\n\n[ \t]*\}/gu, '{}')
+      .replace(/\n{3,}/gu, '\n\n')
+      .trimEnd()
+      .concat('\n')
+  );
+}
+
 type StructTagOptions = NonNullable<Parameters<typeof generateStructTags>[2]>;
 
 export class BackendGenerator {
@@ -63,38 +156,48 @@ export class BackendGenerator {
     const { scope, model, templateLevel = 'enterprise' } = this.schema;
     const tableName = model.tableName;
 
-    // 导入
-    const imports = getRequiredImports(model.fields);
-    const importBlock = Array.from(imports).join('\n\t');
-
     // Model 名称
     const structName = scope === 'system' ? `System${this.modelName}` : this.modelName;
 
-    // 字段定义
-    const fields = this.generateModelFields();
-
-    // 企业级包含审计字段
-    const auditFields =
+    // 字段定义：gofmt 把「主键 + 业务字段 + 审计字段」当成同一个连续列块对齐，
+    // 所以三部分必须进同一次 alignGoBlock 调用，不能各自拼字符串。
+    const auditRows: string[][] =
       templateLevel === 'enterprise'
-        ? `
-\tCreatedAt time.Time      \`json:"createdAt"\`
-\tUpdatedAt time.Time      \`json:"updatedAt"\`
-\tDeletedAt gorm.DeletedAt \`gorm:"index" json:"-"\``
-        : `
-\tCreatedAt time.Time \`json:"createdAt"\``;
+        ? [
+            ['CreatedAt', 'time.Time', '`json:"createdAt"`'],
+            ['UpdatedAt', 'time.Time', '`json:"updatedAt"`'],
+            ['DeletedAt', 'gorm.DeletedAt', '`gorm:"index" json:"-"`'],
+          ]
+        : [['CreatedAt', 'time.Time', '`json:"createdAt"`']];
+
+    const structRows: string[][] = [
+      ['ID', 'uint64', '`gorm:"primaryKey;autoIncrement" json:"id"`'],
+      ...this.generateModelRows(),
+      ...auditRows,
+    ];
+    const fieldRows = alignGoBlock(structRows, '\t');
+
+    // 导入：`getRequiredImports` 默认带上 gorm，但 basic 层级不写软删字段，
+    // 未使用的 import 会被 Go 编译器判错（AUD-001b 编译验证暴露的既有缺陷），
+    // 所以只有真正写出 gorm.DeletedAt 列时才保留该导入。
+    const importBlock = buildGoImportBlock(
+      Array.from(getRequiredImports(model.fields)).filter(
+        (importPath) =>
+          importPath !== '"gorm.io/gorm"' || structRows.some((row) => row[1] === 'gorm.DeletedAt'),
+      ),
+    );
 
     const junctionModels = this.generateManyToManyJunctionModels();
 
-    return `package ${this.packageName}
+    return normalizeGoWhitespace(`package ${this.packageName}
 
 import (
-\t${importBlock}
+${importBlock}
 )
 
 // ${structName} ${this.schema.displayName}模型
 type ${structName} struct {
-\tID uint64 \`gorm:"primaryKey;autoIncrement" json:"id"\`
-${fields}${auditFields}
+${fieldRows}
 }
 
 // TableName 指定表名
@@ -102,13 +205,13 @@ func (${structName}) TableName() string {
 \treturn "${tableName}"
 }
 ${junctionModels ? `\n${junctionModels}` : ''}
-`;
+`);
   }
 
   /**
-   * 生成 model 字段
+   * 生成 model 字段行（列数组，交由 alignGoBlock 对齐）
    */
-  private generateModelFields(): string {
+  private generateModelRows(): string[][] {
     return this.schema.model.fields
       .filter((f) => f.visibleInForm !== false)
       .map((field) => {
@@ -123,9 +226,8 @@ ${junctionModels ? `\n${junctionModels}` : ''}
         }
 
         const tags = generateStructTags(field.name, field.type, options);
-        return `\t${this.capitalize(field.name)} ${mapping.go} \`${tags}\``;
-      })
-      .join('\n');
+        return [this.capitalize(field.name), mapping.go, `\`${tags}\``];
+      });
   }
 
   /**
@@ -134,64 +236,83 @@ ${junctionModels ? `\n${junctionModels}` : ''}
    * 参考: system/user/user_dto.go
    */
   generateDTO(): string {
+    const { templateLevel = 'enterprise' } = this.schema;
     const structName = this.modelName;
     const importBlock = this.generateDTOImportBlock();
     const relationDTOs = this.generateManyToManyRelationDTOs();
 
-    return `package ${this.packageName}
+    const listRows = [
+      ['ID', 'uint64', '`json:"id"`'],
+      ...this.generateDTORows('list'),
+      ['CreatedAt', 'string', '`json:"createdAt"`'],
+    ];
+    // basic 层级的模型没有 UpdatedAt 列，DTO 也不能声明它，否则 service 里的
+    // `item.UpdatedAt` 会编译不过（AUD-001b 编译验证暴露的既有缺陷）。
+    const detailRows = [
+      ['ID', 'uint64', '`json:"id"`'],
+      ...this.generateDTORows('detail'),
+      ['CreatedAt', 'string', '`json:"createdAt"`'],
+      ...(templateLevel === 'enterprise' ? [['UpdatedAt', 'string', '`json:"updatedAt"`']] : []),
+    ];
+    const queryRows = [
+      ...this.generateQueryRows(),
+      ['Page', 'int', '`form:"page" json:"page"`'],
+      ['PageSize', 'int', '`form:"pageSize" json:"pageSize"`'],
+      ['SortField', 'string', '`form:"sortField" json:"sortField"`'],
+      ['SortOrder', 'string', '`form:"sortOrder" json:"sortOrder"`'],
+    ];
+    const pageRows = [
+      ['Items', `[]${structName}ListResp`, '`json:"items"`'],
+      ['Total', 'int64', '`json:"total"`'],
+      ['Page', 'int', '`json:"page"`'],
+      ['PageSize', 'int', '`json:"pageSize"`'],
+    ];
+    const optionRows = [
+      ['Label', 'string', '`json:"label"`'],
+      ['Value', 'uint64', '`json:"value"`'],
+      ['ID', 'uint64', '`json:"id"`'],
+      ['Name', 'string', '`json:"name"`'],
+    ];
+
+    return normalizeGoWhitespace(`package ${this.packageName}
 
 ${importBlock}
 
 // ${structName}ListResp 列表页返回 DTO
 type ${structName}ListResp struct {
-\tID uint64 \`json:"id"\`
-${this.generateDTOFields('list')}
-\tCreatedAt string \`json:"createdAt"\`
+${alignGoBlock(listRows, '\t')}
 }
 
 // ${structName}ListPageResp 分页响应
 type ${structName}ListPageResp struct {
-\tItems    []${structName}ListResp \`json:"items"\`
-\tTotal    int64                   \`json:"total"\`
-\tPage     int                     \`json:"page"\`
-\tPageSize int                     \`json:"pageSize"\`
+${alignGoBlock(pageRows, '\t')}
 }
 
 // ${structName}DetailResp 详情返回 DTO
 type ${structName}DetailResp struct {
-\tID uint64 \`json:"id"\`
-${this.generateDTOFields('detail')}
-\tCreatedAt string \`json:"createdAt"\`
-\tUpdatedAt string \`json:"updatedAt"\`
+${alignGoBlock(detailRows, '\t')}
 }
 
 // ${structName}ListQuery 查询参数
 type ${structName}ListQuery struct {
-${this.generateQueryFields()}
-\tPage int \`form:"page" json:"page"\`
-\tPageSize int \`form:"pageSize" json:"pageSize"\`
-\tSortField string \`form:"sortField" json:"sortField"\`
-\tSortOrder string \`form:"sortOrder" json:"sortOrder"\`
+${alignGoBlock(queryRows, '\t')}
 }
 
 // ${structName}CreateReq 创建请求
 type ${structName}CreateReq struct {
-${this.generateDTOFields('create')}
+${alignGoBlock(this.generateDTORows('create'), '\t')}
 }
 
 // ${structName}UpdateReq 更新请求
 type ${structName}UpdateReq struct {
-${this.generateDTOFields('update')}
+${alignGoBlock(this.generateDTORows('update'), '\t')}
 }
 
 type ${structName}OptionItem struct {
-\tLabel string \`json:"label"\`
-\tValue uint64 \`json:"value"\`
-\tID    uint64 \`json:"id"\`
-\tName  string \`json:"name"\`
+${alignGoBlock(optionRows, '\t')}
 }
 ${relationDTOs ? `\n${relationDTOs}` : ''}
-`;
+`);
   }
 
   private generateDTOImportBlock(): string {
@@ -200,20 +321,20 @@ ${relationDTOs ? `\n${relationDTOs}` : ''}
       (field) => this.goTypeFromField(field.type) === 'time.Time',
     );
     if (usesTime) {
-      dtoImports.add('"time"');
+      dtoImports.add('time');
     }
     if (dtoImports.size === 0) {
       return '';
     }
     return `import (
-\t${Array.from(dtoImports).join('\n\t')}
+${buildGoImportBlock(Array.from(dtoImports))}
 )`;
   }
 
   /**
-   * 生成 DTO 字段
+   * 生成 DTO 字段行（列数组，交由 alignGoBlock 对齐）
    */
-  private generateDTOFields(mode: 'list' | 'detail' | 'create' | 'update'): string {
+  private generateDTORows(mode: 'list' | 'detail' | 'create' | 'update'): string[][] {
     return this.schema.model.fields
       .filter((f) => {
         if (mode === 'list') return f.visibleInList !== false;
@@ -222,36 +343,37 @@ ${relationDTOs ? `\n${relationDTOs}` : ''}
       })
       .map((field) => {
         const baseType = this.goTypeFromField(field.type);
-        const tsType = mode === 'update' ? `*${baseType}` : baseType;
         const isRequired = mode === 'create' && field.required;
+        const isPointer = mode === 'update' || (isRequired && baseType === 'bool');
+        const tsType = isPointer ? `*${baseType}` : baseType;
         const binding = isRequired ? ' binding:"required"' : '';
-        return `\t${this.capitalize(field.name)} ${tsType} \`json:"${field.name}"${binding}\``;
-      })
-      .join('\n');
+        return [this.capitalize(field.name), tsType, `\`json:"${field.name}"${binding}\``];
+      });
   }
 
   /**
-   * 生成查询字段
+   * 生成查询字段行
    */
-  private generateQueryFields(): string {
+  private generateQueryRows(): string[][] {
     const searchableFields = this.schema.model.fields.filter((f) => f.searchable);
 
     if (searchableFields.length === 0) {
-      return '\t// 无搜索字段';
+      // 注释行会打断 gofmt 的列块，这里单独成行，不参与对齐。
+      return [['// 无搜索字段']];
     }
 
-    const fields = searchableFields.map((field) => {
+    const rows = searchableFields.map((field) => {
       const tsType = this.goTypeFromField(field.type);
       // 可搜索字段通常可选
       const isPointer = field.type === 'int' || field.type === 'float';
       const goType = isPointer ? `*${tsType}` : tsType;
-      return `\t${this.capitalize(field.name)} ${goType} \`form:"${field.name}" json:"${field.name}"\``;
+      return [this.capitalize(field.name), goType, `\`form:"${field.name}" json:"${field.name}"\``];
     });
     // 统一关键词：跨所有文本型可搜索字段 OR LIKE
     if (this.getKeywordSearchColumns().length > 0) {
-      fields.unshift('\tKeyword string `form:"keyword" json:"keyword"`');
+      rows.unshift(['Keyword', 'string', '`form:"keyword" json:"keyword"`']);
     }
-    return fields.join('\n');
+    return rows;
   }
 
   /** 文本型可搜索字段的数据库列名，供统一关键词 OR LIKE。 */
@@ -272,20 +394,26 @@ ${relationDTOs ? `\n${relationDTOs}` : ''}
     const modelName = this.modelName;
 
     const hasDataScope = this.schema.enableDataScope ?? templateLevel === 'enterprise';
+    // UpdatedAt 只存在于 enterprise 层级的模型里，DTO 与转换方法必须同步收敛，
+    // 否则 basic 层级会引用不存在的列。
+    const hasAudit = templateLevel === 'enterprise';
     const relationMigrations = this.generateManyToManyMigrations();
     const relationServices = this.generateManyToManyServiceMethods();
     const requiresStrconv =
       this.getManyToManyRelations().length > 0 || this.resolveOptionLabelField() === null;
-    return `package ${this.packageName}
+    const importBlock = buildGoImportBlock([
+      'errors',
+      hasDataScope && goImportPath('pkg/common'),
+      hasDataScope && goImportPath('pkg/database'),
+      requiresStrconv && 'strconv',
+      'strings',
+      'time',
+      'gorm.io/gorm',
+    ]);
+    return normalizeGoWhitespace(`package ${this.packageName}
 
 import (
-\t"errors"
-\t${hasDataScope ? `"pantheon-base/pkg/common"` : ``}
-\t${hasDataScope ? `"pantheon-base/pkg/database"` : ``}
-\t${requiresStrconv ? `"strconv"` : ``}
-\t"strings"
-\t"time"
-\t"gorm.io/gorm"
+${importBlock}
 )
 
 type ${modelName}Service struct {
@@ -369,10 +497,15 @@ func (s *${modelName}Service) List${modelName}Options() ([]${modelName}OptionIte
 \toptions := make([]${modelName}OptionItem, len(items))
 \tfor i, item := range items {
 \t\toptions[i] = ${modelName}OptionItem{
-\t\t\tLabel: ${this.generateOptionLabelExpression('item')},
-\t\t\tValue: item.ID,
-\t\t\tID: item.ID,
-\t\t\tName: ${this.generateOptionNameExpression('item')},
+${alignGoBlock(
+  [
+    ['Label:', `${this.generateOptionLabelExpression('item')},`],
+    ['Value:', 'item.ID,'],
+    ['ID:', 'item.ID,'],
+    ['Name:', `${this.generateOptionNameExpression('item')},`],
+  ],
+  '\t\t\t',
+)}
 \t\t}
 \t}
 \treturn options, nil
@@ -437,28 +570,23 @@ func (s *${modelName}Service) Delete${modelName}(id uint64) error {
 
 func (s *${modelName}Service) toListResp(item ${structName}) ${modelName}ListResp {
 \treturn ${modelName}ListResp{
-\t\tID: item.ID,
-${this.toListRespFields()}
-\t\tCreatedAt: item.CreatedAt.Format(time.RFC3339),
+${alignGoBlock([['ID:', 'item.ID,'], ...this.toListRespRows(), ['CreatedAt:', 'item.CreatedAt.Format(time.RFC3339),']], '\t\t')}
 \t}
 }
 
 func (s *${modelName}Service) toDetailResp(item ${structName}) ${modelName}DetailResp {
 \treturn ${modelName}DetailResp{
-\t\tID: item.ID,
-${this.toDetailRespFields()}
-\t\tCreatedAt: item.CreatedAt.Format(time.RFC3339),
-\t\tUpdatedAt: item.UpdatedAt.Format(time.RFC3339),
+${alignGoBlock([['ID:', 'item.ID,'], ...this.toDetailRespRows(), ['CreatedAt:', 'item.CreatedAt.Format(time.RFC3339),'], ...(hasAudit ? [['UpdatedAt:', 'item.UpdatedAt.Format(time.RFC3339),']] : [])], '\t\t')}
 \t}
 }
 
 func (s *${modelName}Service) fromCreateReq(req *${modelName}CreateReq) ${structName} {
 \treturn ${structName}{
-${this.fromCreateReqFields()}
+${alignGoBlock(this.fromCreateReqRows(), '\t\t')}
 \t}
 }
 ${relationServices ? `\n${relationServices}` : ''}
-`;
+`);
   }
 
   /**
@@ -507,10 +635,13 @@ ${relationServices ? `\n${relationServices}` : ''}
 
   private generateSortFieldMap(): string {
     const sortableFields = this.schema.model.fields.filter((field) => field.sortable);
-    return sortableFields
-      .map((field) => `\t\t"${field.name}": "${this.toDBColumn(field.name)}",`)
-      .concat(['\t\t"createdAt": "created_at",', '\t\t"updatedAt": "updated_at",'])
-      .join('\n');
+    const rows = sortableFields
+      .map((field) => [`"${field.name}":`, `"${this.toDBColumn(field.name)}",`])
+      .concat([
+        ['"createdAt":', '"created_at",'],
+        ['"updatedAt":', '"updated_at",'],
+      ]);
+    return alignGoBlock(rows, '\t\t');
   }
 
   /**
@@ -529,32 +660,34 @@ ${relationServices ? `\n${relationServices}` : ''}
   }
 
   /**
-   * 生成 toListResp 字段
+   * 生成 toListResp 字段行
    */
-  private toListRespFields(): string {
+  private toListRespRows(): string[][] {
     return this.schema.model.fields
       .filter((f) => f.visibleInList !== false)
-      .map((field) => `\t\t${this.capitalize(field.name)}: item.${this.capitalize(field.name)},`)
-      .join('\n');
+      .map((field) => [`${this.capitalize(field.name)}:`, `item.${this.capitalize(field.name)},`]);
   }
 
   /**
-   * 生成 toDetailResp 字段
+   * 生成 toDetailResp 字段行
    */
-  private toDetailRespFields(): string {
-    return this.schema.model.fields
-      .map((field) => `\t\t${this.capitalize(field.name)}: item.${this.capitalize(field.name)},`)
-      .join('\n');
+  private toDetailRespRows(): string[][] {
+    return this.schema.model.fields.map((field) => [
+      `${this.capitalize(field.name)}:`,
+      `item.${this.capitalize(field.name)},`,
+    ]);
   }
 
   /**
-   * 生成 fromCreateReq 字段
+   * 生成 fromCreateReq 字段行
    */
-  private fromCreateReqFields(): string {
+  private fromCreateReqRows(): string[][] {
     return this.schema.model.fields
       .filter((f) => f.visibleInForm !== false)
-      .map((field) => `\t\t${this.capitalize(field.name)}: req.${this.capitalize(field.name)},`)
-      .join('\n');
+      .map((field) => {
+        const dereference = field.required && this.goTypeFromField(field.type) === 'bool' ? '*' : '';
+        return [`${this.capitalize(field.name)}:`, `${dereference}req.${this.capitalize(field.name)},`];
+      });
   }
 
   /**
@@ -568,13 +701,17 @@ ${relationServices ? `\n${relationServices}` : ''}
     const hasAudit = templateLevel === 'enterprise';
     const hasDataScope = this.schema.enableDataScope ?? templateLevel === 'enterprise';
     const relationHandlers = this.generateManyToManyHandlerMethods();
+    // 审计埋点是可选整行：换行必须一起放进条件里，否则 basic 模板会在 `{` 后
+    // 留下一个空行，而 gofmt 会删掉块首空行——生成物因此不干净（AUD-001b）。
+    const auditLine = (action: 'create' | 'update' | 'delete', businessType: string): string =>
+      hasAudit
+        ? `\tcommon.SetAuditMetadata(c, "${buildAuditActionKey(this.schema.scope, this.schema.name, action)}", ${businessType})\n`
+        : '';
 
-    return `package ${this.packageName}
+    return normalizeGoWhitespace(`package ${this.packageName}
 
 import (
-\t"pantheon-base/pkg/common"
-\t"strconv"
-\t"github.com/gin-gonic/gin"
+${buildGoImportBlock([goImportPath('pkg/common'), 'strconv', 'github.com/gin-gonic/gin'])}
 )
 
 type ${modelName}Handler struct {
@@ -630,8 +767,7 @@ func (h *${modelName}Handler) Get${modelName}Detail(c *gin.Context) {
 
 // Create${modelName} 创建
 func (h *${modelName}Handler) Create${modelName}(c *gin.Context) {
-${hasAudit ? `\tcommon.SetAuditMetadata(c, "${buildAuditActionKey(this.schema.scope, this.schema.name, 'create')}", common.BusinessInsert)` : ''}
-\tvar req ${modelName}CreateReq
+${auditLine('create', 'common.BusinessInsert')}\tvar req ${modelName}CreateReq
 \tif err := c.ShouldBindJSON(&req); err != nil {
 \t\tcommon.Fail(c, common.CodeParamInvalid, "param.invalid")
 \t\treturn
@@ -647,8 +783,7 @@ ${hasAudit ? `\tcommon.SetAuditMetadata(c, "${buildAuditActionKey(this.schema.sc
 
 // Update${modelName} 更新
 func (h *${modelName}Handler) Update${modelName}(c *gin.Context) {
-${hasAudit ? `\tcommon.SetAuditMetadata(c, "${buildAuditActionKey(this.schema.scope, this.schema.name, 'update')}", common.BusinessUpdate)` : ''}
-\tvar req ${modelName}UpdateReq
+${auditLine('update', 'common.BusinessUpdate')}\tvar req ${modelName}UpdateReq
 \tif err := c.ShouldBindJSON(&req); err != nil {
 \t\tcommon.Fail(c, common.CodeParamInvalid, "param.invalid")
 \t\treturn
@@ -670,8 +805,7 @@ ${hasAudit ? `\tcommon.SetAuditMetadata(c, "${buildAuditActionKey(this.schema.sc
 
 // Delete${modelName} 删除
 func (h *${modelName}Handler) Delete${modelName}(c *gin.Context) {
-${hasAudit ? `\tcommon.SetAuditMetadata(c, "${buildAuditActionKey(this.schema.scope, this.schema.name, 'delete')}", common.BusinessDelete)` : ''}
-\tid, err := parseUintParam(c, "id")
+${auditLine('delete', 'common.BusinessDelete')}\tid, err := parseUintParam(c, "id")
 \tif err != nil {
 \t\tcommon.Fail(c, common.CodeParamInvalid, "param.invalid")
 \t\treturn
@@ -689,7 +823,7 @@ func parseUintParam(c *gin.Context, key string) (uint64, error) {
 \treturn strconv.ParseUint(c.Param(key), 10, 64)
 }
 ${relationHandlers ? `\n${relationHandlers}` : ''}
-`;
+`);
   }
 
   /**
@@ -699,72 +833,92 @@ ${relationHandlers ? `\n${relationHandlers}` : ''}
    */
   generateModule(): string {
     const modelName = this.modelName;
-    const { scope } = this.schema;
+    const { scope, templateLevel = 'enterprise' } = this.schema;
+    const hasDataScope = this.schema.enableDataScope ?? templateLevel === 'enterprise';
     const moduleName = buildModuleNamespace(scope, this.schema.name);
     const pageTitleKey = buildTitleKey(scope, this.schema.name);
     const componentKey = buildComponentKey(scope, this.schema.name, modelName);
     const routePath = buildRoutePath(scope, this.schema.name);
     const relationRoutes = this.generateManyToManyRouteRegistrations();
+    const menuSeedEntries = this.generateMenuSeedEntries(componentKey, pageTitleKey);
+    const i18nSeedEntries = this.generateI18nSeedEntries(pageTitleKey);
+    // 种子数组可能整体为空（关系表不生成导航）。空数组必须写成 `[]T{}`：
+    // `[]T{\n\n}` 是 gofmt 会立刻压掉的一个空行，留给 normalizeGoWhitespace 也救不回来。
+    const seedList = (typeName: string, entries: string): string =>
+      `var generated${typeName}Seeds = []generated${typeName}Seed{${
+        entries ? `\n${entries}\n` : ''
+      }}`;
 
-    return `package ${this.packageName}
+    return normalizeGoWhitespace(`package ${this.packageName}
 
 import (
-\t"pantheon-base/internal/middleware"
-\t"pantheon-base/pkg/contracts"
-\t"strings"
-\t"github.com/gin-gonic/gin"
-\t"gorm.io/gorm"
+${buildGoImportBlock([goImportPath('pkg/contracts'), 'strings', 'github.com/gin-gonic/gin', 'gorm.io/gorm'])}
 )
 
-type generatedMenuSeed struct {
-\tKey       string
-\tParentKey string
-\tParentPath string
-\tTitleKey  string
-\tPath      string
-\tComponent string
-\tPagePerm  string
-\tPerms     string
-\tType      string
-\tIcon      string
-\tRouteName string
-\tModule    string
-\tSort      int
-}
+${[
+  'type generatedMenuSeed struct {',
+  alignGoBlock(
+    [
+      ['Key', 'string'],
+      ['ParentKey', 'string'],
+      ['ParentPath', 'string'],
+      ['TitleKey', 'string'],
+      ['Path', 'string'],
+      ['Component', 'string'],
+      ['PagePerm', 'string'],
+      ['Perms', 'string'],
+      ['Type', 'string'],
+      ['Icon', 'string'],
+      ['RouteName', 'string'],
+      ['Module', 'string'],
+      ['Sort', 'int'],
+    ],
+    '\t',
+  ),
+  '}',
+].join('\n')}
 
-type generatedI18nSeed struct {
-\tModule string
-\tLocale string
-\tGroup  string
-\tKey    string
-\tValue  string
-}
+${[
+  'type generatedI18nSeed struct {',
+  alignGoBlock(
+    [
+      ['Module', 'string'],
+      ['Locale', 'string'],
+      ['Group', 'string'],
+      ['Key', 'string'],
+      ['Value', 'string'],
+    ],
+    '\t',
+  ),
+  '}',
+].join('\n')}
 
-var generatedMenuSeeds = []generatedMenuSeed{
-${this.generateMenuSeedEntries(componentKey, pageTitleKey)}
-}
+${seedList('Menu', menuSeedEntries)}
 
-var generatedI18nSeeds = []generatedI18nSeed{
-${this.generateI18nSeedEntries(pageTitleKey)}
-}
+${seedList('I18n', i18nSeedEntries)}
 
 func Init${modelName}Module(r *gin.RouterGroup, db *gorm.DB) {
 \tservice := New${modelName}Service(db)
 \thandler := New${modelName}Handler(service)
 
 \tcontracts.RegisterBackendModules(r, db, contracts.FuncModule{
-\t\tModuleName:  "${moduleName}",
-\t\tMigrateFunc: func(_ *gorm.DB) error { return service.Migrate() },
-\t\tSeedMenusFunc: seed${modelName}Menus,
-\t\tSeedI18nFunc: seed${modelName}I18n,
+${alignGoBlock(
+  [
+    ['ModuleName:', `"${moduleName}",`],
+    ['MigrateFunc:', 'func(_ *gorm.DB) error { return service.Migrate() },'],
+    ['BootstrapFunc:', 'func(_ *gorm.DB) error { return service.Migrate() },'],
+    ['SeedMenusFunc:', `seed${modelName}Menus,`],
+    ['SeedI18nFunc:', `seed${modelName}I18n,`],
+  ],
+  '\t\t',
+)}
 \t\tRegister: func(r *gin.RouterGroup) {
-\t\t\tprotected := r.Group("${routePath}").Use(middleware.TokenAuthMiddleware()).Use(middleware.CasbinMiddleware())
+\t\t\tprotected := ${hasDataScope ? `contracts.DataScopedGroup(r, "${routePath}", db)` : `contracts.ProtectedGroup(r, "${routePath}")`}
 \t\t\t{
 \t\t\t\tprotected.GET("/list", handler.Get${modelName}List)
 \t\t\t\tprotected.GET("/options", handler.Get${modelName}Options)
 \t\t\t\tprotected.GET("/:id", handler.Get${modelName}Detail)
-\t\t\t\t${relationRoutes}
-\t\t\t\tprotected.POST("", handler.Create${modelName})
+${relationRoutes ? `\t\t\t\t${relationRoutes}\n` : ''}\t\t\t\tprotected.POST("", handler.Create${modelName})
 \t\t\t\tprotected.PUT("/:id", handler.Update${modelName})
 \t\t\t\tprotected.DELETE("/:id", handler.Delete${modelName})
 \t\t\t}
@@ -926,7 +1080,7 @@ func seed${modelName}I18n(db *gorm.DB) error {
 \t}
 \treturn nil
 }
-`;
+`);
   }
 
   private generateMenuSeedEntries(componentKey: string, pageTitleKey: string): string {
@@ -955,6 +1109,15 @@ func seed${modelName}I18n(db *gorm.DB) error {
         titleEn: this.renderActionTitle(action, 'en'),
       }));
 
+    // 每个菜单种子是一个独立的 gofmt 列块（`{` 与 `},` 都会断块），所以逐条调用
+    // alignGoBlock；此前只有 mainSeed 多出的 ParentPath 参与列宽，写死的空格
+    // 就把它的兄弟列全部算短了（AUD-001b）。
+    const renderSeedEntry = (rows: Array<[string, string]>): string =>
+      `\t{\n${alignGoBlock(
+        rows.map(([key, value]) => [key, `${value},`]),
+        '\t\t',
+      )}\n\t},`;
+
     const ancestorEntries = shouldGenerateAncestorMenus
       ? segments.slice(0, -1).map((_, index) => {
           const groupSegments = segments.slice(0, index + 1);
@@ -962,45 +1125,48 @@ func seed${modelName}I18n(db *gorm.DB) error {
           const parentSegments = groupSegments.slice(0, -1);
           const groupModuleKey = `${this.schema.scope}.${groupSegments.join('.')}`;
           const groupTitleKey = buildMenuGroupTitleKey(this.schema.scope, groupSegments);
-          return `\t{
-\t\tKey:       "${groupKey}",
-\t\tParentKey: "${parentSegments.join('-')}",
-\t\tTitleKey:  "${groupTitleKey}",
-\t\tPath:      "${buildPageRoutePath(this.schema.scope, groupSegments.join('/'))}",
-\t\tType:      "M",
-\t\tIcon:      "apps",
-\t\tRouteName: "${this.schema.scope}-${groupSegments.join('-')}",
-\t\tModule:    "${groupModuleKey}",
-\t\tSort:      10,
-\t},`;
+          return renderSeedEntry([
+            ['Key:', `"${groupKey}"`],
+            ['ParentKey:', `"${parentSegments.join('-')}"`],
+            ['TitleKey:', `"${groupTitleKey}"`],
+            ['Path:', `"${buildPageRoutePath(this.schema.scope, groupSegments.join('/'))}"`],
+            ['Type:', '"M"'],
+            ['Icon:', '"apps"'],
+            ['RouteName:', `"${this.schema.scope}-${groupSegments.join('-')}"`],
+            ['Module:', `"${groupModuleKey}"`],
+            ['Sort:', '10'],
+          ]);
         })
       : [];
 
-    const mainSeed = `\t{
-\t\tKey:       "${menuKey}",
-\t\tParentKey: "${parentKey}",
-\t\tParentPath: "${parentPath}",
-\t\tTitleKey:  "${pageTitleKey}",
-\t\tPath:      "${routePath}",
-\t\tComponent: "${componentKey}",
-\t\tPagePerm:  "${permissionPrefix}:list",
-\t\tType:      "C",
-\t\tIcon:      "apps",
-\t\tRouteName: "${routeName}",
-\t\tModule:    "${moduleKey}",
-\t\tSort:      10,
-\t},`;
+    const mainSeed = renderSeedEntry([
+      ['Key:', `"${menuKey}"`],
+      ['ParentKey:', `"${parentKey}"`],
+      ['ParentPath:', `"${parentPath}"`],
+      ['TitleKey:', `"${pageTitleKey}"`],
+      ['Path:', `"${routePath}"`],
+      ['Component:', `"${componentKey}"`],
+      ['PagePerm:', `"${permissionPrefix}:list"`],
+      ['Type:', '"C"'],
+      ['Icon:', '"apps"'],
+      ['RouteName:', `"${routeName}"`],
+      ['Module:', `"${moduleKey}"`],
+      ['Sort:', '10'],
+    ]);
 
-    const actionEntries = actionSeeds.map(
-      (item, index) => `\t{
-\t\tKey:       "${menuKey}-${item.action}",
-\t\tParentKey: "${menuKey}",
-\t\tTitleKey:  "${buildPermissionTitleKey(this.schema.scope, this.schema.name, item.action)}",
-\t\tPerms:     "${permissionPrefix}:${item.action}",
-\t\tType:      "F",
-\t\tModule:    "${moduleKey}",
-\t\tSort:      ${index + 1},
-\t},`,
+    const actionEntries = actionSeeds.map((item, index) =>
+      renderSeedEntry([
+        ['Key:', `"${menuKey}-${item.action}"`],
+        ['ParentKey:', `"${menuKey}"`],
+        [
+          'TitleKey:',
+          `"${buildPermissionTitleKey(this.schema.scope, this.schema.name, item.action)}"`,
+        ],
+        ['Perms:', `"${permissionPrefix}:${item.action}"`],
+        ['Type:', '"F"'],
+        ['Module:', `"${moduleKey}"`],
+        ['Sort:', `${index + 1}`],
+      ]),
     );
 
     return [...ancestorEntries, mainSeed, ...actionEntries].join('\n');
@@ -1243,8 +1409,21 @@ func seed${modelName}I18n(db *gorm.DB) error {
         );
         const indexName = `idx_${this.toDBColumn(this.modelName)}_${this.toDBColumn(relation.name)}_rel`;
         return `type ${structName} struct {
-\tOwnerID uint64 \`gorm:"column:${ownerColumn};not null;uniqueIndex:${indexName},priority:1" json:"ownerId"\`
-\tTargetID uint64 \`gorm:"column:${targetColumn};not null;uniqueIndex:${indexName},priority:2" json:"targetId"\`
+${alignGoBlock(
+  [
+    [
+      'OwnerID',
+      'uint64',
+      `\`gorm:"column:${ownerColumn};not null;uniqueIndex:${indexName},priority:1" json:"ownerId"\``,
+    ],
+    [
+      'TargetID',
+      'uint64',
+      `\`gorm:"column:${targetColumn};not null;uniqueIndex:${indexName},priority:2" json:"targetId"\``,
+    ],
+  ],
+  '\t',
+)}
 }
 
 func (${structName}) TableName() string {
@@ -1263,16 +1442,21 @@ func (${structName}) TableName() string {
       .map((relation) => {
         const relationName = this.toPascalCase(relation.name);
         return `type ${relationName}RelationRow struct {
-\tID    uint64 \`json:"id"\`
-\tValue uint64 \`json:"value"\`
+${alignGoBlock(
+  [
+    ['ID', 'uint64', '`json:"id"`'],
+    ['Value', 'uint64', '`json:"value"`'],
+  ],
+  '\t',
+)}
 }
 
 type ${relationName}RelationListResp struct {
-\tItems []${relationName}RelationRow \`json:"items"\`
+${alignGoBlock([['Items', `[]${relationName}RelationRow`, '`json:"items"`']], '\t')}
 }
 
 type ${relationName}RelationBindReq struct {
-\tTargetIDs []interface{} \`json:"targetIds" binding:"required"\`
+${alignGoBlock([['TargetIDs', '[]interface{}', '`json:"targetIds" binding:"required"`']], '\t')}
 }`;
       })
       .join('\n\n');
@@ -1317,8 +1501,13 @@ type ${relationName}RelationBindReq struct {
 \titems := make([]${relationName}RelationRow, len(rows))
 \tfor index, row := range rows {
 \t\titems[index] = ${relationName}RelationRow{
-\t\t\tID: row.Value,
-\t\t\tValue: row.Value,
+${alignGoBlock(
+  [
+    ['ID:', 'row.Value,'],
+    ['Value:', 'row.Value,'],
+  ],
+  '\t\t\t',
+)}
 \t\t}
 \t}
 \treturn &${relationName}RelationListResp{Items: items}, nil
@@ -1341,8 +1530,13 @@ func (s *${this.modelName}Service) Bind${relationName}Relation(ownerID uint64, t
 \t\t\t\tcontinue
 \t\t\t}
 \t\t\tif err := tx.Table("${tableName}").Create(map[string]interface{}{
-\t\t\t\t"${ownerColumn}": ownerID,
-\t\t\t\t"${targetColumn}": targetID,
+${alignGoBlock(
+  [
+    [`"${ownerColumn}":`, 'ownerID,'],
+    [`"${targetColumn}":`, 'targetID,'],
+  ],
+  '\t\t\t\t',
+)}
 \t\t\t}).Error; err != nil {
 \t\t\t\treturn err
 \t\t\t}

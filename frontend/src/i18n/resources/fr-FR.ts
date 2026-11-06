@@ -1334,6 +1334,8 @@ const frFRFallback = {
     'Le code source généré ou le fichier schema est introuvable, impossible de réenregistrer le module',
   'module.register.schema_invalid':
     'Le schema du module est invalide et le réenregistrement est impossible',
+  'module.register.source_uncompilable':
+    'Le code source généré ne compile pas, impossible de réenregistrer le module. Vérifiez le code généré et la configuration de la chaîne à outils Go',
   'module.register.builtin_forbidden':
     'Les modules intégrés ne peuvent pas être réenregistrés depuis cette page',
   'module.register.unsupported':

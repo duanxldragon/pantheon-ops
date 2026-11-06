@@ -1550,6 +1550,7 @@ const zhCNFallback = {
   'module.register.success': '模块已重新接入，等待激活',
   'module.register.source_missing': '未找到该模块的生成源码或 schema 文件，无法重新接入',
   'module.register.schema_invalid': '模块 schema 无效，无法重新接入',
+  'module.register.source_uncompilable': '生成源码无法通过编译，暂时不能接入，请检查生成模块源码或 Go 工具链配置',
   'module.register.builtin_forbidden': '内置模块不允许通过此页重新接入',
   'module.register.unsupported': '旧版手动注册接口已停用，请使用一键生成流程',
   'module.list.error': '模块注册表加载失败',

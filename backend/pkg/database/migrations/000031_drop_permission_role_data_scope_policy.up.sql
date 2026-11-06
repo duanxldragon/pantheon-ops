@@ -1,0 +1,11 @@
+-- 000031: drop the dead duplicate policy table.
+--
+-- permission_role_data_scope_policy was created by 000001 as a role_key -> mode
+-- policy table and later superseded by system_role_data_scope (the single Go
+-- model PermissionRoleDataScopePolicy maps there). Nothing reads or writes the
+-- old table: the only survivors were a defensive DELETE on role delete and a
+-- dashboard table whitelist entry, both removed in the same change.
+--
+-- DATA PROMISE: this up migration destroys the table and any rows in it.
+-- The down migration rebuilds the STRUCTURE ONLY; it does not restore data.
+DROP TABLE IF EXISTS `permission_role_data_scope_policy`;

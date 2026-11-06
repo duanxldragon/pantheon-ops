@@ -51,3 +51,7 @@ b2e907916c1a4b29942e9d44f6ff5f29fceda4ac:k8s/README.md:curl-auth-header:208
 # the marker on the wrong line: the first file-add and the #410 squash commit.
 0fcc38d00089aa0807bd828c409cf51b36ee2bbb:tests/scripts/foundation-release/check-release-secrets.test.mjs:generic-api-key:27
 43aec46e700a4fcfb1290de8935780d9ec585a50:tests/scripts/foundation-release/check-release-secrets.test.mjs:generic-api-key:28
+77471d73ee591c0b3deef9ec50b5c97ff8da201a:.harness/evidence/2026-11-05-base-freeze-release/sonar-issues-before.json:generic-api-key:14
+77471d73ee591c0b3deef9ec50b5c97ff8da201a:.harness/evidence/2026-11-05-base-freeze-release/sonar-issues-before.json:generic-api-key:54
+0c5b107378f110a1755aeb01c918e81394ce603b:.harness/evidence/2026-11-05-base-freeze-release/sonar-issues-before.json:generic-api-key:14
+0c5b107378f110a1755aeb01c918e81394ce603b:.harness/evidence/2026-11-05-base-freeze-release/sonar-issues-before.json:generic-api-key:54

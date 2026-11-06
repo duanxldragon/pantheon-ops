@@ -5,7 +5,7 @@ layer: platform
 status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-09-01
+updated_at: 2026-11-04
 ---
 
 # Foundation Release Model
@@ -57,8 +57,8 @@ This is an upgrade model, not an informal file-sync model.
 
 ### 2.4 Current release and branch policy
 
-- Current published version: [`pantheon-base-v0.10.26`](https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.10.26).
-- Current release line: `release/0.10`, used only for manifest, compatibility, and consumer records.
+- Current published version: use [VERSION](../../VERSION) and the matching immutable tag / release bundle; HEAD is not proof of publication.
+- Current release line: use the target release manifest, as compatibility metadata.
 - Git branch policy: retain only `main` locally and remotely; immutable tags and published assets, not release branches, provide release stability.
 
 ## 3. Asset Layers

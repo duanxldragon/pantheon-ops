@@ -125,7 +125,6 @@ DELETE FROM system_log_login          WHERE tenant_id = <id>;
 DELETE FROM system_log_oper           WHERE tenant_id = <id>;
 DELETE FROM system_auth_security_event    WHERE tenant_id = <id>;
 DELETE FROM system_auth_mfa_challenge     WHERE tenant_id = <id>;
-DELETE FROM permission_role_data_scope_policy WHERE tenant_id = <id>;
 
 -- 4. Finally the master row.
 DELETE FROM tenants WHERE id = <id>;

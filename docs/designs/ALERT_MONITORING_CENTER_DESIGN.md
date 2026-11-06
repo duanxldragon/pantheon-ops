@@ -2,16 +2,17 @@
 title: 监控告警中心设计
 doc_type: Design
 layer: platform / system/config / business/*
-status: Active
+status: Draft
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-05-18
+updated_at: 2026-10-31
 ---
 
 # 监控告警中心设计
 
-English version: [ALERT_MONITORING_CENTER_DESIGN.en.md](./ALERT_MONITORING_CENTER_DESIGN.en.md)
+> 未实现声明：本文为设计稿，仓库内尚无对应实现；在实现落地前状态保持 Draft。
+> Not implemented: this is a design draft with no corresponding implementation in the repository; it stays Draft until implemented.
 
 关联合同：
 - `PLATFORM_CONTRACT.md`

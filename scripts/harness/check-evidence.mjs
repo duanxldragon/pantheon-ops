@@ -9,9 +9,26 @@ import {
   extractTaskIdFromManifestPath,
   normalizeRepoRelativePath,
   readTaskManifest,
+  resolveArchiveAwarePath,
+  TASK_ARCHIVE_ROOT,
 } from '../task-manifest.mjs';
 
 const DEFAULT_ROOT = process.cwd();
+const EVIDENCE_DIR = '.harness/evidence';
+// The monthly archive is scanned, not skipped: a checker that only reads
+// `.harness/evidence/` silently loses 196 of the 211 evidence payloads the moment
+// a round closes, which is the FR-026 "looks like coverage, provides none" class.
+// The structural schema itself, however, is applied only to artifacts from the
+// current generation onward. Artifacts recorded before 2026-10-26 (the FR-016
+// backfill round that introduced required `repo`, `agent`, `commands[].status`,
+// `commands[].cwd`, `knownGaps` and `linkage`) predate those fields, and the facts
+// they would assert — which command ran with which status in which directory — are
+// not recoverable from the round's own text. Requiring them retroactively would
+// force invented evidence. Those findings are therefore read, counted and printed
+// as historical instead of gated; the counts are what make the debt visible and
+// they must shrink, never grow.
+const CURRENT_SCHEMA_FROM = '2026-10-26';
+const ALWAYS_GATED_ERRORS = new Set(['File does not exist.', 'Invalid JSON']);
 const VALID_AGENT_TOOLS = new Set([
   'codex',
   'claude-code',
@@ -72,7 +89,7 @@ function parseArgs(argv) {
 
 function discoverEvidenceFiles(root) {
   const files = [];
-  const evidenceDir = path.join(root, '.harness', 'evidence');
+  const evidenceDir = path.join(root, EVIDENCE_DIR);
 
   function walk(dirPath) {
     if (!fs.existsSync(dirPath)) {
@@ -90,7 +107,50 @@ function discoverEvidenceFiles(root) {
   }
 
   walk(evidenceDir);
+  // Closing a round moves whole evidence trees under
+  // `.harness/archive/<YYYY-MM>/evidence/`; the commands.json contract has to
+  // keep holding there, otherwise archiving silently removes hundreds of
+  // packets from this gate's scope.
+  for (const month of listArchiveMonths(root)) {
+    walk(path.join(root, TASK_ARCHIVE_ROOT, month, 'evidence'));
+  }
   return sortStrings(files);
+}
+
+function listArchiveMonths(root) {
+  const archiveRoot = path.join(root, TASK_ARCHIVE_ROOT);
+  if (!fs.existsSync(archiveRoot)) return [];
+  return fs
+    .readdirSync(archiveRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && /^\d{4}-\d{2}$/.test(entry.name))
+    .map((entry) => entry.name)
+    .sort((left, right) => right.localeCompare(left));
+}
+
+// An archived evidence tree keeps its canonical `.harness/evidence/<task-id>`
+// spelling inside the artifact, so a recorded directory matches either the
+// physical location or that canonical address.
+function matchesEvidenceDir(recordedDir, actualDir) {
+  const recorded = recordedDir.replace(/\/+$/u, '');
+  const actual = actualDir.replace(/\/+$/u, '');
+  if (recorded === actual) {
+    return true;
+  }
+  const archivedPrefix = `${TASK_ARCHIVE_ROOT}/`;
+  if (!actual.startsWith(archivedPrefix)) {
+    return false;
+  }
+  const afterArchiveRoot = actual.slice(archivedPrefix.length);
+  const separator = afterArchiveRoot.indexOf('/');
+  if (separator === -1) {
+    return false;
+  }
+  const rest = afterArchiveRoot.slice(separator + 1);
+  const evidenceSegment = 'evidence/';
+  if (!rest.startsWith(evidenceSegment)) {
+    return false;
+  }
+  return recorded === `${EVIDENCE_DIR}/${rest.slice(evidenceSegment.length)}`;
 }
 
 function normalizeInputFile(inputPath, root) {
@@ -175,7 +235,7 @@ function validateLinkage(evidence, filePath, root, errors) {
     const manifestRepoPath = normalizeRepoRelativePath(evidence.linkage.taskManifest);
     const manifestTaskId = extractTaskIdFromManifestPath(manifestRepoPath);
     const taskManifestPath = path.join(root, manifestRepoPath);
-    if (!fs.existsSync(taskManifestPath)) {
+    if (!fs.existsSync(taskManifestPath) && !resolveArchiveAwarePath(root, manifestRepoPath)) {
       errors.push(`root.linkage.taskManifest does not exist: ${evidence.linkage.taskManifest}`);
     } else {
       try {
@@ -201,7 +261,7 @@ function validateLinkage(evidence, filePath, root, errors) {
   if (typeof evidence.linkage.evidenceDir === 'string') {
     const normalizedDir = evidence.linkage.evidenceDir.replaceAll('\\', '/');
     const actualDir = relative(path.dirname(filePath), root);
-    if (normalizedDir !== `${actualDir}/` && normalizedDir !== actualDir) {
+    if (!matchesEvidenceDir(normalizedDir, actualDir)) {
       errors.push(`root.linkage.evidenceDir must match the commands.json directory "${actualDir}/".`);
     }
   } else {
@@ -209,7 +269,7 @@ function validateLinkage(evidence, filePath, root, errors) {
   }
 
   if (typeof evidence.linkage.reviewFile === 'string') {
-    if (evidence.linkage.reviewFile !== 'none' && !fs.existsSync(path.join(root, evidence.linkage.reviewFile))) {
+    if (evidence.linkage.reviewFile !== 'none' && !resolveArchiveAwarePath(root, evidence.linkage.reviewFile)) {
       errors.push(`root.linkage.reviewFile does not exist: ${evidence.linkage.reviewFile}`);
     }
   } else {
@@ -230,7 +290,7 @@ function validateLinkage(evidence, filePath, root, errors) {
     evidence.linkage.planRefs.forEach((planRef, index) => {
       if (typeof planRef !== 'string' || planRef.trim() === '') {
         errors.push(`root.linkage.planRefs[${index}] must be a non-empty string.`);
-      } else if (!fs.existsSync(path.join(root, planRef))) {
+      } else if (!resolveArchiveAwarePath(root, planRef)) {
         errors.push(`root.linkage.planRefs[${index}] does not exist: ${planRef}`);
       }
     });
@@ -240,7 +300,7 @@ function validateLinkage(evidence, filePath, root, errors) {
     'summaryFile' in evidence.linkage &&
     typeof evidence.linkage.summaryFile === 'string' &&
     evidence.linkage.summaryFile !== 'none' &&
-    !fs.existsSync(path.join(root, evidence.linkage.summaryFile))
+    !resolveArchiveAwarePath(root, evidence.linkage.summaryFile)
   ) {
     errors.push(`root.linkage.summaryFile does not exist: ${evidence.linkage.summaryFile}`);
   }
@@ -446,14 +506,54 @@ function validateGraphChecks(evidence, errors) {
   }
 }
 
+function isAlwaysGatedError(error) {
+  const message = String(error);
+  return [...ALWAYS_GATED_ERRORS].some((marker) => message.startsWith(marker));
+}
+
+// The artifact's generation is read from its path rather than from file mtimes
+// that git rewrites on checkout: the evidence directory name carries the round
+// date (`<YYYY-MM-DD>-<slug>`, and for three early rounds `<slug>-<YYYY-MM-DD>`),
+// and an archived tree falls back to its `<YYYY-MM>` month directory.
+function artifactDateKey(filePath) {
+  const directory = path.basename(path.dirname(filePath));
+  const inName = /\d{4}-\d{2}-\d{2}/.exec(directory);
+  if (inName) return inName[0];
+  const month = filePath
+    .replaceAll(path.sep, '/')
+    .split('/')
+    .find((segment) => /^\d{4}-\d{2}$/.test(segment));
+  return month ? `${month}-01` : null;
+}
+
+function isPreSchemaArtifact(filePath) {
+  const dateKey = artifactDateKey(filePath);
+  return dateKey !== null && dateKey < CURRENT_SCHEMA_FROM;
+}
+
+function classifySchemaGeneration(result, filePath) {
+  if (!isPreSchemaArtifact(filePath)) {
+    return { ...result, historicalErrors: [] };
+  }
+  const gated = result.errors.filter(isAlwaysGatedError);
+  const historical = result.errors.filter((error) => !isAlwaysGatedError(error));
+  return { ...result, errors: gated, historicalErrors: historical };
+}
+
 function printTextReport(results, options) {
   const errorCount = results.reduce((count, result) => count + result.errors.length, 0);
   const warningCount = results.reduce((count, result) => count + result.warnings.length, 0);
+  const historicalCount = results.reduce((count, result) => count + (result.historicalErrors?.length ?? 0), 0);
   const mode = options.strict ? 'strict' : 'report-only';
 
   console.log(
     `Evidence check (${mode}): ${results.length} file(s), ${errorCount} error(s), ${warningCount} warning(s)`,
   );
+  if (historicalCount > 0) {
+    console.log(
+      `Pre-${CURRENT_SCHEMA_FROM} structural findings counted, not gated: ${historicalCount} across ${results.filter((result) => result.historicalErrors?.length > 0).length} archived artifact(s) — must shrink, see the constant's comment`,
+    );
+  }
 
   for (const result of results) {
     console.log('');
@@ -464,6 +564,9 @@ function printTextReport(results, options) {
     }
     for (const warning of result.warnings) {
       console.log(`  warning: ${warning}`);
+    }
+    for (const historical of result.historicalErrors ?? []) {
+      console.log(`  pre-schema: ${historical}`);
     }
   }
 }
@@ -496,9 +599,12 @@ function main() {
       ? options.files.map((file) => normalizeInputFile(file, root))
       : discoverEvidenceFiles(root);
   const results =
-    files.length > 0 ? files.map((file) => validateEvidenceFile(file, root)) : [buildMissingEvidenceResult(root, options.strict)];
+    files.length > 0
+      ? files.map((file) => classifySchemaGeneration(validateEvidenceFile(file, root), file))
+      : [buildMissingEvidenceResult(root, options.strict)];
   const errorCount = results.reduce((count, result) => count + result.errors.length, 0);
   const warningCount = results.reduce((count, result) => count + result.warnings.length, 0);
+  const historicalErrorCount = results.reduce((count, result) => count + (result.historicalErrors?.length ?? 0), 0);
 
   if (options.json) {
     process.stdout.write(
@@ -508,6 +614,8 @@ function main() {
           fileCount: results.length,
           errorCount,
           warningCount,
+          historicalErrorCount,
+          currentSchemaFrom: CURRENT_SCHEMA_FROM,
           results,
         },
         null,

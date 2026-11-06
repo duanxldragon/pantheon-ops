@@ -85,8 +85,9 @@ var migrateScope = map[string]struct {
 	"permission_workbench_remediation_event": {addColumn: true},
 	// Kept global per runbook §2.1: system_menu, system_setting,
 	// system_setting_audit_log, system_i18n, system_login_throttle,
-	// system_refresh_version, module_registration,
-	// permission_role_data_scope_policy, casbin_rule, schema_migrations.
+	// system_refresh_version, module_registration, casbin_rule,
+	// schema_migrations. (permission_role_data_scope_policy was dropped by
+	// migration 000031, so it no longer needs a kept-global entry.)
 }
 
 type tableStat struct {

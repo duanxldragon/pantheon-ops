@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md
   - docs/contracts/DOCUMENT_FRONTMATTER_SCHEMA.md
-updated_at: 2026-09-30
+updated_at: 2026-10-31
 ---
 
 # 文档类型与状态说明
@@ -30,52 +30,14 @@ English version: [DOCUMENT_METADATA_AND_STATUS.en.md](./DOCUMENT_METADATA_AND_ST
 
 ---
 
-## 2. 统一元信息字段
+## 2. 统一元信息字段（指针）
 
-建议每份主文档头部至少包含以下字段。
+字段定义的唯一权威是 [DOCUMENT_FRONTMATTER_SCHEMA.md](./DOCUMENT_FRONTMATTER_SCHEMA.md)：
+基础必填字段（`title / doc_type / layer / status / updated_at`）、保留目录专属字段
+（`index_group / retention_reason / linked_contracts`）、类型与格式约束、强制覆盖范围
+（schema §11）都以该文件为准，本文不再重复定义。
 
-新增或重写文档时，优先使用 YAML frontmatter 承载这些字段；正文行写法仅作为过渡兼容。
-
-建议 frontmatter 入口文档见：[DOCUMENT_FRONTMATTER_SCHEMA.md](./DOCUMENT_FRONTMATTER_SCHEMA.md)
-
-至少包含以下字段：
-
-- `更新时间`
-- `类型`
-- `归属层`
-- `状态`
-
-建议重点文档再增加：
-
-- `Owner`
-- `Last Reviewed`
-- `关联合同`
-- `索引分组`
-- `保留原因`
-
-推荐格式：
-
-```text
-更新时间：2026-04-30
-
-类型：Design
-归属层：system/config
-状态：Active
-关联合同：SYSTEM_CONFIG_CONTRACT.md
-索引分组：designs
-```
-
-说明：
-
-- 不要求第一轮为所有历史文档一次性补齐全部扩展字段；
-- 但从现在开始新增或重写的主文档，应至少补 `类型 / 归属层 / 状态`。
-
-如果文档位于 `openspec/specs/` 或 `docs/archive/*`，建议进一步补充：
-
-- `索引分组`
-  - 可选值：`superpowers-specs`、`archive/examples`、`archive/baselines`、`archive/upgrade`
-- `保留原因`
-  - 简要说明为什么这份文档不删除，而要继续被保留
+本文只负责 §3 `doc_type` 与 §4 `status` 两个枚举的**取值语义**。
 
 ---
 
@@ -278,6 +240,22 @@ English version: [DOCUMENT_METADATA_AND_STATUS.en.md](./DOCUMENT_METADATA_AND_ST
   - `索引分组` 固定写 `archive/upgrade`
 
 如果一份文档无法给出合理的 `索引分组` 和 `保留原因`，默认说明它不该被保留。
+
+### 6.5 Active 复核时效
+
+`Active` 的含义是"当前正式生效"，所以它同时是一句**关于现在**的断言；断言会过期。规则：
+
+- `updated_at` 超过 **90 天**未更新 → **复核逾期**（active review overdue）。
+- 逾期**不等于失效**，也不自动降级；它表示"不能仅凭 `status: Active` 就相信这份文档"。
+- 处置二选一：① 人工复核内容后重写 `updated_at`；② 降为 `Draft` 或 `Superseded`。
+- 复核不是改日期：只把 `updated_at` 推到今天、内容一字未读，比逾期更糟——它把"没人看过"伪装成"刚看过"。
+
+该判据由 `scripts/frontmatter-check.mjs` 输出为**份数**（informational，不阻断构建），需要明细时用 `--report-overdue`。
+为什么故意不做成 error：存量逾期文档远超一次可完成的人工复核（2026-10-31 实测 144 份，其中 71 份 `.en.md` 镜像，最老 198 天：`docs/designs/BACKEND.md` / `BACKEND.en.md`，`updated_at` 2026-04-17）；做成 error 后唯一可行的过门方式是批量改 `updated_at`，恰好摧毁本条想保护的真实复核。判据是**可见**，不是**变绿**。
+
+口径说明：审计报告 §11 记"102 份 Active / 60 天未更新"，与本节实测（144 份 / 90 天窗口）口径不同，本次未复现审计口径，以实测为准。
+
+读数变化（2026-11-01 复核）：144 → **143**。差的一份是 `docs/designs/MODULE_CONTRACT.md`——W11 因 §4.3 真实内容变更把它的 `updated_at` 推到 2026-11-01，该文档退出逾期集合。这正是本节期望的处置方式（复核内容后重写日期），不是批量改日期。
 
 ---
 

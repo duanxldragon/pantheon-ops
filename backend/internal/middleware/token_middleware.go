@@ -21,12 +21,12 @@ const defaultSessionIdleMinutes = 30
 
 var (
 	tokenSessionCacheMu  sync.RWMutex
-	tokenSessionCache    = make(map[string]*tokenCachedSession)
+	tokenSessionCache    = make(map[string]tokenCachedSession)
 	tokenSessionCacheTTL = loadTokenSessionCacheTTL()
 )
 
 type tokenCachedSession struct {
-	data      *authtoken.SessionData
+	data      authtoken.SessionData
 	cachedAt  time.Time
 	expiresAt time.Time
 }
@@ -35,19 +35,20 @@ func tokenSessionCacheKey(token string) string {
 	return token
 }
 
-func lookupTokenSessionCache(token string) (*tokenCachedSession, bool) {
+func lookupTokenSessionCache(token string) (tokenCachedSession, bool) {
 	if tokenSessionCacheTTL <= 0 {
-		return nil, false
+		return tokenCachedSession{}, false
 	}
 	tokenSessionCacheMu.RLock()
 	defer tokenSessionCacheMu.RUnlock()
 	entry, ok := tokenSessionCache[tokenSessionCacheKey(token)]
 	if !ok {
-		return nil, false
+		return tokenCachedSession{}, false
 	}
 	if time.Since(entry.cachedAt) > tokenSessionCacheTTL {
-		return nil, false
+		return tokenCachedSession{}, false
 	}
+	entry.data = cloneSessionData(entry.data)
 	return entry, true
 }
 
@@ -57,8 +58,8 @@ func storeTokenSessionCache(token string, data *authtoken.SessionData, expiresAt
 	}
 	tokenSessionCacheMu.Lock()
 	defer tokenSessionCacheMu.Unlock()
-	tokenSessionCache[tokenSessionCacheKey(token)] = &tokenCachedSession{
-		data:      data,
+	tokenSessionCache[tokenSessionCacheKey(token)] = tokenCachedSession{
+		data:      cloneSessionData(*data),
 		cachedAt:  time.Now(),
 		expiresAt: expiresAt,
 	}
@@ -70,6 +71,17 @@ func storeTokenSessionCache(token string, data *authtoken.SessionData, expiresAt
 			}
 		}
 	}
+}
+
+// cloneSessionData deep-copies the RoleKeys slice so no caller can ever share
+// the cached slice header; struct assignment alone leaves the race on the slice.
+func cloneSessionData(data authtoken.SessionData) authtoken.SessionData {
+	if data.RoleKeys != nil {
+		keys := make([]string, len(data.RoleKeys))
+		copy(keys, data.RoleKeys)
+		data.RoleKeys = keys
+	}
+	return data
 }
 
 func loadTokenSessionCacheTTL() time.Duration {
@@ -90,6 +102,21 @@ func invalidateTokenSessionCache(token string) {
 	delete(tokenSessionCache, tokenSessionCacheKey(token))
 }
 
+// touchTokenSessionCacheActivity syncs the cached entry activity timestamp under
+// the write lock. No Redis I/O may happen while the lock is held; the map write
+// is the only work done in the critical section.
+func touchTokenSessionCacheActivity(token string, activityAt int64) {
+	tokenSessionCacheMu.Lock()
+	defer tokenSessionCacheMu.Unlock()
+	key := tokenSessionCacheKey(token)
+	entry, ok := tokenSessionCache[key]
+	if !ok {
+		return
+	}
+	entry.data.LastActivityAt = activityAt
+	tokenSessionCache[key] = entry
+}
+
 var (
 	sessionIdleMinutesMu       sync.RWMutex
 	cachedSessionIdleMinutes   = defaultSessionIdleMinutes
@@ -106,7 +133,8 @@ func extractToken(c *gin.Context) string {
 // 返回 (nil, true)，调用方须立即 return。
 func resolveTokenSession(ctx context.Context, c *gin.Context, rdb *redis.Client, token string) (*authtoken.SessionData, bool) {
 	if cached, cacheHit := lookupTokenSessionCache(token); cacheHit && cached.expiresAt.After(time.Now()) {
-		return cached.data, false
+		sessionData := cached.data
+		return &sessionData, false
 	}
 
 	sessionData, err := authtoken.ValidateSession(ctx, rdb, token)
@@ -182,9 +210,7 @@ func refreshTokenActivity(ctx context.Context, rdb *redis.Client, token string, 
 	if sessionData.LastActivityAt == 0 || time.Since(time.Unix(sessionData.LastActivityAt, 0)) > time.Minute {
 		sessionData.LastActivityAt = time.Now().Unix()
 		if err := authtoken.RefreshSessionActivity(ctx, rdb, token, sessionData); err == nil {
-			if cached, ok := lookupTokenSessionCache(token); ok {
-				cached.data.LastActivityAt = sessionData.LastActivityAt
-			}
+			touchTokenSessionCacheActivity(token, sessionData.LastActivityAt)
 		}
 	}
 }

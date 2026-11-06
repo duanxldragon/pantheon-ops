@@ -77,7 +77,7 @@ npm run check:shared-drift -- --root .tmp/clean-base-overlay
 > 以下英文 marker 供 `../pantheon-base/scripts/harness/check-inheritance-contract.mjs` 机械校验，请勿翻译或删除；版本变化时必须与 `foundation-release.lock.json` 同步更新。
 
 - Base repository: `../pantheon-base`
-- Base version: `pantheon-base-v0.18.2` (`a44ae4e012fff20430b1b7f91cb7a9296f3ea843`)
+- Base version: `pantheon-base-v0.18.4` (`0a8229c67ab482c2e163622fc4e5b87301c53399`)
 - If a foundation rule must change, update `pantheon-base` first
 
 ## 8. 业务数据迁移

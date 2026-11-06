@@ -8,6 +8,7 @@ import {
   readTaskManifest,
   resolveArchiveAwarePath,
 } from '../task-manifest.mjs';
+import { evaluateTaskLifecycleState } from './task-evidence-state.mjs';
 
 const DEFAULT_ROOT = process.cwd();
 
@@ -286,8 +287,45 @@ function validateTaskPacket(filePath, root) {
   validateOptionalStopPoints(content, headings, result);
   validateOptionalStatePlan(content, headings, result);
   validateChecklist(content, headings, result);
+  validateEvidenceLifecycle(filePath, root, result);
 
   return result;
+}
+
+// Lifecycle criteria live in scripts/harness/task-evidence-state.mjs (W4): the
+// checker and the manual archive paperwork must share one definition of
+// "complete". A status that mismatches its evidence is an error, never a
+// warning, because a drifting status rewrites the task index. Wiring this
+// predicate was W4's explicit residual finding handed to
+// 2026-10-31-audit-p2-ci-checker-wiring.
+function validateEvidenceLifecycle(filePath, root, result) {
+  const relativePath = path.relative(root, filePath).replaceAll(path.sep, '/');
+  if (!relativePath.startsWith('docs/harness/tasks/') || !relativePath.endsWith('.task.md')) {
+    return;
+  }
+
+  const taskId = path.basename(relativePath, '.task.md');
+  const state = evaluateTaskLifecycleState(root, taskId);
+  if (state.docStatus === null) {
+    // No parsable frontmatter status: other gates (frontmatter check, the
+    // section template) own that; do not double-report here.
+    return;
+  }
+
+  if (state.docStatus === 'Archived') {
+    if (state.evidenceLocation === 'missing' || !state.hasSummary) {
+      result.errors.push(
+        'status is "Archived" but no evidence directory with summary.md exists (live or archived) — restore the evidence or revert the status.',
+      );
+    }
+    return;
+  }
+
+  if (state.verdict === 'archive') {
+    result.errors.push(
+      `evidence is complete (${state.reason}) but status is "${state.docStatus}" — set status: Archived or close the evidence.`,
+    );
+  }
 }
 
 function validateWorkspaceContext(content, headings, result) {

@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/designs/FOUNDATION_RELEASE_MODEL.md
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-09-03
+updated_at: 2026-11-04
 ---
 
 # Pantheon Base - 版本管理指南
@@ -16,8 +16,8 @@ updated_at: 2026-09-03
 Pantheon Base 采用**语义化版本 + Foundation Release 模型**：
 
 - **版本号格式**: `pantheon-base-v<major>.<minor>.<patch>`
-- **当前版本**: `pantheon-base-v0.10.26`
-- **Release Line**: `release/0.10`（兼容性元数据，非 Git 分支）
+- **当前版本**: 以仓库根 [VERSION](../VERSION) 和对应不可变 release tag 为准；HEAD 不代表已发布版本。
+- **Release Line**: 以目标版本 manifest 的兼容性元数据为准，非 Git 分支。
 - **分支策略**: 仅保留 `main` 分支，release 通过不可变 tag 发布
 
 ---
@@ -350,6 +350,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ ] 通知相关团队
 
 ### 消费仓同步（如适用）✅
+
+以下 `check:base-sync` 和 lock 更新在 `pantheon-ops` 仓库根执行，不是 Base 命令。
 - [ ] 更新 `pantheon-ops` 的 `foundation-release.lock.json`
 - [ ] 运行 `npm run check:base-sync`
 - [ ] 验证业务 overlay 兼容性

@@ -7,6 +7,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// legacySelfServicePaths 登记与 /auth/* 同 handler 的 legacy 认证双入口（AUD-014）。
+// 命中这些路径的响应带 Deprecation/Sunset 头；端点本身保留至 2026-12-31，
+// 下线约束见 docs/contracts/SYSTEM_AUTH_CONTRACT.md §7.7（en §7.6）与
+// docs/runbooks/DECOMMISSION_LEGACY_AUTH_ROUTES_2026-12-31.md。
+var legacySelfServicePaths = map[string]bool{
+	"/api/v1/system/login":     true,
+	"/api/v1/system/refresh":   true,
+	"/api/v1/system/logout":    true,
+	"/api/v1/system/user/info": true,
+}
+
+// legacySunsetHTTPDate 是 2026-12-31 下线日的 RFC 1123 HTTP-date 形式。
+const legacySunsetHTTPDate = "Sat, 31 Dec 2026 23:59:59 GMT"
+
+// LegacyDeprecationMiddleware 给 legacy 双入口响应加 Deprecation: true 与
+// Sunset 头，使外部集成方仅凭响应即可发现下线计划。须挂在鉴权中间件之前，
+// 401/403 响应同样携带标记头。
+func LegacyDeprecationMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if legacySelfServicePaths[c.Request.URL.Path] {
+			c.Header("Deprecation", "true")
+			c.Header("Sunset", legacySunsetHTTPDate)
+		}
+		c.Next()
+	}
+}
+
 var safeMethods = map[string]bool{
 	"GET":     true,
 	"HEAD":    true,

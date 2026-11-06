@@ -157,6 +157,9 @@ async function selectAdminRoleInVirtualizedList(form: Locator, page: Page, acces
   expect(cachedAdminRoleIndex).toBeGreaterThanOrEqual(0);
 
   await form.locator('.arco-select-view').first().click();
+  // Role options are fetched asynchronously when the permission page mounts.
+  // Wait before keyboard selection so a cached index cannot target an empty popup.
+  await expect(page.locator('.arco-select-option').first()).toBeVisible();
   for (let index = 0; index < cachedAdminRoleIndex; index += 1) {
     await page.keyboard.press('ArrowDown');
   }
@@ -523,11 +526,13 @@ test.describe('system form state matrix', () => {
     await installSharedPageReadCache(page);
 
     for (const matrixCase of matrixCases) {
+      let intercepted = false;
       await page.route(matrixCase.submitRoutePattern, async (route) => {
         if (route.request().method() !== 'POST' && route.request().method() !== 'PUT') {
           await route.fallback();
           return;
         }
+        intercepted = true;
         await fulfillJson(route, 500, {
           code: 500,
           message: 'request.failed',
@@ -538,9 +543,10 @@ test.describe('system form state matrix', () => {
       if (matrixCase.key === 'setting-security-update') {
         await installOperationToken(page, accessToken);
       }
-      await matrixCase.fillValid(form, page);
+      await matrixCase.fillValid(form, page, accessToken);
       await resolveSubmitButton(matrixCase, form, page).click({ noWaitAfter: true });
 
+      await expect.poll(() => intercepted).toBeTruthy();
       await expect(form).toBeVisible();
       await expectToast(page, '请求失败，请稍后重试');
 

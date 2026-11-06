@@ -5,7 +5,7 @@ layer: system/generator
 status: Active
 linked_contracts:
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-05-20
+updated_at: 2026-11-04
 ---
 
 # 模块生成器设计
@@ -217,7 +217,7 @@ English version: [GENERATOR_MODULE_DESIGN.en.md](./GENERATOR_MODULE_DESIGN.en.md
 
 `system/generator` 的高敏动作必须同时满足：
 
-- JWT 身份校验
+- Redis opaque token / TokenAuthMiddleware 身份校验
 - Casbin 接口权限
 - 环境守卫
 - 二次验证

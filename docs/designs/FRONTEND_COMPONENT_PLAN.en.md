@@ -5,7 +5,7 @@ layer: platform
 status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-04-17
+updated_at: 2026-11-04
 ---
 
 # Frontend Component Plan
@@ -125,7 +125,7 @@ Owns create, export, batch, and more-actions patterns while keeping action prior
 
 ## 4.2 List-Page Components
 
-### `FilterPanel`
+### `SearchToolbar`
 
 Owns query form layout, collapse behavior, reset and search actions, and advanced filters.
 

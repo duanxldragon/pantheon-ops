@@ -28,6 +28,7 @@ import { showImportResult } from '../../../../api/importExport';
 import { isArcoFormValidationError } from '../../../../core/arco/formValidation';
 import { publishRefresh, useRefreshSubscription } from '../../../../core/refresh/refreshBus';
 import { invalidateRouteWarmDataMany, resolveRouteWarmData } from '../../../../core/router/prefetch';
+import { fetchAllPages } from '../../../../api/fetchAllPages';
 import { usePermission } from '../../../../hooks/usePermission';
 import { buildCrossPageRowSelection } from '../../../../components/table/crossPageSelection';
 import { getRoleList } from '../role/api';
@@ -227,10 +228,12 @@ const PermissionList: React.FC = () => {
   const loadRoles = useCallback(async () => {
     try {
       const result = await resolveRouteWarmData('/system/permission', 'roles:default', () =>
-        getRoleList({ page: 1, pageSize: 100, sortField: 'sort', sortOrder: 'asc' }),
+        fetchAllPages((page, pageSize) =>
+          getRoleList({ page, pageSize, sortField: 'sort', sortOrder: 'asc' }),
+        ),
       );
       setRoleOptions(
-        result.items.map((item) => ({
+        result.map((item) => ({
           label: translateRoleName(item.roleName, t),
           value: item.roleKey,
         })),

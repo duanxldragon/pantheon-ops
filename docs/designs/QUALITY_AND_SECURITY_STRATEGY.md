@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md
-updated_at: 2026-06-23
+updated_at: 2026-11-04
 ---
 
 # 代码质量与安全治理策略
@@ -33,6 +33,12 @@ English version: [QUALITY_AND_SECURITY_STRATEGY.en.md](./QUALITY_AND_SECURITY_ST
 质量与设计兜底：Copilot review + PR 说明中的 residual risk
 外部对比：无
 ```
+
+## 1.1 现行发布门禁例外与权威边界
+
+风险优先用于日常整改投入与合并审查；不自动豁免发布门禁。当前 `.github/workflows/release-gate.yml` 对 foundation release 候选要求 SonarCloud 分析，并要求未解决的 BUG / VULNERABILITY / CODE_SMELL 为零。这是现行发布阶段的额外硬条件，和前述不主动为低风险风格重构的投入原则分别适用。
+
+Agent 必须保留和满足现行门禁，不能将“外部对比：无”解释为发布阶段不执行 Sonar。门禁范围、阈值、required/advisory 或豁免调整属于维护者的质量门禁触点；本轮只校准说明，不降低门禁。具体执行以 workflow 为准，远程实际结果需候选 run 证据。
 
 ## 2. 仓库分层
 

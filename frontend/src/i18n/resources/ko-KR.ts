@@ -1235,6 +1235,8 @@ const koKRFallback = {
   'module.register.source_missing':
     '생성된 소스 또는 schema 파일을 찾을 수 없어 모듈을 재등록할 수 없습니다',
   'module.register.schema_invalid': '모듈 schema 가 올바르지 않아 재등록할 수 없습니다',
+  'module.register.source_uncompilable':
+    '생성된 소스를 컴파일할 수 없어 모듈을 등록할 수 없습니다. 생성된 코드 또는 Go 툴체인 구성을 확인하세요',
   'module.register.builtin_forbidden': '내장 모듈은 이 페이지에서 재등록할 수 없습니다',
   'module.register.unsupported':
     '기존 수동 등록 엔드포인트는 비활성화되었습니다. 대신 생성기 흐름을 사용하세요',

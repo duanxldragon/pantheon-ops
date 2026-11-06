@@ -5,7 +5,7 @@ layer: platform
 status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-04-17
+updated_at: 2026-11-04
 ---
 
 # 前端组件规划
@@ -191,7 +191,7 @@ frontend/src/modules/{system|business}/{module}/components/
 
 ## 4.2 列表页类
 
-### `FilterPanel`
+### `SearchToolbar`
 
 负责：
 
@@ -463,8 +463,8 @@ frontend/src/modules/{system|business}/{module}/components/
 
 | 页面模板 | 推荐组件组合 |
 | :--- | :--- |
-| 列表页 | `PageContainer` + `PageHeader` + `FilterPanel` + `DataToolbar` + `AppTable` |
-| 树表页 | `PageContainer` + `PageHeader` + `FilterPanel` + `AppTable` |
+| 列表页 | `PageContainer` + `PageHeader` + `SearchToolbar` + `DataToolbar` + `AppTable` |
+| 树表页 | `PageContainer` + `PageHeader` + `SearchToolbar` + `AppTable` |
 | 详情页 | `PageContainer` + `PageHeader` + `DetailPage` + `DetailSection` |
 | 表单页 | `PageContainer` + `PageHeader` + `FormPage` + `FormSection` + `SubmitBar` |
 | 配置页 | `PageContainer` + `PageHeader` + `PageSection` + `FormSection` |
@@ -478,7 +478,7 @@ frontend/src/modules/{system|business}/{module}/components/
 
 - `PageContainer`
 - `PageHeader`
-- `FilterPanel`
+- `SearchToolbar`
 - `AppTable`
 - `PageLoading`
 - `PageEmpty`

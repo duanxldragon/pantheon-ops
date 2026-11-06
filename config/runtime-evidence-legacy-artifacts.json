@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "contract": "docs/harness/VERIFICATION_EVIDENCE_SPEC.md",
+  "description": "Archived evidence payloads that declared runtimeSensitive: true and recorded their runtime verification posture in a round-specific field or sibling artifact instead of the canonical runtimeLogs / runtimeMetrics / runtimeTraces / runtimePerformance / runtimeGap keys, so scripts/harness/check-runtime-evidence.mjs cannot see it. Listed explicitly rather than waived by a date or path rule so the exemption stays reviewable: the checker errors when a listed artifact disappears, which forces this file to shrink. These two are exempt because the round's own text already closes the question - 2026-09-01-release-gate-sonar-cleanup defers authoritative confirmation to the hosted SonarCloud analysis and the required GitHub checks in its `hostedVerification` field, and 2026-10-27-s2-batch-and-envelope produced a zero-line code diff and recorded the equivalence check in `response-diff.md`, so no HTTP-observable runtime signal existed to collect. Neither is a licence to leave a genuinely runtime-sensitive current round unproven: never add an artifact written after 2026-11-04, and prefer recording a `runtimeGap` or a canonical runtime key over appending to this list.",
+  "entries": [
+    ".harness/archive/2026-09/evidence/2026-09-01-release-gate-sonar-cleanup/commands.json",
+    ".harness/archive/2026-10/evidence/2026-10-27-s2-batch-and-envelope/commands.json"
+  ]
+}

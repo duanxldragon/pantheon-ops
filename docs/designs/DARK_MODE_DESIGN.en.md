@@ -2,23 +2,23 @@
 title: Dark Mode Design
 doc_type: Design
 layer: platform
-status: Draft
+status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-07-09
+updated_at: 2026-11-04
 ---
 
 # Dark Mode Design
 
 Chinese version: [DARK_MODE_DESIGN.md](./DARK_MODE_DESIGN.md)
 
-This document is kept as a future design note. The current runtime only ships light mode with four theme keys. There is no `data-color-mode`, no dark token set, and no dark screenshot baseline. The real token source of truth is `THEME_TOKENS_REFERENCE.md`.
+The runtime supports light/dark color modes through `frontend/src/core/theme/colorMode.ts` and `data-color-mode` tokens in `frontend/src/index.css`. The Chinese design and `THEME_TOKENS_REFERENCE.md` define the current design direction. Implementation exists; this document does not certify all dark-mode screens or accessibility.
 
 ---
 
 ## 1. Design Goals
 
-These are future requirements for a dark-mode rollout:
+The implementation follows these dark-mode design constraints:
 
 - do not rely on naive inversion
 - keep each brand theme recognizable in dark mode
@@ -30,7 +30,7 @@ These are future requirements for a dark-mode rollout:
 
 ## 2. Token Inversion Strategy
 
-Not implemented today. If this document is revived, semantic roles should be redefined instead of mechanically inverted.
+Current dark tokens use semantic roles rather than mechanical inversion. Further changes should preserve those roles.
 
 Guiding direction:
 
@@ -48,7 +48,7 @@ Guiding direction:
 
 ## 3. Brand-Color Adjustment Rules
 
-If dark mode is added later, accent colors should:
+When adjusting dark-mode accent colors:
 
 1. get brighter
 2. lose a little saturation

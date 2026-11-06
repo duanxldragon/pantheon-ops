@@ -3,7 +3,7 @@ title: Tenant Contract V1 (Shared-Schema MVP)
 doc_type: Contract
 layer: platform / system/auth / system/iam / system/org / system/config
 status: Approved
-updated_at: 2026-10-26
+updated_at: 2026-10-31
 ---
 
 # Tenant Contract V1 (Shared-Schema MVP)
@@ -37,6 +37,7 @@ This contract is the frozen deliverable of the `2026-09-10-tenant-contract-desig
   **the backend never rejects a write because a quota was exceeded**.
 - Cross-tenant data sharing / federated queries
 - Tenant custom domains, per-tenant deployment shapes
+- Tenant isolation for business domains (`modules/business/*`): in V1 business domains **do not participate in tenant isolation** and have single-tenant semantics (explicit conclusion and V2 preconditions: §2.6)
 
 ---
 
@@ -309,6 +310,36 @@ Rules (each independently citable by a reviewer):
 
 ---
 
+### 2.6 Business-Domain Tenant Semantics (new in V1.10, 2026-10-31)
+
+**Conclusion (option C, maintainer decision 2026-10-31)**: business domains (`modules/business/*`, including low-code generator output and the business modules of a downstream consumer repository) **do not participate in tenant isolation in V1**; their semantics are single-tenant. Tenant isolation for the system domain (§2.3/§3/§4/§6) is unaffected. This is a clarification: zero behaviour change.
+
+Four independent facts (readings from `2026-10-31-audit-p1-business-route-tenant-context`, see `.harness/evidence/2026-10-31-audit-p1-business-route-tenant-context/decision.md`):
+
+1. Business tables have no `tenant_id` column and business models no `TenantID` field: across the downstream `pantheon-ops/backend/modules/business` tree, `TenantID` hits = **0**; `tenant_id` hits = **1**, and that single hit is the `CREATE TABLE` fixture string in `retired_modules_test.go:110` — not a model field, not part of any query.
+2. The generator explicitly rejects the `tenant` data scope: `internal/scaffold/contract.go` states `"tenant" is intentionally rejected: tenant isolation has no runtime implementation`.
+3. `FromGin` in `pkg/tenant` returns `nil` when no tenant context is present.
+4. `tenant.WithTenantScope(nil)` returns the query unchanged, adding no predicate.
+
+**The §3.2 rejection rule does not apply to business routes.** §3.2 governs resources that declare tenant ownership. The business domain has neither a tenant column nor a tenant-scope declaration, so `contracts.ProtectedGroup` / `contracts.DataScopedGroup` (`backend/pkg/contracts/route_groups.go`, chain TokenAuth → Casbin (→ DataScope)) installing no tenant middleware is **not a contract breach**; equally, there is no row-level cross-tenant read/write surface to exploit — there is no tenant column to over-read.
+
+**The forbidden "fix"**: do not append `middleware.TenantContextMiddleware` / `PlatformScopeTenantContextMiddleware` to those helpers. With no tenant column to filter on, appending one ① isolates nothing, ② turns every business request into `TENANT_CONTEXT_MISSING` under multi mode (the whole business domain fails), and ③ makes the code look as if tenancy were handled, hiding the real gap. Changing that chain is a contract change and must land in the same patch as a rewrite of §2.6.
+
+**The forbidden claim**: no entry document, README, release note or downstream repository may state that the business domain is isolated by `tenant_id`. The allowed wording: system domains are isolated row by row by `tenant_id`; the business domain has single-tenant semantics and does not participate in tenant isolation.
+
+**Four preconditions before V2 can add business tenancy** (missing any one means it is not done):
+
+1. Both repositories in the same batch: the base contract and the downstream call sites switch inside one foundation release, leaving no intermediate state.
+2. Per-table registration in the resource-scope matrix (`docs/designs/TENANT_RESOURCE_SCOPE_MATRIX.md`), plus `tenant_id` columns, indexes and migrations for business tables.
+3. A generator change: un-reject the `tenant` data scope, emit the tenant column and tenant predicate, and wire the table-creation surface (`BootstrapFunc`).
+4. The §8 contract-change process: version bump + change-log row + deprecation window (the old chain stays usable during that window).
+
+**Regression anchor**: `backend/pkg/contracts/route_groups_test.go` pins the length and order of both helpers' middleware chains and asserts they contain **neither** `TenantContextMiddleware` **nor** `PlatformScopeTenantContextMiddleware`. Negative verification was performed (inject a tenant middleware → the test fails first reporting `chain length = 3 ..., want 2` → restore → passes).
+
+**Boundary with the matrix**: §2 of `TENANT_RESOURCE_SCOPE_MATRIX.md` lists no business table; the `biz_*` row in the §3 unique-key table is a V2 entry point ("register per table on creation / per review"), not a V1 registration requirement.
+
+---
+
 ## 3. Tenant Context (frozen)
 
 ### 3.1 Resolution priority (high → low)
@@ -394,7 +425,7 @@ Rules (each independently citable by a reviewer):
 | Casbin domain rules | `system/iam` | auth or business modules defining their own domain rules |
 | Feature flag `tenant.mode` | `system/config` | modules inventing their own switches |
 | tenant_id scope helper | `platform` | domains copy-pasting private implementations |
-| Business resource tenancy | `business/*` (registered in the matrix) | business defining its own isolation mechanism |
+| Business resource tenancy | `business/*` — not applicable in V1 (business domains do not participate in tenant isolation; see §2.6) | business defining its own isolation mechanism, or claiming it is already isolated |
 
 ---
 
@@ -416,6 +447,7 @@ Rules (each independently citable by a reviewer):
 | V1.4 | 2026-10-25 | New §2.4 "Plan definitions and quota semantics" (`tenant_plans`, platform-global, `-1` unlimited / `0` illegal, unknown codes fall back to the compiled table, retirement instead of deletion, idempotent seed, 5-second read-through cache) and §2.4.1 "a quota is a measurement, not a gate" (no write path rejects on quota; `QuotaEnforcer`/`MetricsCollector` are unwired); new §2.5 "Platform-side tenant-operations read paths" (the five `/system/tenant-ops/*` routes: declared platform scope, `system:tenant:` prefix, one shared predicate set, bounded paging, unknown plans shown as-is, frozen core metric set, permission↔route probe gate); §1 In/Out restates the plan/quota ownership boundary; §2.1's `plan` column comment changes from "not consumed in V1" to "resolves to §2.4 thresholds" | Extension |
 | V1.5 | 2026-10-26 | §2.2's "membership removal = `status=disabled`, never a physical delete" is restated as a **four-row per-path table** (tenant deletion / user deletion = soft-disable, explicit member removal = physical delete, re-join = row revival), and "audit chain" is re-attributed from row retention to the global operation log; §2.4 gains invariant 8, moving the **plan assignment surface** that V1.4 registered as a residual gap into the In set and wiring it in the frontend (backend `AssignableCodes` deleted); this English file is brought up to date with §2.3.1 (V1.2) and its change log. Write-side enforcement behaviour unchanged; "make member removal a soft-disable too" is registered as a future contract-change candidate with its prerequisites | Clarification (§2.2) + Extension (§2.4 invariant 8) |
 | V1.6 | 2026-10-27 | §5 registers the delete-guard error code `tenant.not_archived` (400). The implementation refused deletion on "member count > 0 and not archived", which contradicts §2.1's "deletion only for `archived` tenants": deleting every user drove the active member count to zero and let a live tenant be tombstoned without archiving. The guard is now the §2.1 rule verbatim (the status, not the member count); both the platform and the legacy handler register the code, and the console disables the delete action on non-archived rows; §2.1 and §2.2 wording unchanged | Clarification + Extension (§5 error code) |
+| V1.10 | 2026-10-31 | New §2.6 "Business-domain tenant semantics" (option C, maintainer decision 2026-10-31): business domains do not participate in tenant isolation in V1; the clause records the four facts and the four V2 preconditions. §1 Out registers the boundary; the §7 "business resource tenancy" row changes from "registered in the matrix" to "not applicable in V1" and states that the `biz_*` row in §3 of `TENANT_RESOURCE_SCOPE_MATRIX` is a V2 entry point, not a current registration requirement. Same batch: doc comments on all three exported helpers in `backend/pkg/contracts/route_groups.go`, new `backend/pkg/contracts/route_groups_test.go` chain assertion (negatively verified), `docs/designs/MODULE_CONTRACT.md` §10 and `README.md:31` aligned. §3 resolution priority, §4 Casbin dimension, §5 error codes and every write-side behaviour are unchanged | Clarification |
 
 **Trigger and scope of V1.5**
 
@@ -477,6 +509,12 @@ Rules (each independently citable by a reviewer):
 > round). What that does **not** claim: a clause-by-clause re-audit of §3-§7 prose parity was not part of
 > this round. The Chinese file [TENANT_CONTRACT_V1.md](./TENANT_CONTRACT_V1.md) stays authoritative: where
 > the two disagree, the Chinese text governs and this file has the defect.
+
+> Translation note (2026-10-31): change-log rows V1.7, V1.8 and V1.9 exist only in the Chinese file
+> [TENANT_CONTRACT_V1.md](./TENANT_CONTRACT_V1.md); this file carries V1.1-V1.6 and V1.10. Those rows are
+> historical records rather than live clauses — the §2.2 and §2.4 content they describe is present in
+> both files (V1.2's §2.3.1 was translated on 2026-10-26). Where a row is missing here, read the Chinese
+> change log.
 
 **Residual gaps of V1.4 (explicit)**
 

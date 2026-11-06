@@ -1,87 +1,97 @@
 # Harness PR Governance Generator
 
-## 问题
-每次创建 PR 都需要手动填写复杂的 governance 模板，容易遗漏字段导致 CI 失败。
+单一来源：本文件是 PR body 生成与 manifest 结构的唯一指南。
+`docs/HARNESS_GOVERNANCE_GUIDE.md` 已改为指向本文件的指针（2026-11-03 合并，DOC-02/GOV-07）。
 
-## 解决方案
-创建标准化工具链：
+## 为什么需要它
 
-### 1. PR Body 生成器
-```bash
-node scripts/harness/generate-pr-body.mjs <task-id>
-```
+PR governance 要求 PR body 与 harness 产物（task packet、manifest、evidence）双向对得上。
+手写必然漏字段，而漏字段的失败发生在 CI 上，不在本地。生成器把这段重复劳动变成一条命令。
 
-自动从 `.harness/tasks/<task-id>/manifest.json` 生成完全合规的 PR body。
+## 结构权威在哪
 
-### 2. 使用流程
+不要照抄本文档里的字段清单当规范，以下三处才是权威：
 
-#### Step 1: 创建 Task Manifest
+| 内容 | 权威 |
+|---|---|
+| PR body 必须包含的 section | `.github/pull_request_template.md`（live 模板，`check-pr-governance.mjs` 逐条校验） |
+| manifest 结构合法性 | `scripts/task-manifest.mjs` 的 `validateTaskManifest` |
+| task packet 文档 section | `scripts/check-task-packet-template.mjs` 与 `scripts/harness/check-task-packet.mjs` |
+
+`.harness/tasks/sonarcloud-s4666/` 已归档，不要再把它当模板引用。
+
+## 使用流程
+
+### Step 1: 建 task packet 与 manifest
+
+先写 `docs/harness/tasks/<task-id>.task.md`（按 `## Goal` / `## Scope` 等 section 模板），
+再写 `.harness/tasks/<task-id>/manifest.json`。最小可用 manifest：
+
 ```json
 {
-  "taskId": "your-task-id",
-  "title": "Task title",
-  "description": "中文描述",
-  "scope": "frontend/backend/platform",
-  "impact": "trivial/minor/major",
-  "qualityProfile": "none",
-  "ratchetDecision": "no-repeat-observed",
-  "githubSignal": "repo-quality-gate",
-  "boundaries": "描述边界",
-  "files": ["file1.ts", "file2.ts"]
+  "taskId": "<task-id>",
+  "taskDoc": "docs/harness/tasks/<task-id>.task.md",
+  "title": "一句话标题",
+  "goal": "为什么做，做到什么算完成",
+  "primaryLayer": "platform",
+  "status": "in-progress",
+  "priority": "P2",
+  "type": "<remediation|feature|governance>",
+  "scope": { "in": ["..."], "out": ["..."] },
+  "dependencyLayers": ["platform"],
+  "contractAnchors": ["docs/contracts/PLATFORM_CONTRACT.md"],
+  "expectedFiles": { "create": [], "modify": [], "doNotTouch": [] },
+  "verificationPlan": { "commands": ["..."], "runtimeEvidence": ["..."] },
+  "runtimeSensitive": false,
+  "evidenceRequired": [".harness/evidence/<task-id>/commands.json"],
+  "humanGates": [],
+  "linkage": {
+    "taskManifest": ".harness/tasks/<task-id>/manifest.json",
+    "taskDoc": "docs/harness/tasks/<task-id>.task.md",
+    "evidenceDir": ".harness/evidence/<task-id>/",
+    "summaryFile": ".harness/evidence/<task-id>/summary.md",
+    "reviewFile": ".harness/evidence/<task-id>/review.md",
+    "changeRef": "none",
+    "planRefs": []
+  }
 }
 ```
 
-#### Step 2: 创建 Evidence 文件
-- `.harness/evidence/<task-id>/commands.json` - 执行的命令和结果
-- `.harness/evidence/<task-id>/summary.md` - 验证摘要
-- `.harness/evidence/<task-id>/review.md` - 代码审查
+`status` 与证据绑定：有完整 evidence（含 `summary.md`）的包才是 `completed`，
+对应 task 文档才可标 `Archived`；两者不一致会被 `check-task-packet.mjs` 判红。
 
-#### Step 3: 生成并使用 PR Body
+### Step 2: 写 evidence 三件套
+
+- `.harness/evidence/<task-id>/commands.json` — 执行了什么、读数是几（含 `knownGaps`）
+- `.harness/evidence/<task-id>/summary.md` — 结论与逐条着落
+- `.harness/evidence/<task-id>/review.md` — reviewer 逐条核对（需含 `## Machine Readable` 块）
+
+### Step 3: 生成并提交 PR body
+
 ```bash
 # 生成 PR body
-node scripts/harness/generate-pr-body.mjs your-task-id > pr-body.txt
+node scripts/harness/generate-pr-body.mjs <task-id> > pr-body.txt
 
-# 创建 PR
+# 新建 PR
 gh pr create --body-file pr-body.txt
 
-# 或更新现有 PR
-node scripts/harness/generate-pr-body.mjs your-task-id | gh pr edit <pr-number> --body-file -
+# 更新已有 PR
+node scripts/harness/generate-pr-body.mjs <task-id> | gh pr edit <pr-number> --body-file -
 ```
 
-### 3. Git Hook（可选）
-安装 pre-push hook 自动验证：
+## 本地预检
+
+推送前跑这三条，比等 CI 便宜得多：
+
 ```bash
-cp scripts/hooks/pre-push .git/hooks/pre-push
-chmod +x .git/hooks/pre-push
+node scripts/harness/check-task-packet.mjs --root .
+node scripts/harness/check-evidence.mjs --root . --strict
+node scripts/harness/check-review.mjs --root . --strict
 ```
 
-## 必需字段映射
+## 常见失败
 
-### Manifest → PR Body
-- `taskId` → Task ID, task id
-- `description` → 目标问题
-- `scope` → 改动层级
-- `files` → 改动模块
-- `impact` → 预期影响, Trivial change
-- `ratchetDecision` → Ratchet Decision (必须是允许值之一)
-- `githubSignal` → GitHub Signal
-
-### Ratchet Decision 允许值
-- `no-repeat-observed` - 未观察到重复问题
-- `guide-updated` - 更新了指南
-- `sensor-added` - 添加了传感器
-- `gate-updated` - 更新了门禁
-- `template-updated` - 更新了模板
-- `adapter-updated` - 更新了适配器
-- `registry-only` - 仅注册表
-
-### GitHub Signal 允许值
-- `method-gate` - 方法门禁
-- `repo-quality-gate` - 仓库质量门禁
-- `runtime-evidence-gate` - 运行时证据门禁
-- `external-flaky` - 外部不稳定
-- `not-applicable` - 不适用
-
-## 示例
-
-参考 `.harness/tasks/sonarcloud-s4666/` 作为完整示例。
+- manifest 里 `linkage.taskManifest` / `taskDoc` 路径写错 → `check-task-packet` 报缺失
+- evidence 缺 `knownGaps` 或把 `runtimeSensitive` 写成数组 → `check-evidence --strict` 报结构错误
+- review 缺 `## Machine Readable` 块 → `check-review --strict` 报错
+- PR body 少了模板里的 section → `check-pr-governance.mjs` 在 CI 判红

@@ -37,8 +37,11 @@ func (h *DynamicModuleHandler) RegisterModule(c *gin.Context) {
 	registration, err := h.service.RegisterManagedModule(req.Name)
 	if err != nil {
 		code := common.CodeError
-		switch err.Error() {
-		case msgModuleInvalidName, "module.register.source_missing", msgModuleSchemaInvalid:
+		switch common.ErrMessage(err) {
+		case msgModuleInvalidName,
+			"module.register.source_missing",
+			"module.register.source_uncompilable",
+			msgModuleSchemaInvalid:
 			code = common.CodeParamInvalid
 		}
 		common.FailWithError(c, code, err, "module.register.error")
@@ -190,7 +193,7 @@ func (h *DynamicModuleHandler) GetModuleSchema(c *gin.Context) {
 	schema, err := h.service.GetManagedModuleSchema(moduleName)
 	if err != nil {
 		code := common.CodeError
-		switch err.Error() {
+		switch common.ErrMessage(err) {
 		case msgModuleInvalidName, "module.register.source_missing", msgModuleSchemaInvalid:
 			code = common.CodeParamInvalid
 		}
@@ -248,7 +251,7 @@ func applyGenerateSchemaRawMetadata(rawBody []byte, schema *scaffold.ModuleSchem
 }
 
 func isGenerateValidationError(err error) bool {
-	switch err.Error() {
+	switch common.ErrMessage(err) {
 	case "module.generate.invalid_payload",
 		"module.generate.invalid_name",
 		"module.generate.invalid_scope",

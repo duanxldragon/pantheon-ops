@@ -4,6 +4,8 @@ Chinese version: [README.md](./README.md)
 
 This directory holds each release's `RELEASE_NOTES_vX.Y.Z.md`, starting at v0.13.1. Release notes are frozen with the foundation release: new versions are appended, historical entries are never edited. The full change history lives in [CHANGELOG.md](../../CHANGELOG.md); the release process is described in the [version management guide](../VERSION_MANAGEMENT_GUIDE.md).
 
+Unpublished candidate: [v0.18.3](./RELEASE_NOTES_v0.18.3.md). Review, hosted gates and remote delivery remain incomplete.
+
 Latest: [RELEASE_NOTES_v0.18.2.md](./RELEASE_NOTES_v0.18.2.md)
 
 | Version | Release date | Release notes |

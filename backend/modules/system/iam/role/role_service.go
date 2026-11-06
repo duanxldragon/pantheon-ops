@@ -108,6 +108,7 @@ func (s *RoleService) ListRoles(query *RoleListQuery) (*RoleListPageResp, error)
 			Column: clause.Column{Name: sortColumn},
 			Desc:   sortDesc,
 		}).
+		Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: sortDesc}).
 		Offset(offset).
 		Limit(pageSize).
 		Find(&roles).Error; err != nil {
@@ -597,11 +598,10 @@ func deleteRoleDataScopes(tx *gorm.DB, tenantID uint64, roleKey string) error {
 		Delete(&permission.PermissionRoleDataScopePolicy{}).Error; err != nil {
 		return err
 	}
-	if !tx.Migrator().HasTable("permission_role_data_scope_policy") {
-		return nil
-	}
-	return tx.Table("permission_role_data_scope_policy").
-		Where("tenant_id = ? AND role_key = ?", tenantID, roleKey).Delete(nil).Error
+	// The legacy table permission_role_data_scope_policy had no functional reads
+	// or writes and is dropped by migration 000031, so role deletion keeps no
+	// defensive cleanup for it (review 2026-11-01, W6).
+	return nil
 }
 
 func (s *RoleService) BatchUpdateRoleStatus(roleIDs []uint64, status int) (int, error) {

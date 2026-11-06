@@ -6,9 +6,9 @@
 
 关联文档：
 
-- 合同：[`docs/contracts/TENANT_CONTRACT_V1.md`](./contracts/TENANT_CONTRACT_V1.md)
-- 设计：[`docs/designs/MULTI_TENANT_DESIGN.md`](./designs/MULTI_TENANT_DESIGN.md)
-- 操作指南：[`docs/TENANT_INITIALIZATION_GUIDE.md`](./TENANT_INITIALIZATION_GUIDE.md)
+- 合同：[`docs/contracts/TENANT_CONTRACT_V1.md`](../contracts/TENANT_CONTRACT_V1.md)
+- 设计：[`docs/designs/MULTI_TENANT_DESIGN.md`](../designs/MULTI_TENANT_DESIGN.md)
+- 操作指南：[`docs/TENANT_INITIALIZATION_GUIDE.md`](../TENANT_INITIALIZATION_GUIDE.md)
 
 ---
 

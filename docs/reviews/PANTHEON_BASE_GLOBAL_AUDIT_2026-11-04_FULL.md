@@ -1,0 +1,945 @@
+# Pantheon Base 全局审计报告
+
+## 1. 总体结论
+
+**最终验收结论：C：暂时不具备维护冻结条件。** 架构与基础能力已经具备较好的成熟度，也有真实下游复用和重建证据；当前仍有两项已确认 P1：公共 SSRF helper 的 DNS 重绑定防护可绕过，npm 漏洞门禁吞掉失败退出码。冻结前应修复这两个确定问题，并裁定刷新令牌并发轮换风险。整改应集中、有限，不需要继续扩展产品路线图或大规模重构。
+
+| 项目 | 审计基线与边界 |
+| --- | --- |
+| 审计日期 | 2026-11-04，Asia/Shanghai；文档精确盘点时间见附表 capturedAt |
+| Base Commit | `525506035b3a843f85b984beb46866c1329cd964` |
+| Base 工作树 | 基线有 212 项 staged / unstaged / untracked 变化；代码核对与 Base 本地测试针对工作树，不能全部归因于 HEAD；没有回退任何既有修改 |
+| Ops Commit | `1c057eedfd58b2a5d77c7195d99922af1f74a17d`；仓库干净 |
+| Ops 依赖基线 | `foundation-release.lock.json`：`pantheon-base-v0.18.2` / Base `a44ae4e012fff20430b1b7f91cb7a9296f3ea843` |
+| 审计范围 | Base 后端、前端、配置、数据库迁移、脚本、全部文档资产及工程治理；Ops 真实 imports、路由接入、overlay 和消费重建 |
+| 审计方法 | 本地源码/合同交叉核对、调用链与配置核查、全量文档正文及引用盘点、现有测试/构建、隔离 SSRF 复现、登录页渲染、不可变 Base HEAD 重建 Ops |
+| 修改范围 | 仅新增本报告、文档附表及 workspace 审计证据；不修产品代码，不删除或重写旧文档，不发布 release |
+| 总体成熟度 | 模块化单体与平台/系统/业务分界合理，核心能力已形成闭环；安全出站边界和部分工程信号尚未达到可冻结标准 |
+| 冻结条件 | 当前不满足；有限整改完成并验证后可重新评估，不要求清空所有历史技术债、文档或扫描器风格建议 |
+
+报告命名说明：要求的 `docs/reviews/PANTHEON_BASE_GLOBAL_AUDIT_2026-11-04.md` 已存在且未跟踪，内容来自此前有限审计。本轮保留该文件，使用 `_FULL.md` 作为本轮权威报告、`_ASSETS.md` 作为全量资产附件。旧结论已修正的项目不会重新计为当前缺陷。
+
+本轮使用 `pantheon-base-audit` 和 `impeccable`。三个独立评审尝试均因模型服务 503 未产出结论，记录为独立复核缺口；本文不声称获得外部安全评审认证。CodeGraph 未提供可调用 MCP，CLI 索引出现滞后，涉及当前文件的判断以实际工作树源码为准。
+
+### 1.1 已执行验证与证据限度
+
+| 验证 | 结果 | 证明范围与限制 |
+| --- | --- | --- |
+| Base 后端 `go test -json ./...`，cwd=`backend`，缓存 Go 1.26.10，离线 | exit 0；1,138 个 pass 测试事件，633 个 skip 测试事件；47 个 pass 包，5 个 skip/no-test 包 | `audit-artifacts/base-global-audit-2026-11-04/go-test-corrected.jsonl`；嵌套测试事件分别计，不等于唯一测试数量；无隔离 DSN，许多 MySQL/Redis/S3 测试跳过 |
+| Base 前端 type-check / lint / production build | 全部通过；build 1,422 modules | 当前工作树静态编译与 prebuild 合同；不是已登录端到端功能认证 |
+| Base Vitest | 33 个文件、218 个测试通过 | 前端既有单元测试 |
+| security / release / quality workflow 与 checker-wiring 定向 Node 测试 | 18 个测试通过 | 说明现有配置测试通过；不证明 npm audit 的退出码处理正确，PB-002 即为反例 |
+| SSRF DNS 重绑定本地复现 | `A lookups=3; private local endpoint reached=true; error=<nil>` | 合成 DNS resolver + 受控 `httptest` loopback，无外部 DNS/目标访问；证据为 `ssrf-rebind-repro.go` 与 `ssrf-rebind-ops-sequence.log`；按照 Ops 的 ValidateURL → CreateHTTPClient → 请求顺序执行，保留私网/DNS防护，仅允许受控测试域名和端口 |
+| 文档 inventory checker | 0 findings，通过 | 检查器覆盖的盘点规则；不能代替语义一致性判断 |
+| 文档链接 checker | 38 次失效 / 12 文件，失败 | 实际 `doc-links.json`；不是仅检查 README |
+| checker 接线检查 | 32 个登记 checker，31 wired、1 明示例外、0 unwired | `checker-wiring.json`；wired 可只代表 package script，真实 CI 调用另外核对 |
+| Ops 业务 overlay、business boundaries | 声明 53 paths 通过；overlay 测试 13 个通过；边界 checker 通过 | 真实消费配置及 imports，不能代替所有业务行为验证 |
+| 当前 Base 脏树直接重建 Ops | 失败：索引有 `scripts/migrate-task-manifests.mjs`，本地文件已删除，复制时报 ENOENT | 属于未提交树状态；保留 `consumer-worktree` 失败现场，不推断已发布 Base 失效 |
+| 不可变 Base HEAD 重建 Ops | 通过；802 个声明/生成文件 | 本地独立 checkout 到上述 HEAD，再运行 Ops 真正 rebuild 脚本，输出位于 `consumer-head` |
+| 重建后 `go test -mod=mod ./modules/business/... ./modules/system/iam/menu/...` | exit 0 | `consumer-head-go.log`；离线已有模块缓存，数据库和外部系统行为未全量验证；没有改 Ops 原仓库 |
+| 重建后前端 `tsc --noEmit` | exit 0 | `consumer-head-typecheck.log`；使用指向 Ops 已安装 node_modules 的本地 junction，未证明全新 npm ci 和供应链解析成功 |
+| 登录页渲染 | 桌面 1440×1000、手机 390×844，截图检查通过，pageerror 为空，手机无横向溢出 | `login-desktop.png` / `login-mobile.png`；本地 preview，API 使用通用空响应 mock，没有登录写入或真实后端 |
+
+未执行或未验证：真实依赖漏洞扫描最新结果、生产压测/EXPLAIN、生产备份恢复、认证与多租户全套真实集成、登录后完整 UI/暗色/键盘与屏幕阅读器验收、GitHub/Sonar 实时状态与远程发布物。证据不足不等于产品故障，也不能当作通过。
+
+## 2. 整体架构分析
+
+### 2.1 架构与边界判断
+
+Base 采用 Go/Gin/GORM 后端与 React/TypeScript/Vite/Arco 前端的模块化单体。`platform` 负责聚合与壳层；认证位于 `backend/modules/auth/`，IAM 位于 `backend/modules/system/iam/`，组织域和配置域分别位于 `system/org/`、`system/config/`；i18n、审计和 lowcode 保持各自职责。无需因为逻辑名 `system/auth` 与物理 `modules/auth` 不同再搬目录。
+
+后端真实模块合同是 `backend/pkg/contracts/module.go:12` 的 `BackendModule`：Name、Migrate、RegisterRoutes、SeedMenus、SeedPerms、SeedI18n；`RegisterBackendModules` 管装配。前端 `frontend/src/core/router/types.ts` 的 ModuleConfig 支持 routes、menus、permissions、i18nNamespaces、pagePermission、dashboardWidgets 等声明。文档中只写 name/routes 的“轻量 manifest”已不能准确描述现态。
+
+| 架构项目 | 判定 | 实际依据 |
+| --- | --- | --- |
+| 模块化单体、垂直切片 | 通过实现核对 | `backend/modules/`、`backend/pkg/contracts/module.go`；无需拆微服务 |
+| 系统域与业务域隔离 | 在当前核查范围通过 | Ops business boundaries checker 通过；未发现业务直接导入 system 的 Service / Repository |
+| 聚合视图归 platform | 通过职责核对 | `backend/modules/platform/dashboard_service.go`；聚合不拥有被统计域 |
+| 后端/前端注册合同 | 可实际复用 | Ops HEAD 消费重建、Go 业务包与前端类型检查通过 |
+| 真运行时热插拔 | 非当前已交付能力，合理停止投入 | `docs/designs/RUNTIME_MODULE_ENGINE_EVOLUTION.md`；当前是受控生成/静态注册，不应将此记作功能故障 |
+| 跨租户业务数据隔离 | V1 明确不承诺 | `TENANT_CONTRACT_V1` §2.6 与 `pkg/contracts/route_groups.go:13`；不能宣传业务域已租户隔离 |
+
+### 2.2 需要冻结的设计面
+
+应稳定现有模块生命周期、路由/权限/菜单/i18n 声明、租户 V1 范围和 foundation release 资产，不增加另一套插件协议、策略平台或重复服务层。目录和类型重命名如影响 Ops 的文本接入锚点，必须先重建消费者。审计没有证明存在必须整体重写的架构缺陷。
+
+## 3. 核心功能完整性分析
+
+“通过”分为实现核对、既有单元验证和运行验证，表中明确区分。DB-backed 测试跳过的能力不承诺端到端可靠。
+
+| 核心能力 | 当前判定 | 代码/测试依据与限度 |
+| --- | --- | --- |
+| 登录、会话、退出与令牌撤销 | 核心路径存在；刷新轮换保留 PB-003 风险 | `modules/auth/login/login_handler.go`、`modules/auth/session/session_service.go`、`pkg/authtoken/token.go`；令牌为 Redis opaque token，并非 JWT |
+| MFA/TOTP 与高敏二次验证 | 已有真实实现，不再列未实现缺口 | `backend/modules/auth/`、operation token 与安全中心；未执行本轮真实 Redis/MFA e2e |
+| 用户、角色、组织与配置 CRUD | 通过边界/合同核对；本地单元层通过 | `backend/modules/system/{iam,org,config}/`；不得将 CRUD 存在等同所有 DB 事务已认证 |
+| 菜单导航与接口/按钮权限 | 双轨模型合理，保留现有抽象 | IAM menu/permission、Casbin、前端 RoutePermissionGuard；不要强行重建所有权限表 |
+| IAM 数据范围 | 具备统一注入和安全降级语义 | `data_scope_middleware.go:117` 策略读取失败拒绝；部门树展开失败缩到本部门是安全回退，不能把它误判为泄露 |
+| 租户 compat / multi 与平台能力约束 | V1 已交付，有测试与明确范围 | `pkg/tenant/`、`tenant_context_middleware.go`、`system_modules.go`；真实多租户 DB smoke 本轮未跑 |
+| 审计与安全事件 | 可由下游复用 | `pkg/common` audit metadata、`internal/middleware` 操作日志、`system/audit`；Ops observability 有实际 metadata 调用 |
+| i18n | 有五语言 fallback、动态增量与模块声明 | `frontend/src/i18n/`、`system/i18n/`；前端 prebuild i18n 检查通过 |
+| 导入导出 | 有公共协议、容量上限和 CSV 防护 | `pkg/impexp/csv.go`、`export_limits.go`；复杂真实大文件/业务事务未本轮验证 |
+| 上传与本地/S3 存储 | 已有统一授权入口与对象范围测试 | `pkg/upload/`、`system/config/setting/upload_*test.go`；实际 S3 网络/权限配置未验证 |
+| lowcode 与生成模块 | 受控生成器能力已存在 | `backend/internal/scaffold/`、`modules/lowcode/`；生产平台表 migrations 和生成业务表 Bootstrap AutoMigrate 例外要分别理解 |
+| 暗色/主题/响应式 | 有实现；登录页亮色渲染通过 | `colorMode.ts`、`index.css:269`；其余页面和暗色渲染仍证据不足 |
+
+SSO/OIDC、独立任务/告警/通知/报表/调度中心的设计草案，不因存在文档就成为冻结必需功能。配额度量与展示而非强制执行、业务域 V1 单租户也是明确范围，不建议本轮扩展。只有当前实际承诺的核心安全边界必须修复。
+
+## 4. 冗余代码与过度设计分析
+
+已有公共 contracts、tenant scope、导入导出、审计 metadata、组件骨架具有实际调用价值。Ops 的真实重建说明它们不是仅停留在设计稿的抽象。不能依据文件长度、代码重复率或个人偏好删除它们。
+
+值得减少的是重复的“现状叙述”、执行多个角色时重复抄写上下文、同一测试在多套 CI 中重新安装和运行的成本。`ci.yml` 的 unit-tests 与 `quality.yml` 的 backend-tests 都跑后端测试，但前者承担 coverage、后者承担 race/required gate，存在目的差别。本轮没有测得耗时和节省收益，建议先沿用已产出结果或共享 artifacts，再按实测决定是否合并 job；不直接删一套检查。
+
+| 项目 | 建议 | 原因与边界 |
+| --- | --- | --- |
+| 稳定模块/安全抽象 | KEEP | 有真实 owner、消费者与验证 |
+| 纯 JSX、常量、局部 helper 的少量相似 | 不专项重构 | 未证明影响正确性或维护决策；不为扫描器分数增加公共层 |
+| 低代码真热插拔、完整企业工作流等扩展 | 停止主动投入 | 超出现态合同与冻结目标 |
+| 原型与历史流程文档 | 保留或明确降级入口 | 先判用途，不能批量删历史 |
+| 无实际条目的检查机制 | REVIEW，保持 cheap/advisory | 暂无触发不证明无价值；新增 blocking 必须有现实故障收益 |
+| 多套扫描器和全风格清零目标 | 明确发布策略后简化 | 安全可达性和正确性优先，见 PB-006；不自动撤销已授权门禁 |
+
+未确认任何可直接批量删除的产品模块。最终删除建议为 0 不是目标，是当前证据不支持删除。
+
+## 5. 安全与多租户审计
+
+### 5.1 已确认 SSRF 风险
+
+`backend/pkg/security/ssrf/validator.go:116-126` 先解析检查 hostname，再把原 hostname 交给默认 dialer；拨号再次解析，安全检查与实际连接没有使用同一已验证 IP。按 Ops 实际顺序先 ValidateURL、再创建客户端发请求；合成 resolver 前两次返回公共 IP，拨号第三次返回 127.0.0.1，受控本地服务实际收到请求。PB-001 属于已动态确认的问题。
+
+Base 工作树、Base 不可变 HEAD、Ops 锁定快照的该文件 SHA256 相同：`83424FE85120F6EAAC0891654A4C39D5311C9E922124B6EC54BC46719F2DA151`。Ops `datasource_service.go:387/458` 与 `notification_service.go:286` 实际调用这个 helper。因此这是共享底座及消费者真实风险，不是只存在于未使用的安全工具。
+
+外部利用仍需要控制可请求 URL/域名或其 DNS 等条件；本轮没有攻击部署中的 Ops，也没有验证网络 egress policy。正确修复是解析一次、筛选 IP、拨号已经验证的地址，保留原 Host/TLS SNI，覆盖 IPv4/IPv6、多地址与重定向。不能删除 helper 或仅增加一个只检文本的 checker。
+
+### 5.2 认证及安全信号
+
+Cookie、TokenAuth、CSRF、CORS、rate-limit、MFA、operation token、上传对象授权和 audit metadata 有独立 owner 与测试入口；不能因为存在防护源码就宣布系统无漏洞。安全扫描依赖最新外部数据，本轮未知。PB-002 是 npm audit 的退出码门禁缺陷，实际当前漏洞数量未知。
+
+PB-003：Refresh 路径依次 GET 校验旧 token、保存/签发新 pair、DEL 旧 token。删除失败只 Warn，没有原子消费旧 token 的证据。两个请求同时验证可能获得两个有效 pair，但本轮未用真实 Redis/DB 复现，必须保留“高风险疑点”标签。验证应覆盖两个实例、并发请求、DEL/存储失败、会话撤销和合法重试，之后选择最小修复。
+
+### 5.3 租户边界
+
+平台全局菜单/权限不按 tenant_id 列过滤是已批准模型：租户差异由 Casbin domain 表达，全局写入口有 platform capability。它不是“看到列却没加过滤”的自动缺陷。系统路由 TokenAuth → PlatformScopeTenantContext → Casbin → 可选 Capability/DataScope/RefreshSync；业务 ProtectedGroup/DataScopedGroup 没挂 tenant-context 是 V1 明示边界。
+
+刷新角色读取使用 `GetUserRoles`、切换使用 `GetUserRolesForTenant`，存在未来扩展到异租户 role binding 时的语义风险。但是 V1 现有 owning-tenant、membership 和候选租户限制收窄了可达状态，本轮没有确认当前跨租户越权。**不计为确定 P1，不为修复此疑点扩大跨租户授权功能。**
+
+本轮没有运行完整 DB-backed hostile tenant suite，不给“所有租户隔离已认证”的结论。对于删除 tenant/scoper 公共 API、改变 route-group 链或重写权限模型，Ops 升级风险高，必须 Base-first 及消费者验证。
+
+## 6. 数据库与性能分析
+
+`pkg/database/migrate.go` 使用内嵌版本化 SQL 与 schema markers；当前 runtime baseline 为 24，已包含租户核心表修复说明。旧 `database/system_init.sql` 是 deprecated 参考，Compose 不再挂载。当前指南对平台表禁止生产 AutoMigrate，同时明确生成业务表在 Bootstrap 中仍有例外。不能把例外误判为规则被完全绕过，也不能反向修改代码去迎合旧 DDL 文档。
+
+| 项目 | 判定 | 依据与剩余验证 |
+| --- | --- | --- |
+| migrations 与兼容 bootstrap | 有实现和既有回归测试 | `pkg/database/migrate.go`、`migrate_test.go`；本轮真实旧库→新库迁移跳过，冻结前用目标数据库版本验一次 |
+| SQL 参数绑定、租户/数据 scope | 已有统一入口 | `pkg/database/`、`pkg/tenant/` 和具体 repositories；没有把静态检查当全库 SQL 注入认证 |
+| CSV 导入上限 | 10 MiB / 5,000 数据行 | `pkg/impexp/csv.go:17/20`；负载超限有公共错误语义 |
+| 同步导出上限 | 10,000 行公共 cap | `pkg/impexp/export_limits.go:5`；超量场景需要明确错误，不要求本轮增加异步报表系统 |
+| Dashboard 查询 | 固定聚合项、最近登录 Limit(20) | `modules/platform/dashboard_service.go:143` 附近；含多个 COUNT/HasTable 与会话清理，只有静态观察，没有慢查询实测 |
+| 分页聚合 helper | 已有修复，不重复列缺陷 | `frontend/src/shared/utils/fetchAllPages.ts`；旧审计关于只取一页的泛化结论不能继续沿用 |
+| 生产性能与索引充足性 | 证据不足 | 未测 P95、CPU、DB连接池、真实数据规模/EXPLAIN；不能凭 COUNT 或循环断言性能故障 |
+
+性能治理应从现有慢日志和明确的用户容量目标开始。没有测量证据时，不建议引入查询缓存、异步任务队列、分库分表或大量新索引。迁移/索引删除会影响 Ops 的快照 schema 与业务表，应明确数据兼容和回滚成本。
+
+## 7. 前端质量与 UI 分析
+
+type-check、lint、build、218 个 Vitest 测试及 prebuild 的菜单/i18n/UI/SearchToolbar 等检查通过，说明现态代码具有可构建性和较完整的自动约束。登录页桌面与手机截图清晰，无已观察到的布局溢出或 pageerror，作为本轮限定的视觉通过证据。
+
+[桌面登录截图](../../.harness/evidence/2026-11-05-base-freeze-release/audit-screenshots/login-desktop.png) 与 [手机登录截图](../../.harness/evidence/2026-11-05-base-freeze-release/audit-screenshots/login-mobile.png) 已作为原始证据附件纳入 Base 仓库，单仓库检出与正式快照均可访问。
+
+| 前端项目 | 结论 |
+| --- | --- |
+| Arco 与共享 token/骨架 | 保留；真实使用，不建议换 UI 库 |
+| 搜索筛选模式 | 实态 SearchToolbar；旧 FilterPanel 强制模板应更新文档，而非逆向重写页面 |
+| 登录页面响应式 | 本轮渲染通过 |
+| i18n、菜单注册与权限守卫 | 静态/单元检查通过；受权限保护页面真实交互尚未验 |
+| 暗色模式 | 有当前实现，英文文档过期；本轮暗色渲染证据不足 |
+| loading/empty/error/forbidden/submitting 与可访问性 | 规范和公共组件已有，不能由登录截图推断全页覆盖通过 |
+| 大表格、导入导出、双导航/多 tab | 本轮未覆盖真实渲染和全套交互，不根据静态样式声称精修完成 |
+
+没有证据支持把当前 UI 全面重做作为冻结前置条件。冻结前只补真实核心链路验收和明确影响用户的缺陷，保留用户需求未要求的视觉优化在 backlog。
+
+## 8. 文档资产治理与代码一致性分析
+
+### 8.1 文档资产总览与统计口径
+
+全仓盘点覆盖 root、docs、.agents、.claude、.github、.harness、backend、frontend、database、releases 及其他说明文件，不只 README。排除 `.git`、dependencies、dist、coverage、缓存/临时运行输出等；未发现需要解析的 PDF/DOCX 本体。包含本地忽略的 release 历史物料，Git 跟踪与本地资产分别保留来源标签。
+
+每项正文、frontmatter、SHA256、Markdown 引用和可解析代码路径已扫描。核心逐项检查补充保存为 `audit-artifacts/base-global-audit-2026-11-04/core-claim-checks.json`，覆盖全部 236 份核心文件的 4,129 个现态/规范段落、1,176 条代码路径及 248 个 npm 命令；每个文件独立登记声明、代码路径、脚本与双语状态。缺失示例、下游命令、历史记录和计划项经上下文排除，剩余明确失效命令登记到局部漂移清单。236 份核心入口/合同/设计/验收/Harness 文件逐项列矩阵和声明定位，中英文分开计数；没有用少量抽样推导整体健康。**关键条款已确认的文件与尚未充分裁定的文件明确分区；不能把自动路径扫描冒充全部条款语义认证。** 历史凭证真实性没有通过重新执行每个旧任务验证。
+
+| 指标 | 实际数量与口径 |
+| --- | --- |
+| 1. 文档数量和主要类型 | 1355；1341 Markdown + 14 TXT。类型与目录分组见下表 |
+| 2. 当前有效文档数量（明确核查） | 47；仅确认关键条款/用途，不是全库有效总数 |
+| 3. 已经过期（整份） | 0 个已确认；未知资产未计入0，不能解释为仓库无过期文档 |
+| 4. 部分过期 | 56，含局部陈述/命令/链接失效；逐项清单如下 |
+| 5. 与代码不一致 | 38；明确陈述与实际代码/配置矛盾。失效链接独立统计 |
+| 6. 存在冲突 | 27；单份内部或跨权威文件的明确冲突，按物理文件计 |
+| 7. 重复文档 | 12 个文件 / 6 组 / 6 个冗余副本；只统计精确字节重复 |
+| 8. 建议归档 | 3 个新增建议；已有 Archived 不重复算建议 |
+| 9. 建议删除 | 0；没有足够证据支持本轮删除任何资产 |
+| 尚未充分裁定有效性 | 1252；其中历史资产不可直接计为无效；核心仍有 136 项关键语义待充分复核 |
+| 全量核心逐项矩阵 | 236 项（根入口、docs根指南、contracts/designs/acceptances/harness直属文档，中英文分别计）；不以抽样证明整体健康 |
+| 链接失效 | 38 次 / 12 份；本轮实际checker输出 |
+| 图上未解析到入链 | 1041；只是候选集合，不声称全部孤立或应删除 |
+
+
+| 区域 | 资产数 |
+| --- | --- |
+| .agents | 18 |
+| .claude | 1 |
+| .github | 4 |
+| .harness | 735 |
+| (root) | 11 |
+| backend | 2 |
+| database | 1 |
+| docs | 447 |
+| frontend | 5 |
+| grafana | 1 |
+| k8s | 1 |
+| releases | 126 |
+| scripts | 3 |
+
+
+| 声明文档类型 | 实际数量 |
+| --- | --- |
+| 未声明doc_type | 1023 |
+| Plan | 1 |
+| Acceptance | 33 |
+| Design | 132 |
+| Assessment | 9 |
+| Remediation | 109 |
+| Contract | 48 |
+
+
+1,023 项未声明 doc_type 不自动等于违规，历史资产和覆盖例外需要按当前治理合同判断。
+
+统计说明：有效性四类是互斥分区；不一致、冲突、重复及失效链接是可重叠属性，不能相加作为问题文件总数。“0 个已确认整份过期”是确认集计数，不是全库过期总数等于 0。未裁定资产的有效性总数未知，本文拒绝估算。文档 status:Active 也不自动代表产品功能已实现。
+
+盘点基线排除本轮新增的主报告和资产附表；报告交付时仓库会因此多出 2 份 Markdown，不能回填分母造成循环。图上未解析到入链的文档仅是候选，不称全部孤立，因为脚本、backtick、YAML、外部链接与下游调用不在该解析器范围内。
+
+### 8.2 过期与部分过期清单
+
+没有足够证据将任何一整份文档全部判废；明确确认的局部漂移如下。处理前已先判断实现/文档：JWT、模块目录、manifest、版本号与退役模板的现态错误应修文档；刷新轮换和 SSRF 的安全承诺应验证/修实现，不能改文案让缺陷“消失”。
+
+| 文档 | 具体问题 | 代码/配置证据 | 建议 |
+| --- | --- | --- | --- |
+| DESIGN.en.md | §3.4 使用 JWT tenant_id claim；实际为 Redis SessionData.TenantID | backend/pkg/authtoken/token.go；逐项范围：DESIGN.en.md:1 Pantheon Base Enterprise Backoffice Design / DESIGN.en.md:7 Core Intent / DESIGN.en.md:15 Layer Model / DESIGN.en.md:33 Enterprise Capability Direction / DESIGN.en.md:40 Multi-Tenancy (Delivered; The Contract Is Authoritative)；关键声明定位：DESIGN.en.md:42 The Chinese design document carries the full chapter (`DESIGN.md` section 3.4). The single source of truth for tenant semantics is &#91;`docs/contracts/TENANT_CONTRACT_V1.en. / DESIGN.en.md:55 - permissions must stay separated across menu, page, action, and API layers / DESIGN.en.md:57 - frontend text must stay fully localized；完整关键声明/命令定位ledger：core-claim-checks.json；6个现态/规范段落、1条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；DESIGN.en.md:46；token.go:76、91 | UPDATE |
+| DESIGN.md | §4.1 仍要求从当前 system/user 拆出；§3.4 称 JWT claim，而 §4.3/§9 已登记物理拆分 | backend/modules/auth/module.go; backend/pkg/authtoken/token.go；逐项范围：DESIGN.md:1 Pantheon Base - 企业级后台总体设计 / DESIGN.md:16 1. 产品定位 / DESIGN.md:25 2. 分层与模块边界 / DESIGN.md:27 2.1 建议的逻辑分层 / DESIGN.md:35 2.2 系统底座建议拆分的能力域；关键声明定位：DESIGN.md:87 审计（AUD-004）指出本节把已交付与未实现混排成一份「未来清单」，读者无法据此判断现状。现改为逐项现状表：每行的判据都是目录或 `grep` 能复核的，不是叙述。 / DESIGN.md:91 \| 多租户 \| **已交付**（`compat` / `multi` 双模；配额只度量与展示） \| 见 §3.4 与 &#91;租户合同 V1&#93;(./docs/contracts/TENANT_CONTRACT_V1.md)；代码在 `backend/pkg/tenant/`、`backend/modules/system/iam/tenant/ / DESIGN.md:92 \| MFA / TOTP 与高敏二次验证 \| **已交付** \| `backend/modules/auth/`（login / security 路径）；安全中心页面；§8「当前实现状态判断」与 §9 P0 第 1 条 \| / DESIGN.md:93 \| 数据权限 \| **已交付** \| 角色数据范围策略 + `dept_and_children` 部门树展开（§9 P2 第 8 条）；`backend/modules/system/iam/permission/`；`docs/designs/DATA_PERMISSION_HOOK.md` \|；完整关键声明/命令定位ledger：core-claim-checks.json；43个现态/规范段落、29条字面代码路径、1个npm命令已逐项登记；不自动把缺失示例路径判缺陷；DESIGN.md:111、140、160、404；token.go:76；auth/ 与 iam/ 当前目录 | UPDATE |
+| docs/DEV_DB_INIT_GUIDE.md | 从仓库根 go run ./backend/cmd/server，根目录没有 go.mod | backend/go.mod; backend/cmd/server/main.go；逐项范围：docs/DEV_DB_INIT_GUIDE.md:1 Pantheon Base 开发环境数据库初始化指南 / docs/DEV_DB_INIT_GUIDE.md:3 问题描述 / docs/DEV_DB_INIT_GUIDE.md:7 根本原因 / docs/DEV_DB_INIT_GUIDE.md:9 字段名不一致问题 / docs/DEV_DB_INIT_GUIDE.md:30 执行流程分析；关键声明定位：docs/DEV_DB_INIT_GUIDE.md:32 1. **默认模式** (`PANTHEON_AUTO_MIGRATE=false`): / docs/DEV_DB_INIT_GUIDE.md:201 # 获取当前用户菜单 / docs/DEV_DB_INIT_GUIDE.md:210 1. 登录系统（默认账号 admin / 密码 123456）；完整关键声明/命令定位ledger：core-claim-checks.json；3个现态/规范段落、6条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；DEV_DB_INIT_GUIDE.md:68-89；本轮正确 backend cwd 已验证 | UPDATE |
+| docs/VERSION_MANAGEMENT_GUIDE.md | 当前版本 v0.10.26；要求 npm run check:base-sync，而 Base package 无此脚本 | VERSION; package.json; scripts/foundation-release；逐项范围：docs/VERSION_MANAGEMENT_GUIDE.md:12 Pantheon Base - 版本管理指南 / docs/VERSION_MANAGEMENT_GUIDE.md:14 1. 版本策略概述 / docs/VERSION_MANAGEMENT_GUIDE.md:25 2. 语义化版本规则 / docs/VERSION_MANAGEMENT_GUIDE.md:27 2.1 版本号含义 / docs/VERSION_MANAGEMENT_GUIDE.md:37 2.2 Major 版本（破坏性变更）；关键声明定位：docs/VERSION_MANAGEMENT_GUIDE.md:19 - **当前版本**: `pantheon-base-v0.10.26` / docs/VERSION_MANAGEMENT_GUIDE.md:354 - &#91; &#93; 运行 `npm run check:base-sync` / docs/VERSION_MANAGEMENT_GUIDE.md:475 npm run check:base-sync；完整关键声明/命令定位ledger：core-claim-checks.json；4个现态/规范段落、2条字面代码路径、2个npm命令已逐项登记；不自动把缺失示例路径判缺陷；文档:19、354、475；VERSION=0.18.2；当前 package scripts 与 Ops lock | UPDATE |
+| docs/contracts/SYSTEM_IAM_CONTRACT.en.md | go test ./backend/modules/system/permission | backend/go.mod; backend/modules/system/iam/permission；逐项范围：docs/contracts/SYSTEM_IAM_CONTRACT.en.md:9 system/iam Contract / docs/contracts/SYSTEM_IAM_CONTRACT.en.md:17 1. Background / docs/contracts/SYSTEM_IAM_CONTRACT.en.md:33 2. Ownership Layer / docs/contracts/SYSTEM_IAM_CONTRACT.en.md:52 3. Goals / docs/contracts/SYSTEM_IAM_CONTRACT.en.md:63 4. Non-Goals；关键声明定位：docs/contracts/SYSTEM_IAM_CONTRACT.en.md:59 4. the rule that menus, permissions, routes, i18n, and seeds must be registered together during module onboarding / docs/contracts/SYSTEM_IAM_CONTRACT.en.md:122 - user CRUD must not take back ownership of the auth primary path / docs/contracts/SYSTEM_IAM_CONTRACT.en.md:127 - user language preference participates in runtime resolution only when the current session has no explicit language override / docs/contracts/SYSTEM_IAM_CONTRACT.en.md:132 - navigation permissions, page permissions, button permissions, and API permissions must remain distinct layers；完整关键声明/命令定位ledger：core-claim-checks.json；25个现态/规范段落、1条字面代码路径、2个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:247；英文:223；Go module 在 backend，包在 modules/system/iam/permission | UPDATE |
+| docs/contracts/SYSTEM_IAM_CONTRACT.md | go test ./backend/modules/system/permission | backend/go.mod; backend/modules/system/iam/permission；逐项范围：docs/contracts/SYSTEM_IAM_CONTRACT.md:18 system/iam 合同文档 / docs/contracts/SYSTEM_IAM_CONTRACT.md:41 1. 背景 / docs/contracts/SYSTEM_IAM_CONTRACT.md:57 2. 归属层 / docs/contracts/SYSTEM_IAM_CONTRACT.md:76 3. 目标 / docs/contracts/SYSTEM_IAM_CONTRACT.md:87 4. 非目标；关键声明定位：docs/contracts/SYSTEM_IAM_CONTRACT.md:147 - `system_user.preference_json.language` 归属长期用户偏好，不代表每次会话都必须强制覆盖当前登录语言 / docs/contracts/SYSTEM_IAM_CONTRACT.md:151 - 用户语言偏好只在“当前会话没有显式语言覆盖”时参与运行时解析 / docs/contracts/SYSTEM_IAM_CONTRACT.md:173 - `workbench` 首屏必须支持按角色浏览完整授权结果，不能用默认过滤把 `clean` 角色直接隐藏 / docs/contracts/SYSTEM_IAM_CONTRACT.md:192 - 用户、角色、权限等治理列表的选择集绑定当前查询上下文，而不是绑定当前页；完整关键声明/命令定位ledger：core-claim-checks.json；24个现态/规范段落、1条字面代码路径、2个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:247；英文:223；Go module 在 backend，包在 modules/system/iam/permission | UPDATE |
+| docs/designs/ALERT_MONITORING_CENTER_DESIGN.en.md | 英文 status: Active；中文 Draft 且有未实现声明 | backend/modules/platform; frontend/src/modules/platform；逐项范围：docs/designs/ALERT_MONITORING_CENTER_DESIGN.en.md:12 Alert and Monitoring Center Design / docs/designs/ALERT_MONITORING_CENTER_DESIGN.en.md:18 1. Design Goals / docs/designs/ALERT_MONITORING_CENTER_DESIGN.en.md:24 2. Non-Goals / docs/designs/ALERT_MONITORING_CENTER_DESIGN.en.md:32 3. Ownership Boundary / docs/designs/ALERT_MONITORING_CENTER_DESIGN.en.md:34 3.1 What `platform` Owns；关键声明定位：docs/designs/ALERT_MONITORING_CENTER_DESIGN.en.md:84 At minimum, the platform must distinguish:；完整关键声明/命令定位ledger：core-claim-checks.json；1个现态/规范段落、0条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中英文frontmatter:5；中文:14-15；实际平台模块未提供对应独立中心 | UPDATE |
+| docs/designs/APPROVAL_WORKFLOW_DESIGN.en.md | 不能把未批准或未实现条款列为当前功能故障；missing internal link target: ./APPROVAL_WORKFLOW_DB_DESIGN.en.md；missing internal link target: ./APPROVAL_WORKFLOW_DB_DESIGN.md；missing internal link target: ./APPROVAL_WORKFLOW_API_CONTRACT.en.md；missing internal link target: ./APPROVAL_WORKFLOW_API_CONTRACT.md；missing internal link target: ./APPROVAL_WORKFLOW_TEST_PLAN.en.md；missing internal link target: ./APPROVAL_WORKFLOW_TEST_PLAN.md | backend/pkg/contracts/route_groups.go; backend/modules/system/refresh_sync.go; backend/modules/auth/security/security_service.go; backend/modules/system/seed.go；逐项范围：docs/designs/APPROVAL_WORKFLOW_DESIGN.en.md:13 Approval Workflow Skeleton Design / docs/designs/APPROVAL_WORKFLOW_DESIGN.en.md:48 1. Design Goals / docs/designs/APPROVAL_WORKFLOW_DESIGN.en.md:56 2. Non-Goals / docs/designs/APPROVAL_WORKFLOW_DESIGN.en.md:65 3. Ownership Boundary / docs/designs/APPROVAL_WORKFLOW_DESIGN.en.md:67 3.1 What `platform` Owns；关键声明定位：docs/designs/APPROVAL_WORKFLOW_DESIGN.en.md:34 \| &#91;Approval workflow test plan&#93;(./APPROVAL_WORKFLOW_TEST_PLAN.en.md) (Chinese: &#91;APPROVAL_WORKFLOW_TEST_PLAN.md&#93;(./APPROVAL_WORKFLOW_TEST_PLAN.md)) \| acceptance criteria t / docs/designs/APPROVAL_WORKFLOW_DESIGN.en.md:39 The current goal is not to build a full BPM platform. The goal is to converge on: / docs/designs/APPROVAL_WORKFLOW_DESIGN.en.md:87 - `modules/business/*` must not import `Service` / `Repository` of `modules/system/*` (`docs/DESIGN.md` §2.3). A business domain joins the approval center only through th / docs/designs/APPROVAL_WORKFLOW_DESIGN.en.md:88 - Route-group middleware chains are contractual: business routes use `contracts.ProtectedGroup` / `contracts.DataScopedGroup` (`backend/pkg/contracts/route_groups.go`, ch；完整关键声明/命令定位ledger：core-claim-checks.json；78个现态/规范段落、27条字面代码路径、1个npm命令已逐项登记；不自动把缺失示例路径判缺陷；check-doc-links实际输出 | UPDATE |
+| docs/designs/APPROVAL_WORKFLOW_DESIGN.md | 不能把未批准或未实现条款列为当前功能故障；missing internal link target: ./APPROVAL_WORKFLOW_DB_DESIGN.md；missing internal link target: ./APPROVAL_WORKFLOW_API_CONTRACT.md；missing internal link target: ./APPROVAL_WORKFLOW_TEST_PLAN.md | backend/pkg/contracts/route_groups.go; backend/modules/system/refresh_sync.go; backend/modules/auth/security/security_service.go; backend/modules/system/seed.go；逐项范围：docs/designs/APPROVAL_WORKFLOW_DESIGN.md:13 审批流骨架设计 / docs/designs/APPROVAL_WORKFLOW_DESIGN.md:42 1. 设计目标 / docs/designs/APPROVAL_WORKFLOW_DESIGN.md:50 2. 非目标 / docs/designs/APPROVAL_WORKFLOW_DESIGN.md:59 3. 归属边界 / docs/designs/APPROVAL_WORKFLOW_DESIGN.md:61 3.1 `platform` 负责；关键声明定位：docs/designs/APPROVAL_WORKFLOW_DESIGN.md:15 &gt; 未实现声明：本文为设计稿，仓库内尚无对应实现；在实现落地前状态保持 Draft。 / docs/designs/APPROVAL_WORKFLOW_DESIGN.md:40 当前目标不是直接建设通用 BPM 平台，而是先收口“待审批 / 已处理 / 我的提交”的统一产品位、接入契约和审计语义。 / docs/designs/APPROVAL_WORKFLOW_DESIGN.md:52 当前阶段不做： / docs/designs/APPROVAL_WORKFLOW_DESIGN.md:95 - `currentStep`；完整关键声明/命令定位ledger：core-claim-checks.json；63个现态/规范段落、28条字面代码路径、1个npm命令已逐项登记；不自动把缺失示例路径判缺陷；check-doc-links实际输出 | UPDATE |
+| docs/designs/AUTH_MODULE_DESIGN.md | §3 的 system/user 混合现状；:430 JWT 签发；:597 JWT 中间件查会话表 | backend/modules/auth/login/login_runtime.go; backend/internal/middleware/token_middleware.go；逐项范围：docs/designs/AUTH_MODULE_DESIGN.md:11 Auth 模块拆分设计 / docs/designs/AUTH_MODULE_DESIGN.md:17 1. 设计目标 / docs/designs/AUTH_MODULE_DESIGN.md:24 2. 拆分结论 / docs/designs/AUTH_MODULE_DESIGN.md:37 3. 当前问题 / docs/designs/AUTH_MODULE_DESIGN.md:58 4. 目标模块边界；关键声明定位：docs/designs/AUTH_MODULE_DESIGN.md:15 本文用于把”认证与会话”从当前 `system/user` 混合实现中拆分为独立能力域，目标是在项目早期就锁定边界，避免后期继续把登录、用户管理、角色权限、安全策略揉成一个模块。 / docs/designs/AUTH_MODULE_DESIGN.md:21 - **易于扩展**：当前已接入 TOTP MFA，并为后续验证码、SSO、登录设备、安全策略、租户登录做好演进空间。 / docs/designs/AUTH_MODULE_DESIGN.md:22 - **先逻辑拆分，后代码实现**：当前已完成 `auth` 物理模块与 TOTP MFA 主链路，后续按边界继续演进 SSO、风控和租户登录。 / docs/designs/AUTH_MODULE_DESIGN.md:35 也就是说，当前阶段要把“认证域”从“系统管理域”中独立建模，而不是立刻拆成独立服务。；完整关键声明/命令定位ledger：core-claim-checks.json；69个现态/规范段落、8条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；AUTH_MODULE_DESIGN.md:39、430、597；同文档 §9.1 已称物理拆分完成 | UPDATE |
+| docs/designs/BACKEND.en.md | Casbin bootstrapped by SQL initialization，未限定旧 SQL 不再建库 | backend/pkg/database/migrations; docker-compose.yml；逐项范围：docs/designs/BACKEND.en.md:12 Backend Architecture Design and Development Rules / docs/designs/BACKEND.en.md:18 1. Core Architecture: Modular Monolith / docs/designs/BACKEND.en.md:22 2. Development Pattern: Vertical Slices / docs/designs/BACKEND.en.md:26 2.1 Expected Slice Shape / docs/designs/BACKEND.en.md:34 3. Layer Responsibilities；关键声明定位：docs/designs/BACKEND.en.md:24 Each feature package must own its full stack. Do not split a domain into horizontal folders that mix unrelated features. / docs/designs/BACKEND.en.md:37 - `DTO`: transport contract, must mask sensitive fields / docs/designs/BACKEND.en.md:57 - Runtime database support is now MySQL-only; `PANTHEON_DSN` must be a valid MySQL DSN. / docs/designs/BACKEND.en.md:66 The current API surface covers:；完整关键声明/命令定位ledger：core-claim-checks.json；19个现态/规范段落、1条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；BACKEND.en.md:45；database/README.md:23、29 与 DATABASE.md:105 | UPDATE |
+| docs/designs/BACKEND.md | dashboard 位于 backend/modules/dashboard/ | backend/modules/platform/dashboard_service.go；逐项范围：docs/designs/BACKEND.md:12 后端架构设计与开发规范 / docs/designs/BACKEND.md:16 1. 架构核心：模块化单体 (Modular Monolith) / docs/designs/BACKEND.md:20 2. 功能开发模式：垂直切片 (Vertical Slices) / docs/designs/BACKEND.md:24 2.1 垂直切片文件构成 (以 user 为例) / docs/designs/BACKEND.md:32 3. 分层职责；关键声明定位：docs/designs/BACKEND.md:42 - **会话**: `system_user_session` 保存 refresh token 当前 JTI，刷新时轮换 JTI，注销时吊销会话；同时记录 `last_activity_at`，用于空闲超时判定。 / docs/designs/BACKEND.md:43 - **权限**: Access Token 携带 `userId`、`username`、`roleKeys`、`sessionId`；Casbin 按 RESTful 路由匹配，`admin` 角色默认拥有 `/api/v1/*` 权限。 / docs/designs/BACKEND.md:46 - **Casbin 多实例广播**: `PANTHEON_CASBIN_WATCHER=true` 且 Redis 可用时，策略写入会通过 Redis watcher 广播到其他实例并触发 `LoadPolicy()`；默认关闭时单实例行为不变。 / docs/designs/BACKEND.md:47 - **会话缓存开关**: `PANTHEON_TOKEN_CACHE_TTL_SECONDS` 控制 token 进程内缓存 TTL，默认 60 秒，设为 `0` 时禁用进程内缓存，所有校验直接走 Redis。；完整关键声明/命令定位ledger：core-claim-checks.json；75个现态/规范段落、4条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；BACKEND.md:53；当前 platform 目录，dashboard 目录不存在 | UPDATE |
+| docs/designs/DARK_MODE_DESIGN.en.md | 明确称 only light mode、无 data-color-mode/暗色token，状态仍 Draft | frontend/src/core/theme/colorMode.ts; frontend/src/index.css；逐项范围：docs/designs/DARK_MODE_DESIGN.en.md:11 Dark Mode Design / docs/designs/DARK_MODE_DESIGN.en.md:19 1. Design Goals / docs/designs/DARK_MODE_DESIGN.en.md:31 2. Token Inversion Strategy / docs/designs/DARK_MODE_DESIGN.en.md:49 3. Brand-Color Adjustment Rules / docs/designs/DARK_MODE_DESIGN.en.md:60 4. Elements That Cannot Be Naively Inverted；关键声明定位：docs/designs/DARK_MODE_DESIGN.en.md:15 This document is kept as a future design note. The current runtime only ships light mode with four theme keys. There is no `data-color-mode`, no dark token set, and no da / docs/designs/DARK_MODE_DESIGN.en.md:87 The current runtime does **not** provide a switch. If this is restored later: / docs/designs/DARK_MODE_DESIGN.en.md:109 Everything below is currently unshipped:；完整关键声明/命令定位ledger：core-claim-checks.json；10个现态/规范段落、0条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；英文:15；中文:15；colorMode.ts:47-52；index.css:269 | UPDATE |
+| docs/designs/DATA_PERMISSION_HOOK.en.md | multi-role merge rules 写 future work；没有中文已实现合并规则 | backend/internal/middleware/data_scope_middleware.go；逐项范围：docs/designs/DATA_PERMISSION_HOOK.en.md:11 Data Permission Hook / docs/designs/DATA_PERMISSION_HOOK.en.md:17 1. Core Contract / docs/designs/DATA_PERMISSION_HOOK.en.md:19 1.1 Data Structure / docs/designs/DATA_PERMISSION_HOOK.en.md:23 1.2 GORM Hook / docs/designs/DATA_PERMISSION_HOOK.en.md:27 2. Usage Examples；关键声明定位：docs/designs/DATA_PERMISSION_HOOK.en.md:39 This hook is the current extension point for richer data-scope strategy evolution. / docs/designs/DATA_PERMISSION_HOOK.en.md:43 Future work must define how multiple role scopes merge safely and predictably.；完整关键声明/命令定位ledger：core-claim-checks.json；5个现态/规范段落、0条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；DATA_PERMISSION_HOOK.en.md:37、42；中文版 §3.1 与实现 | UPDATE |
+| docs/designs/DATA_PERMISSION_HOOK.md | JWTAuthMiddleware；占位描述与已实现条款混排 | backend/internal/middleware/data_scope_middleware.go; backend/pkg/contracts/route_groups.go；逐项范围：docs/designs/DATA_PERMISSION_HOOK.md:11 数据权限架构钩子 (Data Permission Hook) / docs/designs/DATA_PERMISSION_HOOK.md:17 1. 核心契约 / docs/designs/DATA_PERMISSION_HOOK.md:19 1.1 数据结构 (`backend/pkg/common/data_scope.go`) / docs/designs/DATA_PERMISSION_HOOK.md:22 1.2 GORM 钩子 (`backend/pkg/database/scope.go`) / docs/designs/DATA_PERMISSION_HOOK.md:26 2. 使用范例；关键声明定位：docs/designs/DATA_PERMISSION_HOOK.md:20 - `DataScopeReq`: 封装了当前用户的身份标识（UserID, DeptID, RoleKeys）以及资源标识。 / docs/designs/DATA_PERMISSION_HOOK.md:49 当前已补齐的 P2 基线： / docs/designs/DATA_PERMISSION_HOOK.md:54 4. **脚手架集成**：业务模块生成器已提供 `enableDataScope` / `dataScopeMode` 契约，新生成模块可默认包含数据权限注入点。 / docs/designs/DATA_PERMISSION_HOOK.md:55 5. **部门树展开**：`dept_and_children` 已基于 `system_dept.ancestors` 展开当前部门及下级部门，并写入 `DataScopeReq.DeptIDs`。；完整关键声明/命令定位ledger：core-claim-checks.json；9个现态/规范段落、2条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；DATA_PERMISSION_HOOK.md:51；route_groups.go 的 TokenAuth 链；策略失败拒绝见 data_scope_middleware.go:117 | UPDATE |
+| docs/designs/DICT_AND_SETTING_DESIGN.en.md | backend/modules/system/dict/、system/setting/ | backend/modules/system/config/dict; backend/modules/system/config/setting；逐项范围：docs/designs/DICT_AND_SETTING_DESIGN.en.md:11 Dictionary and System Setting Design / docs/designs/DICT_AND_SETTING_DESIGN.en.md:24 1. Design Goals / docs/designs/DICT_AND_SETTING_DESIGN.en.md:32 2. Capability Boundaries / docs/designs/DICT_AND_SETTING_DESIGN.en.md:34 2.1 Dictionary Management Owns / docs/designs/DICT_AND_SETTING_DESIGN.en.md:43 2.2 System Setting Owns；关键声明定位：docs/designs/DICT_AND_SETTING_DESIGN.en.md:17 Current baseline closure already covers: / docs/designs/DICT_AND_SETTING_DESIGN.en.md:110 ### 4.6 Current Dictionary Workbench Constraints / docs/designs/DICT_AND_SETTING_DESIGN.en.md:115 - exports follow the current filter context, not the current page slice / docs/designs/DICT_AND_SETTING_DESIGN.en.md:121 The current recommended table is `system_generator_datasource`, with encrypted passwords, readonly metadata-only scope, connection-check audit fields, and first-phase MyS；完整关键声明/命令定位ledger：core-claim-checks.json；18个现态/规范段落、4条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:85-86；英文:68-69；当前目录 | UPDATE |
+| docs/designs/DICT_AND_SETTING_DESIGN.md | backend/modules/system/dict/、system/setting/ | backend/modules/system/config/dict; backend/modules/system/config/setting；逐项范围：docs/designs/DICT_AND_SETTING_DESIGN.md:11 字典与系统设置设计 / docs/designs/DICT_AND_SETTING_DESIGN.md:35 1. 设计目标 / docs/designs/DICT_AND_SETTING_DESIGN.md:43 2. 能力边界 / docs/designs/DICT_AND_SETTING_DESIGN.md:45 2.1 字典管理负责 / docs/designs/DICT_AND_SETTING_DESIGN.md:54 2.2 系统设置负责；关键声明定位：docs/designs/DICT_AND_SETTING_DESIGN.md:22 当前落地状态： / docs/designs/DICT_AND_SETTING_DESIGN.md:24 - `system/setting` 已完成基础闭环：模型、迁移、默认配置、公开读取、管理端分组读取与保存、前端设置页、设置缓存刷新； / docs/designs/DICT_AND_SETTING_DESIGN.md:25 - `system/dict` 已完成基础闭环：模型、迁移、默认种子、字典类型/字典项 CRUD、公共 options 接口、前端双标签工作台、字典项服务端分页筛选、类型项数统计、options 缓存刷新； / docs/designs/DICT_AND_SETTING_DESIGN.md:27 - `system/setting` 已补配置健康总览：可直接查看公开配置数量、敏感配置数量、缺失必填项、运行时风险与当前驱动/语言/主题摘要。；完整关键声明/命令定位ledger：core-claim-checks.json；52个现态/规范段落、4条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:85-86；英文:68-69；当前目录 | UPDATE |
+| docs/designs/FOUNDATION_RELEASE_MODEL.en.md | 当前发布版本 v0.10.26 / release/0.10 | VERSION; ../pantheon-ops/foundation-release.lock.json；逐项范围：docs/designs/FOUNDATION_RELEASE_MODEL.en.md:11 Foundation Release Model / docs/designs/FOUNDATION_RELEASE_MODEL.en.md:17 1. Goal / docs/designs/FOUNDATION_RELEASE_MODEL.en.md:36 2. Core Rules / docs/designs/FOUNDATION_RELEASE_MODEL.en.md:38 2.1 `main` is not the consumer interface / docs/designs/FOUNDATION_RELEASE_MODEL.en.md:42 2.2 release is the consumer interface；关键声明定位：docs/designs/FOUNDATION_RELEASE_MODEL.en.md:19 `pantheon-base` must support both: / docs/designs/FOUNDATION_RELEASE_MODEL.en.md:58 ### 2.4 Current release and branch policy / docs/designs/FOUNDATION_RELEASE_MODEL.en.md:60 - Current published version: &#91;`pantheon-base-v0.10.26`&#93;(https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.10.26). / docs/designs/FOUNDATION_RELEASE_MODEL.en.md:61 - Current release line: `release/0.10`, used only for manifest, compatibility, and consumer records.；完整关键声明/命令定位ledger：core-claim-checks.json；16个现态/规范段落、3条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:73；英文:60；VERSION=0.18.2，Ops 锁定 v0.18.2 | UPDATE |
+| docs/designs/FOUNDATION_RELEASE_MODEL.md | 当前发布版本 v0.10.26 / release/0.10 | VERSION; ../pantheon-ops/foundation-release.lock.json；逐项范围：docs/designs/FOUNDATION_RELEASE_MODEL.md:11 Foundation Release Model / docs/designs/FOUNDATION_RELEASE_MODEL.md:17 1. 目标 / docs/designs/FOUNDATION_RELEASE_MODEL.md:36 2. 核心原则 / docs/designs/FOUNDATION_RELEASE_MODEL.md:38 2.1 `main` 不是消费接口 / docs/designs/FOUNDATION_RELEASE_MODEL.md:53 2.2 release 才是消费接口；关键声明定位：docs/designs/FOUNDATION_RELEASE_MODEL.md:24 因此默认模型应从： / docs/designs/FOUNDATION_RELEASE_MODEL.md:40 `pantheon-base/main` 是持续开发线，也是唯一保留的 Git 分支；它不是下游业务仓库的默认继承接口。 / docs/designs/FOUNDATION_RELEASE_MODEL.md:55 `pantheon-ops` 和未来其他业务仓默认只消费不可变 tag： / docs/designs/FOUNDATION_RELEASE_MODEL.md:60 `release/0.10` 是 release manifest 中的兼容性元数据，不是需要长期维护的 Git 分支，也不能替代具体 tag。默认不允许写成“跟随 `main`”。；完整关键声明/命令定位ledger：core-claim-checks.json；18个现态/规范段落、3条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:73；英文:60；VERSION=0.18.2，Ops 锁定 v0.18.2 | UPDATE |
+| docs/designs/FRONTEND.en.md | i18n:generate-module、check:i18n-missing-keys 被描述为现态构建前必跑命令 | frontend/package.json; frontend/src/i18n；逐项范围：docs/designs/FRONTEND.en.md:11 Frontend Architecture and UI Rules / docs/designs/FRONTEND.en.md:23 1. Architecture Goals: Modular, Declarative, Decoupled / docs/designs/FRONTEND.en.md:27 1.1 Current-Phase Principles / docs/designs/FRONTEND.en.md:36 2. Visual Direction: The Indigo Identity / docs/designs/FRONTEND.en.md:59 3. Core Interaction Details；关键声明定位：docs/designs/FRONTEND.en.md:27 ### 1.1 Current-Phase Principles / docs/designs/FRONTEND.en.md:34 Authentication, security, permission, and configuration pages must define page type, interaction states, and module boundaries in documentation before coding starts. / docs/designs/FRONTEND.en.md:41 - Enterprise baseline: login, shell, dashboard, and system pages must feel calm, credible, and tool-like. / docs/designs/FRONTEND.en.md:62 - Status colors must stay semantic and restrained.；完整关键声明/命令定位ledger：core-claim-checks.json；18个现态/规范段落、0条字面代码路径、5个npm命令已逐项登记；不自动把缺失示例路径判缺陷；文档:93、107-109；当前 package script 无这两项，prebuild消费现有i18n hardcode/generated-scope检查 | UPDATE |
+| docs/designs/FRONTEND.md | 仍介绍 FilterPanel；Setting 页面路径遗漏 config；强制 i18n:generate-module / check:i18n-missing-keys 命令在当前 package scripts 中不存在；:88-89 同一句重复 | frontend/src/components/patterns/SearchToolbar.tsx; frontend/src/modules/system/config/setting; frontend/package.json; frontend/src/i18n；逐项范围：docs/designs/FRONTEND.md:11 前端架构设计与 UI 规范 / docs/designs/FRONTEND.md:23 1. 架构目标：模块化、声明式、解耦 / docs/designs/FRONTEND.md:26 1.1 当前阶段原则 / docs/designs/FRONTEND.md:35 2. 视觉规范 (The Indigo Identity) / docs/designs/FRONTEND.md:57 3. 核心交互细节 (Awesome Design Details)；关键声明定位：docs/designs/FRONTEND.md:26 ## 1.1 当前阶段原则 / docs/designs/FRONTEND.md:38 - **去 AI 味**: 禁止默认紫蓝渐变、通用三栏卡片、彩色圆形 icon 堆叠、无信息架构的卡片墙。 / docs/designs/FRONTEND.md:66 - **动效 (Motion)**: 统一使用短时长 `ease-out` 或 Arco 默认动效，不使用带明显回弹的娱乐化转场。 / docs/designs/FRONTEND.md:82 &gt; 注意：当前真实类型以 `frontend/src/core/router/types.ts` 为准，`ModuleConfig` 已升级为包含 `scope / menus / permissions / i18nNamespaces / pagePermission` 的模块 manifest。；完整关键声明/命令定位ledger：core-claim-checks.json；43个现态/规范段落、1条字面代码路径、7个npm命令已逐项登记；不自动把缺失示例路径判缺陷；FRONTEND.md:139、145；DESIGN.md §7.2；当前文件路径；FRONTEND.md:88-89、102；逐项命令ledger与当前package.json | UPDATE |
+| docs/designs/FRONTEND_COMPONENT_PLAN.en.md | FilterPanel 作为首批待抽组件及列表骨架 | frontend/src/components/patterns/SearchToolbar.tsx；逐项范围：docs/designs/FRONTEND_COMPONENT_PLAN.en.md:11 Frontend Component Plan / docs/designs/FRONTEND_COMPONENT_PLAN.en.md:17 1. Design Goals / docs/designs/FRONTEND_COMPONENT_PLAN.en.md:25 2. Component Layers / docs/designs/FRONTEND_COMPONENT_PLAN.en.md:29 2.1 Design Token Layer / docs/designs/FRONTEND_COMPONENT_PLAN.en.md:44 2.2 Primitive Layer；关键声明定位：docs/designs/FRONTEND_COMPONENT_PLAN.en.md:42 This layer should not carry business logic or page-specific coupling. It should land primarily through Arco theme configuration and CSS variables. Login, layout, modal, d / docs/designs/FRONTEND_COMPONENT_PLAN.en.md:205 These belong to the shell and must preserve one coherent navigation language across layouts. / docs/designs/FRONTEND_COMPONENT_PLAN.en.md:215 These components should be the only sanctioned way to build side-rail layouts. They must stay aligned with the side-rail rules in the UI spec and must not regress into ad / docs/designs/FRONTEND_COMPONENT_PLAN.en.md:229 Shared components must consume tokens and shared shells instead of embedding page-local style systems.；完整关键声明/命令定位ledger：core-claim-checks.json；9个现态/规范段落、1条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:194、466-481；英文:128；当前 SearchToolbar 及门禁 | UPDATE |
+| docs/designs/FRONTEND_COMPONENT_PLAN.md | FilterPanel 作为首批待抽组件及列表骨架 | frontend/src/components/patterns/SearchToolbar.tsx；逐项范围：docs/designs/FRONTEND_COMPONENT_PLAN.md:11 前端组件规划 / docs/designs/FRONTEND_COMPONENT_PLAN.md:28 1. 设计目标 / docs/designs/FRONTEND_COMPONENT_PLAN.md:36 2. 组件分层 / docs/designs/FRONTEND_COMPONENT_PLAN.md:40 2.1 Design Token 层 / docs/designs/FRONTEND_COMPONENT_PLAN.md:60 2.2 Primitive 层；关键声明定位：docs/designs/FRONTEND_COMPONENT_PLAN.md:455 - 公共组件内置默认文案时，也必须走 key / docs/designs/FRONTEND_COMPONENT_PLAN.md:497 当前落地状态： / docs/designs/FRONTEND_COMPONENT_PLAN.md:535 ## 11. 当前阶段结论；完整关键声明/命令定位ledger：core-claim-checks.json；6个现态/规范段落、1条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:194、466-481；英文:128；当前 SearchToolbar 及门禁 | UPDATE |
+| docs/designs/FRONTEND_PAGE_TEMPLATES.en.md | ListPage/TreePage 必须使用 FilterPanel | frontend/src/components/patterns/SearchToolbar.tsx; frontend/scripts/check-search-toolbar-contract.mjs；逐项范围：docs/designs/FRONTEND_PAGE_TEMPLATES.en.md:13 Frontend Page Template Specification / docs/designs/FRONTEND_PAGE_TEMPLATES.en.md:26 1. Page Type Overview / docs/designs/FRONTEND_PAGE_TEMPLATES.en.md:40 2. Common Page Structure / docs/designs/FRONTEND_PAGE_TEMPLATES.en.md:52 2.1 `PageHeader` / docs/designs/FRONTEND_PAGE_TEMPLATES.en.md:68 2.2 `PageContent`；关键声明定位：docs/designs/FRONTEND_PAGE_TEMPLATES.en.md:66 - if a summary or hero card follows, it must not repeat the page title / docs/designs/FRONTEND_PAGE_TEMPLATES.en.md:74 Every page must account for: / docs/designs/FRONTEND_PAGE_TEMPLATES.en.md:112 - filters must coordinate with pagination and sorting / docs/designs/FRONTEND_PAGE_TEMPLATES.en.md:136 Pages must not locally override spacing, control height, or alignment patterns for these shared bars.；完整关键声明/命令定位ledger：core-claim-checks.json；14个现态/规范段落、0条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:132；英文:113；DESIGN.md §7.2；prebuild SearchToolbar 检查通过 | UPDATE |
+| docs/designs/FRONTEND_PAGE_TEMPLATES.md | ListPage/TreePage 必须使用 FilterPanel | frontend/src/components/patterns/SearchToolbar.tsx; frontend/scripts/check-search-toolbar-contract.mjs；逐项范围：docs/designs/FRONTEND_PAGE_TEMPLATES.md:13 前端页面模板规范 / docs/designs/FRONTEND_PAGE_TEMPLATES.md:33 1. 页面类型总览 / docs/designs/FRONTEND_PAGE_TEMPLATES.md:49 2. 通用页面结构 / docs/designs/FRONTEND_PAGE_TEMPLATES.md:61 2.1 PageHeader / docs/designs/FRONTEND_PAGE_TEMPLATES.md:78 2.2 PageContent；关键声明定位：docs/designs/FRONTEND_PAGE_TEMPLATES.md:46 \| `ProfilePage` \| 当前用户自助 \| 个人资料、安全设置 \| / docs/designs/FRONTEND_PAGE_TEMPLATES.md:127 - 默认放在表格上方 / docs/designs/FRONTEND_PAGE_TEMPLATES.md:148 - 表格必须放入统一 `TableCard` 语义容器，系统页默认使用 `page-panel system-list__table-card` / docs/designs/FRONTEND_PAGE_TEMPLATES.md:502 \| 当前用户自助 \| `ProfilePage` \|；完整关键声明/命令定位ledger：core-claim-checks.json；33个现态/规范段落、0条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:132；英文:113；DESIGN.md §7.2；prebuild SearchToolbar 检查通过 | UPDATE |
+| docs/designs/GENERATOR_MODULE_DESIGN.md | JWT 身份校验 | backend/modules/lowcode/generator/module.go; backend/pkg/contracts/route_groups.go；逐项范围：docs/designs/GENERATOR_MODULE_DESIGN.md:11 模块生成器设计 / docs/designs/GENERATOR_MODULE_DESIGN.md:26 1. 模块定位 / docs/designs/GENERATOR_MODULE_DESIGN.md:55 2. 目标边界 / docs/designs/GENERATOR_MODULE_DESIGN.md:57 2.1 generator 负责 / docs/designs/GENERATOR_MODULE_DESIGN.md:66 2.2 generator 不负责；关键声明定位：docs/designs/GENERATOR_MODULE_DESIGN.md:22 - 当前实现如何平滑从兼容权限过渡到高敏权限模型 / docs/designs/GENERATOR_MODULE_DESIGN.md:61 - 默认菜单、权限、i18n key 模板生成 / docs/designs/GENERATOR_MODULE_DESIGN.md:73 ### 2.3 当前约束 / docs/designs/GENERATOR_MODULE_DESIGN.md:75 当前一键生成并注册仍只支持：；完整关键声明/命令定位ledger：core-claim-checks.json；26个现态/规范段落、0条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；GENERATOR_MODULE_DESIGN.md:220；当前 TokenAuth | UPDATE |
+| docs/designs/MODULE_CONTRACT.en.md | §5.3 把扩展超出 name/routes 写成 long-term；§12 lighter manifests | frontend/src/core/router/types.ts；逐项范围：docs/designs/MODULE_CONTRACT.en.md:12 Module Contract Design / docs/designs/MODULE_CONTRACT.en.md:25 1. Design Goals / docs/designs/MODULE_CONTRACT.en.md:33 2. Module Definition / docs/designs/MODULE_CONTRACT.en.md:42 3. Core Principles of the Module Contract / docs/designs/MODULE_CONTRACT.en.md:44 3.1 One Module, One Boundary；关键声明定位：docs/designs/MODULE_CONTRACT.en.md:50 Every module must explicitly declare: / docs/designs/MODULE_CONTRACT.en.md:62 Define what a module must expose before writing the module’s internal code. / docs/designs/MODULE_CONTRACT.en.md:66 At the current stage, explicit registration is preferred over auto-discovery because it is more readable and easier for AI and new engineers to follow. / docs/designs/MODULE_CONTRACT.en.md:117 #### 4.3.1 Minimum Requirement for the Current Stage；完整关键声明/命令定位ledger：core-claim-checks.json；17个现态/规范段落、1条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；MODULE_CONTRACT.en.md:218、310；类型已有 scope/menus/permissions/i18nNamespaces/pagePermission | UPDATE |
+| docs/designs/MODULE_CONTRACT.md | §5.3 只包含 name/routes；§12 却登记完整 manifest；Base 的 cmdb 现态样例已不在本仓 | frontend/src/core/router/types.ts; ../pantheon-ops/backend/modules/business/cmdb；逐项范围：docs/designs/MODULE_CONTRACT.md:12 模块契约设计 / docs/designs/MODULE_CONTRACT.md:32 1. 设计目标 / docs/designs/MODULE_CONTRACT.md:40 2. 模块定义 / docs/designs/MODULE_CONTRACT.md:51 3. 模块契约的核心原则 / docs/designs/MODULE_CONTRACT.md:53 3.1 一个模块，一个边界；关键声明定位：docs/designs/MODULE_CONTRACT.md:81 当前阶段优先使用**显式注册**，不使用自动扫描。 / docs/designs/MODULE_CONTRACT.md:138 `Migrate` 已落地（旧文"如果后续需要数据库迁移，再扩展"不再成立）。装配执行时机（`RegisterBackendModules`）： / docs/designs/MODULE_CONTRACT.md:142 \| `Migrate()` \| 仅 `true`（开发）时执行；`false`（默认/生产）跳过，schema 走 `backend/pkg/database/migrations/` 版本化迁移 \| 是 \| / docs/designs/MODULE_CONTRACT.md:150 ### 4.3.1 当前阶段的最低要求；完整关键声明/命令定位ledger：core-claim-checks.json；36个现态/规范段落、6条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；MODULE_CONTRACT.md:262、481-495；当前 ModuleConfig | UPDATE |
+| docs/designs/NOTICE_CENTER_API_CONTRACT.md | 不能把未批准或未实现条款列为当前功能故障；missing internal link target: ./NOTICE_CENTER_API_CONTRACT.en.md | backend/cmd/server/main.go; backend/modules/platform/routes.go; backend/pkg/contracts/route_groups.go; backend/internal/middleware/rate_limit_presets.go；逐项范围：docs/designs/NOTICE_CENTER_API_CONTRACT.md:17 通知中心接口契约 / docs/designs/NOTICE_CENTER_API_CONTRACT.md:33 1. 范围与挂载点 / docs/designs/NOTICE_CENTER_API_CONTRACT.md:43 2. 通用约定 / docs/designs/NOTICE_CENTER_API_CONTRACT.md:45 2.1 响应信封 / docs/designs/NOTICE_CENTER_API_CONTRACT.md:53 2.2 HTTP 状态 vs 业务码（不可混淆的两条路）；关键声明定位：docs/designs/NOTICE_CENTER_API_CONTRACT.md:21 &gt; 未实现声明：本文为设计稿，仓库内尚无对应实现；在实现落地前状态保持 Draft。 / docs/designs/NOTICE_CENTER_API_CONTRACT.md:41 \| 限流 \| 继承 `/api/v1` 的全局限流（按 IP，默认 6000/60s，`PANTHEON_API_RATE_LIMIT_*` 可配） \| `backend/cmd/server/main.go:160-167`；组级按用户限流预设存在但底座未注册（`backend/internal/middleware/rate_limi / docs/designs/NOTICE_CENTER_API_CONTRACT.md:75 - 查询参数：`page`（默认 1）、`pageSize`（默认 10，**上限 100**）。 / docs/designs/NOTICE_CENTER_API_CONTRACT.md:82 `sort` 走白名单映射 `common.NormalizeSort(input, allowed, fallback)`（`backend/pkg/common/handler.go:57-62`）；未登记字段回落默认 `created_at desc`，不进入 SQL 拼接。；完整关键声明/命令定位ledger：core-claim-checks.json；22个现态/规范段落、31条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；check-doc-links实际输出 | UPDATE |
+| docs/designs/P2_SCALE_ROADMAP.md | 不实现真实 tenant model；命令用错误 module 根及迁出 Ops 的 cmdb 路径 | backend/pkg/tenant; backend/go.mod; ../pantheon-ops/backend/modules/business/cmdb；逐项范围：docs/designs/P2_SCALE_ROADMAP.md:15 P2 规模化能力路线图 / docs/designs/P2_SCALE_ROADMAP.md:23 1. 总原则 / docs/designs/P2_SCALE_ROADMAP.md:48 1.1 第二阶段完成定义 / docs/designs/P2_SCALE_ROADMAP.md:59 1.2 第二阶段不做 / docs/designs/P2_SCALE_ROADMAP.md:66 2. 四条专题线；关键声明定位：docs/designs/P2_SCALE_ROADMAP.md:27 第二阶段的前置条件是：Harness Engineering 已先完成默认 adoption 和关键门禁收口。否则后续跨 `platform / system/* / business/*` 的产品化补齐会重新发散。 / docs/designs/P2_SCALE_ROADMAP.md:57 - 有未实现边界说明，避免伪能力上线 / docs/designs/P2_SCALE_ROADMAP.md:129 当前已有： / docs/designs/P2_SCALE_ROADMAP.md:140 - `dept_and_children` 已通过 `system_dept.ancestors` 展开当前部门及下级部门，失败时记录日志并回退为当前部门。；完整关键声明/命令定位ledger：core-claim-checks.json；11个现态/规范段落、3条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；文档:153、215-217；TENANT_CONTRACT_V1 双模式已交付 | UPDATE |
+| docs/designs/PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md | dashboard 独立目录、Base 自带 business/cmdb、旧 generator/dynamicmodule 位置 | backend/modules/platform; backend/modules/lowcode; ../pantheon-ops/backend/modules/business/cmdb；逐项范围：docs/designs/PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md:15 Pantheon Base 架构总览 / docs/designs/PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md:31 1. 一句话理解 / docs/designs/PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md:42 2. 先建立正确心智模型 / docs/designs/PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md:44 2.1 它是一个工作区，不只是一个仓库 / docs/designs/PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md:58 2.2 它是模块化单体，不是微服务；关键声明定位：docs/designs/PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md:70 这意味着 Pantheon 当前的基本策略是： / docs/designs/PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md:104 负责“你是谁、你能否登录、当前会话是否有效”。 / docs/designs/PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md:106 当前范围包括： / docs/designs/PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md:110 - 当前账号会话；完整关键声明/命令定位ledger：core-claim-checks.json；21个现态/规范段落、10条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；架构总览:93、172、181；Base business 目录只有注册聚合文件 | UPDATE |
+| docs/designs/PERMISSION_MENU_DECOUPLING.md | 当前菜单/权限混用的旧现态；与已交付四层模型未划清范围 | backend/modules/system/iam/menu; backend/modules/system/iam/permission；逐项范围：docs/designs/PERMISSION_MENU_DECOUPLING.md:1 权限点和菜单解耦实施指南 / docs/designs/PERMISSION_MENU_DECOUPLING.md:9 背景 / docs/designs/PERMISSION_MENU_DECOUPLING.md:16 目标 / docs/designs/PERMISSION_MENU_DECOUPLING.md:25 权限点命名规范 / docs/designs/PERMISSION_MENU_DECOUPLING.md:27 格式；关键声明定位：docs/designs/PERMISSION_MENU_DECOUPLING.md:11 当前系统存在权限点和菜单混用的情况，导致： / docs/designs/PERMISSION_MENU_DECOUPLING.md:84     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, / docs/designs/PERMISSION_MENU_DECOUPLING.md:85     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, / docs/designs/PERMISSION_MENU_DECOUPLING.md:97     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,；完整关键声明/命令定位ledger：core-claim-checks.json；1个现态/规范段落、6条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；文档:5、11；PERMISSION_MODEL.md §4；当前菜单与接口双轨 | MERGE |
+| docs/designs/PLATFORM_DASHBOARD_DESIGN.md | 称已移动到 backend/modules/dashboard 与 frontend/src/modules/dashboard | backend/modules/platform/dashboard_service.go; frontend/src/modules/platform；逐项范围：docs/designs/PLATFORM_DASHBOARD_DESIGN.md:11 平台仪表盘设计 / docs/designs/PLATFORM_DASHBOARD_DESIGN.md:15 1. 归属边界 / docs/designs/PLATFORM_DASHBOARD_DESIGN.md:31 2. 当前接口 / docs/designs/PLATFORM_DASHBOARD_DESIGN.md:41 3. 当前统计项 / docs/designs/PLATFORM_DASHBOARD_DESIGN.md:68 4. 前端呈现规范；关键声明定位：docs/designs/PLATFORM_DASHBOARD_DESIGN.md:22 - 当前代码已将 dashboard 物理放置在顶层 `backend/modules/dashboard/` 与 `frontend/src/modules/dashboard/`； / docs/designs/PLATFORM_DASHBOARD_DESIGN.md:31 ## 2. 当前接口 / docs/designs/PLATFORM_DASHBOARD_DESIGN.md:41 ## 3. 当前统计项 / docs/designs/PLATFORM_DASHBOARD_DESIGN.md:63 - 登录成功/失败趋势默认统计最近 `7` 天；；完整关键声明/命令定位ledger：core-claim-checks.json；18个现态/规范段落、2条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；文档:22；实际 platform 目录 | UPDATE |
+| docs/designs/QUALITY_AND_SECURITY_STRATEGY.en.md | 文档主信号CodeQL、外部对比无；release仍要求Sonar候选分析及全部CODE_SMELL清零 |  .github/workflows/release-gate.yml; .github/workflows/ci.yml；逐项范围：docs/designs/QUALITY_AND_SECURITY_STRATEGY.en.md:12 Code Quality and Security Governance Strategy / docs/designs/QUALITY_AND_SECURITY_STRATEGY.en.md:18 Principles / docs/designs/QUALITY_AND_SECURITY_STRATEGY.en.md:37 Repository Tiers / docs/designs/QUALITY_AND_SECURITY_STRATEGY.en.md:39 pantheon-base / docs/designs/QUALITY_AND_SECURITY_STRATEGY.en.md:55 pantheon-ops；关键声明定位：docs/designs/QUALITY_AND_SECURITY_STRATEGY.en.md:51 - High-risk changes must document residual risk, rollback steps, and added verification instead of depending on extra human approvals. / docs/designs/QUALITY_AND_SECURITY_STRATEGY.en.md:53 Frontend duplication is the current main hotspot. Fix runtime pages, shared components, layouts, forms, tables, and generator templates first. Clean smoke, fixture, and e / docs/designs/QUALITY_AND_SECURITY_STRATEGY.en.md:62 - Business modules evolve inside `business/*` and must not intrude into system domains. / docs/designs/QUALITY_AND_SECURITY_STRATEGY.en.md:68 - Low-risk duplication inside business leaf modules can be tracked as backlog, but must not spread into shared packages, platform shell, or system domains.；完整关键声明/命令定位ledger：core-claim-checks.json；17个现态/规范段落、1条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:22-35、47；英文:23-55；release-gate.yml:185、224-228；CI总覆盖默认50/前端0不等于New Code80% | REVIEW |
+| docs/designs/QUALITY_AND_SECURITY_STRATEGY.md | 文档主信号CodeQL、外部对比无；release仍要求Sonar候选分析及全部CODE_SMELL清零 |  .github/workflows/release-gate.yml; .github/workflows/ci.yml；逐项范围：docs/designs/QUALITY_AND_SECURITY_STRATEGY.md:12 代码质量与安全治理策略 / docs/designs/QUALITY_AND_SECURITY_STRATEGY.md:20 1. 总原则 / docs/designs/QUALITY_AND_SECURITY_STRATEGY.md:37 2. 仓库分层 / docs/designs/QUALITY_AND_SECURITY_STRATEGY.md:39 2.1 pantheon-base / docs/designs/QUALITY_AND_SECURITY_STRATEGY.md:60 2.1.1 重复治理与抽象边界；关键声明定位：docs/designs/QUALITY_AND_SECURITY_STRATEGY.md:25 4. **不再依赖 Codacy**：当前流程不使用 Codacy 作为 required check 或合并前置条件。 / docs/designs/QUALITY_AND_SECURITY_STRATEGY.md:50 - New Code 覆盖率默认不低于 `80%`，例外必须在 PR 中说明补测计划。 / docs/designs/QUALITY_AND_SECURITY_STRATEGY.md:53 前端重复代码是当前主要维护性热点。治理顺序固定为： / docs/designs/QUALITY_AND_SECURITY_STRATEGY.md:118 - `pantheon-base` 上 CodeQL finding 默认按阻塞项处理，除非确认误报并留下依据。；完整关键声明/命令定位ledger：core-claim-checks.json；33个现态/规范段落、1条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:22-35、47；英文:23-55；release-gate.yml:185、224-228；CI总覆盖默认50/前端0不等于New Code80% | REVIEW |
+| docs/designs/README.md | npm run check:doc-links -- --strict 不是当前Base脚本名 | package.json; scripts/harness/check-doc-links.mjs；逐项范围：docs/designs/README.md:11 设计文档目录 / docs/designs/README.md:21 推荐阅读顺序 / docs/designs/README.md:33 平台与前端 / docs/designs/README.md:47 system/auth / docs/designs/README.md:56 system/iam 与导航治理；关键声明定位：docs/designs/README.md:19 覆盖范围可反证：本目录共 **62 份中文主文档**（不含本索引、不含 `.en.md`），下面的索引逐份引用；新增设计文档时必须同步登记，死链由 `npm run check:doc-links -- --strict` 兜住。 / docs/designs/README.md:97 下列 6 份是中心类能力的设计稿；是否已实现以各文档自身 frontmatter 的 `status` 与「未实现声明」为准，本索引不代述状态。 / docs/designs/README.md:120 - 英文 companion 的真实覆盖：**62 份中文主文档中 57 份有 `.en.md`**，另有 5 份只有中文版本，本索引不声称它们存在——`LOGIN_RISK_CONTROL_DESIGN.md`、`MULTI_TENANT_DESIGN.md`、`OPERATIONAL_WORKBENCH_COMPONENTS_DESI；完整关键声明/命令定位ledger：core-claim-checks.json；3个现态/规范段落、0条字面代码路径、1个npm命令已逐项登记；不自动把缺失示例路径判缺陷；文档:19；实际脚本名 check:harness-docs | UPDATE |
+| docs/designs/REPORT_CENTER_API_CONTRACT.en.md | 不能把未批准或未实现条款列为当前功能故障；missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.md | backend/cmd/server/main.go; backend/pkg/contracts/route_groups.go; backend/pkg/common/http/response.go; backend/internal/middleware/casbin_middleware.go；逐项范围：docs/designs/REPORT_CENTER_API_CONTRACT.en.md:13 Report Center API Contract / docs/designs/REPORT_CENTER_API_CONTRACT.en.md:24 1. Mount point and route chain / docs/designs/REPORT_CENTER_API_CONTRACT.en.md:39 2. Unified envelope and error semantics / docs/designs/REPORT_CENTER_API_CONTRACT.en.md:63 3. Route inventory / docs/designs/REPORT_CENTER_API_CONTRACT.en.md:87 4. DTO contract；关键声明定位：docs/designs/REPORT_CENTER_API_CONTRACT.en.md:15 &gt; 未实现声明：本文为设计稿，仓库内尚无对应实现；在实现落地前状态保持 Draft。 / docs/designs/REPORT_CENTER_API_CONTRACT.en.md:30 - The route chain must mirror the existing system-domain console chain / docs/designs/REPORT_CENTER_API_CONTRACT.en.md:35   main design §9.2); the **render and export** handlers must consume `common.GetDataScope(c)`, so the only / docs/designs/REPORT_CENTER_API_CONTRACT.en.md:46 \| `message` must be an i18n key shaped `^&#91;a-z0-9_&#93;+(?:\.&#91;a-z0-9_&#93;+)+$` \| same file `:28` \|；完整关键声明/命令定位ledger：core-claim-checks.json；29个现态/规范段落、17条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；check-doc-links实际输出 | UPDATE |
+| docs/designs/REPORT_CENTER_API_CONTRACT.md | 不能把未批准或未实现条款列为当前功能故障；missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.md | backend/cmd/server/main.go; backend/pkg/contracts/route_groups.go; backend/pkg/common/http/response.go; backend/internal/middleware/casbin_middleware.go；逐项范围：docs/designs/REPORT_CENTER_API_CONTRACT.md:13 报表中心接口契约 / docs/designs/REPORT_CENTER_API_CONTRACT.md:24 1. 挂载点与路由链 / docs/designs/REPORT_CENTER_API_CONTRACT.md:36 2. 统一信封与错误语义 / docs/designs/REPORT_CENTER_API_CONTRACT.md:56 3. 路由清单 / docs/designs/REPORT_CENTER_API_CONTRACT.md:80 4. DTO 契约；关键声明定位：docs/designs/REPORT_CENTER_API_CONTRACT.md:15 &gt; 未实现声明：本文为设计稿，仓库内尚无对应实现；在实现落地前状态保持 Draft。 / docs/designs/REPORT_CENTER_API_CONTRACT.md:62 \| 3 \| GET \| `/platform/report/template/:id` \| `platform:report:view` \| — \| 含当前发布版本的呈现规格 \| / docs/designs/REPORT_CENTER_API_CONTRACT.md:67 \| 8 \| POST \| `/platform/report/template/:id/publish` \| `platform:report:update` \| **SecureAction** \| 发布 draft 为不可变版本，前移 `current_version_id` \| / docs/designs/REPORT_CENTER_API_CONTRACT.md:68 \| 9 \| POST \| `/platform/report/template/:id/rollback` \| `platform:report:update` \| **SecureAction** \| 把指针指回历史已发布版本 \|；完整关键声明/命令定位ledger：core-claim-checks.json；23个现态/规范段落、17条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；check-doc-links实际输出 | UPDATE |
+| docs/designs/REPORT_CENTER_DESIGN.en.md | 不能把未批准或未实现条款列为当前功能故障；missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.en.md | backend/modules/platform/routes.go; backend/pkg/impexp; backend/pkg/impexp/csv.go; backend/pkg/impexp/export_limits.go；逐项范围：docs/designs/REPORT_CENTER_DESIGN.en.md:13 Report Center Design / docs/designs/REPORT_CENTER_DESIGN.en.md:36 1. Design Goals / docs/designs/REPORT_CENTER_DESIGN.en.md:43 2. Non-Goals / docs/designs/REPORT_CENTER_DESIGN.en.md:55 3. Ownership Boundary / docs/designs/REPORT_CENTER_DESIGN.en.md:57 3.1 What `platform` Owns；关键声明定位：docs/designs/REPORT_CENTER_DESIGN.en.md:16 &gt; 未实现声明：本文为设计稿，仓库内尚无对应实现；在实现落地前状态保持 Draft。 / docs/designs/REPORT_CENTER_DESIGN.en.md:72 read multiple sub-domains but must not intrude into their responsibilities") and / docs/designs/REPORT_CENTER_DESIGN.en.md:90 \| run \| report center \| `report_run` \| must record scope fingerprint and parameter digest \| / docs/designs/REPORT_CENTER_DESIGN.en.md:91 \| artifact \| report center \| `report_artifact` \| object key must carry the tenant segment \|；完整关键声明/命令定位ledger：core-claim-checks.json；56个现态/规范段落、27条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；check-doc-links实际输出 | UPDATE |
+| docs/designs/REPORT_CENTER_DESIGN.md | 不能把未批准或未实现条款列为当前功能故障；missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.md | backend/modules/platform/routes.go; backend/pkg/impexp; backend/pkg/impexp/csv.go; backend/pkg/impexp/export_limits.go；逐项范围：docs/designs/REPORT_CENTER_DESIGN.md:13 报表中心设计 / docs/designs/REPORT_CENTER_DESIGN.md:35 1. 设计目标 / docs/designs/REPORT_CENTER_DESIGN.md:44 2. 非目标 / docs/designs/REPORT_CENTER_DESIGN.md:56 3. 归属边界 / docs/designs/REPORT_CENTER_DESIGN.md:58 3.1 `platform` 负责；关键声明定位：docs/designs/REPORT_CENTER_DESIGN.md:15 &gt; 未实现声明：本文为设计稿，仓库内尚无对应实现；在实现落地前状态保持 Draft。 / docs/designs/REPORT_CENTER_DESIGN.md:46 当前阶段不做： / docs/designs/REPORT_CENTER_DESIGN.md:110 \| `cacheable` \| 是否允许结果缓存（默认 false） \| / docs/designs/REPORT_CENTER_DESIGN.md:137 `report_template` 描述"面向使用者的一份报表"：绑定 dataset、声明可见性、声明支持的导出格式、声明权限键与默认参数。；完整关键声明/命令定位ledger：core-claim-checks.json；40个现态/规范段落、27条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；check-doc-links实际输出 | UPDATE |
+| docs/designs/REPORT_CENTER_TEST_PLAN.en.md | 不能把未批准或未实现条款列为当前功能故障；missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.md | frontend/package.json; .github/workflows/; backend/pkg/impexp/csv_test.go; backend/pkg/common/handler.go；逐项范围：docs/designs/REPORT_CENTER_TEST_PLAN.en.md:13 Report Center Test Plan / docs/designs/REPORT_CENTER_TEST_PLAN.en.md:24 1. Scope and adjudication principles / docs/designs/REPORT_CENTER_TEST_PLAN.en.md:43 2. Acceptance criteria → case groups (DoD mapping) / docs/designs/REPORT_CENTER_TEST_PLAN.en.md:55 3. Normal path cases / docs/designs/REPORT_CENTER_TEST_PLAN.en.md:67 4. Boundary cases；关键声明定位：docs/designs/REPORT_CENTER_TEST_PLAN.en.md:15 &gt; 未实现声明：本文为设计稿，仓库内尚无对应实现；在实现落地前状态保持 Draft。 / docs/designs/REPORT_CENTER_TEST_PLAN.en.md:30 2. Every case must hang on **one existing gate** (a script in `package.json` / / docs/designs/REPORT_CENTER_TEST_PLAN.en.md:32    attached to a gate must be listed explicitly in §9 "Runtime gaps"; leaving it as / docs/designs/REPORT_CENTER_TEST_PLAN.en.md:49 \| View and export contract fully implemented and tested \| TC-R-N-*, TC-R-E-* \| `backend-tests` (`go test -race ./...`) \|；完整关键声明/命令定位ledger：core-claim-checks.json；28个现态/规范段落、36条字面代码路径、21个npm命令已逐项登记；不自动把缺失示例路径判缺陷；check-doc-links实际输出 | UPDATE |
+| docs/designs/REPORT_CENTER_TEST_PLAN.md | 不能把未批准或未实现条款列为当前功能故障；missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.md | frontend/package.json; .github/workflows/; backend/pkg/impexp/csv_test.go; backend/pkg/common/handler.go；逐项范围：docs/designs/REPORT_CENTER_TEST_PLAN.md:13 报表中心测试计划 / docs/designs/REPORT_CENTER_TEST_PLAN.md:24 1. 范围与判定原则 / docs/designs/REPORT_CENTER_TEST_PLAN.md:38 2. 验收标准 → 用例组（DoD 映射） / docs/designs/REPORT_CENTER_TEST_PLAN.md:50 3. 正常路径用例 / docs/designs/REPORT_CENTER_TEST_PLAN.md:62 4. 边界用例；关键声明定位：docs/designs/REPORT_CENTER_TEST_PLAN.md:15 &gt; 未实现声明：本文为设计稿，仓库内尚无对应实现；在实现落地前状态保持 Draft。 / docs/designs/REPORT_CENTER_TEST_PLAN.md:44 \| 查看与导出契约全部有实现与测试 \| TC-R-N-*、TC-R-E-* \| `backend-tests`（`go test -race ./...`） \| / docs/designs/REPORT_CENTER_TEST_PLAN.md:57 \| TC-R-N-4 \| P1 \| 模板发布 → 回滚 → 再导出 \| 导出命中回滚后的版本；`current_version_id` 前移/回退正确；已发布版本行内容不变（不可变性） \| `backend-tests` \| / docs/designs/REPORT_CENTER_TEST_PLAN.md:72 \| TC-R-B-5 \| P1 \| `versionId = 0` 与 `versionId = 已发布版本` 两分支 \| 两者结果一致（跟随 current）；`versionId` 指向 draft 时拒绝 \| API 契约 §4.1 \|；完整关键声明/命令定位ledger：core-claim-checks.json；16个现态/规范段落、36条字面代码路径、21个npm命令已逐项登记；不自动把缺失示例路径判缺陷；check-doc-links实际输出 | UPDATE |
+| docs/designs/REPOSITORY_LAYOUT.en.md | 保留 system_init.sql 因为 docker-compose 直接引用 | docker-compose.yml; backend/pkg/database/migrations；逐项范围：docs/designs/REPOSITORY_LAYOUT.en.md:12 Repository Layout, Naming, and Layer Boundaries / docs/designs/REPOSITORY_LAYOUT.en.md:20 1. Root Groups / docs/designs/REPOSITORY_LAYOUT.en.md:47 2. Placement Rules and Directory Whitelist / docs/designs/REPOSITORY_LAYOUT.en.md:49 2.1 Placement Rules / docs/designs/REPOSITORY_LAYOUT.en.md:61 2.2 Directory Whitelist (the gate's decision basis)；关键声明定位：docs/designs/REPOSITORY_LAYOUT.en.md:16 This document is the single authoritative standard for `pantheon-base` directory layout, file naming, controlled exceptions, and layer dependency directions. Any new dire / docs/designs/REPOSITORY_LAYOUT.en.md:25 docs/                     # Current docs, contracts, designs, acceptance docs, harness specs, historical release notes / docs/designs/REPOSITORY_LAYOUT.en.md:33 config/                   # Method-chain config, currently config/method.config.json / docs/designs/REPOSITORY_LAYOUT.en.md:52 2. Frontend runtime code belongs under `frontend/src/`; frontend scripts belong under `frontend/scripts/`; frontend smoke tests and test fixtures belong under `frontend/t；完整关键声明/命令定位ledger：core-claim-checks.json；51个现态/规范段落、76条字面代码路径、7个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:57；英文:55；docker-compose.yml:23-24 明确不再挂载；database/README.md:23 | UPDATE |
+| docs/designs/REPOSITORY_LAYOUT.md | 保留 system_init.sql 因为 docker-compose 直接引用 | docker-compose.yml; backend/pkg/database/migrations；逐项范围：docs/designs/REPOSITORY_LAYOUT.md:12 仓库布局、命名与分层边界规范 / docs/designs/REPOSITORY_LAYOUT.md:20 1. 根目录分组 / docs/designs/REPOSITORY_LAYOUT.md:47 2. 新文件放置规则与目录白名单 / docs/designs/REPOSITORY_LAYOUT.md:49 2.1 放置规则 / docs/designs/REPOSITORY_LAYOUT.md:61 2.2 目录白名单（机械门禁的判定依据）；关键声明定位：docs/designs/REPOSITORY_LAYOUT.md:25 docs/                     # 当前文档、合同、设计、验收、harness 规范、历史发布说明 / docs/designs/REPOSITORY_LAYOUT.md:33 config/                   # 方法链路配置，当前保留 config/method.config.json / docs/designs/REPOSITORY_LAYOUT.md:55 5. 当前仍有效的架构和治理文档进入 `docs/designs/`、`docs/contracts/`、`docs/acceptances/`；阶段性审计、评估、过程记录不入库，随任务证据留在 `.harness/` 并在任务关闭后清理。 / docs/designs/REPOSITORY_LAYOUT.md:57 7. 数据库初始化脚本当前保留在 `database/system_init.sql`，因为 `docker-compose.yml` 直接引用该路径。；完整关键声明/命令定位ledger：core-claim-checks.json；33个现态/规范段落、76条字面代码路径、7个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:57；英文:55；docker-compose.yml:23-24 明确不再挂载；database/README.md:23 | UPDATE |
+| docs/designs/SCHEDULER_CENTER_DB_DESIGN.md | 不能把未批准或未实现条款列为当前功能故障；missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.md；missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.md；missing internal link target: ./SCHEDULER_CENTER_DB_DESIGN.en.md；missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.md；missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.en.md；missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.md；missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.en.md | backend/pkg/database/migrations/; backend/pkg/database/migrations/000001_init_schema.up.sql; backend/pkg/database/casbin_watcher.go; backend/pkg/maintenance/maintenance.go；逐项范围：docs/designs/SCHEDULER_CENTER_DB_DESIGN.md:13 调度中心数据库设计 / docs/designs/SCHEDULER_CENTER_DB_DESIGN.md:29 1. 表清单与租户分类登记 / docs/designs/SCHEDULER_CENTER_DB_DESIGN.md:46 2. 建表形状（迁移正文的目标形态） / docs/designs/SCHEDULER_CENTER_DB_DESIGN.md:54 2.1 `schedule_job` / docs/designs/SCHEDULER_CENTER_DB_DESIGN.md:114 2.2 `schedule_lease`；关键声明定位：docs/designs/SCHEDULER_CENTER_DB_DESIGN.md:15 &gt; 未实现声明：本文为设计稿，仓库内尚无对应实现；在实现落地前状态保持 Draft。 / docs/designs/SCHEDULER_CENTER_DB_DESIGN.md:26 `bigint unsigned NOT NULL AUTO_INCREMENT` 主键、GORM 默认软删列 `deleted_at datetime(3) NULL`、 / docs/designs/SCHEDULER_CENTER_DB_DESIGN.md:50 两张执行记录表是**只追加的事实记录**，同样带 GORM 默认三列以保持全库一致形状 / docs/designs/SCHEDULER_CENTER_DB_DESIGN.md:106 4. `schedule_tz` 默认 `'UTC'` 是**列默认值**，不是运行默认；运行默认来自；完整关键声明/命令定位ledger：core-claim-checks.json；40个现态/规范段落、17条字面代码路径、5个npm命令已逐项登记；不自动把缺失示例路径判缺陷；check-doc-links实际输出 | UPDATE |
+| docs/designs/SCHEDULER_CENTER_DESIGN.en.md | 不能把未批准或未实现条款列为当前功能故障；missing internal link target: ./SCHEDULER_CENTER_DB_DESIGN.en.md；missing internal link target: ./SCHEDULER_CENTER_DB_DESIGN.en.md；missing internal link target: ./SCHEDULER_CENTER_DB_DESIGN.en.md；missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.md；missing internal link target: ./SCHEDULER_CENTER_DB_DESIGN.en.md；missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.md；missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.en.md；missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.md；missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.en.md | backend/modules/platform/routes.go; backend/pkg/maintenance/maintenance.go; backend/pkg/maintenance/defaults.go; backend/pkg/metrics/prometheus.go；逐项范围：docs/designs/SCHEDULER_CENTER_DESIGN.en.md:13 Scheduler Center Design / docs/designs/SCHEDULER_CENTER_DESIGN.en.md:35 1. Design Goals / docs/designs/SCHEDULER_CENTER_DESIGN.en.md:47 2. Non-Goals / docs/designs/SCHEDULER_CENTER_DESIGN.en.md:60 3. Ownership Boundary / docs/designs/SCHEDULER_CENTER_DESIGN.en.md:62 3.1 `platform` owns；关键声明定位：docs/designs/SCHEDULER_CENTER_DESIGN.en.md:15 &gt; 未实现声明：本文为设计稿，仓库内尚无对应实现；在实现落地前状态保持 Draft。 / docs/designs/SCHEDULER_CENTER_DESIGN.en.md:84 - **handler idempotency**: re-delivery of the same idempotency key must produce the same result (§9) / docs/designs/SCHEDULER_CENTER_DESIGN.en.md:108 Conclusions (three facts that must be inherited as-is): / docs/designs/SCHEDULER_CENTER_DESIGN.en.md:113    exclusion" gap and must not be described as a capability.；完整关键声明/命令定位ledger：core-claim-checks.json；67个现态/规范段落、28条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；check-doc-links实际输出 | UPDATE |
+| docs/designs/SCHEDULER_CENTER_DESIGN.md | 不能把未批准或未实现条款列为当前功能故障；missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.md；missing internal link target: ./SCHEDULER_CENTER_DB_DESIGN.en.md；missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.md；missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.en.md；missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.md；missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.en.md | backend/modules/platform/routes.go; backend/pkg/maintenance/maintenance.go; backend/pkg/maintenance/defaults.go; backend/pkg/metrics/prometheus.go；逐项范围：docs/designs/SCHEDULER_CENTER_DESIGN.md:13 调度中心设计 / docs/designs/SCHEDULER_CENTER_DESIGN.md:33 1. 设计目标 / docs/designs/SCHEDULER_CENTER_DESIGN.md:43 2. 非目标 / docs/designs/SCHEDULER_CENTER_DESIGN.md:55 3. 归属边界 / docs/designs/SCHEDULER_CENTER_DESIGN.md:57 3.1 `platform` 负责；关键声明定位：docs/designs/SCHEDULER_CENTER_DESIGN.md:15 &gt; 未实现声明：本文为设计稿，仓库内尚无对应实现；在实现落地前状态保持 Draft。 / docs/designs/SCHEDULER_CENTER_DESIGN.md:29 **当前所有周期任务在每个副本里各自跑，既没有跨实例互斥，也没有执行历史与启停控制。** / docs/designs/SCHEDULER_CENTER_DESIGN.md:45 当前阶段不做： / docs/designs/SCHEDULER_CENTER_DESIGN.md:67 - 平台级任务配置治理（默认执行策略、保留期、默认时区）；完整关键声明/命令定位ledger：core-claim-checks.json；46个现态/规范段落、28条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；check-doc-links实际输出 | UPDATE |
+| docs/designs/TASK_CENTER_DESIGN.en.md | 英文 status: Active；中文 Draft 且有未实现声明 | backend/modules/platform; frontend/src/modules/platform；逐项范围：docs/designs/TASK_CENTER_DESIGN.en.md:12 Task Center Design / docs/designs/TASK_CENTER_DESIGN.en.md:18 1. Design Goals / docs/designs/TASK_CENTER_DESIGN.en.md:24 2. Non-Goals / docs/designs/TASK_CENTER_DESIGN.en.md:32 3. Ownership Boundary / docs/designs/TASK_CENTER_DESIGN.en.md:34 3.1 What `platform` Owns；关键声明定位：docs/designs/TASK_CENTER_DESIGN.en.md:60 Task-center rows must navigate safely to known source pages while respecting permissions and route validity.；完整关键声明/命令定位ledger：core-claim-checks.json；2个现态/规范段落、0条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中英文frontmatter:5；中文:14-15；实际平台模块未提供对应独立中心 | UPDATE |
+| docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.en.md | 目前不实现真实多租户、tenant login discovery 尚不做 | backend/pkg/tenant; backend/modules/system/iam/tenant; backend/modules/auth/login/login_tenant_switch.go；逐项范围：docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.en.md:13 Single-Tenant First, Tenant-Ready Design / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.en.md:21 1. Conclusion / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.en.md:34 2. Why Real Multi-Tenancy Is Not Implemented Now / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.en.md:44 3. Why It Still Cannot Be Ignored / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.en.md:58 4. Boundaries to Lock in the Current Phase；关键声明定位：docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.en.md:17 This document answers a practical question: Pantheon currently serves internal and backoffice scenarios and does not implement real multi-tenancy yet, but the base must s / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.en.md:23 Current strategy: / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.en.md:27 - all new platform, system, and business design work must explicitly judge whether the capability may later need tenant semantics / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.en.md:28 - new modules do not automatically require `tenant_id`, but they must explicitly decide whether tenant fields, tenant-scoped uniqueness, or tenant-context injection will ；完整关键声明/命令定位ledger：core-claim-checks.json；33个现态/规范段落、0条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:20；英文:17、75；TENANT_CONTRACT_V1 的 compat/multi 已交付 | ARCHIVE |
+| docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md | 目前不实现真实多租户、tenant login discovery 尚不做 | backend/pkg/tenant; backend/modules/system/iam/tenant; backend/modules/auth/login/login_tenant_switch.go；逐项范围：docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md:14 单租户先行、租户就绪设计 / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md:26 1. 结论 / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md:40 2. 为什么现在不做真实多租户 / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md:52 3. 为什么也不能完全不想 / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md:78 4. 当前阶段要锁定的边界；关键声明定位：docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md:20 当前 Pantheon 先服务内网和后台场景，不立即实现多租户；但为了后续集中精力做业务、尽量少改底座，现在必须把“未来不能堵死的地方”先约束好。 / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md:28 当前阶段采用以下策略： / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md:42 当前不建议直接进入真实多租户实现，原因有三： / docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md:44 1. 当前主要用户是内网用户，实际租户模型、租户边界、计费方式、租户管理员职责都还不明确。；完整关键声明/命令定位ledger：core-claim-checks.json；40个现态/规范段落、0条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:20；英文:17、75；TENANT_CONTRACT_V1 的 compat/multi 已交付 | ARCHIVE |
+| docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md | schema/auth/audit/CI 等一律中途停下请求批准；任务档位及既有授权未在停点处区分 | ../AGENTS.md; AGENTS.md; docs/harness/AI_QUALITY_GOVERNANCE.md；逐项范围：docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md:12 Pantheon Base Multi-Agent Delivery Workflow / docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md:20 Roles / docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md:32 Default Flow / docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md:50 Tool Policy / docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md:60 Human Gates；关键声明定位：docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md:22 \| Role \| Default Tool \| Responsibility \| Must Not Do \| / docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md:62 The dispatcher must stop for human approval before schema, permissions, auth, audit, CI, secrets, destructive, release, or external-service changes; when planner and expl / docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md:95 Executor work must keep task packet, task manifest, evidence, and review linkage aligned while implementation, verification, and closeout proceed.；完整关键声明/命令定位ledger：core-claim-checks.json；8个现态/规范段落、1条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:195-203；英文:62；workspace维护者三触点契约 | UPDATE |
+| docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md | schema/auth/audit/CI 等一律中途停下请求批准；任务档位及既有授权未在停点处区分 | ../AGENTS.md; AGENTS.md; docs/harness/AI_QUALITY_GOVERNANCE.md；逐项范围：docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md:12 Pantheon Base 多 Agent 交付流程 / docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md:22 1. 角色分工 / docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md:34 2. 人机交互原则 / docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md:52 3. 标准调度流 / docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md:70 4. 阶段规则；关键声明定位：docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md:18 当前个人维护阶段，先按 `../../../pantheon-harness/patterns/method-playbook.md`、`../../../pantheon-harness/patterns/minimal-complexity-ladder.md` 和 `../../../pantheon-harness/pattern / docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md:20 目标是让人只提出目标和关键决策，不需要手动调度每个 agent。调度由当前协调 agent 负责完成，并把结果沉淀到仓库 artifact。 / docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md:24 \| 角色             \| 默认工具                       \| 职责                                                                          \| 禁止事项                       \| / docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md:27 \| Dispatcher       \| 当前协调 agent                 \| 调用 planner、executor、reviewer，维护 task/evidence/review 链路              \| 不把聊天记录当事实源           \|；完整关键声明/命令定位ledger：core-claim-checks.json；18个现态/规范段落、3条字面代码路径、0个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:195-203；英文:62；workspace维护者三触点契约 | UPDATE |
+| docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md | go test ./... 的 cwd 写 pantheon-base；JSON仍写 go test ./backend/... | backend/go.mod; .github/workflows/quality.yml；逐项范围：docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md:10 Verification Evidence Spec / docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md:16 1. Evidence Directory / docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md:32 2. `summary.md` / docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md:35 Verification Summary: &lt;task-id&gt; / docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md:37 Scope；关键声明定位：docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md:14 This document defines the format for Pantheon task verification evidence. The evidence format must be tool-agnostic. / docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md:46 \| `go test ./...` \| `pantheon-base` \| passed \|  \| / docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md:87       "command": "go test ./backend/...", / docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md:152 If the current environment cannot produce screenshots, a single record may use `visualGap` instead of `screenshot`, or the global reason may be added to `knownGaps`.；完整关键声明/命令定位ledger：core-claim-checks.json；13个现态/规范段落、5条字面代码路径、1个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:67、108；英文:46、87；正确命令应 cwd=backend / go test ./... | UPDATE |
+| docs/harness/VERIFICATION_EVIDENCE_SPEC.md | go test ./... 的 cwd 写 pantheon-base；JSON仍写 go test ./backend/... | backend/go.mod; .github/workflows/quality.yml；逐项范围：docs/harness/VERIFICATION_EVIDENCE_SPEC.md:10 Verification Evidence Spec / docs/harness/VERIFICATION_EVIDENCE_SPEC.md:16 0. 版本历史 / docs/harness/VERIFICATION_EVIDENCE_SPEC.md:23 1. 证据目录（v1.1+ 增强结构） / docs/harness/VERIFICATION_EVIDENCE_SPEC.md:53 2. `summary.md` / docs/harness/VERIFICATION_EVIDENCE_SPEC.md:56 Verification Summary: &lt;task-id&gt;；关键声明定位：docs/harness/VERIFICATION_EVIDENCE_SPEC.md:25 默认目录： / docs/harness/VERIFICATION_EVIDENCE_SPEC.md:67 \| `go test ./...` \| `pantheon-base` \| passed \|       \| / docs/harness/VERIFICATION_EVIDENCE_SPEC.md:108       "command": "go test ./backend/...", / docs/harness/VERIFICATION_EVIDENCE_SPEC.md:175 如当前环境无法产出截图，可在单条记录中使用 `visualGap` 替代 `screenshot`，或在 `knownGaps` 中补充全局原因。；完整关键声明/命令定位ledger：core-claim-checks.json；15个现态/规范段落、6条字面代码路径、1个npm命令已逐项登记；不自动把缺失示例路径判缺陷；中文:67、108；英文:46、87；正确命令应 cwd=backend / go test ./... | UPDATE |
+| docs/reviews/PANTHEON_BASE_GLOBAL_AUDIT_2026-11-04.md | 旧工作树数量49；分页/数据范围 bootstrap 等建议已在当前树修正 | frontend/src/shared/utils/fetchAllPages.ts; backend/internal/middleware/data_scope_middleware.go；该报告仍存在；本轮基线212；实际分页 helper 与注释 | REPLACE |
+| docs/testing-quick-start.md | 每次 PR 等 120 分钟、未来创建 core 目录；80%收益没有本轮测量依据 | .github/workflows/smoke-core.yml; .github/workflows/smoke-full.yml; frontend/tests/smoke-core；逐项范围：docs/testing-quick-start.md:1 测试体系优化 - 快速启动指南 / docs/testing-quick-start.md:7 一、核心问题 / docs/testing-quick-start.md:23 二、三步实施 (2周见效) / docs/testing-quick-start.md:25 Step 1: 拆分核心冒烟套件 (Week 1, 预计 8 小时) / docs/testing-quick-start.md:39 推荐优先级 (按业务影响排序):；关键声明定位：docs/testing-quick-start.md:3 &gt; **TL;DR**: 当前每次 PR 机械等待冒烟测试 120 分钟。优化方案：拆分核心冒烟套件(20分钟) + 保留完整回归(每日)，开发效率提升 80%。 / docs/testing-quick-start.md:10 ❌ 当前状态: / docs/testing-quick-start.md:66 npm run test:smoke:core / docs/testing-quick-start.md:105         run: npm run test:smoke:core  # 改为核心套件；完整关键声明/命令定位ledger：core-claim-checks.json；3个现态/规范段落、10条字面代码路径、3个npm命令已逐项登记；不自动把缺失示例路径判缺陷；文档:3-22；core 已有 15 个 spec，full 仍 main+daily，core 为 advisory | ARCHIVE |
+
+
+### 8.3 文档与代码不一致清单
+
+| 文档 | 不一致内容 | 实际代码/配置 | 建议 |
+| --- | --- | --- | --- |
+| DESIGN.en.md | §3.4 使用 JWT tenant_id claim；实际为 Redis SessionData.TenantID | backend/pkg/authtoken/token.go | UPDATE |
+| DESIGN.md | §4.1 仍要求从当前 system/user 拆出；§3.4 称 JWT claim，而 §4.3/§9 已登记物理拆分 | backend/modules/auth/module.go; backend/pkg/authtoken/token.go | UPDATE |
+| docs/DEV_DB_INIT_GUIDE.md | 从仓库根 go run ./backend/cmd/server，根目录没有 go.mod | backend/go.mod; backend/cmd/server/main.go | UPDATE |
+| docs/VERSION_MANAGEMENT_GUIDE.md | 当前版本 v0.10.26；要求 npm run check:base-sync，而 Base package 无此脚本 | VERSION; package.json; scripts/foundation-release | UPDATE |
+| docs/contracts/SYSTEM_IAM_CONTRACT.en.md | go test ./backend/modules/system/permission | backend/go.mod; backend/modules/system/iam/permission | UPDATE |
+| docs/contracts/SYSTEM_IAM_CONTRACT.md | go test ./backend/modules/system/permission | backend/go.mod; backend/modules/system/iam/permission | UPDATE |
+| docs/designs/AUTH_MODULE_DESIGN.md | §3 的 system/user 混合现状；:430 JWT 签发；:597 JWT 中间件查会话表 | backend/modules/auth/login/login_runtime.go; backend/internal/middleware/token_middleware.go | UPDATE |
+| docs/designs/BACKEND.en.md | Casbin bootstrapped by SQL initialization，未限定旧 SQL 不再建库 | backend/pkg/database/migrations; docker-compose.yml | UPDATE |
+| docs/designs/BACKEND.md | dashboard 位于 backend/modules/dashboard/ | backend/modules/platform/dashboard_service.go | UPDATE |
+| docs/designs/DARK_MODE_DESIGN.en.md | 明确称 only light mode、无 data-color-mode/暗色token，状态仍 Draft | frontend/src/core/theme/colorMode.ts; frontend/src/index.css | UPDATE |
+| docs/designs/DATA_PERMISSION_HOOK.en.md | multi-role merge rules 写 future work；没有中文已实现合并规则 | backend/internal/middleware/data_scope_middleware.go | UPDATE |
+| docs/designs/DATA_PERMISSION_HOOK.md | JWTAuthMiddleware；占位描述与已实现条款混排 | backend/internal/middleware/data_scope_middleware.go; backend/pkg/contracts/route_groups.go | UPDATE |
+| docs/designs/DICT_AND_SETTING_DESIGN.en.md | backend/modules/system/dict/、system/setting/ | backend/modules/system/config/dict; backend/modules/system/config/setting | UPDATE |
+| docs/designs/DICT_AND_SETTING_DESIGN.md | backend/modules/system/dict/、system/setting/ | backend/modules/system/config/dict; backend/modules/system/config/setting | UPDATE |
+| docs/designs/FOUNDATION_RELEASE_MODEL.en.md | 当前发布版本 v0.10.26 / release/0.10 | VERSION; ../pantheon-ops/foundation-release.lock.json | UPDATE |
+| docs/designs/FOUNDATION_RELEASE_MODEL.md | 当前发布版本 v0.10.26 / release/0.10 | VERSION; ../pantheon-ops/foundation-release.lock.json | UPDATE |
+| docs/designs/FRONTEND.en.md | i18n:generate-module、check:i18n-missing-keys 被描述为现态构建前必跑命令 | frontend/package.json; frontend/src/i18n | UPDATE |
+| docs/designs/FRONTEND.md | 仍介绍 FilterPanel；Setting 页面路径遗漏 config；强制 i18n:generate-module / check:i18n-missing-keys 命令在当前 package scripts 中不存在；:88-89 同一句重复 | frontend/src/components/patterns/SearchToolbar.tsx; frontend/src/modules/system/config/setting; frontend/package.json; frontend/src/i18n | UPDATE |
+| docs/designs/FRONTEND_COMPONENT_PLAN.en.md | FilterPanel 作为首批待抽组件及列表骨架 | frontend/src/components/patterns/SearchToolbar.tsx | UPDATE |
+| docs/designs/FRONTEND_COMPONENT_PLAN.md | FilterPanel 作为首批待抽组件及列表骨架 | frontend/src/components/patterns/SearchToolbar.tsx | UPDATE |
+| docs/designs/FRONTEND_PAGE_TEMPLATES.en.md | ListPage/TreePage 必须使用 FilterPanel | frontend/src/components/patterns/SearchToolbar.tsx; frontend/scripts/check-search-toolbar-contract.mjs | UPDATE |
+| docs/designs/FRONTEND_PAGE_TEMPLATES.md | ListPage/TreePage 必须使用 FilterPanel | frontend/src/components/patterns/SearchToolbar.tsx; frontend/scripts/check-search-toolbar-contract.mjs | UPDATE |
+| docs/designs/GENERATOR_MODULE_DESIGN.md | JWT 身份校验 | backend/modules/lowcode/generator/module.go; backend/pkg/contracts/route_groups.go | UPDATE |
+| docs/designs/MODULE_CONTRACT.en.md | §5.3 把扩展超出 name/routes 写成 long-term；§12 lighter manifests | frontend/src/core/router/types.ts | UPDATE |
+| docs/designs/MODULE_CONTRACT.md | §5.3 只包含 name/routes；§12 却登记完整 manifest；Base 的 cmdb 现态样例已不在本仓 | frontend/src/core/router/types.ts; ../pantheon-ops/backend/modules/business/cmdb | UPDATE |
+| docs/designs/P2_SCALE_ROADMAP.md | 不实现真实 tenant model；命令用错误 module 根及迁出 Ops 的 cmdb 路径 | backend/pkg/tenant; backend/go.mod; ../pantheon-ops/backend/modules/business/cmdb | UPDATE |
+| docs/designs/PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md | dashboard 独立目录、Base 自带 business/cmdb、旧 generator/dynamicmodule 位置 | backend/modules/platform; backend/modules/lowcode; ../pantheon-ops/backend/modules/business/cmdb | UPDATE |
+| docs/designs/PERMISSION_MENU_DECOUPLING.md | 当前菜单/权限混用的旧现态；与已交付四层模型未划清范围 | backend/modules/system/iam/menu; backend/modules/system/iam/permission | MERGE |
+| docs/designs/PLATFORM_DASHBOARD_DESIGN.md | 称已移动到 backend/modules/dashboard 与 frontend/src/modules/dashboard | backend/modules/platform/dashboard_service.go; frontend/src/modules/platform | UPDATE |
+| docs/designs/README.md | npm run check:doc-links -- --strict 不是当前Base脚本名 | package.json; scripts/harness/check-doc-links.mjs | UPDATE |
+| docs/designs/REPOSITORY_LAYOUT.en.md | 保留 system_init.sql 因为 docker-compose 直接引用 | docker-compose.yml; backend/pkg/database/migrations | UPDATE |
+| docs/designs/REPOSITORY_LAYOUT.md | 保留 system_init.sql 因为 docker-compose 直接引用 | docker-compose.yml; backend/pkg/database/migrations | UPDATE |
+| docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.en.md | 目前不实现真实多租户、tenant login discovery 尚不做 | backend/pkg/tenant; backend/modules/system/iam/tenant; backend/modules/auth/login/login_tenant_switch.go | ARCHIVE |
+| docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md | 目前不实现真实多租户、tenant login discovery 尚不做 | backend/pkg/tenant; backend/modules/system/iam/tenant; backend/modules/auth/login/login_tenant_switch.go | ARCHIVE |
+| docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md | go test ./... 的 cwd 写 pantheon-base；JSON仍写 go test ./backend/... | backend/go.mod; .github/workflows/quality.yml | UPDATE |
+| docs/harness/VERIFICATION_EVIDENCE_SPEC.md | go test ./... 的 cwd 写 pantheon-base；JSON仍写 go test ./backend/... | backend/go.mod; .github/workflows/quality.yml | UPDATE |
+| docs/reviews/PANTHEON_BASE_GLOBAL_AUDIT_2026-11-04.md | 旧工作树数量49；分页/数据范围 bootstrap 等建议已在当前树修正 | frontend/src/shared/utils/fetchAllPages.ts; backend/internal/middleware/data_scope_middleware.go | REPLACE |
+| docs/testing-quick-start.md | 每次 PR 等 120 分钟、未来创建 core 目录；80%收益没有本轮测量依据 | .github/workflows/smoke-core.yml; .github/workflows/smoke-full.yml; frontend/tests/smoke-core | ARCHIVE |
+
+
+### 8.4 重复文档清单
+
+| 重复组 | 实际路径 | 判定 |
+| --- | --- | --- |
+| 1 | .harness/archive/2026-09/evidence/2026-09-04-v0.11.1-release-preparation/summary.md<br>.harness/archive/2026-09/evidence/2026-09-07-core-smoke-followup/summary.md | 精确字节重复；历史追溯/发布边界仍需保留或REVIEW，不自动MERGE/DELETE |
+| 2 | .harness/archive/2026-10/evidence/2026-10-19-w4-session-revocation-login-gate/redis-keys.txt<br>.harness/archive/2026-10/evidence/2026-10-19-w6-reverification-closeout/redis-keys.txt | 精确字节重复；历史追溯/发布边界仍需保留或REVIEW，不自动MERGE/DELETE |
+| 3 | releases/pantheon-base-v0.10.10/release-notes.md<br>releases/pantheon-base-v0.10.9/release-notes.md | 精确字节重复；历史追溯/发布边界仍需保留或REVIEW，不自动MERGE/DELETE |
+| 4 | releases/pantheon-base-v0.10.24/consumer-impact.md<br>releases/pantheon-base-v0.11.0/consumer-impact.md | 精确字节重复；历史追溯/发布边界仍需保留或REVIEW，不自动MERGE/DELETE |
+| 5 | releases/pantheon-base-v0.10.24/release-notes.md<br>releases/pantheon-base-v0.11.0/release-notes.md | 精确字节重复；历史追溯/发布边界仍需保留或REVIEW，不自动MERGE/DELETE |
+| 6 | releases/pantheon-base-v0.10.24/upgrade-notes.md<br>releases/pantheon-base-v0.11.0/upgrade-notes.md | 精确字节重复；历史追溯/发布边界仍需保留或REVIEW，不自动MERGE/DELETE |
+
+
+这些组来自 SHA256 精确相同，不含语义近似估算。相同正文在不同任务/版本可能仍有独立追溯价值。历史 release 中仅含 “No ... provided” 的占位文本另标 REVIEW；不直接改写不可变 release 的说明，也不能据占位声称版本无消费者影响。
+
+### 8.5 冲突文档清单
+
+| 文档 | 冲突内容 | 推荐权威 | 处理 |
+| --- | --- | --- | --- |
+| DESIGN.md | §4.1 仍要求从当前 system/user 拆出；§3.4 称 JWT claim，而 §4.3/§9 已登记物理拆分 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/VERSION_MANAGEMENT_GUIDE.md | 当前版本 v0.10.26；要求 npm run check:base-sync，而 Base package 无此脚本 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/ALERT_MONITORING_CENTER_DESIGN.en.md | 英文 status: Active；中文 Draft 且有未实现声明 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/AUTH_MODULE_DESIGN.md | §3 的 system/user 混合现状；:430 JWT 签发；:597 JWT 中间件查会话表 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/BACKEND.en.md | Casbin bootstrapped by SQL initialization，未限定旧 SQL 不再建库 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/DARK_MODE_DESIGN.en.md | 明确称 only light mode、无 data-color-mode/暗色token，状态仍 Draft | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/DATA_PERMISSION_HOOK.en.md | multi-role merge rules 写 future work；没有中文已实现合并规则 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/DATA_PERMISSION_HOOK.md | JWTAuthMiddleware；占位描述与已实现条款混排 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/FOUNDATION_RELEASE_MODEL.en.md | 当前发布版本 v0.10.26 / release/0.10 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/FOUNDATION_RELEASE_MODEL.md | 当前发布版本 v0.10.26 / release/0.10 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/FRONTEND.md | 仍介绍 FilterPanel；Setting 页面路径遗漏 config；强制 i18n:generate-module / check:i18n-missing-keys 命令在当前 package scripts 中不存在；:88-89 同一句重复 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/FRONTEND_COMPONENT_PLAN.en.md | FilterPanel 作为首批待抽组件及列表骨架 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/FRONTEND_COMPONENT_PLAN.md | FilterPanel 作为首批待抽组件及列表骨架 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/FRONTEND_PAGE_TEMPLATES.en.md | ListPage/TreePage 必须使用 FilterPanel | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/FRONTEND_PAGE_TEMPLATES.md | ListPage/TreePage 必须使用 FilterPanel | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/MODULE_CONTRACT.md | §5.3 只包含 name/routes；§12 却登记完整 manifest；Base 的 cmdb 现态样例已不在本仓 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/P2_SCALE_ROADMAP.md | 不实现真实 tenant model；命令用错误 module 根及迁出 Ops 的 cmdb 路径 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/PERMISSION_MENU_DECOUPLING.md | 当前菜单/权限混用的旧现态；与已交付四层模型未划清范围 | 相关域合同 + 当前实现；具体见该条证据 | MERGE |
+| docs/designs/QUALITY_AND_SECURITY_STRATEGY.en.md | 文档主信号CodeQL、外部对比无；release仍要求Sonar候选分析及全部CODE_SMELL清零 | 相关域合同 + 当前实现；具体见该条证据 | REVIEW |
+| docs/designs/QUALITY_AND_SECURITY_STRATEGY.md | 文档主信号CodeQL、外部对比无；release仍要求Sonar候选分析及全部CODE_SMELL清零 | 相关域合同 + 当前实现；具体见该条证据 | REVIEW |
+| docs/designs/REPOSITORY_LAYOUT.en.md | 保留 system_init.sql 因为 docker-compose 直接引用 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/REPOSITORY_LAYOUT.md | 保留 system_init.sql 因为 docker-compose 直接引用 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/TASK_CENTER_DESIGN.en.md | 英文 status: Active；中文 Draft 且有未实现声明 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.en.md | 目前不实现真实多租户、tenant login discovery 尚不做 | 相关域合同 + 当前实现；具体见该条证据 | ARCHIVE |
+| docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md | 目前不实现真实多租户、tenant login discovery 尚不做 | 相关域合同 + 当前实现；具体见该条证据 | ARCHIVE |
+| docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md | schema/auth/audit/CI 等一律中途停下请求批准；任务档位及既有授权未在停点处区分 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+| docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md | schema/auth/audit/CI 等一律中途停下请求批准；任务档位及既有授权未在停点处区分 | 相关域合同 + 当前实现；具体见该条证据 | UPDATE |
+
+
+注意区分“计划与现实不同”及“权威现态矛盾”：Draft 的未来设计通常不算冲突；NOTICE_CENTER 与旧 NOTIFICATION_SERVICE 的备选模型已登记开放决策，不能把未决方案直接当生产表冲突。新旧表同时落库前才需要作模型裁决。
+
+### 8.6 孤立、失效与历史资产
+
+| 文档 | 失效链接 |
+| --- | --- |
+| docs/designs/APPROVAL_WORKFLOW_DESIGN.en.md | missing internal link target: ./APPROVAL_WORKFLOW_DB_DESIGN.en.md<br>missing internal link target: ./APPROVAL_WORKFLOW_DB_DESIGN.md<br>missing internal link target: ./APPROVAL_WORKFLOW_API_CONTRACT.en.md<br>missing internal link target: ./APPROVAL_WORKFLOW_API_CONTRACT.md<br>missing internal link target: ./APPROVAL_WORKFLOW_TEST_PLAN.en.md<br>missing internal link target: ./APPROVAL_WORKFLOW_TEST_PLAN.md |
+| docs/designs/APPROVAL_WORKFLOW_DESIGN.md | missing internal link target: ./APPROVAL_WORKFLOW_DB_DESIGN.md<br>missing internal link target: ./APPROVAL_WORKFLOW_API_CONTRACT.md<br>missing internal link target: ./APPROVAL_WORKFLOW_TEST_PLAN.md |
+| docs/designs/NOTICE_CENTER_API_CONTRACT.md | missing internal link target: ./NOTICE_CENTER_API_CONTRACT.en.md |
+| docs/designs/REPORT_CENTER_API_CONTRACT.en.md | missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.md |
+| docs/designs/REPORT_CENTER_API_CONTRACT.md | missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.md |
+| docs/designs/REPORT_CENTER_DESIGN.en.md | missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.en.md |
+| docs/designs/REPORT_CENTER_DESIGN.md | missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.md |
+| docs/designs/REPORT_CENTER_TEST_PLAN.en.md | missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.md |
+| docs/designs/REPORT_CENTER_TEST_PLAN.md | missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.md |
+| docs/designs/SCHEDULER_CENTER_DB_DESIGN.md | missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.md<br>missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.md<br>missing internal link target: ./SCHEDULER_CENTER_DB_DESIGN.en.md<br>missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.en.md<br>missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.en.md |
+| docs/designs/SCHEDULER_CENTER_DESIGN.en.md | missing internal link target: ./SCHEDULER_CENTER_DB_DESIGN.en.md<br>missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.md<br>missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.md<br>missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.en.md<br>missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.en.md |
+| docs/designs/SCHEDULER_CENTER_DESIGN.md | missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.md<br>missing internal link target: ./SCHEDULER_CENTER_DB_DESIGN.en.md<br>missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.md<br>missing internal link target: ./SCHEDULER_CENTER_API_CONTRACT.en.md<br>missing internal link target: ./SCHEDULER_CENTER_TEST_PLAN.en.md |
+
+
+38 次失效链接主要位于未实施 approval/notice/report/scheduler 的配套文档。应修链接、删除伪完成暗示或注明未实施附件，不能为了让 checker 变绿增加整套产品设计或实现。
+
+`.harness` evidence/tasks、旧 reviews、archive 和 release 资产默认保留用途；历史结论不能作为今天的状态。新增 ARCHIVE 建议只限明确旧阶段与已实施方案稿，先保留仍有效的 business V1 决策、更新指针再归档。没有已确认的“可安全删除孤立文档”清单，DELETE 为 0。
+
+### 8.7 文档处理建议
+
+[全量资产附表](./PANTHEON_BASE_GLOBAL_AUDIT_2026-11-04_ASSETS.md) 对基线全部 1,355 项逐项提供：文档路径、当前问题、过期/冲突内容、对应代码、核查证据、KEEP/UPDATE/MERGE/ARCHIVE/DELETE/REPLACE/REVIEW、原因、风险和全部解析到的引用关系。没有自动删除或重写。
+
+动作的具体使用：KEEP 保留必要合同、模板和历史证据；UPDATE 修局部准确性；MERGE 仅合并相同现态的维护入口并保留旧地址指针；ARCHIVE 保存已结束阶段；REPLACE 用本轮 FULL 替代旧有限审计的现态入口；REVIEW 保留证据不足/策略待裁决项；DELETE 本轮无建议。涉及 Ops 所引用 MODULE_CONTRACT、FOUNDATION_RELEASE_MODEL 或 Harness 链接的合并/迁移，都要先检查消费者引用并保留兼容指针。
+
+### 8.8 文档与代码一致性矩阵（全部核心文件）
+
+下面逐项列出 236 个核心物理文件。没有充分证据的行明确保持未判定；没有将其自动计为有效。其全部声明、引用、hash、风险与处理原因在全量资产附表展开。
+
+| 文档 | 对应代码或配置 | 文档状态 | 一致性 | 主要问题 | 建议 |
+| --- | --- | --- | --- | --- | --- |
+| AGENTS.en.md | ../AGENTS.md; ../pantheon-harness/patterns/method-playbook.md | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| AGENTS.md | ../AGENTS.md; ../pantheon-harness/patterns/method-playbook.md | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| CHANGELOG.md | frontend/scripts/check-menu-contract.mjs; scripts/foundation-release/frontend-ownership.mjs; .harness/archive/; scripts/foundation-release/ | 未声明 / 证据不足 | 未判定 | 已盘点 Changelog 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| CLAUDE.md | ../AGENTS.md; ../pantheon-harness/patterns/method-playbook.md | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| CONTRIBUTING.md | backend/go.mod | 未声明 / 证据不足 | 未判定 | 已盘点 Contributing to Pantheon Base 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| DESIGN.en.md | backend/pkg/authtoken/token.go | 未声明 / 部分过期 | 已确认局部不一致 | 令牌协议术语不准确 | UPDATE |
+| DESIGN.md | backend/modules/auth/module.go; backend/pkg/authtoken/token.go | 未声明 / 部分过期 | 已确认局部不一致 | 总体设计内部现态混排 | UPDATE |
+| README.en.md | backend/cmd/server/main.go; frontend/package.json | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| README.md | backend/cmd/server/main.go; frontend/package.json | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| SECURITY.en.md |  .github/workflows/security.yml | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| SECURITY.md |  .github/workflows/security.yml | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/DEPLOYMENT_GUIDE.md | backend/pkg/contracts/module.go; docker-compose.yml; backend/pkg/database/migrations | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/DEV_DB_INIT_GUIDE.md | backend/go.mod; backend/cmd/server/main.go | 未声明 / 部分过期 | 已确认局部不一致 | 启动示例使用错误 Go module 根 | UPDATE |
+| docs/GITHUB_GOVERNANCE_CHECKLIST.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 GitHub Governance Checklist 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/GITHUB_GOVERNANCE_CHECKLIST.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 GitHub Governance Checklist 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/GITHUB_REPOSITORY_SETUP.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 GitHub Repository Setup Guide 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/GITHUB_REPOSITORY_SETUP.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 GitHub Repository Setup Guide 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/HARNESS_GOVERNANCE_GUIDE.md | .github/pull_request_template.md; scripts/task-manifest.mjs; scripts/check-task-packet-template.mjs | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/README.en.md | docs/contracts; backend/go.mod | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/README.md | docs/contracts; backend/go.mod | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/TENANT_INITIALIZATION_GUIDE.md | backend/modules/system/system_modules.go; backend/modules/system/iam/tenant | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/VERSION_MANAGEMENT_GUIDE.md | VERSION; package.json; scripts/foundation-release | Active / 部分过期 | 已确认局部不一致 | 当前版本和同步命令滞后 | UPDATE |
+| docs/acceptances/ACCEPTANCE_CHECKLIST.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Design and Implementation Acceptance Checklist 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/ACCEPTANCE_CHECKLIST.md | frontend/src; frontend/src/modules; frontend/src/components; frontend/src/core/layout/index.css | Active / 证据不足 | 未判定 | 已盘点 设计与实现验收清单 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/AGENT_EXECUTION_CHECKLIST.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Pantheon Base Agent Execution Checklist 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/AGENT_EXECUTION_CHECKLIST.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Pantheon Base Agent 执行清单 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/BUSINESS_MODULE_ACCEPTANCE_MATRIX.en.md | backend/pkg/common/data_scope.go | Active / 证据不足 | 未判定 | 已盘点 business/* Acceptance Matrix 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/BUSINESS_MODULE_ACCEPTANCE_MATRIX.md | backend/pkg/common/data_scope.go; backend/modules/business/..; backend/modules/system/iam/permission | Active / 证据不足 | 未判定 | 已盘点 business/* 业务模块验收矩阵 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/CODE_REVIEW_STANDARD.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Pantheon Code Review Standard Flow 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/CODE_REVIEW_STANDARD.md | frontend/src; frontend/src/modules; frontend/src/components; backend/modules/business/generated_registry.go | Active / 证据不足 | 未判定 | 已盘点 Pantheon 代码评审标准流程 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/PLATFORM_ACCEPTANCE_MATRIX_20260430_UI_MIGRATION.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Platform UI Migration Acceptance Matrix (2026-04-30) 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/PLATFORM_ACCEPTANCE_MATRIX_20260430_UI_MIGRATION.md | frontend/src/core/layout/index.css; frontend/src/modules/system/i18n/I18nList.tsx; frontend/src/modules/system/audit/OperationLogList.tsx; frontend/src | Active / 证据不足 | 未判定 | 已盘点 平台层 UI 迁移验收矩阵（2026-04-30） 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/PLATFORM_SHELL_DUAL_MODE_ACCEPTANCE_TEMPLATE.en.md | frontend/src/core/layout/index.css | Active / 证据不足 | 未判定 | 已盘点 Platform Shell Dual-Mode Acceptance Template 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/PLATFORM_SHELL_DUAL_MODE_ACCEPTANCE_TEMPLATE.md | frontend/src/core/layout/index.css; frontend/src/core/layout; frontend/src; frontend/src/modules | Active / 证据不足 | 未判定 | 已盘点 Platform 壳层双模式验收模板 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/PLATFORM_SHELL_PR_CHECKLIST_SNIPPET.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Platform Shell PR Checklist Snippet 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/PLATFORM_SHELL_PR_CHECKLIST_SNIPPET.md | frontend/src/core/layout/index.css | Active / 证据不足 | 未判定 | 已盘点 Platform 壳层 PR Checklist 片段 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/PLATFORM_SHELL_PR_TEMPLATE.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Platform Shell PR Description Template 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/PLATFORM_SHELL_PR_TEMPLATE.md | frontend/src/core/layout/index.css | Active / 证据不足 | 未判定 | 已盘点 Platform 壳层 PR 描述模板 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/SYSTEM_CONFIG_GOVERNANCE_ACCEPTANCE.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 system/config Sensitive Governance Acceptance Baseline 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/SYSTEM_CONFIG_GOVERNANCE_ACCEPTANCE.md | backend/modules/system/i18n | Active / 证据不足 | 未判定 | 已盘点 system/config 高敏治理验收基线 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/SYSTEM_IMPORT_EXPORT_SMOKE_GUIDE.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 System-Domain Import/Export Smoke Guide 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/SYSTEM_IMPORT_EXPORT_SMOKE_GUIDE.md | frontend/tests/fixtures/system-import-export/user-import.csv; frontend/tests/fixtures/system-import-export/dept-import.csv; frontend/tests/fixtures/system-import-export/post-import.csv; frontend/tests/fixtures/system-import-export/permission-import.csv | Active / 证据不足 | 未判定 | 已盘点 系统域导入导出 Smoke 指南 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/TASK_PACKET_BASE_TEMPLATE.en.md | .harness/evidence/ | Active / 证据不足 | 未判定 | 已盘点 Pantheon Base Task Packet Template 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/acceptances/TASK_PACKET_BASE_TEMPLATE.md | .harness/evidence/ | Active / 证据不足 | 未判定 | 已盘点 Pantheon Base Task Packet Template 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/contracts/CONTRACT_TEMPLATE.en.md | scripts/frontmatter-check.mjs; scripts/harness/check-doc-inventory.mjs | Draft / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/CONTRACT_TEMPLATE.md | scripts/frontmatter-check.mjs; scripts/harness/check-doc-inventory.mjs | Draft / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/DOCUMENT_FRONTMATTER_SCHEMA.en.md | scripts/frontmatter-check.mjs; scripts/harness/check-doc-inventory.mjs | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/DOCUMENT_FRONTMATTER_SCHEMA.md | scripts/frontmatter-check.mjs; scripts/harness/check-doc-inventory.mjs | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.en.md | scripts/frontmatter-check.mjs; scripts/harness/check-doc-inventory.mjs | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md | scripts/frontmatter-check.mjs; scripts/harness/check-doc-inventory.mjs | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/DOCUMENT_METADATA_AND_STATUS.en.md | scripts/frontmatter-check.mjs; scripts/harness/check-doc-inventory.mjs | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/DOCUMENT_METADATA_AND_STATUS.md | scripts/frontmatter-check.mjs; scripts/harness/check-doc-inventory.mjs | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/PLATFORM_CONTRACT.en.md | frontend/src; frontend/src/modules; frontend/src/components | Active / 证据不足 | 未判定 | 已盘点 Platform Contract 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/contracts/PLATFORM_CONTRACT.md | frontend/src; frontend/src/modules; frontend/src/components | Active / 证据不足 | 未判定 | 已盘点 平台层合同文档 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/contracts/SYSTEM_AUTH_CONTRACT.en.md | backend/modules/auth/module.go; backend/pkg/common/http/cookie.go | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/SYSTEM_AUTH_CONTRACT.md | backend/modules/auth/module.go; backend/pkg/common/http/cookie.go | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/SYSTEM_CONFIG_CONTRACT.en.md | backend/modules/system/config; backend/modules/system/i18n; backend/pkg/upload | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/SYSTEM_CONFIG_CONTRACT.md | backend/modules/system/config; backend/modules/system/i18n; backend/pkg/upload | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/SYSTEM_IAM_CONTRACT.en.md | backend/go.mod; backend/modules/system/iam/permission | Active / 部分过期 | 已确认局部不一致 | 验收命令目录不可执行 | UPDATE |
+| docs/contracts/SYSTEM_IAM_CONTRACT.md | backend/go.mod; backend/modules/system/iam/permission | Active / 部分过期 | 已确认局部不一致 | 验收命令目录不可执行 | UPDATE |
+| docs/contracts/SYSTEM_ORG_CONTRACT.en.md | backend/modules/system/org; backend/modules/system/system_modules.go | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/SYSTEM_ORG_CONTRACT.md | backend/modules/system/org; backend/modules/system/system_modules.go | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/TENANT_CONTRACT_V1.en.md | backend/pkg/tenant; backend/modules/system/iam/tenant; backend/pkg/contracts/route_groups.go | Approved / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/contracts/TENANT_CONTRACT_V1.md | backend/pkg/tenant; backend/modules/system/iam/tenant; backend/pkg/contracts/route_groups.go | Approved / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/designs/ACCESSIBILITY.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Accessibility Design Rules 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/ACCESSIBILITY.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 无障碍设计规范 (Accessibility) 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/ALERT_MONITORING_CENTER_DESIGN.en.md | backend/modules/platform; frontend/src/modules/platform | Active / 部分过期 | 待核查 | 双语实施状态不一致 | UPDATE |
+| docs/designs/ALERT_MONITORING_CENTER_DESIGN.md | 未解析到可确认代码关联 | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/APPROVAL_WORKFLOW_DESIGN.en.md | backend/pkg/contracts/route_groups.go; backend/modules/system/refresh_sync.go; backend/modules/auth/security/security_service.go; backend/modules/system/seed.go | Draft / 部分过期 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW；存在失效内部链接 | UPDATE |
+| docs/designs/APPROVAL_WORKFLOW_DESIGN.md | backend/pkg/contracts/route_groups.go; backend/modules/system/refresh_sync.go; backend/modules/auth/security/security_service.go; backend/modules/system/seed.go | Draft / 部分过期 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW；存在失效内部链接 | UPDATE |
+| docs/designs/AUTH_MODULE_DESIGN.en.md | backend/modules/auth/; frontend/src/modules/auth/ | Active / 证据不足 | 未判定 | 已盘点 Auth Module Split Design 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/AUTH_MODULE_DESIGN.md | backend/modules/auth/login/login_runtime.go; backend/internal/middleware/token_middleware.go | Active / 部分过期 | 已确认局部不一致 | 已完成拆分仍写为当前问题；令牌模型漂移 | UPDATE |
+| docs/designs/AUTH_PROVIDER_ABSTRACTION.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Authentication Provider Abstraction Design 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/AUTH_PROVIDER_ABSTRACTION.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 认证 Provider 抽象设计 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/BACKEND.en.md | backend/pkg/database/migrations; docker-compose.yml | Active / 部分过期 | 已确认局部不一致 | 建库来源描述需同步 | UPDATE |
+| docs/designs/BACKEND.md | backend/modules/platform/dashboard_service.go | Active / 部分过期 | 已确认局部不一致 | 现态模块物理路径过期 | UPDATE |
+| docs/designs/BACKOFFICE_STYLE_CONSTRAINTS.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Backoffice UI Style Constraints 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/BACKOFFICE_STYLE_CONSTRAINTS.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 后台 UI 风格约束 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/BUSINESS_DICT_INTEGRATION_GUIDE.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Business Dictionary Integration Guide 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/BUSINESS_DICT_INTEGRATION_GUIDE.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 业务字典接入指南 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/BUSINESS_LIFECYCLE_DETAIL_PATTERN.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Business Lifecycle Detail Pattern 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/BUSINESS_LIFECYCLE_DETAIL_PATTERN.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 业务生命周期详情页模板 (Business Lifecycle Detail Pattern) 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/BUSINESS_MODELING_REVIEW_CHECKLIST.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Business Module Modeling Review Checklist 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/BUSINESS_MODELING_REVIEW_CHECKLIST.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 业务模块建模评审清单 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/BUSINESS_MODULE_TEMPLATE.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Business Module Design Template 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/BUSINESS_MODULE_TEMPLATE.md | frontend/src/core/router/componentRegistry.ts | Active / 证据不足 | 未判定 | 已盘点 业务模块设计模板 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/BUSINESS_RESOURCE_LIST_PATTERN.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Business Resource List Pattern 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/BUSINESS_RESOURCE_LIST_PATTERN.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 业务资源列表页模板 (Business Resource List Pattern) 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/DARK_MODE_DESIGN.en.md | frontend/src/core/theme/colorMode.ts; frontend/src/index.css | Draft / 部分过期 | 已确认局部不一致 | 英文当前运行态与中文、代码相反 | UPDATE |
+| docs/designs/DARK_MODE_DESIGN.md | frontend/src/index.css; frontend/src/core/theme/colorMode.ts; frontend/scripts/check-contrast.mjs | Active / 证据不足 | 未判定 | 已盘点 暗色模式设计 (Dark Mode Design) 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/DATABASE.en.md | database/system_init.sql | Active / 证据不足 | 未判定 | 已盘点 Database Design Rules and Detailed Notes 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/DATABASE.md | database/system_init.sql; backend/modules/system/seed.go; database/README.md | Active / 证据不足 | 未判定 | 已盘点 数据库设计规范与详细说明 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/DATA_PERMISSION_HOOK.en.md | backend/internal/middleware/data_scope_middleware.go | Active / 部分过期 | 已确认局部不一致 | 英文仍把已实现机制描述为未来占位 | UPDATE |
+| docs/designs/DATA_PERMISSION_HOOK.md | backend/internal/middleware/data_scope_middleware.go; backend/pkg/contracts/route_groups.go | Active / 部分过期 | 已确认局部不一致 | 认证中间件名称过期 | UPDATE |
+| docs/designs/DICT_AND_SETTING_DESIGN.en.md | backend/modules/system/config/dict; backend/modules/system/config/setting | Active / 部分过期 | 已确认局部不一致 | 模块目录缺少 config 域 | UPDATE |
+| docs/designs/DICT_AND_SETTING_DESIGN.md | backend/modules/system/config/dict; backend/modules/system/config/setting | Active / 部分过期 | 已确认局部不一致 | 模块目录缺少 config 域 | UPDATE |
+| docs/designs/DYNAMIC_MODULE_GOVERNANCE_DESIGN.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Dynamic Module Governance Design 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/DYNAMIC_MODULE_GOVERNANCE_DESIGN.md | schema/generated/feature-ledger.json; scripts/harness/check-feature-ledger.mjs | Active / 证据不足 | 未判定 | 已盘点 动态模块治理设计 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/EMPTY_LOADING_ERROR_STATES.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Empty / Loading / Error State Rules 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/EMPTY_LOADING_ERROR_STATES.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 空 / 加载 / 错误状态规范 (Empty / Loading / Error States) 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/ERROR_CODE_AND_I18N.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Error Code and I18n Design 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/ERROR_CODE_AND_I18N.md | frontend/scripts/check-i18n-hardcode.mjs; frontend/package.json | Active / 证据不足 | 未判定 | 已盘点 错误码与多语言设计 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/FOUNDATION_RELEASE_MODEL.en.md | VERSION; ../pantheon-ops/foundation-release.lock.json | Active / 部分过期 | 已确认局部不一致 | 当前 release 指向旧版本 | UPDATE |
+| docs/designs/FOUNDATION_RELEASE_MODEL.md | VERSION; ../pantheon-ops/foundation-release.lock.json | Active / 部分过期 | 已确认局部不一致 | 当前 release 指向旧版本 | UPDATE |
+| docs/designs/FRONTEND.en.md | frontend/package.json; frontend/src/i18n | Active / 部分过期 | 已确认局部不一致 | 强制i18n构建命令不存在 | UPDATE |
+| docs/designs/FRONTEND.md | frontend/src/components/patterns/SearchToolbar.tsx; frontend/src/modules/system/config/setting; frontend/package.json; frontend/src/i18n | Active / 部分过期 | 已确认局部不一致 | 组件及页面位置描述滞后 | UPDATE |
+| docs/designs/FRONTEND_COMPONENT_PLAN.en.md | frontend/src/components/patterns/SearchToolbar.tsx | Active / 部分过期 | 已确认局部不一致 | 组件规划仍推荐退役组件 | UPDATE |
+| docs/designs/FRONTEND_COMPONENT_PLAN.md | frontend/src/components/patterns/SearchToolbar.tsx | Active / 部分过期 | 已确认局部不一致 | 组件规划仍推荐退役组件 | UPDATE |
+| docs/designs/FRONTEND_PAGE_TEMPLATES.en.md | frontend/src/components/patterns/SearchToolbar.tsx; frontend/scripts/check-search-toolbar-contract.mjs | Active / 部分过期 | 已确认局部不一致 | 权威模板要求已经退役的筛选模式 | UPDATE |
+| docs/designs/FRONTEND_PAGE_TEMPLATES.md | frontend/src/components/patterns/SearchToolbar.tsx; frontend/scripts/check-search-toolbar-contract.mjs | Active / 部分过期 | 已确认局部不一致 | 权威模板要求已经退役的筛选模式 | UPDATE |
+| docs/designs/FRONTEND_UI_SPEC.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Frontend UI Detailed Specification 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/FRONTEND_UI_SPEC.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 前端 UI 详细设计规范 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/GENERATOR_MODULE_DESIGN.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Generator Module Design 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/GENERATOR_MODULE_DESIGN.md | backend/modules/lowcode/generator/module.go; backend/pkg/contracts/route_groups.go | Active / 部分过期 | 已确认局部不一致 | 认证格式术语过期 | UPDATE |
+| docs/designs/GLOBAL_EXCEPTION_HANDLING.en.md | backend/pkg/..; backend/internal/.. | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/GLOBAL_EXCEPTION_HANDLING.md | backend/pkg/..; backend/internal/..; backend/cmd/server/main.go | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/GSTACK_WINDOWS_GUIDE.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 gstack Windows Usage Guide 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/GSTACK_WINDOWS_GUIDE.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 gstack Windows 使用清单 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/I18N_MODULE_DESIGN.en.md | backend/modules/system; frontend/src/core/router/RoutePermissionGuard.tsx; frontend/src/i18n | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/designs/I18N_MODULE_DESIGN.md | backend/modules/system; frontend/src/core/router/RoutePermissionGuard.tsx; frontend/src/i18n | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/designs/LOGIN_RISK_CONTROL_DESIGN.md | 未解析到可确认代码关联 | 未声明 / 证据不足 | 未判定 | 已盘点 Login Risk Control Design 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/LOWCODE_GENERATOR_GUIDE.en.md | frontend/scripts/export-generated-module.mjs; frontend/src/modules/lowcode/generator/exporter.ts; frontend/src/modules/lowcode/generator/backendGenerator.ts; frontend/src/modules/lowcode/generator/frontendGenerator.ts | Active / 证据不足 | 未判定 | 已盘点 Low-Code Module Code Generation Platform - Integration and Usage Guide 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/LOWCODE_GENERATOR_GUIDE.md | frontend/src/i18n/resources/zh-CN.ts; backend/modules/business/generated_registry.go; backend/modules/system/iam/menu/generated_component_registry.go; frontend/src/modules/generated/business.ts | Active / 证据不足 | 未判定 | 已盘点 低代码模块代码生成平台 - 集成与使用指南 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/MOBILE_RESPONSIVE_BREAKPOINTS.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Mobile Responsive Breakpoints 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/MOBILE_RESPONSIVE_BREAKPOINTS.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 响应式断点与移动端适配 (Mobile Responsive Breakpoints) 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/MODULE_CONTRACT.en.md | frontend/src/core/router/types.ts | Active / 部分过期 | 已确认局部不一致 | manifest 已实现状态滞后 | UPDATE |
+| docs/designs/MODULE_CONTRACT.md | frontend/src/core/router/types.ts; ../pantheon-ops/backend/modules/business/cmdb | Active / 部分过期 | 已确认局部不一致 | 前端 manifest 现态自相矛盾 | UPDATE |
+| docs/designs/MODULE_GENERATOR_EXTENSION.en.md | backend/internal/scaffold/; backend/pkg/common; backend/pkg/impexp | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/MODULE_GENERATOR_EXTENSION.md | backend/internal/scaffold/; backend/pkg/common; backend/pkg/impexp | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/MULTI_TENANT_DESIGN.md | docs/contracts/TENANT_CONTRACT_V1.md; backend/internal/scaffold | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/designs/NAVIGATION_IA_STRATEGY.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Navigation Information Architecture Deep-Dive 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/NAVIGATION_IA_STRATEGY.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 导航信息架构深化设计 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/NOTICE_CENTER_API_CONTRACT.md | backend/cmd/server/main.go; backend/modules/platform/routes.go; backend/pkg/contracts/route_groups.go; backend/internal/middleware/rate_limit_presets.go | Draft / 部分过期 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW；存在失效内部链接 | UPDATE |
+| docs/designs/NOTICE_CENTER_DB_DESIGN.en.md | backend/modules/system/iam/user/user_username.go; backend/pkg/common/handler.go; backend/modules/system/audit/audit_service.go; backend/modules/system/config/dict/dict_service.go | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/NOTICE_CENTER_DB_DESIGN.md | backend/modules/system/iam/user/user_username.go; backend/pkg/common/handler.go; backend/modules/system/audit/audit_service.go; backend/modules/system/config/dict/dict_service.go | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/NOTICE_CENTER_DESIGN.en.md | frontend/src/core/layout/AppLayout.tsx; frontend/src/i18n/resources/zh-CN.ts; backend/modules/platform/; backend/cmd/server/main.go | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/NOTICE_CENTER_DESIGN.md | frontend/src/core/layout/AppLayout.tsx; frontend/src/i18n/resources/zh-CN.ts; backend/modules/platform/; backend/cmd/server/main.go | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/NOTIFICATION_SERVICE_DESIGN.en.md | 未解析到可确认代码关联 | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/NOTIFICATION_SERVICE_DESIGN.md | 未解析到可确认代码关联 | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/OPERATIONAL_WORKBENCH_COMPONENTS_DESIGN.md | config/ui-quality-gate.json | Active / 证据不足 | 未判定 | 已盘点 运维工作台共享组件设计 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/P2_SCALE_ROADMAP.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 P2 Scale Capability Roadmap 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/P2_SCALE_ROADMAP.md | backend/pkg/tenant; backend/go.mod; ../pantheon-ops/backend/modules/business/cmdb | Active / 部分过期 | 已确认局部不一致 | 旧租户阶段及验收命令残留 | UPDATE |
+| docs/designs/PANTHEON_BASE_ARCHITECTURE_OVERVIEW.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Pantheon Base Architecture Overview 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/PANTHEON_BASE_ARCHITECTURE_OVERVIEW.md | backend/modules/platform; backend/modules/lowcode; ../pantheon-ops/backend/modules/business/cmdb | Active / 部分过期 | 已确认局部不一致 | 架构现态包含已移动或下游样例 | UPDATE |
+| docs/designs/PERMISSION_MENU_DECOUPLING.md | backend/modules/system/iam/menu; backend/modules/system/iam/permission | 未声明 / 部分过期 | 已确认局部不一致 | 阶段实施稿仍使用实施中状态 | MERGE |
+| docs/designs/PERMISSION_MODEL.en.md | backend/modules/system; frontend/src/core/router/RoutePermissionGuard.tsx; frontend/src/i18n | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/designs/PERMISSION_MODEL.md | backend/modules/system; frontend/src/core/router/RoutePermissionGuard.tsx; frontend/src/i18n | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/designs/PERMISSION_WORKBENCH_GOVERNANCE_DESIGN.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Permission Workbench Governance Deep-Dive 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/PERMISSION_WORKBENCH_GOVERNANCE_DESIGN.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 权限工作台治理深化设计 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/PLATFORM_DASHBOARD_DESIGN.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Platform Dashboard Design 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/PLATFORM_DASHBOARD_DESIGN.md | backend/modules/platform/dashboard_service.go; frontend/src/modules/platform | Active / 部分过期 | 已确认局部不一致 | 当前物理布局描述错误 | UPDATE |
+| docs/designs/QUALITY_AND_SECURITY_STRATEGY.en.md |  .github/workflows/release-gate.yml; .github/workflows/ci.yml | Active / 部分过期 | 待核查 | 风险优先策略与 release 的全类型清零要求缺少明确边界 | REVIEW |
+| docs/designs/QUALITY_AND_SECURITY_STRATEGY.md |  .github/workflows/release-gate.yml; .github/workflows/ci.yml | Active / 部分过期 | 待核查 | 风险优先策略与 release 的全类型清零要求缺少明确边界 | REVIEW |
+| docs/designs/README.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Design Document Index 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/README.md | package.json; scripts/harness/check-doc-links.mjs | Active / 部分过期 | 已确认局部不一致 | 索引声明的死链兜底命令不存在 | UPDATE |
+| docs/designs/REPORT_CENTER_API_CONTRACT.en.md | backend/cmd/server/main.go; backend/pkg/contracts/route_groups.go; backend/pkg/common/http/response.go; backend/internal/middleware/casbin_middleware.go | Draft / 部分过期 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW；存在失效内部链接 | UPDATE |
+| docs/designs/REPORT_CENTER_API_CONTRACT.md | backend/cmd/server/main.go; backend/pkg/contracts/route_groups.go; backend/pkg/common/http/response.go; backend/internal/middleware/casbin_middleware.go | Draft / 部分过期 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW；存在失效内部链接 | UPDATE |
+| docs/designs/REPORT_CENTER_DB_DESIGN.en.md | backend/pkg/database/migrations/; backend/pkg/database/migrations/000001_init_schema.up.sql; backend/pkg/database/migrations/000030_tenant_plan_definitions.up.sql; backend/pkg/database/scope.go | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/REPORT_CENTER_DB_DESIGN.md | backend/pkg/database/migrations/; backend/pkg/database/migrations/000001_init_schema.up.sql; backend/pkg/database/migrations/000030_tenant_plan_definitions.up.sql; backend/pkg/database/scope.go | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/REPORT_CENTER_DESIGN.en.md | backend/modules/platform/routes.go; backend/pkg/impexp; backend/pkg/impexp/csv.go; backend/pkg/impexp/export_limits.go | Draft / 部分过期 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW；存在失效内部链接 | UPDATE |
+| docs/designs/REPORT_CENTER_DESIGN.md | backend/modules/platform/routes.go; backend/pkg/impexp; backend/pkg/impexp/csv.go; backend/pkg/impexp/export_limits.go | Draft / 部分过期 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW；存在失效内部链接 | UPDATE |
+| docs/designs/REPORT_CENTER_TEST_PLAN.en.md | frontend/package.json; .github/workflows/; backend/pkg/impexp/csv_test.go; backend/pkg/common/handler.go | Draft / 部分过期 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW；存在失效内部链接 | UPDATE |
+| docs/designs/REPORT_CENTER_TEST_PLAN.md | frontend/package.json; .github/workflows/; backend/pkg/impexp/csv_test.go; backend/pkg/common/handler.go | Draft / 部分过期 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW；存在失效内部链接 | UPDATE |
+| docs/designs/REPOSITORY_LAYOUT.en.md | docker-compose.yml; backend/pkg/database/migrations | Active / 部分过期 | 已确认局部不一致 | 权威布局说明引用已撤销的 Compose DDL 路径 | UPDATE |
+| docs/designs/REPOSITORY_LAYOUT.md | docker-compose.yml; backend/pkg/database/migrations | Active / 部分过期 | 已确认局部不一致 | 权威布局说明引用已撤销的 Compose DDL 路径 | UPDATE |
+| docs/designs/RUNTIME_MODULE_ENGINE_EVOLUTION.md | docs/contracts/TENANT_CONTRACT_V1.md; backend/internal/scaffold | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/designs/SCHEDULER_CENTER_DB_DESIGN.md | backend/pkg/database/migrations/; backend/pkg/database/migrations/000001_init_schema.up.sql; backend/pkg/database/casbin_watcher.go; backend/pkg/maintenance/maintenance.go | Draft / 部分过期 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW；存在失效内部链接 | UPDATE |
+| docs/designs/SCHEDULER_CENTER_DESIGN.en.md | backend/modules/platform/routes.go; backend/pkg/maintenance/maintenance.go; backend/pkg/maintenance/defaults.go; backend/pkg/metrics/prometheus.go | Draft / 部分过期 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW；存在失效内部链接 | UPDATE |
+| docs/designs/SCHEDULER_CENTER_DESIGN.md | backend/modules/platform/routes.go; backend/pkg/maintenance/maintenance.go; backend/pkg/maintenance/defaults.go; backend/pkg/metrics/prometheus.go | Draft / 部分过期 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW；存在失效内部链接 | UPDATE |
+| docs/designs/SECURITY_CENTER_DESIGN.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Security Center Design 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/SECURITY_CENTER_DESIGN.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 安全中心设计 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/SECURITY_POLICY_ROADMAP.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Security Policy Deepening Roadmap 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/SECURITY_POLICY_ROADMAP.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 安全策略深化路线图 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/SSO_OIDC_DESIGN.en.md | 未解析到可确认代码关联 | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/SSO_OIDC_DESIGN.md | 未解析到可确认代码关联 | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/SYSTEM_CONFIG_EXTENDED_DESIGN.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 system/config Extended Design 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/SYSTEM_CONFIG_EXTENDED_DESIGN.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 system/config 扩展设计 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/SYSTEM_ORG_DESIGN.en.md | backend/modules/system; frontend/src/core/router/RoutePermissionGuard.tsx; frontend/src/i18n | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/designs/SYSTEM_ORG_DESIGN.md | backend/modules/system; frontend/src/core/router/RoutePermissionGuard.tsx; frontend/src/i18n | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/designs/TASK_CENTER_DESIGN.en.md | backend/modules/platform; frontend/src/modules/platform | Active / 部分过期 | 待核查 | 双语实施状态不一致 | UPDATE |
+| docs/designs/TASK_CENTER_DESIGN.md | 未解析到可确认代码关联 | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.en.md | backend/pkg/tenant; backend/modules/system/iam/tenant; backend/modules/auth/login/login_tenant_switch.go | Active / 部分过期 | 已确认局部不一致 | 旧阶段定位仍作为当前全局限制 | ARCHIVE |
+| docs/designs/TENANT_READY_SINGLE_TENANT_DESIGN.md | backend/pkg/tenant; backend/modules/system/iam/tenant; backend/modules/auth/login/login_tenant_switch.go | Active / 部分过期 | 已确认局部不一致 | 旧阶段定位仍作为当前全局限制 | ARCHIVE |
+| docs/designs/TENANT_RESOURCE_SCOPE_MATRIX.en.md | backend/modules/system/org/dept/dept_service.go; backend/modules/system/org/post/post_service.go; backend/modules/auth/login/login_tenant_switch.go | Active / 证据不足 | 未判定 | 已盘点 Tenant Resource Scope Matrix Template and Global Unique-Key Registry 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/TENANT_RESOURCE_SCOPE_MATRIX.md | .harness/archive/2026-09/tasks/2026-09-10-tenant-contract-design/task.md; backend/modules/system/org/dept/dept_service.go; backend/modules/system/org/post/post_service.go; backend/modules/auth/login/login_tenant_switch.go | Active / 证据不足 | 未判定 | 已盘点 租户资源 scope 矩阵模板与全局唯一键登记 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/THEME_TOKENS_REFERENCE.en.md | frontend/src/index.css | Active / 证据不足 | 未判定 | 已盘点 Theme Tokens Reference 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/THEME_TOKENS_REFERENCE.md | frontend/src/index.css | Active / 证据不足 | 未判定 | 已盘点 主题 Token 参考表 (Theme Tokens Reference) 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/UPLOAD_AND_STORAGE_DESIGN.en.md | backend/pkg/upload | Active / 证据不足 | 未判定 | 已盘点 Upload and Storage Design 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/UPLOAD_AND_STORAGE_DESIGN.md | backend/pkg/upload | Active / 证据不足 | 未判定 | 已盘点 上传与存储设计 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/USER_PREFERENCE_DESIGN.en.md | backend/modules/system; frontend/src/core/router/RoutePermissionGuard.tsx; frontend/src/i18n | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/designs/USER_PREFERENCE_DESIGN.md | backend/modules/system; frontend/src/core/router/RoutePermissionGuard.tsx; frontend/src/i18n | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/designs/WORKFLOW.en.md | backend/modules/business/; database/system_init.sql; backend/cmd/server | Active / 证据不足 | 未判定 | 已盘点 Business Development Workflow and AI Collaboration Guide 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/WORKFLOW.md | backend/modules/business/; database/system_init.sql; backend/cmd/server; frontend/src/core/layout/index.css | Active / 证据不足 | 未判定 | 已盘点 业务开发工作流与 AI 协作指南 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/designs/WORKFLOW_ENGINE_SELECTION.en.md | 未解析到可确认代码关联 | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/designs/WORKFLOW_ENGINE_SELECTION.md | 未解析到可确认代码关联 | Draft / 证据不足 | 计划用途；无运行承诺 | 设计/模板用途可识别，实施和范围决策仍需REVIEW | REVIEW |
+| docs/harness-pr-generator-guide.md | .github/pull_request_template.md; scripts/task-manifest.mjs; scripts/check-task-packet-template.mjs; scripts/harness/check-task-packet.mjs | 未声明 / 证据不足 | 未判定 | 已盘点 Harness PR Governance Generator 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/AGENT_INTERFACE_CONTRACT.md | backend/modules/system/iam/role; backend/modules/system/iam/.. | Active / 证据不足 | 未判定 | 已盘点 Agent Interface Contract 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/AI_QUALITY_GOVERNANCE.md |  .github/workflows/quality.yml; ../pantheon-ops/business-overlay.json | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/harness/DOCUMENT_FRONTMATTER_SPEC.md | docs/contracts/DOCUMENT_FRONTMATTER_SCHEMA.md | Archived / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/harness/ERROR_RECOVERY_STRATEGY.en.md | .harness/evidence/ | Active / 证据不足 | 未判定 | 已盘点 Error Recovery Strategy 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/ERROR_RECOVERY_STRATEGY.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 错误恢复策略 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/FAILURE_RATCHET_POLICY.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Failure Ratchet Policy 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/FAILURE_RATCHET_POLICY.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Failure Ratchet Policy 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/FAILURE_REGISTRY_PROMOTION_POLICY.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Failure Registry Promotion Policy 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/FAILURE_REGISTRY_PROMOTION_POLICY.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Failure Registry Promotion Policy 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/HANDOFF_PROTOCOL.en.md | .harness/tasks/; .harness/evidence/ | Active / 证据不足 | 未判定 | 已盘点 Agent Handoff Protocol 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/HANDOFF_PROTOCOL.md | .harness/state/ | Active / 证据不足 | 未判定 | 已盘点 Agent 间交接协议 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/HARNESS_CORE_MODEL.md | ../pantheon-harness/patterns | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/harness/HARNESS_COVERAGE_MODEL.md | ../pantheon-harness/patterns | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/harness/HARNESS_ENGINEERING_CONTRACT.en.md | .agents/adapters/; .harness/tasks/ | Active / 证据不足 | 未判定 | 已盘点 Harness Engineering Contract 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/HARNESS_ENGINEERING_CONTRACT.md | .agents/adapters/; .harness/tasks/ | Active / 证据不足 | 未判定 | 已盘点 Harness Engineering Contract 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/HARNESS_METHOD_PLAYBOOK.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Harness Method Playbook 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/HARNESS_METHOD_PLAYBOOK.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Harness Method Playbook 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/HARNESS_RETIREMENT_REVIEW.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Harness Retirement Review 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/HARNESS_RETIREMENT_REVIEW.md | scripts/harness; docs/harness/FAILURE_RATCHET_POLICY.md | Active / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/harness/HARNESS_TEMPLATE_TAXONOMY.md | ../pantheon-harness/patterns | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.en.md | ../AGENTS.md; AGENTS.md; docs/harness/AI_QUALITY_GOVERNANCE.md | Active / 部分过期 | 待核查 | human gate 过宽，与当前维护者三触点契约存在冲突 | UPDATE |
+| docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md | ../AGENTS.md; AGENTS.md; docs/harness/AI_QUALITY_GOVERNANCE.md | Active / 部分过期 | 待核查 | human gate 过宽，与当前维护者三触点契约存在冲突 | UPDATE |
+| docs/harness/REVIEW_LOOP_SPEC.en.md | .harness/evidence/; .harness/tasks/ | Active / 证据不足 | 未判定 | 已盘点 Review Loop Spec 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/REVIEW_LOOP_SPEC.md | .harness/evidence/; .harness/tasks/ | Active / 证据不足 | 未判定 | 已盘点 Review Loop Spec 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/TASK_PACKET_SPEC.en.md | .harness/tasks/; .harness/evidence/ | Active / 证据不足 | 未判定 | 已盘点 Task Packet Spec 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/TASK_PACKET_SPEC.md | .harness/tasks/; .harness/evidence/ | Active / 证据不足 | 未判定 | 已盘点 Task Packet Spec 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/TOOL_ADAPTERS.md | .agents/adapters/codex.md; .agents/adapters/claude-code.md; .agents/adapters/cursor.md; .agents/adapters/github-copilot.md | Active / 证据不足 | 未判定 | 已盘点 Tool Adapters 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/TOOL_ADAPTER_MATRIX.md | ../pantheon-harness/patterns | 未声明 / 已确认有效 | 关键核查项通过 | 关键范围与对应实现一致；运行态的限制见主报告验证表。 | KEEP |
+| docs/harness/TRIVIALITY_CLASSIFICATION_POLICY.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Triviality Classification Policy 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/TRIVIALITY_CLASSIFICATION_POLICY.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Triviality Classification Policy 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/VERIFICATION_EVIDENCE_SPEC.en.md | backend/go.mod; .github/workflows/quality.yml | Active / 部分过期 | 已确认局部不一致 | 模板中测试cwd错误，容易产生虚假通过记录 | UPDATE |
+| docs/harness/VERIFICATION_EVIDENCE_SPEC.md | backend/go.mod; .github/workflows/quality.yml | Active / 部分过期 | 已确认局部不一致 | 模板中测试cwd错误，容易产生虚假通过记录 | UPDATE |
+| docs/harness/VISUAL_EVIDENCE_PROMOTION_POLICY.en.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Visual Evidence Promotion Policy 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/VISUAL_EVIDENCE_PROMOTION_POLICY.md | 未解析到可确认代码关联 | Active / 证据不足 | 未判定 | 已盘点 Visual Evidence Promotion Policy 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/VISUAL_QUALITY_PROTOCOL.md | .agents/prompts/implementation.md; .agents/prompts/review.md; .agents/prompts/qa.md; .harness/evidence/ | Active / 证据不足 | 未判定 | 已盘点 Visual Quality Protocol 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/harness/failure-registry.md | scripts/harness/check-failure-registry.mjs; .github/workflows/quality.yml; scripts/harness/check-method-health.mjs; backend/pkg/database/migrate.go | 未声明 / 证据不足 | 未判定 | 已盘点 Failure Registry 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/testing-implementation-report.md | frontend/tests/smoke-core/; frontend/package.json; .github/workflows/smoke-core.yml; .github/workflows/smoke-full.yml | 未声明 / 证据不足 | 未判定 | 已盘点 测试体系优化 - 实施完成报告 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/testing-quick-start.md | .github/workflows/smoke-core.yml; .github/workflows/smoke-full.yml; frontend/tests/smoke-core | 未声明 / 部分过期 | 已确认局部不一致 | 优化方案被持续作为现态启动入口 | ARCHIVE |
+| docs/testing-strategy-optimization.md | frontend/tests/smoke/; frontend/tests/smoke-core/; backend/go.mod; frontend/package-lock.json | 未声明 / 证据不足 | 未判定 | 已盘点 Pantheon-Base 测试体系优化方案 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+| docs/testing-usage-guide.md | frontend/tests/smoke-core/README.md | 未声明 / 证据不足 | 未判定 | 已盘点 测试体系优化 - 使用指南 的用途、声明、引用和代码路径；剩余条款未获得充分语义/运行证据，不能宣称整份有效或过期 | REVIEW |
+
+
+### 8.9 AI Agent 指令一致性
+
+存在已确认指令冲突：workspace 的维护者三触点契约要求在授权范围内自主推进，Base `PANTHEON_BASE_DELIVERY_WORKFLOW.md:195-203` 与英文 `:62` 却广泛要求碰 schema/认证/菜单等就中途停下问批准。中文前文虽引入 L0/L1/L2，停点清单没有区分已授权范围，仍会误导执行者。当前会话用户要求优先于仓库规则，本次仅审计无需为静态核对再请求批准。
+
+AGENTS、CLAUDE 是入口，Harness 合同是落地规则；不能多份文件各自发明不同授权策略。推荐仅更新停点说明并回链三触点/L0-L2，真实生产发布、破坏性操作和门禁规则变更仍按实际风险处理。旧 trivial/non-trivial 与新 L0-L2 可以映射，尚不能仅因名称不同认定逻辑冲突。
+
+“Planner 不改产品代码”与本轮没有产品实现是相容的；角色分离要求有单执行者例外，但独立评审不可用仍要记录缺口。规则不得强迫每个只读查询都新建完整 L2 产物。
+
+### 8.10 推荐权威文档体系与需补充内容
+
+| 主题 | 推荐权威入口 | 降级或修正方向 |
+| --- | --- | --- |
+| 上手与文档导航 | root README + docs/README | 不再让阶段测试优化稿充当当前运行说明 |
+| 架构边界 | DESIGN 现态表 + 各域 contracts | 在 DESIGN 旧阶段段落注明历史；physical路径按源码更新 |
+| Auth/IAM/Org/Config | 对应 SYSTEM_*_CONTRACT | designs 作为细节，不重复维护已交付状态 |
+| 多租户 | TENANT_CONTRACT_V1 + TENANT_API/初始化指南 + scope matrix | 旧全局单租户阶段稿归历史；保留 business V1 限制 |
+| UI | 当前 index.css/types + FRONTEND_UI_SPEC/模板 | 同步 SearchToolbar、暗色与双语，避免旧强制模板覆盖现态 |
+| 模块接入 | pkg/contracts/module.go + ModuleConfig + MODULE_CONTRACT | 更新 manifest 文案，不发明第二套插件规范 |
+| Release/Ops升级 | lock/manifest/checksum + FOUNDATION_RELEASE_MODEL | 修版本指针；发布资产不可悄悄改写 |
+| Agent授权与执行 | workspace/Base AGENTS + AI_QUALITY_GOVERNANCE | WORKFLOW 停点与两种语言同步回链，不重复制定 |
+| 文档schema | docs/contracts/DOCUMENT_FRONTMATTER_SCHEMA | 已 Archived pointer 保留，不重新升格为权威副本 |
+| 历史审计/证据 | reviews/archive/.harness/release 版本记录 | 不视为当前功能承诺，保留追溯 |
+
+需要补充的是现有文档的准确小段：opaque-token 模型及轮换失败语义、当前模块路径/manifest、当前 release/消费者升级检查命令、验证结果的 skip 限度、三触点映射与已实施/未实施状态。**不需要新增一套全面规范库。** 如果修复 PB-001，补拨号 IP 绑定和 DNS/TLS 限制的必要说明即可。
+
+权威文档不清晰：有，主要是同一主题多份“当前”描述和中英文漂移。AI Agent 指令冲突：有，见 §8.9。文档体系是否适合维护冻结：现在尚不能给整体健康认证；先处理会误导执行/升级的 Active 核心条款，历史全量认证不是冻结前置条件，也不应为清理库存阻塞正常维护。
+
+## 9. Harness Engineering 与工程治理
+
+### 9.1 结构与实际价值
+
+| 机制 | 真实入口/证据 | 审计意见 |
+| --- | --- | --- |
+| AGENTS / CLAUDE / .agents | repo-local 入口与 skills、AGENTS 角色及范围 | 保留入口，统一授权逻辑；不复制所有 Harness 内容 |
+| .codex | workspace 工具技能；Base 内是否有资产已纳入盘点 | 没有目录不自动认定工程缺陷，不为形式补目录 |
+| .harness / Task Manifest | manifest、evidence、archive fallback；scripts/task-manifest.mjs | 可追溯但有存量成本；历史可归档，不反复重新执行 |
+| Checker | 32 个登记项的真实接线矩阵 | 已有 wiring/exception 机制；不能把 wired 当规则全被CI执行 |
+| Evidence / Review | VERIFICATION_EVIDENCE_SPEC、REVIEW_LOOP_SPEC、commands/runtime gaps | 保留必要证据，修错cwd；不增加重复报告 |
+| Failure Registry / ratchet | docs/harness/failure-registry.md | 允许 no-action/guide/sensor/gate/template；不把每次发现强制升级为blocking |
+| Release Gate / Foundation Release | release-gate.yml、foundation-release-cut/verify、发布脚本与lock | 候选SHA、checksum及不可覆盖保护有价值；Sonar清零策略需澄清 |
+| 文档治理 | frontmatter/inventory/link check | 有形式约束，实际语义仍漂移；不要再用一个形式checker代替当前条款治理 |
+
+图/feature ledger 等 checker 在 quality.yml 中有明确 dormant/empty 注释（:159/:169 附近），这说明设计上允许暂不触发，不证明它们完全无价值。暂无近期故障与耗时数据，PB-009 仅作为精简建议；优先保持小成本和明确 owner，不自动删除。
+
+| Checker | 登记路径 | 接线 | 解释 |
+| --- | --- | --- | --- |
+| check-duplication.mjs | scripts/check-duplication.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-pr-governance.mjs | scripts/check-pr-governance.mjs | wired / package.json, .github/workflows/pr-automation.yml, .github/workflows/quality.yml | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-security-patterns.mjs | scripts/check-security-patterns.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-task-packet-template.mjs | scripts/check-task-packet-template.mjs | wired / package.json, .github/workflows/quality.yml | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-ui-tokens.mjs | scripts/check-ui-tokens.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-adoption.mjs | scripts/harness/check-adoption.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-audit-coverage.mjs | scripts/harness/check-audit-coverage.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-backend-dto-contract.mjs | scripts/harness/check-backend-dto-contract.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-backend-response-contract.mjs | scripts/harness/check-backend-response-contract.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-boundaries.mjs | scripts/harness/check-boundaries.mjs | wired / .github/workflows/ci.yml | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-checker-wiring.mjs | scripts/harness/check-checker-wiring.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-coverage.mjs | scripts/harness/check-coverage.mjs | wired / .github/workflows/ci.yml | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-doc-frontmatter.mjs | scripts/harness/check-doc-frontmatter.mjs | exception /  | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-doc-inventory.mjs | scripts/harness/check-doc-inventory.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-doc-links.mjs | scripts/harness/check-doc-links.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-encoding.mjs | scripts/harness/check-encoding.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-evidence.mjs | scripts/harness/check-evidence.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-failure-registry.mjs | scripts/harness/check-failure-registry.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-feature-ledger.mjs | scripts/harness/check-feature-ledger.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-generated.mjs | scripts/harness/check-generated.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-graph-review.mjs | scripts/harness/check-graph-review.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-inheritance-contract.mjs | scripts/harness/check-inheritance-contract.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-method-health.mjs | scripts/harness/check-method-health.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-permission-contract.mjs | scripts/harness/check-permission-contract.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-review.mjs | scripts/harness/check-review.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-runtime-evidence.mjs | scripts/harness/check-runtime-evidence.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-structure-contract.mjs | scripts/harness/check-structure-contract.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-sync-drift.mjs | scripts/harness/check-sync-drift.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-task-packet.mjs | scripts/harness/check-task-packet.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-template-health.mjs | scripts/harness/check-template-health.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-ui-quality-gate.mjs | scripts/harness/check-ui-quality-gate.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+| check-visual-evidence.mjs | scripts/harness/check-visual-evidence.mjs | wired / package.json | 包脚本接线不等于实际CI执行；按workflow真实调用复核 |
+
+
+### 9.2 CI、质量与发布门禁
+
+| 机制 | 核查结果 | 处理 |
+| --- | --- | --- |
+| GitHub Actions / native aggregate | CI、Quality、Security、workflow lint、smoke 和 release 有不同职责 | 保留确定性质量门；远程 required ruleset 未实时核验 |
+| npm dependency gate | 已确认 PB-002 失效 | 保留报告的同时让 audit 非零结果到达 enforcement |
+| CodeQL/secret/workflow scan | security.yml 有扫描与 enforcement | 未执行最新扫描，不宣称所有 alerts 已关闭 |
+| SonarCloud | release-gate.yml 强制候选分析 + 全部未解决 BUG/VULNERABILITY/CODE_SMELL 为0 | PB-006 是配置与风险优先策略的边界不清；不推断远程扫描目前失效 |
+| Go/FE coverage | ci.yml 默认 Go50、前端0；设计 New Code80 是另一指标 | 不把总覆盖50与New Code80直接比较为数值冲突；New Code80未见明确差分门，执行情况待确认 |
+| CI与Quality重复运行 | 有共同lint/test目的，也有coverage/race差别 | 先测耗时/失败收益，再共享artifact或合并；不是当前稳定性缺陷 |
+| smoke分层 | Quality有L1 critical、touched modules、可选PR Core；Core push advisory；Full main+daily | 目标与差异化合理；不强制每个PR跑120分钟Full |
+| 门禁文本测试 | 相关18测试通过 | 检查shape不是行为测试；PB-002应补真实失败输入路径 |
+| solo-override | 人类维护者专属，agent不得自行使用 | 符合风险决策职责，不建议agent自动豁免 |
+
+工程流程已提供不少真实约束，但复杂度不等于成熟度。本轮 SSRF 和退出码缺陷表明：增加更多模板/证据数量无法代替少数有意义的行为验证。冻结后的默认工作应为 focused checks + 必要证据，只有真实重复故障才升级 ratchet。
+
+## 10. Pantheon Ops 下游兼容性
+
+### 10.1 真实消费模型与依赖
+
+Ops 是完整 Base foundation snapshot 加业务 overlay，而非在 go.mod 中独立升级的 semver 库。lock 记录 Base commit、release bundle、repo.tar checksum；rebuild 默认读取锁定发布物，显式 `--base` 用于兼容性实验。业务包 imports 仍使用 Base module 前缀，不能因此误认业务源码属于 Base 系统域。
+
+| Base 能力 | Ops 实际调用/依赖 | 结论与风险 |
+| --- | --- | --- |
+| BackendModule / route groups | `observability/observability.go:14/136`，DataScopedGroup :137-140；其他业务注册聚合 | 真实复用；公共签名、middleware顺序变化高风险 |
+| 数据库/通用响应 | observability 及 CMDB imports `pkg/database`、`pkg/common` | 真实公共包依赖；schema或公共查询语义变更要重建及集成验 |
+| 权限与菜单 | business module seeds、生成 business registry、Base IAM菜单 | 实际接入；当前消费者菜单包验证通过；不是独立业务复制system服务 |
+| 审计 | `observability.go:187/231` SetAuditMetadata；Base统一操作日志 | 真实复用；改metadata枚举/上下文字段要查消费者 |
+| i18n | rebuild 生成五语言business fallback并wire namespaces | 类型/registry接入通过；实际业务翻译与运行增量未全量验 |
+| 公共SSRF | datasource :387/458、notification :286 | 已共享相同缺陷；最高优先Base-first修复再发布到Ops |
+| 前端ModuleConfig/组件/menu registry | rebuild-from-base.mjs 文本锚点接线 | 当前不可变HEAD真实重建/typecheck通过；源码布局耦合存在 |
+| foundation release 资产 | foundation-release.lock.json、business-overlay.json | 有版本、checksum与不可变来源；本轮未下载/认证远程发布资产 |
+
+在当前业务进口扫描及 boundary checker 范围，未发现直接 `modules/system/*` Service/Repository 依赖。没有证据证明 Base 为 Ops 引入必须删除的业务特判；公共 ComponentRegistryMap 与 business registry 接入有合理消费者用途，不应为“纯净”删掉。
+
+### 10.2 已执行消费验证与升级风险
+
+不可变 Base HEAD 本地独立 checkout → Ops rebuild → 802 个声明/生成文件 → business/menu Go test → frontend typecheck 全部通过。这比仅比较两项目设计文档更能支持复用成立。该证据不代表生产业务流程、全新依赖安装和所有未来升级均兼容。
+
+`rebuild-from-base.mjs:384-423` 等处用必须匹配一次的文本锚点接入后端聚合与前端 module/component/menu registry。它是受控接缝，不是完整稳定ABI；改 import 格式、聚合函数名或返回结构仍可能断升级。PB-008 是已确认耦合特征与 P3 维护风险，当前没有重建故障证据，不建议大改插件架构来消除它。
+
+| 可能调整 | 下游风险 | 最小验证要求 |
+| --- | --- | --- |
+| 删除 pkg/security/ssrf / 改客户端语义 | 高：Ops datasource/webhook即时失编译或连接行为改变 | 修保留API；DNS多地址/IPv6/TLS/重定向回归，真实Ops出站核心验证 |
+| 修改 BackendModule / registry位置 / ModuleConfig必填字段 | 高：重建锚点或业务类型失败 | Ops真实rebuild + Go业务包 + FE typecheck/build |
+| 删除 ProtectedGroup/DataScopedGroup 或增tenant middleware | 高：V1业务路由可能被拒绝，且不是自动获得租户隔离 | 先合同范围裁决，不能作为清理直接实施 |
+| 权限/菜单key、Casbin domain、audit字段变更 | 高：可见性/写权限/日志关联漂移 | business seeds、IAM菜单、角色与审计真实集成 |
+| i18n namespace/fallback变更 | 中高：业务文案回退与模块卸载失效 | 五locale registry核对及业务页面render |
+| 合并/移动Ops引用的规范 | 中：继承与governance链接失效 | 全引用检查，旧路径兼容pointer，更新消费索引 |
+| 仅修文档当前版本/目录/术语 | 低 | 链接、中英文与Ops说明同步，不改运行API |
+
+## 11. P0-P3 问题汇总
+
+本轮没有确认 P0。已确认 P1 两项，高风险待验证 P1 一项；其他项按实际影响分级。问题编号不把每份中英文漂移拆成多个安全问题；文档数量单独按物理文件统计。
+
+| ID | 分类 | 等级 | 证据状态 | 问题 | 置信度 |
+| --- | --- | --- | --- | --- | --- |
+| PB-001 | 安全/下游 | P1 | 已确认，动态复现 | DNS校验与拨号重新解析，SSRF防护可绕过 | 高 |
+| PB-002 | 工程/安全 | P1 | 已确认，配置控制流 | npm audit失败被吞，main/release gate误判成功 | 高 |
+| PB-003 | 安全/认证 | P1 | 高风险疑点 | refresh旧token非原子消费，删除失败仍签发 | 中 |
+| PB-004 | 文档 | P2 | 已确认 | 核心现态/命令/版本/模板存在局部漂移 | 高 |
+| PB-005 | 工程/Agent指令 | P2 | 已确认 | 广泛中途审批停点与三触点自主推进冲突 | 高 |
+| PB-006 | 工程/发布策略 | P2 | 配置差异确认，意图待裁决 | 风险优先文档与Sonar全类型清零发布门禁边界不清 | 中 |
+| PB-007 | 验收/工程 | P2 | 证据不足 | 当前未提交树及真实集成尚不能形成冻结证据 | 高（对缺口），不裁定运行故障 |
+| PB-008 | 下游/维护性 | P3 | 优化建议 | 消费者注册使用文本锚点，升级需要接缝验证 | 高 |
+| PB-009 | 工程/维护成本 | P3 | 优化建议 | 重复执行与dormant机制应按实测价值收敛 | 中 |
+
+### PB-001
+
+| 字段 | 内容 |
+| --- | --- |
+| 问题 ID / 分类 / 严重程度 | PB-001 / 安全、下游 / P1 |
+| 文件路径 / 行号 | Base `backend/pkg/security/ssrf/validator.go:103/116/126/189`；Ops `backend/modules/business/observability/datasource_service.go:387/458`、`notification_service.go:286` |
+| 问题描述 | 已校验DNS地址没有绑定拨号地址，第二次解析可以返回禁止的loopback/private地址 |
+| 证据 | 本地合成resolver复现日志及源码；Base HEAD/工作树/Ops该文件相同SHA256；实际消费者imports和调用 |
+| 实际影响 | 在攻击者可控制请求域名/DNS的条件下，消费者可连到本应禁止的内网目标；生产部署可利用范围尚未实测 |
+| 修改建议 | 单次解析、验证候选IP、对已验证IP拨号并保留原Host/TLS SNI；使用可注入resolver补有意义回归 |
+| 修改风险 | 多IP/IPv6/HTTPS/重定向与内网允许策略可能改变；Base-first release并测试Ops datasource/webhook，不删公共API |
+| 置信度 / 证据状态 | 高 / 已确认，动态复现 |
+
+### PB-002
+
+| 字段 | 内容 |
+| --- | --- |
+| 问题 ID / 分类 / 严重程度 | PB-002 / 工程、安全 / P1 |
+| 文件路径 / 行号 | `.github/workflows/security.yml:62/70/84-86/108-111` |
+| 问题描述 | audit命令 `|| true` 将漏洞命中与扫描失败变成功；enforce只检查step.outcome |
+| 证据 | 两个audit的shell控制流与main/release enforcement；现有workflow shape测试仍通过 |
+| 实际影响 | npm依赖高危报告可能不阻塞main/release；本轮真实漏洞数量未知，不宣称当前存在某个已知CVE |
+| 修改建议 | 保留非零exit code，continue-on-error用于上传报告，由enforce消费真实失败；覆盖漏洞命中/扫描失败行为 |
+| 修改风险 | 修复后积存高危或网络错误可能让门禁红灯；按已有门禁策略裁决，不用另一个`|| true`掩盖；Ops继承CI需同步 |
+| 置信度 / 证据状态 | 高 / 已确认配置缺陷，未执行远程CI |
+
+### PB-003
+
+| 字段 | 内容 |
+| --- | --- |
+| 问题 ID / 分类 / 严重程度 | PB-003 / 安全、认证 / P1待验证 |
+| 文件路径 / 行号 | `backend/modules/auth/login/login_handler.go:307/313/320`、`backend/modules/auth/session/session_service.go:123-169`、`backend/pkg/authtoken/token.go:202/221` |
+| 问题描述 | 旧refresh读取、session保存及新pair签发、旧token删除不是原子序列；旧token删除失败仅Warn |
+| 证据 | GET与DEL分离，RefreshJTI重写未看到旧值比较/消费锁；当前文件静态调用链 |
+| 实际影响 | 并发或故障可能留下多pair或旧token重放窗口；尚未复现，不能称实测认证攻击成功 |
+| 修改建议 | 用隔离Redis/DB验证并发与故障，再决定原子消费/compare-and-set及失败补偿的最小实现 |
+| 修改风险 | 过早消费可能破坏合法重试、多标签页或失败恢复；跨实例/会话撤销必须回归，Ops共享登录需验 |
+| 置信度 / 证据状态 | 中 / 高风险疑点；冻结前需要关闭验证，而非直接认定漏洞 |
+
+### PB-004
+
+| 字段 | 内容 |
+| --- | --- |
+| 问题 ID / 分类 / 严重程度 | PB-004 / 文档 / P2 |
+| 文件路径 / 行号 | §8全部逐项清单；代表 `DESIGN.md:111/140/160`、`docs/designs/MODULE_CONTRACT.md:262/481`、`DARK_MODE_DESIGN.en.md:15`、`docs/VERSION_MANAGEMENT_GUIDE.md:19/354` |
+| 问题描述 | 同一核心现态多处滞后；旧目录、JWT、manifest、release、测试cwd和强制FilterPanel可能误导维护 |
+| 证据 | 当前类型/目录/token payload/VERSION/package scripts及真实build/consumer验证；全量附表每项证据 |
+| 实际影响 | 错命令、重复整改已完成功能、误判断下游接入或未实现功能；不代表对应产品功能全部坏 |
+| 修改建议 | UPDATE确证局部，明确历史章节；少量ARCHIVE/MERGE后保留引用；先处理权威入口，不全库重写 |
+| 修改风险 | 移动/合并会断Ops/governance/历史引用，须保留指针；双语同步；不能以文档改写追认安全缺陷 |
+| 置信度 / 证据状态 | 高 / 已确认局部漂移；其余资产证据不足另标 |
+
+### PB-005
+
+| 字段 | 内容 |
+| --- | --- |
+| 问题 ID / 分类 / 严重程度 | PB-005 / 工程、Agent指令 / P2 |
+| 文件路径 / 行号 | `docs/harness/PANTHEON_BASE_DELIVERY_WORKFLOW.md:195-203`、英文`:62`；workspace `AGENTS.md`维护者三触点契约 |
+| 问题描述 | 已授权工作仍被宽泛“碰schema/auth/menu就停点”要求打断，和三触点及最轻档位规则不一致 |
+| 证据 | 两份workflow停点与workspace/当前用户授权原则逐项比较 |
+| 实际影响 | 不必要中途确认、执行阻塞、治理规则难理解；不是产品运行错误 |
+| 修改建议 | 在原文件注明授权/档位优先和真实危险停点，引用三触点，取消重复规则维护 |
+| 修改风险 | 授权说明过宽可能误放行生产/破坏操作；保留门禁策略及发布的真实风险决策；Ops继承说明同步 |
+| 置信度 / 证据状态 | 高 / 已确认指令冲突 |
+
+### PB-006
+
+| 字段 | 内容 |
+| --- | --- |
+| 问题 ID / 分类 / 严重程度 | PB-006 / 工程、发布策略 / P2 |
+| 文件路径 / 行号 | `.github/workflows/release-gate.yml:75/185/224-228`；`docs/designs/QUALITY_AND_SECURITY_STRATEGY.md:22-35`及英文策略 |
+| 问题描述 | 发布硬要求Sonar候选分析与所有CODE_SMELL清零，风险优先策略却未解释这一额外发布权威 |
+| 证据 | 无条件release job与策略“外部对比无/低风险建议backlog”；未查远程Sonar运行状态 |
+| 实际影响 | 可能为无核心影响的风格项阻塞发布/冻结，维护者难知真正停止条件；当前实际阻塞次数未知 |
+| 修改建议 | 先确认是否为有意发布例外，再把两处策略统一；优先按可达安全与正确性而非全量style数量定义停止条件 |
+| 修改风险 | 直接撤门禁会降低安全信号并影响foundation release；必须由维护者在质量门禁触点作策略裁决，本轮不改 |
+| 置信度 / 证据状态 | 中 / 配置差异已确认，政策意图需要REVIEW |
+
+### PB-007
+
+| 字段 | 内容 |
+| --- | --- |
+| 问题 ID / 分类 / 严重程度 | PB-007 / 验收、工程 / P2 |
+| 文件路径 / 行号 | `backend/pkg/testredis/redis.go`测试入口、`backend/pkg/database/migrate_test.go`、`.github/workflows/quality.yml:412-435`；当前索引删除的 `scripts/migrate-task-manifests.mjs` |
+| 问题描述 | 212项未提交变化、本轮633 skip事件及工作树重建失败，没有同一最终候选的完整冻结证据 |
+| 证据 | git状态、Go JSON、重建ENOENT；HEAD消费重建/编译通过作为反向证据；独立评审503缺口 |
+| 实际影响 | 验收可靠性不足；不能将缺口写成数据库、登录或生产业务已故障 |
+| 修改建议 | 整理一个不可变候选，再用现有隔离DB/Redis集成、消费者和核心UI验证；不要创建新门禁体系 |
+| 修改风险 | 集成测试可能清理fixtures或Redis，必须隔离；不回退其他人改动，不在Ops主工作树重建 |
+| 置信度 / 证据状态 | 对缺口高 / 证据不足类，不裁定产品故障 |
+
+### PB-008
+
+| 字段 | 内容 |
+| --- | --- |
+| 问题 ID / 分类 / 严重程度 | PB-008 / 下游、维护性 / P3 |
+| 文件路径 / 行号 | Ops `scripts/business-overlay/rebuild-from-base.mjs:384-423`及相关frontend registry接线 |
+| 问题描述 | 注册依靠Base源码文本锚点，格式/函数形状重构可能破坏组装 |
+| 证据 | replace-once接缝与实际HEAD重建通过；没有当前破坏证据 |
+| 实际影响 | 未来升级兼容成本，不影响本轮已通过候选的编译 |
+| 修改建议 | 冻结现有接缝并在触达时执行真实rebuild；只有反复失效才改结构化接入，不做大架构迁移 |
+| 修改风险 | 删除接缝或新增插件层反而改变consumer协议；兼容范围广，必须验证Go/FE/menu/i18n |
+| 置信度 / 证据状态 | 高 / 优化建议 |
+
+### PB-009
+
+| 字段 | 内容 |
+| --- | --- |
+| 问题 ID / 分类 / 严重程度 | PB-009 / 工程、维护成本 / P3 |
+| 文件路径 / 行号 | `.github/workflows/ci.yml:106` unit-tests、`quality.yml:379` backend-tests、`:159/169` dormant graph/ledger说明 |
+| 问题描述 | 有目的部分重叠的检查与暂无输入的机制，应有清晰owner及投入停止规则 |
+| 证据 | workflow静态职责与登记32个checker；本轮未测CI耗时或错误率改善 |
+| 实际影响 | 维护负担可能偏高，尚不能宣称存在确定浪费或完全无价值checker |
+| 修改建议 | 复用coverage/race产物、按实测retirement review收敛；新blocking只应保护真实重复故障 |
+| 修改风险 | 合并/删检查可能丢失coverage、race或故障信号；保留回滚和消费者治理兼容，不盲删 |
+| 置信度 / 证据状态 | 中 / 优化建议 |
+
+## 12. 整改建议与优先级
+
+### 必须立即处理
+
+1. PB-001：修DNS解析与拨号绑定，保留公共API，补本地resolver回归；验证Ops出站调用，再通过foundation release同步。
+2. PB-002：让npm audit真实非零结果到达enforcement，保留可下载报告，验证高危/扫描失败路径。
+3. PB-003：运行隔离并发与故障测试作风险裁定。确认后最小修复，误报则附反证关闭，不凭静态推断直接大改session系统。
+
+### 应该处理
+
+1. 更新会误导执行与消费者升级的核心Active条款：token、路径、manifest、当前release、测试cwd、SearchToolbar和暗色双语。
+2. 统一Agent停点与三触点；裁定release Sonar策略边界，避免重复权威。
+3. 整理最终不可变候选，在现有隔离MySQL/Redis、Ops重建和少量核心UI/权限链路上补验证；明确skip和外部状态。
+4. 修已确认失效链接；对旧阶段3项归档建议和权限迁移稿MERGE先处理引用，再人工执行。不要求认证每份历史记录才冻结。
+
+### 可以优化
+
+CI/Quality产物复用、降低dormant机制运行成本、减少重复证据格式、将旧文档入口改成单一指针。只在实测或实际阅读/执行收益明确时做；不设“清零文档/重复率/所有扫描风格问题”的目标。
+
+### 明确不建议处理
+
+不拆微服务、不换UI库、不改所有目录、不补齐通知/调度/审批/报表/SSO、不实现真热插拔、不为business V1添加未经批准的租户隔离、不强制配额执行、不盲删公共helper/租户scope/模块合同、不把历史文档全部归无效、不全库重写、不为每次故障新增blocking Checker、不为单工具分数抽象叶子逻辑。没有运行时证据的性能疑点不引入缓存/队列/分库。
+
+## 13. 最终验收意见
+
+**C：暂时不具备维护冻结条件。** 决定因素是已复现且已被Ops实际消费的SSRF问题，以及安全依赖门禁的确定退出码缺陷；不因文档多、代码长或高级功能尚未实现否定成熟度。刷新轮换在冻结前需要证据裁定，当前真实集成与独立复核缺口也必须明确收口。
+
+架构骨架、核心域分界、公共注册/权限/菜单/审计/i18n复用均有积极证据；不可变HEAD能真实重建Ops并通过Go业务包与FE类型验证。因此整改目标是**修少数安全边界、校准少数权威文档、完成最终候选验证**。没有依据继续无止境功能开发或大规模重构。
+
+重新验收的停止条件：PB-001/PB-002修复验证；PB-003证据关闭；同一候选核心真实集成与Ops消费验证完成；核心权威文档不再给出错误执行/升级指令，门禁策略没有未解释的冲突。历史归档和低风险优化可继续常规维护，不成为永久冻结障碍。
+
+本报告是证据支持的当前结论，不是生产安全认证。证据不足已经逐项公开；不会将未裁定资产自动计为有效，也不会将静态疑点写成已发生的运行故障。最终标准为简单、可靠、稳定、准确、易理解、易维护。

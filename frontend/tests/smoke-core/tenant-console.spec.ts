@@ -342,6 +342,9 @@ test.describe.serial('Tenant console @priority:critical @smoke:tenant', () => {
   });
 
   test('ops overview numbers and the plan editor lifecycle', async ({ page }) => {
+    // This real lifecycle crosses several pages and secure-action verification.
+    // Keep every assertion; use Playwright's bounded slow-test budget for the full flow.
+    test.slow();
     await installClientSession(page, platformLogin);
     await page.goto('/system/tenant-ops/overview', { waitUntil: 'domcontentloaded' });
     await expect(page.getByText('租户总数').first()).toBeVisible();

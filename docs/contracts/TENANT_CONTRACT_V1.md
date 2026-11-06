@@ -13,7 +13,7 @@ linked_contracts:
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
   - docs/contracts/SYSTEM_ORG_CONTRACT.md
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-10-27
+updated_at: 2026-10-31
 ---
 
 # 租户合同 V1（共享 schema MVP）
@@ -51,6 +51,7 @@ English version: [TENANT_CONTRACT_V1.en.md](./TENANT_CONTRACT_V1.en.md)
   但配额只是度量与展示维度——**后端不因超出配额而拒绝任何写入**。
 - 跨租户数据共享/联邦查询
 - 租户级自定义域名、独立部署形态
+- 业务域（`modules/business/*`）的租户隔离：V1 内业务域**不参与租户隔离**，为单租户语义（显式结论与 V2 前置条件见 §2.6）
 
 ---
 
@@ -293,6 +294,36 @@ DDL 与种子：编号迁移 `000030_tenant_plan_definitions`；AutoMigrate 部�
 
 ---
 
+### 2.6 业务域租户语义（V1.10 新增，2026-10-31）
+
+**结论（方案 C，维护者 2026-10-31 拍板）**：业务域（`modules/business/*`，含低代码生成器产出与下游 consumer 仓库的业务模块）在 V1 内**不参与租户隔离**，语义是单租户。系统域的租户隔离（§2.3/§3/§4/§6）不受本条影响。本条是澄清（Clarification），运行行为零变化。
+
+四条独立事实（读数取自 `2026-10-31-audit-p1-business-route-tenant-context`，见 `.harness/evidence/2026-10-31-audit-p1-business-route-tenant-context/decision.md`）：
+
+1. 业务表没有 `tenant_id` 列、业务模型没有 `TenantID` 字段：下游 `pantheon-ops/backend/modules/business` 全目录 `TenantID` 命中 **0**；`tenant_id` 命中 **1**，且唯一一处是 `retired_modules_test.go:110` 的 `CREATE TABLE` 测试夹具字符串，不是模型字段、不参与查询。
+2. 生成器显式拒绝 `tenant` 数据域：`internal/scaffold/contract.go` 写明 `"tenant" is intentionally rejected: tenant isolation has no runtime implementation`。
+3. `pkg/tenant` 的 `FromGin` 在无租户上下文时返回 `nil`。
+4. `tenant.WithTenantScope(nil)` 原样返回查询，不附加任何谓词。
+
+**§3.2 的拒绝规则不适用于业务域路由**。§3.2 约束的是"声明了租户归属的资源"。业务域既无租户列也未声明租户作用域，因此 `contracts.ProtectedGroup` / `contracts.DataScopedGroup`（`backend/pkg/contracts/route_groups.go`，链路 TokenAuth → Casbin（→ DataScope））不挂租户中间件**不构成违约**；同理也不存在"按行跨租户读写"的可利用面——没有可越权的租户列。
+
+**禁止的修法**：不得给上述助手追加 `middleware.TenantContextMiddleware` / `PlatformScopeTenantContextMiddleware`。在没有租户列可过滤的前提下追加只会：① 不产生任何隔离；② 让 multi 模式下每个业务请求变成 `TENANT_CONTEXT_MISSING`（业务域全量失败）；③ 让代码看起来"处理了租户"，掩盖真实缺口。改这条链路属合同变更，必须与 §2.6 的改写同批落地。
+
+**禁止的宣称**：入口文档、README、发布说明与下游仓库都不得把业务域写成"已按 `tenant_id` 隔离"。允许口径：系统域按 `tenant_id` 行级隔离；业务域为单租户语义、不参与租户隔离。
+
+**V2 纳入租户隔离的四项前置条件**（缺一即视为未做）：
+
+1. 双仓同批：base 合同与下游调用点在同一次 foundation release 内一起切换，不留中间态。
+2. 资源 scope 矩阵逐表登记（`docs/designs/TENANT_RESOURCE_SCOPE_MATRIX.md`），并给出业务表 `tenant_id` 列、索引与迁移。
+3. 生成器改造：解禁 `tenant` 数据域，产出租户列与租户谓词，并接通建表面（`BootstrapFunc`）。
+4. 走 §8 的 contract-change 流程：版本号 + 变更记录 + 弃用期（旧链路在弃用期内保持可用）。
+
+**回归锚点**：`backend/pkg/contracts/route_groups_test.go` 断言两个助手的中间件链长度与顺序，并断言**不含** `TenantContextMiddleware` / `PlatformScopeTenantContextMiddleware`。该测试已做负向验证（注入租户中间件 → 测试先红并报 `chain length = 3 ..., want 2` → 还原 → 通过）。
+
+**与矩阵的边界**：`TENANT_RESOURCE_SCOPE_MATRIX.md` §2 的 scope 表未登记任何业务表；§3 唯一键表里的 `biz_*` 行是 V2 的预留入口（"新增时逐表登记 / 按评审"），不是 V1 的现状登记要求。
+
+---
+
 ## 3. 租户上下文（冻结）
 
 ### 3.1 解析优先级（从高到低）
@@ -382,7 +413,7 @@ DDL 与种子：编号迁移 `000030_tenant_plan_definitions`；AutoMigrate 部�
 | Casbin domain 规则 | `system/iam` | auth 或业务模块自建 domain 规则 |
 | feature flag `tenant.mode` | `system/config` | 各模块自造开关 |
 | tenant_id scope helper | `platform` | 各域复制粘贴私有实现 |
-| 业务资源租户归属 | `business/*`（按矩阵登记） | business 定义自己的隔离机制 |
+| 业务资源租户归属 | `business/*`（V1 内不适用：业务域不参与租户隔离，见 §2.6） | business 定义自己的隔离机制，或宣称已经隔离 |
 
 ---
 
@@ -407,6 +438,7 @@ DDL 与种子：编号迁移 `000030_tenant_plan_definitions`；AutoMigrate 部�
 | V1.7 | 2026-10-27 | §2.2 新增不变量「跨租户 membership 不授予授权、也不在登录时提供」（W3 决策 A / TC-01）：登录发现、候选列表、可切换列表共用单一角色存在性谓词，`SwitchSessionTenant` 拒绝空角色集目标，`AddMember` 收窄到 owning tenant 用户并登记 §5 错误码 `tenant.member.user_not_in_tenant`（400）；登录选择器与 TenantSwitcher 控件移除、端点保留为过滤后的兼容面；存量跨租户 membership 行保留不清理，`/auth/current` 仍如实上报。数据层「一个 user 可属于多个 tenant」不变量不变 | 澄清（Clarification）+ 扩展（§5 错误码） |
 | V1.8 | 2026-10-27 | 纯追加修订（W5 对齐，不改变任何不变量）：① §2.2 owner 转移表述对齐实现——**无单一转移端点**，落地路径为两步显式动作（加入新 owner → 移除旧 owner，`ensureNotLastOwner` 兜底，中间双 owner 是合法中间态），原文「转移 owner 是显式 API 动作」未对应任何端点；② §5 补登记 W2 成员完整性守卫（已实现于 PR #434）的两个错误码：`user.not_found`（404——`tenant_memberships` 对 `system_user` 无外键，无此守卫会写入指名不存在用户的幽灵行）与 `tenant.member_exists`（400——owner 降级拒绝，非 owner 行重加幂等），并注明墓碑检查先于用户存在性检查。In/Out 边界、生命周期与授权不变量均不变 | 澄清（Clarification） |
 | V1.9 | 2026-10-28 | §2.4 新增「前端能力矩阵边界」段（澄清，Clarification）：前端能力矩阵只覆盖内建四档、`normalizeTenantPlan` 对未知 code fail-closed 归 `free`、自定义 code = 配额桶 + `free` 能力档、门控 UX-only（隐藏不授予也不撤销权限）；`outsideLadder` 警告文案五语言同步补「lowcode 门控面不可见」后果句。服务端 entitlements（自定义 code 完整参与能力门控）登记为 V2 商业化工作流，不在 V1；决策与选项裁剪见 [套餐能力阶梯语义决策](../reviews/TENANT_PLAN_LADDER_DECISION_2026-10-28.md)（W7 决策 A，maintainer-delegated）。不变量、错误码与写侧行为均不变 | 澄清（Clarification） |
+| V1.10 | 2026-10-31 | 新增 §2.6「业务域租户语义」（方案 C，维护者 2026-10-31 拍板）：业务域在 V1 内不参与租户隔离，四条事实与 V2 四项前置条件入文；§1 Out 登记该边界；§7「业务资源租户归属」由「按矩阵登记」改为「V1 内不适用」，并说明 `TENANT_RESOURCE_SCOPE_MATRIX` §3 的 `biz_*` 行是 V2 预留入口而非现状登记；同批改写 `backend/pkg/contracts/route_groups.go` 三个导出的助手注释，新增 `backend/pkg/contracts/route_groups_test.go` 结构断言（已负向验证）；`docs/designs/MODULE_CONTRACT.md` §10 与 `README.md:31` 口径对齐 | 澄清（Clarification） |
 
 **V1.5 的触发与范围**
 

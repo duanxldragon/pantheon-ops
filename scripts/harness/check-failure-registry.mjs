@@ -222,6 +222,11 @@ function findRegistryTable(content) {
     const rows = [];
     for (let rowIndex = index + 1; rowIndex < lines.length; rowIndex += 1) {
       const rowLine = lines[rowIndex];
+      if (rowLine.trim() === '') {
+        // A blank line between rows (typical when a row lands in its own commit) must not
+        // truncate the scan: FR-026 sat behind one and was never validated (FR-027).
+        continue;
+      }
       if (!rowLine.trim().startsWith('|')) {
         break;
       }

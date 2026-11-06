@@ -5,7 +5,7 @@ layer: system/config
 status: Active
 linked_contracts:
   - docs/contracts/SYSTEM_CONFIG_CONTRACT.md
-updated_at: 2026-04-28
+updated_at: 2026-11-04
 ---
 
 # Dictionary and System Setting Design
@@ -65,8 +65,8 @@ Dictionary and setting modules do not own:
 
 Recommended locations:
 
-- `backend/modules/system/dict/`
-- `backend/modules/system/setting/`
+- `backend/modules/system/config/dict/`
+- `backend/modules/system/config/setting/`
 - `frontend/src/modules/system/dict/`
 - `frontend/src/modules/system/setting/`
 

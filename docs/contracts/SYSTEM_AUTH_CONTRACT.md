@@ -11,7 +11,7 @@ related_designs:
   - docs/designs/SSO_OIDC_DESIGN.md
 related_acceptances:
   - docs/acceptances/ACCEPTANCE_CHECKLIST.md
-updated_at: 2026-06-23
+updated_at: 2026-11-04
 ---
 
 # system/auth 合同文档
@@ -166,6 +166,9 @@ Pantheon 早期最明显的结构性问题之一，是认证与后台用户管�
 - `login.captcha_enabled / login.sso_enabled` 仍可以作为配置开关存在
 - 未进入真实协议实现前，不展示验证码或 SSO 的伪能力入口
 - 未明确身份源前，不提前实现真实 `SSO / OIDC / OAuth2 / 企业微信` 接入
+- 2026-10-31 处置（AUD-005，方案 a 第一步）：`backend/modules/auth/oidc/`（4 文件 / 587 行）是在设计与合同均未批准前提下写出的不可达实现——包外 0 引用、0 路由注册、环境变量未登记、无测试，与本条直接冲突，已整体删除。未来重新实现必须以 `docs/designs/SSO_OIDC_DESIGN.md`（保持 Draft）为设计输入并重新走批准
+- 保留项：迁移 `000029_oidc_fields` 与 `system_user` 的 `auth_type` / `oidc_*` 四个可空列不删——历史迁移不可改写，列无消费者、保留成本为零，身份源确定后可直接复用 schema
+- 延后事项（本条登记，非口头承诺）：先删代码观察一个 release，再按 §8 的 contract-change 纪律单独提列删除迁移
 
 ### 7.4 安全约束
 
@@ -187,6 +190,21 @@ Pantheon 早期最明显的结构性问题之一，是认证与后台用户管�
 
 - `system/auth` 的设计、评估、整改、验收文档都必须回指本合同
 - 任何“auth 相关改造”如果实质上影响的是 `iam` 用户管理，必须先说明边界
+
+### 7.7 Legacy 双入口（/system/* 认证端点）弃用与下线约束
+
+`/system/login`、`/system/refresh`、`/system/logout`、`/system/user/info` 是与 `/auth/*` 同 handler 的 legacy 双入口（AUD-014，2026-10-31 决策：保留并标记弃用，而非立即下线；base 与 ops 前端均只调用 `/auth/*`）。
+
+| 端点 | Legacy 入口 | 当前入口 | 处置 |
+| --- | --- | --- | --- |
+| 登录 | `POST /api/v1/system/login` | `POST /api/v1/auth/login` | 保留至 2026-12-31，响应带弃用头 |
+| 刷新 | `POST /api/v1/system/refresh` | `POST /api/v1/auth/refresh` | 保留至 2026-12-31，响应带弃用头 |
+| 登出 | `POST /api/v1/system/logout` | `POST /api/v1/auth/logout` | 保留至 2026-12-31，响应带弃用头 |
+| 当前用户信息 | `GET /api/v1/system/user/info` | `GET /api/v1/auth/me` | 保留至 2026-12-31，响应带弃用头 |
+
+- 命中上述四个路径的响应必须带 `Deprecation: true` 与 `Sunset: Sat, 31 Dec 2026 23:59:59 GMT`（由 `middleware.LegacyDeprecationMiddleware` 按 `legacySelfServicePaths` 匹配，见 `backend/internal/middleware/csrf_middleware.go` 与 `backend/modules/auth/module.go` 两处挂载）
+- 下线日期登记为 **2026-12-31**。下线属对外承诺变更：执行前必须由维护者确认无外部集成方仍在调用这四条路径
+- 下线时必须一并移除：`sys` 公开组的两条路由（组随之清空即删）、`systemProtected` 的 `/logout` 与 `/user/info` 两行、两处 `LegacyDeprecationMiddleware` 挂载，以及 `csrf_middleware.go` 中 `/system/login`、`/system/refresh` 两条精确豁免——不得留下无对应路由的豁免。执行单：`docs/runbooks/DECOMMISSION_LEGACY_AUTH_ROUTES_2026-12-31.md`
 
 ## 8. 完成定义
 
@@ -268,3 +286,11 @@ Pantheon 早期最明显的结构性问题之一，是认证与后台用户管�
 | 日期 | 版本 | 变更内容 | 原因 |
 |------|------|---------|------|
 | 2026-06-25 | v1.0 | 初始版本 | 评估审计添加 |
+
+## Refresh rotation: atomic single use（2026-11-04）
+
+HTTP refresh 在变更数据库会话或签发新 pair 前，通过 `authtoken.ConsumeRefresh` 原子消费旧 Redis 映射（GETDEL，部署基线 Redis 7）。跨实例使用同一旧 token 最多只有一个请求可以继续；重放或消费/存储错误不能返回成功 pair。公共 `ValidateRefresh` 仍保持只读，已有导出签名与租户 V1 范围不变。
+
+消费后如数据库/签发失败或响应不确定，不恢复旧 token，客户端可能需要重新登录。多标签页并发与重试可能收到未授权响应，这是单次消费的安全取舍。反向索引由正常签发替换或吊销清理；消费不能删除较新的索引。吊销、改密、membership gate 与 Cookie 响应策略仍须回归。
+
+刷新与租户切换对会话行采用条件更新：会话仍未撤销、未到期，且读取时的 refresh JTI/tenant 未改变才允许写入。过期读不能覆盖期间完成的撤销、轮换或租户切换；冲突按未授权失败处理。DB 与 Redis 跨存储仍非事务，后续失败不恢复旧刷新令牌。

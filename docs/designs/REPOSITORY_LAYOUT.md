@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/DOCUMENT_GOVERNANCE_CONTRACT.md
-updated_at: 2026-10-28
+updated_at: 2026-11-04
 ---
 
 # 仓库布局、命名与分层边界规范
@@ -54,7 +54,7 @@ schema/generated/         # 生成能力账本等跨端治理输出
 4. harness 方法检查进入 `scripts/harness/`；任务 manifest 和证据进入 `.harness/`。
 5. 当前仍有效的架构和治理文档进入 `docs/designs/`、`docs/contracts/`、`docs/acceptances/`；阶段性审计、评估、过程记录不入库，随任务证据留在 `.harness/` 并在任务关闭后清理。
 6. 生成 bundle 输出进入 `dist/`，不要提交。
-7. 数据库初始化脚本当前保留在 `database/system_init.sql`，因为 `docker-compose.yml` 直接引用该路径。
+7. `database/system_init.sql` 保留为 deprecated 历史参考；Compose 不再挂载。当前初始化以 `backend/pkg/database/migrations` 和运行时迁移入口为准。
 8. Grafana/Prometheus 本地观测配置当前保留在 `grafana/`，避免和应用运行代码混在一起。
 9. 发布说明进入 `docs/release-notes/`（索引为该目录的 `README.md`），不在根目录堆放；历史版本只追加、不回改。
 
@@ -96,7 +96,7 @@ backend/uploads/
 以下目录虽然会增加根目录数量，但目前是稳定入口，不建议为了“少一层目录”而移动：
 
 - `config/`：harness 同步和检查脚本固定读取 `config/method.config.json`。
-- `database/`：`docker-compose.yml` 直接挂载 `database/system_init.sql`。
+- `database/`：旧 SQL 仅作历史参考，Compose 不挂载该文件。
 - `.harness/`：任务证据和方法执行记录需要固定位置，便于自动检查。
 - `schema/generated/`：跨端能力账本由检查脚本和治理流程直接读取。
 

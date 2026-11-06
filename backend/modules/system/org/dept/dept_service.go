@@ -62,7 +62,8 @@ func (s *DeptService) Migrate() error {
 	return s.Bootstrap()
 }
 
-// Bootstrap initializes default data
+// Bootstrap initializes only the platform/global department tree. Tenant trees
+// are provisioned separately and must remain unchanged across server restarts.
 func (s *DeptService) Bootstrap() error {
 	if s.db == nil {
 		return common.ErrDatabaseNotInitialized
@@ -466,16 +467,14 @@ func (s *DeptService) buildAncestorsWithDB(db *gorm.DB, parentID uint64) (string
 }
 
 func (s *DeptService) refreshChildAncestors(tx *gorm.DB, deptID uint64) error {
-	var children []SystemDept
-	if err := tx.Where("parent_id = ?", deptID).Find(&children).Error; err != nil {
+	var parent SystemDept
+	if err := s.Scoped(tx).First(&parent, deptID).Error; err != nil {
 		return err
 	}
-	if len(children) == 0 {
-		return nil
-	}
 
-	var parent SystemDept
-	if err := tx.First(&parent, deptID).Error; err != nil {
+	// A malformed cross-tenant parent link must not authorize rewriting its child.
+	var children []SystemDept
+	if err := tx.Where("tenant_id = ? AND parent_id = ?", parent.TenantID, deptID).Find(&children).Error; err != nil {
 		return err
 	}
 	for _, child := range children {
@@ -509,7 +508,7 @@ func (s *DeptService) ensureRootDept() error {
 
 func ensureRootDeptRecord(tx *gorm.DB) (SystemDept, error) {
 	var root SystemDept
-	err := tx.Where("is_root = ?", common.StatusFlagYes).Order("id asc").First(&root).Error
+	err := tx.Where("tenant_id = ? AND is_root = ?", tenant.PlatformGlobalTenantID, common.StatusFlagYes).Order("id asc").First(&root).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return root, err
 	}
@@ -536,7 +535,7 @@ func ensureRootDeptRecord(tx *gorm.DB) (SystemDept, error) {
 
 func (s *DeptService) attachTopLevelDeptsToRoot(tx *gorm.DB, rootID uint64) error {
 	var topLevelDepts []SystemDept
-	if err := tx.Where("parent_id = ? AND id <> ?", 0, rootID).Find(&topLevelDepts).Error; err != nil {
+	if err := tx.Where("tenant_id = ? AND parent_id = ? AND id <> ?", tenant.PlatformGlobalTenantID, 0, rootID).Find(&topLevelDepts).Error; err != nil {
 		return err
 	}
 	for _, dept := range topLevelDepts {
@@ -555,7 +554,7 @@ func (s *DeptService) attachTopLevelDeptsToRoot(tx *gorm.DB, rootID uint64) erro
 
 func clearAdditionalRootFlags(tx *gorm.DB, rootID uint64) error {
 	return tx.Model(&SystemDept{}).
-		Where("id <> ? AND is_root = ?", rootID, common.StatusFlagYes).
+		Where("tenant_id = ? AND id <> ? AND is_root = ?", tenant.PlatformGlobalTenantID, rootID, common.StatusFlagYes).
 		Update("is_root", common.StatusFlagNo).Error
 }
 

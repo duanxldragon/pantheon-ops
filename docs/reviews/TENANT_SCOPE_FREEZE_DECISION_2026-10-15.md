@@ -1,13 +1,13 @@
 # 决策记录：多租户的冻结线（2026-10-15）
 
-**状态**：已批准（2026-10-21 企业级验收审查确认冻结线有效；已知缺陷 A/B/C 及审查新发现 P0/P1 整改记录见 [`docs/reviews/PANTHEON_BASE_ISSUES_AND_REMEDIATION_2026-10-21.md`](./reviews/PANTHEON_BASE_ISSUES_AND_REMEDIATION_2026-10-21.md)）
+**状态**：已批准（2026-10-21 企业级验收审查确认冻结线有效；已知缺陷 A/B/C 及审查新发现 P0/P1 整改记录见 [`docs/reviews/PANTHEON_BASE_ISSUES_AND_REMEDIATION_2026-10-21.md`](./PANTHEON_BASE_ISSUES_AND_REMEDIATION_2026-10-21.md)）
 **议题**：多租户（SaaS 化）能力的去留与边界——推倒、扩张、还是冻结
 **触发**：架构评审提问「多租户是为将来 SaaS 准备的，早期不设计后期改造成本很高；但不能为不确定的未来做大的改造。多租户若已开发完成，也不能放弃，否则之前的租户改造就是无用功。所以建议是什么？」
 
 关联文档：
 
-- 合同：[`docs/contracts/TENANT_CONTRACT_V1.md`](./contracts/TENANT_CONTRACT_V1.md)
-- 资源归属矩阵：[`docs/designs/TENANT_RESOURCE_SCOPE_MATRIX.md`](./designs/TENANT_RESOURCE_SCOPE_MATRIX.md)
+- 合同：[`docs/contracts/TENANT_CONTRACT_V1.md`](../contracts/TENANT_CONTRACT_V1.md)
+- 资源归属矩阵：[`docs/designs/TENANT_RESOURCE_SCOPE_MATRIX.md`](../designs/TENANT_RESOURCE_SCOPE_MATRIX.md)
 - 登录/初始化评估：[`docs/TENANT_LOGIN_INIT_EVALUATION_2026-10-15.md`](./TENANT_LOGIN_INIT_EVALUATION_2026-10-15.md)
 - 全流程审查：[`docs/TENANT_FULL_FLOW_REVIEW_2026-10-14.md`](./TENANT_FULL_FLOW_REVIEW_2026-10-14.md)
 

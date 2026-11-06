@@ -68,7 +68,6 @@
 | `system_generator_datasource` | 0 | 代码生成数据源 | 加 tenant_id |
 | `system_module_registration` | 0 | 动态模块注册 | 加 tenant_id（租户私有模块） |
 | `module_registration` | 0 | 兼容影子表 | 保持全局（000008 兼容层，勿动） |
-| `permission_role_data_scope_policy` | 0 | scope 策略兼容表 | 保持全局（兼容层，勿动） |
 | `permission_workbench_remediation_event` | 0 | 权限工单事件 | 加 tenant_id |
 | `casbin_rule` | 5 | Casbin policy | **不加列**：用 domain 字段表达（`tenant:0` 前缀），见 §3.5 |
 | `schema_migrations` | 1 | golang-migrate 版本表 | 保持全局（迁移基础设施） |
@@ -90,7 +89,6 @@
 | `idx_role_permission_unique` | (role_id, permission_key) | 全局唯一 | 保持不变（role_id 已含租户语义）|
 | `idx_casbin_rule` | (ptype,v0..v5) | 全局唯一 | 保持不变（domain 进 v 字段）|
 | `idx_system_role_data_scope_role_key` | role_key | 全局唯一 | **改** `(tenant_id, role_key)` |
-| `idx_permission_role_data_scope_policy_role_key` | role_key | 全局唯一 | 保持不变（兼容层，勿动）|
 | `idx_system_module_registration_name` / `idx_system_module_registration_name` | name | 全局唯一 | **改** `(tenant_id, name)` |
 | `idx_system_user_oidc_subject` | system_user.oidc_subject（add_oidc_fields.sql）| 全局唯一 | **改** `(tenant_id, oidc_subject)` |
 | `uidx_system_i18n_locale_key` | system_i18n（000010 条件创建）| 全局唯一 | 保持全局 |

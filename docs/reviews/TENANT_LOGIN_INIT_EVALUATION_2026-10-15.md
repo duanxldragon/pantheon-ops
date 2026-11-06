@@ -8,8 +8,8 @@
 
 关联文档：
 
-- 合同：[`docs/contracts/TENANT_CONTRACT_V1.md`](./contracts/TENANT_CONTRACT_V1.md)
-- 资源归属矩阵：[`docs/designs/TENANT_RESOURCE_SCOPE_MATRIX.md`](./designs/TENANT_RESOURCE_SCOPE_MATRIX.md)
+- 合同：[`docs/contracts/TENANT_CONTRACT_V1.md`](../contracts/TENANT_CONTRACT_V1.md)
+- 资源归属矩阵：[`docs/designs/TENANT_RESOURCE_SCOPE_MATRIX.md`](../designs/TENANT_RESOURCE_SCOPE_MATRIX.md)
 - 前轮全流程审查：[`docs/TENANT_FULL_FLOW_REVIEW_2026-10-14.md`](./TENANT_FULL_FLOW_REVIEW_2026-10-14.md)
 
 ---

@@ -1681,6 +1681,8 @@ const enUSFallback = {
   'module.register.source_missing':
     'The generated source or schema file is missing, so the module cannot be re-registered',
   'module.register.schema_invalid': 'The module schema is invalid and cannot be re-registered',
+  'module.register.source_uncompilable':
+    'The generated source failed to compile, so the module cannot be registered. Check the generated code or the Go toolchain configuration',
   'module.register.builtin_forbidden': 'Built-in modules cannot be re-registered from this page',
   'module.register.unsupported':
     'The legacy manual registration endpoint is disabled. Use the generator flow instead',

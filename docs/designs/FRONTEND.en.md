@@ -5,10 +5,12 @@ layer: platform
 status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-04-17
+updated_at: 2026-11-04
 ---
 
 # Frontend Architecture and UI Rules
+
+> Current command authority is `frontend/package.json`: i18n prebuild uses `check:i18n-hardcode` and `check:i18n-generated-scope`. Module locale generation is owned by the existing generator/consumer rebuild.
 
 Chinese version: [FRONTEND.md](./FRONTEND.md)
 
@@ -90,7 +92,6 @@ In the live codebase, `ModuleConfig` has already evolved into a richer manifest 
 - The app loads runtime translations from `/api/v1/system/i18n/pack`.
 - Built-in fallback resources exist for `zh-CN`, `en-US`, `ja-JP`, `ko-KR`, and `fr-FR`.
 - Modules keep their own `locales/{locale}.json` files.
-- `npm run i18n:generate-module` scans module locales and generates runtime resources.
 - UI text must use `t()` or `<Trans />`.
 - Runtime translation updates should be refreshable without full page reload.
 - Request fallback messages must resolve through i18n keys, not hardcoded English.
@@ -104,8 +105,6 @@ In the live codebase, `ModuleConfig` has already evolved into a richer manifest 
 - Standardize form validation and business-error display.
 - Standardize request handling for token injection, `401/403`, and request tracing.
 - Before build, run:
-  - `npm run i18n:generate-module`
-  - `npm run check:i18n-missing-keys`
   - `npm run check:i18n-hardcode`
 - After locale expansion or large translation changes, also run `npm run audit:i18n-locales`.
 

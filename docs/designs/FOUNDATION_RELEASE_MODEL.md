@@ -5,7 +5,7 @@ layer: platform
 status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
-updated_at: 2026-09-01
+updated_at: 2026-11-04
 ---
 
 # Foundation Release Model
@@ -70,8 +70,8 @@ consumer repo -> consume base foundation release
 
 ### 2.4 当前 release 与分支策略
 
-- 当前发布版本：[`pantheon-base-v0.10.26`](https://github.com/duanxldragon/pantheon-base/releases/tag/pantheon-base-v0.10.26)。
-- 当前 release line：`release/0.10`，仅用于 manifest、兼容性说明和 consumer 记录。
+- 当前发布版本：以 [VERSION](../../VERSION) 和对应不可变 tag / release bundle 为准，不能以 HEAD 推定已发布。
+- 当前 release line：以目标发布 manifest 为准，仅是兼容性元数据。
 - Git 分支策略：本地与远端仅保留 `main`；release 的稳定性由不可变 tag 和发布资产提供，而不是由 release 分支提供。
 
 ## 3. 资产分层

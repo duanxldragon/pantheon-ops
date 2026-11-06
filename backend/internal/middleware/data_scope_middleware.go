@@ -54,17 +54,13 @@ func (SystemRoleDataScope) TableName() string {
 	return "system_role_data_scope"
 }
 
-func MigrateDataScopePolicy(db *gorm.DB) error {
-	if db == nil {
-		return nil
-	}
-	if database.ShouldAutoMigrate() {
-		if err := db.AutoMigrate(&SystemRoleDataScope{}); err != nil {
-			return err
-		}
-		storeCachedTableExistence(db, (&SystemRoleDataScope{}).TableName(), true)
-	} else if !cachedHasTable(db, &SystemRoleDataScope{}) {
-		if err := db.Exec(`
+// dataScopePolicyDDL is a bootstrap guard, not the migration chain.
+//
+// It only creates the columns the Go model reads and writes (id, tenant_id,
+// role_key, mode, dept_ids) plus uk_role_data_scope_tenant_role. It is not the
+// 000001 shape: scope_defs, created_at and updated_at are absent. A fresh boot
+// that never ran the versioned migrations is not a supported path.
+const dataScopePolicyDDL = `
 CREATE TABLE IF NOT EXISTS system_role_data_scope (
 	id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
 	tenant_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
@@ -72,7 +68,27 @@ CREATE TABLE IF NOT EXISTS system_role_data_scope (
 	mode VARCHAR(32) NOT NULL DEFAULT 'all',
 	dept_ids TEXT NULL,
 	UNIQUE KEY uk_role_data_scope_tenant_role (tenant_id, role_key)
-		)`).Error; err != nil {
+		)`
+
+// MigrateDataScopePolicy guarantees the policy table exists and nothing more.
+//
+// The table's shape is owned by the versioned migration chain, so this function
+// deliberately does NOT let GORM auto-migrate the model — doing that under
+// PANTHEON_AUTO_MIGRATE made the Go model a second schema authority in dev
+// mode, where a model edit silently rewrote a table the migrations already
+// defined and the two shapes could drift without any gate noticing (audit
+// DB-01).
+//
+// What is left is a bootstrap guard, not a migrator. A boot that never ran the
+// versioned chain is not a supported path: this DDL is not the 000001 shape.
+// CREATE TABLE IF NOT EXISTS is a no-op on a table the chain already built,
+// and it can never add, rename or retype a column on an existing table.
+func MigrateDataScopePolicy(db *gorm.DB) error {
+	if db == nil {
+		return nil
+	}
+	if !cachedHasTable(db, &SystemRoleDataScope{}) {
+		if err := db.Exec(dataScopePolicyDDL).Error; err != nil {
 			return err
 		}
 		storeCachedTableExistence(db, (&SystemRoleDataScope{}).TableName(), true)

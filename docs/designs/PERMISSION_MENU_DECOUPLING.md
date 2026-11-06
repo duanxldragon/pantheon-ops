@@ -1,4 +1,16 @@
+---
+title: 历史权限点和菜单解耦计划
+doc_type: Remediation
+layer: platform
+linked_contracts:
+  - docs/contracts/SYSTEM_IAM_CONTRACT.md
+status: Archived
+updated_at: 2026-11-04
+---
+
 # 权限点和菜单解耦实施指南
+
+> 历史权限拆分计划，现态权威为 [PERMISSION_MODEL](./PERMISSION_MODEL.md)。保留原路径与讨论用于追溯；不复制已交付四层授权规范。
 
 **版本**: 1.0  
 **日期**: 2026-06-22  

@@ -27,6 +27,7 @@ import { showImportResult } from '../../../../api/importExport';
 import { isArcoFormValidationError, isLikelyEmailAddress } from '../../../../core/arco/formValidation';
 import { publishRefresh, useRefreshSubscription } from '../../../../core/refresh/refreshBus';
 import { invalidateRouteWarmDataMany, resolveRouteWarmData } from '../../../../core/router/prefetch';
+import { fetchAllPages } from '../../../../api/fetchAllPages';
 import { usePermission } from '../../../../hooks/usePermission';
 import {
   batchDeleteDepts,
@@ -134,8 +135,6 @@ const emptyForm: DeptFormValues = {
   email: '',
   status: 1,
 };
-
-const orgChartPageSize = 1000;
 
 function isDefaultDeptListQuery(query: DeptListQuery) {
   return (
@@ -355,28 +354,32 @@ const DeptList: React.FC = () => {
           ),
           canViewPosts
             ? resolveRouteWarmData('/system/dept', 'posts:org-chart', () =>
-                getPostList({
-                  page: 1,
-                  pageSize: orgChartPageSize,
-                  sortField: 'sort',
-                  sortOrder: 'asc',
-                }),
+                fetchAllPages((page, pageSize) =>
+                  getPostList({
+                    page,
+                    pageSize,
+                    sortField: 'sort',
+                    sortOrder: 'asc',
+                  }),
+                ),
               )
-            : Promise.resolve({ items: [], total: 0, page: 1, pageSize: orgChartPageSize }),
+            : Promise.resolve([] as PostRow[]),
           canViewUsers
             ? resolveRouteWarmData('/system/dept', 'users:org-chart', () =>
-                getUserList({
-                  page: 1,
-                  pageSize: orgChartPageSize,
-                  sortField: 'username',
-                  sortOrder: 'asc',
-                }),
+                fetchAllPages((page, pageSize) =>
+                  getUserList({
+                    page,
+                    pageSize,
+                    sortField: 'username',
+                    sortOrder: 'asc',
+                  }),
+                ),
               )
-            : Promise.resolve({ items: [], total: 0, page: 1, pageSize: orgChartPageSize }),
+            : Promise.resolve([] as UserListRow[]),
         ]);
         setOrgDepts(deptRows);
-        setOrgPosts(postRows.items);
-        setOrgUsers(userRows.items);
+        setOrgPosts(postRows);
+        setOrgUsers(userRows);
         setSelectedOrgDeptId((current) => {
           if (current && findDeptNode(deptRows, current)) {
             return current;

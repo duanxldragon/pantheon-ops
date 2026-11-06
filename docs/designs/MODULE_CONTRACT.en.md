@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
-updated_at: 2026-04-17
+updated_at: 2026-11-04
 ---
 
 # Module Contract Design
@@ -215,16 +215,13 @@ Temporary transition structures are allowed, but this is the target direction.
 
 ### 5.3 Frontend Module Manifest
 
-The long-term `ModuleConfig` should grow beyond only `name` and `routes`.
+The current authority is `ModuleConfig` in `frontend/src/core/router/types.ts`. It includes `name`, `scope`, `routes`, and declarations for menus, permissions, i18n namespaces and dashboard widgets. `pagePermission` belongs to route configuration and is enforced by `RoutePermissionGuard`.
 
-#### 5.3.1 Minimum Constraint for the Current Stage
+Reuse the existing type rather than adding a parallel `ModuleManifest`. Changes require real Ops rebuild and type checks.
 
-Even now, the frontend module should at least be organized as if it owns:
+#### 5.3.1 Minimum Constraint
 
-- route set
-- menu metadata
-- permission metadata
-- i18n namespace ownership
+Declare the module name, scope, routes, menu ownership, permission points and i18n namespaces using the existing registry/generator and checks.
 
 ### 5.4 Frontend Route Registration Rules
 
@@ -307,7 +304,7 @@ Frontend modules should already move toward manifest-driven route, menu, permiss
 
 ## 12. Gap Between This Document and Current Code
 
-The main gap is not the direction, but the degree of enforcement. Some areas still rely on partial manual assembly or lighter manifests than the contract intends.
+The main gap is not the direction, but the degree of enforcement. Some areas still rely on partial manual assembly or consumer-specific integration seams that must be verified on upgrade.
 
 ## 13. Acceptance Questions
 

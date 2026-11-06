@@ -6,7 +6,7 @@ status: Active
 linked_contracts:
   - docs/contracts/PLATFORM_CONTRACT.md
   - docs/contracts/SYSTEM_IAM_CONTRACT.md
-updated_at: 2026-04-17
+updated_at: 2026-11-04
 ---
 
 # 模块契约设计
@@ -128,17 +128,24 @@ backend/modules/{system|business}/{module}/
 type BackendModule interface {
     Name() string
     RegisterRoutes(r *gin.RouterGroup)
+    Migrate(db *gorm.DB) error
     SeedMenus(db *gorm.DB) error
     SeedPerms(db *gorm.DB) error
     SeedI18n(db *gorm.DB) error
 }
 ```
 
-如果后续需要数据库迁移，再扩展：
+`Migrate` 已落地（旧文"如果后续需要数据库迁移，再扩展"不再成立）。装配执行时机（`RegisterBackendModules`）：
 
-```go
-Migrate(db *gorm.DB) error
-```
+| 阶段 | 何时执行 | 受 `PANTHEON_AUTO_MIGRATE` 控制 |
+| --- | --- | --- |
+| `Migrate()` | 仅 `true`（开发）时执行；`false`（默认/生产）跳过，schema 走 `backend/pkg/database/migrations/` 版本化迁移 | 是 |
+| `Bootstrap()` | 可选接口，`false` 分支恒执行 | 否——**不在 AutoMigrate 禁令覆盖范围内** |
+| `SeedMenus` / `SeedPerms` / `SeedI18n` / `RegisterRoutes` | 恒执行 | 否 |
+
+`FuncModule.BootstrapFunc` 的用途与边界：低代码生成的业务模块把 `BootstrapFunc` 指向 `service.Migrate()`（内部 GORM `AutoMigrate`），使运行时才有 schema 的生成表在启动时自动建表/补列。
+这是 `docs/DEPLOYMENT_GUIDE.md` §3 显式记录并被否决过两个替代方案的例外，代价（需要 DDL 权限、列只增不减）见该节；平台表（`system_*` / `platform_*`）不得借此例外走 AutoMigrate。
+行为由 `backend/pkg/contracts/module_test.go` 的 `TestRegisterBackendModules_DefaultModeRunsBootstrapForGeneratedModules` 锁定。
 
 ### 4.3.1 当前阶段的最低要求
 
@@ -252,36 +259,13 @@ frontend/src/modules/{system|business}/{module}/
 
 ## 5.3 前端模块 manifest
 
-当前 `ModuleConfig` 过于轻，只包含：
+当前真实类型以 `frontend/src/core/router/types.ts` 的 `ModuleConfig` 为准，已包含 `name`、`scope`、`routes`，以及菜单、权限、i18n namespace 和 dashboard widgets 等声明。页面权限 `pagePermission` 属于路由配置，由 `RoutePermissionGuard` 执行。
 
-- `name`
-- `routes`
+不再要求额外引入另一套 `ModuleManifest` 类型。新模块复用当前类型与注册器；字段扩展须验证 Ops 实际重建和类型检查。
 
-这不足以支撑长期扩展。
+### 5.3.1 最少约束
 
-建议目标演进为：
-
-```ts
-export interface ModuleManifest {
-  name: string
-  scope: 'system' | 'business'
-  routes: ModuleRouteConfig[]
-  menus?: ModuleMenuMeta[]
-  permissions?: string[]
-  i18nNamespaces?: string[]
-  featureFlags?: string[]
-}
-```
-
-### 5.3.1 当前阶段最少约束
-
-在未升级真实类型前，所有模块至少要在文档层同步声明：
-
-- 模块名
-- 路由
-- 菜单归属
-- 权限点
-- i18n key 前缀
+模块必须同步声明模块名、scope、路由、菜单归属、权限点与 i18n namespace，沿用现有源码/生成器和一致性检查。
 
 ## 5.4 前端路由注册规则
 
@@ -450,6 +434,8 @@ export interface ModuleManifest {
 - 不直接耦合底座实现
 - 通过模块契约接入菜单、权限、i18n
 - 不把业务页面写死进 system 模块
+- 不参与租户隔离：业务域（`modules/business/*`）在 V1 内是单租户语义。经 `contracts.ProtectedGroup` / `contracts.DataScopedGroup`（`backend/pkg/contracts/route_groups.go`）接入的业务路由不挂租户上下文中间件，这是 `TENANT_CONTRACT_V1 §2.6` 明确要求的，不是遗漏
+- 不得在业务域宣称租户隔离：业务模块不得对外宣称已按 `tenant_id` 隔离，也不得自建隔离机制；给这两个助手追加租户中间件属合同变更，不是缺陷修复，必须与 `TENANT_CONTRACT_V1 §2.6` 的改写、业务表租户列与生成器改造同批落地
 
 ## 11. 当前阶段的实施要求
 
@@ -483,7 +469,7 @@ export interface ModuleManifest {
 - 后端模块 seed 仍处于“部分按子域拆分”阶段，后续应逐步迁移到各模块自己的 `module.go`
 - 前端 manifest、后端菜单 seed、组件注册表已接入基础一致性检查；注册表文件按命名约定发现（`*Registry.ts` / `*registry.go`），支持 consumer overlay 注入（见 §6.4）
 - 后续应把一致性检查从源码正则解析继续演进为标准契约数据源
-- 业务模块已用 `business/cmdb` 做端到端验证，后续还需要第二个 `business/*` 模块重复验证
+- `business/cmdb` 等业务样板位于 Pantheon Ops；本轮以实际消费重建和业务测试验证复用，不为凑第二个模块新增业务功能
 
 ## 13. 验收问题
 

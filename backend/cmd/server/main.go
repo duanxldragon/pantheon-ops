@@ -67,8 +67,10 @@ func initTelemetry() func() {
 	if otlpEndpoint == "" {
 		return nil
 	}
-	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	// No init timeout here: telemetry.InitTracer does not take a context, so a
+	// `_, cancel := context.WithTimeout(...)` would bound nothing — the value is
+	// discarded and cancel only fires when this function returns. The timeout
+	// that matters is on shutdown (below), where tp.Shutdown does accept a ctx.
 	tp, err := telemetry.InitTracer("pantheon-base", otlpEndpoint)
 	if err != nil {
 		logging.Error("Failed to initialize tracer", zap.Error(err))
