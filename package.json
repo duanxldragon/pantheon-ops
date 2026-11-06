@@ -53,7 +53,8 @@
     "test:business-boundaries": "node --test tests/scripts/check-business-module-boundaries.test.mjs",
     "check:business-foundation": "npm run check:business-boundaries && npm run check:business-overlay && npm run test:business-boundaries && npm run test:business-overlay",
     "check:gorm-sql-literal": "node scripts/check-gorm-sql-literal.mjs",
-    "test:gorm-sql-literal": "node --test tests/scripts/check-gorm-sql-literal.test.mjs"
+    "test:gorm-sql-literal": "node --test tests/scripts/check-gorm-sql-literal.test.mjs",
+    "fetch:base-release": "node scripts/business-overlay/foundation-release.mjs"
   },
   "lint-staged": {
     "frontend/src/**/*.{ts,tsx}": [

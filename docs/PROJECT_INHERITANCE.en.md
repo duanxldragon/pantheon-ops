@@ -2,7 +2,7 @@
 
 Chinese version: [PROJECT_INHERITANCE.md](./PROJECT_INHERITANCE.md)
 
-`pantheon-ops` inherits through a complete Pantheon Base snapshot plus a declarative business overlay. An upgrade rebuilds the product tree from a selected Base commit and injects Ops-owned business assets. It does not patch an old tree file by file or maintain shared-source allowlists.
+`pantheon-ops` inherits through a complete Pantheon Base snapshot plus a declarative business overlay. An upgrade rebuilds the product tree from the official Base release locked in `foundation-release.lock.json` and injects Ops-owned business assets. It does not patch an old tree file by file or maintain shared-source allowlists.
 
 ## Ownership
 
@@ -28,12 +28,23 @@ Base's menu-contract gate (`check-menu-contract.mjs`) discovers component regist
 
 ## Upgrade
 
+Run these commands from the Ops repository root:
+
 ```powershell
-npm run rebuild:from-base -- --base ..\pantheon-base --target .tmp\clean-base-overlay
-node scripts/business-overlay/check-business-overlay.mjs --root .tmp\clean-base-overlay
+# Query GitHub for the latest stable official Base release, download four assets,
+# verify SHA256, manifest and immutable tag, then update the Ops lock.
+# With no version argument this selects latest; this handoff pins v0.18.4.
+npm run fetch:base-release -- --release pantheon-base-v0.18.4
+
+# Rebuild and verify a temporary consumer from the pinned official release.
+npm run rebuild:from-base -- --target .tmp/clean-base-overlay
+node scripts/business-overlay/check-business-overlay.mjs --root .tmp/clean-base-overlay
+npm run check:shared-drift -- --root .tmp/clean-base-overlay
+
+# Run backend CGO race, frontend, business smoke and hosted gates before applying.
 ```
 
-Run backend, frontend, business smoke, and SonarCloud gates in the staged tree. Replace the current Ops baseline only after they pass. Identical Base and overlay inputs must produce identical output. The weekly workflow rebuilds against Base HEAD and reports real contract breaks instead of source drift.
+The weekly GitHub workflow uses this same latest-release acquisition and pinned reconstruction. Rebuild and drift checks verify official GitHub assets and compare extracted snapshot bytes; they never read an enclosing Git HEAD. Local Base source arguments are rejected. An explicit `--release` must fetch that published version and cannot fall back to latest or another tag. Cached archives must match the lock and official release SHA256; extracted trees are regenerated from verified archives to prevent stale or modified files from becoming the baseline.
 
 ## Prohibited
 
@@ -44,3 +55,9 @@ Run backend, frontend, business smoke, and SonarCloud gates in the staged tree. 
 - Do not replace the current Ops tree before staged verification.
 
 This baseline replacement is an L2 human gate. Required validation includes overlay tests/checks, Windows Go race with CGO, frontend lint/type/build, business smoke, and SonarCloud revision/size/duplication review.
+
+## 8. Business data migrations
+
+Canonical business SQL lives under `backend/modules/business/<module>/.../migrations/`, with six-digit versions and paired `.up.sql` / `.down.sql` files. `businessMigrations` explicitly lists sources covered by `businessPaths`. The Ops rebuilder derives the fixed `backend/pkg/database/migrations/` destinations and records them as generated files, retaining the Base startup migration failure behavior.
+
+Business ownership cannot claim `backend/pkg/database` or arbitrary destinations. Missing pairs, duplicate versions/directions, invalid sources and Base version collisions fail reconstruction. Only unpublished business migrations may be renumbered; published migration collisions require a separately designed compatibility upgrade. The unpublished host-state backfill uses `000032`; Base retains `000031`.

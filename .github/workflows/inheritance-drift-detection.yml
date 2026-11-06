@@ -7,7 +7,7 @@ on:
 
 jobs:
   rebuild:
-    name: Rebuild Ops on current Base
+    name: Rebuild Ops on latest official Base release
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -16,13 +16,6 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           path: pantheon-ops
-          persist-credentials: false
-
-      - name: Checkout pantheon-base
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          repository: ${{ github.repository_owner }}/pantheon-base
-          path: pantheon-base
           persist-credentials: false
 
       - name: Setup Node
@@ -35,13 +28,23 @@ jobs:
         working-directory: pantheon-ops
         run: npm run test:business-overlay
 
-      - name: Check shared-file drift against base HEAD
+      - name: Fetch and lock latest stable Base release from GitHub
         working-directory: pantheon-ops
-        run: npm run check:shared-drift -- --base ../pantheon-base
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npm run fetch:base-release
 
-      - name: Rebuild clean consumer
+      - name: Rebuild clean consumer from verified GitHub release
         working-directory: pantheon-ops
-        run: npm run rebuild:from-base -- --base ../pantheon-base --target .tmp/base-compatibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npm run rebuild:from-base -- --target .tmp/base-compatibility
+
+      - name: Check rebuilt shared files against locked GitHub snapshot
+        working-directory: pantheon-ops
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npm run check:shared-drift -- --root .tmp/base-compatibility
 
       - name: Check rebuilt overlay
         working-directory: pantheon-ops
