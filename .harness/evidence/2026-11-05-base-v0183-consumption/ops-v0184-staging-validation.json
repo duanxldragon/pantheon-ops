@@ -19,16 +19,46 @@
     "checkSharedDrift": "OK shared drift check: 826 shared files identical to base, 10 allowlisted drift, 164 business-overlay files skipped, 2 derived business migrations verified"
   },
   "verification": [
-    { "command": "go test -buildvcs=false -race -p 1 -count=1 ./... (CGO=1, msys64 mingw PATH)", "result": "exit 0, no failures" },
-    { "command": "go build -buildvcs=false ./... (rebuilt backend)", "result": "exit 0" },
-    { "command": "npm run lint / type-check / build / test:unit (staging frontend)", "result": "all green, 218/218 unit tests" },
-    { "command": "fresh-DB versioned migration replay (PANTHEON_AUTO_MIGRATE=false)", "result": "schema_migrations version=32 dirty=0; Base 000031 + business 000032 assembled and replayed" },
-    { "command": "module-governance-real.spec.ts", "result": "1 passed (11.8s)" },
-    { "command": "module-auto-recycle-real.spec.ts", "result": "1 passed (8.1s)" },
-    { "command": "module-master-detail-real.spec.ts", "result": "1 passed (8.4s)" },
-    { "command": "module-many-to-many-real.spec.ts", "result": "1 passed (10.3s)" },
-    { "command": "module-governance-host-real.spec.ts", "result": "1 failed: menu label 主机管理 hidden under collapsed CMDB group" },
-    { "command": "test:smoke:tenant (fresh staging DB)", "result": "setup failed: list matrix_browser_a 403 permission.denied via newly provisioned tenant admin" }
+    {
+      "command": "go test -buildvcs=false -race -p 1 -count=1 ./... (CGO=1, msys64 mingw PATH)",
+      "result": "exit 0, no failures"
+    },
+    {
+      "command": "go build -buildvcs=false ./... (rebuilt backend)",
+      "result": "exit 0"
+    },
+    {
+      "command": "npm run lint / type-check / build / test:unit (staging frontend)",
+      "result": "all green, 218/218 unit tests"
+    },
+    {
+      "command": "fresh-DB versioned migration replay (PANTHEON_AUTO_MIGRATE=false)",
+      "result": "schema_migrations version=32 dirty=0; Base 000031 + business 000032 assembled and replayed"
+    },
+    {
+      "command": "module-governance-real.spec.ts",
+      "result": "1 passed (11.8s)"
+    },
+    {
+      "command": "module-auto-recycle-real.spec.ts",
+      "result": "1 passed (8.1s)"
+    },
+    {
+      "command": "module-master-detail-real.spec.ts",
+      "result": "1 passed (8.4s)"
+    },
+    {
+      "command": "module-many-to-many-real.spec.ts",
+      "result": "1 passed (10.3s)"
+    },
+    {
+      "command": "module-governance-host-real.spec.ts",
+      "result": "1 failed: menu label 主机管理 hidden under collapsed CMDB group"
+    },
+    {
+      "command": "test:smoke:tenant (fresh staging DB)",
+      "result": "setup failed: list matrix_browser_a 403 permission.denied via newly provisioned tenant admin"
+    }
   ],
   "baselineComparison": {
     "purpose": "determine whether host-real smoke failure is a v0.18.4 consumption regression",
@@ -47,5 +77,16 @@
     "hostRealBaseline": "ops-v0182-baseline-host-smoke.log",
     "tenantStaging": "ops-v0184-staging-tenant-smoke.log",
     "acquisition": "ops-v0184-actual-acquisition.log"
+  },
+  "hostedCi": {
+    "date": "2026-11-06",
+    "pr": "duanxldragon/pantheon-ops#171",
+    "required": {
+      "qualityGates": "pass",
+      "securityGates": "pass"
+    },
+    "smokeSanity": "pass 12m31s with deterministic seed (local host-real/tenant fresh-DB failures confirmed as fixture-state assumptions)",
+    "other": "Backend Tests, Frontend Contract, Go Lint, CodeQL, Secret Scan, Duplication Gate, Docs Governance, SonarCloud all pass",
+    "nonBlocking": "Vercel preview fail on PRs 168-171 (external, pre-existing); Copilot reviewer unavailable (bot not collaborator, noted in PR body)"
   }
 }

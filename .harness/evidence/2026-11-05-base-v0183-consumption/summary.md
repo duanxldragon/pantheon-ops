@@ -47,3 +47,10 @@ Final preparation review: independent CODE APPROVE / ARCH CLEAR;21 source hashes
 - tenant 矩阵在全新库上 fixture 供给 403 permission.denied，同属长命 QA 库状态假设；托管 CI 的确定性种子为权威门禁。
 - test:scripts 存在 15 个与 clean HEAD 完全相同的既有治理失败（ci.yml 期望、遗留 manifest 词汇），单独排队。
 - 下一步：Ops 基线替换与消费 PR（L2 门禁）。详见 ops-v0184-staging-validation.json 与四份 smoke 日志。
+
+## 2026-11-06 基线替换与托管 CI 收口
+
+- 工作区基线替换：sync 后共享范围与暂存树 byte-identical（copied=347，删除上游移除文件 16），提交 5ee377d chore(base): consume the pantheon-base-v0.18.4 shared snapshot。
+- 消费 PR：duanxldragon/pantheon-ops#171（base main），PR body 经 scripts/check-pr-governance.mjs 机械校验通过。
+- 托管 CI 全绿：Quality Gates pass、Security Gates pass（两项必跑门禁）、Smoke Sanity pass 12m31s（本地 host-real/tenant 全新库失败在托管确定性种子下通过，证实为本地 fixture 状态假设）、Backend Tests/Frontend Contract/Go Lint/CodeQL/Secret Scan/Duplication Gate/Docs Governance 全 pass。
+- 非阻塞既有问题：Vercel 预览部署在 #168–#171 全部 fail（外部账号侧，非本改动）；Copilot reviewer 非 collaborator 不可指派，已在 PR body 显式说明。
