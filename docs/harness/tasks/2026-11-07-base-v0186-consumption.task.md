@@ -147,8 +147,8 @@ business/*
 
 - [x] Four official v0.18.6 assets verified against immutable release/source and consumer lock
 - [x] Exact standard assembled source passes readonly CGO full race, frontend, overlay/drift and applicable smoke before replacement/PR/merge
-- [ ] Independent CODE/ARCH approval and required GitHub checks precede merge
-- [ ] Only main remains locally/remotely, previous work and rollback artifacts preserved
+- [x] Independent CODE/ARCH approval and required GitHub checks precede merge
+- [x] Only main remains locally/remotely, previous work and rollback artifacts preserved
 - [x] Layer and boundary declared
 - [x] Contract anchors read
 - [x] Verification run or exception recorded

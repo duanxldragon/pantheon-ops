@@ -1,6 +1,6 @@
-# Independent official consumer approval
+# Independent approval and verified consumer closeout
 
-CODE and ARCH independently approve the same official-consumer snapshot, including bounded factual post-review updates and standard final assembly metadata. Full local validators passed; current hosted CI, merge and main-only remain required. No runtime or dependency changes, no S3/freeze/policy waiver.
+Independent CODE/ARCH approvals and explicit acceptance of bounded factual updates remain valid; protected1337 source and lock unchanged. Actual consumerPR178/requiredCI/main-only verified. Administrative closeout requires own CI/merge/final cleanup.
 
 ## Machine Readable
 
@@ -49,6 +49,15 @@ CODE and ARCH independently approve the same official-consumer snapshot, includi
     "checks": [],
     "findings": [],
     "notes": "Byte-identical product source and unchanged module graph; final hosted CI/merge/main-only mandatory; source and lock protected."
+  },
+  "factualCloseout": {
+    "recordedAt": "2026-11-07T07:16:04.501Z",
+    "consumerPr": "https://github.com/duanxldragon/pantheon-ops/pull/178",
+    "mergedCommit": "81d64b95201ebd4a545548d933d251dced1e7123",
+    "mainOnlyEvidence": ".harness/evidence/2026-11-07-base-v0186-consumption/verified-main-only.json",
+    "checksEvidence": ".harness/evidence/2026-11-07-base-v0186-consumption/hosted-consumer-checks.json",
+    "sourceChanges": 0,
+    "administrativeCloseout": "This metadata-only PR persists already achieved acceptance; own required CI/merge and final cleanup remain mandatory"
   }
 }
 ```

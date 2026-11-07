@@ -1,0 +1,20 @@
+{
+  "recordedAt": "2026-11-07T07:14:38.175Z",
+  "headRefOid": "951905200a19fdc3e7667d5cc00240d6ad3b1a9f",
+  "mergeCommit": {
+    "oid": "81d64b95201ebd4a545548d933d251dced1e7123"
+  },
+  "mergedAt": "2026-11-07T07:13:48Z",
+  "state": "MERGED",
+  "url": "https://github.com/duanxldragon/pantheon-ops/pull/178",
+  "localMain": "81d64b95201ebd4a545548d933d251dced1e7123",
+  "reviewedTree": "cca6d3ee63d41c7728601502fb10d87b7f818efa",
+  "mergedTree": "cca6d3ee63d41c7728601502fb10d87b7f818efa",
+  "treeEquivalent": true,
+  "bundle": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/pantheon-ops-pr178-before-delete.bundle",
+  "bundleSha256": "a53a78fda70f9d77e0b1ab5111e87f3c6fc4f4ffdefdd3cf546c1b59610c6a0c",
+  "localHeads": [
+    "main"
+  ],
+  "status": ""
+}

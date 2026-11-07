@@ -1044,7 +1044,15 @@
     },
     {
       "path": ".harness/evidence/2026-11-07-base-v0186-consumption/commands.json",
-      "sha256": "bb279f97fb2b9019e0471a14300646a62ab8bdb259f9a1dc7b3bf9f930aa648b"
+      "sha256": "343c24845721444a443b80f7350e95ce883485cf654368676c56d6cb968c5748"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/hosted-consumer-checks.json",
+      "sha256": "68affddbc5ef6cbe584e3f2f94ae1895d472a54830d7e633d11e5a4206a41bf8"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/hosted-consumer-merge.json",
+      "sha256": "05490b45f2715d9ebfe52dba26c77489bcdb6483b9904572cf67d9aa2b144cca"
     },
     {
       "path": ".harness/evidence/2026-11-07-base-v0186-consumption/official186-lock.json",
@@ -1195,8 +1203,12 @@
       "sha256": "c652414e05b2d940ccb86faa6193b192f44cc19015e5eda7e75a7a6d3f44f1ef"
     },
     {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/owned-services-stopped.json",
+      "sha256": "42a2a6d487a4a53e02d36436d6df66b2fba4ddcebc641392f98adec1a8a7e881"
+    },
+    {
       "path": ".harness/evidence/2026-11-07-base-v0186-consumption/pr-body.md",
-      "sha256": "807c6c9469dc5389d734567af7dd99f3ec656b708f57f41d65eab4e12d77f2fb"
+      "sha256": "7d62b68bad4545bfde7af0ae6ecdb0f7be056d5eb2b06642577da56c7eb42216"
     },
     {
       "path": ".harness/evidence/2026-11-07-base-v0186-consumption/raw-architect.md.gz",
@@ -1212,7 +1224,7 @@
     },
     {
       "path": ".harness/evidence/2026-11-07-base-v0186-consumption/review.md",
-      "sha256": "4a0c371f71e25720e0e38ed3e292a0ea5962a1875b600bb8b6a521609a9b5c9c"
+      "sha256": "415229eb4d630dde1957eeb641471384c5d20f9f2f73dd37a7dd3ce899f5983f"
     },
     {
       "path": ".harness/evidence/2026-11-07-base-v0186-consumption/runtime-residuals.json",
@@ -1224,7 +1236,7 @@
     },
     {
       "path": ".harness/evidence/2026-11-07-base-v0186-consumption/summary.md",
-      "sha256": "f6daa1b774e41e0803b5e9a9ac496c183692fe0262a589394244ac1ee2c79bdf"
+      "sha256": "80ffad92153d743a69395932d2002feade39d742032ba31ec1e8b18a0bf0df10"
     },
     {
       "path": ".harness/evidence/2026-11-07-base-v0186-consumption/validation-log-index.json",
@@ -1233,6 +1245,10 @@
     {
       "path": ".harness/evidence/2026-11-07-base-v0186-consumption/verified-installation.json",
       "sha256": "6749e23132fe684ea23df986cb9a5e26722936465f89970b64cffccd95083449"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/verified-main-only.json",
+      "sha256": "268954b52a689f789b965fe7b634dfa25514e0e3eb813f0efd867e26f3f80575"
     },
     {
       "path": ".harness/evidence/cmdb-host-import-export/commands.json",
@@ -1588,7 +1604,7 @@
     },
     {
       "path": ".harness/tasks/2026-11-07-base-v0186-consumption/manifest.json",
-      "sha256": "c7773a1c3e022c9e8a1a8f60c4f64f1edeb0fdabae630ea16d5b6c51dcab9bf1"
+      "sha256": "28ffb77bb887af21f678d74053f5536efac2a4f26c71c3a6b3c389d4033491d7"
     },
     {
       "path": ".harness/tasks/2026-11-07-base-v0186-consumption/plan.md",
@@ -3140,7 +3156,7 @@
     },
     {
       "path": "docs/harness/tasks/2026-11-07-base-v0186-consumption.task.md",
-      "sha256": "f5dcd6e2ea3d24c826cd5d7db551de5ab05c32ace26afefdb1460626d47924bd"
+      "sha256": "472863e4f48146a372c80631afa620b0d5279ed840e04c84dab15cb866166b23"
     },
     {
       "path": "docs/harness/tasks/README.md",
