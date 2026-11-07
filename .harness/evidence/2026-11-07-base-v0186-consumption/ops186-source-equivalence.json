@@ -1,0 +1,11 @@
+{
+  "recordedAt": "2026-11-07T06:37:56.747Z",
+  "source": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\github-main-release-2026-11-07/ops-v186-rebuilt",
+  "baseline": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\github-main-release-2026-11-07/ops186-optional-baseline",
+  "baselineCommit": "92c1efcfc4f754a7f0a4e9f181f446f4a2ddcfc2",
+  "officialBaseCommit": "5553bc0e8ddc006cb7a6b99a46968bf8cf907a49",
+  "comparedFiles": 1337,
+  "changedPaths": [],
+  "sourceManifest": "ops186-staged-source-manifest.json",
+  "basis": "Actual standard official186 assembly compared with preserved Opsmain/official185 baseline; no overlays or post-assembly module mutation"
+}

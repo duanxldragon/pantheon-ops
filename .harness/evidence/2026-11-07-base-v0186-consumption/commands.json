@@ -1,0 +1,286 @@
+{
+  "taskId": "2026-11-07-base-v0186-consumption",
+  "repo": "pantheon-ops",
+  "agent": {
+    "tool": "codex",
+    "adapter": "Dispatcher standard official consumer"
+  },
+  "commands": [
+    {
+      "command": "go test -timeout=30m -buildvcs=false -mod=readonly -race -json -p 2 -count=1 ./...",
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-rebuilt/backend",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-full-readonly-race.log.gz",
+      "sha256": "fe204df575b463a9c85dfb0689366c9ec14f4f4051349d5fcc72708b6454d1d8",
+      "rawSha256": "7f647dc216d19628dd6009c14997fc0319c7f31d22e18c9a855890e414219138",
+      "startedAt": "2026-11-07T06:33:28.9259547Z",
+      "finishedAt": "2026-11-07T06:51:56.7011077Z",
+      "notes": "ops186-full-readonly-race"
+    },
+    {
+      "command": "go build -buildvcs=false -mod=readonly -o D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops186-server.exe ./cmd/server",
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-rebuilt/backend",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-runtime-build.log.gz",
+      "sha256": "9e72928e7a01615b4cf090daa617b4ca9d68531748f887f323f695eb4ca3ef63",
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "startedAt": "2026-11-07T06:34:03.1601259Z",
+      "finishedAt": "2026-11-07T06:34:16.7641431Z",
+      "notes": "ops186-runtime-build"
+    },
+    {
+      "command": "npm run lint",
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-rebuilt/frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-frontend-lint.log.gz",
+      "sha256": "016a821771af341985e890ad6a780d6dbd2b0b641ab43f500ed5941582a0b9fc",
+      "rawSha256": "5f62e7cf7cdd69c014ca18d1c493431139fcbda108704552679bc84c360fd025",
+      "startedAt": "2026-11-07T06:33:28.8707661Z",
+      "finishedAt": "2026-11-07T06:33:56.5080000Z",
+      "notes": "ops186-frontend-lint"
+    },
+    {
+      "command": "npm run type-check",
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-rebuilt/frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-frontend-type-check.log.gz",
+      "sha256": "17a66d4f9d721873779ab5b49de8bf79c247724ccff09105bd4bf3eb65089a36",
+      "rawSha256": "94d7e0ba308969aef5be19127663f1eb2c0b1e8d9e4f8781561cc44a964b7281",
+      "startedAt": "2026-11-07T06:33:56.5874012Z",
+      "finishedAt": "2026-11-07T06:34:12.2735741Z",
+      "notes": "ops186-frontend-type-check"
+    },
+    {
+      "command": "npm run build",
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-rebuilt/frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-frontend-build.log.gz",
+      "sha256": "c55914a684b8f69d2b62fb35459fb34a8493108200b1d9481b42f2b0f5b6ad19",
+      "rawSha256": "d967e8aafb34d0b151fee990eec3d729e1a382ae26ffc4022945dfa5f968fbf7",
+      "startedAt": "2026-11-07T06:34:12.2824205Z",
+      "finishedAt": "2026-11-07T06:34:38.9178846Z",
+      "notes": "ops186-frontend-build"
+    },
+    {
+      "command": "npm run test:unit",
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-rebuilt/frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-frontend-test-unit.log.gz",
+      "sha256": "7d7e5d2caec0911d48ec32343e507c56bd8a1400aaa7e7499709cf55d3a71526",
+      "rawSha256": "66d9c2b6dacbf792d492421836159d1d7cad196839699208b6db87a2535cc3ac",
+      "startedAt": "2026-11-07T06:34:38.9244174Z",
+      "finishedAt": "2026-11-07T06:35:03.7716270Z",
+      "notes": "ops186-frontend-test-unit"
+    },
+    {
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24575 --proxy-target http://127.0.0.1:24482 --cleanup-fixtures all --config playwright.config.ts -- tests/smoke/business/generated/module-governance-real.spec.ts --workers=1",
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-rebuilt/frontend",
+      "status": "failed",
+      "exitCode": 1,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-smoke-generated.log.gz",
+      "sha256": "e41a4497a9855a315895e2cb7d89496182f7c371e9e06e898d830112febdd289",
+      "rawSha256": "0881df456c6fec6264e47e1aec835857002fc2f35383f42eeadb4a3dbbf13ad8",
+      "startedAt": "2026-11-07T06:52:37.9183849Z",
+      "finishedAt": "2026-11-07T06:52:39.4147402Z",
+      "notes": "Pre-test failure: isolated rebuilt staging lacked required Git tracked-file index; source unchanged, original failure preserved; exact four standard suites retried with proper staging index."
+    },
+    {
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24575 --proxy-target http://127.0.0.1:24482 --cleanup-fixtures all --config playwright.config.ts -- tests/smoke/business/generated/module-governance-real.spec.ts --workers=1",
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-rebuilt/frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-smoke-generated-retry1.log.gz",
+      "sha256": "9b100d276ac6762b32a8617a4ee31b3c719afa52d97f3088965de00dc4a1c0ec",
+      "rawSha256": "600a64b6a3ec497c54e7fc8e2fa7021541553d4b7530fe41259c8be09358c1ad",
+      "startedAt": "2026-11-07T06:53:59.3349098Z",
+      "finishedAt": "2026-11-07T06:54:15.1396987Z",
+      "notes": "ops186-smoke-generated-retry1"
+    },
+    {
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24575 --proxy-target http://127.0.0.1:24482 --cleanup-fixtures all --config playwright.auto-recycle.config.ts -- tests/smoke/business/generated/module-auto-recycle-real.spec.ts --workers=1",
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-rebuilt/frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-smoke-auto-recycle-retry1.log.gz",
+      "sha256": "23a90450f2af7d170d060870295637b8f34f15ed5d51751ba613ca1c18538119",
+      "rawSha256": "88b8e3289ceb6b45807218d510acf42ca23a3ebd3dd44987146bb04adc434d6e",
+      "startedAt": "2026-11-07T06:54:15.1919056Z",
+      "finishedAt": "2026-11-07T06:54:28.2599423Z",
+      "notes": "ops186-smoke-auto-recycle-retry1"
+    },
+    {
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24575 --proxy-target http://127.0.0.1:24482 --cleanup-fixtures all --config playwright.master-detail.config.ts --setup scripts/master-detail-qa-setup.mjs -- tests/smoke/business/generated/module-master-detail-real.spec.ts --workers=1",
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-rebuilt/frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-smoke-master-detail-retry1.log.gz",
+      "sha256": "e2984b3f6d65f10efa9866b3a26a6c4a8030ed508d6a8fd11397c654f75ab67a",
+      "rawSha256": "29a59c8543eb1d10b3a3d6a451aedbbf1eb7e7e67a421518f6945a52d2c264a2",
+      "startedAt": "2026-11-07T06:54:28.2656123Z",
+      "finishedAt": "2026-11-07T06:54:44.9038780Z",
+      "notes": "ops186-smoke-master-detail-retry1"
+    },
+    {
+      "command": "node scripts/run-smoke-suite.mjs --host 127.0.0.1 --port 24575 --proxy-target http://127.0.0.1:24482 --cleanup-fixtures all --config playwright.many-to-many.config.ts --setup scripts/many-to-many-qa-setup.mjs -- tests/smoke/business/generated/module-many-to-many-real.spec.ts --workers=1",
+      "cwd": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-rebuilt/frontend",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-smoke-many-to-many-retry1.log.gz",
+      "sha256": "e74ffb415fe19df37a5acc25650dbb2b01a2b1d3a81c9db5482b4559ea89a4c1",
+      "rawSha256": "0b5ad5d3fa37433e667b9098b4cbcf9f550383ea9ab635b806eb590f7af77e42",
+      "startedAt": "2026-11-07T06:54:44.9142364Z",
+      "finishedAt": "2026-11-07T06:55:01.6440055Z",
+      "notes": "ops186-smoke-many-to-many-retry1"
+    },
+    {
+      "command": "npm run test:business-overlay (59/59)",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops-assembler-tests.log.gz",
+      "sha256": "f516d5455977dced620fe1af248d5e915720281bad1829865363569496615d8b",
+      "rawSha256": "b239e1cfeff33e8dafeb070b5dbacc212c1015d88933da04b957d885fb42e3ea"
+    },
+    {
+      "command": "npm run fetch:base-release -- --release pantheon-base-v0.18.6",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-official-acquire.log.gz",
+      "sha256": "a6339d3bb444a661b85c91c78b87c03ecd0336ea4141d3cba49da99c645d763e",
+      "rawSha256": "797b36328503f5aef725e5e1e2391a4531965b714091215e465520d9b7fed2ab"
+    },
+    {
+      "command": "npm run rebuild:from-base -- --target <isolated staging>",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-standard-rebuild.log.gz",
+      "sha256": "6fc0c76ccc938f79577eb88508ca4bd565fc5a528be1f432e9ec193f43f06a36",
+      "rawSha256": "e4861852d31b14925f1309f0f2c54c990cb42da351c671bf02cacb7a661d60d2"
+    },
+    {
+      "command": "node scripts/business-overlay/check-business-overlay.mjs --root <staging>",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-overlay.log.gz",
+      "sha256": "47c060a3645075260b6ccce67070f5a97c8e823331bdb364e920d4701f4635ee",
+      "rawSha256": "c800d62c17f357c521ba30733390a57b541b27f7f7515e835ffb39343ef5a6e4"
+    },
+    {
+      "command": "node scripts/business-overlay/check-shared-drift.mjs --root <staging>",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-shared-drift.log.gz",
+      "sha256": "5139bf74ddac6569e00ddd8be424bfe86dbf880818f343e9197519938fb143c4",
+      "rawSha256": "2900dc8575b1da496152681f5ffdfb17c8ec97a74a86d91bb51c568146f414a6"
+    }
+  ],
+  "runtimeSensitive": true,
+  "runtimeGap": "S3 real-provider skip unwaived; freeze unsigned; Existing repeated oversized json_result audit storage gap; functional smoke is not lossless audit proof; Separate Ops QA002/host-import and prior policy/security/production followups remain; Optional history evidence79/review49/packet568 findings unchanged, not wired into required current CI",
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-07-base-v0186-consumption/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-07-base-v0186-consumption.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-07-base-v0186-consumption/",
+    "reviewFile": ".harness/evidence/2026-11-07-base-v0186-consumption/review.md",
+    "summaryFile": ".harness/evidence/2026-11-07-base-v0186-consumption/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-07-base-v0186-consumption/plan.md"
+    ]
+  },
+  "knownGaps": [
+    "Current required hosted CI/merge and final main-only pending",
+    "S3 real-provider skip unwaived; freeze unsigned",
+    "Existing repeated oversized json_result audit storage gap; functional smoke is not lossless audit proof",
+    "Separate Ops QA002/host-import and prior policy/security/production followups remain",
+    "Optional history evidence79/review49/packet568 findings unchanged, not wired into required current CI"
+  ],
+  "runtimeLogs": [
+    ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-runtime-build.log.gz",
+    ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-smoke-generated.log.gz",
+    ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-smoke-generated-retry1.log.gz",
+    ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-smoke-auto-recycle-retry1.log.gz",
+    ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-smoke-master-detail-retry1.log.gz",
+    ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-smoke-many-to-many-retry1.log.gz",
+    ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-runtime-stdout.log.gz",
+    ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-runtime-stderr.log.gz"
+  ],
+  "validationSummary": {
+    "race": {
+      "pass": 2170,
+      "fail": 0,
+      "skip": 1
+    },
+    "packages": 64,
+    "frontendUnit": 218,
+    "assembler": 59,
+    "migration": {
+      "version": 32,
+      "dirty": false,
+      "fresh": true,
+      "autoMigrate": false
+    },
+    "smoke": [
+      {
+        "name": "ops186-smoke-generated-retry1",
+        "exitCode": 0,
+        "passed": 1,
+        "failed": 0
+      },
+      {
+        "name": "ops186-smoke-auto-recycle-retry1",
+        "exitCode": 0,
+        "passed": 1,
+        "failed": 0
+      },
+      {
+        "name": "ops186-smoke-master-detail-retry1",
+        "exitCode": 0,
+        "passed": 1,
+        "failed": 0
+      },
+      {
+        "name": "ops186-smoke-many-to-many-retry1",
+        "exitCode": 0,
+        "passed": 1,
+        "failed": 0
+      }
+    ],
+    "protectedSourceFiles": 1337,
+    "sourceChangesVsPriorMain": 0,
+    "officialBase": "5553bc0e8ddc006cb7a6b99a46968bf8cf907a49"
+  },
+  "consumerApproval": {
+    "scope": "official-v0186-consumer-source",
+    "snapshotSha256": "b3673fb07ce170e31d08b28da93f13eab1d900db99873810d46ccf524818df65",
+    "approvals": [
+      {
+        "lane": "code-reviewer",
+        "file": "code-reviewer.md",
+        "verdict": "APPROVE",
+        "architecturalStatus": null,
+        "rawArchive": ".harness/evidence/2026-11-07-base-v0186-consumption/raw-code-reviewer.md.gz",
+        "rawReviewedSha256": "130046a721ef20612cd0bc3117dee748a065c9cb115da924f8f013de2a02ba69",
+        "sha256": "233eb198e861f80fe1fceac84294e423430c38c485cc5ffb38fb5b52bd2f5add"
+      },
+      {
+        "lane": "architect",
+        "file": "architect.md",
+        "verdict": "APPROVE",
+        "architecturalStatus": "CLEAR",
+        "rawArchive": ".harness/evidence/2026-11-07-base-v0186-consumption/raw-architect.md.gz",
+        "rawReviewedSha256": "699c68d94a41a0dbbec31cdade9cfffaf73e22d4069298e5c9d52fa9b7544635",
+        "sha256": "66f29b362c9e87c53d202d91e089246ce7a0da38cc49b2b0458ec15b1462c7d9"
+      }
+    ]
+  }
+}

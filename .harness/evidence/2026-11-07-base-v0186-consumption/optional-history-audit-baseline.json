@@ -1,0 +1,35 @@
+{
+  "recordedAt": "2026-11-07T06:24:15.460Z",
+  "baselineCommit": "92c1efcfc4f754a7f0a4e9f181f446f4a2ddcfc2",
+  "scope": "Supplemental historical audits not wired into current Ops required CI; no source/policy/allowlist files changed",
+  "rows": [
+    {
+      "kind": "evidence",
+      "baselineErrors": 79,
+      "currentErrors": 79,
+      "unchanged": true,
+      "newTaskHasNoErrors": true,
+      "baseline": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\github-main-release-2026-11-07/ops186-optional-baseline-evidence.json",
+      "current": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\github-main-release-2026-11-07/ops186-optional-current-evidence.json"
+    },
+    {
+      "kind": "review",
+      "baselineErrors": 49,
+      "currentErrors": 49,
+      "unchanged": true,
+      "newTaskHasNoErrors": true,
+      "baseline": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\github-main-release-2026-11-07/ops186-optional-baseline-review.json",
+      "current": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\github-main-release-2026-11-07/ops186-optional-current-review.json"
+    },
+    {
+      "kind": "packet",
+      "baselineErrors": 568,
+      "currentErrors": 568,
+      "unchanged": true,
+      "newTaskHasNoErrors": true,
+      "baseline": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\github-main-release-2026-11-07/ops186-optional-baseline-packet.json",
+      "current": "D:\\workspace\\go\\pantheon-platform\\audit-artifacts\\github-main-release-2026-11-07/ops186-optional-current-packet.json"
+    }
+  ],
+  "waivers": []
+}

@@ -1,0 +1,159 @@
+{
+  "taskId": "2026-11-07-base-v0186-consumption",
+  "taskDoc": "docs/harness/tasks/2026-11-07-base-v0186-consumption.task.md",
+  "title": "Consume official Base v0.18.6",
+  "goal": "Consume only official Base v0.18.6 assets through the existing assembler; validate exact staged tree before replacement, PR and merge.",
+  "primaryLayer": "business/*",
+  "status": "in-progress",
+  "priority": "P1",
+  "type": "inheritance-sync",
+  "dependencies": [],
+  "scope": {
+    "in": [
+      "Official four-asset acquisition, exact lock and standard clean rebuild",
+      "Preserve existing business assets and integration, unchanged assembler",
+      "Readonly CGO full race, frontend, migration, overlay/drift and applicable smoke",
+      "Independent CODE/ARCH review, required CI, merge and main-only consolidation",
+      "Truthful final status for previously merged185 child task; historical criteria/source/evidence preserved"
+    ],
+    "out": [
+      "Shared or business runtime implementation changes",
+      "New dependencies, gate weakening, test overlays, post-assembly module mutation",
+      "Production operations, S3 waiver, maintenance freeze signature"
+    ]
+  },
+  "dependencyLayers": [
+    "inheritance-sync",
+    "business/*"
+  ],
+  "contractAnchors": [
+    "../pantheon-base/docs/designs/FOUNDATION_RELEASE_MODEL.md",
+    "docs/PROJECT_INHERITANCE.md"
+  ],
+  "expectedFiles": {
+    "create": [
+      "docs/harness/tasks/2026-11-07-base-v0186-consumption.task.md",
+      ".harness/tasks/2026-11-07-base-v0186-consumption/manifest.json",
+      ".harness/tasks/2026-11-07-base-v0186-consumption/plan.md",
+      ".harness/evidence/2026-11-07-base-v0186-consumption/commands.json",
+      ".harness/evidence/2026-11-07-base-v0186-consumption/summary.md",
+      ".harness/evidence/2026-11-07-base-v0186-consumption/review.md"
+    ],
+    "modify": [
+      "foundation-release.lock.json",
+      ".business-overlay-report.json",
+      "VERSION",
+      "CHANGELOG.md",
+      "docs/PROJECT_INHERITANCE.md",
+      "docs/PROJECT_INHERITANCE.en.md",
+      "Officially assembled inherited release/version documentation",
+      ".harness/tasks/2026-11-05-base-v0183-consumption/manifest.json",
+      ".harness/tasks/2026-11-05-base-v0183-consumption/plan.md"
+    ],
+    "doNotTouch": [
+      "Business runtime source",
+      "Assembler scripts",
+      "Original historical task criteria and evidence",
+      "GitHub quality/security policies"
+    ]
+  },
+  "harnessProfile": {
+    "template": "admin-platform",
+    "overlay": "pantheon-ops",
+    "qualityProfile": "ci-workflow",
+    "portableFailureClass": "release-consumer-handoff",
+    "ownerLayer": "foundation-consumer",
+    "ratchetDecision": "registry-only",
+    "coverageDimensions": [
+      "behaviour",
+      "maintainability",
+      "architecture-fitness"
+    ]
+  },
+  "executionRoles": {
+    "implementerPosture": "Dispatcher operates official acquisition/assembly; version/governance metadata only",
+    "reviewerPosture": [
+      "Independent CODE reviewer",
+      "Independent ARCH reviewer"
+    ]
+  },
+  "verificationPlan": {
+    "commands": [
+      "npm run fetch:base-release -- --release pantheon-base-v0.18.6",
+      "npm run rebuild:from-base -- --target <isolated staging>",
+      "npm run check:business-overlay",
+      "npm run check:shared-drift",
+      "npm run test:business-overlay",
+      "go test -timeout=30m -buildvcs=false -mod=readonly -race -json -p 2 -count=1 ./...",
+      "frontend lint/type-check/build/unit",
+      "Fresh runtime migration plus standard generator smoke suites",
+      "Required GitHub CI and exact source CODE/ARCH review"
+    ],
+    "runtimeEvidence": [
+      "Task-owned fresh MySQL/Redis/runtime; actual official staged tree and standard suites"
+    ]
+  },
+  "runtimeSensitive": true,
+  "runtimeGap": "S3 real-provider skip unwaived; freeze unsigned; Existing repeated oversized json_result audit storage gap; functional smoke is not lossless audit proof; Separate Ops QA002/host-import and prior policy/security/production followups remain; Optional history evidence79/review49/packet568 findings unchanged, not wired into required current CI",
+  "acceptanceCriteria": [
+    "Four official v0.18.6 assets verified against immutable release/source and consumer lock",
+    "Exact standard assembled source passes readonly CGO full race, frontend, overlay/drift and applicable smoke before replacement/PR/merge",
+    "Independent CODE/ARCH approval and required GitHub checks precede merge",
+    "Only main remains locally/remotely, previous work and rollback artifacts preserved"
+  ],
+  "implementationNotes": [
+    "User authorized official release consumption, validated replacement, push/merge and archived branch cleanup.",
+    "No runtime source changes compared with previous official185; unchanged standard assembler is reused.",
+    "Supplemental historical audits match currentmain exactly: evidence79,review49,packet568 errors; newtaskzero. No checker/allowlist/policy changed; optional failures remain explicit.",
+    "Actual full readonly CGO2170/0/1,64packages; frontend218; assembler59; migration32clean with AutoMigrate off; four proper standard suites passed. Initial missing staging Git index failure preserved, no source fix required.",
+    "Oversized json_result audit write error reproduced in prior185 and new186 runtime logs; functional success is not lossless audit proof. Existing source untouched, Base-first followup explicit."
+  ],
+  "risks": [
+    "Final publication must target exact successful Release Gate commit; target tag/assets immutable.",
+    "Only official assets may enter Ops; historical raw test/source overlays cannot satisfy acceptance."
+  ],
+  "humanGates": [
+    "User authorized push, merge, safe archived branch cleanup, release and Ops consumption; gate weakening/production and freeze signature remain outside scope."
+  ],
+  "linkage": {
+    "taskManifest": ".harness/tasks/2026-11-07-base-v0186-consumption/manifest.json",
+    "taskDoc": "docs/harness/tasks/2026-11-07-base-v0186-consumption.task.md",
+    "evidenceDir": ".harness/evidence/2026-11-07-base-v0186-consumption/",
+    "reviewFile": ".harness/evidence/2026-11-07-base-v0186-consumption/review.md",
+    "summaryFile": ".harness/evidence/2026-11-07-base-v0186-consumption/summary.md",
+    "changeRef": "none",
+    "planRefs": [
+      ".harness/tasks/2026-11-07-base-v0186-consumption/plan.md"
+    ]
+  },
+  "implementationStatus": "official186-local-validation-and-independent-review-passed-hosted-ci-pending",
+  "reviewStatus": "approved",
+  "verificationStatus": "readonly-cgo2170-frontend218-assembler59-migration32-standard-smoke4-passed",
+  "parentTask": "pantheon-base:2026-11-07-v0186-release-ops-consumption",
+  "targetRelease": "pantheon-base-v0.18.6",
+  "baseCommit": "5553bc0e8ddc006cb7a6b99a46968bf8cf907a49",
+  "consumerApproval": {
+    "scope": "official-v0186-consumer-source",
+    "snapshotSha256": "b3673fb07ce170e31d08b28da93f13eab1d900db99873810d46ccf524818df65",
+    "approvals": [
+      {
+        "lane": "code-reviewer",
+        "file": "code-reviewer.md",
+        "verdict": "APPROVE",
+        "architecturalStatus": null,
+        "rawArchive": ".harness/evidence/2026-11-07-base-v0186-consumption/raw-code-reviewer.md.gz",
+        "rawReviewedSha256": "130046a721ef20612cd0bc3117dee748a065c9cb115da924f8f013de2a02ba69",
+        "sha256": "233eb198e861f80fe1fceac84294e423430c38c485cc5ffb38fb5b52bd2f5add"
+      },
+      {
+        "lane": "architect",
+        "file": "architect.md",
+        "verdict": "APPROVE",
+        "architecturalStatus": "CLEAR",
+        "rawArchive": ".harness/evidence/2026-11-07-base-v0186-consumption/raw-architect.md.gz",
+        "rawReviewedSha256": "699c68d94a41a0dbbec31cdade9cfffaf73e22d4069298e5c9d52fa9b7544635",
+        "sha256": "66f29b362c9e87c53d202d91e089246ce7a0da38cc49b2b0458ec15b1462c7d9"
+      }
+    ]
+  }
+}

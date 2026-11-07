@@ -1,3 +1,9 @@
+# Historical official consumption closed
+
+Final target v0.18.5 was validated and merged through OpsPR177 at92c1efcf. Earlier184/EACCES andpreparation notes below are historical. New v0.18.6 consumption is a separate task. Source criteria and old evidence remain intact.
+
+## Historical plan
+
 # Latest official GitHub Base consumption (target v0.18.4)
 
 Task ID retains the original v0183 wording for continuity. Latest user steering requires v0.18.4 security publication before final Ops consumption.

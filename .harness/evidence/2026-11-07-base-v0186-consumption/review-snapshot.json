@@ -1,0 +1,166 @@
+{
+  "recordedAt": "2026-11-07T07:03:23.003Z",
+  "taskId": "2026-11-07-base-v0186-consumption",
+  "repo": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+  "baseline": "92c1efcfc4f754a7f0a4e9f181f446f4a2ddcfc2",
+  "baseCommit": "5553bc0e8ddc006cb7a6b99a46968bf8cf907a49",
+  "release": "pantheon-base-v0.18.6",
+  "files": [
+    {
+      "path": ".business-overlay-report.json",
+      "sha256": "493572d184753bfe62b9ee2bd1eae8ce68adf256f83ccf06270e7b7eb50a6ba3"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/base186-immutable-main-checks.json",
+      "sha256": "a2b2ec40452a5d6dff374c2c0c373e850621b441882ab9791f5c0ec6eb2e0d2e"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/commands.json",
+      "sha256": "c4d39e1613e47e826e6f58282ce5c7316ba9c8df1cc22a8d5eed90cedfa67f57"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/official186-lock.json",
+      "sha256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/official186-producer-publication.json",
+      "sha256": "920d1027b44edec60da04442ec2322ae9d8e1ba906457483da79fbdf7d17ee22"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/official186-release-metadata.json",
+      "sha256": "2264141536831830bb06680999e71439c37ce1dd2a5e147b42c48a32d9b2aefb"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/ops-pr177-prior-checks.json",
+      "sha256": "1a7ecc2d4ffee987f6ada274104240fad08894c6f109bebfaf50ced3e38e1fee"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/ops-pr177-prior-merged.json",
+      "sha256": "9872bad2375b23b5f5d8304e8e986f3031df866f61ea339e12d56f311f99b8f6"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-fresh-migration-state.txt",
+      "sha256": "54a2f2cf518b30916673a2ede348a4acd509ad0cca6414f98f831dfefeb1d596"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-race-summary.json",
+      "sha256": "1f081414340a0b80d9140f9fc11cff8b022a365002eaf6baecefacb2af6e44e2"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-runtime-health.json",
+      "sha256": "9d0a0cb3348fb6a1bf78c7b0e87c46092f14369f442401cda5dba1c19e6b301d"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-runtime-ownership.json",
+      "sha256": "260a1931e8aaf3cc11fc377c413004f8cfa2e805aa962bb876e49ae131bdb818"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-smoke-index-setup.json",
+      "sha256": "443fcd8664810c2ddd65d9c6abbd3a0818dfcc01e51d52dc897c5766d303da7b"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-source-equivalence.json",
+      "sha256": "8ec1b1cb26ea46f19cc87f88c3c642ebad7ba33b7387aeea84c137a5c22b6802"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-staged-source-manifest.json",
+      "sha256": "592c2d98b8816f17c8933d3a224c2090ce743f7da98e00b0f68311984e07e93b"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/optional-history-audit-baseline.json",
+      "sha256": "c652414e05b2d940ccb86faa6193b192f44cc19015e5eda7e75a7a6d3f44f1ef"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/review.md",
+      "sha256": "7c801969697876cfdfeba5c618943c17e5f401d80d5d47c959217bdf4011192a"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/runtime-residuals.json",
+      "sha256": "ce9654562adf53620e45173f3c3e6314f3914156b6dfe0e7b723a93f009ac26a"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/standard-smoke-results.json",
+      "sha256": "7d9042d0a7215de98270afec6e5d5b88898bf9595e7a6781d125838bb04e87ec"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/summary.md",
+      "sha256": "9a67d16728060a209505a04b8706d08c995ff57752003cd9690e5b2bb3dfb4cb"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/validation-log-index.json",
+      "sha256": "5664717a532b0c6b69ffd04db8230d8489755d7e03eb40b85d2e26b4a4b3d9f4"
+    },
+    {
+      "path": ".harness/tasks/2026-11-05-base-v0183-consumption/manifest.json",
+      "sha256": "2c10dee991f24c4de71a5d16bb25584b22bdf2cc7b9e3adb2a4d45f1cf47c0d1"
+    },
+    {
+      "path": ".harness/tasks/2026-11-05-base-v0183-consumption/plan.md",
+      "sha256": "2dd40add541a4c8f80c49322fa2dc80762c055951d67d71b9a1fdf6ba9fddd25"
+    },
+    {
+      "path": ".harness/tasks/2026-11-07-base-v0186-consumption/manifest.json",
+      "sha256": "f3c5fd3a631ae33085e49314f68c3be51e65b7355daa1c38432e8aab4dc6213d"
+    },
+    {
+      "path": ".harness/tasks/2026-11-07-base-v0186-consumption/plan.md",
+      "sha256": "c4d701f34f4f4c803f99ed530eafefdaf4af1fcab9d52d26fcf8aa0ba3ba4997"
+    },
+    {
+      "path": "VERSION",
+      "sha256": "b75303572e20c4b39fdf3df111cdaafbfe7c449e4b69402603aef724a4972150"
+    },
+    {
+      "path": "docs/PROJECT_INHERITANCE.en.md",
+      "sha256": "c6da82b661c6bcd8cafa29719041cb9b3a69cbc687bdbb78925e81f8eb56d7ec"
+    },
+    {
+      "path": "docs/PROJECT_INHERITANCE.md",
+      "sha256": "9feb133a437fbd367896b49fd6bbb406e683b224f367759d721b3cbc5b89f9d1"
+    },
+    {
+      "path": "docs/harness/tasks/2026-11-07-base-v0186-consumption.task.md",
+      "sha256": "c52d204494a836a56fd7063c1fbf037bd75d0225486e297dd286aa647d0851d9"
+    },
+    {
+      "path": "foundation-release.lock.json",
+      "sha256": "95de1a87270e15c0d4c672418a5df906818a88652f8a3e6c480f1484ee9fa70c"
+    },
+    {
+      "path": ".harness/evidence/2026-11-07-base-v0186-consumption/verified-installation.json",
+      "sha256": "f129610890ebbb4d867559f407b1827c64a081cf5f450ade1bc8685fe2634007"
+    },
+    {
+      "path": "docs/release-notes/RELEASE_NOTES_v0.18.6.md",
+      "sha256": "5ac0f0fd41ac10b9c23919a48b5f56ebf372c225069b39501e7fdf699679c7f3"
+    }
+  ],
+  "protectedSourceFiles": 1337,
+  "sourceChanges": 0,
+  "standardAssembledInheritedDocs": [],
+  "validation": {
+    "race": {
+      "pass": 2170,
+      "fail": 0,
+      "skip": 1,
+      "packages": 64
+    },
+    "frontendUnit": 218,
+    "assembler": 59,
+    "freshMigration": 32,
+    "standardSmokeSuites": 4
+  },
+  "optionalHistory": {
+    "evidenceErrors": 79,
+    "reviewErrors": 49,
+    "packetErrors": 568,
+    "delta": 0
+  },
+  "explicitResiduals": ".harness/evidence/2026-11-07-base-v0186-consumption/runtime-residuals.json",
+  "allowedPostReviewUpdates": [
+    "Factual approval/status/checklist/PR/merge/branch evidence and exact current hashes",
+    "Parsed-data-preserving pinned formatting with raw report archive/fingerprint evidence",
+    "Standard final reassembly can regenerate repository metadata/report hashes only; all1337 backend/frontend/scripts/workflow/config/schema source bytes and lock remain identical",
+    "No source, dependency, scope/criteria, gate/waiver change; final current hosted checks, merge and main-only are mandatory"
+  ]
+}

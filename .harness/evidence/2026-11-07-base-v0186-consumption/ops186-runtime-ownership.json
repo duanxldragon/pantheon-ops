@@ -1,0 +1,13 @@
+{
+  "pid": 7112,
+  "port": 24482,
+  "database": "release_v186_runtime",
+  "source": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops-v186-rebuilt",
+  "binary": "D:/workspace/go/pantheon-platform/audit-artifacts/github-main-release-2026-11-07/ops186-server.exe",
+  "binarySha256": "d3af6a549b74d9d771fe601b32e09fe0d24e5d8e46963e164a007a7731b06ac2",
+  "startedAt": "2026-11-07T06:35:46.0456907Z",
+  "freshDatabase": true,
+  "dynamicModules": true,
+  "autoMigrate": false,
+  "scope": "Isolated official186 consumer runtime, no production"
+}

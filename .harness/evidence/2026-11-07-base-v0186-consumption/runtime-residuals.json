@@ -1,0 +1,39 @@
+{
+  "recordedAt": "2026-11-07T06:57:49.256Z",
+  "newSourceChanges": 0,
+  "unwaived": [
+    {
+      "id": "S3-provider",
+      "evidence": "ops186-race-summary.json",
+      "status": "existing real-provider skip, not verified"
+    },
+    {
+      "id": "AUDIT-json-result-size",
+      "observedIn": [
+        "baseline185-backend-enabled-stderr.log.gz",
+        "baseline185-resume8-backend-stderr.log.gz",
+        "ops186-runtime-stderr.log.gz"
+      ],
+      "message": "Error1406: Data too long for column json_result; operation log write failed",
+      "status": "Existing repeated audit storage gap, functional smoke passes do not prove lossless oversized audit storage; Base-first remediation deferred",
+      "ratchet": "registry-only factual record; no source/policy fix or waiver"
+    },
+    {
+      "id": "Ops-QA002-host-import",
+      "status": "Previously explicit fresh deploy-attempt/extra host-import fixture gaps retained, not covered by these four standard generator suites"
+    },
+    {
+      "id": "maintenance-freeze",
+      "status": "unsigned, no signature/production authority"
+    }
+  ],
+  "optionalHistory": {
+    "evidence": 79,
+    "review": 49,
+    "packet": 568,
+    "delta": 0,
+    "waivers": []
+  },
+  "sourceProof": "ops186-source-equivalence.json",
+  "scope": "No new runtime source, dependencies, overrides, module/test overlays or gate policy changes"
+}
