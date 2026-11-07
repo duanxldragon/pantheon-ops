@@ -716,7 +716,7 @@
     },
     {
       "path": ".harness/evidence/2026-11-05-base-v0183-consumption/commands.json",
-      "sha256": "29ff208b6455260caad28142a61467f38717c31591aa40a2f253d12d3564965b"
+      "sha256": "35e1fee6b9f5a9ea71d954b432f26530c0af8d9a1c7ac4c69d79d5fb00d35e65"
     },
     {
       "path": ".harness/evidence/2026-11-05-base-v0183-consumption/drift-repair-diagnostics.json",
@@ -820,7 +820,7 @@
     },
     {
       "path": ".harness/evidence/2026-11-05-base-v0183-consumption/review.md",
-      "sha256": "04c9b012e33450ca906a05d219547e656f46b1519c82ec2c3860d88e389cf4c2"
+      "sha256": "58eb07e3b92d93747b7b10eb20b77ee06fee796271b633d63d3695230c82c980"
     },
     {
       "path": ".harness/evidence/2026-11-05-base-v0183-consumption/source-manifest.json",
@@ -828,7 +828,7 @@
     },
     {
       "path": ".harness/evidence/2026-11-05-base-v0183-consumption/summary.md",
-      "sha256": "fa7d70f97ac96d63e539313a7dbe0e22e7e06807568f34ddc2820f5fa942c7a9"
+      "sha256": "33d5f4316c6397b1e9be5f41355d271e5aa7f56f1e0e92c67aa95958940ad6cb"
     },
     {
       "path": ".harness/evidence/2026-11-05-base-v0183-consumption/v0184-explicit-consumption-status.json",

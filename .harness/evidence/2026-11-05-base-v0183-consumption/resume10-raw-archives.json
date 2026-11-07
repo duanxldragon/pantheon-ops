@@ -150,6 +150,18 @@
       "rawSha256": "5a8578dfc481eabcb6e3fd5933844ea0eeb90ad547a492064dea45b55cddb3a8",
       "originalFile": "resume8-consumer-frontend-type-check.log",
       "rawBytes": 798
+    },
+    {
+      "file": "resume10-original-resume9-consumer-code-reviewer.md.gz",
+      "rawSha256": "8916b11d8fc4f6047f0999e8f970d4a907192b8132a94bc2753c8ea24956038a",
+      "originalReportSha256": "8916b11d8fc4f6047f0999e8f970d4a907192b8132a94bc2753c8ea24956038a",
+      "rawBytes": 2542
+    },
+    {
+      "file": "resume10-original-resume9-consumer-architect.md.gz",
+      "rawSha256": "954598fba9c741d93b4d83d76515bd0e9e6d08cddbfeb49406e80f3ea7226e12",
+      "originalReportSha256": "954598fba9c741d93b4d83d76515bd0e9e6d08cddbfeb49406e80f3ea7226e12",
+      "rawBytes": 6313
     }
   ]
 }
