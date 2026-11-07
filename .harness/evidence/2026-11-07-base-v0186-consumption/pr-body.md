@@ -1,9 +1,9 @@
 ## 变更摘要
 
 - 改动层级： business/* consumer identity; official Base assembly; platform/system owned by Base
-- 改动模块： Official186 lock, version/inheritance docs, standard assembly report, L2 evidence; no runtime source change
-- 目标问题： Consume freshly published official Base186 with exact tested standard assembly and preserve business assets
-- 预期影响： Official5553bc0e source/lock;1337 protected files identical to tested tree and prior mergedOpsmain; no menu/permission/i18n/schema behavior changes
+- 改动模块： Existing task/evidence status and standard assembly hash projection only; no executable or lock bytes change
+- 目标问题： Persist successful official186 consumerPR178 and main-only/task closure facts
+- 预期影响： Truthful completed task at actual merged81d64b95 and main-only snapshot; administrative CI/merge remains mandatory
 
 ## Harness 链路
 
@@ -61,10 +61,10 @@
 ## 审核留痕
 
 - Copilot review： automatic-policy
-- CodeQL 结果： current hosted result pending; unchanged executable source; exact security diff scan recorded
-- GitHub checks 结果： local full readonly CGO2170/0/1, FE218, assembler59, migration32clean,4standardSmoke passed; current hostedCI pending
+- CodeQL 结果： ConsumerPR178 CodeQL and Security Gates success; current closeout result pending
+- GitHub checks 结果： ConsumerPR178 required checks all green; current metadata closeout hosted CI pending
 - Auto-merge： not-enabled
-- Duplication Gate 结果： unchanged runtime source; current hosted result pending
+- Duplication Gate 结果： ConsumerPR178 passed; no executable bytes changed
 - 是否高风险改动： L2 inheritance sync; two independent installed approvals, including ARCH
 - Residual risk / follow-up： S3 provider skip unwaived, freeze unsigned, existing oversized audit loss, separate QA002/extra host-import and policy/security/production gaps; historical optional audit findings unchanged
 

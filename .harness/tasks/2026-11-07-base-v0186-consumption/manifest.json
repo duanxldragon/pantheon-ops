@@ -4,7 +4,7 @@
   "title": "Consume official Base v0.18.6",
   "goal": "Consume only official Base v0.18.6 assets through the existing assembler; validate exact staged tree before replacement, PR and merge.",
   "primaryLayer": "business/*",
-  "status": "in-progress",
+  "status": "completed",
   "priority": "P1",
   "type": "inheritance-sync",
   "dependencies": [],
@@ -126,9 +126,9 @@
       ".harness/tasks/2026-11-07-base-v0186-consumption/plan.md"
     ]
   },
-  "implementationStatus": "official186-local-validation-and-independent-review-passed-hosted-ci-pending",
+  "implementationStatus": "official186-consumed-merged-pr178-main-only-verified",
   "reviewStatus": "approved",
-  "verificationStatus": "readonly-cgo2170-frontend218-assembler59-migration32-standard-smoke4-passed",
+  "verificationStatus": "full-local-and-required-hosted-passed",
   "parentTask": "pantheon-base:2026-11-07-v0186-release-ops-consumption",
   "targetRelease": "pantheon-base-v0.18.6",
   "baseCommit": "5553bc0e8ddc006cb7a6b99a46968bf8cf907a49",
@@ -155,5 +155,14 @@
         "sha256": "66f29b362c9e87c53d202d91e089246ce7a0da38cc49b2b0458ec15b1462c7d9"
       }
     ]
+  },
+  "completion": {
+    "recordedAt": "2026-11-07T07:16:04.501Z",
+    "consumerPr": "https://github.com/duanxldragon/pantheon-ops/pull/178",
+    "mergedCommit": "81d64b95201ebd4a545548d933d251dced1e7123",
+    "mainOnlyEvidence": ".harness/evidence/2026-11-07-base-v0186-consumption/verified-main-only.json",
+    "checksEvidence": ".harness/evidence/2026-11-07-base-v0186-consumption/hosted-consumer-checks.json",
+    "sourceChanges": 0,
+    "administrativeCloseout": "This metadata-only PR persists already achieved acceptance; own required CI/merge and final cleanup remain mandatory"
   }
 }

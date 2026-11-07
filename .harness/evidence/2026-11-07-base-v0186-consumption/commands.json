@@ -182,6 +182,14 @@
       "log": ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-shared-drift.log.gz",
       "sha256": "5139bf74ddac6569e00ddd8be424bfe86dbf880818f343e9197519938fb143c4",
       "rawSha256": "2900dc8575b1da496152681f5ffdfb17c8ec97a74a86d91bb51c568146f414a6"
+    },
+    {
+      "command": "Verify required hosted checks, actual PR178 merge/tree equivalence and three-repo main-only",
+      "cwd": "D:\\workspace\\go\\pantheon-platform\\pantheon-ops",
+      "status": "passed",
+      "exitCode": 0,
+      "log": ".harness/evidence/2026-11-07-base-v0186-consumption/hosted-consumer-checks.json",
+      "sha256": "68affddbc5ef6cbe584e3f2f94ae1895d472a54830d7e633d11e5a4206a41bf8"
     }
   ],
   "runtimeSensitive": true,
@@ -198,11 +206,11 @@
     ]
   },
   "knownGaps": [
-    "Current required hosted CI/merge and final main-only pending",
     "S3 real-provider skip unwaived; freeze unsigned",
     "Existing repeated oversized json_result audit storage gap; functional smoke is not lossless audit proof",
     "Separate Ops QA002/host-import and prior policy/security/production followups remain",
-    "Optional history evidence79/review49/packet568 findings unchanged, not wired into required current CI"
+    "Optional history evidence79/review49/packet568 findings unchanged, not wired into required current CI",
+    "External non-required Vercel preview failed on consumerPR178; no policy changed"
   ],
   "runtimeLogs": [
     ".harness/evidence/2026-11-07-base-v0186-consumption/ops186-runtime-build.log.gz",
@@ -282,5 +290,14 @@
         "sha256": "66f29b362c9e87c53d202d91e089246ce7a0da38cc49b2b0458ec15b1462c7d9"
       }
     ]
+  },
+  "completion": {
+    "recordedAt": "2026-11-07T07:16:04.501Z",
+    "consumerPr": "https://github.com/duanxldragon/pantheon-ops/pull/178",
+    "mergedCommit": "81d64b95201ebd4a545548d933d251dced1e7123",
+    "mainOnlyEvidence": ".harness/evidence/2026-11-07-base-v0186-consumption/verified-main-only.json",
+    "checksEvidence": ".harness/evidence/2026-11-07-base-v0186-consumption/hosted-consumer-checks.json",
+    "sourceChanges": 0,
+    "administrativeCloseout": "This metadata-only PR persists already achieved acceptance; own required CI/merge and final cleanup remain mandatory"
   }
 }

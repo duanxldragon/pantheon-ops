@@ -4,6 +4,8 @@ Four official GitHub assets verified; immutable Base5553bc0e and standard assemb
 
 Initial smoke did not enter tests because a new staging folder lacked required Git tracked-file index. Original failure is preserved; isolated staging index initialized, no commit/source change or release provenance fallback, then all four standard suites passed. Clean final assembly must match the exact tested1337 source hashes before replacement and again before commit.
 
-Independent CODE/ARCH approvals received on the identical snapshot. Current required hosted CI/merge and final main-only still pending. Prior185 child task is factually closed atOpsPR177; original criteria/evidence preserved.
+Independent CODE/ARCH approvals received on the identical snapshot. Required hosted checks passed and consumerPR178 merged as81d64b95; all three repositories verified clean and main-only before this factual closeout branch. Prior185 child task is factually closed atOpsPR177; original criteria/evidence preserved.
 
 Explicit unwaived residuals: real S3 provider not tested; maintenance freeze unsigned; repeated oversized json_result audit write error exists in185 and186 (functional smoke does not prove lossless oversized audit storage); separate Ops QA002/host-import and policy/security/production followups. Optional historical errors unchanged: evidence79/review49/packet568; no checker/allowlist/policy change. See runtime-residuals.json and original raw logs. No UI/source behavior change or visual-polish claim.
+
+Actual consumer merge: https://github.com/duanxldragon/pantheon-ops/pull/178. See hosted-consumer-merge.json, hosted-consumer-checks.json and verified-main-only.json. External Vercel preview failed; required policy unchanged. Administrative closeout CI/merge/final cleanup remain mandatory.
