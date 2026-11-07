@@ -196,5 +196,11 @@
     "planRefs": [
       ".harness/tasks/2026-11-05-base-v0183-consumption/plan.md"
     ]
+  },
+  "moduleGraphCorrection": {
+    "sourceSnapshot": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-module-review-snapshot.json",
+    "independentApproval": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-module-approval.json",
+    "validation": ".harness/evidence/2026-11-05-base-v0183-consumption/resume7-module-repair-evidence.json",
+    "fullConsumptionApproved": false
   }
 }

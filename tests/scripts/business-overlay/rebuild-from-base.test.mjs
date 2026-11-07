@@ -75,7 +75,14 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
         '  }',
         '}',
       ].join('\n'),
-      'backend/go.mod': 'module pantheon-base\n\ngo 1.24.0\n',
+      'backend/go.mod': 'module pantheon-base\n\ngo 1.24.0\n\nreplace github.com/gin-gonic/gin => ./testdeps/gin\nreplace gorm.io/gorm => ./testdeps/gorm\nreplace gorm.io/datatypes => ./testdeps/datatypes\n',
+      'backend/testdeps/gin/go.mod': 'module github.com/gin-gonic/gin\n\ngo 1.24.0\n',
+      'backend/testdeps/gin/gin.go': 'package gin\ntype RouterGroup struct{}\n',
+      'backend/testdeps/gorm/go.mod': 'module gorm.io/gorm\n\ngo 1.24.0\n',
+      'backend/testdeps/gorm/gorm.go': 'package gorm\ntype DB struct{}\n',
+      'backend/testdeps/datatypes/go.mod': 'module gorm.io/datatypes\n\ngo 1.24.0\n',
+      'backend/testdeps/datatypes/datatypes.go': 'package datatypes\n',
+      'backend/pkg/contracts/contracts.go': 'package contracts\n',
       'backend/go.sum': '',
       'backend/pkg/database/migrations/000031_foundation.up.sql': 'SELECT 31;\n',
       'backend/modules/business/business.go': 'package business\nfunc InitBusinessModules(r any, db any) {\n\tInitGeneratedBusinessModules(r, db)\n}\n',
@@ -111,7 +118,7 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
       'frontend/package.json': '{"scripts":{"test:smoke:business:cmdb":"playwright test tests/smoke/business/cmdb/pages.spec.ts"}}\n',
       'backend/modules/business/cmdb/host/migrations/000032_backfill.up.sql': 'SELECT 32;\n',
       'backend/modules/business/cmdb/host/migrations/000032_backfill.down.sql': 'SELECT 1;\n',
-      'backend/modules/business/cmdb/module.go': 'package cmdb\nimport "pantheon-ops/backend/pkg/contracts"\n',
+      'backend/modules/business/cmdb/module.go': 'package cmdb\nimport "pantheon-ops/backend/pkg/contracts"\nimport _ "gorm.io/datatypes"\n',
       'backend/modules/business/generated_registry.go': 'package business\n',
       'backend/modules/system/iam/menu/generated_component_registry.go': 'package menu\n',
       'frontend/src/modules/business/cmdb/index.ts': 'export const CmdbModule = {};\n',
@@ -140,6 +147,11 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
     assert.match(fs.readFileSync(path.join(targetRoot, 'frontend/src/i18n/resources/business/zh-CN.ts'), 'utf8'), /business\.cmdb\.title/u);
     assert.match(fs.readFileSync(path.join(targetRoot, 'frontend/src/i18n/resources/zh-CN.ts'), 'utf8'), /\.\.\.businessFallback/u);
     assert.match(fs.readFileSync(path.join(targetRoot, 'backend/go.mod'), 'utf8'), /gorm\.io\/datatypes v1\.2\.7/u);
+    for (const file of ['backend/go.mod', 'backend/go.sum']) {
+      assert.equal(first.report.ownedFiles.find(entry => entry.path === file).sha256, crypto.createHash('sha256').update(fs.readFileSync(path.join(targetRoot, file))).digest('hex'));
+    }
+    const readonly = spawnSync('go', ['list', '-buildvcs=false', '-mod=readonly', '-deps', '-test', './...'], { cwd: path.join(targetRoot, 'backend'), encoding: 'utf8' });
+    assert.equal(readonly.status, 0, readonly.stderr);
     assert.match(fs.readFileSync(path.join(targetRoot, 'frontend/tests/smoke/README.md'), 'utf8'), /`test:smoke:business:cmdb` -> `business\/cmdb\/pages\.spec\.ts`/u);
     assert.match(fs.readFileSync(path.join(targetRoot, 'frontend/scripts/cleanup-generated-modules.mjs'), 'utf8'), /BUSINESS_OVERLAY_OWNED_FILES/u);
     assert.equal(
@@ -169,6 +181,9 @@ test('rebuilds a deterministic Base snapshot with generated business registries'
     ], { encoding: 'utf8' });
     assert.equal(drift.status, 0, drift.stderr);
     assert.match(drift.stdout, /2 derived business migrations verified/u);
+    write(opsRoot, 'backend/modules/business/cmdb/broken.go', 'package cmdb\nimport _ "gorm.io/datatypes/missing"\n');
+    assert.throws(() => rebuildFixture({ opsRoot, baseRoot, targetRoot }), /Cannot normalize consumer Go dependencies/u);
+    assert.equal(fs.existsSync(path.join(targetRoot, '.business-overlay-report.json')), false);
     write(baseRoot, 'backend/pkg/database/migrations/000032_future_base.up.sql', 'SELECT 99;\n');
     assert.throws(() => rebuildFixture({ opsRoot, baseRoot, targetRoot }), /Business migration version conflicts with Base: 000032/u);
   } finally {

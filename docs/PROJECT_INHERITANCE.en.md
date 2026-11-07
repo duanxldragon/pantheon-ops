@@ -61,3 +61,9 @@ This baseline replacement is an L2 human gate. Required validation includes over
 Canonical business SQL lives under `backend/modules/business/<module>/.../migrations/`, with six-digit versions and paired `.up.sql` / `.down.sql` files. `businessMigrations` explicitly lists sources covered by `businessPaths`. The Ops rebuilder derives the fixed `backend/pkg/database/migrations/` destinations and records them as generated files, retaining the Base startup migration failure behavior.
 
 Business ownership cannot claim `backend/pkg/database` or arbitrary destinations. Missing pairs, duplicate versions/directions, invalid sources and Base version collisions fail reconstruction. Only unpublished business migrations may be renumbered; published migration collisions require a separately designed compatibility upgrade. The unpublished host-state backfill uses `000032`; Base retains `000031`.
+
+## 9. Go dependency graph assembly
+
+After adding `goDependencies` to the official Base snapshot, reconstruction loads the complete package and test dependency graph before hashing the output report. The normalized `backend/go.mod` and `go.sum` are generated files; missing packages, checksums or loading errors abort reconstruction without a success report.
+
+Validate the emitted tree directly with `go list -buildvcs=false -mod=readonly -deps -test ./...` and applicable builds/tests. Do not repair module files with `-mod=mod` during acceptance. Verified release assets and the root lock identify archive provenance; enclosing-repository VCS stamping is disabled. Insufficient offline caches must be populated before rebuilding, rather than skipping dependency validation. Official release and full race/business-smoke gates still apply.

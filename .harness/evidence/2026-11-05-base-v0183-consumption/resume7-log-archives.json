@@ -1,0 +1,59 @@
+{
+  "format": "gzip preserves original raw bytes including failed first normalization/VCS attempt",
+  "files": [
+    {
+      "originalLog": "resume7-before-module-readonly.log",
+      "originalSha256": "94ecc7c783da53ce5aa100892c327134cef9e2d81328edf3715ce58dd2c1fb19",
+      "archive": "resume7-before-module-readonly.log.gz",
+      "archiveSha256": "ffc484e8fa6c3fad042e122920c77448a5bb250b7d50ea750eeecf4ee1d2cb68"
+    },
+    {
+      "originalLog": "resume7-business-overlay-tests-final.log",
+      "originalSha256": "420d01ac38643594009d26a83cce1362d66b302d4e5cf28d85582262788bf414",
+      "archive": "resume7-business-overlay-tests-final.log.gz",
+      "archiveSha256": "b7578953c2cd55eec6a3e99fc0897cd56aad02e0937b118dd40911edda20958b"
+    },
+    {
+      "originalLog": "resume7-official-rebuild-corrected.log",
+      "originalSha256": "10ed0d202d367e6fad6ae7f88fc7661950b68f41bd37ab209e2ca23f6387d369",
+      "archive": "resume7-official-rebuild-corrected.log.gz",
+      "archiveSha256": "9059fe8c5a142299cf626b0991e5fb315a456c20f39972d554c7c7eefbe378b8"
+    },
+    {
+      "originalLog": "resume7-after-module-readonly.log",
+      "originalSha256": "8828e30d7b4b65f74e2dda4229cf7eb916706fb9ce35b92a89541233fda30a7c",
+      "archive": "resume7-after-module-readonly.log.gz",
+      "archiveSha256": "d2d27249acade6480c6e1aadf733f2e1bfeb5d256d3029cbbc708c2cce944966"
+    },
+    {
+      "originalLog": "resume7-after-module-build.log",
+      "originalSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": "resume7-after-module-build.log.gz",
+      "archiveSha256": "46b50c321b39e89a491b6727a01628c34245605a30beb3e7414c5e01cff90e6e"
+    },
+    {
+      "originalLog": "resume7-shared-drift.log",
+      "originalSha256": "6fc33e24bebf885fe2939ac5657b08d1ccc4868363fdc1f6c6ea886e9c4ea821",
+      "archive": "resume7-shared-drift.log.gz",
+      "archiveSha256": "eb10e706c44673bff349bad16e55b83d5991b2cef2a3e9e770d2e5159170a32b"
+    },
+    {
+      "originalLog": "resume7-overlay-check.log",
+      "originalSha256": "c800d62c17f357c521ba30733390a57b541b27f7f7515e835ffb39343ef5a6e4",
+      "archive": "resume7-overlay-check.log.gz",
+      "archiveSha256": "95dbe9730d300a16f5d1de631f5ef113a2751c48af2a464df069ce3260a653b8"
+    },
+    {
+      "originalLog": "resume7-official-rebuild.log",
+      "originalSha256": "283e727e68a0dae328c536795309fa14cf5966932bf09c93690c8da93b703fbb",
+      "archive": "resume7-official-rebuild.log.gz",
+      "archiveSha256": "67dc7954f3ca8b0cc5a54d80b05205e8eef68955ce2621a47676ff397f9970ad"
+    },
+    {
+      "originalLog": "resume7-graph-test-before.log",
+      "originalSha256": "7143e62a90d62322329640ee7812aaaef403b8f747d4a0f461de6a107df9042a",
+      "archive": "resume7-graph-test-before.log.gz",
+      "archiveSha256": "f4258863c70541773ad1e3c6018170eba1130d223fdce80a39f3dc62f84f83b5"
+    }
+  ]
+}
