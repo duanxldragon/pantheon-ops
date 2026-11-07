@@ -48,7 +48,7 @@ test('passes when all shared files match snapshot bytes', () => {
 
   const result = runDriftCheck(opsRoot, baseRoot);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /OK shared drift check: 1 shared files identical/);
+  assert.match(result.stdout, /OK shared drift check: 1 shared files compared, 1 identical/);
 });
 
 test('fails on drifted shared file and passes once allowlisted', () => {
@@ -73,6 +73,7 @@ test('fails on drifted shared file and passes once allowlisted', () => {
   const allowed = runDriftCheck(opsRoot, baseRoot);
   assert.equal(allowed.status, 0, allowed.stderr);
   assert.match(allowed.stdout, /ALLOWED_DRIFT backend\/pkg\/shared\.go/);
+  assert.match(allowed.stdout, /1 shared files compared, 0 identical to base, 1 allowlisted drift/);
 });
 
 test('excludes business overlay paths from comparison', () => {
@@ -93,7 +94,7 @@ test('excludes business overlay paths from comparison', () => {
 
   const result = runDriftCheck(opsRoot, baseRoot);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /OK shared drift check: 1 shared files identical/);
+  assert.match(result.stdout, /OK shared drift check: 1 shared files compared, 1 identical/);
 });
 
 test('fails loudly when the lock declares no sharedPaths', () => {
@@ -170,7 +171,7 @@ test('accepts only byte-identical derived business migration targets', (t) => {
   const { baseRoot, opsRoot } = migrationFixture(t);
   const result = runDriftCheck(opsRoot, baseRoot);
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /1 shared files identical to base/);
+  assert.match(result.stdout, /1 shared files compared, 1 identical to base/);
   assert.match(result.stdout, /2 derived business migrations verified/);
 });
 

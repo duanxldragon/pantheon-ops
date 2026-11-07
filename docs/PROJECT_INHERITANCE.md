@@ -85,3 +85,9 @@ npm run check:shared-drift -- --root .tmp/clean-base-overlay
 业务 SQL 的唯一源文件位于 `backend/modules/business/<module>/.../migrations/`，使用六位编号与配对的 `.up.sql` / `.down.sql`。`businessMigrations` 显式列出这些源文件；来源必须属于已声明的 `businessPaths`。重建器把它们装配到固定的 `backend/pkg/database/migrations/`，并记录为生成文件，沿用 Base 的启动迁移失败处理。
 
 不允许业务清单直接拥有 `backend/pkg/database`，也不允许指定任意目标路径。缺少配对、重复版本/方向、非法来源或与 Base 迁移编号冲突都会中止重建。新增 Base 版本占用业务编号时，只能调整尚未发布的业务迁移；已发布迁移不可重编号，必须另行设计兼容升级。当前未发布 host-state 回填使用 `000032`，Base 保留 `000031`。
+
+## 9. Go 依赖图装配
+
+重建器将 `goDependencies` 加入正式 Base 快照后，在生成文件哈希报告前执行 Go 的完整包与测试依赖加载。归一化产出的 `backend/go.mod` / `go.sum` 作为生成文件记录；缺少包、校验和或加载失败会中止重建，不生成成功报告。
+
+暂存树必须直接通过 `go list -buildvcs=false -mod=readonly -deps -test ./...` 及适用构建/测试，不能在验收期间临时使用 `-mod=mod` 修补依赖。归档快照通过已校验 release/lock 记录来源，不读取外围仓库的 VCS stamp。离线缓存不足时补齐所需依赖后重建；不能跳过加载检查。正式发行与完整 race/业务 smoke 门禁继续适用。

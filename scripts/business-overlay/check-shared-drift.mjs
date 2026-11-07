@@ -144,7 +144,7 @@ export function checkSharedDrift({ root, snapshot, group = 'all' }) {
 
     console.error(`FAIL shared drift check: ${unexpectedModified.length} modified, ${unexpectedMissing.length} missing in base, ${staleAllowlist.length} stale allowlist (${comparedFiles} shared files compared, ${skippedBusinessFiles} business-overlay files skipped, ${derivedMigrations.size} derived business migrations verified, base=${base})`);
   } else {
-    console.log(`OK shared drift check: ${comparedFiles} shared files identical to base, ${matchedAllowlist.size} allowlisted drift, ${skippedBusinessFiles} business-overlay files skipped, ${derivedMigrations.size} derived business migrations verified (base=${base})`);
+    console.log(`OK shared drift check: ${comparedFiles} shared files compared, ${comparedFiles - modified.length - missingInBase.length} identical to base, ${matchedAllowlist.size} allowlisted drift, ${skippedBusinessFiles} business-overlay files skipped, ${derivedMigrations.size} derived business migrations verified (base=${base})`);
   }
 
   return failed > 0 ? 1 : 0;

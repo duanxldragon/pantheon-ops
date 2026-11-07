@@ -1,0 +1,52 @@
+{
+  "recordedAt": "2026-11-07T01:14:00.910Z",
+  "snapshotSha256": "74c831cfbb5d27cb097aa785fae74a1b94451d679e144616588d3ae75ef10b80",
+  "reviews": [
+    {
+      "lane": "code-reviewer",
+      "file": "resume7-module-code-reviewer.md",
+      "sha256": "916c27e443bde16c9ca9c5d9bc1ab78dad99ae8228cdfed9b818bca04d807505",
+      "verdict": "APPROVE",
+      "approvalScope": "bounded-consumer-module-repair-only"
+    },
+    {
+      "lane": "architect",
+      "file": "resume7-module-architect.md",
+      "sha256": "45f3a511c5549240d77573e35c3f78bc3874c6a1eeb994708b8ee571501ba2ca",
+      "verdict": "APPROVE",
+      "approvalScope": "bounded-consumer-module-repair-only"
+    }
+  ],
+  "approvalScope": "bounded-consumer-module-repair-only",
+  "sourcePaths": [
+    {
+      "path": "scripts/business-overlay/rebuild-from-base.mjs",
+      "sha256": "f9609bf0a0ae9a41d1071bdaaced61d619a8d47d04325bed74d2e783acd2b776"
+    },
+    {
+      "path": "scripts/business-overlay/check-shared-drift.mjs",
+      "sha256": "b60ceb39cb309761d928252da22442e4c05ee507f85f199cc7a17b92b469c085"
+    },
+    {
+      "path": "tests/scripts/business-overlay/rebuild-from-base.test.mjs",
+      "sha256": "4d95d698e2ed5b84f7b36f5efaf91efb98151ad921b4f45d6d290adda1d9f448"
+    },
+    {
+      "path": "tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "sha256": "026c1c5836b3be38dec7825c8690541c2084bb28ad1210f4902f60c94eae8070"
+    },
+    {
+      "path": "tests/scripts/business-overlay/normalize-go-dependencies.test.mjs",
+      "sha256": "b40a160fbb56b6b9ec4165e17c8c6be2b1eccfa7939153da1add1bd375797aab"
+    },
+    {
+      "path": "docs/PROJECT_INHERITANCE.md",
+      "sha256": "9319b36872789b37bcbaa46407c7f68d00a6b6ae9adedc3cfbbd482d0f008a3c"
+    },
+    {
+      "path": "docs/PROJECT_INHERITANCE.en.md",
+      "sha256": "9315479677701bd2e3d1ca25eb2ec17ac51e69cf915c6e5c229ac8383d800fc6"
+    }
+  ],
+  "fullConsumptionApproved": false
+}

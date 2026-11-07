@@ -1,0 +1,37 @@
+{
+  "recordedAt": "2026-11-07T01:04:34.799Z",
+  "opsRoot": "D:/workspace/go/pantheon-platform/pantheon-ops",
+  "sourcePaths": [
+    {
+      "path": "scripts/business-overlay/rebuild-from-base.mjs",
+      "sha256": "f9609bf0a0ae9a41d1071bdaaced61d619a8d47d04325bed74d2e783acd2b776"
+    },
+    {
+      "path": "scripts/business-overlay/check-shared-drift.mjs",
+      "sha256": "b60ceb39cb309761d928252da22442e4c05ee507f85f199cc7a17b92b469c085"
+    },
+    {
+      "path": "tests/scripts/business-overlay/rebuild-from-base.test.mjs",
+      "sha256": "4d95d698e2ed5b84f7b36f5efaf91efb98151ad921b4f45d6d290adda1d9f448"
+    },
+    {
+      "path": "tests/scripts/business-overlay/check-shared-drift.test.mjs",
+      "sha256": "026c1c5836b3be38dec7825c8690541c2084bb28ad1210f4902f60c94eae8070"
+    },
+    {
+      "path": "tests/scripts/business-overlay/normalize-go-dependencies.test.mjs",
+      "sha256": "b40a160fbb56b6b9ec4165e17c8c6be2b1eccfa7939153da1add1bd375797aab"
+    },
+    {
+      "path": "docs/PROJECT_INHERITANCE.md",
+      "sha256": "9319b36872789b37bcbaa46407c7f68d00a6b6ae9adedc3cfbbd482d0f008a3c"
+    },
+    {
+      "path": "docs/PROJECT_INHERITANCE.en.md",
+      "sha256": "9315479677701bd2e3d1ca25eb2ec17ac51e69cf915c6e5c229ac8383d800fc6"
+    }
+  ],
+  "evidencePath": ".harness/evidence/2026-11-05-base-freeze-release/resume7-module-repair-evidence.json",
+  "evidenceSha256": "da3e8cd52a3f49469e325aa80be9d6a8324d893a58d1277a8768f36fa49500ac",
+  "postReviewUpdates": "Only actual report/evidence references and original task status summaries; do not weaken full-race/release requirements"
+}

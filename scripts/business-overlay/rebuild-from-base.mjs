@@ -532,6 +532,19 @@ function mergeGoDependencies(opsRoot, targetRoot, manifest) {
   return ['backend/go.mod', 'backend/go.sum'];
 }
 
+export function normalizeGoDependencies(targetRoot) {
+  const result = spawnSync('go', ['list', '-buildvcs=false', '-mod=mod', '-deps', '-test', './...'], {
+    cwd: path.join(targetRoot, 'backend'),
+    encoding: 'utf8',
+    stdio: ['ignore', 'ignore', 'pipe'],
+  });
+  if (result.status !== 0) {
+    throw new Error('Cannot normalize consumer Go dependencies: ' +
+      (result.error?.message || result.stderr?.trim() || 'go list failed'));
+  }
+  return ['backend/go.mod', 'backend/go.sum'];
+}
+
 function fileHash(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
@@ -591,6 +604,9 @@ export function assembleConsumerTree({ opsRoot = defaultOpsRoot, snapshot, targe
   generated.push('package.json', 'frontend/package.json');
   generated.push(...wireBusinessSmokeCoverage(opsRoot, resolvedTarget, manifest));
   generated.push(...protectBusinessOverlayFromGeneratedCleanup(resolvedTarget, manifest));
+  if (Object.keys(manifest.goDependencies ?? {}).length > 0) {
+    generated.push(...normalizeGoDependencies(resolvedTarget));
+  }
   const report = writeReport(resolvedTarget, baseCommit, copiedBusiness, copiedRepository, rewritten, generated);
   return { targetRoot: resolvedTarget, report };
 }

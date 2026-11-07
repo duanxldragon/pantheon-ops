@@ -1,3 +1,11 @@
+# Current module graph correction2026-11-07
+
+Officialv0.18.4 consumer reconstruction previously required scratch -mod=mod changes. Rebuilder now loads complete packages/tests before reporting, includes normalized module hashes, and aborts failed loads.59 regressions pass;official rebuild829, readonly package/test graph and all-backend build pass without module changes. Drift reports826 examined/816 identical/10 allowed.
+
+[CODE](resume7-module-code-reviewer.md) and [ARCH](resume7-module-architect.md) approve the seven-path patch only; [fingerprints](resume7-module-approval.json). Full official consumer race remains required after the v0.18.5 fixture release; no test-overlay acceptance, provider/freeze approval or aggregate closure claimed. Ops owns this composition script; shared test correction remains Base-owned. No product/shared-source or root-lock override.
+
+## Historical evidence
+
 # Current consumption evidence
 
 ## 2026-11-06 当前状态（取代下文历史读数）

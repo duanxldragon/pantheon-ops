@@ -24,7 +24,8 @@
     "Root explicitly acts as scoped Generator for migration/overlay integration; independent reviewers retain approval ownership.",
     "User already authorized official release consumption. Keep main Ops tree and preexisting untracked logs until staged rebuild validates.",
     "Original task ID is retained for continuity; current final target is v0.18.4. v0.18.3 preparation approvals do not cover new consumer changes.",
-    "Network EACCES blocks official acquisition, final staged CGO race/smoke/CI and independent review; main Ops remains unchanged."
+    "Network EACCES blocks official acquisition, final staged CGO race/smoke/CI and independent review; main Ops remains unchanged.",
+    "2026-11-07 scoped module graph correction approved by both independent lanes; full official v0.18.5 consumption remains required, original acceptance unchanged."
   ],
   "verificationPlan": {
     "commands": [
@@ -51,5 +52,6 @@
   },
   "targetRelease": "pantheon-base-v0.18.4",
   "implementationStatus": "github-consumer-scripts-verified-final-release-not-consumed",
-  "reviewStatus": "new-source-awaits-independent-review-network-unavailable"
+  "reviewStatus": "new-source-awaits-independent-review-network-unavailable",
+  "moduleGraphReview": "approved-bounded-only"
 }
